@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<movie framerate="40">
+	<ScriptLimits maxRecursionDepth="1000" timeout="120" />
+	<frame>
+		<library>
+		</library>
+	</frame>
+</movie>

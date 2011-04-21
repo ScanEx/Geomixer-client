@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<script src="http://maps.kosmosnimki.ru/api/api.js" charset="windows-1251"></script>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>GeoMixer API - добавление объектов на карту</title>
+<link rel="stylesheet" href="style_geo_help.css" type="text/css" />
+<link rel="stylesheet" href="default.css">
+</head>
+
+<body>
+<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></a></span></div>
+<div style="margin-left:30%; margin-top:15px; margin-bottom:15px;" class="heading">Scanex Web GeoMixer</div>
+<table width="98%">
+<tr><td colspan="3">
+  <table width="100%">
+   <tr><td>
+        <div class="in_left"><a href="admin_help.html">GeoMixer Admin<br/>(Администрирование карты и БД)</a></div>
+        </td><td>
+        <div class="in_left" ><a href="mapviewer_help.html">MapViewer Template<br/>(Шаблон просмотра карты)</a></div>
+        </td><td>                
+        <div class="in_left_current"><a href="api_start.html">&gt;&gt; MapViewer API<br/>(Программный Интерфейс управления картой)</a></div>
+        </td>
+       </tr>
+     </table>
+</td></tr>
+<tr><td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
+<div class="in_left" style="background-color:#FFF">
+<h3><a href="api_start.html">Начало использования <strong>API</strong> - загрузка Карты</a></h3><br/>
+<h3><a href="api_start2.html">Элементы пользовательского интерфейса окна Карты</a></h3>
+<br/>
+<h3><a href="api_start3.html">Добавление объектов на карту</a></h3>
+<br/>
+<h3>&gt;&gt; Геокодинг</h3>
+<br/>
+<h3><a href="api_examples.html">Дополнительные примеры</a></h3>
+</div>
+<h3 style="margin-left:8px;">Руководство пользователя Scanex Web GeoMixer:</h3>
+<div class="in_left"><a href="mapviewer_help.html"><b> MapViewer Template  (Шаблон просмотра карты)</b>  - Руководство пользователя</a></div>
+
+<div class="in_left"><a href="admin_help.html"><b> GeoMixer Admin (Администрирование карты и БД)</b>  - Руководство пользователя</a></div>
+
+</td>
+<td style="padding-right:4px;">
+<table id="content" border="0" style="background-color:#fff; margin-top:6px;" cellpadding="20" cellspacing="0"> 
+  <tr>
+    <td colspan="3" class="style1"><a name="requests"></a>Общее описание</td>
+  </tr>
+  <tr>
+    <td colspan="3"><p class="bodytext">Для того, чтобы при обращении со страницы, на которой имеется встроенная карта, искался адрес и отображался на карте, должны быть использованы функции обращения к геокодеру. Геокодер получает адрес объекта в текстовом виде и возвращает его координаты, которые затем могут быть отображены на карте в виде маркера.</p>
+         <p class="bodytext">С помощью API возможно посылать поисковые запросы к адресным геокодированным базам.</p>
+      
+      <pre><code class="avrasm">&lt;script&gt;
+	makeFlashMap(document<span class="preprocessor">.getElementById</span>(<span class="string">"map"</span>), <span class="string">"Kosmosnimki"</span>, function(map)
+	{
+		document<span class="preprocessor">.getElementById</span>(<span class="string">"search_button"</span>)<span class="preprocessor">.onclick</span> = function()
+		{
+			map<span class="preprocessor">.sendSearchRequest</span>(document<span class="preprocessor">.getElementById</span>(<span class="string">"search_string"</span>)<span class="preprocessor">.value</span>, 
+			function(results) 
+			{
+				if (results<span class="preprocessor">.length</span> &gt; <span class="number">0</span>)
+				{
+					var p = results[<span class="number">0</span>]<span class="preprocessor">.properties</span><span class="comment">;</span>
+					var <span class="built_in">x</span> = p<span class="preprocessor">.CenterPoint</span>__<span class="built_in">X</span><span class="comment">;</span>
+					var <span class="built_in">y</span> = p<span class="preprocessor">.CenterPoint</span>__<span class="built_in">Y</span><span class="comment">;</span>
+					map<span class="preprocessor">.drawing</span><span class="preprocessor">.addObject</span>({ type: <span class="string">"POINT"</span>, coordinates: [<span class="built_in">x</span>, <span class="built_in">y</span>] }, 
+			{ text: p<span class="preprocessor">.text</span> })<span class="comment">;</span>
+					map<span class="preprocessor">.moveTo</span>(<span class="built_in">x</span>, <span class="built_in">y</span>, <span class="number">4</span>)<span class="comment">;</span>
+				}
+				else
+					alert(<span class="string">"Ничего не найдено!"</span>)<span class="comment">;</span>
+			})<span class="comment">;</span>
+		}
+	})<span class="comment">;</span>
+&lt;/script&gt;</code></pre>
+
+        <input name="search" style="width:400px" id="search_string" type="text" value="Москва">&nbsp;&nbsp;<input  id="search_button" value="Поиск" type="submit">
+        <p></p>
+		<div id="map" style="width: 500px; height: 300px;"></div>
+		</td>
+
+	</tr>
+ 
+</table>
+
+</td>
+</tr>
+</table>
+<script>
+	makeFlashMap(document.getElementById("map"), "Kosmosnimki", function(map)
+	{
+		document.getElementById("search_button").onclick = function()
+		{
+			map.sendSearchRequest(document.getElementById("search_string").value, function(results) 
+			{
+				if (results.length > 0)
+				{
+					var p = results[0].properties;
+					var x = p.CenterPoint__X;
+					var y = p.CenterPoint__Y;
+					map.drawing.addObject({ type: "POINT", coordinates: [x, y] }, { text: p.text });
+					map.moveTo(x, y, 4);
+				}
+				else
+					alert("Ничего не найдено!");
+			});
+		}
+	});
+</script>
+
+</body>
+</html>

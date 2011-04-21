@@ -1,0 +1,223 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<script src="http://maps.kosmosnimki.ru/api/api.js" charset="windows-1251"></script>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>GeoMixer API - добавление объектов на карту</title>
+<link rel="stylesheet" href="style_geo_help.css" type="text/css" />
+<link rel="stylesheet" href="default.css">
+</head>
+
+<body>
+<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></a></span></div>
+<div style="margin-left:30%; margin-top:15px; margin-bottom:15px;" class="heading">Scanex Web GeoMixer</div>
+
+<table width="98%">
+<tr><td colspan="3">
+  <table width="100%">
+   <tr><td>
+        <div class="in_left"><a href="admin_help.html"> GeoMixer Admin<br/>(Администрирование карты и БД)</a></div>
+        </td><td>
+        <div class="in_left" ><a href="mapviewer_help.html"> MapViewer Template<br/>(Шаблон просмотра карты)</a></div>
+        </td><td>                
+        <div class="in_left_current"><a href="api_start.html">&gt;&gt;   MapViewer API<br/>(Программный Интерфейс управления картой)</a></div>
+        </td>
+       </tr>
+     </table>
+</td></tr>
+<tr><td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
+<div class="in_left" style="background-color:#FFF">
+<h3><a href="api_start.html">Начало использования <strong>API</strong> - загрузка Карты</a></h3><br/>
+<h3><a href="api_start2.html">Элементы пользовательского интерфейса  Карты</a></h3>
+<br/>
+<h3>&gt;&gt; Добавление объектов на карту</h3>
+<ul>
+<li><a href="#object_types">Типы объектов</a></li>
+<br/><br/>
+<li><a href="#add_objects">Добавление объектов</a></li>
+<br/><br/>
+<li><a href="#remove_objects">Удаление объектов</a></li>
+<br/><br/>
+<li><a href="#add_baloon">Отображение всплывающей подсказки (Балун)</a></li>
+<br/>
+</ul>
+<h3><a href="api_geocoding.html">Геокодинг</a></h3><br/><br/>
+<h3>См. также:</h3>
+<h3><a href="api_examples.html">Дополнительные примеры</a></h3>
+
+
+</div>
+<h3 style="margin-left:8px;">Руководство пользователя Scanex Web GeoMixer:</h3>
+<div class="in_left"><a href="mapviewer_help.html"><b> MapViewer Template  (Шаблон просмотра карты)</b>  - Руководство пользователя</a></div>
+
+<div class="in_left"><a href="admin_help.html"><b> GeoMixer Admin (Администрирование карты и БД)</b>  - Руководство пользователя</a></div>
+
+</td>
+<td style="padding-right:4px;">
+<table id="content" border="0" style="background-color:#fff; margin-top:6px;" cellpadding="20" cellspacing="0"> 
+  <tr>
+    <td colspan="3" class="style1"><a name="add_objects"></a>Типы объектов</td>
+  </tr>
+  <tr>
+    <td colspan="3"><p class="bodytext">На Карту могут быть добавлены геометрические объекты трех типов:</p>
+      <p class="bodytext"> <strong>POINT</strong></p>
+      <p class="bodytext"><strong> POLYGON </strong></p>
+      <p class="bodytext"><strong>LINESTRING</strong> </p></td>
+ </tr>
+ <tr>
+    <td colspan="3" class="style1"><a name="add_objects"></a>Добавление объектов на Карту</td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text"><span class="bodytext">
+	В данном примере используется метод <strong>map.drawing.addObject()</strong> для добавления объектов на Карту: маркера с надписью, линии и полигона. <br/>
+	С помощью метода <strong>map.drawing.forEachObject()</strong> запрашивается информация об объектах.<br/> 
+	Пример данного скрипта с использованием <strong>alert</strong>: при нажатии на кнопку выводятся координаты объектов в JSON.
+	</span>
+<pre><code class="javascript">&lt;script&gt;
+	makeFlashMap(document.getElementById(<span class="string">"map"</span>), <span class="string">"Kosmosnimki"</span>, <span class="function"><span class="keyword">function</span><span class="params">(map)</span>
+	{</span>
+	
+		map.moveTo(<span class="number">14759835</span>, <span class="number">5489396</span>, <span class="number">6</span>);
+		map.drawing.addObject({ type: <span class="string">"POINT"</span>, coordinates: [<span class="number">14754669</span>, <span class="number">5487309</span>]}, 
+ { text: <span class="string">"Привет!"</span> });
+
+		map.drawing.addObject({	type: <span class="string">"POLYGON"</span>, coordinates: 
+			[[[<span class="number">14750982</span>, <span class="number">5481599</span>],[<span class="number">14749477</span>, <span class="number">5488268</span>],
+			[<span class="number">14757923</span>, <span class="number">5493118</span>],[<span class="number">14764488</span>, <span class="number">5485905</span>], 
+			[<span class="number">14751024</span>, <span class="number">5481578</span>], [<span class="number">14750982</span>, <span class="number">5481599</span>]]]}
+		);
+		
+		map.drawing.addObject({
+			type: <span class="string">"LINESTRING"</span>, coordinates: 
+			[[<span class="number">14747377.7</span>,<span class="number">5482904.45</span>],[<span class="number">14743786.45</span>,<span class="number">5491694.9</span>],
+			[<span class="number">14748294.95</span>,<span class="number">5490548.15</span>],[<span class="number">14753722.55</span>,<span class="number">5495211.05</span>]]}
+		);
+<span class="comment">//Вывести координаты объектов </span>
+		document.getElementById(<span class="string">"coordinates_button"</span>).onclick = <span class="function"><span class="keyword">function</span><span class="params">()</span>
+		{</span>
+			<span class="keyword">var</span> a = [];
+			map.drawing.forEachObject(<span class="function"><span class="keyword">function</span><span class="params">(o)</span> {</span> a.push(o); })
+			alert(JSON.stringify(a)); 
+		}
+
+	});
+&lt;/script&gt;</code></pre>
+<br/>
+Как это выглядит:
+	<tr>
+		<td>
+		<div id="map" style="width: 500px; height: 300px;"></div>
+		</td>
+		<td align="left">
+		<button id="coordinates_button">Получить координаты</button>
+		</td>
+	</tr>
+  <tr>
+    <td colspan="3" class="style1"><a name="remove_objects"></a>Удаление объектов</td>
+  </tr>
+
+  <tr>
+    <td width="300" class="td_text"><span class="bodytext">Для удаления объектов - используйте функцию <strong>o.remove()</strong>
+    <p>
+   Например, используем данный метод, чтобы при нажатии на кнопку, удалялись объекты, нарисованные в предыдущем примере:
+    <pre><code class="javascript"><span class="comment">//Удаляем объекты</span>
+document.getElementById(<span class="string">"remove_button"</span>).onclick = <span class="function"><span class="keyword">function</span><span class="params">()</span>
+{</span> map.drawing.forEachObject(<span class="function"><span class="keyword">function</span><span class="params">(o)</span> {</span> o.remove(); }); }</code></pre>
+        </p>
+        </span>
+    </td>
+    <td align="left">
+		<button id="remove_button">Удалить объекты</button>
+	</td>
+  </tr>
+  <tr>
+    <td colspan="3" class="style1"><a name="add_baloon"></a>Отображение всплывающей подсказки (Балун)</td>
+  </tr>
+  <tr>
+    <td colspan="3" class="td_text">С помощью всплывающей подсказки удобно показывать информацию об объектах на карте.<br/>
+    Например, можно отображать содержание полей атрибутивной таблицы векторного слоя или описание слоев из которых собрана карта. При наведении курсора, будет показываться атрибутивная информация из Базы Данных. Поля атрибутивной таблицы, не содержащие значений, не показываются.<br/><br/>
+    Как пример используем функцию отображения балуна <strong>map.enablePropertiesBalloon()</strong> для карты, содержащей растровый базовый слой Landsat и векторный слой границ субъектов РФ. <p align="center">
+
+		<div id="map2" style="width: 500px; height: 300px;"></div></p>
+		</td>
+  </tr>
+   <tr>
+    <td colspan="3" class="td_text">
+      Если на карту загружено несколько слоев и требуется отображать Балун выборочно, следует указать номер слоя внутри карты или его ID в базе данных: <strong>map.layers[0].enableHoverBalloon()</strong>. <em>(Нулевой номер присваивается самому верхнему слою на карте) </em><br/><br/>
+  <table border="1" cellspacing="1" cellpadding="3" width="500">
+  <tr>
+    <td><strong>Назначение</strong></td>
+    <td><strong>Вызов функции</strong></td>
+  </tr>
+  <tr>
+    <td height="21">Отображение информации обо всех слоях карты</td>
+    <td>map.enableHoverBalloon()</td>
+  </tr>
+  <tr>
+    <td>Отображение информации о выборочном слое</td>
+    <td>map.layers[0].enableHoverBalloon()</td>
+  </tr>
+  <tr>
+    <td>Отображение информации только о векторных слоях</td>
+    <td>map.vectors.enableHoverBalloon()</td>
+  </tr>
+</table>
+<br/><br/>
+
+<a href="api_examples.html">&gt;&gt; См. дополнительные примеры</a>
+</td>
+  </tr>      
+
+</table>
+
+</td>
+</tr>
+</table>
+<script>
+	makeFlashMap(document.getElementById("map"), "Kosmosnimki", function(map)
+	{
+	
+		map.moveTo(14759835, 5489396, 6);
+		map.drawing.addObject({ type: "POINT", coordinates: [14754669, 5487309]}, 
+ { text: "Привет!" });
+
+		map.drawing.addObject({	type: "POLYGON", coordinates: 
+			[[[14750982, 5481599],[14749477, 5488268],
+			[14757923, 5493118],[14764488, 5485905], 
+			[14751024, 5481578], [14750982, 5481599]]]}
+		);
+		
+		map.drawing.addObject({
+			type: "LINESTRING", coordinates: 
+			[[14747377.7,5482904.45],[14743786.45,5491694.9],
+			[14748294.95,5490548.15],[14753722.55,5495211.05]]}
+		);
+//Выводим координаты объектов 
+		document.getElementById("coordinates_button").onclick = function()
+		{
+			var a = [];
+			map.drawing.forEachObject(function(o) { a.push(o); })
+			alert(JSON.stringify(a)); 
+		}
+//Удаляем объекты
+		document.getElementById("remove_button").onclick = function() { map.drawing.forEachObject(function(o) { o.remove(); }); }
+
+	});
+</script>
+<script>
+	makeFlashMap(document.getElementById("map2"), "44CB65F7CE8D4989B1D35121BD721C9F", function(map)
+      {
+	  map.enableHoverBalloon();
+	  //map.drawing.tools["POINT"].setVisible(false);
+	  map.drawing.tools["POLYGON"].setVisible(false);
+	  map.drawing.tools["LINESTRING"].setVisible(false);
+	  map.coordinates.setVisible(false);
+      map.scaleBar.setVisible(false);
+	  map.moveTo(4935996, 6990624, 13)
+      });
+</script>
+
+</body>
+</html>

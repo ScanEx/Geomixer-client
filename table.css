@@ -1,0 +1,68 @@
+.scrollTable
+{
+	margin: 0 0 5px 0;
+	height: 300px;
+	width: 274px;
+}
+div.tableHeader
+{
+	width: 100%;
+}
+.tableHeader table
+{
+	border-collapse: collapse;
+	width: 100%
+}
+.tableHeader td
+{
+	background: url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
+	height: 20px;
+	color: #FFFFFF;
+	text-align: center;
+}
+div.tableBody
+{
+	overflow-y: scroll;
+	height: 278px;
+	width: 294px;
+}
+.tableBody table
+{
+	border-collapse: collapse;
+	width: 98%;
+}
+
+div.tableBody tr.rowSelected td
+{
+	background-color: #D8E7F3;
+}
+
+.tableBody tr.hover td
+{
+	background-color: #DEDEDE;
+}
+
+.tableBody td
+{
+	color: #333333;
+	height: 20px;
+	border-bottom: 1px solid #D0D8DF;
+	border-top: 1px solid #D0D8DF;
+}
+.tableBody td input
+{
+	border: none;
+	background: transparent;
+}
+.tablePages
+{
+	height: 25px;
+	text-align: center;
+}
+.page
+{
+	color: #153069;
+	font-size: 13px;
+	font-weight: bold;
+	margin: 0px 2px;
+}

@@ -1,0 +1,229 @@
+﻿var nsMapCommon = function(){
+	return {
+		//options:
+		//    apiKey: String
+		//    defaultLayersVisibility: Object {mapName => visibility}
+		//    saveBaseLayers: Bool. Добавлять ли команды конструирования базовых слоёв (не работает для слоёв не из карты и без properties.title)
+		createAPIMap: function(mapName, hostName, options)
+		{
+			var id = 'flash' + Math.random(),
+				br = ($.browser.msie) ? "\n\r" : "\n",
+				mapText = "<div>" + br + "\t<div id=\"" + id + "\" style=\"width: 600px; height: 400px; overflow:hidden;\"></div>" + br;
+			
+			if ( options && options.apiKey )
+				mapText += "\t<script charset=\"windows-1251\" src=\"http://maps.kosmosnimki.ru/api/api.js?key=" + options.apiKey + "\"></script>" + br;
+			else
+				//mapText += "\t<script charset=\"windows-1251\" src=\"" + serverBase + "api/api.js?\"></script>" + br;
+				mapText += "\t<script charset=\"windows-1251\" src=\"" + getAPIHostRoot() + "api/api.js?\"></script>" + br;
+				
+			mapText += "\t<script>" + br;
+			
+			mapText += "\t\tcreateFlashMap(document.getElementById(\"" + id + "\"), \"" + hostName + "\", \"" + mapName + "\", function(map)" + br;
+			mapText += "\t\t{" + br;
+			mapText += "\t\t\tglobalFlashMap = map;" + br;
+			mapText += "\t\t\tmap.moveTo(" + globalFlashMap.getX() + ", " + globalFlashMap.getY() + ", " + globalFlashMap.getZ() + ");" + br;
+			
+			var currentBaseLayerName = globalFlashMap.getBaseLayer();
+			var baseLayersVisibility = {};
+			var baseLayersStructure = [];
+			var baseLayerNames = globalFlashMap.baseLayerControl.getBaseLayerNames();
+			
+			for (var k = 0; k < baseLayerNames.length; k++)
+			{
+				var baseLayerLayers = globalFlashMap.baseLayerControl.getBaseLayerLayers(baseLayerNames[k]);
+				for (var b = 0; b < baseLayerLayers.length; b++)
+				{
+					if (baseLayerLayers[b].objectId in baseLayersVisibility)
+						baseLayersVisibility[baseLayerLayers[b].objectId] = baseLayersVisibility[baseLayerLayers[b].objectId] || (baseLayerNames[k] == currentBaseLayerName);
+					else
+						baseLayersVisibility[baseLayerLayers[b].objectId] = baseLayerNames[k] == currentBaseLayerName;
+					
+					if (baseLayerLayers[b].properties && baseLayerLayers[b].properties.title)
+						baseLayersStructure.push ({title: baseLayerLayers[b].properties.title, baseLayer: baseLayerNames[k]});
+				}
+			}
+			
+			if (options && options.saveBaseLayers)
+				for ( var k = 0; k < baseLayersStructure.length; k++ )
+					mapText += "\t\t\tmap.layers[\"" + baseLayersStructure[k].title + "\"].setAsBaseLayer(\"" + baseLayersStructure[k].baseLayer + "\");" + br;
+			
+			if ( globalFlashMap.getBaseLayer() )
+				mapText += "\t\t\tmap.setBaseLayer(\"" + currentBaseLayerName + "\");" + br;
+			
+			mapText += "\t\t\tmap.minimizeTools();" + br;
+			
+			//по умолчанию сетка отключена
+			if ( globalFlashMap.grid.getVisibility() )
+				mapText += "\t\t\tmap.grid.setVisible(true);" + br;
+			
+			globalFlashMap.drawing.forEachObject(function(o) 
+			{
+				var elemId = 'elem' + String(Math.random()).split(".")[1];
+				var apiStyles = o.getStyle(true);
+				mapText += "\t\t\tvar " + elemId + " = map.drawing.addObject(" + JSON.stringify(o.geometry) + ", " + JSON.stringify(o.properties) + ")" +  br;
+				mapText += "\t\t\t" + elemId + ".setStyle(" + JSON.stringify(apiStyles.regular) + ", " + JSON.stringify(apiStyles.hovered) + ")" + br;
+			});
+			
+			var defaultLayersVisibility = options && options.defaultLayersVisibility ? options.defaultLayersVisibility : {};
+			
+			for (var k = 0; k < globalFlashMap.layers.length; k++)
+			{
+				var layer = globalFlashMap.layers[k];
+				var name = layer.properties.title;// || layer.properties.image;
+				var isVisible = typeof layer.isVisible == 'undefined' ? false : layer.isVisible;
+				var needUpdateAfterBaseLayers = (layer.objectId in baseLayersVisibility) && baseLayersVisibility[layer.objectId] != isVisible;
+				var needUpdateDefault = !(layer.objectId in baseLayersVisibility) && (!(layer.properties.name in defaultLayersVisibility) || defaultLayersVisibility[layer.properties.name] != isVisible);
+				if ( needUpdateAfterBaseLayers || needUpdateDefault )
+					mapText += "\t\t\tmap.layers[\"" + name + "\"].setVisible(" + isVisible + ");" +  br;
+			}
+			
+			mapText += "\t\t});" + br;
+			mapText += "\t</script>" + br + "</div>";
+			
+			return mapText;
+		},
+		
+		//options:
+		//    requestAPIKey: Bool. По умолчанию - true
+		//    requestTerms: Bool (если true, нужно указать termsURL) По умолчанию - false
+		//    termsURL: String (требует requestTerms==true) Нет значения по умолчанию
+		//    initialLayerVisibility: Object (имя слоя => видимость)
+		//    saveBaseLayers: Bool. Добавлять ли команды конструирования базовых слоёв (не работает для слоёв не из карты и без properties.title)
+		//    onBeforeGenerate: function(). Вызывается непосредственно перед генерацией кода
+		//    onAfterGenerate: function(). Вызывается непосредственно после генерации кода
+		createAPIMapDialog: function(mapName, hostName, options)
+		{
+			_translationsHash.addtext("rus", {
+    								  	"Создать" : "Создать",
+										"Получить API-ключ" : "Получить API-ключ",
+										"Введите API-ключ" : "Введите API-ключ",
+										"Код для вставки" : "Код для вставки карты",
+										"Согласен с " : "Согласен с ",
+										"Пользовательским соглашением" : "Пользовательским соглашением"
+								     });
+									 
+			_translationsHash.addtext("eng", {
+    								  	"Создать" : "Create",
+										"Получить API-ключ" : "Get API-key",
+										"Введите API-ключ" : "Enter API-key",
+										"Код для вставки" : "Embed code",
+										"Согласен с " : "Aggree with ",
+										"Пользовательским соглашением" : "Terms of usage"
+								     });
+			
+			var requestAPIKey = options && 'requestAPIKey' in options ? options.requestAPIKey : true;
+			var requestTerms = options && 'requestTerms' in options ? options.requestTerms : false;
+
+			var input = _input(null, [['dir','className','inputStyle'],['css','width','200px']]),
+				button = makeButton(_gtxt("Создать")),
+				getAPI = makeLinkButton(_gtxt("Получить API-ключ")),
+				mapTextArea = _textarea(null,[['dir','className','inputStyle'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]),
+				canvas = _div([_span([_div([_span([_t(_gtxt("Введите API-ключ"))],[['css','fontSize','12px'],['css','margin','0px 7px']]), getAPI, _div([input, button], [['css','margin','10px 0px 10px 5px']])])], [['attr', 'id', 'embedCodeControls'], ['css', 'display', 'block']]), mapTextArea]),
+				inputError = function()
+				{
+					$(input).addClass('error');
+					
+					setTimeout(function()
+					{
+						if (input)
+							$(input).removeClass('error');
+					}, 1000)
+				},
+				resize = function()
+				{
+					mapTextArea.style.height = mapTextArea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 15 + 'px';
+				},
+				boxTerms = null,
+				_this = this;
+				
+			if (requestTerms)
+			{
+				boxTerms = _checkbox(false, "checkbox");
+				var divTerms = _div([boxTerms, _span([_t(_gtxt("Согласен с "))], [['css','fontSize','12px'], ['css','marginLeft','3px']]), _a([_t(_gtxt("Пользовательским соглашением"))], [['attr', 'href', options.termsURL], ['attr', 'target', '_blank'], ['css','fontSize','12px']])], [['css', 'margin', '3px']]);
+					
+				boxTerms.onclick = function()
+				{
+					button.disabled = !this.checked;
+				}
+				
+				button.disabled = true;
+					
+				$('#embedCodeControls', canvas).append(divTerms);
+			}
+			
+			var creationOptions = {};
+			if (options && options.defaultLayersVisibility) 
+				creationOptions.defaultLayersVisibility = options.defaultLayersVisibility;
+				
+			if (options && options.saveBaseLayers)
+				creationOptions.saveBaseLayers = options.saveBaseLayers;
+				
+			var _generate = function(keyValue)
+			{
+				removeChilds(mapTextArea);
+				
+				if (keyValue)
+					creationOptions['apiKey'] = keyValue;
+				
+				if (options && options.onBeforeGenerate) options.onBeforeGenerate();
+				
+				mapTextArea.value = nsMapCommon.createAPIMap(mapName, hostName, creationOptions);
+				
+				if (options && options.onAfterGenerate) options.onAfterGenerate();
+				
+				mapTextArea.select();
+				
+				if (boxTerms) boxTerms.disabled = true;			
+			}
+			
+			if ( !requestAPIKey )
+			{
+				canvas.firstChild.style.display = 'none';
+				
+				showDialog(_gtxt("Код для вставки"), canvas, 325, 240, false, false, resize);
+				resize();
+				
+				//mapTextArea.value = nsMapCommon.createAPIMap(mapName, hostName, creationOptions);
+				//mapTextArea.select();
+				_generate();
+			}
+			else
+			{
+				getAPI.onclick = function()
+				{
+					window.open("http://account.kosmosnimki.ru", "_blank");
+				}
+				
+				input.onkeydown = function(e)
+				{
+					var evt = e || window.event;
+					if (getkey(evt) == 13) 
+					{
+						if (input.value != '')
+							_generate(input.value);
+						else
+							inputError();
+						
+						return false;
+					}
+				}
+				
+				button.onclick = function()
+				{
+					if (input.value != '')
+					{
+						_generate(input.value);
+					}
+					else
+						inputError();
+				}
+				
+				getAPI.style.marginLeft = '5px';
+				
+				showDialog(_gtxt("Код для вставки"), canvas, 325, 240, false, false, resize);
+				
+				resize();
+			}
+		}
+	};
+}();

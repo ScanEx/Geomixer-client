@@ -1,0 +1,48 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>Геопортал</title>
+<script>
+
+function sendRequest(url, callback, method)
+{
+	var xmlhttp;
+	if (typeof XMLHttpRequest != 'undefined') 
+		xmlhttp = new XMLHttpRequest();
+	else 
+		try { xmlhttp = new ActiveXObject("Msxml2.XMLHTTP"); } 
+		catch (e) { try {xmlhttp = new ActiveXObject("Microsoft.XMLHTTP"); } catch (E) {}}
+
+	xmlhttp.open(method || "GET", url, true);
+	if (method == "POST")
+	{
+		xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+		xmlhttp.setRequestHeader('Content-length', '0');
+	}
+	xmlhttp.onreadystatechange = function() { if (xmlhttp.readyState == 4) callback(xmlhttp); }
+	xmlhttp.send("");	
+}
+
+function onLoad()
+{
+	sendRequest("/TileSender.ashx?ModeKey=maps", function(xmlhttp)
+	{
+		var arr = eval(xmlhttp.responseText);
+		for (var i = 0; i < arr.length; i++)
+		{
+			var a = document.createElement("a");
+			a.innerHTML = arr[i];
+			a.href = "/?" + arr[i];
+			a.style.display = "block";
+			document.getElementById("maps").appendChild(a);
+		}
+	});
+}
+
+</script>
+</head>
+<body onload="onLoad()">
+<h1>Список карт</h1>
+<div id="maps"></div>
+</body>
+</html>

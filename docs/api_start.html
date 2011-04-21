@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<script src="http://maps.kosmosnimki.ru/api/api.js" charset="windows-1251"></script>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>GeoMixer API - начало использования - Загрузка Карты</title>
+<link rel="stylesheet" href="style_geo_help.css" type="text/css" />
+<link rel="stylesheet" href="default.css">
+</head>
+
+<body>
+<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></a></span></div>
+<div style="margin-left:30%; margin-top:15px; margin-bottom:15px;" class="heading">Scanex Web GeoMixer</div>
+<table width="98%">
+<tr><td colspan="3">
+  <table width="100%">
+   <tr><td>
+        <div class="in_left"><a href="admin_help.html">GeoMixer Admin<br/>(Администрирование карты и БД)</a></div>
+        </td><td>
+        <div class="in_left" ><a href="mapviewer_help.html">MapViewer Template<br/>(Шаблон просмотра карты)</a></div>
+        </td><td>                
+        <div class="in_left_current"><a href="api_start.html">&gt;&gt; MapViewer API<br/>(Программный Интерфейс управления картой)</a></div>
+        </td>
+       </tr>
+     </table>
+</td></tr>
+<tr><td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
+<div class="in_left" style="background-color:#FFF">
+<h3>&gt;&gt; Начало использования</h3>
+<ul>
+<li><a href="#common">Общее описание</a></li>
+<br/><br/>
+<li><a href="#data">Сведения о пространственных данных</a></li>
+<br/><br/>
+<li><a href="#api_start">Начало использования API - загрузка Карты </a> </li>
+<br/><br/>
+<li><a href="#api_multi">«Мультизагрузка» - загрузка двух и более карт на одной странице</a> </li>
+<br/><br/>
+<li><a href="#layers_load">Управление видимостью слоев</a> </li>
+<br/><br/>
+<li><a href="#events">Обработчики пользовательских событий</a> </li><br/>
+</ul>
+
+<h3><a href="api_start2.html">Элементы пользовательского интерфейса  Карты</a></h3>
+<br/>
+<h3><a href="api_start3.html">Добавление объектов на карту</a></h3>
+<br/>
+<h3><a href="api_geocoding.html">Геокодинг</a></h3>
+<br/>
+<h3><a href="api_examples.html">Дополнительные примеры</a></h3>
+<br/>
+<h3>См. также:</h3>
+&nbsp;&nbsp;<a href="api_list.html" target="_blank">Инструкция по установке GeoMixer</a>
+</div>
+<h3 style="margin-left:8px;">Руководство пользователя Scanex Web GeoMixer:</h3>
+<div class="in_left"><a href="mapviewer_help.html"><b> MapViewer Template  (Шаблон просмотра карты)</b>  - Руководство пользователя</a></div>
+
+<div class="in_left"><a href="admin_help.html"><b> GeoMixer Admin (Администрирование карты и БД)</b>  - Руководство пользователя</a></div>
+
+</td>
+
+<td style="padding-right:4px;">
+<table id="content" border="0" style="background-color:#fff; margin-top:6px;" cellpadding="20" cellspacing="0"> 
+
+  <tr>
+    <td colspan="3" class="style1"><a name="common"></a>Общее описание </td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text"><span class="bodytext"><strong>Scanex Web GeoMixer API</strong> - программный интерфейс на Java Script для вызова функций управления интерактивной картой. C его помощью можно встраивать карты, созданные в <a href="admin_help.html"><b>GeoMixer Admin</b></a>, в веб-страницы сайтов.<br/><br/>
+Специфика данного API состоит в том, что можно вызывать разные наборы слоев пространственных данных - достаточно указать название набора слоев (карты). Таким образом, на одной странице можно отобразить несколько карт, собранных из разных слоев.
+	</span></td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="style1"><a name="data"></a>Сведения о пространственных данных</td>
+  </tr>
+ 
+ 
+  <tr>
+    <td colspan="3" class="td_text"><span class="bodytext">Данный сервис использует геодезическую систему координат <strong>WGS-84</strong>. Данные записываются в равноугольную цилиндрическую проекцию <strong>Меркатора</strong> и раскладываются на сервере по слоям (см. утилиты для подготовки данных).<br/><br/> Растровые данные, подготовленные для просмотра в веб-браузере средствами API - это слой, который хранится на сервере в виде фрагментов растровых изображений, приведенных в одну проекцию и подготовленных для каждого из заданного диапазона уровней детализации карты.<br>
+Векторные данные не требуют предварительного трансформации в базовую проекцию и так же, как и растровые данные, организуются в слои, а слои - в карты, с помощью приложения <a href="admin_help.html"><b>GeoMixer Admin</b></a>.</span>
+</td>
+  </tr>
+  
+
+  <tr>
+    <td colspan="3" class="style1"><a name="api_start" id="api_start"></a>Начало использования API - загрузка Карты</td>
+  </tr>
+  <tr>
+  <td colspan="3" class="td_text"><ul>
+    <li> В заголовке страницы необходимо указать URL для доступа к файлу <strong>api.js</strong>. Например, для доступа к карте «Космоснмики» — <span class="code">&lt;script&nbsp;src=<span class="url">"http://maps.kosmosnimki.ru/api/api.js"</span> charset="windows-1251" &gt;  &lt;script&gt;<strong>*</strong></span></li>
+    <br/>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*Для корректной работы с <strong>IE6</strong> необходимо задать кодировку  <strong> &lt;charset="windows-1251"&gt;</strong> <br/>
+    <br/>
+	<li>Далее необходимо описать функцию <strong>загрузки карты</strong> на страницу. (В случае, если вы загружаете не более одной карты, загрузку можно описать по событию <strong>onLoad</strong>.)
+	</li>
+</ul>	
+<pre><code class="javascript">&lt;script&gt;
+	makeFlashMap(document.getElementById(<span class="string">"map"</span>), <span class="string">"Kosmosnimki"</span>, <span class="function"><span class="keyword">function</span><span class="params">(map)</span>
+	{</span>
+		map.moveTo(<span class="number">4191272</span>, <span class="number">7470267</span>, <span class="number">10</span>);
+	});
+&lt;/script&gt;</code></pre>
+
+<ul>
+<li><span class="code">makeFlashMap</span> - это базовый вызов карты, а <span class="code">map</span> - это <strong>Id</strong> HTML-контейнера, внутри которого будет показываться карта.</li><br/>
+<li>
+Для вызова  карты (набора слоев) следует указать ее название, в данном случае <span class="code">"Kosmosnimki"</span></li><br/>
+<li>
+Для позиционирования карты заданы координаты центра (координаты заданы в метрах Меркатора) <span class="code">map.moveTo(4191272,&nbsp;7470267,&nbsp;10)</span>. В данном примере так же выбран уровень детализации - 10. (Уровень детализации отсчитывается от самого крупного масштаба, который для карты Kosmosnimki равен 17.)</li>
+<br/>
+<li>В HTML веб-страницы, внутри тега <span class="tag">&lt;<span class="keyword">body</span>&gt;</span><span class="tag">&lt;/<span class="keyword">body</span>&gt;</span> следует встроить элемент <strong>div</strong> с заданными размерами и присвоить ему <strong>Id</strong> данной карты. Например, так: <pre><code class="html"><span class="tag">&lt;<span class="keyword">div</span><span class="attribute"> id=<span class="value">"map"</span></span><span class="attribute"> style=<span class="value">"width: 550px; height: 300px;"</span></span>&gt;</span><span class="tag">&lt;/<span class="keyword">div</span>&gt;</span></code></pre></li>
+	</ul>
+    Как это выглядит:	
+</td></tr>
+<tr><td align="center">
+  <a name="visibility"></a><div id="map" style="width: 550px; height: 300px;"></div><br/>
+      <input type="checkbox" id="checkbox" checked="checked" /> <span class="bodytext">Отключить/включить векторный слой с точками городов</span>
+    </td>
+  </tr>
+
+    <tr>
+    <td colspan="3" class="style1"><a name="api_multi"></a>«Мультизагрузка» - инициализация двух и более карт на одной странице</td>
+  </tr>
+  <tr>
+    <td colspan="3" class="td_text">Вы можете загружать на одной странице более одной карты. (Код при этом желательно вставлять в конце HTML, перед <span class="tag">&lt;/<span class="keyword">body</span>&gt;</span>)<br/>
+	Например: 
+<pre><code class="javascript">&lt;script&gt;
+      makeFlashMap(document.getElementById(<span class="string">"map2"</span>), <span class="string">"0CD53CD459F249F2B621D204B0E0F27B"</span>, <span class="function"><span class="keyword">function</span><span class="params">(map)</span>
+       {</span>	
+	   		   map.moveTo(<span class="number">4191272</span>, <span class="number">7470267</span>, <span class="number">10</span>);
+       });
+&lt;/script&gt;</code></pre>
+В данном примере загружается еще одна карта с <strong>ID</strong> <span class="code">"0CD53CD459F249F2B621D204B0E0F27B"</span>.<br/> <br/>Для нее соответственно следует зарезервировать новый html-контейнер <span class="code">"map2"</span>.    </td>
+  </tr>
+  <tr>
+    <td align="center">
+		<div id="map2" style="width: 550px; height: 300px;"></div>
+	</td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="style1"><a name="layers_load"></a>Управление видимостью слоев</td>
+  </tr>
+  <tr>
+    <td colspan="3" class="td_text">При загрузке карты загружаются все слои, из которых она составлена. При этом можно отключить отдельные слои, управляя их видимостью через API. Для того, чтобы выбрать какой-либо слой, необходимо указать его <strong>ID</strong>.<br/><br/>
+     <pre><code class="avrasm">map<span class="preprocessor">.layers</span>[<span class="string">"66081A7EDA334753B6BD1D67327DB417"</span>]<span class="preprocessor">.setVisible</span>(false)<span class="comment">;</span></code></pre>
+    Например, для первой карты с помощью данного метода реализовано управление видимостью слоя с точками городов (<a href="#visibility"><strong>см. выше</strong> ↑</a>).
+    </td>
+  </tr>
+  	  <tr>
+    <td colspan="3" class="style1"><a name="events"></a>Обработчики пользовательских событий </td>
+  </tr>
+  <tr>
+    <td colspan="3" class="td_text">С помошью данных функций можно задавать различное поведение карты при обработке пользовательских событий: для событий управления картой  и для событий рисования.<br/><br/>
+    
+<a href="api_examples.html" a target="_blank">&gt;&gt; См. дополнительные примеры</a>
+    </td>
+  </tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+<script>
+	makeFlashMap(document.getElementById("map"), "Kosmosnimki", function(map)
+	{
+		map.moveTo(4191272, 7470267, 10);
+		
+		document.getElementById("checkbox").onclick = function()
+		{
+			map.layers["66081A7EDA334753B6BD1D67327DB417"].setVisible(document.getElementById("checkbox").checked ? true : false);
+		}
+	});
+</script>
+<script>
+      makeFlashMap(document.getElementById("map2"), "0CD53CD459F249F2B621D204B0E0F27B", function(map)
+       {	
+	   		   map.moveTo(4191272, 7470267, 10);
+       });
+</script>
+</body>
+</html>

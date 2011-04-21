@@ -1,0 +1,20 @@
+-main Main
+-swf-lib resources.swf
+-swf-version 10
+-swf ../api.swf
+
+--next
+
+-main ParsersTest
+-neko ParsersTest.n
+
+--next
+
+-main ProjectiveMathTest
+-neko ProjectiveMathTest.n
+
+--next
+
+-main Uploader
+-swf-lib resources.swf
+-swf9 ../uploader.swf

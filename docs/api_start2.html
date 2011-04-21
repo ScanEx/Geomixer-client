@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<script src="http://maps.kosmosnimki.ru/api/api.js" charset="windows-1251"></script>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>GeoMixer API - Начало использования - Загрузка Карты</title>
+<link rel="stylesheet" href="style_geo_help.css" type="text/css" />
+<link rel="stylesheet" href="default.css">
+</head>
+
+<body>
+<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></a></span></div>
+<div style="margin-left:30%; margin-top:15px; margin-bottom:15px;" class="heading">Scanex Web GeoMixer</div>
+<table width="98%">
+<tr><td colspan="3">
+  <table width="100%">
+   <tr><td>
+        <div class="in_left"><a href="admin_help.html"> GeoMixer Admin<br/>(Администрирование карты и БД)</a></div>
+        </td><td>
+        <div class="in_left" ><a href="mapviewer_help.html"> MapViewer Template<br/>(Шаблон просмотра карты)</a></div>
+        </td><td>                
+        <div class="in_left_current"><a href="api_start.html">&gt;&gt;  MapViewer API<br/>(Программный Интерфейс управления картой)</a></div>
+        </td>
+       </tr>
+     </table>
+</td></tr>
+<tr><td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
+<div class="in_left" style="background-color:#FFF">
+<h3><a href="api_start.html">Начало использования <strong>API</strong> - загрузка Карты</a></h3><br/>
+<h3>&gt;&gt; Элементы пользовательского интерфейса  Карты</h3>
+<ul>
+<li><a href="#elements">Отображение элементов интерфейса</a></li>
+<br/><br/>
+<li><a href="#elements">Обозначение пользовательских инструментов в API</a></li>
+</ul>
+<h3><a href="api_start3.html">Добавление объектов на карту</a></h3>
+<br/>
+<h3><a href="api_geocoding.html">Геокодинг</a></h3>
+<br/>
+<h3><a href="api_examples.html">Дополнительные примеры</a></h3>
+</div>
+<h3 style="margin-left:8px;">Руководство пользователя Scanex Web GeoMixer:</h3>
+<div class="in_left"><a href="mapviewer_help.html"><b> MapViewer Template  (Шаблон просмотра карты)</b>  - Руководство пользователя</a></div>
+
+<div class="in_left"><a href="admin_help.html"><b> GeoMixer Admin (Администрирование карты и БД)</b>  - Руководство пользователя</a></div>
+
+</td>
+<td style="padding-right:4px;">
+<table id="content" border="0" style="background-color:#fff; margin-top:6px;" cellpadding="20" cellspacing="0"> 
+
+   <tr>
+    <td colspan="3" class="style1"><a name="common"></a>Отображение элементов интерфейса</td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text">В качестве элементов интерфейса окна Карты по умолчанию включены: 
+	<ul>
+	<li><strong>«МАСШТАБНАЯ ЛИНЕЙКА»</strong></li> <br/>
+	<li><strong>«ПОЛЬЗОВАТЕЛЬСКИЕ ИНСТРУМЕНТЫ»:</strong> <strong>управление картой и рисование</strong>; (см. <a href="#tools">«обозначение пользовательских инструментов в API»</a>)</li><br/>
+	<li><strong>«МАСШТАБНАЯ ШКАЛА»</strong></li><br/>
+    <li><strong>«КООРДИНАТЫ ЦЕНТРА КАРТЫ»</strong></li><br/>
+    <li><strong>«МИНИКАРТА»</strong></li>
+	</ul>
+	<p>
+	С помощью вызовов API можно отключать каждый из элементов.<br/>
+	В данном примере отключены инструменты линия и полигон, кроме <strong>«масштабной линейки»</strong>. Кроме того, для скорости загрузки, количество загружаемых в карту слоев ограничено двумя: растровый слой <strong>"SATELLITE"</strong> и векторный слой <strong>"CITIES"</strong> (см. <a href="api_start.html#layers_load">«управление видимостью слоев»</a>).</p>
+<pre><code class="avrasm">&lt;script&gt;
+	makeFlashMap(document<span class="preprocessor">.getElementById</span>(<span class="string">"map"</span>), <span class="string">"Kosmosnimki"</span>, function(map)
+    {
+      var layerNames = {
+			<span class="string">"C9458F2DCB754CEEACC54216C7D1EB0A"</span>: <span class="string">"satellite"</span>, 
+			<span class="string">"66081A7EDA334753B6BD1D67327DB417"</span>: <span class="string">"cities"</span>
+	  }<span class="comment">;</span>
+      for (var i = <span class="number">0</span><span class="comment">; i &lt; map.layers.length; i++)</span>
+          map<span class="preprocessor">.layers</span>[i]<span class="preprocessor">.setVisible</span>(layerNames[map<span class="preprocessor">.layers</span>[i]<span class="preprocessor">.properties</span><span class="preprocessor">.name</span>] ? true : false)<span class="comment">;</span>
+	  map<span class="preprocessor">.miniMap</span><span class="preprocessor">.setVisible</span>(true)<span class="comment">;
+//показывать миникарту</span>
+	  map<span class="preprocessor">.miniMap</span><span class="preprocessor">.addLayer</span>(map<span class="preprocessor">.layers</span>[<span class="string">"C9458F2DCB754CEEACC54216C7D1EB0A"</span>])<span class="comment">; 
+//задать ID слоя для отображение на миникарте</span>
+	  map<span class="preprocessor">.drawing</span><span class="preprocessor">.tools</span>[<span class="string">"POLYGON"</span>]<span class="preprocessor">.setVisible</span>(false)<span class="comment">;
+// отключить инструмент рисования полигонов</span>
+	  map<span class="preprocessor">.drawing</span><span class="preprocessor">.tools</span>[<span class="string">"LINESTRING"</span>]<span class="preprocessor">.setVisible</span>(false)<span class="comment">;
+// отключить инструмент рисования линий и измерения расстояний</span>
+	  map<span class="preprocessor">.coordinates</span><span class="preprocessor">.setVisible</span>(false)<span class="comment">;
+// отключить координаты</span>
+      map<span class="preprocessor">.scaleBar</span><span class="preprocessor">.setVisible</span>(false)<span class="comment">;
+// отключить масштабную шкалу</span>
+	  map<span class="preprocessor">.moveTo</span>(<span class="number">4935996</span>, <span class="number">6990624</span>, <span class="number">13</span>)
+   })<span class="comment">;</span>
+&lt;/script&gt;</code></pre>
+		<div id="map" style="width: 550px; height: 300px;"></div>
+	<p></p>
+    Размер <strong>миникарты</strong> задан в процентах и зависит от размера окна карты. В отличие от других элементов, миникарта по умолчанию не показывается.<br/>
+    <strong>Масштабную линейку</strong>, на которой отображаются уровень зума (уровень глубины просмотра слоев), отключить нельзя.
+	<tr>
+     <td colspan="3" class="style1"><a name="tools"></a><strong>Обозначение пользовательских инструментов в API:</strong>
+       </td>
+	</tr>
+    <tr>
+    <td class="td_text">
+<table cellspacing="1" cellpadding="3" width="400" border="1">
+  <tr>
+    <td width="202"><strong>Инструмент</strong></td>
+    <td width="182"><strong>Обозначение в API</strong></td>
+  </tr>
+  <tr>
+    <td>перетаскивание карты</td>
+    <td>"MOVE"</td>
+  </tr>
+  <tr>
+    <td>вырезание фрагмента</td>
+    <td>"FRAME"</td>
+  </tr>
+  <tr>
+    <td>рисование макеров</td>
+    <td>"POINT"</td>
+  </tr>
+  <tr>
+    <td>рисование линий</td>
+    <td>"LINESTRING</td>
+  </tr>
+  <tr>
+    <td>рисование полигонов</td>
+    <td>"POLYGON"</td>
+  </tr>
+</table>
+
+     </td>
+	</tr> 
+
+</table>
+
+</td>
+</tr>
+</table>
+<script>
+	makeFlashMap(document.getElementById("map"), "Kosmosnimki", function(map)
+    {
+      var layerNames = {
+			"C9458F2DCB754CEEACC54216C7D1EB0A": "satellite", 
+			"66081A7EDA334753B6BD1D67327DB417": "cities"
+	  };
+      for (var i = 0; i < map.layers.length; i++)
+          map.layers[i].setVisible(layerNames[map.layers[i].properties.name] ? true : false);
+	  map.miniMap.setVisible(true); //показывать миникарту
+	  map.miniMap.addLayer(map.layers["C9458F2DCB754CEEACC54216C7D1EB0A"]); //задать ID слоя для отображение на миникарте
+	  map.drawing.tools["POLYGON"].setVisible(false); // отключить инструмент рисования полигонов
+	  map.drawing.tools["LINESTRING"].setVisible(false); // отключить инструмент рисования линий и измерения расстояний
+	  map.coordinates.setVisible(false); // отключить координаты
+      map.scaleBar.setVisible(false); // отключить масштабную шкалу
+	  map.moveTo(4935996, 6990624, 13)
+   });
+</script>
+
+</body>
+</html>

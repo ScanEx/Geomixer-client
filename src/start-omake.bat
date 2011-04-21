@@ -1,0 +1,1 @@
+start omake -P

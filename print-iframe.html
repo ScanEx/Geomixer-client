@@ -1,0 +1,150 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>ScanEx Web Geomixer - печать карты</title>
+<style>
+* 
+{
+	color:#000000;
+	font-family:sans-serif;
+	font-size:11px;
+	margin:0;
+	padding:0;
+}
+body
+{
+	background-color:#FAFAFE;
+	padding: 0; 
+	border: 0; 
+	margin: 0; 
+	overflow: hidden;
+}
+input.btn
+{
+	cursor: pointer;
+	font-size: 12px;
+	color: #000000;
+}
+</style>
+<style type="text/css" media="print">
+input
+{
+   display: none;
+}
+</style>
+
+<script src="utilities.js"></script>
+<script src="jquery/jquery-1.3.2.min.js"></script>
+<script src="config.js"></script>
+<script src="charts.js"></script>
+<script>
+	function resize()
+	{
+		var mapParent = document.getElementById("mapParent");
+		
+		if (!mapParent.firstChild)
+			return;
+		
+		mapParent.firstChild.style.width = getWindowWidth() - 40 + 'px';
+		mapParent.firstChild.style.height = getWindowHeight() - 70 - $$('comment').offsetHeight + 'px';
+	}
+	
+	function printMap()
+	{
+		if (globalFlashMap)
+		{
+			globalFlashMap.print();
+			
+			window.print();
+		}
+	}
+	
+	function callOpener()
+	{
+		var func = window.location.search.replace("?",''),
+			state = window.opener[func](),
+			apiKeyPostfix = (('apiKey' in state) && state.apiKey) ? "?key=" + state.apiKey : "";
+			
+		var script = document.createElement("script");
+			script.setAttribute("charset", "windows-1251");
+			script.setAttribute("src","http://" + state.host + "/api/api.js" + apiKeyPostfix );
+			document.getElementsByTagName("head").item(0).appendChild(script);
+			
+		
+		
+		var interval = setInterval(function()
+		{
+			if (window.createFlashMap)
+			{
+				clearInterval(interval);
+				
+				createFlashMap(document.getElementById("mapParent").firstChild, state.host, state.mapName, function(map)
+				{
+					globalFlashMap = map;
+					map.moveTo(state.position.x, state.position.y, state.position.z);
+					
+					if (state.mode)
+						map.setBaseLayer(state.mode);
+					
+					map.minimizeTools();
+					map.grid.setVisible(state.grid);
+					
+					if (state.drawnObjects)
+					{
+						for (var i = 0; i < state.drawnObjects.length; i++)
+						{
+							var color = state.drawnObjects[i].color || 0x0000FF,
+								thickness = state.drawnObjects[i].thickness || 3,
+								opacity = state.drawnObjects[i].opacity || 80,
+								elem = map.drawing.addObject(state.drawnObjects[i].geometry, state.drawnObjects[i].properties),
+								style = {outline: {color: color, thickness: thickness, opacity: opacity }, marker: { size: 3 }, fill: { color: 0xffffff }};
+							
+							elem.setStyle(style, {outline: {color: color, thickness: thickness + 1, opacity: Math.min(100, opacity + 20)}, marker: { size: 4 }, fill: { color: 0xffffff }});
+						}
+					}
+					
+					if (!getLayers)
+						return;
+					
+					forEachLayer(getLayers(), function(layer)
+					{
+						if (typeof state.layersVisibility[layer.properties.name] != 'undefined')
+							globalFlashMap.layers[layer.properties.name].setVisible(state.layersVisibility[layer.properties.name]);
+					});
+				});
+			}
+		}, 200);
+	}
+	
+	function toggleComment()
+	{
+		if ($$('comment').style.display == 'none')
+		{
+			$$('comment').style.display = '';
+			
+			$$('toggler').value = 'Скрыть комментарий';
+		}
+		else
+		{
+			$$('comment').style.display = 'none';
+			
+			$$('toggler').value = 'Показать комментарий';
+		}
+		
+		resize();
+	}
+	
+	var globalFlashMap = false;
+	
+	window.onresize = resize;
+</script>
+</head>
+<body onload="callOpener()">
+	<div id="mapParent" style="margin:20px 20px 10px 20px ;display:block;"><div></div></div>
+	<div id="comment" style="margin:0px 20px;display:block;padding:5px 0px;"><textarea style="width:100%;height:90px;border:1px solid #999999;"></textarea></div>
+	<div style="height:30px;">
+		<input class="btn" type="submit" value="Печать" onclick="printMap()" style="margin-left:20px;padding:0px 5px;"></input>
+		<input id="toggler" class="btn" type="submit" value="Скрыть комментарий" onclick="toggleComment()" style="margin-left:20px;padding:0px 5px;"></input>
+	</div>
+</body>
+</html>

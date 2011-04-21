@@ -1,0 +1,829 @@
+*
+{
+	font-family: sans-serif;
+	font-size: 11px;
+	color: #003366;
+	padding: 0;
+	margin: 0;
+/*	background-color: transparent;*/
+}
+body 
+{
+	color: inherit;
+	background-color: #FAFAFE;
+	overflow:hidden;
+	border:none;
+}
+table
+{
+	border-collapse: collapse;
+}
+select
+{
+	background-color: #FAFAFE;
+	height: 20px;
+}
+option
+{
+	padding: 1px 0px 1px 3px;
+}
+.userCanvas
+{
+	z-index: -1;
+	left: 0px;
+	top: 30px;
+	position: absolute;
+}
+.colorSelector
+{
+	height: 18px;
+	margin: 2px;
+	position: relative;
+	width: 30px;
+	border: 1px solid #000000;
+}
+.colorIcon
+{
+	height: 13px;
+	margin: 0px 3px 0px 4px;
+	position: relative;
+	width: 9px;
+	border: none;
+	cursor: pointer;
+	font-size: 0px;
+}
+.borderIcon
+{
+	height: 11px;
+	position: absolute;
+	width: 7px;
+	border-style: solid;
+	border-width: 1px;
+	cursor: pointer;
+	font-size: 0px;
+	top: 0px;
+	left: 0px;
+}
+.fillIcon
+{
+	height: 11px;
+	margin: 0px;
+	border: none;
+	position: absolute;
+	width: 7px;
+	font-size: 0px;
+	top: 1px;
+	left: 1px;
+}
+.inputStyle
+{
+	border: 1px solid #AFC0D5;
+	background-color: #FFFFFF;
+	height: 20px;
+	padding: 2px;
+	margin: 1px 3px;
+}
+textarea.inputStyle
+{
+	padding: 0px;
+}
+.selectStyle
+{
+	border: 1px solid #AFC0D5;
+	background-color: #FFFFFF;
+	height: 20px;
+	margin: 1px 3px;
+}
+.header
+{
+	height: 95px;
+	background: #FAFAFE;
+}
+.headerLinks
+{
+	text-align: left;
+	position: relative;
+	height: 30px;
+	background-color: transparent;
+}
+.headerLinks a
+{
+	text-decoration: none;
+	color: #293D6B;
+	margin: 4 10px 0 5px;
+	font-size: 11px;
+	float: right;
+}
+.headerLinks a img
+{
+	border: none;
+	margin: 0px 3px -3px 0px;
+}
+.headerLinks a:hover
+{
+	text-decoration: underline;
+}
+div.active
+{
+	background-color: #94CAEB;
+}
+div.log
+{
+	position: absolute;
+	width: 40px;
+	top: 8px;
+	right: 10px;
+	text-align: right;
+}
+div.log span
+{
+	font-family: tahoma;
+	font-size: 13px;
+}
+div.user
+{
+	float: right;
+	text-align: right;
+	position: absolute;
+	width: 300px;
+	top: 8px;
+	right: 50px;
+	white-space: nowrap;
+	overflow: hidden;
+}
+div.user span
+{
+	color: #fc830b;
+	font-family: tahoma;
+	font-size: 13px;
+	font-weight: bold;
+}
+.leftIconPanel
+{
+	height: 35px;
+	padding-top: 1px;
+	background: url(img/grad.png) repeat-x scroll 0px -125px;
+}
+.iconPanel
+{
+	height: 35px;
+	padding-top: 1px;
+	background: url(img/grad.png) repeat-x scroll 0px -125px;
+/*	border-left: 1px solid #EDF4F6;/*#216b9c #6eb8ce*/
+}
+.searchBegin
+{
+	background: transparent url(img/searchBegin.png) no-repeat scroll 0 0;
+	border: none;
+	height: 22px;
+	width: 4px;
+	float: right;
+}
+.searchBeginOn
+{
+	background: transparent url(img/searchBeginOn.png) no-repeat scroll 0 0;
+	border: none;
+	height: 22px;
+	width: 21px;
+	float: right;
+}
+.active .searchBeginOn
+{
+	background: transparent url(img/searchBeginOn_a.png) no-repeat scroll 0 0;
+}
+.searchBeginOff
+{
+	background: transparent url(img/searchBeginOff.png) no-repeat scroll 0 0;
+	border: none;
+	height: 22px;
+	width: 21px;
+	float: right;
+}
+.active .searchBeginOff
+{
+	background: transparent url(img/searchBeginOff_a.png) no-repeat scroll 0 0;
+}
+.searchCenter
+{
+	background: transparent url(img/searchCenter.png) repeat scroll 0 0;
+	border: none;
+	margin: 0;
+	padding: 2px 0 0 0;
+	color: #999999;
+	height: 22px;
+	width: 100%;
+}
+.searchEnd
+{
+	background: transparent url(img/searchEnd.png) no-repeat scroll 0 0;
+	border: none;
+	height: 22px;
+	width: 20px;
+	float: left;
+}
+.logo
+{
+	background: transparent url(img/geomixer_transpar.png) center no-repeat;
+	height: 60px;
+	width: 360px;
+}
+
+.emptyLogo
+{
+	height: 60px;
+	width: 360px;
+}
+
+.flashMap
+{
+	position: relative;
+	border-left: 1px solid #216b9c;
+}
+.tooltip
+{
+	position: absolute;
+	border: 1px solid #5195BE;
+	background-color: #FAFAFF;
+	color: #5185AE;
+	padding: 2px;
+	z-index: 10000;
+	left: 0px;
+	top: 0px;
+	visibility: hidden;
+}
+.leftMenu
+{
+	position: absolute;
+	left: 0px;
+	top: 95px;
+	width: 360px;
+	overflow: hidden;
+}
+.leftContent
+{
+	width: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+.layerManager
+{
+	position: absolute;
+	left: 360px;
+	top: 30px;
+	width: 300px;
+	overflow: hidden;
+}
+input.error,
+textarea.error
+{
+	background-color: #FFABAB;
+}
+
+/* left menus */
+div.leftTitle
+{
+	height: 25px;
+/*	background: url(img/grad.png) repeat-x scroll 0px -126px;*/
+	background-color: #539abc;
+	width: 360px;
+	display: inline-block;
+}
+.leftTitle table
+{
+	float:left;
+}
+.leftTitle img
+{
+	width: 18px;
+	height: 18px;
+}
+.leftMenuBorder
+{
+	height: 1px;
+	background: #6CB9CE;
+}
+.left_wfs
+{
+	margin: 0px;
+	background-color: #FAFAFE;
+}
+.left_wms
+{
+	margin: 0px;
+	background-color: #FAFAFE;
+}
+
+.left_pictureBinding
+{
+	margin: 0px;
+	background-color: #edf4f6;
+}
+.left_layers
+{	
+	margin: 0px;
+	background-color: #FAFAFE;
+}
+.left_gps
+{	
+	margin: 0px;
+	background-color: #edf4f6;
+}
+.left_layerManager
+{	
+	margin: 0px;
+	background-color: #edf4f6;
+}
+.left_objects
+{	
+	margin: 0px;
+	background-color: #edf4f6;
+}
+.left_shp
+{	
+	margin: 0px;
+	background-color: #edf4f6;
+}
+.left_help
+{	
+	margin: 0px;
+	background-color: #edf4f6;
+}
+.left_search
+{
+	margin: 0px;
+	background-color: #edf4f6;
+}
+.left_usage
+{
+	margin: 0px;
+	background-color: #edf4f6;
+}
+.left_serviceHelp
+{
+	margin: 0px;
+	background-color: #edf4f6;
+}
+.left_mapTabs
+{
+	margin: 0px;
+	background-color: #edf4f6;
+}
+
+/* loadServerData */
+.serverDataCanvas
+{
+	width: 340px;
+}
+.serverDataInput
+{
+	width: 100%;
+	padding: 5px 5px 5px 5px;
+}
+.serverDataCanvas .urlHeader
+{
+	font-size: 12px;
+	margin: 1px 3px;
+}
+.serverDataCanvas .layerfeature
+{
+	margin: 3px;
+}
+
+/* binding */
+.workArea
+{
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	background-color: #FAFAFE;
+	position: relative;
+}
+
+.imgCanvas
+{
+	width: 2912px;
+	height: 1896px;
+	background-image: url(landsat.jpg)
+}
+
+.imgBoundingPoint
+{
+	width: 21px;
+	height: 27px;
+	z-index: 1;
+	position: absolute;
+	cursor: pointer;
+}
+.imgHelperPoint
+{
+	width: 21px;
+	height: 18px;
+	margin: 5px;
+	cursor: pointer;
+}
+
+/* mapLayers */
+.layer
+{
+	padding: 0px 2px 0px 4px;
+	cursor: pointer;
+	position: relative;
+}
+.groupLayer
+{
+	margin: 0px 0px 0px 4px;
+	font-weight: bold;
+	cursor: pointer;
+}
+.layerSuggest
+{
+	display: none;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	background-color: transparent;
+	z-index: 3;
+	padding-left: 5px;
+	border-right: 1px solid #BEBEBE;
+	border-bottom: 1px solid #BEBEBE;
+	background-color: #DAEAF3;
+}
+.dragableDummy
+{
+	padding: 2px 2px 2px 20px;
+	background: #7BCBF2;
+	font-family: monospace;
+	color: #123456;
+	border-right: 2px solid #ABBCCD;
+	border-bottom: 2px solid #ABBCCD;
+	z-index:100000;
+	-webkit-user-select:none;
+	cursor: move;
+}
+.droppableHover
+{
+	text-decoration: underline;
+}
+li.nodeJustChanged
+{
+	background-color: #EAF0FA;
+}
+div.swap
+{
+	height: 5px;
+}
+div.swap-droppableHover
+{
+	height: 5px;
+	background: url(img/swap.gif) no-repeat;
+}
+
+/* gps */
+div.unit
+{
+	width: 345px;
+	padding: 5px;
+	cursor: pointer;
+	width: 345px;
+}
+div.unit.selectedUnit
+{
+	background-color: #AACEF5;
+}
+.hoverUnit
+{
+	background-color: #BAD1FF;
+}
+div.unit .unitName
+{
+	font-size: 20px;
+	margin-left: 5px;
+	font-weight: bold;
+	color: #3557A9;
+}
+div.unit .unitInfo
+{
+	margin-left: 5px;
+	font-size: 12px;
+}
+
+/* layer manager */
+.searchCanvas span
+{
+	margin: 0px 5px;
+}
+.layerDescription
+{
+	margin: 0px 5px;
+	color: #7D7D8D;
+}
+.filterCanvas
+{
+	padding: 4px 0px;
+	border-bottom: 1px solid #DCDCDC;
+}
+.box
+{
+	float: left;
+}
+.icon
+{
+	float: left;
+	margin: 0px 5px -3px 5px;
+	cursor: pointer;
+}
+
+/* drawingObjects */
+.drawingObjectsCanvas
+{
+	padding: 3px 13px 3px 7px;
+}
+.drawingObjectsCanvas .canvas
+{
+	margin: 2px 0px;
+	height: 20px;
+	z-index: 1;
+	position: relative;
+}
+.drawingObjectsCanvas .title
+{
+	cursor: pointer;
+	margin: 0px 4px;
+	color: #218580;
+}
+.drawingObjectsCanvas .title:hover
+{
+	text-decoration: underline;
+}
+.drawingObjectsCanvas .text
+{
+	cursor: pointer;
+	margin: 0px 2px;
+	color: #FC830B;
+}
+.drawingObjectsCanvas .summary
+{
+	margin: 0px 2px;
+	color: #215570;
+}
+.drawingObjectsCanvas .remove,
+.serverDataCanvas .remove
+{
+	cursor: pointer;
+	height: 16px;
+	padding: 0;
+	width: 16px;
+	top: 2px;
+	right: 7px;
+	position: absolute;
+}
+.item img
+{
+	height: 13px;
+	width: 7px;
+	margin-left: 5px;
+	margin-right: 4px;
+}
+.drawingObjectsCanvas div.item
+{
+	float: left;
+	margin-right: 16px;
+}
+.drawingObjectsDownloadCanvas
+{
+	padding: 3px 5px;
+}
+.drawingObjectsDownloadCanvas div
+{
+	margin: 2px 5px;
+}
+
+/* help */
+.help
+{
+	padding: 5px 15px;
+}
+.help p,
+.help span,
+.help a
+{
+	margin: 3px 0px;
+	font-size: 12px;
+}
+.help div.helpHeader
+{
+	font-size: 14px;
+	margin: 7px 0px 2px 0px;
+	color: #153069;
+}
+
+/* search */
+.search
+{
+	padding: 5px 0px;
+}
+.searchLayerHeader
+{
+	color: #2185C0;
+	font-size: 12px;
+}
+.searchLayerHeader span
+{
+	margin-left: 10px;
+	color: #57697A;
+}
+
+span.searchElem
+{
+	cursor: pointer;
+	margin: 0px 8px 0px -4px;
+	color: #218580;
+	font-weight: bold;
+}
+span.searchElem:hover
+{
+	text-decoration: underline;
+}
+.childsCanvas
+{
+	padding-right: 10px;
+}
+.searchProperty
+{
+	margin: 0px 1px 0px 6px;
+	color: #4195B0;
+}
+
+/* */
+.attrsHelperCanvas
+{
+	cursor: pointer;
+	color: #999999;
+}
+.attrsHelper
+{
+	overflow-y: auto;
+	width: 130px;
+	height: 70px;
+	position: absolute;
+	left: -3px;
+	top: -70px;
+	border: 1px solid #AFC0D5;
+	background-color: #FFFFFF;
+}
+.attrsHelperBounding
+{
+	width: 140px;
+	height: 80px;
+	position: absolute;
+	left: -8px;
+	top: -75px;
+/*	visibility: hidden;
+	z-index: -1;*/
+}
+.attrsHelperElem
+{
+	width: 110px;
+	height: 14px;
+	padding: 2px 0px 1px 3px;
+	overflow-x: hidden;
+	white-space: nowrap;
+	cursor: pointer;
+}
+.styleTitle
+{
+	width: 70px;
+}
+.attrsHelperHover
+{
+	background-color: #91C1D2;
+}
+.block
+{
+	width: 270px;
+	height: 25px;
+	top: 0px;
+	left: 0px;
+	position: absolute;
+	background: #ABABAB;
+}
+
+.layerProperties
+{
+	width: 320px;
+}
+.layerProperties td
+{
+	height: 18px;
+	border: 1px solid #DEDEDE;
+}
+
+.fileCanvas td
+{
+	padding: 1px 2px;
+}
+.fileCanvas tbody td
+{
+	border-top: 1px solid #D0D8DF;
+	border-bottom: 1px solid #D0D8DF;
+}
+.fileCanvas .currentDir
+{
+	padding: 3px 0px 3px 5px;
+}
+.fileCanvas tr.hover td
+{
+	background-color: #DEDEDE;
+}
+.fileCanvas thead td
+{
+	background: url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
+}
+
+.vectorInfoParams
+{
+	width: 100%;
+}
+
+.vectorInfoParams td
+{
+	padding: 1px 2px;
+	border: 1px solid #CDCDCD;
+}
+
+.floatLeft
+{
+	float: left;
+}
+.floatRight
+{
+	float: right;
+}
+.contextMenu
+{
+	position:absolute;
+	z-index: 1000000;
+	background-color: #DAEAF3;
+	padding-left: 10px;
+	border-right: 1px solid #BEBEBE;
+	border-bottom: 1px solid #BEBEBE;
+	width: 120px;
+}
+.invisible,
+.invisible span,
+.invisible div,
+tr td.invisible
+{
+	color: #999999;
+}
+
+.mapAccessSuggest
+{
+	position: absolute;
+	width: 300px;
+	height: 200px;
+	border: 1px solid #999999;
+	background: #FFF;
+	top: 23px;
+	left: 0px;
+	padding: 2px;
+}
+
+.skype_pnh_print_container
+{
+	display:inline !important;
+}
+skype_pnh_container
+{
+	display:none !important;
+}
+
+.attrsTableBody td
+{
+	padding: 1px 5px 2px 5px;
+	border: 1px solid #dedede;
+	font-size: 12px;
+	font-weight: normal;
+}
+.attrsTableBody th
+{
+	background:url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
+	height:20px;
+	text-align:center;
+	padding: 1px 5px 2px 5px;
+	border: 1px solid #dedede;
+	font-size: 12px;
+	font-weight: normal;
+}
+
+.attrsTableBody .odd td
+{
+	background-color: #eaeaea;
+}
+
+.ui-autocomplete-category {
+	font-weight: bold;
+	padding: .2em .4em;
+	margin: .8em 0 .2em;
+	line-height: 1.5;
+}

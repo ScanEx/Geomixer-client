@@ -1,0 +1,228 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Scanex Web GeoMixer</title>
+<link rel="stylesheet" href="style_geo_help.css" type="text/css" />
+</head>
+
+<body>
+<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></span></div>
+<div style="margin-left:30%; margin-top:15px; margin-bottom:15px;" class="heading">Scanex Web GeoMixer</div>
+
+<table width="98%">
+<tr><td colspan="3">
+  <table width="100%">
+   <tr><td>
+        <div class="in_left"><a href="admin_help.html"> GeoMixer Admin<br/>(Администрирование карты и БД)</a></div>
+        </td><td>
+        <div class="in_left" ><a href="mapviewer_help.html"> MapViewer Template<br/>(Шаблон просмотра карты)</a></div>
+        </td><td>                
+        <div class="in_left"><a href="api_start.html">  MapViewer API<br/>(Программный Интерфейс управления картой)</a></div>
+        </td>
+       </tr>
+     </table>
+</td></tr>
+<tr>
+<td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
+<div class="in_left_txt">
+<ul>
+<li><a href="#common">Общее описание</a></li>
+<br/><br/>
+<li><a href="#comps">Компоненты системы</a></li>
+<br/><br/>
+<li><a href="#data">Сведения о пространственных данных</a></li>
+<br/><br/>
+<li><a href="#zooms">Масштабная шкала</a> </li>
+<br/><br/>
+<li><a href="#system_req">Системные требования</a></li>
+</ul>
+<br/>
+<h3>См. также:</h3>
+&nbsp;&nbsp;<a href="geomixer_setup.html" target="_blank">Инструкция по установке GeoMixer</a>
+</div>
+
+<div class="in_left"><a href="tiling_tools.html"><b>TilingTools</b>  - Набор утилит для выполнения операций с тайлами</a></div>
+</td>
+<td style="padding-right:4px;">
+<table id="content" border="0" style="background-color:#fff; margin-top:6px;" cellpadding="20" cellspacing="0"> 
+<tr>
+    <td colspan="3" class="style1"><a name="comps"></a>Общее описание</td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text"><span class="bodytext">
+    Программный продукт GeoMixer предназначен для создания геоинформационных проектов, объединяющих в себе геоданные в растровом и векторном виде. С его помощью возможно организовывать пространственные данные в наборы слоев (карты) и управлять ими с целью предоставления и оптимизации многопользовательского доступа к ним через Интернет или локальную сеть.
+   </span></td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="style1"><a name="comps"></a>Компоненты системы</td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text"><span class="bodytext">Программный продукт состоит из следующих компонент:
+        <ul>
+        
+        <p>1. <a href="admin_help.html"><b>GeoMixer Admin</b></a> -  администрирование Базы Данных, осуществляемое через веб-интерфейс: управление слоями, картами и правами пользователей <em>(подготовка исходных данных, занесение описания в БД, настройки стилей отображения слоев, авторизация и разграничение прав доступа пользователей для просмотра публикации и редактирования данных)</em></p>
+        
+        <p>2. <a href="mapviewer_help.html"><b>MapViewer Template</b></a> - шаблон веб-страницы пользователя с интерактивным окном просмотра карты и панелью управления картой, в которой отображаются список слоев и дополнительная информация          </p>        
+        
+        <p>3.  <a href="api_start.html"><b>MapViewer API</b></a> - программный интерфейс на Java Script для встраивания карт в страницы веб-сайтов</p>
+      </ul>
+    </span></td>
+  </tr>
+
+
+  
+   <tr>
+    <td colspan="3" class="style1"><a name="data"></a>Сведения о пространственных данных</td>
+  </tr>
+ 
+  <tr>
+    <td colspan="3" class="td_text">Данный сервис использует геодезическую систему координат <strong>WGS-84</strong>. Данные записываются в равноугольную цилиндрическую проекцию <strong>Меркатора</strong> и раскладываются на сервере по слоям. <br/><br/> 
+      <strong>Растровые данные</strong>, подготовленные для просмотра в веб-браузере средствами MapVIewer Template или API - это слой, который хранится на сервере в виде фрагментов растровых изображений (тайлов), приведенных в одну проекцию и подготовленных для каждого из заданного диапазона уровней детализации карты.<br>
+      <strong>Векторные данные</strong> не требуют предварительного трансформации в базовую проекцию и так же, как и растровые данные, организуются по слоям в СУБД. серверного приложения, управляемого через веб-интерфейс <a href="admin_help.html"><b>GeoMixer Admin</b></a>.
+</td>
+  </tr>
+  
+
+  
+  <tr>
+   <td colspan="3" class="style1"><a name="zooms"></a>Масштабная шкала</span> </td>
+</tr>
+<tr>
+  <td class="td_text">
+   Масштабный ряд, в котором показываются слои карты соответствует заданным значениям разрешения растровых изображений. Диапазон значений может быть задан от 0 и до максимального, в зависимости от выбранного Адмимнистратором данной карты.
+   <p>
+    Ниже приведена таблица примерного соответствия уровней детализации изображений и картографических масштабов.
+   </p>
+ <table class="table_text" border="1" align="center" cellspacing="1" cellpadding="3">
+  <tr>
+    <td valign="middle"><p><strong>Значение<br />
+            уровня<br /> детализации</strong></p></td>
+    <td valign="middle"><p><strong>Разрешение </strong><br />
+            <strong>(м/пиксел)</strong></p></td>
+    <td valign="middle"><p><strong>Масштаб</strong></p></td>
+  </tr>
+  <tr>
+    <td valign="middle" >0</td>
+    <td valign="middle">156543.0339</td>
+    <td valign="middle">М 1:500    000 000</td>
+  </tr>
+  <tr>
+    <td valign="middle">1</td>
+    <td valign="middle">78271.5169</td>
+    <td valign="middle">М 1:300    000 000</td>
+  </tr>
+  <tr>
+    <td valign="middle">2</td>
+    <td valign="middle">39135.7584</td>
+    <td valign="middle">М 1:150    000 000</td>
+  </tr>
+  <tr>
+    <td valign="middle">3</td>
+    <td valign="middle">19567.8792</td>
+    <td valign="middle">М 1:80    000 000</td>
+  </tr>
+  <tr>
+    <td valign="middle">4</td>
+    <td valign="middle">9783.9396</td>
+    <td valign="middle">М 1:40    000 000</td>
+  </tr>
+  <tr>
+    <td valign="middle">5</td>
+    <td valign="middle">4891.969810</td>
+    <td valign="middle">М 1:20    000 000</td>
+  </tr>
+  <tr>
+    <td valign="middle">6</td>
+    <td valign="middle">2445.9849051</td>
+    <td valign="middle">М 1:10    000 000</td>
+  </tr>
+  <tr>
+    <td valign="middle">7</td>
+    <td valign="middle">1222.9924525</td>
+    <td valign="middle">М 1:5    000 000</td>
+  </tr>
+  <tr>
+    <td valign="middle">8</td>
+    <td valign="middle">611.496226281</td>
+    <td valign="middle">М 1:2    500 000</td>
+  </tr>
+  <tr>
+    <td valign="middle">9</td>
+    <td valign="middle">305.748113141</td>
+    <td valign="middle">М 1:1    000 000</td>
+  </tr>
+  <tr>
+    <td valign="middle">10</td>
+    <td valign="middle">152.874056570</td>
+    <td valign="middle">М 1:500    000</td>
+  </tr>
+  <tr>
+    <td valign="middle">11</td>
+    <td valign="middle">76.437028285</td>
+    <td valign="middle">М 1:300    000</td>
+  </tr>
+  <tr>
+    <td valign="middle">12</td>
+    <td valign="middle">38.218514143</td>
+    <td valign="middle">М 1:150    000</td>
+  </tr>
+  <tr>
+    <td valign="middle">13</td>
+    <td valign="middle">19.109257071</td>
+    <td valign="middle">М 1:80    000</td>
+  </tr>
+  <tr>
+    <td valign="middle" >14</td>
+    <td valign="middle">9.554628536</td>
+    <td valign="middle" >М 1:40    000</td>
+  </tr>
+  <tr>
+    <td valign="middle" >15</td>
+    <td valign="middle">4.777314268</td>
+    <td valign="middle" >М 1:20    000</td>
+  </tr>
+  <tr>
+    <td valign="middle">16</td>
+    <td valign="middle">2.388657134</td>
+    <td valign="middle">М 1:10    000</td>
+  </tr>
+  <tr>
+    <td valign="middle">17</td>
+    <td valign="middle">1.194328567</td>
+    <td valign="middle">М 1:5000</td>
+  </tr>
+ </table>
+
+</td>
+ </tr>
+   <tr>
+    <td colspan="3" class="style1"><a name="system_req"></a>Системные требования</td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text">
+    <span class="bodytext"> 
+      Операционная система: <strong>Windows </strong></span></p>
+      <p><span class="bodytext">Web сервер:<strong> IIS</strong>. </span></p>
+      <p><span class="bodytext">Пакет программного обеспечения: 
+        </span></p>
+      <p><span class="bodytext">(Серверное) <strong>Microsoft .NET Framework 3.5.
+        MS SQL Server -2008</strong>. </span></p>
+      <p><span class="bodytext">(Клиентское) Браузер <strong>Internet Explorer, Mozilla Firefox, Opera</strong> с установленным плагином <strong>Adobe Flash Player</strong>.</span></p> 
+      <p align="center"><em>Подробнее см. <a href="geomixer_setup.html">«Инструкция по установке GeoMixer»</a></em></p>
+     </td>
+  </tr>
+ 
+ </table>
+
+</td>
+</tr>
+</table>
+
+
+</body>
+</html>

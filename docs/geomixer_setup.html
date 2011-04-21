@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>GeoMixer - инструкция по установке для ОС Windows Server 2003</title>
+<link rel="stylesheet" href="style_geo_help.css" type="text/css" />
+<link rel="stylesheet" href="default.css">
+</head>
+
+<body>
+<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></a></span></div>
+<div style="margin-left:240px; margin-top:10px; margin-bottom:20px;" class="heading">GeoMixer - инструкция по установке для ОС Windows Server 2003</div>
+ 
+ <table >
+<tr>
+<td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
+<div class="in_left_txt">
+<ul>
+<li><a href="#components">Необходимые компоненты</a></li>
+<br/><br/>
+<li><a href="#sql">Установка и настройка MS SQL Server 2008</a></li>
+<br/><br/>
+<li><a href="#setup">Установка GeoMixer</a></li>
+<br/><br/>
+<li><a href="#test">Тестирование</a></li> 
+<br/><br/>
+<li><a href="#config">Редактирование config.js (настройка шаблона карты)</a> </li>
+</ul>
+</div>
+
+</td>
+<td>
+<table id="content" width="100%" border="0" style="background-color:#fff;" cellpadding="20" cellspacing="0"> 
+
+  <tr>
+    <td colspan="3" class="style1"><a name="components"></a>Необходимые компоненты </td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text"><span class="bodytext">	
+	Для установки программы GeoMixer необходимо предварительно установить следующие компоненты:<br><br>
+		1. Microsoft (MS) IIS 6.0. <br><br>
+		2. <a href="http://www.microsoft.com/downloads/details.aspx?familyid=d0e5dea7-ac26-4ad7-b68c-fe5076bba986&displaylang=ru">Microsoft .NET Framework 3.5 with SP1</a>. Если IIS не был установлен, то сначала надо установить IIS, а потом Framework 3.5. После установки Framework 3.5. откройте IIS Manager -> Web Service Extensions и проверьте, что <a href="images/IIS_ASPNET.jpg">ASP.NET включен</a>.<br><br>
+		3. MS SQL Server 2008 Standard (Enterprise) <strong>или</strong> <a href="http://www.microsoft.com/downloads/details.aspx?FamilyId=B5D1B8C3-FDA5-4508-B0D0-1311D670E336">MS SQL Server 2008 Express with Advanced Services</a> (SQL-Express распространяется бесплатно)<br><br>
+		4. MS SMO (Shared Management Objects): SharedManagementObjects.x64.msi или SharedManagementObjects.x86.msi (в зависимости от типа ОС - либо x64, либо x86)<br><br>
+		5. MS SQL ClrTypes (SQL System Clr Types): SQLSysClrTypes.x64.msi и SQLSysClrTypes.x86.msi (обязательно обе компоненты)<br><br>
+	Комментарии. IIS 6.0 входит в стандартный дистрибутив Windows Server 2003. Компонеты 4, 5 можно скачать <a href="http://www.microsoft.com/downloads/details.aspx?FamilyId=C6C3E9EF-BA29-4A43-8D69-A2BED18FE73C&displaylang=en">здесь</a> (внизу на странице).
+	</span></td>
+  </tr>
+
+ <tr>
+    <td colspan="3" class="style1"><a name="sql"></a>Установка и настройка MS SQL Server 2008</td>
+  </tr>
+  <tr>
+	<td colspan="3" class="td_text">	
+	1. В списке устанавливаемых компонент <a href="images/SQL-FS.jpg">необходимо выбрать</a> сервис Full-Text Search и компоненту Management Tools (приложение SQL Management Studio).<br><br>
+	2. При настройке аккаунтов сервисов, входящих в MS SQL Server, для сервиса Full-Text необходимо поставить <a href="images/SQL-System.jpg">аккаунт Local System</a>.<br><br>
+	3. После установки откройте панель SQL Server Configuration Manager и проверьте, что <a href="images/SQL-ConfManager.jpg">следующие пункты стоят правильно</a>.
+	</td>
+  </tr>
+  
+  <tr>
+    <td colspan="3" class="style1"><a name="setup"></a>Установка GeoMixer</td>
+  </tr>
+  <tr>
+    <td colspan="3" class="td_text">
+	До GeoMixer необходимо установить все компоненты 1-5 (см. Необходимые компоненты)<br><br>
+	<a href="images/GM_Step1.png">Шаг 1</a>. Сначала нужно выбрать сайт, на котором будет установлено приложение. Можно выбрать существующий сайт или создать новый, в обоих случаях GeoMixer устанавливается в корень сайта.<br><br>
+	<a href="images/GM_Step2.png">Шаг 2</a>. Теперь нужно указать а) путь для установки утилит и б) путь рабочей папки для записи данных. Рекоммендация, чтобы эти пути были вне директории сайта<br><br>
+	<a href="images/GM_Step3_win.png">Шаг 3</a>. На последнем шаге настраивается подключение к SQL серверу. Возможны два варианта подключения: а) <a href="images/GM_Step3_win.png">Windows-аутентификация</a> и б) <a href="images/GM_Step3_sql.png">SQL-аутентификация</a>:<br>
+	<div style="padding:0px 0px 0px 35px">
+	а) В случае Windows-аутентификации пользователь, который устанавливает GeoMixer, должен иметь административный аккаунт на SQL сервере (роль "sysadmin" или "serveradmin")<br>
+	б) Проверьте, что на SQL сервере <a href="images/SQL-MixedMode.JPG">включен режим</a> SQL-аутентификации. А также, что соответствующий SQL-пользователь (логин и пароль, указываемые в настройках подключения) имеет административные права на SQL сервере (роль "sysadmin" или "serveradmin")<br>
+	</div>
+	В конце после всех настроек, нажмите кнопку "Готово", чтобы выполнить установку. В случае возникновения ошибки в процессе установки, скопируйте соответствующий лог-файл и пришлите нам по электронной почте.
+	</td>
+  </tr>
+  
+
+  <tr>
+    <td colspan="3" class="style1"><a name="test"></a>Тестирование</td>
+  </tr>
+  <tr>
+	<td colspan="3" class="td_text">	
+	1. Скопируйте и разархивируйте <a href="http://www.kosmosnimki.ru/downloads/TestData.zip">TestData.zip</a>.<br><br>
+	2. Открыть браузер, набрать адрес сайта (localhost, ip-адрес или url - в зависимости от настроеек). Должна появиться форма для ввода логина-пароля. Ввести: LayerManager/LayerManager.<br><br>
+	3. Зайти в "Карты", создать карту "Map1".<br><br>
+	4. Открыть карту Map1. Нажать "Добавить растровый слой" -> Имя слоя (написать "Landsat") -> Каталог с тайлами (выбрать путь к папке Landsat)->Создать.<br><br>
+	5. Нажать "Добавить векторный слой" -> Файл (выбрать файл "/Regions/RegionsRF.shp")->Создать.<br><br>
+	6. (Для просмотра карты требуется установить плагин Adobe Flash Player) Нажать "Просмотр", при этом сохранить изменения на карте -  в окне геопортала <a href="images/viewer_ex1.jpg">должны появиться два слоя</a>: мозаика Landsat и границы субъектов РФ.<br><br>
+	7. В строке поиска введите "Тверская", нажмите "Поиск" -  в результатах поиска должен появиться найденный объект.	<br/><br/>
+    <div align="center"><img src="geo_help_img/test_map.png" title="Вид тестовой карты в базовом интерфейсе"/></div>
+	</td>
+  </tr>
+  
+    <tr>
+    <td colspan="3" class="style1"><a name="config"></a>Редактирование config.js (настройка шаблона карты)</td>
+  </tr>
+  <tr>
+	<td colspan="3" class="td_text">
+      <p>Для изменения настроек базового шаблона отображения карты (<a href="mapviewer_help.html">MapViewer Tamplate</a>) откройте в текстовом редакторе файл config.js (файл содержится в директории  api, в корне вашего сайта)</p>
+<p align="center"><strong>Параметры config.js</strong></p>
+     
+     <table width="450" border="1"  align="center" cellpadding="3" cellspacing="1" style="text-align:left;">
+  <tr>
+    <td width="200"><strong>var defaultMapID = false;
+    </strong></td>
+    <td>Параметр позволяет задать ID карты, которая будет загружаться по умолчанию для данного сайта</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var mapHostName = false;</strong></td>
+    <td>Позволяет задать путь к GeoMixer, если он отличается от директории, в которую установлен сайт (например, &quot;maps.kosmosnimki.ru&quot;)</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var apiKey = false;
+    </strong></td>
+    <td>Параметр, учитывающий API-ключ при запросе за картой</td>
+  </tr>
+  
+  <tr>
+    <td width="200"><strong>var useKosmosnimkiMap = true;
+    </strong></td>
+    <td>Использование базовой подложки с сервера Kosmosnimki - включение данного параметра добавляет два базовых слоя: Снимки и Карта</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var defaultX = false;
+    </strong></td>
+    <td>Задание начальной координаты  по долготе</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var defaultY = false;
+    </strong></td>
+    <td>Задание начальной координаты по широте</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var defaultZ = false;
+    </strong></td>
+    <td>Задание начального уровня детализации карты</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var defaultPermalinkID = false;</strong></td>
+    <td>Загрузка карты по умолчанию через пермалинк <a href="mapviewer_help.html#link">(Ссылка на карту</a>): сохраненное положение карты, параметры слоев</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var canDownloadRasters = true; </strong></td>
+    <td>Включение/выключение опции «<a href="mapviewer_help.html#cut">Вырезание фрагмента растрового слоя</a>»</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var canDownloadVectors = true;</strong></td>
+    <td>Включение/выключение опции «<a href="mapviewer_help.html#vectors">Скачивание векторного слоя</a>»</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var miniMapZoomDelta = -3;</strong></td>
+    <td>Параметр определяет разницу между уровнем детализации изображения карты и изображения миникарты</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var showPropertiesBalloons = true;</strong></td>
+    <td>Включение/выключение опции отображения всплывающей подсказки (балун)</td>
+  </tr>
+  <tr>
+    <td width="200"><strong>var copyright = false;</strong></td>
+    <td>Добавление копирайтов на карту: (например, &quot;© ИТЦ СканЭкс&quot;)</td>
+  </tr>
+</table>
+	</td>
+  </tr>
+  
+ </table>
+
+</td>
+</tr>
+</table>
+</body>
+</html>

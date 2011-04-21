@@ -1,0 +1,24 @@
+<html>
+<head>
+<script>
+
+function onLoad()
+{
+	var q = window.location.search;
+	if (q.length > 1)
+	{
+		var kvp = q.substring(1, q.length).split("&");
+		for (var i in kvp) 
+			kvp[i] = kvp[i].split("=");
+		var params = {};
+		for (var j in kvp) 
+			params[kvp[j][0]] = kvp[j][1];
+		window.top[params["callbackName"]](params["text"]);
+	}
+}
+
+</script>
+</head>
+<body onload="onLoad()">
+</body>
+</html>

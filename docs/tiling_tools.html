@@ -1,0 +1,227 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>TilingTools &#8211; набор утилит для выполнения операций с тайлами</title>
+<link rel="stylesheet" href="style_geo_help.css" type="text/css" />
+<link rel="stylesheet" href="default.css">
+</head>
+
+<body>
+<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></a></span></div>
+<div style="margin-left:240px; margin-top:10px; margin-bottom:20px;" class="heading">TilingTools &#8211; набор утилит для выполнения операций с тайлами</div>
+ 
+ <table >
+<tr>
+<td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
+<div class="in_left_txt">
+<ul>
+<li><a href="#setup">Настройка</a></li>
+<br/><br/>
+<li><a href="#Warp2Merc">Warp2Merc &#8211; преобразование в проекцию Меркатора</a></li>
+<br/><br/>
+<li><a href="#ImageTiling">ImageTiling &#8211; тайлинг растровых файлов</a></li>
+<br/><br/>
+<li><a href="#MergeTiles">MergeTiles &#8211; склейка тайлов различных изображений вдоль векторной границы</a> </li>
+<br/><br/>
+<li><a href="#CopyTiles">CopyTiles	&#8211; копирование/удаление тайлов по контуру</a> </li>
+<br/><br/>
+<li><a href="#LogoStamper">LogoStamper	&#8211; нанесение защитных логотипов</a> </li>
+<br/><br/>
+<li><a href="#ImageBuilder">ImageBuilder	&#8211; склейка тайлов в растровый файл</a> </li>
+</ul>
+</div>
+
+</td>
+<td>
+<table id="content" width="100%" border="0" style="background-color:#fff;" cellpadding="20" cellspacing="0"> 
+
+  <tr>
+    <td colspan="3" class="style1"><a name="setup"></a>Настройка </td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text"><span class="bodytext">	
+	1. Для работы утилит требуется установить библиотеку FWTools версии 2.2.8. Эта библиотека входит в состав <a href="geomixer_help.html">GeoMixer</a>-а, либо ее можно <a href="http://home.gdal.org/fwtools/FWTools228.exe">скопировать с сайта FWTools</a> и установить.<br>
+	2. После установки откройте в текстовом редакторе файл GeoMixerTools.config и пропишите путь к директории FWTools.<br>	 
+	</span></td>
+  </tr>
+
+ <tr>
+    <td colspan="3" class="style1"><a name="Warp2Merc"></a>Warp2Merc &#8211; преобразование в проекцию Меркатора</td>
+  </tr>
+  <tr>
+	<td colspan="3" class="bodytext">	
+	Утилита предназначена для перепроицирования растров в проекцию Меркатора. Исходное изображение должно быть геопривязанным (привязка может содержаться в отдельном файле). На вход поддерживаются основные растровые форматы: GeoTiff (.tif), Erdas Imagine (.img), JPEG (.jpg) и т.д. Полный список поддерживаемых форматов указан <a href="http://gdal.org/formats_list.html">на сайте GDAL</a>.<br>  
+	<br>
+	Синтаксис вызова (выделены обязательные параметры):<br><br>
+	Warp2Merc [<strong>-image</strong>] [-image_out] [-proj] [-zoom]<br>
+	<br>
+	Параметры:<br>
+	<ul>
+	<li><strong>-image</strong> &#8211; полный путь к исходному изображению</li>
+	<li>-image_out &#8211; выходной файл. Значение по умолчанию: исходный файл плюс суффикс "_merc"</li>
+	<li>-proj &#8211; ссылка на проекцию исходного изображения: либо путь к файлу (например, .prj-файлу), либо строка в формате proj4. По умолчанию проекция считывается из метаданных исходного изображения (в случае, например, GeoTiff) или из файла с расширением .prj</li>
+	<li>-zoom &#8211; номер зума (1-20), в который перепроицируется исходное изображение. Рассчитывается по умолчанию в соответствии с пространственным разрешением исходного изображения</li>
+	</ul>
+	Примеры:<br>
+	<ul>
+	<li>Warp2Merc -image c:\images\input.tif</li>
+	<li>Warp2Merc -image c:\images\input.jpg (в этом случае в директории c:\images должны быть файлы: input.jgw и input.prj)</li>
+	</ul>
+	</td>
+  </tr>
+    
+	
+	
+	
+	
+  <tr>
+    <td colspan="3" class="style1"><a name="ImageTiling"></a>ImageTiling &#8211; тайлинг растровых файлов</td>
+  </tr>
+  <tr>
+	<td colspan="3" class="bodytext">	
+	Утилита предназначена для тайлинга растровых изображений, которые должны быть предварительно трансформированы в проекцию Меркатора c разрешением, соответствующим одному из масштабных уровней (зумов). Для трансформации можно использовать утилиту <a href="#Warp2Merc">Warp2Merc</a>. На вход поддерживаются основные растровые форматы: GeoTiff (.tif), Erdas Imagine (.img), JPEG (.jpg) и т.д. Полный список поддерживаемых форматов указан <a href="http://gdal.org/formats_list.html">на сайте GDAL</a>.<br>  
+	<br>
+	Синтаксис вызова (выделены обязательные параметры):<br><br>
+	ImageTiling [-bundle] [<strong>-file</strong>] [-type] [-tiles] [-zooms] [-border] [-edges] <br>
+	<br>
+	Параметры:<br>
+	<ul>
+	<li><strong>-file</strong> &#8211; полный путь к растровому файлу или к папке с растровыми файлами</li>
+	<li>-type &#8211; расширение растровых файлов. Используется если параметр -file указывает на директорию. Значение по умолчанию: tif</li>
+	<li>-bundle &#8211; параметр-флаг. Используется если параметр -file указывает на директорию. Если флаг -bundle задан, то тайлинг изображений делается с учетом их взаимных перекрытий. Флаг -bundle нужно указывать, если делается тайлинг единой мозаики, состоящей из частей с перекрытиями. Если флаг -bundle не задан, то тайлинг каждого изображения в директории делается отдельно, независимо от перекрытия с остальными изображениями</li>
+	<li>-tiles &#8211; директория для записи тайлов. Значение по умолчанию: исходный файл (или директория) плюс суффикс "_tiles"</li>
+	<li>-border &#8211; векторный файл с границей изображения или набора изображений. Поддерживаются форматы: MapInfo .tab/.mif, ESRI .shp. Граница должна быть задана в виде полигона. Значение по умолчанию: исходный файл с расширением .tab/.mif/.shp</li>
+	<li>-zooms &#8211; количество зумов. Например, если исходное изображение соответствует 14-ому зуму, а параметр -zooms равен 5, то будут сделаны зумы: 10-14.  Значение по умолчанию: номер зума, соответствующего исходному изображению. То есть, если исходное изображение соответствует 14-ому зуму, то будут сделаны зумы: 1-14 </li>
+	<li>-edges &#8211; возможные значения: intersects или within. Смысл параметра - создавать тайлы по краям изображения или нет. Значение по умолчанию: intersects</li>
+	</ul>
+	Примеры:<br>
+	<ul>
+	<li>ImageTiling -file c:\images\input.tif</li>
+	<li>ImageTiling -bundle -file c:\images</li>
+	<li>ImageTiling -bundle -file c:\images -type img -tiles c:\tiles\images_tiles</li>
+	</ul>
+	</td>
+  </tr>
+  
+  
+  
+  
+    <tr>
+    <td colspan="3" class="style1"><a name="MergeTiles"></a>MergeTiles &#8211; склейка тайлов различных изображений вдоль векторной границы</td>
+  </tr>
+  <tr>
+	<td colspan="3" class="bodytext">	
+	Вызов MergeTiles позволяет склеить тайлы различных изображений вдоль границы, заданной векторным файлом. Например, если нужно склеить тайлы различных данных в единую мозаику или сделать вклейку данных более высокого разрешения в базовую мозаику.<br> 
+	<br>
+	Синтаксис вызова (выделены обязательные параметры):<br>
+	<br>
+	MergeTiles [<strong>-tiles</strong>] [<strong>-background</strong>] [<strong>-border</strong>] [<strong>-zooms</strong>] [-offset] [-copy] [-unmerge] <br>
+	<br>
+	Параметры:<br>
+	<ul>
+	<li><strong>-tiles</strong> &#8211; путь к папке с тайлами, которые накладываются сверху</li>
+	<li><strong>-background</strong> &#8211; путь к папке с тайлами, подкладываются снизу</li>
+	<li><strong>-border</strong> &#8211; векторный файл с границей. Поддерживаются форматы: MapInfo .tab/.mif, ESRI .shp. Граница должна быть задана в виде полигона</li>
+	<li><strong>-zooms</strong> &#8211; номера зумов, которые требуется склеить</li>
+	<li>-offset &#8211; отступ от границы внутрь полигона в пикселах. По умолчанию offset=0</li>
+	<li>-copy &#8211; параметр-флаг. Если этот флаг указан, то после склейки тайлы, пересекающиеся с контуром, копируются из папки "-tiles" в папку "-background" (используется функционал утилиты <a href="#CopyTiles">CopyTiles</a>) </li>
+	<li>-unmerge &#8211; параметр-флаг. Если этот флаг указан, то производится операция обратная склейке. От граничных тайлов отрезается часть вне конутура и заполняется черным цветом (фон по умолчанию). Если -unmerge указан, то параметр -background не требуется</li>
+	</ul>
+	Примеры:<br>
+	<ul>
+	<li>Mergetiles -tiles c:\region2_tiles -background c:\region1_tiles -border c:\region2.shp -zooms 1-14</li>
+	<li>Mergetiles -tiles c:\region2_tiles -background c:\region1_tiles -border c:\region2.shp -zooms 1-14 -offset 1 -copy</li>
+	<li>MergeTiles -tiles c:\Ikonos_tiles -background c:\IRS_tils -border c:\Ikonos.shp -zooms 10-14</li>
+	</ul>
+	</td>
+  </tr>
+  
+    <tr>
+    <td colspan="3" class="style1"><a name="CopyTiles"></a>CopyTiles &#8211; копирование/удаление тайлов по контуру</td>
+  </tr>
+  <tr>
+	<td colspan="3" class="bodytext">	
+	Утилита позволяет скопировать\удалить часть тайлов из исходной папки в пределах векторного контура.<br>
+	<br>
+	Синтаксис вызова (выделены обязательные параметры):<br>
+	<br>
+	CopyTiles [<strong>-from</strong>] [<strong>-to</strong>] [<strong>-border</strong>] [<strong>-zooms</strong>] [-delete]<br>
+	<br>
+	Параметры:<br>
+	<ul>
+	<li><strong>-from</strong> &#8211; путь к исходной папке с тайлами</li>
+	<li><strong>-to</strong> &#8211; путь для записи тайлов</li>
+	<li><strong>-border</strong> &#8211; векторный файл с границей. Граница должна быть задана в виде полигона. Копируются все тайлы, пересекающиеся с заданным полигоном</li>
+	<li><strong>-zooms</strong> &#8211; номера зумов</li>
+	<li>-delete &#8211; параметр-флаг, который обозначает что при копировании тайлы удаляются из исходной папки</li>
+	</ul>
+	Примеры:<br>
+	<ul>
+	<li>CopyTiles -from c:\tiles1 -to c:\tiles2 -border c:\1.shp -zooms 1-14</li>
+	<li>CopyTiles -from c:\tiles1 -to c:\tiles2 -border c:\1.shp -zooms 1-14 -delete</li>
+	</ul>
+	</td>
+  </tr>
+  
+    <tr>
+    <td colspan="3" class="style1"><a name="LogoStamper"></a>LogoStamper	&#8211; нанесение защитных логотипов</td>
+  </tr>
+  <tr>
+	<td colspan="3" class="bodytext">	
+	LogoStamper позволяет нанести логотип на каждый тайл. Чтобы запустить утилиту нужно задать папку с тайлами, файл с изображением логотипа и коэффициент прозрачности нанесения логотипа<br>  
+	<br>
+	Синтаксис вызова (выделены обязательные параметры):<br>
+	Logostamper [<strong>-tiles</strong>] [-type] [<strong>-logo</strong>] [-opacity] <br>
+	<br>
+	Параметры:<br>
+	<ul>
+	<li><strong>-tiles</strong> &#8211; путь к папке с тайлами</li>
+	<li>-type &#8211; тип тайлов: jpg или png. по умолчанию type=jpg</li>
+	<li><strong>-logo</strong> &#8211; путь к растровому файлу с изображением логотипа. Рекомендуется выполнить логотип в виде полноцветного (24-бит) png изображения c альфа-каналом, то есть с прозрачным фоном</li>
+	<li>-opacity &#8211; коэффициент прозрачности нанесение логотипа: 0-100. Чем меньше значение, тем больше прозрачность логотипа. По умолчанию opacity=27</li>
+	</ul>
+	Примеры:<br>
+	<ul>
+	<li>Logostamper -tiles c:\tiles -logo c:\logo.png</li>
+	<li>Logostamper -tiles c:\tiles -logo c:\logo.png -opacity 50</li>
+	</ul>
+	</td>
+  </tr>
+  
+    <tr>
+    <td colspan="3" class="style1"><a name="ImageBuilder"></a>ImageBuilder &#8211; склейка тайлов в растровый файл</td>
+  </tr>
+  <tr>
+	<td colspan="3" class="bodytext">	
+	С помощью ImageBuilder можно склеить тайлы в пределах контура в единое изображение в формате jpeg или png. Это обратная операция к функции тайлинга. Максимальный размер растра на выходе ~ 16 000 х 16 000 пиксел.<br>  
+	<br>
+	Синтаксис вызова (выделены обязательные параметры):<br>
+	ImageBuilder [<strong>-tiles</strong>] [<strong>-zoom</strong>] [<strong>-file</strong>] [<strong>-border</strong>] [-type] [-tab -wld -xml -prj -map -kml]<br>
+	<br>
+	Параметры:<br>
+	<ul>
+	<li><strong>-tiles</strong> &#8211; путь к папке с тайлами</li>
+	<li><strong>-zoom</strong> &#8211; номер зума, на котором нужно склеить тайлы</li>
+	<li><strong>-file</strong> &#8211; имя файла на выходе с расширением .jpg или .png</li>
+	<li><strong>-border</strong> &#8211; груница снимка, в пределах которой нужно склеить тайлы. Границу можно задать в виде векторного файла или набора пар точек долгота, широта</li>
+	<li>-type &#8211; тап тайлов: jpg или png. Значение поу молчанию: type=jpg</li>
+	<li>-tab -wld -xml -prj -map -kml &#8211; параметры-флаги, для создания файлов привязки в форматах: MapInfo, ESRI, OziExplorer, KML</li>
+	</ul>
+	Примеры:<br>
+	<ul>
+	<li>ImageBuilder -tiles c:\tiles -zoom 14 -file c:\1.jpg -border c:\1.shp -tab -wld -xml -kml</li>
+	<li>ImageBuilder -tiles c:\tiles -zoom 14 -file c:\1.jpg -border 37.1,55.2,37.1,55.3,37.2,55.3,37.2,55.2 -tab -wld -xml -kml</li>
+	</ul>
+	</td>
+  </tr>
+    
+  
+ </table>
+
+</td>
+</tr>
+</table>
+</body>
+</html>

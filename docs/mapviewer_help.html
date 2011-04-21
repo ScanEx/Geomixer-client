@@ -1,0 +1,336 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Геопортал - инструкция пользователя</title>
+<link rel="stylesheet" href="style_geo_help.css" type="text/css" />
+</head>
+
+<body>
+<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></a></span></div>
+ <div style="margin-left:260px; margin-top:10px; margin-bottom:20px;" class="heading">MapViewer Template - Руководство пользователя</div>
+ 
+<table width="98%">
+<tr><td colspan="3">
+  <table width="100%">
+   <tr><td>
+        <div class="in_left"><a href="admin_help.html"> GeoMixer Admin<br/>(Администрирование карты и БД)</a></div>
+        </td><td>
+        <div class="in_left_current" ><a href="mapviewer_help.html">&gt;&gt; MapViewer Template<br/>(Шаблон просмотра карты)</a></div>
+        </td><td>                
+        <div class="in_left"><a href="api_start.html">  MapViewer API<br/>(Программный Интерфейс управления картой)</a></div>
+        </td>
+       </tr>
+     </table>
+</td></tr>
+<tr><td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
+<div class="in_left_txt">
+<ul>
+<li><a href="#common">Общее описание</a></li>
+<br/><br/>
+<li><a href="#elements">Перечень элементов пользовательского интерфейса</a></li>
+<br/><br/>
+<li><a href="#search_map">Поиск по карте</a></li>
+<br/><br/>
+<li><a href="#search_layers">Поиск по атрибутивной информации</a></li>
+<br/><br/>
+<li><a href="#coord">Координаты и масштаб</a></li>
+<br/><br/>
+<li><a href="#link">Ссылка на карту</a></li>
+<br/><br/>
+<li><a href="#navigation">Навигация по карте</a> </li>
+<br/><br/>
+<li><a href="#markers">Добавление маркеров</a></li>
+<br/><br/>
+<li><a href="#markers_content">Редактирование содержания маркеров</a></li>
+<br/><br/>
+<li><a href="#measure">Измерительные инструменты</a></li>
+<br/><br/>
+<li><a href="#overlays">Добавление оверлеев</a></li>
+<br/><br/>
+<li><a href="#cut">Вырезание фрагмента растрового слоя</a></li>
+<br/><br/>
+<li><a href="#vectors">Работа с векторными слоями</a></li>
+</ul>
+</div>
+<br/>
+<div class="in_left"><a href="admin_help.html"><b> GeoMixer Admin &nbsp;(Администрирование карты и БД)</b>  - Руководство пользователя</a></div>
+
+<div class="in_left"><a href="api_start.html"><b>  GeoMixer API (программный интерфейс управления картой)</b> - Руководство разработчика</a></div>
+
+</td>
+<td style="padding-right:4px;">
+<table id="content" border="0" style="background-color:#fff; margin-top:6px;" cellpadding="20" cellspacing="0"> 
+
+<tr>
+    <td colspan="3" class="style1"><a name="common"></a>Общее описание </td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text"><p class="bodytext"><strong>MapViewer Template</strong> — шаблон веб-страницы с интерактивным окном просмотра карты и информационной панелью, в которой отображается список слоев и дополнительная информация. </p>
+      <p class="bodytext"><em>NB! Для администрирования содержания карты: подключения слоев на сервере, добавления информации в Базу Данных и т.д. используется приложение <a href="admin_help.html"><b>GeoMixer Admin</b></a></em><br/>
+      </p></td>
+  </tr>
+
+<tr>
+    <td colspan="3" class="style1"><a name="elements"></a>Перечень элементов пользовательского интерфейса</td>
+ </tr>
+
+  <tr>
+    <td colspan="3" class="td_text">
+   
+  	<div align="center"><strong>Панель пользовательских инструментов</strong><br/><br/></div>
+
+<table width="350" border="1"  align="center" cellpadding="3" cellspacing="1" style="text-align:left;">
+   
+  <tr>
+    <td><img src="geo_help_img/old_tools/move_tool.png" width="22" height="22" /></td>
+    <td><a href="#navigation">Режим управления картой (включен по умолчанию)</a></td>
+  </tr>
+  <tr>
+    <td><img src="geo_help_img/old_tools/marker_tool.png" width="22" height="22" /></td>
+    <td><a href="#markers">Режим добавления маркеров</a></td>
+  </tr>
+  <tr>
+    <td><img src="geo_help_img/old_tools/measure_tool.png" width="22" height="22" /></td>
+    <td><a href="#measure">Режим измерения расстояний и рисования линий</a></td>
+  </tr>
+  <tr>
+    <td><img src="geo_help_img/old_tools/polygon_tool.png" width="22" height="22" /></td>
+    <td><a href="#measure">Режим измерения площадей и рисования полигонов</a></td>
+  </tr>
+  <tr>
+    <td><img src="geo_help_img/old_tools/frame_tool.png" width="22" height="22" /></td>
+    <td><a href="#cut">Режим вырезания фрагмента растрового изображения</a></td>
+  </tr>
+</table>
+<p>
+<div align="center"><strong>Пользовательское меню</strong><br/><br/></div></p>
+<table width="350" border="1"  align="center" cellpadding="3" cellspacing="1" style="text-align:left;">
+  <tr>
+    <td colspan="2"><img src="geo_help_img/menu_user.png" width="368" height="22" /></td>
+  </tr>  
+  <tr>
+    <td><strong>Загрузить файл</strong></td>
+    <td>Загрузка и отображение векторного файла</td>
+  </tr>
+  <tr>
+    <td><strong>Сохранить состояние карты</strong></td>
+    <td>Сохранение текущего состояния карты в виде постоянной ссылки</td>
+  </tr>
+  <tr>
+    <td><strong>Помощь</strong></td>
+    <td>Отображение краткой подсказки и ссылки на документацию</td>
+  </tr>
+</table>
+<p>
+<div align="center"><strong>Структура шаблона страницы просмотра</strong><br/><br/></div></p>
+<div align="center"><img src="geo_help_img/template.png" style="border:1px solid #213570;" width="512" height="370" /></div><br/>
+<table width="350" border="1"  align="center" cellpadding="3" cellspacing="1">
+  <tr>
+    <td width="36" class="td_template_txt">1</td>
+    <td width="293">интерактивное оконо карты</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">2</td>
+    <td>миникарта</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">3</td>
+    <td>масштаб и координаты</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">4</td>
+    <td>информационная панель</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">5</td>
+    <td>панель инструментов</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">6</td>
+    <td>переключение базовой подложки «карта-снимки»</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">7</td>
+    <td>масштабная линейка</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">8</td>
+    <td>строка поиска</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">9</td>
+    <td>пользовательское меню</td>
+  </tr>
+</table>
+
+	</td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="style1"><a name="search_map"></a>Поиск по карте </td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text"><span class="bodytext">Чтобы перецентрировать карту в точку с заданными координатами - введите значения координат в поисковой строке и выполните поиск.<br/>
+    Если к проекту подключены адресные базы данных - возможно осуществлять поиск по ним, в левой панели выводятся результаты.
+    Для отображения результатов адресного поиска в структурированном виде предварительно должна быть построена иерархия адресного поиска (такая иерархия обычно строится в соответствии со структурой аминистративного подчинения). 
+    <p>
+    Подробнее о подключении адресной базы поиска смотрите <a href="admin_help.html"><b>GeoMixer Admin</b></a>
+    </span>
+    </td>
+  </tr>
+
+  
+    <tr>
+    <td colspan="3" class="style1"><a name="search_map"></a>Поиск по атрибутивной информации </td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="td_text"><span class="bodytext">В <b>GeoMixer</b> встроена возможность поиска по <strong>атрибутивной информации векторных слоев</strong>. Для этого задайте значение в строке поиска - поиск будет произведен по всем векторным слоям, составляющим содержание данной карты. Все слои, в одном из полей атрибутивной таблицы которых встречается значение, совпадающее с указаным при поиске, отображаются в левой панели, в результатх поиска.<br/>
+    <span class="style6">NB!</span> Данный возможность предусмотрена для векторных слоев, добавленных в Базу Данных с помощью <a href="admin_help.html"><b>GeoMixer&nbsp;Admin</b></a> и не применяется к <a href="#overlays">оверлеям</a> - слоям, загружаемым на карту через пользовательский интерфейс.
+    </span></td>
+  </tr>
+
+  <tr>
+    <td colspan="3" class="style1"><a name="coord"></a>Координаты и масштаб</td>
+  </tr>
+ 
+  <tr>
+    <td colspan="3" class="td_text"> В правом нижнем углу карты отображаются <strong>координаты центра окна карты</strong>. Можно изменять формат отображения координат на: долготу-широту (в десятичном формате), градусы-минуты-секунды, метры Mercator (см. <a href="api_start.html#data">сведения о пространственных данных</a>).<br/>
+       Масштабные уровни карты дискретны и соответствуют разрешению растровых слоев на заданные уровни детализации карты с учетом выбранной проекции. Иными словами, масштаб карты изменяется приблизительно в два раза с каждым переходом на следующий уровень детализации.<br/>
+    </td>
+  </tr>
+  
+
+  <tr>
+    <td colspan="3" class="style1"><a name="link"></a>Ссылка на карту</td>
+  </tr>
+ 
+  <tr>
+    <td colspan="3" class="td_text">
+Пользователь может сохранить <strong>ссылку на текущее состояние карты</strong>. Это означает, что запоминается положение карты (координаты центра) и масштаб (уровень детализации), сохраняются все нанесенные на карту объекты: маркеры, линии, полигоны и надписи,  а также состояние слоев карты (порядок и видимость).<br/>
+Ссылка записывается в укороченном варианте и хранится в базе, как постоянная ссылка.</td>
+  </tr>
+  
+   <tr>
+    <td colspan="3" class="style1"><a name="navigation" id="navigation"></a>Список слоев</td>
+  </tr>
+  <tr>
+  <td colspan="3" class="td_text"><img src="geo_help_img/list_layers.png" style="border: 1px solid #e0e0e0;" width="200" height="146" />
+  <div class="bodytext" style="margin-left:215px; margin-top:-144px; height: 153px;">
+    В <strong>панели управления картой</strong> отображается список всех растровых и векторных слоев, загружаемых на карту. Для того, чтобы переместить положение центра карты к центру какого-либо слоя - кликните по его названию в списке. Слои отсортированы по группам, согласно структуре карты. Чтобы скрыть слой - уберите галочку в checkbox.<br/><br/>
+    Цветовые индикаторы обозначают цвет раскраски векторных слоев, который задается в стилях создателем или редактором карты.
+</div></td>
+  </tr>
+ 
+
+  <tr>
+    <td colspan="3" class="style1"><a name="navigation" id="navigation"></a>Навигация по карте, управление картой</td>
+  </tr>
+  <tr>
+  <td colspan="3" class="td_text"><img src="geo_help_img/navigation.jpg" width="190px" height="141px">
+  <div class="bodytext" style="margin-left:200px; margin-top:-144px; height: 153px;">Для перемещения перетаскивайте карту курсором при нажатой левой клавише мыши.<br/> 
+Прецентровка карты - одиночный левый клик. <br/> <br/>
+Для приближения и удаления используйте колесико мыши или кнопки <span style="font-size:150%;">«+»</span> и <span style="font-size:150%;">«–»</span> на масштабной линейке.<br><br>
+</div></td>
+  </tr>
+ 
+  
+
+ 
+
+   <tr>
+    <td colspan="3" class="style1"><a name="markers"></a>Добавление маркеров</td>
+  </tr>
+ 
+ 
+  <tr><td colspan="3" class="td_text"><img src="geo_help_img/markers.png" width="200" height="146" />
+    <div class="bodytext" style="margin-left:215px; margin-top:-144px; height: 155px;">
+      В режиме маркеров: одиночный клик по карте - добавить маркер. <br/>
+<!--Для того, чтобы поставить маркер по задаными координатами - введите значение координат в строке поиска и нажмите поиск.<br>-->
+      Клик по маркеру - добавить надпись, следующий клик - скрыть надпись. Двойной клик по маркеру - удалить маркер. <br>
+
+</div></td>
+  </tr>
+ 
+    <tr>
+    <td colspan="3" class="style1"><a name="markers_content"></a>Редактирование содержания маркеров</td>
+  </tr>
+ 
+ 
+  <tr><td colspan="3" class="td_text"><img src="geo_help_img/markers_content.png" width="200" height="146" />
+    <div class="bodytext" style="margin-left:215px; margin-top:-144px; height: 155px;">
+      При клике по маркеру открывается всплывающее текстовое окошко с курсором. Пользователь может добавить простой текст или применить html-разметку - например, поставить ссылку. <br/><br/>
+      Для того, чтобы:<br/>
+Сохранить надпись и закончить редактирование &gt;&gt;&gt; клик в любое мест на карте. <br/> Cкрыть окошко &gt;&gt;&gt; клик по маркеру. <br/> Редактировать содержание окошка &gt;&gt;&gt; двойной клик внутри окошка.
+</div></td>
+  </tr> 
+      
+  <tr>
+   <td colspan="3" class="style1"><a name="measure"></a>Измерительные инструменты</span> </td>
+  </tr>
+ 
+  <tr><td colspan="2" class="cap"><img src="geo_help_img/measure_dist.png" width="220px" height="141px" /></td>
+<td rowspan="2" valign="top" class="td_text">
+Для того, чтобы измерить расстояние - выберите инструмент «линейка». <br>
+В режиме «линейка»: одиночный клик - ставит начальную точку и вершины ломаной линии, двойной клик - завершает ломаную линию. Клик на линию - добавляет вершину.<br><br>
+В режиме «полигон»: одиночный клик - ставит вершину многоугольника, двойной клик - замыкает контур многоугольника. Клик на линию - добавляет вершину.<br/><br/>
+Двойной клик по точке удаляет вершину.<br/><br/>
+Если необходимо измерить площадь прямоугольной области - проще воспользоваться инструментом вырезания фрагмента, «ножницы».<br><br>
+Нарисованные контуры можно сохранить в гис-формате (tab, shp) - для этого выберите <strong>«скачать shp-файл»</strong>.</div></td>
+  </tr>
+  <tr>
+    <td colspan="2" class="cap"><img src="geo_help_img/measure_area.png" width="220px" height="141px" /></td>
+  </tr>
+
+
+   <tr>
+    <td colspan="3" class="style1"><a name="overlays"></a>Добавление оверлеев</td>
+  </tr>
+ 
+  <tr>
+    <td colspan="2" class="cap"><img src="geo_help_img/upload_shp.png" width="134" height="35" /></td>
+    <td rowspan="3" class="td_text" valign="top">На карту могут быть добавлены "на лету" векторные слои небольшого объема (формат: SHP, TAB, KML/KMZ). Для этого загрузите файл или архив (если векторный слой состоит из нескольких файлов) через форму загрузки. 
+      <p>Вслед за тем пользователь может редактировать загруженный слой, используя инструменты <strong>лииний</strong>, <strong>полигонов</strong> и <strong>маркеров</strong> (см. <a href="#markers">«добавление маркеров»</a> и <a href="#measure">«измерительные инструменты»</a>). 
+      </p>
+      
+      <p>Чтобы сохранить контуры можно либо <a href="link"><strong>сохранить ссылку на карту</strong></a>, которая запоминает текущее положение и нанесенные оверлеи, либо скачать векторный файл - для этого выберите <strong>«скачать shp-файл»</strong>.
+      </p>
+     </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="cap"><img src="geo_help_img/upload_shp2.png" width="171" height="58" /></td>
+  </tr>
+  <tr>
+  	<td colspan="2" class="cap"><img src="geo_help_img/download_shp.png" width="203" height="81" /></td>
+  </tr>  
+  
+  <tr>
+   <td colspan="3" class="style1"><a name="cut"></a>Вырезание фрагмента растрового слоя</span> </td>
+  </tr>
+ 
+  <tr><td colspan="3" class="td_text"><img src="geo_help_img/cut.jpg" width="268" height="250"/>
+    <div class="bodytext" style="margin-left:280px; margin-top:-248px; height: 265px;">
+Если Администратором карты активирована данная опция - с помощью инструмента «ножницы» можно вырезать фрагмент растровой мозаики в виде прямоугольника. <br>
+Для этого растяните на карте рамку, охватывающую необходимую область, и нажмите <strong>«вырезать фрагмент растра»</strong>.</div></td>
+  </tr>
+
+   <tr>
+   <td colspan="3" class="style1"><a name="vectors"></a>Работа с векторными слоями</span> </td>
+  </tr>
+ 
+  <tr><td colspan="3" class="td_text">  <img src="geo_help_img/vectors.png" width="289" height="212" />  <div class="bodytext" style="margin-left:305px; margin-top:-218px; height: 280px;">
+Векторные слои, отображаемые на карте - активны. При наведении на слой, во всплывающем окне выводится информация из атрибутивной базы. При клике по слою - атрибутивная информация выводится в информационной панели.<br><br>
+ Если Администратором карты включена данная опция - пользователь может скачать векторный слой - для этого надо нажать на кнопку рядом с его названием в списке слоев и задать имя слоя для скачивания. </div></td>
+  </tr>
+
+  </table>
+</td>
+</tr>
+</table>
+
+
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<script src="http://maps.kosmosnimki.ru/api/api.js" charset="windows-1251"></script>
+<script type="text/javascript">
+    		
+ function onLoad()
+    { 
+		createKosmosnimkiMap(document.getElementById("map"), "maps.kosmosnimki.ru", "B8E8DC35A4A048F4BCA49F19695AC056", function(map)
+	{
+		map.moveTo(5361599, 5263760, 14);
+		map.setMode("map");
+		map.vectors.enableHoverBalloon(function(o) { return o.properties.NAME_RWIN });
+		var circle = map.addObject();
+		map.setHandler("onClick", function(o) {circle.setCircle(o.getX(), o.getY(), 3000000); circle.setStyle(
+				{ 
+					outline: { thickness: 2, color: 0xffff00 },
+					fill: { color: 0xffffff, opacity: 10 }
+				}); });
+		circle.enableHoverBalloon(function() { return "<font color='#0030e3'><b>Зона приема станции</b></style>"; });
+		});
+	}
+	</script>	 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head> 
+<body onLoad="onLoad();">
+	<div id="map" style="position: absolute;  top:0; left: 0!important; margin:0; padding:0; width: 100% ; height: 100%"></div>
+
+
+
+
+</body>
+
+</html>

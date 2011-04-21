@@ -1,0 +1,307 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Геопортал - инструкция пользователя</title>
+<link rel="stylesheet" href="style_geo_help.css" type="text/css" />
+</head>
+
+<body>
+<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></a></span></div>
+ <div style="margin-left:260px; margin-top:10px; margin-bottom:20px;" class="heading">GeoMixer Admin - Руководство пользователя</div>
+ 
+<table width="98%">
+<tr><td colspan="3">
+  <table width="100%">
+   <tr>
+     <td>
+        <div class="in_left_current"><a href="admin_help.html">&gt;&gt; GeoMixer Admin<br/>(Администрирование карты и БД)</a></div>
+        </td><td>
+        <div class="in_left" ><a href="mapviewer_help.html"> MapViewer Template<br/>(Шаблон просмотра карты)</a></div>
+        </td><td>                
+        <div class="in_left"><a href="api_start.html">  MapViewer API<br/>(Программный Интерфейс управления картой)</a></div>
+        </td>
+       </tr>
+     </table>
+</td></tr>
+<tr>
+<td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
+<div class="in_left_txt" style="background-color:#FFF">
+<ul>
+<li><a href="#common">Общее описание</a></li>
+<br/><br/>
+<li><a href="#elements">Перечень элементов пользовательского интерфейса</a></li>
+<br/><br/>
+<li><a href="#maps">Создание и редактирование карт</a></li>
+<br/><br/>
+<li><a href="#raster">Добавление растровых слоев</a></li>
+<br/><br/>
+<li><a href="#vector">Добавление векторных слоев</a> </li>
+<br/><br/>
+<li><a href="#groups">Объединение слоев в группу </a></li>
+<br/><br/>
+<li><a href="#styles_raster">Редактирование стилей растровых слоев</a></li>
+<br/><br/>
+<li><a href="#styles_vector">Редактирование стилей векторных слоев</a></li>
+<br/><br/>
+<li><a href="#users">Администрирование доступа</a></li>
+</ul>
+</div>
+<br/>
+<div class="in_left"><a href="mapviewer_help.html"><b>MapViewer Template &nbsp;(Шаблон просмотра карты)</b>  - Инструкция пользователя</a></div>
+
+<div class="in_left"><a href="api_start.html"><b>eoMixer API (программный интерфейс управления картой)</b> - Руководство разработчика</a></div>
+
+<div class="in_left"><a href="tiling_tools.html"><b>TilingTools</b>  - Набор утилит для выполнения операций с тайлами</a></div>
+
+</td>
+<td style="padding-right:4px;">
+<table id="content" width="98%" border="0" style="background-color:#fff;" cellpadding="20" cellspacing="0"> 
+
+  <tr>
+    <td colspan="2" class="style1"><a name="common"></a>Общее описание</span></td>
+  </tr>	
+
+  <tr>
+    <td colspan="2" class="bodytext"><b>GeoMixer Admin</b> — веб-интерфейс приложения   для создания карт  и разграничения прав доступа пользователей для просмотра, публикации и редактирования карт.
+          <p>Карта, созданая в GeoMixer - это набор слоев и базовые настройки их отображения. Каждая карта сохраняется с уникальным ID в базе данных и может загружаться в веб-страницы с помощью <a href="api_start.html"><b>API</b></a> или просматриваться через базовый интерфейс - <a href="mapviewer_help.html"><b>MapViewer Template</b></a><br></p>
+</td></tr>
+<tr>
+    <td colspan="3" class="style1"><a name="elements"></a>Перечень элементов пользовательского интерфейса</td>
+ </tr>          
+ <tr>
+    <td colspan="2" class="td_text">          
+          <div align="center"><strong>Структура панели редактирования карты</strong><br/>
+            <br/>
+     <img src="geo_help_img/LM_interface.png" align="middle" style="border:1px solid #213570;"/>
+     </div><br/><br/>
+<table width="350" border="1"  align="center" cellpadding="3" cellspacing="1">
+  <tr>
+    <td width="36" class="td_template_txt">1</td>
+    <td width="293">главное меню панели администрирования</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">2</td>
+    <td>меню  управления картой (1)</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">3</td>
+    <td>меню редактирования содержания карты</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">4</td>
+    <td>список слоев</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">5</td>
+    <td>меню управления картой (2)</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">6</td>
+    <td>список всех доступных слоев</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">7</td>
+    <td>поиск слоев</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">8</td>
+    <td>просмотр карты</td>
+  </tr>
+  <tr>
+    <td class="td_template_txt">9</td>
+    <td>статус пользователя</td>
+  </tr>
+</table>    
+    
+    
+    </td>
+  </tr>
+
+ 
+   <tr>
+    <td colspan="2" class="style1"><a name="maps"></a>Создание и редактирование карт</span></td>
+  </tr>
+  <tr>
+    <td colspan="2" class="td_text">
+Карты можно создавать, редактировать и удалять. 
+      <p><strong>Создание карты:</strong></p>
+      <ol>
+        <li>Передите в главном меню в раздел <strong class="template_txt">Карты</strong></li>
+        <li>Нажмите <span class="template_txt">Создать карту</span></li>
+        <li>Выберите <strong class="template_txt">Создать растровый слой</strong> или <strong class="template_txt">Создать векторный слой</strong> в зависимости от того какого типа данные вы собираетесь добавить на карту</li>
+        </ol>
+      <p><strong>Редактирования карты</strong></p>
+      <ol>
+        <li>Выберите карту в списке и кликните по ее названию - откроется панель редактирования карты</li>
+        <li>Вы можете менять порядок слое, группировать их, задавать масштабный диапазон отображения и стили</li>
+        <li>После редактирования нажмите кнопку <span class="template_txt">Сохранить</span></li>
+        <li>Для копирования всей карты и сохранения под новым именем - нажмите <span class="template_txt">Сохранить как...</span></li>
+        <li>Для удаления карты - нажмите крестик в списке карты и подтвердите удаление. Карта удаляется без возможности восстановления.</li>
+      </ol>
+          Порядок отображения слоев на карте и порядок отображения в группе задается положением слоя в списке слоев: для того, чтобы отобразить какой-либо слой поверх другого, необходимо задать его положение в списке  уровнем выше. Чтобы поменять порядок слоев, следует перетащить слой в списке курсором, держа нажатой клавишу мыши.<br/><br/>
+          По ссылке <strong class="template_txt">«Просмотр»</strong> можно перейти к предварительному просмотру созданной карты. При этом в адресной строке браузера прописана ссылка на данную карту, содержащая ее ID в базе данных, по которой она может быть просмотрена либо публично, либо теми пользователями, которые имеют права доступа, в случае если карта заблокирована от публичного просмотра (см. <a href="#users"><strong>Администрирование доступа)</strong></a>.<br/></td>
+       </tr>
+ 
+  <tr>
+    <td colspan="2" class="style1"><a name="raster"></a>Добавление растровых слоев</td>
+  </tr>
+ 
+  <tr>
+    <td colspan="2" class="bodytext"><p>Растровый слой - это данные, которые хранятся на сервере в виде фрагментов растровых изображений, приведенных в одну проекцию и подготовленных для каждого из уровней детализации карты (см. <a href="tools_raster.html">«подготовка растровых слоев»</a>)<br>
+      
+      Во вкладке <strong class="template_txt">«Слои»</strong> отображается весь список слоев. Слои можно редактировать, добавлять и удалять.<br>Для редактирования слоя надо перейти по ссылке с названием слоя в списке слоев.<br/>
+      </p>
+      <p>Чтобы добавить <strong class="template_txt">растровый слой</strong> надо: </p>
+      <p>1. Нажать кнопку <span class="template_txt">Создать растровый слой</span> <span class="td_template_txt">(1)</span></p>
+      <p>2. Задать <strong class="template_txt">«имя слоя»</strong>, под которым слой будет отображаться в списке слоев</p>
+      <p>3. Указать  путь к директории на сервере, в которой хранятся фрагменты растрового изображения (<strong class="template_txt">«путь к тайлам» <span class="td_template_txt">(2)</span></strong>) или же изображение целиком (<strong class="template_txt">«путь к изображению»</strong>)</p>
+      <p>4.  Опционально возможно добавить <strong class="template_txt">описание слоя</strong>, которое выводится в общем списке слоев вместе с названием, а так же <strong class="template_txt">«файл геометрии»</strong> <span class="td_template_txt">(3)</span>, который должен представлять собой полигональный тип границы слоя - в этом случае, при отображении на карте, будет показываться только область слоя внутри заданой границы. (Таким образом можно избавится от черных полей на границах накладываемого на базовую подложку изображения. Поля образуются из-за прмоугольной сетки нарезки изображения на тайлы)<br/>
+      </p></td>
+  </tr>
+  
+  <tr>
+    <td colspan="2" align="center">
+      <img src="geo_help_img/add_raster.gif" width="525" height="281" /></td>
+  </tr>
+  <tr>
+    <td colspan="2" class="style1"><a name="vector" id="navigation"></a>Добавление векторных слоев</td>
+  </tr>
+  <tr>
+  <td colspan="2" class="bodytext"><p>Так же как и в случае с растровыми, 
+    векторные слои можно редактировать, добавлять и удалять.<br/> 
+    Для редактирования слоя надо перейти по ссылке с названием слоя в списке слоев.<br/>
+    Чтобы добавить новый слой надо: </p>
+    <p>
+    1. Задать имя и (опционально) описание слоя.</p>
+    <p>2. Указать путь либо а) к исходному файлу, либо б) имя таблицы в БД:<br>
+	    <br> 
+		а) Создание из файла. Векторные данные могут быть представлены в форматах: ESRI Shapefile, MapInfo File Tab/Mif, Excel. Данные в ГИС-форматах (shp, tab, mif) могут загружаться в любой проекции (для загрузки shp-файла необходим соответствующий prj-файл с описанием проекции)<br>
+		<img src="geo_help_img/admin_help_add_vector.png"/>	<br>
+		<br>
+		В формате Excel можно подгузить слой точечных объектов. В документе должны быть две колонки с названиями: Lon, Lat, в которых указаны географические координаты WGS84 в десятичном формате<br> 
+		<img src="geo_help_img/admin_help_excel.png"/>	<br>		
+		<br>
+		б) Создание векторно слоя из таблицы в БД. В качестве исходных данных для векторного слоя может быть использована таблица внутри БД GeoMixer-а. Таблица может содержать точеченые, линейные или полигональные объекты. Данные о геметрии должны содержаться в единственной колонке с типом geometry (геометрический тип данных в MS SQL 2008). Координаты линейных и полигональных объектов обязательно должны быть представлены в цилиндрической проекции Меркатора на эллипсоиде WGS84. У точечных объектов координаты могут быть в проекции Меркатора или в географических координатах долгота/широта WGS84 в десятичном формате. Также только для точечного типа объектов можно использовать таблицу без колонки типа geometry. В этом случае географические координаты точки долгота/широта должны быть указаны в десятичном формате в отдельных колонках  
+		</p>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="geo_help_img/admin_help_add_table.png"/></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="geo_help_img/admin_help_add_table2.png"/></td>
+  </tr>
+  <tr>
+    <td colspan="2" class="style1"><a name="groups"></a>Объединение слоев в группу</td>
+  </tr>
+ 
+  	<tr>
+  	  <td colspan="2" class="bodytext">
+         <p>Слои можно объединять в <strong>группы</strong>. Слои из списка затем можно добавлять в выбранную группу.<br/>
+           Для создания группы необходимо сначала создать <strong>карту</strong> или перейти к редактированию уже созданной карты. (см. <strong><a href="#maps">«создание и редактирование карт»</a></strong>) 
+         </p>
+         <p>Затем выбрать в меню редактирования карты <span class="template_txt">Создать папку</span></p></td>
+  </tr>
+
+  
+  
+
+
+<tr>
+   <td colspan="2" class="style1"><a name="styles_raster"></a>Редактирование стилей растровых слоев</span> </td>
+</tr>
+<tr>
+  <td colspan="2" class="bodytext">
+В режиме редактирования карты можно задавать настройки отображения слоев. Для этого, после выделения слоя, надо нажать кнопку <strong class="template_txt">«Стиль»</strong>.
+Если слой - растровый, в стилях можно задавать масштабный диапазон отображения слоя. По умолчанию диапазон задается на все уровни, на которые созданы тайлы. Диапазон задается от и до - значением уровня детализации, которым обозначается линейное разрешение изображения (см. <a href="geomixer_help.html#zooms">масштабная шкала</a>).<br/>
+
+</td></tr>
+<tr>
+  <td colspan="2" class="style1"><a name="styles_vector"></a>Редактирование стилей векторных слоев</span> </td>
+</tr>
+<tr>
+  <td colspan="2" class="bodytext">
+Стили для векторных слоев хранятся в файле xml и могут задаваться через интерфейс Web GeoMixer Admin. Для этого в режиме редактирования карты надо добавить слой к карте и вызвать окно редактирования стилей.<br/><br/>
+<br/><br/>
+
+<table  align="center" style="text-align:left;" border="1" cellspacing="1" cellpadding="3">
+ <tr>
+    <td width="250" height="50" valign="middle"><strong>Пример записи в формате XML</strong></td>
+    <td width="250" height="50" valign="middle"><strong>Стилевые настройки векторных слоев</strong></td>
+  </tr>
+  <tr>
+    <td width="250" valign="top">&lt;style MinZoom=&quot;6&quot;    MaxZoom=&quot;20&quot;&gt;</td>
+    <td width="250" valign="top">Масштабный диапазон:<br />
+      От и До</td>
+  </tr>
+  <tr>
+    <td width="250" >&lt;BorderWidth&gt;1&lt;/BorderWidth&gt;</td>
+    <td width="250" >Толщина границы</td>
+  </tr>
+  <tr>
+    <td width="250" >&lt;BorderColor&gt;ff3bff&lt;/BorderColor&gt; </td>
+    <td width="250">Цвет границы в шестнадцатиричном формате</td>
+  </tr>
+  <tr>
+    <td width="250">&lt;PointSize&gt;5&lt;/PointSize&gt;</td>
+    <td width="250">Размер точечного объекта</td>
+  </tr>
+  <tr>
+    <td width="250">&lt;FillColor&gt;255 0 0&lt;/FillColor&gt;</td>
+    <td width="250">Цвет заливки в RGB  формате</td>
+  </tr>
+   <tr>
+    <td width="250">&lt;Transparency&gt;80&lt;/Transparency&gt;</td>
+    <td width="250">Прозрачность (в процентах)</td>
+  </tr>
+  <tr>
+    <td width="250">&lt;Icon&gt;http://site.com/img.png&lt;/Icon&gt;</td>
+    <td width="250">Адрес картинки для отображения в качестве объектов (для точеченого слоя)</td>
+  </tr>
+  <tr>
+    <td width="250">&lt;Label&gt;<br />
+      &lt;FieldName&gt;Name&lt;/FieldName&gt;<br />
+      &lt;FontColor&gt;255 0 0&lt;/FontColor&gt;<br />
+      &lt;FontSize&gt;15&lt;/FontSize&gt;<br />
+      &lt;/Label&gt;</td>
+    <td width="250">Название поля таблицы атрибутов<br/>
+    	
+          Цвет шрифта<br />
+          Размер шрифта</td>
+  </tr>
+</table>
+
+	</td>
+  </tr>
+
+<tr>
+  <td colspan="2" class="style1"><a name="users"></a>Администрирование доступа</span> </td>
+</tr>
+<tr>
+  <td colspan="2" class="bodytext">
+    <strong>Администратор</strong> системы может редактировать все карты, а также создавать пользователей и раздавать им права доступа и управления картами. 
+    <p>Для того, чтобы создать нового пользователя надо перейти &nbsp;<strong class="template_txt"> Администрирование ─  Пользователи ─  Регистрация</strong></p>
+    <p>Далее Администратор активирует пользователя &nbsp;<strong class="template_txt"> Администрирование ─  Пользователи ─  Имя пользователя.</strong> Активный пользователь получает возможность добавлять слои и создавать карты. При этом ему будут доступны только те карты, которые созданы им самим.</p>
+    <p>Если пользователь создает карту он, а также Администратор системы могут управлять правами доступа к данной карте. &nbsp;<strong class="template_txt"> Карты ─  Имя карты ─  Права доступа</strong></p>
+    <p>В случае добавления пользователя в качестве <strong class="template_txt">Пользователя</strong> карты тот получает возможность просматривать карту, если она заблокирована от публичного просмотра. В случае добавления в качестве <strong class="template_txt">Редактора</strong> пользователь получает возможность редактировать содержание данной карты. </p>
+    <p>У карты может быть один или несколько Редакторов. По умолчанию карта создается как <strong>публичный объект</strong> - т.е. она доступна для просмотра по ссылке (ссылка - это адрес сайта + ID карты - см. <a href="#maps">Создание и редактирование карт</a>). <br/>Для того чтобы заблокировать карту от публичного просмотра надо перейти <span class="template_txt"><strong> Карты ─  Имя карты ─  Права доступа</strong> <strong>─  Заблокировать</strong></span>.
+    В этом случае карту сможет посмотреть только Администратор, Владелец карты и те пользователи, которые получили права доступа к данной карте.
+    </p>
+    </td></tr>
+  <tr>
+	<td align="center" valign="top">
+      <img src="geo_help_img/GM_users.gif" width="256" height="133" title="регистрация пользователей"/></td>
+    <td align="center"><img src="geo_help_img/GM_users_edit.gif" width="458" height="349" title="добавление Редактора карты"/>
+    </td>
+  </tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+
+</body>
+</html>
