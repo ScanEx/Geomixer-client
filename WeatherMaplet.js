@@ -1,8 +1,8 @@
 ﻿gmxCore.addModule('WeatherMaplet', {
 	//params:
 	//    countryCode - {string} "0" для России
-	//    initWeather - {bool} Показывать ли погоду по умолчанию
-	//    initWind    - {bool} Показывать ли ветер по умолчанию
+	//    initWeather - {bool, default: true} Показывать ли погоду по умолчанию
+	//    initWind    - {bool, default: true} Показывать ли ветер по умолчанию
 	weather: function (params, map)
 	{
 		var _map = map || globalFlashMap; //если не указана карта, попробуем взять из глобального пространства имён
@@ -17,7 +17,7 @@
 								"weatherMaplet.WindButton" : "Wind",
 								"weatherMaplet.WeatherButton" : "Weather",								
 								"weatherMaplet.AccordingTo" : "According to the data from Gismeteo.ru"
-							 });							 
+							 });
 
 		if (!params) params = {};
 		params.countryCode = params.copuntryCode || 0;

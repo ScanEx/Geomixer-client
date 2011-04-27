@@ -31,8 +31,6 @@ var Calendar = function()
 		$(this.dateEnd).datepicker("setDate", new Date(data.dateEnd));
 		this.lazyDate.value = data.lazyDate;
 		this.yearBox.checked = data.year;
-		
-		// $(this).trigger('change');
 	}
 }
 
@@ -800,21 +798,22 @@ var FireSpotProvider = function( params )
 	this.getDescription = function() { return _gtxt("firesWidget.FireSpots.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
-		var urlBbox = bbox ? "&MinX=" + bbox.minX + "&MinY=" + bbox.minY + "&MaxX=" + bbox.maxX + "&MaxY=" + bbox.maxY : "";
-		var urlFires = _params.host + "FireSender.ashx?StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+		var urlBbox = bbox ? '&Polygon=POLYGON((' + bbox.minX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.minY + '))' : "";
+		//var urlBbox = bbox ? "&MinX=" + bbox.minX + "&MinY=" + bbox.minY + "&MaxX=" + bbox.maxX + "&MaxY=" + bbox.maxY : "";
+		var urlFires = _params.host + "Fires.ashx?type=1&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
 		
-		IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(firesArr)
+		IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
 		{
-			if (!firesArr) 
+			if (data.Result != 'Ok')
 			{
-				onError( IDataProvider.ERROR_TOO_MUCH_DATA );
+				onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
 				return;
 			}
 			
 			var resArr = [];
-			for ( var d = 0; d < firesArr.length; d++ )
+			for ( var d = 0; d < data.Response.length; d++ )
 			{
-				var a = firesArr[d];
+				var a = data.Response[d];
 				resArr.push({ x: a[1], y: a[0], date: a[4], category: a[3] < 50 ? 0 : (a[3] < 100 ? 1 : 2), balloonProps: {"Время": a[5] + "&nbsp;(Greenwich Mean Time)", "Вероятность": a[2]}});
 			}
 			onSucceess( resArr );
@@ -863,7 +862,7 @@ var FireBurntProvider = function( params )
 
 var ModisImagesProvider = function( params )
 {
-	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/', 
+	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/v2/',
 							modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/'
 						   }, params);
 	
@@ -879,24 +878,24 @@ var ModisImagesProvider = function( params )
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
 		//запрашиваем только за первый день периода
-		var modisUrl = _params.host + "FireSender.ashx?type=1&StartDate=" + dateBegin + "&EndDate=" + dateBegin;
+		var modisUrl = _params.host + "Operative.ashx?type=0&Date=" + dateBegin;
 		
 		IDataProvider.sendCachedCrossDomainJSONRequest(modisUrl, function(data)
 		{
-			if (!data)
+			if (data.Result != 'Ok')
 			{
-				onError( IDataProvider.ERROR_TOO_MUCH_DATA );
+				onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
 				return;
 			}
 			
 			var resArr = [];
 			
-			for ( var d = 0; d < data.length; d++ )
+			for ( var d = 0; d < data.Response.length; d++ )
 			{
-				var curImage = data[d];
-				resArr.push({ geometry: from_merc_geometry(curImage[2][0].geometry), 
-							  dirName: params.modisImagesHost + curImage[1].split("\\").join("/"),
-							  date: curImage[0]
+				var curImage = data.Response[d];
+				resArr.push({ geometry: from_merc_geometry(curImage[3][0].geometry),
+							  dirName: params.modisImagesHost + curImage[5].split("\\").join("/"),
+							  date: curImage[1]
 						    });
 			}
 			
@@ -1072,16 +1071,19 @@ var FiresControl = function()
 //настройки виджета пожаров по умолчанию
 FiresControl.DEFAULT_OPTIONS = 
 {
-	firesHost:       'http://sender.kosmosnimki.ru/',
-	imagesHost:      'http://sender.kosmosnimki.ru/',
+	firesHost:       'http://sender.kosmosnimki.ru/v2/',
+	imagesHost:      'http://sender.kosmosnimki.ru/v2/',
 	burntHost:       'http://sender.kosmosnimki.ru/',
 	fireIconsHost:   'http://maps.kosmosnimki.ru/images/',
 	modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/',
-	
+
 	dateFormat: "dd.mm.yy",
-	fires:  true,
-	images: true,
-	burnt:  true
+	fires:      true,
+	firesInit:  true,
+	images:     true,
+	imagesInit: true,
+	burnt:      true,
+	burntInit:  true
 }
 
 FiresControl.prototype.saveState = function()
@@ -1111,11 +1113,18 @@ FiresControl.prototype.loadState = function( data )
 	//this.loadForDates( this.dateFiresBegin, this.dateFiresEnd );
 }
 
-FiresControl.prototype.addDataProvider = function( name, dataProvider, dataRenderer )
+// providerParams: 
+//     - isVisible - {Bool, default: true} виден ли по умолчанию сразу после загрузки
+//     - isUseDate - {Bool, default: true} зависят ли данные от даты
+//     - isUseBbox - {Bool, default: true} зависят ли данные от bbox
+FiresControl.prototype.addDataProvider = function( name, dataProvider, dataRenderer, providerParams )
 {
-	this.dataControllers[name] = { provider: dataProvider, renderer: dataRenderer, visible: true, name: name };
+	providerParams = $.extend( { isVisible: true, isUseDate: true, isUseBbox: true }, providerParams );
+		
+	this.dataControllers[name] = { provider: dataProvider, renderer: dataRenderer, visible: providerParams.isVisible, name: name, params: providerParams };
 	this.updateCheckboxList();
-	this.loadForDates( this.dateFiresBegin, this.dateFiresEnd );
+	if (this.dateFiresBegin && this.dateFiresEnd)
+		this.loadForDates( this.dateFiresBegin, this.dateFiresEnd );
 }
 
 //Перерисовывает все checkbox'ы. Возможно, стоит оптимизировать
@@ -1188,7 +1197,7 @@ FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	for (var k in this.dataControllers)
 	{
 		var curController = this.dataControllers[k];
-		if ( curController.visible && ( isDatesChanged || isBBoxChanged || !curController.data ) )
+		if ( curController.visible && ( (isDatesChanged && curController.params.isUseDate) || (isBBoxChanged && curController.params.isUseBbox) || !curController.data ) )
 		{
 			this.processingModel.setStatus( curController.name, false);
 			
@@ -1231,17 +1240,20 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 	if ( this._firesOptions.fires ) 
 		this.addDataProvider( "firedots",
 							  new FireSpotProvider( {host: this._firesOptions.firesHost} ),
-							  new FireSpotRenderer( {fireIconsHost: this._firesOptions.fireIconsHost} ) );
+							  new FireSpotRenderer( {fireIconsHost: this._firesOptions.fireIconsHost} ),
+							  { isVisible: this._firesOptions.firesInit } );
 							  
 	if ( this._firesOptions.burnt ) 
 		this.addDataProvider( "burnts",
 							new FireBurntProvider( {host: this._firesOptions.burntHost} ),
-							new FireBurntRenderer() );
+							new FireBurntRenderer(),
+							{ isVisible: this._firesOptions.burntInit } );
 						  
 	if ( this._firesOptions.images ) 
 		this.addDataProvider( "images",
 							  new ModisImagesProvider( {host: this._firesOptions.imagesHost, modisImagesHost: this._firesOptions.modisImagesHost} ),
-							  new ModisImagesRenderer() );
+							  new ModisImagesRenderer(),
+							  { isVisible: this._firesOptions.imagesInit, isUseBbox: false } );
 	
 	this.searchBboxController.init();
 	var processImg = _img(null, [['attr','src', globalOptions.resourceHost + 'img/progress.gif'],['css','marginLeft','10px'], ['css', 'display', 'none']]);
@@ -1290,9 +1302,12 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 		modisImagesHost: 'http://fires2.kosmosnimki.ru/Modis/',
 		
 		dateFormat: "dd.mm.yy",
-		fires: true,
-		images: true,
-		burnt: true,
+		fires: true,      //Default: true
+		firesInit: true,  //Default: true
+		images: true,     //Default: true
+		imagesInit: true, //Default: true
+		burnt: true,      //Default: true
+		burntInit: true   //Default: true
 		
 	},
 	cover: {
@@ -1341,7 +1356,6 @@ MapCalendar.prototype.loadState = function( data )
 	if ( data.fires )
 	{
 		this.fires.loadState( data.fires );
-		//this.fires.loadForDates( this.calendar.getDateBegin(), this.calendar.getDateEnd() );
 	}
 	
 	if ( data.cover )
@@ -1473,7 +1487,11 @@ MapCalendar.prototype.convertEvalState = function(evalString)
 {
 	if (!evalString) return;
 	
-	var yearBox   = /yearBox\.checked = (true|false);/.exec(evalString)[1];
+	var yearBoxParse   = /yearBox\.checked = (true|false);/.exec(evalString);
+	
+	if (!yearBoxParse) return; //какой-то другой пермалинк
+	
+	var yearBoxParse = yearBoxParse[1];
 	var lazyDate  = /lazyDate\.value = "([^;]+)";/.exec(evalString)[1];
 	var dateBegin = /dateBegin\.value = "([^;]+)";/.exec(evalString)[1];
 	var dateEnd   = /dateEnd\.value = "([^;]+)";/.exec(evalString)[1];

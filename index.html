@@ -542,7 +542,24 @@ function loadMap(state)
 		// конвертируем старый формат eval-строки в новый формат customParamsManager
 		// старый формат использовался только маплетом пожаров
 		if (typeof state.customParams != 'undefined' && state.customParams)
-			state.customParamsCollection = { firesWidget : mapCalendar.convertEvalState(state.customParams) };
+		{
+			var newFiresFormat = mapCalendar.convertEvalState(state.customParams);
+			if (newFiresFormat)
+				state.customParamsCollection = { firesWidget : newFiresFormat };
+			else
+			{
+				//старый формат данных пожаров...
+				try
+				{
+					eval(state.customParams);
+				}
+				catch (e) 
+				{
+					alert(e);
+				}
+			}
+				
+		}
 			
 		if ( typeof state.customParamsCollection != 'undefined')
 			_mapHelper.customParamsManager.loadParams(state.customParamsCollection);

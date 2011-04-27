@@ -352,7 +352,7 @@ security.prototype.drawMapUsers = function(user, securityScope)
 		user.Access = this.value;
 	}
 
-	tr = _tr([_td([_div([_t(user.Login)], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','paddingLeft','3px'],['css','fontSize','12px']])]), _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]), _td([accessSel],[['css','textAlign','center']]), tdRemove]);
+	tr = _tr([_td([_div([_t(user.Login)], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]), _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]), _td([accessSel],[['css','textAlign','center']]), tdRemove]);
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this.fieldsWidths[i];
@@ -384,7 +384,7 @@ security.prototype.drawMapUsersSuggest = function(user)
 		_security.addMapUser(user, _securityTable);
 	}
 	
-	tr = _tr([_td([_div([_t(user.Login)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','paddingLeft','3px'],['css','fontSize','12px']])]), _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]), tdAdd]);
+	tr = _tr([_td([_div([_t(user.Login)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]), _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]), tdAdd]);
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this.fieldsWidths[i];

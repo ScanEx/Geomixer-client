@@ -2936,7 +2936,7 @@ queryMapLayers.prototype.drawLayers = function(layer)
 	
 	var maxLayerWidth = this.tableHeader.firstChild.childNodes[2].offsetWidth + 'px';
 	
-	tr = _tr([_td(), _td([icon], [['css','textAlign','center']]), _td([_div([res], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap']])]), _td([_t(layer.date)], [['css','textAlign','center'],['dir','className','invisible']]),  _td([_t(layer.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), tdRemove]);
+	tr = _tr([_td(), _td([icon], [['css','textAlign','center']]), _td([_div([res], [['css','width',maxLayerWidth],['css','padding',"1px 0px"], ['css','overflowX','hidden'],['css','whiteSpace','nowrap']])]), _td([_t(layer.date)], [['css','textAlign','center'],['dir','className','invisible']]),  _td([_t(layer.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), tdRemove]);
 	
 	tr.removeLayerFromList = removeLayerFromList;
 	
