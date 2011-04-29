@@ -218,6 +218,7 @@ div.login
 .iconMapName
 {
 	width: 240px;
+	padding: 1px 0px;
 	overflow-x: hidden;
 	color: #FFFFFF;
 	font-size: 12px;

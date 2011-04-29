@@ -576,52 +576,47 @@ function loadMap(state)
 				alert(e);
 			}
 		}*/
+		_mapHelper.gridView = false;
 		
+		//создаём иконку переключения в полноэкранный режим.
 		_leftIconPanel.create($$('leftIconPanel'));
-		_iconPanel.create($$('iconPanel'));
 		
 		_leftIconPanel.addMapName(data.properties.title);
 		
-		_mapHelper.gridView = false;
-		
-		_leftIconPanel.add(_gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", function()
+		//добавим в тулбар две иконки, но видимой будет только одна
+		//по клику переключаем между ними
+		var _toggleFullscreenIcon = function(isFullScreen)
 		{
-			if (this.firstChild.style.backgroundImage.indexOf('fullscreenon') > -1)
-			{
-				this.firstChild.style.backgroundImage = "url(img/toolbar/fullscreenoff.png)";
-				
-				_title(this, _gtxt("Свернуть карту"));
-				
-				_leftIconPanel.attachHover(this.firstChild, "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png");
-			}
-			else
-			{
-				this.firstChild.style.backgroundImage = "url(img/toolbar/fullscreeno.png)";
-				
-				_title(this, _gtxt("Развернуть карту"));
-				
-				_leftIconPanel.attachHover(this.firstChild, "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png");
-			}
-			
+			_leftIconPanel.setVisible('fullscreenon', !isFullScreen);
+			_leftIconPanel.setVisible('fullscreenoff', isFullScreen);
 			layersShown = !layersShown;
 			resizeAll();
-		})
+		}
 		
-		_iconPanel.add(_gtxt("Сохранить карту"), "img/toolbar/save_map.png", "img/toolbar/save_map_a.png", function(){_queryMapLayers.saveMap()}, true)
-		_iconPanel.add(_gtxt("Создать векторный слой"), "img/toolbar/new_shapefile.png", "img/toolbar/new_shapefile_a.png", function(){_mapHelper.createNewLayer("Vector")}, true)
-		_iconPanel.add(_gtxt("Создать растровый слой"), "img/toolbar/new_rastr.png", "img/toolbar/new_rastr_a.png", function(){_mapHelper.createNewLayer("Raster")}, true)
+		_leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
+						   function() { _toggleFullscreenIcon(true); });
 		
-		_iconPanel.addDelimeter(false, true);
+		_leftIconPanel.add('fullscreenoff', _gtxt("Свернуть карту"), "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png", 
+						    function() { _toggleFullscreenIcon(false); }, true);
+							
 		
-		_iconPanel.add(_gtxt("Загрузить файл"), "img/toolbar/upload.png", "img/toolbar/upload_a.png", function(){drawingObjects.loadShp.load()})
-		_iconPanel.add(_gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
-		_iconPanel.add(_gtxt("Добавить закладку"), "img/toolbar/bookmark.png", "img/toolbar/bookmark_a.png", function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();})
-		_iconPanel.add(_gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
-		_iconPanel.add(_gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
+		//создаём тулбар
+		_iconPanel.create($$('iconPanel'));
+		_iconPanel.add('saveMap', _gtxt("Сохранить карту"), "img/toolbar/save_map.png", "img/toolbar/save_map_a.png", function(){_queryMapLayers.saveMap()})
+		_iconPanel.add('createVectorLayer', _gtxt("Создать векторный слой"), "img/toolbar/new_shapefile.png", "img/toolbar/new_shapefile_a.png", function(){_mapHelper.createNewLayer("Vector")})
+		_iconPanel.add('createRasterLayer', _gtxt("Создать растровый слой"), "img/toolbar/new_rastr.png", "img/toolbar/new_rastr_a.png", function(){_mapHelper.createNewLayer("Raster")})
 		
-	//	_iconPanel.addDelimeter();
+		_iconPanel.addDelimeter('userDelimeter', false, true);
 		
-	//	_iconPanel.add("Сообщить об ошибке", "img/toolbar/upload.png", false, function(){_mapHelper.userFeedback()})
+		_iconPanel.add('uploadFile', _gtxt("Загрузить файл"), "img/toolbar/upload.png", "img/toolbar/upload_a.png", function(){drawingObjects.loadShp.load()})
+		_iconPanel.add('permalink', _gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
+		_iconPanel.add('bookmark', _gtxt("Добавить закладку"), "img/toolbar/bookmark.png", "img/toolbar/bookmark_a.png", function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();})
+		_iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
+		_iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
+		
+	//	_iconPanel.addDelimeter('feedbackDelimeter');
+		
+	//	_iconPanel.add('feedback', "Сообщить об ошибке", "img/toolbar/upload.png", false, function(){_mapHelper.userFeedback()})
 		
 		_iconPanel.addSearchCanvas();
 		

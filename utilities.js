@@ -949,6 +949,12 @@ function addUserActions()
 		
 		if (_queryMapLayers.currentMapRights() == "edit")
 			_iconPanel.addUserActions();
+		
+		if (userInfo().Role == 'Guest')
+		{
+			_iconPanel.setVisible('createRasterLayer', false);
+			_iconPanel.setVisible('createVectorLayer', false);
+		}
 	}
 }
 function removeUserActions()

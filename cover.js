@@ -2,6 +2,15 @@
 
 // controls: два календарика, выбор периода, галочка с выбором года
 // events: change
+
+/**
+ * @class cover.Calendar
+ * controls: два календарика, выбор периода, галочка с выбором года
+ */
+ 
+ /**
+ * @event change Если изменилась хотя бы одна из дат
+ */
 var Calendar = function()
 {
 	this.dateBegin = null;
@@ -14,8 +23,20 @@ var Calendar = function()
 	this.yearBox = null;
 	
 	//public interface
+	
+	/**
+	 * @method
+	 */
 	this.getDateBegin = function() { return $(this.dateBegin).datepicker("getDate"); }
+	
+	/**
+	 * @method
+	 */	
 	this.getDateEnd = function() { return $(this.dateEnd).datepicker("getDate"); }
+	
+	/**
+	 * @method
+	 */	
 	this.saveState = function()
 	{
 		return {
@@ -25,18 +46,27 @@ var Calendar = function()
 			year: this.yearBox.checked
 		}
 	}
+	
+	/**
+	 * @method
+	 * @param {String} data
+	 */
 	this.loadState = function( data )
 	{
 		$(this.dateBegin).datepicker("setDate", new Date(data.dateBegin));
 		$(this.dateEnd).datepicker("setDate", new Date(data.dateEnd));
 		this.lazyDate.value = data.lazyDate;
 		this.yearBox.checked = data.year;
-	}
+	}	
 }
 
-//Параметры:
-// * dateMin, dateMax - {Date} граничные даты для календарей
-// * dateFormat - {String} формат даты
+/**
+ * Инициализирует календарь.
+ * @method
+ * @param {Object} params Параметры календаря: <br/>
+ * dateMin, dateMax - {Date} граничные даты для календарей <br/>
+ * dateFormat - {String} формат даты
+ */
 Calendar.prototype.init = function( params )
 {
 	var _this = this;
@@ -349,18 +379,27 @@ Calendar.prototype.selectFunc = function(inst)
 	}
 };
 
-
+/**
+* @class cover.CoverControl
+* Фильтрует слои со спутниковыми покрытиями по интервалу дат и облачности
+*/
 var CoverControl = function()
 {
 	this.cloudsIndexes = [];
 	this.currCloudsIndex = 2;
 }
 
+/**
+* @method
+*/
 CoverControl.prototype.saveState = function()
 {
 	return { currCloudsIndex: this.currCloudsIndex };
 }
 
+/**
+* @method
+*/
 CoverControl.prototype.loadState = function( data )
 {
 	this.currCloudsIndex = data.currCloudsIndex;
@@ -369,6 +408,10 @@ CoverControl.prototype.loadState = function( data )
 	_title($("#MapCalendar .ui-slider")[0].firstChild, this.cloudsIndexes[data.currCloudsIndex].name);
 }
 
+/**
+* Перефильтровывает слои при смене дат
+* @method
+*/
 CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
 	this.dateBegin = dateBegin;
@@ -377,6 +420,14 @@ CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	this.setFilters();
 }
 
+/**
+* @method
+* @param {Array} coverLayers Массив имён слоёв для фильтрации
+* @param {String} dateAttribute Имя аттрибута слоёв с датой
+* @param {String} cloudsAttribute Имя аттрибута слоёв с облачностью
+* @param {Array} icons Массив с именами иконок для облачности
+* @param {Integer} initCloudIndex Начальная облачность
+*/
 CoverControl.prototype.init = function(coverLayers, dateAttribute, cloudsAttribute, icons, initCloudIndex)
 {
 	this.coverLayers = coverLayers;
@@ -485,7 +536,12 @@ CoverControl.prototype.setFilters = function()
 	}
 }
 
-CoverControl.prototype.add = function(parent, icons)
+/**
+* Добавляет в DOM элементы контролов фильтрации по облачности
+* @method
+* @param {DOMElement} parent Контейнер для добавляения контрола
+*/
+CoverControl.prototype.add = function(parent)
 {
 	var	cloudsSlider = _mapHelper.createSlider(this.currCloudsIndex, function(){}),
 		_this = this;
@@ -539,11 +595,18 @@ CoverControl.prototype.add = function(parent, icons)
 	_(parent, [_table([_tbody(trs)],[['css','marginLeft','20px']])]);
 }
 
-
+/**
+* @class cover.FiltersControl
+* Фильтрует слои по интервалу дат
+*/
 var FiltersControl = function()
 {
 }
 
+/**
+* Обновляет фильтрацию слоёв при смене дат
+* @method 
+*/
 FiltersControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
 	this.dateBegin = dateBegin;
@@ -552,6 +615,11 @@ FiltersControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	this.setFilters();
 }
 
+/**
+* @method 
+* @param {Array} layers Вектор имён слоёв для фильтрации
+* @param {String} dateAttribute Имя аттрибута даты в слоях
+*/
 FiltersControl.prototype.init = function(layers, dateAttribute)
 {
 	this.layers = layers;
@@ -582,16 +650,24 @@ FiltersControl.prototype.setFilters = function()
 	}
 }
 
-/*************************************
- *          SearchBboxControl        *
+/*
+ ************************************
+ *          SearchBboxControl       *
  ************************************/
-// Управление ограничевающим прямоугольником для задания области отображения информации. 
-//
-// Добавляет кастомное свойство к FRAME, к которому забинден. 
-//
-// Зависимости: jQuery, API, translations
-// Элементы UI: кнопка и drawingObject типа FRAME. 
-// События: change
+ 
+ /**
+ * @class cover.SearchBboxControl
+ * Управление ограничевающим прямоугольником для задания области отображения информации. <br/>
+ *
+ * Добавляет кастомное свойство к FRAME, к которому забинден. <br/>
+ *
+ * Зависимости: jQuery, API, translations <br/>
+ * Элементы UI: кнопка и drawingObject типа FRAME
+ */
+ 
+ /**
+ * @event change
+ */
 var SearchBboxControl = function()
 {
 	_translationsHash.addtext("rus", {
@@ -625,11 +701,9 @@ var SearchBboxControl = function()
 		_elem = elem;
 		elem.properties.firesBbox = _bindingID;
 		
-		//_extent = getBounds( elem.getGeometry().coordinates );
-		
 		$(_button).val(_gtxt('searchBbox.CancelSearchInArea'));
 	}
-	
+		
 	var removeBbox = function()
 	{
 		if ( !_elem ) return;
@@ -640,6 +714,9 @@ var SearchBboxControl = function()
 		update();
 	};
 	
+	/**
+	 * @method
+	 */	
 	this.init = function()
 	{
 		_button = makeButton(_gtxt("searchBbox.SearchInArea"));
@@ -672,19 +749,28 @@ var SearchBboxControl = function()
 		})
 	};
 
-	//возвращает контрол, который может быть куда-нибудь помещён
+	/**
+	 * Возвращает контрол, который может быть куда-нибудь помещён
+	 * @method
+	 */
 	this.getButton = function()
 	{
 		return _button;
 	};
 	
-	//возвращет null если bbox не задан
+	/**
+	 * Возвращет null если bbox не задан
+	 * @method
+	 */
 	this.getBbox = function()
 	{
 		return _extent;
 	}
 	
-	//ищет bbox среди существующих drawing объектов и биндится к нему. drawing должен иметь свойство "firesBbox"
+	/**
+	 * Ищет bbox среди существующих drawing объектов и биндится к нему. drawing должен иметь свойство "firesBbox"
+	 * @method
+	 */
 	this.findBbox = function( checkBindingID )
 	{
 		var _this = this;
@@ -698,12 +784,18 @@ var SearchBboxControl = function()
 		})
 	}
 	
-	// предполагается, что сам drawing объект сохраняется кем-то ещё, мы сохраняем только его параметры биндинга
+	/**
+	 * Предполагается, что сам drawing объект сохраняется кем-то ещё, мы сохраняем только его параметры биндинга
+	 * @method
+	 */
 	this.saveState = function()
 	{
 		return { bindingID: _bindingID };
 	}
 	
+	/**
+	 * @method
+	 */
 	this.loadState = function( data )
 	{
 		if ( data.bindingID )
@@ -716,7 +808,11 @@ var SearchBboxControl = function()
 	}
 }
 
-//Оба параметра могут быть null (весь мир)
+/**
+* Сравнивают два extent'а. Оба параметра могут быть null (весь мир)
+* @method
+* @static
+*/
 SearchBboxControl.isBoundsEqual = function(ext1, ext2)
 {
 	if (!ext1 && !ext2) return true;
@@ -759,8 +855,9 @@ var AggregateStatus = function()
 	this.getCommonStatus = function(){ return _statusCommon };
 }
 
-/*************************************
- *          Data Providers           *
+/*
+ ************************************
+ *          Data Providers          *
  ************************************/
  
 var IDataProvider = {};
@@ -904,8 +1001,9 @@ var ModisImagesProvider = function( params )
 	}
 }
 
-/*************************************
- *            Renderers              *
+/*
+ ************************************
+ *            Renderers             *
  ************************************/
 var FireSpotRenderer = function( params )
 {
@@ -1049,8 +1147,9 @@ var ModisImagesRenderer = function()
 	}
 }
 
-/*************************************
- *            FiresControl           *
+/*
+ ************************************
+ *            FiresControl          *
  ************************************/
 var FiresControl = function()
 {
@@ -1574,6 +1673,12 @@ MapCalendar.prototype.getFireControl = function()
 	return this.fires;
 }
 
+
+/**
+ * @class cover.mapCalendar
+ * Синглетон для доступа к виджету
+ * @singleton
+ */
 var mapCalendar = new MapCalendar();
 
 var publicInterface = 
