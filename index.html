@@ -636,7 +636,6 @@ function loadMap(state)
 		
 		_iconPanel.addSearchCanvas();
 		
-		_querySearch.createSearchButton(true);
 		
 		if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages ) 
 			_translationsHash.showLanguages();		
@@ -707,6 +706,7 @@ function loadMap(state)
 			
 			addUserActions();
 		}
+		fnInitControls();		
 	}
 
 	var success = createFlashMap($$("flash"), globalMapName, mapCallback);
