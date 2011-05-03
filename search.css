@@ -1,0 +1,163 @@
+/* search */
+.SearchInputControl 
+{
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 3px;
+}
+.SearchInputControl *
+{
+	color: #003366;
+	font-family: sans-serif;
+	font-size: 11px;
+}
+.SearchInputControl td{
+	padding: 0;
+	margin: 0;
+}
+
+.searchLayerHeader
+{
+	color: #2185C0;
+	font-size: 12px;
+}
+.searchLayerHeader span
+{
+	margin-left: 10px;
+	color: #57697A;
+}
+span.searchElem
+{
+	cursor: pointer;
+	margin: 0px 8px 0px -4px;
+	color: #218580;
+	font-weight: bold;
+}
+span.searchElemParent
+{
+	cursor: pointer;
+	margin: 0px 8px 0px -4px;
+}
+span.searchElem:hover, span.searchElemParent:hover
+{
+	text-decoration: underline;
+}
+.searchProperty
+{
+	margin: 0px 1px 0px 6px;
+	color: #4195B0;
+}
+.SearchResultRow
+{
+	white-Space: normal;
+	font-size: 11px;
+}
+
+.searchBeginTD
+{
+	border: none;
+	text-align: right;
+	width: 4px;
+}
+.searchBegin
+{
+	background: transparent url(img/searchBegin.png) no-repeat scroll 0 0;
+	height: 22px;
+}
+.searchBeginOnTD
+{
+	border: none;
+	width: 21px;
+	text-align: right;
+}
+.searchBeginOn
+{
+	background: transparent url(img/searchBeginOn.png) no-repeat scroll 0 0;
+	cursor: pointer;
+	height: 22px;
+	width: 21px;
+}
+.active .searchBeginOn
+{
+	background: transparent url(img/searchBeginOn_a.png) no-repeat scroll 0 0;
+}
+.searchBeginOff
+{
+	background: transparent url(img/searchBeginOff.png) no-repeat scroll 0 0;
+	border: none;
+	height: 22px;
+	width: 21px;
+	cursor: pointer;
+}
+.active .searchBeginOff
+{
+	background: transparent url(img/searchBeginOff_a.png) no-repeat scroll 0 0;
+}
+.searchCenterTD{
+}
+.searchCenter 
+{
+	background: transparent url(img/searchCenter.png) repeat scroll 0 0;
+	border: none;
+	padding: 2px 0 0 0;
+	color: #999999;
+	height: 22px;
+	width: 100%;
+}
+.searchEndTD
+{
+	border: none;
+	width: 20px;
+	text-align: left;
+}
+.searchEnd
+{
+	background: transparent url(img/searchEnd.png) no-repeat scroll 0 0;
+	height: 22px;
+	width: 20px;
+	cursor: pointer;
+}
+
+.SearchResultListClear
+{
+	font-size: 12px;
+}
+.searchResultListLoading
+{
+	margin: 3px 0px 3px 20px;
+}
+.searchResultListLoadingImg
+{
+	margin-right: 10px;
+}
+.SearchResultListNotFound
+{
+	margin: 10px 0px 0px 10px;
+}
+
+.SearchDownloadShpLink
+{
+	padding: 2px 0px 6px 1px;
+}
+.DownloadSHPButton 
+{
+	height: 25px;
+	width: 100px;
+	margin': 15px 0px 0px 100px;
+}
+.DownloadSHPButtonText
+{
+	text-align: center;
+}
+/* AUTOCOMPLETE*/
+.ui-autocomplete{
+	font-size: 11px;
+}
+
+.ui-autocomplete-category {
+	color: #004488;
+	font-weight: bold;
+	padding: 0;
+	margin: .8em 0 .2em;
+	line-height: 1.5;
+}

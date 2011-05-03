@@ -171,56 +171,6 @@ div.user span
 	background: url(img/grad.png) repeat-x scroll 0px -125px;
 /*	border-left: 1px solid #EDF4F6;/*#216b9c #6eb8ce*/
 }
-.searchBegin
-{
-	background: transparent url(img/searchBegin.png) no-repeat scroll 0 0;
-	border: none;
-	height: 22px;
-	width: 4px;
-	float: right;
-}
-.searchBeginOn
-{
-	background: transparent url(img/searchBeginOn.png) no-repeat scroll 0 0;
-	border: none;
-	height: 22px;
-	width: 21px;
-	float: right;
-}
-.active .searchBeginOn
-{
-	background: transparent url(img/searchBeginOn_a.png) no-repeat scroll 0 0;
-}
-.searchBeginOff
-{
-	background: transparent url(img/searchBeginOff.png) no-repeat scroll 0 0;
-	border: none;
-	height: 22px;
-	width: 21px;
-	float: right;
-}
-.active .searchBeginOff
-{
-	background: transparent url(img/searchBeginOff_a.png) no-repeat scroll 0 0;
-}
-.searchCenter
-{
-	background: transparent url(img/searchCenter.png) repeat scroll 0 0;
-	border: none;
-	margin: 0;
-	padding: 2px 0 0 0;
-	color: #999999;
-	height: 22px;
-	width: 100%;
-}
-.searchEnd
-{
-	background: transparent url(img/searchEnd.png) no-repeat scroll 0 0;
-	border: none;
-	height: 22px;
-	width: 20px;
-	float: left;
-}
 .logo
 {
 	background: transparent url(img/geomixer_transpar.png) center no-repeat;
@@ -616,44 +566,10 @@ div.unit .unitInfo
 	margin: 7px 0px 2px 0px;
 	color: #153069;
 }
-
-/* search */
-.search
-{
-	padding: 5px 0px;
-}
-.searchLayerHeader
-{
-	color: #2185C0;
-	font-size: 12px;
-}
-.searchLayerHeader span
-{
-	margin-left: 10px;
-	color: #57697A;
-}
-
-span.searchElem
-{
-	cursor: pointer;
-	margin: 0px 8px 0px -4px;
-	color: #218580;
-	font-weight: bold;
-}
-span.searchElem:hover
-{
-	text-decoration: underline;
-}
 .childsCanvas
 {
 	padding-right: 10px;
 }
-.searchProperty
-{
-	margin: 0px 1px 0px 6px;
-	color: #4195B0;
-}
-
 /* */
 .attrsHelperCanvas
 {

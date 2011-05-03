@@ -10,6 +10,7 @@
 <link rel="stylesheet" type="text/css" href="table.css">
 <link rel="stylesheet" type="text/css" href="buttons.css">
 <link rel="stylesheet" type="text/css" href="treeview.css">
+<link rel="stylesheet" type="text/css" href="search.css">
 
 <script src="config.js"></script>
 
@@ -33,7 +34,6 @@
 <script src="binding.js"></script>
 <script src="mapLayers.js"></script>
 <script src="drawingObjects.js"></script>
-<script src="search.js"></script>
 <script src="fileBrowser.js"></script>
 <script src="loadServerData.js"></script>
 <script src="charts.js"></script>
@@ -47,7 +47,23 @@
 <script>
 
 var globalFlashMap;
+var oSearchControl;
+var oSearchLeftMenu = new leftMenu();
+				
+gmxCore.loadModule("search", "search.js");
+gmxCore.addModulesCallback(["search"], function(){
+	var oSearchModule = gmxCore.getModule("search");
+	oSearchControl = new oSearchModule.SearchGeomixer({Menu: oSearchLeftMenu});
+});
 
+//Инициализация элементов управления
+var fnInitControls = function(){
+	oSearchControl.Init({
+		ServerBase: getAPIHostRoot(),
+		mapHelper: _mapHelper,
+		Map: globalFlashMap
+	});
+}
 // используется для сохранения специфичных параметров в пермалинке
 window.collectCustomParams = function()
 {
@@ -85,7 +101,7 @@ var createMenu = function()
 			{id:'layers', title:_gtxt('Дерево слоев'),onsel:mapLayers.mapLayers.load,onunsel:mapLayers.mapLayers.unload},
 			{id:'externalMaps', title:_gtxt('Дополнительные карты'),onsel:mapHelp.externalMaps.load,onunsel:mapHelp.externalMaps.unload},
 			{id:'objects', title:_gtxt('Объекты на карте'),onsel:drawingObjects.drawingObjects.load,onunsel:drawingObjects.drawingObjects.unload},
-			{id:'search', title:_gtxt('Результаты поиска'),onsel:search.search.load,onunsel:search.search.unload},
+			{id:'search', title:_gtxt('Результаты поиска'), onsel: oSearchControl.Load,onunsel:oSearchControl.Unload},
 			{id:'mapTabs', title:_gtxt('Закладки'),onsel:mapHelp.tabs.load,onunsel:mapHelp.tabs.unload}
 		]});
 	
