@@ -2297,8 +2297,6 @@ queryMapLayers.prototype.addDraggable = function(parent)
 			return _layersTree.dummyNode(ev.target)
 		},
 		cursorAt: { left: 5 , top: 10},
-	//	cursor: 'move',
-	//	delay: 200,
 		appendTo: document.body
 	});
 }
