@@ -3580,6 +3580,8 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 				_layersTree.layerZoomToExtent(layer.bounds, minLayerZoom);
 			}
 			
+			/* временно отключили разворачиание дерева
+			
 			var div;
 			
 			if (elem.LayerID)
@@ -3635,6 +3637,8 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 				scroll = scroll - 100;
 			
 			$$('leftContent').scrollTop = scroll;
+			
+			*/
 		};
 
 	span.layerName = elem.name;
