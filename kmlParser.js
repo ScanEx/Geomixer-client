@@ -33,7 +33,7 @@ queryKML.prototype.load = function()
 	{
 		if (inputField.value != '')
 		{
-			if (!userInfo().Login)
+			if (!nsMapCommon.AuthorizationManager.isLogin())
 			{
 				login();
 				
@@ -60,7 +60,7 @@ queryKML.prototype.load = function()
 	  	{	
 			if (inputField.value != '')
 			{
-				if (!userInfo().Login)
+				if (!nsMapCommon.AuthorizationManager.isLogin())
 				{
 					login();
 					
@@ -95,7 +95,7 @@ queryKML.prototype.load = function()
 	var loadButton = makeButton(_gtxt("Загрузить"));
 	loadButton.onclick = function()
 	{
-		if (!userInfo().Login)
+		if (!nsMapCommon.AuthorizationManager.isLogin())
 		{
 			login();
 			

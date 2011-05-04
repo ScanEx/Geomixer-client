@@ -72,6 +72,7 @@ security.prototype.getRights = function(value, title)
 
 security.prototype.createMapSecurityDialog = function(securityInfo)
 {
+	var isShowUserSuggest = nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_ALL_USERS);
 	if ($$('securityDialog'))
 		removeDialog($$('securityDialog'))
 	
@@ -154,7 +155,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 			if (!parseResponse(response))
 				return;
 			
-			if (response.Result == null || response.Result.Role == 'Admin' || response.Result.IsOwner == true)
+			if (response.Result == null || response.Result.Role == 'admin' || response.Result.IsOwner == true)
 			{
 				inputError(addMapUserInput);
 			
@@ -193,12 +194,12 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
 	};
 	
-	if (userInfo().Role == 'Admin')
+	if (isShowUserSuggest)
 		_(canvas, [_div([_span([_t(_gtxt("Пользователи без прав доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','width','50px'],['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserSuggestInput])])])]), _br(), tableSuggestParent])]);
 	else
 		_(canvas, [_div()]);
 	
-	if (userInfo().Role == 'Admin')
+	if (isShowUserSuggest)
 	{
 		_securityTableSuggest.limit = 20;
 		_securityTableSuggest.pagesCount = 5;
@@ -226,7 +227,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	else
 		_(canvas, [_div()])
 
-	if (userInfo().Role == 'Admin')
+	if (isShowUserSuggest)
 		_(canvas, [_div([_span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','width','50px'],['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserInput])])])]), _br(), tableParent],[['css','borderTop','1px solid #999'],['css','marginTop','10px']])]);
 	else
 		_(canvas, [_div([_span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','width','50px'],['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserInput]), _td([addMapUserButton])])])]), _br(), tableParent])]);
@@ -258,7 +259,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	{
 		var mapTableHeight;
 		
-		if (userInfo().Role == 'Admin')
+		if (isShowUserSuggest)
 		{
 			mapTableHeight = Math.floor((canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - canvas.childNodes[1].offsetHeight - canvas.childNodes[3].offsetHeight - 50 - 30 - 20) / 2 );
 			
@@ -296,7 +297,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		}
 	}
 
-	showDialog(_gtxt(this.dialogTitle, this.title), canvas, 571, userInfo().Role == 'Admin' ? 470 : 370, false, false, resize);
+	showDialog(_gtxt(this.dialogTitle, this.title), canvas, 571, isShowUserSuggest ? 470 : 370, false, false, resize);
 	
 	_securityTable.tableHeader.firstChild.childNodes[0].style.textAlign = 'left';
 	_securityTable.tableHeader.firstChild.childNodes[0].style.paddingLeft = '3px';
@@ -304,7 +305,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	
 	resize();
 	
-	if (userInfo().Role == 'Admin')
+	if ( isShowUserSuggest )
 	{
 		_securityTableSuggest.vals = securityInfo.UsersWithoutAccess;
 	
@@ -338,7 +339,7 @@ security.prototype.drawMapUsers = function(user, securityScope)
 		// уберем пользователя из одного списка
 		_security.removeMapUser(user, _securityTable);
 		
-		if (userInfo().Role == 'Admin')
+		if (nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_ALL_USERS))
 		{
 			// добавим в другой
 			_security.addMapUser(user, _securityTableSuggest);
@@ -374,7 +375,7 @@ security.prototype.drawMapUsersSuggest = function(user)
 		if (tr)
 			tr.removeNode(true);
 		
-		if (userInfo().Role == 'Admin')
+		if (nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_ALL_USERS))
 		{
 			// уберем пользователя из одного списка
 			_security.removeMapUser(user, _securityTableSuggest);
