@@ -415,16 +415,13 @@ UpMenu.prototype.disableMenus = function(arr)
 
 UpMenu.prototype.checkView = function()
 {
-	if (userInfo().Role == 'Guest')
-		this.disableMenus(['layersVector', 'layersRaster']);
-		
-	if (!userInfo().Login)// || userInfo().Role == 'Accounts')
+	if (!nsMapCommon.AuthorizationManager.isLogin())// || userInfo().Role == 'Accounts')
 	{
 		this.enableMenus();
 		
 		this.disableMenus(['mapCreate', 'mapSave', 'mapSaveAs', 'layersMenu', 'pictureBinding', 'kml']);
 	}
-	else if (userInfo().Login && _queryMapLayers.currentMapRights() != "edit")
+	else if (/*userInfo().Login && */_queryMapLayers.currentMapRights() != "edit")
 	{
 		this.enableMenus();
 		
@@ -432,7 +429,7 @@ UpMenu.prototype.checkView = function()
 	}
 	else
 	{
-		var openFlag = _menuUp.disabledTabs[_tab_hash.recentHash]
+		var openFlag = _menuUp.disabledTabs[_tab_hash.recentHash];
 		
 		this.enableMenus();
 
@@ -440,6 +437,10 @@ UpMenu.prototype.checkView = function()
 			_tab_hash.openTab();
 	}
 	
+	if (!nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_CREATE_LAYERS))
+	{
+		this.disableMenus(['layersVector', 'layersRaster']);
+	}
 }
 
 UpMenu.prototype.addLoginCanvas = function()
@@ -1050,140 +1051,147 @@ var _layersTable = new scrollTable(),
 
 var iconPanel = function()
 {
+	var _this = this;
 	this.parent = null;
-}
-
-iconPanel.prototype.create = function(parentCanvas)
-{
-	this.parent = _tr();
 	
-	var div = _div([_table([_tbody([this.parent])],[['dir','className','iconsParent']])],[['css','padding','0px 10px']]);
-
-	if (parentCanvas == $$('iconPanel'))
+	var _createIcon = function(url, urlHover)
 	{
-		div.style.borderLeft = '1px solid #216b9c'
-	}
-	
-	if ($.browser.msie)
-		div.style.width = '100%';
-	else
-		parentCanvas.style.height = '34px';
-	
-	_(parentCanvas, [div]);
-}
-
-iconPanel.prototype.createIcon = function(url, urlHover)
-{
-	var div = _div(null, [['dir','className', 'toolbarIcon']]);
-	
-	div.style.backgroundImage = "url(" + url + ")";
-	
-	this.attachHover(div, url, urlHover)
-	
-	return div;
-}
-
-iconPanel.prototype.attachHover = function(div, url, urlHover)
-{
-	if (!urlHover)
-		return;
-	
-	div.onmouseover = function()
-	{
-		div.style.backgroundImage = "url(" + urlHover + ")";
-	}
-
-	div.onmouseout = function()
-	{
+		var div = _div(null, [['dir','className', 'toolbarIcon']]);
+		
 		div.style.backgroundImage = "url(" + url + ")";
-	}
-}
-
-iconPanel.prototype.add = function(name, url, urlHover, callback, floatRight, hiddenFlag)
-{
-	var div = this.createIcon(url, urlHover),
-		elem = _td([div],[['css','width','38px'],['attr','vAlign','top']]);
-	
-	elem.onclick = function()
-	{
-		callback.apply(elem, arguments);
-	}
-	
-	if (hiddenFlag)
-		elem.style.display = 'none';
-	
-	elem.style.cursor = 'pointer';
-	
-	_title(elem, name);
-	
-	_(this.parent, [elem]);
-}
-
-iconPanel.prototype.addSearchCanvas = function()
-{
-	var td = _td(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
-	
-	_(this.parent, [td]);
-}
-
-iconPanel.prototype.addMapName = function(name)
-{
-	var parent;
-	if (!$$('iconMapName'))
-	{
-		var div = _div([_t(name)], [['attr','id','iconMapName'], ['dir','className','iconMapName']])
-			td = _td([div],[['css','paddingTop','2px']]);
 		
-		_(this.parent, [_td([_t(_gtxt("Карта"))], [['css','color','#153069'],['css','fontSize','12px'],['css','paddingTop','2px'],['css','fontFamily','tahoma']]),
-						_td([_div(null,[['dir','className','markerRight'],['css','marginLeft','-3px']])],[['attr','vAlign','top'],['css','paddingTop',($.browser.msie ? '8px' : '10px')]]),
-						td]);
-	}
-	else
-	{
-		removeChilds($$('iconMapName'));
+		div.onmouseover = function()
+		{
+			div.style.backgroundImage = "url(" + urlHover + ")";
+		}
+
+		div.onmouseout = function()
+		{
+			div.style.backgroundImage = "url(" + url + ")";
+		}
 		
-		$($$('iconMapName'), [_t(name)])
+		return div;
+	}
+
+	this.create = function(parentCanvas)
+	{
+		this.parent = _tr();
+		
+		var div = _div([_table([_tbody([this.parent])],[['dir','className','iconsParent']])],[['css','padding','0px 10px']]);
+
+		if (parentCanvas == $$('iconPanel'))
+		{
+			div.style.borderLeft = '1px solid #216b9c'
+		}
+		
+		if ($.browser.msie)
+			div.style.width = '100%';
+		else
+			parentCanvas.style.height = '34px';
+		
+		_(parentCanvas, [div]);
+	}
+	
+	this.add = function(iconId, name, url, urlHover, callback, hiddenFlag)
+	{
+		var div = _createIcon(url, urlHover),
+			elem = _td([div],[['css','width','38px'],['attr','vAlign','top'], ['attr', 'id', iconId]]);
+		
+		elem.onclick = function()
+		{
+			callback.apply(elem, arguments);
+		}
+		
+		if (hiddenFlag)
+			elem.style.display = 'none';
+		
+		elem.style.cursor = 'pointer';
+		
+		_title(elem, name);
+		
+		_(this.parent, [elem]);
+	}
+	
+	this.addDelimeter = function(delimeterId, floatRight, hiddenFlag)
+	{
+		var img = _img(null, [['attr','src','img/toolbar/toolbarDelimeter.png']]),
+			elem = _td([img], [['css','width','10px'], ['attr', 'id', delimeterId]]);
+		
+		img.style.left = '0px';
+		img.style.top = '0px';
+		
+		img.style.width = '10px';
+		img.style.height = '33px';
+		
+		if ((typeof floatRight != 'undefined') && (floatRight == true))
+			elem.className = 'iconRight';
+		
+		if (hiddenFlag)
+			elem.style.display = 'none';
+		
+		_(this.parent, [elem])
+	}
+	
+	this.setVisible = function(iconId, isVisible)
+	{
+		var displayValue = isVisible ? '' : 'none';
+		$('#'+iconId, this.parent).css({display: displayValue});
+	}
+
+	//TODO: вынести из класса
+	this.addSearchCanvas = function()
+	{
+		var td = _td(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
+		
+		_(this.parent, [td]);
+	}
+
+	//TODO: вынести из класса
+	this.addMapName = function(name)
+	{
+		var parent;
+		if (!$$('iconMapName'))
+		{
+			var div = _div([_t(name)], [['attr','id','iconMapName'], ['dir','className','iconMapName']])
+				td = _td([div],[['css','paddingTop','2px']]);
+			
+			_(this.parent, [_td([_t(_gtxt("Карта"))], [['css','color','#153069'],['css','fontSize','12px'],['css','paddingTop','2px'],['css','fontFamily','tahoma']]),
+							_td([_div(null,[['dir','className','markerRight'],['css','marginLeft','-3px']])],[['attr','vAlign','top'],['css','paddingTop',($.browser.msie ? '8px' : '10px')]]),
+							td]);
+		}
+		else
+		{
+			removeChilds($$('iconMapName'));
+			
+			$($$('iconMapName'), [_t(name)])
+		}
+	}
+
+	//TODO: вынести из класса
+	this.addUserActions = function()
+	{
+		
+		if (!this.parent)
+			return;
+			
+		var ids = ['saveMap', 'createVectorLayer', 'createRasterLayer', 'userDelimeter'];
+		
+		for (var i = 0; i < ids.length; i++)
+			this.setVisible(ids[i], true);
+	}
+
+	//TODO: вынести из класса
+	this.removeUserActions = function()
+	{
+		if (!this.parent)
+			return;
+			
+		var ids = ['saveMap', 'createVectorLayer', 'createRasterLayer', 'userDelimeter'];
+		
+		for (var i = 0; i < ids.length; i++)
+			this.setVisible(ids[i], false);
 	}
 }
-
-iconPanel.prototype.addDelimeter = function(floatRight, hiddenFlag)
-{
-	var img = _img(null, [['attr','src','img/toolbar/toolbarDelimeter.png']]),
-		elem = _td([img], [['css','width','10px']]);
-	
-	img.style.left = '0px';
-	img.style.top = '0px';
-	
-	img.style.width = '10px';
-	img.style.height = '33px';
-	
-	if ((typeof floatRight != 'undefined') && (floatRight == true))
-		elem.className = 'iconRight';
-	
-	if (hiddenFlag)
-		elem.style.display = 'none';
-	
-	_(this.parent, [elem])
-}
-
-iconPanel.prototype.addUserActions = function()
-{
-	if (!this.parent)
-		return;
-	
-	for (var i = 0; i < 4; i++)
-		this.parent.childNodes[i].style.display = '';
-}
-
-iconPanel.prototype.removeUserActions = function()
-{
-	if (!this.parent)
-		return;
-	
-	for (var i = 0; i < 4; i++)
-		this.parent.childNodes[i].style.display = 'none';
-}
-
 
 var _iconPanel = new iconPanel(),
 	_leftIconPanel = new iconPanel();

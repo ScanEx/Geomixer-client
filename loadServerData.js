@@ -330,11 +330,13 @@ var queryServerData = function()
 	this.oldBalloonIndex = -1;
 	
 	this.proj = ['EPSG:4326','EPSG:3395','EPSG:41001'];
+	
+	this.customParams = undefined;
 }
 
 queryServerData.prototype = new leftMenu();
 
-queryServerData.prototype.load = function(parseFunc, drawFunc)
+queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManager)
 {
 	window.convertCoords = function(coordsStr)
 	{
@@ -385,11 +387,14 @@ queryServerData.prototype.load = function(parseFunc, drawFunc)
 	
 	var goButton = makeButton(_gtxt("Загрузить")),
 		_this = this;
-	
-	goButton.onclick = function()
+		
+	var doGetCapabilities = function()
 	{
 		if (inputField.value != '')
 		{
+			if ( customParamsManager )
+				_this.customParams = customParamsManager.collect();
+				
 			_this.getCapabilities(strip(inputField.value), parseFunc, drawFunc);
 				
 			inputField.value = '';
@@ -398,25 +403,26 @@ queryServerData.prototype.load = function(parseFunc, drawFunc)
 			inputError();
 	}
 	
+	goButton.onclick = doGetCapabilities;
+	
 	inputField.onkeydown = function(e)
 	{
 		var evt = e || window.event;
 	  	if (getkey(evt) == 13) 
 	  	{	
-			if (inputField.value != '')
-			{
-				_this.getCapabilities(strip(inputField.value), parseFunc, drawFunc);
-					
-				inputField.value = '';
-			}
-			else
-				inputError();
-	  		
+			doGetCapabilities();
 	  		return false;
 	  	}
 	}
 	
 	var canvas = _div([_div([_span([_t(_gtxt("URL сервера"))])], [['css','marginBottom','3px']]),_table([_tbody([_tr([_td([inputField]),_td([goButton])])])], [['css','marginBottom','5px']])],[['css','margin','3px 0px 0px 10px']])
+	
+	if (customParamsManager)
+	{
+		var customParamsDiv = _div();
+		$(canvas).append(customParamsDiv);
+		_this.customParams = customParamsManager.init(customParamsDiv);
+	}	
 
 	_(this.workCanvas, [canvas, this.parentCanvas])
 }
@@ -435,7 +441,7 @@ queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc)
 	{
 		var servicelayers = parseFunc.call(_this, response);
 		
-		drawFunc.call(_this, servicelayers, url, loading);
+		drawFunc.call(_this, servicelayers, url, loading, undefined, _this.customParams);
 	})
 }
 
@@ -693,7 +699,9 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 	box.checked = true;
 }
 
-queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, loadParams)
+//loadParams - параметры для отдельных слоёв
+//serverParams - параметры сервера, которые были указаны пользователем.
+queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, loadParams, serverParams)
 {
 	var ulCanvas = _ul(null, [['css','paddingBottom','5px'], ['attr','url',url]]),
 		ulChilds = _ul(),
@@ -758,7 +766,8 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 			srsMaxy = merc_y(maxy);
 		}
 		
-		var imgUrl = url + "?request=GetMap&layers=" + layer.name + "&srs=" + layer.srs + "&format=image/jpeg&styles=&width=" + mapBounds.width + "&height=" + mapBounds.height + "&bbox=" + srsMinx + "," + srsMiny + "," + srsMaxx + "," + srsMaxy;
+		var transparentParam = serverParams.format === 'png' ? '&transparent=true' : '';
+		var imgUrl = url + "?VERSION=1.1.0&request=GetMap&crs=EPSG:4326"+ transparentParam +"&layers=" + layer.name + "&srs=" + layer.srs + "&format=image/"+ serverParams.format +"&styles=&width=" + mapBounds.width + "&height=" + mapBounds.height + "&bbox=" + srsMinx + "," + srsMiny + "," + srsMaxx + "," + srsMaxy;
 		
 		parent.setImage(imgUrl, minx, maxy, maxx, maxy, maxx, miny, minx, miny);
 	}
@@ -823,6 +832,23 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 		}, 500)
 	})
 }
+
+queryServerData.prototype.customWMSParamsManager = (function()
+{
+	var _targetDiv = null;
+	return {
+		init: function(targetDiv) 
+		{
+			var select = _select([_option([_t('png')]), _option([_t('jpeg')])], [['dir','className','selectStyle'], ['css', 'width', '60px']]);
+			_targetDiv = targetDiv;
+			_(_targetDiv, [_t('Формат изображения: '), select]);
+			_targetDiv.style.marginBottom = '5px';
+		},
+		collect: function() {
+			return { format: $("option:selected", _targetDiv).text() };
+		}
+	}
+})();
 
 queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, loadParams)
 {
@@ -955,7 +981,7 @@ loadServerData.WMS.load = function()
 	var alreadyLoaded = _queryServerDataWMS.createWorkCanvas(arguments[0]);
 	
 	if (!alreadyLoaded)
-		_queryServerDataWMS.load(_queryServerDataWMS.parseWMSCapabilities, _queryServerDataWMS.drawWMS)
+		_queryServerDataWMS.load(_queryServerDataWMS.parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager)
 }
 loadServerData.WMS.unload = function()
 {

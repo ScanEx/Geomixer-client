@@ -2,6 +2,15 @@
 
 // controls: два календарика, выбор периода, галочка с выбором года
 // events: change
+
+/**
+ * @class cover.Calendar
+ * controls: два календарика, выбор периода, галочка с выбором года
+ */
+ 
+ /**
+ * @event change Если изменилась хотя бы одна из дат
+ */
 var Calendar = function()
 {
 	this.dateBegin = null;
@@ -14,8 +23,20 @@ var Calendar = function()
 	this.yearBox = null;
 	
 	//public interface
+	
+	/**
+	 * @method
+	 */
 	this.getDateBegin = function() { return $(this.dateBegin).datepicker("getDate"); }
+	
+	/**
+	 * @method
+	 */	
 	this.getDateEnd = function() { return $(this.dateEnd).datepicker("getDate"); }
+	
+	/**
+	 * @method
+	 */	
 	this.saveState = function()
 	{
 		return {
@@ -25,20 +46,27 @@ var Calendar = function()
 			year: this.yearBox.checked
 		}
 	}
+	
+	/**
+	 * @method
+	 * @param {String} data
+	 */
 	this.loadState = function( data )
 	{
 		$(this.dateBegin).datepicker("setDate", new Date(data.dateBegin));
 		$(this.dateEnd).datepicker("setDate", new Date(data.dateEnd));
 		this.lazyDate.value = data.lazyDate;
 		this.yearBox.checked = data.year;
-		
-		// $(this).trigger('change');
-	}
+	}	
 }
 
-//Параметры:
-// * dateMin, dateMax - {Date} граничные даты для календарей
-// * dateFormat - {String} формат даты
+/**
+ * Инициализирует календарь.
+ * @method
+ * @param {Object} params Параметры календаря: <br/>
+ * dateMin, dateMax - {Date} граничные даты для календарей <br/>
+ * dateFormat - {String} формат даты
+ */
 Calendar.prototype.init = function( params )
 {
 	var _this = this;
@@ -351,18 +379,27 @@ Calendar.prototype.selectFunc = function(inst)
 	}
 };
 
-
+/**
+* @class cover.CoverControl
+* Фильтрует слои со спутниковыми покрытиями по интервалу дат и облачности
+*/
 var CoverControl = function()
 {
 	this.cloudsIndexes = [];
 	this.currCloudsIndex = 2;
 }
 
+/**
+* @method
+*/
 CoverControl.prototype.saveState = function()
 {
 	return { currCloudsIndex: this.currCloudsIndex };
 }
 
+/**
+* @method
+*/
 CoverControl.prototype.loadState = function( data )
 {
 	this.currCloudsIndex = data.currCloudsIndex;
@@ -371,6 +408,10 @@ CoverControl.prototype.loadState = function( data )
 	_title($("#MapCalendar .ui-slider")[0].firstChild, this.cloudsIndexes[data.currCloudsIndex].name);
 }
 
+/**
+* Перефильтровывает слои при смене дат
+* @method
+*/
 CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
 	this.dateBegin = dateBegin;
@@ -379,6 +420,14 @@ CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	this.setFilters();
 }
 
+/**
+* @method
+* @param {Array} coverLayers Массив имён слоёв для фильтрации
+* @param {String} dateAttribute Имя аттрибута слоёв с датой
+* @param {String} cloudsAttribute Имя аттрибута слоёв с облачностью
+* @param {Array} icons Массив с именами иконок для облачности
+* @param {Integer} initCloudIndex Начальная облачность
+*/
 CoverControl.prototype.init = function(coverLayers, dateAttribute, cloudsAttribute, icons, initCloudIndex)
 {
 	this.coverLayers = coverLayers;
@@ -487,7 +536,12 @@ CoverControl.prototype.setFilters = function()
 	}
 }
 
-CoverControl.prototype.add = function(parent, icons)
+/**
+* Добавляет в DOM элементы контролов фильтрации по облачности
+* @method
+* @param {DOMElement} parent Контейнер для добавляения контрола
+*/
+CoverControl.prototype.add = function(parent)
 {
 	var	cloudsSlider = _mapHelper.createSlider(this.currCloudsIndex, function(){}),
 		_this = this;
@@ -541,11 +595,18 @@ CoverControl.prototype.add = function(parent, icons)
 	_(parent, [_table([_tbody(trs)],[['css','marginLeft','20px']])]);
 }
 
-
+/**
+* @class cover.FiltersControl
+* Фильтрует слои по интервалу дат
+*/
 var FiltersControl = function()
 {
 }
 
+/**
+* Обновляет фильтрацию слоёв при смене дат
+* @method 
+*/
 FiltersControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
 	this.dateBegin = dateBegin;
@@ -554,6 +615,11 @@ FiltersControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	this.setFilters();
 }
 
+/**
+* @method 
+* @param {Array} layers Вектор имён слоёв для фильтрации
+* @param {String} dateAttribute Имя аттрибута даты в слоях
+*/
 FiltersControl.prototype.init = function(layers, dateAttribute)
 {
 	this.layers = layers;
@@ -584,16 +650,24 @@ FiltersControl.prototype.setFilters = function()
 	}
 }
 
-/*************************************
- *          SearchBboxControl        *
+/*
+ ************************************
+ *          SearchBboxControl       *
  ************************************/
-// Управление ограничевающим прямоугольником для задания области отображения информации. 
-//
-// Добавляет кастомное свойство к FRAME, к которому забинден. 
-//
-// Зависимости: jQuery, API, translations
-// Элементы UI: кнопка и drawingObject типа FRAME. 
-// События: change
+ 
+ /**
+ * @class cover.SearchBboxControl
+ * Управление ограничевающим прямоугольником для задания области отображения информации. <br/>
+ *
+ * Добавляет кастомное свойство к FRAME, к которому забинден. <br/>
+ *
+ * Зависимости: jQuery, API, translations <br/>
+ * Элементы UI: кнопка и drawingObject типа FRAME
+ */
+ 
+ /**
+ * @event change
+ */
 var SearchBboxControl = function()
 {
 	_translationsHash.addtext("rus", {
@@ -627,11 +701,9 @@ var SearchBboxControl = function()
 		_elem = elem;
 		elem.properties.firesBbox = _bindingID;
 		
-		//_extent = getBounds( elem.getGeometry().coordinates );
-		
 		$(_button).val(_gtxt('searchBbox.CancelSearchInArea'));
 	}
-	
+		
 	var removeBbox = function()
 	{
 		if ( !_elem ) return;
@@ -642,6 +714,9 @@ var SearchBboxControl = function()
 		update();
 	};
 	
+	/**
+	 * @method
+	 */	
 	this.init = function()
 	{
 		_button = makeButton(_gtxt("searchBbox.SearchInArea"));
@@ -674,19 +749,28 @@ var SearchBboxControl = function()
 		})
 	};
 
-	//возвращает контрол, который может быть куда-нибудь помещён
+	/**
+	 * Возвращает контрол, который может быть куда-нибудь помещён
+	 * @method
+	 */
 	this.getButton = function()
 	{
 		return _button;
 	};
 	
-	//возвращет null если bbox не задан
+	/**
+	 * Возвращет null если bbox не задан
+	 * @method
+	 */
 	this.getBbox = function()
 	{
 		return _extent;
 	}
 	
-	//ищет bbox среди существующих drawing объектов и биндится к нему. drawing должен иметь свойство "firesBbox"
+	/**
+	 * Ищет bbox среди существующих drawing объектов и биндится к нему. drawing должен иметь свойство "firesBbox"
+	 * @method
+	 */
 	this.findBbox = function( checkBindingID )
 	{
 		var _this = this;
@@ -700,12 +784,18 @@ var SearchBboxControl = function()
 		})
 	}
 	
-	// предполагается, что сам drawing объект сохраняется кем-то ещё, мы сохраняем только его параметры биндинга
+	/**
+	 * Предполагается, что сам drawing объект сохраняется кем-то ещё, мы сохраняем только его параметры биндинга
+	 * @method
+	 */
 	this.saveState = function()
 	{
 		return { bindingID: _bindingID };
 	}
 	
+	/**
+	 * @method
+	 */
 	this.loadState = function( data )
 	{
 		if ( data.bindingID )
@@ -718,7 +808,11 @@ var SearchBboxControl = function()
 	}
 }
 
-//Оба параметра могут быть null (весь мир)
+/**
+* Сравнивают два extent'а. Оба параметра могут быть null (весь мир)
+* @method
+* @static
+*/
 SearchBboxControl.isBoundsEqual = function(ext1, ext2)
 {
 	if (!ext1 && !ext2) return true;
@@ -726,8 +820,14 @@ SearchBboxControl.isBoundsEqual = function(ext1, ext2)
 	return ext1.maxX == ext2.maxX && ext1.maxY == ext2.maxY && ext1.minX == ext2.minX && ext1.minY == ext2.minY;
 }
 
-//Аггрегирует статусы разных событий для нескольких источников (загружаются данные, слишком большая область и т.п.)
-//events: change
+/**
+ * @class cover.AggregateStatus
+ * Аггрегирует статусы разных событий для нескольких источников (загружаются данные, слишком большая область и т.п.)
+ */
+ 
+ /**
+ * @event change Изменение состояние аггрегатора, а не отдельных состояний источников
+ */
 var AggregateStatus = function()
 {
 	var _statuses = {};
@@ -761,8 +861,9 @@ var AggregateStatus = function()
 	this.getCommonStatus = function(){ return _statusCommon };
 }
 
-/*************************************
- *          Data Providers           *
+/*
+ ************************************
+ *          Data Providers          *
  ************************************/
  
 var IDataProvider = {};
@@ -787,9 +888,16 @@ IDataProvider.sendCachedCrossDomainJSONRequest = function(url, callback)
 }
 IDataProvider.sendCachedCrossDomainJSONRequest.jsonCache = {};
 
+/**
+* @class cover.FireSpotProvider Провайдер данных об очагах пожаров
+*/
+/**
+* @cfg {String} host Сервер, с которого берутся данные о пожарах. Default: http://sender.kosmosnimki.ru/
+*/
 var FireSpotProvider = function( params )
 {
 	var _params = $.extend({ host: 'http://sender.kosmosnimki.ru/' }, params );
+	
 	_translationsHash.addtext("rus", {
 							"firesWidget.FireSpots.Description" : "Очаги пожаров"
 						 });
@@ -800,21 +908,22 @@ var FireSpotProvider = function( params )
 	this.getDescription = function() { return _gtxt("firesWidget.FireSpots.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
-		var urlBbox = bbox ? "&MinX=" + bbox.minX + "&MinY=" + bbox.minY + "&MaxX=" + bbox.maxX + "&MaxY=" + bbox.maxY : "";
-		var urlFires = _params.host + "FireSender.ashx?StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+		var urlBbox = bbox ? '&Polygon=POLYGON((' + bbox.minX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.minY + '))' : "";
+		//var urlBbox = bbox ? "&MinX=" + bbox.minX + "&MinY=" + bbox.minY + "&MaxX=" + bbox.maxX + "&MaxY=" + bbox.maxY : "";
+		var urlFires = _params.host + "Fires.ashx?type=1&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
 		
-		IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(firesArr)
+		IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
 		{
-			if (!firesArr) 
+			if (data.Result != 'Ok')
 			{
-				onError( IDataProvider.ERROR_TOO_MUCH_DATA );
+				onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
 				return;
 			}
 			
 			var resArr = [];
-			for ( var d = 0; d < firesArr.length; d++ )
+			for ( var d = 0; d < data.Response.length; d++ )
 			{
-				var a = firesArr[d];
+				var a = data.Response[d];
 				resArr.push({ x: a[1], y: a[0], date: a[4], category: a[3] < 50 ? 0 : (a[3] < 100 ? 1 : 2), balloonProps: {"Время": a[5] + "&nbsp;(Greenwich Mean Time)", "Вероятность": a[2]}});
 			}
 			onSucceess( resArr );
@@ -822,6 +931,12 @@ var FireSpotProvider = function( params )
 	}
 }
 
+/**
+* @class cover.FireBurntProvider Провайдер данных о гарях
+*/
+/**
+* @cfg {String} host Сервер, с которого берутся данные о гарях. Default: http://sender.kosmosnimki.ru/
+*/
 var FireBurntProvider = function( params )
 {
 	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/'}, params);
@@ -861,9 +976,18 @@ var FireBurntProvider = function( params )
 	}
 }
 
+/**
+* @class cover.FireBurntProvider Провайдер покрытия снимками modis
+*/
+/**
+* @cfg {String} host Сервер, с которого берутся данные покрытии. Default: http://sender.kosmosnimki.ru/
+*/
+/**
+* @cfg {String} modisImagesHost Путь, с которого будут загружаться тайлы. Default: http://images.kosmosnimki.ru/MODIS/
+*/
 var ModisImagesProvider = function( params )
 {
-	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/', 
+	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/v2/',
 							modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/'
 						   }, params);
 	
@@ -879,24 +1003,24 @@ var ModisImagesProvider = function( params )
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
 		//запрашиваем только за первый день периода
-		var modisUrl = _params.host + "FireSender.ashx?type=1&StartDate=" + dateBegin + "&EndDate=" + dateBegin;
+		var modisUrl = _params.host + "Operative.ashx?type=0&Date=" + dateBegin;
 		
 		IDataProvider.sendCachedCrossDomainJSONRequest(modisUrl, function(data)
 		{
-			if (!data)
+			if (data.Result != 'Ok')
 			{
-				onError( IDataProvider.ERROR_TOO_MUCH_DATA );
+				onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
 				return;
 			}
 			
 			var resArr = [];
 			
-			for ( var d = 0; d < data.length; d++ )
+			for ( var d = 0; d < data.Response.length; d++ )
 			{
-				var curImage = data[d];
-				resArr.push({ geometry: from_merc_geometry(curImage[2][0].geometry), 
-							  dirName: params.modisImagesHost + curImage[1].split("\\").join("/"),
-							  date: curImage[0]
+				var curImage = data.Response[d];
+				resArr.push({ geometry: from_merc_geometry(curImage[3][0].geometry),
+							  dirName: params.modisImagesHost + curImage[5].split("\\").join("/"),
+							  date: curImage[1]
 						    });
 			}
 			
@@ -905,9 +1029,26 @@ var ModisImagesProvider = function( params )
 	}
 }
 
-/*************************************
- *            Renderers              *
+/*
+ ************************************
+ *            Renderers             *
  ************************************/
+ 
+ /**
+* @class cover.FireSpotRenderer Визуализирует точки пожаров разными иконками в зависимости от их типа
+*/
+
+/**
+* @cfg {String} fireIcon Иконка для маркеров , которая используется для всех пожаров
+*/
+
+/**
+* @cfg {Array} fireIcons Вектор для иконок маркеров очагов (3 иконки для слабого, среднего и сильного пожаров). Используется, если не указан fireIcon
+*/
+
+/**
+* @cfg {String} fireIconsHost Путь, откуда берутся иконки с предеопределёнными названиями. Используется, если нет fireIcon и fireIcons. Default: http://maps.kosmosnimki.ru/images/
+*/
 var FireSpotRenderer = function( params )
 {
 	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/' }, params);
@@ -981,6 +1122,10 @@ var FireSpotRenderer = function( params )
 	}
 }
 
+/**
+* @class cover.FireBurntRenderer
+* Рисует на карте гари
+*/
 var FireBurntRenderer = function()
 {
 	var _burntObj = null;
@@ -1022,6 +1167,10 @@ var FireBurntRenderer = function()
 	}
 }
 
+/**
+* @class cover.ModisImagesRenderer
+* Рисует на карте картинки MODIS
+*/
 var ModisImagesRenderer = function()
 {
 	var _imagesObj = null;
@@ -1050,9 +1199,14 @@ var ModisImagesRenderer = function()
 	}
 }
 
-/*************************************
- *            FiresControl           *
+/*
+ ************************************
+ *            FiresControl          *
  ************************************/
+ 
+ /**
+* @class cover.FiresControl
+*/
 var FiresControl = function()
 {
 	this.dateFiresBegin = null;
@@ -1072,16 +1226,19 @@ var FiresControl = function()
 //настройки виджета пожаров по умолчанию
 FiresControl.DEFAULT_OPTIONS = 
 {
-	firesHost:       'http://sender.kosmosnimki.ru/',
-	imagesHost:      'http://sender.kosmosnimki.ru/',
+	firesHost:       'http://sender.kosmosnimki.ru/v2/',
+	imagesHost:      'http://sender.kosmosnimki.ru/v2/',
 	burntHost:       'http://sender.kosmosnimki.ru/',
 	fireIconsHost:   'http://maps.kosmosnimki.ru/images/',
 	modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/',
-	
+
 	dateFormat: "dd.mm.yy",
-	fires:  true,
-	images: true,
-	burnt:  true
+	fires:      true,
+	firesInit:  true,
+	images:     true,
+	imagesInit: true,
+	burnt:      false,
+	burntInit:  true
 }
 
 FiresControl.prototype.saveState = function()
@@ -1111,11 +1268,18 @@ FiresControl.prototype.loadState = function( data )
 	//this.loadForDates( this.dateFiresBegin, this.dateFiresEnd );
 }
 
-FiresControl.prototype.addDataProvider = function( name, dataProvider, dataRenderer )
+// providerParams: 
+//     - isVisible - {Bool, default: true} виден ли по умолчанию сразу после загрузки
+//     - isUseDate - {Bool, default: true} зависят ли данные от даты
+//     - isUseBbox - {Bool, default: true} зависят ли данные от bbox
+FiresControl.prototype.addDataProvider = function( name, dataProvider, dataRenderer, providerParams )
 {
-	this.dataControllers[name] = { provider: dataProvider, renderer: dataRenderer, visible: true, name: name };
+	providerParams = $.extend( { isVisible: true, isUseDate: true, isUseBbox: true }, providerParams );
+		
+	this.dataControllers[name] = { provider: dataProvider, renderer: dataRenderer, visible: providerParams.isVisible, name: name, params: providerParams };
 	this.updateCheckboxList();
-	this.loadForDates( this.dateFiresBegin, this.dateFiresEnd );
+	if (this.dateFiresBegin && this.dateFiresEnd)
+		this.loadForDates( this.dateFiresBegin, this.dateFiresEnd );
 }
 
 //Перерисовывает все checkbox'ы. Возможно, стоит оптимизировать
@@ -1188,7 +1352,7 @@ FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	for (var k in this.dataControllers)
 	{
 		var curController = this.dataControllers[k];
-		if ( curController.visible && ( isDatesChanged || isBBoxChanged || !curController.data ) )
+		if ( curController.visible && ( (isDatesChanged && curController.params.isUseDate) || (isBBoxChanged && curController.params.isUseBbox) || !curController.data ) )
 		{
 			this.processingModel.setStatus( curController.name, false);
 			
@@ -1231,17 +1395,20 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 	if ( this._firesOptions.fires ) 
 		this.addDataProvider( "firedots",
 							  new FireSpotProvider( {host: this._firesOptions.firesHost} ),
-							  new FireSpotRenderer( {fireIconsHost: this._firesOptions.fireIconsHost} ) );
+							  new FireSpotRenderer( {fireIconsHost: this._firesOptions.fireIconsHost} ),
+							  { isVisible: this._firesOptions.firesInit } );
 							  
 	if ( this._firesOptions.burnt ) 
 		this.addDataProvider( "burnts",
 							new FireBurntProvider( {host: this._firesOptions.burntHost} ),
-							new FireBurntRenderer() );
+							new FireBurntRenderer(),
+							{ isVisible: this._firesOptions.burntInit } );
 						  
 	if ( this._firesOptions.images ) 
 		this.addDataProvider( "images",
 							  new ModisImagesProvider( {host: this._firesOptions.imagesHost, modisImagesHost: this._firesOptions.modisImagesHost} ),
-							  new ModisImagesRenderer() );
+							  new ModisImagesRenderer(),
+							  { isVisible: this._firesOptions.imagesInit, isUseBbox: false } );
 	
 	this.searchBboxController.init();
 	var processImg = _img(null, [['attr','src', globalOptions.resourceHost + 'img/progress.gif'],['css','marginLeft','10px'], ['css', 'display', 'none']]);
@@ -1290,9 +1457,12 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 		modisImagesHost: 'http://fires2.kosmosnimki.ru/Modis/',
 		
 		dateFormat: "dd.mm.yy",
-		fires: true,
-		images: true,
-		burnt: true,
+		fires: true,      //Default: true
+		firesInit: true,  //Default: true
+		images: true,     //Default: true
+		imagesInit: true, //Default: true
+		burnt: true,      //Default: true
+		burntInit: true   //Default: true
 		
 	},
 	cover: {
@@ -1317,6 +1487,10 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 }
 */
 
+/**
+* @class cover.MapCalendar
+* Интерфейс для задания параметров элеметов, зависящих от интервала.
+*/
 var MapCalendar = function(params)
 {
 	this.calendar = new Calendar();
@@ -1341,7 +1515,6 @@ MapCalendar.prototype.loadState = function( data )
 	if ( data.fires )
 	{
 		this.fires.loadState( data.fires );
-		//this.fires.loadForDates( this.calendar.getDateBegin(), this.calendar.getDateEnd() );
 	}
 	
 	if ( data.cover )
@@ -1473,7 +1646,11 @@ MapCalendar.prototype.convertEvalState = function(evalString)
 {
 	if (!evalString) return;
 	
-	var yearBox   = /yearBox\.checked = (true|false);/.exec(evalString)[1];
+	var yearBoxParse   = /yearBox\.checked = (true|false);/.exec(evalString);
+	
+	if (!yearBoxParse) return; //какой-то другой пермалинк
+	
+	var yearBoxParse = yearBoxParse[1];
 	var lazyDate  = /lazyDate\.value = "([^;]+)";/.exec(evalString)[1];
 	var dateBegin = /dateBegin\.value = "([^;]+)";/.exec(evalString)[1];
 	var dateEnd   = /dateEnd\.value = "([^;]+)";/.exec(evalString)[1];
@@ -1556,6 +1733,12 @@ MapCalendar.prototype.getFireControl = function()
 	return this.fires;
 }
 
+
+/**
+ * @class cover.mapCalendar
+ * Синглетон для доступа к виджету
+ * @singleton
+ */
 var mapCalendar = new MapCalendar();
 
 var publicInterface = 

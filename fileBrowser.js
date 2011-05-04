@@ -198,7 +198,7 @@ fileBrowser.prototype.createHeader = function(discs)
 		_this.getFiles(_this.homeDir);
 	}
 	
-	if (userInfo().Role == "Admin")
+	if ( nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE ) )
 	{
 		for (var i = 0; i < discs.length; i++)
 		{
@@ -365,7 +365,7 @@ fileBrowser.prototype.getFilesHandler = function(files, path)
 
 fileBrowser.prototype.minimizeUserPath = function()
 {
-	if (userInfo().Role == "Admin")
+	if ( nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE ) )
 		return this.currentDir;
 	
 	var shortPath = this.currentDir.replace(this.homeDir, "");
@@ -451,7 +451,7 @@ fileBrowser.prototype.draw = function(files)
 	
 	var tdRoot = _td(null, [['css','width','20px']]);
 	
-	if (userInfo().Role == "Admin")
+	if ( nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE ) )
 	{
 		var rootButton = makeButton("\\");
 		
@@ -472,7 +472,7 @@ fileBrowser.prototype.draw = function(files)
 	
 	if (!this.isDrive())
 	{
-		if (userInfo().Role == "Admin" ||
+		if (nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE ) ||
 			this.currentDir.indexOf(this.homeDir) == 0 && this.currentDir.length > this.homeDir.length)
 			tableFilesTrs.push(prevDirTr)
 	
