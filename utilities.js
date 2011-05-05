@@ -900,13 +900,14 @@ function parseResponse(response)
 		return true
 	else if (response.Status == 'auth')
 	{
-		if (userInfo().Role == 'Accounts')
+		if ( nsMapCommon.AuthorizationManager.isAccounts() )
+		{
 			showErrorMessage(_gtxt("Недостаточно прав для совершения операции"), true)
+		}
 		else
 		{
 			_menuUp.addLogin();
 			removeChilds($$('user'));
-			
 			login();
 		}
 		
@@ -943,14 +944,14 @@ function parseResponse(response)
 
 function addUserActions()
 {
-	if (userInfo().Role != 'Accounts')
+	if ( !nsMapCommon.AuthorizationManager.isAccounts() )
 	{
 		_queryMapLayers.addUserActions();
 		
 		if (_queryMapLayers.currentMapRights() == "edit")
 			_iconPanel.addUserActions();
 		
-		if (userInfo().Role == 'Guest')
+		if (!nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_CREATE_LAYERS))
 		{
 			_iconPanel.setVisible('createRasterLayer', false);
 			_iconPanel.setVisible('createVectorLayer', false);
@@ -1223,7 +1224,7 @@ function addUserName()
 	
 	span.onclick = function()
 	{
-		if (userInfo().Role == 'Accounts')
+		if ( nsMapCommon.AuthorizationManager.isAccounts() )
 			window.open('http://account.kosmosnimki.ru/ChangePassword.aspx', '_blank');
 		else
 			changePassword();

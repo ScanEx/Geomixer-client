@@ -272,7 +272,7 @@ layersTree.prototype.getChildsList = function(elem, parentParams, layerManagerFl
 		_(li, [_abstractTree.makeSwapChild()])
 	
 	// видимость слоя в дереве
-	if (userInfo().Role != 'Admin' &&
+	if (!nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) &&
 		elem.type && elem.type == 'layer' &&
 		typeof invisibleLayers != 'undefined' && invisibleLayers[elem.content.properties.name])
 		li.style.display = 'none';
@@ -717,8 +717,13 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			if (elem.type == "Vector")
 				_(actionsCanvas, [_div([attrs],[['css','height','16px']])]);
 			
-			if ( (_mapHelper.mapProperties.Owner == userInfo().Login && userInfo().Role != 'Guest') || userInfo().Role == 'Admin')
+			if ( nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
+				( _mapHelper.mapProperties.Owner == userInfo().Login || 
+				  nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) ) 
+				)
+			{
 				_(actionsCanvas, [_div([access],[['css','height','16px']])]);
+			}
 			
 			if (elem.type == "Vector")
 			{
@@ -1222,11 +1227,15 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 		_mapSecurity.getRights(_mapHelper.mapProperties.MapID, _mapHelper.mapProperties.title);
 	}
 	
+	var bAddAccessDialog = nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
+		 ( _mapHelper.mapProperties.Owner == userInfo().Login || 
+		   nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) );
+	
 	if ($.browser.opera)
 	{
 		var actionsCanvas;
 		
-		if ( (_mapHelper.mapProperties.Owner == userInfo().Login && userInfo().Role != 'Guest') || userInfo().Role == 'Admin')
+		if ( bAddAccessDialog )
 			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([access],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
 		else
 			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
@@ -1284,7 +1293,7 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 	{
 		var actionsCanvas;
 		
-		if ( (_mapHelper.mapProperties.Owner == userInfo().Login && userInfo().Role != 'Guest') || userInfo().Role == 'Admin')
+		if ( bAddAccessDialog )
 			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([access],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['css','width','120px']]);
 		else
 			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['css','width','120px']]);
@@ -3569,6 +3578,8 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 				_layersTree.layerZoomToExtent(layer.bounds, minLayerZoom);
 			}
 			
+			/* временно отключили разворачиание дерева
+			
 			var div;
 			
 			if (elem.LayerID)
@@ -3624,6 +3635,8 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 				scroll = scroll - 100;
 			
 			$$('leftContent').scrollTop = scroll;
+			
+			*/
 		};
 
 	span.layerName = elem.name;

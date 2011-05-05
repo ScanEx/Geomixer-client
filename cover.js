@@ -820,8 +820,14 @@ SearchBboxControl.isBoundsEqual = function(ext1, ext2)
 	return ext1.maxX == ext2.maxX && ext1.maxY == ext2.maxY && ext1.minX == ext2.minX && ext1.minY == ext2.minY;
 }
 
-//Аггрегирует статусы разных событий для нескольких источников (загружаются данные, слишком большая область и т.п.)
-//events: change
+/**
+ * @class cover.AggregateStatus
+ * Аггрегирует статусы разных событий для нескольких источников (загружаются данные, слишком большая область и т.п.)
+ */
+ 
+ /**
+ * @event change Изменение состояние аггрегатора, а не отдельных состояний источников
+ */
 var AggregateStatus = function()
 {
 	var _statuses = {};
@@ -882,9 +888,16 @@ IDataProvider.sendCachedCrossDomainJSONRequest = function(url, callback)
 }
 IDataProvider.sendCachedCrossDomainJSONRequest.jsonCache = {};
 
+/**
+* @class cover.FireSpotProvider Провайдер данных об очагах пожаров
+*/
+/**
+* @cfg {String} host Сервер, с которого берутся данные о пожарах. Default: http://sender.kosmosnimki.ru/
+*/
 var FireSpotProvider = function( params )
 {
 	var _params = $.extend({ host: 'http://sender.kosmosnimki.ru/' }, params );
+	
 	_translationsHash.addtext("rus", {
 							"firesWidget.FireSpots.Description" : "Очаги пожаров"
 						 });
@@ -918,6 +931,12 @@ var FireSpotProvider = function( params )
 	}
 }
 
+/**
+* @class cover.FireBurntProvider Провайдер данных о гарях
+*/
+/**
+* @cfg {String} host Сервер, с которого берутся данные о гарях. Default: http://sender.kosmosnimki.ru/
+*/
 var FireBurntProvider = function( params )
 {
 	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/'}, params);
@@ -957,6 +976,15 @@ var FireBurntProvider = function( params )
 	}
 }
 
+/**
+* @class cover.FireBurntProvider Провайдер покрытия снимками modis
+*/
+/**
+* @cfg {String} host Сервер, с которого берутся данные покрытии. Default: http://sender.kosmosnimki.ru/
+*/
+/**
+* @cfg {String} modisImagesHost Путь, с которого будут загружаться тайлы. Default: http://images.kosmosnimki.ru/MODIS/
+*/
 var ModisImagesProvider = function( params )
 {
 	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/v2/',
@@ -1005,6 +1033,22 @@ var ModisImagesProvider = function( params )
  ************************************
  *            Renderers             *
  ************************************/
+ 
+ /**
+* @class cover.FireSpotRenderer Визуализирует точки пожаров разными иконками в зависимости от их типа
+*/
+
+/**
+* @cfg {String} fireIcon Иконка для маркеров , которая используется для всех пожаров
+*/
+
+/**
+* @cfg {Array} fireIcons Вектор для иконок маркеров очагов (3 иконки для слабого, среднего и сильного пожаров). Используется, если не указан fireIcon
+*/
+
+/**
+* @cfg {String} fireIconsHost Путь, откуда берутся иконки с предеопределёнными названиями. Используется, если нет fireIcon и fireIcons. Default: http://maps.kosmosnimki.ru/images/
+*/
 var FireSpotRenderer = function( params )
 {
 	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/' }, params);
@@ -1078,6 +1122,10 @@ var FireSpotRenderer = function( params )
 	}
 }
 
+/**
+* @class cover.FireBurntRenderer
+* Рисует на карте гари
+*/
 var FireBurntRenderer = function()
 {
 	var _burntObj = null;
@@ -1119,6 +1167,10 @@ var FireBurntRenderer = function()
 	}
 }
 
+/**
+* @class cover.ModisImagesRenderer
+* Рисует на карте картинки MODIS
+*/
 var ModisImagesRenderer = function()
 {
 	var _imagesObj = null;
@@ -1151,6 +1203,10 @@ var ModisImagesRenderer = function()
  ************************************
  *            FiresControl          *
  ************************************/
+ 
+ /**
+* @class cover.FiresControl
+*/
 var FiresControl = function()
 {
 	this.dateFiresBegin = null;
@@ -1181,7 +1237,7 @@ FiresControl.DEFAULT_OPTIONS =
 	firesInit:  true,
 	images:     true,
 	imagesInit: true,
-	burnt:      true,
+	burnt:      false,
 	burntInit:  true
 }
 
@@ -1431,6 +1487,10 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 }
 */
 
+/**
+* @class cover.MapCalendar
+* Интерфейс для задания параметров элеметов, зависящих от интервала.
+*/
 var MapCalendar = function(params)
 {
 	this.calendar = new Calendar();

@@ -1080,7 +1080,23 @@ function createFlashMapInternal(div, layers, callback)
 						if (!fixedHoverBalloons[id])
 						{
 							var balloon = map.addBalloon();
-							balloon.setPoint(map.getMouseX(), map.getMouseY());
+
+							var mx = map.getMouseX();
+							var my = map.getMouseY();
+							
+							if(o.getGeometryType() == 'POINT') {
+								var gObj = o.getGeometry();
+								var x = gObj.coordinates[0];
+								var y = gObj.coordinates[1];
+
+								balloon.fixedDeltaX =  (merc_x(mx) -  merc_x(x))/scale;
+								balloon.fixedDeltaY =  (merc_y(my) -  merc_y(y))/scale;
+								mx = x;
+								my = y;
+								balloon.fixedDeltaFlag = true;
+							}
+
+							balloon.setPoint(mx, my);
 							balloon.div.innerHTML = text;
 							balloon.resize();
 							fixedHoverBalloons[id] = balloon;
@@ -2798,6 +2814,10 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						var x = div.clientWidth/2 - (mapX - merc_x(this.geoX))/scale;
 						var y = div.clientHeight/2 + (mapY - merc_y(this.geoY))/scale;
+						if(this.fixedDeltaFlag) {
+							x += balloon.fixedDeltaX;
+							y -= balloon.fixedDeltaY;
+						}
 						if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
 						{
 							this.setScreenPosition(x, y);

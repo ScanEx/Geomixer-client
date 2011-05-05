@@ -415,13 +415,13 @@ UpMenu.prototype.disableMenus = function(arr)
 
 UpMenu.prototype.checkView = function()
 {
-	if (!userInfo().Login)// || userInfo().Role == 'Accounts')
+	if (!nsMapCommon.AuthorizationManager.isLogin())// || userInfo().Role == 'Accounts')
 	{
 		this.enableMenus();
 		
 		this.disableMenus(['mapCreate', 'mapSave', 'mapSaveAs', 'layersMenu', 'pictureBinding', 'kml']);
 	}
-	else if (userInfo().Login && _queryMapLayers.currentMapRights() != "edit")
+	else if (/*userInfo().Login && */_queryMapLayers.currentMapRights() != "edit")
 	{
 		this.enableMenus();
 		
@@ -429,7 +429,7 @@ UpMenu.prototype.checkView = function()
 	}
 	else
 	{
-		var openFlag = _menuUp.disabledTabs[_tab_hash.recentHash]
+		var openFlag = _menuUp.disabledTabs[_tab_hash.recentHash];
 		
 		this.enableMenus();
 
@@ -437,7 +437,7 @@ UpMenu.prototype.checkView = function()
 			_tab_hash.openTab();
 	}
 	
-	if (userInfo().Role == 'Guest')
+	if (!nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_CREATE_LAYERS))
 	{
 		this.disableMenus(['layersVector', 'layersRaster']);
 	}

@@ -412,6 +412,7 @@ function checkUserInfo(defaultState)
 		{
 			// юзер не авторизован
 			userInfo = function(){return {Login: false}};
+			nsMapCommon.AuthorizationManager.setUserInfo({Login: false});
 		}
 		else
 		{
@@ -419,6 +420,7 @@ function checkUserInfo(defaultState)
 			{
 				return response.Result;
 			}
+			nsMapCommon.AuthorizationManager.setUserInfo(response.Result);
 		}
 		
 		var tinyRef = readCookie("TinyReference");
@@ -481,7 +483,7 @@ function loadMap(state)
 			if ($$('left_usage'))
 				hide($$('left_usage'))
 			
-			if (userInfo().Login)
+			if ( nsMapCommon.AuthorizationManager.isLogin() )
 			{
 				_menuUp.addLogout();
 				
@@ -698,7 +700,7 @@ function loadMap(state)
 		_menuUp.checkView();
 		removeUserActions();
 		
-		if (userInfo().Login)
+		if (nsMapCommon.AuthorizationManager.isLogin())
 		{
 			_menuUp.addLogout();
 			
