@@ -1022,12 +1022,19 @@ var SearchControl = function (params){
 	var fnSearchByString = function(event, SearchString, layersSearchFlag)
 	{
 		try{
-			lstResult.ShowLoading();
 			fnBeforeSearch();
-			oLogic.SearchByString({SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, callback: function(response) {
-				lstResult.ShowResult(SearchString, response);
+			if (!parseCoordinates(SearchString, function(x, y) {
+				globalFlashMap.moveTo(x, y, globalFlashMap.getZ());
+				globalFlashMap.drawing.addObject({ type: "POINT", coordinates: [x, y] }, { text: SearchString });
+				
 				fnAfterSearch();
-			}});
+			})){
+				lstResult.ShowLoading();
+				oLogic.SearchByString({SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, callback: function(response) {
+					lstResult.ShowResult(SearchString, response);
+					fnAfterSearch();
+				}});
+			}
 		}
 		catch (e){
 			lstResult.ShowError();
