@@ -1,7 +1,0 @@
-.DEFAULT: ../api.swf ../proxy.swf
-resources.swf: resources.xml
-	swfmill simple resources.xml resources.swf
-../api.swf: resources.swf FlashMap.as FlashMapObject.as FlashMapWindow.as FlashMapObjectRoot.as Merc.as JSON.as Bounds.as
-	mtasc FlashMap.as FlashMapObject.as FlashMapWindow.as FlashMapObjectRoot.as Merc.as JSON.as Bounds.as -main -version 8 -swf resources.swf -out ../api.swf
-../proxy.swf: resources.swf VectorTileProxy.as
-	mtasc VectorTileProxy.as -main -version 8 -swf resources.swf -out ../proxy.swf

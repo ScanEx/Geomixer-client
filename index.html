@@ -1,4 +1,4 @@
-<html>
+﻿<html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>ScanEx Web Geomixer - просмотр карты</title>
@@ -53,12 +53,13 @@ var oSearchLeftMenu = new leftMenu();
 gmxCore.loadModule("search", "search.js");
 gmxCore.addModulesCallback(["search"], function(){
 	var oSearchModule = gmxCore.getModule("search");
-	oSearchControl = new oSearchModule.SearchGeomixer({Menu: oSearchLeftMenu});
+	oSearchControl = new oSearchModule.SearchGeomixer();
 });
 
 //Инициализация элементов управления
 var fnInitControls = function(){
 	oSearchControl.Init({
+		Menu: oSearchLeftMenu,
 		ServerBase: getAPIHostRoot(),
 		mapHelper: _mapHelper,
 		Map: globalFlashMap

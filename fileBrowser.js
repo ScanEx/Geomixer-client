@@ -781,7 +781,8 @@ fileBrowser.prototype.createFolderActions = function(name)
 			
 		_context(spanParent, actionsCanvas, function()
 		{
-			return _this.currentDir.indexOf(_this.homeDir) >= 0;
+			//показывать меню только в домашней директории или если есть права на просмотр всей структуры папок
+			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
 		})
 	}
 	
@@ -904,7 +905,8 @@ fileBrowser.prototype.createFileActions = function(name, ext)
 
 		_context(spanParent, actionsCanvas, function()
 		{
-			return _this.currentDir.indexOf(_this.homeDir) >= 0;
+			//показывать меню только в домашней директории или если есть права на просмотр всей структуры папок
+			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
 		})
 	}
 	
