@@ -3414,6 +3414,9 @@ function createFlashMapInternal(div, layers, callback)
 					input.style.backgroundColor = "transparent";
 					input.style.border = 0;
 					input.style.overflow = "hidden";
+					var fontSize = 16;
+					input.style.fontSize = fontSize + 'px';
+					input.setAttribute("wrap", "off");
 					input.value = text ? text : "";
 					var updateText = function() 
 					{ 
@@ -3424,10 +3427,11 @@ function createFlashMapInternal(div, layers, callback)
 								rows += 1;
 						input.rows = rows;
 						var lines = newText.split("\n");
-						var cols = isIE ? 6 : 4;
+						var cols = 2;
 						for (var i in lines)
-							cols = Math.max(cols, lines[i].length + 2);
+							cols = Math.max(cols, lines[i].length + 3);
 						input.cols = cols;
+						input.style.width = cols * (fontSize - (isIE ? 5: 6));
 						text = newText;
 						balloon.resize();
 						updateDOM();
