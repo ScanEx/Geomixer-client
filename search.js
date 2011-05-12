@@ -160,6 +160,7 @@ var SearchInput = function (oInitContainer, params) {
         var evt = e || window.event;
         if (getkey(evt) == 13) {
 			if (Number(new Date()) - dtLastSearch < 1000 || $("#ui-active-menuitem").get().length > 0) return; //Если уже ведется поиск по автозаполнению, то обычный не ведем
+			dtLastSearch = new Date();
 			if($(searchField).catcomplete != null)$(searchField).catcomplete("close");
             fnSearch();
             return true;
@@ -220,13 +221,15 @@ var SearchInput = function (oInitContainer, params) {
 		@param {object} request запрос (request.term - строка запроса)
 		@param {object[]} Массив значений для отображения в подсказке*/
 		function fnAutoCompleteSource(request, response){
-			if (Number(new Date()) - dtLastSearch > 5000) {
-				params.AutoCompleteSource(request, response);
-			}
-			else
-			{
-				response([]);
-			}
+			params.AutoCompleteSource(request, function(arrResult){
+				if (Number(new Date()) - dtLastSearch > 5000) {
+					response(arrResult);
+				}
+				else
+				{
+					response([]);
+				}
+			});
 		}
 		
 		$(function() {
@@ -1162,7 +1165,7 @@ var SearchControl = function (params){
 	/**Строка ввода поискового запроса*/
 	var btnSearch = new SearchInput(params.ContainerInput, {
 		ImagesHost: params.ImagesHost,
-		layersSearchFlag: true,
+		layersSearchFlag: params.layersSearchFlag,
 		Search: fnSearchByString,
 		AutoCompleteSource: fnAutoCompleteSource,
 		AutoCompleteSelect: fnSelect
