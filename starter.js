@@ -6,16 +6,16 @@ var gmxJSHost = window.gmxJSHost || "";
 
 $LAB.
 	script(gmxJSHost + "jquery/jquery-1.5.1.min.js").wait().
-	script(gmxJSHost + "jquery/jquery.getCSS.min.js").wait(function()
+	script(gmxJSHost + "jquery/jquery.getCSS.js").wait(function()
 	{
-		$.getCSS(gmxJSHost + "common.css", {}, function(){});
-		$.getCSS(gmxJSHost + "jquery/jquery-ui-1.7.2.custom.css", {}, function(){});
-		$.getCSS(gmxJSHost + "colorpicker/css/colorpicker.css", {}, function(){});
-		$.getCSS(gmxJSHost + "menu.css", {}, function(){});
-		$.getCSS(gmxJSHost + "table.css", {}, function(){});
-		$.getCSS(gmxJSHost + "buttons.css", {}, function(){});
-		$.getCSS(gmxJSHost + "treeview.css", {}, function(){});
-		$.getCSS(gmxJSHost + "search.css", {}, function(){});
+		$.getCSS(gmxJSHost + "common.css");
+		$.getCSS(gmxJSHost + "jquery/jquery-ui-1.7.2.custom.css");
+		$.getCSS(gmxJSHost + "colorpicker/css/colorpicker.css");
+		$.getCSS(gmxJSHost + "menu.css");
+		$.getCSS(gmxJSHost + "table.css");
+		$.getCSS(gmxJSHost + "buttons.css");
+		$.getCSS(gmxJSHost + "treeview.css");
+		$.getCSS(gmxJSHost + "search.css");
 	}).
 	script(gmxJSHost + "jquery/jquery-ui-1.8.10.custom.min.js").wait().
 	script(gmxJSHost + "jquery/ui.datepicker-ru.js").wait().
@@ -710,7 +710,12 @@ function loadMap(state)
 			
 			addUserActions();
 		}
-		fnInitControls();		
+		fnInitControls();
+		
+		if (typeof window.gmxPlugins !== 'undefined' && window.gmxPlugins.useWikiPlugin)
+		{
+			$LAB.script(gmxJSHost + 'wiki/WikiPlugin.js').wait(function(){new WikiPlugin(map); });
+		}
 	}
 
 	var success = createFlashMap($$("flash"), globalMapName, mapCallback);
