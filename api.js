@@ -6048,7 +6048,7 @@ kmlParser.prototype.parseStyleMap = function(elem)
 kmlParser.prototype.convertCoords = function(coordsStr)
 {
 	var res = [],
-		coordsPairs = strip(coordsStr).replace(/[\t\n\r\s]/g,' ').replace(/\s+/g, ' ').split(' ');
+		coordsPairs = strip(coordsStr).replace(/[\t\n\r\s]/g,' ').replace(/\s+/g, ' ').replace(/,\s/g, ',').split(' ');
 	
 	if (coordsStr.indexOf(',') == -1)
 	{
