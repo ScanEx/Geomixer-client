@@ -679,12 +679,14 @@ var ResultRenderer = function(oInitMap, params){
 		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type == 'POINT') {
 			elemMap = oContainer.addObject(oFoundObject.Geometry, { Descr: sDescr });
 			elemMap.setStyle(getSearchStyles()["POINT"][0], getSearchStyles()["POINT"][1]);
+			elemMap.enableHoverBalloon(fnBaloon);
 		}
-		else{
+		else if (oFoundObject.CntrLon != null && oFoundObject.CntrLat != null){
 			elemMap = oContainer.addObject({ type: "POINT", coordinates: [oFoundObject.CntrLon, oFoundObject.CntrLat] }, { Descr: sDescr });
 			elemMap.setStyle(getSearchStyles()["POINT"][0], getSearchStyles()["POINT"][1]);
+			elemMap.enableHoverBalloon(fnBaloon);
 		}
-		elemMap.enableHoverBalloon(fnBaloon);
+		
 
 		//Рисуем контур объекта
 		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type != 'POINT') {
@@ -698,17 +700,20 @@ var ResultRenderer = function(oInitMap, params){
 	/**Центрует карту по переданному объекту*/
 	var CenterObject = function(oFoundObject){
 		var iZoom = 100;
+		oMap.setMinMaxZoom(1, 15);
 		if (oFoundObject.MinLon != null && oFoundObject.MaxLon != null && oFoundObject.MinLat != null && oFoundObject.MaxLat != null){
 			oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
 		}
+		else if (oFoundObject.Geometry!=null){
+			var oExtent = getBounds(oFoundObject.Geometry.coordinates);
+			oMap.zoomToExtent(oExtent.minX, oExtent.minY, oExtent.maxX, oExtent.maxY);
+		}
 		else
 		{
-			var dCntrLon = oFoundObject.CntrLon || oFoundObject.Geometry.coordinates[0],
-				dCntrLat = oFoundObject.CntrLat || oFoundObject.Geometry.coordinates[1]
-			
-			oMap.setMinMaxZoom(1, 17);
-			oMap.moveTo(dCntrLon, dCntrLat, 16);
+			var dCntrLon = oFoundObject.CntrLon, dCntrLat = oFoundObject.CntrLat;
+			oMap.moveTo(dCntrLon, dCntrLat, 15);
 		}
+		oMap.setMinMaxZoom(1, 17);
 	};
 	
 	/**Центрует карту по переданному объекту
