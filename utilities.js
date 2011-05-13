@@ -369,6 +369,8 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
 	jQuery(dialog).children("div.ui-resizable-se").removeClass("ui-icon")
 				.removeClass("ui-icon-gripsmall-diagonal-se")
 				.removeClass("ui-icon-grip-diagonal-se");
+	
+	return canvas;
 }
 
 function removeDialog(canvas)

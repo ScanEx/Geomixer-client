@@ -601,52 +601,75 @@ CoverControl.prototype.add = function(parent)
 */
 var FiltersControl = function()
 {
-}
-
-/**
-* Обновляет фильтрацию слоёв при смене дат
-* @method 
-*/
-FiltersControl.prototype.loadForDates = function(dateBegin, dateEnd)
-{
-	this.dateBegin = dateBegin;
-	this.dateEnd = dateEnd;
+	var _layers = [];
+	var _dateAttribute = null;
+	var _dateBegin = null;
+	var _dateEnd = null;
+	var _type = null;
 	
-	this.setFilters();
-}
-
-/**
-* @method 
-* @param {Array} layers Вектор имён слоёв для фильтрации
-* @param {String} dateAttribute Имя аттрибута даты в слоях
-*/
-FiltersControl.prototype.init = function(layers, dateAttribute)
-{
-	this.layers = layers;
-	this.dateAttribute = dateAttribute;
-}
-
-FiltersControl.prototype.setFilters = function()
-{
-	for (var i = 0; i < this.layers.length; ++i)
+	var _setFilters = function()
 	{
-		var name = this.layers[i],
-			layer = globalFlashMap.layers[name];
-		
-		if (!layer)
-			continue;
-		
-		var	properties = layer.properties;
-		
-		var filterString = "`" + this.dateAttribute + "` >= '" + this.dateBegin + "'" + " AND " + "`" + this.dateAttribute + "` <= '" + this.dateEnd + "'",
-			filters = layer.filters;
-		
-		for (var j = 0; j < filters.length; j++)
+		var filterLayer = function(layer)
 		{
-			var lastFilter = properties.styles[j].Filter;
+			var	properties = layer.properties;
 			
-			filters[j].setFilter((lastFilter && lastFilter != "") ? ("(" + lastFilter + ") AND" + filterString) : filterString);
+			var filterString = "`" + _dateAttribute + "` >= '" + _dateBegin + "'" + " AND " + "`" + _dateAttribute + "` <= '" + _dateEnd + "'",
+				filters = layer.filters;
+			
+			for (var j = 0; j < filters.length; j++)
+			{
+				var lastFilter = properties.styles[j].Filter;
+				
+				filters[j].setFilter((lastFilter && lastFilter != "") ? ("(" + lastFilter + ") AND" + filterString) : filterString);
+			}			
 		}
+		
+		if (_type)
+		{ //фильтруем все слои данного типа 
+			for (var i = 0; i < globalFlashMap.layers.length; ++i)
+				if (globalFlashMap.layers[i].properties.type === _type)
+					filterLayer(globalFlashMap.layers[i]);
+		}
+		else
+		{ //фильтруем конкретные слои
+			for (var i = 0; i < _layers.length; ++i)
+			{
+				var name = _layers[i],
+					layer = globalFlashMap.layers[name];
+				
+				if (!layer)
+					continue;
+					
+				filterLayer(layer);
+			}
+		}
+	}
+
+	/**
+	* Обновляет фильтрацию слоёв при смене дат
+	* @method 
+	*/	
+	this.loadForDates = function(dateBegin, dateEnd)
+	{
+		_dateBegin = dateBegin;
+		_dateEnd = dateEnd;
+		
+		_setFilters();
+	}
+	
+	/**
+	* @method 
+	* @param {Array or string} layers Вектор имён слоёв для фильтрации или тип слоёв для фильтрации (Raster или Vector). В последнем случае фильтруются все слои данного типа
+	* @param {string} dateAttribute Имя аттрибута даты в слоях
+	*/
+	this.init = function(layers, dateAttribute)
+	{
+		if (typeof layers === 'string')
+			_type = layers;
+		else
+			_layers = layers;
+		
+		_dateAttribute = dateAttribute;
 	}
 }
 

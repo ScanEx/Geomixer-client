@@ -61,7 +61,7 @@ security.prototype.getRights = function(value, title)
 	this.propertyValue = value;
 	this.title = title;
 	
-	sendCrossDomainJSONRequest(serverBase + this.getSecurityName + "?WrapStyle=func&" + this.propertyName + "=" + this.propertyValue, function(response)
+	sendCrossDomainJSONRequest(serverBase + this.getSecurityName + "?WrapStyle=func&IncludeAdmin=true&" + this.propertyName + "=" + this.propertyValue, function(response)
 	{
 		if (!parseResponse(response))
 			return;
@@ -118,9 +118,110 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 							})
 	}
 	
-	_(canvas, [_div([_table([_tbody([_tr([_td([_t(_gtxt("Тип"))],[['css','width','40px'],['css','fontSize','12px'],['css','textAlign','right']]), _td([this.mapTypeSel]), _td([saveButton],[['css','paddingLeft','30px']])])])],[['dir','className','floatRight']])],[['css','margin','5px 0px 10px 0px'],['css','height','25px']])])
+	var inputPredicate = function(value, fieldName, fieldValue)
+	{
+		if (!value[fieldName])
+			return false;
+		
+		return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
+	};	
 	
-	var addMapUserButton = makeLinkButton("Добавить пользователя"),
+	//смена владельца карты
+	var changeOwnerLink = makeLinkButton(securityInfo.SecurityInfo.Owner);
+	changeOwnerLink.setAttribute('id', 'changeOwnerLink');
+	changeOwnerLink.onclick = function()
+	{
+		var canvas = _div();
+		var tableSuggestParent = _div();
+		var usersTable = new scrollTable();
+		var filterOwnerInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
+		
+		if (isShowUserSuggest)
+		{
+		
+			var sortFuncs = {};
+			sortFuncs[_gtxt('Логин')] = [
+					function(a,b){if (a.Login > b.Login) return 1; else if (a.Login < b.Login) return -1; else return 0},
+					function(a,b){if (a.Login < b.Login) return 1; else if (a.Login > b.Login) return -1; else return 0}
+				];
+				
+			var drawOwnersFunction = function(user)
+			{
+				var tr = _tr([_td([_div([_t(user.Login)], [['css','cursor','pointer'], ['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])])]);
+				
+				tr.onclick = function()
+				{
+					removeDialog(dialogCanvas);
+					$('#changeOwnerLink').text(user.Login);
+					securityInfo.SecurityInfo.NewOwnerID = user.UserID;
+				}
+				
+				for (var i = 0; i < tr.childNodes.length; i++)
+					tr.childNodes[i].style.width = this.fieldsWidths[i];
+				
+				attachEffects(tr, 'hover');
+				
+				return tr;
+			}
+			
+			usersTable.limit = 20;
+			usersTable.pagesCount = 5;
+			usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 300, [_gtxt("Логин")], ['100%'], drawOwnersFunction, sortFuncs);
+			_(canvas, [_div([_t(_gtxt("Логин")), filterOwnerInput], [['css','fontSize','12px']]), tableSuggestParent]);
+			
+			usersTable.attachFilterEvents(filterOwnerInput, 'Login', function(fieldName, fieldValue, vals)
+			{
+				if (fieldValue == "")
+					return vals;
+				
+				var filterFunc = function(value)
+					{
+						return inputPredicate(value, fieldName, fieldValue);
+					},
+					local = _filter(filterFunc, vals);
+				
+				return local;
+			});
+			
+			usersTable.vals = securityInfo.UsersWithoutAccess.concat(securityInfo.SecurityInfo.Users);
+			usersTable.drawTable(usersTable.vals);
+			
+			usersTable.tableParent.style.height = '150px';
+			usersTable.tableBody.parentNode.parentNode.style.height = '130px';
+		}
+		else
+		{
+			var changeOwnerButton = makeLinkButton(_gtxt("Сменить владельца"));
+			changeOwnerButton.onclick = function()
+			{
+				sendCrossDomainJSONRequest(serverBase + _this.getUserSecurityName + "?WrapStyle=func&Login=" + filterOwnerInput.value + "&" + _this.propertyName + "=" + _this.propertyValue, function(response)
+				{
+					if (!parseResponse(response))
+						return;
+					
+					if (response.Result == null || response.Result.IsOwner == true)
+					{
+						inputError(filterOwnerInput);
+						return;
+					}
+					
+					removeDialog(dialogCanvas);
+					$('#changeOwnerLink').text(response.Result.Login);
+					securityInfo.SecurityInfo.NewOwnerID = response.Result.UserID;
+				});
+			}
+			_(canvas, [_div([_t(_gtxt("Логин")), filterOwnerInput, changeOwnerButton], [['css','fontSize','12px']]), tableSuggestParent]);
+			
+		}
+		
+		var dialogCanvas = showDialog(_gtxt("Выберите нового владельца"), canvas, 350, isShowUserSuggest ? 250 : 70);
+	}
+	
+	var ownerInfo = _div([_t(_gtxt('Владелец') + ": "), changeOwnerLink], [['css','fontSize','12px'], ['css','margin','5px 0px 10px 0px'], ['css','height','25px']]);
+	var typeInfo = _div([_table([_tbody([_tr([_td([_t(_gtxt("Тип"))],[['css','width','40px'],['css','fontSize','12px'],['css','textAlign','right']]), _td([this.mapTypeSel]), _td([saveButton],[['css','paddingLeft','30px']])])])],[['dir','className','floatRight']])],[['css','margin','5px 0px 10px 0px'],['css','height','25px']]);
+	_(canvas, [_table([_tbody([_tr([_td([ownerInfo]), _td([typeInfo])])])], [['css', 'width', '100%']])]);
+	
+	var addMapUserButton = makeLinkButton(_gtxt("Добавить пользователя")),
 		addMapUserInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]),
 		addMapUserSuggestInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
 
@@ -158,7 +259,6 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 			if (response.Result == null || response.Result.Role == 'admin' || response.Result.IsOwner == true)
 			{
 				inputError(addMapUserInput);
-			
 				return;
 			}
 			
@@ -186,16 +286,8 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 				function(a,b){if (a.Role < b.Role) return 1; else if (a.Role > b.Role) return -1; else return 0}
 			];
 	
-	var inputPredicate = function(value, fieldName, fieldValue)
-	{
-		if (!value[fieldName])
-			return false;
-		
-		return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
-	};
-	
 	if (isShowUserSuggest)
-		_(canvas, [_div([_span([_t(_gtxt("Пользователи без прав доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','width','50px'],['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserSuggestInput])])])]), _br(), tableSuggestParent])]);
+		_(canvas, [_div([_span([_t(_gtxt("Пользователи без прав доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserSuggestInput])])])]), _br(), tableSuggestParent])]);
 	else
 		_(canvas, [_div()]);
 	
@@ -228,9 +320,9 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		_(canvas, [_div()])
 
 	if (isShowUserSuggest)
-		_(canvas, [_div([_span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','width','50px'],['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserInput])])])]), _br(), tableParent],[['css','borderTop','1px solid #999'],['css','marginTop','10px']])]);
+		_(canvas, [_div([_span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserInput])])])]), _br(), tableParent],[['css','borderTop','1px solid #999'],['css','marginTop','10px']])]);
 	else
-		_(canvas, [_div([_span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','width','50px'],['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserInput]), _td([addMapUserButton])])])]), _br(), tableParent])]);
+		_(canvas, [_div([_span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserInput]), _td([addMapUserButton])])])]), _br(), tableParent])]);
 	
 	_securityTable.limit = 20;
 	_securityTable.pagesCount = 5;
@@ -307,8 +399,12 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	
 	if ( isShowUserSuggest )
 	{
-		_securityTableSuggest.vals = securityInfo.UsersWithoutAccess;
-	
+		_securityTableSuggest.vals = [];
+		
+		for ( var u = 0; u < securityInfo.UsersWithoutAccess.length; u++)
+			if ( securityInfo.UsersWithoutAccess[u].Role != nsMapCommon.AuthorizationManager.ROLE_ADMIN )
+				_securityTableSuggest.vals.push(securityInfo.UsersWithoutAccess[u]);
+
 		_securityTableSuggest.drawTable(_securityTableSuggest.vals);
 	}
 

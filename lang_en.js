@@ -329,6 +329,8 @@ _translationsHash.hash["eng"] = {
 	"Права доступа" : "Access permissions",
 	"Пользователи без прав доступа:" : "Users wihout access:",
 	"Пользователи с правами доступа:" : "Users with access:",
+	"Выберите нового владельца" : "Select new owner",
+	"Сменить владельца" : "Change owner",
 	
 	"Объекты RuMap" : "RuMap objects",
 	"Объекты пользователей" : "User objects",
