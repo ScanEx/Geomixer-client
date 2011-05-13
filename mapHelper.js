@@ -179,7 +179,7 @@ mapHelper.prototype.setBalloon = function(filter, template)
 {
 	filter.enableHoverBalloon(function(o)
 	{
-		return template.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+		return template.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 		{
 			var key = arguments[1];
 			if (key == "SUMMARY")
@@ -238,7 +238,7 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 		{
 			globalFlashMap.layers[name].enableTiledQuicklooks(function(o)
 			{
-				return properties.TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+				return properties.TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 				{
 					return o.properties[arguments[1]];
 				});
@@ -248,7 +248,7 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 		{
 			globalFlashMap.layers[name].enableTiledQuicklooks(function(o)
 			{
-				return properties.TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+				return properties.TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 				{
 					return o.properties[arguments[1]];
 				});
@@ -260,7 +260,7 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 	{
 		globalFlashMap.layers[name].enableQuicklooks(function(o)
 		{
-			return properties.Quicklook.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+			return properties.Quicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 			{
 				return o.properties[arguments[1]];
 			});
@@ -521,7 +521,7 @@ mapHelper.prototype.createQuicklookCanvas = function(elem, attrs)
 			{
 				layer.enableQuicklooks(function(o)
 				{
-					return quicklookText.value.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+					return quicklookText.value.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 					{
 						return o.properties[arguments[1]];
 					});
@@ -581,7 +581,7 @@ mapHelper.prototype.createTiledQuicklookCanvas = function(elem, attrs)
 				{
 					layer.enableTiledQuicklooks(function(o)
 					{
-						return tiledQuicklookText.value.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+						return tiledQuicklookText.value.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 						{
 							return o.properties[arguments[1]];
 						});
@@ -591,7 +591,7 @@ mapHelper.prototype.createTiledQuicklookCanvas = function(elem, attrs)
 				{
 					layer.enableTiledQuicklooks(function(o)
 					{
-						return tiledQuicklookText.value.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+						return tiledQuicklookText.value.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 						{
 							return o.properties[arguments[1]];
 						});

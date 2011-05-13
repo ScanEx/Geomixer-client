@@ -88,7 +88,7 @@ externalMapHelper.prototype.setBalloon = function(filter, template)
 {
 	filter.enableHoverBalloon(function(o)
 	{
-		return template.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+		return template.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 		{
 			var key = arguments[1];
 			if (key == "SUMMARY")
@@ -184,7 +184,7 @@ externalMapHelper.prototype.updateMapStyles = function(newStyles, name, newPrope
 		{
 			globalFlashMap.layers[name].enableTiledQuicklooks(function(o)
 			{
-				return properties.TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+				return properties.TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 				{
 					return o.properties[arguments[1]];
 				});
@@ -194,7 +194,7 @@ externalMapHelper.prototype.updateMapStyles = function(newStyles, name, newPrope
 		{
 			globalFlashMap.layers[name].enableTiledQuicklooks(function(o)
 			{
-				return properties.TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+				return properties.TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 				{
 					return o.properties[arguments[1]];
 				});
@@ -206,7 +206,7 @@ externalMapHelper.prototype.updateMapStyles = function(newStyles, name, newPrope
 	{
 		globalFlashMap.layers[name].enableQuicklooks(function(o)
 		{
-			return properties.Quicklook.replace(/\[([a-zA-Z0-9_а-яА-Я]+)\]/g, function()
+			return properties.Quicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
 			{
 				return o.properties[arguments[1]];
 			});
