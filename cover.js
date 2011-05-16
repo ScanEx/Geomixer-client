@@ -1,18 +1,23 @@
+/** 
+* @name cover
+* @namespace Объединяет дополнительные к вьюеру классы, работающие с диапазоном дат. Почти все классы могут использоваться независимо.
+*/
 (function($){
 
 // controls: два календарика, выбор периода, галочка с выбором года
 // events: change
 
 /**
- * @class cover.Calendar
- * controls: два календарика, выбор периода, галочка с выбором года
- */
- 
- /**
- * @event change Если изменилась хотя бы одна из дат
- */
+ @memberOf cover
+ @class Контрол для задания диапазона дат. Сontrols: два календарика, выбор периода, галочка с выбором года
+*/
 var Calendar = function()
 {
+	/** Если изменилась хотя бы одна из дат
+	  @name cover.Calendar.change
+	  @event
+	 */
+	 
 	this.dateBegin = null;
 	this.dateEnd = null;
 	
@@ -25,17 +30,17 @@ var Calendar = function()
 	//public interface
 	
 	/**
-	 * @method
+	 * @function
 	 */
 	this.getDateBegin = function() { return $(this.dateBegin).datepicker("getDate"); }
 	
 	/**
-	 * @method
+	 * @function
 	 */	
 	this.getDateEnd = function() { return $(this.dateEnd).datepicker("getDate"); }
 	
 	/**
-	 * @method
+	 * @function
 	 */	
 	this.saveState = function()
 	{
@@ -48,8 +53,8 @@ var Calendar = function()
 	}
 	
 	/**
-	 * @method
-	 * @param {String} data
+	 * @function
+	 * @param {string} data
 	 */
 	this.loadState = function( data )
 	{
@@ -62,7 +67,7 @@ var Calendar = function()
 
 /**
  * Инициализирует календарь.
- * @method
+ * @function
  * @param {Object} params Параметры календаря: <br/>
  * dateMin, dateMax - {Date} граничные даты для календарей <br/>
  * dateFormat - {String} формат даты
@@ -380,8 +385,8 @@ Calendar.prototype.selectFunc = function(inst)
 };
 
 /**
-* @class cover.CoverControl
-* Фильтрует слои со спутниковыми покрытиями по интервалу дат и облачности
+* @memberOf cover
+* @class Фильтрует слои со спутниковыми покрытиями по интервалу дат и облачности
 */
 var CoverControl = function()
 {
@@ -390,7 +395,7 @@ var CoverControl = function()
 }
 
 /**
-* @method
+* @function
 */
 CoverControl.prototype.saveState = function()
 {
@@ -398,7 +403,7 @@ CoverControl.prototype.saveState = function()
 }
 
 /**
-* @method
+* @function
 */
 CoverControl.prototype.loadState = function( data )
 {
@@ -408,9 +413,8 @@ CoverControl.prototype.loadState = function( data )
 	_title($("#MapCalendar .ui-slider")[0].firstChild, this.cloudsIndexes[data.currCloudsIndex].name);
 }
 
-/**
-* Перефильтровывает слои при смене дат
-* @method
+/** Перефильтровывает слои при смене дат
+* @function
 */
 CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
@@ -421,7 +425,7 @@ CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 }
 
 /**
-* @method
+* @function
 * @param {Array} coverLayers Массив имён слоёв для фильтрации
 * @param {String} dateAttribute Имя аттрибута слоёв с датой
 * @param {String} cloudsAttribute Имя аттрибута слоёв с облачностью
@@ -538,7 +542,7 @@ CoverControl.prototype.setFilters = function()
 
 /**
 * Добавляет в DOM элементы контролов фильтрации по облачности
-* @method
+* @function
 * @param {DOMElement} parent Контейнер для добавляения контрола
 */
 CoverControl.prototype.add = function(parent)
@@ -670,6 +674,96 @@ var FiltersControl = function()
 			_layers = layers;
 		
 		_dateAttribute = dateAttribute;
+	}
+}
+
+var LayerFiltersControl = function()
+{
+	var _calendar = null;
+	var _groupTitle = null;
+	var _map = null;
+	
+	var _getLayersInGroup = function(mapTree, groupTitle)
+	{
+		var res = {};
+		var visitor = function(treeElem, isInGroup)
+		{
+			if (treeElem.type === "layer" && isInGroup)
+			{
+				//res.push(_map.layers[treeElem.content.properties.name]);
+				res[treeElem.content.properties.name] = _map.layers[treeElem.content.properties.name];
+			}
+			else if (treeElem.type === "group")
+			{
+				isInGroup = isInGroup || treeElem.content.properties.title == groupTitle;
+				var a = treeElem.content.children;
+				for (var k = a.length - 1; k >= 0; k--)
+					visitor(a[k], isInGroup);
+			}
+		}
+
+		visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
+		return res;
+	}
+	
+	var _getMapLayersAsHash = function()
+	{
+		var res = {};
+		for (var l = 0;l < _map.layers.length; l++)
+			res[_map.layers[l].properties.name] = _map.layers[l];
+			
+		return res;
+	}
+	
+	var _update = function()
+	{
+		if (typeof _queryExternalMaps.mapsCanvas != 'undefined')
+		{
+			for (var m = 0; m < _queryExternalMaps.mapsCanvas.childNodes.length; m++)
+			{
+				var mapElem = _queryExternalMaps.mapsCanvas.childNodes[m].childNodes[0];
+				_updateTree(mapElem.extLayersTree.mapHelper.mapTree, mapElem);
+			}
+		}
+		
+		_updateTree(_mapHelper.mapTree, _queryMapLayers.buildedTree);
+	}
+	
+	var _updateTree = function(mapTree, domTreeRoot)
+	{
+		var dateBegin = _calendar.getDateBegin();
+		var dateEnd = _calendar.getDateEnd();
+		
+		var layers = _groupTitle ? _getLayersInGroup(getLayers(), _groupTitle) : _getMapLayersAsHash();
+		
+		_mapHelper.findTreeElems( mapTree, function(elem)
+		{
+			if (elem.content.properties.name in layers)
+			{
+				var layerDate = $.datepicker.parseDate('dd.mm.yy', layers[elem.content.properties.name].properties.date);
+				var isDateInInterval = dateBegin <= layerDate && layerDate <= dateEnd;
+				elem.content.properties.visible = isDateInInterval;
+				layers[elem.content.properties.name].setVisible(isDateInInterval);
+				
+				//если дерево уже создано в dom, ручками устанавливаем галочку
+				var childBoxList = $(domTreeRoot).find("div[LayerID='" + elem.content.properties.LayerID + "']");
+				if (childBoxList.length > 0)
+					childBoxList[0].firstChild.checked = isDateInInterval;
+			}
+		});
+	}
+	
+	this.init = function(map, calendar, params)
+	{
+		_map = map;
+		_groupTitle = typeof params != 'undefined' ? params.groupTitle : null;
+		
+		if (_calendar)
+			$(_calendar).unbind('change', _update);
+			
+		_calendar = calendar;
+		$(_calendar).bind('change', _update);
+		_update();
 	}
 }
 
@@ -1520,6 +1614,7 @@ var MapCalendar = function(params)
 	this.fires = new FiresControl();
 	this.cover = new CoverControl();
 	this.filters = new FiltersControl();
+	this.layerFilters = new LayerFiltersControl();
 }
 
 MapCalendar.prototype.saveState = function()
@@ -1618,6 +1713,11 @@ MapCalendar.prototype.init = function(parent, params)
 	if (this.params.cover) {
 		this.cover.init(this.params.cover.layers, this.params.cover.dateAttribute, this.params.cover.cloudsAttribute, this.params.cover.icons, this.params.cover.cloud)
 		this.cover.add(canvas);
+	}
+	
+	if (this.params.layerFilters)
+	{
+		this.layerFilters.init(globalFlashMap, this.calendar, this.params.layerFilters);
 	}
 	
 	_(parent, [_div([canvas],[['css','margin','0px 0px 20px 10px']])]);
