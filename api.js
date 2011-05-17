@@ -2607,7 +2607,7 @@ function createFlashMapInternal(div, layers, callback)
 						<tr>\
 							<td style="'+css['bg_left']+'"></td>\
 							<td style="'+css['bg_center']+'">\
-								<div class="kosmosnimki_balloon">\
+								<div style="white-space: nowrap;" class="kosmosnimki_balloon">\
 								</div>\
 							</td>\
 							<td style="'+css['bg_right']+'"></td>\
