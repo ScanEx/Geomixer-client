@@ -6,7 +6,7 @@
 * @namespace Содержит необходимое для поиска
 * @description Содержит необходимое для поиска
 */
-(function(){
+(function($){
 
 /** Возвращает полное наименование объекта, состоящее из типа и наименования
  @memberOf Search 
@@ -1365,6 +1365,4 @@ var publicInterface = {
 
 gmxCore.addModule("search", publicInterface)
 
-})(); 
-
-
+})(jQuery); 
