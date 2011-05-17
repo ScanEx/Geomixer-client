@@ -478,8 +478,11 @@ function loadVariableFromScript(url, name, callback, onError, useTimeout)
 		else if (useTimeout && ((new Date()).getTime() - startTime > 10000))
 		{
 			clearInterval(interval);
+			
+			if (!canceled)
+				onError();
+			
 			canceled = true;
-			onError();
 		}
 	}, 500);
 }
