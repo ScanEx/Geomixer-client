@@ -5077,6 +5077,11 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 			callback(null);
 			$(_queryExternalMaps).trigger('map_loaded', null);
 		}
+	}, 
+	function()
+	{
+		callback(null);
+		$(_queryExternalMaps).trigger('map_loaded', null);
 	});
 }
 
