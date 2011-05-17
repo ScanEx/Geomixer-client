@@ -1,11 +1,10 @@
 var defaultMapID = 'DefaultMap';
-//var mapHostName = 'maps.kosmosnimki.ru';
-var mapHostName = false;
-var apiKey = '33959EF7AFB4FB92EEC2E7B73AE8458B';
-var serverBase = 'http://maps.kosmosnimki.ru/';
-var copyright = false;
-var pageTitle = false;
-var useCatalog = true;
+var mapHostName  = false;
+var apiKey       = false;
+var serverBase   = false;
+var copyright    = false;
+var pageTitle    = false;
+var useCatalog   = false;
 
 //var mapsSite = true;
 //var apikeySendHosts = false;

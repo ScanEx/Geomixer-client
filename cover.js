@@ -1,18 +1,23 @@
+/** 
+* @name cover
+* @namespace Объединяет дополнительные к вьюеру классы, работающие с диапазоном дат. Почти все классы могут использоваться независимо.
+*/
 (function($){
 
 // controls: два календарика, выбор периода, галочка с выбором года
 // events: change
 
 /**
- * @class cover.Calendar
- * controls: два календарика, выбор периода, галочка с выбором года
- */
- 
- /**
- * @event change Если изменилась хотя бы одна из дат
- */
+ @memberOf cover
+ @class Контрол для задания диапазона дат. Сontrols: два календарика, выбор периода, галочка с выбором года
+*/
 var Calendar = function()
 {
+	/** Если изменилась хотя бы одна из дат
+	  @name cover.Calendar.change
+	  @event
+	 */
+	 
 	this.dateBegin = null;
 	this.dateEnd = null;
 	
@@ -25,17 +30,17 @@ var Calendar = function()
 	//public interface
 	
 	/**
-	 * @method
+	 * @function
 	 */
 	this.getDateBegin = function() { return $(this.dateBegin).datepicker("getDate"); }
 	
 	/**
-	 * @method
+	 * @function
 	 */	
 	this.getDateEnd = function() { return $(this.dateEnd).datepicker("getDate"); }
 	
 	/**
-	 * @method
+	 * @function
 	 */	
 	this.saveState = function()
 	{
@@ -48,8 +53,8 @@ var Calendar = function()
 	}
 	
 	/**
-	 * @method
-	 * @param {String} data
+	 * @function
+	 * @param {string} data
 	 */
 	this.loadState = function( data )
 	{
@@ -62,7 +67,7 @@ var Calendar = function()
 
 /**
  * Инициализирует календарь.
- * @method
+ * @function
  * @param {Object} params Параметры календаря: <br/>
  * dateMin, dateMax - {Date} граничные даты для календарей <br/>
  * dateFormat - {String} формат даты
@@ -380,8 +385,8 @@ Calendar.prototype.selectFunc = function(inst)
 };
 
 /**
-* @class cover.CoverControl
-* Фильтрует слои со спутниковыми покрытиями по интервалу дат и облачности
+* @memberOf cover
+* @class Фильтрует слои со спутниковыми покрытиями по интервалу дат и облачности
 */
 var CoverControl = function()
 {
@@ -390,7 +395,7 @@ var CoverControl = function()
 }
 
 /**
-* @method
+* @function
 */
 CoverControl.prototype.saveState = function()
 {
@@ -398,7 +403,7 @@ CoverControl.prototype.saveState = function()
 }
 
 /**
-* @method
+* @function
 */
 CoverControl.prototype.loadState = function( data )
 {
@@ -408,9 +413,8 @@ CoverControl.prototype.loadState = function( data )
 	_title($("#MapCalendar .ui-slider")[0].firstChild, this.cloudsIndexes[data.currCloudsIndex].name);
 }
 
-/**
-* Перефильтровывает слои при смене дат
-* @method
+/** Перефильтровывает слои при смене дат
+* @function
 */
 CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
@@ -421,7 +425,7 @@ CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 }
 
 /**
-* @method
+* @function
 * @param {Array} coverLayers Массив имён слоёв для фильтрации
 * @param {String} dateAttribute Имя аттрибута слоёв с датой
 * @param {String} cloudsAttribute Имя аттрибута слоёв с облачностью
@@ -538,7 +542,7 @@ CoverControl.prototype.setFilters = function()
 
 /**
 * Добавляет в DOM элементы контролов фильтрации по облачности
-* @method
+* @function
 * @param {DOMElement} parent Контейнер для добавляения контрола
 */
 CoverControl.prototype.add = function(parent)
@@ -595,9 +599,9 @@ CoverControl.prototype.add = function(parent)
 	_(parent, [_table([_tbody(trs)],[['css','marginLeft','20px']])]);
 }
 
-/**
-* @class cover.FiltersControl
-* Фильтрует слои по интервалу дат
+/** Фильтрует объекты внутри векторных слоёв по интервалу дат
+* @memberOf cover
+* @class
 */
 var FiltersControl = function()
 {
@@ -647,8 +651,8 @@ var FiltersControl = function()
 
 	/**
 	* Обновляет фильтрацию слоёв при смене дат
-	* @method 
-	*/	
+	* @function
+	*/
 	this.loadForDates = function(dateBegin, dateEnd)
 	{
 		_dateBegin = dateBegin;
@@ -658,7 +662,7 @@ var FiltersControl = function()
 	}
 	
 	/**
-	* @method 
+	* @function 
 	* @param {Array or string} layers Вектор имён слоёв для фильтрации или тип слоёв для фильтрации (Raster или Vector). В последнем случае фильтруются все слои данного типа
 	* @param {string} dateAttribute Имя аттрибута даты в слоях
 	*/
@@ -673,13 +677,115 @@ var FiltersControl = function()
 	}
 }
 
+/** Управляет видимостью слоёв в зависимости от диапазона дат. Может фильтровать слои только из определённой группы. Работает только с вьюером. Поддерживает фильтрацию в доп. картах.
+	@memberOf cover
+	@class 
+*/
+var LayerFiltersControl = function()
+{
+	var _calendar = null;
+	var _groupTitle = null;
+	var _map = null;
+	
+	var _getLayersInGroup = function(mapTree, groupTitle)
+	{
+		var res = {};
+		var visitor = function(treeElem, isInGroup)
+		{
+			if (treeElem.type === "layer" && isInGroup)
+			{
+				//res.push(_map.layers[treeElem.content.properties.name]);
+				res[treeElem.content.properties.name] = _map.layers[treeElem.content.properties.name];
+			}
+			else if (treeElem.type === "group")
+			{
+				isInGroup = isInGroup || treeElem.content.properties.title == groupTitle;
+				var a = treeElem.content.children;
+				for (var k = a.length - 1; k >= 0; k--)
+					visitor(a[k], isInGroup);
+			}
+		}
+
+		visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
+		return res;
+	}
+	
+	var _getMapLayersAsHash = function()
+	{
+		var res = {};
+		for (var l = 0;l < _map.layers.length; l++)
+			res[_map.layers[l].properties.name] = _map.layers[l];
+			
+		return res;
+	}
+	
+	var _update = function()
+	{
+		if (typeof _queryExternalMaps.mapsCanvas != 'undefined')
+		{
+			for (var m = 0; m < _queryExternalMaps.mapsCanvas.childNodes.length; m++)
+			{
+				var mapElem = _queryExternalMaps.mapsCanvas.childNodes[m].childNodes[0];
+				if (mapElem.extLayersTree)
+					_updateTree(mapElem.extLayersTree.mapHelper.mapTree, mapElem);
+			}
+		}
+		
+		_updateTree(_mapHelper.mapTree, _queryMapLayers.buildedTree);
+	}
+	
+	var _updateTree = function(mapTree, domTreeRoot)
+	{
+		var dateBegin = _calendar.getDateBegin();
+		var dateEnd = _calendar.getDateEnd();
+		
+		var layers = _groupTitle ? _getLayersInGroup(mapTree, _groupTitle) : _getMapLayersAsHash();
+		
+		_mapHelper.findTreeElems( mapTree, function(elem)
+		{
+			if (elem.content.properties.name in layers)
+			{
+				var layerDate = $.datepicker.parseDate('dd.mm.yy', layers[elem.content.properties.name].properties.date);
+				var isDateInInterval = dateBegin <= layerDate && layerDate <= dateEnd;
+				elem.content.properties.visible = isDateInInterval;
+				layers[elem.content.properties.name].setVisible(isDateInInterval);
+				
+				//если дерево уже создано в dom, ручками устанавливаем галочку
+				var childBoxList = $(domTreeRoot).find("div[LayerID='" + elem.content.properties.LayerID + "']");
+				if (childBoxList.length > 0)
+					childBoxList[0].firstChild.checked = isDateInInterval;
+			}
+		});
+	}
+	
+	/**
+	 * @function Инициализитует фильтрацию слоёв. Далее классом будут отслеживаться события календарика.
+	 * @param map Основная карта
+	 * @param {cover.Calendar} calendar Календарик, который используется для задания дат
+	 * @param {Object} params Дополнительные параметры: groupTitle - имя группы, слои в которой нужно фильтровать. Если не задано, будут фильтроваться все слои на карте
+	 */
+	this.init = function(map, calendar, params)
+	{
+		_map = map;
+		_groupTitle = typeof params != 'undefined' ? params.groupTitle : null;
+		
+		if (_calendar)
+			$(_calendar).unbind('change', _update);
+			
+		_calendar = calendar;
+		$(_calendar).bind('change', _update);
+		_update();
+	}
+}
+
 /*
  ************************************
  *          SearchBboxControl       *
  ************************************/
  
  /**
- * @class cover.SearchBboxControl
+ * @memberOf cover
+ * @class
  * Управление ограничевающим прямоугольником для задания области отображения информации. <br/>
  *
  * Добавляет кастомное свойство к FRAME, к которому забинден. <br/>
@@ -687,17 +793,17 @@ var FiltersControl = function()
  * Зависимости: jQuery, API, translations <br/>
  * Элементы UI: кнопка и drawingObject типа FRAME
  */
- 
- /**
- * @event change
- */
 var SearchBboxControl = function()
 {
+	 /**
+	 * @name cover.SearchBboxControl.change
+	 * @event
+	 */
 	_translationsHash.addtext("rus", {
 								"searchBbox.SearchInArea" : "Искать в области",
 								"searchBbox.CancelSearchInArea" : "Отменить поиск по области"
 							 });
-							 
+
 	_translationsHash.addtext("eng", {
 								"searchBbox.SearchInArea" : "Search in area",
 								"searchBbox.CancelSearchInArea" : "Cancel search in area"
@@ -738,7 +844,7 @@ var SearchBboxControl = function()
 	};
 	
 	/**
-	 * @method
+	 * @function
 	 */	
 	this.init = function()
 	{
@@ -774,7 +880,7 @@ var SearchBboxControl = function()
 
 	/**
 	 * Возвращает контрол, который может быть куда-нибудь помещён
-	 * @method
+	 * @function
 	 */
 	this.getButton = function()
 	{
@@ -783,7 +889,7 @@ var SearchBboxControl = function()
 	
 	/**
 	 * Возвращет null если bbox не задан
-	 * @method
+	 * @function
 	 */
 	this.getBbox = function()
 	{
@@ -792,7 +898,7 @@ var SearchBboxControl = function()
 	
 	/**
 	 * Ищет bbox среди существующих drawing объектов и биндится к нему. drawing должен иметь свойство "firesBbox"
-	 * @method
+	 * @function
 	 */
 	this.findBbox = function( checkBindingID )
 	{
@@ -809,7 +915,7 @@ var SearchBboxControl = function()
 	
 	/**
 	 * Предполагается, что сам drawing объект сохраняется кем-то ещё, мы сохраняем только его параметры биндинга
-	 * @method
+	 * @function
 	 */
 	this.saveState = function()
 	{
@@ -817,7 +923,7 @@ var SearchBboxControl = function()
 	}
 	
 	/**
-	 * @method
+	 * @function
 	 */
 	this.loadState = function( data )
 	{
@@ -833,7 +939,7 @@ var SearchBboxControl = function()
 
 /**
 * Сравнивают два extent'а. Оба параметра могут быть null (весь мир)
-* @method
+* @function
 * @static
 */
 SearchBboxControl.isBoundsEqual = function(ext1, ext2)
@@ -844,15 +950,16 @@ SearchBboxControl.isBoundsEqual = function(ext1, ext2)
 }
 
 /**
- * @class cover.AggregateStatus
+ * @memberOf cover
+ * @class cover
  * Аггрегирует статусы разных событий для нескольких источников (загружаются данные, слишком большая область и т.п.)
- */
- 
- /**
- * @event change Изменение состояние аггрегатора, а не отдельных состояний источников
  */
 var AggregateStatus = function()
 {
+	/** Изменение состояние аггрегатора, а не отдельных состояний источников
+	 * @name cover.AggregateStatus.change
+	 * @event
+	 */
 	var _statuses = {};
 	var _statusCommon = true;
 	var _this = this;
@@ -911,14 +1018,17 @@ IDataProvider.sendCachedCrossDomainJSONRequest = function(url, callback)
 }
 IDataProvider.sendCachedCrossDomainJSONRequest.jsonCache = {};
 
-/**
-* @class cover.FireSpotProvider Провайдер данных об очагах пожаров
-*/
-/**
-* @cfg {String} host Сервер, с которого берутся данные о пожарах. Default: http://sender.kosmosnimki.ru/
+/** Провайдер данных об очагах пожаров
+* @memberOf cover
+* @class 
+* @param {Object} params Параметры класса: <br/>
+* <i> {String} host </i> Сервер, с которого берутся данные о пожарах. Default: http://sender.kosmosnimki.ru/
 */
 var FireSpotProvider = function( params )
 {
+	/**
+	* @cfg 
+	*/
 	var _params = $.extend({ host: 'http://sender.kosmosnimki.ru/' }, params );
 	
 	_translationsHash.addtext("rus", {
@@ -954,11 +1064,11 @@ var FireSpotProvider = function( params )
 	}
 }
 
-/**
-* @class cover.FireBurntProvider Провайдер данных о гарях
-*/
-/**
-* @cfg {String} host Сервер, с которого берутся данные о гарях. Default: http://sender.kosmosnimki.ru/
+/** Провайдер данных о гарях
+* @memberOf cover
+* @class 
+* @param {Object} params Параметры класса: <br/>
+* <i> {String} host </i> Сервер, с которого берутся данные о гарях. Default: http://sender.kosmosnimki.ru/
 */
 var FireBurntProvider = function( params )
 {
@@ -999,17 +1109,16 @@ var FireBurntProvider = function( params )
 	}
 }
 
-/**
-* @class cover.FireBurntProvider Провайдер покрытия снимками modis
-*/
-/**
-* @cfg {String} host Сервер, с которого берутся данные покрытии. Default: http://sender.kosmosnimki.ru/
-*/
-/**
-* @cfg {String} modisImagesHost Путь, с которого будут загружаться тайлы. Default: http://images.kosmosnimki.ru/MODIS/
+/** Провайдер покрытия снимками modis
+* @memberOf cover
+* @class 
+* @param {Object} params Параметры класса: <br/>
+* <i> {String} host </i> Сервер, с которого берутся данные покрытии. Default: http://sender.kosmosnimki.ru/ <br/>
+* <i> {String} modisImagesHost </i> Путь, с которого будут загружаться тайлы. Default: http://images.kosmosnimki.ru/MODIS/
 */
 var ModisImagesProvider = function( params )
 {
+	
 	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/v2/',
 							modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/'
 						   }, params);
@@ -1057,20 +1166,13 @@ var ModisImagesProvider = function( params )
  *            Renderers             *
  ************************************/
  
- /**
-* @class cover.FireSpotRenderer Визуализирует точки пожаров разными иконками в зависимости от их типа
-*/
-
-/**
-* @cfg {String} fireIcon Иконка для маркеров , которая используется для всех пожаров
-*/
-
-/**
-* @cfg {Array} fireIcons Вектор для иконок маркеров очагов (3 иконки для слабого, среднего и сильного пожаров). Используется, если не указан fireIcon
-*/
-
-/**
-* @cfg {String} fireIconsHost Путь, откуда берутся иконки с предеопределёнными названиями. Используется, если нет fireIcon и fireIcons. Default: http://maps.kosmosnimki.ru/images/
+/** Визуализирует точки пожаров разными иконками в зависимости от их типа
+* @memberOf cover
+* @class 
+* @param {Object} params Параметры класса: <br/>
+* <i> {String} fireIcon </i> Иконка для маркеров , которая используется для всех пожаров <br/>
+* <i> {Array} fireIcons </i> Вектор для иконок маркеров очагов (3 иконки для слабого, среднего и сильного пожаров). Используется, если не указан fireIcon <br/>
+* <i> {String} fireIconsHost </i> Путь, откуда берутся иконки с предеопределёнными названиями. Используется, если нет fireIcon и fireIcons. Default: http://maps.kosmosnimki.ru/images/ <br/>
 */
 var FireSpotRenderer = function( params )
 {
@@ -1145,9 +1247,9 @@ var FireSpotRenderer = function( params )
 	}
 }
 
-/**
-* @class cover.FireBurntRenderer
-* Рисует на карте гари
+/** Рисует на карте гари
+* @memberOf cover
+* @class
 */
 var FireBurntRenderer = function()
 {
@@ -1190,9 +1292,9 @@ var FireBurntRenderer = function()
 	}
 }
 
-/**
-* @class cover.ModisImagesRenderer
-* Рисует на карте картинки MODIS
+/** Рисует на карте картинки MODIS
+* @memberOf cover
+* @class 
 */
 var ModisImagesRenderer = function()
 {
@@ -1228,7 +1330,8 @@ var ModisImagesRenderer = function()
  ************************************/
  
  /**
-* @class cover.FiresControl
+* @memberOf cover
+* @class 
 */
 var FiresControl = function()
 {
@@ -1510,9 +1613,9 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 }
 */
 
-/**
-* @class cover.MapCalendar
-* Интерфейс для задания параметров элеметов, зависящих от интервала.
+/** Интерфейс для задания параметров элеметов, зависящих от интервала.
+* @memberOf cover
+* @class
 */
 var MapCalendar = function(params)
 {
@@ -1520,6 +1623,7 @@ var MapCalendar = function(params)
 	this.fires = new FiresControl();
 	this.cover = new CoverControl();
 	this.filters = new FiltersControl();
+	this.layerFilters = new LayerFiltersControl();
 }
 
 MapCalendar.prototype.saveState = function()
@@ -1618,6 +1722,11 @@ MapCalendar.prototype.init = function(parent, params)
 	if (this.params.cover) {
 		this.cover.init(this.params.cover.layers, this.params.cover.dateAttribute, this.params.cover.cloudsAttribute, this.params.cover.icons, this.params.cover.cloud)
 		this.cover.add(canvas);
+	}
+	
+	if (this.params.layerFilters)
+	{
+		this.layerFilters.init(globalFlashMap, this.calendar, this.params.layerFilters);
 	}
 	
 	_(parent, [_div([canvas],[['css','margin','0px 0px 20px 10px']])]);
@@ -1757,10 +1866,9 @@ MapCalendar.prototype.getFireControl = function()
 }
 
 
-/**
- * @class cover.mapCalendar
- * Синглетон для доступа к виджету
- * @singleton
+/** Синглетон для доступа к виджету
+ * @memberOf cover
+ * @class
  */
 var mapCalendar = new MapCalendar();
 
