@@ -599,9 +599,9 @@ CoverControl.prototype.add = function(parent)
 	_(parent, [_table([_tbody(trs)],[['css','marginLeft','20px']])]);
 }
 
-/**
-* @class cover.FiltersControl
-* Фильтрует слои по интервалу дат
+/** Фильтрует объекты внутри векторных слоёв по интервалу дат
+* @memberOf cover
+* @class
 */
 var FiltersControl = function()
 {
@@ -651,8 +651,8 @@ var FiltersControl = function()
 
 	/**
 	* Обновляет фильтрацию слоёв при смене дат
-	* @method 
-	*/	
+	* @function
+	*/
 	this.loadForDates = function(dateBegin, dateEnd)
 	{
 		_dateBegin = dateBegin;
@@ -662,7 +662,7 @@ var FiltersControl = function()
 	}
 	
 	/**
-	* @method 
+	* @function 
 	* @param {Array or string} layers Вектор имён слоёв для фильтрации или тип слоёв для фильтрации (Raster или Vector). В последнем случае фильтруются все слои данного типа
 	* @param {string} dateAttribute Имя аттрибута даты в слоях
 	*/
@@ -677,6 +677,10 @@ var FiltersControl = function()
 	}
 }
 
+/** Управляет видимостью слоёв в зависимости от диапазона дат. Может фильтровать слои только из определённой группы. Работает только с вьюером. Поддерживает фильтрацию в доп. картах.
+	@memberOf cover
+	@class 
+*/
 var LayerFiltersControl = function()
 {
 	var _calendar = null;
@@ -722,7 +726,8 @@ var LayerFiltersControl = function()
 			for (var m = 0; m < _queryExternalMaps.mapsCanvas.childNodes.length; m++)
 			{
 				var mapElem = _queryExternalMaps.mapsCanvas.childNodes[m].childNodes[0];
-				_updateTree(mapElem.extLayersTree.mapHelper.mapTree, mapElem);
+				if (mapElem.extLayersTree)
+					_updateTree(mapElem.extLayersTree.mapHelper.mapTree, mapElem);
 			}
 		}
 		
@@ -734,7 +739,7 @@ var LayerFiltersControl = function()
 		var dateBegin = _calendar.getDateBegin();
 		var dateEnd = _calendar.getDateEnd();
 		
-		var layers = _groupTitle ? _getLayersInGroup(getLayers(), _groupTitle) : _getMapLayersAsHash();
+		var layers = _groupTitle ? _getLayersInGroup(mapTree, _groupTitle) : _getMapLayersAsHash();
 		
 		_mapHelper.findTreeElems( mapTree, function(elem)
 		{
@@ -753,6 +758,12 @@ var LayerFiltersControl = function()
 		});
 	}
 	
+	/**
+	 * @function Инициализитует фильтрацию слоёв. Далее классом будут отслеживаться события календарика.
+	 * @param map Основная карта
+	 * @param {cover.Calendar} calendar Календарик, который используется для задания дат
+	 * @param {Object} params Дополнительные параметры: groupTitle - имя группы, слои в которой нужно фильтровать. Если не задано, будут фильтроваться все слои на карте
+	 */
 	this.init = function(map, calendar, params)
 	{
 		_map = map;
@@ -773,7 +784,8 @@ var LayerFiltersControl = function()
  ************************************/
  
  /**
- * @class cover.SearchBboxControl
+ * @memberOf cover
+ * @class
  * Управление ограничевающим прямоугольником для задания области отображения информации. <br/>
  *
  * Добавляет кастомное свойство к FRAME, к которому забинден. <br/>
@@ -781,17 +793,17 @@ var LayerFiltersControl = function()
  * Зависимости: jQuery, API, translations <br/>
  * Элементы UI: кнопка и drawingObject типа FRAME
  */
- 
- /**
- * @event change
- */
 var SearchBboxControl = function()
 {
+	 /**
+	 * @name cover.SearchBboxControl.change
+	 * @event
+	 */
 	_translationsHash.addtext("rus", {
 								"searchBbox.SearchInArea" : "Искать в области",
 								"searchBbox.CancelSearchInArea" : "Отменить поиск по области"
 							 });
-							 
+
 	_translationsHash.addtext("eng", {
 								"searchBbox.SearchInArea" : "Search in area",
 								"searchBbox.CancelSearchInArea" : "Cancel search in area"
@@ -832,7 +844,7 @@ var SearchBboxControl = function()
 	};
 	
 	/**
-	 * @method
+	 * @function
 	 */	
 	this.init = function()
 	{
@@ -868,7 +880,7 @@ var SearchBboxControl = function()
 
 	/**
 	 * Возвращает контрол, который может быть куда-нибудь помещён
-	 * @method
+	 * @function
 	 */
 	this.getButton = function()
 	{
@@ -877,7 +889,7 @@ var SearchBboxControl = function()
 	
 	/**
 	 * Возвращет null если bbox не задан
-	 * @method
+	 * @function
 	 */
 	this.getBbox = function()
 	{
@@ -886,7 +898,7 @@ var SearchBboxControl = function()
 	
 	/**
 	 * Ищет bbox среди существующих drawing объектов и биндится к нему. drawing должен иметь свойство "firesBbox"
-	 * @method
+	 * @function
 	 */
 	this.findBbox = function( checkBindingID )
 	{
@@ -903,7 +915,7 @@ var SearchBboxControl = function()
 	
 	/**
 	 * Предполагается, что сам drawing объект сохраняется кем-то ещё, мы сохраняем только его параметры биндинга
-	 * @method
+	 * @function
 	 */
 	this.saveState = function()
 	{
@@ -911,7 +923,7 @@ var SearchBboxControl = function()
 	}
 	
 	/**
-	 * @method
+	 * @function
 	 */
 	this.loadState = function( data )
 	{
@@ -927,7 +939,7 @@ var SearchBboxControl = function()
 
 /**
 * Сравнивают два extent'а. Оба параметра могут быть null (весь мир)
-* @method
+* @function
 * @static
 */
 SearchBboxControl.isBoundsEqual = function(ext1, ext2)
@@ -938,15 +950,16 @@ SearchBboxControl.isBoundsEqual = function(ext1, ext2)
 }
 
 /**
- * @class cover.AggregateStatus
+ * @memberOf cover
+ * @class cover
  * Аггрегирует статусы разных событий для нескольких источников (загружаются данные, слишком большая область и т.п.)
- */
- 
- /**
- * @event change Изменение состояние аггрегатора, а не отдельных состояний источников
  */
 var AggregateStatus = function()
 {
+	/** Изменение состояние аггрегатора, а не отдельных состояний источников
+	 * @name cover.AggregateStatus.change
+	 * @event
+	 */
 	var _statuses = {};
 	var _statusCommon = true;
 	var _this = this;
@@ -1005,14 +1018,17 @@ IDataProvider.sendCachedCrossDomainJSONRequest = function(url, callback)
 }
 IDataProvider.sendCachedCrossDomainJSONRequest.jsonCache = {};
 
-/**
-* @class cover.FireSpotProvider Провайдер данных об очагах пожаров
-*/
-/**
-* @cfg {String} host Сервер, с которого берутся данные о пожарах. Default: http://sender.kosmosnimki.ru/
+/** Провайдер данных об очагах пожаров
+* @memberOf cover
+* @class 
+* @param {Object} params Параметры класса: <br/>
+* <i> {String} host </i> Сервер, с которого берутся данные о пожарах. Default: http://sender.kosmosnimki.ru/
 */
 var FireSpotProvider = function( params )
 {
+	/**
+	* @cfg 
+	*/
 	var _params = $.extend({ host: 'http://sender.kosmosnimki.ru/' }, params );
 	
 	_translationsHash.addtext("rus", {
@@ -1048,11 +1064,11 @@ var FireSpotProvider = function( params )
 	}
 }
 
-/**
-* @class cover.FireBurntProvider Провайдер данных о гарях
-*/
-/**
-* @cfg {String} host Сервер, с которого берутся данные о гарях. Default: http://sender.kosmosnimki.ru/
+/** Провайдер данных о гарях
+* @memberOf cover
+* @class 
+* @param {Object} params Параметры класса: <br/>
+* <i> {String} host </i> Сервер, с которого берутся данные о гарях. Default: http://sender.kosmosnimki.ru/
 */
 var FireBurntProvider = function( params )
 {
@@ -1093,17 +1109,16 @@ var FireBurntProvider = function( params )
 	}
 }
 
-/**
-* @class cover.FireBurntProvider Провайдер покрытия снимками modis
-*/
-/**
-* @cfg {String} host Сервер, с которого берутся данные покрытии. Default: http://sender.kosmosnimki.ru/
-*/
-/**
-* @cfg {String} modisImagesHost Путь, с которого будут загружаться тайлы. Default: http://images.kosmosnimki.ru/MODIS/
+/** Провайдер покрытия снимками modis
+* @memberOf cover
+* @class 
+* @param {Object} params Параметры класса: <br/>
+* <i> {String} host </i> Сервер, с которого берутся данные покрытии. Default: http://sender.kosmosnimki.ru/ <br/>
+* <i> {String} modisImagesHost </i> Путь, с которого будут загружаться тайлы. Default: http://images.kosmosnimki.ru/MODIS/
 */
 var ModisImagesProvider = function( params )
 {
+	
 	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/v2/',
 							modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/'
 						   }, params);
@@ -1151,20 +1166,13 @@ var ModisImagesProvider = function( params )
  *            Renderers             *
  ************************************/
  
- /**
-* @class cover.FireSpotRenderer Визуализирует точки пожаров разными иконками в зависимости от их типа
-*/
-
-/**
-* @cfg {String} fireIcon Иконка для маркеров , которая используется для всех пожаров
-*/
-
-/**
-* @cfg {Array} fireIcons Вектор для иконок маркеров очагов (3 иконки для слабого, среднего и сильного пожаров). Используется, если не указан fireIcon
-*/
-
-/**
-* @cfg {String} fireIconsHost Путь, откуда берутся иконки с предеопределёнными названиями. Используется, если нет fireIcon и fireIcons. Default: http://maps.kosmosnimki.ru/images/
+/** Визуализирует точки пожаров разными иконками в зависимости от их типа
+* @memberOf cover
+* @class 
+* @param {Object} params Параметры класса: <br/>
+* <i> {String} fireIcon </i> Иконка для маркеров , которая используется для всех пожаров <br/>
+* <i> {Array} fireIcons </i> Вектор для иконок маркеров очагов (3 иконки для слабого, среднего и сильного пожаров). Используется, если не указан fireIcon <br/>
+* <i> {String} fireIconsHost </i> Путь, откуда берутся иконки с предеопределёнными названиями. Используется, если нет fireIcon и fireIcons. Default: http://maps.kosmosnimki.ru/images/ <br/>
 */
 var FireSpotRenderer = function( params )
 {
@@ -1239,9 +1247,9 @@ var FireSpotRenderer = function( params )
 	}
 }
 
-/**
-* @class cover.FireBurntRenderer
-* Рисует на карте гари
+/** Рисует на карте гари
+* @memberOf cover
+* @class
 */
 var FireBurntRenderer = function()
 {
@@ -1284,9 +1292,9 @@ var FireBurntRenderer = function()
 	}
 }
 
-/**
-* @class cover.ModisImagesRenderer
-* Рисует на карте картинки MODIS
+/** Рисует на карте картинки MODIS
+* @memberOf cover
+* @class 
 */
 var ModisImagesRenderer = function()
 {
@@ -1322,7 +1330,8 @@ var ModisImagesRenderer = function()
  ************************************/
  
  /**
-* @class cover.FiresControl
+* @memberOf cover
+* @class 
 */
 var FiresControl = function()
 {
@@ -1604,9 +1613,9 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 }
 */
 
-/**
-* @class cover.MapCalendar
-* Интерфейс для задания параметров элеметов, зависящих от интервала.
+/** Интерфейс для задания параметров элеметов, зависящих от интервала.
+* @memberOf cover
+* @class
 */
 var MapCalendar = function(params)
 {
@@ -1857,10 +1866,9 @@ MapCalendar.prototype.getFireControl = function()
 }
 
 
-/**
- * @class cover.mapCalendar
- * Синглетон для доступа к виджету
- * @singleton
+/** Синглетон для доступа к виджету
+ * @memberOf cover
+ * @class
  */
 var mapCalendar = new MapCalendar();
 
