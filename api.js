@@ -148,6 +148,12 @@ function position(div, x, y)
 	div.style.top = y + "px";
 }
 
+function bottomPosition(div, x, y)
+{
+	div.style.left = x + "px";
+	div.style.bottom = y + "px";
+}
+
 function size(div, w, h)
 {
 	div.style.width = w + "px";
@@ -2557,10 +2563,10 @@ function createFlashMapInternal(div, layers, callback)
 				var trh = 13;
 				var brw = 15;
 				var brh = 41;
-				var th = 11;
-				var lw = 13;
-				var bh = 41;
-				var rw = 13;
+				var th = 2;
+				var lw = 2;
+				var bh = 2;
+				var rw = 2;
 
 				var legWidth = 68;
 
@@ -2578,66 +2584,56 @@ function createFlashMapInternal(div, layers, callback)
 				});
 				div.appendChild(balloon);
 
-				balloon.appendChild(newStyledDiv({ 
-					width: "50px", 
-					height: 0, 
-					lineHeight: 0, 
-					margin: 0, 
-					padding: 0, 
-					border: 0 
-				}));
+				var css = {
+					'bg_top_left': 'width: 13px; height: 18px; display: block; background-position: 2px 9px; background-image: url(\'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
+					'bg_top': 'height: 18px; background-position: center 9px; background-image: url(\'img/tooltip-top.png\'); background-repeat: repeat-x;',
+					'bg_top_right': 'width: 18px; height: 18px; display: block; background-position: -5px 9px; background-image: url(\'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
+					'bg_left': 'width: 13px; background-position: 2px top; background-image: url(\'img/tooltip-left.png\'); background-repeat: repeat-y;',
+					'bg_center': 'width: 50px; min-width: 50px; background-color: white; white-space: nowrap; padding: 4px; padding-right: 14px;',
+					'bg_right': 'width: 13px; height: 18px; background-position: 0px top; background-image: url(\'img/tooltip-right.png\'); background-repeat: repeat-y;',
+					'bg_bottom_left': 'width: 13px; height: 18px; background-position: 2px top; background-image: url(\'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
+					'bg_bottom': 'height: 18px; background-position: center top; background-image: url(\'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
+					'bg_bottom_right': 'width: 18px; height: 18px; background-position: -2px top; background-image: url(\'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
+					'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\'img/tooltip-leg.png\');'
+				};
 
-				var createBalloonPart = function(imageName, attrs)
-				{
-					var part = newStyledDiv({
+				var body = '\
+					<table cols="3" cellspacing="0" cellpadding="0" border="0">\
+						<tr>\
+							<td style="'+css['bg_top_left']+'"></td>\
+							<td style="'+css['bg_top']+'"></td>\
+							<td style="'+css['bg_top_right']+'"></td>\
+						</tr>\
+						<tr>\
+							<td style="'+css['bg_left']+'"></td>\
+							<td style="'+css['bg_center']+'">\
+								<div class="kosmosnimki_balloon">\
+								</div>\
+							</td>\
+							<td style="'+css['bg_right']+'"></td>\
+						</tr>\
+						<tr>\
+							<td style="'+css['bg_bottom_left']+'"></td>\
+							<td style="'+css['bg_bottom']+'"></td>\
+							<td style="'+css['bg_bottom_right']+'"></td>\
+						</tr>\
+					</table>\
+				';
+				balloon.innerHTML = body;
+				var nodes = balloon.getElementsByTagName("div");
+				var balloonText = nodes[0];
+				
+				var leg = newElement("img",
+					{
+						src: apiBase + "img/tooltip-leg.png"
+					},
+					{
 						position: "absolute",
-						overflow: "hidden"
-					});
-					setBg(part, apiBase + "img/" + imageName);
-					for (var key in attrs)
-						part.style[key] = attrs[key] + "px";
-					balloon.appendChild(part);
-					return part;
-				}
-
-				createBalloonPart("tooltip-top-left.png", { top: 0, left: 0, width: tlw, height: tlh });
-				createBalloonPart("tooltip-bottom-left.png", { bottom: 0, left: 0, width: blw, height: blh });
-				createBalloonPart("tooltip-top-right.png", { top: 0, right: 0, width: trw, height: trh });
-				createBalloonPart("tooltip-bottom-right.png", { bottom: 0, right: 0, width: brw, height: brh });
-	
-				var topBalloonBorder = createBalloonPart("tooltip-top.png", { top: 0, left: tlw, height: th });
-				var leftBalloonBorder = createBalloonPart("tooltip-left.png", { top: tlh, left: 0, width: lw });
-				var bottomBalloonBorder1 = createBalloonPart("tooltip-bottom.png", { bottom: 0, left: blw, height: bh });
-				var bottomBalloonBorder2 = createBalloonPart("tooltip-bottom.png", { bottom: 0, right: brw, height: bh });
-				var rightBalloonBorder = createBalloonPart("tooltip-right.png", { top: trh, right: 0, width: rw });
-
-				var leg = createBalloonPart("tooltip-leg.png", { bottom: 0, width: legWidth, height: blh });
-
-				var balloonTextBg = newStyledDiv({
-					backgroundColor: "white",
-					position: "absolute",
-					top: th + "px",
-					left: lw + "px",
-					zIndex: -10
-				});
-				balloon.appendChild(balloonTextBg);
-
-				balloon.appendChild(newStyledDiv({
-					width: (blw + brw) + "px",
-					height: 0,
-					fontSize: 0,
-					padding: 0,
-					margin: 0
-				}));
-
-				var balloonText = newStyledDiv({
-					border: 0,
-					color: "black",
-					overflow: "hidden",
-					paddingRight: "15px"
-				});
-				balloonText.className = "kosmosnimki_balloon";
-				balloon.appendChild(balloonText);
+						bottom: "-21px",
+						right: "15px",
+					}
+				);
+				balloon.appendChild(leg);
 
 				var x = 0;
 				var y = 0;
@@ -2651,15 +2647,7 @@ function createFlashMapInternal(div, layers, callback)
 					xx = Math.max(xx, x - ww + legWidth + brw);
 					var dx = x - xx;
 					leg.style.left = dx + "px";
-					position(balloon, xx, y - 4 - balloon.clientHeight);
-
-					topBalloonBorder.style.width = Math.max(ww - tlw - trw, 0) + "px";
-					bottomBalloonBorder1.style.width = Math.max(dx + 14 - blw, 0) + "px";
-					bottomBalloonBorder2.style.width = Math.max(ww - brw - legWidth - dx + 1, 0) + "px";
-					leftBalloonBorder.style.height = Math.max(hh - tlh - blh, 0) + "px";
-					rightBalloonBorder.style.height = Math.max(hh - trh - brh, 0) + "px";
-					balloonTextBg.style.width = Math.max(ww - lw - rw, 0) + "px";
-					balloonTextBg.style.height = Math.max(hh - th - bh, 0) + "px";
+					bottomPosition(balloon, xx + 2, div.clientHeight - y + 20);
 				}
 
 				var wasVisible = true;
@@ -2802,8 +2790,8 @@ function createFlashMapInternal(div, layers, callback)
 					},
 					{
 						position: "absolute",
-						top: "5px",
-						right: "9px",
+						top: "15px",
+						right: "15px",
 						cursor: "pointer"
 					}
 				));
