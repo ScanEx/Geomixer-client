@@ -2630,7 +2630,7 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						position: "absolute",
 						bottom: "-21px",
-						right: "15px",
+						right: "15px"
 					}
 				);
 				balloon.appendChild(leg);
