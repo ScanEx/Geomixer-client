@@ -435,9 +435,35 @@ function loadVariableFromScript(url, name, callback, onError, useTimeout)
 {
 	window[name] = undefined;
 	var script = document.createElement("script");
+	script.onload = script.onreadystatechange = script.onerror = function()
+	{
+		if ( ( typeof this.readyState === 'undefined' || this.readyState === 'complete' || this.readyState === 'loaded' ) && typeof window[name] === 'undefined')
+		{
+			clearInterval(interval);
+			canceled = true;
+			onError();
+		}
+	}
+	
+	if (script.readyState)
+	{
+		var intervalError = setInterval(function()
+		{
+			if (script.readyState === 'loaded')
+			{
+				clearInterval(intervalError);
+				if (typeof window[name] === 'undefined')
+				{
+					canceled = true;
+					onError();
+				}
+			}
+		}, 50);
+	}
+	
 	script.setAttribute("charset", "UTF-8");
-	script.setAttribute("src", url);
 	document.getElementsByTagName("head").item(0).appendChild(script);
+	script.setAttribute("src", url);
 
 	var startTime = (new Date()).getTime();
 	var canceled = false;
