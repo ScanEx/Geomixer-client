@@ -435,35 +435,9 @@ function loadVariableFromScript(url, name, callback, onError, useTimeout)
 {
 	window[name] = undefined;
 	var script = document.createElement("script");
-	script.onload = script.onreadystatechange = script.onerror = function()
-	{
-		if ( ( typeof this.readyState === 'undefined' || this.readyState === 'complete' || this.readyState === 'loaded' ) && typeof window[name] === 'undefined')
-		{
-			clearInterval(interval);
-			canceled = true;
-			onError();
-		}
-	}
-	
-	if (script.readyState)
-	{
-		var intervalError = setInterval(function()
-		{
-			if (script.readyState === 'loaded')
-			{
-				clearInterval(intervalError);
-				if (typeof window[name] === 'undefined')
-				{
-					canceled = true;
-					onError();
-				}
-			}
-		}, 50);
-	}
-	
 	script.setAttribute("charset", "UTF-8");
-	document.getElementsByTagName("head").item(0).appendChild(script);
 	script.setAttribute("src", url);
+	document.getElementsByTagName("head").item(0).appendChild(script);
 
 	var startTime = (new Date()).getTime();
 	var canceled = false;
@@ -2614,16 +2588,16 @@ function createFlashMapInternal(div, layers, callback)
 				div.appendChild(balloon);
 
 				var css = {
-					'bg_top_left': 'width: 13px; height: 18px; display: block; background-position: 2px 9px; background-image: url(\'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
-					'bg_top': 'height: 18px; background-position: center 9px; background-image: url(\'img/tooltip-top.png\'); background-repeat: repeat-x;',
-					'bg_top_right': 'width: 18px; height: 18px; display: block; background-position: -5px 9px; background-image: url(\'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
-					'bg_left': 'width: 13px; background-position: 2px top; background-image: url(\'img/tooltip-left.png\'); background-repeat: repeat-y;',
+					'bg_top_left': 'width: 13px; height: 18px; display: block; background-position: 2px 9px; background-image: url(\''+apiBase+'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
+					'bg_top': 'height: 18px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
+					'bg_top_right': 'width: 18px; height: 18px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
+					'bg_left': 'width: 13px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-left.png\'); background-repeat: repeat-y;',
 					'bg_center': 'width: 50px; min-width: 50px; background-color: white; white-space: nowrap; padding: 4px; padding-right: 14px;',
-					'bg_right': 'width: 13px; height: 18px; background-position: 0px top; background-image: url(\'img/tooltip-right.png\'); background-repeat: repeat-y;',
-					'bg_bottom_left': 'width: 13px; height: 18px; background-position: 2px top; background-image: url(\'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
-					'bg_bottom': 'height: 18px; background-position: center top; background-image: url(\'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
-					'bg_bottom_right': 'width: 18px; height: 18px; background-position: -2px top; background-image: url(\'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
-					'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\'img/tooltip-leg.png\');'
+					'bg_right': 'width: 13px; height: 18px; background-position: 0px top; background-image: url(\''+apiBase+'img/tooltip-right.png\'); background-repeat: repeat-y;',
+					'bg_bottom_left': 'width: 13px; height: 18px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
+					'bg_bottom': 'height: 18px; background-position: center top; background-image: url(\''+apiBase+'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
+					'bg_bottom_right': 'width: 18px; height: 18px; background-position: -2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
+					'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\''+apiBase+'img/tooltip-leg.png\');'
 				};
 
 				var body = '\
