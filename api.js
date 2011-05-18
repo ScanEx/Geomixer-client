@@ -435,56 +435,94 @@ function loadVariableFromScript(url, name, callback, onError, useTimeout)
 {
 	window[name] = undefined;
 	var script = document.createElement("script");
-	script.onload = script.onreadystatechange = script.onerror = function()
-	{
-		if ( ( typeof this.readyState === 'undefined' || this.readyState === 'complete' || this.readyState === 'loaded' ) && typeof window[name] === 'undefined')
+	var done = false;
+	
+	script.onerror = function()
 		{
-			clearInterval(interval);
-			canceled = true;
-			onError();
+		if (!done)
+		{
+			// alert('onerror');
+			clearInterval(intervalError);
+			if (onError) onError();
+			done = true;
 		}
 	}
 	
-	if (script.readyState)
+	script.onload = function()
 	{
+		if (!done)
+		{
+			// alert('onload');
+			clearInterval(intervalError);
+
+			if ( window[name] !== undefined )
+				callback(window[name]);
+			else if (onError) onError();
+
+			done = true;
+		}
+	}
+	
+	script.onreadystatechange = function()
+	{
+		if (!done)
+		{
+			//alert('onreadystatechange: ' + this.readyState);
+			if ( this.readyState === 'loaded' )
+			{
+				clearInterval(intervalError);
+				
+				if ( window[name] !== undefined )
+					callback(window[name]);
+				else if (onError) onError();
+				done = true;
+			}
+		}
+	}
+	
+	// alert('readyState exists');
 		var intervalError = setInterval(function()
+		{
+		if (!done)
 		{
 			if (script.readyState === 'loaded')
 			{
 				clearInterval(intervalError);
 				if (typeof window[name] === 'undefined')
 				{
-					canceled = true;
-					onError();
+					//canceled = true;
+					if (onError) onError();
 				}
+				done = true;
 			}
-		}, 50);
 	}
+	}, 50);
 	
 	script.setAttribute("charset", "UTF-8");
 	document.getElementsByTagName("head").item(0).appendChild(script);
 	script.setAttribute("src", url);
 
-	var startTime = (new Date()).getTime();
-	var canceled = false;
-	var interval = setInterval(function()
-	{
-		if (window[name] !== undefined)
-		{
-			clearInterval(interval);
-			if (!canceled)
-				callback(window[name]);
-		}
-		else if (useTimeout && ((new Date()).getTime() - startTime > 10000))
-		{
-			clearInterval(interval);
+	//var startTime = (new Date()).getTime();
+	//var canceled = false;
+	// var interval = setInterval(function()
+	// {
+		// alert(window[name]);
+		// if (window[name] !== undefined)
+		// {
+			// clearInterval(interval);
+			// if (!canceled)
+				// callback(window[name]);
+		// }
+		// else if (useTimeout && ((new Date()).getTime() - startTime > 10000))
+		// {
+			// clearInterval(interval);
 			
-			if (!canceled)
-				onError();
+			// if (!canceled)
+				// onError();
 			
-			canceled = true;
-		}
-	}, 500);
+			// canceled = true;
+		// }
+	// }, 500);
 }
 
 function KOSMOSNIMKI_LOCALIZED(rus, eng)
