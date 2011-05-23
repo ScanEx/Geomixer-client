@@ -1118,36 +1118,8 @@ function createFlashMapInternal(div, layers, callback)
 					}
 					return text;
 				}
-				this.setHandlers({
-					onMouseOver: function(o)
-					{ 
-						if (flashDiv.isDragging())
-							return;
-
-						for (var key in fixedHoverBalloons)
-						{
-							var balloon = fixedHoverBalloons[key];
-							if (!balloon.isVisible)
-							{
-								balloon.remove();
-								delete fixedHoverBalloons[key];
-							}
-						}
-						var text = getHoverBalloonText(o);
-						var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
-						lastHoverBalloonId = o.objectId;
-						if (!fixedHoverBalloons[id])
-							updatePropsBalloon(text);
-						else
-							updatePropsBalloon(false);
-					},
-					onMouseOut: function(o) 
-					{ 
-						if (lastHoverBalloonId == o.objectId)
-							updatePropsBalloon(false);
-					},
-					onClick: function(o)
-					{
+				var clickBalloonFix = function(o)
+				{
 						var text = getHoverBalloonText(o);
 						var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
 						if (!fixedHoverBalloons[id])
@@ -1180,7 +1152,39 @@ function createFlashMapInternal(div, layers, callback)
 							delete fixedHoverBalloons[id];
 						}
 						updatePropsBalloon(false);
-					}
+				}
+
+				this.setHandlers({
+					onMouseOver: function(o)
+					{ 
+						if (flashDiv.isDragging())
+							return;
+
+						for (var key in fixedHoverBalloons)
+						{
+							var balloon = fixedHoverBalloons[key];
+							if (!balloon.isVisible)
+							{
+								balloon.remove();
+								delete fixedHoverBalloons[key];
+							}
+						}
+						var text = getHoverBalloonText(o);
+						var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
+						lastHoverBalloonId = o.objectId;
+						if (!fixedHoverBalloons[id])
+							updatePropsBalloon(text);
+						else
+							updatePropsBalloon(false);
+
+						map.clickBalloonFix = clickBalloonFix;
+					},
+					onMouseOut: function(o) 
+					{ 
+						if (lastHoverBalloonId == o.objectId)
+							updatePropsBalloon(false);
+					},
+					onClick: clickBalloonFix
 				});
 			}
 			FlashMapObject.prototype.disableHoverBalloon = function()
@@ -1284,11 +1288,21 @@ function createFlashMapInternal(div, layers, callback)
 				tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
 				var propsArray = [];
 				var flipCounts = {};
-				var updateImageDepth = function(props)
+				var updateImageDepth = function(o)
 				{
+					if(map.clickBalloonFix) {
+						var curZ = map.getZ();
+						var flag = (minZoom && curZ < minZoom ? true : false);
+						var mZ = (maxZoom ? maxZoom : 18);
+						if(!flag && curZ > mZ) flag = true;
+						if(flag) map.clickBalloonFix(o);
+					}
+					var props = o.properties;
+
 					var id = "id_" + props.ogc_fid;
-					if (!images[id])
+					if (!images[id]) {
 						return;
+					}
 					var lastDate = props.date || props.DATE;
 					var lastFc = flipCounts[id];
 					var n = 0;
@@ -1320,7 +1334,7 @@ function createFlashMapInternal(div, layers, callback)
 						callback(o, image);
 						images[id] = image;
 						propsArray.push(o.properties);
-						updateImageDepth(o.properties);
+						updateImageDepth(o);
 					}
 					else if (!flag && images[id])
 					{
@@ -1340,7 +1354,7 @@ function createFlashMapInternal(div, layers, callback)
 				{
 					try {
 					flipCounts["id_" + o.properties.ogc_fid] = o.flip();
-					updateImageDepth(o.properties);
+					updateImageDepth(o);
 					} catch (e) { alert(e); }
 				});
 			}
