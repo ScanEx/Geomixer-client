@@ -4,8 +4,14 @@
 */
 (function($){
 
-// controls: два календарика, выбор периода, галочка с выбором года
-// events: change
+var DatePeriod = function()
+{
+	this.getDateBegin = function(){};
+	this.getDateEnd = function(){};
+	this.setDateBegin = function(dateBegin){};
+	this.setDateEnd = function(dateEnd){};
+	this.setDatePeriod = function(datePeriod){};
+}
 
 /**
  @memberOf cover
@@ -687,6 +693,13 @@ var LayerFiltersControl = function()
 	var _groupTitle = null;
 	var _map = null;
 	
+	//по умолчанию слои фильтруются по дате
+	var _filterFunc = function(layer, dateBegin, dateEnd)
+	{
+		var layerDate = $.datepicker.parseDate('dd.mm.yy', layer.properties.date);
+		return dateBegin <= layerDate && layerDate <= dateEnd;
+	}
+	
 	var _getLayersInGroup = function(mapTree, groupTitle)
 	{
 		var res = {};
@@ -745,15 +758,17 @@ var LayerFiltersControl = function()
 		{
 			if (elem.content.properties.name in layers)
 			{
-				var layerDate = $.datepicker.parseDate('dd.mm.yy', layers[elem.content.properties.name].properties.date);
-				var isDateInInterval = dateBegin <= layerDate && layerDate <= dateEnd;
-				elem.content.properties.visible = isDateInInterval;
-				layers[elem.content.properties.name].setVisible(isDateInInterval);
+				//var layerDate = $.datepicker.parseDate('dd.mm.yy', layers[elem.content.properties.name].properties.date);
+				//var isDateInInterval = dateBegin <= layerDate && layerDate <= dateEnd;
+				var isShowLayer = _filterFunc( layers[elem.content.properties.name], dateBegin, dateEnd );
+				
+				elem.content.properties.visible = isShowLayer;
+				layers[elem.content.properties.name].setVisible(isShowLayer);
 				
 				//если дерево уже создано в dom, ручками устанавливаем галочку
 				var childBoxList = $(domTreeRoot).find("div[LayerID='" + elem.content.properties.LayerID + "']");
 				if (childBoxList.length > 0)
-					childBoxList[0].firstChild.checked = isDateInInterval;
+					childBoxList[0].firstChild.checked = isShowLayer;
 			}
 		});
 	}
@@ -762,12 +777,20 @@ var LayerFiltersControl = function()
 	 * @function Инициализитует фильтрацию слоёв. Далее классом будут отслеживаться события календарика.
 	 * @param map Основная карта
 	 * @param {cover.Calendar} calendar Календарик, который используется для задания дат
-	 * @param {Object} params Дополнительные параметры: groupTitle - имя группы, слои в которой нужно фильтровать. Если не задано, будут фильтроваться все слои на карте
+	 * @param {Object} params Дополнительные параметры: <br/>
+	 *    groupTitle - имя группы, слои в которой нужно фильтровать. Если не задано, будут фильтроваться все слои на карте <br/>
+	 *    filterFunc - ф-ция filterFunc(layer, dateBegin, dateEnd) -> Bool. Возвращает true, если слой нужно показать, false чтобы скрыть. По умолчанию происходит фильтрация по дате слоя.
 	 */
 	this.init = function(map, calendar, params)
 	{
 		_map = map;
-		_groupTitle = typeof params != 'undefined' ? params.groupTitle : null;
+		
+		if ( typeof params != 'undefined' )
+		{
+			_groupTitle = params.groupTitle;
+			if (params.filterFunc) 
+				_filterFunc = params.filterFunc;
+		}
 		
 		if (_calendar)
 			$(_calendar).unbind('change', _update);
