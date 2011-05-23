@@ -4,6 +4,29 @@
 */
 (function($){
 
+var _getLayersInGroup = function(map, mapTree, groupTitle)
+{
+	var res = {};
+	var visitor = function(treeElem, isInGroup)
+	{
+		if (treeElem.type === "layer" && isInGroup)
+		{
+			//res.push(_map.layers[treeElem.content.properties.name]);
+			res[treeElem.content.properties.name] = map.layers[treeElem.content.properties.name];
+		}
+		else if (treeElem.type === "group")
+		{
+			isInGroup = isInGroup || treeElem.content.properties.title == groupTitle;
+			var a = treeElem.content.children;
+			for (var k = a.length - 1; k >= 0; k--)
+				visitor(a[k], isInGroup);
+		}
+	}
+
+	visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
+	return res;
+}
+
 var DatePeriod = function()
 {
 	this.getDateBegin = function(){};
@@ -440,7 +463,19 @@ CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 */
 CoverControl.prototype.init = function(coverLayers, dateAttribute, cloudsAttribute, icons, initCloudIndex)
 {
-	this.coverLayers = coverLayers;
+	this.coverLayers = [];
+	for (var k = 0; k < coverLayers.length; k++)
+	{
+		if (typeof coverLayers[k] === 'string' )
+			this.coverLayers.push(coverLayers[k]);
+		else if ('group' in coverLayers[k])
+		{
+			var layersHash = _getLayersInGroup(globalFlashMap, _mapHelper.mapTree, coverLayers[k].group);
+			for (var l in layersHash)
+				this.coverLayers.push(l);
+		}
+	}
+	
 	this.dateAttribute = dateAttribute;
 	this.cloudsAttribute = cloudsAttribute;
 	
@@ -700,29 +735,6 @@ var LayerFiltersControl = function()
 		return dateBegin <= layerDate && layerDate <= dateEnd;
 	}
 	
-	var _getLayersInGroup = function(mapTree, groupTitle)
-	{
-		var res = {};
-		var visitor = function(treeElem, isInGroup)
-		{
-			if (treeElem.type === "layer" && isInGroup)
-			{
-				//res.push(_map.layers[treeElem.content.properties.name]);
-				res[treeElem.content.properties.name] = _map.layers[treeElem.content.properties.name];
-			}
-			else if (treeElem.type === "group")
-			{
-				isInGroup = isInGroup || treeElem.content.properties.title == groupTitle;
-				var a = treeElem.content.children;
-				for (var k = a.length - 1; k >= 0; k--)
-					visitor(a[k], isInGroup);
-			}
-		}
-
-		visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
-		return res;
-	}
-	
 	var _getMapLayersAsHash = function()
 	{
 		var res = {};
@@ -752,7 +764,7 @@ var LayerFiltersControl = function()
 		var dateBegin = _calendar.getDateBegin();
 		var dateEnd = _calendar.getDateEnd();
 		
-		var layers = _groupTitle ? _getLayersInGroup(mapTree, _groupTitle) : _getMapLayersAsHash();
+		var layers = _groupTitle ? _getLayersInGroup(_map, mapTree, _groupTitle) : _getMapLayersAsHash();
 		
 		_mapHelper.findTreeElems( mapTree, function(elem)
 		{
