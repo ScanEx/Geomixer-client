@@ -609,13 +609,16 @@ class Main
 				else
 					props = node2.properties;
 				var arr = propertiesToArray(props);
-				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown"))
+				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
 					ExternalInterface.call(callbackName, node2.id, arr);
+				}
 				else
 				{
 					nextFrameCallbacks.push(function()
 					{
-						ExternalInterface.call(callbackName, node2.id, arr);
+						try {
+							ExternalInterface.call(callbackName, node2.id, arr);
+						} catch (e:Error) {  }
 					});
 				}
 			}); 

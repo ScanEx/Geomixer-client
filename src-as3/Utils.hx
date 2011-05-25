@@ -2,13 +2,21 @@ import flash.display.Sprite;
 import flash.display.DisplayObject;
 import flash.display.Loader;
 import flash.display.BitmapData;
+import flash.display.Stage;
+
 import flash.events.Event;
 import flash.events.IOErrorEvent;
 import flash.net.URLRequest;
 import flash.system.LoaderContext;
+import flash.system.ApplicationDomain;
 import flash.errors.Error;
 import flash.utils.Timer;
 import flash.events.TimerEvent;
+
+typedef Req = {
+	var url : String;
+	var onLoad :BitmapData->Void;
+}
 
 class Utils
 {
@@ -16,7 +24,10 @@ class Utils
 	public static var worldDelta:Float = 1627508;
 	static var nextId:Int = 0;
 	static var bitmapDataCache:Hash<BitmapData> = new Hash<BitmapData>();
-
+	
+	static var loaderDataCache:Array<Req> = [];		// Очередь загрузки Bitmap-ов
+	static var loaderActive:Bool = false;			// Флаг активности Loader Bitmap-ов
+	
 	public static function getNextId()
 	{
 		nextId += 1;
@@ -84,44 +95,62 @@ class Utils
 		}
 	}
 
+	// Загрузить BitmapData по url или взять из Cache
 	public static function loadBitmapData(url:String, onLoad:BitmapData->Void)
 	{
-		var onCacheReady = function()
+		if (bitmapDataCache.exists(url))
 		{
 			onLoad(Utils.bitmapDataCache.get(url));
-		}
-		if (bitmapDataCache.exists(url))
-			onCacheReady();
-		else
+		} else
 		{
+			var req:Req = {url: url, onLoad: onLoad};
+			loaderDataCache.push(req);
+		}
+		chkLoadImage();
+	}
+
+	// Проверка очереди загрузки BitmapData
+	private static function chkLoadImage()
+	{
+		if (loaderActive || loaderDataCache.length == 0) return;
+		var req:Req = loaderDataCache.shift();
+		var url:String = req.url;
+		var onLoad = req.onLoad;
+
+		if (bitmapDataCache.exists(url))
+		{
+			onLoad(Utils.bitmapDataCache.get(url));
+			chkLoadImage();
+		} else {
 			var addToCache = function(bitmapData:BitmapData)
 			{
 				Utils.bitmapDataCache.set(url, bitmapData);
-				onCacheReady();
+				onLoad(Utils.bitmapDataCache.get(url));
 			}
-			Utils.loadImage(
-				url,
-				function(contents)
-				{
-					var bitmapData = new BitmapData(Std.int(contents.width), Std.int(contents.height), true, 0);
-					try
-					{ 
-						bitmapData.draw(contents);
-					} 
-					catch (e:Error) 
-					{
-						trace("security error while loading " + url + ", use crossdomain.xml");
-					}
+
+			var loader:Loader = new Loader();
+			var complete = function(e)
+			{ 
+					var bitmapData:BitmapData = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
+					bitmapData.draw(loader);
 					addToCache(bitmapData);
-				},
-				function()
-				{
-					addToCache(null);
-				}
-			);
+					loaderActive = false;
+					chkLoadImage();
+			}
+			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, complete);
+
+			var err = function(e)
+			{
+				loaderActive = false;
+				chkLoadImage();
+			}
+			loaderActive = true;
+			loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, err);
+			var loaderContext:LoaderContext = new LoaderContext(true, ApplicationDomain.currentDomain);
+			loader.load(new URLRequest(url), loaderContext);
 		}
 	}
-
+	
 	public static function parseGeometry(geometry_:Dynamic, ?tileExtent:Extent):Geometry
 	{
 		var type:String = geometry_.type;

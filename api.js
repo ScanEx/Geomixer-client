@@ -260,6 +260,7 @@ function parseColor(str)
 
 function forEachPoint(coords, callback)
 {
+	if (coords.length == 0) return [];
 	if (!coords[0].length)
 	{
 		if (coords.length == 2)
@@ -856,7 +857,7 @@ function createFlashMapInternal(div, layers, callback)
 					this.getBestZ(minx, miny, maxx, maxy)
 				);
 			}
-			FlashMapObject.prototype.zoomBy = function(dz, useMouse) { flashDiv.zoomBy(-dz, useMouse); }
+			FlashMapObject.prototype.zoomBy = function(dz, useMouse) { flashDiv.zoomBy(-dz, useMouse); clearHoverBalloons(); }
 			FlashMapObject.prototype.freeze = function() { flashDiv.freeze(); }
 			FlashMapObject.prototype.unfreeze = function() { flashDiv.unfreeze(); }
 			FlashMapObject.prototype.setCursor = function(url, dx, dy) { flashDiv.setCursor(url, dx, dy); }
@@ -941,14 +942,20 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.getIntermediateLength = function() { return flashDiv.getIntermediateLength(this.objectId); }
 			FlashMapObject.prototype.getCurrentEdgeLength = function() { return flashDiv.getCurrentEdgeLength(this.objectId); }
 			FlashMapObject.prototype.setLabel = function(label) { flashDiv.setLabel(this.objectId, label); }
-			FlashMapObject.prototype.setGeometry = function(geometry) { flashDiv.setGeometry(this.objectId, merc_geometry(geometry)); }
+			FlashMapObject.prototype.setGeometry = function(geometry) {
+				var geom =  merc_geometry(geometry);
+				flashDiv.setGeometry(this.objectId, geom);
+			}
 			FlashMapObject.prototype.getGeometry = function() 
 			{ 
 				var geom = flashDiv.getGeometry(this.objectId);
-				return {
-					type: geom.type,
-					coordinates: forEachPoint(geom.coordinates, function(c) { return [from_merc_x(c[0]), from_merc_y(c[1])]; })
-				};
+				var out = { "type": geom.type };
+				var coords =  forEachPoint(geom.coordinates, function(c) {
+							return [from_merc_x(c[0]), from_merc_y(c[1])];
+							}
+					);
+				out["coordinates"] = coords;
+				return out;
 			}
 			FlashMapObject.prototype.getLength = function(arg1, arg2, arg3, arg4)
 			{
@@ -1076,6 +1083,17 @@ function createFlashMapInternal(div, layers, callback)
 
 			var lastHoverBalloonId = false;
 			var fixedHoverBalloons = {};
+
+			var clearHoverBalloons = function()
+			{
+				for (var key in fixedHoverBalloons)
+				{
+					var balloon = fixedHoverBalloons[key];
+					balloon.remove();
+					delete fixedHoverBalloons[key];
+				}
+			}
+
 			FlashMapObject.prototype.getGeometrySummary = function()
 			{
 				var geomType = this.getGeometryType();
@@ -2666,20 +2684,21 @@ function createFlashMapInternal(div, layers, callback)
 				div.appendChild(balloon);
 
 				var css = {
-					'bg_top_left': 'width: 13px; height: 18px; display: block; background-position: 2px 9px; background-image: url(\''+apiBase+'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
-					'bg_top': 'height: 18px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
-					'bg_top_right': 'width: 18px; height: 18px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
-					'bg_left': 'width: 13px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-left.png\'); background-repeat: repeat-y;',
-					'bg_center': 'width: 50px; min-width: 50px; background-color: white; white-space: nowrap; padding: 4px; padding-right: 14px;',
-					'bg_right': 'width: 13px; height: 18px; background-position: 0px top; background-image: url(\''+apiBase+'img/tooltip-right.png\'); background-repeat: repeat-y;',
-					'bg_bottom_left': 'width: 13px; height: 18px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
-					'bg_bottom': 'height: 18px; background-position: center top; background-image: url(\''+apiBase+'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
-					'bg_bottom_right': 'width: 18px; height: 18px; background-position: -2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
+					'table': 'margin: 0px; border-collapse: collapse;',
+					'bg_top_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: 2px 9px; background-image: url(\''+apiBase+'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
+					'bg_top': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
+					'bg_top_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
+					'bg_left': 'background-color: transparent; width: 13px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-left.png\'); background-repeat: repeat-y;',
+					'bg_center': 'background-color: transparent; width: 50px; min-width: 50px; border: 0px none; background-color: white; white-space: nowrap; padding: 4px; padding-right: 14px;',
+					'bg_right': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 0px top; background-image: url(\''+apiBase+'img/tooltip-right.png\'); background-repeat: repeat-y;',
+					'bg_bottom_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
+					'bg_bottom': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center top; background-image: url(\''+apiBase+'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
+					'bg_bottom_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; background-position: -2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
 					'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\''+apiBase+'img/tooltip-leg.png\');'
 				};
 
 				var body = '\
-					<table cols="3" cellspacing="0" cellpadding="0" border="0">\
+					<table cols="3" cellspacing="0" cellpadding="0" border="0" style="'+css['table']+'">\
 						<tr>\
 							<td style="'+css['bg_top_left']+'"></td>\
 							<td style="'+css['bg_top']+'"></td>\
@@ -3478,7 +3497,6 @@ function createFlashMapInternal(div, layers, callback)
 						}
 					}
 					balloon.div.appendChild(htmlDiv);
-
 					var input = document.createElement("textarea");
 					input.style.backgroundColor = "transparent";
 					input.style.border = 0;
@@ -3708,7 +3726,8 @@ function createFlashMapInternal(div, layers, callback)
 
 				var callOnChange = function()
 				{
-					domObj.update(obj.getGeometry(), text);
+					var geom = obj.getGeometry();
+					if(domObj) domObj.update(geom, text);
 				}
 
 				currentlyDrawnObject = ret;
@@ -3808,7 +3827,8 @@ function createFlashMapInternal(div, layers, callback)
 
 				var callOnChange = function()
 				{
-					domObj.update(obj.getGeometry(), text);
+					var geom = obj.getGeometry();
+					if(domObj) domObj.update(geom, text);
 				}
 
 				currentlyDrawnObject = ret;
@@ -3932,7 +3952,7 @@ function createFlashMapInternal(div, layers, callback)
 						{
 							setToolHandler("onMouseDown", null);
 							selectTool("move");
-							domObj.triggerInternal("onMouseUp");
+							if(domObj) domObj.triggerInternal("onMouseUp");
 						}
 					);
 				}
@@ -4087,6 +4107,7 @@ function createFlashMapInternal(div, layers, callback)
 
 			drawFunctions["move"] = function() {}
 
+			//Begin: tools
 			var objects = {};
 			var currentlyDrawnObject = false;
 			var activeToolName = false;
@@ -4330,8 +4351,9 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				if (toolName == activeToolName)
 					toolName = "move";
-				if (currentlyDrawnObject)
+				if (currentlyDrawnObject && 'stopDrawing' in currentlyDrawnObject)
 					currentlyDrawnObject.stopDrawing();
+				
 				currentlyDrawnObject = false;
 				if (toolName != activeToolName)
 				{
