@@ -122,17 +122,20 @@ class EditableContent extends MapContent
 
 	public function getGeometry():Geometry
 	{
-		if (type == "LINESTRING")
-			return new LineGeometry(coordinates);
+		var out:Geometry = null;
+		if (type == "LINESTRING") {
+			out = new LineGeometry(coordinates);
+		}
 		else if (type == "POLYGON")
 		{
 			var c = coordinates.copy();
-			c.push(c[0]);
-			c.push(c[1]);
-			return new PolygonGeometry([c]);
+			if(c.length > 1) {
+				c.push(c[0]);
+				c.push(c[1]);
+				out = new PolygonGeometry([c]);
+			}
 		}
-		else
-			return null;
+		return out;
 	}
 
 	public function rebuild()
