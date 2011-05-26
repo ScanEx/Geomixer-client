@@ -36,26 +36,62 @@ _translationsHash.addtext("eng", {
 							"calendarWidget.Period" : "Period"
 						 });
 
-var _getLayersInGroup = function(map, mapTree, groupTitle)
+var _groupLayersHelper = function(map, mapTree, description)
 {
-	var res = {};
-	var visitor = function(treeElem, isInGroup)
+	var _array = [];
+	var _hash = {};
+	
+	var _getLayersInGroup = function(map, mapTree, groupTitle)
 	{
-		if (treeElem.type === "layer" && isInGroup)
+		var res = {};
+		var visitor = function(treeElem, isInGroup)
 		{
-			res[treeElem.content.properties.name] = map.layers[treeElem.content.properties.name];
+			if (treeElem.type === "layer" && isInGroup)
+			{
+				res[treeElem.content.properties.name] = map.layers[treeElem.content.properties.name];
+			}
+			else if (treeElem.type === "group")
+			{
+				isInGroup = isInGroup || treeElem.content.properties.title == groupTitle;
+				var a = treeElem.content.children;
+				for (var k = a.length - 1; k >= 0; k--)
+					visitor(a[k], isInGroup);
+			}
 		}
-		else if (treeElem.type === "group")
+
+		visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
+		return res;
+	}	
+	
+	for (var k = 0; k < description.length; k++)
+		if ( typeof description[k] === "string" )
 		{
-			isInGroup = isInGroup || treeElem.content.properties.title == groupTitle;
-			var a = treeElem.content.children;
-			for (var k = a.length - 1; k >= 0; k--)
-				visitor(a[k], isInGroup);
+			_hash[description[k]] = map.layers[description[k]];
+			_array.push( map.layers[description[k]] );
+		}
+		else if ('group' in description[k])
+		{
+			var groupHash = _getLayersInGroup(map, mapTree, description[k].group);
+			for (var l in groupHash)
+			{
+				_hash[l] = groupHash[l];
+				_array.push( groupHash[l] );
+			}
+		}
+		
+	return {
+		asArray: function() { return _array; },
+		asHash: function() { return _hash; },
+		names: function()
+		{
+			var res = [];
+			
+			for (var l in _hash) 
+				res.push(l);
+				
+			return res;
 		}
 	}
-
-	visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
-	return res;
 }
 
 /** Bbox, который может быть пустым или занимать весь мир
@@ -509,6 +545,9 @@ var CoverControl = function()
 {
 	this.cloudsIndexes = [];
 	this.currCloudsIndex = 2;
+	this.commonStyles = null;
+	this.cloudsCount = 0;
+	this.coverLayers = [];
 }
 
 /**
@@ -541,40 +580,15 @@ CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	this.setFilters();
 }
 
-/**
-* @function
-* @param {Array} coverLayers Массив имён слоёв для фильтрации
-* @param {String} dateAttribute Имя аттрибута слоёв с датой
-* @param {String} cloudsAttribute Имя аттрибута слоёв с облачностью
-* @param {Array} icons Массив с именами иконок для облачности
-* @param {Integer} initCloudIndex Начальная облачность
-*/
-CoverControl.prototype.init = function(coverLayers, dateAttribute, cloudsAttribute, icons, initCloudIndex)
+CoverControl.prototype._updateStyles = function()
 {
-	this.coverLayers = [];
-	for (var k = 0; k < coverLayers.length; k++)
-	{
-		if (typeof coverLayers[k] === 'string' )
-			this.coverLayers.push(coverLayers[k]);
-		else if ('group' in coverLayers[k])
-		{
-			var layersHash = _getLayersInGroup(globalFlashMap, _mapHelper.mapTree, coverLayers[k].group);
-			for (var l in layersHash)
-				this.coverLayers.push(l);
-		}
-	}
-	
-	this.dateAttribute = dateAttribute;
-	this.cloudsAttribute = cloudsAttribute;
-	
-	var cloudsCount,
-		_this = this;
+	if ( this.commonStyles || this.coverLayers.length == 0 ) return;
 	
 	var commonStyles = globalFlashMap.layers[this.coverLayers[0]].properties.styles,
 		cloudsCount = 0;
 	
-	for (var i = 0; i < icons.length; i++)
-		this.cloudsIndexes.push({icon:icons[i]});
+	for (var i = 0; i < this._icons.length; i++)
+		this.cloudsIndexes.push({icon:this._icons[i]});
 	
 	for (var i = 0; i < commonStyles.length; ++i)
 	{
@@ -584,12 +598,116 @@ CoverControl.prototype.init = function(coverLayers, dateAttribute, cloudsAttribu
 		cloudsCount++;
 	}
 	
-	if ( typeof initCloudIndex != 'undefined' )
+	if ( typeof initCloudIndex !== 'undefined' )
 		this.currCloudsIndex = initCloudIndex;
 		
 	this.cloudsCount = Math.round(cloudsCount / 2);
+	this.commonStyles = commonStyles;	
+}
+
+CoverControl.prototype._updateLayers = function()
+{
+	//проверим основную карту
+	this.coverLayers = _groupLayersHelper( globalFlashMap, _mapHelper.mapTree, this._coverLayersDescription ).names();
+
+	//и все дополнительные тоже будем фильтровать
+	if (typeof _queryExternalMaps.mapsCanvas != 'undefined')
+	{
+		for (var m = 0; m < _queryExternalMaps.mapsCanvas.childNodes.length; m++)
+		{
+			var mapElem = _queryExternalMaps.mapsCanvas.childNodes[m].childNodes[0];
+			if (mapElem.extLayersTree)
+				this.coverLayers = this.coverLayers.concat( _groupLayersHelper( globalFlashMap, mapElem.extLayersTree.mapHelper.mapTree, this._coverLayersDescription ).names() );
+		}
+	}
+}
+
+CoverControl.prototype._addWidget = function()
+{
+	if (this.cloudsIndexes.length == 0 || !this._parent ) return;
+	
+	var	cloudsSlider = _mapHelper.createSlider(this.currCloudsIndex, function(){}),
+		_this = this;
+	
+	$(cloudsSlider).slider("option", "step", 1);
+	$(cloudsSlider).slider("option", "min", 0);
+	$(cloudsSlider).slider("option", "max", this.cloudsIndexes.length - 1);
+	$(cloudsSlider).slider("option", "value", this.currCloudsIndex);
+	$(cloudsSlider).bind("slidestop", function(event, ui)
+	{
+		_this.currCloudsIndex = ui.value;
 		
-	this.commonStyles = commonStyles;
+		_this.setFilters();
+		
+		_title(cloudsSlider.firstChild, _this.cloudsIndexes[_this.currCloudsIndex].name);
+	});
+	
+	cloudsSlider.style.margin = '10px 3px';
+	
+	// добавляем раскраску
+	cloudsSlider.style.backgroundImage = '';
+	var colorTds = [];
+	for (var i = 1; i < this.cloudsCount; i++)
+	{
+		colorTds.push(_td(null,[['css','width', Math.round(100 / (this.cloudsCount - 1)) + 'px'], ['css','height',$.browser.msie ? '6px' : '7px'], ['css','backgroundColor',_mapHelper.convertColor(this.commonStyles[i].RenderStyle.fill.color)]]))
+	}
+	
+	_(cloudsSlider, [_table([_tbody([_tr(colorTds)])],[['css','position','absolute'],['css','left','0px'],['css','top','0px'],['css','border','1px solid #999999']])])
+	
+	_title(cloudsSlider, _gtxt("Облачность"));
+	_title(cloudsSlider.firstChild, this.cloudsIndexes[this.currCloudsIndex].name);
+	
+	var cloudsLabelDiv = _div(null,[['css','height','16px'],['css','position','relative']]);
+	
+	for (var i = 0; i < this.cloudsIndexes.length; ++i)
+	{
+		var img = _img(null,[['attr','src',this.cloudsIndexes[i].icon],['css','position','absolute']]);
+		
+		img.style.left = (25 * i - 5) + 'px';
+		
+		_title(img, this.cloudsIndexes[i].name)
+		
+		_(cloudsLabelDiv, [img])
+	}
+	
+	var trs = [];
+	
+	trs.push(_tr([_td(),_td([_span([_t(_gtxt("Облачность"))],[['css','fontSize','12px'],['css','margin','0px 10px 0px 7px']])]), _td([cloudsLabelDiv,cloudsSlider],[['attr','colSpan',2]])]));
+	trs.push(_tr([_td(null, [['attr','colSpan',2],['css','height','5px']])]));
+	
+	_(this._parent, [_table([_tbody(trs)],[['css','marginLeft','20px']])]);
+	this._parent = null;
+}
+
+/**
+* @function
+* @param {Array} coverLayersDescription Массив имён слоёв для фильтрации
+* @param {String} dateAttribute Имя аттрибута слоёв с датой
+* @param {String} cloudsAttribute Имя аттрибута слоёв с облачностью
+* @param {Array} icons Массив с именами иконок для облачности
+* @param {Integer} initCloudIndex Начальная облачность
+*/
+CoverControl.prototype.init = function(coverLayersDescription, dateAttribute, cloudsAttribute, icons, initCloudIndex)
+{
+	this._coverLayersDescription = coverLayersDescription;
+	this._icons = icons;
+	
+	this.dateAttribute = dateAttribute;
+	this.cloudsAttribute = cloudsAttribute;
+	
+	this._updateLayers();
+	
+	this._updateStyles();
+	
+	var _this = this;
+	
+	$(_queryExternalMaps).bind('map_loaded', function()
+	{
+		_this._updateLayers();
+		_this._updateStyles();
+		_this._addWidget();
+		_this.setFilters();
+	});
 	
 	setInterval(function(){
 		_this.fixLayers.apply(_this);
@@ -670,62 +788,17 @@ CoverControl.prototype.setFilters = function()
 }
 
 /**
-* Добавляет в DOM элементы контролов фильтрации по облачности
+* Добавляет в DOM контрол фильтрации по облачности
 * @function
 * @param {DOMElement} parent Контейнер для добавляения контрола
 */
 CoverControl.prototype.add = function(parent)
 {
-	var	cloudsSlider = _mapHelper.createSlider(this.currCloudsIndex, function(){}),
-		_this = this;
+	this._parent = parent;
+	this._updateLayers();
+	this._updateStyles();
+	this._addWidget();
 	
-	$(cloudsSlider).slider("option", "step", 1);
-	$(cloudsSlider).slider("option", "min", 0);
-	$(cloudsSlider).slider("option", "max", this.cloudsIndexes.length - 1);
-	$(cloudsSlider).slider("option", "value", this.currCloudsIndex);
-	$(cloudsSlider).bind("slidestop", function(event, ui)
-	{
-		_this.currCloudsIndex = ui.value;
-		
-		_this.setFilters();
-		
-		_title(cloudsSlider.firstChild, _this.cloudsIndexes[_this.currCloudsIndex].name);
-	});
-	
-	cloudsSlider.style.margin = '10px 3px';
-	
-	// добавляем раскраску
-	cloudsSlider.style.backgroundImage = '';
-	var colorTds = [];
-	for (var i = 1; i < this.cloudsCount; i++)
-	{
-		colorTds.push(_td(null,[['css','width', Math.round(100 / (this.cloudsCount - 1)) + 'px'], ['css','height',$.browser.msie ? '6px' : '7px'], ['css','backgroundColor',_mapHelper.convertColor(this.commonStyles[i].RenderStyle.fill.color)]]))
-	}
-	
-	_(cloudsSlider, [_table([_tbody([_tr(colorTds)])],[['css','position','absolute'],['css','left','0px'],['css','top','0px'],['css','border','1px solid #999999']])])
-	
-	_title(cloudsSlider, _gtxt("Облачность"));
-	_title(cloudsSlider.firstChild, this.cloudsIndexes[this.currCloudsIndex].name);
-	
-	var cloudsLabelDiv = _div(null,[['css','height','16px'],['css','position','relative']]);
-	
-	for (var i = 0; i < this.cloudsIndexes.length; ++i)
-	{
-		var img = _img(null,[['attr','src',this.cloudsIndexes[i].icon],['css','position','absolute']]);
-		
-		img.style.left = (25 * i - 5) + 'px';
-		
-		_title(img, this.cloudsIndexes[i].name)
-		
-		_(cloudsLabelDiv, [img])
-	}
-	
-	var trs = [];
-	
-	trs.push(_tr([_td(),_td([_span([_t(_gtxt("Облачность"))],[['css','fontSize','12px'],['css','margin','0px 10px 0px 7px']])]), _td([cloudsLabelDiv,cloudsSlider],[['attr','colSpan',2]])]));
-	trs.push(_tr([_td(null, [['attr','colSpan',2],['css','height','5px']])]));
-	
-	_(parent, [_table([_tbody(trs)],[['css','marginLeft','20px']])]);
 }
 
 /** Фильтрует объекты внутри векторных слоёв по интервалу дат
@@ -814,13 +887,36 @@ var LayerFiltersControl = function()
 {
 	var _calendar = null;
 	var _groupTitle = null;
+	var _layers = null;
 	var _map = null;
 	
 	//по умолчанию слои фильтруются по дате
-	var _filterFunc = function(layer, dateBegin, dateEnd)
+	var _defaultFilterFunc = function(layer, dateBegin, dateEnd)
 	{
 		var layerDate = $.datepicker.parseDate('dd.mm.yy', layer.properties.date);
 		return dateBegin <= layerDate && layerDate <= dateEnd;
+	}
+	
+	var _filterFunc = _defaultFilterFunc;
+	
+	var _IterateElems = function(treeElem, callback, parentVisible)
+	{
+		var visible = parentVisible && (treeElem.content ? treeElem.content.properties.visible : true);
+		var childsArr = treeElem.content ? treeElem.content.children : treeElem.children;
+		
+		for (var i = 0; i < childsArr.length; i++)
+		{
+			var child = childsArr[i];
+			
+			if (child.type == 'group')
+			{
+				callback(child, visible);
+				
+				_IterateElems(child, callback, visible)
+			}
+			else
+				callback(child, visible);
+		}
 	}
 	
 	var _getMapLayersAsHash = function()
@@ -840,37 +936,44 @@ var LayerFiltersControl = function()
 			{
 				var mapElem = _queryExternalMaps.mapsCanvas.childNodes[m].childNodes[0];
 				if (mapElem.extLayersTree)
-					_updateTree(mapElem.extLayersTree.mapHelper.mapTree, mapElem);
+					_updateTree(mapElem.extLayersTree, mapElem.extLayersTree.mapHelper.mapTree, mapElem);
 			}
 		}
 		
-		_updateTree(_mapHelper.mapTree, _queryMapLayers.buildedTree);
+		_updateTree(_layersTree, _mapHelper.mapTree, _queryMapLayers.buildedTree);
 	}
 	
-	var _updateTree = function(mapTree, domTreeRoot)
+	var _updateTree = function(layersTree, mapTree, domTreeRoot)
 	{
 		var dateBegin = _calendar.getDateBegin();
 		var dateEnd = _calendar.getDateEnd();
 		
-		var layers = _groupTitle ? _getLayersInGroup(_map, mapTree, _groupTitle) : _getMapLayersAsHash();
+		var layers = [];
 		
-		_mapHelper.findTreeElems( mapTree, function(elem)
+		if (_layers)
+			layers = _groupLayersHelper(_map, mapTree, _layers).asHash();
+		else 
+			layers = _groupTitle ? _groupLayersHelper(_map, mapTree, [{group: _groupTitle}]).asHash() : _getMapLayersAsHash();
+		
+		_IterateElems( mapTree, function(elem, parentVisible)
 		{
 			if (elem.content.properties.name in layers)
 			{
-				//var layerDate = $.datepicker.parseDate('dd.mm.yy', layers[elem.content.properties.name].properties.date);
-				//var isDateInInterval = dateBegin <= layerDate && layerDate <= dateEnd;
 				var isShowLayer = _filterFunc( layers[elem.content.properties.name], dateBegin, dateEnd );
-				
 				elem.content.properties.visible = isShowLayer;
-				layers[elem.content.properties.name].setVisible(isShowLayer);
 				
-				//если дерево уже создано в dom, ручками устанавливаем галочку
+				if (_map.layers[elem.content.properties.name])
+					_map.layers[elem.content.properties.name].setVisible(isShowLayer && parentVisible);
+		
 				var childBoxList = $(domTreeRoot).find("div[LayerID='" + elem.content.properties.LayerID + "']");
 				if (childBoxList.length > 0)
-					childBoxList[0].firstChild.checked = isShowLayer;
+				{
+					var checkbox = childBoxList[0].firstChild;
+					checkbox.checked = isShowLayer;
+					layersTree.updateTreeVisibility(checkbox);
+				}
 			}
-		});
+		}, true);
 	}
 	
 	/**
@@ -878,7 +981,8 @@ var LayerFiltersControl = function()
 	 * @param map Основная карта
 	 * @param {cover.Calendar} calendar Календарик, который используется для задания дат
 	 * @param {Object} params Дополнительные параметры: <br/>
-	 *    groupTitle - имя группы, слои в которой нужно фильтровать. Если не задано, будут фильтроваться все слои на карте <br/>
+	 *    groupTitle - имя группы, слои в которой нужно фильтровать. Устарело, используйте layers <br/>
+	 *    layers - вектор из имён слоёв или указаний на группу, которые нужно фильтровать. Если не задано, будут фильтроваться все слои на карте.<br/>
 	 *    filterFunc - ф-ция filterFunc(layer, dateBegin, dateEnd) -> Bool. Возвращает true, если слой нужно показать, false чтобы скрыть. По умолчанию происходит фильтрация по дате слоя.
 	 */
 	this.init = function(map, calendar, params)
@@ -888,6 +992,7 @@ var LayerFiltersControl = function()
 		if ( typeof params != 'undefined' )
 		{
 			_groupTitle = params.groupTitle;
+			_layers = params.layers;
 			if (params.filterFunc) 
 				_filterFunc = params.filterFunc;
 		}
@@ -898,7 +1003,11 @@ var LayerFiltersControl = function()
 		_calendar = calendar;
 		$(_calendar).bind('change', _update);
 		_update();
+		
+		$(_queryExternalMaps).bind('map_loaded', _update);
 	}
+	
+	this.update = function() { _update() };
 }
 
 /*
@@ -1758,6 +1867,9 @@ MapCalendar.prototype.loadState = function( data )
 		
 	if ( data.cover || data.fires )
 		this.setDates();
+		
+	if (this.layerFilters)
+		this.layerFilters.update();
 }
 
 MapCalendar.prototype.init = function(parent, params)
