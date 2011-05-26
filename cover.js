@@ -4,6 +4,38 @@
 */
 (function($){
 
+_translationsHash.addtext("rus", {
+							"calendarWidget.Custom" : "Произвольный",
+							"calendarWidget.Day" : "День",
+							"calendarWidget.Week" : "Неделя",
+							"calendarWidget.Month" : "Месяц",
+							"calendarWidget.Year" : "Год",
+							"calendarWidget.EveryYear" : "Ежегодно",
+							"searchBbox.SearchInArea" : "Искать в области",
+							"searchBbox.CancelSearchInArea" : "Отменить поиск по области",
+							"firesWidget.FireSpots.Description" : "Очаги пожаров",
+							"firesWidget.Burnt.Description" : "Границы гарей",
+							"firesWidget.DialyCoverage.Description" : "Ежедневное спутниковое покрытие",
+							"firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
+							"calendarWidget.Period" : "Период"
+						 });
+						 
+_translationsHash.addtext("eng", {
+							"calendarWidget.Custom" : "Custom",
+							"calendarWidget.Day" : "Day",
+							"calendarWidget.Week" : "Week",
+							"calendarWidget.Month" : "Month",
+							"calendarWidget.Year" : "Year",
+							"calendarWidget.EveryYear" : "Every year",
+							"searchBbox.SearchInArea" : "Search in area",
+							"searchBbox.CancelSearchInArea" : "Cancel search in area",
+							"firesWidget.FireSpots.Description" : "Fire spots",
+							"firesWidget.Burnt.Description" : "Fire areas",
+							"firesWidget.DialyCoverage.Description" : "Daily satellite coverage",
+							"firesWidget.tooManyDataWarning" : "Too much data - downsize search area!",
+							"calendarWidget.Period" : "Period"
+						 });
+
 var _getLayersInGroup = function(map, mapTree, groupTitle)
 {
 	var res = {};
@@ -11,7 +43,6 @@ var _getLayersInGroup = function(map, mapTree, groupTitle)
 	{
 		if (treeElem.type === "layer" && isInGroup)
 		{
-			//res.push(_map.layers[treeElem.content.properties.name]);
 			res[treeElem.content.properties.name] = map.layers[treeElem.content.properties.name];
 		}
 		else if (treeElem.type === "group")
@@ -26,6 +57,81 @@ var _getLayersInGroup = function(map, mapTree, groupTitle)
 	visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
 	return res;
 }
+
+/** Bbox, который может быть пустым или занимать весь мир
+ @memberOf cover
+ @class
+ @param param Объект {minX, maxX, minY, maxY}, если нормальный bbox, BoundsExt.EMPTY - если пустое множество,  BoundsExt.WHOLE_WORLD - если весь мир.
+*/
+var BoundsExt = function( param )
+{
+	var _isEmpty = false;
+	var _isWholeWorld = true;
+	var _bounds = null;
+	
+	if (typeof param !== 'undefined')
+	{
+		if (param === BoundsExt.EMPTY)
+			_isEmpty = true;
+		else if (param !== BoundsExt.WHOLE_WORLD && typeof param === "object")
+		{
+			_isWholeWorld = false;
+			_bounds = param;
+		}
+	}
+	
+	this.isEmpty = function(){ return _isEmpty; };
+	this.isWholeWorld = function(){ return _isWholeWorld; };
+	this.getBounds = function(){ return _bounds; };
+	
+	this.isEqual = function( bounds ) 
+	{
+		if ( _isEmpty && bounds.isEmpty() ) return true;
+		if ( _isWholeWorld && bounds.isWholeWorld() ) return true;
+		
+		if ( _isEmpty || bounds.isEmpty() || _isWholeWorld || bounds.isWholeWorld() )
+			return false;
+			
+		var b = bounds.getBounds();
+		return _bounds.maxX == b.maxX && _bounds.maxY == b.maxY && _bounds.minX == b.minX && _bounds.minY == b.minY;
+	};
+	
+	this.clone = function()
+	{
+		var param = _bounds;
+		if ( _isEmpty ) param = BoundsExt.EMPTY;
+		if ( _isWholeWorld ) param = BoundsExt.WHOLE_WORLD;
+		return new BoundsExt( param );
+	}
+	
+	this.getIntersection = function( bounds )
+	{
+		if ( _isEmpty || bounds.isEmpty() )
+			return new BoundsExt(BoundsExt.EMPTY);
+			
+		if ( _isWholeWorld )
+			return bounds.clone();
+			
+		if ( bounds.isWholeWorld() )
+			return this.clone();
+			
+		var b = bounds.getBounds();
+		
+		if ( !boundsIntersect(_bounds, b) )
+		{
+			return new BoundsExt(BoundsExt.EMPTY);
+		}
+			
+		return new BoundsExt({
+			minX: Math.max(_bounds.minX, b.minX),
+			maxX: Math.min(_bounds.maxX, b.maxX),
+			minY: Math.max(_bounds.minY, b.minY),
+			maxY: Math.min(_bounds.maxY, b.maxY)
+		});
+	}
+}
+BoundsExt.EMPTY = "empty";
+BoundsExt.WHOLE_WORLD = "world";
 
 var DatePeriod = function()
 {
@@ -104,24 +210,6 @@ var Calendar = function()
 Calendar.prototype.init = function( params )
 {
 	var _this = this;
-	
-	_translationsHash.addtext("rus", {
-								"calendarWidget.Custom" : "Произвольный",
-								"calendarWidget.Day" : "День",
-								"calendarWidget.Week" : "Неделя",
-								"calendarWidget.Month" : "Месяц",
-								"calendarWidget.Year" : "Год",
-								"calendarWidget.EveryYear" : "Ежегодно"
-							 });
-							 
-	_translationsHash.addtext("eng", {
-								"calendarWidget.Custom" : "Custom",
-								"calendarWidget.Day" : "Day",
-								"calendarWidget.Week" : "Week",
-								"calendarWidget.Month" : "Month",
-								"calendarWidget.Year" : "Year",
-								"calendarWidget.EveryYear" : "Every year"
-							 });
 	
 	this.lazyDate = _select([_option([_t(_gtxt("calendarWidget.Custom"))],[['attr','value','']]),
 								_option([_t(_gtxt("calendarWidget.Day"))],[['attr','value','day']]),
@@ -834,26 +922,18 @@ var SearchBboxControl = function()
 	 * @name cover.SearchBboxControl.change
 	 * @event
 	 */
-	_translationsHash.addtext("rus", {
-								"searchBbox.SearchInArea" : "Искать в области",
-								"searchBbox.CancelSearchInArea" : "Отменить поиск по области"
-							 });
-
-	_translationsHash.addtext("eng", {
-								"searchBbox.SearchInArea" : "Search in area",
-								"searchBbox.CancelSearchInArea" : "Cancel search in area"
-							 });
+	 
 	var _elem = null;
 	var _button = null;
-	var _extent = null;
+	var _extent = new BoundsExt();
 	var _this = this;
 	var _bindingID = Math.random();
 	
 	var update = function( keepSilence )
 	{
-		var newExtent = _elem ? getBounds( _elem.getGeometry().coordinates ) : null;
+		var newExtent = new BoundsExt(_elem ? getBounds( _elem.getGeometry().coordinates ) : BoundsExt.WHOLE_WORLD);
 		
-		var changed = !SearchBboxControl.isBoundsEqual(_extent, newExtent);
+		var changed = !newExtent.isEqual(_extent);
 		_extent = newExtent;
 		
 		if ( changed && !keepSilence )
@@ -923,7 +1003,7 @@ var SearchBboxControl = function()
 	};
 	
 	/**
-	 * Возвращет null если bbox не задан
+	 * Возвращет bbox
 	 * @function
 	 */
 	this.getBbox = function()
@@ -973,7 +1053,7 @@ var SearchBboxControl = function()
 }
 
 /**
-* Сравнивают два extent'а. Оба параметра могут быть null (весь мир)
+* Сравнивают два extent'а. Оба параметра могут быть null (весь мир) или NaN (пустой bbox)
 * @function
 * @static
 */
@@ -981,6 +1061,10 @@ SearchBboxControl.isBoundsEqual = function(ext1, ext2)
 {
 	if (!ext1 && !ext2) return true;
 	if (!ext1 || !ext2) return false;
+	
+	if (isNaN(ext1) && isNaN(ext2)) return true;
+	if (isNaN(ext1) || isNaN(ext2)) return false;
+	
 	return ext1.maxX == ext2.maxX && ext1.maxY == ext2.maxY && ext1.minX == ext2.minX && ext1.minY == ext2.minY;
 }
 
@@ -1066,13 +1150,6 @@ var FireSpotProvider = function( params )
 	*/
 	var _params = $.extend({ host: 'http://sender.kosmosnimki.ru/' }, params );
 	
-	_translationsHash.addtext("rus", {
-							"firesWidget.FireSpots.Description" : "Очаги пожаров"
-						 });
-	_translationsHash.addtext("eng", {
-								"firesWidget.FireSpots.Description" : "Fire spots"
-							 });
-							 
 	this.getDescription = function() { return _gtxt("firesWidget.FireSpots.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
@@ -1109,14 +1186,6 @@ var FireBurntProvider = function( params )
 {
 	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/'}, params);
 	
-	_translationsHash.addtext("rus", {
-								"firesWidget.Burnt.Description" : "Границы гарей"
-							 });
-							 
-	_translationsHash.addtext("eng", {
-								"firesWidget.Burnt.Description" : "Fire areas"
-							 });
-							 
 	this.getDescription = function() { return _gtxt("firesWidget.Burnt.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
@@ -1157,14 +1226,6 @@ var ModisImagesProvider = function( params )
 	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/v2/',
 							modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/'
 						   }, params);
-	
-	_translationsHash.addtext("rus", {
-								"firesWidget.DialyCoverage.Description" : "Ежедневное спутниковое покрытие"
-							 });
-							 
-	_translationsHash.addtext("eng", {
-								"firesWidget.DialyCoverage.Description" : "Daily satellite coverage"
-							 });
 	
 	this.getDescription = function() { return _gtxt("firesWidget.DialyCoverage.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
@@ -1373,7 +1434,7 @@ var FiresControl = function()
 	this.dateFiresBegin = null;
 	this.dateFiresEnd   = null;
 	
-	this.requestBbox = null; //bbox, для которого есть данные на данный момент. null - без bbox.
+	this.requestBbox = new BoundsExt(); //bbox, для которого есть данные на данный момент.
 	
 	this.dataControllers = {};
 	
@@ -1392,6 +1453,8 @@ FiresControl.DEFAULT_OPTIONS =
 	burntHost:       'http://sender.kosmosnimki.ru/',
 	fireIconsHost:   'http://maps.kosmosnimki.ru/images/',
 	modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/',
+	
+	initExtent: null,
 
 	dateFormat: "dd.mm.yy",
 	fires:      true,
@@ -1425,8 +1488,6 @@ FiresControl.prototype.loadState = function( data )
 		}
 			
 	this.searchBboxController.loadState(data.bbox);
-
-	//this.loadForDates( this.dateFiresBegin, this.dateFiresEnd );
 }
 
 // providerParams: 
@@ -1483,25 +1544,29 @@ FiresControl.prototype.findBbox = function()
 	this.searchBboxController.findBbox();
 }
 
+/** Возвращает bbox, по которому запрашиваются данные.
+* @method 
+*/
 FiresControl.prototype.getBbox = function()
 {
-	return this.searchBboxController.getBbox();
+	return this._initExtent.getIntersection(this.searchBboxController.getBbox());
 }
 
 //предполагаем, что dateBegin, dateEnd не нулевые
 FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
-	var curExtent = this.searchBboxController.getBbox();
+	var curExtent = this.getBbox();
 	
 	var isDatesChanged = !this.dateFiresBegin || !this.dateFiresEnd || dateBegin.getTime() != this.dateFiresBegin.getTime() || dateEnd.getTime() != this.dateFiresEnd.getTime();
-	var isBBoxChanged;
+	var isBBoxChanged = !curExtent.isEqual(this.requestBbox);
 	
-	if ( !this.requestBbox && !curExtent )
+/*	if ( !this.requestBbox && !curExtent )
 		isBBoxChanged = false;
 	else if ( !this.requestBbox || !curExtent )
 		isBBoxChanged = true;
-	else 
-		isBBoxChanged = !SearchBboxControl.isBoundsEqual( this.requestBbox, curExtent );
+	else */
+	
+	//isBBoxChanged = !SearchBboxControl.isBoundsEqual( this.requestBbox, curExtent );
 	
 	this.dateFiresBegin = dateBegin;
 	this.dateFiresEnd = dateEnd;
@@ -1515,43 +1580,52 @@ FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 		var curController = this.dataControllers[k];
 		if ( curController.visible && ( (isDatesChanged && curController.params.isUseDate) || (isBBoxChanged && curController.params.isUseBbox) || !curController.data ) )
 		{
-			this.processingModel.setStatus( curController.name, false);
-			
-			(function(curController){
-				curController.provider.getData( $.datepicker.formatDate(_this._firesOptions.dateFormat, dateBegin), $.datepicker.formatDate(_this._firesOptions.dateFormat, dateEnd), curExtent, 
-					function( data )
-					{
-						curController.data = data;
-						_this.statusModel.setStatus( curController.name, true );
-						_this.processingModel.setStatus( curController.name, true);
-						curController.renderer.bindData( data );
-						curController.renderer.setVisible(curController.visible);
-					}, 
-					function( type )
-					{
-						_this.processingModel.setStatus( curController.name, true);
-						_this.statusModel.setStatus( curController.name, false);
-					}
-				)
-			})(curController);
+			//если у нас получилась пустая область запроса, просто говорим рендереру очистить все данные
+			if ( curExtent.isEmpty() )
+			{
+				curController.renderer.bindData( null );
+				curController.renderer.setVisible(curController.visible);
+			}
+			else
+			{
+				this.processingModel.setStatus( curController.name, false);
+				
+				(function(curController){
+					curController.provider.getData( $.datepicker.formatDate(_this._firesOptions.dateFormat, dateBegin), $.datepicker.formatDate(_this._firesOptions.dateFormat, dateEnd), curExtent.getBounds(), 
+						function( data )
+						{
+							curController.data = data;
+							_this.statusModel.setStatus( curController.name, true );
+							_this.processingModel.setStatus( curController.name, true);
+							curController.renderer.bindData( data );
+							curController.renderer.setVisible(curController.visible);
+						}, 
+						function( type )
+						{
+							_this.processingModel.setStatus( curController.name, true);
+							_this.statusModel.setStatus( curController.name, false);
+						}
+					)
+				})(curController);
+			}
 		}
 	}
 }
 
 FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 {
-	this._firesOptions = $.extend({}, FiresControl.DEFAULT_OPTIONS, firesOptions);
+	this._firesOptions = $.extend( {}, FiresControl.DEFAULT_OPTIONS, firesOptions );
+	this._initExtent = new BoundsExt( firesOptions.initExtent ? firesOptions.initExtent : BoundsExt.WHOLE_WORLD );
+	if ( firesOptions.initExtent && firesOptions.showInitExtent )
+	{
+		var ie = firesOptions.initExtent;
+		var objInitExtent = globalFlashMap.addObject( {type: "POLYGON", coordinates: [[[ie.minX, ie.minY], [ie.minX, ie.maxY], [ie.maxX, ie.maxY], [ie.maxX, ie.minY], [ie.minX, ie.minY]]]} );
+		objInitExtent.setStyle( { outline: { color: 0xff0000, thickness: 1, opacity: 20 }, fill: { color: 0xffffff, opacity: 10 } } );
+	}
+	
 	this._parentDiv = parent;
 	$(this._parentDiv).append(_div(null, [['dir', 'id', 'checkContainer']]));
 	this.globalOptions = globalOptions;
-	
-	_translationsHash.addtext("rus", {
-								"firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!"
-							 });
-							 
-	_translationsHash.addtext("eng", {
-								"firesWidget.tooManyDataWarning" : "Too much data - downsize search area!"
-							 });
 	
 	if ( this._firesOptions.fires ) 
 		this.addDataProvider( "firedots",
@@ -1688,14 +1762,6 @@ MapCalendar.prototype.loadState = function( data )
 
 MapCalendar.prototype.init = function(parent, params)
 {
-	_translationsHash.addtext("rus", {
-								"calendarWidget.Period" : "Период"
-							 });
-							 
-	_translationsHash.addtext("eng", {
-								"calendarWidget.Period" : "Period"
-							 });
-
 	this.params = params;
 	
 	var name = 'MapCalendar',
