@@ -16,7 +16,7 @@
 var GetFullName = function(/** string */sType, /** string */sName){
 	var sFullName = "";
 	
-	if (sType==null || sType == "государство" || /[a-zA-Z]/.test(sName))
+	if (sType==null || sType == "государство" || sType == "г." || /[a-zA-Z]/.test(sName))
 		sFullName = sName;
 	else if ((sType.indexOf("район") != -1) || (sType.indexOf("область") != -1) || (sType.indexOf("край") != -1))
 		sFullName = sName + " " + sType;
@@ -31,24 +31,26 @@ var GetFullName = function(/** string */sType, /** string */sName){
  @param oFoundObject найденный объект
  @param sObjectsSeparator разделитель между дочерним элементом и родителем в строке пути
  @param bParentAfter признак того, что родительский элемент идет после дочернего
+ @param sObjNameField название свойства, из которого брать наименование
  @see Search.GetFullName*/	
-var GetPath = function(/**object*/ oFoundObject,/** string */ sObjectsSeparator, /** bool */ bParentAfter){
+var GetPath = function(/**object*/ oFoundObject,/** string */ sObjectsSeparator, /** bool */ bParentAfter, /** string */ sObjNameField){
+	if (sObjNameField == null) sObjNameField = "ObjName";
 	if (oFoundObject == null) return "";
 	var oParentObj = oFoundObject.Parent;
 	if (oParentObj != null && (oParentObj.ObjName == "Российская Федерация" || oParentObj.TypeName == "административный округ")) {
 		oParentObj = oParentObj.Parent;
 	}
 	
-	if (oParentObj != null){
+	if (oParentObj != null && oParentObj[sObjNameField] != null && oParentObj[sObjNameField]){
 		if (bParentAfter){
-			return GetFullName(oFoundObject.TypeName, oFoundObject.ObjName) + sObjectsSeparator + GetPath(oParentObj, sObjectsSeparator);
+			return GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]) + sObjectsSeparator + GetPath(oParentObj, sObjectsSeparator);
 		}
 		else{
-			return GetPath(oParentObj, sObjectsSeparator) + sObjectsSeparator + GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
+			return GetPath(oParentObj, sObjectsSeparator) + sObjectsSeparator + GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
 		}
 	}
 	else{
-		return GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
+		return GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
 	}
 }
 
@@ -188,21 +190,7 @@ var SearchInput = function (oInitContainer, params) {
 	//Добавляем автокомплит только если задана функция источника данных для него
 	if (params.AutoCompleteSource != null)
 	{
-		$.widget("custom.catcomplete", $.ui.autocomplete, {
-			_renderMenu: function(ul, items) {
-				var self = this,
-					currentCategory = "";
-				$.each(items, function(index, item) {
-					if (item.category != currentCategory) {
-						ul.append("<li class='ui-autocomplete-category'>" + item.category + "</li>");
-						currentCategory = item.category;
-					}
-					self._renderItem(ul, item);
-				});
-			}
-		});
-
-		
+	
 		/** выбор значения из подсказки
 		@param {object} event Событие
 		@param {object} ui Элемент управления, вызвавший событие*/
@@ -217,10 +205,14 @@ var SearchInput = function (oInitContainer, params) {
 			}
 		}
 		
+		/** Слова, содержащиеся в строке поиска */
+		var arrSearchWords;
+		
 		/** Возвращает данные подсказки
 		@param {object} request запрос (request.term - строка запроса)
 		@param {object[]} Массив значений для отображения в подсказке*/
 		function fnAutoCompleteSource(request, response){
+			arrSearchWords = request.term.split(" ");
 			params.AutoCompleteSource(request, function(arrResult){
 				if (Number(new Date()) - dtLastSearch > 5000) {
 					response(arrResult);
@@ -233,12 +225,29 @@ var SearchInput = function (oInitContainer, params) {
 		}
 		
 		$(function() {
-			$(searchField).catcomplete({
+			$(searchField).autocomplete({
 				minLength: 3,
 				source: fnAutoCompleteSource,
 				select: fnAutoCompleteSelect
 			});
 		});
+		
+		$.ui.autocomplete.prototype._renderItem = function( ul, item) {
+			var t = item.label;
+			for (var i=0; i<arrSearchWords.length; i++){
+				if(arrSearchWords[i].length > 1){
+					var re = new RegExp(arrSearchWords[i], 'ig') ;
+					t = t.replace(re, function(str, p1, p2, offset, s){
+						return "<span class='ui-atocomplete-match'>" + str + "</span>";
+					});
+				}
+			}
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a>" + t + "</a>" )
+				.appendTo( ul );
+		};
+
 	}
 };
 
@@ -835,7 +844,7 @@ var SearchDataProvider = function(ServerBase, mapHelper){
 	var oMapHelper = mapHelper;
 
 	var iDefaultLimit = 100;
-	
+	var _this = this;
 	/**Осуществляет поиск по произвольным параметрам
 	@param {object} params Параметры: </br>
 		<i>callback</i> = function(arrResultDataSources) - вызывается после получения ответа от сервера </br>
@@ -865,7 +874,7 @@ var SearchDataProvider = function(ServerBase, mapHelper){
 		<i>Limit</i> - максимальное число найденных объектов
 	@returns {void}*/
 	this.SearchByString = function(params){
-		fnSearch({callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit});
+		_this.Search({callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit});
 	};
 	
 	/**Осуществляет поиск по произвольным параметрам
@@ -963,7 +972,16 @@ var SearchLogic = function(oInitSearchDataProvider){
 	var oSearchDataProvider = oInitSearchDataProvider;
 	var _this = this;
 	if(oSearchDataProvider == null) throw "Error in SearchLogic: oSearchDataProvider is not supplied";
-			
+		
+	/** Возращает полный путь к объекту для отображения в подсказке
+	@param oFoundObject Найденный объект
+	@param sObjNameField название свойства, из которого брать наименование
+	@param sObjNameField название свойства, из которого брать наименование родительского объекта
+	*/
+	var fnGetLabel = function(oFoundObject, sObjNameField, sObjNameFieldParent){
+		return GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]) + ", " + GetPath(oFoundObject.Parent, ", ", true, sObjNameFieldParent);
+	}
+	
 	/**Возращает сгуппированные данные для отображения подсказок поиска в функции callback
 	@param {string} SearchString строка, по которой надо выдать подсказку
 	@param callback = function(arrResult) {...} - вызывается когда подсказка готова
@@ -971,17 +989,31 @@ var SearchLogic = function(oInitSearchDataProvider){
 	this.AutoCompleteData = function (SearchString, callback){
 		_this.SearchByString({SearchString: SearchString, IsStrongSearch: 0, Limit:10, callback: function(arrResultDataSources){
 			var arrResult = [];
-			var arrCategories = _this.GroupByCategory(arrResultDataSources)[0].SearchResult;
-			for (var i in arrCategories){
-				if (arrCategories[i] != null){
-					for (var j=0; j<arrCategories[i].GeoObjects.length; j++){
-						var sLabel = arrCategories[i].GeoObjects[j].ObjName + " " + arrCategories[i].GeoObjects[j].TypeName;
-						if (arrCategories[i].Name == "" && arrCategories[i].GeoObjects[j].Parent != null) {
-							sLabel += "; " + GetPath(arrCategories[i].GeoObjects[j].Parent, ", ", true);
+			var sSearchRegExp = new RegExp("("+SearchString.replace(/ +/, "|")+")", "i");
+			for(var iDS=0; iDS<arrResultDataSources.length; iDS++){
+				for(var iFoundObject=0; iFoundObject<arrResultDataSources[iDS].SearchResult.length; iFoundObject++){
+					var sLabel = "Empty", sValue = "Empty";
+					var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
+					if (oFoundObject.ObjName.match(sSearchRegExp) || (oFoundObject.ObjNameEng != null && oFoundObject.ObjNameEng.match(sSearchRegExp))) {
+						sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
+						sValue = oFoundObject.ObjName;
+						if (oFoundObject.ObjNameEng != null && oFoundObject.ObjNameEng.length > 0 && !/[a-zA-Z]/.test(oFoundObject.ObjName)){
+							sLabel += "  |  " + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 						}
-						arrResult.push({label: sLabel, category: arrCategories[i].Name, GeoObject: arrCategories[i].GeoObjects[j]});
 					}
+					else if((oFoundObject.ObjAltName != null && oFoundObject.ObjAltName.match(sSearchRegExp)) || (oFoundObject.ObjAltNameEng != null && oFoundObject.ObjAltNameEng.match(sSearchRegExp))){
+						sLabel = fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
+						sValue = oFoundObject.ObjAltName || oFoundObject.ObjAltNameEng;
+						if (oFoundObject.ObjAltNameEng != null && oFoundObject.ObjAltNameEng.length > 0 && !/[a-zA-Z]/.test(oFoundObject.ObjAltName)){
+							sLabel += "  |  " + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
+						}
+					}
+					arrResult.push({
+						label:sLabel,
+						value:GetFullName(oFoundObject.TypeName, sValue),
+						GeoObject: oFoundObject})
 				}
+				if(arrResult.length>0) break;
 			}
 			callback(arrResult);
 		}});
@@ -1226,6 +1258,16 @@ var SearchControl = function (params){
 		}
 	};
 	
+	/**Возвращает стоку поиска*/
+	this.GetSearchString = function(){
+		return btnSearch.GetSearchString
+	}
+	
+	/**Устанавливает строку поиска*/
+	this.SetSearchString = function(value){
+		btnSearch.SetSearchString(value);
+	}
+	
 	/**Показывает режим загрузки
 	@returns {void}*/
 	this.ShowLoading = function(){
@@ -1348,6 +1390,16 @@ var SearchGeomixer = function(){
 			Geometry: params.Geometry
 		});
 	};
+	
+	/**Возвращает стоку поиска*/
+	this.GetSearchString = function(){
+		return oSearchControl.GetSearchString
+	}
+	
+	/**Устанавливает строку поиска*/
+	this.SetSearchString = function(value){
+		oSearchControl.SetSearchString(value);
+	}
 }
 
 var publicInterface = {
