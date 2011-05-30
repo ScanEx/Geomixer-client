@@ -512,14 +512,28 @@ class Main
 		ExternalInterface.addCallback("getIntermediateLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getIntermediateLength(); });
 		ExternalInterface.addCallback("getCurrentEdgeLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getCurrentEdgeLength(); });
 
-		ExternalInterface.addCallback("addObject", function(parentId:String, ?geometry:Dynamic, ?properties:Dynamic)
+		var addObject = function(parentId:String, ?geometry:Dynamic, ?properties:Dynamic)
 		{
 			var node:MapNode = getNode(parentId).addChild();
 			if (geometry != null)
 				node.setContent(new VectorObject(Utils.parseGeometry(geometry)));
 			node.properties = properties;
 			return node.id;
+		}
+		
+		ExternalInterface.addCallback("addObject", addObject);
+
+		ExternalInterface.addCallback("addObjects", function(_data:Array<Dynamic>)
+		{
+			var ret = new Array<String>();
+			for (i in 0...Std.int(_data.length))
+			{
+				var tId:String = addObject(_data[i].parentId, _data[i].geometry, _data[i].properties);
+				ret.push(tId);
+			}
+			return ret;
 		});
+
 		ExternalInterface.addCallback("setFilter", function(id:String, ?sql:String)
 		{
 			var func:Hash<String>->Bool = (sql == null) ? 

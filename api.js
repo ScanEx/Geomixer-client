@@ -906,7 +906,28 @@ function createFlashMapInternal(div, layers, callback)
 					this.setHandler(key, handlers[key]);
 			}
 
-			FlashMapObject.prototype.addObject = function(geometry, props) { return new FlashMapObject(flashDiv.addObject(this.objectId, merc_geometry(geometry), props), props, this); }
+			FlashMapObject.prototype.addObjects = function(data) {
+				var out = [];
+				for (var i=0; i<data.length; i++)	// Подготовка массива обьектов
+				{
+					var ph = data[i];
+					var props = ph['properties'] || null;
+					out.push({
+						"parentId": this.objectId,
+						"geometry": merc_geometry(ph['geometry']),
+						"properties": props
+					});
+				}
+				var _obj = flashDiv.addObjects(out);	// Отправить команду в SWF
+
+				out = [];
+				for (var i=0; i<_obj.length; i++)	// Отражение обьектов в JS
+				{
+					out.push(new FlashMapObject(_obj[i], data[i].properties, this));
+				}
+				return out;
+			}
+			FlashMapObject.prototype.addObject = function(geometry, props) { return new FlashMapObject(flashDiv.addObject(this.objectId, merc_geometry(geometry), props), props, this);	}
 			FlashMapObject.prototype.setFilter = function(sql) { return flashDiv.setFilter(this.objectId, sql); }
 			FlashMapObject.prototype.remove = function()
 			{

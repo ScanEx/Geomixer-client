@@ -1407,6 +1407,8 @@ var FireSpotRenderer = function( params )
 		weak.setStyle({ marker: { image: imageNames[0], center: true } });
 		medium.setStyle({ marker: { image: imageNames[1], center: true } });
 		strong.setStyle({ marker: { image: imageNames[2], center: true } });
+
+		var _obj = {'weak': {'node':weak, 'arr': [], 'balloonProps': []}, 'medium': {'node':medium, 'arr': [], 'balloonProps': []}, 'strong': {'node':strong, 'arr': [], 'balloonProps': []}};
 		for (var i = 0; i < data.length; i++)
 		{
 			var a = data[i];
@@ -1416,18 +1418,31 @@ var FireSpotRenderer = function( params )
 			var objContainer = null;
 			var addBallonProps = {"Дата": a.date };
 			
+			var key = 'medium';
 			if (typeof a.category != 'undefined')
 			{
 				var isWeak = (a.category == 0);
 				var isMedium = (a.category == 1);
 				objContainer = (isWeak ? weak : isMedium ? medium : strong);
+				key = (isWeak ? 'weak' : isMedium ? 'medium' : 'strong');
 				addBallonProps["Категория"] = (isWeak ? "Слабый" : isMedium ? "Средний" : "Сильный");
 			}
 			else
 				objContainer = medium;
 				
-			var obj = objContainer.addObject( { type: "POINT", coordinates: [a.x, a.y] } );
-			_balloonProps[obj.objectId] = $.extend({}, a.balloonProps, addBallonProps);
+			_obj[key].arr.push( {'geometry':{ type: "POINT", coordinates: [a.x, a.y] }} );
+			_obj[key].balloonProps.push( $.extend({}, a.balloonProps, addBallonProps) );
+		}
+		for (var key in _obj)
+		{
+			var ph = _obj[key];
+			if(ph.arr.length > 0) {
+				var arr = ph.node.addObjects( ph.arr );
+				for (var i = 0; i < arr.length; i++)
+				{
+					_balloonProps[arr[i].objectId] = ph.balloonProps[i];
+				}
+			}
 		}
 		
 		var ballonHoverFunction = function(o)
