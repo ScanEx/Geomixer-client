@@ -5,24 +5,31 @@ import flash.display.DisplayObject;
 import flash.display.Sprite;
 import flash.display.BitmapData;
 
+import flash.utils.Timer;
+import flash.events.TimerEvent;
+
 class RasterTile
 {
 	static var tilesCurrentlyLoading:Int = 0;
 	static var loadQueue:Array<RasterTile> = new Array<RasterTile>();
+	static var timer:Timer = null;
 
+	/*	
 	static function loadDone()
 	{
 		tilesCurrentlyLoading -= 1;
 		loadNext();
 	}
+	*/
 
-	static function loadNext()
+	static function loadNext(?e:Event)
 	{
-		while ((tilesCurrentlyLoading < 8) && (loadQueue.length > 0))
+		while (tilesCurrentlyLoading < 8 && loadQueue.length > 0)
 		{
 			tilesCurrentlyLoading += 1;
 			loadQueue.pop().load();
 		}
+		if (loadQueue.length < 1 && timer != null) timer.stop();
 	}
 
 	public var layer:RasterLayer;
@@ -55,6 +62,11 @@ class RasterTile
 
 		loadQueue.push(this);
 		loadNext();
+		if(timer == null) {
+			timer = new Timer(4);
+			timer.addEventListener("timer", loadNext);
+		}
+		if(!timer.running) timer.start();
 	}
 
 	public function load()
@@ -75,8 +87,10 @@ class RasterTile
 				onError();
 			}
 		}
-		else
-			loadDone();
+		else {
+			tilesCurrentlyLoading -= 1;
+			//loadDone();
+		}
 	}
 
 	public function remove()
@@ -94,7 +108,8 @@ class RasterTile
 
 	function onLoad(contents_:DisplayObject)
 	{
-		loadDone();
+		tilesCurrentlyLoading -= 1;
+		//loadDone();
 		if (!removed)
 		{
 			contents = contents_;
@@ -136,7 +151,8 @@ class RasterTile
 
 	function onError()
 	{
-		loadDone();
+		tilesCurrentlyLoading -= 1;
+		//loadDone();
 		remove();
 		if (!isRetrying && !isReplacement)
 			layer.loadTile(i, j, z, isReplacement, true);
