@@ -906,6 +906,9 @@ function createFlashMapInternal(div, layers, callback)
 					this.setHandler(key, handlers[key]);
 			}
 
+			//Добавление набора объектов на карту
+			//data - массив добавляемых обьектов
+			//return - массив добавленных обьектов
 			FlashMapObject.prototype.addObjects = function(data) {
 				var out = [];
 				for (var i=0; i<data.length; i++)	// Подготовка массива обьектов
