@@ -26,6 +26,7 @@ $LAB.
 	script(gmxJSHost + "colorpicker/js/utils.js").wait().
 	
 	script(gmxJSHost + "gmxcore.js").wait().
+	script(gmxJSHost + "PluginsManager.js").wait().
 	script(gmxJSHost + "translations.js").wait().
 	script(gmxJSHost + "lang_ru.js").
 	script(gmxJSHost + "lang_en.js").wait().
@@ -472,250 +473,275 @@ function loadMap(state)
 	{
 		globalFlashMap = map;
 		
-		var data = getLayers();
-		
-		window.oldTree = JSON.parse(JSON.stringify(data));
-		
-		if (!data)
+		gmxCore.loadModules(['PluginsManager'], function()
 		{
-			_tab_hash.defaultHash = 'usage';
-			_menuUp.createMenu = createDefaultMenu;
-			_menuUp.go(true);
-			
-			if ($$('left_usage'))
-				hide($$('left_usage'))
-			
-			if ( nsMapCommon.AuthorizationManager.isLogin() )
+			var pluginsManager = new (gmxCore.getModule('PluginsManager').PluginsManager)();
+			pluginsManager.addCallback( function()
 			{
-				_menuUp.addLogout();
+				// testFilter();
+				// testFireClusters(map);
+				// testFires();
+				// rzd(map);
 				
-				addUserName();
-			}
-			
-			_menuUp.checkView();
-			
-			var divStatus = _div([_span([_t(_gtxt("У вас нет прав на просмотр данной карты"))],[['css','marginLeft','10px'],['css','color','red'],['attr','savestatus',true]])], [['css','paddingTop','10px']]);
-			
-			_($$('headerLinks'), [divStatus])
-			
-			window.onresize = resizeAll;
-			resizeAll();
-			
-			login(true);
-			
-			return;
-		}
-		
-		window.defaultLayersVisibility = {};
-		if (map.layers)
-			for (var k = 0; k < map.layers.length; k++)
-				window.defaultLayersVisibility[map.layers[k].properties.name] = typeof map.layers[k].isVisible != 'undefined' ? map.layers[k].isVisible : false;
-		
-		data.properties.hostName = getAPIHost();
-		
-		_mapHelper.mapProperties = data.properties;
-		_mapHelper.mapTree = data;
-		
-		if (window.copyright)
-			map.setCopyright(window.copyright);
-		
-		if (state.position)
-		{
-			map.moveTo(state.position.x, state.position.y, state.position.z);
-		}
-		
-		if (!data.properties.UseKosmosnimkiAPI)
-		{
-			for (var i = 0; i < map.layers.length; i++)
-			{
-				var layer = map.layers[i];
-				if (layer && layer.properties.type == "Raster")
-				{
-					map.miniMap.addLayer(layer, false);
-					layer.miniLayer = map.miniMap.layers[map.miniMap.layers.length - 1];
-				}
-			}
-		}
-		
-		for (var i = map.layers.length - 1; i >= 0; i--)
-			if (map.layers[i])
-				map.layers[i].bounds = getLayerBounds(map.layers[i].geometry.coordinates[0], map.layers[i]);
-		
-		var condition = false,
-			mapStyles = false;
-		
-		if (state.condition)
-			condition = state.condition;
-		
-		if (state.mapStyles)
-			mapStyles = state.mapStyles;
-		
-		_queryMapLayers.addLayers(data, condition, mapStyles);
-		
-		_queryDrawingObjects.createCanvas();
-		_queryDrawingObjects.attachMapDrawingEvents();
-		
-		_tab_hash.defaultHash = 'layers';
-		_menuUp.createMenu = createMenu;
-		_menuUp.go();
-		
-		// конвертируем старый формат eval-строки в новый формат customParamsManager
-		// старый формат использовался только маплетом пожаров
-		if (typeof state.customParams != 'undefined' && state.customParams)
-		{
-			var newFiresFormat = mapCalendar.convertEvalState(state.customParams);
-			if (newFiresFormat)
-				state.customParamsCollection = { firesWidget : newFiresFormat };
-			else
-			{
-				//старый формат данных пожаров...
-				try
-				{
-					eval(state.customParams);
-				}
-				catch (e) 
-				{
-					alert(e);
-				}
-			}
+				pluginsManager.beforeViewer();
 				
-		}
-			
-		if ( typeof state.customParamsCollection != 'undefined')
-			_mapHelper.customParamsManager.loadParams(state.customParamsCollection);
-		
-			
-		/*if (state.customParams)
-		{
-			try
-			{
-				eval(state.customParams);
-			}
-			catch (e) 
-			{
-				alert(e);
-			}
-		}*/
-		_mapHelper.gridView = false;
-		
-		//создаём иконку переключения в полноэкранный режим.
-		_leftIconPanel.create($$('leftIconPanel'));
-		
-		_leftIconPanel.addMapName(data.properties.title);
-		
-		//добавим в тулбар две иконки, но видимой будет только одна
-		//по клику переключаем между ними
-		var _toggleFullscreenIcon = function(isFullScreen)
-		{
-			_leftIconPanel.setVisible('fullscreenon', !isFullScreen);
-			_leftIconPanel.setVisible('fullscreenoff', isFullScreen);
-			layersShown = !layersShown;
-			resizeAll();
-		}
-		
-		_leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
-						   function() { _toggleFullscreenIcon(true); });
-		
-		_leftIconPanel.add('fullscreenoff', _gtxt("Свернуть карту"), "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png", 
-						    function() { _toggleFullscreenIcon(false); }, true);
-							
-		
-		//создаём тулбар
-		_iconPanel.create($$('iconPanel'));
-		_iconPanel.add('saveMap', _gtxt("Сохранить карту"), "img/toolbar/save_map.png", "img/toolbar/save_map_a.png", function(){_queryMapLayers.saveMap()})
-		_iconPanel.add('createVectorLayer', _gtxt("Создать векторный слой"), "img/toolbar/new_shapefile.png", "img/toolbar/new_shapefile_a.png", function(){_mapHelper.createNewLayer("Vector")})
-		_iconPanel.add('createRasterLayer', _gtxt("Создать растровый слой"), "img/toolbar/new_rastr.png", "img/toolbar/new_rastr_a.png", function(){_mapHelper.createNewLayer("Raster")})
-		
-		_iconPanel.addDelimeter('userDelimeter', false, true);
-		
-		_iconPanel.add('uploadFile', _gtxt("Загрузить файл"), "img/toolbar/upload.png", "img/toolbar/upload_a.png", function(){drawingObjects.loadShp.load()})
-		_iconPanel.add('permalink', _gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
-		_iconPanel.add('bookmark', _gtxt("Добавить закладку"), "img/toolbar/bookmark.png", "img/toolbar/bookmark_a.png", function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();})
-		_iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
-		_iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
-		
-	//	_iconPanel.addDelimeter('feedbackDelimeter');
-		
-	//	_iconPanel.add('feedback', "Сообщить об ошибке", "img/toolbar/upload.png", false, function(){_mapHelper.userFeedback()})
-		
-		_iconPanel.addSearchCanvas();
-		
-		
-		if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages ) 
-			_translationsHash.showLanguages();		
-		
-		var isHeaderLinks = false;
-		if (typeof window.headerLinks != 'undefined') isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
-		if ( typeof window.gmxViewerUI != 'undefined' && typeof window.gmxViewerUI.headerLinks != 'undefined' ) isHeaderLinks = window.gmxViewerUI.headerLinks;
-		
-		if (isHeaderLinks) 
-			addHeaderLinks();
-		
-		if (state.mode)
-		{
-			if (state.mode == "map" || state.mode == "satellite" || state.mode == "hybrid")
-				map.setBaseLayer({ map: "Карта", satellite: "Снимки", hybrid: "Гибрид" }[state.mode]);
-			else
-				map.setBaseLayer(state.mode);
-		}
-		
-		if (state.drawnObjects)
-		{
-			for (var i = 0; i < state.drawnObjects.length; i++)
-			{
-				var color = state.drawnObjects[i].color || 0x0000FF,
-					thickness = state.drawnObjects[i].thickness || 3,
-					opacity = state.drawnObjects[i].opacity || 80,
-					elem = map.drawing.addObject(state.drawnObjects[i].geometry, state.drawnObjects[i].properties),
-					style = {outline: {color: color, thickness: thickness, opacity: opacity }, marker: { size: 3 }, fill: { color: 0xffffff }};
+				var data = getLayers();
 				
-				elem.setStyle(style, {outline: {color: color, thickness: thickness + 1, opacity: Math.min(100, opacity + 20)}, marker: { size: 4 }, fill: { color: 0xffffff }});
+				window.oldTree = JSON.parse(JSON.stringify(data));
 				
-				if (elem.geometry.type != "POINT")
+				if (!data)
 				{
-					var icon = _mapHelper.createDrawingStylesEditorIcon(style, elem.geometry.type.toLowerCase());
-					_mapHelper.createDrawingStylesEditor(elem, style, icon);
+					_tab_hash.defaultHash = 'usage';
 					
-					$(elem.canvas).find("div.colorIcon").replaceWith(icon);
+					_menuUp.createMenu = function()
+					{
+						createDefaultMenu();
+						pluginsManager.addMenuItems(_menuUp);
+					};
+					
+					_menuUp.go(true);
+					
+					if ($$('left_usage'))
+						hide($$('left_usage'))
+					
+					if ( nsMapCommon.AuthorizationManager.isLogin() )
+					{
+						_menuUp.addLogout();
+						
+						addUserName();
+					}
+					
+					_menuUp.checkView();
+					
+					var divStatus = _div([_span([_t(_gtxt("У вас нет прав на просмотр данной карты"))],[['css','marginLeft','10px'],['css','color','red'],['attr','savestatus',true]])], [['css','paddingTop','10px']]);
+					
+					_($$('headerLinks'), [divStatus])
+					
+					window.onresize = resizeAll;
+					resizeAll();
+					
+					login(true);
+					
+					return;
 				}
 				
-				if ( 'isBalloonVisible' in state.drawnObjects[i] ) 
-					elem.balloon.setVisible( state.drawnObjects[i].isBalloonVisible );
-			}
-		}
-		else if (state.marker)
-			map.drawing.addObject({ type: "POINT", coordinates: [state.marker.mx, state.marker.my] }, { text: state.marker.mt });
-		
-		// расширенная версия пермалинка для авторизации
-		var userObjects = data.properties.UserData;
-		
-		if (typeof state.userObjects != 'undefined')
-			userObjects = state.userObjects;
-		
-		if (userObjects)
-		{
-			_userObjects.data = JSON.parse(userObjects);
+				window.defaultLayersVisibility = {};
+				if (map.layers)
+					for (var k = 0; k < map.layers.length; k++)
+						window.defaultLayersVisibility[map.layers[k].properties.name] = typeof map.layers[k].isVisible != 'undefined' ? map.layers[k].isVisible : false;
+				
+				data.properties.hostName = getAPIHost();
+				
+				_mapHelper.mapProperties = data.properties;
+				_mapHelper.mapTree = data;
+				
+				if (window.copyright)
+					map.setCopyright(window.copyright);
+				
+				if (state.position)
+				{
+					map.moveTo(state.position.x, state.position.y, state.position.z);
+				}
+				
+				if (!data.properties.UseKosmosnimkiAPI)
+				{
+					for (var i = 0; i < map.layers.length; i++)
+					{
+						var layer = map.layers[i];
+						if (layer && layer.properties.type == "Raster")
+						{
+							map.miniMap.addLayer(layer, false);
+							layer.miniLayer = map.miniMap.layers[map.miniMap.layers.length - 1];
+						}
+					}
+				}
+				
+				for (var i = map.layers.length - 1; i >= 0; i--)
+					if (map.layers[i])
+						map.layers[i].bounds = getLayerBounds(map.layers[i].geometry.coordinates[0], map.layers[i]);
+				
+				var condition = false,
+					mapStyles = false;
+				
+				if (state.condition)
+					condition = state.condition;
+				
+				if (state.mapStyles)
+					mapStyles = state.mapStyles;
+				
+				_queryMapLayers.addLayers(data, condition, mapStyles);
+				
+				_queryDrawingObjects.createCanvas();
+				_queryDrawingObjects.attachMapDrawingEvents();
+				
+				_tab_hash.defaultHash = 'layers';
+				
+				_menuUp.createMenu = function()
+				{
+					createMenu();
+					pluginsManager.addMenuItems(_menuUp);
+				};
+				//_menuUp.createMenu = createMenu;
+				_menuUp.go();
+				
+				// конвертируем старый формат eval-строки в новый формат customParamsManager
+				// старый формат использовался только маплетом пожаров
+				if (typeof state.customParams != 'undefined' && state.customParams)
+				{
+					var newFiresFormat = mapCalendar.convertEvalState(state.customParams);
+					if (newFiresFormat)
+						state.customParamsCollection = { firesWidget : newFiresFormat };
+					else
+					{
+						//старый формат данных пожаров...
+						try
+						{
+							eval(state.customParams);
+						}
+						catch (e) 
+						{
+							alert(e);
+						}
+					}
+						
+				}
+					
+				if ( typeof state.customParamsCollection != 'undefined')
+					_mapHelper.customParamsManager.loadParams(state.customParamsCollection);
+				
+					
+				/*if (state.customParams)
+				{
+					try
+					{
+						eval(state.customParams);
+					}
+					catch (e) 
+					{
+						alert(e);
+					}
+				}*/
+				_mapHelper.gridView = false;
+				
+				//создаём иконку переключения в полноэкранный режим.
+				_leftIconPanel.create($$('leftIconPanel'));
+				
+				_leftIconPanel.addMapName(data.properties.title);
+				
+				//добавим в тулбар две иконки, но видимой будет только одна
+				//по клику переключаем между ними
+				var _toggleFullscreenIcon = function(isFullScreen)
+				{
+					_leftIconPanel.setVisible('fullscreenon', !isFullScreen);
+					_leftIconPanel.setVisible('fullscreenoff', isFullScreen);
+					layersShown = !layersShown;
+					resizeAll();
+				}
+				
+				_leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
+								   function() { _toggleFullscreenIcon(true); });
+				
+				_leftIconPanel.add('fullscreenoff', _gtxt("Свернуть карту"), "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png", 
+									function() { _toggleFullscreenIcon(false); }, true);
+									
+				
+				//создаём тулбар
+				_iconPanel.create($$('iconPanel'));
+				_iconPanel.add('saveMap', _gtxt("Сохранить карту"), "img/toolbar/save_map.png", "img/toolbar/save_map_a.png", function(){_queryMapLayers.saveMap()})
+				_iconPanel.add('createVectorLayer', _gtxt("Создать векторный слой"), "img/toolbar/new_shapefile.png", "img/toolbar/new_shapefile_a.png", function(){_mapHelper.createNewLayer("Vector")})
+				_iconPanel.add('createRasterLayer', _gtxt("Создать растровый слой"), "img/toolbar/new_rastr.png", "img/toolbar/new_rastr_a.png", function(){_mapHelper.createNewLayer("Raster")})
+				
+				_iconPanel.addDelimeter('userDelimeter', false, true);
+				
+				_iconPanel.add('uploadFile', _gtxt("Загрузить файл"), "img/toolbar/upload.png", "img/toolbar/upload_a.png", function(){drawingObjects.loadShp.load()})
+				_iconPanel.add('permalink', _gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
+				_iconPanel.add('bookmark', _gtxt("Добавить закладку"), "img/toolbar/bookmark.png", "img/toolbar/bookmark_a.png", function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();})
+				_iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
+				_iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
+				
+			//	_iconPanel.addDelimeter('feedbackDelimeter');
+				
+			//	_iconPanel.add('feedback', "Сообщить об ошибке", "img/toolbar/upload.png", false, function(){_mapHelper.userFeedback()})
+				
+				_iconPanel.addSearchCanvas();
+				
+				
+				if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages ) 
+					_translationsHash.showLanguages();		
+				
+				var isHeaderLinks = false;
+				if (typeof window.headerLinks != 'undefined') isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
+				if ( typeof window.gmxViewerUI != 'undefined' && typeof window.gmxViewerUI.headerLinks != 'undefined' ) isHeaderLinks = window.gmxViewerUI.headerLinks;
+				
+				if (isHeaderLinks) 
+					addHeaderLinks();
+				
+				if (state.mode)
+				{
+					if (state.mode == "map" || state.mode == "satellite" || state.mode == "hybrid")
+						map.setBaseLayer({ map: "Карта", satellite: "Снимки", hybrid: "Гибрид" }[state.mode]);
+					else
+						map.setBaseLayer(state.mode);
+				}
+				
+				if (state.drawnObjects)
+				{
+					for (var i = 0; i < state.drawnObjects.length; i++)
+					{
+						var color = state.drawnObjects[i].color || 0x0000FF,
+							thickness = state.drawnObjects[i].thickness || 3,
+							opacity = state.drawnObjects[i].opacity || 80,
+							elem = map.drawing.addObject(state.drawnObjects[i].geometry, state.drawnObjects[i].properties),
+							style = {outline: {color: color, thickness: thickness, opacity: opacity }, marker: { size: 3 }, fill: { color: 0xffffff }};
+						
+						elem.setStyle(style, {outline: {color: color, thickness: thickness + 1, opacity: Math.min(100, opacity + 20)}, marker: { size: 4 }, fill: { color: 0xffffff }});
+						
+						if (elem.geometry.type != "POINT")
+						{
+							var icon = _mapHelper.createDrawingStylesEditorIcon(style, elem.geometry.type.toLowerCase());
+							_mapHelper.createDrawingStylesEditor(elem, style, icon);
+							
+							$(elem.canvas).find("div.colorIcon").replaceWith(icon);
+						}
+						
+						if ( 'isBalloonVisible' in state.drawnObjects[i] ) 
+							elem.balloon.setVisible( state.drawnObjects[i].isBalloonVisible );
+					}
+				}
+				else if (state.marker)
+					map.drawing.addObject({ type: "POINT", coordinates: [state.marker.mx, state.marker.my] }, { text: state.marker.mt });
+				
+				// расширенная версия пермалинка для авторизации
+				var userObjects = data.properties.UserData;
+				
+				if (typeof state.userObjects != 'undefined')
+					userObjects = state.userObjects;
+				
+				if (userObjects)
+				{
+					_userObjects.data = JSON.parse(userObjects);
+					
+					_userObjects.load();
+				}
+				
+				_menuUp.checkView();
+				removeUserActions();
+				
+				if (nsMapCommon.AuthorizationManager.isLogin())
+				{
+					_menuUp.addLogout();
+					
+					addUserName();
+					
+					addUserActions();
+				}
+				fnInitControls();
+				
+				pluginsManager.afterViewer();
 			
-			_userObjects.load();
-		}
+			}); //pluginsManager
 		
-		_menuUp.checkView();
-		removeUserActions();
-		
-		if (nsMapCommon.AuthorizationManager.isLogin())
-		{
-			_menuUp.addLogout();
-			
-			addUserName();
-			
-			addUserActions();
-		}
-		fnInitControls();
-		
-		if (typeof window.gmxPlugins !== 'undefined' && window.gmxPlugins.useWikiPlugin)
-		{
-			$LAB.script(gmxJSHost + 'wiki/WikiPlugin.js').wait(function(){new WikiPlugin(map); });
-		}
+		}); //loadModule
 	}
 
 	var success = createFlashMap($$("flash"), globalMapName, mapCallback);
@@ -757,6 +783,251 @@ function promptFunction(title, value)
 }
 
 window.prompt = promptFunction;
+
+var testFireClusters = function(map)
+{
+	gmxCore.loadModule('fireClusters', 'fireClusters.js');
+	gmxCore.addModulesCallback(['fireClusters'], function()
+	{
+		//gmxCore.getModule('WeatherMaplet').weather({initWeather: false, initWind: false}, map);
+		
+		var interval = setInterval(function()
+		{
+			if (_queryMapLayers.buildedTree)
+			{
+				clearInterval(interval);
+				
+				var table = $(_queryMapLayers.workCanvas).children("table")[0],
+					div = _div();
+				
+				$(table).after(div);
+				
+				mapCalendar.init(div, {
+					dateFormat: "dd.mm.yy",
+					dateMin: new Date(2010, 06, 29),
+					dateMax: new Date(),
+					showYear: false,
+					periods: ['','day','week','month'],
+					periodDefault: 'day'
+				});
+				
+				var m = gmxCore.getModule('fireClusters');
+				
+				mapCalendar.getFireControl().addDataProvider(
+				    'fireClusters', 
+					new m.FireClusterProvider({host: ''}),
+					new FireBurntRenderer()
+				);
+				gmxCore.getModule('WeatherMaplet').
+
+				_mapHelper.customParamsManager.addProvider({
+					name: 'firesWidget',
+					loadState: function(state) { mapCalendar.loadState(state); },
+					saveState: function() { return mapCalendar.saveState(); }
+				});
+			}
+		}, 200);
+	
+	});
+}
+
+var testFires = function()
+{
+	var interval = setInterval(function()
+	{
+		if (_queryMapLayers.buildedTree)
+		{
+			clearInterval(interval);
+			
+			var table = $(_queryMapLayers.workCanvas).children("table")[0],
+				div = _div();
+			
+			$(table).after(div);
+			
+			mapCalendar.init(div, {
+				dateFormat: "dd.mm.yy",
+				dateMin: new Date(2010, 06, 29),
+				dateMax: new Date(),
+				showYear: false,
+				periods: ['','day','week','month'],
+				periodDefault: 'day',
+				fires: {
+					//initExtent: {minY: 56, maxY: 64, minX: 123, maxX: 139},
+					//showInitExtent: true
+				}
+			})
+		}
+	}, 200)	
+}
+
+var testFilter = function()
+{
+	var interval = setInterval(function()
+	{
+		if (_queryMapLayers.buildedTree)
+		{
+			clearInterval(interval);
+			
+			var table = $(_queryMapLayers.workCanvas).children("table")[0],
+				div = _div();
+			
+			$(table).after(div);
+			
+			mapCalendar.init(div, {
+				dateFormat: "dd.mm.yy",
+				dateMin: new Date(2010, 06, 29),
+				dateMax: new Date(),
+				showYear: false,
+				periods: ['','day','week','month'],
+				periodDefault: 'day',
+				
+				layerFilters: {
+					//groupTitle: 'Spot4_Landsat5', 
+					layers: [{group: 'Spot4'}, {group: 'Landsat5'}],
+					filterFunc: function(layer, dateBegin, dateEnd) //проверяем, пересекается ли квартал с заданным периодом
+					{
+						var layerDate = $.datepicker.parseDate('dd.mm.yy', layer.properties.date);
+						
+						if (layerDate > dateEnd) return false;
+						
+						var dateMonth = layerDate.getMonth();
+						var dateYear = layerDate.getFullYear();
+						
+						layerDate.setMonth( (dateMonth + 3)%12 );
+						layerDate.setFullYear( dateYear + (dateMonth >= 9 ? 1 : 0) );
+						
+						return dateBegin < layerDate;
+					}
+				}, 
+				cover: {
+					dateFormat: "yy-mm-dd",
+					dateAttribute: "DATE",
+					cloudsAttribute: "CLOUDS",
+					icons: ['img/weather/16/0.png','img/weather/16/1.png','img/weather/16/9.png','img/weather/16/2.png','img/weather/16/3.png'],
+					layers: [{group: "Operative"}]
+				}
+			})
+			
+			_mapHelper.customParamsManager.addProvider({
+					name: 'firesWidget',
+					loadState: function(state) { mapCalendar.loadState(state); },
+					saveState: function() { return mapCalendar.saveState(); }
+				});
+		}
+	}, 200)
+}
+
+function rzd(map)
+{
+	map.setBaseLayer("Снимки");
+	_translationsHash.addtext("rus", {
+								"rzdMaplet.closeAll" : "Закрыть все графики"
+							 });
+							 
+	_translationsHash.addtext("eng", {
+								"rzdMaplet.closeAll" : "Close all charts"
+							 });
+	
+	var PIXEL_RADIUS = 3;
+	//var POINTS_LAYER_ID = '00286F0BC7C14AC3BAC052AA757DEA64';
+	var GROUP_TITLE = 'main';
+	var MIN_ZOOM = 9;
+	
+	var processImg = _img(null, [['attr','src', 'img/progress.gif'],['css','marginLeft','10px'], ['css','paddingTop','10px'], ['css', 'display', 'none']]);
+	$('#headerLinks').append(processImg);
+	
+	var openBalloons = [];
+	
+	var interval = setInterval(function()
+	{
+		if (_queryMapLayers.buildedTree)
+		{
+			clearInterval(interval);
+			
+			var table = $(_queryMapLayers.workCanvas).children("div")[0];
+			var button = makeButton(_gtxt("rzdMaplet.closeAll"));
+			button.style.marginLeft = '10px';
+			button.onclick = function()
+			{
+				for (var b = 0; b < openBalloons.length; b++)
+				{
+					openBalloons[b].remove();
+				}
+				
+				openBalloons = [];
+			}
+			
+			$(table).after(button);
+		}
+	}, 200);
+	
+	var getActiveGroupTitle = function(parentGroupTitle)
+	{
+		var activeGroupTitle = null;
+		
+		function _iterateGroups(treeElem, callback, isVisible)
+		{
+			if (treeElem.type === "group")
+			{
+				callback(treeElem, isVisible);
+				var a = treeElem.content.children;
+				for (var k = a.length - 1; k >= 0; k--)
+					_iterateGroups( a[k], callback, isVisible && a[k].content.properties.visible );
+			}
+		}
+		
+		_iterateGroups({type: "group", content: { children: _mapHelper.mapTree.children, properties: {visible: true} } }, function(treeElem, isVisible)
+		{
+			if (treeElem.content.properties.title === parentGroupTitle && isVisible)
+			{
+				var a = treeElem.content.children;
+				for (var k = a.length - 1; k >= 0; k--)
+					if (a[k].content.properties.visible)
+						activeGroupTitle = a[k].content.properties.title;
+			}
+		}, true);
+		
+		return activeGroupTitle;
+	}
+	
+	map.setHandler('onClick', function(obj)
+	{
+		var activeGroupTitle = getActiveGroupTitle(GROUP_TITLE);
+		if (!activeGroupTitle) return;
+		
+		//var layer = map.layers[POINTS_LAYER_ID];
+		if (map.getZ() < MIN_ZOOM ) return;
+		var x = map.getMouseX();
+		var y = map.getMouseY();
+		var merc_r = getScale(map.getZ())*PIXEL_RADIUS;
+		var r = x - from_merc_x(merc_x(x) - merc_r);
+		var url = "http://sender.kosmosnimki.ru/RZD.ashx?type=3&Lat=" + x + "&Lon=" + y + "&R=" + r + "&date=" + activeGroupTitle;
+		
+		//var debugCircle = map.addObject();
+		//debugCircle.setCircle(x, y, r);
+		//debugCircle.setStyle({ outline: {color: 0x0000ff, thickness: 1, opacity: 100 }});
+		
+		processImg.style.display = 'block';
+		sendCrossDomainJSONRequest(url, function( objParams )
+		{
+			processImg.style.display = 'none';
+			if (!objParams || !objParams.length) return;
+			var balloon = globalFlashMap.addBalloon();
+			balloon.setPoint(x, y);
+			
+			var props = {};
+			for (var p = 0; p < objParams.length; p++ )
+				props[objParams[p][0]] = parseFloat(objParams[p][1]);		
+			
+			balloon.div.innerHTML = _diagram.createDateTimeDiagramByAttrsText(500,300,props,'D%y%y%y%y%m%m%d%d');
+
+			balloon.resize();
+			
+			openBalloons.push(balloon);
+		})
+	})
+}
+
 
 }); //$LAB
 

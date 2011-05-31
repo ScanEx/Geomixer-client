@@ -10,7 +10,7 @@ var Menu = function()
 
 Menu.prototype.addItem = function(elem)
 {
-	if (!this.submenus[elem.id]) 
+	if (!this.submenus[elem.id])
 	{
 		this.submenus[elem.id] = new Object();
 		this.submenus[elem.id].title = elem.title;
@@ -30,6 +30,41 @@ Menu.prototype.addItem = function(elem)
 		this.submenus[elem.id].onsel = elem.onsel;
 	if (elem.onunsel)
 		this.submenus[elem.id].onunsel = elem.onunsel;
+}
+
+Menu.prototype.addChildItem = function(newElem, parentID)
+{
+	//предполагает, что если callback возвращает true, то итерирование можно прекратить
+	var _iterateMenus = function( elem, callback )
+	{
+		if (typeof elem.childs === 'undefined')
+			return;
+			
+		for (var i = 0; i < elem.childs.length; i++)
+		{
+			if (callback(elem.childs[i], elem.childs[i].id) )
+				return true;
+				
+			if (_iterateMenus(elem.childs[i], callback) )
+				return true;
+		}
+	}
+	
+	var _callback = function(elem, id)
+	{
+		if (id === parentID)
+		{
+			if (!elem.childs) elem.childs = [];
+			elem.childs.push(newElem);
+			return true;
+		}
+	}
+	
+	for (var m in this.submenus)
+	{
+		_callback(this.submenus[m], m);
+		_iterateMenus(this.submenus[m], _callback);
+	}
 }
 
 var UpMenu = function()
@@ -112,11 +147,8 @@ UpMenu.prototype.draw = function()
 			
 			_(ul2, lis2);
 			
-			var divLeft = _div(null,[['dir','className','buttonLeft']]),
-				divRight = _div(null,[['dir','className','buttonRight']]),
-				div = _div([_t(this.submenus[menuId].title)],[['dir','className','header1']]);
+			var div = _div([_t(this.submenus[menuId].title)],[['dir','className','header1']]);
 			
-		//	li = _li([_table([_tbody([_tr([_td([divLeft]),_td([div]),_td([divRight])])])]), ul2],[['dir','className','header1']]);
 			li = _li([div, ul2],[['dir','className','header1']]);
 			
 			// Запоминаем id для открывания/закрывания меню
@@ -124,9 +156,7 @@ UpMenu.prototype.draw = function()
 		}
 		else
 		{
-			var divLeft = _div(null,[['dir','className','buttonLeft']]),
-				divRight = _div(null,[['dir','className','buttonRight']]),
-				div = _div([_t(this.submenus[menuId].title)],[['dir','className','header1']]);
+			var div = _div([_t(this.submenus[menuId].title)],[['dir','className','header1']]);
 			
 			div.style.cursor = 'pointer';
 			
@@ -138,7 +168,6 @@ UpMenu.prototype.draw = function()
 			else	
 				this.refs[menuId] = {onsel:this.submenus[menuId].onsel, onunsel:this.submenus[menuId].onunsel};
 			
-		//	li = _li([_table([_tbody([_tr([_td([divLeft]),_td([div]),_td([divRight])])])])],[['dir','className','header1']]);
 			li = _li([div],[['dir','className','header1']]);
 		}
 		

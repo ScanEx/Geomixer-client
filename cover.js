@@ -4,6 +4,171 @@
 */
 (function($){
 
+_translationsHash.addtext("rus", {
+							"calendarWidget.Custom" : "Произвольный",
+							"calendarWidget.Day" : "День",
+							"calendarWidget.Week" : "Неделя",
+							"calendarWidget.Month" : "Месяц",
+							"calendarWidget.Year" : "Год",
+							"calendarWidget.EveryYear" : "Ежегодно",
+							"searchBbox.SearchInArea" : "Искать в области",
+							"searchBbox.CancelSearchInArea" : "Отменить поиск по области",
+							"firesWidget.FireSpots.Description" : "Очаги пожаров",
+							"firesWidget.Burnt.Description" : "Границы гарей",
+							"firesWidget.DialyCoverage.Description" : "Ежедневное спутниковое покрытие",
+							"firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
+							"calendarWidget.Period" : "Период"
+						 });
+						 
+_translationsHash.addtext("eng", {
+							"calendarWidget.Custom" : "Custom",
+							"calendarWidget.Day" : "Day",
+							"calendarWidget.Week" : "Week",
+							"calendarWidget.Month" : "Month",
+							"calendarWidget.Year" : "Year",
+							"calendarWidget.EveryYear" : "Every year",
+							"searchBbox.SearchInArea" : "Search in area",
+							"searchBbox.CancelSearchInArea" : "Cancel search in area",
+							"firesWidget.FireSpots.Description" : "Fire spots",
+							"firesWidget.Burnt.Description" : "Fire areas",
+							"firesWidget.DialyCoverage.Description" : "Daily satellite coverage",
+							"firesWidget.tooManyDataWarning" : "Too much data - downsize search area!",
+							"calendarWidget.Period" : "Period"
+						 });
+
+var _groupLayersHelper = function(map, mapTree, description)
+{
+	var _array = [];
+	var _hash = {};
+	
+	var _getLayersInGroup = function(map, mapTree, groupTitle)
+	{
+		var res = {};
+		var visitor = function(treeElem, isInGroup)
+		{
+			if (treeElem.type === "layer" && isInGroup)
+			{
+				res[treeElem.content.properties.name] = map.layers[treeElem.content.properties.name];
+			}
+			else if (treeElem.type === "group")
+			{
+				isInGroup = isInGroup || treeElem.content.properties.title == groupTitle;
+				var a = treeElem.content.children;
+				for (var k = a.length - 1; k >= 0; k--)
+					visitor(a[k], isInGroup);
+			}
+		}
+
+		visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
+		return res;
+	}	
+	
+	for (var k = 0; k < description.length; k++)
+		if ( typeof description[k] === "string" )
+		{
+			_hash[description[k]] = map.layers[description[k]];
+			_array.push( map.layers[description[k]] );
+		}
+		else if ('group' in description[k])
+		{
+			var groupHash = _getLayersInGroup(map, mapTree, description[k].group);
+			for (var l in groupHash)
+			{
+				_hash[l] = groupHash[l];
+				_array.push( groupHash[l] );
+			}
+		}
+		
+	return {
+		asArray: function() { return _array; },
+		asHash: function() { return _hash; },
+		names: function()
+		{
+			var res = [];
+			
+			for (var l in _hash) 
+				res.push(l);
+				
+			return res;
+		}
+	}
+}
+
+/** Bbox, который может быть пустым или занимать весь мир
+ @memberOf cover
+ @class
+ @param param Объект {minX, maxX, minY, maxY}, если нормальный bbox, BoundsExt.EMPTY - если пустое множество,  BoundsExt.WHOLE_WORLD - если весь мир.
+*/
+var BoundsExt = function( param )
+{
+	var _isEmpty = false;
+	var _isWholeWorld = true;
+	var _bounds = null;
+	
+	if (typeof param !== 'undefined')
+	{
+		if (param === BoundsExt.EMPTY)
+			_isEmpty = true;
+		else if (param !== BoundsExt.WHOLE_WORLD && typeof param === "object")
+		{
+			_isWholeWorld = false;
+			_bounds = param;
+		}
+	}
+	
+	this.isEmpty = function(){ return _isEmpty; };
+	this.isWholeWorld = function(){ return _isWholeWorld; };
+	this.getBounds = function(){ return _bounds; };
+	
+	this.isEqual = function( bounds ) 
+	{
+		if ( _isEmpty && bounds.isEmpty() ) return true;
+		if ( _isWholeWorld && bounds.isWholeWorld() ) return true;
+		
+		if ( _isEmpty || bounds.isEmpty() || _isWholeWorld || bounds.isWholeWorld() )
+			return false;
+			
+		var b = bounds.getBounds();
+		return _bounds.maxX == b.maxX && _bounds.maxY == b.maxY && _bounds.minX == b.minX && _bounds.minY == b.minY;
+	};
+	
+	this.clone = function()
+	{
+		var param = _bounds;
+		if ( _isEmpty ) param = BoundsExt.EMPTY;
+		if ( _isWholeWorld ) param = BoundsExt.WHOLE_WORLD;
+		return new BoundsExt( param );
+	}
+	
+	this.getIntersection = function( bounds )
+	{
+		if ( _isEmpty || bounds.isEmpty() )
+			return new BoundsExt(BoundsExt.EMPTY);
+			
+		if ( _isWholeWorld )
+			return bounds.clone();
+			
+		if ( bounds.isWholeWorld() )
+			return this.clone();
+			
+		var b = bounds.getBounds();
+		
+		if ( !boundsIntersect(_bounds, b) )
+		{
+			return new BoundsExt(BoundsExt.EMPTY);
+		}
+			
+		return new BoundsExt({
+			minX: Math.max(_bounds.minX, b.minX),
+			maxX: Math.min(_bounds.maxX, b.maxX),
+			minY: Math.max(_bounds.minY, b.minY),
+			maxY: Math.min(_bounds.maxY, b.maxY)
+		});
+	}
+}
+BoundsExt.EMPTY = "empty";
+BoundsExt.WHOLE_WORLD = "world";
+
 var DatePeriod = function()
 {
 	this.getDateBegin = function(){};
@@ -81,24 +246,6 @@ var Calendar = function()
 Calendar.prototype.init = function( params )
 {
 	var _this = this;
-	
-	_translationsHash.addtext("rus", {
-								"calendarWidget.Custom" : "Произвольный",
-								"calendarWidget.Day" : "День",
-								"calendarWidget.Week" : "Неделя",
-								"calendarWidget.Month" : "Месяц",
-								"calendarWidget.Year" : "Год",
-								"calendarWidget.EveryYear" : "Ежегодно"
-							 });
-							 
-	_translationsHash.addtext("eng", {
-								"calendarWidget.Custom" : "Custom",
-								"calendarWidget.Day" : "Day",
-								"calendarWidget.Week" : "Week",
-								"calendarWidget.Month" : "Month",
-								"calendarWidget.Year" : "Year",
-								"calendarWidget.EveryYear" : "Every year"
-							 });
 	
 	this.lazyDate = _select([_option([_t(_gtxt("calendarWidget.Custom"))],[['attr','value','']]),
 								_option([_t(_gtxt("calendarWidget.Day"))],[['attr','value','day']]),
@@ -398,6 +545,9 @@ var CoverControl = function()
 {
 	this.cloudsIndexes = [];
 	this.currCloudsIndex = 2;
+	this.commonStyles = null;
+	this.cloudsCount = 0;
+	this.coverLayers = [];
 }
 
 /**
@@ -430,28 +580,15 @@ CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	this.setFilters();
 }
 
-/**
-* @function
-* @param {Array} coverLayers Массив имён слоёв для фильтрации
-* @param {String} dateAttribute Имя аттрибута слоёв с датой
-* @param {String} cloudsAttribute Имя аттрибута слоёв с облачностью
-* @param {Array} icons Массив с именами иконок для облачности
-* @param {Integer} initCloudIndex Начальная облачность
-*/
-CoverControl.prototype.init = function(coverLayers, dateAttribute, cloudsAttribute, icons, initCloudIndex)
+CoverControl.prototype._updateStyles = function()
 {
-	this.coverLayers = coverLayers;
-	this.dateAttribute = dateAttribute;
-	this.cloudsAttribute = cloudsAttribute;
-	
-	var cloudsCount,
-		_this = this;
+	if ( this.commonStyles || this.coverLayers.length == 0 ) return;
 	
 	var commonStyles = globalFlashMap.layers[this.coverLayers[0]].properties.styles,
 		cloudsCount = 0;
 	
-	for (var i = 0; i < icons.length; i++)
-		this.cloudsIndexes.push({icon:icons[i]});
+	for (var i = 0; i < this._icons.length; i++)
+		this.cloudsIndexes.push({icon:this._icons[i]});
 	
 	for (var i = 0; i < commonStyles.length; ++i)
 	{
@@ -461,12 +598,116 @@ CoverControl.prototype.init = function(coverLayers, dateAttribute, cloudsAttribu
 		cloudsCount++;
 	}
 	
-	if ( typeof initCloudIndex != 'undefined' )
+	if ( typeof initCloudIndex !== 'undefined' )
 		this.currCloudsIndex = initCloudIndex;
 		
 	this.cloudsCount = Math.round(cloudsCount / 2);
+	this.commonStyles = commonStyles;	
+}
+
+CoverControl.prototype._updateLayers = function()
+{
+	//проверим основную карту
+	this.coverLayers = _groupLayersHelper( globalFlashMap, _mapHelper.mapTree, this._coverLayersDescription ).names();
+
+	//и все дополнительные тоже будем фильтровать
+	if (typeof _queryExternalMaps.mapsCanvas != 'undefined')
+	{
+		for (var m = 0; m < _queryExternalMaps.mapsCanvas.childNodes.length; m++)
+		{
+			var mapElem = _queryExternalMaps.mapsCanvas.childNodes[m].childNodes[0];
+			if (mapElem.extLayersTree)
+				this.coverLayers = this.coverLayers.concat( _groupLayersHelper( globalFlashMap, mapElem.extLayersTree.mapHelper.mapTree, this._coverLayersDescription ).names() );
+		}
+	}
+}
+
+CoverControl.prototype._addWidget = function()
+{
+	if (this.cloudsIndexes.length == 0 || !this._parent ) return;
+	
+	var	cloudsSlider = _mapHelper.createSlider(this.currCloudsIndex, function(){}),
+		_this = this;
+	
+	$(cloudsSlider).slider("option", "step", 1);
+	$(cloudsSlider).slider("option", "min", 0);
+	$(cloudsSlider).slider("option", "max", this.cloudsIndexes.length - 1);
+	$(cloudsSlider).slider("option", "value", this.currCloudsIndex);
+	$(cloudsSlider).bind("slidestop", function(event, ui)
+	{
+		_this.currCloudsIndex = ui.value;
 		
-	this.commonStyles = commonStyles;
+		_this.setFilters();
+		
+		_title(cloudsSlider.firstChild, _this.cloudsIndexes[_this.currCloudsIndex].name);
+	});
+	
+	cloudsSlider.style.margin = '10px 3px';
+	
+	// добавляем раскраску
+	cloudsSlider.style.backgroundImage = '';
+	var colorTds = [];
+	for (var i = 1; i < this.cloudsCount; i++)
+	{
+		colorTds.push(_td(null,[['css','width', Math.round(100 / (this.cloudsCount - 1)) + 'px'], ['css','height',$.browser.msie ? '6px' : '7px'], ['css','backgroundColor',_mapHelper.convertColor(this.commonStyles[i].RenderStyle.fill.color)]]))
+	}
+	
+	_(cloudsSlider, [_table([_tbody([_tr(colorTds)])],[['css','position','absolute'],['css','left','0px'],['css','top','0px'],['css','border','1px solid #999999']])])
+	
+	_title(cloudsSlider, _gtxt("Облачность"));
+	_title(cloudsSlider.firstChild, this.cloudsIndexes[this.currCloudsIndex].name);
+	
+	var cloudsLabelDiv = _div(null,[['css','height','16px'],['css','position','relative']]);
+	
+	for (var i = 0; i < this.cloudsIndexes.length; ++i)
+	{
+		var img = _img(null,[['attr','src',this.cloudsIndexes[i].icon],['css','position','absolute']]);
+		
+		img.style.left = (25 * i - 5) + 'px';
+		
+		_title(img, this.cloudsIndexes[i].name)
+		
+		_(cloudsLabelDiv, [img])
+	}
+	
+	var trs = [];
+	
+	trs.push(_tr([_td(),_td([_span([_t(_gtxt("Облачность"))],[['css','fontSize','12px'],['css','margin','0px 10px 0px 7px']])]), _td([cloudsLabelDiv,cloudsSlider],[['attr','colSpan',2]])]));
+	trs.push(_tr([_td(null, [['attr','colSpan',2],['css','height','5px']])]));
+	
+	_(this._parent, [_table([_tbody(trs)],[['css','marginLeft','20px']])]);
+	this._parent = null;
+}
+
+/**
+* @function
+* @param {Array} coverLayersDescription Массив имён слоёв для фильтрации
+* @param {String} dateAttribute Имя аттрибута слоёв с датой
+* @param {String} cloudsAttribute Имя аттрибута слоёв с облачностью
+* @param {Array} icons Массив с именами иконок для облачности
+* @param {Integer} initCloudIndex Начальная облачность
+*/
+CoverControl.prototype.init = function(coverLayersDescription, dateAttribute, cloudsAttribute, icons, initCloudIndex)
+{
+	this._coverLayersDescription = coverLayersDescription;
+	this._icons = icons;
+	
+	this.dateAttribute = dateAttribute;
+	this.cloudsAttribute = cloudsAttribute;
+	
+	this._updateLayers();
+	
+	this._updateStyles();
+	
+	var _this = this;
+	
+	$(_queryExternalMaps).bind('map_loaded', function()
+	{
+		_this._updateLayers();
+		_this._updateStyles();
+		_this._addWidget();
+		_this.setFilters();
+	});
 	
 	setInterval(function(){
 		_this.fixLayers.apply(_this);
@@ -547,62 +788,17 @@ CoverControl.prototype.setFilters = function()
 }
 
 /**
-* Добавляет в DOM элементы контролов фильтрации по облачности
+* Добавляет в DOM контрол фильтрации по облачности
 * @function
 * @param {DOMElement} parent Контейнер для добавляения контрола
 */
 CoverControl.prototype.add = function(parent)
 {
-	var	cloudsSlider = _mapHelper.createSlider(this.currCloudsIndex, function(){}),
-		_this = this;
+	this._parent = parent;
+	this._updateLayers();
+	this._updateStyles();
+	this._addWidget();
 	
-	$(cloudsSlider).slider("option", "step", 1);
-	$(cloudsSlider).slider("option", "min", 0);
-	$(cloudsSlider).slider("option", "max", this.cloudsIndexes.length - 1);
-	$(cloudsSlider).slider("option", "value", this.currCloudsIndex);
-	$(cloudsSlider).bind("slidestop", function(event, ui)
-	{
-		_this.currCloudsIndex = ui.value;
-		
-		_this.setFilters();
-		
-		_title(cloudsSlider.firstChild, _this.cloudsIndexes[_this.currCloudsIndex].name);
-	});
-	
-	cloudsSlider.style.margin = '10px 3px';
-	
-	// добавляем раскраску
-	cloudsSlider.style.backgroundImage = '';
-	var colorTds = [];
-	for (var i = 1; i < this.cloudsCount; i++)
-	{
-		colorTds.push(_td(null,[['css','width', Math.round(100 / (this.cloudsCount - 1)) + 'px'], ['css','height',$.browser.msie ? '6px' : '7px'], ['css','backgroundColor',_mapHelper.convertColor(this.commonStyles[i].RenderStyle.fill.color)]]))
-	}
-	
-	_(cloudsSlider, [_table([_tbody([_tr(colorTds)])],[['css','position','absolute'],['css','left','0px'],['css','top','0px'],['css','border','1px solid #999999']])])
-	
-	_title(cloudsSlider, _gtxt("Облачность"));
-	_title(cloudsSlider.firstChild, this.cloudsIndexes[this.currCloudsIndex].name);
-	
-	var cloudsLabelDiv = _div(null,[['css','height','16px'],['css','position','relative']]);
-	
-	for (var i = 0; i < this.cloudsIndexes.length; ++i)
-	{
-		var img = _img(null,[['attr','src',this.cloudsIndexes[i].icon],['css','position','absolute']]);
-		
-		img.style.left = (25 * i - 5) + 'px';
-		
-		_title(img, this.cloudsIndexes[i].name)
-		
-		_(cloudsLabelDiv, [img])
-	}
-	
-	var trs = [];
-	
-	trs.push(_tr([_td(),_td([_span([_t(_gtxt("Облачность"))],[['css','fontSize','12px'],['css','margin','0px 10px 0px 7px']])]), _td([cloudsLabelDiv,cloudsSlider],[['attr','colSpan',2]])]));
-	trs.push(_tr([_td(null, [['attr','colSpan',2],['css','height','5px']])]));
-	
-	_(parent, [_table([_tbody(trs)],[['css','marginLeft','20px']])]);
 }
 
 /** Фильтрует объекты внутри векторных слоёв по интервалу дат
@@ -691,36 +887,36 @@ var LayerFiltersControl = function()
 {
 	var _calendar = null;
 	var _groupTitle = null;
+	var _layers = null;
 	var _map = null;
 	
 	//по умолчанию слои фильтруются по дате
-	var _filterFunc = function(layer, dateBegin, dateEnd)
+	var _defaultFilterFunc = function(layer, dateBegin, dateEnd)
 	{
 		var layerDate = $.datepicker.parseDate('dd.mm.yy', layer.properties.date);
 		return dateBegin <= layerDate && layerDate <= dateEnd;
 	}
 	
-	var _getLayersInGroup = function(mapTree, groupTitle)
+	var _filterFunc = _defaultFilterFunc;
+	
+	var _IterateElems = function(treeElem, callback, parentVisible)
 	{
-		var res = {};
-		var visitor = function(treeElem, isInGroup)
+		var visible = parentVisible && (treeElem.content ? treeElem.content.properties.visible : true);
+		var childsArr = treeElem.content ? treeElem.content.children : treeElem.children;
+		
+		for (var i = 0; i < childsArr.length; i++)
 		{
-			if (treeElem.type === "layer" && isInGroup)
+			var child = childsArr[i];
+			
+			if (child.type == 'group')
 			{
-				//res.push(_map.layers[treeElem.content.properties.name]);
-				res[treeElem.content.properties.name] = _map.layers[treeElem.content.properties.name];
+				callback(child, visible);
+				
+				_IterateElems(child, callback, visible)
 			}
-			else if (treeElem.type === "group")
-			{
-				isInGroup = isInGroup || treeElem.content.properties.title == groupTitle;
-				var a = treeElem.content.children;
-				for (var k = a.length - 1; k >= 0; k--)
-					visitor(a[k], isInGroup);
-			}
+			else
+				callback(child, visible);
 		}
-
-		visitor( {type: "group", content: { children: mapTree.children, properties: {} } }, false );
-		return res;
 	}
 	
 	var _getMapLayersAsHash = function()
@@ -740,37 +936,44 @@ var LayerFiltersControl = function()
 			{
 				var mapElem = _queryExternalMaps.mapsCanvas.childNodes[m].childNodes[0];
 				if (mapElem.extLayersTree)
-					_updateTree(mapElem.extLayersTree.mapHelper.mapTree, mapElem);
+					_updateTree(mapElem.extLayersTree, mapElem.extLayersTree.mapHelper.mapTree, mapElem);
 			}
 		}
 		
-		_updateTree(_mapHelper.mapTree, _queryMapLayers.buildedTree);
+		_updateTree(_layersTree, _mapHelper.mapTree, _queryMapLayers.buildedTree);
 	}
 	
-	var _updateTree = function(mapTree, domTreeRoot)
+	var _updateTree = function(layersTree, mapTree, domTreeRoot)
 	{
 		var dateBegin = _calendar.getDateBegin();
 		var dateEnd = _calendar.getDateEnd();
 		
-		var layers = _groupTitle ? _getLayersInGroup(mapTree, _groupTitle) : _getMapLayersAsHash();
+		var layers = [];
 		
-		_mapHelper.findTreeElems( mapTree, function(elem)
+		if (_layers)
+			layers = _groupLayersHelper(_map, mapTree, _layers).asHash();
+		else 
+			layers = _groupTitle ? _groupLayersHelper(_map, mapTree, [{group: _groupTitle}]).asHash() : _getMapLayersAsHash();
+		
+		_IterateElems( mapTree, function(elem, parentVisible)
 		{
 			if (elem.content.properties.name in layers)
 			{
-				//var layerDate = $.datepicker.parseDate('dd.mm.yy', layers[elem.content.properties.name].properties.date);
-				//var isDateInInterval = dateBegin <= layerDate && layerDate <= dateEnd;
 				var isShowLayer = _filterFunc( layers[elem.content.properties.name], dateBegin, dateEnd );
-				
 				elem.content.properties.visible = isShowLayer;
-				layers[elem.content.properties.name].setVisible(isShowLayer);
 				
-				//если дерево уже создано в dom, ручками устанавливаем галочку
+				if (_map.layers[elem.content.properties.name])
+					_map.layers[elem.content.properties.name].setVisible(isShowLayer && parentVisible);
+		
 				var childBoxList = $(domTreeRoot).find("div[LayerID='" + elem.content.properties.LayerID + "']");
 				if (childBoxList.length > 0)
-					childBoxList[0].firstChild.checked = isShowLayer;
+				{
+					var checkbox = childBoxList[0].firstChild;
+					checkbox.checked = isShowLayer;
+					layersTree.updateTreeVisibility(checkbox);
+				}
 			}
-		});
+		}, true);
 	}
 	
 	/**
@@ -778,7 +981,8 @@ var LayerFiltersControl = function()
 	 * @param map Основная карта
 	 * @param {cover.Calendar} calendar Календарик, который используется для задания дат
 	 * @param {Object} params Дополнительные параметры: <br/>
-	 *    groupTitle - имя группы, слои в которой нужно фильтровать. Если не задано, будут фильтроваться все слои на карте <br/>
+	 *    groupTitle - имя группы, слои в которой нужно фильтровать. Устарело, используйте layers <br/>
+	 *    layers - вектор из имён слоёв или указаний на группу, которые нужно фильтровать. Если не задано, будут фильтроваться все слои на карте.<br/>
 	 *    filterFunc - ф-ция filterFunc(layer, dateBegin, dateEnd) -> Bool. Возвращает true, если слой нужно показать, false чтобы скрыть. По умолчанию происходит фильтрация по дате слоя.
 	 */
 	this.init = function(map, calendar, params)
@@ -788,6 +992,7 @@ var LayerFiltersControl = function()
 		if ( typeof params != 'undefined' )
 		{
 			_groupTitle = params.groupTitle;
+			_layers = params.layers;
 			if (params.filterFunc) 
 				_filterFunc = params.filterFunc;
 		}
@@ -798,7 +1003,11 @@ var LayerFiltersControl = function()
 		_calendar = calendar;
 		$(_calendar).bind('change', _update);
 		_update();
+		
+		$(_queryExternalMaps).bind('map_loaded', _update);
 	}
+	
+	this.update = function() { _update() };
 }
 
 /*
@@ -822,26 +1031,18 @@ var SearchBboxControl = function()
 	 * @name cover.SearchBboxControl.change
 	 * @event
 	 */
-	_translationsHash.addtext("rus", {
-								"searchBbox.SearchInArea" : "Искать в области",
-								"searchBbox.CancelSearchInArea" : "Отменить поиск по области"
-							 });
-
-	_translationsHash.addtext("eng", {
-								"searchBbox.SearchInArea" : "Search in area",
-								"searchBbox.CancelSearchInArea" : "Cancel search in area"
-							 });
+	 
 	var _elem = null;
 	var _button = null;
-	var _extent = null;
+	var _extent = new BoundsExt();
 	var _this = this;
 	var _bindingID = Math.random();
 	
 	var update = function( keepSilence )
 	{
-		var newExtent = _elem ? getBounds( _elem.getGeometry().coordinates ) : null;
+		var newExtent = new BoundsExt(_elem ? getBounds( _elem.getGeometry().coordinates ) : BoundsExt.WHOLE_WORLD);
 		
-		var changed = !SearchBboxControl.isBoundsEqual(_extent, newExtent);
+		var changed = !newExtent.isEqual(_extent);
 		_extent = newExtent;
 		
 		if ( changed && !keepSilence )
@@ -911,7 +1112,7 @@ var SearchBboxControl = function()
 	};
 	
 	/**
-	 * Возвращет null если bbox не задан
+	 * Возвращет bbox
 	 * @function
 	 */
 	this.getBbox = function()
@@ -961,7 +1162,7 @@ var SearchBboxControl = function()
 }
 
 /**
-* Сравнивают два extent'а. Оба параметра могут быть null (весь мир)
+* Сравнивают два extent'а. Оба параметра могут быть null (весь мир) или NaN (пустой bbox)
 * @function
 * @static
 */
@@ -969,6 +1170,10 @@ SearchBboxControl.isBoundsEqual = function(ext1, ext2)
 {
 	if (!ext1 && !ext2) return true;
 	if (!ext1 || !ext2) return false;
+	
+	if (isNaN(ext1) && isNaN(ext2)) return true;
+	if (isNaN(ext1) || isNaN(ext2)) return false;
+	
 	return ext1.maxX == ext2.maxX && ext1.maxY == ext2.maxY && ext1.minX == ext2.minX && ext1.minY == ext2.minY;
 }
 
@@ -1054,13 +1259,6 @@ var FireSpotProvider = function( params )
 	*/
 	var _params = $.extend({ host: 'http://sender.kosmosnimki.ru/' }, params );
 	
-	_translationsHash.addtext("rus", {
-							"firesWidget.FireSpots.Description" : "Очаги пожаров"
-						 });
-	_translationsHash.addtext("eng", {
-								"firesWidget.FireSpots.Description" : "Fire spots"
-							 });
-							 
 	this.getDescription = function() { return _gtxt("firesWidget.FireSpots.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
@@ -1097,14 +1295,6 @@ var FireBurntProvider = function( params )
 {
 	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/'}, params);
 	
-	_translationsHash.addtext("rus", {
-								"firesWidget.Burnt.Description" : "Границы гарей"
-							 });
-							 
-	_translationsHash.addtext("eng", {
-								"firesWidget.Burnt.Description" : "Fire areas"
-							 });
-							 
 	this.getDescription = function() { return _gtxt("firesWidget.Burnt.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
@@ -1145,14 +1335,6 @@ var ModisImagesProvider = function( params )
 	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/v2/',
 							modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/'
 						   }, params);
-	
-	_translationsHash.addtext("rus", {
-								"firesWidget.DialyCoverage.Description" : "Ежедневное спутниковое покрытие"
-							 });
-							 
-	_translationsHash.addtext("eng", {
-								"firesWidget.DialyCoverage.Description" : "Daily satellite coverage"
-							 });
 	
 	this.getDescription = function() { return _gtxt("firesWidget.DialyCoverage.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
@@ -1225,6 +1407,8 @@ var FireSpotRenderer = function( params )
 		weak.setStyle({ marker: { image: imageNames[0], center: true } });
 		medium.setStyle({ marker: { image: imageNames[1], center: true } });
 		strong.setStyle({ marker: { image: imageNames[2], center: true } });
+
+		var _obj = {'weak': {'node':weak, 'arr': [], 'balloonProps': []}, 'medium': {'node':medium, 'arr': [], 'balloonProps': []}, 'strong': {'node':strong, 'arr': [], 'balloonProps': []}};
 		for (var i = 0; i < data.length; i++)
 		{
 			var a = data[i];
@@ -1234,18 +1418,31 @@ var FireSpotRenderer = function( params )
 			var objContainer = null;
 			var addBallonProps = {"Дата": a.date };
 			
+			var key = 'medium';
 			if (typeof a.category != 'undefined')
 			{
 				var isWeak = (a.category == 0);
 				var isMedium = (a.category == 1);
 				objContainer = (isWeak ? weak : isMedium ? medium : strong);
+				key = (isWeak ? 'weak' : isMedium ? 'medium' : 'strong');
 				addBallonProps["Категория"] = (isWeak ? "Слабый" : isMedium ? "Средний" : "Сильный");
 			}
 			else
 				objContainer = medium;
 				
-			var obj = objContainer.addObject( { type: "POINT", coordinates: [a.x, a.y] } );
-			_balloonProps[obj.objectId] = $.extend({}, a.balloonProps, addBallonProps);
+			_obj[key].arr.push( {'geometry':{ type: "POINT", coordinates: [a.x, a.y] }} );
+			_obj[key].balloonProps.push( $.extend({}, a.balloonProps, addBallonProps) );
+		}
+		for (var key in _obj)
+		{
+			var ph = _obj[key];
+			if(ph.arr.length > 0) {
+				var arr = ph.node.addObjects( ph.arr );
+				for (var i = 0; i < arr.length; i++)
+				{
+					_balloonProps[arr[i].objectId] = ph.balloonProps[i];
+				}
+			}
 		}
 		
 		var ballonHoverFunction = function(o)
@@ -1361,7 +1558,7 @@ var FiresControl = function()
 	this.dateFiresBegin = null;
 	this.dateFiresEnd   = null;
 	
-	this.requestBbox = null; //bbox, для которого есть данные на данный момент. null - без bbox.
+	this.requestBbox = new BoundsExt(); //bbox, для которого есть данные на данный момент.
 	
 	this.dataControllers = {};
 	
@@ -1380,6 +1577,8 @@ FiresControl.DEFAULT_OPTIONS =
 	burntHost:       'http://sender.kosmosnimki.ru/',
 	fireIconsHost:   'http://maps.kosmosnimki.ru/images/',
 	modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/',
+	
+	initExtent: null,
 
 	dateFormat: "dd.mm.yy",
 	fires:      true,
@@ -1413,8 +1612,6 @@ FiresControl.prototype.loadState = function( data )
 		}
 			
 	this.searchBboxController.loadState(data.bbox);
-
-	//this.loadForDates( this.dateFiresBegin, this.dateFiresEnd );
 }
 
 // providerParams: 
@@ -1471,25 +1668,29 @@ FiresControl.prototype.findBbox = function()
 	this.searchBboxController.findBbox();
 }
 
+/** Возвращает bbox, по которому запрашиваются данные.
+* @method 
+*/
 FiresControl.prototype.getBbox = function()
 {
-	return this.searchBboxController.getBbox();
+	return this._initExtent.getIntersection(this.searchBboxController.getBbox());
 }
 
 //предполагаем, что dateBegin, dateEnd не нулевые
 FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
-	var curExtent = this.searchBboxController.getBbox();
+	var curExtent = this.getBbox();
 	
 	var isDatesChanged = !this.dateFiresBegin || !this.dateFiresEnd || dateBegin.getTime() != this.dateFiresBegin.getTime() || dateEnd.getTime() != this.dateFiresEnd.getTime();
-	var isBBoxChanged;
+	var isBBoxChanged = !curExtent.isEqual(this.requestBbox);
 	
-	if ( !this.requestBbox && !curExtent )
+/*	if ( !this.requestBbox && !curExtent )
 		isBBoxChanged = false;
 	else if ( !this.requestBbox || !curExtent )
 		isBBoxChanged = true;
-	else 
-		isBBoxChanged = !SearchBboxControl.isBoundsEqual( this.requestBbox, curExtent );
+	else */
+	
+	//isBBoxChanged = !SearchBboxControl.isBoundsEqual( this.requestBbox, curExtent );
 	
 	this.dateFiresBegin = dateBegin;
 	this.dateFiresEnd = dateEnd;
@@ -1503,43 +1704,52 @@ FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 		var curController = this.dataControllers[k];
 		if ( curController.visible && ( (isDatesChanged && curController.params.isUseDate) || (isBBoxChanged && curController.params.isUseBbox) || !curController.data ) )
 		{
-			this.processingModel.setStatus( curController.name, false);
-			
-			(function(curController){
-				curController.provider.getData( $.datepicker.formatDate(_this._firesOptions.dateFormat, dateBegin), $.datepicker.formatDate(_this._firesOptions.dateFormat, dateEnd), curExtent, 
-					function( data )
-					{
-						curController.data = data;
-						_this.statusModel.setStatus( curController.name, true );
-						_this.processingModel.setStatus( curController.name, true);
-						curController.renderer.bindData( data );
-						curController.renderer.setVisible(curController.visible);
-					}, 
-					function( type )
-					{
-						_this.processingModel.setStatus( curController.name, true);
-						_this.statusModel.setStatus( curController.name, false);
-					}
-				)
-			})(curController);
+			//если у нас получилась пустая область запроса, просто говорим рендереру очистить все данные
+			if ( curExtent.isEmpty() )
+			{
+				curController.renderer.bindData( null );
+				curController.renderer.setVisible(curController.visible);
+			}
+			else
+			{
+				this.processingModel.setStatus( curController.name, false);
+				
+				(function(curController){
+					curController.provider.getData( $.datepicker.formatDate(_this._firesOptions.dateFormat, dateBegin), $.datepicker.formatDate(_this._firesOptions.dateFormat, dateEnd), curExtent.getBounds(), 
+						function( data )
+						{
+							curController.data = data;
+							_this.statusModel.setStatus( curController.name, true );
+							_this.processingModel.setStatus( curController.name, true);
+							curController.renderer.bindData( data );
+							curController.renderer.setVisible(curController.visible);
+						}, 
+						function( type )
+						{
+							_this.processingModel.setStatus( curController.name, true);
+							_this.statusModel.setStatus( curController.name, false);
+						}
+					)
+				})(curController);
+			}
 		}
 	}
 }
 
 FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 {
-	this._firesOptions = $.extend({}, FiresControl.DEFAULT_OPTIONS, firesOptions);
+	this._firesOptions = $.extend( {}, FiresControl.DEFAULT_OPTIONS, firesOptions );
+	this._initExtent = new BoundsExt( firesOptions.initExtent ? firesOptions.initExtent : BoundsExt.WHOLE_WORLD );
+	if ( firesOptions.initExtent && firesOptions.showInitExtent )
+	{
+		var ie = firesOptions.initExtent;
+		var objInitExtent = globalFlashMap.addObject( {type: "POLYGON", coordinates: [[[ie.minX, ie.minY], [ie.minX, ie.maxY], [ie.maxX, ie.maxY], [ie.maxX, ie.minY], [ie.minX, ie.minY]]]} );
+		objInitExtent.setStyle( { outline: { color: 0xff0000, thickness: 1, opacity: 20 }, fill: { color: 0xffffff, opacity: 10 } } );
+	}
+	
 	this._parentDiv = parent;
 	$(this._parentDiv).append(_div(null, [['dir', 'id', 'checkContainer']]));
 	this.globalOptions = globalOptions;
-	
-	_translationsHash.addtext("rus", {
-								"firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!"
-							 });
-							 
-	_translationsHash.addtext("eng", {
-								"firesWidget.tooManyDataWarning" : "Too much data - downsize search area!"
-							 });
 	
 	if ( this._firesOptions.fires ) 
 		this.addDataProvider( "firedots",
@@ -1672,18 +1882,13 @@ MapCalendar.prototype.loadState = function( data )
 		
 	if ( data.cover || data.fires )
 		this.setDates();
+		
+	if (this.layerFilters)
+		this.layerFilters.update();
 }
 
 MapCalendar.prototype.init = function(parent, params)
 {
-	_translationsHash.addtext("rus", {
-								"calendarWidget.Period" : "Период"
-							 });
-							 
-	_translationsHash.addtext("eng", {
-								"calendarWidget.Period" : "Period"
-							 });
-
 	this.params = params;
 	
 	var name = 'MapCalendar',
