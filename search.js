@@ -43,10 +43,10 @@ var GetPath = function(/**object*/ oFoundObject,/** string */ sObjectsSeparator,
 	
 	if (oParentObj != null && oParentObj[sObjNameField] != null && oParentObj[sObjNameField]){
 		if (bParentAfter){
-			return GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]) + sObjectsSeparator + GetPath(oParentObj, sObjectsSeparator);
+			return GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]) + sObjectsSeparator + GetPath(oParentObj, sObjectsSeparator,  bParentAfter, sObjNameField);
 		}
 		else{
-			return GetPath(oParentObj, sObjectsSeparator) + sObjectsSeparator + GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
+			return GetPath(oParentObj, sObjectsSeparator,  bParentAfter, sObjNameField) + sObjectsSeparator + GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
 		}
 	}
 	else{
@@ -163,7 +163,7 @@ var SearchInput = function (oInitContainer, params) {
         if (getkey(evt) == 13) {
 			if (Number(new Date()) - dtLastSearch < 1000 || $("#ui-active-menuitem").get().length > 0) return; //Если уже ведется поиск по автозаполнению, то обычный не ведем
 			dtLastSearch = new Date();
-			if($(searchField).catcomplete != null)$(searchField).catcomplete("close");
+			if($(searchField).autocomplete != null)$(searchField).autocomplete("close");
             fnSearch();
             return true;
         }
@@ -228,7 +228,12 @@ var SearchInput = function (oInitContainer, params) {
 			$(searchField).autocomplete({
 				minLength: 3,
 				source: fnAutoCompleteSource,
-				select: fnAutoCompleteSelect
+				select: fnAutoCompleteSelect,
+				open: function(event, ui){
+					var oMenu = $(searchField).autocomplete("widget")[0];
+					oMenu.style.left = oMenu.offsetLeft - divSearchBegin.clientWidth + 1;
+					oMenu.style.width = Container.clientWidth - 6;
+				}
 			});
 		});
 		
@@ -979,7 +984,9 @@ var SearchLogic = function(oInitSearchDataProvider){
 	@param sObjNameField название свойства, из которого брать наименование родительского объекта
 	*/
 	var fnGetLabel = function(oFoundObject, sObjNameField, sObjNameFieldParent){
-		return GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]) + ", " + GetPath(oFoundObject.Parent, ", ", true, sObjNameFieldParent);
+		var sLabel = GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
+		if (oFoundObject.Parent != null) sLabel += ", " + GetPath(oFoundObject.Parent, ", ", true, sObjNameFieldParent);
+		return sLabel;
 	}
 	
 	/**Возращает сгуппированные данные для отображения подсказок поиска в функции callback
@@ -992,20 +999,18 @@ var SearchLogic = function(oInitSearchDataProvider){
 			var sSearchRegExp = new RegExp("("+SearchString.replace(/ +/, "|")+")", "i");
 			for(var iDS=0; iDS<arrResultDataSources.length; iDS++){
 				for(var iFoundObject=0; iFoundObject<arrResultDataSources[iDS].SearchResult.length; iFoundObject++){
-					var sLabel = "Empty", sValue = "Empty";
 					var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
+					var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = oFoundObject.ObjName;
 					if (oFoundObject.ObjName.match(sSearchRegExp) || (oFoundObject.ObjNameEng != null && oFoundObject.ObjNameEng.match(sSearchRegExp))) {
-						sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
-						sValue = oFoundObject.ObjName;
 						if (oFoundObject.ObjNameEng != null && oFoundObject.ObjNameEng.length > 0 && !/[a-zA-Z]/.test(oFoundObject.ObjName)){
-							sLabel += "  |  " + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
+							sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng") + "  |  " + sLabel;
 						}
 					}
 					else if((oFoundObject.ObjAltName != null && oFoundObject.ObjAltName.match(sSearchRegExp)) || (oFoundObject.ObjAltNameEng != null && oFoundObject.ObjAltNameEng.match(sSearchRegExp))){
 						sLabel = fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
 						sValue = oFoundObject.ObjAltName || oFoundObject.ObjAltNameEng;
 						if (oFoundObject.ObjAltNameEng != null && oFoundObject.ObjAltNameEng.length > 0 && !/[a-zA-Z]/.test(oFoundObject.ObjAltName)){
-							sLabel += "  |  " + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
+							sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng") + "  |  " + sLabel;
 						}
 					}
 					arrResult.push({
