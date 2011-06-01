@@ -4709,8 +4709,11 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					
 					var satelliteLayerNames = getBaseMapParam("satelliteLayerID", "C9458F2DCB754CEEACC54216C7D1EB0A").split(",");
 					var satelliteLayers = [];
+					
 					for (var i = 0; i < satelliteLayerNames.length; i++)
-						satelliteLayers.push(map.layers[satelliteLayerNames[i]]);
+						if (satelliteLayerNames[i] in map.layers)
+							satelliteLayers.push(map.layers[satelliteLayerNames[i]]);
+							
 					for (var i = 0; i < satelliteLayers.length; i++)
 					{
 						satelliteLayers[i].setAsBaseLayer(satelliteString)
@@ -4787,33 +4790,36 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						).geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
 					}
 
-					setCopyright(
-						satelliteLayers[0],
-						1,
-						5,
-						"<a href='http://www.nasa.gov'>&copy; NASA</a>"
-					);
+					if ( satelliteLayers.length > 0 )
+					{
+						setCopyright(
+							satelliteLayers[0],
+							1,
+							5,
+							"<a href='http://www.nasa.gov'>&copy; NASA</a>"
+						);
 
-					setCopyright(
-						satelliteLayers[0],
-						6,
-						13,
-						"<a href='http://www.es-geo.com'>&copy; Earthstar Geographics</a>"
-					);
+						setCopyright(
+							satelliteLayers[0],
+							6,
+							13,
+							"<a href='http://www.es-geo.com'>&copy; Earthstar Geographics</a>"
+						);
 
-					setCopyright(
-						satelliteLayers[0],
-						6,
-						14,
-						"<a href='http://www.antrix.gov.in/'>&copy; ANTRIX</a>"
-					).geometry = from_merc_geometry({ type: "LINESTRING", coordinates: [1107542, 2054627, 5048513, 8649003] });
+						setCopyright(
+							satelliteLayers[0],
+							6,
+							14,
+							"<a href='http://www.antrix.gov.in/'>&copy; ANTRIX</a>"
+						).geometry = from_merc_geometry({ type: "LINESTRING", coordinates: [1107542, 2054627, 5048513, 8649003] });
 
-					setCopyright(
-						satelliteLayers[0],
-						9,
-						17,
-						"<a href='http://www.geoeye.com'>&copy; GeoEye Inc.</a>"
-					);
+						setCopyright(
+							satelliteLayers[0],
+							9,
+							17,
+							"<a href='http://www.geoeye.com'>&copy; GeoEye Inc.</a>"
+						);
+					}
 
 					var currentMode = false;
 					map.baseLayerControl.onChange = function(name)
