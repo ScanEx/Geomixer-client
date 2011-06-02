@@ -544,7 +544,7 @@ Calendar.prototype.selectFunc = function(inst)
 var CoverControl = function()
 {
 	this.cloudsIndexes = [];
-	this.currCloudsIndex = 2;
+	this.currCloudsIndex = 4;
 	this.commonStyles = null;
 	this.cloudsCount = 0;
 	this.coverLayers = [];
@@ -598,8 +598,8 @@ CoverControl.prototype._updateStyles = function()
 		cloudsCount++;
 	}
 	
-	if ( typeof initCloudIndex !== 'undefined' )
-		this.currCloudsIndex = initCloudIndex;
+	if ( typeof this._initCloudIndex !== 'undefined' )
+		this.currCloudsIndex = this._initCloudIndex;
 		
 	this.cloudsCount = Math.round(cloudsCount / 2);
 	this.commonStyles = commonStyles;	
@@ -690,6 +690,7 @@ CoverControl.prototype._addWidget = function()
 CoverControl.prototype.init = function(coverLayersDescription, dateAttribute, cloudsAttribute, icons, initCloudIndex)
 {
 	this._coverLayersDescription = coverLayersDescription;
+	this._initCloudIndex = initCloudIndex;
 	this._icons = icons;
 	
 	this.dateAttribute = dateAttribute;
