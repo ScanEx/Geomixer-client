@@ -514,7 +514,9 @@ class Main
 
 		var addObject = function(parentId:String, ?geometry:Dynamic, ?properties:Dynamic)
 		{
-			var node:MapNode = getNode(parentId).addChild();
+			var node:MapNode = getNode(parentId);
+			if (node == null) return '';
+			node = node.addChild();
 			if (geometry != null)
 				node.setContent(new VectorObject(Utils.parseGeometry(geometry)));
 			node.properties = properties;
