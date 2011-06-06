@@ -2919,8 +2919,8 @@ function createFlashMapInternal(div, layers, callback)
 						title: KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
 						onclick: function() 
 						{ 
-							if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
 							balloon.remove();
+							balloon.isVisible = false;
 						},
 						onmouseover: function()
 						{
@@ -2973,6 +2973,7 @@ function createFlashMapInternal(div, layers, callback)
 				}
 				balloon.remove = function()
 				{
+					if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
 					var i = 0;
 					while ((i < balloons.length) && (balloons[i] != this))
 						i += 1;
