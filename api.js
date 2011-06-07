@@ -941,12 +941,9 @@ function createFlashMapInternal(div, layers, callback)
 				return out;
 			}
 			FlashMapObject.prototype.addObject = function(geometry, props) {
-				var flag = (this.objectId ? false : true); // флаг необходимости создания обьекта в SWF
-				if(flag) this.setVisible(true);
 				var geo = merc_geometry(geometry);
 				var obj = flashDiv.addObject(this.objectId, geo, props);
 				if(!obj) obj = false;
-				if(flag) this.setVisible(false);
 				return new FlashMapObject(obj, props, this);
 			}
 			FlashMapObject.prototype.setFilter = function(sql) { return flashDiv.setFilter(this.objectId, sql); }
@@ -1774,6 +1771,13 @@ function createFlashMapInternal(div, layers, callback)
 							for (var i = 0; i < deferred.length; i++)
 								deferred[i]();
 						}
+					}
+					obj.addObject = function()
+					{
+						obj.setVisible(true);
+						var newObj = flashDiv.addObject(obj.objectId, obj.geometry, obj.properties);
+						obj.setVisible(false);
+						return new FlashMapObject(newObj, obj.properties, obj);
 					}
 					for (var i = 0; i < deferredMethodNames.length; i++) (function(name)
 					{
