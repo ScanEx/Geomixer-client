@@ -2210,6 +2210,7 @@ function createFlashMapInternal(div, layers, callback)
 						onmouseover: function()
 						{
 							this.src = apiBase + "img/zoom_active.png";
+							this.title = "" + (i + minZoom);
 						},
 						onmouseout: function()
 						{
