@@ -1382,7 +1382,7 @@ var ModisImagesProvider = function( params )
 */
 var FireSpotRenderer = function( params )
 {
-	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/' }, params);
+	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minZoom: 1, maxZoom: 17 }, params);
 	
 	var _firesObj = null;
 	var _balloonProps = {};
@@ -1406,8 +1406,11 @@ var FireSpotRenderer = function( params )
 			imageNames = [ _params.fireIconsHost + "fire_weak.png", _params.fireIconsHost + "fire.png", _params.fireIconsHost + "fire_strong.png" ];
 		
 		weak.setStyle({ marker: { image: imageNames[0], center: true } });
+		weak.setZoomBounds(_params.minZoom, _params.maxZoom);
 		medium.setStyle({ marker: { image: imageNames[1], center: true } });
+		medium.setZoomBounds(_params.minZoom, _params.maxZoom);
 		strong.setStyle({ marker: { image: imageNames[2], center: true } });
+		strong.setZoomBounds(_params.minZoom, _params.maxZoom);
 
 		var _obj = {'weak': {'node':weak, 'arr': [], 'balloonProps': []}, 'medium': {'node':medium, 'arr': [], 'balloonProps': []}, 'strong': {'node':strong, 'arr': [], 'balloonProps': []}};
 		for (var i = 0; i < data.length; i++)
@@ -1472,8 +1475,13 @@ var FireSpotRenderer = function( params )
 * @memberOf cover
 * @class
 */
-var FireBurntRenderer = function()
+var FireBurntRenderer = function( params )
 {
+	var defaultStyle = [
+			{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xffffff, opacity: 5 } },
+			{ outline: { color: 0xff0000, thickness: 3 }, fill: { color: 0xffffff, opacity: 15 } }
+		];
+	var _params = $.extend({ minZoom: 1, maxZoom: 17, defStyle: defaultStyle, bringToTop: false }, params);
 	var _burntObj = null;
 	var _balloonProps = {};
 	this.bindData = function(data)
@@ -1481,17 +1489,19 @@ var FireBurntRenderer = function()
 		if (_burntObj) _burntObj.remove();
 		_balloonProps = {};
 		_burntObj = globalFlashMap.addObject();
-		_burntObj.setZoomBounds(1, 17);
+		_burntObj.setZoomBounds(_params.minZoom, _params.maxZoom);
 		_burntObj.setVisible(false);
-		_burntObj.setStyle(
-			{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xffffff, opacity: 5 } },
-			{ outline: { color: 0xff0000, thickness: 3 }, fill: { color: 0xffffff, opacity: 15 } }
-		);
+		_burntObj.setStyle( _params.defStyle[0], _params.defStyle[1] );
 		
-		for (var i = 0; i < data.length; i++) 
+		for (var i = 0; i < data.length; i++)
 			(function(b){
 				if (!b) return;
 				var obj = _burntObj.addObject( b.geometry );
+				if (_params.bringToDepth) obj.bringToTop();
+				
+				if (typeof b.styleID !== 'undefined' && typeof _params.styles != 'undefined' && typeof _params.styles[b.styleID] != 'undefined')
+					obj.setStyle( _params.styles[b.styleID][0], _params.styles[b.styleID][1] );
+					
 				_balloonProps[obj.objectId] = $.extend({}, b.balloonProps, {"Дата": b.date});
 			})(data[i]);
 			
