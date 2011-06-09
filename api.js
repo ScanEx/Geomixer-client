@@ -1964,7 +1964,7 @@ function createFlashMapInternal(div, layers, callback)
 				);
 			}
 
-			map.geoSearchAPIRoot = getAPIHostRoot();
+			map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : getAPIHostRoot();
 			map.sendSearchRequest = function(str, callback)
 			{
 				sendCrossDomainJSONRequest(
@@ -4886,7 +4886,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					}
 		                
 					if (!window.baseMap || !window.baseMap.hostName || (window.baseMap.hostName == "maps.kosmosnimki.ru"))
-						map.geoSearchAPIRoot = "http://maps.kosmosnimki.ru/";
+						map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : "http://maps.kosmosnimki.ru/";
 		
 					if (layers)
 					{
