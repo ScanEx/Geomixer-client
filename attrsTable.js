@@ -173,6 +173,7 @@ attrsTable.prototype.drawDialog = function(info)
 		columnsList = _div(null, [['css','overflowY','auto'],['css','width',paramsWidth - 21 + 'px']]),
 		paramsButton = makeLinkButton(_gtxt("Показать параметры поиска")),
 		searchButton = makeButton(_gtxt("Найти")),
+		cleanButton = makeButton(_gtxt("Очистить поиск")),
 		addObjectButton = makeLinkButton(_gtxt("Добавить объект")),
 		oldCanvasWidth = false,
 		_this = this;
@@ -197,8 +198,16 @@ attrsTable.prototype.drawDialog = function(info)
 	
 	searchButton.onclick = function()
 	{
+		_this.offset = 0;
 		_this.getLength();
 	}
+	
+	cleanButton.onclick = function()
+	{
+		_this.textarea.value = "";
+		_this.offset = 0;
+		_this.getLength();
+	}	
 	
 	addObjectButton.onclick = function()
 	{
@@ -360,7 +369,8 @@ attrsTable.prototype.drawDialog = function(info)
 	_(tdParams, [columnsList]);
 	
 	searchButton.style.marginRight = '17px';
-	_(tdParams, [_div([searchButton],[['css','textAlign','right'],['css','margin','5px 0px 0px 0px'],['css','width',paramsWidth + 'px']])])
+	cleanButton.style.marginRight = '3px';
+	_(tdParams, [_div([cleanButton, searchButton],[['css','textAlign','right'],['css','margin','5px 0px 0px 0px'],['css','width',paramsWidth + 'px']])])
 	
 	var resizeFunc = function(event, ui)
 	{
@@ -549,15 +559,26 @@ attrsTable.prototype.drawTableFields = function()
 			
 			button.onclick = function()
 			{
+				if (_this.sortAttr === this.sortAttr)
+					_this.sortOrder[this.sortAttr] = _this.sortOrder[this.sortAttr] == 'ASC' ? 'DESC' : 'ASC';
+
 				_this.sortAttr = this.sortAttr;
-				_this.sortOrder[_this.sortAttr] = _this.sortOrder[_this.sortAttr] == 'ASC' ? 'DESC' : 'ASC';
 				
 				_this.offset = 0;
 				
 				_this.getData()
 			}
 			
-			th = _th([button]);
+			if (this.sortAttr === button.sortAttr)
+			{
+				var imgName = this.sortOrder[this.sortAttr] === 'ASC' ? 'img/down.png' : 'img/up.png'
+				th = _th([button, _img(null, [['attr', 'src', imgName], ['css', 'verticalAlign', 'middle']])]);
+			}
+			else
+			{
+				th = _th([button]);
+			}
+			
 			
 			tds.push(th)
 		}

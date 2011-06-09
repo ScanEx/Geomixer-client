@@ -509,6 +509,7 @@ _translationsHash.hash["eng"] = {
 	"Создать объект слоя [value0]" : "Add layer [value0] object",
 	"Геометрия" : "Geometry",
 	"Добавить объект" : "Add object",
+	"Очистить поиск" : "Clean search",
 	"Создать столбец" : "Create column",
 	"Мультислой" : "Multilayer",
 	"В дереве слоев остались несохраненные изменения!" : "There are unsaved changes on layers tree!",
