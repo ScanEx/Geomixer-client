@@ -3,6 +3,7 @@ import flash.display.Sprite;
 import flash.net.URLRequest;
 import flash.net.URLLoader;
 import flash.net.URLStream;
+import flash.events.IOErrorEvent;
 import flash.net.ObjectEncoding;
 import flash.events.Event;
 import flash.external.ExternalInterface;
@@ -58,6 +59,11 @@ class VectorTile
 				var url = layer.tileFunction(i, j, z);
 				var field = me.layer.identityField;
 				stream.objectEncoding = ObjectEncoding.AMF3;
+				stream.addEventListener(IOErrorEvent.IO_ERROR, function(event)
+					{
+						trace("error reading vector tile: " + url);
+					}
+				);
 				stream.addEventListener(Event.COMPLETE, function(event)
 				{
 					me.ids = new Array<String>();
