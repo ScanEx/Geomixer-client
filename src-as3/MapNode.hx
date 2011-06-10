@@ -163,6 +163,12 @@ class MapNode
 		updateHandCursor();
 	}
 
+	public function removeHandler(name:String)
+	{
+		handlers.remove(name);
+		updateHandCursor();
+	}
+
 	public function getHandler(name:String):MapNode->Void
 	{
 		var handler = handlers.get(name);

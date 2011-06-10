@@ -903,6 +903,10 @@ function createFlashMapInternal(div, layers, callback)
 					handler(new FlashMapObject(subObjectId, propertiesFromArray(a), me));
 				}) : null);
 			}
+			FlashMapObject.prototype.removeHandler = function(eventName)
+			{
+				flashDiv.removeHandler(this.objectId, eventName);
+			}
 
 			FlashMapObject.prototype.setHandlers = function(handlers)
 			{

@@ -611,6 +611,12 @@ class Main
 				ret.push([ff, Reflect.field(props, ff)]);
 			return ret;
 		}
+		
+		ExternalInterface.addCallback("removeHandler", function(id:String, eventName:String) 
+		{ 
+			var node:MapNode = getNode(id);
+			node.removeHandler(eventName);
+		});
 		ExternalInterface.addCallback("setHandler", function(id:String, eventName:String, ?callbackName:String) 
 		{ 
 			var node:MapNode = getNode(id);
