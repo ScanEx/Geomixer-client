@@ -3,6 +3,7 @@
 	//    countryCode - {string} "0" для России
 	//    initWeather - {bool, default: true} Показывать ли погоду по умолчанию
 	//    initWind    - {bool, default: true} Показывать ли ветер по умолчанию
+	//    imagesHost  - {Sting, default: 'http://maps.kosmosnimki.ru/api/img/weather/'} откуда подгружать картинки для иконок
 	weather: function (params, map)
 	{
 		var _map = map || globalFlashMap; //если не указана карта, попробуем взять из глобального пространства имён
@@ -19,10 +20,12 @@
 								"weatherMaplet.AccordingTo" : "According to the data from Gismeteo.ru"
 							 });
 
+		//если подгружать jquery, можно использовать $.extent
 		if (!params) params = {};
 		params.countryCode = params.copuntryCode || 0;
 		if (typeof params.initWeather == 'undefined') params.initWeather = true;
-		if (typeof params.initWind == 'undefined') params.initWind    = true;
+		if (typeof params.initWind == 'undefined') params.initWind = true;
+		if (typeof params.imagesHost == 'undefined') params.imagesHost = "http://maps.kosmosnimki.ru/api/img/weather/";
 		
 		var _serverResponce = null;
 		var _serverError = false;
@@ -35,89 +38,136 @@
 			return false
 		}
 		
-		function showWeather(weatherParent, city)
+		var getTHClass = function(THs, value)
 		{
-			if (city.Error != null)
-				return;
-		  
-			var elem = weatherParent.addObject(),
-				temp = weatherParent.addObject(),
-				cityName = weatherParent.addObject();
-		  
-			elem.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]})
-			temp.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]})
-			cityName.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]})
-		  
-			var icon = 0;
-		  
-			if (city.Forecast[0].Precipitation < 9)
-				icon = city.Forecast[0].Precipitation;
-			else
-				icon = city.Forecast[0].Cloudiness;
-		  
-			var temperaure = Math.floor((city.Forecast[0].TemperatureMax + city.Forecast[0].TemperatureMin) / 2),
-				color,
-				haloColor;
-		  
-			if (temperaure <= -25)
-			{
-				color = 0x003fe0;
-				haloColor = 0x8f6525;
-			}
-			else if (temperaure <= -10)
-			{
-				color = 0x05cdff;
-				haloColor = 0x8f6525;
-			}
-			else if (temperaure <= 5)
-			{
-				color = 0x00f7b1;
-				haloColor = 0x8f6525;
-			}
-			else if (temperaure <= 20)
-			{
-				color = 0x7dfa00;
-				haloColor = 0x8f6525;
-			}
-			else if (temperaure <= 30)
-			{
-				color = 0xeeff00;
-				haloColor = 0x8f6525;
-			}
-			else
-			{
-				color = 0xfc0d00;
-				haloColor = 0x8f6525;
-			}
-		  
-			elem.setStyle({marker:{image:'http://mapstest.kosmosnimki.ru/api/img/weather/24/' + icon + '.png', dx: -12, dy:-16}})
-			temp.setStyle({label: { size: 14, color: color, align: 'left'}})
-			temp.setLabel((city.Forecast[0].TemperatureMin > 0 ? "+" : '') + city.Forecast[0].TemperatureMin + '..' + (city.Forecast[0].TemperatureMax > 0 ? "+" : '') + city.Forecast[0].TemperatureMax)
-			cityName.setStyle({label: { size: 14, color: 0xfaf087, haloColor: 0x8f6525, align: 'right'}})
-			cityName.setLabel(city.Name);
-		  
+			for (var i = 0; i < THs.length; i++)
+				if (value <= THs[i]) 
+					return i;
+			
+			return THs.length;
+		}		
+		
+		function showWeather(weatherParent, cities)
+		{
 			var weekdays = ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'],
-				tods = ['ночь','утро','день','вечер'],
-				dir = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'],
-				str = "<table style=\"width:375px;\"></tbody>",
-				trs = [];
-		  
-			for (var i = 0; i < city.Forecast.length; ++i)
+			tods = ['ночь','утро','день','вечер'],
+			dir = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'];
+					
+			var iconContainters = [];
+			var iconGeometries = [];
+			var iconTexts = [];
+			for (var i = 0; i < 9; i++)
 			{
-				var imgIcon = (city.Forecast[i].Precipitation < 9) ? city.Forecast[i].Precipitation : city.Forecast[i].Cloudiness,
-					pres = Math.round((city.Forecast[i].PressureMax + city.Forecast[i].PressureMin) / 2),
-					rel = Math.round((city.Forecast[i].HumidityMax + city.Forecast[i].HumidityMin) / 2),
-					date = new Date(Number(city.Forecast[i].DateTime.replace("/Date(","").replace(")/","")));
-			  
-				str += "<tr><td style=\"width:70px\">" + weekdays[date.getDay()] + ", " + tods[city.Forecast[i].TimeOfDay] + "</td><td style=\"width:80px;text-align:center;\">" + (city.Forecast[i].TemperatureMin > 0 ? "+" : '') + city.Forecast[i].TemperatureMin + '..' + (city.Forecast[i].TemperatureMax > 0 ? "+" : '') + city.Forecast[i].TemperatureMax + "</td><td style=\"width:20px;text-align:right;\">" + dir[city.Forecast[i].WindDirection] + "</td><td style=\"width:80px;text-align:center;\">" + city.Forecast[i].WindMin + '-' + city.Forecast[i].WindMax + ' м/с' + "</td><td style=\"width:70px;text-align:center;\">" + pres + " м.р.с.</td><td style=\"width:35px;text-align:center;\">" + rel + "%</td><td style=\"width:20px;\"><img style=\"width:16px;height:16px;\" src=\"http://mapstest.kosmosnimki.ru/api/img/weather/16/" + imgIcon + ".png\"></td></tr>";
+				var iconContainer = weatherParent.addObject();
+				iconContainer.setStyle({marker:{image: params.imagesHost + '24/' + i + '.png', dx: -12, dy:-16}});
+				iconContainters.push(iconContainer);
+				iconGeometries[i] = [];
+				iconTexts[i] = [];
 			}
-		  
-			str += "</table></tbody>",
-		  
-			elem.enableHoverBalloon(function(o)
+			
+			var textColors = [0x003fe0, 0x05cdff, 0x00f7b1, 0x7dfa00, 0xeeff00, 0xfc0d00];
+			var temperatureTHs = [-25, -10, 5, 20, 30];
+			
+			var cityContainter = weatherParent.addObject();
+			cityContainter.setStyle({label: { size: 14, color: 0xfaf087, haloColor: 0x8f6525, align: 'right'}});
+			var cityGeometries = [];
+			var cityNames = [];
+			
+			var tInfo = [];
+			var tGeometries = [];
+			for (var i = 0; i < textColors.length; i++)
 			{
-				return "<span style=\"font-size:14px; font-weight:bold; color:#000;\">" + city.Name + "</span><br/>" + str;
-			})
+				tInfo[i] = [];
+				tGeometries[i] = [];
+			}
+			
+			for (var c = 0; c < cities.length; c++)
+			{
+				var city = cities[c];
+				
+				if (city.Error != null)
+					continue;
+			  
+				//var //temp = weatherParent.addObject(),
+					//cityName = weatherParent.addObject();
+			  
+				//temp.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]})
+				//cityName.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]});
+			  
+				var icon = 0;
+			  
+				if (city.Forecast[0].Precipitation < 9)
+					icon = city.Forecast[0].Precipitation;
+				else
+					icon = city.Forecast[0].Cloudiness;
+					
+				//var elem = iconContainters[icon].addObject();
+				var geometry = {geometry: {type:'POINT', coordinates: [city.Lng, city.Lat]}};
+				cityGeometries.push(geometry);
+				iconGeometries[icon].push(geometry);
+				
+				cityNames.push(city.Name);
+			  
+				var temperaure = Math.floor((city.Forecast[0].TemperatureMax + city.Forecast[0].TemperatureMin) / 2);
+					//color,
+					//haloColor;
+					
+				var tClass = getTHClass(temperatureTHs, temperaure);
+				tInfo[tClass].push((city.Forecast[0].TemperatureMin > 0 ? "+" : '') + city.Forecast[0].TemperatureMin + '..' + (city.Forecast[0].TemperatureMax > 0 ? "+" : '') + city.Forecast[0].TemperatureMax);
+				tGeometries[tClass].push(geometry);
+				//cityName.setStyle({label: { size: 14, color: 0xfaf087, haloColor: 0x8f6525, align: 'right'}})
+				//cityName.setLabel(city.Name);
+				
+				var str = "<table style=\"width:375px;\"><tbody>";
+			  
+				for (var i = 0; i < city.Forecast.length; ++i)
+				{
+					var imgIcon = (city.Forecast[i].Precipitation < 9) ? city.Forecast[i].Precipitation : city.Forecast[i].Cloudiness,
+						pres = Math.round((city.Forecast[i].PressureMax + city.Forecast[i].PressureMin) / 2),
+						rel = Math.round((city.Forecast[i].HumidityMax + city.Forecast[i].HumidityMin) / 2),
+						date = new Date(Number(city.Forecast[i].DateTime.replace("/Date(","").replace(")/","")));
+				  
+					str += "<tr><td style=\"width:70px\">" + weekdays[date.getDay()] + ", " + tods[city.Forecast[i].TimeOfDay] + "</td><td style=\"width:80px;text-align:center;\">" + (city.Forecast[i].TemperatureMin > 0 ? "+" : '') + city.Forecast[i].TemperatureMin + '..' + (city.Forecast[i].TemperatureMax > 0 ? "+" : '') + city.Forecast[i].TemperatureMax + "</td><td style=\"width:20px;text-align:right;\">" + dir[city.Forecast[i].WindDirection] + "</td><td style=\"width:80px;text-align:center;\">" + city.Forecast[i].WindMin + '-' + city.Forecast[i].WindMax + ' м/с' + "</td><td style=\"width:70px;text-align:center;\">" + pres + " м.р.с.</td><td style=\"width:35px;text-align:center;\">" + rel + "%</td><td style=\"width:20px;\"><img style=\"width:16px;height:16px;\" src=\"" + params.imagesHost + "16/" + imgIcon + ".png\"></td></tr>";
+				}
+			  
+				str += "</table></tbody>";
+				iconTexts[icon].push({text: str, name: city.Name});
+			}
+			
+			for (var i = 0; i < tInfo.length; i++)
+			{
+				var tempContainer = weatherParent.addObject();
+				tempContainer.setStyle({label: { size: 14, color: textColors[i], align: 'left'}});
+				var objs = tempContainer.addObjects(tGeometries[i]);
+				for (var o = 0; o < objs.length; o++)
+				{
+					(function(info){
+						objs[o].setLabel(info);
+					})(tInfo[i][o]);
+				}
+			}
+			
+			for (var i = 0; i < 9; i++)
+			{
+				var objs = iconContainters[i].addObjects(iconGeometries[i]);
+				for (var o = 0; o < objs.length; o++)
+				{
+					(function(info){
+						objs[o].enableHoverBalloon(function(o)
+						{
+							return "<span style=\"font-size:14px; font-weight:bold; color:#000;\">" + info.name + "</span><br/>" + info.text;
+						})
+					})(iconTexts[i][o]);
+				}
+			}
+			
+			var objs = cityContainter.addObjects(cityGeometries);
+			for (var o = 0; o < objs.length; o++)
+				{
+					(function(name){
+						objs[o].setLabel(name);
+					})(cityNames[o]);
+				}
 		}
 	  
 		function showWind(windParent, city)
@@ -164,7 +214,7 @@
 			}
 		  
 			elem.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]})
-			elem.setStyle({marker:{image:'http://mapstest.kosmosnimki.ru/api/img/weather/wind.png', center:true, angle:String(angle), scale: String(scale), color: color}})
+			elem.setStyle({marker:{image: params.imagesHost + 'wind.png', center:true, angle:String(angle), scale: String(scale), color: color}})
 			//elem.setStyle({marker:{angle:String(angle), scale: String(scale), color: color}});
 		  
 			var weekdays = ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'],
@@ -218,8 +268,9 @@
 				_serverResponce = response;
 				
 				weathers.setVisible(false);
-				for (var i = 0; i < response.Result.length; ++i)
-					showWeather(weathers, response.Result[i])
+				//for (var i = 0; i < response.Result.length; ++i)
+				showWeather(weathers, response.Result)
+				
 				weathers.setVisible(weathers.visibleFlag);
 				
 				winds.setVisible(false);
