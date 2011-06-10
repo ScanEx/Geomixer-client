@@ -424,7 +424,10 @@ attrsTable.prototype.getLength = function()
 	sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&count=true&layer=" + this.layerName + query, function(response)
 	{
 		if (!parseResponse(response))
+		{
+			_this.hideLoading();
 			return;
+		}
 		
 		_this.total = response.Result;
 		
@@ -448,7 +451,10 @@ attrsTable.prototype.getData = function()
 	sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + this.layerName + query + offset + limit + sortAttr + sortOrder, function(response)
 	{
 		if (!parseResponse(response))
+		{
+			_this.hideLoading();
 			return;
+		}
 		
 		response.Result.offset = currOffset;
 		_this.drawData(response.Result)
@@ -499,7 +505,7 @@ attrsTable.prototype.drawData = function(data, savedData)
 	
 	removeChilds(this.tableCount)
 	
-	if (resp.values.length)
+	if (resp.values && resp.values.length)
 		_(this.tableCount, [_t((this.offset + 1) + '-' + (Math.min(this.offset + this.limit, this.total))), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(" + this.total + ")")]);
 	else
 		_(this.tableCount, [_t("0-0"), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(0)")]);
@@ -665,7 +671,7 @@ attrsTable.prototype.drawTableData = function(data)
 	else
 	{
 		// отчет пустой, нужно сказать об этом
-		return [_tr([_td([_t(_gtxt("Нет данных"))], [['css','textAlign','center']])])]
+		//return [_tr([_td([_t(_gtxt("Нет данных"))], [['css','textAlign','center'], ['attr', 'colspan', this.fieldsCount]])])];
 	}
 }
 
