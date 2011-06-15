@@ -3326,7 +3326,7 @@ function createFlashMapInternal(div, layers, callback)
 				"img",
 				{
 					src: apiBase + "img/geomixer_logo_api.png",
-					title: KOSMOSNIMKI_LOCALIZED("© 2007-2010 ИТЦ «СканЭкс»", "(c) 2007-2010 RDC ScanEx"),
+					title: KOSMOSNIMKI_LOCALIZED("© 2007-2011 ИТЦ «СканЭкс»", "(c) 2007-2011 RDC ScanEx"),
 					width: 130,
 					height: 34
 				},
@@ -4804,7 +4804,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						osmEmbed.setAsBaseLayer(mapString);
 						setOSMEmbed(osmEmbed);
 					}
-					map.setCopyright("<a href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2010 " + KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>");
+					map.setCopyright("<a href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>");
 
 					var setCopyright = function(o, z1, z2, text)
 					{
@@ -4814,17 +4814,17 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						return c;
 					}
 
-					if (mapLayer)
+					if (mapLayers.length > 0)
 					{
 						setCopyright(
-							mapLayer, 
+							mapLayers[0], 
 							1, 
 							9, 
 							"<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>"
 						);
 
 						var obj = setCopyright(
-							mapLayer,
+							mapLayers[0],
 							9,
 							20,
 							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>"
