@@ -25,6 +25,7 @@ _translationsHash.hash["eng"] = {
 	"Загрузить данные" : "Load data",
 		"WFS сервер" : "WFS server",
 		"WMS сервер" : "WMS server",
+		"Кадастровые данные" : "Cadastre data",
 	"Ссылка на карту" : "Link to the map",
 	"Код для вставки" : "Embed code",
 	"Печать" : "Print",
