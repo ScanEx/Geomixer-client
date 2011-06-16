@@ -2627,6 +2627,64 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		
 		if (div)
 			shownProperties.push({name: _gtxt("Разрешить поиск"), elem: boxSearch});
+			
+		//редактирование полей слоя
+		var boxManualAttributes = _checkbox(false, 'checkbox');
+		var addAttribute = makeLinkButton("Добавить аттрибут");
+		addAttribute.onclick = function()
+		{
+			
+		}
+		
+		//events: newAttribute, deleteAttribute, change
+		var attrModel = (function()
+		{
+			return {
+				addAttribute: function(type, name){},
+				changeAttribute: function(idx, type, name){},
+				deleteAttribute: function(idx){},
+				getAttribute: function(idx){},
+				getCount: function(){}
+			}
+		})();
+		attrModel.TYPES = 
+			{
+				'double': {view: 'Double', server: 'double'}, 
+				'string': {view: 'String', server: 'string'}
+			};
+		
+		var attrView = (function()
+		{
+			var _parent = null;
+			var _model = null;
+			var _trs = [];
+			return {
+				init: function(parent, model)
+				{
+					_parent = parent;
+					_model = model;
+					$(_model).bind('newAttribute', function(idx)
+					{
+						
+					});
+					
+					$(_model).bind('deleteAttribute', function()
+					{
+						
+					});
+					
+					$(_model).bind('change', function()
+					{
+						
+					});					
+				}
+			}
+		})();
+		
+		//_title(boxManualAttributes, "Задать аттрибуты вручную");
+		
+		var createLayerFields = _tr([_td([boxManualAttributes, _span([_t("Задать аттрибуты вручную")]), _br(), addAttribute], [['attr', 'colspan', 2]])]);
+		shownProperties.push({tr: createLayerFields});
 	}
 	else
 	{
