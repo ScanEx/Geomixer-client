@@ -566,7 +566,9 @@ CoverControl.prototype.loadState = function( data )
 	this.currCloudsIndex = data.currCloudsIndex;
 	
 	$("#MapCalendar .ui-slider").slider("value", data.currCloudsIndex );
-	_title($("#MapCalendar .ui-slider")[0].firstChild, this.cloudsIndexes[data.currCloudsIndex].name);
+	
+	if (typeof this.cloudsIndexes[data.currCloudsIndex] !== 'undefined')
+		_title($("#MapCalendar .ui-slider")[0].firstChild, this.cloudsIndexes[data.currCloudsIndex].name);
 }
 
 /** Перефильтровывает слои при смене дат
@@ -602,7 +604,10 @@ CoverControl.prototype._updateStyles = function()
 		this.currCloudsIndex = this._initCloudIndex;
 		
 	this.cloudsCount = Math.round(cloudsCount / 2);
-	this.commonStyles = commonStyles;	
+	this.commonStyles = commonStyles;
+	
+	if (typeof this.cloudsIndexes[this.currCloudsIndex] !== 'undefined' && $("#MapCalendar .ui-slider").length > 0)
+		_title($("#MapCalendar .ui-slider")[0].firstChild, this.cloudsIndexes[this.currCloudsIndex].name);
 }
 
 CoverControl.prototype._updateLayers = function()
@@ -1382,7 +1387,61 @@ var ModisImagesProvider = function( params )
 */
 var FireSpotRenderer = function( params )
 {
-	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minZoom: 1, maxZoom: 17 }, params);
+	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minZoom: 1, maxZoom: 17, customStyleProvider: null }, params);
+	
+	var _verificationControl = (function(parentDivId)
+	{
+		var _verificationResults = {};
+		var _parentDiv = $("#" + parentDivId);
+		var _id = null;
+		
+		var updateInfo = function()
+		{
+			$('#infoDiv', _parentDiv).empty();
+			if (_id in _verificationResults)
+			{
+				var infoDiv = _div([_t("Текущий выбор: " + _verificationResults[_id])], [['attr', 'id', 'infoDiv']]);
+				_parentDiv.append($(infoDiv));
+			}
+		}
+		
+		var sendVerification = function(id, res)
+		{
+			var url = "http://new.test2.kosmosnimki.ru/DBWebProxy.ashx?Type=SetFireVote&HotSpotID=" + id + "&Vote=" + res;
+			sendCrossDomainJSONRequest(url, function(ret){
+				_verificationResults[id] = res;
+				updateInfo();
+			});
+		}
+			
+		return {
+			showID: function(hotspotId) 
+			{
+				if (_parentDiv.length === 0) return;
+				
+				_id = hotspotId;
+				// var parent = $('#' + _parentDivId);
+				_parentDiv.empty();
+				var trueButton = makeButton("Горит");
+				trueButton.onclick = function(){ sendVerification(hotspotId, 1); };
+				
+			    var falseButton = makeButton("Не горит");
+				falseButton.onclick = function(){ sendVerification(hotspotId, 2); };
+				
+			    var cloudButton = makeButton("Облака");
+				cloudButton.onclick = function(){ sendVerification(hotspotId, 3); };
+				
+			    var unknownButton = makeButton("Непонятно");
+				unknownButton.onclick = function(){ sendVerification(hotspotId, 4); };
+				
+				var buttonsDiv = _div([trueButton, falseButton, cloudButton, unknownButton]);
+				
+				_parentDiv.append($(buttonsDiv));
+				
+				updateInfo();
+			}
+		}
+	})(_params.verificationContainerID);
 	
 	var _firesObj = null;
 	var _balloonProps = {};
@@ -1405,9 +1464,9 @@ var FireSpotRenderer = function( params )
 		else
 			imageNames = [ _params.fireIconsHost + "fire_weak.png", _params.fireIconsHost + "fire.png", _params.fireIconsHost + "fire_strong.png" ];
 		
-		weak.setStyle({ marker: { image: imageNames[0], center: true } });
+		weak.setStyle({ marker: { image: imageNames[0], center: true} });
 		weak.setZoomBounds(_params.minZoom, _params.maxZoom);
-		medium.setStyle({ marker: { image: imageNames[1], center: true } });
+		medium.setStyle({ marker: { image: imageNames[1], center: true} });
 		medium.setZoomBounds(_params.minZoom, _params.maxZoom);
 		strong.setStyle({ marker: { image: imageNames[2], center: true } });
 		strong.setZoomBounds(_params.minZoom, _params.maxZoom);
@@ -1434,7 +1493,8 @@ var FireSpotRenderer = function( params )
 			else
 				objContainer = medium;
 				
-			_obj[key].arr.push( {'geometry':{ type: "POINT", coordinates: [a.x, a.y] }} );
+			var objProperties = a.hotspotId ? {hotspotId: a.hotspotId } : null;
+			_obj[key].arr.push( {geometry: { type: "POINT", coordinates: [a.x, a.y] }, properties: objProperties, src: a} );
 			_obj[key].balloonProps.push( $.extend({}, a.balloonProps, addBallonProps) );
 		}
 		for (var key in _obj)
@@ -1446,6 +1506,11 @@ var FireSpotRenderer = function( params )
 				{
 					_balloonProps[arr[i].objectId] = ph.balloonProps[i];
 				}
+				
+				//кастомные стили для каждого объекта
+				if (_params.customStyleProvider)
+					for (var i = 0; i < arr.length; i++)
+						arr[i].setStyle(_params.customStyleProvider(ph.arr[i].src));				
 			}
 		}
 		
@@ -1463,6 +1528,37 @@ var FireSpotRenderer = function( params )
 		weak.enableHoverBalloon(ballonHoverFunction);
 		medium.enableHoverBalloon(ballonHoverFunction);
 		strong.enableHoverBalloon(ballonHoverFunction);
+		
+		if (typeof _params.verificationContainerID !== 'undefined')
+		{
+			weak.setHandler('onClick', function(o) {
+			  _verificationControl.showID(o.properties.hotspotId); 
+			});
+			medium.setHandler('onClick', function(o) { _verificationControl.showID(o.properties.hotspotId); });
+			strong.setHandler('onClick', function(o) { _verificationControl.showID(o.properties.hotspotId); });
+		}
+		
+		// weak.setHandler('onClick', function(o)
+		// {
+			// var balloon = globalFlashMap.addBalloon();
+			// var coords = o.getGeometry().coordinates;
+			// balloon.setPoint(coords[0], coords[1]);
+			
+			// var s = "";
+			// s += '<input type="button" value="Горит"></input>';
+			// s += '<input type="button" value="Не горит"></input>';
+			
+			// // var trueButton = makeButton("Горит");
+			// // var falseButton = makeButton("Не горит");
+			// // var cloudButton = makeButton("Облака");
+			// // var unknownButton = makeButton("Непонятно");
+			
+			// // var buttonsDiv = _div([trueButton, falseButton, cloudButton, unknownButton]);
+			
+			// //$(balloon.div).append($(buttonsDiv));
+			// //_fixedIDs[o.objectId] = true;
+			// //balloon.resize();
+		// });
 	}
 	
 	this.setVisible = function(flag)
@@ -1765,7 +1861,7 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 	if ( this._firesOptions.fires ) 
 		this.addDataProvider( "firedots",
 							  new FireSpotProvider( {host: this._firesOptions.firesHost} ),
-							  new FireSpotRenderer( {fireIconsHost: this._firesOptions.fireIconsHost} ),
+							  new FireSpotRenderer( {fireIconsHost: this._firesOptions.fireIconsHost, verificationContainerID: this._firesOptions.verificationContainerID} ),
 							  { isVisible: this._firesOptions.firesInit } );
 							  
 	if ( this._firesOptions.burnt ) 
@@ -1894,7 +1990,7 @@ MapCalendar.prototype.loadState = function( data )
 	if ( data.cover || data.fires )
 		this.setDates();
 		
-	if (this.layerFilters)
+	if (data.layerFilters)
 		this.layerFilters.update();
 }
 
