@@ -525,7 +525,8 @@ function loadMap(state)
 					for (var k = 0; k < map.layers.length; k++)
 						window.defaultLayersVisibility[map.layers[k].properties.name] = typeof map.layers[k].isVisible != 'undefined' ? map.layers[k].isVisible : false;
 				
-				data.properties.hostName = getAPIHost();
+				//data.properties.hostName = getAPIHost();
+				data.properties.hostName = window.serverBase.slice(7).slice(0, -1); //основная карта всегда загружена с того-же сайта, что и серверные скрипты
 				
 				_mapHelper.mapProperties = data.properties;
 				_mapHelper.mapTree = data;
@@ -739,7 +740,7 @@ function loadMap(state)
 		}); //loadModule
 	}
 
-	var success = createFlashMap($$("flash"), globalMapName, mapCallback);
+	var success = createFlashMap($$("flash"), window.serverBase, globalMapName, mapCallback);
 	
 	if (!success)
 		$$("noflash").style.display = "block";
