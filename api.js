@@ -3158,7 +3158,11 @@ function createFlashMapInternal(div, layers, callback)
 								texts[obj.copyright] = true;
 							}
 						}
-						var text = "";
+						
+						//первым всегда будет располагатьс€ копирайт —канЁкс. 
+						//≈сли реализовать возможность задавать пор€док отображени€ копирайтов, можно тоже самое сделать более культурно...
+						var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + KOSMOSNIMKI_LOCALIZED("&laquo;—канЁкс&raquo;", "RDC ScanEx") + "</a>";
+						
 						for (var key in texts)
 						{
 							if (text != "")
@@ -4763,12 +4767,14 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					
 					var overlayLayerNames = getBaseMapParam("overlayLayerID", KOSMOSNIMKI_LOCALIZED("FFE60CFA7DAF498381F811C08A5E8CF5,C547CFF462634F03BCE939275C339D5F", "BCCCE2BDC9BF417DACF27BB4D481FAD9,C547CFF462634F03BCE939275C339D5F")).split(',');
 					var isAnyExists = false;
+					var overlayLayers = [];
 					for (var i = 0; i < overlayLayerNames.length; i++)
 						if (overlayLayerNames[i] in map.layers)
 						{
 							isAnyExists = true;
 							var overlayLayer = map.layers[overlayLayerNames[i]];
 							overlayLayer.setAsBaseLayer(hybridString);
+							overlayLayers.push(overlayLayer);
 						}
 					
 					if (isAnyExists)
@@ -4804,7 +4810,6 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						osmEmbed.setAsBaseLayer(mapString);
 						setOSMEmbed(osmEmbed);
 					}
-					map.setCopyright("<a href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + KOSMOSNIMKI_LOCALIZED("&laquo;—канЁкс&raquo;", "RDC ScanEx") + "</a>");
 
 					var setCopyright = function(o, z1, z2, text)
 					{
@@ -4825,12 +4830,33 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 
 						var obj = setCopyright(
 							mapLayers[0],
-							9,
+							10,
 							20,
 							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + KOSMOSNIMKI_LOCALIZED("«јќ &laquo;√еоцентр- онсалтинг&raquo;", "Geocentre Consulting") + "</a>"
 						);
 						obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
 					}
+					
+					//те же копирайты, что и дл€ карт
+					if (overlayLayers.length > 0)
+					{
+						setCopyright(
+								overlayLayers[0], 
+								1, 
+								9, 
+								"<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>"
+						);
+						
+						var obj = setCopyright(
+							overlayLayers[0],
+							10,
+							20,
+							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + KOSMOSNIMKI_LOCALIZED("«јќ &laquo;√еоцентр- онсалтинг&raquo;", "Geocentre Consulting") + "</a>"
+						);
+						
+						obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
+					}
+
 
 					if ( satelliteLayers.length > 0 )
 					{

@@ -131,6 +131,8 @@
 				}
 			  
 				str += "</table></tbody>";
+				str += "<div style=\"margin-top:5px; font-size:10px; text-align:right; font-family: sans-serif;\">По данным <a href=\"http://gismeteo.ru\" target=\"_blank\">Gismeteo.ru</a></div>";
+				
 				iconTexts[icon].push({text: str, name: city.Name});
 			}
 			
@@ -337,6 +339,7 @@
 		_map.allControls.div.appendChild(aroundWeather);
 		
 		weathers.visibleFlag = !params.initWeather;
+		weathers.setVisible(!weathers.visibleFlag);
 		aroundWeather.onclick();
 	  
 		var aroundWind = newElement(
@@ -394,6 +397,7 @@
 			));
 			
 		winds.visibleFlag = !params.initWind;
+		winds.setVisible(!winds.visibleFlag);
 		aroundWind.onclick();
 	  
 		_map.allControls.div.appendChild(aroundWind);
