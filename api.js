@@ -861,7 +861,10 @@ function createFlashMapInternal(div, layers, callback)
 					this.getBestZ(minx, miny, maxx, maxy)
 				);
 			}
-			FlashMapObject.prototype.zoomBy = function(dz, useMouse) { flashDiv.zoomBy(-dz, useMouse); clearHoverBalloons(); }
+			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
+				hideHoverBalloons(true);
+				flashDiv.zoomBy(-dz, useMouse);
+			}
 			FlashMapObject.prototype.freeze = function() { flashDiv.freeze(); }
 			FlashMapObject.prototype.unfreeze = function() { flashDiv.unfreeze(); }
 			FlashMapObject.prototype.setCursor = function(url, dx, dy) { flashDiv.setCursor(url, dx, dy); }
@@ -1127,13 +1130,28 @@ function createFlashMapInternal(div, layers, callback)
 			var lastHoverBalloonId = false;
 			var fixedHoverBalloons = {};
 
-			var clearHoverBalloons = function()
+			var showHoverBalloons = function()
 			{
 				for (var key in fixedHoverBalloons)
 				{
 					var balloon = fixedHoverBalloons[key];
-					balloon.remove();
-					delete fixedHoverBalloons[key];
+					balloon.setVisible(true);
+				}
+			}
+			var hideHoverBalloons = function(flag)
+			{
+				for (var key in fixedHoverBalloons)
+				{
+					var balloon = fixedHoverBalloons[key];
+					balloon.setVisible(false);
+				}
+				if(flag) {
+					
+					var timeoutShowHoverBalloons = setTimeout(function()
+					{
+						clearTimeout(timeoutShowHoverBalloons);
+						showHoverBalloons();
+					}, 1000);
 				}
 			}
 
