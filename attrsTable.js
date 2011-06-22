@@ -693,6 +693,18 @@ attrsTable.prototype.editObject = function(row)
 	
 	createButton.onclick = function()
 	{
+		var properties = {};
+		$(".inputStyle", canvas).each(function(index, elem)
+		{
+			properties[elem.rowName] = $(elem).val();
+		});
+		
+		var objects = JSON.stringify([{action: 'update', properties: properties, id: row[0]}]);
+		
+		sendCrossDomainJSONRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=" + _this.layerName + "&objects=" + encodeURIComponent(objects), function(response)
+		{
+			alert(response);
+		});
 	}
 	
 	var resizeFunc = function(event, ui)
@@ -795,7 +807,7 @@ attrsTable.prototype.editObject = function(row)
 				}
 				else
 				{
-					var input = _input(null,[['attr','value',geometryRow[i]],['css','width','200px'],['dir','className','inputStyle']]);
+					var input = _input(null,[['attr','value',geometryRow[i]],['css','width','200px'],['dir','className','inputStyle'], ['dir', 'rowName', _this.columnsNames[i - 1]]]);
 					
 					_(tdValue, [input]);
 					

@@ -571,126 +571,126 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	if (!layerManagerFlag && !globalFlashMap.layers[elem.name].isVisible)
 		$(spanParent).addClass("invisible")
 
-	var editor = makeLinkButton(_gtxt("Редактировать")),
-		remove = makeLinkButton(_gtxt("Удалить")),
-		access = makeLinkButton(_gtxt("Права доступа")),
-		attrs = makeLinkButton(_gtxt("Таблица атрибутов")),
-		download = makeLinkButton(_gtxt("Скачать")),
-		copyStyle = makeLinkButton(_gtxt("Копировать стиль")),
-		pasteStyle = makeLinkButton(_gtxt("Применить стиль"));
+	// var editor = makeLinkButton(_gtxt("Редактировать")),
+		// remove = makeLinkButton(_gtxt("Удалить")),
+		// access = makeLinkButton(_gtxt("Права доступа")),
+		// attrs = makeLinkButton(_gtxt("Таблица атрибутов")),
+		// download = makeLinkButton(_gtxt("Скачать")),
+		// copyStyle = makeLinkButton(_gtxt("Копировать стиль")),
+		// pasteStyle = makeLinkButton(_gtxt("Применить стиль"));
 	
-	editor.onclick = function(e)
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
+	// editor.onclick = function(e)
+	// {
+		// _contextClose();
+		// $(this).removeClass('buttonLinkHover');
 		
-		var div;
+		// var div;
 			
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		_mapHelper.createLayerEditor(div, 0, div.properties.content.properties.styles.length > 1 ? -1 : 0);
+		// if (elem.LayerID)
+			// div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
+		// else
+			// div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
+		// _mapHelper.createLayerEditor(div, 0, div.properties.content.properties.styles.length > 1 ? -1 : 0);
 		
-		//_mapHelper.createLayerEditor(span.parentNode.parentNode, 0, span.parentNode.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
-	}
+		// //_mapHelper.createLayerEditor(span.parentNode.parentNode, 0, span.parentNode.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
+	// }
 	
-	remove.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
+	// remove.onclick = function()
+	// {
+		// _contextClose();
+		// $(this).removeClass('buttonLinkHover');
 		
-		_queryMapLayers.removeLayer(elem.name)
+		// _queryMapLayers.removeLayer(elem.name)
 		
-		var div;
+		// var div;
 			
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
+		// if (elem.LayerID)
+			// div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
+		// else
+			// div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
 		
-		var treeElem = _mapHelper.findTreeElem(div).elem,
-			node = div.parentNode,
-			parentTree = node.parentNode;
+		// var treeElem = _mapHelper.findTreeElem(div).elem,
+			// node = div.parentNode,
+			// parentTree = node.parentNode;
 		
-		_mapHelper.removeTreeElem(div);
+		// _mapHelper.removeTreeElem(div);
 
-		node.removeNode(true);
+		// node.removeNode(true);
 		
-		_abstractTree.delNode(null, parentTree, parentTree.parentNode);
+		// _abstractTree.delNode(null, parentTree, parentTree.parentNode);
 		
-		_mapHelper.updateUnloadEvent(true);
-	}
+		// _mapHelper.updateUnloadEvent(true);
+	// }
 	
-	access.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
+	// access.onclick = function()
+	// {
+		// _contextClose();
+		// $(this).removeClass('buttonLinkHover');
 		
-		if (elem.LayerID)
-			_layerSecurity.getRights(elem.LayerID, elem.title);
-		else if (elem.MultiLayerID)
-			_multiLayerSecurity.getRights(elem.MultiLayerID, elem.title);
-	}
+		// if (elem.LayerID)
+			// _layerSecurity.getRights(elem.LayerID, elem.title);
+		// else if (elem.MultiLayerID)
+			// _multiLayerSecurity.getRights(elem.MultiLayerID, elem.title);
+	// }
 	
-	attrs.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
+	// attrs.onclick = function()
+	// {
+		// _contextClose();
+		// $(this).removeClass('buttonLinkHover');
 		
-		_attrsTableHash.create(elem.name)
-	}
+		// _attrsTableHash.create(elem.name)
+	// }
 	
-	download.onclick = function()
-	{
-		var area = getOffsetRect(this);
+	// download.onclick = function()
+	// {
+		// var area = getOffsetRect(this);
 		
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
+		// _contextClose();
+		// $(this).removeClass('buttonLinkHover');
 		
-		_layersTree.downloadVectorLayer(elem.name, area, elem.hostName)
-	}
+		// _layersTree.downloadVectorLayer(elem.name, area, elem.hostName)
+	// }
 	
-	copyStyle.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
+	// copyStyle.onclick = function()
+	// {
+		// _contextClose();
+		// $(this).removeClass('buttonLinkHover');
 		
-		_this.copiedStyle = {type: elem.GeometryType, style: spanParent.parentNode.properties.content.properties.styles};
-	}
+		// _this.copiedStyle = {type: elem.GeometryType, style: spanParent.parentNode.properties.content.properties.styles};
+	// }
 	
-	pasteStyle.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
+	// pasteStyle.onclick = function()
+	// {
+		// _contextClose();
+		// $(this).removeClass('buttonLinkHover');
 		
-		if (!_this.copiedStyle)
-		{
-			showErrorMessage(_gtxt("Не выбран стиль"), true)
+		// if (!_this.copiedStyle)
+		// {
+			// showErrorMessage(_gtxt("Не выбран стиль"), true)
 			
-			return;
-		}
+			// return;
+		// }
 		
-		if (_this.copiedStyle.type != elem.GeometryType)
-		{
-			showErrorMessage(_gtxt("Невозможно применить стиль к другому типу геометрии"), true)
+		// if (_this.copiedStyle.type != elem.GeometryType)
+		// {
+			// showErrorMessage(_gtxt("Невозможно применить стиль к другому типу геометрии"), true)
 			
-			return;
-		}
+			// return;
+		// }
 		
-		var newStyles = _this.copiedStyle.style,
-			div = spanParent.parentNode;
+		// var newStyles = _this.copiedStyle.style,
+			// div = spanParent.parentNode;
 		
-		// если слой еще не создан
-		if (!globalFlashMap.layers[elem.name].objectId)
-			$(box).trigger("click")
+		// // если слой еще не создан
+		// if (!globalFlashMap.layers[elem.name].objectId)
+			// $(box).trigger("click")
 					
-		div.properties.content.properties.styles = newStyles;
+		// div.properties.content.properties.styles = newStyles;
 		
-		_mapHelper.updateMapStyles(newStyles, elem.name);
+		// _mapHelper.updateMapStyles(newStyles, elem.name);
 		
-		_mapHelper.updateTreeStyles(newStyles, div);
-	}
+		// _mapHelper.updateTreeStyles(newStyles, div);
+	// }
 	
 	var actionsCanvas = null,
 		attachMenuEvents = function()

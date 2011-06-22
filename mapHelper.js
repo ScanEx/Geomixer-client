@@ -2633,24 +2633,42 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		var addAttribute = makeLinkButton("Добавить аттрибут");
 		addAttribute.onclick = function()
 		{
-			
+			attrModel.addAttribute(attrModel.TYPES.STRING, "NewAttribute");
 		}
 		
-		//events: newAttribute, deleteAttribute, change
+		//events: newAttribute, delAttribute, updateAttribute
 		var attrModel = (function()
 		{
+			var _attributes = [];
 			return {
-				addAttribute: function(type, name){},
-				changeAttribute: function(idx, type, name){},
-				deleteAttribute: function(idx){},
-				getAttribute: function(idx){},
-				getCount: function(){}
+				addAttribute: function(type, name)
+				{
+					_attributes.push({type: type, name: name});
+					$(this).trigger('newAttribute');
+				},
+				changeName: function(idx, newName)
+				{
+					_attributes[idx].name = newName;
+					$(this).trigger('updateAttribute');
+				},
+				changeType: function(idx, newType)
+				{
+					_attributes[idx].type = newType;
+					$(this).trigger('updateAttribute');
+				},
+				deleteAttribute: function(idx)
+				{
+					delete _attributes[idx];
+					$(this).trigger('delAttribute');
+				},
+				getAttribute: function(idx){ return _attributes[idx]; },
+				getCount: function(){ return _attributes.length; }
 			}
 		})();
 		attrModel.TYPES = 
 			{
-				'double': {view: 'Double', server: 'double'}, 
-				'string': {view: 'String', server: 'string'}
+				DOUBLE: {user: 'Double', server: 'double'}, 
+				STRING: {user: 'String', server: 'string'}
 			};
 		
 		var attrView = (function()
@@ -2658,6 +2676,61 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			var _parent = null;
 			var _model = null;
 			var _trs = [];
+			
+			var createTypeSelector = function()
+			{
+				var s = _select();
+				for (var type in attrModel.TYPES)
+					$(s).append(_option([_t(attrModel.TYPES[type].user)], [['dir', 'attrType', attrModel.TYPES[type]], ['attr', 'id', attrModel.TYPES[type].server]]));
+				return s;
+			}
+			
+			var redraw = function()
+			{
+				if (!_model) return;
+				
+				$(_parent).empty();
+				_trs = [];
+				
+				for (var i = 0; i < _model.getCount(); i++)
+				{
+					var attr = _model.getAttribute(i);
+					if (!attr) continue;
+					
+					var typeSelector = createTypeSelector();
+					typeSelector.attrIdx = i;
+					$('#' + attr.type.server, typeSelector).attr('selected', 'selected');
+					
+					$(typeSelector).bind('change', function()
+					{
+						var attrType = $('option:selected', this)[0].attrType;
+						_model.changeType(this.attrIdx, attrType);
+					});
+					
+					var nameSelector = _input(null, [['attr', 'class', 'customAttrNameInput']]);
+					
+					$(nameSelector).attr({attrIdx: i}).val(attr.name);
+					
+					$(nameSelector).bind('change', function()
+					{
+						var idx = $(this).attr('attrIdx');
+						var name = $(this).val();
+						
+						_model.changeName(idx, name);
+					});
+					
+					var deleteIcon = makeLinkButton("Удалить");
+					deleteIcon.attrIdx = i;
+					deleteIcon.onclick = function()
+					{
+						_model.deleteAttribute(this.attrIdx);
+					}
+					
+					_trs.push(_tr([_td([nameSelector]), _td([typeSelector]), _td([deleteIcon])]));
+				}
+				
+				$(_parent).append(_table([_tbody(_trs)]));
+			}
 			return {
 				init: function(parent, model)
 				{
@@ -2665,25 +2738,29 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 					_model = model;
 					$(_model).bind('newAttribute', function(idx)
 					{
-						
+						redraw();
 					});
 					
-					$(_model).bind('deleteAttribute', function()
+					$(_model).bind('delAttribute', function()
 					{
-						
+						redraw();
 					});
 					
-					$(_model).bind('change', function()
+					$(_model).bind('updateAttribute', function()
 					{
-						
+						//alert('change');
 					});					
 				}
 			}
 		})();
 		
+		
 		//_title(boxManualAttributes, "Задать аттрибуты вручную");
 		
-		var createLayerFields = _tr([_td([boxManualAttributes, _span([_t("Задать аттрибуты вручную")]), _br(), addAttribute], [['attr', 'colspan', 2]])]);
+		var attrViewParent = _div();
+		var createLayerFields = _tr([_td([boxManualAttributes, _span([_t("Задать аттрибуты вручную")]), _br(), addAttribute, _br(), attrViewParent], [['attr', 'colspan', 2]])]);
+		attrView.init(attrViewParent, attrModel);
+		
 		shownProperties.push({tr: createLayerFields});
 	}
 	else
