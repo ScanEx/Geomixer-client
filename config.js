@@ -1,10 +1,13 @@
 var defaultMapID = 'DefaultMap';
-var mapHostName  = false;
-var apiKey       = false;
-var serverBase   = false;
-var copyright    = false;
-var pageTitle    = false;
-var useCatalog   = false;
+// var mapHostName = 'maps.kosmosnimki.ru';
+var mapHostName = false;
+var apiKey = '33959EF7AFB4FB92EEC2E7B73AE8458B';
+// var serverBase = 'http://mapstest.kosmosnimki.ru/';
+var serverBase = 'http://mapstest.kosmosnimki.ru/';
+// var serverBase = 'http://localhost/';
+var copyright = false;
+var pageTitle = false;
+var useCatalog = true;
 
 //var mapsSite = true;
 //var apikeySendHosts = false;
@@ -25,3 +28,11 @@ var gmxViewerUI = {
 	hideLogo     : false // не показывать лого в шапке
 	//logoImage  : "img/geomixer_transpar.png" //какую картинку показывать в качестве лого
 }
+
+//var gmxJSHost = 'http://maps.kosmosnimki.ru/api/';
+//var gmxPlugins = { useWikiPlugin: true };
+var gmxPlugins =  
+{
+	// TestMapplets: {file: 'TestMappletsPlugin.js', module: 'TestMappletsPlugin'}
+	FiresMapplet2: {file: 'FiresMapplet2.js', module: 'FiresMapplet2'}
+};

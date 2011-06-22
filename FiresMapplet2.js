@@ -27,107 +27,150 @@ var testFires = function()
 	* <i> {Bool} onlyClusters </i> Возвращать только кластеры без точек
 	* <i> {String} description </i> ID текста для описания в _translation_hash. Default: firesWidget.FireSpotClusters.Description
 	*/
-	var FireSpotClusterProvider = function( params )
-	{
-		var _params = $.extend({ host: 'http://sender.kosmosnimki.ru/', onlyPoints: false, onlyClusters: false, onlyDialyClusters: false, description: "firesWidget.FireSpotClusters.Description" }, params );
+	var FireSpotClusterProvider = (function(){
+	
+	    //этот кэш хранит уже обработанные данные с построенными границами кластеров и т.п.
+		var _cache = {};
 		
-		this.getDescription = function() { return _gtxt(_params.description); }
-		this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
+		var _processResponce = function(data)
 		{
-			var urlBbox = bbox ? '&Polygon=POLYGON((' + bbox.minX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.minY + '))' : "";
-			//var urlBbox = '&Polygon=n';
-			var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClustersPoints&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
-			
-			IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
+			if (data.Result != 'Ok')
 			{
-				if (data.Result != 'Ok')
-				{
-					onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
-					return;
-				}
+				//onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
+				return data.Result;
+			}
+			
+			var resArr = [];
+			var clusters = {};
+			var dailyClusters = {};
+			var clusterCentroids = {};
+			for ( var d = 0; d < data.Response.length; d++ )
+			{
+				var a = data.Response[d];
+				var hotSpot = {hotspotId: a[7], x: a[1], y: a[0], date: a[3], category: a[6] < 50 ? 0 : (a[4] < 100 ? 1 : 2), balloonProps: {"Время": a[4] + "&nbsp;(Greenwich Mean Time)", "Вероятность": a[5]} };
+				resArr.push(hotSpot);
+				var clusterID = 'id' + a[2];
 				
-				var resArr = [];
-				var clusters = {};
-				var dailyClusters = {};
-				for ( var d = 0; d < data.Response.length; d++ )
+				if (a[2] >= 0)
 				{
-					var a = data.Response[d];
-					var hotSpot = {hotspotId: a[7], x: a[1], y: a[0], date: a[3], category: a[6] < 50 ? 0 : (a[4] < 100 ? 1 : 2), balloonProps: {"Время": a[4] + "&nbsp;(Greenwich Mean Time)", "Вероятность": a[5]} };
-					resArr.push(hotSpot);
-					var clusterID = 'id' + a[2];
-					
-					if (a[2] >= 0)
+					if (typeof clusters[clusterID] === 'undefined')
 					{
-						if (typeof clusters[clusterID] === 'undefined')
-						{
-							clusters[clusterID] = [];
-							dailyClusters[clusterID] = {};
-						}
-							
-						clusters[clusterID].push([hotSpot.x, hotSpot.y]);
+						clusters[clusterID] = [];
+						dailyClusters[clusterID] = {};
+						clusterCentroids[clusterID] = {x: 0, y:0};
+					}
 						
-						if (typeof dailyClusters[clusterID][hotSpot.date] === 'undefined')
-							dailyClusters[clusterID][hotSpot.date] = [];
-							
-						dailyClusters[clusterID][hotSpot.date].push([hotSpot.x, hotSpot.y]);
-					}
-				}
-				
-				var resDialyClusters = [];
-				var clustersMinMaxDates = {};
-				for (var k in dailyClusters)
-				{
-					var minDate = null;
-					var maxDate = null;
-					for (var d in dailyClusters[k])
-					{
-						var curDate = $.datepicker.parseDate('yy.mm.dd', d).valueOf();
-						minDate = minDate != null ? Math.min(curDate, minDate) : curDate;
-						maxDate = maxDate != null ? Math.max(curDate, maxDate) : curDate;
-					}
+					clusters[clusterID].push([hotSpot.x, hotSpot.y]);
+					clusterCentroids[clusterID].x += hotSpot.x;
+					clusterCentroids[clusterID].y += hotSpot.y;
 					
-					var numberDays = maxDate - minDate;
-					
-					clustersMinMaxDates[k] = {min: $.datepicker.formatDate('yy.mm.dd', new Date(minDate)), max: $.datepicker.formatDate('yy.mm.dd', new Date(maxDate))};
-					
-					for (var d in dailyClusters[k])
-					{
-						var daysFromBegin = ($.datepicker.parseDate('yy.mm.dd', d).valueOf() - minDate)/(24*3600*1000);
-						var colorIndex = Math.round(($.datepicker.parseDate('yy.mm.dd', d).valueOf() - minDate)/numberDays*127);
-						var lines = getConvexHull(dailyClusters[k][d]);
-						var polyCoordinates = [lines[0][0]];
-				
-						for (var l = 0; l < lines.length; l++)
-							polyCoordinates.push(lines[l][1]);
+					if (typeof dailyClusters[clusterID][hotSpot.date] === 'undefined')
+						dailyClusters[clusterID][hotSpot.date] = [];
 						
-						resDialyClusters.push( { geometry: {type: "POLYGON", coordinates: [polyCoordinates]}, styleID: colorIndex, balloonProps: {"Кол-во точек": clusters[k].length, "Cluster ID": k, "Дата": d, "День:": daysFromBegin} } );
-					}
+					dailyClusters[clusterID][hotSpot.date].push([hotSpot.x, hotSpot.y]);
+				}
+			}
+			
+			var resDialyClusters = [];
+			var clustersMinMaxDates = {};
+			for (var k in dailyClusters)
+			{
+				var minDate = null;
+				var maxDate = null;
+				for (var d in dailyClusters[k])
+				{
+					var curDate = $.datepicker.parseDate('yy.mm.dd', d).valueOf();
+					minDate = minDate != null ? Math.min(curDate, minDate) : curDate;
+					maxDate = maxDate != null ? Math.max(curDate, maxDate) : curDate;
 				}
 				
-				var resClusters = [];
-				for (var k in clusters)
+				var numberDays = maxDate - minDate;
+				
+				clustersMinMaxDates[k] = {min: $.datepicker.formatDate('yy.mm.dd', new Date(minDate)), max: $.datepicker.formatDate('yy.mm.dd', new Date(maxDate))};
+				
+				for (var d in dailyClusters[k])
 				{
-					var lines = getConvexHull(clusters[k]);
+					var daysFromBegin = ($.datepicker.parseDate('yy.mm.dd', d).valueOf() - minDate)/(24*3600*1000);
+					var colorIndex = Math.round(($.datepicker.parseDate('yy.mm.dd', d).valueOf() - minDate)/numberDays*127);
+					var lines = getConvexHull(dailyClusters[k][d]);
 					var polyCoordinates = [lines[0][0]];
 			
 					for (var l = 0; l < lines.length; l++)
 						polyCoordinates.push(lines[l][1]);
 					
-					resClusters.push( { geometry: {type: "POLYGON", coordinates: [polyCoordinates]}, 
-										balloonProps: {"Кол-во точек": clusters[k].length, "Дата начала": clustersMinMaxDates[k].min, "Дата конца": clustersMinMaxDates[k].max} } );
-				}				
+					resDialyClusters.push( { geometry: {type: "POLYGON", coordinates: [polyCoordinates]}, styleID: colorIndex, balloonProps: {"Кол-во точек": clusters[k].length, "Cluster ID": k, "Дата": d, "День:": daysFromBegin} } );
+				}
+			}
+			
+			var resClusters = [];
+			for (var k in clusters)
+			{
+				var lines = getConvexHull(clusters[k]);
+				var polyCoordinates = [lines[0][0]];
+		
+				for (var l = 0; l < lines.length; l++)
+					polyCoordinates.push(lines[l][1]);
 				
-				if (_params.onlyClusters)
-					onSucceess( resClusters );
-				else if (_params.onlyDialyClusters)
-					onSucceess( resDialyClusters );
-				else if (_params.onlyPoints)
-					onSucceess( resArr );
-				else
-					onSucceess( {fires: resArr, clusters: resClusters, dialyClusters: resDialyClusters} );
-			});
+				resClusters.push( { geometry: {type: "POLYGON", coordinates: [polyCoordinates]}, x: clusterCentroids[k].x/clusters[k].length, y: clusterCentroids[k].y/clusters[k].length,
+				                    label: clusters[k].length,
+									points: clusters[k].length,
+									balloonProps: {"Кол-во точек": clusters[k].length, "Дата начала": clustersMinMaxDates[k].min, "Дата конца": clustersMinMaxDates[k].max} } );
+			}
+			
+			return {fires: resArr, clusters: resClusters, dialyClusters: resDialyClusters};
 		}
-	}
+		
+		var _addRequestCallback = function(url, callback)
+		{
+			if (!(url in _cache))
+			{
+				_cache[url] = {status: 'waiting', data: null, callbacks: [callback]};
+				IDataProvider.sendCachedCrossDomainJSONRequest(url, function(data)
+				{
+					_cache[url].status = 'done';
+					_cache[url].data = _processResponce(data);
+					for (var k = 0; k < _cache[url].callbacks.length; k++)
+						_cache[url].callbacks[k](_cache[url].data);
+				});
+			} else {
+				if (_cache[url].status === 'done')
+					callback(_cache[url].data);
+				else
+					_cache[url].callbacks.push(callback);
+			}
+		}
+		
+		return function( params )
+		{
+			var _params = $.extend({ host: 'http://sender.kosmosnimki.ru/', onlyPoints: false, onlyClusters: false, onlyDialyClusters: false, description: "firesWidget.FireSpotClusters.Description" }, params );
+			
+			this.getDescription = function() { return _gtxt(_params.description); }
+			this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
+			{
+				var urlBbox = bbox ? '&Polygon=POLYGON((' + bbox.minX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.minY + '))' : "";
+				//var urlBbox = '&Polygon=n';
+				var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClustersPoints&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+				
+				//IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
+				_addRequestCallback(urlFires, function(data)
+				{
+					if (typeof data === 'string')
+					{
+						onError( data == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
+						return;
+					}
+					if (_params.onlyClusters)
+						onSucceess( data.clusters );
+					else if (_params.onlyDialyClusters)
+						onSucceess( data.dialyClusters );
+					else if (_params.onlyPoints)
+						onSucceess( data.fires );
+					else
+						onSucceess( data );
+				});
+			}
+		}
+	})();
 	
 	var FireClusterSimpleProvider = function( params )
 	{
@@ -153,7 +196,7 @@ var testFires = function()
 				for ( var d = 0; d < data.Response.length; d++ )
 				{
 					var a = data.Response[d];
-					var hotSpot = { x: a[2], y: a[1], power: a[7], points: a[5], balloonProps: {"Число точек": a[5], "Мощность": a[7]} };
+					var hotSpot = { x: a[2], y: a[1], power: a[7], points: a[5], label: a[5], balloonProps: {"Число точек": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]} };
 					resArr.push(hotSpot);
 				}
 				
@@ -258,6 +301,60 @@ var testFires = function()
 				$(table).after(verificationDiv);
 				$(table).after(div);
 				
+				var _verificationControl = (function(parentDivId)
+				{
+					var _verificationResults = {};
+					var _parentDiv = $("#" + parentDivId);
+					var _id = null;
+					
+					var updateInfo = function()
+					{
+						$('#infoDiv', _parentDiv).empty();
+						if (_id in _verificationResults)
+						{
+							var infoDiv = _div([_t("Текущий выбор: " + _verificationResults[_id])], [['attr', 'id', 'infoDiv']]);
+							_parentDiv.append($(infoDiv));
+						}
+					}
+					
+					var sendVerification = function(id, res)
+					{
+						var url = "http://new.test2.kosmosnimki.ru/DBWebProxy.ashx?Type=SetFireVote&HotSpotID=" + id + "&Vote=" + res;
+						sendCrossDomainJSONRequest(url, function(ret){
+							_verificationResults[id] = res;
+							updateInfo();
+						});
+					}
+						
+					return {
+						showID: function(hotspotId) 
+						{
+							if (_parentDiv.length === 0) return;
+							
+							_id = hotspotId;
+							// var parent = $('#' + _parentDivId);
+							_parentDiv.empty();
+							var trueButton = makeButton("Горит");
+							trueButton.onclick = function(){ sendVerification(hotspotId, 1); };
+							
+							var falseButton = makeButton("Не горит");
+							falseButton.onclick = function(){ sendVerification(hotspotId, 2); };
+							
+							var cloudButton = makeButton("Облака");
+							cloudButton.onclick = function(){ sendVerification(hotspotId, 3); };
+							
+							var unknownButton = makeButton("Непонятно");
+							unknownButton.onclick = function(){ sendVerification(hotspotId, 4); };
+							
+							var buttonsDiv = _div([trueButton, falseButton, cloudButton, unknownButton]);
+							
+							_parentDiv.append($(buttonsDiv));
+							
+							updateInfo();
+						}
+					}
+				})('firesVerificationDiv');
+				
 				mapCalendar.init(div, {
 					dateFormat: "dd.mm.yy",
 					dateMin: new Date(2010, 06, 29),
@@ -289,22 +386,31 @@ var testFires = function()
 					styles.push([{outline: { color: palette[c], thickness: 2 }}, {outline: { color: palette[c], thickness: 2 }}]);
 						
 				var defStyle = [
-					{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 } },
-					{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 } }
+					{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} },
+					{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} }
 				];
 				
 				var customStyleProvider = function(obj)
 				{
-					return { marker: { image: '../images/fire_sample.png', center: true, scale: String(Math.sqrt(obj.points)/5)} };
+					return { marker: { image: '../images/fire_sample.png', center: true, scale: String(Math.sqrt(obj.points)/5)}, label: { size: 12, color: 0xffff00, haloColor: 0xff00ff, align: 'center'} };
 				}
 				
-				mapCalendar.getFireControl().addDataProvider( "FireClusters", new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyClusters: true, description: "firesWidget.FireSpotClusters.onlyClusterDescription"}), new FireBurntRenderer({minZoom: 8, defStyle: defStyle}) );
+				mapCalendar.getFireControl().addDataProvider( "FireClusters", 
+															  new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyClusters: true, description: "firesWidget.FireSpotClusters.onlyClusterDescription"}), 
+															  new FireBurntRenderer({minZoom: 8, defStyle: defStyle, title: "<b style='color: red;'>Контур пожара</b><br />", bringToDepth: -1}) );
+															  
 				//mapCalendar.getFireControl().addDataProvider( "DialyFireClusters", new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyDialyClusters: true, description: "firesWidget.FireSpotClusters.onlyDialyClusterDescription"}), new FireBurntRenderer({minZoom: 10, styles: styles, bringToTop: true}) );
-				mapCalendar.getFireControl().addDataProvider( "FirePoints", new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true, description: "firesWidget.FireSpotClusters.onlySpotDescription"}), new FireSpotRenderer({minZoom: 12/*, verificationContainerID: 'firesVerificationDiv'*/}) );
+				
+				mapCalendar.getFireControl().addDataProvider( "FirePoints",
+															  new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true, description: "firesWidget.FireSpotClusters.onlySpotDescription"}), 
+															  new FireSpotRenderer({minZoom: 12, onclick: function(o){ _verificationControl.showID(o.properties.hotspotId); }, bringToDepth: -2}) );
+															  
 				// mapCalendar.getFireControl().addDataProvider( "FireClustersSimple", new FireClusterSimpleProvider({host: 'http://new.test2.kosmosnimki.ru/'}), new FireClusterSimpleRenderer() );
 				//mapCalendar.getFireControl().addDataProvider( "FireClustersSimple", new FireClusterSimpleProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true}), new FireSpotRenderer({fireIcon: '../images/fire_sample.png', maxZoom: 7}) );
+				
 				mapCalendar.getFireControl().addDataProvider( "FireClustersSimple", 
-														      new FireClusterSimpleProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true}), 
+														      //new FireClusterSimpleProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true}), 
+														      new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyClusters: true}),
 															  new FireSpotRenderer({maxZoom: 7, customStyleProvider: customStyleProvider}) );
 				
 				_mapHelper.customParamsManager.addProvider({

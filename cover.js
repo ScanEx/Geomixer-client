@@ -1387,61 +1387,7 @@ var ModisImagesProvider = function( params )
 */
 var FireSpotRenderer = function( params )
 {
-	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minZoom: 1, maxZoom: 17, customStyleProvider: null }, params);
-	
-	var _verificationControl = (function(parentDivId)
-	{
-		var _verificationResults = {};
-		var _parentDiv = $("#" + parentDivId);
-		var _id = null;
-		
-		var updateInfo = function()
-		{
-			$('#infoDiv', _parentDiv).empty();
-			if (_id in _verificationResults)
-			{
-				var infoDiv = _div([_t("Текущий выбор: " + _verificationResults[_id])], [['attr', 'id', 'infoDiv']]);
-				_parentDiv.append($(infoDiv));
-			}
-		}
-		
-		var sendVerification = function(id, res)
-		{
-			var url = "http://new.test2.kosmosnimki.ru/DBWebProxy.ashx?Type=SetFireVote&HotSpotID=" + id + "&Vote=" + res;
-			sendCrossDomainJSONRequest(url, function(ret){
-				_verificationResults[id] = res;
-				updateInfo();
-			});
-		}
-			
-		return {
-			showID: function(hotspotId) 
-			{
-				if (_parentDiv.length === 0) return;
-				
-				_id = hotspotId;
-				// var parent = $('#' + _parentDivId);
-				_parentDiv.empty();
-				var trueButton = makeButton("Горит");
-				trueButton.onclick = function(){ sendVerification(hotspotId, 1); };
-				
-			    var falseButton = makeButton("Не горит");
-				falseButton.onclick = function(){ sendVerification(hotspotId, 2); };
-				
-			    var cloudButton = makeButton("Облака");
-				cloudButton.onclick = function(){ sendVerification(hotspotId, 3); };
-				
-			    var unknownButton = makeButton("Непонятно");
-				unknownButton.onclick = function(){ sendVerification(hotspotId, 4); };
-				
-				var buttonsDiv = _div([trueButton, falseButton, cloudButton, unknownButton]);
-				
-				_parentDiv.append($(buttonsDiv));
-				
-				updateInfo();
-			}
-		}
-	})(_params.verificationContainerID);
+	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minZoom: 1, maxZoom: 17, customStyleProvider: null, onclick: null, bringToDepth: false }, params);
 	
 	var _firesObj = null;
 	var _balloonProps = {};
@@ -1456,20 +1402,31 @@ var FireSpotRenderer = function( params )
 		var medium = _firesObj.addObject();
 		var strong = _firesObj.addObject();
 		
-		var imageNames = ["","",""];
-		if (_params.fireIcon)
-			imageNames = [_params.fireIcon, _params.fireIcon, _params.fireIcon];
-		else if (_params.fireIcons)
-			imageNames = _params.fireIcons;
-		else
-			imageNames = [ _params.fireIconsHost + "fire_weak.png", _params.fireIconsHost + "fire.png", _params.fireIconsHost + "fire_strong.png" ];
-		
-		weak.setStyle({ marker: { image: imageNames[0], center: true} });
 		weak.setZoomBounds(_params.minZoom, _params.maxZoom);
-		medium.setStyle({ marker: { image: imageNames[1], center: true} });
 		medium.setZoomBounds(_params.minZoom, _params.maxZoom);
-		strong.setStyle({ marker: { image: imageNames[2], center: true } });
 		strong.setZoomBounds(_params.minZoom, _params.maxZoom);
+		
+		if (_params.customStyleProvider === null)
+		{
+			var imageNames = ["","",""];
+			if (_params.fireIcon)
+				imageNames = [_params.fireIcon, _params.fireIcon, _params.fireIcon];
+			else if (_params.fireIcons)
+				imageNames = _params.fireIcons;
+			else
+				imageNames = [ _params.fireIconsHost + "fire_weak.png", _params.fireIconsHost + "fire.png", _params.fireIconsHost + "fire_strong.png" ];
+				
+			weak.setStyle({ marker: { image: imageNames[0], center: true} });
+			medium.setStyle({ marker: { image: imageNames[1], center: true} });
+			strong.setStyle({ marker: { image: imageNames[2], center: true } });
+		}
+		
+		if (_params.bringToDepth)
+		{
+			weak.bringToDepth(_params.bringToDepth);
+			medium.bringToDepth(_params.bringToDepth);
+			strong.bringToDepth(_params.bringToDepth);
+		}
 
 		var _obj = {'weak': {'node':weak, 'arr': [], 'balloonProps': []}, 'medium': {'node':medium, 'arr': [], 'balloonProps': []}, 'strong': {'node':strong, 'arr': [], 'balloonProps': []}};
 		for (var i = 0; i < data.length; i++)
@@ -1510,7 +1467,16 @@ var FireSpotRenderer = function( params )
 				//кастомные стили для каждого объекта
 				if (_params.customStyleProvider)
 					for (var i = 0; i < arr.length; i++)
-						arr[i].setStyle(_params.customStyleProvider(ph.arr[i].src));				
+						arr[i].setStyle(_params.customStyleProvider(ph.arr[i].src));
+				
+				//метки
+				for (var i = 0; i < arr.length; i++){
+					if (typeof ph.arr[i].src.label !== 'undefined'){
+						arr[i].setLabel(ph.arr[i].src.label);
+					}
+				}
+				
+				
 			}
 		}
 		
@@ -1529,36 +1495,12 @@ var FireSpotRenderer = function( params )
 		medium.enableHoverBalloon(ballonHoverFunction);
 		strong.enableHoverBalloon(ballonHoverFunction);
 		
-		if (typeof _params.verificationContainerID !== 'undefined')
+		if (_params.onclick !== 'undefined')
 		{
-			weak.setHandler('onClick', function(o) {
-			  _verificationControl.showID(o.properties.hotspotId); 
-			});
-			medium.setHandler('onClick', function(o) { _verificationControl.showID(o.properties.hotspotId); });
-			strong.setHandler('onClick', function(o) { _verificationControl.showID(o.properties.hotspotId); });
+			weak.setHandler  ('onClick', _params.onclick );
+			medium.setHandler('onClick', _params.onclick );
+			strong.setHandler('onClick', _params.onclick );
 		}
-		
-		// weak.setHandler('onClick', function(o)
-		// {
-			// var balloon = globalFlashMap.addBalloon();
-			// var coords = o.getGeometry().coordinates;
-			// balloon.setPoint(coords[0], coords[1]);
-			
-			// var s = "";
-			// s += '<input type="button" value="Горит"></input>';
-			// s += '<input type="button" value="Не горит"></input>';
-			
-			// // var trueButton = makeButton("Горит");
-			// // var falseButton = makeButton("Не горит");
-			// // var cloudButton = makeButton("Облака");
-			// // var unknownButton = makeButton("Непонятно");
-			
-			// // var buttonsDiv = _div([trueButton, falseButton, cloudButton, unknownButton]);
-			
-			// //$(balloon.div).append($(buttonsDiv));
-			// //_fixedIDs[o.objectId] = true;
-			// //balloon.resize();
-		// });
 	}
 	
 	this.setVisible = function(flag)
@@ -1577,7 +1519,7 @@ var FireBurntRenderer = function( params )
 			{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xffffff, opacity: 5 } },
 			{ outline: { color: 0xff0000, thickness: 3 }, fill: { color: 0xffffff, opacity: 15 } }
 		];
-	var _params = $.extend({ minZoom: 1, maxZoom: 17, defStyle: defaultStyle, bringToTop: false }, params);
+	var _params = $.extend({ minZoom: 1, maxZoom: 17, defStyle: defaultStyle, bringToDepth: false, title: "<b style='color: red;'>СЛЕД ПОЖАРА</b><br />" }, params);
 	var _burntObj = null;
 	var _balloonProps = {};
 	this.bindData = function(data)
@@ -1592,8 +1534,16 @@ var FireBurntRenderer = function( params )
 		for (var i = 0; i < data.length; i++)
 			(function(b){
 				if (!b) return;
+				if (b.geometry.coordinates[0].length == 2)
+				{
+					b.geometry.type = "POINT";
+					b.geometry.coordinates = b.geometry.coordinates[0];
+				}
+				
 				var obj = _burntObj.addObject( b.geometry );
-				if (_params.bringToDepth) obj.bringToTop();
+				
+				
+				if (_params.bringToDepth) obj.bringToDepth(_params.bringToDepth);
 				
 				if (typeof b.styleID !== 'undefined' && typeof _params.styles != 'undefined' && typeof _params.styles[b.styleID] != 'undefined')
 					obj.setStyle( _params.styles[b.styleID][0], _params.styles[b.styleID][1] );
@@ -1605,7 +1555,7 @@ var FireBurntRenderer = function( params )
 		{
 			var p = _balloonProps[o.objectId];
 						
-			var res = "<b style='color: red;'>СЛЕД ПОЖАРА</b><br />";
+			var res = _params.title;
 			for ( var i in p )
 				res += "<b>" + i + ":</b> " + p[i] + "<br />";
 				
@@ -1861,7 +1811,7 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 	if ( this._firesOptions.fires ) 
 		this.addDataProvider( "firedots",
 							  new FireSpotProvider( {host: this._firesOptions.firesHost} ),
-							  new FireSpotRenderer( {fireIconsHost: this._firesOptions.fireIconsHost, verificationContainerID: this._firesOptions.verificationContainerID} ),
+							  new FireSpotRenderer( {fireIconsHost: this._firesOptions.fireIconsHost} ),
 							  { isVisible: this._firesOptions.firesInit } );
 							  
 	if ( this._firesOptions.burnt ) 
