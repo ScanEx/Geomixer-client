@@ -1162,13 +1162,18 @@ var SearchLogic = function(oInitSearchDataProvider){
 		<i>Map</i> - карта, на которой будут рисоваться объекты </br>*/
 var SearchControlGet = function (params){
 	var oLogic = new SearchLogicGet(params.ServerBase, params.Map);
+	var fnAutoCompleteSource = function (request, response) {
+		oLogic.AutoCompleteData(request.term, response);
+	}
 	/**Результаты поиска*/
 	var lstResult = new ResultListMapGet(params.ContainerList, params.Map, params.ImagesHost);
 	/**Строка ввода поискового запроса*/
 	var btnSearch = new SearchInput(params.ContainerInput, {
 		ImagesHost: params.ImagesHost,
-		layersSearchFlag: params.layersSearchFlag
+		layersSearchFlag: params.layersSearchFlag,
+		AutoCompleteSource: fnAutoCompleteSource
 	});
+	
 	SearchControl.apply(this, [btnSearch, lstResult, oLogic]);
 }
 SearchControlGet.prototype = SearchControl;
@@ -1215,10 +1220,6 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic){
 
 		downloadVectorForm.submit();
 	};
-	
-	var fnAutoCompleteSource = function (request, response) {
-		oLogic.AutoCompleteData(request.term, response);
-	}
 
 	var fnBeforeSearch = function(){
 		/** Вызывается перед началом поиска
@@ -1286,7 +1287,6 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic){
 	$(lstResult).bind('onObjectClick', onObjectClick);
 	$(lstResult).bind('onDownloadSHP', fnDownloadSHP);
 	$(btnSearch).bind('Search', fnSearchByString);
-	$(btnSearch).bind('AutoCompleteSource', fnAutoCompleteSource);
 	$(btnSearch).bind('AutoCompleteSelect', fnSelect);
 	
 	/**Осуществляет поиск по произвольным параметрам по адресной базе
