@@ -26,6 +26,7 @@ class Main
 	public static var registerMouseDown:MapNode->MouseEvent->Void;
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
+	public static var eventAttr:Dynamic = {};
 
 	static var lastFrameBumpTime:Float = 0;
 	public static function bumpFrameRate()
@@ -184,8 +185,15 @@ class Main
 				stopFluidMove();
 			fluidMoveTo(mx + k*(currentX - mx), my + k*(currentY - my), newZ, 15);
 		}
+		
 		Main.registerMouseDown = function(node:MapNode, ?event:MouseEvent)
 		{
+			eventAttr = { };
+			if (event != null) {
+				if (event.shiftKey) eventAttr.shiftKey = 1;
+				if (event.ctrlKey) eventAttr.ctrlKey = 1;
+				if (event.altKey) eventAttr.altKey = 1;
+			}
 			if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
 				clickedNode = node;
 			else if ((node.getHandler("onMouseDown") != null) || (node.getHandler("onMouseUp") != null) || (node.getHandler("onClick") != null))
@@ -643,7 +651,7 @@ class Main
 				var arr = propertiesToArray(props);
 				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
 					try {
-						ExternalInterface.call(callbackName, node2.id, arr);
+						ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
 					} catch (e:Error) {  }
 				}
 				else
@@ -651,7 +659,7 @@ class Main
 					nextFrameCallbacks.push(function()
 					{
 						try {
-							ExternalInterface.call(callbackName, node2.id, arr);
+							ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
 						} catch (e:Error) {  }
 					});
 				}
