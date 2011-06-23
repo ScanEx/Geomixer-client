@@ -1,5 +1,4 @@
 import flash.events.Event;
-import flash.events.MouseEvent;
 
 class VectorLayer extends MapContent
 {	

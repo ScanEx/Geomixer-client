@@ -139,10 +139,10 @@ class VectorLayerFilter extends MapContent
 		tilesSprite = Utils.addSprite(contentSprite);
 
 		var me = this;
-		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:Event)
+		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
 		{
 			if (me.layer.currentFilter != null)
-				Main.registerMouseDown(me.layer.currentFilter.mapNode);
+				Main.registerMouseDown(me.layer.currentFilter.mapNode, event);
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:Event)
 		{

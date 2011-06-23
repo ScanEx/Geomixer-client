@@ -9,16 +9,19 @@ class Geometry
 	public static var MAX_DISTANCE:Float = 1e20;
 	public var extent:Extent;
 	public var properties:Hash<String>;
+	public var refreshFlag:Bool;
 
 	public function new()
 	{
 		extent = new Extent();
+		refreshFlag = true;
 	}
 
 	public function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow)
 	{
-		if (extent.overlaps(window.visibleExtent))
+		if (extent.overlaps(window.visibleExtent)) {
 			paint(sprite, style, window);
+		}
 	}
 
 	public function paint(sprite:Sprite, style:Style, window:MapWindow)

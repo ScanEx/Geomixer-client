@@ -23,9 +23,10 @@ import flash.events.TimerEvent;
 
 class Main
 {
-	public static var registerMouseDown:MapNode->Void;
+	public static var registerMouseDown:MapNode->MouseEvent->Void;
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
+	public static var eventAttr:Dynamic = {};
 
 	static var lastFrameBumpTime:Float = 0;
 	public static function bumpFrameRate()
@@ -184,8 +185,15 @@ class Main
 				stopFluidMove();
 			fluidMoveTo(mx + k*(currentX - mx), my + k*(currentY - my), newZ, 15);
 		}
-		Main.registerMouseDown = function(node:MapNode)
+		
+		Main.registerMouseDown = function(node:MapNode, ?event:MouseEvent)
 		{
+			eventAttr = { };
+			if (event != null) {
+				if (event.shiftKey) eventAttr.shiftKey = 1;
+				if (event.ctrlKey) eventAttr.ctrlKey = 1;
+				if (event.altKey) eventAttr.altKey = 1;
+			}
 			if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
 				clickedNode = node;
 			else if ((node.getHandler("onMouseDown") != null) || (node.getHandler("onMouseUp") != null) || (node.getHandler("onClick") != null))
@@ -320,8 +328,10 @@ class Main
 		{
 			if (!initCalled)
 			{
-				ExternalInterface.call(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
-				initCalled = true;
+				try {
+					ExternalInterface.call(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
+					initCalled = true;
+				} catch (e:Error) {  }
 			}
 
 			var w = stage.stageWidth;
@@ -443,7 +453,10 @@ class Main
 				if (currentZ != lastCurrentZ)
 				{
 					lastCurrentZ = currentZ;
-					lastComputedZ = 17 - ExternalInterface.call(callbackName, 17 - currentZ);
+					lastComputedZ = 0;
+					try {
+						lastComputedZ = 17 - ExternalInterface.call(callbackName, 17 - currentZ);
+					} catch (e:Error) {  }
 				}
 				return lastComputedZ;
 			});
@@ -480,7 +493,11 @@ class Main
 			var newContent = new RasterLayer(
 				function(i:Int, j:Int, z:Int)
 				{
-					return ExternalInterface.call(func, i, j, z);
+					var out:String = '';
+					try {
+						out = ExternalInterface.call(func, i, j, z);
+					} catch (e:Error) {  }
+					return out;
 				}
 			);
 			if ((node.content != null) && Std.is(node.content, VectorObject))
@@ -630,16 +647,19 @@ class Main
 				}
 				else
 					props = node2.properties;
+
 				var arr = propertiesToArray(props);
 				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
-					ExternalInterface.call(callbackName, node2.id, arr);
+					try {
+						ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
+					} catch (e:Error) {  }
 				}
 				else
 				{
 					nextFrameCallbacks.push(function()
 					{
 						try {
-							ExternalInterface.call(callbackName, node2.id, arr);
+							ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
 						} catch (e:Error) {  }
 					});
 				}
@@ -698,7 +718,11 @@ class Main
 		{
 			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):String
 			{
-				return ExternalInterface.call(tileFunction, i, j, z);
+				var out:String = '';
+				try {
+					out = ExternalInterface.call(tileFunction, i, j, z);
+				} catch (e:Error) {  }
+				return out;
 			});
 			for (i in 0...Std.int(tiles.length/3))
 				content.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
@@ -712,12 +736,14 @@ class Main
 				function(id:String, flag:Bool)
 				{
 					var geom = layer.geometries.get(id);
-					ExternalInterface.call(
-						func,
-						geom.export(),
-						exportProperties(geom.properties),
-						flag
-					);
+					try {
+						ExternalInterface.call(
+							func,
+							geom.export(),
+							exportProperties(geom.properties),
+							flag
+						);
+					} catch (e:Error) {  }
 				}
 			));
 		});
@@ -817,7 +843,9 @@ class Main
 							geoms.push(geom.export());
 							props.push(exportProperties(geom.properties));
 						}
-						ExternalInterface.call(func, geoms, props);
+						try {
+							ExternalInterface.call(func, geoms, props);
+						} catch (e:Error) {  }
 					}
 				}
 			)(queryExtent);
@@ -835,7 +863,9 @@ class Main
 					if (tilesRemaining == 0)
 					{
 						var geom = layer.geometries.get(fid);
-						ExternalInterface.call(func, geom.export(), exportProperties(geom.properties));
+						try {
+							ExternalInterface.call(func, geom.export(), exportProperties(geom.properties));
+						} catch (e:Error) {  }
 					}
 				}
 			)(extent);
@@ -860,7 +890,9 @@ class Main
 			var item = new ContextMenuItem(text);
 			item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
 			{
-				ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
+				try {
+					ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
+				} catch (e:Error) {  }
 			});
 			root.contextMenu.customItems.push(item);
 		});

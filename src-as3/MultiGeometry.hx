@@ -42,6 +42,7 @@ class MultiGeometry extends Geometry
 			extent.update(member.extent.minx, member.extent.miny);
 			extent.update(member.extent.maxx, member.extent.maxy);
 		}
+		refreshFlag = true;
 	}
 
 	public override function export():Dynamic
