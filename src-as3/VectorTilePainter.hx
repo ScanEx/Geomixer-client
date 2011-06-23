@@ -2,7 +2,6 @@ import flash.display.Sprite;
 
 class VectorTilePainter
 {
-	var oldStyle:Style;
 	public var painter:GeometryPainter;
 	var sprite:Sprite;
 	var mapWindow:MapWindow;
@@ -10,6 +9,7 @@ class VectorTilePainter
 	var i:Int;
 	var j:Int;
 	var z:Int;
+	var oldZ:Float;
 
 	public function new(geometry:Geometry, sprite_:Sprite, mapWindow_:MapWindow, i_:Int, j_:Int, z_:Int)
 	{
@@ -38,11 +38,12 @@ class VectorTilePainter
 		if (mapWindow.cacheBitmap.visible || (curZ != Math.round(curZ)))
 			return;
 
-		if (style != oldStyle)
-		{
+		if(painter.geometry.refreshFlag || curZ != oldZ) {
 			painter.repaint(style);
-			oldStyle = style;
+			painter.geometry.refreshFlag = false;
+			oldZ = curZ;
 		}
+
 		if(!vectorSprite.visible) vectorSprite.visible = true;
 	}
 }

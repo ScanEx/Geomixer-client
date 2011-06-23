@@ -901,9 +901,9 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setHandler = function(eventName, handler)
 			{
 				var me = this;
-				flashDiv.setHandler(this.objectId, eventName, handler ? uniqueGlobalName(function(subObjectId, a)
+				flashDiv.setHandler(this.objectId, eventName, handler ? uniqueGlobalName(function(subObjectId, a, attr)
 				{
-					handler(new FlashMapObject(subObjectId, propertiesFromArray(a), me));
+					handler(new FlashMapObject(subObjectId, propertiesFromArray(a), me), attr);
 				}) : null);
 			}
 			FlashMapObject.prototype.removeHandler = function(eventName)
@@ -1170,8 +1170,11 @@ function createFlashMapInternal(div, layers, callback)
 				else
 					return "?";
 			}
-			FlashMapObject.prototype.enableHoverBalloon = function(callback)
+
+			var hoverBalloonAttr = {};	// Атрибуты управления балуном
+			FlashMapObject.prototype.enableHoverBalloon = function(callback, attr)
 			{
+				if(attr) hoverBalloonAttr = attr;
 				var getHoverBalloonText = function(o)
 				{
 					var text = "";
@@ -1197,12 +1200,24 @@ function createFlashMapInternal(div, layers, callback)
 					}
 					return text;
 				}
-				var clickBalloonFix = function(o)
+				var clickBalloonFix = function(o, keyPress)
 				{
+						if(hoverBalloonAttr['disableOnClick']) return;
+						if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
+
 						var text = getHoverBalloonText(o);
+						if(!text) return;
 						var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
 						if (!fixedHoverBalloons[id])
 						{
+							if(hoverBalloonAttr['maxFixedBallons'] > 0) {
+								var cnt = 0;
+								for (var key in fixedHoverBalloons)
+								{
+									cnt++;
+									if(cnt >= hoverBalloonAttr['maxFixedBallons']) return;
+								}
+							}
 							var balloon = map.addBalloon();
 							balloon.fixedId =  id;
 
@@ -1233,10 +1248,13 @@ function createFlashMapInternal(div, layers, callback)
 						}
 						updatePropsBalloon(false);
 				}
-				this.setHandlers({
-					onMouseOver: function(o)
+				var handlersObj = {
+					onMouseOver: function(o, keyPress)
 					{ 
+						if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
 						if (flashDiv.isDragging())
+							return;
+						if(hoverBalloonAttr['disableOnMouseOver'])
 							return;
 
 						for (var key in fixedHoverBalloons)
@@ -1249,6 +1267,7 @@ function createFlashMapInternal(div, layers, callback)
 							}
 						}
 						var text = getHoverBalloonText(o);
+						if(!text) return;
 						var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
 						lastHoverBalloonId = o.objectId;
 						if (!fixedHoverBalloons[id])
@@ -1264,7 +1283,16 @@ function createFlashMapInternal(div, layers, callback)
 							updatePropsBalloon(false);
 					},
 					onClick: clickBalloonFix
-				});
+				};
+
+				if(hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
+					delete handlersObj['onMouseOver'];
+					delete handlersObj['onMouseOut'];
+				}
+				if(hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
+					delete handlersObj['onClick'];
+				}
+				this.setHandlers(handlersObj);
 			}
 			FlashMapObject.prototype.disableHoverBalloon = function()
 			{

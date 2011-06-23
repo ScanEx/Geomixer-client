@@ -36,21 +36,21 @@ class MapContent
 	public function addHandlers()
 	{
 		var node = this.mapNode;
-		contentSprite.addEventListener(MouseEvent.MOUSE_OVER, function(event:Event)
+		contentSprite.addEventListener(MouseEvent.MOUSE_OVER, function(event:MouseEvent)
 		{
 			node.callHandler("onMouseOver");
 		});
-		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event:Event)
+		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event:MouseEvent)
 		{
 			node.callHandler("onMouseOut");
 		});
-		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:Event)
+		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
 			node.callHandler("onMouseMove");
 		});
-		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:Event)
+		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
 		{
-			Main.registerMouseDown(node);
+			Main.registerMouseDown(node, event);
 		});
 	}
 }
