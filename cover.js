@@ -5,7 +5,7 @@
 (function($){
 
 _translationsHash.addtext("rus", {
-							"calendarWidget.Custom" : "Произвольный",
+							"calendarWidget.Custom" : " ",
 							"calendarWidget.Day" : "День",
 							"calendarWidget.Week" : "Неделя",
 							"calendarWidget.Month" : "Месяц",
@@ -15,13 +15,13 @@ _translationsHash.addtext("rus", {
 							"searchBbox.CancelSearchInArea" : "Отменить поиск по области",
 							"firesWidget.FireSpots.Description" : "Очаги пожаров",
 							"firesWidget.Burnt.Description" : "Границы гарей",
-							"firesWidget.DialyCoverage.Description" : "Ежедневное спутниковое покрытие",
+							"firesWidget.DialyCoverage.Description" : "Космоснимки",
 							"firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
-							"calendarWidget.Period" : "Период"
+							"calendarWidget.Period" : "Задать период"
 						 });
 						 
 _translationsHash.addtext("eng", {
-							"calendarWidget.Custom" : "Custom",
+							"calendarWidget.Custom" : " ",
 							"calendarWidget.Day" : "Day",
 							"calendarWidget.Week" : "Week",
 							"calendarWidget.Month" : "Month",
@@ -31,9 +31,9 @@ _translationsHash.addtext("eng", {
 							"searchBbox.CancelSearchInArea" : "Cancel search in area",
 							"firesWidget.FireSpots.Description" : "Fire spots",
 							"firesWidget.Burnt.Description" : "Fire areas",
-							"firesWidget.DialyCoverage.Description" : "Daily satellite coverage",
+							"firesWidget.DialyCoverage.Description" : "Космоснимки",
 							"firesWidget.tooManyDataWarning" : "Too much data - downsize search area!",
-							"calendarWidget.Period" : "Period"
+							"calendarWidget.Period" : "Set period"
 						 });
 
 var _groupLayersHelper = function(map, mapTree, description)
@@ -131,6 +131,17 @@ var BoundsExt = function( param )
 		var b = bounds.getBounds();
 		return _bounds.maxX == b.maxX && _bounds.maxY == b.maxY && _bounds.minX == b.minX && _bounds.minY == b.minY;
 	};
+	
+	/* Находится ли даннный bbox полностью внутри bounds
+	*/
+	this.isInside = function( bounds )
+	{
+		if ( _isEmpty || bounds.isWholeWorld() ) return true;
+		if ( _isWholeWorld || bounds.isEmpty() ) return false;
+		
+		var b = bounds.getBounds();
+		return _bounds.maxX <= b.maxX && _bounds.maxY <= b.maxY && _bounds.minX >= b.minX && _bounds.minY >= b.minY;
+	}
 	
 	this.clone = function()
 	{
@@ -252,10 +263,15 @@ Calendar.prototype.init = function( params )
 								_option([_t(_gtxt("calendarWidget.Week"))],[['attr','value','week']]),
 								_option([_t(_gtxt("calendarWidget.Month"))],[['attr','value','month']]),
 								_option([_t(_gtxt("calendarWidget.Year"))],[['attr','value','year']])
-							   ],[['css','width','100px'],['dir','className','selectStyle'],['css','marginBottom','4px']]);
+							   ],[['css','width','80px'],['dir','className','selectStyle'],['css','marginBottom','4px']]);
 	
 	// значение по умолчанию
 	this.lazyDate.value = 'day';
+	
+	this.lazyDate.onchange = function() {
+		_this.updateBegin();
+		$(_this).trigger('change');
+	}
 	
 	this.yearBox = _checkbox(false, 'checkbox');
 
@@ -267,8 +283,8 @@ Calendar.prototype.init = function( params )
 	
 	_title(this.yearBox, _gtxt("calendarWidget.EveryYear"));
 	
-	this.dateBegin = _input(null,[['dir','className','inputStyle'],['css','width','100px']]);
-	this.dateEnd = _input(null,[['dir','className','inputStyle'],['css','width','100px']]);
+	this.dateBegin = _input(null,[['dir','className','inputStyle'],['css','width','80px']]);
+	this.dateEnd = _input(null,[['dir','className','inputStyle'],['css','width','80px']]);
 	
 	this.dateMin = params.dateMin;
 	this.dateMax = params.dateMax;
@@ -1055,22 +1071,25 @@ var SearchBboxControl = function()
 			$(_this).trigger('change');
 	};
 	
-	var bindDrawing = function( elem )
+	var _bindDrawing = function( elem )
 	{
+		if (_elem)
+			delete _elem.properties.firesBbox;
+			
 		_elem = elem;
 		elem.properties.firesBbox = _bindingID;
 		
 		$(_button).val(_gtxt('searchBbox.CancelSearchInArea'));
 	}
-		
-	var removeBbox = function()
+	
+	this.removeBbox = function( keepSilence )
 	{
 		if ( !_elem ) return;
 		
 		delete _elem.properties.firesBbox;
 		_elem = null;
 		$(_button).val(_gtxt("searchBbox.SearchInArea"));
-		update();
+		update( keepSilence );
 	};
 	
 	/**
@@ -1096,12 +1115,12 @@ var SearchBboxControl = function()
 			onRemove: function( elem )
 			{
 				if (elem === _elem) 
-					removeBbox();
+					_this.removeBbox();
 			}, 
 			onMouseUp: function( elem )
 			{
-				if (!_elem)
-					bindDrawing( elem );
+				//if (!_elem)
+				//	_bindDrawing( elem );
 					
 				update();
 			}
@@ -1137,7 +1156,7 @@ var SearchBboxControl = function()
 		{
 			if ( o.properties.firesBbox && ( typeof checkBindingID == 'undefined' || !checkBindingID || o.properties.firesBbox == _bindingID ) )
 			{
-				bindDrawing( o );
+				_bindDrawing( o );
 				update( true ); //мы не хотим генерить event
 			}
 		})
@@ -1164,6 +1183,17 @@ var SearchBboxControl = function()
 		}
 		else
 			this.findBbox( false );
+	}
+	
+	this.bindDrawing = function( elem, keepSilence )
+	{
+		_bindDrawing( elem );
+		update( keepSilence );
+	}
+	
+	this.getDrawing = function()
+	{
+		return _elem;
 	}
 }
 
@@ -1372,6 +1402,20 @@ var ModisImagesProvider = function( params )
 	}
 }
 
+var _createHoverFunction = function(params, balloonProps)
+{
+	return function(o)
+	{
+		var p = balloonProps[o.objectId];
+					
+		var res = typeof params.title !== 'undefined' ? params.title : "";
+		for ( var i in p )
+			res += "<b>" + i + ":</b> " + p[i] + "<br />";
+			
+		return res + o.getGeometrySummary() + (typeof params.endTitle !== 'undefined' ? "<br/>" + params.endTitle : "");
+	}
+}
+
 /*
  ************************************
  *            Renderers             *
@@ -1450,7 +1494,8 @@ var FireSpotRenderer = function( params )
 			else
 				objContainer = medium;
 				
-			var objProperties = a.hotspotId ? {hotspotId: a.hotspotId } : null;
+			var objProperties = a.hotspotId ? {hotspotId: a.hotspotId } : {};
+			objProperties.dateInt = a.dateInt;
 			_obj[key].arr.push( {geometry: { type: "POINT", coordinates: [a.x, a.y] }, properties: objProperties, src: a} );
 			_obj[key].balloonProps.push( $.extend({}, a.balloonProps, addBallonProps) );
 		}
@@ -1480,16 +1525,7 @@ var FireSpotRenderer = function( params )
 			}
 		}
 		
-		var ballonHoverFunction = function(o)
-		{
-			var p = _balloonProps[o.objectId];
-			
-			var res = "";
-			for (var i in p )
-				res += "<b>" + i + ":</b> " + p[i] + "<br />";
-				
-			return res + o.getGeometrySummary();
-		}
+		var ballonHoverFunction = _createHoverFunction(_params, _balloonProps);
 		
 		weak.enableHoverBalloon(ballonHoverFunction);
 		medium.enableHoverBalloon(ballonHoverFunction);
@@ -1501,6 +1537,14 @@ var FireSpotRenderer = function( params )
 			medium.setHandler('onClick', _params.onclick );
 			strong.setHandler('onClick', _params.onclick );
 		}
+	}
+	
+	this.filterByDate = function(date)
+	{
+		if (!_firesObj) return;
+		
+		var filter = "`dateInt`='" + date + "'";
+		_firesObj.setFilter(filter);
 	}
 	
 	this.setVisible = function(flag)
@@ -1551,16 +1595,7 @@ var FireBurntRenderer = function( params )
 				_balloonProps[obj.objectId] = $.extend({}, b.balloonProps, {"Дата": b.date});
 			})(data[i]);
 			
-		_burntObj.enableHoverBalloon(function(o)
-		{
-			var p = _balloonProps[o.objectId];
-						
-			var res = _params.title;
-			for ( var i in p )
-				res += "<b>" + i + ":</b> " + p[i] + "<br />";
-				
-			return res + o.getGeometrySummary();
-		});
+		_burntObj.enableHoverBalloon(_createHoverFunction(_params, _balloonProps));
 	}
 	
 	this.setVisible = function(flag)
@@ -1680,13 +1715,23 @@ FiresControl.prototype.addDataProvider = function( name, dataProvider, dataRende
 	providerParams = $.extend( { isVisible: true, isUseDate: true, isUseBbox: true }, providerParams );
 		
 	this.dataControllers[name] = { provider: dataProvider, renderer: dataRenderer, visible: providerParams.isVisible, name: name, params: providerParams };
-	this.updateCheckboxList();
+	this._updateCheckboxList();
 	if (this.dateFiresBegin && this.dateFiresEnd)
 		this.loadForDates( this.dateFiresBegin, this.dateFiresEnd );
 }
 
+FiresControl.prototype._doFilting = function(date)
+{
+	for (var k in this.dataControllers)
+	{
+		var renderer = this.dataControllers[k].renderer;
+		if (typeof renderer.filterByDate !== 'undefined')
+			renderer.filterByDate(date);
+	}
+}
+
 //Перерисовывает все checkbox'ы. Возможно, стоит оптимизировать
-FiresControl.prototype.updateCheckboxList = function()
+FiresControl.prototype._updateCheckboxList = function()
 {
 	$("#checkContainer", this._parentDiv).empty();
 	var trs = [];
@@ -1717,7 +1762,7 @@ FiresControl.prototype.updateCheckboxList = function()
 		trs.push(_tr([_td(null, [['attr','colSpan',2],['css','height','5px']])]));
 	}
 	
-	$("#checkContainer", this._parentDiv).append( _table([_tbody(trs)],[['css','marginLeft','24px']]) );
+	$("#checkContainer", this._parentDiv).append( _table([_tbody(trs)],[['css','marginLeft','4px']]) );
 }
 
 FiresControl.prototype.findBbox = function()
@@ -1739,23 +1784,19 @@ FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	var curExtent = this.getBbox();
 	
 	var isDatesChanged = !this.dateFiresBegin || !this.dateFiresEnd || dateBegin.getTime() != this.dateFiresBegin.getTime() || dateEnd.getTime() != this.dateFiresEnd.getTime();
+	
 	var isBBoxChanged = !curExtent.isEqual(this.requestBbox);
-	
-/*	if ( !this.requestBbox && !curExtent )
-		isBBoxChanged = false;
-	else if ( !this.requestBbox || !curExtent )
-		isBBoxChanged = true;
-	else */
-	
-	//isBBoxChanged = !SearchBboxControl.isBoundsEqual( this.requestBbox, curExtent );
+	//var isBBoxChanged = !curExtent.isInside(this.requestBbox) || !this.statusModel.getCommonStatus();
 	
 	this.dateFiresBegin = dateBegin;
 	this.dateFiresEnd = dateEnd;
 	
     var _this = this;
 	
-	this.requestBbox = curExtent;
-    
+	if (isBBoxChanged || isDatesChanged) {
+		this.requestBbox = curExtent;
+	}
+	
 	for (var k in this.dataControllers)
 	{
 		var curController = this.dataControllers[k];
@@ -1793,8 +1834,11 @@ FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	}
 }
 
-FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
+FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visModeController, calendar)
 {
+	this._visModeController = visModeController;
+	this._calendar = calendar;
+	
 	this._firesOptions = $.extend( {}, FiresControl.DEFAULT_OPTIONS, firesOptions );
 	this._initExtent = new BoundsExt( firesOptions.initExtent ? firesOptions.initExtent : BoundsExt.WHOLE_WORLD );
 	if ( firesOptions.initExtent && firesOptions.showInitExtent )
@@ -1805,7 +1849,6 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 	}
 	
 	this._parentDiv = parent;
-	$(this._parentDiv).append(_div(null, [['dir', 'id', 'checkContainer']]));
 	this.globalOptions = globalOptions;
 	
 	if ( this._firesOptions.fires ) 
@@ -1832,16 +1875,138 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 	var trs = [];
 	var _this = this;
 	
-	var internalTable = _table([_tbody([_tr([_td([this.searchBboxController.getButton()]), _td([processImg])])])]);
+	var restrictByVisibleExtent = function( keepSilence )
+	{
+		var deltaX = 400;
+		var deltaY = 150;
+		var flashDiv = document.getElementById(globalFlashMap.flashId);
+		var mapExtent = globalFlashMap.getVisibleExtent();
+		var x = merc_x(globalFlashMap.getX());
+		var y = merc_y(globalFlashMap.getY());
+		var scale = getScale(globalFlashMap.getZ());
+		var w2 = scale*(flashDiv.clientWidth-deltaX)/2;
+		var h2 = scale*(flashDiv.clientHeight-deltaY)/2;
+		var mapExtent = {
+			minX: from_merc_x(x - w2),
+			minY: from_merc_y(y - h2),
+			maxX: from_merc_x(x + w2),
+			maxY: from_merc_y(y + h2)
+		};
+				
+		var obj = globalFlashMap.drawing.addObject({type: "POLYGON", coordinates: 
+			[[[mapExtent.minX, mapExtent.minY],
+			  [mapExtent.minX, mapExtent.maxY],
+			  [mapExtent.maxX, mapExtent.maxY],
+			  [mapExtent.maxX, mapExtent.minY],
+			  [mapExtent.minX, mapExtent.minY]]]});
+		
+		var outlineColor = 0xff0000;
+		var fillColor = 0xffffff;
+		var regularDrawingStyle = {
+			marker: { size: 3 },
+			outline: { color: outlineColor, thickness: 3, opacity: 80 },
+			fill: { color: fillColor }
+		};
+		var hoveredDrawingStyle = { 
+			marker: { size: 4 },
+			outline: { color: outlineColor, thickness: 4 },
+			fill: { color: fillColor }
+		};
+		
+		obj.setStyle( regularDrawingStyle, hoveredDrawingStyle );
+		
+		var curDrawing = _this.searchBboxController.getDrawing();
+		
+		_this.searchBboxController.bindDrawing(obj, keepSilence);
+		if (curDrawing)
+			curDrawing.remove();
+	}
+	
+	// var trackVisibleArea = true;
+	// globalFlashMap.setHandler('onMove', function()
+	// {
+		// if (!trackVisibleArea || _this._visModeController.getMode() ===  _this._visModeController.SIMPLE_MODE) return;
+		// var savedExtent = globalFlashMap.getVisibleExtent();
+		// setTimeout(function()
+		// {
+			// if (!trackVisibleArea) return;
+			// var curExtent = globalFlashMap.getVisibleExtent();
+			// if ( curExtent.minX === savedExtent.minX && curExtent.maxX === savedExtent.maxX && 
+				 // curExtent.minY === savedExtent.minY && curExtent.maxY === savedExtent.maxY )
+				 // {
+					// restrictByVisibleExtent();
+				 // }
+		// }, 1000);
+	// })
+	
+	var button = makeButton("Искать по области");
+	//var button = makeLinkButton("Искать по области видимости");
+	button.onclick = function(){
+		if ( _this.searchBboxController.getBbox().isWholeWorld() )
+		{
+			//пользователь нажал на поиск, а рамки у нас нет -> добавим рамку по размеру окна.
+			//console.log('calendar.change');
+			restrictByVisibleExtent(true);
+		}
+		_this.loadForDates( _this._calendar.getDateBegin(), _this._calendar.getDateEnd() );
+		
+		/*trackVisibleArea = !trackVisibleArea;
+		if (trackVisibleArea) 
+			restrictByVisibleExtent();
+		$(button).val(trackVisibleArea ? "Фиксировать область" : "Следить за картой")*/
+	};
+	$(button).css({display: 'none'});
+	
+	$(this._visModeController).bind('change', function()
+	{
+		//if ( _this._calendar.getDateBegin().valueOf() === _this._calendar.getDateEnd().valueOf() )
+		if ( _this._visModeController.getMode() ===  _this._visModeController.SIMPLE_MODE )
+		{
+			$(button).css({display: 'none'});
+			var curDrawing = _this.searchBboxController.getDrawing();
+			
+			if (curDrawing)
+			{
+				_this.searchBboxController.removeBbox( true );
+				curDrawing.remove();
+			}
+		}
+		else 
+		{	
+			$(button).css({display: ''});
+			/*if ( _this.searchBboxController.getBbox().isWholeWorld() )
+			{
+				//пользователь выбрал advanced mode, а рамки у нас нет -> добавим рамку по размеру окна.
+				//console.log('calendar.change');
+				restrictByVisibleExtent(true);
+			}*/
+		}
+	});
+	
+	//var internalTable = _table([_tbody([_tr([_td([this.searchBboxController.getButton()], [['css', 'display', 'none']]), _td([processImg])])])]);
+	var internalTable = _table([_tbody([_tr([_td([button]), _td([processImg])])])], [['css', 'marginLeft', '40px']]);
 	trs.push(_tr([_td([internalTable], [['attr','colSpan',2]])]));
 	
-	$(this.searchBboxController).bind('change', function()
-	{
-		_this.loadForDates( _this.dateFiresBegin, _this.dateFiresEnd );
-	})
+	// $(this.searchBboxController).bind('change', function()
+	// {
+		// _this.loadForDates( _this.dateFiresBegin, _this.dateFiresEnd );
+	// })
 	
 	var statusDiv = _div([_t(_gtxt('firesWidget.tooManyDataWarning'))], [['css', 'backgroundColor', 'yellow'], ['css','padding','2px'], ['css', 'display', 'none']]);
 	trs.push(_tr([_td([statusDiv], [['attr','colSpan',2]])]));
+	
+	// var timeSlider = _div(null, [['attr', 'id', 'timeSlider']]);
+	// $(timeSlider).slider({stop: function()
+	// {
+		// var value = $(timeSlider).slider('value');
+		// var dateStart = _this.dateFiresBegin.valueOf();
+		// var dateEnd = _this.dateFiresEnd.valueOf();
+		// var numberOfDays = Math.round( (dateEnd - dateStart) / (1000*24*3600) );
+		// var selectedDay = Math.round(value/100.0*numberOfDays);
+		// _this._doFilting( dateStart + selectedDay*(1000*24*3600) );
+		
+	// }});
+	// trs.push(_tr([_td([timeSlider], [['attr','colSpan',2]])]));
 	
 	$(this.statusModel).bind('change', function()
 	{
@@ -1850,10 +2015,11 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions)
 	
 	$(this.processingModel).bind('change', function()
 	{
-		processImg.style.display = _this.processingModel.getCommonStatus() ? 'none' : 'block';
+		processImg.style.display = _this.processingModel.getCommonStatus() || _this._visModeController.getMode() === _this._visModeController.SIMPLE_MODE ? 'none' : 'block';
 	})
 	
-	$(this._parentDiv).append(_table([_tbody(trs)],[['css','marginLeft','24px']]));
+	$(this._parentDiv).append(_table([_tbody(trs)],[['css','marginLeft','0px']]));
+	$(this._parentDiv).prepend(_div(null, [['dir', 'id', 'checkContainer']]));
 }
 
 /*
@@ -1953,12 +2119,6 @@ MapCalendar.prototype.init = function(parent, params)
 	
 	this.calendar.init( params );
 	
-	this.calendar.lazyDate.onchange = function() {
-		_this.calendar.updateBegin();
-		
-		_this.setDates();
-	}
-	
 	if (!this.params.showYear) {
 		this.calendar.yearBox.style.display = "none";
 	}
@@ -1993,15 +2153,68 @@ MapCalendar.prototype.init = function(parent, params)
 	}
 	
 	var emptyieinput = _input(null,[['css','width','1px'],['css','border','none'],['css','height','1px']]),
-		tdYear = this.params.showYear ? _td([this.calendar.lazyDate, _br(), this.calendar.yearBox, _span([_t(_gtxt("calendarWidget.EveryYear"))],[['css','margin','0px 5px']])],[['attr','colSpan',2]]) : _td([this.calendar.lazyDate, this.calendar.yearBox],[['attr','colSpan',2]]),
-		canvas = _div([emptyieinput,
-							_table([_tbody([_tr([_td([first]),_td([this.calendar.dateBegin]),_td([this.calendar.dateEnd]),_td([last])]),
-											_tr([_td(null, [['attr','colSpan',4],['css','height','15px']])]),
-											_tr([_td(), _td([_span([_t(_gtxt("calendarWidget.Period"))],[['css','fontSize','12px'],['css','margin','7px']])]), tdYear]),
-											_tr([_td(null, [['attr','colSpan',4],['css','height','5px']])])])])],[['attr','id',name],['css','margin','10px 0px']]);
+		tdYear = this.params.showYear ? _td([this.calendar.lazyDate, _br(), this.calendar.yearBox, _span([_t(_gtxt("calendarWidget.EveryYear"))],[['css','margin','0px 5px']])],[['attr','colSpan',2]]) : _td([this.calendar.lazyDate, this.calendar.yearBox],[['attr','colSpan',2]]);
+		
+	var moreIcon = _img(null, [['attr', 'src', 'http://kosmosnimki.ru/img/expand.gif'], ['css', 'margin', '0 0 4 0'], ['css', 'cursor', 'pointer']]);
+	//var moreIcon = makeLinkButton("More...");
+	var lessIcon = makeLinkButton("Less...");
+	var canvas;
+		
+	var visModeController = (function()
+	{
+		var publicInterface = {
+			SIMPLE_MODE: 1,
+			ADVANCED_MODE: 2,
+			getMode: function() { return curMode; },
+			setMode: function(mode) { 
+				curMode = mode;
+				$(this).trigger('change');
+			}
+		}
+		
+		var curMode = publicInterface.SIMPLE_MODE;
+		
+		return publicInterface;
+	})();
+	
+	this._visModeController = visModeController;
+	
+	moreIcon.onclick = function()
+	{
+		var isSimple = visModeController.getMode() === visModeController.SIMPLE_MODE;
+		visModeController.setMode(isSimple ? visModeController.ADVANCED_MODE : visModeController.SIMPLE_MODE);
+		$("#calendar .onlyMinVersion", canvas).css({display: isSimple ? 'none' : ''});
+		$("#calendar .onlyMaxVersion", canvas).css({display: isSimple ? '' : 'none'});
+		
+		_this.calendar.lazyDate.value = isSimple ? '' : 'day';
+		$(_this.calendar.lazyDate).trigger('change');
+		
+		moreIcon.src = 'http://kosmosnimki.ru/img/' + (isSimple ? 'collapse.gif' : 'expand.gif');
+	}
+	
+	/*lessIcon.onclick = function()
+	{
+		_this.calendar.lazyDate.value = 'day';
+		$(_this.calendar.lazyDate).trigger('change');
+		visModeController.setMode(visModeController.SIMPLE_MODE);
+		$("#calendar .onlyMinVersion", canvas).css({display: ''});
+		$("#calendar .onlyMaxVersion", canvas).css({display: 'none'});
+	}*/
+	
+	canvas = _div([_span([emptyieinput,
+						_table([_tbody([_tr([_td([first]),_td([this.calendar.dateBegin]),_td([this.calendar.dateEnd], [['dir', 'className', 'onlyMaxVersion']]),_td([last]) , _td([moreIcon])]),
+										_tr([_td(null, [['attr','colSpan',4],['css','height','5px']])], [['dir', 'className', 'onlyMaxVersion']]),
+										_tr([_td(), _td([_span([_t(_gtxt("calendarWidget.Period"))],[['css','fontSize','12px'],['css','margin','7px']])]), tdYear], [['dir', 'className', 'onlyMaxVersion']])/*,
+										_tr([_td(null, [['attr','colSpan',4],['css','height','5px']])], [['dir', 'className', 'onlyMaxVersion']])*/
+										])])], [['attr', 'id', 'calendar']])
+						],
+					[['attr','id',name],['css','margin','10px 0px']]);
+					
+	$("#calendar .onlyMinVersion", canvas).css({display: this.params.minimized ? '' : 'none'});
+	$("#calendar .onlyMaxVersion", canvas).css({display: this.params.minimized ? 'none' : ''});
 	
 	if (this.params.fires) {
-		this.fires.add(canvas, this.params.fires, globalOptions);
+		this.fires.add(canvas, this.params.fires, globalOptions, visModeController, this.calendar);
 	}
 	
 	if (this.params.cover) {
@@ -2014,6 +2227,7 @@ MapCalendar.prototype.init = function(parent, params)
 		this.layerFilters.init(globalFlashMap, this.calendar, this.params.layerFilters);
 	}
 	
+	//_(parent, [_table([_tbody([_tr([_td([moreIcon], [['css', 'verticalAlign', 'top']]), _td([_div([canvas],[['css','margin','0px 0px 20px 10px']])])])])])]);
 	_(parent, [_div([canvas],[['css','margin','0px 0px 20px 10px']])]);
 
 	emptyieinput.blur();
@@ -2126,7 +2340,8 @@ MapCalendar.prototype.setDates = function() {
 	if (this.params.fires) {
 		// format = this.params.fires.dateFormat;
 		
-		this.fires.loadForDates(dateBegin, dateEnd);
+		if (this._visModeController.getMode() == this._visModeController.SIMPLE_MODE)
+			this.fires.loadForDates(dateBegin, dateEnd);
 	}
 	
 	if (this.params.cover) {

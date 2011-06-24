@@ -5,14 +5,16 @@ var testFires = function()
 	_translationsHash.addtext("rus", {
 								"firesWidget.FireSpotClusters.Description" : "Очаги и границы пожаров",
 								"firesWidget.FireSpotClusters.onlySpotDescription" : "Очаги пожаров",
+								"firesWidget.FireCombinedDescription" : "Пожары",
 								"firesWidget.FireSpotClusters.onlyClusterDescription" : "Границы пожаров",
 								"firesWidget.FireSpotClusters.onlyDialyClusterDescription" : "Границы пожаров по дням",
-								"firesWidget.FireClustersSimple.Description": "Пожары",
+								"firesWidget.FireClustersSimple.Description": "Пожары"
 							 });
 							 
 	_translationsHash.addtext("eng", {
 								"firesWidget.FireSpotClusters.Description" : "Fire spots and contours",
 								"firesWidget.FireSpotClusters.onlySpotDescription" : "Fire spots",
+								"firesWidget.FireCombinedDescription" : "Fires",
 								"firesWidget.FireSpotClusters.onlyClusterDescription" : "Fire contours",
 								"firesWidget.FireSpotClusters.onlyDialyClusterDescription" : "Dialy fire contours",
 								"firesWidget.FireClustersSimple.Description" : "Fires"
@@ -23,14 +25,15 @@ var testFires = function()
 	* @class 
 	* @param {Object} params Параметры класса: <br/>
 	* <i> {String} host </i> Сервер, с которого берутся данные о пожарах. Default: http://sender.kosmosnimki.ru/
-	* <i> {Bool} onlyPoints </i> Возвращать только точки без класетеров
-	* <i> {Bool} onlyClusters </i> Возвращать только кластеры без точек
+	* <i> {Bool} onlyPoints </i> Возвращать только очаги без класетеров
+	* <i> {Bool} onlyClusters </i> Возвращать только кластеры без очагов
 	* <i> {String} description </i> ID текста для описания в _translation_hash. Default: firesWidget.FireSpotClusters.Description
 	*/
 	var FireSpotClusterProvider = (function(){
 	
 	    //этот кэш хранит уже обработанные данные с построенными границами кластеров и т.п.
 		var _cache = {};
+		var _lastRequestId = 0;
 		
 		var _processResponce = function(data)
 		{
@@ -47,7 +50,8 @@ var testFires = function()
 			for ( var d = 0; d < data.Response.length; d++ )
 			{
 				var a = data.Response[d];
-				var hotSpot = {hotspotId: a[7], x: a[1], y: a[0], date: a[3], category: a[6] < 50 ? 0 : (a[4] < 100 ? 1 : 2), balloonProps: {"Время": a[4] + "&nbsp;(Greenwich Mean Time)", "Вероятность": a[5]} };
+				var dateInt = $.datepicker.parseDate('yy.mm.dd', a[3]).valueOf();
+				var hotSpot = {hotspotId: a[7], x: a[1], y: a[0], date: a[3], dateInt: dateInt, category: a[6] < 50 ? 0 : (a[4] < 100 ? 1 : 2), balloonProps: {"Время": a[4] + "&nbsp;(Greenwich Mean Time)"/*, "Вероятность": a[5]*/} };
 				resArr.push(hotSpot);
 				var clusterID = 'id' + a[2];
 				
@@ -98,7 +102,7 @@ var testFires = function()
 					for (var l = 0; l < lines.length; l++)
 						polyCoordinates.push(lines[l][1]);
 					
-					resDialyClusters.push( { geometry: {type: "POLYGON", coordinates: [polyCoordinates]}, styleID: colorIndex, balloonProps: {"Кол-во точек": clusters[k].length, "Cluster ID": k, "Дата": d, "День:": daysFromBegin} } );
+					resDialyClusters.push( { geometry: {type: "POLYGON", coordinates: [polyCoordinates]}, styleID: colorIndex, balloonProps: {"Кол-во очагов пожара": clusters[k].length, "Дата": d, "День:": daysFromBegin} } );
 				}
 			}
 			
@@ -114,7 +118,7 @@ var testFires = function()
 				resClusters.push( { geometry: {type: "POLYGON", coordinates: [polyCoordinates]}, x: clusterCentroids[k].x/clusters[k].length, y: clusterCentroids[k].y/clusters[k].length,
 				                    label: clusters[k].length,
 									points: clusters[k].length,
-									balloonProps: {"Кол-во точек": clusters[k].length, "Дата начала": clustersMinMaxDates[k].min, "Дата конца": clustersMinMaxDates[k].max} } );
+									balloonProps: {"Кол-во очагов пожара": clusters[k].length, "Период горения": clustersMinMaxDates[k].min + ' - ' + clustersMinMaxDates[k].max/*, id: k*/} } );
 			}
 			
 			return {fires: resArr, clusters: resClusters, dialyClusters: resDialyClusters};
@@ -124,9 +128,13 @@ var testFires = function()
 		{
 			if (!(url in _cache))
 			{
+				_lastRequestId++;
+				var curRequestId = _lastRequestId;
 				_cache[url] = {status: 'waiting', data: null, callbacks: [callback]};
 				IDataProvider.sendCachedCrossDomainJSONRequest(url, function(data)
 				{
+					if (curRequestId !== _lastRequestId) return;
+					
 					_cache[url].status = 'done';
 					_cache[url].data = _processResponce(data);
 					for (var k = 0; k < _cache[url].callbacks.length; k++)
@@ -196,7 +204,7 @@ var testFires = function()
 				for ( var d = 0; d < data.Response.length; d++ )
 				{
 					var a = data.Response[d];
-					var hotSpot = { x: a[2], y: a[1], power: a[7], points: a[5], label: a[5], balloonProps: {"Число точек": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]} };
+					var hotSpot = { x: a[2], y: a[1], power: a[7], points: a[5], label: a[5], balloonProps: {"Кол-во очагов пожара": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]} };
 					resArr.push(hotSpot);
 				}
 				
@@ -251,19 +259,40 @@ var testFires = function()
 
 	var CombinedRenderer = function( params )
 	{
-		var _firesRenderer = new FireSpotRenderer( params );
-		var _clustersRenderer = new FireBurntRenderer();
+		var customStyleProvider = function(obj)
+		{
+			var style = { marker: { image: '../images/fire_sample.png', center: true, scale: String(Math.sqrt(obj.points)/5)} };
+			if (obj.label >= 10)
+				style.label = { size: 12, color: 0xffff00, haloColor: 0xff00ff, align: 'center'};
+			return style;
+		}
+		
+		var defStyle = [
+			{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} },
+			{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} }
+		];
+				
+		var _clustersRenderer = new FireSpotRenderer({maxZoom: 7, customStyleProvider: customStyleProvider, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>"});
+		var _geometryRenderer = new FireBurntRenderer({minZoom: 8, defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", bringToDepth: -1});
+		var _hotspotRenderer  = new FireSpotRenderer({title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>", minZoom: 12, /*onclick: function(o){ params.verificationControl.showID(o.properties.hotspotId); }, */bringToDepth: -2});
 		
 		this.bindData = function(data)
 		{
-			_firesRenderer.bindData(data.fires);
 			_clustersRenderer.bindData(data.clusters);
+			_geometryRenderer.bindData(data.clusters);
+			_hotspotRenderer.bindData(data.fires);
 		}
 		
 		this.setVisible = function(flag)
 		{
-			_firesRenderer.setVisible(flag);
 			_clustersRenderer.setVisible(flag);
+			_geometryRenderer.setVisible(flag);
+			_hotspotRenderer.setVisible(flag);
+		}
+		
+		this.filterByDate = function(date)
+		{
+			_clustersRenderer.filterByDate(date);
 		}
 	}
 	
@@ -356,15 +385,17 @@ var testFires = function()
 				})('firesVerificationDiv');
 				
 				mapCalendar.init(div, {
+				    minimized: true,
 					dateFormat: "dd.mm.yy",
 					dateMin: new Date(2010, 06, 29),
 					dateMax: new Date(),
 					showYear: false,
 					periods: ['','day','week','month'],
-					periodDefault: 'day',
+					periodDefault: '',
 					fires: {
 						fires: false,
-						images: false
+						images: true,
+						imagesInit: false
 						//initExtent: {minY: 56, maxY: 64, minX: 123, maxX: 139},
 						//showInitExtent: true
 					},
@@ -380,38 +411,42 @@ var testFires = function()
 				
 				//mapCalendar.getFireControl().addDataProvider( "FireClusters", new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/'}), new CombinedRenderer() );
 				
-				var palette = generatePalette(128);
-				var styles = [];
-				for (var c = 0; c < palette.length; c++)
-					styles.push([{outline: { color: palette[c], thickness: 2 }}, {outline: { color: palette[c], thickness: 2 }}]);
+				// var palette = generatePalette(128);
+				// var styles = [];
+				// for (var c = 0; c < palette.length; c++)
+					// styles.push([{outline: { color: palette[c], thickness: 2 }}, {outline: { color: palette[c], thickness: 2 }}]);
 						
-				var defStyle = [
-					{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} },
-					{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} }
-				];
+				// var defStyle = [
+					// { outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} },
+					// { outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} }
+				// ];
 				
-				var customStyleProvider = function(obj)
-				{
-					return { marker: { image: '../images/fire_sample.png', center: true, scale: String(Math.sqrt(obj.points)/5)}, label: { size: 12, color: 0xffff00, haloColor: 0xff00ff, align: 'center'} };
-				}
+				// var customStyleProvider = function(obj)
+				// {
+					// return { marker: { image: '../images/fire_sample.png', center: true, scale: String(Math.sqrt(obj.points)/5)}, label: { size: 12, color: 0xffff00, haloColor: 0xff00ff, align: 'center'} };
+				// }
 				
-				mapCalendar.getFireControl().addDataProvider( "FireClusters", 
-															  new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyClusters: true, description: "firesWidget.FireSpotClusters.onlyClusterDescription"}), 
-															  new FireBurntRenderer({minZoom: 8, defStyle: defStyle, title: "<b style='color: red;'>Контур пожара</b><br />", bringToDepth: -1}) );
+				mapCalendar.getFireControl().addDataProvider( "FiresCombined", 
+															  new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', description: "firesWidget.FireCombinedDescription"}), 
+															  new CombinedRenderer({verificationControl: _verificationControl}) );
+				
+				// mapCalendar.getFireControl().addDataProvider( "FireClusters", 
+															  // new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyClusters: true, description: "firesWidget.FireSpotClusters.onlyClusterDescription"}), 
+															  // new FireBurntRenderer({minZoom: 8, defStyle: defStyle, title: "<b style='color: red;'>Контур пожара</b><br />", bringToDepth: -1}) );
 															  
-				//mapCalendar.getFireControl().addDataProvider( "DialyFireClusters", new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyDialyClusters: true, description: "firesWidget.FireSpotClusters.onlyDialyClusterDescription"}), new FireBurntRenderer({minZoom: 10, styles: styles, bringToTop: true}) );
+				// //mapCalendar.getFireControl().addDataProvider( "DialyFireClusters", new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyDialyClusters: true, description: "firesWidget.FireSpotClusters.onlyDialyClusterDescription"}), new FireBurntRenderer({minZoom: 10, styles: styles, bringToTop: true}) );
 				
-				mapCalendar.getFireControl().addDataProvider( "FirePoints",
-															  new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true, description: "firesWidget.FireSpotClusters.onlySpotDescription"}), 
-															  new FireSpotRenderer({minZoom: 12, onclick: function(o){ _verificationControl.showID(o.properties.hotspotId); }, bringToDepth: -2}) );
+				// mapCalendar.getFireControl().addDataProvider( "FirePoints",
+															  // new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true, description: "firesWidget.FireSpotClusters.onlySpotDescription"}), 
+															  // new FireSpotRenderer({minZoom: 12, onclick: function(o){ _verificationControl.showID(o.properties.hotspotId); }, bringToDepth: -2}) );
 															  
-				// mapCalendar.getFireControl().addDataProvider( "FireClustersSimple", new FireClusterSimpleProvider({host: 'http://new.test2.kosmosnimki.ru/'}), new FireClusterSimpleRenderer() );
-				//mapCalendar.getFireControl().addDataProvider( "FireClustersSimple", new FireClusterSimpleProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true}), new FireSpotRenderer({fireIcon: '../images/fire_sample.png', maxZoom: 7}) );
+				// // mapCalendar.getFireControl().addDataProvider( "FireClustersSimple", new FireClusterSimpleProvider({host: 'http://new.test2.kosmosnimki.ru/'}), new FireClusterSimpleRenderer() );
+				// //mapCalendar.getFireControl().addDataProvider( "FireClustersSimple", new FireClusterSimpleProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true}), new FireSpotRenderer({fireIcon: '../images/fire_sample.png', maxZoom: 7}) );
 				
-				mapCalendar.getFireControl().addDataProvider( "FireClustersSimple", 
-														      //new FireClusterSimpleProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true}), 
-														      new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyClusters: true}),
-															  new FireSpotRenderer({maxZoom: 7, customStyleProvider: customStyleProvider}) );
+				// mapCalendar.getFireControl().addDataProvider( "FireClustersSimple", 
+														      // //new FireClusterSimpleProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyPoints: true}), 
+														      // new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', onlyClusters: true}),
+															  // new FireSpotRenderer({maxZoom: 7, customStyleProvider: customStyleProvider}) );
 				
 				_mapHelper.customParamsManager.addProvider({
 					name: 'firesWidget',
