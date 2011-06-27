@@ -262,26 +262,13 @@ var SearchInput = function (oInitContainer, params) {
  @class Контрол, отображающий результаты поиска в виде списка
  @memberOf Search
  @param {object} oInitContainer Объект, в котором находится контрол (div), обязательный
- @param {object} params Параметры: <br/>
-	<i>ImagesHost</i> - строка пути к картинкам <br/>
-	<i>onDisplayedObjectsChanged</i> - {function} Обработчик события {@link Search.ResultList.event:onDisplayedObjectsChanged} <br/>
-	<i>onObjectClick</i> - {function} Обработчик события {@link Search.ResultList.event:onObjectClick} <br/>
-	<i>onDownloadSHP</i> - {function} Обработчик события {@link Search.ResultList.event:onDownloadSHP}*/
-var ResultList = function(oInitContainer, params){
+ @param {string} ImagesHost - строка пути к картинкам*/
+var ResultList = function(oInitContainer, ImagesHost){
 	/**Объект, в котором находится контрол (div)*/
 	var Container = oInitContainer;
 	var _this = this;
-	var sImagesHost = "http://maps.kosmosnimki.ru/api/img";
-	if (params != null){
-		if (params.ImagesHost != null) sImagesHost = params.ImagesHost;
-		//Вызывается при изменении списка отображаемых объектов
-		if(params.onDisplayedObjectsChanged != null){$(this).bind('onDisplayedObjectsChanged', params.onDisplayedObjectsChanged);};
-		//Вызывается при клике по найденному объекту
-		if(params.onObjectClick != null){$(this).bind('onObjectClick', params.onObjectClick);};
-		//Вызвается при скачивании SHP-файла
-		if(params.onDownloadSHP != null){$(this).bind('onDownloadSHP', params.onDownloadSHP);};
-	}
-	
+	var sImagesHost = ImagesHost || "http://maps.kosmosnimki.ru/api/img";
+		
 	var arrDisplayedObjects = []; //Объекты, которые отображаются на текущей странице
 	var iLimit = 10; //Максимальное количество результатов на странице
 	var iPagesCount = 7; //Количество прокручиваемых страниц при нажатии на двойные стрелки
@@ -641,8 +628,7 @@ var ResultList = function(oInitContainer, params){
  @class ResultRenderer Предоставляет функции, отображающие найденные объекты на карте
  @memberof Search
  @param {object} oInitMap карта, на которой будут рисоваться объекты
- @param {object} params Параметры: <br/>
-     <i>ImagesHost</i> строка пути к картинкам*/
+ @param {string} ImagesHost - строка пути к картинкам*/
 var ResultRenderer = function(oInitMap, params){
 	var oMap = oInitMap;
 	if (oMap == null)  throw "ResultRenderer.Map is null";
@@ -759,19 +745,16 @@ var ResultRenderer = function(oInitMap, params){
 	}
 };
 
-/**  
- @memberof Контрол, отображающий результаты поиска в виде списка с нанесением на карту
- @param oInitContainer Объект, в котором находится контрол результатов поиска в виде списка(div)
+/** Возвращает контрол, отображающий результаты поиска в виде списка с нанесением на карту 
+ @memberof Search
+ @param {object} oInitContainer Объект, в котором находится контрол результатов поиска в виде списка(div)
  @param {object} oInitMap карта, на которой будут рисоваться объекты
- @param params - Параметры: <br/>
-		<i>ImagesHost</i> - строка пути к картинкам <br/>
-		<i>onDisplayedObjectsChanged</i> - {function} Обработчик события {@link Search.ResultListMap.event:onDisplayedObjectsChanged} <br/>
-		<i>onObjectClick</i> - {function} Обработчик события {@link Search.ResultListMap.event:onObjectClick} <br/>
-		<i>onDownloadSHP</i> - {function} Обработчик события {@link Search.ResultListMap.event:onDownloadSHP}*/
-var ResultListMapGet = function(oInitContainer, oInitMap, sImagesHost, params){
+ @param {string} ImagesHost - строка пути к картинкам
+ @returns {Search.ResultListMap}*/
+var ResultListMapGet = function(oInitContainer, oInitMap, sImagesHost){
 	var oRenderer = new ResultRenderer(oInitMap);
-	var lstResult = new ResultList(oInitContainer, {ImagesHost: sImagesHost});
-	ResultListMap.apply(this, [lstResult, oRenderer, params]);
+	var lstResult = new ResultList(oInitContainer, sImagesHost);
+	ResultListMap.apply(this, [lstResult, oRenderer]);
 }
 
 ResultListMapGet.prototype = ResultListMap;
@@ -780,21 +763,9 @@ ResultListMapGet.prototype = ResultListMap;
  @class Контрол, отображающий результаты поиска в виде списка с нанесением на карту
  @memberof Search
  @param lstResult Контрол результатов поиска в виде списка
- @param oRenderer Объект, предоставляющий функции отрисовки найденных объектов на карте
- @param params - Параметры: <br/>
-		<i>onDisplayedObjectsChanged</i> - {function} Обработчик события {@link Search.ResultListMap.event:onDisplayedObjectsChanged} <br/>
-		<i>onObjectClick</i> - {function} Обработчик события {@link Search.ResultListMap.event:onObjectClick} <br/>
-		<i>onDownloadSHP</i> - {function} Обработчик события {@link Search.ResultListMap.event:onDownloadSHP}*/
-var ResultListMap = function(lstResult, oRenderer, params){
+ @param oRenderer Объект, предоставляющий функции отрисовки найденных объектов на карте*/
+var ResultListMap = function(lstResult, oRenderer){
 	var _this = this;
-	if (params != null){
-		//Вызывается при изменении списка отображаемых объектов
-		if(params.onDisplayedObjectsChanged != null){$(_this).bind('onDisplayedObjectsChanged', params.onDisplayedObjectsChanged);};
-		//Вызывается при клике по найденному объекту
-		if(params.onObjectClick != null){$(_this).bind('onObjectClick', params.onObjectClick);};
-		//Вызвается при скачивании SHP-файла	
-		if(params.onDownloadSHP != null){$(_this).bind('onDownloadSHP', params.onDownloadSHP);};
-	}
 	
 	var fnDisplayedObjectsChanged = function(event, iDataSourceN, arrFoundObjects){
 		oRenderer.DrawObjects(iDataSourceN, arrFoundObjects);
@@ -986,10 +957,11 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 	}
 }
 
-/**Предоставляет функции обработки найденных данных
+/**Возращает класс, который предоставляет функции обработки найденных данных
  @memberof Search
  @param {string} ServerBase Адрес сервера, на котором установлен поисковый модуль Geomixer'а
- @param {object} oInitMap карта, на которой будут рисоваться объекты*/
+ @param {object} oInitMap карта, на которой будут рисоваться объекты
+ @returns {Search.SearchLogic}*/
 var SearchLogicGet = function(ServerBase, oInitMap){
 	SearchLogic.apply(this, [new SearchDataProvider(ServerBase, oInitMap)]);
 }
@@ -1028,32 +1000,27 @@ var SearchLogic = function(oInitSearchDataProvider){
 				for(var iFoundObject=0; iFoundObject<arrResultDataSources[iDS].SearchResult.length; iFoundObject++){
 					var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
 					var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = oFoundObject.ObjName;
-					var sLabelSecondPart;
 					if(/[a-zA-Z]/.test(SearchString)){
 						if(oFoundObject.ObjNameEng.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 							sValue = oFoundObject.ObjNameEng;
-							sLabelSecondPart = fnGetLabel(oFoundObject, "ObjName", "ObjName");
-							if (sLabelSecondPart != null && !/[a-zA-Z]/.test(sLabelSecondPart)) sLabel += '|' + sLabelSecondPart;
+							if (oFoundObject.ObjName != null && !/[a-zA-Z]/.test(sLabelSecondPart)) sLabel += '|' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
 						}
 						else{
 							sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
 							sValue = oFoundObject.ObjAltNameEng;
-							sLabelSecondPart = fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
-							if (sLabelSecondPart != null && !/[a-zA-Z]/.test(sLabelSecondPart)) sLabel += '|' + sLabelSecondPart;
+							if (oFoundObject.ObjAltName != null && !/[a-zA-Z]/.test(sLabelSecondPart)) sLabel += '|' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
 						}
 					}
 					else{
 						if(oFoundObject.ObjName.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
-							sLabelSecondPart = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
-							if (sLabelSecondPart != null) sLabel += '|' + sLabelSecondPart;
+							if (oFoundObject.ObjNameEng != null) sLabel += '|' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 						}
 						else{
 							sLabel = fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
 							sValue = oFoundObject.ObjAltName;
-							sLabelSecondPart = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
-							if (sLabelSecondPart != null) sLabel += '|' + sLabelSecondPart;
+							if (oFoundObject.ObjAltNameEng != null) sLabel += '|' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
 						}
 					}
 					arrResult.push({
@@ -1151,7 +1118,7 @@ var SearchLogic = function(oInitSearchDataProvider){
 	}
 }
 
-/** Контрол, содержащий все все компоненты поиска и обеспечивающий их взаимодействие между собой
+/** Возвращает контрол, содержащий все все компоненты поиска и обеспечивающий их взаимодействие между собой
 @memberof Search
 @param {object} params Параметры: </br>
 		<i>ServerBase</i> - Адрес сервера, на котором установлен поисковый модуль Geomixer'а </br>
@@ -1159,7 +1126,8 @@ var SearchLogic = function(oInitSearchDataProvider){
 		<i>ContainerInput</i> - Объект, в котором находится контрол поискового поля (div) </br>
 		<i>layersSearchFlag</i> - Признак видимости кнопки поиска по векторным слоям </br>
 		<i>ContainerList</i> - Объект, в котором находится контрол результатов поиска в виде списка(div) </br>
-		<i>Map</i> - карта, на которой будут рисоваться объекты </br>*/
+		<i>Map</i> - карта, на которой будут рисоваться объекты </br>
+ @returns {Search.SearchControl} */
 var SearchControlGet = function (params){
 	var oLogic = new SearchLogicGet(params.ServerBase, params.Map);
 	var fnAutoCompleteSource = function (request, response) {
@@ -1465,12 +1433,15 @@ var SearchGeomixer = function(){
 var publicInterface = {
 	SearchGeomixer: SearchGeomixer,
 	SearchControl: SearchControl,
+	SearchControlGet: SearchControlGet,
 	SearchInput: SearchInput,
 	ResultList: ResultList,
 	ResultRenderer: ResultRenderer,
 	ResultListMap: ResultListMap,
+	ResultListMapGet: ResultListMapGet,
 	SearchDataProvider: SearchDataProvider,
 	SearchLogic: SearchLogic,
+	SearchLogicGet: SearchLogicGet,
 	GetFullName: GetFullName,
 	GetPath: GetPath
 }
