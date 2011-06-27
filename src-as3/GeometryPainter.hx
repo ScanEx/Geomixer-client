@@ -18,12 +18,13 @@ class GeometryPainter
 	public function repaint(style:Style)
 	{
 		var curZ:Float = window.getCurrentZ();
-		if(geometry.refreshFlag || curZ != oldZ) {
+		if(geometry == null || geometry.refreshFlag || curZ != oldZ) {
 			oldZ = curZ;
-			geometry.refreshFlag = false;
 			sprite.graphics.clear();
-			if ((geometry != null) && (style != null))
+			if ((geometry != null) && (style != null)) {
 				geometry.paintWithExtent(sprite, style, window);
+				geometry.refreshFlag = false;
+			}
 		}
 	}
 
