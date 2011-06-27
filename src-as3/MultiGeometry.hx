@@ -12,9 +12,12 @@ class MultiGeometry extends Geometry
 
 	public override function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow)
 	{
-		if (extent.overlaps(window.visibleExtent))
+		if (extent.overlaps(window.visibleExtent)) {
 			for (member in members)
 				member.paintWithExtent(sprite, style, window);
+		} else {
+			refreshFlag = true;
+		}
 	}
 
 	public override function paint(sprite:Sprite, style: Style, window:MapWindow)
@@ -81,6 +84,7 @@ class MultiGeometry extends Geometry
 	public override function forEachLine(func:LineGeometry->Void):Bool
 	{
 		var ret = false;
+		refreshFlag = true;
 		for (member in members)
 		{
 			var ret2 = member.forEachLine(func);

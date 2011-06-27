@@ -27,6 +27,8 @@ class PolygonGeometry extends Geometry
 				var p = new PointGeometry(x, y);
 				p.properties = properties;
 				p.paint(sprite, style, window);
+			} else {
+				refreshFlag = true;
 			}
 		}
 
@@ -94,6 +96,7 @@ class PolygonGeometry extends Geometry
 		}		
 
 		graphics.endFill();
+		refreshFlag = false;
 	}
 
 	public override function distanceTo(x:Float, y:Float)

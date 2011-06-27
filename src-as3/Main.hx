@@ -528,6 +528,20 @@ class Main
 		ExternalInterface.addCallback("isDrawing", function(id:String):Bool { return (cast(getNode(id).content, EditableContent).stopDrawing != null); });
 		ExternalInterface.addCallback("getIntermediateLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getIntermediateLength(); });
 		ExternalInterface.addCallback("getCurrentEdgeLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getCurrentEdgeLength(); });
+		
+		var setLabel = function(id:String, label:String)
+		{
+			nextFrameCallbacks.push(function()
+			{
+				var node = getNode(id);
+				if ((node != null) && Std.is(node.content, VectorObject))
+				{
+					cast(node.content, VectorObject).label = label;
+					node.noteSomethingHasChanged();
+				}
+			});
+		}
+		ExternalInterface.addCallback("setLabel", setLabel);
 
 		var addObject = function(parentId:String, ?geometry:Dynamic, ?properties:Dynamic)
 		{
@@ -551,11 +565,16 @@ class Main
 				if (_data[i].setStyle) {
 					getNode(tId).setStyle(new Style(_data[i].setStyle.regularStyle), (_data[i].setStyle.hoveredStyle != null) ? new Style(_data[i].setStyle.hoveredStyle) : null);
 				}
+				if (_data[i].setLabel) {
+					var node = getNode(tId);
+					if ((node != null) && Std.is(node.content, VectorObject))
+						cast(node.content, VectorObject).label = _data[i].setLabel;
+				}
 				ret.push(tId);
 			}
 			return ret;
 		});
-
+		
 		ExternalInterface.addCallback("setFilter", function(id:String, ?sql:String)
 		{
 			var func:Hash<String>->Bool = (sql == null) ? 
@@ -594,18 +613,7 @@ class Main
 				}
 			});
 		});
-		ExternalInterface.addCallback("setLabel", function(id:String, label:String)
-		{
-			nextFrameCallbacks.push(function()
-			{
-				var node = getNode(id);
-				if ((node != null) && Std.is(node.content, VectorObject))
-				{
-					cast(node.content, VectorObject).label = label;
-					node.noteSomethingHasChanged();
-				}
-			});
-		});
+
 		ExternalInterface.addCallback("setVisible", function(id:String, flag:Bool)
 		{
 			Main.bumpFrameRate();

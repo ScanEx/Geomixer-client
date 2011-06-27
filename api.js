@@ -938,6 +938,7 @@ function createFlashMapInternal(div, layers, callback)
 						"properties": props
 					};
 					if(ph['setStyle']) tmp['setStyle'] = ph['setStyle'];
+					if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
 					out.push(tmp);
 				}
 				var _obj = flashDiv.addObjects(out);	// Отправить команду в SWF

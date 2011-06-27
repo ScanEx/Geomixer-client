@@ -17,13 +17,16 @@ class PointGeometry extends Geometry
 
 	public override function paint(sprite:Sprite, style:Style, window:MapWindow)
 	{
+		sprite.graphics.clear();
 		if (window.visibleExtent.contains(x, y))
 		{
 			var marker = style.marker;
 			if (marker != null)
 			{
-				if (marker.drawFunction != null)
+				if (marker.drawFunction != null) {
 					marker.drawFunction(this, sprite.graphics, window.scaleY);
+					refreshFlag = false;
+				}
 				else
 				{
 					var size = marker.size;
@@ -39,6 +42,7 @@ class PointGeometry extends Geometry
 						drawer.lineTo(x - size, y + size);
 						drawer.lineTo(x - size, y - size);
 						graphics.endFill();
+						refreshFlag = false;
 					}
 				}
 			}
