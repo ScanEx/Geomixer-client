@@ -979,7 +979,7 @@ function createFlashMapInternal(div, layers, callback)
 				if (func)
 					func(flag);
 			}
-			//FlashMapObject.prototype.getVisibility = function() { flashDiv.setVisible(this.getVisibility); }
+			FlashMapObject.prototype.getVisibility = function() { return flashDiv.getVisibility(this.objectId); }
 			FlashMapObject.prototype.setStyle = function(style, activeStyle) { flashDiv.setStyle(this.objectId, style, activeStyle); }
 			FlashMapObject.prototype.getStyle = function( removeDefaults ) { return flashDiv.getStyle(this.objectId, typeof removeDefaults == 'undefined' ? false : removeDefaults); }
 			FlashMapObject.prototype.setActive = function(flag) { flashDiv.setActive_(this.objectId, flag); }
