@@ -42,6 +42,8 @@ class PointGeometry extends Geometry
 					}
 				}
 			}
+		} else {
+			refreshFlag = true;
 		}
 	}
 

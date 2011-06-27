@@ -548,6 +548,9 @@ class Main
 			for (i in 0...Std.int(_data.length))
 			{
 				var tId:String = addObject(_data[i].parentId, _data[i].geometry, _data[i].properties);
+				if (_data[i].setStyle) {
+					getNode(tId).setStyle(new Style(_data[i].setStyle.regularStyle), (_data[i].setStyle.hoveredStyle != null) ? new Style(_data[i].setStyle.hoveredStyle) : null);
+				}
 				ret.push(tId);
 			}
 			return ret;

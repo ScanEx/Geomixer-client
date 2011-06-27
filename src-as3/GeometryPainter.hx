@@ -6,6 +6,8 @@ class GeometryPainter
 	public var window:MapWindow;
 	public var geometry:Geometry;
 
+	var oldZ:Float;
+	
 	public function new(geometry_:Geometry, sprite_:Sprite, window_:MapWindow)
 	{
 		geometry = geometry_;
@@ -15,9 +17,15 @@ class GeometryPainter
 
 	public function repaint(style:Style)
 	{
-		sprite.graphics.clear();
-		if ((geometry != null) && (style != null))
-			geometry.paintWithExtent(sprite, style, window);
+		var curZ:Float = window.getCurrentZ();
+		if(geometry == null || geometry.refreshFlag || curZ != oldZ) {
+			oldZ = curZ;
+			sprite.graphics.clear();
+			if ((geometry != null) && (style != null)) {
+				geometry.paintWithExtent(sprite, style, window);
+				geometry.refreshFlag = false;
+			}
+		}
 	}
 
 	public function repaintWithoutExtent(style:Style)

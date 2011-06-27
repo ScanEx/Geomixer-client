@@ -21,6 +21,8 @@ class Geometry
 	{
 		if (extent.overlaps(window.visibleExtent)) {
 			paint(sprite, style, window);
+		} else {
+			refreshFlag = true;
 		}
 	}
 
