@@ -1004,12 +1004,12 @@ var SearchLogic = function(oInitSearchDataProvider){
 						if(oFoundObject.ObjNameEng.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 							sValue = oFoundObject.ObjNameEng;
-							if (oFoundObject.ObjName != null && !/[a-zA-Z]/.test(sLabelSecondPart)) sLabel += '|' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
+							if (oFoundObject.ObjName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += '|' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
 						}
 						else{
 							sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
 							sValue = oFoundObject.ObjAltNameEng;
-							if (oFoundObject.ObjAltName != null && !/[a-zA-Z]/.test(sLabelSecondPart)) sLabel += '|' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
+							if (oFoundObject.ObjAltName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += '|' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
 						}
 					}
 					else{
