@@ -932,11 +932,13 @@ function createFlashMapInternal(div, layers, callback)
 				{
 					var ph = data[i];
 					var props = ph['properties'] || null;
-					out.push({
+					var tmp = {
 						"parentId": this.objectId,
 						"geometry": merc_geometry(ph['geometry']),
 						"properties": props
-					});
+					};
+					if(ph['setStyle']) tmp['setStyle'] = ph['setStyle'];
+					out.push(tmp);
 				}
 				var _obj = flashDiv.addObjects(out);	// Отправить команду в SWF
 

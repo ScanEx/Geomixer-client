@@ -70,7 +70,7 @@ class VectorLayerFilter extends MapContent
 
 	public override function repaint()
 	{
-		loader(mapNode.window.visibleExtent);
+		if(loader != null) loader(mapNode.window.visibleExtent);
 
 		for (painter in painters)
 			painter.repaint(mapNode.getRegularStyle());
