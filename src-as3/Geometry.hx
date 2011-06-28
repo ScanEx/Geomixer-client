@@ -10,6 +10,7 @@ class Geometry
 	public var extent:Extent;
 	public var properties:Hash<String>;
 	public var refreshFlag:Bool;
+	public var oldZ:Float;
 
 	public function new()
 	{

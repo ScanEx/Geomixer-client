@@ -37,10 +37,11 @@ class VectorTilePainter
 		var curZ:Float = mapWindow.getCurrentZ();
 		if (mapWindow.cacheBitmap.visible || (curZ != Math.round(curZ)))
 			return;
-		if(painter.geometry.refreshFlag || curZ != oldZ) {
-			painter.repaint(style);
-			oldZ = curZ;
-		}
+		//if(painter.geometry.refreshFlag || curZ != oldZ) {
+		//vectorSprite.graphics.clear();
+	
+		painter.repaint(style);
+		oldZ = curZ;
 
 		if(!vectorSprite.visible) vectorSprite.visible = true;
 	}

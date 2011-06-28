@@ -22,8 +22,10 @@ class MultiGeometry extends Geometry
 
 	public override function paint(sprite:Sprite, style: Style, window:MapWindow)
 	{
-		for (member in members)
+		for (member in members) {
+			//member.refreshFlag = true;
 			member.paint(sprite, style, window);
+		}
 	}
 
 	public override function distanceTo(x:Float, y:Float):Float

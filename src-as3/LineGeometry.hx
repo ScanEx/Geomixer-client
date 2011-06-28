@@ -45,6 +45,7 @@ class LineGeometry extends Geometry
 				for (i in 1...Std.int(coordinates.length/2))
 					drawer.lineTo(coordinates[i * 2], coordinates[i * 2 + 1]);
 				refreshFlag = false;
+				oldZ = window.getCurrentZ();
 			}
 		}
 	}
