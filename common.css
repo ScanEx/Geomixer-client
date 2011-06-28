@@ -743,3 +743,9 @@ skype_pnh_container
 	margin: .8em 0 .2em;
 	line-height: 1.5;
 }
+
+.customAttributes td {
+	padding: 2px;
+	border-width: 0px;
+	background-color: 0xffffff;
+}

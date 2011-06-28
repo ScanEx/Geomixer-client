@@ -2658,7 +2658,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				},
 				deleteAttribute: function(idx)
 				{
-					delete _attributes[idx];
+					//delete _attributes[idx];
+					_attributes.splice(idx, 1);
 					$(this).trigger('delAttribute');
 				},
 				getAttribute: function(idx){ return _attributes[idx]; },
@@ -2667,8 +2668,11 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		})();
 		attrModel.TYPES = 
 			{
-				DOUBLE: {user: 'Double', server: 'double'}, 
-				STRING: {user: 'String', server: 'string'}
+				DOUBLE:   {user: 'Float',    server: 'float'},
+				STRING:   {user: 'String',   server: 'string'},
+				TIME:     {user: 'Time',     server: 'time'},
+				DATETIME: {user: 'DateTime', server: 'datetime'},
+				INTEGER:  {user: 'Integer',  server: 'integer'}
 			};
 		
 		var attrView = (function()
@@ -2679,7 +2683,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			
 			var createTypeSelector = function()
 			{
-				var s = _select();
+				var s = _select(null, [['css', 'width', '100px']]);
 				for (var type in attrModel.TYPES)
 					$(s).append(_option([_t(attrModel.TYPES[type].user)], [['dir', 'attrType', attrModel.TYPES[type]], ['attr', 'id', attrModel.TYPES[type].server]]));
 				return s;
@@ -2695,7 +2699,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				for (var i = 0; i < _model.getCount(); i++)
 				{
 					var attr = _model.getAttribute(i);
-					if (!attr) continue;
+					//if (!attr) continue;
 					
 					var typeSelector = createTypeSelector();
 					typeSelector.attrIdx = i;
@@ -2719,17 +2723,21 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 						_model.changeName(idx, name);
 					});
 					
-					var deleteIcon = makeLinkButton("Удалить");
+					var deleteIcon = makeImageButton("img/close.png", "img/close_orange.png");
 					deleteIcon.attrIdx = i;
 					deleteIcon.onclick = function()
 					{
 						_model.deleteAttribute(this.attrIdx);
 					}
 					
-					_trs.push(_tr([_td([nameSelector]), _td([typeSelector]), _td([deleteIcon])]));
+					var moveIcon = _img(null, [['attr', 'src', "img/moveIcon.gif"], ['dir', 'className', 'moveIcon'], ['css', 'cursor', 'move']]);
+					
+					_trs.push(_tr([_td([nameSelector]), _td([typeSelector]), _td([deleteIcon]), _td([moveIcon])]));
 				}
 				
-				$(_parent).append(_table([_tbody(_trs)]));
+				var tbody = _tbody(_trs);
+				$(tbody).sortable({axis: 'y', handle: '.moveIcon'});
+				$(_parent).append(_table([tbody], [['dir', 'className', 'customAttributes']]));
 			}
 			return {
 				init: function(parent, model)
@@ -2753,7 +2761,6 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				}
 			}
 		})();
-		
 		
 		//_title(boxManualAttributes, "Задать аттрибуты вручную");
 		
@@ -2963,8 +2970,12 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		
 		saveButton.onclick = function()
 		{
+			var isCustomAttributes = boxManualAttributes.checked;
 			var errorFlag = false,
-				checkFields = (type == "Vector" ? ['title','ShapePath.Path'] : ['title','TilePath.Path']);
+				checkFields = ['title'];
+				
+			if (!isCustomAttributes)
+				checkFields.push(type == "Vector" ? 'ShapePath.Path' : 'TilePath.Path');
 				
 			for (var i = 0; i < checkFields.length; i++)
 			{
@@ -3020,18 +3031,39 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				if (needRetiling)
 					updateParams += '&NeedRetiling=true';
 				
-				sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams, function(response)
+				if (isCustomAttributes)
+				{
+					var count = attrModel.getCount();
+					var columnsString = "&FieldsCount=" + count;
+					for (var k = 0; k < count; k++){
+						columnsString += "&fieldName" + k + "=" + attrModel.getAttribute(k).name + "&fieldType" + k + "=" + attrModel.getAttribute(k).type.server;
+					}
+					
+					sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + 
+															"&Description=" + descr.value + "&Date=" + dateField.value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + columnsString, function(response)
 					{
 						if (!parseResponse(response))
-							return;
-					
-						_this.asyncTasks[response.Result.TaskID] = div ? div.properties.content.properties.name : true;
+								return;
 						
-						if (div)
-							_queryMapLayers.asyncUpdateLayer(response.Result, properties, needRetiling);
-						else
-							_queryMapLayers.asyncCreateLayer(response.Result, layerTitle);
-					})
+						_this.asyncTasks[response.Result.TaskID] = div ? div.properties.content.properties.name : true;
+						_queryMapLayers.asyncCreateLayer(response.Result, layerTitle);
+					});
+				}
+				else
+				{
+					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams, function(response)
+						{
+							if (!parseResponse(response))
+								return;
+						
+							_this.asyncTasks[response.Result.TaskID] = div ? div.properties.content.properties.name : true;
+							
+							if (div)
+								_queryMapLayers.asyncUpdateLayer(response.Result, properties, needRetiling);
+							else
+								_queryMapLayers.asyncCreateLayer(response.Result, layerTitle);
+						})
+				}
 			}
 			else
 			{

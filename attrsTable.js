@@ -699,7 +699,9 @@ attrsTable.prototype.editObject = function(row)
 			properties[elem.rowName] = $(elem).val();
 		});
 		
-		var objects = JSON.stringify([{action: 'update', properties: properties, id: row[0]}]);
+		var geom = _this.drawingBorders['ogc_fid' + row[0]].getGeometry();
+		
+		var objects = JSON.stringify([{action: 'update', geometry: geom, properties: properties, id: row[0]}]);
 		
 		sendCrossDomainJSONRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=" + _this.layerName + "&objects=" + encodeURIComponent(objects), function(response)
 		{
