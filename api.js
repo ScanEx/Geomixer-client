@@ -812,6 +812,7 @@ function createFlashMapInternal(div, layers, callback)
 				this.properties = properties_;
 				this.parent = parent_;
 				this.flashId = flashId;
+				this._hoverBalloonAttr = {};
 			}
 
 			FlashMapObject.prototype.trace = function(val) { flashDiv.trace(val); }
@@ -1174,10 +1175,13 @@ function createFlashMapInternal(div, layers, callback)
 					return "?";
 			}
 
-			var hoverBalloonAttr = {};	// Атрибуты управления балуном
 			FlashMapObject.prototype.enableHoverBalloon = function(callback, attr)
 			{
-				if(attr) hoverBalloonAttr = attr;
+				
+				var _this = this;
+				if(attr) {
+					this._hoverBalloonAttr = attr;		// Атрибуты управления балуном
+				}
 				var getHoverBalloonText = function(o)
 				{
 					var text = "";
@@ -1205,11 +1209,14 @@ function createFlashMapInternal(div, layers, callback)
 				}
 				var clickBalloonFix = function(o, keyPress)
 				{
-					if('OnClickSwitcher' in hoverBalloonAttr) {
-						var flag = hoverBalloonAttr.OnClickSwitcher(o, keyPress);
-						if(flag) return;	// Если OnClickSwitcher возвращает true выходим
+					var OnClickSwitcher = chkAttr('OnClickSwitcher', _this);	// Проверка наличия параметра по ветке родителей 
+					if(OnClickSwitcher && typeof(OnClickSwitcher) == 'function') {
+						var flag = OnClickSwitcher(o, keyPress);				// Вызов пользовательского метода вместо или перед балуном
+						if(flag) return;										// Если OnClickSwitcher возвращает true выходим
 					}
-					if(hoverBalloonAttr['disableOnClick']) return;
+
+					if(chkAttr('disableOnClick', _this))	// Проверка наличия параметра disableOnClick по ветке родителей 
+						return;
 					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
 
 					var text = getHoverBalloonText(o);
@@ -1217,12 +1224,14 @@ function createFlashMapInternal(div, layers, callback)
 					var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
 					if (!fixedHoverBalloons[id])
 					{
-						if(hoverBalloonAttr['maxFixedBallons'] > 0) {
-							var cnt = 0;
-							for (var key in fixedHoverBalloons)
-							{
-								cnt++;
-								if(cnt >= hoverBalloonAttr['maxFixedBallons']) return;
+						var maxFixedBallons = chkAttr('maxFixedBallons', _this);	// Проверка наличия параметра maxFixedBallons по ветке родителей
+						if(maxFixedBallons > 0 && map.balloons.length > 0)
+						{
+							if(maxFixedBallons <= map.balloons.length) {
+								var balloon = map.balloons[0];
+								var fixedId = balloon.fixedId;
+								balloon.remove();
+								delete fixedHoverBalloons[fixedId];
 							}
 						}
 						var balloon = map.addBalloon();
@@ -1255,13 +1264,24 @@ function createFlashMapInternal(div, layers, callback)
 					}
 					updatePropsBalloon(false);
 				}
+				var chkAttr = function(name, o)
+				{
+					var attr = false;
+					var hash = o._hoverBalloonAttr;
+					if(name in hash) {
+						attr = hash[name];
+					}
+					if(!attr && o.parent) attr = chkAttr(name, o.parent);
+					return attr;
+				}
 				var handlersObj = {
 					onMouseOver: function(o, keyPress)
 					{ 
 						if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
 						if (flashDiv.isDragging())
 							return;
-						if(hoverBalloonAttr['disableOnMouseOver'])
+
+						if(chkAttr('disableOnMouseOver', _this))	// Проверка наличия параметра disableOnMouseOver по ветке родителей 
 							return;
 
 						for (var key in fixedHoverBalloons)
@@ -1292,12 +1312,14 @@ function createFlashMapInternal(div, layers, callback)
 					onClick: clickBalloonFix
 				};
 
-				if(hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
-					delete handlersObj['onMouseOver'];
-					delete handlersObj['onMouseOut'];
-				}
-				if(hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
-					delete handlersObj['onClick'];
+				if(this._hoverBalloonAttr) {			// есть юзерские настройки балунов
+					if(this._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
+						delete handlersObj['onMouseOver'];
+						delete handlersObj['onMouseOut'];
+					}
+					if(this._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
+						delete handlersObj['onClick'];
+					}
 				}
 				this.setHandlers(handlersObj);
 			}
