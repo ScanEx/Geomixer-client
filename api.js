@@ -1284,15 +1284,6 @@ function createFlashMapInternal(div, layers, callback)
 						if(chkAttr('disableOnMouseOver', _this))	// ѕроверка наличи€ параметра disableOnMouseOver по ветке родителей 
 							return;
 
-						for (var key in fixedHoverBalloons)
-						{
-							var balloon = fixedHoverBalloons[key];
-							if (!balloon.isVisible)
-							{
-								balloon.remove();
-								delete fixedHoverBalloons[key];
-							}
-						}
 						var text = getHoverBalloonText(o);
 						if(!text) return;
 						var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
