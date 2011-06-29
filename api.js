@@ -1224,7 +1224,7 @@ function createFlashMapInternal(div, layers, callback)
 					var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
 					if (!fixedHoverBalloons[id])
 					{
-						var maxFixedBallons = chkAttr('maxFixedBallons', _this);	// ѕроверка наличи€ параметра maxFixedBallons по ветке родителей
+						var maxFixedBallons = chkAttr('maxFixedBallons', _this) || 1;	// ѕроверка наличи€ параметра maxFixedBallons по ветке родителей
 						if(maxFixedBallons > 0 && map.balloons.length > 0)
 						{
 							if(maxFixedBallons <= map.balloons.length) {
