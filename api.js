@@ -1155,7 +1155,7 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						clearTimeout(timeoutShowHoverBalloons);
 						showHoverBalloons();
-					}, 1000);
+					}, 300);
 				}
 			}
 
