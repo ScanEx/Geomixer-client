@@ -1312,6 +1312,7 @@ function createFlashMapInternal(div, layers, callback)
 					onClick: clickBalloonFix
 				};
 
+				if(this == map) return;					// На map Handlers не вешаем
 				if(this._hoverBalloonAttr) {			// есть юзерские настройки балунов
 					if(this._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
 						delete handlersObj['onMouseOver'];
