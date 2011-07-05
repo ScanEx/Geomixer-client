@@ -273,7 +273,7 @@
 .ui-widget-shadow { margin: -7px 0 0 -7px; padding: 7px; background: #000000 url(images/ui-bg_highlight-hard_70_000000_1x100.png) 50% top repeat-x; opacity: .30;filter:Alpha(Opacity=30); -moz-border-radius: 8px; -webkit-border-radius: 8px; }/* Accordion
 /* Datepicker
 ----------------------------------*/
-.ui-datepicker { width: 17em; padding: .2em .2em 0; z-index:100000; border:1px solid #216B9C;}
+.ui-datepicker { width: 17em; padding: .2em .2em 0; z-index:100000; border:1px solid #216B9C; display: none }
 .ui-datepicker .ui-datepicker-header { position:relative; padding:.2em 0; }
 .ui-datepicker .ui-datepicker-prev, .ui-datepicker .ui-datepicker-next { position:absolute; top: 2px; width: 1.8em; height: 1.8em; }
 /*.ui-datepicker .ui-datepicker-prev-hover, .ui-datepicker .ui-datepicker-next-hover { top: 1px; }*/
