@@ -4,6 +4,7 @@ var gmxCore = function()
     var _modules = {};
     var _globalNamespace = this;
 	var _modulesDefaultHost = "";
+	var _modulePathes = {};
     
     var invokeCallbacks = function()
     {
@@ -35,10 +36,10 @@ var gmxCore = function()
         //Add module directly
         //addModule( moduleName, moduleObj, options? )
         // * moduleName - {String} nonempty
-        // * moduleObj - {Object} object, which represents module
+        // * moduleObj - {Object} object, which represents module.
         // * options - {Object}. Following options are possible:
         //    * require - {Array of string}. What modules should be loaded before this one
-        //    * init - {Function} function to initialize module. Signature: function moduleInit(moduleObj)
+        //    * init - {Function} function to initialize module. Signature: function moduleInit(moduleObj, modulePath)
         addModule: function(moduleName, moduleObj, options)
         {
             var requiredModules = (options && 'require' in options) ? options.require : [];
@@ -49,22 +50,31 @@ var gmxCore = function()
             this.addModulesCallback( requiredModules, function()
             {
                 if (options && 'init' in options)
-                    options.init(moduleObj);
+				{
+                    options.init(moduleObj, _modulePathes[moduleName]);
+				}
                 
                 _modules[moduleName] = moduleObj;
                 invokeCallbacks();
             });
         },
-        //Load module from file. File is constructed as (moduleName + '.js')
+        //Load module from file. If not defined moduleSource, filename is constructed as (moduleName + '.js')
         loadModule: function(moduleName, moduleSource)
         {
             if ( ! (moduleName in _modules) )
             {
                 var headElem = document.getElementsByTagName("head")[0];
                 var newScript = document.createElement('script');
+				var path = (typeof moduleSource != 'undefined') ? moduleSource : _modulesDefaultHost + moduleName + '.js';
+				
                 newScript.type = 'text/javascript';
-                newScript.src = (typeof moduleSource != 'undefined') ? moduleSource : _modulesDefaultHost + moduleName + '.js';
+                newScript.src = path;
+                newScript.charset = "utf-8";
                 headElem.appendChild(newScript);
+				
+				var pathRegexp = /(.*)\/[^\/]+/;
+				_modulePathes[moduleName] = pathRegexp.test(path) ? path.match(pathRegexp)[1] + "/" : "";
+				
             }
         },
 		
