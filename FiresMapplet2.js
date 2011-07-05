@@ -271,10 +271,10 @@ var testFires = function()
 			{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} },
 			{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} }
 		];
-				
+		
 		var _clustersRenderer = new FireSpotRenderer({maxZoom: 7, customStyleProvider: customStyleProvider, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>"});
 		var _geometryRenderer = new FireBurntRenderer({minZoom: 8, defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", bringToDepth: -1});
-		var _hotspotRenderer  = new FireSpotRenderer({title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>", minZoom: 12, /*onclick: function(o){ params.verificationControl.showID(o.properties.hotspotId); }, */bringToDepth: -2});
+		var _hotspotRenderer  = new FireSpotRenderer({title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>", minZoom: 11, /*onclick: function(o){ params.verificationControl.showID(o.properties.hotspotId); }, */bringToDepth: -2});
 		
 		this.bindData = function(data)
 		{
