@@ -26,6 +26,7 @@ class Main
 	public static var registerMouseDown:MapNode->MouseEvent->Void;
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
+	public static var mousePressed:Bool = false;
 	public static var eventAttr:Dynamic = {};
 
 	static var lastFrameBumpTime:Float = 0;
@@ -210,6 +211,7 @@ class Main
 		root.addEventListener(MouseEvent.MOUSE_DOWN, function(event)
 		{
 			pressTime = flash.Lib.getTimer();
+			Main.mousePressed = true;
 		});
 		var windowMouseDown = function(event)
 		{
@@ -307,12 +309,12 @@ class Main
 		{
 			return isDragging;
 		});
-		var windowMouseMove = function(event)
+		var windowMouseMove = function(?event)
 		{
-			if (isDragging && !Main.draggingDisabled)
+			if (isDragging && !Main.draggingDisabled && (currentZ == Math.round(currentZ)))
 			{
 				isMoving = true;
-                        	var c = Utils.getScale(draggedWindow.getCurrentZ());
+                var c = Utils.getScale(draggedWindow.getCurrentZ());
 				setCurrentPosition(
 					startMapX - (root.mouseX - startMouseX)*c,
 					startMapY + (root.mouseY - startMouseY)*c,
@@ -739,6 +741,27 @@ class Main
 				content.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
 			getNode(id).setContent(content);
 		});
+		ExternalInterface.addCallback("setTiles", function(id:String, tiles:Array<Int>)
+		{
+			var node = getNode(id);
+			if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {
+				var layer = cast(node.content, VectorLayer);
+				for (i in 0...Std.int(tiles.length/3))
+					layer.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
+				layer.createLoader(null);
+			}
+		});
+		ExternalInterface.addCallback("getStat", function(id:String)
+		{
+			var out:Dynamic = {};
+			var node = getNode(id);
+			if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {
+				var layer = cast(node.content, VectorLayer);
+				out = layer.getStat();
+			}
+			return out;
+			
+		});		
 		ExternalInterface.addCallback("observeVectorLayer", function(id:String, layerId:String, func:String)
 		{
 			var layer = cast(getNode(layerId).content, VectorLayer);

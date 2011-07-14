@@ -12,9 +12,9 @@ class VectorTile
 {
 	var loadCallbacks:Array<Void->Void>;
 	var startedLoading:Bool;
-	var finishedLoading:Bool;
 	var layer:VectorLayer;
 
+	public var finishedLoading:Bool;
 	public var i:Int;
 	public var j:Int;
 	public var z:Int;

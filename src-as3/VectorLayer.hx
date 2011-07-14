@@ -85,6 +85,17 @@ class VectorLayer extends MapContent
 		}
 	}
 
+	public function getStat()
+	{
+		var out:Dynamic = { };
+		out.tilesCnt = tiles.length;
+		out.pointsCnt = 0;
+		for (tile in tiles)
+		{
+			if (tile.ids != null) out.pointsCnt += tile.ids.length;
+		}
+		return out;
+	}
 
 	public function repaintIndicator()
 	{
@@ -109,6 +120,7 @@ class VectorLayer extends MapContent
 
 		for (tile in tiles)
 		{
+			if (!tile.finishedLoading) continue;
 			if ((tile.ids != null) && tile.extent.overlaps(pointExtent))
 			{
 				for (i in 0...tile.ids.length)

@@ -957,7 +957,9 @@ function createFlashMapInternal(div, layers, callback)
 				if(!obj) obj = false;
 				return new FlashMapObject(obj, props, this);
 			}
-			FlashMapObject.prototype.setFilter = function(sql) { return flashDiv.setFilter(this.objectId, sql); }
+			FlashMapObject.prototype.setFilter = function(sql) {
+				return flashDiv.setFilter(this.objectId, sql);
+			}
 			FlashMapObject.prototype.remove = function()
 			{
 				if (this.copyright) 
@@ -1520,7 +1522,100 @@ function createFlashMapInternal(div, layers, callback)
 				});
 			}
 
-                        var maxRasterZoom = 1;
+			function reSetStyles(styles, obj)
+			{
+				for (var i = 0; i < styles.length; i++)
+				{
+					var style = styles[i];
+					var givenStyle = {};
+					if (typeof style.StyleJSON != 'undefined')
+						givenStyle = style.StyleJSON;
+					else if (typeof style.RenderStyle != 'undefined')
+						givenStyle = style.RenderStyle;
+					else
+					{
+						if (style.PointSize)
+							givenStyle.marker = { size: parseInt(style.PointSize) };
+						if (style.Icon)
+						{
+							var src = (style.Icon.indexOf("http://") != -1) ?
+								style.Icon :
+								(baseAddress + "/" + style.Icon);
+							givenStyle.marker = { image: src, "center": true };
+						}
+						if (style.BorderColor || style.BorderWidth)
+							givenStyle.outline = {
+								color: parseColor(style.BorderColor),
+								thickness: parseInt(style.BorderWidth || "1"),
+								opacity: (style.BorderWidth == "0" ? 0 : 100)
+							};
+						if (style.FillColor)
+							givenStyle.fill = {
+								color: parseColor(style.FillColor),
+								opacity: 100 - parseInt(style.Transparency || "0")
+							};
+
+						var label = style.label || style.Label;
+						if (label)
+						{
+							givenStyle.label = {
+								field: label.FieldName,
+								color: parseColor(label.FontColor),
+								size: parseInt(label.FontSize || "12")
+							};
+						}
+					}
+
+					if (givenStyle.marker)
+						givenStyle.marker.center = true;
+
+					var hoveredStyle = JSON.parse(JSON.stringify(givenStyle));
+					if (hoveredStyle.marker && hoveredStyle.marker.size)
+						hoveredStyle.marker.size += 1;
+					if (hoveredStyle.outline)
+						hoveredStyle.outline.thickness += 1;
+
+					var filter = obj.addObject();
+					var filterSet = false;
+					if (style.Filter)
+					{
+						if (/^\s*\[/.test(style.Filter))
+						{
+							var a = style.Filter.match(/^\s*\[([a-zA-Z0-9_]+)\]\s*([<>=]=?)\s*(.*)$/);
+							if (a && (a.length == 4))
+							{
+								filter.setFilter(a[1] + " " + a[2] + " '" + a[3] + "'");
+								filterSet = true;
+							}
+						}
+						else
+						{
+							filter.setFilter(style.Filter);
+							filterSet = true;
+						}
+					}
+					if (!filterSet)
+						filter.setFilter();
+					filter.setZoomBounds(style.MinZoom, style.MaxZoom);
+					filter.setStyle(givenStyle, hoveredStyle);
+					if (style.Balloon) (function(balloonText)
+					{
+						filter.enableHoverBalloon(function(o)
+						{
+							return applyTemplate(
+								applyTemplate(balloonText, o.properties),
+								{ SUMMARY: o.getGeometrySummary() }
+							);
+						});
+					})(style.Balloon);
+					else if ((style.BalloonEnable == undefined) || style.BalloonEnable)
+						filter.enableHoverBalloon();
+
+					if(obj.filters[i]) obj.filters[i].objectId = filter.objectId;
+				}
+			}
+
+			var maxRasterZoom = 1;
 			var initialLayersAdded = false;
 			FlashMapObject.prototype.addLayer = function(layer, isVisible)
 			{
@@ -1636,10 +1731,10 @@ function createFlashMapInternal(div, layers, callback)
 							})
 						);
 					}
-					if (isRaster)
+					if (isRaster) {
 						obj.setBackgroundTiles(tileFunction);
-					else
-					{	
+					} else
+					{
 						obj.getFeatures = function()
 						{
 							var callback, geometry, str;
@@ -1695,94 +1790,22 @@ function createFlashMapInternal(div, layers, callback)
 							for (var i = 0; i < obj.filters.length; i++)
 								obj.filters[i].setStyle(style, activeStyle);
 						}
-						for (var i = 0; i < layer.properties.styles.length; i++)
+
+						reSetStyles(layer.properties.styles, obj);
+						obj.reSetStyles =  function(styles)
 						{
-							var style = layer.properties.styles[i];
-							var givenStyle = {};
-							if (typeof style.StyleJSON != 'undefined')
-								givenStyle = style.StyleJSON;
-							else if (typeof style.RenderStyle != 'undefined')
-								givenStyle = style.RenderStyle;
-							else
-							{
-								if (style.PointSize)
-									givenStyle.marker = { size: parseInt(style.PointSize) };
-								if (style.Icon)
-								{
-									var src = (style.Icon.indexOf("http://") != -1) ?
-										style.Icon :
-										(baseAddress + "/" + style.Icon);
-									givenStyle.marker = { image: src, "center": true };
-								}
-								if (style.BorderColor || style.BorderWidth)
-									givenStyle.outline = {
-										color: parseColor(style.BorderColor),
-										thickness: parseInt(style.BorderWidth || "1"),
-										opacity: (style.BorderWidth == "0" ? 0 : 100)
-									};
-								if (style.FillColor)
-									givenStyle.fill = {
-										color: parseColor(style.FillColor),
-										opacity: 100 - parseInt(style.Transparency || "0")
-									};
-		
-								var label = style.label || style.Label;
-								if (label)
-								{
-									givenStyle.label = {
-										field: label.FieldName,
-										color: parseColor(label.FontColor),
-										size: parseInt(label.FontSize || "12")
-									};
-								}
+							for (var i = 0; i < obj.filters.length; i++) {
+								obj.filters[i].remove();
 							}
-
-							if (givenStyle.marker)
-								givenStyle.marker.center = true;
-
-							var hoveredStyle = JSON.parse(JSON.stringify(givenStyle));
-							if (hoveredStyle.marker && hoveredStyle.marker.size)
-								hoveredStyle.marker.size += 1;
-							if (hoveredStyle.outline)
-								hoveredStyle.outline.thickness += 1;
-
-							var filter = obj.addObject();
-							var filterSet = false;
-							if (style.Filter)
-							{
-								if (/^\s*\[/.test(style.Filter))
-								{
-									var a = style.Filter.match(/^\s*\[([a-zA-Z0-9_]+)\]\s*([<>=]=?)\s*(.*)$/);
-									if (a && (a.length == 4))
-									{
-										filter.setFilter(a[1] + " " + a[2] + " '" + a[3] + "'");
-										filterSet = true;
-									}
-								}
-								else
-								{
-									filter.setFilter(style.Filter);
-									filterSet = true;
-								}
-							}
-							if (!filterSet)
-								filter.setFilter();
-							filter.setZoomBounds(style.MinZoom, style.MaxZoom);
-							filter.setStyle(givenStyle, hoveredStyle);
-							if (style.Balloon) (function(balloonText)
-							{
-								filter.enableHoverBalloon(function(o)
-								{
-									return applyTemplate(
-										applyTemplate(balloonText, o.properties),
-										{ SUMMARY: o.getGeometrySummary() }
-									);
-								});
-							})(style.Balloon);
-							else if ((style.BalloonEnable == undefined) || style.BalloonEnable)
-								filter.enableHoverBalloon();
-
-							obj.filters[i].objectId = filter.objectId;
+							reSetStyles(styles, obj);
+						}
+						obj.getStat = function() {
+							var _obj = flashDiv.getStat(obj.objectId);
+							return _obj;
+						}
+						obj.setTiles = function(data) {
+							var _obj = flashDiv.setTiles(obj.objectId, data);
+							return _obj;
 						}
 
 						if (layer.properties.Quicklook)
@@ -1813,10 +1836,12 @@ function createFlashMapInternal(div, layers, callback)
 						minStyleZoom = Math.min(style.MinZoom, minStyleZoom);
 						maxStyleZoom = Math.max(style.MaxZoom, maxStyleZoom);
 					}
-					if (!isInvalid)
+					if (!isInvalid) {
 						obj.setZoomBounds(minStyleZoom, maxStyleZoom);
-					else
+					} else {
 						obj.setZoomBounds(20, 20);
+					}
+
 					if (layer.properties.Copyright)
 						obj.setCopyright(layer.properties.Copyright);
 				}
@@ -1842,6 +1867,7 @@ function createFlashMapInternal(div, layers, callback)
 							for (var i = 0; i < deferred.length; i++)
 								deferred[i]();
 						}
+						obj.isVisible = flag;
 					}
 					obj.addObject = function()
 					{
@@ -4990,6 +5016,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.defaultHostName = layers.properties.hostName;
 						window.getLayers = function() { return layers; }
 						map.addLayers(layers);
+						map.properties = layers.properties;
 					}
 
 					callback(map);

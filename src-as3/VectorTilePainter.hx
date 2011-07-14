@@ -16,6 +16,7 @@ class VectorTilePainter
 		sprite = sprite_;
 		mapWindow = mapWindow_;
 		vectorSprite = Utils.addSprite(sprite);
+		vectorSprite.cacheAsBitmap = true;
 		painter = new GeometryPainter(geometry, vectorSprite, mapWindow);
 		i = i_;
 		j = j_;
@@ -29,7 +30,7 @@ class VectorTilePainter
 
 	public function setOffset(dx:Float)
 	{
-		vectorSprite.x = dx;
+		if(vectorSprite.x != dx) vectorSprite.x = dx;
 	}
 
 	public function repaint(style:Style)
