@@ -416,7 +416,22 @@ class Main
 			Main.bumpFrameRate();
 			fluidMoveTo(x, y, 17 - z, 10);
 		});
-		ExternalInterface.addCallback("getX", function() { return currentX; });
+		ExternalInterface.addCallback("getPosition", function() {
+			var out:Dynamic = { };
+			out.mouseX = mapWindow.innerSprite.mouseX;
+			out.mouseY = mapWindow.innerSprite.mouseY;
+			out.x = currentX;
+			out.y = currentY;
+			out.z = currentZ;
+			var extent:Dynamic = { };
+			extent.minx = mapWindow.visibleExtent.minx;
+			extent.maxx = mapWindow.visibleExtent.maxx;
+			extent.miny = mapWindow.visibleExtent.miny;
+			extent.maxy = mapWindow.visibleExtent.maxy;
+			out.extent = extent;
+			return out;
+		});
+		ExternalInterface.addCallback("getX", function() { return currentX;	});
 		ExternalInterface.addCallback("getY", function() { return currentY; });
 		ExternalInterface.addCallback("getZ", function() { return 17 - currentZ; });
 		ExternalInterface.addCallback("getMouseX", function() { return mapWindow.innerSprite.mouseX; });

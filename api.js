@@ -875,6 +875,8 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.getZ = function() { return 17 - flashDiv.getZ(); }
 			FlashMapObject.prototype.getMouseX = function() { return from_merc_x(flashDiv.getMouseX()); }
 			FlashMapObject.prototype.getMouseY = function() { return from_merc_y(flashDiv.getMouseY()); }
+			FlashMapObject.prototype.getPosition = function() { return flashDiv.getPosition(); }
+
 			FlashMapObject.prototype.isKeyDown = function(code) { return flashDiv.isKeyDown(code); }
 
 			var propertiesFromArray = function(a)
@@ -2781,9 +2783,11 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			map.getVisibleExtent = function()
 			{
-				var x = merc_x(map.getX());
-				var y = merc_y(map.getY());
-				var scale = getScale(map.getZ());
+				var currPosition = map.getPosition();
+				var x = currPosition['x'];
+				var y = currPosition['y'];
+				var scale = getScale(currPosition['z']);
+
 				var w2 = scale*div.clientWidth/2;
 				var h2 = scale*div.clientHeight/2;
 				return {
@@ -2982,9 +2986,10 @@ function createFlashMapInternal(div, layers, callback)
 			var scale = 0;
 			var positionBalloons = function()	
 			{
-				mapX = merc_x(map.getX());
-				mapY = merc_y(map.getY());
-				scale = getScale(map.getZ());
+				var currPosition = map.getPosition();
+				mapX = currPosition['x'];
+				mapY = currPosition['y'];
+				scale = getScale(currPosition['z']);
 
 				balloons.sort(function(b1, b2)
 				{
@@ -3114,6 +3119,25 @@ function createFlashMapInternal(div, layers, callback)
 				return distVincenty(x, y, from_merc_x(merc_x(x) + 40), from_merc_y(merc_y(y) + 30))/50;
 			}
 
+			/** ќтображение строки текущего положени€ карты
+			* @function
+			* @memberOf api - перегружаемый внешними плагинами
+			* @param {object['div']} элемент DOM модели дл€ отображени€ строки, где будет показыватьс€ текущее положение карты
+			* @param {object['screenGeometry']} геометри€ видимой части экрана
+			* @param {object['properties']} свойства карты
+			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">ї ѕример использовани€</a>.
+			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+			*/
+			map.setLocationTitleDiv = null;
+			var locationTitleDiv = newElement(
+				"div",
+				{
+				},
+				{
+				}
+			);
+			div.appendChild(locationTitleDiv);
+
 			var coordinates = newElement(
 				"div",
 				{
@@ -3163,9 +3187,11 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			}
 
-			var getCoordinatesText = function()
+			var getCoordinatesText = function(currPosition)
 			{
-				var x = map.getX(), y = map.getY();
+				if(!currPosition) currPosition = map.getPosition();
+				var x = from_merc_x(currPosition['x']);
+				var y = from_merc_y(currPosition['y']);
 				if (x > 180)
 					x -= 360;
 				if (x < -180)
@@ -3234,9 +3260,10 @@ function createFlashMapInternal(div, layers, callback)
 				{
 					copyrightUpdateTimeout = setTimeout(function()
 					{
+						var currPosition = map.getPosition();
+						var x = from_merc_x(currPosition['x']);
+						var y = from_merc_y(currPosition['y']);
 						var texts = {};
-						var x = map.getX();
-						var y = map.getY();
 						for (var i = 0; i < copyrightedObjects.length; i++)
 						{
 							var obj = copyrightedObjects[i];
@@ -3305,8 +3332,11 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				var startMouseX = eventX(event);
 				var startMouseY = eventY(event);
-				var startMapX = merc_x(map.getX());
-				var startMapY = merc_y(map.getY());
+				
+				var currPosition = map.getPosition();
+				var startMapX = currPosition['x'];
+				var startMapY = currPosition['y'];
+
 				var scale = getScale(miniMapZ);
 				
 				var mouseMoveMode = new HandlerMode(document.documentElement, "mousemove", function(event)
@@ -3438,10 +3468,12 @@ function createFlashMapInternal(div, layers, callback)
 			var copyrightUpdateTimeout2 = false;
 			var updatePosition = function()
 			{
-				var z = map.getZ();
+				var currPosition = map.getPosition();
+
+				var z = currPosition['z'];
 				if (z == Math.round(z))
 				{
-					var metersPerPixel = getLocalScale(map.getX(), map.getY())*getScale(z);
+					var metersPerPixel = getLocalScale(from_merc_x(currPosition['x']), from_merc_y(currPosition['y']))*getScale(z);
 					for (var i = 0; i < 30; i++)
 					{
 						var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
@@ -3467,7 +3499,12 @@ function createFlashMapInternal(div, layers, callback)
 					zoomObj = newZoomObj;
 					zoomObj.src = apiBase + "img/zoom_active.png";
 				}
-				coordinates.innerHTML = getCoordinatesText();
+				coordinates.innerHTML = getCoordinatesText(currPosition);
+				
+				if (typeof(map.setLocationTitleDiv) == 'function') {
+					var attr = {'div': locationTitleDiv, 'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
+					map.setLocationTitleDiv(attr);
+				}
 
 				if (copyrightUpdateTimeout2)
 					clearTimeout(copyrightUpdateTimeout2);
@@ -4668,7 +4705,14 @@ function createFlashMapInternal(div, layers, callback)
 									h = div.clientHeight,
 									wGeo = w*scale,
 									hGeo = h*scale;
-	
+/*
+				var currPosition = map.getPosition();
+				var x = from_merc_x(currPosition['x']);
+				var y = from_merc_y(currPosition['y']);
+				var z = currPosition['z'];
+				scale = getScale(z);
+*/
+
 								var miny = Math.max(from_merc_y(merc_y(y) - hGeo/2), -90);
 								var maxy = Math.min(from_merc_y(merc_y(y) + hGeo/2), 90);
 								var minx = Math.max(from_merc_x(merc_x(x) - wGeo/2), -180);
