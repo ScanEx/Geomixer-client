@@ -6,6 +6,7 @@ import flash.geom.Matrix;
 class RasterImage extends MaskedContent
 {
 	var url:String;
+	var noCache:Bool;
 	var added:Bool;
 	var controlPointsSet:Bool;
 
@@ -38,7 +39,8 @@ class RasterImage extends MaskedContent
 		x3_:Float, 
 		y3_:Float, 
 		x4_:Float, 
-		y4_:Float
+		y4_:Float,
+		?noCache_:Bool
 	)
 	{
 		url = url_;
@@ -52,6 +54,7 @@ class RasterImage extends MaskedContent
 		y3 = y3_;
 		x4 = x4_;
 		y4 = y4_;
+		noCache = (noCache_ ? noCache_ : false);
 	}
 
 	public function setControlPoints(
@@ -159,7 +162,7 @@ class RasterImage extends MaskedContent
 						drawTriangle(tx2, ty2, tx2, ty1, tx1, ty2);
 					}
 				}
-			});
+			}, noCache);
 		}
 	}
 }

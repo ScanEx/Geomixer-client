@@ -969,9 +969,9 @@ function createFlashMapInternal(div, layers, callback)
 					
 				flashDiv.remove(this.objectId);
 			}
-			FlashMapObject.prototype.bringToTop = function() { flashDiv.bringToTop(this.objectId); }
+			FlashMapObject.prototype.bringToTop = function() { return flashDiv.bringToTop(this.objectId); }
 			FlashMapObject.prototype.bringToBottom = function() { flashDiv.bringToBottom(this.objectId); }
-			FlashMapObject.prototype.bringToDepth = function(n) { flashDiv.bringToDepth(this.objectId, n); }
+			FlashMapObject.prototype.bringToDepth = function(n) { return flashDiv.bringToDepth(this.objectId, n); }
 			FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
 			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { flashDiv.setZoomBounds(this.objectId, minZoom, maxZoom); }
 			FlashMapObject.prototype.setVisible = function(flag) 
@@ -1081,6 +1081,21 @@ function createFlashMapInternal(div, layers, callback)
 				this.setPolygon(coordinates);
 			}
 			FlashMapObject.prototype.clearBackgroundImage = function() { flashDiv.clearBackgroundImage(this.objectId); }
+			FlashMapObject.prototype.setImageExtent = function(attr)
+			{
+				this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
+				if (attr.setPolygon)
+				{
+					this.setPolygon([
+						[attr.extent.minX, attr.extent.minY],
+						[attr.extent.maxX, attr.extent.minY],
+						[attr.extent.maxX, attr.extent.maxY],
+						[attr.extent.minX, attr.extent.maxY],
+						[attr.extent.minX, attr.extent.minY]
+					]);
+				}
+				flashDiv.setImageExtent(this.objectId, attr);
+			}
 			FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
 			{
 				this.setStyle({ fill: { color: 0x000000, opacity: 100 } });

@@ -717,6 +717,21 @@ class Main
 			if (Std.is(content, VectorObject))
 				cast(content, VectorObject).setActive(flag);
 		});
+		
+		ExternalInterface.addCallback("setImageExtent", function(id:String, attr:Dynamic)
+		{
+			var node = getNode(id);
+			var minX = Merc.x(attr.extent.minX);
+			var maxX = Merc.x(attr.extent.maxX);
+			var minY = Merc.y(attr.extent.minY);
+			var maxY = Merc.y(attr.extent.maxY);
+			var newContent = new RasterImage(attr.url, minX,minY, maxX,minY, maxX,maxY, minX,maxY, attr.noCache);
+			if (attr.setPolygon != null)
+				newContent.setControlPoints(minX,minY, maxX,minY, maxX,maxY, minX,maxY);
+			if ((node.content != null) && Std.is(node.content, VectorObject))
+				newContent.setMask(cast(node.content, VectorObject).geometry);
+			node.setContent(newContent);
+		});
 		ExternalInterface.addCallback("setImage", function(id:String, url:String, 
 			x1:Float, y1:Float, x2:Float, y2:Float, x3:Float, y3:Float, x4:Float, y4:Float,
 			?tx1:Float, ?ty1:Float, ?tx2:Float, ?ty2:Float, ?tx3:Float, ?ty3:Float, ?tx4:Float, ?ty4:Float
@@ -800,7 +815,9 @@ class Main
 		ExternalInterface.addCallback("bringToTop", function(id:String) 
 		{
 			var node = getNode(id);
-			node.bringToDepth(node.rasterSprite.parent.numChildren - 1);
+			var n = node.rasterSprite.parent.numChildren - 1;
+			node.bringToDepth(n);
+			return n;
 		});
 		ExternalInterface.addCallback("bringToBottom", function(id:String) 
 		{ 
@@ -808,7 +825,11 @@ class Main
 		});
 		ExternalInterface.addCallback("bringToDepth", function(id:String, n:Int) 
 		{ 
-			getNode(id).bringToDepth(n);
+			var node = getNode(id);
+			if(n < 0) n = 0;
+			else if(n > node.rasterSprite.parent.numChildren - 1) n = node.rasterSprite.parent.numChildren - 1;
+			node.bringToDepth(n);
+			return n;
 		});
 		var getGeometry = function(id:String):Geometry
 		{
