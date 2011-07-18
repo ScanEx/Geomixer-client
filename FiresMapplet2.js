@@ -1,5 +1,50 @@
 ﻿(function($){
 
+var testFires2 = function()
+{
+	var interval = setInterval(function()
+	{
+		if (_queryMapLayers.buildedTree)
+		{
+			clearInterval(interval);
+			
+			var table = $(_queryMapLayers.workCanvas).children("table")[0],
+				div = _div();
+			
+			$(table).after(div);
+			
+			mapCalendar.init(div, {
+				dateFormat: "dd.mm.yy",
+				dateMin: new Date(2010, 06, 29),
+				dateMax: new Date(),
+				showYear: false,
+				periods: ['','day','week','month'],
+				periodDefault: 'day',
+				fires: {
+					dateFormat: "dd.mm.yy",
+					fires: true,
+					firesInit: true,
+					images: true,
+					imagesInit: true,
+					burnt: false
+				},
+				filters: [ {
+					dateFormat: "yy-mm-dd", 
+					dateAttribute: "DATE", 
+					layers: ["8E99CB09FA3840F1931CF1587FCC05E2", "F76D35C2337E495CB0E50EFE3EFC88A4"]
+				}]
+			})
+
+		_mapHelper.customParamsManager.addProvider({
+			name: 'firesWidget',
+			loadState: function(state) { mapCalendar.loadState(state); },
+			saveState: function() { return mapCalendar.saveState(); }
+		});
+
+		}
+	}, 200);
+}
+
 var testFires = function()
 {
 	_translationsHash.addtext("rus", {
@@ -461,7 +506,7 @@ var testFires = function()
 gmxCore.addModule('FiresMapplet2', 
 {
 	beforeViewer: function(){
-		testFires();
+		testFires2();
 	}
 });
 

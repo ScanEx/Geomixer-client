@@ -1397,7 +1397,7 @@ var FireBurntProvider = function( params )
 var ModisImagesProvider = function( params )
 {
 	
-	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/v2/',
+	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/v3/',
 							modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/'
 						   }, params);
 	
@@ -1405,7 +1405,7 @@ var ModisImagesProvider = function( params )
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
 		//запрашиваем только за первый день периода
-		var modisUrl = _params.host + "Operative.ashx?type=0&Date=" + dateBegin;
+		var modisUrl = _params.host + "DBWebProxy.ashx?Type=GetModis&Date=" + dateBegin;
 		
 		IDataProvider.sendCachedCrossDomainJSONRequest(modisUrl, function(data)
 		{
@@ -1420,8 +1420,8 @@ var ModisImagesProvider = function( params )
 			for ( var d = 0; d < data.Response.length; d++ )
 			{
 				var curImage = data.Response[d];
-				resArr.push({ geometry: from_merc_geometry(curImage[3][0].geometry),
-							  dirName: params.modisImagesHost + curImage[5].split("\\").join("/"),
+				resArr.push({ geometry: from_merc_geometry(curImage[3]),
+							  dirName: params.modisImagesHost + curImage[4].split("\\").join("/"),
 							  date: curImage[1]
 						    });
 			}
@@ -1863,13 +1863,19 @@ var FireBurntRenderer = function( params )
 * @memberOf cover
 * @class 
 */
-var ModisImagesRenderer = function()
+var ModisImagesRenderer = function( params )
 {
+	var _params = $.extend( {}, params );
+	
 	var _imagesObj = null;
 	this.bindData = function(data)
 	{
 		if (_imagesObj) _imagesObj.remove();
 		_imagesObj = globalFlashMap.addObject();
+		
+		if ( typeof _params.depth !== 'undefined' )
+			_imagesObj.bringToDepth( _params.depth );
+		
 		_imagesObj.setZoomBounds(1, 9);
 		_imagesObj.setVisible(false);
 		
@@ -1882,6 +1888,7 @@ var ModisImagesRenderer = function()
 			{
 				return imgData.dirName + "/" + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
 			});
+				
 		})(data[i]);
 	}
 	
@@ -1961,8 +1968,8 @@ var FiresControl = function()
 //настройки виджета пожаров по умолчанию
 FiresControl.DEFAULT_OPTIONS = 
 {
-	firesHost:       'http://sender.kosmosnimki.ru/v2/',
-	imagesHost:      'http://sender.kosmosnimki.ru/v2/',
+	firesHost:       'http://sender.kosmosnimki.ru/v3/',
+	imagesHost:      'http://sender.kosmosnimki.ru/v3/',
 	burntHost:       'http://sender.kosmosnimki.ru/',
 	fireIconsHost:   'http://maps.kosmosnimki.ru/images/',
 	modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/',
@@ -2189,12 +2196,12 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 	if ( this._firesOptions.images ) 
 		this.addDataProvider( "images",
 							  new ModisImagesProvider( {host: this._firesOptions.imagesHost, modisImagesHost: this._firesOptions.modisImagesHost} ),
-							  new ModisImagesRenderer(),
+							  new ModisImagesRenderer( {depth: this._firesOptions.modisDepth } ),
 							  { isVisible: this._firesOptions.imagesInit, isUseBbox: false } );
 							  
 	if ( this._firesOptions.fires )
 		this.addDataProvider( "firedots",
-							  new FireSpotClusterProvider({host: 'http://new.test2.kosmosnimki.ru/', description: "firesWidget.FireCombinedDescription"}),
+							  new FireSpotClusterProvider({host: 'http://sender.kosmosnimki.ru/v3/', description: "firesWidget.FireCombinedDescription"}),
 							  new CombinedFiresRenderer(), 
 							  { isVisible: this._firesOptions.firesInit } );
 	
