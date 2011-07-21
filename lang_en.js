@@ -523,5 +523,7 @@ _translationsHash.hash["eng"] = {
 	"Поиск снимков" : "Search imagery",
 	"Принудительно обновить тайлы" : "Forced retiling",
 	"Обводка" : "Outline",
-	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?"
+	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?",
+	"Статьи" : "Wiki pages",
+	"Искать в видимой области": "Only search in visible area"
 };

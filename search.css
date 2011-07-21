@@ -16,7 +16,7 @@
 	margin: 0;
 }
 
-.searchLayerHeader
+.searchLayerHeader, .SearchTotalHeader
 {
 	color: #2185C0;
 	font-size: 12px;

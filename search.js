@@ -580,9 +580,9 @@ var ResultList = function(oInitContainer, ImagesHost){
 		removeSpan.onclick = function() {
 			unload();
 		}
-		removeSpan.style.marginLeft = '10px';
+		removeSpan.className += ' SearchResultListClear';
 
-		_(oResultCanvas, [removeSpan, _br(), _li([_div([_t(sTotalListName)], [['dir', 'className', 'SearchResultListClear']]), ulSearch])])
+		_(oResultCanvas, [removeSpan, _br(), _li([_div([_t(sTotalListName)], [['dir', 'className', 'SearchTotalHeader']]), ulSearch])])
 		$(oResultCanvas).treeview();
 		$(oResultCanvas).find(".childsCanvas").each(function() {
 			this.parentNode.style.padding = '0px';
@@ -1004,23 +1004,23 @@ var SearchLogic = function(oInitSearchDataProvider){
 						if(oFoundObject.ObjNameEng.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 							sValue = oFoundObject.ObjNameEng;
-							if (oFoundObject.ObjName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += '|' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
+							if (oFoundObject.ObjName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
 						}
 						else{
 							sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
 							sValue = oFoundObject.ObjAltNameEng;
-							if (oFoundObject.ObjAltName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += '|' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
+							if (oFoundObject.ObjAltName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
 						}
 					}
 					else{
 						if(oFoundObject.ObjName.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
-							if (oFoundObject.ObjNameEng != null) sLabel += '|' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
+							if (oFoundObject.ObjNameEng != null) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 						}
 						else{
 							sLabel = fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
 							sValue = oFoundObject.ObjAltName;
-							if (oFoundObject.ObjAltNameEng != null) sLabel += '|' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
+							if (oFoundObject.ObjAltNameEng != null) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
 						}
 					}
 					arrResult.push({

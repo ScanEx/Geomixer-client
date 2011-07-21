@@ -1,0 +1,90 @@
+﻿.wiki-filter-topic
+{
+	color: #2185C0;
+	font-size: 12px;
+}
+span.wiki-filter-page
+{
+	cursor: pointer;
+	margin: 0px 0px 0px 5px;
+	color: #218580;
+	font-weight: bold;
+}
+span.wiki-filter-page:hover
+{
+	text-decoration: underline;
+}
+.wiki-filter-input  input{
+	margin-left: 5px;
+}
+.wiki-wizard-button {
+  padding-left: 10px;
+  padding-bottom: 10px;
+}
+.wiki-wizard-button span {
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 12px;
+}
+.wiki-wizard-button span.disabled {
+  text-decoration: none;
+  cursor: default;
+  color: Gray;
+}
+
+.wiki-wizard-dialog {
+  padding-top: 5px;
+  height: 40px !important;
+  background-color: Transparent;
+  background-image: url('img/wizard-background.png');
+  background-position: left center;
+  background-repeat: no-repeat;
+}
+.wiki-wizard-dialog .ui-dialog-content {
+  margin-left: 30px;
+}
+.wiki-wizard-dialog div {
+  background-color: Transparent;
+}
+.wiki-wizard-dialog .ui-dialog-titlebar {
+  display: none;
+}
+.wiki-wizard-dialog div.content {
+  font-size: 12px;
+}
+.wiki-wizard-dialog .cancel-button {
+  text-decoration: underline;
+  cursor: pointer;
+  float: right;
+  color: Gray;
+  margin-right: 5px;
+}
+.wiki-wizard-dialog .skip-button {
+  text-decoration: underline;
+  cursor: pointer;
+  float: left;
+}
+
+.wiki-button {
+  display: inline-block;
+  *display:inline;
+  vertical-align:middle;
+  cursor:pointer;
+  background-position:lefttop;
+  background-repeat:no-repeat;
+  width:12px;
+  height:15px;
+  margin-left:5px;
+}
+
+.page-button-on {
+  background-image: url('img/page-on.gif');
+}
+
+.page-button-off {
+  background-image: url('img/page-off.gif');
+}
+
+.droppable-drawing-object-hover {
+  background-color: #CCF;
+}
