@@ -3134,6 +3134,44 @@ function createFlashMapInternal(div, layers, callback)
 				return distVincenty(x, y, from_merc_x(merc_x(x) + 40), from_merc_y(merc_y(y) + 30))/50;
 			}
 
+			map.stateListeners = {};
+			/** ѕользовательские Listeners изменений состо€ни€ карты
+			* @function addMapStateListener
+			* @memberOf api - добавление прослушивател€
+			* @param {eventName} название событи€
+			* @param {func} вызываемый метод
+			* @return {id} присвоенный id прослушивател€
+			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">ї ѕример использовани€</a>.
+			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+			*/
+			map.addMapStateListener = function(eventName, func)
+			{
+				if(!map.stateListeners[eventName]) map.stateListeners[eventName] = [];
+				var id = newFlashMapId();
+				map.stateListeners[eventName].push({"id": id, "func": func });
+				return id;
+			}
+			/** ѕользовательские Listeners изменений состо€ни€ карты
+			* @function removeMapStateListener
+			* @memberOf api - удаление прослушивател€
+			* @param {eventName} название событи€
+			* @param {id} вызываемый метод
+			* @return {Bool} true - удален false - не найден
+			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">ї ѕример использовани€</a>.
+			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+			*/
+			map.removeMapStateListener = function(eventName, id)
+			{
+				if(!map.stateListeners[eventName]) return false;
+				var arr = [];
+				for (var i=0; i<map.stateListeners[eventName].length; i++)
+				{
+					if(id != map.stateListeners[eventName][i]["id"]) arr.push(map.stateListeners[eventName][i]);
+				}
+				map.stateListeners[eventName] = arr;
+				return true;
+			}
+
 			/** ќтображение строки текущего положени€ карты
 			* @function
 			* @memberOf api - перегружаемый внешними плагинами
@@ -3515,11 +3553,19 @@ function createFlashMapInternal(div, layers, callback)
 					zoomObj.src = apiBase + "img/zoom_active.png";
 				}
 				coordinates.innerHTML = getCoordinatesText(currPosition);
-				
-				if (typeof(map.setLocationTitleDiv) == 'function') {
+
+				/** ѕользовательское событие positionChanged
+				* @function callback
+				* @param {object} атрибуты прослушивател€
+				*/
+				if ('positionChanged' in map.stateListeners) {
 					var attr = {'div': locationTitleDiv, 'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
-					map.setLocationTitleDiv(attr);
-				}
+					var arr = map.stateListeners['positionChanged'];
+					for (var i=0; i<arr.length; i++)
+					{
+						arr[i].func(attr);
+					}
+				}				
 
 				if (copyrightUpdateTimeout2)
 					clearTimeout(copyrightUpdateTimeout2);
@@ -4043,6 +4089,10 @@ function createFlashMapInternal(div, layers, callback)
 				if (coords)
 				{
 					domObj = createDOMObject(ret);
+					var lastNum = coords[0].length - 1; 
+					if (coords[0][0][0] == coords[0][lastNum][0] && coords[0][0][1] == coords[0][lastNum][1]) {
+						coords[0].pop();	// если последн€€ точка совпадает с первой удал€ем ее
+					}
 					obj.setGeometry({ type: "POLYGON", coordinates: coords });
 					callOnChange();
 				}
