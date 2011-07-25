@@ -13,17 +13,24 @@ class MultiGeometry extends Geometry
 	public override function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow)
 	{
 		if (extent.overlaps(window.visibleExtent)) {
-			for (member in members)
+			clearDrawing();			// Очистим IGraphicsData
+			clearPath();
+			for (member in members) {
 				member.paintWithExtent(sprite, style, window);
+				if (member.parent == this) {
+					myDrawing = myDrawing.concat(member.myDrawing);
+					member.clearDrawing();								// очистим Child для следующей перерисовки
+				}
+			}
 		} else {
 			refreshFlag = true;
 		}
+//trace("---------------- member --------- : " + myDrawing.length + ' : ' + ' : '  + sprite.name  +  ' : ' + members.length);
 	}
 
 	public override function paint(sprite:Sprite, style: Style, window:MapWindow)
 	{
 		for (member in members) {
-			//member.refreshFlag = true;
 			member.paint(sprite, style, window);
 		}
 	}
@@ -47,6 +54,7 @@ class MultiGeometry extends Geometry
 			extent.update(member.extent.minx, member.extent.miny);
 			extent.update(member.extent.maxx, member.extent.maxy);
 		}
+		member.parent = this;
 		refreshFlag = true;
 	}
 

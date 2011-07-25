@@ -12,6 +12,8 @@ import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
 
+import flash.display.GraphicsBitmapFill;
+
 class MarkerStyle
 {
 	public var imageUrl:String;
@@ -172,19 +174,19 @@ class MarkerStyle
 		{
 			Utils.loadBitmapData(imageUrl, function(oldBitmapData:BitmapData)
 			{
-				var bitmapData:BitmapData = null;
-				if (oldBitmapData != null)
+				var bitmapData:BitmapData = oldBitmapData;
+				if (me.replacementColor != MarkerStyle.DEFAULT_REPLACEMENT_COLOR)
 				{
 					var w = oldBitmapData.width;
 					var h = oldBitmapData.height;
 					bitmapData = new BitmapData(w + 2, h + 2, true, 0);
 					bitmapData.copyPixels(oldBitmapData, new Rectangle(0, 0, w, h), new Point(1, 1));
-					if ((me.replacementColor != MarkerStyle.DEFAULT_REPLACEMENT_COLOR))
-						for (i in 0...bitmapData.width)
-							for (j in 0...bitmapData.height)
-								if (bitmapData.getPixel(i, j) == MarkerStyle.DEFAULT_REPLACEMENT_COLOR)
-									bitmapData.setPixel(i, j, me.replacementColor);
+					for (i in 0...bitmapData.width)
+						for (j in 0...bitmapData.height)
+							if (bitmapData.getPixel(i, j) == MarkerStyle.DEFAULT_REPLACEMENT_COLOR)
+								bitmapData.setPixel(i, j, me.replacementColor);
 				}
+				
 				if (bitmapData != null)
 				{
 					var w = bitmapData.width;
@@ -196,14 +198,19 @@ class MarkerStyle
 						var p2 = matrix.transformPoint(new Point(w, 0));
 						var p3 = matrix.transformPoint(new Point(w, h));
 						var p4 = matrix.transformPoint(new Point(0, h));
-						graphics.lineStyle(Math.NaN, 0, 0.0);
-						graphics.beginBitmapFill(bitmapData, matrix, false);
-						graphics.moveTo(p1.x, p1.y);
-						graphics.lineTo(p2.x, p2.y);
-						graphics.lineTo(p3.x, p3.y);
-						graphics.lineTo(p4.x, p4.y);
-						graphics.lineTo(p1.x, p1.y);
-						graphics.endFill();
+						
+						geom.clearDrawing();		// Очистим IGraphicsData
+						geom.clearPath();
+						
+						geom.myFill = new GraphicsBitmapFill(bitmapData, matrix, false);
+						geom.myDrawing.push(geom.myFill);
+						
+						geom.myPath.moveTo(p1.x, p1.y);
+						geom.myPath.lineTo(p2.x, p2.y);
+						geom.myPath.lineTo(p3.x, p3.y);
+						geom.myPath.lineTo(p4.x, p4.y);
+						geom.myPath.lineTo(p1.x, p1.y);
+						geom.myDrawing.push(geom.myPath);
 					}
 				}
 				onLoad();

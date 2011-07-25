@@ -2,7 +2,7 @@ import flash.events.Event;
 
 class VectorLayer extends MapContent
 {	
-	public var tileFunction:Int->Int->Int->String;
+	public var tileFunction:Int->Int->Int->Dynamic;
 	public var identityField:String;
 	public var tiles:Array<VectorTile>;
 	public var geometries:Hash<Geometry>;
@@ -21,7 +21,7 @@ class VectorLayer extends MapContent
 		return Utils.addSprite(mapNode.vectorSprite);
 	}
 
-	public function new(identityField_:String, tileFunction_:Int->Int->Int->String)
+	public function new(identityField_:String, tileFunction_:Int->Int->Int->Dynamic)
 	{
 		identityField = identityField_;
 		tileFunction = tileFunction_;
@@ -191,6 +191,9 @@ class VectorLayer extends MapContent
 			currentFilter = newCurrentFilter;
 
 			hoverPainter.geometry = (distance != Geometry.MAX_DISTANCE) ? geometries.get(currentId) : null;
+			if (hoverPainter.geometry != null) {
+				hoverPainter.geometry.clearDrawing();
+			}
 			hoverPainter.repaint((currentFilter != null) ? currentFilter.mapNode.getHoveredStyle() : null);
 		}
 		if (currentFilter != null)

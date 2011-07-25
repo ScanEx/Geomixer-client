@@ -1111,10 +1111,10 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setDisplacement = function(dx, dy) { flashDiv.setDisplacement(this.objectId, dx, dy); }
 			FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
 			FlashMapObject.prototype.setTileCaching = function(flag) { flashDiv.setTileCaching(this.objectId, flag); }
-			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles) 
+			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
 			{ 
-				flashDiv.setVectorTiles(this.objectId, uniqueGlobalName(dataUrlFunction), cacheFieldName, dataTiles);
-			}
+				flashDiv.setVectorTiles(this.objectId, uniqueGlobalName(dataUrlFunction), cacheFieldName, dataTiles, filesHash);
+			}			
 			FlashMapObject.prototype.loadJSON = function(url)
 			{
 				flashDiv.loadJSON(this.objectId, url);
@@ -1801,7 +1801,13 @@ function createFlashMapInternal(div, layers, callback)
 							);
 						}
 
-						obj.setVectorTiles(tileFunction, "ogc_fid", layer.properties.tiles);
+						var identityField = (layer.properties.identityField ? layer.properties.identityField : "ogc_fid");
+						if(layer.properties.dateTiles) {
+							obj.setVectorTiles(layer.tileDateFunction, identityField, layer.properties.dateTiles, layer.filesHash);
+						} else {
+							obj.setVectorTiles(tileFunction, identityField, layer.properties.tiles);
+						}
+
 						obj.setStyle = function(style, activeStyle)
 						{
 							for (var i = 0; i < obj.filters.length; i++)
@@ -2998,6 +3004,7 @@ function createFlashMapInternal(div, layers, callback)
 			map.balloons = balloons;
 			var mapX = 0;
 			var mapY = 0;
+			map.stageZoom = 1;
 			var scale = 0;
 			var positionBalloons = function()	
 			{
@@ -3005,6 +3012,7 @@ function createFlashMapInternal(div, layers, callback)
 				mapX = currPosition['x'];
 				mapY = currPosition['y'];
 				scale = getScale(currPosition['z']);
+				map.stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
 
 				balloons.sort(function(b1, b2)
 				{
@@ -3065,8 +3073,9 @@ function createFlashMapInternal(div, layers, callback)
 				{
 					if (balloon.isVisible)
 					{
-						var x = div.clientWidth/2 - (mapX - merc_x(this.geoX))/scale;
-						var y = div.clientHeight/2 + (mapY - merc_y(this.geoY))/scale;
+						var sc = scale * map.stageZoom;
+						var x = div.clientWidth/2 - (mapX - merc_x(this.geoX))/sc;
+						var y = div.clientHeight/2 + (mapY - merc_y(this.geoY))/sc;
 						if(this.fixedDeltaFlag) {
 							x += balloon.fixedDeltaX;
 							y -= balloon.fixedDeltaY;
@@ -3565,7 +3574,7 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						arr[i].func(attr);
 					}
-				}				
+				}
 
 				if (copyrightUpdateTimeout2)
 					clearTimeout(copyrightUpdateTimeout2);

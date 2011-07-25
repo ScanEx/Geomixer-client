@@ -146,7 +146,7 @@ class MapWindow
 		if (cacheBitmap.visible != flag)
 		{
 			cacheBitmap.visible = flag;
-			//rootNode.rasterSprite.visible = !flag;
+			rootNode.rasterSprite.visible = !flag;
 			rootNode.vectorSprite.visible = !flag;
 		}
 	}
@@ -165,10 +165,10 @@ class MapWindow
 			var mat2 = matrix.clone();
 			mat2.tx -= x1;
 			mat2.ty -= y1;
-			try {
-				//cacheBitmapData.draw(rootNode.rasterSprite, mat2);
+			//try {
+				cacheBitmapData.draw(rootNode.rasterSprite, mat2);
 				cacheBitmapData.draw(rootNode.vectorSprite, mat2);
-			} catch (e:Error) {}
+			//} catch (e:Error) {}
 			cacheRepaintNeeded = false;
 		}
 	}

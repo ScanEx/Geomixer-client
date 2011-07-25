@@ -17,14 +17,20 @@ class GeometryPainter
 	public function repaint(style:Style)
 	{
 		sprite.graphics.clear();
-		if ((geometry != null) && (style != null))
+		if (geometry != null && style != null) {
 			geometry.paintWithExtent(sprite, style, window);
-	}
 
+			if (geometry.parent == null && geometry.myDrawing.length > 0) {
+				sprite.graphics.drawGraphicsData(geometry.myDrawing);
+			}
+		}
+	}
+/*
 	public function repaintWithoutExtent(style:Style)
 	{
 		sprite.graphics.clear();
 		if ((geometry != null) && (style != null))
 			geometry.paint(sprite, style, window);
 	}
+*/	
 }
