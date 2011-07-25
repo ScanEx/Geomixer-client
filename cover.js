@@ -1546,7 +1546,7 @@ var FireSpotClusterProvider = (function(){
 			resArr.push(hotSpot);
 			var clusterID = 'id' + a[2];
 			
-			if (a[2] >= 0)
+			if (a[2] !== null && a[2] >= 0)
 			{
 				if (typeof clusters[clusterID] === 'undefined')
 				{
@@ -1646,9 +1646,11 @@ var FireSpotClusterProvider = (function(){
 		this.getDescription = function() { return _gtxt(_params.description); }
 		this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 		{
-			var urlBbox = bbox ? '&Polygon=POLYGON((' + bbox.minX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.minY + '))' : "";
-			//var urlBbox = '&Polygon=n';
-			var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClustersPoints&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+			//var urlBbox = bbox ? '&Polygon=POLYGON((' + bbox.minX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.minY + '))' : "";
+			//var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClustersPoints&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+			
+			var urlBbox = bbox ? '&MinX='+ bbox.minX + '&MinY='+ bbox.minY + '&MaxX='+ bbox.maxX + '&MaxY='+ bbox.maxY : "";
+			var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClustersPointsBBox&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
 			
 			//IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
 			_addRequestCallback(urlFires, function(data)
