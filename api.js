@@ -1087,11 +1087,11 @@ function createFlashMapInternal(div, layers, callback)
 				if (attr.notSetPolygon)
 				{
 					this.setPolygon([
-						[attr.extent.minX, attr.extent.minY],
 						[attr.extent.minX, attr.extent.maxY],
 						[attr.extent.maxX, attr.extent.maxY],
 						[attr.extent.maxX, attr.extent.minY],
-						[attr.extent.minX, attr.extent.minY]
+						[attr.extent.minX, attr.extent.minY],
+						[attr.extent.minX, attr.extent.maxY]
 					]);
 				}
 				flashDiv.setImageExtent(this.objectId, attr);
