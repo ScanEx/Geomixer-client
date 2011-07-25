@@ -148,7 +148,8 @@ class Utils
 			{ 
 					var bitmapData:BitmapData = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
 					bitmapData.draw(loader);
-					if(!noCache) addToCache(bitmapData);
+					if (!noCache) onLoad(bitmapData);
+					else addToCache(bitmapData);
 					loaderActive = false;
 					loaderCache.remove(url);
 					chkLoadImage();

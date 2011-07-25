@@ -1084,13 +1084,13 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setImageExtent = function(attr)
 			{
 				this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
-				if (attr.setPolygon)
+				if (attr.notSetPolygon)
 				{
 					this.setPolygon([
 						[attr.extent.minX, attr.extent.minY],
-						[attr.extent.maxX, attr.extent.minY],
-						[attr.extent.maxX, attr.extent.maxY],
 						[attr.extent.minX, attr.extent.maxY],
+						[attr.extent.maxX, attr.extent.maxY],
+						[attr.extent.maxX, attr.extent.minY],
 						[attr.extent.minX, attr.extent.minY]
 					]);
 				}

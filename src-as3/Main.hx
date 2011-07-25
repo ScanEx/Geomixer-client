@@ -728,9 +728,10 @@ class Main
 			var maxX = Merc.x(attr.extent.maxX);
 			var minY = Merc.y(attr.extent.minY);
 			var maxY = Merc.y(attr.extent.maxY);
-			var newContent = new RasterImage(attr.url, minX,minY, maxX,minY, maxX,maxY, minX,maxY, attr.noCache);
-			if (attr.setPolygon != null)
-				newContent.setControlPoints(minX,minY, maxX,minY, maxX,maxY, minX,maxY);
+			var newContent = new RasterImage(attr.url, minX,minY, minX,maxY, maxX,maxY, maxX,minY, attr.noCache);
+			if (attr.notSetPolygon == true) {
+				newContent.setControlPoints(minX,minY, minX,maxY, maxX,maxY, maxX,minY);
+			}
 			if ((node.content != null) && Std.is(node.content, VectorObject))
 				newContent.setMask(cast(node.content, VectorObject).geometry);
 			node.setContent(newContent);
