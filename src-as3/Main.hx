@@ -371,11 +371,9 @@ class Main
 				viewportHasMoved = false;
 				wasMoving = isMoving;
 			}
-			else if (!isMoving) {
+			else if (!isMoving)
 				for (window in MapWindow.allWindows)
 					window.rootNode.repaintRecursively(false);
-				
-			}
 			if (!isMoving)
 				for (window in MapWindow.allWindows)
 					window.repaintLabels();
@@ -421,8 +419,7 @@ class Main
 		ExternalInterface.addCallback("getPosition", function() {
 			var out:Dynamic = { };
 			out.mouseX = mapWindow.innerSprite.mouseX;
-			out.mouseX = mapWindow.innerSprite.mouseX;
-			out.stageHeight = stage.stageHeight;
+			out.mouseY = mapWindow.innerSprite.mouseY;
 			out.x = currentX;
 			out.y = currentY;
 			out.z = currentZ;
@@ -728,10 +725,9 @@ class Main
 			var maxX = Merc.x(attr.extent.maxX);
 			var minY = Merc.y(attr.extent.minY);
 			var maxY = Merc.y(attr.extent.maxY);
-			var newContent = new RasterImage(attr.url, minX,maxY, maxX,maxY, maxX,minY, minX,minY, attr.noCache);
-			if (attr.notSetPolygon == true) {
-				newContent.setControlPoints(minX,maxY, maxX,maxY, maxX,minY, minX,minY);
-			}
+			var newContent = new RasterImage(attr.url, minX,minY, maxX,minY, maxX,maxY, minX,maxY, attr.noCache);
+			if (attr.setPolygon != null)
+				newContent.setControlPoints(minX,minY, maxX,minY, maxX,maxY, minX,maxY);
 			if ((node.content != null) && Std.is(node.content, VectorObject))
 				newContent.setMask(cast(node.content, VectorObject).geometry);
 			node.setContent(newContent);
@@ -761,23 +757,20 @@ class Main
 			}
 			node.setContent(newContent);
 		});
-		
-		ExternalInterface.addCallback("setVectorTiles", function(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?filesHash:Dynamic)
+		ExternalInterface.addCallback("setVectorTiles", function(id:String, tileFunction:String, identityField:String, tiles:Array<Int>)
 		{
-			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):Dynamic
+			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):String
 			{
-				var out:Dynamic = null;
+				var out:String = '';
 				try {
 					out = ExternalInterface.call(tileFunction, i, j, z);
 				} catch (e:Error) {  }
 				return out;
 			});
-
 			for (i in 0...Std.int(tiles.length/3))
 				content.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
 			getNode(id).setContent(content);
 		});
-		
 		ExternalInterface.addCallback("setTiles", function(id:String, tiles:Array<Int>)
 		{
 			var node = getNode(id);

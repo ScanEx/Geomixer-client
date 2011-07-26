@@ -1,18 +1,17 @@
 import flash.display.Sprite;
+import flash.geom.Point;
+import flash.geom.Matrix;
 
 class PointGeometry extends Geometry
 {
 	public var x:Float;
 	public var y:Float;
-	
-	var oldStyle:Style;
 
 	public function new(x_:Float, y_:Float)
 	{
 		super();
 		x = x_;
 		y = y_;
-		oldStyle = null;
 		extent.update(x, y);
 	}
 
@@ -20,41 +19,36 @@ class PointGeometry extends Geometry
 	{
 		if (window.visibleExtent.contains(x, y))
 		{
-			oldZ = window.getCurrentZ();
-			oldStyle = style;
-			clearDrawing();		// Очистим IGraphicsData
-			clearPath();
 			var marker = style.marker;
 			if (marker != null)
 			{
 				if (marker.drawFunction != null) {
 					marker.drawFunction(this, sprite.graphics, window.scaleY);
-					//refreshFlag = false;
+					refreshFlag = false;
+					oldZ = window.getCurrentZ();
 				}
 				else
-				{	
+				{
 					var size = marker.size;
 					if (size > 0.0)
 					{
 						size *= window.scaleY;
-						if(myStroke == null) {
-							setStroke(style.outline);
-						}
-						myDrawing.push(myStroke);
-						beginFillPath(style.fill);
-
-						myPath.moveTo(x - size, y - size);
-						myPath.lineTo(x + size, y - size);
-						myPath.lineTo(x + size, y + size);
-						myPath.lineTo(x - size, y + size);
-						myPath.lineTo(x - size, y - size);
-						myDrawing.push(myPath);
+						var graphics = sprite.graphics;
+						var drawer = new DashedLineDrawer(graphics, style.outline, window);
+						Geometry.beginFill(graphics, style.fill);
+						drawer.moveTo(x - size, y - size);
+						drawer.lineTo(x + size, y - size);
+						drawer.lineTo(x + size, y + size);
+						drawer.lineTo(x - size, y + size);
+						drawer.lineTo(x - size, y - size);
+						graphics.endFill();
+						refreshFlag = false;
+						oldZ = window.getCurrentZ();
 					}
 				}
 			}
 		} else {
-			//refreshFlag = true;
-			oldZ = 0;
+			refreshFlag = true;
 		}
 	}
 
