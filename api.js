@@ -1111,10 +1111,10 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setDisplacement = function(dx, dy) { flashDiv.setDisplacement(this.objectId, dx, dy); }
 			FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
 			FlashMapObject.prototype.setTileCaching = function(flag) { flashDiv.setTileCaching(this.objectId, flag); }
-			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
+			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles) 
 			{ 
-				flashDiv.setVectorTiles(this.objectId, uniqueGlobalName(dataUrlFunction), cacheFieldName, dataTiles, filesHash);
-			}			
+				flashDiv.setVectorTiles(this.objectId, uniqueGlobalName(dataUrlFunction), cacheFieldName, dataTiles);
+			}
 			FlashMapObject.prototype.loadJSON = function(url)
 			{
 				flashDiv.loadJSON(this.objectId, url);
@@ -1801,13 +1801,7 @@ function createFlashMapInternal(div, layers, callback)
 							);
 						}
 
-						var identityField = (layer.properties.identityField ? layer.properties.identityField : "ogc_fid");
-						if(layer.properties.dateTiles) {
-							obj.setVectorTiles(layer.tileDateFunction, identityField, layer.properties.dateTiles, layer.filesHash);
-						} else {
-							obj.setVectorTiles(tileFunction, identityField, layer.properties.tiles);
-						}
-
+						obj.setVectorTiles(tileFunction, "ogc_fid", layer.properties.tiles);
 						obj.setStyle = function(style, activeStyle)
 						{
 							for (var i = 0; i < obj.filters.length; i++)
@@ -1950,6 +1944,7 @@ function createFlashMapInternal(div, layers, callback)
 				this.layers[t] = obj;
 				if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
 					this.layers[layer.properties.title] = obj;
+				return obj;
 			}
 
 			FlashMapObject.prototype.observeVectorLayer = function(obj, onChange)
@@ -3574,7 +3569,7 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						arr[i].func(attr);
 					}
-				}
+				}				
 
 				if (copyrightUpdateTimeout2)
 					clearTimeout(copyrightUpdateTimeout2);
@@ -3633,6 +3628,11 @@ function createFlashMapInternal(div, layers, callback)
 				sunscreen.setVisible(false);
 			}
 
+			FlashMapObject.prototype.startDrag = function(dragCallback, upCallback)
+			{
+				startDrag(this, dragCallback, upCallback);
+			}
+
 			FlashMapObject.prototype.enableDragging = function(dragCallback, downCallback, upCallback)
 			{
 				var object = this;
@@ -3642,10 +3642,11 @@ function createFlashMapInternal(div, layers, callback)
 						downCallback(map.getMouseX(), map.getMouseY(), o);
 					startDrag(object, dragCallback, upCallback);
 				}
-				if (object == map)
+				if (object == map) {
 					setToolHandler("onMouseDown", mouseDownHandler);
-				else
+				} else {
 					object.setHandler("onMouseDown", mouseDownHandler);
+				}
 			}
 
 			var drawFunctions = {};

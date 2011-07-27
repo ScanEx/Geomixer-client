@@ -42,7 +42,6 @@ class MaskedContent extends MapContent
 			{
 				sprite.graphics.clear();
 				maskGeometry.paint(sprite, new Style({ fill: { color: 0xffffff } }), null);
-				if(maskGeometry.myDrawing.length > 0) sprite.graphics.drawGraphicsData(maskGeometry.myDrawing);
 			}
 			lastMaskGeometry = maskGeometry;
 		}
