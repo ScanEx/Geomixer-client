@@ -1084,14 +1084,14 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setImageExtent = function(attr)
 			{
 				this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
-				if (attr.setPolygon)
+				if (attr.notSetPolygon)
 				{
 					this.setPolygon([
-						[attr.extent.minX, attr.extent.minY],
-						[attr.extent.maxX, attr.extent.minY],
-						[attr.extent.maxX, attr.extent.maxY],
 						[attr.extent.minX, attr.extent.maxY],
-						[attr.extent.minX, attr.extent.minY]
+						[attr.extent.maxX, attr.extent.maxY],
+						[attr.extent.maxX, attr.extent.minY],
+						[attr.extent.minX, attr.extent.minY],
+						[attr.extent.minX, attr.extent.maxY]
 					]);
 				}
 				flashDiv.setImageExtent(this.objectId, attr);
@@ -2998,6 +2998,7 @@ function createFlashMapInternal(div, layers, callback)
 			map.balloons = balloons;
 			var mapX = 0;
 			var mapY = 0;
+			map.stageZoom = 1;
 			var scale = 0;
 			var positionBalloons = function()	
 			{
@@ -3005,6 +3006,7 @@ function createFlashMapInternal(div, layers, callback)
 				mapX = currPosition['x'];
 				mapY = currPosition['y'];
 				scale = getScale(currPosition['z']);
+				map.stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
 
 				balloons.sort(function(b1, b2)
 				{
@@ -3065,8 +3067,9 @@ function createFlashMapInternal(div, layers, callback)
 				{
 					if (balloon.isVisible)
 					{
-						var x = div.clientWidth/2 - (mapX - merc_x(this.geoX))/scale;
-						var y = div.clientHeight/2 + (mapY - merc_y(this.geoY))/scale;
+						var sc = scale * map.stageZoom;
+						var x = div.clientWidth/2 - (mapX - merc_x(this.geoX))/sc;
+						var y = div.clientHeight/2 + (mapY - merc_y(this.geoY))/sc;
 						if(this.fixedDeltaFlag) {
 							x += balloon.fixedDeltaX;
 							y -= balloon.fixedDeltaY;
