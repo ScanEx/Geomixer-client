@@ -1542,7 +1542,7 @@ var FireSpotClusterProvider = (function(){
 		{
 			var a = data.Response[d];
 			var dateInt = $.datepicker.parseDate('yy.mm.dd', a[3]).valueOf();
-			var hotSpot = {hotspotId: a[7], x: a[1], y: a[0], date: a[3], dateInt: dateInt, category: a[6] < 50 ? 0 : (a[4] < 100 ? 1 : 2), balloonProps: {"Время": a[4] + "&nbsp;(Greenwich Mean Time)"/*, "Вероятность": a[5]*/} };
+			var hotSpot = {clusterId: a[2], hotspotId: a[7], x: a[1], y: a[0], date: a[3], dateInt: dateInt, category: a[6] < 50 ? 0 : (a[4] < 100 ? 1 : 2), balloonProps: {"Время": a[4] + "&nbsp;(Greenwich Mean Time)"/*, "Вероятность": a[5]*/} };
 			resArr.push(hotSpot);
 			var clusterID = 'id' + a[2];
 			
@@ -1609,7 +1609,8 @@ var FireSpotClusterProvider = (function(){
 			resClusters.push( { geometry: {type: "POLYGON", coordinates: [polyCoordinates]}, x: clusterCentroids[k].x/clusters[k].length, y: clusterCentroids[k].y/clusters[k].length,
 								label: clusters[k].length,
 								points: clusters[k].length,
-								balloonProps: {"Кол-во очагов пожара": clusters[k].length, "Период горения": clustersMinMaxDates[k].min + ' - ' + clustersMinMaxDates[k].max/*, id: k*/} } );
+								clusterId: k.substr(2),
+								balloonProps: {"Кол-во очагов пожара": clusters[k].length, "Период горения": clustersMinMaxDates[k].min + ' - ' + clustersMinMaxDates[k].max} } );
 		}
 		
 		return {fires: resArr, clusters: resClusters, dialyClusters: resDialyClusters};
@@ -1753,12 +1754,13 @@ var FireSpotRenderer = function( params )
 				
 			var objProperties = a.hotspotId ? {hotspotId: a.hotspotId } : {};
 			objProperties.dateInt = a.dateInt;
+			objProperties.clusterId = a.clusterId;
 			_obj[key].arr.push( {geometry: { type: "POINT", coordinates: [a.x, a.y] }, properties: objProperties, src: a} );
 			_obj[key].balloonProps.push( $.extend({}, a.balloonProps, addBallonProps) );
 		}
-		for (var key in _obj)
+		for (var k in _obj)
 		{
-			var ph = _obj[key];
+			var ph = _obj[k];
 			if(ph.arr.length > 0) {
 				var arr = ph.node.addObjects( ph.arr );
 				for (var i = 0; i < arr.length; i++)
@@ -1807,6 +1809,11 @@ var FireSpotRenderer = function( params )
 	this.setVisible = function(flag)
 	{
 		if (_firesObj) _firesObj.setVisible(flag);
+	}
+	
+	this.bindClickEvent = function(handler)
+	{
+		_params.onclick = handler;
 	}
 }
 
@@ -1919,9 +1926,11 @@ var CombinedFiresRenderer = function( params )
 	var _clustersRenderer = new FireSpotRenderer({maxZoom: 7, customStyleProvider: customStyleProvider, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>"});
 	var _geometryRenderer = new FireBurntRenderer({minZoom: 8, defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", bringToDepth: -1});
 	var _hotspotRenderer  = new FireSpotRenderer({title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>", minZoom: 11, /*onclick: function(o){ params.verificationControl.showID(o.properties.hotspotId); }, */bringToDepth: -2});
+	var _curData = null;
 	
 	this.bindData = function(data)
 	{
+		_curData = data;
 		_clustersRenderer.bindData(data.clusters);
 		_geometryRenderer.bindData(data.clusters);
 		_hotspotRenderer.bindData(data.fires);
@@ -1937,6 +1946,28 @@ var CombinedFiresRenderer = function( params )
 	this.filterByDate = function(date)
 	{
 		_clustersRenderer.filterByDate(date);
+	}
+	
+	this.bindSpotClickEvent = function(handler)
+	{
+		_hotspotRenderer.bindClickEvent(handler);
+	}
+	
+	this.bindClusterClickEvent = function(handler)
+	{
+		_clustersRenderer.bindClickEvent(handler);
+	}
+	
+	this.getHotspotIDsByClusterID = function(clusterId)
+	{
+		var resArr = [];
+		for (var hp = 0; hp < _curData.fires.length; hp++)
+		{
+			if (_curData.fires[hp].clusterId == clusterId)
+				resArr.push(_curData.fires[hp].hotspotId);
+		}
+		
+		return resArr;
 	}
 }
 
@@ -2043,6 +2074,11 @@ FiresControl.prototype.addDataProvider = function( name, dataProvider, dataRende
 	this._updateCheckboxList();
 	if (this.dateFiresBegin && this.dateFiresEnd)
 		this.loadForDates( this.dateFiresBegin, this.dateFiresEnd );
+}
+
+FiresControl.prototype.getRenderer = function( name )
+{
+	return (name in this.dataControllers) ? this.dataControllers[name].renderer : null;
 }
 
 FiresControl.prototype._doFiltering = function(date)
