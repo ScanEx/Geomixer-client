@@ -349,6 +349,7 @@ _translationsHash.hash["eng"] = {
 	"Новости" : "Новости",
 	"Мероприятия" : "Мероприятия",
 	"Отмена" : "Отмена",
+	"Пропустить" : "Skip",
 	"Время" : "Время",
 	"Альбом OpenPhotoVR" : "Фотоальбом",
 	"Встраиваемый код" : "Embed video",
@@ -523,7 +524,5 @@ _translationsHash.hash["eng"] = {
 	"Поиск снимков" : "Search imagery",
 	"Принудительно обновить тайлы" : "Forced retiling",
 	"Обводка" : "Outline",
-	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?",
-	"Статьи" : "Wiki pages",
-	"Искать в видимой области": "Only search in visible area"
+	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?"
 };

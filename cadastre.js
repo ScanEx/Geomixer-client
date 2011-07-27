@@ -31,26 +31,26 @@ var Cadastre = function(oContainer, sCadastreHost, oMap, oMapDiv){
 		var sQuery = "&bbox="+merc_x(oExtend.minX)+"%2C"+merc_y(oExtend.minY)+"%2C"+merc_x(oExtend.maxX)+"%2C"+merc_y(oExtend.maxY)+"&bboxSR=3395&imageSR=3395&size=" + oMapDiv.clientWidth + "%2C" + oMapDiv.clientHeight + "&f=image";
 		if (cbDivision.checked){
 			var sUrl = sCadastreHost + "/Cadastre/MapServer/export?dpi=96&transparent=true&format=png32" + sQuery;
-			oDivisionLayer.setImage(sUrl, oExtend.minX,oExtend.maxY, oExtend.maxX,oExtend.maxY, oExtend.maxX,oExtend.minY, oExtend.minX, oExtend.minY);
+			oDivisionLayer.setImageExtent({url:sUrl, extent: oExtend, noCache: true});
 		}
 		if (rbCostLayer.checked){
 			var sUrl = sCadastreHost + "/Zones/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A1%2C5" + sQuery;
-			oCostLayer.setImage(sUrl, oExtend.minX,oExtend.maxY, oExtend.maxX,oExtend.maxY, oExtend.maxX,oExtend.minY, oExtend.minX, oExtend.minY);
+			oCostLayer.setImageExtent({url:sUrl, extent: oExtend, noCache: true});
 			oLegend.innerHTML = sCostLegend; 
 		} 
 		if (rbCostByAreaLayer.checked){
 			var sUrl = sCadastreHost + "/Zones/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A0%2C6" + sQuery;
-			oCostByAreaLayer.setImage(sUrl, oExtend.minX,oExtend.maxY, oExtend.maxX,oExtend.maxY, oExtend.maxX,oExtend.minY, oExtend.minX, oExtend.minY);
+			oCostByAreaLayer.setImageExtent({url:sUrl, extent: oExtend, noCache: true});
 			oLegend.innerHTML = sCostByAreaLegend; 
 		}
 		if (rbUseType.checked){
 			var sUrl = sCadastreHost + "/Zones/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A2" + sQuery;
-			oUseTypeLayer.setImage(sUrl, oExtend.minX,oExtend.maxY, oExtend.maxX,oExtend.maxY, oExtend.maxX,oExtend.minY, oExtend.minX, oExtend.minY);
+			oUseTypeLayer.setImageExtent({url:sUrl, extent: oExtend, noCache: true});
 			oLegend.innerHTML = sUseTypeLegend;
 		}
 		if (rbCategory.checked){
 			var sUrl = sCadastreHost + "/Zones/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A3%2C4" + sQuery;
-			oCategoryLayer.setImage(sUrl, oExtend.minX,oExtend.maxY, oExtend.maxX,oExtend.maxY, oExtend.maxX,oExtend.minY, oExtend.minX, oExtend.minY);
+			oCategoryLayer.setImageExtent({url:sUrl, extent: oExtend, noCache: true});
 			oLegend.innerHTML = sCategoryLegend; 
 		}
 

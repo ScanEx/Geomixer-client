@@ -128,7 +128,7 @@ WikiObjectsHandler.prototype = {
 		mapObject.setHandler("onClick", function() { clickHandler(pageInfo.Id); });
 		switch (pageInfo.ObjectsGeometry[0].type) {
 			case 'POINT':
-				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : "wiki/img/page.gif"), center: true }});
+				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : "img/wiki/page.gif"), center: true }});
 				break;
 			case 'POLYGON':
 				mapObject.setStyle({outline: {color: pageInfo.ObjectsGeometry[0].color, thickness: 1, opacity: 100}, fill: {color: pageInfo.ObjectsGeometry[0].color, opacity: 25}});
@@ -298,7 +298,7 @@ WikiFilter.prototype = {
 		var sFilter = new RegExp(this._input.value, "i");
 		removeChilds(this._list);
 		var arrTopicsLI = {};
-		for(var i=1; i<this.pagesCache.length; i++){
+		for(var i=0; i<this.pagesCache.length; i++){
 			var page = this.pagesCache[i];
 			var layerOK = !page.BadLayer && (!page.LayerID || oFlashMap.layers[page.LayerID].isVisible)
 			var extentOK = !this._checkExtent.checked || boundsIntersect(getBounds(page.ObjectsGeometry[0].coordinates), oFlashMap.getVisibleExtent());
@@ -341,7 +341,7 @@ WikiPlugin = function() {
 
 WikiPlugin.prototype = {
     initialize: function(map) {
-        $.getCSS('wiki/WikiPlugin.css');
+        $.getCSS('WikiPlugin.css');
 		this._map = map;
         this._wikiService = //new WikiService('http://dev2.kosmosnimki.ru/GeoMixer/');
                             new WikiService('http://localhost:3017/GeoMixer/');
@@ -550,6 +550,18 @@ WikiPlugin.prototype = {
 				_this._pagesCache = [];
 				return;
 			}
+			data.sort(function (page_a, page_b){
+				if (page_a == null || page_a == null) return 0;
+				if (page_a.TopicName > page_b.TopicName)
+					return 1;
+				if (page_a.TopicName < page_b.TopicNamey)
+					return -1;
+				if (page_a.Title > page_b.Title )
+					return 1;
+				if (page_a.Title  < page_b.Title )
+					return -1;
+				return 0;
+			});
 			_this._pagesCache = data;
 			for (var index = 0; index < _this._pagesCache.length; ++index) {
 				_this._pagesCache[index].ObjectsGeometry = JSON.parse(_this._pagesCache[index].ObjectsGeometry);
@@ -591,7 +603,7 @@ var beforeViewer = function(){
 		},
 		isVisible: function(layerManagerFlag, elem)
 		{
-			return true;
+			return userInfo().Login;
 		},
 		isSeparatorBefore: function(layerManagerFlag, elem)
 		{
