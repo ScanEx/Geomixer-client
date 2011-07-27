@@ -841,7 +841,7 @@ queryServerData.prototype.customWMSParamsManager = (function()
 		{
 			var select = _select([_option([_t('png')]), _option([_t('jpeg')])], [['dir','className','selectStyle'], ['css', 'width', '60px']]);
 			_targetDiv = targetDiv;
-			_(_targetDiv, [_t('Формат изображения: '), select]);
+			_(_targetDiv, [_t(_gtxt('Формат изображения') + ': '), select]);
 			_targetDiv.style.marginBottom = '5px';
 		},
 		collect: function() {

@@ -91,6 +91,7 @@ _translationsHash.hash["eng"] = {
 	"Список таблиц" : "Tables list",
 	"Загрузить" : "Download",
 	"URL сервера" : "Server URL",
+	"Формат изображения" : "Image format",
 	"Введите имя gml-файла для скачивания:" : "Enter gml-file name to download:",
 	"точки" : "points",
 	"линии" : "lines",
@@ -524,5 +525,6 @@ _translationsHash.hash["eng"] = {
 	"Поиск снимков" : "Search imagery",
 	"Принудительно обновить тайлы" : "Forced retiling",
 	"Обводка" : "Outline",
-	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?"
+	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?",
+	"Кодировка": "Encoding"
 };

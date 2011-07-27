@@ -2499,6 +2499,49 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 	shownProperties.push({name: _gtxt("Дата"), field: 'Date', elem: dateField});
 	
 	var columnsParent = _div();
+	var encodingParent = _div();
+	
+	//event: change
+	var encodingWidget = (function()
+	{
+		var _encodings = {
+			'UTF-8': 'utf8',
+			'windows-1251': 'win-1251'
+		};
+		var _DEFAULT_ENCODING = 'windows-1251';
+		var _curSelection = _DEFAULT_ENCODING;
+		
+		//
+		var _public = {
+			drawWidget: function(container)
+			{
+				var select = $("<select></select>").addClass('selectStyle');
+				select.change(function()
+				{
+					_curSelection = $('option:selected', select).val();
+					$(_public).change();
+				});
+				
+				for (var enc in _encodings)
+				{
+					var opt = $('<option></option>').val(enc).text(enc);
+					
+					if (enc === _DEFAULT_ENCODING)
+						opt.attr('selected', 'selected');
+						
+					select.append(opt);
+				}
+				
+				$(container).css({paddingLeft: '5px', fontSize: '12px'}).text(_gtxt("Кодировка") + ": ").append(select);
+			},
+			getServerEncoding: function()
+			{
+				return _encodings[_curSelection];
+			}
+		}
+		
+		return _public;
+	})();
 	
 	if (type == "Vector")
 	{
@@ -2506,7 +2549,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			shapeFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
 			tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
 			trPath = _tr([_td([_t(_gtxt("Файл")), shapeFileLink, _br(), _t(_gtxt("Таблица")), tableLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
-						  _td([shapePath, columnsParent])]),
+						  _td([shapePath, columnsParent, encodingParent])]),
 			tilePath = _div([_t(typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')],[['css','marginLeft','3px'],['css','width','220px'],['css','whiteSpace','nowrap'],['css','overflowX','hidden']]),
 			trTiles = _tr([_td([_t(_gtxt("Каталог с тайлами"))],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
 						  _td([tilePath])]);
@@ -2550,7 +2593,13 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				if (valueInArray(['xls', 'xlsx', 'xlsm'], ext))
 					_this.selectColumns(columnsParent, serverBase + "VectorLayer/GetExcelColumns.ashx?WrapStyle=func&ExcelFile=" + encodeURIComponent(path))
 				else
-					removeChilds(columnsParent)
+					removeChilds(columnsParent);
+					
+				$(encodingParent).empty();
+				if (ext === 'shp')
+				{
+					encodingWidget.drawWidget(encodingParent);
+				}
 			})
 		}
 		
@@ -2859,6 +2908,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			{
 				var cols = '',
 					updateParams = '',
+					encoding = '&EncodeName=' + encodingWidget.getServerEncoding(),
 					needRetiling = false,
 					colXElem = $(columnsParent).find("[selectLon]"),
 					colYElem = $(columnsParent).find("[selectLat]"),
@@ -2885,7 +2935,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				if (needRetiling)
 					updateParams += '&NeedRetiling=true';
 				
-				sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams, function(response)
+				sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + encoding, function(response)
 					{
 						if (!parseResponse(response))
 							return;
