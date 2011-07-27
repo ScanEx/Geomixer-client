@@ -1944,6 +1944,7 @@ function createFlashMapInternal(div, layers, callback)
 				this.layers[t] = obj;
 				if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
 					this.layers[layer.properties.title] = obj;
+				return obj;
 			}
 
 			FlashMapObject.prototype.observeVectorLayer = function(obj, onChange)
@@ -3627,6 +3628,11 @@ function createFlashMapInternal(div, layers, callback)
 				sunscreen.setVisible(false);
 			}
 
+			FlashMapObject.prototype.startDrag = function(dragCallback, upCallback)
+			{
+				startDrag(this, dragCallback, upCallback);
+			}
+
 			FlashMapObject.prototype.enableDragging = function(dragCallback, downCallback, upCallback)
 			{
 				var object = this;
@@ -3636,10 +3642,11 @@ function createFlashMapInternal(div, layers, callback)
 						downCallback(map.getMouseX(), map.getMouseY(), o);
 					startDrag(object, dragCallback, upCallback);
 				}
-				if (object == map)
+				if (object == map) {
 					setToolHandler("onMouseDown", mouseDownHandler);
-				else
+				} else {
 					object.setHandler("onMouseDown", mouseDownHandler);
+				}
 			}
 
 			var drawFunctions = {};
