@@ -4607,9 +4607,10 @@ var queryTabs = function()
 queryTabs.prototype = new leftMenu();
 
 queryTabs.prototype.load = function()
-{
+{	
 	if (!this.builded)
 	{
+		var _this = this;
 		this.tabsCanvas = _div(null, [['dir','className','drawingObjectsCanvas']])
 		
 		_(this.workCanvas, [this.tabsCanvas]);
@@ -4618,6 +4619,22 @@ queryTabs.prototype.load = function()
 			this.draw(this.tabs[i]);
 		
 		this.builded = true;
+		
+		$(this.tabsCanvas).sortable({
+			axis: 'y', 
+			tolerance: 'pointer', 
+			containment: 'parent' 
+		});
+		$(this.tabsCanvas).bind('sortupdate', function(event, ui)
+		{
+			var orderedTabs = [];
+			$(_this.tabsCanvas).children().each(function()
+			{
+				orderedTabs.push(this.tabInfo);
+			})
+			
+			_this.tabs = orderedTabs;
+		});
 	}
 }
 
@@ -4667,6 +4684,8 @@ queryTabs.prototype.draw = function(tabInfo)
 		title = makeLinkButton(tabInfo.name),
 		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
 		_this = this;
+		
+	canvas.tabInfo = tabInfo;
 	
 	title.onclick = function()
 	{
