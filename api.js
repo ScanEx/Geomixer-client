@@ -1712,7 +1712,7 @@ function createFlashMapInternal(div, layers, callback)
 						(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
 				}
 
-				var deferredMethodNames = ["addObject", "setHandler", "setStyle", "setBackgroundColor", "setCopyright", "addObserver", "enableTiledQuicklooks", "enableTiledQuicklooksEx"];
+				var deferredMethodNames = ["setHandler", "setStyle", "setBackgroundColor", "setCopyright", "addObserver", "enableTiledQuicklooks", "enableTiledQuicklooksEx"];
 
 				var createThisLayer = function()
 				{
