@@ -101,7 +101,7 @@ class Utils
 	public static function loadBitmapData(url:String, onLoad:BitmapData->Void, ?noCache_:Bool)
 	{
 		var req:Req = { url: url, onLoad: onLoad, noCache: false };
-		if(noCache_) req.noCache = true;
+		if(noCache_ == true) req.noCache = true;
 		if (bitmapDataCache.exists(url))
 		{
 			onLoad(Utils.bitmapDataCache.get(url));
@@ -148,7 +148,7 @@ class Utils
 			{ 
 					var bitmapData:BitmapData = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
 					bitmapData.draw(loader);
-					if (!noCache) onLoad(bitmapData);
+					if (noCache ) onLoad(bitmapData);
 					else addToCache(bitmapData);
 					loaderActive = false;
 					loaderCache.remove(url);
