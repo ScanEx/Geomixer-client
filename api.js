@@ -1886,12 +1886,12 @@ function createFlashMapInternal(div, layers, callback)
 						}
 						obj.isVisible = flag;
 					}
-					obj.addObject = function()
+					obj.addObject = function(geometry, props)
 					{
 						obj.setVisible(true);
-						var newObj = flashDiv.addObject(obj.objectId, obj.geometry, obj.properties);
+						var newObj = flashDiv.addObject(obj.objectId, geometry, props);
 						obj.setVisible(false);
-						return new FlashMapObject(newObj, obj.properties, obj);
+						return new FlashMapObject(newObj, props, obj);
 					}
 					for (var i = 0; i < deferredMethodNames.length; i++) (function(name)
 					{
