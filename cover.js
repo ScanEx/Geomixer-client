@@ -2718,6 +2718,11 @@ MapCalendar.prototype.getFireControl = function()
 	return this.fires;
 }
 
+MapCalendar.prototype.getModeController = function()
+{
+	return this._visModeController;
+}
+
 
 /** Синглетон для доступа к виджету
  * @memberOf cover
