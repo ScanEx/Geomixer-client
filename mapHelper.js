@@ -2505,8 +2505,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 	var encodingWidget = (function()
 	{
 		var _encodings = {
-			'UTF-8': 'utf8',
-			'windows-1251': 'win-1251'
+			'UTF-8': 'utf-8',
+			'windows-1251': 'windows-1251'
 		};
 		var _DEFAULT_ENCODING = 'windows-1251';
 		var _curSelection = _DEFAULT_ENCODING;
