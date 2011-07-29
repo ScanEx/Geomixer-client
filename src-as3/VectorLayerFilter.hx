@@ -72,14 +72,12 @@ class VectorLayerFilter extends MapContent
 	{
 		if(loader != null) loader(mapNode.window.visibleExtent);
 
-		for (painter in painters)
-			painter.repaint(mapNode.getRegularStyle());
-
 		var w = 2*Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;
 		var cx1 = (e1.minx + e1.maxx)/2;
 		for (painter in painters)
 		{
+			painter.repaint(mapNode.getRegularStyle());
 			var e2 = painter.painter.geometry.extent;
 			var cx2 = (e2.minx + e2.maxx)/2;
 			var d1 = Math.abs(cx2 - cx1 - w);

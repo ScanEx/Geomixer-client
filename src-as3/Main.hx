@@ -760,11 +760,11 @@ class Main
 			}
 			node.setContent(newContent);
 		});
-		ExternalInterface.addCallback("setVectorTiles", function(id:String, tileFunction:String, identityField:String, tiles:Array<Int>)
+		ExternalInterface.addCallback("setVectorTiles", function(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?filesHash:Dynamic)
 		{
-			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):String
+			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):Dynamic
 			{
-				var out:String = '';
+				var out:Dynamic = null;
 				try {
 					out = ExternalInterface.call(tileFunction, i, j, z);
 				} catch (e:Error) {  }

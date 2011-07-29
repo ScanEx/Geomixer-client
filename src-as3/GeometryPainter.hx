@@ -21,10 +21,11 @@ class GeometryPainter
 			geometry.paintWithExtent(sprite, style, window);
 	}
 
-	public function repaintWithoutExtent(style:Style)
+	public function repaintWithoutExtent(style:Style, sprite_:Sprite)
 	{
-		sprite.graphics.clear();
+		if (sprite_ == null) sprite_ = sprite;
+		sprite_.graphics.clear();
 		if ((geometry != null) && (style != null))
-			geometry.paint(sprite, style, window);
+			geometry.paint(sprite_, style, window);
 	}
 }
