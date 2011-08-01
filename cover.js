@@ -1220,6 +1220,15 @@ var SearchBboxControl = function()
 		update( keepSilence );
 	}
 	
+	this.bindNewDrawing = function( geometry, properties, styles, keepSilence )
+	{
+		properties.firesBbox = _bindingID;
+		var elem = globalFlashMap.drawing.addObject(geometry, properties);
+		elem.setStyle( styles.regular, styles.hovered);
+		_bindDrawing( elem );
+		update( keepSilence );
+	}
+	
 	this.getDrawing = function()
 	{
 		return _elem;
@@ -2275,12 +2284,12 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 			maxY: from_merc_y(y + h2)
 		};
 				
-		var obj = globalFlashMap.drawing.addObject({type: "POLYGON", coordinates: 
+		var geometry = {type: "POLYGON", coordinates: 
 			[[[mapExtent.minX, mapExtent.minY],
 			  [mapExtent.minX, mapExtent.maxY],
 			  [mapExtent.maxX, mapExtent.maxY],
 			  [mapExtent.maxX, mapExtent.minY],
-			  [mapExtent.minX, mapExtent.minY]]]});
+			  [mapExtent.minX, mapExtent.minY]]]};
 		
 		var outlineColor = 0xff0000;
 		var fillColor = 0xffffff;
@@ -2295,11 +2304,13 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 			fill: { color: fillColor }
 		};
 		
-		obj.setStyle( regularDrawingStyle, hoveredDrawingStyle );
+		// obj.setStyle( regularDrawingStyle, hoveredDrawingStyle );
 		
 		var curDrawing = _this.searchBboxController.getDrawing();
 		
-		_this.searchBboxController.bindDrawing(obj, keepSilence);
+		// _this.searchBboxController.bindDrawing(obj, keepSilence);
+		_this.searchBboxController.bindNewDrawing(geometry, {}, {regular: regularDrawingStyle, hovered: hoveredDrawingStyle}, keepSilence);
+		
 		if (curDrawing)
 			curDrawing.remove();
 	}

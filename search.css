@@ -112,6 +112,9 @@ span.searchElem:hover, span.searchElemParent:hover
 	height: 22px;
 	width: 100%;
 }
+.searchCenterValueExists{
+	color: #153069;
+}
 .searchEndTD
 {
 	border: none;
@@ -164,7 +167,7 @@ span.searchElem:hover, span.searchElemParent:hover
 	font-size: 11px;
 	font-family: sans-serif;
 }
-.ui-atocomplete-match{
+.ui-autocomplete-match{
 	font-weight:bold;
 	color:Blue;
 }

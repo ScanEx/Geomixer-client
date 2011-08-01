@@ -172,16 +172,16 @@ var SearchInput = function (oInitContainer, params) {
     searchField.onfocus = function() {
         if (this.value == sDefaultValue) {
             this.value = '';
-
-            this.style.color = '#153069';
+			
+			$(this).addClass('searchCenterValueExists');
         }
     }
 
     searchField.onblur = function() {
         if (this.value == '') {
-            this.style.color = '';
-
             this.value = sDefaultValue;
+			
+			$(this).removeClass('searchCenterValueExists');
         }
     }
 
@@ -212,7 +212,7 @@ var SearchInput = function (oInitContainer, params) {
 		@param {object} request запрос (request.term - строка запроса)
 		@param {object[]} Массив значений для отображения в подсказке*/
 		function fnAutoCompleteSource(request, response){
-			arrSearchWords = request.term.split(" ");
+			arrSearchWords = request.term.replace(/[^\wа-яА-Я]+/, "|").split("|");
 			params.AutoCompleteSource(request, function(arrResult){
 				if (Number(new Date()) - dtLastSearch > 5000) {
 					response(arrResult);
@@ -243,7 +243,7 @@ var SearchInput = function (oInitContainer, params) {
 				if(arrSearchWords[i].length > 1){
 					var re = new RegExp(arrSearchWords[i], 'ig') ;
 					t = t.replace(re, function(str, p1, p2, offset, s){
-						return "<span class='ui-atocomplete-match'>" + str + "</span>";
+						return "<span class='ui-autocomplete-match'>" + str + "</span>";
 					});
 				}
 			}
@@ -988,7 +988,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	this.AutoCompleteData = function (SearchString, callback){
 		_this.SearchByString({SearchString: SearchString, IsStrongSearch: 0, Limit:10, WithoutGeometry: WithoutGeometry, callback: function(arrResultDataSources){
 			var arrResult = [];
-			var sSearchRegExp = new RegExp("("+SearchString.replace(/ +/, "|")+")", "i");
+			var sSearchRegExp = new RegExp("("+SearchString.replace(/[^\wа-яА-Я]+/, "|")+")", "i");
 			for(var iDS=0; iDS<arrResultDataSources.length; iDS++){
 				for(var iFoundObject=0; iFoundObject<arrResultDataSources[iDS].SearchResult.length; iFoundObject++){
 					var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
