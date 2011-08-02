@@ -56,7 +56,7 @@ class RasterImage extends MaskedContent
 		x4 = x4_;
 		y4 = y4_;
 		attr = attr_;
-		noCache = (attr.noCache != null ? attr.noCache : false);
+		noCache = (attr != null && attr.noCache != null ? attr.noCache : false);
 	}
 
 	public function setControlPoints(

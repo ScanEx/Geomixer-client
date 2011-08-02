@@ -1883,8 +1883,8 @@ function createFlashMapInternal(div, layers, callback)
 							obj.bringToDepth(n);
 							for (var i = 0; i < deferred.length; i++)
 								deferred[i]();
+							if(obj.objectId) flashDiv.setVisible(obj.objectId, flag);
 						}
-						FlashMapObject.prototype.setVisible.call(obj, flag);
 						obj.isVisible = flag;
 					}
 					obj.addObject = function(geometry, props)
