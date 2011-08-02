@@ -128,7 +128,7 @@ WikiObjectsHandler.prototype = {
 		mapObject.setHandler("onClick", function() { clickHandler(pageInfo.Id); });
 		switch (pageInfo.ObjectsGeometry[0].type) {
 			case 'POINT':
-				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : "img/wiki/page.gif"), center: true }});
+				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : getAPIHostRoot() + "/api/img/wiki/page.gif"), center: true }});
 				break;
 			case 'POLYGON':
 				mapObject.setStyle({outline: {color: pageInfo.ObjectsGeometry[0].color, thickness: 1, opacity: 100}, fill: {color: pageInfo.ObjectsGeometry[0].color, opacity: 25}});
@@ -340,11 +340,10 @@ WikiPlugin = function() {
 }
 
 WikiPlugin.prototype = {
-    initialize: function(map) {
-        $.getCSS('WikiPlugin.css');
+    initialize: function(map, sWikiServer) {
+        $.getCSS(getAPIHostRoot() + '/api/WikiPlugin.css');
 		this._map = map;
-        this._wikiService = //new WikiService('http://dev2.kosmosnimki.ru/GeoMixer/');
-                            new WikiService('http://localhost:3017/GeoMixer/');
+        this._wikiService = new WikiService(sWikiServer);
         this._wikiObjects = new WikiObjectsHandler(this._map, this);
         this._syncWikiLogin();
         
@@ -595,7 +594,7 @@ var loadMenu = function(){
 var unloadMenu = function(){
 }
 
-var beforeViewer = function(){
+var beforeViewer = function(params){
 	_layersTree.addContextMenuElem({
 		getTitle: function()
 		{
@@ -616,8 +615,8 @@ var beforeViewer = function(){
 	});
 }
 
-var afterViewer = function(){
-	oWiki.initialize(oFlashMap);
+var afterViewer = function(params){
+	oWiki.initialize(oFlashMap, params.WikiServer);
 }
 
 var addMenuItems = function(upMenu){
