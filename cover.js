@@ -2729,6 +2729,10 @@ MapCalendar.prototype.getFireControl = function()
 	return this.fires;
 }
 
+MapCalendar.prototype.getCalendar = function()
+{
+	return this.calendar;
+}
 MapCalendar.prototype.getModeController = function()
 {
 	return this._visModeController;
