@@ -727,7 +727,7 @@ class Main
 			var minY = Merc.y(attr.extent.minY);
 			var maxY = Merc.y(attr.extent.maxY);
 			
-			var newContent = new RasterImage(attr.url, minX,maxY, maxX,maxY, maxX,minY, minX,minY, attr.noCache);
+			var newContent = new RasterImage(attr.url, minX, maxY, maxX, maxY, maxX, minY, minX, minY, attr);
 			if (attr.notSetPolygon == true) {
 				newContent.setControlPoints(minX,maxY, maxX,maxY, maxX,minY, minX,minY);
 			}

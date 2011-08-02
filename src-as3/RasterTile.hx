@@ -133,7 +133,9 @@ class RasterTile
 
 			var size = 32;
 			var bmp = new BitmapData(size, size, true, 0);
-			bmp.draw(contents);
+			try {
+				bmp.draw(contents);
+			} catch (e:Error) {}
 			var hist = bmp.histogram();
 			if (hist[3][255] != 1024) isOverlay = true;		// по гистограмме определяем тайлы где в верхнем левом углу 32х32 все alpha = 0xFF
 			bmp.dispose();
