@@ -1414,7 +1414,7 @@ var ModisImagesProvider = function( params )
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
 		//запрашиваем только за первый день периода
-		var modisUrl = _params.host + "DBWebProxy.ashx?Type=GetModis&Date=" + dateBegin;
+		var modisUrl = _params.host + "DBWebProxy.ashx?Type=GetModis&Date=" + dateEnd;
 		
 		IDataProvider.sendCachedCrossDomainJSONRequest(modisUrl, function(data)
 		{
