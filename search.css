@@ -162,6 +162,22 @@ span.searchElem:hover, span.searchElemParent:hover
 {
 	text-align: center;
 }
+.LocationTitleDiv
+{
+	position: absolute;
+	left: 200px;
+	bottom: 7px;
+	/*text-shadow: white 0px 0px 1px, white 0px 0px 2px, white 0px 0px 3px;*/
+	background: white;
+}
+.searchLocationPath{
+	cursor: pointer;
+	color: black;
+}
+span.searchLocationPath:hover
+{
+	text-decoration: underline;
+}
 /* AUTOCOMPLETE*/
 .ui-autocomplete{
 	font-size: 11px;

@@ -2794,7 +2794,7 @@ function createFlashMapInternal(div, layers, callback)
 				var e = map.getVisibleExtent();
 				return {
 					type: "POLYGON",
-					coordinates: [[e.minX, e.minY, e.minX, e.maxY, e.maxX, e.maxY, e.maxX, e.minY, e.minX, e.minY]]
+					coordinates: [[[e.minX, e.minY], [e.minX, e.maxY], [e.maxX, e.maxY], [e.maxX, e.minY], [e.minX, e.minY]]]
 				};
 			}
 			map.getVisibleExtent = function()

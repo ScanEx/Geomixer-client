@@ -69,7 +69,6 @@ var GetPropertiesString = function(/**object[]*/oProps,/**string*/ sPropSeparato
 	return sResultString;
 }
 
-
 /** Конструктор
  @memberOf Search
  @class Контрол, состоящий из поля поиска с подсказками и кнопкой поиска по векторным слоям
@@ -732,6 +731,54 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
 	}
 };
 
+/** Конструктор
+ @class ResultRenderer Предоставляет функции, отображающие найденные объекты на карте
+ @memberof Search
+ @param {object} oInitMap карта, на которой будут рисоваться объекты
+ @param {function} fnSearchLocation = function({Geometry, callback})- функция поиска объектов по переданной геометрии*/
+var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
+	var _this = this;
+	var oMap = oInitMap;
+	var dtLastSearch;
+	
+	/**Добавляет объект в список найденных результатов*/
+	var drawObject = function(oFoundObject, elemDiv)
+	{
+		if (oFoundObject.Parent != null) drawObject(oFoundObject.Parent, elemDiv, true);
+		var	realPath = oFoundObject.IsForeign ? oFoundObject.ObjName : GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
+		
+		var searchElemHeader = _span([_t(realPath)], [['dir', 'className', 'searchLocationPath']]);
+
+		/** Вызывается при клике на найденный объект в списке результатов поиска
+		@name Search.ResultList.onObjectClick
+		@event
+		@param {object} oFoundObject Найденный объект*/
+		searchElemHeader.onclick = function(){$(_this).triggerHandler('onObjectClick', [oFoundObject]);};
+		
+		if (oFoundObject.Parent != null) _(elemDiv, [_t("->")]);
+		_(elemDiv, [searchElemHeader]);
+	}
+	
+	var setLocationTitleDiv = function(attr) {
+		if (dtLastSearch && Number(new Date()) - dtLastSearch < 300) 
+			return;
+		dtLastSearch = new Date();
+		
+		var locationTitleDiv = attr['div'];
+		$(locationTitleDiv).addClass('locationTitleDiv');
+		fnSearchLocation({Geometry: attr['screenGeometry'], callback: function(arrResultDataSources){
+			removeChilds(locationTitleDiv);
+			if(arrResultDataSources.length>0 && arrResultDataSources[0].SearchResult.length>0)
+				drawObject(arrResultDataSources[0].SearchResult[0], locationTitleDiv);
+		}});
+	};
+	
+	var listenerID = oMap.addMapStateListener("positionChanged", setLocationTitleDiv);
+	this.RemoveHandler = function(){
+		oMap.removeMapStateListener("positionChanged", listenerID);
+	};
+}
+
 /** Возвращает контрол, отображающий результаты поиска в виде списка с нанесением на карту 
  @memberof Search
  @param {object} oInitContainer Объект, в котором находится контрол результатов поиска в виде списка(div)
@@ -761,17 +808,17 @@ var ResultListMap = function(lstResult, oRenderer){
 		@event
 		@param {int} iDataSourceN № источника данных(группы результатов поиска)
 		@param {object[]} arrDSDisplayedObjects Результаты поиска, которые необходимо отобразить в текущей группе*/
-		$(_this).triggerHandler('onDisplayedObjectsChanged', [iDataSourceN, arrFoundObjects])
+		$(_this).triggerHandler('onDisplayedObjectsChanged', [iDataSourceN, arrFoundObjects]);
 	}
 	
 	var fnObjectClick = function(event, oFoundObject){
-		oRenderer.CenterObject(oFoundObject)
+		oRenderer.CenterObject(oFoundObject);
 		
 		/** Вызывается при клике на найденный объект в списке результатов поиска
 		@name Search.ResultListMap.onObjectClick
 		@event
 		@param {object} oFoundObject Найденный объект*/
-		$(_this).triggerHandler('onObjectClick', [oFoundObject])
+		$(_this).triggerHandler('onObjectClick', [oFoundObject]);
 	}
 	
 	var fnDownloadSHP = function(event, filename, arrObjectsToDownload){
@@ -780,7 +827,7 @@ var ResultListMap = function(lstResult, oRenderer){
 		@event
 		@param {string} filename Имя файла, которой необходимо будет сформировать
 		@param {object[]} SearchResult Результаты поиска, которые необходимо сохранить в файл*/
-		$(_this).triggerHandler('onDownloadSHP', [filename, arrObjectsToDownload])
+		$(_this).triggerHandler('onDownloadSHP', [filename, arrObjectsToDownload]);
 	}
 	
 	$(lstResult).bind('onDisplayedObjectsChanged', fnDisplayedObjectsChanged);
@@ -807,6 +854,13 @@ var ResultListMap = function(lstResult, oRenderer){
 		lstResult.ShowError();
 	}
 
+	/**Центрует карту по переданному объекту
+	@param {MapObject} oFoundObject объект, который нужно поместить в центр
+	@returns {void}*/
+	this.CenterObject = function(oFoundObject){
+		oRenderer.CenterObject(oFoundObject);
+	}
+	
 	/**Очищает результаты поиска
 	@returns {void}*/
 	this.Unload = function(){lstResult.Unload();};
@@ -833,12 +887,15 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
 		<i>Limit</i> - максимальное число найденных объектов
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
+		<i>RequestType<i> - Тип запроса к серверу
 	@returns {void}*/
 	var fnSearch = function(params)	{
 		var callback = params.callback;
-		var sQueryString = "SearchString=" + escape(params.SearchString);
+		var sQueryString = "RequestType=" + escape(params.RequestType);
+		if (params.SearchString != null) sQueryString += "&SearchString=" + escape(params.SearchString);
 		if (params.Geometry != null) sQueryString += "&GeometryJSON=" + escape(JSON.stringify(params.Geometry));
 		if (params.Limit != null) sQueryString += "&Limit=" + escape(params.Limit.toString());
+		if (params.ID != null) sQueryString += "&ID=" + escape(params.ID.toString());
 		if (params.IsStrongSearch != null) sQueryString += "&IsStrongSearch=" + escape(params.IsStrongSearch ? "1" : "0");
 		if (params.WithoutGeometry != null) sQueryString += "&WithoutGeometry=" + escape(params.WithoutGeometry ? "1" : "0");
 		//if (sFormatName != null) sQueryString += "&Format=" + escape(sFormatName);
@@ -857,8 +914,26 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
 	@returns {void}*/
 	this.SearchByString = function(params){
-		_this.Search({callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry});
+		_this.Search({callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry, RequestType: "SearchObject"});
 	};
+	
+	/**Получает информацию об объекте
+	@param {object} params Параметры: </br>
+		<i>callback</i> = function(arrResultDataSources) - вызывается после получения ответа от сервера </br>
+		<i>ID</i> - идентификатор объекта </br>
+	@returns {void}*/
+	this.SearchID = function(params){
+		_this.Search({callback: params.callback, ID: params.ID, RequestType: "ID"})
+	}
+	
+	/**Осуществляет поиск текущего местонахождения
+	@param {object} params Параметры: </br>
+		<i>callback</i> = function(arrResultDataSources) - вызывается после получения ответа от сервера </br>
+		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
+	@returns {void}*/
+	this.SearchLocation = function(params){
+		_this.Search({callback: params.callback, Geometry: params.Geometry, WithoutGeometry: true, RequestType: "Location"})
+	}
 	
 	/**Осуществляет поиск по произвольным параметрам
 	@param {object} params Параметры: </br>
@@ -868,6 +943,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
 		<i>Limit</i> - максимальное число найденных объектов
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
+		<i>RequestType<i> - Тип запроса к серверу
 	@returns {void}*/
 	this.Search = function(params){
 		fnSearch({
@@ -876,7 +952,8 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 			IsStrongSearch: params.IsStrongSearch, 
 			Limit: params.Limit == null ? iDefaultLimit : params.Limit,
 			Geometry: params.Geometry,
-			WithoutGeometry: params.WithoutGeometry
+			WithoutGeometry: params.WithoutGeometry,
+			RequestType: params.RequestType
 		});
 	};
 	
@@ -1106,6 +1183,24 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		});
 	};
 	
+	/**Получает информацию об объекте
+	@param {object} params Параметры: </br>
+		<i>callback</i> = function(arrResultDataSources) - вызывается после получения ответа от сервера </br>
+		<i>ID</i> - идентификатор объекта </br>
+	@returns {void}*/
+	this.SearchID = function(params){
+		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID})
+	}
+	
+	/**Осуществляет поиск текущего местонахождения
+	@param {object} params Параметры: </br>
+		<i>callback</i> = function(arrResultDataSources) - вызывается после получения ответа от сервера </br>
+		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
+	@returns {void}*/
+	this.SearchLocation = function(params){
+		oSearchDataProvider.SearchLocation({callback: params.callback, Geometry: params.Geometry})
+	}
+	
 	/** Возвращает адрес сервера, на котором установлен поисковый модуль Geomixer'а */
 	this.GetServerBase = function(){
 		return oSearchDataProvider.GetServerBase();
@@ -1136,8 +1231,8 @@ var SearchControlGet = function (params){
 		layersSearchFlag: params.layersSearchFlag,
 		AutoCompleteSource: fnAutoCompleteSource
 	});
-	
-	SearchControl.apply(this, [btnSearch, lstResult, oLogic]);
+	var oLocationTitleRenderer = new LocationTitleRenderer(params.Map, oLogic.SearchLocation);
+	SearchControl.apply(this, [btnSearch, lstResult, oLogic, oLocationTitleRenderer]);
 }
 SearchControlGet.prototype = SearchControl;
 
@@ -1146,8 +1241,9 @@ SearchControlGet.prototype = SearchControl;
  @memberof Search
  @param oInitInput Текстовое поле ввода
  @param oInitResultListMap Отображение результатов поиска
- @param oInitLogic Слой бизнес-логики*/
-var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic){
+ @param oInitLogic Слой бизнес-логики
+ @param oInitLocationTitleRenderer Отображение на карте текущего местоположения*/
+var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLocationTitleRenderer){
 	var _this = this;
 	
 	var oLogic = oInitLogic;
@@ -1155,6 +1251,8 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic){
 	var lstResult = oInitResultListMap;
 	/**Строка ввода поискового запроса*/
 	var btnSearch = oInitInput;
+	
+	var oLocationTitleRenderer = oInitLocationTitleRenderer;
 	
 	var downloadVectorForm = _form([_input(null, [['attr', 'name', 'name']]),
 							 _input(null, [['attr', 'name', 'points']]),
@@ -1251,7 +1349,12 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic){
 	$(lstResult).bind('onDownloadSHP', fnDownloadSHP);
 	$(btnSearch).bind('Search', fnSearchByString);
 	$(btnSearch).bind('AutoCompleteSelect', fnSelect);
-	
+	if (oLocationTitleRenderer != null) {
+		$(oLocationTitleRenderer).bind('onObjectClick', function(event, oFoundObject){
+			lstResult.CenterObject(oFoundObject);
+			onObjectClick(event, oFoundObject);
+		});
+	}
 	/**Осуществляет поиск по произвольным параметрам по адресной базе
 	@param {object} params Параметры: </br>
 		<i>SearchString</i> - строка для поиска </br>
