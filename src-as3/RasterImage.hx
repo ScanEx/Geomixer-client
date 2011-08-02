@@ -6,6 +6,7 @@ import flash.geom.Matrix;
 class RasterImage extends MaskedContent
 {
 	var url:String;
+	var attr:Dynamic;
 	var noCache:Bool;
 	var added:Bool;
 	var controlPointsSet:Bool;
@@ -40,7 +41,7 @@ class RasterImage extends MaskedContent
 		y3_:Float, 
 		x4_:Float, 
 		y4_:Float,
-		?noCache_:Bool
+		?attr_:Dynamic
 	)
 	{
 		url = url_;
@@ -54,7 +55,8 @@ class RasterImage extends MaskedContent
 		y3 = y3_;
 		x4 = x4_;
 		y4 = y4_;
-		noCache = (noCache_ ? noCache_ : false);
+		attr = attr_;
+		noCache = (attr.noCache != null ? attr.noCache : false);
 	}
 
 	public function setControlPoints(
@@ -105,7 +107,10 @@ class RasterImage extends MaskedContent
 			{
 				var w = bitmapData.width;
 				var h = bitmapData.height;
-
+				if(me.attr != null && me.attr.sx != null) {
+					me.x2 = me.x3 = me.x1 + Merc.x(w * me.attr.sx);
+					me.y3 = me.y4 = me.y1 + Merc.y(h * me.attr.sy);
+				}
 				if (!me.controlPointsSet)
 				{
 					me.tx1 = 0.0;

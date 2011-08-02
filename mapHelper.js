@@ -2746,6 +2746,11 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				properties.ShapePath.Geometry.coordinates[0][0][0] += 0.00001;
 				properties.ShapePath.Geometry.coordinates[0][0][1] += 0.00001;
 				
+				// чтобы если бы последняя точка совпадала с первой, то этобы ни на что не повлияло
+				var pointCount = properties.ShapePath.Geometry.coordinates[0].length;
+				properties.ShapePath.Geometry.coordinates[0][pointCount-1][0] += 0.00001;
+				properties.ShapePath.Geometry.coordinates[0][pointCount-1][1] += 0.00001;
+				
 				var drawingBorder = globalFlashMap.drawing.addObject(from_merc_geometry(properties.ShapePath.Geometry));
 			
 				drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
