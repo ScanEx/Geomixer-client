@@ -4,11 +4,14 @@
  @memberOf PluginsManager
  @class PluginsManager
   Загрузка плагинов происходит из объкта window.gmxPlugins. 
-  Каждое свойство в этой переменной - объект со свойствами file (из какого файла подгружать модуль, может отсутствовать) и module (имя модуля) 
-  или со свойством plugin (сам плагин).<br/>
-  Каждый плагин хранится в отдельном модуле или подгружается в явном виде (через свойство plugins). В модуле могут быть определены следующие методы:<br/>
-  * beforeViewer - вызовется до начала инициализации вьюера (сразу после инициализации карты)<br/>
-  * afterViewer - вызовется после инициализации вьюера<br/>
+  Каждое свойство в этой переменной - объект со следующими свойствами: <br/>
+    * module (имя модуля)
+	* file (из какого файла подгружать модуль, может отсутствовать). Только если указано module <br/>
+    * plugin (сам плагин). Если указано, плагин подгружается в явном виде, иначе используется module (и file)<br/>
+	* params - объект параметров, будет передаваться в методы модуля
+  Каждый плагин хранится в отдельном модуле (через свойство modules) или подгружается в явном виде (через свойство plugins). В модуле могут быть определены следующие методы:<br/>
+  * beforeViewer (params)- вызовется до начала инициализации вьюера (сразу после инициализации карты)<br/>
+  * afterViewer(params) - вызовется после инициализации вьюера<br/>
   * addMenuItems - должен вернуть вектор из пунктов меню, которые плагин хочет добавить.
                    Формат каждого элемента вектора: item - описание меню (см Menu.addElem()), parentID: id меню родителя (1 или 2 уровня)
 */
@@ -17,18 +20,29 @@ var PluginsManager = function()
 	var _plugins = [];
 	var _callbacks = [];
 	var _initDone = false;
+	var _moduleParams = {}; //тут временно хранятся параметры модулей пока загружается их тело
+	
+	//загружаем инфу о модулях и сами модули при необходимости из window.gmxPlugins
 	if (typeof window.gmxPlugins !== 'undefined')
 	{
 		var modules = [];
 		for (var p in window.gmxPlugins)
 		{
 			if ('plugin' in window.gmxPlugins[p])
-				_plugins.push( window.gmxPlugins[p].plugin )
+			{
+				var plugin = { body: window.gmxPlugins[p].plugin, 
+							   params: window.gmxPlugins[p].params };
+				
+				_plugins.push( plugin );
+			}
 			else
 			{
 				if ( typeof window.gmxPlugins[p].file !== 'undefined' )
 					gmxCore.loadModule(window.gmxPlugins[p].module, window.gmxPlugins[p].file);
-					
+				
+				if ( typeof window.gmxPlugins[p].params !== 'undefined' )
+					_moduleParams[window.gmxPlugins[p].module] = window.gmxPlugins[p].params;
+				
 				modules.push(window.gmxPlugins[p].module);
 			}
 		}
@@ -36,7 +50,10 @@ var PluginsManager = function()
 		gmxCore.addModulesCallback(modules, function()
 		{
 			for (var m = 0; m < modules.length; m++)
-				_plugins.push( gmxCore.getModule(modules[m]) );
+			{
+				var plugin = { body: gmxCore.getModule(modules[m]), params: _moduleParams[modules[m]] };
+				_plugins.push( plugin );
+			}
 				
 			_initDone = true;
 			
@@ -72,8 +89,8 @@ var PluginsManager = function()
 	this.beforeViewer = function()
 	{
 		for (var p = 0; p < _plugins.length; p++)
-			if ( typeof _plugins[p].beforeViewer !== 'undefined')
-				_plugins[p].beforeViewer();
+			if ( typeof _plugins[p].body.beforeViewer !== 'undefined')
+				_plugins[p].body.beforeViewer( _plugins[p].params );
 	};
 	
 	/**
@@ -83,8 +100,8 @@ var PluginsManager = function()
 	this.afterViewer = function()
 	{
 		for (var p = 0; p < _plugins.length; p++)
-			if ( typeof _plugins[p].afterViewer !== 'undefined')
-				_plugins[p].afterViewer();
+			if ( typeof _plugins[p].body.afterViewer !== 'undefined')
+				_plugins[p].body.afterViewer( _plugins[p].params );
 	};
 	
 	/**
@@ -94,9 +111,9 @@ var PluginsManager = function()
 	this.addMenuItems = function( upMenu )
 	{
 		for (var p = 0; p < _plugins.length; p++)
-			if (typeof _plugins[p].addMenuItems != 'undefined')
+			if (typeof _plugins[p].body.addMenuItems != 'undefined')
 			{
-				var menuItems = _plugins[p].addMenuItems();
+				var menuItems = _plugins[p].body.addMenuItems();
 				for (var i = 0; i < menuItems.length; i++)
 					upMenu.addChildItem(menuItems[i].item, menuItems[i].parentID);
 			}
