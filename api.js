@@ -5038,7 +5038,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							mapLayers.push(mapLayer);
 						}
 					
-					var satelliteLayerNames = getBaseMapParam("satelliteLayerID", "C9458F2DCB754CEEACC54216C7D1EB0A").split(",");
+					var satelliteLayerNames = getBaseMapParam("satelliteLayerID", "C9458F2DCB754CEEACC54216C7D1EB0A,150190B4D17C41E98C8EB67769300FE5").split(",");
 					var satelliteLayers = [];
 					
 					for (var i = 0; i < satelliteLayerNames.length; i++)
