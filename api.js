@@ -1346,7 +1346,7 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			FlashMapObject.prototype.disableHoverBalloon = function()
 			{
-				this.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null });
+				this.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null, onClick: null });
 			}
 
 			FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
@@ -1625,18 +1625,22 @@ function createFlashMapInternal(div, layers, callback)
 						filter.setFilter();
 					filter.setZoomBounds(style.MinZoom, style.MaxZoom);
 					filter.setStyle(givenStyle, hoveredStyle);
-					if (style.Balloon) (function(balloonText)
-					{
-						filter.enableHoverBalloon(function(o)
-						{
-							return applyTemplate(
-								applyTemplate(balloonText, o.properties),
-								{ SUMMARY: o.getGeometrySummary() }
-							);
-						});
-					})(style.Balloon);
-					else if ((style.BalloonEnable == undefined) || style.BalloonEnable)
-						filter.enableHoverBalloon();
+					
+					applyBalloonDefaultStyle(style);
+					setBalloonFromParams(filter, style);
+						
+					// if (style.Balloon) (function(balloonText)
+					// {
+						// filter.enableHoverBalloon(function(o)
+						// {
+							// return applyTemplate(
+								// applyTemplate(balloonText, o.properties),
+								// { SUMMARY: o.getGeometrySummary() }
+							// );
+						// }, balloonsAttrs);
+					// })(style.Balloon);
+					// else if ((style.BalloonEnable == undefined) || style.BalloonEnable)
+						// filter.enableHoverBalloon(null, balloonsAttrs);
 
 					if(obj.filters[i]) obj.filters[i].objectId = filter.objectId;
 				}
@@ -3004,8 +3008,6 @@ function createFlashMapInternal(div, layers, callback)
 					propsBalloon.div.innerHTML = "";
 			}
 
-
-
 			var balloons = [];
 			map.balloons = balloons;
 			var mapX = 0;
@@ -3125,6 +3127,67 @@ function createFlashMapInternal(div, layers, callback)
 				balloons.push(balloon);
 				return balloon;
 			}
+			
+			//Параметры:
+			// * Balloon: текст баллуна
+			// * BalloonEnable: показывать ли баллун
+			// * DisableBalloonOnClick: не показывать при клике
+			// * DisableBalloonOnMouseMove: не показывать при наведении
+			var setBalloonFromParams = function(obj, balloonParams)
+			{
+				console.log(balloonParams);
+				//по умолчанию балуны показываются
+				if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
+				{
+					obj.disableHoverBalloon();
+					return;
+				}
+				
+				var balloonAttrs = {
+					disableOnClick: balloonParams.DisableBalloonOnClick,
+					disableOnMouseOver: balloonParams.DisableBalloonOnMouseMove
+				}
+				
+				if ( balloonParams.Balloon )
+				{
+					obj.enableHoverBalloon(function(o)
+					{
+						return applyTemplate(
+							applyTemplate(balloonParams.Balloon, o.properties),
+							{ SUMMARY: o.getGeometrySummary() }
+						);
+					}, balloonAttrs);
+				}
+				else
+				{
+					obj.enableHoverBalloon(null, balloonAttrs);
+				}
+			}
+			
+			//явно прописывает все свойства балунов в стиле.
+			var applyBalloonDefaultStyle = function(balloonStyle)
+			{
+				//слой только что создали - всё по умолчанию!
+				if (typeof balloonStyle.BalloonEnable === 'undefined')
+				{
+					balloonStyle.BalloonEnable = true;
+					balloonStyle.DisableBalloonOnClick = false;
+					balloonStyle.DisableBalloonOnMouseMove = true;
+				} 
+				else
+				{
+					//поддержка совместимости - если слой уже был, но новых параметров нет 
+					if (typeof balloonStyle.DisableBalloonOnClick === 'undefined')
+						balloonStyle.DisableBalloonOnClick = false;
+						
+					if (typeof balloonStyle.DisableBalloonOnMouseMove === 'undefined')
+						balloonStyle.DisableBalloonOnMouseMove = false;
+				}
+			}
+			
+			//только для внутреннего использования!
+			map._setBalloonFromParams = setBalloonFromParams;
+			map._applyBalloonDefaultStyle = applyBalloonDefaultStyle;
 
 
 			var scaleBar = newStyledDiv({

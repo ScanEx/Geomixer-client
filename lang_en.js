@@ -255,6 +255,8 @@ _translationsHash.hash["eng"] = {
 	"Фильтр" : "Filter",
 	"Подпись" : "Legend",
 	"Балун" : "Balloon",
+	"Показывать при клике": "Show on click",
+	"Показывать при наведении": "Show on mouse over",
 	"Символика" : "Shown style",
 	"Мин. зум" : "Min zoom",
 	"Макс. зум" : "Max zoom",
