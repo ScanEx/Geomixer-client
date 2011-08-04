@@ -820,6 +820,14 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.disableCaching = function() { flashDiv.disableCaching(); }
 			FlashMapObject.prototype.print = function() { flashDiv.print(); }
 			FlashMapObject.prototype.savePNG = function(fileName) { flashDiv.savePNG(fileName); }
+			FlashMapObject.prototype.sendPNG = function(attr) {
+				var miniMapFlag = miniMap.getVisibility();
+				var flag = (attr.miniMapSetVisible ? true : false);
+				miniMap.setVisible(flag);
+				if(attr.func) attr.func = uniqueGlobalName(attr.func);
+				flashDiv.sendPNG(attr);
+				miniMap.setVisible(miniMapFlag);
+			}
 			FlashMapObject.prototype.repaint = function() { flashDiv.repaint(); }
 			FlashMapObject.prototype.moveTo = function(x, y, z) 
 			{ 
@@ -986,7 +994,9 @@ function createFlashMapInternal(div, layers, callback)
 					func(flag);
 			}
 			FlashMapObject.prototype.getVisibility = function() { return flashDiv.getVisibility(this.objectId); }
-			FlashMapObject.prototype.setStyle = function(style, activeStyle) { flashDiv.setStyle(this.objectId, style, activeStyle); }
+			FlashMapObject.prototype.setStyle = function(style, activeStyle) {
+				flashDiv.setStyle(this.objectId, style, activeStyle);
+			}
 			FlashMapObject.prototype.getStyle = function( removeDefaults ) { return flashDiv.getStyle(this.objectId, typeof removeDefaults == 'undefined' ? false : removeDefaults); }
 			FlashMapObject.prototype.setActive = function(flag) { flashDiv.setActive_(this.objectId, flag); }
 			FlashMapObject.prototype.setEditable = function() { flashDiv.setEditable(this.objectId); }

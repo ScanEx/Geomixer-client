@@ -21,6 +21,11 @@ import flash.printing.PrintJobOptions;
 import flash.utils.Timer;
 import flash.events.TimerEvent;
 
+import flash.net.URLLoader;
+import flash.net.URLRequest;
+import flash.net.URLRequestMethod;
+import flash.net.URLRequestHeader;
+
 class Main
 {
 	public static var registerMouseDown:MapNode->MouseEvent->Void;
@@ -869,12 +874,46 @@ class Main
 		ExternalInterface.addCallback("savePNG", function(fileName:String)
 		{
 			try {
-			var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
-			data.draw(root);
-			fileRef = new FileReference();
-			fileRef.save(PNGEncoder.encode(data), fileName);
+				var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
+				data.draw(root);
+				fileRef = new FileReference();
+				fileRef.save(PNGEncoder.encode(data), fileName);
 			} catch (e:Error) { trace(e); }
 		});
+
+		// Сохранение изображения карты на сервер
+		var sendPNGFile = function(attr:Dynamic)
+		{
+			try {
+				var gridHidden:Bool = grid.hidden;
+				var gridVisibility:Bool = (!attr.notSetGridVisible && gridHidden ? true : false);
+				if (gridVisibility) {
+					grid.hidden = false;
+					grid.vectorSprite.visible = true;
+					grid.content.paintLabels();
+				}
+				var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
+				data.draw(root);
+				if (gridVisibility) {
+					grid.vectorSprite.visible = !gridHidden;
+					grid.setVisible(!gridHidden);
+				}
+				
+				var loader:URLLoader = new URLLoader();
+				var header:URLRequestHeader = new URLRequestHeader("Content-type", "application/octet-stream");
+				var request:URLRequest = new URLRequest(attr.url);
+				request.requestHeaders.push(header);
+				request.method = URLRequestMethod.POST;
+				request.data = PNGEncoder.encode(data);
+				loader.addEventListener(Event.COMPLETE, function(event:Event) {
+					var st:String = loader.data;
+					if (attr.func != null) ExternalInterface.call(attr.func, st);
+				});
+				loader.load(request);
+			} catch (e:Error) { trace(e); }
+		}
+		ExternalInterface.addCallback("sendPNG", sendPNGFile);
+
 		ExternalInterface.addCallback("setGridVisible", function(flag)
 		{
 			Main.bumpFrameRate();

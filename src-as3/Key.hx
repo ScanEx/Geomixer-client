@@ -3,7 +3,7 @@ import flash.events.Event;
 import flash.events.MouseEvent;
 import flash.events.KeyboardEvent;
 import flash.errors.Error;
-   
+
 class Key 
 {
 	private static var initialized:Bool = false;
@@ -13,7 +13,9 @@ class Key
 	{
 		if (!initialized) 
 		{
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, function(event:KeyboardEvent) { Key.keysDown.set(event.keyCode, true); });
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, function(event:KeyboardEvent) {
+				Key.keysDown.set(event.keyCode, true);
+			});
 			stage.addEventListener(KeyboardEvent.KEY_UP, function(event:KeyboardEvent) { Key.keysDown.remove(event.keyCode); });
 			stage.addEventListener(Event.DEACTIVATE, function(event:Event) { Key.keysDown = new IntHash<Bool>(); });
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
@@ -26,8 +28,8 @@ class Key
 			initialized = true;
 		}
 	}
-       
-        public static function isDown(keyCode:Int)
+
+    public static function isDown(keyCode:Int)
 	{
 		if (!initialized) 
 			throw new Error("Key class has yet been initialized.");
