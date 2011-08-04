@@ -975,7 +975,7 @@ function createFlashMapInternal(div, layers, callback)
 				if (this.copyright) 
 					map.removeCopyrightedObject(this);
 					
-				flashDiv.remove(this.objectId);
+				if(this.objectId) flashDiv.remove(this.objectId); // Удалять в SWF только если там есть обьект
 			}
 			FlashMapObject.prototype.bringToTop = function() { return flashDiv.bringToTop(this.objectId); }
 			FlashMapObject.prototype.bringToBottom = function() { flashDiv.bringToBottom(this.objectId); }
