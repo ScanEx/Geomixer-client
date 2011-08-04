@@ -1651,7 +1651,14 @@ var FireSpotClusterProvider = (function(){
 	
 	return function( params )
 	{
-		var _params = $.extend({ host: 'http://sender.kosmosnimki.ru/', onlyPoints: false, onlyClusters: false, onlyDialyClusters: false, description: "firesWidget.FireSpotClusters.Description" }, params );
+		var _params = $.extend({
+			host: 'http://sender.kosmosnimki.ru/',
+			requestType: 'GetClustersPointsBBox',
+			onlyPoints: false, 
+			onlyClusters: false, 
+			onlyDialyClusters: false, 
+			description: "firesWidget.FireSpotClusters.Description"
+		}, params );
 		
 		this.getDescription = function() { return _gtxt(_params.description); }
 		this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
@@ -1660,7 +1667,7 @@ var FireSpotClusterProvider = (function(){
 			//var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClustersPoints&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
 			
 			var urlBbox = bbox ? '&MinX='+ bbox.minX + '&MinY='+ bbox.minY + '&MaxX='+ bbox.maxX + '&MaxY='+ bbox.maxY : "";
-			var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClustersPointsBBox&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+			var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
 			
 			//IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
 			_addRequestCallback(urlFires, function(data)
@@ -2248,7 +2255,7 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 							  
 	if ( this._firesOptions.fires )
 		this.addDataProvider( "firedots",
-							  new FireSpotClusterProvider({host: 'http://sender.kosmosnimki.ru/v3/', description: "firesWidget.FireCombinedDescription"}),
+							  new FireSpotClusterProvider({host: this._firesOptions.host || 'http://sender.kosmosnimki.ru/v3/', description: "firesWidget.FireCombinedDescription", requestType: this._firesOptions.requestType}),
 							  new CombinedFiresRenderer(), 
 							  { isVisible: this._firesOptions.firesInit } );
 	
