@@ -1335,11 +1335,11 @@ function createFlashMapInternal(div, layers, callback)
 				if(this == map) return;					// На map Handlers не вешаем
 				if(this._hoverBalloonAttr) {			// есть юзерские настройки балунов
 					if(this._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
-						delete handlersObj['onMouseOver'];
-						delete handlersObj['onMouseOut'];
+						handlersObj.onMouseOver = null;
+						handlersObj.onMouseOut = null;
 					}
 					if(this._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
-						delete handlersObj['onClick'];
+						handlersObj.onClick = null;
 					}
 				}
 				this.setHandlers(handlersObj);
@@ -3135,7 +3135,7 @@ function createFlashMapInternal(div, layers, callback)
 			// * DisableBalloonOnMouseMove: не показывать при наведении
 			var setBalloonFromParams = function(obj, balloonParams)
 			{
-				console.log(balloonParams);
+				//console.log(balloonParams);
 				//по умолчанию балуны показываются
 				if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
 				{
