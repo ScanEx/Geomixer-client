@@ -6917,7 +6917,6 @@ function BalloonClass(map, flashDiv, div, apiBase)
 	// * DisableBalloonOnMouseMove: не показывать при наведении
 	var setBalloonFromParams = function(filter, balloonParams)
 	{
-		console.log(balloonParams);
 		//по умолчанию балуны показываются
 		if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
 		{
