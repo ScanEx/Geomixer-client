@@ -4272,14 +4272,34 @@ mapHelper.prototype.version = function()
 	{
 		function showVersion(num, data)
 		{
-			var div = _div([_p([_span([_t("GeoMixer")],[['css','fontWeight','bold']]), _t(" " + String(num)+ "(" + data + ") - "), _t(_gtxt("$$about$$_1")),
-								_a([_span([_t("Kosmosnimki.ru")],[['css','fontWeight','bold']])],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru']]), _t(_gtxt(" и ")),
-								_a([_span([_t("OpenStreetMap")],[['css','fontWeight','bold']])],[['attr','target','_blank'],['attr','href','http://www.openstreetmap.org']])]),
-							_p([_t(_gtxt("$$about$$_2"))]),
-							_p([_t(_gtxt("$$about$$_3"))]),
-							_p([_a([_br(),_span([_t(">> GeoMixer")],[['css','fontWeight','bold']]), _t(" - Общее описание")],[['css','color','#417590'],['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/']])]),
-						 	_p([_a([_br(),_span([_t(">> GeoMixer API")],[['css','fontWeight','bold']]), _t(" - Руководство разработчика")],[['css','color','#417590'],['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/api_start.html']])])], [['css','marginTop','10px'],['css','color','#153069'],['attr','id','version']])
-			showDialog(_gtxt("О проекте"), div, 320, 300, false, false)
+			// var div = _div([_p([_span([_t("GeoMixer")],[['css','fontWeight','bold']]), _t(" " + String(num)+ "(" + data + ") - "), _t(_gtxt("$$about$$_1")),
+								// _a([_span([_t("Kosmosnimki.ru")],[['css','fontWeight','bold']])],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru']]), _t(_gtxt(" и ")),
+								// _a([_span([_t("OpenStreetMap")],[['css','fontWeight','bold']])],[['attr','target','_blank'],['attr','href','http://www.openstreetmap.org']])]),
+							// _p([_t(_gtxt("$$about$$_2"))]),
+							// _p([_t(_gtxt("$$about$$_3"))]),
+							// _p([_a([_br(),_span([_t(">> GeoMixer")],[['css','fontWeight','bold']]), _t(" - Общее описание")],[['css','color','#417590'],['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/']])]),
+						 	// _p([_a([_br(),_span([_t(">> GeoMixer API")],[['css','fontWeight','bold']]), _t(" - Руководство разработчика")],[['css','color','#417590'],['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/api_start.html']])])], [['css','marginTop','10px'],['css','color','#153069'],['attr','id','version']])
+							
+			var div = $("<div></div>");
+			
+			var fileName;
+			
+			if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.helpFilePrefix !== 'undefined')
+				fileName = window.gmxViewerUI.helpFilePrefix;
+			else
+				fileName = window.gmxJSHost ? window.gmxJSHost + "help" : "help";
+			
+			var proceessAndShow = function( text )
+			{
+				text = text.replace("{gmxVersion}", num).replace("{gmxData}", data);
+				div.html(text);
+				showDialog(_gtxt("О проекте"), div[0], 320, 300, false, false);
+			}
+			
+			if (fileName.indexOf("http://") !== 0)
+				$.ajax({url: fileName + _gtxt("helpPostfix"), success: proceessAndShow});
+			else
+				sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(fileName + _gtxt("helpPostfix")), proceessAndShow);
 		}
 		
 		if (!this.versionNum)

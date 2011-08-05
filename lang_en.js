@@ -528,5 +528,6 @@ _translationsHash.hash["eng"] = {
 	"Принудительно обновить тайлы" : "Forced retiling",
 	"Обводка" : "Outline",
 	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?",
-	"Кодировка": "Encoding"
+	"Кодировка": "Encoding",
+	"helpPostfix": "_eng.html"
 };
