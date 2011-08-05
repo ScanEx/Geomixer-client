@@ -210,7 +210,7 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 		else
 			newFilter.setFilter();
 		
-		globalFlashMap._setBalloonFromParams(newFilter, newStyles[i]);
+		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, newStyles[i]);
 		// if (typeof newStyles[i].BalloonEnable == 'undefined' || newStyles[i].BalloonEnable)
 		// {
 			// if (newStyles[i].Balloon)
@@ -461,7 +461,7 @@ mapHelper.prototype.createFilterHeader = function(filtersCanvas, elem, elemCanva
 		newStyle.BalloonEnable = lastStyle.BalloonEnable;
 		newStyle.DisableBalloonOnClick = lastStyle.DisableBalloonOnClick;
 		newStyle.DisableBalloonOnMouseMove = lastStyle.DisableBalloonOnMouseMove;
-		globalFlashMap._setBalloonFromParams(newFilter, newStyle);
+		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, newStyle);
 		
 		// if (lastStyle.Balloon)
 		// {
@@ -1197,8 +1197,7 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 		{
 			var filterNum = getOwnChildNumber(balloonText.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode),
 				filter = globalFlashMap.layers[elemCanvas.parentNode.properties.content.properties.name].filters[filterNum];
-
-			globalFlashMap._setBalloonFromParams(filter, div.getBalloonState());
+			globalFlashMap.balloonClassObject.setBalloonFromParams(filter, div.getBalloonState());
 			// if (box.checked)
 			// {
 				// if (balloonText.value != '')
@@ -1697,7 +1696,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	}
 	
 	// balloon
-	globalFlashMap._applyBalloonDefaultStyle(parentStyle);
+	globalFlashMap.balloonClassObject.applyBalloonDefaultStyle(parentStyle);
 	/*var balloonProps = {
 		Ballon: parentStyle.Balloon, 
 		BalloonEnable: typeof parentStyle.BalloonEnable !== 'undefined' ? parentStyle.BalloonEnable : true,

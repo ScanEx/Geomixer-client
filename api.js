@@ -812,7 +812,6 @@ function createFlashMapInternal(div, layers, callback)
 				this.properties = properties_;
 				this.parent = parent_;
 				this.flashId = flashId;
-				this._hoverBalloonAttr = {};
 			}
 
 			FlashMapObject.prototype.trace = function(val) { flashDiv.trace(val); }
@@ -871,7 +870,7 @@ function createFlashMapInternal(div, layers, callback)
 				);
 			}
 			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
-				hideHoverBalloons(true);
+				map.balloonClassObject.hideHoverBalloons(true);
 				flashDiv.zoomBy(-dz, useMouse);
 			}
 			FlashMapObject.prototype.freeze = function() { flashDiv.freeze(); }
@@ -1160,34 +1159,6 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			}
 
-			var lastHoverBalloonId = false;
-			var fixedHoverBalloons = {};
-
-			var showHoverBalloons = function()
-			{
-				for (var key in fixedHoverBalloons)
-				{
-					var balloon = fixedHoverBalloons[key];
-					balloon.setVisible(true);
-				}
-			}
-			var hideHoverBalloons = function(flag)
-			{
-				for (var key in fixedHoverBalloons)
-				{
-					var balloon = fixedHoverBalloons[key];
-					balloon.setVisible(false);
-				}
-				if(flag) {
-					
-					var timeoutShowHoverBalloons = setTimeout(function()
-					{
-						clearTimeout(timeoutShowHoverBalloons);
-						showHoverBalloons();
-					}, 300);
-				}
-			}
-
 			FlashMapObject.prototype.getGeometrySummary = function()
 			{
 				var geomType = this.getGeometryType();
@@ -1204,149 +1175,18 @@ function createFlashMapInternal(div, layers, callback)
 					return "?";
 			}
 
+
+			FlashMapObject.prototype.addBalloon = function()
+			{
+				return map.balloonClassObject.addBalloon();
+			}
 			FlashMapObject.prototype.enableHoverBalloon = function(callback, attr)
 			{
-				
-				var _this = this;
-				if(attr) {
-					this._hoverBalloonAttr = attr;		// Атрибуты управления балуном
-				}
-				var getHoverBalloonText = function(o)
-				{
-					var text = "";
-					if (callback)
-						text = callback(o);
-					else
-					{
-						var props = o.properties;
-						for (var key in props)
-						{
-							if (key != "ogc_fid")
-							{
-								var value = "" + props[key];
-								if (value.indexOf("http://") == 0)
-									value = "<a href='" + value + "'>" + value + "</a>";
-								else if (value.indexOf("www.") == 0)
-									value = "<a href='http://" + value + "'>" + value + "</a>";
-								text += "<b>" + key + ":</b> " + value + "<br />";
-							}
-						}
-
-						text += "<br />" + o.getGeometrySummary();
-					}
-					return text;
-				}
-				var clickBalloonFix = function(o, keyPress)
-				{
-					var OnClickSwitcher = chkAttr('OnClickSwitcher', _this);	// Проверка наличия параметра по ветке родителей 
-					if(OnClickSwitcher && typeof(OnClickSwitcher) == 'function') {
-						var flag = OnClickSwitcher(o, keyPress);				// Вызов пользовательского метода вместо или перед балуном
-						if(flag) return;										// Если OnClickSwitcher возвращает true выходим
-					}
-
-					if(chkAttr('disableOnClick', _this))	// Проверка наличия параметра disableOnClick по ветке родителей 
-						return;
-					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
-
-					var text = getHoverBalloonText(o);
-					if(!text) return;
-					var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
-					if (!fixedHoverBalloons[id])
-					{
-						var maxFixedBallons = chkAttr('maxFixedBallons', _this) || 1;	// Проверка наличия параметра maxFixedBallons по ветке родителей
-						if(maxFixedBallons > 0 && map.balloons.length > 0)
-						{
-							if(maxFixedBallons <= map.balloons.length) {
-								var balloon = map.balloons[0];
-								var fixedId = balloon.fixedId;
-								balloon.remove();
-								delete fixedHoverBalloons[fixedId];
-							}
-						}
-						var balloon = map.addBalloon();
-						balloon.fixedId =  id;
-
-						var mx = map.getMouseX();
-						var my = map.getMouseY();
-						
-						if(o.getGeometryType() == 'POINT') {
-							var gObj = o.getGeometry();
-							var x = gObj.coordinates[0];
-							var y = gObj.coordinates[1];
-
-							balloon.fixedDeltaX =  (merc_x(mx) -  merc_x(x))/scale;
-							balloon.fixedDeltaY =  (merc_y(my) -  merc_y(y))/scale;
-							mx = x;
-							my = y;
-							balloon.fixedDeltaFlag = true;
-						}
-
-						balloon.setPoint(mx, my);
-						balloon.div.innerHTML = text;
-						balloon.resize();
-						fixedHoverBalloons[id] = balloon;
-					}
-					else
-					{
-						fixedHoverBalloons[id].remove();
-						delete fixedHoverBalloons[id];
-					}
-					updatePropsBalloon(false);
-				}
-				var chkAttr = function(name, o)
-				{
-					var attr = false;
-					var hash = o._hoverBalloonAttr;
-					if(name in hash) {
-						attr = hash[name];
-					}
-					if(!attr && o.parent) attr = chkAttr(name, o.parent);
-					return attr;
-				}
-				var handlersObj = {
-					onMouseOver: function(o, keyPress)
-					{ 
-						if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
-						if (flashDiv.isDragging())
-							return;
-
-						if(chkAttr('disableOnMouseOver', _this))	// Проверка наличия параметра disableOnMouseOver по ветке родителей 
-							return;
-
-						var text = getHoverBalloonText(o);
-						if(!text) return;
-						var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
-						lastHoverBalloonId = o.objectId;
-						if (!fixedHoverBalloons[id])
-							updatePropsBalloon(text);
-						else
-							updatePropsBalloon(false);
-
-						map.clickBalloonFix = clickBalloonFix;
-					},
-					onMouseOut: function(o) 
-					{ 
-						if (lastHoverBalloonId == o.objectId)
-							updatePropsBalloon(false);
-					},
-					onClick: clickBalloonFix
-				};
-
-				if(this == map) return;					// На map Handlers не вешаем
-				if(this._hoverBalloonAttr) {			// есть юзерские настройки балунов
-					if(this._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
-						handlersObj.onMouseOver = null;
-						handlersObj.onMouseOut = null;
-					}
-					if(this._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
-						handlersObj.onClick = null;
-					}
-				}
-				this.setHandlers(handlersObj);
+				map.balloonClassObject.enableHoverBalloon(this, callback, attr);
 			}
 			FlashMapObject.prototype.disableHoverBalloon = function()
 			{
-				this.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null, onClick: null });
+				map.balloonClassObject.disableHoverBalloon();
 			}
 
 			FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
@@ -1447,16 +1287,18 @@ function createFlashMapInternal(div, layers, callback)
 				var flipCounts = {};
 				var updateImageDepth = function(o)
 				{
-					if(map.clickBalloonFix) {
-						var curZ = map.getZ();
-						var flag = (minZoom && curZ < minZoom ? true : false);
-						var mZ = (maxZoom ? maxZoom : 18);
-						if(!flag && curZ > mZ) flag = true;
-						if(flag) map.clickBalloonFix(o);
-					}
 					var props = o.properties;
 
 					var id = "id_" + props.ogc_fid;
+					
+					// Установка балуна для тайлов меньше Zoom растров
+					var curZ = map.getZ();
+					var flag = (minZoom && curZ < minZoom ? true : false);
+					var mZ = (maxZoom ? maxZoom : 18);
+					if(!flag && curZ > mZ) flag = true;
+					if(flag) map.balloonClassObject.clickBalloonFix(o);
+					///// End
+
 					if (!images[id]) {
 						return;
 					}
@@ -1626,21 +1468,8 @@ function createFlashMapInternal(div, layers, callback)
 					filter.setZoomBounds(style.MinZoom, style.MaxZoom);
 					filter.setStyle(givenStyle, hoveredStyle);
 					
-					applyBalloonDefaultStyle(style);
-					setBalloonFromParams(filter, style);
-						
-					// if (style.Balloon) (function(balloonText)
-					// {
-						// filter.enableHoverBalloon(function(o)
-						// {
-							// return applyTemplate(
-								// applyTemplate(balloonText, o.properties),
-								// { SUMMARY: o.getGeometrySummary() }
-							// );
-						// }, balloonsAttrs);
-					// })(style.Balloon);
-					// else if ((style.BalloonEnable == undefined) || style.BalloonEnable)
-						// filter.enableHoverBalloon(null, balloonsAttrs);
+					map.balloonClassObject.applyBalloonDefaultStyle(style);
+					map.balloonClassObject.setBalloonFromParams(filter, style);
 
 					if(obj.filters[i]) obj.filters[i].objectId = filter.objectId;
 				}
@@ -1668,6 +1497,7 @@ function createFlashMapInternal(div, layers, callback)
 				if (isVisible === undefined)
 					isVisible = true;
 
+				if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
 				var isRaster = (layer.properties.type == "Raster");
 				var t = layer.properties.name || layer.properties.image;
 				var obj = new FlashMapObject(false, {}, this);
@@ -1815,7 +1645,7 @@ function createFlashMapInternal(div, layers, callback)
 							);
 						}
 
-						obj.setVectorTiles(tileFunction, "ogc_fid", layer.properties.tiles);
+						obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
 						obj.setStyle = function(style, activeStyle)
 						{
 							for (var i = 0; i < obj.filters.length; i++)
@@ -2005,6 +1835,7 @@ function createFlashMapInternal(div, layers, callback)
 			map.rasters = map;
 			map.tiledQuicklooks = map;
 			map.vectors = map;
+			map.balloonClassObject = new BalloonClass(map, flashDiv, div, apiBase);
 
 			var toolHandlers = {};
 			var userHandlers = {};
@@ -2829,367 +2660,6 @@ function createFlashMapInternal(div, layers, callback)
 				};
 			}
 
-
-
-			var createBalloon = function()
-			{
-				var tlw = 14;
-				var tlh = 14;
-				var blw = 14;
-				var blh = 41;
-				var trw = 18;
-				var trh = 13;
-				var brw = 15;
-				var brh = 41;
-				var th = 2;
-				var lw = 2;
-				var bh = 2;
-				var rw = 2;
-
-				var legWidth = 68;
-
-				var balloon = newStyledDiv({
-					position: "absolute",
-
-					paddingLeft: lw + "px",
-					paddingRight: rw + "px",
-					paddingTop: th + "px",
-					paddingBottom: bh + "px",
-
-					width: "auto",
-					whiteSpace: "nowrap",
-					zIndex: 1000
-				});
-				div.appendChild(balloon);
-
-				var css = {
-					'table': 'margin: 0px; border-collapse: collapse;',
-					'bg_top_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: 2px 9px; background-image: url(\''+apiBase+'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
-					'bg_top': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
-					'bg_top_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
-					'bg_left': 'background-color: transparent; width: 13px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-left.png\'); background-repeat: repeat-y;',
-					'bg_center': 'background-color: transparent; width: 50px; min-width: 50px; border: 0px none; background-color: white; white-space: nowrap; padding: 4px; padding-right: 14px;',
-					'bg_right': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 0px top; background-image: url(\''+apiBase+'img/tooltip-right.png\'); background-repeat: repeat-y;',
-					'bg_bottom_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
-					'bg_bottom': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center top; background-image: url(\''+apiBase+'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
-					'bg_bottom_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; background-position: -2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
-					'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\''+apiBase+'img/tooltip-leg.png\');'
-				};
-
-				var body = '\
-					<table cols="3" cellspacing="0" cellpadding="0" border="0" style="'+css['table']+'">\
-						<tr>\
-							<td style="'+css['bg_top_left']+'"></td>\
-							<td style="'+css['bg_top']+'"></td>\
-							<td style="'+css['bg_top_right']+'"></td>\
-						</tr>\
-						<tr>\
-							<td style="'+css['bg_left']+'"></td>\
-							<td style="'+css['bg_center']+'">\
-								<div style="white-space: nowrap;" class="kosmosnimki_balloon">\
-								</div>\
-							</td>\
-							<td style="'+css['bg_right']+'"></td>\
-						</tr>\
-						<tr>\
-							<td style="'+css['bg_bottom_left']+'"></td>\
-							<td style="'+css['bg_bottom']+'"></td>\
-							<td style="'+css['bg_bottom_right']+'"></td>\
-						</tr>\
-					</table>\
-				';
-				balloon.innerHTML = body;
-				var nodes = balloon.getElementsByTagName("div");
-				var balloonText = nodes[0];
-				
-				var leg = newElement("img",
-					{
-						src: apiBase + "img/tooltip-leg.png"
-					},
-					{
-						position: "absolute",
-						bottom: "-21px",
-						right: "15px"
-					}
-				);
-				balloon.appendChild(leg);
-
-				var x = 0;
-				var y = 0;
-				var reposition = function()	
-				{
-					var ww = balloon.clientWidth;
-					var hh = balloon.clientHeight;
-
-					var screenWidth = div.clientWidth;
-					var xx = (x + ww < screenWidth) ? x : (ww < screenWidth) ? (screenWidth - ww) : 0;
-					xx = Math.max(xx, x - ww + legWidth + brw);
-					var dx = x - xx;
-					leg.style.left = dx + "px";
-					bottomPosition(balloon, xx + 2, div.clientHeight - y + 20);
-				}
-
-				var wasVisible = true;
-
-				var ret = {
-					outerDiv: balloon,
-					div: balloonText,
-					setVisible: function(flag)
-					{
-						setVisible(balloon, flag);
-						if (flag && !wasVisible)
-							ret.resize();
-						wasVisible = flag;
-					},
-					setScreenPosition: function(x_, y_)
-					{
-						x = x_;
-						y = y_;
-						reposition();
-					},
-					resize: function()
-					{
-						reposition();
-					}
-				};
-				return ret;
-			}
-
-
-			var propsBalloon = createBalloon();
-			propsBalloon.setVisible(false);
-			propsBalloon.outerDiv.style.zIndex = 10000;
-			propsBalloon.outerDiv.style.display = "none";
-			new GlobalHandlerMode("mousemove", function(event)
-			{
-				propsBalloon.setScreenPosition(
-					eventX(event) - getOffsetLeft(div), 
-					eventY(event) - getOffsetTop(div)
-				);
-			}).set();
-			div.onmouseout = function(event)
-			{
-				var tg = compatTarget(event);
-				if (!event)
-					event = window.event;
-				var reltg = event.toElement || event.relatedTarget;
-				while (reltg && (reltg != document.documentElement))
-				{
-					if (reltg == propsBalloon.outerDiv)
-						return;
-					reltg = reltg.offsetParent;
-				}
-				while (tg && (tg != document.documentElement))
-				{
-					if (tg == propsBalloon.outerDiv)
-						return;
-					tg = tg.offsetParent;
-				}
-				propsBalloon.outerDiv.style.display = "none";
-			}
-			propsBalloon.outerDiv.onmouseover = function()
-			{
-				if (flashDiv.isDragging())
-				{
-					needToStopDragging = false;
-					updatePropsBalloon(false);
-					flashDiv.resumeDragging();
-				}
-			}
-			var updatePropsBalloon = function(text)
-			{
-				propsBalloon.setVisible(text ? true : false);
-				if (text)
-				{
-					propsBalloon.div.innerHTML = text;
-					propsBalloon.resize();
-				}
-				else
-					propsBalloon.div.innerHTML = "";
-			}
-
-			var balloons = [];
-			map.balloons = balloons;
-			var mapX = 0;
-			var mapY = 0;
-			map.stageZoom = 1;
-			var scale = 0;
-			var positionBalloons = function()	
-			{
-				var currPosition = map.getPosition();
-				mapX = currPosition['x'];
-				mapY = currPosition['y'];
-				scale = getScale(currPosition['z']);
-				map.stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
-
-				balloons.sort(function(b1, b2)
-				{
-					return b1.isHovered ? 1 : b2.isHovered ? -1 : (b2.geoY - b1.geoY);
-				});
-				for (var i = 0; i < balloons.length; i++)
-				{
-					balloons[i].reposition();
-					balloons[i].outerDiv.style.zIndex = 1000 + i;
-				}
-			}
-			map.addObject().setHandler("onMove", positionBalloons);
-
-			FlashMapObject.prototype.addBalloon = function()
-			{
-				var balloon = createBalloon();
-				balloon.geoX = 0;
-				balloon.geoY = 0;
-				var oldSetVisible = balloon.setVisible;
-				balloon.div.onmouseover = function()
-				{
-					balloon.isHovered = true;
-					positionBalloons();
-				}
-				balloon.div.onmouseout = function()
-				{
-					balloon.isHovered = false;
-					positionBalloons();
-				}
-				balloon.outerDiv.appendChild(newElement(
-					"img",
-					{
-						src: apiBase + "img/close.png",
-						title: KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
-						onclick: function() 
-						{ 
-							balloon.remove();
-							balloon.isVisible = false;
-						},
-						onmouseover: function()
-						{
-							this.src = apiBase + "img/close_orange.png";
-						},
-						onmouseout: function()
-						{
-							this.src = apiBase + "img/close.png";
-						}
-					},
-					{
-						position: "absolute",
-						top: "15px",
-						right: "15px",
-						cursor: "pointer"
-					}
-				));
-				balloon.isVisible = true;
-				balloon.reposition = function()
-				{
-					if (balloon.isVisible)
-					{
-						var sc = scale * map.stageZoom;
-						var x = div.clientWidth/2 - (mapX - merc_x(this.geoX))/sc;
-						var y = div.clientHeight/2 + (mapY - merc_y(this.geoY))/sc;
-						if(this.fixedDeltaFlag) {
-							x += balloon.fixedDeltaX;
-							y -= balloon.fixedDeltaY;
-						}
-						if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
-						{
-							this.setScreenPosition(x, y);
-							oldSetVisible(true);
-						}
-						else
-							oldSetVisible(false);
-					}
-					else
-						oldSetVisible(false);
-				}
-				balloon.setVisible = function(flag)
-				{
-					balloon.isVisible = flag;
-					this.reposition();
-				}
-				balloon.setPoint = function(x_, y_)
-				{
-					this.geoX = x_;
-					this.geoY = y_;
-					positionBalloons();
-				}
-				balloon.remove = function()
-				{
-					if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
-					var i = 0;
-					while ((i < balloons.length) && (balloons[i] != this))
-						i += 1;
-					if (i < balloons.length)
-					{
-						balloons.splice(i, 1);
-						div.removeChild(this.outerDiv);
-					}
-				}
-				balloon.getX = function() { return this.geoX; }
-				balloon.getY = function() { return this.geoY; }
-				balloons.push(balloon);
-				return balloon;
-			}
-			
-			//Параметры:
-			// * Balloon: текст баллуна
-			// * BalloonEnable: показывать ли баллун
-			// * DisableBalloonOnClick: не показывать при клике
-			// * DisableBalloonOnMouseMove: не показывать при наведении
-			var setBalloonFromParams = function(obj, balloonParams)
-			{
-				//console.log(balloonParams);
-				//по умолчанию балуны показываются
-				if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
-				{
-					obj.disableHoverBalloon();
-					return;
-				}
-				
-				var balloonAttrs = {
-					disableOnClick: balloonParams.DisableBalloonOnClick,
-					disableOnMouseOver: balloonParams.DisableBalloonOnMouseMove
-				}
-				
-				if ( balloonParams.Balloon )
-				{
-					obj.enableHoverBalloon(function(o)
-					{
-						return applyTemplate(
-							applyTemplate(balloonParams.Balloon, o.properties),
-							{ SUMMARY: o.getGeometrySummary() }
-						);
-					}, balloonAttrs);
-				}
-				else
-				{
-					obj.enableHoverBalloon(null, balloonAttrs);
-				}
-			}
-			
-			//явно прописывает все свойства балунов в стиле.
-			var applyBalloonDefaultStyle = function(balloonStyle)
-			{
-				//слой только что создали - всё по умолчанию!
-				if (typeof balloonStyle.BalloonEnable === 'undefined')
-				{
-					balloonStyle.BalloonEnable = true;
-					balloonStyle.DisableBalloonOnClick = false;
-					balloonStyle.DisableBalloonOnMouseMove = true;
-				} 
-				else
-				{
-					//поддержка совместимости - если слой уже был, но новых параметров нет 
-					if (typeof balloonStyle.DisableBalloonOnClick === 'undefined')
-						balloonStyle.DisableBalloonOnClick = false;
-						
-					if (typeof balloonStyle.DisableBalloonOnMouseMove === 'undefined')
-						balloonStyle.DisableBalloonOnMouseMove = false;
-				}
-			}
-			
-			//только для внутреннего использования!
-			map._setBalloonFromParams = setBalloonFromParams;
-			map._applyBalloonDefaultStyle = applyBalloonDefaultStyle;
-
-
 			var scaleBar = newStyledDiv({
 				position: "absolute",
 				right: "27px",
@@ -3787,7 +3257,7 @@ function createFlashMapInternal(div, layers, callback)
 					}
 
 					obj = map.addObject();
-					balloon = map.addBalloon();
+					balloon = map.balloonClassObject.addBalloon();
 					ret.setVisible = function(flag)
 					{
 						ret.isVisible = flag;
@@ -3988,6 +3458,7 @@ function createFlashMapInternal(div, layers, callback)
 
 				var ret = {};
 				var domObj = false;
+				var propsBalloon = map.balloonClassObject.propsBalloon;
 
 				var obj = map.addObject();
 				obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
@@ -4010,19 +3481,19 @@ function createFlashMapInternal(div, layers, callback)
 					onNodeMouseOver: function()
 					{
 						if (obj.getGeometryType() == "LINESTRING")
-							updatePropsBalloon(prettifyDistance(obj.getIntermediateLength()));
+							propsBalloon.updatePropsBalloon(prettifyDistance(obj.getIntermediateLength()));
 					},
 					onNodeMouseOut: function()
 					{
-						updatePropsBalloon(false);
+						propsBalloon.updatePropsBalloon(false);
 					},
 					onEdgeMouseOver: function()
 					{
-						updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
+						propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
 					},
 					onEdgeMouseOut: function()
 					{
-						updatePropsBalloon(false);
+						propsBalloon.updatePropsBalloon(false);
 					}
 				});
 
@@ -4099,6 +3570,7 @@ function createFlashMapInternal(div, layers, callback)
 				var ret = {};
 				var domObj = false;
 
+				var propsBalloon = map.balloonClassObject.propsBalloon;
 				var obj = map.addObject();
 				obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 				obj.setEditable(true);
@@ -4117,13 +3589,21 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						ret.remove();
 					},
+					onNodeMouseOver: function()
+					{
+						propsBalloon.updatePropsBalloon(obj.getGeometrySummary());
+					},
+					onNodeMouseOut: function()
+					{
+						propsBalloon.updatePropsBalloon(false);
+					},
 					onEdgeMouseOver: function()
 					{
-						updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
+						propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
 					},
 					onEdgeMouseOut: function()
 					{
-						updatePropsBalloon(false);
+						propsBalloon.updatePropsBalloon(false);
 					}
 				});
 
@@ -4202,6 +3682,8 @@ function createFlashMapInternal(div, layers, callback)
 				var domObj;
 
 				var obj = map.addObject();
+				var propsBalloon = map.balloonClassObject.propsBalloon;
+
 				var borders = obj.addObject();
 				var corners = obj.addObject();
 				var x1, y1, x2, y2;
@@ -6916,3 +6398,574 @@ kmlParser.prototype.drawItem = function(parent, item, flag, name, desc)
 }
 
 var _kmlParser = new kmlParser();
+
+/** Класс управления балунами
+* @function
+* @memberOf api
+* @param {map} ссылка на обьект карты
+* @param {flashDiv} ссылка на SWF обьект
+* @param {div} ссылка HTML контейнер карты
+* @param {apiBase} URL основного домена
+* @see <a href="http://kosmosnimki.ru/geomixer/docs/">» Пример использования</a>.
+* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+*/
+function BalloonClass(map, flashDiv, div, apiBase)
+{
+	var balloons = [];
+	var curMapObject = null;
+
+	var mapX = 0;
+	var mapY = 0;
+	var stageZoom = 1;						// Коэф. масштабирования браузера
+	var scale = 0;
+	map.getPosition();
+
+	// Обновить информацию текущего состояния карты
+	function refreshMapPosition()
+	{
+		currPosition = map.getPosition();
+		mapX = currPosition['x'];
+		mapY = currPosition['y'];
+		scale = getScale(currPosition['z']);
+		stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
+	}
+
+	// Текст по умолчанию для балуна (innerHTML)
+	function getDefaultBalloonText(o)
+	{
+		var text = "";
+		var props = o.properties;
+		for (var key in props)
+		{
+			if (key != "ogc_fid")
+			{
+				var value = "" + props[key];
+				if (value.indexOf("http://") == 0)
+					value = "<a href='" + value + "'>" + value + "</a>";
+				else if (value.indexOf("www.") == 0)
+					value = "<a href='http://" + value + "'>" + value + "</a>";
+				text += "<b>" + key + ":</b> " + value + "<br />";
+			}
+		}
+		text += "<br />" + o.getGeometrySummary();
+		return text;
+	}
+	this.getDefaultBalloonText = getDefaultBalloonText;
+
+	// Проверка наличия параметра по ветке родителей
+	function chkAttr(name, o)
+	{
+		var attr = false;
+		var hash = o._hoverBalloonAttr;
+		if(hash && name in hash) {
+			attr = hash[name];
+		}
+		if(!attr && o.parent) attr = chkAttr(name, o.parent);
+		return attr;
+	}
+
+	function disableHoverBalloon(mapObject)
+	{
+		mapObject.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null, onClick: null });
+	}
+	this.disableHoverBalloon = disableHoverBalloon;
+
+	// Задать пользовательский тип балунов
+	function enableHoverBalloon(mapObject, callback, attr)
+	{
+		var _this = this;
+		mapObject._hoverBalloonAttr = (attr ? attr : {});				// Атрибуты управления балуном
+		if (callback) this.getDefaultBalloonText = callback;			// Пользовательский метод получения текста для балуна
+
+		var handlersObj = {
+			onMouseOver: function(o, keyPress)
+			{ 
+				if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
+				if (flashDiv.isDragging())
+					return;
+
+				if(chkAttr('disableOnMouseOver', mapObject))	 {// Проверка наличия параметра disableOnMouseOver по ветке родителей 
+					var ttt = 1;
+					return;
+				}
+
+				var text = getDefaultBalloonText(o);
+				if(!text) return;
+				var id = o.objectId + '_balloon_' + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "");
+				lastHoverBalloonId = o.objectId;
+				
+				if (!fixedHoverBalloons[id]) {
+					propsBalloon.updatePropsBalloon(text);
+				}
+				else {
+					propsBalloon.updatePropsBalloon(false);
+				}
+
+				map.clickBalloonFix = clickBalloonFix;
+			},
+			onMouseOut: function(o) 
+			{ 
+				if (lastHoverBalloonId == o.objectId)
+					propsBalloon.updatePropsBalloon(false);
+			},
+			onClick: clickBalloonFix
+		};
+
+		if(mapObject == map) return;							// На map Handlers не вешаем
+		if(mapObject._hoverBalloonAttr) {							// есть юзерские настройки балунов
+			if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
+				handlersObj['onMouseOver'] = null;
+				handlersObj['onMouseOut'] = null;
+			}
+			if(mapObject._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
+				handlersObj['onClick'] = null;
+			}
+		}
+		mapObject.setHandlers(handlersObj);
+	}
+	this.enableHoverBalloon = enableHoverBalloon;
+
+	var lastHoverBalloonId = false;
+	var fixedHoverBalloons = {};
+
+	function showHoverBalloons()
+	{
+		for (var key in fixedHoverBalloons)
+		{
+			var balloon = fixedHoverBalloons[key];
+			balloon.setVisible(true);
+		}
+	}
+	
+	function hideHoverBalloons(flag)
+	{
+		for (var key in fixedHoverBalloons)
+		{
+			var balloon = fixedHoverBalloons[key];
+			balloon.setVisible(false);
+		}
+		if(flag) {
+			
+			var timeoutShowHoverBalloons = setTimeout(function()
+			{
+				clearTimeout(timeoutShowHoverBalloons);
+				showHoverBalloons();
+			}, 300);
+		}
+	}
+	this.hideHoverBalloons = hideHoverBalloons;
+
+	// Фиксация балуна
+	function clickBalloonFix(o, keyPress)
+	{
+		var OnClickSwitcher = chkAttr('OnClickSwitcher', o);		// Проверка наличия параметра по ветке родителей 
+		if(OnClickSwitcher && typeof(OnClickSwitcher) == 'function') {
+			var flag = OnClickSwitcher(o, keyPress);				// Вызов пользовательского метода вместо или перед балуном
+			if(flag) return;										// Если OnClickSwitcher возвращает true выходим
+		}
+
+		if(chkAttr('disableOnClick', o))	// Проверка наличия параметра disableOnClick по ветке родителей 
+			return;
+		if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
+
+		var text = getDefaultBalloonText(o);
+		if(!text) return;
+		var id = o.objectId + '_balloon_' + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "");
+		if (!fixedHoverBalloons[id])
+		{
+			var maxFixedBallons = chkAttr('maxFixedBallons', o) || 1;	// Проверка наличия параметра maxFixedBallons по ветке родителей
+			if(maxFixedBallons > 0 && balloons.length > 0)
+			{
+				if(maxFixedBallons <= balloons.length) {
+					var balloon = balloons[0];
+					var fixedId = balloon.fixedId;
+					balloon.remove();
+					delete fixedHoverBalloons[fixedId];
+				}
+			}
+			var balloon = addBalloon();
+			balloon.fixedId =  id;
+
+			var mx = map.getMouseX();
+			var my = map.getMouseY();
+			
+			if(o.getGeometryType() == 'POINT') {
+				var gObj = o.getGeometry();
+				var x = gObj.coordinates[0];
+				var y = gObj.coordinates[1];
+
+				balloon.fixedDeltaX =  (merc_x(mx) -  merc_x(x))/scale;
+				balloon.fixedDeltaY =  (merc_y(my) -  merc_y(y))/scale;
+				mx = x;
+				my = y;
+				balloon.fixedDeltaFlag = true;
+			}
+
+			balloon.setPoint(mx, my);
+			balloon.div.innerHTML = text;
+			balloon.resize();
+			fixedHoverBalloons[id] = balloon;
+			balloon.setVisible(true);
+		}
+		else
+		{
+			fixedHoverBalloons[id].remove();
+			delete fixedHoverBalloons[id];
+		}
+		propsBalloon.updatePropsBalloon(false);
+		var tt = 1;
+	}
+	this.clickBalloonFix = clickBalloonFix;
+
+	// Создание DIV и позиционирование балуна
+	function createBalloon()
+	{
+		var tlw = 14;
+		var tlh = 14;
+		var blw = 14;
+		var blh = 41;
+		var trw = 18;
+		var trh = 13;
+		var brw = 15;
+		var brh = 41;
+		var th = 2;
+		var lw = 2;
+		var bh = 2;
+		var rw = 2;
+
+		var legWidth = 68;
+
+		var balloon = newStyledDiv({
+			position: "absolute",
+
+			paddingLeft: lw + "px",
+			paddingRight: rw + "px",
+			paddingTop: th + "px",
+			paddingBottom: bh + "px",
+
+			width: "auto",
+			whiteSpace: "nowrap",
+			zIndex: 1000
+		});
+		div.appendChild(balloon);
+
+		var css = {
+			'table': 'margin: 0px; border-collapse: collapse;',
+			'bg_top_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: 2px 9px; background-image: url(\''+apiBase+'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
+			'bg_top': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
+			'bg_top_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
+			'bg_left': 'background-color: transparent; width: 13px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-left.png\'); background-repeat: repeat-y;',
+			'bg_center': 'background-color: transparent; width: 50px; min-width: 50px; border: 0px none; background-color: white; white-space: nowrap; padding: 4px; padding-right: 14px;',
+			'bg_right': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 0px top; background-image: url(\''+apiBase+'img/tooltip-right.png\'); background-repeat: repeat-y;',
+			'bg_bottom_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
+			'bg_bottom': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center top; background-image: url(\''+apiBase+'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
+			'bg_bottom_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; background-position: -2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
+			'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\''+apiBase+'img/tooltip-leg.png\');'
+		};
+
+		var body = '\
+			<table cols="3" cellspacing="0" cellpadding="0" border="0" style="'+css['table']+'">\
+				<tr>\
+					<td style="'+css['bg_top_left']+'"></td>\
+					<td style="'+css['bg_top']+'"></td>\
+					<td style="'+css['bg_top_right']+'"></td>\
+				</tr>\
+				<tr>\
+					<td style="'+css['bg_left']+'"></td>\
+					<td style="'+css['bg_center']+'">\
+						<div style="white-space: nowrap;" class="kosmosnimki_balloon">\
+						</div>\
+					</td>\
+					<td style="'+css['bg_right']+'"></td>\
+				</tr>\
+				<tr>\
+					<td style="'+css['bg_bottom_left']+'"></td>\
+					<td style="'+css['bg_bottom']+'"></td>\
+					<td style="'+css['bg_bottom_right']+'"></td>\
+				</tr>\
+			</table>\
+		';
+		balloon.innerHTML = body;
+		var nodes = balloon.getElementsByTagName("div");
+		var balloonText = nodes[0];
+		
+		var leg = newElement("img",
+			{
+				src: apiBase + "img/tooltip-leg.png"
+			},
+			{
+				position: "absolute",
+				bottom: "-21px",
+				right: "15px"
+			}
+		);
+		balloon.appendChild(leg);
+
+		var x = 0;
+		var y = 0;
+		var reposition = function()	
+		{
+			var ww = balloon.clientWidth;
+			var hh = balloon.clientHeight;
+
+			var screenWidth = div.clientWidth;
+			var xx = (x + ww < screenWidth) ? x : (ww < screenWidth) ? (screenWidth - ww) : 0;
+			xx = Math.max(xx, x - ww + legWidth + brw);
+			var dx = x - xx;
+			leg.style.left = dx + "px";
+			bottomPosition(balloon, xx + 2, div.clientHeight - y + 20);
+		}
+
+		var updateVisible = function(flag)	
+		{
+			setVisible(balloon, flag);
+			if (flag && !wasVisible)
+				ret.resize();
+			wasVisible = flag;
+		}
+
+		var wasVisible = true;
+
+		var ret = {						// Возвращаемый обьект
+			outerDiv: balloon,
+			div: balloonText,
+			setVisible: updateVisible,
+			setScreenPosition: function(x_, y_)
+			{
+				x = x_;
+				y = y_;
+				reposition();
+			},
+			resize: function()
+			{
+				reposition();
+			},
+			updatePropsBalloon: function(text)
+			{
+				updateVisible(text ? true : false);
+				if (text)
+				{
+					balloonText.innerHTML = text;
+					reposition();
+				}
+				else
+					balloonText.innerHTML = "";
+			}
+		};
+		return ret;
+	}
+
+	var propsBalloon = createBalloon();		// Balloon для mouseOver
+	this.propsBalloon = propsBalloon;
+	propsBalloon.setVisible(false);
+	propsBalloon.outerDiv.style.zIndex = 10000;
+	propsBalloon.outerDiv.style.display = "none";
+	new GlobalHandlerMode("mousemove", function(event)
+	{
+		propsBalloon.setScreenPosition(
+			eventX(event) - getOffsetLeft(div), 
+			eventY(event) - getOffsetTop(div)
+		);
+	}).set();
+	div.onmouseout = function(event)
+	{
+		var tg = compatTarget(event);
+		if (!event)
+			event = window.event;
+		var reltg = event.toElement || event.relatedTarget;
+		while (reltg && (reltg != document.documentElement))
+		{
+			if (reltg == propsBalloon.outerDiv)
+				return;
+			reltg = reltg.offsetParent;
+		}
+		while (tg && (tg != document.documentElement))
+		{
+			if (tg == propsBalloon.outerDiv)
+				return;
+			tg = tg.offsetParent;
+		}
+		propsBalloon.outerDiv.style.display = "none";
+	}
+	propsBalloon.outerDiv.onmouseover = function()
+	{
+		if (flashDiv.isDragging())
+		{
+			needToStopDragging = false;
+			propsBalloon.updatePropsBalloon(false);
+			flashDiv.resumeDragging();
+		}
+	}
+
+	var positionBalloons = function()	
+	{
+		refreshMapPosition();
+		balloons.sort(function(b1, b2)
+		{
+			return b1.isHovered ? 1 : b2.isHovered ? -1 : (b2.geoY - b1.geoY);
+		});
+		for (var i = 0; i < balloons.length; i++)
+		{
+			balloons[i].reposition();
+			balloons[i].outerDiv.style.zIndex = 1000 + i;
+		}
+	}
+	map.addObject().setHandler("onMove", positionBalloons);
+
+	function addBalloon()
+	{
+		var balloon = createBalloon();
+		balloon.geoX = 0;
+		balloon.geoY = 0;
+		var oldSetVisible = balloon.setVisible;
+		balloon.div.onmouseover = function()
+		{
+			balloon.isHovered = true;
+			positionBalloons();
+		}
+		balloon.div.onmouseout = function()
+		{
+			balloon.isHovered = false;
+			positionBalloons();
+		}
+		balloon.outerDiv.appendChild(newElement(
+			"img",
+			{
+				src: apiBase + "img/close.png",
+				title: KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
+				onclick: function() 
+				{ 
+					balloon.remove();
+					balloon.isVisible = false;
+				},
+				onmouseover: function()
+				{
+					this.src = apiBase + "img/close_orange.png";
+				},
+				onmouseout: function()
+				{
+					this.src = apiBase + "img/close.png";
+				}
+			},
+			{
+				position: "absolute",
+				top: "15px",
+				right: "15px",
+				cursor: "pointer"
+			}
+		));
+		balloon.isVisible = true;
+		balloon.reposition = function()
+		{
+			if (balloon.isVisible)
+			{
+				refreshMapPosition();
+
+				var sc = scale * stageZoom;
+				var x = div.clientWidth/2 - (mapX - merc_x(this.geoX))/sc;
+				var y = div.clientHeight/2 + (mapY - merc_y(this.geoY))/sc;
+				if(this.fixedDeltaFlag) {
+					x += balloon.fixedDeltaX;
+					y -= balloon.fixedDeltaY;
+				}
+				if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
+				{
+					this.setScreenPosition(x, y);
+					oldSetVisible(true);
+				}
+				else
+					oldSetVisible(false);
+			}
+			else
+				oldSetVisible(false);
+		}
+		balloon.setVisible = function(flag)
+		{
+			balloon.isVisible = flag;
+			this.reposition();
+		}
+		balloon.setPoint = function(x_, y_)
+		{
+			this.geoX = x_;
+			this.geoY = y_;
+			positionBalloons();
+		}
+		balloon.remove = function()
+		{
+			if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
+			var i = 0;
+			while ((i < balloons.length) && (balloons[i] != this))
+				i += 1;
+			if (i < balloons.length)
+			{
+				balloons.splice(i, 1);
+				div.removeChild(this.outerDiv);
+			}
+		}
+		balloon.getX = function() { return this.geoX; }
+		balloon.getY = function() { return this.geoY; }
+		balloons.push(balloon);
+		return balloon;
+	}
+	this.addBalloon = addBalloon;
+
+
+	//Параметры:
+	// * Balloon: текст баллуна
+	// * BalloonEnable: показывать ли баллун
+	// * DisableBalloonOnClick: не показывать при клике
+	// * DisableBalloonOnMouseMove: не показывать при наведении
+	var setBalloonFromParams = function(filter, balloonParams)
+	{
+		console.log(balloonParams);
+		//по умолчанию балуны показываются
+		if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
+		{
+			disableHoverBalloon(filter);
+			return;
+		}
+		
+		var balloonAttrs = {
+			disableOnClick: balloonParams.DisableBalloonOnClick,
+			disableOnMouseOver: balloonParams.DisableBalloonOnMouseMove
+		}
+		
+		if ( balloonParams.Balloon )
+		{
+			enableHoverBalloon(filter, function(o)
+			{
+				return applyTemplate(
+					applyTemplate(balloonParams.Balloon, o.properties),
+					{ SUMMARY: o.getGeometrySummary() }
+				);
+			}, balloonAttrs);
+		}
+		else
+		{
+			enableHoverBalloon(filter, null, balloonAttrs);
+		}
+	}
+	this.setBalloonFromParams = setBalloonFromParams;
+	
+	//явно прописывает все свойства балунов в стиле.
+	var applyBalloonDefaultStyle = function(balloonStyle)
+	{
+		//слой только что создали - всё по умолчанию!
+		if (typeof balloonStyle.BalloonEnable === 'undefined')
+		{
+			balloonStyle.BalloonEnable = true;
+			balloonStyle.DisableBalloonOnClick = false;
+			balloonStyle.DisableBalloonOnMouseMove = true;
+		} 
+		else
+		{
+			//поддержка совместимости - если слой уже был, но новых параметров нет 
+			if (typeof balloonStyle.DisableBalloonOnClick === 'undefined')
+				balloonStyle.DisableBalloonOnClick = false;
+				
+			if (typeof balloonStyle.DisableBalloonOnMouseMove === 'undefined')
+				balloonStyle.DisableBalloonOnMouseMove = false;
+		}
+	}
+	this.applyBalloonDefaultStyle = applyBalloonDefaultStyle;
+}
