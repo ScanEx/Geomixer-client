@@ -1328,9 +1328,6 @@ IDataProvider.sendCachedCrossDomainJSONRequest.jsonCache = {};
 */
 var FireSpotProvider = function( params )
 {
-	/**
-	* @cfg 
-	*/
 	var _params = $.extend({ host: 'http://sender.kosmosnimki.ru/' }, params );
 	
 	this.getDescription = function() { return _gtxt("firesWidget.FireSpots.Description"); }
@@ -1442,15 +1439,22 @@ var ModisImagesProvider = function( params )
 
 var _createHoverFunction = function(params, balloonProps)
 {
+	var addGeometrySummary = typeof params.addGeometrySummary !== 'undefined' ? params.addGeometrySummary : true;
+	
 	return function(o)
 	{
 		var p = balloonProps[o.objectId];
+		
+		if (!p) return;
 					
 		var res = typeof params.title !== 'undefined' ? params.title : "";
 		for ( var i in p )
 			res += "<b>" + i + ":</b> " + p[i] + "<br />";
-			
-		return res + o.getGeometrySummary() + (typeof params.endTitle !== 'undefined' ? "<br/>" + params.endTitle : "");
+		
+		if (addGeometrySummary)
+			res += o.getGeometrySummary();
+		
+		return res + (typeof params.endTitle !== 'undefined' ? "<br/>" + params.endTitle : "");
 	}
 }
 
@@ -1619,12 +1623,16 @@ var FireSpotClusterProvider = (function(){
 								label: clusters[k].length,
 								points: clusters[k].length,
 								clusterId: k.substr(2),
-								balloonProps: {"Кол-во очагов пожара": clusters[k].length, "Период горения": clustersMinMaxDates[k].min + ' - ' + clustersMinMaxDates[k].max} } );
+								balloonProps: {"Кол-во горячих точек": clusters[k].length, 
+											   "Период наблюдения": clustersMinMaxDates[k].min + ' - ' + clustersMinMaxDates[k].max}
+							 } );
 		}
 		
 		return {fires: resArr, clusters: resClusters, dialyClusters: resDialyClusters};
 	}
 	
+	//кэширует уже обработанные данные
+	//гарантирует, что будут вызываться калбеки только для последнего запроса на сервер
 	var _addRequestCallback = function(url, callback)
 	{
 		if (!(url in _cache))
@@ -1663,9 +1671,6 @@ var FireSpotClusterProvider = (function(){
 		this.getDescription = function() { return _gtxt(_params.description); }
 		this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 		{
-			//var urlBbox = bbox ? '&Polygon=POLYGON((' + bbox.minX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.maxY + ', ' + bbox.maxX + ' ' + bbox.minY + ', ' + bbox.minX + ' ' + bbox.minY + '))' : "";
-			//var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClustersPoints&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
-			
 			var urlBbox = bbox ? '&MinX='+ bbox.minX + '&MinY='+ bbox.minY + '&MaxX='+ bbox.maxX + '&MaxY='+ bbox.maxY : "";
 			var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
 			
@@ -1690,6 +1695,85 @@ var FireSpotClusterProvider = (function(){
 	}
 })();
 
+/** Провайдер данных о кластерах пожаров
+* @memberOf cover
+* @class 
+* @param {Object} params Параметры класса: <br/>
+* <i> {String} host </i> Сервер, с которого берутся данные о пожарах. Default: http://sender.kosmosnimki.ru/v3/
+* <i> {String} description </i> ID текста для описания в _translation_hash. Default: firesWidget.FireClustersSimple.Description
+*/
+var FireClusterSimpleProvider = function( params )
+{
+	var _params = $.extend({requestType: "GetClustersInfoBbox",  host: 'http://sender.kosmosnimki.ru/v3/', description: "firesWidget.FireClustersSimple.Description" }, params );
+	
+	this.getDescription = function() { return _gtxt(_params.description); }
+	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
+	{
+	
+		var urlBbox = bbox ? '&MinX='+ bbox.minX + '&MinY='+ bbox.minY + '&MaxX='+ bbox.maxX + '&MaxY='+ bbox.maxY : "";
+		var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+		//var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClusters&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+		
+		IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
+		{
+			if (data.Result != 'Ok')
+			{
+				onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
+				return;
+			}
+			
+			var resArr = [];
+			var clusters = [];
+			for ( var d = 0; d < data.Response.length; d++ )
+			{
+				var a = data.Response[d];
+				// var t = globalFlashMap.addObject();
+				// t.setCircle(a[2], a[1], 10000);
+				
+				// var geom = [];
+				// for (var i = 0; i < a[8].coordinates[0].length; i++)
+					// geom.push([a[8].coordinates[0][i][1], a[8].coordinates[0][i][0]]);
+				
+				//var hotSpot = { x: a[2], y: a[1], power: a[7], points: a[5], label: a[5], balloonProps: {"Кол-во очагов пожара": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]} };
+				var hotSpot = { clusterId: a[0], geometry: a[8], power: a[7], points: a[5], label: a[5], dateBegin: a[3], dateEnd: a[4] /*, balloonProps: {"Кол-во очагов пожара": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]}*/ };
+				// var hotSpot = { geometry: {type: "POLYGON", coordinates: [geom]}, power: a[7], points: a[5], label: a[5], balloonProps: {"Кол-во очагов пожара": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]} };
+				resArr.push(hotSpot);
+			}
+			
+			onSucceess( resArr );
+		});
+	}
+}
+
+var CombinedProvider = function( description, providers )
+{
+	var _providers = providers;
+	
+	this.getDescription = function() { return _gtxt(description); }
+	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
+	{
+		var totalResponces = 0;
+		var providerResponces = [];
+		for (var i = 0; i < _providers.length; i++)
+			(function(i) {
+				_providers[i].getData( dateBegin, dateEnd, bbox, 
+					function( data )
+					{
+						providerResponces[i] = data;
+						totalResponces++;
+						
+						if (totalResponces === _providers.length)
+							onSucceess( providerResponces );
+					},
+					function( type )
+					{
+						onError( type );
+					}
+				)
+			})(i);
+	}
+}
+
 /*
  ************************************
  *            Renderers             *
@@ -1707,13 +1791,16 @@ var FireSpotRenderer = function( params )
 {
 	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minZoom: 1, maxZoom: 17, customStyleProvider: null, onclick: null, bringToDepth: false }, params);
 	
+	var _depthContainer = globalFlashMap.addObject();
+	if (_params.bringToDepth) _depthContainer.bringToDepth(_params.bringToDepth);
+	
 	var _firesObj = null;
 	var _balloonProps = {};
 	this.bindData = function(data)
 	{
 		if (_firesObj) _firesObj.remove();
 		_balloonProps = {};
-		_firesObj = globalFlashMap.addObject();
+		_firesObj = _depthContainer.addObject();
 		_firesObj.setVisible(false);
 		
 		var weak = _firesObj.addObject();
@@ -1772,7 +1859,11 @@ var FireSpotRenderer = function( params )
 			objProperties.dateInt = a.dateInt;
 			objProperties.clusterId = a.clusterId;
 			_obj[key].arr.push( {geometry: { type: "POINT", coordinates: [a.x, a.y] }, properties: objProperties, src: a} );
-			_obj[key].balloonProps.push( $.extend({}, a.balloonProps, addBallonProps) );
+			
+			if (typeof a.balloonProps !== 'undefined')
+				_obj[key].balloonProps.push( $.extend({}, a.balloonProps, addBallonProps) );
+			else
+				_obj[key].balloonProps.push( null );
 		}
 		for (var k in _obj)
 		{
@@ -1845,12 +1936,16 @@ var FireBurntRenderer = function( params )
 		];
 	var _params = $.extend({ minZoom: 1, maxZoom: 17, defStyle: defaultStyle, bringToDepth: false, title: "<b style='color: red;'>СЛЕД ПОЖАРА</b><br />" }, params);
 	var _burntObj = null;
+	
+	var _depthContainer = globalFlashMap.addObject();
+	if (_params.bringToDepth) _depthContainer.bringToDepth(_params.bringToDepth);
+	
 	var _balloonProps = {};
 	this.bindData = function(data)
 	{
 		if (_burntObj) _burntObj.remove();
 		_balloonProps = {};
-		_burntObj = globalFlashMap.addObject();
+		_burntObj = _depthContainer.addObject();
 		_burntObj.setZoomBounds(_params.minZoom, _params.maxZoom);
 		_burntObj.setVisible(false);
 		_burntObj.setStyle( _params.defStyle[0], _params.defStyle[1] );
@@ -1866,13 +1961,18 @@ var FireBurntRenderer = function( params )
 				
 				var obj = _burntObj.addObject( b.geometry );
 				
-				
-				if (_params.bringToDepth) obj.bringToDepth(_params.bringToDepth);
+				// var debObj = globalFlashMap.addObject( b.geometry );
+				// debObj.setStyle({ outline: { color: 0xff00ff, thickness: 1, dashes: [3,3] }, fill: { color: 0xff00ff, opacity: 10 } });
+				// console.log(obj.getGeometry());
 				
 				if (typeof b.styleID !== 'undefined' && typeof _params.styles != 'undefined' && typeof _params.styles[b.styleID] != 'undefined')
 					obj.setStyle( _params.styles[b.styleID][0], _params.styles[b.styleID][1] );
 					
-				_balloonProps[obj.objectId] = $.extend({}, b.balloonProps, {"Дата": b.date});
+				if (typeof b.balloonProps !== 'undefined')
+					_balloonProps[obj.objectId] = $.extend({}, b.balloonProps, {"Дата": b.date});
+				else
+					_balloonProps[obj.objectId] = null;
+					
 			})(data[i]);
 			
 		_burntObj.enableHoverBalloon(_createHoverFunction(_params, _balloonProps));
@@ -1935,21 +2035,50 @@ var CombinedFiresRenderer = function( params )
 	}
 	
 	var defStyle = [
-		{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} },
-		{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 30 }, marker: {size: 2, color: 0xff0000, thickness: 1} }
+		{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 15 }, marker: {size: 2, color: 0xff0000, thickness: 1} },
+		{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 15 }, marker: {size: 2, color: 0xff0000, thickness: 1} }
+	];
+	
+	var wholeDefStyle = [
+		{ outline: { color: 0xff00ff, thickness: 1, dashes: [3,3] }, fill: { color: 0xff00ff, opacity: 7 } },
+		{ outline: { color: 0xff00ff, thickness: 1, dashes: [3,3] }, fill: { color: 0xff00ff, opacity: 7 } }
 	];
 	
 	var _clustersRenderer = new FireSpotRenderer({maxZoom: 7, customStyleProvider: customStyleProvider, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>"});
-	var _geometryRenderer = new FireBurntRenderer({minZoom: 8, defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", bringToDepth: -1});
-	var _hotspotRenderer  = new FireSpotRenderer({title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>", minZoom: 11, /*onclick: function(o){ params.verificationControl.showID(o.properties.hotspotId); }, */bringToDepth: -2});
+	var _wholeFireRenderer = new FireBurntRenderer({minZoom: 8, defStyle: wholeDefStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>"/*, bringToDepth: -1*/});
+	var _geometryRenderer = new FireBurntRenderer({minZoom: 8, defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>"/*, bringToDepth: 100*/, addGeometrySummary: false});
+	var _hotspotRenderer  = new FireSpotRenderer({title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>", minZoom: 11});
 	var _curData = null;
+	
+	//это некоторый хак для того, чтобы объединить в балунах контуров пожаров оперативную и историческую информацию о пожарах.
+	var mergeBalloonsData = function(data)
+	{
+		//будем переносить данные из инсторических в оперативных кластеры
+		var clusterHash = {};
+		
+		for (var cl = 0; cl < data[1].length; cl++)
+			clusterHash['id'+data[1][cl].clusterId] = data[1][cl];
+		
+		for ( var cl = 0; cl < data[0].clusters.length; cl++ )
+		{
+			var id = 'id' + data[0].clusters[cl].clusterId;
+			if (id in clusterHash)
+				$.extend( data[0].clusters[cl].balloonProps, {
+					"Период горения": clusterHash[id].dateBegin + "-" + clusterHash[id].dateEnd, 
+					"Выгоревшая площадь": prettifyArea(geoArea(clusterHash[id].geometry))
+				});
+		}
+	}
 	
 	this.bindData = function(data)
 	{
+		mergeBalloonsData(data);
+	
 		_curData = data;
-		_clustersRenderer.bindData(data.clusters);
-		_geometryRenderer.bindData(data.clusters);
-		_hotspotRenderer.bindData(data.fires);
+		_clustersRenderer.bindData(data[0].clusters);
+		_geometryRenderer.bindData(data[0].clusters);
+		_hotspotRenderer.bindData(data[0].fires);
+		_wholeFireRenderer.bindData(data[1]);
 	}
 	
 	this.setVisible = function(flag)
@@ -1957,6 +2086,7 @@ var CombinedFiresRenderer = function( params )
 		_clustersRenderer.setVisible(flag);
 		_geometryRenderer.setVisible(flag);
 		_hotspotRenderer.setVisible(flag);
+		_wholeFireRenderer.setVisible(flag);
 	}
 	
 	this.filterByDate = function(date)
@@ -2254,10 +2384,15 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 							  { isVisible: this._firesOptions.imagesInit, isUseBbox: false } );
 							  
 	if ( this._firesOptions.fires )
+	{
+		var spotProvider = new FireSpotClusterProvider({host: this._firesOptions.host || 'http://sender.kosmosnimki.ru/v3/', description: "firesWidget.FireCombinedDescription", requestType: this._firesOptions.requestType});
+		var wholeClusterProvider = new FireClusterSimpleProvider();
+		
 		this.addDataProvider( "firedots",
-							  new FireSpotClusterProvider({host: this._firesOptions.host || 'http://sender.kosmosnimki.ru/v3/', description: "firesWidget.FireCombinedDescription", requestType: this._firesOptions.requestType}),
+							  new CombinedProvider( "firesWidget.FireCombinedDescription", [spotProvider, wholeClusterProvider] ),
 							  new CombinedFiresRenderer(), 
 							  { isVisible: this._firesOptions.firesInit } );
+    }
 	
 	this.searchBboxController.init();
 	
