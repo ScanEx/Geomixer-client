@@ -131,7 +131,7 @@ WikiObjectsHandler.prototype = {
 				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : getAPIHostRoot() + "/api/img/wiki/page.gif"), center: true }});
 				break;
 			case 'POLYGON':
-				mapObject.setStyle({outline: {color: pageInfo.ObjectsGeometry[0].color, thickness: 1, opacity: 100}, fill: {color: pageInfo.ObjectsGeometry[0].color, opacity: 25}});
+				mapObject.setStyle({outline: {color: pageInfo.ObjectsGeometry[0].color, thickness: 1, opacity: 100}});
 				break;
 		}
 	},

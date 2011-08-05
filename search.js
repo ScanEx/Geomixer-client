@@ -1071,26 +1071,26 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 					var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
 					var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = oFoundObject.ObjName;
 					if(/[a-zA-Z]/.test(SearchString)){
-						if(oFoundObject.ObjNameEng.match(sSearchRegExp)){
-							sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
-							sValue = oFoundObject.ObjNameEng;
-							if (oFoundObject.ObjName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
-						}
-						else{
+						if(oFoundObject.ObjAltNameEng && oFoundObject.ObjAltNameEng.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
 							sValue = oFoundObject.ObjAltNameEng;
 							if (oFoundObject.ObjAltName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
 						}
+						else{
+							sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
+							sValue = oFoundObject.ObjNameEng;
+							if (oFoundObject.ObjName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjName", "ObjName");	
+						}
 					}
 					else{
-						if(oFoundObject.ObjName.match(sSearchRegExp)){
-							sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
-							if (oFoundObject.ObjNameEng != null) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
-						}
-						else{
+						if(oFoundObject.ObjAltName && oFoundObject.ObjAltName.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
 							sValue = oFoundObject.ObjAltName;
 							if (oFoundObject.ObjAltNameEng != null) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
+						}
+						else{
+							sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
+							if (oFoundObject.ObjNameEng != null) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 						}
 					}
 					arrResult.push({
