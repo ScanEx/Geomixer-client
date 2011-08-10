@@ -6475,7 +6475,9 @@ function BalloonClass(map, flashDiv, div, apiBase)
 	{
 		var _this = this;
 		mapObject._hoverBalloonAttr = (attr ? attr : {});				// јтрибуты управлени€ балуном
-		if (callback) this.getDefaultBalloonText = callback;			// ѕользовательский метод получени€ текста дл€ балуна
+		if (callback) {													// ѕользовательский метод получени€ текста дл€ балуна
+			this.getDefaultBalloonText = mapObject._hoverBalloonAttr['callback'] = callback;
+		}
 
 		var handlersObj = {
 			onMouseOver: function(o, keyPress)
@@ -6489,7 +6491,8 @@ function BalloonClass(map, flashDiv, div, apiBase)
 					return;
 				}
 
-				var text = getDefaultBalloonText(o);
+				var textFunc = chkAttr('callback', mapObject);			// ѕроверка наличи€ параметра callback по ветке родителей 
+				var text = (textFunc ? textFunc(o) : getDefaultBalloonText(o));
 				if(!text) return;
 				var id = o.objectId + '_balloon_' + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "");
 				lastHoverBalloonId = o.objectId;
