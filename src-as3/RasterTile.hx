@@ -76,8 +76,9 @@ class RasterTile
 			try {
 				var me = this;
 				var worldSize:Float = Math.pow(2, z);
+				var url:String = layer.tileFunction(Math.round((i + 3 * worldSize / 2) % worldSize - worldSize / 2), j, Math.round(z));
 				Utils.loadImage(
-					layer.tileFunction(Math.round((i + 3*worldSize/2)%worldSize - worldSize/2), j, Math.round(z)), 
+					url, 
 					function(contents) { me.onLoad(contents); },
 					function() { me.onError(); }
 				);
@@ -131,13 +132,15 @@ class RasterTile
 			updateAlphaListener = function(event) { me.updateAlpha(); }
 			contents.addEventListener(Event.ENTER_FRAME, updateAlphaListener);
 
-			if(contents.loaderInfo.parentAllowsChild) {
+			if(contents.loaderInfo != null && contents.loaderInfo.parentAllowsChild) {
 				var size = 32;
 				var bmp = new BitmapData(size, size, true, 0);
 				bmp.draw(contents);
 				var hist = bmp.histogram();
 				if (hist[3][255] != 1024) isOverlay = true;		// по гистограмме определяем тайлы где в верхнем левом углу 32х32 все alpha = 0xFF
 				bmp.dispose();
+			} else {
+				isOverlay = true;	// нет доступа до загруженного контента
 			}
 			if (isOverlay && isReplacement)
 				remove();

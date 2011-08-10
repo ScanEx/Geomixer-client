@@ -426,6 +426,7 @@ class Main
 			out.mouseX = mapWindow.innerSprite.mouseX;
 			out.mouseY = mapWindow.innerSprite.mouseY;
 			out.stageHeight = stage.stageHeight;
+			out.stageWidth = stage.stageWidth;
 			out.x = currentX;
 			out.y = currentY;
 			out.z = currentZ;
@@ -635,17 +636,6 @@ class Main
 						node.setContent(new VectorObject(geometry));
 				}
 			});
-		});
-
-		ExternalInterface.addCallback("setVisible", function(id:String, flag:Bool)
-		{
-			Main.bumpFrameRate();
-			var node = getNode(id);
-			node.setVisible(flag);
-			if (node.parent != null)
-				for (child in node.parent.children)
-					if (Std.is(child.content, VectorLayerObserver))
-						child.noteSomethingHasChanged();
 		});
 		var exportProperties = function(p_:Hash<String>):Dynamic
 		{
@@ -913,6 +903,31 @@ class Main
 			} catch (e:Error) { trace(e); }
 		}
 		ExternalInterface.addCallback("sendPNG", sendPNGFile);
+		
+		function setVisible(id:String, flag:Bool)
+		{
+			Main.bumpFrameRate();
+			var node = getNode(id);
+			node.setVisible(flag);
+			if (node.parent != null)
+				for (child in node.parent.children)
+					if (Std.is(child.content, VectorLayerObserver))
+						child.noteSomethingHasChanged();
+		}
+		ExternalInterface.addCallback("setVisible", setVisible);
+		// Парсинг команд от JavaScript
+		var parseCmdFromJS = function(cmd:String, attr:Dynamic)
+		{
+			var out = { };
+			switch (cmd) {
+				case 'sendPNG':
+					sendPNGFile(attr);
+				case 'setVisible':
+					setVisible(attr.objectId, attr.flag);
+			}
+		}
+		ExternalInterface.addCallback("cmdFromJS", parseCmdFromJS);
+
 
 		ExternalInterface.addCallback("setGridVisible", function(flag)
 		{

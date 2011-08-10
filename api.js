@@ -146,6 +146,11 @@ function hide(div)
 	div.style.display = "none";
 }
 
+function setPositionStyle(div, attr)
+{
+	for(var key in attr) div.style[key] = attr[key];
+}
+
 function position(div, x, y)
 {
 	div.style.left = x + "px";
@@ -814,18 +819,43 @@ function createFlashMapInternal(div, layers, callback)
 				this.flashId = flashId;
 			}
 
+			// Передача команды в SWF
+			function FlashCMD(cmd, hash)
+			{
+				var ret = {};
+				var obj = hash['obj'] || null;	// Целевой обьект команды
+				var attr = hash['attr'] || '';
+				switch (cmd) {				// Тип команды
+					case 'setVisible':		// Изменить видимость обьекта
+						if(obj) {
+							flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr } );
+							if (attr && obj.backgroundColor)
+								map.setBackgroundColor(obj.backgroundColor);
+							if (obj.copyright)
+								map.updateCopyright();
+							var func = map.onSetVisible[obj.objectId];
+							if (func)
+								func(attr);
+						}
+						break;
+					case 'sendPNG':			// Сохранение изображения карты на сервер
+						var miniMapFlag = miniMap.getVisibility();
+						var flag = (attr.miniMapSetVisible ? true : false);
+						miniMap.setVisible(flag);
+						if(attr.func) attr.func = uniqueGlobalName(attr.func);
+						flashDiv.cmdFromJS(cmd, attr);
+						miniMap.setVisible(miniMapFlag);
+						break;
+				}
+			}
+
 			FlashMapObject.prototype.trace = function(val) { flashDiv.trace(val); }
 			FlashMapObject.prototype.setQuality = function(val) { flashDiv.setQuality(val); }
 			FlashMapObject.prototype.disableCaching = function() { flashDiv.disableCaching(); }
 			FlashMapObject.prototype.print = function() { flashDiv.print(); }
 			FlashMapObject.prototype.savePNG = function(fileName) { flashDiv.savePNG(fileName); }
 			FlashMapObject.prototype.sendPNG = function(attr) {
-				var miniMapFlag = miniMap.getVisibility();
-				var flag = (attr.miniMapSetVisible ? true : false);
-				miniMap.setVisible(flag);
-				if(attr.func) attr.func = uniqueGlobalName(attr.func);
-				flashDiv.sendPNG(attr);
-				miniMap.setVisible(miniMapFlag);
+				FlashCMD('sendPNG', { 'attr': attr });
 			}
 			FlashMapObject.prototype.repaint = function() { flashDiv.repaint(); }
 			FlashMapObject.prototype.moveTo = function(x, y, z) 
@@ -982,7 +1012,10 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
 			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { flashDiv.setZoomBounds(this.objectId, minZoom, maxZoom); }
 			FlashMapObject.prototype.setVisible = function(flag) 
-			{ 
+			{
+/*
+				FlashCMD('setVisible', { 'obj': this, 'attr': flag });
+*/
 				flashDiv.setVisible(this.objectId, flag); 
 				if (flag && this.backgroundColor)
 					map.setBackgroundColor(this.backgroundColor);
@@ -2659,24 +2692,6 @@ function createFlashMapInternal(div, layers, callback)
 					maxY: from_merc_y(y + h2)
 				};
 			}
-
-			var scaleBar = newStyledDiv({
-				position: "absolute",
-				right: "27px",
-				bottom: "47px",
-				textAlign: "center"
-			});
-			div.appendChild(scaleBar);
-			map.scaleBar = { setVisible: function(flag) { setVisible(scaleBar, flag); } };
-			var scaleBarText, scaleBarWidth;
-			var repaintScaleBar = function()
-			{
-				if (scaleBarText)
-				{
-					size(scaleBar, scaleBarWidth, 16);
-					scaleBar.innerHTML = scaleBarText;
-				}
-			}
 			var getLocalScale = function(x, y)
 			{
 				return distVincenty(x, y, from_merc_x(merc_x(x) + 40), from_merc_y(merc_y(y) + 30))/50;
@@ -2739,6 +2754,41 @@ function createFlashMapInternal(div, layers, callback)
 			);
 			div.appendChild(locationTitleDiv);
 
+
+			var coordinatesAttr = {
+				'x': '27px'						// отступ по горизонтали
+				,'y': '25px'					// по вертикали
+				,'x1': '5px'					// отступ по горизонтали иконки смены формата координат
+				,'scaleBar': {
+					'bottom': {
+						'x': '27px'				// отступ по горизонтали для scaleBar
+						,'y': '47px'			// по вертикали
+					}
+					,'top': {
+						'x': '27px'				// отступ по горизонтали для scaleBar
+						,'y': '3px'				// по вертикали
+					}
+				}
+			};
+
+			var scaleBar = newStyledDiv({
+				position: "absolute",
+				right: coordinatesAttr['scaleBar']['bottom']['x'],
+				bottom: coordinatesAttr['scaleBar']['bottom']['y'],
+				textAlign: "center"
+			});
+			div.appendChild(scaleBar);
+			
+			map.scaleBar = { setVisible: function(flag) { setVisible(scaleBar, flag); } };
+			var scaleBarText, scaleBarWidth;
+			var repaintScaleBar = function()
+			{
+				if (scaleBarText)
+				{
+					size(scaleBar, scaleBarWidth, 16);
+					scaleBar.innerHTML = scaleBarText;
+				}
+			}
 			var coordinates = newElement(
 				"div",
 				{
@@ -2752,8 +2802,8 @@ function createFlashMapInternal(div, layers, callback)
 				},
 				{
 					position: "absolute",
-					right: "27px",
-					bottom: "25px",
+					right: coordinatesAttr['x'],
+					bottom: coordinatesAttr['y'],
 					cursor: "pointer"
 				}
 			);
@@ -2773,8 +2823,8 @@ function createFlashMapInternal(div, layers, callback)
 				},
 				{
 					position: "absolute",
-					right: "5px",
-					bottom: "25px",
+					right: coordinatesAttr['x1'],
+					bottom: coordinatesAttr['y'],
 					cursor: "pointer"
 				}
 			);
@@ -2784,7 +2834,7 @@ function createFlashMapInternal(div, layers, callback)
 				setVisible: function(flag) 
 				{ 
 					setVisible(coordinates, flag); 
-					setVisible(changeCoords, flag);
+					setVisible(changeCoords, flag); 
 				}
 			}
 
@@ -2807,16 +2857,50 @@ function createFlashMapInternal(div, layers, callback)
 					return Math.round(x) + ", " + Math.round(y);
 			}
 
+			map.setCoordinatesAlign = function(attr) {			// Изменить позицию контейнера координат
+				var align = attr['align'];
+				if(align === 'br') {		// Позиция br(BottomRight)
+					setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x'], 'left': '' });
+					setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x1'], 'left': '' });
+					setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': coordinatesAttr['scaleBar']['bottom']['x'], 'left': '' });
+				} else if(align === 'bl') {		// Позиция bl(BottomLeft)
+					setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x'] });
+					setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x1'] });
+					setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': '', 'left': coordinatesAttr['scaleBar']['bottom']['x'] });
+				} else if(align === 'tr') {		// Позиция tr(TopRight)
+					setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x'], 'left': '' });
+					setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x1'], 'left': '' });
+					setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': coordinatesAttr['scaleBar']['top']['x'], 'left': '' });
+				} else if(align === 'tl') {		// Позиция tl(TopLeft)
+					setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x'] });
+					setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x1'] });
+					setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['scaleBar']['top']['x'] });
+				}
+			}
+
+			// Begin: Блок управления копирайтами
+			var copyrightAttr = {
+				'x': '26px'					// отступ по горизонтали
+				,'y': '7px'					// отступ по вертикали
+			};
 			var copyright = newElement(
 				"span",
 				{},
 				{
 					position: "absolute",
-					right: "26px",
-					bottom: "7px"
+					right: copyrightAttr['x'],
+					bottom: copyrightAttr['y']
 				}
 			);
+			var copyrightAlign = '';
 			div.appendChild(copyright);
+			// Изменить позицию контейнера копирайтов
+			map.setCopyrightAlign = function(attr) {
+				if(attr['align']) {
+					copyrightAlign = attr['align'];
+				}
+				copyrightPosition();
+			}
 			var copyrightedObjects = [];
 			map.addCopyrightedObject = function(obj)
 			{
@@ -2855,6 +2939,30 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			
 			var copyrightUpdateTimeout = false;
+			var copyrightLastAlign = null;
+
+			// Изменить координаты HTML элемента
+			function copyrightPosition()
+			{
+				var center = (div.clientWidth - copyright.clientWidth) / 2;
+				if(copyrightLastAlign != copyrightAlign) {
+					copyrightLastAlign = copyrightAlign;
+					if(copyrightAlign === 'bc') {				// Позиция bc(BottomCenter)
+						setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': center + 'px' });
+					} else if(copyrightAlign === 'br') {		// Позиция br(BottomRight)
+						setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': copyrightAttr['x'], 'left': '' });
+					} else if(copyrightAlign === 'bl') {		// Позиция bl(BottomLeft)
+						setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': copyrightAttr['x'] });
+					} else if(copyrightAlign === 'tc') {		// Позиция tc(TopCenter)
+						setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': center + 'px' });
+					} else if(copyrightAlign === 'tr') {		// Позиция tr(TopRight)
+						setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': copyrightAttr['x'], 'left': '' });
+					} else if(copyrightAlign === 'tl') {		// Позиция tl(TopLeft)
+						setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr['x'] });
+					}
+				}
+			}
+
 			map.updateCopyright = function()
 			{
 				if (!copyrightUpdateTimeout)
@@ -2892,9 +3000,13 @@ function createFlashMapInternal(div, layers, callback)
 						}
 						copyright.innerHTML = text;
 						copyrightUpdateTimeout = false;
+						if(copyrightAlign) {
+							copyrightPosition();
+						}
 					}, 0);
 				}
 			}
+			// End: Блок управления копирайтами
 
 			var sunscreen = map.addObject();
 			sunscreen.setStyle({ fill: { color: 0xffffff, opacity: 1 } });
@@ -2969,8 +3081,19 @@ function createFlashMapInternal(div, layers, callback)
 					setVisible(miniMapFrame, false);
 				else
 				{
-					miniMapFrame.style.top = (miniMapSize/2 - h/2) + "px";
-					miniMapFrame.style.right = (miniMapSize/2 - w/2) + "px";
+					var ww = (miniMapSize/2 - w/2);
+					var hh = (miniMapSize/2 - h/2);
+					var ph = { 'top': hh + 'px', 'bottom': '', 'right': ww + 'px', 'left': '' };	// Позиция миникарты по умолчанию tr(TopRight)
+					if(miniMapAlign === 'br') {		// Позиция миникарты br(BottomRight)
+						ph['left'] = ''; ph['right'] = ww + 'px';
+						ph['bottom'] = hh + 'px';	ph['top'] = '';
+					} else if(miniMapAlign === 'bl') {	// Позиция миникарты по умолчанию bl(BottomLeft)
+						ph['left'] = ww + 'px';		ph['right'] = '';
+						ph['bottom'] = hh + 'px';	ph['top'] = '';
+					} else if(miniMapAlign === 'tl') {	// Позиция миникарты по умолчанию tl(TopLeft)
+						ph['left'] = (miniMapSize/2 - w/2) + 'px'; ph['right'] = '';
+					}
+					setPositionStyle(miniMapFrame, ph);
 					size(miniMapFrame, w, h);
 				}
 			}
@@ -3018,11 +3141,29 @@ function createFlashMapInternal(div, layers, callback)
 				var w = div.clientWidth;
 				var h = div.clientHeight;
 				miniMapSize = (miniMapAvailable && miniMapShown) ? Math.round(w/7) : 0;
-				miniMap.positionWindow((w - miniMapSize)/w, 0, 1, miniMapSize/h);
-				miniMapLeftBorder.style.right = miniMapSize + "px";
 				miniMapLeftBorder.style.height = (miniMapSize + miniMapBorderWidth) + "px";
-				miniMapBottomBorder.style.top = miniMapSize + "px";
 				miniMapBottomBorder.style.width = miniMapSize + "px";
+				if(miniMapAlign === 'br') {			// Позиция миникарты br(BottomRight)
+					miniMap.positionWindow((w - miniMapSize)/w, (h - miniMapSize)/h, 1, 1);
+					setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': miniMapSize + 'px', 'left': '' });
+					setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '0px', 'left': '' });
+					setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '0px', 'left': '' });
+				} else if(miniMapAlign === 'bl') {	// Позиция миникарты по умолчанию bl(BottomLeft)
+					miniMap.positionWindow(0, (h - miniMapSize)/h, miniMapSize/w, 1);
+					setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': '', 'left': miniMapSize + 'px' });
+					setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '', 'left': '0px' });
+					setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '', 'left': '0px' });
+				} else if(miniMapAlign === 'tl') {	// Позиция миникарты по умолчанию tl(TopLeft)
+					miniMap.positionWindow(0, 0, miniMapSize/w, miniMapSize/h);
+					setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': '', 'left': miniMapSize + 'px' });
+					setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '', 'left': '0px' });
+					setPositionStyle(miniMapToggler, { 'top': '0px', 'bottom': '', 'right': '', 'left': '0px' });
+				} else {							// Позиция миникарты по умолчанию tr(TopRight)
+					miniMap.positionWindow((w - miniMapSize)/w, 0, 1, miniMapSize/h);
+					setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': miniMapSize + 'px', 'left': '' });
+					setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '0px', 'left': '' });
+					setPositionStyle(miniMapToggler, { 'top': '0px', 'bottom': '', 'right': '0px', 'left': '' });
+				}
 				repaintMiniMapBorders();
 				repaintMiniMapFrame();
 			}
@@ -3037,6 +3178,12 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			map.miniMap = miniMap;
 			miniMap.setVisible(false);
+			var miniMapAlign = 'tr';
+			// Изменить позицию miniMap
+			map.setMiniMapAlign = function(attr) {
+				if(attr['align']) miniMapAlign = attr['align'];
+				resizeMiniMap();
+			}
 
 			var geomixerLink = newElement(
 				"a",
@@ -3063,6 +3210,18 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			));
 			div.appendChild(geomixerLink);
+			map.setGeomixerLinkAlign = function(attr) {				// Изменить позицию ссылки на Geomixer
+				var align = attr['align'];
+				if(align === 'br') {			// Позиция br(BottomRight)
+					setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '8px', 'left': '' });
+				} else if(align === 'bl') {		// Позиция bl(BottomLeft)
+					setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '', 'left': '8px' });
+				} else if(align === 'tr') {		// Позиция tr(TopRight)
+					setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '8px', 'left': '' });
+				} else if(align === 'tl') {		// Позиция tl(TopLeft)
+					setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '', 'left': '8px' });
+				}
+			}
 
 			sunscreen.setHandler("onResize", resizeMiniMap);
 
@@ -3719,7 +3878,6 @@ function createFlashMapInternal(div, layers, callback)
 				x1y2Corner.enableDragging(function(x, y) { x1 = x; y2 = y; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
 				x2y1Corner.enableDragging(function(x, y) { x2 = x; y1 = y; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
 				x2y2Corner.enableDragging(function(x, y) { x2 = x; y2 = y; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
-
 				var repaint = function(flag)
 				{
 					x1Border.setLine([[x1, y1], [x1, y2]]);
@@ -6477,6 +6635,8 @@ function BalloonClass(map, flashDiv, div, apiBase)
 		mapObject._hoverBalloonAttr = (attr ? attr : {});				// Атрибуты управления балуном
 		if (callback) {													// Пользовательский метод получения текста для балуна
 			this.getDefaultBalloonText = mapObject._hoverBalloonAttr['callback'] = callback;
+		} else {
+			delete mapObject._hoverBalloonAttr['callback'];
 		}
 
 		var handlersObj = {
@@ -6486,8 +6646,7 @@ function BalloonClass(map, flashDiv, div, apiBase)
 				if (flashDiv.isDragging())
 					return;
 
-				if(chkAttr('disableOnMouseOver', mapObject))	 {// Проверка наличия параметра disableOnMouseOver по ветке родителей 
-					var ttt = 1;
+				if(chkAttr('disableOnMouseOver', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
 					return;
 				}
 
@@ -6514,7 +6673,7 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			onClick: clickBalloonFix
 		};
 
-		if(mapObject == map) return;							// На map Handlers не вешаем
+		//if(mapObject == map) return;							// На map Handlers не вешаем
 		if(mapObject._hoverBalloonAttr) {							// есть юзерские настройки балунов
 			if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
 				handlersObj['onMouseOver'] = null;
