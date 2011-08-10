@@ -819,6 +819,14 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.disableCaching = function() { flashDiv.disableCaching(); }
 			FlashMapObject.prototype.print = function() { flashDiv.print(); }
 			FlashMapObject.prototype.savePNG = function(fileName) { flashDiv.savePNG(fileName); }
+			FlashMapObject.prototype.sendPNG = function(attr) {
+				var miniMapFlag = miniMap.getVisibility();
+				var flag = (attr.miniMapSetVisible ? true : false);
+				miniMap.setVisible(flag);
+				if(attr.func) attr.func = uniqueGlobalName(attr.func);
+				flashDiv.sendPNG(attr);
+				miniMap.setVisible(miniMapFlag);
+			}
 			FlashMapObject.prototype.repaint = function() { flashDiv.repaint(); }
 			FlashMapObject.prototype.moveTo = function(x, y, z) 
 			{ 
@@ -862,7 +870,7 @@ function createFlashMapInternal(div, layers, callback)
 				);
 			}
 			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
-				hideHoverBalloons(true);
+				map.balloonClassObject.hideHoverBalloons(true);
 				flashDiv.zoomBy(-dz, useMouse);
 			}
 			FlashMapObject.prototype.freeze = function() { flashDiv.freeze(); }
@@ -874,6 +882,8 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.getZ = function() { return 17 - flashDiv.getZ(); }
 			FlashMapObject.prototype.getMouseX = function() { return from_merc_x(flashDiv.getMouseX()); }
 			FlashMapObject.prototype.getMouseY = function() { return from_merc_y(flashDiv.getMouseY()); }
+			FlashMapObject.prototype.getPosition = function() { return flashDiv.getPosition(); }
+
 			FlashMapObject.prototype.isKeyDown = function(code) { return flashDiv.isKeyDown(code); }
 
 			var propertiesFromArray = function(a)
@@ -901,9 +911,9 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setHandler = function(eventName, handler)
 			{
 				var me = this;
-				flashDiv.setHandler(this.objectId, eventName, handler ? uniqueGlobalName(function(subObjectId, a)
+				flashDiv.setHandler(this.objectId, eventName, handler ? uniqueGlobalName(function(subObjectId, a, attr)
 				{
-					handler(new FlashMapObject(subObjectId, propertiesFromArray(a), me));
+					handler(new FlashMapObject(subObjectId, propertiesFromArray(a), me), attr);
 				}) : null);
 			}
 			FlashMapObject.prototype.removeHandler = function(eventName)
@@ -932,11 +942,14 @@ function createFlashMapInternal(div, layers, callback)
 				{
 					var ph = data[i];
 					var props = ph['properties'] || null;
-					out.push({
+					var tmp = {
 						"parentId": this.objectId,
 						"geometry": merc_geometry(ph['geometry']),
 						"properties": props
-					});
+					};
+					if(ph['setStyle']) tmp['setStyle'] = ph['setStyle'];
+					if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
+					out.push(tmp);
 				}
 				var _obj = flashDiv.addObjects(out);	// Отправить команду в SWF
 
@@ -953,17 +966,19 @@ function createFlashMapInternal(div, layers, callback)
 				if(!obj) obj = false;
 				return new FlashMapObject(obj, props, this);
 			}
-			FlashMapObject.prototype.setFilter = function(sql) { return flashDiv.setFilter(this.objectId, sql); }
+			FlashMapObject.prototype.setFilter = function(sql) {
+				return flashDiv.setFilter(this.objectId, sql);
+			}
 			FlashMapObject.prototype.remove = function()
 			{
 				if (this.copyright) 
 					map.removeCopyrightedObject(this);
 					
-				flashDiv.remove(this.objectId);
+				if(this.objectId) flashDiv.remove(this.objectId); // Удалять в SWF только если там есть обьект
 			}
-			FlashMapObject.prototype.bringToTop = function() { flashDiv.bringToTop(this.objectId); }
+			FlashMapObject.prototype.bringToTop = function() { return flashDiv.bringToTop(this.objectId); }
 			FlashMapObject.prototype.bringToBottom = function() { flashDiv.bringToBottom(this.objectId); }
-			FlashMapObject.prototype.bringToDepth = function(n) { flashDiv.bringToDepth(this.objectId, n); }
+			FlashMapObject.prototype.bringToDepth = function(n) { return flashDiv.bringToDepth(this.objectId, n); }
 			FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
 			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { flashDiv.setZoomBounds(this.objectId, minZoom, maxZoom); }
 			FlashMapObject.prototype.setVisible = function(flag) 
@@ -977,8 +992,10 @@ function createFlashMapInternal(div, layers, callback)
 				if (func)
 					func(flag);
 			}
-			//FlashMapObject.prototype.getVisibility = function() { flashDiv.setVisible(this.getVisibility); }
-			FlashMapObject.prototype.setStyle = function(style, activeStyle) { flashDiv.setStyle(this.objectId, style, activeStyle); }
+			FlashMapObject.prototype.getVisibility = function() { return flashDiv.getVisibility(this.objectId); }
+			FlashMapObject.prototype.setStyle = function(style, activeStyle) {
+				flashDiv.setStyle(this.objectId, style, activeStyle);
+			}
 			FlashMapObject.prototype.getStyle = function( removeDefaults ) { return flashDiv.getStyle(this.objectId, typeof removeDefaults == 'undefined' ? false : removeDefaults); }
 			FlashMapObject.prototype.setActive = function(flag) { flashDiv.setActive_(this.objectId, flag); }
 			FlashMapObject.prototype.setEditable = function() { flashDiv.setEditable(this.objectId); }
@@ -1073,6 +1090,21 @@ function createFlashMapInternal(div, layers, callback)
 				this.setPolygon(coordinates);
 			}
 			FlashMapObject.prototype.clearBackgroundImage = function() { flashDiv.clearBackgroundImage(this.objectId); }
+			FlashMapObject.prototype.setImageExtent = function(attr)
+			{
+				this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
+				if (attr.notSetPolygon)
+				{
+					this.setPolygon([
+						[attr.extent.minX, attr.extent.maxY],
+						[attr.extent.maxX, attr.extent.maxY],
+						[attr.extent.maxX, attr.extent.minY],
+						[attr.extent.minX, attr.extent.minY],
+						[attr.extent.minX, attr.extent.maxY]
+					]);
+				}
+				flashDiv.setImageExtent(this.objectId, attr);
+			}
 			FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
 			{
 				this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
@@ -1127,34 +1159,6 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			}
 
-			var lastHoverBalloonId = false;
-			var fixedHoverBalloons = {};
-
-			var showHoverBalloons = function()
-			{
-				for (var key in fixedHoverBalloons)
-				{
-					var balloon = fixedHoverBalloons[key];
-					balloon.setVisible(true);
-				}
-			}
-			var hideHoverBalloons = function(flag)
-			{
-				for (var key in fixedHoverBalloons)
-				{
-					var balloon = fixedHoverBalloons[key];
-					balloon.setVisible(false);
-				}
-				if(flag) {
-					
-					var timeoutShowHoverBalloons = setTimeout(function()
-					{
-						clearTimeout(timeoutShowHoverBalloons);
-						showHoverBalloons();
-					}, 1000);
-				}
-			}
-
 			FlashMapObject.prototype.getGeometrySummary = function()
 			{
 				var geomType = this.getGeometryType();
@@ -1170,105 +1174,19 @@ function createFlashMapInternal(div, layers, callback)
 				else
 					return "?";
 			}
-			FlashMapObject.prototype.enableHoverBalloon = function(callback)
+
+
+			FlashMapObject.prototype.addBalloon = function()
 			{
-				var getHoverBalloonText = function(o)
-				{
-					var text = "";
-					if (callback)
-						text = callback(o);
-					else
-					{
-						var props = o.properties;
-						for (var key in props)
-						{
-							if (key != "ogc_fid")
-							{
-								var value = "" + props[key];
-								if (value.indexOf("http://") == 0)
-									value = "<a href='" + value + "'>" + value + "</a>";
-								else if (value.indexOf("www.") == 0)
-									value = "<a href='http://" + value + "'>" + value + "</a>";
-								text += "<b>" + key + ":</b> " + value + "<br />";
-							}
-						}
-
-						text += "<br />" + o.getGeometrySummary();
-					}
-					return text;
-				}
-				var clickBalloonFix = function(o)
-				{
-						var text = getHoverBalloonText(o);
-						var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
-						if (!fixedHoverBalloons[id])
-						{
-							var balloon = map.addBalloon();
-							balloon.fixedId =  id;
-
-							var mx = map.getMouseX();
-							var my = map.getMouseY();
-							
-							if(o.getGeometryType() == 'POINT') {
-								var gObj = o.getGeometry();
-								var x = gObj.coordinates[0];
-								var y = gObj.coordinates[1];
-
-								balloon.fixedDeltaX =  (merc_x(mx) -  merc_x(x))/scale;
-								balloon.fixedDeltaY =  (merc_y(my) -  merc_y(y))/scale;
-								mx = x;
-								my = y;
-								balloon.fixedDeltaFlag = true;
-							}
-
-							balloon.setPoint(mx, my);
-							balloon.div.innerHTML = text;
-							balloon.resize();
-							fixedHoverBalloons[id] = balloon;
-						}
-						else
-						{
-							fixedHoverBalloons[id].remove();
-							delete fixedHoverBalloons[id];
-						}
-						updatePropsBalloon(false);
-				}
-				this.setHandlers({
-					onMouseOver: function(o)
-					{ 
-						if (flashDiv.isDragging())
-							return;
-
-						for (var key in fixedHoverBalloons)
-						{
-							var balloon = fixedHoverBalloons[key];
-							if (!balloon.isVisible)
-							{
-								balloon.remove();
-								delete fixedHoverBalloons[key];
-							}
-						}
-						var text = getHoverBalloonText(o);
-						var id = o.objectId + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "") + "_" + text;
-						lastHoverBalloonId = o.objectId;
-						if (!fixedHoverBalloons[id])
-							updatePropsBalloon(text);
-						else
-							updatePropsBalloon(false);
-
-						map.clickBalloonFix = clickBalloonFix;
-					},
-					onMouseOut: function(o) 
-					{ 
-						if (lastHoverBalloonId == o.objectId)
-							updatePropsBalloon(false);
-					},
-					onClick: clickBalloonFix
-				});
+				return map.balloonClassObject.addBalloon();
+			}
+			FlashMapObject.prototype.enableHoverBalloon = function(callback, attr)
+			{
+				map.balloonClassObject.enableHoverBalloon(this, callback, attr);
 			}
 			FlashMapObject.prototype.disableHoverBalloon = function()
 			{
-				this.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null });
+				map.balloonClassObject.disableHoverBalloon();
 			}
 
 			FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
@@ -1369,16 +1287,18 @@ function createFlashMapInternal(div, layers, callback)
 				var flipCounts = {};
 				var updateImageDepth = function(o)
 				{
-					if(map.clickBalloonFix) {
-						var curZ = map.getZ();
-						var flag = (minZoom && curZ < minZoom ? true : false);
-						var mZ = (maxZoom ? maxZoom : 18);
-						if(!flag && curZ > mZ) flag = true;
-						if(flag) map.clickBalloonFix(o);
-					}
 					var props = o.properties;
 
 					var id = "id_" + props.ogc_fid;
+					
+					// Установка балуна для тайлов меньше Zoom растров
+					var curZ = map.getZ();
+					var flag = (minZoom && curZ < minZoom ? true : false);
+					var mZ = (maxZoom ? maxZoom : 18);
+					if(!flag && curZ > mZ) flag = true;
+					if(flag) map.balloonClassObject.clickBalloonFix(o);
+					///// End
+
 					if (!images[id]) {
 						return;
 					}
@@ -1471,7 +1391,91 @@ function createFlashMapInternal(div, layers, callback)
 				});
 			}
 
-                        var maxRasterZoom = 1;
+			function reSetStyles(styles, obj)
+			{
+				for (var i = 0; i < styles.length; i++)
+				{
+					var style = styles[i];
+					var givenStyle = {};
+					if (typeof style.StyleJSON != 'undefined')
+						givenStyle = style.StyleJSON;
+					else if (typeof style.RenderStyle != 'undefined')
+						givenStyle = style.RenderStyle;
+					else
+					{
+						if (style.PointSize)
+							givenStyle.marker = { size: parseInt(style.PointSize) };
+						if (style.Icon)
+						{
+							var src = (style.Icon.indexOf("http://") != -1) ?
+								style.Icon :
+								(baseAddress + "/" + style.Icon);
+							givenStyle.marker = { image: src, "center": true };
+						}
+						if (style.BorderColor || style.BorderWidth)
+							givenStyle.outline = {
+								color: parseColor(style.BorderColor),
+								thickness: parseInt(style.BorderWidth || "1"),
+								opacity: (style.BorderWidth == "0" ? 0 : 100)
+							};
+						if (style.FillColor)
+							givenStyle.fill = {
+								color: parseColor(style.FillColor),
+								opacity: 100 - parseInt(style.Transparency || "0")
+							};
+
+						var label = style.label || style.Label;
+						if (label)
+						{
+							givenStyle.label = {
+								field: label.FieldName,
+								color: parseColor(label.FontColor),
+								size: parseInt(label.FontSize || "12")
+							};
+						}
+					}
+
+					if (givenStyle.marker)
+						givenStyle.marker.center = true;
+
+					var hoveredStyle = JSON.parse(JSON.stringify(givenStyle));
+					if (hoveredStyle.marker && hoveredStyle.marker.size)
+						hoveredStyle.marker.size += 1;
+					if (hoveredStyle.outline)
+						hoveredStyle.outline.thickness += 1;
+
+					var filter = obj.addObject();
+					var filterSet = false;
+					if (style.Filter)
+					{
+						if (/^\s*\[/.test(style.Filter))
+						{
+							var a = style.Filter.match(/^\s*\[([a-zA-Z0-9_]+)\]\s*([<>=]=?)\s*(.*)$/);
+							if (a && (a.length == 4))
+							{
+								filter.setFilter(a[1] + " " + a[2] + " '" + a[3] + "'");
+								filterSet = true;
+							}
+						}
+						else
+						{
+							filter.setFilter(style.Filter);
+							filterSet = true;
+						}
+					}
+					if (!filterSet)
+						filter.setFilter();
+					filter.setZoomBounds(style.MinZoom, style.MaxZoom);
+					filter.setStyle(givenStyle, hoveredStyle);
+					
+					map.balloonClassObject.applyBalloonDefaultStyle(style);
+					map.balloonClassObject.setBalloonFromParams(filter, style);
+
+					if(obj.filters[i]) obj.filters[i].objectId = filter.objectId;
+				}
+			}
+
+			var maxRasterZoom = 1;
 			var initialLayersAdded = false;
 			FlashMapObject.prototype.addLayer = function(layer, isVisible)
 			{
@@ -1493,6 +1497,7 @@ function createFlashMapInternal(div, layers, callback)
 				if (isVisible === undefined)
 					isVisible = true;
 
+				if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
 				var isRaster = (layer.properties.type == "Raster");
 				var t = layer.properties.name || layer.properties.image;
 				var obj = new FlashMapObject(false, {}, this);
@@ -1551,7 +1556,7 @@ function createFlashMapInternal(div, layers, callback)
 						(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
 				}
 
-				var deferredMethodNames = ["addObject", "setHandler", "setStyle", "setBackgroundColor", "setCopyright", "addObserver", "enableTiledQuicklooks", "enableTiledQuicklooksEx"];
+				var deferredMethodNames = ["setHandler", "setStyle", "setBackgroundColor", "setCopyright", "addObserver", "enableTiledQuicklooks", "enableTiledQuicklooksEx"];
 
 				var createThisLayer = function()
 				{
@@ -1587,10 +1592,10 @@ function createFlashMapInternal(div, layers, callback)
 							})
 						);
 					}
-					if (isRaster)
+					if (isRaster) {
 						obj.setBackgroundTiles(tileFunction);
-					else
-					{	
+					} else
+					{
 						obj.getFeatures = function()
 						{
 							var callback, geometry, str;
@@ -1640,100 +1645,28 @@ function createFlashMapInternal(div, layers, callback)
 							);
 						}
 
-						obj.setVectorTiles(tileFunction, "ogc_fid", layer.properties.tiles);
+						obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
 						obj.setStyle = function(style, activeStyle)
 						{
 							for (var i = 0; i < obj.filters.length; i++)
 								obj.filters[i].setStyle(style, activeStyle);
 						}
-						for (var i = 0; i < layer.properties.styles.length; i++)
+
+						reSetStyles(layer.properties.styles, obj);
+						obj.reSetStyles =  function(styles)
 						{
-							var style = layer.properties.styles[i];
-							var givenStyle = {};
-							if (typeof style.StyleJSON != 'undefined')
-								givenStyle = style.StyleJSON;
-							else if (typeof style.RenderStyle != 'undefined')
-								givenStyle = style.RenderStyle;
-							else
-							{
-								if (style.PointSize)
-									givenStyle.marker = { size: parseInt(style.PointSize) };
-								if (style.Icon)
-								{
-									var src = (style.Icon.indexOf("http://") != -1) ?
-										style.Icon :
-										(baseAddress + "/" + style.Icon);
-									givenStyle.marker = { image: src, "center": true };
-								}
-								if (style.BorderColor || style.BorderWidth)
-									givenStyle.outline = {
-										color: parseColor(style.BorderColor),
-										thickness: parseInt(style.BorderWidth || "1"),
-										opacity: (style.BorderWidth == "0" ? 0 : 100)
-									};
-								if (style.FillColor)
-									givenStyle.fill = {
-										color: parseColor(style.FillColor),
-										opacity: 100 - parseInt(style.Transparency || "0")
-									};
-		
-								var label = style.label || style.Label;
-								if (label)
-								{
-									givenStyle.label = {
-										field: label.FieldName,
-										color: parseColor(label.FontColor),
-										size: parseInt(label.FontSize || "12")
-									};
-								}
+							for (var i = 0; i < obj.filters.length; i++) {
+								obj.filters[i].remove();
 							}
-
-							if (givenStyle.marker)
-								givenStyle.marker.center = true;
-
-							var hoveredStyle = JSON.parse(JSON.stringify(givenStyle));
-							if (hoveredStyle.marker && hoveredStyle.marker.size)
-								hoveredStyle.marker.size += 1;
-							if (hoveredStyle.outline)
-								hoveredStyle.outline.thickness += 1;
-
-							var filter = obj.addObject();
-							var filterSet = false;
-							if (style.Filter)
-							{
-								if (/^\s*\[/.test(style.Filter))
-								{
-									var a = style.Filter.match(/^\s*\[([a-zA-Z0-9_]+)\]\s*([<>=]=?)\s*(.*)$/);
-									if (a && (a.length == 4))
-									{
-										filter.setFilter(a[1] + " " + a[2] + " '" + a[3] + "'");
-										filterSet = true;
-									}
-								}
-								else
-								{
-									filter.setFilter(style.Filter);
-									filterSet = true;
-								}
-							}
-							if (!filterSet)
-								filter.setFilter();
-							filter.setZoomBounds(style.MinZoom, style.MaxZoom);
-							filter.setStyle(givenStyle, hoveredStyle);
-							if (style.Balloon) (function(balloonText)
-							{
-								filter.enableHoverBalloon(function(o)
-								{
-									return applyTemplate(
-										applyTemplate(balloonText, o.properties),
-										{ SUMMARY: o.getGeometrySummary() }
-									);
-								});
-							})(style.Balloon);
-							else if ((style.BalloonEnable == undefined) || style.BalloonEnable)
-								filter.enableHoverBalloon();
-
-							obj.filters[i].objectId = filter.objectId;
+							reSetStyles(styles, obj);
+						}
+						obj.getStat = function() {
+							var _obj = flashDiv.getStat(obj.objectId);
+							return _obj;
+						}
+						obj.setTiles = function(data) {
+							var _obj = flashDiv.setTiles(obj.objectId, data);
+							return _obj;
 						}
 
 						if (layer.properties.Quicklook)
@@ -1764,10 +1697,12 @@ function createFlashMapInternal(div, layers, callback)
 						minStyleZoom = Math.min(style.MinZoom, minStyleZoom);
 						maxStyleZoom = Math.max(style.MaxZoom, maxStyleZoom);
 					}
-					if (!isInvalid)
+					if (!isInvalid) {
 						obj.setZoomBounds(minStyleZoom, maxStyleZoom);
-					else
+					} else {
 						obj.setZoomBounds(20, 20);
+					}
+
 					if (layer.properties.Copyright)
 						obj.setCopyright(layer.properties.Copyright);
 				}
@@ -1792,14 +1727,16 @@ function createFlashMapInternal(div, layers, callback)
 							obj.bringToDepth(n);
 							for (var i = 0; i < deferred.length; i++)
 								deferred[i]();
+							if(obj.objectId) flashDiv.setVisible(obj.objectId, flag);
 						}
+						obj.isVisible = flag;
 					}
-					obj.addObject = function()
+					obj.addObject = function(geometry, props)
 					{
 						obj.setVisible(true);
-						var newObj = flashDiv.addObject(obj.objectId, obj.geometry, obj.properties);
+						var newObj = flashDiv.addObject(obj.objectId, geometry, props);
 						obj.setVisible(false);
-						return new FlashMapObject(newObj, obj.properties, obj);
+						return new FlashMapObject(newObj, props, obj);
 					}
 					for (var i = 0; i < deferredMethodNames.length; i++) (function(name)
 					{
@@ -1852,6 +1789,7 @@ function createFlashMapInternal(div, layers, callback)
 				this.layers[t] = obj;
 				if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
 					this.layers[layer.properties.title] = obj;
+				return obj;
 			}
 
 			FlashMapObject.prototype.observeVectorLayer = function(obj, onChange)
@@ -1897,6 +1835,7 @@ function createFlashMapInternal(div, layers, callback)
 			map.rasters = map;
 			map.tiledQuicklooks = map;
 			map.vectors = map;
+			map.balloonClassObject = new BalloonClass(map, flashDiv, div, apiBase);
 
 			var toolHandlers = {};
 			var userHandlers = {};
@@ -2701,14 +2640,16 @@ function createFlashMapInternal(div, layers, callback)
 				var e = map.getVisibleExtent();
 				return {
 					type: "POLYGON",
-					coordinates: [[e.minX, e.minY, e.minX, e.maxY, e.maxX, e.maxY, e.maxX, e.minY, e.minX, e.minY]]
+					coordinates: [[[e.minX, e.minY], [e.minX, e.maxY], [e.maxX, e.maxY], [e.maxX, e.minY], [e.minX, e.minY]]]
 				};
 			}
 			map.getVisibleExtent = function()
 			{
-				var x = merc_x(map.getX());
-				var y = merc_y(map.getY());
-				var scale = getScale(map.getZ());
+				var currPosition = map.getPosition();
+				var x = currPosition['x'];
+				var y = currPosition['y'];
+				var scale = getScale(currPosition['z']);
+
 				var w2 = scale*div.clientWidth/2;
 				var h2 = scale*div.clientHeight/2;
 				return {
@@ -2718,304 +2659,6 @@ function createFlashMapInternal(div, layers, callback)
 					maxY: from_merc_y(y + h2)
 				};
 			}
-
-
-
-			var createBalloon = function()
-			{
-				var tlw = 14;
-				var tlh = 14;
-				var blw = 14;
-				var blh = 41;
-				var trw = 18;
-				var trh = 13;
-				var brw = 15;
-				var brh = 41;
-				var th = 2;
-				var lw = 2;
-				var bh = 2;
-				var rw = 2;
-
-				var legWidth = 68;
-
-				var balloon = newStyledDiv({
-					position: "absolute",
-
-					paddingLeft: lw + "px",
-					paddingRight: rw + "px",
-					paddingTop: th + "px",
-					paddingBottom: bh + "px",
-
-					width: "auto",
-					whiteSpace: "nowrap",
-					zIndex: 1000
-				});
-				div.appendChild(balloon);
-
-				var css = {
-					'table': 'margin: 0px; border-collapse: collapse;',
-					'bg_top_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: 2px 9px; background-image: url(\''+apiBase+'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
-					'bg_top': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
-					'bg_top_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
-					'bg_left': 'background-color: transparent; width: 13px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-left.png\'); background-repeat: repeat-y;',
-					'bg_center': 'background-color: transparent; width: 50px; min-width: 50px; border: 0px none; background-color: white; white-space: nowrap; padding: 4px; padding-right: 14px;',
-					'bg_right': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 0px top; background-image: url(\''+apiBase+'img/tooltip-right.png\'); background-repeat: repeat-y;',
-					'bg_bottom_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
-					'bg_bottom': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center top; background-image: url(\''+apiBase+'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
-					'bg_bottom_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; background-position: -2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
-					'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\''+apiBase+'img/tooltip-leg.png\');'
-				};
-
-				var body = '\
-					<table cols="3" cellspacing="0" cellpadding="0" border="0" style="'+css['table']+'">\
-						<tr>\
-							<td style="'+css['bg_top_left']+'"></td>\
-							<td style="'+css['bg_top']+'"></td>\
-							<td style="'+css['bg_top_right']+'"></td>\
-						</tr>\
-						<tr>\
-							<td style="'+css['bg_left']+'"></td>\
-							<td style="'+css['bg_center']+'">\
-								<div style="white-space: nowrap;" class="kosmosnimki_balloon">\
-								</div>\
-							</td>\
-							<td style="'+css['bg_right']+'"></td>\
-						</tr>\
-						<tr>\
-							<td style="'+css['bg_bottom_left']+'"></td>\
-							<td style="'+css['bg_bottom']+'"></td>\
-							<td style="'+css['bg_bottom_right']+'"></td>\
-						</tr>\
-					</table>\
-				';
-				balloon.innerHTML = body;
-				var nodes = balloon.getElementsByTagName("div");
-				var balloonText = nodes[0];
-				
-				var leg = newElement("img",
-					{
-						src: apiBase + "img/tooltip-leg.png"
-					},
-					{
-						position: "absolute",
-						bottom: "-21px",
-						right: "15px"
-					}
-				);
-				balloon.appendChild(leg);
-
-				var x = 0;
-				var y = 0;
-				var reposition = function()	
-				{
-					var ww = balloon.clientWidth;
-					var hh = balloon.clientHeight;
-
-					var screenWidth = div.clientWidth;
-					var xx = (x + ww < screenWidth) ? x : (ww < screenWidth) ? (screenWidth - ww) : 0;
-					xx = Math.max(xx, x - ww + legWidth + brw);
-					var dx = x - xx;
-					leg.style.left = dx + "px";
-					bottomPosition(balloon, xx + 2, div.clientHeight - y + 20);
-				}
-
-				var wasVisible = true;
-
-				var ret = {
-					outerDiv: balloon,
-					div: balloonText,
-					setVisible: function(flag)
-					{
-						setVisible(balloon, flag);
-						if (flag && !wasVisible)
-							ret.resize();
-						wasVisible = flag;
-					},
-					setScreenPosition: function(x_, y_)
-					{
-						x = x_;
-						y = y_;
-						reposition();
-					},
-					resize: function()
-					{
-						reposition();
-					}
-				};
-				return ret;
-			}
-
-
-			var propsBalloon = createBalloon();
-			propsBalloon.setVisible(false);
-			propsBalloon.outerDiv.style.zIndex = 10000;
-			propsBalloon.outerDiv.style.display = "none";
-			new GlobalHandlerMode("mousemove", function(event)
-			{
-				propsBalloon.setScreenPosition(
-					eventX(event) - getOffsetLeft(div), 
-					eventY(event) - getOffsetTop(div)
-				);
-			}).set();
-			div.onmouseout = function(event)
-			{
-				var tg = compatTarget(event);
-				if (!event)
-					event = window.event;
-				var reltg = event.toElement || event.relatedTarget;
-				while (reltg && (reltg != document.documentElement))
-				{
-					if (reltg == propsBalloon.outerDiv)
-						return;
-					reltg = reltg.offsetParent;
-				}
-				while (tg && (tg != document.documentElement))
-				{
-					if (tg == propsBalloon.outerDiv)
-						return;
-					tg = tg.offsetParent;
-				}
-				propsBalloon.outerDiv.style.display = "none";
-			}
-			propsBalloon.outerDiv.onmouseover = function()
-			{
-				if (flashDiv.isDragging())
-				{
-					needToStopDragging = false;
-					updatePropsBalloon(false);
-					flashDiv.resumeDragging();
-				}
-			}
-			var updatePropsBalloon = function(text)
-			{
-				propsBalloon.setVisible(text ? true : false);
-				if (text)
-				{
-					propsBalloon.div.innerHTML = text;
-					propsBalloon.resize();
-				}
-				else
-					propsBalloon.div.innerHTML = "";
-			}
-
-
-
-			var balloons = [];
-			map.balloons = balloons;
-			var mapX = 0;
-			var mapY = 0;
-			var scale = 0;
-			var positionBalloons = function()	
-			{
-				mapX = merc_x(map.getX());
-				mapY = merc_y(map.getY());
-				scale = getScale(map.getZ());
-
-				balloons.sort(function(b1, b2)
-				{
-					return b1.isHovered ? 1 : b2.isHovered ? -1 : (b2.geoY - b1.geoY);
-				});
-				for (var i = 0; i < balloons.length; i++)
-				{
-					balloons[i].reposition();
-					balloons[i].outerDiv.style.zIndex = 1000 + i;
-				}
-			}
-			map.addObject().setHandler("onMove", positionBalloons);
-
-			FlashMapObject.prototype.addBalloon = function()
-			{
-				var balloon = createBalloon();
-				balloon.geoX = 0;
-				balloon.geoY = 0;
-				var oldSetVisible = balloon.setVisible;
-				balloon.div.onmouseover = function()
-				{
-					balloon.isHovered = true;
-					positionBalloons();
-				}
-				balloon.div.onmouseout = function()
-				{
-					balloon.isHovered = false;
-					positionBalloons();
-				}
-				balloon.outerDiv.appendChild(newElement(
-					"img",
-					{
-						src: apiBase + "img/close.png",
-						title: KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
-						onclick: function() 
-						{ 
-							balloon.remove();
-							balloon.isVisible = false;
-						},
-						onmouseover: function()
-						{
-							this.src = apiBase + "img/close_orange.png";
-						},
-						onmouseout: function()
-						{
-							this.src = apiBase + "img/close.png";
-						}
-					},
-					{
-						position: "absolute",
-						top: "15px",
-						right: "15px",
-						cursor: "pointer"
-					}
-				));
-				balloon.isVisible = true;
-				balloon.reposition = function()
-				{
-					if (balloon.isVisible)
-					{
-						var x = div.clientWidth/2 - (mapX - merc_x(this.geoX))/scale;
-						var y = div.clientHeight/2 + (mapY - merc_y(this.geoY))/scale;
-						if(this.fixedDeltaFlag) {
-							x += balloon.fixedDeltaX;
-							y -= balloon.fixedDeltaY;
-						}
-						if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
-						{
-							this.setScreenPosition(x, y);
-							oldSetVisible(true);
-						}
-						else
-							oldSetVisible(false);
-					}
-					else
-						oldSetVisible(false);
-				}
-				balloon.setVisible = function(flag)
-				{
-					balloon.isVisible = flag;
-					this.reposition();
-				}
-				balloon.setPoint = function(x_, y_)
-				{
-					this.geoX = x_;
-					this.geoY = y_;
-					positionBalloons();
-				}
-				balloon.remove = function()
-				{
-					if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
-					var i = 0;
-					while ((i < balloons.length) && (balloons[i] != this))
-						i += 1;
-					if (i < balloons.length)
-					{
-						balloons.splice(i, 1);
-						div.removeChild(this.outerDiv);
-					}
-				}
-				balloon.getX = function() { return this.geoX; }
-				balloon.getY = function() { return this.geoY; }
-				balloons.push(balloon);
-				return balloon;
-			}
-
 
 			var scaleBar = newStyledDiv({
 				position: "absolute",
@@ -3038,6 +2681,63 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				return distVincenty(x, y, from_merc_x(merc_x(x) + 40), from_merc_y(merc_y(y) + 30))/50;
 			}
+
+			map.stateListeners = {};
+			/** Пользовательские Listeners изменений состояния карты
+			* @function addMapStateListener
+			* @memberOf api - добавление прослушивателя
+			* @param {eventName} название события
+			* @param {func} вызываемый метод
+			* @return {id} присвоенный id прослушивателя
+			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+			*/
+			map.addMapStateListener = function(eventName, func)
+			{
+				if(!map.stateListeners[eventName]) map.stateListeners[eventName] = [];
+				var id = newFlashMapId();
+				map.stateListeners[eventName].push({"id": id, "func": func });
+				return id;
+			}
+			/** Пользовательские Listeners изменений состояния карты
+			* @function removeMapStateListener
+			* @memberOf api - удаление прослушивателя
+			* @param {eventName} название события
+			* @param {id} вызываемый метод
+			* @return {Bool} true - удален false - не найден
+			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+			*/
+			map.removeMapStateListener = function(eventName, id)
+			{
+				if(!map.stateListeners[eventName]) return false;
+				var arr = [];
+				for (var i=0; i<map.stateListeners[eventName].length; i++)
+				{
+					if(id != map.stateListeners[eventName][i]["id"]) arr.push(map.stateListeners[eventName][i]);
+				}
+				map.stateListeners[eventName] = arr;
+				return true;
+			}
+
+			/** Отображение строки текущего положения карты
+			* @function
+			* @memberOf api - перегружаемый внешними плагинами
+			* @param {object['div']} элемент DOM модели для отображения строки, где будет показываться текущее положение карты
+			* @param {object['screenGeometry']} геометрия видимой части экрана
+			* @param {object['properties']} свойства карты
+			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+			*/
+			map.setLocationTitleDiv = null;
+			var locationTitleDiv = newElement(
+				"div",
+				{
+				},
+				{
+				}
+			);
+			div.appendChild(locationTitleDiv);
 
 			var coordinates = newElement(
 				"div",
@@ -3088,9 +2788,11 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			}
 
-			var getCoordinatesText = function()
+			var getCoordinatesText = function(currPosition)
 			{
-				var x = map.getX(), y = map.getY();
+				if(!currPosition) currPosition = map.getPosition();
+				var x = from_merc_x(currPosition['x']);
+				var y = from_merc_y(currPosition['y']);
 				if (x > 180)
 					x -= 360;
 				if (x < -180)
@@ -3159,9 +2861,10 @@ function createFlashMapInternal(div, layers, callback)
 				{
 					copyrightUpdateTimeout = setTimeout(function()
 					{
+						var currPosition = map.getPosition();
+						var x = from_merc_x(currPosition['x']);
+						var y = from_merc_y(currPosition['y']);
 						var texts = {};
-						var x = map.getX();
-						var y = map.getY();
 						for (var i = 0; i < copyrightedObjects.length; i++)
 						{
 							var obj = copyrightedObjects[i];
@@ -3230,8 +2933,11 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				var startMouseX = eventX(event);
 				var startMouseY = eventY(event);
-				var startMapX = merc_x(map.getX());
-				var startMapY = merc_y(map.getY());
+				
+				var currPosition = map.getPosition();
+				var startMapX = currPosition['x'];
+				var startMapY = currPosition['y'];
+
 				var scale = getScale(miniMapZ);
 				
 				var mouseMoveMode = new HandlerMode(document.documentElement, "mousemove", function(event)
@@ -3363,10 +3069,12 @@ function createFlashMapInternal(div, layers, callback)
 			var copyrightUpdateTimeout2 = false;
 			var updatePosition = function()
 			{
-				var z = map.getZ();
+				var currPosition = map.getPosition();
+
+				var z = currPosition['z'];
 				if (z == Math.round(z))
 				{
-					var metersPerPixel = getLocalScale(map.getX(), map.getY())*getScale(z);
+					var metersPerPixel = getLocalScale(from_merc_x(currPosition['x']), from_merc_y(currPosition['y']))*getScale(z);
 					for (var i = 0; i < 30; i++)
 					{
 						var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
@@ -3392,7 +3100,20 @@ function createFlashMapInternal(div, layers, callback)
 					zoomObj = newZoomObj;
 					zoomObj.src = apiBase + "img/zoom_active.png";
 				}
-				coordinates.innerHTML = getCoordinatesText();
+				coordinates.innerHTML = getCoordinatesText(currPosition);
+
+				/** Пользовательское событие positionChanged
+				* @function callback
+				* @param {object} атрибуты прослушивателя
+				*/
+				if ('positionChanged' in map.stateListeners) {
+					var attr = {'div': locationTitleDiv, 'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
+					var arr = map.stateListeners['positionChanged'];
+					for (var i=0; i<arr.length; i++)
+					{
+						arr[i].func(attr);
+					}
+				}				
 
 				if (copyrightUpdateTimeout2)
 					clearTimeout(copyrightUpdateTimeout2);
@@ -3451,6 +3172,11 @@ function createFlashMapInternal(div, layers, callback)
 				sunscreen.setVisible(false);
 			}
 
+			FlashMapObject.prototype.startDrag = function(dragCallback, upCallback)
+			{
+				startDrag(this, dragCallback, upCallback);
+			}
+
 			FlashMapObject.prototype.enableDragging = function(dragCallback, downCallback, upCallback)
 			{
 				var object = this;
@@ -3460,10 +3186,11 @@ function createFlashMapInternal(div, layers, callback)
 						downCallback(map.getMouseX(), map.getMouseY(), o);
 					startDrag(object, dragCallback, upCallback);
 				}
-				if (object == map)
+				if (object == map) {
 					setToolHandler("onMouseDown", mouseDownHandler);
-				else
+				} else {
 					object.setHandler("onMouseDown", mouseDownHandler);
+				}
 			}
 
 			var drawFunctions = {};
@@ -3530,7 +3257,7 @@ function createFlashMapInternal(div, layers, callback)
 					}
 
 					obj = map.addObject();
-					balloon = map.addBalloon();
+					balloon = map.balloonClassObject.addBalloon();
 					ret.setVisible = function(flag)
 					{
 						ret.isVisible = flag;
@@ -3731,6 +3458,7 @@ function createFlashMapInternal(div, layers, callback)
 
 				var ret = {};
 				var domObj = false;
+				var propsBalloon = map.balloonClassObject.propsBalloon;
 
 				var obj = map.addObject();
 				obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
@@ -3753,19 +3481,19 @@ function createFlashMapInternal(div, layers, callback)
 					onNodeMouseOver: function()
 					{
 						if (obj.getGeometryType() == "LINESTRING")
-							updatePropsBalloon(prettifyDistance(obj.getIntermediateLength()));
+							propsBalloon.updatePropsBalloon(prettifyDistance(obj.getIntermediateLength()));
 					},
 					onNodeMouseOut: function()
 					{
-						updatePropsBalloon(false);
+						propsBalloon.updatePropsBalloon(false);
 					},
 					onEdgeMouseOver: function()
 					{
-						updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
+						propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
 					},
 					onEdgeMouseOut: function()
 					{
-						updatePropsBalloon(false);
+						propsBalloon.updatePropsBalloon(false);
 					}
 				});
 
@@ -3842,6 +3570,7 @@ function createFlashMapInternal(div, layers, callback)
 				var ret = {};
 				var domObj = false;
 
+				var propsBalloon = map.balloonClassObject.propsBalloon;
 				var obj = map.addObject();
 				obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 				obj.setEditable(true);
@@ -3860,13 +3589,21 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						ret.remove();
 					},
+					onNodeMouseOver: function()
+					{
+						propsBalloon.updatePropsBalloon(obj.getGeometrySummary());
+					},
+					onNodeMouseOut: function()
+					{
+						propsBalloon.updatePropsBalloon(false);
+					},
 					onEdgeMouseOver: function()
 					{
-						updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
+						propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
 					},
 					onEdgeMouseOut: function()
 					{
-						updatePropsBalloon(false);
+						propsBalloon.updatePropsBalloon(false);
 					}
 				});
 
@@ -3916,6 +3653,10 @@ function createFlashMapInternal(div, layers, callback)
 				if (coords)
 				{
 					domObj = createDOMObject(ret);
+					var lastNum = coords[0].length - 1; 
+					if (coords[0][0][0] == coords[0][lastNum][0] && coords[0][0][1] == coords[0][lastNum][1]) {
+						coords[0].pop();	// если последняя точка совпадает с первой удаляем ее
+					}
 					obj.setGeometry({ type: "POLYGON", coordinates: coords });
 					callOnChange();
 				}
@@ -3941,6 +3682,8 @@ function createFlashMapInternal(div, layers, callback)
 				var domObj;
 
 				var obj = map.addObject();
+				var propsBalloon = map.balloonClassObject.propsBalloon;
+
 				var borders = obj.addObject();
 				var corners = obj.addObject();
 				var x1, y1, x2, y2;
@@ -4593,7 +4336,14 @@ function createFlashMapInternal(div, layers, callback)
 									h = div.clientHeight,
 									wGeo = w*scale,
 									hGeo = h*scale;
-	
+/*
+				var currPosition = map.getPosition();
+				var x = from_merc_x(currPosition['x']);
+				var y = from_merc_y(currPosition['y']);
+				var z = currPosition['z'];
+				scale = getScale(z);
+*/
+
 								var miny = Math.max(from_merc_y(merc_y(y) - hGeo/2), -90);
 								var maxy = Math.min(from_merc_y(merc_y(y) + hGeo/2), 90);
 								var minx = Math.max(from_merc_x(merc_x(x) - wGeo/2), -180);
@@ -4770,7 +4520,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							mapLayers.push(mapLayer);
 						}
 					
-					var satelliteLayerNames = getBaseMapParam("satelliteLayerID", "C9458F2DCB754CEEACC54216C7D1EB0A").split(",");
+					var satelliteLayerNames = getBaseMapParam("satelliteLayerID", "C9458F2DCB754CEEACC54216C7D1EB0A,150190B4D17C41E98C8EB67769300FE5").split(",");
 					var satelliteLayers = [];
 					
 					for (var i = 0; i < satelliteLayerNames.length; i++)
@@ -4941,6 +4691,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.defaultHostName = layers.properties.hostName;
 						window.getLayers = function() { return layers; }
 						map.addLayers(layers);
+						map.properties = layers.properties;
 					}
 
 					callback(map);
@@ -6647,3 +6398,576 @@ kmlParser.prototype.drawItem = function(parent, item, flag, name, desc)
 }
 
 var _kmlParser = new kmlParser();
+
+/** Класс управления балунами
+* @function
+* @memberOf api
+* @param {map} ссылка на обьект карты
+* @param {flashDiv} ссылка на SWF обьект
+* @param {div} ссылка HTML контейнер карты
+* @param {apiBase} URL основного домена
+* @see <a href="http://kosmosnimki.ru/geomixer/docs/">» Пример использования</a>.
+* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+*/
+function BalloonClass(map, flashDiv, div, apiBase)
+{
+	var balloons = [];
+	var curMapObject = null;
+
+	var mapX = 0;
+	var mapY = 0;
+	var stageZoom = 1;						// Коэф. масштабирования браузера
+	var scale = 0;
+	map.getPosition();
+
+	// Обновить информацию текущего состояния карты
+	function refreshMapPosition()
+	{
+		currPosition = map.getPosition();
+		mapX = currPosition['x'];
+		mapY = currPosition['y'];
+		scale = getScale(currPosition['z']);
+		stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
+	}
+
+	// Текст по умолчанию для балуна (innerHTML)
+	function getDefaultBalloonText(o)
+	{
+		var text = "";
+		var props = o.properties;
+		for (var key in props)
+		{
+			if (key != "ogc_fid")
+			{
+				var value = "" + props[key];
+				if (value.indexOf("http://") == 0)
+					value = "<a href='" + value + "'>" + value + "</a>";
+				else if (value.indexOf("www.") == 0)
+					value = "<a href='http://" + value + "'>" + value + "</a>";
+				text += "<b>" + key + ":</b> " + value + "<br />";
+			}
+		}
+		text += "<br />" + o.getGeometrySummary();
+		return text;
+	}
+	this.getDefaultBalloonText = getDefaultBalloonText;
+
+	// Проверка наличия параметра по ветке родителей
+	function chkAttr(name, o)
+	{
+		var attr = false;
+		var hash = o._hoverBalloonAttr;
+		if(hash && name in hash) {
+			attr = hash[name];
+		}
+		if(!attr && o.parent) attr = chkAttr(name, o.parent);
+		return attr;
+	}
+
+	function disableHoverBalloon(mapObject)
+	{
+		mapObject.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null, onClick: null });
+	}
+	this.disableHoverBalloon = disableHoverBalloon;
+
+	// Задать пользовательский тип балунов
+	function enableHoverBalloon(mapObject, callback, attr)
+	{
+		var _this = this;
+		mapObject._hoverBalloonAttr = (attr ? attr : {});				// Атрибуты управления балуном
+		if (callback) {													// Пользовательский метод получения текста для балуна
+			this.getDefaultBalloonText = mapObject._hoverBalloonAttr['callback'] = callback;
+		}
+
+		var handlersObj = {
+			onMouseOver: function(o, keyPress)
+			{ 
+				if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
+				if (flashDiv.isDragging())
+					return;
+
+				if(chkAttr('disableOnMouseOver', mapObject))	 {// Проверка наличия параметра disableOnMouseOver по ветке родителей 
+					var ttt = 1;
+					return;
+				}
+
+				var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
+				var text = (textFunc ? textFunc(o) : getDefaultBalloonText(o));
+				if(!text) return;
+				var id = o.objectId + '_balloon_' + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "");
+				lastHoverBalloonId = o.objectId;
+				
+				if (!fixedHoverBalloons[id]) {
+					propsBalloon.updatePropsBalloon(text);
+				}
+				else {
+					propsBalloon.updatePropsBalloon(false);
+				}
+
+				map.clickBalloonFix = clickBalloonFix;
+			},
+			onMouseOut: function(o) 
+			{ 
+				if (lastHoverBalloonId == o.objectId)
+					propsBalloon.updatePropsBalloon(false);
+			},
+			onClick: clickBalloonFix
+		};
+
+		if(mapObject == map) return;							// На map Handlers не вешаем
+		if(mapObject._hoverBalloonAttr) {							// есть юзерские настройки балунов
+			if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
+				handlersObj['onMouseOver'] = null;
+				handlersObj['onMouseOut'] = null;
+			}
+			if(mapObject._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
+				handlersObj['onClick'] = null;
+			}
+		}
+		mapObject.setHandlers(handlersObj);
+	}
+	this.enableHoverBalloon = enableHoverBalloon;
+
+	var lastHoverBalloonId = false;
+	var fixedHoverBalloons = {};
+
+	function showHoverBalloons()
+	{
+		for (var key in fixedHoverBalloons)
+		{
+			var balloon = fixedHoverBalloons[key];
+			balloon.setVisible(true);
+		}
+	}
+	
+	function hideHoverBalloons(flag)
+	{
+		for (var key in fixedHoverBalloons)
+		{
+			var balloon = fixedHoverBalloons[key];
+			balloon.setVisible(false);
+		}
+		if(flag) {
+			
+			var timeoutShowHoverBalloons = setTimeout(function()
+			{
+				clearTimeout(timeoutShowHoverBalloons);
+				showHoverBalloons();
+			}, 300);
+		}
+	}
+	this.hideHoverBalloons = hideHoverBalloons;
+
+	// Фиксация балуна
+	function clickBalloonFix(o, keyPress)
+	{
+		var OnClickSwitcher = chkAttr('OnClickSwitcher', o);		// Проверка наличия параметра по ветке родителей 
+		if(OnClickSwitcher && typeof(OnClickSwitcher) == 'function') {
+			var flag = OnClickSwitcher(o, keyPress);				// Вызов пользовательского метода вместо или перед балуном
+			if(flag) return;										// Если OnClickSwitcher возвращает true выходим
+		}
+
+		if(chkAttr('disableOnClick', o))	// Проверка наличия параметра disableOnClick по ветке родителей 
+			return;
+		if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
+
+		var text = getDefaultBalloonText(o);
+		if(!text) return;
+		var id = o.objectId + '_balloon_' + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "");
+		if (!fixedHoverBalloons[id])
+		{
+			var maxFixedBallons = chkAttr('maxFixedBallons', o) || 1;	// Проверка наличия параметра maxFixedBallons по ветке родителей
+			if(maxFixedBallons > 0 && balloons.length > 0)
+			{
+				if(maxFixedBallons <= balloons.length) {
+					var balloon = balloons[0];
+					var fixedId = balloon.fixedId;
+					balloon.remove();
+					delete fixedHoverBalloons[fixedId];
+				}
+			}
+			var balloon = addBalloon();
+			balloon.fixedId =  id;
+
+			var mx = map.getMouseX();
+			var my = map.getMouseY();
+			
+			if(o.getGeometryType() == 'POINT') {
+				var gObj = o.getGeometry();
+				var x = gObj.coordinates[0];
+				var y = gObj.coordinates[1];
+
+				balloon.fixedDeltaX =  (merc_x(mx) -  merc_x(x))/scale;
+				balloon.fixedDeltaY =  (merc_y(my) -  merc_y(y))/scale;
+				mx = x;
+				my = y;
+				balloon.fixedDeltaFlag = true;
+			}
+
+			balloon.setPoint(mx, my);
+			balloon.div.innerHTML = text;
+			balloon.resize();
+			fixedHoverBalloons[id] = balloon;
+			balloon.setVisible(true);
+		}
+		else
+		{
+			fixedHoverBalloons[id].remove();
+			delete fixedHoverBalloons[id];
+		}
+		propsBalloon.updatePropsBalloon(false);
+		var tt = 1;
+	}
+	this.clickBalloonFix = clickBalloonFix;
+
+	// Создание DIV и позиционирование балуна
+	function createBalloon()
+	{
+		var tlw = 14;
+		var tlh = 14;
+		var blw = 14;
+		var blh = 41;
+		var trw = 18;
+		var trh = 13;
+		var brw = 15;
+		var brh = 41;
+		var th = 2;
+		var lw = 2;
+		var bh = 2;
+		var rw = 2;
+
+		var legWidth = 68;
+
+		var balloon = newStyledDiv({
+			position: "absolute",
+
+			paddingLeft: lw + "px",
+			paddingRight: rw + "px",
+			paddingTop: th + "px",
+			paddingBottom: bh + "px",
+
+			width: "auto",
+			whiteSpace: "nowrap",
+			zIndex: 1000
+		});
+		div.appendChild(balloon);
+
+		var css = {
+			'table': 'margin: 0px; border-collapse: collapse;',
+			'bg_top_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: 2px 9px; background-image: url(\''+apiBase+'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
+			'bg_top': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
+			'bg_top_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
+			'bg_left': 'background-color: transparent; width: 13px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-left.png\'); background-repeat: repeat-y;',
+			'bg_center': 'background-color: transparent; width: 50px; min-width: 50px; border: 0px none; background-color: white; white-space: nowrap; padding: 4px; padding-right: 14px;',
+			'bg_right': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 0px top; background-image: url(\''+apiBase+'img/tooltip-right.png\'); background-repeat: repeat-y;',
+			'bg_bottom_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
+			'bg_bottom': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center top; background-image: url(\''+apiBase+'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
+			'bg_bottom_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; background-position: -2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
+			'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\''+apiBase+'img/tooltip-leg.png\');'
+		};
+
+		var body = '\
+			<table cols="3" cellspacing="0" cellpadding="0" border="0" style="'+css['table']+'">\
+				<tr>\
+					<td style="'+css['bg_top_left']+'"></td>\
+					<td style="'+css['bg_top']+'"></td>\
+					<td style="'+css['bg_top_right']+'"></td>\
+				</tr>\
+				<tr>\
+					<td style="'+css['bg_left']+'"></td>\
+					<td style="'+css['bg_center']+'">\
+						<div style="white-space: nowrap;" class="kosmosnimki_balloon">\
+						</div>\
+					</td>\
+					<td style="'+css['bg_right']+'"></td>\
+				</tr>\
+				<tr>\
+					<td style="'+css['bg_bottom_left']+'"></td>\
+					<td style="'+css['bg_bottom']+'"></td>\
+					<td style="'+css['bg_bottom_right']+'"></td>\
+				</tr>\
+			</table>\
+		';
+		balloon.innerHTML = body;
+		var nodes = balloon.getElementsByTagName("div");
+		var balloonText = nodes[0];
+		
+		var leg = newElement("img",
+			{
+				src: apiBase + "img/tooltip-leg.png"
+			},
+			{
+				position: "absolute",
+				bottom: "-21px",
+				right: "15px"
+			}
+		);
+		balloon.appendChild(leg);
+
+		var x = 0;
+		var y = 0;
+		var reposition = function()	
+		{
+			var ww = balloon.clientWidth;
+			var hh = balloon.clientHeight;
+
+			var screenWidth = div.clientWidth;
+			var xx = (x + ww < screenWidth) ? x : (ww < screenWidth) ? (screenWidth - ww) : 0;
+			xx = Math.max(xx, x - ww + legWidth + brw);
+			var dx = x - xx;
+			leg.style.left = dx + "px";
+			bottomPosition(balloon, xx + 2, div.clientHeight - y + 20);
+		}
+
+		var updateVisible = function(flag)	
+		{
+			setVisible(balloon, flag);
+			if (flag && !wasVisible)
+				ret.resize();
+			wasVisible = flag;
+		}
+
+		var wasVisible = true;
+
+		var ret = {						// Возвращаемый обьект
+			outerDiv: balloon,
+			div: balloonText,
+			setVisible: updateVisible,
+			setScreenPosition: function(x_, y_)
+			{
+				x = x_;
+				y = y_;
+				reposition();
+			},
+			resize: function()
+			{
+				reposition();
+			},
+			updatePropsBalloon: function(text)
+			{
+				updateVisible(text ? true : false);
+				if (text)
+				{
+					balloonText.innerHTML = text;
+					reposition();
+				}
+				else
+					balloonText.innerHTML = "";
+			}
+		};
+		return ret;
+	}
+
+	var propsBalloon = createBalloon();		// Balloon для mouseOver
+	this.propsBalloon = propsBalloon;
+	propsBalloon.setVisible(false);
+	propsBalloon.outerDiv.style.zIndex = 10000;
+	propsBalloon.outerDiv.style.display = "none";
+	new GlobalHandlerMode("mousemove", function(event)
+	{
+		propsBalloon.setScreenPosition(
+			eventX(event) - getOffsetLeft(div), 
+			eventY(event) - getOffsetTop(div)
+		);
+	}).set();
+	div.onmouseout = function(event)
+	{
+		var tg = compatTarget(event);
+		if (!event)
+			event = window.event;
+		var reltg = event.toElement || event.relatedTarget;
+		while (reltg && (reltg != document.documentElement))
+		{
+			if (reltg == propsBalloon.outerDiv)
+				return;
+			reltg = reltg.offsetParent;
+		}
+		while (tg && (tg != document.documentElement))
+		{
+			if (tg == propsBalloon.outerDiv)
+				return;
+			tg = tg.offsetParent;
+		}
+		propsBalloon.outerDiv.style.display = "none";
+	}
+	propsBalloon.outerDiv.onmouseover = function()
+	{
+		if (flashDiv.isDragging())
+		{
+			needToStopDragging = false;
+			propsBalloon.updatePropsBalloon(false);
+			flashDiv.resumeDragging();
+		}
+	}
+
+	var positionBalloons = function()	
+	{
+		refreshMapPosition();
+		balloons.sort(function(b1, b2)
+		{
+			return b1.isHovered ? 1 : b2.isHovered ? -1 : (b2.geoY - b1.geoY);
+		});
+		for (var i = 0; i < balloons.length; i++)
+		{
+			balloons[i].reposition();
+			balloons[i].outerDiv.style.zIndex = 1000 + i;
+		}
+	}
+	map.addObject().setHandler("onMove", positionBalloons);
+
+	function addBalloon()
+	{
+		var balloon = createBalloon();
+		balloon.geoX = 0;
+		balloon.geoY = 0;
+		var oldSetVisible = balloon.setVisible;
+		balloon.div.onmouseover = function()
+		{
+			balloon.isHovered = true;
+			positionBalloons();
+		}
+		balloon.div.onmouseout = function()
+		{
+			balloon.isHovered = false;
+			positionBalloons();
+		}
+		balloon.outerDiv.appendChild(newElement(
+			"img",
+			{
+				src: apiBase + "img/close.png",
+				title: KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
+				onclick: function() 
+				{ 
+					balloon.remove();
+					balloon.isVisible = false;
+				},
+				onmouseover: function()
+				{
+					this.src = apiBase + "img/close_orange.png";
+				},
+				onmouseout: function()
+				{
+					this.src = apiBase + "img/close.png";
+				}
+			},
+			{
+				position: "absolute",
+				top: "15px",
+				right: "15px",
+				cursor: "pointer"
+			}
+		));
+		balloon.isVisible = true;
+		balloon.reposition = function()
+		{
+			if (balloon.isVisible)
+			{
+				refreshMapPosition();
+
+				var sc = scale * stageZoom;
+				var x = div.clientWidth/2 - (mapX - merc_x(this.geoX))/sc;
+				var y = div.clientHeight/2 + (mapY - merc_y(this.geoY))/sc;
+				if(this.fixedDeltaFlag) {
+					x += balloon.fixedDeltaX;
+					y -= balloon.fixedDeltaY;
+				}
+				if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
+				{
+					this.setScreenPosition(x, y);
+					oldSetVisible(true);
+				}
+				else
+					oldSetVisible(false);
+			}
+			else
+				oldSetVisible(false);
+		}
+		balloon.setVisible = function(flag)
+		{
+			balloon.isVisible = flag;
+			this.reposition();
+		}
+		balloon.setPoint = function(x_, y_)
+		{
+			this.geoX = x_;
+			this.geoY = y_;
+			positionBalloons();
+		}
+		balloon.remove = function()
+		{
+			if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
+			var i = 0;
+			while ((i < balloons.length) && (balloons[i] != this))
+				i += 1;
+			if (i < balloons.length)
+			{
+				balloons.splice(i, 1);
+				div.removeChild(this.outerDiv);
+			}
+		}
+		balloon.getX = function() { return this.geoX; }
+		balloon.getY = function() { return this.geoY; }
+		balloons.push(balloon);
+		return balloon;
+	}
+	this.addBalloon = addBalloon;
+
+
+	//Параметры:
+	// * Balloon: текст баллуна
+	// * BalloonEnable: показывать ли баллун
+	// * DisableBalloonOnClick: не показывать при клике
+	// * DisableBalloonOnMouseMove: не показывать при наведении
+	var setBalloonFromParams = function(filter, balloonParams)
+	{
+		//по умолчанию балуны показываются
+		if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
+		{
+			disableHoverBalloon(filter);
+			return;
+		}
+		
+		var balloonAttrs = {
+			disableOnClick: balloonParams.DisableBalloonOnClick,
+			disableOnMouseOver: balloonParams.DisableBalloonOnMouseMove
+		}
+		
+		if ( balloonParams.Balloon )
+		{
+			enableHoverBalloon(filter, function(o)
+			{
+				return applyTemplate(
+					applyTemplate(balloonParams.Balloon, o.properties),
+					{ SUMMARY: o.getGeometrySummary() }
+				);
+			}, balloonAttrs);
+		}
+		else
+		{
+			enableHoverBalloon(filter, null, balloonAttrs);
+		}
+	}
+	this.setBalloonFromParams = setBalloonFromParams;
+	
+	//явно прописывает все свойства балунов в стиле.
+	var applyBalloonDefaultStyle = function(balloonStyle)
+	{
+		//слой только что создали - всё по умолчанию!
+		if (typeof balloonStyle.BalloonEnable === 'undefined')
+		{
+			balloonStyle.BalloonEnable = true;
+			balloonStyle.DisableBalloonOnClick = false;
+			balloonStyle.DisableBalloonOnMouseMove = true;
+		} 
+		else
+		{
+			//поддержка совместимости - если слой уже был, но новых параметров нет 
+			if (typeof balloonStyle.DisableBalloonOnClick === 'undefined')
+				balloonStyle.DisableBalloonOnClick = false;
+				
+			if (typeof balloonStyle.DisableBalloonOnMouseMove === 'undefined')
+				balloonStyle.DisableBalloonOnMouseMove = false;
+		}
+	}
+	this.applyBalloonDefaultStyle = applyBalloonDefaultStyle;
+}

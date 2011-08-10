@@ -165,10 +165,10 @@ class MapWindow
 			var mat2 = matrix.clone();
 			mat2.tx -= x1;
 			mat2.ty -= y1;
-			try {
+			//try {
 				//cacheBitmapData.draw(rootNode.rasterSprite, mat2);
 				cacheBitmapData.draw(rootNode.vectorSprite, mat2);
-			} catch (e:Error) {}
+			//} catch (e:Error) {}
 			cacheRepaintNeeded = false;
 		}
 	}
@@ -324,7 +324,8 @@ class MapWindow
 				(extent.minx + extent.maxx)/2, 
 				(extent.miny + extent.maxy)/2
 			));
-			var posY = pt.y - label.size*0.8;
+			var posX = pt.x;
+			var posY = pt.y - label.size * 0.8;
 			if (!labelsBitmapData.hitTest(
 				new Point(0, 0), 
 				1, 
@@ -338,6 +339,8 @@ class MapWindow
 				)
 			))
 			{
+				if (label.dy != 0) posY += label.dy;
+				if (label.dx != 0) posX += label.dx;
 				labelTF.embedFonts = true;
 				labelTF.antiAliasType = flash.text.AntiAliasType.ADVANCED;
 				labelTF.filters = filters;
@@ -349,7 +352,7 @@ class MapWindow
 					0, 
 					0, 
 					1,
-					pt.x + (
+					posX + (
 						(align == TextFormatAlign.LEFT) ? markerDx : 
 						(align == TextFormatAlign.CENTER) ? -300 : 
 						(-600 - markerDx)

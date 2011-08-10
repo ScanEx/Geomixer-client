@@ -2248,10 +2248,6 @@ _layersTree.addContextMenuElem({
 		else
 			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
 		
-		// если слой еще не создан
-		if (!globalFlashMap.layers[elem.name].objectId)
-			$(box).trigger("click")
-					
 		div.properties.content.properties.styles = newStyles;
 		
 		_mapHelper.updateMapStyles(newStyles, elem.name);

@@ -21,11 +21,18 @@ import flash.printing.PrintJobOptions;
 import flash.utils.Timer;
 import flash.events.TimerEvent;
 
+import flash.net.URLLoader;
+import flash.net.URLRequest;
+import flash.net.URLRequestMethod;
+import flash.net.URLRequestHeader;
+
 class Main
 {
-	public static var registerMouseDown:MapNode->Void;
+	public static var registerMouseDown:MapNode->MouseEvent->Void;
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
+	public static var mousePressed:Bool = false;
+	public static var eventAttr:Dynamic = {};
 
 	static var lastFrameBumpTime:Float = 0;
 	public static function bumpFrameRate()
@@ -184,8 +191,15 @@ class Main
 				stopFluidMove();
 			fluidMoveTo(mx + k*(currentX - mx), my + k*(currentY - my), newZ, 15);
 		}
-		Main.registerMouseDown = function(node:MapNode)
+		
+		Main.registerMouseDown = function(node:MapNode, ?event:MouseEvent)
 		{
+			eventAttr = { };
+			if (event != null) {
+				if (event.shiftKey) eventAttr.shiftKey = 1;
+				if (event.ctrlKey) eventAttr.ctrlKey = 1;
+				if (event.altKey) eventAttr.altKey = 1;
+			}
 			if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
 				clickedNode = node;
 			else if ((node.getHandler("onMouseDown") != null) || (node.getHandler("onMouseUp") != null) || (node.getHandler("onClick") != null))
@@ -202,6 +216,7 @@ class Main
 		root.addEventListener(MouseEvent.MOUSE_DOWN, function(event)
 		{
 			pressTime = flash.Lib.getTimer();
+			Main.mousePressed = true;
 		});
 		var windowMouseDown = function(event)
 		{
@@ -299,12 +314,12 @@ class Main
 		{
 			return isDragging;
 		});
-		var windowMouseMove = function(event)
+		var windowMouseMove = function(?event)
 		{
-			if (isDragging && !Main.draggingDisabled)
+			if (isDragging && !Main.draggingDisabled && (currentZ == Math.round(currentZ)))
 			{
 				isMoving = true;
-                        	var c = Utils.getScale(draggedWindow.getCurrentZ());
+                var c = Utils.getScale(draggedWindow.getCurrentZ());
 				setCurrentPosition(
 					startMapX - (root.mouseX - startMouseX)*c,
 					startMapY + (root.mouseY - startMouseY)*c,
@@ -320,8 +335,10 @@ class Main
 		{
 			if (!initCalled)
 			{
-				ExternalInterface.call(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
-				initCalled = true;
+				try {
+					ExternalInterface.call(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
+					initCalled = true;
+				} catch (e:Error) {  }
 			}
 
 			var w = stage.stageWidth;
@@ -404,7 +421,23 @@ class Main
 			Main.bumpFrameRate();
 			fluidMoveTo(x, y, 17 - z, 10);
 		});
-		ExternalInterface.addCallback("getX", function() { return currentX; });
+		ExternalInterface.addCallback("getPosition", function() {
+			var out:Dynamic = { };
+			out.mouseX = mapWindow.innerSprite.mouseX;
+			out.mouseY = mapWindow.innerSprite.mouseY;
+			out.stageHeight = stage.stageHeight;
+			out.x = currentX;
+			out.y = currentY;
+			out.z = currentZ;
+			var extent:Dynamic = { };
+			extent.minx = mapWindow.visibleExtent.minx;
+			extent.maxx = mapWindow.visibleExtent.maxx;
+			extent.miny = mapWindow.visibleExtent.miny;
+			extent.maxy = mapWindow.visibleExtent.maxy;
+			out.extent = extent;
+			return out;
+		});
+		ExternalInterface.addCallback("getX", function() { return currentX;	});
 		ExternalInterface.addCallback("getY", function() { return currentY; });
 		ExternalInterface.addCallback("getZ", function() { return 17 - currentZ; });
 		ExternalInterface.addCallback("getMouseX", function() { return mapWindow.innerSprite.mouseX; });
@@ -443,7 +476,10 @@ class Main
 				if (currentZ != lastCurrentZ)
 				{
 					lastCurrentZ = currentZ;
-					lastComputedZ = 17 - ExternalInterface.call(callbackName, 17 - currentZ);
+					lastComputedZ = 0;
+					try {
+						lastComputedZ = 17 - ExternalInterface.call(callbackName, 17 - currentZ);
+					} catch (e:Error) {  }
 				}
 				return lastComputedZ;
 			});
@@ -480,7 +516,11 @@ class Main
 			var newContent = new RasterLayer(
 				function(i:Int, j:Int, z:Int)
 				{
-					return ExternalInterface.call(func, i, j, z);
+					var out:String = '';
+					try {
+						out = ExternalInterface.call(func, i, j, z);
+					} catch (e:Error) {  }
+					return out;
 				}
 			);
 			if ((node.content != null) && Std.is(node.content, VectorObject))
@@ -511,6 +551,20 @@ class Main
 		ExternalInterface.addCallback("isDrawing", function(id:String):Bool { return (cast(getNode(id).content, EditableContent).stopDrawing != null); });
 		ExternalInterface.addCallback("getIntermediateLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getIntermediateLength(); });
 		ExternalInterface.addCallback("getCurrentEdgeLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getCurrentEdgeLength(); });
+		
+		var setLabel = function(id:String, label:String)
+		{
+			nextFrameCallbacks.push(function()
+			{
+				var node = getNode(id);
+				if ((node != null) && Std.is(node.content, VectorObject))
+				{
+					cast(node.content, VectorObject).label = label;
+					node.noteSomethingHasChanged();
+				}
+			});
+		}
+		ExternalInterface.addCallback("setLabel", setLabel);
 
 		var addObject = function(parentId:String, ?geometry:Dynamic, ?properties:Dynamic)
 		{
@@ -531,11 +585,19 @@ class Main
 			for (i in 0...Std.int(_data.length))
 			{
 				var tId:String = addObject(_data[i].parentId, _data[i].geometry, _data[i].properties);
+				if (_data[i].setStyle) {
+					getNode(tId).setStyle(new Style(_data[i].setStyle.regularStyle), (_data[i].setStyle.hoveredStyle != null) ? new Style(_data[i].setStyle.hoveredStyle) : null);
+				}
+				if (_data[i].setLabel) {
+					var node = getNode(tId);
+					if ((node != null) && Std.is(node.content, VectorObject))
+						cast(node.content, VectorObject).label = _data[i].setLabel;
+				}
 				ret.push(tId);
 			}
 			return ret;
 		});
-
+		
 		ExternalInterface.addCallback("setFilter", function(id:String, ?sql:String)
 		{
 			var func:Hash<String>->Bool = (sql == null) ? 
@@ -574,18 +636,7 @@ class Main
 				}
 			});
 		});
-		ExternalInterface.addCallback("setLabel", function(id:String, label:String)
-		{
-			nextFrameCallbacks.push(function()
-			{
-				var node = getNode(id);
-				if ((node != null) && Std.is(node.content, VectorObject))
-				{
-					cast(node.content, VectorObject).label = label;
-					node.noteSomethingHasChanged();
-				}
-			});
-		});
+
 		ExternalInterface.addCallback("setVisible", function(id:String, flag:Bool)
 		{
 			Main.bumpFrameRate();
@@ -630,16 +681,19 @@ class Main
 				}
 				else
 					props = node2.properties;
+
 				var arr = propertiesToArray(props);
 				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
-					ExternalInterface.call(callbackName, node2.id, arr);
+					try {
+						ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
+					} catch (e:Error) {  }
 				}
 				else
 				{
 					nextFrameCallbacks.push(function()
 					{
 						try {
-							ExternalInterface.call(callbackName, node2.id, arr);
+							ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
 						} catch (e:Error) {  }
 					});
 				}
@@ -669,6 +723,23 @@ class Main
 			if (Std.is(content, VectorObject))
 				cast(content, VectorObject).setActive(flag);
 		});
+		
+		ExternalInterface.addCallback("setImageExtent", function(id:String, attr:Dynamic)
+		{
+			var node = getNode(id);
+			var minX = Merc.x(attr.extent.minX);
+			var maxX = Merc.x(attr.extent.maxX);
+			var minY = Merc.y(attr.extent.minY);
+			var maxY = Merc.y(attr.extent.maxY);
+			
+			var newContent = new RasterImage(attr.url, minX, maxY, maxX, maxY, maxX, minY, minX, minY, attr);
+			if (attr.notSetPolygon == true) {
+				newContent.setControlPoints(minX,maxY, maxX,maxY, maxX,minY, minX,minY);
+			}
+			if ((node.content != null) && Std.is(node.content, VectorObject))
+				newContent.setMask(cast(node.content, VectorObject).geometry);
+			node.setContent(newContent);
+		});
 		ExternalInterface.addCallback("setImage", function(id:String, url:String, 
 			x1:Float, y1:Float, x2:Float, y2:Float, x3:Float, y3:Float, x4:Float, y4:Float,
 			?tx1:Float, ?ty1:Float, ?tx2:Float, ?ty2:Float, ?tx3:Float, ?ty3:Float, ?tx4:Float, ?ty4:Float
@@ -694,16 +765,41 @@ class Main
 			}
 			node.setContent(newContent);
 		});
-		ExternalInterface.addCallback("setVectorTiles", function(id:String, tileFunction:String, identityField:String, tiles:Array<Int>)
+		ExternalInterface.addCallback("setVectorTiles", function(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?filesHash:Dynamic)
 		{
-			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):String
+			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):Dynamic
 			{
-				return ExternalInterface.call(tileFunction, i, j, z);
+				var out:Dynamic = null;
+				try {
+					out = ExternalInterface.call(tileFunction, i, j, z);
+				} catch (e:Error) {  }
+				return out;
 			});
 			for (i in 0...Std.int(tiles.length/3))
 				content.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
 			getNode(id).setContent(content);
 		});
+		ExternalInterface.addCallback("setTiles", function(id:String, tiles:Array<Int>)
+		{
+			var node = getNode(id);
+			if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {
+				var layer = cast(node.content, VectorLayer);
+				for (i in 0...Std.int(tiles.length/3))
+					layer.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
+				layer.createLoader(null);
+			}
+		});
+		ExternalInterface.addCallback("getStat", function(id:String)
+		{
+			var out:Dynamic = {};
+			var node = getNode(id);
+			if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {
+				var layer = cast(node.content, VectorLayer);
+				out = layer.getStat();
+			}
+			return out;
+			
+		});		
 		ExternalInterface.addCallback("observeVectorLayer", function(id:String, layerId:String, func:String)
 		{
 			var layer = cast(getNode(layerId).content, VectorLayer);
@@ -712,12 +808,14 @@ class Main
 				function(id:String, flag:Bool)
 				{
 					var geom = layer.geometries.get(id);
-					ExternalInterface.call(
-						func,
-						geom.export(),
-						exportProperties(geom.properties),
-						flag
-					);
+					try {
+						ExternalInterface.call(
+							func,
+							geom.export(),
+							exportProperties(geom.properties),
+							flag
+						);
+					} catch (e:Error) {  }
 				}
 			));
 		});
@@ -725,7 +823,9 @@ class Main
 		ExternalInterface.addCallback("bringToTop", function(id:String) 
 		{
 			var node = getNode(id);
-			node.bringToDepth(node.rasterSprite.parent.numChildren - 1);
+			var n = node.rasterSprite.parent.numChildren - 1;
+			node.bringToDepth(n);
+			return n;
 		});
 		ExternalInterface.addCallback("bringToBottom", function(id:String) 
 		{ 
@@ -733,7 +833,11 @@ class Main
 		});
 		ExternalInterface.addCallback("bringToDepth", function(id:String, n:Int) 
 		{ 
-			getNode(id).bringToDepth(n);
+			var node = getNode(id);
+			if(n < 0) n = 0;
+			else if(n > node.rasterSprite.parent.numChildren - 1) n = node.rasterSprite.parent.numChildren - 1;
+			node.bringToDepth(n);
+			return n;
 		});
 		var getGeometry = function(id:String):Geometry
 		{
@@ -770,12 +874,46 @@ class Main
 		ExternalInterface.addCallback("savePNG", function(fileName:String)
 		{
 			try {
-			var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
-			data.draw(root);
-			fileRef = new FileReference();
-			fileRef.save(PNGEncoder.encode(data), fileName);
+				var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
+				data.draw(root);
+				fileRef = new FileReference();
+				fileRef.save(PNGEncoder.encode(data), fileName);
 			} catch (e:Error) { trace(e); }
 		});
+
+		// Сохранение изображения карты на сервер
+		var sendPNGFile = function(attr:Dynamic)
+		{
+			try {
+				var gridHidden:Bool = grid.hidden;
+				var gridVisibility:Bool = (!attr.notSetGridVisible && gridHidden ? true : false);
+				if (gridVisibility) {
+					grid.hidden = false;
+					grid.vectorSprite.visible = true;
+					grid.content.paintLabels();
+				}
+				var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
+				data.draw(root);
+				if (gridVisibility) {
+					grid.vectorSprite.visible = !gridHidden;
+					grid.setVisible(!gridHidden);
+				}
+				
+				var loader:URLLoader = new URLLoader();
+				var header:URLRequestHeader = new URLRequestHeader("Content-type", "application/octet-stream");
+				var request:URLRequest = new URLRequest(attr.url);
+				request.requestHeaders.push(header);
+				request.method = URLRequestMethod.POST;
+				request.data = PNGEncoder.encode(data);
+				loader.addEventListener(Event.COMPLETE, function(event:Event) {
+					var st:String = loader.data;
+					if (attr.func != null) ExternalInterface.call(attr.func, st);
+				});
+				loader.load(request);
+			} catch (e:Error) { trace(e); }
+		}
+		ExternalInterface.addCallback("sendPNG", sendPNGFile);
+
 		ExternalInterface.addCallback("setGridVisible", function(flag)
 		{
 			Main.bumpFrameRate();
@@ -817,7 +955,9 @@ class Main
 							geoms.push(geom.export());
 							props.push(exportProperties(geom.properties));
 						}
-						ExternalInterface.call(func, geoms, props);
+						try {
+							ExternalInterface.call(func, geoms, props);
+						} catch (e:Error) {  }
 					}
 				}
 			)(queryExtent);
@@ -835,7 +975,9 @@ class Main
 					if (tilesRemaining == 0)
 					{
 						var geom = layer.geometries.get(fid);
-						ExternalInterface.call(func, geom.export(), exportProperties(geom.properties));
+						try {
+							ExternalInterface.call(func, geom.export(), exportProperties(geom.properties));
+						} catch (e:Error) {  }
 					}
 				}
 			)(extent);
@@ -860,7 +1002,9 @@ class Main
 			var item = new ContextMenuItem(text);
 			item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
 			{
-				ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
+				try {
+					ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
+				} catch (e:Error) {  }
 			});
 			root.contextMenu.customItems.push(item);
 		});

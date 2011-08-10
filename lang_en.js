@@ -91,6 +91,7 @@ _translationsHash.hash["eng"] = {
 	"Список таблиц" : "Tables list",
 	"Загрузить" : "Download",
 	"URL сервера" : "Server URL",
+	"Формат изображения" : "Image format",
 	"Введите имя gml-файла для скачивания:" : "Enter gml-file name to download:",
 	"точки" : "points",
 	"линии" : "lines",
@@ -254,6 +255,8 @@ _translationsHash.hash["eng"] = {
 	"Фильтр" : "Filter",
 	"Подпись" : "Legend",
 	"Балун" : "Balloon",
+	"Показывать при клике": "Show on click",
+	"Показывать при наведении": "Show on mouse over",
 	"Символика" : "Shown style",
 	"Мин. зум" : "Min zoom",
 	"Макс. зум" : "Max zoom",
@@ -349,6 +352,7 @@ _translationsHash.hash["eng"] = {
 	"Новости" : "Новости",
 	"Мероприятия" : "Мероприятия",
 	"Отмена" : "Отмена",
+	"Пропустить" : "Skip",
 	"Время" : "Время",
 	"Альбом OpenPhotoVR" : "Фотоальбом",
 	"Встраиваемый код" : "Embed video",
@@ -523,5 +527,7 @@ _translationsHash.hash["eng"] = {
 	"Поиск снимков" : "Search imagery",
 	"Принудительно обновить тайлы" : "Forced retiling",
 	"Обводка" : "Outline",
-	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?"
+	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?",
+	"Кодировка": "Encoding",
+	"helpPostfix": "_eng.html"
 };

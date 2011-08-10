@@ -12,15 +12,20 @@ class MultiGeometry extends Geometry
 
 	public override function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow)
 	{
-		if (extent.overlaps(window.visibleExtent))
+		if (extent.overlaps(window.visibleExtent)) {
 			for (member in members)
 				member.paintWithExtent(sprite, style, window);
+		} else {
+			refreshFlag = true;
+		}
 	}
 
 	public override function paint(sprite:Sprite, style: Style, window:MapWindow)
 	{
-		for (member in members)
+		for (member in members) {
+			//member.refreshFlag = true;
 			member.paint(sprite, style, window);
+		}
 	}
 
 	public override function distanceTo(x:Float, y:Float):Float
@@ -42,6 +47,7 @@ class MultiGeometry extends Geometry
 			extent.update(member.extent.minx, member.extent.miny);
 			extent.update(member.extent.maxx, member.extent.maxy);
 		}
+		refreshFlag = true;
 	}
 
 	public override function export():Dynamic
@@ -80,6 +86,7 @@ class MultiGeometry extends Geometry
 	public override function forEachLine(func:LineGeometry->Void):Bool
 	{
 		var ret = false;
+		refreshFlag = true;
 		for (member in members)
 		{
 			var ret2 = member.forEachLine(func);

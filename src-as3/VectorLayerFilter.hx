@@ -70,16 +70,14 @@ class VectorLayerFilter extends MapContent
 
 	public override function repaint()
 	{
-		loader(mapNode.window.visibleExtent);
-
-		for (painter in painters)
-			painter.repaint(mapNode.getRegularStyle());
+		if(loader != null) loader(mapNode.window.visibleExtent);
 
 		var w = 2*Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;
 		var cx1 = (e1.minx + e1.maxx)/2;
 		for (painter in painters)
 		{
+			painter.repaint(mapNode.getRegularStyle());
 			var e2 = painter.painter.geometry.extent;
 			var cx2 = (e2.minx + e2.maxx)/2;
 			var d1 = Math.abs(cx2 - cx1 - w);
@@ -139,10 +137,10 @@ class VectorLayerFilter extends MapContent
 		tilesSprite = Utils.addSprite(contentSprite);
 
 		var me = this;
-		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:Event)
+		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
 		{
 			if (me.layer.currentFilter != null)
-				Main.registerMouseDown(me.layer.currentFilter.mapNode);
+				Main.registerMouseDown(me.layer.currentFilter.mapNode, event);
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:Event)
 		{

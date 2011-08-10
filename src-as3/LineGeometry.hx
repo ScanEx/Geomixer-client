@@ -17,8 +17,10 @@ class LineGeometry extends Geometry
 
 	public override function paint(sprite:Sprite, style:Style, window:MapWindow)
 	{
-		if (!extent.overlaps(window.visibleExtent))
+		if (!extent.overlaps(window.visibleExtent)) {
+			refreshFlag = true;
 			return;
+		}
 
 		if (style.hasMarkerImage())
 		{
@@ -29,6 +31,8 @@ class LineGeometry extends Geometry
 				var p = new PointGeometry(x, y);
 				p.properties = properties;
 				p.paint(sprite, style, window);
+			} else {
+				refreshFlag = true;
 			}
 		}
 		else
@@ -39,7 +43,9 @@ class LineGeometry extends Geometry
 				var drawer = new DashedLineDrawer(sprite.graphics, outline, window);
 				drawer.moveTo(coordinates[0], coordinates[1]);
 				for (i in 1...Std.int(coordinates.length/2))
-					drawer.lineTo(coordinates[i*2], coordinates[i*2 + 1]);
+					drawer.lineTo(coordinates[i * 2], coordinates[i * 2 + 1]);
+				refreshFlag = false;
+				oldZ = window.getCurrentZ();
 			}
 		}
 	}
@@ -128,6 +134,7 @@ class LineGeometry extends Geometry
 
 	public override function forEachLine(func:LineGeometry->Void):Bool
 	{
+		refreshFlag = true;
 		func(this);
 		return true;
 	}

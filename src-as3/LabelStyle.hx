@@ -6,6 +6,8 @@ class LabelStyle
 	public var haloColor: Int;
 	public var align:String;
 	public var spacing:Int;
+	public var dx:Int;
+	public var dy:Int;
 	
 	static var DEFAULT_SIZE:Int = 0;
 	static var DEFAULT_COLOR:Int = 0;
@@ -20,6 +22,8 @@ class LabelStyle
 		haloColor = Std.is(label.haloColor, Int) ? label.haloColor : DEFAULT_HALOCOLOR;
 		align = Std.is(label.align, String) ? label.align : null;
 		spacing = Std.is(label.spacing, Int) ? label.spacing : DEFAULT_SPACING;
+		dx = Std.is(label.dx, Int) ? label.dx : 0;
+		dy = Std.is(label.dy, Int) ? label.dy : 0;
 	}
 	
 	public function getStyle(removeDefaults: Bool)
@@ -32,6 +36,8 @@ class LabelStyle
 		if ( !removeDefaults || color != DEFAULT_COLOR) res.color = color;
 		if ( !removeDefaults || haloColor != DEFAULT_HALOCOLOR) res.haloColor = haloColor;
 		if ( !removeDefaults || spacing != DEFAULT_SPACING) res.spacing = spacing;
+		if (dx != 0) res.dx = dx;
+		if (dy != 0) res.dy = dy;
 		
 		return res;
 	}

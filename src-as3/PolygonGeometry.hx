@@ -18,6 +18,7 @@ class PolygonGeometry extends Geometry
 
 	public override function paint(sprite:Sprite, style:Style, window:MapWindow)
 	{
+		
 		if (style.hasMarkerImage())
 		{
 			var x = (extent.minx + extent.maxx)/2;
@@ -27,6 +28,8 @@ class PolygonGeometry extends Geometry
 				var p = new PointGeometry(x, y);
 				p.properties = properties;
 				p.paint(sprite, style, window);
+			} else {
+				refreshFlag = true;
 			}
 		}
 
@@ -94,6 +97,8 @@ class PolygonGeometry extends Geometry
 		}		
 
 		graphics.endFill();
+		refreshFlag = false;
+		oldZ =  (window != null ? window.getCurrentZ() : null);
 	}
 
 	public override function distanceTo(x:Float, y:Float)

@@ -308,7 +308,7 @@ fileBrowser.prototype.createUpload = function()
 		div = _div(null, [['css','height','30px'],['css','marginTop','10px']]),
 		_this = this;
 	
-	var formFile = ($.browser.msie) ? document.createElement('<form enctype="multipart/form-data" method="post" action="' + getAPIHostRoot() + 'FileBrowser/Upload.ashx?WrapStyle=window" target="fileBrowserUpload_iframe">') : _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', getAPIHostRoot() + 'FileBrowser/Upload.ashx?WrapStyle=window'],['attr','target','fileBrowserUpload_iframe']]);
+	var formFile = ($.browser.msie) ? document.createElement('<form enctype="multipart/form-data" method="post" action="' + serverBase + 'FileBrowser/Upload.ashx?WrapStyle=window" target="fileBrowserUpload_iframe">') : _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'FileBrowser/Upload.ashx?WrapStyle=window'],['attr','target','fileBrowserUpload_iframe']]);
 	_(formFile, [uploadPath]);
 
 	var attach = ($.browser.msie) ? document.createElement('<input type="file" name="rawdata" width="200px">') : _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','200px']]);

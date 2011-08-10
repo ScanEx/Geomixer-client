@@ -16,6 +16,7 @@ import flash.events.TimerEvent;
 typedef Req = {
 	var url : String;
 	var onLoad :BitmapData->Void;
+	var noCache:Bool;
 }
 
 class Utils
@@ -27,6 +28,7 @@ class Utils
 	
 	static var loaderDataCache:Array<Req> = [];		// Очередь загрузки Bitmap-ов
 	static var loaderActive:Bool = false;			// Флаг активности Loader Bitmap-ов
+	static var loaderCache:Hash<Bool> = new Hash<Bool>();	// Файлы в процессе загрузки
 	
 	public static function getNextId()
 	{
@@ -96,15 +98,21 @@ class Utils
 	}
 
 	// Загрузить BitmapData по url или взять из Cache
-	public static function loadBitmapData(url:String, onLoad:BitmapData->Void)
+	public static function loadBitmapData(url:String, onLoad:BitmapData->Void, ?noCache_:Bool)
 	{
+		var req:Req = { url: url, onLoad: onLoad, noCache: false };
+		if(noCache_ == true) req.noCache = true;
 		if (bitmapDataCache.exists(url))
 		{
 			onLoad(Utils.bitmapDataCache.get(url));
+		} else if(loaderCache.exists(url))
+		{
+			loaderCache.set(url, true);
+			loaderDataCache.push(req);
 		} else
 		{
-			var req:Req = {url: url, onLoad: onLoad};
-			loaderDataCache.push(req);
+			loaderCache.set(url, true);
+			runLoadImage(req);
 		}
 		chkLoadImage();
 	}
@@ -114,8 +122,15 @@ class Utils
 	{
 		if (loaderActive || loaderDataCache.length == 0) return;
 		var req:Req = loaderDataCache.shift();
+		runLoadImage(req);
+	}
+
+	// Загрузка BitmapData
+	private static function runLoadImage(req:Req)
+	{
 		var url:String = req.url;
 		var onLoad = req.onLoad;
+		var noCache:Bool = req.noCache;
 
 		if (bitmapDataCache.exists(url))
 		{
@@ -133,8 +148,10 @@ class Utils
 			{ 
 					var bitmapData:BitmapData = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
 					bitmapData.draw(loader);
-					addToCache(bitmapData);
+					if (noCache ) onLoad(bitmapData);
+					else addToCache(bitmapData);
 					loaderActive = false;
+					loaderCache.remove(url);
 					chkLoadImage();
 			}
 			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, complete);

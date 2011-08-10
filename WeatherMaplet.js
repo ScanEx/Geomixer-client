@@ -402,7 +402,7 @@
 	  
 		_map.allControls.div.appendChild(aroundWind);
 
-		aroundWeather.setAttribute("title", _gtxt("weatherMaplet.AccordingTo"));
-		aroundWind.setAttribute("title", _gtxt("weatherMaplet.AccordingTo"));
+		//aroundWeather.setAttribute("title", _gtxt("weatherMaplet.AccordingTo"));
+		//aroundWind.setAttribute("title", _gtxt("weatherMaplet.AccordingTo"));
 	}
 })

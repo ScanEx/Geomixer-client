@@ -16,7 +16,7 @@
 	margin: 0;
 }
 
-.searchLayerHeader
+.searchLayerHeader, .SearchTotalHeader
 {
 	color: #2185C0;
 	font-size: 12px;
@@ -26,17 +26,24 @@
 	margin-left: 10px;
 	color: #57697A;
 }
+td.searchElemPosition{
+	text-align: right;
+	padding-right: 4px;
+}
+span.searchElemPosition
+{
+	margin-left: 0px;
+}
 span.searchElem
 {
 	cursor: pointer;
-	margin: 0px 8px 0px -4px;
 	color: #218580;
 	font-weight: bold;
 }
 span.searchElemParent
 {
 	cursor: pointer;
-	margin: 0px 8px 0px -4px;
+	margin-left: 4px;
 }
 span.searchElem:hover, span.searchElemParent:hover
 {
@@ -49,6 +56,7 @@ span.searchElem:hover, span.searchElemParent:hover
 }
 .SearchResultRow
 {
+	vertical-align: top;
 	white-Space: normal;
 	font-size: 11px;
 }
@@ -104,6 +112,9 @@ span.searchElem:hover, span.searchElemParent:hover
 	height: 22px;
 	width: 100%;
 }
+.searchCenterValueExists{
+	color: #153069;
+}
 .searchEndTD
 {
 	border: none;
@@ -118,9 +129,11 @@ span.searchElem:hover, span.searchElemParent:hover
 	cursor: pointer;
 }
 
-.SearchResultListClear
-{
-	font-size: 12px;
+.searchResultCanvas{
+	margin-left: 7px;
+}
+.SearchResultListChildsCanvas{
+	padding-right: 10px;
 }
 .searchResultListLoading
 {
@@ -149,12 +162,28 @@ span.searchElem:hover, span.searchElemParent:hover
 {
 	text-align: center;
 }
+.LocationTitleDiv
+{
+	position: absolute;
+	left: 200px;
+	bottom: 7px;
+	/*text-shadow: white 0px 0px 1px, white 0px 0px 2px, white 0px 0px 3px;*/
+	background: white;
+}
+.searchLocationPath{
+	cursor: pointer;
+	color: black;
+}
+span.searchLocationPath:hover
+{
+	text-decoration: underline;
+}
 /* AUTOCOMPLETE*/
 .ui-autocomplete{
 	font-size: 11px;
 	font-family: sans-serif;
 }
-.ui-atocomplete-match{
+.ui-autocomplete-match{
 	font-weight:bold;
 	color:Blue;
 }

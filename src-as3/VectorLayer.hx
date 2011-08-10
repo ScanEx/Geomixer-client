@@ -1,9 +1,8 @@
 import flash.events.Event;
-import flash.events.MouseEvent;
 
 class VectorLayer extends MapContent
 {	
-	public var tileFunction:Int->Int->Int->String;
+	public var tileFunction:Int->Int->Int->Dynamic;
 	public var identityField:String;
 	public var tiles:Array<VectorTile>;
 	public var geometries:Hash<Geometry>;
@@ -22,7 +21,7 @@ class VectorLayer extends MapContent
 		return Utils.addSprite(mapNode.vectorSprite);
 	}
 
-	public function new(identityField_:String, tileFunction_:Int->Int->Int->String)
+	public function new(identityField_:String, tileFunction_:Int->Int->Int->Dynamic)
 	{
 		identityField = identityField_;
 		tileFunction = tileFunction_;
@@ -86,6 +85,17 @@ class VectorLayer extends MapContent
 		}
 	}
 
+	public function getStat()
+	{
+		var out:Dynamic = { };
+		out.tilesCnt = tiles.length;
+		out.pointsCnt = 0;
+		for (tile in tiles)
+		{
+			if (tile.ids != null) out.pointsCnt += tile.ids.length;
+		}
+		return out;
+	}
 
 	public function repaintIndicator()
 	{
@@ -110,6 +120,7 @@ class VectorLayer extends MapContent
 
 		for (tile in tiles)
 		{
+			if (!tile.finishedLoading) continue;
 			if ((tile.ids != null) && tile.extent.overlaps(pointExtent))
 			{
 				for (i in 0...tile.ids.length)

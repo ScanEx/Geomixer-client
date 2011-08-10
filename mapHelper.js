@@ -210,15 +210,16 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 		else
 			newFilter.setFilter();
 		
-		if (typeof newStyles[i].BalloonEnable == 'undefined' || newStyles[i].BalloonEnable)
-		{
-			if (newStyles[i].Balloon)
-				this.setBalloon(newFilter, newStyles[i].Balloon);
-			else
-				newFilter.enableHoverBalloon();
-		}
-		else
-			newFilter.disableHoverBalloon();
+		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, newStyles[i]);
+		// if (typeof newStyles[i].BalloonEnable == 'undefined' || newStyles[i].BalloonEnable)
+		// {
+			// if (newStyles[i].Balloon)
+				// this.setBalloon(newFilter, newStyles[i].Balloon);
+			// else
+				// newFilter.enableHoverBalloon();
+		// }
+		// else
+			// newFilter.disableHoverBalloon();
 		
 		newFilter.setStyle(newStyles[i].RenderStyle);
 		
@@ -455,11 +456,18 @@ mapHelper.prototype.createFilterHeader = function(filtersCanvas, elem, elemCanva
 		
 		newFilter.setFilter();
 		
-		if (lastStyle.Balloon)
-		{
-			newStyle.Balloon = lastStyle.Balloon;
-			_this.setBalloon(newFilter, newStyle.Balloon);
-		}
+		//копируем состояние балунов с последнего стиля
+		newStyle.Balloon = lastStyle.Balloon;
+		newStyle.BalloonEnable = lastStyle.BalloonEnable;
+		newStyle.DisableBalloonOnClick = lastStyle.DisableBalloonOnClick;
+		newStyle.DisableBalloonOnMouseMove = lastStyle.DisableBalloonOnMouseMove;
+		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, newStyle);
+		
+		// if (lastStyle.Balloon)
+		// {
+			// newStyle.Balloon = lastStyle.Balloon;
+			// _this.setBalloon(newFilter, newStyle.Balloon);
+		// }
 		
 		newStyle.MinZoom = lastStyle.MinZoom;
 		newStyle.MaxZoom = lastStyle.MaxZoom;
@@ -1181,7 +1189,7 @@ mapHelper.prototype.createFilterEditor = function(filterParam, attrs, elemCanvas
 		return this.createFilterEditorInner(filter, attrs, elemCanvas);
 }
 
-mapHelper.prototype.createBalloonEditor = function(balloonParam, balloonEnable, attrs, elemCanvas)
+mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCanvas)
 {
 	var _this = this;
 	var balloonText = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','251px'],['css','height','80px']]),
@@ -1189,16 +1197,16 @@ mapHelper.prototype.createBalloonEditor = function(balloonParam, balloonEnable, 
 		{
 			var filterNum = getOwnChildNumber(balloonText.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode),
 				filter = globalFlashMap.layers[elemCanvas.parentNode.properties.content.properties.name].filters[filterNum];
-
-			if (box.checked)
-			{
-				if (balloonText.value != '')
-					_this.setBalloon(filter, balloonText.value);
-				else
-					filter.enableHoverBalloon();
-			}
-			else
-				filter.disableHoverBalloon();
+			globalFlashMap.balloonClassObject.setBalloonFromParams(filter, div.getBalloonState());
+			// if (box.checked)
+			// {
+				// if (balloonText.value != '')
+					// _this.setBalloon(filter, balloonText.value);
+				// else
+					// filter.enableHoverBalloon();
+			// }
+			// else
+				// filter.disableHoverBalloon();
 		},
 		defaultBalloonText = function()
 		{
@@ -1217,20 +1225,30 @@ mapHelper.prototype.createBalloonEditor = function(balloonParam, balloonEnable, 
 			
 			return text;
 		},
-		box = _checkbox(balloonEnable, 'checkbox'),
+		boxClick = _checkbox(!balloonParams.DisableBalloonOnClick && balloonParams.BalloonEnable, 'checkbox'),
+		boxMove = _checkbox(!balloonParams.DisableBalloonOnMouseMove && balloonParams.BalloonEnable, 'checkbox'),
 		br = $.browser.msie ? "\n\r" : "\n",
 		_this = this;
 	
-	box.className = 'box';
+	boxClick.className = 'box';
 	if ($.browser.msie)
-		box.style.margin = '-3px -2px 0px -2px';
+		boxClick.style.margin = '-3px -2px 0px -2px';
 	
-	box.onclick = function()
+	boxClick.onclick = function()
 	{
 		setBalloon();
 	}
 	
-	balloonText.value = (balloonParam) ? balloonParam : defaultBalloonText();
+	boxMove.className = 'box';
+	if ($.browser.msie)
+		boxMove.style.margin = '-3px -2px 0px -2px';
+	
+	boxMove.onclick = function()
+	{
+		setBalloon();
+	}	
+	
+	balloonText.value = (balloonParams.Balloon) ? balloonParams.Balloon : defaultBalloonText();
 	
 	balloonText.onkeyup = function()
 	{
@@ -1260,7 +1278,9 @@ mapHelper.prototype.createBalloonEditor = function(balloonParam, balloonEnable, 
 	
 	var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
 
-	var div = _div([_div([box, _span([_t(_gtxt("Показывать"))],[['css','marginLeft','5px']])],[['css','margin','2px 0px 4px 3px']]), balloonText, suggestCanvas],[['attr','balloonTable',true]])
+	var div = _div([_div([boxClick, _span([_t(_gtxt("Показывать при клике"))],[['css','marginLeft','5px']])],[['css','margin','2px 0px 4px 3px']]), 
+					_div([boxMove, _span([_t(_gtxt("Показывать при наведении"))],[['css','marginLeft','5px']])],[['css','margin','2px 0px 4px 3px']]), 
+	                balloonText, suggestCanvas],[['attr','balloonTable',true]]);
 	
 	div.getBalloon = function()
 	{
@@ -1269,8 +1289,32 @@ mapHelper.prototype.createBalloonEditor = function(balloonParam, balloonEnable, 
 	
 	div.getBalloonEnable = function()
 	{
-		return box.checked;
+		return boxClick.checked || boxMove.checked;
 	};
+	
+	div.getBalloonDisableOnClick = function()
+	{
+		return boxClick.checked;
+	};
+	
+	div.getDisableBalloonOnMouseMove = function()
+	{
+		return boxMove.checked;
+	};
+	
+	div.getBalloonState = function()
+	{
+		var state = {
+			BalloonEnable: boxClick.checked || boxMove.checked,
+			DisableBalloonOnClick: !boxClick.checked,
+			DisableBalloonOnMouseMove: !boxMove.checked
+		}
+		
+		if (balloonText.value !== defaultBalloonText())
+			state.Balloon = balloonText.value;
+		
+		return state;
+	}
 	
 	return div;
 }
@@ -1652,8 +1696,15 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	}
 	
 	// balloon
+	globalFlashMap.balloonClassObject.applyBalloonDefaultStyle(parentStyle);
+	/*var balloonProps = {
+		Ballon: parentStyle.Balloon, 
+		BalloonEnable: typeof parentStyle.BalloonEnable !== 'undefined' ? parentStyle.BalloonEnable : true,
+		DisableBalloonOnMouseMove: typeof parentStyle.DisableBalloonOnMouseMove != 'undefined' ? parentStyle.DisableBalloonOnMouseMove : false,
+		DisableBalloonOnClick: typeof parentStyle.DisableBalloonOnClick != 'undefined' ? parentStyle.DisableBalloonOnClick : false,
+	}*/
 	
-	var balloonEditor = this.createBalloonEditor(parentStyle.Balloon, typeof parentStyle.BalloonEnable != 'undefined' ? parentStyle.BalloonEnable : true, attrs, elemCanvas);
+	var balloonEditor = this.createBalloonEditor(parentStyle, attrs, elemCanvas);
 	
 	_(liBalloon.lastChild, [balloonEditor]);
 	
@@ -2499,6 +2550,49 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 	shownProperties.push({name: _gtxt("Дата"), field: 'Date', elem: dateField});
 	
 	var columnsParent = _div();
+	var encodingParent = _div();
+	
+	//event: change
+	var encodingWidget = (function()
+	{
+		var _encodings = {
+			'UTF-8': 'utf-8',
+			'windows-1251': 'windows-1251'
+		};
+		var _DEFAULT_ENCODING = 'windows-1251';
+		var _curSelection = _DEFAULT_ENCODING;
+		
+		//
+		var _public = {
+			drawWidget: function(container)
+			{
+				var select = $("<select></select>").addClass('selectStyle');
+				select.change(function()
+				{
+					_curSelection = $('option:selected', select).val();
+					$(_public).change();
+				});
+				
+				for (var enc in _encodings)
+				{
+					var opt = $('<option></option>').val(enc).text(enc);
+					
+					if (enc === _DEFAULT_ENCODING)
+						opt.attr('selected', 'selected');
+						
+					select.append(opt);
+				}
+				
+				$(container).css({paddingLeft: '5px', fontSize: '12px'}).text(_gtxt("Кодировка") + ": ").append(select);
+			},
+			getServerEncoding: function()
+			{
+				return _encodings[_curSelection];
+			}
+		}
+		
+		return _public;
+	})();
 	
 	if (type == "Vector")
 	{
@@ -2506,7 +2600,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			shapeFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
 			tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
 			trPath = _tr([_td([_t(_gtxt("Файл")), shapeFileLink, _br(), _t(_gtxt("Таблица")), tableLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
-						  _td([shapePath, columnsParent])]),
+						  _td([shapePath, columnsParent, encodingParent])]),
 			tilePath = _div([_t(typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')],[['css','marginLeft','3px'],['css','width','220px'],['css','whiteSpace','nowrap'],['css','overflowX','hidden']]),
 			trTiles = _tr([_td([_t(_gtxt("Каталог с тайлами"))],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
 						  _td([tilePath])]);
@@ -2550,7 +2644,13 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				if (valueInArray(['xls', 'xlsx', 'xlsm'], ext))
 					_this.selectColumns(columnsParent, serverBase + "VectorLayer/GetExcelColumns.ashx?WrapStyle=func&ExcelFile=" + encodeURIComponent(path))
 				else
-					removeChilds(columnsParent)
+					removeChilds(columnsParent);
+					
+				$(encodingParent).empty();
+				if (ext === 'shp')
+				{
+					encodingWidget.drawWidget(encodingParent);
+				}
 			})
 		}
 		
@@ -2839,6 +2939,11 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				properties.ShapePath.Geometry.coordinates[0][0][0] += 0.00001;
 				properties.ShapePath.Geometry.coordinates[0][0][1] += 0.00001;
 				
+				// чтобы если бы последняя точка совпадала с первой, то этобы ни на что не повлияло
+				var pointCount = properties.ShapePath.Geometry.coordinates[0].length;
+				properties.ShapePath.Geometry.coordinates[0][pointCount-1][0] += 0.00001;
+				properties.ShapePath.Geometry.coordinates[0][pointCount-1][1] += 0.00001;
+				
 				var drawingBorder = globalFlashMap.drawing.addObject(from_merc_geometry(properties.ShapePath.Geometry));
 			
 				drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
@@ -3005,6 +3110,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			{
 				var cols = '',
 					updateParams = '',
+					encoding = '&EncodeName=' + encodingWidget.getServerEncoding(),
 					needRetiling = false,
 					colXElem = $(columnsParent).find("[selectLon]"),
 					colYElem = $(columnsParent).find("[selectLat]"),
@@ -3051,7 +3157,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				}
 				else
 				{
-					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams, function(response)
+					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + encoding, function(response)
 						{
 							if (!parseResponse(response))
 								return;
@@ -4279,11 +4385,16 @@ mapHelper.prototype.updateStyles = function(filterCanvas)
 			newFilterStyle.Filter = filterValue;
 		
 		var balloonValueElem = $(filter).find("[balloonTable]").length > 0 ? $(filter).find("[balloonTable]")[0] : filter,
-			balloonValue = balloonValueElem.getBalloon(),
-			balloonEnable = balloonValueElem.getBalloonEnable();
-		newFilterStyle.BalloonEnable = balloonEnable;
-		if (balloonValue != '' && balloonValue != null)
-			newFilterStyle.Balloon = balloonValue;
+			balloonValue = balloonValueElem.getBalloon();
+			
+		// newFilterStyle.BalloonEnable = balloonValueElem.getBalloonEnable();
+		// newFilterStyle.DisableBalloonOnClick = balloonValueElem.getBalloonDisableOnClick();
+		// newFilterStyle.DisableBalloonOnMouseMove = balloonValueElem.getDisableBalloonOnMouseMove();
+		
+		$.extend(newFilterStyle, balloonValueElem.getBalloonState())
+			
+		// if (balloonValue != '' && balloonValue != null)
+			// newFilterStyle.Balloon = balloonValue;
 		
 		if (newFilterStyle.Filter == '')
 			delete newFilterStyle.Filter;
@@ -4328,14 +4439,34 @@ mapHelper.prototype.version = function()
 	{
 		function showVersion(num, data)
 		{
-			var div = _div([_p([_span([_t("GeoMixer")],[['css','fontWeight','bold']]), _t(" " + String(num)+ "(" + data + ") - "), _t(_gtxt("$$about$$_1")),
-								_a([_span([_t("Kosmosnimki.ru")],[['css','fontWeight','bold']])],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru']]), _t(_gtxt(" и ")),
-								_a([_span([_t("OpenStreetMap")],[['css','fontWeight','bold']])],[['attr','target','_blank'],['attr','href','http://www.openstreetmap.org']])]),
-							_p([_t(_gtxt("$$about$$_2"))]),
-							_p([_t(_gtxt("$$about$$_3"))]),
-							_p([_a([_br(),_span([_t(">> GeoMixer")],[['css','fontWeight','bold']]), _t(" - Общее описание")],[['css','color','#417590'],['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/']])]),
-						 	_p([_a([_br(),_span([_t(">> GeoMixer API")],[['css','fontWeight','bold']]), _t(" - Руководство разработчика")],[['css','color','#417590'],['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/api_start.html']])])], [['css','marginTop','10px'],['css','color','#153069'],['attr','id','version']])
-			showDialog(_gtxt("О проекте"), div, 320, 300, false, false)
+			// var div = _div([_p([_span([_t("GeoMixer")],[['css','fontWeight','bold']]), _t(" " + String(num)+ "(" + data + ") - "), _t(_gtxt("$$about$$_1")),
+								// _a([_span([_t("Kosmosnimki.ru")],[['css','fontWeight','bold']])],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru']]), _t(_gtxt(" и ")),
+								// _a([_span([_t("OpenStreetMap")],[['css','fontWeight','bold']])],[['attr','target','_blank'],['attr','href','http://www.openstreetmap.org']])]),
+							// _p([_t(_gtxt("$$about$$_2"))]),
+							// _p([_t(_gtxt("$$about$$_3"))]),
+							// _p([_a([_br(),_span([_t(">> GeoMixer")],[['css','fontWeight','bold']]), _t(" - Общее описание")],[['css','color','#417590'],['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/']])]),
+						 	// _p([_a([_br(),_span([_t(">> GeoMixer API")],[['css','fontWeight','bold']]), _t(" - Руководство разработчика")],[['css','color','#417590'],['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/api_start.html']])])], [['css','marginTop','10px'],['css','color','#153069'],['attr','id','version']])
+							
+			var div = $("<div></div>");
+			
+			var fileName;
+			
+			if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.helpFilePrefix !== 'undefined')
+				fileName = window.gmxViewerUI.helpFilePrefix;
+			else
+				fileName = window.gmxJSHost ? window.gmxJSHost + "help" : "help";
+			
+			var proceessAndShow = function( text )
+			{
+				text = text.replace("{gmxVersion}", num).replace("{gmxData}", data);
+				div.html(text);
+				showDialog(_gtxt("О проекте"), div[0], 320, 300, false, false);
+			}
+			
+			if (fileName.indexOf("http://") !== 0)
+				$.ajax({url: fileName + _gtxt("helpPostfix"), success: proceessAndShow});
+			else
+				sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(fileName + _gtxt("helpPostfix")), proceessAndShow);
 		}
 		
 		if (!this.versionNum)
@@ -4724,9 +4855,10 @@ var queryTabs = function()
 queryTabs.prototype = new leftMenu();
 
 queryTabs.prototype.load = function()
-{
+{	
 	if (!this.builded)
 	{
+		var _this = this;
 		this.tabsCanvas = _div(null, [['dir','className','drawingObjectsCanvas']])
 		
 		_(this.workCanvas, [this.tabsCanvas]);
@@ -4735,6 +4867,22 @@ queryTabs.prototype.load = function()
 			this.draw(this.tabs[i]);
 		
 		this.builded = true;
+		
+		$(this.tabsCanvas).sortable({
+			axis: 'y', 
+			tolerance: 'pointer', 
+			containment: 'parent' 
+		});
+		$(this.tabsCanvas).bind('sortupdate', function(event, ui)
+		{
+			var orderedTabs = [];
+			$(_this.tabsCanvas).children().each(function()
+			{
+				orderedTabs.push(this.tabInfo);
+			})
+			
+			_this.tabs = orderedTabs;
+		});
 	}
 }
 
@@ -4784,6 +4932,8 @@ queryTabs.prototype.draw = function(tabInfo)
 		title = makeLinkButton(tabInfo.name),
 		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
 		_this = this;
+		
+	canvas.tabInfo = tabInfo;
 	
 	title.onclick = function()
 	{

@@ -30,6 +30,7 @@ class MapNode
 		window = window_;
 		rasterSprite = rasterSprite_;
 		vectorSprite = vectorSprite_;
+		vectorSprite.cacheAsBitmap = true;
 		regularStyle = null;
 		hoveredStyle = null;
 		hidden = false;

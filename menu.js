@@ -1141,6 +1141,15 @@ var iconPanel = function()
 		_(this.parent, [elem]);
 	}
 	
+	//меняет callback, возвращает старый 
+	this.changeCallcack = function(iconId, newCallback)
+	{
+		var elem = $('#'+iconId, this.parent)[0];
+		var prevCallback = elem.onclick;
+		elem.onclick = newCallback;
+		return prevCallback;
+	}
+	
 	this.addDelimeter = function(delimeterId, floatRight, hiddenFlag)
 	{
 		var img = _img(null, [['attr','src','img/toolbar/toolbarDelimeter.png']]),
