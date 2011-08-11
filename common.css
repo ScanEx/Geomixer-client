@@ -628,6 +628,20 @@ div.unit .unitInfo
 {
 	width: 320px;
 }
+
+/*.layerProperties td
+{
+	height: 18px;
+	border: 1px solid #DEDEDE;
+}*/
+
+.propertiesTable td
+{
+	height: 22px;
+	border: 1px solid #DEDEDE;
+	
+}
+
 .layerProperties td
 {
 	height: 18px;

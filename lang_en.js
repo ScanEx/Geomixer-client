@@ -529,5 +529,6 @@ _translationsHash.hash["eng"] = {
 	"Обводка" : "Outline",
 	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?",
 	"Кодировка": "Encoding",
-	"helpPostfix": "_eng.html"
+	"helpPostfix": "_eng.html",
+	"Показывать чекбокс видимости": "Visibility checkbox"
 };

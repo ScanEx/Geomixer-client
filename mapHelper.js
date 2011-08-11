@@ -2474,8 +2474,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 
 mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, properties)
 {
-	var trs = [],
-		_this = this,
+	var _this = this,
 		vectorRetilingFlag = false;
 
 	var title = _input(null,[['attr','fieldName','title'],['attr','value',div ? (div.properties.content.properties.title ? div.properties.content.properties.title : '') :  (typeof properties.Title != 'undefined' ? properties.Title : '')],['dir','className','inputStyle'],['css','width','220px']])
@@ -2916,28 +2915,29 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		shownProperties.push({tr:trShape});
 	}
 	
-	for (var i = 0; i < shownProperties.length; i++)
-	{
-		var td;
-		if (typeof shownProperties[i].tr != 'undefined')
-		{
-			trs.push(shownProperties[i].tr);
+	// for (var i = 0; i < shownProperties.length; i++)
+	// {
+		// var td;
+		// if (typeof shownProperties[i].tr != 'undefined')
+		// {
+			// trs.push(shownProperties[i].tr);
 			
-			continue;
-		}
-		else if (typeof shownProperties[i].elem != 'undefined')
-			td = _td([shownProperties[i].elem]);
-		else
-			td = _td([_t(properties[shownProperties[i].field] != null ? properties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
+			// continue;
+		// }
+		// else if (typeof shownProperties[i].elem != 'undefined')
+			// td = _td([shownProperties[i].elem]);
+		// else
+			// td = _td([_t(properties[shownProperties[i].field] != null ? properties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
 		
-		td.style.border = '1px solid #DEDEDE';
+		// td.style.border = '1px solid #DEDEDE';
 		
-		var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width','70px'],['css','paddingLeft','5px'],['css','fontSize','12px']]), td])
+		// var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width','70px'],['css','paddingLeft','5px'],['css','fontSize','12px']]), td])
 		
-		trs.push(tr);
-	}
+		// trs.push(tr);
+	// }
 	
-	_(parent, [_div([_table([_tbody(trs)],[['dir','className','layerProperties']])])]);
+	var trs = this.createPropertiesTable(shownProperties, properties, {leftWidth: 70});
+	_(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
 	
 	// смотрим, а не выполняются ли для этого слоя задачи
 	var haveTask = false;
@@ -3300,6 +3300,42 @@ mapHelper.prototype.updateTask = function(taskInfo, title)
 	}
 }
 
+// Формирует набор элементов tr используя контролы из shownProperties.
+// Параметры:
+// - shownProperties: массив со следующими свойствами:
+//   * tr - если есть это свойство, то оно помещается в tr, все остальные игнорируются
+//   * name - названия свойства, которое будет писаться в левой колонке
+//   * elem - если есть, то в правую колонку помещается этот элемент
+//   * field - если нет "elem", в правый столбец подставляется layerProperties[field]
+// - layerProperties - просто хеш строк для подстановки в правую колонку
+// - style:
+//   * leftWidth - ширина левой колонки в пикселях
+mapHelper.prototype.createPropertiesTable = function(shownProperties, layerProperties, style)
+{
+	var _styles = $.extend({leftWidth: 100}, style);
+	var trs = [];
+	for (var i = 0; i < shownProperties.length; i++)
+	{
+		var td;
+		if (typeof shownProperties[i].tr !== 'undefined')
+		{
+			trs.push(shownProperties[i].tr);
+			continue;
+		}
+		
+		if (typeof shownProperties[i].elem !== 'undefined')
+			td = _td([shownProperties[i].elem]);
+		else
+			td = _td([_t(layerProperties[shownProperties[i].field] != null ? layerProperties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
+		
+		var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width', _styles.leftWidth + 'px'],['css','paddingLeft','5px'],['css','fontSize','12px']]), td]);
+		
+		trs.push(tr);
+	}
+	
+	return trs;
+}
+
 mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 {
 	var elemProperties = (isMap) ? div.properties.properties : div.properties.content.properties,
@@ -3307,6 +3343,51 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		_this = this;
 
 	var title = _input(null,[['attr','value',typeof elemProperties.title != 'undefined' ? elemProperties.title : ''],['dir','className','inputStyle'],['css','width','206px']])
+	
+	var visibilityProperties = new layersTree.GroupVisibilityPropertiesModel(elemProperties.list, typeof elemProperties.ShowCheckbox === 'undefined' ? true : elemProperties.ShowCheckbox);
+	// var visibilityProperties = new _layersTree.GroupVisibilityPropertiesModel(true, elemProperties.list);
+	var visibilityPropertiesView = layersTree.GroupVisibilityPropertiesView(visibilityProperties);
+	$(visibilityProperties).change(function()
+	{
+		elemProperties.list = visibilityProperties.isChildRadio();
+		elemProperties.ShowCheckbox = visibilityProperties.isVisibilityControl();
+		
+		var curBox = div.firstChild;
+		if (!elemProperties.ShowCheckbox)
+		{
+			curBox.checked = true;
+			_layersTree.visibilityFunc(curBox, true, visibilityProperties.isChildRadio(), false);
+			
+			curBox.style.display = 'none';
+			curBox.isDummyCheckbox = true;
+		}
+		else
+		{
+			curBox.style.display = 'block';
+			delete curBox.isDummyCheckbox;
+		}
+		
+		if (isMap) {
+			_this.mapTree.properties = div.properties.properties;
+		} else {
+			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+		}
+		
+		var ul = _abstractTree.getChildsUl(div.parentNode),
+			checkbox = false;
+		
+		$(ul).children('li').each(function()
+		{
+			var box = _layersTree.updateListType(this, true);
+			
+			if (box.checked)
+				checkbox = box; // последний включенный чекбокс
+		})
+		
+		if (checkbox && _layersTree.getLayerVisibility(checkbox))
+			_layersTree.visibilityFunc(checkbox, true, div.properties.content ? div.properties.content.properties.list : div.properties.properties.list);		
+	});
+	
 	title.onkeyup = function()
 	{
 		if (title.value == '')
@@ -3340,6 +3421,7 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		return true;
 	}
 	
+	/*
 	var boxSwitch = _checkbox(!elemProperties.list, 'checkbox'),
 		radioSwitch = _checkbox(elemProperties.list, 'radio');
 	
@@ -3354,20 +3436,14 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		this.checked = true;
 		radioSwitch.checked = !this.checked;
 		
-		if (isMap && div.properties.properties.list == !this.checked ||
-			!isMap && div.properties.content.properties.list == !this.checked)
+		if ( elemProperties.list == !this.checked )
 			return;
 		
-		if (isMap)
-		{
-			div.properties.properties.list = !this.checked;
-			
+		elemProperties.list = !this.checked;
+		
+		if (isMap) {
 			_this.mapTree.properties = div.properties.properties;
-		}
-		else
-		{
-			div.properties.content.properties.list = !this.checked;
-			
+		} else {
 			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
 		}
 		
@@ -3391,20 +3467,13 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		this.checked = true;
 		boxSwitch.checked = !this.checked;
 		
-		if (isMap && div.properties.properties.list == this.checked ||
-			!isMap && div.properties.content.properties.list == this.checked)
+		if ( elemProperties.list == this.checked )
 			return;
+		elemProperties.list = this.checked;
 		
-		if (isMap)
-		{
-			div.properties.properties.list = this.checked;
-			
+		if (isMap) {
 			_this.mapTree.properties = div.properties.properties;
-		}
-		else
-		{
-			div.properties.content.properties.list = this.checked;
-			
+		} else {
 			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
 		}
 		
@@ -3422,27 +3491,28 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		if (checkbox && _layersTree.getLayerVisibility(checkbox))
 			_layersTree.visibilityFunc(checkbox, true, div.properties.content ? div.properties.content.properties.list : div.properties.properties.list);
 	}
+	*/
 	
 	var addProperties = function(shownProperties)
 	{
-		var trs = []
+		// var trs = []
 		
-		for (var i = 0; i < shownProperties.length; i++)
-		{
-			var td;
-			if (typeof shownProperties[i].elem != 'undefined')
-				td = _td([shownProperties[i].elem]);
-			else
-				td = _td([_t(elemProperties[shownProperties[i].field] != null ? elemProperties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
+		// for (var i = 0; i < shownProperties.length; i++)
+		// {
+			// var td;
+			// if (typeof shownProperties[i].elem != 'undefined')
+				// td = _td([shownProperties[i].elem]);
+			// else
+				// td = _td([_t(elemProperties[shownProperties[i].field] != null ? elemProperties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
 			
-			td.style.border = '1px solid #DEDEDE';
+			// td.style.border = '1px solid #DEDEDE';
 			
-			var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width','100px'],['css','height','22px'],['css','paddingLeft','5px'],['css','border','1px solid #DEDEDE']]), td])
+			// var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width','100px'],['css','height','22px'],['css','paddingLeft','5px'],['css','border','1px solid #DEDEDE']]), td])
 			
-			trs.push(tr);
-		}
+			// trs.push(tr);
+		// }
 		
-		return trs;
+		return _this.createPropertiesTable(shownProperties, elemProperties, {leftWidth: 100});
 	};
 	
 	if (isMap)
@@ -3632,15 +3702,20 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		//	showBalloons.style.margin = "0px 4px 0px 3px";
 		}
 		
-		var shownCommonProperties = [{name: _gtxt("Имя"), field: 'title', elem: title},
+		var shownCommonProperties = [
+										{name: _gtxt("Имя"), field: 'title', elem: title},
 										{name: _gtxt("ID"), field: 'name'},
-										{name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright},
-										{name: _gtxt("Вид вложенных элементов"), elem: _div([boxSwitch, radioSwitch])},
-										{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
+										{name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright}
+									]
+									//{name: _gtxt("Вид вложенных элементов"), elem: _div([boxSwitch, radioSwitch])},
+									.concat(visibilityPropertiesView)
+									.concat(
+										[{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
 										{name: _gtxt("Использовать OpenStreetMap"), elem: useOSM},
 										{name: _gtxt("Ссылка (permalink)"), elem: defPermalink},
 									//	{name: _gtxt("Показывать всплывающие подсказки"), elem: showBalloons},
-										{name: _gtxt("Масштабирование в миникарте"), elem: zoomDelta}],
+										{name: _gtxt("Масштабирование в миникарте"), elem: zoomDelta}]
+									),
 			shownPolicyProperties = [/*{name: _gtxt("Разрешить поиск в векторных слоях"), elem: searchVectors},*/
 										{name: _gtxt("Разрешить скачивание"), elem: _table([_tbody([_tr([_td([_t(_gtxt('Векторных слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadVectors])]),
 																					 				_tr([_td([_t(_gtxt('Растровых слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadRasters])])])])}],
@@ -3661,19 +3736,19 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		
 		_(tabMenu, [divCommon, divPolicy, divView, divOnload]);
 		
-		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%']])]);
-		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%']])]);
-		_(divView, [_table([_tbody(addProperties(shownViewProperties))],[['css','width','100%']])]);
+		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
+		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
+		_(divView,   [_table([_tbody(addProperties(shownViewProperties))],  [['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divOnload, [onLoad])
 		
 		return tabMenu;
 	}
 	else
 	{
-		var shownProperties = [{name: _gtxt("Имя"), field: 'title', elem: title},
-								{name: _gtxt("Вид вложенных элементов"), field: 'list', elem: _div([boxSwitch, radioSwitch])}];
+		var shownProperties = [{name: _gtxt("Имя"), field: 'title', elem: title}].concat(visibilityPropertiesView);
+								//{name: _gtxt("Вид вложенных элементов"), field: 'list', elem: _div([boxSwitch, radioSwitch])}];
 
-		return _div([_table([_tbody(addProperties(shownProperties))],[['css','width','100%']])],[['css','width','320px']]);
+		return _div([_table([_tbody(addProperties(shownProperties))],[['css','width','100%']])],[['css','width','320px'], ['dir','className','propertiesTable']]);
 	}
 }
 

@@ -785,73 +785,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 		_(actionsCanvas, [_div([titleLink],[['css','height','16px']])]);
 		
 	})(this._layersContentMenuElems[e]);
-	
-	// if (!layerManagerFlag)
-	// {
-		// if (_queryMapLayers.currentMapRights() == "edit")
-		// {
-			// // меню для редактора
-			// //_(actionsCanvas, [_div([editor],[['css','height','16px']])]);
-			
-			// // if ($.browser.opera)
-				// // ( = _div([_div([editor],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-			// // else
-				// // actionsCanvas = _div([_div([editor],[['css','height','16px']])], [['css','width','120px']]);
-			
-			 // //if (elem.type == "Vector")
-				 // //_(actionsCanvas, [_div([attrs],[['css','height','16px']])]);
-			
-			// // if ( nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
-				// // ( _mapHelper.mapProperties.Owner == userInfo().Login || 
-				  // // nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) ) 
-				// // )
-			// // {
-				// // _(actionsCanvas, [_div([access],[['css','height','16px']])]);
-			// // }
-			
-			// if (elem.type == "Vector")
-			// {
-				// // if (_mapHelper.mapProperties.CanDownloadVectors)
-					// // _(actionsCanvas, [_div([download],[['css','height','16px']])])
-				
-				// //_(actionsCanvas, [_div([remove],[['css','height','16px']])]);
-				
-				// //_(actionsCanvas, [_div(null, [['css','height','1px'],['css','margin','2px 10px 2px 0px'],['css','borderBottom','1px solid #999999']]), _div([copyStyle],[['css','height','16px']]), _div([pasteStyle],[['css','height','16px']])]);
-			// }
-			// else;
-				// //_(actionsCanvas, [_div([remove],[['css','height','16px']])])
-		// }
-		// else if (_queryMapLayers.currentMapRights() == "view" && userInfo().Login)
-		// {
-			// // меню для пользователя
-			// // if (elem.type == "Vector")
-			// // {
-				// // if (_mapHelper.mapProperties.CanDownloadVectors)
-				// // {
-					// // _(actionsCanvas, [_div([download],[['css','height','16px']])]);
-					// // // if ($.browser.opera)
-						// // // actionsCanvas = _div([_div([download],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-					// // // else
-						// // // actionsCanvas = _div([_div([download],[['css','height','16px']])], [['css','width','120px']]);
-				// // }
-			// // }
-		// }
-		
-		// attachMenuEvents();
-	// }
-	// else
-	// {
-		// if (elem.type == "Vector")
-		// {
-			// // if ($.browser.opera)
-				// // actionsCanvas = _div([_div([copyStyle],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-			// // else
-				// // actionsCanvas = _div([_div([copyStyle],[['css','height','16px']])], [['css','width','120px']]);
-			
-			// attachMenuEvents();
-		// }
-	// }
-	
+
 	attachMenuEvents();
 	
 	if (elem.type == "Vector")
@@ -1080,6 +1014,12 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 			var parentParams = _this.getParentParams(this.parentNode.parentNode);
 			
 			_this.visibilityFunc(this, this.checked, parentParams.list);
+		}
+		
+		if (typeof elem.ShowCheckbox !== 'undefined' && !elem.ShowCheckbox)
+		{
+			box.isDummyCheckbox = true;
+			box.style.display = 'none';
 		}
 	}
 	
@@ -1429,7 +1369,7 @@ layersTree.prototype.addSubGroup = function(div)
 				return;
 			
 			var parentProperties = div.properties,
-				newGroupProperties = {type:'group', content:{properties:{title:inputIndex.value, list: false, visible: true, expanded:true, GroupID: _this.createGroupId()}, children:[]}},
+				newGroupProperties = {type:'group', content:{properties:{title:inputIndex.value, list: false, visible: true, ShowCheckbox: true, expanded:true, GroupID: _this.createGroupId()}, children:[]}},
 				li = _this.getChildsList(newGroupProperties, parentProperties, false, div.getAttribute('MapID') ? true : _this.getLayerVisibility(div.firstChild));
 			
 			_queryMapLayers.addDraggable(li)
@@ -1590,22 +1530,82 @@ layersTree.prototype.disableRadioGroups = function(box)
 	}
 }
 
-layersTree.prototype.visibilityFunc = function(box, flag, listFlag)
+layersTree.prototype.visibilityFunc = function(box, flag, listFlag, forceChildVisibility)
 {
+	if (box.isDummyCheckbox) return;
+	
 	if (listFlag)
 		this.disableRadioGroups(box);
 	
-	this.setVisibility(box, flag);
+	this.setVisibility(box, flag, forceChildVisibility);
 }
 
-layersTree.prototype.setVisibility = function(checkbox, flag)
+layersTree.prototype.findTreeBox = function(child)
 {
-	_mapHelper.findTreeElem(checkbox.parentNode).elem.content.properties.visible = flag;
+	var searchStr;
+	
+	if (child.content.properties.LayerID)
+		searchStr = "div[LayerID='" + child.content.properties.LayerID + "']";
+	else if (child.content.properties.MultiLayerID)
+		searchStr = "div[MultiLayerID='" + child.content.properties.MultiLayerID + "']";
+	else
+		searchStr = "div[GroupID='" + child.content.properties.GroupID + "']";
+	
+	var elem = $(searchStr);
+	
+	if (elem.length)
+		return elem[0];
+	else
+		return false;
+}
+
+layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibility)
+{
+	if (typeof forceChildVisibility === 'undefined') 
+		forceChildVisibility = true;
+		
+	var treeElem = _mapHelper.findTreeElem(checkbox.parentNode).elem;
+	var _this = this;
+	treeElem.content.properties.visible = flag;
 	
 	if (checkbox.parentNode.getAttribute('GroupID'))
 	{
 		if (flag)
-			this.setLayerVisibility(checkbox);		
+			this.setLayerVisibility(checkbox);
+			
+		var parentParams = this.getParentParams(checkbox.parentNode.parentNode);
+
+		// Делаем видимость всех потомков узла дерева такой же, как видимость этого слоя. 
+		if (forceChildVisibility)
+		{
+			_mapHelper.findTreeElems(treeElem, function(child, visflag, list, index)
+			{
+				if (!visflag || (list && index != 0))
+				{
+					child.content.properties.visible = false;
+					
+					var elem = _this.findTreeBox(child);
+					
+					if (elem)
+					{
+						elem.firstChild.checked = false;
+						_this.setVisibility(elem.firstChild, false);
+					}
+				}
+				else
+				{
+					child.content.properties.visible = true;
+					
+					var elem = _this.findTreeBox(child);
+					
+					if (elem)
+					{
+						elem.firstChild.checked = true;
+						_this.setVisibility(elem.firstChild, true);
+					}
+				}
+			}, flag, parentParams.list);
+		}
 	
 		this.updateChildLayersMapVisibility(checkbox.parentNode)
 	}
@@ -1656,6 +1656,69 @@ layersTree.prototype.getLayerVisibility = function(box)
 	}
 	
 	return true;
+}
+
+layersTree.GroupVisibilityPropertiesModel = function(isChildRadio, isVisibilityControl)
+{
+	var _isChildRadio = isChildRadio;
+	var _isVisibilityControl = isVisibilityControl;
+	
+	this.isVisibilityControl = function() { return _isVisibilityControl; }
+	this.isChildRadio = function() { return _isChildRadio; }
+	
+	this.setVisibilityControl = function(isVisibilityControl)
+	{
+		var isChange = _isVisibilityControl !== isVisibilityControl;
+		_isVisibilityControl = isVisibilityControl;
+		if (isChange) $(this).change();
+	}
+	
+	this.setChildRadio = function(isChildRadio)
+	{
+		var isChange = _isChildRadio !== isChildRadio;
+		_isChildRadio = isChildRadio;
+		if (isChange) $(this).change();
+	}
+}
+
+//возвращает массив описания элементов таблицы для использования в mapHelper.createGroupEditorProperties
+layersTree.GroupVisibilityPropertiesView = function( model )
+{
+	var _model = model;
+	var boxSwitch = _checkbox(!_model.isChildRadio(), 'checkbox'),
+		radioSwitch = _checkbox(_model.isChildRadio(), 'radio');
+	var showCheckbox = _checkbox(_model.isVisibilityControl(), 'checkbox');
+	
+	if (!$.browser.msie)
+	{
+		boxSwitch.style.margin = "0px 4px 0px 3px";
+		radioSwitch.style.margin = "0px 4px 0px 3px";
+		showCheckbox.style.margin = "0px 4px 0px 3px";
+	}
+	
+	showCheckbox.onclick = function()
+	{
+		_model.setVisibilityControl( this.checked );
+	}
+	
+	boxSwitch.onclick = function()
+	{
+		this.checked = true;
+		radioSwitch.checked = !this.checked;
+		
+		_model.setChildRadio( !this.checked );
+	}
+	
+	radioSwitch.onclick = function()
+	{
+		this.checked = true;
+		boxSwitch.checked = !this.checked;
+		
+		_model.setChildRadio( this.checked );
+	}
+	
+	return [{name: _gtxt("Вид вложенных элементов"), field: 'list', elem: _div([boxSwitch, radioSwitch])}, 
+			{name: _gtxt("Показывать чекбокс видимости"), field: 'list', elem: _div([showCheckbox])}];
 }
 
 // включает все выключенные элементы выше указанного элемента
@@ -2021,6 +2084,8 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 		listFlag = parentParams.content.properties.list;
 	else
 		listFlag = parentParams.properties.list;
+		
+	//var showCheckbox = parentParams.content ? parentParams.content.properties.showCheckbox : parentParams.properties.showCheckbox;
 	
 	var box = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0].firstChild,
 		newBox,
@@ -2044,6 +2109,12 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 	{
 		_this.visibilityFunc(this, this.checked, listFlag);
 	}
+	
+	// if ( typeof showCheckbox !== 'undefined' && !showCheckbox )
+	// {
+		// newBox.isDummyCheckbox = true;
+		// newBox.style.display = 'none';
+	// }
 	
 	if (typeof skipVisible == 'undefined')
 	{
