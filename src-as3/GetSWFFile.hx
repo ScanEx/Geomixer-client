@@ -38,7 +38,7 @@ class GetSWFFile
 	}
 	private function onError(event:Event)
 	{
-		trace("error reading vector tile: " + url);
+		//trace("error reading vector tile: " + url);
 		destructor(null);
 	}
 
