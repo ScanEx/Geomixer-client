@@ -2502,7 +2502,7 @@ queryMapLayers.prototype.saveMap = function()
 										WrapStyle: 'window',
 										MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].properties.properties.MapID), 
 
-										MapJson: encodeURIComponent(JSON.stringify(saveTree))
+										MapJson: JSON.stringify(saveTree)
 									}, 
 									function(response)
 									{
@@ -3582,7 +3582,7 @@ queryMapLayers.prototype.saveMapAs = function(name)
 									WrapStyle: 'window',
 									Title: name,
 									MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].properties.properties.MapID), 
-									MapJson: encodeURIComponent(JSON.stringify(saveTree))
+									MapJson: JSON.stringify(saveTree)
 								}, 
 								function(response)
 								{
