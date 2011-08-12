@@ -12,7 +12,7 @@ _translationsHash.addtext("eng", {
 
 var printScreeshot = function(url)
 {
-	popup = window.open();
+	var popup = window.open();
 	popup.document.open();
 	popup.document.write("<html><body><img src='" + url + "'></img></body></html>");
 	popup.document.close();
@@ -29,8 +29,33 @@ var makeScreeshot = function()
 		{
 			var h = DEFAULT_WIDTH/image.width*image.height;
 			var img = $("<img></img>").attr({src: pngUrl, width: DEFAULT_WIDTH, height: DEFAULT_WIDTH/image.width*image.height});
-			var btnPrint = $("<button></button>").text(_gtxt("screenshotPlugin.print")).click(function(){printScreeshot(pngUrl)});
-			var tr1 = $("<tr></tr>").append($("<td align=center></td>").append($("<a></a>").attr({href: pngUrl, target: "_blank"}).append(img)));
+			
+			// var btnPrint = $("<button></button>").text(_gtxt("screenshotPlugin.print")).click();
+			var btnPrint = makeButton(_gtxt("screenshotPlugin.print"));
+			btnPrint.onclick = function()
+			{
+				printScreeshot(pngUrl)
+			};
+			btnPrint.style.marginTop = "10px";
+			btnPrint.style.padding = "3px 9px";
+			btnPrint.style.fontSize = "12px";
+			
+			//var tr1 = $("<tr></tr>").append($("<td align=center></td>").append($("<a></a>").attr({href: pngUrl, target: "_blank"}).append(img)));
+			var tr1 = $("<tr></tr>")
+				.append($("<td align=center></td>")
+					.append($("<a></a>").append(img).attr({href: "javascript:0"}).click(function()
+						{
+							var popup = window.open();
+							popup.document.open();
+							popup.document.write("<html><body><table>" + 
+												 "<tr><td><img src='" + pngUrl + "'></img></td></tr>" +
+												 "<tr><td align='center'><button>"+ _gtxt("screenshotPlugin.print") +"</button></td></tr>" +
+												 "</table></body></html>");
+							popup.document.close();
+						})
+					)
+				);
+			
 			var tr2 = $("<tr></tr>").append($("<td align=center></td>").append(btnPrint));
 			var table = $("<table width='100%'></table>").append(tr1).append(tr2);
 			
