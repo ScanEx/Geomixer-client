@@ -4,53 +4,60 @@
 
 var gmxJSHost = window.gmxJSHost || "";
 
+//подставляет к локальному имени файла хост (window.gmxJSHost) и, опционально, рандомное поле для сброса кэша (window.gmxDropBrowserCache)
+var _getFileName = function( localName )
+{
+	return gmxJSHost + localName + ( window.gmxDropBrowserCache ? "?" + Math.random() : "");
+	
+}
+
 $LAB.
-	script(gmxJSHost + "jquery/jquery-1.5.1.min.js").wait().
-	script(gmxJSHost + "jquery/jquery.getCSS.js").wait(function()
+	script(_getFileName("jquery/jquery-1.5.1.min.js")).wait().
+	script(_getFileName("jquery/jquery.getCSS.js")).wait(function()
 	{
-		$.getCSS(gmxJSHost + "common.css");
-		$.getCSS(gmxJSHost + "jquery/jquery-ui-1.7.2.custom.css");
-		$.getCSS(gmxJSHost + "colorpicker/css/colorpicker.css");
-		$.getCSS(gmxJSHost + "menu.css");
-		$.getCSS(gmxJSHost + "table.css");
-		$.getCSS(gmxJSHost + "buttons.css");
-		$.getCSS(gmxJSHost + "treeview.css");
-		$.getCSS(gmxJSHost + "search.css");
+		$.getCSS(_getFileName("common.css"));
+		$.getCSS(_getFileName("jquery/jquery-ui-1.7.2.custom.css"));
+		$.getCSS(_getFileName("colorpicker/css/colorpicker.css"));
+		$.getCSS(_getFileName("menu.css"));
+		$.getCSS(_getFileName("table.css"));
+		$.getCSS(_getFileName("buttons.css"));
+		$.getCSS(_getFileName("treeview.css"));
+		$.getCSS(_getFileName("search.css"));
 	}).
-	script(gmxJSHost + "jquery/jquery-ui-1.8.10.custom.min.js").wait().
-	script(gmxJSHost + "jquery/ui.datepicker-ru.js").wait().
-	script(gmxJSHost + "jquery/jquery.treeview.js").wait().
+	script(_getFileName("jquery/jquery-ui-1.8.10.custom.min.js")).wait().
+	script(_getFileName("jquery/ui.datepicker-ru.js")).wait().
+	script(_getFileName("jquery/jquery.treeview.js")).wait().
 	
-	script(gmxJSHost + "colorpicker/js/colorpicker.js").wait().
-	script(gmxJSHost + "colorpicker/js/eye.js").wait().
-	script(gmxJSHost + "colorpicker/js/utils.js").wait().
+	script(_getFileName("colorpicker/js/colorpicker.js")).wait().
+	script(_getFileName("colorpicker/js/eye.js")).wait().
+	script(_getFileName("colorpicker/js/utils.js")).wait().
 	
-	script(gmxJSHost + "gmxcore.js").wait().
-	script(gmxJSHost + "PluginsManager.js").wait().
-	script(gmxJSHost + "translations.js").wait().
-	script(gmxJSHost + "lang_ru.js").
-	script(gmxJSHost + "lang_en.js").wait().
-	script(gmxJSHost + "utilities.js").wait().
-	script(gmxJSHost + "menu.js").wait().
-	script(gmxJSHost + "mapCommon.js").wait().
-	script(gmxJSHost + "mapHelper.js").wait().
-	script(gmxJSHost + "binding.js").wait().
-	script(gmxJSHost + "mapLayers.js").wait().
-	script(gmxJSHost + "drawingObjects.js").wait().
-	script(gmxJSHost + "fileBrowser.js").wait().
-	script(gmxJSHost + "loadServerData.js").wait().
-	script(gmxJSHost + "charts.js").wait().
-	script(gmxJSHost + "kmlParser.js").wait().
-	script(gmxJSHost + "security.js").wait().
-	script(gmxJSHost + "attrsTable.js").wait().
-	script(gmxJSHost + "cover.js").wait().
-	script(gmxJSHost + "externalMapHelper.js").wait().
-	script(gmxJSHost + "externalMapLayers.js").wait(function(){
+	script(_getFileName("gmxcore.js")).wait().
+	script(_getFileName("PluginsManager.js")).wait().
+	script(_getFileName("translations.js")).wait().
+	script(_getFileName("lang_ru.js")).
+	script(_getFileName("lang_en.js")).wait().
+	script(_getFileName("utilities.js")).wait().
+	script(_getFileName("menu.js")).wait().
+	script(_getFileName("mapCommon.js")).wait().
+	script(_getFileName("mapHelper.js")).wait().
+	script(_getFileName("binding.js")).wait().
+	script(_getFileName("mapLayers.js")).wait().
+	script(_getFileName("drawingObjects.js")).wait().
+	script(_getFileName("fileBrowser.js")).wait().
+	script(_getFileName("loadServerData.js")).wait().
+	script(_getFileName("charts.js")).wait().
+	script(_getFileName("kmlParser.js")).wait().
+	script(_getFileName("security.js")).wait().
+	script(_getFileName("attrsTable.js")).wait().
+	script(_getFileName("cover.js")).wait().
+	script(_getFileName("externalMapHelper.js")).wait().
+	script(_getFileName("externalMapLayers.js")).wait(function(){
 
 var oSearchControl;
 var oSearchLeftMenu = new leftMenu();
 				
-gmxCore.loadModule("search", gmxJSHost + "search.js");
+gmxCore.loadModule("search", _getFileName("search.js"));
 gmxCore.addModulesCallback(["search"], function(){
 	var oSearchModule = gmxCore.getModule("search");
 	oSearchControl = new oSearchModule.SearchGeomixer();
