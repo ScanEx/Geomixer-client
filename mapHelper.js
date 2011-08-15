@@ -2531,7 +2531,15 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			todayMonth = today.getMonth() + 1,
 			todayYear = today.getFullYear();
 		
-		dateField.value = (todayDate < 10 ? '0' + todayDate : todayDate) + '.' + (todayMonth < 10 ? '0' + todayMonth : todayMonth) + '.' + todayYear;
+		// Для растровых слоёв заставим пользователя вводить дату, для векторых подставляем сегодняшний день по умолчанию
+		if (type === "Vector")
+		{
+			dateField.value = (todayDate < 10 ? '0' + todayDate : todayDate) + '.' + (todayMonth < 10 ? '0' + todayMonth : todayMonth) + '.' + todayYear;
+		}
+		else
+		{
+			dateField.value = '';
+		}
 	}
 
 	var shownProperties = [];
@@ -2934,7 +2942,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		saveButton.onclick = function()
 		{
 			var errorFlag = false,
-				checkFields = (type == "Vector" ? ['title','ShapePath.Path'] : ['title','TilePath.Path']);
+				checkFields = (type == "Vector" ? ['title','ShapePath.Path', 'date'] : ['title','TilePath.Path', 'date']);
 				
 			for (var i = 0; i < checkFields.length; i++)
 			{
