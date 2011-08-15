@@ -1537,8 +1537,15 @@ function createFlashMapInternal(div, layers, callback)
 				obj.geometry = layer.geometry;
 				obj.properties = layer.properties;
 				var me = this;
+				var isOverlay = false;
+				var arr = getBaseMapParam("overlayLayerID","").split(",");
+				for (var i = 0; i < arr.length; i++) {
+					if(t == arr[i]) {
+						isOverlay = true;
+						break;
+					}
+				}
 
-				var isOverlay = (t == getBaseMapParam("overlayLayerID", KOSMOSNIMKI_LOCALIZED("FFE60CFA7DAF498381F811C08A5E8CF5", "BCCCE2BDC9BF417DACF27BB4D481FAD9")));
 				if (isOverlay)
 					layer.properties.type = "Overlay";
 
@@ -1572,10 +1579,12 @@ function createFlashMapInternal(div, layers, callback)
 						var tileSize = getScale(z)*256;
 						var minx = i*tileSize;
 						var maxx = minx + tileSize;
-						if (maxx < bounds.minX)
+						if (maxx < bounds.minX) {
 							i += Math.pow(2, z);
-						else if (minx > bounds.maxX)
+						}
+						else if (minx > bounds.maxX) {
 							i -= Math.pow(2, z);
+						}
 					}
 
 					return baseAddress + 
@@ -4666,7 +4675,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					var satelliteString = KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
 					var hybridString = KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
 					
-					var mapLayerNames = getBaseMapParam("mapLayerID", KOSMOSNIMKI_LOCALIZED("E50931C3B2DD4E0FA2C03366552EEAA1,4917FF9317094914AFBF0CE0E9030B4D", "5269E524341E4E7DB9D447C968B20A2C,4917FF9317094914AFBF0CE0E9030B4D")).split(',');
+					var mapLayerNames = getBaseMapParam("mapLayerID", "").split(',');
 					var mapLayers = [];
 					for (var i = 0; i < mapLayerNames.length; i++)
 						if (mapLayerNames[i] in map.layers)
@@ -4678,7 +4687,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							mapLayers.push(mapLayer);
 						}
 					
-					var satelliteLayerNames = getBaseMapParam("satelliteLayerID", "C9458F2DCB754CEEACC54216C7D1EB0A,150190B4D17C41E98C8EB67769300FE5").split(",");
+					var satelliteLayerNames = getBaseMapParam("satelliteLayerID", "").split(",");
 					var satelliteLayers = [];
 					
 					for (var i = 0; i < satelliteLayerNames.length; i++)
@@ -4691,7 +4700,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						satelliteLayers[i].setBackgroundColor(0x000001);
 					}
 					
-					var overlayLayerNames = getBaseMapParam("overlayLayerID", KOSMOSNIMKI_LOCALIZED("FFE60CFA7DAF498381F811C08A5E8CF5,C547CFF462634F03BCE939275C339D5F", "BCCCE2BDC9BF417DACF27BB4D481FAD9,C547CFF462634F03BCE939275C339D5F")).split(',');
+					var overlayLayerNames = getBaseMapParam("overlayLayerID", "").split(',');
 					var isAnyExists = false;
 					var overlayLayers = [];
 					for (var i = 0; i < overlayLayerNames.length; i++)
@@ -6667,13 +6676,13 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			},
 			onMouseOut: function(o) 
 			{ 
-				if (lastHoverBalloonId == o.objectId)
+				if (lastHoverBalloonId == o.objectId) {
 					propsBalloon.updatePropsBalloon(false);
+				}
 			},
 			onClick: clickBalloonFix
 		};
 
-		//if(mapObject == map) return;							// На map Handlers не вешаем
 		if(mapObject._hoverBalloonAttr) {							// есть юзерские настройки балунов
 			if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
 				handlersObj['onMouseOver'] = null;
