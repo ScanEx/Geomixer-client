@@ -125,7 +125,7 @@ class EditableContent extends MapContent
 	{
 		var out:Geometry = null;
 		if (type == "LINESTRING") {
-			out = new LineGeometry(coordinates);
+			if(coordinates.length > 1) out = new LineGeometry(coordinates);
 		}
 		else if (type == "POLYGON")
 		{
