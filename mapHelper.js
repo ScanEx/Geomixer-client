@@ -4261,22 +4261,56 @@ mapHelper.prototype.updateStyles = function(filterCanvas)
 
 mapHelper.prototype.load = function()
 {
+	var _this = this;
+	
 	if (!this.builded)
 	{
-		_(this.workCanvas, [_div([_p([_div([_t(_gtxt("Навигация по карте и инструменты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_1"))]),
-								  _p([_div([_t(_gtxt("Список слоев"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_2"))]),
-								  _p([_div([_t(_gtxt("Стиль векторного слоя"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_3"))]),
-								  _p([_div([_t(_gtxt("Управление содержанием карты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_4")), _a([_span([_t(">> GeoMixer Viewer")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/mapviewer_help.html']])]),
-								  _p([_div([_t(_gtxt("Пользовательские инструменты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_5")), _br(), _span([_t(_gtxt("В режиме маркеров: "))], [['css','fontWeight','bold']]), _t(_gtxt("$$help$$_6")), _br(), _span([_t(_gtxt("В режиме линейка/измерения расстояния, полигон/измерение площади: "))], [['css','fontWeight','bold']]), _t(_gtxt("$$help$$_7")), _br(), _t(_gtxt("$$help$$_8"))]),
-								  _p([_a([_br(),_span([_t(">> GeoMixer Viewer")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/mapviewer_help.html']])]),
-								  _p([_a([_br(),_span([_t(">> GeoMixer Admin")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/admin_help.html']])])],[['dir','className','help']])]);
+		// _(this.workCanvas, [_div([_p([_div([_t(_gtxt("Навигация по карте и инструменты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_1"))]),
+								  // _p([_div([_t(_gtxt("Список слоев"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_2"))]),
+								  // _p([_div([_t(_gtxt("Стиль векторного слоя"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_3"))]),
+								  // _p([_div([_t(_gtxt("Управление содержанием карты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_4")), _a([_span([_t(">> GeoMixer Viewer")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/mapviewer_help.html']])]),
+								  // _p([_div([_t(_gtxt("Пользовательские инструменты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_5")), _br(), _span([_t(_gtxt("В режиме маркеров: "))], [['css','fontWeight','bold']]), _t(_gtxt("$$help$$_6")), _br(), _span([_t(_gtxt("В режиме линейка/измерения расстояния, полигон/измерение площади: "))], [['css','fontWeight','bold']]), _t(_gtxt("$$help$$_7")), _br(), _t(_gtxt("$$help$$_8"))]),
+								  // _p([_a([_br(),_span([_t(">> GeoMixer Viewer")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/mapviewer_help.html']])]),
+								  // _p([_a([_br(),_span([_t(">> GeoMixer Admin")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/admin_help.html']])])],[['dir','className','help']])]);
+								  
+		var fileName;
+		
+		if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.usageFilePrefix !== 'undefined')
+			fileName = window.gmxViewerUI.usageFilePrefix;
+		else
+			fileName = window.gmxJSHost ? window.gmxJSHost + "usageHelp" : "usageHelp";
+		
+		fileName += _gtxt("helpPostfix");
+		
+		_mapHelper._loadHelpTextFromFile(fileName, function( text )
+		{
+			var div = _div(null, [['dir','className','help']]);
+			div.innerHTML = text;
+			_(_this.workCanvas, [div]);
+		});
 		
 		this.builded = true;
 	}
 }
 
+mapHelper.prototype._loadHelpTextFromFile = function( fileName, callback, num, data )
+{
+	var proceess = function( text )
+	{
+		if (num ) text = text.replace("{gmxVersion}", num);
+		if (data) text = text.replace("{gmxData}", data);
+		callback(text);
+	}
+	
+	if (fileName.indexOf("http://") !== 0)
+		$.ajax({url: fileName, success: proceess});
+	else
+		sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(fileName), proceess);	
+}
+
 mapHelper.prototype.version = function()
 {
+	var _this = this;
 	if (!$$('version'))
 	{
 		function showVersion(num, data)
@@ -4298,17 +4332,25 @@ mapHelper.prototype.version = function()
 			else
 				fileName = window.gmxJSHost ? window.gmxJSHost + "help" : "help";
 			
-			var proceessAndShow = function( text )
+			fileName += _gtxt("helpPostfix");
+			
+			_mapHelper._loadHelpTextFromFile( fileName, function( text )
 			{
-				text = text.replace("{gmxVersion}", num).replace("{gmxData}", data);
 				div.html(text);
 				showDialog(_gtxt("О проекте"), div[0], 320, 300, false, false);
-			}
+			}, num, data );
 			
-			if (fileName.indexOf("http://") !== 0)
-				$.ajax({url: fileName + _gtxt("helpPostfix"), success: proceessAndShow});
-			else
-				sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(fileName + _gtxt("helpPostfix")), proceessAndShow);
+			// var proceessAndShow = function( text )
+			// {
+				// text = text.replace("{gmxVersion}", num).replace("{gmxData}", data);
+				// div.html(text);
+				// showDialog(_gtxt("О проекте"), div[0], 320, 300, false, false);
+			// }
+			
+			// if (fileName.indexOf("http://") !== 0)
+				// $.ajax({url: fileName, success: proceessAndShow});
+			// else
+				// sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(fileName), proceessAndShow);
 		}
 		
 		if (!this.versionNum)
@@ -4673,12 +4715,29 @@ serviceHelper.prototype = new leftMenu();
 
 serviceHelper.prototype.load = function()
 {
+	var _this = this;
 	if (!this.builded)
 	{
-		_(this.workCanvas, [_div([_p([_div([_t(_gtxt("Загрузить файл"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_1"))]),
-								  _p([_div([_t(_gtxt("Ссылка на карту"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_2"))]),
-								  _p([_div([_t(_gtxt("Код для вставки"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_4"))]),
-								  _p([_div([_t(_gtxt("Печать карты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_3"))])],[['dir','className','help']])]);
+		// _(this.workCanvas, [_div([_p([_div([_t(_gtxt("Загрузить файл"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_1"))]),
+								  // _p([_div([_t(_gtxt("Ссылка на карту"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_2"))]),
+								  // _p([_div([_t(_gtxt("Код для вставки"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_4"))]),
+								  // _p([_div([_t(_gtxt("Печать карты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_3"))])],[['dir','className','help']])]);
+								  
+		var fileName;
+		
+		if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.servicesFilePrefix !== 'undefined')
+			fileName = window.gmxViewerUI.servicesFilePrefix;
+		else
+			fileName = window.gmxJSHost ? window.gmxJSHost + "servicesHelp" : "servicesHelp";
+		
+		fileName += _gtxt("helpPostfix");
+		
+		_mapHelper._loadHelpTextFromFile(fileName, function( text )
+		{
+			var div = _div(null, [['dir','className','help']]);
+			div.innerHTML = text;
+			_(_this.workCanvas, [div]);
+		});
 		
 		this.builded = true;
 	}
