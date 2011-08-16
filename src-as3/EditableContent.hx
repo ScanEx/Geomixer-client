@@ -76,6 +76,7 @@ class EditableContent extends MapContent
 					g.endFill();
 				}
 			}
+			pressTime = 0.0;
 		}
 		var listener2 = function(event:Event)
 		{
