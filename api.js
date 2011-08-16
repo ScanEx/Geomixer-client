@@ -843,10 +843,11 @@ function createFlashMapInternal(div, layers, callback)
 						var flag = (attr.miniMapSetVisible ? true : false);
 						miniMap.setVisible(flag);
 						if(attr.func) attr.func = uniqueGlobalName(attr.func);
-						flashDiv.cmdFromJS(cmd, attr);
+						ret['base64'] = flashDiv.cmdFromJS(cmd, attr);
 						miniMap.setVisible(miniMapFlag);
 						break;
 				}
+				return ret;
 			}
 
 			FlashMapObject.prototype.trace = function(val) { flashDiv.trace(val); }
@@ -855,7 +856,8 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.print = function() { flashDiv.print(); }
 			FlashMapObject.prototype.savePNG = function(fileName) { flashDiv.savePNG(fileName); }
 			FlashMapObject.prototype.sendPNG = function(attr) {
-				FlashCMD('sendPNG', { 'attr': attr });
+				var ret = FlashCMD('sendPNG', { 'attr': attr });
+				return ret;
 			}
 			FlashMapObject.prototype.repaint = function() { flashDiv.repaint(); }
 			FlashMapObject.prototype.moveTo = function(x, y, z) 
@@ -2669,7 +2671,7 @@ function createFlashMapInternal(div, layers, callback)
 				if (layers.properties.OnLoad)
 				{
 					try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(map); }
-					catch (e) { alert(e); }
+					catch (e) { alert('Error in baseMap maplet: ' + e); }
 				}
 			}
 			FlashMapObject.prototype.setExtent = function(x1, x2, y1, y2)

@@ -19,6 +19,7 @@ import flash.geom.Matrix;
 import flash.printing.PrintJob;
 import flash.printing.PrintJobOptions;
 import flash.utils.Timer;
+import flash.utils.ByteArray;
 import flash.events.TimerEvent;
 
 import flash.net.URLLoader;
@@ -872,7 +873,7 @@ class Main
 		});
 
 		// Сохранение изображения карты на сервер
-		var sendPNGFile = function(attr:Dynamic)
+		var sendPNGFile = function(attr:Dynamic):String
 		{
 			try {
 				var gridHidden:Bool = grid.hidden;
@@ -888,19 +889,24 @@ class Main
 					grid.vectorSprite.visible = !gridHidden;
 					grid.setVisible(!gridHidden);
 				}
+				var pngData:ByteArray = PNGEncoder.encode(data);
+				
+				var base64:Bool = (attr.getBase64 ? true : false);
+				if(base64) return Base64.encode64(pngData, true);
 				
 				var loader:URLLoader = new URLLoader();
 				var header:URLRequestHeader = new URLRequestHeader("Content-type", "application/octet-stream");
 				var request:URLRequest = new URLRequest(attr.url);
 				request.requestHeaders.push(header);
 				request.method = URLRequestMethod.POST;
-				request.data = PNGEncoder.encode(data);
+				request.data = pngData;
 				loader.addEventListener(Event.COMPLETE, function(event:Event) {
 					var st:String = loader.data;
 					if (attr.func != null) ExternalInterface.call(attr.func, st);
 				});
 				loader.load(request);
 			} catch (e:Error) { trace(e); }
+			return '';
 		}
 		ExternalInterface.addCallback("sendPNG", sendPNGFile);
 		
@@ -921,10 +927,11 @@ class Main
 			var out = { };
 			switch (cmd) {
 				case 'sendPNG':
-					sendPNGFile(attr);
+					out = sendPNGFile(attr);
 				case 'setVisible':
 					setVisible(attr.objectId, attr.flag);
 			}
+			return out;
 		}
 		ExternalInterface.addCallback("cmdFromJS", parseCmdFromJS);
 
