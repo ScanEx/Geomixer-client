@@ -17,9 +17,19 @@ var queryDrawingObjects = function()
 	this.downloadRasterCanvas = null;
 	
 	this.count = 0;
+	
+	this._visibilityDelegates = [];
 }
 
 queryDrawingObjects.prototype = new leftMenu();
+
+// Делегаты пользовательских объектов - классы, управляющие отображением объектов на панели пользовательских объектов
+// Методы:
+//   - isHidden(elem) -> Bool
+queryDrawingObjects.prototype.addVisibilityDelegate = function( delegate )
+{
+	this._visibilityDelegates.push( delegate );
+}
 
 queryDrawingObjects.prototype.createCanvas = function()
 {
@@ -70,6 +80,10 @@ queryDrawingObjects.prototype.createCanvas = function()
 
 queryDrawingObjects.prototype.onAdd = function(elem)
 {
+	for (var d = 0; d < _queryDrawingObjects._visibilityDelegates.length; d++)
+		if ( _queryDrawingObjects._visibilityDelegates[d].isHidden(elem) )
+			return;
+	
 	if (!$$('left_objects') ||
 		$$('left_objects').style.display == 'none')
 		drawingObjects.drawingObjects.load();

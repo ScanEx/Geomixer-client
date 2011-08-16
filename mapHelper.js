@@ -348,11 +348,12 @@ mapHelper.prototype.getMapState = function()
 		
 		if (o.geometry.type != "POINT")
 		{
-			var style = $(o.canvas).find("div.colorIcon")[0].getStyle();
+			//var style = $(o.canvas).find("div.colorIcon")[0].getStyle();
+			var style = o.getStyle();
 			
-			elem.thickness = style.outline.thickness;
-			elem.color = style.outline.color;
-			elem.opacity = style.outline.opacity;
+			elem.thickness = style.regular.outline.thickness;
+			elem.color = style.regular.outline.color;
+			elem.opacity = style.regular.outline.opacity;
 		}
 		
 		if ( o.balloon ) elem.isBalloonVisible = o.balloon.isVisible;
@@ -4499,11 +4500,12 @@ mapHelper.prototype.print = function()
 					
 					if (o.geometry.type != "POINT")
 					{
-						var style = $(o.canvas).find("div.colorIcon")[0].getStyle();
+						//var style = $(o.canvas).find("div.colorIcon")[0].getStyle();
+						var style = o.getStyle();
 						
-						elem.thickness = style.outline.thickness;
-						elem.color = style.outline.color;
-						elem.opacity = style.outline.opacity;
+						elem.thickness = style.regular.outline.thickness;
+						elem.color = style.regular.outline.color;
+						elem.opacity = style.regular.outline.opacity;
 					}
 					
 					drawnObjects.push(elem);

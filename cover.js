@@ -2605,6 +2605,17 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 */
 var MapCalendar = function(params)
 {
+	if (typeof _queryDrawingObjects !== 'undefined')
+	{
+		_queryDrawingObjects.addVisibilityDelegate(
+		{
+			isHidden: function(obj)
+			{
+				return typeof obj.properties.firesBbox !== 'undefined';
+			}
+		});
+	}
+	
 	this.calendar = new Calendar();
 	this.fires = new FiresControl();
 	this.cover = new CoverControl();
@@ -2674,6 +2685,8 @@ MapCalendar.prototype.loadState = function( data )
 
 MapCalendar.prototype.init = function(parent, params)
 {
+
+			
 	this.params = $.extend({minimized: true}, params);
 	
 	var name = 'MapCalendar',
