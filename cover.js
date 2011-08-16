@@ -1524,6 +1524,15 @@ var _hq = {
 	}
 }
 
+//По начальной и конечной дате формирует строчку для отображения интервала дат
+var _datePeriodHelper = function(dateMin, dateMax)
+{
+	if (dateMin === dateMax)
+		return dateMin;
+	else
+		return dateMin + ' - ' + dateMax;
+}
+
 /** Провайдер данных об очагах и кластерах пожаров
 * @memberOf cover
 * @class 
@@ -1624,7 +1633,7 @@ var FireSpotClusterProvider = (function(){
 								points: clusters[k].length,
 								clusterId: k.substr(2),
 								balloonProps: {"Кол-во горячих точек": clusters[k].length, 
-											   "Период наблюдения": clustersMinMaxDates[k].min + ' - ' + clustersMinMaxDates[k].max}
+											   "Период наблюдения": _datePeriodHelper(clustersMinMaxDates[k].min, clustersMinMaxDates[k].max)}
 							 } );
 		}
 		
@@ -2064,7 +2073,7 @@ var CombinedFiresRenderer = function( params )
 			var id = 'id' + data[0].clusters[cl].clusterId;
 			if (id in clusterHash)
 				$.extend( data[0].clusters[cl].balloonProps, {
-					"Период горения": clusterHash[id].dateBegin + "-" + clusterHash[id].dateEnd, 
+					"Период горения": _datePeriodHelper(clusterHash[id].dateBegin, clusterHash[id].dateEnd),
 					"Выгоревшая площадь": prettifyArea(geoArea(clusterHash[id].geometry))
 				});
 		}
@@ -2605,6 +2614,17 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 */
 var MapCalendar = function(params)
 {
+	if (typeof _queryDrawingObjects !== 'undefined')
+	{
+		_queryDrawingObjects.addVisibilityDelegate(
+		{
+			isHidden: function(obj)
+			{
+				return typeof obj.properties.firesBbox !== 'undefined';
+			}
+		});
+	}
+	
 	this.calendar = new Calendar();
 	this.fires = new FiresControl();
 	this.cover = new CoverControl();
@@ -2674,6 +2694,8 @@ MapCalendar.prototype.loadState = function( data )
 
 MapCalendar.prototype.init = function(parent, params)
 {
+
+			
 	this.params = $.extend({minimized: true}, params);
 	
 	var name = 'MapCalendar',
