@@ -499,7 +499,7 @@ class Main
 			window.setCenter(currentX, currentY);
 		});
 		ExternalInterface.addCallback("setBackgroundColor", function(id:String, color:Int)
-		{ 
+		{
 			if (id == mapRoot.id)
 				id = mapWindow.rootNode.id;
 			var window = MapWindow.allWindows.get(id);
@@ -507,6 +507,7 @@ class Main
 				window.setBackgroundColor(color);
 			if (window == mapWindow)
 				repaintCrosshair();
+			if(grid.getVisibility()) grid.content.paintLabels();
 		});
 		ExternalInterface.addCallback("remove", function(id:String) 
 		{ 
@@ -849,10 +850,22 @@ class Main
 			else
 				return new Geometry();
 		}
-		ExternalInterface.addCallback("getGeometry", function(id:String) { return getGeometry(id).export(); });
-		ExternalInterface.addCallback("getLength", function(id:String) { return getGeometry(id).getLength(); });
-		ExternalInterface.addCallback("getArea", function(id:String) { return getGeometry(id).getArea(); });
-		ExternalInterface.addCallback("getGeometryType", function(id:String) { return getGeometry(id).export().type; });
+		ExternalInterface.addCallback("getGeometry", function(id:String) {
+			var geom = getGeometry(id);
+			return (geom == null ? null : geom.export());
+		});
+		ExternalInterface.addCallback("getLength", function(id:String) {
+			var geom = getGeometry(id);
+			return (geom == null ? null : geom.getLength());
+		});
+		ExternalInterface.addCallback("getArea", function(id:String) {
+			var geom = getGeometry(id);
+			return (geom == null ? null : geom.getArea());
+		});
+		ExternalInterface.addCallback("getGeometryType", function(id:String) {
+			var geom = getGeometry(id);
+			return (geom == null ? null : geom.export().type);
+		});
 		ExternalInterface.addCallback("getCenter", function(id:String) { return [0.0, 0.0]; });
 		ExternalInterface.addCallback("addChildRoot", function(id:String) { return getNode(id).addChild().id; });
 		ExternalInterface.addCallback("print", function()
