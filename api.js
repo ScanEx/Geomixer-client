@@ -3946,14 +3946,6 @@ function createFlashMapInternal(div, layers, callback)
 				x2y1Corner.setHandlers(objHandlerCorner);
 				x2y2Corner.setHandlers(objHandlerCorner);
 
-				var objHandlerBorder = {
-					onMouseOver: function()
-					{
-						if(isDraging) return;
-						var geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
-						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
-					}
-				};
 				x1Border.setHandlers({
 					onMouseOver: function()
 					{
@@ -4023,6 +4015,7 @@ function createFlashMapInternal(div, layers, callback)
 						{
 							x1 = x;
 							y1 = y;
+							isDraging = true;
 						},
 						function()
 						{
