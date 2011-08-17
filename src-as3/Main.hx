@@ -507,7 +507,8 @@ class Main
 				window.setBackgroundColor(color);
 			if (window == mapWindow)
 				repaintCrosshair();
-			if(grid.getVisibility()) grid.content.paintLabels();
+				
+			viewportHasMoved = true;
 		});
 		ExternalInterface.addCallback("remove", function(id:String) 
 		{ 
