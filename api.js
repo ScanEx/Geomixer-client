@@ -3928,18 +3928,61 @@ function createFlashMapInternal(div, layers, callback)
 					domObj.update(geom, text);
 					propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
 				}
-
-				obj.setHandlers({
+				var objHandlerCorner = {
 					onMouseOver: function()
 					{
 						var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
 						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
-					},
+					}
+				};
+				x1y1Corner.setHandlers(objHandlerCorner);
+				x1y2Corner.setHandlers(objHandlerCorner);
+				x2y1Corner.setHandlers(objHandlerCorner);
+				x2y2Corner.setHandlers(objHandlerCorner);
+
+				var objHandlerBorder = {
+					onMouseOver: function()
+					{
+						var geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
+						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
+					}
+				};
+				x1Border.setHandlers({
+					onMouseOver: function()
+					{
+						var geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x1, y2]]] };
+						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
+					}
+				});
+				y1Border.setHandlers({
+					onMouseOver: function()
+					{
+						var geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1]]] };
+						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
+					}
+				});
+				x2Border.setHandlers({
+					onMouseOver: function()
+					{
+						var geom = { type: "LINESTRING", coordinates: [[[x2, y1], [x2, y2]]] };
+						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
+					}
+				});
+				y2Border.setHandlers({
+					onMouseOver: function()
+					{
+						var geom = { type: "LINESTRING", coordinates: [[[x1, y2], [x2, y2]]] };
+						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
+					}
+				});
+
+				obj.setHandlers({
 					onMouseOut: function()
 					{
 						propsBalloon.updatePropsBalloon(false);
 					}
 				});
+
 
 				var created = false;
 
