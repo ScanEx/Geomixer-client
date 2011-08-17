@@ -3838,6 +3838,22 @@ function createFlashMapInternal(div, layers, callback)
 				return ret;
 			}
 
+			function getGeometryTitleMerc(geom)
+			{
+				var geomType = geom['type'];
+				if (geomType.indexOf("POINT") != -1)
+				{
+					var c = geom.coordinates;
+					return "<b>" + KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + formatCoordinates(merc_x(c[0]), merc_y(c[1]));
+				}
+				else if (geomType.indexOf("LINESTRING") != -1)
+					return "<b>" + KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> " + prettifyDistance(geoLength(geom));
+				else if (geomType.indexOf("POLYGON") != -1)
+					return "<b>" + KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> " + prettifyArea(geoArea(geom));
+				else
+					return "?";
+			}
+
 			drawFunctions.FRAME = function(coords, props)
 			{
 				if (!props)
@@ -3852,7 +3868,6 @@ function createFlashMapInternal(div, layers, callback)
 				var domObj;
 
 				var obj = map.addObject();
-				var propsBalloon = map.balloonClassObject.propsBalloon;
 
 				var borders = obj.addObject();
 				var corners = obj.addObject();
@@ -3873,10 +3888,17 @@ function createFlashMapInternal(div, layers, callback)
 				var x2Border = borders.addObject();
 				var y2Border = borders.addObject();
 
-				x1Border.enableDragging(function(x, y) { x1 = x; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
-				y1Border.enableDragging(function(x, y) { y1 = y; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
-				x2Border.enableDragging(function(x, y) { x2 = x; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
-				y2Border.enableDragging(function(x, y) { y2 = y; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
+				var propsBalloon = map.balloonClassObject.propsBalloon;
+				var mouseUP = function()
+				{
+					domObj.triggerInternal("onMouseUp");
+					propsBalloon.updatePropsBalloon(false);
+				}
+
+				x1Border.enableDragging(function(x, y) { x1 = x; repaint(); }, function(){}, function(){ mouseUP(); } );
+				y1Border.enableDragging(function(x, y) { y1 = y; repaint(); }, function(){}, function(){ mouseUP(); } );
+				x2Border.enableDragging(function(x, y) { x2 = x; repaint(); }, function(){}, function(){ mouseUP(); } );
+				y2Border.enableDragging(function(x, y) { y2 = y; repaint(); }, function(){}, function(){ mouseUP(); } );
 
 				corners.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 
@@ -3885,10 +3907,11 @@ function createFlashMapInternal(div, layers, callback)
 				var x2y1Corner = corners.addObject();
 				var x2y2Corner = corners.addObject();
 	
-				x1y1Corner.enableDragging(function(x, y) { x1 = x; y1 = y; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
-				x1y2Corner.enableDragging(function(x, y) { x1 = x; y2 = y; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
-				x2y1Corner.enableDragging(function(x, y) { x2 = x; y1 = y; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
-				x2y2Corner.enableDragging(function(x, y) { x2 = x; y2 = y; repaint(); }, null, function(){ domObj.triggerInternal("onMouseUp"); } );
+				x1y1Corner.enableDragging(function(x, y) { x1 = x; y1 = y; repaint(); }, function(){}, function(){ mouseUP(); } );
+				x1y2Corner.enableDragging(function(x, y) { x1 = x; y2 = y; repaint(); }, function(){}, function(){ mouseUP(); } );
+				x2y1Corner.enableDragging(function(x, y) { x2 = x; y1 = y; repaint(); }, function(){}, function(){ mouseUP(); } );
+				x2y2Corner.enableDragging(function(x, y) { x2 = x; y2 = y; repaint(); }, function(){}, function(){ mouseUP(); } );
+
 				var repaint = function(flag)
 				{
 					x1Border.setLine([[x1, y1], [x1, y2]]);
@@ -3901,9 +3924,22 @@ function createFlashMapInternal(div, layers, callback)
 					x2y1Corner.setPoint(x2, y1);
 					x2y2Corner.setPoint(x2, y2);
 
-					var c = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
-					domObj.update({ type: "POLYGON", coordinates: [c] }, text);
+					var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
+					domObj.update(geom, text);
+					propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
 				}
+
+				obj.setHandlers({
+					onMouseOver: function()
+					{
+						var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
+						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
+					},
+					onMouseOut: function()
+					{
+						propsBalloon.updatePropsBalloon(false);
+					}
+				});
 
 				var created = false;
 
@@ -3940,6 +3976,7 @@ function createFlashMapInternal(div, layers, callback)
 							setToolHandler("onMouseDown", null);
 							selectTool("move");
 							if(domObj) domObj.triggerInternal("onMouseUp");
+							propsBalloon.updatePropsBalloon(false);
 						}
 					);
 				}
