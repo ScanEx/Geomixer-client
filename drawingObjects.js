@@ -185,6 +185,8 @@ queryDrawingObjects.prototype.onEdit = function(elem)
 
 queryDrawingObjects.prototype.onRemove = function(elem)
 {
+	if (!elem.canvas) return;
+	
 	_queryDrawingObjects.count--;
 	
 	elem.canvas.removeNode(true)
