@@ -324,12 +324,13 @@ Calendar.prototype.init = function( params )
 		showAnim: 'fadeIn',
 		changeMonth: true,
 		changeYear: true,
-		minDate: new Date(this.dateMin.valueOf()),
-		maxDate: new Date(this.dateMax.valueOf()),
-		dateFormat: params.dateFormat
+		minDate: new Date(this.dateMin.valueOf() + this.dateMin.getTimezoneOffset()*60*1000),
+		maxDate: new Date(this.dateMax.valueOf() + this.dateMin.getTimezoneOffset()*60*1000),
+		dateFormat: params.dateFormat,
+		defaultDate: new Date(this.dateMax.valueOf() + this.dateMin.getTimezoneOffset()*60*1000)
 	});
 	
-	$(this.dateEnd).datepicker("setDate", new Date());
+	$(this.dateEnd).datepicker("setDate", new Date((new Date()).valueOf() + (new Date()).getTimezoneOffset()*60*1000));
 	$(this.dateBegin).datepicker("setDate", this.getBeginByEnd());
 }
 
@@ -1293,6 +1294,13 @@ var AggregateStatus = function()
 	this.getCommonStatus = function(){ return _statusCommon };
 }
 
+var _formatDateForServer = function( datetime )
+{
+	var dateString = datetime.getDate() + "." + (datetime.getMonth()+1) + "." + datetime.getFullYear();
+	var timeString = datetime.getHours() + ":00:00";
+	return dateString + " " + timeString;
+}
+
 /*
  ************************************
  *          Data Providers          *
@@ -1411,7 +1419,7 @@ var ModisImagesProvider = function( params )
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
 		//запрашиваем только за первый день периода
-		var modisUrl = _params.host + "DBWebProxy.ashx?Type=GetModis&Date=" + dateEnd;
+		var modisUrl = _params.host + "DBWebProxy.ashx?Type=GetModis&Date=" + _formatDateForServer(dateEnd);
 		
 		IDataProvider.sendCachedCrossDomainJSONRequest(modisUrl, function(data)
 		{
@@ -1670,7 +1678,7 @@ var FireSpotClusterProvider = (function(){
 	{
 		var _params = $.extend({
 			host: 'http://sender.kosmosnimki.ru/',
-			requestType: 'GetClustersPointsBBox',
+			requestType: 'GetClustersPointsBBoxV2',
 			onlyPoints: false, 
 			onlyClusters: false, 
 			onlyDialyClusters: false, 
@@ -1681,7 +1689,8 @@ var FireSpotClusterProvider = (function(){
 		this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 		{
 			var urlBbox = bbox ? '&MinX='+ bbox.minX + '&MinY='+ bbox.minY + '&MaxX='+ bbox.maxX + '&MaxY='+ bbox.maxY : "";
-			var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+			// var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+			var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + _formatDateForServer(dateBegin) + "&EndDate=" + _formatDateForServer(dateEnd) + urlBbox;
 			
 			//IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
 			_addRequestCallback(urlFires, function(data)
@@ -1720,7 +1729,7 @@ var FireClusterSimpleProvider = function( params )
 	{
 	
 		var urlBbox = bbox ? '&MinX='+ bbox.minX + '&MinY='+ bbox.minY + '&MaxX='+ bbox.maxX + '&MaxY='+ bbox.maxY : "";
-		var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
+		var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + _formatDateForServer(dateBegin) + "&EndDate=" + _formatDateForServer(dateEnd) + urlBbox;
 		//var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClusters&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
 		
 		IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
@@ -2150,6 +2159,8 @@ var FiresControl = function()
 	this.searchBboxController = new SearchBboxControl();
 	
 	this._currentVisibility = true;
+	
+	this._timeShift = null;
 }
 
 
@@ -2178,8 +2189,16 @@ FiresControl.prototype.saveState = function()
 	var dc = [];
 	for (k in this.dataControllers)
 		dc.push({name: this.dataControllers[k].name, visible: this.dataControllers[k].visible});
-		
-	return {dataContrololersState: dc, bbox: this.searchBboxController.saveState() };
+	
+	var resData = {
+		dataContrololersState: dc, 
+		bbox: this.searchBboxController.saveState() 
+	}
+	
+	if (this._timeShift)
+		$.extend(true, resData, {timeShift: this._timeShift});
+	
+	return resData;
 }
 
 FiresControl.prototype.loadState = function( data )
@@ -2194,6 +2213,9 @@ FiresControl.prototype.loadState = function( data )
 			$("#" + dc[k].name, this._parentDiv).attr({checked: dc[k].visible});
 			curController.renderer.setVisible(curController.visible && this._currentVisibility);
 		}
+		
+	if (data.timeShift)
+		this._timeShift = $.extend({}, data.timeShift);
 			
 	this.searchBboxController.loadState(data.bbox);
 }
@@ -2286,6 +2308,26 @@ FiresControl.prototype.findBbox = function()
 	this.searchBboxController.findBbox();
 }
 
+FiresControl.prototype._addTimeShift = function(date)
+{
+	if (!this._timeShift) return;
+	
+	date.setHours(this._timeShift.hours);
+	date.setMinutes(this._timeShift.minutes);
+	date.setSeconds(this._timeShift.seconds);
+}
+
+FiresControl.prototype._updateDateInfo = function()
+{
+	var infoContainter = $('#datesInfo', this._parentDiv);
+	infoContainter.empty();
+	
+	// var dateBeginString = $.datepicker.formatDate('yy.mm.dd', this.dateFiresBegin) + ;
+	var dateBeginString = _formatDateForServer(this.dateFiresBegin) + " - " + _formatDateForServer(this.dateFiresEnd) + " UTC";
+	
+	infoContainter.text(dateBeginString);
+}
+
 /** Возвращает bbox, по которому запрашиваются данные.
 * @method 
 */
@@ -2297,6 +2339,29 @@ FiresControl.prototype.getBbox = function()
 //предполагаем, что dateBegin, dateEnd не нулевые
 FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
+	
+	//в упрощённом режиме будем запрашивать за последние 24 часа, а не за календартный день
+	if (this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE)
+	{	
+		this._addTimeShift(dateBegin);
+		this._addTimeShift(dateEnd);
+		
+		dateBegin.setTime(dateBegin.getTime() - 24*60*60*1000);
+		
+		// var now = new Date();
+		// dateBegin.setHours(now.getUTCHours());
+		// dateBegin.setMinutes(now.getUTCMinutes());
+		// dateBegin.setSeconds(now.getUTCSeconds());
+		
+		// dateEnd.setHours(now.getUTCHours());
+		// dateEnd.setMinutes(now.getUTCMinutes());
+		// dateEnd.setSeconds(now.getUTCSeconds());
+	}
+	else
+	{
+		dateEnd.setTime(dateEnd.getTime() + 24*60*60*1000); //увеличиваем верхнюю границу на сутки
+	}
+		
 	var curExtent = this.getBbox();
 	
 	var isDatesChanged = !this.dateFiresBegin || !this.dateFiresEnd || dateBegin.getTime() != this.dateFiresBegin.getTime() || dateEnd.getTime() != this.dateFiresEnd.getTime();
@@ -2306,6 +2371,8 @@ FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	
 	this.dateFiresBegin = dateBegin;
 	this.dateFiresEnd = dateEnd;
+	
+	this._updateDateInfo();
 	
     var _this = this;
 	
@@ -2331,7 +2398,8 @@ FiresControl.prototype.loadForDates = function(dateBegin, dateEnd)
 				(function(curController){
 					curController.curRequestIndex++;
 					var requestIndex = curController.curRequestIndex;
-					curController.provider.getData( $.datepicker.formatDate(_this._firesOptions.dateFormat, dateBegin), $.datepicker.formatDate(_this._firesOptions.dateFormat, dateEnd), curExtent.getBounds(), 
+					//curController.provider.getData( $.datepicker.formatDate(_this._firesOptions.dateFormat, dateBegin), $.datepicker.formatDate(_this._firesOptions.dateFormat, dateEnd), curExtent.getBounds(), 
+					curController.provider.getData( dateBegin, dateEnd, curExtent.getBounds(), 
 						function( data )
 						{
 							if (requestIndex != curController.curRequestIndex) return; //был отправлен ещё один запрос за то время, как пришёл этот ответ -> этот ответ пропускаем
@@ -2503,6 +2571,9 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 		if (_this.searchBboxController.getBbox().isWholeWorld() && _this._visModeController.getMode() ===  _this._visModeController.ADVANCED_MODE)
 			restrictByVisibleExtent(true);
 			
+		var dateBegin = _this._calendar.getDateBegin();
+		var dateEnd = _this._calendar.getDateEnd();
+		
 		_this.loadForDates( _this._calendar.getDateBegin(), _this._calendar.getDateEnd() );
 	})
 	
@@ -2529,6 +2600,13 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 				_this.searchBboxController.removeBbox( true );
 				curDrawing.remove();
 			}
+			
+			var now = new Date();
+			_this._timeShift = {
+				hours: now.getUTCHours(), 
+				minutes: now.getUTCMinutes(), 
+				seconds: now.getUTCSeconds()
+			};
 		}
 		else 
 		{	
@@ -2537,10 +2615,19 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 				//пользователь нажал на поиск, а рамки у нас нет -> добавим рамку по размеру окна.
 				restrictByVisibleExtent(true);
 			}
+			this._timeShift = null;
+			
 			//$(button).css({display: ''});
 		}
 		_this.loadForDates( _this._calendar.getDateBegin(), _this._calendar.getDateEnd() );
 	});
+	
+	var now = new Date();
+	this._timeShift = {
+		hours: now.getUTCHours(), 
+		minutes: now.getUTCMinutes(), 
+		seconds: now.getUTCSeconds()
+	};
 	
 	var internalTable = _table([_tbody([_tr([_td([button])/*, _td([processImg])*/])])], [['css', 'marginLeft', '15px']]);
 	trs.push(_tr([_td([internalTable], [['attr','colSpan',2]])]));
@@ -2559,6 +2646,7 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 	})
 	
 	$(this._parentDiv).append(_table([_tbody(trs)],[['css','marginLeft','0px']]));
+	$(this._parentDiv).append(_div(null, [['dir', 'id', 'datesInfo']]));
 }
 
 /*
@@ -2763,8 +2851,8 @@ MapCalendar.prototype.init = function(parent, params)
 	});
 
 	canvas = _div([_span([emptyieinput,
-						_table([_tbody([_tr([_td([first]),_td([this.calendar.dateBegin]),_td([this.calendar.dateEnd], [['dir', 'className', 'onlyMaxVersion']]),_td([last]) , _td([moreIcon])]),
-										_tr([_td(null, [['attr','colSpan',4],['css','height','5px']])], [['dir', 'className', 'onlyMaxVersion']])/*,
+						_table([_tbody([_tr([_td([first]),_td([this.calendar.dateBegin]),_td([this.calendar.dateEnd], [['dir', 'className', 'onlyMaxVersion']]),_td([last]) , _td([moreIcon])])/*,
+										_tr([_td(null, [['attr','colSpan',4],['css','height','5px']])], [['dir', 'className', 'onlyMaxVersion']])*/ /*,
 										_tr([_td(), _td([_span([_t(_gtxt("calendarWidget.Period"))],[['css','margin','4px']])]), tdYear], [['dir', 'className', 'onlyMaxVersion']])*/
 										])])], [['attr', 'id', 'calendar']])
 						],
@@ -2787,7 +2875,7 @@ MapCalendar.prototype.init = function(parent, params)
 		this.layerFilters.init(globalFlashMap, this.calendar, this.params.layerFilters);
 	}
 	
-	_(parent, [_div([canvas],[['css','margin','0px 0px 20px 10px']])]);
+	_(parent, [_div([canvas],[['css','margin','0px 0px 10px 10px']])]);
 
 	emptyieinput.blur();
 	
