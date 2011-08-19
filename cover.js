@@ -2776,7 +2776,7 @@ MapCalendar.prototype.loadState = function( data )
 	if ( data.cover || data.fires )
 		this.setDates();
 		
-	if (data.layerFilters)
+	if (this.layerFilters)
 		this.layerFilters.update();
 }
 
