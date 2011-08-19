@@ -1402,6 +1402,28 @@ mapHelper.prototype.createLoadingFilter = function(parentObject, parentStyle, ge
 		return (typeof parentStyle.BalloonEnable != 'undefined' ? parentStyle.BalloonEnable : true);
 	};
 	
+	filterCanvas.getBalloonDisableOnClick = function()
+	{
+		return parentStyle.DisableBalloonOnClick;
+	};
+	
+	filterCanvas.getDisableBalloonOnMouseMove = function()
+	{
+		return parentStyle.DisableBalloonOnMouseMove;
+	};
+	
+	filterCanvas.getBalloonState = function()
+	{
+		var state = {
+			BalloonEnable: !parentStyle.DisableBalloonOnMouseMove || !parentStyle.DisableBalloonOnClick,
+			DisableBalloonOnClick: parentStyle.DisableBalloonOnClick,
+			DisableBalloonOnMouseMove: parentStyle.DisableBalloonOnMouseMove,
+			Balloon: parentStyle.Balloon
+		}
+		
+		return state;
+	}
+	
 	filterCanvas.addFilterParams = function(filterParams)
 	{
 		filterParams.Name = nameInput.value;
@@ -4233,7 +4255,7 @@ mapHelper.prototype.updateStyles = function(filterCanvas)
 		// newFilterStyle.DisableBalloonOnClick = balloonValueElem.getBalloonDisableOnClick();
 		// newFilterStyle.DisableBalloonOnMouseMove = balloonValueElem.getDisableBalloonOnMouseMove();
 		
-		$.extend(newFilterStyle, balloonValueElem.getBalloonState())
+		$.extend(newFilterStyle, balloonValueElem.getBalloonState());
 			
 		// if (balloonValue != '' && balloonValue != null)
 			// newFilterStyle.Balloon = balloonValue;
