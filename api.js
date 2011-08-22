@@ -3894,19 +3894,10 @@ function createFlashMapInternal(div, layers, callback)
 				var propsBalloon = map.balloonClassObject.propsBalloon;
 				var mouseUP = function()
 				{
-					domObj.triggerInternal("onMouseUp");
-					propsBalloon.updatePropsBalloon(false);
 					isDraging = false;
+					propsBalloon.updatePropsBalloon(false);
+					domObj.triggerInternal("onMouseUp");
 				}
-				var mouseDown = function()
-				{
-					isDraging = true;
-				}
-
-				x1Border.enableDragging(function(x, y) { x1 = x; repaint(); }, mouseDown, mouseUP);
-				y1Border.enableDragging(function(x, y) { y1 = y; repaint(); }, mouseDown, mouseUP);
-				x2Border.enableDragging(function(x, y) { x2 = x; repaint(); }, mouseDown, mouseUP);
-				y2Border.enableDragging(function(x, y) { y2 = y; repaint(); }, mouseDown, mouseUP);
 
 				corners.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 
@@ -3914,11 +3905,25 @@ function createFlashMapInternal(div, layers, callback)
 				var x1y2Corner = corners.addObject();
 				var x2y1Corner = corners.addObject();
 				var x2y2Corner = corners.addObject();
-	
-				x1y1Corner.enableDragging(function(x, y) { x1 = x; y1 = y; repaint(); }, mouseDown, mouseUP);
-				x1y2Corner.enableDragging(function(x, y) { x1 = x; y2 = y; repaint(); }, mouseDown, mouseUP);
-				x2y1Corner.enableDragging(function(x, y) { x2 = x; y1 = y; repaint(); }, mouseDown, mouseUP);
-				x2y2Corner.enableDragging(function(x, y) { x2 = x; y2 = y; repaint(); }, mouseDown, mouseUP);
+
+				// ¬ысвечивание балуна в зависимости от типа geometry
+				var chkBalloon = function(tp)
+				{
+					var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
+					if(!isDraging) {
+						switch(tp) {
+							case 'x1b':
+							case 'x2b':
+								geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x1, y2]]] };
+								break;
+							case 'y1b':
+							case 'y2b':
+								geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1]]] };
+								break;
+						}
+					}
+					propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
+				}
 
 				var repaint = function(flag)
 				{
@@ -3934,59 +3939,44 @@ function createFlashMapInternal(div, layers, callback)
 
 					var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
 					domObj.update(geom, text);
-					propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
 				}
+
+				var objHandlersX = {
+					onMouseOver: function() { chkBalloon('x1b') },
+					onMouseOut: function() { if(!isDraging) mouseUP(); }
+				};
+				x1Border.setHandlers(objHandlersX);
+				x2Border.setHandlers(objHandlersX);
+				var objHandlersY = {
+					onMouseOver: function() { chkBalloon('y1b') },
+					onMouseOut: function() { if(!isDraging) mouseUP(); }
+				};
+				y1Border.setHandlers(objHandlersY);
+				y2Border.setHandlers(objHandlersY);
+
 				var objHandlerCorner = {
-					onMouseOver: function()
-					{
-						var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
-						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
-					}
+					onMouseOver: chkBalloon
 				};
 				x1y1Corner.setHandlers(objHandlerCorner);
 				x1y2Corner.setHandlers(objHandlerCorner);
 				x2y1Corner.setHandlers(objHandlerCorner);
 				x2y2Corner.setHandlers(objHandlerCorner);
 
-				x1Border.setHandlers({
-					onMouseOver: function()
-					{
-						if(isDraging) return;
-						var geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x1, y2]]] };
-						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
-					}
-				});
-				y1Border.setHandlers({
-					onMouseOver: function()
-					{
-						if(isDraging) return;
-						var geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1]]] };
-						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
-					}
-				});
-				x2Border.setHandlers({
-					onMouseOver: function()
-					{
-						if(isDraging) return;
-						var geom = { type: "LINESTRING", coordinates: [[[x2, y1], [x2, y2]]] };
-						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
-					}
-				});
-				y2Border.setHandlers({
-					onMouseOver: function()
-					{
-						var geom = { type: "LINESTRING", coordinates: [[[x1, y2], [x2, y2]]] };
-						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
-					}
-				});
-
-				obj.setHandlers({
-					onMouseOut: function()
-					{
-						propsBalloon.updatePropsBalloon(false);
-					}
-				});
-
+				var dragMe = function(tp)
+				{
+					isDraging = true;
+					chkBalloon(tp)
+					repaint();
+				}
+				x1Border.enableDragging(function(x, y) { x1 = x; dragMe('x1b'); }, null, mouseUP);
+				y1Border.enableDragging(function(x, y) { y1 = y; dragMe('y1b'); }, null, mouseUP);
+				x2Border.enableDragging(function(x, y) { x2 = x; dragMe('x2b'); }, null, mouseUP);
+				y2Border.enableDragging(function(x, y) { y2 = y; dragMe('y2b'); }, null, mouseUP);
+	
+				x1y1Corner.enableDragging(function(x, y) { x1 = x; y1 = y; dragMe(); }, null, mouseUP);
+				x1y2Corner.enableDragging(function(x, y) { x1 = x; y2 = y; dragMe(); }, null, mouseUP);
+				x2y1Corner.enableDragging(function(x, y) { x2 = x; y1 = y; dragMe(); }, null, mouseUP);
+				x2y2Corner.enableDragging(function(x, y) { x2 = x; y2 = y; dragMe(); }, null, mouseUP);
 
 				var created = false;
 
@@ -4006,6 +3996,7 @@ function createFlashMapInternal(div, layers, callback)
 					map.enableDragging(
 						function(x, y)
 						{
+							isDraging = true;
 							x2 = x;
 							y2 = y;
 							if (!created)
@@ -4017,14 +4008,14 @@ function createFlashMapInternal(div, layers, callback)
 						{
 							x1 = x;
 							y1 = y;
-							isDraging = true;
 						},
 						function()
 						{
+							isDraging = false;
+							propsBalloon.updatePropsBalloon(false);
 							setToolHandler("onMouseDown", null);
 							selectTool("move");
 							if(domObj) domObj.triggerInternal("onMouseUp");
-							propsBalloon.updatePropsBalloon(false);
 						}
 					);
 				}
