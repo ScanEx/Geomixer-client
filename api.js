@@ -15,6 +15,12 @@ var gmxAPI = {
 			else
 				return "[" + arguments[1] + "]";
 		});
+	},
+	getIdentityField: function(obj)
+	{
+		if(!obj || !obj.parent) return 'ogc_fid';
+		if(obj.properties && obj.properties.identityField) return obj.properties.identityField;
+		return this.getIdentityField(obj.parent);
 	}
 }
 
@@ -1259,7 +1265,8 @@ function createFlashMapInternal(div, layers, callback)
 				this.setHandler("onClick", function(o)
 				{
 					try {
-					var id = "id_" + o.properties.ogc_fid;
+					var identityField = gmxAPI.getIdentityField(o);
+					var id = 'id_' + o.properties[identityField];
 					if (!shownQuicklooks[id])
 					{
 						var url = callback(o);
@@ -1336,10 +1343,10 @@ function createFlashMapInternal(div, layers, callback)
 				var flipCounts = {};
 				var updateImageDepth = function(o)
 				{
+					var identityField = gmxAPI.getIdentityField(o);
+					var id = 'id_' + o.properties[identityField];
 					var props = o.properties;
 
-					var id = "id_" + props.ogc_fid;
-					
 					// Установка балуна для тайлов меньше Zoom растров
 					var curZ = map.getZ();
 					var flag = (minZoom && curZ < minZoom ? true : false);
@@ -1358,7 +1365,7 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						var pa = propsArray[i];
 						var date = pa.date || pa.DATE;
-						var fc = flipCounts["id_" + pa.ogc_fid];
+						var fc = flipCounts["id_" + pa[identityField]];
 						var isHigher = false;
 						if (!lastFc)
 							isHigher = !fc ? (lastDate && (date > lastDate)) : (fc < 0);
@@ -1375,7 +1382,8 @@ function createFlashMapInternal(div, layers, callback)
 				tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
 				tilesParent.observeVectorLayer(this, function(o, flag)
 				{
-					var id = "id_" + o.properties.ogc_fid;
+					var identityField = gmxAPI.getIdentityField(o);
+					var id = 'id_' + o.properties[identityField];
 					if (flag && !images[id])
 					{
 						var image = tilesParent.addObject(o.geometry, o.properties);
@@ -1390,7 +1398,7 @@ function createFlashMapInternal(div, layers, callback)
 						delete images[id];
 						for (var i = 0; i < propsArray.length; i++)
 						{
-							if (propsArray[i].ogc_fid == o.properties.ogc_fid)
+							if (propsArray[i][identityField] == o.properties[identityField])
 							{
 								propsArray.splice(i, 1);
 								break;
@@ -1401,8 +1409,10 @@ function createFlashMapInternal(div, layers, callback)
 				this.setHandler("onClick", function(o)
 				{
 					try {
-					flipCounts["id_" + o.properties.ogc_fid] = o.flip();
-					updateImageDepth(o);
+						var identityField = gmxAPI.getIdentityField(o);
+						var id = 'id_' + o.properties[identityField];
+						flipCounts[id] = o.flip();
+						updateImageDepth(o);
 					} catch (e) { alert(e); }
 				});
 			}
@@ -6674,15 +6684,26 @@ function BalloonClass(map, flashDiv, div, apiBase)
 		scale = getScale(currPosition['z']);
 		stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
 	}
+	// Формирование ID балуна
+	function setID(o)
+	{
+		var id = o.objectId + '_balloon';
+		if(o.properties) {
+			var identityField = gmxAPI.getIdentityField(o);
+			if(o.properties[identityField]) id +=  '_' + o.properties[identityField];
+		}
+		return id;
+	}
 
 	// Текст по умолчанию для балуна (innerHTML)
 	function getDefaultBalloonText(o)
 	{
 		var text = "";
+		var identityField = gmxAPI.getIdentityField(o);
 		var props = o.properties;
 		for (var key in props)
 		{
-			if (key != "ogc_fid")
+			if (key != identityField)
 			{
 				var value = "" + props[key];
 				if (value.indexOf("http://") == 0)
@@ -6740,7 +6761,7 @@ function BalloonClass(map, flashDiv, div, apiBase)
 				var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
 				var text = (textFunc ? textFunc(o) : getDefaultBalloonText(o));
 				if(!text) return;
-				var id = o.objectId + '_balloon_' + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "");
+				var id = setID(o);
 				lastHoverBalloonId = o.objectId;
 				
 				if (!fixedHoverBalloons[id]) {
@@ -6819,7 +6840,7 @@ function BalloonClass(map, flashDiv, div, apiBase)
 
 		var text = getDefaultBalloonText(o);
 		if(!text) return;
-		var id = o.objectId + '_balloon_' + (o.properties.ogc_fid ? ("_" + o.properties.ogc_fid) : "");
+		var id = setID(o);
 		if (!fixedHoverBalloons[id])
 		{
 			var maxFixedBallons = chkAttr('maxFixedBallons', o) || 1;	// Проверка наличия параметра maxFixedBallons по ветке родителей
@@ -6862,7 +6883,6 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			delete fixedHoverBalloons[id];
 		}
 		propsBalloon.updatePropsBalloon(false);
-		var tt = 1;
 	}
 	this.clickBalloonFix = clickBalloonFix;
 
