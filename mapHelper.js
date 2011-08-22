@@ -1190,7 +1190,8 @@ mapHelper.prototype.createFilterEditor = function(filterParam, attrs, elemCanvas
 		return this.createFilterEditorInner(filter, attrs, elemCanvas);
 }
 
-mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCanvas)
+//identityField - будем исключать из списка аттрибутов, показываемых в балуне, так как это внутренняя техническая информация
+mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityField)
 {
 	var _this = this;
 	var balloonText = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','251px'],['css','height','80px']]),
@@ -1218,7 +1219,7 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 			{
 				var key = sortAttrs[i];
 				
-				if (key != "ogc_fid")
+				if (key !== identityField)
 					text += "<b>" + key + ":</b> [" + key + "]<br />" + br;
 			}
 			
@@ -1727,7 +1728,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 		DisableBalloonOnClick: typeof parentStyle.DisableBalloonOnClick != 'undefined' ? parentStyle.DisableBalloonOnClick : false,
 	}*/
 	
-	var balloonEditor = this.createBalloonEditor(parentStyle, attrs, elemCanvas);
+	var balloonEditor = this.createBalloonEditor(parentStyle, attrs, elemCanvas, elemCanvas.parentNode.properties.content.properties.identityField);
 	
 	_(liBalloon.lastChild, [balloonEditor]);
 	

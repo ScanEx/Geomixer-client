@@ -882,7 +882,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			metaCount = 0;;
 		
 		for (var key in elem.metadata)
-			if (key != "ogc_fid" && key != 'PLCH' && key != 'Field1' && elem.metadata[key] != '' &&  elem.metadata[key] != null)
+			if (key != elem.identityField && key != 'PLCH' && key != 'Field1' && elem.metadata[key] != '' &&  elem.metadata[key] != null)
 				metaCount++;
 		
 		if (elem.metadata && metaCount > 0 || elem.Legend)
@@ -891,7 +891,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			borderDescr.onclick = function()
 			{
-				_this.showLayerInfo({properties:elem}, {properties: elem.metadata && metaCount > 0 ? elem.metadata : {}}, false)	
+				_this.showLayerInfo({properties:elem}, {properties: elem.metadata && metaCount > 0 ? elem.metadata : {}}, false, elem.identityField)
 			}
 		}
 		
@@ -946,15 +946,15 @@ layersTree.prototype.showInfo = function(layer)
 	
 	layer.setHandler("onClick", function(obj)
 	{
-		_this.showLayerInfo(layer, obj, true)
+		_this.showLayerInfo(layer, obj, true, layer.properties.identityField)
 	})
 }
 
-layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag)
+layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag, identityField)
 {
 	var trs = [];
 	for (var key in obj.properties)
-		if (geoInfoFlag || (key != "ogc_fid" && key != 'PLCH' && key != 'Field1' && obj.properties[key] != '' &&  obj.properties[key] != null))
+		if (geoInfoFlag || (key != identityField && key != 'PLCH' && key != 'Field1' && obj.properties[key] != '' &&  obj.properties[key] != null))
 		{
 			var content = _div(),
 				contentText = String(obj.properties[key]);
