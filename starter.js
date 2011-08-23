@@ -489,6 +489,20 @@ function loadMap(state)
 				
 				var data = getLayers();
 				
+				//для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
+				
+				(function fixVisibilityConstrains (o, isVisible)
+				{
+					o.content.properties.visible = o.content.properties.visible && isVisible;
+					isVisible = o.content.properties.visible;
+					if (o.type === "group")
+					{
+						var a = o.content.children;
+						for (var k = a.length - 1; k >= 0; k--)
+							fixVisibilityConstrains(a[k], isVisible);
+					}
+				})({type: "group", content: { children: data.children, properties: { visible: true } } }, true);
+				
 				window.oldTree = JSON.parse(JSON.stringify(data));
 				
 				if (!data)

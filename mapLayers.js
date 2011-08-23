@@ -1358,8 +1358,12 @@ layersTree.prototype.addSubGroup = function(div)
 		newIndex = 0;
 	else
 		newIndex = ul.childNodes.length + 1;
+		
+	var groupVisibilityProperties = new layersTree.GroupVisibilityPropertiesModel( false, true );
+	var groupVisibilityPropertiesControls = new layersTree.GroupVisibilityPropertiesView( groupVisibilityProperties );
 	
-	var newName = (div.properties.content) ? div.properties.content.properties.title : div.properties.properties.title,
+	var elemProperties = (div.properties.content) ? div.properties.content.properties : div.properties.properties,
+	    newName = elemProperties.title,
 		inputIndex = _input(null,[['attr','value', newName + ' ' + newIndex],['dir','className','inputStyle'],['css','width','140px']]),
 		create = makeButton(_gtxt('Создать')),
 		pos = _mapHelper.getDialogPos(div, true, 100),
@@ -1369,7 +1373,7 @@ layersTree.prototype.addSubGroup = function(div)
 				return;
 			
 			var parentProperties = div.properties,
-				newGroupProperties = {type:'group', content:{properties:{title:inputIndex.value, list: false, visible: true, ShowCheckbox: true, expanded:true, GroupID: _this.createGroupId()}, children:[]}},
+				newGroupProperties = {type:'group', content:{properties:{title:inputIndex.value, list: groupVisibilityProperties.isChildRadio(), visible: true, ShowCheckbox: groupVisibilityProperties.isVisibilityControl(), expanded:true, GroupID: _this.createGroupId()}, children:[]}},
 				li = _this.getChildsList(newGroupProperties, parentProperties, false, div.getAttribute('MapID') ? true : _this.getLayerVisibility(div.firstChild));
 			
 			_queryMapLayers.addDraggable(li)
@@ -1426,7 +1430,14 @@ layersTree.prototype.addSubGroup = function(div)
 	
 	create.style.marginTop = '5px';
 	
-	showDialog(_gtxt("Введите имя группы"), _div([inputIndex, _br(), create],[['css','textAlign','center']]), 180, 100, pos.left, pos.top)
+	var parentDiv = _div([inputIndex, _br(), create],[['css','textAlign','center']]);
+	var trs = [{name: _gtxt("Имя группы"), elem: inputIndex}].concat(groupVisibilityPropertiesControls);
+	
+	var trsControls = _mapHelper.createPropertiesTable(trs, elemProperties, {leftWidth: 100});
+	var propsTable = _div([_table([_tbody(trsControls)],[['dir','className','propertiesTable']])]);
+	_(parentDiv, [propsTable, _br(), create]);
+	
+	showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 180, pos.left, pos.top);
 }
 
 layersTree.prototype.removeGroup = function(div)
@@ -1681,7 +1692,8 @@ layersTree.GroupVisibilityPropertiesModel = function(isChildRadio, isVisibilityC
 	}
 }
 
-//возвращает массив описания элементов таблицы для использования в mapHelper.createGroupEditorProperties
+//возвращает массив описания элементов таблицы для использования в mapHelper.createPropertiesTable
+//model {GroupVisibilityPropertiesModel} - ассоциированные параметры видимости
 layersTree.GroupVisibilityPropertiesView = function( model )
 {
 	var _model = model;
