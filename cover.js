@@ -2702,9 +2702,9 @@ FiresControl.prototype.add = function(parent, firesOptions, globalOptions, visMo
 */
 var MapCalendar = function(params)
 {
-	if (typeof _queryDrawingObjects !== 'undefined')
+	if (typeof nsGmx !== 'undefined' && typeof nsGmx.DrawingObjectCustomControllers !== 'undefined')
 	{
-		_queryDrawingObjects.addVisibilityDelegate(
+		nsGmx.DrawingObjectCustomControllers.addDelegate(
 		{
 			isHidden: function(obj)
 			{

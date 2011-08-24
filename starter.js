@@ -38,6 +38,7 @@ $LAB.
 	script(_getFileName("lang_ru.js")).
 	script(_getFileName("lang_en.js")).wait().
 	script(_getFileName("utilities.js")).wait().
+	script(_getFileName("drawingObjectsCustomControllers.js")).wait().
 	script(_getFileName("menu.js")).wait().
 	script(_getFileName("mapCommon.js")).wait().
 	script(_getFileName("mapHelper.js")).wait().

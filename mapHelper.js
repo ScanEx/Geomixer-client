@@ -29,7 +29,82 @@ var mapHelper = function()
 	
 	this.asyncTasks = {};
 	
-	this.drawingBorders = {};
+	// контролирует пользовательские объекты, которые являются редактируемыми контурами растровых слоёв.
+	// все такие объекты не будут сериализоваться
+	this.drawingBorders = (function()
+	{
+		var _borders = {};
+		
+		//не будем сериализовать все пользовательские объекты, являющиеся контурами слоёв, так как это временные объекты
+		nsGmx.DrawingObjectCustomControllers.addDelegate({
+			isSerializable: function(obj)
+			{
+				for (var name in _borders)
+					if (_borders[name] === obj) 
+						return false;
+				
+				return true;
+			}
+		});
+
+		return {
+			set: function(name, obj)
+			{
+				_borders[name] = obj;
+			},
+			get: function(name)
+			{
+				return _borders[name];
+			},
+			length: function()
+			{
+				return objLength(_borders);
+			},
+			
+			//callback(name, obj)
+			forEach: function(callback)
+			{
+				for (var name in _borders)
+					callback(name, _borders[name]);
+			},
+			
+			updateBorder: function(name, span)
+			{
+				if (!_borders[name])
+					return;
+				
+				if (span)
+				{
+					_(span, [_t(prettifyArea(geoArea(_borders[name].geometry.coordinates)))])
+					
+					return;
+				}
+				
+				if (!$$('drawingBorderDescr' + name))
+					return;
+				
+				removeChilds($$('drawingBorderDescr' + name));
+				
+				_($$('drawingBorderDescr' + name), [_t(prettifyArea(geoArea(_borders[name].geometry.coordinates)))])
+			}, 
+			
+			//Удаляет объект из списка контуров слоя
+			//?removeDrawring {bool, default: false} - удалять ли сам пользовательский объект
+			removeRoute: function(name, removeDrawing)
+			{
+				if (!(name in _borders))
+					return;
+					
+				if (typeof removeDrawing !== 'undefined' && removeDrawing)
+					_borders[name].remove();
+				
+				delete _borders[name];
+				
+				if ($$('drawingBorderDescr' + name))
+					removeChilds($$('drawingBorderDescr' + name));
+			}
+		}
+	})();
 	
 	this.unsavedChanges = false;
 	
@@ -344,6 +419,9 @@ mapHelper.prototype.getMapState = function()
 	
 	globalFlashMap.drawing.forEachObject(function(o) 
 	{
+		if (!nsGmx.DrawingObjectCustomControllers.isSerializable(o))
+			return;
+			
 		var elem = {properties: o.properties, color: o.color, geometry: merc_geometry(o.geometry)};
 		
 		if (o.geometry.type != "POINT")
@@ -2805,13 +2883,14 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		removeBorder.onclick = function()
 		{
 			shapeVisible(true);
+			_this.drawingBorders.removeRoute(properties.Name, true);
 			
-			if (_this.drawingBorders[properties.Name])
-			{
-				_this.drawingBorders[properties.Name].remove();
+			// if (_this.drawingBorders[properties.Name])
+			// {
+				// _this.drawingBorders[properties.Name].remove();
 				
-				delete _this.drawingBorders[properties.Name];
-			}
+				// delete _this.drawingBorders[properties.Name];
+			// }
 		}
 		
 		if (div)
@@ -2837,9 +2916,10 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			
 				drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
 				
-				this.drawingBorders[properties.Name] = drawingBorder;
+				//this.drawingBorders[properties.Name] = drawingBorder;
+				this.drawingBorders.set(properties.Name, drawingBorder);
 				
-				this.updateBorder(properties.Name, drawingBorderDescr);
+				this.drawingBorders.updateBorder(properties.Name, drawingBorderDescr);
 			}
 		}
 		else
@@ -3046,8 +3126,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 						Description: descr.value,
 						"Date": dateField.value,
 						TilePath: $(parent).find("[fieldName='TilePath.Path']")[0].value,
-						BorderFile: typeof _this.drawingBorders[properties.Name] == 'undefined' ? $(parent).find("[fieldName='ShapePath.Path']")[0].value : '',
-						BorderGeometry: typeof _this.drawingBorders[properties.Name] == 'undefined' ? '' : JSON.stringify(merc_geometry(_this.drawingBorders[properties.Name].geometry)),
+						BorderFile: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? $(parent).find("[fieldName='ShapePath.Path']")[0].value : '',
+						BorderGeometry: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? '' : JSON.stringify(merc_geometry(_this.drawingBorders.get(properties.Name).geometry)),
 						MapName: _mapHelper.mapProperties.name
 					},
 					needRetiling = false,
@@ -3064,9 +3144,9 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 					// если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
 					if ($(parent).find("[fieldName='ShapePath.Path']")[0].value != oldShapePath ||
 						$(parent).find("[fieldName='TilePath.Path']")[0].value != oldTilePath ||
-						oldDrawing && typeof _this.drawingBorders[properties.Name] != 'undefined' && JSON.stringify(_this.drawingBorders[properties.Name]) != JSON.stringify(oldDrawing) ||
-						!oldDrawing && typeof _this.drawingBorders[properties.Name] != 'undefined' ||
-						oldDrawing && typeof _this.drawingBorders[properties.Name] == 'undefined')
+						oldDrawing && typeof _this.drawingBorders.get(properties.Name) != 'undefined' && JSON.stringify(_this.drawingBorders.get(properties.Name)) != JSON.stringify(oldDrawing) ||
+						!oldDrawing && typeof _this.drawingBorders.get(properties.Name) != 'undefined' ||
+						oldDrawing && typeof _this.drawingBorders.get(properties.Name) == 'undefined')
 						needRetiling = true;
 				}
 				
@@ -3154,9 +3234,9 @@ mapHelper.prototype.chooseDrawingBorderDialog = function(name, closeFunc)
 			(function(i){
 				returnButton.onclick = function()
 				{
-					_this.drawingBorders[name] = polygons[i];
-					
-					_this.updateBorder(name);
+					//_this.drawingBorders[name] = polygons[i];
+					_this.drawingBorders.set(name, polygons[i]);
+					_this.drawingBorders.updateBorder(name);
 					
 					removeDialog($$('drawingBorderDialog' + name).parentNode);
 					
@@ -3173,34 +3253,6 @@ mapHelper.prototype.chooseDrawingBorderDialog = function(name, closeFunc)
 		
 		showDialog(_gtxt("Выбор контура"), _div([table], [['attr','id','drawingBorderDialog' + name],['dir','className','drawingObjectsCanvas'],['css','width','220px']]), 250, 180, false, false)
 	}
-}
-
-mapHelper.prototype.updateBorder = function(name, span)
-{
-	if (!this.drawingBorders[name])
-		return;
-	
-	if (span)
-	{
-		_(span, [_t(prettifyArea(geoArea(this.drawingBorders[name].geometry.coordinates)))])
-		
-		return;
-	}
-	
-	if (!$$('drawingBorderDescr' + name))
-		return;
-	
-	removeChilds($$('drawingBorderDescr' + name));
-	
-	_($$('drawingBorderDescr' + name), [_t(prettifyArea(geoArea(this.drawingBorders[name].geometry.coordinates)))])
-}
-
-mapHelper.prototype.removeRoute = function(name)
-{
-	delete this.drawingBorders[name];
-	
-	if ($$('drawingBorderDescr' + name))
-		removeChilds($$('drawingBorderDescr' + name));
 }
 
 mapHelper.prototype.selectColumns = function(parent, url)
@@ -3965,12 +4017,13 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 					
 					_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
 					
-					if (_this.drawingBorders[elemProperties.name])
-					{
-						_this.drawingBorders[elemProperties.name].remove();
+					// if (_this.drawingBorders.[elemProperties.name])
+					// {
+						// _this.drawingBorders[elemProperties.name].remove();
 						
-						delete _this.drawingBorders[elemProperties.name];
-					}
+						// delete _this.drawingBorders[elemProperties.name];
+					// }
+					_this.drawingBorders.removeRoute(elemProperties.name, true);
 					
 					if ($$('drawingBorderDialog' + elemProperties.name))
 						removeDialog($$('drawingBorderDialog' + elemProperties.name).parentNode);

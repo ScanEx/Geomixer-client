@@ -18,7 +18,7 @@ var queryDrawingObjects = function()
 	
 	this.count = 0;
 	
-	this._visibilityDelegates = [];
+	// this._visibilityDelegates = [];
 }
 
 queryDrawingObjects.prototype = new leftMenu();
@@ -26,10 +26,10 @@ queryDrawingObjects.prototype = new leftMenu();
 // Делегаты пользовательских объектов - классы, управляющие отображением объектов на панели пользовательских объектов
 // Методы:
 //   - isHidden(elem) -> Bool
-queryDrawingObjects.prototype.addVisibilityDelegate = function( delegate )
-{
-	this._visibilityDelegates.push( delegate );
-}
+// queryDrawingObjects.prototype.addVisibilityDelegate = function( delegate )
+// {
+	// this._visibilityDelegates.push( delegate );
+// }
 
 queryDrawingObjects.prototype.createCanvas = function()
 {
@@ -80,9 +80,12 @@ queryDrawingObjects.prototype.createCanvas = function()
 
 queryDrawingObjects.prototype.onAdd = function(elem)
 {
-	for (var d = 0; d < _queryDrawingObjects._visibilityDelegates.length; d++)
-		if ( _queryDrawingObjects._visibilityDelegates[d].isHidden(elem) )
-			return;
+	if (nsGmx.DrawingObjectCustomControllers.isHidden(elem))
+		return;
+		
+	// for (var d = 0; d < _queryDrawingObjects._visibilityDelegates.length; d++)
+		// if ( _queryDrawingObjects._visibilityDelegates[d].isHidden(elem) )
+			// return;
 	
 	if (!$$('left_objects') ||
 		$$('left_objects').style.display == 'none')
@@ -233,11 +236,16 @@ queryDrawingObjects.prototype.attachMapDrawingEvents = function()
 			_this.onEdit(elem);
 			
 			if (elem.geometry.type == 'POLYGON' &&
-				objLength(_mapHelper.drawingBorders) > 0)
+				_mapHelper.drawingBorders.length() > 0)
 			{
-				for (var name in _mapHelper.drawingBorders)
-					if (_mapHelper.drawingBorders[name].canvas == elem.canvas)
-						_mapHelper.updateBorder(name);
+				_mapHelper.drawingBorders.forEach(function(name, obj)
+				{
+					if (obj.canvas == elem.canvas)
+						_mapHelper.drawingBorders.updateBorder(name);
+				});
+				// for (var name in _mapHelper.drawingBorders)
+					// if (_mapHelper.drawingBorders[name].canvas == elem.canvas)
+						// _mapHelper.updateBorder(name);
 								
 			}
 			
@@ -251,11 +259,16 @@ queryDrawingObjects.prototype.attachMapDrawingEvents = function()
 			_this.onRemove(elem);
 			
 			if (elem.geometry.type == 'POLYGON' &&
-				objLength(_mapHelper.drawingBorders) > 0)
+				_mapHelper.drawingBorders.length() > 0)
 			{
-				for (var name in _mapHelper.drawingBorders)
-					if (_mapHelper.drawingBorders[name].canvas == elem.canvas)
-						_mapHelper.removeRoute(name);
+				_mapHelper.drawingBorders.forEach(function(name, obj)
+				{
+					if (obj.canvas == elem.canvas)
+						_mapHelper.drawingBorders.removeRoute(name);
+				});
+				// for (var name in _mapHelper.drawingBorders)
+					// if (_mapHelper.drawingBorders[name].canvas == elem.canvas)
+						// _mapHelper.removeRoute(name);
 								
 			}
 			
