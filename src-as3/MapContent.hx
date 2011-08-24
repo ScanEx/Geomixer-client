@@ -50,7 +50,7 @@ class MapContent
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
 		{
-			Main.registerMouseDown(node, event);
+			Main.registerMouseDown(node, event, null);
 		});
 	}
 }

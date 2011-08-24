@@ -118,7 +118,7 @@ class VectorLayer extends MapContent
 		pointExtent.update(x - pointSize, y - pointSize);
 		pointExtent.update(x + pointSize, y + pointSize);
 
-		for (tile in tiles)
+		for (tile in tiles)			// Просмотр содержимого тайлов под мышкой
 		{
 			if (!tile.finishedLoading) continue;
 			if ((tile.ids != null) && tile.extent.overlaps(pointExtent))
@@ -151,6 +151,7 @@ class VectorLayer extends MapContent
 				}
 			}
 		}
+		
 		var len = zeroDistanceIds.length;
 		flipDown = (len > 1);
 		if (len > 0)

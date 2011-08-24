@@ -18,9 +18,12 @@ class MapNode
 	public var maxZ:Int;
 	public var content:MapContent;
 	public var children:Array<MapNode>;
-	public var handlers:Hash<MapNode->Void>;
+	public var handlers:Hash<MapNode->MapNode->Void>;
 	public var properties:Dynamic;
+	public var propHash:Hash<String>;
 
+	public var filters:Hash<MapNode>;
+	
 	public var somethingHasChanged:Bool;
 
 	public function new(rasterSprite_:Sprite, vectorSprite_:Sprite, window_:MapWindow)
@@ -30,7 +33,7 @@ class MapNode
 		window = window_;
 		rasterSprite = rasterSprite_;
 		vectorSprite = vectorSprite_;
-		vectorSprite.cacheAsBitmap = true;
+		//vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлении векторов в растр
 		regularStyle = null;
 		hoveredStyle = null;
 		hidden = false;
@@ -38,7 +41,8 @@ class MapNode
 		maxZ = 100;
 		content = null;
 		children = new Array<MapNode>();
-		handlers = new Hash<MapNode->Void>();
+		handlers = new Hash<MapNode->MapNode->Void>();
+		filters = new Hash<MapNode>();
 
 		somethingHasChanged = false;
 	}
@@ -71,6 +75,44 @@ class MapNode
 			(parent != null) ?
 				parent.getRegularStyle() :
 				null;
+	}
+
+	// Получить regularStyle с учетом фильтров по ветке родителей
+	public function getRegularStyleRecursion(?node:MapNode)
+	{
+		if (node == null) node = this;
+		var retStyle = null;
+		if(propHash != null) {
+			for (key in node.filters.keys()) {
+				var nodeFilter = node.filters.get(key);
+				var nodeFilterContent = cast(nodeFilter.content, VectorLayerFilter);
+				if (nodeFilterContent.criterion(propHash)) retStyle = nodeFilter.regularStyle;
+			}
+		}
+		if (retStyle == null) retStyle = node.regularStyle;
+		if (retStyle == null && node.parent != null) {
+			retStyle = getRegularStyleRecursion(node.parent);
+		}
+		return retStyle;
+	}
+
+	// Получить hoveredStyle с учетом фильтров по ветке родителей
+	public function getHoveredStyleRecursion(?node:MapNode)
+	{
+		if (node == null) node = this;
+		var retStyle = null;
+		if(propHash != null) {
+			for (key in node.filters.keys()) {
+				var nodeFilter = node.filters.get(key);
+				var nodeFilterContent = cast(nodeFilter.content, VectorLayerFilter);
+				if (nodeFilterContent.criterion(propHash)) retStyle = nodeFilter.hoveredStyle;
+			}
+		}
+		if (retStyle == null) retStyle = node.hoveredStyle;
+		if (retStyle == null && node.parent != null) {
+			retStyle = getHoveredStyleRecursion(node.parent);
+		}
+		return retStyle;
 	}
 
 	public function getHoveredStyle()
@@ -151,14 +193,26 @@ class MapNode
 	{
 		var oldContent = content;
 		content = content_;
-		if (oldContent != null)
+		if (oldContent != null) {
 			oldContent.contentSprite.parent.removeChild(oldContent.contentSprite);
-		if (content != null)
+			if (parent != null && parent.filters.exists(id))
+			{
+				parent.filters.remove(id);
+			}
+		}
+		if (content != null) {
 			content.initialize(this);
+			if (parent != null && Std.is(content, VectorLayerFilter))
+			{
+				parent.filters.set(id, this);
+				parent.repaintObjects();
+			}
+		}
+		
 		noteSomethingHasChanged();
 	}
 
-	public function setHandler(name:String, handler:MapNode->Void)
+	public function setHandler(name:String, handler:MapNode->MapNode->Void)
 	{
 		handlers.set(name, handler);
 		updateHandCursor();
@@ -170,7 +224,7 @@ class MapNode
 		updateHandCursor();
 	}
 
-	public function getHandler(name:String):MapNode->Void
+	public function getHandler(name:String):MapNode->MapNode->Void
 	{
 		var handler = handlers.get(name);
 		return 
@@ -181,20 +235,27 @@ class MapNode
 				null;
 	}
 
-	public function callHandler(name:String)
+	public function callHandler(name:String, ?nodeFrom:MapNode)
 	{
 		var handler = getHandler(name);
 		if (handler != null)
-			handler(this);
+			handler(this, nodeFrom);
 	}
 
 	public function callHandlersRecursively(name:String)
 	{
 		var handler = handlers.get(name);
 		if (handler != null)
-			handler(this);
+			handler(this, null);
 		for (child in children)
 			child.callHandlersRecursively(name);
+	}
+
+	public function repaintObjects()
+	{
+		for (child in children) {
+			if(Std.is(child.content, VectorObject)) child.content.repaint();
+		}
 	}
 
 	public function repaintRecursively(somethingHasChangedAbove:Bool)

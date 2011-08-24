@@ -6836,9 +6836,14 @@ function BalloonClass(map, flashDiv, div, apiBase)
 
 		if(chkAttr('disableOnClick', o))	// ѕроверка наличи€ параметра disableOnClick по ветке родителей 
 			return;
-		if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// ѕри нажатых не показываем балун
 
-		var text = getDefaultBalloonText(o);
+		var textFunc = chkAttr('callback', o);			// ѕроверка наличи€ параметра callback по ветке родителей 
+		if(keyPress) {
+			if(keyPress['shiftKey'] || keyPress['ctrlKey']) return;	// ѕри нажатых не показываем балун
+			if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // вз€ть параметры балуна от фильтра родител€
+		}
+
+		var text = (textFunc ? textFunc(o) : getDefaultBalloonText(o));
 		if(!text) return;
 		var id = setID(o);
 		if (!fixedHoverBalloons[id])

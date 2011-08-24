@@ -29,7 +29,7 @@ import flash.net.URLRequestHeader;
 
 class Main
 {
-	public static var registerMouseDown:MapNode->MouseEvent->Void;
+	public static var registerMouseDown:MapNode->MouseEvent->MapNode->Void;
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
 	public static var mousePressed:Bool = false;
@@ -179,6 +179,7 @@ class Main
 		var pressTime:Float = 0;
 		var draggedWindow:MapWindow = null;
 		var clickedNode:MapNode = null;
+		var nodeFrom:MapNode = null;	// Нода над которой находится мышь
 
 		var zoomBy = function(dz:Float, mx:Float, my:Float) 
 		{
@@ -193,19 +194,21 @@ class Main
 			fluidMoveTo(mx + k*(currentX - mx), my + k*(currentY - my), newZ, 15);
 		}
 		
-		Main.registerMouseDown = function(node:MapNode, ?event:MouseEvent)
+		Main.registerMouseDown = function(node:MapNode, ?event:MouseEvent, ?nodeFrom_:MapNode)
 		{
 			eventAttr = { };
 			if (event != null) {
 				if (event.shiftKey) eventAttr.shiftKey = 1;
 				if (event.ctrlKey) eventAttr.ctrlKey = 1;
 				if (event.altKey) eventAttr.altKey = 1;
+				if (nodeFrom_ != null) eventAttr.nodeFilter = node.id;
 			}
 			if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
 				clickedNode = node;
 			else if ((node.getHandler("onMouseDown") != null) || (node.getHandler("onMouseUp") != null) || (node.getHandler("onClick") != null))
 			{
-				node.callHandler("onMouseDown");
+				nodeFrom = nodeFrom_;
+				node.callHandler("onMouseDown", nodeFrom);
 				clickedNode = node;
 			}
 		}
@@ -242,12 +245,12 @@ class Main
 				viewportHasMoved = true;
 			}
 			if (clickedNode != null)
-				clickedNode.callHandler("onMouseUp");
+				clickedNode.callHandler("onMouseUp", nodeFrom);
 			if ((flash.Lib.getTimer() - pressTime) < 300)
 			{
 				if (clickedNode != null)
 				{
-					clickedNode.callHandler("onClick");
+					clickedNode.callHandler("onClick", nodeFrom);
 				}
 				else if (!Main.clickingDisabled)
 				{
@@ -255,6 +258,7 @@ class Main
 					fluidMoveTo(sprite.mouseX, sprite.mouseY, currentZ, 10);
 				}
 			}
+			nodeFrom = null;
 			clickedNode = null;
 		});
 		var cursor:Sprite = Utils.addSprite(root);
@@ -570,14 +574,26 @@ class Main
 		}
 		ExternalInterface.addCallback("setLabel", setLabel);
 
+		var propertiesToHashString = function(props:Dynamic)
+		{
+			var ret = new Hash<String>();
+			for (ff in Reflect.fields(props)) {
+				ret.set(ff, Reflect.field(props, ff));
+			}
+			return ret;
+		}
+
 		var addObject = function(parentId:String, ?geometry:Dynamic, ?properties:Dynamic)
 		{
-			var node:MapNode = getNode(parentId);
-			if (node == null) return '';
-			node = node.addChild();
-			if (geometry != null)
+			var nodeParent:MapNode = getNode(parentId);
+			if (nodeParent == null) return '';
+			var node:MapNode = nodeParent.addChild();
+			if (geometry != null) {
 				node.setContent(new VectorObject(Utils.parseGeometry(geometry)));
+			}
 			node.properties = properties;
+			node.propHash = propertiesToHashString(properties);
+			
 			return node.id;
 		}
 		
@@ -607,13 +623,14 @@ class Main
 			var func:Hash<String>->Bool = (sql == null) ? 
 				function(props:Hash<String>):Bool { return true; } :
 				Parsers.parseSQL(sql);
-			if (func != null)
+
+			var node = getNode(id);
+			if (func != null && node != null)
 			{
-				getNode(id).setContent(new VectorLayerFilter(func));
+				node.setContent(new VectorLayerFilter(func));
 				return true;
 			}
-			else
-				return false;
+			return false;
 		});
 		var geometriesToSet = new Hash<Geometry>();
 		ExternalInterface.addCallback("setGeometry", function(id:String, geometry_:Dynamic)
@@ -664,17 +681,22 @@ class Main
 		ExternalInterface.addCallback("setHandler", function(id:String, eventName:String, ?callbackName:String) 
 		{ 
 			var node:MapNode = getNode(id);
-			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode)
+			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode)
 			{
 				var props:Dynamic;
 				if (Std.is(node2.content, VectorLayerFilter))
 				{
-					var layer = cast(node2.content, VectorLayerFilter).layer;
-					props = exportProperties(layer.lastId == null ? null : layer.geometries.get(layer.lastId).properties);
+					if(nodeFrom_ == null) {
+						var layer = cast(node2.content, VectorLayerFilter).layer;
+						props = exportProperties(layer.lastId == null ? null : layer.geometries.get(layer.lastId).properties);
+					} else {
+						props = nodeFrom_.properties;
+						eventAttr.nodeFilter = nodeFrom_.id;
+					}
 				}
-				else
+				else {
 					props = node2.properties;
-
+				}
 				var arr = propertiesToArray(props);
 				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
 					try {

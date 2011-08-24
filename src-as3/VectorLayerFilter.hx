@@ -74,7 +74,7 @@ class VectorLayerFilter extends MapContent
 
 		var w = 2*Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;
-		var cx1 = (e1.minx + e1.maxx)/2;
+		var cx1 = (e1.minx + e1.maxx) / 2;
 		for (painter in painters)
 		{
 			painter.repaint(mapNode.getRegularStyle());
@@ -140,7 +140,7 @@ class VectorLayerFilter extends MapContent
 		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
 		{
 			if (me.layer.currentFilter != null)
-				Main.registerMouseDown(me.layer.currentFilter.mapNode, event);
+				Main.registerMouseDown(me.layer.currentFilter.mapNode, event, null);
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:Event)
 		{
