@@ -2125,10 +2125,10 @@ var CombinedFiresRenderer = function( params )
 	this.getHotspotIDsByClusterID = function(clusterId)
 	{
 		var resArr = [];
-		for (var hp = 0; hp < _curData.fires.length; hp++)
+		for (var hp = 0; hp < _curData[0].fires.length; hp++)
 		{
-			if (_curData.fires[hp].clusterId == clusterId)
-				resArr.push(_curData.fires[hp].hotspotId);
+			if (_curData[0].fires[hp].clusterId == clusterId)
+				resArr.push(_curData[0].fires[hp].hotspotId);
 		}
 		
 		return resArr;
