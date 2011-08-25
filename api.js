@@ -6695,6 +6695,21 @@ function BalloonClass(map, flashDiv, div, apiBase)
 		return id;
 	}
 
+	// Проверка режима работы пользовательского callback - типы 'string'-содержимое для innerHTML, 'boolean'-скрыть балун, 'object'-замена подмена ноды содержимого балуна
+	function chkBalloonText(text, div)
+	{
+		var type = typeof(text);
+		if(type === 'string') {
+			div.innerHTML = text;
+		}
+		else if(type === 'boolean') {
+			div.innerHTML = "";
+		}
+		else if(type === 'object') {	// div должен пересоздаваться в callback
+			div.parentNode.replaceChild(text, div);
+		}
+	}
+
 	// Текст по умолчанию для балуна (innerHTML)
 	function getDefaultBalloonText(o)
 	{
@@ -6825,21 +6840,6 @@ function BalloonClass(map, flashDiv, div, apiBase)
 	}
 	this.hideHoverBalloons = hideHoverBalloons;
 
-	// Проверка режима работы пользовательского callback - типы 'string'-содержимое для innerHTML, 'boolean'-скрыть балун, 'object'-замена подмена ноды содержимого балуна
-	function chkBalloonText(text, balloonText)
-	{
-		var type = typeof(text);
-		if(type === 'string') {
-			balloonText.innerHTML = text;
-		}
-		else if(type === 'boolean') {
-			balloonText.innerHTML = "";
-		}
-		else if(type === 'object') {
-			balloonText.parentNode.replaceChild(text, balloonText);
-		}
-	}
-
 	// Фиксация балуна
 	function clickBalloonFix(o, keyPress)
 	{
@@ -6894,6 +6894,8 @@ function BalloonClass(map, flashDiv, div, apiBase)
 
 			balloon.setPoint(mx, my);
 			chkBalloonText(text, balloon.div);
+			if(typeof(text) === 'object')	balloon.div = text;
+
 			balloon.resize();
 			fixedHoverBalloons[id] = balloon;
 			balloon.setVisible(true);
@@ -7034,6 +7036,7 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			{
 				updateVisible(text ? true : false);
 				chkBalloonText(text, balloonText);
+				if(typeof(text) === 'object') balloonText = text;
 				reposition();
 			}
 		};
