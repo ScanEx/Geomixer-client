@@ -113,6 +113,11 @@ var gmxCore = function()
             
             for (var p in module)
                 _globalNamespace[p] = module[p];
-        }
+        },
+		
+		getModulePath: function(moduleName)
+		{
+			return _modulePathes[moduleName];
+		}
     }
 }();

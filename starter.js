@@ -8,7 +8,22 @@ var gmxJSHost = window.gmxJSHost || "";
 var _getFileName = function( localName )
 {
 	return gmxJSHost + localName + ( window.gmxDropBrowserCache ? "?" + Math.random() : "");
-	
+}
+
+//последовательно загружает все файлы js из jsLoadSchedule.txt и вызывает после этого callback
+var loadJS = function(callback)
+{
+	$.ajax({url: gmxJSHost + "jsLoadSchedule.txt", success: function(responce)
+	{
+		var LABInstance = $LAB;
+		var fileList = JSON.parse(responce);
+		
+		for (var f = 0; f < fileList.length-1; f++)
+			LABInstance = LABInstance.script(_getFileName(fileList[f])).wait();
+			
+		LABInstance.script(_getFileName(fileList[fileList.length-1])).wait(callback);
+		// callback();
+	}});
 }
 
 $LAB.
@@ -30,30 +45,32 @@ $LAB.
 	
 	script(_getFileName("colorpicker/js/colorpicker.js")).wait().
 	script(_getFileName("colorpicker/js/eye.js")).wait().
-	script(_getFileName("colorpicker/js/utils.js")).wait().
+	script(_getFileName("colorpicker/js/utils.js")).wait(function(){
 	
-	script(_getFileName("gmxcore.js")).wait().
-	script(_getFileName("PluginsManager.js")).wait().
-	script(_getFileName("translations.js")).wait().
-	script(_getFileName("lang_ru.js")).
-	script(_getFileName("lang_en.js")).wait().
-	script(_getFileName("utilities.js")).wait().
-	script(_getFileName("drawingObjectsCustomControllers.js")).wait().
-	script(_getFileName("menu.js")).wait().
-	script(_getFileName("mapCommon.js")).wait().
-	script(_getFileName("mapHelper.js")).wait().
-	script(_getFileName("binding.js")).wait().
-	script(_getFileName("mapLayers.js")).wait().
-	script(_getFileName("drawingObjects.js")).wait().
-	script(_getFileName("fileBrowser.js")).wait().
-	script(_getFileName("loadServerData.js")).wait().
-	script(_getFileName("charts.js")).wait().
-	script(_getFileName("kmlParser.js")).wait().
-	script(_getFileName("security.js")).wait().
-	script(_getFileName("attrsTable.js")).wait().
-	script(_getFileName("cover.js")).wait().
-	script(_getFileName("externalMapHelper.js")).wait().
-	script(_getFileName("externalMapLayers.js")).wait(function(){
+	// script(_getFileName("gmxcore.js")).wait().
+	// script(_getFileName("PluginsManager.js")).wait().
+	// script(_getFileName("translations.js")).wait().
+	// script(_getFileName("lang_ru.js")).
+	// script(_getFileName("lang_en.js")).wait().
+	// script(_getFileName("utilities.js")).wait().
+	// script(_getFileName("drawingObjectsCustomControllers.js")).wait().
+	// script(_getFileName("menu.js")).wait().
+	// script(_getFileName("mapCommon.js")).wait().
+	// script(_getFileName("mapHelper.js")).wait().
+	// script(_getFileName("binding.js")).wait().
+	// script(_getFileName("mapLayers.js")).wait().
+	// script(_getFileName("drawingObjects.js")).wait().
+	// script(_getFileName("fileBrowser.js")).wait().
+	// script(_getFileName("loadServerData.js")).wait().
+	// script(_getFileName("charts.js")).wait().
+	// script(_getFileName("kmlParser.js")).wait().
+	// script(_getFileName("security.js")).wait().
+	// script(_getFileName("attrsTable.js")).wait().
+	// script(_getFileName("cover.js")).wait().
+	// script(_getFileName("externalMapHelper.js")).wait().
+	// script(_getFileName("externalMapLayers.js")).wait(function(){
+	
+loadJS(function(){
 
 var oSearchControl;
 var oSearchLeftMenu = new leftMenu();
@@ -801,6 +818,8 @@ function promptFunction(title, value)
 }
 
 window.prompt = promptFunction;
+
+}); //loadjs
 
 }); //$LAB
 

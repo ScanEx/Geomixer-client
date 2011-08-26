@@ -341,7 +341,8 @@ WikiPlugin = function() {
 
 WikiPlugin.prototype = {
     initialize: function(map, sWikiServer) {
-        $.getCSS(getAPIHostRoot() + '/api/WikiPlugin.css');
+        // $.getCSS(getAPIHostRoot() + '/api/WikiPlugin.css');
+        $.getCSS(gmxCore.getModulePath("wiki") + 'WikiPlugin.css');
 		this._map = map;
         this._wikiService = new WikiService(sWikiServer);
         this._wikiObjects = new WikiObjectsHandler(this._map, this);
