@@ -3398,7 +3398,7 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 	
 	var visibilityProperties = new layersTree.GroupVisibilityPropertiesModel(elemProperties.list, typeof elemProperties.ShowCheckbox === 'undefined' ? true : elemProperties.ShowCheckbox);
 	// var visibilityProperties = new _layersTree.GroupVisibilityPropertiesModel(true, elemProperties.list);
-	var visibilityPropertiesView = layersTree.GroupVisibilityPropertiesView(visibilityProperties);
+	var visibilityPropertiesView = layersTree.GroupVisibilityPropertiesView(visibilityProperties, !isMap);
 	$(visibilityProperties).change(function()
 	{
 		elemProperties.list = visibilityProperties.isChildRadio();

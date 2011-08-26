@@ -1360,7 +1360,7 @@ layersTree.prototype.addSubGroup = function(div)
 		newIndex = ul.childNodes.length + 1;
 		
 	var groupVisibilityProperties = new layersTree.GroupVisibilityPropertiesModel( false, true );
-	var groupVisibilityPropertiesControls = new layersTree.GroupVisibilityPropertiesView( groupVisibilityProperties );
+	var groupVisibilityPropertiesControls = new layersTree.GroupVisibilityPropertiesView( groupVisibilityProperties, true );
 	
 	var elemProperties = (div.properties.content) ? div.properties.content.properties : div.properties.properties,
 	    newName = elemProperties.title,
@@ -1402,8 +1402,10 @@ layersTree.prototype.addSubGroup = function(div)
 				_layersTree.updateListType(li, true);
 			}
 			
-			$(inputIndex.parentNode.parentNode).dialog('destroy');
-			inputIndex.parentNode.parentNode.removeNode(true);
+			// $(inputIndex.parentNode.parentNode).dialog('destroy');
+			// inputIndex.parentNode.parentNode.removeNode(true);
+			$(dialogDiv).dialog('destroy');
+			dialogDiv.removeNode(true);
 			
 			_mapHelper.updateUnloadEvent(true);
 		};
@@ -1437,7 +1439,7 @@ layersTree.prototype.addSubGroup = function(div)
 	var propsTable = _div([_table([_tbody(trsControls)],[['dir','className','propertiesTable']])]);
 	_(parentDiv, [propsTable, _br(), create]);
 	
-	showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 180, pos.left, pos.top);
+	var dialogDiv = showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 180, pos.left, pos.top);
 }
 
 layersTree.prototype.removeGroup = function(div)
@@ -1694,7 +1696,8 @@ layersTree.GroupVisibilityPropertiesModel = function(isChildRadio, isVisibilityC
 
 //возвращает массив описания элементов таблицы для использования в mapHelper.createPropertiesTable
 //model {GroupVisibilityPropertiesModel} - ассоциированные параметры видимости
-layersTree.GroupVisibilityPropertiesView = function( model )
+//showVisibilityCheckbox {bool} - добавлять ли возможность скрывать чекбокс видимости или нет
+layersTree.GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox )
 {
 	var _model = model;
 	var boxSwitch = _checkbox(!_model.isChildRadio(), 'checkbox'),
@@ -1729,8 +1732,12 @@ layersTree.GroupVisibilityPropertiesView = function( model )
 		_model.setChildRadio( this.checked );
 	}
 	
-	return [{name: _gtxt("Вид вложенных элементов"), field: 'list', elem: _div([boxSwitch, radioSwitch])}, 
-			{name: _gtxt("Показывать чекбокс видимости"), field: 'list', elem: _div([showCheckbox])}];
+	var ret = [{name: _gtxt("Вид вложенных элементов"), field: 'list', elem: _div([boxSwitch, radioSwitch])}];
+	
+	if (typeof showVisibilityCheckbox === 'undefined' || showVisibilityCheckbox)
+		ret.push({name: _gtxt("Показывать чекбокс видимости"), field: 'list', elem: _div([showCheckbox])});
+	
+	return ret;
 }
 
 // включает все выключенные элементы выше указанного элемента
