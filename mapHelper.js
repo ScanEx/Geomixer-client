@@ -2552,6 +2552,11 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 
 mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, properties)
 {
+	var getFileExt = function(path)
+	{
+		return String(path).substr(String(path).lastIndexOf('.') + 1, path.length);
+	}
+	
 	var _this = this,
 		vectorRetilingFlag = false;
 
@@ -2665,38 +2670,110 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 	var encodingWidget = (function()
 	{
 		var _encodings = {
-			'UTF-8': 'utf-8',
-			'windows-1251': 'windows-1251'
+			'windows-1251': 'windows-1251',
+			'utf-8': 'utf-8',
+			'koi8-r': 'koi8-r',
+			'utf-7': 'utf-7',
+			'iso-8859-5': 'iso-8859-5',
+			'koi8-u': 'koi8-u',
+			'cp866': 'cp866'
+			
 		};
 		var _DEFAULT_ENCODING = 'windows-1251';
-		var _curSelection = _DEFAULT_ENCODING;
+		var _curEncoding = _DEFAULT_ENCODING;
 		
 		//
 		var _public = {
-			drawWidget: function(container)
+			drawWidget: function(container, initialEncoding)
 			{
-				var select = $("<select></select>").addClass('selectStyle');
+				initialEncoding = initialEncoding || _DEFAULT_ENCODING;
+				var select = $("<select></select>").addClass('selectStyle VectorLayerEncodingInput');
 				select.change(function()
 				{
-					_curSelection = $('option:selected', select).val();
+					_curEncoding = $('option:selected', select).val();
 					$(_public).change();
 				});
 				
+				var isStandard = false;
 				for (var enc in _encodings)
 				{
 					var opt = $('<option></option>').val(enc).text(enc);
 					
-					if (enc === _DEFAULT_ENCODING)
+					if (_encodings[enc] === initialEncoding)
+					{
 						opt.attr('selected', 'selected');
+						_curEncoding = enc;
+						isStandard = true;
+					}
 						
 					select.append(opt);
 				}
 				
-				$(container).css({paddingLeft: '5px', fontSize: '12px'}).text(_gtxt("Кодировка") + ": ").append(select);
+				var anotherCheckbox = $("<input></input>", {className: 'box', type: 'checkbox', id: 'otherEncoding'});
+				var anotherInput = $("<input></input>", {className: 'VectorLayerEncodingInput'});
+				
+				if (!isStandard)
+				{
+					anotherCheckbox[0].checked = 'checked';
+					anotherInput.val(initialEncoding);
+					select.attr('disabled', 'disabled');
+				}
+				else
+				{
+					anotherInput.attr('disabled', 'disabled');
+				}
+				
+				anotherInput.bind('keyup', function()
+				{
+					_curEncoding = this.value;
+					$(_public).change();
+					// console.log(_curEncoding);
+				});
+				
+				anotherCheckbox.click(function()
+				{
+					if (this.checked)
+					{
+						select.attr('disabled', 'disabled');
+						anotherInput.removeAttr('disabled');
+						anotherInput.focus();
+						_curEncoding = anotherInput.val();
+					}
+					else
+					{
+						select.removeAttr('disabled');
+						anotherInput.attr('disabled', 'disabled');
+						_curEncoding = $('option:selected', select).val();
+					}
+					$(_public).change();
+				});
+				
+				
+				var tr1 = $("<tr></tr>")
+					.append($("<td></td>").text(_gtxt("Кодировка")))
+					.append($("<td></td>").append(select));
+					
+				var tr2 = $("<tr></tr>")
+					.append($("<td></td>").append(anotherCheckbox).append($("<label></label>", {'for': 'otherEncoding'}).text("Другая")))
+					.append($("<td></td>").append(anotherInput));
+				
+				$(container)
+					.append($("<table></table>", {className: 'VectorLayerEncoding'})
+						.append(tr1).append(tr2));
 			},
+			// setServerEncoding: function(serverEncoding)
+			// {
+				// _curEncoding = serverEncoding;
+				
+				// for (var enc in _encodings)
+					// if (_encodings[enc] === serverEncoding)
+					// {
+						// this.server
+					// }
+			// },
 			getServerEncoding: function()
 			{
-				return _encodings[_curSelection];
+				return _curEncoding;
 			}
 		}
 		
@@ -2722,6 +2799,11 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				vectorRetilingFlag = true;
 			
 			return true;
+		}
+		
+		if (div && getFileExt(shapePath.value) === 'shp')
+		{
+			encodingWidget.drawWidget(encodingParent, properties.EncodeSource);
 		}
 		
 		_title(tilePath, typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')
@@ -3076,7 +3158,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			{
 				var cols = '',
 					updateParams = '',
-					encoding = '&EncodeName=' + encodingWidget.getServerEncoding(),
+					encoding = '&EncodeSource=' + encodingWidget.getServerEncoding(),
 					needRetiling = false,
 					colXElem = $(columnsParent).find("[selectLon]"),
 					colYElem = $(columnsParent).find("[selectLat]"),

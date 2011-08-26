@@ -757,3 +757,20 @@ skype_pnh_container
 	margin: .8em 0 .2em;
 	line-height: 1.5;
 }
+
+.VectorLayerEncoding td
+{
+	border: none;
+	padding-left: 1px
+}
+
+.VectorLayerEncoding label
+{
+	padding-left: 3px
+}
+
+.VectorLayerEncoding .VectorLayerEncodingInput
+{	
+	margin-left: 3px;
+	width: 100%
+}
