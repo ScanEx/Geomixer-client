@@ -380,6 +380,7 @@ layersTree.prototype.runLoadingFuncs = function()
 
 layersTree.prototype.addExpandedEvents = function(parent)
 {
+	var _this = this;
 	$(parent).find("div.hitarea").each(function()
 	{
 		if (!this.clickFunc)
@@ -394,7 +395,7 @@ layersTree.prototype.addExpandedEvents = function(parent)
 			$(divClick).bind('click', function()
 			{
 				var div = $(divClick.parentNode).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0],
-					treeElem = _mapHelper.findTreeElem(div);
+					treeElem = _this.mapHelper.findTreeElem(div);
 				
 				if (!treeElem.parents.length)
 					return;
@@ -590,7 +591,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
 		else
 			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		_mapHelper.createLayerEditor(div, 0, div.properties.content.properties.styles.length > 1 ? -1 : 0);
+		_this.mapHelper.createLayerEditor(div, 0, div.properties.content.properties.styles.length > 1 ? -1 : 0);
 		
 		//_mapHelper.createLayerEditor(span.parentNode.parentNode, 0, span.parentNode.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
 	}
@@ -609,17 +610,17 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 		else
 			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
 		
-		var treeElem = _mapHelper.findTreeElem(div).elem,
+		var treeElem = _this.mapHelper.findTreeElem(div).elem,
 			node = div.parentNode,
 			parentTree = node.parentNode;
 		
-		_mapHelper.removeTreeElem(div);
+		_this.mapHelper.removeTreeElem(div);
 
 		node.removeNode(true);
 		
 		_abstractTree.delNode(null, parentTree, parentTree.parentNode);
 		
-		_mapHelper.updateUnloadEvent(true);
+		_this.mapHelper.updateUnloadEvent(true);
 	}
 	
 	access.onclick = function()
@@ -687,9 +688,9 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 					
 		div.properties.content.properties.styles = newStyles;
 		
-		_mapHelper.updateMapStyles(newStyles, elem.name);
+		_this.mapHelper.updateMapStyles(newStyles, elem.name);
 		
-		_mapHelper.updateTreeStyles(newStyles, div);
+		_this.mapHelper.updateTreeStyles(newStyles, div);
 	}
 	
 	var actionsCanvas = null,
@@ -790,10 +791,10 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	
 	if (elem.type == "Vector")
 	{
-		var icon = _mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon'),
+		var icon = this.mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon'),
 			multiStyleParent = _div(null,[['attr','multiStyle',true]]);
 		
-		_mapHelper.createMultiStyle(elem, multiStyleParent, true, layerManagerFlag);
+		this.mapHelper.createMultiStyle(elem, multiStyleParent, true, layerManagerFlag);
 		
 		if (!layerManagerFlag)
 		{
@@ -802,7 +803,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			icon.onclick = function()
 			{
-				_mapHelper.createLayerEditor(this.parentNode, 1,  icon.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
+				_this.mapHelper.createLayerEditor(this.parentNode, 1,  icon.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
 			}
 			
 			return [box, icon, spanParent, spanDescr, multiStyleParent];
@@ -1059,7 +1060,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 						},
 						minLayerZoom = 20;
 					
-					_mapHelper.findChilds(_mapHelper.findTreeElem(span.parentNode.parentNode).elem, function(child)
+					_this.mapHelper.findChilds(_this.mapHelper.findTreeElem(span.parentNode.parentNode).elem, function(child)
 					{
 						if (child.type == 'layer' && child.content.properties.LayerID)
 						{
@@ -1120,7 +1121,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 			_contextClose();
 			$(this).removeClass('buttonLinkHover');
 			
-			_mapHelper.createGroupEditor(spanParent.parentNode);
+			_this.mapHelper.createGroupEditor(spanParent.parentNode);
 		}
 		
 		add.onclick = function()
@@ -1138,7 +1139,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 			
 			_this.removeGroup(spanParent.parentNode);
 			
-			_mapHelper.updateUnloadEvent(true);
+			_this.mapHelper.updateUnloadEvent(true);
 		}
 		
 		if ($.browser.opera)
@@ -1235,7 +1236,7 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 		_contextClose();
 		$(this).removeClass('buttonLinkHover');
 		
-		_mapHelper.createMapEditor(span.parentNode.parentNode);
+		_this.mapHelper.createMapEditor(span.parentNode.parentNode);
 	}
 	
 	add.onclick = function()
@@ -1251,11 +1252,11 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 		_contextClose();
 		$(this).removeClass('buttonLinkHover');
 		
-		_mapSecurity.getRights(_mapHelper.mapProperties.MapID, _mapHelper.mapProperties.title);
+		_mapSecurity.getRights(_this.mapHelper.mapProperties.MapID, _this.mapHelper.mapProperties.title);
 	}
 	
 	var bAddAccessDialog = nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
-		 ( _mapHelper.mapProperties.Owner == userInfo().Login || 
+		 ( (this.mapHelper.mapProperties && this.mapHelper.mapProperties.Owner == userInfo().Login) || 
 		   nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) );
 	
 	if ($.browser.opera)
@@ -1366,7 +1367,7 @@ layersTree.prototype.addSubGroup = function(div)
 	    newName = elemProperties.title,
 		inputIndex = _input(null,[['attr','value', newName + ' ' + newIndex],['dir','className','inputStyle'],['css','width','140px']]),
 		create = makeButton(_gtxt('Создать')),
-		pos = _mapHelper.getDialogPos(div, true, 100),
+		pos = this.mapHelper.getDialogPos(div, true, 100),
 		createSubGroup = function()
 		{
 			if (inputIndex.value == '')
@@ -1382,7 +1383,7 @@ layersTree.prototype.addSubGroup = function(div)
 			
 			_queryMapLayers.addSwappable(li);
 			
-			_mapHelper.addTreeElem(div, 0, newGroupProperties);
+			_this.mapHelper.addTreeElem(div, 0, newGroupProperties);
 			
 			var childsUl = _abstractTree.getChildsUl(div.parentNode);
 			
@@ -1407,7 +1408,7 @@ layersTree.prototype.addSubGroup = function(div)
 			$(dialogDiv).dialog('destroy');
 			dialogDiv.removeNode(true);
 			
-			_mapHelper.updateUnloadEvent(true);
+			_this.mapHelper.updateUnloadEvent(true);
 		};
 	
 	create.onclick = createSubGroup;
@@ -1435,7 +1436,7 @@ layersTree.prototype.addSubGroup = function(div)
 	var parentDiv = _div([inputIndex, _br(), create],[['css','textAlign','center']]);
 	var trs = [{name: _gtxt("Имя группы"), elem: inputIndex}].concat(groupVisibilityPropertiesControls);
 	
-	var trsControls = _mapHelper.createPropertiesTable(trs, elemProperties, {leftWidth: 100});
+	var trsControls = this.mapHelper.createPropertiesTable(trs, elemProperties, {leftWidth: 100});
 	var propsTable = _div([_table([_tbody(trsControls)],[['dir','className','propertiesTable']])]);
 	_(parentDiv, [propsTable, _br(), create]);
 	
@@ -1447,7 +1448,7 @@ layersTree.prototype.removeGroup = function(div)
 	var box = _checkbox(false, 'checkbox'),
 		remove = makeButton(_gtxt("Удалить")),
 		span = _span([_t(_gtxt("Включая вложенные слои"))]),
-		pos = _mapHelper.getDialogPos(div, true, 90),
+		pos = this.mapHelper.getDialogPos(div, true, 90),
 		_this = this;
 	
 	if (!$.browser.msie)
@@ -1493,7 +1494,7 @@ layersTree.prototype.removeGroup = function(div)
 			}
 		}
 		
-		_mapHelper.removeTreeElem(div);
+		_this.mapHelper.removeTreeElem(div);
 		
 		div.parentNode.removeNode(true);
 		
@@ -1502,7 +1503,7 @@ layersTree.prototype.removeGroup = function(div)
 		$(span.parentNode.parentNode).dialog('destroy');
 		span.parentNode.parentNode.removeNode(true);
 		
-		_mapHelper.updateUnloadEvent(true);
+		_this.mapHelper.updateUnloadEvent(true);
 	}
 	
 	showDialog(_gtxt("Удаление группы [value0]", div.properties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 90, pos.left, pos.top)
@@ -1577,7 +1578,7 @@ layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibili
 	if (typeof forceChildVisibility === 'undefined') 
 		forceChildVisibility = true;
 		
-	var treeElem = _mapHelper.findTreeElem(checkbox.parentNode).elem;
+	var treeElem = this.mapHelper.findTreeElem(checkbox.parentNode).elem;
 	var _this = this;
 	treeElem.content.properties.visible = flag;
 	
@@ -1591,7 +1592,7 @@ layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibili
 		// Делаем видимость всех потомков узла дерева такой же, как видимость этого слоя. 
 		if (forceChildVisibility)
 		{
-			_mapHelper.findTreeElems(treeElem, function(child, visflag, list, index)
+			this.mapHelper.findTreeElems(treeElem, function(child, visflag, list, index)
 			{
 				if (!visflag || (list && index != 0))
 				{
@@ -1755,7 +1756,7 @@ layersTree.prototype.setLayerVisibility = function(checkbox)
 			{
 				el.childNodes[1].firstChild.checked = true;
 				
-				_mapHelper.findTreeElem(el.childNodes[1]).elem.content.properties.visible = true;
+				this.mapHelper.findTreeElem(el.childNodes[1]).elem.content.properties.visible = true;
 				
 				$(el.childNodes[1].childNodes[1]).removeClass("invisible")
 				
@@ -1785,9 +1786,9 @@ layersTree.prototype.setLayerVisibility = function(checkbox)
 // приводит в соответствие видимость слоев на карте вложенным слоям указанного элемента дерева
 layersTree.prototype.updateChildLayersMapVisibility = function(div)
 {
-	var treeParent = div.getAttribute('MapID') ? _mapHelper.mapTree : _mapHelper.findTreeElem(div).elem
+	var treeParent = div.getAttribute('MapID') ? this.mapHelper.mapTree : this.mapHelper.findTreeElem(div).elem
 	
-	_mapHelper.findChilds(treeParent, function(child, visible)
+	this.mapHelper.findChilds(treeParent, function(child, visible)
 	{
 		if (globalFlashMap.layers[child.content.properties.name])
 			globalFlashMap.layers[child.content.properties.name].setVisible(visible);
@@ -1837,8 +1838,8 @@ layersTree.prototype.moveHandler = function(spanSource, divDestination)
 	var node = divDestination.parentNode,
 		parentTree = spanSource.parentNode.parentNode.parentNode.parentNode;
 
-	_mapHelper.removeTreeElem(spanSource.parentNode.parentNode);
-	_mapHelper.addTreeElem(divDestination, 0, spanSource.parentNode.parentNode.properties);
+	this.mapHelper.removeTreeElem(spanSource.parentNode.parentNode);
+	this.mapHelper.addTreeElem(divDestination, 0, spanSource.parentNode.parentNode.properties);
 
 	// добавим новый узел
 	var childsUl = _abstractTree.getChildsUl(node);
@@ -1862,7 +1863,7 @@ layersTree.prototype.moveHandler = function(spanSource, divDestination)
 	// удалим старый узел
 	_abstractTree.delNode(node, parentTree, parentTree.parentNode);
 	
-	_mapHelper.updateUnloadEvent(true);
+	this.mapHelper.updateUnloadEvent(true);
 }
 layersTree.prototype.swapHandler = function(spanSource, divDestination)
 {
@@ -1872,13 +1873,13 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 	if (node == spanSource.parentNode.parentNode.parentNode)
 		return;
 	
-	_mapHelper.removeTreeElem(spanSource.parentNode.parentNode);
+	this.mapHelper.removeTreeElem(spanSource.parentNode.parentNode);
 	
 	var divElem = $(divDestination.parentNode).children("div[GroupID],div[LayerID],div[MultiLayerID]")[0],
 		divParent = $(divDestination.parentNode.parentNode.parentNode).children("div[MapID],div[GroupID]")[0],
-		index = _mapHelper.findTreeElem(divElem).index;
+		index = this.mapHelper.findTreeElem(divElem).index;
 	
-	_mapHelper.addTreeElem(divParent, index + 1, spanSource.parentNode.parentNode.properties);
+	this.mapHelper.addTreeElem(divParent, index + 1, spanSource.parentNode.parentNode.properties);
 
 	_abstractTree.swapNode(node, spanSource.parentNode.parentNode.parentNode);
 	
@@ -1887,7 +1888,7 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 	// удалим старый узел
 	_abstractTree.delNode(node, parentTree, parentTree.parentNode);
 	
-	_mapHelper.updateUnloadEvent(true);
+	this.mapHelper.updateUnloadEvent(true);
 }
 layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag)
 {
@@ -1961,9 +1962,9 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 			{
 				var divElem = $(divDestination.parentNode).children("div[GroupID],div[LayerID],div[MultiLayerID]")[0],
 					divParent = $(divDestination.parentNode.parentNode.parentNode).children("div[MapID],div[GroupID]")[0],
-					index = _mapHelper.findTreeElem(divElem).index;
+					index = _this.mapHelper.findTreeElem(divElem).index;
 			
-				_mapHelper.addTreeElem(divParent, index + 1, layerProperties);
+				_this.mapHelper.addTreeElem(divParent, index + 1, layerProperties);
 
 				_abstractTree.swapNode(node, li);
 				
@@ -1971,7 +1972,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 			}
 			else
 			{
-				_mapHelper.addTreeElem(divDestination, 0, layerProperties);
+				_this.mapHelper.addTreeElem(divDestination, 0, layerProperties);
 
 				var childsUl = _abstractTree.getChildsUl(node);
 				
@@ -1992,7 +1993,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 				}
 			}
 			
-			_mapHelper.updateUnloadEvent(true);
+			_this.mapHelper.updateUnloadEvent(true);
 		},
 		_this = this;
 	
@@ -2008,12 +2009,12 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 				layerProperties = {type:'layer', content: response.Result};
 				
 				if (layerProperties.content.properties.type == 'Vector')
-					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
+					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MaxZoom, MaxZoom:21, RenderStyle:_this.mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
 				else if (layerProperties.content.properties.type != 'Vector' && !layerProperties.content.properties.MultiLayerID)
 					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:21}];
 				
-				layerProperties.content.properties.mapName = _mapHelper.mapProperties.name;
-				layerProperties.content.properties.hostName = _mapHelper.mapProperties.hostName;
+				layerProperties.content.properties.mapName = _this.mapHelper.mapProperties.name;
+				layerProperties.content.properties.hostName = _this.mapHelper.mapProperties.hostName;
 				layerProperties.content.properties.visible = true;
 				
 				copyFunc();
@@ -2030,8 +2031,8 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 				
 				layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:20}];
 				
-				layerProperties.content.properties.mapName = _mapHelper.mapProperties.name;
-				layerProperties.content.properties.hostName = _mapHelper.mapProperties.hostName;
+				layerProperties.content.properties.mapName = _this.mapHelper.mapProperties.name;
+				layerProperties.content.properties.hostName = _this.mapHelper.mapProperties.hostName;
 				layerProperties.content.properties.visible = true;
 				
 				copyFunc();
@@ -2167,6 +2168,7 @@ layersTree.prototype.updateMapLayersVisibility = function(li)
 }
 
 var _layersTree = new layersTree();
+_layersTree.mapHelper = _mapHelper;
 
 //добавляем пункты контекстного меню к слоям
 _layersTree.addContextMenuElem({
