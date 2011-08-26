@@ -6695,7 +6695,16 @@ function BalloonClass(map, flashDiv, div, apiBase)
 		return id;
 	}
 
-	// Проверка режима работы пользовательского callback - типы 'string'-содержимое для innerHTML, 'boolean'-скрыть балун, 'object'-с балуном все сделал callback
+	/** Проверка возвращенного пользовательским callback значения
+	* @function
+	* @memberOf BalloonClass private
+	* @param {text} возвращенное значение пользовательским callback
+	* @param {div} внутренний контейнер для размещения содержимого балуна
+	* @return {<String><Bool><Object>}	
+	*		если тип <String> то div.innerHTML = text
+	*		если тип <Bool> и значение True то div.innerHTML = ''
+	*		если тип <Object> никаких дополнительных действий - все действия были произведены в callback
+	*/
 	function chkBalloonText(text, div)
 	{
 		var type = typeof(text);
@@ -6745,7 +6754,27 @@ function BalloonClass(map, flashDiv, div, apiBase)
 	}
 	this.disableHoverBalloon = disableHoverBalloon;
 
-	// Задать пользовательский тип балунов
+	/** Задать пользовательский тип балуна для mapObject
+	* @function
+	* @memberOf BalloonClass public
+	* @param {mapObject<mapObject>} обьект карты для которого устанавливается тип балуна
+	* @param {callback<Function>} пользовательский метод формирования содержимого балуна
+	*		При вызове в callback передаются параметры:
+	*		@param {obj<Hash>} properties обьекта карты для балуна
+	*		@param {div<DIV>} нода контейнера содержимого балуна
+	*		@param {attr:<Hash>} атрибуты управления балуном
+	*		свойства:
+	*			'disableOnMouseOver<Bool>'	- по умолчанию False
+	*			'disableOnClick'<Bool>		- по умолчанию False
+	*			'maxFixedBallons'<Bool>		- по умолчанию 1 (максимальное количество фиксированных балунов)
+	*			'OnClickSwitcher'<Function>	- по умолчанию null (пользовательский метод при событии mouseClick)
+	*				@param {obj<Hash>} properties обьекта карты для балуна
+	*				@param {keyPress<Hash>} аттрибуты нажатых спец.клавиш при mouseClick событии
+	*				свойства:
+	*					'shiftKey<Bool>'	- по умолчанию False
+	*					'ctrlKey<Bool>'		- по умолчанию False
+	*				@return {Bool} если true то стандартный фиксированный балун НЕ создавать
+	*/
 	function enableHoverBalloon(mapObject, callback, attr)
 	{
 		var _this = this;
