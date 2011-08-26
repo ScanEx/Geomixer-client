@@ -6695,19 +6695,13 @@ function BalloonClass(map, flashDiv, div, apiBase)
 		return id;
 	}
 
-	// Проверка режима работы пользовательского callback - типы 'string'-содержимое для innerHTML, 'boolean'-скрыть балун, 'object'-замена подмена ноды содержимого балуна
+	// Проверка режима работы пользовательского callback - типы 'string'-содержимое для innerHTML, 'boolean'-скрыть балун, 'object'-с балуном все сделал callback
 	function chkBalloonText(text, div)
 	{
 		var type = typeof(text);
-		if(type === 'string') {
-			div.innerHTML = text;
-		}
-		else if(type === 'boolean') {
-			div.innerHTML = "";
-		}
-		else if(type === 'object') {	// div должен пересоздаваться в callback
-			div.parentNode.replaceChild(text, div);
-		}
+		if(type === 'string') div.innerHTML = text;
+		else if(type === 'boolean' && text) div.innerHTML = ""; // затираем только если true
+		// в случае type === 'object' ничего не делаем
 	}
 
 	// Текст по умолчанию для балуна (innerHTML)
@@ -6774,7 +6768,7 @@ function BalloonClass(map, flashDiv, div, apiBase)
 				}
 
 				var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
-				var text = (textFunc ? textFunc(o) : getDefaultBalloonText(o));
+				var text = (textFunc ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
 				if(!text) return;
 				var id = setID(o);
 				lastHoverBalloonId = o.objectId;
@@ -6858,9 +6852,6 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // взять параметры балуна от фильтра родителя
 		}
 
-		var text = (textFunc ? textFunc(o) : getDefaultBalloonText(o));
-		if(!text) return;
-
 		var id = setID(o);
 		if (!fixedHoverBalloons[id])
 		{
@@ -6876,6 +6867,9 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			}
 			var balloon = addBalloon();
 			balloon.fixedId =  id;
+
+			var text = (textFunc ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
+			if(!text) return;
 
 			var mx = map.getMouseX();
 			var my = map.getMouseY();
@@ -6894,7 +6888,6 @@ function BalloonClass(map, flashDiv, div, apiBase)
 
 			balloon.setPoint(mx, my);
 			chkBalloonText(text, balloon.div);
-			if(typeof(text) === 'object')	balloon.div = text;
 
 			balloon.resize();
 			fixedHoverBalloons[id] = balloon;
@@ -7036,7 +7029,6 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			{
 				updateVisible(text ? true : false);
 				chkBalloonText(text, balloonText);
-				if(typeof(text) === 'object') balloonText = text;
 				reposition();
 			}
 		};
