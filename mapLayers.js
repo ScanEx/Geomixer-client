@@ -571,192 +571,17 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	
 	if (!layerManagerFlag && !globalFlashMap.layers[elem.name].isVisible)
 		$(spanParent).addClass("invisible")
-
-	var editor = makeLinkButton(_gtxt("Редактировать")),
-		remove = makeLinkButton(_gtxt("Удалить")),
-		access = makeLinkButton(_gtxt("Права доступа")),
-		attrs = makeLinkButton(_gtxt("Таблица атрибутов")),
-		download = makeLinkButton(_gtxt("Скачать")),
-		copyStyle = makeLinkButton(_gtxt("Копировать стиль")),
-		pasteStyle = makeLinkButton(_gtxt("Применить стиль"));
-	
-	editor.onclick = function(e)
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		var div;
-			
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		_this.mapHelper.createLayerEditor(div, 0, div.properties.content.properties.styles.length > 1 ? -1 : 0);
-		
-		//_mapHelper.createLayerEditor(span.parentNode.parentNode, 0, span.parentNode.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
-	}
-	
-	remove.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		_queryMapLayers.removeLayer(elem.name)
-		
-		var div;
-			
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		
-		var treeElem = _this.mapHelper.findTreeElem(div).elem,
-			node = div.parentNode,
-			parentTree = node.parentNode;
-		
-		_this.mapHelper.removeTreeElem(div);
-
-		node.removeNode(true);
-		
-		_abstractTree.delNode(null, parentTree, parentTree.parentNode);
-		
-		_this.mapHelper.updateUnloadEvent(true);
-	}
-	
-	access.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		if (elem.LayerID)
-			_layerSecurity.getRights(elem.LayerID, elem.title);
-		else if (elem.MultiLayerID)
-			_multiLayerSecurity.getRights(elem.MultiLayerID, elem.title);
-	}
-	
-	attrs.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		_attrsTableHash.create(elem.name)
-	}
-	
-	download.onclick = function()
-	{
-		var area = getOffsetRect(this);
-		
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		_layersTree.downloadVectorLayer(elem.name, area, elem.hostName)
-	}
-	
-	copyStyle.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		_this.copiedStyle = {type: elem.GeometryType, style: spanParent.parentNode.properties.content.properties.styles};
-	}
-	
-	pasteStyle.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		if (!_this.copiedStyle)
-		{
-			showErrorMessage(_gtxt("Не выбран стиль"), true)
-			
-			return;
-		}
-		
-		if (_this.copiedStyle.type != elem.GeometryType)
-		{
-			showErrorMessage(_gtxt("Невозможно применить стиль к другому типу геометрии"), true)
-			
-			return;
-		}
-		
-		var newStyles = _this.copiedStyle.style,
-			div = spanParent.parentNode;
-		
-		// если слой еще не создан
-		if (!globalFlashMap.layers[elem.name].objectId)
-			$(box).trigger("click")
-					
-		div.properties.content.properties.styles = newStyles;
-		
-		_this.mapHelper.updateMapStyles(newStyles, elem.name);
-		
-		_this.mapHelper.updateTreeStyles(newStyles, div);
-	}
 	
 	var actionsCanvas = null,
 		attachMenuEvents = function()
 		{
 			if (actionsCanvas == null)
 				return;
-			
-			if ($.browser.opera)
-			{
-				spanParent.onmouseover = function()
-				{
-					if (actionsCanvas == null)
-						return;
-					
-					this.timer = setTimeout(function()
-					{
-						spanParent.timer = null;
-						
-						actionsCanvas.style.top = spanParent.offsetHeight + 'px';
-						
-						if ($.browser.msie)
-							spanParent.style.zIndex = 2;
-
-						$(actionsCanvas).fadeIn(500);
-						
-						spanParent.style.backgroundColor = '#DAEAF3';
-					}, _this.suggestTimeout)
-				}
 				
-				spanParent.onmouseout = function(e)
-				{
-					if (actionsCanvas == null)
-						return;
-					
-					if (this.timer)
-						clearTimeout(this.timer);
-
-					var evt = e || window.event,
-						target = evt.srcElement || evt.target,
-						relTarget = evt.relatedTarget || evt.toElement;
-					
-					while (relTarget)
-					{
-						if (relTarget == spanParent)
-							return;
-						relTarget = relTarget.parentNode;
-					}
-					
-					if ($.browser.msie)
-						spanParent.style.zIndex = 1;
-					
-					spanParent.style.backgroundColor = '';
-
-					$(actionsCanvas).fadeOut(500);
-				}
-				
-				_(spanParent, [actionsCanvas]);
-			}
-			else
+			_context(spanParent, actionsCanvas, function()
 			{
-				_context(spanParent, actionsCanvas, function()
-				{
-					return actionsCanvas != null;
-				})
-			}
+				return actionsCanvas != null;
+			}, _this.suggestTimeout)
 		};
 		
 	//добавляем пункты в контекстное меню
@@ -774,16 +599,16 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 
 		if (actionsCanvas == null)
 		{
+			actionsCanvas = _div(null, [['css','width','120px']]);
+			
 			if ($.browser.opera)
-				actionsCanvas = _div(null, [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-			else
-				actionsCanvas = _div(null, [['css','width','120px']]);
+				_attr(actionsCanvas, [['dir','className','layerSuggest'],['css','zIndex',2]]);
 		}
 		
 		if ( typeof menuElem.isSeparatorBefore !== 'undefined' && menuElem.isSeparatorBefore(layerManagerFlag, elem) )
 			_(actionsCanvas, [_div(null, [['css','height','1px'],['css','margin','2px 10px 2px 0px'],['css','borderBottom','1px solid #999999']])]);
 		
-		_(actionsCanvas, [_div([titleLink],[['css','height','16px']])]);
+		_(actionsCanvas, [_div([titleLink],[['dir','className','contextMenuItem']])]);
 		
 	})(this._layersContentMenuElems[e]);
 
@@ -1142,68 +967,14 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 			_this.mapHelper.updateUnloadEvent(true);
 		}
 		
+		var actionsCanvas = _div([_div([editor],[['dir','className','contextMenuItem']]), _div([add],[['dir','className','contextMenuItem']]), _div([remove],[['dir','className','contextMenuItem']])], [['css','width','120px']]);
 		if ($.browser.opera)
+			_attr(actionsCanvas, [['dir','className','layerSuggest'], ['css','zIndex',2]]);
+
+		_context(spanParent, actionsCanvas, function()
 		{
-			var actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([add],[['css','height','16px']]), _div([remove],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-			
-			spanParent.onmouseover = function()
-			{
-				if (_queryMapLayers.currentMapRights() != "edit")
-					return;
-				
-				this.timer = setTimeout(function()
-				{
-					spanParent.timer = null;
-					
-					actionsCanvas.style.top = spanParent.offsetHeight + 'px';
-				
-					if ($.browser.msie)
-						spanParent.style.zIndex = 2;
-
-					$(actionsCanvas).fadeIn(500);
-					
-					spanParent.style.backgroundColor = '#DAEAF3';
-				}, _this.suggestTimeout)
-			}
-			
-			spanParent.onmouseout = function(e)
-			{
-				if (_queryMapLayers.currentMapRights() != "edit")
-					return;
-				
-				if (this.timer)
-					clearTimeout(this.timer);
-
-				var evt = e || window.event,
-					target = evt.srcElement || evt.target,
-					relTarget = evt.relatedTarget || evt.toElement;
-				
-				while (relTarget)
-				{
-					if (relTarget == spanParent)
-						return;
-					relTarget = relTarget.parentNode;
-				}
-				
-				if ($.browser.msie)
-					spanParent.style.zIndex = 1;
-				
-				spanParent.style.backgroundColor = '';
-
-				$(actionsCanvas).fadeOut(500);
-			}
-			
-			_(spanParent, [actionsCanvas])
-		}
-		else
-		{
-			var actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([add],[['css','height','16px']]), _div([remove],[['css','height','16px']])], [['css','width','120px']]);
-			
-			_context(spanParent, actionsCanvas, function()
-			{
-				return _queryMapLayers.currentMapRights() == "edit";
-			})
-		}
+			return _queryMapLayers.currentMapRights() == "edit";
+		}, this.suggestTimeout)
 		
 		return [box, spanParent];
 	}
@@ -1259,79 +1030,29 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 		 ( (this.mapHelper.mapProperties && this.mapHelper.mapProperties.Owner == userInfo().Login) || 
 		   nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) );
 	
-	if ($.browser.opera)
+	//формируем контекстное меню
+	var actionsCanvas;
+	var editorDiv = _div([editor],[['dir','className','contextMenuItem']]);
+	var addDiv    = _div([add],   [['dir','className','contextMenuItem']]);
+	
+	if (bAddAccessDialog)
 	{
-		var actionsCanvas;
-		
-		if ( bAddAccessDialog )
-			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([access],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-		else
-			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-		
-		spanParent.onmouseover = function()
-		{
-			if (_queryMapLayers.currentMapRights() != "edit")
-				return;
-			
-			this.timer = setTimeout(function()
-			{
-				spanParent.timer = null;
-				
-				actionsCanvas.style.top = spanParent.offsetHeight + 'px';
-				
-				if ($.browser.msie)
-					spanParent.style.zIndex = 2;
-
-				$(actionsCanvas).fadeIn(500);
-				
-				spanParent.style.backgroundColor = '#DAEAF3';
-			}, _this.suggestTimeout)
-		}
-		
-		spanParent.onmouseout = function(e)
-		{
-			if (_queryMapLayers.currentMapRights() != "edit")
-				return;
-			
-			if (this.timer)
-				clearTimeout(this.timer);
-
-			var evt = e || window.event,
-				target = evt.srcElement || evt.target,
-				relTarget = evt.relatedTarget || evt.toElement;
-			
-			while (relTarget)
-			{
-				if (relTarget == spanParent)
-					return;
-				relTarget = relTarget.parentNode;
-			}
-			
-			if ($.browser.msie)
-				spanParent.style.zIndex = 1;
-			
-			spanParent.style.backgroundColor = '';
-
-			$(actionsCanvas).fadeOut(500);
-		}
-		
-		_(spanParent, [actionsCanvas])
+		var accessDiv = _div([access],[['dir','className','contextMenuItem']]);
+		actionsCanvas = _div([editorDiv, accessDiv, addDiv], [['css','width','120px']]);
 	}
 	else
 	{
-		var actionsCanvas;
-		
-		if ( bAddAccessDialog )
-			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([access],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['css','width','120px']]);
-		else
-			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['css','width','120px']]);
-		
-		_context(spanParent, actionsCanvas, function()
-		{
-			return _queryMapLayers.currentMapRights() == "edit";
-		})
+		actionsCanvas = _div([editorDiv, addDiv], [['css','width','120px']]);
 	}
 	
+	if ($.browser.opera)
+		_attr(actionsCanvas, [['dir','className','layerSuggest'], ['css','zIndex',2]]);
+	
+	_context(spanParent, actionsCanvas, function()
+	{
+		return _queryMapLayers.currentMapRights() == "edit";
+	}, this.suggestTimeout)
+
 	return [spanParent];
 }
 

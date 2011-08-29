@@ -398,6 +398,10 @@ div.leftTitle
 	border-bottom: 1px solid #BEBEBE;
 	background-color: #DAEAF3;
 }
+.contextMenuItem
+{
+	height: 16px;
+}
 .dragableDummy
 {
 	padding: 2px 2px 2px 20px;

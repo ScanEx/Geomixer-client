@@ -722,70 +722,16 @@ fileBrowser.prototype.createFolderActions = function(name)
 		stopEvent(e);
 	}
 	
+	var actionsCanvas = _div([_div([download],[['dir','className','contextMenuItem']]), _div([remove],[['dir','className','contextMenuItem']]), _div([archive],[['dir','className','contextMenuItem']]), _div([clean],[['dir','className','contextMenuItem']])], [['css','width','120px']]);
 	if ($.browser.opera)
-	{
-		var actionsCanvas = _div([_div([download],[['css','height','16px']]), _div([remove],[['css','height','16px']]), _div([archive],[['css','height','16px']]), _div([clean],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px']]);
-
-		spanParent.onmouseover = function()
-		{
-			if (_this.currentDir.indexOf(_this.homeDir) < 0)
-				return;
-			
-			this.timer = setTimeout(function()
-			{
-				spanParent.timer = null;
-				
-				actionsCanvas.style.top = spanParent.offsetHeight + 'px';
-				
-				if ($.browser.msie)
-					spanParent.style.zIndex = 2;
-
-				$(actionsCanvas).fadeIn(500);
-				
-				spanParent.style.backgroundColor = '#DAEAF3';
-			}, _layersTree.suggestTimeout)
-		}
+		_attr(actionsCanvas, [['dir','className','layerSuggest']]);
 		
-		spanParent.onmouseout = function(e)
-		{
-			if (_this.currentDir.indexOf(_this.homeDir) < 0)
-				return;
-			
-			if (this.timer)
-				clearTimeout(this.timer);
-
-			var evt = e || window.event,
-				target = evt.srcElement || evt.target,
-				relTarget = evt.relatedTarget || evt.toElement;
-			
-			while (relTarget)
-			{
-				if (relTarget == spanParent)
-					return;
-				relTarget = relTarget.parentNode;
-			}
-			
-			if ($.browser.msie)
-				spanParent.style.zIndex = 1;
-			
-			spanParent.style.backgroundColor = '';
-
-			$(actionsCanvas).fadeOut(500);
-		}
-		
-		_(spanParent, [actionsCanvas])
-	}
-	else
+	_context(spanParent, actionsCanvas, function()
 	{
-		var actionsCanvas = _div([_div([download],[['css','height','16px']]), _div([remove],[['css','height','16px']]), _div([archive],[['css','height','16px']]), _div([clean],[['css','height','16px']])], [['css','width','120px']]);
-			
-		_context(spanParent, actionsCanvas, function()
-		{
-			//показывать меню только в домашней директории или если есть права на просмотр всей структуры папок
-			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
-		})
-	}
-	
+		//показывать меню только в домашней директории или если есть права на просмотр всей структуры папок
+		return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
+	}, _layersTree.suggestTimeout);
+
 	return spanParent;
 }
 
@@ -846,69 +792,16 @@ fileBrowser.prototype.createFileActions = function(name, ext)
 		})
 	}
 	
+	var actionsCanvas = _div([_div([download],[['dir','className','contextMenuItem']]), _div([remove],[['dir','className','contextMenuItem']]), _div([archive],[['dir','className','contextMenuItem']])], [['css','width','120px']]);
+	
 	if ($.browser.opera)
-	{
-		var actionsCanvas = _div([_div([download],[['css','height','16px']]), _div([remove],[['css','height','16px']]), _div([archive],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px']]);
-
-		spanParent.onmouseover = function()
-		{
-			if (_this.currentDir.indexOf(_this.homeDir) < 0)
-				return;
-			
-			this.timer = setTimeout(function()
-			{
-				spanParent.timer = null;
-				
-				actionsCanvas.style.top = spanParent.offsetHeight + 'px';
-				
-				if ($.browser.msie)
-					spanParent.style.zIndex = 2;
-
-				$(actionsCanvas).fadeIn(500);
-				
-				spanParent.style.backgroundColor = '#DAEAF3';
-			}, _layersTree.suggestTimeout)
-		}
+		_attr(actionsCanvas, [['dir','className','layerSuggest']]);
 		
-		spanParent.onmouseout = function(e)
-		{
-			if (_this.currentDir.indexOf(_this.homeDir) < 0)
-				return;
-			
-			if (this.timer)
-				clearTimeout(this.timer);
-
-			var evt = e || window.event,
-				target = evt.srcElement || evt.target,
-				relTarget = evt.relatedTarget || evt.toElement;
-			
-			while (relTarget)
-			{
-				if (relTarget == spanParent)
-					return;
-				relTarget = relTarget.parentNode;
-			}
-			
-			if ($.browser.msie)
-				spanParent.style.zIndex = 1;
-			
-			spanParent.style.backgroundColor = '';
-
-			$(actionsCanvas).fadeOut(500);
-		}
-		
-		_(spanParent, [actionsCanvas])
-	}
-	else
+	_context(spanParent, actionsCanvas, function()
 	{
-		var actionsCanvas = _div([_div([download],[['css','height','16px']]), _div([remove],[['css','height','16px']]), _div([archive],[['css','height','16px']])], [['css','width','120px']]);
-
-		_context(spanParent, actionsCanvas, function()
-		{
-			//показывать меню только в домашней директории или если есть права на просмотр всей структуры папок
-			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
-		})
-	}
+		//показывать меню только в домашней директории или если есть права на просмотр всей структуры папок
+		return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
+	}, _layersTree.suggestTimeout)
 	
 	return spanParent;
 }
