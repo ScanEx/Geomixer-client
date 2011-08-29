@@ -3662,19 +3662,24 @@ function createFlashMapInternal(div, layers, callback)
 					},
 					onNodeMouseOver: function()
 					{
-						if (obj.getGeometryType() == "LINESTRING")
-							propsBalloon.updatePropsBalloon(prettifyDistance(obj.getIntermediateLength()));
+						var out = '';
+						var type = obj.getGeometryType();
+						if (type == "LINESTRING") out = prettifyDistance(obj.getIntermediateLength());
+						else if (type == "POLYGON")	out = obj.getGeometrySummary();
+						if(out) propsBalloon.updatePropsBalloon(out);
 					},
-					onNodeMouseOut: function()
+					onNodeMouseOut: function(obj, attr)
 					{
+						if(attr && attr['buttonDown']) return;
 						propsBalloon.updatePropsBalloon(false);
 					},
 					onEdgeMouseOver: function()
 					{
 						propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
 					},
-					onEdgeMouseOut: function()
+					onEdgeMouseOut: function(obj, attr)
 					{
+						if(attr && attr['buttonDown']) return;
 						propsBalloon.updatePropsBalloon(false);
 					}
 				});
@@ -3775,16 +3780,18 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						propsBalloon.updatePropsBalloon(obj.getGeometrySummary());
 					},
-					onNodeMouseOut: function()
+					onNodeMouseOut: function(obj, attr)
 					{
+						if(attr && attr['buttonDown']) return;
 						propsBalloon.updatePropsBalloon(false);
 					},
 					onEdgeMouseOver: function()
 					{
 						propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
 					},
-					onEdgeMouseOut: function()
+					onEdgeMouseOut: function(obj, attr)
 					{
+						if(attr && attr['buttonDown']) return;
 						propsBalloon.updatePropsBalloon(false);
 					}
 				});
@@ -3965,7 +3972,8 @@ function createFlashMapInternal(div, layers, callback)
 				y2Border.setHandlers(objHandlersY);
 
 				var objHandlerCorner = {
-					onMouseOver: chkBalloon
+					onMouseOver: chkBalloon,
+					onMouseOut: function() { if(!isDraging) mouseUP(); }
 				};
 				x1y1Corner.setHandlers(objHandlerCorner);
 				x1y2Corner.setHandlers(objHandlerCorner);

@@ -44,6 +44,15 @@ class Main
 			stage.frameRate = 40;
 	}
 
+	public static function chkEventAttr(event:MouseEvent)
+		{
+			eventAttr = { };
+			if (event.shiftKey) eventAttr.shiftKey = 1;
+			if (event.ctrlKey) eventAttr.ctrlKey = 1;
+			if (event.altKey) eventAttr.altKey = 1;
+			if (event.buttonDown) eventAttr.buttonDown = 1;
+		}
+
 	static function main()
 	{
 		var root = flash.Lib.current;
@@ -196,11 +205,8 @@ class Main
 		
 		Main.registerMouseDown = function(node:MapNode, ?event:MouseEvent, ?nodeFrom_:MapNode)
 		{
-			eventAttr = { };
 			if (event != null) {
-				if (event.shiftKey) eventAttr.shiftKey = 1;
-				if (event.ctrlKey) eventAttr.ctrlKey = 1;
-				if (event.altKey) eventAttr.altKey = 1;
+				Main.chkEventAttr(event);
 				if (nodeFrom_ != null) eventAttr.nodeFilter = node.id;
 			}
 			if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
@@ -238,6 +244,7 @@ class Main
 		mapSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
 		root.addEventListener(MouseEvent.MOUSE_UP, function(event)
 		{
+			Main.chkEventAttr(event);
 			isDragging = false;
 			if (!isFluidMoving)
 			{
@@ -358,8 +365,10 @@ class Main
 
 			if (nextFrameCallbacks.length > 0)
 			{
-				for (func in nextFrameCallbacks)
-					func();
+				try {
+					for (func in nextFrameCallbacks)
+						func();
+				} catch (e:Error) {  }
 				nextFrameCallbacks = new Array<Void->Void>();
 			}
 
@@ -707,9 +716,7 @@ class Main
 				{
 					nextFrameCallbacks.push(function()
 					{
-						try {
-							ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
-						} catch (e:Error) {  }
+						ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
 					});
 				}
 			}); 

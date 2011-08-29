@@ -167,11 +167,13 @@ class EditableContent extends MapContent
 	}
 
 	public override function addHandlers()
-	{		
+	{
 		linesPainter = new GeometryPainter(null, Utils.addSprite(contentSprite), mapNode.window);
 		pointsPainter = new GeometryPainter(null, Utils.addSprite(contentSprite), mapNode.window);
 		var hoverLinesPainter = new GeometryPainter(null, Utils.addSprite(contentSprite), mapNode.window);
+		hoverLinesPainter.sprite.mouseEnabled = false;
 		var hoverPointsPainter = new GeometryPainter(null, Utils.addSprite(contentSprite), mapNode.window);
+		hoverPointsPainter.sprite.mouseEnabled = false;
 		var me = this;
 		var pressTime = 0.0;
 		var clearHoverPainters = function()
@@ -214,13 +216,13 @@ class EditableContent extends MapContent
 			hoverPointsPainter.repaint(me.mapNode.getHoveredStyle());
 			me.mapNode.callHandler("onNodeMouseOver");
 		});
-		hoverPointsPainter.sprite.addEventListener(MouseEvent.MOUSE_OUT, function(event:Event)
+		pointsPainter.sprite.addEventListener(MouseEvent.MOUSE_OUT, function(event:Event)
 		{
 			event.stopPropagation();
 			clearHoverPainters();
 			me.mapNode.callHandler("onNodeMouseOut");
 		});
-		hoverPointsPainter.sprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:Event)
+		pointsPainter.sprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:Event)
 		{
 			event.stopPropagation();
 			calculateEditIndex();
@@ -363,12 +365,12 @@ class EditableContent extends MapContent
 			hoverLinesPainter.repaint(me.mapNode.getHoveredStyle());
 			me.mapNode.callHandler("onEdgeMouseOver");
 		});
-		hoverLinesPainter.sprite.addEventListener(MouseEvent.MOUSE_OUT, function(event:Event)
+		linesPainter.sprite.addEventListener(MouseEvent.MOUSE_OUT, function(event:Event)
 		{
 			clearHoverPainters();
 			me.mapNode.callHandler("onEdgeMouseOut");
 		});
-		hoverLinesPainter.sprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:Event)
+		linesPainter.sprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:Event)
 		{
 			event.stopPropagation();
 			me.coordinates.insert(me.editIndex*2 + 2, me.contentSprite.mouseX);

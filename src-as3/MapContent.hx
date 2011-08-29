@@ -42,10 +42,12 @@ class MapContent
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event:MouseEvent)
 		{
+			Main.chkEventAttr(event);
 			node.callHandler("onMouseOut");
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
+			Main.chkEventAttr(event);
 			node.callHandler("onMouseMove");
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
