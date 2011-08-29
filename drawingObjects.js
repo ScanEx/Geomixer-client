@@ -322,16 +322,14 @@ queryDrawingObjects.prototype.downloadMarkers = function()
 				ret.properties.text = "marker " + markerIdx;
 				markerIdx++;
 			}
-			if (ret.properties.text)
-				ret.properties.text = encodeURIComponent(ret.properties.text);
 			
 			objectsByType[type].push({ geometry: ret.geometry, properties: ret.properties });
 		});
 		
 		_this.downloadVectorForm.childNodes[0].value = filename.value;
-		_this.downloadVectorForm.childNodes[1].value = objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]).split("%22").join("\\\"") : '';
-		_this.downloadVectorForm.childNodes[2].value = objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]).split("%22").join("\\\"") : '';
-		_this.downloadVectorForm.childNodes[3].value = objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]).split("%22").join("\\\"") : '';
+		_this.downloadVectorForm.childNodes[1].value = objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]) : '';
+		_this.downloadVectorForm.childNodes[2].value = objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]) : '';
+		_this.downloadVectorForm.childNodes[3].value = objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]) : '';
 		
 		_this.downloadVectorForm.submit();
 		
