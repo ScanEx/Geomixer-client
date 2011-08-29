@@ -13,10 +13,10 @@ var _getFileName = function( localName )
 //последовательно загружает все файлы js из jsLoadSchedule.txt и вызывает после этого callback
 var loadJS = function(callback)
 {
-	$.ajax({url: gmxJSHost + "jsLoadSchedule.txt", success: function(responce)
+	$.ajax({url: gmxJSHost + "jsLoadSchedule.txt", dataType: 'json', success: function(fileList)
 	{
 		var LABInstance = $LAB;
-		var fileList = JSON.parse(responce);
+		// var fileList = responce;
 		
 		for (var f = 0; f < fileList.length-1; f++)
 			LABInstance = LABInstance.script(_getFileName(fileList[f])).wait();
