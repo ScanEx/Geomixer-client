@@ -2860,6 +2860,13 @@ function createFlashMapInternal(div, layers, callback)
 			);
 			div.appendChild(coordinates);
 
+			var setCoordinatesFormat = function(num)
+			{ 
+				coordFormat = num % 3;
+				coordinates.innerHTML = getCoordinatesText();
+				gmxAPI.chkListeners('setCoordinatesFormat', map, coordFormat);
+			}
+
 			var coordFormat = 0;
 			var changeCoords = newElement(
 				"img", 
@@ -2869,7 +2876,7 @@ function createFlashMapInternal(div, layers, callback)
 					onclick: function()
 					{
 						coordFormat += 1;
-						coordinates.innerHTML = getCoordinatesText();
+						setCoordinatesFormat(coordFormat);
 					}
 				},
 				{
@@ -2888,11 +2895,7 @@ function createFlashMapInternal(div, layers, callback)
 					setVisible(changeCoords, flag); 
 				}
 				,
-				setFormat: function(num) 
-				{ 
-					coordFormat = num % 3;
-					coordinates.innerHTML = getCoordinatesText();
-				}
+				setFormat: setCoordinatesFormat
 			}
 
 			var getCoordinatesText = function(currPosition)
@@ -3324,7 +3327,7 @@ function createFlashMapInternal(div, layers, callback)
 				*/
 				if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
 					var attr = {'div': locationTitleDiv, 'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
-					gmxAPI.chkListeners('positionChanged', map, attr)
+					gmxAPI.chkListeners('positionChanged', map, attr);
 				}
 
 				if (copyrightUpdateTimeout2)
