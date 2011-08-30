@@ -2887,6 +2887,12 @@ function createFlashMapInternal(div, layers, callback)
 					setVisible(coordinates, flag); 
 					setVisible(changeCoords, flag); 
 				}
+				,
+				setFormat: function(num) 
+				{ 
+					coordFormat = num % 3;
+					coordinates.innerHTML = getCoordinatesText();
+				}
 			}
 
 			var getCoordinatesText = function(currPosition)
