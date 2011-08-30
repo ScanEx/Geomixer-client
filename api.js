@@ -2864,7 +2864,7 @@ function createFlashMapInternal(div, layers, callback)
 			{ 
 				coordFormat = num % 3;
 				coordinates.innerHTML = getCoordinatesText();
-				gmxAPI.chkListeners('setCoordinatesFormat', map, coordFormat);
+				gmxAPI.chkListeners('onSetCoordinatesFormat', map, coordFormat);
 			}
 
 			var coordFormat = 0;
