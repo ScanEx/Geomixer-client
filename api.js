@@ -3682,6 +3682,7 @@ function createFlashMapInternal(div, layers, callback)
 						}
 						callOnChange();
 						gmxAPI.chkListeners(eventName, map.drawing, domObj);
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					},
 					onFinish: function()
 					{
@@ -3692,8 +3693,9 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						ret.remove();
 					},
-					onNodeMouseOver: function()
+					onNodeMouseOver: function(cobj, attr)
 					{
+						if(attr && attr['buttonDown']) return;
 						var out = '';
 						var type = obj.getGeometryType();
 						if (type == "LINESTRING") out = prettifyDistance(obj.getIntermediateLength());
@@ -3707,8 +3709,9 @@ function createFlashMapInternal(div, layers, callback)
 						gmxAPI.chkListeners('onNodeMouseOut', map.drawing, domObj);
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					},
-					onEdgeMouseOver: function()
+					onEdgeMouseOver: function(cobj, attr)
 					{
+						if(attr && attr['buttonDown']) return;
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
 						gmxAPI.chkListeners('onEdgeMouseOver', map.drawing, domObj);
 					},
@@ -3809,6 +3812,7 @@ function createFlashMapInternal(div, layers, callback)
 						}
 						callOnChange();
 						gmxAPI.chkListeners(eventName, map.drawing, domObj);
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					},
 					onFinish: function()
 					{
@@ -3819,8 +3823,9 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						ret.remove();
 					},
-					onNodeMouseOver: function()
+					onNodeMouseOver: function(cobj, attr)
 					{
+						if(attr && attr['buttonDown']) return;
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(obj.getGeometrySummary());
 						gmxAPI.chkListeners('onNodeMouseOver', map.drawing, domObj);
 					},
@@ -3830,12 +3835,13 @@ function createFlashMapInternal(div, layers, callback)
 						gmxAPI.chkListeners('onNodeMouseOut', map.drawing, domObj);
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					},
-					onEdgeMouseOver: function()
+					onEdgeMouseOver: function(cobj, attr)
 					{
+						if(attr && attr['buttonDown']) return;
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
 						gmxAPI.chkListeners('onEdgeMouseOver', map.drawing, domObj);
 					},
-					onEdgeMouseOut: function(obj, attr)
+					onEdgeMouseOut: function(сobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
 						gmxAPI.chkListeners('onEdgeMouseOut', map.drawing, domObj);
@@ -3984,21 +3990,21 @@ function createFlashMapInternal(div, layers, callback)
 				// Высвечивание балуна в зависимости от типа geometry
 				var chkBalloon = function(tp)
 				{
-					var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
-					if(map.drawing.enabledHoverBalloon) {
-						if(!isDraging) {
-							switch(tp) {
-								case 'x1b':
-								case 'x2b':
-									geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x1, y2]]] };
-									break;
-								case 'y1b':
-								case 'y2b':
-									geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1]]] };
-									break;
-							}
+					if(!isDraging) {
+						var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
+						if(map.drawing.enabledHoverBalloon) {
+								switch(tp) {
+									case 'x1b':
+									case 'x2b':
+										geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x1, y2]]] };
+										break;
+									case 'y1b':
+									case 'y2b':
+										geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1]]] };
+										break;
+								}
+							propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
 						}
-						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
 					}
 					chkEvent();
 				}
@@ -4048,6 +4054,7 @@ function createFlashMapInternal(div, layers, callback)
 					repaint();
 					eventType = 'onEdit';
 					chkEvent(null);
+					if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 				}
 				x1Border.enableDragging(function(x, y) { x1 = x; dragMe('x1b'); }, null, mouseUP);
 				y1Border.enableDragging(function(x, y) { y1 = y; dragMe('y1b'); }, null, mouseUP);
