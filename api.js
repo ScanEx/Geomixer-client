@@ -23,6 +23,44 @@ var gmxAPI = {
 		if(!obj || !obj.parent) return 'ogc_fid';
 		if(obj.properties && obj.properties.identityField) return obj.properties.identityField;
 		return this.getIdentityField(obj.parent);
+	},
+	chkListeners: function(eventName, obj, attr)
+	{
+		var out = true;
+		if ('stateListeners' in obj && eventName in obj.stateListeners) {
+			var arr = obj.stateListeners[eventName];
+			for (var i=0; i<arr.length; i++)
+			{
+				out = arr[i].func(attr);
+			}
+		}
+		return out;
+	},
+	addMapStateListener: function(obj, eventName, func)
+	{
+		if(!obj.stateListeners[eventName]) obj.stateListeners[eventName] = [];
+		var id = newFlashMapId();
+		obj.stateListeners[eventName].push({"id": id, "func": func });
+		return id;
+	},
+	removeMapStateListener: function(obj, eventName, id)
+	{
+		if(!obj.stateListeners[eventName]) return false;
+		var arr = [];
+		for (var i=0; i<obj.stateListeners[eventName].length; i++)
+		{
+			if(id != obj.stateListeners[eventName][i]["id"]) arr.push(obj.stateListeners[eventName][i]);
+		}
+		obj.stateListeners[eventName] = arr;
+		return true;
+	},
+	prettifyDistance: function(length)
+	{
+		if (length < 1000)
+			return Math.round(length) + KOSMOSNIMKI_LOCALIZED(" м", " m");
+		if (length < 100000)
+			return (Math.round(length/10)/100) + KOSMOSNIMKI_LOCALIZED(" км", " km");
+		return Math.round(length/1000) + KOSMOSNIMKI_LOCALIZED(" км", " km");
 	}
 }
 
@@ -837,6 +875,7 @@ function createFlashMapInternal(div, layers, callback)
 				this.properties = properties_;
 				this.parent = parent_;
 				this.flashId = flashId;
+				this.stateListeners = {};
 			}
 
 			// Передача команды в SWF
@@ -2683,7 +2722,7 @@ function createFlashMapInternal(div, layers, callback)
 				if (layers.properties.OnLoad)
 				{
 					try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(map); }
-					catch (e) { alert('Error in baseMap maplet: ' + e); }
+					catch (e) { alert('Error in "'+layers.properties.title+'" mapplet: ' + e); }
 				}
 			}
 			FlashMapObject.prototype.setExtent = function(x1, x2, y1, y2)
@@ -2720,7 +2759,6 @@ function createFlashMapInternal(div, layers, callback)
 				return distVincenty(x, y, from_merc_x(merc_x(x) + 40), from_merc_y(merc_y(y) + 30))/50;
 			}
 
-			map.stateListeners = {};
 			/** Пользовательские Listeners изменений состояния карты
 			* @function addMapStateListener
 			* @memberOf api - добавление прослушивателя
@@ -2730,12 +2768,9 @@ function createFlashMapInternal(div, layers, callback)
 			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
 			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 			*/
-			map.addMapStateListener = function(eventName, func)
+			FlashMapObject.prototype.addMapStateListener = function(eventName, func)
 			{
-				if(!map.stateListeners[eventName]) map.stateListeners[eventName] = [];
-				var id = newFlashMapId();
-				map.stateListeners[eventName].push({"id": id, "func": func });
-				return id;
+				return gmxAPI.addMapStateListener(this, eventName, func);
 			}
 			/** Пользовательские Listeners изменений состояния карты
 			* @function removeMapStateListener
@@ -2746,16 +2781,9 @@ function createFlashMapInternal(div, layers, callback)
 			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
 			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 			*/
-			map.removeMapStateListener = function(eventName, id)
+			FlashMapObject.prototype.removeMapStateListener = function(eventName, id)
 			{
-				if(!map.stateListeners[eventName]) return false;
-				var arr = [];
-				for (var i=0; i<map.stateListeners[eventName].length; i++)
-				{
-					if(id != map.stateListeners[eventName][i]["id"]) arr.push(map.stateListeners[eventName][i]);
-				}
-				map.stateListeners[eventName] = arr;
-				return true;
+				return gmxAPI.removeMapStateListener(this, eventName, id);
 			}
 
 			/** Отображение строки текущего положения карты
@@ -3288,14 +3316,10 @@ function createFlashMapInternal(div, layers, callback)
 				* @function callback
 				* @param {object} атрибуты прослушивателя
 				*/
-				if ('positionChanged' in map.stateListeners) {
+				if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
 					var attr = {'div': locationTitleDiv, 'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
-					var arr = map.stateListeners['positionChanged'];
-					for (var i=0; i<arr.length; i++)
-					{
-						arr[i].func(attr);
-					}
-				}				
+					gmxAPI.chkListeners('positionChanged', map, attr)
+				}
 
 				if (copyrightUpdateTimeout2)
 					clearTimeout(copyrightUpdateTimeout2);
@@ -3651,14 +3675,17 @@ function createFlashMapInternal(div, layers, callback)
 						if (!domObj)
 							domObj = createDOMObject(ret);
 						callOnChange();
+						gmxAPI.chkListeners('onEdit', map.drawing, obj);
 					},
 					onFinish: function()
 					{
 						selectTool("move");
+						gmxAPI.chkListeners('onFinish', map.drawing, obj);
 					},
 					onRemove: function()
 					{
 						ret.remove();
+						gmxAPI.chkListeners('onRemove', map.drawing, obj);
 					},
 					onNodeMouseOver: function()
 					{
@@ -3666,21 +3693,25 @@ function createFlashMapInternal(div, layers, callback)
 						var type = obj.getGeometryType();
 						if (type == "LINESTRING") out = prettifyDistance(obj.getIntermediateLength());
 						else if (type == "POLYGON")	out = obj.getGeometrySummary();
-						if(out) propsBalloon.updatePropsBalloon(out);
+						if(out && map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(out);
+						gmxAPI.chkListeners('onNodeMouseOver', map.drawing, obj);
 					},
-					onNodeMouseOut: function(obj, attr)
+					onNodeMouseOut: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
-						propsBalloon.updatePropsBalloon(false);
+						gmxAPI.chkListeners('onNodeMouseOut', map.drawing, obj);
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					},
 					onEdgeMouseOver: function()
 					{
-						propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
+						gmxAPI.chkListeners('onEdgeMouseOver', map.drawing, obj);
 					},
-					onEdgeMouseOut: function(obj, attr)
+					onEdgeMouseOut: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
-						propsBalloon.updatePropsBalloon(false);
+						gmxAPI.chkListeners('onEdgeMouseOut', map.drawing, obj);
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					}
 				});
 
@@ -3767,32 +3798,39 @@ function createFlashMapInternal(div, layers, callback)
 						if (!domObj)
 							domObj = createDOMObject(ret);
 						callOnChange();
+						gmxAPI.chkListeners('onEdit', map.drawing, obj);
 					},
 					onFinish: function()
 					{
+						gmxAPI.chkListeners('onFinish', map.drawing, obj);
 						selectTool("move");
 					},
 					onRemove: function()
 					{
+						gmxAPI.chkListeners('onRemove', map.drawing, obj);
 						ret.remove();
 					},
 					onNodeMouseOver: function()
 					{
-						propsBalloon.updatePropsBalloon(obj.getGeometrySummary());
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(obj.getGeometrySummary());
+						gmxAPI.chkListeners('onNodeMouseOver', map.drawing, obj);
 					},
-					onNodeMouseOut: function(obj, attr)
+					onNodeMouseOut: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
-						propsBalloon.updatePropsBalloon(false);
+						gmxAPI.chkListeners('onNodeMouseOut', map.drawing, obj);
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					},
 					onEdgeMouseOver: function()
 					{
-						propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
+						gmxAPI.chkListeners('onEdgeMouseOver', map.drawing, obj);
 					},
 					onEdgeMouseOut: function(obj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
-						propsBalloon.updatePropsBalloon(false);
+						gmxAPI.chkListeners('onEdgeMouseOut', map.drawing, obj);
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					}
 				});
 
@@ -3892,6 +3930,15 @@ function createFlashMapInternal(div, layers, callback)
 				var corners = obj.addObject();
 				var x1, y1, x2, y2;
 				var isDraging = false;
+				var mouseOverObject = null;
+				var eventType = '';
+				var lastAttr = {
+					'obj': mouseOverObject,
+					'objectId': obj.objectId,
+					'isDraging': isDraging,
+					'geom': null,
+					'getGeometryType': function(){ return 'FRAME'; }
+				};
 
 				ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
 				ret.setVisible = function(flag)
@@ -3914,6 +3961,7 @@ function createFlashMapInternal(div, layers, callback)
 					isDraging = false;
 					propsBalloon.updatePropsBalloon(false);
 					domObj.triggerInternal("onMouseUp");
+					chkEvent(null);
 				}
 
 				corners.setStyle(regularDrawingStyle, hoveredDrawingStyle);
@@ -3923,23 +3971,36 @@ function createFlashMapInternal(div, layers, callback)
 				var x2y1Corner = corners.addObject();
 				var x2y2Corner = corners.addObject();
 
+				// Проверка пользовательских Listeners
+				var chkEvent = function(geom)
+				{
+					if(geom) lastAttr['geom'] = geom;
+					lastAttr['mouseOverObject'] = mouseOverObject;
+					lastAttr['isDraging'] = isDraging;
+					gmxAPI.chkListeners(eventType, map.drawing, lastAttr);
+
+				}
+
 				// Высвечивание балуна в зависимости от типа geometry
 				var chkBalloon = function(tp)
 				{
 					var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
-					if(!isDraging) {
-						switch(tp) {
-							case 'x1b':
-							case 'x2b':
-								geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x1, y2]]] };
-								break;
-							case 'y1b':
-							case 'y2b':
-								geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1]]] };
-								break;
+					if(map.drawing.enabledHoverBalloon) {
+						if(!isDraging) {
+							switch(tp) {
+								case 'x1b':
+								case 'x2b':
+									geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x1, y2]]] };
+									break;
+								case 'y1b':
+								case 'y2b':
+									geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1]]] };
+									break;
+							}
 						}
+						propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
 					}
-					propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
+					chkEvent(geom);
 				}
 
 				var repaint = function(flag)
@@ -3959,21 +4020,21 @@ function createFlashMapInternal(div, layers, callback)
 				}
 
 				var objHandlersX = {
-					onMouseOver: function() { chkBalloon('x1b') },
-					onMouseOut: function() { if(!isDraging) mouseUP(); }
+					onMouseOver: function() { mouseOverObject = this; eventType = 'onEdgeMouseOver'; chkBalloon('x1b') },
+					onMouseOut: function() { mouseOverObject = this; eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
 				};
 				x1Border.setHandlers(objHandlersX);
 				x2Border.setHandlers(objHandlersX);
 				var objHandlersY = {
-					onMouseOver: function() { chkBalloon('y1b') },
-					onMouseOut: function() { if(!isDraging) mouseUP(); }
+					onMouseOver: function() { mouseOverObject = this; eventType = 'onEdgeMouseOver'; chkBalloon('y1b') },
+					onMouseOut: function() { mouseOverObject = this; eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
 				};
 				y1Border.setHandlers(objHandlersY);
 				y2Border.setHandlers(objHandlersY);
 
 				var objHandlerCorner = {
-					onMouseOver: chkBalloon,
-					onMouseOut: function() { if(!isDraging) mouseUP(); }
+					onMouseOver: function() { mouseOverObject = this; eventType = 'onNodeMouseOver'; chkBalloon() },
+					onMouseOut: function() { mouseOverObject = this; eventType = 'onNodeMouseOut'; if(!isDraging) mouseUP(); }
 				};
 				x1y1Corner.setHandlers(objHandlerCorner);
 				x1y2Corner.setHandlers(objHandlerCorner);
@@ -3985,16 +4046,18 @@ function createFlashMapInternal(div, layers, callback)
 					isDraging = true;
 					chkBalloon(tp)
 					repaint();
+					eventType = 'onDrag';
+					chkEvent(null);
 				}
-				x1Border.enableDragging(function(x, y) { x1 = x; dragMe('x1b'); }, null, mouseUP);
-				y1Border.enableDragging(function(x, y) { y1 = y; dragMe('y1b'); }, null, mouseUP);
-				x2Border.enableDragging(function(x, y) { x2 = x; dragMe('x2b'); }, null, mouseUP);
-				y2Border.enableDragging(function(x, y) { y2 = y; dragMe('y2b'); }, null, mouseUP);
+				x1Border.enableDragging(function(x, y) { x1 = x; mouseOverObject = this; dragMe('x1b'); }, null, mouseUP);
+				y1Border.enableDragging(function(x, y) { y1 = y; mouseOverObject = this; dragMe('y1b'); }, null, mouseUP);
+				x2Border.enableDragging(function(x, y) { x2 = x; mouseOverObject = this; dragMe('x2b'); }, null, mouseUP);
+				y2Border.enableDragging(function(x, y) { y2 = y; mouseOverObject = this; dragMe('y2b'); }, null, mouseUP);
 	
-				x1y1Corner.enableDragging(function(x, y) { x1 = x; y1 = y; dragMe(); }, null, mouseUP);
-				x1y2Corner.enableDragging(function(x, y) { x1 = x; y2 = y; dragMe(); }, null, mouseUP);
-				x2y1Corner.enableDragging(function(x, y) { x2 = x; y1 = y; dragMe(); }, null, mouseUP);
-				x2y2Corner.enableDragging(function(x, y) { x2 = x; y2 = y; dragMe(); }, null, mouseUP);
+				x1y1Corner.enableDragging(function(x, y) { x1 = x; y1 = y; mouseOverObject = this; dragMe(); }, null, mouseUP);
+				x1y2Corner.enableDragging(function(x, y) { x1 = x; y2 = y; mouseOverObject = this; dragMe(); }, null, mouseUP);
+				x2y1Corner.enableDragging(function(x, y) { x2 = x; y1 = y; mouseOverObject = this; dragMe(); }, null, mouseUP);
+				x2y2Corner.enableDragging(function(x, y) { x2 = x; y2 = y; mouseOverObject = this; dragMe(); }, null, mouseUP);
 
 				var created = false;
 
@@ -4026,6 +4089,8 @@ function createFlashMapInternal(div, layers, callback)
 						{
 							x1 = x;
 							y1 = y;
+							mouseOverObject = obj; eventType = 'onEdit';
+							chkEvent(null);
 						},
 						function()
 						{
@@ -4034,12 +4099,16 @@ function createFlashMapInternal(div, layers, callback)
 							setToolHandler("onMouseDown", null);
 							selectTool("move");
 							if(domObj) domObj.triggerInternal("onMouseUp");
+							mouseOverObject = obj; eventType = 'onFinish';
+							chkEvent(null);
 						}
 					);
 				}
 
 				ret.remove = function()
 				{
+					mouseOverObject = obj; eventType = 'onRemove';
+					chkEvent(null);
 					obj.remove();
 					domObj.removeInternal();
 				}
@@ -4285,7 +4354,29 @@ function createFlashMapInternal(div, layers, callback)
 			
 			map.drawing = {
 				handlers: { onAdd: [], onEdit: [], onRemove: [] },
-				
+				mouseState: 'up',
+				stateListeners: {},
+				addMapStateListener: function(eventName, func)
+					{
+						return gmxAPI.addMapStateListener(this, eventName, func);
+					}
+				,
+				removeMapStateListener: function(eventName, id)
+					{
+						return gmxAPI.removeMapStateListener(this, eventName, id);
+					}
+				,
+				enabledHoverBalloon: true,
+				enableHoverBalloon: function()
+					{
+						this.enabledHoverBalloon = true;
+					}
+				,
+				disableHoverBalloon: function()
+					{
+						this.enabledHoverBalloon = false;
+					}
+				,				
 				//props опционально
 				addObject: function(geom, props)
 				{
