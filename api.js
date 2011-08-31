@@ -1255,18 +1255,27 @@ function createFlashMapInternal(div, layers, callback)
 
 			FlashMapObject.prototype.getGeometrySummary = function()
 			{
+				var out = '?';
 				var geomType = this.getGeometryType();
 				if (geomType.indexOf("POINT") != -1)
 				{
 					var c = this.getGeometry().coordinates;
-					return "<b>" + KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + formatCoordinates(merc_x(c[0]), merc_y(c[1]));
+					out = "<b>" + KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> ";
+					out += formatCoordinates(merc_x(c[0]), merc_y(c[1]));
 				}
-				else if (geomType.indexOf("LINESTRING") != -1)
-					return "<b>" + KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> " + prettifyDistance(this.getLength());
-				else if (geomType.indexOf("POLYGON") != -1)
-					return "<b>" + KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> " + prettifyArea(this.getArea());
-				else
-					return "?";
+				else if (geomType.indexOf("LINESTRING") != -1) {
+					out = "<b>" + KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> ";
+					out += prettifyDistance(this.getLength());
+				}
+				else if (geomType.indexOf("POLYGON") != -1) {
+					out = '';
+					if(this.geometry) {
+						out = "<b>" + KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> ";
+						var area = this.getArea();
+						out += prettifyArea(area);
+					}
+				}
+				return out;
 			}
 
 
@@ -1280,7 +1289,7 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			FlashMapObject.prototype.disableHoverBalloon = function()
 			{
-				map.balloonClassObject.disableHoverBalloon();
+				map.balloonClassObject.disableHoverBalloon(this);
 			}
 
 			FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
@@ -6921,6 +6930,14 @@ function BalloonClass(map, flashDiv, div, apiBase)
 				if(chkAttr('disableOnMouseOver', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
 					return;
 				}
+				var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+				if(customBalloonObject) {
+					currPosition = map.getPosition();
+					currPosition._x = propsBalloon.mouseX || 0;
+					currPosition._y = propsBalloon.mouseY || 0;
+					var flag = customBalloonObject.onMouseOver(o, keyPress, currPosition); // Вызов пользовательского метода вместо или перед балуном
+					if(flag) return;										// Если customBalloon возвращает true выходим
+				}
 
 				var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
 				var text = (textFunc ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
@@ -6939,11 +6956,27 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			},
 			onMouseOut: function(o) 
 			{ 
+				var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+				if(customBalloonObject) {
+					var flag = customBalloonObject.onMouseOut(o);
+					if(flag) return;
+				}
 				if (lastHoverBalloonId == o.objectId) {
 					propsBalloon.updatePropsBalloon(false);
 				}
 			},
-			onClick: clickBalloonFix
+			onClick: function(o, keyPress)
+			{
+				var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+				if(customBalloonObject) {
+					currPosition = map.getPosition();
+					currPosition._x = propsBalloon.x;
+					currPosition._y = propsBalloon.y;
+					var flag = customBalloonObject.onClick(o, keyPress, currPosition);
+					if(flag) return;
+				}
+				clickBalloonFix(o, keyPress);
+			}
 		};
 
 		if(mapObject._hoverBalloonAttr) {							// есть юзерские настройки балунов
@@ -7169,11 +7202,13 @@ function BalloonClass(map, flashDiv, div, apiBase)
 		var ret = {						// Возвращаемый обьект
 			outerDiv: balloon,
 			div: balloonText,
+			mouseX: 0,
+			mouseY: 0,
 			setVisible: updateVisible,
 			setScreenPosition: function(x_, y_)
 			{
-				x = x_;
-				y = y_;
+				x = this.mouseX = x_;
+				y = this.mouseY = y_;
 				reposition();
 			},
 			resize: function()
