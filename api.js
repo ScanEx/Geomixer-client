@@ -2828,6 +2828,7 @@ function createFlashMapInternal(div, layers, callback)
 				bottom: coordinatesAttr['scaleBar']['bottom']['y'],
 				textAlign: "center"
 			});
+			scaleBar.className = "gmx_scaleBar";
 			div.appendChild(scaleBar);
 			
 			map.scaleBar = { setVisible: function(flag) { setVisible(scaleBar, flag); } };
@@ -2843,6 +2844,7 @@ function createFlashMapInternal(div, layers, callback)
 			var coordinates = newElement(
 				"div",
 				{
+					className: "gmx_coordinates",
 					onclick: function()
 					{
 						var oldText = getCoordinatesText();
@@ -2871,6 +2873,7 @@ function createFlashMapInternal(div, layers, callback)
 			var changeCoords = newElement(
 				"img", 
 				{ 
+					className: "gmx_changeCoords",
 					src: apiBase + "img/coord_reload.png",
 					title: KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format"),
 					onclick: function()
@@ -2945,7 +2948,9 @@ function createFlashMapInternal(div, layers, callback)
 			};
 			var copyright = newElement(
 				"span",
-				{},
+				{
+					className: "gmx_copyright"
+				},
 				{
 					position: "absolute",
 					right: copyrightAttr['x'],
@@ -3170,6 +3175,7 @@ function createFlashMapInternal(div, layers, callback)
 			var miniMapToggler = newElement(
 				"img",
 				{ 
+					className: "gmx_miniMapToggler",
 					src: apiBase + "img/close_map.png",
 					title: KOSMOSNIMKI_LOCALIZED("Показать/скрыть мини-карту", "Show/hide minimap"),
 					onclick: function()
@@ -3249,7 +3255,8 @@ function createFlashMapInternal(div, layers, callback)
 				"a",
 				{
 					href: "http://kosmosnimki.ru/geomixer",
-					target: "_blank"
+					target: "_blank",
+					className: "gmx_geomixerLink"
 				},
 				{
 					position: "absolute",
