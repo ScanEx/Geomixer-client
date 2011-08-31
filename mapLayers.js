@@ -181,58 +181,22 @@ var layersTree = function()
 	
 //	this.permalinkActions = [];
 	
-	this.suggestTimeout = 700;
-	
 	this.groupLoadingFuncs = [];
 		
 	this.copiedStyle = null;
 	
 	//элементы контекстного меню для слоёв. Тип ILayersContextMenuElem
-	this._layersContentMenuElems = [];
-}
-
-/** Интерфейс для задания контекстного меню пользователей
-* @class
-*/
-layersTree.ILayersContextMenuElem = {
-
-	/** Нужно ли отображать данный пункт меню для данного элемента и типа дерева
-	@function
-	@param LayerManagerFlag Тип дерева
-	@param elem Элемент (слой), для которого стротся меню
-	*/
-	isVisible:         function(LayerManagerFlag, elem){},
-	
-	/** Нужно ли рисовать перед данным пунктом разделитель (гориз. черту). Необязательная (по умолчанию не рисуется)
-	@function
-	@param LayerManagerFlag {int} Тип дерева
-	@param elem Элемент (слой), для которого стротся меню
-	*/
-	isSeparatorBefore: function(LayerManagerFlag, elem){}, //необязательная
-	
-	/** Вызывается при клике по соответствующему пункту меню
-	@function
-	@param elem Элемент (слой), для которого стротся меню
-	@param tree {layersTree} Текущее дерево, внутри которого находится слой
-	@param contentMenuArea Координаты верхнего левого угла пункта меню, на которое было нажатие. {left: int, top: int}. Если нужно привязаться к месту текущего клика
-	*/
-	clickCallback:     function(elem, tree, contentMenuArea){},
-	
-	/** Возвращает строку, которую нужно рисовать в контекстном меню
-	@function
-	@return строка, которую нужно рисовать в контекстном меню
-	*/
-	getTitle:          function(){}
+	//this._layersContentMenuElems = [];
 }
 
 /** Добавить пункт контекстного меню.
 * @function
 * @param menuElem {layersTree.ILayersContextMenuElem} Новый пукнт контекстного меню
 */
-layersTree.prototype.addContextMenuElem = function(menuElem)
-{
-	this._layersContentMenuElems.push(menuElem);
-}
+// layersTree.prototype.addContextMenuElem = function(menuElem)
+// {
+	// this._layersContentMenuElems.push(menuElem);
+// }
 
 // layerManagerFlag == 0 для дерева слева
 // layerManagerFlag == 1 для списка слоев
@@ -572,47 +536,11 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	if (!layerManagerFlag && !globalFlashMap.layers[elem.name].isVisible)
 		$(spanParent).addClass("invisible")
 	
-	var actionsCanvas = null,
-		attachMenuEvents = function()
-		{
-			if (actionsCanvas == null)
-				return;
-				
-			_context(spanParent, actionsCanvas, function()
-			{
-				return actionsCanvas != null;
-			}, _this.suggestTimeout)
-		};
-		
-	//добавляем пункты в контекстное меню
-	for (var e = 0; e < this._layersContentMenuElems.length; e++)
-	(function (menuElem) {
-		if (!menuElem.isVisible(layerManagerFlag, elem) ) return;
-		var titleLink = makeLinkButton(menuElem.getTitle());
-		titleLink.onclick = function()
-		{
-			var area = getOffsetRect(this);
-			_contextClose();
-			$(this).removeClass('buttonLinkHover');
-			menuElem.clickCallback(elem, _this, area);
-		};
-
-		if (actionsCanvas == null)
-		{
-			actionsCanvas = _div(null, [['css','width','120px']]);
-			
-			if ($.browser.opera)
-				_attr(actionsCanvas, [['dir','className','layerSuggest'],['css','zIndex',2]]);
-		}
-		
-		if ( typeof menuElem.isSeparatorBefore !== 'undefined' && menuElem.isSeparatorBefore(layerManagerFlag, elem) )
-			_(actionsCanvas, [_div(null, [['css','height','1px'],['css','margin','2px 10px 2px 0px'],['css','borderBottom','1px solid #999999']])]);
-		
-		_(actionsCanvas, [_div([titleLink],[['dir','className','contextMenuItem']])]);
-		
-	})(this._layersContentMenuElems[e]);
-
-	attachMenuEvents();
+	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Layer', function(){return true;}, {
+		layerManagerFlag: layerManagerFlag,
+		elem: elem, 
+		tree: this
+	});
 	
 	if (elem.type == "Vector")
 	{
@@ -937,44 +865,16 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 		if (!parentVisibility || !elem.visible)
 			$(spanParent).addClass("invisible")
 		
-		var editor = makeLinkButton(_gtxt("Редактировать")),
-			add = makeLinkButton(_gtxt("Добавить подгруппу")),
-			remove = makeLinkButton(_gtxt("Удалить"));
-		
-		editor.onclick = function(e)
-		{
-			_contextClose();
-			$(this).removeClass('buttonLinkHover');
-			
-			_this.mapHelper.createGroupEditor(spanParent.parentNode);
-		}
-		
-		add.onclick = function()
-		{
-			_contextClose();
-			$(this).removeClass('buttonLinkHover');
-			
-			_this.addSubGroup(spanParent.parentNode);
-		}
-		
-		remove.onclick = function(e)
-		{
-			_contextClose();
-			$(this).removeClass('buttonLinkHover');
-			
-			_this.removeGroup(spanParent.parentNode);
-			
-			_this.mapHelper.updateUnloadEvent(true);
-		}
-		
-		var actionsCanvas = _div([_div([editor],[['dir','className','contextMenuItem']]), _div([add],[['dir','className','contextMenuItem']]), _div([remove],[['dir','className','contextMenuItem']])], [['css','width','120px']]);
-		if ($.browser.opera)
-			_attr(actionsCanvas, [['dir','className','layerSuggest'], ['css','zIndex',2]]);
-
-		_context(spanParent, actionsCanvas, function()
+		nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Group', function()
 		{
 			return _queryMapLayers.currentMapRights() == "edit";
-		}, this.suggestTimeout)
+		}, 
+		function(){
+			return {
+				div: spanParent.parentNode,
+				tree: _this
+			}
+		});
 		
 		return [box, spanParent];
 	}
@@ -997,61 +897,18 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 	{
 		_this.setActive(this);
 	}
-	
-	var editor = makeLinkButton(_gtxt("Редактировать")),
-		add = makeLinkButton(_gtxt("Добавить подгруппу")),
-		access = makeLinkButton(_gtxt("Права доступа"));
-	
-	editor.onclick = function(e)
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
 		
-		_this.mapHelper.createMapEditor(span.parentNode.parentNode);
-	}
-	
-	add.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		_this.addSubGroup(spanParent.parentNode);
-	}
-	
-	access.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		_mapSecurity.getRights(_this.mapHelper.mapProperties.MapID, _this.mapHelper.mapProperties.title);
-	}
-	
-	var bAddAccessDialog = nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
-		 ( (this.mapHelper.mapProperties && this.mapHelper.mapProperties.Owner == userInfo().Login) || 
-		   nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) );
-	
-	//формируем контекстное меню
-	var actionsCanvas;
-	var editorDiv = _div([editor],[['dir','className','contextMenuItem']]);
-	var addDiv    = _div([add],   [['dir','className','contextMenuItem']]);
-	
-	if (bAddAccessDialog)
-	{
-		var accessDiv = _div([access],[['dir','className','contextMenuItem']]);
-		actionsCanvas = _div([editorDiv, accessDiv, addDiv], [['css','width','120px']]);
-	}
-	else
-	{
-		actionsCanvas = _div([editorDiv, addDiv], [['css','width','120px']]);
-	}
-	
-	if ($.browser.opera)
-		_attr(actionsCanvas, [['dir','className','layerSuggest'], ['css','zIndex',2]]);
-	
-	_context(spanParent, actionsCanvas, function()
+	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Map', function()
 	{
 		return _queryMapLayers.currentMapRights() == "edit";
-	}, this.suggestTimeout)
+	}, 
+	function() 
+	{
+		return {
+			div: spanParent.parentNode,
+			tree: _this
+		}
+	});
 
 	return [spanParent];
 }
@@ -1890,184 +1747,6 @@ layersTree.prototype.updateMapLayersVisibility = function(li)
 
 var _layersTree = new layersTree();
 _layersTree.mapHelper = _mapHelper;
-
-//добавляем пункты контекстного меню к слоям
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Редактировать");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && _queryMapLayers.currentMapRights() === "edit";
-	},
-	clickCallback: function(elem)
-	{
-		var div;
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		_mapHelper.createLayerEditor(div, 0, div.properties.content.properties.styles.length > 1 ? -1 : 0);
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Таблица атрибутов");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && _queryMapLayers.currentMapRights() === "edit" && elem.type === "Vector";
-	},
-	clickCallback: function(elem)
-	{
-		_attrsTableHash.create(elem.name);
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Права доступа");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && 
-				_queryMapLayers.currentMapRights() === "edit" && 
-				nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
-				( _mapHelper.mapProperties.Owner == userInfo().Login || nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) );
-	},
-	clickCallback: function(elem)
-	{
-		if (elem.LayerID)
-			_layerSecurity.getRights(elem.LayerID, elem.title);
-		else if (elem.MultiLayerID)
-			_multiLayerSecurity.getRights(elem.MultiLayerID, elem.title);
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Скачать");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && 
-				( _queryMapLayers.currentMapRights() === "edit" || (_queryMapLayers.currentMapRights() == "view" && userInfo().Login) ) && 
-				elem.type == "Vector" &&
-				_mapHelper.mapProperties.CanDownloadVectors;
-	},
-	clickCallback: function(elem, layersTree, area)
-	{
-		_layersTree.downloadVectorLayer(elem.name, area, elem.hostName);
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Удалить");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && _queryMapLayers.currentMapRights() === "edit";
-	},
-	clickCallback: function(elem)
-	{
-		_queryMapLayers.removeLayer(elem.name)
-		
-		var div;
-			
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		
-		var treeElem = _mapHelper.findTreeElem(div).elem,
-			node = div.parentNode,
-			parentTree = node.parentNode;
-		
-		_mapHelper.removeTreeElem(div);
-
-		node.removeNode(true);
-		
-		_abstractTree.delNode(null, parentTree, parentTree.parentNode);
-		
-		_mapHelper.updateUnloadEvent(true);
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Копировать стиль");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return elem.type == "Vector" && 
-		       (layerManagerFlag || _queryMapLayers.currentMapRights() === "edit");
-	},
-	isSeparatorBefore: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag;
-	},
-	clickCallback: function(elem, tree, area)
-	{
-		var div;
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-			
-		tree.copiedStyle = {type: elem.GeometryType, style: div.properties.content.properties.styles};
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Применить стиль");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && 
-				_queryMapLayers.currentMapRights() === "edit" && 
-				elem.type == "Vector";
-	},
-	clickCallback: function(elem, tree, area)
-	{
-		if (!tree.copiedStyle)
-		{
-			showErrorMessage(_gtxt("Не выбран стиль"), true)
-			
-			return;
-		}
-		
-		if (tree.copiedStyle.type != elem.GeometryType)
-		{
-			showErrorMessage(_gtxt("Невозможно применить стиль к другому типу геометрии"), true)
-			
-			return;
-		}
-		
-		var newStyles = tree.copiedStyle.style;
-		var div;
-		
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		
-		div.properties.content.properties.styles = newStyles;
-		
-		_mapHelper.updateMapStyles(newStyles, elem.name);
-		
-		_mapHelper.updateTreeStyles(newStyles, div);
-	}
-});
 
 var queryMapLayers = function()
 {

@@ -385,23 +385,7 @@ div.leftTitle
 	font-weight: bold;
 	cursor: pointer;
 }
-.layerSuggest
-{
-	display: none;
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	background-color: transparent;
-	z-index: 3;
-	padding-left: 5px;
-	border-right: 1px solid #BEBEBE;
-	border-bottom: 1px solid #BEBEBE;
-	background-color: #DAEAF3;
-}
-.contextMenuItem
-{
-	height: 16px;
-}
+
 .dragableDummy
 {
 	padding: 2px 2px 2px 20px;
@@ -693,16 +677,31 @@ div.unit .unitInfo
 {
 	float: right;
 }
+
 .contextMenu
 {
 	position:absolute;
 	z-index: 1000000;
 	background-color: #DAEAF3;
 	padding-left: 10px;
+	padding-right: 10px;
 	border-right: 1px solid #BEBEBE;
 	border-bottom: 1px solid #BEBEBE;
-	width: 120px;
+	/*width: 120px;*/
 }
+
+.contextMenuItem
+{
+	padding-top: 1px;
+	padding-bottom: 1px;
+	white-space:nowrap;
+}
+
+.contextMenuSeparator
+{
+	border-bottom: 1px solid #999999
+}
+
 .invisible,
 .invisible span,
 .invisible div,

@@ -10,6 +10,7 @@
 "mapHelper.js",
 "binding.js",
 "mapLayers.js",
+"contextMenuController.js",
 "drawingObjects.js",
 "fileBrowser.js",
 "loadServerData.js",

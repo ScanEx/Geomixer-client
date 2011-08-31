@@ -652,85 +652,17 @@ fileBrowser.prototype.createFolderActions = function(name)
 	if ($.browser.msie)
 		spanParent.style.zIndex = 1;
 	
-	var download = makeLinkButton(_gtxt("Скачать")),
-		remove = makeLinkButton(_gtxt("Удалить")),
-		archive = makeLinkButton(_gtxt("Упаковать")),
-		clean = makeLinkButton(_gtxt("Очистить"));
-	
-	download.onclick = function(e)
-	{
-		_contextClose();
-		
-		var form = _form([_input(null,[['attr','name','FullName'], ['attr','value', _this.currentDir + '\\' + name]])], [['css','display','none'],['attr','method','POST'],['attr','action',serverBase + "FileBrowser/Download.ashx"]]);
-		
-		_(document.body, [form]);
-		
-		form.submit();
-		
-		form.removeNode(true);
-		
-		stopEvent(e);
-	}
-	
-	remove.onclick = function(e)
-	{
-		_contextClose();
-		
-		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/Delete.ashx?WrapStyle=func&FullName=' + _this.currentDir + '\\' + name, function(response)
+	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFolder', 
+		function()
 		{
-			if (!parseResponse(response))
-				return;
-			
-			_this.getFiles();
-		})
-		
-		stopEvent(e);
-	}
-	
-	archive.onclick = function(e)
-	{
-		_contextClose();
-		
-		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/Zip.ashx?WrapStyle=func&FullName=' + _this.currentDir + '\\' + name, function(response)
+			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
+		}, 
 		{
-			if (!parseResponse(response))
-				return;
-			
-			var indexSlash = String(response.Result).lastIndexOf('\\'),
-				fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
-			
-			_this.shownPath = fileName;
-			
-			_this.getFiles();
-		})
-		
-		stopEvent(e);
-	}
-	
-	clean.onclick = function(e)
-	{
-		_contextClose();
-		
-		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CleanFolder.ashx?WrapStyle=func&FullName=' + _this.currentDir + '\\' + name, function(response)
-		{
-			if (!parseResponse(response))
-				return;
-			
-			_this.getFiles();
-		})
-		
-		stopEvent(e);
-	}
-	
-	var actionsCanvas = _div([_div([download],[['dir','className','contextMenuItem']]), _div([remove],[['dir','className','contextMenuItem']]), _div([archive],[['dir','className','contextMenuItem']]), _div([clean],[['dir','className','contextMenuItem']])], [['css','width','120px']]);
-	if ($.browser.opera)
-		_attr(actionsCanvas, [['dir','className','layerSuggest']]);
-		
-	_context(spanParent, actionsCanvas, function()
-	{
-		//показывать меню только в домашней директории или если есть права на просмотр всей структуры папок
-		return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
-	}, _layersTree.suggestTimeout);
+			fullPath: this.currentDir + '\\' + name,
+			fileBrowser: this,
+			enableZip: true
+		}
+	);
 
 	return spanParent;
 }
@@ -744,64 +676,17 @@ fileBrowser.prototype.createFileActions = function(name, ext)
 	if ($.browser.msie)
 		spanParent.style.zIndex = 1;
 	
-	var download = makeLinkButton(_gtxt("Скачать")),
-		remove = makeLinkButton(_gtxt("Удалить")),
-		archive = makeLinkButton(valueInArray(this.ext7z, ext.toUpperCase()) ? _gtxt("Извлечь") : _gtxt("Упаковать"));
-	
-	download.onclick = function(e)
-	{
-		_contextClose();
-		
-		var form = _form([_input(null,[['attr','name','FullName'], ['attr','value', _this.currentDir + '\\' + name + '.' + ext]])], [['css','display','none'],['attr','method','POST'],['attr','action',serverBase + "FileBrowser/Download.ashx"]]);
-		
-		_(document.body, [form]);
-		
-		form.submit();
-		
-		form.removeNode(true);
-	}
-	
-	remove.onclick = function(e)
-	{
-		_contextClose();
-		
-		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/Delete.ashx?WrapStyle=func&FullName=' + _this.currentDir + '\\' + name + '.' + ext, function(response)
+	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFile', 
+		function()
 		{
-			if (!parseResponse(response))
-				return;
-			
-			_this.getFiles();
-		})
-	}
-	
-	archive.onclick = function()
-	{
-		_contextClose();
-		
-		sendCrossDomainJSONRequest(serverBase + (valueInArray(_this.ext7z, ext.toUpperCase()) ? 'FileBrowser/Unzip.ashx' : 'FileBrowser/Zip.ashx') + '?WrapStyle=func&FullName=' + _this.currentDir + '\\' + name + '.' + ext, function(response)
+			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
+		}, 
 		{
-			if (!parseResponse(response))
-				return;
-			
-			var indexSlash = String(response.Result).lastIndexOf('\\'),
-				fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
-			
-			_this.shownPath = fileName;
-			
-			_this.getFiles();
-		})
-	}
-	
-	var actionsCanvas = _div([_div([download],[['dir','className','contextMenuItem']]), _div([remove],[['dir','className','contextMenuItem']]), _div([archive],[['dir','className','contextMenuItem']])], [['css','width','120px']]);
-	
-	if ($.browser.opera)
-		_attr(actionsCanvas, [['dir','className','layerSuggest']]);
-		
-	_context(spanParent, actionsCanvas, function()
-	{
-		//показывать меню только в домашней директории или если есть права на просмотр всей структуры папок
-		return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
-	}, _layersTree.suggestTimeout)
+			fullPath: this.currentDir + '\\' + name + '.' + ext,
+			fileBrowser: this,
+			enableUnzip: valueInArray(_this.ext7z, ext.toUpperCase())
+		}
+	);
 	
 	return spanParent;
 }
