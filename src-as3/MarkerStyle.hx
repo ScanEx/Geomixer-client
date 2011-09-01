@@ -205,6 +205,7 @@ class MarkerStyle
 						graphics.lineTo(p1.x, p1.y);
 						graphics.endFill();
 					}
+					Main.refreshMap();		// Для обновления маркеров
 				}
 				onLoad();
 			});

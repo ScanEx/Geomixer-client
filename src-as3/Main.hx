@@ -30,6 +30,7 @@ import flash.net.URLRequestHeader;
 class Main
 {
 	public static var registerMouseDown:MapNode->MouseEvent->MapNode->Void;
+	public static var refreshMap:Void->Void;			// Принудительный Refresh карты
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
 	public static var mousePressed:Bool = false;
@@ -45,14 +46,14 @@ class Main
 	}
 
 	public static function chkEventAttr(event:MouseEvent)
-		{
-			eventAttr = { };
-			if (event.shiftKey) eventAttr.shiftKey = 1;
-			if (event.ctrlKey) eventAttr.ctrlKey = 1;
-			if (event.altKey) eventAttr.altKey = 1;
-			if (event.buttonDown) eventAttr.buttonDown = 1;
-		}
-
+	{
+		eventAttr = { };
+		if (event.shiftKey) eventAttr.shiftKey = 1;
+		if (event.ctrlKey) eventAttr.ctrlKey = 1;
+		if (event.altKey) eventAttr.altKey = 1;
+		if (event.buttonDown) eventAttr.buttonDown = 1;
+	}
+	
 	static function main()
 	{
 		var root = flash.Lib.current;
@@ -342,6 +343,11 @@ class Main
 		mapSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
 		ExternalInterface.addCallback("resumeDragging", windowMouseMove);
 
+		Main.refreshMap = function()
+		{
+			viewportHasMoved = true;
+		}
+		
 		var initCalled = false;
 		root.addEventListener(Event.ENTER_FRAME, function(event:Event)
 		{
@@ -597,11 +603,13 @@ class Main
 			var nodeParent:MapNode = getNode(parentId);
 			if (nodeParent == null) return '';
 			var node:MapNode = nodeParent.addChild();
-			if (geometry != null) {
-				node.setContent(new VectorObject(Utils.parseGeometry(geometry)));
-			}
 			node.properties = properties;
 			node.propHash = propertiesToHashString(properties);
+			if (geometry != null) {
+				var geom = Utils.parseGeometry(geometry);
+				geom.properties = node.propHash;
+				node.setContent(new VectorObject(geom));
+			}
 			
 			return node.id;
 		}
@@ -626,7 +634,7 @@ class Main
 			}
 			return ret;
 		});
-		
+
 		ExternalInterface.addCallback("setFilter", function(id:String, ?sql:String)
 		{
 			var func:Hash<String>->Bool = (sql == null) ? 
@@ -637,6 +645,7 @@ class Main
 			if (func != null && node != null)
 			{
 				node.setContent(new VectorLayerFilter(func));
+				Main.bumpFrameRate();
 				return true;
 			}
 			return false;

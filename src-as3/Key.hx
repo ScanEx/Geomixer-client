@@ -14,6 +14,8 @@ class Key
 		if (!initialized) 
 		{
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, function(event:KeyboardEvent) {
+//trace('dddddddddddddd ' + event.keyCode);
+//if(event.keyCode == 192) Main.testFilter();
 				Key.keysDown.set(event.keyCode, true);
 			});
 			stage.addEventListener(KeyboardEvent.KEY_UP, function(event:KeyboardEvent) { Key.keysDown.remove(event.keyCode); });

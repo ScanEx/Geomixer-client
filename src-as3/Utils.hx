@@ -26,8 +26,8 @@ class Utils
 	static var nextId:Int = 0;
 	static var bitmapDataCache:Hash<BitmapData> = new Hash<BitmapData>();
 	
-	static var loaderDataCache:Array<Req> = [];		// Очередь загрузки Bitmap-ов
-	static var loaderActive:Bool = false;			// Флаг активности Loader Bitmap-ов
+	static var loaderDataCache:Array<Req> = [];				// Очередь загрузки Bitmap-ов
+	static var loaderActive:Bool = false;					// Флаг активности Loader Bitmap-ов
 	static var loaderCache:Hash<Bool> = new Hash<Bool>();	// Файлы в процессе загрузки
 	
 	public static function getNextId()
