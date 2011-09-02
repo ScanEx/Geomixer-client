@@ -2905,6 +2905,7 @@ function createFlashMapInternal(div, layers, callback)
 
 			var setCoordinatesFormat = function(num)
 			{
+				if(!num) num = coordFormat;
 				if(num < 0) num = coordFormatCallbacks.length - 1;
 				else if(num >= coordFormatCallbacks.length) num = 0;
 				coordFormat = num;
@@ -3364,7 +3365,8 @@ function createFlashMapInternal(div, layers, callback)
 					zoomObj = newZoomObj;
 					zoomObj.src = apiBase + "img/zoom_active.png";
 				}
-				coordinates.innerHTML = getCoordinatesText(currPosition);
+				setCoordinatesFormat();
+				//coordinates.innerHTML = getCoordinatesText(currPosition);
 
 				/** Пользовательское событие positionChanged
 				* @function callback
