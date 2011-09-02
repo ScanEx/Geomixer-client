@@ -18,7 +18,6 @@ class PolygonGeometry extends Geometry
 
 	public override function paint(sprite:Sprite, style:Style, window:MapWindow)
 	{
-		
 		if (style.hasMarkerImage())
 		{
 			var x = (extent.minx + extent.maxx)/2;
@@ -45,8 +44,13 @@ class PolygonGeometry extends Geometry
 			inv.ty -= inv.ty%(bitmapData.height*scale);
 			graphics.beginBitmapFill(bitmapData, inv);
 		}
-		else
-			Geometry.beginFill(graphics, style.fill);
+		else if(style.fill != null) {
+			if(properties != null) {
+				graphics.beginFill(style.fill.getColor(properties), style.fill.opacity);
+			} else {
+				Geometry.beginFill(graphics, style.fill);
+			}
+		}
 
 		var minx:Float;
 		var miny:Float;

@@ -1566,7 +1566,7 @@ function createFlashMapInternal(div, layers, callback)
 					map.balloonClassObject.applyBalloonDefaultStyle(style);
 					map.balloonClassObject.setBalloonFromParams(filter, style);
 
-					if(obj.filters[i]) obj.filters[i].objectId = filter.objectId;
+					obj.filters[i] = filter;
 				}
 			}
 
@@ -1762,6 +1762,7 @@ function createFlashMapInternal(div, layers, callback)
 							for (var i = 0; i < obj.filters.length; i++) {
 								obj.filters[i].remove();
 							}
+							obj.filters = [];
 							reSetStyles(styles, obj);
 						}
 						obj.getStat = function() {

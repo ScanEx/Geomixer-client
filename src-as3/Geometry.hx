@@ -16,6 +16,7 @@ class Geometry
 	{
 		extent = new Extent();
 		refreshFlag = true;
+		properties = null;
 	}
 
 	public function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow)
@@ -51,8 +52,9 @@ class Geometry
 
 	public static function beginFill(graphics:Graphics, fill:FillStyle)
 	{
-		if (fill != null)
+		if (fill != null) {
 			graphics.beginFill(fill.color, fill.opacity);
+		}
 	}
 
 	public function getLength():Float

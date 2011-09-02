@@ -38,9 +38,12 @@ class MultiGeometry extends Geometry
 
 	public function addMember(member:Geometry)
 	{
-		if (Std.is(member, MultiGeometry))
-			for (member_ in cast(member, MultiGeometry).members)
+		if (Std.is(member, MultiGeometry)) {
+			for (member_ in cast(member, MultiGeometry).members) {
+				member_.properties = member.properties;
 				addMember(member_);
+			}
+		}
 		else
 		{
 			members.push(member);
