@@ -2872,10 +2872,45 @@ function createFlashMapInternal(div, layers, callback)
 			);
 			div.appendChild(coordinates);
 
+			var getCoordinatesText = function(currPosition)
+			{
+				if(!currPosition) currPosition = map.getPosition();
+				var x = from_merc_x(currPosition['x']);
+				var y = from_merc_y(currPosition['y']);
+				if (x > 180)
+					x -= 360;
+				if (x < -180)
+					x += 360;
+				x = merc_x(x);
+				y = merc_y(y);
+				if (coordFormat%3 == 0)
+					return formatCoordinates(x, y);
+				else if (coordFormat%3 == 1)
+					return formatCoordinates2(x, y);
+				else
+					return Math.round(x) + ", " + Math.round(y);
+			}
+
+			var clearCoordinates = function()
+			{
+				for (var i = 0; i < coordinates.childNodes.length; i++)
+					coordinates.removeChild(coordinates.childNodes[i]);
+			}
+
+			var coordFormatCallbacks = [		// методы формирования форматов координат
+				function() { coordinates.innerHTML = getCoordinatesText(); },
+				function() { coordinates.innerHTML = getCoordinatesText(); },
+				function() { coordinates.innerHTML = getCoordinatesText(); },
+			]; 
+
 			var setCoordinatesFormat = function(num)
-			{ 
-				coordFormat = num % 3;
-				coordinates.innerHTML = getCoordinatesText();
+			{
+				if(num < 0) num = coordFormatCallbacks.length - 1;
+				else if(num >= coordFormatCallbacks.length) num = 0;
+				coordFormat = num;
+				coordinates.innerHTML = '';
+				coordFormatCallbacks[coordFormat](coordinates);
+				//coordinates.innerHTML = getCoordinatesText();
 				gmxAPI.chkListeners('onSetCoordinatesFormat', map, coordFormat);
 			}
 
@@ -2908,26 +2943,19 @@ function createFlashMapInternal(div, layers, callback)
 					setVisible(changeCoords, flag); 
 				}
 				,
+				addCoordinatesFormat: function(func) 
+				{ 
+					coordFormatCallbacks.push(func);
+					return coordFormatCallbacks.length - 1;
+				}
+				,
+				removeCoordinatesFormat: function(num) 
+				{ 
+					coordFormatCallbacks.splice(num, 1);
+					return coordFormatCallbacks.length - 1;
+				}
+				,
 				setFormat: setCoordinatesFormat
-			}
-
-			var getCoordinatesText = function(currPosition)
-			{
-				if(!currPosition) currPosition = map.getPosition();
-				var x = from_merc_x(currPosition['x']);
-				var y = from_merc_y(currPosition['y']);
-				if (x > 180)
-					x -= 360;
-				if (x < -180)
-					x += 360;
-				x = merc_x(x);
-				y = merc_y(y);
-				if (coordFormat%3 == 0)
-					return formatCoordinates(x, y);
-				else if (coordFormat%3 == 1)
-					return formatCoordinates2(x, y);
-				else
-					return Math.round(x) + ", " + Math.round(y);
 			}
 
 			map.setCoordinatesAlign = function(attr) {			// Изменить позицию контейнера координат
