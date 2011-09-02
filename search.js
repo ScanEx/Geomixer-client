@@ -40,7 +40,7 @@ var GetPath = function(/**object*/ oFoundObject,/** string */ sObjectsSeparator,
 	if (oParentObj != null && (oParentObj.ObjName == "Российская Федерация" || oParentObj.TypeName == "административный округ")) {
 		oParentObj = oParentObj.Parent;
 	}
-	var sObjectName = oFoundObject.IsForeign ? oFoundObject[sObjNameField] : GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
+	var sObjectName = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183) ? oFoundObject[sObjNameField] : GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
 	if (oParentObj != null && oParentObj[sObjNameField] != null && oParentObj[sObjNameField]){
 		if (bParentAfter){
 			return sObjectName + sObjectsSeparator + GetPath(oParentObj, sObjectsSeparator,  bParentAfter, sObjNameField);
@@ -372,7 +372,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	/**Добавляет объект в список найденных результатов*/
 	var drawObject = function(oFoundObject, elemDiv, bIsParent)
 	{
-		var	realPath = oFoundObject.IsForeign ? oFoundObject.ObjName : GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
+		var	realPath = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183)  ? oFoundObject.ObjName : GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
 		if (oFoundObject.Parent != null) realPath += ",";
 		
 		var searchElemHeader = _span([_t(realPath)], [['dir', 'className', bIsParent?'searchElemParent':'searchElem']]);
@@ -690,7 +690,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
 	/**Центрует карту по переданному объекту*/
 	var CenterObject = function(oFoundObject){
 		var iZoom = 100;
-		var iMaxZoom  = (oFoundObject.IsForeign) ? 9 : 15;
+		var iMaxZoom  = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183) ? 9 : 15;
 		oMap.setMinMaxZoom(1, iMaxZoom);
 		if (oFoundObject.MinLon != null && oFoundObject.MaxLon != null && oFoundObject.MinLat != null && oFoundObject.MaxLat != null){
 			oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
@@ -758,25 +758,26 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 		if (oFoundObject.Parent != null) _(elemDiv, [_t("->")]);
 		_(elemDiv, [searchElemHeader]);
 	}
-	
-	var setLocationTitleDiv = function(attr) {
+
+	var setLocationTitleDiv = function(div, attr) {
 		if (dtLastSearch && Number(new Date()) - dtLastSearch < 300) 
 			return;
 		dtLastSearch = new Date();
 		
-		var locationTitleDiv = attr['div'];
-		$(locationTitleDiv).addClass('locationTitleDiv');
+		var locationTitleDiv = div;
+		//$(locationTitleDiv).addClass('locationTitleDiv');
+		//_(div, [locationTitleDiv])
 		fnSearchLocation({Geometry: attr['screenGeometry'], callback: function(arrResultDataSources){
-			removeChilds(locationTitleDiv);
 			if(arrResultDataSources.length>0 && arrResultDataSources[0].SearchResult.length>0)
 				drawObject(arrResultDataSources[0].SearchResult[0], locationTitleDiv);
 		}});
 	};
 	
-	var listenerID = oMap.addMapStateListener("positionChanged", setLocationTitleDiv);
-	this.RemoveHandler = function(){
+	//var listenerID = oMap.addMapStateListener("positionChanged", setLocationTitleDiv);
+	oMap.coordinates.addCoordinatesFormat(setLocationTitleDiv);
+	/*this.RemoveHandler = function(){
 		oMap.removeMapStateListener("positionChanged", listenerID);
-	};
+	};*/
 }
 
 /** Возвращает контрол, отображающий результаты поиска в виде списка с нанесением на карту 

@@ -2857,6 +2857,7 @@ function createFlashMapInternal(div, layers, callback)
 					className: "gmx_coordinates",
 					onclick: function()
 					{
+						if (coordFormat > 2) return; //выдаем окошко с координатами только дл€ стандартных форматов.
 						var oldText = getCoordinatesText();
 						var text = window.prompt(KOSMOSNIMKI_LOCALIZED("“екущие координаты центра карты:", "Current center coordinates:"), oldText);
 						if (text && (text != oldText))
