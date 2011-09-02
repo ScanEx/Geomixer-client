@@ -2910,7 +2910,8 @@ function createFlashMapInternal(div, layers, callback)
 				else if(num >= coordFormatCallbacks.length) num = 0;
 				coordFormat = num;
 				coordinates.innerHTML = '';
-				coordFormatCallbacks[coordFormat](coordinates);
+				var attr = {'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
+				coordFormatCallbacks[coordFormat](coordinates, attr);
 				//coordinates.innerHTML = getCoordinatesText();
 				gmxAPI.chkListeners('onSetCoordinatesFormat', map, coordFormat);
 			}
