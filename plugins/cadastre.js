@@ -1,6 +1,6 @@
 ﻿// Необходимо подключить JS-библиотеки: jquery, jquery.getcss, utilities.js, gmxCore.js
 
-$.getCSS((window.gmxJSHost || "") + "cadastre.css");
+$.getCSS((window.gmxJSHost || "") + "plugins/cadastre.css");
 
 /** 
 * @name Cadastre
