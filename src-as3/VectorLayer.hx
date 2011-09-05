@@ -191,13 +191,59 @@ class VectorLayer extends MapContent
 				newCurrentFilter.mapNode.callHandler("onMouseOver");
 			currentFilter = newCurrentFilter;
 
-			hoverPainter.geometry = (distance != Geometry.MAX_DISTANCE) ? geometries.get(currentId) : null;
+			hoverPainter.geometry = (distance != Geometry.MAX_DISTANCE) ? fromTileGeometry(geometries.get(currentId)) : null;
 			hoverPainter.repaint((currentFilter != null) ? currentFilter.mapNode.getHoveredStyle() : null);
 		}
 		if (currentFilter != null)
 			currentFilter.mapNode.callHandler("onMouseMove");
 	}
 
+	// Преобразование геометрии обьекта полученного из тайла
+	private function fromTileGeometry(geom:Geometry):Geometry
+	{
+		if (Std.is(geom, PointGeometry)) {
+			return geom;
+		} else if (Std.is(geom, LineGeometry)) {
+			return geom;
+		} else if (Std.is(geom, PolygonGeometry)) {
+			var geo = cast(geom, PolygonGeometry);
+			var coords = new Array<Array<Float>>();
+			var deltaX:Float = 0;
+
+			var w = 2*Utils.worldWidth;
+			var e1 = mapNode.window.visibleExtent;
+			var cx1 = (e1.minx + e1.maxx) / 2;
+			var e2 = geo.extent;
+			var cx2 = (e2.minx + e2.maxx)/2;
+			var d1 = Math.abs(cx2 - cx1 - w);
+			var d2 = Math.abs(cx2 - cx1);
+			var d3 = Math.abs(cx2 - cx1 + w);
+			if ((d1 <= d2) && (d1 <= d3))
+				deltaX = -w;
+			else if ((d2 <= d1) && (d2 <= d3))
+				deltaX = 0;
+			else if ((d3 <= d1) && (d3 <= d2))
+				deltaX = w;
+			
+			for (part in geo.coordinates) {
+				var pp = new Array<Float>();
+				for (i in 0...Std.int(part.length/2)) {
+					pp.push(part[i*2] + deltaX);
+					pp.push(part[i*2 + 1]);
+				}
+				coords.push(pp);
+			}
+			return new PolygonGeometry(coords);
+		} else if (Std.is(geom, MultiGeometry)) {
+			var ret = new MultiGeometry();
+			var geo = cast(geom, MultiGeometry);
+			for (member in geo.members)
+				ret.addMember(fromTileGeometry(member));
+			return ret;
+		}
+		return null;
+	}
+	
 	public override function addHandlers()
 	{
 		hoverPainter = new GeometryPainter(null, Utils.addSprite(contentSprite), mapNode.window);
