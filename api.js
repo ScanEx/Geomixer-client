@@ -3661,6 +3661,11 @@ function createFlashMapInternal(div, layers, callback)
 
 					balloon.outerDiv.onmousedown = function(event)
 					{
+						var currPosition = map.getPosition();
+						var mapX = currPosition['x'];
+						var mapY = currPosition['y'];
+						var z = currPosition['z'];
+						scale = getScale(z);
 						downCallback(
 							from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale),
 							from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale)
@@ -3677,6 +3682,11 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						if (isDragged)
 						{
+							var currPosition = map.getPosition();
+							var mapX = currPosition['x'];
+							var mapY = currPosition['y'];
+							var z = currPosition['z'];
+							scale = getScale(z);
 							position(
 								startDx + from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale),
 								startDy + from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale)
