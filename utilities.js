@@ -661,7 +661,6 @@ function loadFunc(iframe, callback)
 	if (iframe.loaded)
 	{
 		var data = decodeURIComponent(win.name.replace(/\n/g,'\n\\'));
-		
 		if (jQuery.browser.mozilla)
 		{
 	/*		setTimeout(function(){
@@ -721,7 +720,17 @@ function createPostIframe(id, callback)
 	return iframe;
 }
 
-function sendCrossDomainPostRequest(url, params, callback)
+/** Посылает кроссдоменный POST запрос
+* @namespace utilities
+* @function
+* 
+* @param url {string} - URL запроса
+* @param params {object} - хэш параметров-запросов
+* @param callback {function} - callback, который вызывается при приходе ответа с сервера. Единственный параметр ф-ции - собственно данные
+* @param baseForm {DOMElement} - базовая форма запроса. Используется, когда нужно отправить на сервер файл. 
+*        К форме будет добавлено несколько скрытых полей, отправлен запрос, после чего вся форма удалится!
+*/
+function sendCrossDomainPostRequest(url, params, callback, baseForm)
 {
 	var form,
 		rnd = String(Math.random()),
@@ -729,18 +738,27 @@ function sendCrossDomainPostRequest(url, params, callback)
 
 	var userAgent = navigator.userAgent.toLowerCase(),
 		iframe = createPostIframe(id, callback);
-	
-	if (/msie/.test(userAgent) && !/opera/.test(userAgent))
-		form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>');
+		
+	if (baseForm)
+	{
+		form = baseForm;
+		form.setAttribute('action', url);
+		form.target = id;
+	}
 	else
 	{
-		form = document.createElement("form");
-		form.style.display = 'none';
-		form.setAttribute('enctype', 'multipart/form-data');
-		form.target = id;
-		form.setAttribute('method', 'POST');
-		form.setAttribute('action', url);
-		form.id = id;
+		if (/msie/.test(userAgent) && !/opera/.test(userAgent))
+			form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>');
+		else
+		{
+			form = document.createElement("form");
+			form.style.display = 'none';
+			form.setAttribute('enctype', 'multipart/form-data');
+			form.target = id;
+			form.setAttribute('method', 'POST');
+			form.setAttribute('action', url);
+			form.id = id;
+		}
 	}
 	
 	for (var paramName in params)
@@ -754,7 +772,9 @@ function sendCrossDomainPostRequest(url, params, callback)
 		form.appendChild(input)
 	}
 	
-	document.body.appendChild(form);
+	if (!baseForm)
+		document.body.appendChild(form);
+		
 	document.body.appendChild(iframe);
 	
 	form.submit();
@@ -896,7 +916,16 @@ function reloadMap()
 						})
 }
 
-function parseResponse(response)
+/** Обрабатывает результат выполнения серверного скрипта
+* @namespace utilities
+* @function
+* 
+* В зависимости от результата может ничего не сделать, показать приглашение на ввод пароля или показать ошибку сервера
+* @param response {object} - JSON, вернувшийся с сервера
+* @param customErrorDescriptions {object} - хэш "тип ошибки" -> "кастомное сообщение пользователям". 
+* Если ошибка имеет тип, не перечисленный в этом хэше, будет показан тип ошибки и callstack.
+*/
+function parseResponse(response, customErrorDescriptions)
 {
 	if (response.Status == 'ok')
 		return true
@@ -917,30 +946,38 @@ function parseResponse(response)
 	}
 	else if (response.Status == 'error')
 	{
-		var canvas = _div([_div([_t([String(response.ErrorInfo.ErrorMessage)])],[['css','color','red']])]),
-			textarea = false,
-			resize = function()
-			{
-				if (textarea)
-					textarea.style.height = textarea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 6 + 'px';
-			}
-		
-		if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
+		if (typeof customErrorDescriptions !== 'undefined' && response.ErrorInfo.ExceptionType in customErrorDescriptions)
 		{
-			textarea = _textarea(null,[['dir','className','inputStyle error'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]);
-			
-			textarea.value = response.ErrorInfo.StackTrace;
-			_(canvas, [textarea]);
+			var canvas = _div([_t(customErrorDescriptions[response.ErrorInfo.ExceptionType])], [['dir', 'className', 'CustomErrorText']]);
+			showDialog(_gtxt("Ошибка!"), canvas, 220, 100);
 		}
-		
-		showDialog(_gtxt("Ошибка сервера"), canvas, 220, 170, false, false, resize)
-		
-		if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
-			resize();
+		else
+		{
+			var canvas = _div([_div([_t([String(response.ErrorInfo.ErrorMessage)])],[['css','color','red']])]),
+				textarea = false,
+				resize = function()
+				{
+					if (textarea)
+						textarea.style.height = textarea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 6 + 'px';
+				}
 			
-		canvas.parentNode.style.overflow = 'hidden';	
-		
-		return false;
+			if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
+			{
+				textarea = _textarea(null,[['dir','className','inputStyle error'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]);
+				
+				textarea.value = response.ErrorInfo.StackTrace;
+				_(canvas, [textarea]);
+			}
+			
+			showDialog(_gtxt("Ошибка сервера"), canvas, 220, 170, false, false, resize)
+			
+			if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
+				resize();
+				
+			canvas.parentNode.style.overflow = 'hidden';	
+			
+			return false;
+		}
 	}
 }
 

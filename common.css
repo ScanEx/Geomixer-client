@@ -777,3 +777,10 @@ skype_pnh_container
 	margin-left: 3px;
 	width: 100%
 }
+
+.CustomErrorText
+{
+	text-align: center;
+	font-weight: bold;
+	font-size: 12px;
+}
