@@ -11,6 +11,8 @@ class VectorLayer extends MapContent
 	public var lastId:String;
 	public var currentId:String;
 	public var currentFilter:VectorLayerFilter;
+	//var hoverTileExtent:Extent;
+	//var hoverTiles:Array<VectorTile>;
 
 	var flipCounts:Hash<Int>;
 	var lastFlipCount:Int;
@@ -112,6 +114,7 @@ class VectorLayer extends MapContent
 		var newCurrentFilter:VectorLayerFilter = null;
 		var zeroDistanceIds = new Array<String>();
 		var zeroDistanceFilters = new Array<VectorLayerFilter>();
+		//hoverTiles = new Array<VectorTile>();
 
 		var pointSize = 15*Math.abs(mapNode.window.scaleY);
 		var pointExtent = new Extent();
@@ -138,6 +141,7 @@ class VectorLayer extends MapContent
 								{
 									newCurrentId = id;
 									newCurrentFilter = filter;
+									//hoverTiles.push(tile);
 									distance = d;
 									if (d == 0)
 									{
@@ -191,13 +195,43 @@ class VectorLayer extends MapContent
 				newCurrentFilter.mapNode.callHandler("onMouseOver");
 			currentFilter = newCurrentFilter;
 
-			hoverPainter.geometry = (distance != Geometry.MAX_DISTANCE) ? fromTileGeometry(geometries.get(currentId)) : null;
-			hoverPainter.repaint((currentFilter != null) ? currentFilter.mapNode.getHoveredStyle() : null);
+			//hoverTileExtent = new Extent();
+			var hoverStyle = (currentFilter != null) ? currentFilter.mapNode.getHoveredStyle() : null;
+			var hoverGeom = null;
+			if (distance != Geometry.MAX_DISTANCE) {
+				hoverGeom = geometries.get(currentId);
+				if (hoverStyle != null && hoverStyle.fill != null) {	// Пока только для обьектов с заливкой
+					hoverGeom = fromTileGeometry(hoverGeom);
+				}
+			}
+
+			hoverPainter.geometry = hoverGeom;
+			hoverPainter.repaint(hoverStyle);
 		}
 		if (currentFilter != null)
 			currentFilter.mapNode.callHandler("onMouseMove");
 	}
 
+/*	
+	// Проверка принадлежнсти точки границам тайлов
+	private function onTileBoundary(x:Float, y:Float):Bool
+	{
+		var minx:Float;
+		var miny:Float;
+		var maxx:Float;
+		var maxy:Float;
+
+		for (tile in hoverTiles) {
+			var d = (tile.extent.maxx - tile.extent.minx)/10000;
+			minx = tile.extent.minx + d;
+			miny = tile.extent.miny + d;
+			maxx = tile.extent.maxx - d;
+			maxy = tile.extent.maxy - d;
+			if (x >= minx && x <= maxx && y >= miny && y <= maxy) return true;
+		}
+		return false;
+	}
+*/
 	// Преобразование геометрии обьекта полученного из тайла
 	private function fromTileGeometry(geom:Geometry):Geometry
 	{
@@ -227,13 +261,20 @@ class VectorLayer extends MapContent
 			
 			for (part in geo.coordinates) {
 				var pp = new Array<Float>();
+				//var flag = false;
 				for (i in 0...Std.int(part.length/2)) {
-					pp.push(part[i*2] + deltaX);
-					pp.push(part[i*2 + 1]);
+					//var curFlag = onTileBoundary(part[i * 2], part[i * 2 + 1]);
+					//if (!flag && !curFlag) {
+						pp.push(part[i*2] + deltaX);
+						pp.push(part[i * 2 + 1]);
+					//}
+					//flag = curFlag;
 				}
 				coords.push(pp);
 			}
-			return new PolygonGeometry(coords);
+			
+			geo = new PolygonGeometry(coords);
+			return geo;
 		} else if (Std.is(geom, MultiGeometry)) {
 			var ret = new MultiGeometry();
 			var geo = cast(geom, MultiGeometry);
