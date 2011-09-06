@@ -200,7 +200,10 @@ class VectorLayer extends MapContent
 			var hoverGeom = null;
 			if (distance != Geometry.MAX_DISTANCE) {
 				hoverGeom = geometries.get(currentId);
-				if (hoverStyle != null && hoverStyle.fill != null) {	// Пока только для обьектов с заливкой
+				if (hoverStyle != null 							// Пока только для обьектов с заливкой
+					&& hoverStyle.fill != null
+					&& (hoverStyle.outline == null || hoverStyle.outline.opacity == 0)
+					) {
 					hoverGeom = fromTileGeometry(hoverGeom);
 				}
 			}
