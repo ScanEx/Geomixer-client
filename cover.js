@@ -2742,6 +2742,16 @@ var MapCalendar = function(params)
 		
 		return publicInterface;
 	})();
+	
+	//требуется jQuery 1.5+
+	this._initDeferred = $.Deferred ? new $.Deferred() : null;
+}
+
+//вызывает callback когда календарик проинициализирован
+MapCalendar.prototype.whenInited = function( callback )
+{
+	if (this._initDeferred)
+		this._initDeferred.done( callback );
 }
 
 MapCalendar.prototype.saveState = function()
@@ -2782,8 +2792,6 @@ MapCalendar.prototype.loadState = function( data )
 
 MapCalendar.prototype.init = function(parent, params)
 {
-
-			
 	this.params = $.extend({minimized: true}, params);
 	
 	var name = 'MapCalendar',
@@ -2885,6 +2893,9 @@ MapCalendar.prototype.init = function(parent, params)
 	{
 		_this.setDates();
 	})
+	
+	if (this._initDeferred)
+		this._initDeferred.resolve();
 }
 
 // Конвертировать старый формат сохранения данных о погоде в виде eval-строки в новый формат. 
