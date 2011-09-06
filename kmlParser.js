@@ -85,7 +85,7 @@ queryKML.prototype.load = function()
 	
 	var canvas = _div([_div([_span([_t(_gtxt("URL файла"))])], [['css','marginBottom','3px']]),_table([_tbody([_tr([_td([inputField],[['css','width','220px']]),_td([goButton])])])], [['css','marginBottom','5px']])],[['css','margin','3px 0px 0px 10px']])
 
-	var formFile = ($.browser.msie) ? document.createElement('<form enctype="multipart/form-data" method="post" action="' + getAPIHostRoot() + 'ApiSave.ashx?WrapStyle=window" id="form" target="kml_iframe">') : _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', getAPIHostRoot() + 'ApiSave.ashx?WrapStyle=window'],['attr','target','kml_iframe']]);
+	var formFile = ($.browser.msie) ? document.createElement('<form enctype="multipart/form-data" method="post" action="' + serverBase + 'ApiSave.ashx?WrapStyle=window" id="form" target="kml_iframe">') : _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'ApiSave.ashx?WrapStyle=window'],['attr','target','kml_iframe']]);
 	formFile.style.width = '200px';
 	formFile.style.marginLeft = '3px';
 
