@@ -460,10 +460,12 @@ WikiPlugin.prototype = {
 			
 		if(this._wikiEditor) {
 			this._wikiEditor.setGeometry(elem);
-			var style = elem.getStyle();
-			style.regular.outline.color = 0x007700;
-			style.hovered.outline.color = 0x009900;
-			elem.setStyle(style.regular, style.hovered);
+			if (elem.geometry.type == 'POLYGON'){
+				var style = elem.getStyle();
+				style.regular.outline.color = 0x007700;
+				style.hovered.outline.color = 0x009900;
+				elem.setStyle(style.regular, style.hovered);
+			}
 		}
     },
 	
