@@ -329,6 +329,7 @@ WikiEditor.prototype = {
 	
 	updatePage: function(){
 		this._pageInfo.Title = this._txtTitle.value;
+		tinyMCE.get('message_content').save();
 		this._pageInfo.Content = this._txtContent.value;
 		if (this._drawing) {
 			this._pageInfo.Geometry = this._drawing.geometry;
