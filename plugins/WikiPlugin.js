@@ -183,7 +183,7 @@ WikiObjectsHandler.prototype = {
     },
     
 	setLayerVisible: function(layerName, isVisible){
-		this._objectsCache[layerName].setVisible(isVisible);
+		this._objectsCache[layerName] && this._objectsCache[layerName].setVisible(isVisible);
 	},
 	
     showObjects: function() {
