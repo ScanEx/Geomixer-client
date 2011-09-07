@@ -4063,12 +4063,16 @@ function createFlashMapInternal(div, layers, callback)
 						if(map.drawing.enabledHoverBalloon) {
 								switch(tp) {
 									case 'x1b':
-									case 'x2b':
 										geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x1, y2]]] };
 										break;
+									case 'x2b':
+										geom = { type: "LINESTRING", coordinates: [[[x2, y1], [x2, y2]]] };
+										break;
 									case 'y1b':
-									case 'y2b':
 										geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1]]] };
+										break;
+									case 'y2b':
+										geom = { type: "LINESTRING", coordinates: [[[x1, y2], [x2, y2]]] };
 										break;
 								}
 							propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
@@ -4092,19 +4096,22 @@ function createFlashMapInternal(div, layers, callback)
 					var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
 					domObj.update(geom, text);
 				}
-
-				var objHandlersX = {
+				x1Border.setHandlers({
 					onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('x1b') },
 					onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
-				};
-				x1Border.setHandlers(objHandlersX);
-				x2Border.setHandlers(objHandlersX);
-				var objHandlersY = {
+				});
+				x2Border.setHandlers({
+					onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('x2b') },
+					onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
+				});
+				y1Border.setHandlers({
 					onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('y1b') },
 					onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
-				};
-				y1Border.setHandlers(objHandlersY);
-				y2Border.setHandlers(objHandlersY);
+				});
+				y2Border.setHandlers({
+					onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('y2b') },
+					onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
+				});
 
 				var objHandlerCorner = {
 					onMouseOver: function() { eventType = 'onNodeMouseOver'; chkBalloon() },
