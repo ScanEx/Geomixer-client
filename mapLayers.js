@@ -184,19 +184,7 @@ var layersTree = function()
 	this.groupLoadingFuncs = [];
 		
 	this.copiedStyle = null;
-	
-	//элементы контекстного меню для слоёв. Тип ILayersContextMenuElem
-	//this._layersContentMenuElems = [];
 }
-
-/** Добавить пункт контекстного меню.
-* @function
-* @param menuElem {layersTree.ILayersContextMenuElem} Новый пукнт контекстного меню
-*/
-// layersTree.prototype.addContextMenuElem = function(menuElem)
-// {
-	// this._layersContentMenuElems.push(menuElem);
-// }
 
 // layerManagerFlag == 0 для дерева слева
 // layerManagerFlag == 1 для списка слоев

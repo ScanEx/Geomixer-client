@@ -773,7 +773,7 @@ attrsTable.prototype.editObject = function(row)
 					}
 					else
 					{
-						var info = _span([_t(geometryRow[0].type)], [,['css','marginLeft','3px'],['css','fontSize','12px']]);
+						var info = _span([_t(geometryRow[0].type)], [['css','marginLeft','3px'],['css','fontSize','12px']]);
 						
 						_title(info, JSON.stringify(geometryRow[0].coordinates));
 					}

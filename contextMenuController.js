@@ -3,11 +3,15 @@
 var nsGmx = nsGmx || {};
 
 /** 
-* Контроллёр контектных меню.
+* Контроллёр контекстных меню.
 * @class
 * @memberOf nsGmx
 * Позволяет добавлять элементы контектсного меню разного типа и привязывать меню к отдельным DOM элементам. 
-* Возможно динамическое создание меню при клике на объекте. Элементам меню передаётся контекст, указанный при привязке меню к элементу
+* Возможно динамическое создание меню при клике на объекте. Элементам меню передаётся контекст, 
+* указанный при привязке меню к элементу (он так же может создаваться в момент клика на элементе)
+*
+* Каждый элемент меню - отдельный объект, они независимо добавляются в контроллер. 
+* При создании меню определённого типа из этого набора выбираются нужные элементы.
 */
 nsGmx.ContextMenuController = (function()
 {
@@ -155,9 +159,6 @@ nsGmx.ContextMenuController = (function()
 		var actionsCanvas = _div();
 		var items = _menuItems[type];
 		
-		if (typeof context === 'function')
-			context = context();
-		
 		for (var e = 0; e < items.length; e++)
 			(function (menuElem) {
 				if (typeof menuElem.isVisible !== 'undefined' && !menuElem.isVisible(context) ) return;
@@ -168,6 +169,7 @@ nsGmx.ContextMenuController = (function()
 				titleLink.onclick = function()
 				{
 					context.contentMenuArea = getOffsetRect(this);
+					context.contextMenuType = type;
 					_contextClose();
 					$(this).removeClass('buttonLinkHover');
 					menuElem.clickCallback(context);
@@ -187,9 +189,9 @@ nsGmx.ContextMenuController = (function()
 	return {
 	
 		/**
-		 * Добавляет новый пункт в меню
+		 * Добавляет новый пункт меню
 		 * @function
-		 * @param {nsGmx.ContextMenuController.ILayersContextMenuElem} menuItem Элемент контекстного меню
+		 * @param {nsGmx.ContextMenuController.IContextMenuElem} menuItem Элемент контекстного меню
 		 * @param {String || Array} menuType Тип меню (например: "Layer", "Map", "Group"). Если массив, то данный элемент применяется в нескольких типах меню
 		 */
 		addContextMenuElem: function(menuItem, menuType)
@@ -210,6 +212,8 @@ nsGmx.ContextMenuController = (function()
 		 * @param {DOMElement} elem Целевой DOM-элемент
 		 * @param {string} type Тип меню
 		 * @param {Function, checkFunc()->Bool} checkFunc Проверка, показывать ли сейчас меню. Если ф-ция возвращает false, меню не показывается
+		 * @param {object || Function, context()->object} context Контекст, который будет передан в элемент меню при клике на DOM-элементе. 
+		 *        Если контект - ф-ция, она будет вызвана непосредственно при клике. В контекст при клике будут добавлены элементы contentMenuArea и contextMenuType.
 		 */
 		bindMenuToElem: function(elem, type, checkFunc, context)
 		{
@@ -217,6 +221,9 @@ nsGmx.ContextMenuController = (function()
 			
 			_context(elem, function()
 			{
+				if (typeof context === 'function')
+					context = context(); //
+					
 				return _generateMenuDiv(type, context);
 			}, checkFunc, SUGGEST_TIMEOUT)
 		}
@@ -227,7 +234,7 @@ nsGmx.ContextMenuController = (function()
 * @class
 * @memberOf nsGmx
 */
-nsGmx.ContextMenuController.ILayersContextMenuElem = {
+nsGmx.ContextMenuController.IContextMenuElem = {
 
 	/** Нужно ли отображать данный пункт меню для данного элемента и типа дерева. Необязательная (по умолчанию отображается)
 	@function
@@ -243,12 +250,14 @@ nsGmx.ContextMenuController.ILayersContextMenuElem = {
 	
 	/** Вызывается при клике по соответствующему пункту меню
 	@function
-	@param context {object} - контекст, специфический для конкретного типа меню. 
-	       В контекст будет добавлено поле "contentMenuArea" - координаты верхнего левого угла пункта меню, на которое было нажатие. {left: int, top: int}. Если нужно привязаться к месту текущего клика
+	@param context {object} - контекст, который был передан при привязке меню к DOM-элементу. 
+	       В контекст будут добавлены поля
+		     * contentMenuArea {object} - координаты верхнего левого угла пункта меню, на которое было нажатие. {left: int, top: int}. Если нужно привязаться к месту текущего клика
+			 * contentMenuType {string}- тип вызванного контекстного меню. Актуально, если элемент меню используется в нескольких типах меню.
 	*/
 	clickCallback:     function(context){},
 	
-	/** Строчка, которую нужно рисовать в контекстном меню
+	/** Строка, которую нужно отображать в контекстном меню
 	*/
 	title: ""
 }
@@ -287,9 +296,9 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{
 		return !context.layerManagerFlag && _queryMapLayers.currentMapRights() === "edit" && context.elem.type === "Vector";
 	},
-	clickCallback: function(elem)
+	clickCallback: function(context)
 	{
-		_attrsTableHash.create(elem.name);
+		_attrsTableHash.create(context.elem.name);
 	}
 }, 'Layer');
 
