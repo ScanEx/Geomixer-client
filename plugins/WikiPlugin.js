@@ -1,21 +1,33 @@
-﻿(function wiki($, oFlashMap){
+﻿
+(function wiki($, oFlashMap){
 _translationsHash.addtext("rus", {
-	"Статьи" : "Статьи",
+	"Сообщение" : "Сообщение",
+	"Сообщения" : "Сообщения",
 	"Искать в видимой области" : "Искать в видимой области",
 	"Добавьте объект на карту" : "Добавьте объект на карту",
 	"Для подложки" : "Для подложки",
-	"Создать статью" : "Создать статью",
-	"Статья Wiki" : "Статья Wiki"
+	"Создать сообщение" : "Создать сообщение",
+	"Статья Wiki" : "Статья Wiki",
+	"Заголовок" : "Заголовок",
+	"Сообщение уже редактируется": "Сообщение уже редактируется",
+	"Щелкните по слою в дереве слоёв, чтобы выбрать его": "Щелкните по слою в дереве слоёв, чтобы выбрать его",
+	"Для добавления или редактирования объекта на карте нужно добавить новый объект - точку или многоугольник из панели инструментов": "Для добавления или редактирования объекта на карте нужно добавить новый объект - точку или многоугольник из панели инструментов"
 });
 _translationsHash.addtext("eng", {
-	"Статьи" : "Wiki pages",
+	"Сообщение" : "Message",
+	"Сообщения" : "Messages",
 	"Искать в видимой области" : "Only search in visible area",
+	"Добавьте объект на карту" : "Add object on map",
 	"Для подложки" : "For basemap",
-	"Создать статью" : "Create wiki page",
-	"Статья Wiki" : "Wiki page"
+	"Создать сообщение" : "Create message",
+	"Статья Wiki" : "Wiki page",
+	"Заголовок" : "Title",
+	"Сообщение уже редактируется": "Message editor is already open",
+	"Щелкните по слою в дереве слоёв, чтобы выбрать его": "Click layer to choose it",
+	"Для добавления или редактирования объекта на карте нужно добавить новый объект - точку или многоугольник из панели инструментов": "To add object use toolbar on map"
 });
 
-var oWikiDiv = _div();
+var oWikiDiv = _div(null, [['attr', 'Title', _gtxt("Сообщения")]]);
 //Возвращает Ид. карты
 var getMapId = function(){
 	return oFlashMap.properties.name;
@@ -64,26 +76,33 @@ WikiService = function(wikiBasePath) {
 
 WikiService.prototype = {
     getPages: function(callback) {
-        this._loadData(this.getWikiLink('GetPages/?mapId=' + getMapId()), callback);
-    },
-
-    logon: function(username, password) {
-        this._loadData(this.getWikiLink('LogOn/?username=' + username + '&password=' + password));
-    },
-    
-    logoff: function() {
-        this._loadData(this.getWikiLink('LogOff/'));
+        this._loadData(this.getWikiLink('GetMessages.ashx?MapName=' + getMapId()), callback);
     },
 
     getWikiLink: function(relativeUrl) {
         return this._wikiBasePath + relativeUrl;
     },
     
+	updatePage: function(pageInfo, callback){
+		var _data = {WrapStyle: 'window'
+				, MessageID: pageInfo.MessageID.toString()
+				, Title: pageInfo.Title
+				, Content: pageInfo.Content
+				, MapName: pageInfo.MapName
+				, LayerName: pageInfo.LayerName
+				, Geometry: JSON.stringify(pageInfo.Geometry)
+				, AuthorLogin: pageInfo.AuthorLogin
+				, IsDeleted: pageInfo.IsDeleted
+		};
+			
+		sendCrossDomainPostRequest(this.getWikiLink('UpdateMessage.ashx'), _data, function(data) { if (parseResponse(data) && callback) callback(data); });
+	},
+	
     _loadData: function(url, callback) {
         $.ajax({
-            url: url+ (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=?',
+            url: url+ (url.indexOf('?') >= 0 ? '&' : '?') + 'callbackName=?',
             dataType: 'json',
-            success: function(data) { if (callback) callback('ok', data); }.bind(this),
+            success: function(data) { if (parseResponse(data) && callback) callback('ok', data); }.bind(this),
             error: function() { if (callback) callback('error'); }.bind(this)
         });
     }
@@ -96,16 +115,12 @@ WikiObjectsHandler = function(map, wikiPlugin) {
     this._map = map;
     this._wikiPlugin = wikiPlugin;
     
-    this._objectsCache = [];
+    this._objectsCache = {};
 	this._pageLayer = map.addObject();
 }
 
 WikiObjectsHandler.prototype = {
     createObjects: function(objects) {
-        /*if (this._objectsCache.length > 0) {
-            //alert('Wiki: Для слоя "' + layer.info.title + '" уже существуют объекты на карте.');
-            return;
-        }*/
         
 		for (var objectIndex = 0; objectIndex < objects.length; ++objectIndex) {
 			this._createObject(objects[objectIndex]);
@@ -114,153 +129,72 @@ WikiObjectsHandler.prototype = {
 
 	_createObject: function(pageInfo){
 		var mapObject;
-		if (pageInfo.LayerID ){
-			if (!this._map.layers[pageInfo.LayerID]) {pageInfo.BadLayer = true; return;}
-			mapObject = this._map.layers[pageInfo.LayerID].addObject(pageInfo.ObjectsGeometry[0]);
+		if (pageInfo.LayerName && !this._map.layers[pageInfo.LayerName]){pageInfo.BadLayer = true; return;}
+
+		if (!this._objectsCache[pageInfo.LayerName]) {
+			this._objectsCache[pageInfo.LayerName] = this._pageLayer.addObject();
+			if(pageInfo.LayerName) this._objectsCache[pageInfo.LayerName].setVisible(this._map.layers[pageInfo.LayerName].isVisible); 
 		}
-		else{
-			mapObject = this._pageLayer.addObject(pageInfo.ObjectsGeometry[0]);
-		}
+		mapObject = this._objectsCache[pageInfo.LayerName].addObject(pageInfo.Geometry);
 		pageInfo.mapObject = mapObject;
-		this._objectsCache.push(mapObject)
-		mapObject.enableHoverBalloon(function() { return pageInfo.Title; });
-		var clickHandler = this._objectClicked.bind(this);
-		mapObject.setHandler("onClick", function() { clickHandler(pageInfo.Id); });
-		switch (pageInfo.ObjectsGeometry[0].type) {
+		mapObject.enableHoverBalloon(this._getBaloon(pageInfo));
+		switch (pageInfo.Geometry.type) {
 			case 'POINT':
-				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : getAPIHostRoot() + "/api/img/wiki/page.gif"), center: true }});
+				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : getAPIHostRoot() + "/api/plugins/img/wiki/page.gif"), center: true }});
 				break;
 			case 'POLYGON':
-				mapObject.setStyle({outline: {color: pageInfo.ObjectsGeometry[0].color, thickness: 1, opacity: 100}});
+				mapObject.setStyle({outline: {thickness: 1, opacity: 100}});
 				break;
 		}
 	},
 	
-    _objectClicked: function(pageId) {
-        this._wikiPlugin.showPage(pageId);
-    },
-        
+	_getBaloon: function(pageInfo){
+		var _this = this;
+		return function(attr, div) { 
+					var divEdit = _div();
+					if (userInfo().Login == pageInfo.AuthorLogin || nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN)){
+						var btnEdit = makeLinkButton(_gtxt("Редактировать"));
+						var btnDelete = makeLinkButton(_gtxt("Удалить"));
+						btnEdit.onclick = function() {_this._wikiPlugin.openEditor(pageInfo); _this._map.balloonClassObject.hideHoverBalloons(); }
+						btnDelete.onclick = function() {_this._wikiPlugin.deletePage(pageInfo); _this._map.balloonClassObject.hideHoverBalloons(); }
+						_(divEdit, [btnEdit, _t(" "), btnDelete]);
+					};
+					var divTitle = _div([_t(pageInfo.Title)], [['dir', 'className', 'wiki-message-title']]);
+					var divContent = _div();
+					divContent.innerHTML = pageInfo.Content;
+					var divBaloon = _div([divTitle, divContent, divEdit]);
+					
+					removeChilds(div); 
+					_(div, [divBaloon]);
+					return {}; 
+				};
+	},
+	        
     removeObjects: function() {
         if (this._objectsCache.length == 0) return;
-        for (var objectIndex = 0; objectIndex < this._objectsCache.length; ++objectIndex) {
-            this._objectsCache[objectIndex].remove();
+        for (var layerName in this._objectsCache) {
+            this._objectsCache[layerName].remove();
         }
-        this._objectsCache = [];
+        this._objectsCache = {};
     },
 	
 	setObjectsVisibility: function(isVisible) {
         this[isVisible ? 'showObjects' : 'hideObjects']();
     },
     
+	setLayerVisible: function(layerName, isVisible){
+		this._objectsCache[layerName].setVisible(isVisible);
+	},
+	
     showObjects: function() {
-		for (var objectIndex = 0; objectIndex < this._objectsCache.length; ++objectIndex) {
-			this._objectsCache[objectIndex].setVisible(true);
-		}
+		this._pageLayer.setVisible(true);
     },
     
     hideObjects: function() {
-        for (var objectIndex = 0; objectIndex < this._objectsCache.length; ++objectIndex) {
-            this._objectsCache[objectIndex].setVisible(false);
-        }
+        this._pageLayer.setVisible(false);
     }
 }
 
-/* --------------------------------
- * Wiki Wizard dialog
- * -------------------------------- */
-WikiWizardDialog = function() {
-    this._view = null;
-    
-    this._wizardStep = 0;
-    this._stepsData = null;
-    this._onClose = null;
-    this._onCancel = null;
-    
-    this._initialize();
-}
- 
-WikiWizardDialog.prototype = {
-    _initialize: function() {
-        this._view = $('<div style="display:none"><div class="content"></div><div class="cancel-button">' + _gtxt("Отмена") + '</div><div class="skip-button">' + _gtxt("Пропустить") + '</div><div class="clear"></div></div>').appendTo($('body'));
-        this._view.find('.cancel-button').click(this._cancel.bind(this));
-        this._view.find('.skip-button').click(this._skip.bind(this)).hide();
-        var that = this;
-        this._view.dialog({
-		    autoOpen: false,
-		    dialogClass: "wiki-wizard-dialog",
-		    closeOnEscape: false,
-		    draggable: false,
-		    width: 200,
-		    height: 40,
-		    minHeight: 40,
-		    modal: false,
-		    buttons: {},
-		    resizable: false,
-		    open: function() {
-			    // strange issue in IE9-QuirkMode and FF 4
-		        that._view.removeAttr('style');
-		    },
-		    close: function() {
-			    that._wizardStep = 0;
-			    that.set_skipButtonVisibility(false);
-			    that._stepsData = null;
-			    if (that._onClose) that._onClose();
-		    }
-	    });
-    },
-    
-    open: function(title, content, position) {
-        this._stepsData = {};
-        this.setStep(title, content, position);
-	    this._view.dialog('open');
-    },
-    
-    setStep: function(title, content, position, previousStepData) {
-        if (previousStepData) this._stepsData[this._wizardStep] = previousStepData;
-        ++this._wizardStep;
-        this._view.find('div.content').html(content);
-        this._view.dialog('option', 'position', position);
-        this._view.dialog('option', 'title', title);
-    },
-    
-    get_CurrentStep: function() {
-        return this._wizardStep;
-    },
-    
-    get_StepData: function(stepIndex) {
-        return this._stepsData ? this._stepsData[stepIndex] : null;
-    },
-    
-    set_onClose: function(handler) {
-        this._onClose = handler;
-    },
-    set_onCancel: function(handler) {
-        this._onCancel = handler;
-    },
-    set_onSkip: function(handler) {
-        this._onSkip = handler;
-    },
-    
-    set_skipButtonText: function(text) {
-        this._view.find('.skip-button').html(text);
-    },
-    set_skipButtonVisibility: function(isVisible) {
-        this._view.find('.skip-button')[isVisible ? 'show' : 'hide']();
-    },
-    
-    _cancel: function() {
-        if (this._onCancel) this._onCancel();
-        this.close();
-    },
-    
-    _skip: function() {
-        if (this._onSkip) this._onSkip();
-    },
-    
-    close: function() {
-        this._view.dialog('close');
-    }
-}
 
 WikiFilter = function(oContainer){
 	this._container = oContainer;
@@ -297,28 +231,126 @@ WikiFilter.prototype = {
 		var _this = this;
 		var sFilter = new RegExp(this._input.value, "i");
 		removeChilds(this._list);
-		var arrTopicsLI = {};
+		//var arrTopicsLI = {};
 		for(var i=0; i<this.pagesCache.length; i++){
 			var page = this.pagesCache[i];
 			var layerOK = !page.BadLayer && (!page.LayerID || oFlashMap.layers[page.LayerID].isVisible)
-			var extentOK = !this._checkExtent.checked || boundsIntersect(getBounds(page.ObjectsGeometry[0].coordinates), oFlashMap.getVisibleExtent());
-			if ( layerOK && extentOK && (!sFilter || page.TopicName.match(sFilter) || page.Title.match(sFilter))){
-				if (!arrTopicsLI[page.TopicName]){
+			var extentOK = !this._checkExtent.checked || boundsIntersect(getBounds(page.Geometry.coordinates), oFlashMap.getVisibleExtent());
+			if ( layerOK && extentOK && (!sFilter /*|| page.TopicName.match(sFilter)*/ || page.Title.match(sFilter))){
+				/*if (!arrTopicsLI[page.TopicName]){
 					arrTopicsLI[page.TopicName]=_li([_div([_span([_t(page.TopicName)], [['dir', 'className', 'wiki-filter-topic']])])]);
 					$(this._list).append(_ul([arrTopicsLI[page.TopicName]]));
-				}
+				}*/
 				var oPageRow = _span([_t(page.Title)], [['dir', 'className', 'wiki-filter-page']]);
 				oPageRow.PageInfo = page;
 				oPageRow.onclick = function(){
 					oFlashMap.setMinMaxZoom(1, 13);
-					var oExtent = getBounds(this.PageInfo.ObjectsGeometry[0].coordinates);
+					var oExtent = getBounds(this.PageInfo.Geometry.coordinates);
 					oFlashMap.zoomToExtent(oExtent.minX, oExtent.minY, oExtent.maxX, oExtent.maxY);
 					oFlashMap.setMinMaxZoom(1, 17);
 				}
-				$(arrTopicsLI[page.TopicName]).append(_ul([oPageRow]));
+				//$(arrTopicsLI[page.TopicName]).
+				$(this._list).append(_ul([oPageRow]));
 			}
 		}
 		$(this._list).treeview();
+	}
+}
+
+
+window.tinyMCEPreInit = {
+	base: getAPIHostRoot() + '/api/plugins/tiny_mce', 
+	suffix : '', 
+	query : ''
+};      
+
+var tinyMCELoaded = false;
+var InitEditor = function(target) {
+    var options = {
+        language : "ru",
+        mode: 'exact',
+        theme: 'advanced',
+        elements: target,
+        //relative_urls : false,
+        
+        theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,formatselect,fontselect,fontsizeselect",
+        theme_advanced_buttons2 : "bullist,numlist,|,outdent,indent,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code",
+        theme_advanced_buttons3 : "hr,removeformat,visualaid,|,sub,sup,|,charmap",
+        theme_advanced_toolbar_location : "top",
+        theme_advanced_toolbar_align : "left",
+        theme_advanced_statusbar_location : "bottom",
+        
+        plugins: 'advimage',
+        extended_valid_elements: 'img[!src|border:0|alt|title|width|height|style]a[name|href|target|title|onclick]'
+    };
+
+    //if (fileBrowser) options.file_browser_callback = "fileBrowser.open";
+	
+	if(!tinyMCELoaded) {
+		$LAB.script(getAPIHostRoot() + "/api/plugins/tiny_mce/tiny_mce_src.js").wait(function(){
+			tinyMCELoaded = true;
+			tinymce.dom.Event.domLoaded = true; 
+			tinyMCE.init(options);
+		});
+	}
+	else{
+		tinyMCE.init(options);
+	}
+}
+
+
+WikiEditor = function(pageInfo, wikiPlugin){
+	this._wikiPlugin = wikiPlugin;
+	this._pageInfo = pageInfo;
+	this._layerChooseFlag = false;
+	this._geometryChooseFlag = false;
+	this._divGeometry = _div([_t(_gtxt("Для добавления или редактирования объекта на карте нужно добавить новый объект - точку или многоугольник из панели инструментов"))]);
+	this._txtLayer = _input(null, [['attr', 'readonly', 'true'], ['dir', 'className', 'wiki-editor-txtlayer']]);
+	this._lblLayer = _t(_gtxt("Щелкните по слою в дереве слоёв, чтобы выбрать его"));
+	this._txtTitle = _input(null, [['dir', 'className', 'wiki-editor-txttitle']]);
+	this._fieldsTable = _table([_tbody([_tr([_td([_t(_gtxt("Слой"))]), _td([this._txtLayer]), _td([this._lblLayer])]), _tr([_td([_t(_gtxt("Заголовок"))]), _td([this._txtTitle]), _td()])])], [['css', 'border-spacing', '2']]);
+	this._txtContent = _textarea(null, [['attr', 'id', 'message_content']]);
+	if (pageInfo.LayerName) this._txtLayer.value = this._wikiPlugin._map.layers[pageInfo.LayerName].properties.title;
+	if (pageInfo.Title) this._txtTitle.value = pageInfo.Title;		
+	if (pageInfo.Content) this._txtContent.value = pageInfo.Content;
+	var _btnOK = _button([_t(_gtxt("Сохранить"))], [['dir', 'className', 'wiki-editor-btnok']]);
+	_btnOK.onclick = this.updatePage.bind(this);
+	this._div = _div([this._divGeometry, this._fieldsTable, this._txtContent, _br(), _btnOK], [['attr', 'Title', _gtxt('Сообщение')]]);
+	
+}
+
+WikiEditor.prototype = {
+	showDialog: function(){
+		var _this = this;
+		this._dialog = showDialog(_gtxt('Сообщение'), this._div, 500, 350 , false, false, false, function(){ $(_this).triggerHandler('dialogclose'); if (_this._drawing) _this._drawing.remove();})
+		//$(this._div).dialog({height: 350, width: 500, close: );
+		InitEditor('message_content');
+	},
+	
+	updatePage: function(){
+		this._pageInfo.Title = this._txtTitle.value;
+		this._pageInfo.Content = this._txtContent.value;
+		if (this._drawing) {
+			this._pageInfo.Geometry = this._drawing.geometry;
+			this._drawing.remove();
+			this._drawing = null;
+		}
+		if (!this._pageInfo.Geometry) { alert("Добавьте объект на карту"); return; };
+		$(this).triggerHandler('updatePage', [this._pageInfo]);
+	},
+	
+	setGeometry: function(drawing){
+		if (drawing && this._drawing) this._drawing.remove();
+		this._drawing = drawing;
+	},
+	
+	setLayer: function(layerName){
+		this._txtLayer.value = this._wikiPlugin._map.layers[layerName].properties.title;
+		this._pageInfo.LayerName = layerName;
+	},
+	
+	closeDialog: function(){
+		$(this._dialog).dialog('close');
 	}
 }
 
@@ -328,192 +360,139 @@ WikiFilter.prototype = {
 WikiPlugin = function() {
     this._wikiService = null;
     this._wikiObjects = null;
+	this._wikiEditor = null;
     this._pagesCache = [];
     this._map = null;
 	
     this._treeView = null;
 	this._uiWikiButton = null;
     
-    this._wizardButton = null;
-    this._wizardDialog = null;
+    this._createButton = null;
     this._filter = null;
 }
 
 WikiPlugin.prototype = {
-    initialize: function(map, sWikiServer) {
-        // $.getCSS(getAPIHostRoot() + '/api/WikiPlugin.css');
-        $.getCSS(gmxCore.getModulePath("wiki") + 'WikiPlugin.css');
+    initialize: function(map, sWikiServer, oMapDiv) {
+        $.getCSS(getAPIHostRoot() + '/api/plugins/WikiPlugin.css');
 		this._map = map;
         this._wikiService = new WikiService(sWikiServer);
         this._wikiObjects = new WikiObjectsHandler(this._map, this);
-        this._syncWikiLogin();
-        
-        this._attachWizard();
+
+		this._addButton();
 		this._attachTreeEvents();
         this._attachDrawingObjectsEvents();
         this._treeView = $('ul.treeview');
 		this._filter = new WikiFilter(oWikiDiv);
+
+		this._map.drawing.addTool('sendMessage'
+									, _gtxt("Создать сообщение")
+									, 'plugins/img/wiki/sendMessage.png'
+									, 'plugins/img/wiki/sendMessage_a.png'
+									, function(){this._map.drawing.selectTool('move'); this.createPage(); }.bind(this)
+									, function(){})
 		this._updatePages();
     },
     
 	createPage: function(layerID){
-		if (this._wizardDialog.get_CurrentStep() > 0) return;
-		this._wizardDialog.layerID = layerID;
-		this._wizardButton.addClass('disabled');
-		this._wizardDialog.open('Шаг 1 из 1', _gtxt('Добавьте объект на карту'), [400, 240]);
+		if (this._isUserLoggedIn()) {
+			this.openEditor({MessageID: -1, MapName: getMapId(), LayerName: layerID, AuthorLogin: userInfo().Login, IsDeleted: 0});
+		}
+		else {
+			$('.loginCanvas div.log span.buttonLink').click();
+		}
 	},
 	
-    _syncWikiLogin: function() {
-        if (this._isUserLoggedIn())
-            this._wikiService.logon('geomixeruser', 'geomixer315MANAGER');
-        else
-            this._wikiService.logoff();
-    },
+	openEditor: function(pageInfo){
+		if (this._wikiEditor){
+			alert(_gtxt("Сообщение уже редактируется"));
+		}
+		else{
+			var _this = this;
+			this._wikiEditor = new WikiEditor(pageInfo, this);
+			$(this._wikiEditor).bind('dialogclose', function(){
+					_this._wikiEditor = null;
+				});
+			$(this._wikiEditor).bind('updatePage', function(){
+					_this._wikiService.updatePage(pageInfo, function(response) { _this._updatePages(); _this._wikiEditor.closeDialog();  } );
+				});
+			this._wikiEditor.showDialog();
+		}
+	},
     
+	deletePage: function(pageInfo){
+		var _this = this;
+		pageInfo.IsDeleted = 1;
+		this._wikiService.updatePage(pageInfo, function(response) { _this._updatePages(); } );
+	},
+	
     _isUserLoggedIn: function() {
         return !!userInfo().Login;
     },
-    
-    _attachWizard: function() {
-        var clickFunction;
-        if (this._isUserLoggedIn()) {
-            this._wizardDialog = new WikiWizardDialog();
-            this._wizardDialog.set_onClose(this._wizardClosed.bind(this));
-            this._wizardDialog.set_onCancel(this._wizardCanceled.bind(this));
-            this._wizardDialog.set_skipButtonText(_gtxt('Для подложки'));
-            this._wizardDialog.set_onSkip(function() {
-                    this._createPage(_mapHelper.mapTree.properties.name, WHOLE_MAP_LAYER_KEY, this._wizardDialog.get_StepData(1));
-                    this._wizardDialog.close();
-                }.bind(this));
-            clickFunction = function() {
-                    if (this._wizardDialog.get_CurrentStep() > 0) return;
-                    this._wizardButton.addClass('disabled');
-                    this._wizardDialog.open('Шаг 1 из 2', _gtxt('Добавьте объект на карту'), [400, 240]);
-                }.bind(this);
-        } else {
-            clickFunction = function() { $('.loginCanvas div.log span.buttonLink').click(); };
-        }
-        
-        this._wizardButton = $('<span class="wiki-wizard-button">' + _gtxt("Создать статью") + '</span>').click(clickFunction);
-        $(oWikiDiv).append(
-            $('<div class="wiki-wizard-button"></div>').append(this._wizardButton)
-        );
-    },
-    
-    _wizardClosed: function() {
-        this._wizardButton.removeClass('disabled');
-    },
-    
-    _wizardCanceled: function() {
-        if (this._wizardDialog.get_CurrentStep() == 2) {
-            this._wizardDialog.get_StepData(1).remove();
-        }
-    },
-   
+       
     /* #region: queryDrawingObjects overrides */
-   
+	_addButton: function(){
+        var clickFunction = function() {
+					this.createPage();
+                }.bind(this);
+		
+		this._createButton = $('<span class="wiki-wizard-button">' + _gtxt("Создать сообщение") + '</span>').click(clickFunction);
+		$(oWikiDiv).append($('<div class="wiki-wizard-button"></div>').append(this._createButton));
+	},
+	
     _attachDrawingObjectsEvents: function() {
         if (!this._isUserLoggedIn()) return;
     
         // Fix objects created before plugin started, e.g. from permalink
-        this._map.drawing.forEachObject(function(drawingObject) {
+        /*this._map.drawing.forEachObject(function(drawingObject) {
             this._onDrawingObjectAdded(drawingObject);
-        }.bind(this));
+        }.bind(this));*/
     
         this._map.drawing.setHandlers({
-		    onAdd: this._onDrawingObjectAdded.bind(this)
+		    onAdd: this._onDrawingObjectAdded.bind(this),
+			onRemove: this._onDrawingObjectRemove.bind(this)
 		});
     },
     
     _onDrawingObjectAdded: function(elem) {
         if (elem.geometry.type != 'POINT' &&
             elem.geometry.type != 'POLYGON') return;
-            
-        if (this._wizardDialog.get_CurrentStep() == 1) {
-			if (this._wizardDialog.layerID){
-				this._createPage(getMapId(), this._wizardDialog.layerID, elem);
-				this._wizardDialog.close();
-			}
-			else{
-				$(elem.canvas).find('img.remove').hide();
-				this._wizardDialog.set_skipButtonVisibility(true);
-				this._wizardDialog.setStep('Шаг 2 из 2', 'Выберите слой', [365, 350], elem);
-			}
-            return;
-        }
-        
-        $(elem.canvas).find('div.item')
-            .data('drawingObject', elem)
-            .draggable({
-                addClasses: false,
-                appendTo: 'body',
-                scope: 'drawingObjects',
-                helper: 'clone'
-            }) 
-            [0].onselectstart = function() { return false; };
+			
+		if(this._wikiEditor) {
+			this._wikiEditor.setGeometry(elem);
+			var style = elem.getStyle();
+			style.regular.outline.color = 0x007700;
+			style.hovered.outline.color = 0x009900;
+			elem.setStyle(style.regular, style.hovered);
+		}
     },
-    
-    /* #endregion:  */
-            
+	
+	_onDrawingObjectRemove: function(){
+		if(this._wikiEditor) this._wikiEditor.setGeometry(null);
+	},
+	
 	_attachTreeEvents: function() {
         var that = this;
-        
-        /*var oldDrawLayer = layersTree.prototype.drawLayer;
-        layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, parentVisibility) {
-            var elements = (oldDrawLayer.bind(this))(elem, parentParams, layerManagerFlag, parentVisibility);
-            that._onDrawLayer(elem, $(elements[elements.length -3]));
-            return elements;
-        };*/
-        
+                
         var oldLayerVisible = layersTree.prototype.layerVisible;
         layersTree.prototype.layerVisible = function(box, flag) {
             (oldLayerVisible.bind(this))(box, flag);
             var layerInfo = box.parentNode.properties.content.properties;
-            
-            if (that._wizardDialog && that._wizardDialog.get_CurrentStep() == 2) {
-                that._createPage(getMapId(), layerInfo.name,
-                                    that._wizardDialog.get_StepData(1));
-                that._wizardDialog.close();
-            }
-			else{
-				that._filter.filter();
-			}
+            if(that._wikiObjects) that._wikiObjects.setLayerVisible(layerInfo.name, layerInfo.visible);
+			if(that._wikiEditor) that._wikiEditor.setLayer(layerInfo.name);
+
+			that._filter.filter();
         }
-        /*
-        var oldUpdateChildLayersMapVisibility = layersTree.prototype.updateChildLayersMapVisibility;
-        layersTree.prototype.updateChildLayersMapVisibility = function(div) {
-            that._onUpdateChildLayersMapVisibility(div);
-            (oldUpdateChildLayersMapVisibility.bind(this))(div);
-        }*/
-    },
-	
-    showPage: function(pageId) {
-        this._openDialog('Preview/' + pageId + '?mapId=' + getMapId(),
-            function() {
-                this._updatePages();
-            }.bind(this)
-        );
     },
     
     _createPage: function(mapId, layerId, drawingObject) {
-        var objectsGeometry = [ this._getObjectGeometry(drawingObject) ];
-        drawingObject.remove();
-        
-        this._openDialog('Create/?mapId=' + mapId + 
-                            (layerId != WHOLE_MAP_LAYER_KEY ? '&layerId=' + layerId : '') + 
-                            '&objectsGeometry=' + encodeURIComponent(JSON.stringify(objectsGeometry)),
-            function() {
-                this._updatePages();
-            }.bind(this)
-        );
+        var pageInfo = {};
+		if(drawingObject){
+			pageInfo.Geometry = this._getObjectGeometry(drawingObject);
+			drawingObject.remove();			
+		}
+        this.openEditor(pageInfo);
     },
-    
-    _getObjectGeometry: function(drawingObject) {
-        var geometry = drawingObject.geometry;
-        if (geometry.type == 'POLYGON') geometry.color = drawingObject.getStyle().regular.outline.color;
-        return geometry;
-    },
-	
+
 	_ensureWikiButton: function() {
         if (!this._pagesCache || !this._pagesCache.length) return;        
         if (!this._uiWikiButton) {
@@ -545,26 +524,22 @@ WikiPlugin.prototype = {
         objects.removeObjects();
 		
         this._wikiService.getPages(function(status, data){
-			if (status != 'ok') {
+			if (status != 'ok' || data.Status != 'ok') {
 				// Something went wrong
 				_this._pagesCache = [];
 				return;
 			}
-			data.sort(function (page_a, page_b){
+			data.Result.sort(function (page_a, page_b){
 				if (page_a == null || page_a == null) return 0;
-				if (page_a.TopicName > page_b.TopicName)
-					return 1;
-				if (page_a.TopicName < page_b.TopicNamey)
-					return -1;
 				if (page_a.Title > page_b.Title )
 					return 1;
 				if (page_a.Title  < page_b.Title )
 					return -1;
 				return 0;
 			});
-			_this._pagesCache = data;
+			_this._pagesCache = data.Result;
 			for (var index = 0; index < _this._pagesCache.length; ++index) {
-				_this._pagesCache[index].ObjectsGeometry = JSON.parse(_this._pagesCache[index].ObjectsGeometry);
+				_this._pagesCache[index].Geometry = _this._pagesCache[index].wkb_geometry;
 			}
 
 			objects.createObjects(_this._pagesCache);
@@ -574,34 +549,26 @@ WikiPlugin.prototype = {
 			
 			_this._ensureWikiButton();
 		});
-    },
-    
-    _openDialog: function(src, onClose) {
-        var frame = newElement('iframe');
-        frame.src = this._wikiService.getWikiLink(src);
-        frame.frameBorder = 0;
-        frame.style.width = '100%';
-        frame.style.height = '100%';
-        showDialog(_gtxt('Статья Wiki'), frame, 620, 400, 0, 0, null, function() { if (onClose) onClose(); }); 
     }
 }
+
 var oWiki = new WikiPlugin();
 var oWikiLeftMenu = new leftMenu();
+var alreadyLoaded = false;
 var loadMenu = function(){
-	var alreadyLoaded = oWikiLeftMenu.createWorkCanvas("wiki", unloadMenu);
-	$(oWikiLeftMenu.workCanvas).after(oWikiDiv)
+	$(oWikiDiv).dialog();
+	
+	//oWikiLeftMenu.createWorkCanvas("wiki", unloadMenu);
+	//$(oWikiLeftMenu.workCanvas).after(oWikiDiv);
 }
 
 var unloadMenu = function(){
 }
 
 var beforeViewer = function(params){
-	_layersTree.addContextMenuElem({
-		getTitle: function()
-		{
-			return _gtxt("Создать статью");
-		},
-		isVisible: function(layerManagerFlag, elem)
+	nsGmx.ContextMenuController.addContextMenuElem({
+		title: _gtxt("Создать сообщение"),
+		isVisible: function(context)
 		{
 			return userInfo().Login;
 		},
@@ -609,20 +576,22 @@ var beforeViewer = function(params){
 		{
 			return true;
 		},
-		clickCallback: function(elem, tree, area)
+		clickCallback: function(context)
 		{
-			oWiki.createPage(elem.name);
+			if(context.elem && context.elem.LayerID)
+				oWiki.createPage(context.elem.name);
+			else
+				oWiki.createPage();
 		}
-	});
+	}, ['Layer', 'Map']);
 }
 
 var afterViewer = function(params){
-	oWiki.initialize(oFlashMap, params.WikiServer);
+	oWiki.initialize(oFlashMap, params.WikiServer, params.MapDiv);
 }
 
-var addMenuItems = function(upMenu){
-	
-	return [{item: {id:'wiki', title:_gtxt('Статьи'),onsel:loadMenu, onunsel:unloadMenu},
+var addMenuItems = function(){
+	return [{item: {id:'wiki', title:_gtxt('Сообщения'),func:loadMenu},
 			parentID: 'viewMenu'}];
 }
  

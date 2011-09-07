@@ -7,6 +7,13 @@
 * @description Содержит необходимое для поиска
 */
 (function($){
+_translationsHash.addtext("rus", {
+	"Текущее местоположение отображается только для России и Украины": "Текущее местоположение отображается только для России и Украины"
+});
+
+_translationsHash.addtext("eng", {
+	"Текущее местоположение отображается только для России и Украины": "The current location is shown only for Russia and Ukraine"
+});
 
 /** Возвращает полное наименование объекта, состоящее из типа и наименования
  @memberOf Search 
@@ -768,8 +775,15 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 		//$(locationTitleDiv).addClass('locationTitleDiv');
 		//_(div, [locationTitleDiv])
 		fnSearchLocation({Geometry: attr['screenGeometry'], callback: function(arrResultDataSources){
-			if(arrResultDataSources.length>0 && arrResultDataSources[0].SearchResult.length>0)
-				drawObject(arrResultDataSources[0].SearchResult[0], locationTitleDiv);
+			removeChilds(locationTitleDiv);
+			if(arrResultDataSources.length>0){
+				if (arrResultDataSources[0].SearchResult.length>0){
+					drawObject(arrResultDataSources[0].SearchResult[0], locationTitleDiv);
+				}
+				else{
+					_(locationTitleDiv, [_t(_gtxt("Текущее местоположение отображается только для России и Украины"))]);
+				}
+			}
 		}});
 	};
 	
