@@ -10,6 +10,8 @@ _translationsHash.addtext("eng", {
 	"screenshotPlugin.title" : "Preview"
 });
 
+var _pluginParams = {serverURL: "http://dev2.kosmosnimki.ru/TestPNG.ashx"};
+
 var printScreeshot = function(url)
 {
 	var popup = window.open();
@@ -22,7 +24,7 @@ var printScreeshot = function(url)
 var DEFAULT_WIDTH = 600;
 var makeScreeshot = function()
 {
-	map.sendPNG({url: 'http://dev2.kosmosnimki.ru/TestPNG.ashx', func: function(pngUrl)
+	var showScreenshot = function(pngUrl)
 	{
 		var image = new Image();
 		image.onload = function()
@@ -61,14 +63,13 @@ var makeScreeshot = function()
 			
 			//var div = $("<div></div>").append(table);
 			
-			var canvas = showDialog(_gtxt('screenshotPlugin.title'), table[0], DEFAULT_WIDTH+40, h+70);
+			var canvas = showDialog(_gtxt('screenshotPlugin.title'), table[0], DEFAULT_WIDTH+40, h+80);
 		}
 		image.src = pngUrl;
-		
-		
-		// $(canvas).dialog("option", "height", 700);
-		// div.dialog({width: 620, height: 'auto', title: "Screenshot"});
-	}});
+	};
+	
+	// showScreenshot( "data:image/png;base64," + map.sendPNG({getBase64: true}).base64 );
+	map.sendPNG({url: _pluginParams.serverURL, func: showScreenshot});
 }
 
 //PluginInterface
@@ -76,6 +77,8 @@ var beforeViewer = function(params){
 }
 
 var afterViewer = function(params){
+	_pluginParams = $.extend(_pluginParams, params);
+
 	_iconPanel.changeCallcack('print', makeScreeshot);
 }
 
