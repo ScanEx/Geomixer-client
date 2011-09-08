@@ -905,9 +905,17 @@ function createFlashMapInternal(div, layers, callback)
 						ret['base64'] = flashDiv.cmdFromJS(cmd, attr);
 						miniMap.setVisible(miniMapFlag);
 						break;
+					case 'getZoomBounds':	// Получить ограничения по Zoom
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
+						break;
+					case 'setZoomBounds':	// Установить ограничения по Zoom
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZ':attr['minZ'], 'maxZ':attr['maxZ'] });
+						break;
 				}
 				return ret;
 			}
+			FlashMapObject.prototype.getZoomBounds = function() { return FlashCMD('getZoomBounds', { 'obj': this }); }
+			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return FlashCMD('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} }); }
 
 			FlashMapObject.prototype.trace = function(val) { flashDiv.trace(val); }
 			FlashMapObject.prototype.setQuality = function(val) { flashDiv.setQuality(val); }
@@ -1071,7 +1079,6 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.bringToBottom = function() { flashDiv.bringToBottom(this.objectId); }
 			FlashMapObject.prototype.bringToDepth = function(n) { return flashDiv.bringToDepth(this.objectId, n); }
 			FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
-			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { flashDiv.setZoomBounds(this.objectId, minZoom, maxZoom); }
 			FlashMapObject.prototype.setVisible = function(flag) 
 			{
 /*
@@ -1486,6 +1493,19 @@ function createFlashMapInternal(div, layers, callback)
 				return geoArea(this.geometry);
 			}
 
+			// получить minZoom maxZoom для слоя по фильтрам
+			function getMinMaxZoom(prop)
+			{
+				var minZoom = 20, maxZoom = 0;
+				for (var i = 0; i < prop.styles.length; i++)
+				{
+					var style = prop.styles[i];
+					minZoom = Math.min(style.MinZoom, minZoom);
+					maxZoom = Math.max(style.MaxZoom, maxZoom);
+				}
+				return {'minZoom': minZoom, 'maxZoom': maxZoom};
+			}
+
 			function reSetStyles(styles, obj)
 			{
 				for (var i = 0; i < styles.length; i++)
@@ -1566,6 +1586,7 @@ function createFlashMapInternal(div, layers, callback)
 					map.balloonClassObject.applyBalloonDefaultStyle(style);
 					map.balloonClassObject.setBalloonFromParams(filter, style);
 
+					//filter.properties = style;
 					obj.filters[i] = filter;
 				}
 			}
@@ -1794,16 +1815,11 @@ function createFlashMapInternal(div, layers, callback)
 						delete filter["setFilter"];
 						delete filter["enableHoverBalloon"];
 					}
-
-					var minStyleZoom = 20, maxStyleZoom = 0;
-					for (var i = 0; i < layer.properties.styles.length; i++)
-					{
-						var style = layer.properties.styles[i];
-						minStyleZoom = Math.min(style.MinZoom, minStyleZoom);
-						maxStyleZoom = Math.max(style.MaxZoom, maxStyleZoom);
-					}
 					if (!isInvalid) {
-						obj.setZoomBounds(minStyleZoom, maxStyleZoom);
+						var tmp = getMinMaxZoom(layer.properties);
+						obj.setZoomBounds(tmp['minZoom'], tmp['maxZoom']);
+						layer.properties['MinZoom'] = tmp['minZoom'];
+						layer.properties['MaxZoom'] = tmp['maxZoom'];
 					} else {
 						obj.setZoomBounds(20, 20);
 					}
@@ -3964,11 +3980,14 @@ function createFlashMapInternal(div, layers, callback)
 
 				if (coords)
 				{
-					domObj = createDOMObject(ret);
-					var lastNum = coords[0].length - 1; 
-					if (coords[0][0][0] == coords[0][lastNum][0] && coords[0][0][1] == coords[0][lastNum][1]) {
-						coords[0].pop();	// если последняя точка совпадает с первой удаляем ее
+					for (var i = 0; i < coords.length; i++) {
+						var lastNum = coords[i].length - 1; 
+						if (coords[i][0][0] == coords[i][lastNum][0] && coords[i][0][1] == coords[i][lastNum][1]) {
+							coords[i].pop();	// если последняя точка совпадает с первой удаляем ее
+						}
 					}
+
+					domObj = createDOMObject(ret);
 					obj.setGeometry({ type: "POLYGON", coordinates: coords });
 					callOnChange();
 				}

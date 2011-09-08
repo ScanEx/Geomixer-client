@@ -133,11 +133,39 @@ class MapNode
 		noteSomethingHasChanged();
 	}
 
+	public function getZoomBounds()
+	{
+		var out:Dynamic = { };
+		out.MinZoom = minZ;
+		out.MaxZoom = maxZ;
+		return out;
+	}
+
 	public function setZoomBounds(minZ_, maxZ_)
 	{
+		var out:Dynamic = { };
 		minZ = minZ_;
 		maxZ = maxZ_;
+		out.MinZoom = minZ;
+		out.MaxZoom = maxZ;
 		noteSomethingHasChanged();
+		if (parent != null && parent.filters.exists(id)) {
+			var minZoom = 20, maxZoom = 0;
+			for (key in parent.filters.keys()) {
+				var nodeFilter = parent.filters.get(key);
+				minZoom = cast(Math.min(nodeFilter.minZ, minZoom));
+				maxZoom = cast(Math.max(nodeFilter.maxZ, maxZoom));
+			}
+			parent.minZ = minZoom;
+			parent.maxZ = maxZoom;
+			parent.noteSomethingHasChanged();
+			var out1:Dynamic = { };
+			out1.id = parent.id;
+			out1.MinZoom = minZoom;
+			out1.MaxZoom = maxZoom;
+			out.parent = out1;
+		}
+		return out;
 	}
 
 	public function setStyle(regularStyle_:Style, ?hoveredStyle_:Style)

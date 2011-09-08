@@ -744,10 +744,6 @@ class Main
 			}
 			return ret;
 		});
-		ExternalInterface.addCallback("setZoomBounds", function(id:String, minZ:Int, maxZ:Int) 
-		{ 
-			getNode(id).setZoomBounds(minZ, maxZ);
-		});
 		ExternalInterface.addCallback("setActive_", function(id:String, flag:Bool)
 		{
 			var content = getNode(id).content;
@@ -973,11 +969,26 @@ class Main
 						child.noteSomethingHasChanged();
 		}
 		ExternalInterface.addCallback("setVisible", setVisible);
+		
+		function setZoomBounds(id:String, minZ:Int, maxZ:Int):Dynamic
+		{
+			return getNode(id).setZoomBounds(minZ, maxZ);
+		}
+		ExternalInterface.addCallback("setZoomBounds", function(id:String, minZ:Int, maxZ:Int) 
+		{ 
+			return setZoomBounds(id, minZ, maxZ);
+		});
+		
 		// Парсинг команд от JavaScript
 		var parseCmdFromJS = function(cmd:String, attr:Dynamic)
 		{
 			var out = { };
 			switch (cmd) {
+				case 'setZoomBounds':
+					out = setZoomBounds(attr.objectId, attr.minZ, attr.maxZ);
+				case 'getZoomBounds':
+					var node = getNode(attr.objectId);
+					out = node.getZoomBounds();
 				case 'sendPNG':
 					out = sendPNGFile(attr);
 				case 'setVisible':
