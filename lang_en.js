@@ -210,6 +210,7 @@ _translationsHash.hash["eng"] = {
 	"Растровый" : "Raster",
 	"Название" : "Name",
 	"Владелец" : "Owner",
+	"Последнее изменение": "Last modification",
 	"Список слоев" : "Layers list",
 	"Вы действительно хотите удалить этот слой?" : "Do you really want to delete the selected layer?",
 	"Ошибка!" : "Error!",

@@ -2763,17 +2763,21 @@ queryMapLayers.prototype.createMapsManager = function()
 	
 	var tableParent = _div(),
 		sortFuncs = {};
-			
-	sortFuncs[_gtxt('Имя')] = [
-				function(_a,_b){var a = String(_a.Title).toLowerCase(), b = String(_b.Title).toLowerCase(); if (a > b) return 1; else if (a < b) return -1; else return 0},
-				function(_a,_b){var a = String(_a.Title).toLowerCase(), b = String(_b.Title).toLowerCase(); if (a < b) return 1; else if (a > b) return -1; else return 0}
-			];
-	sortFuncs[_gtxt('Владелец')] = [
-				function(_a,_b){var a = String(_a.Owner).toLowerCase(), b = String(_b.Owner).toLowerCase(); if (a > b) return 1; else if (a < b) return -1; else return 0},
-				function(_a,_b){var a = String(_a.Owner).toLowerCase(), b = String(_b.Owner).toLowerCase(); if (a < b) return 1; else if (a > b) return -1; else return 0}
-			];
 	
-	_mapsTable.createTable(tableParent, name, 310, ["", "", _gtxt("Имя"), _gtxt("Владелец"), ""], ['5%','5%','65%','20%','5%'], this.drawMaps, sortFuncs);
+	var sign = function(n1, n2) { return n1 < n2 ? -1 : (n1 > n2 ? 1 : 0) };
+	var sortFuncFactory = function(toNumFunc)
+	{
+		return [
+			function(_a,_b){ return sign(toNumFunc(_a), toNumFunc(_b)); },
+			function(_a,_b){ return sign(toNumFunc(_b), toNumFunc(_a)); }
+		]
+	}
+	
+	sortFuncs[_gtxt('Имя')]                 = sortFuncFactory(function(_a){ return String(_a.Title).toLowerCase(); });
+	sortFuncs[_gtxt('Владелец')]            = sortFuncFactory(function(_a){ return String(_a.Owner).toLowerCase(); });
+	sortFuncs[_gtxt('Последнее изменение')] = sortFuncFactory(function(_a){ return _a.LastModificationDateTime });
+			
+	_mapsTable.createTable(tableParent, name, 410, ["", "", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '5%', '55%', '15%', '15%', '5%'], this.drawMaps, sortFuncs);
 	
 	var inputPredicate = function(value, fieldName, fieldValue)
 		{
@@ -2826,7 +2830,7 @@ queryMapLayers.prototype.createMapsManager = function()
 		_mapsTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
 
 		_mapsTable.tableParent.style.height = '200px';
-		_mapsTable.tableBody.parentNode.parentNode.style.height = '180px';
+		_mapsTable.tableBody.parentNode.parentNode.style.height = '170px';
 		
 		_this.mapPreview.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 250 + 'px';
 		_this.mapPreview.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
@@ -2910,7 +2914,17 @@ queryMapLayers.prototype.drawMaps = function(map)
 		}
 	}
 	
-	var tr = _tr([_td([addExternal], [['css','textAlign','center']]), _td([load], [['css','textAlign','center']]), _td([name]), _td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), _td([remove], [['css','textAlign','center']])]);
+	var date = new Date(map.LastModificationDateTime*1000);
+	var modificationDateString = $.datepicker.formatDate('dd.mm.yy', date); // + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+	
+	var tr = _tr([
+		_td([addExternal], [['css','textAlign','center']]), 
+		_td([load], [['css','textAlign','center']]), 
+		_td([name]), 
+		_td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), 
+		_td([_t(modificationDateString)], [['css','textAlign','center'],['dir','className','invisible']]), 
+		_td([remove], [['css','textAlign','center']])
+	]);
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this.fieldsWidths[i];
