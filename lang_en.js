@@ -532,5 +532,10 @@ _translationsHash.hash["eng"] = {
 	"Карта имеет более новую версию. Сохранить?" : "The map has a newer version. Save anyway?",
 	"Кодировка": "Encoding",
 	"helpPostfix": "_eng.html",
-	"Показывать чекбокс видимости": "Visibility checkbox"
+	"Показывать чекбокс видимости": "Visibility checkbox",
+	"Другая": "Another",
+	"Временнóй слой": "Temporal layer",
+	"Колонка даты": "Date column",
+	"Минимальный период": "Min. period (days)",
+	"Максимальный период": "Max. period (days)"
 };
