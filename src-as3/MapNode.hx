@@ -86,7 +86,10 @@ class MapNode
 			for (key in node.filters.keys()) {
 				var nodeFilter = node.filters.get(key);
 				var nodeFilterContent = cast(nodeFilter.content, VectorLayerFilter);
-				if (nodeFilterContent.criterion(propHash)) retStyle = nodeFilter.regularStyle;
+				if (nodeFilterContent.criterion(propHash)) {
+					retStyle = nodeFilter.regularStyle;
+					return retStyle;
+				}
 			}
 		}
 		if (retStyle == null) retStyle = node.regularStyle;
@@ -105,7 +108,10 @@ class MapNode
 			for (key in node.filters.keys()) {
 				var nodeFilter = node.filters.get(key);
 				var nodeFilterContent = cast(nodeFilter.content, VectorLayerFilter);
-				if (nodeFilterContent.criterion(propHash)) retStyle = nodeFilter.hoveredStyle;
+				if (nodeFilterContent.criterion(propHash)) {
+					retStyle = nodeFilter.hoveredStyle;
+					return retStyle;
+				}
 			}
 		}
 		if (retStyle == null) retStyle = node.hoveredStyle;

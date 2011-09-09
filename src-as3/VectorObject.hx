@@ -61,14 +61,17 @@ class VectorObject extends MapContent
 
 	public override function hasLabels()
 	{
-		var style = mapNode.getRegularStyle();
+		var style = mapNode.getRegularStyleRecursion(mapNode.parent);
 		return ((label != null) && (style != null) && (style.label != null));
 	}
 
 	public override function paintLabels()
 	{
-		if (hasLabels())
-			mapNode.window.paintLabel(label, geometry, mapNode.getRegularStyle());
+		var style = mapNode.getRegularStyleRecursion(mapNode.parent);
+		if (style == null || style.label == null) return;
+		if(style.label.field != null) label = mapNode.propHash.get(style.label.field);
+		if(label == null) return;
+		mapNode.window.paintLabel(label, geometry, style);
 	}
 
 	function highlight()

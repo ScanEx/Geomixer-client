@@ -7189,6 +7189,7 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			whiteSpace: "nowrap",
 			zIndex: 1000
 		});
+		balloon.className = 'gmx_balloon';
 		div.appendChild(balloon);
 
 		var css = {
