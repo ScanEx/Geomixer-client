@@ -474,7 +474,7 @@ _translationsHash.addtext("rus", {
 							"loadShape.Errors.FileTooBigException" : "Файл слишком большой. Ограничение на размер файла 1000 Кб.",
 							"loadShape.Errors.ErrorUploadExeption" : "Произошла ошибка при попытке загрузить файл.",
 							"loadShape.Errors.NoGeometryFile"      : "Загруженный файл не содержит геометрических данных.",
-							"loadShape.Errors.ErrorUploadNoDependentFiles" : "Файл не содержит необходимых зависимых файлов. Запакуйте все файлы для загрузки в ZIP и повторите загрузку.",
+							"loadShape.Errors.ErrorUploadNoDependentFiles" : "Не найдено необходимых зависимых файлов. Запакуйте все файлы в ZIP архив и повторите загрузку.",
 							"loadShape.inputTitle"                 : "Добавить shp-файл (в zip)"
 						 });
 						 
@@ -482,7 +482,7 @@ _translationsHash.addtext("eng", {
 							"loadShape.Errors.FileTooBigException" : "Too big file. File size limit is 1000 Kb.",
 							"loadShape.Errors.ErrorUploadExeption" : "Error during file uploading.",
 							"loadShape.Errors.NoGeometryFile"      : "There are no geometry in uploaded file.",
-							"loadShape.Errors.ErrorUploadNoDependentFiles" : "The file does not contain the necessary dependent files. Add all files in the ZIP archive and upload it again.",
+							"loadShape.Errors.ErrorUploadNoDependentFiles" : "Not found the necessary dependent files. Add all files in a ZIP archive and upload it again.",
 							"loadShape.inputTitle"                 : "Add shp-file (zipped)"
 						 });
 
