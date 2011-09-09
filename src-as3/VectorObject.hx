@@ -28,10 +28,11 @@ class VectorObject extends MapContent
 	{
 		var me = this;
 		painter = new GeometryPainter(geometry, contentSprite, mapNode.window);
-
 		if (Std.is(mapNode.parent.content, VectorLayer)) {
 			layer = cast(mapNode.parent.content, VectorLayer);
-			contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event) { Main.registerMouseDown(me.layer.currentFilter.mapNode, event, me.mapNode); });
+			contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event) {
+				if(me.curNodeFilter != null) Main.registerMouseDown(me.curNodeFilter, event, me.mapNode);
+			});
 		} else {
 			super.addHandlers();
 		}
@@ -50,6 +51,7 @@ class VectorObject extends MapContent
 				layer.hoverPainter.repaint(null);
 				curNodeFilter.callHandler('onMouseOut', mapNode);
 			}
+			layer.lastId = null;
 			layer.currentId = null;
 		} else {
 			curStyle = (isActive ? mapNode.getHoveredStyle() : mapNode.getRegularStyle());			
@@ -78,20 +80,23 @@ class VectorObject extends MapContent
 	{
 		isActive = true;
 		if (layer != null) {
+			layer.lastId = mapNode.id;
+			var curStyle = mapNode.getHoveredStyleRecursion();
+			curNodeFilter = null;
 			layer.currentId = mapNode.propHash.get(layer.identityField);
 			for (key in mapNode.parent.filters.keys()) {
 				curNodeFilter = mapNode.parent.filters.get(key);
 				if (curNodeFilter != null) {
 					var vectorLayerFilter = cast(curNodeFilter.content, VectorLayerFilter);
 					if (vectorLayerFilter.criterion(mapNode.propHash)) {
-						var curStyle = curNodeFilter.getHoveredStyle();
-						layer.hoverPainter.geometry = geometry;
-						layer.hoverPainter.repaint(curStyle);
+						curStyle = curNodeFilter.getHoveredStyle();
 						layer.currentFilter = vectorLayerFilter;
 						break;
 					}
 				}
 			}
+			layer.hoverPainter.geometry = geometry;
+			layer.hoverPainter.repaint(curStyle);
 			if (curNodeFilter != null) curNodeFilter.callHandler("onMouseOver", mapNode);
 		} else {
 			repaint();

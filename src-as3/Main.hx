@@ -706,7 +706,8 @@ class Main
 				{
 					if(nodeFrom_ == null) {
 						var layer = cast(node2.content, VectorLayerFilter).layer;
-						props = exportProperties(layer.lastId == null ? null : layer.geometries.get(layer.lastId).properties);
+						var geom = layer.geometries.get(layer.lastId);
+						props = exportProperties(geom != null ? geom.properties : null);
 					} else {
 						props = nodeFrom_.properties;
 						eventAttr.nodeFilter = nodeFrom_.id;
@@ -868,8 +869,9 @@ class Main
 		});
 		var getGeometry = function(id:String):Geometry
 		{
-			if (geometriesToSet.exists(id))
+			if (geometriesToSet.exists(id)) {
 				return geometriesToSet.get(id);
+			}
 			var content = getNode(id).content;
 			if (Std.is(content, VectorObject))
 				return cast(content, VectorObject).geometry;
@@ -880,7 +882,12 @@ class Main
 			else if (Std.is(content, VectorLayerFilter))
 			{
 				var layer = cast(content, VectorLayerFilter).layer;
-				return layer.geometries.get(layer.lastId);
+				var out = layer.geometries.get(layer.lastId);
+				if (out == null) {
+					var node = getNode(layer.lastId);
+					if (node != null) out = cast(node.content, VectorObject).geometry;
+				}
+				return out;
 			}
 			else
 				return new Geometry();

@@ -1263,7 +1263,7 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.getGeometrySummary = function()
 			{
 				var out = '?';
-				var geomType = this.getGeometryType();
+				var geomType = this.getGeometryType() || '';
 				if (geomType.indexOf("POINT") != -1)
 				{
 					var c = this.getGeometry().coordinates;
