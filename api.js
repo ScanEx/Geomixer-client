@@ -4339,7 +4339,7 @@ function createFlashMapInternal(div, layers, callback)
 						this.properties.isVisible = ret.isVisible;
 						this.geometry = geometry;
 						this.balloon = ret.balloon;
-						callHandler(addHandlerCalled ? "onEdit" : "onAdd");
+						//callHandler(addHandlerCalled ? "onEdit" : "onAdd");
 						addHandlerCalled = true;
 					},
 					remove: function() { ret.remove(); },
