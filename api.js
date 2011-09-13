@@ -24,18 +24,6 @@ var gmxAPI = {
 		if(obj.properties && obj.properties.identityField) return obj.properties.identityField;
 		return this.getIdentityField(obj.parent);
 	},
-	chkListeners: function(eventName, obj, attr)
-	{
-		var out = true;
-		if ('stateListeners' in obj && eventName in obj.stateListeners) {
-			var arr = obj.stateListeners[eventName];
-			for (var i=0; i<arr.length; i++)
-			{
-				out = arr[i].func(attr);
-			}
-		}
-		return out;
-	},
 	addMapStateListener: function(obj, eventName, func)
 	{
 		if(!obj.stateListeners[eventName]) obj.stateListeners[eventName] = [];
@@ -840,6 +828,24 @@ function createFlashMapInternal(div, layers, callback)
 	o.addParam('allowScriptAccess', 'always');
 	o.addParam('wmode', 'opaque');
 	o.addVariable("clearCallback", uniqueGlobalName(function(name) { delete window[name]; }));
+
+	// Begin: Блок общих методов не доступных из вне
+	// Обработка пользовательских Listeners на obj
+	function chkListeners(eventName, obj, attr)
+	{
+		var out = true;
+		if ('stateListeners' in obj && eventName in obj.stateListeners) {
+			var arr = obj.stateListeners[eventName];
+			for (var i=0; i<arr.length; i++)
+			{
+				out = arr[i].func(attr);
+			}
+		}
+		return out;
+	}
+	// End: Блок общих методов не доступных из вне
+
+
 	var loadCallback = function(rootObjectId)
 	{ 
 		if (!window.__flash__toXML)
@@ -2930,7 +2936,7 @@ function createFlashMapInternal(div, layers, callback)
 				var attr = {'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
 				coordFormatCallbacks[coordFormat](coordinates, attr);
 				//coordinates.innerHTML = getCoordinatesText();
-				gmxAPI.chkListeners('onSetCoordinatesFormat', map, coordFormat);
+				chkListeners('onSetCoordinatesFormat', map, coordFormat);
 			}
 
 			var coordFormat = 0;
@@ -3392,7 +3398,7 @@ function createFlashMapInternal(div, layers, callback)
 				*/
 				if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
 					var attr = {'div': locationTitleDiv, 'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
-					gmxAPI.chkListeners('positionChanged', map, attr);
+					chkListeners('positionChanged', map, attr);
 				}
 
 				if (copyrightUpdateTimeout2)
@@ -3514,7 +3520,7 @@ function createFlashMapInternal(div, layers, callback)
 						selectTool("move");
 					if (obj)
 					{
-						gmxAPI.chkListeners('onRemove', map.drawing, domObj);
+						chkListeners('onRemove', map.drawing, domObj);
 						obj.remove();
 						balloon.remove();
 						domObj.removeInternal();
@@ -3661,7 +3667,7 @@ function createFlashMapInternal(div, layers, callback)
 					var dragCallback = function(x, y)
 					{
 						position(x + startDx, y + startDy);
-						gmxAPI.chkListeners('onEdit', map.drawing, domObj);
+						chkListeners('onEdit', map.drawing, domObj);
 					}
 					var downCallback = function(x, y)
 					{
@@ -3716,7 +3722,7 @@ function createFlashMapInternal(div, layers, callback)
 					position(xx, yy);
 					balloon.setVisible(balloonVisible);
 					updateText();
-					gmxAPI.chkListeners('onAdd', map.drawing, domObj);
+					chkListeners('onAdd', map.drawing, domObj);
 
 					ret.setVisible(ret.isVisible);
 				}
@@ -3765,13 +3771,13 @@ function createFlashMapInternal(div, layers, callback)
 							eventName = 'onAdd';
 						}
 						callOnChange();
-						gmxAPI.chkListeners(eventName, map.drawing, domObj);
+						chkListeners(eventName, map.drawing, domObj);
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					},
 					onFinish: function()
 					{
 						selectTool("move");
-						gmxAPI.chkListeners('onFinish', map.drawing, domObj);
+						chkListeners('onFinish', map.drawing, domObj);
 					},
 					onRemove: function()
 					{
@@ -3785,24 +3791,24 @@ function createFlashMapInternal(div, layers, callback)
 						if (type == "LINESTRING") out = prettifyDistance(obj.getIntermediateLength());
 						else if (type == "POLYGON")	out = obj.getGeometrySummary();
 						if(out && map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(out);
-						gmxAPI.chkListeners('onNodeMouseOver', map.drawing, domObj);
+						chkListeners('onNodeMouseOver', map.drawing, domObj);
 					},
 					onNodeMouseOut: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
-						gmxAPI.chkListeners('onNodeMouseOut', map.drawing, domObj);
+						chkListeners('onNodeMouseOut', map.drawing, domObj);
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					},
 					onEdgeMouseOver: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
-						gmxAPI.chkListeners('onEdgeMouseOver', map.drawing, domObj);
+						chkListeners('onEdgeMouseOver', map.drawing, domObj);
 					},
 					onEdgeMouseOut: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
-						gmxAPI.chkListeners('onEdgeMouseOut', map.drawing, domObj);
+						chkListeners('onEdgeMouseOut', map.drawing, domObj);
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					}
 				});
@@ -3821,7 +3827,7 @@ function createFlashMapInternal(div, layers, callback)
 						selectTool("move");
 					obj.remove();
 					if (domObj) {
-						gmxAPI.chkListeners('onRemove', map.drawing, domObj);
+						chkListeners('onRemove', map.drawing, domObj);
 						domObj.removeInternal();
 					}
 				}
@@ -3895,12 +3901,12 @@ function createFlashMapInternal(div, layers, callback)
 							eventName = 'onAdd';
 						}
 						callOnChange();
-						gmxAPI.chkListeners(eventName, map.drawing, domObj);
+						chkListeners(eventName, map.drawing, domObj);
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					},
 					onFinish: function()
 					{
-						gmxAPI.chkListeners('onFinish', map.drawing, domObj);
+						chkListeners('onFinish', map.drawing, domObj);
 						selectTool("move");
 					},
 					onRemove: function()
@@ -3911,24 +3917,24 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						if(attr && attr['buttonDown']) return;
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(obj.getGeometrySummary());
-						gmxAPI.chkListeners('onNodeMouseOver', map.drawing, domObj);
+						chkListeners('onNodeMouseOver', map.drawing, domObj);
 					},
 					onNodeMouseOut: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
-						gmxAPI.chkListeners('onNodeMouseOut', map.drawing, domObj);
+						chkListeners('onNodeMouseOut', map.drawing, domObj);
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					},
 					onEdgeMouseOver: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
-						gmxAPI.chkListeners('onEdgeMouseOver', map.drawing, domObj);
+						chkListeners('onEdgeMouseOver', map.drawing, domObj);
 					},
 					onEdgeMouseOut: function(сobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
-						gmxAPI.chkListeners('onEdgeMouseOut', map.drawing, domObj);
+						chkListeners('onEdgeMouseOut', map.drawing, domObj);
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 					}
 				});
@@ -3947,7 +3953,7 @@ function createFlashMapInternal(div, layers, callback)
 						selectTool("move");
 					obj.remove();
 					if (domObj) {
-						gmxAPI.chkListeners('onRemove', map.drawing, domObj);
+						chkListeners('onRemove', map.drawing, domObj);
 						domObj.removeInternal();
 					}
 				}
@@ -4070,7 +4076,7 @@ function createFlashMapInternal(div, layers, callback)
 				// Проверка пользовательских Listeners
 				var chkEvent = function()
 				{
-					gmxAPI.chkListeners(eventType, map.drawing, domObj);
+					chkListeners(eventType, map.drawing, domObj);
 
 				}
 
