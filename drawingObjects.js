@@ -154,6 +154,8 @@ queryDrawingObjects.prototype.onAdd = function(elem)
 
 queryDrawingObjects.prototype.onEdit = function(elem)
 {
+	if (!elem.canvas) return;
+	
 	var type = elem.geometry.type,
 		coords = elem.geometry.coordinates,
 		text = elem.properties.text;
