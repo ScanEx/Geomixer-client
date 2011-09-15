@@ -12,7 +12,7 @@ _translationsHash.addtext("rus", {
 });
 
 _translationsHash.addtext("eng", {
-	"Текущее местоположение отображается только для России и Украины": "The current location is shown only for Russia and Ukraine"
+	"Текущее местоположение отображается только для России и Украины": "Current location is shown only for Russia and Ukraine"
 });
 
 /** Возвращает полное наименование объекта, состоящее из типа и наименования
@@ -211,14 +211,12 @@ var SearchInput = function (oInitContainer, params) {
 			}
 		}
 		
-		/** Слова, содержащиеся в строке поиска */
-		var arrSearchWords;
-		
 		/** Возвращает данные подсказки
 		@param {object} request запрос (request.term - строка запроса)
 		@param {object[]} Массив значений для отображения в подсказке*/
 		function fnAutoCompleteSource(request, response){
-			arrSearchWords = request.term.replace(/[^\wа-яА-Я]+/, "|").split("|");
+			/** Слова, содержащиеся в строке поиска */
+			$(searchField).autocomplete("widget")[0].arrSearchWords = request.term.replace(/[^\wа-яА-Я]+/, "|").split("|");
 			params.AutoCompleteSource(request, function(arrResult){
 				if (Number(new Date()) - dtLastSearch > 5000) {
 					response(arrResult);
@@ -235,6 +233,7 @@ var SearchInput = function (oInitContainer, params) {
 				minLength: 3,
 				source: fnAutoCompleteSource,
 				select: fnAutoCompleteSelect,
+				//appendTo: searchField,
 				open: function(event, ui){
 					var oMenu = $(searchField).autocomplete("widget")[0];
 					oMenu.style.left = oMenu.offsetLeft - divSearchBegin.clientWidth + 1;
@@ -243,11 +242,14 @@ var SearchInput = function (oInitContainer, params) {
 			});
 		});
 		
+		/** Слова, содержащиеся в строке поиска */
+		$(searchField).autocomplete("widget")[0].arrSearchWords = [];
+		
 		$.ui.autocomplete.prototype._renderItem = function( ul, item) {
 			var t = item.label;
-			for (var i=0; i<arrSearchWords.length; i++){
-				if(arrSearchWords[i].length > 1){
-					var re = new RegExp(arrSearchWords[i], 'ig') ;
+			for (var i=0; i<ul[0].arrSearchWords.length; i++){
+				if(ul[0].arrSearchWords[i].length > 1){
+					var re = new RegExp(ul[0].arrSearchWords[i], 'ig') ;
 					t = t.replace(re, function(str, p1, p2, offset, s){
 						return "<span class='ui-autocomplete-match'>" + str + "</span>";
 					});
@@ -1553,6 +1555,7 @@ var publicInterface = {
 	SearchDataProvider: SearchDataProvider,
 	SearchLogic: SearchLogic,
 	SearchLogicGet: SearchLogicGet,
+	LocationTitleRenderer: LocationTitleRenderer,
 	GetFullName: GetFullName,
 	GetPath: GetPath
 }
