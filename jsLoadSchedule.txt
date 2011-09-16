@@ -18,6 +18,10 @@
 "kmlParser.js",
 "security.js",
 "attrsTable.js",
+"DateTimePeriodControl.js",
+"CoverControl.js",
+"DateLayerVisibilityControl.js",
+"DateFilteringControl.js",
 "cover.js",
 "externalMapHelper.js",
 "externalMapLayers.js"]

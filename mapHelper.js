@@ -123,7 +123,7 @@ mapHelper.prototype.customParamsManager = (function()
 	
 	var loadProviderState = function( provider )
 	{
-		if ( provider.name in _params )
+		if ( provider.name in _params && typeof provider.loadState !== 'undefined')
 		{
 			provider.loadState( _params[ provider.name ] );
 			delete _params[ provider.name ];
@@ -136,7 +136,10 @@ mapHelper.prototype.customParamsManager = (function()
 			if ( !_providers.length ) return;
 			var params = {};
 			for (var p = 0; p < _providers.length; p++ )
-				params[_providers[p].name] = _providers[p].saveState();
+			{
+				if (typeof _providers[p].saveState !== 'undefined')
+					params[_providers[p].name] = _providers[p].saveState();
+			}
 				
 			return params;
 		},
