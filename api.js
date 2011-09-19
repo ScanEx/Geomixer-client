@@ -4723,10 +4723,12 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			FlashMapObject.prototype.loadGML = function(url, func)
 			{
+				var _hostname = getAPIHostRoot();
 				var me = this;
-				sendCrossDomainJSONRequest(getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url), function(response)
+				sendCrossDomainJSONRequest(_hostname + "ApiSave.ashx?get=" + encodeURIComponent(url), function(response)
 				{
-					var geometries = parseGML(response);
+					if(typeof(response) != 'object' || response['Status'] != 'ok') return;
+					var geometries = parseGML(response['Result']);
 					for (var i = 0; i < geometries.length; i++)
 						me.addObject(geometries[i], null);
 					if (func)
@@ -4739,10 +4741,11 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				var me = this;
 				var wmsProj = ['EPSG:4326','EPSG:3395','EPSG:41001'];
-
-				sendCrossDomainJSONRequest(getAPIHostRoot() + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(url + '?request=GetCapabilities'), function(response)
+				var _hostname = getAPIHostRoot();
+				sendCrossDomainJSONRequest(_hostname + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(url + '?request=GetCapabilities'), function(response)
 				{
-					var layersXML = parseXML(response).getElementsByTagName('Layer');
+					if(typeof(response) != 'object' || response['Status'] != 'ok') return;
+					var layersXML = parseXML(response['Result']).getElementsByTagName('Layer');
 	
 					for (var i = 0; i < layersXML.length; i++)(function(layerXML)
 					{
@@ -4885,9 +4888,11 @@ function createFlashMapInternal(div, layers, callback)
 			var gplForm = false;
 			FlashMapObject.prototype.loadObjects = function(url, callback)
 			{
-				sendCrossDomainJSONRequest(getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url), function(response)
+				var _hostname = getAPIHostRoot();
+				sendCrossDomainJSONRequest(_hostname + "ApiSave.ashx?get=" + encodeURIComponent(url), function(response)
 				{
-					var geometries = parseGML(response);
+					if(typeof(response) != 'object' || response['Status'] != 'ok') return;
+					var geometries = parseGML(response['Result']);
 					callback(geometries);
 				})
 			}
@@ -4908,7 +4913,8 @@ function createFlashMapInternal(div, layers, callback)
 				}
 	
 				gplForm.setAttribute('method', 'post');
-				gplForm.setAttribute('action', getAPIHostRoot() + 'ApiSave.ashx');
+				var _hostname = getAPIHostRoot();
+				gplForm.setAttribute('action', _hostname + 'ApiSave.ashx');
 				gplForm.style.display = 'none';
 				inputName.value = fileName;
 				inputName.setAttribute('name', 'name')
@@ -6301,9 +6307,11 @@ kmlParser.prototype.get = function(url, callback, map)
 {
 	var _this = this;
 	this.globalFlashMap = map;
-	sendCrossDomainJSONRequest(getAPIHostRoot() + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(url), function(response)
+	var _hostname = getAPIHostRoot();
+	sendCrossDomainJSONRequest(_hostname + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(url), function(response)
 	{
-		var parsed = _this.parse(response);
+		if(typeof(response) != 'object' || response['Status'] != 'ok') return;
+		var parsed = _this.parse(response['Result']);
 		parsed.url = url;
 		callback(parsed);
 	})
@@ -6385,8 +6393,9 @@ kmlParser.prototype.parse = function(response)
     		vals.push(val)
     }
     
+    var firstNode = xml.getElementsByTagName('Document')[0];
     var name = false,
-    	documentChilds = xml.getElementsByTagName('Document')[0].childNodes;
+    	documentChilds = (firstNode ? firstNode.childNodes : []);
     
     for (var i = 0; i < documentChilds.length; ++i)
     {
