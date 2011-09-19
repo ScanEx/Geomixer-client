@@ -49,7 +49,17 @@ var gmxAPI = {
 		if (length < 100000)
 			return (Math.round(length/10)/100) + KOSMOSNIMKI_LOCALIZED(" κμ", " km");
 		return Math.round(length/1000) + KOSMOSNIMKI_LOCALIZED(" κμ", " km");
-	}
+	},
+	addDebugWarnings: function(attr)
+	{
+		if(!window.gmxAPIdebugLevel) return;
+		if(!attr['script']) attr['script'] = 'api.js';
+		if(attr['event'] && attr['event']['lineNumber']) attr['lineNumber'] = attr['event']['lineNumber'];
+		this._debugWarnings.push(attr);
+		if(window.gmxAPIdebugLevel < 10) return;
+		if(attr['alert']) alert(attr['alert']);
+	},
+	_debugWarnings: []
 }
 
 function setBg(t, imageName)
@@ -65,7 +75,9 @@ function deselect()
 	if (window.disableDeselect)
 		return;
 	if(document.selection && document.selection.empty) 
-		try { document.selection.empty(); } catch (e) {}
+		try { document.selection.empty(); } catch (e) {
+			gmxAPI.addDebugWarnings({'func': 'deselect', 'event': e, 'alert': e});
+		}
 }
 
 function compatEvent(event) {return event || window.event; }
@@ -1376,7 +1388,10 @@ function createFlashMapInternal(div, layers, callback)
 						shownQuicklooks[id].remove();
 						delete shownQuicklooks[id];
 					}
-					} catch (e) { alert(e); }
+					} catch (e) {
+						gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
+						//alert(e);
+					}
 				});
 			}
 
@@ -1474,7 +1489,10 @@ function createFlashMapInternal(div, layers, callback)
 						var id = 'id_' + o.properties[identityField];
 						flipCounts[id] = o.flip();
 						updateImageDepth(o);
-					} catch (e) { alert(e); }
+					} catch (e) {
+						gmxAPI.addDebugWarnings({'func': 'enableTiledQuicklooksEx', 'handler': 'onClick', 'event': e, 'alert': e});
+						//alert(e);
+					}
 				});
 			}
 
@@ -2754,7 +2772,10 @@ function createFlashMapInternal(div, layers, callback)
 				if (layers.properties.OnLoad)
 				{
 					try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(map); }
-					catch (e) { alert('Error in "'+layers.properties.title+'" mapplet: ' + e); }
+					catch (e) {
+						//alert('Error in "'+layers.properties.title+'" mapplet: ' + e);
+						gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
+					}
 				}
 			}
 			FlashMapObject.prototype.setExtent = function(x1, x2, y1, y2)
@@ -3231,7 +3252,9 @@ function createFlashMapInternal(div, layers, callback)
 			var miniMap = map.addMapWindow(function(z) 
 			{ 
 				miniMapZ = Math.max(minZoom, Math.min(maxRasterZoom, z + miniMapZoomDelta));
-				try { repaintMiniMapFrame(); } catch (e) {}
+				try { repaintMiniMapFrame(); } catch (e) {
+					gmxAPI.addDebugWarnings({'func': 'repaintMiniMapFrame', 'event': e});
+				}
 				return miniMapZ;
 			});
 			var miniMapShown = true;
@@ -4723,11 +4746,14 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			FlashMapObject.prototype.loadGML = function(url, func)
 			{
-				var _hostname = getAPIHostRoot();
 				var me = this;
-				sendCrossDomainJSONRequest(_hostname + "ApiSave.ashx?get=" + encodeURIComponent(url), function(response)
+				var _hostname = getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url);
+				sendCrossDomainJSONRequest(_hostname, function(response)
 				{
-					if(typeof(response) != 'object' || response['Status'] != 'ok') return;
+					if(typeof(response) != 'object' || response['Status'] != 'ok') {
+						gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
+						return;
+					}
 					var geometries = parseGML(response['Result']);
 					for (var i = 0; i < geometries.length; i++)
 						me.addObject(geometries[i], null);
@@ -4741,10 +4767,13 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				var me = this;
 				var wmsProj = ['EPSG:4326','EPSG:3395','EPSG:41001'];
-				var _hostname = getAPIHostRoot();
-				sendCrossDomainJSONRequest(_hostname + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(url + '?request=GetCapabilities'), function(response)
+				var _hostname = getAPIHostRoot() + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(url + '?request=GetCapabilities');
+				sendCrossDomainJSONRequest(_hostname, function(response)
 				{
-					if(typeof(response) != 'object' || response['Status'] != 'ok') return;
+					if(typeof(response) != 'object' || response['Status'] != 'ok') {
+						gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
+						return;
+					}
 					var layersXML = parseXML(response['Result']).getElementsByTagName('Layer');
 	
 					for (var i = 0; i < layersXML.length; i++)(function(layerXML)
@@ -4888,10 +4917,13 @@ function createFlashMapInternal(div, layers, callback)
 			var gplForm = false;
 			FlashMapObject.prototype.loadObjects = function(url, callback)
 			{
-				var _hostname = getAPIHostRoot();
-				sendCrossDomainJSONRequest(_hostname + "ApiSave.ashx?get=" + encodeURIComponent(url), function(response)
+				var _hostname = getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url);
+				sendCrossDomainJSONRequest(_hostname, function(response)
 				{
-					if(typeof(response) != 'object' || response['Status'] != 'ok') return;
+					if(typeof(response) != 'object' || response['Status'] != 'ok') {
+						gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
+						return;
+					}
 					var geometries = parseGML(response['Result']);
 					callback(geometries);
 				})
@@ -4944,7 +4976,8 @@ function createFlashMapInternal(div, layers, callback)
 			else {
 				err += e + '\n';
 			}
-			alert(err);
+			gmxAPI.addDebugWarnings({'event': e, 'alert': err});
+			//alert(err);
 		}
 	}
 
@@ -6307,10 +6340,13 @@ kmlParser.prototype.get = function(url, callback, map)
 {
 	var _this = this;
 	this.globalFlashMap = map;
-	var _hostname = getAPIHostRoot();
-	sendCrossDomainJSONRequest(_hostname + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(url), function(response)
+	var _hostname = getAPIHostRoot() + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(url);
+	sendCrossDomainJSONRequest(_hostname, function(response)
 	{
-		if(typeof(response) != 'object' || response['Status'] != 'ok') return;
+		if(typeof(response) != 'object' || response['Status'] != 'ok') {
+			gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
+			return;
+		}
 		var parsed = _this.parse(response['Result']);
 		parsed.url = url;
 		callback(parsed);
@@ -6337,7 +6373,8 @@ function parseXML(str)
 	}
 	catch(e)
 	{
-		alert(e)
+		gmxAPI.addDebugWarnings({'func': 'parseXML', 'str': str, 'event': e, 'alert': e});
+		//alert(e)
 	}
 	
 	return xmlDoc;

@@ -5,6 +5,7 @@
 // var copyright = false;
 // var pageTitle = false;
 // var useCatalog = true;
+// var gmxAPIdebugLevel = 0;	// Уровень отладки (по умолчанию =0 - без сбора отладочной информации, >9 - alert при ошибках)
 
 //var mapsSite = true;
 //var apikeySendHosts = false;
