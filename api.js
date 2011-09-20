@@ -929,9 +929,17 @@ function createFlashMapInternal(div, layers, callback)
 					case 'setZoomBounds':	// Установить ограничения по Zoom
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZ':attr['minZ'], 'maxZ':attr['maxZ'] });
 						break;
+					case 'setClusters':		// Установить класетризацию потомков
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
+						break;
+					case 'delClusters':		// Удалить установку класетризации потомков
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
+						break;
 				}
 				return ret;
 			}
+			FlashMapObject.prototype.delClusters = function(attr) { return FlashCMD('delClusters', { 'obj': this }); }
+			FlashMapObject.prototype.setClusters = function(attr) { return FlashCMD('setClusters', { 'obj': this, 'attr':attr }); }
 			FlashMapObject.prototype.getZoomBounds = function() { return FlashCMD('getZoomBounds', { 'obj': this }); }
 			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return FlashCMD('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} }); }
 

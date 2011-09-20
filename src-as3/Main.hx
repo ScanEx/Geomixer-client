@@ -706,7 +706,7 @@ class Main
 				{
 					if(nodeFrom_ == null) {
 						var layer = cast(node2.content, VectorLayerFilter).layer;
-						var geom = layer.geometries.get(layer.lastId);
+						var geom = layer.lastGeometry;
 						props = exportProperties(geom != null ? geom.properties : null);
 					} else {
 						props = nodeFrom_.properties;
@@ -883,6 +883,7 @@ class Main
 			{
 				var layer = cast(content, VectorLayerFilter).layer;
 				var out = layer.geometries.get(layer.lastId);
+				if (out == null && layer.lastGeometry != null) out = layer.lastGeometry;
 				if (out == null) {
 					var node = getNode(layer.lastId);
 					if (node != null) out = cast(node.content, VectorObject).geometry;
@@ -985,12 +986,34 @@ class Main
 		{ 
 			return setZoomBounds(id, minZ, maxZ);
 		});
+
+		function setClusters(id:String, data:Dynamic):Dynamic
+		{
+			var node = getNode(id);
+			if (node == null || node.content == null) return null;
+			if (!Reflect.isFunction(node.content.setClusters)) return null;
+			return node.content.setClusters(data);
+		}
+
+		function delClusters(id:String):Dynamic
+		{
+			var node = getNode(id);
+			if (node == null || node.content == null) return null;
+			if (!Reflect.isFunction(node.content.delClusters)) return null;
+			return node.content.delClusters();
+		}
 		
 		// Парсинг команд от JavaScript
 		var parseCmdFromJS = function(cmd:String, attr:Dynamic)
 		{
 			var out = { };
 			switch (cmd) {
+				case 'delClusters':		// Удалить класетризацию потомков
+					out = delClusters(attr.objectId);
+					Main.bumpFrameRate();
+				case 'setClusters':		// Установить класетризацию потомков
+					out = setClusters(attr.objectId, attr.data);
+					Main.bumpFrameRate();
 				case 'setZoomBounds':
 					out = setZoomBounds(attr.objectId, attr.minZ, attr.maxZ);
 				case 'getZoomBounds':

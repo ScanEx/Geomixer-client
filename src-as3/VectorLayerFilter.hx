@@ -12,6 +12,11 @@ class VectorLayerFilter extends MapContent
 	public var layer:VectorLayer;
 	public var ids:Hash<Bool>;
 
+	public var clusterAttr:Dynamic;
+	public var regularStyleOrig:Style;
+	public var hoverStyleOrig:Style;
+	public var paintersHash:Hash<VectorTilePainter>;	// Хэш отрисовщиков тайлов данного фильтра
+	
 	public function new(criterion_:Hash<String>->Bool)
 	{
 		criterion = criterion_;
@@ -30,9 +35,32 @@ class VectorLayerFilter extends MapContent
 				painter.remove();
 		loadedTiles = new Array<VectorTile>();
 		painters = new Array<VectorTilePainter>();
+		paintersHash = new Hash<VectorTilePainter>();
 		ids = new Hash<Bool>();
 		if (layer != null)
 			createLoader();
+	}
+
+	// Удалить кластеризацию на фильтре
+	public override function delClusters():Dynamic
+	{
+		clusterAttr = null;
+		mapNode.setStyle(regularStyleOrig, hoverStyleOrig);
+	}
+
+	// Установить кластеризацию на фильтре
+	public override function setClusters(attr:Dynamic):Dynamic
+	{
+		clusterAttr = attr;
+		var regularStyle = null;
+		if (clusterAttr.RenderStyle != null) regularStyle = new Style(clusterAttr.RenderStyle);
+		var hoverStyle = null;
+		if (clusterAttr.HoverStyle != null) hoverStyle = new Style(clusterAttr.HoverStyle);
+
+		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
+		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
+		mapNode.setStyle(regularStyle, hoverStyle);
+		return true;
 	}
 
 	function createLoader()
@@ -51,10 +79,14 @@ class VectorLayerFilter extends MapContent
 					tileGeometry.addMember(geom);
 				}
 			}
+			
 			var window = me.mapNode.window;
-			var painter = new VectorTilePainter(tileGeometry, me.tilesSprite, window, tile.i, tile.j, tile.z);
+			var painter = new VectorTilePainter(tileGeometry, me, tile);
 			me.painters.push(painter);
+			me.paintersHash.set(tile.z+'_'+tile.i+'_'+tile.j, painter);
+
 			painter.repaint(me.mapNode.getRegularStyle());
+
 			if (tilesRemaining == 0)
 			{
 				window.cacheRepaintNeeded = true;
@@ -75,9 +107,11 @@ class VectorLayerFilter extends MapContent
 		var w = 2*Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;
 		var cx1 = (e1.minx + e1.maxx) / 2;
+		var curStyle = mapNode.getRegularStyle();
+
 		for (painter in painters)
 		{
-			painter.repaint(mapNode.getRegularStyle());
+			painter.repaint(curStyle);
 			var e2 = painter.painter.geometry.extent;
 			var cx2 = (e2.minx + e2.maxx)/2;
 			var d1 = Math.abs(cx2 - cx1 - w);
@@ -106,20 +140,20 @@ class VectorLayerFilter extends MapContent
 			var window = mapNode.window;
 			var idsAlreadyPainted = new Hash<Bool>();
 			var e1 = window.visibleExtent;
-			for (tile in loadedTiles)
+	
+			for (key in paintersHash.keys())
 			{
-				var e2 = tile.extent;
-				if (e1.overlaps(e2))
-				{
-					for (i in 0...tile.ids.length)
+				var tPainter = paintersHash.get(key);
+				var curGeom:MultiGeometry = (clusterAttr == null ? tPainter.tileGeometry : tPainter.clustersGeometry);
+				if(curGeom != null) {
+					for (member in curGeom.members)
 					{
-						var id = tile.ids[i];
-						if (ids.exists(id) && !idsAlreadyPainted.exists(id))
+						var id = member.properties.get(layer.identityField);
+						if (!idsAlreadyPainted.exists(id))
 						{
-							var geom = layer.geometries.get(id);
 							window.paintLabel(
-								geom.properties.get(style.label.field),
-								geom,
+								member.properties.get(style.label.field),
+								member,
 								style
 							);
 							idsAlreadyPainted.set(id, true);

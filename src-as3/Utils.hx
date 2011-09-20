@@ -3,6 +3,7 @@ import flash.display.DisplayObject;
 import flash.display.Loader;
 import flash.display.BitmapData;
 import flash.display.Stage;
+import flash.geom.Point;
 
 import flash.events.Event;
 import flash.events.IOErrorEvent;
@@ -219,4 +220,170 @@ class Utils
 		else
 			return coords_;
 	}
+
+	// Получить группы точек по прямоугольной сетке
+	public static function getClusters(attr:Dynamic, geom:MultiGeometry, tile:VectorTile, currentZ:Int, ?identityField:String):MultiGeometry
+	{
+		var traceTime = flash.Lib.getTimer();
+		
+		var iterCount:Int = (attr.iterationCount != null ? attr.iterationCount : 1);	// количество итераций K-means
+		var radius:Int = (attr.radius != null ? attr.radius : 20);						// радиус кластеризации в пикселах
+
+		var propFields:Dynamic = (attr.propFields != null ? attr.propFields : { } );
+		var objectInCluster:String = (propFields.objectInCluster != null ? propFields.objectInCluster : '_count');	// количество обьектов попавших в кластер
+		var labelField:String = (propFields.labelField != null ? propFields.labelField : '_label');	// Поле для label.field
+		var scaleForMarker:String = (propFields.scaleForMarker != null ? propFields.scaleForMarker : '_scale');	// поле scale для стиля маркера
+
+		var tileExtent:Extent = tile.extent;			// Extent тайла
+
+		var scale:Float = Utils.getScale(currentZ);		// размер пиксела в метрах меркатора
+		var radMercator:Float = radius * scale;			// размер радиуса кластеризации в метрах меркатора
+		
+		if(identityField == null) identityField = 'ogc_fid';
+		var grpHash = new Hash<Dynamic>();
+		for (i in 0...Std.int(geom.members.length))
+		{
+			if (!Std.is(geom.members[i], PointGeometry)) continue;
+			var member:PointGeometry = cast(geom.members[i], PointGeometry);
+			var dx:Int = cast((member.x - tileExtent.minx) / radMercator);		// Координаты квадранта разбивки тайла
+			var dy:Int = cast((member.y - tileExtent.miny) / radMercator);
+			var key:String = dx + '_' + dy;
+			var ph:Dynamic = (grpHash.exists(key) ? grpHash.get(key) : {});
+			var arr:Array<Int> = (ph.arr != null ? ph.arr : new Array<Int>());
+			arr.push(i);
+			ph.arr = arr;
+			grpHash.set(key, ph);
+		}
+		
+		var centersGeometry = new MultiGeometry();
+		var objIndexes:Array<Array<Int>> =  [];
+		
+		function setProperties(prop_:Hash<String>, len_:Int):Void
+		{
+			var _count:String = (len_ > 99 ? '*' : (len_ < 10 ? '' : cast(len_)));
+			prop_.set(labelField, _count);
+			var _scale:String = (len_ > 99 ? '1' : (len_ < 10 ? '0.5' : cast(0.5+Math.sqrt((len_ - 10)/90)) ));
+			prop_.set(scaleForMarker, _scale);
+			prop_.set(objectInCluster, cast(len_));
+		}
+		
+		function getCenterGeometry(arr:Array<Int>):PointGeometry
+		{
+			if (arr.length < 1) return null;
+			var xx:Float = 0; var yy:Float = 0;
+			for (j in arr)
+			{
+				var memberSource:PointGeometry = cast(geom.members[j], PointGeometry);
+				xx += memberSource.x;
+				yy += memberSource.y;
+			}
+			xx /= arr.length;
+			yy /= arr.length;
+			return new PointGeometry(xx, yy);
+		}
+		
+		// преобразование grpHash в массив центроидов и MultiGeometry
+		for (key in grpHash.keys())
+		{
+			var ph:Dynamic = grpHash.get(key);
+			if (ph == null || ph.arr.length < 1) continue;
+			objIndexes.push(ph.arr);
+			var pt:PointGeometry = getCenterGeometry(ph.arr);
+			var prop:Hash<String> = new Hash<String>();
+			if (ph.arr.length == 1) {
+				var propOrig = geom.members[ph.arr[0]].properties;
+				for(key in propOrig.keys()) prop.set(key, propOrig.get(key));
+			}
+			else
+			{
+				prop.set(identityField, 'cl_' + getNextId());
+			}
+			setProperties(prop, ph.arr.length);
+			
+			pt.properties = prop;
+			centersGeometry.addMember(pt);
+		}
+
+		// find the nearest group
+		function findGroup(point:Point):Int {
+			var min:Float = Geometry.MAX_DISTANCE;
+			var group:Int = -1;
+			for (i in 0...Std.int(centersGeometry.members.length))
+			{
+				var member = centersGeometry.members[i];
+				var pt:PointGeometry = cast(member, PointGeometry);
+				var center:Point = new Point(pt.x, pt.y);
+				var d:Float = Point.distance(point ,center);
+				if(d < min){
+					min = d;
+					group = i;
+				}
+			}
+			return group;
+		}
+		
+		// Итерация K-means
+		function kmeansGroups():Void
+		{
+			var newObjIndexes:Array<Array<Int>> =  [];
+			for (i in 0...Std.int(geom.members.length))
+			{
+				if (!Std.is(geom.members[i], PointGeometry)) continue;
+				var member:PointGeometry = cast(geom.members[i], PointGeometry);
+
+				var group:Int = findGroup(new Point(member.x, member.y));
+				
+				if (newObjIndexes[group] == null) newObjIndexes[group] = [];
+				newObjIndexes[group].push(i);
+			}
+			centersGeometry = new MultiGeometry();
+			objIndexes =  [];
+			for (arr in newObjIndexes)
+			{
+				if(arr == null) continue;				
+				var xx:Float = 0; var yy:Float = 0;
+				for (j in arr)
+				{
+					var memberSource:PointGeometry = cast(geom.members[j], PointGeometry);
+					xx += memberSource.x;
+					yy += memberSource.y;
+				}
+				xx /= arr.length;
+				yy /= arr.length;
+				var pt:PointGeometry = new PointGeometry(xx, yy);
+
+				var prop:Hash<String> = new Hash<String>();
+				if (arr.length == 1) {
+					var propOrig = geom.members[arr[0]].properties;
+					for(key in propOrig.keys()) prop.set(key, propOrig.get(key));
+				}
+				else
+				{
+					prop.set(identityField, 'cl_' + getNextId());
+				}
+				setProperties(prop, arr.length);
+				pt.properties = prop;
+				
+				centersGeometry.addMember(pt);
+				objIndexes.push(arr);
+			}
+		}
+		
+		for (i in 0...Std.int(iterCount))	// Итерации K-means
+		{
+			kmeansGroups();
+		}
+		
+		if(attr.debug != null) {
+			var out = '';
+			out += ' iterCount: ' + iterCount;
+			out += ' objCount: ' + geom.members.length;
+			out += ' clustersCount: ' + centersGeometry.members.length;
+			out += ' time: ' + (flash.Lib.getTimer() - traceTime) + ' мсек.';
+			trace(out);
+		}
+		return centersGeometry;
+		
+	}
+	
 }

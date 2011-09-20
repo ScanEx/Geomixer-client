@@ -20,6 +20,16 @@ class MapContent
 		return null;
 	}
 
+	public function delClusters():Dynamic
+	{
+		return null;
+	}
+
+	public function setClusters(attr:Dynamic):Dynamic
+	{
+		return null;
+	}
+
 	public function repaint() 
 	{
 	}

@@ -9,6 +9,7 @@ class VectorLayer extends MapContent
 
 	public var hoverPainter:GeometryPainter;
 	public var lastId:String;
+	public var lastGeometry:Geometry;
 	public var currentId:String;
 	public var currentFilter:VectorLayerFilter;
 	//var hoverTileExtent:Extent;
@@ -112,7 +113,7 @@ class VectorLayer extends MapContent
 
 		var newCurrentId:String = null;
 		var newCurrentFilter:VectorLayerFilter = null;
-		var zeroDistanceIds = new Array<String>();
+		var zeroDistanceIds = new Array<Geometry>();
 		var zeroDistanceFilters = new Array<VectorLayerFilter>();
 		//hoverTiles = new Array<VectorTile>();
 
@@ -121,35 +122,42 @@ class VectorLayer extends MapContent
 		pointExtent.update(x - pointSize, y - pointSize);
 		pointExtent.update(x + pointSize, y + pointSize);
 
+		var hoverGeom = null;
+		var hoverStyle = null;
+
 		for (tile in tiles)			// Просмотр содержимого тайлов под мышкой
 		{
-			if (!tile.finishedLoading) continue;
-			if ((tile.ids != null) && tile.extent.overlaps(pointExtent))
+			if (!tile.finishedLoading) continue;									// пропускаем тайлы - не загруженные
+			if (tile.ids == null || !tile.extent.overlaps(pointExtent)) continue;	// пропускаем тайлы - без обьектов и не пересекающих точку
+			
+			var tileKey:String = tile.z + '_' + tile.i + '_' + tile.j;
+			
+			for (node in mapNode.children)
 			{
-				for (i in 0...tile.ids.length)
+				if (!node.vectorSprite.visible || !Std.is(node.content, VectorLayerFilter)) continue; // пропускаем - не видимые спрайты и не фильтры
+				var filter = cast(node.content, VectorLayerFilter);
+				if (!filter.paintersHash.exists(tileKey)) continue;	// пропускаем фильтры тайлов - без VectorTilePainter
+				var tPainter = filter.paintersHash.get(tileKey);
+				
+				var curGeom:MultiGeometry = tPainter.tileGeometry;
+				if (filter.clusterAttr != null) {
+					curGeom = tPainter.clustersGeometry;
+					hoverStyle = node.getHoveredStyle();
+				}
+				if(curGeom == null) continue;		// пропускаем ноды без MultiGeometry
+				for (member in curGeom.members)
 				{
-					var d = tile.geometries[i].distanceTo(x, y);
-					if (d <= distance)
+					var d = member.distanceTo(x, y);
+					if (d <= distance)		// Берем только минимальное растояние
 					{
-						var id = tile.ids[i];
-						for (node in mapNode.children)
-						{
-							if (node.vectorSprite.visible && Std.is(node.content, VectorLayerFilter))
-							{
-								var filter = cast(node.content, VectorLayerFilter);
-								if (filter.ids.exists(id))
-								{
-									newCurrentId = id;
-									newCurrentFilter = filter;
-									//hoverTiles.push(tile);
-									distance = d;
-									if (d == 0)
-									{
-										zeroDistanceIds.push(id);
-										zeroDistanceFilters.push(filter);
-									}
-								}
-							}
+						hoverGeom = member;
+						newCurrentId = member.properties.get(identityField);
+						newCurrentFilter = filter;
+						
+						distance = d;
+						if (distance == 0) {
+							zeroDistanceIds.push(hoverGeom);
+							zeroDistanceFilters.push(filter);
 						}
 					}
 				}
@@ -164,9 +172,12 @@ class VectorLayer extends MapContent
 			var lastDate = "1900-00-00";
 			for (i in 0...zeroDistanceIds.length)
 			{
-				var id = zeroDistanceIds[i];
+				var geom = zeroDistanceIds[i];
+				var prop = geom.properties;
+				var id = prop.get(identityField);
+				
 				var fc:Null<Int> = flipCounts.get(id);
-				var date = Utils.getDateProperty(geometries.get(id).properties);
+				var date = Utils.getDateProperty(prop);
 				var isHigher:Bool = false;
 				var isHigherDate = (date == null) || (date > lastDate);
 				if (lastFc == null)
@@ -181,6 +192,7 @@ class VectorLayer extends MapContent
 					lastDate = date;
 					newCurrentId = id;
 					newCurrentFilter = zeroDistanceFilters[i];
+					hoverGeom = geom;
 				}
 			}
 		}
@@ -189,23 +201,25 @@ class VectorLayer extends MapContent
 			if ((newCurrentFilter != currentFilter) && (currentFilter != null))
 				currentFilter.mapNode.callHandler("onMouseOut");
 			currentId = newCurrentId;
-			if (currentId != null)
-				lastId = currentId;
-			if (newCurrentFilter != null)
-				newCurrentFilter.mapNode.callHandler("onMouseOver");
-			currentFilter = newCurrentFilter;
-
-			//hoverTileExtent = new Extent();
-			var hoverStyle = (currentFilter != null) ? currentFilter.mapNode.getHoveredStyle() : null;
-			var hoverGeom = null;
-			if (distance != Geometry.MAX_DISTANCE) {
-				hoverGeom = geometries.get(currentId);
-				if (hoverStyle != null 							// Пока только для обьектов с заливкой
-					&& hoverStyle.fill != null
-					&& (hoverStyle.outline == null || hoverStyle.outline.opacity == 0)
-					) {
-					hoverGeom = fromTileGeometry(hoverGeom);
+			if (newCurrentFilter != null) {
+				if(newCurrentFilter.clusterAttr == null) {
+					if(newCurrentFilter != null) hoverStyle = newCurrentFilter.mapNode.getHoveredStyle();
+					if (distance != Geometry.MAX_DISTANCE) {
+						if (hoverStyle != null 							// Пока только для обьектов с заливкой
+							&& hoverStyle.fill != null
+							&& (hoverStyle.outline == null || hoverStyle.outline.opacity == 0)
+							) {
+							hoverGeom = fromTileGeometry(hoverGeom);
+						}
+					}
 				}
+				lastGeometry = hoverGeom;
+				newCurrentFilter.mapNode.callHandler("onMouseOver");
+			}
+			currentFilter = newCurrentFilter;
+			if (currentId != null) {
+				lastId = currentId;
+				lastGeometry = hoverGeom;
 			}
 
 			hoverPainter.geometry = hoverGeom;
