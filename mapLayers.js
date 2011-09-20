@@ -610,6 +610,8 @@ layersTree.prototype.downloadVectorLayer = function(name, area, mapHostName)
 	showDialog(_gtxt("Скачать shp-файл"), canvas, 240, 120, area.left + 150, area.top)
 }
 
+//При клике на объекте показывает аттрибутивную информацию объекта в виде красивой таблицы. 
+//На данный момент нигде не используется
 layersTree.prototype.showInfo = function(layer)
 {
 	if (layer.properties.type != 'Vector')
@@ -626,6 +628,7 @@ layersTree.prototype.showInfo = function(layer)
 	})
 }
 
+//Показывает аттрибутивную информацию объекта в виде таблички в отдельном диалоге
 layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag, identityField)
 {
 	var trs = [];
@@ -1635,7 +1638,7 @@ layersTree.prototype.addLayersToMap = function(elem)
 			globalFlashMap.layers[name].setVisible(visibility);
 			globalFlashMap.layers[name].bounds = getLayerBounds( elem.content.geometry.coordinates[0], globalFlashMap.layers[name]);
 			
-			this.showInfo(globalFlashMap.layers[name])
+			//this.showInfo(globalFlashMap.layers[name])
 		}
 		else
 		{
@@ -2210,7 +2213,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(taskInfo, title)
 	
 		_mapHelper.addTreeElem(divParent, index, {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}});
 		
-		_layersTree.showInfo(newLayer)
+		//_layersTree.showInfo(newLayer)
 
 		_queryMapLayers.addSwappable(li);
 		
@@ -2296,7 +2299,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(taskInfo, properties, needR
 				
 				_mapHelper.findTreeElem($(li).children("div[LayerID]")[0]).elem = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}
 
-				_layersTree.showInfo(newLayer);
+				//_layersTree.showInfo(newLayer);
 
 				_queryMapLayers.addSwappable(li);
 				
