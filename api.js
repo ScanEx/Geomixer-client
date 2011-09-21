@@ -3575,7 +3575,7 @@ function createFlashMapInternal(div, layers, callback)
 					}
 
 					obj = map.addObject();
-					balloon = map.balloonClassObject.addBalloon();
+					balloon = map.balloonClassObject.addBalloon(true);	// Редактируемый балун (только скрывать)
 					ret.setVisible = function(flag)
 					{
 						ret.isVisible = flag;
@@ -7176,10 +7176,17 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			if(maxFixedBallons > 0 && balloons.length > 0)
 			{
 				if(maxFixedBallons <= balloons.length) {
-					var balloon = balloons[0];
-					var fixedId = balloon.fixedId;
-					balloon.remove();
-					delete fixedHoverBalloons[fixedId];
+					var balloon = null;
+					for(var i=0; i<balloons.length; i++) {
+						if(balloons[i].notDelFlag) continue;
+						balloon = balloons[i];
+						break;
+					}
+					if(balloon) {
+						var fixedId = balloon.fixedId;
+						balloon.remove();
+						delete fixedHoverBalloons[fixedId];
+					}
 				}
 			}
 			var balloon = addBalloon();
@@ -7412,9 +7419,10 @@ function BalloonClass(map, flashDiv, div, apiBase)
 	}
 	map.addObject().setHandler("onMove", positionBalloons);
 
-	function addBalloon()
+	function addBalloon(_notDelFlag)
 	{
 		var balloon = createBalloon();
+		balloon.notDelFlag = _notDelFlag;
 		balloon.geoX = 0;
 		balloon.geoY = 0;
 		var oldSetVisible = balloon.setVisible;
@@ -7435,8 +7443,14 @@ function BalloonClass(map, flashDiv, div, apiBase)
 				title: KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
 				onclick: function() 
 				{ 
-					balloon.remove();
-					balloon.isVisible = false;
+					if(balloon.notDelFlag) {
+						balloon.setVisible(false);
+					}
+					else
+					{
+						balloon.remove();
+						balloon.isVisible = false;
+					}
 				},
 				onmouseover: function()
 				{
