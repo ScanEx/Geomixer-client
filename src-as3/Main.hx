@@ -1003,11 +1003,11 @@ class Main
 			return node.content.delClusters();
 		}
 
-		function getIndex(id:String):Dynamic
+		function getDepth(id:String):Dynamic
 		{
 			var node = getNode(id);
 			if (node == null) return null;
-			return node.getIndex();
+			return node.getDepth();
 		}
 		
 		// Парсинг команд от JavaScript
@@ -1015,8 +1015,8 @@ class Main
 		{
 			var out = { };
 			switch (cmd) {
-				case 'getIndex':		// Получить индекс обьекта
-					out = getIndex(attr.objectId);
+				case 'getDepth':		// Получить индекс обьекта
+					out = getDepth(attr.objectId);
 				case 'delClusters':		// Удалить класетризацию потомков
 					out = delClusters(attr.objectId);
 					Main.bumpFrameRate();

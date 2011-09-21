@@ -364,7 +364,7 @@ class MapNode
 	}
 
 	// Получить индекс обьекта
-	public function getIndex()
+	public function getDepth()
 	{
 		var parentSprite = parent.rasterSprite;
 		var d1 = parentSprite.getChildIndex(rasterSprite);

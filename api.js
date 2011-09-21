@@ -935,13 +935,13 @@ function createFlashMapInternal(div, layers, callback)
 					case 'delClusters':		// Удалить установку класетризации потомков
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
 						break;
-					case 'getIndex':		// Получить индекс обьекта
+					case 'getDepth':		// Получить индекс обьекта
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
 						break;
 				}
 				return ret;
 			}
-			FlashMapObject.prototype.getIndex = function(attr) { return FlashCMD('getIndex', { 'obj': this }); }
+			FlashMapObject.prototype.getDepth = function(attr) { return FlashCMD('getDepth', { 'obj': this }); }
 			FlashMapObject.prototype.delClusters = function(attr) { return FlashCMD('delClusters', { 'obj': this }); }
 			FlashMapObject.prototype.setClusters = function(attr) { return FlashCMD('setClusters', { 'obj': this, 'attr':attr }); }
 			FlashMapObject.prototype.getZoomBounds = function() { return FlashCMD('getZoomBounds', { 'obj': this }); }
