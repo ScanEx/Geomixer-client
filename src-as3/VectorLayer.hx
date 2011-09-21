@@ -205,6 +205,7 @@ class VectorLayer extends MapContent
 				if(newCurrentFilter.clusterAttr == null) {
 					if(newCurrentFilter != null) hoverStyle = newCurrentFilter.mapNode.getHoveredStyle();
 					if (distance != Geometry.MAX_DISTANCE) {
+						if(geometries.exists(currentId)) hoverGeom = geometries.get(currentId);
 						if (hoverStyle != null 							// Пока только для обьектов с заливкой
 							&& hoverStyle.fill != null
 							&& (hoverStyle.outline == null || hoverStyle.outline.opacity == 0)
