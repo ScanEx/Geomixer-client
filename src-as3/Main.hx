@@ -1002,12 +1002,21 @@ class Main
 			if (!Reflect.isFunction(node.content.delClusters)) return null;
 			return node.content.delClusters();
 		}
+
+		function getIndex(id:String):Dynamic
+		{
+			var node = getNode(id);
+			if (node == null) return null;
+			return node.getIndex();
+		}
 		
 		// Парсинг команд от JavaScript
 		var parseCmdFromJS = function(cmd:String, attr:Dynamic)
 		{
 			var out = { };
 			switch (cmd) {
+				case 'getIndex':		// Получить индекс обьекта
+					out = getIndex(attr.objectId);
 				case 'delClusters':		// Удалить класетризацию потомков
 					out = delClusters(attr.objectId);
 					Main.bumpFrameRate();

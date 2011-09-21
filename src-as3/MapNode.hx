@@ -362,4 +362,12 @@ class MapNode
 			});
 		}
 	}
+
+	// Получить индекс обьекта
+	public function getIndex()
+	{
+		var parentSprite = parent.rasterSprite;
+		var d1 = parentSprite.getChildIndex(rasterSprite);
+		return d1;
+	}
 }
