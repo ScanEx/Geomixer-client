@@ -92,12 +92,37 @@ var Calendar = function()
 	/**
 	 * @function
 	 */
-	this.getDateBegin = function() { return $(this.dateBegin).datepicker("getDate"); }
+	this.getDateBegin = function() 
+	{
+		var date = $(this.dateBegin).datepicker("getDate");
+		date.setHours(_this._timeBegin.hours);
+		date.setMinutes(_this._timeBegin.minutes);
+		date.setSeconds(_this._timeBegin.seconds);
+		return date;
+	}
 	
 	/**
 	 * @function
 	 */	
-	this.getDateEnd = function() { return $(this.dateEnd).datepicker("getDate"); }
+	this.getDateEnd = function() 
+	{
+		// return $(this.dateEnd).datepicker("getDate"); 
+		var date = $(this.dateEnd).datepicker("getDate");
+		date.setHours(_this._timeEnd.hours);
+		date.setMinutes(_this._timeEnd.minutes);
+		date.setSeconds(_this._timeEnd.seconds);
+		return date;
+	}
+	
+	/**
+	 * @function
+	 */	
+	this.getDateMax = function() { return this.dateMax; }
+	
+	/**
+	 * @function
+	 */
+	this.getDateMin = function() { return this.dateMin; }
 	
 	/**
 	 * @function

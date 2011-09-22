@@ -331,11 +331,11 @@ var AggregateStatus = function()
 	this.getCommonStatus = function(){ return _statusCommon };
 }
 
-var _formatDateForServer = function( datetime )
+var _formatDateForServer = function( datetime, skipTime )
 {
 	var dateString = datetime.getDate() + "." + (datetime.getMonth()+1) + "." + datetime.getFullYear();
-	var timeString = datetime.getHours() + ":00:00";
-	return dateString + " " + timeString;
+	var timeString = (typeof skipTime === 'undefined' || !skipTime) ? " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds() : "";
+	return dateString + timeString;
 }
 
 /*
@@ -456,7 +456,7 @@ var ModisImagesProvider = function( params )
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
 		//запрашиваем только за первый день периода
-		var modisUrl = _params.host + "DBWebProxy.ashx?Type=GetModisV2&Date=" + _formatDateForServer(dateEnd);
+		var modisUrl = _params.host + "DBWebProxy.ashx?Type=GetModis&Date=" + _formatDateForServer(dateEnd, true);
 		
 		IDataProvider.sendCachedCrossDomainJSONRequest(modisUrl, function(data)
 		{
@@ -465,6 +465,18 @@ var ModisImagesProvider = function( params )
 				onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
 				return;
 			}
+			
+			data.Response.sort(function(a, b)
+			{
+				var dateA = $.datepicker.parseDate('dd.mm.yy', a[1]).valueOf();
+				var dateB = $.datepicker.parseDate('dd.mm.yy', b[1]).valueOf();
+				
+				if (dateA != dateB) return dateA - dateB;
+				
+				if (a[2] == b[2]) return 0;
+				
+				return a[2] < b[2] ? -1 : 1;
+			});
 			
 			var resArr = [];
 			
@@ -1362,18 +1374,18 @@ FireControl.prototype.getBbox = function()
 FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
 {
 	
-	//в упрощённом режиме будем запрашивать за последние 24 часа, а не за календартный день
+	// //в упрощённом режиме будем запрашивать за последние 24 часа, а не за календартный день
 	if (this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE)
 	{	
-		this._addTimeShift(dateBegin);
-		this._addTimeShift(dateEnd);
+		// this._addTimeShift(dateBegin);
+		// this._addTimeShift(dateEnd);
 		
 		dateBegin.setTime(dateBegin.getTime() - 24*60*60*1000);
 	}
-	else
-	{
-		dateEnd.setTime(dateEnd.getTime() + 24*60*60*1000); //увеличиваем верхнюю границу на сутки
-	}
+	// else
+	// {
+		// dateEnd.setTime(dateEnd.getTime() + 24*60*60*1000); //увеличиваем верхнюю границу на сутки
+	// }
 		
 	var curExtent = this.getBbox();
 	
@@ -1565,6 +1577,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	$(this._calendar).change( function()
 	{
 		_this.update();
+		updateTimeInfo();
 	});
 	
 	
@@ -1624,8 +1637,21 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 		{
 			_this._timeShift = null;
 			
+			//если выбран сегодняшний день, показываем время не 23:59, а до текущего часа
+			var maxDayString = $.datepicker.formatDate('yy.mm.dd', _this._calendar.getDateMax());
+			var curDayString = $.datepicker.formatDate('yy.mm.dd', _this._calendar.getDateEnd());
+			
 			_this._calendar.setTimeBegin( 0, 0, 0 );
-			_this._calendar.setTimeEnd( 23, 59, 59 );			
+			var curHour = (new Date()).getUTCHours();
+			
+			if (maxDayString != curDayString || curHour === 23)
+			{
+				_this._calendar.setTimeEnd( 23, 59, 59 );
+			}
+			else
+			{
+				_this._calendar.setTimeEnd( curHour+1, 0, 0 );
+			}
 		}
 	}
 	
