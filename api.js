@@ -7279,7 +7279,8 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\''+apiBase+'img/tooltip-leg.png\');'
 		};
 
-		var transp = (gmxAPI.isChrome ? '<img width="10" height="10" src="'+apiBase+'img/transp1x1.png">' : '');	// Для Chrome добавляем невидимый контент в TD
+		var transp = '';
+		if(gmxAPI.isChrome) transp =  '<img width="10" height="10" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABBJREFUeNpi+P//PwNAgAEACPwC/tuiTRYAAAAASUVORK5CYII=">';	// Для Chrome добавляем невидимый контент в TD
 		var body = '\
 			<table cols="3" cellspacing="0" cellpadding="0" border="0" style="'+css['table']+'">\
 				<tr>\
