@@ -29,7 +29,7 @@ div.tableBody
 .tableBody table
 {
 	border-collapse: collapse;
-	width: 98%;
+	width: 100%;
 }
 
 div.tableBody tr.rowSelected td

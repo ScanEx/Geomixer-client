@@ -825,6 +825,7 @@ var scrollTable = function()
 							 _option([_t("500")], [['attr','value',500]])], [['dir','className','selectStyle floatRight'], ['css','width','60px']])
 }
 
+//Если baseWidth == 0, таблица растягивается на весь контейнер по ширине
 scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fieldsWidths, drawFunc, sortFuncs)
 {
 	var tds = [],
@@ -874,12 +875,19 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 	this.tableCount = _div();
 	this.tableLimit = _div([this.limitSel]);
 	this.tablePages = _div(null,[['dir','className','tablePages']]);
-	this.tableHeader = _tbody([_tr(tds)],[['attr','id',name + 'TableHeader']]);
+
+	//как формировать фиксированный заголовок таблицы, зависит от того, будет ли у таблицы фиксированный размер или нет
+	//TODO: убрать возможность задавать фиксированный размер
+	if ( baseWidth )
+		this.tableHeader = _tbody([_tr(tds)],[['attr','id',name + 'TableHeader']]);
+	else
+		this.tableHeader = _tbody([_tr([_td([_table([_tbody([_tr(tds)])])]), _td(null, [['css', 'width', '20px']])])], [['attr','id',name + 'TableHeader']]);
+		
 	this.tableBody = _tbody(null,[['attr','id',name + 'TableBody']]);
 	this.tableParent = _div([
 							_div([_table([this.tableHeader])],[['dir','className','tableHeader']]),
-							_div([_table([this.tableBody])],[['dir','className','tableBody'],['css','width',baseWidth + 20 + 'px']])
-						],[['attr','id',name + 'TableParent'],['dir','className','scrollTable'],['css','width',baseWidth + 'px']])
+							_div([_table([this.tableBody])],[['dir','className','tableBody'],['css','width',baseWidth ? baseWidth + 20 + 'px' : "100%"]])
+						],[['attr','id',name + 'TableParent'],['dir','className','scrollTable'],['css','width',baseWidth ? baseWidth + 'px' : "100%"]])
 	
 	_(parent, [this.tableParent])
 	_(parent, [_table([_tbody([_tr([_td([this.tableCount], [['css','width','20%']]), _td([this.tablePages]), _td([this.tableLimit], [['css','width','20%']])])])], [['css','width','100%']])]);

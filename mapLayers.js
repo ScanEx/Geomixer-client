@@ -2353,11 +2353,10 @@ queryMapLayers.prototype.getLayersHandler = function(response)
 	_queryMapLayers.createLayersManager();
 }
 
-queryMapLayers.prototype.createLayersManager = function()
+queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name )
 {
 	var canvas = _div(null, [['attr','id','layersList']]),
 		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
-		name = 'layers',
 		_this = this;
 	
 	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','160px']]),
@@ -2418,7 +2417,7 @@ queryMapLayers.prototype.createLayersManager = function()
 				}
 			];
 	
-	_layersTable.createTable(tableParent, name, 310, ["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), ""], ['1%','5%','45%','24%','20%','5%'], this.drawLayers, sortFuncs);
+	_layersTable.createTable(tableParent, name, 0, ["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), ""], ['1%','5%','45%','24%','20%','5%'], this.drawLayers, sortFuncs);
 	
 	// оптимизируем данные для сортировки
 	var valuesToSort = [];
@@ -2530,8 +2529,8 @@ queryMapLayers.prototype.createLayersManager = function()
 		if (fieldValue == "")
 			return vals;
 		
-		var beginDate = $(_queryMapLayers.dateBegin).datepicker('getDate'),
-			endDate = $(_queryMapLayers.dateEnd).datepicker('getDate'),
+		var beginDate = $(dateBegin).datepicker('getDate'),
+			endDate = $(dateEnd).datepicker('getDate'),
 			filterFunc = function(value)
 				{
 					return endDatePredicate(value, fieldName, fieldValue, beginDate ? beginDate.valueOf() : null, endDate ? endDate.valueOf() : null);
@@ -2557,24 +2556,6 @@ queryMapLayers.prototype.createLayersManager = function()
 	
 	_(canvas, [tableParent]);
 	
-	var resize = function()
-	{
-		_layersTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-		_layersTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
-		_layersTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-
-		_layersTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
-		
-		_layersTable.tableParent.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 10 - 10 + 'px';
-		_layersTable.tableBody.parentNode.parentNode.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 20 - 10 - 10 + 'px';
-	}
-		
-	showDialog(_gtxt("Список слоев"), canvas, 571, 470, 535, 130, resize);
-	
-	_layersTable.tableHeader.firstChild.childNodes[2].style.textAlign = 'left';
-
-	resize();
-	
 	var unloadedLayersList = _filter(function(elem)
 		{
 			return typeof globalFlashMap.layers[elem.name] == 'undefined';
@@ -2584,7 +2565,7 @@ queryMapLayers.prototype.createLayersManager = function()
 	
 	_layersTable.drawTable(_layersTable.vals)
 	
-	$("#" + name + "DateBegin,#" + name + "DateEnd").datepicker(
+	$("#" + name + "DateBegin,#" + name + "DateEnd", canvas).datepicker(
 	{
 		beforeShow: function(input)
 		{
@@ -2602,8 +2583,17 @@ queryMapLayers.prototype.createLayersManager = function()
 		buttonImageOnly: true,
 		dateFormat: "dd.mm.yy"
 	});
-		
+	
+	$(parentDiv).empty().append(canvas);
+	
 	layerName.focus();
+}
+
+queryMapLayers.prototype.createLayersManager = function()
+{
+	var canvas = _div();
+	this._createLayersManagerInDiv(canvas, 'layers');
+	showDialog(_gtxt("Список слоев"), canvas, 571, 470, 535, 130);
 }
 
 queryMapLayers.prototype.drawLayers = function(layer)
@@ -2688,9 +2678,10 @@ queryMapLayers.prototype.drawLayers = function(layer)
 		appendTo: document.body
 	});
 	
-	var maxLayerWidth = this.tableHeader.firstChild.childNodes[2].offsetWidth + 'px';
+	var nameDivInternal = _div([res], [['css','position','absolute'], ['css','width','100%'],['css','padding',"1px 0px"], ['css','overflowX','hidden'],['css','whiteSpace','nowrap']]);
+	var nameDiv = _div([nameDivInternal], [['css', 'position', 'relative'], ['css', 'height', '100%']]);
 	
-	tr = _tr([_td(), _td([icon], [['css','textAlign','center']]), _td([_div([res], [['css','width',maxLayerWidth],['css','padding',"1px 0px"], ['css','overflowX','hidden'],['css','whiteSpace','nowrap']])]), _td([_t(layer.date)], [['css','textAlign','center'],['dir','className','invisible']]),  _td([_t(layer.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), tdRemove]);
+	tr = _tr([_td(), _td([icon], [['css','textAlign','center']]), _td([nameDiv]), _td([_t(layer.date)], [['css','textAlign','center'],['dir','className','invisible']]),  _td([_t(layer.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), tdRemove]);
 	
 	tr.removeLayerFromList = removeLayerFromList;
 	
