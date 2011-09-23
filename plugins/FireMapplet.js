@@ -1092,7 +1092,7 @@ var ModisImagesRenderer = function( params )
 
 var CombinedFiresRenderer = function( params )
 {
-	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minHotspotZoom: 11, minGeometryZoom: 8, minWholeFireZoom: 8, minClustersZoom: 7}, params);
+	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minHotspotZoom: 11, minGeometryZoom: 8, minWholeFireZoom: 8, maxClustersZoom: 7}, params);
 	var customStyleProvider = function(obj)
 	{
 		var style = { marker: { image: _params.fireIconsHost + 'fire_sample.png', center: true, scale: String(Math.sqrt(obj.points)/5)} };
@@ -1111,7 +1111,7 @@ var CombinedFiresRenderer = function( params )
 		{ outline: { color: 0xff00ff, thickness: 1, dashes: [3,3] }, fill: { color: 0xff00ff, opacity: 7 } }
 	];
 	
-	var _clustersRenderer  = new FireSpotRenderer  ({maxZoom: _params.minClustersZoom,  title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>", customStyleProvider: customStyleProvider});
+	var _clustersRenderer  = new FireSpotRenderer  ({maxZoom: _params.maxClustersZoom,  title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>", customStyleProvider: customStyleProvider});
 	var _wholeFireRenderer = new FireBurntRenderer ({minZoom: _params.minWholeFireZoom,  defStyle: wholeDefStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>"});
 	var _geometryRenderer  = new FireBurntRenderer ({minZoom: _params.minGeometryZoom,  defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", addGeometrySummary: false});
 	var _hotspotRenderer   = new FireSpotRenderer  ({minZoom: _params.minHotspotZoom, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>"});
