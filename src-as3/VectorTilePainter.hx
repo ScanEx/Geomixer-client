@@ -70,7 +70,7 @@ class VectorTilePainter
 		} else {
 			if (tileIntersect && !tileOverlap) oldStyle = null;
 			if (tileIntersect) {
-				clustersGeometry = Utils.getClusters(vectorLayerFilter.clusterAttr, tileGeometry, tile, currentZ);
+				clustersGeometry = Utils.getClusters(vectorLayerFilter, tileGeometry, tile, currentZ);
 				painter.geometry = clustersGeometry;
 			}
 			

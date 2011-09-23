@@ -932,6 +932,16 @@ function createFlashMapInternal(div, layers, callback)
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZ':attr['minZ'], 'maxZ':attr['maxZ'] });
 						break;
 					case 'setClusters':		// Установить класетризацию потомков
+						if(attr && 'newProperties' in attr) {
+							var keyArray = [];
+							var valArray = [];
+							for(key in attr['newProperties'])
+							{
+								keyArray.push(key);
+								valArray.push(attr['newProperties'][key]);
+							}
+							attr['propFields'] = [keyArray, valArray];
+						}
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
 						break;
 					case 'delClusters':		// Удалить установку класетризации потомков

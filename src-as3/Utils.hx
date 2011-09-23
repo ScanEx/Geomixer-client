@@ -222,18 +222,15 @@ class Utils
 	}
 
 	// Получить группы точек по прямоугольной сетке
-	public static function getClusters(attr:Dynamic, geom:MultiGeometry, tile:VectorTile, currentZ:Int, ?identityField:String):MultiGeometry
+	public static function getClusters(vectorLayerFilter:VectorLayerFilter, geom:MultiGeometry, tile:VectorTile, currentZ:Int, ?identityField:String):MultiGeometry
 	{
 		var traceTime = flash.Lib.getTimer();
 		
+		var attr:Dynamic = vectorLayerFilter.clusterAttr;
 		var iterCount:Int = (attr.iterationCount != null ? attr.iterationCount : 1);	// количество итераций K-means
 		var radius:Int = (attr.radius != null ? attr.radius : 20);						// радиус кластеризации в пикселах
 
-		var propFields:Dynamic = (attr.propFields != null ? attr.propFields : { } );
-		var objectInCluster:String = (propFields.objectInCluster != null ? propFields.objectInCluster : '_count');	// количество обьектов попавших в кластер
-		var labelField:String = (propFields.labelField != null ? propFields.labelField : '_label');	// Поле для label.field
-		var scaleForMarker:String = (propFields.scaleForMarker != null ? propFields.scaleForMarker : '_scale');	// поле scale для стиля маркера
-
+		var propFields:Array<Array<String>> = (attr.propFields != null ? attr.propFields : [[],[]] );
 		var tileExtent:Extent = tile.extent;			// Extent тайла
 
 		var scale:Float = Utils.getScale(currentZ);		// размер пиксела в метрах меркатора
@@ -260,11 +257,13 @@ class Utils
 		
 		function setProperties(prop_:Hash<String>, len_:Int):Void
 		{
-			var _count:String = (len_ > 99 ? '*' : (len_ < 10 ? '' : cast(len_)));
-			prop_.set(labelField, _count);
-			var _scale:String = (len_ > 99 ? '1' : (len_ < 10 ? '0.5' : cast(0.5+Math.sqrt((len_ - 10)/90)) ));
-			prop_.set(scaleForMarker, _scale);
-			prop_.set(objectInCluster, cast(len_));
+			var regObjectInCluster = ~/\[objectInCluster\]/g;
+			for (i in 0...Std.int(propFields[0].length)) {
+				var key:String = propFields[0][i];
+				var valStr:String = propFields[1][i];
+				valStr = regObjectInCluster.replace(valStr, cast(len_));
+				prop_.set(key, valStr);
+			}
 		}
 		
 		function getCenterGeometry(arr:Array<Int>):PointGeometry
@@ -292,13 +291,14 @@ class Utils
 			var prop:Hash<String> = new Hash<String>();
 			if (ph.arr.length == 1) {
 				var propOrig = geom.members[ph.arr[0]].properties;
-				for(key in propOrig.keys()) prop.set(key, propOrig.get(key));
+				for (key in propOrig.keys()) prop.set(key, propOrig.get(key));
+				pt.propHiden.set('_paintStyle', vectorLayerFilter.regularStyleOrig);
 			}
 			else
 			{
 				prop.set(identityField, 'cl_' + getNextId());
+				setProperties(prop, ph.arr.length);
 			}
-			setProperties(prop, ph.arr.length);
 			
 			pt.properties = prop;
 			centersGeometry.addMember(pt);
@@ -356,12 +356,13 @@ class Utils
 				if (arr.length == 1) {
 					var propOrig = geom.members[arr[0]].properties;
 					for(key in propOrig.keys()) prop.set(key, propOrig.get(key));
+					pt.propHiden.set('_paintStyle', vectorLayerFilter.regularStyleOrig);
 				}
 				else
 				{
 					prop.set(identityField, 'cl_' + getNextId());
+					setProperties(prop, arr.length);
 				}
-				setProperties(prop, arr.length);
 				pt.properties = prop;
 				
 				centersGeometry.addMember(pt);

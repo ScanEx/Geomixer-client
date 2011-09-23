@@ -17,6 +17,7 @@ class PointGeometry extends Geometry
 	{
 		if (window.visibleExtent.contains(x, y))
 		{
+			if(propHiden.exists('_paintStyle')) style = propHiden.get('_paintStyle');
 			putPoint(sprite, style, window);
 		} else {
 			refreshFlag = true;

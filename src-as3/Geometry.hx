@@ -9,6 +9,7 @@ class Geometry
 	public static var MAX_DISTANCE:Float = 1e20;
 	public var extent:Extent;
 	public var properties:Hash<String>;
+	public var propHiden:Hash<Dynamic>;		// внутренние свойства
 	public var refreshFlag:Bool;
 	public var oldZ:Float;
 
@@ -17,6 +18,7 @@ class Geometry
 		extent = new Extent();
 		refreshFlag = true;
 		properties = null;
+		propHiden = new Hash<Dynamic>();
 	}
 
 	public function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow)

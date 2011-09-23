@@ -17,6 +17,8 @@ class MarkerStyle
 	public var imageUrl:String;
 	public var size:Float;
 	
+	var minScale:Float;
+	var maxScale:Float;
 	var dx:Float;
 	var dy:Float;
 	var center:Bool;
@@ -34,6 +36,8 @@ class MarkerStyle
 	static var DEFAULT_SIZE:Float  = 0.0;
 	static var DEFAULT_DX:Float    = 0.0;
 	static var DEFAULT_DY:Float    = 0.0;
+	static var DEFAULT_MINSCALE:Float    = 0.01;
+	static var DEFAULT_MAXSCALE:Float    = 1000;
 	static var DEFAULT_CENTER:Bool = false;
 	static var svgCache:Hash<XML> = new Hash<XML>();
 
@@ -45,12 +49,14 @@ class MarkerStyle
 		size = Std.is(marker.size, Float) ? marker.size : DEFAULT_SIZE;
 		dx = Std.is(marker.dx, Float) ? marker.dx : DEFAULT_DX;
 		dy = Std.is(marker.dy, Float) ? marker.dy : DEFAULT_DY;
+		minScale = Std.is(marker.minScale, Float) ? marker.minScale : DEFAULT_MINSCALE;
+		maxScale = Std.is(marker.maxScale, Float) ? marker.maxScale : DEFAULT_MAXSCALE;
 		center = Std.is(marker.center, Bool) ? marker.center : DEFAULT_CENTER;
 
 		replacementColor = Std.is(marker.color, UInt) ? marker.color : DEFAULT_REPLACEMENT_COLOR;
 		angleFunction = Std.is(marker.angle, String) ? Parsers.parseExpression(marker.angle) : null;
 		scaleFunction = Std.is(marker.scale, String) ? Parsers.parseExpression(marker.scale) : null;
-		
+
 		origAngleExpr = Std.is(marker.angle, String) ? marker.angle : null;
 		origScaleExpr = Std.is(marker.scale, String) ? marker.scale : null;
 	}
@@ -225,6 +231,8 @@ class MarkerStyle
 		if (scaleFunction != null)
 		{
 			var s = scaleFunction(geom.properties);
+			if (s < minScale) s = minScale;
+			else if (s > maxScale) s = maxScale;
 			matrix.scale(s, s);
 		}
 		matrix.concat(new Matrix(scaleX, 0, 0, scaleY, geom.x, geom.y));
