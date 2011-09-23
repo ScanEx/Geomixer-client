@@ -1212,8 +1212,14 @@ var FireControl = function(map)
 	this._timeShift = null;
 	
 	this._map = map;
+	
+	this._initDeferred = new $.Deferred();
+	
+	FireControlCollection.instances.push(this);
+	$(FireControlCollection).trigger('newInstance');
 }
 
+var FireControlCollection = {instances: []};
 
 //настройки виджета пожаров по умолчанию
 FireControl.DEFAULT_OPTIONS = 
@@ -1269,6 +1275,13 @@ FireControl.prototype.loadState = function( data )
 		this._timeShift = $.extend({}, data.timeShift);
 			
 	this.searchBboxController.loadState(data.bbox);
+}
+
+//вызывает callback когда календарик проинициализирован
+FireControl.prototype.whenInited = function( callback )
+{
+	if (this._initDeferred)
+		this._initDeferred.done( callback );
 }
 
 
@@ -1714,6 +1727,8 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	//$(this._parentDiv).append(_div(null, [['dir', 'id', 'datesInfo']]));
 	
 	this.update();
+	
+	this._initDeferred.resolve();
 }
 
 FireControl.prototype.update = function()
@@ -1725,7 +1740,8 @@ FireControl.prototype.update = function()
 
 
 var publicInterface = {
-	FireControl: FireControl
+	FireControl: FireControl,
+	FireControlCollection: FireControlCollection
 }
 
 if ( typeof gmxCore !== 'undefined' )
