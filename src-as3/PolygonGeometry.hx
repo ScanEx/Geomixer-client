@@ -46,7 +46,7 @@ class PolygonGeometry extends Geometry
 		}
 		else if(style.fill != null) {
 			if(properties != null) {
-				graphics.beginFill(style.fill.getColor(properties), style.fill.opacity);
+				graphics.beginFill(style.fill.getColor(properties), style.fill.getOpacity(properties));
 			} else {
 				Geometry.beginFill(graphics, style.fill);
 			}
@@ -76,7 +76,7 @@ class PolygonGeometry extends Geometry
 		{
 			var oldx:Float = part[part.length - 2];
 			var oldy:Float = part[part.length - 1];
-			var drawer = new DashedLineDrawer(graphics, style.outline, window);
+			var drawer = new DashedLineDrawer(graphics, style.outline, window, properties);
 			drawer.moveTo(oldx, oldy);
 			for (i in 0...Std.int(part.length/2))
 			{

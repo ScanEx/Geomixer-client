@@ -41,7 +41,7 @@ class PointGeometry extends Geometry
 				{
 					size *= window.scaleY;
 					var graphics = sprite.graphics;
-					var drawer = new DashedLineDrawer(graphics, style.outline, window);
+					var drawer = new DashedLineDrawer(graphics, style.outline, window, properties);
 					Geometry.beginFill(graphics, style.fill);
 					drawer.moveTo(x - size, y - size);
 					drawer.lineTo(x + size, y - size);
