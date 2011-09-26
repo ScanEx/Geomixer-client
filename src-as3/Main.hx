@@ -286,15 +286,15 @@ class Main
 		ExternalInterface.addCallback("setCursor", function(url:String, dx:Int, dy:Int)
 		{
 			currentCursorURL = url;
-			Utils.loadImage(url, function(loader)
+			Utils.loadCacheImage(url, function(contents)
 			{
 				if (currentCursorURL == url)
 				{
 					Mouse.hide();
 					deleteCurrentCursor();
-					cursor.addChild(loader);
-					loader.x = dx;
-					loader.y = dy;
+					cursor.addChild(contents.loader);
+					contents.loader.x = dx;
+					contents.loader.y = dy;
 				}
 			});
 		});

@@ -1,3 +1,4 @@
+import flash.display.Bitmap;
 import flash.display.Sprite;
 import flash.display.DisplayObject;
 import flash.display.Loader;
@@ -26,6 +27,7 @@ class Utils
 	public static var worldDelta:Float = 1627508;
 	static var nextId:Int = 0;
 	static var bitmapDataCache:Hash<BitmapData> = new Hash<BitmapData>();
+	static var displayObjectCache:Hash<Dynamic> = new Hash<Dynamic>();
 	
 	static var loaderDataCache:Array<Req> = [];				// Очередь загрузки Bitmap-ов
 	static var loaderActive:Bool = false;					// Флаг активности Loader Bitmap-ов
@@ -57,8 +59,16 @@ class Utils
 		return date;
 	}
 
-	public static function loadImage(url:String, onLoad:DisplayObject->Void, ?onError:Void->Void)
+	// Загрузить Image если возможно закешировать BitmapData + определение isOverlay
+	public static function loadCacheImage(url:String, onLoad:Dynamic->Void, ?onError:Void->Void, ?flagCache:Bool)
 	{
+		if (flagCache && displayObjectCache.exists(url)) {
+			var imgData:Dynamic = displayObjectCache.get(url);
+			imgData.loader = new Bitmap(imgData.bmp);
+			onLoad(imgData);
+			imgData.loader = null;
+			return;
+		}
 		var loader = new Loader();
 		var callOnError = function()
 		{
@@ -73,10 +83,31 @@ class Utils
 		});
 		timer.start();
 
-		loader.contentLoaderInfo.addEventListener(Event.INIT, function(event) 
+		loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(event) 
 		{ 
 			timer.stop();
-			onLoad(loader);
+			var imgData:Dynamic = { };
+			imgData.isOverlay = null;
+			imgData.loader = loader;
+			var flag:Bool = event.target.parentAllowsChild;
+			if(flagCache && flag) {
+				var size = 32;
+				var bmp = new BitmapData(size, size, true, 0);
+				bmp.draw(loader);
+				var hist = bmp.histogram();
+				if (hist[3][255] != 1024) imgData.isOverlay = true;		// по гистограмме определяем тайлы где в верхнем левом углу 32х32 все alpha = 0xFF
+				bmp.dispose();
+				bmp = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
+				bmp.draw(loader);
+				imgData.bmp = bmp;
+				imgData.loader = new Bitmap(bmp);
+				displayObjectCache.set(url, imgData);
+			} else {
+				imgData.isOverlay = true;
+			}
+			
+			onLoad(imgData);
+			imgData.loader = null;
 			Main.bumpFrameRate();
 		});
 		loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, function(event)
