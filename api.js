@@ -886,6 +886,39 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			flashDiv.style.MozUserSelect = "none";
 
+			var clusters =	// атрибуты кластеризации потомков
+			{
+				'parent': null,
+				'attr': {
+					'radius': 20,
+					'iterationCount': 1,
+					'newProperties': {						// Заполняемые поля properties кластеров
+						'Количество': '[objectInCluster]'	// objectInCluster - количество обьектов попавших в кластер (по умолчанию 'Количество')
+					},
+					'visible': false
+				},
+				'setProperties': function(prop) { for(key in prop) this.attr.newProperties[key] = prop[key]; },
+				'getProperties': function() { var out = {}; for(key in this.attr.newProperties) out[key] = this.attr.newProperties[key]; return out; },
+				'setStyle': function(style, activeStyle) { this.attr.RenderStyle = style; this.attr.HoverStyle = (activeStyle ? activeStyle : style); },
+				'getStyle': function() { var out = {}; if(this.attr.RenderStyle) out.RenderStyle = this.attr.RenderStyle; if(this.attr.HoverStyle) out.HoverStyle = this.attr.HoverStyle; return out; },
+				'setRadius': function(radius) { this.attr.radius = radius; },
+				'getRadius': function() { return this.attr.radius; },
+				'setIterationCount': function(iterationCount) { this.attr.iterationCount = iterationCount; },
+				'getIterationCount': function() { return this.attr.iterationCount; },
+				'getVisible': function() { return this.attr.visible; },
+				'setVisible': function(flag) {
+					this.attr.visible = (flag ? true : false);
+					if(!this.parent) return;	// если родитель еще не установлен в SWF не передаем
+					var cmd = 'delClusters';
+					var out = { 'obj': this.parent };
+					if(this.attr.visible) {
+						cmd = 'setClusters';
+						out['attr'] = this.attr;
+					}
+					FlashCMD(cmd, out);
+				}
+			};
+
 			var FlashMapObject = function(objectId_, properties_, parent_)
 			{
 				this.objectId = objectId_;
@@ -895,7 +928,7 @@ function createFlashMapInternal(div, layers, callback)
 				this.properties = properties_;
 				this.parent = parent_;
 				this.flashId = flashId;
-				this.stateListeners = {};
+				this.stateListeners = {};	// Пользовательские события
 			}
 
 			// Передача команды в SWF
@@ -931,7 +964,7 @@ function createFlashMapInternal(div, layers, callback)
 					case 'setZoomBounds':	// Установить ограничения по Zoom
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZ':attr['minZ'], 'maxZ':attr['maxZ'] });
 						break;
-					case 'setClusters':		// Установить класетризацию потомков
+					case 'setClusters':		// Установить кластеризацию потомков
 						if(attr && 'newProperties' in attr) {
 							var keyArray = [];
 							var valArray = [];
@@ -943,9 +976,14 @@ function createFlashMapInternal(div, layers, callback)
 							attr['propFields'] = [keyArray, valArray];
 						}
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
+						if('clusters' in obj) {
+							attr['visible'] = true;
+							obj['clusters']['attr'] = attr;
+						}
 						break;
-					case 'delClusters':		// Удалить установку класетризации потомков
+					case 'delClusters':		// Удалить кластеризацию потомков
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
+						if('clusters' in obj) obj['clusters']['attr']['visible'] = false;
 						break;
 					case 'getDepth':		// Получить индекс обьекта
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
@@ -1108,6 +1146,10 @@ function createFlashMapInternal(div, layers, callback)
 				return new FlashMapObject(obj, props, this);
 			}
 			FlashMapObject.prototype.setFilter = function(sql) {
+				if(!this.clusters) {
+					this.clusters = clusters;	// атрибуты кластеризации потомков по фильтру
+					this.clusters.parent = this;
+				}
 				return flashDiv.setFilter(this.objectId, sql);
 			}
 			FlashMapObject.prototype.remove = function()
