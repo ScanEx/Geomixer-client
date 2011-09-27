@@ -897,7 +897,7 @@ function createFlashMapInternal(div, layers, callback)
 					},
 					'visible': false
 				},
-				'setProperties': function(prop) { for(key in prop) this.attr.newProperties[key] = prop[key]; },
+				'setProperties': function(prop) { var out = {}; for(key in prop) out[key] = prop[key]; this.attr.newProperties = out; },
 				'getProperties': function() { var out = {}; for(key in this.attr.newProperties) out[key] = this.attr.newProperties[key]; return out; },
 				'setStyle': function(style, activeStyle) { this.attr.RenderStyle = style; this.attr.HoverStyle = (activeStyle ? activeStyle : style); },
 				'getStyle': function() { var out = {}; if(this.attr.RenderStyle) out.RenderStyle = this.attr.RenderStyle; if(this.attr.HoverStyle) out.HoverStyle = this.attr.HoverStyle; return out; },
