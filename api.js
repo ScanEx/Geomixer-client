@@ -3184,7 +3184,7 @@ function createFlashMapInternal(div, layers, callback)
 						for (var i = 0; i < copyrightedObjects.length; i++)
 						{
 							var obj = copyrightedObjects[i];
-							if (obj.copyright && obj.objectId && flashDiv.getVisibility(obj.objectId))
+							if (obj.copyright && obj.objectId && obj.getVisibility())
 							{
 								if (obj.geometry)
 								{
