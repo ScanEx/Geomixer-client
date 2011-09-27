@@ -18,7 +18,7 @@ class VectorLayerFilter extends MapContent
 	public var regularStyleOrig:Style;
 	public var hoverStyleOrig:Style;
 	public var paintersHash:Hash<VectorTilePainter>;	// Хэш отрисовщиков тайлов данного фильтра
-	
+
 	public function new(criterion_:Hash<String>->Bool)
 	{
 		criterion = criterion_;
@@ -126,7 +126,6 @@ class VectorLayerFilter extends MapContent
 	public override function repaint()
 	{
 		if(loader != null) loader(mapNode.window.visibleExtent);
-
 		var w = 2*Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;
 		var cx1 = (e1.minx + e1.maxx) / 2;

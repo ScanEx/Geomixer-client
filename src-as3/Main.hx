@@ -917,16 +917,17 @@ class Main
 			data.draw(root);
 			PrintManager.setPrintableContent(data);
 		});
-		var fileRef:FileReference;
-		ExternalInterface.addCallback("savePNG", function(fileName:String)
+		
+		// Сохранение изображения карты в файл
+		var savePNG = function(fileName:String)
 		{
 			try {
 				var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
 				data.draw(root);
-				fileRef = new FileReference();
+				var fileRef:FileReference = new FileReference();
 				fileRef.save(PNGEncoder.encode(data), fileName);
 			} catch (e:Error) { trace(e); }
-		});
+		};
 
 		// Сохранение изображения карты на сервер
 		var sendPNGFile = function(attr:Dynamic):String
@@ -964,7 +965,6 @@ class Main
 			} catch (e:Error) { trace(e); }
 			return '';
 		}
-		ExternalInterface.addCallback("sendPNG", sendPNGFile);
 		
 		function setVisible(id:String, flag:Bool)
 		{
@@ -976,16 +976,11 @@ class Main
 					if (Std.is(child.content, VectorLayerObserver))
 						child.noteSomethingHasChanged();
 		}
-		ExternalInterface.addCallback("setVisible", setVisible);
 		
 		function setZoomBounds(id:String, minZ:Int, maxZ:Int):Dynamic
 		{
 			return getNode(id).setZoomBounds(minZ, maxZ);
 		}
-		ExternalInterface.addCallback("setZoomBounds", function(id:String, minZ:Int, maxZ:Int) 
-		{ 
-			return setZoomBounds(id, minZ, maxZ);
-		});
 
 		function setClusters(id:String, data:Dynamic):Dynamic
 		{
@@ -1017,10 +1012,10 @@ class Main
 			switch (cmd) {
 				case 'getDepth':		// Получить индекс обьекта
 					out = getDepth(attr.objectId);
-				case 'delClusters':		// Удалить класетризацию потомков
+				case 'delClusters':		// Удалить кластеризацию потомков
 					out = delClusters(attr.objectId);
 					Main.bumpFrameRate();
-				case 'setClusters':		// Установить класетризацию потомков
+				case 'setClusters':		// Установить кластеризацию потомков
 					out = setClusters(attr.objectId, attr.data);
 					Main.bumpFrameRate();
 				case 'setZoomBounds':
@@ -1028,24 +1023,41 @@ class Main
 				case 'getZoomBounds':
 					var node = getNode(attr.objectId);
 					out = node.getZoomBounds();
-				case 'sendPNG':
-					out = sendPNGFile(attr);
 				case 'setVisible':
 					setVisible(attr.objectId, attr.flag);
+				case 'getVisibility':	// Получить видимость обьекта
+					var node = getNode(attr.objectId);
+					out = cast(node.getVisibility());
+				case 'setGridVisible':
+					Main.bumpFrameRate();
+					grid.setVisible(attr.flag);
+				case 'getGridVisibility':
+					out = cast(grid.getVisibility());
+				case 'sendPNG':
+					out = sendPNGFile(attr);
+				case 'savePNG':
+					savePNG(attr);
 			}
 			return out;
 		}
 		ExternalInterface.addCallback("cmdFromJS", parseCmdFromJS);
-
-
+		// Устаревшие методы
+/*
+		ExternalInterface.addCallback("setVisible", setVisible);
+		ExternalInterface.addCallback("getVisibility", function(id:String) { return getNode(id).getVisibility(); } );
+		ExternalInterface.addCallback("setZoomBounds", function(id:String, minZ:Int, maxZ:Int) 
+		{ 
+			return setZoomBounds(id, minZ, maxZ);
+		});
+		ExternalInterface.addCallback("sendPNG", sendPNGFile);
 		ExternalInterface.addCallback("setGridVisible", function(flag)
 		{
 			Main.bumpFrameRate();
 			grid.setVisible(flag);
 		});
 		ExternalInterface.addCallback("getGridVisibility", function() { return grid.getVisibility(); });
+*/
 		
-		ExternalInterface.addCallback("getVisibility", function(id:String) { return getNode(id).getVisibility(); });
 		ExternalInterface.addCallback("getFeatures", function(id:String, geom:Dynamic, func:String)
 		{
 			var ret = new Hash<Bool>();

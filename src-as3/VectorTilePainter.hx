@@ -73,7 +73,6 @@ class VectorTilePainter
 				clustersGeometry = Utils.getClusters(vectorLayerFilter, tileGeometry, tile, currentZ);
 				painter.geometry = clustersGeometry;
 			}
-			
 		}
 
 		//tileOverlap = mapWindow.visibleExtent.overlapsFull(painter.geometry.extent);	// Полное перекрытие геометрий

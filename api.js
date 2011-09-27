@@ -958,9 +958,6 @@ function createFlashMapInternal(div, layers, callback)
 						ret['base64'] = flashDiv.cmdFromJS(cmd, attr);
 						miniMap.setVisible(miniMapFlag);
 						break;
-					case 'getZoomBounds':	// Получить ограничения по Zoom
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
-						break;
 					case 'setZoomBounds':	// Установить ограничения по Zoom
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZ':attr['minZ'], 'maxZ':attr['maxZ'] });
 						break;
@@ -985,27 +982,38 @@ function createFlashMapInternal(div, layers, callback)
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
 						if('clusters' in obj) obj['clusters']['attr']['visible'] = false;
 						break;
+					case 'setGridVisible':		// Изменить видимость сетки
+						ret = flashDiv.cmdFromJS(cmd, { 'flag':attr } );
+						break;
+					case 'getGridVisibility':	// получить видимость сетки
+						ret = flashDiv.cmdFromJS(cmd, { } );
+						break;
+					case 'getZoomBounds':	// Получить ограничения по Zoom
 					case 'getDepth':		// Получить индекс обьекта
+					case 'getVisibility':	// получить видимость
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
+						break;
+					case 'savePNG':			// Сохранить PNG файл экрана
+						ret = flashDiv.cmdFromJS(cmd, { 'fileName':attr });
 						break;
 				}
 				return ret;
 			}
+
+			FlashMapObject.prototype.getVisibility = function() { return FlashCMD('getVisibility', { 'obj': this }); }
+			FlashMapObject.prototype.setVisible = function(flag) { FlashCMD('setVisible', { 'obj': this, 'attr': flag }); }
 			FlashMapObject.prototype.getDepth = function(attr) { return FlashCMD('getDepth', { 'obj': this }); }
 			FlashMapObject.prototype.delClusters = function(attr) { return FlashCMD('delClusters', { 'obj': this }); }
 			FlashMapObject.prototype.setClusters = function(attr) { return FlashCMD('setClusters', { 'obj': this, 'attr':attr }); }
 			FlashMapObject.prototype.getZoomBounds = function() { return FlashCMD('getZoomBounds', { 'obj': this }); }
 			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return FlashCMD('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} }); }
+			FlashMapObject.prototype.sendPNG = function(attr) { var ret = FlashCMD('sendPNG', { 'attr': attr }); return ret; }
+			FlashMapObject.prototype.savePNG = function(fileName) { FlashCMD('savePNG', { 'attr': fileName }); }
 
 			FlashMapObject.prototype.trace = function(val) { flashDiv.trace(val); }
 			FlashMapObject.prototype.setQuality = function(val) { flashDiv.setQuality(val); }
 			FlashMapObject.prototype.disableCaching = function() { flashDiv.disableCaching(); }
 			FlashMapObject.prototype.print = function() { flashDiv.print(); }
-			FlashMapObject.prototype.savePNG = function(fileName) { flashDiv.savePNG(fileName); }
-			FlashMapObject.prototype.sendPNG = function(attr) {
-				var ret = FlashCMD('sendPNG', { 'attr': attr });
-				return ret;
-			}
 			FlashMapObject.prototype.repaint = function() { flashDiv.repaint(); }
 			FlashMapObject.prototype.moveTo = function(x, y, z) 
 			{ 
@@ -1163,21 +1171,6 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.bringToBottom = function() { flashDiv.bringToBottom(this.objectId); }
 			FlashMapObject.prototype.bringToDepth = function(n) { return flashDiv.bringToDepth(this.objectId, n); }
 			FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
-			FlashMapObject.prototype.setVisible = function(flag) 
-			{
-/*
-				FlashCMD('setVisible', { 'obj': this, 'attr': flag });
-*/
-				flashDiv.setVisible(this.objectId, flag); 
-				if (flag && this.backgroundColor)
-					map.setBackgroundColor(this.backgroundColor);
-				if (this.copyright)
-					map.updateCopyright();
-				var func = map.onSetVisible[this.objectId];
-				if (func)
-					func(flag);
-			}
-			FlashMapObject.prototype.getVisibility = function() { return flashDiv.getVisibility(this.objectId); }
 			FlashMapObject.prototype.setStyle = function(style, activeStyle) {
 				flashDiv.setStyle(this.objectId, style, activeStyle);
 			}
@@ -2174,8 +2167,8 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			);
 			map.grid = {
-				setVisible: function(flag) { flashDiv.setGridVisible(flag); },
-				getVisibility: function(flag) { return flashDiv.getGridVisibility(); }
+				setVisible: function(flag) { FlashCMD('setGridVisible', { 'attr': flag }) },
+				getVisibility: function() { return FlashCMD('getGridVisibility', {}) }
 			};
 
 			var allTools = newStyledDiv({ position: "absolute", top: 0, left: 0 });
