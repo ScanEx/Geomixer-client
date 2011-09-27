@@ -1,6 +1,8 @@
 import flash.display.Sprite;
 import flash.events.Event;
 import flash.events.MouseEvent;
+import flash.utils.Timer;
+import flash.events.TimerEvent;
 
 class VectorLayerFilter extends MapContent
 {
@@ -48,8 +50,8 @@ class VectorLayerFilter extends MapContent
 		mapNode.setStyle(regularStyleOrig, hoverStyleOrig);
 	}
 
-	// Установить кластеризацию на фильтре
-	public override function setClusters(attr:Dynamic):Dynamic
+	// Инициализация кластеризации на фильтре
+	private function runClusters(attr:Dynamic)
 	{
 		clusterAttr = attr;
 		var regularStyle = null;
@@ -60,6 +62,27 @@ class VectorLayerFilter extends MapContent
 		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
 		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
 		mapNode.setStyle(regularStyle, hoverStyle);
+	}
+
+	// Установить кластеризацию на фильтре
+	public override function setClusters(attr:Dynamic):Dynamic
+	{
+		var me = this;
+		if(mapNode.regularStyle == null) {
+			var timer:Timer = new Timer(20);
+			timer.addEventListener("timer", function(e:TimerEvent)
+			{
+				if (me.mapNode.regularStyle != null) {
+					timer.stop();
+					timer = null;
+					me.runClusters(attr);
+				}
+			});
+			timer.start();
+		} else
+		{
+			runClusters(attr);
+		}
 		return true;
 	}
 
