@@ -2359,9 +2359,7 @@ function createFlashMapInternal(div, layers, callback)
 			)
 			zoomParent.appendChild(zoomPlus);
 
-			var zoomArr = [];
-			var zoomObj = false;
-			for (var i = 0; i < 20; i++) (function(i)
+			var addZoomItem = function(i)
 			{
 				var zoomObj_ = newElement(
 					"img",
@@ -2394,7 +2392,14 @@ function createFlashMapInternal(div, layers, callback)
 				);
 				zoomParent.appendChild(zoomObj_);
 				zoomArr.push(zoomObj_);
-			})(i);
+			};
+
+			var zoomArr = [];
+			var zoomObj = false;
+			for (var i = 0; i < 20; i++)
+			{
+				addZoomItem(i);
+			}
 
 			var minZoom, maxZoom;
 			map.zoomControl = {
@@ -2413,8 +2418,10 @@ function createFlashMapInternal(div, layers, callback)
 					position(zoomPlus, 20 + gap, 7);
 					size(zoomPlaque, 43 + gap, 32);
 					map.zoomControl.width = 43 + gap;
-					for (var i = 0; i < zoomArr.length; i++)
+					for (var i = 0; i < dz; i++) {
+						if(i == zoomArr.length) addZoomItem(i);
 						setVisible(zoomArr[i], !this.isMinimized && (i < dz));
+					}
 					positionTimeBar();
 				},
 				minimize: function()
