@@ -69,8 +69,10 @@ var GetPropertiesString = function(/**object[]*/oProps,/**string*/ sPropSeparato
 	var sResultString = "";
 	if (oProps != null){
 		for (var sPropName in oProps){
-			if (sResultString != "") sResultString += sPropSeparator;
-			sResultString += sPropName + ": " + oProps[sPropName];
+			if (sPropName != "ogc_fid"){
+				if (sResultString != "") sResultString += sPropSeparator;
+				sResultString += sPropName + ": " + oProps[sPropName];
+			}
 		}
 	}
 	return sResultString;
@@ -409,7 +411,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 
 		_(elemDiv, [searchElemHeader]);
 		if (oFoundObject.Parent != null) drawObject(oFoundObject.Parent, elemDiv, true);
-		if (oFoundObject.properties != null) _(elemDiv, [_t(GetPropertiesString(oFoundObject.properties, "; "))]);
+		if (oFoundObject.properties != null) _(elemDiv, [_t(" " + GetPropertiesString(oFoundObject.properties, "; "))]);
 	}
 	
 	/** Рисует строки списка*/
@@ -713,6 +715,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
 	
 	/**Центрует карту по переданному объекту*/
 	var CenterObject = function(oFoundObject){
+		if (!oFoundObject) return;
 		var iZoom = 100;
 		var iMaxZoom  = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183) ? 9 : 15;
 		oMap.setMinMaxZoom(1, iMaxZoom);
