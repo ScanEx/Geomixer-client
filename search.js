@@ -92,8 +92,8 @@ var SearchInput = function (oInitContainer, params) {
 	var layersSearchFlag = params.layersSearchFlag;
 	var _this = this;	
 	if (Container == null) throw "SearchInput.Container is null";
-	var _sDefalutAddressLabel = _gtxt("$$search$$_1");
-	var _sDefalutAddressVectorLabel = _gtxt("$$search$$_2");
+	var _sDefalutAddressVectorLabel = _gtxt("$$search$$_1");
+	var _sDefalutAddressLabel = _gtxt("$$search$$_2");
 	/** Возвращает содержимое поля поиска
 	@function
 	@see Search.SearchInput#SetSearchString*/
@@ -132,11 +132,11 @@ var SearchInput = function (oInitContainer, params) {
 		var bChangeValue = (searchField.value == sDefaultValue);
 	
 		if (layersSearchFlag) {
-			sDefaultValue = _sDefalutAddressLabel
+			sDefaultValue = _sDefalutAddressVectorLabel
 			divSearchBegin.className = 'searchBeginOn';
 		}
 		else {
-			sDefaultValue = _sDefalutAddressVectorLabel
+			sDefaultValue = _sDefalutAddressLabel
 			divSearchBegin.className = 'searchBeginOff';
 		}
 		
@@ -144,12 +144,12 @@ var SearchInput = function (oInitContainer, params) {
 	}
 	
 	if (!layersSearchFlag) {
-        sDefaultValue = _sDefalutAddressVectorLabel;
+        sDefaultValue = _sDefalutAddressLabel;
 		divSearchBegin = _div(null, [['dir', 'className', 'searchBegin']]);
         tdSearchBegin = _td([divSearchBegin], [['dir', 'className', 'searchBeginTD']]);
     }
     else {
-        sDefaultValue = _sDefalutAddressLabel;
+        sDefaultValue = _sDefalutAddressVectorLabel;
 		divSearchBegin = _div(null, [['dir', 'className', 'searchBeginOn']]);
 		tdSearchBegin = _td([divSearchBegin], [['dir', 'className', 'searchBeginOnTD']]);
         divSearchBegin.onclick = function() {
@@ -267,13 +267,17 @@ var SearchInput = function (oInitContainer, params) {
 	this.getContainer = function(){return Container;}
 	
 	/** Устанавливает значение по умолчанию вместо "Поиск по адресной базе"*/
-	this.setAddressDefault = function(value){
-		_sDefalutAddressLabel = value;
+	this.setAddressVectorDefault = function(value){
+		if(searchField.value == _sDefalutAddressLabel) searchField.value = value;
+		if(sDefaultValue == _sDefalutAddressLabel) sDefaultValue = value;
+		_sDefalutAddressVectorLabel = value;
 	}
 	
 	/** Устанавливает значение по умолчанию вместо "Поиск по векторным слоям и адресной базе"*/
-	this.setAddressVectorDefault = function(value){
-		_sDefalutAddressVectorLabel = value;
+	this.setAddressDefault = function(value){
+		if(searchField.value == _sDefalutAddressLabel) searchField.value = value;
+		if(sDefaultValue == _sDefalutAddressLabel) sDefaultValue = value;
+		_sDefalutAddressLabel = value;
 	}
 };
 
