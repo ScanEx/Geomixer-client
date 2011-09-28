@@ -283,31 +283,6 @@ class Main
 			if (cursor.numChildren > 0)
 				cursor.removeChildAt(0);
 		}
-		ExternalInterface.addCallback("setCursor", function(url:String, dx:Int, dy:Int)
-		{
-			currentCursorURL = url;
-			Utils.loadCacheImage(url, function(contents)
-			{
-				if (currentCursorURL == url)
-				{
-					Mouse.hide();
-					deleteCurrentCursor();
-					cursor.addChild(contents.loader);
-					contents.loader.x = dx;
-					contents.loader.y = dy;
-				}
-			});
-		});
-		ExternalInterface.addCallback("clearCursor", function()
-		{
-			deleteCurrentCursor();
-			Mouse.show();
-			currentCursorURL = null;
-		});
-		ExternalInterface.addCallback("setCursorVisible", function(flag:Bool)
-		{
-			cursor.visible = flag;
-		});
 		root.addEventListener(MouseEvent.MOUSE_MOVE, function(event)
 		{
 			var dx:Float = root.mouseX - startMouseX;
@@ -316,16 +291,6 @@ class Main
 				pressTime = 0;
 			Main.bumpFrameRate();
 			repaintCursor();
-		});
-		ExternalInterface.addCallback("stopDragging", function()
-		{
-			isDragging = false;
-			if (!isFluidMoving)
-				isMoving = false;
-		});
-		ExternalInterface.addCallback("isDragging", function()
-		{
-			return isDragging;
 		});
 		var windowMouseMove = function(?event)
 		{
@@ -341,7 +306,6 @@ class Main
 			}
 		};
 		mapSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
-		ExternalInterface.addCallback("resumeDragging", windowMouseMove);
 
 		Main.refreshMap = function()
 		{
@@ -413,168 +377,6 @@ class Main
 
 		ExternalInterface.marshallExceptions = true;
 
-		ExternalInterface.addCallback("freeze", function() 
-		{ 
-			Main.draggingDisabled = true; 
-		});
-		ExternalInterface.addCallback("unfreeze", function() 
-		{ 
-			Main.draggingDisabled = false; 
-		});
-		ExternalInterface.addCallback("zoomBy", function(dz:Float, ?useMouse:Dynamic)
-		{ 
-			if (useMouse != null)
-			{
-				var sprite = getWindowUnderMouse().innerSprite;
-				zoomBy(-dz, sprite.mouseX, sprite.mouseY);
-			}
-			else
-				zoomBy(-dz, currentX, currentY);
-		});
-		ExternalInterface.addCallback("moveTo", function(x:Float, y:Float, z:Float)
-		{
-			Main.bumpFrameRate();
-			setCurrentPosition(x, y, Math.round(17 - z));
-		});
-		ExternalInterface.addCallback("slideTo", function(x:Float, y:Float, z:Float)
-		{
-			Main.bumpFrameRate();
-			fluidMoveTo(x, y, 17 - z, 10);
-		});
-		ExternalInterface.addCallback("getPosition", function() {
-			var out:Dynamic = { };
-			out.mouseX = mapWindow.innerSprite.mouseX;
-			out.mouseY = mapWindow.innerSprite.mouseY;
-			out.stageHeight = stage.stageHeight;
-			out.stageWidth = stage.stageWidth;
-			out.x = currentX;
-			out.y = currentY;
-			out.z = currentZ;
-			var extent:Dynamic = { };
-			extent.minx = mapWindow.visibleExtent.minx;
-			extent.maxx = mapWindow.visibleExtent.maxx;
-			extent.miny = mapWindow.visibleExtent.miny;
-			extent.maxy = mapWindow.visibleExtent.maxy;
-			out.extent = extent;
-			return out;
-		});
-		ExternalInterface.addCallback("getX", function() { return currentX;	});
-		ExternalInterface.addCallback("getY", function() { return currentY; });
-		ExternalInterface.addCallback("getZ", function() { return 17 - currentZ; });
-		ExternalInterface.addCallback("getMouseX", function() { return mapWindow.innerSprite.mouseX; });
-		ExternalInterface.addCallback("getMouseY", function() { return mapWindow.innerSprite.mouseY; });
-		ExternalInterface.addCallback("isKeyDown", function(code) { return Key.isDown(code); });
-		ExternalInterface.addCallback("setExtent", function(x1:Float, x2:Float, y1:Float, y2:Float)
-		{
-			minX = x1;
-			minY = y1;
-			maxX = x2;
-			maxY = y2;
-			setCurrentPosition(currentX, currentY, currentZ);
-		});
-		ExternalInterface.addCallback("setMinMaxZoom", function(z1:Float, z2:Float)
-		{
-			minZ = z1;
-			maxZ = z2;
-			setCurrentPosition(currentX, currentY, currentZ);
-		});
-		ExternalInterface.addCallback("setStyle", function(id:String, ?regularStyle:Dynamic, ?hoveredStyle:Dynamic)
-		{
-			Main.bumpFrameRate();
-			getNode(id).setStyle(new Style(regularStyle), (hoveredStyle != null) ? new Style(hoveredStyle) : null);
-		});
-		
-		ExternalInterface.addCallback("getStyle", function(id:String, removeDefaults:Bool)
-		{
-			return getNode(id).getStyle(removeDefaults);
-		});
-		
-		ExternalInterface.addCallback("addMapWindow", function(callbackName:String) 
-		{ 
-			var lastCurrentZ:Float = -100, lastComputedZ:Float = 0;
-			var window = new MapWindow(Utils.addSprite(root), function()
-			{ 
-				if (currentZ != lastCurrentZ)
-				{
-					lastCurrentZ = currentZ;
-					lastComputedZ = 0;
-					try {
-						lastComputedZ = 17 - ExternalInterface.call(callbackName, 17 - currentZ);
-					} catch (e:Error) {  }
-				}
-				return lastComputedZ;
-			});
-			window.innerSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
-			window.innerSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
-			// window.setCenter(currentX, currentY);
-			return window.id;
-		});
-		ExternalInterface.addCallback("positionWindow", function(id:String, x1:Float, y1:Float, x2:Float, y2:Float) 
-		{ 
-			var window = MapWindow.allWindows.get(id);
-			var w = stage.stageWidth;
-			var h = stage.stageHeight;
-			window.resize(x1*w, y1*h, x2*w, y2*h);
-			window.setCenter(currentX, currentY);
-		});
-		ExternalInterface.addCallback("setBackgroundColor", function(id:String, color:Int)
-		{
-			if (id == mapRoot.id)
-				id = mapWindow.rootNode.id;
-			var window = MapWindow.allWindows.get(id);
-			if (window != null)
-				window.setBackgroundColor(color);
-			if (window == mapWindow)
-				repaintCrosshair();
-				
-			viewportHasMoved = true;
-		});
-		ExternalInterface.addCallback("remove", function(id:String) 
-		{ 
-			getNode(id).remove(); 
-		});
-		ExternalInterface.addCallback("setBackgroundTiles", function(id:String, func:String, ?projectionCode:Int)
-		{ 
-			var node = getNode(id);
-			var newContent = new RasterLayer(
-				function(i:Int, j:Int, z:Int)
-				{
-					var out:String = '';
-					try {
-						out = ExternalInterface.call(func, i, j, z);
-					} catch (e:Error) {  }
-					return out;
-				}
-			);
-			if ((node.content != null) && Std.is(node.content, VectorObject))
-				newContent.setMask(cast(node.content, VectorObject).geometry);
-			node.setContent(newContent);
-			if (projectionCode == 1)
-			{
-				newContent.setDisplacement(
-					function(x:Float) { return 0.0; },
-					function(y:Float) { return y - Merc.y_ex(Merc.from_y(y), Merc.r_major); }
-				);
-			}
-		});
-		ExternalInterface.addCallback("setDisplacement", function(id:String, dx:Float, dy:Float)
-		{
-			cast(getNode(id).content, RasterLayer).setDisplacement(
-				function(x:Float):Float { return dx; },
-				function(y:Float):Float { return dy; }
-			);
-		});
-		ExternalInterface.addCallback("setTileCaching", function(id:String, flag:Bool)
-		{
-			cast(getNode(id).content, RasterLayer).tileCaching = flag;			
-		});		
-		ExternalInterface.addCallback("setEditable", function(id:String) { getNode(id).setContent(new EditableContent()); });
-		ExternalInterface.addCallback("startDrawing", function(id:String, type:String) { cast(getNode(id).content, EditableContent).startDrawing(type); });
-		ExternalInterface.addCallback("stopDrawing", function(id:String) { cast(getNode(id).content, EditableContent).stopDrawing(); });
-		ExternalInterface.addCallback("isDrawing", function(id:String):Bool { return (cast(getNode(id).content, EditableContent).stopDrawing != null); });
-		ExternalInterface.addCallback("getIntermediateLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getIntermediateLength(); });
-		ExternalInterface.addCallback("getCurrentEdgeLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getCurrentEdgeLength(); });
-		
 		var setLabel = function(id:String, label:String)
 		{
 			nextFrameCallbacks.push(function()
@@ -911,12 +713,6 @@ class Main
 		});
 		ExternalInterface.addCallback("getCenter", function(id:String) { return [0.0, 0.0]; });
 		ExternalInterface.addCallback("addChildRoot", function(id:String) { return getNode(id).addChild().id; });
-		ExternalInterface.addCallback("print", function()
-		{
-			var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
-			data.draw(root);
-			PrintManager.setPrintableContent(data);
-		});
 		
 		// Сохранение изображения карты в файл
 		var savePNG = function(fileName:String)
@@ -1037,12 +833,389 @@ class Main
 					out = sendPNGFile(attr);
 				case 'savePNG':
 					savePNG(attr);
+				case 'trace':
+					trace(attr.data);
+				case 'setQuality':
+					stage.quality = attr.data;
+				case 'print':
+					var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
+					data.draw(root);
+					PrintManager.setPrintableContent(data);
+				case 'addContextMenuItem':
+					var func:String = attr.func;
+					var item = new ContextMenuItem(attr.text);
+					item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
+					{
+						try {
+							ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
+						} catch (e:Error) {  }
+					});
+					root.contextMenu.customItems.push(item);
+				case 'moveTo':
+					Main.bumpFrameRate();
+					setCurrentPosition(attr.x, attr.y, Math.round(17 - attr.z));
+				case 'slideTo':
+					Main.bumpFrameRate();
+					fluidMoveTo(attr.x, attr.y, 17 - attr.z, 10);
+				case 'zoomBy':
+					var dz:Float = attr.dz;
+					var mx:Float = currentX;
+					var my:Float = currentY;
+					if (attr.useMouse != null)
+					{
+						var sprite = getWindowUnderMouse().innerSprite;
+						mx = sprite.mouseX;
+						my = sprite.mouseY;
+					}
+					zoomBy(-dz, mx, my);
+				case 'freeze':
+					Main.draggingDisabled = true; 
+				case 'unfreeze':
+					Main.draggingDisabled = false; 
+				case 'setCursor':
+					currentCursorURL = attr.url;
+					Utils.loadCacheImage(currentCursorURL, function(contents)
+					{
+						if (currentCursorURL == attr.url)
+						{
+							Mouse.hide();
+							deleteCurrentCursor();
+							cursor.addChild(contents.loader);
+							contents.loader.x = attr.dx;
+							contents.loader.y = attr.dy;
+						}
+					});
+				case 'clearCursor':
+					deleteCurrentCursor();
+					Mouse.show();
+					currentCursorURL = null;
+				case 'setCursorVisible':
+					cursor.visible = attr.flag;
+				case 'stopDragging':
+					isDragging = false;
+					if (!isFluidMoving)
+						isMoving = false;
+				case 'isDragging':
+					out = cast(isDragging);
+				case 'resumeDragging':
+					windowMouseMove();
+				case 'getPosition':
+					var res:Dynamic = { };
+					res.mouseX = mapWindow.innerSprite.mouseX;
+					res.mouseY = mapWindow.innerSprite.mouseY;
+					res.stageHeight = stage.stageHeight;
+					res.stageWidth = stage.stageWidth;
+					res.x = currentX;
+					res.y = currentY;
+					res.z = currentZ;
+					var extent:Dynamic = { };
+					extent.minx = mapWindow.visibleExtent.minx;
+					extent.maxx = mapWindow.visibleExtent.maxx;
+					extent.miny = mapWindow.visibleExtent.miny;
+					extent.maxy = mapWindow.visibleExtent.maxy;
+					res.extent = extent;
+					out = cast(res);
+				case 'getX':
+					out = cast(currentX);
+				case 'getY':
+					out = cast(currentY);
+				case 'getZ':
+					out = cast(17 - currentZ);
+				case 'getMouseX':
+					out = cast(mapWindow.innerSprite.mouseX);
+				case 'getMouseY':
+					out = cast(mapWindow.innerSprite.mouseY);
+				case 'isKeyDown':
+					out = cast(Key.isDown(attr.code));
+				case 'setExtent':
+					minX = attr.x1;
+					minY = attr.y1;
+					maxX = attr.x2;
+					maxY = attr.y2;
+					setCurrentPosition(currentX, currentY, currentZ);
+				case 'setMinMaxZoom':
+					minZ = attr.z1;
+					maxZ = attr.z2;
+					setCurrentPosition(currentX, currentY, currentZ);
+				case 'addMapWindow':
+					var lastCurrentZ:Float = -100, lastComputedZ:Float = 0;
+					var window = new MapWindow(Utils.addSprite(root), function()
+					{ 
+						if (currentZ != lastCurrentZ)
+						{
+							lastCurrentZ = currentZ;
+							lastComputedZ = 0;
+							try {
+								lastComputedZ = 17 - ExternalInterface.call(attr.callbackName, 17 - currentZ);
+							} catch (e:Error) {  }
+						}
+						return lastComputedZ;
+					});
+					window.innerSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
+					window.innerSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
+					// window.setCenter(currentX, currentY);
+					out = cast(window.id);
+				case 'setStyle':
+					Main.bumpFrameRate();
+					var node = getNode(attr.objectId);
+					var data:Dynamic = cast(attr.data);
+					node.setStyle(new Style(data.regularStyle), (data.hoveredStyle != null) ? new Style(data.hoveredStyle) : null);
+				case 'getStyle':
+					var node = getNode(attr.objectId);
+					out = cast(node.getStyle(attr.removeDefaults));
+				case 'positionWindow':
+					var window = MapWindow.allWindows.get(attr.objectId);
+					var data:Dynamic = cast(attr.data);
+					var x1:Float = data.x1;
+					var y1:Float = data.y1;
+					var x2:Float = data.x2;
+					var y2:Float = data.y2;
+					var w = stage.stageWidth;
+					var h = stage.stageHeight;
+					window.resize(x1*w, y1*h, x2*w, y2*h);
+					window.setCenter(currentX, currentY);
+				case 'setBackgroundColor':
+					if (attr.objectId == mapRoot.id)
+						attr.objectId = mapWindow.rootNode.id;
+					var window = MapWindow.allWindows.get(attr.objectId);
+					if (window != null)
+						window.setBackgroundColor(attr.color);
+					if (window == mapWindow)
+						repaintCrosshair();
+						
+					viewportHasMoved = true;
 			}
 			return out;
 		}
 		ExternalInterface.addCallback("cmdFromJS", parseCmdFromJS);
 		// Устаревшие методы
+		ExternalInterface.addCallback("remove", function(id:String) 
+		{ 
+			getNode(id).remove(); 
+		});
+		ExternalInterface.addCallback("setBackgroundTiles", function(id:String, func:String, ?projectionCode:Int)
+		{ 
+			var node = getNode(id);
+			var newContent = new RasterLayer(
+				function(i:Int, j:Int, z:Int)
+				{
+					var out:String = '';
+					try {
+						out = ExternalInterface.call(func, i, j, z);
+					} catch (e:Error) {  }
+					return out;
+				}
+			);
+			if ((node.content != null) && Std.is(node.content, VectorObject))
+				newContent.setMask(cast(node.content, VectorObject).geometry);
+			node.setContent(newContent);
+			if (projectionCode == 1)
+			{
+				newContent.setDisplacement(
+					function(x:Float) { return 0.0; },
+					function(y:Float) { return y - Merc.y_ex(Merc.from_y(y), Merc.r_major); }
+				);
+			}
+		});
+		ExternalInterface.addCallback("setDisplacement", function(id:String, dx:Float, dy:Float)
+		{
+			cast(getNode(id).content, RasterLayer).setDisplacement(
+				function(x:Float):Float { return dx; },
+				function(y:Float):Float { return dy; }
+			);
+		});
+		ExternalInterface.addCallback("setTileCaching", function(id:String, flag:Bool)
+		{
+			cast(getNode(id).content, RasterLayer).tileCaching = flag;			
+		});		
+		ExternalInterface.addCallback("setEditable", function(id:String) { getNode(id).setContent(new EditableContent()); });
+		ExternalInterface.addCallback("startDrawing", function(id:String, type:String) { cast(getNode(id).content, EditableContent).startDrawing(type); });
+		ExternalInterface.addCallback("stopDrawing", function(id:String) { cast(getNode(id).content, EditableContent).stopDrawing(); });
+		ExternalInterface.addCallback("isDrawing", function(id:String):Bool { return (cast(getNode(id).content, EditableContent).stopDrawing != null); });
+		ExternalInterface.addCallback("getIntermediateLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getIntermediateLength(); });
+		ExternalInterface.addCallback("getCurrentEdgeLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getCurrentEdgeLength(); });
+		
 /*
+		
+		ExternalInterface.addCallback("setBackgroundColor", function(id:String, color:Int)
+		{
+			if (id == mapRoot.id)
+				id = mapWindow.rootNode.id;
+			var window = MapWindow.allWindows.get(id);
+			if (window != null)
+				window.setBackgroundColor(color);
+			if (window == mapWindow)
+				repaintCrosshair();
+				
+			viewportHasMoved = true;
+		});
+		ExternalInterface.addCallback("positionWindow", function(id:String, x1:Float, y1:Float, x2:Float, y2:Float) 
+		{ 
+			var window = MapWindow.allWindows.get(id);
+			var w = stage.stageWidth;
+			var h = stage.stageHeight;
+			window.resize(x1*w, y1*h, x2*w, y2*h);
+			window.setCenter(currentX, currentY);
+		});
+		
+		ExternalInterface.addCallback("getStyle", function(id:String, removeDefaults:Bool)
+		{
+			return getNode(id).getStyle(removeDefaults);
+		});
+		ExternalInterface.addCallback("setStyle", function(id:String, ?regularStyle:Dynamic, ?hoveredStyle:Dynamic)
+		{
+			Main.bumpFrameRate();
+			getNode(id).setStyle(new Style(regularStyle), (hoveredStyle != null) ? new Style(hoveredStyle) : null);
+		});
+		ExternalInterface.addCallback("addMapWindow", function(callbackName:String) 
+		{ 
+			var lastCurrentZ:Float = -100, lastComputedZ:Float = 0;
+			var window = new MapWindow(Utils.addSprite(root), function()
+			{ 
+				if (currentZ != lastCurrentZ)
+				{
+					lastCurrentZ = currentZ;
+					lastComputedZ = 0;
+					try {
+						lastComputedZ = 17 - ExternalInterface.call(callbackName, 17 - currentZ);
+					} catch (e:Error) {  }
+				}
+				return lastComputedZ;
+			});
+			window.innerSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
+			window.innerSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
+			// window.setCenter(currentX, currentY);
+			return window.id;
+		});
+		ExternalInterface.addCallback("setMinMaxZoom", function(z1:Float, z2:Float)
+		{
+			minZ = z1;
+			maxZ = z2;
+			setCurrentPosition(currentX, currentY, currentZ);
+		});
+		ExternalInterface.addCallback("setExtent", function(x1:Float, x2:Float, y1:Float, y2:Float)
+		{
+			minX = x1;
+			minY = y1;
+			maxX = x2;
+			maxY = y2;
+			setCurrentPosition(currentX, currentY, currentZ);
+		});
+		ExternalInterface.addCallback("getX", function() { return currentX;	});
+		ExternalInterface.addCallback("getY", function() { return currentY; });
+		ExternalInterface.addCallback("getZ", function() { return 17 - currentZ; });
+		ExternalInterface.addCallback("getMouseX", function() { return mapWindow.innerSprite.mouseX; });
+		ExternalInterface.addCallback("getMouseY", function() { return mapWindow.innerSprite.mouseY; });
+		ExternalInterface.addCallback("isKeyDown", function(code) { return Key.isDown(code); });
+		ExternalInterface.addCallback("getPosition", function() {
+			var out:Dynamic = { };
+			out.mouseX = mapWindow.innerSprite.mouseX;
+			out.mouseY = mapWindow.innerSprite.mouseY;
+			out.stageHeight = stage.stageHeight;
+			out.stageWidth = stage.stageWidth;
+			out.x = currentX;
+			out.y = currentY;
+			out.z = currentZ;
+			var extent:Dynamic = { };
+			extent.minx = mapWindow.visibleExtent.minx;
+			extent.maxx = mapWindow.visibleExtent.maxx;
+			extent.miny = mapWindow.visibleExtent.miny;
+			extent.maxy = mapWindow.visibleExtent.maxy;
+			out.extent = extent;
+			return out;
+		});
+
+		ExternalInterface.addCallback("resumeDragging", windowMouseMove);
+		ExternalInterface.addCallback("stopDragging", function()
+		{
+			isDragging = false;
+			if (!isFluidMoving)
+				isMoving = false;
+		});
+		ExternalInterface.addCallback("isDragging", function()
+		{
+			return isDragging;
+		});
+
+		ExternalInterface.addCallback("setCursor", function(url:String, dx:Int, dy:Int)
+		{
+			currentCursorURL = url;
+			Utils.loadCacheImage(url, function(contents)
+			{
+				if (currentCursorURL == url)
+				{
+					Mouse.hide();
+					deleteCurrentCursor();
+					cursor.addChild(contents.loader);
+					contents.loader.x = dx;
+					contents.loader.y = dy;
+				}
+			});
+		});
+		ExternalInterface.addCallback("clearCursor", function()
+		{
+			deleteCurrentCursor();
+			Mouse.show();
+			currentCursorURL = null;
+		});
+		ExternalInterface.addCallback("setCursorVisible", function(flag:Bool)
+		{
+			cursor.visible = flag;
+		});
+
+		ExternalInterface.addCallback("freeze", function() 
+		{ 
+			Main.draggingDisabled = true; 
+		});
+		ExternalInterface.addCallback("unfreeze", function() 
+		{ 
+			Main.draggingDisabled = false; 
+		});
+
+ExternalInterface.addCallback("zoomBy", function(dz:Float, ?useMouse:Dynamic)
+		{ 
+			if (useMouse != null)
+			{
+				var sprite = getWindowUnderMouse().innerSprite;
+				zoomBy(-dz, sprite.mouseX, sprite.mouseY);
+			}
+			else
+				zoomBy(-dz, currentX, currentY);
+		});
+
+ExternalInterface.addCallback("slideTo", function(x:Float, y:Float, z:Float)
+		{
+			Main.bumpFrameRate();
+			fluidMoveTo(x, y, 17 - z, 10);
+		});
+
+ExternalInterface.addCallback("moveTo", function(x:Float, y:Float, z:Float)
+		{
+			Main.bumpFrameRate();
+			setCurrentPosition(x, y, Math.round(17 - z));
+		});
+
+		ExternalInterface.addCallback("addContextMenuItem", function(text:String, func:String)
+		{
+			var item = new ContextMenuItem(text);
+			item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
+			{
+				try {
+					ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
+				} catch (e:Error) {  }
+			});
+			root.contextMenu.customItems.push(item);
+		});
+
+		ExternalInterface.addCallback("print", function()
+		{
+			var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
+			data.draw(root);
+			PrintManager.setPrintableContent(data);
+		});
+
+		ExternalInterface.addCallback("setQuality", function(quality) { stage.quality = quality; });
+		ExternalInterface.addCallback("trace", function(x:Dynamic) { trace(x); });
 		ExternalInterface.addCallback("setVisible", setVisible);
 		ExternalInterface.addCallback("getVisibility", function(id:String) { return getNode(id).getVisibility(); } );
 		ExternalInterface.addCallback("setZoomBounds", function(id:String, minZ:Int, maxZ:Int) 
@@ -1129,20 +1302,6 @@ class Main
 				return cast(content, VectorLayerFilter).layer.flip(); 
 			else
 				return 0;
-		});
-		ExternalInterface.addCallback("setQuality", function(quality) { stage.quality = quality; });
-		ExternalInterface.addCallback("trace", function(x:Dynamic) { trace(x); });
-
-		ExternalInterface.addCallback("addContextMenuItem", function(text:String, func:String)
-		{
-			var item = new ContextMenuItem(text);
-			item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
-			{
-				try {
-					ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
-				} catch (e:Error) {  }
-			});
-			root.contextMenu.customItems.push(item);
 		});
 
 

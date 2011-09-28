@@ -871,19 +871,6 @@ function createFlashMapInternal(div, layers, callback)
 		try {
 
 			var flashDiv = document.getElementById(flashId);
-			var needToStopDragging = false;
-			flashDiv.onmouseout = function() 
-			{ 
-				needToStopDragging = true;
-				flashDiv.setCursorVisible(false);
-			}
-			flashDiv.onmouseover = function()
-			{
-				if (needToStopDragging)
-					flashDiv.stopDragging();
-				flashDiv.setCursorVisible(true);
-				needToStopDragging = false;
-			}
 			flashDiv.style.MozUserSelect = "none";
 
 			var clusters =	// атрибуты кластеризации потомков
@@ -996,9 +983,108 @@ function createFlashMapInternal(div, layers, callback)
 					case 'savePNG':			// Сохранить PNG файл экрана
 						ret = flashDiv.cmdFromJS(cmd, { 'fileName':attr });
 						break;
+					case 'trace':			// Сообщение в SWF
+						ret = flashDiv.cmdFromJS(cmd, { 'data':attr });
+						break;
+					case 'setQuality':		// Установка Quality
+						ret = flashDiv.cmdFromJS(cmd, { 'data':attr });
+						break;
+					case 'disableCaching':	// ????
+						ret = flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'print':			// Печать
+						ret = flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'repaint':			// ????
+						ret = flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'addContextMenuItem':	// Добавить пункт в контекстное меню SWF
+						ret = flashDiv.cmdFromJS(cmd, attr);
+						break;
+					case 'moveTo':			//позиционирует карту по координатам центра и выбирает масштаб
+						ret = flashDiv.cmdFromJS(cmd, attr);
+						break;
+					case 'slideTo':			//плавно позиционирует карту по координатам центра и выбирает масштаб
+						ret = flashDiv.cmdFromJS(cmd, attr);
+						break;
+					case 'zoomBy':			//выбирает масштаб
+						ret = flashDiv.cmdFromJS(cmd, attr);
+						break;
+					case 'freeze':			// заморозить
+						ret = flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'unfreeze':		// разморозить
+						ret = flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'setCursor':		//установка курсора
+						ret = flashDiv.cmdFromJS(cmd, attr);
+						break;
+					case 'clearCursor':		//убрать курсор
+						ret = flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'setCursorVisible'://видимость курсора
+						ret = flashDiv.cmdFromJS(cmd, attr);
+						break;
+					case 'stopDragging':	//убрать флаг Drag
+						ret = flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'isDragging':		//получить флаг Drag
+						ret = flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'resumeDragging':	//возобновить Drag
+						ret = flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'getPosition':		//получить текущие атрибуты SWF
+						ret = flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'getX':			//получить позицию Х центра SWF
+						ret = from_merc_x(flashDiv.cmdFromJS(cmd, { }));
+						break;
+					case 'getY':			//получить позицию Y центра SWF
+						ret = from_merc_y(flashDiv.cmdFromJS(cmd, { }));
+						break;
+					case 'getZ':			//получить текущий Z
+						ret = 17 - flashDiv.cmdFromJS(cmd, { });
+						break;
+					case 'getMouseX':		//получить позицию Х MouseX
+						ret = from_merc_x(flashDiv.cmdFromJS(cmd, { }));
+						break;
+					case 'getMouseY':		//получить позицию Y MouseY
+						ret = from_merc_y(flashDiv.cmdFromJS(cmd, { }));
+						break;
+					case 'isKeyDown':		//проверить нажатие клавиши в SWF
+						ret = flashDiv.cmdFromJS(cmd, attr);
+						break;
+					case 'setExtent':		//установить Extent в SWF
+						ret = flashDiv.cmdFromJS(cmd, attr);
+						break;
+					case 'setMinMaxZoom':	//установить Zoom ограничения
+						ret = flashDiv.cmdFromJS(cmd, attr);
+						break;
+					case 'addMapWindow':	//Создание окна карты
+						ret = flashDiv.cmdFromJS(cmd, attr);
+						break;
+					case 'setStyle':		// установить Style обьекта
+						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+						break;
+					case 'getStyle':		//получить Style обьекта
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'removeDefaults':attr });
+						break;
+					case 'positionWindow':	// 
+						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+						break;
+					case 'setBackgroundColor':	// 
+						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'color':attr } );
+						break;
 				}
 				return ret;
-			}
+			}	
+			FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { FlashCMD('positionWindow', { 'obj': this, 'attr':{'x1':x1, 'y1':y1, 'x2':x2, 'y2':y2} }); }
+			//FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { flashDiv.positionWindow(this.objectId, x1, y1, x2, y2); }
+			FlashMapObject.prototype.setStyle = function(style, activeStyle) { FlashCMD('setStyle', { 'obj': this, 'attr':{'regularStyle':style, 'hoveredStyle':activeStyle} }); }
+			//FlashMapObject.prototype.setStyle = function(style, activeStyle) {	flashDiv.setStyle(this.objectId, style, activeStyle);	}
+			FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return FlashCMD('getStyle', { 'obj': this, 'attr':flag }); }
+			//FlashMapObject.prototype.getStyle = function( removeDefaults ) { return flashDiv.getStyle(this.objectId, typeof removeDefaults == 'undefined' ? false : removeDefaults); }
 
 			FlashMapObject.prototype.getVisibility = function() { return FlashCMD('getVisibility', { 'obj': this }); }
 			FlashMapObject.prototype.setVisible = function(flag) { FlashCMD('setVisible', { 'obj': this, 'attr': flag }); }
@@ -1009,20 +1095,41 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return FlashCMD('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} }); }
 			FlashMapObject.prototype.sendPNG = function(attr) { var ret = FlashCMD('sendPNG', { 'attr': attr }); return ret; }
 			FlashMapObject.prototype.savePNG = function(fileName) { FlashCMD('savePNG', { 'attr': fileName }); }
+			FlashMapObject.prototype.trace = function(val) { FlashCMD('trace', { 'attr': val }); }
+			//FlashMapObject.prototype.trace = function(val) { flashDiv.trace(val); }
+			FlashMapObject.prototype.setQuality = function(val) { FlashCMD('setQuality', { 'attr': val }); }
+			//FlashMapObject.prototype.setQuality = function(val) { flashDiv.setQuality(val); }
+			//FlashMapObject.prototype.disableCaching = function() { flashDiv.disableCaching(); }
+			FlashMapObject.prototype.disableCaching = function() { FlashCMD('disableCaching', {}); }
+			FlashMapObject.prototype.print = function() { FlashCMD('print', {}); }
+			//FlashMapObject.prototype.print = function() { flashDiv.print(); }
+			//FlashMapObject.prototype.repaint = function() { flashDiv.repaint(); }
+			FlashMapObject.prototype.repaint = function() { FlashCMD('repaint', {}); }
+			//FlashMapObject.prototype.moveTo = function(x, y, z) { flashDiv.moveTo(merc_x(x), merc_y(y), 17 - z); }
+			FlashMapObject.prototype.moveTo = function(x, y, z) { FlashCMD('moveTo', { 'attr': {'x':merc_x(x), 'y':merc_y(y), 'z':17 - z} }); }
+			//FlashMapObject.prototype.slideTo = function(x, y, z){ flashDiv.slideTo(merc_x(x), merc_y(y), 17 - z); }
+			FlashMapObject.prototype.slideTo = function(x, y, z) { FlashCMD('slideTo', { 'attr': {'x':merc_x(x), 'y':merc_y(y), 'z':17 - z} }); }
+			
+			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
+				map.balloonClassObject.hideHoverBalloons(true);
+				//flashDiv.zoomBy(-dz, useMouse);
+				FlashCMD('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
+			}
+			FlashMapObject.prototype.freeze = function() { FlashCMD('freeze', {}); }
+			FlashMapObject.prototype.unfreeze = function() { FlashCMD('unfreeze', {}); }
+			//FlashMapObject.prototype.setCursor = function(url, dx, dy) { flashDiv.setCursor(url, dx, dy); }
+			FlashMapObject.prototype.setCursor = function(url, dx, dy) { FlashCMD('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
+			//FlashMapObject.prototype.clearCursor = function() { flashDiv.clearCursor(); }
+			FlashMapObject.prototype.clearCursor = function() { FlashCMD('clearCursor', {}); }
+/*
+			FlashMapObject.prototype.getX = function() { return from_merc_x(flashDiv.getX()); }
+			FlashMapObject.prototype.getY = function() { return from_merc_y(flashDiv.getY()); }
+			FlashMapObject.prototype.getZ = function() { return 17 - flashDiv.getZ(); }
+			FlashMapObject.prototype.getMouseX = function() { return from_merc_x(flashDiv.getMouseX()); }
+			FlashMapObject.prototype.getMouseY = function() { return from_merc_y(flashDiv.getMouseY()); }
+			FlashMapObject.prototype.isKeyDown = function(code) { return flashDiv.isKeyDown(code); }
+*/
 
-			FlashMapObject.prototype.trace = function(val) { flashDiv.trace(val); }
-			FlashMapObject.prototype.setQuality = function(val) { flashDiv.setQuality(val); }
-			FlashMapObject.prototype.disableCaching = function() { flashDiv.disableCaching(); }
-			FlashMapObject.prototype.print = function() { flashDiv.print(); }
-			FlashMapObject.prototype.repaint = function() { flashDiv.repaint(); }
-			FlashMapObject.prototype.moveTo = function(x, y, z) 
-			{ 
-				flashDiv.moveTo(merc_x(x), merc_y(y), 17 - z);
-			}
-			FlashMapObject.prototype.slideTo = function(x, y, z) 
-			{ 
-				flashDiv.slideTo(merc_x(x), merc_y(y), 17 - z);
-			}
 			FlashMapObject.prototype.moveToCoordinates = function(text, z)
 			{
 				var me = this;
@@ -1056,22 +1163,6 @@ function createFlashMapInternal(div, layers, callback)
 					this.getBestZ(minx, miny, maxx, maxy)
 				);
 			}
-			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
-				map.balloonClassObject.hideHoverBalloons(true);
-				flashDiv.zoomBy(-dz, useMouse);
-			}
-			FlashMapObject.prototype.freeze = function() { flashDiv.freeze(); }
-			FlashMapObject.prototype.unfreeze = function() { flashDiv.unfreeze(); }
-			FlashMapObject.prototype.setCursor = function(url, dx, dy) { flashDiv.setCursor(url, dx, dy); }
-			FlashMapObject.prototype.clearCursor = function() { flashDiv.clearCursor(); }
-			FlashMapObject.prototype.getX = function() { return from_merc_x(flashDiv.getX()); }
-			FlashMapObject.prototype.getY = function() { return from_merc_y(flashDiv.getY()); }
-			FlashMapObject.prototype.getZ = function() { return 17 - flashDiv.getZ(); }
-			FlashMapObject.prototype.getMouseX = function() { return from_merc_x(flashDiv.getMouseX()); }
-			FlashMapObject.prototype.getMouseY = function() { return from_merc_y(flashDiv.getMouseY()); }
-			FlashMapObject.prototype.getPosition = function() { return flashDiv.getPosition(); }
-
-			FlashMapObject.prototype.isKeyDown = function(code) { return flashDiv.isKeyDown(code); }
 
 			var propertiesFromArray = function(a)
 			{
@@ -1171,10 +1262,6 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.bringToBottom = function() { flashDiv.bringToBottom(this.objectId); }
 			FlashMapObject.prototype.bringToDepth = function(n) { return flashDiv.bringToDepth(this.objectId, n); }
 			FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
-			FlashMapObject.prototype.setStyle = function(style, activeStyle) {
-				flashDiv.setStyle(this.objectId, style, activeStyle);
-			}
-			FlashMapObject.prototype.getStyle = function( removeDefaults ) { return flashDiv.getStyle(this.objectId, typeof removeDefaults == 'undefined' ? false : removeDefaults); }
 			FlashMapObject.prototype.setActive = function(flag) { flashDiv.setActive_(this.objectId, flag); }
 			FlashMapObject.prototype.setEditable = function() { flashDiv.setEditable(this.objectId); }
 			FlashMapObject.prototype.startDrawing = function(type) { flashDiv.startDrawing(this.objectId, type); }
@@ -1306,13 +1393,14 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				flashDiv.loadJSON(this.objectId, url);
 			}
+/*
 			FlashMapObject.prototype.addMapWindow = function(callback) 
 			{ 
 				return new FlashMapObject(flashDiv.addMapWindow(
 					uniqueGlobalName(function(z) { return 17 - callback(17 - z); })
 				), {}, null);
 			}
-			FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { flashDiv.positionWindow(this.objectId, x1, y1, x2, y2); }
+*/
 			FlashMapObject.prototype.setCopyright = function(copyright)
 			{
 				this.copyright = copyright;
@@ -1321,7 +1409,8 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setBackgroundColor = function(color)
 			{ 
 				this.backgroundColor = color;
-				flashDiv.setBackgroundColor(this.objectId, color);
+				FlashCMD('setBackgroundColor', { 'obj': this, 'attr':color });
+				//flashDiv.setBackgroundColor(this.objectId, color);
 				if (this.objectId == map.objectId)
 				{
 					var isWhite = (0xff & (color >> 16)) > 80;
@@ -1343,7 +1432,8 @@ function createFlashMapInternal(div, layers, callback)
 				var geomType = this.getGeometryType() || '';
 				if (geomType.indexOf("POINT") != -1)
 				{
-					var c = this.getGeometry().coordinates;
+					var geom = this.getGeometry();
+					var c = geom.coordinates;
 					out = "<b>" + KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> ";
 					out += formatCoordinates(merc_x(c[0]), merc_y(c[1]));
 				}
@@ -1931,7 +2021,7 @@ function createFlashMapInternal(div, layers, callback)
 							obj.bringToDepth(n);
 							for (var i = 0; i < deferred.length; i++)
 								deferred[i]();
-							if(obj.objectId) flashDiv.setVisible(obj.objectId, flag);
+							if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
 						}
 						obj.isVisible = flag;
 					}
@@ -2039,7 +2129,39 @@ function createFlashMapInternal(div, layers, callback)
 			map.rasters = map;
 			map.tiledQuicklooks = map;
 			map.vectors = map;
-			map.balloonClassObject = new BalloonClass(map, flashDiv, div, apiBase);
+
+			// Методы присущие только Map
+			map.stopDragging = function() {	FlashCMD('stopDragging', { }); }
+			map.isDragging = function() { return FlashCMD('isDragging', { }); }
+			map.resumeDragging = function() { FlashCMD('resumeDragging', { }); }
+			map.setCursorVisible = function(flag) { FlashCMD('setCursorVisible', { 'attr': {'flag':flag} }); }
+			map.getPosition = function() { return FlashCMD('getPosition', { }); }
+			map.getX = function() { return FlashCMD('getX', {}); }
+			map.getY = function() { return FlashCMD('getY', {}); }
+			map.getZ = function() { return FlashCMD('getZ', {}); }
+			map.getMouseX = function() { return FlashCMD('getMouseX', {}); }
+			map.getMouseY = function() { return FlashCMD('getMouseY', {}); }
+			map.isKeyDown = function(code) { return FlashCMD('isKeyDown', {'attr':{'code':code} }); }
+			map.setExtent = function(x1, x2, y1, y2) { return FlashCMD('setExtent', {'attr':{'x1':merc_x(x1), 'x2':merc_x(x2), 'y1':merc_y(y1), 'y2':merc_y(y2)} }); }
+			map.addMapWindow = function(callback) {
+				var oID = FlashCMD('addMapWindow', { 'attr': {'callbackName':uniqueGlobalName(function(z) { return 17 - callback(17 - z); })} });
+				return new FlashMapObject(oID, {}, null);
+			}
+
+			var needToStopDragging = false;
+			flashDiv.onmouseout = function() 
+			{ 
+				needToStopDragging = true;
+				map.setCursorVisible(false);
+			}
+			flashDiv.onmouseover = function()
+			{
+				if (needToStopDragging)
+					map.stopDragging();
+				map.setCursorVisible(true);
+				needToStopDragging = false;
+			}
+			map.balloonClassObject = new BalloonClass(map, div, apiBase);
 
 			var toolHandlers = {};
 			var userHandlers = {};
@@ -2153,10 +2275,14 @@ function createFlashMapInternal(div, layers, callback)
 
 			map.addContextMenuItem = function(text, callback)
 			{
-				flashDiv.addContextMenuItem(text, uniqueGlobalName(function(x, y)
-				{
-					callback(from_merc_x(x), from_merc_y(y));
-				}));
+				FlashCMD('addContextMenuItem', { 'attr': {
+					'text': text,
+					'func': uniqueGlobalName(function(x, y)
+						{
+							callback(from_merc_x(x), from_merc_y(y));
+						})
+					}
+				});
 			}
 
 			map.addContextMenuItem(
@@ -2436,17 +2562,12 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			}
 
-			FlashMapObject.prototype.setMinMaxZoom = function(z1, z2)
-			{ 
+			map.setMinMaxZoom = function(z1, z2) {
 				minZoom = z1;
 				maxZoom = z2;
 				map.zoomControl.repaint();
-				flashDiv.setMinMaxZoom(z1, z2);
+				return FlashCMD('setMinMaxZoom', {'attr':{'z1':z1, 'z2':z2} });
 			}
-
-
-
-
 
 			var timeBarWidth = 100;
 			var leftMarkX = 0;
@@ -2843,10 +2964,6 @@ function createFlashMapInternal(div, layers, callback)
 						gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
 					}
 				}
-			}
-			FlashMapObject.prototype.setExtent = function(x1, x2, y1, y2)
-			{
-				flashDiv.setExtent(merc_x(x1), merc_x(x2), merc_y(y1), merc_y(y2));
 			}
 
 			map.getScreenGeometry = function()
@@ -6986,7 +7103,7 @@ var _kmlParser = new kmlParser();
 * @see <a href="http://kosmosnimki.ru/geomixer/docs/">» Пример использования</a>.
 * @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 */
-function BalloonClass(map, flashDiv, div, apiBase)
+function BalloonClass(map, div, apiBase)
 {
 	var balloons = [];
 	var curMapObject = null;
@@ -7111,7 +7228,7 @@ function BalloonClass(map, flashDiv, div, apiBase)
 			onMouseOver: function(o, keyPress)
 			{ 
 				if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
-				if (flashDiv.isDragging())
+				if (map.isDragging())
 					return;
 
 				if(chkAttr('disableOnMouseOver', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
@@ -7456,11 +7573,11 @@ function BalloonClass(map, flashDiv, div, apiBase)
 	}
 	propsBalloon.outerDiv.onmouseover = function()
 	{
-		if (flashDiv.isDragging())
+		if (map.isDragging())
 		{
 			needToStopDragging = false;
 			propsBalloon.updatePropsBalloon(false);
-			flashDiv.resumeDragging();
+			map.resumeDragging();
 		}
 	}
 
@@ -7606,12 +7723,13 @@ function BalloonClass(map, flashDiv, div, apiBase)
 		if ( balloonParams.Balloon )
 		{
 			enableHoverBalloon(filter, function(o)
-			{
-				return gmxAPI.applyTemplate(
-					gmxAPI.applyTemplate(balloonParams.Balloon, o.properties),
-					{ SUMMARY: o.getGeometrySummary() }
-				);
-			}, balloonAttrs);
+				{
+					var text = gmxAPI.applyTemplate(balloonParams.Balloon, o.properties);
+					text += "<br />" + o.getGeometrySummary();
+					return text;
+				}
+				,
+				balloonAttrs);
 		}
 		else
 		{
