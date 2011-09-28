@@ -92,7 +92,8 @@ var SearchInput = function (oInitContainer, params) {
 	var layersSearchFlag = params.layersSearchFlag;
 	var _this = this;	
 	if (Container == null) throw "SearchInput.Container is null";
-
+	var _sDefalutAddressLabel = _gtxt("$$search$$_1");
+	var _sDefalutAddressVectorLabel = _gtxt("$$search$$_2");
 	/** Возвращает содержимое поля поиска
 	@function
 	@see Search.SearchInput#SetSearchString*/
@@ -131,11 +132,11 @@ var SearchInput = function (oInitContainer, params) {
 		var bChangeValue = (searchField.value == sDefaultValue);
 	
 		if (layersSearchFlag) {
-			sDefaultValue = _gtxt("$$search$$_1");
+			sDefaultValue = _sDefalutAddressLabel
 			divSearchBegin.className = 'searchBeginOn';
 		}
 		else {
-			sDefaultValue = _gtxt("$$search$$_2");
+			sDefaultValue = _sDefalutAddressVectorLabel
 			divSearchBegin.className = 'searchBeginOff';
 		}
 		
@@ -143,12 +144,12 @@ var SearchInput = function (oInitContainer, params) {
 	}
 	
 	if (!layersSearchFlag) {
-        sDefaultValue = _gtxt("$$search$$_2");
+        sDefaultValue = _sDefalutAddressVectorLabel;
 		divSearchBegin = _div(null, [['dir', 'className', 'searchBegin']]);
         tdSearchBegin = _td([divSearchBegin], [['dir', 'className', 'searchBeginTD']]);
     }
     else {
-        sDefaultValue = _gtxt("$$search$$_1");
+        sDefaultValue = _sDefalutAddressLabel;
 		divSearchBegin = _div(null, [['dir', 'className', 'searchBeginOn']]);
 		tdSearchBegin = _td([divSearchBegin], [['dir', 'className', 'searchBeginOnTD']]);
         divSearchBegin.onclick = function() {
@@ -264,6 +265,16 @@ var SearchInput = function (oInitContainer, params) {
 	}
 	/** Возвращает контрол, в котором находится данный контрол*/
 	this.getContainer = function(){return Container;}
+	
+	/** Устанавливает значение по умолчанию вместо "Поиск по адресной базе"*/
+	this.setAddressDefault = function(value){
+		_sDefalutAddressLabel = value;
+	}
+	
+	/** Устанавливает значение по умолчанию вместо "Поиск по векторным слоям и адресной базе"*/
+	this.setAddressVectorDefault = function(value){
+		_sDefalutAddressVectorLabel = value;
+	}
 };
 
 /** Конструктор
@@ -985,8 +996,8 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		}
 		
 		var layersToSearch = [];
-		for(i=0; i < oMap.layers.length; i++){
-            if (oMap.layers[i].properties.type == "Vector" && oMap.layers[i].properties.AllowSearch)
+		for(var i in oMap.layers){
+            if (oMap.layers[i].properties.type == "Vector" && i == oMap.layers[i].properties.name && oMap.layers[i].properties.AllowSearch)
                 layersToSearch.push(oMap.layers[i]);
         }
 		var iRespCount = 0;

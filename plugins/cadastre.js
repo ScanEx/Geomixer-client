@@ -84,11 +84,14 @@ var Cadastre = function(oContainer, sCadastreHost, oMap, oMapDiv){
 	
 	oLegend = _div();
 	_(div, [_table([_tbody(trs)]), oLegend]);
-	oCostLayer = oMap.addObject();
-	oCostByAreaLayer = oMap.addObject();
-	oUseTypeLayer = oMap.addObject();
-	oCategoryLayer = oMap.addObject();
-	oDivisionLayer = oMap.addObject();
+	
+	this._mapObject = oMap.addObject();
+	this._mapObject.setCopyright('<a href="http://rosreestr.ru">© Росреестр</a>')
+	oCostLayer = this._mapObject.addObject();
+	oCostByAreaLayer = this._mapObject.addObject();
+	oUseTypeLayer = this._mapObject.addObject();
+	oCategoryLayer = this._mapObject.addObject();
+	oDivisionLayer = this._mapObject.addObject();
 	
 	/** Загружает слой */
 	this.load = function(){
