@@ -102,6 +102,7 @@ class VectorLayer extends MapContent
 
 	public function repaintIndicator()
 	{
+		var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
 		var distance:Float = Geometry.MAX_DISTANCE;
 		var x = contentSprite.mouseX;
 		var y = contentSprite.mouseY;
@@ -140,7 +141,7 @@ class VectorLayer extends MapContent
 				var tPainter = filter.paintersHash.get(tileKey);
 				
 				var curGeom:MultiGeometry = tPainter.tileGeometry;
-				if (filter.clusterAttr != null) {
+				if (filter.clusterAttr != null && !filter.clusterAttr._zoomDisabledHash.exists(currentZ)) {
 					curGeom = tPainter.clustersGeometry;
 					hoverStyle = node.getHoveredStyle();
 				}

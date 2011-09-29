@@ -59,6 +59,14 @@ class VectorLayerFilter extends MapContent
 		var hoverStyle = null;
 		if (clusterAttr.HoverStyle != null) hoverStyle = new Style(clusterAttr.HoverStyle);
 
+		clusterAttr._zoomDisabledHash = new Hash<Bool>();
+		if (clusterAttr.zoomDisabled != null) {
+			for (i in 0...Std.int(clusterAttr.zoomDisabled.length))
+			{
+				clusterAttr._zoomDisabledHash.set(clusterAttr.zoomDisabled[i], true);
+			}
+		}
+		
 		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
 		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
 		mapNode.setStyle(regularStyle, hoverStyle);
@@ -130,6 +138,13 @@ class VectorLayerFilter extends MapContent
 		var e1 = mapNode.window.visibleExtent;
 		var cx1 = (e1.minx + e1.maxx) / 2;
 		var curStyle = mapNode.getRegularStyle();
+
+		if(clusterAttr != null) {
+			var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
+			if (clusterAttr._zoomDisabledHash.exists(currentZ)) {
+				curStyle = regularStyleOrig;
+			}
+		}
 
 		for (painter in painters)
 		{

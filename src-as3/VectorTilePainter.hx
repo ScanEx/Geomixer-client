@@ -65,7 +65,8 @@ class VectorTilePainter
 		var tileOverlap = mapWindow.visibleExtent.overlapsFull(tile.extent);	// Полное перекрытие геометрии тайла
 		var tileIntersect = mapWindow.visibleExtent.overlaps(tile.extent);		// Частичное перекрытие геометрии тайла
 
-		if (vectorLayerFilter.clusterAttr == null) {
+		var clustersDisabled:Bool = (vectorLayerFilter.clusterAttr == null || vectorLayerFilter.clusterAttr._zoomDisabledHash.exists(currentZ) ? true : false);
+		if (clustersDisabled) {
 			painter.geometry = tileGeometry;
 		} else {
 			if (tileIntersect && !tileOverlap) oldStyle = null;
