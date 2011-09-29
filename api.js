@@ -2548,6 +2548,7 @@ function createFlashMapInternal(div, layers, callback)
 						if(i == zoomArr.length) addZoomItem(i);
 						setVisible(zoomArr[i], !this.isMinimized && (i < dz));
 					}
+					if(dz < zoomArr.length) for (var i = dz; i < zoomArr.length; i++) setVisible(zoomArr[i], false);
 					positionTimeBar();
 				},
 				minimize: function()
