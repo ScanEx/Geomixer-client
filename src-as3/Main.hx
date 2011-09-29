@@ -258,6 +258,11 @@ class Main
 			{
 				if (clickedNode != null)
 				{
+					if (Std.is(clickedNode.content, VectorLayerFilter))
+					{
+						var vlFilter:VectorLayerFilter = cast(clickedNode.content, VectorLayerFilter);
+						if (vlFilter.clusterAttr != null) eventAttr.objType = 'cluster';
+					}
 					clickedNode.callHandler("onClick", nodeFrom);
 				}
 				else if (!Main.clickingDisabled)
@@ -507,8 +512,9 @@ class Main
 				if (Std.is(node2.content, VectorLayerFilter))
 				{
 					if(nodeFrom_ == null) {
-						var layer = cast(node2.content, VectorLayerFilter).layer;
-						var geom = layer.lastGeometry;
+						var vlFilter = cast(node2.content, VectorLayerFilter);
+						if (vlFilter.clusterAttr != null) eventAttr.objType = 'cluster';
+						var geom = vlFilter.layer.lastGeometry;
 						props = exportProperties(geom != null ? geom.properties : null);
 					} else {
 						props = nodeFrom_.properties;

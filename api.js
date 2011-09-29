@@ -7244,6 +7244,8 @@ function BalloonClass(map, div, apiBase)
 					if(flag) return;										// ≈сли customBalloon возвращает true выходим
 				}
 
+				//if(keyPress['objType'] == 'cluster') {}; // Ќадо придумать как боротьс€ с фикс.двойником
+
 				var textFunc = chkAttr('callback', mapObject);			// ѕроверка наличи€ параметра callback по ветке родителей 
 				var text = (textFunc ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
 				if(!text) return;
@@ -7314,7 +7316,14 @@ function BalloonClass(map, div, apiBase)
 		for (var key in fixedHoverBalloons)
 		{
 			var balloon = fixedHoverBalloons[key];
-			balloon.setVisible(false);
+			if(balloon.objType != 'cluster') {
+				balloon.setVisible(false);
+			}
+			else
+			{
+				fixedHoverBalloons[key].remove();
+				delete fixedHoverBalloons[key];
+			}
 		}
 		if(flag) {
 			
@@ -7366,7 +7375,8 @@ function BalloonClass(map, div, apiBase)
 				}
 			}
 			var balloon = addBalloon();
-			balloon.fixedId =  id;
+			balloon.fixedId = id;
+			if(keyPress['objType']) balloon.objType = keyPress['objType'];
 
 			var text = (textFunc ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
 			if(!text) return;
