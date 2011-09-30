@@ -94,6 +94,16 @@ class Main
 
 		var viewportHasMoved = false;
 
+		// Команды от SWF в JS
+		function cmdToJS(cmd:String, ?p1:Dynamic, ?p2:Dynamic, ?p3:Dynamic):Dynamic
+		{
+			var ret = null;
+			try {
+				ret = ExternalInterface.call(cmd, p1, p2, p3);
+			} catch (e:Error) {  }
+			return ret;
+		}
+		
 		var getNode = function(id) { return MapNode.allNodes.get(id); }
 		var constrain = function(a:Float, t:Float, b:Float) { return (t < a) ? a : (t > b) ? b : t; }
 		var setCurrentPosition = function(x, y, z)
@@ -213,7 +223,9 @@ class Main
 				Main.chkEventAttr(event);
 				if (nodeFrom_ != null) eventAttr.nodeFilter = node.id;
 			}
-			if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
+
+			//if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
+			if (Key.isDown(16) && cmdToJS("kosmosnimkiBeginZoom"))
 				clickedNode = node;
 			else if ((node.getHandler("onMouseDown") != null) || (node.getHandler("onMouseUp") != null) || (node.getHandler("onClick") != null))
 			{
@@ -272,7 +284,8 @@ class Main
 		{
 			if (clusterPointsViewer == null) return;
 			if (clusterPointsViewer.vlFilter.clusterAttr.hideFixedBalloons != null) { //удалить фиксированные балуны
-				ExternalInterface.call(clusterPointsViewer.vlFilter.clusterAttr.hideFixedBalloons);
+				var name:String = clusterPointsViewer.vlFilter.clusterAttr.hideFixedBalloons;
+				nextFrameCallbacks.push(function() { cmdToJS(name);	});
 			}
 			clusterPointsViewer.remove();
 			clusterPointsViewer = null;
@@ -280,7 +293,6 @@ class Main
 			clickedNode = null;
 			isDragging = false;
 			viewportHasMoved = true;
-			
 		}
 		
 		root.addEventListener(MouseEvent.MOUSE_UP, function(event)
@@ -366,7 +378,8 @@ class Main
 			if (!initCalled)
 			{
 				try {
-					ExternalInterface.call(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
+					cmdToJS(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
+					//ExternalInterface.call(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
 					initCalled = true;
 				} catch (e:Error) {  }
 			}
@@ -383,10 +396,10 @@ class Main
 
 			if (nextFrameCallbacks.length > 0)
 			{
-				try {
+				//try {
 					for (func in nextFrameCallbacks)
 						func();
-				} catch (e:Error) {  }
+				//} catch (e:Error) {  }
 				nextFrameCallbacks = new Array<Void->Void>();
 			}
 
@@ -576,15 +589,16 @@ class Main
 				var arr = propertiesToArray(props);
 
 				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
-					try {
-						ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
-					} catch (e:Error) {  }
+					cmdToJS(callbackName, node2.id, arr, eventAttr);
+					//try {	ExternalInterface.call(callbackName, node2.id, arr, eventAttr);	} catch (e:Error) {  }
 				}
 				else
 				{
+					var pID:String = node2.id;
 					nextFrameCallbacks.push(function()
 					{
-						ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
+						cmdToJS(callbackName, pID, arr, eventAttr);
+						//ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
 					});
 				}
 			}); 
@@ -655,10 +669,8 @@ class Main
 		{
 			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):Dynamic
 			{
-				var out:Dynamic = null;
-				try {
-					out = ExternalInterface.call(tileFunction, i, j, z);
-				} catch (e:Error) {  }
+				var out:Dynamic = cmdToJS(tileFunction, i, j, z);
+				//try { out = ExternalInterface.call(tileFunction, i, j, z); } catch (e:Error) {  }
 				return out;
 			});
 			for (i in 0...Std.int(tiles.length/3))
@@ -694,6 +706,10 @@ class Main
 				function(id:String, flag:Bool)
 				{
 					var geom = layer.geometries.get(id);
+					var geoExp:Dynamic = geom.export();
+					var prop:Dynamic = exportProperties(geom.properties);
+					cmdToJS(func, geoExp, prop, flag);
+/*					
 					try {
 						ExternalInterface.call(
 							func,
@@ -702,6 +718,7 @@ class Main
 							flag
 						);
 					} catch (e:Error) {  }
+*/					
 				}
 			));
 		});
@@ -811,7 +828,8 @@ class Main
 				request.data = pngData;
 				loader.addEventListener(Event.COMPLETE, function(event:Event) {
 					var st:String = loader.data;
-					if (attr.func != null) ExternalInterface.call(attr.func, st);
+					if (attr.func != null) cmdToJS(attr.func, st);
+					//if (attr.func != null) ExternalInterface.call(attr.func, st);
 				});
 				loader.load(request);
 			} catch (e:Error) { trace(e); }
@@ -902,9 +920,8 @@ class Main
 					var item = new ContextMenuItem(attr.text);
 					item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
 					{
-						try {
-							ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
-						} catch (e:Error) {  }
+						cmdToJS(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
+						//try { ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);	} catch (e:Error) {  }
 					});
 					root.contextMenu.customItems.push(item);
 				case 'moveTo':
@@ -1001,9 +1018,9 @@ class Main
 						{
 							lastCurrentZ = currentZ;
 							lastComputedZ = 0;
-							try {
-								lastComputedZ = 17 - ExternalInterface.call(attr.callbackName, 17 - currentZ);
-							} catch (e:Error) {  }
+							var pz:Int = cmdToJS(attr.callbackName, 17 - currentZ);
+							lastComputedZ = 17 - pz;
+							//try { lastComputedZ = 17 - ExternalInterface.call(attr.callbackName, 17 - currentZ); } catch (e:Error) {  }
 						}
 						return lastComputedZ;
 					});
@@ -1044,6 +1061,7 @@ class Main
 			return out;
 		}
 		ExternalInterface.addCallback("cmdFromJS", parseCmdFromJS);
+
 		// Устаревшие методы
 		ExternalInterface.addCallback("remove", function(id:String) 
 		{ 
@@ -1055,10 +1073,8 @@ class Main
 			var newContent = new RasterLayer(
 				function(i:Int, j:Int, z:Int)
 				{
-					var out:String = '';
-					try {
-						out = ExternalInterface.call(func, i, j, z);
-					} catch (e:Error) {  }
+					var out:String = cmdToJS(func, i, j, z);
+					//try { out = ExternalInterface.call(func, i, j, z);	} catch (e:Error) {  }
 					return out;
 				}
 			);
@@ -1320,9 +1336,8 @@ ExternalInterface.addCallback("moveTo", function(x:Float, y:Float, z:Float)
 							geoms.push(geom.export());
 							props.push(exportProperties(geom.properties));
 						}
-						try {
-							ExternalInterface.call(func, geoms, props);
-						} catch (e:Error) {  }
+						cmdToJS(func, geoms, props);
+						//try { ExternalInterface.call(func, geoms, props); } catch (e:Error) {  }
 					}
 				}
 			)(queryExtent);
@@ -1340,9 +1355,8 @@ ExternalInterface.addCallback("moveTo", function(x:Float, y:Float, z:Float)
 					if (tilesRemaining == 0)
 					{
 						var geom = layer.geometries.get(fid);
-						try {
-							ExternalInterface.call(func, geom.export(), exportProperties(geom.properties));
-						} catch (e:Error) {  }
+						cmdToJS(func, geom.export(), exportProperties(geom.properties));
+						//try { ExternalInterface.call(func, geom.export(), exportProperties(geom.properties)); } catch (e:Error) {  }
 					}
 				}
 			)(extent);
