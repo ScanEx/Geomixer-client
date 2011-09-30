@@ -30,11 +30,14 @@ import flash.net.URLRequestHeader;
 class Main
 {
 	public static var registerMouseDown:MapNode->MouseEvent->MapNode->Void;
-	public static var refreshMap:Void->Void;			// Принудительный Refresh карты
+	public static var refreshMap:Void->Void;					// Принудительный Refresh карты
+	
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
 	public static var mousePressed:Bool = false;
 	public static var eventAttr:Dynamic = {};
+	public static var clusterPointsViewer:ClusterPointsViewer = null;
+	public static var removeClusterPointsViewer:MouseEvent->Void;		// Удаление ClusterPointsViewer
 
 	static var lastFrameBumpTime:Float = 0;
 	public static function bumpFrameRate()
@@ -243,6 +246,43 @@ class Main
 			Main.bumpFrameRate();
 		};
 		mapSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
+		
+		var chkClusterPointsViewer = function(vlf:VectorLayerFilter):Bool
+		{
+			if (vlf.clusterAttr.clusterView == null) return false;
+			var centrGeometry:PointGeometry = cast(vlf.layer.lastGeometry, PointGeometry);
+			var members:Array<PointGeometry> = centrGeometry.propHiden.get('_members');
+			var maxMembers:Int = (vlf.clusterAttr.clusterView.maxMembers == null ? 10 : cast(vlf.clusterAttr.clusterView.maxMembers));
+			if (members.length > maxMembers) return false;
+
+			if(clusterPointsViewer == null) {
+				var nodeParent:MapNode = getNode(vlf.layer.mapNode.id);
+				if (nodeParent == null) return false;
+				var node:MapNode = nodeParent.addChild();
+				clusterPointsViewer = new ClusterPointsViewer(vlf);
+				node.setContent(clusterPointsViewer);
+			}
+			else
+			{
+				Main.removeClusterPointsViewer(null);
+			}
+			return true;
+		}
+		Main.removeClusterPointsViewer = function(?event:MouseEvent)
+		{
+			if (clusterPointsViewer == null) return;
+			if (clusterPointsViewer.vlFilter.clusterAttr.hideFixedBalloons != null) { //удалить фиксированные балуны
+				ExternalInterface.call(clusterPointsViewer.vlFilter.clusterAttr.hideFixedBalloons);
+			}
+			clusterPointsViewer.remove();
+			clusterPointsViewer = null;
+			nodeFrom = null;
+			clickedNode = null;
+			isDragging = false;
+			viewportHasMoved = true;
+			
+		}
+		
 		root.addEventListener(MouseEvent.MOUSE_UP, function(event)
 		{
 			Main.chkEventAttr(event);
@@ -261,7 +301,10 @@ class Main
 					if (Std.is(clickedNode.content, VectorLayerFilter))
 					{
 						var vlFilter:VectorLayerFilter = cast(clickedNode.content, VectorLayerFilter);
-						if (vlFilter.clusterAttr != null) eventAttr.objType = 'cluster';
+						if (vlFilter.clusterAttr != null) {
+							eventAttr.objType = 'cluster';
+							if(chkClusterPointsViewer(vlFilter)) return;
+						}
 					}
 					clickedNode.callHandler("onClick", nodeFrom);
 				}
@@ -521,10 +564,17 @@ class Main
 						eventAttr.nodeFilter = nodeFrom_.id;
 					}
 				}
-				else {
+				else if (Std.is(node2.parent.content, ClusterPointsViewer))
+				{
+					props = exportProperties(node2.properties);
+					eventAttr.objType = 'cluster';
+				}
+				else
+				{
 					props = node2.properties;
 				}
 				var arr = propertiesToArray(props);
+
 				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
 					try {
 						ExternalInterface.call(callbackName, node2.id, arr, eventAttr);

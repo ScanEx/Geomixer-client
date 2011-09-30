@@ -958,6 +958,7 @@ function createFlashMapInternal(div, layers, callback)
 								valArray.push(attr['newProperties'][key]);
 							}
 							attr['propFields'] = [keyArray, valArray];
+							attr['hideFixedBalloons'] = uniqueGlobalName(function() { map.balloonClassObject.hideHoverBalloons(true); });
 						}
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
 						if('clusters' in obj) {

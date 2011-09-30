@@ -301,15 +301,19 @@ class Utils
 		{
 			if (arr.length < 1) return null;
 			var xx:Float = 0; var yy:Float = 0;
+			var members:Array<PointGeometry> = new Array<PointGeometry>();
 			for (j in arr)
 			{
 				var memberSource:PointGeometry = cast(geom.members[j], PointGeometry);
 				xx += memberSource.x;
 				yy += memberSource.y;
+				members.push(memberSource);
 			}
 			xx /= arr.length;
 			yy /= arr.length;
-			return new PointGeometry(xx, yy);
+			var pt:PointGeometry = new PointGeometry(xx, yy);
+			pt.propHiden.set('_members', members);
+			return pt;
 		}
 		
 		// преобразование grpHash в массив центроидов и MultiGeometry
@@ -371,18 +375,8 @@ class Utils
 			objIndexes =  [];
 			for (arr in newObjIndexes)
 			{
-				if(arr == null) continue;				
-				var xx:Float = 0; var yy:Float = 0;
-				for (j in arr)
-				{
-					var memberSource:PointGeometry = cast(geom.members[j], PointGeometry);
-					xx += memberSource.x;
-					yy += memberSource.y;
-				}
-				xx /= arr.length;
-				yy /= arr.length;
-				var pt:PointGeometry = new PointGeometry(xx, yy);
-
+				if (arr == null) continue;
+				var pt:PointGeometry = getCenterGeometry(arr);
 				var prop:Hash<String> = new Hash<String>();
 				if (arr.length == 1) {
 					var propOrig = geom.members[arr[0]].properties;

@@ -177,11 +177,12 @@ class VectorLayerFilter extends MapContent
 			var window = mapNode.window;
 			var idsAlreadyPainted = new Hash<Bool>();
 			var e1 = window.visibleExtent;
+			var currentZ:Int = Std.int(window.getCurrentZ());
 	
 			for (key in paintersHash.keys())
 			{
 				var tPainter = paintersHash.get(key);
-				var curGeom:MultiGeometry = (clusterAttr == null ? tPainter.tileGeometry : tPainter.clustersGeometry);
+				var curGeom:MultiGeometry = (clusterAttr == null || clusterAttr._zoomDisabledHash.exists(currentZ) ? tPainter.tileGeometry : tPainter.clustersGeometry);
 				if(curGeom != null) {
 					for (member in curGeom.members)
 					{
