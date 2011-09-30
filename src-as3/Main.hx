@@ -264,6 +264,7 @@ class Main
 			if (vlf.clusterAttr.clusterView == null) return false;
 			var centrGeometry:PointGeometry = cast(vlf.layer.lastGeometry, PointGeometry);
 			var members:Array<PointGeometry> = centrGeometry.propHiden.get('_members');
+			if (members.length == 1) return false;
 			var maxMembers:Int = (vlf.clusterAttr.clusterView.maxMembers == null ? 10 : cast(vlf.clusterAttr.clusterView.maxMembers));
 			if (members.length > maxMembers) return false;
 
