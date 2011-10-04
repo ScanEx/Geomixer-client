@@ -72,18 +72,17 @@ $LAB.
 	
 loadJS(function(){
 
-var oSearchControl;
 var oSearchLeftMenu = new leftMenu();
 				
 gmxCore.loadModule("search", _getFileName("search.js"));
 gmxCore.addModulesCallback(["search"], function(){
 	var oSearchModule = gmxCore.getModule("search");
-	oSearchControl = new oSearchModule.SearchGeomixer();
+	window.oSearchControl = new oSearchModule.SearchGeomixer();
 });
 
 //Инициализация элементов управления
 var fnInitControls = function(){
-	oSearchControl.Init({
+	window.oSearchControl.Init({
 		Menu: oSearchLeftMenu,
 		ContainerInput: document.getElementById('searchCanvas'),
 		ServerBase: globalFlashMap.geoSearchAPIRoot,

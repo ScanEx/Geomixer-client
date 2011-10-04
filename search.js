@@ -7,6 +7,18 @@
 * @description Содержит необходимое для поиска
 */
 (function($){
+
+if(!Array.indexOf){
+    Array.prototype.indexOf = function(obj){
+	for(var i=0; i<this.length; i++){
+	    if(this[i]==obj){
+	        return i;
+	    }
+	}
+	return -1;
+    }
+}
+
 _translationsHash.addtext("rus", {
 	"Текущее местоположение отображается только для России и Украины": "Текущее местоположение отображается только для России и Украины"
 });
@@ -65,14 +77,12 @@ var GetPath = function(/**object*/ oFoundObject,/** string */ sObjectsSeparator,
  @memberOf Search
  @param oProps - Свойства
  @param sObjectsSeparator Разделитель 2х свойств в строке*/	
-var GetPropertiesString = function(/**object[]*/oProps,/**string*/ sPropSeparator){
+var GetPropertiesString = function(/**object[]*/oProps,/**string*/ sPropSeparator, /**object[]*/arrDisplayFields){
 	var sResultString = "";
 	if (oProps != null){
 		for (var sPropName in oProps){
-			if (sPropName != "ogc_fid"){
-				if (sResultString != "") sResultString += sPropSeparator;
-				sResultString += sPropName + ": " + oProps[sPropName];
-			}
+			if (sResultString != "") sResultString += sPropSeparator;
+			sResultString += sPropName + ": " + oProps[sPropName];
 		}
 	}
 	return sResultString;
@@ -659,15 +669,17 @@ var ResultList = function(oInitContainer, ImagesHost){
 };
 
 /** Конструктор
- @class ResultRenderer Предоставляет функции, отображающие найденные объекты на карте
+ @class Предоставляет функции, отображающие найденные объекты на карте
  @memberof Search
  @param {object} oInitMap карта, на которой будут рисоваться объекты
- @param {string} ImagesHost - строка пути к картинкам*/
-var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
+ @param {string} sInitImagesHost - строка пути к картинкам
+ @param {bool} bInitAutoCenter - если true, карта будет центрироваться по 1ому найденному объекту*/
+var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	var oMap = oInitMap;
 	if (oMap == null)  throw "ResultRenderer.Map is null";
 	
 	var sImagesHost = sInitImagesHost || "http://maps.kosmosnimki.ru/api/img";
+	var bAutoCenter = (bInitAutoCenter == null) || bInitAutoCenter;
 	
 	var arrContainer = [];
 	var iCount = 0;
@@ -754,12 +766,12 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
 			DrawObject(arrContainer[iDataSourceN], arrFoundObjects[i], i);
 		}
 		arrContainer[iDataSourceN].setVisible(true);
-		if (iDataSourceN == 0) CenterObject(arrFoundObjects[0]);
+		if (bAutoCenter && iDataSourceN == 0) CenterObject(arrFoundObjects[0]);
 	}
 };
 
 /** Конструктор
- @class ResultRenderer Предоставляет функции, отображающие найденные объекты на карте
+ @class Предоставляет функции, отображающие найденные объекты на карте
  @memberof Search
  @param {object} oInitMap карта, на которой будут рисоваться объекты
  @param {function} fnSearchLocation = function({Geometry, callback})- функция поиска объектов по переданной геометрии*/
@@ -819,9 +831,10 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
  @param {object} oInitContainer Объект, в котором находится контрол результатов поиска в виде списка(div)
  @param {object} oInitMap карта, на которой будут рисоваться объекты
  @param {string} ImagesHost - строка пути к картинкам
+ @param {bool} bInitAutoCenter - если true, карта будет центрироваться по 1ому найденному объекту
  @returns {Search.ResultListMap}*/
-var ResultListMapGet = function(oInitContainer, oInitMap, sImagesHost){
-	var oRenderer = new ResultRenderer(oInitMap);
+var ResultListMapGet = function(oInitContainer, oInitMap, sImagesHost, bInitAutoCenter){
+	var oRenderer = new ResultRenderer(oInitMap, sImagesHost, bInitAutoCenter);
 	var lstResult = new ResultList(oInitContainer, sImagesHost);
 	ResultListMap.apply(this, [lstResult, oRenderer]);
 }
@@ -907,8 +920,9 @@ var ResultListMap = function(lstResult, oRenderer){
  @class SearchDataProvider Посылает запрос к поисковому серверу
  @memberof Search
  @param {string} sInitServerBase Адрес сервера, на котором установлен поисковый модуль Geomixer'а
- @param {object} oInitMap карта, на которой будут рисоваться объекты*/
-var SearchDataProvider = function(sInitServerBase, oInitMap){
+ @param {object} oInitMap карта, на которой будут рисоваться объекты
+ @param {string[]} arrDisplayFields список атрибутов векторных слоев, которые будут отображаться в результатах поиска*/
+var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 	var sServerBase = sInitServerBase;
 	if (sServerBase == null || sServerBase.length < 7) {throw "Error in SearchDataProvider: sServerBase is not supplied"};
 	var oMap = oInitMap;
@@ -949,7 +963,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
 	@returns {void}*/
 	this.SearchByString = function(params){
-		_this.Search({callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry, RequestType: "SearchObject"});
+		fnSearch({callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry, RequestType: "SearchObject"});
 	};
 	
 	/**Получает информацию об объекте
@@ -958,7 +972,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		_this.Search({callback: params.callback, ID: params.ID, RequestType: "ID"})
+		fnSearch({callback: params.callback, ID: params.ID, RequestType: "ID"})
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -967,7 +981,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
 	@returns {void}*/
 	this.SearchLocation = function(params){
-		_this.Search({callback: params.callback, Geometry: params.Geometry, WithoutGeometry: true, RequestType: "Location"})
+		fnSearch({callback: params.callback, Geometry: params.Geometry, WithoutGeometry: true, RequestType: "Location"})
 	}
 	
 	/**Осуществляет поиск по произвольным параметрам
@@ -978,7 +992,6 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
 		<i>Limit</i> - максимальное число найденных объектов
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
-		<i>RequestType<i> - Тип запроса к серверу
 	@returns {void}*/
 	this.Search = function(params){
 		fnSearch({
@@ -988,7 +1001,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 			Limit: params.Limit == null ? iDefaultLimit : params.Limit,
 			Geometry: params.Geometry,
 			WithoutGeometry: params.WithoutGeometry,
-			RequestType: params.RequestType
+			RequestType: "SearchObject"
 		});
 	};
 	
@@ -1030,9 +1043,19 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 									var req = searchReq.Result[iServer];
 									for (var j = 0; j < req.SearchResult.length; j++)
 									{
+										var arrDisplayProperties = {};
+										if (!arrDisplayFields) {
+											arrDisplayProperties = req.SearchResult[j].properties;
+										}
+										else {
+											for (var iProperty=0; iProperty<arrDisplayFields.length; iProperty++){
+												var sPropName = arrDisplayFields[iProperty];
+												arrDisplayProperties[sPropName] = req.SearchResult[j].properties[sPropName];
+											}
+										}
 										arrLayerResult.push({ 
 											ObjName: req.SearchResult[j].properties.NAME || req.SearchResult[j].properties.Name || req.SearchResult[j].properties.name || req.SearchResult[j].properties.text || "[объект]",
-											properties: req.SearchResult[j].properties, 
+											properties: arrDisplayProperties, 
 											Geometry: from_merc_geometry(req.SearchResult[j].geometry) 
 										});
 									}
@@ -1065,9 +1088,10 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
  @param {string} ServerBase Адрес сервера, на котором установлен поисковый модуль Geomixer'а
  @param {object} oInitMap карта, на которой будут рисоваться объекты
  @param {bool} WithoutGeometry - по умолчанию не передавать геометрию в результатах поиска
+ @param {string[]} arrDisplayFields список атрибутов векторных слоев, которые будут отображаться в результатах поиска
  @returns {Search.SearchLogic}*/
-var SearchLogicGet = function(ServerBase, oInitMap, WithoutGeometry){
-	SearchLogic.apply(this, [new SearchDataProvider(ServerBase, oInitMap), WithoutGeometry]);
+var SearchLogicGet = function(ServerBase, oInitMap, WithoutGeometry, arrDisplayFields){
+	SearchLogic.apply(this, [new SearchDataProvider(ServerBase, oInitMap), WithoutGeometry, arrDisplayFields]);
 }
 SearchLogicGet.prototype = SearchLogic;
 
@@ -1235,6 +1259,27 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	this.SearchLocation = function(params){
 		oSearchDataProvider.SearchLocation({callback: params.callback, Geometry: params.Geometry})
 	}
+	
+	/**Осуществляет поиск по произвольным параметрам
+	@param {object} params Параметры: </br>
+		<i>callback</i> = function(arrResultDataSources) - вызывается после получения ответа от сервера </br>
+		<i>SearchString</i> - строка для поиска </br>
+		<i>IsStrongSearch</i> - признак того, что искать только целые слова </br>
+		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
+		<i>Limit</i> - максимальное число найденных объектов
+		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
+		<i>RequestType<i> - Тип запроса к серверу
+	@returns {void}*/
+	this.Search = function(params){
+		oSearchDataProvider.Search({
+			callback: params.callback, 
+			SearchString: params.SearchString, 
+			IsStrongSearch: params.IsStrongSearch, 
+			Limit: params.Limit == null ? iDefaultLimit : params.Limit,
+			Geometry: params.Geometry,
+			WithoutGeometry: params.WithoutGeometry
+		});
+	};
 	
 	/** Возвращает адрес сервера, на котором установлен поисковый модуль Geomixer'а */
 	this.GetServerBase = function(){
@@ -1404,7 +1449,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 			if (sSearchString == '') sSearchString = 'Поиск по выделенной области';
 			lstResult.ShowLoading();
 			if (fnBeforeSearch != null) fnBeforeSearch();
-			oSearchDataProvider.Search({
+			oLogic.Search({
 				SearchString: params.SearchString, 
 				IsStrongSearch: params.IsStrongSearch, 
 				Limit: params.Limit,
