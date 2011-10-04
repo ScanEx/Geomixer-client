@@ -81,7 +81,7 @@ class RasterTile
 					url, 
 					function(contents:Dynamic) { return me.onLoad(contents); },
 					function() { me.onError(); },
-					true
+					false
 				);
 			} 
 			catch (e:Error) 

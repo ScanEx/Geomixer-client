@@ -293,7 +293,7 @@ class Main
 			nodeFrom = null;
 			clickedNode = null;
 			isDragging = false;
-			viewportHasMoved = true;
+			//viewportHasMoved = true;
 		}
 		
 		root.addEventListener(MouseEvent.MOUSE_UP, function(event)
@@ -303,7 +303,7 @@ class Main
 			if (!isFluidMoving)
 			{
 				isMoving = false;
-				viewportHasMoved = true;
+				//viewportHasMoved = true;	// вьюпорт не двигался
 			}
 			if (clickedNode != null)
 				clickedNode.callHandler("onMouseUp", nodeFrom);
