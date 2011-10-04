@@ -1461,21 +1461,22 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 }
 layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag)
 {
-	var layerProperties = (spanSource.parentNode.parentNode.parentNode.parentNode.nodeName != "TD") ? spanSource.parentNode.parentNode.properties : false,
+	var isFromList = typeof spanSource.parentNode.parentNode.properties.content.geometry === 'undefined';
+	var layerProperties = (!isFromList) ? spanSource.parentNode.parentNode.properties : false,
 		copyFunc = function()
 		{
 			// если копируем слой из списка, но не из карты
-			if (layerProperties.type == 'layer' && spanSource.parentNode.parentNode.parentNode.parentNode.nodeName == "TD")
+			if (layerProperties.type == 'layer' && isFromList)
 				layerProperties.content.geometry = from_merc_geometry(layerProperties.content.geometry);
 			
 			if (!_this.addLayersToMap(layerProperties))
 				return;
 			
 			var node = divDestination.parentNode,
-				parentProperties = (typeof swapFlag != 'undefined') ? $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0].properties : divDestination.properties,
+				parentProperties = (typeof swapFlag != 'undefined' && swapFlag) ? $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0].properties : divDestination.properties,
 				li;
 			
-			if (typeof swapFlag != 'undefined')
+			if (typeof swapFlag != 'undefined' && swapFlag)
 			{
 				var parentDiv = $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0];
 				
@@ -1509,7 +1510,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 					$(li).treeview();
 					
 					// если копируем из карты
-					if (spanSource.parentNode.parentNode.parentNode.parentNode.nodeName != "TD")
+					if (!swapFlag)
 						_layersTree.runLoadingFuncs();
 				}
 				
@@ -1527,7 +1528,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 			
 			_queryMapLayers.addSwappable(li);
 			
-			if (typeof swapFlag != 'undefined')
+			if (typeof swapFlag != 'undefined' && swapFlag)
 			{
 				var divElem = $(divDestination.parentNode).children("div[GroupID],div[LayerID],div[MultiLayerID]")[0],
 					divParent = $(divDestination.parentNode.parentNode.parentNode).children("div[MapID],div[GroupID]")[0],
