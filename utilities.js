@@ -597,7 +597,8 @@ function translit(name)
 }
 
 var layersShown = true,
-	layerManagerShown = false;
+	layerManagerShown = false,
+	leftContentHeightDecrease = 0; //насколько уменьшать высоту левой панели (для плагинов)
 
 function resizeAll()
 {
@@ -618,7 +619,7 @@ function resizeAll()
 		jQuery("#header").find("[hidable]").css("display",'');
 		$$('header').style.height = '95px';
 		
-		$$("leftContent").style.height = getWindowHeight() - top - bottom - 95 + 'px';
+		$$("leftContent").style.height = getWindowHeight() - top - bottom - leftContentHeightDecrease - 95 + 'px';
 	}
 	else
 	{
