@@ -885,12 +885,9 @@ function createFlashMapInternal(div, layers, callback)
 					'clusterView': {},						// јтрибуты отображени€ членов кластера (при null не отображать)
 					'visible': false
 				};
-				function chkToFlash() {
-					if(this._attr.visible && this._parent) FlashCMD('setClusters', { 'obj': this._parent, 'attr': this._attr });
-				}
-				this._chkToFlash = chkToFlash;
 			};
 			Clusters.prototype = {
+				'_chkToFlash':	function() { if(this._attr.visible && this._parent) FlashCMD('setClusters', { 'obj': this._parent, 'attr': this._attr }); },
 				'setProperties':function(prop) { var out = {}; for(key in prop) out[key] = prop[key]; this._attr.newProperties = out; this._chkToFlash(); },
 				'getProperties':function() { var out = {}; for(key in this._attr.newProperties) out[key] = this._attr.newProperties[key]; return out; },
 				'setStyle':		function(style, activeStyle) { this._attr.RenderStyle = style; this._attr.HoverStyle = (activeStyle ? activeStyle : style); this._chkToFlash(); },
@@ -964,6 +961,7 @@ function createFlashMapInternal(div, layers, callback)
 							attr['visible'] = true;
 							obj['clusters']['attr'] = attr;
 						}
+						if(!obj.parent._hoverBalloonAttr) obj.parent.enableHoverBalloon();	// если балунов не установлено
 						break;
 					case 'delClusters':		// ”далить кластеризацию потомков
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
@@ -7463,7 +7461,7 @@ function BalloonClass(map, div, apiBase)
 				//if(keyPress['objType'] == 'cluster') {}; // Ќадо придумать как боротьс€ с фикс.двойником
 
 				var textFunc = chkAttr('callback', mapObject);			// ѕроверка наличи€ параметра callback по ветке родителей 
-				var text = (textFunc ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
+				var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
 				if(!text) return;
 				var id = setID(o);
 				lastHoverBalloonId = o.objectId;
@@ -7594,7 +7592,7 @@ function BalloonClass(map, div, apiBase)
 			balloon.fixedId = id;
 			if(keyPress['objType']) balloon.objType = keyPress['objType'];
 
-			var text = (textFunc ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
+			var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
 			if(!text) return;
 
 			var mx = map.getMouseX();

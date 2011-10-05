@@ -303,7 +303,7 @@ class Main
 			if (!isFluidMoving)
 			{
 				isMoving = false;
-				//viewportHasMoved = true;	// вьюпорт не двигался
+				viewportHasMoved = true;	// вьюпорт не двигался
 			}
 			if (clickedNode != null)
 				clickedNode.callHandler("onMouseUp", nodeFrom);
