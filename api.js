@@ -876,18 +876,31 @@ function createFlashMapInternal(div, layers, callback)
 			var Clusters =	function(parent)		// атрибуты кластеризации потомков
 			{
 				this._parent = parent;
+				var RenderStyle = {		// стили кластеров
+					marker: { image: 'http://kosmosnimki.ru/poi2/cluster_img.png', center: true, minScale: 0.5, maxScale: 2, scale: '[Количество]/50' },
+					label: { size: 12, align:'center', color: 0xff00ff, haloColor: 0xffffff, value:'[Метка]', field:'Количество' }
+				};
+				var HoverStyle = {		// стили кластеров при наведении
+					marker: { image: 'http://kosmosnimki.ru/poi2/cluster_img_hover.png', center: true, minScale: 0.5, maxScale: 2, scale: '[Количество]/50' },
+					label: { size: 12, align:'center', color: 0xff0000, haloColor: 0xffffff, value:'[Метка]', field:'Количество' }
+				};
+
 				this._attr = {
 					'radius': 20,
 					'iterationCount': 1,
 					'newProperties': {						// Заполняемые поля properties кластеров
 						'Количество': '[objectInCluster]'	// objectInCluster - количество обьектов попавших в кластер (по умолчанию 'Количество')
 					},
+					'RenderStyle': RenderStyle,				// стили кластеров
+					'HoverStyle': HoverStyle,				// стили кластеров при наведении
 					'clusterView': {},						// Атрибуты отображения членов кластера (при null не отображать)
 					'visible': false
 				};
 			};
 			Clusters.prototype = {
-				'_chkToFlash':	function() { if(this._attr.visible && this._parent) FlashCMD('setClusters', { 'obj': this._parent, 'attr': this._attr }); },
+				'_chkToFlash':	function() {
+					if(this._attr.visible && this._parent) FlashCMD('setClusters', { 'obj': this._parent, 'attr': this._attr });
+				},
 				'setProperties':function(prop) { var out = {}; for(key in prop) out[key] = prop[key]; this._attr.newProperties = out; this._chkToFlash(); },
 				'getProperties':function() { var out = {}; for(key in this._attr.newProperties) out[key] = this._attr.newProperties[key]; return out; },
 				'setStyle':		function(style, activeStyle) { this._attr.RenderStyle = style; this._attr.HoverStyle = (activeStyle ? activeStyle : style); this._chkToFlash(); },
@@ -899,7 +912,7 @@ function createFlashMapInternal(div, layers, callback)
 				'getVisible':	function() { return this._attr.visible; },
 				'setVisible':	function(flag) { this._attr.visible = (flag ? true : false); if(this._attr.visible) this._chkToFlash(); else FlashCMD('delClusters', { 'obj': this._parent }); },
 				'setClusterView':	function(hash) { this._attr.clusterView = hash; this._chkToFlash(); },
-				'getClusterView':	function() { var out = {}; for(key in this._attr.clusterView) out[key] = this._attr.clusterView[key]; return out; }
+				'getClusterView':	function() { if(!this._attr.clusterView) return null; var out = {}; for(key in this._attr.clusterView) out[key] = this._attr.clusterView[key]; return out; }
 			}
 
 			var FlashMapObject = function(objectId_, properties_, parent_)
