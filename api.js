@@ -902,7 +902,7 @@ function createFlashMapInternal(div, layers, callback)
 				'getVisible':	function() { return this._attr.visible; },
 				'setVisible':	function(flag) { this._attr.visible = (flag ? true : false); if(this._attr.visible) this._chkToFlash(); else FlashCMD('delClusters', { 'obj': this._parent }); },
 				'setClusterView':	function(hash) { this._attr.clusterView = hash; this._chkToFlash(); },
-				'getClusterView':	function() { var out = {}; for(key in this._attr.clusterView) out[key] = this._attr.clusterView[key]; return out; },
+				'getClusterView':	function() { var out = {}; for(key in this._attr.clusterView) out[key] = this._attr.clusterView[key]; return out; }
 			}
 
 			var FlashMapObject = function(objectId_, properties_, parent_)
