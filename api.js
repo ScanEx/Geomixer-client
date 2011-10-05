@@ -873,10 +873,10 @@ function createFlashMapInternal(div, layers, callback)
 			var flashDiv = document.getElementById(flashId);
 			flashDiv.style.MozUserSelect = "none";
 
-			var Clusters =	function()		// атрибуты кластеризации потомков
+			var Clusters =	function(parent)		// атрибуты кластеризации потомков
 			{
-				this.parent = null;
-				this.attr = {
+				this._parent = parent;
+				this._attr = {
 					'radius': 20,
 					'iterationCount': 1,
 					'newProperties': {						// Заполняемые поля properties кластеров
@@ -885,27 +885,25 @@ function createFlashMapInternal(div, layers, callback)
 					'clusterView': null,					// Атрибуты отображения членов кластера (при отсутствии не отображать)
 					'visible': false
 				};
-				function setProperties(prop) { var out = {}; for(key in prop) out[key] = prop[key]; this.attr.newProperties = out; if(this.attr.visible) this.setVisible(true); }
-				function getProperties() { var out = {}; for(key in this.attr.newProperties) out[key] = this.attr.newProperties[key]; return out; }
-				function setStyle(style, activeStyle) { this.attr.RenderStyle = style; this.attr.HoverStyle = (activeStyle ? activeStyle : style); if(this.attr.visible) this.setVisible(true); }
-				function getStyle() { var out = {}; if(this.attr.RenderStyle) out.RenderStyle = this.attr.RenderStyle; if(this.attr.HoverStyle) out.HoverStyle = this.attr.HoverStyle; return out; }
-				function setRadius(radius) { this.attr.radius = radius; if(this.attr.visible) this.setVisible(true); }
-				function getRadius() { return this.attr.radius; }
-				function setIterationCount(iterationCount) { this.attr.iterationCount = iterationCount; if(this.attr.visible) this.setVisible(true); }
-				function getIterationCount() { return this.attr.iterationCount; }
-				function getVisible() { return this.attr.visible; }
-				function setVisible(flag) {
-					this.attr.visible = (flag ? true : false);
-					if(!this.parent) return;	// если родитель еще не установлен в SWF не передаем
-					var cmd = 'delClusters';
-					var out = { 'obj': this.parent };
-					if(this.attr.visible) {
-						cmd = 'setClusters';
-						out['attr'] = this.attr;
-					}
-					FlashCMD(cmd, out);
+				function chkToFlash() {
+					if(this._attr.visible && this._parent) FlashCMD('setClusters', { 'obj': this._parent, 'attr': this._attr });
 				}
+				this._chkToFlash = chkToFlash;
 			};
+			Clusters.prototype = {
+				'setProperties':function(prop) { var out = {}; for(key in prop) out[key] = prop[key]; this._attr.newProperties = out; this._chkToFlash(); },
+				'getProperties':function() { var out = {}; for(key in this._attr.newProperties) out[key] = this._attr.newProperties[key]; return out; },
+				'setStyle':		function(style, activeStyle) { this._attr.RenderStyle = style; this._attr.HoverStyle = (activeStyle ? activeStyle : style); this._chkToFlash(); },
+				'getStyle':		function() { var out = {}; if(this._attr.RenderStyle) out.RenderStyle = this._attr.RenderStyle; if(this._attr.HoverStyle) out.HoverStyle = this._attr.HoverStyle; return out; },
+				'setRadius':	function(radius) { this._attr.radius = radius; this._chkToFlash(); },
+				'getRadius':	function() { return this._attr.radius; },
+				'setIterationCount':	function(iterationCount) { this._attr.iterationCount = iterationCount; this._chkToFlash(); },
+				'getIterationCount':	function() { return this._attr.iterationCount; },
+				'getVisible':	function() { return this._attr.visible; },
+				'setVisible':	function(flag) { this._attr.visible = (flag ? true : false); if(this._attr.visible) this._chkToFlash(); else FlashCMD('delClusters', { 'obj': this._parent }); },
+				'setClusterView':	function(hash) { this._attr.clusterView = hash; this._chkToFlash(); },
+				'getClusterView':	function() { var out = {}; for(key in this._attr.clusterView) out[key] = this._attr.clusterView[key]; return out; },
+			}
 
 			var FlashMapObject = function(objectId_, properties_, parent_)
 			{
@@ -1407,8 +1405,7 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			FlashMapObject.prototype.setFilter = function(sql) {
 				if(!this.clusters) {
-					this.clusters = new Clusters();	// атрибуты кластеризации потомков по фильтру
-					this.clusters.parent = this;
+					this.clusters = new Clusters(this);	// атрибуты кластеризации потомков по фильтру
 				}
 				return FlashCMD('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
 				//return flashDiv.setFilter(this.objectId, sql);
