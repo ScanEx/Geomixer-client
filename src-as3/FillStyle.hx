@@ -41,7 +41,7 @@ class FillStyle
 	public function getColor(prop:Hash<String>):Int
 	{
 		var out:Int = color;
-		if (colorFunction != null) {
+		if (colorFunction != null && prop != null) {
 			out = cast(colorFunction(prop));
 		}
 		return out;
@@ -50,7 +50,7 @@ class FillStyle
 	public function getOpacity(prop:Hash<String>):Float
 	{
 		var out:Float = opacity;
-		if (opacityFunction != null) {
+		if (opacityFunction != null && prop != null) {
 			out = cast(opacityFunction(prop))/100;
 		}
 		return out;

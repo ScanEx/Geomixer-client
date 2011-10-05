@@ -873,27 +873,28 @@ function createFlashMapInternal(div, layers, callback)
 			var flashDiv = document.getElementById(flashId);
 			flashDiv.style.MozUserSelect = "none";
 
-			var clusters =	// атрибуты кластеризации потомков
+			var Clusters =	function()		// атрибуты кластеризации потомков
 			{
-				'parent': null,
-				'attr': {
+				this.parent = null;
+				this.attr = {
 					'radius': 20,
 					'iterationCount': 1,
 					'newProperties': {						// Заполняемые поля properties кластеров
 						'Количество': '[objectInCluster]'	// objectInCluster - количество обьектов попавших в кластер (по умолчанию 'Количество')
 					},
+					'clusterView': null,					// Атрибуты отображения членов кластера (при отсутствии не отображать)
 					'visible': false
-				},
-				'setProperties': function(prop) { var out = {}; for(key in prop) out[key] = prop[key]; this.attr.newProperties = out; },
-				'getProperties': function() { var out = {}; for(key in this.attr.newProperties) out[key] = this.attr.newProperties[key]; return out; },
-				'setStyle': function(style, activeStyle) { this.attr.RenderStyle = style; this.attr.HoverStyle = (activeStyle ? activeStyle : style); },
-				'getStyle': function() { var out = {}; if(this.attr.RenderStyle) out.RenderStyle = this.attr.RenderStyle; if(this.attr.HoverStyle) out.HoverStyle = this.attr.HoverStyle; return out; },
-				'setRadius': function(radius) { this.attr.radius = radius; },
-				'getRadius': function() { return this.attr.radius; },
-				'setIterationCount': function(iterationCount) { this.attr.iterationCount = iterationCount; },
-				'getIterationCount': function() { return this.attr.iterationCount; },
-				'getVisible': function() { return this.attr.visible; },
-				'setVisible': function(flag) {
+				};
+				function setProperties(prop) { var out = {}; for(key in prop) out[key] = prop[key]; this.attr.newProperties = out; if(this.attr.visible) this.setVisible(true); }
+				function getProperties() { var out = {}; for(key in this.attr.newProperties) out[key] = this.attr.newProperties[key]; return out; }
+				function setStyle(style, activeStyle) { this.attr.RenderStyle = style; this.attr.HoverStyle = (activeStyle ? activeStyle : style); if(this.attr.visible) this.setVisible(true); }
+				function getStyle() { var out = {}; if(this.attr.RenderStyle) out.RenderStyle = this.attr.RenderStyle; if(this.attr.HoverStyle) out.HoverStyle = this.attr.HoverStyle; return out; }
+				function setRadius(radius) { this.attr.radius = radius; if(this.attr.visible) this.setVisible(true); }
+				function getRadius() { return this.attr.radius; }
+				function setIterationCount(iterationCount) { this.attr.iterationCount = iterationCount; if(this.attr.visible) this.setVisible(true); }
+				function getIterationCount() { return this.attr.iterationCount; }
+				function getVisible() { return this.attr.visible; }
+				function setVisible(flag) {
 					this.attr.visible = (flag ? true : false);
 					if(!this.parent) return;	// если родитель еще не установлен в SWF не передаем
 					var cmd = 'delClusters';
@@ -1406,7 +1407,7 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			FlashMapObject.prototype.setFilter = function(sql) {
 				if(!this.clusters) {
-					this.clusters = clusters;	// атрибуты кластеризации потомков по фильтру
+					this.clusters = new Clusters();	// атрибуты кластеризации потомков по фильтру
 					this.clusters.parent = this;
 				}
 				return FlashCMD('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});

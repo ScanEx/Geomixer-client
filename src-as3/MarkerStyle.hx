@@ -226,14 +226,16 @@ class MarkerStyle
 			center ? -width/2 : (dx - 1),
 			center ? -height/2 : (dy - 1)
 		);
-		if (angleFunction != null)
-			matrix.rotate(angleFunction(geom.properties)*Math.PI/180.0);
-		if (scaleFunction != null)
-		{
-			var s = scaleFunction(geom.properties);
-			if (s < minScale) s = minScale;
-			else if (s > maxScale) s = maxScale;
-			matrix.scale(s, s);
+		if (geom.properties != null) {
+			if (angleFunction != null)
+				matrix.rotate(angleFunction(geom.properties)*Math.PI/180.0);
+			if (scaleFunction != null)
+			{
+				var s = scaleFunction(geom.properties);
+				if (s < minScale) s = minScale;
+				else if (s > maxScale) s = maxScale;
+				matrix.scale(s, s);
+			}			
 		}
 		matrix.concat(new Matrix(scaleX, 0, 0, scaleY, geom.x, geom.y));
 		matrix.tx -= matrix.tx%scaleX;

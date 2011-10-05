@@ -20,6 +20,10 @@ class MapContent
 		return null;
 	}
 
+	public function flush():Void
+	{
+	}
+
 	public function delClusters():Dynamic
 	{
 		return null;

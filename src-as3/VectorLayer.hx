@@ -31,7 +31,7 @@ class VectorLayer extends MapContent
 		flush();
 	}
 
-	public function flush()
+	public override function flush()
 	{
 		tiles = new Array<VectorTile>();
 		geometries = new Hash<Geometry>();

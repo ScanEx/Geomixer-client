@@ -30,7 +30,7 @@ class VectorLayerFilter extends MapContent
 		return Utils.addSprite(mapNode.vectorSprite);
 	}
 
-	public function flush()
+	public override function flush()
 	{
 		if (painters != null)
 			for (painter in painters)
@@ -41,13 +41,14 @@ class VectorLayerFilter extends MapContent
 		ids = new Hash<Bool>();
 		if (layer != null)
 			createLoader();
+		delClusters();
 	}
 
 	// Удалить кластеризацию на фильтре
 	public override function delClusters():Dynamic
 	{
 		clusterAttr = null;
-		mapNode.setStyle(regularStyleOrig, hoverStyleOrig);
+		if(regularStyleOrig != null) mapNode.setStyle(regularStyleOrig, hoverStyleOrig);
 	}
 
 	// Инициализация кластеризации на фильтре
@@ -134,7 +135,7 @@ class VectorLayerFilter extends MapContent
 	public override function repaint()
 	{
 		if(loader != null) loader(mapNode.window.visibleExtent);
-		var w = 2*Utils.worldWidth;
+		var w = 2 * Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;
 		var cx1 = (e1.minx + e1.maxx) / 2;
 		var curStyle = mapNode.getRegularStyle();
@@ -165,7 +166,7 @@ class VectorLayerFilter extends MapContent
 
 	public override function hasLabels()
 	{
-		var style = mapNode.getRegularStyle();
+		var style = (mapNode != null ? mapNode.getRegularStyle() : null);
 		return ((style != null) && (style.label != null));
 	}
 

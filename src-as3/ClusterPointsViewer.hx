@@ -36,7 +36,7 @@ class ClusterPointsViewer extends MapContent
 		mapNode.remove();
 	}
 	
-	public function flush()
+	public override function flush()
 	{
 		centrGeometry = cast(vlFilter.layer.lastGeometry, PointGeometry);
 		members = centrGeometry.propHiden.get('_members');

@@ -228,6 +228,7 @@ class MapNode
 		var oldContent = content;
 		content = content_;
 		if (oldContent != null) {
+			oldContent.flush();
 			oldContent.contentSprite.parent.removeChild(oldContent.contentSprite);
 			if (parent != null && parent.filters.exists(id))
 			{
