@@ -333,7 +333,7 @@ $(document).ready(function()
 	if (window.language == "eng")
 		window.KOSMOSNIMKI_LANGUAGE = "English";
 	
-	window.shownTitle =  pageTitle ? pageTitle : _gtxt('ScanEx Web Geomixer - просмотр карты');
+	window.shownTitle =  typeof pageTitle !== 'undefined' && pageTitle ? pageTitle : _gtxt('ScanEx Web Geomixer - просмотр карты');
 	
 	createHeader();
 	
@@ -405,7 +405,9 @@ function parseReferences()
 	if ("mode" in params)
 		defaultState.mode = params.mode;
 	
-	var mapName = defaultMapID && !givenMapName ? defaultMapID : givenMapName;
+	defaultMapID = defaultMapID || 'DefaultMap';
+	
+	var mapName = typeof defaultMapID !== 'undefined' && defaultMapID && !givenMapName ? defaultMapID : givenMapName;
 	window.globalMapName = mapName;
 	
 	if (!window.globalMapName)
