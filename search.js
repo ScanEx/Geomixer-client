@@ -178,11 +178,19 @@ var SearchInput = function (oInitContainer, params) {
     }
 
     searchField.onfocus = function() {
-        if (this.value == sDefaultValue) this.value = '';
+        if (this.value == sDefaultValue) {
+            this.value = '';
+			
+			$(this).addClass('searchCenterValueExists');
+        }
     }
 
     searchField.onblur = function() {
-        if (this.value == '') this.value = sDefaultValue;
+        if (this.value == '') {
+            this.value = sDefaultValue;
+			
+			$(this).removeClass('searchCenterValueExists');
+        }
     }
 
     _(Container, [searchFieldCanvas]);
