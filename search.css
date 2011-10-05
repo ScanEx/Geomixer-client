@@ -112,7 +112,7 @@ span.searchElem:hover, span.searchElemParent:hover
 	height: 22px;
 	width: 100%;
 }
-.searchCenterValueExists{
+.searchCenter:focus{
 	color: #153069;
 }
 .searchEndTD
