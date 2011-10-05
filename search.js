@@ -8,17 +8,6 @@
 */
 (function($){
 
-if(!Array.indexOf){
-    Array.prototype.indexOf = function(obj){
-	for(var i=0; i<this.length; i++){
-	    if(this[i]==obj){
-	        return i;
-	    }
-	}
-	return -1;
-    }
-}
-
 _translationsHash.addtext("rus", {
 	"Текущее местоположение отображается только для России и Украины": "Текущее местоположение отображается только для России и Украины"
 });
@@ -115,7 +104,7 @@ var SearchInput = function (oInitContainer, params) {
 	@function
 	@see Search.SearchInput#GetSearchString*/
 	this.SetSearchString = function(value) {searchField.value = value};
-	if (params.Search != null) $(this).bind('Search', params.Search)
+	if (params.Search != null) $(this).bind('Search', params.Search);
 	if (params.AutoCompleteSelect != null) $(this).bind('AutoCompleteSelect', params.AutoCompleteSelect)
 		
 	var dtLastSearch = new Date();
@@ -144,11 +133,11 @@ var SearchInput = function (oInitContainer, params) {
 		var bChangeValue = (searchField.value == sDefaultValue);
 	
 		if (layersSearchFlag) {
-			sDefaultValue = _sDefalutAddressVectorLabel
+			sDefaultValue = _sDefalutAddressVectorLabel;
 			divSearchBegin.className = 'searchBeginOn';
 		}
 		else {
-			sDefaultValue = _sDefalutAddressLabel
+			sDefaultValue = _sDefalutAddressLabel;
 			divSearchBegin.className = 'searchBeginOff';
 		}
 		
@@ -175,7 +164,7 @@ var SearchInput = function (oInitContainer, params) {
 	searchField.value = sDefaultValue;
 
     var searchFieldCanvas = _table(	[_tbody([_tr([tdSearchBegin, _td([searchField], [['dir', 'className', 'searchCenterTD']]), tdSearchButton])])], 
-									[['dir', 'className', 'SearchInputControl']])
+									[['dir', 'className', 'SearchInputControl']]);
 
     searchField.onkeyup = function(e) {
         var evt = e || window.event;
@@ -433,7 +422,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 			var elemTR = _tr(null, [['dir', 'className', 'SearchResultRow']]);
 			var elemTD = _td();
 			_(elemTR, [_td([_t((i+1).toString() + ".")], [['dir', 'className','searchElemPosition']]), elemTD]);
-			drawObject(arrObjects[i], elemTD)
+			drawObject(arrObjects[i], elemTD);
 			_(tbody, [elemTR]);
 		}
 		_(divChilds, [_table([tbody])]);
@@ -506,10 +495,10 @@ var ResultList = function(oInitContainer, ImagesHost){
 		if (oDataSource.SearchResult.length <= iLimit) {
 			removeChilds(divPages);
 			SetDisplayedObjects(iDataSourceN, oDataSource.SearchResult);
-			drawRows(iDataSourceN, divChilds)
+			drawRows(iDataSourceN, divChilds);
 		}
 		else {
-			oDataSource.allPages = Math.ceil(oDataSource.SearchResult.length / iLimit)
+			oDataSource.allPages = Math.ceil(oDataSource.SearchResult.length / iLimit);
 
 			drawPagesRow(iDataSourceN, divChilds, divPages);
 		}
@@ -539,14 +528,14 @@ var ResultList = function(oInitContainer, ImagesHost){
 			@param {object[]} SearchResult Результаты поиска, которые необходимо сохранить в файл*/
 			$(_this).triggerHandler('onDownloadSHP', [filename, oDataSource.SearchResult]);
 			
-			$(canvas.parentNode).dialog("destroy")
+			$(canvas.parentNode).dialog("destroy");
 			canvas.parentNode.removeNode(true);
 		}
 
 		_(canvas, [_div([_t(_gtxt("Введите имя файла для скачивания")), filename], [['dir', 'className', 'DownloadSHPButtonText']]), _div([downloadButton], [['dir', 'className', 'DownloadSHPButton']])]);
 
-		var area = getOffsetRect(Container)
-		showDialog(_gtxt("Скачать shp-файл"), canvas, 291, 120, 30, area.top + 10)
+		var area = getOffsetRect(Container);
+		showDialog(_gtxt("Скачать shp-файл"), canvas, 291, 120, 30, area.top + 10);
 	}
 
 	/**Отображает результаты поиска с источника данных
@@ -581,7 +570,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 				downloadMarkers(iDataSourceN);
 			}
 
-			liInner.insertBefore(_div([downloadVector], [['dir', 'className', 'SearchDownloadShpLink']]), liInner.firstChild)
+			liInner.insertBefore(_div([downloadVector], [['dir', 'className', 'SearchDownloadShpLink']]), liInner.firstChild);
 		}
 
 		return li;
@@ -618,7 +607,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 		var ulSearch = _ul();
 		
 		for (var iDataSourceN  = 0; iDataSourceN < arrTotalResultSet.length; iDataSourceN++)
-			_(ulSearch, [drawSearchResult(iDataSourceN)])
+			_(ulSearch, [drawSearchResult(iDataSourceN)]);
 
 		if (arrTotalResultSet.length == 1){
 			_(oResultCanvas, [ulSearch]);
@@ -644,7 +633,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 		@event
 		@param {int} iDataSourceN № источника данных(группы результатов поиска)
 		@param {object[]} arrDSDisplayedObjects Результаты поиска, которые необходимо отобразить в текущей группе*/
-		$(_this).triggerHandler('onDisplayedObjectsChanged',[iDataSourceN, arrDisplayedObjects[iDataSourceN]])
+		$(_this).triggerHandler('onDisplayedObjectsChanged',[iDataSourceN, arrDisplayedObjects[iDataSourceN]]);
 	};
 	
 	/** Показывает режим загрузки
@@ -658,14 +647,14 @@ var ResultList = function(oInitContainer, ImagesHost){
 	@returns {void}*/
 	this.ShowError = function(){
 		removeChilds(oResultCanvas);
-		_(oResultCanvas, [_t("Произошла ошибка")])
+		_(oResultCanvas, [_t("Произошла ошибка")]);
 	}
 	
 	/**Очищает результаты поиска
 	@returns {void}*/
 	this.Unload = function(){unload();};
 	/** Возвращает контрол, в котором находится данный контрол*/
-	this.getContainer = function(){return Container;}
+	this.getContainer = function(){return Container;};
 };
 
 /** Конструктор
@@ -689,7 +678,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 		return [
 						{ marker: { image: sImagesHost + "/search/search_" + (iPosition + 1).toString() + ".png", dx: -14, dy: -38} },
 						{ marker: { image: sImagesHost + "/search/search_" + (iPosition + 1).toString() + "a.png", dx: -14, dy: -38} }
-				]
+				];
 	}
 
 	/**Помещает объект на карту
@@ -698,7 +687,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	@param {int} iPosition порядковый номер добавляемого объекта в группе*/
 	var DrawObject = function(oContainer, oFoundObject, iPosition){
 		var sDescr = "<b>" + GetFullName(oFoundObject.TypeName, oFoundObject.ObjName) + "</b><br/>" + GetPath(oFoundObject.Parent, "<br/>", true);
-		if (oFoundObject.properties != null) sDescr += "<br/>" + GetPropertiesString(oFoundObject.properties, "<br/>")
+		if (oFoundObject.properties != null) sDescr += "<br/>" + GetPropertiesString(oFoundObject.properties, "<br/>");
 		var fnBaloon = function(o) {
 			return o.properties.Descr.replace(/;/g, "<br/>");
 		};
@@ -799,13 +788,11 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 	}
 
 	var setLocationTitleDiv = function(div, attr) {
-		if (dtLastSearch && Number(new Date()) - dtLastSearch < 300) 
-			return;
+		if (dtLastSearch && Number(new Date()) - dtLastSearch < 300) return;
 		dtLastSearch = new Date();
 		
 		var locationTitleDiv = div;
-		//$(locationTitleDiv).addClass('locationTitleDiv');
-		//_(div, [locationTitleDiv])
+
 		fnSearchLocation({Geometry: attr['screenGeometry'], callback: function(arrResultDataSources){
 			removeChilds(locationTitleDiv);
 			if(arrResultDataSources.length>0){
@@ -819,11 +806,7 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 		}});
 	};
 	
-	//var listenerID = oMap.addMapStateListener("positionChanged", setLocationTitleDiv);
 	oMap.coordinates.addCoordinatesFormat(setLocationTitleDiv);
-	/*this.RemoveHandler = function(){
-		oMap.removeMapStateListener("positionChanged", listenerID);
-	};*/
 }
 
 /** Возвращает контрол, отображающий результаты поиска в виде списка с нанесением на карту 
@@ -913,7 +896,7 @@ var ResultListMap = function(lstResult, oRenderer){
 	@returns {void}*/
 	this.Unload = function(){lstResult.Unload();};
 	/** Возвращает контейнер, содержащий список найденных объектов*/
-	this.getContainerList = function(){return lstResult.getContainer();}
+	this.getContainerList = function(){return lstResult.getContainer();};
 }
 
 /**Конструктор
@@ -949,7 +932,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		if (params.WithoutGeometry != null) sQueryString += "&WithoutGeometry=" + escape(params.WithoutGeometry ? "1" : "0");
 		//if (sFormatName != null) sQueryString += "&Format=" + escape(sFormatName);
 		sendCrossDomainJSONRequest(sServerBase + "/SearchObject/SearchAddress.ashx?" + sQueryString, function(response){
-			if (response.Status == 'ok') {callback(response.Result)}
+			if (response.Status == 'ok') {callback(response.Result);}
 			else {throw response.ErrorInfo.ErrorMessage;}
 		});
 	};
@@ -972,7 +955,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		fnSearch({callback: params.callback, ID: params.ID, RequestType: "ID"})
+		fnSearch({callback: params.callback, ID: params.ID, RequestType: "ID"});
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -981,7 +964,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
 	@returns {void}*/
 	this.SearchLocation = function(params){
-		fnSearch({callback: params.callback, Geometry: params.Geometry, WithoutGeometry: true, RequestType: "Location"})
+		fnSearch({callback: params.callback, Geometry: params.Geometry, WithoutGeometry: true, RequestType: "Location"});
 	}
 	
 	/**Осуществляет поиск по произвольным параметрам
@@ -1016,8 +999,8 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		}
 		
 		var layersToSearch = [];
-		for(var i in oMap.layers){
-            if (oMap.layers[i].properties.type == "Vector" && i == oMap.layers[i].properties.name && oMap.layers[i].properties.AllowSearch)
+		for(var i=0; i< oMap.layers.length; i++){
+            if (oMap.layers[i].properties.type == "Vector" && oMap.layers[i].properties.AllowSearch)
                 layersToSearch.push(oMap.layers[i]);
         }
 		var iRespCount = 0;
@@ -1050,7 +1033,9 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 										else {
 											for (var iProperty=0; iProperty<arrDisplayFields.length; iProperty++){
 												var sPropName = arrDisplayFields[iProperty];
-												arrDisplayProperties[sPropName] = req.SearchResult[j].properties[sPropName];
+												if(sPropName in req.SearchResult[j].properties) {
+													arrDisplayProperties[sPropName] = req.SearchResult[j].properties[sPropName];
+												}
 											}
 										}
 										arrLayerResult.push({ 
@@ -1155,7 +1140,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 					arrResult.push({
 						label:sLabel,
 						value:GetFullName(oFoundObject.TypeName, sValue),
-						GeoObject: oFoundObject})
+						GeoObject: oFoundObject});
 				}
 				if(arrResult.length>0) break;
 			}
@@ -1248,7 +1233,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID})
+		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID});
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -1257,7 +1242,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
 	@returns {void}*/
 	this.SearchLocation = function(params){
-		oSearchDataProvider.SearchLocation({callback: params.callback, Geometry: params.Geometry})
+		oSearchDataProvider.SearchLocation({callback: params.callback, Geometry: params.Geometry});
 	}
 	
 	/**Осуществляет поиск по произвольным параметрам
@@ -1413,7 +1398,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 		@event
 		@param {int} iDataSourceN № источника данных(группы результатов поиска)
 		@param {object[]} arrDSDisplayedObjects Результаты поиска, которые необходимо отобразить в текущей группе*/
-		$(_this).triggerHandler('onDisplayedObjectsChanged', [iDataSourceN, arrFoundObjects])
+		$(_this).triggerHandler('onDisplayedObjectsChanged', [iDataSourceN, arrFoundObjects]);
 	}
 	
 	var onObjectClick = function(event, oFoundObject){
@@ -1421,7 +1406,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 		@name Search.SearchControl.onObjectClick
 		@event
 		@param {object} oFoundObject Найденный объект*/
-		$(_this).triggerHandler('onObjectClick', [oFoundObject])
+		$(_this).triggerHandler('onObjectClick', [oFoundObject]);
 	}
 	
 	$(lstResult).bind('onDisplayedObjectsChanged', onDisplayedObjectsChanged);
@@ -1513,7 +1498,7 @@ var SearchGeomixer = function(){
 	var fnBeforeSearch = function(event){
 		/** Вызывается перед началом поиска
 		@name Search.SearchGeomixer.onBeforeSearch
-		@event*/
+		@event */
 		$(_this).triggerHandler('onBeforeSearch');
 		fnLoad();
 	}
@@ -1521,7 +1506,7 @@ var SearchGeomixer = function(){
 	var fnAfterSearch = function(event){
 		/** Вызывается после окончания поиска
 		@name Search.SearchGeomixer.onAfterSearch
-		@event*/
+		@event */
 		$(_this).triggerHandler('onAfterSearch');
 	}
 	
@@ -1531,7 +1516,7 @@ var SearchGeomixer = function(){
 		@event
 		@param {int} iDataSourceN № источника данных(группы результатов поиска)
 		@param {object[]} arrDSDisplayedObjects Результаты поиска, которые необходимо отобразить в текущей группе*/
-		$(_this).triggerHandler('onDisplayedObjectsChanged', [iDataSourceN, arrFoundObjects])
+		$(_this).triggerHandler('onDisplayedObjectsChanged', [iDataSourceN, arrFoundObjects]);
 	}
 	
 	var onObjectClick = function(event, oFoundObject){
@@ -1539,7 +1524,7 @@ var SearchGeomixer = function(){
 		@name Search.SearchGeomixer.onObjectClick
 		@event
 		@param {object} oFoundObject Найденный объект*/
-		$(_this).triggerHandler('onObjectClick', [oFoundObject])
+		$(_this).triggerHandler('onObjectClick', [oFoundObject]);
 	}
 
 	/**Инициализирует контрол
@@ -1623,6 +1608,6 @@ var publicInterface = {
 	GetPath: GetPath
 }
 
-gmxCore.addModule("search", publicInterface)
+gmxCore.addModule("search", publicInterface);
 
 })(jQuery); 
