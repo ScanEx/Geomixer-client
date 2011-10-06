@@ -1561,22 +1561,21 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 			FlashMapObject.prototype.getGeometrySummary = function()
 			{
-				var out = '?';
-				var geomType = this.getGeometryType() || '';
-				if (geomType.indexOf("POINT") != -1)
-				{
-					var geom = this.getGeometry();
-					var c = geom.coordinates;
-					out = "<b>" + KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> ";
-					out += formatCoordinates(merc_x(c[0]), merc_y(c[1]));
-				}
-				else if (geomType.indexOf("LINESTRING") != -1) {
-					out = "<b>" + KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> ";
-					out += prettifyDistance(this.getLength());
-				}
-				else if (geomType.indexOf("POLYGON") != -1) {
-					out = '';
-					if(this.geometry) {
+				var out = '';
+				var geom = this.getGeometry();
+				var geomType = (geom ? geom.type : '');
+				if(geom) {
+					if (geomType.indexOf("POINT") != -1)
+					{
+						var c = geom.coordinates;
+						out = "<b>" + KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> ";
+						out += formatCoordinates(merc_x(c[0]), merc_y(c[1]));
+					}
+					else if (geomType.indexOf("LINESTRING") != -1) {
+						out = "<b>" + KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> ";
+						out += prettifyDistance(this.getLength());
+					}
+					else if (geomType.indexOf("POLYGON") != -1) {
 						out = "<b>" + KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> ";
 						var area = this.getArea();
 						out += prettifyArea(area);
@@ -7268,7 +7267,8 @@ function BalloonClass(map, div, apiBase)
 				text += "<b>" + key + ":</b> " + value + "<br />";
 			}
 		}
-		text += "<br />" + o.getGeometrySummary();
+		var summary = o.getGeometrySummary();
+		if(summary != '') text += "<br />" + summary;
 		return text;
 	}
 	this.getDefaultBalloonText = getDefaultBalloonText;
@@ -7299,6 +7299,10 @@ function BalloonClass(map, div, apiBase)
 	*		При вызове в callback передаются параметры:
 	*		@param {obj<Hash>} properties обьекта карты для балуна
 	*		@param {div<DIV>} нода контейнера содержимого балуна
+	*		@return {<String><Bool><Object>}	
+	*			если тип <String> то div.innerHTML = text
+	*			если тип <Bool> и значение True то div.innerHTML = ''
+	*			если тип <Object> никаких дополнительных действий - все действия были произведены в callback
 	* @param {attr:<Hash>} атрибуты управления балуном
 	*		свойства:
 	*			'disableOnMouseOver<Bool>'	- по умолчанию False
@@ -7307,6 +7311,10 @@ function BalloonClass(map, div, apiBase)
 	*			'clickCallback'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
 	*				@param {obj<Hash>} properties обьекта карты для балуна
 	*				@param {div<DIV>} нода контейнера содержимого балуна
+	*				@return {<String><Bool><Object>}	
+	*					если тип <String> то div.innerHTML = text
+	*					если тип <Bool> и значение True то div.innerHTML = ''
+	*					если тип <Object> никаких дополнительных действий - все действия были произведены в clickCallback
 	*			'OnClickSwitcher'<Function>	- по умолчанию null (при событии mouseClick - переключатель на пользовательский метод формирования всего фиксированного балуна)
 	*				@param {obj<Hash>} properties обьекта карты для балуна
 	*				@param {keyPress<Hash>} аттрибуты нажатых спец.клавиш при mouseClick событии
@@ -7314,6 +7322,10 @@ function BalloonClass(map, div, apiBase)
 	*					'shiftKey<Bool>'	- по умолчанию False
 	*					'ctrlKey<Bool>'		- по умолчанию False
 	*				@return {Bool} если true то стандартный фиксированный балун НЕ создавать
+	*			'customBalloon'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
+	*				@param {obj<Hash>} properties обьекта карты для балуна
+	*				@param {div<DIV>} нода контейнера содержимого балуна
+	*				@return {Bool} если true то стандартный балун НЕ создавать
 	*/
 	function enableHoverBalloon(mapObject, callback, attr)
 	{
@@ -7386,6 +7398,7 @@ function BalloonClass(map, div, apiBase)
 			}
 		};
 
+		if(mapObject == map) return;								// На map Handlers не вешаем
 		if(mapObject._hoverBalloonAttr) {							// есть юзерские настройки балунов
 			if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
 				handlersObj['onMouseOver'] = null;
@@ -7836,7 +7849,8 @@ function BalloonClass(map, div, apiBase)
 			enableHoverBalloon(filter, function(o)
 				{
 					var text = gmxAPI.applyTemplate(balloonParams.Balloon, o.properties);
-					text += "<br />" + o.getGeometrySummary();
+					var summary = o.getGeometrySummary();
+					if(summary != '') text += "<br />" + summary;
 					return text;
 				}
 				,
