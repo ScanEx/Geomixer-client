@@ -7244,7 +7244,7 @@ function BalloonClass(map, div, apiBase)
 	function chkBalloonText(text, div)
 	{
 		var type = typeof(text);
-		if(type === 'string') div.innerHTML = text;
+		if(type === 'string') div.innerHTML = '<div style="white-space: nowrap;">' + text + '</div>';
 		else if(type === 'boolean' && text) div.innerHTML = ""; // затираем только если true
 		// в случае type === 'object' ничего не делаем
 	}
@@ -7269,7 +7269,6 @@ function BalloonClass(map, div, apiBase)
 		}
 		var summary = o.getGeometrySummary();
 		if(summary != '') text += "<br />" + summary;
-		if(text) text = '<div style="white-space: nowrap;">' + text + '</div>';
 		return text;
 	}
 	this.getDefaultBalloonText = getDefaultBalloonText;
@@ -7852,7 +7851,6 @@ function BalloonClass(map, div, apiBase)
 					var text = gmxAPI.applyTemplate(balloonParams.Balloon, o.properties);
 					var summary = o.getGeometrySummary();
 					if(summary != '') text += "<br />" + summary;
-					if(text) text = '<div style="white-space: nowrap;">' + text + '</div>';
 					return text;
 				}
 				,
