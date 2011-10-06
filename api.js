@@ -7348,7 +7348,7 @@ function BalloonClass(map, div, apiBase)
 
 				var textFunc = chkAttr('callback', mapObject);			// ѕроверка наличи€ параметра callback по ветке родителей 
 				var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
-				if(!text) return;
+				if(typeof(text) == 'string' && text == '') return;
 				var id = setID(o);
 				lastHoverBalloonId = o.objectId;
 				
@@ -7479,7 +7479,7 @@ function BalloonClass(map, div, apiBase)
 			if(keyPress['objType']) balloon.objType = keyPress['objType'];
 
 			var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
-			if(!text) return;
+			if(typeof(text) == 'string' && text == '') return;
 
 			var mx = map.getMouseX();
 			var my = map.getMouseY();
