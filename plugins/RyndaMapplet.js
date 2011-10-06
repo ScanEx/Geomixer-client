@@ -1,11 +1,11 @@
 ﻿(function(){
 
 	_translationsHash.addtext("rus", {
-							"RyndaMapplet.Description" : "Сообщения Рынды"
+							"RyndaMapplet.Description" : "Сообщения пользователей"
 						 });
 						 
 	_translationsHash.addtext("eng", {
-							"RyndaMapplet.Description" : "Rynda Messages"
+							"RyndaMapplet.Description" : "User messages"
 						 });
 
 	var RyndaProvider = function()
@@ -46,23 +46,36 @@
 					{
 						title: data.data[i].title,
 						text: data.data[i].text,
+						url: data.data[i].url,
 						dateString: $.datepicker.formatDate('dd.mm.yy', new Date(data.data[i].date_added*1000))
 					});
-				obj.setStyle({marker: {image: "http://maps.kosmosnimki.ru/images/fires.png", center: true}});
+				obj.setStyle({marker: {image: "http://maps.kosmosnimki.ru/images/rynda.png", center: true}});
 			}
 			
-			_container.enableHoverBalloon(function(obj)
+			_container.enableHoverBalloon(function(obj, balloonDiv)
 			{
-				return obj.properties.title + "<br/>" + obj.properties.dateString;
+				$(balloonDiv).empty();
+				var container = $("<div></div>").css({width: "400px", whiteSpace: 'normal'});
+				var titleDiv = $("<b></b>", {className: "RyndaTitle"}).text(obj.properties.title);
+				var textDiv = $("<div></div>", {className: "RyndaText"}).html(obj.properties.text);
+				
+				//maxHeight не работает...
+				if ($.browser.msie) textDiv.css({height: "200px"});
+				
+				var dateDiv = $("<div></div>").text("Дата: " + obj.properties.dateString);
+				var urlDiv = $("<div></div>").html("Источник: ").append($("<a></a>", {href: obj.properties.url, target: "_blank"}).html(obj.properties.url));
+				$(container).append(titleDiv).append(textDiv).append(dateDiv).append(urlDiv);
+				$(balloonDiv).append(container);
+				return {};
 			}, 
 			{
-				OnClickSwitcher: function(obj)
+				/*OnClickSwitcher: function(obj)
 				{
 					var canvas = _div(null, [['dir', 'className', 'RyndaText']]);
 					canvas.innerHTML = obj.properties.text;
 					showDialog("Информационное сообщение Рынды", canvas, 400, 300);
 					return true;
-				}
+				}*/
 			});
 		}
 		
