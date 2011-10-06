@@ -7269,6 +7269,7 @@ function BalloonClass(map, div, apiBase)
 		}
 		var summary = o.getGeometrySummary();
 		if(summary != '') text += "<br />" + summary;
+		if(text) text = '<div style="white-space: nowrap;">' + text + '</div>';
 		return text;
 	}
 	this.getDefaultBalloonText = getDefaultBalloonText;
@@ -7552,7 +7553,7 @@ function BalloonClass(map, div, apiBase)
 			paddingBottom: bh + "px",
 
 			width: "auto",
-			whiteSpace: "nowrap",
+			//whiteSpace: "nowrap",
 			zIndex: 1000
 		});
 		balloon.className = 'gmx_balloon';
@@ -7564,7 +7565,7 @@ function BalloonClass(map, div, apiBase)
 			'bg_top': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
 			'bg_top_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
 			'bg_left': 'background-color: transparent; width: 13px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-left.png\'); background-repeat: repeat-y;',
-			'bg_center': 'background-color: transparent; width: 50px; min-width: 50px; border: 0px none; background-color: white; white-space: nowrap; padding: 4px; padding-right: 14px;',
+			'bg_center': 'background-color: transparent; width: 50px; min-width: 50px; border: 0px none; background-color: white; padding: 4px; padding-right: 14px;',
 			'bg_right': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 0px top; background-image: url(\''+apiBase+'img/tooltip-right.png\'); background-repeat: repeat-y;',
 			'bg_bottom_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
 			'bg_bottom': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center top; background-image: url(\''+apiBase+'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
@@ -7584,7 +7585,7 @@ function BalloonClass(map, div, apiBase)
 				<tr>\
 					<td style="'+css['bg_left']+'">'+transp+'</td>\
 					<td style="'+css['bg_center']+'">\
-						<div style="white-space: nowrap;" class="kosmosnimki_balloon">\
+						<div class="kosmosnimki_balloon">\
 						</div>\
 					</td>\
 					<td style="'+css['bg_right']+'">'+transp+'</td>\
@@ -7851,6 +7852,7 @@ function BalloonClass(map, div, apiBase)
 					var text = gmxAPI.applyTemplate(balloonParams.Balloon, o.properties);
 					var summary = o.getGeometrySummary();
 					if(summary != '') text += "<br />" + summary;
+					if(text) text = '<div style="white-space: nowrap;">' + text + '</div>';
 					return text;
 				}
 				,
