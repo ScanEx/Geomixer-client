@@ -930,6 +930,8 @@ function createFlashMapInternal(div, layers, callback)
 			// Передача команды в SWF
 			function FlashCMD(cmd, hash)
 			{
+
+//var startTime = (new Date()).getTime();
 				var ret = {};
 				var obj = hash['obj'] || null;	// Целевой обьект команды
 				var attr = hash['attr'] || '';
@@ -1205,6 +1207,15 @@ function createFlashMapInternal(div, layers, callback)
 						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geom':attr['geom'], 'func':attr['func'] } );
 						break;
 				}
+/*
+if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };
+var delta = (new Date()).getTime() - startTime;
+window._debugTimes.jsToFlash.timeSum += delta;
+window._debugTimes.jsToFlash.callCount += 1;
+if(!window._debugTimes.jsToFlash.callFunc[cmd]) window._debugTimes.jsToFlash.callFunc[cmd] = { 'timeSum':0, 'callCount':0 };
+window._debugTimes.jsToFlash.callFunc[cmd]['timeSum'] += delta;
+window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
+*/
 				return ret;
 			}
 			FlashMapObject.prototype.setTileCaching = function(flag) { FlashCMD('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
@@ -7284,16 +7295,19 @@ function BalloonClass(map, div, apiBase)
 	* @function
 	* @memberOf BalloonClass public
 	* @param {mapObject<mapObject>} обьект карты для которого устанавливается тип балуна
-	* @param {callback<Function>} пользовательский метод формирования содержимого балуна
+	* @param {callback<Function>} пользовательский метод формирования содержимого балуна mouseOver
 	*		При вызове в callback передаются параметры:
 	*		@param {obj<Hash>} properties обьекта карты для балуна
 	*		@param {div<DIV>} нода контейнера содержимого балуна
-	*		@param {attr:<Hash>} атрибуты управления балуном
+	* @param {attr:<Hash>} атрибуты управления балуном
 	*		свойства:
 	*			'disableOnMouseOver<Bool>'	- по умолчанию False
 	*			'disableOnClick'<Bool>		- по умолчанию False
 	*			'maxFixedBallons'<Bool>		- по умолчанию 1 (максимальное количество фиксированных балунов)
-	*			'OnClickSwitcher'<Function>	- по умолчанию null (пользовательский метод при событии mouseClick)
+	*			'clickCallback'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
+	*				@param {obj<Hash>} properties обьекта карты для балуна
+	*				@param {div<DIV>} нода контейнера содержимого балуна
+	*			'OnClickSwitcher'<Function>	- по умолчанию null (при событии mouseClick - переключатель на пользовательский метод формирования всего фиксированного балуна)
 	*				@param {obj<Hash>} properties обьекта карты для балуна
 	*				@param {keyPress<Hash>} аттрибуты нажатых спец.клавиш при mouseClick событии
 	*				свойства:
@@ -7434,7 +7448,7 @@ function BalloonClass(map, div, apiBase)
 		if(chkAttr('disableOnClick', o))	// Проверка наличия параметра disableOnClick по ветке родителей 
 			return;
 
-		var textFunc = chkAttr('callback', o);			// Проверка наличия параметра callback по ветке родителей 
+		var textFunc = chkAttr('clickCallback', o) || chkAttr('callback', o);	// Проверка наличия параметра callback по ветке родителей 
 		if(keyPress) {
 			if(keyPress['shiftKey'] || keyPress['ctrlKey']) return;	// При нажатых не показываем балун
 			if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // взять параметры балуна от фильтра родителя
