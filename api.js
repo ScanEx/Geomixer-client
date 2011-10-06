@@ -1208,42 +1208,24 @@ function createFlashMapInternal(div, layers, callback)
 				return ret;
 			}
 			FlashMapObject.prototype.setTileCaching = function(flag) { FlashCMD('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
-			//FlashMapObject.prototype.setTileCaching = function(flag) { flashDiv.setTileCaching(this.objectId, flag); }
 			FlashMapObject.prototype.setDisplacement = function(dx, dy) { FlashCMD('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
-			//FlashMapObject.prototype.setDisplacement = function(dx, dy) { flashDiv.setDisplacement(this.objectId, dx, dy); }
 			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode) { FlashCMD('setBackgroundTiles', { 'obj': this, 'attr':{'func':uniqueGlobalName(imageUrlFunction), 'projectionCode':projectionCode} }); }
-			//FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode) { flashDiv.setBackgroundTiles(this.objectId, uniqueGlobalName(imageUrlFunction), projectionCode); }
 			FlashMapObject.prototype.bringToTop = function() { return FlashCMD('bringToTop', { 'obj': this }); }
-			//FlashMapObject.prototype.bringToTop = function() { return flashDiv.bringToTop(this.objectId); }
 			FlashMapObject.prototype.bringToBottom = function() { FlashCMD('bringToBottom', { 'obj': this }); }
-			//FlashMapObject.prototype.bringToBottom = function() { flashDiv.bringToBottom(this.objectId); }
 			FlashMapObject.prototype.bringToDepth = function(n) { return FlashCMD('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
-			//FlashMapObject.prototype.bringToDepth = function(n) { return flashDiv.bringToDepth(this.objectId, n); }
 			FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
-
 			FlashMapObject.prototype.setActive = function(flag) { FlashCMD('setActive', { 'obj': this, 'attr':{'flag':flag} }); }
-			//FlashMapObject.prototype.setActive = function(flag) { flashDiv.setActive_(this.objectId, flag); }
 			FlashMapObject.prototype.setEditable = function() { FlashCMD('setEditable', { 'obj': this }); }
-			//FlashMapObject.prototype.setEditable = function() { flashDiv.setEditable(this.objectId); }
 			FlashMapObject.prototype.startDrawing = function(type) { FlashCMD('startDrawing', { 'obj': this, 'attr':{'type':type} }); }
-			//FlashMapObject.prototype.startDrawing = function(type) { flashDiv.startDrawing(this.objectId, type); }
 			FlashMapObject.prototype.stopDrawing = function(type) { FlashCMD('stopDrawing', { 'obj': this }); }
-			//FlashMapObject.prototype.stopDrawing = function(type) { flashDiv.stopDrawing(this.objectId); }
 			FlashMapObject.prototype.isDrawing = function() { return FlashCMD('isDrawing', { 'obj': this }); }
-			//FlashMapObject.prototype.isDrawing = function() { return flashDiv.isDrawing(this.objectId); }
 			FlashMapObject.prototype.getIntermediateLength = function() { return FlashCMD('getIntermediateLength', { 'obj': this }); }
-			//FlashMapObject.prototype.getIntermediateLength = function() { return flashDiv.getIntermediateLength(this.objectId); }
 			FlashMapObject.prototype.getCurrentEdgeLength = function() { return FlashCMD('getCurrentEdgeLength', { 'obj': this }); }
-			//FlashMapObject.prototype.getCurrentEdgeLength = function() { return flashDiv.getCurrentEdgeLength(this.objectId); }
 			FlashMapObject.prototype.setLabel = function(label) { FlashCMD('setLabel', { 'obj': this, 'attr':{'label':label} }); }
-			//FlashMapObject.prototype.setLabel = function(label) { flashDiv.setLabel(this.objectId, label); }
 
 			FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { FlashCMD('positionWindow', { 'obj': this, 'attr':{'x1':x1, 'y1':y1, 'x2':x2, 'y2':y2} }); }
-			//FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { flashDiv.positionWindow(this.objectId, x1, y1, x2, y2); }
 			FlashMapObject.prototype.setStyle = function(style, activeStyle) { FlashCMD('setStyle', { 'obj': this, 'attr':{'regularStyle':style, 'hoveredStyle':activeStyle} }); }
-			//FlashMapObject.prototype.setStyle = function(style, activeStyle) {	flashDiv.setStyle(this.objectId, style, activeStyle);	}
 			FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return FlashCMD('getStyle', { 'obj': this, 'attr':flag }); }
-			//FlashMapObject.prototype.getStyle = function( removeDefaults ) { return flashDiv.getStyle(this.objectId, typeof removeDefaults == 'undefined' ? false : removeDefaults); }
 
 			FlashMapObject.prototype.getVisibility = function() { return FlashCMD('getVisibility', { 'obj': this }); }
 			FlashMapObject.prototype.setVisible = function(flag) { FlashCMD('setVisible', { 'obj': this, 'attr': flag }); }
@@ -1255,39 +1237,21 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.sendPNG = function(attr) { var ret = FlashCMD('sendPNG', { 'attr': attr }); return ret; }
 			FlashMapObject.prototype.savePNG = function(fileName) { FlashCMD('savePNG', { 'attr': fileName }); }
 			FlashMapObject.prototype.trace = function(val) { FlashCMD('trace', { 'attr': val }); }
-			//FlashMapObject.prototype.trace = function(val) { flashDiv.trace(val); }
 			FlashMapObject.prototype.setQuality = function(val) { FlashCMD('setQuality', { 'attr': val }); }
-			//FlashMapObject.prototype.setQuality = function(val) { flashDiv.setQuality(val); }
-			//FlashMapObject.prototype.disableCaching = function() { flashDiv.disableCaching(); }
 			FlashMapObject.prototype.disableCaching = function() { FlashCMD('disableCaching', {}); }
 			FlashMapObject.prototype.print = function() { FlashCMD('print', {}); }
-			//FlashMapObject.prototype.print = function() { flashDiv.print(); }
-			//FlashMapObject.prototype.repaint = function() { flashDiv.repaint(); }
 			FlashMapObject.prototype.repaint = function() { FlashCMD('repaint', {}); }
-			//FlashMapObject.prototype.moveTo = function(x, y, z) { flashDiv.moveTo(merc_x(x), merc_y(y), 17 - z); }
 			FlashMapObject.prototype.moveTo = function(x, y, z) { FlashCMD('moveTo', { 'attr': {'x':merc_x(x), 'y':merc_y(y), 'z':17 - z} }); }
-			//FlashMapObject.prototype.slideTo = function(x, y, z){ flashDiv.slideTo(merc_x(x), merc_y(y), 17 - z); }
 			FlashMapObject.prototype.slideTo = function(x, y, z) { FlashCMD('slideTo', { 'attr': {'x':merc_x(x), 'y':merc_y(y), 'z':17 - z} }); }
 			
 			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
 				map.balloonClassObject.hideHoverBalloons(true);
-				//flashDiv.zoomBy(-dz, useMouse);
 				FlashCMD('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
 			}
 			FlashMapObject.prototype.freeze = function() { FlashCMD('freeze', {}); }
 			FlashMapObject.prototype.unfreeze = function() { FlashCMD('unfreeze', {}); }
-			//FlashMapObject.prototype.setCursor = function(url, dx, dy) { flashDiv.setCursor(url, dx, dy); }
 			FlashMapObject.prototype.setCursor = function(url, dx, dy) { FlashCMD('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
-			//FlashMapObject.prototype.clearCursor = function() { flashDiv.clearCursor(); }
 			FlashMapObject.prototype.clearCursor = function() { FlashCMD('clearCursor', {}); }
-/*
-			FlashMapObject.prototype.getX = function() { return from_merc_x(flashDiv.getX()); }
-			FlashMapObject.prototype.getY = function() { return from_merc_y(flashDiv.getY()); }
-			FlashMapObject.prototype.getZ = function() { return 17 - flashDiv.getZ(); }
-			FlashMapObject.prototype.getMouseX = function() { return from_merc_x(flashDiv.getMouseX()); }
-			FlashMapObject.prototype.getMouseY = function() { return from_merc_y(flashDiv.getMouseY()); }
-			FlashMapObject.prototype.isKeyDown = function(code) { return flashDiv.isKeyDown(code); }
-*/
 
 			FlashMapObject.prototype.moveToCoordinates = function(text, z)
 			{
@@ -1356,14 +1320,9 @@ function createFlashMapInternal(div, layers, callback)
 						}) : null
 					}
 				});
-//				flashDiv.setHandler(this.objectId, eventName, handler ? uniqueGlobalName(function(subObjectId, a, attr)
-//				{
-//					handler(new FlashMapObject(subObjectId, propertiesFromArray(a), me), attr);
-//				}) : null);
 			}
 			FlashMapObject.prototype.removeHandler = function(eventName)
 			{
-				//flashDiv.removeHandler(this.objectId, eventName);
 				FlashCMD('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
 			}
 
@@ -1397,8 +1356,7 @@ function createFlashMapInternal(div, layers, callback)
 					if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
 					out.push(tmp);
 				}
-				//var _obj = flashDiv.addObjects(out);	// Отправить команду в SWF
-				var _obj = FlashCMD('addObjects', {'attr':out});
+				var _obj = FlashCMD('addObjects', {'attr':out}); // Отправить команду в SWF
 
 				out = [];
 				for (var i=0; i<_obj.length; i++)	// Отражение обьектов в JS
@@ -1409,7 +1367,6 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			FlashMapObject.prototype.addObject = function(geometry, props) {
 				var geo = merc_geometry(geometry);
-				//var obj = flashDiv.addObject(this.objectId, geo, props);
 				var obj = FlashCMD('addObject', { 'obj': this, 'attr':{ 'geometry':geo, 'properties':props }});
 				if(!obj) obj = false;
 				return new FlashMapObject(obj, props, this);
@@ -1419,7 +1376,6 @@ function createFlashMapInternal(div, layers, callback)
 					this.clusters = new Clusters(this);	// атрибуты кластеризации потомков по фильтру
 				}
 				return FlashCMD('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
-				//return flashDiv.setFilter(this.objectId, sql);
 			}
 			FlashMapObject.prototype.remove = function()
 			{
@@ -1427,16 +1383,13 @@ function createFlashMapInternal(div, layers, callback)
 					map.removeCopyrightedObject(this);
 					
 				if(this.objectId) FlashCMD('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
-				//if(this.objectId) flashDiv.remove(this.objectId); // Удалять в SWF только если там есть обьект
 			}
 			FlashMapObject.prototype.setGeometry = function(geometry) {
 				var geom =  merc_geometry(geometry);
 				FlashCMD('setGeometry', { 'obj': this, 'attr':geom });
-				//flashDiv.setGeometry(this.objectId, geom);
 			}
 			FlashMapObject.prototype.getGeometry = function() 
 			{ 
-				//var geom = flashDiv.getGeometry(this.objectId);
 				var geom = FlashCMD('getGeometry', { 'obj': this });
 				var out = { "type": geom.type };
 				var coords =  forEachPoint(geom.coordinates, function(c) {
@@ -1451,7 +1404,6 @@ function createFlashMapInternal(div, layers, callback)
 				var out = 0;
 				if(arg1) out = geoLength(arg1, arg2, arg3, arg4);
 				else out = FlashCMD('getLength', { 'obj': this });
-				//else out = flashDiv.getLength(this.objectId);
 				return out;
 			}
 			FlashMapObject.prototype.getArea = function(arg)
@@ -1460,7 +1412,6 @@ function createFlashMapInternal(div, layers, callback)
 				if(arg) out = geoArea(arg);
 				else out = FlashCMD('getArea', { 'obj': this });
 				return out;
-				//return arg ? geoArea(arg) : flashDiv.getArea(this.objectId);
 			}
 			FlashMapObject.prototype.getCenter = function(arg1, arg2, arg3, arg4)
 			{
@@ -1468,12 +1419,10 @@ function createFlashMapInternal(div, layers, callback)
 				if(arg1) out = geoCenter(arg1, arg2, arg3, arg4);
 				else out = FlashCMD('getCenter', { 'obj': this });
 				return out;
-				//return arg1 ? geoCenter(arg1, arg2, arg3, arg4) : flashDiv.getCenter(this.objectId);
 			}
 			FlashMapObject.prototype.getGeometryType = function()
 			{
 				return FlashCMD('getGeometryType', { 'obj': this });
-				//return flashDiv.getGeometryType(this.objectId);
 			}
 			FlashMapObject.prototype.setPoint = function(x, y) { this.setGeometry({ type: "POINT", coordinates: [x, y] }); }
 			FlashMapObject.prototype.setLine = function(coords) { this.setGeometry({ type: "LINESTRING", coordinates: coords }); }
@@ -1543,7 +1492,6 @@ function createFlashMapInternal(div, layers, callback)
 					]);
 				}
 				FlashCMD('setImageExtent', { 'obj': this, 'attr':attr});
-				//flashDiv.setImageExtent(this.objectId, attr);
 			}
 			FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
 			{
@@ -1554,7 +1502,6 @@ function createFlashMapInternal(div, layers, callback)
 						'x1': merc_x(tx1), 'y1': merc_y(ty1), 'x2': merc_x(tx2), 'y2': merc_y(ty2), 'x3': merc_x(tx3), 'y3': merc_y(ty3), 'x4': merc_x(tx4), 'y4': merc_y(ty4)
 						,'tx1': x1, 'ty1': y1, 'tx2': x2, 'ty2': y2, 'tx3': x3, 'ty3': y3, 'tx4': x4, 'ty4': y4
 					};
-					//flashDiv.setImage(this.objectId, url, merc_x(tx1), merc_y(ty1), merc_x(tx2), merc_y(ty2), merc_x(tx3), merc_y(ty3), merc_x(tx4), merc_y(ty4), x1, y1, x2, y2, x3, y3, x4, y4);
 				}
 				else
 				{
@@ -1562,7 +1509,6 @@ function createFlashMapInternal(div, layers, callback)
 					attr = {
 						'x1': merc_x(x1), 'y1': merc_y(y1), 'x2': merc_x(x2), 'y2': merc_y(y2), 'x3': merc_x(x3), 'y3': merc_y(y3), 'x4': merc_x(x4), 'y4': merc_y(y4)
 					};
-					//flashDiv.setImage(this.objectId, url, merc_x(x1), merc_y(y1), merc_x(x2), merc_y(y2), merc_x(x3), merc_y(y3), merc_x(x4), merc_y(y4));
 				}
 				attr['url'] = url;
 				FlashCMD('setImage', { 'obj': this, 'attr':attr});
@@ -1571,20 +1517,11 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles) 
 			{ 
 				FlashCMD('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'cacheFieldName':cacheFieldName, 'dataTiles':dataTiles}});
-				//flashDiv.setVectorTiles(this.objectId, uniqueGlobalName(dataUrlFunction), cacheFieldName, dataTiles);
 			}
 /* не используется
 			FlashMapObject.prototype.loadJSON = function(url)
 			{
 				flashDiv.loadJSON(this.objectId, url);
-			}
-*/
-/*
-			FlashMapObject.prototype.addMapWindow = function(callback) 
-			{ 
-				return new FlashMapObject(flashDiv.addMapWindow(
-					uniqueGlobalName(function(z) { return 17 - callback(17 - z); })
-				), {}, null);
 			}
 */
 			FlashMapObject.prototype.setCopyright = function(copyright)
@@ -1596,7 +1533,6 @@ function createFlashMapInternal(div, layers, callback)
 			{ 
 				this.backgroundColor = color;
 				FlashCMD('setBackgroundColor', { 'obj': this, 'attr':color });
-				//flashDiv.setBackgroundColor(this.objectId, color);
 				if (this.objectId == map.objectId)
 				{
 					var isWhite = (0xff & (color >> 16)) > 80;
@@ -1639,18 +1575,9 @@ function createFlashMapInternal(div, layers, callback)
 			}
 
 
-			FlashMapObject.prototype.addBalloon = function()
-			{
-				return map.balloonClassObject.addBalloon();
-			}
-			FlashMapObject.prototype.enableHoverBalloon = function(callback, attr)
-			{
-				map.balloonClassObject.enableHoverBalloon(this, callback, attr);
-			}
-			FlashMapObject.prototype.disableHoverBalloon = function()
-			{
-				map.balloonClassObject.disableHoverBalloon(this);
-			}
+			FlashMapObject.prototype.addBalloon = function() {	return map.balloonClassObject.addBalloon();	}
+			FlashMapObject.prototype.enableHoverBalloon = function(callback, attr) { map.balloonClassObject.enableHoverBalloon(this, callback, attr); }
+			FlashMapObject.prototype.disableHoverBalloon = function() { map.balloonClassObject.disableHoverBalloon(this); }
 
 			FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
 			{
@@ -1832,7 +1759,6 @@ function createFlashMapInternal(div, layers, callback)
 			}
 
 			FlashMapObject.prototype.flip = function() { return FlashCMD('flip', { 'obj': this }); }
-			//FlashMapObject.prototype.flip = function() { return flashDiv.flip(this.objectId); }
 
 			var FlashMapFeature = function(geometry, properties, layer)
 			{
@@ -2073,16 +1999,6 @@ function createFlashMapInternal(div, layers, callback)
 								onChange(new FlashMapFeature(from_merc_geometry(geom), props, obj), flag);
 							})
 						} });
-/*
-						flashDiv.observeVectorLayer(
-							o.objectId,
-							obj.objectId,
-							uniqueGlobalName(function(geom, props, flag)
-							{
-								onChange(new FlashMapFeature(from_merc_geometry(geom), props, obj), flag);
-							})
-						);
-*/
 					}
 					if (isRaster) {
 						obj.setBackgroundTiles(tileFunction);
@@ -2117,23 +2033,6 @@ function createFlashMapInternal(div, layers, callback)
 										})
 									}
 								});
-/*
-								flashDiv.getFeatures(
-									obj.objectId, 
-									merc_geometry(geometry ? geometry : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] }),
-									uniqueGlobalName(function(geoms, props)
-									{
-										var ret = [];
-										for (var i = 0; i < geoms.length; i++)
-											ret.push(new FlashMapFeature(
-												from_merc_geometry(geoms[i]),
-												props[i],
-												obj
-											));
-										callback(ret);
-									})
-								);
-*/
 							}
 							else
 								map.getFeatures(str, geometry, callback, [obj.properties.name]);
@@ -2151,20 +2050,6 @@ function createFlashMapInternal(div, layers, callback)
 									));
 								})
 							} });
-/*
-							flashDiv.getFeatureById(
-								obj.objectId,
-								fid,
-								uniqueGlobalName(function(geom, props)
-								{
-									func(new FlashMapFeature(
-										from_merc_geometry(geom),
-										props,
-										obj
-									));
-								})
-							);
-*/
 						}
 
 						obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
@@ -2185,12 +2070,10 @@ function createFlashMapInternal(div, layers, callback)
 						}
 						obj.getStat = function() {
 							var _obj = FlashCMD('getStat', { 'obj': this });
-							//var _obj = flashDiv.getStat(obj.objectId);
 							return _obj;
 						}
 						obj.setTiles = function(data) {
 							var _obj = FlashCMD('setTiles', { 'obj': obj, 'attr':data });
-							//var _obj = flashDiv.setTiles(obj.objectId, data);
 							return _obj;
 						}
 
@@ -2255,7 +2138,6 @@ function createFlashMapInternal(div, layers, callback)
 					{
 						obj.setVisible(true);
 						var newObj = FlashCMD('addObject', { 'obj': obj, 'attr':{ 'geometry':geometry, 'properties':props }});
-						//var newObj = flashDiv.addObject(obj.objectId, geometry, props);
 						obj.setVisible(false);
 						return new FlashMapObject(newObj, props, obj);
 					}
@@ -3188,7 +3070,6 @@ function createFlashMapInternal(div, layers, callback)
 				{
 					try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(map); }
 					catch (e) {
-						//alert('Error in "'+layers.properties.title+'" mapplet: ' + e);
 						gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
 					}
 				}
@@ -5466,17 +5347,6 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							satelliteLayers[i].setAsBaseLayer(hybridString);						
 					}
 					
-					//var overlayLayer = map.layers[getBaseMapParam("overlayLayerID", KOSMOSNIMKI_LOCALIZED("FFE60CFA7DAF498381F811C08A5E8CF5", "BCCCE2BDC9BF417DACF27BB4D481FAD9"))];
-					// if (overlayLayer)
-					// {
-						// for (var i = 0; i < satelliteLayers.length; i++)
-							// satelliteLayers[i].setAsBaseLayer(hybridString);
-						// overlayLayer.setAsBaseLayer(hybridString);
-						// var extraLayer = map.layers["C547CFF462634F03BCE939275C339D5F"];
-						// if (extraLayer)
-							// extraLayer.setAsBaseLayer(hybridString);
-					// }
-					
 					var setOSMEmbed = function(layer)
 					{
 						layer.enableTiledQuicklooksEx(function(o, image)
@@ -6785,7 +6655,6 @@ function parseXML(str)
 	catch(e)
 	{
 		gmxAPI.addDebugWarnings({'func': 'parseXML', 'str': str, 'event': e, 'alert': e});
-		//alert(e)
 	}
 	
 	return xmlDoc;
@@ -7239,9 +7108,7 @@ kmlParser.prototype.createBalloon = function(obj, htmlContent)
 	if (this.oldBalloonIndex == obj.objectId)
 	{
 		this.oldBalloonIndex = -1;
-		
 		this.oldBalloon = false;
-		
 		return false;
 	}
 	
@@ -7249,18 +7116,14 @@ kmlParser.prototype.createBalloon = function(obj, htmlContent)
 		_this = this;
 		
 	this.oldBalloon = this.globalFlashMap.addBalloon();
-	
 	this.oldBalloon.setPoint(coords[0], coords[1]);
-	
 	this.oldBalloon.div.appendChild(htmlContent);
 	
 	var remove = makeImageButton("img/close.png", "img/close_orange.png");
 	remove.onclick = function()
 	{
 		_this.oldBalloon.remove();
-		
 		_this.oldBalloonIndex = -1;
-		
 		_this.oldBalloon = false;
 	}
 	
@@ -7270,18 +7133,14 @@ kmlParser.prototype.createBalloon = function(obj, htmlContent)
 	remove.style.cursor = 'pointer';
 	
 	this.oldBalloon.div.appendChild(remove);
-	
 	this.oldBalloon.resize();
-	
 	this.oldBalloonIndex = obj.objectId;
-	
 	return true;
 }
 
 kmlParser.prototype.drawItem = function(parent, item, flag, name, desc)
 {
 	var elem = parent.addObject();
-	
 	elem.setGeometry(item.geometry);
 	
 	if (item.style.normal)

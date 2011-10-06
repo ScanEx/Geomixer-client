@@ -380,7 +380,6 @@ class Main
 			{
 				try {
 					cmdToJS(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
-					//ExternalInterface.call(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
 					initCalled = true;
 				} catch (e:Error) {  }
 			}
@@ -462,7 +461,6 @@ class Main
 		}
 
 		var geometriesToSet = new Hash<Geometry>();
-		//ExternalInterface.addCallback("setGeometry", function(id:String, geometry_:Dynamic)
 		function setGeometry(id:String, geometry_:Dynamic)
 		{
 			var geometry = Utils.parseGeometry(geometry_);
@@ -503,7 +501,6 @@ class Main
 			return ret;
 		}
 		
-		//ExternalInterface.addCallback("setHandler", function(id:String, eventName:String, ?callbackName:String) 
 		function setHandler(id:String, eventName:String, ?callbackName:String)
 		{ 
 			var node:MapNode = getNode(id);
@@ -535,7 +532,6 @@ class Main
 
 				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
 					cmdToJS(callbackName, node2.id, arr, eventAttr);
-					//try {	ExternalInterface.call(callbackName, node2.id, arr, eventAttr);	} catch (e:Error) {  }
 				}
 				else
 				{
@@ -543,7 +539,6 @@ class Main
 					nextFrameCallbacks.push(function()
 					{
 						cmdToJS(callbackName, pID, arr, eventAttr);
-						//ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
 					});
 				}
 			}); 
@@ -620,7 +615,6 @@ class Main
 				loader.addEventListener(Event.COMPLETE, function(event:Event) {
 					var st:String = loader.data;
 					if (attr.func != null) cmdToJS(attr.func, st);
-					//if (attr.func != null) ExternalInterface.call(attr.func, st);
 				});
 				loader.load(request);
 			} catch (e:Error) { trace(e); }
@@ -693,9 +687,7 @@ class Main
 			}
 			return node.id;
 		}
-		//ExternalInterface.addCallback("addObject", addObject);
 
-		//ExternalInterface.addCallback("addObjects", function(_data:Array<Dynamic>)
 		function addObjects(_data:Array<Dynamic>):Array<String>
 		{
 			var ret = new Array<String>();
@@ -715,7 +707,6 @@ class Main
 			return ret;
 		}
 
-		//ExternalInterface.addCallback("setFilter", function(id:String, ?sql:String)
 		function setFilter(id:String, ?sql:String):Bool
 		{
 			var func:Hash<String>->Bool = (sql == null) ? 
@@ -732,7 +723,6 @@ class Main
 			return false;
 		}
 
-		//ExternalInterface.addCallback("setBackgroundTiles", function(id:String, func:String, ?projectionCode:Int)
 		function setBackgroundTiles(id:String, func:String, ?projectionCode:Int)
 		{ 
 			var node = getNode(id);
@@ -740,7 +730,6 @@ class Main
 				function(i:Int, j:Int, z:Int)
 				{
 					var out:String = cmdToJS(func, i, j, z);
-					//try { out = ExternalInterface.call(func, i, j, z);	} catch (e:Error) {  }
 					return out;
 				}
 			);
@@ -755,7 +744,7 @@ class Main
 				);
 			}
 		}
-		//ExternalInterface.addCallback("setImageExtent", function(id:String, attr:Dynamic)
+
 		function setImageExtent(id:String, attr:Dynamic)
 		{
 			var node = getNode(id);
@@ -772,20 +761,19 @@ class Main
 				newContent.setMask(cast(node.content, VectorObject).geometry);
 			node.setContent(newContent);
 		}
-		//ExternalInterface.addCallback("setVectorTiles", function(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?filesHash:Dynamic)
+
 		function setVectorTiles(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?filesHash:Dynamic)
 		{
 			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):Dynamic
 			{
 				var out:Dynamic = cmdToJS(tileFunction, i, j, z);
-				//try { out = ExternalInterface.call(tileFunction, i, j, z); } catch (e:Error) {  }
 				return out;
 			});
 			for (i in 0...Std.int(tiles.length/3))
 				content.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
 			getNode(id).setContent(content);
 		}
-		//ExternalInterface.addCallback("setTiles", function(id:String, tiles:Array<Int>)
+
 		function setTiles(id:String, tiles:Array<Int>)
 		{
 			var node = getNode(id);
@@ -796,7 +784,7 @@ class Main
 				layer.createLoader(null);
 			}
 		}
-		//ExternalInterface.addCallback("observeVectorLayer", function(id:String, layerId:String, func:String)
+
 		function observeVectorLayer(id:String, layerId:String, func:String)
 		{
 			var layer = cast(getNode(layerId).content, VectorLayer);
@@ -808,21 +796,10 @@ class Main
 					var geoExp:Dynamic = geom.export();
 					var prop:Dynamic = exportProperties(geom.properties);
 					cmdToJS(func, geoExp, prop, flag);
-/*					
-					try {
-						ExternalInterface.call(
-							func,
-							geom.export(),
-							exportProperties(geom.properties),
-							flag
-						);
-					} catch (e:Error) {  }
-*/					
 				}
 			));
 		}
-		
-		//ExternalInterface.addCallback("setImage", function(id:String, url:String, 
+
 		function setImage(id:String, url:String, 
 			x1:Float, y1:Float, x2:Float, y2:Float, x3:Float, y3:Float, x4:Float, y4:Float,
 			?tx1:Float, ?ty1:Float, ?tx2:Float, ?ty2:Float, ?tx3:Float, ?ty3:Float, ?tx4:Float, ?ty4:Float
@@ -836,7 +813,7 @@ class Main
 				newContent.setMask(cast(node.content, VectorObject).geometry);
 			node.setContent(newContent);
 		}
-		//ExternalInterface.addCallback("getFeatureById", function(id:String, fid:String, func:String)
+
 		function getFeatureById(id:String, fid:String, func:String)
 		{
 			var layer = cast(getNode(id).content, VectorLayer);
@@ -851,13 +828,11 @@ class Main
 					{
 						var geom = layer.geometries.get(fid);
 						cmdToJS(func, geom.export(), exportProperties(geom.properties));
-						//try { ExternalInterface.call(func, geom.export(), exportProperties(geom.properties)); } catch (e:Error) {  }
 					}
 				}
 			)(extent);
 		}
 		
-		//ExternalInterface.addCallback("getFeatures", function(id:String, geom:Dynamic, func:String)
 		function getFeatures(id:String, geom:Dynamic, func:String)
 		{
 			var ret = new Hash<Bool>();
@@ -892,7 +867,6 @@ class Main
 							props.push(exportProperties(geom.properties));
 						}
 						cmdToJS(func, geoms, props);
-						//try { ExternalInterface.call(func, geoms, props); } catch (e:Error) {  }
 					}
 				}
 			)(queryExtent);
@@ -950,7 +924,6 @@ class Main
 					item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
 					{
 						cmdToJS(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
-						//try { ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);	} catch (e:Error) {  }
 					});
 					root.contextMenu.customItems.push(item);
 				case 'moveTo':
@@ -1049,7 +1022,6 @@ class Main
 							lastComputedZ = 0;
 							var pz:Int = cmdToJS(attr.callbackName, 17 - currentZ);
 							lastComputedZ = 17 - pz;
-							//try { lastComputedZ = 17 - ExternalInterface.call(attr.callbackName, 17 - currentZ); } catch (e:Error) {  }
 						}
 						return lastComputedZ;
 					});
@@ -1207,329 +1179,5 @@ class Main
 		}
 		ExternalInterface.addCallback("cmdFromJS", parseCmdFromJS);
 
-		// Устаревшие методы
-		
-/*
- 
-		//ExternalInterface.addCallback("getFeatureGeometry", function(objectId:String, featureId:String) { return getFeatureGeometry(objectId, featureId).export(); });
-		//ExternalInterface.addCallback("getFeatureLength", function(objectId:String, featureId:String) { return getFeatureGeometry(objectId, featureId).getLength(); });
-		//ExternalInterface.addCallback("getFeatureArea", function(objectId:String, featureId:String) { return getFeatureGeometry(objectId, featureId).getArea(); });
-		ExternalInterface.addCallback("flip", function(objectId:String):Int 
-		{ 
-			var content = getNode(objectId).content;
-			if (Std.is(content, VectorLayerFilter))
-				return cast(content, VectorLayerFilter).layer.flip(); 
-			else
-				return 0;
-		});
-		ExternalInterface.addCallback("getStat", function(id:String)
-		{
-			var out:Dynamic = {};
-			var node = getNode(id);
-			if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {
-				var layer = cast(node.content, VectorLayer);
-				out = layer.getStat();
-			}
-			return out;
-			
-		});		
-		ExternalInterface.addCallback("getLength", function(id:String) {
-			var geom = getGeometry(id);
-			return (geom == null ? null : geom.getLength());
-		});
-		ExternalInterface.addCallback("getArea", function(id:String) {
-			var geom = getGeometry(id);
-			return (geom == null ? null : geom.getArea());
-		});
-		ExternalInterface.addCallback("getGeometryType", function(id:String) {
-			var geom = getGeometry(id);
-			return (geom == null ? null : geom.export().type);
-		});
-		ExternalInterface.addCallback("getCenter", function(id:String) { return [0.0, 0.0]; });
-		ExternalInterface.addCallback("addChildRoot", function(id:String) { return getNode(id).addChild().id; });
-		ExternalInterface.addCallback("getGeometry", function(id:String) {
-			var geom = getGeometry(id);
-			return (geom == null ? null : geom.export());
-		});
-		ExternalInterface.addCallback("clearBackgroundImage", function(id:String)
-		{
-			var node = getNode(id);
-			var newContent = null;
-			if (Std.is(node.content, MaskedContent))
-			{
-				var geom = cast(node.content, MaskedContent).maskGeometry;
-				if (geom != null)
-					newContent = new VectorObject(geom);
-			}
-			node.setContent(newContent);
-		});
-  
-		ExternalInterface.addCallback("setTileCaching", function(id:String, flag:Bool)
-		{
-			cast(getNode(id).content, RasterLayer).tileCaching = flag;			
-		});		
-
-		ExternalInterface.addCallback("setDisplacement", function(id:String, dx:Float, dy:Float)
-		{
-			cast(getNode(id).content, RasterLayer).setDisplacement(
-				function(x:Float):Float { return dx; },
-				function(y:Float):Float { return dy; }
-			);
-		});
-  
-		//ExternalInterface.addCallback("setLabel", setLabel);
-		//ExternalInterface.addCallback("startDrawing", function(id:String, type:String) { cast(getNode(id).content, EditableContent).startDrawing(type); });
-		//ExternalInterface.addCallback("stopDrawing", function(id:String) { cast(getNode(id).content, EditableContent).stopDrawing(); });
-		//ExternalInterface.addCallback("isDrawing", function(id:String):Bool { return (cast(getNode(id).content, EditableContent).stopDrawing != null); });
-		//ExternalInterface.addCallback("getIntermediateLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getIntermediateLength(); });
-		//ExternalInterface.addCallback("getCurrentEdgeLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getCurrentEdgeLength(); });
-		ExternalInterface.addCallback("setEditable", function(id:String) { getNode(id).setContent(new EditableContent()); });
-		ExternalInterface.addCallback("setActive_", function(id:String, flag:Bool)
-		{
-			var content = getNode(id).content;
-			if (Std.is(content, VectorObject))
-				cast(content, VectorObject).setActive(flag);
-		});
-		ExternalInterface.addCallback("bringToTop", function(id:String) 
-		{
-			var node = getNode(id);
-			var n = node.rasterSprite.parent.numChildren - 1;
-			node.bringToDepth(n);
-			return n;
-		});
-		ExternalInterface.addCallback("bringToBottom", function(id:String) 
-		{ 
-			getNode(id).bringToDepth(0);
-		});
-		ExternalInterface.addCallback("bringToDepth", function(id:String, n:Int) 
-		{ 
-			var node = getNode(id);
-			if(n < 0) n = 0;
-			else if(n > node.rasterSprite.parent.numChildren - 1) n = node.rasterSprite.parent.numChildren - 1;
-			node.bringToDepth(n);
-			return n;
-		});
-
-ExternalInterface.addCallback("remove", function(id:String) { getNode(id).remove();  });
-
-		ExternalInterface.addCallback("removeHandler", function(id:String, eventName:String) 
-		{ 
-			var node:MapNode = getNode(id);
-			node.removeHandler(eventName);
-		});
-
-		ExternalInterface.addCallback("getChildren", function(id:String):Array<Dynamic>
-		{
-			var ret = [];
-			for (node in getNode(id).children)
-			{
-				ret.push({
-					id: node.id,
-					properties: propertiesToArray(node.properties)
-				});
-			}
-			return ret;
-		});
-		
-		ExternalInterface.addCallback("setBackgroundColor", function(id:String, color:Int)
-		{
-			if (id == mapRoot.id)
-				id = mapWindow.rootNode.id;
-			var window = MapWindow.allWindows.get(id);
-			if (window != null)
-				window.setBackgroundColor(color);
-			if (window == mapWindow)
-				repaintCrosshair();
-				
-			viewportHasMoved = true;
-		});
-		ExternalInterface.addCallback("positionWindow", function(id:String, x1:Float, y1:Float, x2:Float, y2:Float) 
-		{ 
-			var window = MapWindow.allWindows.get(id);
-			var w = stage.stageWidth;
-			var h = stage.stageHeight;
-			window.resize(x1*w, y1*h, x2*w, y2*h);
-			window.setCenter(currentX, currentY);
-		});
-		
-		ExternalInterface.addCallback("getStyle", function(id:String, removeDefaults:Bool)
-		{
-			return getNode(id).getStyle(removeDefaults);
-		});
-		ExternalInterface.addCallback("setStyle", function(id:String, ?regularStyle:Dynamic, ?hoveredStyle:Dynamic)
-		{
-			Main.bumpFrameRate();
-			getNode(id).setStyle(new Style(regularStyle), (hoveredStyle != null) ? new Style(hoveredStyle) : null);
-		});
-		ExternalInterface.addCallback("addMapWindow", function(callbackName:String) 
-		{ 
-			var lastCurrentZ:Float = -100, lastComputedZ:Float = 0;
-			var window = new MapWindow(Utils.addSprite(root), function()
-			{ 
-				if (currentZ != lastCurrentZ)
-				{
-					lastCurrentZ = currentZ;
-					lastComputedZ = 0;
-					try {
-						lastComputedZ = 17 - ExternalInterface.call(callbackName, 17 - currentZ);
-					} catch (e:Error) {  }
-				}
-				return lastComputedZ;
-			});
-			window.innerSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
-			window.innerSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
-			// window.setCenter(currentX, currentY);
-			return window.id;
-		});
-		ExternalInterface.addCallback("setMinMaxZoom", function(z1:Float, z2:Float)
-		{
-			minZ = z1;
-			maxZ = z2;
-			setCurrentPosition(currentX, currentY, currentZ);
-		});
-		ExternalInterface.addCallback("setExtent", function(x1:Float, x2:Float, y1:Float, y2:Float)
-		{
-			minX = x1;
-			minY = y1;
-			maxX = x2;
-			maxY = y2;
-			setCurrentPosition(currentX, currentY, currentZ);
-		});
-		ExternalInterface.addCallback("getX", function() { return currentX;	});
-		ExternalInterface.addCallback("getY", function() { return currentY; });
-		ExternalInterface.addCallback("getZ", function() { return 17 - currentZ; });
-		ExternalInterface.addCallback("getMouseX", function() { return mapWindow.innerSprite.mouseX; });
-		ExternalInterface.addCallback("getMouseY", function() { return mapWindow.innerSprite.mouseY; });
-		ExternalInterface.addCallback("isKeyDown", function(code) { return Key.isDown(code); });
-		ExternalInterface.addCallback("getPosition", function() {
-			var out:Dynamic = { };
-			out.mouseX = mapWindow.innerSprite.mouseX;
-			out.mouseY = mapWindow.innerSprite.mouseY;
-			out.stageHeight = stage.stageHeight;
-			out.stageWidth = stage.stageWidth;
-			out.x = currentX;
-			out.y = currentY;
-			out.z = currentZ;
-			var extent:Dynamic = { };
-			extent.minx = mapWindow.visibleExtent.minx;
-			extent.maxx = mapWindow.visibleExtent.maxx;
-			extent.miny = mapWindow.visibleExtent.miny;
-			extent.maxy = mapWindow.visibleExtent.maxy;
-			out.extent = extent;
-			return out;
-		});
-
-		ExternalInterface.addCallback("resumeDragging", windowMouseMove);
-		ExternalInterface.addCallback("stopDragging", function()
-		{
-			isDragging = false;
-			if (!isFluidMoving)
-				isMoving = false;
-		});
-		ExternalInterface.addCallback("isDragging", function()
-		{
-			return isDragging;
-		});
-
-		ExternalInterface.addCallback("setCursor", function(url:String, dx:Int, dy:Int)
-		{
-			currentCursorURL = url;
-			Utils.loadCacheImage(url, function(contents)
-			{
-				if (currentCursorURL == url)
-				{
-					Mouse.hide();
-					deleteCurrentCursor();
-					cursor.addChild(contents.loader);
-					contents.loader.x = dx;
-					contents.loader.y = dy;
-				}
-			});
-		});
-		ExternalInterface.addCallback("clearCursor", function()
-		{
-			deleteCurrentCursor();
-			Mouse.show();
-			currentCursorURL = null;
-		});
-		ExternalInterface.addCallback("setCursorVisible", function(flag:Bool)
-		{
-			cursor.visible = flag;
-		});
-
-		ExternalInterface.addCallback("freeze", function() 
-		{ 
-			Main.draggingDisabled = true; 
-		});
-		ExternalInterface.addCallback("unfreeze", function() 
-		{ 
-			Main.draggingDisabled = false; 
-		});
-
-ExternalInterface.addCallback("zoomBy", function(dz:Float, ?useMouse:Dynamic)
-		{ 
-			if (useMouse != null)
-			{
-				var sprite = getWindowUnderMouse().innerSprite;
-				zoomBy(-dz, sprite.mouseX, sprite.mouseY);
-			}
-			else
-				zoomBy(-dz, currentX, currentY);
-		});
-
-ExternalInterface.addCallback("slideTo", function(x:Float, y:Float, z:Float)
-		{
-			Main.bumpFrameRate();
-			fluidMoveTo(x, y, 17 - z, 10);
-		});
-
-ExternalInterface.addCallback("moveTo", function(x:Float, y:Float, z:Float)
-		{
-			Main.bumpFrameRate();
-			setCurrentPosition(x, y, Math.round(17 - z));
-		});
-
-		ExternalInterface.addCallback("addContextMenuItem", function(text:String, func:String)
-		{
-			var item = new ContextMenuItem(text);
-			item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
-			{
-				try {
-					ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
-				} catch (e:Error) {  }
-			});
-			root.contextMenu.customItems.push(item);
-		});
-
-		ExternalInterface.addCallback("print", function()
-		{
-			var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
-			data.draw(root);
-			PrintManager.setPrintableContent(data);
-		});
-
-		ExternalInterface.addCallback("setQuality", function(quality) { stage.quality = quality; });
-		ExternalInterface.addCallback("trace", function(x:Dynamic) { trace(x); });
-		ExternalInterface.addCallback("setVisible", setVisible);
-		ExternalInterface.addCallback("getVisibility", function(id:String) { return getNode(id).getVisibility(); } );
-		ExternalInterface.addCallback("setZoomBounds", function(id:String, minZ:Int, maxZ:Int) 
-		{ 
-			return setZoomBounds(id, minZ, maxZ);
-		});
-		ExternalInterface.addCallback("sendPNG", sendPNGFile);
-		ExternalInterface.addCallback("setGridVisible", function(flag)
-		{
-			Main.bumpFrameRate();
-			grid.setVisible(flag);
-		});
-		ExternalInterface.addCallback("getGridVisibility", function() { return grid.getVisibility(); });
-*/
-
-
-		/*var s = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMёйцукенгшщзхъфывапролджэячсмитьбюЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ `1234567890-=[];',./~!@#$%^&*()_+{}:<>?№»«";
-		var ascii = "";
-		for (i in 0...s.length)
-			ascii += '&#' + s.charCodeAt( i ) + ';'; 
-		ExternalInterface.call("prompt", "glyphs:", ascii);*/
 	}
 }
