@@ -7359,7 +7359,8 @@ function BalloonClass(map, div, apiBase)
 				//if(keyPress['objType'] == 'cluster') {}; // Ќадо придумать как боротьс€ с фикс.двойником
 
 				var textFunc = chkAttr('callback', mapObject);			// ѕроверка наличи€ параметра callback по ветке родителей 
-				var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
+				//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
+				var text = (textFunc ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
 				if(typeof(text) == 'string' && text == '') return;
 				var id = setID(o);
 				lastHoverBalloonId = o.objectId;
@@ -7491,7 +7492,8 @@ function BalloonClass(map, div, apiBase)
 			balloon.fixedId = id;
 			if(keyPress['objType']) balloon.objType = keyPress['objType'];
 
-			var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
+			//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
+			var text = (textFunc ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
 			if(typeof(text) == 'string' && text == '') return;
 
 			var mx = map.getMouseX();
