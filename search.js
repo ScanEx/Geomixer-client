@@ -708,7 +708,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 		//Рисуем контур объекта
 		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type != 'POINT') {
 			elemMap = oContainer.addObject(oFoundObject.Geometry, { Descr: sDescr });
-			elemMap.setStyle({ outline: { color: Math.round(0x222222 + 0x999999*iPosition/iCount), thickness: 3, opacity: 100} });
+			elemMap.setStyle({ outline: { color: Math.round(0x222222 + 0x999999*iPosition/iCount), thickness: 3, opacity: 60} });
 
 			elemMap.enableHoverBalloon(fnBaloon);
 		}
