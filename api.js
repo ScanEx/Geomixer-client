@@ -5291,7 +5291,11 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 function getBaseMapParam(paramName, defaultValue)
 {
-	return (window.baseMap && window.baseMap[paramName]) ? window.baseMap[paramName] : defaultValue;
+	if (typeof window.baseMap !== 'object') window.baseMap = {};
+	if (!window.baseMap[paramName]) window.baseMap[paramName] = defaultValue;
+	return window.baseMap[paramName];
+	
+	//return (window.baseMap && window.baseMap[paramName]) ? window.baseMap[paramName] : defaultValue;
 }
 
 function createKosmosnimkiMapInternal(div, layers, callback)
