@@ -2354,8 +2354,13 @@ queryMapLayers.prototype.getLayersHandler = function(response)
 	_queryMapLayers.createLayersManager();
 }
 
-queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name )
+//params:
+//  * showType
+//  * enableDragging
+//  * onclick {function({ elem: , scrollTable: })}
+queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, params )
 {
+	var _params = $.extend({showType: true}, params);
 	var canvas = _div(null, [['attr','id','layersList']]),
 		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
 		_this = this;
@@ -2366,14 +2371,18 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name )
 	var dateBegin = _input(null,[['attr','id', name + 'DateBegin'],['dir','className','inputStyle'],['css','width','100px']]),
 		dateEnd = _input(null,[['attr','id', name + 'DateEnd'],['dir','className','inputStyle'],['css','width','100px']]);
 	
-	var typeSel = _select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
-						   _option([_t(_gtxt("Векторный"))], [['attr','value','Vector']]),
-						   _option([_t(_gtxt("Растровый"))], [['attr','value','Raster']]),
-							_option([_t(_gtxt("Мультислой"))], [['attr','value','MultiLayer']])], [['dir','className','selectStyle'], ['css','width','100px']]);
 	
+	var typeSel = _select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
+					   _option([_t(_gtxt("Векторный"))], [['attr','value','Vector']]),
+					   _option([_t(_gtxt("Растровый"))], [['attr','value','Raster']]),
+					   _option([_t(_gtxt("Мультислой"))], [['attr','value','MultiLayer']])], [['dir','className','selectStyle'], ['css','width','100px']]);
+					   
 	_(searchCanvas, [_div([_table([_tbody([_tr([_td([_span([_t(_gtxt("Название"))],[['css','fontSize','12px']])],[['css','width','90px']]), _td([layerName],[['css','width','170px']]),_td([_span([_t(_gtxt("Начало периода"))],[['css','fontSize','12px']])],[['css','width','120px']]), _td([dateBegin])]),
 										   _tr([_td([_span([_t(_gtxt("Владелец"))],[['css','fontSize','12px']])]),_td([layerOwner]), _td([_span([_t(_gtxt("Окончание периода"))],[['css','fontSize','12px']])]), _td([dateEnd])]),
 										   _tr([_td([_span([_t(_gtxt("Тип"))],[['css','fontSize','12px']])]), _td([typeSel]), _td(), _td()])])],[['css','width','100%']])], [['css','marginBottom','10px']])]);
+										   
+	if (!_params.showType) 
+		$("tr:last", searchCanvas).hide();
 	
 	_(canvas, [searchCanvas]);
 	
@@ -2393,10 +2402,14 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name )
 				function(a,b){if (a._sort_title > b._sort_title) return 1; else if (a._sort_title < b._sort_title) return -1; else return 0},
 				function(a,b){if (a._sort_title < b._sort_title) return 1; else if (a._sort_title > b._sort_title) return -1; else return 0}
 			];
-	sortFuncs[_gtxt('Тип')] = [
-				function(a,b){if (a._sort_type > b._sort_type) return 1; else if (a._sort_type < b._sort_type) return -1; else return 0},
-				function(a,b){if (a._sort_type < b._sort_type) return 1; else if (a._sort_type > b._sort_type) return -1; else return 0}
-			];
+			
+	if (_params.showType)
+	{
+		sortFuncs[_gtxt('Тип')] = [
+					function(a,b){if (a._sort_type > b._sort_type) return 1; else if (a._sort_type < b._sort_type) return -1; else return 0},
+					function(a,b){if (a._sort_type < b._sort_type) return 1; else if (a._sort_type > b._sort_type) return -1; else return 0}
+				];
+	}
 	sortFuncs[_gtxt('Владелец')] = [
 				function(a,b){if (a._sort_Owner > b._sort_Owner) return 1; else if (a._sort_Owner < b._sort_Owner) return -1; else return 0},
 				function(a,b){if (a._sort_Owner < b._sort_Owner) return 1; else if (a._sort_Owner > b._sort_Owner) return -1; else return 0}
@@ -2418,7 +2431,15 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name )
 				}
 			];
 	
-	_layersTable.createTable(tableParent, name, 0, ["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), ""], ['1%','5%','45%','24%','20%','5%'], this.drawLayers, sortFuncs);
+	_layersTable.createTable(tableParent, name, 0, 
+		["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), ""], 
+		['1%','5%','45%','24%','20%','5%'], 
+		function(layer)
+		{
+			return _this.drawLayers.apply(this, [layer, _params]);
+		}, 
+		sortFuncs
+	);
 	
 	// оптимизируем данные для сортировки
 	var valuesToSort = [];
@@ -2428,7 +2449,8 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name )
 		var val = _queryMapLayers.layersList[i];
 		
 		val._sort_title = val['title'] ? String(val['title']).toLowerCase() : false;
-		val._sort_type = val['type'] ? val['type'] : false;
+		if (_params.showType)
+			val._sort_type = val['type'] ? val['type'] : false;
 		val._sort_Owner = val['Owner'] ? String(val['Owner']).toLowerCase() : false;
 		val._sort_date = val['date'] || false;
 		
@@ -2541,19 +2563,22 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name )
 		return local;
 	})
 	
-	_layersTable.attachSelectFilterEvents(typeSel, 'type', function(fieldName, fieldValue, vals)
+	if (_params.showType)
 	{
-		if (fieldValue == "")
-			return vals;
-		
-		var filterFunc = function(value)
-				{
-					return selectPredicate(value, fieldName, fieldValue);
-				},
-			local = _filter(filterFunc, vals);
-		
-		return local;
-	})
+		_layersTable.attachSelectFilterEvents(typeSel, 'type', function(fieldName, fieldValue, vals)
+		{
+			if (fieldValue == "")
+				return vals;
+			
+			var filterFunc = function(value)
+					{
+						return selectPredicate(value, fieldName, fieldValue);
+					},
+				local = _filter(filterFunc, vals);
+			
+			return local;
+		})
+	}
 	
 	_(canvas, [tableParent]);
 	
@@ -2562,9 +2587,7 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name )
 			return typeof globalFlashMap.layers[elem.name] == 'undefined';
 		}, valuesToSort);
 	
-	// _layersTable.vals = unloadedLayersList;
 	_layersTable.setValues(unloadedLayersList);
-	//_layersTable.drawTable(_layersTable.vals)
 	_layersTable.drawFilterTable();
 	
 	$("#" + name + "DateBegin,#" + name + "DateEnd", canvas).datepicker(
@@ -2598,8 +2621,9 @@ queryMapLayers.prototype.createLayersManager = function()
 	showDialog(_gtxt("Список слоев"), canvas, 571, 470, 535, 130);
 }
 
-queryMapLayers.prototype.drawLayers = function(layer)
+queryMapLayers.prototype.drawLayers = function(layer, params)
 {
+	var _params = $.extend({onclick: function(){ removeLayerFromList(); }, enableDragging: true}, params);
 	var newLayerProperties = {properties:layer};
 	
 	newLayerProperties.properties.mapName = _mapHelper.mapProperties.name;
@@ -2628,17 +2652,6 @@ queryMapLayers.prototype.drawLayers = function(layer)
 			
 			_this.setValues(filteredValues);
 			
-			// _this.vals = _filter(function(elem)
-			// {
-				// return elem.name != layer.name;
-			// }, _this.vals);
-			
-			// _this.currVals = _filter(function(elem)
-			// {
-				// return elem.name != layer.name;
-			// }, _this.currVals);
-			
-			// _this.drawTable(_this.currVals);
 			_this.drawFilterTable();
 			
 			var active = $(_this.buildedTree).find(".active");
@@ -2671,22 +2684,28 @@ queryMapLayers.prototype.drawLayers = function(layer)
 	
 	var span = $(res).find("span.layer")[0];
 	
-	span.onclick = function()
+	if (_params.onclick)
 	{
-		removeLayerFromList();
+		span.onclick = function()
+		{
+			_params.onclick({ elem: layer, scrollTable: _this });
+		}
 	}
 	
-	$(res).find("span[dragg]").draggable(
+	if (_params.enableDragging)
 	{
-		helper: function(ev)
+		$(res).find("span[dragg]").draggable(
 		{
-			return _layersTree.dummyNode(ev.target)
-		},
-		cursorAt: { left: 5 , top: 10},
-		cursor: 'move',
-		delay: 200,
-		appendTo: document.body
-	});
+			helper: function(ev)
+			{
+				return _layersTree.dummyNode(ev.target)
+			},
+			cursorAt: { left: 5 , top: 10},
+			cursor: 'move',
+			delay: 200,
+			appendTo: document.body
+		});
+	}
 	
 	var nameDivInternal = _div([res], [['css','position','absolute'], ['css','width','100%'],['css','padding',"1px 0px"], ['css','overflowX','hidden'],['css','whiteSpace','nowrap']]);
 	var nameDiv = _div([nameDivInternal], [['css', 'position', 'relative'], ['css', 'height', '100%']]);

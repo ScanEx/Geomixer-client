@@ -119,7 +119,8 @@ var createMenu = function()
 		[
 			{id:'layerList', title:_gtxt('Открыть'),func:function(){_queryMapLayers.getLayers()}},
 			{id:'layersVector', title:_gtxt('Создать векторный слой'),func:function(){_mapHelper.createNewLayer("Vector")}},
-			{id:'layersRaster', title:_gtxt('Создать растровый слой'),func:function(){_mapHelper.createNewLayer("Raster")}}
+			{id:'layersRaster', title:_gtxt('Создать растровый слой'),func:function(){_mapHelper.createNewLayer("Raster")}},
+			{id:'layersMultiRaster', title:_gtxt('Создать мультислой'),func:function(){_mapHelper.createNewLayer("Multi")}}
 		]});
 	
 	_menuUp.addItem(

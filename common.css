@@ -223,6 +223,7 @@ div.user span
 	width: 300px;
 	overflow: hidden;
 }
+div.error,
 input.error,
 textarea.error
 {
