@@ -21,6 +21,13 @@ typedef Req = {
 	var noCache:Bool;
 }
 
+typedef ReqImg = {
+	var url : String;
+	var onLoad :BitmapData->Void;
+	var onError :Void->Void;
+	var zxy:String;
+}
+
 class Utils
 {
 	public static var worldWidth:Float = 20037508;
@@ -32,6 +39,9 @@ class Utils
 	static var loaderDataCache:Array<Req> = [];				// Очередь загрузки Bitmap-ов
 	static var loaderActive:Bool = false;					// Флаг активности Loader Bitmap-ов
 	static var loaderCache:Hash<Bool> = new Hash<Bool>();	// Файлы в процессе загрузки
+	
+	static var imgWaitCache:Hash<Array<ReqImg>> = new Hash<Array<ReqImg>>();	// Очередь ожидающих загрузки URL
+	static var imgCache:Hash<Bool> = new Hash<Bool>();		// Файлы IMG в процессе загрузки
 	
 	public static function getNextId()
 	{
@@ -60,16 +70,28 @@ class Utils
 	}
 
 	// Загрузить Image если возможно закешировать BitmapData + определение isOverlay
-	public static function loadCacheImage(url:String, onLoad:Dynamic->Void, ?onError:Void->Void, ?flagCache:Bool)
+	public static function loadCacheImage(url:String, onLoad:Dynamic->Void, ?onError:Void->Void, ?zxy:String)
 	{
-		if (flagCache && displayObjectCache.exists(url)) {
-			var imgData:Dynamic = displayObjectCache.get(url);
-			imgData.loader = new Bitmap(imgData.bmp);
-			onLoad(imgData);
-			imgData.loader = null;
-			return;
-		}
+		var req:ReqImg = { url: url, onLoad: onLoad, zxy: zxy, onError: onError };
+		var flag:Bool = imgWaitCache.exists(zxy);
+		var arr:Array<ReqImg> = new Array<ReqImg>();
+		if (flag) arr = imgWaitCache.get(zxy);
+
+		arr.push(req);
+		imgWaitCache.set(zxy, arr);
+		if(!flag) runLoadCacheImage(req);
+	}
+
+	// Загрузка IMG
+	private static function runLoadCacheImage(req:ReqImg)
+	{
+		var url:String = req.url;
+		var onLoad = req.onLoad;
+		var onError = req.onError;
+		var zxy = req.zxy;
+
 		var loader = new Loader();
+
 		var callOnError = function()
 		{
 			if (onError != null)
@@ -89,7 +111,6 @@ class Utils
 			var imgData:Dynamic = { };
 			imgData.isOverlay = null;
 			imgData.loader = loader;
-
 			var flag:Bool = event.target.parentAllowsChild;
 			if(flag) {
 				var size = 32;
@@ -98,26 +119,36 @@ class Utils
 				var hist = bmp.histogram();
 				if (hist[3][255] != 1024) imgData.isOverlay = true;		// по гистограмме определяем тайлы где в верхнем левом углу 32х32 все alpha = 0xFF
 				bmp.dispose();
-			
-				if(flagCache) {
-					bmp = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
-					bmp.draw(loader);
-					imgData.bmp = bmp;
-					imgData.loader = new Bitmap(bmp);
-					displayObjectCache.set(url, imgData);
-				}
+				bmp = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
+				bmp.draw(loader);
+				if (imgWaitCache.exists(zxy))
+				{
+					var arr:Array<ReqImg> = imgWaitCache.get(zxy);
+					for (req in arr) {
+						imgData.loader = new Bitmap(bmp);
+						req.onLoad(imgData);
+					}
+					imgWaitCache.remove(zxy);
+				}			
+				imgData.loader = null;
+
 			} else {
 				imgData.isOverlay = true;
+				onLoad(imgData);
 			}
 			
-			onLoad(imgData);
-			imgData.loader = null;
 			Main.bumpFrameRate();
 		});
 		loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, function(event)
 		{
 			timer.stop();
 			callOnError();
+			var arr:Array<ReqImg> = imgWaitCache.get(zxy);
+			for (req in arr) {
+				req.onError();
+			}
+			imgWaitCache.remove(zxy);
+			
 		});
 		var loaderContext:LoaderContext = new LoaderContext();
 		loaderContext.checkPolicyFile = true;

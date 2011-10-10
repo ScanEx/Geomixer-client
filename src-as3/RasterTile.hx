@@ -76,12 +76,15 @@ class RasterTile
 			try {
 				var me = this;
 				var worldSize:Float = Math.pow(2, z);
-				var url:String = layer.tileFunction(Math.round((i + 3 * worldSize / 2) % worldSize - worldSize / 2), j, Math.round(z));
+				var ii:Int = Math.round((i + 3 * worldSize / 2) % worldSize - worldSize / 2);
+				var zz:Int = Math.round(z);
+				var zxy:String = zz + '_' + ii + '_' + j;
+				var url:String = layer.tileFunction(ii, j, zz);
 				Utils.loadCacheImage(
 					url, 
 					function(contents:Dynamic) { return me.onLoad(contents); },
 					function() { me.onError(); },
-					false
+					zxy
 				);
 			} 
 			catch (e:Error) 
@@ -141,15 +144,21 @@ class RasterTile
 	function onError()
 	{
 		tilesCurrentlyLoading -= 1;
-		//loadDone();
 		remove();
 		if (!isRetrying && !isReplacement)
+		{
 			layer.loadTile(i, j, z, isReplacement, true);
+		}
 		else
 		{
 			layer.markTileAsFailed(i, j, z);
-			if ((z > 1) && layer.tileCaching)
-				layer.loadTile(Std.int(i/2), Std.int(j/2), z - 1, true, false);
+			if ((z > 1) && layer.tileCaching) {
+				var ii:Int = Math.ceil(i/2 - 0.5);
+				var jj:Int = Math.ceil(j/2 - 0.5);
+				var zz:Int = Std.int(z - 1);
+				if (layer.maxZoom > 0 && zz > layer.maxZoom) zz = layer.maxZoom;
+				layer.loadTile(ii, jj, zz, true, false);
+			}
 		}
 	}
 

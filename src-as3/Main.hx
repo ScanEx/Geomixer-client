@@ -723,7 +723,7 @@ class Main
 			return false;
 		}
 
-		function setBackgroundTiles(id:String, func:String, ?projectionCode:Int)
+		function setBackgroundTiles(id:String, func:String, maxZoom:Int, ?projectionCode:Int)
 		{ 
 			var node = getNode(id);
 			var newContent = new RasterLayer(
@@ -732,7 +732,7 @@ class Main
 					var out:String = cmdToJS(func, i, j, z);
 					return out;
 				}
-			);
+			, maxZoom);
 			if ((node.content != null) && Std.is(node.content, VectorObject))
 				newContent.setMask(cast(node.content, VectorObject).geometry);
 			node.setContent(newContent);
@@ -1103,7 +1103,7 @@ class Main
 				case 'setLabel':
 					setLabel(attr.objectId, attr.label);
 				case 'setBackgroundTiles':
-					setBackgroundTiles(attr.objectId, attr.func, attr.projectionCode);
+					setBackgroundTiles(attr.objectId, attr.func, attr.maxZoom, attr.projectionCode);
 				case 'setDisplacement':
 					cast(getNode(attr.objectId).content, RasterLayer).setDisplacement(
 						function(x:Float):Float { return attr.dx; },
