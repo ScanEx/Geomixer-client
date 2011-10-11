@@ -157,6 +157,7 @@ class RasterTile
 				var jj:Int = Math.ceil(j/2 - 0.5);
 				var zz:Int = Std.int(z - 1);
 				if (layer.maxZoom > 0 && zz > layer.maxZoom) zz = layer.maxZoom;
+				if (layer.minZoom > 0 && zz < layer.minZoom) return;
 				layer.loadTile(ii, jj, zz, true, false);
 			}
 		}

@@ -12,10 +12,12 @@ class RasterLayer extends MaskedContent
 	var myDy:Float->Float;
 
 	public var maxZoom:Int;
+	public var minZoom:Int;
 
-	public function new(tileFunction_:Int->Int->Int->String, maxZoom_:Int)
+	public function new(tileFunction_:Int->Int->Int->String, minZoom_:Int, maxZoom_:Int)
 	{
 		maxZoom = maxZoom_;
+		minZoom = minZoom_;
 		tileFunction = tileFunction_;
 		tilesPerZoomLevel = new Array<Int>();
 		for (i in 0...25)
