@@ -78,13 +78,11 @@ class RasterTile
 				var worldSize:Float = Math.pow(2, z);
 				var ii:Int = Math.round((i + 3 * worldSize / 2) % worldSize - worldSize / 2);
 				var zz:Int = Math.round(z);
-				var zxy:String = zz + '_' + ii + '_' + j;
 				var url:String = layer.tileFunction(ii, j, zz);
 				Utils.loadCacheImage(
 					url, 
 					function(contents:Dynamic) { return me.onLoad(contents); },
-					function() { me.onError(); },
-					zxy
+					function() { me.onError(); }
 				);
 			} 
 			catch (e:Error) 

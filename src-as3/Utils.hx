@@ -25,7 +25,6 @@ typedef ReqImg = {
 	var url : String;
 	var onLoad :BitmapData->Void;
 	var onError :Void->Void;
-	var zxy:String;
 }
 
 class Utils
@@ -70,15 +69,15 @@ class Utils
 	}
 
 	// Загрузить Image если возможно закешировать BitmapData + определение isOverlay
-	public static function loadCacheImage(url:String, onLoad:Dynamic->Void, ?onError:Void->Void, ?zxy:String)
+	public static function loadCacheImage(url:String, onLoad:Dynamic->Void, ?onError:Void->Void)
 	{
-		var req:ReqImg = { url: url, onLoad: onLoad, zxy: zxy, onError: onError };
-		var flag:Bool = imgWaitCache.exists(zxy);
+		var req:ReqImg = { url: url, onLoad: onLoad, onError: onError };
+		var flag:Bool = imgWaitCache.exists(url);
 		var arr:Array<ReqImg> = new Array<ReqImg>();
-		if (flag) arr = imgWaitCache.get(zxy);
+		if (flag) arr = imgWaitCache.get(url);
 
 		arr.push(req);
-		imgWaitCache.set(zxy, arr);
+		imgWaitCache.set(url, arr);
 		if(!flag) runLoadCacheImage(req);
 	}
 
@@ -88,7 +87,6 @@ class Utils
 		var url:String = req.url;
 		var onLoad = req.onLoad;
 		var onError = req.onError;
-		var zxy = req.zxy;
 
 		var loader = new Loader();
 
@@ -121,14 +119,14 @@ class Utils
 				bmp.dispose();
 				bmp = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
 				bmp.draw(loader);
-				if (imgWaitCache.exists(zxy))
+				if (imgWaitCache.exists(url))
 				{
-					var arr:Array<ReqImg> = imgWaitCache.get(zxy);
+					var arr:Array<ReqImg> = imgWaitCache.get(url);
 					for (req in arr) {
 						imgData.loader = new Bitmap(bmp);
 						req.onLoad(imgData);
 					}
-					imgWaitCache.remove(zxy);
+					imgWaitCache.remove(url);
 				}			
 				imgData.loader = null;
 
@@ -143,11 +141,11 @@ class Utils
 		{
 			timer.stop();
 			callOnError();
-			var arr:Array<ReqImg> = imgWaitCache.get(zxy);
+			var arr:Array<ReqImg> = imgWaitCache.get(url);
 			for (req in arr) {
 				req.onError();
 			}
-			imgWaitCache.remove(zxy);
+			imgWaitCache.remove(url);
 			
 		});
 		var loaderContext:LoaderContext = new LoaderContext();
