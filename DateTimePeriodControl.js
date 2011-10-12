@@ -199,11 +199,14 @@ var Calendar = function()
 /**
  * Инициализирует календарь.
  * @function
- * @param {String} name Имя календаря.
+ * @param {String} name Имя календаря
  * @param {Object} params Параметры календаря: <br/>
  * dateMin, dateMax - {Date} граничные даты для календарей <br/>
- * dateFormat - {String} формат даты
- * resourceHost - {String} откуда берём иконки
+ * dateFormat - {String} формат даты <br/>
+ * resourceHost - {String} откуда берём иконки <br/>
+ * minimized - {bool} показывать ли минимизированный или развёрнутый виджет в начале<br/>
+ * showSwitcher - {bool} показывать ли иконку для разворачивания/сворачивания периода<br/>
+ * dateBegin, dateEnd - {Date} текущие даты для календарей
  */
 Calendar.prototype.init = function( name, params )
 {
@@ -212,7 +215,8 @@ Calendar.prototype.init = function( name, params )
 	
 	this._params = $.extend({
 		resourceHost: "",
-		minimized: true
+		minimized: true,
+		showSwitcher: true
 	}, params)
 	
 	this.lazyDate = _select([_option([_t(_gtxt("calendarWidget.Custom"))],[['attr','value','']]),
@@ -304,11 +308,17 @@ Calendar.prototype.init = function( name, params )
 		_this.lastClickFunc();
 	}
 	
-	this.moreIcon = _img(null, [['attr', 'src', 'http://kosmosnimki.ru/img/expand.gif'], ['css', 'margin', '0 0 4px 0'], ['css', 'cursor', 'pointer'], ['attr', 'title', _gtxt('calendarWidget.ExtendedView')]]);
+	this.moreIcon = _img(null, [['attr', 'src', 'http://kosmosnimki.ru/img/' + (this._params.minimized ? 'expand.gif' : 'collapse.gif')], ['css', 'margin', '0 0 4px 0'], ['css', 'cursor', 'pointer'], ['attr', 'title', _gtxt('calendarWidget.ExtendedView')]]);
+	this._visModeController.setMode(this._params.minimized ? _this._visModeController.SIMPLE_MODE : _this._visModeController.ADVANCED_MODE)
 		
 	this.moreIcon.onclick = function()
 	{
 		_this._visModeController.toggleMode();
+	}
+	
+	if (!this._params.showSwitcher)
+	{
+		$(this.moreIcon).hide();
 	}
 	
 	var emptyieinput = _input(null,[['css','width','1px'],['css','border','none'],['css','height','1px']]);
@@ -316,7 +326,7 @@ Calendar.prototype.init = function( name, params )
 	
 	this.canvas = _div([_span([emptyieinput,
 					_table([_tbody([_tr([_td([this.first]),_td([this.dateBegin]),_td([this.dateEnd], [['dir', 'className', 'onlyMaxVersion']]),_td([this.last]) , _td([this.moreIcon])]),
-									_tr([_td(), _td(null, [['attr', 'id', 'dateBeginInfo']]),_td(null, [['attr', 'id', 'dateEndInfo'], ['dir', 'className', 'onlyMaxVersion']]),_td(/*[_t('UTC')], [['attr', 'colspan', '2'], ['attr', 'id', 'UTCInfoText']]*/)])/*,
+									_tr([_td(), _td(null, [['attr', 'id', 'dateBeginInfo']]),_td(null, [['attr', 'id', 'dateEndInfo'], ['dir', 'className', 'onlyMaxVersion']]),_td()])/*,
 									_tr([_td(null, [['attr','colSpan',4],['css','height','5px']])], [['dir', 'className', 'onlyMaxVersion']])*/ /*,
 									_tr([_td(), _td([_span([_t(_gtxt("calendarWidget.Period"))],[['css','margin','4px']])]), tdYear], [['dir', 'className', 'onlyMaxVersion']])*/
 									])])], [['attr', 'id', 'calendar']])
@@ -343,10 +353,17 @@ Calendar.prototype.init = function( name, params )
 	$("#calendar .onlyMaxVersion", this.canvas).css({display: this._params.minimized ? 'none' : ''});
 	
 	var curUTCDate = new Date((new Date()).valueOf() + (new Date()).getTimezoneOffset()*60*1000);
-	$(this.dateEnd).datepicker("setDate", curUTCDate);
 	
-	//если не выбран период, то по умолчанию мы устанавливаем одинаковые даты
-	$(this.dateBegin).datepicker("setDate", this.lazyDate.value === '' ? curUTCDate : this.getBeginByEnd() );
+	if (typeof this._params.dateEnd === 'undefined')
+		$(this.dateEnd).datepicker("setDate", curUTCDate);
+	else
+		$(this.dateEnd).datepicker("setDate", this._params.dateEnd);
+	
+	if (typeof this._params.dateBegin === 'undefined')
+		//если не выбран период, то по умолчанию мы устанавливаем одинаковые даты
+		$(this.dateBegin).datepicker("setDate", this.lazyDate.value === '' ? curUTCDate : this.getBeginByEnd() );
+	else
+		$(this.dateBegin).datepicker("setDate", this._params.dateBegin );
 }
 
 Calendar.prototype.fixDate = function(date)
