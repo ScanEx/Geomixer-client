@@ -537,5 +537,9 @@ _translationsHash.hash["eng"] = {
 	"Временнóй слой": "Temporal layer",
 	"Колонка даты": "Date column",
 	"Минимальный период": "Min. period (days)",
-	"Максимальный период": "Max. period (days)"
+	"Максимальный период": "Max. period (days)",
+	"По границе экрана": "Screen border",
+	"По центру экрана": "Screen center",
+	"Пересечение": "Intersection",
+	"Пролистывать слои": "Scroll layers"
 };

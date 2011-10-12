@@ -2562,9 +2562,10 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name )
 			return typeof globalFlashMap.layers[elem.name] == 'undefined';
 		}, valuesToSort);
 	
-	_layersTable.vals = unloadedLayersList;
-	
-	_layersTable.drawTable(_layersTable.vals)
+	// _layersTable.vals = unloadedLayersList;
+	_layersTable.setValues(unloadedLayersList);
+	//_layersTable.drawTable(_layersTable.vals)
+	_layersTable.drawFilterTable();
 	
 	$("#" + name + "DateBegin,#" + name + "DateEnd", canvas).datepicker(
 	{
@@ -2620,17 +2621,25 @@ queryMapLayers.prototype.drawLayers = function(layer)
 			if (tr)
 				tr.removeNode(true);
 			
-			_this.vals = _filter(function(elem)
+			var filteredValues = _filter(function(elem)
 			{
 				return elem.name != layer.name;
 			}, _this.vals);
 			
-			_this.currVals = _filter(function(elem)
-			{
-				return elem.name != layer.name;
-			}, _this.currVals);
+			_this.setValues(filteredValues);
 			
-			_this.drawTable(_this.currVals);
+			// _this.vals = _filter(function(elem)
+			// {
+				// return elem.name != layer.name;
+			// }, _this.vals);
+			
+			// _this.currVals = _filter(function(elem)
+			// {
+				// return elem.name != layer.name;
+			// }, _this.currVals);
+			
+			// _this.drawTable(_this.currVals);
+			_this.drawFilterTable();
 			
 			var active = $(_this.buildedTree).find(".active");
 			
@@ -2701,7 +2710,7 @@ queryMapLayers.prototype.deleteLayerHandler = function(response, id, flag)
 	
 	if (response.Result == 'deleted')
 	{
-		_layersTable.vals = _filter(function(elem)
+		var filteredValues = _filter(function(elem)
 		{
 			if (typeof flag != 'undefined' && flag)
 				return elem.MultiLayerID != id;
@@ -2709,18 +2718,29 @@ queryMapLayers.prototype.deleteLayerHandler = function(response, id, flag)
 				return elem.LayerID != id;
 		}, _layersTable.vals);
 		
-		_layersTable.currVals = _filter(function(elem)
-		{
-			if (typeof flag != 'undefined' && flag)
-				return elem.MultiLayerID != id;
-			else
-				return elem.LayerID != id;
-		}, _layersTable.currVals);
+		_layersTable.setValues(filteredValues);
+		
+		// _layersTable.vals = _filter(function(elem)
+		// {
+			// if (typeof flag != 'undefined' && flag)
+				// return elem.MultiLayerID != id;
+			// else
+				// return elem.LayerID != id;
+		// }, _layersTable.vals);
+		
+		// _layersTable.currVals = _filter(function(elem)
+		// {
+			// if (typeof flag != 'undefined' && flag)
+				// return elem.MultiLayerID != id;
+			// else
+				// return elem.LayerID != id;
+		// }, _layersTable.currVals);
 		
 		_layersTable.start = 0;
 		_layersTable.reportStart = _layersTable.start * _layersTable.limit;
 		
-		_layersTable.drawTable(_layersTable.currVals);
+		//_layersTable.drawTable(_layersTable.currVals);
+		_layersTable.drawFilterTable();
 	}
 	else
 		showErrorMessage(_gtxt("Ошибка!"), true, "Слоя нет в базе")
@@ -2837,9 +2857,11 @@ queryMapLayers.prototype.createMapsManager = function()
 
 	resize();
 	
-	_mapsTable.vals = _queryMapLayers.mapsList;
+	_mapsTable.setValues(_queryMapLayers.mapsList);
+	_mapsTable.drawFilterTable();
 	
-	_mapsTable.drawTable(_mapsTable.vals)
+	//_mapsTable.vals = _queryMapLayers.mapsList;
+	//_mapsTable.drawTable(_mapsTable.vals)
 	
 	this.mapName.focus();
 }
@@ -2936,20 +2958,29 @@ queryMapLayers.prototype.deleteMapHandler = function(response, id)
 	
 	if (response.Result == 'deleted')
 	{
-		_mapsTable.vals = _filter(function(elem)
+		var filteredValues = _filter(function(elem)
 		{
 			return elem.MapID != id;
 		}, _mapsTable.vals);
 		
-		_mapsTable.currVals = _filter(function(elem)
-		{
-			return elem.MapID != id;
-		}, _mapsTable.currVals);
+		_mapsTable.setValues(filteredValues);
+		
+		
+		// _mapsTable.vals = _filter(function(elem)
+		// {
+			// return elem.MapID != id;
+		// }, _mapsTable.vals);
+		
+		// _mapsTable.currVals = _filter(function(elem)
+		// {
+			// return elem.MapID != id;
+		// }, _mapsTable.currVals);
 		
 		_mapsTable.start = 0;
 		_mapsTable.reportStart = _mapsTable.start * _mapsTable.limit;
 		
-		_mapsTable.drawTable(_mapsTable.currVals);
+		//_mapsTable.drawTable(_mapsTable.currVals);
+		_mapsTable.drawFilterTable();
 	}
 	else
 		showErrorMessage(_gtxt("Ошибка!"), true, _gtxt("Слоя нет в базе"))
@@ -3104,31 +3135,80 @@ queryMapLayersList.prototype.load = function()
 		name = 'list',
 		_this = this;
 	
-	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','160px']]),
-		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','160px']]);
+	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]),
+		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]);
 	
-	var dateBegin = _input(null,[['attr','id', name + 'DateBegin'],['dir','className','inputStyle'],['css','width','100px']]),
-		dateEnd = _input(null,[['attr','id', name + 'DateEnd'],['dir','className','inputStyle'],['css','width','100px']]);
+	// var dateBegin = _input(null,[['attr','id', name + 'DateBegin'],['dir','className','inputStyle'],['css','width','100px']]),
+		// dateEnd = _input(null,[['attr','id', name + 'DateEnd'],['dir','className','inputStyle'],['css','width','100px']]);
+		
+	var intersectSel = _select(
+							   [_option([_t(_gtxt("По границе экрана"))], [['attr','value','bounds']]),
+								_option([_t(_gtxt("По центру экрана"))], [['attr','value','center']])], 
+							[['dir','className','selectStyle'], ['css','width','100%'], ['css', 'margin', '1px 0px']]);
+	
+	this._isIntersectCenter = false;
+							
+	$(intersectSel).change(function()
+	{
+		_this._isIntersectCenter = this.value === 'center';
+		_this.reloadList();
+	});
 	
 	var typeSel = _select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
 						   _option([_t(_gtxt("Векторный"))], [['attr','value','Vector']]),
-						   _option([_t(_gtxt("Растровый"))], [['attr','value','Raster']])], [['dir','className','selectStyle'], ['css','width','160px']]);
+						   _option([_t(_gtxt("Растровый"))], [['attr','value','Raster']])], [['dir','className','selectStyle'], ['css','width','100%'], ['css', 'margin', '1px 0px']]);
+						   
+	var dateIntervalControl = new nsGmx.Calendar();
+	
+	//находим даты самого раннего и позднего слоёв
+	var minDate = null;
+	var maxDate = null;
+	for (var k = 0; k < globalFlashMap.layers.length; k++)
+		if (globalFlashMap.layers[k].properties.date)
+		{
+			var layerDate = $.datepicker.parseDate('dd.mm.yy', globalFlashMap.layers[k].properties.date);
+			minDate = (minDate && minDate < layerDate) ? minDate : layerDate;
+			maxDate = (maxDate && maxDate > layerDate) ? maxDate : layerDate;
+		}
+	
+	dateIntervalControl.init('searchLayers', {
+		minimized: false,
+		showSwitcher: false,
+		dateMin:   minDate,
+		dateMax:   maxDate,
+		dateBegin: minDate,
+		dateEnd:   maxDate
+	});
 	
 	_(searchCanvas, [_div([_table([_tbody([_tr([_td([_span([_t(_gtxt("Название"))],[['css','fontSize','12px']])],[['css','width','130px']]), _td([layerName])]),
 											_tr([_td([_span([_t(_gtxt("Тип"))],[['css','fontSize','12px']])]),_td([typeSel])]),
-											_tr([_td([_span([_t(_gtxt("Начало периода"))],[['css','fontSize','12px']])]), _td([dateBegin])]),
-											_tr([_td([_span([_t(_gtxt("Окончание периода"))],[['css','fontSize','12px']])]), _td([dateEnd])])])])], [['css','marginBottom','10px']])]);
+											//_tr([_td([_span([_t(_gtxt("Начало периода"))],[['css','fontSize','12px']])]), _td([dateBegin])]),
+											_tr([_td([_span([_t(_gtxt("Период"))],[['css','fontSize','12px']])]), _td([dateIntervalControl.canvas])]),
+											_tr([_td([_span([_t(_gtxt("Пересечение"))],[['css','fontSize','12px']])]),_td([intersectSel])], [['dir', 'className', 'intersection']])
+											])])], [['css','marginBottom','10px']])]);
 	
 	_(canvas, [searchCanvas]);
 	
-	dateBegin.onfocus = dateEnd.onfocus = function()
+	var scrollDiv = $("<div></div>", {className: 'layersScroll'});
+	var scrollCheckbox = _checkbox(false, 'checkbox');
+	scrollDiv.append(scrollCheckbox).append($("<label></label>", {'for': 'otherEncoding'}).text(_gtxt("Пролистывать слои")));
+	this._isLayersScrollActive = false;
+	$(scrollCheckbox).change(function()
 	{
-		try
+		_this._isLayersScrollActive = scrollCheckbox.checked;
+		if (scrollCheckbox.checked)
 		{
-			this.blur();
+			sliderDiv.show();
+			_this._updateSliderVisibility(_this._scrollDiv.slider('option', 'value'));
 		}
-		catch(e){}
-	}
+		else
+			sliderDiv.hide();
+	})
+	
+	var sliderDiv = $("<div></div>", {id: 'layersScrollSlider'}).hide();
+	scrollDiv.append(sliderDiv);
+	
+	$(canvas).append(scrollDiv);
 	
 	var tableParent = _div(),
 		sortFuncs = {};
@@ -3161,6 +3241,8 @@ queryMapLayersList.prototype.load = function()
 	_listTable.limit = 20;
 	_listTable.pagesCount = 5;
 	_listTable.createTable(tableParent, name, 310, [_gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата")], ['10%','65%','25%'], this.drawExtendLayers, sortFuncs);
+	
+	$(_listTable).bind('changeData', function(){ _this._updateSlider()} );
 	
 	var inputPredicate = function(value, fieldName, fieldValue)
 		{
@@ -3215,13 +3297,13 @@ queryMapLayersList.prototype.load = function()
 		return local;
 	})
 	
-	_listTable.attachFilterEvents(dateBegin, 'DateBegin', function(fieldName, fieldValue, vals)
+	_listTable.addFilter('DateBegin', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
 		
-		var beginDate = $(dateBegin).datepicker('getDate'),
-			endDate = $(dateEnd).datepicker('getDate'),
+		var beginDate = dateIntervalControl.getDateBegin(),
+			endDate = dateIntervalControl.getDateEnd(),
 			filterFunc = function(value)
 				{
 					return beginDatePredicate(value, fieldName, fieldValue, beginDate ? beginDate : null, endDate ? endDate : null);
@@ -3229,15 +3311,15 @@ queryMapLayersList.prototype.load = function()
 			local = _filter(filterFunc, vals);
 		
 		return local;
-	})
-		
-	_listTable.attachFilterEvents(dateEnd, 'DateEnd', function(fieldName, fieldValue, vals)
+	})	
+	
+	_listTable.addFilter('DateEnd', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
 		
-		var beginDate = $(dateBegin).datepicker('getDate'),
-			endDate = $(dateEnd).datepicker('getDate'),
+		var beginDate = dateIntervalControl.getDateBegin(),
+			endDate = dateIntervalControl.getDateEnd(),
 			filterFunc = function(value)
 				{
 					return endDatePredicate(value, fieldName, fieldValue, beginDate, endDate);
@@ -3245,7 +3327,14 @@ queryMapLayersList.prototype.load = function()
 			local = _filter(filterFunc, vals);
 		
 		return local;
-	})
+	});
+	
+	$(dateIntervalControl).change(function()
+	{
+		_listTable.setFilterValue('DateBegin', dateIntervalControl.getDateBegin());
+		_listTable.setFilterValue('DateEnd', dateIntervalControl.getDateEnd());
+		_listTable.drawFilterTable();
+	});
 	
 	_listTable.attachSelectFilterEvents(typeSel, 'type', function(fieldName, fieldValue, vals)
 	{
@@ -3285,24 +3374,64 @@ queryMapLayersList.prototype.load = function()
 	
 	_listTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
 	
-	$("#" + name + "DateBegin,#" + name + "DateEnd").datepicker(
-	{
-		beforeShow: function(input)
+	// $("#" + name + "DateBegin,#" + name + "DateEnd").datepicker(
+	// {
+		// beforeShow: function(input)
+		// {
+	    	// return {minDate: (input == dateEnd ? $(dateBegin).datepicker("getDate") : null), 
+	        	// maxDate: (input == dateBegin ? $(dateEnd).datepicker("getDate") : null)}; 
+		// },
+		// onSelect: function(dateText, inst) 
+		// {
+			// inst.input[0].onkeyup();
+		// },
+		// changeMonth: true,
+		// changeYear: true,
+		// showOn: "button",
+		// buttonImage: "img/calendar.png",
+		// buttonImageOnly: true,
+		// dateFormat: "dd.mm.yy"
+	// });
+}
+
+//делает видимым только один слой с индексом nVisible
+queryMapLayersList.prototype._updateSliderVisibility = function(nVisible)
+{
+	if (!this._isLayersScrollActive || typeof _listTable.currVals[nVisible] === 'undefined') return;
+	
+	var layerName = _listTable.currVals[nVisible].properties.name;
+	var baseMapName = window.baseMap.id;
+	
+	for (var k = 0; k < globalFlashMap.layers.length; k++)
+		if (globalFlashMap.layers[k].properties.mapName !== baseMapName) //слои базовой карты не трогаем
 		{
-	    	return {minDate: (input == dateEnd ? $(dateBegin).datepicker("getDate") : null), 
-	        	maxDate: (input == dateBegin ? $(dateEnd).datepicker("getDate") : null)}; 
-		},
-		onSelect: function(dateText, inst) 
+			var isVisible = layerName == globalFlashMap.layers[k].properties.name;
+			if (isVisible !== globalFlashMap.layers[k].isVisible)
+				globalFlashMap.layers[k].setVisible(isVisible);
+		}
+}
+
+queryMapLayersList.prototype._updateSlider = function()
+{
+	if (typeof _listTable.currVals === 'undefined')
+		return;
+
+	$("#layersScrollSlider").empty();
+	var _this = this;
+	this._scrollDiv = $("<div></div>").appendTo($("#layersScrollSlider"));
+	this._scrollDiv.slider({
+		max: _listTable.currVals.length-1,
+		slide: function(event, ui)
 		{
-			inst.input[0].onkeyup();
-		},
-		changeMonth: true,
-		changeYear: true,
-		showOn: "button",
-		buttonImage: "img/calendar.png",
-		buttonImageOnly: true,
-		dateFormat: "dd.mm.yy"
+			_this._updateSliderVisibility(ui.value)
+			_listTable.setPage( Math.floor(ui.value / (_listTable.limit)) );
+		}
 	});
+	
+	if (_listTable.currVals.length == 0)
+		this._scrollDiv.slider('option', 'disabled', true);
+	else
+		this._updateSliderVisibility(0);
 }
 
 queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
@@ -3439,15 +3568,22 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 		globalFlashMap.layers[elem.name].setVisible(this.checked);
 	}
 	
+	globalFlashMap.layers[elem.name].addMapStateListener("onChangeVisible", function(attr)
+	{
+		box.checked = attr;
+	});
+	
 	if (elem.type == "Vector")
 	{
 		var icon = _mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon'),
 		
-		layerElems = [box, icon, spanParent];
-
+		//layerElems = [box, icon, spanParent];
+		layerElems = _table([_tbody([_tr([_td([box]), _td([icon]), _td([spanParent], [['css', 'width', '100%'], ['css','whiteSpace','nowrap']])])])], [['dir', 'className', 'listLayerTable']]);
 	}
 	else
-		layerElems = [box, spanParent];
+		// layerElems = [box, spanParent];
+		layerElems = _table([_tbody([_tr([_td([box]), _td([spanParent], [['css', 'width', '100%'], ['css','whiteSpace','nowrap']])])])], [['dir', 'className', 'listLayerTable']]);
+	
 	
 	var icon = _img(null, [['attr','src', (elem.type == "Vector") ? 'img/vector.png' : 'img/rastr.png' ],['css','marginLeft','3px']]),
 		tr,
@@ -3455,7 +3591,7 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 	
 	var maxLayerWidth = this.tableHeader.firstChild.childNodes[1].offsetWidth + 'px';
 	
-	tr = _tr([_td([icon], [['css','textAlign','center']]), _td([_div(layerElems, [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap']])]), _td([_t(elem.date)], [['css','textAlign','center'],['dir','className','invisible']])]);
+	tr = _tr([_td([icon], [['css','textAlign','center']]), _td([_div([layerElems], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap']])]), _td([_t(elem.date)], [['css','textAlign','center'],['dir','className','invisible']])]);
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this.fieldsWidths[i];
@@ -3476,7 +3612,7 @@ queryMapLayersList.prototype.attachMapChangeEvent = function()
 		if (timer)
 			clearTimeout(timer);
 			
-		timer = setTimeout(_queryMapLayersList.reloadList, 200)
+		timer = setTimeout(function(){ _queryMapLayersList.reloadList(); }, 200)
 	})
 	
 	this.mapEvent = true;
@@ -3491,20 +3627,33 @@ queryMapLayersList.prototype.detachMapChangeEvent = function()
 
 queryMapLayersList.prototype.reloadList = function()
 {
-	var extendLayers = [],
-		extend = globalFlashMap.getVisibleExtent();
+	var extendLayers = [];
+		
+	//window.baseMap.id будет принудительно выставлен API при инициализации, даже если его нет в config.js
+	var baseMapName = window.baseMap.id;
 	
 	for (var i = 0; i < globalFlashMap.layers.length; i++)
 	{
-		if (globalFlashMap.layers[i].properties.name == "E50931C3B2DD4E0FA2C03366552EEAA1" ||
-			globalFlashMap.layers[i].properties.name == "C9458F2DCB754CEEACC54216C7D1EB0A" ||
-			globalFlashMap.layers[i].properties.name == "FFE60CFA7DAF498381F811C08A5E8CF5" ||
-			globalFlashMap.layers[i].properties.name == "5269E524341E4E7DB9D447C968B20A2C")
+		//не показываем слои из базовой подложки
+		if (globalFlashMap.layers[i].properties.mapName === baseMapName)
 			continue;
 		
 		var bounds = globalFlashMap.layers[i].bounds;
 		
-		if (boundsIntersect(extend, bounds))
+		var isIntersected = null;
+		if (this._isIntersectCenter)
+		{
+			var x = globalFlashMap.getX();
+			var y = globalFlashMap.getY();
+			isIntersected = x > bounds.minX && x < bounds.maxX && y > bounds.minY && y < bounds.maxY;
+		}
+		else
+		{
+			var extend = globalFlashMap.getVisibleExtent();
+			isIntersected = boundsIntersect(extend, bounds);
+		}
+		
+		if (isIntersected)
 		{
 			// оптимизируем данные для сортировки
 			
@@ -3532,22 +3681,26 @@ queryMapLayersList.prototype.reloadList = function()
 	_listTable.reportStart = 0;
 	_listTable.allPages = 0;
 	
-	_listTable.vals = extendLayers;
+	_listTable.setValues(extendLayers);
+	_listTable.drawFilterTable();
+	// _listTable.vals = extendLayers;
 	
-	var hasFilter = false;
+	// var hasFilter = false;
 	
-	for (var name in _listTable.filterVals)
-		if (_listTable.filterVals[name] != "")
-		{
-			hasFilter = true;
+	// for (var name in _listTable.filterVals)
+		// if (_listTable.filterVals[name] != "")
+		// {
+			// hasFilter = true;
 			
-			break;
-		}
+			// break;
+		// }
 	
-	if (!hasFilter)
-		_listTable.drawTable(_listTable.vals)
-	else
-		_listTable.drawFilterTable();
+	// if (!hasFilter)
+		// _listTable.drawTable(_listTable.vals)
+	// else
+		// _listTable.drawFilterTable();
+		
+	// this._updateSlider();
 }
 
 var _queryMapLayersList = new queryMapLayersList();

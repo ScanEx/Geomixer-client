@@ -820,3 +820,41 @@ skype_pnh_container
 {
 	background-color: #FFABAB;
 }
+
+.searchCanvas .PeriodCalendar
+{
+	margin: 0px;
+}
+
+.searchCanvas #calendar
+{
+	margin: 0px;
+}
+
+.searchCanvas .intersection > td
+{
+	padding-top: 10px;
+}
+
+.layersScroll .ui-widget-content
+{
+	background: #cceeee;
+	margin: 7px;
+}
+
+div.layersScroll
+{
+	width: 330px;
+	padding: 5px 0px;
+}
+
+.layersScroll label
+{
+	font-size: 12px;
+	margin-left: 3px;
+}
+
+.tableBody .listLayerTable td
+{
+	border:none;
+}
