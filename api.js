@@ -946,6 +946,7 @@ function createFlashMapInternal(div, layers, callback)
 							var func = map.onSetVisible[obj.objectId];
 							if (func)
 								func(attr);
+							chkListeners('onChangeVisible', obj, (attr ? true : false));	// Вызов Listeners события 'onChangeVisible'
 						}
 						break;
 					case 'sendPNG':			// Сохранение изображения карты на сервер
@@ -2140,8 +2141,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							obj.bringToDepth(n);
 							for (var i = 0; i < deferred.length; i++)
 								deferred[i]();
-							if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
 						}
+						if(flag && obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
+						else chkListeners('onChangeVisible', obj, flag);	// Вызов Listeners события 'onChangeVisible'
 						obj.isVisible = flag;
 					}
 					obj.addObject = function(geometry, props)
