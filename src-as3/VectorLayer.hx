@@ -293,12 +293,14 @@ class VectorLayer extends MapContent
 			}
 			
 			geo = new PolygonGeometry(coords);
+			geo.properties = geom.properties;
 			return geo;
 		} else if (Std.is(geom, MultiGeometry)) {
 			var ret = new MultiGeometry();
 			var geo = cast(geom, MultiGeometry);
 			for (member in geo.members)
 				ret.addMember(fromTileGeometry(member));
+			ret.properties = geom.properties;
 			return ret;
 		}
 		return null;

@@ -7844,7 +7844,8 @@ function BalloonClass(map, div, apiBase)
 				{
 					var text = gmxAPI.applyTemplate(balloonParams.Balloon, o.properties);
 					var summary = o.getGeometrySummary();
-					if(summary != '') text += "<br />" + summary;
+					text = gmxAPI.applyTemplate(text, { SUMMARY: summary });
+					text = text.replace(/\[SUMMARY\]/g, '');
 					return text;
 				}
 				,

@@ -128,6 +128,7 @@ class VectorLayerFilter extends MapContent
 				for (child in me.layer.mapNode.children)
 					if (Std.is(child.content, VectorLayerObserver))
 						child.noteSomethingHasChanged();
+				Main.refreshMap();
 			}
 		});
 	}
