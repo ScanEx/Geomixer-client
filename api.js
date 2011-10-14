@@ -1639,7 +1639,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						var d3 = 100000000;
 						var d4 = 100000000;
 						var x1, y1, x2, y2, x3, y3, x4, y4;
-						forEachPoint(o.getGeometry().coordinates, function(p)
+						var geom = o.getGeometry();
+						var coord = geom.coordinates;
+						forEachPoint(coord, function(p)
 						{
 							var x = merc_x(p[0]);
 							var y = merc_y(p[1]);
@@ -1683,6 +1685,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
 						//alert(e);
 					}
+					map.balloonClassObject.clickBalloonFix(o);
 				});
 			}
 
@@ -7482,7 +7485,7 @@ function BalloonClass(map, div, apiBase)
 			}
 			var balloon = addBalloon();
 			balloon.fixedId = id;
-			if(keyPress['objType']) balloon.objType = keyPress['objType'];
+			if(keyPress && keyPress['objType']) balloon.objType = keyPress['objType'];
 
 			//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
 			var text = (textFunc ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
