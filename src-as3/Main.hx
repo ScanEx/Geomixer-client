@@ -370,7 +370,20 @@ class Main
 
 		Main.refreshMap = function()
 		{
-			viewportHasMoved = true;
+			//viewportHasMoved = true;
+			for (window in MapWindow.allWindows)
+			{
+				if (isMoving && !wasMoving)
+					window.repaintCacheBitmap();
+				window.setCenter(currentX, currentY);
+				window.setCacheBitmapVisible(isMoving);
+				if (!isMoving)
+				{
+					window.rootNode.repaintRecursively(true);
+					window.repaintCacheBitmap();
+				}
+			}
+			
 		}
 		
 		var initCalled = false;
@@ -405,6 +418,8 @@ class Main
 
 			if (viewportHasMoved)
 			{
+				Main.refreshMap();
+/*				
 				for (window in MapWindow.allWindows)
 				{
 					if (isMoving && !wasMoving)
@@ -417,6 +432,7 @@ class Main
 						window.repaintCacheBitmap();
 					}
 				}
+*/				
 				mapWindow.rootNode.callHandlersRecursively("onMove");
 				viewportHasMoved = false;
 				wasMoving = isMoving;
