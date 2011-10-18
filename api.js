@@ -4,7 +4,26 @@
 */
 if(typeof deconcept=="undefined"){var deconcept=new Object();}if(typeof deconcept.util=="undefined"){deconcept.util=new Object();}if(typeof deconcept.SWFObjectUtil=="undefined"){deconcept.SWFObjectUtil=new Object();}deconcept.SWFObject=function(_1,id,w,h,_5,c,_7,_8,_9,_a){if(!document.getElementById){return;}this.DETECT_KEY=_a?_a:"detectflash";this.skipDetect=deconcept.util.getRequestParameter(this.DETECT_KEY);this.params=new Object();this.variables=new Object();this.attributes=new Array();if(_1){this.setAttribute("swf",_1);}if(id){this.setAttribute("id",id);}if(w){this.setAttribute("width",w);}if(h){this.setAttribute("height",h);}if(_5){this.setAttribute("version",new deconcept.PlayerVersion(_5.toString().split(".")));}this.installedVer=deconcept.SWFObjectUtil.getPlayerVersion();if(!window.opera&&document.all&&this.installedVer.major>7){deconcept.SWFObject.doPrepUnload=true;}if(c){this.addParam("bgcolor",c);}var q=_7?_7:"high";this.addParam("quality",q);this.setAttribute("useExpressInstall",false);this.setAttribute("doExpressInstall",false);var _c=(_8)?_8:window.location;this.setAttribute("xiRedirectUrl",_c);this.setAttribute("redirectUrl","");if(_9){this.setAttribute("redirectUrl",_9);}};deconcept.SWFObject.prototype={useExpressInstall:function(_d){this.xiSWFPath=!_d?"expressinstall.swf":_d;this.setAttribute("useExpressInstall",true);},setAttribute:function(_e,_f){this.attributes[_e]=_f;},getAttribute:function(_10){return this.attributes[_10];},addParam:function(_11,_12){this.params[_11]=_12;},getParams:function(){return this.params;},addVariable:function(_13,_14){this.variables[_13]=_14;},getVariable:function(_15){return this.variables[_15];},getVariables:function(){return this.variables;},getVariablePairs:function(){var _16=new Array();var key;var _18=this.getVariables();for(key in _18){_16[_16.length]=key+"="+_18[key];}return _16;},getSWFHTML:function(){var _19="";if(navigator.plugins&&navigator.mimeTypes&&navigator.mimeTypes.length){if(this.getAttribute("doExpressInstall")){this.addVariable("MMplayerType","PlugIn");this.setAttribute("swf",this.xiSWFPath);}_19="<embed type=\"application/x-shockwave-flash\" src=\""+this.getAttribute("swf")+"\" width=\""+this.getAttribute("width")+"\" height=\""+this.getAttribute("height")+"\" style=\""+this.getAttribute("style")+"\"";_19+=" id=\""+this.getAttribute("id")+"\" name=\""+this.getAttribute("id")+"\" ";var _1a=this.getParams();for(var key in _1a){_19+=[key]+"=\""+_1a[key]+"\" ";}var _1c=this.getVariablePairs().join("&");if(_1c.length>0){_19+="flashvars=\""+_1c+"\"";}_19+="/>";}else{if(this.getAttribute("doExpressInstall")){this.addVariable("MMplayerType","ActiveX");this.setAttribute("swf",this.xiSWFPath);}_19="<object id=\""+this.getAttribute("id")+"\" classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" width=\""+this.getAttribute("width")+"\" height=\""+this.getAttribute("height")+"\" style=\""+this.getAttribute("style")+"\">";_19+="<param name=\"movie\" value=\""+this.getAttribute("swf")+"\" />";var _1d=this.getParams();for(var key in _1d){_19+="<param name=\""+key+"\" value=\""+_1d[key]+"\" />";}var _1f=this.getVariablePairs().join("&");if(_1f.length>0){_19+="<param name=\"flashvars\" value=\""+_1f+"\" />";}_19+="</object>";}return _19;},write:function(_20){if(this.getAttribute("useExpressInstall")){var _21=new deconcept.PlayerVersion([6,0,65]);if(this.installedVer.versionIsValid(_21)&&!this.installedVer.versionIsValid(this.getAttribute("version"))){this.setAttribute("doExpressInstall",true);this.addVariable("MMredirectURL",escape(this.getAttribute("xiRedirectUrl")));document.title=document.title.slice(0,47)+" - Flash Player Installation";this.addVariable("MMdoctitle",document.title);}}if(this.skipDetect||this.getAttribute("doExpressInstall")||this.installedVer.versionIsValid(this.getAttribute("version"))){var n=(typeof _20=="string")?document.getElementById(_20):_20;n.innerHTML=this.getSWFHTML();return true;}else{if(this.getAttribute("redirectUrl")!=""){document.location.replace(this.getAttribute("redirectUrl"));}}return false;}};deconcept.SWFObjectUtil.getPlayerVersion=function(){var _23=new deconcept.PlayerVersion([0,0,0]);if(navigator.plugins&&navigator.mimeTypes.length){var x=navigator.plugins["Shockwave Flash"];if(x&&x.description){_23=new deconcept.PlayerVersion(x.description.replace(/([a-zA-Z]|\s)+/,"").replace(/(\s+r|\s+b[0-9]+)/,".").split("."));}}else{if(navigator.userAgent&&navigator.userAgent.indexOf("Windows CE")>=0){var axo=1;var _26=3;while(axo){try{_26++;axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash."+_26);_23=new deconcept.PlayerVersion([_26,0,0]);}catch(e){axo=null;}}}else{try{var axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash.7");}catch(e){try{var axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash.6");_23=new deconcept.PlayerVersion([6,0,21]);axo.AllowScriptAccess="always";}catch(e){if(_23.major==6){return _23;}}try{axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash");}catch(e){}}if(axo!=null){_23=new deconcept.PlayerVersion(axo.GetVariable("$version").split(" ")[1].split(","));}}}return _23;};deconcept.PlayerVersion=function(_29){this.major=_29[0]!=null?parseInt(_29[0]):0;this.minor=_29[1]!=null?parseInt(_29[1]):0;this.rev=_29[2]!=null?parseInt(_29[2]):0;};deconcept.PlayerVersion.prototype.versionIsValid=function(fv){if(this.major<fv.major){return false;}if(this.major>fv.major){return true;}if(this.minor<fv.minor){return false;}if(this.minor>fv.minor){return true;}if(this.rev<fv.rev){return false;}return true;};deconcept.util={getRequestParameter:function(_2b){var q=document.location.search||document.location.hash;if(_2b==null){return q;}if(q){var _2d=q.substring(1).split("&");for(var i=0;i<_2d.length;i++){if(_2d[i].substring(0,_2d[i].indexOf("="))==_2b){return _2d[i].substring((_2d[i].indexOf("=")+1));}}}return "";}};deconcept.SWFObjectUtil.cleanupSWFs=function(){var _2f=document.getElementsByTagName("OBJECT");for(var i=_2f.length-1;i>=0;i--){_2f[i].style.display="none";for(var x in _2f[i]){if(typeof _2f[i][x]=="function"){_2f[i][x]=function(){};}}}};if(deconcept.SWFObject.doPrepUnload){if(!deconcept.unloadSet){deconcept.SWFObjectUtil.prepUnload=function(){__flash_unloadHandler=function(){};__flash_savedUnloadHandler=function(){};window.attachEvent("onunload",deconcept.SWFObjectUtil.cleanupSWFs);};window.attachEvent("onbeforeunload",deconcept.SWFObjectUtil.prepUnload);deconcept.unloadSet=true;}}if(!document.getElementById&&document.all){document.getElementById=function(id){return document.all[id];};}var getQueryParamValue=deconcept.util.getRequestParameter;var FlashObject=deconcept.SWFObject;var SWFObject=deconcept.SWFObject;
 
-var gmxAPI = {
+(function()
+{
+
+var memoize = function(func)
+	{
+		var called = false;
+		var result;
+		return function()
+		{
+			if (!called)
+			{
+				result = func();
+				called = true;
+			}
+			return result;
+		}
+	};
+
+window.PI = 3.14159265358979;
+window.gmxAPI = {
 	newElement: function(tagName, props, style, setBorder)
 	{
 		var elem = document.createElement(tagName);
@@ -28,6 +47,18 @@ var gmxAPI = {
 		}
 		return elem;
 	},
+	newStyledDiv: function(style)
+	{
+		return gmxAPI.newElement("div", false, style, true);
+	},
+	newSpan: function(innerHTML)
+	{
+		return gmxAPI.newElement("span", { innerHTML: innerHTML }, null, true);
+	},
+	newDiv: function(className, innerHTML)
+	{
+		return gmxAPI.newElement("div", { className: className, innerHTML: innerHTML }, null, true);
+	},
 	applyTemplate: function(template, properties)
 	{
 		return template.replace(/\[([a-zA-Z0-9_а-€ј-я ]+)\]/g, function()
@@ -43,15 +74,7 @@ var gmxAPI = {
 	{
 		if(!obj || !obj.parent) return 'ogc_fid';
 		if(obj.properties && obj.properties.identityField) return obj.properties.identityField;
-		return this.getIdentityField(obj.parent);
-	},
-	prettifyDistance: function(length)
-	{
-		if (length < 1000)
-			return Math.round(length) + KOSMOSNIMKI_LOCALIZED(" м", " m");
-		if (length < 100000)
-			return (Math.round(length/10)/100) + KOSMOSNIMKI_LOCALIZED(" км", " km");
-		return Math.round(length/1000) + KOSMOSNIMKI_LOCALIZED(" км", " km");
+		return gmxAPI.getIdentityField(obj.parent);
 	},
 	addDebugWarnings: function(attr)
 	{
@@ -65,73 +88,1167 @@ var gmxAPI = {
 	_debugWarnings: [],
 	isIE: function() { 	return (navigator.appName.indexOf("Microsoft") != -1); },
 	isChrome: function() { 	return (navigator.userAgent.toLowerCase().indexOf("chrome") != -1); }
+	,
+	show: function(div)
+	{
+		div.style.visibility = "visible";
+		div.style.display = "block";
+	}
+	,
+	hide: function(div)
+	{
+		div.style.visibility = "hidden";
+		div.style.display = "none";
+	}
+	,
+	setPositionStyle: function(div, attr)
+	{
+		for(var key in attr) div.style[key] = attr[key];
+	}
+	,
+	position: function(div, x, y)
+	{
+		div.style.left = x + "px";
+		div.style.top = y + "px";
+	}
+	,
+	bottomPosition: function(div, x, y)
+	{
+		div.style.left = x + "px";
+		div.style.bottom = y + "px";
+	}
+	,
+	size: function(div, w, h)
+	{
+		div.style.width = w + "px";
+		div.style.height = h + "px";
+	}
+	,
+	positionSize: function(div, x, y, w, h)
+	{
+		gmxAPI.position(div, x, y);
+		gmxAPI.size(div, w, h);
+	}
+	,
+	setVisible: function(div, flag)
+	{
+		(flag ? gmxAPI.show : gmxAPI.hide)(div);
+	}
+	,
+	setBg: function(t, imageName)
+	{
+		if (this.isIE)
+			t.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" + imageName + "',sizingMethod='scale')";
+		else
+			t.style.backgroundImage = "url('" + imageName + "')";
+	}
+	,
+	deselect: function()
+	{
+		if (window.disableDeselect)
+			return;
+		if(document.selection && document.selection.empty) 
+			try { document.selection.empty(); } catch (e) {
+				gmxAPI.addDebugWarnings({'func': 'deselect', 'event': e, 'alert': e});
+			}
+	}
+	,
+	compatEvent: function(event)
+	{
+		return event || window.event;
+	}
+	,
+	compatTarget: function(event)
+	{
+		if (!event) event = window.event;
+		return (event.srcElement != null) ? event.srcElement : event.target;
+	}
+	,
+	eventX: function(event)
+	{
+		var theLeft = (document.documentElement && document.documentElement.scrollLeft ?
+			document.documentElement.scrollLeft :
+			document.body.scrollLeft);
+		return gmxAPI.compatEvent(event).clientX + theLeft;
+	}
+	,
+	eventY: function(event)
+	{
+		var theTop = (document.documentElement && document.documentElement.scrollTop ?
+			document.documentElement.scrollTop :
+			document.body.scrollTop);
+		return gmxAPI.compatEvent(event).clientY + theTop;
+	}
+	,
+	getOffsetLeft: function(div)
+	{
+		var ret = 0;
+		while (div && div.tagName != 'HTML')
+		{
+		ret += div.offsetLeft;
+		div = div.offsetParent;
+		}
+		return ret;
+	}
+	,
+	getOffsetTop: function(div)
+	{
+		var ret = 0;
+		while (div && div.tagName != 'HTML')
+		{
+		ret += div.offsetTop;
+		div = div.offsetParent;
+		}
+		return ret;
+	}
+	,
+	strip: function(s)
+	{
+		return s.replace(/^\s*/, "").replace(/\s*$/, "");
+	}
+	,
+	parseColor: function(str)
+	{
+		var res = 0xffffff;
+		if (!str)
+			return res;
+		else
+		{
+			var components = str.split(" ");
+			if (components.length == 1)
+				return parseInt("0x" + str);
+			else if (components.length == 3)
+				return parseInt(components[0])*0x10000 + parseInt(components[1])*0x100 + parseInt(components[2]);
+			else
+				return res;
+		}
+	}
+	,
+	getScriptURL: function(scriptName)
+	{
+		var scripts1 = document.getElementsByTagName("script");
+		for (var i = 0; i < scripts1.length; i++)
+		{
+			var src = scripts1[i].getAttribute("src");
+			if (src && (src.indexOf(scriptName) != -1))
+				return src;
+		}
+		return false;
+	}
+	,
+	getScriptBase: function(scriptName)
+	{
+		var url = gmxAPI.getScriptURL(scriptName);
+		return url.substring(0, url.indexOf(scriptName));
+	}
+	,
+	forEachPoint: function(coords, callback)
+	{
+		if (coords.length == 0) return [];
+		if (!coords[0].length)
+		{
+			if (coords.length == 2)
+				return callback(coords);
+			else
+			{
+				var ret = [];
+				for (var i = 0; i < coords.length/2; i++)
+					ret.push(callback([coords[i*2], coords[i*2 + 1]]));
+				return ret;
+			}
+		}
+		else
+		{
+			var ret = [];
+			for (var i = 0; i < coords.length; i++)
+				ret.push(gmxAPI.forEachPoint(coords[i], callback));
+			return ret;
+		}
+	}
+	,
+	transformGeometry: function(geom, callbackX, callbackY)
+	{
+		return !geom ? geom : { 
+			type: geom.type, 
+			coordinates: gmxAPI.forEachPoint(geom.coordinates, function(p) 
+			{ 
+				return [callbackX(p[0]), callbackY(p[1])];
+			})
+		}
+	}
+	,
+	merc_geometry: function(geom)
+	{
+		return gmxAPI.transformGeometry(geom, gmxAPI.merc_x, gmxAPI.merc_y);
+	}
+	,
+	from_merc_geometry: function(geom)
+	{
+		return gmxAPI.transformGeometry(geom, gmxAPI.from_merc_x, gmxAPI.from_merc_y);
+	}
+	,
+	getBounds: function(coords)
+	{
+		var ret = { 
+			minX: 100000000, 
+			minY: 100000000, 
+			maxX: -100000000, 
+			maxY: -100000000,
+			update: function(data)
+			{
+				gmxAPI.forEachPoint(data, function(p)
+				{
+					ret.minX = Math.min(p[0], ret.minX);
+					ret.minY = Math.min(p[1], ret.minY);
+					ret.maxX = Math.max(p[0], ret.maxX);
+					ret.maxY = Math.max(p[1], ret.maxY);
+				});
+			}
+		}
+		if (coords)
+			ret.update(coords);
+		return ret;
+	}
+	,
+	boundsIntersect: function(b1, b2)	// в api.js не используетс€
+	{
+		return ((b1.minX < b2.maxX) && (b1.minY < b2.maxY) && (b2.minX < b1.maxX) && (b2.minY < b1.maxY));
+	}
+	,
+	isRectangle: function(coords)
+	{
+		return (coords && (coords[0].length == 5) && ((coords[0][0][0] == coords[0][1][0]) || (coords[0][0][1] == coords[0][1][1])));
+	}
+	,
+	getScale: function(z)
+	{
+		return Math.pow(2, -z)*156543.033928041;
+	}
+	,
+	PI: 3.14159265358979
+	,
+	deg_rad: function(ang)
+	{
+		return ang * (gmxAPI.PI/180.0);
+	}
+	,
+	deg_decimal: function(rad)
+	{
+		return (rad/gmxAPI.PI) * 180.0;
+	}
+	,
+	merc_x: function(lon)
+	{
+		var r_major = 6378137.000;
+		return r_major * gmxAPI.deg_rad(lon);
+	}
+	,
+	from_merc_x: function(x)
+	{
+		var r_major = 6378137.000;
+		return gmxAPI.deg_decimal(x/r_major);
+	}
+	,
+	merc_y: function(lat)
+	{
+		if (lat > 89.5)
+			lat = 89.5;
+		if (lat < -89.5)
+			lat = -89.5;
+		var r_major = 6378137.000;
+		var r_minor = 6356752.3142;
+		var temp = r_minor / r_major;
+		var es = 1.0 - (temp * temp);
+		var eccent = Math.sqrt(es);
+		var phi = gmxAPI.deg_rad(lat);
+		var sinphi = Math.sin(phi);
+		var con = eccent * sinphi;
+		var com = .5 * eccent;
+		con = Math.pow(((1.0-con)/(1.0+con)), com);
+		var ts = Math.tan(.5 * ((PI*0.5) - phi))/con;
+		var y = 0 - r_major * Math.log(ts);
+		return y;
+	}
+	,
+	from_merc_y: function(y)
+	{
+		var r_major = 6378137.000;
+		var r_minor = 6356752.3142;
+		var temp = r_minor / r_major;
+		var es = 1.0 - (temp * temp);
+		var eccent = Math.sqrt(es);
+		var ts = Math.exp(-y/r_major);
+		var HALFPI = 1.5707963267948966;
+
+		var eccnth, Phi, con, dphi;
+		eccnth = 0.5 * eccent;
+
+		Phi = HALFPI - 2.0 * Math.atan(ts);
+
+		var N_ITER = 15;
+		var TOL = 1e-7;
+		var i = N_ITER;
+		dphi = 0.1;
+		while ((Math.abs(dphi)>TOL)&&(--i>0))
+		{
+			con = eccent * Math.sin (Phi);
+			dphi = HALFPI - 2.0 * Math.atan(ts * Math.pow((1.0 - con)/(1.0 + con), eccnth)) - Phi;
+			Phi += dphi;
+		}
+
+		return gmxAPI.deg_decimal(Phi);
+	}
+	,
+	merc: function(lon,lat)
+	{
+		return [gmxAPI.merc_x(lon), gmxAPI.merc_y(lat)];
+	}
+	,
+	from_merc: function(x,y)
+	{
+		return [gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y)];
+	}
+	,
+	distVincenty: function(lon1,lat1,lon2,lat2)
+	{
+		var p1 = new Object();
+		var p2 = new Object();
+
+		p1.lon =  gmxAPI.deg_rad(lon1);
+		p1.lat =  gmxAPI.deg_rad(lat1);
+		p2.lon =  gmxAPI.deg_rad(lon2);
+		p2.lat =  gmxAPI.deg_rad(lat2);
+
+		var a = 6378137, b = 6356752.3142,  f = 1/298.257223563;  // WGS-84 ellipsiod
+		var L = p2.lon - p1.lon;
+		var U1 = Math.atan((1-f) * Math.tan(p1.lat));
+		var U2 = Math.atan((1-f) * Math.tan(p2.lat));
+		var sinU1 = Math.sin(U1), cosU1 = Math.cos(U1);
+		var sinU2 = Math.sin(U2), cosU2 = Math.cos(U2);
+
+		var lambda = L, lambdaP = 2*Math.PI;
+		var iterLimit = 20;
+		while (Math.abs(lambda-lambdaP) > 1e-12 && --iterLimit>0) {
+				var sinLambda = Math.sin(lambda), cosLambda = Math.cos(lambda);
+				var sinSigma = Math.sqrt((cosU2*sinLambda) * (cosU2*sinLambda) + 
+					(cosU1*sinU2-sinU1*cosU2*cosLambda) * (cosU1*sinU2-sinU1*cosU2*cosLambda));
+				if (sinSigma==0) return 0;
+				var cosSigma = sinU1*sinU2 + cosU1*cosU2*cosLambda;
+				var sigma = Math.atan2(sinSigma, cosSigma);
+				var sinAlpha = cosU1 * cosU2 * sinLambda / sinSigma;
+				var cosSqAlpha = 1 - sinAlpha*sinAlpha;
+				var cos2SigmaM = cosSigma - 2*sinU1*sinU2/cosSqAlpha;
+				if (isNaN(cos2SigmaM)) cos2SigmaM = 0;
+				var C = f/16*cosSqAlpha*(4+f*(4-3*cosSqAlpha));
+				lambdaP = lambda;
+				lambda = L + (1-C) * f * sinAlpha *
+					(sigma + C*sinSigma*(cos2SigmaM+C*cosSigma*(-1+2*cos2SigmaM*cos2SigmaM)));
+		}
+		if (iterLimit==0) return NaN
+
+		var uSq = cosSqAlpha * (a*a - b*b) / (b*b);
+		var A = 1 + uSq/16384*(4096+uSq*(-768+uSq*(320-175*uSq)));
+		var B = uSq/1024 * (256+uSq*(-128+uSq*(74-47*uSq)));
+		var deltaSigma = B*sinSigma*(cos2SigmaM+B/4*(cosSigma*(-1+2*cos2SigmaM*cos2SigmaM)-
+				B/6*cos2SigmaM*(-3+4*sinSigma*sinSigma)*(-3+4*cos2SigmaM*cos2SigmaM)));
+		var s = b*A*(sigma-deltaSigma);
+
+		s = s.toFixed(3);
+		return s;
+	}
+
+	,
+	DegToRad: function(deg)
+	{
+        return (deg / 180.0 * gmxAPI.PI)
+	}
+	,
+	RadToDeg: function(rad)
+	{
+		return (rad / gmxAPI.PI * 180.0)
+	}
+	,
+	sm_a: 6378137.0,
+    sm_b: 6356752.314,
+    //sm_EccSquared: 6.69437999013e-03,
+    UTMScaleFactor: 0.9996
+	,
+	ArcLengthOfMeridian: function(rad)
+	{
+		var alpha, beta, gamma, delta, epsilon, n;
+		var result;
+		n = (gmxAPI.sm_a - gmxAPI.sm_b) / (gmxAPI.sm_a + gmxAPI.sm_b);
+		alpha = ((gmxAPI.sm_a + gmxAPI.sm_b) / 2.0)
+		   * (1.0 + (Math.pow (n, 2.0) / 4.0) + (Math.pow (n, 4.0) / 64.0));
+		beta = (-3.0 * n / 2.0) + (9.0 * Math.pow (n, 3.0) / 16.0)
+		   + (-3.0 * Math.pow (n, 5.0) / 32.0);
+		gamma = (15.0 * Math.pow (n, 2.0) / 16.0)
+			+ (-15.0 * Math.pow (n, 4.0) / 32.0);
+		delta = (-35.0 * Math.pow (n, 3.0) / 48.0)
+			+ (105.0 * Math.pow (n, 5.0) / 256.0);
+		epsilon = (315.0 * Math.pow (n, 4.0) / 512.0);
+
+		result = alpha
+			* (phi + (beta * Math.sin (2.0 * phi))
+				+ (gamma * Math.sin (4.0 * phi))
+				+ (delta * Math.sin (6.0 * phi))
+				+ (epsilon * Math.sin (8.0 * phi)));
+
+		return result;
+	}
+	,
+	UTMCentralMeridian: function(zone)
+	{
+        var cmeridian = gmxAPI.DegToRad (-183.0 + (zone * 6.0));
+        return cmeridian;
+	}
+	,
+	FootpointLatitude: function(y)
+	{
+		var y_, alpha_, beta_, gamma_, delta_, epsilon_, n;
+		var result;
+
+		n = (gmxAPI.sm_a - gmxAPI.sm_b) / (gmxAPI.sm_a + gmxAPI.sm_b);
+		alpha_ = ((gmxAPI.sm_a + gmxAPI.sm_b) / 2.0)
+			* (1 + (Math.pow (n, 2.0) / 4) + (Math.pow (n, 4.0) / 64));
+		y_ = y / alpha_;
+		beta_ = (3.0 * n / 2.0) + (-27.0 * Math.pow (n, 3.0) / 32.0)
+			+ (269.0 * Math.pow (n, 5.0) / 512.0);
+		gamma_ = (21.0 * Math.pow (n, 2.0) / 16.0)
+			+ (-55.0 * Math.pow (n, 4.0) / 32.0);
+		delta_ = (151.0 * Math.pow (n, 3.0) / 96.0)
+			+ (-417.0 * Math.pow (n, 5.0) / 128.0);
+		epsilon_ = (1097.0 * Math.pow (n, 4.0) / 512.0);
+		result = y_ + (beta_ * Math.sin (2.0 * y_))
+			+ (gamma_ * Math.sin (4.0 * y_))
+			+ (delta_ * Math.sin (6.0 * y_))
+			+ (epsilon_ * Math.sin (8.0 * y_));
+
+		return result;
+	}
+	,
+	MapLatLonToXY: function(phi, lambda, lambda0, xy)
+	{
+		var N, nu2, ep2, t, t2, l;
+		var l3coef, l4coef, l5coef, l6coef, l7coef, l8coef;
+		var tmp;
+
+		ep2 = (Math.pow (gmxAPI.sm_a, 2.0) - Math.pow (gmxAPI.sm_b, 2.0)) / Math.pow (gmxAPI.sm_b, 2.0);
+		nu2 = ep2 * Math.pow (Math.cos (phi), 2.0);
+		N = Math.pow (gmxAPI.sm_a, 2.0) / (gmxAPI.sm_b * Math.sqrt (1 + nu2));
+		t = Math.tan (phi);
+		t2 = t * t;
+		tmp = (t2 * t2 * t2) - Math.pow (t, 6.0);
+		l = lambda - lambda0;
+		l3coef = 1.0 - t2 + nu2;
+
+		l4coef = 5.0 - t2 + 9 * nu2 + 4.0 * (nu2 * nu2);
+
+		l5coef = 5.0 - 18.0 * t2 + (t2 * t2) + 14.0 * nu2
+			- 58.0 * t2 * nu2;
+
+		l6coef = 61.0 - 58.0 * t2 + (t2 * t2) + 270.0 * nu2
+			- 330.0 * t2 * nu2;
+
+		l7coef = 61.0 - 479.0 * t2 + 179.0 * (t2 * t2) - (t2 * t2 * t2);
+
+		l8coef = 1385.0 - 3111.0 * t2 + 543.0 * (t2 * t2) - (t2 * t2 * t2);
+
+		xy[0] = N * Math.cos (phi) * l
+			+ (N / 6.0 * Math.pow (Math.cos (phi), 3.0) * l3coef * Math.pow (l, 3.0))
+			+ (N / 120.0 * Math.pow (Math.cos (phi), 5.0) * l5coef * Math.pow (l, 5.0))
+			+ (N / 5040.0 * Math.pow (Math.cos (phi), 7.0) * l7coef * Math.pow (l, 7.0));
+
+		xy[1] = ArcLengthOfMeridian (phi)
+			+ (t / 2.0 * N * Math.pow (Math.cos (phi), 2.0) * Math.pow (l, 2.0))
+			+ (t / 24.0 * N * Math.pow (Math.cos (phi), 4.0) * l4coef * Math.pow (l, 4.0))
+			+ (t / 720.0 * N * Math.pow (Math.cos (phi), 6.0) * l6coef * Math.pow (l, 6.0))
+			+ (t / 40320.0 * N * Math.pow (Math.cos (phi), 8.0) * l8coef * Math.pow (l, 8.0));
+
+		return;
+	}
+	,
+	MapXYToLatLon: function(x, y, lambda0, philambda)
+	{
+		var phif, Nf, Nfpow, nuf2, ep2, tf, tf2, tf4, cf;
+		var x1frac, x2frac, x3frac, x4frac, x5frac, x6frac, x7frac, x8frac;
+		var x2poly, x3poly, x4poly, x5poly, x6poly, x7poly, x8poly;
+
+		phif = FootpointLatitude (y);
+		ep2 = (Math.pow (gmxAPI.sm_a, 2.0) - Math.pow (gmxAPI.sm_b, 2.0))
+			  / Math.pow (gmxAPI.sm_b, 2.0);
+		cf = Math.cos (phif);
+		nuf2 = ep2 * Math.pow (cf, 2.0);
+		Nf = Math.pow (gmxAPI.sm_a, 2.0) / (gmxAPI.sm_b * Math.sqrt (1 + nuf2));
+		Nfpow = Nf;
+		tf = Math.tan (phif);
+		tf2 = tf * tf;
+		tf4 = tf2 * tf2;
+		x1frac = 1.0 / (Nfpow * cf);
+
+		Nfpow *= Nf;
+		x2frac = tf / (2.0 * Nfpow);
+
+		Nfpow *= Nf;
+		x3frac = 1.0 / (6.0 * Nfpow * cf);
+
+		Nfpow *= Nf;
+		x4frac = tf / (24.0 * Nfpow);
+
+		Nfpow *= Nf;
+		x5frac = 1.0 / (120.0 * Nfpow * cf);
+
+		Nfpow *= Nf;
+		x6frac = tf / (720.0 * Nfpow);
+
+		Nfpow *= Nf;
+		x7frac = 1.0 / (5040.0 * Nfpow * cf);
+
+		Nfpow *= Nf;
+		x8frac = tf / (40320.0 * Nfpow);
+
+		x2poly = -1.0 - nuf2;
+
+		x3poly = -1.0 - 2 * tf2 - nuf2;
+
+		x4poly = 5.0 + 3.0 * tf2 + 6.0 * nuf2 - 6.0 * tf2 * nuf2
+			- 3.0 * (nuf2 *nuf2) - 9.0 * tf2 * (nuf2 * nuf2);
+
+		x5poly = 5.0 + 28.0 * tf2 + 24.0 * tf4 + 6.0 * nuf2 + 8.0 * tf2 * nuf2;
+
+		x6poly = -61.0 - 90.0 * tf2 - 45.0 * tf4 - 107.0 * nuf2
+			+ 162.0 * tf2 * nuf2;
+
+		x7poly = -61.0 - 662.0 * tf2 - 1320.0 * tf4 - 720.0 * (tf4 * tf2);
+
+		x8poly = 1385.0 + 3633.0 * tf2 + 4095.0 * tf4 + 1575 * (tf4 * tf2);
+			
+		philambda[0] = phif + x2frac * x2poly * (x * x)
+			+ x4frac * x4poly * Math.pow (x, 4.0)
+			+ x6frac * x6poly * Math.pow (x, 6.0)
+			+ x8frac * x8poly * Math.pow (x, 8.0);
+			
+		philambda[1] = lambda0 + x1frac * x
+			+ x3frac * x3poly * Math.pow (x, 3.0)
+			+ x5frac * x5poly * Math.pow (x, 5.0)
+			+ x7frac * x7poly * Math.pow (x, 7.0);
+			
+		return;
+	}
+	,
+	LatLonToUTMXY: function(lat, lon, zone, xy)
+	{
+		gmxAPI.MapLatLonToXY (lat, lon, gmxAPI.UTMCentralMeridian (zone), xy);
+
+		xy[0] = xy[0] * gmxAPI.UTMScaleFactor + 500000.0;
+		xy[1] = xy[1] * gmxAPI.UTMScaleFactor;
+		if (xy[1] < 0.0)
+			xy[1] = xy[1] + 10000000.0;
+
+		return zone;
+	}
+	,
+	UTMXYToLatLon: function(x, y, zone, southhemi, latlon)
+	{
+		var cmeridian;
+			
+		x -= 500000.0;
+		x /= gmxAPI.UTMScaleFactor;
+			
+		if (southhemi)
+		y -= 10000000.0;
+				
+		y /= gmxAPI.UTMScaleFactor;
+
+		cmeridian = gmxAPI.UTMCentralMeridian (zone);
+		gmxAPI.MapXYToLatLon (x, y, cmeridian, latlon);
+			
+		return;
+	}
+	,
+	truncate9: function(x)
+	{
+        return ("" + x).substring(0, 9);
+	}
+	,
+	prettifyDistance: function(length)
+	{
+		if (length < 1000)
+			return Math.round(length) + KOSMOSNIMKI_LOCALIZED(" м", " m");
+		if (length < 100000)
+			return (Math.round(length/10)/100) + KOSMOSNIMKI_LOCALIZED(" км", " km");
+		return Math.round(length/1000) + KOSMOSNIMKI_LOCALIZED(" км", " km");
+	}
+	,
+	prettifyArea: function(area)
+	{
+		if (area < 100000)
+			return Math.round(area) + KOSMOSNIMKI_LOCALIZED(" кв. м", " sq. m");
+		if (area < 100000000)
+			return ("" + (Math.round(area/10000)/100)).replace(".", ",") + KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
+		return (Math.round(area/1000000)) + KOSMOSNIMKI_LOCALIZED(" кв. км", " sq. km");
+	}
+	,
+	lambertCoefX: function() { return 100*gmxAPI.distVincenty(0, 0, 0.01, 0); }
+	,
+	lambertCoefY: function() { return 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/gmxAPI.PI; }
+	,
+	fragmentArea: function(points)
+	{
+		var pts = [];
+		for (var i in points)
+			pts.push([points[i][0], Math.sin(points[i][1]*PI/180)]);
+		var area = 0;
+		for (var i in pts)
+		{
+			var ipp = (i == (pts.length - 1) ? 0 : (parseInt(i) + 1));
+			area += (pts[i][0]*pts[ipp][1] - pts[ipp][0]*pts[i][1]);
+		}
+		return Math.abs(area*gmxAPI.lambertCoefX*gmxAPI.lambertCoefY/2);
+	}
+	,
+	fragmentAreaMercator: function(points)
+	{
+		var pts = [];
+		for (var i in points)
+			pts.push([gmxAPI.from_merc_x(points[i][0]), gmxAPI.from_merc_y(points[i][1])]);
+		return gmxAPI.fragmentArea(pts);
+	}
+	,
+	pad2: function(t)
+	{
+		return (t < 10) ? ("0" + t) : ("" + t);
+	}
+	,
+	trunc: function(x)
+	{
+		return ("" + (Math.round(10000000*x)/10000000 + 0.00000001)).substring(0, 9);
+	}
+	,
+	formatDegreesSimple: function(angle)
+	{
+		if (angle > 180)
+			angle -= 360;
+		var str = "" + Math.round(angle*100000)/100000;
+		if (str.indexOf(".") == -1)
+			str += ".";
+		for (var i = str.length; i < 8; i++)
+			str += "0";
+		return str;
+	}
+	,
+	formatDegrees: function(angle)
+	{
+		angle = Math.round(10000000*angle)/10000000 + 0.00000001;
+		var a1 = Math.floor(angle);
+		var a2 = Math.floor(60*(angle - a1));
+		var a3 = gmxAPI.pad2(3600*(angle - a1 - a2/60)).substring(0, 2);
+		return gmxAPI.pad2(a1) + "∞" + gmxAPI.pad2(a2) + "'" + a3 + '"';
+	}
+	,
+	formatCoordinates: function(x, y)
+	{
+		var lat_ = gmxAPI.from_merc_y(y);
+		var lon_ = gmxAPI.from_merc_x(x);
+		return  gmxAPI.formatDegrees(Math.abs(lat_)) + (lat_ > 0 ? " N, " : " S, ") + 
+			gmxAPI.formatDegrees(Math.abs(lon_)) + (lon_ > 0 ? " E" : " W");
+	}
+	,
+	formatCoordinates2: function(x, y)
+	{
+		var lat_ = gmxAPI.from_merc_y(y);
+		var lon_ = gmxAPI.from_merc_x(x);
+		return  gmxAPI.trunc(Math.abs(lat_)) + (lat_ > 0 ? " N, " : " S, ") + 
+			gmxAPI.trunc(Math.abs(lon_)) + (lon_ > 0 ? " E" : " W");
+	}
+	,
+	forEachPointAmb: function(arg, callback)
+	{
+		gmxAPI.forEachPoint(arg.length ? arg : arg.coordinates, callback);
+	}
+	,
+	geoLength: function(arg1, arg2, arg3, arg4)
+	{
+		if (arg4)
+			return gmxAPI.distVincenty(arg1, arg2, arg3, arg4);
+		var currentX = false, currentY = false, length = 0;
+		gmxAPI.forEachPointAmb(arg1, function(p)
+		{
+			if (currentX && currentY)
+				length += parseFloat(gmxAPI.distVincenty(currentX, currentY, p[0], p[1]));
+			currentX = p[0];
+			currentY = p[1];
+		});
+		return length;
+	}
+	,
+	geoArea: function(arg)
+	{
+		if (arg.type == "MULTIPOLYGON")
+		{
+			var ret = 0;
+			for (var i = 0; i < arg.coordinates.length; i++)
+				ret += gmxAPI.geoArea({ type: "POLYGON", coordinates: arg.coordinates[i] });
+			return ret;
+		}
+		else if (arg.type == "POLYGON")
+		{
+			var ret = gmxAPI.geoArea(arg.coordinates[0]);
+			for (var i = 1; i < arg.coordinates.length; i++)
+				ret -= gmxAPI.geoArea(arg.coordinates[i]);
+			return ret;
+		}
+		else if (arg.length)
+		{
+			var pts = [];
+			gmxAPI.forEachPoint(arg, function(p) { pts.push(p); });
+			return gmxAPI.fragmentArea(pts);
+		}
+		else
+			return 0;
+	}
+	,
+	geoCenter: function(arg1, arg2, arg3, arg4)
+	{
+		var minX, minY, maxX, maxY;
+		if (arg4)
+		{
+			minX = Math.min(arg1, arg3);
+			minY = Math.min(arg2, arg4);
+			maxX = Math.max(arg1, arg3);
+			maxY = Math.max(arg2, arg4);
+		}
+		else
+		{
+			minX = 1000;
+			minY = 1000;
+			maxX = -1000;
+			maxY = -1000;
+			gmxAPI.forEachPointAmb(arg1, function(p)
+			{
+				minX = Math.min(minX, p[0]);
+				minY = Math.min(minY, p[1]);
+				maxX = Math.max(maxX, p[0]);
+				maxY = Math.max(maxY, p[1]);
+			});
+		}
+		return [
+			gmxAPI.from_merc_x((gmxAPI.merc_x(minX) + gmxAPI.merc_x(maxX))/2),
+			gmxAPI.from_merc_y((gmxAPI.merc_y(minY) + gmxAPI.merc_y(maxY))/2)
+		];
+	}
+	,
+	convertCoords: function(coordsStr)
+	{
+		var res = [],
+			coordsPairs = this.strip(coordsStr).replace(/\s+/,' ').split(' ');
+
+		if (coordsStr.indexOf(',') == -1)
+		{
+			for (var j = 0; j < Math.floor(coordsPairs.length / 2); j++)
+				res.push([Number(coordsPairs[2 * j]), Number(coordsPairs[2 * j + 1])])
+		}
+		else
+		{
+			for (var j = 0; j < coordsPairs.length; j++)
+			{
+				var parsedCoords = coordsPairs[j].split(',');			
+				res.push([Number(parsedCoords[0]), Number(parsedCoords[1])])
+			}
+		}
+
+		return res;
+	}
+	,
+	parseGML: function(response)
+	{
+		var geometries = [],
+			strResp = response.replace(/[\t\n\r]/g, ' '),
+			strResp = strResp.replace(/\s+/g, ' '),
+			coordsTag = /<gml:coordinates>([-0-9.,\s]*)<\/gml:coordinates>/,
+			pointTag = /<gml:Point>[\s]*<gml:coordinates>[-0-9.,\s]*<\/gml:coordinates>[\s]*<\/gml:Point>/g,
+			lineTag = /<gml:LineString>[\s]*<gml:coordinates>[-0-9.,\s]*<\/gml:coordinates>[\s]*<\/gml:LineString>/g,
+			polyTag = /<gml:Polygon>[\s]*(<gml:outerBoundaryIs>[\s]*<gml:LinearRing>[\s]*<gml:coordinates>[-0-9.,\s]*<\/gml:coordinates>[\s]*<\/gml:LinearRing>[\s]*<\/gml:outerBoundaryIs>){0,1}[\s]*(<gml:innerBoundaryIs>[\s]*<gml:LinearRing>[\s]*<gml:coordinates>[-0-9.,\s]*<\/gml:coordinates>[\s]*<\/gml:LinearRing>[\s]*<\/gml:innerBoundaryIs>){0,1}[\s]*<\/gml:Polygon>/g,
+			outerTag = /<gml:outerBoundaryIs>(.*)<\/gml:outerBoundaryIs>/,
+			innerTag = /<gml:innerBoundaryIs>(.*)<\/gml:innerBoundaryIs>/
+
+		if (strResp.indexOf('gml:posList') > -1)
+		{
+			coordsTag = /<gml:posList>([-0-9.,\s]*)<\/gml:posList>/,
+			pointTag = /<gml:Point>[\s]*<gml:posList>[-0-9.,\s]*<\/gml:posList>[\s]*<\/gml:Point>/g,
+			lineTag = /<gml:LineString>[\s]*<gml:posList>[-0-9.,\s]*<\/gml:posList>[\s]*<\/gml:LineString>/g,
+			polyTag = /<gml:Polygon>[\s]*(<gml:exterior>[\s]*<gml:LinearRing>[\s]*<gml:posList>[-0-9.,\s]*<\/gml:posList>[\s]*<\/gml:LinearRing>[\s]*<\/gml:exterior>){0,1}[\s]*(<gml:interior>[\s]*<gml:LinearRing>[\s]*<gml:posList>[-0-9.,\s]*<\/gml:posList>[\s]*<\/gml:LinearRing>[\s]*<\/gml:interior>){0,1}[\s]*<\/gml:Polygon>/g,
+			outerTag = /<gml:exterior>(.*)<\/gml:exterior>/,
+			innerTag = /<gml:interior>(.*)<\/gml:interior>/
+		}
+		else if (strResp.indexOf('<kml') > -1)
+		{
+			coordsTag = /<coordinates>([-0-9.,\s]*)<\/coordinates>/,
+			pointTag = /<Point>[^P]*<\/Point>/g,
+			lineTag = /<LineString>[^L]*<\/LineString>/g,
+			polyTag = /<Polygon>[^P]*<\/Polygon>/g,
+			outerTag = /<outerBoundaryIs>(.*)<\/outerBoundaryIs>/,
+			innerTag = /<innerBoundaryIs>(.*)<\/innerBoundaryIs>/
+		}
+
+		strResp = strResp.replace(pointTag, function(str)
+		{
+			var coords = gmxAPI.getTagValue(str, coordsTag),
+				parsedCoords = gmxAPI.convertCoords(coords);
+			
+			geometries.push({type: 'POINT', coordinates:parsedCoords[0]})
+			
+			return '';
+		})
+
+		strResp = strResp.replace(lineTag, function(str)
+		{
+			var coords = gmxAPI.getTagValue(str, coordsTag),
+				parsedCoords = gmxAPI.convertCoords(coords)
+
+			geometries.push({type: 'LINESTRING', coordinates: parsedCoords});
+			
+			return '';
+		})
+
+		strResp = strResp.replace(polyTag, function(str)
+		{
+			var coords = [],
+				outerCoords = gmxAPI.getTagValue(str, outerTag),
+				innerCoords = gmxAPI.getTagValue(str, innerTag),
+				resultCoords = [];
+			
+			if (outerCoords)
+				coords.push(gmxAPI.getTagValue(outerCoords, coordsTag));
+			
+			if (innerCoords)
+				coords.push(gmxAPI.getTagValue(innerCoords, coordsTag));
+			
+			for (var index = 0; index < coords.length; index++)
+				resultCoords.push(gmxAPI.convertCoords(coords[index]))
+			
+			geometries.push({type: 'POLYGON', coordinates: resultCoords});
+			
+			return '';
+		})
+
+		return geometries;
+	}
+	,
+	createGML: function(geometries, format)
+	{
+		if (typeof geometries == 'undefined' || geometries == null || geometries.length == 0)
+			return '';
+
+		var coordsSeparator = ',',
+			coordsTag = '<gml:coordinates>_REPLACE_<\/gml:coordinates>',
+			pointTag = '<gml:Point><gml:coordinates>_REPLACE_<\/gml:coordinates><\/gml:Point>',
+			lineTag = '<gml:LineString><gml:coordinates>_REPLACE_<\/gml:coordinates><\/gml:LineString>',
+			polyTag = '<gml:Polygon>_REPLACE_<\/gml:Polygon>',
+			outerTag = '<gml:outerBoundaryIs><gml:LinearRing><gml:coordinates>_REPLACE_<\/gml:coordinates><\/gml:LinearRing><\/gml:outerBoundaryIs>',
+			innerTag = '<gml:innererBoundaryIs><gml:LinearRing><gml:coordinates>_REPLACE_<\/gml:coordinates><\/gml:LinearRing><\/gml:innerBoundaryIs>',
+			elementTag = '<gml:featureMember>_REPLACE_<\/gml:featureMember>',
+			headerTag = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<wfs:FeatureCollection xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:ows=\"http://www.opengis.net/ows\" xmlns:wfs=\"http://www.opengis.net/wfs\">\n_REPLACE_\n</wfs:FeatureCollection>';
+
+		if (typeof format != 'undefined' && format == 'gml3')
+		{
+			coordsSeparator = ' ',
+			coordsTag = '<gml:posList>_REPLACE_<\/gml:posList>',
+			pointTag = '<gml:Point><gml:posList>_REPLACE_<\/gml:posList><\/gml:Point>',
+			lineTag = '<gml:LineString><gml:posList>_REPLACE_<\/gml:posList><\/gml:LineString>',
+			polyTag = '<gml:Polygon>_REPLACE_<\/gml:Polygon>',
+			outerTag = '<gml:exterior><gml:LinearRing><gml:posList>_REPLACE_<\/gml:posList><\/gml:LinearRing><\/gml:exterior>',
+			innerTag = '<gml:interior><gml:LinearRing><gml:posList>_REPLACE_<\/gml:posList><\/gml:LinearRing><\/gml:interior>',
+			elementTag = '<gml:featureMember>_REPLACE_<\/gml:featureMember>',
+			headerTag = '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wfs:FeatureCollection xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:ows=\"http://www.opengis.net/ows\" xmlns:wfs=\"http://www.opengis.net/wfs\">\n_REPLACE_\n</wfs:FeatureCollection>';
+		}
+		else if (typeof format != 'undefined' && format == 'kml')
+		{
+			coordsTag = '<coordinates>_REPLACE_<\/coordinates>',
+			pointTag = '<Point><coordinates>_REPLACE_<\/coordinates><\/Point>',
+			lineTag = '<LineString><coordinates>_REPLACE_<\/coordinates><\/LineString>',
+			polyTag = '<Polygon>_REPLACE_<\/Polygon>',
+			outerTag = '<outerBoundaryIs><LinearRing><coordinates>_REPLACE_<\/coordinates><\/LinearRing><\/outerBoundaryIs>',
+			innerTag = '<innererBoundaryIs><LinearRing><coordinates>_REPLACE_<\/coordinates><\/LinearRing><\/innerBoundaryIs>',
+			elementTag = '<Placemark>_REPLACE_<\/Placemark>',
+			headerTag = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?> <kml xmlns=\"http://earth.google.com/kml/2.0\"> <Document>\n_REPLACE_\n</Document>';
+		}
+
+		var elementsStr = '';
+
+		for (var i = 0; i < geometries.length; i++)
+		{
+			var geometriesStr = '';
+			
+			if (geometries[i].type == 'POINT')
+			{
+				var coordsStr = geometries[i].coordinates.join(coordsSeparator);
+				
+				geometriesStr = pointTag.replace('_REPLACE_', coordsStr);
+			}
+			else if (geometries[i].type == 'LINESTRING')
+			{
+				var coordsStr = '';
+				
+				for (var j = 0; j < geometries[i].coordinates.length; j++)
+				{
+					if (j == 0)
+						coordsStr += geometries[i].coordinates[j].join(coordsSeparator)
+					else
+						coordsStr += ' ' + geometries[i].coordinates[j].join(coordsSeparator)
+				}
+				
+				geometriesStr = lineTag.replace('_REPLACE_', coordsStr);
+			}
+			else if (geometries[i].type == 'POLYGON')
+			{
+				var bounds = [outerTag, innerTag];
+				
+				for (var k = 0; k < geometries[i].coordinates.length; k++)
+				{
+					var coordsStr = '';
+					
+					for (var j = 0; j < geometries[i].coordinates[k].length; j++)
+					{
+						if (j == 0)
+							coordsStr += geometries[i].coordinates[k][j].join(coordsSeparator)
+						else
+							coordsStr += ' ' + geometries[i].coordinates[k][j].join(coordsSeparator)
+					}
+					
+					geometriesStr = bounds[k].replace('_REPLACE_', coordsStr);
+				}
+				
+				geometriesStr = polyTag.replace('_REPLACE_', geometriesStr);
+			}
+			
+			elementsStr += elementTag.replace('_REPLACE_', geometriesStr);
+		}
+
+		var xmlStr = headerTag.replace('_REPLACE_', elementsStr);
+
+		return xmlStr;
+	}
+	,
+	getTagValue: function(str, tag)
+	{
+		var res = null;
+		str.replace(tag, function()
+		{
+			res = arguments[1];
+		})
+		return res;
+	}
+	,
+	parseCoordinates: function(text, callback)
+	{
+		// should understand the following formats:
+		// 55.74312, 37.61558
+		// 55∞44'35" N, 37∞36'56" E
+		// 4187347, 7472103
+
+		if (text.match(/[йцукенгшщзхъфывапролджэ€чсмитьбю…÷” ≈Ќ√Ўў«’Џ‘џ¬јѕ–ќЋƒ∆Ёя„—ћ»“№ЅёqrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM]/))
+			return false;
+		if (text.indexOf(" ") != -1)
+			text = text.replace(/,/g, ".");
+		var regex = /(-?\d+(\.\d+)?)([^\d\-]*)/g;
+		var results = [];
+		while (t = regex.exec(text))
+			results.push(t[1]);
+		if (results.length < 2)
+			return false;
+		var ii = Math.floor(results.length/2);
+		var x = 0;
+		var mul = 1;
+		for (var i = 0; i < ii; i++)
+		{
+			x += parseFloat(results[i])*mul;
+			mul /= 60;
+		}
+		var y = 0;
+		mul = 1;
+		for (var i = ii; i < results.length; i++)
+		{
+			y += parseFloat(results[i])*mul;
+			mul /= 60;
+		}
+		if ((Math.abs(x) < 180) && (Math.abs(y) < 180))
+		{	
+			var tx = x, ty = y;
+			x = gmxAPI.merc_x(ty);
+			y = gmxAPI.merc_y(tx);
+		}
+		if (Math.max(text.indexOf("N"), text.indexOf("S")) > Math.max(text.indexOf("E"), text.indexOf("W")))
+		{
+			var t = gmxAPI.merc_y(gmxAPI.from_merc_x(x));
+			x = gmxAPI.merc_x(gmxAPI.from_merc_y(y));
+			y = t;
+		}
+		if (text.indexOf("W") != -1)
+			x = -x;
+		if (text.indexOf("S") != -1)
+			y = -y;
+		callback(gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y));
+		return true;
+	}
+	,
+	parseUri: function(str)
+	{
+		var	o   = {
+				strictMode: false,
+				key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+				q:   {
+					name:   "queryKey",
+					parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+				},
+				parser: {
+					strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+					loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+				}
+			},
+			m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+			uri = {},
+			i   = 14;
+
+		while (i--) uri[o.key[i]] = m[i] || "";
+
+		uri[o.q.name] = {};
+		uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+			if ($1) uri[o.q.name][$1] = $2;
+		});
+
+		uri.hostOnly = uri.host;
+		uri.host = uri.authority; // HACK
+
+		return uri;
+	}
+	,
+	getHostAndPath: function(url)
+	{
+		var u = gmxAPI.parseUri(url);
+		if (u.host == "")
+			return "";
+		var s = u.host + u.directory;
+		if (s.charAt(s.length - 1) == "/")
+			s = s.substring(0, s.length - 1);
+		return s;
+	},
+	memoize : memoize
+	,
+	getAPIFolderRoot: memoize(function()
+	{
+		return gmxAPI.getScriptBase("api.js");
+	})
+	,
+	getAPIHost: memoize(function()
+	{
+		var apiHost = gmxAPI.getHostAndPath(gmxAPI.getAPIFolderRoot());
+		return /(.*)\/[^\/]*/.exec((apiHost != "") ? apiHost : gmxAPI.getHostAndPath(window.location.href))[1]; //удал€ем последний каталог в адресе
+	})
+	,
+	getAPIHostRoot: memoize(function()
+	{
+		return "http://" + gmxAPI.getAPIHost() + "/";
+	})
+
 }
 
+})();
+
+// Ѕлок методов глобальной области видимости
 var isIE = gmxAPI.isIE;
 
-function setBg(t, imageName)
-{
-	if (isIE)
-		t.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" + imageName + "',sizingMethod='scale')";
-	else
-		t.style.backgroundImage = "url('" + imageName + "')";
-}
+function parseCoordinates(text, callback) { return gmxAPI.parseCoordinates(text, callback); }
+function setBg(t, imageName) { gmxAPI.setBg(t, imageName); }
+function deselect() { gmxAPI.deselect(); }
 
-function deselect()
-{
-	if (window.disableDeselect)
-		return;
-	if(document.selection && document.selection.empty) 
-		try { document.selection.empty(); } catch (e) {
-			gmxAPI.addDebugWarnings({'func': 'deselect', 'event': e, 'alert': e});
-		}
-}
+function compatEvent(event) { return gmxAPI.compatEvent(event); }
+function compatTarget(event) { return gmxAPI.compatTarget(event); }
+function eventX(event) { return gmxAPI.eventX(event); }
+function eventY(event) { return gmxAPI.eventY(event); }
+function getOffsetLeft(div) { return gmxAPI.getOffsetLeft(div); }
+function getOffsetTop(div) { return gmxAPI.getOffsetTop(div); }
 
-function compatEvent(event) {return event || window.event; }
+function newElement(tagName, props, style) { return gmxAPI.newElement(tagName, props, style, true); }
+function newStyledDiv(style) { return gmxAPI.newStyledDiv(style); }
+function newSpan(style) { return gmxAPI.newSpan(innerHTML); }
+function newDiv(className, innerHTML) { return gmxAPI.newDiv(className, innerHTML); }
+function show(div) { return gmxAPI.show(div); }
+function hide(div) { return gmxAPI.hide(div); }
+function setPositionStyle(div, attr) { gmxAPI.setPositionStyle(div, attr); }
+function position(div, x, y) { gmxAPI.position(div, x, y); }
+function bottomPosition(div, x, y) { gmxAPI.bottomPosition(div, x, y); }
+function size(div, w, h) { gmxAPI.size(div, w, h); }
+function positionSize(div, x, y, w, h) { gmxAPI.positionSize(div, x, y, w, h); }
+function setVisible(div, flag) { gmxAPI.setVisible(div, flag); }
 
-function compatTarget(event)
-{
-	if (!event)
-		event = window.event;
-	return (event.srcElement != null) ? event.srcElement : event.target;
-}
+function getScriptURL(scriptName) { return gmxAPI.getScriptURL(scriptName); }
+function getScriptBase(scriptName) { return gmxAPI.getScriptBase(scriptName); }
+function getHostAndPath(url) { return gmxAPI.getHostAndPath(url); }
 
-function eventX(event) 
-{
-	if (document.documentElement && document.documentElement.scrollLeft)
-		theLeft = document.documentElement.scrollLeft;
-	else theLeft = document.body.scrollLeft;
-	return compatEvent(event).clientX + theLeft;
-}
+function strip(s) { return gmxAPI.strip(s); }
+function parseUri(str) { return gmxAPI.parseUri(str); }
+function parseColor(str) { return gmxAPI.parseColor(str); }
+function forEachPoint(coords, callback) { return gmxAPI.forEachPoint(coords, callback); }
+function transformGeometry(geom, callbackX, callbackY) { return gmxAPI.transformGeometry(geom, callbackX, callbackY); }
+function merc_geometry(geom) { return gmxAPI.merc_geometry(geom); }
+function from_merc_geometry(geom) { return gmxAPI.from_merc_geometry(geom); }
+function getBounds(coords) { return gmxAPI.getBounds(coords); }
+function boundsIntersect(b1, b2) { return gmxAPI.boundsIntersect(b1, b2); }
+function isRectangle(coords) { return gmxAPI.isRectangle(coords); }
+function getScale(z) { return gmxAPI.getScale(z); }
 
-function eventY(event) 
-{
-	if (document.documentElement && document.documentElement.scrollTop)
-		theTop = document.documentElement.scrollTop;
-	else theTop = document.body.scrollTop;
-	return compatEvent(event).clientY + theTop; 
-}
+function forEachPointAmb(arg, callback) { gmxAPI.forEachPointAmb(arg, callback); }
+function geoLength(arg1, arg2, arg3, arg4) { gmxAPI.geoLength(arg1, arg2, arg3, arg4); }
+function geoArea(arg) { gmxAPI.geoArea(arg); }
+function geoCenter(arg1, arg2, arg3, arg4) { gmxAPI.geoCenter(arg1, arg2, arg3, arg4); }
+function convertCoords(coordsStr) { gmxAPI.convertCoords(coordsStr); }
 
-var getOffsetLeft = function(div)
-{
-  var ret = 0;
-  while (div && div.tagName != 'HTML')
-  {
-    ret += div.offsetLeft;
-    div = div.offsetParent;
-  }
-  return ret;
-}
-var getOffsetTop = function(div)
-{
-  var ret = 0;
-  while (div && div.tagName != 'HTML')
-  {
-    ret += div.offsetTop;
-    div = div.offsetParent;
-  }
-  return ret;
-}
+
+function parseGML(response) { return gmxAPI.parseGML(response); }
+function createGML(geometries, format) { return gmxAPI.createGML(geometries, format); }
+function getTagValue(str, tag) { return gmxAPI.getTagValue(str, tag); }
+
+function deg_rad(ang) { return gmxAPI.deg_rad(ang); }
+function deg_decimal(rad) { return gmxAPI.deg_decimal(rad); }
+function merc_x(lon) { return gmxAPI.merc_x(lon); }
+function from_merc_x(x) { return gmxAPI.from_merc_x(x); }
+function merc_y(lat) { return gmxAPI.merc_y(lat); }
+function from_merc_y(y) { return gmxAPI.from_merc_y(y); }
+function merc(lon,lat) { return gmxAPI.merc(lon,lat); }
+function from_merc(x,y) { return gmxAPI.from_merc(x,y); }
+function distVincenty(lon1,lat1,lon2,lat2) { return gmxAPI.distVincenty(lon1,lat1,lon2,lat2); }
+
+function DegToRad(deg) { return gmxAPI.DegToRad(deg); }
+function RadToDeg(rad) { return gmxAPI.RadToDeg(rad); }
+function ArcLengthOfMeridian(phi) { return gmxAPI.ArcLengthOfMeridian(phi); }
+function UTMCentralMeridian(zone) { return gmxAPI.UTMCentralMeridian(zone); }
+function FootpointLatitude(y) { return gmxAPI.FootpointLatitude(y); }
+function MapLatLonToXY(phi, lambda, lambda0, xy) { return gmxAPI.MapLatLonToXY(phi, lambda, lambda0, xy); }
+function MapXYToLatLon(x, y, lambda0, philambda) { return gmxAPI.MapXYToLatLon(x, y, lambda0, philambda); }
+function LatLonToUTMXY(lat, lon, zone, xy) { return gmxAPI.LatLonToUTMXY(lat, lon, zone, xy); }
+function UTMXYToLatLon(x, y, zone, southhemi, latlon) { return gmxAPI.UTMXYToLatLon(x, y, zone, southhemi, latlon); }
+function truncate9(x) { return gmxAPI.truncate9(x); }
+function prettifyDistance(length) { return gmxAPI.prettifyDistance(length); }
+function prettifyArea(area) { return gmxAPI.prettifyArea(area); }
+lambertCoefX = gmxAPI.lambertCoefX;
+lambertCoefY = gmxAPI.lambertCoefY;
+function fragmentArea(points) { return gmxAPI.fragmentArea(points); }
+function fragmentAreaMercator(points) { return gmxAPI.fragmentAreaMercator(points); }
+function formatDegreesSimple(angle) { return gmxAPI.formatDegreesSimple(angle); }
+function pad2(t) { return gmxAPI.pad2(t); }
+function formatDegrees(angle) { return gmxAPI.formatDegrees(angle); }
+function formatCoordinates(x, y) { return gmxAPI.formatCoordinates(x, y); }
+function trunc(x) { return gmxAPI.trunc(x); }
+function formatCoordinates2(x, y) { return gmxAPI.formatCoordinates2(x, y); }
+
+
+function memoize(func) { return gmxAPI.memoize(func); }
+var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoot(); });
+var getAPIHost = gmxAPI.memoize(function() { return gmxAPI.getAPIHost(); });
+var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot(); });
+
+////
 
 function HandlerMode(div, event, handler)
 {
@@ -157,87 +1274,6 @@ function GlobalHandlerMode(event, handler)
 	return new HandlerMode(document.documentElement, event, handler);
 }
 
-function newElement(tagName, props, style) { return gmxAPI.newElement(tagName, props, style, true); }
-
-function newStyledDiv(style)
-{
-	return newElement("div", false, style);
-}
-
-function newSpan(innerHTML)
-{
-	return newElement("span", { innerHTML: innerHTML });
-}
-
-function newDiv(className, innerHTML)
-{
-	return newElement("div", { className: className, innerHTML: innerHTML });
-}
-
-function show(div)
-{
-	div.style.visibility = "visible";
-	div.style.display = "block";
-}
-
-function hide(div)
-{
-	div.style.visibility = "hidden";
-	div.style.display = "none";
-}
-
-function setPositionStyle(div, attr)
-{
-	for(var key in attr) div.style[key] = attr[key];
-}
-
-function position(div, x, y)
-{
-	div.style.left = x + "px";
-	div.style.top = y + "px";
-}
-
-function bottomPosition(div, x, y)
-{
-	div.style.left = x + "px";
-	div.style.bottom = y + "px";
-}
-
-function size(div, w, h)
-{
-	div.style.width = w + "px";
-	div.style.height = h + "px";
-}
-
-function positionSize(div, x, y, w, h)
-{
-	position(div, x, y);
-	size(div, w, h);
-}
-
-function setVisible(div, flag) 
-{ 
-	(flag ? show : hide)(div);
-}
-
-function getScriptURL(scriptName)
-{
-	var scripts1 = document.getElementsByTagName("script");
-	for (var i = 0; i < scripts1.length; i++)
-	{
-		var src = scripts1[i].getAttribute("src");
-		if (src && (src.indexOf(scriptName) != -1))
-			return src;
-	}
-	return false;
-}
-
-function getScriptBase(scriptName)
-{
-	var url = getScriptURL(scriptName);
-	return url.substring(0, url.indexOf(scriptName));
-}
-
 function sendCrossDomainJSONRequest(url, callback)
 {
 	var script = document.createElement("script");
@@ -250,139 +1286,6 @@ function sendCrossDomainJSONRequest(url, callback)
 	});
 	script.setAttribute("src", url + "&CallbackName=" + callbackName + "&" + Math.random());
 	document.getElementsByTagName("head").item(0).appendChild(script);
-}
-
-function strip(s)
-{
-	return s.replace(/^\s*/, "").replace(/\s*$/, "");
-}
-
-function parseUri(str) 
-{
-	var	o   = parseUri.options,
-		m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-		uri = {},
-		i   = 14;
-
-	while (i--) uri[o.key[i]] = m[i] || "";
-
-	uri[o.q.name] = {};
-	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-		if ($1) uri[o.q.name][$1] = $2;
-	});
-
-	uri.hostOnly = uri.host;
-	uri.host = uri.authority; // HACK
-
-	return uri;
-};
-
-parseUri.options = {
-	strictMode: false,
-	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-	q:   {
-		name:   "queryKey",
-		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-	},
-	parser: {
-		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-		loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-	}
-};
-
-function parseColor(str)
-{
-	var res = 0xffffff;
-	if (!str)
-		return res;
-	else
-	{
-		var components = str.split(" ");
-		if (components.length == 1)
-			return parseInt("0x" + str);
-		else if (components.length == 3)
-			return parseInt(components[0])*0x10000 + parseInt(components[1])*0x100 + parseInt(components[2]);
-		else
-			return res;
-	}
-}
-
-function forEachPoint(coords, callback)
-{
-	if (coords.length == 0) return [];
-	if (!coords[0].length)
-	{
-		if (coords.length == 2)
-			return callback(coords);
-		else
-		{
-			var ret = [];
-			for (var i = 0; i < coords.length/2; i++)
-				ret.push(callback([coords[i*2], coords[i*2 + 1]]));
-			return ret;
-		}
-	}
-	else
-	{
-		var ret = [];
-		for (var i = 0; i < coords.length; i++)
-			ret.push(forEachPoint(coords[i], callback));
-		return ret;
-	}
-}
-
-function transformGeometry(geom, callbackX, callbackY)
-{
-	return !geom ? geom : { 
-		type: geom.type, 
-		coordinates: forEachPoint(geom.coordinates, function(p) 
-		{ 
-			return [callbackX(p[0]), callbackY(p[1])];
-		})
-	}
-}
-
-function merc_geometry(geom)
-{
-	return transformGeometry(geom, merc_x, merc_y);
-}
-
-function from_merc_geometry(geom)
-{
-	return transformGeometry(geom, from_merc_x, from_merc_y);
-}
-
-function getBounds(coords)
-{
-	var ret = { 
-		minX: 100000000, 
-		minY: 100000000, 
-		maxX: -100000000, 
-		maxY: -100000000,
-		update: function(data)
-		{
-			forEachPoint(data, function(p)
-			{
-				ret.minX = Math.min(p[0], ret.minX);
-				ret.minY = Math.min(p[1], ret.minY);
-				ret.maxX = Math.max(p[0], ret.maxX);
-				ret.maxY = Math.max(p[1], ret.maxY);
-			});
-		}
-	}
-	if (coords)
-		ret.update(coords);
-	return ret;
-}
-
-function boundsIntersect(b1, b2)
-{
-	return ((b1.minX < b2.maxX) && (b1.minY < b2.maxY) && (b2.minX < b1.maxX) && (b2.minY < b1.maxY));
-}
-
-function isRectangle(coords)
-{
-	return (coords && (coords[0].length == 5) && ((coords[0][0][0] == coords[0][1][0]) || (coords[0][0][1] == coords[0][1][1])));
 }
 
 var lastFlashMapId = 0;
@@ -399,52 +1302,6 @@ var uniqueGlobalName = function(thing)
 	return id;
 }
 
-var memoize = function(func)
-{
-	var called = false;
-	var result;
-	return function()
-	{
-		if (!called)
-		{
-			result = func();
-			called = true;
-		}
-		return result;
-	}
-}
-
-var getHostAndPath = function(url)
-{
-	var u = parseUri(url);
-	if (u.host == "")
-		return "";
-	var s = u.host + u.directory;
-	if (s.charAt(s.length - 1) == "/")
-		s = s.substring(0, s.length - 1);
-	return s;
-}
-
-var getAPIFolderRoot = memoize(function()
-{
-	return getScriptBase("api.js");
-});
-
-var getAPIHost = memoize(function()
-{
-	var apiHost = getHostAndPath(getAPIFolderRoot());
-	return /(.*)\/[^\/]*/.exec((apiHost != "") ? apiHost : getHostAndPath(window.location.href))[1]; //удал€ем последний каталог в адресе
-});
-
-var getAPIHostRoot = memoize(function()
-{
-	return "http://" + getAPIHost() + "/";
-});
-
-function getScale(z)
-{
-	return Math.pow(2, -z)*156543.033928041;
-}
 
 var flashMapAlreadyLoading = false;
 
@@ -632,7 +1489,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 					{ 
 						layer.properties.mapName = layers.properties.name;
 						layer.properties.hostName = hostName;
-						layer.geometry = from_merc_geometry(layer.geometry);
+						layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
 					});
 				}
 				callback(layers);
@@ -682,9 +1539,9 @@ function loadMapJSON(hostName, mapName, callback, onError)
 				);
 			}
 		}
-		var apiHost = parseUri(getAPIFolderRoot()).hostOnly;
+		var apiHost = gmxAPI.parseUri(getAPIFolderRoot()).hostOnly;
 		if (apiHost == "") 
-			apiHost = parseUri(window.location.href).hostOnly;
+			apiHost = gmxAPI.parseUri(window.location.href).hostOnly;
 		var apiKeyResult = (/key=([a-zA-Z0-9]+)/).exec(getScriptURL("api.js"));
 
 		if ((apiHost == "localhost") || apiHost.match(/127\.\d+\.\d+\.\d+/))
@@ -711,59 +1568,6 @@ function loadMapJSON(hostName, mapName, callback, onError)
 	else
 		finish();
 }
-
-function parseCoordinates(text, callback)
-{
-	// should understand the following formats:
-	// 55.74312, 37.61558
-	// 55∞44'35" N, 37∞36'56" E
-	// 4187347, 7472103
-
-	if (text.match(/[йцукенгшщзхъфывапролджэ€чсмитьбю…÷” ≈Ќ√Ўў«’Џ‘џ¬јѕ–ќЋƒ∆Ёя„—ћ»“№ЅёqrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM]/))
-		return false;
-	if (text.indexOf(" ") != -1)
-		text = text.replace(/,/g, ".");
-	var regex = /(-?\d+(\.\d+)?)([^\d\-]*)/g;
-	var results = [];
-	while (t = regex.exec(text))
-		results.push(t[1]);
-	if (results.length < 2)
-		return false;
-	var ii = Math.floor(results.length/2);
-	var x = 0;
-	var mul = 1;
-	for (var i = 0; i < ii; i++)
-	{
-		x += parseFloat(results[i])*mul;
-		mul /= 60;
-	}
-	var y = 0;
-	mul = 1;
-	for (var i = ii; i < results.length; i++)
-	{
-		y += parseFloat(results[i])*mul;
-		mul /= 60;
-	}
-	if ((Math.abs(x) < 180) && (Math.abs(y) < 180))
-	{	
-		var tx = x, ty = y;
-		x = merc_x(ty);
-		y = merc_y(tx);
-	}
-	if (Math.max(text.indexOf("N"), text.indexOf("S")) > Math.max(text.indexOf("E"), text.indexOf("W")))
-	{
-		var t = merc_y(from_merc_x(x));
-		x = merc_x(from_merc_y(y));
-		y = t;
-	}
-	if (text.indexOf("W") != -1)
-		x = -x;
-	if (text.indexOf("S") != -1)
-		y = -y;
-	callback(from_merc_x(x), from_merc_y(y));
-	return true;
-}
-
 
 function createFlashMap(div, arg1, arg2, arg3)
 {
@@ -1070,19 +1874,19 @@ function createFlashMapInternal(div, layers, callback)
 						ret = flashDiv.cmdFromJS(cmd, { });
 						break;
 					case 'getX':			//получить позицию ’ центра SWF
-						ret = from_merc_x(flashDiv.cmdFromJS(cmd, { }));
+						ret = gmxAPI.from_merc_x(flashDiv.cmdFromJS(cmd, { }));
 						break;
 					case 'getY':			//получить позицию Y центра SWF
-						ret = from_merc_y(flashDiv.cmdFromJS(cmd, { }));
+						ret = gmxAPI.from_merc_y(flashDiv.cmdFromJS(cmd, { }));
 						break;
 					case 'getZ':			//получить текущий Z
 						ret = 17 - flashDiv.cmdFromJS(cmd, { });
 						break;
 					case 'getMouseX':		//получить позицию ’ MouseX
-						ret = from_merc_x(flashDiv.cmdFromJS(cmd, { }));
+						ret = gmxAPI.from_merc_x(flashDiv.cmdFromJS(cmd, { }));
 						break;
 					case 'getMouseY':		//получить позицию Y MouseY
-						ret = from_merc_y(flashDiv.cmdFromJS(cmd, { }));
+						ret = gmxAPI.from_merc_y(flashDiv.cmdFromJS(cmd, { }));
 						break;
 					case 'isKeyDown':		//проверить нажатие клавиши в SWF
 						ret = flashDiv.cmdFromJS(cmd, attr);
@@ -1271,8 +2075,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			FlashMapObject.prototype.disableCaching = function() { FlashCMD('disableCaching', {}); }
 			FlashMapObject.prototype.print = function() { FlashCMD('print', {}); }
 			FlashMapObject.prototype.repaint = function() { FlashCMD('repaint', {}); }
-			FlashMapObject.prototype.moveTo = function(x, y, z) { FlashCMD('moveTo', { 'attr': {'x':merc_x(x), 'y':merc_y(y), 'z':17 - z} }); }
-			FlashMapObject.prototype.slideTo = function(x, y, z) { FlashCMD('slideTo', { 'attr': {'x':merc_x(x), 'y':merc_y(y), 'z':17 - z} }); }
+			FlashMapObject.prototype.moveTo = function(x, y, z) { FlashCMD('moveTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
+			FlashMapObject.prototype.slideTo = function(x, y, z) { FlashCMD('slideTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
 			
 			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
 				map.balloonClassObject.hideHoverBalloons(true);
@@ -1286,7 +2090,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			FlashMapObject.prototype.moveToCoordinates = function(text, z)
 			{
 				var me = this;
-				return parseCoordinates(text, function(x, y)
+				return gmxAPI.parseCoordinates(text, function(x, y)
 				{
 					me.moveTo(x, y, z ? z : me.getZ());
 				});
@@ -1296,23 +2100,23 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				if ((minX == maxX) && (minY == maxY))
 					return 17;
 				return Math.max(0, 17 - Math.ceil(Math.log(Math.max(
-					Math.abs(merc_x(maxX) - merc_x(minX))/flashDiv.clientWidth,
-					Math.abs(merc_y(maxY) - merc_y(minY))/flashDiv.clientHeight
+					Math.abs(gmxAPI.merc_x(maxX) - gmxAPI.merc_x(minX))/flashDiv.clientWidth,
+					Math.abs(gmxAPI.merc_y(maxY) - gmxAPI.merc_y(minY))/flashDiv.clientHeight
 				))/Math.log(2)));
 			}
 			FlashMapObject.prototype.zoomToExtent = function(minx, miny, maxx, maxy)
 			{
 				this.moveTo(
-					from_merc_x((merc_x(minx) + merc_x(maxx))/2),
-					from_merc_y((merc_y(miny) + merc_y(maxy))/2),
+					gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
+					gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
 					this.getBestZ(minx, miny, maxx, maxy)
 				);
 			}
 			FlashMapObject.prototype.slideToExtent = function(minx, miny, maxx, maxy)
 			{
 				this.slideTo(
-					from_merc_x((merc_x(minx) + merc_x(maxx))/2),
-					from_merc_y((merc_y(miny) + merc_y(maxy))/2),
+					gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
+					gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
 					this.getBestZ(minx, miny, maxx, maxy)
 				);
 			}
@@ -1379,7 +2183,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					var props = ph['properties'] || null;
 					var tmp = {
 						"parentId": this.objectId,
-						"geometry": merc_geometry(ph['geometry']),
+						"geometry": gmxAPI.merc_geometry(ph['geometry']),
 						"properties": props
 					};
 					if(ph['setStyle']) tmp['setStyle'] = ph['setStyle'];
@@ -1396,7 +2200,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				return out;
 			}
 			FlashMapObject.prototype.addObject = function(geometry, props) {
-				var geo = merc_geometry(geometry);
+				var geo = gmxAPI.merc_geometry(geometry);
 				var obj = FlashCMD('addObject', { 'obj': this, 'attr':{ 'geometry':geo, 'properties':props }});
 				if(!obj) obj = false;
 				return new FlashMapObject(obj, props, this);
@@ -1415,7 +2219,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				if(this.objectId) FlashCMD('remove', { 'obj': this}); // ”дал€ть в SWF только если там есть обьект
 			}
 			FlashMapObject.prototype.setGeometry = function(geometry) {
-				var geom =  merc_geometry(geometry);
+				var geom =  gmxAPI.merc_geometry(geometry);
 				FlashCMD('setGeometry', { 'obj': this, 'attr':geom });
 			}
 			FlashMapObject.prototype.getGeometry = function() 
@@ -1423,7 +2227,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var geom = FlashCMD('getGeometry', { 'obj': this });
 				var out = { "type": geom.type };
 				var coords =  forEachPoint(geom.coordinates, function(c) {
-							return [from_merc_x(c[0]), from_merc_y(c[1])];
+							return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
 							}
 					);
 				out["coordinates"] = coords;
@@ -1432,21 +2236,21 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			FlashMapObject.prototype.getLength = function(arg1, arg2, arg3, arg4)
 			{
 				var out = 0;
-				if(arg1) out = geoLength(arg1, arg2, arg3, arg4);
+				if(arg1) out = gmxAPI.geoLength(arg1, arg2, arg3, arg4);
 				else out = FlashCMD('getLength', { 'obj': this });
 				return out;
 			}
 			FlashMapObject.prototype.getArea = function(arg)
 			{
 				var out = 0;
-				if(arg) out = geoArea(arg);
+				if(arg) out = gmxAPI.geoArea(arg);
 				else out = FlashCMD('getArea', { 'obj': this });
 				return out;
 			}
 			FlashMapObject.prototype.getCenter = function(arg1, arg2, arg3, arg4)
 			{
 				var out = 0;
-				if(arg1) out = geoCenter(arg1, arg2, arg3, arg4);
+				if(arg1) out = gmxAPI.geoCenter(arg1, arg2, arg3, arg4);
 				else out = FlashCMD('getCenter', { 'obj': this });
 				return out;
 			}
@@ -1529,7 +2333,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var attr = {};
 				if (tx1) {
 					attr = {
-						'x1': merc_x(tx1), 'y1': merc_y(ty1), 'x2': merc_x(tx2), 'y2': merc_y(ty2), 'x3': merc_x(tx3), 'y3': merc_y(ty3), 'x4': merc_x(tx4), 'y4': merc_y(ty4)
+						'x1': gmxAPI.merc_x(tx1), 'y1': gmxAPI.merc_y(ty1), 'x2': gmxAPI.merc_x(tx2), 'y2': gmxAPI.merc_y(ty2), 'x3': gmxAPI.merc_x(tx3), 'y3': gmxAPI.merc_y(ty3), 'x4': gmxAPI.merc_x(tx4), 'y4': gmxAPI.merc_y(ty4)
 						,'tx1': x1, 'ty1': y1, 'tx2': x2, 'ty2': y2, 'tx3': x3, 'ty3': y3, 'tx4': x4, 'ty4': y4
 					};
 				}
@@ -1537,7 +2341,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				{
 					this.setPolygon([[x1, y1], [x2, y2], [x3, y3], [x4, y4], [x1, y1]]);
 					attr = {
-						'x1': merc_x(x1), 'y1': merc_y(y1), 'x2': merc_x(x2), 'y2': merc_y(y2), 'x3': merc_x(x3), 'y3': merc_y(y3), 'x4': merc_x(x4), 'y4': merc_y(y4)
+						'x1': gmxAPI.merc_x(x1), 'y1': gmxAPI.merc_y(y1), 'x2': gmxAPI.merc_x(x2), 'y2': gmxAPI.merc_y(y2), 'x3': gmxAPI.merc_x(x3), 'y3': gmxAPI.merc_y(y3), 'x4': gmxAPI.merc_x(x4), 'y4': gmxAPI.merc_y(y4)
 					};
 				}
 				attr['url'] = url;
@@ -1588,16 +2392,16 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						var c = geom.coordinates;
 						out = "<b>" + KOSMOSNIMKI_LOCALIZED(" оординаты:", "Coordinates:") + "</b> ";
-						out += formatCoordinates(merc_x(c[0]), merc_y(c[1]));
+						out += gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
 					}
 					else if (geomType.indexOf("LINESTRING") != -1) {
 						out = "<b>" + KOSMOSNIMKI_LOCALIZED("ƒлина:", "Length:") + "</b> ";
-						out += prettifyDistance(this.getLength());
+						out += gmxAPI.prettifyDistance(this.getLength());
 					}
 					else if (geomType.indexOf("POLYGON") != -1) {
 						out = "<b>" + KOSMOSNIMKI_LOCALIZED("ѕлощадь:", "Area:") + "</b> ";
 						var area = this.getArea();
-						out += prettifyArea(area);
+						out += gmxAPI.prettifyArea(area);
 					}
 				}
 				return out;
@@ -1643,8 +2447,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						var coord = geom.coordinates;
 						forEachPoint(coord, function(p)
 						{
-							var x = merc_x(p[0]);
-							var y = merc_y(p[1]);
+							var x = gmxAPI.merc_x(p[0]);
+							var y = gmxAPI.merc_y(p[1]);
 							if ((x - y) < d1)
 							{
 								d1 = x - y;
@@ -1804,11 +2608,11 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 			FlashMapFeature.prototype.getLength = function()
 			{
-				return geoLength(this.geometry);
+				return gmxAPI.geoLength(this.geometry);
 			}
 			FlashMapFeature.prototype.getArea = function()
 			{
-				return geoArea(this.geometry);
+				return gmxAPI.geoArea(this.geometry);
 			}
 
 			// получить minZoom maxZoom дл€ сло€ по фильтрам
@@ -1972,12 +2776,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 				var bounds = false;
 				if (layer.geometry)
-					bounds = getBounds(merc_geometry(layer.geometry).coordinates);
+					bounds = gmxAPI.getBounds(gmxAPI.merc_geometry(layer.geometry).coordinates);
 				var tileFunction = function(i, j, z)
 				{ 
 					if (bounds)
 					{
-						var tileSize = getScale(z)*256;
+						var tileSize = gmxAPI.getScale(z)*256;
 						var minx = i*tileSize;
 						var maxx = minx + tileSize;
 						if (maxx < bounds.minX) {
@@ -2028,7 +2832,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						FlashCMD('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'func':uniqueGlobalName(function(geom, props, flag)
 							{
-								onChange(new FlashMapFeature(from_merc_geometry(geom), props, obj), flag);
+								onChange(new FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj), flag);
 							})
 						} });
 					}
@@ -2051,13 +2855,13 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							}
 							if (!str && (obj.properties.GeometryType == "point")) {
 								FlashCMD('getFeatures', { 'obj': obj, 'attr':{
-									'geom': merc_geometry(geometry ? geometry : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] }),
+									'geom': gmxAPI.merc_geometry(geometry ? geometry : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] }),
 									'func': uniqueGlobalName(function(geoms, props)
 										{
 											var ret = [];
 											for (var i = 0; i < geoms.length; i++)
 												ret.push(new FlashMapFeature(
-													from_merc_geometry(geoms[i]),
+													gmxAPI.from_merc_geometry(geoms[i]),
 													props[i],
 													obj
 												));
@@ -2076,7 +2880,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 								'func':uniqueGlobalName(function(geom, props)
 								{
 									func(new FlashMapFeature(
-										from_merc_geometry(geom),
+										gmxAPI.from_merc_geometry(geom),
 										props,
 										obj
 									));
@@ -2284,7 +3088,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			map.getMouseX = function() { return FlashCMD('getMouseX', {}); }
 			map.getMouseY = function() { return FlashCMD('getMouseY', {}); }
 			map.isKeyDown = function(code) { return FlashCMD('isKeyDown', {'attr':{'code':code} }); }
-			map.setExtent = function(x1, x2, y1, y2) { return FlashCMD('setExtent', {'attr':{'x1':merc_x(x1), 'x2':merc_x(x2), 'y1':merc_y(y1), 'y2':merc_y(y2)} }); }
+			map.setExtent = function(x1, x2, y1, y2) { return FlashCMD('setExtent', {'attr':{'x1':gmxAPI.merc_x(x1), 'x2':gmxAPI.merc_x(x2), 'y1':gmxAPI.merc_y(y1), 'y2':gmxAPI.merc_y(y2)} }); }
 			map.addMapWindow = function(callback) {
 				var oID = FlashCMD('addMapWindow', { 'attr': {'callbackName':uniqueGlobalName(function(z) { return 17 - callback(17 - z); })} });
 				return new FlashMapObject(oID, {}, null);
@@ -2364,7 +3168,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					"?LayerNames=" + layerNames.join(",") + 
 					"&MapName=" + map.layers[layerNames[0]].properties.mapName +
 					(str ? ("&SearchString=" + escape(str)) : "") +
-					(geometry ? ("&border=" + JSON.stringify(merc_geometry(geometry))) : "");
+					(geometry ? ("&border=" + JSON.stringify(gmxAPI.merc_geometry(geometry))) : "");
 				sendCrossDomainJSONRequest(
 					url,
 					function(searchReq)
@@ -2381,7 +3185,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 								{
 									var item = req.SearchResult[j];
 									ret.push(new FlashMapFeature( 
-										from_merc_geometry(item.geometry),
+										gmxAPI.from_merc_geometry(item.geometry),
 										item.properties,
 										map.layers[req.name]
 									));
@@ -2421,7 +3225,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					'text': text,
 					'func': uniqueGlobalName(function(x, y)
 						{
-							callback(from_merc_x(x), from_merc_y(y));
+							callback(gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y));
 						})
 					}
 				});
@@ -2439,7 +3243,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				getVisibility: function() { return FlashCMD('getGridVisibility', {}) }
 			};
 
-			var allTools = newStyledDiv({ position: "absolute", top: 0, left: 0 });
+			var allTools = gmxAPI.newStyledDiv({ position: "absolute", top: 0, left: 0 });
 			div.appendChild(allTools);
 
 			var baseLayers = {};
@@ -2470,7 +3274,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			{
 				return currentBaseLayerName;
 			}
-			var baseLayerDiv = newStyledDiv({
+			var baseLayerDiv = gmxAPI.newStyledDiv({
 				position: "absolute",
 				left: "40px",
 				top: "40px",
@@ -2478,7 +3282,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				fontWeight: "bold",
 				textAlign: "center"
 			});
-			var baseLayerBg = newStyledDiv({
+			var baseLayerBg = gmxAPI.newStyledDiv({
 				position: "absolute",
 				left: "40px",
 				top: "40px",
@@ -2510,7 +3314,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						if (name == currentBaseLayerName)
 						{
-							baseLayerDiv.appendChild(newElement(
+							baseLayerDiv.appendChild(gmxAPI.newElement(
 								"div",
 								{ innerHTML: name },
 								{ 
@@ -2525,7 +3329,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						}
 						else
 						{
-							baseLayerDiv.appendChild(newElement(
+							baseLayerDiv.appendChild(gmxAPI.newElement(
 								"div",
 								{
 									innerHTML: name,
@@ -2564,13 +3368,13 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				}
 			}
 
-			var zoomParent = newStyledDiv({
+			var zoomParent = gmxAPI.newStyledDiv({
 				position: "absolute",
 				left: "40px",
 				top: "5px"
 			});
 			allTools.appendChild(zoomParent);
-			var zoomPlaque = newStyledDiv({
+			var zoomPlaque = gmxAPI.newStyledDiv({
 				backgroundColor: "#016a8a",
 				opacity: 0.5,
 				position: "absolute",
@@ -2579,7 +3383,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			});
 			zoomParent.appendChild(zoomPlaque);
 
-			zoomParent.appendChild(newElement(
+			zoomParent.appendChild(gmxAPI.newElement(
 				"img",
 				{
 					src: apiBase + "img/zoom_minus.png",
@@ -2603,7 +3407,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					cursor: "pointer"
 				}
 			));
-			var zoomPlus = newElement(
+			var zoomPlus = gmxAPI.newElement(
 				"img",
 				{
 					src: apiBase + "img/zoom_plus.png",
@@ -2629,7 +3433,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 			var addZoomItem = function(i)
 			{
-				var zoomObj_ = newElement(
+				var zoomObj_ = gmxAPI.newElement(
 					"img",
 					{
 						src: apiBase + "img/zoom_raw.png",
@@ -2716,13 +3520,13 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			var leftMarkX = 0;
 			var rightMarkX = timeBarWidth;
 
-			var timeBarParent = newStyledDiv({
+			var timeBarParent = gmxAPI.newStyledDiv({
 				position: "absolute",
 				top: "5px",
 				display: "none"
 			});
 			allTools.appendChild(timeBarParent);
-			var timeBarPlaque = newStyledDiv({
+			var timeBarPlaque = gmxAPI.newStyledDiv({
 				backgroundColor: "#016a8a",
 				opacity: 0.5,
 				position: "absolute",
@@ -2731,7 +3535,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				height: "32px"
 			});
 			timeBarParent.appendChild(timeBarPlaque);
-			var timeBar = newStyledDiv({
+			var timeBar = gmxAPI.newStyledDiv({
 				position: "absolute",
 				height: "4px",
 				border: "1px solid white",
@@ -2771,7 +3575,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var curTime = new Date(year, 1, 1).getTime();
 				while (curTime < maxTime)
 				{
-					var tickMark = newStyledDiv({
+					var tickMark = gmxAPI.newStyledDiv({
 						position: "absolute",
 						height: "4px",
 						top: 0,
@@ -2788,7 +3592,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 
 			var mouseInMark = false;
-			var leftMark = newElement(
+			var leftMark = gmxAPI.newElement(
 				"img",
 				{
 					src: apiBase + "img/sliderIcon.png",
@@ -2821,7 +3625,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			);
 			timeBar.appendChild(leftMark);
  
-			var rightMark = newElement(
+			var rightMark = gmxAPI.newElement(
 				"img",
 				{
 					src: apiBase + "img/sliderIcon.png",
@@ -2854,11 +3658,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			);
 			timeBar.appendChild(rightMark);
 
-			var pad2 = function(value)
-			{
-				return (value < 10) ? ("0" + value) : value;
-			}
- 
 			var getDateByX = function(x)
 			{
 				return new Date(minTime + (x/timeBarWidth)*(maxTime - minTime));
@@ -2866,7 +3665,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 			var getDateString = function(date)
 			{
-				return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
+				return date.getFullYear() + "-" + gmxAPI.pad2(date.getMonth() + 1) + "-" + gmxAPI.pad2(date.getDate());
 			}
 
 			var getDatePretty = function(date)
@@ -2967,7 +3766,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				return false;
 			}
 
-			var dateTooltip = newStyledDiv({
+			var dateTooltip = gmxAPI.newStyledDiv({
 				position: "absolute",
 				top: "30px",
 				padding: "3px",
@@ -3007,7 +3806,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			var miniMapZoomDelta = -4;
 			map.addLayers = function(layers)
 			{
-				var b = getBounds();
+				var b = gmxAPI.getBounds();
 				var minLayerZoom = 20;
 				forEachLayer(layers, function(layer, isVisible) 
 				{ 
@@ -3053,8 +3852,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					if (minLayerZoom != 20)
 						z = Math.max(z, minLayerZoom);
 					map.moveTo(
-						from_merc_x((merc_x(b.minX) + merc_x(b.maxX))/2),
-						from_merc_y((merc_y(b.minY) + merc_y(b.maxY))/2),
+						gmxAPI.from_merc_x((gmxAPI.merc_x(b.minX) + gmxAPI.merc_x(b.maxX))/2),
+						gmxAPI.from_merc_y((gmxAPI.merc_y(b.minY) + gmxAPI.merc_y(b.maxY))/2),
 						z
 					);
 				}
@@ -3067,12 +3866,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						var callbackName = uniqueGlobalName(function(obj)
 						{
 							if (obj.position)
-								map.moveTo(from_merc_x(obj.position.x), from_merc_y(obj.position.y), 17 - obj.position.z);
+								map.moveTo(gmxAPI.from_merc_x(obj.position.x), gmxAPI.from_merc_y(obj.position.y), 17 - obj.position.z);
 							if (obj.drawnObjects)
 								for (var i =0; i < obj.drawnObjects.length; i++)
 								{
 									var o = obj.drawnObjects[i];
-									map.drawing.addObject(from_merc_geometry(o.geometry), o.properties);
+									map.drawing.addObject(gmxAPI.from_merc_geometry(o.geometry), o.properties);
 								}
 						});
 						var script = document.createElement("script");
@@ -3121,20 +3920,20 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var currPosition = map.getPosition();
 				var x = currPosition['x'];
 				var y = currPosition['y'];
-				var scale = getScale(currPosition['z']);
+				var scale = gmxAPI.getScale(currPosition['z']);
 
 				var w2 = scale*div.clientWidth/2;
 				var h2 = scale*div.clientHeight/2;
 				return {
-					minX: from_merc_x(x - w2),
-					minY: from_merc_y(y - h2),
-					maxX: from_merc_x(x + w2),
-					maxY: from_merc_y(y + h2)
+					minX: gmxAPI.from_merc_x(x - w2),
+					minY: gmxAPI.from_merc_y(y - h2),
+					maxX: gmxAPI.from_merc_x(x + w2),
+					maxY: gmxAPI.from_merc_y(y + h2)
 				};
 			}
 			var getLocalScale = function(x, y)
 			{
-				return distVincenty(x, y, from_merc_x(merc_x(x) + 40), from_merc_y(merc_y(y) + 30))/50;
+				return distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
 			}
 
 			FlashMapObject.prototype.addMapStateListener = function(eventName, func) { 	return addMapStateListener(this, eventName, func);	}
@@ -3150,7 +3949,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 			*/
 			map.setLocationTitleDiv = null;
-			var locationTitleDiv = newElement(
+			var locationTitleDiv = gmxAPI.newElement(
 				"div",
 				{
 				},
@@ -3176,7 +3975,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				}
 			};
 
-			var scaleBar = newStyledDiv({
+			var scaleBar = gmxAPI.newStyledDiv({
 				position: "absolute",
 				right: coordinatesAttr['scaleBar']['bottom']['x'],
 				bottom: coordinatesAttr['scaleBar']['bottom']['y'],
@@ -3195,7 +3994,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					scaleBar.innerHTML = scaleBarText;
 				}
 			}
-			var coordinates = newElement(
+			var coordinates = gmxAPI.newElement(
 				"div",
 				{
 					className: "gmx_coordinates",
@@ -3220,18 +4019,18 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			var getCoordinatesText = function(currPosition)
 			{
 				if(!currPosition) currPosition = map.getPosition();
-				var x = from_merc_x(currPosition['x']);
-				var y = from_merc_y(currPosition['y']);
+				var x = gmxAPI.from_merc_x(currPosition['x']);
+				var y = gmxAPI.from_merc_y(currPosition['y']);
 				if (x > 180)
 					x -= 360;
 				if (x < -180)
 					x += 360;
-				x = merc_x(x);
-				y = merc_y(y);
+				x = gmxAPI.merc_x(x);
+				y = gmxAPI.merc_y(y);
 				if (coordFormat%3 == 0)
-					return formatCoordinates(x, y);
+					return gmxAPI.formatCoordinates(x, y);
 				else if (coordFormat%3 == 1)
-					return formatCoordinates2(x, y);
+					return gmxAPI.formatCoordinates2(x, y);
 				else
 					return Math.round(x) + ", " + Math.round(y);
 			}
@@ -3262,7 +4061,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 
 			var coordFormat = 0;
-			var changeCoords = newElement(
+			var changeCoords = gmxAPI.newElement(
 				"img", 
 				{ 
 					className: "gmx_changeCoords",
@@ -3331,7 +4130,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				'x': '26px'					// отступ по горизонтали
 				,'y': '7px'					// отступ по вертикали
 			};
-			var copyright = newElement(
+			var copyright = gmxAPI.newElement(
 				"span",
 				{
 					className: "gmx_copyright"
@@ -3420,8 +4219,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					copyrightUpdateTimeout = setTimeout(function()
 					{
 						var currPosition = map.getPosition();
-						var x = from_merc_x(currPosition['x']);
-						var y = from_merc_y(currPosition['y']);
+						var x = gmxAPI.from_merc_x(currPosition['x']);
+						var y = gmxAPI.from_merc_y(currPosition['y']);
 						var texts = {};
 						for (var i = 0; i < copyrightedObjects.length; i++)
 						{
@@ -3430,7 +4229,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							{
 								if (obj.geometry)
 								{
-									var bounds = getBounds(obj.geometry.coordinates);
+									var bounds = gmxAPI.getBounds(obj.geometry.coordinates);
 									if ((x < bounds.minX) || (x > bounds.maxX) || (y < bounds.minY) || (y > bounds.maxY))
 										continue;
 								}
@@ -3464,14 +4263,14 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			sunscreen.setVisible(false);
 
 			var miniMapBorderWidth = 5;
-			var miniMapLeftBorder = newStyledDiv({
+			var miniMapLeftBorder = gmxAPI.newStyledDiv({
 				position: "absolute",
 				top: 0,
 				width: miniMapBorderWidth + "px",
 				backgroundColor: "#216B9C",
 				opacity: 0.5
 			});
-			var miniMapBottomBorder = newStyledDiv({
+			var miniMapBottomBorder = gmxAPI.newStyledDiv({
 				position: "absolute",
 				right: 0,
 				height: miniMapBorderWidth + "px",
@@ -3486,7 +4285,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				setVisible(miniMapLeftBorder, miniMapAvailable && miniMapShown);
 				setVisible(miniMapBottomBorder, miniMapAvailable && miniMapShown);
 			}
-			var miniMapFrame = newStyledDiv({
+			var miniMapFrame = gmxAPI.newStyledDiv({
 				position: "absolute",
 				backgroundColor: "#216b9c",
 				opacity: 0.2
@@ -3500,13 +4299,13 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var startMapX = currPosition['x'];
 				var startMapY = currPosition['y'];
 
-				var scale = getScale(miniMapZ);
+				var scale = gmxAPI.getScale(miniMapZ);
 				
 				var mouseMoveMode = new HandlerMode(document.documentElement, "mousemove", function(event)
 				{
 					map.moveTo(
-						from_merc_x(startMapX - (eventX(event) - startMouseX)*scale), 
-						from_merc_y(startMapY + (eventY(event) - startMouseY)*scale), 
+						gmxAPI.from_merc_x(startMapX - (eventX(event) - startMouseX)*scale), 
+						gmxAPI.from_merc_y(startMapY + (eventY(event) - startMouseY)*scale), 
 						map.getZ()
 					);
 					return false;
@@ -3559,7 +4358,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				return miniMapZ;
 			});
 			var miniMapShown = true;
-			var miniMapToggler = newElement(
+			var miniMapToggler = gmxAPI.newElement(
 				"img",
 				{ 
 					className: "gmx_miniMapToggler",
@@ -3638,7 +4437,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				resizeMiniMap();
 			}
 
-			var geomixerLink = newElement(
+			var geomixerLink = gmxAPI.newElement(
 				"a",
 				{
 					href: "http://kosmosnimki.ru/geomixer",
@@ -3651,7 +4450,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					bottom: "8px"
 				}
 			);
-			geomixerLink.appendChild(newElement(
+			geomixerLink.appendChild(gmxAPI.newElement(
 				"img",
 				{
 					src: apiBase + "img/geomixer_logo_api.png",
@@ -3687,14 +4486,14 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var z = currPosition['z'];
 				if (z == Math.round(z))
 				{
-					var metersPerPixel = getLocalScale(from_merc_x(currPosition['x']), from_merc_y(currPosition['y']))*getScale(z);
+					var metersPerPixel = getLocalScale(gmxAPI.from_merc_x(currPosition['x']), gmxAPI.from_merc_y(currPosition['y']))*gmxAPI.getScale(z);
 					for (var i = 0; i < 30; i++)
 					{
 						var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
 						var w = distance/metersPerPixel;
 						if (w > 100)
 						{
-							var name = prettifyDistance(distance);
+							var name = gmxAPI.prettifyDistance(distance);
 							if ((name != scaleBarText) || (w != scaleBarWidth))
 							{
 								scaleBarText = name;
@@ -4011,10 +4810,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						var mapX = currPosition['x'];
 						var mapY = currPosition['y'];
 						var z = currPosition['z'];
-						scale = getScale(z);
+						scale = gmxAPI.getScale(z);
 						downCallback(
-							from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale),
-							from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale)
+							gmxAPI.from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale),
+							gmxAPI.from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale)
 						);
 						startDrag(obj, dragCallback, upCallback);
 						return false;
@@ -4032,10 +4831,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							var mapX = currPosition['x'];
 							var mapY = currPosition['y'];
 							var z = currPosition['z'];
-							scale = getScale(z);
+							scale = gmxAPI.getScale(z);
 							position(
-								startDx + from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale),
-								startDy + from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale)
+								startDx + gmxAPI.from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale),
+								startDy + gmxAPI.from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale)
 							);
 							deselect();
 							return false;
@@ -4112,7 +4911,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						if(attr && attr['buttonDown']) return;
 						var out = '';
 						var type = obj.getGeometryType();
-						if (type == "LINESTRING") out = prettifyDistance(obj.getIntermediateLength());
+						if (type == "LINESTRING") out = gmxAPI.prettifyDistance(obj.getIntermediateLength());
 						else if (type == "POLYGON")	out = obj.getGeometrySummary();
 						if(out && map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(out);
 						chkListeners('onNodeMouseOver', map.drawing, domObj);
@@ -4126,7 +4925,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					onEdgeMouseOver: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
 						chkListeners('onEdgeMouseOver', map.drawing, domObj);
 					},
 					onEdgeMouseOut: function(cobj, attr)
@@ -4199,7 +4998,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 			drawFunctions.POLYGON = function(coords, props)
 			{
-				if (isRectangle(coords))
+				if (gmxAPI.isRectangle(coords))
 					return drawFunctions.FRAME(coords, props);
 
 				if (!props)
@@ -4252,7 +5051,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					onEdgeMouseOver: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(prettifyDistance(obj.getCurrentEdgeLength()));
+						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
 						chkListeners('onEdgeMouseOver', map.drawing, domObj);
 					},
 					onEdgeMouseOut: function(сobj, attr)
@@ -4335,12 +5134,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				if (geomType.indexOf("POINT") != -1)
 				{
 					var c = geom.coordinates;
-					return "<b>" + KOSMOSNIMKI_LOCALIZED(" оординаты:", "Coordinates:") + "</b> " + formatCoordinates(merc_x(c[0]), merc_y(c[1]));
+					return "<b>" + KOSMOSNIMKI_LOCALIZED(" оординаты:", "Coordinates:") + "</b> " + gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
 				}
 				else if (geomType.indexOf("LINESTRING") != -1)
-					return "<b>" + KOSMOSNIMKI_LOCALIZED("ƒлина:", "Length:") + "</b> " + prettifyDistance(geoLength(geom));
+					return "<b>" + KOSMOSNIMKI_LOCALIZED("ƒлина:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
 				else if (geomType.indexOf("POLYGON") != -1)
-					return "<b>" + KOSMOSNIMKI_LOCALIZED("ѕлощадь:", "Area:") + "</b> " + prettifyArea(geoArea(geom));
+					return "<b>" + KOSMOSNIMKI_LOCALIZED("ѕлощадь:", "Area:") + "</b> " + gmxAPI.prettifyArea(gmxAPI.geoArea(geom));
 				else
 					return "?";
 			}
@@ -4598,8 +5397,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					},
 					function()
 					{
-						var d = 10*getScale(map.getZ());
-						if (!x1 || !x2 || !y1 || !y2 || ((Math.abs(merc_x(x1) - merc_x(x2)) < d) && (Math.abs(merc_y(y1) - merc_y(y2)) < d)))
+						var d = 10*gmxAPI.getScale(map.getZ());
+						if (!x1 || !x2 || !y1 || !y2 || ((Math.abs(gmxAPI.merc_x(x1) - gmxAPI.merc_x(x2)) < d) && (Math.abs(gmxAPI.merc_y(y1) - gmxAPI.merc_y(y2)) < d)))
 							map.zoomBy(1, true);
 						else
 							map.slideToExtent(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2));
@@ -4632,8 +5431,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						setToolHandlers({ onMouseMove: null, onMouseUp: null });
 						map.unfreeze();
 						sunscreen.setVisible(false);
-						var d = 10*getScale(map.getZ());
-						if (!x1 || !x2 || !y1 || !y2 || ((Math.abs(merc_x(x1) - merc_x(x2)) < d) && (Math.abs(merc_y(y1) - merc_y(y2)) < d)))
+						var d = 10*gmxAPI.getScale(map.getZ());
+						if (!x1 || !x2 || !y1 || !y2 || ((Math.abs(gmxAPI.merc_x(x1) - gmxAPI.merc_x(x2)) < d) && (Math.abs(gmxAPI.merc_y(y1) - gmxAPI.merc_y(y2)) < d)))
 							map.zoomBy(1, true);
 						else
 							map.zoomToExtent(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2));
@@ -4680,9 +5479,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					},
 					triggerInternal: function( callbackName ){ callHandler(callbackName); },
 					getGeometry: function() { return this.geometry; },
-					getLength: function() { return geoLength(this.geometry); },
-					getArea: function() { return geoArea(this.geometry); },
-					getCenter: function() { return geoCenter(this.geometry); },
+					getLength: function() { return gmxAPI.geoLength(this.geometry); },
+					getArea: function() { return gmxAPI.geoArea(this.geometry); },
+					getCenter: function() { return gmxAPI.geoCenter(this.geometry); },
 					setStyle: function(regularStyle, hoveredStyle) { ret.setStyle(regularStyle, hoveredStyle); },
 					getStyle: function(removeDefaults) { return ret.getStyle(removeDefaults); }
 				}
@@ -4703,7 +5502,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			var toolSize = 24;
 			var toolPadding = 4;
 			var toolSpacing = 8;
-			var toolPlaque = newStyledDiv({
+			var toolPlaque = gmxAPI.newStyledDiv({
 				position: "absolute",
 				left: toolPlaqueX + "px",
 				top: toolPlaqueY + "px",
@@ -4714,7 +5513,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			allTools.appendChild(toolPlaque);
 						
 			var toolsMinimized;
-			var toolPlaqueControl = newElement(
+			var toolPlaqueControl = gmxAPI.newElement(
 				"img",
 				{
 					onclick: function()
@@ -4747,7 +5546,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				}
 			);
 			
-			var toolPlaqueBackground = newStyledDiv({
+			var toolPlaqueBackground = gmxAPI.newStyledDiv({
 				position: "absolute",
 				left: "5px",
 				top: "5px",
@@ -4855,7 +5654,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				},
 				addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
 				{
-					var control = newElement(
+					var control = gmxAPI.newElement(
 						"img",
 						{
 							src: regularImageUrl,
@@ -4932,7 +5731,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			var imageNames = ["move", "select", "marker", "line", "polygon", "frame"];
 			var toolHints = ["ѕеремещение", "”величение", "ћаркер", "Ћини€", "ѕолигон", "–амка"];
 			var toolHintsEng = ["Move", "Zoom", "Marker", "Line", "Polygon", "Rectangle"];
-			var toolsContainer = newStyledDiv({ position: "absolute", top: 0, left: 0 });
+			var toolsContainer = gmxAPI.newStyledDiv({ position: "absolute", top: 0, left: 0 });
 			allTools.appendChild(toolsContainer);
 			for (var i = 0; i < toolTypes_.length; i++)
 			{
@@ -5047,7 +5846,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
 						return;
 					}
-					var geometries = parseGML(response['Result']);
+					var geometries = gmxAPI.parseGML(response['Result']);
 					for (var i = 0; i < geometries.length; i++)
 						me.addObject(geometries[i], null);
 					if (func)
@@ -5121,7 +5920,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							timeout = setTimeout(function()
 							{
 								var x = map.getX(), y = map.getY(), z = map.getZ(),
-									scale = getScale(z),
+									scale = gmxAPI.getScale(z),
 									w = div.clientWidth,
 									h = div.clientHeight,
 									wGeo = w*scale,
@@ -5134,10 +5933,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				scale = getScale(z);
 */
 
-								var miny = Math.max(from_merc_y(merc_y(y) - hGeo/2), -90);
-								var maxy = Math.min(from_merc_y(merc_y(y) + hGeo/2), 90);
-								var minx = Math.max(from_merc_x(merc_x(x) - wGeo/2), -180);
-								var maxx = Math.min(from_merc_x(merc_x(x) + wGeo/2), 180);
+								var miny = Math.max(gmxAPI.from_merc_y(gmxAPI.merc_y(y) - hGeo/2), -90);
+								var maxy = Math.min(gmxAPI.from_merc_y(gmxAPI.merc_y(y) + hGeo/2), 90);
+								var minx = Math.max(gmxAPI.from_merc_x(gmxAPI.merc_x(x) - wGeo/2), -180);
+								var maxx = Math.min(gmxAPI.from_merc_x(gmxAPI.merc_x(x) + wGeo/2), 180);
 		
 								if (bbox)
 								{
@@ -5158,10 +5957,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 										"&format=image/jpeg&styles=" + 
 										"&width=" + w + 
 										"&height=" + h + 
-										"&bbox=" + (isMerc ? minx : merc_x(minx)) + 
-										"," + (isMerc ? miny : merc_y(miny)) + 
-										"," + (isMerc ? maxx : merc_x(maxx)) + 
-										"," + (isMerc ? maxy : merc_y(maxy)),
+										"&bbox=" + (isMerc ? minx : gmxAPI.merc_x(minx)) + 
+										"," + (isMerc ? miny : gmxAPI.merc_y(miny)) + 
+										"," + (isMerc ? maxx : gmxAPI.merc_x(maxx)) + 
+										"," + (isMerc ? maxy : gmxAPI.merc_y(maxy)),
 									minx, maxy, maxx, maxy, maxx, miny, minx, miny
 								);
 							}, 500);
@@ -5217,7 +6016,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
 						return;
 					}
-					var geometries = parseGML(response['Result']);
+					var geometries = gmxAPI.parseGML(response['Result']);
 					callback(geometries);
 				})
 			}
@@ -5245,7 +6044,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				inputName.setAttribute('name', 'name')
 				if (!format)
 					format = "gml";
-				inputText.value = createGML(geometries, format.toLowerCase());
+				inputText.value = gmxAPI.createGML(geometries, format.toLowerCase());
 				inputText.setAttribute('name', 'text')
 	
 				gplForm.appendChild(inputName);
@@ -5438,7 +6237,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							14,
 							"<a href='http://www.antrix.gov.in/'>&copy; ANTRIX</a>"
 						);
-						obj.geometry = from_merc_geometry({ type: "LINESTRING", coordinates: [1107542, 2054627, 5048513, 8649003] });
+						obj.geometry = gmxAPI.from_merc_geometry({ type: "LINESTRING", coordinates: [1107542, 2054627, 5048513, 8649003] });
 
 						setCopyright(
 							satelliteLayers[0],
@@ -5507,732 +6306,6 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 		finish();
 }
 
-function forEachPointAmb(arg, callback)
-{
-	forEachPoint(arg.length ? arg : arg.coordinates, callback);
-}
-
-function geoLength(arg1, arg2, arg3, arg4)
-{
-	if (arg4)
-		return distVincenty(arg1, arg2, arg3, arg4);
-	var currentX = false, currentY = false, length = 0;
-	forEachPointAmb(arg1, function(p)
-	{
-		if (currentX && currentY)
-			length += parseFloat(distVincenty(currentX, currentY, p[0], p[1]));
-		currentX = p[0];
-		currentY = p[1];
-	});
-	return length;
-}
-
-function geoArea(arg)
-{
-	if (arg.type == "MULTIPOLYGON")
-	{
-		var ret = 0;
-		for (var i = 0; i < arg.coordinates.length; i++)
-			ret += geoArea({ type: "POLYGON", coordinates: arg.coordinates[i] });
-		return ret;
-	}
-	else if (arg.type == "POLYGON")
-	{
-		var ret = geoArea(arg.coordinates[0]);
-		for (var i = 1; i < arg.coordinates.length; i++)
-			ret -= geoArea(arg.coordinates[i]);
-		return ret;
-	}
-	else if (arg.length)
-	{
-		var pts = [];
-		forEachPoint(arg, function(p) { pts.push(p); });
-		return fragmentArea(pts);
-	}
-	else
-		return 0;
-}
-
-function geoCenter(arg1, arg2, arg3, arg4)
-{
-	var minX, minY, maxX, maxY;
-	if (arg4)
-	{
-		minX = Math.min(arg1, arg3);
-		minY = Math.min(arg2, arg4);
-		maxX = Math.max(arg1, arg3);
-		maxY = Math.max(arg2, arg4);
-	}
-	else
-	{
-		minX = 1000;
-		minY = 1000;
-		maxX = -1000;
-		maxY = -1000;
-		forEachPointAmb(arg1, function(p)
-		{
-			minX = Math.min(minX, p[0]);
-			minY = Math.min(minY, p[1]);
-			maxX = Math.max(maxX, p[0]);
-			maxY = Math.max(maxY, p[1]);
-		});
-	}
-	return [
-		from_merc_x((merc_x(minX) + merc_x(maxX))/2),
-		from_merc_y((merc_y(minY) + merc_y(maxY))/2)
-	];
-}
-
-function convertCoords(coordsStr)
-{
-	var res = [],
-		coordsPairs = strip(coordsStr).replace(/\s+/,' ').split(' ');
-	
-	if (coordsStr.indexOf(',') == -1)
-	{
-		for (var j = 0; j < Math.floor(coordsPairs.length / 2); j++)
-			res.push([Number(coordsPairs[2 * j]), Number(coordsPairs[2 * j + 1])])
-	}
-	else
-	{
-		for (var j = 0; j < coordsPairs.length; j++)
-		{
-			var parsedCoords = coordsPairs[j].split(',');			
-			res.push([Number(parsedCoords[0]), Number(parsedCoords[1])])
-		}
-	}
-	
-	return res;
-}
-
-function parseGML(response)
-{
-	var geometries = [],
-		strResp = response.replace(/[\t\n\r]/g, ' '),
-		strResp = strResp.replace(/\s+/g, ' '),
-		coordsTag = /<gml:coordinates>([-0-9.,\s]*)<\/gml:coordinates>/,
-		pointTag = /<gml:Point>[\s]*<gml:coordinates>[-0-9.,\s]*<\/gml:coordinates>[\s]*<\/gml:Point>/g,
-		lineTag = /<gml:LineString>[\s]*<gml:coordinates>[-0-9.,\s]*<\/gml:coordinates>[\s]*<\/gml:LineString>/g,
-		polyTag = /<gml:Polygon>[\s]*(<gml:outerBoundaryIs>[\s]*<gml:LinearRing>[\s]*<gml:coordinates>[-0-9.,\s]*<\/gml:coordinates>[\s]*<\/gml:LinearRing>[\s]*<\/gml:outerBoundaryIs>){0,1}[\s]*(<gml:innerBoundaryIs>[\s]*<gml:LinearRing>[\s]*<gml:coordinates>[-0-9.,\s]*<\/gml:coordinates>[\s]*<\/gml:LinearRing>[\s]*<\/gml:innerBoundaryIs>){0,1}[\s]*<\/gml:Polygon>/g,
-		outerTag = /<gml:outerBoundaryIs>(.*)<\/gml:outerBoundaryIs>/,
-		innerTag = /<gml:innerBoundaryIs>(.*)<\/gml:innerBoundaryIs>/
-	
-	if (strResp.indexOf('gml:posList') > -1)
-	{
-		coordsTag = /<gml:posList>([-0-9.,\s]*)<\/gml:posList>/,
-		pointTag = /<gml:Point>[\s]*<gml:posList>[-0-9.,\s]*<\/gml:posList>[\s]*<\/gml:Point>/g,
-		lineTag = /<gml:LineString>[\s]*<gml:posList>[-0-9.,\s]*<\/gml:posList>[\s]*<\/gml:LineString>/g,
-		polyTag = /<gml:Polygon>[\s]*(<gml:exterior>[\s]*<gml:LinearRing>[\s]*<gml:posList>[-0-9.,\s]*<\/gml:posList>[\s]*<\/gml:LinearRing>[\s]*<\/gml:exterior>){0,1}[\s]*(<gml:interior>[\s]*<gml:LinearRing>[\s]*<gml:posList>[-0-9.,\s]*<\/gml:posList>[\s]*<\/gml:LinearRing>[\s]*<\/gml:interior>){0,1}[\s]*<\/gml:Polygon>/g,
-		outerTag = /<gml:exterior>(.*)<\/gml:exterior>/,
-		innerTag = /<gml:interior>(.*)<\/gml:interior>/
-	}
-	else if (strResp.indexOf('<kml') > -1)
-	{
-		coordsTag = /<coordinates>([-0-9.,\s]*)<\/coordinates>/,
-		pointTag = /<Point>[^P]*<\/Point>/g,
-		lineTag = /<LineString>[^L]*<\/LineString>/g,
-		polyTag = /<Polygon>[^P]*<\/Polygon>/g,
-		outerTag = /<outerBoundaryIs>(.*)<\/outerBoundaryIs>/,
-		innerTag = /<innerBoundaryIs>(.*)<\/innerBoundaryIs>/
-	}
-	
-	strResp = strResp.replace(pointTag, function(str)
-	{
-		var coords = getTagValue(str, coordsTag),
-			parsedCoords = convertCoords(coords);
-		
-		geometries.push({type: 'POINT', coordinates:parsedCoords[0]})
-		
-		return '';
-	})
-	
-	strResp = strResp.replace(lineTag, function(str)
-	{
-		var coords = getTagValue(str, coordsTag),
-			parsedCoords = convertCoords(coords)
-
-		geometries.push({type: 'LINESTRING', coordinates: parsedCoords});
-		
-		return '';
-	})
-	
-	strResp = strResp.replace(polyTag, function(str)
-	{
-		var coords = [],
-			outerCoords = getTagValue(str, outerTag),
-			innerCoords = getTagValue(str, innerTag),
-			resultCoords = [];
-		
-		if (outerCoords)
-			coords.push(getTagValue(outerCoords, coordsTag));
-		
-		if (innerCoords)
-			coords.push(getTagValue(innerCoords, coordsTag));
-		
-		for (var index = 0; index < coords.length; index++)
-			resultCoords.push(convertCoords(coords[index]))
-		
-		geometries.push({type: 'POLYGON', coordinates: resultCoords});
-		
-		return '';
-	})
-	
-	return geometries;
-}
-
-function createGML(geometries, format)
-{
-	if (typeof geometries == 'undefined' || geometries == null || geometries.length == 0)
-		return '';
-	
-	var coordsSeparator = ',',
-		coordsTag = '<gml:coordinates>_REPLACE_<\/gml:coordinates>',
-		pointTag = '<gml:Point><gml:coordinates>_REPLACE_<\/gml:coordinates><\/gml:Point>',
-		lineTag = '<gml:LineString><gml:coordinates>_REPLACE_<\/gml:coordinates><\/gml:LineString>',
-		polyTag = '<gml:Polygon>_REPLACE_<\/gml:Polygon>',
-		outerTag = '<gml:outerBoundaryIs><gml:LinearRing><gml:coordinates>_REPLACE_<\/gml:coordinates><\/gml:LinearRing><\/gml:outerBoundaryIs>',
-		innerTag = '<gml:innererBoundaryIs><gml:LinearRing><gml:coordinates>_REPLACE_<\/gml:coordinates><\/gml:LinearRing><\/gml:innerBoundaryIs>',
-		elementTag = '<gml:featureMember>_REPLACE_<\/gml:featureMember>',
-		headerTag = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<wfs:FeatureCollection xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:ows=\"http://www.opengis.net/ows\" xmlns:wfs=\"http://www.opengis.net/wfs\">\n_REPLACE_\n</wfs:FeatureCollection>';
-	
-	if (typeof format != 'undefined' && format == 'gml3')
-	{
-		coordsSeparator = ' ',
-		coordsTag = '<gml:posList>_REPLACE_<\/gml:posList>',
-		pointTag = '<gml:Point><gml:posList>_REPLACE_<\/gml:posList><\/gml:Point>',
-		lineTag = '<gml:LineString><gml:posList>_REPLACE_<\/gml:posList><\/gml:LineString>',
-		polyTag = '<gml:Polygon>_REPLACE_<\/gml:Polygon>',
-		outerTag = '<gml:exterior><gml:LinearRing><gml:posList>_REPLACE_<\/gml:posList><\/gml:LinearRing><\/gml:exterior>',
-		innerTag = '<gml:interior><gml:LinearRing><gml:posList>_REPLACE_<\/gml:posList><\/gml:LinearRing><\/gml:interior>',
-		elementTag = '<gml:featureMember>_REPLACE_<\/gml:featureMember>',
-		headerTag = '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wfs:FeatureCollection xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:gml=\"http://www.opengis.net/gml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:ows=\"http://www.opengis.net/ows\" xmlns:wfs=\"http://www.opengis.net/wfs\">\n_REPLACE_\n</wfs:FeatureCollection>';
-	}
-	else if (typeof format != 'undefined' && format == 'kml')
-	{
-		coordsTag = '<coordinates>_REPLACE_<\/coordinates>',
-		pointTag = '<Point><coordinates>_REPLACE_<\/coordinates><\/Point>',
-		lineTag = '<LineString><coordinates>_REPLACE_<\/coordinates><\/LineString>',
-		polyTag = '<Polygon>_REPLACE_<\/Polygon>',
-		outerTag = '<outerBoundaryIs><LinearRing><coordinates>_REPLACE_<\/coordinates><\/LinearRing><\/outerBoundaryIs>',
-		innerTag = '<innererBoundaryIs><LinearRing><coordinates>_REPLACE_<\/coordinates><\/LinearRing><\/innerBoundaryIs>',
-		elementTag = '<Placemark>_REPLACE_<\/Placemark>',
-		headerTag = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?> <kml xmlns=\"http://earth.google.com/kml/2.0\"> <Document>\n_REPLACE_\n</Document>';
-	}
-	
-	var elementsStr = '';
-	
-	for (var i = 0; i < geometries.length; i++)
-	{
-		var geometriesStr = '';
-		
-		if (geometries[i].type == 'POINT')
-		{
-			var coordsStr = geometries[i].coordinates.join(coordsSeparator);
-			
-			geometriesStr = pointTag.replace('_REPLACE_', coordsStr);
-		}
-		else if (geometries[i].type == 'LINESTRING')
-		{
-			var coordsStr = '';
-			
-			for (var j = 0; j < geometries[i].coordinates.length; j++)
-			{
-				if (j == 0)
-					coordsStr += geometries[i].coordinates[j].join(coordsSeparator)
-				else
-					coordsStr += ' ' + geometries[i].coordinates[j].join(coordsSeparator)
-			}
-			
-			geometriesStr = lineTag.replace('_REPLACE_', coordsStr);
-		}
-		else if (geometries[i].type == 'POLYGON')
-		{
-			var bounds = [outerTag, innerTag];
-			
-			for (var k = 0; k < geometries[i].coordinates.length; k++)
-			{
-				var coordsStr = '';
-				
-				for (var j = 0; j < geometries[i].coordinates[k].length; j++)
-				{
-					if (j == 0)
-						coordsStr += geometries[i].coordinates[k][j].join(coordsSeparator)
-					else
-						coordsStr += ' ' + geometries[i].coordinates[k][j].join(coordsSeparator)
-				}
-				
-				geometriesStr = bounds[k].replace('_REPLACE_', coordsStr);
-			}
-			
-			geometriesStr = polyTag.replace('_REPLACE_', geometriesStr);
-		}
-		
-		elementsStr += elementTag.replace('_REPLACE_', geometriesStr);
-	}
-	
-	var xmlStr = headerTag.replace('_REPLACE_', elementsStr);
-	
-	return xmlStr;
-}
-
-function getTagValue(str, tag)
-{
-	var res = null;
-	
-	str.replace(tag, function()
-	{
-		res = arguments[1];
-	})
-	
-	return res;
-}
-
-
-var PI = 3.14159265358979;
-
-function deg_rad(ang)
-{
-   	return ang * (PI/180.0)
-}
-
-function deg_decimal(rad)
-{ 
-	return (rad/PI) * 180.0;
-}
-
-function merc_x(lon) {
-    var r_major = 6378137.000;
-    return r_major * deg_rad(lon);
-}
-
-function from_merc_x(x) {
-    var r_major = 6378137.000;
-    return deg_decimal(x/r_major);
-}
-
-function merc_y(lat) {
-    if (lat > 89.5)
-        lat = 89.5;
-    if (lat < -89.5)
-        lat = -89.5;
-    var r_major = 6378137.000;
-    var r_minor = 6356752.3142;
-    var temp = r_minor / r_major;
-    var es = 1.0 - (temp * temp);
-    var eccent = Math.sqrt(es);
-    var phi = deg_rad(lat);
-    var sinphi = Math.sin(phi);
-    var con = eccent * sinphi;
-    var com = .5 * eccent;
-    con = Math.pow(((1.0-con)/(1.0+con)), com);
-    var ts = Math.tan(.5 * ((PI*0.5) - phi))/con;
-    var y = 0 - r_major * Math.log(ts);
-    return y;
-}
-
-function from_merc_y (y)
-{
-	var r_major = 6378137.000;
-     	var r_minor = 6356752.3142;
-       	var temp = r_minor / r_major;
-       	var es = 1.0 - (temp * temp);
-       	var eccent = Math.sqrt(es);
-        var ts = Math.exp(-y/r_major);
-        var HALFPI = 1.5707963267948966;
-
-        var eccnth, Phi, con, dphi;
-	eccnth = 0.5 * eccent;
-
-        Phi = HALFPI - 2.0 * Math.atan(ts);
-
-        var N_ITER = 15;
-        var TOL = 1e-7;
-	var i = N_ITER;
-	dphi = 0.1;
-	while ((Math.abs(dphi)>TOL)&&(--i>0))
-	{
-		con = eccent * Math.sin (Phi);
-               	dphi = HALFPI - 2.0 * Math.atan(ts * Math.pow((1.0 - con)/(1.0 + con), eccnth)) - Phi;
-		Phi += dphi;
-	}
-
-	return deg_decimal(Phi);
-}
-
-function merc(lon,lat) {
-    return [merc_x(x),merc_y(y)];
-}
-
-function from_merc(x,y) {
-    return [from_merc_x(x),from_merc_y(y)];
-}
-
-function distVincenty(lon1,lat1,lon2,lat2) 
-{
-  	var p1 = new Object();
-  	var p2 = new Object();
-	
-  	p1.lon =  deg_rad(lon1);
-  	p1.lat =  deg_rad(lat1);
-  	p2.lon =  deg_rad(lon2);
-  	p2.lat =  deg_rad(lat2);
-
-  	var a = 6378137, b = 6356752.3142,  f = 1/298.257223563;  // WGS-84 ellipsiod
-  	var L = p2.lon - p1.lon;
-  	var U1 = Math.atan((1-f) * Math.tan(p1.lat));
-  	var U2 = Math.atan((1-f) * Math.tan(p2.lat));
-  	var sinU1 = Math.sin(U1), cosU1 = Math.cos(U1);
-  	var sinU2 = Math.sin(U2), cosU2 = Math.cos(U2);
-  
-  	var lambda = L, lambdaP = 2*Math.PI;
-  	var iterLimit = 20;
-  	while (Math.abs(lambda-lambdaP) > 1e-12 && --iterLimit>0) {
-    		var sinLambda = Math.sin(lambda), cosLambda = Math.cos(lambda);
-    		var sinSigma = Math.sqrt((cosU2*sinLambda) * (cosU2*sinLambda) + 
-      			(cosU1*sinU2-sinU1*cosU2*cosLambda) * (cosU1*sinU2-sinU1*cosU2*cosLambda));
-    		if (sinSigma==0) return 0;
-    		var cosSigma = sinU1*sinU2 + cosU1*cosU2*cosLambda;
-    		var sigma = Math.atan2(sinSigma, cosSigma);
-    		var sinAlpha = cosU1 * cosU2 * sinLambda / sinSigma;
-    		var cosSqAlpha = 1 - sinAlpha*sinAlpha;
-    		var cos2SigmaM = cosSigma - 2*sinU1*sinU2/cosSqAlpha;
-    		if (isNaN(cos2SigmaM)) cos2SigmaM = 0;
-    		var C = f/16*cosSqAlpha*(4+f*(4-3*cosSqAlpha));
-    		lambdaP = lambda;
-    		lambda = L + (1-C) * f * sinAlpha *
-      			(sigma + C*sinSigma*(cos2SigmaM+C*cosSigma*(-1+2*cos2SigmaM*cos2SigmaM)));
-  	}
-  	if (iterLimit==0) return NaN
-
-  	var uSq = cosSqAlpha * (a*a - b*b) / (b*b);
-  	var A = 1 + uSq/16384*(4096+uSq*(-768+uSq*(320-175*uSq)));
-  	var B = uSq/1024 * (256+uSq*(-128+uSq*(74-47*uSq)));
-  	var deltaSigma = B*sinSigma*(cos2SigmaM+B/4*(cosSigma*(-1+2*cos2SigmaM*cos2SigmaM)-
-    		B/6*cos2SigmaM*(-3+4*sinSigma*sinSigma)*(-3+4*cos2SigmaM*cos2SigmaM)));
-  	var s = b*A*(sigma-deltaSigma);
-  
-  	s = s.toFixed(3);
-  	return s;
-}
-
-
-
-    var sm_a = 6378137.0;
-    var sm_b = 6356752.314;
-    var sm_EccSquared = 6.69437999013e-03;
-
-    var UTMScaleFactor = 0.9996;
-
-
-    function DegToRad (deg)
-    {
-        return (deg / 180.0 * PI)
-    }
-
-    function RadToDeg (rad)
-    {
-        return (rad / PI * 180.0)
-    }
-
-    function ArcLengthOfMeridian (phi)
-    {
-        var alpha, beta, gamma, delta, epsilon, n;
-        var result;
-        n = (sm_a - sm_b) / (sm_a + sm_b);
-        alpha = ((sm_a + sm_b) / 2.0)
-           * (1.0 + (Math.pow (n, 2.0) / 4.0) + (Math.pow (n, 4.0) / 64.0));
-        beta = (-3.0 * n / 2.0) + (9.0 * Math.pow (n, 3.0) / 16.0)
-           + (-3.0 * Math.pow (n, 5.0) / 32.0);
-        gamma = (15.0 * Math.pow (n, 2.0) / 16.0)
-            + (-15.0 * Math.pow (n, 4.0) / 32.0);
-        delta = (-35.0 * Math.pow (n, 3.0) / 48.0)
-            + (105.0 * Math.pow (n, 5.0) / 256.0);
-        epsilon = (315.0 * Math.pow (n, 4.0) / 512.0);
-    
-    result = alpha
-        * (phi + (beta * Math.sin (2.0 * phi))
-            + (gamma * Math.sin (4.0 * phi))
-            + (delta * Math.sin (6.0 * phi))
-            + (epsilon * Math.sin (8.0 * phi)));
-
-    return result;
-    }
-
-    function UTMCentralMeridian (zone)
-    {
-        var cmeridian;
-
-        cmeridian = DegToRad (-183.0 + (zone * 6.0));
-    
-        return cmeridian;
-    }
-
-    function FootpointLatitude (y)
-    {
-        var y_, alpha_, beta_, gamma_, delta_, epsilon_, n;
-        var result;
-        
-        n = (sm_a - sm_b) / (sm_a + sm_b);
-        alpha_ = ((sm_a + sm_b) / 2.0)
-            * (1 + (Math.pow (n, 2.0) / 4) + (Math.pow (n, 4.0) / 64));
-        y_ = y / alpha_;
-        beta_ = (3.0 * n / 2.0) + (-27.0 * Math.pow (n, 3.0) / 32.0)
-            + (269.0 * Math.pow (n, 5.0) / 512.0);
-        gamma_ = (21.0 * Math.pow (n, 2.0) / 16.0)
-            + (-55.0 * Math.pow (n, 4.0) / 32.0);
-        delta_ = (151.0 * Math.pow (n, 3.0) / 96.0)
-            + (-417.0 * Math.pow (n, 5.0) / 128.0);
-        epsilon_ = (1097.0 * Math.pow (n, 4.0) / 512.0);
-        result = y_ + (beta_ * Math.sin (2.0 * y_))
-            + (gamma_ * Math.sin (4.0 * y_))
-            + (delta_ * Math.sin (6.0 * y_))
-            + (epsilon_ * Math.sin (8.0 * y_));
-        
-        return result;
-    }
-
-
-
-    function MapLatLonToXY (phi, lambda, lambda0, xy)
-    {
-        var N, nu2, ep2, t, t2, l;
-        var l3coef, l4coef, l5coef, l6coef, l7coef, l8coef;
-        var tmp;
-
-        ep2 = (Math.pow (sm_a, 2.0) - Math.pow (sm_b, 2.0)) / Math.pow (sm_b, 2.0);
-        nu2 = ep2 * Math.pow (Math.cos (phi), 2.0);
-        N = Math.pow (sm_a, 2.0) / (sm_b * Math.sqrt (1 + nu2));
-        t = Math.tan (phi);
-        t2 = t * t;
-        tmp = (t2 * t2 * t2) - Math.pow (t, 6.0);
-        l = lambda - lambda0;
-        l3coef = 1.0 - t2 + nu2;
-    
-        l4coef = 5.0 - t2 + 9 * nu2 + 4.0 * (nu2 * nu2);
-    
-        l5coef = 5.0 - 18.0 * t2 + (t2 * t2) + 14.0 * nu2
-            - 58.0 * t2 * nu2;
-    
-        l6coef = 61.0 - 58.0 * t2 + (t2 * t2) + 270.0 * nu2
-            - 330.0 * t2 * nu2;
-    
-        l7coef = 61.0 - 479.0 * t2 + 179.0 * (t2 * t2) - (t2 * t2 * t2);
-    
-        l8coef = 1385.0 - 3111.0 * t2 + 543.0 * (t2 * t2) - (t2 * t2 * t2);
-    
-        xy[0] = N * Math.cos (phi) * l
-            + (N / 6.0 * Math.pow (Math.cos (phi), 3.0) * l3coef * Math.pow (l, 3.0))
-            + (N / 120.0 * Math.pow (Math.cos (phi), 5.0) * l5coef * Math.pow (l, 5.0))
-            + (N / 5040.0 * Math.pow (Math.cos (phi), 7.0) * l7coef * Math.pow (l, 7.0));
-    
-        xy[1] = ArcLengthOfMeridian (phi)
-            + (t / 2.0 * N * Math.pow (Math.cos (phi), 2.0) * Math.pow (l, 2.0))
-            + (t / 24.0 * N * Math.pow (Math.cos (phi), 4.0) * l4coef * Math.pow (l, 4.0))
-            + (t / 720.0 * N * Math.pow (Math.cos (phi), 6.0) * l6coef * Math.pow (l, 6.0))
-            + (t / 40320.0 * N * Math.pow (Math.cos (phi), 8.0) * l8coef * Math.pow (l, 8.0));
-    
-        return;
-    }
-    
-    
-    
-    function MapXYToLatLon (x, y, lambda0, philambda)
-    {
-        var phif, Nf, Nfpow, nuf2, ep2, tf, tf2, tf4, cf;
-        var x1frac, x2frac, x3frac, x4frac, x5frac, x6frac, x7frac, x8frac;
-        var x2poly, x3poly, x4poly, x5poly, x6poly, x7poly, x8poly;
-    	
-        phif = FootpointLatitude (y);
-        ep2 = (Math.pow (sm_a, 2.0) - Math.pow (sm_b, 2.0))
-              / Math.pow (sm_b, 2.0);
-        cf = Math.cos (phif);
-        nuf2 = ep2 * Math.pow (cf, 2.0);
-        Nf = Math.pow (sm_a, 2.0) / (sm_b * Math.sqrt (1 + nuf2));
-        Nfpow = Nf;
-        tf = Math.tan (phif);
-        tf2 = tf * tf;
-        tf4 = tf2 * tf2;
-        x1frac = 1.0 / (Nfpow * cf);
-        
-        Nfpow *= Nf;
-        x2frac = tf / (2.0 * Nfpow);
-        
-        Nfpow *= Nf;
-        x3frac = 1.0 / (6.0 * Nfpow * cf);
-        
-        Nfpow *= Nf;
-        x4frac = tf / (24.0 * Nfpow);
-        
-        Nfpow *= Nf;
-        x5frac = 1.0 / (120.0 * Nfpow * cf);
-        
-        Nfpow *= Nf;
-        x6frac = tf / (720.0 * Nfpow);
-        
-        Nfpow *= Nf;
-        x7frac = 1.0 / (5040.0 * Nfpow * cf);
-        
-        Nfpow *= Nf;
-        x8frac = tf / (40320.0 * Nfpow);
-        
-        x2poly = -1.0 - nuf2;
-        
-        x3poly = -1.0 - 2 * tf2 - nuf2;
-        
-        x4poly = 5.0 + 3.0 * tf2 + 6.0 * nuf2 - 6.0 * tf2 * nuf2
-        	- 3.0 * (nuf2 *nuf2) - 9.0 * tf2 * (nuf2 * nuf2);
-        
-        x5poly = 5.0 + 28.0 * tf2 + 24.0 * tf4 + 6.0 * nuf2 + 8.0 * tf2 * nuf2;
-        
-        x6poly = -61.0 - 90.0 * tf2 - 45.0 * tf4 - 107.0 * nuf2
-        	+ 162.0 * tf2 * nuf2;
-        
-        x7poly = -61.0 - 662.0 * tf2 - 1320.0 * tf4 - 720.0 * (tf4 * tf2);
-        
-        x8poly = 1385.0 + 3633.0 * tf2 + 4095.0 * tf4 + 1575 * (tf4 * tf2);
-        	
-        philambda[0] = phif + x2frac * x2poly * (x * x)
-        	+ x4frac * x4poly * Math.pow (x, 4.0)
-        	+ x6frac * x6poly * Math.pow (x, 6.0)
-        	+ x8frac * x8poly * Math.pow (x, 8.0);
-        	
-        philambda[1] = lambda0 + x1frac * x
-        	+ x3frac * x3poly * Math.pow (x, 3.0)
-        	+ x5frac * x5poly * Math.pow (x, 5.0)
-        	+ x7frac * x7poly * Math.pow (x, 7.0);
-        	
-        return;
-    }
-
-
-
-    function LatLonToUTMXY (lat, lon, zone, xy)
-    {
-        MapLatLonToXY (lat, lon, UTMCentralMeridian (zone), xy);
-
-        xy[0] = xy[0] * UTMScaleFactor + 500000.0;
-        xy[1] = xy[1] * UTMScaleFactor;
-        if (xy[1] < 0.0)
-            xy[1] = xy[1] + 10000000.0;
-
-        return zone;
-    }
-    
-    function UTMXYToLatLon (x, y, zone, southhemi, latlon)
-    {
-        var cmeridian;
-        	
-        x -= 500000.0;
-        x /= UTMScaleFactor;
-        	
-        if (southhemi)
-        y -= 10000000.0;
-        		
-        y /= UTMScaleFactor;
-        
-        cmeridian = UTMCentralMeridian (zone);
-        MapXYToLatLon (x, y, cmeridian, latlon);
-        	
-        return;
-    }
-
-
-function truncate9(x)
-{
-	return ("" + x).substring(0, 9);
-}
-
-function prettifyDistance(length)
-{
-	if (length < 1000)
-		return Math.round(length) + KOSMOSNIMKI_LOCALIZED(" м", " m");
-	if (length < 100000)
-		return (Math.round(length/10)/100) + KOSMOSNIMKI_LOCALIZED(" км", " km");
-	return Math.round(length/1000) + KOSMOSNIMKI_LOCALIZED(" км", " km");
-}
-
-function prettifyArea(area)
-{
-	if (area < 100000)
-		return Math.round(area) + KOSMOSNIMKI_LOCALIZED(" кв. м", " sq. m");
-	if (area < 100000000)
-		return ("" + (Math.round(area/10000)/100)).replace(".", ",") + KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
-	return (Math.round(area/1000000)) + KOSMOSNIMKI_LOCALIZED(" кв. км", " sq. km");
-}
-
-var lambertCoefX = 100*distVincenty(0, 0, 0.01, 0);
-var lambertCoefY = 100*distVincenty(0, 0, 0, 0.01)*180/PI;
-
-function fragmentArea(points)
-{
-	var pts = [];
-	for (var i in points)
-		pts.push([points[i][0], Math.sin(points[i][1]*PI/180)]);
-	var area = 0;
-	for (var i in pts)
-	{
-		var ipp = (i == (pts.length - 1) ? 0 : (parseInt(i) + 1));
-		area += (pts[i][0]*pts[ipp][1] - pts[ipp][0]*pts[i][1]);
-	}
-	return Math.abs(area*lambertCoefX*lambertCoefY/2);
-}
-
-function fragmentAreaMercator(points)
-{
-	var pts = [];
-	for (var i in points)
-		pts.push([from_merc_x(points[i][0]), from_merc_y(points[i][1])]);
-	return fragmentArea(pts);
-}
-
-
-function formatDegreesSimple(angle)
-{
-	if (angle > 180)
-		angle -= 360;
-	var str = "" + Math.round(angle*100000)/100000;
-	if (str.indexOf(".") == -1)
-		str += ".";
-	for (var i = str.length; i < 8; i++)
-		str += "0";
-	return str;
-}
-
-function pad2(t)
-{
-	return (t < 10) ? ("0" + t) : ("" + t);
-}
-
-function formatDegrees(angle)
-{
-	angle = Math.round(10000000*angle)/10000000 + 0.00000001;
-	var a1 = Math.floor(angle);
-	var a2 = Math.floor(60*(angle - a1));
-	var a3 = pad2(3600*(angle - a1 - a2/60)).substring(0, 2);
-	return pad2(a1) + "∞" + pad2(a2) + "'" + a3 + '"';
-}
-
-function formatCoordinates(x, y)
-{
-	var lat_ = from_merc_y(y);
-	var lon_ = from_merc_x(x);
-	return  formatDegrees(Math.abs(lat_)) + (lat_ > 0 ? " N, " : " S, ") + 
-		formatDegrees(Math.abs(lon_)) + (lon_ > 0 ? " E" : " W");
-}
-
-
-var trunc = function(x)	
-{
-	return ("" + (Math.round(10000000*x)/10000000 + 0.00000001)).substring(0, 9);
-}
-
-function formatCoordinates2(x, y)
-{
-	var lat_ = from_merc_y(y);
-	var lon_ = from_merc_x(x);
-	return  trunc(Math.abs(lat_)) + (lat_ > 0 ? " N, " : " S, ") + 
-		trunc(Math.abs(lon_)) + (lon_ > 0 ? " E" : " W");
-}
 
 if (!this.JSON) {
     JSON = {};
@@ -6938,7 +7011,7 @@ kmlParser.prototype.parsePlacemark = function(elem)
 
 kmlParser.prototype.draw = function(vals, parent)
 {
-	var bounds = getBounds(),
+	var bounds = gmxAPI.getBounds(),
 		loadingIcons = {},
 		_this = this;
 	
@@ -7212,7 +7285,7 @@ function BalloonClass(map, div, apiBase)
 		currPosition = map.getPosition();
 		mapX = currPosition['x'];
 		mapY = currPosition['y'];
-		scale = getScale(currPosition['z']);
+		scale = gmxAPI.getScale(currPosition['z']);
 		stageZoom =  currPosition['stageHeight'] / div.clientHeight;	//  оэф. масштабировани€ браузера
 	}
 	// ‘ормирование ID балуна
@@ -7499,8 +7572,8 @@ function BalloonClass(map, div, apiBase)
 				var x = gObj.coordinates[0];
 				var y = gObj.coordinates[1];
 
-				balloon.fixedDeltaX =  (merc_x(mx) -  merc_x(x))/scale;
-				balloon.fixedDeltaY =  (merc_y(my) -  merc_y(y))/scale;
+				balloon.fixedDeltaX =  (gmxAPI.merc_x(mx) -  gmxAPI.merc_x(x))/scale;
+				balloon.fixedDeltaY =  (gmxAPI.merc_y(my) -  gmxAPI.merc_y(y))/scale;
 				mx = x;
 				my = y;
 				balloon.fixedDeltaFlag = true;
@@ -7540,7 +7613,7 @@ function BalloonClass(map, div, apiBase)
 
 		var legWidth = 68;
 
-		var balloon = newStyledDiv({
+		var balloon = gmxAPI.newStyledDiv({
 			position: "absolute",
 
 			paddingLeft: lw + "px",
@@ -7597,7 +7670,7 @@ function BalloonClass(map, div, apiBase)
 		var nodes = balloon.getElementsByTagName("div");
 		var balloonText = nodes[0];
 		
-		var leg = newElement("img",
+		var leg = gmxAPI.newElement("img",
 			{
 				src: apiBase + "img/tooltip-leg.png"
 			},
@@ -7734,7 +7807,7 @@ function BalloonClass(map, div, apiBase)
 			balloon.isHovered = false;
 			positionBalloons();
 		}
-		balloon.outerDiv.appendChild(newElement(
+		balloon.outerDiv.appendChild(gmxAPI.newElement(
 			"img",
 			{
 				src: apiBase + "img/close.png",
@@ -7774,8 +7847,8 @@ function BalloonClass(map, div, apiBase)
 				refreshMapPosition();
 
 				var sc = scale * stageZoom;
-				var x = div.clientWidth/2 - (mapX - merc_x(this.geoX))/sc;
-				var y = div.clientHeight/2 + (mapY - merc_y(this.geoY))/sc;
+				var x = div.clientWidth/2 - (mapX - gmxAPI.merc_x(this.geoX))/sc;
+				var y = div.clientHeight/2 + (mapY - gmxAPI.merc_y(this.geoY))/sc;
 				if(this.fixedDeltaFlag) {
 					x += balloon.fixedDeltaX;
 					y -= balloon.fixedDeltaY;
