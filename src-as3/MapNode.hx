@@ -227,8 +227,18 @@ class MapNode
 	{
 		var oldContent = content;
 		content = content_;
+		
+		var regularStyleOrig:Style = null;
+		var hoverStyleOrig:Style = null;
+
 		if (oldContent != null) {
-			oldContent.flush();
+			if (Std.is(oldContent, VectorLayerFilter))
+			{
+				var vlf:VectorLayerFilter = cast(oldContent, VectorLayerFilter);
+				regularStyleOrig = vlf.regularStyleOrig;
+				hoverStyleOrig = vlf.hoverStyleOrig;
+			}
+
 			oldContent.contentSprite.parent.removeChild(oldContent.contentSprite);
 			if (parent != null && parent.filters.exists(id))
 			{
@@ -240,6 +250,9 @@ class MapNode
 			if (parent != null && Std.is(content, VectorLayerFilter))
 			{
 				parent.filters.set(id, this);
+				var vlf:VectorLayerFilter = cast(content, VectorLayerFilter);
+				if(regularStyleOrig != null) vlf.regularStyleOrig = regularStyleOrig;
+				if(hoverStyleOrig != null) vlf.hoverStyleOrig = hoverStyleOrig;
 				parent.repaintObjects();
 			}
 		}
