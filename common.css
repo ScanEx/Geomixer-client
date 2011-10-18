@@ -854,6 +854,15 @@ div.layersScroll
 	margin-left: 3px;
 }
 
+.layersScroll table, .layersScroll td#scrollTD
+{
+	width: 100%;
+}
+.layersScroll img
+{
+	margin-top: 4px;
+}
+
 .tableBody .listLayerTable td
 {
 	border:none;

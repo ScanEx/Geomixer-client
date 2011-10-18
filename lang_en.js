@@ -541,5 +541,7 @@ _translationsHash.hash["eng"] = {
 	"По границе экрана": "Screen border",
 	"По центру экрана": "Screen center",
 	"Пересечение": "Intersection",
-	"Пролистывать слои": "Scroll layers"
+	"Пролистывать слои": "Scroll layers",
+	"Следующий слой": "Next layer",
+	"Предыдущий слой": "Previous layer"
 };

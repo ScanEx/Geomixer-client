@@ -3416,17 +3416,54 @@ queryMapLayersList.prototype._updateSlider = function()
 	if (typeof _listTable.currVals === 'undefined')
 		return;
 
-	$("#layersScrollSlider").empty();
+	var container = $("#layersScrollSlider");
+	container.empty();
 	var _this = this;
-	this._scrollDiv = $("<div></div>").appendTo($("#layersScrollSlider"));
+	var slideFunction = function(value)
+	{
+		_this._updateSliderVisibility(value)
+		_listTable.setPage( Math.floor(value / (_listTable.limit)) );
+	}
+	
+	this._scrollDiv = $("<div></div>");
 	this._scrollDiv.slider({
 		max: _listTable.currVals.length-1,
-		slide: function(event, ui)
-		{
-			_this._updateSliderVisibility(ui.value)
-			_listTable.setPage( Math.floor(ui.value / (_listTable.limit)) );
-		}
+		slide: function(event, ui) { slideFunction(ui.value); }
 	});
+	
+	
+	var prevDiv = makeImageButton("img/prev.png", "img/prev_a.png");
+	_title(prevDiv, _gtxt("Предыдущий слой"));
+	prevDiv.onclick = function()
+	{
+		var curValue = _this._scrollDiv.slider('option', 'value');
+		if ( curValue == _this._scrollDiv.slider('option', 'min') ) 
+			return;
+			
+		_this._scrollDiv.slider( 'option', 'value', curValue - 1);
+		slideFunction(curValue - 1);
+	}
+	
+	var nextDiv = makeImageButton("img/next.png", "img/next_a.png");
+	_title(nextDiv, _gtxt("Следующий слой"));
+	nextDiv.onclick = function()
+	{
+		var curValue = _this._scrollDiv.slider('option', 'value');
+		if ( curValue == _this._scrollDiv.slider('option', 'max') ) 
+			return;
+			
+		_this._scrollDiv.slider( 'option', 'value', curValue + 1 );
+		slideFunction(curValue + 1);
+	}
+	
+	var table = $("<table></table>")
+					.append($("<tr></tr>")
+						.append($("<td></td>", {id: "scrollTD"}).append(this._scrollDiv))
+						.append($("<td></td>").append(prevDiv))
+						.append($("<td></td>").append(nextDiv))
+					)
+	
+	container.append(table);
 	
 	if (_listTable.currVals.length == 0)
 		this._scrollDiv.slider('option', 'disabled', true);
