@@ -12,6 +12,7 @@ var FiltersControl = function()
 	var _dateBegin = null;
 	var _dateEnd = null;
 	var _type = null;
+	var _params = null;
 	
 	var _setFilters = function()
 	{
@@ -19,7 +20,10 @@ var FiltersControl = function()
 		{
 			var	properties = layer.properties;
 			
-			var filterString = "`" + _dateAttribute + "` >= '" + $.datepicker.formatDate("yy-mm-dd", _dateBegin) + "'" + " AND " + "`" + _dateAttribute + "` <= '" + $.datepicker.formatDate("yy-mm-dd", _dateEnd) + "'",
+			var timePostfixBegin = _params.useTimePostfix ? " 00:00:00" : "";
+			var timePostfixEnd   = _params.useTimePostfix ? " 23:59:59" : "";
+
+			var filterString = "`" + _dateAttribute + "` >= '" + $.datepicker.formatDate(_params.dateFormat, _dateBegin) + timePostfixBegin + "'" + " AND " + "`" + _dateAttribute + "` <= '" + $.datepicker.formatDate(_params.dateFormat, _dateEnd) + timePostfixEnd + "'",
 				filters = layer.filters;
 			
 			for (var j = 0; j < filters.length; j++)
@@ -56,8 +60,9 @@ var FiltersControl = function()
 	* @param {Array or string} layers Вектор имён слоёв для фильтрации или тип слоёв для фильтрации (Raster или Vector). В последнем случае фильтруются все слои данного типа
 	* @param {string} dateAttribute Имя аттрибута даты в слоях
 	*/
-	this.init = function(layers, dateAttribute, calendar)
+	this.init = function(layers, dateAttribute, calendar, params)
 	{
+		_params = $.extend({dateFormat: 'yy-mm-dd', useTimePostfix: false}, params);
 		if (typeof layers === 'string')
 			_type = layers;
 		else

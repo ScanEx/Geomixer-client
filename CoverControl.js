@@ -36,17 +36,6 @@ CoverControl.prototype.loadState = function( data )
 		_title($("#MapCalendar .ui-slider")[0].firstChild, this.cloudsIndexes[data.currCloudsIndex].name);
 }
 
-/** Перефильтровывает слои при смене дат
-* @function
-*/
-// CoverControl.prototype.loadForDates = function(dateBegin, dateEnd)
-// {
-	// this.dateBegin = dateBegin;
-	// this.dateEnd = dateEnd;
-	
-	// this.setFilters();
-// }
-
 CoverControl.prototype._updateStyles = function()
 {
 	if ( this.commonStyles || this.coverLayers.length == 0 ) return;
@@ -158,9 +147,11 @@ CoverControl.prototype._addWidget = function()
 * @param {Array} icons Массив с именами иконок для облачности
 * @param {Integer} initCloudIndex Начальная облачность
 * @param {nsGmx.Calendar} calendar Календарик, из которого нужно быть интервал дат
+* @param {Object} params Остальные параметры виджета (dateFormat, useTimePostfix)
 */
-CoverControl.prototype.init = function(coverLayersDescription, dateAttribute, cloudsAttribute, icons, initCloudIndex, calendar)
+CoverControl.prototype.init = function(coverLayersDescription, dateAttribute, cloudsAttribute, icons, initCloudIndex, calendar, params)
 {
+	this._params = $.extend({dateFormat: 'yy-mm-dd', useTimePostfix: false}, params);
 	this._coverLayersDescription = coverLayersDescription;
 	this._initCloudIndex = initCloudIndex;
 	this._icons = icons;
@@ -252,7 +243,10 @@ CoverControl.prototype.setFilters = function()
 		
 		var	properties = layer.properties;
 		
-		var filterString = "`" + this.dateAttribute + "` >= '" + $.datepicker.formatDate("yy-mm-dd", this.dateBegin) + "'" + " AND " + "`" + this.dateAttribute + "` <= '" + $.datepicker.formatDate("yy-mm-dd", this.dateEnd) + "'",
+		var timePostfixBegin = this._params.useTimePostfix ? " 00:00:00" : "";
+		var timePostfixEnd   = this._params.useTimePostfix ? " 23:59:59" : "";
+		
+		var filterString = "`" + this.dateAttribute + "` >= '" + $.datepicker.formatDate(this._params.dateFormat, this.dateBegin) + timePostfixBegin + "'" + " AND " + "`" + this.dateAttribute + "` <= '" + $.datepicker.formatDate(this._params.dateFormat, this.dateEnd) + timePostfixEnd + "'",
 			filters = layer.filters;
 		
 		for (var j = 0; j < this.cloudsCount; j++)
