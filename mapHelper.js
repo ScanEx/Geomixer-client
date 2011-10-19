@@ -1847,9 +1847,314 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	}
 }
 
+mapHelper.prototype.FillStyleControl = function(initStyle, params)
+{
+    var _params = $.extend({showSelectors: true}, params);
+    var _fillStyle = $.extend(true, {fill: 
+        {color: 0xFFFFFF, 
+         opacity: 50, 
+         image: "", 
+         pattern: {
+            width: 8, 
+            step: 0, 
+            colors: [0xFFFF00,0xFF00FF], 
+            style: 'diagonal1'
+        }}}, initStyle).fill;
+    
+	var _this = this;
+	var selectorDiv = $("<div/>", {'class': "fillStyleSelectorDiv"});
+    
+    var colorContainer = $("<div/>");
+    var patternContainer = $("<div/>");
+    var imagePatternContainer = $("<div/>");
+	
+	var colorIcon = $("<img/>", {src: 'img/styles/color.png'}).data('type', 'color');
+	var patternIcon = $("<img/>", {src: 'img/styles/pattern.png'}).data('type', 'pattern');
+	var patternURLIcon = $("<img/>", {src: 'img/styles/globe.gif'}).data('type', 'bitmapPattern');
+    
+    var controls = {
+		"color":         {icon: colorIcon,      control: colorContainer},
+		"pattern":       {icon: patternIcon,    control: patternContainer},
+		"bitmapPattern": {icon: patternURLIcon, control: imagePatternContainer}
+	};
+    
+    var initFillStyle = initStyle.fill || {};
+    
+    var activeFillType = null;
+    if ('image' in initFillStyle)
+        activeFillType = 'bitmapPattern';
+    else if ('pattern' in initFillStyle)
+        activeFillType = 'pattern';
+    else if ('color' in initFillStyle)
+        activeFillType = 'color';
+        
+    for (var c in controls)
+        if (c == activeFillType)
+            controls[c].icon.addClass('selectedType');
+        else
+            controls[c].control.hide();
+	
+    var selectorIconsDiv = $('<div/>')
+        .append(colorIcon)
+        .append(patternIcon)
+        .append(patternURLIcon);
+        
+	selectorDiv.append($("<span>Заливка</span><br/>"));
+    
+    if (_params.showSelectors)
+        selectorDiv.append(selectorIconsDiv);
+    
+	$("img", selectorDiv).click(function()
+	{
+		activeFillType = $(this).data('type');
+		for (var k in controls)
+			if (k === activeFillType)
+				$(controls[k].control).show(500);
+			else
+				$(controls[k].control).hide(500);
+		
+		$("img", selectorDiv).removeClass('selectedType');
+		$(this).addClass('selectedType');
+        $(_this).change();
+	});
+    
+    var fillColor = _fillStyle.color;
+	var fillOpacity = _fillStyle.opacity;
+    
+	//выбор цвета
+	var fillColorPicker = _mapHelper.createColorPicker(fillColor,
+		function (colpkr){
+			$(colpkr).fadeIn(500);
+			return false;
+		},
+		function (colpkr){
+			$(colpkr).fadeOut(500);
+            $(_this).change();
+			return false;
+		},
+		function (hsb, hex, rgb) {
+			fillColorPicker.style.backgroundColor = '#' + hex;
+            fillColor = parseInt("0x" + hex);
+		}),
+	fillOpacitySlider = _mapHelper.createSlider(fillOpacity,
+		function(event, ui)
+		{
+            fillOpacity = ui.value;
+            $(_this).change();
+		});
+		
+	colorContainer.append($("<table/>").append($("<tr/>")
+		.append($("<td/>").append(fillColorPicker))
+		.append($("<td/>").append(fillOpacitySlider))
+	));
+	
+	//выбор внешнего паттерна
+	var patternURL = $("<input/>", {"type":"text"}).val(_fillStyle.image).change(function()
+    {
+        $(_this).change();
+    });
+	imagePatternContainer.append(patternURL);
+	
+	//выбор втроенных паттернов
+    var patternTypeIcons = [
+        ['horizontal', 'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=horizontal&opacity=1'  ],
+        ['vertical',   'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=vertical&opacity=1'    ],
+        ['diagonal1',  'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=diagonal1&opacity=1'   ],
+        ['diagonal2',  'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=diagonal2&opacity=1'   ],
+        ['circle',     'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF,0044FF,00FF00&size=16&style=circle&opacity=1'],
+        ['cross',      'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=4&step=1&style=cross&opacity=1']
+    ];
+    
+    var patternStyleSelector = $("<div/>", {id: "patternStyleSelector"});
+    for (var i = 0; i < patternTypeIcons.length; i++)
+    {
+        var icon = $('<img/>', {src: patternTypeIcons[i][1]}).data("style", patternTypeIcons[i][0]);
+        patternStyleSelector.append(icon);
+        if (patternTypeIcons[i][0] === _fillStyle.pattern.style)
+            icon.addClass('activePatternType');
+    }
+        
+    $("img", patternStyleSelector).click(function()
+    {
+        $("img", patternStyleSelector).removeClass('activePatternType');
+        $(this).addClass('activePatternType');
+        _fillStyle.pattern.style = $(this).data("style");
+        $(_this).change();
+    });
+    
+    var patternOpacity = _fillStyle.opacity;
+	var patternOpacitySlider = _mapHelper.createSlider( _fillStyle.opacity, function(event, ui)
+    {
+        patternOpacity = ui.value;
+        $(_this).change();
+    });
+	$(patternOpacitySlider).attr({id: "patternOpacitySlider"});
+    
+    var patternOpacityContainer = $('<div/>', {'class': 'patternOpacityContainer'})
+        .append($('<table/>').append($('<tr/>')
+            .append($('<td/>').append($('<img/>', {src:'img/styles/pattern-opacity.PNG', 'class': 'opacityIcon'})))
+            .append($('<td/>').append(patternOpacitySlider))
+        ));
+            
+        // .append($('<img/>', {src:'img/styles/pattern-opacity.PNG'}))
+        // .append($('<span/>').append(patternOpacitySlider));
+		
+	var widthIcon = $("<img/>", {src: 'img/styles/pattern-width.PNG'});
+	var stepIcon = $("<img/>", {src: 'img/styles/pattern-step.PNG', 'class': 'stepIcon'});
+	
+    var widthInput = $("<input/>", {'class': 'widthInput'}).val(_fillStyle.pattern.width).change(function()
+    {
+        $(_this).change();
+    });
+    
+    var stepInput = $("<input/>").val(_fillStyle.pattern.step).change(function()
+    {
+        $(_this).change();
+    });
+    
+	var widthStepInputs = $("<table/>", {'class': "widthStepTable"}).append($("<tr/>")
+		.append($("<td/>").append(widthIcon).append(widthInput))
+		.append($("<td/>").append(stepIcon).append(stepInput))
+	);
+	
+	var PatternColorControl = function(parentDiv, initColors)
+	{
+		var _parentDiv = $(parentDiv);
+		var _colors = initColors;
+        var _this = this;
+		var _redraw = function()
+		{
+			_parentDiv.empty();
+			var table = $('<table/>', {'class': 'patternColorControl'});
+			for (var k = 0; k < _colors.length; k++)
+			(function(k){
+				
+				if (_colors[k] === null) return;
+				
+				var colorPicker = _mapHelper.createColorPicker(_colors[k],
+					function (colpkr){
+						$(colpkr).fadeIn(500);
+						return false;
+					},
+					function (colpkr){
+						$(colpkr).fadeOut(500);
+                        $(_this).change();
+						return false;
+					},
+					function (hsb, hex, rgb) {
+						colorPicker.style.backgroundColor = '#' + hex;
+						_colors[k] = parseInt('0x' + hex);
+					});
+				colorPicker.style.width = '100%';
+				
+				var deleteIcon = makeImageButton('img/recycle.png', 'img/recycle_a.png');
+					deleteIcon.onclick = function()
+					{
+						_colors[k] = null;
+						_redraw();
+                        $(_this).change();
+					}
+			
+				table.append($("<tr/>")
+					.append($("<td/>", {'class': 'patternColorPicker'}).append(colorPicker))
+					.append($("<td/>", {'class': 'patternColorDelete'}).append(deleteIcon))
+				);
+				
+			})(k);
+			
+			var addIcon = makeImageButton('img/zoom_plus.png', 'img/zoom_plus_a.png');
+			addIcon.onclick = function()
+			{
+				var initColor = 0x00FF00;
+				for (var c = 0; c < _colors.length; c++)
+					if (_colors[c] !== null) 
+						initColor = _colors[c];
+						
+				_colors.push(initColor);
+				_redraw();
+                $(_this).change();
+			};
+			
+			table.append($("<tr/>")
+				.append($("<td/>", {'class': 'patternColorPicker'}))
+				.append($("<td/>").append(addIcon))
+			);
+			
+			_parentDiv.append(table);
+		}
+		
+		_redraw();
+        
+        this.getColors = function()
+        {
+            var res = [];
+            for (var c = 0; c < _colors.length; c++)
+                if (_colors[c] !== null )
+                    res.push(_colors[c]);
+            return res; 
+        }
+	}
+	
+	var patternColorSelector = $("<div/>");
+	var patternColorControl = new PatternColorControl(patternColorSelector, _fillStyle.pattern.colors);
+    $(patternColorControl).change(function()
+    {
+        $(_this).change();
+    });
+	
+	patternContainer.append(patternStyleSelector).append(patternOpacityContainer).append(widthStepInputs).append(patternColorSelector);
+		
+	var fillControlsDiv = $("<div/>", {'class': 'fillStyleControls'}).append(colorContainer).append(imagePatternContainer).append(patternContainer);
+	
+	this.getSelector = function()
+	{
+		return selectorDiv;
+	}
+	
+	this.getControls = function()
+	{
+		return fillControlsDiv;
+	}
+    
+    this.getFillStyle = function()
+    {
+        var fillStyle = {};
+        if (activeFillType === 'color')
+        {
+            fillStyle.color = fillColor;
+            fillStyle.opacity = fillOpacity;
+        }
+        else if (activeFillType === 'bitmapPattern')
+        {
+            fillStyle.image = patternURL.val();
+        } 
+        else if (activeFillType === 'pattern')
+        {
+            fillStyle.pattern = { 
+                style: _fillStyle.pattern.style,
+                width: parseInt(widthInput.val()),
+                step: parseInt(stepInput.val()),
+                colors: patternColorControl.getColors()
+            };
+            fillStyle.opacity = patternOpacity;
+        }
+        
+        return fillStyle;
+    }
+    
+    this.setVisibleSelectors = function(isVisible)
+    {
+        if (isVisible)
+            selectorIconsDiv.show(500);
+        else
+            selectorIconsDiv.hide(500);
+    }
+}
+
 mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateStyle, geometryType, elemCanvas)
 {
-	var outlineParent = _tr(),
+	var markerSizeParent = _tr(),
+        outlineParent = _tr(),
 		fillParent = _tr(),
 		iconParent = _tr(),
 		outlineTitleTds = [],
@@ -1869,12 +2174,21 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		scale,
 		_this = this;
 	
-	_(parent, [_table([_tbody([outlineParent, fillParent, iconParent])],[['css','marginLeft','-20px']])]);
+	_(parent, [_table([_tbody([outlineParent, markerSizeParent, fillParent, iconParent])],[['css','marginLeft','-20px']])]);
+	
+	var fillStyleControl = new this.FillStyleControl(templateStyle, {showSelectors: geometryType !== 'point'});
+    $(fillStyleControl).change(function()
+    {
+        var fillStyle = fillStyleControl.getFillStyle();
+        templateStyle.fill = fillStyle;
+        _this.setMapStyle(parentObject, templateStyle);
+    });
 	
 	showIcon = function()
 	{
 		_this.hideStyle(outlineParent);
 		_this.hideStyle(fillParent);
+        fillStyleControl.setVisibleSelectors(false);
 		_this.showStyle(iconParent);
 		
 		templateStyle.marker = {};
@@ -1898,10 +2212,13 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 				
 				templateStyle.marker.color = $(iconParent).find(".colorSelector")[0].hex;				
 			}
+            _this.hideStyle(markerSizeParent);
 		}
 		
 		if (geometryType != "linestring")
+        {
 			fillToggle.disabled = true;
+        }
 			
 		_this.setMapStyle(parentObject, templateStyle);
 	}
@@ -1909,23 +2226,24 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	showMarker = function()
 	{
 		_this.showStyle(outlineParent);
+        _this.showStyle(markerSizeParent);
 		_this.hideStyle(iconParent);
 		
 		if (geometryType != "linestring")
 		{
 			if (fillToggle.checked)
+            {
 				_this.showStyle(fillParent);
+                fillStyleControl.setVisibleSelectors(true);
+            }
 			
 			if (geometryType == "point")
 			{
 				templateStyle.marker = {};
-				templateStyle.marker.size = Number($(fillParent).find(".inputStyle")[0].value);
+				templateStyle.marker.size = Number($(markerSizeParent).find(".inputStyle").val());
 			}
 			
-			templateStyle.fill = {};
-			templateStyle.fill.color = $(fillParent).find(".colorSelector")[0].hex;
-			templateStyle.fill.opacity = $($(fillParent).find(".ui-slider")[0]).slider('option', 'value');
-			
+            templateStyle.fill = fillStyleControl.getFillStyle();			
 			fillToggle.disabled = false;
 		}
 		
@@ -2128,16 +2446,18 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		fillToggle = _checkbox(typeof templateStyle.fill != 'undefined','checkbox');
 		fillToggle.onclick = function()
 		{
+            fillStyleControl.setVisibleSelectors(this.checked);
 			if (this.checked)
 			{
+                 templateStyle.fill = fillStyleControl.getFillStyle();
 				_this.showStyle(fillParent);
 				
-				templateStyle.fill = {};
-				templateStyle.fill.color = $(fillParent).find(".colorSelector")[0].hex;
-				templateStyle.fill.opacity = $($(fillParent).find(".ui-slider")[0]).slider('option', 'value');
+				//templateStyle.fill = {};
+				//templateStyle.fill.color = $(fillParent).find(".colorSelector")[0].hex;
+				//templateStyle.fill.opacity = $($(fillParent).find(".ui-slider")[0]).slider('option', 'value');
 				
-				if (elemCanvas.nodeName == 'DIV')
-					$(elemCanvas).find(".fillIcon")[0].style.backgroundColor = $(fillParent).find(".colorSelector")[0].style.backgroundColor;
+				//if (elemCanvas.nodeName == 'DIV')
+					//$(elemCanvas).find(".fillIcon")[0].style.backgroundColor = $(fillParent).find(".colorSelector")[0].style.backgroundColor;
 																
 				_this.setMapStyle(parentObject, templateStyle);
 			}
@@ -2155,7 +2475,8 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		}
 		
 		fillTitleTds.push(_td([fillToggle],[['css','width','20px'],['css','height','24px']]));
-		fillTitleTds.push(_td([_t(_gtxt("Заливка"))],[['css','width','70px']]));
+		//fillTitleTds.push(_td([_t(_gtxt("Заливка"))],[['css','width','70px']]));
+		fillTitleTds.push(_td([fillStyleControl.getSelector()[0]],[['css','width','70px']]));
 		
 		var checkedFillColor = (typeof templateStyle.fill != 'undefined' && typeof templateStyle.fill.color != 'undefined') ? templateStyle.fill.color : 0xFFFFFF,
 			checkedFillOpacity = (typeof templateStyle.fill != 'undefined' && typeof templateStyle.fill.opacity != 'undefined') ? templateStyle.fill.opacity : 0,
@@ -2235,19 +2556,34 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	
 	if (geometryType == "point")
 	{
-		var markerSize = this.createInput(templateStyle.marker && templateStyle.marker.size || 3,
-			function()
-			{
-				templateStyle.marker.size = Number(this.value);
+		// var markerSize = this.createInput(templateStyle.marker && templateStyle.marker.size || 3,
+			// function()
+			// {
+				// templateStyle.marker.size = Number(this.value);
 				
-				_this.setMapStyle(parentObject, templateStyle);
+				// _this.setMapStyle(parentObject, templateStyle);
 				
-				return true;
-			})
+				// return true;
+			// })
 		
-		_title(markerSize, _gtxt("Размер точек"));
+		// _title(markerSize, _gtxt("Размер точек"));
+		//fillTds.push(_td([markerSize],[['css','width','30px']]));
+        
+        var markerSizeInput = this.createInput(templateStyle.marker && templateStyle.marker.size || 3,
+            function()
+            {
+                templateStyle.marker.size = Number(this.value);
+                
+                _this.setMapStyle(parentObject, templateStyle);
+                
+                return true;
+            })
+        
+        _title(markerSizeInput, _gtxt("Размер точек"));
+    
+        var markerSizeTds = [_td(), _td([_t("Размер")]), _td([markerSizeInput], [['attr','fade',true]])];
+        _(markerSizeParent, markerSizeTds, [['attr','fade',true]]);
 		
-		fillTds.push(_td([markerSize],[['css','width','30px']]));
 		
 		if (typeof elemCanvas.parentNode.properties != 'undefined' &&
 			elemCanvas.parentNode.properties.content.properties.description &&
@@ -2318,9 +2654,14 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		if (geometryType == "linestring")
 			hide(fillParent);
 	}
-	
+    
 	_(outlineParent, outlineTitleTds.concat(_td([_div([_table([_tbody([_tr(outlineTds), _tr(dashedTds)])])],[['attr','fade',true]])])));
-	_(fillParent, fillTitleTds.concat(_td([_div([_table([_tbody([_tr(fillTds)])])],[['attr','fade',true]])])));
+    
+	//_(fillParent, fillTitleTds.concat(_td([_div([_table([_tbody([_tr(fillTds)])])],[['attr','fade',true]])])));
+    var topPadding = geometryType === "point" ? "0px" : "10px";
+	 fillTitleTds = fillTitleTds.concat(_td([fillStyleControl.getControls()[0]], [['attr','fade',true], ['css', 'paddingTop', topPadding]]));
+	 _(fillParent, fillTitleTds);
+	
 	_(iconParent, iconTitleTds.concat(_td([_div([_table([_tbody([_tr(iconTds)])])],[['attr','fade',true]])])));
 	
 //	if (geometryType == "point")
@@ -2713,8 +3054,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 					select.append(opt);
 				}
 				
-				var anotherCheckbox = $("<input></input>", {className: 'box', type: 'checkbox', id: 'otherEncoding'});
-				var anotherInput = $("<input></input>", {className: 'VectorLayerEncodingInput'});
+				var anotherCheckbox = $("<input></input>", {'class': 'box', type: 'checkbox', id: 'otherEncoding'});
+				var anotherInput = $("<input></input>", {'class': 'VectorLayerEncodingInput'});
 				
 				if (!isStandard)
 				{
@@ -2731,7 +3072,6 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				{
 					_curEncoding = this.value;
 					$(_public).change();
-					// console.log(_curEncoding);
 				});
 				
 				anotherCheckbox.click(function()
@@ -2762,7 +3102,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 					.append($("<td></td>").append(anotherInput));
 				
 				$(container)
-					.append($("<table></table>", {className: 'VectorLayerEncoding'})
+					.append($("<table></table>", {'class': 'VectorLayerEncoding'})
 						.append(tr1).append(tr2));
 			},
 			getServerEncoding: function()
@@ -2870,7 +3210,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		
 		var TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
 		{
-			var temporalCheckbox = $("<input></input>", {className: 'box', type: 'checkbox', id: 'timeLayer'});
+			var temporalCheckbox = $("<input></input>", {'class': 'box', type: 'checkbox', id: 'timeLayer'});
 			temporalCheckbox.change(function()
 			{
 				paramsModel.setTemporal(this.checked);
@@ -2894,7 +3234,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 					select.append($("<option></option>", {periodIndex: k}).text(temporalPeriods[k]));
 			}
 				
-			var selectMinPeriod = $("<select></select>", {className: 'selectStyle'});
+			var selectMinPeriod = $("<select></select>", {'class': 'selectStyle'});
 			addOptions(selectMinPeriod);
 			var selectMaxPeriod = selectMinPeriod.clone();
 			
@@ -2913,7 +3253,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				}
 			});
 			
-			var selectDateColumn = $("<select></select>", {className: 'selectStyle'});
+			var selectDateColumn = $("<select></select>", {'class': 'selectStyle'});
 			for (var i = 0; i < columns.length; i++)
 			{
 				selectDateColumn.append($("<option></option>").text(columns[i].Name));

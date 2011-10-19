@@ -867,3 +867,100 @@ div.layersScroll
 {
 	border:none;
 }
+
+.fillStyleControls #patternStyleSelector
+{
+	width: 100%;
+}
+
+.fillStyleControls .widthInput
+{
+	margin-right: 15px;
+}
+
+.fillStyleControls .opacityIcon
+{
+    margin: 4px;
+}
+
+.fillStyleControls .widthStepTable input
+{
+	width: 30px;
+}
+
+.fillStyleControls .widthStepTable td
+{
+	text-align: center;
+}
+
+.fillStyleControls .widthStepTable img
+{
+	margin: 1px;
+}
+
+.fillStyleControls .selectorDiv
+{
+	white-space: nowrap;
+}
+
+.fillStyleControls #patternOpacitySlider
+{
+	margin: 5px 0px;
+}
+
+.fillStyleControls .patternColorPicker
+{
+	width: 100%;
+	padding-right: 5px;
+}
+
+.fillStyleControls .patternColorDelete
+{
+	text-align: center;
+}
+
+
+.fillStyleControls .patternColorPicker > div
+{
+	height: 10px;
+}
+
+.fillStyleControls .patternColorControl table
+{
+	width: 100%
+}
+
+.fillStyleControls .widthStepTable *
+{
+	vertical-align: middle;
+}
+
+/*.fillStyleControls td.selectorDivContainer
+{
+	vertical-align: top;
+}*/
+
+.fillStyleSelectorDiv img
+{
+	border: solid 2px white;
+	cursor: pointer;
+}
+
+.fillStyleSelectorDiv img.selectedType 
+{
+	border: solid 2px red;
+}
+
+#patternStyleSelector img
+{
+    width: 16px;
+    height: 16px;
+    border: 2px solid #cccccc;
+    margin: 1px;
+    cursor: pointer;
+}
+
+#patternStyleSelector img.activePatternType
+{
+    border: 2px solid red;
+}
