@@ -1,5 +1,6 @@
 import flash.display.Sprite;
 import flash.geom.Matrix;
+import flash.display.BitmapData;
 
 class PolygonGeometry extends Geometry
 {
@@ -36,7 +37,7 @@ class PolygonGeometry extends Geometry
 
 		if (style.hasPatternFill())
 		{
-			var bitmapData = style.fill.bitmapData;
+			var bitmapData:BitmapData = style.fill.getBitmapData(properties);
 			var inv = window.matrix.clone();
 			inv.invert();
 			var scale = Math.abs(inv.a);
