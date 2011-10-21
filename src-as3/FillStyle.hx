@@ -24,9 +24,9 @@ class FillStyle
 
 	static var DEFAULT_COLOR:Int = 0;
 	static var DEFAULT_OPACITY:Float = 1.0;
-	static var MAX_PATTERN_WIDTH:Int = 20;
+	static var MAX_PATTERN_WIDTH:Int = 1000;
 	static var MIN_PATTERN_WIDTH:Int = 1;
-	static var MAX_PATTERN_STEP:Int = 20;
+	static var MAX_PATTERN_STEP:Int = 1000;
 	static var MIN_PATTERN_STEP:Int = 0;
 	
 	public function new(fill:Dynamic)
@@ -103,6 +103,8 @@ class FillStyle
 		if (size > MAX_PATTERN_WIDTH) size = MAX_PATTERN_WIDTH;
 		else if (size < MIN_PATTERN_WIDTH) size = MIN_PATTERN_WIDTH;
 
+		var sizeDelta:Float = 0;		// Поправка при диагоналях
+
 		var op:Float = opacity;
 		if (opacityFunction != null && prop != null) {
 			op = cast(opacityFunction(prop))/100;
@@ -117,8 +119,13 @@ class FillStyle
 		var ws:Int = ww;				// ширина спрайта
 		var shape:Shape = new Shape();
 		if (pattern.style == 'diagonal1' || pattern.style == 'diagonal2' || pattern.style == 'cross' || pattern.style == 'cross1') {
-			ws = hs = 2*allSize;
-			ww = hh = cast(Math.sqrt(hs * hs / 2));// + size;
+			sizeDelta = Math.sqrt(2 * size * size) - size;
+			ww = hh = 
+			ws = hs = allSize;
+/*			
+			ws = hs = 
+			ww = hh = cast(Math.sqrt(hs * hs / 2));
+*/			
 		}
 		else if (pattern.style == 'circle') {
 			ww = hh = size;
@@ -127,7 +134,7 @@ class FillStyle
 		var bmd:BitmapData = new BitmapData(ws, hs, true, 0);
 
 		for (i in 0...count) {
-			var lineWidh:Int = size;
+			//var lineWidh:Int = size;
 			var ly:Int = i * (size + step);
 			var x1:Int = 0; var y1:Int = ly; var x2:Int = ws; var y2:Int = ly;
 			
@@ -140,32 +147,40 @@ class FillStyle
 				if (i == 2 || count <= 2)	shape.graphics.drawEllipse(-radius, size - radius, size, size);
 				if (i == 3 || count <= 3)	shape.graphics.drawEllipse(size - radius, size - radius, size, size);
 				continue;
+			} else if (pattern.style == 'diagonal1' || pattern.style == 'diagonal2' || pattern.style == 'cross' || pattern.style == 'cross1') {
+				x1 = i * (size + step);
+				shape.graphics.moveTo(x1, 0);
+				shape.graphics.lineTo(x1 + size, 0);
+				shape.graphics.lineTo(0, x1 + size);
+				shape.graphics.lineTo(0, x1);
+				shape.graphics.lineTo(x1, 0);
+				
+				x1 += count * (size + step);
+				shape.graphics.moveTo(x1, 0);
+				shape.graphics.lineTo(x1 + size, 0);
+				shape.graphics.lineTo(0, x1 + size);
+				shape.graphics.lineTo(0, x1);
+				shape.graphics.lineTo(x1, 0);
+			} else {
+				shape.graphics.drawRect(x1, y1, ws, size);
 			}
 
-			shape.graphics.drawRect(x1, y1, ws, size);
-
-			if (pattern.style == 'diagonal1' || pattern.style == 'diagonal2' || pattern.style == 'cross' || pattern.style == 'cross1') {
-				shape.graphics.drawRect(x1, y1 + allSize, ws, size);
-			}
 		}
 		var bitmapRes:BitmapData = new BitmapData(ww, hh, true, 0);
 		var matrix:Matrix = new Matrix();
 		matrix.identity();
 		if (pattern.style == 'vertical') {
-			matrix.createBox(1, 1, Math.PI / 2, ws, -0);
+			matrix.createBox(1, 1, Math.PI / 2, ws, 0);
 		} else if (pattern.style == 'cross') {
-			matrix.createBox(1, 1, 2*Math.PI - Math.PI / 4, -hh/2, hh/2);
 			bitmapRes.draw(shape, matrix);
-			matrix.createBox(1, 1, Math.PI / 4, hh/2, -hh/2);
+			matrix.createBox(1, 1, Math.PI/2, hh, 0);
 		} else if (pattern.style == 'cross1') {
-			matrix.createBox(1, 1, Math.PI / 4, hh/2, -hh/2);
+			matrix.createBox(1, 1, Math.PI/2, hh, 0);
 			bitmapRes.draw(shape, matrix);
-			matrix.createBox(1, 1, 2*Math.PI - Math.PI / 4, -hh/2, hh/2);
+			matrix.identity();
 		} else if (pattern.style == 'diagonal1' || pattern.style == 'diagonal2') {
 			if (pattern.style == 'diagonal2') {
-				matrix.createBox(1, 1, Math.PI / 4, hh/2, -hh/2);
-			} else {
-				matrix.createBox(1, 1, 2*Math.PI - Math.PI / 4, -hh/2, hh/2);
+				matrix.createBox(1, 1, Math.PI/2, hh, -0);
 			}
 		}
 		bitmapRes.draw(shape, matrix);
