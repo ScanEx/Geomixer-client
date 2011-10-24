@@ -2748,11 +2748,14 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				obj.properties = layer.properties;
 				var me = this;
 				var isOverlay = false;
-				var arr = getBaseMapParam("overlayLayerID","").split(",");
-				for (var i = 0; i < arr.length; i++) {
-					if(t == arr[i]) {
-						isOverlay = true;
-						break;
+				var overlayLayerID = getBaseMapParam("overlayLayerID","");
+				if(typeof(overlayLayerID) == 'string') {
+					var arr = overlayLayerID.split(",");
+					for (var i = 0; i < arr.length; i++) {
+						if(t == arr[i]) {
+							isOverlay = true;
+							break;
+						}
 					}
 				}
 
@@ -3914,7 +3917,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				}
 				if (layers.properties.MiniMapZoomDelta)
 					miniMapZoomDelta = layers.properties.MiniMapZoomDelta;
-				if (layers.properties.OnLoad)
+				if (layers.properties.OnLoad)		//  Обработка маплета карты
 				{
 					try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(map); }
 					catch (e) {
@@ -6124,47 +6127,55 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					var satelliteString = KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
 					var hybridString = KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
 					
-					var mapLayerNames = getBaseMapParam("mapLayerID", "").split(',');
 					var mapLayers = [];
-					for (var i = 0; i < mapLayerNames.length; i++)
-						if (mapLayerNames[i] in map.layers)
-						{
-							var mapLayer = map.layers[mapLayerNames[i]];
-							//mapLayer.setVisible(true);						// Слои BaseMap должны быть видимыми
-							mapLayer.setAsBaseLayer(mapString);
-							mapLayer.setBackgroundColor(0xffffff);
-							mapLayers.push(mapLayer);
-						}
-					
-					var satelliteLayerNames = getBaseMapParam("satelliteLayerID", "").split(",");
+					var mapLayerID = getBaseMapParam("mapLayerID", "");
+					if(typeof(mapLayerID) == 'string') {
+						var mapLayerNames = mapLayerID.split(',');
+						for (var i = 0; i < mapLayerNames.length; i++)
+							if (mapLayerNames[i] in map.layers)
+							{
+								var mapLayer = map.layers[mapLayerNames[i]];
+								//mapLayer.setVisible(true);						// Слои BaseMap должны быть видимыми
+								mapLayer.setAsBaseLayer(mapString);
+								mapLayer.setBackgroundColor(0xffffff);
+								mapLayers.push(mapLayer);
+							}
+					}
 					var satelliteLayers = [];
-					
-					for (var i = 0; i < satelliteLayerNames.length; i++)
-						if (satelliteLayerNames[i] in map.layers)
-							satelliteLayers.push(map.layers[satelliteLayerNames[i]]);
-							
-					for (var i = 0; i < satelliteLayers.length; i++)
-					{
-						satelliteLayers[i].setAsBaseLayer(satelliteString)
-						satelliteLayers[i].setBackgroundColor(0x000001);
+					var satelliteLayerID = getBaseMapParam("satelliteLayerID", "");
+					if(typeof(satelliteLayerID) == 'string') {
+						var satelliteLayerNames = satelliteLayerID.split(",");
+						
+						for (var i = 0; i < satelliteLayerNames.length; i++)
+							if (satelliteLayerNames[i] in map.layers)
+								satelliteLayers.push(map.layers[satelliteLayerNames[i]]);
+								
+						for (var i = 0; i < satelliteLayers.length; i++)
+						{
+							satelliteLayers[i].setAsBaseLayer(satelliteString)
+							satelliteLayers[i].setBackgroundColor(0x000001);
+						}
 					}
 					
-					var overlayLayerNames = getBaseMapParam("overlayLayerID", "").split(',');
 					var isAnyExists = false;
 					var overlayLayers = [];
-					for (var i = 0; i < overlayLayerNames.length; i++)
-						if (overlayLayerNames[i] in map.layers)
+					var overlayLayerID = getBaseMapParam("overlayLayerID", "");
+					if(typeof(overlayLayerID) == 'string') {
+						var overlayLayerNames = overlayLayerID.split(',');
+						for (var i = 0; i < overlayLayerNames.length; i++)
+							if (overlayLayerNames[i] in map.layers)
+							{
+								isAnyExists = true;
+								var overlayLayer = map.layers[overlayLayerNames[i]];
+								overlayLayer.setAsBaseLayer(hybridString);
+								overlayLayers.push(overlayLayer);
+							}
+						
+						if (isAnyExists)
 						{
-							isAnyExists = true;
-							var overlayLayer = map.layers[overlayLayerNames[i]];
-							overlayLayer.setAsBaseLayer(hybridString);
-							overlayLayers.push(overlayLayer);
+							for (var i = 0; i < satelliteLayers.length; i++)
+								satelliteLayers[i].setAsBaseLayer(hybridString);						
 						}
-					
-					if (isAnyExists)
-					{
-						for (var i = 0; i < satelliteLayers.length; i++)
-							satelliteLayers[i].setAsBaseLayer(hybridString);						
 					}
 					
 					var setOSMEmbed = function(layer)
@@ -6177,7 +6188,9 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						}, 10, 18);
 					}
 					
-					var osmEmbed = map.layers["06666F91C6A2419594F41BDF2B80170F"];
+					var osmEmbedID = getBaseMapParam("osmEmbedID", "");
+					if(typeof(osmEmbedID) != 'string') osmEmbedID = "06666F91C6A2419594F41BDF2B80170F";
+					var osmEmbed = map.layers[osmEmbedID];
 					if (osmEmbed)
 					{
 						osmEmbed.setAsBaseLayer(mapString);
@@ -6299,7 +6312,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.properties = layers.properties;
 					}
 
-					callback(map);
+					callback(map);		// Вызов HTML маплета
 				});
 			},
 			function()
