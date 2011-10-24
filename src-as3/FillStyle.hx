@@ -28,6 +28,8 @@ class FillStyle
 	static var MIN_PATTERN_WIDTH:Int = 1;
 	static var MAX_PATTERN_STEP:Int = 1000;
 	static var MIN_PATTERN_STEP:Int = 0;
+	static var bmdCache:Hash<BitmapData> = new Hash<BitmapData>();
+	var patternKey: String;
 	
 	public function new(fill:Dynamic)
 	{
@@ -53,18 +55,22 @@ class FillStyle
 			imageUrl = null;
 			
 		pattern = null;
+		patternKey = '' + opacity;
 		if (fill.pattern != null)
 			pattern = fill.pattern;
 
 		if (imageUrl == null && pattern != null) {
+			patternKey += '_' + pattern.style;
 			if (Std.is(pattern.width, String)) {
 				patternWidthFunction = Parsers.parseExpression(pattern.width);
 				patternCacheFlag = false;
 			}
+			patternKey += '_' + pattern.width;
 			if (Std.is(pattern.step, String)) {
 				patternStepFunction = Parsers.parseExpression(pattern.step);
 				patternCacheFlag = false;
 			}
+			patternKey += '_' + pattern.step;
 			
 			patternColorsFunction = new Array<Hash<String>->Float>();
 			var arr:Array<Dynamic> = cast(pattern.colors);
@@ -77,6 +83,7 @@ class FillStyle
 				}
 				patternColorsFunction.push(func);
 			}
+			patternKey += '_' + arr.join('_');
 		}
 	}
 
@@ -85,7 +92,9 @@ class FillStyle
 		if (bitmapData != null) {
 			return bitmapData;
 		}
-
+		if (bmdCache.exists(patternKey)) {
+			return bmdCache.get(patternKey);
+		}
 		var arr:Array<Int> = cast(pattern.colors);
 		var count:Int = Std.int(arr.length);
 
@@ -122,10 +131,6 @@ class FillStyle
 			sizeDelta = Math.sqrt(2 * size * size) - size;
 			ww = hh = 
 			ws = hs = allSize;
-/*			
-			ws = hs = 
-			ww = hh = cast(Math.sqrt(hs * hs / 2));
-*/			
 		}
 		else if (pattern.style == 'circle') {
 			ww = hh = size;
@@ -134,7 +139,6 @@ class FillStyle
 		var bmd:BitmapData = new BitmapData(ws, hs, true, 0);
 
 		for (i in 0...count) {
-			//var lineWidh:Int = size;
 			var ly:Int = i * (size + step);
 			var x1:Int = 0; var y1:Int = ly; var x2:Int = ws; var y2:Int = ly;
 			
@@ -184,7 +188,7 @@ class FillStyle
 			}
 		}
 		bitmapRes.draw(shape, matrix);
-		if (patternCacheFlag) bitmapData = bitmapRes;
+		if (patternCacheFlag) bmdCache.set(patternKey, bitmapRes);
 		return bitmapRes;
 	}
 
