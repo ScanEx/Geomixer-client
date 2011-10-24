@@ -2029,7 +2029,12 @@ function createFlashMapInternal(div, layers, callback)
 					case 'getFeatures':
 						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geom':attr['geom'], 'func':attr['func'] } );
 						break;
-				}
+					case 'getTileItem':
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'vId':attr } );
+						break;
+					case 'setTileItem':
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr['data'], 'flag':attr['flag'] } );
+						break;				}
 /*
 if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };
 var delta = (new Date()).getTime() - startTime;
@@ -2903,6 +2908,17 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							}
 							obj.filters = [];
 							reSetStyles(styles, obj);
+						}
+						// Изменить атрибуты векторного обьекта из загруженных тайлов
+						obj.setTileItem = function(data, flag) {
+							var _obj = FlashCMD('setTileItem', { 'obj': this, 'attr': {'data':data, 'flag':(flag ? true:false)} });
+							return _obj;
+						}
+						// Получить атрибуты векторного обьекта из загруженных тайлов id по identityField
+						obj.getTileItem = function(vId) {
+							var _obj = FlashCMD('getTileItem', { 'obj': this, 'attr': vId });
+							if(_obj.geometry) _obj.geometry = gmxAPI.from_merc_geometry(_obj.geometry);
+							return _obj;
 						}
 						obj.getStat = function() {
 							var _obj = FlashCMD('getStat', { 'obj': this });

@@ -100,6 +100,33 @@ class VectorLayer extends MapContent
 		return out;
 	}
 
+	// Получить атрибуты векторного обьекта из загруженных тайлов id по identityField
+	public function getTileItem(id:String):Geometry
+	{
+		var geom:Geometry = null;
+		if (geometries.exists(id)) {
+			geom = geometries.get(id);
+		}
+		return geom;
+	}
+
+	// Изменить атрибуты векторного обьекта из загруженных тайлов
+	public function setTileItem(attr:Dynamic, ?flag:Bool):Dynamic
+	{
+		var out:Dynamic = false;
+		var prop:Dynamic = attr.properties;
+		var id:String = Reflect.field(prop, identityField);
+		if (geometries.exists(id)) {
+			var geom:Geometry = geometries.get(id);
+			if(flag) geom.properties = new Hash<String>();
+			for (key in Reflect.fields(prop)) {
+				geom.properties.set(key, Reflect.field(prop, key));
+			}
+			out = true;
+		}
+		return out;
+	}
+
 	public function repaintIndicator()
 	{
 		var currentZ:Int = Std.int(mapNode.window.getCurrentZ());

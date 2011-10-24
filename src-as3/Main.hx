@@ -1190,10 +1190,22 @@ class Main
 					getFeatureById(attr.objectId, attr.fid, attr.func);
 				case 'getFeatures':		//
 					getFeatures(attr.objectId, attr.geom, attr.func);
+				case 'getTileItem':	// Получить атрибуты векторного обьекта из загруженных тайлов id по identityField
+					var node = getNode(attr.objectId);
+					if (node == null || !Std.is(node.content, VectorLayer)) return null;
+					var geom:Geometry = cast(cast(node.content, VectorLayer).getTileItem(attr.vId));
+					if (geom == null) return null;
+					var tmp:Dynamic = { };
+					tmp.geometry = geom.export();
+					tmp.properties = exportProperties(geom.properties);
+					out = cast(tmp);
+				case 'setTileItem':	// Изменить атрибуты векторного обьекта из загруженных тайлов
+					var node = getNode(attr.objectId);
+					if (node == null || !Std.is(node.content, VectorLayer)) return null;
+					out = cast(cast(node.content, VectorLayer).setTileItem(attr.data, attr.flag));
 			}
 			return out;
 		}
 		ExternalInterface.addCallback("cmdFromJS", parseCmdFromJS);
-
 	}
 }

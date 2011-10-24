@@ -1,0 +1,52 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> <!-- api-ключ для доступа к сервису API, полученный на account.kosmosnimki.ru для сайта kosmosnimki.ru, на котором размещена данная веб-страница --><!-- ВНИМАНИЕ! ДЛЯ ТЕСТИРОВАНИЯ С ЛОКАЛЬНОГО ДИСКА ИСПОЛЬЗУЙТЕ LOCALHOST -->
+<title>GeoMixer API - пример работы с видимостью объекта на карте</title>
+</head>
+
+<body>
+
+<button id="button2">Изменить Регион1 - Мурманчане</button>
+<button id="button3">Изменить все ключи properties</button>
+<button id="button1">Получить обьект </button> <span id="result3"></span>
+<br/>
+<div id="map" style="width: 1024px; height: 660px; overflow:hidden;"></div>
+	<script>
+
+		var ballonHoverFunction = function(o)
+		{
+			var p = o.properties;
+			if(!p['url']) return false;
+			var res = '<img src="' + p['url'] + '" width="512" height="512">';
+			res += '<br><a href="' + p['url'] + '" target="_blank">Открыть в новом окне</a>';
+			return res + '<br>' + o.getGeometrySummary();
+		}
+
+	createFlashMap(document.getElementById("map"), 'maps.kosmosnimki.ru', "DefaultMap", function(map)
+		{
+window._deb = map;
+			map.moveTo(80.41, 64.79, 3);//позиционирует карту по координатам центра и выбирает масштаб
+
+			var myLayer = map.layers["79EF26840533426DB96521279AC660F1"];
+			window.testObj = { 'properties':{}};
+
+			document.getElementById("button1").onclick = function() {
+				testObj = myLayer.getTileItem(26);						// Получить атрибуты векторного обьекта из загруженных тайлов id по identityField
+			}
+
+			document.getElementById("button2").onclick = function() {
+				testObj.properties['ogc_fid'] = '26';
+				testObj.properties['Регион1'] = 'Мурманчане';
+				var flag = myLayer.setTileItem(testObj);				// Добавить атрибуты векторного обьекта из загруженных тайлов
+			}
+
+			document.getElementById("button3").onclick = function() {
+				var obj = {'ogc_fid': '26', 'Регион1': 'Тест аттрибутов2'};
+				testObj.properties = obj;
+				var flag = myLayer.setTileItem(testObj, true);			// Изменить все атрибуты векторного обьекта из загруженных тайлов
+			}
+		});
+	</script>
+</body>
+</html>
