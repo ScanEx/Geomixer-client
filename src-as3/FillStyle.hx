@@ -29,6 +29,8 @@ class FillStyle
 	static var MAX_PATTERN_STEP:Int = 1000;
 	static var MIN_PATTERN_STEP:Int = 0;
 	static var bmdCache:Hash<BitmapData> = new Hash<BitmapData>();
+	static var MAX_CACHE_ITEMS:Int = 50;
+	static var cache_count:Int = 0;
 	var patternKey: String;
 	
 	public function new(fill:Dynamic)
@@ -87,13 +89,17 @@ class FillStyle
 		}
 	}
 
-	public function getBitmapData(?prop:Hash<String>):BitmapData
+	public function getBitmapData(?prop:Hash<String>, ?propHiden:Hash<Dynamic>):BitmapData
 	{
 		if (bitmapData != null) {
 			return bitmapData;
 		}
-		if (bmdCache.exists(patternKey)) {
-			return bmdCache.get(patternKey);
+		var curKey:String = patternKey;
+		if (propHiden != null && propHiden.exists('patternKey')) {
+			curKey = propHiden.get('patternKey');
+		}
+		if (bmdCache.exists(curKey)) {
+			return bmdCache.get(curKey);
 		}
 		var arr:Array<Int> = cast(pattern.colors);
 		var count:Int = Std.int(arr.length);
@@ -116,8 +122,12 @@ class FillStyle
 
 		var op:Float = opacity;
 		if (opacityFunction != null && prop != null) {
-			op = cast(opacityFunction(prop))/100;
+			op = cast(opacityFunction(prop)) / 100;
 		}
+		curKey = '' + op;
+		curKey = '_' + pattern.style;
+		curKey = '_' + pattern.size;
+		curKey = '_' + pattern.step;
 
 		var allSize:Int = (size + step) * count;
 		var radius:Int = cast(size / 2);	// радиус
@@ -126,7 +136,6 @@ class FillStyle
 		var ww:Int = allSize;			// ширина битмапа
 		var hs:Int = hh;				// высота спрайта
 		var ws:Int = ww;				// ширина спрайта
-		var shape:Shape = new Shape();
 		if (pattern.style == 'diagonal1' || pattern.style == 'diagonal2' || pattern.style == 'cross' || pattern.style == 'cross1') {
 			sizeDelta = Math.sqrt(2 * size * size) - size;
 			ww = hh = 
@@ -136,13 +145,13 @@ class FillStyle
 			ww = hh = size;
 		}
 
-		var bmd:BitmapData = new BitmapData(ws, hs, true, 0);
-
+		var shape:Shape = new Shape();
 		for (i in 0...count) {
 			var ly:Int = i * (size + step);
 			var x1:Int = 0; var y1:Int = ly; var x2:Int = ws; var y2:Int = ly;
 			
 			var col:Int = (patternColorsFunction[i] != null && prop != null ? cast(patternColorsFunction[i](prop)) : arr[i]);
+			curKey = '_' + col;
 			shape.graphics.beginFill(col, op);
 
 			if (pattern.style == 'circle') {
@@ -188,7 +197,19 @@ class FillStyle
 			}
 		}
 		bitmapRes.draw(shape, matrix);
-		if (patternCacheFlag) bmdCache.set(patternKey, bitmapRes);
+ 		
+		if (cache_count > MAX_CACHE_ITEMS) {
+			bmdCache = new Hash<BitmapData>();
+			cache_count = 0;
+		}
+
+		if (patternCacheFlag) {
+			curKey = patternKey;
+		} else {
+			if (propHiden != null) propHiden.set('patternKey', curKey);
+		}
+		bmdCache.set(curKey, bitmapRes);
+		cache_count++;
 		return bitmapRes;
 	}
 
