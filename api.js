@@ -76,12 +76,16 @@ window.gmxAPI = {
 		if(obj.properties && obj.properties.identityField) return obj.properties.identityField;
 		return gmxAPI.getIdentityField(obj.parent);
 	},
+	swfWarning: function(attr)
+	{
+		gmxAPI._debugWarnings.push(attr);
+	},
 	addDebugWarnings: function(attr)
 	{
 		if(!window.gmxAPIdebugLevel) return;
 		if(!attr['script']) attr['script'] = 'api.js';
 		if(attr['event'] && attr['event']['lineNumber']) attr['lineNumber'] = attr['event']['lineNumber'];
-		this._debugWarnings.push(attr);
+		gmxAPI._debugWarnings.push(attr);
 		if(window.gmxAPIdebugLevel < 10) return;
 		if(attr['alert']) alert(attr['alert']);
 	},

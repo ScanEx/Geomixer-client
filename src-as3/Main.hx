@@ -39,6 +39,18 @@ class Main
 	public static var clusterPointsViewer:ClusterPointsViewer = null;
 	public static var removeClusterPointsViewer:MouseEvent->Void;		// Удаление ClusterPointsViewer
 
+	public static var messBuffToJS:Array<Dynamic> = new Array<Dynamic>();
+
+	// Команды от SWF в JS
+	public static function cmdToJS(cmd:String, ?p1:Dynamic, ?p2:Dynamic, ?p3:Dynamic):Dynamic
+	{
+		var ret = null;
+		try {
+			ret = ExternalInterface.call(cmd, p1, p2, p3);
+		} catch (e:Error) {  }
+		return ret;
+	}
+	
 	static var lastFrameBumpTime:Float = 0;
 	public static function bumpFrameRate()
 	{
@@ -93,16 +105,6 @@ class Main
 		mapWindow.setCenter(currentX, currentY);
 
 		var viewportHasMoved = false;
-
-		// Команды от SWF в JS
-		function cmdToJS(cmd:String, ?p1:Dynamic, ?p2:Dynamic, ?p3:Dynamic):Dynamic
-		{
-			var ret = null;
-			try {
-				ret = ExternalInterface.call(cmd, p1, p2, p3);
-			} catch (e:Error) {  }
-			return ret;
-		}
 		
 		var getNode = function(id) { return MapNode.allNodes.get(id); }
 		var constrain = function(a:Float, t:Float, b:Float) { return (t < a) ? a : (t > b) ? b : t; }
@@ -225,7 +227,7 @@ class Main
 			}
 
 			//if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
-			if (Key.isDown(16) && cmdToJS("kosmosnimkiBeginZoom"))
+			if (Key.isDown(16) && Main.cmdToJS("kosmosnimkiBeginZoom"))
 				clickedNode = node;
 			else if ((node.getHandler("onMouseDown") != null) || (node.getHandler("onMouseUp") != null) || (node.getHandler("onClick") != null))
 			{
@@ -286,7 +288,7 @@ class Main
 			if (clusterPointsViewer == null) return;
 			if (clusterPointsViewer.vlFilter.clusterAttr.hideFixedBalloons != null) { //удалить фиксированные балуны
 				var name:String = clusterPointsViewer.vlFilter.clusterAttr.hideFixedBalloons;
-				nextFrameCallbacks.push(function() { cmdToJS(name);	});
+				nextFrameCallbacks.push(function() { Main.cmdToJS(name);	});
 			}
 			clusterPointsViewer.remove();
 			clusterPointsViewer = null;
@@ -392,7 +394,7 @@ class Main
 			if (!initCalled)
 			{
 				try {
-					cmdToJS(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
+					Main.cmdToJS(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
 					initCalled = true;
 				} catch (e:Error) {  }
 			}
@@ -448,6 +450,11 @@ class Main
 			{
 				if (stage.frameRate != 2)
 					stage.frameRate = 2;
+
+				if(Main.messBuffToJS.length > 0) {
+					Main.cmdToJS('gmxAPI.swfWarning', Main.messBuffToJS);
+					Main.messBuffToJS = [];
+				}
 			}
 		});
 
@@ -547,14 +554,14 @@ class Main
 				var arr = propertiesToArray(props);
 
 				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
-					cmdToJS(callbackName, node2.id, arr, eventAttr);
+					Main.cmdToJS(callbackName, node2.id, arr, eventAttr);
 				}
 				else
 				{
 					var pID:String = node2.id;
 					nextFrameCallbacks.push(function()
 					{
-						cmdToJS(callbackName, pID, arr, eventAttr);
+						Main.cmdToJS(callbackName, pID, arr, eventAttr);
 					});
 				}
 			}); 
@@ -630,7 +637,7 @@ class Main
 				request.data = pngData;
 				loader.addEventListener(Event.COMPLETE, function(event:Event) {
 					var st:String = loader.data;
-					if (attr.func != null) cmdToJS(attr.func, st);
+					if (attr.func != null) Main.cmdToJS(attr.func, st);
 				});
 				loader.load(request);
 			} catch (e:Error) { trace(e); }
@@ -745,7 +752,7 @@ class Main
 			var newContent = new RasterLayer(
 				function(i:Int, j:Int, z:Int)
 				{
-					var out:String = cmdToJS(func, i, j, z);
+					var out:String = Main.cmdToJS(func, i, j, z);
 					return out;
 				}
 			, minZoom, maxZoom);
@@ -782,7 +789,7 @@ class Main
 		{
 			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):Dynamic
 			{
-				var out:Dynamic = cmdToJS(tileFunction, i, j, z);
+				var out:Dynamic = Main.cmdToJS(tileFunction, i, j, z);
 				return out;
 			});
 			for (i in 0...Std.int(tiles.length/3))
@@ -811,7 +818,7 @@ class Main
 					var geom = layer.geometries.get(id);
 					var geoExp:Dynamic = geom.export();
 					var prop:Dynamic = exportProperties(geom.properties);
-					cmdToJS(func, geoExp, prop, flag);
+					Main.cmdToJS(func, geoExp, prop, flag);
 				}
 			));
 		}
@@ -843,7 +850,7 @@ class Main
 					if (tilesRemaining == 0)
 					{
 						var geom = layer.geometries.get(fid);
-						cmdToJS(func, geom.export(), exportProperties(geom.properties));
+						Main.cmdToJS(func, geom.export(), exportProperties(geom.properties));
 					}
 				}
 			)(extent);
@@ -882,7 +889,7 @@ class Main
 							geoms.push(geom.export());
 							props.push(exportProperties(geom.properties));
 						}
-						cmdToJS(func, geoms, props);
+						Main.cmdToJS(func, geoms, props);
 					}
 				}
 			)(queryExtent);
@@ -939,7 +946,7 @@ class Main
 					var item = new ContextMenuItem(attr.text);
 					item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
 					{
-						cmdToJS(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
+						Main.cmdToJS(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
 					});
 					root.contextMenu.customItems.push(item);
 				case 'moveTo':
@@ -1036,7 +1043,7 @@ class Main
 						{
 							lastCurrentZ = currentZ;
 							lastComputedZ = 0;
-							var pz:Int = cmdToJS(attr.callbackName, 17 - currentZ);
+							var pz:Int = Main.cmdToJS(attr.callbackName, 17 - currentZ);
 							lastComputedZ = 17 - pz;
 						}
 						return lastComputedZ;

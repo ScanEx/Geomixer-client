@@ -41,9 +41,11 @@ class PolygonGeometry extends Geometry
 			inv.invert();
 			var scale = Math.abs(inv.a);
 			var bitmapData:BitmapData = style.fill.getBitmapData(properties, propHiden);
-			inv.tx -= inv.tx%(bitmapData.width*scale);
-			inv.ty -= inv.ty%(bitmapData.height*scale);
-			graphics.beginBitmapFill(bitmapData, inv);
+			if(bitmapData != null) {
+				inv.tx -= inv.tx%(bitmapData.width*scale);
+				inv.ty -= inv.ty%(bitmapData.height*scale);
+				graphics.beginBitmapFill(bitmapData, inv);
+			}
 		}
 		else if(style.fill != null) {
 			if(properties != null) {
