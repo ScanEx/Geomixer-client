@@ -689,10 +689,6 @@ window.gmxAPI = {
 		return (Math.round(area/1000000)) + KOSMOSNIMKI_LOCALIZED(" кв. км", " sq. km");
 	}
 	,
-	lambertCoefX: function() { return 100*gmxAPI.distVincenty(0, 0, 0.01, 0); }
-	,
-	lambertCoefY: function() { return 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/gmxAPI.PI; }
-	,
 	fragmentArea: function(points)
 	{
 		var pts = [];
@@ -704,7 +700,8 @@ window.gmxAPI = {
 			var ipp = (i == (pts.length - 1) ? 0 : (parseInt(i) + 1));
 			area += (pts[i][0]*pts[ipp][1] - pts[ipp][0]*pts[i][1]);
 		}
-		return Math.abs(area*gmxAPI.lambertCoefX*gmxAPI.lambertCoefY/2);
+		var out = Math.abs(area*gmxAPI.lambertCoefX*gmxAPI.lambertCoefY/2);
+		return out;
 	}
 	,
 	fragmentAreaMercator: function(points)
@@ -1153,6 +1150,10 @@ window.gmxAPI = {
 
 }
 
+window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
+window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/gmxAPI.PI;
+
+
 })();
 
 // Блок методов глобальной области видимости
@@ -1199,10 +1200,10 @@ function isRectangle(coords) { return gmxAPI.isRectangle(coords); }
 function getScale(z) { return gmxAPI.getScale(z); }
 
 function forEachPointAmb(arg, callback) { gmxAPI.forEachPointAmb(arg, callback); }
-function geoLength(arg1, arg2, arg3, arg4) { gmxAPI.geoLength(arg1, arg2, arg3, arg4); }
-function geoArea(arg) { gmxAPI.geoArea(arg); }
-function geoCenter(arg1, arg2, arg3, arg4) { gmxAPI.geoCenter(arg1, arg2, arg3, arg4); }
-function convertCoords(coordsStr) { gmxAPI.convertCoords(coordsStr); }
+function geoLength(arg1, arg2, arg3, arg4) { return gmxAPI.geoLength(arg1, arg2, arg3, arg4); }
+function geoArea(arg) { return gmxAPI.geoArea(arg); }
+function geoCenter(arg1, arg2, arg3, arg4) { return gmxAPI.geoCenter(arg1, arg2, arg3, arg4); }
+function convertCoords(coordsStr) { return gmxAPI.convertCoords(coordsStr); }
 
 
 function parseGML(response) { return gmxAPI.parseGML(response); }
