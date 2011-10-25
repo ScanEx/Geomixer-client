@@ -3281,15 +3281,20 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 			map.setBaseLayer = function(name)
 			{
+				if(!name) name = currentBaseLayerName;
 				for (var oldName in baseLayers)
-					if (oldName != name)
+					if (oldName != name || currentBaseLayerName == name)
 						for (var i = 0; i < baseLayers[oldName].length; i++)
 							baseLayers[oldName][i].setVisible(false);
-				currentBaseLayerName = name;
-				var newBaseLayers = baseLayers[currentBaseLayerName];
-				if (newBaseLayers)
-					for (var i = 0; i < newBaseLayers.length; i++)
-						newBaseLayers[i].setVisible(true);
+				if (currentBaseLayerName == name) {
+					currentBaseLayerName = '';
+				} else {
+					currentBaseLayerName = name;
+					var newBaseLayers = baseLayers[currentBaseLayerName];
+					if (newBaseLayers)
+						for (var i = 0; i < newBaseLayers.length; i++)
+							newBaseLayers[i].setVisible(true);
+				}
 				map.baseLayerControl.repaint();
 				if (map.baseLayerControl.onChange)
 					map.baseLayerControl.onChange(name);
@@ -3336,6 +3341,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					baseLayerDiv.innerHTML = "";
 					for (var name in baseLayers) (function(name)
 					{
+						var color = (name == currentBaseLayerName ? "orange" : "white");
+/*
 						if (name == currentBaseLayerName)
 						{
 							baseLayerDiv.appendChild(gmxAPI.newElement(
@@ -3352,13 +3359,14 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							));
 						}
 						else
+*/
 						{
 							baseLayerDiv.appendChild(gmxAPI.newElement(
 								"div",
 								{
 									innerHTML: name,
 									onmouseover: function() { this.style.color = "orange"; },
-									onmouseout: function() { this.style.color = "white"; },
+									onmouseout: function() { if(currentBaseLayerName != name) this.style.color = "white"; },
 									onclick: function() { map.setBaseLayer(name); }
 								},
 								{ 
@@ -3368,7 +3376,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 									fontSize: "12px",
 									fontFamily: "sans-serif",
 									cursor: "pointer", 
-									color: "white" 
+									color: color
 								}
 							));
 						}
