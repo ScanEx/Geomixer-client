@@ -2901,7 +2901,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							} });
 						}
 
-						obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
+						if(layer.properties.dateTiles) {	// Для мультивременных слоёв
+							obj.setVectorTiles(layer.tileDateFunction, layer.properties.identityField, layer.properties.dateTiles, layer.filesHash);
+						} else {
+							obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
+						}
+						//obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
 						obj.setStyle = function(style, activeStyle)
 						{
 							for (var i = 0; i < obj.filters.length; i++)
