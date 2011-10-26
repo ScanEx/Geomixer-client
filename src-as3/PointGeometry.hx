@@ -15,7 +15,8 @@ class PointGeometry extends Geometry
 
 	public override function paint(sprite:Sprite, style:Style, window:MapWindow)
 	{
-		if (window.visibleExtent.contains(x, y))
+		var contains = window.visibleExtent.contains(x, y);	// Точка в области видимости
+		if (contains)
 		{
 			if(propHiden.exists('_paintStyle')) style = propHiden.get('_paintStyle');
 			putPoint(sprite, style, window);

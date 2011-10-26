@@ -27,7 +27,9 @@ class Extent
 
 	public function contains(x:Float, y:Float):Bool
 	{
-		return (x >= minx) && (y >= miny) && (x <= maxx) && (y <= maxy);
+		return ((x >= minx) && (y >= miny) && (x <= maxx) && (y <= maxy))
+			|| (maxx > Utils.worldWidth &&  maxx - x > 2*Utils.worldWidth)
+			;
 	}
 
 	// Переcечение геометрий
