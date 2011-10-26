@@ -64,6 +64,10 @@ class FillStyle
 			pattern = fill.pattern;
 
 		if (imageUrl == null && pattern != null) {
+			pattern.style = (pattern.style == null ? 'horizontal' : pattern.style);
+			pattern.width = (pattern.width == null ? 8 : pattern.width);
+			pattern.step = (pattern.step == null ? 0 : pattern.step);
+			pattern.colors = (pattern.colors == null ? [] : pattern.colors);
 			patternKey += '_' + pattern.style;
 			if (Std.is(pattern.width, String)) {
 				patternWidthFunction = Parsers.parseExpression(pattern.width);
