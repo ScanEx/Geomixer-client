@@ -664,14 +664,6 @@ function loadFunc(iframe, callback)
 		var data = decodeURIComponent(win.name.replace(/\n/g,'\n\\'));
 		if (jQuery.browser.mozilla)
 		{
-	/*		setTimeout(function(){
-				iframe.contentWindow.history.back();
-				
-				// если удалить без переключения контекста, то предыдущее действие не сработает
-				setInterval(function(){
-					iframe.removeNode(true);
-				}, 0);
-			}, 0);*/
 			iframe.removeNode(true);
 		}
 		else
@@ -729,7 +721,7 @@ function createPostIframe(id, callback)
 * @param params {object} - хэш параметров-запросов
 * @param callback {function} - callback, который вызывается при приходе ответа с сервера. Единственный параметр ф-ции - собственно данные
 * @param baseForm {DOMElement} - базовая форма запроса. Используется, когда нужно отправить на сервер файл. 
-*        К форме будет добавлено несколько скрытых полей, отправлен запрос, после чего вся форма удалится!
+*                                В функции эта форма будет модифицироваться, но после отправления запроса будет приведена к исходному виду.
 */
 function sendCrossDomainPostRequest(url, params, callback, baseForm)
 {
@@ -738,13 +730,16 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
 		id = '$$iframe_' + url + rnd;
 
 	var userAgent = navigator.userAgent.toLowerCase(),
-		iframe = createPostIframe(id, callback);
+		iframe = createPostIframe(id, callback),
+        originalFormAction;
 		
 	if (baseForm)
 	{
 		form = baseForm;
+        originalFormAction = form.getAttribute('action');
 		form.setAttribute('action', url);
 		form.target = id;
+        
 	}
 	else
 	{
@@ -761,6 +756,9 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
 			form.id = id;
 		}
 	}
+    
+    var hiddenParamsDiv = document.createElement("div");
+    hiddenParamsDiv.style.display = 'none';
 	
 	for (var paramName in params)
 	{
@@ -770,8 +768,10 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
 		input.setAttribute('name', paramName);
 		input.setAttribute('value', params[paramName]);
 		
-		form.appendChild(input)
+		hiddenParamsDiv.appendChild(input)
 	}
+    
+    form.appendChild(hiddenParamsDiv);
 	
 	if (!baseForm)
 		document.body.appendChild(form);
@@ -780,7 +780,18 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
 	
 	form.submit();
 	
-	form.parentNode.removeChild(form);
+    if (baseForm)
+    {
+        form.removeChild(hiddenParamsDiv);
+        if (originalFormAction !== null)
+            form.setAttribute('action', originalFormAction);
+        else
+            form.removeAttribute('action');
+    }
+    else
+    {
+        form.parentNode.removeChild(form);
+    }
 }
 
 function login(reloadAfterLoginFlag)
@@ -836,7 +847,6 @@ function login(reloadAfterLoginFlag)
 			passwordInput.value = '';
 		};
 	
-	//if (typeof localSite == 'undefined' || !localSite)
 	if (typeof mapsSite != 'undefined' && mapsSite)
 	{
 		_(canvas, [regLink, _br(), retriveLink]);

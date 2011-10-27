@@ -436,7 +436,6 @@ queryLoadShp.prototype._regenerateControl = function()
 
 queryLoadShp.prototype.load = function()
 {
-	var _this = this;
 	if (!this.builded)
 	{
 		this._regenerateControl();
@@ -480,8 +479,8 @@ queryLoadShp.prototype.upload = function()
 			globalFlashMap.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
 		}
 		
+        _this.inputControl.removeChild(_this.postForm);
 		_this._regenerateControl();
-		
 	}, this.postForm);
 }
 
