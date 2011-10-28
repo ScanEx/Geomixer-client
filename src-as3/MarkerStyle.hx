@@ -54,6 +54,9 @@ class MarkerStyle
 		size = Std.is(marker.size, Float) ? marker.size : DEFAULT_SIZE;
 		dx = Std.is(marker.dx, Float) ? marker.dx : DEFAULT_DX;
 		dy = Std.is(marker.dy, Float) ? marker.dy : DEFAULT_DY;
+		
+		marker.scale = (marker.scale != null ? marker.scale : 1);
+		marker.angle = (marker.angle != null ? marker.angle : 0);
 		minScale = Std.is(marker.minScale, Float) ? marker.minScale : DEFAULT_MINSCALE;
 		maxScale = Std.is(marker.maxScale, Float) ? marker.maxScale : DEFAULT_MAXSCALE;
 		center = Std.is(marker.center, Bool) ? marker.center : DEFAULT_CENTER;
@@ -85,7 +88,7 @@ class MarkerStyle
 					ldr.transform.matrix = matrix;
 					var ang	= (me.angleFunction != null ? me.angleFunction(geom.properties) : me.marker.angle);
 					ldr.rotation = ang;
-					var sc	= ldr.scaleX * (me.scaleFunction != null ? me.scaleFunction(geom.properties) : me.marker.scale);
+					var sc = ldr.scaleX * (me.scaleFunction != null ? me.scaleFunction(geom.properties) : me.marker.scale);
 					ldr.scaleX = ldr.scaleY = sc;
 					ldr.mouseEnabled = false;
 					ldr.mouseChildren = false;
@@ -256,15 +259,16 @@ class MarkerStyle
 			center ? -height/2 : (dy - 1)
 		);
 		if (geom.properties != null) {
-			if (angleFunction != null)
-				matrix.rotate(angleFunction(geom.properties)*Math.PI/180.0);
-			if (scaleFunction != null)
-			{
-				var s = scaleFunction(geom.properties);
-				if (s < minScale) s = minScale;
-				else if (s > maxScale) s = maxScale;
+			var ang:Float = (angleFunction != null ? angleFunction(geom.properties) : marker.angle);
+			if(ang != 0) matrix.rotate(ang*Math.PI/180.0);
+			//if (angleFunction != null)
+			//	matrix.rotate(angleFunction(geom.properties)*Math.PI/180.0);
+			var s:Float = (scaleFunction != null ? scaleFunction(geom.properties) : marker.scale);
+			if(s != 1) {
+				if (s < minScale) s = cast(minScale);
+				else if (s > maxScale) s = cast(maxScale);
 				matrix.scale(s, s);
-			}			
+			}
 		}
 		matrix.concat(new Matrix(scaleX, 0, 0, scaleY, geom.x, geom.y));
 		matrix.tx -= matrix.tx%scaleX;
