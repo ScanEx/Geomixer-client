@@ -19,6 +19,7 @@ class MarkerStyle
 	public var imageUrl:String;
 	public var size:Float;
 	
+	var marker:Dynamic;
 	var minScale:Float;
 	var maxScale:Float;
 	var dx:Float;
@@ -44,8 +45,9 @@ class MarkerStyle
 	static var DEFAULT_CENTER:Bool = false;
 	static var svgCache:Hash<XML> = new Hash<XML>();
 
-	public function new(marker:Dynamic, parent:Style)
+	public function new(marker_:Dynamic, parent:Style)
 	{
+		marker = marker_;
 		imageUrl = Std.is(marker.image, String) ? marker.image : null;
 		if (imageUrl == "")
 			imageUrl = null;
@@ -79,8 +81,12 @@ class MarkerStyle
 				var h = ldr.height;
 				me.drawSWFFunction = function(geom:PointGeometry, spr:Sprite, scaleY:Float)
 				{
-					var matrix = me.getMatrix(geom, w, h, scaleY);
-					spr.transform.matrix = matrix;
+					var matrix:Matrix = me.getMatrix(geom, w, h, scaleY);
+					ldr.transform.matrix = matrix;
+					var ang	= (me.angleFunction != null ? me.angleFunction(geom.properties) : me.marker.angle);
+					ldr.rotation = ang;
+					var sc	= ldr.scaleX * (me.scaleFunction != null ? me.scaleFunction(geom.properties) : me.marker.scale);
+					ldr.scaleX = ldr.scaleY = sc;
 					ldr.mouseEnabled = false;
 					ldr.mouseChildren = false;
 					spr.addChild(ldr);
