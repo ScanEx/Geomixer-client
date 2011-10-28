@@ -55,6 +55,16 @@ class Utils
 		return child;
 	}
 
+	public static function clearSprite(spr:Sprite)
+	{
+		spr.graphics.clear();
+		if (spr.numChildren > 0) {
+			for (i in 0...spr.numChildren) {
+				spr.removeChildAt(0);
+			}
+		}
+	}
+
 	public static function getScale(z:Float)
 	{
 		return Math.pow(2, -z)*156543.033928041;

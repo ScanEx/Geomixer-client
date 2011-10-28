@@ -81,6 +81,8 @@ class MarkerStyle
 				{
 					var matrix = me.getMatrix(geom, w, h, scaleY);
 					spr.transform.matrix = matrix;
+					ldr.mouseEnabled = false;
+					ldr.mouseChildren = false;
 					spr.addChild(ldr);
 				}
 				Main.refreshMap();		// Для обновления маркеров
