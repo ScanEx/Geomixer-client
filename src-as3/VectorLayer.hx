@@ -321,6 +321,7 @@ class VectorLayer extends MapContent
 			
 			geo = new PolygonGeometry(coords);
 			geo.properties = geom.properties;
+			geo.propHiden = geom.propHiden;
 			return geo;
 		} else if (Std.is(geom, MultiGeometry)) {
 			var ret = new MultiGeometry();
@@ -328,6 +329,7 @@ class VectorLayer extends MapContent
 			for (member in geo.members)
 				ret.addMember(fromTileGeometry(member));
 			ret.properties = geom.properties;
+			ret.propHiden = geom.propHiden;
 			return ret;
 		}
 		return null;

@@ -1,7 +1,10 @@
 import flash.display.Sprite;
 import flash.display.BitmapData;
-import flash.geom.Matrix;
 import flash.display.Shape;
+import flash.display.Graphics;
+
+import flash.geom.Matrix;
+import flash.geom.Point;
 
 class FillStyle
 {
@@ -24,14 +27,15 @@ class FillStyle
 
 	static var DEFAULT_COLOR:Int = 0;
 	static var DEFAULT_OPACITY:Float = 1.0;
-	static var MAX_PATTERN_SIZE:Int = 500000; // Максимальный размер создаваемого bitmap в пикселах
+	static var MAX_PATTERN_SIZE:Int = 5000000; // Максимальный размер создаваемого bitmap в пикселах
+	static var errorPatterns:Hash<Bool> = new Hash<Bool>();
 
 	static var MAX_PATTERN_WIDTH:Int = 1000;
 	static var MIN_PATTERN_WIDTH:Int = 1;
 	static var MAX_PATTERN_STEP:Int = 1000;
 	static var MIN_PATTERN_STEP:Int = 0;
 	static var bmdCache:Hash<BitmapData> = new Hash<BitmapData>();
-	static var MAX_CACHE_ITEMS:Int = 20;
+	static var MAX_CACHE_ITEMS:Int = 100;
 	static var cache_count:Int = 0;
 	var patternKey: String;
 	
@@ -83,6 +87,7 @@ class FillStyle
 			patternColorsFunction = new Array<Hash<String>->Float>();
 			var arr:Array<Dynamic> = cast(pattern.colors);
 			var count:Int = Std.int(arr.length);
+			var arr1:Array<Int> = new Array<Int>();
 			for (i in 0...count) {
 				var func:Hash<String>->Float = null;
 				if (Std.is(arr[i], String)) {
@@ -90,8 +95,9 @@ class FillStyle
 					patternCacheFlag = false;
 				}
 				patternColorsFunction.push(func);
+				arr1.push(arr[i]);
 			}
-			patternKey += '_' + arr.join('_');
+			patternKey += '_' + arr1.join('_');
 		}
 	}
 
@@ -107,6 +113,7 @@ class FillStyle
 		if (bmdCache.exists(curKey)) {
 			return bmdCache.get(curKey);
 		}
+
 		var arr:Array<Int> = cast(pattern.colors);
 		var count:Int = Std.int(arr.length);
 
@@ -132,9 +139,22 @@ class FillStyle
 		curKey += '_' + pattern.style;
 		curKey += '_' + size;
 		curKey += '_' + step;
+		var resColors:Array<Int> = new Array<Int>();
+		for (i in 0...count) {
+			var col:Int = (patternColorsFunction[i] != null && prop != null ? cast(patternColorsFunction[i](prop)) : arr[i]);
+			resColors.push(col);
+		}
+		curKey += '_' + resColors.join('_');
+
+		if (bmdCache.exists(curKey)) {
+			return bmdCache.get(curKey);
+		}
 
 		var allSize:Int = (size + step) * count;
+		var center:Int = 0;					// центр круга
 		var radius:Int = cast(size / 2);	// радиус
+		var angle =  360 / count; 
+		var rad = angle * Math.PI / 180; 
 
 		var hh:Int = allSize;			// высота битмапа
 		var ww:Int = 1;					// ширина битмапа
@@ -146,31 +166,57 @@ class FillStyle
 			hh = 1;
 		}
 		else if (pattern.style == 'circle') {
-			ww = hh = size;
+			ww = hh = 2 * (size + step);
+			center = cast(ww / 2);
 		}
 		if (ww * hh > MAX_PATTERN_SIZE) {
-			//var mes:Dynamic<String> = cast { };
-			//mes.from = 'FillStyle'; mes.pattern = pattern; mes.error = 'MAX_PATTERN_SIZE'; mes.message = 'Bitmap from pattern is too big';
-			//Main.messBuffToJS.push( mes );
+			if(!errorPatterns.exists(curKey)) {
+				var mes:Dynamic<String> = cast { };
+				mes.from = 'FillStyle'; mes.pattern = pattern; mes.error = 'MAX_PATTERN_SIZE'; mes.message = 'Bitmap from pattern is too big';
+				Main.messBuffToJS.push( mes );
+				errorPatterns.set(curKey, true);
+			}
 			return null;
 		}
+//trace('vvv ' + curKey + ':' + propHiden + ':' + bmdCache.keys());
 
 		var shape:Shape = new Shape();
+		var gg:Graphics = shape.graphics;
+		var bitmapRes:BitmapData = new BitmapData(ww, hh, true, 0);
 		for (i in 0...count) {
 			var ly:Int = i * (size + step);
 			var x1:Int = 0; var y1:Int = ly; var x2:Int = ww; var y2:Int = ly;
 			
-			var col:Int = (patternColorsFunction[i] != null && prop != null ? cast(patternColorsFunction[i](prop)) : arr[i]);
-			//col = (col < 0 ? 0 : (col > 0xFFFFFF ? 0xFFFFFF : col));
-			curKey += '_' + col;
-			shape.graphics.beginFill(col, op);
+			var col:Int = resColors[i];
+			gg.beginFill(col, op);
 
 			if (pattern.style == 'circle') {
-				if (i == 0)					shape.graphics.drawEllipse(-radius, -radius, size, size);
-				if (i == 1 || count <= 1)	shape.graphics.drawEllipse(size - radius, -radius, size, size);
-				if (i == 2 || count <= 2)	shape.graphics.drawEllipse(-radius, size - radius, size, size);
-				if (i == 3 || count <= 3)	shape.graphics.drawEllipse(size - radius, size - radius, size, size);
-				continue;
+				var shape1:Shape = new Shape();
+				shape1.x = -center;
+				shape1.y = center;
+				var matrix1:Matrix = new Matrix();
+				matrix1.createBox(1, 1, 0, ww/2, hh/2);
+				
+				var mask:Shape = new Shape();
+				mask.graphics.beginFill(0, 1);
+				mask.graphics.moveTo(0, 0);
+				var ugol:Float = i*rad;
+				var pt:Point = Point.polar(size, ugol);
+				mask.graphics.lineTo(pt.x, pt.y);
+				
+				var drad:Float = size/Math.cos(rad/2);
+				pt = Point.polar(drad, ugol + rad/2);
+				mask.graphics.lineTo(pt.x, pt.y);
+				
+				ugol += rad;
+				pt = Point.polar(size, ugol);
+				mask.graphics.lineTo(pt.x, pt.y);
+				mask.graphics.lineTo(0, 0);
+
+				shape1.mask = mask;
+				shape1.graphics.beginFill(col, op);
+				shape1.graphics.drawCircle(0, 0, size);
+				bitmapRes.draw(shape1, matrix1);
 			} else if (pattern.style == 'diagonal1' || pattern.style == 'diagonal2' || pattern.style == 'cross' || pattern.style == 'cross1') {
 				x1 = i * (size + step);
 				shape.graphics.moveTo(x1, 0);
@@ -190,7 +236,6 @@ class FillStyle
 			}
 
 		}
-		var bitmapRes:BitmapData = new BitmapData(ww, hh, true, 0);
 		var matrix:Matrix = new Matrix();
 		matrix.identity();
 		if (pattern.style == 'vertical') {
@@ -207,7 +252,7 @@ class FillStyle
 				matrix.createBox(1, 1, Math.PI/2, hh, -0);
 			}
 		}
-		bitmapRes.draw(shape, matrix);
+		if (pattern.style != 'circle') bitmapRes.draw(shape, matrix);
  		
 		if (cache_count > MAX_CACHE_ITEMS) {
 			bmdCache = new Hash<BitmapData>();
