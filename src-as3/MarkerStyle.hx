@@ -1,3 +1,5 @@
+import flash.display.Loader;
+import flash.display.Sprite;
 import flash.display.BitmapData;
 import flash.display.Graphics;
 import flash.display.LineScaleMode;
@@ -31,6 +33,7 @@ class MarkerStyle
 	var origScaleExpr: String;
 
 	public var drawFunction:PointGeometry->Graphics->Float->Void;
+	public var drawSWFFunction:PointGeometry->Sprite->Float->Void;
 
 	static var DEFAULT_REPLACEMENT_COLOR:UInt = 0xff00ff;
 	static var DEFAULT_SIZE:Float  = 0.0;
@@ -66,6 +69,24 @@ class MarkerStyle
 		var me = this;
 		if (imageUrl == null)
 			onLoad();
+		else if (~/\.swf$/i.match(imageUrl))
+		{
+			Utils.loadCacheDisplayObject(imageUrl, function(hash:Dynamic)
+			{
+				if (hash == null || hash.loader == null) return;
+				var ldr:Loader = hash.loader;
+				var w = ldr.width;
+				var h = ldr.height;
+				me.drawSWFFunction = function(geom:PointGeometry, spr:Sprite, scaleY:Float)
+				{
+					var matrix = me.getMatrix(geom, w, h, scaleY);
+					spr.transform.matrix = matrix;
+					spr.addChild(ldr);
+				}
+				Main.refreshMap();		// Для обновления маркеров
+				onLoad();
+			});
+		}
 		else if (~/\.svg$/i.match(imageUrl))
 		{
 			var me = this;

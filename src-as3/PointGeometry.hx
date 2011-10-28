@@ -35,6 +35,11 @@ class PointGeometry extends Geometry
 				refreshFlag = false;
 				oldZ = window.getCurrentZ();
 			}
+			else if (marker.drawSWFFunction != null) {	// Загрузка SWF маркера
+				marker.drawSWFFunction(this, sprite, window.scaleY);
+				refreshFlag = false;
+				oldZ = window.getCurrentZ();
+			}
 			else
 			{
 				var size = marker.size;

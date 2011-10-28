@@ -23,7 +23,7 @@ typedef Req = {
 
 typedef ReqImg = {
 	var url : String;
-	var onLoad :BitmapData->Void;
+	var onLoad :Dynamic->Void;
 	var onError :Void->Void;
 }
 
@@ -66,6 +66,75 @@ class Utils
 		if (date == null)
 			date = properties.get("DATE");
 		return date;
+	}
+
+	// Загрузить DisplayObject если возможно закешировать
+	public static function loadCacheDisplayObject(url:String, onLoad:Dynamic->Void, ?onError:Void->Void)
+	{
+		var req:ReqImg = { url: url, onLoad: onLoad, onError: onError };
+		var flag:Bool = imgWaitCache.exists(url);
+		var arr:Array<ReqImg> = new Array<ReqImg>();
+		if (flag) arr = imgWaitCache.get(url);
+
+		arr.push(req);
+		imgWaitCache.set(url, arr);
+		if(!flag) runLoadCacheDisplayObject(req);
+	}
+
+	// Загрузка DisplayObject
+	private static function runLoadCacheDisplayObject(req:ReqImg)
+	{
+		var url:String = req.url;
+		var onLoad = req.onLoad;
+		var onError = req.onError;
+
+		var loader = new Loader();
+
+		var callOnError = function()
+		{
+			if (onError != null)
+				onError();
+		}
+		var timer = new Timer(60000, 1);
+		timer.addEventListener("timer", function(e:TimerEvent)
+		{
+			try { loader.close(); } catch (e:Error) {}
+			callOnError();
+		});
+		timer.start();
+
+		loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(event) 
+		{ 
+			timer.stop();
+			var imgData:Dynamic = { };
+			imgData.isOverlay = null;
+			imgData.loader = loader;
+			onLoad(imgData);
+			Main.bumpFrameRate();
+		});
+		loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, function(event)
+		{
+			timer.stop();
+			callOnError();
+			var arr:Array<ReqImg> = imgWaitCache.get(url);
+			for (req in arr) {
+				req.onError();
+			}
+			imgWaitCache.remove(url);
+			
+		});
+		var loaderContext:LoaderContext = new LoaderContext();
+		loaderContext.checkPolicyFile = true;
+		try 
+		{
+			loader.load(new URLRequest(url), loaderContext);
+		}
+		catch (e:Error) 
+		{
+			trace("security error while loading " + url);
+			timer.stop();
+			callOnError();
+		}
 	}
 
 	// Загрузить Image если возможно закешировать BitmapData + определение isOverlay
