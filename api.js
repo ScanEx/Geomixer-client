@@ -4983,8 +4983,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 				ret.remove = function()
 				{
-					if (obj.isDrawing())
-						selectTool("move");
+//					if (obj.isDrawing()) selectTool("move");
 					obj.remove();
 					if (domObj) {
 						chkListeners('onRemove', map.drawing, domObj);
@@ -5109,8 +5108,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 				ret.remove = function()
 				{
-					if (obj.isDrawing())
-						selectTool("move");
+					//if (obj.isDrawing())	selectTool("move");
 					obj.remove();
 					if (domObj) {
 						chkListeners('onRemove', map.drawing, domObj);
