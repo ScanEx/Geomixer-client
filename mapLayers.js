@@ -181,57 +181,9 @@ var layersTree = function()
 	
 //	this.permalinkActions = [];
 	
-	this.suggestTimeout = 700;
-	
 	this.groupLoadingFuncs = [];
 		
 	this.copiedStyle = null;
-	
-	//элементы контекстного меню для слоёв. Тип ILayersContextMenuElem
-	this._layersContentMenuElems = [];
-}
-
-/** Интерфейс для задания контекстного меню пользователей
-* @class
-*/
-layersTree.ILayersContextMenuElem = {
-
-	/** Нужно ли отображать данный пункт меню для данного элемента и типа дерева
-	@function
-	@param LayerManagerFlag Тип дерева
-	@param elem Элемент (слой), для которого стротся меню
-	*/
-	isVisible:         function(LayerManagerFlag, elem){},
-	
-	/** Нужно ли рисовать перед данным пунктом разделитель (гориз. черту). Необязательная (по умолчанию не рисуется)
-	@function
-	@param LayerManagerFlag {int} Тип дерева
-	@param elem Элемент (слой), для которого стротся меню
-	*/
-	isSeparatorBefore: function(LayerManagerFlag, elem){}, //необязательная
-	
-	/** Вызывается при клике по соответствующему пункту меню
-	@function
-	@param elem Элемент (слой), для которого стротся меню
-	@param tree {layersTree} Текущее дерево, внутри которого находится слой
-	@param contentMenuArea Координаты верхнего левого угла пункта меню, на которое было нажатие. {left: int, top: int}. Если нужно привязаться к месту текущего клика
-	*/
-	clickCallback:     function(elem, tree, contentMenuArea){},
-	
-	/** Возвращает строку, которую нужно рисовать в контекстном меню
-	@function
-	@return строка, которую нужно рисовать в контекстном меню
-	*/
-	getTitle:          function(){}
-}
-
-/** Добавить пункт контекстного меню.
-* @function
-* @param menuElem {layersTree.ILayersContextMenuElem} Новый пукнт контекстного меню
-*/
-layersTree.prototype.addContextMenuElem = function(menuElem)
-{
-	this._layersContentMenuElems.push(menuElem);
 }
 
 // layerManagerFlag == 0 для дерева слева
@@ -380,6 +332,7 @@ layersTree.prototype.runLoadingFuncs = function()
 
 layersTree.prototype.addExpandedEvents = function(parent)
 {
+	var _this = this;
 	$(parent).find("div.hitarea").each(function()
 	{
 		if (!this.clickFunc)
@@ -394,7 +347,7 @@ layersTree.prototype.addExpandedEvents = function(parent)
 			$(divClick).bind('click', function()
 			{
 				var div = $(divClick.parentNode).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0],
-					treeElem = _mapHelper.findTreeElem(div);
+					treeElem = _this.mapHelper.findTreeElem(div);
 				
 				if (!treeElem.parents.length)
 					return;
@@ -570,296 +523,19 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	
 	if (!layerManagerFlag && !globalFlashMap.layers[elem.name].isVisible)
 		$(spanParent).addClass("invisible")
-
-	// var editor = makeLinkButton(_gtxt("Редактировать")),
-		// remove = makeLinkButton(_gtxt("Удалить")),
-		// access = makeLinkButton(_gtxt("Права доступа")),
-		// attrs = makeLinkButton(_gtxt("Таблица атрибутов")),
-		// download = makeLinkButton(_gtxt("Скачать")),
-		// copyStyle = makeLinkButton(_gtxt("Копировать стиль")),
-		// pasteStyle = makeLinkButton(_gtxt("Применить стиль"));
 	
-	// editor.onclick = function(e)
-	// {
-		// _contextClose();
-		// $(this).removeClass('buttonLinkHover');
+	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Layer', function(){return true;}, {
+		layerManagerFlag: layerManagerFlag,
+		elem: elem, 
+		tree: this
+	});
 		
-		// var div;
-			
-		// if (elem.LayerID)
-			// div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		// else
-			// div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		// _mapHelper.createLayerEditor(div, 0, div.properties.content.properties.styles.length > 1 ? -1 : 0);
-		
-		// //_mapHelper.createLayerEditor(span.parentNode.parentNode, 0, span.parentNode.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
-	// }
-	
-	// remove.onclick = function()
-	// {
-		// _contextClose();
-		// $(this).removeClass('buttonLinkHover');
-		
-		// _queryMapLayers.removeLayer(elem.name)
-		
-		// var div;
-			
-		// if (elem.LayerID)
-			// div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		// else
-			// div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		
-		// var treeElem = _mapHelper.findTreeElem(div).elem,
-			// node = div.parentNode,
-			// parentTree = node.parentNode;
-		
-		// _mapHelper.removeTreeElem(div);
-
-		// node.removeNode(true);
-		
-		// _abstractTree.delNode(null, parentTree, parentTree.parentNode);
-		
-		// _mapHelper.updateUnloadEvent(true);
-	// }
-	
-	// access.onclick = function()
-	// {
-		// _contextClose();
-		// $(this).removeClass('buttonLinkHover');
-		
-		// if (elem.LayerID)
-			// _layerSecurity.getRights(elem.LayerID, elem.title);
-		// else if (elem.MultiLayerID)
-			// _multiLayerSecurity.getRights(elem.MultiLayerID, elem.title);
-	// }
-	
-	// attrs.onclick = function()
-	// {
-		// _contextClose();
-		// $(this).removeClass('buttonLinkHover');
-		
-		// _attrsTableHash.create(elem.name)
-	// }
-	
-	// download.onclick = function()
-	// {
-		// var area = getOffsetRect(this);
-		
-		// _contextClose();
-		// $(this).removeClass('buttonLinkHover');
-		
-		// _layersTree.downloadVectorLayer(elem.name, area, elem.hostName)
-	// }
-	
-	// copyStyle.onclick = function()
-	// {
-		// _contextClose();
-		// $(this).removeClass('buttonLinkHover');
-		
-		// _this.copiedStyle = {type: elem.GeometryType, style: spanParent.parentNode.properties.content.properties.styles};
-	// }
-	
-	// pasteStyle.onclick = function()
-	// {
-		// _contextClose();
-		// $(this).removeClass('buttonLinkHover');
-		
-		// if (!_this.copiedStyle)
-		// {
-			// showErrorMessage(_gtxt("Не выбран стиль"), true)
-			
-			// return;
-		// }
-		
-		// if (_this.copiedStyle.type != elem.GeometryType)
-		// {
-			// showErrorMessage(_gtxt("Невозможно применить стиль к другому типу геометрии"), true)
-			
-			// return;
-		// }
-		
-		// var newStyles = _this.copiedStyle.style,
-			// div = spanParent.parentNode;
-		
-		// // если слой еще не создан
-		// if (!globalFlashMap.layers[elem.name].objectId)
-			// $(box).trigger("click")
-					
-		// div.properties.content.properties.styles = newStyles;
-		
-		// _mapHelper.updateMapStyles(newStyles, elem.name);
-		
-		// _mapHelper.updateTreeStyles(newStyles, div);
-	// }
-	
-	var actionsCanvas = null,
-		attachMenuEvents = function()
-		{
-			if (actionsCanvas == null)
-				return;
-			
-			if ($.browser.opera)
-			{
-				spanParent.onmouseover = function()
-				{
-					if (actionsCanvas == null)
-						return;
-					
-					this.timer = setTimeout(function()
-					{
-						spanParent.timer = null;
-						
-						actionsCanvas.style.top = spanParent.offsetHeight + 'px';
-						
-						if ($.browser.msie)
-							spanParent.style.zIndex = 2;
-
-						$(actionsCanvas).fadeIn(500);
-						
-						spanParent.style.backgroundColor = '#DAEAF3';
-					}, _this.suggestTimeout)
-				}
-				
-				spanParent.onmouseout = function(e)
-				{
-					if (actionsCanvas == null)
-						return;
-					
-					if (this.timer)
-						clearTimeout(this.timer);
-
-					var evt = e || window.event,
-						target = evt.srcElement || evt.target,
-						relTarget = evt.relatedTarget || evt.toElement;
-					
-					while (relTarget)
-					{
-						if (relTarget == spanParent)
-							return;
-						relTarget = relTarget.parentNode;
-					}
-					
-					if ($.browser.msie)
-						spanParent.style.zIndex = 1;
-					
-					spanParent.style.backgroundColor = '';
-
-					$(actionsCanvas).fadeOut(500);
-				}
-				
-				_(spanParent, [actionsCanvas]);
-			}
-			else
-			{
-				_context(spanParent, actionsCanvas, function()
-				{
-					return actionsCanvas != null;
-				})
-			}
-		};
-		
-	//добавляем пункты в контекстное меню
-	for (var e = 0; e < this._layersContentMenuElems.length; e++)
-	(function (menuElem) {
-		if (!menuElem.isVisible(layerManagerFlag, elem) ) return;
-		var titleLink = makeLinkButton(menuElem.getTitle());
-		titleLink.onclick = function()
-		{
-			var area = getOffsetRect(this);
-			_contextClose();
-			$(this).removeClass('buttonLinkHover');
-			menuElem.clickCallback(elem, _this, area);
-		};
-
-		if (actionsCanvas == null)
-		{
-			if ($.browser.opera)
-				actionsCanvas = _div(null, [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-			else
-				actionsCanvas = _div(null, [['css','width','120px']]);
-		}
-		
-		if ( typeof menuElem.isSeparatorBefore !== 'undefined' && menuElem.isSeparatorBefore(layerManagerFlag, elem) )
-			_(actionsCanvas, [_div(null, [['css','height','1px'],['css','margin','2px 10px 2px 0px'],['css','borderBottom','1px solid #999999']])]);
-		
-		_(actionsCanvas, [_div([titleLink],[['css','height','16px']])]);
-		
-	})(this._layersContentMenuElems[e]);
-	
-	// if (!layerManagerFlag)
-	// {
-		// if (_queryMapLayers.currentMapRights() == "edit")
-		// {
-			// // меню для редактора
-			// //_(actionsCanvas, [_div([editor],[['css','height','16px']])]);
-			
-			// // if ($.browser.opera)
-				// // ( = _div([_div([editor],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-			// // else
-				// // actionsCanvas = _div([_div([editor],[['css','height','16px']])], [['css','width','120px']]);
-			
-			 // //if (elem.type == "Vector")
-				 // //_(actionsCanvas, [_div([attrs],[['css','height','16px']])]);
-			
-			// // if ( nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
-				// // ( _mapHelper.mapProperties.Owner == userInfo().Login || 
-				  // // nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) ) 
-				// // )
-			// // {
-				// // _(actionsCanvas, [_div([access],[['css','height','16px']])]);
-			// // }
-			
-			// if (elem.type == "Vector")
-			// {
-				// // if (_mapHelper.mapProperties.CanDownloadVectors)
-					// // _(actionsCanvas, [_div([download],[['css','height','16px']])])
-				
-				// //_(actionsCanvas, [_div([remove],[['css','height','16px']])]);
-				
-				// //_(actionsCanvas, [_div(null, [['css','height','1px'],['css','margin','2px 10px 2px 0px'],['css','borderBottom','1px solid #999999']]), _div([copyStyle],[['css','height','16px']]), _div([pasteStyle],[['css','height','16px']])]);
-			// }
-			// else;
-				// //_(actionsCanvas, [_div([remove],[['css','height','16px']])])
-		// }
-		// else if (_queryMapLayers.currentMapRights() == "view" && userInfo().Login)
-		// {
-			// // меню для пользователя
-			// // if (elem.type == "Vector")
-			// // {
-				// // if (_mapHelper.mapProperties.CanDownloadVectors)
-				// // {
-					// // _(actionsCanvas, [_div([download],[['css','height','16px']])]);
-					// // // if ($.browser.opera)
-						// // // actionsCanvas = _div([_div([download],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-					// // // else
-						// // // actionsCanvas = _div([_div([download],[['css','height','16px']])], [['css','width','120px']]);
-				// // }
-			// // }
-		// }
-		
-		// attachMenuEvents();
-	// }
-	// else
-	// {
-		// if (elem.type == "Vector")
-		// {
-			// // if ($.browser.opera)
-				// // actionsCanvas = _div([_div([copyStyle],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-			// // else
-				// // actionsCanvas = _div([_div([copyStyle],[['css','height','16px']])], [['css','width','120px']]);
-			
-			// attachMenuEvents();
-		// }
-	// }
-	
-	attachMenuEvents();
-	
 	if (elem.type == "Vector")
 	{
-		var icon = _mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon'),
+		var icon = this.mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon'),
 			multiStyleParent = _div(null,[['attr','multiStyle',true]]);
 		
-		_mapHelper.createMultiStyle(elem, multiStyleParent, true, layerManagerFlag);
+		this.mapHelper.createMultiStyle(elem, multiStyleParent, true, layerManagerFlag);
 		
 		if (!layerManagerFlag)
 		{
@@ -868,7 +544,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			icon.onclick = function()
 			{
-				_mapHelper.createLayerEditor(this.parentNode, 1,  icon.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
+				_this.mapHelper.createLayerEditor(this.parentNode, 1,  icon.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
 			}
 			
 			return [box, icon, spanParent, spanDescr, multiStyleParent];
@@ -882,7 +558,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			metaCount = 0;;
 		
 		for (var key in elem.metadata)
-			if (key != "ogc_fid" && key != 'PLCH' && key != 'Field1' && elem.metadata[key] != '' &&  elem.metadata[key] != null)
+			if (key != elem.identityField && key != 'PLCH' && key != 'Field1' && elem.metadata[key] != '' &&  elem.metadata[key] != null)
 				metaCount++;
 		
 		if (elem.metadata && metaCount > 0 || elem.Legend)
@@ -891,7 +567,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			borderDescr.onclick = function()
 			{
-				_this.showLayerInfo({properties:elem}, {properties: elem.metadata && metaCount > 0 ? elem.metadata : {}}, false)	
+				_this.showLayerInfo({properties:elem}, {properties: elem.metadata && metaCount > 0 ? elem.metadata : {}}, false, elem.identityField)
 			}
 		}
 		
@@ -934,6 +610,8 @@ layersTree.prototype.downloadVectorLayer = function(name, area, mapHostName)
 	showDialog(_gtxt("Скачать shp-файл"), canvas, 240, 120, area.left + 150, area.top)
 }
 
+//При клике на объекте показывает аттрибутивную информацию объекта в виде красивой таблицы. 
+//На данный момент нигде не используется
 layersTree.prototype.showInfo = function(layer)
 {
 	if (layer.properties.type != 'Vector')
@@ -946,15 +624,16 @@ layersTree.prototype.showInfo = function(layer)
 	
 	layer.setHandler("onClick", function(obj)
 	{
-		_this.showLayerInfo(layer, obj, true)
+		_this.showLayerInfo(layer, obj, true, layer.properties.identityField)
 	})
 }
 
-layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag)
+//Показывает аттрибутивную информацию объекта в виде таблички в отдельном диалоге
+layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag, identityField)
 {
 	var trs = [];
 	for (var key in obj.properties)
-		if (geoInfoFlag || (key != "ogc_fid" && key != 'PLCH' && key != 'Field1' && obj.properties[key] != '' &&  obj.properties[key] != null))
+		if (geoInfoFlag || (key != identityField && key != 'PLCH' && key != 'Field1' && obj.properties[key] != '' &&  obj.properties[key] != null))
 		{
 			var content = _div(),
 				contentText = String(obj.properties[key]);
@@ -1081,6 +760,12 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 			
 			_this.visibilityFunc(this, this.checked, parentParams.list);
 		}
+		
+		if (typeof elem.ShowCheckbox !== 'undefined' && !elem.ShowCheckbox)
+		{
+			box.isDummyCheckbox = true;
+			box.style.display = 'none';
+	}
 	}
 	
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer'],['attr','dragg',true]]);
@@ -1119,7 +804,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 						},
 						minLayerZoom = 20;
 					
-					_mapHelper.findChilds(_mapHelper.findTreeElem(span.parentNode.parentNode).elem, function(child)
+					_this.mapHelper.findChilds(_this.mapHelper.findTreeElem(span.parentNode.parentNode).elem, function(child)
 					{
 						if (child.type == 'layer' && child.content.properties.LayerID)
 						{
@@ -1171,98 +856,16 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 		if (!parentVisibility || !elem.visible)
 			$(spanParent).addClass("invisible")
 		
-		var editor = makeLinkButton(_gtxt("Редактировать")),
-			add = makeLinkButton(_gtxt("Добавить подгруппу")),
-			remove = makeLinkButton(_gtxt("Удалить"));
-		
-		editor.onclick = function(e)
+		nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Group', function()
 		{
-			_contextClose();
-			$(this).removeClass('buttonLinkHover');
-			
-			_mapHelper.createGroupEditor(spanParent.parentNode);
-		}
-		
-		add.onclick = function()
-		{
-			_contextClose();
-			$(this).removeClass('buttonLinkHover');
-			
-			_this.addSubGroup(spanParent.parentNode);
-		}
-		
-		remove.onclick = function(e)
-		{
-			_contextClose();
-			$(this).removeClass('buttonLinkHover');
-			
-			_this.removeGroup(spanParent.parentNode);
-			
-			_mapHelper.updateUnloadEvent(true);
-		}
-		
-		if ($.browser.opera)
-		{
-			var actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([add],[['css','height','16px']]), _div([remove],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-			
-			spanParent.onmouseover = function()
-			{
-				if (_queryMapLayers.currentMapRights() != "edit")
-					return;
-				
-				this.timer = setTimeout(function()
-				{
-					spanParent.timer = null;
-					
-					actionsCanvas.style.top = spanParent.offsetHeight + 'px';
-				
-					if ($.browser.msie)
-						spanParent.style.zIndex = 2;
-
-					$(actionsCanvas).fadeIn(500);
-					
-					spanParent.style.backgroundColor = '#DAEAF3';
-				}, _this.suggestTimeout)
-			}
-			
-			spanParent.onmouseout = function(e)
-			{
-				if (_queryMapLayers.currentMapRights() != "edit")
-					return;
-				
-				if (this.timer)
-					clearTimeout(this.timer);
-
-				var evt = e || window.event,
-					target = evt.srcElement || evt.target,
-					relTarget = evt.relatedTarget || evt.toElement;
-				
-				while (relTarget)
-				{
-					if (relTarget == spanParent)
-						return;
-					relTarget = relTarget.parentNode;
-				}
-				
-				if ($.browser.msie)
-					spanParent.style.zIndex = 1;
-				
-				spanParent.style.backgroundColor = '';
-
-				$(actionsCanvas).fadeOut(500);
-			}
-			
-			_(spanParent, [actionsCanvas])
-		}
-		else
-		{
-			var actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([add],[['css','height','16px']]), _div([remove],[['css','height','16px']])], [['css','width','120px']]);
-			
-			_context(spanParent, actionsCanvas, function()
-			{
 				return _queryMapLayers.currentMapRights() == "edit";
-			})
+		}, 
+		function(){
+			return {
+				div: spanParent.parentNode,
+				tree: _this
 		}
+		});
 		
 		return [box, spanParent];
 	}
@@ -1286,111 +889,18 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 		_this.setActive(this);
 	}
 	
-	var editor = makeLinkButton(_gtxt("Редактировать")),
-		add = makeLinkButton(_gtxt("Добавить подгруппу")),
-		access = makeLinkButton(_gtxt("Права доступа"));
-	
-	editor.onclick = function(e)
+	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Map', function()
 	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		_mapHelper.createMapEditor(span.parentNode.parentNode);
+		return _queryMapLayers.currentMapRights() == "edit";
+	}, 
+	function() 
+	{
+		return {
+			div: spanParent.parentNode,
+			tree: _this
 	}
-	
-	add.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		_this.addSubGroup(spanParent.parentNode);
-	}
-	
-	access.onclick = function()
-	{
-		_contextClose();
-		$(this).removeClass('buttonLinkHover');
-		
-		_mapSecurity.getRights(_mapHelper.mapProperties.MapID, _mapHelper.mapProperties.title);
-	}
-	
-	var bAddAccessDialog = nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
-		 ( _mapHelper.mapProperties.Owner == userInfo().Login || 
-		   nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) );
-	
-	if ($.browser.opera)
-	{
-		var actionsCanvas;
-		
-		if ( bAddAccessDialog )
-			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([access],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-		else
-			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['dir','className','layerSuggest'],['css','width','120px'],['css','zIndex',2]]);
-		
-		spanParent.onmouseover = function()
-		{
-			if (_queryMapLayers.currentMapRights() != "edit")
-				return;
-			
-			this.timer = setTimeout(function()
-			{
-				spanParent.timer = null;
-				
-				actionsCanvas.style.top = spanParent.offsetHeight + 'px';
-				
-				if ($.browser.msie)
-					spanParent.style.zIndex = 2;
+	});
 
-				$(actionsCanvas).fadeIn(500);
-				
-				spanParent.style.backgroundColor = '#DAEAF3';
-			}, _this.suggestTimeout)
-		}
-		
-		spanParent.onmouseout = function(e)
-		{
-			if (_queryMapLayers.currentMapRights() != "edit")
-				return;
-			
-			if (this.timer)
-				clearTimeout(this.timer);
-
-			var evt = e || window.event,
-				target = evt.srcElement || evt.target,
-				relTarget = evt.relatedTarget || evt.toElement;
-			
-			while (relTarget)
-			{
-				if (relTarget == spanParent)
-					return;
-				relTarget = relTarget.parentNode;
-			}
-			
-			if ($.browser.msie)
-				spanParent.style.zIndex = 1;
-			
-			spanParent.style.backgroundColor = '';
-
-			$(actionsCanvas).fadeOut(500);
-		}
-		
-		_(spanParent, [actionsCanvas])
-	}
-	else
-	{
-		var actionsCanvas;
-		
-		if ( bAddAccessDialog )
-			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([access],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['css','width','120px']]);
-		else
-			actionsCanvas = _div([_div([editor],[['css','height','16px']]), _div([add],[['css','height','16px']])], [['css','width','120px']]);
-		
-		_context(spanParent, actionsCanvas, function()
-		{
-			return _queryMapLayers.currentMapRights() == "edit";
-		})
-	}
-	
 	return [spanParent];
 }
 
@@ -1419,17 +929,21 @@ layersTree.prototype.addSubGroup = function(div)
 	else
 		newIndex = ul.childNodes.length + 1;
 	
-	var newName = (div.properties.content) ? div.properties.content.properties.title : div.properties.properties.title,
+	var groupVisibilityProperties = new layersTree.GroupVisibilityPropertiesModel( false, true );
+	var groupVisibilityPropertiesControls = new layersTree.GroupVisibilityPropertiesView( groupVisibilityProperties, true );
+	
+	var elemProperties = (div.properties.content) ? div.properties.content.properties : div.properties.properties,
+	    newName = elemProperties.title,
 		inputIndex = _input(null,[['attr','value', newName + ' ' + newIndex],['dir','className','inputStyle'],['css','width','140px']]),
 		create = makeButton(_gtxt('Создать')),
-		pos = _mapHelper.getDialogPos(div, true, 100),
+		pos = this.mapHelper.getDialogPos(div, true, 100),
 		createSubGroup = function()
 		{
 			if (inputIndex.value == '')
 				return;
 			
 			var parentProperties = div.properties,
-				newGroupProperties = {type:'group', content:{properties:{title:inputIndex.value, list: false, visible: true, expanded:true, GroupID: _this.createGroupId()}, children:[]}},
+				newGroupProperties = {type:'group', content:{properties:{title:inputIndex.value, list: groupVisibilityProperties.isChildRadio(), visible: true, ShowCheckbox: groupVisibilityProperties.isVisibilityControl(), expanded:true, GroupID: _this.createGroupId()}, children:[]}},
 				li = _this.getChildsList(newGroupProperties, parentProperties, false, div.getAttribute('MapID') ? true : _this.getLayerVisibility(div.firstChild));
 			
 			_queryMapLayers.addDraggable(li)
@@ -1438,7 +952,7 @@ layersTree.prototype.addSubGroup = function(div)
 			
 			_queryMapLayers.addSwappable(li);
 			
-			_mapHelper.addTreeElem(div, 0, newGroupProperties);
+			_this.mapHelper.addTreeElem(div, 0, newGroupProperties);
 			
 			var childsUl = _abstractTree.getChildsUl(div.parentNode);
 			
@@ -1458,10 +972,12 @@ layersTree.prototype.addSubGroup = function(div)
 				_layersTree.updateListType(li, true);
 			}
 			
-			$(inputIndex.parentNode.parentNode).dialog('destroy');
-			inputIndex.parentNode.parentNode.removeNode(true);
+			// $(inputIndex.parentNode.parentNode).dialog('destroy');
+			// inputIndex.parentNode.parentNode.removeNode(true);
+			$(dialogDiv).dialog('destroy');
+			dialogDiv.removeNode(true);
 			
-			_mapHelper.updateUnloadEvent(true);
+			_this.mapHelper.updateUnloadEvent(true);
 		};
 	
 	create.onclick = createSubGroup;
@@ -1486,7 +1002,14 @@ layersTree.prototype.addSubGroup = function(div)
 	
 	create.style.marginTop = '5px';
 	
-	showDialog(_gtxt("Введите имя группы"), _div([inputIndex, _br(), create],[['css','textAlign','center']]), 180, 100, pos.left, pos.top)
+	var parentDiv = _div([inputIndex, _br(), create],[['css','textAlign','center']]);
+	var trs = [{name: _gtxt("Имя группы"), elem: inputIndex}].concat(groupVisibilityPropertiesControls);
+	
+	var trsControls = this.mapHelper.createPropertiesTable(trs, elemProperties, {leftWidth: 100});
+	var propsTable = _div([_table([_tbody(trsControls)],[['dir','className','propertiesTable']])]);
+	_(parentDiv, [propsTable, _br(), create]);
+	
+	var dialogDiv = showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 180, pos.left, pos.top);
 }
 
 layersTree.prototype.removeGroup = function(div)
@@ -1494,7 +1017,7 @@ layersTree.prototype.removeGroup = function(div)
 	var box = _checkbox(false, 'checkbox'),
 		remove = makeButton(_gtxt("Удалить")),
 		span = _span([_t(_gtxt("Включая вложенные слои"))]),
-		pos = _mapHelper.getDialogPos(div, true, 90),
+		pos = this.mapHelper.getDialogPos(div, true, 90),
 		_this = this;
 	
 	if (!$.browser.msie)
@@ -1540,7 +1063,7 @@ layersTree.prototype.removeGroup = function(div)
 			}
 		}
 		
-		_mapHelper.removeTreeElem(div);
+		_this.mapHelper.removeTreeElem(div);
 		
 		div.parentNode.removeNode(true);
 		
@@ -1549,7 +1072,7 @@ layersTree.prototype.removeGroup = function(div)
 		$(span.parentNode.parentNode).dialog('destroy');
 		span.parentNode.parentNode.removeNode(true);
 		
-		_mapHelper.updateUnloadEvent(true);
+		_this.mapHelper.updateUnloadEvent(true);
 	}
 	
 	showDialog(_gtxt("Удаление группы [value0]", div.properties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 90, pos.left, pos.top)
@@ -1590,22 +1113,82 @@ layersTree.prototype.disableRadioGroups = function(box)
 	}
 }
 
-layersTree.prototype.visibilityFunc = function(box, flag, listFlag)
+layersTree.prototype.visibilityFunc = function(box, flag, listFlag, forceChildVisibility)
 {
+	if (box.isDummyCheckbox) return;
+	
 	if (listFlag)
 		this.disableRadioGroups(box);
 	
-	this.setVisibility(box, flag);
+	this.setVisibility(box, flag, forceChildVisibility);
 }
 
-layersTree.prototype.setVisibility = function(checkbox, flag)
+layersTree.prototype.findTreeBox = function(child)
 {
-	_mapHelper.findTreeElem(checkbox.parentNode).elem.content.properties.visible = flag;
+	var searchStr;
+	
+	if (child.content.properties.LayerID)
+		searchStr = "div[LayerID='" + child.content.properties.LayerID + "']";
+	else if (child.content.properties.MultiLayerID)
+		searchStr = "div[MultiLayerID='" + child.content.properties.MultiLayerID + "']";
+	else
+		searchStr = "div[GroupID='" + child.content.properties.GroupID + "']";
+	
+	var elem = $(searchStr);
+	
+	if (elem.length)
+		return elem[0];
+	else
+		return false;
+}
+
+layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibility)
+{
+	if (typeof forceChildVisibility === 'undefined') 
+		forceChildVisibility = true;
+		
+	var treeElem = this.mapHelper.findTreeElem(checkbox.parentNode).elem;
+	var _this = this;
+	treeElem.content.properties.visible = flag;
 	
 	if (checkbox.parentNode.getAttribute('GroupID'))
 	{
 		if (flag)
-			this.setLayerVisibility(checkbox);		
+			this.setLayerVisibility(checkbox);
+	
+		var parentParams = this.getParentParams(checkbox.parentNode.parentNode);
+
+		// Делаем видимость всех потомков узла дерева такой же, как видимость этого слоя. 
+		if (forceChildVisibility)
+		{
+			this.mapHelper.findTreeElems(treeElem, function(child, visflag, list, index)
+			{
+				if (!visflag || (list && index != 0))
+				{
+					child.content.properties.visible = false;
+					
+					var elem = _this.findTreeBox(child);
+					
+					if (elem)
+					{
+						elem.firstChild.checked = false;
+						_this.setVisibility(elem.firstChild, false);
+					}
+				}
+				else
+				{
+					child.content.properties.visible = true;
+					
+					var elem = _this.findTreeBox(child);
+					
+					if (elem)
+					{
+						elem.firstChild.checked = true;
+						_this.setVisibility(elem.firstChild, true);
+					}
+				}
+			}, flag, parentParams.list);
+		}
 	
 		this.updateChildLayersMapVisibility(checkbox.parentNode)
 	}
@@ -1658,6 +1241,75 @@ layersTree.prototype.getLayerVisibility = function(box)
 	return true;
 }
 
+layersTree.GroupVisibilityPropertiesModel = function(isChildRadio, isVisibilityControl)
+{
+	var _isChildRadio = isChildRadio;
+	var _isVisibilityControl = isVisibilityControl;
+	
+	this.isVisibilityControl = function() { return _isVisibilityControl; }
+	this.isChildRadio = function() { return _isChildRadio; }
+	
+	this.setVisibilityControl = function(isVisibilityControl)
+	{
+		var isChange = _isVisibilityControl !== isVisibilityControl;
+		_isVisibilityControl = isVisibilityControl;
+		if (isChange) $(this).change();
+	}
+	
+	this.setChildRadio = function(isChildRadio)
+	{
+		var isChange = _isChildRadio !== isChildRadio;
+		_isChildRadio = isChildRadio;
+		if (isChange) $(this).change();
+	}
+}
+
+//возвращает массив описания элементов таблицы для использования в mapHelper.createPropertiesTable
+//model {GroupVisibilityPropertiesModel} - ассоциированные параметры видимости
+//showVisibilityCheckbox {bool} - добавлять ли возможность скрывать чекбокс видимости или нет
+layersTree.GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox )
+{
+	var _model = model;
+	var boxSwitch = _checkbox(!_model.isChildRadio(), 'checkbox'),
+		radioSwitch = _checkbox(_model.isChildRadio(), 'radio');
+	var showCheckbox = _checkbox(_model.isVisibilityControl(), 'checkbox');
+	
+	if (!$.browser.msie)
+	{
+		boxSwitch.style.margin = "0px 4px 0px 3px";
+		radioSwitch.style.margin = "0px 4px 0px 3px";
+		showCheckbox.style.margin = "0px 4px 0px 3px";
+	}
+	
+	showCheckbox.onclick = function()
+	{
+		_model.setVisibilityControl( this.checked );
+	}
+	
+	boxSwitch.onclick = function()
+	{
+		this.checked = true;
+		radioSwitch.checked = !this.checked;
+		
+		_model.setChildRadio( !this.checked );
+	}
+	
+	radioSwitch.onclick = function()
+	{
+		this.checked = true;
+		boxSwitch.checked = !this.checked;
+		
+		_model.setChildRadio( this.checked );
+	}
+	
+	var ret = [{name: _gtxt("Вид вложенных элементов"), field: 'list', elem: _div([boxSwitch, radioSwitch])}];
+	
+	if (typeof showVisibilityCheckbox === 'undefined' || showVisibilityCheckbox)
+		ret.push({name: _gtxt("Показывать чекбокс видимости"), field: 'list', elem: _div([showCheckbox])});
+	
+	return ret;
+}
+
 // включает все выключенные элементы выше указанного элемента
 layersTree.prototype.setLayerVisibility = function(checkbox)
 {
@@ -1673,7 +1325,7 @@ layersTree.prototype.setLayerVisibility = function(checkbox)
 			{
 				el.childNodes[1].firstChild.checked = true;
 				
-				_mapHelper.findTreeElem(el.childNodes[1]).elem.content.properties.visible = true;
+				this.mapHelper.findTreeElem(el.childNodes[1]).elem.content.properties.visible = true;
 				
 				$(el.childNodes[1].childNodes[1]).removeClass("invisible")
 				
@@ -1703,9 +1355,9 @@ layersTree.prototype.setLayerVisibility = function(checkbox)
 // приводит в соответствие видимость слоев на карте вложенным слоям указанного элемента дерева
 layersTree.prototype.updateChildLayersMapVisibility = function(div)
 {
-	var treeParent = div.getAttribute('MapID') ? _mapHelper.mapTree : _mapHelper.findTreeElem(div).elem
+	var treeParent = div.getAttribute('MapID') ? this.mapHelper.mapTree : this.mapHelper.findTreeElem(div).elem
 	
-	_mapHelper.findChilds(treeParent, function(child, visible)
+	this.mapHelper.findChilds(treeParent, function(child, visible)
 	{
 		if (globalFlashMap.layers[child.content.properties.name])
 			globalFlashMap.layers[child.content.properties.name].setVisible(visible);
@@ -1755,8 +1407,8 @@ layersTree.prototype.moveHandler = function(spanSource, divDestination)
 	var node = divDestination.parentNode,
 		parentTree = spanSource.parentNode.parentNode.parentNode.parentNode;
 
-	_mapHelper.removeTreeElem(spanSource.parentNode.parentNode);
-	_mapHelper.addTreeElem(divDestination, 0, spanSource.parentNode.parentNode.properties);
+	this.mapHelper.removeTreeElem(spanSource.parentNode.parentNode);
+	this.mapHelper.addTreeElem(divDestination, 0, spanSource.parentNode.parentNode.properties);
 
 	// добавим новый узел
 	var childsUl = _abstractTree.getChildsUl(node);
@@ -1780,7 +1432,7 @@ layersTree.prototype.moveHandler = function(spanSource, divDestination)
 	// удалим старый узел
 	_abstractTree.delNode(node, parentTree, parentTree.parentNode);
 	
-	_mapHelper.updateUnloadEvent(true);
+	this.mapHelper.updateUnloadEvent(true);
 }
 layersTree.prototype.swapHandler = function(spanSource, divDestination)
 {
@@ -1790,13 +1442,13 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 	if (node == spanSource.parentNode.parentNode.parentNode)
 		return;
 	
-	_mapHelper.removeTreeElem(spanSource.parentNode.parentNode);
+	this.mapHelper.removeTreeElem(spanSource.parentNode.parentNode);
 	
 	var divElem = $(divDestination.parentNode).children("div[GroupID],div[LayerID],div[MultiLayerID]")[0],
 		divParent = $(divDestination.parentNode.parentNode.parentNode).children("div[MapID],div[GroupID]")[0],
-		index = _mapHelper.findTreeElem(divElem).index;
+		index = this.mapHelper.findTreeElem(divElem).index;
 	
-	_mapHelper.addTreeElem(divParent, index + 1, spanSource.parentNode.parentNode.properties);
+	this.mapHelper.addTreeElem(divParent, index + 1, spanSource.parentNode.parentNode.properties);
 
 	_abstractTree.swapNode(node, spanSource.parentNode.parentNode.parentNode);
 	
@@ -1805,25 +1457,26 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 	// удалим старый узел
 	_abstractTree.delNode(node, parentTree, parentTree.parentNode);
 	
-	_mapHelper.updateUnloadEvent(true);
+	this.mapHelper.updateUnloadEvent(true);
 }
 layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag)
 {
-	var layerProperties = (spanSource.parentNode.parentNode.parentNode.parentNode.nodeName != "TD") ? spanSource.parentNode.parentNode.properties : false,
+	var isFromList = typeof spanSource.parentNode.parentNode.properties.content.geometry === 'undefined';
+	var layerProperties = (!isFromList) ? spanSource.parentNode.parentNode.properties : false,
 		copyFunc = function()
 		{
 			// если копируем слой из списка, но не из карты
-			if (layerProperties.type == 'layer' && spanSource.parentNode.parentNode.parentNode.parentNode.nodeName == "TD")
+			if (layerProperties.type == 'layer' && isFromList)
 				layerProperties.content.geometry = from_merc_geometry(layerProperties.content.geometry);
 			
 			if (!_this.addLayersToMap(layerProperties))
 				return;
 			
 			var node = divDestination.parentNode,
-				parentProperties = (typeof swapFlag != 'undefined') ? $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0].properties : divDestination.properties,
+				parentProperties = (typeof swapFlag != 'undefined' && swapFlag) ? $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0].properties : divDestination.properties,
 				li;
 			
-			if (typeof swapFlag != 'undefined')
+			if (typeof swapFlag != 'undefined' && swapFlag)
 			{
 				var parentDiv = $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0];
 				
@@ -1857,7 +1510,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 					$(li).treeview();
 					
 					// если копируем из карты
-					if (spanSource.parentNode.parentNode.parentNode.parentNode.nodeName != "TD")
+					if (!swapFlag)
 						_layersTree.runLoadingFuncs();
 				}
 				
@@ -1875,13 +1528,13 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 			
 			_queryMapLayers.addSwappable(li);
 			
-			if (typeof swapFlag != 'undefined')
+			if (typeof swapFlag != 'undefined' && swapFlag)
 			{
 				var divElem = $(divDestination.parentNode).children("div[GroupID],div[LayerID],div[MultiLayerID]")[0],
 					divParent = $(divDestination.parentNode.parentNode.parentNode).children("div[MapID],div[GroupID]")[0],
-					index = _mapHelper.findTreeElem(divElem).index;
+					index = _this.mapHelper.findTreeElem(divElem).index;
 			
-				_mapHelper.addTreeElem(divParent, index + 1, layerProperties);
+				_this.mapHelper.addTreeElem(divParent, index + 1, layerProperties);
 
 				_abstractTree.swapNode(node, li);
 				
@@ -1889,7 +1542,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 			}
 			else
 			{
-				_mapHelper.addTreeElem(divDestination, 0, layerProperties);
+				_this.mapHelper.addTreeElem(divDestination, 0, layerProperties);
 
 				var childsUl = _abstractTree.getChildsUl(node);
 				
@@ -1910,7 +1563,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 				}
 			}
 			
-			_mapHelper.updateUnloadEvent(true);
+			_this.mapHelper.updateUnloadEvent(true);
 		},
 		_this = this;
 	
@@ -1926,12 +1579,12 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 				layerProperties = {type:'layer', content: response.Result};
 				
 				if (layerProperties.content.properties.type == 'Vector')
-					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
+					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MaxZoom, MaxZoom:21, RenderStyle:_this.mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
 				else if (layerProperties.content.properties.type != 'Vector' && !layerProperties.content.properties.MultiLayerID)
 					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:21}];
 				
-				layerProperties.content.properties.mapName = _mapHelper.mapProperties.name;
-				layerProperties.content.properties.hostName = _mapHelper.mapProperties.hostName;
+				layerProperties.content.properties.mapName = _this.mapHelper.mapProperties.name;
+				layerProperties.content.properties.hostName = _this.mapHelper.mapProperties.hostName;
 				layerProperties.content.properties.visible = true;
 				
 				copyFunc();
@@ -1948,8 +1601,8 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 				
 				layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:20}];
 				
-				layerProperties.content.properties.mapName = _mapHelper.mapProperties.name;
-				layerProperties.content.properties.hostName = _mapHelper.mapProperties.hostName;
+				layerProperties.content.properties.mapName = _this.mapHelper.mapProperties.name;
+				layerProperties.content.properties.hostName = _this.mapHelper.mapProperties.hostName;
 				layerProperties.content.properties.visible = true;
 				
 				copyFunc();
@@ -1986,7 +1639,7 @@ layersTree.prototype.addLayersToMap = function(elem)
 			globalFlashMap.layers[name].setVisible(visibility);
 			globalFlashMap.layers[name].bounds = getLayerBounds( elem.content.geometry.coordinates[0], globalFlashMap.layers[name]);
 			
-			this.showInfo(globalFlashMap.layers[name])
+			//this.showInfo(globalFlashMap.layers[name])
 		}
 		else
 		{
@@ -2022,6 +1675,8 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 	else
 		listFlag = parentParams.properties.list;
 	
+	//var showCheckbox = parentParams.content ? parentParams.content.properties.showCheckbox : parentParams.properties.showCheckbox;
+	
 	var box = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0].firstChild,
 		newBox,
 		_this = this;
@@ -2044,6 +1699,12 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 	{
 		_this.visibilityFunc(this, this.checked, listFlag);
 	}
+	
+	// if ( typeof showCheckbox !== 'undefined' && !showCheckbox )
+	// {
+		// newBox.isDummyCheckbox = true;
+		// newBox.style.display = 'none';
+	// }
 	
 	if (typeof skipVisible == 'undefined')
 	{
@@ -2077,184 +1738,7 @@ layersTree.prototype.updateMapLayersVisibility = function(li)
 }
 
 var _layersTree = new layersTree();
-
-//добавляем пункты контекстного меню к слоям
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Редактировать");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && _queryMapLayers.currentMapRights() === "edit";
-	},
-	clickCallback: function(elem)
-	{
-		var div;
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		_mapHelper.createLayerEditor(div, 0, div.properties.content.properties.styles.length > 1 ? -1 : 0);
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Таблица атрибутов");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && _queryMapLayers.currentMapRights() === "edit" && elem.type === "Vector";
-	},
-	clickCallback: function(elem)
-	{
-		_attrsTableHash.create(elem.name);
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Права доступа");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && 
-				_queryMapLayers.currentMapRights() === "edit" && 
-				nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
-				( _mapHelper.mapProperties.Owner == userInfo().Login || nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) );
-	},
-	clickCallback: function(elem)
-	{
-		if (elem.LayerID)
-			_layerSecurity.getRights(elem.LayerID, elem.title);
-		else if (elem.MultiLayerID)
-			_multiLayerSecurity.getRights(elem.MultiLayerID, elem.title);
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Скачать");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && 
-				( _queryMapLayers.currentMapRights() === "edit" || (_queryMapLayers.currentMapRights() == "view" && userInfo().Login) ) && 
-				elem.type == "Vector" &&
-				_mapHelper.mapProperties.CanDownloadVectors;
-	},
-	clickCallback: function(elem, layersTree, area)
-	{
-		_layersTree.downloadVectorLayer(elem.name, area, elem.hostName);
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Удалить");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && _queryMapLayers.currentMapRights() === "edit";
-	},
-	clickCallback: function(elem)
-	{
-		_queryMapLayers.removeLayer(elem.name)
-		
-		var div;
-			
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		
-		var treeElem = _mapHelper.findTreeElem(div).elem,
-			node = div.parentNode,
-			parentTree = node.parentNode;
-		
-		_mapHelper.removeTreeElem(div);
-
-		node.removeNode(true);
-		
-		_abstractTree.delNode(null, parentTree, parentTree.parentNode);
-		
-		_mapHelper.updateUnloadEvent(true);
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Копировать стиль");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return elem.type == "Vector" && 
-		       (layerManagerFlag || _queryMapLayers.currentMapRights() === "edit");
-	},
-	isSeparatorBefore: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag;
-	},
-	clickCallback: function(elem, tree, area)
-	{
-		var div;
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-			
-		tree.copiedStyle = {type: elem.GeometryType, style: div.properties.content.properties.styles};
-	}
-});
-
-_layersTree.addContextMenuElem({
-	getTitle: function()
-	{
-		return _gtxt("Применить стиль");
-	},
-	isVisible: function(layerManagerFlag, elem)
-	{
-		return !layerManagerFlag && 
-				_queryMapLayers.currentMapRights() === "edit" && 
-				elem.type == "Vector";
-	},
-	clickCallback: function(elem, tree, area)
-	{
-		if (!tree.copiedStyle)
-		{
-			showErrorMessage(_gtxt("Не выбран стиль"), true)
-			
-			return;
-		}
-		
-		if (tree.copiedStyle.type != elem.GeometryType)
-		{
-			showErrorMessage(_gtxt("Невозможно применить стиль к другому типу геометрии"), true)
-			
-			return;
-		}
-		
-		var newStyles = tree.copiedStyle.style;
-		var div;
-		
-		if (elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0];
-		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + elem.MultiLayerID + "']")[0];
-		
-		div.properties.content.properties.styles = newStyles;
-		
-		_mapHelper.updateMapStyles(newStyles, elem.name);
-		
-		_mapHelper.updateTreeStyles(newStyles, div);
-	}
-});
+_layersTree.mapHelper = _mapHelper;
 
 var queryMapLayers = function()
 {
@@ -2502,7 +1986,7 @@ queryMapLayers.prototype.saveMap = function()
 										WrapStyle: 'window',
 										MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].properties.properties.MapID), 
 
-										MapJson: encodeURIComponent(JSON.stringify(saveTree))
+										MapJson: JSON.stringify(saveTree)
 									}, 
 									function(response)
 									{
@@ -2730,7 +2214,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(taskInfo, title)
 	
 		_mapHelper.addTreeElem(divParent, index, {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}});
 		
-		_layersTree.showInfo(newLayer)
+		//_layersTree.showInfo(newLayer)
 
 		_queryMapLayers.addSwappable(li);
 		
@@ -2816,7 +2300,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(taskInfo, properties, needR
 				
 				_mapHelper.findTreeElem($(li).children("div[LayerID]")[0]).elem = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}
 
-				_layersTree.showInfo(newLayer);
+				//_layersTree.showInfo(newLayer);
 
 				_queryMapLayers.addSwappable(li);
 				
@@ -2870,11 +2354,10 @@ queryMapLayers.prototype.getLayersHandler = function(response)
 	_queryMapLayers.createLayersManager();
 }
 
-queryMapLayers.prototype.createLayersManager = function()
+queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name )
 {
 	var canvas = _div(null, [['attr','id','layersList']]),
 		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
-		name = 'layers',
 		_this = this;
 	
 	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','160px']]),
@@ -2935,7 +2418,7 @@ queryMapLayers.prototype.createLayersManager = function()
 				}
 			];
 	
-	_layersTable.createTable(tableParent, name, 310, ["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), ""], ['1%','5%','45%','24%','20%','5%'], this.drawLayers, sortFuncs);
+	_layersTable.createTable(tableParent, name, 0, ["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), ""], ['1%','5%','45%','24%','20%','5%'], this.drawLayers, sortFuncs);
 	
 	// оптимизируем данные для сортировки
 	var valuesToSort = [];
@@ -3047,8 +2530,8 @@ queryMapLayers.prototype.createLayersManager = function()
 		if (fieldValue == "")
 			return vals;
 		
-		var beginDate = $(_queryMapLayers.dateBegin).datepicker('getDate'),
-			endDate = $(_queryMapLayers.dateEnd).datepicker('getDate'),
+		var beginDate = $(dateBegin).datepicker('getDate'),
+			endDate = $(dateEnd).datepicker('getDate'),
 			filterFunc = function(value)
 				{
 					return endDatePredicate(value, fieldName, fieldValue, beginDate ? beginDate.valueOf() : null, endDate ? endDate.valueOf() : null);
@@ -3074,34 +2557,17 @@ queryMapLayers.prototype.createLayersManager = function()
 	
 	_(canvas, [tableParent]);
 	
-	var resize = function()
-	{
-		_layersTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-		_layersTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
-		_layersTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-
-		_layersTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
-		
-		_layersTable.tableParent.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 10 - 10 + 'px';
-		_layersTable.tableBody.parentNode.parentNode.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 20 - 10 - 10 + 'px';
-	}
-		
-	showDialog(_gtxt("Список слоев"), canvas, 571, 470, 535, 130, resize);
-	
-	_layersTable.tableHeader.firstChild.childNodes[2].style.textAlign = 'left';
-
-	resize();
-	
 	var unloadedLayersList = _filter(function(elem)
 		{
 			return typeof globalFlashMap.layers[elem.name] == 'undefined';
 		}, valuesToSort);
 	
-	_layersTable.vals = unloadedLayersList;
+	// _layersTable.vals = unloadedLayersList;
+	_layersTable.setValues(unloadedLayersList);
+	//_layersTable.drawTable(_layersTable.vals)
+	_layersTable.drawFilterTable();
 	
-	_layersTable.drawTable(_layersTable.vals)
-	
-	$("#" + name + "DateBegin,#" + name + "DateEnd").datepicker(
+	$("#" + name + "DateBegin,#" + name + "DateEnd", canvas).datepicker(
 	{
 		beforeShow: function(input)
 		{
@@ -3120,7 +2586,16 @@ queryMapLayers.prototype.createLayersManager = function()
 		dateFormat: "dd.mm.yy"
 	});
 		
+	$(parentDiv).empty().append(canvas);
+	
 	layerName.focus();
+}
+
+queryMapLayers.prototype.createLayersManager = function()
+{
+	var canvas = _div();
+	this._createLayersManagerInDiv(canvas, 'layers');
+	showDialog(_gtxt("Список слоев"), canvas, 571, 470, 535, 130);
 }
 
 queryMapLayers.prototype.drawLayers = function(layer)
@@ -3146,17 +2621,25 @@ queryMapLayers.prototype.drawLayers = function(layer)
 			if (tr)
 				tr.removeNode(true);
 			
-			_this.vals = _filter(function(elem)
+			var filteredValues = _filter(function(elem)
 			{
 				return elem.name != layer.name;
 			}, _this.vals);
 			
-			_this.currVals = _filter(function(elem)
-			{
-				return elem.name != layer.name;
-			}, _this.currVals);
+			_this.setValues(filteredValues);
 			
-			_this.drawTable(_this.currVals);
+			// _this.vals = _filter(function(elem)
+			// {
+				// return elem.name != layer.name;
+			// }, _this.vals);
+			
+			// _this.currVals = _filter(function(elem)
+			// {
+				// return elem.name != layer.name;
+			// }, _this.currVals);
+			
+			// _this.drawTable(_this.currVals);
+			_this.drawFilterTable();
 			
 			var active = $(_this.buildedTree).find(".active");
 			
@@ -3205,9 +2688,10 @@ queryMapLayers.prototype.drawLayers = function(layer)
 		appendTo: document.body
 	});
 	
-	var maxLayerWidth = this.tableHeader.firstChild.childNodes[2].offsetWidth + 'px';
+	var nameDivInternal = _div([res], [['css','position','absolute'], ['css','width','100%'],['css','padding',"1px 0px"], ['css','overflowX','hidden'],['css','whiteSpace','nowrap']]);
+	var nameDiv = _div([nameDivInternal], [['css', 'position', 'relative'], ['css', 'height', '100%']]);
 	
-	tr = _tr([_td(), _td([icon], [['css','textAlign','center']]), _td([_div([res], [['css','width',maxLayerWidth],['css','padding',"1px 0px"], ['css','overflowX','hidden'],['css','whiteSpace','nowrap']])]), _td([_t(layer.date)], [['css','textAlign','center'],['dir','className','invisible']]),  _td([_t(layer.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), tdRemove]);
+	tr = _tr([_td(), _td([icon], [['css','textAlign','center']]), _td([nameDiv]), _td([_t(layer.date)], [['css','textAlign','center'],['dir','className','invisible']]),  _td([_t(layer.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), tdRemove]);
 	
 	tr.removeLayerFromList = removeLayerFromList;
 	
@@ -3226,7 +2710,7 @@ queryMapLayers.prototype.deleteLayerHandler = function(response, id, flag)
 	
 	if (response.Result == 'deleted')
 	{
-		_layersTable.vals = _filter(function(elem)
+		var filteredValues = _filter(function(elem)
 		{
 			if (typeof flag != 'undefined' && flag)
 				return elem.MultiLayerID != id;
@@ -3234,18 +2718,29 @@ queryMapLayers.prototype.deleteLayerHandler = function(response, id, flag)
 				return elem.LayerID != id;
 		}, _layersTable.vals);
 		
-		_layersTable.currVals = _filter(function(elem)
-		{
-			if (typeof flag != 'undefined' && flag)
-				return elem.MultiLayerID != id;
-			else
-				return elem.LayerID != id;
-		}, _layersTable.currVals);
+		_layersTable.setValues(filteredValues);
+		
+		// _layersTable.vals = _filter(function(elem)
+		// {
+			// if (typeof flag != 'undefined' && flag)
+				// return elem.MultiLayerID != id;
+			// else
+				// return elem.LayerID != id;
+		// }, _layersTable.vals);
+		
+		// _layersTable.currVals = _filter(function(elem)
+		// {
+			// if (typeof flag != 'undefined' && flag)
+				// return elem.MultiLayerID != id;
+			// else
+				// return elem.LayerID != id;
+		// }, _layersTable.currVals);
 		
 		_layersTable.start = 0;
 		_layersTable.reportStart = _layersTable.start * _layersTable.limit;
 		
-		_layersTable.drawTable(_layersTable.currVals);
+		//_layersTable.drawTable(_layersTable.currVals);
+		_layersTable.drawFilterTable();
 	}
 	else
 		showErrorMessage(_gtxt("Ошибка!"), true, "Слоя нет в базе")
@@ -3284,16 +2779,20 @@ queryMapLayers.prototype.createMapsManager = function()
 	var tableParent = _div(),
 		sortFuncs = {};
 			
-	sortFuncs[_gtxt('Имя')] = [
-				function(_a,_b){var a = String(_a.Title).toLowerCase(), b = String(_b.Title).toLowerCase(); if (a > b) return 1; else if (a < b) return -1; else return 0},
-				function(_a,_b){var a = String(_a.Title).toLowerCase(), b = String(_b.Title).toLowerCase(); if (a < b) return 1; else if (a > b) return -1; else return 0}
-			];
-	sortFuncs[_gtxt('Владелец')] = [
-				function(_a,_b){var a = String(_a.Owner).toLowerCase(), b = String(_b.Owner).toLowerCase(); if (a > b) return 1; else if (a < b) return -1; else return 0},
-				function(_a,_b){var a = String(_a.Owner).toLowerCase(), b = String(_b.Owner).toLowerCase(); if (a < b) return 1; else if (a > b) return -1; else return 0}
-			];
+	var sign = function(n1, n2) { return n1 < n2 ? -1 : (n1 > n2 ? 1 : 0) };
+	var sortFuncFactory = function(toNumFunc)
+	{
+		return [
+			function(_a,_b){ return sign(toNumFunc(_a), toNumFunc(_b)); },
+			function(_a,_b){ return sign(toNumFunc(_b), toNumFunc(_a)); }
+		]
+	}
 	
-	_mapsTable.createTable(tableParent, name, 310, ["", "", _gtxt("Имя"), _gtxt("Владелец"), ""], ['5%','5%','65%','20%','5%'], this.drawMaps, sortFuncs);
+	sortFuncs[_gtxt('Имя')]                 = sortFuncFactory(function(_a){ return String(_a.Title).toLowerCase(); });
+	sortFuncs[_gtxt('Владелец')]            = sortFuncFactory(function(_a){ return String(_a.Owner).toLowerCase(); });
+	sortFuncs[_gtxt('Последнее изменение')] = sortFuncFactory(function(_a){ return _a.LastModificationDateTime });
+	
+	_mapsTable.createTable(tableParent, name, 410, ["", "", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '5%', '55%', '15%', '15%', '5%'], this.drawMaps, sortFuncs);
 	
 	var inputPredicate = function(value, fieldName, fieldValue)
 		{
@@ -3346,7 +2845,7 @@ queryMapLayers.prototype.createMapsManager = function()
 		_mapsTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
 
 		_mapsTable.tableParent.style.height = '200px';
-		_mapsTable.tableBody.parentNode.parentNode.style.height = '180px';
+		_mapsTable.tableBody.parentNode.parentNode.style.height = '170px';
 		
 		_this.mapPreview.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 250 + 'px';
 		_this.mapPreview.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
@@ -3358,9 +2857,11 @@ queryMapLayers.prototype.createMapsManager = function()
 
 	resize();
 	
-	_mapsTable.vals = _queryMapLayers.mapsList;
+	_mapsTable.setValues(_queryMapLayers.mapsList);
+	_mapsTable.drawFilterTable();
 	
-	_mapsTable.drawTable(_mapsTable.vals)
+	//_mapsTable.vals = _queryMapLayers.mapsList;
+	//_mapsTable.drawTable(_mapsTable.vals)
 	
 	this.mapName.focus();
 }
@@ -3430,7 +2931,17 @@ queryMapLayers.prototype.drawMaps = function(map)
 		}
 	}
 	
-	var tr = _tr([_td([addExternal], [['css','textAlign','center']]), _td([load], [['css','textAlign','center']]), _td([name]), _td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), _td([remove], [['css','textAlign','center']])]);
+	var date = new Date(map.LastModificationDateTime*1000);
+	var modificationDateString = $.datepicker.formatDate('dd.mm.yy', date); // + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+	
+	var tr = _tr([
+		_td([addExternal], [['css','textAlign','center']]), 
+		_td([load], [['css','textAlign','center']]), 
+		_td([name]), 
+		_td([_t(map.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), 
+		_td([_t(modificationDateString)], [['css','textAlign','center'],['dir','className','invisible']]), 
+		_td([remove], [['css','textAlign','center']])
+	]);
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this.fieldsWidths[i];
@@ -3447,20 +2958,29 @@ queryMapLayers.prototype.deleteMapHandler = function(response, id)
 	
 	if (response.Result == 'deleted')
 	{
-		_mapsTable.vals = _filter(function(elem)
+		var filteredValues = _filter(function(elem)
 		{
 			return elem.MapID != id;
 		}, _mapsTable.vals);
 		
-		_mapsTable.currVals = _filter(function(elem)
-		{
-			return elem.MapID != id;
-		}, _mapsTable.currVals);
+		_mapsTable.setValues(filteredValues);
+		
+		
+		// _mapsTable.vals = _filter(function(elem)
+		// {
+			// return elem.MapID != id;
+		// }, _mapsTable.vals);
+		
+		// _mapsTable.currVals = _filter(function(elem)
+		// {
+			// return elem.MapID != id;
+		// }, _mapsTable.currVals);
 		
 		_mapsTable.start = 0;
 		_mapsTable.reportStart = _mapsTable.start * _mapsTable.limit;
 		
-		_mapsTable.drawTable(_mapsTable.currVals);
+		//_mapsTable.drawTable(_mapsTable.currVals);
+		_mapsTable.drawFilterTable();
 	}
 	else
 		showErrorMessage(_gtxt("Ошибка!"), true, _gtxt("Слоя нет в базе"))
@@ -3582,7 +3102,7 @@ queryMapLayers.prototype.saveMapAs = function(name)
 									WrapStyle: 'window',
 									Title: name,
 									MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].properties.properties.MapID), 
-									MapJson: encodeURIComponent(JSON.stringify(saveTree))
+									MapJson: JSON.stringify(saveTree)
 								}, 
 								function(response)
 								{
@@ -3615,31 +3135,80 @@ queryMapLayersList.prototype.load = function()
 		name = 'list',
 		_this = this;
 	
-	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','160px']]),
-		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','160px']]);
+	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]),
+		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]);
 	
-	var dateBegin = _input(null,[['attr','id', name + 'DateBegin'],['dir','className','inputStyle'],['css','width','100px']]),
-		dateEnd = _input(null,[['attr','id', name + 'DateEnd'],['dir','className','inputStyle'],['css','width','100px']]);
+	// var dateBegin = _input(null,[['attr','id', name + 'DateBegin'],['dir','className','inputStyle'],['css','width','100px']]),
+		// dateEnd = _input(null,[['attr','id', name + 'DateEnd'],['dir','className','inputStyle'],['css','width','100px']]);
+	
+	var intersectSel = _select(
+							   [_option([_t(_gtxt("По границе экрана"))], [['attr','value','bounds']]),
+								_option([_t(_gtxt("По центру экрана"))], [['attr','value','center']])], 
+							[['dir','className','selectStyle'], ['css','width','100%'], ['css', 'margin', '1px 0px']]);
+	
+	this._isIntersectCenter = false;
+							
+	$(intersectSel).change(function()
+	{
+		_this._isIntersectCenter = this.value === 'center';
+		_this.reloadList();
+	});
 	
 	var typeSel = _select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
 						   _option([_t(_gtxt("Векторный"))], [['attr','value','Vector']]),
-						   _option([_t(_gtxt("Растровый"))], [['attr','value','Raster']])], [['dir','className','selectStyle'], ['css','width','160px']]);
+						   _option([_t(_gtxt("Растровый"))], [['attr','value','Raster']])], [['dir','className','selectStyle'], ['css','width','100%'], ['css', 'margin', '1px 0px']]);
+	
+	var dateIntervalControl = new nsGmx.Calendar();
+	
+	//находим даты самого раннего и позднего слоёв
+	var minDate = null;
+	var maxDate = null;
+	for (var k = 0; k < globalFlashMap.layers.length; k++)
+		if (globalFlashMap.layers[k].properties.date)
+		{
+			var layerDate = $.datepicker.parseDate('dd.mm.yy', globalFlashMap.layers[k].properties.date);
+			minDate = (minDate && minDate < layerDate) ? minDate : layerDate;
+			maxDate = (maxDate && maxDate > layerDate) ? maxDate : layerDate;
+		}
+	
+	dateIntervalControl.init('searchLayers', {
+		minimized: false,
+		showSwitcher: false,
+		dateMin:   minDate,
+		dateMax:   maxDate,
+		dateBegin: minDate,
+		dateEnd:   maxDate
+	});
 	
 	_(searchCanvas, [_div([_table([_tbody([_tr([_td([_span([_t(_gtxt("Название"))],[['css','fontSize','12px']])],[['css','width','130px']]), _td([layerName])]),
 											_tr([_td([_span([_t(_gtxt("Тип"))],[['css','fontSize','12px']])]),_td([typeSel])]),
-											_tr([_td([_span([_t(_gtxt("Начало периода"))],[['css','fontSize','12px']])]), _td([dateBegin])]),
-											_tr([_td([_span([_t(_gtxt("Окончание периода"))],[['css','fontSize','12px']])]), _td([dateEnd])])])])], [['css','marginBottom','10px']])]);
+											//_tr([_td([_span([_t(_gtxt("Начало периода"))],[['css','fontSize','12px']])]), _td([dateBegin])]),
+											_tr([_td([_span([_t(_gtxt("Период"))],[['css','fontSize','12px']])]), _td([dateIntervalControl.canvas])]),
+											_tr([_td([_span([_t(_gtxt("Пересечение"))],[['css','fontSize','12px']])]),_td([intersectSel])], [['dir', 'className', 'intersection']])
+											])])], [['css','marginBottom','10px']])]);
 	
 	_(canvas, [searchCanvas]);
 	
-	dateBegin.onfocus = dateEnd.onfocus = function()
+	var scrollDiv = $("<div></div>", {className: 'layersScroll'});
+	var scrollCheckbox = _checkbox(false, 'checkbox');
+	scrollDiv.append(scrollCheckbox).append($("<label></label>", {'for': 'otherEncoding'}).text(_gtxt("Пролистывать слои")));
+	this._isLayersScrollActive = false;
+	$(scrollCheckbox).change(function()
 	{
-		try
+		_this._isLayersScrollActive = scrollCheckbox.checked;
+		if (scrollCheckbox.checked)
 		{
-			this.blur();
+			sliderDiv.show();
+			_this._updateSliderVisibility(_this._scrollDiv.slider('option', 'value'));
 		}
-		catch(e){}
-	}
+		else
+			sliderDiv.hide();
+	})
+	
+	var sliderDiv = $("<div></div>", {id: 'layersScrollSlider'}).hide();
+	scrollDiv.append(sliderDiv);
+	
+	$(canvas).append(scrollDiv);
 	
 	var tableParent = _div(),
 		sortFuncs = {};
@@ -3672,6 +3241,8 @@ queryMapLayersList.prototype.load = function()
 	_listTable.limit = 20;
 	_listTable.pagesCount = 5;
 	_listTable.createTable(tableParent, name, 310, [_gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата")], ['10%','65%','25%'], this.drawExtendLayers, sortFuncs);
+	
+	$(_listTable).bind('changeData', function(){ _this._updateSlider()} );
 	
 	var inputPredicate = function(value, fieldName, fieldValue)
 		{
@@ -3726,13 +3297,13 @@ queryMapLayersList.prototype.load = function()
 		return local;
 	})
 	
-	_listTable.attachFilterEvents(dateBegin, 'DateBegin', function(fieldName, fieldValue, vals)
+	_listTable.addFilter('DateBegin', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
 		
-		var beginDate = $(dateBegin).datepicker('getDate'),
-			endDate = $(dateEnd).datepicker('getDate'),
+		var beginDate = dateIntervalControl.getDateBegin(),
+			endDate = dateIntervalControl.getDateEnd(),
 			filterFunc = function(value)
 				{
 					return beginDatePredicate(value, fieldName, fieldValue, beginDate ? beginDate : null, endDate ? endDate : null);
@@ -3740,15 +3311,15 @@ queryMapLayersList.prototype.load = function()
 			local = _filter(filterFunc, vals);
 		
 		return local;
-	})
+	})	
 		
-	_listTable.attachFilterEvents(dateEnd, 'DateEnd', function(fieldName, fieldValue, vals)
+	_listTable.addFilter('DateEnd', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
 		
-		var beginDate = $(dateBegin).datepicker('getDate'),
-			endDate = $(dateEnd).datepicker('getDate'),
+		var beginDate = dateIntervalControl.getDateBegin(),
+			endDate = dateIntervalControl.getDateEnd(),
 			filterFunc = function(value)
 				{
 					return endDatePredicate(value, fieldName, fieldValue, beginDate, endDate);
@@ -3756,7 +3327,14 @@ queryMapLayersList.prototype.load = function()
 			local = _filter(filterFunc, vals);
 		
 		return local;
-	})
+	});
+	
+	$(dateIntervalControl).change(function()
+	{
+		_listTable.setFilterValue('DateBegin', dateIntervalControl.getDateBegin());
+		_listTable.setFilterValue('DateEnd', dateIntervalControl.getDateEnd());
+		_listTable.drawFilterTable();
+	});
 	
 	_listTable.attachSelectFilterEvents(typeSel, 'type', function(fieldName, fieldValue, vals)
 	{
@@ -3796,24 +3374,101 @@ queryMapLayersList.prototype.load = function()
 	
 	_listTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
 	
-	$("#" + name + "DateBegin,#" + name + "DateEnd").datepicker(
+	// $("#" + name + "DateBegin,#" + name + "DateEnd").datepicker(
+	// {
+		// beforeShow: function(input)
+		// {
+	    	// return {minDate: (input == dateEnd ? $(dateBegin).datepicker("getDate") : null), 
+	        	// maxDate: (input == dateBegin ? $(dateEnd).datepicker("getDate") : null)}; 
+		// },
+		// onSelect: function(dateText, inst) 
+		// {
+			// inst.input[0].onkeyup();
+		// },
+		// changeMonth: true,
+		// changeYear: true,
+		// showOn: "button",
+		// buttonImage: "img/calendar.png",
+		// buttonImageOnly: true,
+		// dateFormat: "dd.mm.yy"
+	// });
+}
+
+//делает видимым только один слой с индексом nVisible
+queryMapLayersList.prototype._updateSliderVisibility = function(nVisible)
+{
+	if (!this._isLayersScrollActive || typeof _listTable.currVals[nVisible] === 'undefined') return;
+	
+	var layerName = _listTable.currVals[nVisible].properties.name;
+	var baseMapName = window.baseMap.id;
+	
+	for (var k = 0; k < globalFlashMap.layers.length; k++)
+		if (globalFlashMap.layers[k].properties.mapName !== baseMapName) //слои базовой карты не трогаем
 	{
-		beforeShow: function(input)
+			var isVisible = layerName == globalFlashMap.layers[k].properties.name;
+			if (isVisible !== globalFlashMap.layers[k].isVisible)
+				globalFlashMap.layers[k].setVisible(isVisible);
+		}
+}
+
+queryMapLayersList.prototype._updateSlider = function()
+{
+	if (typeof _listTable.currVals === 'undefined')
+		return;
+
+	var container = $("#layersScrollSlider");
+	container.empty();
+	var _this = this;
+	var slideFunction = function(value)
 		{
-	    	return {minDate: (input == dateEnd ? $(dateBegin).datepicker("getDate") : null), 
-	        	maxDate: (input == dateBegin ? $(dateEnd).datepicker("getDate") : null)}; 
-		},
-		onSelect: function(dateText, inst) 
-		{
-			inst.input[0].onkeyup();
-		},
-		changeMonth: true,
-		changeYear: true,
-		showOn: "button",
-		buttonImage: "img/calendar.png",
-		buttonImageOnly: true,
-		dateFormat: "dd.mm.yy"
+		_this._updateSliderVisibility(value)
+		_listTable.setPage( Math.floor(value / (_listTable.limit)) );
+	}
+	
+	this._scrollDiv = $("<div></div>");
+	this._scrollDiv.slider({
+		max: _listTable.currVals.length-1,
+		slide: function(event, ui) { slideFunction(ui.value); }
 	});
+	
+	
+	var prevDiv = makeImageButton("img/prev.png", "img/prev_a.png");
+	_title(prevDiv, _gtxt("Предыдущий слой"));
+	prevDiv.onclick = function()
+	{
+		var curValue = _this._scrollDiv.slider('option', 'value');
+		if ( curValue == _this._scrollDiv.slider('option', 'min') ) 
+			return;
+			
+		_this._scrollDiv.slider( 'option', 'value', curValue - 1);
+		slideFunction(curValue - 1);
+	}
+	
+	var nextDiv = makeImageButton("img/next.png", "img/next_a.png");
+	_title(nextDiv, _gtxt("Следующий слой"));
+	nextDiv.onclick = function()
+	{
+		var curValue = _this._scrollDiv.slider('option', 'value');
+		if ( curValue == _this._scrollDiv.slider('option', 'max') ) 
+			return;
+			
+		_this._scrollDiv.slider( 'option', 'value', curValue + 1 );
+		slideFunction(curValue + 1);
+	}
+	
+	var table = $("<table></table>")
+					.append($("<tr></tr>")
+						.append($("<td></td>", {id: "scrollTD"}).append(this._scrollDiv))
+						.append($("<td></td>").append(prevDiv))
+						.append($("<td></td>").append(nextDiv))
+					)
+	
+	container.append(table);
+	
+	if (_listTable.currVals.length == 0)
+		this._scrollDiv.slider('option', 'disabled', true);
+	else
+		this._updateSliderVisibility(0);
 }
 
 queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
@@ -3950,15 +3605,22 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 		globalFlashMap.layers[elem.name].setVisible(this.checked);
 	}
 	
+	globalFlashMap.layers[elem.name].addMapStateListener("onChangeVisible", function(attr)
+	{
+		box.checked = attr;
+	});
+	
 	if (elem.type == "Vector")
 	{
 		var icon = _mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon'),
 		
-		layerElems = [box, icon, spanParent];
-
+		//layerElems = [box, icon, spanParent];
+		layerElems = _table([_tbody([_tr([_td([box]), _td([icon]), _td([spanParent], [['css', 'width', '100%'], ['css','whiteSpace','nowrap']])])])], [['dir', 'className', 'listLayerTable']]);
 	}
 	else
-		layerElems = [box, spanParent];
+		// layerElems = [box, spanParent];
+		layerElems = _table([_tbody([_tr([_td([box]), _td([spanParent], [['css', 'width', '100%'], ['css','whiteSpace','nowrap']])])])], [['dir', 'className', 'listLayerTable']]);
+	
 	
 	var icon = _img(null, [['attr','src', (elem.type == "Vector") ? 'img/vector.png' : 'img/rastr.png' ],['css','marginLeft','3px']]),
 		tr,
@@ -3966,7 +3628,7 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 	
 	var maxLayerWidth = this.tableHeader.firstChild.childNodes[1].offsetWidth + 'px';
 	
-	tr = _tr([_td([icon], [['css','textAlign','center']]), _td([_div(layerElems, [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap']])]), _td([_t(elem.date)], [['css','textAlign','center'],['dir','className','invisible']])]);
+	tr = _tr([_td([icon], [['css','textAlign','center']]), _td([_div([layerElems], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap']])]), _td([_t(elem.date)], [['css','textAlign','center'],['dir','className','invisible']])]);
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this.fieldsWidths[i];
@@ -3987,7 +3649,7 @@ queryMapLayersList.prototype.attachMapChangeEvent = function()
 		if (timer)
 			clearTimeout(timer);
 			
-		timer = setTimeout(_queryMapLayersList.reloadList, 200)
+		timer = setTimeout(function(){ _queryMapLayersList.reloadList(); }, 200)
 	})
 	
 	this.mapEvent = true;
@@ -4002,20 +3664,33 @@ queryMapLayersList.prototype.detachMapChangeEvent = function()
 
 queryMapLayersList.prototype.reloadList = function()
 {
-	var extendLayers = [],
-		extend = globalFlashMap.getVisibleExtent();
+	var extendLayers = [];
+	
+	//window.baseMap.id будет принудительно выставлен API при инициализации, даже если его нет в config.js
+	var baseMapName = window.baseMap.id;
 	
 	for (var i = 0; i < globalFlashMap.layers.length; i++)
 	{
-		if (globalFlashMap.layers[i].properties.name == "E50931C3B2DD4E0FA2C03366552EEAA1" ||
-			globalFlashMap.layers[i].properties.name == "C9458F2DCB754CEEACC54216C7D1EB0A" ||
-			globalFlashMap.layers[i].properties.name == "FFE60CFA7DAF498381F811C08A5E8CF5" ||
-			globalFlashMap.layers[i].properties.name == "5269E524341E4E7DB9D447C968B20A2C")
+		//не показываем слои из базовой подложки
+		if (globalFlashMap.layers[i].properties.mapName === baseMapName)
 			continue;
 		
 		var bounds = globalFlashMap.layers[i].bounds;
 		
-		if (boundsIntersect(extend, bounds))
+		var isIntersected = null;
+		if (this._isIntersectCenter)
+		{
+			var x = globalFlashMap.getX();
+			var y = globalFlashMap.getY();
+			isIntersected = x > bounds.minX && x < bounds.maxX && y > bounds.minY && y < bounds.maxY;
+		}
+		else
+		{
+			var extend = globalFlashMap.getVisibleExtent();
+			isIntersected = boundsIntersect(extend, bounds);
+		}
+		
+		if (isIntersected)
 		{
 			// оптимизируем данные для сортировки
 			
@@ -4043,22 +3718,26 @@ queryMapLayersList.prototype.reloadList = function()
 	_listTable.reportStart = 0;
 	_listTable.allPages = 0;
 	
-	_listTable.vals = extendLayers;
+	_listTable.setValues(extendLayers);
+	_listTable.drawFilterTable();
+	// _listTable.vals = extendLayers;
 	
-	var hasFilter = false;
+	// var hasFilter = false;
 	
-	for (var name in _listTable.filterVals)
-		if (_listTable.filterVals[name] != "")
-		{
-			hasFilter = true;
+	// for (var name in _listTable.filterVals)
+		// if (_listTable.filterVals[name] != "")
+		// {
+			// hasFilter = true;
 			
-			break;
-		}
+			// break;
+		// }
 	
-	if (!hasFilter)
-		_listTable.drawTable(_listTable.vals)
-	else
-		_listTable.drawFilterTable();
+	// if (!hasFilter)
+		// _listTable.drawTable(_listTable.vals)
+	// else
+		// _listTable.drawFilterTable();
+		
+	// this._updateSlider();
 }
 
 var _queryMapLayersList = new queryMapLayersList();

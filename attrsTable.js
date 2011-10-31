@@ -16,7 +16,7 @@
 	offset: 0, // начиная с какой записи
 	limit: 50, // сколько записей
 	query: "\"Attr1\" = 'abc' AND \"Attr2\" in (2,3)", // запрос
-	sortAttr: "Attr1", // имя атрибута, по которому производить сортировку (по умолчанию ogc_fid)
+	sortAttr: "Attr1", // имя атрибута, по которому производить сортировку (по умолчанию layer.properties.identityField || ogc_fid)
 	sortOrder: 0 // направление сортировки (по умолчанию - по возрастанию)
 }
 
@@ -45,12 +45,14 @@ var attrsTable = function(layerName, layerTitle)
 	this.textarea = null;
 	this.activeColumns = null;
 	
-	this.sortAttr = 'ogc_fid';
+	this._identityField = globalFlashMap.layers[layerName].properties.identityField;
+	this.sortAttr = this._identityField;
 	this.sortOrder = {};
 	
 	this.resizeFunc = function(){};
 	
 	this.drawingBorders = {};
+	
 	
 	// Переход на предыдущую страницу
 	this.next = function()
@@ -244,7 +246,7 @@ attrsTable.prototype.drawDialog = function(info)
 	_(canvas, [_div([paramsButton, addObjectButton],[['css','margin','10px 0px 10px 1px']])])
 	_(canvas, [_table([_tbody([_tr([tdParams, tdTable])])],['css','width','100%'])])
 	
-	var attrNames = ['ogc_fid'].concat(globalFlashMap.layers[info.Name].properties.attributes);
+	var attrNames = [this._identityField].concat(globalFlashMap.layers[info.Name].properties.attributes);
 	
 	this.textarea = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','280px'],['css','height','70px']]);
 	
@@ -746,7 +748,7 @@ attrsTable.prototype.editObject = function(row)
 	
 		_(canvas, [loading])
 		
-		sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + this.layerName + "&page=0&pagesize=1&orderby=ogc_fid&geometry=true&query='ogc_fid'=" + row[0], function(response)
+		sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + this.layerName + "&page=0&pagesize=1&orderby=" + this._identityField + "&geometry=true&query='" + this._identityField + "'=" + row[0], function(response)
 		{
 			if (!parseResponse(response))
 				return;
@@ -785,7 +787,7 @@ attrsTable.prototype.editObject = function(row)
 					}
 					else
 					{
-						var info = _span([_t(geometryRow[0].type)], [,['css','marginLeft','3px'],['css','fontSize','12px']]);
+						var info = _span([_t(geometryRow[0].type)], [['css','marginLeft','3px'],['css','fontSize','12px']]);
 						
 						_title(info, JSON.stringify(geometryRow[0].coordinates));
 					}

@@ -20,6 +20,20 @@ class MapContent
 		return null;
 	}
 
+	public function flush():Void
+	{
+	}
+
+	public function delClusters():Dynamic
+	{
+		return null;
+	}
+
+	public function setClusters(attr:Dynamic):Dynamic
+	{
+		return null;
+	}
+
 	public function repaint() 
 	{
 	}
@@ -42,15 +56,17 @@ class MapContent
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event:MouseEvent)
 		{
+			Main.chkEventAttr(event);
 			node.callHandler("onMouseOut");
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
+			Main.chkEventAttr(event);
 			node.callHandler("onMouseMove");
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
 		{
-			Main.registerMouseDown(node, event);
+			Main.registerMouseDown(node, event, null);
 		});
 	}
 }

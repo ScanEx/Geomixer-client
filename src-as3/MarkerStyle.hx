@@ -1,3 +1,5 @@
+import flash.display.Loader;
+import flash.display.Sprite;
 import flash.display.BitmapData;
 import flash.display.Graphics;
 import flash.display.LineScaleMode;
@@ -17,6 +19,9 @@ class MarkerStyle
 	public var imageUrl:String;
 	public var size:Float;
 	
+	var marker:Dynamic;
+	var minScale:Float;
+	var maxScale:Float;
 	var dx:Float;
 	var dy:Float;
 	var center:Bool;
@@ -29,28 +34,37 @@ class MarkerStyle
 	var origScaleExpr: String;
 
 	public var drawFunction:PointGeometry->Graphics->Float->Void;
+	public var drawSWFFunction:PointGeometry->Sprite->Float->Void;
 
 	static var DEFAULT_REPLACEMENT_COLOR:UInt = 0xff00ff;
 	static var DEFAULT_SIZE:Float  = 0.0;
 	static var DEFAULT_DX:Float    = 0.0;
 	static var DEFAULT_DY:Float    = 0.0;
+	static var DEFAULT_MINSCALE:Float    = 0.01;
+	static var DEFAULT_MAXSCALE:Float    = 1000;
 	static var DEFAULT_CENTER:Bool = false;
 	static var svgCache:Hash<XML> = new Hash<XML>();
 
-	public function new(marker:Dynamic, parent:Style)
+	public function new(marker_:Dynamic, parent:Style)
 	{
+		marker = marker_;
 		imageUrl = Std.is(marker.image, String) ? marker.image : null;
 		if (imageUrl == "")
 			imageUrl = null;
 		size = Std.is(marker.size, Float) ? marker.size : DEFAULT_SIZE;
 		dx = Std.is(marker.dx, Float) ? marker.dx : DEFAULT_DX;
 		dy = Std.is(marker.dy, Float) ? marker.dy : DEFAULT_DY;
+		
+		marker.scale = (marker.scale != null ? marker.scale : 1);
+		marker.angle = (marker.angle != null ? marker.angle : 0);
+		minScale = Std.is(marker.minScale, Float) ? marker.minScale : DEFAULT_MINSCALE;
+		maxScale = Std.is(marker.maxScale, Float) ? marker.maxScale : DEFAULT_MAXSCALE;
 		center = Std.is(marker.center, Bool) ? marker.center : DEFAULT_CENTER;
 
 		replacementColor = Std.is(marker.color, UInt) ? marker.color : DEFAULT_REPLACEMENT_COLOR;
 		angleFunction = Std.is(marker.angle, String) ? Parsers.parseExpression(marker.angle) : null;
 		scaleFunction = Std.is(marker.scale, String) ? Parsers.parseExpression(marker.scale) : null;
-		
+
 		origAngleExpr = Std.is(marker.angle, String) ? marker.angle : null;
 		origScaleExpr = Std.is(marker.scale, String) ? marker.scale : null;
 	}
@@ -60,6 +74,30 @@ class MarkerStyle
 		var me = this;
 		if (imageUrl == null)
 			onLoad();
+		else if (~/\.swf$/i.match(imageUrl))
+		{
+			Utils.loadCacheDisplayObject(imageUrl, function(hash:Dynamic)
+			{
+				if (hash == null || hash.loader == null) return;
+				var ldr:Loader = hash.loader;
+				var w = ldr.width;
+				var h = ldr.height;
+				me.drawSWFFunction = function(geom:PointGeometry, spr:Sprite, scaleY:Float)
+				{
+					var matrix:Matrix = me.getMatrix(geom, w, h, scaleY);
+					ldr.transform.matrix = matrix;
+					var ang	= (me.angleFunction != null ? me.angleFunction(geom.properties) : me.marker.angle);
+					ldr.rotation = ang;
+					var sc = ldr.scaleX * (me.scaleFunction != null ? me.scaleFunction(geom.properties) : me.marker.scale);
+					ldr.scaleX = ldr.scaleY = sc;
+					ldr.mouseEnabled = false;
+					ldr.mouseChildren = false;
+					spr.addChild(ldr);
+				}
+				Main.refreshMap();		// Для обновления маркеров
+				onLoad();
+			});
+		}
 		else if (~/\.svg$/i.match(imageUrl))
 		{
 			var me = this;
@@ -205,6 +243,7 @@ class MarkerStyle
 						graphics.lineTo(p1.x, p1.y);
 						graphics.endFill();
 					}
+					Main.refreshMap();		// Для обновления маркеров
 				}
 				onLoad();
 			});
@@ -219,12 +258,17 @@ class MarkerStyle
 			center ? -width/2 : (dx - 1),
 			center ? -height/2 : (dy - 1)
 		);
-		if (angleFunction != null)
-			matrix.rotate(angleFunction(geom.properties)*Math.PI/180.0);
-		if (scaleFunction != null)
-		{
-			var s = scaleFunction(geom.properties);
-			matrix.scale(s, s);
+		if (geom.properties != null) {
+			var ang:Float = (angleFunction != null ? angleFunction(geom.properties) : marker.angle);
+			if(ang != 0) matrix.rotate(ang*Math.PI/180.0);
+			//if (angleFunction != null)
+			//	matrix.rotate(angleFunction(geom.properties)*Math.PI/180.0);
+			var s:Float = (scaleFunction != null ? scaleFunction(geom.properties) : marker.scale);
+			if(s != 1) {
+				if (s < minScale) s = cast(minScale);
+				else if (s > maxScale) s = cast(maxScale);
+				matrix.scale(s, s);
+			}
 		}
 		matrix.concat(new Matrix(scaleX, 0, 0, scaleY, geom.x, geom.y));
 		matrix.tx -= matrix.tx%scaleX;

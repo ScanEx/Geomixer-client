@@ -8,6 +8,14 @@
 */
 (function($){
 
+_translationsHash.addtext("rus", {
+	"Текущее местоположение отображается только для России и Украины": "Текущее местоположение отображается только для России и Украины"
+});
+
+_translationsHash.addtext("eng", {
+	"Текущее местоположение отображается только для России и Украины": "Current location is shown only for Russia and Ukraine"
+});
+
 /** Возвращает полное наименование объекта, состоящее из типа и наименования
  @memberOf Search 
  @param sType Наименование типа объекта 
@@ -40,7 +48,7 @@ var GetPath = function(/**object*/ oFoundObject,/** string */ sObjectsSeparator,
 	if (oParentObj != null && (oParentObj.ObjName == "Российская Федерация" || oParentObj.TypeName == "административный округ")) {
 		oParentObj = oParentObj.Parent;
 	}
-	var sObjectName = oFoundObject.IsForeign ? oFoundObject[sObjNameField] : GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
+	var sObjectName = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183) ? oFoundObject[sObjNameField] : GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
 	if (oParentObj != null && oParentObj[sObjNameField] != null && oParentObj[sObjNameField]){
 		if (bParentAfter){
 			return sObjectName + sObjectsSeparator + GetPath(oParentObj, sObjectsSeparator,  bParentAfter, sObjNameField);
@@ -58,7 +66,7 @@ var GetPath = function(/**object*/ oFoundObject,/** string */ sObjectsSeparator,
  @memberOf Search
  @param oProps - Свойства
  @param sObjectsSeparator Разделитель 2х свойств в строке*/	
-var GetPropertiesString = function(/**object[]*/oProps,/**string*/ sPropSeparator){
+var GetPropertiesString = function(/**object[]*/oProps,/**string*/ sPropSeparator, /**object[]*/arrDisplayFields){
 	var sResultString = "";
 	if (oProps != null){
 		for (var sPropName in oProps){
@@ -85,7 +93,8 @@ var SearchInput = function (oInitContainer, params) {
 	var layersSearchFlag = params.layersSearchFlag;
 	var _this = this;	
 	if (Container == null) throw "SearchInput.Container is null";
-
+	var _sDefalutAddressVectorLabel = _gtxt("$$search$$_1");
+	var _sDefalutAddressLabel = _gtxt("$$search$$_2");
 	/** Возвращает содержимое поля поиска
 	@function
 	@see Search.SearchInput#SetSearchString*/
@@ -95,7 +104,7 @@ var SearchInput = function (oInitContainer, params) {
 	@function
 	@see Search.SearchInput#GetSearchString*/
 	this.SetSearchString = function(value) {searchField.value = value};
-	if (params.Search != null) $(this).bind('Search', params.Search)
+	if (params.Search != null) $(this).bind('Search', params.Search);
 	if (params.AutoCompleteSelect != null) $(this).bind('AutoCompleteSelect', params.AutoCompleteSelect)
 		
 	var dtLastSearch = new Date();
@@ -124,11 +133,11 @@ var SearchInput = function (oInitContainer, params) {
 		var bChangeValue = (searchField.value == sDefaultValue);
 	
 		if (layersSearchFlag) {
-			sDefaultValue = _gtxt("$$search$$_1");
+			sDefaultValue = _sDefalutAddressVectorLabel;
 			divSearchBegin.className = 'searchBeginOn';
 		}
 		else {
-			sDefaultValue = _gtxt("$$search$$_2");
+			sDefaultValue = _sDefalutAddressLabel;
 			divSearchBegin.className = 'searchBeginOff';
 		}
 		
@@ -136,12 +145,12 @@ var SearchInput = function (oInitContainer, params) {
 	}
 	
 	if (!layersSearchFlag) {
-        sDefaultValue = _gtxt("$$search$$_2");
+        sDefaultValue = _sDefalutAddressLabel;
 		divSearchBegin = _div(null, [['dir', 'className', 'searchBegin']]);
         tdSearchBegin = _td([divSearchBegin], [['dir', 'className', 'searchBeginTD']]);
     }
     else {
-        sDefaultValue = _gtxt("$$search$$_1");
+        sDefaultValue = _sDefalutAddressVectorLabel;
 		divSearchBegin = _div(null, [['dir', 'className', 'searchBeginOn']]);
 		tdSearchBegin = _td([divSearchBegin], [['dir', 'className', 'searchBeginOnTD']]);
         divSearchBegin.onclick = function() {
@@ -155,7 +164,7 @@ var SearchInput = function (oInitContainer, params) {
 	searchField.value = sDefaultValue;
 
     var searchFieldCanvas = _table(	[_tbody([_tr([tdSearchBegin, _td([searchField], [['dir', 'className', 'searchCenterTD']]), tdSearchButton])])], 
-									[['dir', 'className', 'SearchInputControl']])
+									[['dir', 'className', 'SearchInputControl']]);
 
     searchField.onkeyup = function(e) {
         var evt = e || window.event;
@@ -204,14 +213,12 @@ var SearchInput = function (oInitContainer, params) {
 			}
 		}
 		
-		/** Слова, содержащиеся в строке поиска */
-		var arrSearchWords;
-		
 		/** Возвращает данные подсказки
 		@param {object} request запрос (request.term - строка запроса)
 		@param {object[]} Массив значений для отображения в подсказке*/
 		function fnAutoCompleteSource(request, response){
-			arrSearchWords = request.term.replace(/[^\wа-яА-Я]+/, "|").split("|");
+			/** Слова, содержащиеся в строке поиска */
+			$(searchField).autocomplete("widget")[0].arrSearchWords = request.term.replace(/[^\wа-яА-Я]+/, "|").split("|");
 			params.AutoCompleteSource(request, function(arrResult){
 				if (Number(new Date()) - dtLastSearch > 5000) {
 					response(arrResult);
@@ -228,6 +235,7 @@ var SearchInput = function (oInitContainer, params) {
 				minLength: 3,
 				source: fnAutoCompleteSource,
 				select: fnAutoCompleteSelect,
+				//appendTo: searchField,
 				open: function(event, ui){
 					var oMenu = $(searchField).autocomplete("widget")[0];
 					oMenu.style.left = oMenu.offsetLeft - divSearchBegin.clientWidth + 1;
@@ -236,11 +244,14 @@ var SearchInput = function (oInitContainer, params) {
 			});
 		});
 		
+		/** Слова, содержащиеся в строке поиска */
+		$(searchField).autocomplete("widget")[0].arrSearchWords = [];
+		
 		$.ui.autocomplete.prototype._renderItem = function( ul, item) {
 			var t = item.label;
-			for (var i=0; i<arrSearchWords.length; i++){
-				if(arrSearchWords[i].length > 1){
-					var re = new RegExp(arrSearchWords[i], 'ig') ;
+			for (var i=0; i<ul[0].arrSearchWords.length; i++){
+				if(ul[0].arrSearchWords[i].length > 1){
+					var re = new RegExp(ul[0].arrSearchWords[i], 'ig') ;
 					t = t.replace(re, function(str, p1, p2, offset, s){
 						return "<span class='ui-autocomplete-match'>" + str + "</span>";
 					});
@@ -255,6 +266,20 @@ var SearchInput = function (oInitContainer, params) {
 	}
 	/** Возвращает контрол, в котором находится данный контрол*/
 	this.getContainer = function(){return Container;}
+	
+	/** Устанавливает значение по умолчанию вместо "Поиск по адресной базе"*/
+	this.setAddressVectorDefault = function(value){
+		if(searchField.value == _sDefalutAddressLabel) searchField.value = value;
+		if(sDefaultValue == _sDefalutAddressLabel) sDefaultValue = value;
+		_sDefalutAddressVectorLabel = value;
+	}
+	
+	/** Устанавливает значение по умолчанию вместо "Поиск по векторным слоям и адресной базе"*/
+	this.setAddressDefault = function(value){
+		if(searchField.value == _sDefalutAddressLabel) searchField.value = value;
+		if(sDefaultValue == _sDefalutAddressLabel) sDefaultValue = value;
+		_sDefalutAddressLabel = value;
+	}
 };
 
 /** Конструктор
@@ -372,7 +397,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	/**Добавляет объект в список найденных результатов*/
 	var drawObject = function(oFoundObject, elemDiv, bIsParent)
 	{
-		var	realPath = oFoundObject.IsForeign ? oFoundObject.ObjName : GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
+		var	realPath = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183)  ? oFoundObject.ObjName : GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
 		if (oFoundObject.Parent != null) realPath += ",";
 		
 		var searchElemHeader = _span([_t(realPath)], [['dir', 'className', bIsParent?'searchElemParent':'searchElem']]);
@@ -385,7 +410,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 
 		_(elemDiv, [searchElemHeader]);
 		if (oFoundObject.Parent != null) drawObject(oFoundObject.Parent, elemDiv, true);
-		if (oFoundObject.properties != null) _(elemDiv, [_t(GetPropertiesString(oFoundObject.properties, "; "))]);
+		if (oFoundObject.properties != null) _(elemDiv, [_t(" " + GetPropertiesString(oFoundObject.properties, "; "))]);
 	}
 	
 	/** Рисует строки списка*/
@@ -397,7 +422,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 			var elemTR = _tr(null, [['dir', 'className', 'SearchResultRow']]);
 			var elemTD = _td();
 			_(elemTR, [_td([_t((i+1).toString() + ".")], [['dir', 'className','searchElemPosition']]), elemTD]);
-			drawObject(arrObjects[i], elemTD)
+			drawObject(arrObjects[i], elemTD);
 			_(tbody, [elemTR]);
 		}
 		_(divChilds, [_table([tbody])]);
@@ -470,10 +495,10 @@ var ResultList = function(oInitContainer, ImagesHost){
 		if (oDataSource.SearchResult.length <= iLimit) {
 			removeChilds(divPages);
 			SetDisplayedObjects(iDataSourceN, oDataSource.SearchResult);
-			drawRows(iDataSourceN, divChilds)
+			drawRows(iDataSourceN, divChilds);
 		}
 		else {
-			oDataSource.allPages = Math.ceil(oDataSource.SearchResult.length / iLimit)
+			oDataSource.allPages = Math.ceil(oDataSource.SearchResult.length / iLimit);
 
 			drawPagesRow(iDataSourceN, divChilds, divPages);
 		}
@@ -503,14 +528,14 @@ var ResultList = function(oInitContainer, ImagesHost){
 			@param {object[]} SearchResult Результаты поиска, которые необходимо сохранить в файл*/
 			$(_this).triggerHandler('onDownloadSHP', [filename, oDataSource.SearchResult]);
 			
-			$(canvas.parentNode).dialog("destroy")
+			$(canvas.parentNode).dialog("destroy");
 			canvas.parentNode.removeNode(true);
 		}
 
 		_(canvas, [_div([_t(_gtxt("Введите имя файла для скачивания")), filename], [['dir', 'className', 'DownloadSHPButtonText']]), _div([downloadButton], [['dir', 'className', 'DownloadSHPButton']])]);
 
-		var area = getOffsetRect(Container)
-		showDialog(_gtxt("Скачать shp-файл"), canvas, 291, 120, 30, area.top + 10)
+		var area = getOffsetRect(Container);
+		showDialog(_gtxt("Скачать shp-файл"), canvas, 291, 120, 30, area.top + 10);
 	}
 
 	/**Отображает результаты поиска с источника данных
@@ -545,7 +570,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 				downloadMarkers(iDataSourceN);
 			}
 
-			liInner.insertBefore(_div([downloadVector], [['dir', 'className', 'SearchDownloadShpLink']]), liInner.firstChild)
+			liInner.insertBefore(_div([downloadVector], [['dir', 'className', 'SearchDownloadShpLink']]), liInner.firstChild);
 		}
 
 		return li;
@@ -582,7 +607,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 		var ulSearch = _ul();
 		
 		for (var iDataSourceN  = 0; iDataSourceN < arrTotalResultSet.length; iDataSourceN++)
-			_(ulSearch, [drawSearchResult(iDataSourceN)])
+			_(ulSearch, [drawSearchResult(iDataSourceN)]);
 
 		if (arrTotalResultSet.length == 1){
 			_(oResultCanvas, [ulSearch]);
@@ -608,7 +633,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 		@event
 		@param {int} iDataSourceN № источника данных(группы результатов поиска)
 		@param {object[]} arrDSDisplayedObjects Результаты поиска, которые необходимо отобразить в текущей группе*/
-		$(_this).triggerHandler('onDisplayedObjectsChanged',[iDataSourceN, arrDisplayedObjects[iDataSourceN]])
+		$(_this).triggerHandler('onDisplayedObjectsChanged',[iDataSourceN, arrDisplayedObjects[iDataSourceN]]);
 	};
 	
 	/** Показывает режим загрузки
@@ -622,26 +647,28 @@ var ResultList = function(oInitContainer, ImagesHost){
 	@returns {void}*/
 	this.ShowError = function(){
 		removeChilds(oResultCanvas);
-		_(oResultCanvas, [_t("Произошла ошибка")])
+		_(oResultCanvas, [_t("Произошла ошибка")]);
 	}
 	
 	/**Очищает результаты поиска
 	@returns {void}*/
 	this.Unload = function(){unload();};
 	/** Возвращает контрол, в котором находится данный контрол*/
-	this.getContainer = function(){return Container;}
+	this.getContainer = function(){return Container;};
 };
 
 /** Конструктор
- @class ResultRenderer Предоставляет функции, отображающие найденные объекты на карте
+ @class Предоставляет функции, отображающие найденные объекты на карте
  @memberof Search
  @param {object} oInitMap карта, на которой будут рисоваться объекты
- @param {string} ImagesHost - строка пути к картинкам*/
-var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
+ @param {string} sInitImagesHost - строка пути к картинкам
+ @param {bool} bInitAutoCenter - если true, карта будет центрироваться по 1ому найденному объекту*/
+var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	var oMap = oInitMap;
 	if (oMap == null)  throw "ResultRenderer.Map is null";
 	
 	var sImagesHost = sInitImagesHost || "http://maps.kosmosnimki.ru/api/img";
+	var bAutoCenter = (bInitAutoCenter == null) || bInitAutoCenter;
 	
 	var arrContainer = [];
 	var iCount = 0;
@@ -651,7 +678,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
 		return [
 						{ marker: { image: sImagesHost + "/search/search_" + (iPosition + 1).toString() + ".png", dx: -14, dy: -38} },
 						{ marker: { image: sImagesHost + "/search/search_" + (iPosition + 1).toString() + "a.png", dx: -14, dy: -38} }
-				]
+				];
 	}
 
 	/**Помещает объект на карту
@@ -660,7 +687,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
 	@param {int} iPosition порядковый номер добавляемого объекта в группе*/
 	var DrawObject = function(oContainer, oFoundObject, iPosition){
 		var sDescr = "<b>" + GetFullName(oFoundObject.TypeName, oFoundObject.ObjName) + "</b><br/>" + GetPath(oFoundObject.Parent, "<br/>", true);
-		if (oFoundObject.properties != null) sDescr += "<br/>" + GetPropertiesString(oFoundObject.properties, "<br/>")
+		if (oFoundObject.properties != null) sDescr += "<br/>" + GetPropertiesString(oFoundObject.properties, "<br/>");
 		var fnBaloon = function(o) {
 			return o.properties.Descr.replace(/;/g, "<br/>");
 		};
@@ -681,7 +708,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
 		//Рисуем контур объекта
 		if (oFoundObject.Geometry != null && oFoundObject.Geometry.type != 'POINT') {
 			elemMap = oContainer.addObject(oFoundObject.Geometry, { Descr: sDescr });
-			elemMap.setStyle({ outline: { color: Math.round(0x222222 + 0x999999*iPosition/iCount), thickness: 3, opacity: 100} });
+			elemMap.setStyle({ outline: { color: Math.round(0x222222 + 0x999999*iPosition/iCount), thickness: 3, opacity: 60} });
 
 			elemMap.enableHoverBalloon(fnBaloon);
 		}
@@ -689,8 +716,9 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
 	
 	/**Центрует карту по переданному объекту*/
 	var CenterObject = function(oFoundObject){
+		if (!oFoundObject) return;
 		var iZoom = 100;
-		var iMaxZoom  = (oFoundObject.IsForeign) ? 9 : 15;
+		var iMaxZoom  = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183) ? 9 : 15;
 		oMap.setMinMaxZoom(1, iMaxZoom);
 		if (oFoundObject.MinLon != null && oFoundObject.MaxLon != null && oFoundObject.MinLat != null && oFoundObject.MaxLat != null){
 			oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
@@ -727,12 +755,12 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, WithoutGeometry){
 			DrawObject(arrContainer[iDataSourceN], arrFoundObjects[i], i);
 		}
 		arrContainer[iDataSourceN].setVisible(true);
-		if (iDataSourceN == 0) CenterObject(arrFoundObjects[0]);
+		if (bAutoCenter && iDataSourceN == 0) CenterObject(arrFoundObjects[0]);
 	}
 };
 
 /** Конструктор
- @class ResultRenderer Предоставляет функции, отображающие найденные объекты на карте
+ @class Предоставляет функции, отображающие найденные объекты на карте
  @memberof Search
  @param {object} oInitMap карта, на которой будут рисоваться объекты
  @param {function} fnSearchLocation = function({Geometry, callback})- функция поиска объектов по переданной геометрии*/
@@ -758,25 +786,27 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 		if (oFoundObject.Parent != null) _(elemDiv, [_t("->")]);
 		_(elemDiv, [searchElemHeader]);
 	}
-	
-	var setLocationTitleDiv = function(attr) {
-		if (dtLastSearch && Number(new Date()) - dtLastSearch < 300) 
-			return;
+
+	var setLocationTitleDiv = function(div, attr) {
+		if (dtLastSearch && Number(new Date()) - dtLastSearch < 300) return;
 		dtLastSearch = new Date();
 		
-		var locationTitleDiv = attr['div'];
-		$(locationTitleDiv).addClass('locationTitleDiv');
+		var locationTitleDiv = div;
+
 		fnSearchLocation({Geometry: attr['screenGeometry'], callback: function(arrResultDataSources){
 			removeChilds(locationTitleDiv);
-			if(arrResultDataSources.length>0 && arrResultDataSources[0].SearchResult.length>0)
-				drawObject(arrResultDataSources[0].SearchResult[0], locationTitleDiv);
+			if(arrResultDataSources.length>0){
+				if (arrResultDataSources[0].SearchResult.length>0){
+					drawObject(arrResultDataSources[0].SearchResult[0], locationTitleDiv);
+				}
+				else{
+					_(locationTitleDiv, [_t(_gtxt("Текущее местоположение отображается только для России и Украины"))]);
+				}
+			}
 		}});
 	};
 	
-	var listenerID = oMap.addMapStateListener("positionChanged", setLocationTitleDiv);
-	this.RemoveHandler = function(){
-		oMap.removeMapStateListener("positionChanged", listenerID);
-	};
+	oMap.coordinates.addCoordinatesFormat(setLocationTitleDiv);
 }
 
 /** Возвращает контрол, отображающий результаты поиска в виде списка с нанесением на карту 
@@ -784,9 +814,10 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
  @param {object} oInitContainer Объект, в котором находится контрол результатов поиска в виде списка(div)
  @param {object} oInitMap карта, на которой будут рисоваться объекты
  @param {string} ImagesHost - строка пути к картинкам
+ @param {bool} bInitAutoCenter - если true, карта будет центрироваться по 1ому найденному объекту
  @returns {Search.ResultListMap}*/
-var ResultListMapGet = function(oInitContainer, oInitMap, sImagesHost){
-	var oRenderer = new ResultRenderer(oInitMap);
+var ResultListMapGet = function(oInitContainer, oInitMap, sImagesHost, bInitAutoCenter){
+	var oRenderer = new ResultRenderer(oInitMap, sImagesHost, bInitAutoCenter);
 	var lstResult = new ResultList(oInitContainer, sImagesHost);
 	ResultListMap.apply(this, [lstResult, oRenderer]);
 }
@@ -865,15 +896,16 @@ var ResultListMap = function(lstResult, oRenderer){
 	@returns {void}*/
 	this.Unload = function(){lstResult.Unload();};
 	/** Возвращает контейнер, содержащий список найденных объектов*/
-	this.getContainerList = function(){return lstResult.getContainer();}
+	this.getContainerList = function(){return lstResult.getContainer();};
 }
 
 /**Конструктор
  @class SearchDataProvider Посылает запрос к поисковому серверу
  @memberof Search
  @param {string} sInitServerBase Адрес сервера, на котором установлен поисковый модуль Geomixer'а
- @param {object} oInitMap карта, на которой будут рисоваться объекты*/
-var SearchDataProvider = function(sInitServerBase, oInitMap){
+ @param {object} oInitMap карта, на которой будут рисоваться объекты
+ @param {string[]} arrDisplayFields список атрибутов векторных слоев, которые будут отображаться в результатах поиска*/
+var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 	var sServerBase = sInitServerBase;
 	if (sServerBase == null || sServerBase.length < 7) {throw "Error in SearchDataProvider: sServerBase is not supplied"};
 	var oMap = oInitMap;
@@ -900,7 +932,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		if (params.WithoutGeometry != null) sQueryString += "&WithoutGeometry=" + escape(params.WithoutGeometry ? "1" : "0");
 		//if (sFormatName != null) sQueryString += "&Format=" + escape(sFormatName);
 		sendCrossDomainJSONRequest(sServerBase + "/SearchObject/SearchAddress.ashx?" + sQueryString, function(response){
-			if (response.Status == 'ok') {callback(response.Result)}
+			if (response.Status == 'ok') {callback(response.Result);}
 			else {throw response.ErrorInfo.ErrorMessage;}
 		});
 	};
@@ -914,7 +946,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
 	@returns {void}*/
 	this.SearchByString = function(params){
-		_this.Search({callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry, RequestType: "SearchObject"});
+		fnSearch({callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry, RequestType: "SearchObject"});
 	};
 	
 	/**Получает информацию об объекте
@@ -923,7 +955,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		_this.Search({callback: params.callback, ID: params.ID, RequestType: "ID"})
+		fnSearch({callback: params.callback, ID: params.ID, RequestType: "ID"});
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -932,7 +964,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
 	@returns {void}*/
 	this.SearchLocation = function(params){
-		_this.Search({callback: params.callback, Geometry: params.Geometry, WithoutGeometry: true, RequestType: "Location"})
+		fnSearch({callback: params.callback, Geometry: params.Geometry, WithoutGeometry: true, RequestType: "Location"});
 	}
 	
 	/**Осуществляет поиск по произвольным параметрам
@@ -943,7 +975,6 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
 		<i>Limit</i> - максимальное число найденных объектов
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
-		<i>RequestType<i> - Тип запроса к серверу
 	@returns {void}*/
 	this.Search = function(params){
 		fnSearch({
@@ -953,7 +984,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 			Limit: params.Limit == null ? iDefaultLimit : params.Limit,
 			Geometry: params.Geometry,
 			WithoutGeometry: params.WithoutGeometry,
-			RequestType: params.RequestType
+			RequestType: "SearchObject"
 		});
 	};
 	
@@ -968,7 +999,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 		}
 		
 		var layersToSearch = [];
-		for(i=0; i < oMap.layers.length; i++){
+		for(var i=0; i< oMap.layers.length; i++){
             if (oMap.layers[i].properties.type == "Vector" && oMap.layers[i].properties.AllowSearch)
                 layersToSearch.push(oMap.layers[i]);
         }
@@ -995,9 +1026,21 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
 									var req = searchReq.Result[iServer];
 									for (var j = 0; j < req.SearchResult.length; j++)
 									{
+										var arrDisplayProperties = {};
+										if (!arrDisplayFields) {
+											arrDisplayProperties = req.SearchResult[j].properties;
+										}
+										else {
+											for (var iProperty=0; iProperty<arrDisplayFields.length; iProperty++){
+												var sPropName = arrDisplayFields[iProperty];
+												if(sPropName in req.SearchResult[j].properties) {
+													arrDisplayProperties[sPropName] = req.SearchResult[j].properties[sPropName];
+												}
+											}
+										}
 										arrLayerResult.push({ 
 											ObjName: req.SearchResult[j].properties.NAME || req.SearchResult[j].properties.Name || req.SearchResult[j].properties.name || req.SearchResult[j].properties.text || "[объект]",
-											properties: req.SearchResult[j].properties, 
+											properties: arrDisplayProperties, 
 											Geometry: from_merc_geometry(req.SearchResult[j].geometry) 
 										});
 									}
@@ -1030,9 +1073,10 @@ var SearchDataProvider = function(sInitServerBase, oInitMap){
  @param {string} ServerBase Адрес сервера, на котором установлен поисковый модуль Geomixer'а
  @param {object} oInitMap карта, на которой будут рисоваться объекты
  @param {bool} WithoutGeometry - по умолчанию не передавать геометрию в результатах поиска
+ @param {string[]} arrDisplayFields список атрибутов векторных слоев, которые будут отображаться в результатах поиска
  @returns {Search.SearchLogic}*/
-var SearchLogicGet = function(ServerBase, oInitMap, WithoutGeometry){
-	SearchLogic.apply(this, [new SearchDataProvider(ServerBase, oInitMap), WithoutGeometry]);
+var SearchLogicGet = function(ServerBase, oInitMap, WithoutGeometry, arrDisplayFields){
+	SearchLogic.apply(this, [new SearchDataProvider(ServerBase, oInitMap), WithoutGeometry, arrDisplayFields]);
 }
 SearchLogicGet.prototype = SearchLogic;
 
@@ -1096,7 +1140,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 					arrResult.push({
 						label:sLabel,
 						value:GetFullName(oFoundObject.TypeName, sValue),
-						GeoObject: oFoundObject})
+						GeoObject: oFoundObject});
 				}
 				if(arrResult.length>0) break;
 			}
@@ -1189,7 +1233,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID})
+		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID});
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -1198,8 +1242,29 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
 	@returns {void}*/
 	this.SearchLocation = function(params){
-		oSearchDataProvider.SearchLocation({callback: params.callback, Geometry: params.Geometry})
+		oSearchDataProvider.SearchLocation({callback: params.callback, Geometry: params.Geometry});
 	}
+	
+	/**Осуществляет поиск по произвольным параметрам
+	@param {object} params Параметры: </br>
+		<i>callback</i> = function(arrResultDataSources) - вызывается после получения ответа от сервера </br>
+		<i>SearchString</i> - строка для поиска </br>
+		<i>IsStrongSearch</i> - признак того, что искать только целые слова </br>
+		<i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
+		<i>Limit</i> - максимальное число найденных объектов
+		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
+		<i>RequestType<i> - Тип запроса к серверу
+	@returns {void}*/
+	this.Search = function(params){
+		oSearchDataProvider.Search({
+			callback: params.callback, 
+			SearchString: params.SearchString, 
+			IsStrongSearch: params.IsStrongSearch, 
+			Limit: params.Limit == null ? iDefaultLimit : params.Limit,
+			Geometry: params.Geometry,
+			WithoutGeometry: params.WithoutGeometry
+		});
+	};
 	
 	/** Возвращает адрес сервера, на котором установлен поисковый модуль Geomixer'а */
 	this.GetServerBase = function(){
@@ -1333,7 +1398,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 		@event
 		@param {int} iDataSourceN № источника данных(группы результатов поиска)
 		@param {object[]} arrDSDisplayedObjects Результаты поиска, которые необходимо отобразить в текущей группе*/
-		$(_this).triggerHandler('onDisplayedObjectsChanged', [iDataSourceN, arrFoundObjects])
+		$(_this).triggerHandler('onDisplayedObjectsChanged', [iDataSourceN, arrFoundObjects]);
 	}
 	
 	var onObjectClick = function(event, oFoundObject){
@@ -1341,7 +1406,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 		@name Search.SearchControl.onObjectClick
 		@event
 		@param {object} oFoundObject Найденный объект*/
-		$(_this).triggerHandler('onObjectClick', [oFoundObject])
+		$(_this).triggerHandler('onObjectClick', [oFoundObject]);
 	}
 	
 	$(lstResult).bind('onDisplayedObjectsChanged', onDisplayedObjectsChanged);
@@ -1369,7 +1434,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 			if (sSearchString == '') sSearchString = 'Поиск по выделенной области';
 			lstResult.ShowLoading();
 			if (fnBeforeSearch != null) fnBeforeSearch();
-			oSearchDataProvider.Search({
+			oLogic.Search({
 				SearchString: params.SearchString, 
 				IsStrongSearch: params.IsStrongSearch, 
 				Limit: params.Limit,
@@ -1433,7 +1498,7 @@ var SearchGeomixer = function(){
 	var fnBeforeSearch = function(event){
 		/** Вызывается перед началом поиска
 		@name Search.SearchGeomixer.onBeforeSearch
-		@event*/
+		@event */
 		$(_this).triggerHandler('onBeforeSearch');
 		fnLoad();
 	}
@@ -1441,7 +1506,7 @@ var SearchGeomixer = function(){
 	var fnAfterSearch = function(event){
 		/** Вызывается после окончания поиска
 		@name Search.SearchGeomixer.onAfterSearch
-		@event*/
+		@event */
 		$(_this).triggerHandler('onAfterSearch');
 	}
 	
@@ -1451,7 +1516,7 @@ var SearchGeomixer = function(){
 		@event
 		@param {int} iDataSourceN № источника данных(группы результатов поиска)
 		@param {object[]} arrDSDisplayedObjects Результаты поиска, которые необходимо отобразить в текущей группе*/
-		$(_this).triggerHandler('onDisplayedObjectsChanged', [iDataSourceN, arrFoundObjects])
+		$(_this).triggerHandler('onDisplayedObjectsChanged', [iDataSourceN, arrFoundObjects]);
 	}
 	
 	var onObjectClick = function(event, oFoundObject){
@@ -1459,7 +1524,7 @@ var SearchGeomixer = function(){
 		@name Search.SearchGeomixer.onObjectClick
 		@event
 		@param {object} oFoundObject Найденный объект*/
-		$(_this).triggerHandler('onObjectClick', [oFoundObject])
+		$(_this).triggerHandler('onObjectClick', [oFoundObject]);
 	}
 
 	/**Инициализирует контрол
@@ -1538,10 +1603,11 @@ var publicInterface = {
 	SearchDataProvider: SearchDataProvider,
 	SearchLogic: SearchLogic,
 	SearchLogicGet: SearchLogicGet,
+	LocationTitleRenderer: LocationTitleRenderer,
 	GetFullName: GetFullName,
 	GetPath: GetPath
 }
 
-gmxCore.addModule("search", publicInterface)
+gmxCore.addModule("search", publicInterface);
 
 })(jQuery); 

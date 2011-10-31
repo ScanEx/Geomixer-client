@@ -385,19 +385,7 @@ div.leftTitle
 	font-weight: bold;
 	cursor: pointer;
 }
-.layerSuggest
-{
-	display: none;
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	background-color: transparent;
-	z-index: 3;
-	padding-left: 5px;
-	border-right: 1px solid #BEBEBE;
-	border-bottom: 1px solid #BEBEBE;
-	background-color: #DAEAF3;
-}
+
 .dragableDummy
 {
 	padding: 2px 2px 2px 20px;
@@ -628,6 +616,20 @@ div.unit .unitInfo
 {
 	width: 320px;
 }
+
+/*.layerProperties td
+{
+	height: 18px;
+	border: 1px solid #DEDEDE;
+}*/
+
+.propertiesTable td
+{
+	height: 22px;
+	border: 1px solid #DEDEDE;
+	
+}
+
 .layerProperties td
 {
 	height: 18px;
@@ -675,16 +677,31 @@ div.unit .unitInfo
 {
 	float: right;
 }
+
 .contextMenu
 {
 	position:absolute;
 	z-index: 1000000;
 	background-color: #DAEAF3;
 	padding-left: 10px;
+	padding-right: 10px;
 	border-right: 1px solid #BEBEBE;
 	border-bottom: 1px solid #BEBEBE;
-	width: 120px;
+	/*width: 120px;*/
 }
+
+.contextMenuItem
+{
+	padding-top: 1px;
+	padding-bottom: 1px;
+	white-space:nowrap;
+}
+
+.contextMenuSeparator
+{
+	border-bottom: 1px solid #999999
+}
+
 .invisible,
 .invisible span,
 .invisible div,
@@ -748,4 +765,208 @@ skype_pnh_container
 	padding: 2px;
 	border-width: 0px;
 	background-color: 0xffffff;
+}
+
+.VectorLayerEncoding td
+{
+	border: none;
+	padding-left: 1px
+}
+
+.VectorLayerEncoding label
+{
+	padding-left: 3px
+}
+
+.VectorLayerEncoding .VectorLayerEncodingInput
+{	
+	margin-left: 3px;
+	width: 150px
+}
+
+.CustomErrorText
+{
+	text-align: center;
+	font-weight: bold;
+	font-size: 12px;
+}
+
+/*.TemporalLayer *
+{
+	margin: 1px 2px;
+}*/
+
+.TemporalLayer
+{
+	margin-top: 8px;
+}
+
+.TemporalLayer table
+{
+	width: 100%;
+}
+
+.TemporalLayer td
+{
+	border: none;
+	padding-left: 2px;
+}
+
+.TemporalLayer label
+{
+	padding-left: 3px;
+}
+
+.TemporalLayer select
+{
+	width: 100px;
+}
+
+.TemporalLayer .ErrorPeriod
+{
+	background-color: #FFABAB;
+}
+
+.searchCanvas .PeriodCalendar
+{
+	margin: 0px;
+}
+
+.searchCanvas #calendar
+{
+	margin: 0px;
+}
+
+.searchCanvas .intersection > td
+{
+	padding-top: 10px;
+}
+
+.layersScroll .ui-widget-content
+{
+	background: #cceeee;
+	margin: 7px;
+}
+
+div.layersScroll
+{
+	width: 330px;
+	padding: 5px 0px;
+}
+
+.layersScroll label
+{
+	font-size: 12px;
+	margin-left: 3px;
+}
+
+.layersScroll table, .layersScroll td#scrollTD
+{
+	width: 100%;
+}
+.layersScroll img
+{
+	margin-top: 4px;
+}
+
+.tableBody .listLayerTable td
+{
+	border:none;
+}
+
+.fillStyleControls #patternStyleSelector
+{
+	width: 100%;
+}
+
+.fillStyleControls .widthInput
+{
+	margin-right: 15px;
+}
+
+.fillStyleControls .opacityIcon
+{
+    margin: 4px;
+}
+
+.fillStyleControls .widthStepTable input
+{
+	width: 30px;
+}
+
+.fillStyleControls .widthStepTable td
+{
+	text-align: center;
+}
+
+.fillStyleControls .widthStepTable img
+{
+	margin: 1px;
+}
+
+.fillStyleControls .selectorDiv
+{
+	white-space: nowrap;
+}
+
+.fillStyleControls #patternOpacitySlider
+{
+	margin: 5px 0px;
+}
+
+.fillStyleControls .patternColorPicker
+{
+	width: 100%;
+	padding-right: 5px;
+}
+
+.fillStyleControls .patternColorDelete
+{
+	text-align: center;
+}
+
+
+.fillStyleControls .patternColorPicker > div
+{
+	height: 10px;
+}
+
+.fillStyleControls .patternColorControl table
+{
+	width: 100%
+}
+
+.fillStyleControls .widthStepTable *
+{
+	vertical-align: middle;
+}
+
+/*.fillStyleControls td.selectorDivContainer
+{
+	vertical-align: top;
+}*/
+
+.fillStyleSelectorDiv img
+{
+	border: solid 2px white;
+	cursor: pointer;
+}
+
+.fillStyleSelectorDiv img.selectedType 
+{
+	border: solid 2px red;
+}
+
+#patternStyleSelector img
+{
+    width: 16px;
+    height: 16px;
+    border: 2px solid #cccccc;
+    margin: 1px;
+    cursor: pointer;
+}
+
+#patternStyleSelector img.activePatternType
+{
+    border: 2px solid red;
 }

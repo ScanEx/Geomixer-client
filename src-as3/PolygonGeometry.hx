@@ -1,5 +1,6 @@
 import flash.display.Sprite;
 import flash.geom.Matrix;
+import flash.display.BitmapData;
 
 class PolygonGeometry extends Geometry
 {
@@ -18,7 +19,6 @@ class PolygonGeometry extends Geometry
 
 	public override function paint(sprite:Sprite, style:Style, window:MapWindow)
 	{
-		
 		if (style.hasMarkerImage())
 		{
 			var x = (extent.minx + extent.maxx)/2;
@@ -37,16 +37,23 @@ class PolygonGeometry extends Geometry
 
 		if (style.hasPatternFill())
 		{
-			var bitmapData = style.fill.bitmapData;
 			var inv = window.matrix.clone();
 			inv.invert();
 			var scale = Math.abs(inv.a);
-			inv.tx -= inv.tx%(bitmapData.width*scale);
-			inv.ty -= inv.ty%(bitmapData.height*scale);
-			graphics.beginBitmapFill(bitmapData, inv);
+			var bitmapData:BitmapData = style.fill.getBitmapData(properties, propHiden);
+			if(bitmapData != null) {
+				inv.tx -= inv.tx%(bitmapData.width*scale);
+				inv.ty -= inv.ty%(bitmapData.height*scale);
+				graphics.beginBitmapFill(bitmapData, inv);
+			}
 		}
-		else
-			Geometry.beginFill(graphics, style.fill);
+		else if(style.fill != null) {
+			if(properties != null) {
+				graphics.beginFill(style.fill.getColor(properties), style.fill.getOpacity(properties));
+			} else {
+				Geometry.beginFill(graphics, style.fill);
+			}
+		}
 
 		var minx:Float;
 		var miny:Float;
@@ -72,7 +79,7 @@ class PolygonGeometry extends Geometry
 		{
 			var oldx:Float = part[part.length - 2];
 			var oldy:Float = part[part.length - 1];
-			var drawer = new DashedLineDrawer(graphics, style.outline, window);
+			var drawer = new DashedLineDrawer(graphics, style.outline, window, properties);
 			drawer.moveTo(oldx, oldy);
 			for (i in 0...Std.int(part.length/2))
 			{

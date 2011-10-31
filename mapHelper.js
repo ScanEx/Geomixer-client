@@ -29,7 +29,82 @@ var mapHelper = function()
 	
 	this.asyncTasks = {};
 	
-	this.drawingBorders = {};
+	// контролирует пользовательские объекты, которые являются редактируемыми контурами растровых слоёв.
+	// все такие объекты не будут сериализоваться
+	this.drawingBorders = (function()
+	{
+		var _borders = {};
+	
+		//не будем сериализовать все пользовательские объекты, являющиеся контурами слоёв, так как это временные объекты
+		nsGmx.DrawingObjectCustomControllers.addDelegate({
+			isSerializable: function(obj)
+			{
+				for (var name in _borders)
+					if (_borders[name] === obj) 
+						return false;
+				
+				return true;
+			}
+		});
+
+		return {
+			set: function(name, obj)
+			{
+				_borders[name] = obj;
+			},
+			get: function(name)
+			{
+				return _borders[name];
+			},
+			length: function()
+			{
+				return objLength(_borders);
+			},
+			
+			//callback(name, obj)
+			forEach: function(callback)
+			{
+				for (var name in _borders)
+					callback(name, _borders[name]);
+			},
+			
+			updateBorder: function(name, span)
+			{
+				if (!_borders[name])
+					return;
+				
+				if (span)
+				{
+					_(span, [_t(prettifyArea(geoArea(_borders[name].geometry.coordinates)))])
+					
+					return;
+				}
+				
+				if (!$$('drawingBorderDescr' + name))
+					return;
+				
+				removeChilds($$('drawingBorderDescr' + name));
+				
+				_($$('drawingBorderDescr' + name), [_t(prettifyArea(geoArea(_borders[name].geometry.coordinates)))])
+			}, 
+			
+			//Удаляет объект из списка контуров слоя
+			//?removeDrawring {bool, default: false} - удалять ли сам пользовательский объект
+			removeRoute: function(name, removeDrawing)
+			{
+				if (!(name in _borders))
+					return;
+					
+				if (typeof removeDrawing !== 'undefined' && removeDrawing)
+					_borders[name].remove();
+				
+				delete _borders[name];
+				
+				if ($$('drawingBorderDescr' + name))
+					removeChilds($$('drawingBorderDescr' + name));
+			}
+		}
+	})();
 	
 	this.unsavedChanges = false;
 	
@@ -48,7 +123,7 @@ mapHelper.prototype.customParamsManager = (function()
 	
 	var loadProviderState = function( provider )
 	{
-		if ( provider.name in _params )
+		if ( provider.name in _params && typeof provider.loadState !== 'undefined')
 		{
 			provider.loadState( _params[ provider.name ] );
 			delete _params[ provider.name ];
@@ -61,7 +136,10 @@ mapHelper.prototype.customParamsManager = (function()
 			if ( !_providers.length ) return;
 			var params = {};
 			for (var p = 0; p < _providers.length; p++ )
+			{
+				if (typeof _providers[p].saveState !== 'undefined')
 				params[_providers[p].name] = _providers[p].saveState();
+			}
 				
 			return params;
 		},
@@ -344,15 +422,19 @@ mapHelper.prototype.getMapState = function()
 	
 	globalFlashMap.drawing.forEachObject(function(o) 
 	{
+		if (!nsGmx.DrawingObjectCustomControllers.isSerializable(o))
+			return;
+			
 		var elem = {properties: o.properties, color: o.color, geometry: merc_geometry(o.geometry)};
 		
 		if (o.geometry.type != "POINT")
 		{
-			var style = $(o.canvas).find("div.colorIcon")[0].getStyle();
+			//var style = $(o.canvas).find("div.colorIcon")[0].getStyle();
+			var style = o.getStyle();
 			
-			elem.thickness = style.outline.thickness;
-			elem.color = style.outline.color;
-			elem.opacity = style.outline.opacity;
+			elem.thickness = style.regular.outline.thickness;
+			elem.color = style.regular.outline.color;
+			elem.opacity = style.regular.outline.opacity;
 		}
 		
 		if ( o.balloon ) elem.isBalloonVisible = o.balloon.isVisible;
@@ -1189,7 +1271,8 @@ mapHelper.prototype.createFilterEditor = function(filterParam, attrs, elemCanvas
 		return this.createFilterEditorInner(filter, attrs, elemCanvas);
 }
 
-mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCanvas)
+//identityField - будем исключать из списка аттрибутов, показываемых в балуне, так как это внутренняя техническая информация
+mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityField)
 {
 	var _this = this;
 	var balloonText = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','251px'],['css','height','80px']]),
@@ -1217,7 +1300,7 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 			{
 				var key = sortAttrs[i];
 				
-				if (key != "ogc_fid")
+				if (key !== identityField)
 					text += "<b>" + key + ":</b> [" + key + "]<br />" + br;
 			}
 			
@@ -1400,6 +1483,28 @@ mapHelper.prototype.createLoadingFilter = function(parentObject, parentStyle, ge
 	{
 		return (typeof parentStyle.BalloonEnable != 'undefined' ? parentStyle.BalloonEnable : true);
 	};
+	
+	filterCanvas.getBalloonDisableOnClick = function()
+	{
+		return parentStyle.DisableBalloonOnClick;
+	};
+	
+	filterCanvas.getDisableBalloonOnMouseMove = function()
+	{
+		return parentStyle.DisableBalloonOnMouseMove;
+	};
+	
+	filterCanvas.getBalloonState = function()
+	{
+		var state = {
+			BalloonEnable: !parentStyle.DisableBalloonOnMouseMove || !parentStyle.DisableBalloonOnClick,
+			DisableBalloonOnClick: parentStyle.DisableBalloonOnClick,
+			DisableBalloonOnMouseMove: parentStyle.DisableBalloonOnMouseMove,
+			Balloon: parentStyle.Balloon
+		}
+		
+		return state;
+	}
 	
 	filterCanvas.addFilterParams = function(filterParams)
 	{
@@ -1704,7 +1809,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 		DisableBalloonOnClick: typeof parentStyle.DisableBalloonOnClick != 'undefined' ? parentStyle.DisableBalloonOnClick : false,
 	}*/
 	
-	var balloonEditor = this.createBalloonEditor(parentStyle, attrs, elemCanvas);
+	var balloonEditor = this.createBalloonEditor(parentStyle, attrs, elemCanvas, elemCanvas.parentNode.properties.content.properties.identityField);
 	
 	_(liBalloon.lastChild, [balloonEditor]);
 	
@@ -1742,9 +1847,314 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	}
 }
 
+mapHelper.prototype.FillStyleControl = function(initStyle, params)
+{
+    var _params = $.extend({showSelectors: true}, params);
+    var _fillStyle = $.extend(true, {fill: 
+        {color: 0xFFFFFF, 
+         opacity: 50, 
+         image: "", 
+         pattern: {
+            width: 8, 
+            step: 0, 
+            colors: [0xFFFF00,0xFF00FF], 
+            style: 'diagonal1'
+        }}}, initStyle).fill;
+    
+	var _this = this;
+	var selectorDiv = $("<div/>", {'class': "fillStyleSelectorDiv"});
+    
+    var colorContainer = $("<div/>");
+    var patternContainer = $("<div/>");
+    var imagePatternContainer = $("<div/>");
+	
+	var colorIcon = $("<img/>", {src: 'img/styles/color.png'}).data('type', 'color');
+	var patternIcon = $("<img/>", {src: 'img/styles/pattern.png'}).data('type', 'pattern');
+	var patternURLIcon = $("<img/>", {src: 'img/styles/globe.gif'}).data('type', 'bitmapPattern');
+    
+    var controls = {
+		"color":         {icon: colorIcon,      control: colorContainer},
+		"pattern":       {icon: patternIcon,    control: patternContainer},
+		"bitmapPattern": {icon: patternURLIcon, control: imagePatternContainer}
+	};
+    
+    var initFillStyle = initStyle.fill || {};
+    
+    var activeFillType = null;
+    if ('image' in initFillStyle)
+        activeFillType = 'bitmapPattern';
+    else if ('pattern' in initFillStyle)
+        activeFillType = 'pattern';
+    else if ('color' in initFillStyle)
+        activeFillType = 'color';
+        
+    for (var c in controls)
+        if (c == activeFillType)
+            controls[c].icon.addClass('selectedType');
+        else
+            controls[c].control.hide();
+	
+    var selectorIconsDiv = $('<div/>')
+        .append(colorIcon)
+        .append(patternIcon)
+        .append(patternURLIcon);
+        
+	selectorDiv.append($("<span>Заливка</span><br/>"));
+    
+    if (_params.showSelectors)
+        selectorDiv.append(selectorIconsDiv);
+    
+	$("img", selectorDiv).click(function()
+	{
+		activeFillType = $(this).data('type');
+		for (var k in controls)
+			if (k === activeFillType)
+				$(controls[k].control).show(500);
+			else
+				$(controls[k].control).hide(500);
+		
+		$("img", selectorDiv).removeClass('selectedType');
+		$(this).addClass('selectedType');
+        $(_this).change();
+	});
+    
+    var fillColor = _fillStyle.color;
+	var fillOpacity = _fillStyle.opacity;
+    
+	//выбор цвета
+	var fillColorPicker = _mapHelper.createColorPicker(fillColor,
+		function (colpkr){
+			$(colpkr).fadeIn(500);
+			return false;
+		},
+		function (colpkr){
+			$(colpkr).fadeOut(500);
+            $(_this).change();
+			return false;
+		},
+		function (hsb, hex, rgb) {
+			fillColorPicker.style.backgroundColor = '#' + hex;
+            fillColor = parseInt("0x" + hex);
+		}),
+	fillOpacitySlider = _mapHelper.createSlider(fillOpacity,
+		function(event, ui)
+		{
+            fillOpacity = ui.value;
+            $(_this).change();
+		});
+		
+	colorContainer.append($("<table/>").append($("<tr/>")
+		.append($("<td/>").append(fillColorPicker))
+		.append($("<td/>").append(fillOpacitySlider))
+	));
+	
+	//выбор внешнего паттерна
+	var patternURL = $("<input/>", {"type":"text"}).val(_fillStyle.image).change(function()
+    {
+        $(_this).change();
+    });
+	imagePatternContainer.append(patternURL);
+	
+	//выбор втроенных паттернов
+    var patternTypeIcons = [
+        ['horizontal', 'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=horizontal&opacity=1'  ],
+        ['vertical',   'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=vertical&opacity=1'    ],
+        ['diagonal1',  'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=diagonal1&opacity=1'   ],
+        ['diagonal2',  'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=diagonal2&opacity=1'   ],
+        ['circle',     'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF,0044FF,00FF00&size=16&style=circle&opacity=1'],
+        ['cross',      'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=4&step=1&style=cross&opacity=1']
+    ];
+    
+    var patternStyleSelector = $("<div/>", {id: "patternStyleSelector"});
+    for (var i = 0; i < patternTypeIcons.length; i++)
+    {
+        var icon = $('<img/>', {src: patternTypeIcons[i][1]}).data("style", patternTypeIcons[i][0]);
+        patternStyleSelector.append(icon);
+        if (patternTypeIcons[i][0] === _fillStyle.pattern.style)
+            icon.addClass('activePatternType');
+    }
+        
+    $("img", patternStyleSelector).click(function()
+    {
+        $("img", patternStyleSelector).removeClass('activePatternType');
+        $(this).addClass('activePatternType');
+        _fillStyle.pattern.style = $(this).data("style");
+        $(_this).change();
+    });
+    
+    var patternOpacity = _fillStyle.opacity;
+	var patternOpacitySlider = _mapHelper.createSlider( _fillStyle.opacity, function(event, ui)
+    {
+        patternOpacity = ui.value;
+        $(_this).change();
+    });
+	$(patternOpacitySlider).attr({id: "patternOpacitySlider"});
+    
+    var patternOpacityContainer = $('<div/>', {'class': 'patternOpacityContainer'})
+        .append($('<table/>').append($('<tr/>')
+            .append($('<td/>').append($('<img/>', {src:'img/styles/pattern-opacity.PNG', 'class': 'opacityIcon'})))
+            .append($('<td/>').append(patternOpacitySlider))
+        ));
+            
+        // .append($('<img/>', {src:'img/styles/pattern-opacity.PNG'}))
+        // .append($('<span/>').append(patternOpacitySlider));
+		
+	var widthIcon = $("<img/>", {src: 'img/styles/pattern-width.PNG'});
+	var stepIcon = $("<img/>", {src: 'img/styles/pattern-step.PNG', 'class': 'stepIcon'});
+	
+    var widthInput = $("<input/>", {'class': 'widthInput'}).val(_fillStyle.pattern.width).change(function()
+    {
+        $(_this).change();
+    });
+    
+    var stepInput = $("<input/>").val(_fillStyle.pattern.step).change(function()
+    {
+        $(_this).change();
+    });
+    
+	var widthStepInputs = $("<table/>", {'class': "widthStepTable"}).append($("<tr/>")
+		.append($("<td/>").append(widthIcon).append(widthInput))
+		.append($("<td/>").append(stepIcon).append(stepInput))
+	);
+	
+	var PatternColorControl = function(parentDiv, initColors)
+	{
+		var _parentDiv = $(parentDiv);
+		var _colors = initColors;
+        var _this = this;
+		var _redraw = function()
+		{
+			_parentDiv.empty();
+			var table = $('<table/>', {'class': 'patternColorControl'});
+			for (var k = 0; k < _colors.length; k++)
+			(function(k){
+				
+				if (_colors[k] === null) return;
+				
+				var colorPicker = _mapHelper.createColorPicker(_colors[k],
+					function (colpkr){
+						$(colpkr).fadeIn(500);
+						return false;
+					},
+					function (colpkr){
+						$(colpkr).fadeOut(500);
+                        $(_this).change();
+						return false;
+					},
+					function (hsb, hex, rgb) {
+						colorPicker.style.backgroundColor = '#' + hex;
+						_colors[k] = parseInt('0x' + hex);
+					});
+				colorPicker.style.width = '100%';
+				
+				var deleteIcon = makeImageButton('img/recycle.png', 'img/recycle_a.png');
+					deleteIcon.onclick = function()
+					{
+						_colors[k] = null;
+						_redraw();
+                        $(_this).change();
+					}
+			
+				table.append($("<tr/>")
+					.append($("<td/>", {'class': 'patternColorPicker'}).append(colorPicker))
+					.append($("<td/>", {'class': 'patternColorDelete'}).append(deleteIcon))
+				);
+				
+			})(k);
+			
+			var addIcon = makeImageButton('img/zoom_plus.png', 'img/zoom_plus_a.png');
+			addIcon.onclick = function()
+			{
+				var initColor = 0x00FF00;
+				for (var c = 0; c < _colors.length; c++)
+					if (_colors[c] !== null) 
+						initColor = _colors[c];
+						
+				_colors.push(initColor);
+				_redraw();
+                $(_this).change();
+			};
+			
+			table.append($("<tr/>")
+				.append($("<td/>", {'class': 'patternColorPicker'}))
+				.append($("<td/>").append(addIcon))
+			);
+			
+			_parentDiv.append(table);
+		}
+		
+		_redraw();
+        
+        this.getColors = function()
+        {
+            var res = [];
+            for (var c = 0; c < _colors.length; c++)
+                if (_colors[c] !== null )
+                    res.push(_colors[c]);
+            return res; 
+        }
+	}
+	
+	var patternColorSelector = $("<div/>");
+	var patternColorControl = new PatternColorControl(patternColorSelector, _fillStyle.pattern.colors);
+    $(patternColorControl).change(function()
+    {
+        $(_this).change();
+    });
+	
+	patternContainer.append(patternStyleSelector).append(patternOpacityContainer).append(widthStepInputs).append(patternColorSelector);
+		
+	var fillControlsDiv = $("<div/>", {'class': 'fillStyleControls'}).append(colorContainer).append(imagePatternContainer).append(patternContainer);
+	
+	this.getSelector = function()
+	{
+		return selectorDiv;
+	}
+	
+	this.getControls = function()
+	{
+		return fillControlsDiv;
+	}
+    
+    this.getFillStyle = function()
+    {
+        var fillStyle = {};
+        if (activeFillType === 'color')
+        {
+            fillStyle.color = fillColor;
+            fillStyle.opacity = fillOpacity;
+        }
+        else if (activeFillType === 'bitmapPattern')
+        {
+            fillStyle.image = patternURL.val();
+        } 
+        else if (activeFillType === 'pattern')
+        {
+            fillStyle.pattern = { 
+                style: _fillStyle.pattern.style,
+                width: parseInt(widthInput.val()),
+                step: parseInt(stepInput.val()),
+                colors: patternColorControl.getColors()
+            };
+            fillStyle.opacity = patternOpacity;
+        }
+        
+        return fillStyle;
+    }
+    
+    this.setVisibleSelectors = function(isVisible)
+    {
+        if (isVisible)
+            selectorIconsDiv.show(500);
+        else
+            selectorIconsDiv.hide(500);
+    }
+}
+
 mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateStyle, geometryType, elemCanvas)
 {
-	var outlineParent = _tr(),
+	var markerSizeParent = _tr(),
+        outlineParent = _tr(),
 		fillParent = _tr(),
 		iconParent = _tr(),
 		outlineTitleTds = [],
@@ -1764,12 +2174,21 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		scale,
 		_this = this;
 	
-	_(parent, [_table([_tbody([outlineParent, fillParent, iconParent])],[['css','marginLeft','-20px']])]);
+	_(parent, [_table([_tbody([outlineParent, markerSizeParent, fillParent, iconParent])],[['css','marginLeft','-20px']])]);
+	
+	var fillStyleControl = new this.FillStyleControl(templateStyle, {showSelectors: geometryType !== 'point'});
+    $(fillStyleControl).change(function()
+    {
+        var fillStyle = fillStyleControl.getFillStyle();
+        templateStyle.fill = fillStyle;
+        _this.setMapStyle(parentObject, templateStyle);
+    });
 	
 	showIcon = function()
 	{
 		_this.hideStyle(outlineParent);
 		_this.hideStyle(fillParent);
+        fillStyleControl.setVisibleSelectors(false);
 		_this.showStyle(iconParent);
 		
 		templateStyle.marker = {};
@@ -1793,10 +2212,13 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 				
 				templateStyle.marker.color = $(iconParent).find(".colorSelector")[0].hex;				
 			}
+            _this.hideStyle(markerSizeParent);
 		}
 		
 		if (geometryType != "linestring")
+        {
 			fillToggle.disabled = true;
+        }
 			
 		_this.setMapStyle(parentObject, templateStyle);
 	}
@@ -1804,23 +2226,24 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	showMarker = function()
 	{
 		_this.showStyle(outlineParent);
+        _this.showStyle(markerSizeParent);
 		_this.hideStyle(iconParent);
 		
 		if (geometryType != "linestring")
 		{
 			if (fillToggle.checked)
+            {
 				_this.showStyle(fillParent);
+                fillStyleControl.setVisibleSelectors(true);
+            }
 			
 			if (geometryType == "point")
 			{
 				templateStyle.marker = {};
-				templateStyle.marker.size = Number($(fillParent).find(".inputStyle")[0].value);
+				templateStyle.marker.size = Number($(markerSizeParent).find(".inputStyle").val());
 			}
 			
-			templateStyle.fill = {};
-			templateStyle.fill.color = $(fillParent).find(".colorSelector")[0].hex;
-			templateStyle.fill.opacity = $($(fillParent).find(".ui-slider")[0]).slider('option', 'value');
-			
+            templateStyle.fill = fillStyleControl.getFillStyle();			
 			fillToggle.disabled = false;
 		}
 		
@@ -2023,16 +2446,18 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		fillToggle = _checkbox(typeof templateStyle.fill != 'undefined','checkbox');
 		fillToggle.onclick = function()
 		{
+            fillStyleControl.setVisibleSelectors(this.checked);
 			if (this.checked)
 			{
+                 templateStyle.fill = fillStyleControl.getFillStyle();
 				_this.showStyle(fillParent);
 				
-				templateStyle.fill = {};
-				templateStyle.fill.color = $(fillParent).find(".colorSelector")[0].hex;
-				templateStyle.fill.opacity = $($(fillParent).find(".ui-slider")[0]).slider('option', 'value');
+				//templateStyle.fill = {};
+				//templateStyle.fill.color = $(fillParent).find(".colorSelector")[0].hex;
+				//templateStyle.fill.opacity = $($(fillParent).find(".ui-slider")[0]).slider('option', 'value');
 				
-				if (elemCanvas.nodeName == 'DIV')
-					$(elemCanvas).find(".fillIcon")[0].style.backgroundColor = $(fillParent).find(".colorSelector")[0].style.backgroundColor;
+				//if (elemCanvas.nodeName == 'DIV')
+					//$(elemCanvas).find(".fillIcon")[0].style.backgroundColor = $(fillParent).find(".colorSelector")[0].style.backgroundColor;
 																
 				_this.setMapStyle(parentObject, templateStyle);
 			}
@@ -2050,7 +2475,8 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		}
 		
 		fillTitleTds.push(_td([fillToggle],[['css','width','20px'],['css','height','24px']]));
-		fillTitleTds.push(_td([_t(_gtxt("Заливка"))],[['css','width','70px']]));
+		//fillTitleTds.push(_td([_t(_gtxt("Заливка"))],[['css','width','70px']]));
+		fillTitleTds.push(_td([fillStyleControl.getSelector()[0]],[['css','width','70px']]));
 		
 		var checkedFillColor = (typeof templateStyle.fill != 'undefined' && typeof templateStyle.fill.color != 'undefined') ? templateStyle.fill.color : 0xFFFFFF,
 			checkedFillOpacity = (typeof templateStyle.fill != 'undefined' && typeof templateStyle.fill.opacity != 'undefined') ? templateStyle.fill.opacity : 0,
@@ -2130,7 +2556,20 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	
 	if (geometryType == "point")
 	{
-		var markerSize = this.createInput(templateStyle.marker && templateStyle.marker.size || 3,
+		// var markerSize = this.createInput(templateStyle.marker && templateStyle.marker.size || 3,
+			// function()
+			// {
+				// templateStyle.marker.size = Number(this.value);
+				
+				// _this.setMapStyle(parentObject, templateStyle);
+				
+				// return true;
+			// })
+		
+		// _title(markerSize, _gtxt("Размер точек"));
+		//fillTds.push(_td([markerSize],[['css','width','30px']]));
+        
+        var markerSizeInput = this.createInput(templateStyle.marker && templateStyle.marker.size || 3,
 			function()
 			{
 				templateStyle.marker.size = Number(this.value);
@@ -2140,9 +2579,11 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 				return true;
 			})
 		
-		_title(markerSize, _gtxt("Размер точек"));
+        _title(markerSizeInput, _gtxt("Размер точек"));
 		
-		fillTds.push(_td([markerSize],[['css','width','30px']]));
+        var markerSizeTds = [_td(), _td([_t("Размер")]), _td([markerSizeInput], [['attr','fade',true]])];
+        _(markerSizeParent, markerSizeTds, [['attr','fade',true]]);
+		
 		
 		if (typeof elemCanvas.parentNode.properties != 'undefined' &&
 			elemCanvas.parentNode.properties.content.properties.description &&
@@ -2215,7 +2656,12 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	}
 	
 	_(outlineParent, outlineTitleTds.concat(_td([_div([_table([_tbody([_tr(outlineTds), _tr(dashedTds)])])],[['attr','fade',true]])])));
-	_(fillParent, fillTitleTds.concat(_td([_div([_table([_tbody([_tr(fillTds)])])],[['attr','fade',true]])])));
+    
+	//_(fillParent, fillTitleTds.concat(_td([_div([_table([_tbody([_tr(fillTds)])])],[['attr','fade',true]])])));
+    var topPadding = geometryType === "point" ? "0px" : "10px";
+	 fillTitleTds = fillTitleTds.concat(_td([fillStyleControl.getControls()[0]], [['attr','fade',true], ['css', 'paddingTop', topPadding]]));
+	 _(fillParent, fillTitleTds);
+	
 	_(iconParent, iconTitleTds.concat(_td([_div([_table([_tbody([_tr(iconTds)])])],[['attr','fade',true]])])));
 	
 //	if (geometryType == "point")
@@ -2450,8 +2896,12 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 
 mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, properties)
 {
-	var trs = [],
-		_this = this,
+	var getFileExt = function(path)
+	{
+		return String(path).substr(String(path).lastIndexOf('.') + 1, path.length);
+	}
+	
+	var _this = this,
 		vectorRetilingFlag = false;
 
 	var title = _input(null,[['attr','fieldName','title'],['attr','value',div ? (div.properties.content.properties.title ? div.properties.content.properties.title : '') :  (typeof properties.Title != 'undefined' ? properties.Title : '')],['dir','className','inputStyle'],['css','width','220px']])
@@ -2531,7 +2981,15 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			todayMonth = today.getMonth() + 1,
 			todayYear = today.getFullYear();
 		
+		// Для растровых слоёв заставим пользователя вводить дату, для векторых подставляем сегодняшний день по умолчанию
+		if (type === "Vector")
+		{
 		dateField.value = (todayDate < 10 ? '0' + todayDate : todayDate) + '.' + (todayMonth < 10 ? '0' + todayMonth : todayMonth) + '.' + todayYear;
+	}
+		else
+		{
+			dateField.value = '';
+		}
 	}
 
 	var shownProperties = [];
@@ -2551,43 +3009,105 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 	
 	var columnsParent = _div();
 	var encodingParent = _div();
+	var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
 	
 	//event: change
 	var encodingWidget = (function()
 	{
 		var _encodings = {
-			'UTF-8': 'utf-8',
-			'windows-1251': 'windows-1251'
+			'windows-1251': 'windows-1251',
+			'utf-8': 'utf-8',
+			'koi8-r': 'koi8-r',
+			'utf-7': 'utf-7',
+			'iso-8859-5': 'iso-8859-5',
+			'koi8-u': 'koi8-u',
+			'cp866': 'cp866'
+			
 		};
 		var _DEFAULT_ENCODING = 'windows-1251';
-		var _curSelection = _DEFAULT_ENCODING;
+		var _curEncoding = _DEFAULT_ENCODING;
 		
 		//
 		var _public = {
-			drawWidget: function(container)
+			drawWidget: function(container, initialEncoding)
 			{
-				var select = $("<select></select>").addClass('selectStyle');
+				initialEncoding = initialEncoding || _DEFAULT_ENCODING;
+				var select = $("<select></select>").addClass('selectStyle VectorLayerEncodingInput');
 				select.change(function()
 				{
-					_curSelection = $('option:selected', select).val();
+					_curEncoding = $('option:selected', select).val();
 					$(_public).change();
 				});
 				
+				var isStandard = false;
 				for (var enc in _encodings)
 				{
 					var opt = $('<option></option>').val(enc).text(enc);
 					
-					if (enc === _DEFAULT_ENCODING)
+					if (_encodings[enc] === initialEncoding)
+					{
 						opt.attr('selected', 'selected');
+						_curEncoding = enc;
+						isStandard = true;
+					}
 						
 					select.append(opt);
 				}
 				
-				$(container).css({paddingLeft: '5px', fontSize: '12px'}).text(_gtxt("Кодировка") + ": ").append(select);
+				var anotherCheckbox = $("<input></input>", {'class': 'box', type: 'checkbox', id: 'otherEncoding'});
+				var anotherInput = $("<input></input>", {'class': 'VectorLayerEncodingInput'});
+				
+				if (!isStandard)
+				{
+					anotherCheckbox[0].checked = 'checked';
+					anotherInput.val(initialEncoding);
+					select.attr('disabled', 'disabled');
+				}
+				else
+				{
+					anotherInput.attr('disabled', 'disabled');
+				}
+				
+				anotherInput.bind('keyup', function()
+				{
+					_curEncoding = this.value;
+					$(_public).change();
+				});
+				
+				anotherCheckbox.click(function()
+				{
+					if (this.checked)
+					{
+						select.attr('disabled', 'disabled');
+						anotherInput.removeAttr('disabled');
+						anotherInput.focus();
+						_curEncoding = anotherInput.val();
+					}
+					else
+					{
+						select.removeAttr('disabled');
+						anotherInput.attr('disabled', 'disabled');
+						_curEncoding = $('option:selected', select).val();
+					}
+					$(_public).change();
+				});
+				
+				
+				var tr1 = $("<tr></tr>")
+					.append($("<td></td>").text(_gtxt("Кодировка")))
+					.append($("<td></td>").append(select));
+					
+				var tr2 = $("<tr></tr>")
+					.append($("<td></td>").append(anotherCheckbox).append($("<label></label>", {'for': 'otherEncoding'}).text(_gtxt("Другая"))))
+					.append($("<td></td>").append(anotherInput));
+				
+				$(container)
+					.append($("<table></table>", {'class': 'VectorLayerEncoding'})
+						.append(tr1).append(tr2));
 			},
 			getServerEncoding: function()
 			{
-				return _encodings[_curSelection];
+				return _curEncoding;
 			}
 		}
 		
@@ -2600,10 +3120,12 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			shapeFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
 			tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
 			trPath = _tr([_td([_t(_gtxt("Файл")), shapeFileLink, _br(), _t(_gtxt("Таблица")), tableLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
-						  _td([shapePath, columnsParent, encodingParent])]),
+						  _td([shapePath, columnsParent, encodingParent, temporalLayerParent])]),
 			tilePath = _div([_t(typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')],[['css','marginLeft','3px'],['css','width','220px'],['css','whiteSpace','nowrap'],['css','overflowX','hidden']]),
 			trTiles = _tr([_td([_t(_gtxt("Каталог с тайлами"))],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
 						  _td([tilePath])]);
+			// trTimeLayer = _tr([_td([_t("Временнóй слой")],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
+						  // _td([_t("test")])]);
 		
 		shapePath.oldValue = shapePath.value;
 		
@@ -2613,6 +3135,11 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				vectorRetilingFlag = true;
 			
 			return true;
+		}
+		
+		if (div && getFileExt(shapePath.value) === 'shp')
+		{
+			encodingWidget.drawWidget(encodingParent, properties.EncodeSource);
 		}
 		
 		_title(tilePath, typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')
@@ -2642,7 +3169,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				}
 				
 				if (valueInArray(['xls', 'xlsx', 'xlsm'], ext))
-					_this.selectColumns(columnsParent, serverBase + "VectorLayer/GetExcelColumns.ashx?WrapStyle=func&ExcelFile=" + encodeURIComponent(path))
+					_this.selectColumns(columnsParent, {url: serverBase + "VectorLayer/GetExcelColumns.ashx?WrapStyle=func&ExcelFile=" + encodeURIComponent(path) })
 				else
 					removeChilds(columnsParent);
 					
@@ -2652,6 +3179,107 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 					encodingWidget.drawWidget(encodingParent);
 				}
 			})
+		}
+		
+		var temporalLayerParams = (function()
+		{
+			var PERIOD_STEP = 4;
+			var _minPeriod = 1;
+			var _maxPeriod = 1;
+			var _columnName = null;
+			var _isTemporal = false;
+			return {
+				setPeriods: function(minPeriod, maxPeriod) { _minPeriod = minPeriod; _maxPeriod = maxPeriod; },
+				setColumnName: function(name) { _columnName = name; },
+				getColumnName: function() { return _columnName; },
+				getPeriodString: function()
+				{
+					var curPeriod = _minPeriod;
+					var periods = [];
+					while ( curPeriod <= _maxPeriod )
+					{
+						periods.push(curPeriod);
+						curPeriod *= PERIOD_STEP;
+					}
+					return periods.join(',');
+				},
+				setTemporal: function(isTemporal) { _isTemporal = isTemporal; },
+				getTemporal: function() { return _isTemporal; }
+			}
+		})();
+		
+		var TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
+		{
+			var temporalCheckbox = $("<input></input>", {'class': 'box', type: 'checkbox', id: 'timeLayer'});
+			temporalCheckbox.change(function()
+			{
+				paramsModel.setTemporal(this.checked);
+				propertiesTable.css('display', this.checked ? '' : 'none');
+			});
+			
+			if (columns.length ==0)
+				temporalCheckbox.attr('disabled', 'disabled');
+			
+			$(parentDiv)
+				.append(temporalCheckbox)
+				.append(
+					$("<label></label>", {'for': 'timeLayer'}).text(_gtxt("Временнóй слой"))
+				);
+			
+			var temporalPeriods = [1, 4, 16, 64, 256, 1024, 4096];
+			
+			var addOptions = function(select)
+			{
+				for (var k = 0; k < temporalPeriods.length; k++)
+					select.append($("<option></option>", {periodIndex: k}).text(temporalPeriods[k]));
+			}
+				
+			var selectMinPeriod = $("<select></select>", {'class': 'selectStyle'});
+			addOptions(selectMinPeriod);
+			var selectMaxPeriod = selectMinPeriod.clone();
+			
+			$([selectMinPeriod[0], selectMaxPeriod[0]]).change(function()
+			{
+				var minPeriod = parseInt($("option:selected", selectMinPeriod).attr('periodIndex'));
+				var maxPeriod = parseInt($("option:selected", selectMaxPeriod).attr('periodIndex'));
+				if (minPeriod > maxPeriod)
+				{
+					$([selectMinPeriod[0], selectMaxPeriod[0]]).addClass('ErrorPeriod');
+				}
+				else
+				{
+					$([selectMinPeriod[0], selectMaxPeriod[0]]).removeClass('ErrorPeriod');
+					paramsModel.setPeriods(temporalPeriods[minPeriod], temporalPeriods[maxPeriod]);
+				}
+			});
+			
+			var selectDateColumn = $("<select></select>", {'class': 'selectStyle'});
+			for (var i = 0; i < columns.length; i++)
+			{
+				selectDateColumn.append($("<option></option>").text(columns[i].Name));
+			}
+			
+			selectDateColumn.change(function()
+			{
+				paramsModel.setColumnName( $("option:selected", this).val() );
+			});
+			
+			temporalLayerParams.setColumnName(columns[0].Name);
+			
+			var tr0 = $('<tr></tr>')
+						.append($('<td></td>').text(_gtxt('Колонка даты')))
+						.append($('<td></td>').append(selectDateColumn));
+			
+			var tr1 = $('<tr></tr>')
+						.append($('<td></td>').text(_gtxt('Минимальный период')))
+						.append($('<td></td>').append(selectMinPeriod));
+						
+			var tr2 = $('<tr></tr>')
+						.append($('<td></td>').text(_gtxt('Максимальный период')))
+						.append($('<td></td>').append(selectMaxPeriod));
+			
+			var propertiesTable = $('<table></table>').append(tr0).append(tr1).append(tr2).appendTo(parentDiv);
+			propertiesTable.css('display', 'none');
 		}
 		
 		tableLink.onclick = function()
@@ -2664,7 +3292,15 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				if (title.value == '')
 					title.value = name;
 				
-				_this.selectColumns(columnsParent, serverBase + "VectorLayer/GetTableCoordinateColumns.ashx?WrapStyle=func&TableName=" + encodeURIComponent(name))
+				_this.selectColumns(columnsParent, {url: serverBase + "VectorLayer/GetTableCoordinateColumns.ashx?WrapStyle=func&TableName=" + encodeURIComponent(name)})
+				
+				sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetTableColumns.ashx?ColumnTypes=date&SourceName=" + encodeURIComponent(name), function(response)
+				{
+					if (!parseResponse(response)) return;
+					var columns = response.Result;
+					
+					new TemporalLayerParamsControl(temporalLayerParent, temporalLayerParams, columns);
+				});
 			})
 		}
 
@@ -2679,23 +3315,28 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		if ((!properties.ShapePath || valueInArray(['xls', 'xlsx', 'xlsm'], ext)) && (properties.GeometryTable.XCol || properties.GeometryTable.YCol) &&
 			properties.GeometryTable.Columns.length)
 		{
-			var selectLat = _select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
-				selectLon = _select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
+			this.selectColumns(columnsParent, {
+				fields: properties.GeometryTable.Columns,
+				defaultX: properties.GeometryTable.XCol,
+				defaultY: properties.GeometryTable.YCol
+			});
+			// var selectLat = _select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
+				// selectLon = _select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
 
-			for (var i = 0; i < properties.GeometryTable.Columns.length; i++)
-			{
-				var opt = _option([_t(properties.GeometryTable.Columns[i])], [['attr','value',properties.GeometryTable.Columns[i]]]);
+			// for (var i = 0; i < properties.GeometryTable.Columns.length; i++)
+			// {
+				// var opt = _option([_t(properties.GeometryTable.Columns[i])], [['attr','value',properties.GeometryTable.Columns[i]]]);
 				
-				_(selectLat, [opt.cloneNode(true)]);
-				_(selectLon, [opt.cloneNode(true)]);
-			}
+				// _(selectLat, [opt.cloneNode(true)]);
+				// _(selectLon, [opt.cloneNode(true)]);
+			// }
 			
-			selectLon = switchSelect(selectLon, properties.GeometryTable.XCol);
+			// selectLon = switchSelect(selectLon, properties.GeometryTable.XCol);
 
-			selectLat = switchSelect(selectLat, properties.GeometryTable.YCol);
+			// selectLat = switchSelect(selectLat, properties.GeometryTable.YCol);
 			
-			_(columnsParent, [_table([_tbody([_tr([_td([_span([_t(_gtxt("Y (широта)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLat], [['css','width','150px'],['css','border','none']])]),
-										_tr([_td([_span([_t(_gtxt("X (долгота)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLon], [['css','width','150px'],['css','border','none']])])])])])
+			// _(columnsParent, [_table([_tbody([_tr([_td([_span([_t(_gtxt("Y (широта)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLat], [['css','width','150px'],['css','border','none']])]),
+										// _tr([_td([_span([_t(_gtxt("X (долгота)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLon], [['css','width','150px'],['css','border','none']])])])])])
 
 		}
 		
@@ -2703,6 +3344,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		
 		if (div)
 			shownProperties.push({tr:trTiles});
+		
+		// shownProperties.push({tr:trTimeLayer});
 		
 		var boxSearch = _checkbox(div ? (div.properties.content.properties.AllowSearch ? div.properties.content.properties.AllowSearch : false) : (typeof properties.AllowSearch != 'undefined' ? properties.AllowSearch : false), 'checkbox');
 		boxSearch.setAttribute('fieldName', 'AllowSearch');
@@ -2916,14 +3559,15 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		removeBorder.onclick = function()
 		{
 			shapeVisible(true);
+			_this.drawingBorders.removeRoute(properties.Name, true);
 			
-			if (_this.drawingBorders[properties.Name])
-			{
-				_this.drawingBorders[properties.Name].remove();
+			// if (_this.drawingBorders[properties.Name])
+			// {
+				// _this.drawingBorders[properties.Name].remove();
 				
-				delete _this.drawingBorders[properties.Name];
+				// delete _this.drawingBorders[properties.Name];
+			// }
 			}
-		}
 		
 		if (div)
 		{
@@ -2948,9 +3592,10 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			
 				drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
 				
-				this.drawingBorders[properties.Name] = drawingBorder;
+				//this.drawingBorders[properties.Name] = drawingBorder;
+				this.drawingBorders.set(properties.Name, drawingBorder);
 				
-				this.updateBorder(properties.Name, drawingBorderDescr);
+				this.drawingBorders.updateBorder(properties.Name, drawingBorderDescr);
 			}
 		}
 		else
@@ -3026,28 +3671,29 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		shownProperties.push({tr:trShape});
 	}
 	
-	for (var i = 0; i < shownProperties.length; i++)
-	{
-		var td;
-		if (typeof shownProperties[i].tr != 'undefined')
-		{
-			trs.push(shownProperties[i].tr);
+	// for (var i = 0; i < shownProperties.length; i++)
+	// {
+		// var td;
+		// if (typeof shownProperties[i].tr != 'undefined')
+		// {
+			// trs.push(shownProperties[i].tr);
 			
-			continue;
-		}
-		else if (typeof shownProperties[i].elem != 'undefined')
-			td = _td([shownProperties[i].elem]);
-		else
-			td = _td([_t(properties[shownProperties[i].field] != null ? properties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
+			// continue;
+		// }
+		// else if (typeof shownProperties[i].elem != 'undefined')
+			// td = _td([shownProperties[i].elem]);
+		// else
+			// td = _td([_t(properties[shownProperties[i].field] != null ? properties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
 		
-		td.style.border = '1px solid #DEDEDE';
+		// td.style.border = '1px solid #DEDEDE';
 		
-		var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width','70px'],['css','paddingLeft','5px'],['css','fontSize','12px']]), td])
+		// var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width','70px'],['css','paddingLeft','5px'],['css','fontSize','12px']]), td])
 		
-		trs.push(tr);
-	}
+		// trs.push(tr);
+	// }
 	
-	_(parent, [_div([_table([_tbody(trs)],[['dir','className','layerProperties']])])]);
+	var trs = this.createPropertiesTable(shownProperties, properties, {leftWidth: 70});
+	_(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
 	
 	// смотрим, а не выполняются ли для этого слоя задачи
 	var haveTask = false;
@@ -3077,7 +3723,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		{
 			var isCustomAttributes = boxManualAttributes.checked;
 			var errorFlag = false,
-				checkFields = ['title'];
+				checkFields = (type == "Vector" ? ['title', 'date'] : ['title', 'date']);
 				
 			if (!isCustomAttributes)
 				checkFields.push(type == "Vector" ? 'ShapePath.Path' : 'TilePath.Path');
@@ -3110,11 +3756,15 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			{
 				var cols = '',
 					updateParams = '',
-					encoding = '&EncodeName=' + encodingWidget.getServerEncoding(),
+					encoding = '&EncodeSource=' + encodingWidget.getServerEncoding(),
 					needRetiling = false,
 					colXElem = $(columnsParent).find("[selectLon]"),
 					colYElem = $(columnsParent).find("[selectLat]"),
-					layerTitle = title.value;
+					layerTitle = title.value,
+					temporalParams = '';
+				
+				if ( temporalLayerParams.getTemporal() )
+					temporalParams = '&TemporalLayer=true&TemporalColumnName=' + temporalLayerParams.getColumnName() + '&TemporalPeriods=' + temporalLayerParams.getPeriodString();
 				
 				if (colXElem.length && colYElem.length)
 					cols = '&ColY=' + colYElem[0].value + '&ColX=' + colXElem[0].value;
@@ -3157,7 +3807,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				}
 				else
 				{
-					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + encoding, function(response)
+					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + encoding + temporalParams, function(response)
 						{
 							if (!parseResponse(response))
 								return;
@@ -3181,8 +3831,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 						Description: descr.value,
 						"Date": dateField.value,
 						TilePath: $(parent).find("[fieldName='TilePath.Path']")[0].value,
-						BorderFile: typeof _this.drawingBorders[properties.Name] == 'undefined' ? $(parent).find("[fieldName='ShapePath.Path']")[0].value : '',
-						BorderGeometry: typeof _this.drawingBorders[properties.Name] == 'undefined' ? '' : JSON.stringify(merc_geometry(_this.drawingBorders[properties.Name].geometry)),
+						BorderFile: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? $(parent).find("[fieldName='ShapePath.Path']")[0].value : '',
+						BorderGeometry: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? '' : JSON.stringify(merc_geometry(_this.drawingBorders.get(properties.Name).geometry)),
 						MapName: _mapHelper.mapProperties.name
 					},
 					needRetiling = false,
@@ -3199,9 +3849,9 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 					// если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
 					if ($(parent).find("[fieldName='ShapePath.Path']")[0].value != oldShapePath ||
 						$(parent).find("[fieldName='TilePath.Path']")[0].value != oldTilePath ||
-						oldDrawing && typeof _this.drawingBorders[properties.Name] != 'undefined' && JSON.stringify(_this.drawingBorders[properties.Name]) != JSON.stringify(oldDrawing) ||
-						!oldDrawing && typeof _this.drawingBorders[properties.Name] != 'undefined' ||
-						oldDrawing && typeof _this.drawingBorders[properties.Name] == 'undefined')
+						oldDrawing && typeof _this.drawingBorders.get(properties.Name) != 'undefined' && JSON.stringify(_this.drawingBorders.get(properties.Name)) != JSON.stringify(oldDrawing) ||
+						!oldDrawing && typeof _this.drawingBorders.get(properties.Name) != 'undefined' ||
+						oldDrawing && typeof _this.drawingBorders.get(properties.Name) == 'undefined')
 						needRetiling = true;
 				}
 				
@@ -3289,9 +3939,9 @@ mapHelper.prototype.chooseDrawingBorderDialog = function(name, closeFunc)
 			(function(i){
 				returnButton.onclick = function()
 				{
-					_this.drawingBorders[name] = polygons[i];
-					
-					_this.updateBorder(name);
+					//_this.drawingBorders[name] = polygons[i];
+					_this.drawingBorders.set(name, polygons[i]);
+					_this.drawingBorders.updateBorder(name);
 					
 					removeDialog($$('drawingBorderDialog' + name).parentNode);
 					
@@ -3310,65 +3960,96 @@ mapHelper.prototype.chooseDrawingBorderDialog = function(name, closeFunc)
 	}
 }
 
-mapHelper.prototype.updateBorder = function(name, span)
+/** Виджет для выбора полей для X и Y координат из списка полей
+* @function
+* @param parent {DOMElement} - контейнер для размещения виджета
+* @param params {object} - параметры ф-ции (должны быть либо url, либо fields):
+*   - url {string}- запросить список полей у сервера. В ответе - вектор из имён полей
+*   - fields {array of string}- явный список полей
+*   - defaultX {string} - дефолтное значение поля X (не обязятелен)
+*   - defaultY {string} - дефолтное значение поля Y (не обязятелен)
+*/
+mapHelper.prototype.selectColumns = function(parent, params)
 {
-	if (!this.drawingBorders[name])
-		return;
-	
-	if (span)
+	var doCreate = function(fields)
 	{
-		_(span, [_t(prettifyArea(geoArea(this.drawingBorders[name].geometry.coordinates)))])
+		removeChilds(parent);
+	
+		if (fields && fields.length > 0)
+	{
+			var selectLat = _select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
+				selectLon = _select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
+
+			for (var i = 0; i < fields.length; i++)
+			{
+				var opt = _option([_t(fields[i])], [['attr','value',fields[i]]]);
 		
-		return;
+				_(selectLat, [opt.cloneNode(true)]);
+				_(selectLon, [opt.cloneNode(true)]);
 	}
 	
-	if (!$$('drawingBorderDescr' + name))
-		return;
+			_(parent, [_table([_tbody([_tr([_td([_span([_t(_gtxt("Y (широта)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLat], [['css','width','150px'],['css','border','none']])]),
+										_tr([_td([_span([_t(_gtxt("X (долгота)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLon], [['css','width','150px'],['css','border','none']])])])])])
 	
-	removeChilds($$('drawingBorderDescr' + name));
+			if (params.defaultX)
+				selectLon = switchSelect(selectLon, params.defaultX);
 	
-	_($$('drawingBorderDescr' + name), [_t(prettifyArea(geoArea(this.drawingBorders[name].geometry.coordinates)))])
-}
-
-mapHelper.prototype.removeRoute = function(name)
-{
-	delete this.drawingBorders[name];
+			if (params.defaultY)
+				selectLat = switchSelect(selectLat, params.defaultY);
+		}
+	}
 	
-	if ($$('drawingBorderDescr' + name))
-		removeChilds($$('drawingBorderDescr' + name));
-}
-
-mapHelper.prototype.selectColumns = function(parent, url)
-{
+	if (params.url)
+	{
 	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t('загрузка...')], [['css','margin','3px 0px 3px 20px']]);
 	
 	removeChilds(parent);
 	_(parent, [loading])
 	
-	sendCrossDomainJSONRequest(url, function(response)
+		sendCrossDomainJSONRequest(params.url, function(response)
 	{
 		removeChilds(parent);
 	
 		if (!parseResponse(response))
 			return;
 		
-		if (response.Result && response.Result.length > 0)
+			doCreate( response.Result );
+		});
+	}
+	else
 		{
-			var selectLat = _select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
-				selectLon = _select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
+		doCreate( params.fields );
+	}
+	
+	// var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t('загрузка...')], [['css','margin','3px 0px 3px 20px']]);
+	
+	// removeChilds(parent);
+	// _(parent, [loading])
+	
+	// sendCrossDomainJSONRequest(url, function(response)
+	// {
+		// removeChilds(parent);
+	
+		// if (!parseResponse(response))
+			// return;
+		
+		// if (response.Result && response.Result.length > 0)
+		// {
+			// var selectLat = _select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
+				// selectLon = _select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
 
-			for (var i = 0; i < response.Result.length; i++)
-			{
-				var opt = _option([_t(response.Result[i])], [['attr','value',response.Result[i]]]);
+			// for (var i = 0; i < response.Result.length; i++)
+			// {
+				// var opt = _option([_t(response.Result[i])], [['attr','value',response.Result[i]]]);
 				
-				_(selectLat, [opt.cloneNode(true)]);
-				_(selectLon, [opt.cloneNode(true)]);
-			}
+				// _(selectLat, [opt.cloneNode(true)]);
+				// _(selectLon, [opt.cloneNode(true)]);
+			// }
 			
-			_(parent, [_table([_tbody([_tr([_td([_span([_t(_gtxt("Y (широта)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLat], [['css','width','150px'],['css','border','none']])]),
-										_tr([_td([_span([_t(_gtxt("X (долгота)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLon], [['css','width','150px'],['css','border','none']])])])])])
-		}
-	})
+			// _(parent, [_table([_tbody([_tr([_td([_span([_t(_gtxt("Y (широта)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLat], [['css','width','150px'],['css','border','none']])]),
+										// _tr([_td([_span([_t(_gtxt("X (долгота)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLon], [['css','width','150px'],['css','border','none']])])])])])
+		// }
+	// })
 }
 
 mapHelper.prototype.createNewLayer = function(type)
@@ -3378,7 +4059,7 @@ mapHelper.prototype.createNewLayer = function(type)
 
 	var parent = _div(null, [['attr','id','new' + type + 'Layer']]),
 		properties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}},
-		height = (type == 'Vector') ? 260 : 285;
+		height = (type == 'Vector') ? 270 : 285;
 	
 //	if (type == 'Raster')
 //		properties.WMSAccess = false;
@@ -3435,6 +4116,42 @@ mapHelper.prototype.updateTask = function(taskInfo, title)
 	}
 }
 
+// Формирует набор элементов tr используя контролы из shownProperties.
+// Параметры:
+// - shownProperties: массив со следующими свойствами:
+//   * tr - если есть это свойство, то оно помещается в tr, все остальные игнорируются
+//   * name - названия свойства, которое будет писаться в левой колонке
+//   * elem - если есть, то в правую колонку помещается этот элемент
+//   * field - если нет "elem", в правый столбец подставляется layerProperties[field]
+// - layerProperties - просто хеш строк для подстановки в правую колонку
+// - style:
+//   * leftWidth - ширина левой колонки в пикселях
+mapHelper.prototype.createPropertiesTable = function(shownProperties, layerProperties, style)
+{
+	var _styles = $.extend({leftWidth: 100}, style);
+	var trs = [];
+	for (var i = 0; i < shownProperties.length; i++)
+	{
+		var td;
+		if (typeof shownProperties[i].tr !== 'undefined')
+		{
+			trs.push(shownProperties[i].tr);
+			continue;
+		}
+		
+		if (typeof shownProperties[i].elem !== 'undefined')
+			td = _td([shownProperties[i].elem]);
+		else
+			td = _td([_t(layerProperties[shownProperties[i].field] != null ? layerProperties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
+		
+		var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width', _styles.leftWidth + 'px'],['css','paddingLeft','5px'],['css','fontSize','12px']]), td]);
+		
+		trs.push(tr);
+	}
+	
+	return trs;
+}
+
 mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 {
 	var elemProperties = (isMap) ? div.properties.properties : div.properties.content.properties,
@@ -3442,6 +4159,51 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		_this = this;
 
 	var title = _input(null,[['attr','value',typeof elemProperties.title != 'undefined' ? elemProperties.title : ''],['dir','className','inputStyle'],['css','width','206px']])
+	
+	var visibilityProperties = new layersTree.GroupVisibilityPropertiesModel(elemProperties.list, typeof elemProperties.ShowCheckbox === 'undefined' ? true : elemProperties.ShowCheckbox);
+	// var visibilityProperties = new _layersTree.GroupVisibilityPropertiesModel(true, elemProperties.list);
+	var visibilityPropertiesView = layersTree.GroupVisibilityPropertiesView(visibilityProperties, !isMap);
+	$(visibilityProperties).change(function()
+	{
+		elemProperties.list = visibilityProperties.isChildRadio();
+		elemProperties.ShowCheckbox = visibilityProperties.isVisibilityControl();
+		
+		var curBox = div.firstChild;
+		if (!elemProperties.ShowCheckbox)
+		{
+			curBox.checked = true;
+			_layersTree.visibilityFunc(curBox, true, visibilityProperties.isChildRadio(), false);
+			
+			curBox.style.display = 'none';
+			curBox.isDummyCheckbox = true;
+		}
+		else
+		{
+			curBox.style.display = 'block';
+			delete curBox.isDummyCheckbox;
+		}
+		
+		if (isMap) {
+			_this.mapTree.properties = div.properties.properties;
+		} else {
+			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+		}
+		
+		var ul = _abstractTree.getChildsUl(div.parentNode),
+			checkbox = false;
+		
+		$(ul).children('li').each(function()
+		{
+			var box = _layersTree.updateListType(this, true);
+			
+			if (box.checked)
+				checkbox = box; // последний включенный чекбокс
+		})
+		
+		if (checkbox && _layersTree.getLayerVisibility(checkbox))
+			_layersTree.visibilityFunc(checkbox, true, div.properties.content ? div.properties.content.properties.list : div.properties.properties.list);		
+	});
+	
 	title.onkeyup = function()
 	{
 		if (title.value == '')
@@ -3475,6 +4237,7 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		return true;
 	}
 	
+	/*
 	var boxSwitch = _checkbox(!elemProperties.list, 'checkbox'),
 		radioSwitch = _checkbox(elemProperties.list, 'radio');
 	
@@ -3489,20 +4252,14 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		this.checked = true;
 		radioSwitch.checked = !this.checked;
 		
-		if (isMap && div.properties.properties.list == !this.checked ||
-			!isMap && div.properties.content.properties.list == !this.checked)
+		if ( elemProperties.list == !this.checked )
 			return;
 		
-		if (isMap)
-		{
-			div.properties.properties.list = !this.checked;
+		elemProperties.list = !this.checked;
 			
+		if (isMap) {
 			_this.mapTree.properties = div.properties.properties;
-		}
-		else
-		{
-			div.properties.content.properties.list = !this.checked;
-			
+		} else {
 			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
 		}
 		
@@ -3526,20 +4283,13 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		this.checked = true;
 		boxSwitch.checked = !this.checked;
 		
-		if (isMap && div.properties.properties.list == this.checked ||
-			!isMap && div.properties.content.properties.list == this.checked)
+		if ( elemProperties.list == this.checked )
 			return;
+		elemProperties.list = this.checked;
 		
-		if (isMap)
-		{
-			div.properties.properties.list = this.checked;
-			
+		if (isMap) {
 			_this.mapTree.properties = div.properties.properties;
-		}
-		else
-		{
-			div.properties.content.properties.list = this.checked;
-			
+		} else {
 			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
 		}
 		
@@ -3557,27 +4307,28 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		if (checkbox && _layersTree.getLayerVisibility(checkbox))
 			_layersTree.visibilityFunc(checkbox, true, div.properties.content ? div.properties.content.properties.list : div.properties.properties.list);
 	}
+	*/
 	
 	var addProperties = function(shownProperties)
 	{
-		var trs = []
+		// var trs = []
 		
-		for (var i = 0; i < shownProperties.length; i++)
-		{
-			var td;
-			if (typeof shownProperties[i].elem != 'undefined')
-				td = _td([shownProperties[i].elem]);
-			else
-				td = _td([_t(elemProperties[shownProperties[i].field] != null ? elemProperties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
+		// for (var i = 0; i < shownProperties.length; i++)
+		// {
+			// var td;
+			// if (typeof shownProperties[i].elem != 'undefined')
+				// td = _td([shownProperties[i].elem]);
+			// else
+				// td = _td([_t(elemProperties[shownProperties[i].field] != null ? elemProperties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
 			
-			td.style.border = '1px solid #DEDEDE';
+			// td.style.border = '1px solid #DEDEDE';
 			
-			var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width','100px'],['css','height','22px'],['css','paddingLeft','5px'],['css','border','1px solid #DEDEDE']]), td])
+			// var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width','100px'],['css','height','22px'],['css','paddingLeft','5px'],['css','border','1px solid #DEDEDE']]), td])
 			
-			trs.push(tr);
-		}
+			// trs.push(tr);
+		// }
 		
-		return trs;
+		return _this.createPropertiesTable(shownProperties, elemProperties, {leftWidth: 100});
 	};
 	
 	if (isMap)
@@ -3767,15 +4518,20 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		//	showBalloons.style.margin = "0px 4px 0px 3px";
 		}
 		
-		var shownCommonProperties = [{name: _gtxt("Имя"), field: 'title', elem: title},
+		var shownCommonProperties = [
+										{name: _gtxt("Имя"), field: 'title', elem: title},
 										{name: _gtxt("ID"), field: 'name'},
-										{name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright},
-										{name: _gtxt("Вид вложенных элементов"), elem: _div([boxSwitch, radioSwitch])},
-										{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
+										{name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright}
+									]
+									//{name: _gtxt("Вид вложенных элементов"), elem: _div([boxSwitch, radioSwitch])},
+									.concat(visibilityPropertiesView)
+									.concat(
+										[{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
 										{name: _gtxt("Использовать OpenStreetMap"), elem: useOSM},
 										{name: _gtxt("Ссылка (permalink)"), elem: defPermalink},
 									//	{name: _gtxt("Показывать всплывающие подсказки"), elem: showBalloons},
-										{name: _gtxt("Масштабирование в миникарте"), elem: zoomDelta}],
+										{name: _gtxt("Масштабирование в миникарте"), elem: zoomDelta}]
+									),
 			shownPolicyProperties = [/*{name: _gtxt("Разрешить поиск в векторных слоях"), elem: searchVectors},*/
 										{name: _gtxt("Разрешить скачивание"), elem: _table([_tbody([_tr([_td([_t(_gtxt('Векторных слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadVectors])]),
 																					 				_tr([_td([_t(_gtxt('Растровых слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadRasters])])])])}],
@@ -3796,19 +4552,19 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		
 		_(tabMenu, [divCommon, divPolicy, divView, divOnload]);
 		
-		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%']])]);
-		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%']])]);
-		_(divView, [_table([_tbody(addProperties(shownViewProperties))],[['css','width','100%']])]);
+		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
+		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
+		_(divView,   [_table([_tbody(addProperties(shownViewProperties))],  [['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divOnload, [onLoad])
 		
 		return tabMenu;
 	}
 	else
 	{
-		var shownProperties = [{name: _gtxt("Имя"), field: 'title', elem: title},
-								{name: _gtxt("Вид вложенных элементов"), field: 'list', elem: _div([boxSwitch, radioSwitch])}];
+		var shownProperties = [{name: _gtxt("Имя"), field: 'title', elem: title}].concat(visibilityPropertiesView);
+								//{name: _gtxt("Вид вложенных элементов"), field: 'list', elem: _div([boxSwitch, radioSwitch])}];
 
-		return _div([_table([_tbody(addProperties(shownProperties))],[['css','width','100%']])],[['css','width','320px']]);
+		return _div([_table([_tbody(addProperties(shownProperties))],[['css','width','100%']])],[['css','width','320px'], ['dir','className','propertiesTable']]);
 	}
 }
 
@@ -4025,12 +4781,13 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 					
 					_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
 					
-					if (_this.drawingBorders[elemProperties.name])
-					{
-						_this.drawingBorders[elemProperties.name].remove();
+					// if (_this.drawingBorders.[elemProperties.name])
+					// {
+						// _this.drawingBorders[elemProperties.name].remove();
 						
-						delete _this.drawingBorders[elemProperties.name];
-					}
+						// delete _this.drawingBorders[elemProperties.name];
+					// }
+					_this.drawingBorders.removeRoute(elemProperties.name, true);
 					
 					if ($$('drawingBorderDialog' + elemProperties.name))
 						removeDialog($$('drawingBorderDialog' + elemProperties.name).parentNode);
@@ -4391,7 +5148,7 @@ mapHelper.prototype.updateStyles = function(filterCanvas)
 		// newFilterStyle.DisableBalloonOnClick = balloonValueElem.getBalloonDisableOnClick();
 		// newFilterStyle.DisableBalloonOnMouseMove = balloonValueElem.getDisableBalloonOnMouseMove();
 		
-		$.extend(newFilterStyle, balloonValueElem.getBalloonState())
+		$.extend(newFilterStyle, balloonValueElem.getBalloonState());
 			
 		// if (balloonValue != '' && balloonValue != null)
 			// newFilterStyle.Balloon = balloonValue;
@@ -4419,34 +5176,63 @@ mapHelper.prototype.updateStyles = function(filterCanvas)
 
 mapHelper.prototype.load = function()
 {
+	var _this = this;
+	
 	if (!this.builded)
 	{
-		_(this.workCanvas, [_div([_p([_div([_t(_gtxt("Навигация по карте и инструменты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_1"))]),
-								  _p([_div([_t(_gtxt("Список слоев"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_2"))]),
-								  _p([_div([_t(_gtxt("Стиль векторного слоя"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_3"))]),
-								  _p([_div([_t(_gtxt("Управление содержанием карты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_4")), _a([_span([_t(">> GeoMixer Viewer")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/mapviewer_help.html']])]),
-								  _p([_div([_t(_gtxt("Пользовательские инструменты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_5")), _br(), _span([_t(_gtxt("В режиме маркеров: "))], [['css','fontWeight','bold']]), _t(_gtxt("$$help$$_6")), _br(), _span([_t(_gtxt("В режиме линейка/измерения расстояния, полигон/измерение площади: "))], [['css','fontWeight','bold']]), _t(_gtxt("$$help$$_7")), _br(), _t(_gtxt("$$help$$_8"))]),
-								  _p([_a([_br(),_span([_t(">> GeoMixer Viewer")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/mapviewer_help.html']])]),
-								  _p([_a([_br(),_span([_t(">> GeoMixer Admin")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/admin_help.html']])])],[['dir','className','help']])]);
+		// _(this.workCanvas, [_div([_p([_div([_t(_gtxt("Навигация по карте и инструменты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_1"))]),
+								  // _p([_div([_t(_gtxt("Список слоев"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_2"))]),
+								  // _p([_div([_t(_gtxt("Стиль векторного слоя"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_3"))]),
+								  // _p([_div([_t(_gtxt("Управление содержанием карты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_4")), _a([_span([_t(">> GeoMixer Viewer")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/mapviewer_help.html']])]),
+								  // _p([_div([_t(_gtxt("Пользовательские инструменты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_5")), _br(), _span([_t(_gtxt("В режиме маркеров: "))], [['css','fontWeight','bold']]), _t(_gtxt("$$help$$_6")), _br(), _span([_t(_gtxt("В режиме линейка/измерения расстояния, полигон/измерение площади: "))], [['css','fontWeight','bold']]), _t(_gtxt("$$help$$_7")), _br(), _t(_gtxt("$$help$$_8"))]),
+								  // _p([_a([_br(),_span([_t(">> GeoMixer Viewer")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/mapviewer_help.html']])]),
+								  // _p([_a([_br(),_span([_t(">> GeoMixer Admin")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/admin_help.html']])])],[['dir','className','help']])]);
+		
+		var fileName;
+		
+		if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.usageFilePrefix !== 'undefined')
+			fileName = window.gmxViewerUI.usageFilePrefix;
+		else
+			fileName = window.gmxJSHost ? window.gmxJSHost + "usageHelp" : "usageHelp";
+		
+		fileName += _gtxt("helpPostfix");
+		
+		_mapHelper._loadHelpTextFromFile(fileName, function( text )
+		{
+			var div = _div(null, [['dir','className','help']]);
+			div.innerHTML = text;
+			_(_this.workCanvas, [div]);
+		});
 		
 		this.builded = true;
 	}
 }
 
+mapHelper.prototype._loadHelpTextFromFile = function( fileName, callback, num, data )
+{
+	var proceess = function( text )
+	{
+		if (num ) text = text.replace("{gmxVersion}", num);
+		if (data) text = text.replace("{gmxData}", data);
+		callback(text);
+	}
+	
+	if (fileName.indexOf("http://") !== 0)
+		$.ajax({url: fileName, success: proceess});
+	else
+		sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(fileName), function(response)
+		{
+			proceess(response.Result);
+		});	
+}
+
 mapHelper.prototype.version = function()
 {
+	var _this = this;
 	if (!$$('version'))
 	{
 		function showVersion(num, data)
 		{
-			// var div = _div([_p([_span([_t("GeoMixer")],[['css','fontWeight','bold']]), _t(" " + String(num)+ "(" + data + ") - "), _t(_gtxt("$$about$$_1")),
-								// _a([_span([_t("Kosmosnimki.ru")],[['css','fontWeight','bold']])],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru']]), _t(_gtxt(" и ")),
-								// _a([_span([_t("OpenStreetMap")],[['css','fontWeight','bold']])],[['attr','target','_blank'],['attr','href','http://www.openstreetmap.org']])]),
-							// _p([_t(_gtxt("$$about$$_2"))]),
-							// _p([_t(_gtxt("$$about$$_3"))]),
-							// _p([_a([_br(),_span([_t(">> GeoMixer")],[['css','fontWeight','bold']]), _t(" - Общее описание")],[['css','color','#417590'],['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/']])]),
-						 	// _p([_a([_br(),_span([_t(">> GeoMixer API")],[['css','fontWeight','bold']]), _t(" - Руководство разработчика")],[['css','color','#417590'],['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/api_start.html']])])], [['css','marginTop','10px'],['css','color','#153069'],['attr','id','version']])
-							
 			var div = $("<div></div>");
 			
 			var fileName;
@@ -4456,19 +5242,15 @@ mapHelper.prototype.version = function()
 			else
 				fileName = window.gmxJSHost ? window.gmxJSHost + "help" : "help";
 			
-			var proceessAndShow = function( text )
+			fileName += _gtxt("helpPostfix");
+			
+			_mapHelper._loadHelpTextFromFile( fileName, function( text )
 			{
-				text = text.replace("{gmxVersion}", num).replace("{gmxData}", data);
 				div.html(text);
 				showDialog(_gtxt("О проекте"), div[0], 320, 300, false, false);
+			}, num, data );			
 			}
 			
-			if (fileName.indexOf("http://") !== 0)
-				$.ajax({url: fileName + _gtxt("helpPostfix"), success: proceessAndShow});
-			else
-				sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(fileName + _gtxt("helpPostfix")), proceessAndShow);
-		}
-		
 		if (!this.versionNum)
 		{
 			var _this = this;
@@ -4658,11 +5440,12 @@ mapHelper.prototype.print = function()
 					
 					if (o.geometry.type != "POINT")
 					{
-						var style = $(o.canvas).find("div.colorIcon")[0].getStyle();
+						//var style = $(o.canvas).find("div.colorIcon")[0].getStyle();
+						var style = o.getStyle();
 						
-						elem.thickness = style.outline.thickness;
-						elem.color = style.outline.color;
-						elem.opacity = style.outline.opacity;
+						elem.thickness = style.regular.outline.thickness;
+						elem.color = style.regular.outline.color;
+						elem.opacity = style.regular.outline.opacity;
 					}
 					
 					drawnObjects.push(elem);
@@ -4830,12 +5613,29 @@ serviceHelper.prototype = new leftMenu();
 
 serviceHelper.prototype.load = function()
 {
+	var _this = this;
 	if (!this.builded)
 	{
-		_(this.workCanvas, [_div([_p([_div([_t(_gtxt("Загрузить файл"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_1"))]),
-								  _p([_div([_t(_gtxt("Ссылка на карту"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_2"))]),
-								  _p([_div([_t(_gtxt("Код для вставки"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_4"))]),
-								  _p([_div([_t(_gtxt("Печать карты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_3"))])],[['dir','className','help']])]);
+		// _(this.workCanvas, [_div([_p([_div([_t(_gtxt("Загрузить файл"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_1"))]),
+								  // _p([_div([_t(_gtxt("Ссылка на карту"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_2"))]),
+								  // _p([_div([_t(_gtxt("Код для вставки"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_4"))]),
+								  // _p([_div([_t(_gtxt("Печать карты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_3"))])],[['dir','className','help']])]);
+		
+		var fileName;
+		
+		if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.servicesFilePrefix !== 'undefined')
+			fileName = window.gmxViewerUI.servicesFilePrefix;
+		else
+			fileName = window.gmxJSHost ? window.gmxJSHost + "servicesHelp" : "servicesHelp";
+		
+		fileName += _gtxt("helpPostfix");
+		
+		_mapHelper._loadHelpTextFromFile(fileName, function( text )
+		{
+			var div = _div(null, [['dir','className','help']]);
+			div.innerHTML = text;
+			_(_this.workCanvas, [div]);
+		});
 		
 		this.builded = true;
 	}

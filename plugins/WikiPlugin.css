@@ -1,0 +1,124 @@
+﻿.wiki-filter-topic
+{
+	color: #2185C0;
+	font-size: 12px;
+}
+span.wiki-filter-page
+{
+	cursor: pointer;
+	margin: 0px 0px 0px 5px;
+	color: #218580;
+	font-weight: bold;
+}
+span.wiki-filter-page:hover
+{
+	text-decoration: underline;
+}
+.wiki-filter-input  input{
+	margin-left: 5px;
+}
+.wiki-wizard-button {
+  padding-left: 10px;
+  padding-bottom: 10px;
+}
+.wiki-wizard-button span {
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 12px;
+}
+.wiki-wizard-button span.disabled {
+  text-decoration: none;
+  cursor: default;
+  color: Gray;
+}
+
+.wiki-wizard-dialog {
+  padding-top: 5px;
+  height: 40px !important;
+  background-color: Transparent;
+  background-image: url('img/wiki/wizard-background.png');
+  background-position: left center;
+  background-repeat: no-repeat;
+}
+.wiki-wizard-dialog .ui-dialog-content {
+  margin-left: 30px;
+}
+.wiki-wizard-dialog div {
+  background-color: Transparent;
+}
+.wiki-wizard-dialog .ui-dialog-titlebar {
+  display: none;
+}
+.wiki-wizard-dialog div.content {
+  font-size: 12px;
+}
+.wiki-wizard-dialog .cancel-button {
+  text-decoration: underline;
+  cursor: pointer;
+  float: right;
+  color: Gray;
+  margin-right: 5px;
+}
+.wiki-wizard-dialog .skip-button {
+  text-decoration: underline;
+  cursor: pointer;
+  float: left;
+}
+
+.wiki-button {
+  display: inline-block;
+  /*display:inline;*/
+  vertical-align:middle;
+  cursor:pointer;
+  background-position:lefttop;
+  background-repeat:no-repeat;
+  width:12px;
+  height:15px;
+  margin-left:5px;
+}
+
+.wiki-message-title{
+	font-size: 16;
+	font-weight: bold;
+}
+
+.wiki-editor-txtlayer{
+	margin: 0 2 0 2;
+}
+.wiki-editor-txttitle{
+	margin: 0 2 0 2;
+}
+
+.page-button-on {
+  background-image: url('img/wiki/page-on.gif');
+}
+
+.page-button-off {
+  background-image: url('img/wiki/page-off.gif');
+}
+
+.droppable-drawing-object-hover {
+  background-color: #CCF;
+}
+.wiki-create-div{
+	position: absolute;
+	left: 5;
+	top: 235;
+	width: 32;
+	height: 32;
+	opacity: 0.5;
+	background: #016A8A;
+}
+.wiki-create-img{
+	position: absolute;
+	left: 4;
+	top: 4;
+	width: 24;
+	height: 24;
+	background-image: url(img/wiki/sendMessage.png);
+}
+
+.wiki-create-img:hover{
+	cursor: pointer;
+	background-image: url(img/wiki/sendMessage_a.png);
+}

@@ -1,8 +1,10 @@
+import flash.display.Bitmap;
 import flash.display.Sprite;
 import flash.display.DisplayObject;
 import flash.display.Loader;
 import flash.display.BitmapData;
 import flash.display.Stage;
+import flash.geom.Point;
 
 import flash.events.Event;
 import flash.events.IOErrorEvent;
@@ -19,16 +21,26 @@ typedef Req = {
 	var noCache:Bool;
 }
 
+typedef ReqImg = {
+	var url : String;
+	var onLoad :Dynamic->Void;
+	var onError :Void->Void;
+}
+
 class Utils
 {
 	public static var worldWidth:Float = 20037508;
 	public static var worldDelta:Float = 1627508;
 	static var nextId:Int = 0;
 	static var bitmapDataCache:Hash<BitmapData> = new Hash<BitmapData>();
+	static var displayObjectCache:Hash<Dynamic> = new Hash<Dynamic>();
 	
-	static var loaderDataCache:Array<Req> = [];		// Очередь загрузки Bitmap-ов
-	static var loaderActive:Bool = false;			// Флаг активности Loader Bitmap-ов
+	static var loaderDataCache:Array<Req> = [];				// Очередь загрузки Bitmap-ов
+	static var loaderActive:Bool = false;					// Флаг активности Loader Bitmap-ов
 	static var loaderCache:Hash<Bool> = new Hash<Bool>();	// Файлы в процессе загрузки
+	
+	static var imgWaitCache:Hash<Array<ReqImg>> = new Hash<Array<ReqImg>>();	// Очередь ожидающих загрузки URL
+	static var imgCache:Hash<Bool> = new Hash<Bool>();		// Файлы IMG в процессе загрузки
 	
 	public static function getNextId()
 	{
@@ -41,6 +53,16 @@ class Utils
 		var child = new Sprite();
 		parent.addChild(child);
 		return child;
+	}
+
+	public static function clearSprite(spr:Sprite)
+	{
+		spr.graphics.clear();
+		if (spr.numChildren > 0) {
+			for (i in 0...spr.numChildren) {
+				spr.removeChildAt(0);
+			}
+		}
 	}
 
 	public static function getScale(z:Float)
@@ -56,9 +78,28 @@ class Utils
 		return date;
 	}
 
-	public static function loadImage(url:String, onLoad:DisplayObject->Void, ?onError:Void->Void)
+	// Загрузить DisplayObject если возможно закешировать
+	public static function loadCacheDisplayObject(url:String, onLoad:Dynamic->Void, ?onError:Void->Void)
 	{
+		var req:ReqImg = { url: url, onLoad: onLoad, onError: onError };
+		var flag:Bool = imgWaitCache.exists(url);
+		var arr:Array<ReqImg> = new Array<ReqImg>();
+		if (flag) arr = imgWaitCache.get(url);
+
+		arr.push(req);
+		imgWaitCache.set(url, arr);
+		if(!flag) runLoadCacheDisplayObject(req);
+	}
+
+	// Загрузка DisplayObject
+	private static function runLoadCacheDisplayObject(req:ReqImg)
+	{
+		var url:String = req.url;
+		var onLoad = req.onLoad;
+		var onError = req.onError;
+
 		var loader = new Loader();
+
 		var callOnError = function()
 		{
 			if (onError != null)
@@ -72,16 +113,119 @@ class Utils
 		});
 		timer.start();
 
-		loader.contentLoaderInfo.addEventListener(Event.INIT, function(event) 
+		loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(event) 
 		{ 
 			timer.stop();
-			onLoad(loader);
+			var imgData:Dynamic = { };
+			imgData.isOverlay = null;
+			imgData.loader = loader;
+			onLoad(imgData);
 			Main.bumpFrameRate();
 		});
 		loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, function(event)
 		{
 			timer.stop();
 			callOnError();
+			var arr:Array<ReqImg> = imgWaitCache.get(url);
+			for (req in arr) {
+				req.onError();
+			}
+			imgWaitCache.remove(url);
+			
+		});
+		var loaderContext:LoaderContext = new LoaderContext();
+		loaderContext.checkPolicyFile = true;
+		try 
+		{
+			loader.load(new URLRequest(url), loaderContext);
+		}
+		catch (e:Error) 
+		{
+			trace("security error while loading " + url);
+			timer.stop();
+			callOnError();
+		}
+	}
+
+	// Загрузить Image если возможно закешировать BitmapData + определение isOverlay
+	public static function loadCacheImage(url:String, onLoad:Dynamic->Void, ?onError:Void->Void)
+	{
+		var req:ReqImg = { url: url, onLoad: onLoad, onError: onError };
+		var flag:Bool = imgWaitCache.exists(url);
+		var arr:Array<ReqImg> = new Array<ReqImg>();
+		if (flag) arr = imgWaitCache.get(url);
+
+		arr.push(req);
+		imgWaitCache.set(url, arr);
+		if(!flag) runLoadCacheImage(req);
+	}
+
+	// Загрузка IMG
+	private static function runLoadCacheImage(req:ReqImg)
+	{
+		var url:String = req.url;
+		var onLoad = req.onLoad;
+		var onError = req.onError;
+
+		var loader = new Loader();
+
+		var callOnError = function()
+		{
+			if (onError != null)
+				onError();
+		}
+		var timer = new Timer(60000, 1);
+		timer.addEventListener("timer", function(e:TimerEvent)
+		{
+			try { loader.close(); } catch (e:Error) {}
+			callOnError();
+		});
+		timer.start();
+
+		loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(event) 
+		{ 
+			timer.stop();
+			var imgData:Dynamic = { };
+			imgData.isOverlay = null;
+			imgData.loader = loader;
+			var flag:Bool = event.target.parentAllowsChild;
+			if(flag) {
+				var size = 32;
+				var bmp = new BitmapData(size, size, true, 0);
+				bmp.draw(loader);
+				var hist = bmp.histogram();
+				if (hist[3][255] != 1024) imgData.isOverlay = true;		// по гистограмме определяем тайлы где в верхнем левом углу 32х32 все alpha = 0xFF
+				bmp.dispose();
+				bmp = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
+				bmp.draw(loader);
+				if (imgWaitCache.exists(url))
+				{
+					var arr:Array<ReqImg> = imgWaitCache.get(url);
+					for (req in arr) {
+						imgData.loader = new Bitmap(bmp);
+						req.onLoad(imgData);
+					}
+					imgWaitCache.remove(url);
+				}			
+				imgData.loader = null;
+
+			} else {
+				imgData.isOverlay = true;
+				onLoad(imgData);
+			}
+			
+			Main.bumpFrameRate();
+		});
+		loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, function(event)
+		{
+			timer.stop();
+			callOnError();
+			var arr:Array<ReqImg> = imgWaitCache.get(url);
+			for (req in arr) {
+				req.onError();
+			}
+			imgWaitCache.remove(url);
+			
 		});
 		var loaderContext:LoaderContext = new LoaderContext();
 		loaderContext.checkPolicyFile = true;
@@ -219,4 +363,165 @@ class Utils
 		else
 			return coords_;
 	}
+
+	// Получить группы точек по прямоугольной сетке
+	public static function getClusters(vectorLayerFilter:VectorLayerFilter, geom:MultiGeometry, tile:VectorTile, currentZ:Int, ?identityField:String):MultiGeometry
+	{
+		var traceTime = flash.Lib.getTimer();
+		
+		var attr:Dynamic = vectorLayerFilter.clusterAttr;
+		var iterCount:Int = (attr.iterationCount != null ? attr.iterationCount : 1);	// количество итераций K-means
+		var radius:Int = (attr.radius != null ? attr.radius : 20);						// радиус кластеризации в пикселах
+
+		var propFields:Array<Array<String>> = (attr.propFields != null ? attr.propFields : [[],[]] );
+		var tileExtent:Extent = tile.extent;			// Extent тайла
+
+		var scale:Float = Utils.getScale(currentZ);		// размер пиксела в метрах меркатора
+		var radMercator:Float = radius * scale;			// размер радиуса кластеризации в метрах меркатора
+		
+		if(identityField == null) identityField = 'ogc_fid';
+		var grpHash = new Hash<Dynamic>();
+		for (i in 0...Std.int(geom.members.length))
+		{
+			if (!Std.is(geom.members[i], PointGeometry)) continue;
+			var member:PointGeometry = cast(geom.members[i], PointGeometry);
+			var dx:Int = cast((member.x - tileExtent.minx) / radMercator);		// Координаты квадранта разбивки тайла
+			var dy:Int = cast((member.y - tileExtent.miny) / radMercator);
+			var key:String = dx + '_' + dy;
+			var ph:Dynamic = (grpHash.exists(key) ? grpHash.get(key) : {});
+			var arr:Array<Int> = (ph.arr != null ? ph.arr : new Array<Int>());
+			arr.push(i);
+			ph.arr = arr;
+			grpHash.set(key, ph);
+		}
+		
+		var centersGeometry = new MultiGeometry();
+		var objIndexes:Array<Array<Int>> =  [];
+		
+		function setProperties(prop_:Hash<String>, len_:Int):Void
+		{
+			var regObjectInCluster = ~/\[objectInCluster\]/g;
+			for (i in 0...Std.int(propFields[0].length)) {
+				var key:String = propFields[0][i];
+				var valStr:String = propFields[1][i];
+				valStr = regObjectInCluster.replace(valStr, cast(len_));
+				prop_.set(key, valStr);
+			}
+		}
+		
+		function getCenterGeometry(arr:Array<Int>):PointGeometry
+		{
+			if (arr.length < 1) return null;
+			var xx:Float = 0; var yy:Float = 0;
+			var members:Array<PointGeometry> = new Array<PointGeometry>();
+			for (j in arr)
+			{
+				var memberSource:PointGeometry = cast(geom.members[j], PointGeometry);
+				xx += memberSource.x;
+				yy += memberSource.y;
+				members.push(memberSource);
+			}
+			xx /= arr.length;
+			yy /= arr.length;
+			var pt:PointGeometry = new PointGeometry(xx, yy);
+			pt.propHiden.set('_members', members);
+			return pt;
+		}
+		
+		// преобразование grpHash в массив центроидов и MultiGeometry
+		for (key in grpHash.keys())
+		{
+			var ph:Dynamic = grpHash.get(key);
+			if (ph == null || ph.arr.length < 1) continue;
+			objIndexes.push(ph.arr);
+			var pt:PointGeometry = getCenterGeometry(ph.arr);
+			var prop:Hash<String> = new Hash<String>();
+			if (ph.arr.length == 1) {
+				var propOrig = geom.members[ph.arr[0]].properties;
+				for (key in propOrig.keys()) prop.set(key, propOrig.get(key));
+				pt.propHiden.set('_paintStyle', vectorLayerFilter.regularStyleOrig);
+			}
+			else
+			{
+				prop.set(identityField, 'cl_' + getNextId());
+				setProperties(prop, ph.arr.length);
+			}
+			
+			pt.properties = prop;
+			centersGeometry.addMember(pt);
+		}
+
+		// find the nearest group
+		function findGroup(point:Point):Int {
+			var min:Float = Geometry.MAX_DISTANCE;
+			var group:Int = -1;
+			for (i in 0...Std.int(centersGeometry.members.length))
+			{
+				var member = centersGeometry.members[i];
+				var pt:PointGeometry = cast(member, PointGeometry);
+				var center:Point = new Point(pt.x, pt.y);
+				var d:Float = Point.distance(point ,center);
+				if(d < min){
+					min = d;
+					group = i;
+				}
+			}
+			return group;
+		}
+		
+		// Итерация K-means
+		function kmeansGroups():Void
+		{
+			var newObjIndexes:Array<Array<Int>> =  [];
+			for (i in 0...Std.int(geom.members.length))
+			{
+				if (!Std.is(geom.members[i], PointGeometry)) continue;
+				var member:PointGeometry = cast(geom.members[i], PointGeometry);
+
+				var group:Int = findGroup(new Point(member.x, member.y));
+				
+				if (newObjIndexes[group] == null) newObjIndexes[group] = [];
+				newObjIndexes[group].push(i);
+			}
+			centersGeometry = new MultiGeometry();
+			objIndexes =  [];
+			for (arr in newObjIndexes)
+			{
+				if (arr == null) continue;
+				var pt:PointGeometry = getCenterGeometry(arr);
+				var prop:Hash<String> = new Hash<String>();
+				if (arr.length == 1) {
+					var propOrig = geom.members[arr[0]].properties;
+					for(key in propOrig.keys()) prop.set(key, propOrig.get(key));
+					pt.propHiden.set('_paintStyle', vectorLayerFilter.regularStyleOrig);
+				}
+				else
+				{
+					prop.set(identityField, 'cl_' + getNextId());
+					setProperties(prop, arr.length);
+				}
+				pt.properties = prop;
+				
+				centersGeometry.addMember(pt);
+				objIndexes.push(arr);
+			}
+		}
+		
+		for (i in 0...Std.int(iterCount))	// Итерации K-means
+		{
+			kmeansGroups();
+		}
+		
+		if(attr.debug != null) {
+			var out = '';
+			out += ' iterCount: ' + iterCount;
+			out += ' objCount: ' + geom.members.length;
+			out += ' clustersCount: ' + centersGeometry.members.length;
+			out += ' time: ' + (flash.Lib.getTimer() - traceTime) + ' мсек.';
+			trace(out);
+		}
+		return centersGeometry;
+		
+	}
+	
 }

@@ -12,12 +12,16 @@ var gmxCore = function()
         {
             var isAllModules = true;
             var curModules = _callbacks[k].modules;
+			var modules = [];
             for (var m = 0; m < curModules.length; m++)
+			{
                 if ( !(curModules[m] in _modules) )
                 {
                     isAllModules = false;
                     break;
                 }
+				modules.push(_modules[curModules[m]]);
+			}
                 
             if (isAllModules)
             {
@@ -26,7 +30,7 @@ var gmxCore = function()
                 //first delete, than callback!
                 _callbacks.splice(k, 1);
                 k = k - 1;
-                curCallback();
+                curCallback.apply(null, modules);
             }
         }
     }
@@ -113,6 +117,11 @@ var gmxCore = function()
             
             for (var p in module)
                 _globalNamespace[p] = module[p];
-        }
+        },
+		
+		getModulePath: function(moduleName)
+		{
+			return _modulePathes[moduleName];
+		}
     }
 }();

@@ -16,7 +16,8 @@ class GeometryPainter
 
 	public function repaint(style:Style)
 	{
-		sprite.graphics.clear();
+		//sprite.graphics.clear();
+		Utils.clearSprite(sprite);
 		if ((geometry != null) && (style != null))
 			geometry.paintWithExtent(sprite, style, window);
 	}
@@ -24,7 +25,8 @@ class GeometryPainter
 	public function repaintWithoutExtent(style:Style, sprite_:Sprite)
 	{
 		if (sprite_ == null) sprite_ = sprite;
-		sprite_.graphics.clear();
+		Utils.clearSprite(sprite_);
+		//sprite_.graphics.clear();
 		if ((geometry != null) && (style != null))
 			geometry.paint(sprite_, style, window);
 	}

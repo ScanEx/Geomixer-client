@@ -1,10 +1,14 @@
-﻿gmxCore.addModule('WeatherMaplet', {
+﻿(function(){
+
+	var winds = null;
+	var weathers = null;
 	//params:
 	//    countryCode - {string} "0" для России
 	//    initWeather - {bool, default: true} Показывать ли погоду по умолчанию
 	//    initWind    - {bool, default: true} Показывать ли ветер по умолчанию
 	//    imagesHost  - {Sting, default: 'http://maps.kosmosnimki.ru/api/img/weather/'} откуда подгружать картинки для иконок
-	weather: function (params, map)
+	//    changeCallback - {function()} ф-ция, которую нужно дёргать, когда что-нибудь изменилось
+	var weather = function (params, map)
 	{
 		var _map = map || globalFlashMap; //если не указана карта, попробуем взять из глобального пространства имён
 		if (!_map) return;
@@ -88,12 +92,6 @@
 				if (city.Error != null)
 					continue;
 			  
-				//var //temp = weatherParent.addObject(),
-					//cityName = weatherParent.addObject();
-			  
-				//temp.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]})
-				//cityName.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]});
-			  
 				var icon = 0;
 			  
 				if (city.Forecast[0].Precipitation < 9)
@@ -101,7 +99,6 @@
 				else
 					icon = city.Forecast[0].Cloudiness;
 					
-				//var elem = iconContainters[icon].addObject();
 				var geometry = {geometry: {type:'POINT', coordinates: [city.Lng, city.Lat]}};
 				cityGeometries.push(geometry);
 				iconGeometries[icon].push(geometry);
@@ -109,8 +106,6 @@
 				cityNames.push(city.Name);
 			  
 				var temperaure = Math.floor((city.Forecast[0].TemperatureMax + city.Forecast[0].TemperatureMin) / 2);
-					//color,
-					//haloColor;
 					
 				var tClass = getTHClass(temperatureTHs, temperaure);
 				tInfo[tClass].push((city.Forecast[0].TemperatureMin > 0 ? "+" : '') + city.Forecast[0].TemperatureMin + '..' + (city.Forecast[0].TemperatureMax > 0 ? "+" : '') + city.Forecast[0].TemperatureMax);
@@ -243,8 +238,8 @@
 			})
 		}
 		
-		var weathers = _map.addObject(),
-			winds = _map.addObject();
+		weathers = _map.addObject(),
+		winds = _map.addObject();
 			
 		weathers.setCopyright("<a href=\"http://www.gismeteo.ru\" target=\"_blank\">© Gismeteo</a>");
 		winds.setCopyright("<a href=\"http://www.gismeteo.ru\" target=\"_blank\">© Gismeteo</a>");
@@ -292,6 +287,8 @@
 						lazyInitData();
 						
 						this.lastChild.style.color = weathers.visibleFlag ? "orange" : "wheat";
+						
+						if (params.changeCallback) params.changeCallback();
 					}
 				},
 				{
@@ -352,6 +349,8 @@
 						lazyInitData();
 					  
 						this.lastChild.style.color = winds.visibleFlag ? "orange" : "wheat";
+						
+						if (params.changeCallback) params.changeCallback();
 					}
 				},
 				{
@@ -401,8 +400,18 @@
 		aroundWind.onclick();
 	  
 		_map.allControls.div.appendChild(aroundWind);
-
-		//aroundWeather.setAttribute("title", _gtxt("weatherMaplet.AccordingTo"));
-		//aroundWind.setAttribute("title", _gtxt("weatherMaplet.AccordingTo"));
+	}
+	
+gmxCore.addModule('WeatherMaplet', {
+	weather: weather,
+	isWindVisible: function()
+	{
+		return 'visibleFlag' in winds ? winds.visibleFlag : false; 
+	},
+	isWeatherVisible: function()
+	{
+		return 'visibleFlag' in weathers ? weathers.visibleFlag : false;
 	}
 })
+
+})();

@@ -597,7 +597,8 @@ function translit(name)
 }
 
 var layersShown = true,
-	layerManagerShown = false;
+	layerManagerShown = false,
+	leftContentHeightDecrease = 0; //насколько уменьшать высоту левой панели (для плагинов)
 
 function resizeAll()
 {
@@ -618,7 +619,7 @@ function resizeAll()
 		jQuery("#header").find("[hidable]").css("display",'');
 		$$('header').style.height = '95px';
 		
-		$$("leftContent").style.height = getWindowHeight() - top - bottom - 95 + 'px';
+		$$("leftContent").style.height = getWindowHeight() - top - bottom - leftContentHeightDecrease - 95 + 'px';
 	}
 	else
 	{
@@ -661,17 +662,8 @@ function loadFunc(iframe, callback)
 	if (iframe.loaded)
 	{
 		var data = decodeURIComponent(win.name.replace(/\n/g,'\n\\'));
-		
 		if (jQuery.browser.mozilla)
 		{
-	/*		setTimeout(function(){
-				iframe.contentWindow.history.back();
-				
-				// если удалить без переключения контекста, то предыдущее действие не сработает
-				setInterval(function(){
-					iframe.removeNode(true);
-				}, 0);
-			}, 0);*/
 			iframe.removeNode(true);
 		}
 		else
@@ -721,27 +713,52 @@ function createPostIframe(id, callback)
 	return iframe;
 }
 
-function sendCrossDomainPostRequest(url, params, callback)
+/** Посылает кроссдоменный POST запрос
+* @namespace utilities
+* @function
+* 
+* @param url {string} - URL запроса
+* @param params {object} - хэш параметров-запросов
+* @param callback {function} - callback, который вызывается при приходе ответа с сервера. Единственный параметр ф-ции - собственно данные
+* @param baseForm {DOMElement} - базовая форма запроса. Используется, когда нужно отправить на сервер файл. 
+*                                В функции эта форма будет модифицироваться, но после отправления запроса будет приведена к исходному виду.
+*/
+function sendCrossDomainPostRequest(url, params, callback, baseForm)
 {
 	var form,
 		rnd = String(Math.random()),
 		id = '$$iframe_' + url + rnd;
 
 	var userAgent = navigator.userAgent.toLowerCase(),
-		iframe = createPostIframe(id, callback);
-	
-	if (/msie/.test(userAgent) && !/opera/.test(userAgent))
-		form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>');
+		iframe = createPostIframe(id, callback),
+        originalFormAction;
+		
+	if (baseForm)
+	{
+		form = baseForm;
+        originalFormAction = form.getAttribute('action');
+		form.setAttribute('action', url);
+		form.target = id;
+        
+	}
 	else
 	{
-		form = document.createElement("form");
-		form.style.display = 'none';
-		form.setAttribute('enctype', 'multipart/form-data');
-		form.target = id;
-		form.setAttribute('method', 'POST');
-		form.setAttribute('action', url);
-		form.id = id;
+		if (/msie/.test(userAgent) && !/opera/.test(userAgent))
+			form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>');
+		else
+		{
+			form = document.createElement("form");
+			form.style.display = 'none';
+			form.setAttribute('enctype', 'multipart/form-data');
+			form.target = id;
+			form.setAttribute('method', 'POST');
+			form.setAttribute('action', url);
+			form.id = id;
+		}
 	}
+    
+    var hiddenParamsDiv = document.createElement("div");
+    hiddenParamsDiv.style.display = 'none';
 	
 	for (var paramName in params)
 	{
@@ -751,15 +768,30 @@ function sendCrossDomainPostRequest(url, params, callback)
 		input.setAttribute('name', paramName);
 		input.setAttribute('value', params[paramName]);
 		
-		form.appendChild(input)
+		hiddenParamsDiv.appendChild(input)
 	}
+    
+    form.appendChild(hiddenParamsDiv);
 	
-	document.body.appendChild(form);
+	if (!baseForm)
+		document.body.appendChild(form);
+		
 	document.body.appendChild(iframe);
 	
 	form.submit();
 	
-	form.parentNode.removeChild(form);
+    if (baseForm)
+    {
+        form.removeChild(hiddenParamsDiv);
+        if (originalFormAction !== null)
+            form.setAttribute('action', originalFormAction);
+        else
+            form.removeAttribute('action');
+    }
+    else
+    {
+        form.parentNode.removeChild(form);
+    }
 }
 
 function login(reloadAfterLoginFlag)
@@ -815,7 +847,6 @@ function login(reloadAfterLoginFlag)
 			passwordInput.value = '';
 		};
 	
-	//if (typeof localSite == 'undefined' || !localSite)
 	if (typeof mapsSite != 'undefined' && mapsSite)
 	{
 		_(canvas, [regLink, _br(), retriveLink]);
@@ -896,7 +927,16 @@ function reloadMap()
 						})
 }
 
-function parseResponse(response)
+/** Обрабатывает результат выполнения серверного скрипта
+* @namespace utilities
+* @function
+* 
+* В зависимости от результата может ничего не сделать, показать приглашение на ввод пароля или показать ошибку сервера
+* @param response {object} - JSON, вернувшийся с сервера
+* @param customErrorDescriptions {object} - хэш "тип ошибки" -> "кастомное сообщение пользователям". 
+* Если ошибка имеет тип, не перечисленный в этом хэше, будет показан тип ошибки и callstack.
+*/
+function parseResponse(response, customErrorDescriptions)
 {
 	if (response.Status == 'ok')
 		return true
@@ -917,30 +957,38 @@ function parseResponse(response)
 	}
 	else if (response.Status == 'error')
 	{
-		var canvas = _div([_div([_t([String(response.ErrorInfo.ErrorMessage)])],[['css','color','red']])]),
-			textarea = false,
-			resize = function()
-			{
-				if (textarea)
-					textarea.style.height = textarea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 6 + 'px';
-			}
-		
-		if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
+		if (typeof customErrorDescriptions !== 'undefined' && response.ErrorInfo.ExceptionType in customErrorDescriptions)
 		{
-			textarea = _textarea(null,[['dir','className','inputStyle error'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]);
-			
-			textarea.value = response.ErrorInfo.StackTrace;
-			_(canvas, [textarea]);
+			var canvas = _div([_t(customErrorDescriptions[response.ErrorInfo.ExceptionType])], [['dir', 'className', 'CustomErrorText']]);
+			showDialog(_gtxt("Ошибка!"), canvas, 220, 100);
 		}
-		
-		showDialog(_gtxt("Ошибка сервера"), canvas, 220, 170, false, false, resize)
-		
-		if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
-			resize();
+		else
+		{
+			var canvas = _div([_div([_t([String(response.ErrorInfo.ErrorMessage)])],[['css','color','red']])]),
+				textarea = false,
+				resize = function()
+				{
+					if (textarea)
+						textarea.style.height = textarea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 6 + 'px';
+				}
 			
-		canvas.parentNode.style.overflow = 'hidden';	
-		
-		return false;
+			if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
+			{
+				textarea = _textarea(null,[['dir','className','inputStyle error'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]);
+				
+				textarea.value = response.ErrorInfo.StackTrace;
+				_(canvas, [textarea]);
+			}
+			
+			showDialog(_gtxt("Ошибка сервера"), canvas, 220, 170, false, false, resize)
+			
+			if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
+				resize();
+				
+			canvas.parentNode.style.overflow = 'hidden';	
+			
+			return false;
+		}
 	}
 }
 
@@ -1062,76 +1110,6 @@ function disableSelection(target)
 	    target.style.MozUserSelect = "none"
 	else 
 	    target.onmousedown = function(){return false}
-}
-
-function _context(elem, menu, checkFunc)
-{
-	elem.oncontextmenu = function(e)
-	{
-		if (typeof checkFunc != 'undefined')
-		{
-			if (!checkFunc())
-				return false;
-		}
-		
-		var contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']])
-		
-		var evt = e || window.event;
-		
-		hidden(contextMenu);
-		_(document.body, [contextMenu])
-		
-		// определение координат курсора для ie
-		if (evt.pageX == null && evt.clientX != null )
-		{
-		    var html = document.documentElement
-		    var body = document.body
-		 	
-		    evt.pageX = evt.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
-		    evt.pageY = evt.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
-		}
-		
-		if (evt.pageX + contextMenu.clientWidth < getWindowWidth())
-			contextMenu.style.left = evt.pageX - 5 + 'px';
-		else
-			contextMenu.style.left = evt.pageX - contextMenu.clientWidth + 5 + 'px';
-		
-		if (evt.pageY + contextMenu.clientHeight < getWindowHeight())
-			contextMenu.style.top = evt.pageY - 5 + 'px';
-		else
-			contextMenu.style.top = evt.pageY - contextMenu.clientHeight + 5 + 'px';
-		
-		visible(contextMenu)
-		
-		var menuArea = contextMenu.getBoundingClientRect();
-		
-		contextMenu.onmouseout = function(e)
-		{
-			var evt = e || window.event;
-			
-			// определение координат курсора для ie
-			if (evt.pageX == null && evt.clientX != null )
-			{
-			    var html = document.documentElement
-			    var body = document.body
-			 	
-			    evt.pageX = evt.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
-			    evt.pageY = evt.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
-			}
-			
-			if (evt.pageX <= menuArea.left || evt.pageX >= menuArea.right ||
-				evt.clientY <= menuArea.top || evt.clientY >= menuArea.bottom)
-				contextMenu.removeNode(true)
-		}
-		
-		return false;
-	}
-}
-
-function _contextClose()
-{
-	if ($$('contextMenuCanvas'))
-		$$('contextMenuCanvas').removeNode(true)
 }
 
 function parsePropertiesDate(str)

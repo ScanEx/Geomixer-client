@@ -26,8 +26,7 @@ queryDrawingObjects.prototype.createCanvas = function()
 	this.objectsCanvas = _div(null, [['dir','className','drawingObjectsCanvas']]);
 	this.downloadCanvas = _div(null, [['dir','className','drawingObjectsDownloadCanvas']]);
 	
-	this.downloadVectorForm = _form([_input(null,[['attr','name','name']]),
-									 _input(null,[['attr','name','points']]),
+	this.downloadVectorForm = _form([_input(null,[['attr','name','points']]),
 									 _input(null,[['attr','name','lines']]),
 									 _input(null,[['attr','name','polygons']])], [['css','display','none'],['attr','method','POST'],['attr','action',serverBase + "Shapefile.ashx"]]);
 	
@@ -70,6 +69,9 @@ queryDrawingObjects.prototype.createCanvas = function()
 
 queryDrawingObjects.prototype.onAdd = function(elem)
 {
+	if (nsGmx.DrawingObjectCustomControllers.isHidden(elem))
+		return;
+		
 	if (!$$('left_objects') ||
 		$$('left_objects').style.display == 'none')
 		drawingObjects.drawingObjects.load();
@@ -137,6 +139,8 @@ queryDrawingObjects.prototype.onAdd = function(elem)
 
 queryDrawingObjects.prototype.onEdit = function(elem)
 {
+	if (!elem.canvas) return;
+	
 	var type = elem.geometry.type,
 		coords = elem.geometry.coordinates,
 		text = elem.properties.text;
@@ -171,6 +175,8 @@ queryDrawingObjects.prototype.onEdit = function(elem)
 
 queryDrawingObjects.prototype.onRemove = function(elem)
 {
+	if (!elem.canvas) return;
+	
 	_queryDrawingObjects.count--;
 	
 	elem.canvas.removeNode(true)
@@ -192,19 +198,7 @@ queryDrawingObjects.prototype.onRemove = function(elem)
 			_queryDrawingObjects.downloadRasterCanvas.style.display = 'none';
 	}
 }
-/*
-queryDrawingObjects.prototype.attachMapDrawingEvents = function()
-{
-	var _this = this;
-	
-	window.globalFlashMap.drawing.setHandlers(
-	{
-		onAdd: this.onAdd,
-		onEdit: this.onEdit,
-		onRemove: this.onRemove
-	});
-}
-*/
+
 queryDrawingObjects.prototype.attachMapDrawingEvents = function()
 {
 	var _this = this;
@@ -217,12 +211,13 @@ queryDrawingObjects.prototype.attachMapDrawingEvents = function()
 			_this.onEdit(elem);
 			
 			if (elem.geometry.type == 'POLYGON' &&
-				objLength(_mapHelper.drawingBorders) > 0)
+				_mapHelper.drawingBorders.length() > 0)
 			{
-				for (var name in _mapHelper.drawingBorders)
-					if (_mapHelper.drawingBorders[name].canvas == elem.canvas)
-						_mapHelper.updateBorder(name);
-								
+				_mapHelper.drawingBorders.forEach(function(name, obj)
+				{
+					if (obj.canvas == elem.canvas)
+						_mapHelper.drawingBorders.updateBorder(name);
+				});
 			}
 			
 			for (var name in _attrsTableHash.hash)
@@ -235,12 +230,13 @@ queryDrawingObjects.prototype.attachMapDrawingEvents = function()
 			_this.onRemove(elem);
 			
 			if (elem.geometry.type == 'POLYGON' &&
-				objLength(_mapHelper.drawingBorders) > 0)
+				_mapHelper.drawingBorders.length() > 0)
 			{
-				for (var name in _mapHelper.drawingBorders)
-					if (_mapHelper.drawingBorders[name].canvas == elem.canvas)
-						_mapHelper.removeRoute(name);
-								
+				_mapHelper.drawingBorders.forEach(function(name, obj)
+				{
+					if (obj.canvas == elem.canvas)
+						_mapHelper.drawingBorders.removeRoute(name);
+				});
 			}
 			
 			for (var name in _attrsTableHash.hash)
@@ -262,58 +258,30 @@ queryDrawingObjects.prototype.load = function()
 }
 
 queryDrawingObjects.prototype.downloadMarkers = function()
-{
-	var canvas = _div(),
-		filename = _input(null, [['dir','className','filename'],['attr','value','markers']]),
-		_this = this;
-	
-	var downloadButton = makeButton(_gtxt("Скачать"));
-	downloadButton.onclick = function()
-	{
-		if (filename.value == '')
-		{
-			$(filename).addClass("error")
-			
-			setTimeout(function(){if (filename) $(filename).removeClass("error")}, 2000);
-			
-			return
-		}
-		
-		var objectsByType = {},
-			markerIdx = 1;
-		
-		globalFlashMap.drawing.forEachObject(function(ret)
-		{
-			var type = ret.geometry.type;
-			
-			if (!objectsByType[type])
-				objectsByType[type] = [];
-			if (ret.geometry.type == "POINT" && ((ret.properties.text == "") || !ret.properties.text))
-			{
-				ret.properties.text = "marker " + markerIdx;
-				markerIdx++;
-			}
-			if (ret.properties.text)
-				ret.properties.text = encodeURIComponent(ret.properties.text);
-			
-			objectsByType[type].push({ geometry: ret.geometry, properties: ret.properties });
-		});
-		
-		_this.downloadVectorForm.childNodes[0].value = filename.value;
-		_this.downloadVectorForm.childNodes[1].value = objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]).split("%22").join("\\\"") : '';
-		_this.downloadVectorForm.childNodes[2].value = objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]).split("%22").join("\\\"") : '';
-		_this.downloadVectorForm.childNodes[3].value = objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]).split("%22").join("\\\"") : '';
-		
-		_this.downloadVectorForm.submit();
-		
-		$(canvas.parentNode).dialog("destroy")
-		canvas.parentNode.removeNode(true);
-	}
-	
-	_(canvas, [_div([_t(_gtxt("Введите имя файла для скачивания")), filename],[['css','textAlign','center']]), _div([downloadButton],[['css','height','25px'],['css','width','100px'],['css','margin','15px 0px 0px 100px']])])
-	
-	var area = getOffsetRect(this.workCanvas)
-	showDialog(_gtxt("Скачать shp-файл"), canvas, 291, 120, 30, area.top + 10)
+{		
+    var objectsByType = {},
+        markerIdx = 1;
+    
+    globalFlashMap.drawing.forEachObject(function(ret)
+    {
+        var type = ret.geometry.type;
+        
+        if (!objectsByType[type])
+            objectsByType[type] = [];
+        if (ret.geometry.type == "POINT" && ((ret.properties.text == "") || !ret.properties.text))
+        {
+            ret.properties.text = "marker " + markerIdx;
+            markerIdx++;
+        }
+        
+        objectsByType[type].push({ geometry: ret.geometry, properties: ret.properties });
+    });
+    
+    this.downloadVectorForm.childNodes[0].value = objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]) : '';
+    this.downloadVectorForm.childNodes[1].value = objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]) : '';
+    this.downloadVectorForm.childNodes[2].value = objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]) : '';
+    
+    this.downloadVectorForm.submit();
 }
 
 queryDrawingObjects.prototype.downloadRasters = function()
@@ -351,40 +319,14 @@ queryDrawingObjects.prototype.downloadRasters = function()
 			{
 				if (layer)
 				{
-					var canvas = _div(),
-						filename = _input(null, [['dir','className','filename'],['attr','value',translit(layer.properties.title)]]),
-						_this = this;
-					
-					var downloadButton = makeButton(_gtxt("Скачать"));
-					downloadButton.onclick = function()
-					{
-						if (filename.value == '')
-						{
-							$(filename).addClass("error")
-							
-							setTimeout(function(){if (filename) $(filename).removeClass("error")});
-							
-							return
-						}
-						
-						$(canvas.parentNode).dialog("destroy")
-						canvas.parentNode.removeNode(true);
-						
-						window.location.href = 
-								serverBase + "DownloadLayer.ashx" + 
-								"?name=" + translit(filename.value) + 
-								"&t=" + layer.properties.name + 
-								"&MinX=" + truncate9(Math.min(x1, x2)) + 
-								"&MinY=" + truncate9(Math.min(y1, y2)) +
-								"&MaxX=" + truncate9(Math.max(x1, x2)) + 
-								"&MaxY=" + truncate9(Math.max(y1, y2)) + 
-								"&Area=" + Math.ceil(fragmentArea([[x1, y1], [x1, y2], [x2, y2], [x2, y1]])/1000000);
-					}
-					
-					_(canvas, [_div([_t(_gtxt("Введите имя файла для скачивания")), filename],[['css','textAlign','center']]), _div([downloadButton],[['css','height','25px'],['css','width','100px'],['css','margin','15px 0px 0px 100px']])])
-	
-					var area = getOffsetRect(_queryDrawingObjects.workCanvas)
-					showDialog(_gtxt("Вырезать фрагмент растра"), canvas, 291, 120, 10, area.top + 10)
+                    window.location.href = 
+                            serverBase + "DownloadLayer.ashx" + 
+                            "?t=" + layer.properties.name + 
+                            "&MinX=" + truncate9(Math.min(x1, x2)) + 
+                            "&MinY=" + truncate9(Math.min(y1, y2)) +
+                            "&MaxX=" + truncate9(Math.max(x1, x2)) + 
+                            "&MaxY=" + truncate9(Math.max(y1, y2)) + 
+                            "&Area=" + Math.ceil(fragmentArea([[x1, y1], [x1, y2], [x2, y2], [x2, y1]])/1000000);
 				}
 				else
 					showErrorMessage(_gtxt("К прямоугольнику не подходит ни одного растрового слоя"), true);
@@ -443,6 +385,22 @@ queryDrawingObjects.prototype.testPolygon = function(polygon, x, y)
 
 var _queryDrawingObjects = new queryDrawingObjects();
 
+_translationsHash.addtext("rus", {
+							"loadShape.Errors.FileTooBigException" : "Файл слишком большой. Ограничение на размер файла 1000 Кб.",
+							"loadShape.Errors.ErrorUploadExeption" : "Произошла ошибка при попытке загрузить файл.",
+							"loadShape.Errors.NoGeometryFile"      : "Загруженный файл не содержит геометрических данных.",
+							"loadShape.Errors.ErrorUploadNoDependentFiles" : "Не найдено необходимых зависимых файлов. Запакуйте все файлы в ZIP архив и повторите загрузку.",
+							"loadShape.inputTitle"                 : "Добавить shp-файл (в zip)"
+						 });
+						 
+_translationsHash.addtext("eng", {
+							"loadShape.Errors.FileTooBigException" : "Too big file. File size limit is 1000 Kb.",
+							"loadShape.Errors.ErrorUploadExeption" : "Error during file uploading.",
+							"loadShape.Errors.NoGeometryFile"      : "There are no geometry in uploaded file.",
+							"loadShape.Errors.ErrorUploadNoDependentFiles" : "Not found the necessary dependent files. Add all files in a ZIP archive and upload it again.",
+							"loadShape.inputTitle"                 : "Add shp-file (zipped)"
+						 });
+
 
 var queryLoadShp = function()
 {
@@ -453,117 +411,78 @@ var queryLoadShp = function()
 
 queryLoadShp.prototype = new leftMenu();
 
+//просто удаляет все контролы и создаёт все их заново...
+queryLoadShp.prototype._regenerateControl = function()
+{
+	var _this = this;
+	$(this.workCanvas).empty();
+	
+	var fileInput = _input(null, [['attr', 'type', 'file'], ['attr', 'name', 'file'], ['attr', 'id', 'upload_shapefile']]);
+	fileInput.onchange = function()
+	{
+		if (this.value != "")
+			_this.upload();
+	}
+	
+	//задаём одновременно и enctype и encoding для корректной работы в IE
+	this.postForm = _form([fileInput], [['attr', 'method', 'POST'], ['attr', 'encoding', 'multipart/form-data'], ['attr', 'enctype', 'multipart/form-data'], ['attr', 'id', 'upload_shapefile_form']]);
+	
+	this.progress = _img(null,[['attr','src','img/progress.gif'],['css','display','none']])
+	
+	this.inputControl = _div([_span([_t(_gtxt("loadShape.inputTitle") + ":")]), this.postForm]);
+	
+	_(this.workCanvas, [_div([this.inputControl, this.progress], [['css','padding','10px 0px 5px 20px']])])	
+}
+
 queryLoadShp.prototype.load = function()
 {
 	if (!this.builded)
 	{
-		this.iframe = _iframe(null,[['attr','id','upload_iframe'],['dir','src','upload-iframe.html'],['css','border','none'],['css','height','45px'],['css','width','250px']]);
-		this.progress = _img(null,[['attr','src','img/progress.gif'],['css','display','none']])
-			
-		_(this.workCanvas, [_div([this.iframe, this.progress], [['css','padding','10px 0px 5px 20px']])])
-	
-	/*	this.uploader = makeLinkButton("Загрузить");
-		
-		_(this.workCanvas, [_div([this.uploader], [['css','padding','10px 0px 5px 20px']])]);
-		
-		this.createUploader();*/
-		
+		this._regenerateControl();
 		this.builded = true;
-	}
-}
-
-queryLoadShp.prototype.createUploader = function()
-{
-	var uploader = createFlashUploader(this.uploader);
-	uploader.setMultiple(false);
-//	uploader.addFilter("ESRI Shapefiles (.shp, .shx, .dbf, .prj)", "*.shp;*.shx;*.dbf;*.prj");
-	uploader.addFilter("ESRI Shapefile archive (.zip)", "*.zip;");
-	uploader.onSelect = function()
-	{
-		uploader.upload(serverBase + "ShapeLoader.ashx");
-	}
-	uploader.onProgress = function(f)
-	{
-	//	document.getElementById("progress").innerHTML = f + "%";
-		console.log(f)
-	}
-	uploader.onComplete = function(obj)
-	{
-		if (obj.length == 0)
-		{
-			showErrorMessage(_gtxt("Загруженный shp-файл пуст"), true);
-			return;
-		}
-		
-		var b = getBounds();
-		for (var i = 0; i < obj.length; i++)
-		{
-			for (var j = 0; j < obj[i].length; j++)
-			{
-				var o = obj[i][j];
-				globalFlashMap.drawing.addObject(o.geometry, o.properties);
-				b.update(o.geometry.coordinates);
-			}
-		}
-		globalFlashMap.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
-	}
-	uploader.onError = function()
-	{
-		showErrorMessage(_gtxt("Ошибка скачивания"))
 	}
 }
 
 queryLoadShp.prototype.upload = function()
 {
-	hide(this.iframe);
+	hide(this.inputControl);
 	show(this.progress);
 	
-	var _this = this,
-		iframe$ = function(id) { return _this.iframe.contentWindow.document.getElementById(id); };
-	
-	iframe$("upload_shapefile_form").action = serverBase + "ShapeLoader.ashx";
-	iframe$("upload_shapefile_response_url").value = 
-		documentBase + "response-iframe.html?callbackName=" +
-		uniqueGlobalName(function(id)
+	var _this = this;
+		
+	sendCrossDomainPostRequest(serverBase + "ShapeLoader.ashx", {WrapStyle: "window"}, function(response)
+	{
+		var errorMessages = {
+				"CommonUtil.FileTooBigException" : _gtxt("loadShape.Errors.FileTooBigException"),
+				"CommonUtil.ErrorUploadExeption" : _gtxt("loadShape.Errors.ErrorUploadExeption"),
+				"CommonUtil.NoGeometryFile"      : _gtxt("loadShape.Errors.NoGeometryFile"),
+				"CommonUtil.ErrorUploadNoDependentFiles": _gtxt("loadShape.Errors.ErrorUploadNoDependentFiles")
+		};
+		
+		if (parseResponse(response, errorMessages))
 		{
-			_mapHelper.restoreTinyReference(id, function(obj)
+			var obj = response.Result;
+			
+			if (obj.length == 0)
 			{
-				if (!$.browser.safari)
-					_this.iframe.contentWindow.history.back();
-				else
-				{
-					var newFrame = _iframe(null,[['attr','id','upload_iframe'],['dir','src','upload-iframe.html'],['css','border','none'],['css','height','45px'],['css','width','250px']]);
-					$(_this.iframe).replaceWith(newFrame)
-					
-					_this.iframe = newFrame;
-				}
-				
-				show(_this.iframe);
-				hide(_this.progress);
-				
-				if (obj.length == 0)
-				{
-					showErrorMessage(_gtxt("Загруженный shp-файл пуст"), true);
-					return;
-				}
-				
-				var b = getBounds();
-				for (var i = 0; i < obj.length; i++)
-				{
-					for (var j = 0; j < obj[i].length; j++)
-					{
-						var o = obj[i][j];
-						globalFlashMap.drawing.addObject(o.geometry, o.properties);
-						b.update(o.geometry.coordinates);
-					}
-				}
-				globalFlashMap.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
-			});
-		}) +
-		"&text=";
-	iframe$("upload_shapefile_form").submit();
+				showErrorMessage(_gtxt("Загруженный shp-файл пуст"), true);
+				return;
+			}
+			
+			var b = getBounds();
+			for (var i = 0; i < obj.length; i++)
+			{
+				var o = obj[i];
+				globalFlashMap.drawing.addObject(o.geometry, o.properties);
+				b.update(o.geometry.coordinates);
+			}
+			globalFlashMap.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
+		}
+		
+        _this.inputControl.removeChild(_this.postForm);
+		_this._regenerateControl();
+	}, this.postForm);
 }
-
 
 var _queryLoadShp = new queryLoadShp();
 

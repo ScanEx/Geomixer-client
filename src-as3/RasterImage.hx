@@ -109,8 +109,10 @@ class RasterImage extends MaskedContent
 				var h = bitmapData.height;
 				if(me.attr != null) {
 					if(me.attr.sx != null) {
-						me.x2 = me.x3 = me.x1 + Merc.x(w * me.attr.sx);
-						me.y3 = me.y4 = me.y1 + Merc.y(h * me.attr.sy);
+						me.x4 = me.x1;
+						me.x2 = me.x3 = Merc.x(Merc.from_x(me.x1) + w * me.attr.sx);
+						me.y2 = me.y1;
+						me.y3 = me.y4 = Merc.y(Merc.from_y(me.y1) + h * me.attr.sy);
 					}
 				}
 				if (!me.controlPointsSet)

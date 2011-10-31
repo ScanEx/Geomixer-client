@@ -4,11 +4,14 @@
 <title>ScanEx Web Geomixer - просмотр карты</title>
 <link rel="icon" href="img/favicon16x16_sample6.png"/> 
 
-<script src="config.js"></script>
 <script src="LAB.min.js"></script>
 
 <script>
-	$LAB.script( (typeof gmxJSHost === 'undefined' ? "" : gmxJSHost) + "starter.js");
+	$LAB.script( "config.js?" + Math.random() ).wait(function()
+	{
+		$LAB.script( (typeof gmxJSHost === 'undefined' ? "" : gmxJSHost) + "starter.js" + ( typeof gmxDropBrowserCache !== 'undefined' ? "?" + Math.random() : "") );
+	});
+		
 </script>
 
 </head>

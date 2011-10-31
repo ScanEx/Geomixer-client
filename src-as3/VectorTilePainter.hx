@@ -4,29 +4,32 @@ class VectorTilePainter
 {
 	var oldStyle:Style;
 	var oldZ:Int;
+	public var vectorLayerFilter:VectorLayerFilter;
 	public var painter:GeometryPainter;
 	var sprite:Sprite;
 	var mapWindow:MapWindow;
 	var rasterSprite:Sprite;
 	var vectorSprite:Sprite;
 	var cacheSprite:Sprite;
-	var i:Int;
-	var j:Int;
-	var z:Int;
 
-	public function new(geometry:Geometry, sprite_:Sprite, mapWindow_:MapWindow, i_:Int, j_:Int, z_:Int)
+	public var tileGeometry:MultiGeometry;
+	public var clustersGeometry:MultiGeometry;
+	var tile:VectorTile;
+
+	public function new(geometry_:MultiGeometry, vlf_:VectorLayerFilter, tile_:VectorTile)
 	{
-		sprite = sprite_;
-		mapWindow = mapWindow_;
+		tile = tile_;
+		tileGeometry = geometry_;
+		vectorLayerFilter = vlf_;
+		sprite = vectorLayerFilter.tilesSprite;
+		mapWindow = vectorLayerFilter.mapNode.window;
 		rasterSprite = Utils.addSprite(sprite);
 		vectorSprite = Utils.addSprite(sprite);
-		painter = new GeometryPainter(geometry, vectorSprite, mapWindow);
-		i = i_;
-		j = j_;
-		z = z_;
-		sprite.name = z + '_' + i + '_' + j;
-		rasterSprite.name = 'r' + z + '_' + i + '_' + j;
-		vectorSprite.name = 'v' + z + '_' + i + '_' + j;
+//vectorSprite.opaqueBackground = 0x00ff00;
+		painter = new GeometryPainter(tileGeometry, vectorSprite, mapWindow);
+		sprite.name = tile.z + '_' + tile.i + '_' + tile.j;
+		rasterSprite.name = 'r' + sprite.name;
+		vectorSprite.name = 'v' + sprite.name;
 	}
 
 	public function remove()
@@ -59,6 +62,21 @@ class VectorTilePainter
 			return;
 
 		var currentZ:Int = Std.int(curZ);
+		var tileOverlap = mapWindow.visibleExtent.overlapsFull(tile.extent);	// Полное перекрытие геометрии тайла
+		var tileIntersect = mapWindow.visibleExtent.overlaps(tile.extent);		// Частичное перекрытие геометрии тайла
+
+		var clustersDisabled:Bool = (vectorLayerFilter.clusterAttr == null || vectorLayerFilter.clusterAttr._zoomDisabledHash.exists(currentZ) ? true : false);
+		if (clustersDisabled) {
+			painter.geometry = tileGeometry;
+		} else {
+			if (tileIntersect && !tileOverlap) oldStyle = null;
+			if (tileIntersect) {
+				clustersGeometry = Utils.getClusters(vectorLayerFilter, tileGeometry, tile, currentZ);
+				painter.geometry = clustersGeometry;
+			}
+		}
+
+		//tileOverlap = mapWindow.visibleExtent.overlapsFull(painter.geometry.extent);	// Полное перекрытие геометрий
 		if (style != oldStyle || oldZ != currentZ)
 		{
 			clearCacheSprite();
@@ -66,8 +84,7 @@ class VectorTilePainter
 			oldZ = currentZ;
 		}
 
-		var flag = mapWindow.visibleExtent.overlapsFull(painter.geometry.extent);	// Полное перекрытие геометрий
-		if (flag)
+		if (tileOverlap)
 		{
 			if (cacheSprite == null)
 			{

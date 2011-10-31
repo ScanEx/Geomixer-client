@@ -53,7 +53,7 @@ class Style
 
 	public function hasPatternFill()
 	{
-		return (fill != null) && (fill.bitmapData != null);
+		return (fill != null) && (fill.bitmapData != null || fill.pattern != null);
 	}
 	
 	public function getStyle(removeDefaults:Bool)

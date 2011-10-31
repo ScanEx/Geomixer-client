@@ -19,6 +19,7 @@ import flash.geom.Matrix;
 import flash.printing.PrintJob;
 import flash.printing.PrintJobOptions;
 import flash.utils.Timer;
+import flash.utils.ByteArray;
 import flash.events.TimerEvent;
 
 import flash.net.URLLoader;
@@ -28,12 +29,28 @@ import flash.net.URLRequestHeader;
 
 class Main
 {
-	public static var registerMouseDown:MapNode->MouseEvent->Void;
+	public static var registerMouseDown:MapNode->MouseEvent->MapNode->Void;
+	public static var refreshMap:Void->Void;					// Принудительный Refresh карты
+	
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
 	public static var mousePressed:Bool = false;
 	public static var eventAttr:Dynamic = {};
+	public static var clusterPointsViewer:ClusterPointsViewer = null;
+	public static var removeClusterPointsViewer:MouseEvent->Void;		// Удаление ClusterPointsViewer
 
+	public static var messBuffToJS:Array<Dynamic> = new Array<Dynamic>();
+
+	// Команды от SWF в JS
+	public static function cmdToJS(cmd:String, ?p1:Dynamic, ?p2:Dynamic, ?p3:Dynamic):Dynamic
+	{
+		var ret = null;
+		try {
+			ret = ExternalInterface.call(cmd, p1, p2, p3);
+		} catch (e:Error) {  }
+		return ret;
+	}
+	
 	static var lastFrameBumpTime:Float = 0;
 	public static function bumpFrameRate()
 	{
@@ -43,6 +60,15 @@ class Main
 			stage.frameRate = 40;
 	}
 
+	public static function chkEventAttr(event:MouseEvent)
+	{
+		eventAttr = { };
+		if (event.shiftKey) eventAttr.shiftKey = 1;
+		if (event.ctrlKey) eventAttr.ctrlKey = 1;
+		if (event.altKey) eventAttr.altKey = 1;
+		if (event.buttonDown) eventAttr.buttonDown = 1;
+	}
+	
 	static function main()
 	{
 		var root = flash.Lib.current;
@@ -79,7 +105,7 @@ class Main
 		mapWindow.setCenter(currentX, currentY);
 
 		var viewportHasMoved = false;
-
+		
 		var getNode = function(id) { return MapNode.allNodes.get(id); }
 		var constrain = function(a:Float, t:Float, b:Float) { return (t < a) ? a : (t > b) ? b : t; }
 		var setCurrentPosition = function(x, y, z)
@@ -178,6 +204,7 @@ class Main
 		var pressTime:Float = 0;
 		var draggedWindow:MapWindow = null;
 		var clickedNode:MapNode = null;
+		var nodeFrom:MapNode = null;	// Нода над которой находится мышь
 
 		var zoomBy = function(dz:Float, mx:Float, my:Float) 
 		{
@@ -192,19 +219,20 @@ class Main
 			fluidMoveTo(mx + k*(currentX - mx), my + k*(currentY - my), newZ, 15);
 		}
 		
-		Main.registerMouseDown = function(node:MapNode, ?event:MouseEvent)
+		Main.registerMouseDown = function(node:MapNode, ?event:MouseEvent, ?nodeFrom_:MapNode)
 		{
-			eventAttr = { };
 			if (event != null) {
-				if (event.shiftKey) eventAttr.shiftKey = 1;
-				if (event.ctrlKey) eventAttr.ctrlKey = 1;
-				if (event.altKey) eventAttr.altKey = 1;
+				Main.chkEventAttr(event);
+				if (nodeFrom_ != null) eventAttr.nodeFilter = node.id;
 			}
-			if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
+
+			//if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
+			if (Key.isDown(16) && Main.cmdToJS("kosmosnimkiBeginZoom"))
 				clickedNode = node;
 			else if ((node.getHandler("onMouseDown") != null) || (node.getHandler("onMouseUp") != null) || (node.getHandler("onClick") != null))
 			{
-				node.callHandler("onMouseDown");
+				nodeFrom = nodeFrom_;
+				node.callHandler("onMouseDown", nodeFrom);
 				clickedNode = node;
 			}
 		}
@@ -232,21 +260,68 @@ class Main
 			Main.bumpFrameRate();
 		};
 		mapSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
+		
+		var chkClusterPointsViewer = function(vlf:VectorLayerFilter):Bool
+		{
+			if (vlf.clusterAttr.clusterView == null) return false;
+			var centrGeometry:PointGeometry = cast(vlf.layer.lastGeometry, PointGeometry);
+			var members:Array<PointGeometry> = centrGeometry.propHiden.get('_members');
+			if (members.length == 1) return false;
+			var maxMembers:Int = (vlf.clusterAttr.clusterView.maxMembers == null ? 10 : cast(vlf.clusterAttr.clusterView.maxMembers));
+			if (members.length > maxMembers) return false;
+
+			if(clusterPointsViewer == null) {
+				var nodeParent:MapNode = getNode(vlf.layer.mapNode.id);
+				if (nodeParent == null) return false;
+				var node:MapNode = nodeParent.addChild();
+				clusterPointsViewer = new ClusterPointsViewer(vlf);
+				node.setContent(clusterPointsViewer);
+			}
+			else
+			{
+				Main.removeClusterPointsViewer(null);
+			}
+			return true;
+		}
+		Main.removeClusterPointsViewer = function(?event:MouseEvent)
+		{
+			if (clusterPointsViewer == null) return;
+			if (clusterPointsViewer.vlFilter.clusterAttr.hideFixedBalloons != null) { //удалить фиксированные балуны
+				var name:String = clusterPointsViewer.vlFilter.clusterAttr.hideFixedBalloons;
+				nextFrameCallbacks.push(function() { Main.cmdToJS(name);	});
+			}
+			clusterPointsViewer.remove();
+			clusterPointsViewer = null;
+			nodeFrom = null;
+			clickedNode = null;
+			isDragging = false;
+			//viewportHasMoved = true;
+		}
+		
 		root.addEventListener(MouseEvent.MOUSE_UP, function(event)
 		{
+			Main.chkEventAttr(event);
 			isDragging = false;
 			if (!isFluidMoving)
 			{
 				isMoving = false;
-				viewportHasMoved = true;
+				viewportHasMoved = true;	// вьюпорт не двигался
 			}
 			if (clickedNode != null)
-				clickedNode.callHandler("onMouseUp");
+				clickedNode.callHandler("onMouseUp", nodeFrom);
 			if ((flash.Lib.getTimer() - pressTime) < 300)
 			{
 				if (clickedNode != null)
 				{
-					clickedNode.callHandler("onClick");
+					if (Std.is(clickedNode.content, VectorLayerFilter))
+					{
+						var vlFilter:VectorLayerFilter = cast(clickedNode.content, VectorLayerFilter);
+						if (vlFilter.clusterAttr != null) {
+							eventAttr.objType = 'cluster';
+							if(chkClusterPointsViewer(vlFilter)) return;
+						}
+					}
+					clickedNode.callHandler("onClick", nodeFrom);
 				}
 				else if (!Main.clickingDisabled)
 				{
@@ -254,6 +329,7 @@ class Main
 					fluidMoveTo(sprite.mouseX, sprite.mouseY, currentZ, 10);
 				}
 			}
+			nodeFrom = null;
 			clickedNode = null;
 		});
 		var cursor:Sprite = Utils.addSprite(root);
@@ -270,31 +346,6 @@ class Main
 			if (cursor.numChildren > 0)
 				cursor.removeChildAt(0);
 		}
-		ExternalInterface.addCallback("setCursor", function(url:String, dx:Int, dy:Int)
-		{
-			currentCursorURL = url;
-			Utils.loadImage(url, function(loader)
-			{
-				if (currentCursorURL == url)
-				{
-					Mouse.hide();
-					deleteCurrentCursor();
-					cursor.addChild(loader);
-					loader.x = dx;
-					loader.y = dy;
-				}
-			});
-		});
-		ExternalInterface.addCallback("clearCursor", function()
-		{
-			deleteCurrentCursor();
-			Mouse.show();
-			currentCursorURL = null;
-		});
-		ExternalInterface.addCallback("setCursorVisible", function(flag:Bool)
-		{
-			cursor.visible = flag;
-		});
 		root.addEventListener(MouseEvent.MOUSE_MOVE, function(event)
 		{
 			var dx:Float = root.mouseX - startMouseX;
@@ -303,16 +354,6 @@ class Main
 				pressTime = 0;
 			Main.bumpFrameRate();
 			repaintCursor();
-		});
-		ExternalInterface.addCallback("stopDragging", function()
-		{
-			isDragging = false;
-			if (!isFluidMoving)
-				isMoving = false;
-		});
-		ExternalInterface.addCallback("isDragging", function()
-		{
-			return isDragging;
 		});
 		var windowMouseMove = function(?event)
 		{
@@ -328,15 +369,32 @@ class Main
 			}
 		};
 		mapSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
-		ExternalInterface.addCallback("resumeDragging", windowMouseMove);
 
+		Main.refreshMap = function()
+		{
+			//viewportHasMoved = true;
+			for (window in MapWindow.allWindows)
+			{
+				if (isMoving && !wasMoving)
+					window.repaintCacheBitmap();
+				window.setCenter(currentX, currentY);
+				window.setCacheBitmapVisible(isMoving);
+				if (!isMoving)
+				{
+					window.rootNode.repaintRecursively(true);
+					window.repaintCacheBitmap();
+				}
+			}
+			
+		}
+		
 		var initCalled = false;
 		root.addEventListener(Event.ENTER_FRAME, function(event:Event)
 		{
 			if (!initCalled)
 			{
 				try {
-					ExternalInterface.call(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
+					Main.cmdToJS(flash.Lib.current.root.loaderInfo.parameters.loadCallback, mapRoot.id);
 					initCalled = true;
 				} catch (e:Error) {  }
 			}
@@ -353,13 +411,17 @@ class Main
 
 			if (nextFrameCallbacks.length > 0)
 			{
-				for (func in nextFrameCallbacks)
-					func();
+				//try {
+					for (func in nextFrameCallbacks)
+						func();
+				//} catch (e:Error) {  }
 				nextFrameCallbacks = new Array<Void->Void>();
 			}
 
 			if (viewportHasMoved)
 			{
+				Main.refreshMap();
+/*				
 				for (window in MapWindow.allWindows)
 				{
 					if (isMoving && !wasMoving)
@@ -372,6 +434,7 @@ class Main
 						window.repaintCacheBitmap();
 					}
 				}
+*/				
 				mapWindow.rootNode.callHandlersRecursively("onMove");
 				viewportHasMoved = false;
 				wasMoving = isMoving;
@@ -387,171 +450,17 @@ class Main
 			{
 				if (stage.frameRate != 2)
 					stage.frameRate = 2;
+
+				if(Main.messBuffToJS.length > 0) {
+					Main.cmdToJS('gmxAPI.swfWarning', Main.messBuffToJS);
+					Main.messBuffToJS = [];
+				}
 			}
 		});
 
 
 		ExternalInterface.marshallExceptions = true;
 
-		ExternalInterface.addCallback("freeze", function() 
-		{ 
-			Main.draggingDisabled = true; 
-		});
-		ExternalInterface.addCallback("unfreeze", function() 
-		{ 
-			Main.draggingDisabled = false; 
-		});
-		ExternalInterface.addCallback("zoomBy", function(dz:Float, ?useMouse:Dynamic)
-		{ 
-			if (useMouse != null)
-			{
-				var sprite = getWindowUnderMouse().innerSprite;
-				zoomBy(-dz, sprite.mouseX, sprite.mouseY);
-			}
-			else
-				zoomBy(-dz, currentX, currentY);
-		});
-		ExternalInterface.addCallback("moveTo", function(x:Float, y:Float, z:Float)
-		{
-			Main.bumpFrameRate();
-			setCurrentPosition(x, y, Math.round(17 - z));
-		});
-		ExternalInterface.addCallback("slideTo", function(x:Float, y:Float, z:Float)
-		{
-			Main.bumpFrameRate();
-			fluidMoveTo(x, y, 17 - z, 10);
-		});
-		ExternalInterface.addCallback("getPosition", function() {
-			var out:Dynamic = { };
-			out.mouseX = mapWindow.innerSprite.mouseX;
-			out.mouseY = mapWindow.innerSprite.mouseY;
-			out.stageHeight = stage.stageHeight;
-			out.x = currentX;
-			out.y = currentY;
-			out.z = currentZ;
-			var extent:Dynamic = { };
-			extent.minx = mapWindow.visibleExtent.minx;
-			extent.maxx = mapWindow.visibleExtent.maxx;
-			extent.miny = mapWindow.visibleExtent.miny;
-			extent.maxy = mapWindow.visibleExtent.maxy;
-			out.extent = extent;
-			return out;
-		});
-		ExternalInterface.addCallback("getX", function() { return currentX;	});
-		ExternalInterface.addCallback("getY", function() { return currentY; });
-		ExternalInterface.addCallback("getZ", function() { return 17 - currentZ; });
-		ExternalInterface.addCallback("getMouseX", function() { return mapWindow.innerSprite.mouseX; });
-		ExternalInterface.addCallback("getMouseY", function() { return mapWindow.innerSprite.mouseY; });
-		ExternalInterface.addCallback("isKeyDown", function(code) { return Key.isDown(code); });
-		ExternalInterface.addCallback("setExtent", function(x1:Float, x2:Float, y1:Float, y2:Float)
-		{
-			minX = x1;
-			minY = y1;
-			maxX = x2;
-			maxY = y2;
-			setCurrentPosition(currentX, currentY, currentZ);
-		});
-		ExternalInterface.addCallback("setMinMaxZoom", function(z1:Float, z2:Float)
-		{
-			minZ = z1;
-			maxZ = z2;
-			setCurrentPosition(currentX, currentY, currentZ);
-		});
-		ExternalInterface.addCallback("setStyle", function(id:String, ?regularStyle:Dynamic, ?hoveredStyle:Dynamic)
-		{
-			Main.bumpFrameRate();
-			getNode(id).setStyle(new Style(regularStyle), (hoveredStyle != null) ? new Style(hoveredStyle) : null);
-		});
-		
-		ExternalInterface.addCallback("getStyle", function(id:String, removeDefaults:Bool)
-		{
-			return getNode(id).getStyle(removeDefaults);
-		});
-		
-		ExternalInterface.addCallback("addMapWindow", function(callbackName:String) 
-		{ 
-			var lastCurrentZ:Float = -100, lastComputedZ:Float = 0;
-			var window = new MapWindow(Utils.addSprite(root), function()
-			{ 
-				if (currentZ != lastCurrentZ)
-				{
-					lastCurrentZ = currentZ;
-					lastComputedZ = 0;
-					try {
-						lastComputedZ = 17 - ExternalInterface.call(callbackName, 17 - currentZ);
-					} catch (e:Error) {  }
-				}
-				return lastComputedZ;
-			});
-			window.innerSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
-			window.innerSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
-			// window.setCenter(currentX, currentY);
-			return window.id;
-		});
-		ExternalInterface.addCallback("positionWindow", function(id:String, x1:Float, y1:Float, x2:Float, y2:Float) 
-		{ 
-			var window = MapWindow.allWindows.get(id);
-			var w = stage.stageWidth;
-			var h = stage.stageHeight;
-			window.resize(x1*w, y1*h, x2*w, y2*h);
-			window.setCenter(currentX, currentY);
-		});
-		ExternalInterface.addCallback("setBackgroundColor", function(id:String, color:Int)
-		{ 
-			if (id == mapRoot.id)
-				id = mapWindow.rootNode.id;
-			var window = MapWindow.allWindows.get(id);
-			if (window != null)
-				window.setBackgroundColor(color);
-			if (window == mapWindow)
-				repaintCrosshair();
-		});
-		ExternalInterface.addCallback("remove", function(id:String) 
-		{ 
-			getNode(id).remove(); 
-		});
-		ExternalInterface.addCallback("setBackgroundTiles", function(id:String, func:String, ?projectionCode:Int)
-		{ 
-			var node = getNode(id);
-			var newContent = new RasterLayer(
-				function(i:Int, j:Int, z:Int)
-				{
-					var out:String = '';
-					try {
-						out = ExternalInterface.call(func, i, j, z);
-					} catch (e:Error) {  }
-					return out;
-				}
-			);
-			if ((node.content != null) && Std.is(node.content, VectorObject))
-				newContent.setMask(cast(node.content, VectorObject).geometry);
-			node.setContent(newContent);
-			if (projectionCode == 1)
-			{
-				newContent.setDisplacement(
-					function(x:Float) { return 0.0; },
-					function(y:Float) { return y - Merc.y_ex(Merc.from_y(y), Merc.r_major); }
-				);
-			}
-		});
-		ExternalInterface.addCallback("setDisplacement", function(id:String, dx:Float, dy:Float)
-		{
-			cast(getNode(id).content, RasterLayer).setDisplacement(
-				function(x:Float):Float { return dx; },
-				function(y:Float):Float { return dy; }
-			);
-		});
-		ExternalInterface.addCallback("setTileCaching", function(id:String, flag:Bool)
-		{
-			cast(getNode(id).content, RasterLayer).tileCaching = flag;			
-		});		
-		ExternalInterface.addCallback("setEditable", function(id:String) { getNode(id).setContent(new EditableContent()); });
-		ExternalInterface.addCallback("startDrawing", function(id:String, type:String) { cast(getNode(id).content, EditableContent).startDrawing(type); });
-		ExternalInterface.addCallback("stopDrawing", function(id:String) { cast(getNode(id).content, EditableContent).stopDrawing(); });
-		ExternalInterface.addCallback("isDrawing", function(id:String):Bool { return (cast(getNode(id).content, EditableContent).stopDrawing != null); });
-		ExternalInterface.addCallback("getIntermediateLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getIntermediateLength(); });
-		ExternalInterface.addCallback("getCurrentEdgeLength", function(id:String):Float { return cast(getNode(id).content, EditableContent).getCurrentEdgeLength(); });
-		
 		var setLabel = function(id:String, label:String)
 		{
 			nextFrameCallbacks.push(function()
@@ -564,55 +473,18 @@ class Main
 				}
 			});
 		}
-		ExternalInterface.addCallback("setLabel", setLabel);
 
-		var addObject = function(parentId:String, ?geometry:Dynamic, ?properties:Dynamic)
+		var propertiesToHashString = function(props:Dynamic)
 		{
-			var node:MapNode = getNode(parentId);
-			if (node == null) return '';
-			node = node.addChild();
-			if (geometry != null)
-				node.setContent(new VectorObject(Utils.parseGeometry(geometry)));
-			node.properties = properties;
-			return node.id;
-		}
-		
-		ExternalInterface.addCallback("addObject", addObject);
-
-		ExternalInterface.addCallback("addObjects", function(_data:Array<Dynamic>)
-		{
-			var ret = new Array<String>();
-			for (i in 0...Std.int(_data.length))
-			{
-				var tId:String = addObject(_data[i].parentId, _data[i].geometry, _data[i].properties);
-				if (_data[i].setStyle) {
-					getNode(tId).setStyle(new Style(_data[i].setStyle.regularStyle), (_data[i].setStyle.hoveredStyle != null) ? new Style(_data[i].setStyle.hoveredStyle) : null);
-				}
-				if (_data[i].setLabel) {
-					var node = getNode(tId);
-					if ((node != null) && Std.is(node.content, VectorObject))
-						cast(node.content, VectorObject).label = _data[i].setLabel;
-				}
-				ret.push(tId);
+			var ret = new Hash<String>();
+			for (ff in Reflect.fields(props)) {
+				ret.set(ff, Reflect.field(props, ff));
 			}
 			return ret;
-		});
-		
-		ExternalInterface.addCallback("setFilter", function(id:String, ?sql:String)
-		{
-			var func:Hash<String>->Bool = (sql == null) ? 
-				function(props:Hash<String>):Bool { return true; } :
-				Parsers.parseSQL(sql);
-			if (func != null)
-			{
-				getNode(id).setContent(new VectorLayerFilter(func));
-				return true;
-			}
-			else
-				return false;
-		});
+		}
+
 		var geometriesToSet = new Hash<Geometry>();
-		ExternalInterface.addCallback("setGeometry", function(id:String, geometry_:Dynamic)
+		function setGeometry(id:String, geometry_:Dynamic)
 		{
 			var geometry = Utils.parseGeometry(geometry_);
 			geometriesToSet.set(id, geometry);
@@ -635,18 +507,7 @@ class Main
 						node.setContent(new VectorObject(geometry));
 				}
 			});
-		});
-
-		ExternalInterface.addCallback("setVisible", function(id:String, flag:Bool)
-		{
-			Main.bumpFrameRate();
-			var node = getNode(id);
-			node.setVisible(flag);
-			if (node.parent != null)
-				for (child in node.parent.children)
-					if (Std.is(child.content, VectorLayerObserver))
-						child.noteSomethingHasChanged();
-		});
+		}
 		var exportProperties = function(p_:Hash<String>):Dynamic
 		{
 			var p = {};
@@ -663,186 +524,56 @@ class Main
 			return ret;
 		}
 		
-		ExternalInterface.addCallback("removeHandler", function(id:String, eventName:String) 
+		function setHandler(id:String, eventName:String, ?callbackName:String)
 		{ 
 			var node:MapNode = getNode(id);
-			node.removeHandler(eventName);
-		});
-		ExternalInterface.addCallback("setHandler", function(id:String, eventName:String, ?callbackName:String) 
-		{ 
-			var node:MapNode = getNode(id);
-			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode)
+			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode)
 			{
 				var props:Dynamic;
 				if (Std.is(node2.content, VectorLayerFilter))
 				{
-					var layer = cast(node2.content, VectorLayerFilter).layer;
-					props = exportProperties(layer.lastId == null ? null : layer.geometries.get(layer.lastId).properties);
+					if(nodeFrom_ == null) {
+						var vlFilter = cast(node2.content, VectorLayerFilter);
+						if (vlFilter.clusterAttr != null) eventAttr.objType = 'cluster';
+						var geom = vlFilter.layer.lastGeometry;
+						props = exportProperties(geom != null ? geom.properties : null);
+					} else {
+						props = nodeFrom_.properties;
+						eventAttr.nodeFilter = nodeFrom_.id;
+					}
 				}
-				else
-					props = node2.properties;
-
-				var arr = propertiesToArray(props);
-				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
-					try {
-						ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
-					} catch (e:Error) {  }
+				else if (Std.is(node2.parent.content, ClusterPointsViewer))
+				{
+					props = exportProperties(node2.properties);
+					eventAttr.objType = 'cluster';
 				}
 				else
 				{
+					props = node2.properties;
+				}
+				var arr = propertiesToArray(props);
+
+				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
+					Main.cmdToJS(callbackName, node2.id, arr, eventAttr);
+				}
+				else
+				{
+					var pID:String = node2.id;
 					nextFrameCallbacks.push(function()
 					{
-						try {
-							ExternalInterface.call(callbackName, node2.id, arr, eventAttr);
-						} catch (e:Error) {  }
+						Main.cmdToJS(callbackName, pID, arr, eventAttr);
 					});
 				}
 			}); 
 			if ((eventName == "onMove") || (eventName == "onResize"))
 				node.callHandler(eventName);
-		});
-		ExternalInterface.addCallback("getChildren", function(id:String):Array<Dynamic>
-		{
-			var ret = [];
-			for (node in getNode(id).children)
-			{
-				ret.push({
-					id: node.id,
-					properties: propertiesToArray(node.properties)
-				});
-			}
-			return ret;
-		});
-		ExternalInterface.addCallback("setZoomBounds", function(id:String, minZ:Int, maxZ:Int) 
-		{ 
-			getNode(id).setZoomBounds(minZ, maxZ);
-		});
-		ExternalInterface.addCallback("setActive_", function(id:String, flag:Bool)
-		{
-			var content = getNode(id).content;
-			if (Std.is(content, VectorObject))
-				cast(content, VectorObject).setActive(flag);
-		});
+		};
 		
-		ExternalInterface.addCallback("setImageExtent", function(id:String, attr:Dynamic)
-		{
-			var node = getNode(id);
-			var minX = Merc.x(attr.extent.minX);
-			var maxX = Merc.x(attr.extent.maxX);
-			var minY = Merc.y(attr.extent.minY);
-			var maxY = Merc.y(attr.extent.maxY);
-			
-			var newContent = new RasterImage(attr.url, minX, maxY, maxX, maxY, maxX, minY, minX, minY, attr);
-			if (attr.notSetPolygon == true) {
-				newContent.setControlPoints(minX,maxY, maxX,maxY, maxX,minY, minX,minY);
-			}
-			if ((node.content != null) && Std.is(node.content, VectorObject))
-				newContent.setMask(cast(node.content, VectorObject).geometry);
-			node.setContent(newContent);
-		});
-		ExternalInterface.addCallback("setImage", function(id:String, url:String, 
-			x1:Float, y1:Float, x2:Float, y2:Float, x3:Float, y3:Float, x4:Float, y4:Float,
-			?tx1:Float, ?ty1:Float, ?tx2:Float, ?ty2:Float, ?tx3:Float, ?ty3:Float, ?tx4:Float, ?ty4:Float
-		)
-		{
-			var node = getNode(id);
-			var newContent = new RasterImage(url, x1, y1, x2, y2, x3, y3, x4, y4);
-			if (tx1 != null)
-				newContent.setControlPoints(tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4);
-			if ((node.content != null) && Std.is(node.content, VectorObject))
-				newContent.setMask(cast(node.content, VectorObject).geometry);
-			node.setContent(newContent);
-		});
-		ExternalInterface.addCallback("clearBackgroundImage", function(id:String)
-		{
-			var node = getNode(id);
-			var newContent = null;
-			if (Std.is(node.content, MaskedContent))
-			{
-				var geom = cast(node.content, MaskedContent).maskGeometry;
-				if (geom != null)
-					newContent = new VectorObject(geom);
-			}
-			node.setContent(newContent);
-		});
-		ExternalInterface.addCallback("setVectorTiles", function(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?filesHash:Dynamic)
-		{
-			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):Dynamic
-			{
-				var out:Dynamic = null;
-				try {
-					out = ExternalInterface.call(tileFunction, i, j, z);
-				} catch (e:Error) {  }
-				return out;
-			});
-			for (i in 0...Std.int(tiles.length/3))
-				content.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
-			getNode(id).setContent(content);
-		});
-		ExternalInterface.addCallback("setTiles", function(id:String, tiles:Array<Int>)
-		{
-			var node = getNode(id);
-			if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {
-				var layer = cast(node.content, VectorLayer);
-				for (i in 0...Std.int(tiles.length/3))
-					layer.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
-				layer.createLoader(null);
-			}
-		});
-		ExternalInterface.addCallback("getStat", function(id:String)
-		{
-			var out:Dynamic = {};
-			var node = getNode(id);
-			if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {
-				var layer = cast(node.content, VectorLayer);
-				out = layer.getStat();
-			}
-			return out;
-			
-		});		
-		ExternalInterface.addCallback("observeVectorLayer", function(id:String, layerId:String, func:String)
-		{
-			var layer = cast(getNode(layerId).content, VectorLayer);
-			getNode(id).setContent(new VectorLayerObserver(
-				layer,
-				function(id:String, flag:Bool)
-				{
-					var geom = layer.geometries.get(id);
-					try {
-						ExternalInterface.call(
-							func,
-							geom.export(),
-							exportProperties(geom.properties),
-							flag
-						);
-					} catch (e:Error) {  }
-				}
-			));
-		});
-
-		ExternalInterface.addCallback("bringToTop", function(id:String) 
-		{
-			var node = getNode(id);
-			var n = node.rasterSprite.parent.numChildren - 1;
-			node.bringToDepth(n);
-			return n;
-		});
-		ExternalInterface.addCallback("bringToBottom", function(id:String) 
-		{ 
-			getNode(id).bringToDepth(0);
-		});
-		ExternalInterface.addCallback("bringToDepth", function(id:String, n:Int) 
-		{ 
-			var node = getNode(id);
-			if(n < 0) n = 0;
-			else if(n > node.rasterSprite.parent.numChildren - 1) n = node.rasterSprite.parent.numChildren - 1;
-			node.bringToDepth(n);
-			return n;
-		});
 		var getGeometry = function(id:String):Geometry
 		{
-			if (geometriesToSet.exists(id))
+			if (geometriesToSet.exists(id)) {
 				return geometriesToSet.get(id);
+			}
 			var content = getNode(id).content;
 			if (Std.is(content, VectorObject))
 				return cast(content, VectorObject).geometry;
@@ -853,36 +584,31 @@ class Main
 			else if (Std.is(content, VectorLayerFilter))
 			{
 				var layer = cast(content, VectorLayerFilter).layer;
-				return layer.geometries.get(layer.lastId);
+				var out = layer.geometries.get(layer.lastId);
+				if (out == null && layer.lastGeometry != null) out = layer.lastGeometry;
+				if (out == null) {
+					var node = getNode(layer.lastId);
+					if (node != null) out = cast(node.content, VectorObject).geometry;
+				}
+				return out;
 			}
 			else
 				return new Geometry();
 		}
-		ExternalInterface.addCallback("getGeometry", function(id:String) { return getGeometry(id).export(); });
-		ExternalInterface.addCallback("getLength", function(id:String) { return getGeometry(id).getLength(); });
-		ExternalInterface.addCallback("getArea", function(id:String) { return getGeometry(id).getArea(); });
-		ExternalInterface.addCallback("getGeometryType", function(id:String) { return getGeometry(id).export().type; });
-		ExternalInterface.addCallback("getCenter", function(id:String) { return [0.0, 0.0]; });
-		ExternalInterface.addCallback("addChildRoot", function(id:String) { return getNode(id).addChild().id; });
-		ExternalInterface.addCallback("print", function()
-		{
-			var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
-			data.draw(root);
-			PrintManager.setPrintableContent(data);
-		});
-		var fileRef:FileReference;
-		ExternalInterface.addCallback("savePNG", function(fileName:String)
+		
+		// Сохранение изображения карты в файл
+		var savePNG = function(fileName:String)
 		{
 			try {
 				var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
 				data.draw(root);
-				fileRef = new FileReference();
+				var fileRef:FileReference = new FileReference();
 				fileRef.save(PNGEncoder.encode(data), fileName);
 			} catch (e:Error) { trace(e); }
-		});
+		};
 
 		// Сохранение изображения карты на сервер
-		var sendPNGFile = function(attr:Dynamic)
+		var sendPNGFile = function(attr:Dynamic):String
 		{
 			try {
 				var gridHidden:Bool = grid.hidden;
@@ -898,31 +624,239 @@ class Main
 					grid.vectorSprite.visible = !gridHidden;
 					grid.setVisible(!gridHidden);
 				}
+				var pngData:ByteArray = PNGEncoder.encode(data);
+				
+				var base64:Bool = (attr.getBase64 ? true : false);
+				if(base64) return Base64.encode64(pngData, true);
 				
 				var loader:URLLoader = new URLLoader();
 				var header:URLRequestHeader = new URLRequestHeader("Content-type", "application/octet-stream");
 				var request:URLRequest = new URLRequest(attr.url);
 				request.requestHeaders.push(header);
 				request.method = URLRequestMethod.POST;
-				request.data = PNGEncoder.encode(data);
+				request.data = pngData;
 				loader.addEventListener(Event.COMPLETE, function(event:Event) {
 					var st:String = loader.data;
-					if (attr.func != null) ExternalInterface.call(attr.func, st);
+					if (attr.func != null) Main.cmdToJS(attr.func, st);
 				});
 				loader.load(request);
 			} catch (e:Error) { trace(e); }
+			return '';
 		}
-		ExternalInterface.addCallback("sendPNG", sendPNGFile);
-
-		ExternalInterface.addCallback("setGridVisible", function(flag)
+		
+		function setVisible(id:String, flag:Bool)
 		{
 			Main.bumpFrameRate();
-			grid.setVisible(flag);
-		});
-		ExternalInterface.addCallback("getGridVisibility", function() { return grid.getVisibility(); });
+			var node = getNode(id);
+			node.setVisible(flag);
+			if (node.parent != null)
+				for (child in node.parent.children)
+					if (Std.is(child.content, VectorLayerObserver))
+						child.noteSomethingHasChanged();
+		}
 		
-		ExternalInterface.addCallback("getVisibility", function(id:String) { return getNode(id).getVisibility(); });
-		ExternalInterface.addCallback("getFeatures", function(id:String, geom:Dynamic, func:String)
+		function setZoomBounds(id:String, minZ:Int, maxZ:Int):Dynamic
+		{
+			return getNode(id).setZoomBounds(minZ, maxZ);
+		}
+
+		function setClusters(id:String, data:Dynamic):Dynamic
+		{
+			var node = getNode(id);
+			if (node == null || node.content == null) return null;
+			if (!Reflect.isFunction(node.content.setClusters)) return null;
+			return node.content.setClusters(data);
+		}
+
+		function delClusters(id:String):Dynamic
+		{
+			var node = getNode(id);
+			if (node == null || node.content == null) return null;
+			if (!Reflect.isFunction(node.content.delClusters)) return null;
+			return node.content.delClusters();
+		}
+
+		function getDepth(id:String):Dynamic
+		{
+			var node = getNode(id);
+			if (node == null) return null;
+			return node.getDepth();
+		}
+
+		function getChildren(id:String):Array<Dynamic>
+		{
+			var ret = [];
+			for (node in getNode(id).children)
+			{
+				ret.push({
+					id: node.id,
+					properties: propertiesToArray(node.properties)
+				});
+			}
+			return ret;
+		}
+		
+		function addObject(parentId:String, ?geometry:Dynamic, ?properties:Dynamic):String
+		{
+			var nodeParent:MapNode = getNode(parentId);
+			if (nodeParent == null) return '';
+			var node:MapNode = nodeParent.addChild();
+			node.properties = properties;
+			node.propHash = propertiesToHashString(properties);
+			if (geometry != null) {
+				var geom = Utils.parseGeometry(geometry);
+				geom.properties = node.propHash;
+				node.setContent(new VectorObject(geom));
+			}
+			return node.id;
+		}
+
+		function addObjects(_data:Array<Dynamic>):Array<String>
+		{
+			var ret = new Array<String>();
+			for (i in 0...Std.int(_data.length))
+			{
+				var tId:String = addObject(_data[i].parentId, _data[i].geometry, _data[i].properties);
+				if (_data[i].setStyle) {
+					getNode(tId).setStyle(new Style(_data[i].setStyle.regularStyle), (_data[i].setStyle.hoveredStyle != null) ? new Style(_data[i].setStyle.hoveredStyle) : null);
+				}
+				if (_data[i].setLabel) {
+					var node = getNode(tId);
+					if ((node != null) && Std.is(node.content, VectorObject))
+						cast(node.content, VectorObject).label = _data[i].setLabel;
+				}
+				ret.push(tId);
+			}
+			return ret;
+		}
+
+		function setFilter(id:String, ?sql:String):Bool
+		{
+			var func:Hash<String>->Bool = (sql == null) ? 
+				function(props:Hash<String>):Bool { return true; } :
+				Parsers.parseSQL(sql);
+
+			var node = getNode(id);
+			if (func != null && node != null)
+			{
+				node.setContent(new VectorLayerFilter(func));
+				Main.bumpFrameRate();
+				return true;
+			}
+			return false;
+		}
+
+		function setBackgroundTiles(id:String, func:String, minZoom:Int, maxZoom:Int, ?projectionCode:Int)
+		{ 
+			var node = getNode(id);
+			var newContent = new RasterLayer(
+				function(i:Int, j:Int, z:Int)
+				{
+					var out:String = Main.cmdToJS(func, i, j, z);
+					return out;
+				}
+			, minZoom, maxZoom);
+			if ((node.content != null) && Std.is(node.content, VectorObject))
+				newContent.setMask(cast(node.content, VectorObject).geometry);
+			node.setContent(newContent);
+			if (projectionCode == 1)
+			{
+				newContent.setDisplacement(
+					function(x:Float) { return 0.0; },
+					function(y:Float) { return y - Merc.y_ex(Merc.from_y(y), Merc.r_major); }
+				);
+			}
+		}
+
+		function setImageExtent(id:String, attr:Dynamic)
+		{
+			var node = getNode(id);
+			var minX = Merc.x(attr.extent.minX);
+			var maxX = Merc.x(attr.extent.maxX);
+			var minY = Merc.y(attr.extent.minY);
+			var maxY = Merc.y(attr.extent.maxY);
+			
+			var newContent = new RasterImage(attr.url, minX, maxY, maxX, maxY, maxX, minY, minX, minY, attr);
+			if (attr.notSetPolygon == true) {
+				newContent.setControlPoints(minX,maxY, maxX,maxY, maxX,minY, minX,minY);
+			}
+			if ((node.content != null) && Std.is(node.content, VectorObject))
+				newContent.setMask(cast(node.content, VectorObject).geometry);
+			node.setContent(newContent);
+		}
+
+		function setVectorTiles(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?filesHash:Dynamic)
+		{
+			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):Dynamic
+			{
+				var out:Dynamic = Main.cmdToJS(tileFunction, i, j, z);
+				return out;
+			});
+			for (i in 0...Std.int(tiles.length/3))
+				content.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
+			getNode(id).setContent(content);
+		}
+
+		function setTiles(id:String, tiles:Array<Int>)
+		{
+			var node = getNode(id);
+			if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {
+				var layer = cast(node.content, VectorLayer);
+				for (i in 0...Std.int(tiles.length/3))
+					layer.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
+				layer.createLoader(null);
+			}
+		}
+
+		function observeVectorLayer(id:String, layerId:String, func:String)
+		{
+			var layer = cast(getNode(layerId).content, VectorLayer);
+			getNode(id).setContent(new VectorLayerObserver(
+				layer,
+				function(id:String, flag:Bool)
+				{
+					var geom = layer.geometries.get(id);
+					var geoExp:Dynamic = geom.export();
+					var prop:Dynamic = exportProperties(geom.properties);
+					Main.cmdToJS(func, geoExp, prop, flag);
+				}
+			));
+		}
+
+		function setImage(id:String, url:String, 
+			x1:Float, y1:Float, x2:Float, y2:Float, x3:Float, y3:Float, x4:Float, y4:Float,
+			?tx1:Float, ?ty1:Float, ?tx2:Float, ?ty2:Float, ?tx3:Float, ?ty3:Float, ?tx4:Float, ?ty4:Float
+		)
+		{
+			var node = getNode(id);
+			var newContent = new RasterImage(url, x1, y1, x2, y2, x3, y3, x4, y4);
+			if (tx1 != null)
+				newContent.setControlPoints(tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4);
+			if ((node.content != null) && Std.is(node.content, VectorObject))
+				newContent.setMask(cast(node.content, VectorObject).geometry);
+			node.setContent(newContent);
+		}
+
+		function getFeatureById(id:String, fid:String, func:String)
+		{
+			var layer = cast(getNode(id).content, VectorLayer);
+			var extent = new Extent();
+			var ww = Utils.worldWidth;
+			extent.update(-ww, -ww);
+			extent.update(ww, ww);
+			layer.createLoader(
+				function(tile:VectorTile, tilesRemaining:Int)
+				{
+					if (tilesRemaining == 0)
+					{
+						var geom = layer.geometries.get(fid);
+						Main.cmdToJS(func, geom.export(), exportProperties(geom.properties));
+					}
+				}
+			)(extent);
+		}
+		
+		function getFeatures(id:String, geom:Dynamic, func:String)
 		{
 			var ret = new Hash<Bool>();
 			var queryGeom = Utils.parseGeometry(geom);
@@ -955,65 +889,330 @@ class Main
 							geoms.push(geom.export());
 							props.push(exportProperties(geom.properties));
 						}
-						try {
-							ExternalInterface.call(func, geoms, props);
-						} catch (e:Error) {  }
+						Main.cmdToJS(func, geoms, props);
 					}
 				}
 			)(queryExtent);
-		});
-		ExternalInterface.addCallback("getFeatureById", function(id:String, fid:String, func:String)
-		{
-			var layer = cast(getNode(id).content, VectorLayer);
-			var extent = new Extent();
-			var ww = Utils.worldWidth;
-			extent.update(-ww, -ww);
-			extent.update(ww, ww);
-			layer.createLoader(
-				function(tile:VectorTile, tilesRemaining:Int)
-				{
-					if (tilesRemaining == 0)
-					{
-						var geom = layer.geometries.get(fid);
-						try {
-							ExternalInterface.call(func, geom.export(), exportProperties(geom.properties));
-						} catch (e:Error) {  }
-					}
-				}
-			)(extent);
-		});
+		}
+
 		var getFeatureGeometry = function(objectId:String, featureId:String):Geometry { return cast(getNode(objectId).content, VectorLayer).geometries.get(featureId); }
-		ExternalInterface.addCallback("getFeatureGeometry", function(objectId:String, featureId:String) { return getFeatureGeometry(objectId, featureId).export(); });
-		ExternalInterface.addCallback("getFeatureLength", function(objectId:String, featureId:String) { return getFeatureGeometry(objectId, featureId).getLength(); });
-		ExternalInterface.addCallback("getFeatureArea", function(objectId:String, featureId:String) { return getFeatureGeometry(objectId, featureId).getArea(); });
-		ExternalInterface.addCallback("flip", function(objectId:String):Int 
-		{ 
-			var content = getNode(objectId).content;
-			if (Std.is(content, VectorLayerFilter))
-				return cast(content, VectorLayerFilter).layer.flip(); 
-			else
-				return 0;
-		});
-		ExternalInterface.addCallback("setQuality", function(quality) { stage.quality = quality; });
-		ExternalInterface.addCallback("trace", function(x:Dynamic) { trace(x); });
 
-		ExternalInterface.addCallback("addContextMenuItem", function(text:String, func:String)
+		// Парсинг команд от JavaScript
+		var parseCmdFromJS = function(cmd:String, attr:Dynamic)
 		{
-			var item = new ContextMenuItem(text);
-			item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
-			{
-				try {
-					ExternalInterface.call(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
-				} catch (e:Error) {  }
-			});
-			root.contextMenu.customItems.push(item);
-		});
-
-
-		/*var s = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMёйцукенгшщзхъфывапролджэячсмитьбюЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ `1234567890-=[];',./~!@#$%^&*()_+{}:<>?№»«";
-		var ascii = "";
-		for (i in 0...s.length)
-			ascii += '&#' + s.charCodeAt( i ) + ';'; 
-		ExternalInterface.call("prompt", "glyphs:", ascii);*/
+			var out = { };
+			switch (cmd) {
+				case 'setFilter':
+					out = cast(setFilter(attr.objectId, attr.sql));
+				case 'getChildren':
+					out = getChildren(attr.objectId);
+				case 'getDepth':		// Получить индекс обьекта
+					out = getDepth(attr.objectId);
+				case 'delClusters':		// Удалить кластеризацию потомков
+					out = delClusters(attr.objectId);
+					Main.bumpFrameRate();
+				case 'setClusters':		// Установить кластеризацию потомков
+					out = setClusters(attr.objectId, attr.data);
+					Main.bumpFrameRate();
+				case 'setZoomBounds':
+					out = setZoomBounds(attr.objectId, attr.minZ, attr.maxZ);
+				case 'getZoomBounds':
+					var node = getNode(attr.objectId);
+					out = node.getZoomBounds();
+				case 'setVisible':
+					setVisible(attr.objectId, attr.flag);
+				case 'getVisibility':	// Получить видимость обьекта
+					var node = getNode(attr.objectId);
+					out = cast(node.getVisibility());
+				case 'setGridVisible':
+					Main.bumpFrameRate();
+					grid.setVisible(attr.flag);
+				case 'getGridVisibility':
+					out = cast(grid.getVisibility());
+				case 'sendPNG':
+					out = sendPNGFile(attr);
+				case 'savePNG':
+					savePNG(attr);
+				case 'trace':
+					trace(attr.data);
+				case 'setQuality':
+					stage.quality = attr.data;
+				case 'print':
+					var data:BitmapData = new BitmapData(stage.stageWidth, stage.stageHeight, false, 0xFFFFFFFF);
+					data.draw(root);
+					PrintManager.setPrintableContent(data);
+				case 'addContextMenuItem':
+					var func:String = attr.func;
+					var item = new ContextMenuItem(attr.text);
+					item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, function(event)
+					{
+						Main.cmdToJS(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
+					});
+					root.contextMenu.customItems.push(item);
+				case 'moveTo':
+					Main.bumpFrameRate();
+					setCurrentPosition(attr.x, attr.y, Math.round(17 - attr.z));
+				case 'slideTo':
+					Main.bumpFrameRate();
+					fluidMoveTo(attr.x, attr.y, 17 - attr.z, 10);
+				case 'zoomBy':
+					var dz:Float = attr.dz;
+					var mx:Float = currentX;
+					var my:Float = currentY;
+					if (attr.useMouse != null)
+					{
+						var sprite = getWindowUnderMouse().innerSprite;
+						mx = sprite.mouseX;
+						my = sprite.mouseY;
+					}
+					zoomBy(-dz, mx, my);
+				case 'freeze':
+					Main.draggingDisabled = true; 
+				case 'unfreeze':
+					Main.draggingDisabled = false; 
+				case 'setCursor':
+					currentCursorURL = attr.url;
+					Utils.loadCacheImage(currentCursorURL, function(contents)
+					{
+						if (currentCursorURL == attr.url)
+						{
+							Mouse.hide();
+							deleteCurrentCursor();
+							cursor.addChild(contents.loader);
+							contents.loader.x = attr.dx;
+							contents.loader.y = attr.dy;
+						}
+					});
+				case 'clearCursor':
+					deleteCurrentCursor();
+					Mouse.show();
+					currentCursorURL = null;
+				case 'setCursorVisible':
+					cursor.visible = attr.flag;
+				case 'stopDragging':
+					isDragging = false;
+					if (!isFluidMoving)
+						isMoving = false;
+				case 'isDragging':
+					out = cast(isDragging);
+				case 'resumeDragging':
+					windowMouseMove();
+				case 'getPosition':
+					var res:Dynamic = { };
+					res.mouseX = mapWindow.innerSprite.mouseX;
+					res.mouseY = mapWindow.innerSprite.mouseY;
+					res.stageHeight = stage.stageHeight;
+					res.stageWidth = stage.stageWidth;
+					res.x = currentX;
+					res.y = currentY;
+					res.z = currentZ;
+					var extent:Dynamic = { };
+					extent.minx = mapWindow.visibleExtent.minx;
+					extent.maxx = mapWindow.visibleExtent.maxx;
+					extent.miny = mapWindow.visibleExtent.miny;
+					extent.maxy = mapWindow.visibleExtent.maxy;
+					res.extent = extent;
+					out = cast(res);
+				case 'getX':
+					out = cast(currentX);
+				case 'getY':
+					out = cast(currentY);
+				case 'getZ':
+					out = cast(17 - currentZ);
+				case 'getMouseX':
+					out = cast(mapWindow.innerSprite.mouseX);
+				case 'getMouseY':
+					out = cast(mapWindow.innerSprite.mouseY);
+				case 'isKeyDown':
+					out = cast(Key.isDown(attr.code));
+				case 'setExtent':
+					minX = attr.x1;
+					minY = attr.y1;
+					maxX = attr.x2;
+					maxY = attr.y2;
+					setCurrentPosition(currentX, currentY, currentZ);
+				case 'setMinMaxZoom':
+					minZ = attr.z1;
+					maxZ = attr.z2;
+					setCurrentPosition(currentX, currentY, currentZ);
+				case 'addMapWindow':
+					var lastCurrentZ:Float = -100, lastComputedZ:Float = 0;
+					var window = new MapWindow(Utils.addSprite(root), function()
+					{ 
+						if (currentZ != lastCurrentZ)
+						{
+							lastCurrentZ = currentZ;
+							lastComputedZ = 0;
+							var pz:Int = Main.cmdToJS(attr.callbackName, 17 - currentZ);
+							lastComputedZ = 17 - pz;
+						}
+						return lastComputedZ;
+					});
+					window.innerSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
+					window.innerSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
+					// window.setCenter(currentX, currentY);
+					out = cast(window.id);
+				case 'setStyle':
+					Main.bumpFrameRate();
+					var node = getNode(attr.objectId);
+					var data:Dynamic = cast(attr.data);
+					node.setStyle(new Style(data.regularStyle), (data.hoveredStyle != null) ? new Style(data.hoveredStyle) : null);
+				case 'getStyle':
+					var node = getNode(attr.objectId);
+					out = cast(node.getStyle(attr.removeDefaults));
+				case 'positionWindow':
+					var window = MapWindow.allWindows.get(attr.objectId);
+					var data:Dynamic = cast(attr.data);
+					var x1:Float = data.x1;
+					var y1:Float = data.y1;
+					var x2:Float = data.x2;
+					var y2:Float = data.y2;
+					var w = stage.stageWidth;
+					var h = stage.stageHeight;
+					window.resize(x1*w, y1*h, x2*w, y2*h);
+					window.setCenter(currentX, currentY);
+				case 'setBackgroundColor':
+					if (attr.objectId == mapRoot.id)
+						attr.objectId = mapWindow.rootNode.id;
+					var window = MapWindow.allWindows.get(attr.objectId);
+					if (window != null)
+						window.setBackgroundColor(attr.color);
+					if (window == mapWindow)
+						repaintCrosshair();
+						
+					viewportHasMoved = true;
+				case 'setHandler':
+					setHandler(attr.objectId, attr.eventName, attr.callbackName);
+				case 'removeHandler':
+					var node:MapNode = getNode(attr.objectId);
+					node.removeHandler(attr.eventName);
+				case 'addObject':
+					out = addObject(attr.objectId, attr.geometry, attr.properties);
+				case 'addObjects':
+					out = addObjects(attr);
+				case 'remove':
+					getNode(attr.objectId).remove();
+				case 'bringToTop':
+					var node = getNode(attr.objectId);
+					var n = node.rasterSprite.parent.numChildren - 1;
+					node.bringToDepth(n);
+					out = cast(n);
+				case 'bringToDepth':
+					var node = getNode(attr.objectId);
+					var n:Int = attr.zIndex;
+					if(n < 0) n = 0;
+					else if(n > node.rasterSprite.parent.numChildren - 1) n = node.rasterSprite.parent.numChildren - 1;
+					node.bringToDepth(n);
+					out = cast(n);
+				case 'bringToBottom':
+					getNode(attr.objectId).bringToDepth(0);
+				case 'setActive':
+					var content = getNode(attr.objectId).content;
+					if (Std.is(content, VectorObject))
+						cast(content, VectorObject).setActive(attr.flag);
+				case 'setEditable':
+					getNode(attr.objectId).setContent(new EditableContent());
+				case 'startDrawing':
+					cast(getNode(attr.objectId).content, EditableContent).startDrawing(attr.type);
+				case 'stopDrawing':
+					cast(getNode(attr.objectId).content, EditableContent).stopDrawing();
+				case 'isDrawing':
+					var flag:Bool = (cast(getNode(attr.objectId).content, EditableContent).stopDrawing != null);
+					out = cast(flag);
+				case 'getIntermediateLength':
+					out = cast(getNode(attr.objectId).content, EditableContent).getIntermediateLength();
+				case 'getCurrentEdgeLength':
+					out = cast(getNode(attr.objectId).content, EditableContent).getCurrentEdgeLength();
+				case 'setLabel':
+					setLabel(attr.objectId, attr.label);
+				case 'setBackgroundTiles':
+					setBackgroundTiles(attr.objectId, attr.func, attr.minZoom, attr.maxZoom, attr.projectionCode);
+				case 'setDisplacement':
+					cast(getNode(attr.objectId).content, RasterLayer).setDisplacement(
+						function(x:Float):Float { return attr.dx; },
+						function(y:Float):Float { return attr.dy; }
+					);
+				case 'setTileCaching':
+					cast(getNode(attr.objectId).content, RasterLayer).tileCaching = attr.flag;			
+				case 'setImageExtent':
+					setImageExtent(attr.objectId, attr.data);
+				case 'clearBackgroundImage':
+					var node = getNode(attr.objectId);
+					var newContent = null;
+					if (Std.is(node.content, MaskedContent))
+					{
+						var geom = cast(node.content, MaskedContent).maskGeometry;
+						if (geom != null)
+							newContent = new VectorObject(geom);
+					}
+					node.setContent(newContent);
+				case 'setGeometry':
+					setGeometry(attr.objectId, attr.data);
+				case 'getGeometry':
+					var geom = getGeometry(attr.objectId);
+					out = (geom == null ? null : geom.export());
+				case 'getLength':
+					var geom = getGeometry(attr.objectId);
+					out = (geom == null ? null : geom.getLength());
+				case 'getArea':
+					var geom = getGeometry(attr.objectId);
+					out = (geom == null ? null : geom.getArea());
+				case 'getGeometryType':
+					var geom = getGeometry(attr.objectId);
+					out = (geom == null ? null : geom.export().type);
+				case 'getCenter':
+					out = [0.0, 0.0];
+				case 'addChildRoot':
+					out = getNode(attr.objectId).addChild().id;
+				case 'setVectorTiles':
+					setVectorTiles(attr.objectId, attr.tileFunction, attr.identityField, attr.tiles, attr.filesHash);
+				case 'setTiles':
+					setTiles(attr.objectId, attr.tiles);
+				case 'getStat':
+					var node = getNode(attr.objectId);
+					if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {
+						var layer = cast(node.content, VectorLayer);
+						out = layer.getStat();
+					}
+				case 'observeVectorLayer':
+					observeVectorLayer(attr.objectId, attr.layerId, attr.func);
+				case 'setImage':
+					setImage(attr.objectId, attr.url,
+						attr.x1, attr.y1, attr.x2, attr.y2, attr.x3, attr.y3, attr.x4, attr.y4,
+						attr.tx1, attr.ty1, attr.tx2, attr.ty2, attr.tx3, attr.ty3, attr.tx4, attr.ty4
+					);
+				case 'flip':
+					var content = getNode(attr.objectId).content;
+					out = (Std.is(content, VectorLayerFilter) ? cast(content, VectorLayerFilter).layer.flip() : 0);
+				case 'getFeatureGeometry':		// не используется
+					var geom:Geometry = getFeatureGeometry(attr.objectId, attr.featureId);
+					out = geom.export();
+				case 'getFeatureLength':		// не используется
+					var geom:Geometry = getFeatureGeometry(attr.objectId, attr.featureId);
+					out = geom.getLength();
+				case 'getFeatureArea':			// не используется
+					var geom:Geometry = getFeatureGeometry(attr.objectId, attr.featureId);
+					out = geom.getArea();
+				case 'getFeatureById':		//
+					getFeatureById(attr.objectId, attr.fid, attr.func);
+				case 'getFeatures':		//
+					getFeatures(attr.objectId, attr.geom, attr.func);
+				case 'getTileItem':	// Получить атрибуты векторного обьекта из загруженных тайлов id по identityField
+					var node = getNode(attr.objectId);
+					if (node == null || !Std.is(node.content, VectorLayer)) return null;
+					var geom:Geometry = cast(cast(node.content, VectorLayer).getTileItem(attr.vId));
+					if (geom == null) return null;
+					var tmp:Dynamic = { };
+					tmp.geometry = geom.export();
+					tmp.properties = exportProperties(geom.properties);
+					out = cast(tmp);
+				case 'setTileItem':	// Изменить атрибуты векторного обьекта из загруженных тайлов
+					var node = getNode(attr.objectId);
+					if (node == null || !Std.is(node.content, VectorLayer)) return null;
+					out = cast(cast(node.content, VectorLayer).setTileItem(attr.data, attr.flag));
+			}
+			return out;
+		}
+		ExternalInterface.addCallback("cmdFromJS", parseCmdFromJS);
 	}
 }

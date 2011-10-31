@@ -1,0 +1,13 @@
+.RyndaText 
+{
+	margin: 5px 0px;
+	padding: 5px 3px;
+	overflow-y: auto;
+	max-height: 200px;
+	background: #ffffee;
+}
+
+.RyndaTitle
+{
+	margin-bottom: 5px;
+}

@@ -76,9 +76,12 @@ class RasterTile
 			try {
 				var me = this;
 				var worldSize:Float = Math.pow(2, z);
-				Utils.loadImage(
-					layer.tileFunction(Math.round((i + 3*worldSize/2)%worldSize - worldSize/2), j, Math.round(z)), 
-					function(contents) { me.onLoad(contents); },
+				var ii:Int = Math.round((i + 3 * worldSize / 2) % worldSize - worldSize / 2);
+				var zz:Int = Math.round(z);
+				var url:String = layer.tileFunction(ii, j, zz);
+				Utils.loadCacheImage(
+					url, 
+					function(contents:Dynamic) { return me.onLoad(contents); },
 					function() { me.onError(); }
 				);
 			} 
@@ -106,13 +109,12 @@ class RasterTile
 		}
 	}
 
-	function onLoad(contents_:DisplayObject)
+	function onLoad(obj_:Dynamic)
 	{
 		tilesCurrentlyLoading -= 1;
-		//loadDone();
 		if (!removed)
 		{
-			contents = contents_;
+			contents = cast(obj_.loader);
 
 			var index = 0;
 			for (i in 0...z)
@@ -131,14 +133,7 @@ class RasterTile
 			updateAlphaListener = function(event) { me.updateAlpha(); }
 			contents.addEventListener(Event.ENTER_FRAME, updateAlphaListener);
 
-			if(contents.loaderInfo.parentAllowsChild) {
-				var size = 32;
-				var bmp = new BitmapData(size, size, true, 0);
-				bmp.draw(contents);
-				var hist = bmp.histogram();
-				if (hist[3][255] != 1024) isOverlay = true;		// по гистограмме определяем тайлы где в верхнем левом углу 32х32 все alpha = 0xFF
-				bmp.dispose();
-			}
+			if (obj_.isOverlay != null) isOverlay = obj_.isOverlay;
 			if (isOverlay && isReplacement)
 				remove();
 		}
@@ -147,15 +142,22 @@ class RasterTile
 	function onError()
 	{
 		tilesCurrentlyLoading -= 1;
-		//loadDone();
 		remove();
 		if (!isRetrying && !isReplacement)
+		{
 			layer.loadTile(i, j, z, isReplacement, true);
+		}
 		else
 		{
 			layer.markTileAsFailed(i, j, z);
-			if ((z > 1) && layer.tileCaching)
-				layer.loadTile(Std.int(i/2), Std.int(j/2), z - 1, true, false);
+			if ((z > 1) && layer.tileCaching) {
+				var ii:Int = Math.ceil(i/2 - 0.5);
+				var jj:Int = Math.ceil(j/2 - 0.5);
+				var zz:Int = Std.int(z - 1);
+				if (layer.maxZoom > 0 && zz > layer.maxZoom) zz = layer.maxZoom;
+				if (layer.minZoom > 0 && zz < layer.minZoom) return;
+				layer.loadTile(ii, jj, zz, true, false);
+			}
 		}
 	}
 

@@ -18,9 +18,12 @@ class MapNode
 	public var maxZ:Int;
 	public var content:MapContent;
 	public var children:Array<MapNode>;
-	public var handlers:Hash<MapNode->Void>;
+	public var handlers:Hash<MapNode->MapNode->Void>;
 	public var properties:Dynamic;
+	public var propHash:Hash<String>;
 
+	public var filters:Hash<MapNode>;
+	
 	public var somethingHasChanged:Bool;
 
 	public function new(rasterSprite_:Sprite, vectorSprite_:Sprite, window_:MapWindow)
@@ -30,7 +33,7 @@ class MapNode
 		window = window_;
 		rasterSprite = rasterSprite_;
 		vectorSprite = vectorSprite_;
-		vectorSprite.cacheAsBitmap = true;
+		//vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлении векторов в растр
 		regularStyle = null;
 		hoveredStyle = null;
 		hidden = false;
@@ -38,7 +41,8 @@ class MapNode
 		maxZ = 100;
 		content = null;
 		children = new Array<MapNode>();
-		handlers = new Hash<MapNode->Void>();
+		handlers = new Hash<MapNode->MapNode->Void>();
+		filters = new Hash<MapNode>();
 
 		somethingHasChanged = false;
 	}
@@ -73,6 +77,50 @@ class MapNode
 				null;
 	}
 
+	// Получить regularStyle с учетом фильтров по ветке родителей
+	public function getRegularStyleRecursion(?node:MapNode)
+	{
+		if (node == null) node = this;
+		var retStyle = null;
+		if(propHash != null) {
+			for (key in node.filters.keys()) {
+				var nodeFilter = node.filters.get(key);
+				var nodeFilterContent = cast(nodeFilter.content, VectorLayerFilter);
+				if (nodeFilterContent.criterion(propHash)) {
+					retStyle = nodeFilter.regularStyle;
+					return retStyle;
+				}
+			}
+		}
+		if (retStyle == null) retStyle = node.regularStyle;
+		if (retStyle == null && node.parent != null) {
+			retStyle = getRegularStyleRecursion(node.parent);
+		}
+		return retStyle;
+	}
+
+	// Получить hoveredStyle с учетом фильтров по ветке родителей
+	public function getHoveredStyleRecursion(?node:MapNode)
+	{
+		if (node == null) node = this;
+		var retStyle = null;
+		if(propHash != null) {
+			for (key in node.filters.keys()) {
+				var nodeFilter = node.filters.get(key);
+				var nodeFilterContent = cast(nodeFilter.content, VectorLayerFilter);
+				if (nodeFilterContent.criterion(propHash)) {
+					retStyle = nodeFilter.hoveredStyle;
+					return retStyle;
+				}
+			}
+		}
+		if (retStyle == null) retStyle = node.hoveredStyle;
+		if (retStyle == null && node.parent != null) {
+			retStyle = getHoveredStyleRecursion(node.parent);
+		}
+		return retStyle;
+	}
+
 	public function getHoveredStyle()
 	{
 		return 
@@ -91,11 +139,39 @@ class MapNode
 		noteSomethingHasChanged();
 	}
 
+	public function getZoomBounds()
+	{
+		var out:Dynamic = { };
+		out.MinZoom = minZ;
+		out.MaxZoom = maxZ;
+		return out;
+	}
+
 	public function setZoomBounds(minZ_, maxZ_)
 	{
+		var out:Dynamic = { };
 		minZ = minZ_;
 		maxZ = maxZ_;
+		out.MinZoom = minZ;
+		out.MaxZoom = maxZ;
 		noteSomethingHasChanged();
+		if (parent != null && parent.filters.exists(id)) {
+			var minZoom = 20, maxZoom = 0;
+			for (key in parent.filters.keys()) {
+				var nodeFilter = parent.filters.get(key);
+				minZoom = cast(Math.min(nodeFilter.minZ, minZoom));
+				maxZoom = cast(Math.max(nodeFilter.maxZ, maxZoom));
+			}
+			parent.minZ = minZoom;
+			parent.maxZ = maxZoom;
+			parent.noteSomethingHasChanged();
+			var out1:Dynamic = { };
+			out1.id = parent.id;
+			out1.MinZoom = minZoom;
+			out1.MaxZoom = maxZoom;
+			out.parent = out1;
+		}
+		return out;
 	}
 
 	public function setStyle(regularStyle_:Style, ?hoveredStyle_:Style)
@@ -151,14 +227,40 @@ class MapNode
 	{
 		var oldContent = content;
 		content = content_;
-		if (oldContent != null)
+		
+		var regularStyleOrig:Style = null;
+		var hoverStyleOrig:Style = null;
+
+		if (oldContent != null) {
+			if (Std.is(oldContent, VectorLayerFilter))
+			{
+				var vlf:VectorLayerFilter = cast(oldContent, VectorLayerFilter);
+				regularStyleOrig = vlf.regularStyleOrig;
+				hoverStyleOrig = vlf.hoverStyleOrig;
+			}
+
 			oldContent.contentSprite.parent.removeChild(oldContent.contentSprite);
-		if (content != null)
+			if (parent != null && parent.filters.exists(id))
+			{
+				parent.filters.remove(id);
+			}
+		}
+		if (content != null) {
 			content.initialize(this);
+			if (parent != null && Std.is(content, VectorLayerFilter))
+			{
+				parent.filters.set(id, this);
+				var vlf:VectorLayerFilter = cast(content, VectorLayerFilter);
+				if(regularStyleOrig != null) vlf.regularStyleOrig = regularStyleOrig;
+				if(hoverStyleOrig != null) vlf.hoverStyleOrig = hoverStyleOrig;
+				parent.repaintObjects();
+			}
+		}
+		
 		noteSomethingHasChanged();
 	}
 
-	public function setHandler(name:String, handler:MapNode->Void)
+	public function setHandler(name:String, handler:MapNode->MapNode->Void)
 	{
 		handlers.set(name, handler);
 		updateHandCursor();
@@ -170,7 +272,7 @@ class MapNode
 		updateHandCursor();
 	}
 
-	public function getHandler(name:String):MapNode->Void
+	public function getHandler(name:String):MapNode->MapNode->Void
 	{
 		var handler = handlers.get(name);
 		return 
@@ -181,20 +283,27 @@ class MapNode
 				null;
 	}
 
-	public function callHandler(name:String)
+	public function callHandler(name:String, ?nodeFrom:MapNode)
 	{
 		var handler = getHandler(name);
 		if (handler != null)
-			handler(this);
+			handler(this, nodeFrom);
 	}
 
 	public function callHandlersRecursively(name:String)
 	{
 		var handler = handlers.get(name);
 		if (handler != null)
-			handler(this);
+			handler(this, null);
 		for (child in children)
 			child.callHandlersRecursively(name);
+	}
+
+	public function repaintObjects()
+	{
+		for (child in children) {
+			if(Std.is(child.content, VectorObject)) child.content.repaint();
+		}
 	}
 
 	public function repaintRecursively(somethingHasChangedAbove:Bool)
@@ -266,5 +375,13 @@ class MapNode
 				return (d1 < d2) ? -1 : (d1 == d2) ? 0 : 1;
 			});
 		}
+	}
+
+	// Получить индекс обьекта
+	public function getDepth()
+	{
+		var parentSprite = parent.rasterSprite;
+		var d1 = parentSprite.getChildIndex(rasterSprite);
+		return d1;
 	}
 }

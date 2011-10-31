@@ -38,13 +38,18 @@ class GetSWFFile
 	}
 	private function onError(event:Event)
 	{
-		trace("error reading vector tile: " + url);
+		//trace("error reading vector tile: " + url);
 		destructor(null);
 	}
 
 	private function onComplete(event:Event)
 	{
-		var arr:Array<Dynamic> = stream.readObject();
+		var arr:Array<Dynamic> = [];
+		try {
+			arr = stream.readObject();
+		} catch(e:Error) {
+			//trace('File not found: ' + url);	// Скорее всего от сервера пришел статус ответа 200 вместо 404
+		}
 		destructor(arr);
 	}
 }

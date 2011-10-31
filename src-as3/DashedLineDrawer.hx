@@ -13,10 +13,12 @@ class DashedLineDrawer
 	var currentDashIndex:Int;
 	var currentDashLength:Float;
 	var totalDashesLength:Float;
+	var prop:Hash<String>;
 
-	public function new(graphics_:Graphics, outline_:OutlineStyle, window_:MapWindow)
+	public function new(graphics_:Graphics, outline_:OutlineStyle, window_:MapWindow, ?prop_:Hash<String>)
 	{
 		graphics = graphics_;
+		prop = prop_;
 		outline = outline_;
 		window = window_;
 		penIsVisible = false;
@@ -38,7 +40,7 @@ class DashedLineDrawer
 	function setLineStyle()
 	{
 		if ((outline != null) && (outline.thickness > 0))
-			graphics.lineStyle(outline.thickness, outline.color, outline.opacity, false, LineScaleMode.NONE);
+			graphics.lineStyle(outline.thickness, (prop != null ? outline.getColor(prop) : outline.color), (prop != null ? outline.getOpacity(prop) : outline.opacity), false, LineScaleMode.NONE);
 		else
 			clearLineStyle();
 	}

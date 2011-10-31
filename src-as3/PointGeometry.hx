@@ -15,8 +15,10 @@ class PointGeometry extends Geometry
 
 	public override function paint(sprite:Sprite, style:Style, window:MapWindow)
 	{
-		if (window.visibleExtent.contains(x, y))
+		var contains = window.visibleExtent.contains(x, y);	// Точка в области видимости
+		if (contains)
 		{
+			if(propHiden.exists('_paintStyle')) style = propHiden.get('_paintStyle');
 			putPoint(sprite, style, window);
 		} else {
 			refreshFlag = true;
@@ -33,6 +35,11 @@ class PointGeometry extends Geometry
 				refreshFlag = false;
 				oldZ = window.getCurrentZ();
 			}
+			else if (marker.drawSWFFunction != null) {	// Загрузка SWF маркера
+				marker.drawSWFFunction(this, sprite, window.scaleY);
+				refreshFlag = false;
+				oldZ = window.getCurrentZ();
+			}
 			else
 			{
 				var size = marker.size;
@@ -40,7 +47,7 @@ class PointGeometry extends Geometry
 				{
 					size *= window.scaleY;
 					var graphics = sprite.graphics;
-					var drawer = new DashedLineDrawer(graphics, style.outline, window);
+					var drawer = new DashedLineDrawer(graphics, style.outline, window, properties);
 					Geometry.beginFill(graphics, style.fill);
 					drawer.moveTo(x - size, y - size);
 					drawer.lineTo(x + size, y - size);

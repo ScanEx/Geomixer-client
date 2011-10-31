@@ -437,9 +437,11 @@ queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc)
 	else
 		this.parentCanvas.insertBefore(loading, this.parentCanvas.firstChild);
 	
-	sendCrossDomainJSONRequest(getAPIHostRoot() + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(url + '?request=GetCapabilities'), function(response)
+	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(url + '?request=GetCapabilities'), function(response)
 	{
-		var servicelayers = parseFunc.call(_this, response);
+		if (!parseResponse(response)) return;
+		
+		var servicelayers = parseFunc.call(_this, response.Result);
 		
 		drawFunc.call(_this, servicelayers, url, loading, undefined, _this.customParams);
 	})
@@ -529,9 +531,10 @@ queryServerData.prototype.loadGML = function(url, parentTreeCanvas, box, header,
 {
 	var _this = this;
 	
-	sendCrossDomainJSONRequest(getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url), function(response)
+	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(url), function(response)
 	{
-		var geometries = parseGML(response, format, srs);
+		if (!parseResponse(response)) return;
+		var geometries = parseGML(response.Result, format, srs);
 		_this.drawGML(geometries, url, parentTreeCanvas, box, header, loadLayerParams);
 	})
 }

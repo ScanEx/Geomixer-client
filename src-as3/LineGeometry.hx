@@ -40,7 +40,7 @@ class LineGeometry extends Geometry
 			var outline = style.outline;
 			if (outline != null)
 			{
-				var drawer = new DashedLineDrawer(sprite.graphics, outline, window);
+				var drawer = new DashedLineDrawer(sprite.graphics, outline, window, properties);
 				drawer.moveTo(coordinates[0], coordinates[1]);
 				for (i in 1...Std.int(coordinates.length/2))
 					drawer.lineTo(coordinates[i * 2], coordinates[i * 2 + 1]);

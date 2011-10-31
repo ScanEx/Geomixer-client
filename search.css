@@ -71,6 +71,7 @@ span.searchElem:hover, span.searchElemParent:hover
 {
 	background: transparent url(img/searchBegin.png) no-repeat scroll 0 0;
 	height: 22px;
+	width: 4px;
 }
 .searchBeginOnTD
 {
@@ -102,6 +103,7 @@ span.searchElem:hover, span.searchElemParent:hover
 	background: transparent url(img/searchBeginOff_a.png) no-repeat scroll 0 0;
 }
 .searchCenterTD{
+	width: 100%
 }
 .searchCenter 
 {
@@ -110,7 +112,7 @@ span.searchElem:hover, span.searchElemParent:hover
 	padding: 2px 0 0 0;
 	color: #999999;
 	height: 22px;
-	width: 100%;
+	width: 100%
 }
 .searchCenterValueExists{
 	color: #153069;
@@ -161,14 +163,6 @@ span.searchElem:hover, span.searchElemParent:hover
 .DownloadSHPButtonText
 {
 	text-align: center;
-}
-.LocationTitleDiv
-{
-	position: absolute;
-	left: 200px;
-	bottom: 7px;
-	/*text-shadow: white 0px 0px 1px, white 0px 0px 2px, white 0px 0px 3px;*/
-	background: white;
 }
 .searchLocationPath{
 	cursor: pointer;

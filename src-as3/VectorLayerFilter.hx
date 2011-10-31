@@ -1,6 +1,8 @@
 import flash.display.Sprite;
 import flash.events.Event;
 import flash.events.MouseEvent;
+import flash.utils.Timer;
+import flash.events.TimerEvent;
 
 class VectorLayerFilter extends MapContent
 {
@@ -11,6 +13,11 @@ class VectorLayerFilter extends MapContent
 	public var loader:Extent->Void;
 	public var layer:VectorLayer;
 	public var ids:Hash<Bool>;
+
+	public var clusterAttr:Dynamic;
+	public var regularStyleOrig:Style;
+	public var hoverStyleOrig:Style;
+	public var paintersHash:Hash<VectorTilePainter>;	// Хэш отрисовщиков тайлов данного фильтра
 
 	public function new(criterion_:Hash<String>->Bool)
 	{
@@ -23,16 +30,69 @@ class VectorLayerFilter extends MapContent
 		return Utils.addSprite(mapNode.vectorSprite);
 	}
 
-	public function flush()
+	public override function flush()
 	{
 		if (painters != null)
 			for (painter in painters)
 				painter.remove();
 		loadedTiles = new Array<VectorTile>();
 		painters = new Array<VectorTilePainter>();
+		paintersHash = new Hash<VectorTilePainter>();
 		ids = new Hash<Bool>();
 		if (layer != null)
 			createLoader();
+		delClusters();
+	}
+
+	// Удалить кластеризацию на фильтре
+	public override function delClusters():Dynamic
+	{
+		clusterAttr = null;
+		if(regularStyleOrig != null) mapNode.setStyle(regularStyleOrig, hoverStyleOrig);
+	}
+
+	// Инициализация кластеризации на фильтре
+	private function runClusters(attr:Dynamic)
+	{
+		clusterAttr = attr;
+		var regularStyle = null;
+		if (clusterAttr.RenderStyle != null) regularStyle = new Style(clusterAttr.RenderStyle);
+		var hoverStyle = null;
+		if (clusterAttr.HoverStyle != null) hoverStyle = new Style(clusterAttr.HoverStyle);
+
+		clusterAttr._zoomDisabledHash = new Hash<Bool>();
+		if (clusterAttr.zoomDisabled != null) {
+			for (i in 0...Std.int(clusterAttr.zoomDisabled.length))
+			{
+				clusterAttr._zoomDisabledHash.set(clusterAttr.zoomDisabled[i], true);
+			}
+		}
+		
+		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
+		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
+		mapNode.setStyle(regularStyle, hoverStyle);
+	}
+
+	// Установить кластеризацию на фильтре
+	public override function setClusters(attr:Dynamic):Dynamic
+	{
+		var me = this;
+		if(mapNode.regularStyle == null) {
+			var timer:Timer = new Timer(20);
+			timer.addEventListener("timer", function(e:TimerEvent)
+			{
+				if (me.mapNode.regularStyle != null) {
+					timer.stop();
+					timer = null;
+					me.runClusters(attr);
+				}
+			});
+			timer.start();
+		} else
+		{
+			runClusters(attr);
+		}
+		return true;
 	}
 
 	function createLoader()
@@ -51,10 +111,14 @@ class VectorLayerFilter extends MapContent
 					tileGeometry.addMember(geom);
 				}
 			}
+			
 			var window = me.mapNode.window;
-			var painter = new VectorTilePainter(tileGeometry, me.tilesSprite, window, tile.i, tile.j, tile.z);
+			var painter = new VectorTilePainter(tileGeometry, me, tile);
 			me.painters.push(painter);
+			me.paintersHash.set(tile.z+'_'+tile.i+'_'+tile.j, painter);
+
 			painter.repaint(me.mapNode.getRegularStyle());
+
 			if (tilesRemaining == 0)
 			{
 				window.cacheRepaintNeeded = true;
@@ -64,6 +128,7 @@ class VectorLayerFilter extends MapContent
 				for (child in me.layer.mapNode.children)
 					if (Std.is(child.content, VectorLayerObserver))
 						child.noteSomethingHasChanged();
+				Main.refreshMap();
 			}
 		});
 	}
@@ -71,13 +136,21 @@ class VectorLayerFilter extends MapContent
 	public override function repaint()
 	{
 		if(loader != null) loader(mapNode.window.visibleExtent);
-
-		var w = 2*Utils.worldWidth;
+		var w = 2 * Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;
-		var cx1 = (e1.minx + e1.maxx)/2;
+		var cx1 = (e1.minx + e1.maxx) / 2;
+		var curStyle = mapNode.getRegularStyle();
+
+		if(clusterAttr != null) {
+			var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
+			if (clusterAttr._zoomDisabledHash.exists(currentZ)) {
+				curStyle = regularStyleOrig;
+			}
+		}
+
 		for (painter in painters)
 		{
-			painter.repaint(mapNode.getRegularStyle());
+			painter.repaint(curStyle);
 			var e2 = painter.painter.geometry.extent;
 			var cx2 = (e2.minx + e2.maxx)/2;
 			var d1 = Math.abs(cx2 - cx1 - w);
@@ -94,7 +167,7 @@ class VectorLayerFilter extends MapContent
 
 	public override function hasLabels()
 	{
-		var style = mapNode.getRegularStyle();
+		var style = (mapNode != null ? mapNode.getRegularStyle() : null);
 		return ((style != null) && (style.label != null));
 	}
 
@@ -106,20 +179,21 @@ class VectorLayerFilter extends MapContent
 			var window = mapNode.window;
 			var idsAlreadyPainted = new Hash<Bool>();
 			var e1 = window.visibleExtent;
-			for (tile in loadedTiles)
+			var currentZ:Int = Std.int(window.getCurrentZ());
+	
+			for (key in paintersHash.keys())
 			{
-				var e2 = tile.extent;
-				if (e1.overlaps(e2))
-				{
-					for (i in 0...tile.ids.length)
+				var tPainter = paintersHash.get(key);
+				var curGeom:MultiGeometry = (clusterAttr == null || clusterAttr._zoomDisabledHash.exists(currentZ) ? tPainter.tileGeometry : tPainter.clustersGeometry);
+				if(curGeom != null) {
+					for (member in curGeom.members)
 					{
-						var id = tile.ids[i];
-						if (ids.exists(id) && !idsAlreadyPainted.exists(id))
+						var id = member.properties.get(layer.identityField);
+						if (!idsAlreadyPainted.exists(id))
 						{
-							var geom = layer.geometries.get(id);
 							window.paintLabel(
-								geom.properties.get(style.label.field),
-								geom,
+								member.properties.get(style.label.field),
+								member,
 								style
 							);
 							idsAlreadyPainted.set(id, true);
@@ -140,7 +214,7 @@ class VectorLayerFilter extends MapContent
 		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
 		{
 			if (me.layer.currentFilter != null)
-				Main.registerMouseDown(me.layer.currentFilter.mapNode, event);
+				Main.registerMouseDown(me.layer.currentFilter.mapNode, event, null);
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:Event)
 		{

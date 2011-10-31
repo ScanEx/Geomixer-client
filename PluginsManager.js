@@ -26,7 +26,7 @@ var PluginsManager = function()
 	if (typeof window.gmxPlugins !== 'undefined')
 	{
 		var modules = [];
-		for (var p in window.gmxPlugins)
+		for (var p = 0; p < window.gmxPlugins.length; p++)
 		{
 			if ('plugin' in window.gmxPlugins[p])
 			{

@@ -183,8 +183,8 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 				return local;
 			});
 			
-			usersTable.vals = securityInfo.UsersWithoutAccess.concat(securityInfo.SecurityInfo.Users);
-			usersTable.drawTable(usersTable.vals);
+			usersTable.setValues( securityInfo.UsersWithoutAccess.concat(securityInfo.SecurityInfo.Users) );
+			usersTable.drawFilterTable();
 			
 			usersTable.tableParent.style.height = '150px';
 			usersTable.tableBody.parentNode.parentNode.style.height = '130px';
@@ -399,18 +399,18 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	
 	if ( isShowUserSuggest )
 	{
-		_securityTableSuggest.vals = [];
+		var vals = [];
 		
 		for ( var u = 0; u < securityInfo.UsersWithoutAccess.length; u++)
 			if ( securityInfo.UsersWithoutAccess[u].Role != nsMapCommon.AuthorizationManager.ROLE_ADMIN )
-				_securityTableSuggest.vals.push(securityInfo.UsersWithoutAccess[u]);
+				vals.push(securityInfo.UsersWithoutAccess[u]);
 
-		_securityTableSuggest.drawTable(_securityTableSuggest.vals);
+		_securityTableSuggest.setValues(vals);
+		_securityTableSuggest.drawFilterTable();
 	}
 
-	_securityTable.vals = securityInfo.SecurityInfo.Users;
-	
-	_securityTable.drawTable(_securityTable.vals);
+	_securityTable.setValues( securityInfo.SecurityInfo.Users );
+	_securityTable.drawFilterTable();
 }
 
 security.prototype.drawMapUsers = function(user, securityScope)
@@ -493,16 +493,21 @@ security.prototype.drawMapUsersSuggest = function(user)
 
 security.prototype.removeMapUser = function(user, list)
 {
-	list.vals = _filter(function(elem)
+	// list.vals = _filter(function(elem)
+	// {
+		// return elem.Login != user.Login;
+	// }, list.vals);
+	
+	// list.currVals = _filter(function(elem)
+	// {
+		// return elem.Login != user.Login;
+	// }, list.currVals);
+	var filteredValues = _filter(function(elem)
 	{
 		return elem.Login != user.Login;
 	}, list.vals);
 	
-	list.currVals = _filter(function(elem)
-	{
-		return elem.Login != user.Login;
-	}, list.currVals);
-	
+	list.setValues(filteredValues);
 	_security.drawFilterTable(list);
 }
 
@@ -515,6 +520,8 @@ security.prototype.addMapUser = function(user, list)
 	existedUser.Access = _security.defaultAccess;
 	list.vals.push(existedUser);
 	
+	list.setValues(list.vals);
+	
 	list.start = 0;
 	list.reportStart = 0;
 	list.allPages = 0;
@@ -524,20 +531,22 @@ security.prototype.addMapUser = function(user, list)
 
 security.prototype.drawFilterTable = function(list)
 {
-	var hasFilter = false;
+	// var hasFilter = false;
 	
-	for (var name in list.filterVals)
-		if (list.filterVals[name] != "")
-		{
-			hasFilter = true;
+	// for (var name in list.filterVals)
+		// if (list.filterVals[name] != "")
+		// {
+			// hasFilter = true;
 			
-			break;
-		}
+			// break;
+		// }
 	
-	if (!hasFilter)
-		list.drawTable(list.vals)
-	else
-		list.drawFilterTable();
+	// if (!hasFilter)
+		// list.drawTable()
+	// else
+		// list.drawFilterTable();
+		
+	list.drawFilterTable()
 }
 
 var _securityTable = new scrollTable(),
