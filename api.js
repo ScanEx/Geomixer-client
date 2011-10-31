@@ -2510,7 +2510,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					var path = callback(o);
 					image.setTiles(function(i, j, z) 
 					{
-						return path + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
+						if (path.indexOf("{") > 0){
+							return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z);
+						}
+						else{
+							return path + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
+						}
 					});
 				}, minZoom, maxZoom);
 			}
