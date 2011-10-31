@@ -1000,7 +1000,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		
 		var layersToSearch = [];
 		for(var i=0; i< oMap.layers.length; i++){
-            if (oMap.layers[i].properties.type == "Vector" && oMap.layers[i].properties.AllowSearch)
+            if (oMap.layers[i].properties.type == "Vector" && oMap.layers[i].properties.AllowSearch && oMap.layers[i].isVisible)
                 layersToSearch.push(oMap.layers[i]);
         }
 		var iRespCount = 0;
