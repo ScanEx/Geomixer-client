@@ -3505,13 +3505,12 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			}
 		})();
 		
-		//_title(boxManualAttributes, "Задать аттрибуты вручную");
+        //временно отключили
+		// var attrViewParent = _div();
+		// var createLayerFields = _tr([_td([boxManualAttributes, _span([_t("Задать аттрибуты вручную")]), _br(), addAttribute, _br(), attrViewParent], [['attr', 'colspan', 2]])]);
+		// attrView.init(attrViewParent, attrModel);
 		
-		var attrViewParent = _div();
-		var createLayerFields = _tr([_td([boxManualAttributes, _span([_t("Задать аттрибуты вручную")]), _br(), addAttribute, _br(), attrViewParent], [['attr', 'colspan', 2]])]);
-		attrView.init(attrViewParent, attrModel);
-		
-		shownProperties.push({tr: createLayerFields});
+		// shownProperties.push({tr: createLayerFields});
 	}
 	else
 	{

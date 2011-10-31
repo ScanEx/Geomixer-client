@@ -701,13 +701,23 @@ attrsTable.prototype.editObject = function(row)
 			properties[elem.rowName] = $(elem).val();
 		});
 		
-		var geom = _this.drawingBorders['ogc_fid' + row[0]].getGeometry();
-		
-		var objects = JSON.stringify([{action: 'update', geometry: geom, properties: properties, id: row[0]}]);
+        var obj = {action: 'update', properties: properties, id: row[0]};
+        if ( 'ogc_fid' + row[0] in _this.drawingBorders)
+            obj.geometry = gmxAPI.merc_geometry(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
+            
+		var objects = JSON.stringify([obj]);
 		
 		sendCrossDomainJSONRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=" + _this.layerName + "&objects=" + encodeURIComponent(objects), function(response)
 		{
-			alert(response);
+            var newItem = {
+                properties: properties
+            }
+            
+            newItem.properties.ogc_fid = row[0];
+            
+            globalFlashMap.layers[_this.layerName].setTileItem(newItem, false);
+			_this.getLength();
+            
 		});
 	}
 	
@@ -800,8 +810,9 @@ attrsTable.prototype.editObject = function(row)
 					}
 					
 					drawingBorderLink.style.margin = '0px 5px 0px 3px';
-					
-					trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), tdValue]))
+                    
+                    //временно отключаем выбор геометрии...
+					//trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), tdValue]))
 				}
 				else if (i == 1)
 				{
