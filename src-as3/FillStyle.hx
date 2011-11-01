@@ -178,7 +178,6 @@ class FillStyle
 			}
 			return null;
 		}
-//trace('vvv ' + curKey + ':' + propHiden + ':' + bmdCache.keys());
 
 		var shape:Shape = new Shape();
 		var gg:Graphics = shape.graphics;
@@ -196,24 +195,33 @@ class FillStyle
 				shape1.y = center;
 				var matrix1:Matrix = new Matrix();
 				matrix1.createBox(1, 1, 0, ww/2, hh/2);
-				
-				var mask:Shape = new Shape();
-				mask.graphics.beginFill(0, 1);
-				mask.graphics.moveTo(0, 0);
-				var ugol:Float = i*rad;
-				var pt:Point = Point.polar(size, ugol);
-				mask.graphics.lineTo(pt.x, pt.y);
-				
-				var drad:Float = size/Math.cos(rad/2);
-				pt = Point.polar(drad, ugol + rad/2);
-				mask.graphics.lineTo(pt.x, pt.y);
-				
-				ugol += rad;
-				pt = Point.polar(size, ugol);
-				mask.graphics.lineTo(pt.x, pt.y);
-				mask.graphics.lineTo(0, 0);
 
-				shape1.mask = mask;
+				if (rad % (2*Math.PI) != 0) {
+					var mask:Shape = new Shape();
+					mask.graphics.beginFill(col, 1);
+					mask.graphics.moveTo(0, 0);
+					var ugol:Float = i*rad;
+					var pt:Point = Point.polar(size, ugol);
+					mask.graphics.lineTo(pt.x, pt.y);
+					
+					var drad:Float = 0;
+					if (rad % Math.PI != 0) {
+						var cos:Float = Math.cos(rad/2);
+						drad = size/cos;
+						pt = Point.polar(drad, ugol + rad/2);
+						mask.graphics.lineTo(pt.x, pt.y);
+					} else {
+						var zn:Int = (ugol == Math.PI ? -1 : 1);
+						mask.graphics.lineTo(pt.x, pt.y + zn * size);
+						mask.graphics.lineTo(pt.x - 2 * zn * size, pt.y + zn * size);
+					}
+					
+					ugol += rad;
+					pt = Point.polar(size, ugol);
+					mask.graphics.lineTo(pt.x, pt.y);
+					mask.graphics.lineTo(0, 0);
+					shape1.mask = mask;
+				}
 				shape1.graphics.beginFill(col, op);
 				shape1.graphics.drawCircle(0, 0, size);
 				bitmapRes.draw(shape1, matrix1);
