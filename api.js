@@ -2039,7 +2039,11 @@ function createFlashMapInternal(div, layers, callback)
 						break;
 					case 'setTileItem':
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr['data'], 'flag':attr['flag'] } );
-						break;				}
+						break;
+					case 'getItemsFromExtent':
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+						break;
+				}
 /*
 if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };
 var delta = (new Date()).getTime() - startTime;
@@ -3126,6 +3130,18 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			map.addMapWindow = function(callback) {
 				var oID = FlashCMD('addMapWindow', { 'attr': {'callbackName':uniqueGlobalName(function(z) { return 17 - callback(17 - z); })} });
 				return new FlashMapObject(oID, {}, null);
+			}
+
+			map.getItemsFromExtent = function(x1, x2, y1, y2) {
+				var arr = [];
+				for (var i = 0; i < map.layers.length; i++) arr.push(map.layers[i].objectId);
+				return FlashCMD('getItemsFromExtent', { 'obj': this, 'attr':{'layers':arr, 'extent':{'x1':gmxAPI.merc_x(x1), 'x2':gmxAPI.merc_x(x2), 'y1':gmxAPI.merc_y(y1), 'y2':gmxAPI.merc_y(y2)}} });
+			}
+
+			map.getItemsFromPosition = function() {
+				var arr = [];
+				for (var i = 0; i < map.layers.length; i++) arr.push(map.layers[i].objectId);
+				return FlashCMD('getItemsFromExtent', { 'obj': this, 'attr':{'layers':arr} });
 			}
 
 			var needToStopDragging = false;

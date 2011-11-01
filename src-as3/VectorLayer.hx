@@ -110,6 +110,20 @@ class VectorLayer extends MapContent
 		return geom;
 	}
 
+	// Получить список обьектов пересекающих заданный extent
+	public function getItemsFromExtent(ext:Extent):Array<Dynamic>
+	{
+		var arr:Array<Dynamic> = new Array<Dynamic>();
+		for (key in geometries.keys())
+		{
+			var geom:Geometry = geometries.get(key);
+			if (geom.extent.overlaps(ext)) {
+				arr.push(geom.properties);
+			}
+		}
+		return arr;
+	}
+
 	// Изменить атрибуты векторного обьекта из загруженных тайлов
 	public function setTileItem(attr:Dynamic, ?flag:Bool):Dynamic
 	{

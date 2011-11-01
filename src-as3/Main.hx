@@ -1210,6 +1210,35 @@ class Main
 					var node = getNode(attr.objectId);
 					if (node == null || !Std.is(node.content, VectorLayer)) return null;
 					out = cast(cast(node.content, VectorLayer).setTileItem(attr.data, attr.flag));
+				case 'getItemsFromExtent':	// Получить список обьектов пересекающих заданный extent
+					var arr:Array<String> = attr.data.layers;
+					var ext:Extent = new Extent();
+					if(attr.data.extent) {
+						ext.update(attr.data.extent.x1, attr.data.extent.y1);
+						ext.update(attr.data.extent.x2, attr.data.extent.y2);
+					} else {
+						ext.update(currentX - 2, currentY - 2);
+						ext.update(currentX + 2, currentY + 2);
+					}
+					var outArr = [];
+					for (lid in arr) {
+						var node = getNode(lid);
+						if (node != null && Std.is(node.content, VectorLayer)) {
+							var objArr:Array<Dynamic> = cast(node.content, VectorLayer).getItemsFromExtent(ext);
+							var arr1:Array<Dynamic> = new Array<Dynamic>();
+							for (prop in objArr) {
+								arr1.push(exportProperties(prop));
+							}
+							if (arr1.length > 0) {
+								var pt:Dynamic = {};
+								pt.id = lid;
+								pt.arr = arr1;
+								outArr.push(pt);
+							}
+						}
+					}
+					out = outArr;
+			
 			}
 			return out;
 		}
