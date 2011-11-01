@@ -1,0 +1,39 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
+
+<title>GeoMixer API - Получить список обьектов(из векторных слоев) пересекающих заданный extent</title>
+</head>
+
+<body>
+<span id="cmdHash" class="bodytext"></span>
+
+<div id="map" style="width: 800px; height: 600px;"></div> <!--задаем контейнер, в который загружается карта -->
+
+<script>
+	createFlashMap(document.getElementById("map"), 'maps.kosmosnimki.ru', "DefaultMap", function(map)
+      {	
+		map.moveTo(61.764655, 65.488462, 3);
+
+		function chkObjects()
+		{
+			var res = map.getItemsFromPosition();
+			var out = '';
+			out += 'Слоев: <b>' + res.length + '<b>';
+			var cnt = 0;
+			for (var i=0; i<res.length; i++)
+			{
+			cnt += res[i]['arr'].length;
+			}
+			out += ' Обьектов: <b>' + cnt + '<b>';
+			var outDiv = document.getElementById("cmdHash");
+			outDiv.innerHTML = out;
+		}
+		var listenerID = map.addMapStateListener("positionChanged", chkObjects);
+     });
+</script>
+</body>
+</html>
