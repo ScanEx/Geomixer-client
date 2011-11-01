@@ -75,8 +75,9 @@ class VectorTile
 						else
 						{
 							var newGeometry = new MultiGeometry();
-							newGeometry.properties = properties;
-							newGeometry.addMember(me.layer.geometries.get(id));
+							var geomPrev = me.layer.geometries.get(id);
+							newGeometry.properties = geomPrev.properties;
+							newGeometry.addMember(geomPrev);
 							newGeometry.addMember(geometry);
 							me.layer.geometries.set(id, newGeometry);
 						}
