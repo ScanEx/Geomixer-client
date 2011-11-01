@@ -62,8 +62,9 @@ class MarkerStyle
 		replacementColor = Std.is(marker.color, UInt) ? marker.color : DEFAULT_REPLACEMENT_COLOR;
 		angleFunction = Std.is(marker.angle, String) ? Parsers.parseExpression(marker.angle) : null;
 		scaleFunction = Std.is(marker.scale, String) ? Parsers.parseExpression(marker.scale) : null;
-		marker.scale = Std.is(marker.scale, Float) ? marker.scale : 1;
-		marker.angle = Std.is(marker.angle, Float) ? marker.angle : 0;
+		
+		marker.scale = Std.is(marker.scale, Float) ? cast(marker.scale, Float) : 1;
+		marker.angle = Std.is(marker.angle, Float) ? cast(marker.angle, Float) : 0;
 
 		origAngleExpr = Std.is(marker.angle, String) ? marker.angle : null;
 		origScaleExpr = Std.is(marker.scale, String) ? marker.scale : null;
