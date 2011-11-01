@@ -1957,12 +1957,12 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 	
 	//выбор втроенных паттернов
     var patternTypeIcons = [
-        ['horizontal', 'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=horizontal&opacity=1'  ],
-        ['vertical',   'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=vertical&opacity=1'    ],
-        ['diagonal1',  'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=diagonal1&opacity=1'   ],
-        ['diagonal2',  'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=8&style=diagonal2&opacity=1'   ],
-        ['circle',     'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF,0044FF,00FF00&size=16&style=circle&opacity=1'],
-        ['cross',      'http://mapstest.kosmosnimki.ru/GetLines.ashx?colors=00FF00,0044FF&size=4&step=1&style=cross&opacity=1']
+        ['horizontal', 'img/styles/horisontal.png'],
+        ['vertical',   'img/styles/vertical.png'  ],
+        ['diagonal1',  'img/styles/diagonal1.png' ],
+        ['diagonal2',  'img/styles/diagonal2.png' ],
+        ['circle',     'img/styles/circle.png'    ],
+        ['cross',      'img/styles/cross.png'     ]
     ];
     
     var patternStyleSelector = $("<div/>", {id: "patternStyleSelector"});
