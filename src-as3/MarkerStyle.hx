@@ -55,8 +55,6 @@ class MarkerStyle
 		dx = Std.is(marker.dx, Float) ? marker.dx : DEFAULT_DX;
 		dy = Std.is(marker.dy, Float) ? marker.dy : DEFAULT_DY;
 		
-		marker.scale = (marker.scale != null ? marker.scale : 1);
-		marker.angle = (marker.angle != null ? marker.angle : 0);
 		minScale = Std.is(marker.minScale, Float) ? marker.minScale : DEFAULT_MINSCALE;
 		maxScale = Std.is(marker.maxScale, Float) ? marker.maxScale : DEFAULT_MAXSCALE;
 		center = Std.is(marker.center, Bool) ? marker.center : DEFAULT_CENTER;
@@ -64,6 +62,8 @@ class MarkerStyle
 		replacementColor = Std.is(marker.color, UInt) ? marker.color : DEFAULT_REPLACEMENT_COLOR;
 		angleFunction = Std.is(marker.angle, String) ? Parsers.parseExpression(marker.angle) : null;
 		scaleFunction = Std.is(marker.scale, String) ? Parsers.parseExpression(marker.scale) : null;
+		marker.scale = Std.is(marker.scale, Float) ? marker.scale : 1;
+		marker.angle = Std.is(marker.angle, Float) ? marker.angle : 0;
 
 		origAngleExpr = Std.is(marker.angle, String) ? marker.angle : null;
 		origScaleExpr = Std.is(marker.scale, String) ? marker.scale : null;
@@ -258,18 +258,18 @@ class MarkerStyle
 			center ? -width/2 : (dx - 1),
 			center ? -height/2 : (dy - 1)
 		);
+		
+		var s:Float = marker.scale;
+		var ang:Float = marker.angle;
 		if (geom.properties != null) {
-			var ang:Float = (angleFunction != null ? angleFunction(geom.properties) : marker.angle);
-			if(ang != 0) matrix.rotate(ang*Math.PI/180.0);
-			//if (angleFunction != null)
-			//	matrix.rotate(angleFunction(geom.properties)*Math.PI/180.0);
-			var s:Float = (scaleFunction != null ? scaleFunction(geom.properties) : marker.scale);
-			if(s != 1) {
-				if (s < minScale) s = cast(minScale);
-				else if (s > maxScale) s = cast(maxScale);
-				matrix.scale(s, s);
-			}
+			if(angleFunction != null) ang = angleFunction(geom.properties);
+			if (scaleFunction != null) s = scaleFunction(geom.properties);
 		}
+		if(ang != 0) matrix.rotate(ang*Math.PI/180.0);
+		if (s < minScale) s = minScale;
+		else if (s > maxScale) s = maxScale;
+		matrix.scale(s, s);
+
 		matrix.concat(new Matrix(scaleX, 0, 0, scaleY, geom.x, geom.y));
 		matrix.tx -= matrix.tx%scaleX;
 		matrix.ty -= matrix.ty%scaleY;
