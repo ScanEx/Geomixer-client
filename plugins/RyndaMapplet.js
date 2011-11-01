@@ -103,8 +103,9 @@
 		afterViewer: function(params)
 		{
 			gmxCore.loadModule('FireMapplet', 'plugins/FireMapplet.js');
-			gmxCore.addModulesCallback(['FireMapplet'], function(mFire)
+			gmxCore.addModulesCallback(['FireMapplet'], function()
 			{
+                var mFire = gmxCore.getModule('FireMapplet');
 				if (mFire.FireControlCollection.instances.length)
 					addRyndaProvider(mFire.FireControlCollection.instances[0])
 				else
