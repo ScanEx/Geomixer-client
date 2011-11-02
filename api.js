@@ -4116,7 +4116,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				if(num < 0) num = coordFormatCallbacks.length - 1;
 				else if(num >= coordFormatCallbacks.length) num = 0;
 				coordFormat = num;
-				coordinates.innerHTML = '';
+				//coordinates.innerHTML = '';
 				var attr = {'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
 				coordFormatCallbacks[coordFormat](coordinates, attr);
 				//coordinates.innerHTML = getCoordinatesText();
