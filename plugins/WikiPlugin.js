@@ -441,10 +441,10 @@ WikiPlugin.prototype = {
         this._treeView = $('ul.treeview');
 		this._filter = new WikiFilter(oWikiDiv);
 
-		this._map.drawing.addTool('sendMessage'
+		this._map.drawing.addTool('textTool'
 									, _gtxt("Создать сообщение")
-									, 'plugins/img/wiki/sendMessage.png'
-									, 'plugins/img/wiki/sendMessage_a.png'
+									, 'plugins/img/wiki/text_tool.png'
+									, 'plugins/img/wiki/text_tool_a.png'
 									, function(){this._map.drawing.selectTool('move'); this.createPage(); }.bind(this)
 									, function(){})
 		this._loadPages();
