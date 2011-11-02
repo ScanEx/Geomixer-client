@@ -3108,6 +3108,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 
 			var map = new FlashMapObject(rootObjectId, {}, null);
+			gmxAPI.map = map;
 			map.onSetVisible = {};
 			map.layers = [];
 			map.rasters = map;
@@ -3304,6 +3305,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					baseLayers[name] = [];
 				baseLayers[name].push(this);
 				map.baseLayerControl.repaint();
+			}
+			map.getCurrentBaseLayerName = function()
+			{
+				return currentBaseLayerName;
 			}
 			map.setBaseLayer = function(name)
 			{
@@ -4540,6 +4545,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			var updatePosition = function()
 			{
 				var currPosition = map.getPosition();
+				gmxAPI.currPosition = currPosition;
 
 				var z = currPosition['z'];
 				if (z == Math.round(z))

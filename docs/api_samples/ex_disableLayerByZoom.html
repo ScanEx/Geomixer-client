@@ -1,0 +1,56 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
+
+<title>GeoMixer API - Скрыть подложки для определенных Zoom</title>
+</head>
+
+<body>
+<span id="cmdHash" class="bodytext"></span>
+<button id="button1">отключить подложку на 4, 6 и 9 zoom</button><span id="cmdHash" class="bodytext"></span>
+
+<div id="map" style="width: 800px; height: 600px;"></div> <!--задаем контейнер, в который загружается карта -->
+
+<script>
+var disabledZoom = [4, 6, 9];
+	createFlashMap(document.getElementById("map"), 'maps.kosmosnimki.ru', "DefaultMap", function(map)
+      {	
+		map.moveTo(61.764655, 65.488462, 3);
+
+		document.getElementById("button1").onclick = function()
+		{
+			var beginMode = map.getMode();
+			var beginZ = 0;
+
+			var disabledZoomHash = {};
+			for (var i=0; i<disabledZoom.length; i++)
+			{
+				disabledZoomHash[disabledZoom[i]] = true;
+			}
+
+			function chkObjects()
+			{
+				if(gmxAPI.currPosition) {
+					var curZ = gmxAPI.currPosition.z;
+					if(curZ == beginZ || curZ != Math.floor(curZ)) return;	// только полные изменения Z 
+
+					beginZ = curZ;
+					var currentBaseLayerName = map.getCurrentBaseLayerName();
+					var currMode = map.getMode();
+					if(disabledZoomHash[curZ]) {
+						if(currentBaseLayerName != '') map.setMode(beginMode);
+					} else {
+						if(currentBaseLayerName == '') map.setMode(beginMode);
+					}
+					if(currMode != '') beginMode = currMode;
+				}
+			}
+			var listenerID = map.addMapStateListener("positionChanged", chkObjects);
+		}
+     });
+</script>
+</body>
+</html>
