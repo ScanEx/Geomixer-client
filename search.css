@@ -166,7 +166,7 @@ span.searchElem:hover, span.searchElemParent:hover
 }
 .searchLocationPath{
 	cursor: pointer;
-	color: black;
+	color: inherit;
 }
 span.searchLocationPath:hover
 {

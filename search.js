@@ -795,13 +795,11 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 
 		fnSearchLocation({Geometry: attr['screenGeometry'], callback: function(arrResultDataSources){
 			removeChilds(locationTitleDiv);
-			if(arrResultDataSources.length>0){
-				if (arrResultDataSources[0].SearchResult.length>0){
-					drawObject(arrResultDataSources[0].SearchResult[0], locationTitleDiv);
-				}
-				else{
-					_(locationTitleDiv, [_t(_gtxt("Текущее местоположение отображается только для России и Украины"))]);
-				}
+			if(arrResultDataSources.length>0 && arrResultDataSources[0].SearchResult.length>0){
+				drawObject(arrResultDataSources[0].SearchResult[0], locationTitleDiv);
+			}
+			else{
+				_(locationTitleDiv, [_t(_gtxt("Текущее местоположение отображается только для России и Украины"))]);
 			}
 		}});
 	};
@@ -1039,7 +1037,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 											}
 										}
 										arrLayerResult.push({ 
-											ObjName: req.SearchResult[j].properties.NAME || req.SearchResult[j].properties.Name || req.SearchResult[j].properties.name || req.SearchResult[j].properties.text || "[объект]",
+											ObjName: req.SearchResult[j].properties.NAME || req.SearchResult[j].properties.Name || req.SearchResult[j].properties.name || req.SearchResult[j].properties.text || req.SearchResult[j].properties["Название"] || "[объект]",
 											properties: arrDisplayProperties, 
 											Geometry: from_merc_geometry(req.SearchResult[j].geometry) 
 										});

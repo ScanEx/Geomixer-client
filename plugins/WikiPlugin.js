@@ -1,4 +1,8 @@
-﻿
+﻿/** 
+* @name Wiki
+* @namespace Предоставляет возможность написания сообщений
+* @description Предоставляет возможность написания сообщений
+*/
 (function wiki($, oFlashMap){
 _translationsHash.addtext("rus", {
 	"Сообщение" : "Сообщение",
@@ -27,8 +31,12 @@ _translationsHash.addtext("eng", {
 	"Для добавления или редактирования объекта на карте нужно добавить новый объект - точку или многоугольник из панели инструментов": "To add object use toolbar on map"
 });
 
+/**Контейнер меню (или диалога сообщений), содержащий список сообщений и кнопку "Создать сообщение"
+ @memberOf Wiki*/
 var oWikiDiv = _div(null, [['attr', 'Title', _gtxt("Сообщения")]]);
-//Возвращает Ид. карты
+
+/**Возвращает Ид. карты
+ @memberOf Wiki*/
 var getMapId = function(){
 	return oFlashMap.properties.name;
 }
@@ -66,23 +74,27 @@ extendJQuery();
 
 var WHOLE_MAP_LAYER_KEY = 'map-scoped';
 
-/* --------------------------------
- * Service to access Wiki
- * -------------------------------- */
-
+/** Конструктор
+ @class Предоставляет методы общения с сервером сообщений
+ @memberOf Wiki
+ @param {string} wikiBasePath Путь к серверу сообщений
+*/
 WikiService = function(wikiBasePath) {
     this._wikiBasePath = wikiBasePath;
 }
 
 WikiService.prototype = {
+
+	/**Возвращает список страниц*/
     getPages: function(callback) {
         this._loadData(this.getWikiLink('GetMessages.ashx?MapName=' + getMapId()), callback);
     },
-
+	/**Возвращает адрес серверного скрипта*/
     getWikiLink: function(relativeUrl) {
         return this._wikiBasePath + relativeUrl;
     },
     
+	/**Сохраняет страницу*/
 	updatePage: function(pageInfo, callback){
 		var _data = {WrapStyle: 'window'
 				, MessageID: pageInfo.MessageID.toString()
@@ -97,7 +109,7 @@ WikiService.prototype = {
 			
 		sendCrossDomainPostRequest(this.getWikiLink('UpdateMessage.ashx'), _data, function(data) { if (parseResponse(data) && callback) callback(data); });
 	},
-	
+	/**Загружает данные для списка страниц*/
     _loadData: function(url, callback) {
         $.ajax({
             url: url+ (url.indexOf('?') >= 0 ? '&' : '?') + 'callbackName=?',
@@ -108,9 +120,12 @@ WikiService.prototype = {
     }
 }
 
-/* --------------------------------
- * Handles wiki objects on map
- * -------------------------------- */
+/** Конструктор
+ @class Класс, обеспечивающий отображение сообщений на карте
+ @memberOf Wiki
+ @param {object} map Карта, на которой отображать сообщения
+ @param {object} wikiPlugin Плагин - основной класс
+*/
 WikiObjectsHandler = function(map, wikiPlugin) {
     this._map = map;
     this._wikiPlugin = wikiPlugin;
@@ -120,6 +135,7 @@ WikiObjectsHandler = function(map, wikiPlugin) {
 }
 
 WikiObjectsHandler.prototype = {
+	/**Рисует объекты на карте*/
     createObjects: function(objects) {
         
 		for (var objectIndex = 0; objectIndex < objects.length; ++objectIndex) {
@@ -127,6 +143,7 @@ WikiObjectsHandler.prototype = {
 		}
     },
 
+	/**Рисует объект на карте*/
 	_createObject: function(pageInfo){
 		var mapObject;
 		if (pageInfo.LayerName && !this._map.layers[pageInfo.LayerName]){pageInfo.BadLayer = true; return;}
@@ -148,6 +165,7 @@ WikiObjectsHandler.prototype = {
 		}
 	},
 	
+	/**Возвращает функцию для отображения балуна к статье*/
 	_getBaloon: function(pageInfo){
 		var _this = this;
 		return function(attr, div) { 
@@ -169,7 +187,8 @@ WikiObjectsHandler.prototype = {
 					return {}; 
 				};
 	},
-	        
+	
+	/**Удаляет все объекты с карты*/	
     removeObjects: function() {
         if (this._objectsCache.length == 0) return;
         for (var layerName in this._objectsCache) {
@@ -178,24 +197,22 @@ WikiObjectsHandler.prototype = {
         this._objectsCache = {};
     },
 	
+	/**Устанавливает видимость всех объектов*/	
 	setObjectsVisibility: function(isVisible) {
-        this[isVisible ? 'showObjects' : 'hideObjects']();
+        this._pageLayer.setVisible(isVisible);
     },
     
+	/**Устанавливает видимость объектов определённого слоя*/	
 	setLayerVisible: function(layerName, isVisible){
 		this._objectsCache[layerName] && this._objectsCache[layerName].setVisible(isVisible);
-	},
-	
-    showObjects: function() {
-		this._pageLayer.setVisible(true);
-    },
-    
-    hideObjects: function() {
-        this._pageLayer.setVisible(false);
-    }
+	}
 }
 
-
+/** Конструктор
+ @class Класс, обеспечивающий отображение сообщений на карте
+ @memberOf Wiki
+ @param {object} oContainer Контейнер, содежащий все элементы этого класса
+*/
 WikiFilter = function(oContainer){
 	this._container = oContainer;
 	this._input = _input(null);
@@ -208,6 +225,7 @@ WikiFilter = function(oContainer){
 }
 
 WikiFilter.prototype = {
+	/**Отрисовка всех элементов пользовательского интерфейса*/	
 	_initialize: function(){
 		var _this = this;
 		var label = _label([_t(_gtxt("Искать в видимой области"))], [['attr', 'for', 'wiki-filter-area-checkbox']]);
@@ -227,20 +245,16 @@ WikiFilter.prototype = {
 		};
 		this._input.onkeyup = fnFilter;
 	},
+	/**Отрисовка списка сообщений, удовлетворяющих фильтру, который задал пользователь*/
 	filter: function(){
 		var _this = this;
 		var sFilter = new RegExp(this._input.value, "i");
 		removeChilds(this._list);
-		//var arrTopicsLI = {};
 		for(var i=0; i<this.pagesCache.length; i++){
 			var page = this.pagesCache[i];
 			var layerOK = !page.BadLayer && (!page.LayerID || oFlashMap.layers[page.LayerID].isVisible)
 			var extentOK = !this._checkExtent.checked || boundsIntersect(getBounds(page.Geometry.coordinates), oFlashMap.getVisibleExtent());
-			if ( layerOK && extentOK && (!sFilter /*|| page.TopicName.match(sFilter)*/ || page.Title.match(sFilter))){
-				/*if (!arrTopicsLI[page.TopicName]){
-					arrTopicsLI[page.TopicName]=_li([_div([_span([_t(page.TopicName)], [['dir', 'className', 'wiki-filter-topic']])])]);
-					$(this._list).append(_ul([arrTopicsLI[page.TopicName]]));
-				}*/
+			if ( layerOK && extentOK && (!sFilter || page.Title.match(sFilter))){
 				var oPageRow = _span([_t(page.Title)], [['dir', 'className', 'wiki-filter-page']]);
 				oPageRow.PageInfo = page;
 				oPageRow.onclick = function(){
@@ -249,7 +263,6 @@ WikiFilter.prototype = {
 					oFlashMap.zoomToExtent(oExtent.minX, oExtent.minY, oExtent.maxX, oExtent.maxY);
 					oFlashMap.setMinMaxZoom(1, 17);
 				}
-				//$(arrTopicsLI[page.TopicName]).
 				$(this._list).append(_ul([oPageRow]));
 			}
 		}
@@ -257,34 +270,63 @@ WikiFilter.prototype = {
 	}
 }
 
-
+//Необходимо для того, чтобы дополнительные скрипты tiny_mce загружались
 window.tinyMCEPreInit = {
 	base: getAPIHostRoot() + '/api/plugins/tiny_mce', 
 	suffix : '', 
 	query : ''
 };      
+var _wikiFileBrowser = null;
 
 var tinyMCELoaded = false;
+/** Инициализирует tiny_mce
+ @memberOf Wiki
+ @param {string} target id объекта для преобразования в tiny_mce editor
+ */
 var InitEditor = function(target) {
+	var sFolder = userInfo().Folder + '\\images';
+
+	if (!window.WikiFileBrowser_open){
+
+		window.WikiFileBrowser_open = function(field_name, url, type, win){
+			_wikiFileBrowser = new fileBrowser();
+			
+			sendCrossDomainJSONRequest(getAPIHostRoot() + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + sFolder, function(response){
+				if (!parseResponse(response))
+					return;
+				
+				_wikiFileBrowser.currentDir = sFolder;
+				
+				var oDialog = _wikiFileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'gif', 'bmp'], function(path){ 
+					win.document.getElementById(field_name).value = getAPIHostRoot() + "GetImage.ashx?usr=" + userInfo().Login + "&img=" + path;  
+				});
+				
+			});
+		}
+	}
     var options = {
         language : "ru",
         mode: 'exact',
         theme: 'advanced',
+		skin : "o2k7",
         elements: target,
         //relative_urls : false,
         
-        theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,formatselect,fontselect,fontsizeselect",
-        theme_advanced_buttons2 : "bullist,numlist,|,outdent,indent,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code",
-        theme_advanced_buttons3 : "hr,removeformat,visualaid,|,sub,sup,|,charmap",
+		dialog_type: "window",
+		
+        theme_advanced_buttons1 : "bold,italic,underline,|,justifyleft,justifycenter,justifyright,justifyfull,|,formatselect,fontselect,fontsizeselect,|,bullist,numlist,|,outdent,indent,|,undo,redo,|,link,image,cleanup,help,code",
+        theme_advanced_buttons2 : "", // "bullist,numlist,|,outdent,indent,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code",
+        theme_advanced_buttons3 : "", //"hr,removeformat,visualaid,|,sub,sup,|,charmap",
         theme_advanced_toolbar_location : "top",
         theme_advanced_toolbar_align : "left",
-        theme_advanced_statusbar_location : "bottom",
-        
-        plugins: 'advimage',
+        theme_advanced_statusbar_location : "none",
+
+        plugins: 'advimage,jqueryinlinepopups',
         extended_valid_elements: 'img[!src|border:0|alt|title|width|height|style]a[name|href|target|title|onclick]'
     };
 
-    //if (fileBrowser) options.file_browser_callback = "fileBrowser.open";
+    //if (fileBrowser) 
+	options.file_browser_callback = "WikiFileBrowser_open";
 	
 	if(!tinyMCELoaded) {
 		$LAB.script(getAPIHostRoot() + "/api/plugins/tiny_mce/tiny_mce_src.js").wait(function(){
@@ -299,6 +341,12 @@ var InitEditor = function(target) {
 }
 
 
+/** Конструктор
+ @class Редактор сообщений
+ @memberOf Wiki
+ @param {object} pageInfo Сообщение для редактирования
+ @param {object} wikiPlugin Плагин - основной класс
+*/
 WikiEditor = function(pageInfo, wikiPlugin){
 	this._wikiPlugin = wikiPlugin;
 	this._pageInfo = pageInfo;
@@ -308,25 +356,28 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	this._txtLayer = _input(null, [['attr', 'readonly', 'true'], ['dir', 'className', 'wiki-editor-txtlayer']]);
 	this._lblLayer = _t(_gtxt("Щелкните по слою в дереве слоёв, чтобы выбрать его"));
 	this._txtTitle = _input(null, [['dir', 'className', 'wiki-editor-txttitle']]);
-	this._fieldsTable = _table([_tbody([_tr([_td([_t(_gtxt("Слой"))]), _td([this._txtLayer]), _td([this._lblLayer])]), _tr([_td([_t(_gtxt("Заголовок"))]), _td([this._txtTitle]), _td()])])], [['css', 'border-spacing', '2']]);
-	this._txtContent = _textarea(null, [['attr', 'id', 'message_content']]);
+	this._fieldsTable = _table([_tbody([_tr([_td([_t(_gtxt("Слой"))]), _td([this._txtLayer]), _td([this._lblLayer], [['css', 'width', '100%']]), _td([_t(_gtxt("Заголовок"))]), _td([this._txtTitle]), _td()])])], [['css', 'margin', '1px 0 3px 0']]);
+	this._txtContent = _textarea(null, [['attr', 'id', 'message_content'], ['css', 'width', '100%'], ['css', 'height', '100%']]);
 	if (pageInfo.LayerName) this._txtLayer.value = this._wikiPlugin._map.layers[pageInfo.LayerName].properties.title;
 	if (pageInfo.Title) this._txtTitle.value = pageInfo.Title;		
 	if (pageInfo.Content) this._txtContent.value = pageInfo.Content;
 	var _btnOK = _button([_t(_gtxt("Сохранить"))], [['dir', 'className', 'wiki-editor-btnok']]);
 	_btnOK.onclick = this.updatePage.bind(this);
-	this._div = _div([this._divGeometry, this._fieldsTable, this._txtContent, _br(), _btnOK], [['attr', 'Title', _gtxt('Сообщение')]]);
+	var tblAll = _table([_tbody([_tr([_td([this._divGeometry, this._fieldsTable])]), _tr([_td([this._txtContent], [['css', 'height', '100%']])]), _tr([_td([_br(), _btnOK])])])], [['css', 'width', '100%'], ['css', 'height', '100%']]);
+	this._div = _div([tblAll], [['attr', 'Title', _gtxt('Сообщение')]]);
 	
 }
 
 WikiEditor.prototype = {
+	/** Отображает диалог редактирования */
 	showDialog: function(){
 		var _this = this;
-		this._dialog = showDialog(_gtxt('Сообщение'), this._div, 500, 350 , false, false, false, function(){ $(_this).triggerHandler('dialogclose'); if (_this._drawing) _this._drawing.remove();})
+		this._dialog = showDialog(_gtxt('Сообщение'), this._div, 725, 500 , false, false, false, function(){ $(_this).triggerHandler('dialogclose'); if (_this._drawing) _this._drawing.remove();})
 		//$(this._div).dialog({height: 350, width: 500, close: );
 		InitEditor('message_content');
 	},
 	
+	/** Обрабатывает события нажатия на кнопку "Сохранить"*/
 	updatePage: function(){
 		this._pageInfo.Title = this._txtTitle.value;
 		tinyMCE.get('message_content').save();
@@ -340,24 +391,28 @@ WikiEditor.prototype = {
 		$(this).triggerHandler('updatePage', [this._pageInfo]);
 	},
 	
+	/** Устанавливает для сообщения переданный объект на карте в качестве геометрии*/
 	setGeometry: function(drawing){
 		if (drawing && this._drawing) this._drawing.remove();
 		this._drawing = drawing;
 	},
 	
+	/** Устанавливает для сообщения переданный слой*/
 	setLayer: function(layerName){
 		this._txtLayer.value = this._wikiPlugin._map.layers[layerName].properties.title;
 		this._pageInfo.LayerName = layerName;
 	},
 	
+	/** Закрывает диалог */
 	closeDialog: function(){
 		$(this._dialog).dialog('close');
 	}
 }
 
-/* --------------------------------
- * Plug-in for Wiki integration
- * -------------------------------- */
+/** Конструктор
+ @class Плагин - основной класс
+ @memberOf Wiki
+*/
 WikiPlugin = function() {
     this._wikiService = null;
     this._wikiObjects = null;
@@ -373,6 +428,7 @@ WikiPlugin = function() {
 }
 
 WikiPlugin.prototype = {
+	/** Инициализирует все что можно */
     initialize: function(map, sWikiServer, oMapDiv) {
         $.getCSS(getAPIHostRoot() + '/api/plugins/WikiPlugin.css');
 		this._map = map;
@@ -391,9 +447,10 @@ WikiPlugin.prototype = {
 									, 'plugins/img/wiki/sendMessage_a.png'
 									, function(){this._map.drawing.selectTool('move'); this.createPage(); }.bind(this)
 									, function(){})
-		this._updatePages();
+		this._loadPages();
     },
     
+	/** Создает новое сообщение */
 	createPage: function(layerID){
 		if (this._isUserLoggedIn()) {
 			this.openEditor({MessageID: -1, MapName: getMapId(), LayerName: layerID, AuthorLogin: userInfo().Login, IsDeleted: 0});
@@ -403,6 +460,7 @@ WikiPlugin.prototype = {
 		}
 	},
 	
+	/** Открывает редактор сообщения*/
 	openEditor: function(pageInfo){
 		if (this._wikiEditor){
 			alert(_gtxt("Сообщение уже редактируется"));
@@ -414,23 +472,25 @@ WikiPlugin.prototype = {
 					_this._wikiEditor = null;
 				});
 			$(this._wikiEditor).bind('updatePage', function(){
-					_this._wikiService.updatePage(pageInfo, function(response) { _this._updatePages(); _this._wikiEditor.closeDialog();  } );
+					_this._wikiService.updatePage(pageInfo, function(response) { _this._loadPages(); _this._wikiEditor.closeDialog();  } );
 				});
 			this._wikiEditor.showDialog();
 		}
 	},
     
+	/** Удаляет сообщение */
 	deletePage: function(pageInfo){
 		var _this = this;
 		pageInfo.IsDeleted = 1;
-		this._wikiService.updatePage(pageInfo, function(response) { _this._updatePages(); } );
+		this._wikiService.updatePage(pageInfo, function(response) { _this._loadPages(); } );
 	},
 	
+	/** Проверяет, авторизован ли пользователь*/
     _isUserLoggedIn: function() {
         return !!userInfo().Login;
     },
        
-    /* #region: queryDrawingObjects overrides */
+	/** Добавляет кнопку "Создать сообщение" */
 	_addButton: function(){
         var clickFunction = function() {
 					this.createPage();
@@ -440,13 +500,9 @@ WikiPlugin.prototype = {
 		$(oWikiDiv).append($('<div class="wiki-wizard-button"></div>').append(this._createButton));
 	},
 	
+	/** Добавляет обработчик события добавления нового объекта на карту */
     _attachDrawingObjectsEvents: function() {
         if (!this._isUserLoggedIn()) return;
-    
-        // Fix objects created before plugin started, e.g. from permalink
-        /*this._map.drawing.forEachObject(function(drawingObject) {
-            this._onDrawingObjectAdded(drawingObject);
-        }.bind(this));*/
     
         this._map.drawing.setHandlers({
 		    onAdd: this._onDrawingObjectAdded.bind(this),
@@ -454,6 +510,7 @@ WikiPlugin.prototype = {
 		});
     },
     
+	/** Обработчик события добавления нового объекта на карту */
     _onDrawingObjectAdded: function(elem) {
         if (elem.geometry.type != 'POINT' &&
             elem.geometry.type != 'POLYGON') return;
@@ -469,14 +526,17 @@ WikiPlugin.prototype = {
 		}
     },
 	
+	/** Обработчик события удаления объекта с карты */
 	_onDrawingObjectRemove: function(){
 		if(this._wikiEditor) this._wikiEditor.setGeometry(null);
 	},
 	
+	/** Добавляет обработчик события выбора слоя в дереве слоев */
 	_attachTreeEvents: function() {
         var that = this;
                 
         var oldLayerVisible = layersTree.prototype.layerVisible;
+		//обработчик события выбора слоя в дереве слоев
         layersTree.prototype.layerVisible = function(box, flag) {
             (oldLayerVisible.bind(this))(box, flag);
             var layerInfo = box.parentNode.properties.content.properties;
@@ -487,15 +547,7 @@ WikiPlugin.prototype = {
         }
     },
     
-    _createPage: function(mapId, layerId, drawingObject) {
-        var pageInfo = {};
-		if(drawingObject){
-			pageInfo.Geometry = this._getObjectGeometry(drawingObject);
-			drawingObject.remove();			
-		}
-        this.openEditor(pageInfo);
-    },
-
+	/** Добавляет кнопку "Отобразить/скрыть все сообщения на карте" */
 	_ensureWikiButton: function() {
         if (!this._pagesCache || !this._pagesCache.length) return;        
         if (!this._uiWikiButton) {
@@ -506,22 +558,26 @@ WikiPlugin.prototype = {
         this._treeView.find('div[mapid="' + this._map.properties.MapID + '"] div:first').append(this._uiWikiButton);
     },
     
+	/** Обрабатывает событие нажатия на кнопку "Отобразить/скрыть все сообщения на карте"  */
     _toggleWikiObjectsVisibility: function() {
         this._wikiObjects.setObjectsVisibility( 
             this._isWikiButtonOn(this._uiWikiButton.toggleClass('page-button-on').toggleClass('page-button-off'))
         );
     },
 	
+	/** Переключает состояние кнопки "Отобразить/скрыть все сообщения на карте"  */
 	_setWikiButtonState: function(button, isOn) {
         if (!button) return;
         button.removeClass('page-button-on page-button-off').addClass('page-button-' + (isOn ? 'on' : 'off'));
     },
     
+	/** Возвращает состояние кнопки "Отобразить/скрыть все сообщения на карте" */
     _isWikiButtonOn: function(button) {
         return button && button.length && button.hasClass('page-button-on');
     },
     
-    _updatePages: function() {
+	/** Загружает список сообщений */
+    _loadPages: function() {
 		var _this = this;
 		var objects = this._wikiObjects;
         objects.removeObjects();
@@ -556,8 +612,8 @@ WikiPlugin.prototype = {
 }
 
 var oWiki = new WikiPlugin();
-var oWikiLeftMenu = new leftMenu();
-var alreadyLoaded = false;
+//var oWikiLeftMenu = new leftMenu();
+//var alreadyLoaded = false;
 var loadMenu = function(){
 	$(oWikiDiv).dialog();
 	

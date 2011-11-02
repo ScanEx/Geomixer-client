@@ -84,7 +84,7 @@ fileBrowser.prototype.createBrowser = function(title, mask, closeFunc)
 	
 	var canvas = _div(null, [['attr','id','fileBrowserDialog']]);
 	
-	showDialog(title, canvas, 800, 400, false, false, this.resize);
+	var oDialog = showDialog(title, canvas, 800, 400, false, false, this.resize);
 	
 	this.returnMask = mask;
 	this.parentCanvas = canvas;
@@ -94,6 +94,8 @@ fileBrowser.prototype.createBrowser = function(title, mask, closeFunc)
 		this.loadInfo();
 	else
 		this.loadInfoHandler(this.discs)
+		
+	return oDialog;
 }
 
 fileBrowser.prototype.resize = function()
@@ -119,12 +121,13 @@ fileBrowser.prototype.close = function(path)
 
 fileBrowser.prototype.loadInfo = function()
 {
+	var _this = this;
 	sendCrossDomainJSONRequest(serverBase + "FileBrowser/GetDrives.ashx?WrapStyle=func", function(response)
 	{
 		if (!parseResponse(response))
 			return;
 		
-		_fileBrowser.loadInfoHandler(response.Result)
+		_this.loadInfoHandler(response.Result)
 	})
 }
 fileBrowser.prototype.loadInfoHandler = function(discs)
@@ -343,13 +346,14 @@ fileBrowser.prototype.createUpload = function()
 fileBrowser.prototype.getFiles = function(path)
 {
 	var path = (typeof path != 'undefined') ? path : this.currentDir;
+	var _this = this;
 	
 	sendCrossDomainJSONRequest(serverBase + "FileBrowser/GetDirectoryContent.ashx?WrapStyle=func&root=" + path,  function(response)
 	{
 		if (!parseResponse(response))
 			return;
 		
-		_fileBrowser.getFilesHandler(response.Result, path)
+		_this.getFilesHandler(response.Result, path)
 	})
 }
 
