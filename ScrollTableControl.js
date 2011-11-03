@@ -122,6 +122,8 @@ var scrollTable = function()
 
 scrollTable.prototype._getCurrentSortFunc = function()
 {
+	if (!this.currentSortType) return;
+	
 	return this.sortFuncs[this.currentSortType][this.currentSortIndex[this.currentSortType]];
 }
 
@@ -288,6 +290,7 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 	
 	this.sortFuncs = sortFuncs;
 	
+	this.currentSortType = null;
 	// сортировка по умолчанию	
 	for (var name in this.sortFuncs)
 	{
@@ -313,7 +316,10 @@ scrollTable.prototype.drawTable = function()
 {
 	//this.currVals = vals;
 	
-	this.currVals = this.currVals.sort(this._getCurrentSortFunc());
+	var curSortFunc = this._getCurrentSortFunc();
+	if (curSortFunc)
+		this.currVals = this.currVals.sort(this._getCurrentSortFunc());
+		
 	$(this).trigger('changeData'); //TODO: сделать более тонкую проверку изменения условий изменения фильтрованных значений
 	var vals = this.currVals;
 	

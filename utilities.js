@@ -490,7 +490,10 @@ function sendCrossDomainJSONRequest(url, callback)
 		window[callbackName] = false;
 		document.getElementsByTagName("head").item(0).removeChild(script);
 	});
-	script.setAttribute("src", url + "&CallbackName=" + callbackName + "&" + Math.random());
+    
+    var sepSym = url.indexOf('?') == -1 ? '?' : '&';
+    
+	script.setAttribute("src", url + sepSym + "CallbackName=" + callbackName + "&" + Math.random());
 	document.getElementsByTagName("head").item(0).appendChild(script);
 }
 

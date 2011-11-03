@@ -17,8 +17,9 @@ div.tableHeader
 {
 	background: url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
 	height: 20px;
-	color: #FFFFFF;
+	color: #777777;
 	text-align: center;
+    font-size: 12px;
 }
 div.tableBody
 {
