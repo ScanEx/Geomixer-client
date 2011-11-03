@@ -3309,7 +3309,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			{
 				return currentBaseLayerName;
 			}
-			map.setBaseLayer = function(name)
+			switchBaseLayer = function(name)
 			{
 				if(!name) name = currentBaseLayerName;
 				for (var oldName in baseLayers)
@@ -3325,6 +3325,21 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						for (var i = 0; i < newBaseLayers.length; i++)
 							newBaseLayers[i].setVisible(true);
 				}
+				map.baseLayerControl.repaint();
+				if (map.baseLayerControl.onChange)
+					map.baseLayerControl.onChange(name);
+			}
+			map.setBaseLayer = function(name)
+			{
+				for (var oldName in baseLayers)
+					if (oldName != name)
+						for (var i = 0; i < baseLayers[oldName].length; i++)
+							baseLayers[oldName][i].setVisible(false);
+				currentBaseLayerName = name;
+				var newBaseLayers = baseLayers[currentBaseLayerName];
+				if (newBaseLayers)
+					for (var i = 0; i < newBaseLayers.length; i++)
+						newBaseLayers[i].setVisible(true);
 				map.baseLayerControl.repaint();
 				if (map.baseLayerControl.onChange)
 					map.baseLayerControl.onChange(name);
@@ -3397,7 +3412,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 									innerHTML: name,
 									onmouseover: function() { this.style.color = "orange"; },
 									onmouseout: function() { if(currentBaseLayerName != name) this.style.color = "white"; },
-									onclick: function() { map.setBaseLayer(name); }
+									onclick: function() { switchBaseLayer(name); }
 								},
 								{ 
 									padding: "15px", 
