@@ -57,6 +57,9 @@ class PointGeometry extends Geometry
 					graphics.endFill();
 					refreshFlag = false;
 					oldZ = window.getCurrentZ();
+					// если есть style.outline.thickness для вычисления delta к Extent
+					if(style.outline != null && style.outline.thickness >= 0)
+						halfLine = style.outline.thickness * Math.abs(window.scaleY) / 2;
 				}
 			}
 		}

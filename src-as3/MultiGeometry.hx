@@ -15,6 +15,10 @@ class MultiGeometry extends Geometry
 		if (extent.overlaps(window.visibleExtent)) {
 			for (member in members)
 				member.paintWithExtent(sprite, style, window);
+
+			if(style.outline != null && style.outline.thickness >= 0)
+				halfLine = style.outline.thickness * Math.abs(window.scaleY) / 2;
+
 		} else {
 			refreshFlag = true;
 		}
@@ -26,6 +30,8 @@ class MultiGeometry extends Geometry
 			//member.refreshFlag = true;
 			member.paint(sprite, style, window);
 		}
+		if(style.outline != null && style.outline.thickness >= 0)
+			halfLine = style.outline.thickness * Math.abs(window.scaleY) / 2;
 	}
 
 	public override function distanceTo(x:Float, y:Float):Float

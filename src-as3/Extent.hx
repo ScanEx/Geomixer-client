@@ -25,9 +25,11 @@ class Extent
 			maxy = y;
 	}
 
-	public function contains(x:Float, y:Float):Bool
+	// Проверка точки на Extent с учетом половины толщины линии
+	public function contains(x:Float, y:Float, ?halfLine:Float):Bool
 	{
-		return ((x >= minx) && (y >= miny) && (x <= maxx) && (y <= maxy))
+		if (halfLine == null) halfLine = 0;
+		return ((x >= minx - halfLine) && (y >= miny - halfLine) && (x <= maxx + halfLine) && (y <= maxy + halfLine))
 			|| (maxx > Utils.worldWidth &&  maxx - x > 2*Utils.worldWidth)
 			;
 	}

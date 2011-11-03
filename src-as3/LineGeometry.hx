@@ -46,13 +46,14 @@ class LineGeometry extends Geometry
 					drawer.lineTo(coordinates[i * 2], coordinates[i * 2 + 1]);
 				refreshFlag = false;
 				oldZ = window.getCurrentZ();
+				halfLine = outline.thickness * Math.abs(window.scaleY) / 2;
 			}
 		}
 	}
 
 	public override function distanceTo(x:Float, y:Float):Float
 	{
-		if (!extent.contains(x, y))
+		if (!extent.contains(x, y, halfLine))
 			return Geometry.MAX_DISTANCE;
 
 		var distance:Float = Geometry.MAX_DISTANCE;

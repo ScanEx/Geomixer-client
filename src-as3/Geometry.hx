@@ -12,6 +12,7 @@ class Geometry
 	public var propHiden:Hash<Dynamic>;		// внутренние свойства
 	public var refreshFlag:Bool;
 	public var oldZ:Float;
+	public var halfLine:Float;				// половина линии обводки
 
 	public function new()
 	{
@@ -19,6 +20,7 @@ class Geometry
 		refreshFlag = true;
 		properties = null;
 		propHiden = new Hash<Dynamic>();
+		halfLine = 0;
 	}
 
 	public function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow)

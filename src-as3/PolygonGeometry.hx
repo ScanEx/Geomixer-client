@@ -106,11 +106,14 @@ class PolygonGeometry extends Geometry
 		graphics.endFill();
 		refreshFlag = false;
 		oldZ =  (window != null ? window.getCurrentZ() : null);
+
+		if(style.outline != null && style.outline.thickness >= 0)
+			halfLine = style.outline.thickness * Math.abs(window.scaleY) / 2;
 	}
 
 	public override function distanceTo(x:Float, y:Float)
 	{
-		if (!extent.contains(x, y))
+		if (!extent.contains(x, y, halfLine))
 			return Geometry.MAX_DISTANCE;
 		var distance = distanceToRing(x, y, coordinates[0]);
 		for (i in 1...coordinates.length)
