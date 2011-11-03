@@ -2971,11 +2971,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						delete filter["setFilter"];
 						delete filter["enableHoverBalloon"];
 					}
+
 					if (!isInvalid) {
 						var tmp = getMinMaxZoom(layer.properties);
 						obj.setZoomBounds(tmp['minZoom'], tmp['maxZoom']);
-						layer.properties['MinZoom'] = tmp['minZoom'];
-						layer.properties['MaxZoom'] = tmp['maxZoom'];
 					} else {
 						obj.setZoomBounds(20, 20);
 					}
