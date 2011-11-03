@@ -1217,8 +1217,9 @@ class Main
 						ext.update(attr.data.extent.x1, attr.data.extent.y1);
 						ext.update(attr.data.extent.x2, attr.data.extent.y2);
 					} else {
-						ext.update(currentX - 2, currentY - 2);
-						ext.update(currentX + 2, currentY + 2);
+						var delta:Float = 2 * Utils.getScale(currentZ);
+						ext.update(currentX - delta, currentY - delta);
+						ext.update(currentX + delta, currentY + delta);
 					}
 					var outArr = [];
 					for (lid in arr) {
