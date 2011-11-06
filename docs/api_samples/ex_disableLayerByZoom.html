@@ -16,6 +16,12 @@
 
 <script>
 var disabledZoom = [4, 6, 9];
+var disabledZoomHash = {};
+for (var i=0; i<disabledZoom.length; i++)
+{
+	disabledZoomHash[disabledZoom[i]] = true;
+}
+
 	createFlashMap(document.getElementById("map"), 'maps.kosmosnimki.ru', "DefaultMap", function(map)
       {	
 		map.moveTo(61.764655, 65.488462, 3);
@@ -24,12 +30,6 @@ var disabledZoom = [4, 6, 9];
 		{
 			var beginMode = map.getMode();
 			var beginZ = 0;
-
-			var disabledZoomHash = {};
-			for (var i=0; i<disabledZoom.length; i++)
-			{
-				disabledZoomHash[disabledZoom[i]] = true;
-			}
 
 			function chkObjects()
 			{
@@ -41,7 +41,7 @@ var disabledZoom = [4, 6, 9];
 					var currentBaseLayerName = map.getCurrentBaseLayerName();
 					var currMode = map.getMode();
 					if(disabledZoomHash[curZ]) {
-						if(currentBaseLayerName != '') map.setMode(beginMode);
+						if(currentBaseLayerName != '') map.unSetBaseLayer();
 					} else {
 						if(currentBaseLayerName == '') map.setMode(beginMode);
 					}
@@ -49,6 +49,7 @@ var disabledZoom = [4, 6, 9];
 				}
 			}
 			var listenerID = map.addMapStateListener("positionChanged", chkObjects);
+			chkObjects();
 		}
      });
 </script>

@@ -3311,25 +3311,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			{
 				return currentBaseLayerName;
 			}
-			switchBaseLayer = function(name)
+			map.unSetBaseLayer = function()
 			{
-				if(!name) name = currentBaseLayerName;
 				for (var oldName in baseLayers)
-					if (oldName != name || currentBaseLayerName == name)
-						for (var i = 0; i < baseLayers[oldName].length; i++)
-							baseLayers[oldName][i].setVisible(false);
-				if (currentBaseLayerName == name) {
-					currentBaseLayerName = '';
-				} else {
-					currentBaseLayerName = name;
-					var newBaseLayers = baseLayers[currentBaseLayerName];
-					if (newBaseLayers)
-						for (var i = 0; i < newBaseLayers.length; i++)
-							newBaseLayers[i].setVisible(true);
-				}
-				map.baseLayerControl.repaint();
-				if (map.baseLayerControl.onChange)
-					map.baseLayerControl.onChange(name);
+					for (var i = 0; i < baseLayers[oldName].length; i++)
+						baseLayers[oldName][i].setVisible(false);
+				currentBaseLayerName = '';
 			}
 			map.setBaseLayer = function(name)
 			{
@@ -3414,7 +3401,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 									innerHTML: name,
 									onmouseover: function() { this.style.color = "orange"; },
 									onmouseout: function() { if(currentBaseLayerName != name) this.style.color = "white"; },
-									onclick: function() { switchBaseLayer(name); }
+									onclick: function() { if(currentBaseLayerName != name) map.setBaseLayer(name); else map.unSetBaseLayer(); }
 								},
 								{ 
 									padding: "15px", 
