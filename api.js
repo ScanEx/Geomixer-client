@@ -2839,6 +2839,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						FlashMapObject.prototype.setVisible.call(obj, flag);
 						obj.isVisible = flag;
 					}
+					obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
+
 					for (var i = 0; i < deferredMethodNames.length; i++)
 						delete obj[deferredMethodNames[i]];
 					delete obj["getFeatures"];
@@ -3013,9 +3015,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					obj.addObject = function(geometry, props)
 					{
 						obj.setVisible(true);
-						var newObj = FlashCMD('addObject', { 'obj': obj, 'attr':{ 'geometry':geometry, 'properties':props }});
+						var newObj = FlashMapObject.prototype.addObject.call(obj, geometry, props);
 						obj.setVisible(false);
-						return new FlashMapObject(newObj, props, obj);
+						return newObj;
 					}
 					for (var i = 0; i < deferredMethodNames.length; i++) (function(name)
 					{
