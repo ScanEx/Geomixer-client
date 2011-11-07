@@ -1,369 +1,1153 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<script src="http://maps.kosmosnimki.ru/api/api.js" charset="windows-1251"></script>
-
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>GeoMixer API - начало использования - Загрузка Карты</title>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
+<title>GeoMixer API - Справочник</title>
 <link rel="stylesheet" href="style_geo_help.css" type="text/css" />
 <link rel="stylesheet" href="default.css">
+<style>
+
+p {
+	font-size: 13px;
+	color: #213570;
+	font-weight: normal;
+	margin: 0;
+	margin-top: 10px;
+	padding: 0;
+}
+
+</style>
 </head>
 
 <body>
-<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></a></span></div>
-<div style="margin-left:30%; margin-top:15px; margin-bottom:15px;" class="heading">Scanex Web GeoMixer</div>
+<span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo.png" /></a></span>
+<div style="margin-left:330px; margin-top:10px; margin-bottom:20px;" class="heading">GeoMixer API - Справочник</div>
 <table width="98%">
-<tr><td colspan="3">
-  <table width="100%">
-   <tr><td>
-        <div class="in_left"><a href="admin_help.html">GeoMixer Admin<br/>(Администрирование карты и БД)</a></div>
-        </td><td>
-        <div class="in_left" ><a href="mapviewer_help.html">MapViewer Template<br/>(Шаблон просмотра карты)</a></div>
-        </td><td>                
-        <div class="in_left_current"><a href="api_start.html">&gt;&gt; MapViewer API<br/>(Программный Интерфейс управления картой)</a></div>
-        </td>
-       </tr>
-     </table>
-</td></tr>
+
 <tr><td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
-<div class="in_left" style="background-color:#FFF">
+<div class="in_left_txt" style="background-color:#FFF">
 <h3><a href="api_start.html">Начало использования <strong>API</strong> - загрузка Карты</a></h3><br/>
-<h3><a href="api_start2.html">Элементы пользовательского интерфейса Карты</a></h3>
-<br/>
-<h3><a href="api_start3.html">Добавление объектов на карту</a></h3>
-<br/>
-<h3><a href="api_geocoding.html">Геокодинг</a></h3>
-<br/>
-<h3><a href="api_examples.html">Дополнительные примеры</a></h3>
+<h3><a href="api_examples.html">Галерея примеров</a></h3>
 <br/>
 <h3>&gt;&gt; Справочник API</h3>
-<ul>
-<li><a href="#ref_global">Global functions</a></li>
-<br/>
-<li><a href="#ref_map">Map</a></li>
-<br/>
-<li><a href="#ref_object">Object/Layer</a></li>
-<br/>
-<li><a href="#ref_json">GeoJSON</a></li>
-<br/>
-<li><a href="#ref_styles">Styles</a></li>
-</ul>
+
+
+
 </div>
-
 <h3 style="margin-left:8px;">Руководство пользователя Scanex Web GeoMixer:</h3>
-<div class="in_left"><a href="mapviewer_help.html"><b> MapViewer Template  (Шаблон просмотра карты)</b>  - Руководство пользователя</a></div>
+<div class="in_left_txt"><a href="http://wiki.kosmosnimki.ru/doku.php?id=start"><b> GeoMixer WEB-GIS  (веб-гис приложение)</b>  - Руководство пользователя</a></div>
 
-<div class="in_left"><a href="admin_help.html"><b> GeoMixer Admin (Администрирование карты и БД)</b>  - Руководство пользователя</a></div>
+<div class="in_left_txt"><a href="http://wiki.kosmosnimki.ru/doku.php?id=geomixer_setup"><b>Установка и настройка GeoMixer</b></a></div>
 
+<div class="in_left_txt"><a href="http://wiki.kosmosnimki.ru/doku.php?id=tilingtools"><b>Tiling Tools - набор утилит для выполнения операций с растровыми тайлами</b></a></div>
 </td>
 
 <td style="padding-right:4px;">
-<table id="content" border="0" style="background-color:#fff; margin-top:6px;" cellpadding="20" cellspacing="0"> 
-  
-  
-  <tr>
-    <td colspan="3" class="style1"><a name="ref_global"></a>Global functions</td>
-  </tr>
 
-  <tr>
-    <td colspan="3" class="td_text">
-        <table class="no_dots">
-            <tr><td>
-            <ul>
-            	<li>merc_x</li>
-                <li>merc_y</li>
-                <li>from_merc_x</li>
-                <li>from_merc_y</li>
-                <li>parseCoordinates</li>
-                <li>createFlashMap</li>
-                <li>createKosmosnimkiMap</li>
-                </li>
-            </ul>    
-            </td></tr>
-        </table>
-    </td>
-  </tr>
-  
-  <tr>
-    <td colspan="3" class="style1"><a name="ref_map"></a>Окно карты</td>
-  </tr>
-
-  
-  <tr>
-    <td align="center" class="td_text">
-    
-    <TABLE CLASS="MYTABLE" cellpadding="5">
-    <TR>
-    <TD class="CAPTION" colspan="3">
-    Конструктор
-    </TD>
-    </TR>
-    
-      <TR CLASS="MYTABLE">
-        <TH CLASS="MYTABLE1">Класс</TH>
-        <TH CLASS="MYTABLE2">Параметры</TH>
-        <TH CLASS="MYTABLE3">Описание</TH>
-      </TR>
+  <div class="td_ref_header">Содержание</div>
    
-    
-    <TBODY>
-      <TR CLASS="MYTABLE">  
-        <TD CLASS="MYTABLE1">makeFlashMap</TD>
-        <TD CLASS="MYTABLE2">(HTML element, map ID)</TD>
-        <TD CLASS="MYTABLE3">Базовый конструктор: создает flash-объект карты в указанном HTML-контейнере. Карта загружается по заданному ID или названию (например, "Kosmosnimki")</TD>
-      </TR>
-      </TBODY>
-  </TABLE>
-  
-  <TABLE CLASS="MYTABLE" cellpadding="5">
+  <p style="padding-left:5px;"><a href="#Globals">Конструктор карты</a><br />
+    <a href="#Map">Класс Map</a><br />
+    <a href="#Control">Класс Control</a><br />
+    <a href="#MiniMap">Класс MiniMap</a><br />
+    <a href="#Drawing">Класс Drawing</a><br />
+
+    <a href="#DrawingObject">Класс DrawingObject</a><br />
+    <a href="#FoundObject">Класс FoundObject</a><br />
+    <a href="#MapObject">Класс MapObject</a><br />
+    <a href="#MapFeature">Класс MapFeature</a><br />
+    <a href="#Extent">Класс Extent</a><br />
+    <a href="#Balloon">Класс Balloon</a><br />
+
+    <a href="#Geometry">Тип данных Geometry</a><br />
+    <a href="#Style">Тип данных Style</a></p>
  
-    
-  
-      <TR CLASS="MYTABLE">
-        <TH CLASS="MYTABLE1">Метод</TH>
-        <TH CLASS="MYTABLE2">Параметры</TH>
-        <TH CLASS="MYTABLE3">Описание</TH>
-      </TR>
-   
-    
-    <TBODY>
-      <TR CLASS="MYTABLE">  
-        <TD CLASS="MYTABLE1">map.moveTo</TD>
-        <TD CLASS="MYTABLE2">(X, Y, Z)</TD>
-        <TD CLASS="MYTABLE3">При загрузке карта позиционируется по указанным координатам (X - <span class="MYTABLE2">начальная координата по долготе, Y - начальная координата по широте</span>) и на заданном уровне детализации (Z)</TD>
-      </TR>
-      <TR CLASS="MYTABLE">  
-        <TD CLASS="MYTABLE1">map.moveToCoordinates</TD>
-        <TD CLASS="MYTABLE2">(X, Y)</TD>
-        <TD CLASS="MYTABLE3">В отличие от 
-          <span class="MYTABLE1"><strong>map.moveTo</strong> возможно задавать координаты в любом формате, например ("61.3266 N, 45.0878 E")</span></TD>
-      </TR>
-      </TBODY>
-  </TABLE>
-  <p></p>
-  <TABLE CLASS="MYTABLE" cellpadding="5">
-    <TR>
-    <TD class="CAPTION" colspan="3">
-    Конструктор
-    </TD>
-    </TR>
-    
-    
-      <TR CLASS="MYTABLE">
-        <TH CLASS="MYTABLE1">Класс</TH>
-        <TH CLASS="MYTABLE2">Параметры</TH>
-        <TH CLASS="MYTABLE3">Описание</TH>
-      </TR>
-    
-    
-    <TBODY>
-      <TR CLASS="MYTABLE">  
-        <TD CLASS="MYTABLE1">createKosmosnimkiMap</TD>
-        <TD CLASS="MYTABLE2">(HTML element, host name, map ID)</TD>
-        <TD CLASS="MYTABLE3">Базовый конструктор: создает flash-объект карты с указанным ID поверх базовой карты &quot;Kosmosnimki&quot;. Добавляет в интерфейс карты переключатель базовых слоев &quot;Карта-Снимки&quot;</TD>
-      </TR>
-   
-      </TBODY>
-  </TABLE>
-  
-  <TABLE CLASS="MYTABLE" cellpadding="5">
-   
-    
-    
-      <TR CLASS="MYTABLE">
-        <TH CLASS="MYTABLE1">Метод</TH>
-        <TH CLASS="MYTABLE2">Параметры</TH>
-        <TH CLASS="MYTABLE3">Описание</TH>
-      </TR>
-    
-    
-    <TBODY>
-      <TR CLASS="MYTABLE">  
-        <TD CLASS="MYTABLE1">map.setMode</TD>
-        <TD CLASS="MYTABLE2">(&quot;satellite&quot;, &quot;map&quot;)</TD>
-        <TD CLASS="MYTABLE3">Задает базовый слой, видимый по умолчанию: &quot;map&quot; - базовая растровая карта<br/>
-        "satellite" - базовое спутникове покрытие
-        </TD>
-      
-      </TBODY>
-  </TABLE>
-  
-    </td>
-  </tr>
-  
-    <tr>
-    <td colspan="3" class="style1"><a name="ref_layers"></a>Слои</td>
-  </tr>
+    <br/><div class="td_ref_header"><a name="Globals">Конструктор карты</a></div>
 
-  <tr>
-    <td colspan="3" class="td_text">
-  
-  <TABLE CLASS="MYTABLE" cellpadding="5">
-    <TR>
-    <TD class="CAPTION" colspan="3">
-    Fuction(Map)
-    </TD>
-    </TR>
-    
-  
-      <TR CLASS="MYTABLE">
-        <TH CLASS="MYTABLE1">Класс</TH>
-        <TH CLASS="MYTABLE2">Параметры</TH>
-        <TH CLASS="MYTABLE3">Описание</TH>
-      </TR>
-    
-    
-    <TBODY>
-      <TR CLASS="MYTABLE">  
-        <TD CLASS="MYTABLE1">map.layers</TD>
-        <TD CLASS="MYTABLE2">(layer ID)</TD>
-        <TD CLASS="MYTABLE3">Выбирает слой по его ID внутри слоев заданной карты</TD>
-      </TR>   
-      </TBODY>
-  </TABLE>
-  
-  <TABLE CLASS="MYTABLE" cellpadding="5">
+  <table class="td_ref"  cellpadding=5 cellspacing=0>
+  <thead><tr><td>Функция</td><td>Возвращаемое значение</td><td>Описание</td></tr></thead>
 
-    
-    <THEAD >
-      <TR CLASS="MYTABLE">
-        <TH CLASS="MYTABLE1">Метод</TH>
-        <TH CLASS="MYTABLE2">Параметры</TH>
-        <TH CLASS="MYTABLE3">Описание</TH>
-      </TR>
-    </THEAD>
-    
-    <TBODY>
-      <TR CLASS="MYTABLE">  
-        <TD CLASS="MYTABLE1">set.Visible</TD>
-        <TD CLASS="MYTABLE2">(true, false)</TD>
-        <TD CLASS="MYTABLE3">Позволяет выборочно отключать слои внутри заданной карты</TD>
-      </TR>
-     </TBODY>
-  </TABLE>
-   
-    </td>
-  </tr>
-      
-   <tr>
-    <td colspan="3" class="style1"><a name="ref_tools"></a>Добавление объектов</td>
-  </tr>
+<tr>
 
-  <tr>
-    <td colspan="3" class="td_text">
-    <TABLE CLASS="MYTABLE" cellpadding="5">
-<TR>
-    <TD class="CAPTION" colspan="4">
-    Function(Map)
-    </TD>
-    </TR>
+ <td>createFlashMap(div:Element, ?hostName:String, ?mapID:String, ?onLoadCallback:Function(map:Map))</td>
+ <td>None</td>
+ <td>
+  Базовый конструктор карты: создает flash-объект внутри 
+  указанного HTML-элемента, загружает в него карту с указанного хоста с указанным ID.
+  Параметр hostName необязателен. 
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_base.html">&raquo; Пример 1</a>
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_new.html">&raquo; Пример 2</a>
 
-      <TR CLASS="MYTABLE">
-        <TH CLASS="MYTABLE1">Класс</TH>
-        <TH colspan="2" CLASS="MYTABLE2">Функции </TH>
-        <TH CLASS="MYTABLE3">Описание</TH>
-      </TR>
-    
-    
-    <TBODY>
-      <TR CLASS="MYTABLE">  
-        <TD rowspan="6" CLASS="MYTABLE1">map</TD>
-        <TD rowspan="2" CLASS="MYTABLE2">drawing</TD>
-        <TD CLASS="MYTABLE2"><span class="MYTABLE1">add.Object</span></TD>
-        <TD CLASS="MYTABLE3">Добавляет на карту объекты описанных типов (см. <a href="api_start3.htm#add_objects">типы объектов</a>)</TD>
-      </TR>
-      <TR CLASS="MYTABLE">
-        <TD CLASS="MYTABLE2"><span class="MYTABLE1">tools</span></TD>
-        <TD CLASS="MYTABLE3">Выбирает элементы пользовательского интерфейса, активирующие режим рисования данных объектов</TD>
-      </TR>
-      <TR CLASS="MYTABLE">
-        <TD rowspan="2" CLASS="MYTABLE2">miniMap</TD>
-        <TD CLASS="MYTABLE2"><span class="MYTABLE1">setVisible</span></TD>
-        <TD CLASS="MYTABLE3">Отключение окна миникарты</TD>
-      </TR>
-      <TR CLASS="MYTABLE">
-        <TD CLASS="MYTABLE2">addLayer</TD>
-        <TD CLASS="MYTABLE3">Задание слоя для отображение в окне миникарты по его ID</TD>
-      </TR>
-      <TR CLASS="MYTABLE">
-        <TD CLASS="MYTABLE2">coordinates</TD>
-        <TD CLASS="MYTABLE2"><span class="MYTABLE1">setVisible</span></TD>
-        <TD CLASS="MYTABLE3">Отключение координат</TD>
-      </TR>
-      <TR CLASS="MYTABLE">
-        <TD CLASS="MYTABLE2">scaleBar</TD>
-        <TD CLASS="MYTABLE2"><span class="MYTABLE1">setVisible</span></TD>
-        <TD CLASS="MYTABLE3">Отключение масштабной шкалы</TD>
-      </TR>   
-      </TBODY>
-  </TABLE>
-    
-    
-    <TABLE CLASS="MYTABLE" cellpadding="5">
-  
-    
-    <THEAD >
-      <TR CLASS="MYTABLE">
-        <TH CLASS="MYTABLE1">Функция</TH>
-        <TH CLASS="MYTABLE2">Параметры </TH>
-        <TH CLASS="MYTABLE3">Описание</TH>
-      </TR>
-    </THEAD>
-    
-    <TBODY>
-      <TR CLASS="MYTABLE">  
-        <TD rowspan="3" CLASS="MYTABLE1">addObject</TD>
-        <TD CLASS="MYTABLE2">&quot;LINESTIRNG&quot;</TD>
-        <TD CLASS="MYTABLE3">линия </TD>
-      </TR>
-      <TR CLASS="MYTABLE">
-        <TD CLASS="MYTABLE2">&quot;POLYGON&quot;</TD>
-        <TD CLASS="MYTABLE3">многоугольник</TD>
-      </TR>
-      <TR CLASS="MYTABLE">
-        <TD CLASS="MYTABLE2">&quot;POINT&quot;</TD>
-        <TD CLASS="MYTABLE3">точка</TD>
-      </TR>   
-
-    
-    <TBODY>
-      <TR CLASS="MYTABLE">  
-        <TD CLASS="MYTABLE1">addLayer</TD>
-        <TD CLASS="MYTABLE2">(&quot;Layer ID&quot;)</TD>
-        <TD CLASS="MYTABLE3">ID слоя</TD>
-      </TR>
-      
-          
-      <TR CLASS="MYTABLE">  
-        <TD rowspan="3" CLASS="MYTABLE1">tools</TD>
-        <TD CLASS="MYTABLE2">&quot;LINESTIRNG&quot;</TD>
-        <TD CLASS="MYTABLE3">элемент включения режима &quot;рисование линии&quot;</TD>
-      </TR>
-      <TR CLASS="MYTABLE">
-        <TD CLASS="MYTABLE2">&quot;POLYGON&quot;</TD>
-        <TD CLASS="MYTABLE3">элемент включения режима &quot;рисование многоугольника&quot;</TD>
-      </TR>
-      <TR CLASS="MYTABLE">
-        <TD CLASS="MYTABLE2">&quot;POINT&quot;</TD>
-        <TD CLASS="MYTABLE3">элемент включения режима &quot;рисование маркера&quot;</TD>
-      </TR>   
-      
-      <TR CLASS="MYTABLE">  
-        <TD CLASS="MYTABLE1">setVisible</TD>
-        <TD CLASS="MYTABLE2">(true, false)</TD>
-        <TD CLASS="MYTABLE3">Позволяет отлючать элементы интерфейса </TD>
-      </TR>
-     
-  </TABLE>
-   
-    </td>
-  </tr>
-  
-   <tr>
-    <td colspan="3" class="style1"><a name="ref_baloon"></a>Балун</td>
-  </tr>
-    
+ </td>
+</tr>
+<!--tr>
+ <td>merc_x(lon:Number)</td>
+ <td>Number</td>
+ <td>Перевод долготы в проекцию карты (метры Меркатора)</td>
+</tr>
+<tr>
+ <td>merc_y(lon:Number)</td>
+ <td>Number</td>
+ <td>Перевод широты в проекцию карты (метры Меркатора)</td>
+</tr>
+<tr>
+ <td>from_merc_x(x:Number)</td>
+ <td>Number</td>
+ <td>Перевод координаты X в метрах Меркатора в долготу.</td>
+</tr>
+<tr>
+ <td>from_merc_y(y:Number)</td>
+ <td>Number</td>
+ <td>Перевод координаты Y в метрах Меркатора в широту.</td>
+</tr-->
+<!--tr>
+ <td>parseCoordinates(coordinates:String, callback:Function(x:Number, y:Number))</td>
+ <td>Boolean</td>
+ <td></td>
+</tr-->
 </table>
+
+
+
+<br/><div class="td_ref_header"><a name="Map">Класс Map</a>
+<p>Окно карты, добавленное на страницу.</p>
+</div>
+<h3>Поля</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+
+<thead><tr><td>Имя поля</td><td>Тип</td><td>Описание</td></tr></thead>
+<tr>
+ <td>layers</td>
+ <td>Array[MapObject]</td>
+ <td>
+  Список слоев карты. Возможно обращение по номеру, имени или ID слоя.
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_layers.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>scaleBar</td>
+ <td>Control</td>
+ <td>
+ Масштабная линейка в правом нижнем углу.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_hide_tools.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>coordinates</td>
+ <td>Control</td>
+ <td>
+ Индикатор координат в правом нижнем углу.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_hide_tools.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>allControls</td>
+ <td>Control</td>
+ <td>
+ Весь набор элементов управления в левом верхнем углу.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_tools.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>zoomControl</td>
+ <td>ZoomControl</td>
+ <td>Линейка уровней зума в левом верхнем углу.</td>
+</tr>
+<tr>
+ <td>baseLayerControl</td>
+
+ <td>Control</td>
+ <td>Переключатель базовых слоев в левом верхнем углу.</td>
+</tr>
+<!--tr>
+ <td>copyright</td>
+ <td>Copyright</td>
+ <td>Строчка копирайта в правом нижнем углу.</td>
+</tr-->
+<tr>
+ <td>miniMap</td>
+ <td>MiniMap</td>
+ <td>
+
+ Окошко мини-карты в правом верхнем углу.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_minimap.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>drawing</td>
+ <td>Drawing</td>
+ <td>
+
+ Объект для управления инструментами рисования в левом верхнем углу.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_circle_tool.html">&raquo; Пример</a>
+ </td>
+</tr>
+</table>
+<h3>Методы</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Метод</td><td>Возвращаемое значение</td><td>Описание</td></tr></thead>
+<tr>
+
+ <td>moveTo(x:Number, y:Number, z:Number)</td>
+ <td>None</td>
+ <td>
+ Карта позиционируется по указанным координатам (X - начальная координата по долготе, Y - начальная координата по широте). Z - задает уровень детализации.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_move_map.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+
+ <td>slideTo(x:Number, y:Number, z:Number)</td>
+ <td>None</td>
+ <td>
+ Карта плавно перемещается к указанным координатам.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_pan_map.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+
+ <td>moveToCoordinates(coordinates:String)</td>
+ <td>Boolean</td>
+ <td>
+ В отличие от map.moveTo возможно задавать координаты в любом формате, например ("61.3266 N, 45.0878 E").
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_move_map.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+
+ <td>zoomToExtent(minX:Number, minY:Number, maxX:Number, maxY:Number)</td>
+ <td>None</td>
+ <td>Позиционировать карту оптимальным образом по заданному extent (координаты и уровень зума выбираются автоматически).</td>
+</tr>
+<tr>
+ <td>getX()</td>
+ <td>Number</td>
+
+ <td>Возвращает текущую долготу центра карты.</td>
+</tr>
+<tr>
+ <td>getY()</td>
+ <td>Number</td>
+ <td>Возвращает текущую широту центра карты.</td>
+</tr>
+<tr>
+ <td>getZ()</td>
+
+ <td>Number</td>
+ <td>Возвращает текущий уровень детализации карты.</td>
+</tr>
+<tr>
+ <td>getPosition()</td>
+ <td>Object</td>
+ <td>Возвращает текущие параметры карты за один запрос. (mouseX, mouseY, extent, z, x, y - метры Меркатора)
+ </td>
+
+</tr>
+<tr>
+ <td>zoomControl.setMinMaxZoom(minZoom:Number, maxZoom:Number)</td>
+ <td>None</td>
+ <td>Установка минимума и максимума для ZoomControl
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_zoom.html">&raquo; Пример</a>
+ </td>
+</tr>
+
+<tr>
+ <td>setExtent(minX:Number, maxX:Number, minY:Number, maxY:Number)</td>
+ <td>None</td>
+ <td>Задать географический extent, за пределы которого нельзя выйти.
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_setExtent.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>getVisibleExtent()</td>
+
+ <td>Extent</td>
+ <td>Возвращает географический extent, соответствующий текущему окну карты.</td>
+</tr>
+<tr>
+ <td>getMouseX()</td>
+ <td>Number</td>
+ <td>Возвращает текущую долготу курсора мыши.</td>
+
+</tr>
+<tr>
+ <td>getMouseY()</td>
+ <td>Number</td>
+ <td>Возвращает текущую широту курсора мыши.</td>
+</tr>
+<tr>
+ <td>freeze()</td>
+ <td>None</td>
+
+ <td>Временно отключить возможность перемещения по карте.</td>
+<tr>
+<tr>
+ <td>unfreeze()</td>
+ <td>None</td>
+ <td>Обратно включить возможность перемещения по карте.</td>
+<tr>
+<tr>
+ <td>setBaseLayer(name:String)</td>
+ <td>None</td>
+ <td>
+ Переключается на заданный базовый слой (например, "Карта" или "Снимки").
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_base_layers.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+<tr>
+ <td>unSetBaseLayer()</td>
+ <td>None</td>
+ <td>
+ Отключить отображение базового слоя
+ <a href="api_samples/ex_disableLayerByZoom.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>setBackgroundColor(color:Number)</td>
+
+ <td>None</td>
+ <td>Задает цвет фона для карты. Цвет передается в виде целого числа, например 0xffffff.</td>
+</tr>
+<tr>
+ <td>minimizeTools()</td>
+ <td>None</td>
+ <td>
+ Сворачивает все инструменты в левом верхнем углу карты.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_minimize.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>maximizeTools()</td>
+ <td>None</td>
+ <td>Разворачивает все инструменты в левом верхнем углу карты.</td>
+</tr>
+<tr>
+ <td>getLength(geometry:Geometry)</td>
+
+ <td>Number</td>
+ <td>
+ Возвращает длину данной геометрии в метрах.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_length.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>getArea(geometry:Geometry)</td>
+
+ <td>Number</td>
+ <td>
+ Возвращает площадь данной геометрии в квадратных метрах.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_area.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>getCenter(geometry:Geometry)</td>
+
+ <td>Array[Number]</td>
+ <td>Возвращает координаты географического центра данной геометрии.</td>
+</tr>
+<tr>
+ <td>addObject(?geometry:Geometry, ?properties:Hash[String])</td>
+ <td>MapObject</td>
+ <td>
+ Добавляет новый объект с указанной геометрией и атрибутами.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>addObjects(Array[{?geometry:Geometry, ?properties:Hash[String]}])</td>
+ <td>Array[MapObject]</td>
+ <td>
+ Добавление массива статических объектов на карту.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>addBalloon()</td>
+ <td>Balloon</td>
+ <td>
+ Добавляет на карту балун с текстом или HTML.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_balloon.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>setHandler(eventName:String, callback:Function(target:MapObject))</td>
+ <td>None</td>
+ <td>
+ Навесить обработчик события для карты. Возможные имена событий: "onMouseMove", "onMouseOver", "onMouseOut", "onMouseDown", "onMouseUp", "onClick", "onResize" (изменение размера окна карты), "onMove" (движение карты).
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_handler_map.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>sendSearchRequest(query:String, responseCallback:Function(results:Hash[Array[FoundObject]]))</td>
+ <td>None</td>
+ <td>
+ Отправляет поисковый запрос к геокодеру.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_search.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<!--
+<tr>
+ <td>getFeatures(callback:Function(features:Array[MapFeature]), ?region:Geometry, ?query:String)</td>
+ <td>None</td>
+ <td>
+ Запрашивает список всех объектов из всех векторных слоев, пересекающихся с данной геометрией и/или соответствующих данной строке поиска.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_search2.html">&raquo; Пример</a>
+ </td>
+</tr>
+-->
+<tr>
+ <td>print()</td>
+ <td>None</td>
+ <td>Предлагает пользователю распечатать окно карты.</td>
+</tr>
+<tr>
+ <td>savePNG(?fileName:String)</td>
+
+ <td>None</td>
+ <td>Предлагает пользователю сохранить окно карты в PGN файл. <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_save_png.html">&raquo; Пример</a>
+ </td>
+</tr></table>
+
+
+
+<br/><div class="td_ref_header"><a name="Control">Класс Control</a>
+<p>Элемент управления картой.</p>
+
+</div>
+<h3>Методы</h3>
+<table class="td_ref"  cellpadding=5 cellspacing=0>
+<thead><tr><td>Метод</td><td>Возвращаемое значение</td><td>Описание</td></tr></thead>
+<tr>
+ <td>setVisible(flag:Boolean)</td>
+ <td>None</td>
+ <td>
+
+  Показать или скрыть элемент управления.
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_hide_tools.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>minimize()</td>
+ <td>None</td>
+ <td>
+
+  Перевести элемент управления в свернутый вид. 
+  Реализовано для map.allControls и map.zoomControl.
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_hide_tools.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>maximize()</td>
+ <td>None</td>
+ <td>
+
+  Перевести элемент управления в развернутый вид. 
+ </td>
+</tr>
+</table>
+
+
+
+<br/><div class="td_ref_header"><a name="MiniMap">Класс MiniMap</a>
+<p>Окошко мини-карты в правом верхнем углу.</p>
+</div>
+<h3>Методы</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Метод</td><td>Возвращаемое значение</td><td>Описание</td></tr></thead>
+
+<tr>
+ <td>setVisible(flag:Boolean)</td>
+ <td>None</td>
+ <td>Показать или скрыть окошко.</td>
+</tr>
+<tr>
+ <td>addLayer(layer:MapObject)</td>
+ <td>None</td>
+
+ <td>
+ Добавить слой из основной карты для показа в мини-карту. Должен быть взят из коллекции map.layers
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_minimap.html">&raquo; Пример</a>
+ </td>
+</tr>
+</table>
+
+
+
+<br/><div class="td_ref_header"><a name="Drawing">Класс Drawing</a>
+<p>Класс для управления инструментами рисования и объектами, нарисованными пользователем на карте.</p>
+
+</div>
+<h3>Поля</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Имя поля</td><td>Тип</td><td>Описание</td></tr></thead>
+<tr>
+ <td>tools</td>
+ <td>Hash[Control]</td>
+ <td>
+
+ Коллекция инструментов рисования, отображенных в левом верхнем углу. Их имена: "move", "zoom", "POINT", "LINESTRING", "POLYGON", "FRAME".
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_hide_tools.html">&raquo; Пример</a>
+ </td>
+</tr>
+</table>
+<h3>Методы</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Метод</td><td>Возвращаемое значение</td><td>Описание</td></tr></thead>
+<tr>
+
+ <td>addObject(geometry:Geometry, ?properties:Hash[String])</td>
+ <td>DrawingObject</td>
+ <td>
+ Добавить на карту нарисованный объект с указанной геометрией и атрибутами.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_marker.html">&raquo; Пример 1</a>
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_poly.html">&raquo; Пример 2</a>
+
+ </td>
+</tr>
+<tr>
+ <td>addTool(name:String, tooltip:String, regularImageUrl:String, activeImageUrl:String, onClick:Function, onCancel:Function)</td>
+ <td>Control</td>
+ <td>
+ Добавить в линейку инструментов новый инструмент с заданными именем, подсказкой при наведении, картинками и обработчиками.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_circle_tool.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>setHandler(eventName:String, callback:Function(target:DrawingObject))</td>
+ <td>None</td>
+ <td>
+ Навесить обработчик на события рисования. Возможные имена событий: "onAdd", "onEdit", "onRemove".
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_handler_object.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>forEachObject(callback:Function(object:DrawingObject))</td>
+ <td>None</td>
+ <td>Перебрать все нарисованные на карте объекты, передавая их по очереди в указанную функцию.</td>
+</tr>
+</table>
+
+
+<br/><div class="td_ref_header"><a name="DrawingObject">Класс DrawingObject</a>
+<p>Объект, редактируемый пользователем на карте.</p>
+</div>
+<h3>Поля</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Имя поля</td><td>Тип</td><td>Описание</td></tr></thead>
+<tr>
+ <td>geometry</td>
+
+ <td>Geometry</td>
+ <td>Геометрия объекта.</td>
+</tr>
+<tr>
+ <td>properties</td>
+ <td>Hash[String]</td>
+ <td>Текстовые атрибуты объекта.</td>
+
+</tr>
+</table>
+<h3>Методы</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Метод</td><td>Возвращаемое значение</td><td>Описание</td></tr></thead>
+<tr>
+ <td>getLength()</td>
+ <td>Number</td>
+ <td>Возвращает длину объекта в метрах.</td>
+
+</tr>
+<tr>
+ <td>getArea()</td>
+ <td>Number</td>
+ <td>Возвращает площадь объекта в квадратных метрах.</td>
+</tr>
+<tr>
+ <td>getCenter()</td>
+ <td>Array[Number]</td>
+
+ <td>Возвращает географические координаты центра объекта.</td>
+</tr>
+<tr>
+ <td>setStyle(regularStyle:Style, ?hoveredStyle:Style)</td>
+ <td>None</td>
+ <td>Задать стиль отрисовки и стиль при наведении мыши для данного объекта.</td>
+</tr>
+<tr>
+ <td>remove()</td>
+
+ <td>None</td>
+ <td>Удалить нарисованный объект.</td>
+</tr>
+</table>
+
+
+
+<br/><div class="td_ref_header"><a name="FoundObject">Класс FoundObject</a></div>
+<h3>Поля</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Имя поля</td><td>Тип</td><td>Описание</td></tr></thead>
+
+<tr>
+ <td>Path</td>
+ <td>Array[Array[String]]</td>
+ <td>Названия и типы полного административного пути к данному объекту.</td>
+</tr>
+<tr>
+ <td>CntrLat</td>
+ <td>Number</td>
+
+ <td>Широта центра объекта.</td>
+</tr>
+<tr>
+ <td>CntrLon</td>
+ <td>Number</td>
+ <td>Долгота центра объекта.</td>
+</tr>
+</table>
+
+
+<br/><div class="td_ref_header"><a name="MapObject">Класс MapObject</a>
+<p>Динамический объект на карте. Это может быть одиночная геометрия, растровое изображение, 
+растровый слой, векторный слой или родительский объект для других объектов.</p>
+</div>
+<h3>Поля</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Имя поля</td><td>Тип</td><td>Описание</td></tr></thead>
+<tr>
+ <td>properties</td>
+
+ <td>Hash[String]</td>
+ <td>Текстовые атрибуты объекта.</td>
+</tr>
+</table>
+<h3>Методы</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Метод</td><td>Возвращаемое значение</td><td>Описание</td></tr></thead>
+<tr>
+ <td>addObject(?geometry:Geometry, ?properties:Hash[String])</td>
+
+ <td>MapObject</td>
+ <td>Добавить дочерний объект с указанной геометрией и атрибутами.</td>
+</tr>
+<tr>
+ <td>getChildren()</td>
+ <td>Array[MapObject]</td>
+ <td>
+ Получить список дочерних объектов данного объекта.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_load_wms.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>remove()</td>
+ <td>None</td>
+ <td>Удалить объект с карты.</td>
+</tr>
+<tr>
+ <td>setHandler(eventName:String, callback:Function(target:MapObject))</td>
+
+ <td>None</td>
+ <td>
+  Навесить обработчик события для данного объекта. Возможные имена событий: "onMouseMove", "onMouseOver", "onMouseOut", "onMouseDown", "onMouseUp", "onClick", "onResize" (изменение размера окна карты), "onMove" (движение карты).
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_handler_layer.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>removeHandler(eventName:String)</td>
+
+ <td>None</td>
+ <td>
+  Удалить обработчик события для данного объекта.
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_removeHandler.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>bringToTop()</td>
+
+ <td>None</td>
+ <td>
+ Перемещение слоя вверх
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_bringToTop.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>bringToBottom()</td>
+
+ <td>None</td>
+ <td>
+ Перемещение слоя вниз
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_bringToBottom.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>setDepth(depth:Number)</td>
+
+ <td>Number</td>
+ <td>
+ Перемещение слоя на глубину depth - возвращает индекс на который переместился обьект
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_setDepth.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>setVisible(flag:Boolean)</td>
+
+ <td>None</td>
+ <td>Показать или скрыть объект.
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_setVisible.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>getVisibility()</td>
+ <td>Boolean</td>
+
+ <td>Получить видимость объекта
+  <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_setVisible.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>setZoomBounds(minZoom:Number, maxZoom:Number)</td>
+ <td>None</td>
+ <td>Задать, на каких уровнях зума объект должен быть виден на карте.</td>
+
+</tr>
+<tr>
+ <td>setStyle(regularStyle:Style, ?hoveredStyle:Style)</td>
+ <td>None</td>
+ <td>Задать стиль отрисовки для данного объекта, а также, возможно, стиль при наведении мыши.</td>
+</tr>
+<tr>
+ <td>getGeometry()</td>
+ <td>Geometry</td>
+
+ <td>Возвращает геометрию объекта.</td>
+</tr>
+<tr>
+ <td>getLength()</td>
+ <td>Number</td>
+ <td>Возвращает длину объекта в метрах.</td>
+</tr>
+<tr>
+ <td>getArea()</td>
+
+ <td>Number</td>
+ <td>Возвращает площадь объекта в квадратных метрах.</td>
+</tr>
+<tr>
+ <td>getCenter()</td>
+ <td>Array[Number]</td>
+ <td>Возвращает географические координаты центра объекта.</td>
+
+</tr>
+<tr>
+ <td>setGeometry(geometry:Geometry)</td>
+ <td>None</td>
+ <td>Задать геометрию объекта.</td>
+</tr>
+<tr>
+ <td>setPoint(x:Number, y:Number)</td>
+ <td>None</td>
+
+ <td>Сделать объект точкой с заданными координатами.</td>
+</tr>
+<tr>
+ <td>setLine(coordinates:Array[Array[Number]])</td>
+ <td>None</td>
+ <td>Сделать объект ломаной линией.</td>
+</tr>
+<tr>
+ <td>setPolygon(coordinates:Array[Array[Number]])</td>
+
+ <td>None</td>
+ <td>Сделать объект многоугольником.</td>
+</tr>
+<tr>
+ <td>setRectangle(x1:Number, y1:Number, x2:Number, y2:Number)</td>
+ <td>None</td>
+ <td>Сделать объект прямоугольником с указанными границами.</td>
+
+</tr>
+<tr>
+ <td>setCircle(x:Number, y:Number, r:Number)</td>
+ <td>None</td>
+ <td>Сделать объект кругом с указанным центром (в широте-долготе) и радиусом (в метрах).</td>
+</tr>
+<tr>
+ <td>setLabel(label:String)</td>
+ <td>None</td>
+
+ <td>
+ Задать текстовую подпись для объекта.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_set_label.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>setImage(url:String, x1:Number, y1:Number, x2:Number, y2:Number, x3:Number, y3:Number, x4:Number, y4:Number)</td>
+ <td>None</td>
+
+ <td>
+ Сделать объект картинкой, загруженной с указанного URL, привязанной по географическим координатам четырех углов.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_add_image.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>setTiles(urlFunction:Function(i:Number, j:Number, z:Number):String, ?projectionCode:Number)</td>
+ <td>None</td>
+
+ <td>
+ Сделать объект слоем с растровыми тайлами, загружаемыми по указанным адресам.
+ Если projectionCode=1, то используется проекция Веб-меркатор (Google Maps) вместо обычной.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_add_tiles.html">&raquo; Пример 1</a>
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_add_tiles_webmerc.html">&raquo; Пример 2</a>
+ </td>                                                                                     
+</tr>
+<tr>
+ <td>enableHoverBalloon(?textCallback:Function(target:MapObject):String, attr:Hash)</td>
+
+ <td>None</td>
+ <td>
+ Включить всплывающую текстовую подсказку для данного объекта.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_enableBalloon.html">&raquo; Пример</a>
+ <br>
+ Ключи attr: <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_enableHoverBalloon_disableOnClick.html">'disableOnClick':Boolean</a>, <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_enableHoverBalloon_disableOnMouseOver.html">'disableOnMouseOver':Boolean</a>, <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_enableHoverBalloon_maxFixedBallons.html">'maxFixedBallons':Number</a>, <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_enableHoverBalloon_OnClickSwitcher.html">'OnClickSwitcher':Function</a>
+
+ </td>
+</tr>
+<tr>
+ <td>setAsBaseLayer(name:String)</td>
+ <td>None</td>
+ <td>
+ Добавить данный объект к списку "базовых слоев" в левом верхнем углу, с указанным именем.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_base_layers.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>setCopyright(htmlText:String)</td>
+ <td>None</td>
+ <td>Задать HTML-текст копирайта для объекта. Он будет появляться в правом нижнем углу, когда данный объект виден.</td>
+</tr>
+<tr>
+ <td>getFeatures(callback:Function(features:Array[MapFeature]), ?region:Geometry, ?query:String)</td>
+
+ <td>None</td>
+ <td>
+ (Только для векторных слоев) Запрашивает список всех объектов векторного слоя, пересекающихся с данной геометрией и/или соответствующих данной строке поиска.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_search2.html">&raquo; Пример1</a>
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_extract.html">&raquo; Пример2</a>
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_extract_poligon.html">&raquo; Пример3</a>
+
+ </td>
+</tr>
+<tr>
+ <td>loadKML(url:String, callback:Function())</td>
+ <td>None</td>
+ <td>
+ Загружает географические объекты из KML по указанному адресу.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_load_kml.html">&raquo; Пример</a>
+
+ </td>
+</tr>
+<tr>
+ <td>loadGML(url:String, callback:Function())</td>
+ <td>None</td>
+ <td>
+ Загружает географические объекты из GML по указанному адресу.
+ </td>
+</tr>
+<tr>
+
+ <td>loadWMS(url:String, callback:Function())</td>
+ <td>None</td>
+ <td>
+ Загружает слои WMS по указанному адресу. 
+ Все слои добавляются в качестве дочерних объектов данного объекта.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_load_wms.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+
+ <td>loadMap(?hostName:String, mapName:String, ?callback:Function())</td>
+ <td>None</td>
+ <td>
+ Загружает дополнительную карту из Geomixer по указанному адресу.
+ Все слои добавляются в качестве дочерних объектов данного объекта.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_mix_maps.html">&raquo; Пример</a>
+ </td>
+</tr>
+</table>
+
+
+<br/><div class="td_ref_header"><a name="MapFeature">Класс MapFeature</a>
+<p>Элемент векторного слоя.</p>
+</div>
+<h3>Поля</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Имя поля</td><td>Тип</td><td>Описание</td></tr></thead>
+<tr>
+ <td>properties</td>
+
+ <td>Hash[String]</td>
+ <td>Текстовые атрибуты объекта.</td>
+</tr>
+<tr>
+ <td>geometry</td>
+ <td>Geometry</td>
+ <td>Геометрия объекта.</td>
+
+</tr>
+<tr>
+ <td>layer</td>
+ <td>MapObject</td>
+ <td>Ссылка на векторный слой, в котором содержится объект.</td>
+</tr>
+</table>
+<h3>Методы</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Метод</td><td>Возвращаемое значение</td><td>Описание</td></tr></thead>
+
+<tr>
+ <td>getLength()</td>
+ <td>Number</td>
+ <td>Возвращает длину в метрах (для линейных объектов).</td>
+</tr>
+<tr>
+ <td>getArea()</td>
+ <td>Number</td>
+
+ <td>Возвращает площадь в квадратных метрах (для полигональных объектов).</td>
+</tr>
+</table>
+
+
+<br/><div class="td_ref_header"><a name="Extent">Класс Extent</a>
+<p>Географический прямоугольник.</p>
+</div>
+<h3>Поля</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Имя поля</td><td>Тип</td><td>Описание</td></tr></thead>
+
+<tr>
+ <td>minX</td>
+ <td>Number</td>
+ <td></td>
+</tr>
+<tr>
+ <td>minY</td>
+ <td>Number</td>
+
+ <td></td>
+</tr>
+<tr>
+ <td>maxX</td>
+ <td>Number</td>
+ <td></td>
+</tr>
+<tr>
+ <td>maxY</td>
+
+ <td>Number</td>
+ <td></td>
+</tr>
+</table>
+
+
+<br/><div class="td_ref_header"><a name="Balloon">Класс Balloon</a>
+<p>"Балун" на карте, содержащий текст или HTML.</p>
+</div>
+<h3>Поля</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+
+<thead><tr><td>Имя поля</td><td>Тип</td><td>Описание</td></tr></thead>
+<tr>
+ <td>div</td>
+ <td>Element</td>
+ <td>HTML-контейнер для содержимого балуна.</td>
+</tr>
+<tr>
+ <td>isVisible</td>
+
+ <td>Boolean</td>
+ <td>Виден ли балун в данный момент или он был скрыт пользователем.</td>
+</tr>
+</table>
+<h3>Методы</h3>
+<table class="td_ref" cellpadding=5 cellspacing=0>
+<thead><tr><td>Метод</td><td>Возвращаемое значение</td><td>Описание</td></tr></thead>
+<tr>
+ <td>setPoint(x:Number, y:Number)</td>
+
+ <td>None</td>
+ <td>
+ Задать географические координаты точки, к которой привязан балун.
+ <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_balloon.html">&raquo; Пример</a>
+ </td>
+</tr>
+<tr>
+ <td>setVisible(flag:Boolean)</td>
+
+ <td>None</td>
+ <td>Показать или скрыть балун.</td>
+</tr>
+<tr>
+ <td>resize()</td>
+ <td>None</td>
+ <td>Обновить размеры балуна после изменения его HTML-содержимого.</td>
+
+</tr>
+<tr>
+ <td>remove()</td>
+ <td>None</td>
+ <td>Удалить балун с карты.</td>
+</tr>
+</table>
+
+
+
+<br/><div class="td_ref_header"><a name="Geometry">Тип данных Geometry</a></div>
+
+<h3>
+ Пример точечной геометрии
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_point.html">на карте</a>)
+</h3>
+<pre>{ 
+  type: "POINT", 
+  coordinates: [37.0, 55.0] 
+}</pre>
+<h3>
+ Пример линейной геометрии 
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_linestring.html">на карте</a>)
+</h3>
+<pre>{ 
+  type: "LINESTRING", 
+  coordinates: [[32.3437,60.2308],[38.1445,58.6189],[37.6171,55.6581],[49.0429,46.1433]]
+}</pre>
+<h3>
+
+ Пример полигональной геометрии
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_polygon.html">на карте</a>)
+</h3>
+<pre>{ 
+  type: "POLYGON", 
+  coordinates: [[[29.8828,59.4345],[26.5429,51.0357],[44.1210,44.5318],[57.3046,54.3447],[46.7578,61.8501],[29.8828,59.4345]]]
+}</pre>
+Примечание: последняя точка полигона должна совпадать с первой.
+<br /><br />
+<h3>
+ Пример полигона c дыркой
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_polygon_with_hole.html">на карте</a>)
+</h3>
+<pre>{
+  type: "POLYGON",
+  coordinates: [
+    [[29.8828,59.4345],[26.5429,51.0357],[44.1210,44.5318],[57.3046,54.3447],[46.7578,61.8501],[29.8828,59.4345]],
+    [[38.4960,57.0247],[35.5078,53.0937],[42.3632,50.7020],[48.3398,52.5613],[45.3515,56.6393],[38.4960,57.0247]]
+  ]
+}</pre>
+
+<h3>
+ Пример мультиполигона из двух частей
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_multipolygon.html">на карте</a>)
+</h3>
+<pre>{
+  type: "MULTIPOLYGON",
+  coordinates: [
+    [[[38.4960,57.0247],[35.5078,53.0937],[42.3632,50.7020],[48.3398,52.5613],[45.3515,56.6393],[38.4960,57.0247]]],
+    [[[59.5898,55.1581],[59.4140,49.6865],[70.4882,50.0274],[65.9179,55.2586],[59.5898,55.1581]]]
+  ]
+}</pre>
+
+
+<br/><div class="td_ref_header"><a name="Style">Тип данных Style</a></div>
+<h3>
+ Пример стиля для точечных объектов
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_point.html">на карте</a>)
+
+</h3>
+<pre>{
+  marker: {
+    image: "http://maps.kosmosnimki.ru/api/img/marker_flag.png",
+    dx: -2,
+    dy: -20
+  }
+}</pre>
+<h3>
+ Пример стиля для линейных объектов
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_linestring.html">на карте</a>)
+</h3>
+<pre>{
+  outline: {
+    color: 0x0000ff,
+    thickness: 1,
+    opacity: 100
+  }
+}</pre>
+<h3>
+ Пример стиля для пунктирной линии
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_linestring_dash.html">на карте</a>)
+</h3>
+
+<pre>{
+  outline: {
+    color: 0x000000,
+    thickness: 1,
+    opacity: 100,
+    dashes: [3,2,1,2]
+  }
+}</pre>
+<h3>
+ Пример стиля для полигональных объектов
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_polygon.html">на карте</a>)
+</h3>
+<pre>{
+  outline: {
+    color: 0x0000ff,
+    thickness: 1,
+    opacity: 100
+  },
+  fill: {
+    color: 0xff0000,
+    opacity: 50
+  }
+}</pre>
+<h3>
+ Пример стиля для полигона с паттерном
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_polygon_pattern.html">на карте</a>)
+</h3>
+<pre>{
+  outline: {
+    color: 0xff0000,
+    thickness: 1,
+    opacity: 50
+  },
+  fill: {
+    image: "http://kosmosnimki.ru/geomixer/docs/api_samples/car_icon_small.gif"
+  }
+}</pre>
+
+<h3>
+ Пример стиля для объекта c подписью
+ (<a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_geometry_point.html">на карте</a>)
+</h3>
+<pre>{
+  label: {
+    color: 0xff00ff,
+    size: 12,
+    haloColor: 0xffffff
+  }
+}</pre>
 
 </td>
 </tr>

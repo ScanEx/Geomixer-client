@@ -797,14 +797,24 @@ class Main
 			getNode(id).setContent(content);
 		}
 
-		function setTiles(id:String, tiles:Array<Int>)
+		function setTiles(id:String, tiles:Array<Int>, ?clrFlag:Bool)
 		{
 			var node = getNode(id);
 			if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {
 				var layer = cast(node.content, VectorLayer);
+				layer.flush();
+				//if (clrFlag) layer.tiles = new Array<VectorTile>();
 				for (i in 0...Std.int(tiles.length/3))
 					layer.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
-				layer.createLoader(null);
+				layer.createLoader(function(tile:VectorTile, tilesRemaining:Int)
+				{
+					//trace('--------tile ---- visibleextent ------ ' + tilesRemaining + ' : ' );
+					if (tilesRemaining < 0)
+					{
+						Main.bumpFrameRate();
+						Main.refreshMap();
+					}
+				})(mapWindow.visibleExtent);
 			}
 		}
 
@@ -1167,7 +1177,7 @@ class Main
 				case 'setVectorTiles':
 					setVectorTiles(attr.objectId, attr.tileFunction, attr.identityField, attr.tiles, attr.filesHash);
 				case 'setTiles':
-					setTiles(attr.objectId, attr.tiles);
+					setTiles(attr.objectId, attr.tiles, attr.flag);
 				case 'getStat':
 					var node = getNode(attr.objectId);
 					if (node != null && node.content != null && Std.is(node.content, VectorLayer)) {

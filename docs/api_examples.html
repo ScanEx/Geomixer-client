@@ -10,162 +10,259 @@
 </head>
 
 <body>
-<div class="logo" style="margin:7px 0 0 12px ; padding:8px;"><span class="logo"><a href="geomixer_help.html"><img src="geo_help_img/logo_mini.jpg" width="203" height="50" /></a></span></div>
-<div style="margin-left:30%; margin-top:15px; margin-bottom:15px;" class="heading">Scanex Web GeoMixer</div>
+<span class="logo"><a href="http://kosmosnimki.ru/geomixer/docs/"><img src="../../img/geomixer_transpar.png" /></a></span>
+<div style="margin-left:330px; margin-top:10px; margin-bottom:20px;" class="heading">GeoMixer API - Руководство разработчика</div>
+
 <table width="98%">
-<tr><td colspan="3">
-  <table width="100%">
-   <tr><td>
-        <div class="in_left"><a href="admin_help.html">GeoMixer Admin<br/>(Администрирование карты и БД)</a></div>
-        </td><td>
-        <div class="in_left" ><a href="mapviewer_help.html">MapViewer Template<br/>(Шаблон просмотра карты)</a></div>
-        </td><td>                
-        <div class="in_left_current"><a href="api_start.html">&gt;&gt; MapViewer API<br/>(Программный Интерфейс управления картой)</a></div>
-        </td>
-       </tr>
-     </table>
-</td></tr>
+
 <tr><td valign="top" style="width: 250px;  padding-top:5px; padding-right:10px; padding-left:3px;" class="menutext">
-<div class="in_left" style="background-color:#FFF">
-<h3><a href="api_start.html">Начало использования <strong>API</strong> - загрузка Карты</a></h3><br/>
-<h3><a href="api_start2.html">Элементы пользовательского интерфейса  Карты</a></h3>
-<br/>
-<h3><a href="api_start3.html">Добавление объектов на карту</a></h3>
-<br/>
-<h3><a href="api_geocoding.html">Геокодинг</a></h3>
-<br/>
-<h3>&gt;&gt; Дополнительные примеры</h3>
+<div class="in_left_txt" style="background-color:#FFF">
+<h3>&gt;&gt; Галерея примеров</h3>
 <ul>
-<li><a href="#baloon_text">Редактирование содержания балуна</a></li>
+<li><a href="#load">Загрузка карты</a></li>
 <br/><br/>
-<li><a href="#baloon_field">Выборочное отображение атрибутивной информации объекта</a></li>
+<li><a href="#interact">Управление картой</a></li>
 <br/><br/>
-<li><a href="#baloon_html">Использование HTML-разметки внутри балуна</a></li>
+<li><a href="#ui">Элементы пользовательского интерфейса</a></li>
 <br/><br/>
-<li><a href="#events">Навешивание обработчиков пользовательских событий</a></li>
 
+<li><a href="#layers">Управление  слоями</a> </li>
+<br/><br/>
+<li><a href="#add_data">Загрузка данных</a> </li>
+<br/><br/>
+<li><a href="#balloon">Всплывающие подсказки (балуны)</a> </li>
+<br/><br/>
+<li><a href="#events">Обработчики событий</a> </li>
+<br/><br/>
+<li><a href="#objects">Объекты на карте</a> </li>
 
+<br/><br/>
+<li><a href="#spatial">Аналитические функции</a></li>
+<br/><br/>
+<li><a href="#search">Поисковые функции</a> </li>
+<br/><br/>
+<li><a href="#bonus">Интеграция с программными библиотеками</a> </li>
+<br/>
 </ul>
 
-</div>
-<h3 style="margin-left:8px;">Руководство пользователя Scanex Web GeoMixer:</h3>
-<div class="in_left"><a href="mapviewer_help.html"><b> MapViewer Template  (Шаблон просмотра карты)</b>  - Руководство пользователя</a></div>
 
-<div class="in_left"><a href="admin_help.html"><b> GeoMixer Admin (Администрирование карты и БД)</b>  - Руководство пользователя</a></div>
+<a href="api_reference.html">Справочник API</a></h3>
+
+</div>
+<br/>
+<h3 style="margin-left:8px;">Руководство пользователя Scanex Web GeoMixer:</h3>
+<div class="in_left_txt"><a href="http://wiki.kosmosnimki.ru/doku.php?id=start"><b> GeoMixer WEB-GIS  (веб-гис приложение)</b>  - Руководство пользователя</a></div>
+
+<div class="in_left_txt"><a href="http://wiki.kosmosnimki.ru/doku.php?id=geomixer_setup"><b>Установка и настройка GeoMixer</b></a></div>
+
+<div class="in_left_txt"><a href="http://wiki.kosmosnimki.ru/doku.php?id=tilingtools"><b>Tiling Tools - набор утилит для выполнения операций с растровыми тайлами</b></a></div>
+
 
 </td>
 
 <td style="padding-right:4px;">
 <table id="content" border="0" style="background-color:#fff; margin-top:6px;" cellpadding="20" cellspacing="0"> 
 
-  <tr>
-    <td colspan="3" class="style1"><a name="baloon_text"></a>Редактирование содержания балуна</td>
+   <tr>
+    <td colspan="3" class="style1"><a name="create_map"></a>Загрузка карты</td>
   </tr>
+  <tr>
+    <td colspan="3" class="td_text"><span class="bodytext">	
+		<a href="api_samples/ex_base.html">Привет мир! - Космоснимки</a> - использование API-ключа для доступа к базовому контенту Kosmosnimki.Ru. Загрузка карты по событию window.onload<br><br>
 
-  <tr>
-    <td colspan="3" ><span class="bodytext">Содержание балуна может отображать информацию о слое, взятую из атрибутивной таблицы. А может быть задано произвольным образом.<br/>
-    
-    В данном примере задан определенный текст внутри балуна и навешен обработчик события <strong>onClick</strong>, которое выводит свойства слоя.
-<pre><code class="javascript">map.vectors.enableHoverBalloon(<span class="function"><span class="keyword">function</span><span class="params">(o)</span> {</span> <span class="keyword">return</span> <span class="string">"Кликните для отображения информации!"</span>;
-map.vectors.setHandler(<span class="string">"onClick"</span>, <span class="function"><span class="keyword">function</span><span class="params">(o)</span> {</span> alert(JSON.stringify(o.properties)); });</code></pre>
-Как это выглядит:
+        <a href="api_samples/ex_base_eng.html">Hello World! - Kosmosnimki</a> - загрузка англоязычной версии карты<br><br>
+		<a href="api_samples/ex_new.html">Встраивание выборочной карты</a> - загрузка пользовательской карты, без использования  подложки Kosmosnimki, позиционирование карты по координатам и масштабу<br><br>
+        <a href="api_samples/ex_host.html">Совмещение карты с базовой Картой</a> - загрузка пользовательской карты с выборочного сайта, на котором установлен GeoMixer, совмещение ее с базовой подложкой, загружаемой с Maps.Kosmosnimki.Ru<br><br>
+        <a href="api_samples/ex_mode_map.html">Выбор слоя подложки Kosmosnimki, загружаемого по умолчанию</a>
+
+        <br><br>
+        <a href="api_samples/ex_only_osm.html">Hello World - OpenStreetMap</a> - загрузка  карты OpenStreetMap в качестве базовой подложки.<br/><br/>
+        <a href="api_samples/ex_osm.html">Совмещение OpenStreetMap и Kosmosnimki</a> - загрузка  карты OpenStreetMap в качестве базового слоя в дополнение к базовым слоям Kosmosnimki.Ru.<br/><br/>
 	</span></td>
-  </tr>
-  <tr>
-    <td align="center" class="td_text">
-    <div id="map" style="width:500px; height:250px;"></div>
-    </td>
   </tr>
   
-    <tr>
-    <td colspan="3" class="style1"><a name="baloon_field"></a>Выборочное отображение атрибутивной информации объекта</td>
-  </tr>
-
-  <tr>
-    <td colspan="3" class="td_text"><p>Разработчик может задать выборочное отображение значений атрибутивных полей в балуне при наведении или клике на объект на карте.
-    </p>
-      <p>Например: 
-      <pre><code class="javascript">map.vectors.enableHoverBalloon(<span class="function"><span class="keyword">function</span><span class="params">(o)</span> {</span> <span class="keyword">return</span> o.properties.NAME + <span class="string">" "</span> + o.properties.TEXT });</code></pre></p>
-      В данном случае будут показываться только значения полей "NAME" и "TEXT"</td>
-  </tr>
-      
+  
    <tr>
-    <td colspan="3" class="style1"><a name="baloon_html"></a>Использование HTML-разметки внутри балуна</td>
+
+    <td colspan="3" class="style1"><a name="interact"></a>Управление картой</td>
+  </tr>
+   <tr>
+	 <td colspan="3" class="td_text"><span class="bodytext">
+     	<a href="api_samples/ex_move_map.html">Позиционирование карты по координатам</a> - задание координат и масштаба карты (в градусах-минутах и в долготе-широте)
+        <br><br>
+        <a href="api_samples/ex_mode_map.html">Выбор режима отображения базовой подложки Kosmosnimki</a> - задает базовой слой подложки, который загружается по умолчанию
+        <br><br>
+        <a href="api_samples/ex_disableLayerByZoom.html">Отключение отображения базовой подложки</a> - для выбранных Zoom
+        <br><br>
+
+     	<a href="api_samples/ex_pan_map.html">Сдвиг карты</a> - плавный сдвиг карты  по экстенту окна карты
+        <br><br>
+     	<a href="api_samples/ex_zoom.html">Установить минимальную и максимальную z</a> - для ZoomControl
+        <br><br>
+     	<a href="api_samples/ex_setExtent.html">Задать географический extent</a> - за пределы которого нельзя выйти
+        <br><br>
+	 </span></td>
+
+   </tr>
+  
+   <tr>
+    <td colspan="3" class="style1"><a name="ui"></a>Элементы пользовательского интерфейса и инструменты</td>
+  </tr>
+   <tr>
+	 <td colspan="3" class="td_text"><span class="bodytext">
+     	<a href="api_samples/ex_hide_tools.html">Скрытие выборочных элементов интерфейса / свертывание панели инструментов</a> - скрытие пользовательских инструментов в панели инструментов и дополнительных элементов интерфейса окна карты<br><br>
+
+        <a href="api_samples/ex_tools.html">Отключение всех элементов управления картой и создание собственных</a><br><br>
+        <a href="api_samples/ex_minimap.html">Миникарта</a> - выбор слоя из набора слоев данной карты для отображения в окне миникарты<br><br>
+        <a href="api_samples/ex_grid.html">Отображение координатной сетки</a><br><br>
+        <a href="api_samples/ex_circle_tool.html">Добавление нового инструмента рисования</a> - добавление нового инструмента &quot;окружность&quot; в панель пользовательских инструментов<br><br>
+
+        <a href="api_samples/ex_save_png.html">Добавление пункта</a> - &quot;Сохранить в PNG файл&quot; в контекстное меню (правая кнопка мыши)<br><br>
+      </span></td>
+</tr>
+
+
+
+ <tr>
+    <td colspan="3" class="style1"><a name="layers"></a>Управление  слоями</td>
+
+  </tr>
+<tr>
+	 <td colspan="3" class="td_text"><span class="bodytext">
+		<a href="api_samples/ex_layers.html">Управление видимостью слоев внутри карты</a> - отключение/включение выборочного слоя из набора слоев данной карты.<br/><br/>
+		<a href="api_samples/ex_base_layers.html">Задание слоев в качестве базовых</a> - задание слоев карты в качестве базовых, добавление их названий в список базовых слоев, выбор базового слоя, загружаемого "по умолчанию".<br/><br/>
+		<a href="api_samples/ex_bringToTop.html">Изменение порядка отображения слоев</a> - перемещение слоя вверх.<br/><br/>
+
+		<a href="api_samples/ex_bringToBottom.html">Изменение порядка отображения слоев</a> - перемещение слоя вниз.<br/><br/>
+		<a href="api_samples/ex_setDepth.html">Изменение порядка отображения слоев</a> - перемещение слоя на конкретную глубину.<br/><br/>
+		</span></td>
+</tr>
+
+
+ <tr>
+
+    <td colspan="3" class="style1"><a name="add_data"></a>Загрузка данных</td>
+  </tr>
+<tr>
+	 <td colspan="3" class="td_text"><span class="bodytext">
+		<a href="api_samples/ex_add_image.html">Добавление изображения</a> - накладывание изображения на карту по координатам углов, обрезание изображения по заданной границе<br/>
+		<br/>
+		<a href="api_samples/ex_add_tiles.html">Добавление слоя с тайлами</a> - загрузка  тайлов с указанного хоста, отправка запроса, содержащий параметры обращения к стурктуре хранения тайлов<br/><br/>
+
+		<a href="api_samples/ex_load_kml.html">Загрузка KML</a> - загрузка данных в формате KML<br/><br/>
+		<a href="api_samples/ex_load_wms.html">Загрузка WMS слоя</a> - загрузка данных через WMS (картографический интерфейс веб-сервера) в виде единого растра<br/><br/>
+		<a href="#">Загрузка WMS-T слоя*</a> (*under construction) - загрузка данных тайлами через WMS-T.<br/><br/>
+		</span></td>
+
+</tr>
+
+
+<tr>
+    <td colspan="3" class="style1"><a name="balloon" id="balloon"></a>Всплывающие подсказки (балуны)</td>
+  </tr>
+<tr>
+	 <td colspan="3" class="td_text"><span class="bodytext">
+		<a href="api_samples/ex_enableBalloon.html">Включение всплывающего балуна</a> - включение балуна для  векторных слоев карты, выбор определенных атрибутов векторного слоя для отображения внутри балуна<br/><br/>
+
+		<a href="api_samples/ex_layer_balloon.html">Включение/отключение балунов для выборочных слоев карты</a><br/><br/>
+        <a href="api_samples/ex_static_balloon.html">Добавление статического балуна на карту</a><br/><br/>
+        <a href="api_samples/ex_css_balloon.html">Задание собственных стилей для балуна</a> - использование CSS для задание класса стилей балуна<br/><br/>
+        <a href="api_samples/ex_html.html">Использование HTML внутри балуна</a> - добавление HTML cодержания в балуны слоев и пользовательских объектов<br/><br/>
+        <a href="api_samples/ex_links.html">Переход по ссылке, содержащейся в атрибутах</a> - в данном примере при клике на объекты на карте осуществляется переход по ссылке, которая содержится в атрибутах объекта<br/><br/>
+
+        <a href="api_samples/ex_enableHoverBalloon_disableOnClick.html">Отключение балунов</a> - при клике на объекты на карте<br/><br/>
+        <a href="api_samples/ex_enableHoverBalloon_disableOnMouseOver.html">Отключение балунов</a> - при mouseOver на объектах карты<br/><br/>
+        <a href="api_samples/ex_enableHoverBalloon_maxFixedBallons.html">Установка максимального количества</a> фиксированных балунов<br/><br/>
+        <a href="api_samples/ex_enableHoverBalloon_OnClickSwitcher.html">Установка обработчика</a> - ctrlKey + onClick<br/><br/>
+
+	 </span></td>
+</tr>
+
+<tr>
+    <td colspan="3" class="style1"><a name="events"></a>Обработчики событий</td>
+  </tr>
+<tr>
+	 <td colspan="3" class="td_text"><span class="bodytext">
+		<a href="api_samples/ex_handler_map.html">Навешивание обработчиков на события управления картой</a> - изменение событий управления картой - в данном примере показываются координаты клика.<br/><br/>
+
+		<a href="api_samples/ex_handler_object.html">Навешивание обработчиков на события управления пользовательскими объектами</a> - изменение событий управления пользовательскими объектами, в данном примере - добавление нового объекта удаляет предыдущий<br/><br/>
+		<a href="api_samples/ex_handler_layer.html">Навешивание обработчиков на события векторного слоя</a> - в данном примере наведение мыши на объект векторного слоя высвечивает его www-адрес, а клик осуществляет переход по этому адресу.<br/><br/>
+		<a href="api_samples/ex_removeHandler.html">Удаление обработчика события</a> - добавление/удаление обработчика события на пользовательский объект<br/><br/>
+	 </span></td>
+
+</tr>
+
+
+
+<tr>
+    <td colspan="3" class="style1"><a name="map_objects"></a>Объекты на карте</td>
+  </tr>
+<tr>
+	 <td colspan="3" class="td_text"><span class="bodytext">
+		<a href="api_samples/ex_marker.html">Добавление пользовательских редактируемых объектов: маркер</a> - просто добавляет на карту маркер по заданным координатам.<br/><br/>
+
+		<a href="api_samples/ex_poly.html">Добавление пользовательских редактируемых объектов: линия и полигон</a> - добавляет на карту ломаную линию и полигон по координатам.<br/><br/>
+		Задание стилей для пользовательских объектов: <a href="api_samples/ex_geometry_point.html">точка</a>, <a href="api_samples/ex_geometry_linestring.html">линия</a>, <a href="api_samples/ex_geometry_linestring_dash.html">пунктирная линия</a>, <a href="api_samples/ex_geometry_polygon.html">полигон</a>, <a href="api_samples/ex_geometry_polygon_pattern.html">полигон с паттерном</a>, <a href="api_samples/ex_geometry_point.html">подпись</a><br /><br />
+
+		<a href="api_samples/ex_objects.html">Управление пользовательскими объектами</a> - обращение к свойствам пользовательских объектов, удаление объектов с карты.<br/><br/>
+		<a href="api_samples/ex_static.html">Добавление  статических объектов на карту, задание стилей статических объектов</a> - создание статических объектов на карте, задание стилей отображения.<br/><br/>
+		<a href="api_samples/ex_static_multi.html">Добавление массива статических объектов на карту</a> - массовое создание статических объектов на карте.<br/><br/>
+		<a href="api_samples/ex_addObjects_vector.html">Добавление массива векторных объектов на карту</a> - массовое создание векторных объектов на карте.<br/><br/>
+
+		<a href="api_samples/ex_setVisible.html">Управление видимостью объекта</a> - методы setVisible и getVisibility.<br/><br/>
+	 </span></td>
+</tr>
+
+
+
+<tr>
+    <td colspan="3" class="style1"><a name="spatial"></a>Аналитические функции</td>
   </tr>
 
-  <tr>
-    <td colspan="3" class="td_text"><span class="bodytext">Содержание балуна можно редактировать, используя синтаксис html-разметки. Например, можно вставить тег ссылки, использовать теги <strong>&lt;b&gt;</strong> или <strong>&lt;i&gt;</strong>
-    <pre><code class="javascript">map.drawing.addObject({ type: <span class="string">"POINT"</span>, coordinates: [<span class="number">14754669</span>, <span class="number">5487309</span>]}, 
- {text: <span class="string">"&lt;a href='http://kosmosnimki.ru' target='a_blank'&gt;&lt;i&gt;Сайт Космоснимки&lt;/i&gt;&lt;/a&gt;"</span>});</code></pre>
-   
-Как это выглядит - см. в <a href="#ex2">следующем примере</a> ↓</span></td>
+<tr>
+	 <td colspan="3" class="td_text"><span class="bodytext">
+		<a href="api_samples/ex_area.html">Вычисление площади</a> - при наведении на полигональный объект векторного слоя выводится его площадь<br/><br/>
+		<a href="api_samples/ex_length.html">Вычисление длины</a> -  при наведении на полилинию векторного слоя выводится ее длина<br/><br/>
+        <a href="api_samples/ex_extract.html">Выборка объектов точечного векторного слоя внутри заданной области</a> - по заданной области или пр экстенту на карте выбираются объекты из указанного векторного слоя<br/><br/>
+
+        <a href="api_samples/ex_extract_polygon.html">Выборка объектов полигонального векторного слоя внутри заданной области</a> - по заданной области или пр экстенту на карте выбираются объекты из указанного векторного слоя<br/><br/>
+		<a href="api_samples/ex_dynamic_filters.html">Динамическая раскраска векторного слоя</a> - объекты внутри векторного слоя раскрашиваются согласно значению выбранного атрибута<br /><br />
+	 </span></td>
+</tr>
+
+
+
+<tr>
+
+    <td colspan="3" class="style1"><a name="search"></a>Поисковые функции</td>
   </tr>
-  <tr>
-    <td colspan="3" class="style1"><a name="events"></a>Навешивание обработчиков пользовательских событий</td>
+<tr>
+	 <td colspan="3" class="td_text"><span class="bodytext">
+	 <a href="api_samples/ex_search.html">Поиск по адресной базе Kosmosnimki.Ru</a> - посылает запрос к сервису геокодирования адресной базы Kosmosnimki.Ru, возвращает ответ в виде массива меток, отображающихся на карте.<br/><br/>
+     <a href="api_samples/ex_search2.html">Поиск по объектам векторных слоев</a> - поиск по объектам дополнительного векторного слоя<br/><br/>
+
+	 </span></td>
+</tr>
+
+
+<tr>
+    <td colspan="3" class="style1"><a name="extra"></a>Интеграция с программными библиотеками</td>
   </tr>
-  <tr>
-    <td colspan="3" class="bodytext">
-    В предыдущем примере управляетcя событие карты <strong>onClick</strong>. <br/><br/>
-    В случае управления событиями рисования, внутри метода map.drawing задаются события: <strong>onAdd, onEdit, onRemove</strong> В данном примере обрабатывается событие <strong>onAdd</strong>: при добавлении нового объекта все предыдущие удаляются.
-    <pre><code class="javascript"><span class="comment">// "onAdd", "onEdit", "onRemove"</span>
-map.drawing.setHandler(<span class="string">"onAdd"</span>, <span class="function"><span class="keyword">function</span><span class="params">(o)</span>
-{</span>
- <span class="comment">// например, удалим все остальные объекты</span>
- map.drawing.forEachObject(<span class="function"><span class="keyword">function</span><span class="params">(o2)</span>
- {</span>
-   <span class="keyword">if</span> (o2 != o)
-     o2.remove();
- });
-});</code></pre>
-<br/>
-   Как это выглядит:
-	</span></td>
-  </tr>
-  <tr>
-    <td align="center" class="td_text">
-    <a name="ex2"></a><div id="map2" style="width:500px; height:250px;"></div>
-    </td>
-  </tr>    
+<tr>
+	 <td colspan="3" class="td_text"><span class="bodytext">
+	 <a href="api_samples/ex_jquery.html">Интеграция jQuery в API</a> - иллюстрирует использование API совместно с библиотекой jQuery.<br/><br/>
+
+	 <a href="api_samples/ex_jquery_dialog.html">Интеграция плагина jQuery Dialog в API</a> - иллюстрирует использование API совместно с <a href="http://jqueryui.com/demos/dialog/" target="_blank">библиотекой jQuery Dialog</a><br/><br/>
+     
+	 </span></td>
+</tr>
+
+  
 </table>
 
 </td>
 </tr>
 </table>
-<script>
-	createKosmosnimkiMap(document.getElementById("map"), "maps.kosmosnimki.ru", "44CB65F7CE8D4989B1D35121BD721C9F", function(map)      {	    
-	  map.vectors.enableHoverBalloon(function(o) { return "Кликните для отображения информации!"; });
-	  map.vectors.setHandler("onClick", function(o) { alert(JSON.stringify(o.properties)); });
-	  map.drawing.tools["POLYGON"].setVisible(false);
-	  map.drawing.tools["LINESTRING"].setVisible(false);
-	  map.coordinates.setVisible(false);
-      map.scaleBar.setVisible(false);
-	  map.moveTo(4935996, 6990624, 13)
-      });
-</script>
-<script>
-      makeFlashMap(document.getElementById("map2"), "0CD53CD459F249F2B621D204B0E0F27B", function(map)
-																								 
-       {	
-	   		   map.moveTo(14759835, 5489396, 6);
-			   map.drawing.addObject({ type: "POINT", coordinates: [14754669, 5487309]}, 
- {text: "<a href='http://kosmosnimki.ru' target='a_blank'><i>Сайт Космоснимки</i></a>"});
-
-		map.drawing.addObject({	type: "POLYGON", coordinates: 
-			[[[14750982, 5481599],[14749477, 5488268],
-			[14757923, 5493118],[14764488, 5485905], 
-			[14751024, 5481578], [14750982, 5481599]]]}
-		);
-			  
-				map.drawing.setHandler("onAdd", function(o)
-				{
-				
-				 map.drawing.forEachObject(function(o2)
-				 {
-				   if (o2 != o)
-					 o2.remove();
-				 });
-				});
-       });
-</script>
 </body>
+
 </html>

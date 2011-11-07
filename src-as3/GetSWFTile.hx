@@ -18,6 +18,7 @@ class GetSWFTile
 		links = links_;
 		onLoad = onLoad_;
 		init();
+		//trace('--------linkslinkslinks ---------- ' + links.length + ' : ' );
 	}
 
 	private function init()
@@ -25,7 +26,9 @@ class GetSWFTile
 		data = new Array<Dynamic>();
 		loaders = new Array<GetSWFFile>();
 		myTimer = null;
-		getNext();
+		myTimer = new Timer(10);
+		myTimer.addEventListener("timer", getNext);
+		myTimer.start();
 	}
 
 	public function addMember(arr:Array<Dynamic>)
@@ -36,28 +39,26 @@ class GetSWFTile
 		arr = null;
 
 		reqCount--;
-		getNext();
+		//trace('------------------ ' + reqCount + ' : ' + links.length);
+		if (links.length < 1) 
+		{
+			onLoad(data);
+			//data = null;
+			//for (loader in loaders) loader = null;
+			//loaders = null;
+			if(myTimer != null) {
+				myTimer.stop();
+				if (myTimer.hasEventListener("timer")) myTimer.removeEventListener("timer", getNext);
+				return;
+			}
+		}
 	}
 
 	private function getNext(?event:TimerEvent)
 	{
-		if (links.length < 1) 
-		{
-			onLoad(data);
-			myTimer.stop();
-			if (myTimer.hasEventListener("timer")) myTimer.removeEventListener("timer", getNext);
-			data = null;
-			for (loader in loaders) loader = null;
-			loaders = null;
-			return;
-		}
-		else if(myTimer == null)
-		{
-			myTimer = new Timer(10);
-			myTimer.addEventListener("timer", getNext);
-			myTimer.start();
-		}
-		if (reqCount > reqLimit) return;
+		
+		//trace('nnnnnnnnnnn ' + reqCount + ' : ' + reqLimit + ' : ' + links.length + ' : ' + myTimer.currentCount);
+		if (reqCount > reqLimit || links.length < 1) return;
 		var url:String = links.shift();
 		reqCount++;
 		loaders.push(new GetSWFFile(url, addMember));

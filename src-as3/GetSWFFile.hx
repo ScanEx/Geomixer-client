@@ -36,7 +36,7 @@ class GetSWFFile
 		data = null;
 		stream = null;
 	}
-	private function onError(event:Event)
+	private function onError(event:IOErrorEvent)
 	{
 		//trace("error reading vector tile: " + url);
 		destructor(null);
