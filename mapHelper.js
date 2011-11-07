@@ -1857,7 +1857,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
          pattern: {
             width: 8, 
             step: 0, 
-            colors: [0xFFFF00,0xFF00FF], 
+            colors: [0x000000,0xFFFFFF], 
             style: 'diagonal1'
         }}}, initStyle).fill;
     
@@ -1868,9 +1868,9 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
     var patternContainer = $("<div/>");
     var imagePatternContainer = $("<div/>");
 	
-	var colorIcon = $("<img/>", {src: 'img/styles/color.png'}).data('type', 'color');
-	var patternIcon = $("<img/>", {src: 'img/styles/pattern.png'}).data('type', 'pattern');
-	var patternURLIcon = $("<img/>", {src: 'img/styles/globe.gif'}).data('type', 'bitmapPattern');
+	var colorIcon      = $("<img/>", {src: 'img/styles/color.png',   title: _gtxt("Заливка цветом")}).data('type', 'color');
+	var patternIcon    = $("<img/>", {src: 'img/styles/pattern.png', title: _gtxt("Заливка штриховкой")}).data('type', 'pattern');
+	var patternURLIcon = $("<img/>", {src: 'img/styles/globe.gif',   title: _gtxt("Заливка рисунком")}).data('type', 'bitmapPattern');
     
     var controls = {
 		"color":         {icon: colorIcon,      control: colorContainer},
@@ -1949,7 +1949,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 	));
 	
 	//выбор внешнего паттерна
-	var patternURL = $("<input/>", {"type":"text"}).val(_fillStyle.image).change(function()
+	var patternURL = $("<input/>", {"type":"text", title: _gtxt("URL рисунка")}).val(_fillStyle.image).change(function()
     {
         $(_this).change();
     });
@@ -1995,19 +1995,16 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
             .append($('<td/>').append($('<img/>', {src:'img/styles/pattern-opacity.PNG', 'class': 'opacityIcon'})))
             .append($('<td/>').append(patternOpacitySlider))
         ));
-            
-        // .append($('<img/>', {src:'img/styles/pattern-opacity.PNG'}))
-        // .append($('<span/>').append(patternOpacitySlider));
 		
 	var widthIcon = $("<img/>", {src: 'img/styles/pattern-width.PNG'});
 	var stepIcon = $("<img/>", {src: 'img/styles/pattern-step.PNG', 'class': 'stepIcon'});
 	
-    var widthInput = $("<input/>", {'class': 'widthInput'}).val(_fillStyle.pattern.width).change(function()
+    var widthInput = $("<input/>", {'class': 'widthInput', title: _gtxt("Ширина паттерна")}).val(_fillStyle.pattern.width).change(function()
     {
         $(_this).change();
     });
     
-    var stepInput = $("<input/>").val(_fillStyle.pattern.step).change(function()
+    var stepInput = $("<input/>", {title: _gtxt("Ширина отступа")}).val(_fillStyle.pattern.step).change(function()
     {
         $(_this).change();
     });
@@ -2047,7 +2044,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 					});
 				colorPicker.style.width = '100%';
 				
-				var deleteIcon = makeImageButton('img/recycle.png', 'img/recycle_a.png');
+				var deleteIcon = makeImageButton('img/close.png', 'img/close_orange.png');
 					deleteIcon.onclick = function()
 					{
 						_colors[k] = null;
@@ -2106,6 +2103,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 		
 	var fillControlsDiv = $("<div/>", {'class': 'fillStyleControls'}).append(colorContainer).append(imagePatternContainer).append(patternContainer);
 	
+    //public interface
 	this.getSelector = function()
 	{
 		return selectorDiv;
@@ -5397,14 +5395,7 @@ mapHelper.prototype.updateStyles = function(filterCanvas)
 		var balloonValueElem = $(filter).find("[balloonTable]").length > 0 ? $(filter).find("[balloonTable]")[0] : filter,
 			balloonValue = balloonValueElem.getBalloon();
 			
-		// newFilterStyle.BalloonEnable = balloonValueElem.getBalloonEnable();
-		// newFilterStyle.DisableBalloonOnClick = balloonValueElem.getBalloonDisableOnClick();
-		// newFilterStyle.DisableBalloonOnMouseMove = balloonValueElem.getDisableBalloonOnMouseMove();
-		
 		$.extend(newFilterStyle, balloonValueElem.getBalloonState());
-			
-		// if (balloonValue != '' && balloonValue != null)
-			// newFilterStyle.Balloon = balloonValue;
 		
 		if (newFilterStyle.Filter == '')
 			delete newFilterStyle.Filter;
@@ -5433,14 +5424,6 @@ mapHelper.prototype.load = function()
 	
 	if (!this.builded)
 	{
-		// _(this.workCanvas, [_div([_p([_div([_t(_gtxt("Навигация по карте и инструменты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_1"))]),
-								  // _p([_div([_t(_gtxt("Список слоев"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_2"))]),
-								  // _p([_div([_t(_gtxt("Стиль векторного слоя"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_3"))]),
-								  // _p([_div([_t(_gtxt("Управление содержанием карты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_4")), _a([_span([_t(">> GeoMixer Viewer")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/mapviewer_help.html']])]),
-								  // _p([_div([_t(_gtxt("Пользовательские инструменты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$help$$_5")), _br(), _span([_t(_gtxt("В режиме маркеров: "))], [['css','fontWeight','bold']]), _t(_gtxt("$$help$$_6")), _br(), _span([_t(_gtxt("В режиме линейка/измерения расстояния, полигон/измерение площади: "))], [['css','fontWeight','bold']]), _t(_gtxt("$$help$$_7")), _br(), _t(_gtxt("$$help$$_8"))]),
-								  // _p([_a([_br(),_span([_t(">> GeoMixer Viewer")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/mapviewer_help.html']])]),
-								  // _p([_a([_br(),_span([_t(">> GeoMixer Admin")],[['css','fontWeight','bold']]), _t(_gtxt(" - Руководство пользователя"))],[['attr','target','_blank'],['attr','href','http://kosmosnimki.ru/geomixer/docs/admin_help.html']])])],[['dir','className','help']])]);
-		
 		var fileName;
 		
 		if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.usageFilePrefix !== 'undefined')
@@ -5868,12 +5851,7 @@ serviceHelper.prototype.load = function()
 {
 	var _this = this;
 	if (!this.builded)
-	{
-		// _(this.workCanvas, [_div([_p([_div([_t(_gtxt("Загрузить файл"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_1"))]),
-								  // _p([_div([_t(_gtxt("Ссылка на карту"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_2"))]),
-								  // _p([_div([_t(_gtxt("Код для вставки"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_4"))]),
-								  // _p([_div([_t(_gtxt("Печать карты"))],[['dir','className','helpHeader']]), _t(_gtxt("$$serviceHelp$$_3"))])],[['dir','className','help']])]);
-		
+	{		
 		var fileName;
 		
 		if (typeof window.gmxViewerUI !== 'undefined' && typeof window.gmxViewerUI.servicesFilePrefix !== 'undefined')
