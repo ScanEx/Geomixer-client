@@ -2833,13 +2833,13 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
 				}
 
-				var isTemporal = (layer.properties.subType == "Temporal");
+				var isTemporal = layer.properties.TemporalLayer;	// признак мультивременного слоя
 				var tileDateFunction = null;
 				if(isTemporal) {
 					var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
-					var zeroDateString = layer.properties.zeroDate || '01.01.2008';	// нулевая дата
-					var arr = zeroDateString.split('.');
-					var zeroDate = new Date(
+					var ZeroDateString = layer.properties.ZeroDate || '01.01.2008';	// нулевая дата
+					var arr = ZeroDateString.split('.');
+					var ZeroDate = new Date(
 						(arr.length > 2 ? arr[2] : 2008),
 						(arr.length > 1 ? arr[1] - 1 : 0),
 						(arr.length > 0 ? arr[0] : 1)
@@ -2854,7 +2854,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						{
 							arr = data[nm];
 							if(!gmxAPI.isArray(arr) || arr.length < 5) {
-								gmxAPI.addDebugWarnings({'func': 'prpTemporalTiles', 'layer': layer.properties.title, 'alert': 'Error in temporalTiles array - line: '+nm+''});
+								gmxAPI.addDebugWarnings({'func': 'prpTemporalTiles', 'layer': layer.properties.title, 'alert': 'Error in TemporalTiles array - line: '+nm+''});
 								continue;
 							}
 							var z = arr[4];
@@ -2880,16 +2880,16 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						return {'dateTiles': arr, 'hash': ph, 'deltaHash': deltaHash};
 					}
 
-					temporalData = prpTemporalTiles(layer.properties.temporalTiles);
+					temporalData = prpTemporalTiles(layer.properties.TemporalTiles);
 					var oneDay = 1000*60*60*24;					// один день
 					
 					// Начальный интервал дат
-					temporalData['dateEnd'] = new Date();
-					if(layer.properties.dateEnd) {
-						var arr = layer.properties.dateEnd.split('.');
-						if(arr.length > 2) temporalData['dateEnd'] = new Date(arr[2], arr[1] - 1, arr[0]);
+					temporalData['DateEnd'] = new Date();
+					if(layer.properties.DateEnd) {
+						var arr = layer.properties.DateEnd.split('.');
+						if(arr.length > 2) temporalData['DateEnd'] = new Date(arr[2], arr[1] - 1, arr[0]);
 					}
-					temporalData['dateBegin'] = new Date(temporalData['dateEnd'] - oneDay);
+					temporalData['DateBegin'] = new Date(temporalData['DateEnd'] - oneDay);
 
 					var currentData = {};			// список тайлов для текущего daysDelta
 
@@ -2914,15 +2914,15 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							"&LayerName=" + layerName + 
 							(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
 							(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
-_prefix = 'http://mapstest.kosmosnimki.ru/FireTimeTiles/'; // пока TileSender.ashx не готов
+						if(layer.properties._TemporalDebugPath) _prefix = layer.properties._TemporalDebugPath;
 
 						function getFiles(daysDelta) {
 							var ph = {'files': [], 'dtiles': [], 'tiles': {}, 'out': ''};
 							var mn = oneDay * daysDelta;
-							var zn = parseInt((dt1 - zeroDate)/mn);
+							var zn = parseInt((dt1 - ZeroDate)/mn);
 							ph['beg'] = zn;
 							zn = parseInt(zn);
-							var zn1 = parseInt(1 + (dt2 - zeroDate)/mn);
+							var zn1 = parseInt(1 + (dt2 - ZeroDate)/mn);
 							ph['end'] = zn1;
 							zn1 = parseInt(zn1);
 							var dHash = temporalData['deltaHash'][daysDelta] || {};
@@ -2935,9 +2935,10 @@ _prefix = 'http://mapstest.kosmosnimki.ru/FireTimeTiles/'; // пока TileSender.as
 									var x = pt[0];
 									var y = pt[1];
 									var z = pt[2];
-									var file = _prefix + "&d=" + daysDelta + + "&s=" + dz + + "&z=" + z + "&x=" + x + "&y=" + y;
+									var file = _prefix + "&Level=" + daysDelta + + "&Span=" + dz + + "&z=" + z + "&x=" + x + "&y=" + y;
 
-file = daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // пока TileSender.ashx не готов
+									if(layer.properties._TemporalDebugPath) file = daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // тайлы расположены в WEB папке
+									
 									if(!ph['tiles'][z]) ph['tiles'][z] = {};
 									if(!ph['tiles'][z][x]) ph['tiles'][z][x] = {};
 									if(!ph['tiles'][z][x][y]) ph['tiles'][z][x][y] = [];
@@ -2959,7 +2960,6 @@ file = daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + 
 						var curDaysDelta = deltaArr[i];
 						while (i>=0)
 						{
-							//if(days >= deltaArr[i] && days < curDaysDelta) {
 							if(days >= deltaArr[i]) {
 								break;
 							}
@@ -2977,27 +2977,7 @@ file = daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + 
 								,'beg': ph['beg']
 								,'end': ph['end']
 							};
-/*
-						var daysDeltaOld = 0;
-						for (var i=0; i<deltaArr.length; i++)
-						{
-							var daysDelta = deltaArr[i];
-							var ph = getFiles(daysDelta);
-							var cnt = ph['files'].length;
-							if(cnt > 0 && minFiles > cnt) {
-								minFiles = cnt;
-								currentData = { 
-										'daysDelta': daysDelta
-										,'files': ph['files']
-										,'tiles': ph['tiles']
-										,'dtiles': ph['dtiles']		// список тайлов для daysDelta
-										,'out': ph['out']
-										,'beg': ph['beg']
-										,'end': ph['end']
-									};
-							}
-						}
-*/
+
 						obj.setTiles(currentData['dtiles'], true);		// Установка списка тайлов мультивременного слоя
 						return curDaysDelta;
 					}
@@ -3092,26 +3072,26 @@ file = daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + 
 
 						if(isTemporal) {	// Для мультивременных слоёв
 							obj.setVectorTiles(tileDateFunction, layer.properties.identityField, [], layer.filesHash);
-							obj.setDateInterval = function(dateBegin, dateEnd)
+							obj.setDateInterval = function(DateBegin, DateEnd)
 							{
 								var dt2 = new Date();
 								var dt1 = new Date(dt2 - oneDay);
-								var tp = Object.prototype.toString.apply(dateEnd);
-								if(tp === '[object Date]') dt2 = dateEnd;
+								var tp = Object.prototype.toString.apply(DateEnd);
+								if(tp === '[object Date]') dt2 = DateEnd;
 								else if(tp === '[object String]') {
-									var arr = dateEnd.split('.');
+									var arr = DateEnd.split('.');
 									dt2 = new Date((arr.length > 2 ? arr[2] : 2008), (arr.length > 1 ? arr[1] - 1 : 0), (arr.length > 0 ? arr[0] : 1));
 								}
-								tp = Object.prototype.toString.apply(dateBegin);
-								if(tp === '[object Date]') dt1 = dateBegin;
+								tp = Object.prototype.toString.apply(DateBegin);
+								if(tp === '[object Date]') dt1 = DateBegin;
 								else if(tp === '[object String]') {
-									var arr = dateBegin.split('.');
+									var arr = DateBegin.split('.');
 									dt1 = new Date((arr.length > 2 ? arr[2] : 2008), (arr.length > 1 ? arr[1] - 1 : 0), (arr.length > 0 ? arr[0] : 1));
 								}
 								var dt1str = dt1.getFullYear() + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + gmxAPI.pad2(dt1.getDate());
 								var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
-								var temporalField = layer.properties.temporalField || 'Date';
-								var Filter = "\""+temporalField+"\" >= '"+dt1str+"' AND \""+temporalField+"\" <= '"+dt2str+"'";
+								var TemporalColumnName = layer.properties.TemporalColumnName || 'Date';
+								var Filter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
 								for (var i=0; i<obj.filters.length; i++)
 								{
 									obj.filters[i].setFilter(Filter);
@@ -3265,7 +3245,7 @@ file = daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + 
 					}
 				}
 
-				if(isTemporal) obj.setDateInterval(temporalData['dateBegin'], temporalData['dateEnd']); // показываем начальный интервал
+				if(isTemporal) obj.setDateInterval(temporalData['DateBegin'], temporalData['DateEnd']); // показываем начальный интервал
 
 				if (isRaster && (layer.properties.MaxZoom > maxRasterZoom))
 					maxRasterZoom = layer.properties.MaxZoom;
