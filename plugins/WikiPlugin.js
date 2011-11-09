@@ -15,7 +15,9 @@ _translationsHash.addtext("rus", {
 	"Заголовок" : "Заголовок",
 	"Сообщение уже редактируется": "Сообщение уже редактируется",
 	"Щелкните по слою в дереве слоёв, чтобы выбрать его": "Щелкните по слою в дереве слоёв, чтобы выбрать его",
-	"Для добавления или редактирования объекта на карте нужно добавить новый объект - точку или многоугольник из панели инструментов": "Для добавления или редактирования объекта на карте нужно добавить новый объект - точку или многоугольник из панели инструментов"
+	"Вы действительно хотите удалить это сообщение?" : "Вы действительно хотите удалить это сообщение?",
+	"Удалить привязку к слою": "Удалить привязку к слою",
+	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"
 });
 _translationsHash.addtext("eng", {
 	"Сообщение" : "Message",
@@ -28,7 +30,9 @@ _translationsHash.addtext("eng", {
 	"Заголовок" : "Title",
 	"Сообщение уже редактируется": "Message editor is already open",
 	"Щелкните по слою в дереве слоёв, чтобы выбрать его": "Click layer to choose it",
-	"Для добавления или редактирования объекта на карте нужно добавить новый объект - точку или многоугольник из панели инструментов": "To add object use toolbar on map"
+	"Вы действительно хотите удалить это сообщение?" : "Do you really want to delete the selected message?",
+	"Удалить привязку к слою": "Delete layer reference",
+	"Для добавления или редактирования объекта на карте нужно добавить новый объект: точку или многоугольник из панели инструментов": "To add object use toolbar on map"
 });
 
 /**Контейнер меню (или диалога сообщений), содержащий список сообщений и кнопку "Создать сообщение"
@@ -174,7 +178,12 @@ WikiObjectsHandler.prototype = {
 						var btnEdit = makeLinkButton(_gtxt("Редактировать"));
 						var btnDelete = makeLinkButton(_gtxt("Удалить"));
 						btnEdit.onclick = function() {_this._wikiPlugin.openEditor(pageInfo); _this._map.balloonClassObject.hideHoverBalloons(); }
-						btnDelete.onclick = function() {_this._wikiPlugin.deletePage(pageInfo); _this._map.balloonClassObject.hideHoverBalloons(); }
+						btnDelete.onclick = function() {
+							if (confirm(_gtxt("Вы действительно хотите удалить это сообщение?"))){
+								_this._wikiPlugin.deletePage(pageInfo); 
+								_this._map.balloonClassObject.hideHoverBalloons(); 
+							}
+						}
 						_(divEdit, [btnEdit, _t(" "), btnDelete]);
 					};
 					var divTitle = _div([_t(pageInfo.Title)], [['dir', 'className', 'wiki-message-title']]);
@@ -304,6 +313,14 @@ var InitEditor = function(target) {
 			});
 		}
 	}
+	
+	var applyChromeBugfix = function(){
+		if (jQuery.browser.webkit){
+				document.getElementById('message_content_parent').style.display = 'block';
+				document.getElementById('message_content_parent').style.height = '100%'
+		}
+	}
+	
     var options = {
         language : "ru",
         mode: 'exact',
@@ -322,7 +339,9 @@ var InitEditor = function(target) {
         theme_advanced_statusbar_location : "none",
 
         plugins: 'advimage,jqueryinlinepopups',
-        extended_valid_elements: 'img[!src|border:0|alt|title|width|height|style]a[name|href|target|title|onclick]'
+        extended_valid_elements: 'img[!src|border:0|alt|title|width|height|style]a[name|href|target|title|onclick]',
+		
+		oninit: applyChromeBugfix
     };
 
     //if (fileBrowser) 
@@ -333,10 +352,12 @@ var InitEditor = function(target) {
 			tinyMCELoaded = true;
 			tinymce.dom.Event.domLoaded = true; 
 			tinyMCE.init(options);
+			applyChromeBugfix()
 		});
 	}
 	else{
 		tinyMCE.init(options);
+		applyChromeBugfix()
 	}
 }
 
@@ -352,18 +373,22 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	this._pageInfo = pageInfo;
 	this._layerChooseFlag = false;
 	this._geometryChooseFlag = false;
-	this._divGeometry = _div([_t(_gtxt("Для добавления или редактирования объекта на карте нужно добавить новый объект - точку или многоугольник из панели инструментов"))]);
+	this._divGeometry = _div([_t(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))],[['dir', 'className', 'wiki-editor-helptext']]);
 	this._txtLayer = _input(null, [['attr', 'readonly', 'true'], ['dir', 'className', 'wiki-editor-txtlayer']]);
-	this._lblLayer = _t(_gtxt("Щелкните по слою в дереве слоёв, чтобы выбрать его"));
+	this._btnLayerClear = makeImageButton(getAPIHostRoot() + 'api/img/closemin.png', getAPIHostRoot() + 'api/img/close_orange.png');
+	this._btnLayerClear.setAttribute('title', _gtxt('Удалить привязку к слою'))
+	this._btnLayerClear.onclick = function(){ this.setLayer(null) }.bind(this);
+	this._hlpLayer = makeHelpButton(_gtxt("Щелкните по слою в дереве слоёв, чтобы выбрать его"));
 	this._txtTitle = _input(null, [['dir', 'className', 'wiki-editor-txttitle']]);
-	this._fieldsTable = _table([_tbody([_tr([_td([_t(_gtxt("Слой"))]), _td([this._txtLayer]), _td([this._lblLayer], [['css', 'width', '100%']]), _td([_t(_gtxt("Заголовок"))]), _td([this._txtTitle]), _td()])])], [['css', 'margin', '1px 0 3px 0']]);
+	this._fieldsTable = _table([_tbody([_tr([_td([_t(_gtxt("Слой"))]), _td([this._txtLayer]), _td([this._btnLayerClear]), _td([this._hlpLayer], [['css', 'width', '100%']]), _td([_t(_gtxt("Заголовок"))]), _td([this._txtTitle]), _td()])])], [['dir', 'className', 'wiki-editor-tblfields']]);
 	this._txtContent = _textarea(null, [['attr', 'id', 'message_content'], ['css', 'width', '100%'], ['css', 'height', '100%']]);
 	if (pageInfo.LayerName) this._txtLayer.value = this._wikiPlugin._map.layers[pageInfo.LayerName].properties.title;
 	if (pageInfo.Title) this._txtTitle.value = pageInfo.Title;		
 	if (pageInfo.Content) this._txtContent.value = pageInfo.Content;
 	var _btnOK = _button([_t(_gtxt("Сохранить"))], [['dir', 'className', 'wiki-editor-btnok']]);
+	if ($.browser.webkit || $.browser.opera) {_btnOK.style.padding='3px'}
 	_btnOK.onclick = this.updatePage.bind(this);
-	var tblAll = _table([_tbody([_tr([_td([this._divGeometry, this._fieldsTable])]), _tr([_td([this._txtContent], [['css', 'height', '100%']])]), _tr([_td([_br(), _btnOK])])])], [['css', 'width', '100%'], ['css', 'height', '100%']]);
+	var tblAll = _table([_tbody([_tr([_td([this._divGeometry, this._fieldsTable])]), _tr([_td([this._txtContent], [['css', 'height', '100%']])]), _tr([_td([_br(), _btnOK])])])], [['dir', 'className', 'wiki-editor-tblAll']]);
 	this._div = _div([tblAll], [['attr', 'Title', _gtxt('Сообщение')]]);
 	
 }
@@ -399,8 +424,14 @@ WikiEditor.prototype = {
 	
 	/** Устанавливает для сообщения переданный слой*/
 	setLayer: function(layerName){
-		this._txtLayer.value = this._wikiPlugin._map.layers[layerName].properties.title;
-		this._pageInfo.LayerName = layerName;
+		if (layerName){
+			this._txtLayer.value = this._wikiPlugin._map.layers[layerName].properties.title;
+			this._pageInfo.LayerName = layerName;
+		}
+		else{
+			this._txtLayer.value = ''; 
+			this._pageInfo.LayerName = null;
+		}
 	},
 	
 	/** Закрывает диалог */
@@ -555,6 +586,7 @@ WikiPlugin.prototype = {
                 .addClass('page-button-on')
                 .click(function() { this._toggleWikiObjectsVisibility(); }.bind(this));
         }
+		if (jQuery.browser.msie) { this._uiWikiButton.css('display', 'inline'); };
         this._treeView.find('div[mapid="' + this._map.properties.MapID + '"] div:first').append(this._uiWikiButton);
     },
     
@@ -612,13 +644,8 @@ WikiPlugin.prototype = {
 }
 
 var oWiki = new WikiPlugin();
-//var oWikiLeftMenu = new leftMenu();
-//var alreadyLoaded = false;
 var loadMenu = function(){
 	$(oWikiDiv).dialog();
-	
-	//oWikiLeftMenu.createWorkCanvas("wiki", unloadMenu);
-	//$(oWikiLeftMenu.workCanvas).after(oWikiDiv);
 }
 
 var unloadMenu = function(){
@@ -646,7 +673,14 @@ var beforeViewer = function(params){
 }
 
 var afterViewer = function(params){
-	oWiki.initialize(oFlashMap, params.WikiServer, params.MapDiv);
+	if (jQuery.browser.opera){
+		setTimeout(function(){
+			oWiki.initialize(oFlashMap, params.WikiServer, params.MapDiv);
+		}, 3000)
+	}
+	else {
+		oWiki.initialize(oFlashMap, params.WikiServer, params.MapDiv);
+	}
 }
 
 var addMenuItems = function(){

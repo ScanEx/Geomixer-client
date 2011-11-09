@@ -302,6 +302,15 @@ function makeLinkButton(text)
 	
 	return span;
 }
+function makeHelpButton(helpText){
+	var btn = makeImageButton(getAPIHostRoot() + 'api/img/help.gif');
+	btn.setAttribute('title', helpText)
+	btn.onclick = function(){
+		showDialog('', _t(helpText));
+	}
+	return btn;
+}
+
 function getOwnChildNumber(elem)
 {
 	for (var i = 0; i < elem.parentNode.childNodes.length; i++)

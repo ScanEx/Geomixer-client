@@ -16,65 +16,69 @@ _translationsHash.addtext("eng", {
 	"Текущее местоположение отображается только для России и Украины": "Current location is shown only for Russia and Ukraine"
 });
 
-/** Возвращает полное наименование объекта, состоящее из типа и наименования
- @memberOf Search 
- @param sType Наименование типа объекта 
- @param sName Наименование объекта
- @see Search.GetPath*/
-var GetFullName = function(/** string */sType, /** string */sName){
-	var sFullName = "";
-	
-	if (sType==null || sType == "государство" || sType == "г." || /[a-zA-Z]/.test(sName))
-		sFullName = sName;
-	else if ((sType.indexOf("район") != -1) || (sType.indexOf("область") != -1) || (sType.indexOf("край") != -1))
-		sFullName = sName + " " + sType;
-	else
-		sFullName = sType + " " + sName;
-	
-	return sFullName;
-};
 
-/** Возвращает полный путь к объекту
- @memberOf Search
- @param oFoundObject найденный объект
- @param sObjectsSeparator разделитель между дочерним элементом и родителем в строке пути
- @param bParentAfter признак того, что родительский элемент идет после дочернего
- @param sObjNameField название свойства, из которого брать наименование
- @see Search.GetFullName*/	
-var GetPath = function(/**object*/ oFoundObject,/** string */ sObjectsSeparator, /** bool */ bParentAfter, /** string */ sObjNameField){
-	if (sObjNameField == null) sObjNameField = "ObjName";
-	if (oFoundObject == null) return "";
-	var oParentObj = oFoundObject.Parent;
-	if (oParentObj != null && (oParentObj.ObjName == "Российская Федерация" || oParentObj.TypeName == "административный округ")) {
-		oParentObj = oParentObj.Parent;
-	}
-	var sObjectName = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183) ? oFoundObject[sObjNameField] : GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
-	if (oParentObj != null && oParentObj[sObjNameField] != null && oParentObj[sObjNameField]){
-		if (bParentAfter){
-			return sObjectName + sObjectsSeparator + GetPath(oParentObj, sObjectsSeparator,  bParentAfter, sObjNameField);
+/** Вспомогательные функции
+ @memberOf Search*/
+var Functions = {
+
+	/** Возвращает полное наименование объекта, состоящее из типа и наименования
+	 @static
+	 @param sType Наименование типа объекта 
+	 @param sName Наименование объекта*/
+	GetFullName: function(/** string */sType, /** string */sName){
+		var sFullName = "";
+		
+		if (sType==null || sType == "государство" || sType == "г." || /[a-zA-Z]/.test(sName))
+			sFullName = sName;
+		else if ((sType.indexOf("район") != -1) || (sType.indexOf("область") != -1) || (sType.indexOf("край") != -1))
+			sFullName = sName + " " + sType;
+		else
+			sFullName = sType + " " + sName;
+		
+		return sFullName;
+	},
+
+	/** Возвращает полный путь к объекту
+	 @static
+	 @param oFoundObject найденный объект
+	 @param sObjectsSeparator разделитель между дочерним элементом и родителем в строке пути
+	 @param bParentAfter признак того, что родительский элемент идет после дочернего
+	 @param sObjNameField название свойства, из которого брать наименование*/	
+	GetPath: function(/**object*/ oFoundObject,/** string */ sObjectsSeparator, /** bool */ bParentAfter, /** string */ sObjNameField){
+		if (sObjNameField == null) sObjNameField = "ObjName";
+		if (oFoundObject == null) return "";
+		var oParentObj = oFoundObject.Parent;
+		if (oParentObj != null && (oParentObj.ObjName == "Российская Федерация" || oParentObj.TypeName == "административный округ")) {
+			oParentObj = oParentObj.Parent;
+		}
+		var sObjectName = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183) ? oFoundObject[sObjNameField] : this.GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
+		if (oParentObj != null && oParentObj[sObjNameField] != null && oParentObj[sObjNameField]){
+			if (bParentAfter){
+				return sObjectName + sObjectsSeparator + this.GetPath(oParentObj, sObjectsSeparator,  bParentAfter, sObjNameField);
+			}
+			else{
+				return this.GetPath(oParentObj, sObjectsSeparator,  bParentAfter, sObjNameField) + sObjectsSeparator + sObjectName;
+			}
 		}
 		else{
-			return GetPath(oParentObj, sObjectsSeparator,  bParentAfter, sObjNameField) + sObjectsSeparator + sObjectName;
+			return sObjectName;
 		}
-	}
-	else{
-		return sObjectName;
-	}
-}
+	},
 
-/** Возвращает строку, соединяющую переданные свойства
- @memberOf Search
- @param oProps - Свойства
- @param sObjectsSeparator Разделитель 2х свойств в строке*/	
-var GetPropertiesString = function(/**object[]*/oProps,/**string*/ sPropSeparator, /**object[]*/arrDisplayFields){
-	var sResultString = "";
-	if (oProps != null){
-		for (var sPropName in oProps){
-			if (sResultString != "") sResultString += sPropSeparator;
-			sResultString += sPropName + ": " + oProps[sPropName];
+	/** Возвращает строку, соединяющую переданные свойства
+	 @static
+	 @param oProps - Свойства
+	 @param sObjectsSeparator Разделитель 2х свойств в строке*/	
+	GetPropertiesString: function(/**object[]*/oProps,/**string*/ sPropSeparator, /**object[]*/arrDisplayFields){
+		var sResultString = "";
+		if (oProps != null){
+			for (var sPropName in oProps){
+				if (sResultString != "") sResultString += sPropSeparator;
+				sResultString += sPropName + ": " + oProps[sPropName];
+			}
 		}
+		return sResultString;
 	}
-	return sResultString;
 }
 
 /** Конструктор
@@ -397,7 +401,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	/**Добавляет объект в список найденных результатов*/
 	var drawObject = function(oFoundObject, elemDiv, bIsParent)
 	{
-		var	realPath = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183)  ? oFoundObject.ObjName : GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
+		var	realPath = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183)  ? oFoundObject.ObjName : Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
 		if (oFoundObject.Parent != null) realPath += ",";
 		
 		var searchElemHeader = _span([_t(realPath)], [['dir', 'className', bIsParent?'searchElemParent':'searchElem']]);
@@ -410,7 +414,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 
 		_(elemDiv, [searchElemHeader]);
 		if (oFoundObject.Parent != null) drawObject(oFoundObject.Parent, elemDiv, true);
-		if (oFoundObject.properties != null) _(elemDiv, [_t(" " + GetPropertiesString(oFoundObject.properties, "; "))]);
+		if (oFoundObject.properties != null) _(elemDiv, [_t(" " + Functions.GetPropertiesString(oFoundObject.properties, "; "))]);
 	}
 	
 	/** Рисует строки списка*/
@@ -686,8 +690,8 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	@param {MapObject} oFoundObject добавляемый объект
 	@param {int} iPosition порядковый номер добавляемого объекта в группе*/
 	var DrawObject = function(oContainer, oFoundObject, iPosition){
-		var sDescr = "<b>" + GetFullName(oFoundObject.TypeName, oFoundObject.ObjName) + "</b><br/>" + GetPath(oFoundObject.Parent, "<br/>", true);
-		if (oFoundObject.properties != null) sDescr += "<br/>" + GetPropertiesString(oFoundObject.properties, "<br/>");
+		var sDescr = "<b>" + Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName) + "</b><br/>" + Functions.GetPath(oFoundObject.Parent, "<br/>", true);
+		if (oFoundObject.properties != null) sDescr += "<br/>" + Functions.GetPropertiesString(oFoundObject.properties, "<br/>");
 		var fnBaloon = function(o) {
 			return o.properties.Descr.replace(/;/g, "<br/>");
 		};
@@ -773,7 +777,7 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 	var drawObject = function(oFoundObject, elemDiv)
 	{
 		if (oFoundObject.Parent != null) drawObject(oFoundObject.Parent, elemDiv, true);
-		var	realPath = oFoundObject.IsForeign ? oFoundObject.ObjName : GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
+		var	realPath = oFoundObject.IsForeign ? oFoundObject.ObjName : Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
 		
 		var searchElemHeader = _span([_t(realPath)], [['dir', 'className', 'searchLocationPath']]);
 
@@ -1095,8 +1099,8 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	@param sObjNameField название свойства, из которого брать наименование родительского объекта
 	*/
 	var fnGetLabel = function(oFoundObject, sObjNameField, sObjNameFieldParent){
-		var sLabel = GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
-		if (oFoundObject.Parent != null) sLabel += ", " + GetPath(oFoundObject.Parent, ", ", true, sObjNameFieldParent);
+		var sLabel = Functions.GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
+		if (oFoundObject.Parent != null) sLabel += ", " + Functions.GetPath(oFoundObject.Parent, ", ", true, sObjNameFieldParent);
 		return sLabel;
 	}
 	
@@ -1137,7 +1141,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 					}
 					arrResult.push({
 						label:sLabel,
-						value:GetFullName(oFoundObject.TypeName, sValue),
+						value:Functions.GetFullName(oFoundObject.TypeName, sValue),
 						GeoObject: oFoundObject});
 				}
 				if(arrResult.length>0) break;
@@ -1166,8 +1170,8 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 				if(oDataSource[j].Parent != null)
 				{
 					iCatID = oDataSource[j].Parent.ObjCode;
-					sCategory = GetPath(oDataSource[j].Parent, ", ", false);
-					sCategoryDesc = GetPath(oDataSource[j].Parent, ", ", true);
+					sCategory = Functions.GetPath(oDataSource[j].Parent, ", ", false);
+					sCategoryDesc = Functions.GetPath(oDataSource[j].Parent, ", ", true);
 					iPriority = oDataSource[j].Parent.Priority;
 				}
 				if(CategoriesIndex[iCatID]==null) {
@@ -1602,8 +1606,7 @@ var publicInterface = {
 	SearchLogic: SearchLogic,
 	SearchLogicGet: SearchLogicGet,
 	LocationTitleRenderer: LocationTitleRenderer,
-	GetFullName: GetFullName,
-	GetPath: GetPath
+	Functions: Functions
 }
 
 gmxCore.addModule("search", publicInterface);

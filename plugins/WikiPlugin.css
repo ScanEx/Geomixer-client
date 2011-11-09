@@ -70,7 +70,7 @@ span.wiki-filter-page:hover
   /*display:inline;*/
   vertical-align:middle;
   cursor:pointer;
-  background-position:lefttop;
+  background-position:left top;
   background-repeat:no-repeat;
   width:12px;
   height:15px;
@@ -83,10 +83,20 @@ span.wiki-filter-page:hover
 }
 
 .wiki-editor-txtlayer{
-	margin: 0 2 0 2;
+	margin: 0 0 0 2;
 }
 .wiki-editor-txttitle{
 	margin: 0 0 0 2;
+}
+.wiki-editor-tblfields{
+	margin: 5 0 10 0;
+}
+.wiki-editor-tblAll{
+	width: 100%;
+	height: 100%;
+}
+.wiki-editor-tblAll *{
+	font-size: 12;
 }
 
 .page-button-on {

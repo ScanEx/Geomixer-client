@@ -143,7 +143,13 @@ this.features = f;
 this.params = p;
 this.onOpen.dispatch(this, f, p);
 
-dialog.dialog(config);
+if ($.browser.msie){
+	dialog[0].style.display='block';
+	w.element = $(showDialog(config.title, dialog[0], config.width == 'auto'? 710 : config.width, config.height == 'auto' ? 430: config.height));
+}
+else{
+	dialog.dialog(config);
+}
 
 // Load in iframe src
 if (!f.content) {
