@@ -1,0 +1,69 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	
+	<script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+	<script src="http://maps.kosmosnimki.ru/api/jquery/jquery-1.3.2.min.js"></script>
+	
+	<title>GeoMixer API - Тест тайлов с временной разбивки</title>
+</head>
+
+<body>
+<div id="map_container" style="width: 1000px; height: 700px; float: left;"></div>
+
+<div id="btn" style="float: left; top: 0px; margin-left: 44px;">
+<button id="setFilterButton">Установить фильтр: GranID = 'AM1107050342'</button>
+<br/>
+<br/>
+<input type="text" id="begDate" value="04.07.2011" style="width: 80px;" />
+<input type="text" id="endDate" value="05.07.2011" style="width: 80px;" />
+<button id="filterButton1">Загрузить</button>
+<button id="getStat" style="display:none;">Сколько точек добавлено</button><span id="getStatResult" style="color:red;"></span>
+<!-- <br><button id="getStat1" style="display:block;">Сколько точек добавлено в TREES_layer</button><span id="getStatResult1" style="color:red;"></span> -->
+<span id="cmdHash" class="bodytext"></span>
+<br/>
+
+</div>
+<script>
+
+	var ballonHoverFunction = function(o)
+	{
+		var p = o.properties;
+		var res = 'HotSpotID : ' + p['HotSpotID'];
+		res += '<br>ImgDate : ' + p['ImgDate'];
+		//res += '<br><a href="' + p['url'] + '" target="_blank">Открыть в новом окне</a>';
+		return res + '<br>' + o.getGeometrySummary();
+	}
+
+	var oneDay = 1000*60*60*24;
+
+	createFlashMap(document.getElementById("map_container"), 'mapstest.kosmosnimki.ru', "C2HCK", function(map)
+	//createFlashMap(document.getElementById("map_container"), 'maps.kosmosnimki.ru', "DefaultMap", function(map)
+	{
+		map.moveTo(105.506, 61.825, 3);//позиционирует карту по координатам центра и выбирает масштаб
+		//map.enableHoverBalloon(ballonHoverFunction);
+
+		document.getElementById("filterButton1").onclick = function() {
+			var dt1 = document.getElementById("begDate").value;
+			var dt2 = document.getElementById("endDate").value;
+			var cnt = map.layers["fireTest"].setDateInterval(dt1, dt2);	// Перерасчет тайлов мультивременного слоя + установка фильтра
+
+			var arr = dt1.split('.');
+			var pdt1 = new Date((arr.length > 2 ? arr[2] : 2008), (arr.length > 1 ? arr[1] - 1 : 0), (arr.length > 0 ? arr[0] : 1));
+			arr = dt2.split('.');
+			pdt2 = new Date((arr.length > 2 ? arr[2] : 2008), (arr.length > 1 ? arr[1] - 1 : 0), (arr.length > 0 ? arr[0] : 1));
+			var days = 1 + (pdt2 - pdt1)/oneDay;
+			document.getElementById("getStatResult").innerHTML = 'Days: ' + days + ' DaysDelta: ' + cnt;
+		}
+
+		document.getElementById("setFilterButton").onclick = function() {
+			map.layers["fireTest"].filters[0].setFilter("GranID = 'AM1107050342'");	// установка фильтра
+		}
+		
+	});
+
+</script>
+
+</body>
+
+</html>
