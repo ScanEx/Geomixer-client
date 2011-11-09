@@ -691,11 +691,12 @@ div.unit .unitInfo
 	/*width: 120px;*/
 }
 
-.contextMenuItem
+div.contextMenuItem > span
 {
 	padding-top: 1px;
 	padding-bottom: 1px;
 	white-space:nowrap;
+    color: black;
 }
 
 .contextMenuSeparator

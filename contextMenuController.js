@@ -30,9 +30,9 @@ nsGmx.ContextMenuController = (function()
 		var menu = null;
 		if (jQuery.browser.opera)
 		{
-			var contextMenu = null;
 			elem.onmouseover = function()
 			{
+                if ($('#contextMenuCanvas', elem).length > 0) return;
 				if (typeof checkFunc !== 'undefined' && !checkFunc())
 					return;
 				
@@ -40,20 +40,21 @@ nsGmx.ContextMenuController = (function()
 				{
 					elem.timer = null;
 					
-					if (!contextMenu)
-					{
-						menu = menu || menuFunc();
-						if (!menu) return;
-						contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']]);
-						_(elem, [contextMenu]);
-					}
+                    var menu = menuFunc();
+                    if (!menu) return;
+                    var contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']]);
+                    _(elem, [contextMenu]);
 					
+					elem.style.backgroundColor = '#DAEAF3';
 					contextMenu.style.top = elem.offsetHeight + 'px';
 					contextMenu.style.left = "0px";
 					
-					jQuery(contextMenu).fadeIn(500);
+                    //после появления меню ему нужно заново выставить позицию, так как в Opera почему-то изменяется размеры
+					jQuery(contextMenu).fadeIn(500, function()
+                    {
+                        contextMenu.style.top = elem.offsetHeight + 'px';
+                    });
 					
-					elem.style.backgroundColor = '#DAEAF3';
 				}, suggestTimeout)
 			}
 			
@@ -78,7 +79,11 @@ nsGmx.ContextMenuController = (function()
 				
 				elem.style.backgroundColor = '';
 
-				jQuery(contextMenu).fadeOut(500);
+				//jQuery(contextMenu).fadeOut(500);
+                $("#contextMenuCanvas", elem).fadeOut(500, function()
+                {
+                    $("#contextMenuCanvas", elem).remove();
+                });
 			}
 		}
 		else
@@ -455,7 +460,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Group');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Права доступа"),
+	title: _gtxt("Удалить"),
 	clickCallback: function(context)
 	{
 		context.tree.removeGroup(context.div);
