@@ -785,6 +785,13 @@ class Main
 			node.setContent(newContent);
 		}
 
+		function startLoadTiles(id:String, attr:Dynamic)
+		{
+			var node = getNode(id);
+			if (node == null || node.content == null || !Std.is(node.content, VectorLayer)) return;
+			cast(node.content, VectorLayer).startLoadTiles(attr, mapWindow);
+		}
+
 		function setVectorTiles(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?filesHash:Dynamic)
 		{
 			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):Dynamic
@@ -1176,6 +1183,8 @@ class Main
 					out = getNode(attr.objectId).addChild().id;
 				case 'setVectorTiles':
 					setVectorTiles(attr.objectId, attr.tileFunction, attr.identityField, attr.tiles, attr.filesHash);
+				case 'startLoadTiles':
+					startLoadTiles(attr.objectId, attr.data);
 				case 'setTiles':
 					setTiles(attr.objectId, attr.tiles, attr.flag);
 				case 'getStat':

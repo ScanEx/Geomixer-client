@@ -48,6 +48,30 @@ class VectorLayer extends MapContent
 		tiles.push(new VectorTile(this, i, j, z));
 	}
 
+	// Управление списком тайлов
+	public function startLoadTiles(attr:Dynamic, mapWindow:MapWindow)
+	{
+		//trace('----startLoadTiles ------ ' + attr.dtiles );
+		if(attr != null) {
+			if (attr.dtiles != null) {	// Полная перезагрузка тайлов
+				flush();
+				var tiles:Array<Int> = attr.dtiles;
+				for (i in 0...Std.int(tiles.length/3))
+					addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
+			}
+		}
+
+		createLoader(function(tile:VectorTile, tilesRemaining:Int)
+		{
+			if (tilesRemaining < 0)
+			{
+				Main.bumpFrameRate();
+				Main.refreshMap();
+			}
+		})(mapWindow.visibleExtent);
+	}
+
+
 	public function createLoader(func:VectorTile->Int->Void)
 	{
 		var loaded = new Array<Bool>();
@@ -55,7 +79,7 @@ class VectorLayer extends MapContent
 			loaded.push(false);
 		var nRemaining = 0;
 		var me = this;
-		var w = 2*Utils.worldWidth;
+		var w = 2 * Utils.worldWidth;
 		return function(e1:Extent)
 		{
 			var tilesToLoad = new Array<VectorTile>();
