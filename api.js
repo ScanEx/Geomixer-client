@@ -1763,7 +1763,9 @@ function createFlashMapInternal(div, layers, callback)
 			// Передача команды в SWF
 			function FlashCMD(cmd, hash)
 			{
-
+                //Это хак для исправления бага в Opera - после перестроения DOM модели при первом обращении объект становится undefined, при втором и далее всё нормально
+                if (flashDiv.cmdFromJS) {};
+                
 //var startTime = (new Date()).getTime();
 				var ret = {};
 				var obj = hash['obj'] || null;	// Целевой обьект команды
