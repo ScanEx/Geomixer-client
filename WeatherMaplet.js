@@ -26,7 +26,7 @@
 
 		//если подгружать jquery, можно использовать $.extent
 		if (!params) params = {};
-		params.countryCode = params.copuntryCode || 0;
+		params.countryCode = params.countryCode || 0;
 		if (typeof params.initWeather == 'undefined') params.initWeather = true;
 		if (typeof params.initWind == 'undefined') params.initWind = true;
 		if (typeof params.imagesHost == 'undefined') params.imagesHost = "http://maps.kosmosnimki.ru/api/img/weather/";
