@@ -15,6 +15,7 @@ class VectorLayer extends MapContent
 	//var hoverTileExtent:Extent;
 	//var hoverTiles:Array<VectorTile>;
 
+	var hashTiles:Hash<Bool>;
 	var flipCounts:Hash<Int>;
 	var lastFlipCount:Int;
 	var flipDown:Bool;
@@ -34,6 +35,8 @@ class VectorLayer extends MapContent
 	public override function flush()
 	{
 		tiles = new Array<VectorTile>();
+		hashTiles = new Hash<Bool>();
+		
 		geometries = new Hash<Geometry>();
 		flipCounts = new Hash<Int>();
 		lastFlipCount = 0;
@@ -46,18 +49,21 @@ class VectorLayer extends MapContent
 	public function addTile(i:Int, j:Int, z:Int)
 	{
 		tiles.push(new VectorTile(this, i, j, z));
+		hashTiles.set(z + '_' + i + '_' + j, true);
 	}
 
 	// Управление списком тайлов
 	public function startLoadTiles(attr:Dynamic, mapWindow:MapWindow)
 	{
-		//trace('----startLoadTiles ------ ' + attr.dtiles );
 		if(attr != null) {
-			if (attr.dtiles != null) {	// Полная перезагрузка тайлов
-				flush();
-				var tiles:Array<Int> = attr.dtiles;
-				for (i in 0...Std.int(tiles.length/3))
-					addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
+			if (attr.notClear != true) {
+				flush();	// Полная перезагрузка тайлов
+			}
+				
+			var ptiles:Array<Int> = attr.dtiles;
+			for (i in 0...Std.int(ptiles.length / 3)) {
+				var i:Int = ptiles[i * 3]; var j:Int = ptiles[i * 3 + 1]; var z:Int = ptiles[i * 3 + 2];
+				if(!hashTiles.get(z + '_' + i + '_' + j)) addTile(i, j, z);
 			}
 		}
 
@@ -75,6 +81,7 @@ class VectorLayer extends MapContent
 	public function createLoader(func:VectorTile->Int->Void)
 	{
 		var loaded = new Array<Bool>();
+//trace('----createLoader ------ ' + tiles );
 		for (tile in tiles)
 			loaded.push(false);
 		var nRemaining = 0;

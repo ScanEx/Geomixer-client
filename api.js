@@ -2860,6 +2860,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var tileDateFunction = null;
 				var setDateInterval = null;
 				if(isTemporal) {
+					var LastDaysDelta = 0;		// последний активный интервал временных тайлов 
+
 					var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
 					var ZeroDateString = layer.properties.ZeroDate || '01.01.2008';	// нулевая дата
 					var arr = ZeroDateString.split('.');
@@ -3070,23 +3072,30 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						var oldDt1 = currentData['dt1'];
 						var oldDt2 = currentData['dt2'];
+						var oldDaysDelta = currentData['daysDelta'];
 
-						var daysDelta = setDateInterval(dt1, dt2);
-						for (var i=0; i<obj.filters.length; i++)
-						{
-							var st = obj.filters[i]._sql;
-							obj.filters[i].setFilter(st, true);
-						}
+						var hash = prpTemporalFilter(dt1, dt2);
+						var ddt1 = hash['dt1'];
+						var ddt2 = hash['dt2'];
+						var data = getDateIntervalTiles(ddt1, ddt2);
+
 						var attr = null;
-						if(currentData['dt1'] < oldDt1 || currentData['dt2'] > oldDt2) {
-							attr = {
-								'dtiles': (currentData['dtiles'] ? currentData['dtiles'] : [])
+						if(data['dt1'] < oldDt1 || data['dt2'] > oldDt2) {	// перезагружаем тайлы только если интервал дат расширяется
+							attr = { 'dtiles': (data['dtiles'] ? data['dtiles'] : []) };
+							if(LastDaysDelta == data['daysDelta']) {		// если интервал временных тайлов не изменился - только добавление новых тайлов
+								attr['notClear'] = true;
 							}
+							currentData = data;
+							LastDaysDelta = currentData['daysDelta'];
 						}
 
 						if(attr) obj.startLoadTiles(attr);
+						curTemporalFilter = hash['curFilter'];
+						for (var i=0; i<obj.filters.length; i++)	// переустановка фильтров
+							obj.filters[i].setFilter(obj.filters[i]._sql, true);
+
 						map.balloonClassObject.removeHoverBalloons();
-						return daysDelta;
+						return LastDaysDelta;
 					}
 
 					for (var i = 0; i < deferredMethodNames.length; i++)
