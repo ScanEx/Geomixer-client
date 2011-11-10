@@ -2860,6 +2860,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var tileDateFunction = null;
 				var setDateInterval = null;
 				if(isTemporal) {
+					var TimeTemporal = (layer.properties.TemporalColumnName == 'DateTime' ? true : false);	// ƒобавл€ть врем€ в фильтры - пока только дл€ пол€ layer.properties.TemporalColumnName == 'DateTime'
 					var LastDaysDelta = 0;		// последний активный интервал временных тайлов 
 
 					var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
@@ -2928,6 +2929,29 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						}
 						return outArr;
 					}
+ 
+					prpTemporalFilter = function(DateBegin, DateEnd)
+					{
+						var dt1 = ddt1;			// начало текущих суток
+						var dt2 = ddt2;			// конец текущих суток
+						var tp = Object.prototype.toString.apply(DateEnd);
+						if(tp === '[object Date]') dt2 = DateEnd;
+						else if(tp === '[object String]') {						// формат 23.08.2011
+							dt2 = gmxAPI.strToDate(DateEnd);
+						}
+						tp = Object.prototype.toString.apply(DateBegin);
+						if(tp === '[object Date]') dt1 = DateBegin;
+						else if(tp === '[object String]') {
+							dt1 = gmxAPI.strToDate(DateBegin);
+						}
+						var dt1str = dt1.getFullYear() + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + gmxAPI.pad2(dt1.getDate());
+						if(TimeTemporal) dt1str += ' ' + gmxAPI.pad2(dt1.getHours()) + ":" + gmxAPI.pad2(dt1.getMinutes() + 1) + ":" + gmxAPI.pad2(dt1.getSeconds());
+						var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
+						if(TimeTemporal) dt2str += ' ' + gmxAPI.pad2(dt2.getHours()) + ":" + gmxAPI.pad2(dt2.getMinutes() + 1) + ":" + gmxAPI.pad2(dt2.getSeconds());
+						var TemporalColumnName = layer.properties.TemporalColumnName || 'Date';
+						var curFilter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
+						return {'dt1': dt1, 'dt2': dt2, 'curFilter': curFilter};
+					}
 
 					var getDateIntervalTiles = function(dt1, dt2) {			// –асчет вариантов от begDate до endDate
 						var days = parseInt(1 + (dt2 - dt1)/oneDay);
@@ -2994,11 +3018,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						}
 						var ph = getFiles(curDaysDelta);
 						minFiles = ph['files'].length;
-						var dt1str = dt1.getFullYear() + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + gmxAPI.pad2(dt1.getDate());
-						var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
-						var TemporalColumnName = layer.properties.TemporalColumnName || 'Date';
-						var curTemporalFilter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
 
+						var hash = prpTemporalFilter(dt1, dt2);
+						curTemporalFilter = hash['curFilter'];
 						var out = {
 								'daysDelta': curDaysDelta
 								,'files': ph['files']
@@ -3009,7 +3031,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 								,'end': ph['end']
 								,'dt1': dt1
 								,'dt2': dt2
-								,'curTemporalFilter': curTemporalFilter
+								,'curTemporalFilter': hash['curFilter']
 							};
 
 						return out;
@@ -3021,27 +3043,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					obj.getTemporalFilter = function()
 					{
 						return (currentData['curTemporalFilter'] ? currentData['curTemporalFilter'] : '');
-					}
- 
-					prpTemporalFilter = function(DateBegin, DateEnd)
-					{
-						var dt1 = ddt1;			// начало текущих суток
-						var dt2 = ddt2;			// конец текущих суток
-						var tp = Object.prototype.toString.apply(DateEnd);
-						if(tp === '[object Date]') dt2 = DateEnd;
-						else if(tp === '[object String]') {						// формат 23.08.2011
-							dt2 = gmxAPI.strToDate(DateEnd);
-						}
-						tp = Object.prototype.toString.apply(DateBegin);
-						if(tp === '[object Date]') dt1 = DateBegin;
-						else if(tp === '[object String]') {
-							dt1 = gmxAPI.strToDate(DateBegin);
-						}
-						var dt1str = dt1.getFullYear() + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + gmxAPI.pad2(dt1.getDate());
-						var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
-						var TemporalColumnName = layer.properties.TemporalColumnName || 'Date';
-						var curFilter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
-						return {'dt1': dt1, 'dt2': dt2, 'curFilter': curFilter};
 					}
 
 					setDateInterval = function(DateBegin, DateEnd)
