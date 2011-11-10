@@ -1935,6 +1935,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 		function (hsb, hex, rgb) {
 			fillColorPicker.style.backgroundColor = '#' + hex;
             fillColor = parseInt("0x" + hex);
+            $(_this).change();
 		}),
 	fillOpacitySlider = _mapHelper.createSlider(fillOpacity,
 		function(event, ui)
@@ -2041,6 +2042,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 					function (hsb, hex, rgb) {
 						colorPicker.style.backgroundColor = '#' + hex;
 						_colors[k] = parseInt('0x' + hex);
+                        $(_this).change();
 					});
 				colorPicker.style.width = '100%';
 				
