@@ -79,7 +79,6 @@ nsGmx.ContextMenuController = (function()
 				
 				elem.style.backgroundColor = '';
 
-				//jQuery(contextMenu).fadeOut(500);
                 $("#contextMenuCanvas", elem).fadeOut(500, function()
                 {
                     $("#contextMenuCanvas", elem).remove();

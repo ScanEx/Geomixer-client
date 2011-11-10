@@ -691,12 +691,20 @@ div.unit .unitInfo
 	/*width: 120px;*/
 }
 
-div.contextMenuItem > span
+.contextMenuItem
 {
 	padding-top: 1px;
 	padding-bottom: 1px;
 	white-space:nowrap;
-    color: black;
+}
+
+.contextMenuItem span.buttonLink
+{
+	color: #293D6B;
+}
+.contextMenuItem span.buttonLinkHover
+{
+	color: #fc830b;
 }
 
 .contextMenuSeparator
