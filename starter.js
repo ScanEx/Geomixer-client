@@ -773,6 +773,40 @@ function loadMap(state)
 					addUserActions();
 				}
 				fnInitControls();
+                
+                var isAnyTemporalLayer = false;
+                for (var i = 0; i < globalFlashMap.layers.length; i++)
+                    if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
+                    {
+                        isAnyTemporalLayer = true;
+                        break;
+                    }
+                    
+                if (isAnyTemporalLayer)
+                {
+                    var calendar = new nsGmx.Calendar();
+                    calendar.init('TemporalLayersCommon', {
+                        minimized: true,
+                        dateMin: new Date(2010, 01, 01),
+                        dateMax: new Date(),
+                        resourceHost: 'http://maps.kosmosnimki.ru/api/'
+                    });
+                    
+                    var calendarDiv = $("<div/>").append(calendar.canvas);
+                    var table = $(_queryMapLayers.workCanvas).children("table");
+                    $(table).after(calendarDiv);
+                    
+                    $(calendar).change(function()
+                    {
+                        var dateBegin = calendar.getDateBegin();
+                        var dateEnd = calendar.getDateEnd();
+                        
+                        for (var i = 0; i < globalFlashMap.layers.length; i++)
+                            if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
+                                globalFlashMap.layers[i].setDateInterval(dateBegin, dateEnd);
+                        console.log(dateBegin + '-' + dateEnd);
+                    });
+                }
 				
 				pluginsManager.afterViewer();
 			
@@ -798,8 +832,7 @@ function addHeaderLinks()
 
 function promptFunction(title, value)
 {
-	var area = getOffsetRect($$('leftMenu')),
-		input = _input(null, [['attr','value', value],['css','margin','20px 10px'],['dir','className','inputStyle'],['css','width','220px']])
+	var input = _input(null, [['attr','value', value],['css','margin','20px 10px'],['dir','className','inputStyle'],['css','width','220px']]);
 	
 	input.onkeydown = function(e)
 	{
