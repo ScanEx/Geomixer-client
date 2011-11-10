@@ -721,6 +721,18 @@ window.gmxAPI = {
 		return (t < 10) ? ("0" + t) : ("" + t);
 	}
 	,
+	strToDate: function(str)
+	{
+		var arr = str.split(' ');
+		var arr1 = arr[0].split('.');
+		var ret = new Date((arr1.length > 2 ? arr1[2] : 2008), (arr1.length > 1 ? arr1[1] - 1 : 0), (arr1.length > 0 ? arr1[0] : 1));
+		if(arr.length > 1) {
+			arr1 = arr[1].split(':');
+			ret.setHours((arr1.length > 0 ? arr1[0] : 0), (arr1.length > 1 ? arr1[1] : 0), (arr1.length > 2 ? arr1[2] : 0), (arr1.length > 3 ? arr1[3] : 0));
+		}
+		return ret;
+	}
+	,
 	trunc: function(x)
 	{
 		return ("" + (Math.round(10000000*x)/10000000 + 0.00000001)).substring(0, 9);
@@ -2766,6 +2778,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						return ret;
 					}
 				}
+//if(layer.properties.description == "тест мультисло€") isVisible = false; // отладка
 
 				if (isVisible === undefined)
 					isVisible = true;
@@ -2984,7 +2997,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						var TemporalColumnName = layer.properties.TemporalColumnName || 'Date';
 						var curTemporalFilter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
 
-						currentData = {
+						var out = {
 								'daysDelta': curDaysDelta
 								,'files': ph['files']
 								,'tiles': ph['tiles']
@@ -2997,37 +3010,46 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 								,'curTemporalFilter': curTemporalFilter
 							};
 
-						return curDaysDelta;
+						return out;
 					}
-					getDateIntervalTiles(temporalData['DateBegin'], temporalData['DateEnd']);
+					var ddt1 = new Date(); ddt1.setHours(0, 0, 0, 0);			// начало текущих суток
+					var ddt2 = new Date(); ddt2.setHours(23, 59, 59, 999);	// конец текущих суток
+					currentData = getDateIntervalTiles(ddt1, ddt2);	// ѕо умолчанию за текущие сутки
 
 					obj.getTemporalFilter = function()
 					{
 						return (currentData['curTemporalFilter'] ? currentData['curTemporalFilter'] : '');
 					}
-
-					setDateInterval = function(DateBegin, DateEnd)
+ 
+					prpTemporalFilter = function(DateBegin, DateEnd)
 					{
-						var dt2 = new Date();
-						var dt1 = new Date(dt2 - oneDay);
+						var dt1 = ddt1;			// начало текущих суток
+						var dt2 = ddt2;			// конец текущих суток
 						var tp = Object.prototype.toString.apply(DateEnd);
 						if(tp === '[object Date]') dt2 = DateEnd;
-						else if(tp === '[object String]') {
-							var arr = DateEnd.split('.');
-							dt2 = new Date((arr.length > 2 ? arr[2] : 2008), (arr.length > 1 ? arr[1] - 1 : 0), (arr.length > 0 ? arr[0] : 1));
+						else if(tp === '[object String]') {						// формат 23.08.2011
+							dt2 = gmxAPI.strToDate(DateEnd);
 						}
 						tp = Object.prototype.toString.apply(DateBegin);
 						if(tp === '[object Date]') dt1 = DateBegin;
 						else if(tp === '[object String]') {
-							var arr = DateBegin.split('.');
-							dt1 = new Date((arr.length > 2 ? arr[2] : 2008), (arr.length > 1 ? arr[1] - 1 : 0), (arr.length > 0 ? arr[0] : 1));
+							dt1 = gmxAPI.strToDate(DateBegin);
 						}
 						var dt1str = dt1.getFullYear() + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + gmxAPI.pad2(dt1.getDate());
 						var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
 						var TemporalColumnName = layer.properties.TemporalColumnName || 'Date';
-						curTemporalFilter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
-						var daysDelta = getDateIntervalTiles(dt1, dt2);
-						return daysDelta;
+						var curFilter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
+						return {'dt1': dt1, 'dt2': dt2, 'curFilter': curFilter};
+					}
+
+					setDateInterval = function(DateBegin, DateEnd)
+					{
+						var hash = prpTemporalFilter(DateBegin, DateEnd);
+						curTemporalFilter = hash['curFilter'];
+						var dt1 = hash['dt1'];
+						var dt2 = hash['dt2'];
+						currentData = getDateIntervalTiles(dt1, dt2);
+						return currentData['daysDelta'];
 					}
 				}
 
@@ -3242,6 +3264,15 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						if(flag && obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
 						else chkListeners('onChangeVisible', obj, flag);	// ¬ызов Listeners событи€ 'onChangeVisible'
 						obj.isVisible = flag;
+					}
+					if(isTemporal) {
+						obj.setDateInterval = function(dt1, dt2)
+						{
+							obj.setVisible(true);
+							var daysDelta = setDateInterval(dt1, dt2);
+							obj.setVisible(false);
+							return daysDelta;
+						}
 					}
 					obj.addObject = function(geometry, props)
 					{
