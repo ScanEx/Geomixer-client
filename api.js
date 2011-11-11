@@ -3085,10 +3085,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							'ut1': data['ut1'],
 							'ut2': data['ut2']
 						};
-						if(LastDaysDelta == data['daysDelta']) {		// если интервал временных тайлов не изменился - только добавление новых тайлов
+						if(oldDaysDelta == data['daysDelta'] && data['dt1'] >= oldDt1 && data['dt2'] <= oldDt2) {
+									// если интервал временных тайлов не изменился и интервал дат не расширяется - только добавление новых тайлов 
 							attr['notClear'] = true;
+						} else {
+							currentData = data;
 						}
-						currentData = data;
 						LastDaysDelta = currentData['daysDelta'];
 
 						if(attr) obj.startLoadTiles(attr);
