@@ -792,9 +792,9 @@ class Main
 			cast(node.content, VectorLayer).startLoadTiles(attr, mapWindow);
 		}
 
-		function setVectorTiles(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?filesHash:Dynamic)
+		function setVectorTiles(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?attrHash:Dynamic)
 		{
-			var content = new VectorLayer(identityField, function(i:Int, j:Int, z:Int):Dynamic
+			var content = new VectorLayer(identityField, attrHash, function(i:Int, j:Int, z:Int):Dynamic
 			{
 				var out:Dynamic = Main.cmdToJS(tileFunction, i, j, z);
 				return out;

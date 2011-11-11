@@ -70,6 +70,17 @@ class Utils
 		return Math.pow(2, -z)*156543.033928041;
 	}
 
+	public static function dateStringToUnixTimeStamp(str:String):String
+	{
+		var ret:String = '0';
+		if(str != '' ) { 
+			var regObject = ~/\./g;
+			var dt:Date = Date.fromString(regObject.replace(str, '-'));
+			ret = cast(dt.getTime() / 1000);
+		}
+		return ret;
+	}
+
 	public static function getDateProperty(properties:Hash<String>)
 	{
 		var date = properties.get("date");

@@ -9,6 +9,7 @@ class Geometry
 	public static var MAX_DISTANCE:Float = 1e20;
 	public var extent:Extent;
 	public var properties:Hash<String>;
+	public var propTemporal:Hash<String>;	// свойства для мультивременных данных
 	public var propHiden:Hash<Dynamic>;		// внутренние свойства
 	public var refreshFlag:Bool;
 	public var oldZ:Float;
@@ -20,19 +21,20 @@ class Geometry
 		refreshFlag = true;
 		properties = null;
 		propHiden = new Hash<Dynamic>();
+		propTemporal = new Hash<String>();
 		halfLine = 0;
 	}
 
-	public function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow)
+	public function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
 	{
 		if (extent.overlaps(window.visibleExtent)) {
-			paint(sprite, style, window);
+			paint(sprite, style, window, func);
 		} else {
 			refreshFlag = true;
 		}
 	}
 
-	public function paint(sprite:Sprite, style:Style, window:MapWindow)
+	public function paint(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
 	{
 	}
 

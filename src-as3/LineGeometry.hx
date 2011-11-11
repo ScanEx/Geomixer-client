@@ -15,8 +15,10 @@ class LineGeometry extends Geometry
 			extent.update(coordinates[i*2], coordinates[i*2 + 1]);
 	}
 
-	public override function paint(sprite:Sprite, style:Style, window:MapWindow)
+	public override function paint(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
 	{
+		if (func != null && !func(propTemporal)) return;	// Фильтр мультивременных данных
+
 		if (!extent.overlaps(window.visibleExtent)) {
 			refreshFlag = true;
 			return;

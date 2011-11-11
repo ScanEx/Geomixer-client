@@ -66,6 +66,14 @@ class VectorTile
 						for (i in 0...Std.int(props_.length/2))
 							properties.set(props_[i*2], props_[i*2 + 1]);
 						var id = properties.exists(field) ? properties.get(field) : Utils.getNextId();
+			
+						if (me.layer.attrHash != null) {
+							if (me.layer.attrHash.TemporalColumnName != null) {
+								var pt = properties.get(me.layer.attrHash.TemporalColumnName);
+								var unixTimeStamp:String = Utils.dateStringToUnixTimeStamp(pt);
+								geometry.propTemporal.set('unixTimeStamp', unixTimeStamp);			// посчитали unixTimeStamp для фильтра
+							}
+						}
 						geometry.properties = properties;
 						me.geometries.push(geometry);
 						me.ids.push(id);
@@ -77,6 +85,7 @@ class VectorTile
 							var newGeometry = new MultiGeometry();
 							var geomPrev = me.layer.geometries.get(id);
 							newGeometry.properties = geomPrev.properties;
+							newGeometry.propTemporal = geomPrev.propTemporal;
 							newGeometry.addMember(geomPrev);
 							newGeometry.addMember(geometry);
 							me.layer.geometries.set(id, newGeometry);

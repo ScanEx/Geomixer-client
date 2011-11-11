@@ -13,8 +13,10 @@ class PointGeometry extends Geometry
 		extent.update(x, y);
 	}
 
-	public override function paint(sprite:Sprite, style:Style, window:MapWindow)
+	public override function paint(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
 	{
+		if (func != null && !func(propTemporal)) return;	// Фильтр мультивременных данных
+
 		var contains = window.visibleExtent.contains(x, y);	// Точка в области видимости
 		if (contains)
 		{

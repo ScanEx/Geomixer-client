@@ -2,6 +2,7 @@ import flash.events.Event;
 
 class VectorLayer extends MapContent
 {	
+	public var temporalCriterion:Hash<String>->Bool;	// условие для мультивременных данных
 	public var tileFunction:Int->Int->Int->Dynamic;
 	public var identityField:String;
 	public var tiles:Array<VectorTile>;
@@ -19,17 +20,29 @@ class VectorLayer extends MapContent
 	var flipCounts:Hash<Int>;
 	var lastFlipCount:Int;
 	var flipDown:Bool;
+	
+	public var attrHash:Dynamic;	// дополнительные свойства слоя
 
 	public override function createContentSprite()
 	{
 		return Utils.addSprite(mapNode.vectorSprite);
 	}
 
-	public function new(identityField_:String, tileFunction_:Int->Int->Int->Dynamic)
+	public function new(identityField_:String, attr_:Dynamic, tileFunction_:Int->Int->Int->Dynamic)
 	{
 		identityField = identityField_;
+		attrHash = (attr_ != null ? attr_ : null);
 		tileFunction = tileFunction_;
+		temporalCriterion = null;
 		flush();
+		
+		if(attrHash != null) {
+			var sql:String = 'unixTimeStamp >= ' + attrHash.ut1 + ' AND unixTimeStamp <= ' + attrHash.ut2;
+			temporalCriterion = (attrHash.ut1 > attrHash.ut2) ? 
+				function(props:Hash<String>):Bool { return true; } :
+				Parsers.parseSQL(sql)
+			;
+		}
 	}
 
 	public override function flush()
@@ -59,11 +72,19 @@ class VectorLayer extends MapContent
 			if (attr.notClear != true) {
 				flush();	// Полная перезагрузка тайлов
 			}
-				
+
+			var sql:String = 'unixTimeStamp >= ' + attr.ut1 + ' AND unixTimeStamp <= ' + attr.ut2;
+			temporalCriterion = (attr.ut1 > attr.ut2) ? 
+				function(props:Hash<String>):Bool { return true; } :
+				Parsers.parseSQL(sql)
+			;
+			
 			var ptiles:Array<Int> = attr.dtiles;
-			for (i in 0...Std.int(ptiles.length / 3)) {
-				var i:Int = ptiles[i * 3]; var j:Int = ptiles[i * 3 + 1]; var z:Int = ptiles[i * 3 + 2];
-				if(!hashTiles.get(z + '_' + i + '_' + j)) addTile(i, j, z);
+			for (ii in 0...Std.int(ptiles.length / 3)) {
+				var i:Int = ptiles[ii * 3];
+				var j:Int = ptiles[ii * 3 + 1];
+				var z:Int = ptiles[ii * 3 + 2];
+				if (!hashTiles.get(z + '_' + i + '_' + j)) addTile(i, j, z);
 			}
 		}
 
@@ -81,7 +102,6 @@ class VectorLayer extends MapContent
 	public function createLoader(func:VectorTile->Int->Void)
 	{
 		var loaded = new Array<Bool>();
-//trace('----createLoader ------ ' + tiles );
 		for (tile in tiles)
 			loaded.push(false);
 		var nRemaining = 0;
@@ -220,6 +240,10 @@ class VectorLayer extends MapContent
 				if(curGeom == null) continue;		// пропускаем ноды без MultiGeometry
 				for (member in curGeom.members)
 				{
+					if (temporalCriterion != null && !temporalCriterion(member.propTemporal)) {
+						continue;					// пропускаем ноды отфильтрованные мультивременными интервалами
+					}
+					
 					var d = member.distanceTo(x, y);
 					if (d <= distance)		// Берем только минимальное растояние
 					{
@@ -367,6 +391,7 @@ class VectorLayer extends MapContent
 			geo = new PolygonGeometry(coords);
 			geo.properties = geom.properties;
 			geo.propHiden = geom.propHiden;
+			geo.propTemporal = geom.propTemporal;
 			return geo;
 		} else if (Std.is(geom, MultiGeometry)) {
 			var ret = new MultiGeometry();
@@ -375,6 +400,7 @@ class VectorLayer extends MapContent
 				ret.addMember(fromTileGeometry(member));
 			ret.properties = geom.properties;
 			ret.propHiden = geom.propHiden;
+			ret.propTemporal = geom.propTemporal;
 			return ret;
 		}
 		return null;

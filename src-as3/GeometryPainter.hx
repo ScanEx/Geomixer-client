@@ -14,20 +14,20 @@ class GeometryPainter
 		window = window_;
 	}
 
-	public function repaint(style:Style)
+	public function repaint(style:Style, ?func:Hash<String>->Bool)
 	{
 		//sprite.graphics.clear();
 		Utils.clearSprite(sprite);
 		if ((geometry != null) && (style != null))
-			geometry.paintWithExtent(sprite, style, window);
+			geometry.paintWithExtent(sprite, style, window, func);
 	}
 
-	public function repaintWithoutExtent(style:Style, sprite_:Sprite)
+	public function repaintWithoutExtent(style:Style, sprite_:Sprite, ?func:Hash<String>->Bool)
 	{
 		if (sprite_ == null) sprite_ = sprite;
 		Utils.clearSprite(sprite_);
 		//sprite_.graphics.clear();
 		if ((geometry != null) && (style != null))
-			geometry.paint(sprite_, style, window);
+			geometry.paint(sprite_, style, window, func);
 	}
 }

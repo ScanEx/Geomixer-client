@@ -2247,9 +2247,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				}
 				if(!sql) sql ='';
 				this._sql = sql;			// атрибуты фильтра установленные юзером
-				if('getTemporalFilter' in this.parent) {
-					sql += (sql ? ' AND ':'') + this.parent.getTemporalFilter();
-				}
 				var ret = FlashCMD('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
 				return ret;
 			}
@@ -2390,9 +2387,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				FlashCMD('setImage', { 'obj': this, 'attr':attr});
 			}
 			FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
-			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles) 
+			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
 			{ 
-				FlashCMD('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'cacheFieldName':cacheFieldName, 'dataTiles':dataTiles}});
+				FlashCMD('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
 			}
 /* не используется
 			FlashMapObject.prototype.loadJSON = function(url)
@@ -2860,7 +2857,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var tileDateFunction = null;
 				var setDateInterval = null;
 				if(isTemporal) {
-					var TimeTemporal = (layer.properties.TemporalColumnName == 'DateTime' ? true : false);	// Добавлять время в фильтры - пока только для поля layer.properties.TemporalColumnName == 'DateTime'
+					var TimeTemporal = true;	// Добавлять время в фильтры - пока только для поля layer.properties.TemporalColumnName == 'DateTime'
 					var LastDaysDelta = 0;		// последний активный интервал временных тайлов 
 
 					var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
@@ -2950,7 +2947,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						if(TimeTemporal) dt2str += ' ' + gmxAPI.pad2(dt2.getHours()) + ":" + gmxAPI.pad2(dt2.getMinutes() + 1) + ":" + gmxAPI.pad2(dt2.getSeconds());
 						var TemporalColumnName = layer.properties.TemporalColumnName || 'Date';
 						var curFilter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
-						return {'dt1': dt1, 'dt2': dt2, 'curFilter': curFilter};
+						return {'dt1': dt1, 'dt2': dt2, 'ut1': parseInt(dt1.getTime()/1000), 'ut2': parseInt(dt2.getTime()/1000), 'curFilter': curFilter};
 					}
 
 					var getDateIntervalTiles = function(dt1, dt2) {			// Расчет вариантов от begDate до endDate
@@ -3029,6 +3026,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 								,'out': ph['out']
 								,'beg': ph['beg']
 								,'end': ph['end']
+								,'ut1': hash['ut1']
+								,'ut2': hash['ut2']
 								,'dt1': dt1
 								,'dt2': dt2
 								,'curTemporalFilter': hash['curFilter']
@@ -3080,15 +3079,16 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						var ddt2 = hash['dt2'];
 						var data = getDateIntervalTiles(ddt1, ddt2);
 
-						var attr = null;
-						if(data['dt1'] < oldDt1 || data['dt2'] > oldDt2) {	// перезагружаем тайлы только если интервал дат расширяется
-							attr = { 'dtiles': (data['dtiles'] ? data['dtiles'] : []) };
-							if(LastDaysDelta == data['daysDelta']) {		// если интервал временных тайлов не изменился - только добавление новых тайлов
-								attr['notClear'] = true;
-							}
-							currentData = data;
-							LastDaysDelta = currentData['daysDelta'];
+						var attr = {
+							'dtiles': (data['dtiles'] ? data['dtiles'] : []),
+							'ut1': data['ut1'],
+							'ut2': data['ut2']
+						};
+						if(LastDaysDelta == data['daysDelta']) {		// если интервал временных тайлов не изменился - только добавление новых тайлов
+							attr['notClear'] = true;
 						}
+						currentData = data;
+						LastDaysDelta = currentData['daysDelta'];
 
 						if(attr) obj.startLoadTiles(attr);
 						curTemporalFilter = hash['curFilter'];
@@ -3174,7 +3174,13 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 						if(isTemporal) {	// Для мультивременных слоёв
 							var arr = (currentData['dtiles'] ? currentData['dtiles'] : []);
-							obj.setVectorTiles(tileDateFunction, layer.properties.identityField, arr, layer.filesHash);
+							var temporal = {
+								'temporalFilter': obj.getTemporalFilter
+								,'TemporalColumnName': layer.properties.TemporalColumnName
+								,'ut1': currentData['ut1']
+								,'ut2': currentData['ut2']
+							};
+							obj.setVectorTiles(tileDateFunction, layer.properties.identityField, arr, temporal);
 							obj.startLoadTiles = function(attr) {
 								var ret = FlashCMD('startLoadTiles', { 'obj': obj, 'attr':attr });
 								return ret;
