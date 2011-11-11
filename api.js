@@ -1777,6 +1777,7 @@ function createFlashMapInternal(div, layers, callback)
 			{
 
 //var startTime = (new Date()).getTime();
+				var flashDomTest = typeof(flashDiv); 
 				var ret = {};
 				var obj = hash['obj'] || null;	// Целевой обьект команды
 				var attr = hash['attr'] || '';
@@ -3007,10 +3008,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						var curDaysDelta = deltaArr[i];
 						while (i>=0)
 						{
+							curDaysDelta = deltaArr[i];
 							if(days >= deltaArr[i]) {
 								break;
 							}
-							curDaysDelta = deltaArr[i];
 							i--;
 						}
 						var ph = getFiles(curDaysDelta);
