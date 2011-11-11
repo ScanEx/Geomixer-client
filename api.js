@@ -2859,7 +2859,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var setDateInterval = null;
 				if(isTemporal) {
 					var TimeTemporal = true;	// Добавлять время в фильтры - пока только для поля layer.properties.TemporalColumnName == 'DateTime'
-					var LastDaysDelta = 0;		// последний активный интервал временных тайлов 
 
 					var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
 					var ZeroDateString = layer.properties.ZeroDate || '01.01.2008';	// нулевая дата
@@ -2969,9 +2968,11 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							var mn = oneDay * daysDelta;
 							var zn = parseInt((dt1 - ZeroDate)/mn);
 							ph['beg'] = zn;
+							ph['begDate'] = new Date(ZeroDate.getTime() + daysDelta * zn * oneDay);
 							zn = parseInt(zn);
 							var zn1 = parseInt(1 + (dt2 - ZeroDate)/mn);
 							ph['end'] = zn1;
+							ph['endDate'] = new Date(ZeroDate.getTime() + daysDelta * zn1 * oneDay);
 							zn1 = parseInt(zn1);
 							var dHash = temporalData['deltaHash'][daysDelta] || {};
 							for (var dz in dHash) {
@@ -3018,7 +3019,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						minFiles = ph['files'].length;
 
 						var hash = prpTemporalFilter(dt1, dt2);
-						curTemporalFilter = hash['curFilter'];
+						var curTemporalFilter = hash['curFilter'];
 						var out = {
 								'daysDelta': curDaysDelta
 								,'files': ph['files']
@@ -3027,6 +3028,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 								,'out': ph['out']
 								,'beg': ph['beg']
 								,'end': ph['end']
+								,'begDate': ph['begDate']
+								,'endDate': ph['endDate']
 								,'ut1': hash['ut1']
 								,'ut2': hash['ut2']
 								,'dt1': dt1
@@ -3048,7 +3051,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					setDateInterval = function(DateBegin, DateEnd)
 					{
 						var hash = prpTemporalFilter(DateBegin, DateEnd);
-						curTemporalFilter = hash['curFilter'];
 						var dt1 = hash['dt1'];
 						var dt2 = hash['dt2'];
 						currentData = getDateIntervalTiles(dt1, dt2);
@@ -3063,43 +3065,51 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					var obj_ = (isOverlay ? me.overlays : me.layersParent).addObject(obj.geometry, obj.properties);
 					obj.objectId = obj_.objectId;
 					obj.isVisible = true;
+					obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
+					
+					if(isTemporal) {
+						obj.setDateInterval = function(dt1, dt2)
+						{
+							var oldDt1 = currentData['begDate'];
+							var oldDt2 = currentData['endDate'];
+							var oldDaysDelta = currentData['daysDelta'];
+
+							var hash = prpTemporalFilter(dt1, dt2);
+							var ddt1 = hash['dt1'];
+							var ddt2 = hash['dt2'];
+							var data = getDateIntervalTiles(ddt1, ddt2);
+
+							var attr = {
+								'dtiles': (data['dtiles'] ? data['dtiles'] : []),
+								'ut1': data['ut1'],
+								'ut2': data['ut2']
+							};
+							if(oldDaysDelta == data['daysDelta'] && data['dt1'] >= oldDt1 && data['dt2'] <= oldDt2) {
+										// если интервал временных тайлов не изменился и интервал дат не расширяется - только добавление новых тайлов 
+								attr['notClear'] = true;
+							} else {
+								currentData = data;
+							}
+							//LastDaysDelta = currentData['daysDelta'];
+
+							if(layer.properties.visible) {
+								if(attr) obj.startLoadTiles(attr);
+								//curTemporalFilter = hash['curFilter'];
+								for (var i=0; i<obj.filters.length; i++)	// переустановка фильтров
+									obj.filters[i].setFilter(obj.filters[i]._sql, true);
+
+								map.balloonClassObject.removeHoverBalloons();
+							}
+							return currentData['daysDelta'];
+						}
+					}
 					obj.setVisible = function(flag)
 					{
 						FlashMapObject.prototype.setVisible.call(obj, flag);
 						obj.isVisible = flag;
-					}
-					obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
-					obj.setDateInterval = function(dt1, dt2)
-					{
-						var oldDt1 = currentData['dt1'];
-						var oldDt2 = currentData['dt2'];
-						var oldDaysDelta = currentData['daysDelta'];
-
-						var hash = prpTemporalFilter(dt1, dt2);
-						var ddt1 = hash['dt1'];
-						var ddt2 = hash['dt2'];
-						var data = getDateIntervalTiles(ddt1, ddt2);
-
-						var attr = {
-							'dtiles': (data['dtiles'] ? data['dtiles'] : []),
-							'ut1': data['ut1'],
-							'ut2': data['ut2']
-						};
-						if(oldDaysDelta == data['daysDelta'] && data['dt1'] >= oldDt1 && data['dt2'] <= oldDt2) {
-									// если интервал временных тайлов не изменился и интервал дат не расширяется - только добавление новых тайлов 
-							attr['notClear'] = true;
-						} else {
-							currentData = data;
+						if(isTemporal) {
+							obj.setDateInterval(currentData['dt1'], currentData['dt2']);
 						}
-						LastDaysDelta = currentData['daysDelta'];
-
-						if(attr) obj.startLoadTiles(attr);
-						curTemporalFilter = hash['curFilter'];
-						for (var i=0; i<obj.filters.length; i++)	// переустановка фильтров
-							obj.filters[i].setFilter(obj.filters[i]._sql, true);
-
-						map.balloonClassObject.removeHoverBalloons();
-						return LastDaysDelta;
 					}
 
 					for (var i = 0; i < deferredMethodNames.length; i++)
