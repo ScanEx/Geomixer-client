@@ -47,29 +47,6 @@ $LAB.
 	script(_getFileName("colorpicker/js/eye.js")).wait().
 	script(_getFileName("colorpicker/js/utils.js")).wait(function(){
 	
-	// script(_getFileName("gmxcore.js")).wait().
-	// script(_getFileName("PluginsManager.js")).wait().
-	// script(_getFileName("translations.js")).wait().
-	// script(_getFileName("lang_ru.js")).
-	// script(_getFileName("lang_en.js")).wait().
-	// script(_getFileName("utilities.js")).wait().
-	// script(_getFileName("drawingObjectsCustomControllers.js")).wait().
-	// script(_getFileName("menu.js")).wait().
-	// script(_getFileName("mapCommon.js")).wait().
-	// script(_getFileName("mapHelper.js")).wait().
-	// script(_getFileName("binding.js")).wait().
-	// script(_getFileName("mapLayers.js")).wait().
-	// script(_getFileName("drawingObjects.js")).wait().
-	// script(_getFileName("fileBrowser.js")).wait().
-	// script(_getFileName("loadServerData.js")).wait().
-	// script(_getFileName("charts.js")).wait().
-	// script(_getFileName("kmlParser.js")).wait().
-	// script(_getFileName("security.js")).wait().
-	// script(_getFileName("attrsTable.js")).wait().
-	// script(_getFileName("cover.js")).wait().
-	// script(_getFileName("externalMapHelper.js")).wait().
-	// script(_getFileName("externalMapLayers.js")).wait(function(){
-	
 loadJS(function(){
 
 var oSearchLeftMenu = new leftMenu();
@@ -481,6 +458,58 @@ function checkUserInfo(defaultState)
 	})
 }
 
+//Добавляем единый календарик для мультивременных слоёв. Только для карт, где есть хотя бы один такой слой
+function addCommonCalendar()
+{
+    var isAnyTemporalLayer = false;
+    for (var i = 0; i < globalFlashMap.layers.length; i++)
+        if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
+        {
+            isAnyTemporalLayer = true;
+            break;
+        }
+        
+    if (isAnyTemporalLayer)
+    {
+        var calendar = new nsGmx.Calendar();
+        calendar.init('TemporalLayersCommon', {
+            minimized: true,
+            dateMin: new Date(2010, 01, 01),
+            dateMax: new Date(),
+            resourceHost: 'http://maps.kosmosnimki.ru/api/',
+            showTime: false
+        });
+        
+        calendar.setTimeBegin(0, 0, 0);
+        calendar.setTimeEnd(23, 59, 59);
+        
+        var calendarDiv = $("<div/>").append(calendar.canvas);
+        var table = $(_queryMapLayers.workCanvas).children("table");
+        $(table).after(calendarDiv);
+        
+        var updateTemporalLayers = function()
+        {
+            var dateBegin = calendar.getDateBegin();
+            var dateEnd = calendar.getDateEnd();
+            
+            for (var i = 0; i < globalFlashMap.layers.length; i++)
+                if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
+                    globalFlashMap.layers[i].setDateInterval(dateBegin, dateEnd);
+                    
+            //console.log(dateBegin + '-' + dateEnd);
+        }
+        
+        $(calendar).change(updateTemporalLayers);
+        updateTemporalLayers();
+        
+        _mapHelper.customParamsManager.addProvider({
+            name: 'commonCalendar',
+            loadState: function(state) { calendar.loadState(state); updateTemporalLayers(); },
+            saveState: function() { return calendar.saveState(); }
+        });
+    }
+}
+
 function loadMap(state)
 {
 	layersShown = (state.isFullScreen == "false");
@@ -774,38 +803,7 @@ function loadMap(state)
 				}
 				fnInitControls();
                 
-                var isAnyTemporalLayer = false;
-                for (var i = 0; i < globalFlashMap.layers.length; i++)
-                    if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
-                    {
-                        isAnyTemporalLayer = true;
-                        break;
-                    }
-                    
-                if (isAnyTemporalLayer)
-                {
-                    var calendar = new nsGmx.Calendar();
-                    calendar.init('TemporalLayersCommon', {
-                        minimized: true,
-                        dateMin: new Date(2010, 01, 01),
-                        dateMax: new Date(),
-                        resourceHost: 'http://maps.kosmosnimki.ru/api/'
-                    });
-                    
-                    var calendarDiv = $("<div/>").append(calendar.canvas);
-                    var table = $(_queryMapLayers.workCanvas).children("table");
-                    $(table).after(calendarDiv);
-                    
-                    $(calendar).change(function()
-                    {
-                        var dateBegin = calendar.getDateBegin();
-                        var dateEnd = calendar.getDateEnd();
-                        
-                        for (var i = 0; i < globalFlashMap.layers.length; i++)
-                            if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
-                                globalFlashMap.layers[i].setDateInterval(dateBegin, dateEnd);
-                    });
-                }
+                addCommonCalendar();
 				
 				pluginsManager.afterViewer();
 			
