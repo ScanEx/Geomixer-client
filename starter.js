@@ -4,6 +4,42 @@
 
 var gmxJSHost = window.gmxJSHost || "";
 
+function parseUri(str) 
+{
+	var	o   = parseUri.options,
+		m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+		uri = {},
+		i   = 14;
+
+	while (i--) uri[o.key[i]] = m[i] || "";
+
+	uri[o.q.name] = {};
+	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+		if ($1) uri[o.q.name][$1] = $2;
+	});
+
+	uri.hostOnly = uri.host;
+	uri.host = uri.authority; // HACK
+
+	return uri;
+};
+
+parseUri.options = {
+	strictMode: false,
+	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+	q:   {
+		name:   "queryKey",
+		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+	},
+	parser: {
+		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+		loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+	}
+};
+
+var _mapHostName = window.mapHostName ? "http://" + window.mapHostName + "/api/" : parseUri(window.location.href).directory;
+var _serverBase = window.serverBase || /(.*)\/[^\/]*\//.exec(_mapHostName);
+
 //подставляет к локальному имени файла хост (window.gmxJSHost) и, опционально, рандомное поле для сброса кэша (window.gmxDropBrowserCache)
 var _getFileName = function( localName )
 {
@@ -13,17 +49,28 @@ var _getFileName = function( localName )
 //последовательно загружает все файлы js из jsLoadSchedule.txt и вызывает после этого callback
 var loadJS = function(callback)
 {
-	$.ajax({url: gmxJSHost + "jsLoadSchedule.txt", dataType: 'json', success: function(fileList)
-	{
-		var LABInstance = $LAB;
-		// var fileList = responce;
+    var process = function(fileList)
+    {
+        var LABInstance = $LAB;
 		
 		for (var f = 0; f < fileList.length-1; f++)
 			LABInstance = LABInstance.script(_getFileName(fileList[f])).wait();
 			
 		LABInstance.script(_getFileName(fileList[fileList.length-1])).wait(callback);
-		// callback();
-	}});
+    }
+    
+    var fileName = gmxJSHost + "jsLoadSchedule.txt";
+    
+    if (fileName.indexOf("http://") === 0)
+    {
+        //TODO: явно вставлять сюда список файлов из билдера
+        $.getJSON(_serverBase + "ApiSave.ashx?CallbackName=?&get=" + encodeURIComponent(fileName), function(response)
+        {
+            process($.parseJSON(response.Result));
+        });
+    }
+    else
+        $.getJSON(fileName, process);
 }
 
 $LAB.
@@ -266,39 +313,6 @@ function createHeader()
 	
 	_($$('flash'), [loading]);
 }
-
-function parseUri(str) 
-{
-	var	o   = parseUri.options,
-		m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-		uri = {},
-		i   = 14;
-
-	while (i--) uri[o.key[i]] = m[i] || "";
-
-	uri[o.q.name] = {};
-	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-		if ($1) uri[o.q.name][$1] = $2;
-	});
-
-	uri.hostOnly = uri.host;
-	uri.host = uri.authority; // HACK
-
-	return uri;
-};
-
-parseUri.options = {
-	strictMode: false,
-	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-	q:   {
-		name:   "queryKey",
-		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-	},
-	parser: {
-		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-		loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-	}
-};
 
 $(document).ready(function()
 {
