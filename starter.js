@@ -804,7 +804,6 @@ function loadMap(state)
                         for (var i = 0; i < globalFlashMap.layers.length; i++)
                             if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
                                 globalFlashMap.layers[i].setDateInterval(dateBegin, dateEnd);
-                        console.log(dateBegin + '-' + dateEnd);
                     });
                 }
 				

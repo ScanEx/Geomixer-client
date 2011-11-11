@@ -52,6 +52,7 @@ var attrsTable = function(layerName, layerTitle)
 	this.resizeFunc = function(){};
 	
 	this.drawingBorders = {};
+    this.originalGeometry = {};
 	
 	
 	// Переход на предыдущую страницу
@@ -388,7 +389,6 @@ attrsTable.prototype.drawDialog = function(info)
 		columnsList.style.height = _this.tableParent.offsetHeight - tdParams.firstChild.offsetHeight - tdParams.childNodes[1].offsetHeight - 25 + 'px';
 	}
 	
-//	$(canvas.parentNode).bind("resize", resizeFunc);
 	this.resizeFunc = resizeFunc;
 	
 	resizeFunc();
@@ -703,12 +703,21 @@ attrsTable.prototype.editObject = function(row)
 		
         var obj = {action: 'update', properties: properties, id: row[0]};
         if ( 'ogc_fid' + row[0] in _this.drawingBorders)
-            obj.geometry = gmxAPI.merc_geometry(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
+        {
+            var curGeomString = JSON.stringify(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
+            var origGeomString = JSON.stringify(_this.originalGeometry['ogc_fid' + row[0]]);
+            
+            if (origGeomString !== curGeomString)
+                obj.geometry = gmxAPI.merc_geometry(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
+        }
             
 		var objects = JSON.stringify([obj]);
 		
-		sendCrossDomainJSONRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx?WrapStyle=func&LayerName=" + _this.layerName + "&objects=" + encodeURIComponent(objects), function(response)
+		sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", {WrapStyle: 'window', LayerName: _this.layerName, objects: objects}, function(response)
 		{
+            if (!parseResponse(response))
+                return;
+            
             var newItem = {
                 properties: properties
             }
@@ -743,6 +752,7 @@ attrsTable.prototype.editObject = function(row)
 				_this.drawingBorders['ogc_fid' + row[0]].remove();
 				
 				delete _this.drawingBorders['ogc_fid' + row[0]];
+                delete _this.originalGeometry['ogc_fid' + row[0]];
 			}
 			
 			if ($$('attrDrawingBorderDialog' + _this.layerName + row[0]))
@@ -785,7 +795,8 @@ attrsTable.prototype.editObject = function(row)
 							geometryRow[0].coordinates[0][0][1] += 0.00001;
 						}*/
 						
-						var drawingBorder = globalFlashMap.drawing.addObject(from_merc_geometry(geometryRow[0]));
+                        _this.originalGeometry['ogc_fid' + geometryRow[1]] = from_merc_geometry(geometryRow[0]);
+						var drawingBorder = globalFlashMap.drawing.addObject(_this.originalGeometry['ogc_fid' + geometryRow[1]]);
 					
 						drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
 						
