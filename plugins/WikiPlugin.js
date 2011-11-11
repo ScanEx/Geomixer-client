@@ -675,11 +675,11 @@ var beforeViewer = function(params){
 var afterViewer = function(params){
 	if (jQuery.browser.opera){
 		setTimeout(function(){
-			oWiki.initialize(oFlashMap, params.WikiServer, params.MapDiv);
+			oWiki.initialize(oFlashMap, serverBase + 'Wiki/', params.MapDiv);
 		}, 3000)
 	}
 	else {
-		oWiki.initialize(oFlashMap, params.WikiServer, params.MapDiv);
+		oWiki.initialize(oFlashMap, serverBase + 'Wiki/', params.MapDiv);
 	}
 }
 
