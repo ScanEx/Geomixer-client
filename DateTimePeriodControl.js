@@ -76,7 +76,8 @@ var Calendar = function()
 	
 	var _updateInfo = function()
 	{
-	
+        if (!_this._params.showTime) return;
+        
 		function f(n) {
 			// Format integers to have at least two digits.
 			return n < 10 ? '0' + n : n;
@@ -92,7 +93,7 @@ var Calendar = function()
 	/**
 	 * @function
 	 */
-	this.getDateBegin = function() 
+	this.getDateBegin = function()
 	{
 		var date = $(this.dateBegin).datepicker("getDate");
 		date.setHours(_this._timeBegin.hours);
@@ -206,7 +207,8 @@ var Calendar = function()
  * resourceHost - {String} откуда берём иконки <br/>
  * minimized - {bool} показывать ли минимизированный или развёрнутый виджет в начале<br/>
  * showSwitcher - {bool} показывать ли иконку для разворачивания/сворачивания периода<br/>
- * dateBegin, dateEnd - {Date} текущие даты для календарей
+ * dateBegin, dateEnd - {Date} текущие даты для календарей <br/>
+ * showTime - {bool} показывать ли время (default: true)
  */
 Calendar.prototype.init = function( name, params )
 {
@@ -216,7 +218,8 @@ Calendar.prototype.init = function( name, params )
 	this._params = $.extend({
 		resourceHost: "",
 		minimized: true,
-		showSwitcher: true
+		showSwitcher: true,
+        showTime: true
 	}, params)
 	
 	this.lazyDate = _select([_option([_t(_gtxt("calendarWidget.Custom"))],[['attr','value','']]),
@@ -255,13 +258,6 @@ Calendar.prototype.init = function( name, params )
 	
 	$([this.dateBegin, this.dateEnd]).datepicker(
 	{
-		// beforeShow: function(input)
-		// {
-	    	// return {
-	    			// minDate: (input == _this.dateEnd ? $(_this.dateBegin).datepicker("getDate") : _this.dateMin), 
-	        		// maxDate: (input == _this.dateBegin ? $(_this.dateEnd).datepicker("getDate") : _this.dateMax)
-	        		// }; 
-		// },
 		onSelect: function(dateText, inst) 
 		{
 			_this.selectFunc(inst);

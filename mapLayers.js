@@ -972,8 +972,6 @@ layersTree.prototype.addSubGroup = function(div)
 				_layersTree.updateListType(li, true);
 			}
 			
-			// $(inputIndex.parentNode.parentNode).dialog('destroy');
-			// inputIndex.parentNode.parentNode.removeNode(true);
 			$(dialogDiv).dialog('destroy');
 			dialogDiv.removeNode(true);
 			
@@ -1108,14 +1106,14 @@ layersTree.prototype.disableRadioGroups = function(box)
 		
 		var childBox = childDiv[0].firstChild;
 		
-		if (childBox != box)
+		if (childBox != box && !childBox.isDummyCheckbox)
 			this.setVisibility(childBox, false);
 	}
 }
 
 layersTree.prototype.visibilityFunc = function(box, flag, listFlag, forceChildVisibility)
 {
-	if (box.isDummyCheckbox) return;
+	//if (box.isDummyCheckbox) return;
 	
 	if (listFlag)
 		this.disableRadioGroups(box);
@@ -1700,11 +1698,11 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 		_this.visibilityFunc(this, this.checked, listFlag);
 	}
 	
-	// if ( typeof showCheckbox !== 'undefined' && !showCheckbox )
-	// {
-		// newBox.isDummyCheckbox = true;
-		// newBox.style.display = 'none';
-	// }
+	if ( box.isDummyCheckbox )
+	{
+		newBox.isDummyCheckbox = true;
+		newBox.style.display = 'none';
+	}
 	
 	if (typeof skipVisible == 'undefined')
 	{

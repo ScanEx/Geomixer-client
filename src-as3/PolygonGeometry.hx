@@ -17,8 +17,10 @@ class PolygonGeometry extends Geometry
 				extent.update(part[i*2], part[i*2 + 1]);
 	}
 
-	public override function paint(sprite:Sprite, style:Style, window:MapWindow)
+	public override function paint(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
 	{
+		if (func != null && !func(propTemporal)) return;	// Фильтр мультивременных данных
+
 		if (style.hasMarkerImage())
 		{
 			var x = (extent.minx + extent.maxx)/2;

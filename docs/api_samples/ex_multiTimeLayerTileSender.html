@@ -1,0 +1,85 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	
+	<script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+	
+	<title>GeoMixer API - Тест тайлов с временной разбивки</title>
+</head>
+
+<body>
+<div id="map_container" style="width: 1000px; height: 700px; float: left;"></div>
+
+<div id="btn" style="float: left; top: 0px; margin-left: 44px;">
+<button id="setVisibleButton">Переключить видимость слоя</button><br>
+<button id="setFilterButton">Установить фильтр: GranID = 'AM1107050342'</button>
+<button id="unSetFilterButton">Снять фильтр: GranID = 'AM1107050342'</button>
+<br/>
+<br/>
+<input type="text" id="begDate" value="04.07.2011" style="width: 140px;" />
+<input type="text" id="endDate" value="05.07.2011" style="width: 140px;" />
+<button id="filterButton1">Загрузить</button>
+<button id="getStat" style="display:none;">Сколько точек добавлено</button><span id="getStatResult" style="color:red;"></span>
+<!-- <br><button id="getStat1" style="display:block;">Сколько точек добавлено в TREES_layer</button><span id="getStatResult1" style="color:red;"></span> -->
+<br/>
+<span id="cmdHash" class="bodytext"></span>
+<br/>
+
+</div>
+<script>
+
+	var ballonHoverFunction = function(o)
+	{
+		var p = o.properties;
+		var res = 'HotSpotID : ' + p['HotSpotID'];
+		res += '<br>ImgDate : ' + p['ImgDate'];
+		//res += '<br><a href="' + p['url'] + '" target="_blank">Открыть в новом окне</a>';
+		return res + '<br>' + o.getGeometrySummary();
+	}
+
+	var oneDay = 1000*60*60*24;
+	var dt1 = new Date(); dt1.setHours(0, 0, 0, 0);			// начало текущих суток
+	var dt2 = new Date(); dt2.setHours(23, 59, 59, 999);	// конец текущих суток
+	var dt1str = gmxAPI.pad2(dt1.getDate()) + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + dt1.getFullYear() + " " + gmxAPI.pad2(dt1.getHours()) + ":" + gmxAPI.pad2(dt1.getMinutes()) + ":" + gmxAPI.pad2(dt1.getSeconds());
+	var dt2str = gmxAPI.pad2(dt2.getDate()) + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + dt2.getFullYear() + " " + gmxAPI.pad2(dt2.getHours()) + ":" + gmxAPI.pad2(dt2.getMinutes()) + ":" + gmxAPI.pad2(dt2.getSeconds());
+	document.getElementById("begDate").value = dt1str;
+	document.getElementById("endDate").value = dt2str;
+
+	createFlashMap(document.getElementById("map_container"), 'mapstest.kosmosnimki.ru', "C2HCK", function(map)
+	//createFlashMap(document.getElementById("map_container"), 'maps.kosmosnimki.ru', "DefaultMap", function(map)
+	{
+		map.moveTo(105.506, 61.825, 3);//позиционирует карту по координатам центра и выбирает масштаб
+		//map.enableHoverBalloon(ballonHoverFunction);
+		var myLayer = map.layers["fireTest"];
+		document.getElementById("cmdHash").innerHTML = 'Имеются данные за период: ' + myLayer.properties.DateBegin + ' - ' + myLayer.properties.DateEnd + ' (ZeroDate: ' + myLayer.properties.ZeroDate + ')';
+		
+		document.getElementById("filterButton1").onclick = function() {
+			var dt1 = document.getElementById("begDate").value;
+			var dt2 = document.getElementById("endDate").value;
+			var cnt = myLayer.setDateInterval(dt1, dt2);	// Перерасчет тайлов мультивременного слоя + установка фильтра
+
+			var arr = dt1.split('.');
+			var pdt1 = new Date((arr.length > 2 ? arr[2] : 2008), (arr.length > 1 ? arr[1] - 1 : 0), (arr.length > 0 ? arr[0] : 1));
+			arr = dt2.split('.');
+			pdt2 = new Date((arr.length > 2 ? arr[2] : 2008), (arr.length > 1 ? arr[1] - 1 : 0), (arr.length > 0 ? arr[0] : 1));
+			var days = 1 + (pdt2 - pdt1)/oneDay;
+			document.getElementById("getStatResult").innerHTML = 'Days: ' + days + ' DaysDelta: ' + cnt;
+		}
+
+		document.getElementById("setFilterButton").onclick = function() {
+			myLayer.filters[0].setFilter("GranID = 'AM1107050342'");	// установка фильтра
+		}
+		document.getElementById("unSetFilterButton").onclick = function() {
+			myLayer.filters[0].setFilter("");	// установка фильтра
+		}
+		document.getElementById("setVisibleButton").onclick = function() {
+			myLayer.setVisible(!map.layers["fireTest"].isVisible);
+		}
+		
+	});
+
+</script>
+
+</body>
+
+</html>

@@ -698,6 +698,15 @@ div.unit .unitInfo
 	white-space:nowrap;
 }
 
+.contextMenuItem span.buttonLink
+{
+	color: #293D6B;
+}
+.contextMenuItem span.buttonLinkHover
+{
+	color: #fc830b;
+}
+
 .contextMenuSeparator
 {
 	border-bottom: 1px solid #999999

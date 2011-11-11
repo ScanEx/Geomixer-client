@@ -89,7 +89,7 @@ class VectorTilePainter
 			if (cacheSprite == null)
 			{
 				cacheSprite = new Sprite();
-				painter.repaintWithoutExtent(style, cacheSprite);
+				painter.repaintWithoutExtent(style, cacheSprite, vectorLayerFilter.layer.temporalCriterion);
 			}
 
 			rasterSprite.addChild(cacheSprite);
@@ -98,7 +98,7 @@ class VectorTilePainter
 		}
 		else
 		{
-			painter.repaint(style);
+			painter.repaint(style, vectorLayerFilter.layer.temporalCriterion);
 			if(rasterSprite.visible) rasterSprite.visible = false;
 			if(!vectorSprite.visible) vectorSprite.visible = true;
 		}

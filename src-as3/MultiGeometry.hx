@@ -10,11 +10,12 @@ class MultiGeometry extends Geometry
 		members = new Array<Geometry>();
 	}
 
-	public override function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow)
+	public override function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
 	{
 		if (extent.overlaps(window.visibleExtent)) {
-			for (member in members)
-				member.paintWithExtent(sprite, style, window);
+			for (member in members) {
+				member.paintWithExtent(sprite, style, window, func);
+			}
 
 			if(style.outline != null && style.outline.thickness >= 0)
 				halfLine = style.outline.thickness * Math.abs(window.scaleY) / 2;
@@ -24,11 +25,11 @@ class MultiGeometry extends Geometry
 		}
 	}
 
-	public override function paint(sprite:Sprite, style: Style, window:MapWindow)
+	public override function paint(sprite:Sprite, style: Style, window:MapWindow, ?func:Hash<String>->Bool)
 	{
 		for (member in members) {
 			//member.refreshFlag = true;
-			member.paint(sprite, style, window);
+			member.paint(sprite, style, window, func);
 		}
 		if(style.outline != null && style.outline.thickness >= 0)
 			halfLine = style.outline.thickness * Math.abs(window.scaleY) / 2;

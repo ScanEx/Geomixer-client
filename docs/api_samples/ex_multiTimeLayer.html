@@ -31,23 +31,7 @@
 var newLayer = {
 	"geometry": {										
 		"type": "POLYGON",
-		"coordinates": [
-/*
-			[
-				[
-					-6679169,-2817773
-				],[
-					-6679169,-2817773
-				],[
-					-6679169,-2817773
-				],[
-					-6679169,-2817773
-				],[
-					-6679169,-2817773
-				]
-			]
-*/
-		]
+		"coordinates": [[[513739,3432027],[18783272,3432027],[18783272,10319134],[513739,10319134],[513739,3432027]]]
 	},
 	"properties": {	
 		//"prefix": prefix,
@@ -74,8 +58,10 @@ var newLayer = {
 //			-1,-1,1	setTemporalInterval
 		],
 
-		"_TemporalDebugPath": 'http://mapstest.kosmosnimki.ru/FireTimeTiles/',		// URL префикс для отладки мультивременных слоев
-		"TemporalLayer": true,			// признак мультивременного слоя
+//"Temporal":true,"TemporalTiles":[[4,2876,0,0,1],[4,2877,0,0,1],[16,719,0,0,1],[64,179,0,0,1],[256,44,0,0,1],[1024,11,0,0,1]],"ZeroDate":"01.01.1980","TemporalColumnName":"ImgDate","DateBegin":"04.07.2011","DateEnd":"05.07.2011"
+		//"_TemporalDebugPath": 'http://mapstest.kosmosnimki.ru/FireTimeTiles/',		// URL префикс для отладки мультивременных слоев
+		"_TemporalDebugPath": '../../../FireTimeTiles/',		// URL префикс для отладки мультивременных слоев
+		"Temporal": true,			// признак мультивременного слоя
 		"DateBegin": '08.03.2011',		// начало имеющихся данных в TemporalTiles
 		"DateEnd": '10.04.2011',		// конец имеющихся данных в temporalTiles
 		"ZeroDate": '01.01.2008',		// 0 точка отсчета	(по умолчанию 01.01.2008)
@@ -88,7 +74,7 @@ var newLayer = {
 		"styles": [
 			{														
 				//"Filter": "\"ImgDate\" >= '2011.03.01' AND \"ImgDate\" <= '2011.04.10'",
-				"BalloonEnable": true,
+				//"BalloonEnable": true,
 				"RenderStyle": {
 					"marker": {																		
 						"image": "http://maps.kosmosnimki.ru/images/fire.png",
@@ -128,6 +114,8 @@ var newLayer = {
 		map.moveTo(105.506, 61.825, 3);//позиционирует карту по координатам центра и выбирает масштаб
 		map.enableHoverBalloon(ballonHoverFunction);
 		map.addLayer(newLayer, true);
+		//map.layers["fireSWFtiles1"].filters[0].setFilter("GranID = 'AM1104100415'");	// установка фильтра
+
 
 		document.getElementById("filterButton1").onclick = function() {
 			var dt1 = document.getElementById("begDate").value;

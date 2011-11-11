@@ -105,6 +105,9 @@ class VectorLayerFilter extends MapContent
 			for (i in 0...tile.geometries.length)
 			{
 				var geom = tile.geometries[i];
+				if (me.layer.temporalCriterion != null && !me.layer.temporalCriterion(geom.propTemporal)) {
+					continue;
+				}
 				if (me.criterion(geom.properties))
 				{
 					me.ids.set(tile.ids[i], true);

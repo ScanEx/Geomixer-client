@@ -721,6 +721,18 @@ window.gmxAPI = {
 		return (t < 10) ? ("0" + t) : ("" + t);
 	}
 	,
+	strToDate: function(str)
+	{
+		var arr = str.split(' ');
+		var arr1 = arr[0].split('.');
+		var ret = new Date((arr1.length > 2 ? arr1[2] : 2008), (arr1.length > 1 ? arr1[1] - 1 : 0), (arr1.length > 0 ? arr1[0] : 1));
+		if(arr.length > 1) {
+			arr1 = arr[1].split(':');
+			ret.setHours((arr1.length > 0 ? arr1[0] : 0), (arr1.length > 1 ? arr1[1] : 0), (arr1.length > 2 ? arr1[2] : 0), (arr1.length > 3 ? arr1[3] : 0));
+		}
+		return ret;
+	}
+	,
 	trunc: function(x)
 	{
 		return ("" + (Math.round(10000000*x)/10000000 + 0.00000001)).substring(0, 9);
@@ -1763,10 +1775,9 @@ function createFlashMapInternal(div, layers, callback)
 			// Передача команды в SWF
 			function FlashCMD(cmd, hash)
 			{
-                //Это хак для исправления бага в Opera - после перестроения DOM модели при первом обращении объект становится undefined, при втором и далее всё нормально
-                if (flashDiv.cmdFromJS) {};
-                
+
 //var startTime = (new Date()).getTime();
+				var flashDomTest = typeof(flashDiv); 
 				var ret = {};
 				var obj = hash['obj'] || null;	// Целевой обьект команды
 				var attr = hash['attr'] || '';
@@ -2021,6 +2032,10 @@ function createFlashMapInternal(div, layers, callback)
 					case 'setTiles':
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'tiles':attr['tiles'], 'flag':attr['flag'] } );
 						break;
+					case 'startLoadTiles':
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+						break;
+
 					case 'getStat':
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
 						break;
@@ -2231,7 +2246,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				if(!this.clusters) {
 					this.clusters = new Clusters(this);	// атрибуты кластеризации потомков по фильтру
 				}
-				return FlashCMD('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
+				if(!sql) sql ='';
+				this._sql = sql;			// атрибуты фильтра установленные юзером
+				var ret = FlashCMD('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
+				return ret;
 			}
 			FlashMapObject.prototype.remove = function()
 			{
@@ -2370,9 +2388,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				FlashCMD('setImage', { 'obj': this, 'attr':attr});
 			}
 			FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
-			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles) 
+			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
 			{ 
-				FlashCMD('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'cacheFieldName':cacheFieldName, 'dataTiles':dataTiles}});
+				FlashCMD('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
 			}
 /* не используется
 			FlashMapObject.prototype.loadJSON = function(url)
@@ -2758,6 +2776,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						return ret;
 					}
 				}
+//if(layer.properties.description == "тест мультислоя") isVisible = false; // отладка
 
 				if (isVisible === undefined)
 					isVisible = true;
@@ -2835,9 +2854,13 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
 				}
 
-				var isTemporal = layer.properties.TemporalLayer;	// признак мультивременного слоя
+				var isTemporal = layer.properties.Temporal;	// признак мультивременного слоя
 				var tileDateFunction = null;
+				var setDateInterval = null;
 				if(isTemporal) {
+					var TimeTemporal = true;	// Добавлять время в фильтры - пока только для поля layer.properties.TemporalColumnName == 'DateTime'
+					var LastDaysDelta = 0;		// последний активный интервал временных тайлов 
+
 					var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
 					var ZeroDateString = layer.properties.ZeroDate || '01.01.2008';	// нулевая дата
 					var arr = ZeroDateString.split('.');
@@ -2904,6 +2927,29 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						}
 						return outArr;
 					}
+ 
+					prpTemporalFilter = function(DateBegin, DateEnd)
+					{
+						var dt1 = ddt1;			// начало текущих суток
+						var dt2 = ddt2;			// конец текущих суток
+						var tp = Object.prototype.toString.apply(DateEnd);
+						if(tp === '[object Date]') dt2 = DateEnd;
+						else if(tp === '[object String]') {						// формат 23.08.2011
+							dt2 = gmxAPI.strToDate(DateEnd);
+						}
+						tp = Object.prototype.toString.apply(DateBegin);
+						if(tp === '[object Date]') dt1 = DateBegin;
+						else if(tp === '[object String]') {
+							dt1 = gmxAPI.strToDate(DateBegin);
+						}
+						var dt1str = dt1.getFullYear() + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + gmxAPI.pad2(dt1.getDate());
+						if(TimeTemporal) dt1str += ' ' + gmxAPI.pad2(dt1.getHours()) + ":" + gmxAPI.pad2(dt1.getMinutes() + 1) + ":" + gmxAPI.pad2(dt1.getSeconds());
+						var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
+						if(TimeTemporal) dt2str += ' ' + gmxAPI.pad2(dt2.getHours()) + ":" + gmxAPI.pad2(dt2.getMinutes() + 1) + ":" + gmxAPI.pad2(dt2.getSeconds());
+						var TemporalColumnName = layer.properties.TemporalColumnName || 'Date';
+						var curFilter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
+						return {'dt1': dt1, 'dt2': dt2, 'ut1': parseInt(dt1.getTime()/1000), 'ut2': parseInt(dt2.getTime()/1000), 'curFilter': curFilter};
+					}
 
 					var getDateIntervalTiles = function(dt1, dt2) {			// Расчет вариантов от begDate до endDate
 						var days = parseInt(1 + (dt2 - dt1)/oneDay);
@@ -2937,14 +2983,14 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 									var x = pt[0];
 									var y = pt[1];
 									var z = pt[2];
-									var file = _prefix + "&Level=" + daysDelta + + "&Span=" + dz + + "&z=" + z + "&x=" + x + "&y=" + y;
+									var file = _prefix + "&Level=" + daysDelta + "&Span=" + dz + "&z=" + z + "&x=" + x + "&y=" + y;
 
-									if(layer.properties._TemporalDebugPath) file = daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // тайлы расположены в WEB папке
+									if(layer.properties._TemporalDebugPath) file = _prefix + daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // тайлы расположены в WEB папке
 									
 									if(!ph['tiles'][z]) ph['tiles'][z] = {};
 									if(!ph['tiles'][z][x]) ph['tiles'][z][x] = {};
 									if(!ph['tiles'][z][x][y]) ph['tiles'][z][x][y] = [];
-									ph['tiles'][z][x][y].push(_prefix + file);
+									ph['tiles'][z][x][y].push(file);
 									ph['files'].push(file);
 								}
 							}
@@ -2962,26 +3008,51 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						var curDaysDelta = deltaArr[i];
 						while (i>=0)
 						{
+							curDaysDelta = deltaArr[i];
 							if(days >= deltaArr[i]) {
 								break;
 							}
-							curDaysDelta = deltaArr[i];
 							i--;
 						}
 						var ph = getFiles(curDaysDelta);
 						minFiles = ph['files'].length;
-						currentData = {
+
+						var hash = prpTemporalFilter(dt1, dt2);
+						curTemporalFilter = hash['curFilter'];
+						var out = {
 								'daysDelta': curDaysDelta
 								,'files': ph['files']
 								,'tiles': ph['tiles']
-								,'dtiles': ph['dtiles']		// список тайлов для daysDelta
+								,'dtiles': ph['dtiles'] || []		// список тайлов для daysDelta
 								,'out': ph['out']
 								,'beg': ph['beg']
 								,'end': ph['end']
+								,'ut1': hash['ut1']
+								,'ut2': hash['ut2']
+								,'dt1': dt1
+								,'dt2': dt2
+								,'curTemporalFilter': hash['curFilter']
 							};
 
-						obj.setTiles(currentData['dtiles'], true);		// Установка списка тайлов мультивременного слоя
-						return curDaysDelta;
+						return out;
+					}
+					var ddt1 = new Date(); ddt1.setHours(0, 0, 0, 0);			// начало текущих суток
+					var ddt2 = new Date(); ddt2.setHours(23, 59, 59, 999);	// конец текущих суток
+					currentData = getDateIntervalTiles(ddt1, ddt2);	// По умолчанию за текущие сутки
+
+					obj.getTemporalFilter = function()
+					{
+						return (currentData['curTemporalFilter'] ? currentData['curTemporalFilter'] : '');
+					}
+
+					setDateInterval = function(DateBegin, DateEnd)
+					{
+						var hash = prpTemporalFilter(DateBegin, DateEnd);
+						curTemporalFilter = hash['curFilter'];
+						var dt1 = hash['dt1'];
+						var dt2 = hash['dt2'];
+						currentData = getDateIntervalTiles(dt1, dt2);
+						return currentData['daysDelta'];
 					}
 				}
 
@@ -2998,6 +3069,38 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						obj.isVisible = flag;
 					}
 					obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
+					obj.setDateInterval = function(dt1, dt2)
+					{
+						var oldDt1 = currentData['dt1'];
+						var oldDt2 = currentData['dt2'];
+						var oldDaysDelta = currentData['daysDelta'];
+
+						var hash = prpTemporalFilter(dt1, dt2);
+						var ddt1 = hash['dt1'];
+						var ddt2 = hash['dt2'];
+						var data = getDateIntervalTiles(ddt1, ddt2);
+
+						var attr = {
+							'dtiles': (data['dtiles'] ? data['dtiles'] : []),
+							'ut1': data['ut1'],
+							'ut2': data['ut2']
+						};
+						if(oldDaysDelta == data['daysDelta'] && data['dt1'] >= oldDt1 && data['dt2'] <= oldDt2) {
+									// если интервал временных тайлов не изменился и интервал дат не расширяется - только добавление новых тайлов 
+							attr['notClear'] = true;
+						} else {
+							currentData = data;
+						}
+						LastDaysDelta = currentData['daysDelta'];
+
+						if(attr) obj.startLoadTiles(attr);
+						curTemporalFilter = hash['curFilter'];
+						for (var i=0; i<obj.filters.length; i++)	// переустановка фильтров
+							obj.filters[i].setFilter(obj.filters[i]._sql, true);
+
+						map.balloonClassObject.removeHoverBalloons();
+						return LastDaysDelta;
+					}
 
 					for (var i = 0; i < deferredMethodNames.length; i++)
 						delete obj[deferredMethodNames[i]];
@@ -3073,37 +3176,21 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						}
 
 						if(isTemporal) {	// Для мультивременных слоёв
-							obj.setVectorTiles(tileDateFunction, layer.properties.identityField, [], layer.filesHash);
-							obj.setDateInterval = function(DateBegin, DateEnd)
-							{
-								var dt2 = new Date();
-								var dt1 = new Date(dt2 - oneDay);
-								var tp = Object.prototype.toString.apply(DateEnd);
-								if(tp === '[object Date]') dt2 = DateEnd;
-								else if(tp === '[object String]') {
-									var arr = DateEnd.split('.');
-									dt2 = new Date((arr.length > 2 ? arr[2] : 2008), (arr.length > 1 ? arr[1] - 1 : 0), (arr.length > 0 ? arr[0] : 1));
-								}
-								tp = Object.prototype.toString.apply(DateBegin);
-								if(tp === '[object Date]') dt1 = DateBegin;
-								else if(tp === '[object String]') {
-									var arr = DateBegin.split('.');
-									dt1 = new Date((arr.length > 2 ? arr[2] : 2008), (arr.length > 1 ? arr[1] - 1 : 0), (arr.length > 0 ? arr[0] : 1));
-								}
-								var dt1str = dt1.getFullYear() + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + gmxAPI.pad2(dt1.getDate());
-								var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
-								var TemporalColumnName = layer.properties.TemporalColumnName || 'Date';
-								var Filter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
-								for (var i=0; i<obj.filters.length; i++)
-								{
-									obj.filters[i].setFilter(Filter);
-								}
-								return getDateIntervalTiles(dt1, dt2);
+							var arr = (currentData['dtiles'] ? currentData['dtiles'] : []);
+							var temporal = {
+								'temporalFilter': obj.getTemporalFilter
+								,'TemporalColumnName': layer.properties.TemporalColumnName
+								,'ut1': currentData['ut1']
+								,'ut2': currentData['ut2']
+							};
+							obj.setVectorTiles(tileDateFunction, layer.properties.identityField, arr, temporal);
+							obj.startLoadTiles = function(attr) {
+								var ret = FlashCMD('startLoadTiles', { 'obj': obj, 'attr':attr });
+								return ret;
 							}
 						} else {
 							obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
 						}
-						//obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
 						obj.setStyle = function(style, activeStyle)
 						{
 							for (var i = 0; i < obj.filters.length; i++)
@@ -3171,8 +3258,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						obj.setCopyright(layer.properties.Copyright);
 				}
 
-				if (isVisible)
+				if (isVisible) {
 					createThisLayer();
+				}
 				else
 				{
 					var deferred = [];
@@ -3195,6 +3283,15 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						if(flag && obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
 						else chkListeners('onChangeVisible', obj, flag);	// Вызов Listeners события 'onChangeVisible'
 						obj.isVisible = flag;
+					}
+					if(isTemporal) {
+						obj.setDateInterval = function(dt1, dt2)
+						{
+							obj.setVisible(true);
+							var daysDelta = setDateInterval(dt1, dt2);
+							obj.setVisible(false);
+							return daysDelta;
+						}
 					}
 					obj.addObject = function(geometry, props)
 					{
@@ -3246,8 +3343,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						})(i);
 					}
 				}
-
-				if(isTemporal) obj.setDateInterval(temporalData['DateBegin'], temporalData['DateEnd']); // показываем начальный интервал
 
 				if (isRaster && (layer.properties.MaxZoom > maxRasterZoom))
 					maxRasterZoom = layer.properties.MaxZoom;
@@ -7755,6 +7850,16 @@ function BalloonClass(map, div, apiBase)
 			balloon.setVisible(true);
 		}
 	}
+	
+	function removeHoverBalloons()
+	{
+		for (var key in fixedHoverBalloons)
+		{
+			fixedHoverBalloons[key].remove();
+			delete fixedHoverBalloons[key];
+		}
+	}
+	this.removeHoverBalloons = removeHoverBalloons;
 	
 	function hideHoverBalloons(flag)
 	{

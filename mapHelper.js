@@ -1935,6 +1935,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 		function (hsb, hex, rgb) {
 			fillColorPicker.style.backgroundColor = '#' + hex;
             fillColor = parseInt("0x" + hex);
+            $(_this).change();
 		}),
 	fillOpacitySlider = _mapHelper.createSlider(fillOpacity,
 		function(event, ui)
@@ -2041,6 +2042,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 					function (hsb, hex, rgb) {
 						colorPicker.style.backgroundColor = '#' + hex;
 						_colors[k] = parseInt('0x' + hex);
+                        $(_this).change();
 					});
 				colorPicker.style.width = '100%';
 				
@@ -4174,7 +4176,7 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		if (!elemProperties.ShowCheckbox)
 		{
 			curBox.checked = true;
-			_layersTree.visibilityFunc(curBox, true, visibilityProperties.isChildRadio(), false);
+			_layersTree.visibilityFunc(curBox, true, false, false);
 			
 			curBox.style.display = 'none';
 			curBox.isDummyCheckbox = true;
@@ -4198,7 +4200,7 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		{
 			var box = _layersTree.updateListType(this, true);
 			
-			if (box.checked)
+			if (box.checked && !box.isDummyCheckbox)
 				checkbox = box; // последний включенный чекбокс
 		})
 		
@@ -4238,98 +4240,9 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		
 		return true;
 	}
-	
-	/*
-	var boxSwitch = _checkbox(!elemProperties.list, 'checkbox'),
-		radioSwitch = _checkbox(elemProperties.list, 'radio');
-	
-	if (!$.browser.msie)
-	{
-		boxSwitch.style.margin = "0px 4px 0px 3px";
-		radioSwitch.style.margin = "0px 4px 0px 3px";
-	}
-	
-	boxSwitch.onclick = function()
-	{
-		this.checked = true;
-		radioSwitch.checked = !this.checked;
 		
-		if ( elemProperties.list == !this.checked )
-			return;
-		
-		elemProperties.list = !this.checked;
-			
-		if (isMap) {
-			_this.mapTree.properties = div.properties.properties;
-		} else {
-			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
-		}
-		
-		var ul = _abstractTree.getChildsUl(div.parentNode),
-			checkbox = false;
-		
-		$(ul).children('li').each(function()
-		{
-			var box = _layersTree.updateListType(this, true);
-			
-			if (box.checked)
-				checkbox = box; // последний включенный чекбокс
-		})
-		
-		if (checkbox && _layersTree.getLayerVisibility(checkbox))
-			_layersTree.visibilityFunc(checkbox, true, div.properties.content ? div.properties.content.properties.list : div.properties.properties.list);
-	}
-	
-	radioSwitch.onclick = function()
-	{
-		this.checked = true;
-		boxSwitch.checked = !this.checked;
-		
-		if ( elemProperties.list == this.checked )
-			return;
-		elemProperties.list = this.checked;
-		
-		if (isMap) {
-			_this.mapTree.properties = div.properties.properties;
-		} else {
-			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
-		}
-		
-		var ul = _abstractTree.getChildsUl(div.parentNode),
-			checkbox = false;
-		
-		$(ul).children('li').each(function()
-		{
-			var box = _layersTree.updateListType(this, true);
-			
-			if (box.checked)
-				checkbox = box; // последний включенный чекбокс
-		})
-			
-		if (checkbox && _layersTree.getLayerVisibility(checkbox))
-			_layersTree.visibilityFunc(checkbox, true, div.properties.content ? div.properties.content.properties.list : div.properties.properties.list);
-	}
-	*/
-	
 	var addProperties = function(shownProperties)
-	{
-		// var trs = []
-		
-		// for (var i = 0; i < shownProperties.length; i++)
-		// {
-			// var td;
-			// if (typeof shownProperties[i].elem != 'undefined')
-				// td = _td([shownProperties[i].elem]);
-			// else
-				// td = _td([_t(elemProperties[shownProperties[i].field] != null ? elemProperties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
-			
-			// td.style.border = '1px solid #DEDEDE';
-			
-			// var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width','100px'],['css','height','22px'],['css','paddingLeft','5px'],['css','border','1px solid #DEDEDE']]), td])
-			
-			// trs.push(tr);
-		// }
-		
+	{		
 		return _this.createPropertiesTable(shownProperties, elemProperties, {leftWidth: 100});
 	};
 	
