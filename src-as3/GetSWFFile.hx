@@ -20,6 +20,17 @@ class GetSWFFile
 
 	private function init()
 	{
+		if(Main.useFlashLSO) {
+			var ret = Utils.readSharedObject(url);
+			if(ret != null) {
+				var arr:Array<Dynamic> = cast(ret);
+				if(arr != null && arr.length > 0) {
+					onLoad(arr);
+					return; 
+				}
+			}
+		}
+		
 		stream = new URLStream();
 		stream.objectEncoding = ObjectEncoding.AMF3;
 		stream.addEventListener(IOErrorEvent.IO_ERROR, onError);
@@ -49,6 +60,10 @@ class GetSWFFile
 			arr = stream.readObject();
 		} catch(e:Error) {
 			//trace('File not found: ' + url);	// Скорее всего от сервера пришел статус ответа 200 вместо 404
+		}
+
+		if(Main.useFlashLSO && arr != null && arr.length > 0) {
+			Utils.writeSharedObject(url, arr);
 		}
 		destructor(arr);
 	}

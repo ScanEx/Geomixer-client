@@ -7,6 +7,11 @@
 // var useCatalog = true;
 // var gmxAPIdebugLevel = 0;	// Уровень отладки (по умолчанию =0 - без сбора отладочной информации, >9 - alert при ошибках)
 
+//var gmxFlashLSO = {		// Использование локального SharedObject - сохранение векторных тайлов в куках Flash
+//	multiSession: false,	// Использовать между сессиями
+//	compress: false		// Использовать сжатие zlib
+//}
+
 //var mapsSite = true;
 //var apikeySendHosts = false;
 //var apikeyRequestHost = false;

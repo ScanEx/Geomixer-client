@@ -6432,6 +6432,11 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 	}
 
 	o.addVariable("loadCallback", uniqueGlobalName(loadCallback));
+	if(window.gmxFlashLSO) {
+		o.addVariable("useFlashLSO", true);
+		if(window.gmxFlashLSO.multiSession) o.addVariable("multiSessionLSO", true);
+		if(window.gmxFlashLSO.compress) o.addVariable("compressLSO", true);
+	}
 	o.write(div);
 
 	return true;

@@ -32,6 +32,12 @@ class Main
 	public static var registerMouseDown:MapNode->MouseEvent->MapNode->Void;
 	public static var refreshMap:Void->Void;					// Принудительный Refresh карты
 	
+	static var flashUrlKey:String = '';					// Ключ сессии SWF
+	public static var useFlashLSO:Bool = false;			// Использовать SharedObject
+	public static var multiSessionLSO:Bool = false;		// Использовать SharedObject между сессиями
+	public static var compressLSO:Bool = false;			// Сжатие SharedObject
+	public static var flashStartTimeStamp:Float = 0;	// timeStamp загрузки SWF
+
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
 	public static var mousePressed:Bool = false;
@@ -83,6 +89,15 @@ class Main
 		PrintManager.init(stage);
 		Security.allowDomain("*");
 		stage.frameRate = 1;
+
+		flashStartTimeStamp = Date.now().getTime();
+		for (fKey in Reflect.fields(root.loaderInfo.parameters)) {
+			var val:String = Reflect.field(root.loaderInfo.parameters, fKey);
+			if (fKey == 'useFlashLSO') useFlashLSO = (val == 'true' ? true : false);
+			else if (fKey == 'multiSessionLSO') multiSessionLSO = (val == 'true' ? true : false);
+			else if (fKey == 'compressLSO') compressLSO = (val == 'true' ? true : false);
+			else if (val == '') flashUrlKey = fKey;
+		}
 
 		var currentX:Float = 0;
 		var currentY:Float = 0;

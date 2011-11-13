@@ -1,8 +1,8 @@
 import flash.display.Bitmap;
+import flash.display.BitmapData;
 import flash.display.Sprite;
 import flash.display.DisplayObject;
 import flash.display.Loader;
-import flash.display.BitmapData;
 import flash.display.Stage;
 import flash.geom.Point;
 
@@ -14,6 +14,10 @@ import flash.system.ApplicationDomain;
 import flash.errors.Error;
 import flash.utils.Timer;
 import flash.events.TimerEvent;
+
+import flash.net.SharedObject;
+import flash.utils.ByteArray;
+import haxe.Md5;
 
 typedef Req = {
 	var url : String;
@@ -533,6 +537,58 @@ class Utils
 		}
 		return centersGeometry;
 		
+	}
+	
+	// Записать ByteArray в SharedObject
+	public static function writeSharedObject(url:String, data:Dynamic):String {
+		if (!Main.multiSessionLSO) url += Main.flashStartTimeStamp;
+		var lsoName:String = Md5.encode(url);
+		var mySo:SharedObject = SharedObject.getLocal(lsoName);
+		if(Main.compressLSO) {
+			var barr:ByteArray = new ByteArray();
+			barr.writeObject(data);
+			//trace('ddddddddddddddddddddddddddddddddddddddd ' + barr.length);
+			barr.compress();
+			//trace('ddddddddddddddddddddddddddddddddddddddd 11 : ' + barr.length);
+			var out:String = Base64.encode64(barr, false);
+			Reflect.setField(mySo.data, 'mobj', out);
+		} else {
+			Reflect.setField(mySo.data, 'mobj', data);
+		}
+		
+		var ret:String = 'ok';
+		//var ret:String = cast(mySo.flush());
+		mySo.close();
+		return ret;
+	}
+	
+	// Прочесть ByteArray из SharedObject
+	public static function readSharedObject(url:String) {
+		var out = null;
+		if (!Main.multiSessionLSO) url += Main.flashStartTimeStamp;
+		var lsoName:String = Md5.encode(url);
+		var mySo:SharedObject = SharedObject.getLocal(lsoName);
+		if(mySo.size > 0 && Reflect.hasField(mySo.data, 'mobj')) {
+			if(Main.compressLSO) {
+				var inp:String = Reflect.field(mySo.data, 'mobj');
+				if(inp.length > 0) {
+					var barr:ByteArray = new ByteArray();
+					try {
+						barr = Base64.decode64(inp);
+						barr.uncompress();
+						barr.position = 0;
+						out = barr.readObject();
+					} catch (error:Error) {
+						//trace('errror ' + barr.length);
+					}
+				}
+			} else {
+				out = Reflect.field(mySo.data, 'mobj');
+				if (Std.is(out, String)) out = null;
+			}
+		}
+		mySo.close();
+		return out;
 	}
 	
 }
