@@ -772,6 +772,8 @@ attrsTable.prototype.editObject = function(row)
 		{
 			if (!parseResponse(response))
 				return;
+                
+            var columnNames = response.Result.fields;
 			
 			$(canvas).children("[loading]").remove();
 			
@@ -783,61 +785,62 @@ attrsTable.prototype.editObject = function(row)
 				
 				if (i == 0)
 				{
-					var objectEdit = _span(null, [['attr','id','objectEdit' + _this.layerName + geometryRow[1]],['css','color','#215570'],['css','marginLeft','3px'],['css','fontSize','12px']]);
-
-					if (geometryRow[0].type == "POINT" || geometryRow[0].type == "LINESTRING" || geometryRow[0].type == "POLYGON")
-					{
-						
-						// добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
-					/*	if (geometryRow[0].type == "POLYGON")
-						{
-							geometryRow[0].coordinates[0][0][0] += 0.00001;
-							geometryRow[0].coordinates[0][0][1] += 0.00001;
-						}*/
-						
-                        _this.originalGeometry['ogc_fid' + geometryRow[1]] = from_merc_geometry(geometryRow[0]);
-						var drawingBorder = globalFlashMap.drawing.addObject(_this.originalGeometry['ogc_fid' + geometryRow[1]]);
-					
-						drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
-						
-						_this.drawingBorders['ogc_fid' + geometryRow[1]] = drawingBorder;
-						
-						_this.updateObjectGeometry(geometryRow[1], objectEdit);
-						
-						_(tdValue, [objectEdit]);
-					}
-					else
-					{
-						var info = _span([_t(geometryRow[0].type)], [['css','marginLeft','3px'],['css','fontSize','12px']]);
-						
-						_title(info, JSON.stringify(geometryRow[0].coordinates));
-					}
-					
-					var drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
-					
-					drawingBorderLink.onclick = function()
-					{
-						_this.chooseDrawingBorderDialog(geometryRow[1]);
-					}
-					
-					drawingBorderLink.style.margin = '0px 5px 0px 3px';
-                    
                     //временно отключаем выбор геометрии...
-					//trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), tdValue]))
+                    
+					// var objectEdit = _span(null, [['attr','id','objectEdit' + _this.layerName + geometryRow[1]],['css','color','#215570'],['css','marginLeft','3px'],['css','fontSize','12px']]);
+
+					// if (geometryRow[0].type == "POINT" || geometryRow[0].type == "LINESTRING" || geometryRow[0].type == "POLYGON")
+					// {
+						
+						// // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
+					// /*	if (geometryRow[0].type == "POLYGON")
+						// {
+							// geometryRow[0].coordinates[0][0][0] += 0.00001;
+							// geometryRow[0].coordinates[0][0][1] += 0.00001;
+						// }*/
+						
+                        // _this.originalGeometry['ogc_fid' + geometryRow[1]] = from_merc_geometry(geometryRow[0]);
+						// var drawingBorder = globalFlashMap.drawing.addObject(_this.originalGeometry['ogc_fid' + geometryRow[1]]);
+					
+						// drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
+						
+						// _this.drawingBorders['ogc_fid' + geometryRow[1]] = drawingBorder;
+						
+						// _this.updateObjectGeometry(geometryRow[1], objectEdit);
+						
+						// _(tdValue, [objectEdit]);
+					// }
+					// else
+					// {
+						// var info = _span([_t(geometryRow[0].type)], [['css','marginLeft','3px'],['css','fontSize','12px']]);
+						
+						// _title(info, JSON.stringify(geometryRow[0].coordinates));
+					// }
+					
+					// var drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
+					
+					// drawingBorderLink.onclick = function()
+					// {
+						// _this.chooseDrawingBorderDialog(geometryRow[1]);
+					// }
+					
+					// drawingBorderLink.style.margin = '0px 5px 0px 3px';
+                    
+					// trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), tdValue]))
 				}
 				else if (i == 1)
 				{
 					_(tdValue, [_span([_t(geometryRow[i])],[['css','marginLeft','3px'],['css','fontSize','12px']])])
 						
-					trs.push(_tr([_td([_span([_t(_this.columnsNames[i - 1])],[['css','fontSize','12px']])],[['css','height','20px']]), tdValue]))
+					trs.push(_tr([_td([_span([_t(columnNames[i])],[['css','fontSize','12px']])],[['css','height','20px']]), tdValue]))
 				}
 				else
 				{
-					var input = _input(null,[['attr','value',geometryRow[i]],['css','width','200px'],['dir','className','inputStyle'], ['dir', 'rowName', _this.columnsNames[i - 1]]]);
+					var input = _input(null,[['attr','value',geometryRow[i]],['css','width','200px'],['dir','className','inputStyle'], ['dir', 'rowName', columnNames[i]]]);
 					
 					_(tdValue, [input]);
 					
-					trs.push(_tr([_td([_span([_t(_this.columnsNames[i - 1])],[['css','fontSize','12px']])]), tdValue]))
+					trs.push(_tr([_td([_span([_t(columnNames[i])],[['css','fontSize','12px']])]), tdValue]))
 				}
 			}
 			
