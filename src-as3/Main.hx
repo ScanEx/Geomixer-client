@@ -805,6 +805,7 @@ class Main
 			var node = getNode(id);
 			if (node == null || node.content == null || !Std.is(node.content, VectorLayer)) return;
 			cast(node.content, VectorLayer).startLoadTiles(attr, mapWindow);
+			viewportHasMoved = true;
 		}
 
 		function setVectorTiles(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?attrHash:Dynamic)

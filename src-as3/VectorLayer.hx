@@ -87,15 +87,6 @@ class VectorLayer extends MapContent
 				if (!hashTiles.get(z + '_' + i + '_' + j)) addTile(i, j, z);
 			}
 		}
-
-		createLoader(function(tile:VectorTile, tilesRemaining:Int)
-		{
-			if (tilesRemaining < 0)
-			{
-				Main.bumpFrameRate();
-				Main.refreshMap();
-			}
-		})(mapWindow.visibleExtent);
 	}
 
 
@@ -117,6 +108,7 @@ class VectorLayer extends MapContent
 
 				var tile = me.tiles[i];
 				var e2 = tile.extent;
+				//trace('xxxxxxxxx ' + e2.minx + ' : ' + e2.maxx + ' : ' + tile.z + ' : ' + tile.i + ' : ' + tile.j + ' : ');
 				if ((e1.miny < e2.maxy) && (e2.miny < e1.maxy) && (
 					((e1.minx < e2.maxx) && (e2.minx < e1.maxx)) || 
 					((e1.minx < e2.maxx + w) && (e2.minx + w < e1.maxx)) || 

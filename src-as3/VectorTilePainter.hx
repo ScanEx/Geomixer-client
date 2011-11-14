@@ -98,6 +98,7 @@ class VectorTilePainter
 		}
 		else
 		{
+			//trace('ddddddddddddddd ' + sprite.name);
 			painter.repaint(style, vectorLayerFilter.layer.temporalCriterion);
 			if(rasterSprite.visible) rasterSprite.visible = false;
 			if(!vectorSprite.visible) vectorSprite.visible = true;
