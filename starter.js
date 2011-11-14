@@ -38,7 +38,7 @@ parseUri.options = {
 };
 
 var _mapHostName = window.mapHostName ? "http://" + window.mapHostName + "/api/" : parseUri(window.location.href).directory;
-var _serverBase = window.serverBase || /(.*)\/[^\/]*\//.exec(_mapHostName);
+var _serverBase = window.serverBase || /(.*)\/[^\/]*\//.exec(_mapHostName)[1] + '/';
 
 //подставляет к локальному имени файла хост (window.gmxJSHost) и, опционально, рандомное поле для сброса кэша (window.gmxDropBrowserCache)
 var _getFileName = function( localName )
@@ -66,7 +66,7 @@ var loadJS = function(callback)
         //TODO: явно вставлять сюда список файлов из билдера
         $.getJSON(_serverBase + "ApiSave.ashx?CallbackName=?&get=" + encodeURIComponent(fileName), function(response)
         {
-            process($.parseJSON(response.Result));
+            process(eval(response.Result));
         });
     }
     else
@@ -554,20 +554,6 @@ function loadMap(state)
 				
 				//для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
 				
-				(function fixVisibilityConstrains (o, isVisible)
-				{
-					o.content.properties.visible = o.content.properties.visible && isVisible;
-					isVisible = o.content.properties.visible;
-					if (o.type === "group")
-					{
-						var a = o.content.children;
-						for (var k = a.length - 1; k >= 0; k--)
-							fixVisibilityConstrains(a[k], isVisible);
-					}
-				})({type: "group", content: { children: data.children, properties: { visible: true } } }, true);
-				
-				window.oldTree = JSON.parse(JSON.stringify(data));
-				
 				if (!data)
 				{
 					_tab_hash.defaultHash = 'usage';
@@ -603,6 +589,20 @@ function loadMap(state)
 					
 					return;
 				}
+                
+				(function fixVisibilityConstrains (o, isVisible)
+				{
+					o.content.properties.visible = o.content.properties.visible && isVisible;
+					isVisible = o.content.properties.visible;
+					if (o.type === "group")
+					{
+						var a = o.content.children;
+						for (var k = a.length - 1; k >= 0; k--)
+							fixVisibilityConstrains(a[k], isVisible);
+					}
+				})({type: "group", content: { children: data.children, properties: { visible: true } } }, true);
+				
+				window.oldTree = JSON.parse(JSON.stringify(data));
 				
 				window.defaultLayersVisibility = {};
 				if (map.layers)
