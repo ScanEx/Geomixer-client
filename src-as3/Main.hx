@@ -1273,7 +1273,16 @@ class Main
 						}
 					}
 					out = outArr;
-			
+				case 'setFlashLSO':	// Использование SharedObject
+					if (attr.data == null || Std.is(attr.data, String)) {
+						useFlashLSO = false;
+					} else {
+						useFlashLSO = true;
+						if (attr.data.multiSession != null) multiSessionLSO = (attr.data.multiSession == true ? true : false);
+						if (attr.data.compress != null) compressLSO = (attr.data.compress == true ? true : false);
+						
+					}
+					out = (useFlashLSO ? 1 : 0);
 			}
 			return out;
 		}

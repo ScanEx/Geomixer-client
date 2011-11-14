@@ -2066,6 +2066,9 @@ function createFlashMapInternal(div, layers, callback)
 					case 'getItemsFromExtent':
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
 						break;
+					case 'setFlashLSO':
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+						break;
 				}
 /*
 if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };
@@ -3438,6 +3441,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				for (var i = 0; i < map.layers.length; i++) arr.push(map.layers[i].objectId);
 				return FlashCMD('getItemsFromExtent', { 'obj': this, 'attr':{'layers':arr} });
 			}
+			// Использование SharedObject
+			map.setFlashLSO = function(data) { return FlashCMD('setFlashLSO', {'obj': this, 'attr':data }); }
 
 			var needToStopDragging = false;
 			flashDiv.onmouseout = function() 
