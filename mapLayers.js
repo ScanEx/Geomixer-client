@@ -765,7 +765,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 		{
 			box.isDummyCheckbox = true;
 			box.style.display = 'none';
-	}
+        }
 	}
 	
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer'],['attr','dragg',true]]);
@@ -781,9 +781,11 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 				
 				box.checked = true;
 				
-				var parentParams = _this.getParentParams(span.parentNode.parentNode.parentNode);
-				
-				_this.visibilityFunc(box, true, parentParams.list);
+                if (!box.isDummyCheckbox)
+                {
+                    var parentParams = _this.getParentParams(span.parentNode.parentNode.parentNode);
+                    _this.visibilityFunc(box, true, parentParams.list);
+                }
 					
 				var clickDiv = $(span.parentNode.parentNode.parentNode).children("div.hitarea");
 					
