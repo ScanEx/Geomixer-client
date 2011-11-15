@@ -2975,7 +2975,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							zn = parseInt(zn);
 							var zn1 = Math.floor((dt2 - ZeroDate)/mn);
 							ph['end'] = zn1;
-							ph['endDate'] = new Date(ZeroDate.getTime() + daysDelta * zn1 * oneDay);
+							ph['endDate'] = new Date(ZeroDate.getTime() + daysDelta * oneDay * (zn1 + 1) - 1000);
 							zn1 = parseInt(zn1);
 							var dHash = temporalData['deltaHash'][daysDelta] || {};
 							for (var dz in dHash) {
