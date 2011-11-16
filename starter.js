@@ -333,13 +333,19 @@ $(document).ready(function()
 	upload.setAttribute("charset", "windows-1251");
 	upload.setAttribute("src", (window.mapHostName ? ("http://" + window.mapHostName + "/api/uploader.js") : parseUri(window.location.href).directory + "uploader.js"));
 	document.getElementsByTagName("head").item(0).appendChild(upload);
-	
+    
+    var params = [];
+    if (window.apiKey) params.push("key=" + window.apiKey);
+    if (window.gmxDropBrowserCache) params.push(Math.random());
+    var paramsString = "";
+    for (var p = 0; p < params.length; p++)
+        paramsString += (paramsString.length ? "&" : "?") + params[p];
+    
 	var script = document.createElement("script");
 	script.setAttribute("charset", "windows-1251");
 	script.setAttribute(
 		"src", 
-		(window.mapHostName ? ("http://" + window.mapHostName + "/api/api.js") : parseUri(window.location.href).directory + "api.js") + 
-		(window.apiKey ? ("?key=" + window.apiKey) : "")
+		(window.mapHostName ? ("http://" + window.mapHostName + "/api/api.js") : parseUri(window.location.href).directory + "api.js") + paramsString
 	);
 	var interval = setInterval(function()
 	{
@@ -416,8 +422,7 @@ function parseReferences()
 
 function checkUserInfo(defaultState)
 {
-	var apiUri = parseUri(getScriptBase("api.js")),
-		docUri = parseUri(window.location.href);
+	var docUri = parseUri(window.location.href);
 	
 	if ( !window.serverBase )
 		window.serverBase = "http://" + getAPIHost() + "/";	

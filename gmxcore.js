@@ -72,7 +72,7 @@ var gmxCore = function()
 				var path = (typeof moduleSource != 'undefined') ? moduleSource : _modulesDefaultHost + moduleName + '.js';
 				
                 newScript.type = 'text/javascript';
-                newScript.src = path;
+                newScript.src = path + (window.gmxDropBrowserCache ? "?" + Math.random() : "");
                 newScript.charset = "utf-8";
                 headElem.appendChild(newScript);
 				
