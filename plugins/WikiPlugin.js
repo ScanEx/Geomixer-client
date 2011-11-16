@@ -4,6 +4,9 @@
 * @description Предоставляет возможность написания сообщений
 */
 (function wiki($, oFlashMap){
+
+var pluginPath = null;
+
 _translationsHash.addtext("rus", {
 	"Сообщение" : "Сообщение",
 	"Сообщения" : "Сообщения",
@@ -32,7 +35,7 @@ _translationsHash.addtext("eng", {
 	"Щелкните по слою в дереве слоёв, чтобы выбрать его": "Click layer to choose it",
 	"Вы действительно хотите удалить это сообщение?" : "Do you really want to delete the selected message?",
 	"Удалить привязку к слою": "Delete layer reference",
-	"Для добавления или редактирования объекта на карте нужно добавить новый объект: точку или многоугольник из панели инструментов": "To add object use toolbar on map"
+	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Add new point or rectangle to create a message"
 });
 
 /**Контейнер меню (или диалога сообщений), содержащий список сообщений и кнопку "Создать сообщение"
@@ -161,7 +164,7 @@ WikiObjectsHandler.prototype = {
 		mapObject.enableHoverBalloon(this._getBaloon(pageInfo));
 		switch (pageInfo.Geometry.type) {
 			case 'POINT':
-				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : getAPIHostRoot() + "/api/plugins/img/wiki/page.gif"), center: true }});
+				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : pluginPath + "img/wiki/page.gif"), center: true }});
 				break;
 			case 'POLYGON':
 				mapObject.setStyle({outline: {thickness: 1, opacity: 100}});
@@ -375,7 +378,7 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	this._geometryChooseFlag = false;
 	this._divGeometry = _div([_t(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))],[['dir', 'className', 'wiki-editor-helptext']]);
 	this._txtLayer = _input(null, [['attr', 'readonly', 'true'], ['dir', 'className', 'wiki-editor-txtlayer']]);
-	this._btnLayerClear = makeImageButton(getAPIHostRoot() + 'api/img/closemin.png', getAPIHostRoot() + 'api/img/close_orange.png');
+	this._btnLayerClear = makeImageButton(pluginPath + '../img/closemin.png', pluginPath + '../img/close_orange.png');
 	this._btnLayerClear.setAttribute('title', _gtxt('Удалить привязку к слою'))
 	this._btnLayerClear.onclick = function(){ this.setLayer(null) }.bind(this);
 	this._hlpLayer = makeHelpButton(_gtxt("Щелкните по слою в дереве слоёв, чтобы выбрать его"));
@@ -474,8 +477,8 @@ WikiPlugin.prototype = {
 
 		this._map.drawing.addTool('textTool'
 									, _gtxt("Создать сообщение")
-									, 'plugins/img/wiki/text_tool.png'
-									, 'plugins/img/wiki/text_tool_a.png'
+									, pluginPath + 'img/wiki/text_tool.png'
+									, pluginPath + 'img/wiki/text_tool_a.png'
 									, function(){this._map.drawing.selectTool('move'); this.createPage(); }.bind(this)
 									, function(){})
 		this._loadPages();
@@ -694,6 +697,10 @@ var publicInterface = {
 	addMenuItems: addMenuItems
 }
 
-gmxCore.addModule("wiki", publicInterface);
+gmxCore.addModule("wiki", publicInterface, {init: function(module, path)
+    {
+        pluginPath = path;
+    }
+});
 
 })(jQuery, globalFlashMap)
