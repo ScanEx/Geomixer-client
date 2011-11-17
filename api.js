@@ -2779,7 +2779,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						return ret;
 					}
 				}
-//if(layer.properties.description == "тест мультислоя") isVisible = false; // отладка
 
 				if (isVisible === undefined)
 					isVisible = true;
@@ -3630,6 +3629,14 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				map.baseLayerControl.repaint();
 				if (map.baseLayerControl.onChange)
 					map.baseLayerControl.onChange(name);
+				
+				var st = getBaseMapParam("overlayLayerID", "");
+				var arr = st.split(',');
+				for (var i = 0; i < arr.length; i++)
+				{
+					if (arr[i] in map.layers) map.layers[arr[i]].bringToTop();
+				}
+
 			}
 			map.getBaseLayer = function()
 			{
@@ -6662,6 +6669,16 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					}
 
 					callback(map);		// Вызов HTML маплета
+					// все overlayLayer вверх после отработки маплета карты
+					var st = getBaseMapParam("overlayLayerID", "");
+					var arr = st.split(',');
+					for (var i = 0; i < arr.length; i++)
+					{
+						if (arr[i] in map.layers) {
+							map.layers[arr[i]].properties.type = "Overlay";
+							map.layers[arr[i]].bringToTop();
+						}
+					}
 				});
 			},
 			function()
