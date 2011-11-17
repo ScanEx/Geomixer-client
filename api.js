@@ -5418,7 +5418,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
 						chkListeners('onEdgeMouseOver', map.drawing, domObj);
 					},
-					onEdgeMouseOut: function(ñobj, attr)
+					onEdgeMouseOut: function(cobj, attr)
 					{
 						if(attr && attr['buttonDown']) return;
 						chkListeners('onEdgeMouseOut', map.drawing, domObj);
