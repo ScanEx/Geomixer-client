@@ -25,7 +25,6 @@ class VectorTilePainter
 		mapWindow = vectorLayerFilter.mapNode.window;
 		rasterSprite = Utils.addSprite(sprite);
 		vectorSprite = Utils.addSprite(sprite);
-vectorSprite.cacheAsBitmap = true;
 //vectorSprite.opaqueBackground = 0x00ff00;
 		painter = new GeometryPainter(tileGeometry, vectorSprite, mapWindow);
 		sprite.name = tile.z + '_' + tile.i + '_' + tile.j;
@@ -64,12 +63,12 @@ vectorSprite.cacheAsBitmap = true;
 
 		var currentZ:Int = Std.int(curZ);
 		var tileOverlap = mapWindow.visibleExtent.overlapsFull(tile.extent);	// Полное перекрытие геометрии тайла
+		var tileIntersect = mapWindow.visibleExtent.overlaps(tile.extent);		// Частичное перекрытие геометрии тайла
 
 		var clustersDisabled:Bool = (vectorLayerFilter.clusterAttr == null || vectorLayerFilter.clusterAttr._zoomDisabledHash.exists(currentZ) ? true : false);
 		if (clustersDisabled) {
 			painter.geometry = tileGeometry;
 		} else {
-			var tileIntersect = mapWindow.visibleExtent.overlaps(tile.extent);		// Частичное перекрытие геометрии тайла
 			if (tileIntersect && !tileOverlap) oldStyle = null;
 			if (tileIntersect) {
 				clustersGeometry = Utils.getClusters(vectorLayerFilter, tileGeometry, tile, currentZ);
@@ -103,7 +102,6 @@ vectorSprite.cacheAsBitmap = true;
 			painter.repaint(style, vectorLayerFilter.layer.temporalCriterion);
 			if(rasterSprite.visible) rasterSprite.visible = false;
 			if(!vectorSprite.visible) vectorSprite.visible = true;
-trace('ddddddd ' + flash.Lib.getTimer() + ' : ' + sprite.name + ' : ' + curZ);
 		}
 
 	}
