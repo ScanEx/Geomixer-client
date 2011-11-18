@@ -17,10 +17,8 @@
 			var timestepTo = Math.round(dateEnd.valueOf()/1000);
 			var url = "http://rynda.org/public_api/messages?format=jsonp&date_added_from=" + timestepFrom + "&date_added_to=" + timestepTo;
 			
-			//sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(url), function(data)
 			$.ajax({url: url, dataType: 'jsonp', success: function(data)
 			{
-				//eval("var k = " + data.Result);
 				onSucceess(data);
 			}});
 		}
@@ -85,39 +83,31 @@
 		}
 	};
 	
-	var addRyndaProvider = function(fireControl)
+	var addRyndaProvider = function(fireControl, isVisible)
 	{
 		fireControl.whenInited(function()
 		{
 			fireControl.addDataProvider( "rynda",
 				new RyndaProvider(),
 				new RyndaRenderer(),
-				{ isVisible: true }
+				{ isVisible: isVisible }
 			);
 		});
 	}
 
 	gmxCore.addModule('RyndaMapplet', {
-		//RyndaProvider: RyndaProvider,
-		//RyndaRenderer: RyndaRenderer
 		afterViewer: function(params)
 		{
+            var _params = $.extend({visible: true}, params);
+            
 			gmxCore.loadModule('FireMapplet', 'plugins/FireMapplet.js');
 			gmxCore.addModulesCallback(['FireMapplet'], function()
 			{
                 var mFire = gmxCore.getModule('FireMapplet');
 				if (mFire.FireControlCollection.instances.length)
-					addRyndaProvider(mFire.FireControlCollection.instances[0])
+					addRyndaProvider(mFire.FireControlCollection.instances[0], _params.visible)
 				else
-					$(mFire.FireControlCollection).bind('newInstance', function(){ addRyndaProvider(mFire.FireControlCollection.instances[0]) });
-				// mapCalendar.whenInited(function()
-				// {
-					// mapCalendar.getFireControl().addDataProvider( "rynda",
-						// new RyndaProvider(),
-						// new RyndaRenderer(),
-						// { isVisible: true }
-					// );
-				// });
+					$(mFire.FireControlCollection).bind('newInstance', function(){ addRyndaProvider(mFire.FireControlCollection.instances[0], _params.visible) });
 			});
 		}
 	}, 
