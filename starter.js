@@ -61,16 +61,23 @@ var loadJS = function(callback)
     
     var fileName = gmxJSHost + "jsLoadSchedule.txt";
     
-    if (fileName.indexOf("http://") === 0)
+    var filesToLoad = [/*#buildinclude<load_js.txt>*/];
+    
+    //если система сборки не вставила явно список файлов вьюера, попробуем его загрузить из внешнего файла...
+    if (filesToLoad.length === 0)
     {
-        //TODO: явно вставлять сюда список файлов из билдера
-        $.getJSON(_serverBase + "ApiSave.ashx?CallbackName=?&get=" + encodeURIComponent(fileName), function(response)
+        if (fileName.indexOf("http://") === 0)
         {
-            process(eval(response.Result));
-        });
+            $.getJSON(_serverBase + "ApiSave.ashx?CallbackName=?&get=" + encodeURIComponent(fileName), function(response)
+            {
+                process(eval(response.Result));
+            });
+        }
+        else
+            $.getJSON(fileName, process);
     }
     else
-        $.getJSON(fileName, process);
+        process(filesToLoad);
 }
 
 $LAB.

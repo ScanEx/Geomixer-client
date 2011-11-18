@@ -4,7 +4,7 @@ var gmxCore = function()
     var _modules = {};
     var _globalNamespace = this;
 	var _modulesDefaultHost = "";
-	var _modulePathes = {};
+	var _modulePathes = {/*#buildinclude<modules_path.txt>*/};
     
     var invokeCallbacks = function()
     {
@@ -55,6 +55,8 @@ var gmxCore = function()
             {
                 if (options && 'init' in options)
 				{
+                    if (typeof moduleObj === 'function')
+                        moduleObj = moduleObj( _modulePathes[moduleName] );
                     options.init(moduleObj, _modulePathes[moduleName]);
 				}
                 
@@ -77,8 +79,9 @@ var gmxCore = function()
                 headElem.appendChild(newScript);
 				
 				var pathRegexp = /(.*)\/[^\/]+/;
-				_modulePathes[moduleName] = pathRegexp.test(path) ? path.match(pathRegexp)[1] + "/" : "";
-				
+                
+                if ( typeof _modulePathes[moduleName] === 'undefined' )
+                    _modulePathes[moduleName] = pathRegexp.test(path) ? path.match(pathRegexp)[1] + "/" : "";
             }
         },
 		
