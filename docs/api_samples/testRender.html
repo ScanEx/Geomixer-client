@@ -1,0 +1,41 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> <!-- api-ключ для доступа к сервису API, полученный на account.kosmosnimki.ru для сайта kosmosnimki.ru, на котором размещена данная веб-страница --><!-- ВНИМАНИЕ! ДЛЯ ТЕСТИРОВАНИЯ С ЛОКАЛЬНОГО ДИСКА ИСПОЛЬЗУЙТЕ LOCALHOST -->
+
+<title>GeoMixer API - примеры использования</title>
+</head>
+<body>
+<div id="map" style="width: 600px; height: 400px;"></div>
+<br />
+<button id="set_visible">SetVisible(true)</button>
+<button id="add_object">AddObject()</button>
+
+<script>
+
+var div = document.getElementById('map');
+var objPoly = null
+createFlashMap(div, "maps.kosmosnimki.ru", "9G4QP", function (map) 
+	{
+		var button = document.getElementById("add_object");
+		button.onclick = function()
+		{
+			//map.layers['4CC0777548DB4B44B86FA620BA1E7033'].setVisible(true);
+			objPoly = map.layers['4CC0777548DB4B44B86FA620BA1E7033'].addObject({type: 'POLYGON', coordinates: [[[76.113281, 55.828328], [39, 55], [38, 56], [37, 55]]]});
+			objPoly.setStyle({outline: {color: 0xff0000, thickness: 2}});
+			//map.layers['4CC0777548DB4B44B86FA620BA1E7033'].addObject();
+			//map.layers['4CC0777548DB4B44B86FA620BA1E7033'].setVisible(false);
+		}
+        
+        document.getElementById("set_visible").onclick = function()
+		{
+			map.layers['4CC0777548DB4B44B86FA620BA1E7033'].setVisible(true);
+		}
+	}
+);
+
+
+</script>
+
+</body>
+</html>
