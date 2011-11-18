@@ -1634,7 +1634,7 @@ function createFlashMapInternal(div, layers, callback)
 	if(layers.properties.name == kosmosnimki_API) {
 		if (layers.properties.OnLoad)		//  Обработка маплета базовой карты
 		{
-			try { eval("(" + layers.properties.OnLoad + ")")(); }
+			try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(); }
 			catch (e) {
 				gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'OnLoad', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
 			}
