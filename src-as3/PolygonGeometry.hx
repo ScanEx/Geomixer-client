@@ -17,10 +17,13 @@ class PolygonGeometry extends Geometry
 				extent.update(part[i*2], part[i*2 + 1]);
 	}
 
-	public override function paint(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
+	public override function paint(attr:Dynamic)
 	{
-		if (func != null && !func(propTemporal)) return;	// Фильтр мультивременных данных
+		if (attr.func != null && !attr.func(propTemporal)) return;	// Фильтр мультивременных данных
 
+		var sprite:Sprite = attr.sprite;
+		var style:Style = attr.style;
+		var window:MapWindow = attr.window;
 		if (style.hasMarkerImage())
 		{
 			var x = (extent.minx + extent.maxx)/2;
@@ -29,7 +32,9 @@ class PolygonGeometry extends Geometry
 			{
 				var p = new PointGeometry(x, y);
 				p.properties = properties;
-				p.paint(sprite, style, window);
+				var attr1:Dynamic = { };
+				attr1.sprite = sprite; attr1.style = style; attr1.window = window;
+				p.paint(attr1);
 			} else {
 				refreshFlag = true;
 			}

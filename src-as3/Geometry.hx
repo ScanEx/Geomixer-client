@@ -25,16 +25,16 @@ class Geometry
 		halfLine = 0;
 	}
 
-	public function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
+	public function paintWithExtent(attr:Dynamic)
 	{
-		if (extent.overlaps(window.visibleExtent)) {
-			paint(sprite, style, window, func);
+		if (extent.overlaps(attr.window.visibleExtent)) {
+			paint(attr);
 		} else {
 			refreshFlag = true;
 		}
 	}
 
-	public function paint(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
+	public function paint(attr:Dynamic)
 	{
 	}
 

@@ -10,29 +10,31 @@ class MultiGeometry extends Geometry
 		members = new Array<Geometry>();
 	}
 
-	public override function paintWithExtent(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
+	public override function paintWithExtent(attr:Dynamic)
 	{
-		if (extent.overlaps(window.visibleExtent)) {
+		if (extent.overlaps(attr.window.visibleExtent)) {
+			attr.parentNumChildren = members.length;
 			for (member in members) {
-				member.paintWithExtent(sprite, style, window, func);
+				member.paintWithExtent(attr);
 			}
 
-			if(style.outline != null && style.outline.thickness >= 0)
-				halfLine = style.outline.thickness * Math.abs(window.scaleY) / 2;
+			if(attr.style.outline != null && attr.style.outline.thickness >= 0)
+				halfLine = attr.style.outline.thickness * Math.abs(attr.window.scaleY) / 2;
 
 		} else {
 			refreshFlag = true;
 		}
 	}
 
-	public override function paint(sprite:Sprite, style: Style, window:MapWindow, ?func:Hash<String>->Bool)
+	public override function paint(attr:Dynamic)
 	{
+		attr.parentNumChildren = members.length;
 		for (member in members) {
 			//member.refreshFlag = true;
-			member.paint(sprite, style, window, func);
+			member.paint(attr);
 		}
-		if(style.outline != null && style.outline.thickness >= 0)
-			halfLine = style.outline.thickness * Math.abs(window.scaleY) / 2;
+		if(attr.style.outline != null && attr.style.outline.thickness >= 0)
+			halfLine = attr.style.outline.thickness * Math.abs(attr.window.scaleY) / 2;
 	}
 
 	public override function distanceTo(x:Float, y:Float):Float

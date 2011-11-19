@@ -18,8 +18,11 @@ class GeometryPainter
 	{
 		//sprite.graphics.clear();
 		Utils.clearSprite(sprite);
-		if ((geometry != null) && (style != null))
-			geometry.paintWithExtent(sprite, style, window, func);
+		if ((geometry != null) && (style != null)) {
+			var attr:Dynamic = { };
+			attr.sprite = sprite; attr.style = style; attr.window = window; attr.func = func;
+			geometry.paintWithExtent(attr);
+		}
 	}
 
 	public function repaintWithoutExtent(style:Style, sprite_:Sprite, ?func:Hash<String>->Bool)
@@ -27,7 +30,10 @@ class GeometryPainter
 		if (sprite_ == null) sprite_ = sprite;
 		Utils.clearSprite(sprite_);
 		//sprite_.graphics.clear();
-		if ((geometry != null) && (style != null))
-			geometry.paint(sprite_, style, window, func);
+		if ((geometry != null) && (style != null)) {
+			var attr:Dynamic = { };
+			attr.sprite = sprite_; attr.style = style; attr.window = window; attr.func = func;
+			geometry.paint(attr);
+		}
 	}
 }

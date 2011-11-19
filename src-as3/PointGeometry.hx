@@ -4,6 +4,8 @@ class PointGeometry extends Geometry
 {
 	public var x:Float;
 	public var y:Float;
+	public static var MAX_POINTS_WIDH:Int = 500;	// ограничение размеров точки квадрат не более 1 км
+	public static var MAX_POINTS_COUNT:Int = 1000;	// ограничение действует при количестве точек в геометрии родителя
 
 	public function new(x_:Float, y_:Float)
 	{
@@ -13,21 +15,22 @@ class PointGeometry extends Geometry
 		extent.update(x, y);
 	}
 
-	public override function paint(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
+	public override function paint(attr:Dynamic)
 	{
-		if (func != null && !func(propTemporal)) return;	// Фильтр мультивременных данных
+		if (attr.func != null && !attr.func(propTemporal)) return;	// Фильтр мультивременных данных
 
-		var contains = window.visibleExtent.contains(x, y);	// Точка в области видимости
+		var contains = attr.window.visibleExtent.contains(x, y);	// Точка в области видимости
 		if (contains)
 		{
+			var style:Style = attr.style;
 			if(propHiden.exists('_paintStyle')) style = propHiden.get('_paintStyle');
-			putPoint(sprite, style, window);
+			putPoint(attr.sprite, style, attr.window, attr.parentNumChildren);
 		} else {
 			refreshFlag = true;
 		}
 	}
 
-	private function putPoint(sprite:Sprite, style:Style, window:MapWindow)
+	function putPoint(sprite:Sprite, style:Style, window:MapWindow, parentNumChildren:Int)
 	{
 		var marker = style.marker;
 		if (marker != null)
@@ -48,14 +51,16 @@ class PointGeometry extends Geometry
 				if (size > 0.0)
 				{
 					size *= window.scaleY;
+					var dt:Int = cast(Math.abs(size));
+					if(dt > MAX_POINTS_WIDH && parentNumChildren > MAX_POINTS_COUNT) dt = MAX_POINTS_WIDH;	// ограничение размеров точки
 					var graphics = sprite.graphics;
 					var drawer = new DashedLineDrawer(graphics, style.outline, window, properties);
 					Geometry.beginFill(graphics, style.fill);
-					drawer.moveTo(x - size, y - size);
-					drawer.lineTo(x + size, y - size);
-					drawer.lineTo(x + size, y + size);
-					drawer.lineTo(x - size, y + size);
-					drawer.lineTo(x - size, y - size);
+					drawer.moveTo(x - dt, y - dt);
+					drawer.lineTo(x + dt, y - dt);
+					drawer.lineTo(x + dt, y + dt);
+					drawer.lineTo(x - dt, y + dt);
+					drawer.lineTo(x - dt, y - dt);
 					graphics.endFill();
 					refreshFlag = false;
 					oldZ = window.getCurrentZ();

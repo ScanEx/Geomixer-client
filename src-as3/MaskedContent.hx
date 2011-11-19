@@ -38,10 +38,14 @@ class MaskedContent extends MapContent
 					partSprites.push(partSprite);
 				}
 			}
+			var attr:Dynamic = { };
+			attr.window = mapNode.window;
+			attr.style = new Style({ fill: { color: 0xffffff } });
 			for (sprite in partSprites)
 			{
+				attr.sprite = sprite;
 				sprite.graphics.clear();
-				maskGeometry.paint(sprite, new Style({ fill: { color: 0xffffff } }), null);
+				maskGeometry.paint(attr);
 			}
 			lastMaskGeometry = maskGeometry;
 		}

@@ -15,9 +15,12 @@ class LineGeometry extends Geometry
 			extent.update(coordinates[i*2], coordinates[i*2 + 1]);
 	}
 
-	public override function paint(sprite:Sprite, style:Style, window:MapWindow, ?func:Hash<String>->Bool)
+	public override function paint(attr:Dynamic)
 	{
-		if (func != null && !func(propTemporal)) return;	// Фильтр мультивременных данных
+		if (attr.func != null && !attr.func(propTemporal)) return;	// Фильтр мультивременных данных
+		var sprite:Sprite = attr.sprite;
+		var style:Style = attr.style;
+		var window:MapWindow = attr.window;
 
 		if (!extent.overlaps(window.visibleExtent)) {
 			refreshFlag = true;
@@ -32,7 +35,9 @@ class LineGeometry extends Geometry
 			{
 				var p = new PointGeometry(x, y);
 				p.properties = properties;
-				p.paint(sprite, style, window);
+				var attr1:Dynamic = { };
+				attr1.sprite = sprite; attr1.style = style; attr1.window = window;
+				p.paint(attr1);
 			} else {
 				refreshFlag = true;
 			}
