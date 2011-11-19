@@ -48,14 +48,16 @@ class PointGeometry extends Geometry
 				if (size > 0.0)
 				{
 					size *= window.scaleY;
+					var dt:Int = cast(Math.abs(size));
+					if(dt > 500) dt = 500;	// обозначение точки квадрат не более 1 км
 					var graphics = sprite.graphics;
 					var drawer = new DashedLineDrawer(graphics, style.outline, window, properties);
 					Geometry.beginFill(graphics, style.fill);
-					drawer.moveTo(x - size, y - size);
-					drawer.lineTo(x + size, y - size);
-					drawer.lineTo(x + size, y + size);
-					drawer.lineTo(x - size, y + size);
-					drawer.lineTo(x - size, y - size);
+					drawer.moveTo(x - dt, y - dt);
+					drawer.lineTo(x + dt, y - dt);
+					drawer.lineTo(x + dt, y + dt);
+					drawer.lineTo(x - dt, y + dt);
+					drawer.lineTo(x - dt, y - dt);
 					graphics.endFill();
 					refreshFlag = false;
 					oldZ = window.getCurrentZ();
