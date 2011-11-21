@@ -63,7 +63,7 @@ class Utils
 	{
 		spr.graphics.clear();
 		if (spr.numChildren > 0) {
-			for (i in 0...spr.numChildren) {
+			for (i in 0...Std.int(spr.numChildren)) {
 				spr.removeChildAt(0);
 			}
 		}

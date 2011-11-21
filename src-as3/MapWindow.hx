@@ -14,6 +14,8 @@ class MapWindow
 {
 	public static var allWindows:Hash<MapWindow> = new Hash<MapWindow>();
 
+	public var currentX:Float;
+	public var currentY:Float;
 	public var x1:Float;
 	public var y1:Float;
 	public var x2:Float;
@@ -125,6 +127,8 @@ class MapWindow
 
 	public function setCenter(x:Float, y:Float)
 	{
+		currentX = x;
+		currentY = y;
 		var z = getCurrentZ();
 		var c:Float = 1/Utils.getScale(z);
 		matrix = new Matrix(c, 0, 0, -c, (x1 + x2)/2 - c*x, (y1 + y2)/2 + c*y);

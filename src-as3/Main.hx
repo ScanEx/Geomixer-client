@@ -374,7 +374,7 @@ class Main
 		{
 			if (isDragging && !Main.draggingDisabled && (currentZ == Math.round(currentZ)))
 			{
-				isMoving = true;
+//				isMoving = true;
                 var c = Utils.getScale(draggedWindow.getCurrentZ());
 				setCurrentPosition(
 					startMapX - (root.mouseX - startMouseX)*c,
@@ -1284,6 +1284,9 @@ class Main
 						
 					}
 					out = (useFlashLSO ? 1 : 0);
+				case 'setAPIProperties':	// Установка дополнительных свойств
+					var node = getNode(attr.objectId);
+					out = cast(node != null ? node.setAPIProperties(attr.data) : false);
 			}
 			return out;
 		}

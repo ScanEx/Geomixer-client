@@ -2080,6 +2080,9 @@ function createFlashMapInternal(div, layers, callback)
 					case 'setFlashLSO':
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
 						break;
+					case 'setAPIProperties':
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+						break;
 				}
 /*
 if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };
@@ -5531,6 +5534,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var domObj;
 
 				var obj = map.addObject();
+				FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'FRAME'} });
 
 				var borders = obj.addObject();
 				var corners = obj.addObject();

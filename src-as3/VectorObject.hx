@@ -59,6 +59,26 @@ class VectorObject extends MapContent
 		painter.repaint(curStyle);
 		isActive = false;
 		curNodeFilter = null;
+		chkPositionX();
+	}
+	
+	function chkPositionX()
+	{
+		var parNode:MapNode = mapNode.parent;
+		if (mapNode.parent != null && mapNode.parent.parent != null && mapNode.parent.parent.propHiden.get('type') == 'FRAMECHILD') return;
+
+		var dx:Float = 0;
+		var x:Float = mapNode.window.currentX;
+		var x1:Float = geometry.extent.maxx - x;
+		var x2:Float = geometry.extent.minx - x;
+		var ww = 2 * Utils.worldWidth;
+		var minx:Float = Math.min(Math.abs(x1), Math.abs(x2));
+		var m1:Float = Math.min(Math.abs(x1 - ww), Math.abs(x2 - ww));
+		if (m1 < minx) { minx = m1; dx = -ww; }
+		m1 = Math.min(Math.abs(x1 + ww), Math.abs(x2 + ww));
+		if (m1 < minx) { minx = m1; dx = ww; }
+		var pos:Int = cast(dx);
+		if(contentSprite.x != pos) contentSprite.x = pos;
 	}
 
 	public override function hasLabels()

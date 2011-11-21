@@ -21,6 +21,7 @@ class MapNode
 	public var handlers:Hash<MapNode->MapNode->Void>;
 	public var properties:Dynamic;
 	public var propHash:Hash<String>;
+	public var propHiden:Hash<Dynamic>;		// внутренние свойства ноды
 
 	public var filters:Hash<MapNode>;
 	
@@ -43,6 +44,7 @@ class MapNode
 		children = new Array<MapNode>();
 		handlers = new Hash<MapNode->MapNode->Void>();
 		filters = new Hash<MapNode>();
+		propHiden = new Hash<Dynamic>();
 
 		somethingHasChanged = false;
 	}
@@ -51,6 +53,8 @@ class MapNode
 	{
 		var child:MapNode = new MapNode(Utils.addSprite(rasterSprite), Utils.addSprite(vectorSprite), window);
 		child.parent = this;
+		var st:String = propHiden.get('type');
+		if (st == 'FRAME' || st == 'FRAMECHILD') propHiden.set('type', 'FRAMECHILD');
 		children.push(child);
 		return child;
 	}
@@ -65,6 +69,14 @@ class MapNode
 		rasterSprite.parent.removeChild(rasterSprite);
 		vectorSprite.parent.removeChild(vectorSprite);
 		allNodes.remove(id);
+	}
+	
+	public function setAPIProperties(attr:Dynamic):Bool
+	{
+		for (key in Reflect.fields(attr)) {
+			propHiden.set(key, cast(Reflect.field(attr, key)));
+		}
+		return true;
 	}
 
 	public function getRegularStyle()
