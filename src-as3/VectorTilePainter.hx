@@ -90,6 +90,7 @@ class VectorTilePainter
 			if (cacheSprite == null)
 			{
 				cacheSprite = new Sprite();
+				cacheSprite.cacheAsBitmap = true;
 				painter.repaintWithoutExtent(style, cacheSprite, vectorLayerFilter.layer.temporalCriterion);
 			}
 
