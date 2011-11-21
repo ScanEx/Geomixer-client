@@ -457,6 +457,16 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			_this.visibilityFunc(this, this.checked, parentParams.list);
 		}
+        
+        globalFlashMap.layers[elem.name].addMapStateListener("onChangeVisible", function(attr)
+        {
+            if (attr != box.checked)
+            {
+                box.checked = attr;
+                var parentParams = _this.getParentParams(box.parentNode.parentNode);
+                _this.visibilityFunc(box, box.checked, parentParams.list);
+            }
+        });
 	}
 	
 	var span = _span([_t(elem.title)], [['dir','className','layer'],['attr','dragg',true]]);
