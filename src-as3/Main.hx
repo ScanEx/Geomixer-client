@@ -436,20 +436,6 @@ class Main
 			if (viewportHasMoved)
 			{
 				Main.refreshMap();
-/*				
-				for (window in MapWindow.allWindows)
-				{
-					if (isMoving && !wasMoving)
-						window.repaintCacheBitmap();
-					window.setCenter(currentX, currentY);
-					window.setCacheBitmapVisible(isMoving);
-					if (!isMoving)
-					{
-						window.rootNode.repaintRecursively(true);
-						window.repaintCacheBitmap();
-					}
-				}
-*/				
 				mapWindow.rootNode.callHandlersRecursively("onMove");
 				viewportHasMoved = false;
 				wasMoving = isMoving;
@@ -805,7 +791,7 @@ class Main
 			var node = getNode(id);
 			if (node == null || node.content == null || !Std.is(node.content, VectorLayer)) return;
 			cast(node.content, VectorLayer).startLoadTiles(attr, mapWindow);
-			viewportHasMoved = true;
+			//viewportHasMoved = true;
 		}
 
 		function setVectorTiles(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?attrHash:Dynamic)
