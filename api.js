@@ -1801,9 +1801,11 @@ function createFlashMapInternal(div, layers, callback)
 							if (obj.copyright)
 								map.updateCopyright();
 							var func = map.onSetVisible[obj.objectId];
+							var flag = (attr ? true : false);
+							var oldValue = (obj.isVisible ? true : false);
 							if (func)
 								func(attr);
-							chkListeners('onChangeVisible', obj, (attr ? true : false));	// Вызов Listeners события 'onChangeVisible'
+							if(oldValue != flag) chkListeners('onChangeVisible', obj, flag);	// Вызов Listeners события 'onChangeVisible'
 						}
 						break;
 					case 'sendPNG':			// Сохранение изображения карты на сервер
@@ -3306,9 +3308,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							for (var i = 0; i < deferred.length; i++)
 								deferred[i]();
 						}
+						var oldValue = (obj.isVisible ? true : false);
+						obj.isVisible = (flag ? true : false);
 						if(flag && obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
-						else chkListeners('onChangeVisible', obj, flag);	// Вызов Listeners события 'onChangeVisible'
-						obj.isVisible = flag;
+						else if(oldValue != flag) chkListeners('onChangeVisible', obj, flag);	// Вызов Listeners события 'onChangeVisible'
 					}
 					if(isTemporal) {
 						obj.setDateInterval = function(dt1, dt2)
