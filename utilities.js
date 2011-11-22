@@ -806,110 +806,18 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
     }
 }
 
-function login(reloadAfterLoginFlag)
+// При залогиневании пользователя просто перезагружаем страницу
+// Если reloadAfterLoginFlag=true, не сохраняем текущее состояние карты, 
+// иначе сохраняем всё в пермалинке и восстанавливаем после перезагрузки
+function defaultLoginCallback(reloadAfterLoginFlag)
 {
-	if ($$('loginCanvas'))
-		return;
-		
-	var isMapsSite = typeof mapsSite != 'undefined' && mapsSite;
-	var dialogHeight = isMapsSite ? 180 : 135;
-	
-	var loginInput = _input(null, [['dir','className','inputStyle'],['css','width','160px']]),
-		passwordInput = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','type','password']]),
-		regLink = makeLinkButton(_gtxt("Регистрация")),
-		retriveLink = makeLinkButton(_gtxt("Восстановление пароля")),
-		loginButton = makeButton(_gtxt("Вход")),
-		canvas = _div([_div([_span([_t(_gtxt("Логин"))]), _br(), loginInput, _br(),
-					   _span([_t(_gtxt("Пароль"))]), _br(), passwordInput, _br()],[['css','textAlign','center']]),
-					   _div([loginButton],[['css','textAlign','center'],['css','margin','5px']])],[['attr','id','loginCanvas']]),
-		failureHandler = function()
-		{
-			jQuery(loginInput).addClass('error');
-			jQuery(passwordInput).addClass('error');
-			
-			loginInput.focus();
-			
-			setTimeout(function()
-				{
-					jQuery(loginInput).removeClass('error');
-					jQuery(passwordInput).removeClass('error');
-				}, 2000)
-		},
-		checkLoginHandler = function(response)
-		{
-			if (response.Status == 'ok' && response.Result)
-			{
-				jQuery(canvas.parentNode).dialog("destroy")
-				canvas.parentNode.removeNode(true);
-				
-				if (reloadAfterLoginFlag)
-					window.location.reload();
-				else
-					reloadMap();
-			}
-			else
-				failureHandler();
-		},
-		checkLogin = function()
-		{
-			var login = loginInput.value;
-			sendCrossDomainJSONRequest(serverBase + "Login.ashx?WrapStyle=func&login=" + loginInput.value + "&pass=" + passwordInput.value, checkLoginHandler);
-			
-			loginInput.value = '';
-			passwordInput.value = '';
-		};
-	
-	if (typeof mapsSite != 'undefined' && mapsSite)
-	{
-		_(canvas, [regLink, _br(), retriveLink]);
-	}
-	
-	showDialog(_gtxt("Пожалуйста, авторизуйтесь"), canvas, 200, dialogHeight, false, false);
-	canvas.parentNode.style.overflow = 'hidden';	
-	
-	loginInput.focus();
-	
-	loginButton.onclick = function()
-	{
-		checkLogin();
-	}
-	regLink.onclick = function()
-	{
-		window.open('http://account.kosmosnimki.ru/Registration.aspx', '_blank')
-	}
-	retriveLink.onclick = function()
-	{
-		window.open('http://account.kosmosnimki.ru/Retrive.aspx', '_blank')
-	}
-	
-	passwordInput.onkeyup = function(e)
-	{
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
-	  	{	
-			checkLogin();
-	  		
-	  		return false;
-	  	}
-	  	
-	  	return true;
-	}
-}
-
-function logout()
-{
-	window.userInfo = function(){return {Login: false}};
-
-	sendCrossDomainJSONRequest(serverBase + "Logout.ashx?WrapStyle=func&WithoutRedirection=1", function(response)
-	{
-		if (!parseResponse(response))
-			return;
-		
-		if (globalFlashMap)
-			reloadMap();
-		else
-			window.location.replace(window.location.href.split("?")[0] + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
-	});
+    return function()
+    {
+        if (reloadAfterLoginFlag)
+            window.location.reload();
+        else
+            reloadMap();
+    }
 }
 
 function reloadMap()
@@ -954,15 +862,13 @@ function parseResponse(response, customErrorDescriptions)
 		return true
 	else if (response.Status == 'auth')
 	{
-		if ( nsMapCommon.AuthorizationManager.isAccounts() )
+		if ( nsGmx.AuthManager.isAccounts() )
 		{
 			showErrorMessage(_gtxt("Недостаточно прав для совершения операции"), true)
 		}
 		else
 		{
-			_menuUp.addLogin();
-			removeChilds($$('user'));
-			login();
+			nsGmx.widgets.authWidget.showLoginDialog();
 		}
 		
 		return false;
@@ -1006,14 +912,14 @@ function parseResponse(response, customErrorDescriptions)
 
 function addUserActions()
 {
-	if ( !nsMapCommon.AuthorizationManager.isAccounts() )
+	if ( !nsGmx.AuthManager.isAccounts() )
 	{
 		_queryMapLayers.addUserActions();
 		
 		if (_queryMapLayers.currentMapRights() == "edit")
 			_iconPanel.addUserActions();
 		
-		if (!nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_CREATE_LAYERS))
+		if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
 		{
 			_iconPanel.setVisible('createRasterLayer', false);
 			_iconPanel.setVisible('createVectorLayer', false);
@@ -1204,109 +1110,4 @@ function equals(x, y)
 	}
 
 	return true;
-}
-
-function addUserName()
-{
-	if ( typeof window.gmxViewerUI != 'undefined' &&  window.gmxViewerUI.hideLogin ) return;
-	
-	removeChilds($$('user'));
-	
-	var span = _span([_t(userInfo().Login)], [['css','cursor','pointer']]);
-	
-	span.onclick = function()
-	{
-		if ( nsMapCommon.AuthorizationManager.isAccounts() )
-			window.open('http://account.kosmosnimki.ru/ChangePassword.aspx', '_blank');
-		else
-			changePassword();
-	}
-	
-	_title(span, _gtxt("Изменение пароля"))
-	
-	_($$('user'), [span])
-}
-
-function changePassword()
-{
-	if ($$('changePasswordCanvas'))
-		return;
-	
-	var oldInput = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','type','password']]),
-		newInput = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','type','password']]),
-		confirmInput = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','type','password']]),
-		changeButton = makeButton(_gtxt("Изменить")),
-		canvas = _div([_div([_span([_t(_gtxt("Старый пароль"))]), _br(), oldInput, _br(),
-					   		_span([_t(_gtxt("Новый пароль"))]), _br(), newInput, _br(),
-							_span([_t(_gtxt("Подтвердите пароль"))]), _br(), confirmInput, _br()],[['css','textAlign','center']]),
-					   _div([changeButton],[['css','textAlign','center'],['css','margin','5px']])],[['attr','id','changePasswordCanvas']]),
-		failureHandler = function()
-		{
-			jQuery(newInput).addClass('error');
-			jQuery(confirmInput).addClass('error');
-			
-			newInput.focus();
-			
-			setTimeout(function()
-				{
-					jQuery(newInput).removeClass('error');
-					jQuery(confirmInput).removeClass('error');
-				}, 2000)
-		},
-		checkPasswHandler = function(response)
-		{
-			if (response.Status == 'ok' && response.Result)
-			{
-				jQuery(canvas.parentNode).dialog("destroy")
-				canvas.parentNode.removeNode(true);
-				
-				_layersTree.showSaveStatus($$('headerLinks'));
-			}
-			else
-			{
-				if (response.ErrorInfo && typeof response.ErrorInfo.ErrorMessage != 'undefined')
-					showErrorMessage(response.ErrorInfo.ErrorMessage, true)
-			}
-		},
-		checkPassw = function()
-		{
-			if (newInput.value != confirmInput.value)
-			{
-				newInput.value = '';
-				confirmInput.value = '';
-				
-				failureHandler();
-				
-				return;
-			}
-			
-			sendCrossDomainJSONRequest(serverBase + "ChangePassword.ashx?WrapStyle=func&old=" + oldInput.value + "&new=" + newInput.value, checkPasswHandler);
-			
-			oldInput.value = '';
-			newInput.value = '';
-			confirmInput.value = '';
-		};
-	
-	showDialog(_gtxt("Изменение пароля"), canvas, 200, 180, false, false);
-	canvas.parentNode.style.overflow = 'hidden';	
-	
-	oldInput.focus();
-	
-	changeButton.onclick = function()
-	{
-		checkPassw();
-	}
-	
-	confirmInput.onkeyup = function(e)
-	{
-		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
-	  	{	
-			checkPassw();
-	  		
-	  		return false;
-	  	}
-	  	
-	  	return true;
-	}
 }

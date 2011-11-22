@@ -270,7 +270,7 @@ layersTree.prototype.getChildsList = function(elem, parentParams, layerManagerFl
 		_(li, [_abstractTree.makeSwapChild()])
 	
 	// видимость слоя в дереве
-	if (!nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) &&
+	if (!nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) &&
 		elem.type && elem.type == 'layer' &&
 		typeof invisibleLayers != 'undefined' && invisibleLayers[elem.content.properties.name])
 		li.style.display = 'none';

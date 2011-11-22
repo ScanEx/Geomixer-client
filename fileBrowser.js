@@ -133,14 +133,14 @@ fileBrowser.prototype.loadInfo = function()
 fileBrowser.prototype.loadInfoHandler = function(discs)
 {
 	this.discs = discs;
-	this.homeDir = userInfo().Folder;
+	this.homeDir = nsGmx.AuthManager.getUserFolder();
 	
 	if (this.currentDir == '')
 	{
 		if (_mapHelper.mapProperties.LayersDir)
 			this.currentDir = _mapHelper.mapProperties.LayersDir;
 		else
-			this.currentDir = userInfo().Folder;
+			this.currentDir = nsGmx.AuthManager.getUserFolder();
 	}
 	
 	this.currentSortFunc = this.sortFuncs['name'][0];
@@ -201,7 +201,7 @@ fileBrowser.prototype.createHeader = function(discs)
 		_this.getFiles(_this.homeDir);
 	}
 	
-	if ( nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE ) )
+	if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
 	{
 		for (var i = 0; i < discs.length; i++)
 		{
@@ -369,7 +369,7 @@ fileBrowser.prototype.getFilesHandler = function(files, path)
 
 fileBrowser.prototype.minimizeUserPath = function()
 {
-	if ( nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE ) )
+	if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
 		return this.currentDir;
 	
 	var shortPath = this.currentDir.replace(this.homeDir, "");
@@ -455,7 +455,7 @@ fileBrowser.prototype.draw = function(files)
 	
 	var tdRoot = _td(null, [['css','width','20px']]);
 	
-	if ( nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE ) )
+	if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
 	{
 		var rootButton = makeButton("\\");
 		
@@ -476,7 +476,7 @@ fileBrowser.prototype.draw = function(files)
 	
 	if (!this.isDrive())
 	{
-		if (nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE ) ||
+		if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) ||
 			this.currentDir.indexOf(this.homeDir) == 0 && this.currentDir.length > this.homeDir.length)
 			tableFilesTrs.push(prevDirTr)
 	
@@ -659,7 +659,7 @@ fileBrowser.prototype.createFolderActions = function(name)
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFolder', 
 		function()
 		{
-			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
+			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
 		}, 
 		{
 			fullPath: this.currentDir + '\\' + name,
@@ -683,7 +683,7 @@ fileBrowser.prototype.createFileActions = function(name, ext)
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFile', 
 		function()
 		{
-			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsMapCommon.AuthorizationManager.canDoAction( nsMapCommon.AuthorizationManager.ACTION_SEE_FILE_STRUCTURE );
+			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
 		}, 
 		{
 			fullPath: this.currentDir + '\\' + name + '.' + ext,

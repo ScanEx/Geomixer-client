@@ -177,7 +177,7 @@ WikiObjectsHandler.prototype = {
 		var _this = this;
 		return function(attr, div) { 
 					var divEdit = _div();
-					if (userInfo().Login == pageInfo.AuthorLogin || nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN)){
+					if (nsGmx.AuthManager.getUserName() == pageInfo.AuthorLogin || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)){
 						var btnEdit = makeLinkButton(_gtxt("Редактировать"));
 						var btnDelete = makeLinkButton(_gtxt("Удалить"));
 						btnEdit.onclick = function() {_this._wikiPlugin.openEditor(pageInfo); _this._map.balloonClassObject.hideHoverBalloons(); }
@@ -296,7 +296,7 @@ var tinyMCELoaded = false;
  @param {string} target id объекта для преобразования в tiny_mce editor
  */
 var InitEditor = function(target) {
-	var sFolder = userInfo().Folder + '\\images';
+	var sFolder = nsGmx.AuthManager.getUserFolder() + '\\images';
 
 	if (!window.WikiFileBrowser_open){
 
@@ -310,7 +310,7 @@ var InitEditor = function(target) {
 				_wikiFileBrowser.currentDir = sFolder;
 				
 				var oDialog = _wikiFileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'gif', 'bmp'], function(path){ 
-					win.document.getElementById(field_name).value = getAPIHostRoot() + "GetImage.ashx?usr=" + userInfo().Login + "&img=" + path;  
+					win.document.getElementById(field_name).value = getAPIHostRoot() + "GetImage.ashx?usr=" + nsGmx.AuthManager.getUserName() + "&img=" + path;  
 				});
 				
 			});
@@ -487,7 +487,7 @@ WikiPlugin.prototype = {
 	/** Создает новое сообщение */
 	createPage: function(layerID){
 		if (this._isUserLoggedIn()) {
-			this.openEditor({MessageID: -1, MapName: getMapId(), LayerName: layerID, AuthorLogin: userInfo().Login, IsDeleted: 0});
+			this.openEditor({MessageID: -1, MapName: getMapId(), LayerName: layerID, AuthorLogin: nsGmx.AuthManager.getUserName(), IsDeleted: 0});
 		}
 		else {
 			$('.loginCanvas div.log span.buttonLink').click();
@@ -521,7 +521,7 @@ WikiPlugin.prototype = {
 	
 	/** Проверяет, авторизован ли пользователь*/
     _isUserLoggedIn: function() {
-        return !!userInfo().Login;
+        return nsGmx.AuthManager.isLogin();
     },
        
 	/** Добавляет кнопку "Создать сообщение" */
@@ -659,7 +659,7 @@ var beforeViewer = function(params){
 		title: _gtxt("Создать сообщение"),
 		isVisible: function(context)
 		{
-			return userInfo().Login;
+			return nsGmx.AuthManager.isLogin();
 		},
 		isSeparatorBefore: function(layerManagerFlag, elem)
 		{

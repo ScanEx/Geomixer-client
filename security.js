@@ -72,7 +72,7 @@ security.prototype.getRights = function(value, title)
 
 security.prototype.createMapSecurityDialog = function(securityInfo)
 {
-	var isShowUserSuggest = nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_ALL_USERS);
+	var isShowUserSuggest = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_ALL_USERS);
 	if ($$('securityDialog'))
 		removeDialog($$('securityDialog'))
 	
@@ -402,7 +402,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		var vals = [];
 		
 		for ( var u = 0; u < securityInfo.UsersWithoutAccess.length; u++)
-			if ( securityInfo.UsersWithoutAccess[u].Role != nsMapCommon.AuthorizationManager.ROLE_ADMIN )
+			if ( securityInfo.UsersWithoutAccess[u].Role != nsGmx.ROLE_ADMIN )
 				vals.push(securityInfo.UsersWithoutAccess[u]);
 
 		_securityTableSuggest.setValues(vals);
@@ -416,7 +416,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 security.prototype.drawMapUsers = function(user, securityScope)
 {
 	var remove = makeImageButton('img/closemin.png', 'img/close_orange.png'),
-		tdRemove = user.Login == userInfo().Login ? _td() : _td([remove]),
+		tdRemove = user.Login == nsGmx.AuthManager.isLogin() ? _td() : _td([remove]),
 		maxLayerWidth = this.tableHeader.firstChild.childNodes[0].offsetWidth + 'px',
 		accessSel = _select(null, [['dir','className','selectStyle'],['css','width','110px']]),
 		tr,
@@ -435,7 +435,7 @@ security.prototype.drawMapUsers = function(user, securityScope)
 		// уберем пользователя из одного списка
 		_security.removeMapUser(user, _securityTable);
 		
-		if (nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_ALL_USERS))
+		if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_ALL_USERS))
 		{
 			// добавим в другой
 			_security.addMapUser(user, _securityTableSuggest);
@@ -471,7 +471,7 @@ security.prototype.drawMapUsersSuggest = function(user)
 		if (tr)
 			tr.removeNode(true);
 		
-		if (nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_ALL_USERS))
+		if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_ALL_USERS))
 		{
 			// уберем пользователя из одного списка
 			_security.removeMapUser(user, _securityTableSuggest);

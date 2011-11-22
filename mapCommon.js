@@ -227,7 +227,7 @@
 		},
 		
 		//events: change
-		AuthorizationManager: (function()
+		/*AuthorizationManager: (function()
 		{
 			var _userInfo;			
 			
@@ -298,7 +298,7 @@
 			_actions[_pi.ROLE_GUEST][_pi.ACTION_SAVE_MAP] = true;
 			
 			return _pi;
-		})(),
+		})(),*/
 		
 		/**
 		* Выбирает данные из дерева слоёв по описанию слоёв и групп

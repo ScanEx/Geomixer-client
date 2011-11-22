@@ -33,9 +33,9 @@ queryKML.prototype.load = function()
 	{
 		if (inputField.value != '')
 		{
-			if (!nsMapCommon.AuthorizationManager.isLogin())
+			if (!nsGmx.AuthManager.isLogin())
 			{
-				login();
+				nsGmx.widgets.authWidget.showLoginDialog();
 				
 				return;
 			}
@@ -60,9 +60,9 @@ queryKML.prototype.load = function()
 	  	{	
 			if (inputField.value != '')
 			{
-				if (!nsMapCommon.AuthorizationManager.isLogin())
+				if (!nsGmx.AuthManager.isLogin())
 				{
-					login();
+					nsGmx.widgets.authWidget.showLoginDialog();
 					
 					return;
 				}
@@ -95,10 +95,9 @@ queryKML.prototype.load = function()
 	var loadButton = makeButton(_gtxt("Загрузить"));
 	loadButton.onclick = function()
 	{
-		if (!nsMapCommon.AuthorizationManager.isLogin())
+		if (!nsGmx.AuthManager.isLogin())
 		{
-			login();
-			
+			nsGmx.widgets.authWidget.showLoginDialog();
 			return;
 		}
 		
