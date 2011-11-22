@@ -81,9 +81,10 @@ class PointGeometry extends Geometry
 
 	public override function export():Dynamic
 	{
-		return {
-			type: "POINT",
-			coordinates: [x, y]
-		};
+		var out:Dynamic = { };
+		out.type = "POINT";
+		out.coordinates = [x, y];
+		out._xshift = (propHiden.exists('_xshift') ?  propHiden.get('_xshift') : 0 );
+		return out;
 	}
 }

@@ -190,10 +190,11 @@ class MapWindow
 		}
 	}
 
-	public function paintLabel(labelText:String, geometry:Geometry, style:Style)
+	public function paintLabel(labelText:String, geometry:Geometry, style:Style, ?xshift:Float)
 	{
 		if ((labelText == null) || (labelText == ""))
 			return;
+		if (xshift == null) xshift = 0;
 		var extent = geometry.extent;
 		var label = style.label;
 		var approxTextWidth = label.size*labelText.length*0.6;
@@ -325,7 +326,7 @@ class MapWindow
 				TextFormatAlign.CENTER;
 			var markerDx = isPoint ? 5 : 1;
 			var pt = matrix.transformPoint(new Point(
-				(extent.minx + extent.maxx)/2, 
+				(extent.minx + extent.maxx)/2 + xshift, 
 				(extent.miny + extent.maxy)/2
 			));
 			var posX = pt.x;
