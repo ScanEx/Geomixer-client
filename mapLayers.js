@@ -1472,7 +1472,7 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag)
 {
 	var isFromList = typeof spanSource.parentNode.parentNode.properties.content.geometry === 'undefined';
-	var layerProperties = (!isFromList) ? spanSource.parentNode.parentNode.properties : false,
+	var layerProperties = (spanSource.parentNode.parentNode.properties.type !== 'layer' || !isFromList) ? spanSource.parentNode.parentNode.properties : false,
 		copyFunc = function()
 		{
 			// если копируем слой из списка, но не из карты
@@ -1520,8 +1520,8 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 					$(li).treeview();
 					
 					// если копируем из карты
-					if (!swapFlag)
-						_layersTree.runLoadingFuncs();
+					if (isFromList)
+                        _layersTree.runLoadingFuncs();
 				}
 				
 				_queryMapLayers.addDraggable(li)
@@ -2089,7 +2089,7 @@ queryMapLayers.prototype.addDroppable = function(parent)
 			
 		$(this).parents().each(function()
 		{
-			if (this == ui.draggable[0].parentNode.parentNode)
+			if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
 				circle = true;
 		})
 			
@@ -2120,6 +2120,17 @@ queryMapLayers.prototype.addSwappable = function(parent)
 		
 		// удалим элемент, отображающий копирование
 		ui.helper[0].removeNode(true);
+        
+        //проверим, не идёт ли копирование группы внутрь самой себя
+		var circle = false;
+			
+		$(this).parents().each(function()
+		{
+			if ($(this).prev().length > 0 && $(this).prev()[0] == ui.draggable[0].parentNode.parentNode)
+				circle = true;
+		})
+        
+        if (circle) return;
 		
 		var layerManager = false;	
 		
