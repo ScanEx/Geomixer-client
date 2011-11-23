@@ -51,6 +51,7 @@ var nsGmx = nsGmx || {};
     nsGmx.AuthManager = new function()
     {
         var _userInfo = null;
+        var _this = this;
         this.getUserName = function()
         {
             if (!_userInfo) return null;
@@ -62,7 +63,7 @@ var nsGmx = nsGmx || {};
             return _userInfo.Folder;
         };
         
-        var setUserInfo = function(userInfo)
+        this.setUserInfo = function(userInfo)
         {
             _userInfo = $.extend({}, {isAccounts: false, Role: this.ROLE_UNAUTHORIZED}, userInfo);
             $(this).trigger('change');
@@ -100,7 +101,7 @@ var nsGmx = nsGmx || {};
                 {
                     // юзер не авторизован
                     userInfo = function(){return {Login: false}};
-                    setUserInfo({Login: false});
+                    _this.setUserInfo({Login: false});
                 }
                 else
                 {
@@ -108,7 +109,7 @@ var nsGmx = nsGmx || {};
                     {
                         return response.Result;
                     }
-                    setUserInfo(response.Result);
+                    _this.setUserInfo(response.Result);
                 }
                 
                 resOk && callback && callback();
