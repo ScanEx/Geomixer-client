@@ -8252,13 +8252,29 @@ function BalloonClass(map, div, apiBase)
 				refreshMapPosition();
 
 				var sc = scale * stageZoom;
-				var x = div.clientWidth/2 - (mapX - gmxAPI.merc_x(this.geoX))/sc;
+				
+				// Смещение Балуна к центру
+				var deltaX = 0;
+				var ww = (gmxAPI.merc_x(180) - gmxAPI.merc_x(-180))/sc;
+				var mind = Math.abs(mapX - gmxAPI.merc_x(this.geoX));
+				var d1 = Math.abs(mapX - gmxAPI.merc_x(this.geoX - 360));
+				if (d1 < mind) { mind = d1; deltaX = -ww; }
+				d1 = Math.abs(mapX - gmxAPI.merc_x(this.geoX + 360));
+				if (d1 < mind) { deltaX = ww; }
+
+				var x = div.clientWidth/2 - (mapX - gmxAPI.merc_x(this.geoX))/sc + deltaX;
 				var y = div.clientHeight/2 + (mapY - gmxAPI.merc_y(this.geoY))/sc;
 				if(this.fixedDeltaFlag) {
 					x += balloon.fixedDeltaX;
 					y -= balloon.fixedDeltaY;
 				}
-				if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
+				var flag = (y < 0 || y > div.clientHeight ? false : true);
+				if (flag) {
+					if (x < 0 || x > div.clientWidth) flag = false;
+				}
+
+				//if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
+				if (flag)
 				{
 					this.setScreenPosition(x, y);
 					oldSetVisible(true);
