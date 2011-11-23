@@ -455,7 +455,7 @@ UpMenu.prototype.checkView = function()
 	{
 		this.enableMenus();
 		
-		this.disableMenus(['mapSave', 'mapSaveAs', 'layersVector', 'layersRaster']);
+		this.disableMenus(['mapSave', 'mapSaveAs', 'layersVector', 'layersRaster', 'layersMultiRaster']);
 	}
 	else
 	{
@@ -469,7 +469,7 @@ UpMenu.prototype.checkView = function()
 	
 	if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
 	{
-		this.disableMenus(['layersVector', 'layersRaster']);
+            this.disableMenus(['layersVector', 'layersRaster', 'layersMultiRaster']);
 	}
 }
 
