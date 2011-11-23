@@ -708,7 +708,12 @@ attrsTable.prototype.editObject = function(row)
             var origGeomString = JSON.stringify(_this.originalGeometry['ogc_fid' + row[0]]);
             
             if (origGeomString !== curGeomString)
-                obj.geometry = gmxAPI.merc_geometry(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
+            {
+                showErrorMessage(_gtxt("Геометрия не сохранена. Эта возможность будет реализована в будущих версиях Геомиксера."));
+                //var div = $("<div/>").text(_gtxt("Геометрия не сохранена. Эта возможность будет реализована в будущих версиях платформы."));
+                //showDialog(_gtxt("", this.layerTitle), canvas, 800, 500, false, false, function(){_this.resizeFunc.apply(_this,arguments)})                
+                //obj.geometry = gmxAPI.merc_geometry(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
+            }
         }
             
 		var objects = JSON.stringify([obj]);
@@ -727,6 +732,8 @@ attrsTable.prototype.editObject = function(row)
             globalFlashMap.layers[_this.layerName].setTileItem(newItem, false);
 			_this.getLength();
             
+            closeFunc();
+            $(dialogDiv).dialog("destroy");
 		});
 	}
 	
@@ -760,7 +767,7 @@ attrsTable.prototype.editObject = function(row)
 		}
 	}
 	
-	showDialog(row ? _gtxt("Редактировать объект слоя [value0]", this.layerTitle) : _gtxt("Создать объект слоя [value0]", this.layerTitle), canvas, 400, 300, false, false, resizeFunc, closeFunc)
+	var dialogDiv = showDialog(row ? _gtxt("Редактировать объект слоя [value0]", this.layerTitle) : _gtxt("Создать объект слоя [value0]", this.layerTitle), canvas, 400, 300, false, false, resizeFunc, closeFunc)
 	
 	if (row)
 	{
@@ -789,27 +796,28 @@ attrsTable.prototype.editObject = function(row)
                     
 					// var objectEdit = _span(null, [['attr','id','objectEdit' + _this.layerName + geometryRow[1]],['css','color','#215570'],['css','marginLeft','3px'],['css','fontSize','12px']]);
 
-					// if (geometryRow[0].type == "POINT" || geometryRow[0].type == "LINESTRING" || geometryRow[0].type == "POLYGON")
-					// {
+					if (geometryRow[0].type == "POINT" || geometryRow[0].type == "LINESTRING" || geometryRow[0].type == "POLYGON")
+					{
 						
-						// // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
-					// /*	if (geometryRow[0].type == "POLYGON")
-						// {
-							// geometryRow[0].coordinates[0][0][0] += 0.00001;
-							// geometryRow[0].coordinates[0][0][1] += 0.00001;
-						// }*/
+						// добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
+                        /*	if (geometryRow[0].type == "POLYGON")
+						{
+							geometryRow[0].coordinates[0][0][0] += 0.00001;
+							geometryRow[0].coordinates[0][0][1] += 0.00001;
+						}*/
 						
-                        // _this.originalGeometry['ogc_fid' + geometryRow[1]] = from_merc_geometry(geometryRow[0]);
-						// var drawingBorder = globalFlashMap.drawing.addObject(_this.originalGeometry['ogc_fid' + geometryRow[1]]);
+                        var geom = from_merc_geometry(geometryRow[0]);
+						var drawingBorder = globalFlashMap.drawing.addObject(geom);
+                        _this.originalGeometry['ogc_fid' + geometryRow[1]] = drawingBorder.getGeometry();
 					
-						// drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
+						drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
 						
-						// _this.drawingBorders['ogc_fid' + geometryRow[1]] = drawingBorder;
+						_this.drawingBorders['ogc_fid' + geometryRow[1]] = drawingBorder;
 						
 						// _this.updateObjectGeometry(geometryRow[1], objectEdit);
 						
 						// _(tdValue, [objectEdit]);
-					// }
+					}
 					// else
 					// {
 						// var info = _span([_t(geometryRow[0].type)], [['css','marginLeft','3px'],['css','fontSize','12px']]);
