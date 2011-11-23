@@ -5271,7 +5271,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						var eventName = 'onEdit';
 						if (!domObj) {
-							domObj = createDOMObject(ret);
+							domObj = createDOMObject(ret, props);
 							eventName = 'onAdd';
 						}
 						callOnChange();
@@ -5363,7 +5363,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 				if (coords)
 				{
-					domObj = createDOMObject(ret);
+					domObj = createDOMObject(ret, props);
 					obj.setGeometry({ type: "LINESTRING", coordinates: coords });
 					callOnChange();
 				}
@@ -5400,7 +5400,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						var eventName = 'onEdit';
 						if (!domObj) {
-							domObj = createDOMObject(ret);
+							domObj = createDOMObject(ret, props);
 							eventName = 'onAdd';
 						}
 						callOnChange();
@@ -5495,7 +5495,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						}
 					}
 
-					domObj = createDOMObject(ret);
+					domObj = createDOMObject(ret, props);
 					obj.setGeometry({ type: "POLYGON", coordinates: coords });
 					callOnChange();
 				}
