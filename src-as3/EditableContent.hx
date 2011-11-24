@@ -162,18 +162,9 @@ class EditableContent extends MapContent
 	
 	function chkPositionX(geom:Geometry)
 	{
-		var dx:Float = 0;
-		var x:Float = mapNode.window.currentX;
-		var x1:Float = geom.extent.maxx - x;
-		var x2:Float = geom.extent.minx - x;
-		var ww = 2 * Utils.worldWidth;
-		var minx:Float = Math.min(Math.abs(x1), Math.abs(x2));
-		var m1:Float = Math.min(Math.abs(x1 - ww), Math.abs(x2 - ww));
-		if (m1 < minx) { minx = m1; dx = -ww; }
-		m1 = Math.min(Math.abs(x1 + ww), Math.abs(x2 + ww));
-		if (m1 < minx) { minx = m1; dx = ww; }
-		var pos:Int = cast(dx);
-		if(contentSprite.x != pos) contentSprite.x = pos;
+		var xshift:Float = Utils.getShiftX(geom.extent.minx, geom.extent.maxx, mapNode);
+		var pos:Int = cast(xshift);
+		if (contentSprite.x != pos) contentSprite.x = pos;
 	}
 
 	public override function repaint()

@@ -69,19 +69,11 @@ class VectorObject extends MapContent
 		var parNode:MapNode = mapNode.parent;
 		if (mapNode.parent != null && mapNode.parent.parent != null && mapNode.parent.parent.propHiden.get('type') == 'FRAMECHILD') return;
 
-		xshift = 0;
-		var x:Float = mapNode.window.currentX;
-		var x1:Float = geometry.extent.maxx - x;
-		var x2:Float = geometry.extent.minx - x;
-		var ww = 2 * Utils.worldWidth;
-		var minx:Float = Math.min(Math.abs(x1), Math.abs(x2));
-		var m1:Float = Math.min(Math.abs(x1 - ww), Math.abs(x2 - ww));
-		if (m1 < minx) { minx = m1; xshift = -ww; }
-		m1 = Math.min(Math.abs(x1 + ww), Math.abs(x2 + ww));
-		if (m1 < minx) { minx = m1; xshift = ww; }
+		xshift = Utils.getShiftX(geometry.extent.minx, geometry.extent.maxx, mapNode);
 		var pos:Int = cast(xshift);
 		if (contentSprite.x != pos) contentSprite.x = pos;
 		geometry.propHiden.set('_xshift', xshift);
+		
 	}
 
 	public override function hasLabels()
