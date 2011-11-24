@@ -162,6 +162,7 @@ class EditableContent extends MapContent
 	
 	function chkPositionX(geom:Geometry)
 	{
+		if (geom == null) return;
 		var xshift:Float = Utils.getShiftX(geom.extent.minx, geom.extent.maxx, mapNode);
 		var pos:Int = cast(xshift);
 		if (contentSprite.x != pos) contentSprite.x = pos;
