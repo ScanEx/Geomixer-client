@@ -2286,7 +2286,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var geom = FlashCMD('getGeometry', { 'obj': this });
 				var out = { "type": geom.type };
 				var coords =  forEachPoint(geom.coordinates, function(c) {
-						return [gmxAPI.from_merc_x(c[0] + (geom._xshift ? geom._xshift : 0)), gmxAPI.from_merc_y(c[1])];
+						return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
 						}
 					);
 				out["coordinates"] = coords;
