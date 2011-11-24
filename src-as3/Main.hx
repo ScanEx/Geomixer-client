@@ -769,23 +769,6 @@ class Main
 			}
 		}
 
-		function setImageExtent(id:String, attr:Dynamic)
-		{
-			var node = getNode(id);
-			var minX = Merc.x(attr.extent.minX);
-			var maxX = Merc.x(attr.extent.maxX);
-			var minY = Merc.y(attr.extent.minY);
-			var maxY = Merc.y(attr.extent.maxY);
-			
-			var newContent = new RasterImage(attr.url, minX, maxY, maxX, maxY, maxX, minY, minX, minY, attr);
-			if (attr.notSetPolygon == true) {
-				newContent.setControlPoints(minX,maxY, maxX,maxY, maxX,minY, minX,minY);
-			}
-			if ((node.content != null) && Std.is(node.content, VectorObject))
-				newContent.setMask(cast(node.content, VectorObject).geometry);
-			node.setContent(newContent);
-		}
-
 		function startLoadTiles(id:String, attr:Dynamic)
 		{
 			var node = getNode(id);
@@ -840,6 +823,23 @@ class Main
 					Main.cmdToJS(func, geoExp, prop, flag);
 				}
 			));
+		}
+
+		function setImageExtent(id:String, attr:Dynamic)
+		{
+			var node = getNode(id);
+			var minX = Merc.x(attr.extent.minX);
+			var maxX = Merc.x(attr.extent.maxX);
+			var minY = Merc.y(attr.extent.minY);
+			var maxY = Merc.y(attr.extent.maxY);
+			
+			var newContent = new RasterImage(attr.url, minX, maxY, maxX, maxY, maxX, minY, minX, minY, attr);
+			if (attr.notSetPolygon == true) {
+				newContent.setControlPoints(minX,maxY, maxX,maxY, maxX,minY, minX,minY);
+			}
+			if ((node.content != null) && Std.is(node.content, VectorObject))
+				newContent.setMask(cast(node.content, VectorObject).geometry);
+			node.setContent(newContent);
 		}
 
 		function setImage(id:String, url:String, 
