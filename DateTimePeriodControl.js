@@ -101,7 +101,7 @@ var Calendar = function()
 		date.setSeconds(_this._timeBegin.seconds);
 		return date;
 	}
-	
+    	
 	/**
 	 * @function
 	 */	
@@ -114,6 +114,32 @@ var Calendar = function()
 		date.setSeconds(_this._timeEnd.seconds);
 		return date;
 	}
+    
+	/**
+	 * @function
+	 */	    
+    this.setDateBegin = function(date)
+    {
+        _this._timeBegin.hours = date.getUTCHours();
+        _this._timeBegin.minutes = date.getMinutes();
+        _this._timeBegin.seconds = date.getSeconds();
+        $(this.dateBegin).datepicker("setDate", date);
+        _updateInfo();
+        $(this).change();
+    }
+    
+	/**
+	 * @function
+	 */	    
+    this.setDateEnd = function(date)
+    {
+        _this._timeEnd.hours = date.getUTCHours();
+        _this._timeEnd.minutes = date.getMinutes();
+        _this._timeEnd.seconds = date.getSeconds();
+        $(this.dateEnd).datepicker("setDate", date);
+        _updateInfo();
+        $(this).change();
+    }
 	
 	/**
 	 * @function
@@ -124,6 +150,12 @@ var Calendar = function()
 	 * @function
 	 */
 	this.getDateMin = function() { return this.dateMin; }
+    
+    this.setShowTime = function(isShowTime)
+    {
+        this._params.showTime = isShowTime;
+        _updateInfo();
+    }
 	
 	/**
 	 * @function
