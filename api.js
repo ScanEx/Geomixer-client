@@ -4913,7 +4913,11 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					copyrightUpdateTimeout2 = false;
 				}, 250);
 			}
-			map.addObject().setHandler("onMove", updatePosition);
+			var eventMapObject = map.addObject();
+			eventMapObject.setHandler("onMove", updatePosition);
+			// onMoveBegin	- перед onMove
+			// onMoveEnd	- после onMove
+
 			updatePosition();
 
 			map.setBackgroundColor(0x000001);
