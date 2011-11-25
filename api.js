@@ -1296,19 +1296,22 @@ function GlobalHandlerMode(event, handler)
 	return new HandlerMode(document.documentElement, event, handler);
 }
 
-function sendCrossDomainJSONRequest(url, callback)
+function sendCrossDomainJSONRequest(url, callback, callbackParamName)
 {
+    callbackParamName = callbackParamName || 'CallbackName';
+    
 	var script = document.createElement("script");
 	script.setAttribute("charset", "UTF-8");
 	var callbackName = uniqueGlobalName(function(obj)
 	{
-		callback(obj);
+		callback && callback(obj);
 		window[callbackName] = false;
 		document.getElementsByTagName("head").item(0).removeChild(script);
 	});
     
     var sepSym = url.indexOf('?') == -1 ? '?' : '&';
-	script.setAttribute("src", url + sepSym + "CallbackName=" + callbackName + "&" + Math.random());
+    
+	script.setAttribute("src", url + sepSym + callbackParamName + "=" + callbackName + "&" + Math.random());
 	document.getElementsByTagName("head").item(0).appendChild(script);
 }
 

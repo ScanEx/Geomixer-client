@@ -980,3 +980,8 @@ div.layersScroll
 {
     border: 2px solid red;
 }
+
+.EmailErrorMessage
+{
+    background-color: #ffcccc
+}

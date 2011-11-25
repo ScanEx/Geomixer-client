@@ -11,7 +11,11 @@ var nsGmx = nsGmx || {};
 
     var logout = function()
     {
+        if (nsGmx.AuthManager.isAccounts() && window.gmxAuthServer)
+            sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Logout", null, 'callback');
+            
         nsGmx.AuthManager.setUserInfo({Login: false});
+            
         sendCrossDomainJSONRequest(serverBase + "Logout.ashx?WrapStyle=func&WithoutRedirection=1", function(response)
         {
             if (!parseResponse(response))
@@ -62,7 +66,9 @@ var nsGmx = nsGmx || {};
                 else
                 {
                     if (response.ErrorInfo && typeof response.ErrorInfo.ErrorMessage != 'undefined')
+                    {
                         showErrorMessage(response.ErrorInfo.ErrorMessage, true)
+                    }
                 }
             },
             checkPassw = function()
@@ -106,7 +112,7 @@ var nsGmx = nsGmx || {};
             
             return true;
         }
-    }    
+    }
     
     nsGmx.AuthWidget = function( container, authManager, loginCallback )
     {
@@ -190,6 +196,8 @@ var nsGmx = nsGmx || {};
             regLink = makeLinkButton(_gtxt("Регистрация")),
             retriveLink = makeLinkButton(_gtxt("Восстановление пароля")),
             loginButton = makeButton(_gtxt("Вход")),
+            curLogin = null,
+            curPass = null,
             canvas = _div([_div([_span([_t(_gtxt("Логин"))]), _br(), loginInput, _br(),
                            _span([_t(_gtxt("Пароль"))]), _br(), passwordInput, _br()],[['css','textAlign','center']]),
                            _div([loginButton],[['css','textAlign','center'],['css','margin','5px']])],[['attr','id','loginCanvas']]),
@@ -210,6 +218,10 @@ var nsGmx = nsGmx || {};
             {
                 if (response.Status == 'ok' && response.Result)
                 {
+                    sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Login?login=" + encodeURIComponent(curLogin) + "&password=" + encodeURIComponent(curPass), function()
+                    {
+                        //TODO: check result
+                    }, 'callback');
                     $(canvas.parentNode).dialog("destroy")
                     canvas.parentNode.removeNode(true);
                     _dialogCanvas = null;
@@ -217,12 +229,26 @@ var nsGmx = nsGmx || {};
                     callback && callback();
                 }
                 else
+                {
+                    if (response.Status === 'auth' && response.Result.ClassName === 'System.ArgumentException')
+                    {
+                        var errorDiv = $("<div/>", {'class': 'EmailErrorMessage'}).text(response.Result.Message);
+                        $(loginButton).after(errorDiv);
+                        setTimeout(function(){
+                            errorDiv.hide(500, function(){ errorDiv.remove(); });
+                        }, 4000)
+                    }
+                        
                     failureHandler();
+                }
             },
             checkLogin = function()
             {
                 var login = loginInput.value;
                 sendCrossDomainJSONRequest(serverBase + "Login.ashx?WrapStyle=func&login=" + loginInput.value + "&pass=" + passwordInput.value, checkLoginHandler);
+                
+                curLogin = loginInput.value;
+                curPass = passwordInput.value;
                 
                 loginInput.value = '';
                 passwordInput.value = '';
@@ -250,11 +276,11 @@ var nsGmx = nsGmx || {};
         }
         regLink.onclick = function()
         {
-            window.open('http://account.kosmosnimki.ru/Registration.aspx', '_blank')
+            window.open(window.gmxAuthServer + 'Account/Registration', '_blank')
         }
         retriveLink.onclick = function()
         {
-            window.open('http://account.kosmosnimki.ru/Retrive.aspx', '_blank')
+            window.open(window.gmxAuthServer + 'Account/Retrive', '_blank')
         }
         
         passwordInput.onkeyup = function(e)

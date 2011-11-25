@@ -52,6 +52,7 @@ var nsGmx = nsGmx || {};
     {
         var _userInfo = null;
         var _this = this;
+        
         this.getUserName = function()
         {
             if (!_userInfo) return null;
@@ -65,7 +66,7 @@ var nsGmx = nsGmx || {};
         
         this.setUserInfo = function(userInfo)
         {
-            _userInfo = $.extend({}, {isAccounts: false, Role: this.ROLE_UNAUTHORIZED}, userInfo);
+            _userInfo = $.extend({}, {IsAccounts: false, Role: this.ROLE_UNAUTHORIZED}, userInfo);
             $(this).trigger('change');
         };
         
@@ -81,7 +82,7 @@ var nsGmx = nsGmx || {};
         
         this.isAccounts = function()
         {
-            return _userInfo.isAccounts;
+            return _userInfo.IsAccounts;
         };
         
         this.isLogin = function()
@@ -91,7 +92,8 @@ var nsGmx = nsGmx || {};
         
         this.checkUserInfo = function(callback, errorCallback)
         {
-            sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', function(response)
+            var isTokenUsed = false;
+            var _processResponse = function( response )
             {
                 var resOk = parseResponse(response);
                 
@@ -102,18 +104,55 @@ var nsGmx = nsGmx || {};
                     // юзер не авторизован
                     userInfo = function(){return {Login: false}};
                     _this.setUserInfo({Login: false});
+                    
+                    if (isTokenUsed)
+                    {
+                        //TODO: обработать ошибку
+                    }
                 }
                 else
                 {
-                    userInfo = function()
+                    //юзер с accounts, там не зарегистрирован, но локально авторизован - надо разлогинеть локально
+                    if (!isTokenUsed && response.Result.IsAccounts)
                     {
-                        return response.Result;
+                        sendCrossDomainJSONRequest(serverBase + "Logout.ashx?WrapStyle=func&WithoutRedirection=1");
+                        // юзер не авторизован
+                        userInfo = function(){return {Login: false}};
+                        _this.setUserInfo({Login: false});
                     }
-                    _this.setUserInfo(response.Result);
+                    else
+                    {
+                        userInfo = function()
+                        {
+                            return response.Result;
+                        }
+                        _this.setUserInfo(response.Result);
+                    }
                 }
                 
                 resOk && callback && callback();
-            })
+            }
+        
+            if (window.mapsSite && window.gmxAuthServer)
+            {
+                sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Login?action=gettoken", function(response)
+                {
+                    if (response.Status === 'OK')
+                    {
+                        isTokenUsed = true;
+                        sendCrossDomainJSONRequest(serverBase + 'login.ashx?token=' + response.Result.Id, _processResponse);
+                    }
+                    else
+                    {
+                        sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
+                    }
+                }, 'callback');
+            }
+            else
+            {
+                sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
+            }
+            
         }
     }
 })(jQuery);
