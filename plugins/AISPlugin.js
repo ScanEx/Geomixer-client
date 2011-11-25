@@ -37,7 +37,6 @@ var afterViewer = function(params){
             var re = context.elem.title.match(datetimeRegexp);
             var dateLocal = new Date(parseInt(re[3], 10), parseInt(re[2], 10)-1, parseInt(re[1], 10), parseInt(re[4], 10), parseInt(re[5], 10), parseInt(re[6], 10), 0);
             var date = new Date(dateLocal.valueOf() - timeOffset);
-            console.log(date);
 			nsGmx.widgets.commonCalendar.setDateBegin(new Date(date.valueOf() - timeRadius));
 			nsGmx.widgets.commonCalendar.setDateEnd(new Date(date.valueOf() + timeRadius));
             
