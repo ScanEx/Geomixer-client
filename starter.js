@@ -521,6 +521,8 @@ function addCommonCalendar()
             loadState: function(state) { calendar.loadState(state); updateTemporalLayers(); },
             saveState: function() { return calendar.saveState(); }
         });
+        
+        nsGmx.widgets.commonCalendar = calendar;
     }
 }
 
