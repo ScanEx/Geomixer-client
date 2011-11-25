@@ -1801,11 +1801,8 @@ function createFlashMapInternal(div, layers, callback)
 							if (obj.copyright)
 								map.updateCopyright();
 							var func = map.onSetVisible[obj.objectId];
-							var flag = (attr ? true : false);
-							var oldValue = (obj.isVisible ? true : false);
 							if (func)
 								func(attr);
-							if(oldValue != flag) chkListeners('onChangeVisible', obj, flag);	// Вызов Listeners события 'onChangeVisible'
 						}
 						break;
 					case 'sendPNG':			// Сохранение изображения карты на сервер
@@ -2118,7 +2115,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return FlashCMD('getStyle', { 'obj': this, 'attr':flag }); }
 
 			FlashMapObject.prototype.getVisibility = function() { return FlashCMD('getVisibility', { 'obj': this }); }
-			FlashMapObject.prototype.setVisible = function(flag) { FlashCMD('setVisible', { 'obj': this, 'attr': flag }); }
+			FlashMapObject.prototype.setVisible = function(flag) {
+				FlashCMD('setVisible', { 'obj': this, 'attr': flag });
+				var val = (flag ? true : false);
+				if(this.isVisible != val) chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
+				this.isVisible = val;
+			}
 			FlashMapObject.prototype.getDepth = function(attr) { return FlashCMD('getDepth', { 'obj': this }); }
 			FlashMapObject.prototype.delClusters = function(attr) { return FlashCMD('delClusters', { 'obj': this }); }
 			FlashMapObject.prototype.setClusters = function(attr) { return FlashCMD('setClusters', { 'obj': this, 'attr':attr }); }
@@ -3082,7 +3084,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				{
 					var obj_ = (isOverlay ? me.overlays : me.layersParent).addObject(obj.geometry, obj.properties);
 					obj.objectId = obj_.objectId;
-					obj.isVisible = true;
 					obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
 					
 					if(isTemporal) {
@@ -3124,7 +3125,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					obj.setVisible = function(flag)
 					{
 						FlashMapObject.prototype.setVisible.call(obj, flag);
-						obj.isVisible = flag;
 						if(isTemporal) {
 							obj.setDateInterval(currentData['dt1'], currentData['dt2']);
 						}
@@ -3286,6 +3286,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						obj.setCopyright(layer.properties.Copyright);
 				}
 
+				obj.isVisible = isVisible;
 				if (isVisible) {
 					createThisLayer();
 				}
@@ -3304,14 +3305,11 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 								if (l.objectId && (l.properties.type != "Overlay"))
 									n += 1;
 							}
+							if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
 							obj.bringToDepth(n);
 							for (var i = 0; i < deferred.length; i++)
 								deferred[i]();
 						}
-						var oldValue = (obj.isVisible ? true : false);
-						obj.isVisible = (flag ? true : false);
-						if(flag && obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
-						else if(oldValue != flag) chkListeners('onChangeVisible', obj, flag);	// Вызов Listeners события 'onChangeVisible'
 					}
 					if(isTemporal) {
 						obj.setDateInterval = function(dt1, dt2)
