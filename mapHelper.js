@@ -3264,7 +3264,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				paramsModel.setColumnName( $("option:selected", this).val() );
 			});
 			
-			temporalLayerParams.setColumnName(columns[0].Name);
+			if (columns.length)
+                temporalLayerParams.setColumnName(columns[0].Name);
 			
 			var tr0 = $('<tr></tr>')
 						.append($('<td></td>').text(_gtxt('Колонка даты')))
