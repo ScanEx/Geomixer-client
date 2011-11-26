@@ -146,10 +146,16 @@ var nsGmx = nsGmx || {};
             userSpan.onclick = function()
             {
                 if ( nsGmx.AuthManager.isAccounts() )
-                    window.open('http://account.kosmosnimki.ru/ChangePassword.aspx', '_blank');
+                {
+                    if (window.gmxAuthServer)
+                        window.open(  window.gmxAuthServer + "Account/ChangePassword", '_blank');
+                }
                 else
                     changePasswordDialog();
             }
+            
+            if ( nsGmx.AuthManager.isAccounts() )
+                $(userSpan).css('color', '#5555FF');
             
             _title(userSpan, _gtxt("Изменение пароля"))
             
