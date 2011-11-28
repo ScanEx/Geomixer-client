@@ -463,7 +463,7 @@ WikiPlugin = function() {
 
 WikiPlugin.prototype = {
 	/** Инициализирует все что можно */
-    initialize: function(map, sWikiServer, oMapDiv) {
+    initialize: function(map, sWikiServer) {
         $.getCSS(getAPIHostRoot() + '/api/plugins/WikiPlugin.css');
 		this._map = map;
         this._wikiService = new WikiService(sWikiServer);
@@ -654,7 +654,7 @@ var loadMenu = function(){
 var unloadMenu = function(){
 }
 
-var beforeViewer = function(params){
+var beforeViewer = function(){
 	nsGmx.ContextMenuController.addContextMenuElem({
 		title: _gtxt("Создать сообщение"),
 		isVisible: function(context)
@@ -675,14 +675,14 @@ var beforeViewer = function(params){
 	}, ['Layer', 'Map']);
 }
 
-var afterViewer = function(params){
+var afterViewer = function(){
 	if (jQuery.browser.opera){
 		setTimeout(function(){
-			oWiki.initialize(oFlashMap, serverBase + 'Wiki/', params.MapDiv);
+			oWiki.initialize(oFlashMap, serverBase + 'Wiki/');
 		}, 3000)
 	}
 	else {
-		oWiki.initialize(oFlashMap, serverBase + 'Wiki/', params.MapDiv);
+		oWiki.initialize(oFlashMap, serverBase + 'Wiki/');
 	}
 }
 

@@ -62,9 +62,13 @@ translationsHash.prototype.showLanguages = function()
 	_(document.getElementById("headerLinks"), [langCanvas]);
 }
 
+translationsHash.prototype.getLanguage = function(){
+	return window.language || translationsHash.DEFAULT_LANGUAGE;
+}
+
 translationsHash.prototype.gettext = function()
 {
-	var lang = window.language || translationsHash.DEFAULT_LANGUAGE,
+	var lang = this.getLanguage(),
 		text = arguments[0],
 		args = arguments,
 		getNextValue = function(i)
