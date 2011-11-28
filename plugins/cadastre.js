@@ -102,7 +102,7 @@ var Cadastre = function(oContainer, sCadastreHost, oMap, oMapDiv){
 		oCategoryLayer.setVisible(rbCategory.checked);
 		oMap.setHandler("onMove", fnRefreshMap);
 		
-		$(oContainer).after(div);
+		_(oContainer, [div]);
 		fnRefreshMap();
 	}
 	/** Выгружает слой */
