@@ -1296,19 +1296,22 @@ function GlobalHandlerMode(event, handler)
 	return new HandlerMode(document.documentElement, event, handler);
 }
 
-function sendCrossDomainJSONRequest(url, callback)
+function sendCrossDomainJSONRequest(url, callback, callbackParamName)
 {
+    callbackParamName = callbackParamName || 'CallbackName';
+    
 	var script = document.createElement("script");
 	script.setAttribute("charset", "UTF-8");
 	var callbackName = uniqueGlobalName(function(obj)
 	{
-		callback(obj);
+		callback && callback(obj);
 		window[callbackName] = false;
 		document.getElementsByTagName("head").item(0).removeChild(script);
 	});
     
     var sepSym = url.indexOf('?') == -1 ? '?' : '&';
-	script.setAttribute("src", url + sepSym + "CallbackName=" + callbackName + "&" + Math.random());
+    
+	script.setAttribute("src", url + sepSym + callbackParamName + "=" + callbackName + "&" + Math.random());
 	document.getElementsByTagName("head").item(0).appendChild(script);
 }
 
@@ -1803,7 +1806,6 @@ function createFlashMapInternal(div, layers, callback)
 							var func = map.onSetVisible[obj.objectId];
 							if (func)
 								func(attr);
-							chkListeners('onChangeVisible', obj, (attr ? true : false));	// Вызов Listeners события 'onChangeVisible'
 						}
 						break;
 					case 'sendPNG':			// Сохранение изображения карты на сервер
@@ -2080,6 +2082,9 @@ function createFlashMapInternal(div, layers, callback)
 					case 'setFlashLSO':
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
 						break;
+					case 'setAPIProperties':
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+						break;
 				}
 /*
 if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };
@@ -2113,7 +2118,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return FlashCMD('getStyle', { 'obj': this, 'attr':flag }); }
 
 			FlashMapObject.prototype.getVisibility = function() { return FlashCMD('getVisibility', { 'obj': this }); }
-			FlashMapObject.prototype.setVisible = function(flag) { FlashCMD('setVisible', { 'obj': this, 'attr': flag }); }
+			FlashMapObject.prototype.setVisible = function(flag) {
+				FlashCMD('setVisible', { 'obj': this, 'attr': flag });
+				var val = (flag ? true : false);
+				if(this.isVisible != val) chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
+				this.isVisible = val;
+			}
 			FlashMapObject.prototype.getDepth = function(attr) { return FlashCMD('getDepth', { 'obj': this }); }
 			FlashMapObject.prototype.delClusters = function(attr) { return FlashCMD('delClusters', { 'obj': this }); }
 			FlashMapObject.prototype.setClusters = function(attr) { return FlashCMD('setClusters', { 'obj': this, 'attr':attr }); }
@@ -2281,8 +2291,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var geom = FlashCMD('getGeometry', { 'obj': this });
 				var out = { "type": geom.type };
 				var coords =  forEachPoint(geom.coordinates, function(c) {
-							return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
-							}
+						return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
+						}
 					);
 				out["coordinates"] = coords;
 				return out;
@@ -3077,7 +3087,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				{
 					var obj_ = (isOverlay ? me.overlays : me.layersParent).addObject(obj.geometry, obj.properties);
 					obj.objectId = obj_.objectId;
-					obj.isVisible = true;
 					obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
 					
 					if(isTemporal) {
@@ -3119,7 +3128,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					obj.setVisible = function(flag)
 					{
 						FlashMapObject.prototype.setVisible.call(obj, flag);
-						obj.isVisible = flag;
 						if(isTemporal) {
 							obj.setDateInterval(currentData['dt1'], currentData['dt2']);
 						}
@@ -3281,6 +3289,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						obj.setCopyright(layer.properties.Copyright);
 				}
 
+				obj.isVisible = isVisible;
 				if (isVisible) {
 					createThisLayer();
 				}
@@ -3299,13 +3308,11 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 								if (l.objectId && (l.properties.type != "Overlay"))
 									n += 1;
 							}
+							if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
 							obj.bringToDepth(n);
 							for (var i = 0; i < deferred.length; i++)
 								deferred[i]();
 						}
-						if(flag && obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
-						else chkListeners('onChangeVisible', obj, flag);	// Вызов Listeners события 'onChangeVisible'
-						obj.isVisible = flag;
 					}
 					if(isTemporal) {
 						obj.setDateInterval = function(dt1, dt2)
@@ -4907,7 +4914,11 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					copyrightUpdateTimeout2 = false;
 				}, 250);
 			}
-			map.addObject().setHandler("onMove", updatePosition);
+			var eventMapObject = map.addObject();
+			eventMapObject.setHandler("onMove", updatePosition);
+			// onMoveBegin	- перед onMove
+			// onMoveEnd	- после onMove
+
 			updatePosition();
 
 			map.setBackgroundColor(0x000001);
@@ -5265,7 +5276,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						var eventName = 'onEdit';
 						if (!domObj) {
-							domObj = createDOMObject(ret);
+							domObj = createDOMObject(ret, props);
 							eventName = 'onAdd';
 						}
 						callOnChange();
@@ -5357,7 +5368,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 				if (coords)
 				{
-					domObj = createDOMObject(ret);
+					domObj = createDOMObject(ret, props);
 					obj.setGeometry({ type: "LINESTRING", coordinates: coords });
 					callOnChange();
 				}
@@ -5394,7 +5405,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						var eventName = 'onEdit';
 						if (!domObj) {
-							domObj = createDOMObject(ret);
+							domObj = createDOMObject(ret, props);
 							eventName = 'onAdd';
 						}
 						callOnChange();
@@ -5489,7 +5500,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						}
 					}
 
-					domObj = createDOMObject(ret);
+					domObj = createDOMObject(ret, props);
 					obj.setGeometry({ type: "POLYGON", coordinates: coords });
 					callOnChange();
 				}
@@ -5531,6 +5542,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var domObj;
 
 				var obj = map.addObject();
+				FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'FRAME'} });
 
 				var borders = obj.addObject();
 				var corners = obj.addObject();
@@ -8245,13 +8257,29 @@ function BalloonClass(map, div, apiBase)
 				refreshMapPosition();
 
 				var sc = scale * stageZoom;
-				var x = div.clientWidth/2 - (mapX - gmxAPI.merc_x(this.geoX))/sc;
+				
+				// Смещение Балуна к центру
+				var deltaX = 0;
+				var ww = (gmxAPI.merc_x(180) - gmxAPI.merc_x(-180))/sc;
+				var mind = Math.abs(mapX - gmxAPI.merc_x(this.geoX));
+				var d1 = Math.abs(mapX - gmxAPI.merc_x(this.geoX - 360));
+				if (d1 < mind) { mind = d1; deltaX = -ww; }
+				d1 = Math.abs(mapX - gmxAPI.merc_x(this.geoX + 360));
+				if (d1 < mind) { deltaX = ww; }
+
+				var x = div.clientWidth/2 - (mapX - gmxAPI.merc_x(this.geoX))/sc + deltaX;
 				var y = div.clientHeight/2 + (mapY - gmxAPI.merc_y(this.geoY))/sc;
 				if(this.fixedDeltaFlag) {
 					x += balloon.fixedDeltaX;
 					y -= balloon.fixedDeltaY;
 				}
-				if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
+				var flag = (y < 0 || y > div.clientHeight ? false : true);
+				if (flag) {
+					if (x < 0 || x > div.clientWidth) flag = false;
+				}
+
+				//if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
+				if (flag)
 				{
 					this.setScreenPosition(x, y);
 					oldSetVisible(true);

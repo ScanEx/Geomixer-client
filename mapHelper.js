@@ -3264,7 +3264,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				paramsModel.setColumnName( $("option:selected", this).val() );
 			});
 			
-			temporalLayerParams.setColumnName(columns[0].Name);
+			if (columns.length)
+                temporalLayerParams.setColumnName(columns[0].Name);
 			
 			var tr0 = $('<tr></tr>')
 						.append($('<td></td>').text(_gtxt('Колонка даты')))
@@ -4253,6 +4254,7 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		//	showBalloons = _checkbox(elemProperties.ShowPropertiesBalloons, 'checkbox'),
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
+            WMSAccess = _checkbox(elemProperties.WMSAccess, 'checkbox'),
 		//	searchVectors = _checkbox(elemProperties.CanSearchVector, 'checkbox'),
 			defLat = _input(null,[['attr','value',elemProperties.DefaultLat != null && elemProperties.DefaultLat != 0 ? elemProperties.DefaultLat : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			defLong = _input(null,[['attr','value',elemProperties.DefaultLong != null && elemProperties.DefaultLong != 0 ? elemProperties.DefaultLong : ''],['dir','className','inputStyle'],['css','width','62px']]),
@@ -4302,6 +4304,13 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		downloadRasters.onclick = function()
 		{
 			div.properties.properties.CanDownloadRasters = this.checked;
+			
+			_this.mapTree.properties = div.properties.properties;
+		}
+        
+        WMSAccess.onclick = function()
+		{
+			div.properties.properties.WMSAccess = this.checked;
 			
 			_this.mapTree.properties = div.properties.properties;
 		}
@@ -4431,6 +4440,7 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 			useOSM.style.margin = "0px 4px 0px 3px";
 		//	searchVectors.style.margin = "0px 4px 0px 3px";
 		//	showBalloons.style.margin = "0px 4px 0px 3px";
+            WMSAccess.style.margin = "0px 4px 0px 3px";
 		}
 		
 		var shownCommonProperties = [
@@ -4449,7 +4459,9 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 									),
 			shownPolicyProperties = [/*{name: _gtxt("Разрешить поиск в векторных слоях"), elem: searchVectors},*/
 										{name: _gtxt("Разрешить скачивание"), elem: _table([_tbody([_tr([_td([_t(_gtxt('Векторных слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadVectors])]),
-																					 				_tr([_td([_t(_gtxt('Растровых слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadRasters])])])])}],
+																					 				_tr([_td([_t(_gtxt('Растровых слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadRasters])])])])},
+                                        {name: _gtxt("WMS доступ"), elem: WMSAccess}
+                                    ],
 			shownViewProperties = [{name: _gtxt("Начальная позиция"), elem: _table([_tbody([_tr([_td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']]), _br(), defLat],[['css','width','70px']]),
 																					   _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']]), _br(), defLong],[['css','width','70px']]),
 																					   _td([_span([_t(_gtxt('Зум'))],[['css','marginLeft','3px']]), _br(), defZoom],[['css','width','68px']])])])])},

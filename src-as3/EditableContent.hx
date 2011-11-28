@@ -159,11 +159,20 @@ class EditableContent extends MapContent
 		repaint();
 		mapNode.callHandler("onEdit");
 	}
+	
+	function chkPositionX(geom:Geometry)
+	{
+		if (geom == null) return;
+		var xshift:Float = Utils.getShiftX(geom.extent.minx, geom.extent.maxx, mapNode);
+		var pos:Int = cast(xshift);
+		if (contentSprite.x != pos) contentSprite.x = pos;
+	}
 
 	public override function repaint()
 	{
 		pointsPainter.repaint(mapNode.getRegularStyle());
 		linesPainter.repaint(mapNode.getRegularStyle());
+		chkPositionX(linesPainter.geometry);
 	}
 
 	public override function addHandlers()

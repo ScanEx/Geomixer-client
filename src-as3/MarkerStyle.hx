@@ -287,7 +287,9 @@ class MarkerStyle
 		if ( !removeDefaults || replacementColor != DEFAULT_REPLACEMENT_COLOR) res.color = replacementColor;
 		
 		if (imageUrl != null) res.image = imageUrl;
+		if ( !removeDefaults || marker.angle != 0) res.angle = marker.angle;
 		if (origAngleExpr != null) res.angle = origAngleExpr;
+		if ( !removeDefaults || marker.scale != 1) res.scale = marker.scale;
 		if (origScaleExpr != null) res.scale = origScaleExpr;
 		
 		return res;

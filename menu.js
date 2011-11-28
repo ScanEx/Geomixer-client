@@ -70,6 +70,7 @@ Menu.prototype.addChildItem = function(newElem, parentID)
 var UpMenu = function()
 {
 	this.parent = null;
+    this.loginContainer = null;
 };
 
 UpMenu.prototype = new Menu();
@@ -444,17 +445,17 @@ UpMenu.prototype.disableMenus = function(arr)
 
 UpMenu.prototype.checkView = function()
 {
-	if (!nsMapCommon.AuthorizationManager.isLogin())// || userInfo().Role == 'Accounts')
+	if (!nsGmx.AuthManager.isLogin())
 	{
 		this.enableMenus();
 		
 		this.disableMenus(['mapCreate', 'mapSave', 'mapSaveAs', 'layersMenu', 'pictureBinding', 'kml']);
 	}
-	else if (/*userInfo().Login && */_queryMapLayers.currentMapRights() != "edit")
+	else if (_queryMapLayers.currentMapRights() != "edit")
 	{
 		this.enableMenus();
 		
-		this.disableMenus(['mapSave', 'mapSaveAs', 'layersVector', 'layersRaster']);
+		this.disableMenus(['mapSave', 'mapSaveAs', 'layersVector', 'layersRaster', 'layersMultiRaster']);
 	}
 	else
 	{
@@ -466,55 +467,23 @@ UpMenu.prototype.checkView = function()
 			_tab_hash.openTab();
 	}
 	
-	if (!nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_CREATE_LAYERS))
+	if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
 	{
-		this.disableMenus(['layersVector', 'layersRaster']);
+            this.disableMenus(['layersVector', 'layersRaster', 'layersMultiRaster']);
 	}
 }
 
 UpMenu.prototype.addLoginCanvas = function()
 {
-	var li = _li([_div(null, [['attr','id','user'],['dir','className','user']]),_div(null, [['attr','id','log'],['dir','className','log']])],[['dir','className','loginCanvas']]);
-	
-	_(this.parent.firstChild, [li]);
+	this.loginContainer = _li(null, [['dir','className','loginCanvas']]);
+	_(this.parent.firstChild, [this.loginContainer]);
 }
+
 UpMenu.prototype.addSearchCanvas = function()
 {
 	var li = _li(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
 	
 	_(this.parent.firstChild, [li]);
-}
-
-UpMenu.prototype.addLogin = function(reloadAfterLoginFlag)
-{
-	if ( typeof window.gmxViewerUI != 'undefined' &&  window.gmxViewerUI.hideLogin ) return;
-	
-	removeChilds($$('log'));
-	
-	var span = makeLinkButton(_gtxt('Вход'))
-	
-	span.onclick = function()
-	{
-		login(reloadAfterLoginFlag);
-	}
-	
-	_($$('log'), [span])
-}
-
-UpMenu.prototype.addLogout = function()
-{
-	if ( typeof window.gmxViewerUI != 'undefined' &&  window.gmxViewerUI.hideLogin ) return;
-
-	removeChilds($$('log'));
-	
-	var span = makeLinkButton(_gtxt('Выход'));
-	
-	span.onclick = function()
-	{
-		logout();
-	}
-	
-	_($$('log'), [span])
 }
 
 UpMenu.prototype.go = function(reloadAfterLoginFlag)
@@ -528,8 +497,6 @@ UpMenu.prototype.go = function(reloadAfterLoginFlag)
 	this.checkView();
 	
 	this.addLoginCanvas();
-
-	this.addLogin(reloadAfterLoginFlag);
 	
 	if (!window.location.hash)
 	{

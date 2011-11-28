@@ -1,5 +1,8 @@
 ﻿var globalFlashMap;
 
+var nsGmx = nsGmx || {};
+nsGmx.widgets = nsGmx.widgets || {};
+
 (function(){
 
 var gmxJSHost = window.gmxJSHost || "";
@@ -435,28 +438,10 @@ function checkUserInfo(defaultState)
 		window.serverBase = "http://" + getAPIHost() + "/";	
 		
 	window.documentBase = "http://" + docUri.host + docUri.directory;
-	
-	sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', function(response)
-	{
-		if (!parseResponse(response))
-			return;
-		
-		if (response.Result == null)
-		{
-			// юзер не авторизован
-			userInfo = function(){return {Login: false}};
-			nsMapCommon.AuthorizationManager.setUserInfo({Login: false});
-		}
-		else
-		{
-			userInfo = function()
-			{
-				return response.Result;
-			}
-			nsMapCommon.AuthorizationManager.setUserInfo(response.Result);
-		}
-		
-		var tinyRef = readCookie("TinyReference");
+    
+    nsGmx.AuthManager.checkUserInfo(function()
+    {
+        var tinyRef = readCookie("TinyReference");
 		
 		if (tinyRef)
 		{
@@ -481,7 +466,10 @@ function checkUserInfo(defaultState)
 		}
 		else
 			loadMap(defaultState);
-	})
+    }, function()
+    {
+        //TODO: обработка ошибок
+    })
 }
 
 //Добавляем единый календарик для мультивременных слоёв. Только для карт, где есть хотя бы один такой слой
@@ -533,6 +521,8 @@ function addCommonCalendar()
             loadState: function(state) { calendar.loadState(state); updateTemporalLayers(); },
             saveState: function() { return calendar.saveState(); }
         });
+        
+        nsGmx.widgets.commonCalendar = calendar;
     }
 }
 
@@ -564,7 +554,6 @@ function loadMap(state)
 				
 				var data = getLayers();
 				
-				//для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
 				
 				if (!data)
 				{
@@ -577,17 +566,12 @@ function loadMap(state)
 					};
 					
 					_menuUp.go(true);
+                    
+                    nsGmx.widgets.authWidget = new nsGmx.AuthWidget(_menuUp.loginContainer, nsGmx.AuthManager, defaultLoginCallback(true));
 					
 					if ($$('left_usage'))
 						hide($$('left_usage'))
-					
-					if ( nsMapCommon.AuthorizationManager.isLogin() )
-					{
-						_menuUp.addLogout();
-						
-						addUserName();
-					}
-					
+										
 					_menuUp.checkView();
 					
 					var divStatus = _div([_span([_t(_gtxt("У вас нет прав на просмотр данной карты"))],[['css','marginLeft','10px'],['css','color','red'],['attr','savestatus',true]])], [['css','paddingTop','10px']]);
@@ -597,11 +581,12 @@ function loadMap(state)
 					window.onresize = resizeAll;
 					resizeAll();
 					
-					login(true);
+					nsGmx.widgets.authWidget.showLoginDialog();
 					
 					return;
 				}
                 
+				//для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
 				(function fixVisibilityConstrains (o, isVisible)
 				{
 					o.content.properties.visible = o.content.properties.visible && isVisible;
@@ -818,13 +803,11 @@ function loadMap(state)
 				
 				_menuUp.checkView();
 				removeUserActions();
+                
+                nsGmx.widgets.authWidget = new nsGmx.AuthWidget(_menuUp.loginContainer, nsGmx.AuthManager, defaultLoginCallback());
 				
-				if (nsMapCommon.AuthorizationManager.isLogin())
-				{
-					_menuUp.addLogout();
-					
-					addUserName();
-					
+				if (nsGmx.AuthManager.isLogin())
+				{					
 					addUserActions();
 				}
 				fnInitControls();

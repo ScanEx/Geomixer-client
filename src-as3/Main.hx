@@ -126,12 +126,11 @@ class Main
 		var setCurrentPosition = function(x, y, z)
 		{
 			currentX = constrain(minX, x,  maxX);
-			var ww = Utils.worldWidth;
-			var wd = Utils.worldDelta;
-			while (currentX > ww + wd)
-				currentX -= 2*ww;
-			while (currentX < -ww + wd)
-				currentX += 2*ww;
+			var ww = 2 * Utils.worldWidth;
+			while (currentX > ww)
+				currentX -= ww;
+			while (currentX < -ww)
+				currentX += ww;
 			currentY = constrain(minY, y, maxY);
 			currentZ = constrain(minZ, z, maxZ);
 			viewportHasMoved = true;
@@ -256,13 +255,21 @@ class Main
 			var sprite = getWindowUnderMouse().innerSprite;
 			zoomBy((event.delta > 0) ? 1 : -1, sprite.mouseX, sprite.mouseY);
 		});
+		
+		var onMoveBegin = function(?event:MouseEvent)
+		{
+			mapWindow.rootNode.callHandlersRecursively("onMoveBegin");
+		}
+
 		root.addEventListener(MouseEvent.MOUSE_DOWN, function(event)
 		{
 			pressTime = flash.Lib.getTimer();
 			Main.mousePressed = true;
+			onMoveBegin(event);
 		});
 		var windowMouseDown = function(event)
 		{
+			Main.mousePressed = true;
 			if (!Main.draggingDisabled)
 			{
 				isDragging = true;
@@ -313,14 +320,23 @@ class Main
 			//viewportHasMoved = true;
 		}
 		
+		var onMoveEnd = function(?event:MouseEvent)
+		{
+			mapWindow.rootNode.callHandlersRecursively("onMoveEnd");
+		}
+		
 		root.addEventListener(MouseEvent.MOUSE_UP, function(event)
 		{
-			Main.chkEventAttr(event);
+			Main.mousePressed = false;
+			if (event != null) {
+				Main.chkEventAttr(event);
+			}
 			isDragging = false;
 			if (!isFluidMoving)
 			{
 				isMoving = false;
 				viewportHasMoved = true;	// вьюпорт не двигался
+				onMoveEnd(event);
 			}
 			if (clickedNode != null)
 				clickedNode.callHandler("onMouseUp", nodeFrom);
@@ -374,7 +390,7 @@ class Main
 		{
 			if (isDragging && !Main.draggingDisabled && (currentZ == Math.round(currentZ)))
 			{
-				isMoving = true;
+//				isMoving = true;
                 var c = Utils.getScale(draggedWindow.getCurrentZ());
 				setCurrentPosition(
 					startMapX - (root.mouseX - startMouseX)*c,
@@ -436,20 +452,6 @@ class Main
 			if (viewportHasMoved)
 			{
 				Main.refreshMap();
-/*				
-				for (window in MapWindow.allWindows)
-				{
-					if (isMoving && !wasMoving)
-						window.repaintCacheBitmap();
-					window.setCenter(currentX, currentY);
-					window.setCacheBitmapVisible(isMoving);
-					if (!isMoving)
-					{
-						window.rootNode.repaintRecursively(true);
-						window.repaintCacheBitmap();
-					}
-				}
-*/				
 				mapWindow.rootNode.callHandlersRecursively("onMove");
 				viewportHasMoved = false;
 				wasMoving = isMoving;
@@ -542,6 +544,7 @@ class Main
 		function setHandler(id:String, eventName:String, ?callbackName:String)
 		{ 
 			var node:MapNode = getNode(id);
+
 			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode)
 			{
 				var props:Dynamic;
@@ -568,7 +571,11 @@ class Main
 				}
 				var arr = propertiesToArray(props);
 
-				if ((eventName == "onMouseOver") || (eventName == "onMouseOut") || (eventName == "onMouseDown")) {
+				if ((eventName == "onMouseOver")
+					|| (eventName == "onMoveBegin")
+					|| (eventName == "onMoveEnd")
+					|| (eventName == "onMouseOut")
+					|| (eventName == "onMouseDown")) {
 					Main.cmdToJS(callbackName, node2.id, arr, eventAttr);
 				}
 				else
@@ -783,29 +790,12 @@ class Main
 			}
 		}
 
-		function setImageExtent(id:String, attr:Dynamic)
-		{
-			var node = getNode(id);
-			var minX = Merc.x(attr.extent.minX);
-			var maxX = Merc.x(attr.extent.maxX);
-			var minY = Merc.y(attr.extent.minY);
-			var maxY = Merc.y(attr.extent.maxY);
-			
-			var newContent = new RasterImage(attr.url, minX, maxY, maxX, maxY, maxX, minY, minX, minY, attr);
-			if (attr.notSetPolygon == true) {
-				newContent.setControlPoints(minX,maxY, maxX,maxY, maxX,minY, minX,minY);
-			}
-			if ((node.content != null) && Std.is(node.content, VectorObject))
-				newContent.setMask(cast(node.content, VectorObject).geometry);
-			node.setContent(newContent);
-		}
-
 		function startLoadTiles(id:String, attr:Dynamic)
 		{
 			var node = getNode(id);
 			if (node == null || node.content == null || !Std.is(node.content, VectorLayer)) return;
 			cast(node.content, VectorLayer).startLoadTiles(attr, mapWindow);
-			viewportHasMoved = true;
+			//viewportHasMoved = true;
 		}
 
 		function setVectorTiles(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?attrHash:Dynamic)
@@ -854,6 +844,23 @@ class Main
 					Main.cmdToJS(func, geoExp, prop, flag);
 				}
 			));
+		}
+
+		function setImageExtent(id:String, attr:Dynamic)
+		{
+			var node = getNode(id);
+			var minX = Merc.x(attr.extent.minX);
+			var maxX = Merc.x(attr.extent.maxX);
+			var minY = Merc.y(attr.extent.minY);
+			var maxY = Merc.y(attr.extent.maxY);
+			
+			var newContent = new RasterImage(attr.url, minX, maxY, maxX, maxY, maxX, minY, minX, minY, attr);
+			if (attr.notSetPolygon == true) {
+				newContent.setControlPoints(minX,maxY, maxX,maxY, maxX,minY, minX,minY);
+			}
+			if ((node.content != null) && Std.is(node.content, VectorObject))
+				newContent.setMask(cast(node.content, VectorObject).geometry);
+			node.setContent(newContent);
 		}
 
 		function setImage(id:String, url:String, 
@@ -982,13 +989,13 @@ class Main
 						Main.cmdToJS(func, mapWindow.innerSprite.mouseX, mapWindow.innerSprite.mouseY);
 					});
 					root.contextMenu.customItems.push(item);
-				case 'moveTo':
-					Main.bumpFrameRate();
-					setCurrentPosition(attr.x, attr.y, Math.round(17 - attr.z));
 				case 'slideTo':
+					onMoveBegin();
 					Main.bumpFrameRate();
 					fluidMoveTo(attr.x, attr.y, 17 - attr.z, 10);
+					onMoveEnd();
 				case 'zoomBy':
+					onMoveBegin();
 					var dz:Float = attr.dz;
 					var mx:Float = currentX;
 					var my:Float = currentY;
@@ -999,6 +1006,7 @@ class Main
 						my = sprite.mouseY;
 					}
 					zoomBy(-dz, mx, my);
+					onMoveEnd();
 				case 'freeze':
 					Main.draggingDisabled = true; 
 				case 'unfreeze':
@@ -1039,6 +1047,7 @@ class Main
 					res.x = currentX;
 					res.y = currentY;
 					res.z = currentZ;
+					if (Main.mousePressed) res.mousePressed = Main.mousePressed;
 					var extent:Dynamic = { };
 					extent.minx = mapWindow.visibleExtent.minx;
 					extent.maxx = mapWindow.visibleExtent.maxx;
@@ -1058,16 +1067,25 @@ class Main
 					out = cast(mapWindow.innerSprite.mouseY);
 				case 'isKeyDown':
 					out = cast(Key.isDown(attr.code));
+				case 'moveTo':
+					onMoveBegin();
+					Main.bumpFrameRate();
+					setCurrentPosition(attr.x, attr.y, Math.round(17 - attr.z));
+					onMoveEnd();
 				case 'setExtent':
 					minX = attr.x1;
 					minY = attr.y1;
 					maxX = attr.x2;
 					maxY = attr.y2;
+					onMoveBegin();
 					setCurrentPosition(currentX, currentY, currentZ);
+					onMoveEnd();
 				case 'setMinMaxZoom':
 					minZ = attr.z1;
 					maxZ = attr.z2;
+					onMoveBegin();
 					setCurrentPosition(currentX, currentY, currentZ);
+					onMoveEnd();
 				case 'addMapWindow':
 					var lastCurrentZ:Float = -100, lastComputedZ:Float = 0;
 					var window = new MapWindow(Utils.addSprite(root), function()
@@ -1284,6 +1302,9 @@ class Main
 						
 					}
 					out = (useFlashLSO ? 1 : 0);
+				case 'setAPIProperties':	// Установка дополнительных свойств
+					var node = getNode(attr.objectId);
+					out = cast(node != null ? node.setAPIProperties(attr.data) : false);
 			}
 			return out;
 		}

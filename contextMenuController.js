@@ -311,8 +311,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{
 		return !context.layerManagerFlag && 
 				_queryMapLayers.currentMapRights() === "edit" && 
-				nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
-				( _mapHelper.mapProperties.Owner == userInfo().Login || nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) );
+				nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
+				( _mapHelper.mapProperties.Owner == nsGmx.AuthManager.getUserName() || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
 	},
 	clickCallback: function(context)
 	{
@@ -328,7 +328,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	isVisible: function(context)
 	{
 		return !context.layerManagerFlag && 
-				( _queryMapLayers.currentMapRights() === "edit" || (_queryMapLayers.currentMapRights() == "view" && userInfo().Login) ) && 
+				( _queryMapLayers.currentMapRights() === "edit" || (_queryMapLayers.currentMapRights() == "view" && nsGmx.AuthManager.isLogin() ) ) && 
 				context.elem.type == "Vector" &&
 				_mapHelper.mapProperties.CanDownloadVectors;
 	},
@@ -499,9 +499,9 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	isVisible: function(context)
 	{
-		return nsMapCommon.AuthorizationManager.canDoAction(nsMapCommon.AuthorizationManager.ACTION_SEE_MAP_RIGHTS ) && 
-		 ( (context.tree.mapHelper.mapProperties.Owner == userInfo().Login) || 
-		   nsMapCommon.AuthorizationManager.isRole(nsMapCommon.AuthorizationManager.ROLE_ADMIN) );
+		return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
+		 ( (context.tree.mapHelper.mapProperties.Owner == nsGmx.AuthManager.getUserName()) || 
+		   nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
 	}
 }, 'Map');
 

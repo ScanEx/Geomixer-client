@@ -5,7 +5,7 @@ class PointGeometry extends Geometry
 	public var x:Float;
 	public var y:Float;
 	public static var MAX_POINTS_WIDH:Int = 500;	// ограничение размеров точки квадрат не более 1 км
-	public static var MAX_POINTS_COUNT:Int = 1000;	// ограничение действует при количестве точек в геометрии родителя
+	public static var MAX_POINTS_COUNT:Int = 10000;	// ограничение действует при количестве точек в геометрии родителя
 
 	public function new(x_:Float, y_:Float)
 	{
@@ -81,9 +81,10 @@ class PointGeometry extends Geometry
 
 	public override function export():Dynamic
 	{
-		return {
-			type: "POINT",
-			coordinates: [x, y]
-		};
+		var out:Dynamic = { };
+		out.type = "POINT";
+		out.coordinates = [x, y];
+		out._xshift = (propHiden.exists('_xshift') ?  propHiden.get('_xshift') : 0 );
+		return out;
 	}
 }

@@ -5,6 +5,7 @@ import flash.geom.Matrix;
 
 class RasterImage extends MaskedContent
 {
+	var xshift:Float;
 	var url:String;
 	var attr:Dynamic;
 	var noCache:Bool;
@@ -44,6 +45,7 @@ class RasterImage extends MaskedContent
 		?attr_:Dynamic
 	)
 	{
+		xshift = 0.0;
 		url = url_;
 		added = false;
 		controlPointsSet = false;
@@ -173,5 +175,18 @@ class RasterImage extends MaskedContent
 				}
 			}, noCache);
 		}
+		chkPositionX();
 	}
+	
+	function chkPositionX()
+	{
+		var xshift1:Float = Utils.getShiftX(x1, x2, mapNode);
+		var pos:Int = cast(xshift1);
+		if (xshift1 != xshift) {
+			xshift = xshift1;
+			if (contentSprite.x != pos) contentSprite.x = pos;
+			//maskGeometry.propHiden.set('_xshift', xshift);
+		}
+	}
+	
 }

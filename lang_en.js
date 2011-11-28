@@ -551,5 +551,7 @@ _translationsHash.hash["eng"] = {
 	"Пересечение": "Intersection",
 	"Пролистывать слои": "Scroll layers",
 	"Следующий слой": "Next layer",
-	"Предыдущий слой": "Previous layer"
+	"Предыдущий слой": "Previous layer",
+    "Геометрия не сохранена. Эта возможность будет реализована в будущих версиях Геомиксера.": "Geometry is not saved. This feature will be implemented in future Geomixer versions",
+    "WMS доступ": "WMS access"
 };

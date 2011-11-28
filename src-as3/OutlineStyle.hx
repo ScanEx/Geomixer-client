@@ -59,11 +59,10 @@ class OutlineStyle
 		
 		if ( !removeDefaults || thickness != DEFAULT_THICKNESS) res.thickness = thickness;
 		if ( !removeDefaults || color     != DEFAULT_COLOR    ) res.color = color;
-		if (origColorExpr != null) res.color = origColorExpr;
+		if (origColorExpr != '') res.color = origColorExpr;
 		if ( !removeDefaults || opacity   != DEFAULT_OPACITY  ) res.opacity = Std.int(opacity*100);
-		if (origOpacityExpr != null) res.opacity = origOpacityExpr;
+		if (origOpacityExpr != '') res.opacity = origOpacityExpr;
 		if (dashes != null) res.dashes = dashes;
-		
 		return res;
 	}
 }

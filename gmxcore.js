@@ -53,10 +53,11 @@ var gmxCore = function()
                 
             this.addModulesCallback( requiredModules, function()
             {
+                if (typeof moduleObj === 'function')
+                        moduleObj = moduleObj( _modulePathes[moduleName] );
+                        
                 if (options && 'init' in options)
 				{
-                    if (typeof moduleObj === 'function')
-                        moduleObj = moduleObj( _modulePathes[moduleName] );
                     options.init(moduleObj, _modulePathes[moduleName]);
 				}
                 

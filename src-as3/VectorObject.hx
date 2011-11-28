@@ -10,6 +10,7 @@ class VectorObject extends MapContent
 
 	var curNodeFilter:MapNode;
 	var layer:VectorLayer;
+	var xshift:Float;
 	
 	public function new(geometry_:Geometry)
 	{
@@ -17,6 +18,7 @@ class VectorObject extends MapContent
 		isActive = false;
 		curNodeFilter = null;
 		layer = null;
+		xshift = 0.0;
 	}
 
 	public override function createContentSprite()
@@ -59,6 +61,19 @@ class VectorObject extends MapContent
 		painter.repaint(curStyle);
 		isActive = false;
 		curNodeFilter = null;
+		chkPositionX();
+	}
+	
+	function chkPositionX()
+	{
+		var parNode:MapNode = mapNode.parent;
+		if (mapNode.parent != null && mapNode.parent.parent != null && mapNode.parent.parent.propHiden.get('type') == 'FRAMECHILD') return;
+
+		xshift = Utils.getShiftX(geometry.extent.minx, geometry.extent.maxx, mapNode);
+		var pos:Int = cast(xshift);
+		if (contentSprite.x != pos) contentSprite.x = pos;
+		geometry.propHiden.set('_xshift', xshift);
+		
 	}
 
 	public override function hasLabels()
@@ -73,7 +88,7 @@ class VectorObject extends MapContent
 		if (style == null || style.label == null) return;
 		if(style.label.field != null) label = mapNode.propHash.get(style.label.field);
 		if(label == null) return;
-		mapNode.window.paintLabel(label, geometry, style);
+		mapNode.window.paintLabel(label, geometry, style, xshift);
 	}
 
 	function highlight()

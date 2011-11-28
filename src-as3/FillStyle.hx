@@ -314,10 +314,10 @@ class FillStyle
 	{
 		var res: Dynamic = {};
 		if ( !removeDefaults || color != DEFAULT_COLOR) res.color = color;
-		if (origColorExpr != null) res.color = origColorExpr;
+		if (origColorExpr != '') res.color = origColorExpr;
 
 		if ( !removeDefaults || opacity   != DEFAULT_OPACITY  ) res.opacity = Std.int(opacity*100);
-		if (origOpacityExpr != null) res.opacity = origOpacityExpr;
+		if (origOpacityExpr != '') res.opacity = origOpacityExpr;
 		if ( imageUrl != null ) res.imageUrl = imageUrl;
 		if ( pattern != null ) res.pattern = pattern;
 		
