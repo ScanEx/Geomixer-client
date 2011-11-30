@@ -607,7 +607,7 @@ layersTree.prototype.downloadVectorLayer = function(name, area, mapHostName)
 			return;
 		}
 		
-		window.location.href = "http://" + mapHostName + window.location.port + "/" + "DownloadLayer.ashx" + 
+		window.location.href = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + 
 			"?name=" + translit(filename.value) + 
 			"&t=" + layer.properties.name;
 		
