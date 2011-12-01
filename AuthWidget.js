@@ -224,15 +224,24 @@ var nsGmx = nsGmx || {};
             {
                 if (response.Status == 'ok' && response.Result)
                 {
-                    sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Login?login=" + encodeURIComponent(curLogin) + "&password=" + encodeURIComponent(curPass), function()
-                    {
-                        //TODO: check result
-                    }, 'callback');
                     $(canvas.parentNode).dialog("destroy")
                     canvas.parentNode.removeNode(true);
                     _dialogCanvas = null;
                     
-                    callback && callback();
+                    if (response.Result.IsAccounts)
+                    {
+                        //авторизуемся на центральном сервере авторизации
+                        sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Login?login=" + encodeURIComponent(curLogin) + "&password=" + encodeURIComponent(curPass), function()
+                        {
+                            //TODO: check result
+                            callback && callback();
+                        }, 'callback');                    
+                    }
+                    else
+                    {
+                        callback && callback();
+                    }
+                    
                 }
                 else
                 {

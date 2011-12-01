@@ -540,6 +540,20 @@ function loadMap(state)
 	
 	window.onresize = resizeAll;
 	resizeAll();
+    
+    // При залогиневании пользователя просто перезагружаем страницу
+    // Если reloadAfterLoginFlag=true, не сохраняем текущее состояние карты, 
+    // иначе сохраняем всё в пермалинке и восстанавливаем после перезагрузки
+    var defaultLoginCallback = function(reloadAfterLoginFlag)
+    {
+        return function()
+        {
+            if (reloadAfterLoginFlag)
+                window.location.reload();
+            else
+                reloadMap();
+        }
+    }
 	
 	var mapCallback = function(map)
 	{

@@ -808,20 +808,6 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
     }
 }
 
-// При залогиневании пользователя просто перезагружаем страницу
-// Если reloadAfterLoginFlag=true, не сохраняем текущее состояние карты, 
-// иначе сохраняем всё в пермалинке и восстанавливаем после перезагрузки
-function defaultLoginCallback(reloadAfterLoginFlag)
-{
-    return function()
-    {
-        if (reloadAfterLoginFlag)
-            window.location.reload();
-        else
-            reloadMap();
-    }
-}
-
 function reloadMap()
 {
 	// сохраняем состояние карты и перезагружаем ее
