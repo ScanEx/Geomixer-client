@@ -472,6 +472,7 @@ window.gmxAPI = {
 		return (rad / gmxAPI.PI * 180.0)
 	}
 	,
+	worldWidthMerc: 20037508,
 	sm_a: 6378137.0,
     sm_b: 6356752.314,
     //sm_EccSquared: 6.69437999013e-03,
@@ -4298,8 +4299,11 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 			map.getVisibleExtent = function()
 			{
+				var ww = 2 * gmxAPI.worldWidthMerc;
 				var currPosition = map.getPosition();
-				var x = currPosition['x'];
+				var x = currPosition['x'] + ww;
+				while(x > ww) x -= ww;
+				while(x < -gmxAPI.worldWidthMerc) x += ww;
 				var y = currPosition['y'];
 				var scale = gmxAPI.getScale(currPosition['z']);
 
