@@ -27,7 +27,6 @@ nsGmx.ContextMenuController = (function()
 	// * suggestTimeout {float} - задержка в мс перед показом меню в Opera
 	var _context = function(elem, menuFunc, checkFunc, suggestTimeout)
 	{
-		var menu = null;
 		if (jQuery.browser.opera)
 		{
 			elem.onmouseover = function()
@@ -87,12 +86,16 @@ nsGmx.ContextMenuController = (function()
 		}
 		else
 		{
+            var menu = null;
 			elem.oncontextmenu = function(e)
 			{
 				if (typeof checkFunc != 'undefined' && !checkFunc())
 					return false;
+                    
+                if (menu && menu.parentNode) 
+                    menu.parentNode.removeChild(menu);
 					
-				menu = menu || menuFunc();
+				menu = menuFunc();
 				if (!menu) return false;
 				
 				var contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']])
@@ -142,7 +145,10 @@ nsGmx.ContextMenuController = (function()
 					
 					if (evt.pageX <= menuArea.left || evt.pageX >= menuArea.right ||
 						evt.clientY <= menuArea.top || evt.clientY >= menuArea.bottom)
-						contextMenu.removeNode(true)
+                    {
+                        menu = null;
+						contextMenu.removeNode(true);
+                    }
 				}
 				
 				return false;
@@ -382,13 +388,20 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	clickCallback: function(context)
 	{
-		var div;
-		if (context.elem.LayerID)
-			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.LayerID + "']")[0];
+        
+		// if (context.elem.LayerID)
+			// div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.LayerID + "']")[0];
+		// else
+			// div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
+            
+		var elem;
+        var mapHelper = context.tree.mapHelper;
+        if (context.elem.LayerID)
+			elem = mapHelper.findElem(mapHelper.mapTree, "LayerID", context.elem.LayerID).elem;
 		else
-			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
-			
-		context.tree.copiedStyle = {type: context.elem.GeometryType, style: div.properties.content.properties.styles};
+			elem = mapHelper.findElem(mapHelper.mapTree, "MultiLayerID", context.elem.MultiLayerID).elem;
+
+        nsGmx.ClipboardController.addItem('LayerStyle', {type: context.elem.GeometryType, style: elem.content.properties.styles});
 	}
 }, 'Layer');
 
@@ -398,25 +411,13 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{
 		return !context.layerManagerFlag && 
 				_queryMapLayers.currentMapRights() === "edit" && 
-				context.elem.type == "Vector";
+				context.elem.type == "Vector" && 
+                nsGmx.ClipboardController.getCount('LayerStyle') > 0 &&
+                nsGmx.ClipboardController.get('LayerStyle', -1).type === context.elem.GeometryType;
 	},
 	clickCallback: function(context)
-	{
-		if (!context.tree.copiedStyle)
-		{
-			showErrorMessage(_gtxt("Не выбран стиль"), true)
-			
-			return;
-		}
-		
-		if (context.tree.copiedStyle.type != context.elem.GeometryType)
-		{
-			showErrorMessage(_gtxt("Невозможно применить стиль к другому типу геометрии"), true)
-			
-			return;
-		}
-		
-		var newStyles = context.tree.copiedStyle.style;
+	{		
+		var newStyles = nsGmx.ClipboardController.popItem('LayerStyle').style;
 		var div;
 		
 		if (context.elem.LayerID)

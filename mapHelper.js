@@ -4763,8 +4763,8 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 		
 		this.layerEditorsHash[elemProperties.name] = false;
 		
-		var mapName = div.properties.content.properties.mapName,
-			layerName = div.properties.content.properties.name,
+		var mapName = elemProperties.mapName,
+			layerName = elemProperties.name,
 			createTabs = function(layerProperties)
 			{
 				var id = 'layertabs' + elemProperties.name,
@@ -4773,9 +4773,9 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 					divQuicklook,
 					tabMenu;
 				
-				if (div.properties.content.properties.GeometryType == 'polygon' &&
-					div.properties.content.properties.description &&
-					String(div.properties.content.properties.description).toLowerCase().indexOf('спутниковое покрытие') == 0)
+				if (elemProperties.GeometryType == 'polygon' &&
+					elemProperties.description &&
+					String(elemProperties.description).toLowerCase().indexOf('спутниковое покрытие') == 0)
 				{
 					divQuicklook = _div(null,[['attr','id','quicklook' + id]]);
 					
@@ -4828,9 +4828,9 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 						
 						elemProperties.styles = newStyles;
 												
-						if (div.properties.content.properties.GeometryType == 'polygon' &&
-							div.properties.content.properties.description &&
-							String(div.properties.content.properties.description).toLowerCase().indexOf('спутниковое покрытие') == 0 &&
+						if (elemProperties.GeometryType == 'polygon' &&
+							elemProperties.description &&
+							String(elemProperties.description).toLowerCase().indexOf('спутниковое покрытие') == 0 &&
 							divQuicklook)
 						{
 							elemProperties.Quicklook = $(divQuicklook).find("[paramName='Quicklook']")[0].value;
@@ -4858,10 +4858,10 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 						else if (colorIconFlag) {}
 						else
 						{
-							var newIcon = _this.createStylesEditorIcon(newStyles, div.properties.content.properties.GeometryType.toLowerCase());
+							var newIcon = _this.createStylesEditorIcon(newStyles, elemProperties.GeometryType.toLowerCase());
 							newIcon.onclick = function()
 							{
-								_this.createLayerEditor(div, 1, div.properties.content.properties.styles.length > 1 ? -1 : 0);
+								_this.createLayerEditor(div, 1, elemProperties.styles.length > 1 ? -1 : 0);
 							}
 							
 							$(parentIcon).replaceWith(newIcon);
@@ -4900,12 +4900,12 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 		if (!this.attrValues[mapName])
 			this.attrValues[mapName] = {};
 
-		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&&NeedAttrValues=false&LayerID=" + div.properties.content.properties.LayerID, function(response)
+		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&&NeedAttrValues=false&LayerID=" + elemProperties.LayerID, function(response)
 		{
 			if (!parseResponse(response))
 				return;
 			
-			_this.attrValues[mapName][layerName] = new LazyAttributeValuesProviderFromServer(response.Result.Attributes, div.properties.content.properties.LayerID);
+			_this.attrValues[mapName][layerName] = new LazyAttributeValuesProviderFromServer(response.Result.Attributes, elemProperties.LayerID);
 			
 			createTabs(response.Result);
 		})
@@ -4927,8 +4927,8 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 			
 			_(tabMenu, [divProperties, divStyles]);
 			
-			var parentObject = globalFlashMap.layers[div.properties.content.properties.name],
-				parentStyle = div.properties.content.properties.styles[0],
+			var parentObject = globalFlashMap.layers[elemProperties.name],
+				parentStyle = elemProperties.styles[0],
 				minZoomInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','MinZoom'],['css','width','30px'],['attr','value', parentStyle.MinZoom || 1]]),
 				maxZoomInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','MaxZoom'],['css','width','30px'],['attr','value', parentStyle.MaxZoom || 21]]),
 				liMinZoom = _li([_div([_table([_tbody([_tr([_td([_span([_t("Мин. зум")],[['css','fontSize','12px']])],[['css','width','100px']]),_td([minZoomInput])])])])])]),
@@ -4951,12 +4951,12 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 			var pos = this.getDialogPos(div, true, 330),
 				closeFunc = function()
 				{
-					div.properties.content.properties.styles[0].MinZoom = minZoomInput.value;
-					div.properties.content.properties.styles[0].MaxZoom = maxZoomInput.value;
+					elemProperties.styles[0].MinZoom = minZoomInput.value;
+					elemProperties.styles[0].MaxZoom = maxZoomInput.value;
 					
 					delete _this.layerEditorsHash[elemProperties.name];
 					
-					_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+					_this.findTreeElem(div).elem.content.properties = elemProperties;
 					
 					// if (_this.drawingBorders.[elemProperties.name])
 					// {
@@ -6102,11 +6102,13 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent)
 		
 		var extMapHelper = new externalMapHelper(),
 			extLayersTree = new externalLayersTree();
+        // var extMapHelper = new mapHelper(),
+			// extLayersTree = new layersTree();
 		
 		extMapHelper.mapTree = treeJSON;
 		extLayersTree.mapHelper = extMapHelper;
 		
-		var	tree = extLayersTree.drawTree(treeJSON);
+		var	tree = extLayersTree.drawTree(treeJSON, 2);
 		$(tree).treeview();
 		extLayersTree.runLoadingFuncs();
 		

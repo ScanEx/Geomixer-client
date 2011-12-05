@@ -183,7 +183,7 @@ var layersTree = function()
 	
 	this.groupLoadingFuncs = [];
 		
-	this.copiedStyle = null;
+	//this.copiedStyle = null;
 }
 
 // layerManagerFlag == 0 для дерева слева
@@ -3004,22 +3004,10 @@ queryMapLayers.prototype.deleteMapHandler = function(response, id)
 		}, _mapsTable.vals);
 		
 		_mapsTable.setValues(filteredValues);
-		
-		
-		// _mapsTable.vals = _filter(function(elem)
-		// {
-			// return elem.MapID != id;
-		// }, _mapsTable.vals);
-		
-		// _mapsTable.currVals = _filter(function(elem)
-		// {
-			// return elem.MapID != id;
-		// }, _mapsTable.currVals);
-		
+				
 		_mapsTable.start = 0;
 		_mapsTable.reportStart = _mapsTable.start * _mapsTable.limit;
 		
-		//_mapsTable.drawTable(_mapsTable.currVals);
 		_mapsTable.drawFilterTable();
 	}
 	else
@@ -3032,7 +3020,14 @@ queryMapLayers.prototype.loadMapJSON = function(host, name, parent)
 	
 	loadMapJSON(host, name, function(layers)
 	{
-		var ul = _layersTree.drawTree(layers, 2);
+		var previewMapHelper = new mapHelper();
+        var previewLayersTree = new layersTree();
+		
+		previewMapHelper.mapTree = layers;
+		previewLayersTree.mapHelper = previewMapHelper;
+        
+        var ul = previewLayersTree.drawTree(layers, 2);
+        // var ul = _layersTree.drawTree(layers, 2);
 		
 		$(ul).treeview();
 		
