@@ -2122,8 +2122,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			FlashMapObject.prototype.setVisible = function(flag) {
 				FlashCMD('setVisible', { 'obj': this, 'attr': flag });
 				var val = (flag ? true : false);
-				if(this.isVisible != val) chkListeners('onChangeVisible', this, val);	// ֲûחמג Listeners סמבûעטÿ 'onChangeVisible'
+				var prev = this.isVisible;
 				this.isVisible = val;
+				if(prev != val) chkListeners('onChangeVisible', this, val);	// ֲûחמג Listeners סמבûעטÿ 'onChangeVisible'
 			}
 			FlashMapObject.prototype.getDepth = function(attr) { return FlashCMD('getDepth', { 'obj': this }); }
 			FlashMapObject.prototype.delClusters = function(attr) { return FlashCMD('delClusters', { 'obj': this }); }
