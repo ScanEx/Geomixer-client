@@ -6100,10 +6100,8 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent)
 			return;
 		}
 		
-		var extMapHelper = new externalMapHelper(),
-			extLayersTree = new externalLayersTree();
-        // var extMapHelper = new mapHelper(),
-			// extLayersTree = new layersTree();
+        var extMapHelper = new mapHelper(),
+			extLayersTree = new layersTree({showVisibilityCheckbox: true, allowActive: false, allowDblClick: true});
 		
 		extMapHelper.mapTree = treeJSON;
 		extLayersTree.mapHelper = extMapHelper;

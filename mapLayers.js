@@ -164,8 +164,18 @@ AbstractTree.prototype.swapNode = function(node, newNodeCanvas)
 
 var _abstractTree = new AbstractTree();
 
-var layersTree = function()
+//renderParams:
+//  * showVisibilityCheckbox {Bool} - показывать или нет checkbox видимости
+//  * allowActive {Bool} - возможен ли в дереве активный элемент
+//  * allowDblClick {Bool} - переходить ли по двойному клику к видимому экстенту слоя/группы
+var layersTree = function( renderParams )
 {
+    this._renderParams = $.extend({
+        showVisibilityCheckbox: true, 
+        allowActive: true, 
+        allowDblClick: true
+    }, renderParams);
+    
 	// тип узла
 	this.type = null;
 	
@@ -441,7 +451,8 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	var box, 
 		_this = this;
 	
-	if (!layerManagerFlag)
+	//if (!layerManagerFlag)
+	if (this._renderParams.showVisibilityCheckbox)
 	{
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 		
@@ -471,54 +482,61 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	
 	var span = _span([_t(elem.title)], [['dir','className','layer'],['attr','dragg',true]]);
 	
-	if (!layerManagerFlag)
-	{
-		var timer = null,
-			clickFunc = function()
-			{
-				_this.setActive(span);
-				
-				var box = span.parentNode.parentNode.firstChild;
-				
-				box.checked = true;
-				
-				var parentParams = _this.getParentParams(span.parentNode.parentNode.parentNode);
-				
-				_this.visibilityFunc(box, true, parentParams.list);
-			},
-			dbclickFunc = function()
-			{
-				var layer = globalFlashMap.layers[elem.name];
-			
-				if (layer)
-				{
-					var minLayerZoom = _this.getMinLayerZoom(layer);
-					
-					_this.layerZoomToExtent(layer.bounds, minLayerZoom);
-				}
-			};
-		
-		span.onclick = function()
-		{
-			if (timer)
-				clearTimeout(timer);
-			
-			timer = setTimeout(clickFunc, 200)
-		}
-		
-		span.ondblclick = function()
-		{
-			if (timer)
-				clearTimeout(timer);
-			
-			timer = null;
-			
-			clickFunc();
-			dbclickFunc();
-		}
-		
-		disableSelection(span);
-	}
+	// if (!layerManagerFlag)
+	// {
+    var timer = null,
+        clickFunc = function()
+        {
+            if (_this._renderParams.allowActive)
+                _this.setActive(span);
+            
+            if (_this._renderParams.showVisibilityCheckbox)
+            {
+                var box = span.parentNode.parentNode.firstChild;
+                
+                box.checked = true;
+                
+                var parentParams = _this.getParentParams(span.parentNode.parentNode.parentNode);
+                
+                _this.visibilityFunc(box, true, parentParams.list);
+            }
+        },
+        dbclickFunc = function()
+        {
+            var layer = globalFlashMap.layers[elem.name];
+        
+            if (layer)
+            {
+                var minLayerZoom = _this.getMinLayerZoom(layer);
+                
+                _this.layerZoomToExtent(layer.bounds, minLayerZoom);
+            }
+        };
+    
+    span.onclick = function()
+    {
+        if (timer)
+            clearTimeout(timer);
+        
+        timer = setTimeout(clickFunc, 200)
+    }
+    
+    if (this._renderParams.allowDblClick)
+    {
+        span.ondblclick = function()
+        {
+            if (timer)
+                clearTimeout(timer);
+            
+            timer = null;
+            
+            clickFunc();
+            dbclickFunc();
+        }
+    }
+    
+    disableSelection(span);
+	// }
 	
 	var spanParent = _div([span],[['attr','titleDiv',true],['css','display',($.browser.msie) ? 'inline' : 'inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		spanDescr = _span(null,[['dir','className','layerDescription']]);
@@ -557,8 +575,10 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 				_this.mapHelper.createLayerEditor(this.parentNode, 1,  icon.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
 			}
 			
-			return [box, icon, spanParent, spanDescr, multiStyleParent];
 		}
+        
+        if (this._renderParams.showVisibilityCheckbox)
+			return [box, icon, spanParent, spanDescr, multiStyleParent];
 		else
 			return [icon, spanParent, spanDescr, multiStyleParent];
 	}
@@ -581,7 +601,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			}
 		}
 		
-		if (!layerManagerFlag)
+		if (this._renderParams.showVisibilityCheckbox)
 			return [box, spanParent, spanDescr, borderDescr];
 		else
 			return [spanParent, spanDescr, borderDescr];
@@ -785,22 +805,26 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 		var timer = null,
 			clickFunc = function()
 			{
-				_this.setActive(span);
+                if (_this._renderParams.allowActive)
+                    _this.setActive(span);
 				
-				var box = span.parentNode.parentNode.firstChild;
-				
-				box.checked = true;
-				
-                if (!box.isDummyCheckbox)
+                if (_this._renderParams.showVisibilityCheckbox)
                 {
-                    var parentParams = _this.getParentParams(span.parentNode.parentNode.parentNode);
-                    _this.visibilityFunc(box, true, parentParams.list);
+                    var box = span.parentNode.parentNode.firstChild;
+                    
+                    box.checked = true;
+                    
+                    if (!box.isDummyCheckbox)
+                    {
+                        var parentParams = _this.getParentParams(span.parentNode.parentNode.parentNode);
+                        _this.visibilityFunc(box, true, parentParams.list);
+                    }
+                        
+                    var clickDiv = $(span.parentNode.parentNode.parentNode).children("div.hitarea");
+                        
+                    if (clickDiv.length)
+                        $(clickDiv[0]).trigger("click");
                 }
-					
-				var clickDiv = $(span.parentNode.parentNode.parentNode).children("div.hitarea");
-					
-				if (clickDiv.length)
-					$(clickDiv[0]).trigger("click");
 			},
 			dbclickFunc = function()
 			{
@@ -844,16 +868,19 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 			timer = setTimeout(clickFunc, 200)
 		}
 		
-		span.ondblclick = function()
-		{
-			if (timer)
-				clearTimeout(timer);
-			
-			timer = null;
-			
-			clickFunc();
-			dbclickFunc();
-		}
+        if (this._renderParams.allowDblClick)
+        {
+            span.ondblclick = function()
+            {
+                if (timer)
+                    clearTimeout(timer);
+                
+                timer = null;
+                
+                clickFunc();
+                dbclickFunc();
+            }
+        }
 		
 		disableSelection(span);
 	}
@@ -898,7 +925,8 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 
 	span.onclick = function()
 	{
-		_this.setActive(this);
+		if (_this._renderParams.allowActive)
+            _this.setActive(this);
 	}
 	
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Map', function()
@@ -1747,7 +1775,7 @@ layersTree.prototype.updateMapLayersVisibility = function(li)
 	})
 }
 
-var _layersTree = new layersTree();
+var _layersTree = new layersTree({showVisibilityCheckbox: true, allowActive: true, allowDblClick: true});
 _layersTree.mapHelper = _mapHelper;
 
 var queryMapLayers = function()
@@ -3021,7 +3049,7 @@ queryMapLayers.prototype.loadMapJSON = function(host, name, parent)
 	loadMapJSON(host, name, function(layers)
 	{
 		var previewMapHelper = new mapHelper();
-        var previewLayersTree = new layersTree();
+        var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false});
 		
 		previewMapHelper.mapTree = layers;
 		previewLayersTree.mapHelper = previewMapHelper;
