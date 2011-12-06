@@ -372,15 +372,31 @@ layersTree.prototype.addExpandedEvents = function(parent)
 layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, parentVisibility)
 {
 	var div;
+    var _this = this;
 
 	if (elem.type == "layer")
 	{
-		var childs = this.drawLayer(!layerManagerFlag ? globalFlashMap.layers[elem.content.properties.name].properties : elem.content.properties, parentParams, layerManagerFlag, parentVisibility);
+        var elemProperties = !layerManagerFlag ? globalFlashMap.layers[elem.content.properties.name].properties : elem.content.properties;
+		var childs = this.drawLayer(elemProperties, parentParams, layerManagerFlag, parentVisibility);
 		
 		if (typeof elem.content.properties.LayerID != 'undefined')
 			div = _div(childs, [['attr','LayerID',elem.content.properties.LayerID]]);
 		else
 			div = _div(childs, [['attr','MultiLayerID',elem.content.properties.MultiLayerID]]);
+            
+        if (this._renderParams.showVisibilityCheckbox)
+        {
+            globalFlashMap.layers[elemProperties.name].addMapStateListener("onChangeVisible", function(attr)
+            {
+                var box = div.firstChild;
+                if (attr != box.checked)
+                {
+                    box.checked = attr;
+                    var parentParams = _this.getParentParams(div.parentNode);
+                    _this.visibilityFunc(box, box.checked, parentParams.list);
+                }
+            });
+        }
 		
 		var multiStyleParent = $(childs).children('[multiStyle]');
 		
@@ -390,7 +406,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 	//		$(childs[childs.length - 1]).treeview();
 		
 		div.properties = elem;
-		div.properties.content.properties = !layerManagerFlag ? globalFlashMap.layers[elem.content.properties.name].properties : elem.content.properties;
+		div.properties.content.properties = elemProperties;
 	}
 	else
 	{
@@ -468,16 +484,6 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			_this.visibilityFunc(this, this.checked, parentParams.list);
 		}
-        
-        globalFlashMap.layers[elem.name].addMapStateListener("onChangeVisible", function(attr)
-        {
-            if (attr != box.checked)
-            {
-                box.checked = attr;
-                var parentParams = _this.getParentParams(box.parentNode.parentNode);
-                _this.visibilityFunc(box, box.checked, parentParams.list);
-            }
-        });
 	}
 	
 	var span = _span([_t(elem.title)], [['dir','className','layer'],['attr','dragg',true]]);
@@ -1497,8 +1503,9 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 	
 	this.mapHelper.updateUnloadEvent(true);
 }
-layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag)
+layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag, addToMap)
 {
+    var _this = this;
 	var isFromList = typeof spanSource.parentNode.parentNode.properties.content.geometry === 'undefined';
 	var layerProperties = (spanSource.parentNode.parentNode.properties.type !== 'layer' || !isFromList) ? spanSource.parentNode.parentNode.properties : false,
 		copyFunc = function()
@@ -1507,14 +1514,30 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 			if (layerProperties.type == 'layer' && isFromList)
 				layerProperties.content.geometry = from_merc_geometry(layerProperties.content.geometry);
 			
-			if (!_this.addLayersToMap(layerProperties))
-				return;
+			if (addToMap)
+            {
+                if ( !_this.addLayersToMap(layerProperties) )
+                    return;
+            }
+            else
+            {
+                if ( _this.mapHelper.findTreeElem(spanSource.parentNode.parentNode) )
+                {
+                    if (layerProperties.type === 'layer')
+                        showErrorMessage(_gtxt("Слой '[value0]' уже есть в карте", layerProperties.content.properties.title), true)
+                    else
+                        showErrorMessage(_gtxt("Группа '[value0]' уже есть в карте", layerProperties.content.properties.title), true)
+                        
+                    return;
+                }
+                    
+            }
 			
 			var node = divDestination.parentNode,
-				parentProperties = (typeof swapFlag != 'undefined' && swapFlag) ? $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0].properties : divDestination.properties,
+				parentProperties = swapFlag ? $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0].properties : divDestination.properties,
 				li;
 			
-			if (typeof swapFlag != 'undefined' && swapFlag)
+			if (swapFlag)
 			{
 				var parentDiv = $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0];
 				
@@ -1566,7 +1589,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 			
 			_queryMapLayers.addSwappable(li);
 			
-			if (typeof swapFlag != 'undefined' && swapFlag)
+			if (swapFlag)
 			{
 				var divElem = $(divDestination.parentNode).children("div[GroupID],div[LayerID],div[MultiLayerID]")[0],
 					divParent = $(divDestination.parentNode.parentNode.parentNode).children("div[MapID],div[GroupID]")[0],
@@ -1681,8 +1704,7 @@ layersTree.prototype.addLayersToMap = function(elem)
 		}
 		else
 		{
-			showErrorMessage("Слой " + globalFlashMap.layers[name].properties.title + " уже есть в карте", true)
-			
+			showErrorMessage( _gtxt("Слой '[value0]' уже есть в карте", globalFlashMap.layers[name].properties.title), true );
 			return false;
 		}
 	}
@@ -2123,16 +2145,20 @@ queryMapLayers.prototype.addDroppable = function(parent)
 			
 		if (circle) return;
 			
+        var isFromExternalMaps = false;
 		$(ui.draggable[0].parentNode.parentNode).parents().each(function()
 		{
-			if (this == $$('layersList') || this == $$('mapsList'))
+			if (this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
 				layerManager = true;
+                
+            if ( this == $$('externalMapsCanvas') )
+                isFromExternalMaps = true;
 		})
 		
 		if (!layerManager)
 			_layersTree.moveHandler(ui.draggable[0], this)
 		else				
-			_layersTree.copyHandler(ui.draggable[0], this)
+			_layersTree.copyHandler(ui.draggable[0], this, false, !isFromExternalMaps)
 	}})
 }
 queryMapLayers.prototype.removeDroppable = function(parent)
@@ -2160,18 +2186,22 @@ queryMapLayers.prototype.addSwappable = function(parent)
         
         if (circle) return;
 		
-		var layerManager = false;	
+		var layerManager = false;
 		
+        var isFromExternalMaps = false;
 		$(ui.draggable[0].parentNode.parentNode).parents().each(function()
 		{
-			if (this == $$('layersList') || this == $$('mapsList'))
+			if ( this == $$('layersList') || this == $$('mapsList') || this == $$('externalMapsCanvas') )
 				layerManager = true;
+                
+            if ( this == $$('externalMapsCanvas') )
+                isFromExternalMaps = true;
 		})
 		
 		if (!layerManager)
 			_layersTree.swapHandler(ui.draggable[0], this)
-		else				
-			_layersTree.copyHandler(ui.draggable[0], this, true)
+		else
+			_layersTree.copyHandler(ui.draggable[0], this, true, !isFromExternalMaps)
 	}})
 }
 queryMapLayers.prototype.removeSwappable = function(parent)
@@ -2706,9 +2736,9 @@ queryMapLayers.prototype.drawLayers = function(layer, params)
 			var active = $(_this.buildedTree).find(".active");
 			
 			if (active.length && (active[0].parentNode.getAttribute('MapID') || active[0].parentNode.getAttribute('GroupID')))
-				_layersTree.copyHandler($(res).find("span[dragg]")[0], active[0].parentNode)
+				_layersTree.copyHandler($(res).find("span[dragg]")[0], active[0].parentNode, false, true)
 			else
-				_layersTree.copyHandler($(res).find("span[dragg]")[0], $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0])
+				_layersTree.copyHandler($(res).find("span[dragg]")[0], $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0], false, true)
 		},
 		_this = this;
 	

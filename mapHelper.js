@@ -6109,9 +6109,11 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent)
 		var	tree = extLayersTree.drawTree(treeJSON, 2);
 		$(tree).treeview();
 		extLayersTree.runLoadingFuncs();
-		
+        
 		loading.removeNode(true);
 		_(parent, [tree]);
+        
+        _queryMapLayers.addDraggable(parent);
 		
 		parent.extLayersTree = extLayersTree;
 	});
