@@ -161,7 +161,7 @@ fileBrowser.prototype.loadInfoHandler = function(discs)
 
 fileBrowser.prototype.checkUploadVisibility = function()
 {
-	if (this.currentDir.indexOf(this.homeDir) == 0)
+	if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) || this.currentDir.indexOf(this.homeDir) == 0)
 	{
 		this.fileUpload.style.display = '';
 		this.tdAddFolder.style.display = '';
