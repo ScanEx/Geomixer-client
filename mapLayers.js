@@ -384,7 +384,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 		else
 			div = _div(childs, [['attr','MultiLayerID',elem.content.properties.MultiLayerID]]);
             
-        if (this._renderParams.showVisibilityCheckbox)
+        if (this._renderParams.showVisibilityCheckbox && layerManagerFlag !== 1)
         {
             globalFlashMap.layers[elemProperties.name].addMapStateListener("onChangeVisible", function(attr)
             {
