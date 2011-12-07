@@ -25,7 +25,7 @@ class VectorTilePainter
 		mapWindow = vectorLayerFilter.mapNode.window;
 		rasterSprite = Utils.addSprite(sprite);
 		vectorSprite = Utils.addSprite(sprite);
-		vectorSprite.cacheAsBitmap = true;
+//vectorSprite.cacheAsBitmap = true;
 //vectorSprite.opaqueBackground = 0x00ff00;
 		painter = new GeometryPainter(tileGeometry, vectorSprite, mapWindow);
 		sprite.name = tile.z + '_' + tile.i + '_' + tile.j;
@@ -90,11 +90,11 @@ class VectorTilePainter
 			if (cacheSprite == null)
 			{
 				cacheSprite = new Sprite();
-				cacheSprite.cacheAsBitmap = true;
+				//cacheSprite.cacheAsBitmap = true;
 				painter.repaintWithoutExtent(style, cacheSprite, vectorLayerFilter.layer.temporalCriterion);
+				rasterSprite.addChild(cacheSprite);
 			}
 
-			rasterSprite.addChild(cacheSprite);
 			if(!rasterSprite.visible) rasterSprite.visible = true;
 			if(vectorSprite.visible) vectorSprite.visible = false;
 		}

@@ -157,7 +157,7 @@ class MapWindow
 
 	public function repaintCacheBitmap()
 	{
-		if (cacheRepaintNeeded)
+		if (cacheRepaintNeeded && !Main.mousePressed)
 		{
 			var inv = matrix.clone();
 			inv.invert();

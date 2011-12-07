@@ -6,6 +6,7 @@ class PointGeometry extends Geometry
 	public var y:Float;
 	public static var MAX_POINTS_WIDH:Int = 500;	// ограничение размеров точки квадрат не более 1 км
 	public static var MAX_POINTS_COUNT:Int = 10000;	// ограничение действует при количестве точек в геометрии родителя
+	public static var MAX_POINTS_CACHEASBITMAP:Int = 500;	// количество точек в геометрии родителя при котором необходим флаг cacheAsBitmap
 
 	public function new(x_:Float, y_:Float)
 	{
@@ -22,16 +23,19 @@ class PointGeometry extends Geometry
 		var contains = attr.window.visibleExtent.contains(x, y);	// Точка в области видимости
 		if (contains)
 		{
-			var style:Style = attr.style;
-			if(propHiden.exists('_paintStyle')) style = propHiden.get('_paintStyle');
-			putPoint(attr.sprite, style, attr.window, attr.parentNumChildren);
+			putPoint(attr);
 		} else {
 			refreshFlag = true;
 		}
 	}
 
-	function putPoint(sprite:Sprite, style:Style, window:MapWindow, parentNumChildren:Int)
+	function putPoint(attr:Dynamic)
 	{
+		var sprite:Sprite = attr.sprite;
+		var style:Style = (propHiden.exists('_paintStyle') ? propHiden.get('_paintStyle') : attr.style);
+		var window:MapWindow = attr.window;
+		var parentNumChildren:Int = attr.parentNumChildren;
+		
 		var marker = style.marker;
 		if (marker != null)
 		{
@@ -52,6 +56,7 @@ class PointGeometry extends Geometry
 				{
 					size *= window.scaleY;
 					var dt:Int = cast(Math.abs(size));
+					if(parentNumChildren > MAX_POINTS_CACHEASBITMAP && !sprite.cacheAsBitmap) sprite.cacheAsBitmap = true;	// для убыстрения отрисовки тайлов
 					if(dt > MAX_POINTS_WIDH && parentNumChildren > MAX_POINTS_COUNT) dt = MAX_POINTS_WIDH;	// ограничение размеров точки
 					var graphics = sprite.graphics;
 					var drawer = new DashedLineDrawer(graphics, style.outline, window, properties);

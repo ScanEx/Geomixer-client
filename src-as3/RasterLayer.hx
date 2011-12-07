@@ -47,8 +47,8 @@ class RasterLayer extends MaskedContent
 		var dx:Float = myDx((vb.minx + vb.maxx)/2);
 		var dy:Float = myDy((vb.miny + vb.maxy)/2);
 
-		contentSprite.x = dx;
-		contentSprite.y = dy;
+		if(contentSprite.x != dx) contentSprite.x = dx;
+		if(contentSprite.y != dy) contentSprite.y = dy;
 
 		for (id in tiles.keys())
 		{

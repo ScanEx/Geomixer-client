@@ -6,7 +6,7 @@ class DashedLineDrawer
 {
 	var x:Float;
 	var y:Float;
-	var t:Float;
+	//var t:Float;
 	var penIsVisible:Bool;
 	var graphics:Graphics;
 	var outline:OutlineStyle;
