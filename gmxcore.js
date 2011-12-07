@@ -126,6 +126,24 @@ var gmxCore = function()
 		getModulePath: function(moduleName)
 		{
 			return _modulePathes[moduleName];
-		}
+		},
+        // Returns function, which will do the following:
+        //   - If module "moduleName" is not loaded, load it. 
+        //   - Than just call function "functionName" from it, passing all the arguments into that function.
+        // Returned from the function values are passed to optional callback "callback".
+        createDeferredFunction: function(moduleName, functionName, callback)
+        {
+            var _this = this;
+            return function()
+            {
+                var args = arguments;
+                _this.loadModule(moduleName);
+                _this.addModulesCallback([moduleName], function(module)
+                {
+                    var res = module[functionName].apply(this, args);
+                    callback && callback(res);
+                });
+            }
+        }
     }
 }();
