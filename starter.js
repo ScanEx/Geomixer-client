@@ -488,7 +488,7 @@ function addCommonCalendar()
         var calendar = new nsGmx.Calendar();
         calendar.init('TemporalLayersCommon', {
             minimized: true,
-            dateMin: new Date(2010, 01, 01),
+            dateMin: new Date(2000, 01, 01),
             dateMax: new Date(),
             resourceHost: 'http://maps.kosmosnimki.ru/api/',
             showTime: false
