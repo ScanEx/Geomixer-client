@@ -1,94 +1,112 @@
-var drawingObjects = 
-{
-	drawingObjects : {},
-	loadShp: {}
+/** 
+* @name DrawingObjects
+* @namespace SDK для редактирования объектов на карте
+* @description SDK для редактирования объектов на карте
+*/
+(function($){
+
+var IsAttached = false;
+var AttachEvents = function(){
+	if (IsAttached) return;
+	window.globalFlashMap.drawing.setHandlers({
+		onEdit: function(elem){
+			$(elem).triggerHandler('onEdit', [elem]);
+		},
+		onRemove: function(elem){
+			$(elem).triggerHandler('onRemove', [elem]);
+		}
+	});
+	IsAttached = true;
 }
 
-
-var queryDrawingObjects = function()
-{
-	this.builded = false;
-	
-	this.objectsCanvas = null;
-	this.downloadCanvas = null;
-	
-	this.downloadVectorForm = null;
-	
-	this.downloadRasterCanvas = null;
-	
-	this.count = 0;
-}
-
-queryDrawingObjects.prototype = new leftMenu();
-
-queryDrawingObjects.prototype.createCanvas = function()
-{
-	this.objectsCanvas = _div(null, [['dir','className','drawingObjectsCanvas']]);
-	this.downloadCanvas = _div(null, [['dir','className','drawingObjectsDownloadCanvas']]);
-	
-	this.downloadVectorForm = _form([_input(null,[['attr','name','points']]),
-									 _input(null,[['attr','name','lines']]),
-									 _input(null,[['attr','name','polygons']])], [['css','display','none'],['attr','method','POST'],['attr','action',serverBase + "Shapefile.ashx"]]);
-	
+/** Конструктор
+ @class Коллекция нарисованных объектов
+ @memberOf DrawingObjects */
+var DrawingObjectColletection = function() {
+	var _objects = [];
 	var _this = this;
 	
-	var downloadVector = makeLinkButton(_gtxt("Скачать shp-файл"));
-	downloadVector.onclick = function()
-	{
-		_this.downloadMarkers();
+	var onEdit = function(event, drawingObject) {
+		/** Вызывается при изменении объекта в коллекции
+		@name DrawingObjects.DrawingObjectColletection.onEdit
+		@event
+		@param {drawingObject} drawingObject изменённый объект*/
+		$(_this).triggerHandler('onEdit', [drawingObject]);
 	}
 	
-	var downloadRaster = makeLinkButton(_gtxt("Скачать фрагмент растра"));
-	downloadRaster.onclick = function()
-	{
-		_this.downloadRasters();
+	var onRemove = function(event, drawingObject) {
+		_this.Remove(drawingObject);
 	}
 	
-	var delAll = makeLinkButton(_gtxt("Очистить"));
-	delAll.onclick = function()
-	{
-		globalFlashMap.drawing.forEachObject(function(obj) { obj.remove(); }); 
+	/** Возвращает элемент по номеру
+	@param {int} index № объекта в коллекции*/
+	this.Item = function(index){
+		return _objects[index];
+	}
+	
+	/** Возвращает количество элементов в коллекции*/
+	this.Count = function(){
+		return _objects.length;
+	}
+	
+	/** Добавляет объект в коллекцию
+	@param {drawingObject} drawingObject Добавляемый объект*/
+	this.Add = function(drawingObject){
+		_objects.push(drawingObject);
+		$(drawingObject).bind('onEdit', onEdit);
+		$(drawingObject).bind('onRemove', onRemove);
 		
-		return false;
-	}
+		/** Вызывается при добавлении объекта в коллекцию
+		@name DrawingObjects.DrawingObjectColletection.onAdd
+		@event
+		@param {drawingObject} drawingObject добавленный объект*/
+		$(this).triggerHandler('onAdd', [drawingObject]);
+	};
 	
-	hide(this.downloadCanvas);
-	
-	_(this.downloadCanvas, [_div([downloadVector])]);
-	
-	if (_mapHelper.mapProperties.CanDownloadRasters)
-	{
-		this.downloadRasterCanvas = _div([downloadRaster]);
-		this.downloadRasterCanvas.style.display = 'none';
+	/** Удаляет объект из коллекции
+	@param {int} index индекс удаляемого объекта*/
+	this.RemoveAt = function(index){
+		var drawingObject = _objects.splice(index, 1)[0];
+		$(drawingObject).unbind('onEdit', onEdit);
+		$(drawingObject).unbind('onRemove', onRemove);
 		
-		_(this.downloadCanvas, [this.downloadRasterCanvas]);
-	}
+		/** Вызывается при удалении объекта из коллекции
+		@name DrawingObjects.DrawingObjectColletection.onRemove
+		@event
+		@param {int} index индекс удаляённого объекта*/
+		$(this).triggerHandler('onRemove', [index]);
+	};
 	
-	_(this.downloadCanvas, [_div([delAll]), this.downloadVectorForm]);
+	/** Удаляет объект из коллекции
+	@param {drawingObject} drawingObject удаляемый объект*/
+	this.Remove = function(drawingObject){
+		for (var i=0; i<_objects.length; i++){
+			if (_objects[i] === drawingObject) this.RemoveAt(i);
+		}
+	}
 }
 
-queryDrawingObjects.prototype.onAdd = function(elem)
-{
-	if (nsGmx.DrawingObjectCustomControllers.isHidden(elem))
-		return;
-		
-	if (!$$('left_objects') ||
-		$$('left_objects').style.display == 'none')
-		drawingObjects.drawingObjects.load();
+/** Конструктор
+ @class Строка с описанием объекта и ссылкой на него
+ @param oInitContainer Объект, в котором находится контрол (div) 
+ @param drawingObject Объект для добавления на карту*/
+var DrawingObjectInfoRow = function(oInitContainer, drawingObject) {
+	var _drawingObject = drawingObject;
+	var _this = this;
 	
-	elem.canvas = _div(null, [['dir','className','canvas']]);
-	elem.title = _span(null, [['dir','className','title']]);
-	elem.text = _span(null, [['dir','className','text']]);
-	elem.summary = _span(null, [['dir','className','summary']]);
+	var _canvas = _div(null, [['dir','className','drawingObjectsItemCanvas']]);
+	var _title = _span(null, [['dir','className','drawingObjectsItemTitle']]);
+	var _text = _span(null, [['dir','className','text']]);
+	var _summary = _span(null, [['dir','className','summary']]);
 	
-	elem.text.onclick = elem.title.onclick = function()
+	_text.onclick = _title.onclick = function()
 	{
-		var bounds = getBounds(elem.geometry.coordinates),
+		var bounds = getBounds(_drawingObject.geometry.coordinates),
 			curZ = globalFlashMap.getZ();
 		
 		globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
 		
-		if (elem.geometry.type == "POINT")
+		if (_drawingObject.geometry.type == "POINT")
 			globalFlashMap.moveTo(globalFlashMap.getX(), globalFlashMap.getY(), Math.max(14, curZ));
 	}
 	
@@ -99,25 +117,25 @@ queryDrawingObjects.prototype.onAdd = function(elem)
 		},
 		icon = null;
 	
-	if (elem.geometry.type == "POINT")
+	if (_drawingObject.geometry.type == "POINT")
 	{
 		icon = _img(null, [['attr','src','img/flag_min.png']])
 	}
 	else
 	{
-		icon = _mapHelper.createDrawingStylesEditorIcon(regularDrawingStyle, elem.geometry.type.toLowerCase());
-		_mapHelper.createDrawingStylesEditor(elem, regularDrawingStyle, icon);
+		icon = _mapHelper.createDrawingStylesEditorIcon(regularDrawingStyle, _drawingObject.geometry.type.toLowerCase());
+		_mapHelper.createDrawingStylesEditor(_drawingObject, regularDrawingStyle, icon);
 	}
 	
 	var remove = makeImageButton('img/closemin.png','img/close_orange.png')
-	remove.onclick = function()
-	{
-		elem.remove();
-	}
+	remove.setAttribute('title', _gtxt('Удалить'));
+	remove.className = 'removeGeometry';
+	remove.onclick = function(){ $(_this).triggerHandler('onRemove', [_drawingObject]); }
 	
-	remove.className = 'remove';		
-	
-	_(elem.canvas, [_div([icon, elem.title, elem.text, elem.summary], [['dir','className','item']]), remove]);
+	$(_drawingObject).bind('onRemove', function() { _this.RemoveRow();});
+	$(_drawingObject).bind('onEdit', function() { _this.UpdateRow();});
+			
+	_(_canvas, [_div([icon, _title, _text, _summary], [['dir','className','drawingObjectsItem']]), remove]);
 	
 	if ($.browser.msie)
 	{
@@ -125,265 +143,306 @@ queryDrawingObjects.prototype.onAdd = function(elem)
 		icon.style.marginRight = '9px';
 	}
 	
-	_(_queryDrawingObjects.objectsCanvas, [elem.canvas])
+	_(oInitContainer, [_canvas])
 	
-	_queryDrawingObjects.onEdit(elem);
-
-	show(_queryDrawingObjects.downloadCanvas);
-	
-	_queryDrawingObjects.count++;
-	
-	if (_queryDrawingObjects.downloadRasterCanvas && isRectangle(elem.geometry.coordinates))
-		_queryDrawingObjects.downloadRasterCanvas.style.display = '';
-}
-
-queryDrawingObjects.prototype.onEdit = function(elem)
-{
-	if (!elem.canvas) return;
-	
-	var type = elem.geometry.type,
-		coords = elem.geometry.coordinates,
-		text = elem.properties.text;
-	
-	removeChilds(elem.title);
-	removeChilds(elem.text);
-	removeChilds(elem.summary);
-	
-	if (type == "POINT")
-	{
-		_(elem.title, [_t(_gtxt("точка"))]);
-		_(elem.summary, [_t("(" + formatCoordinates(merc_x(coords[0]), merc_y(coords[1])) + ")")]);
-	}
-	else if (type == "LINESTRING")
-	{
-		_(elem.title, [_t(_gtxt("линия"))]);
-		_(elem.summary, [_t("(" + prettifyDistance(geoLength(coords)) + ")")]);
-	}
-	else if (type == "POLYGON")
-	{
-		_(elem.title, [_t(isRectangle(coords) ? _gtxt("прямоугольник") : _gtxt("многоугольник"))]);
-		_(elem.summary, [_t("(" + prettifyArea(geoArea(coords)) + ")")]);
-	}
-	
-	_(elem.text, [_t(text ? text.replace(/<[^<>]*>/g, " ") : "")])
-	
-	if (text)
-		elem.title.style.display = 'none';
-	else
-		elem.title.style.display = '';
-}
-
-queryDrawingObjects.prototype.onRemove = function(elem)
-{
-	if (!elem.canvas) return;
-	
-	_queryDrawingObjects.count--;
-	
-	elem.canvas.removeNode(true)
-	
-	if (_queryDrawingObjects.count == 0)
-		hide(_queryDrawingObjects.downloadCanvas);
-	
-	if (_queryDrawingObjects.downloadRasterCanvas)
-	{
-		var rectCount = 0;
+	/** Обновляет информацию о геометрии */
+	this.UpdateRow = function(){
+		var type = _drawingObject.geometry.type,
+			coords = _drawingObject.geometry.coordinates,
+			text = _drawingObject.properties.text;
+			
+		removeChilds(_title);
+		removeChilds(_text);
+		removeChilds(_summary);
 		
-		globalFlashMap.drawing.forEachObject(function(ret)
+		if (type == "POINT")
 		{
-			if (isRectangle(ret.geometry.coordinates))
-				rectCount++;
-		})
+			_(_title, [_t(_gtxt("точка"))]);
+			_(_summary, [_t("(" + formatCoordinates(merc_x(coords[0]), merc_y(coords[1])) + ")")]);
+		}
+		else if (type == "LINESTRING")
+		{
+			_(_title, [_t(_gtxt("линия"))]);
+			_(_summary, [_t("(" + prettifyDistance(geoLength(coords)) + ")")]);
+		}
+		else if (type == "POLYGON")
+		{
+			_(_title, [_t(isRectangle(coords) ? _gtxt("прямоугольник") : _gtxt("многоугольник"))]);
+			_(_summary, [_t("(" + prettifyArea(geoArea(coords)) + ")")]);
+		}
 		
-		if (rectCount == 1 && elem.geometry.type == 'POLYGON' && isRectangle(elem.geometry.coordinates))
-			_queryDrawingObjects.downloadRasterCanvas.style.display = 'none';
+		_(_text, [_t(text ? text.replace(/<[^<>]*>/g, " ") : "")])
+		
+		if (text)
+			_title.style.display = 'none';
+		else
+			_title.style.display = '';
 	}
+	
+	/** Удаляет строчку */
+	this.RemoveRow = function(){
+		_canvas.parentNode.removeChild(_canvas);
+	}
+	
+	this.UpdateRow ();
+	//if (_queryDrawingObjects.downloadRasterCanvas && isRectangle(_drawingObject.geometry.coordinates))
+	//	_queryDrawingObjects.downloadRasterCanvas.style.display = '';
 }
 
-queryDrawingObjects.prototype.attachMapDrawingEvents = function()
-{
+/** Конструктор
+ @class Строка с описанием объекта и ссылкой на него
+ @param {documentElement} oInitContainer Объект, в котором находится контрол (div) 
+ @param {drawingObject} drawingObject Объект для добавления на карту*/
+var DrawingObjectList = function(oInitContainer, oInitDrawingObjectColletection){
 	var _this = this;
+	var _rows = [];
+	var _containers = [];
+	var _collection = oInitDrawingObjectColletection;
+	var _container = oInitContainer;
+	var _divList = _div(null, [['dir', 'className', 'DrawingObjectList']]);
+	var _divButtons = _div();
 	
-	window.globalFlashMap.drawing.setHandlers(
-	{
-		onAdd: this.onAdd,
-		onEdit: function(elem)
-		{
-			_this.onEdit(elem);
-			
-			if (elem.geometry.type == 'POLYGON' &&
-				_mapHelper.drawingBorders.length() > 0)
-			{
-				_mapHelper.drawingBorders.forEach(function(name, obj)
-				{
-					if (obj.canvas == elem.canvas)
-						_mapHelper.drawingBorders.updateBorder(name);
-				});
-			}
-			
-			for (var name in _attrsTableHash.hash)
-				for (var ogc_fid in _attrsTableHash.hash[name].drawingBorders)
-					if (_attrsTableHash.hash[name].drawingBorders[ogc_fid].canvas == elem.canvas)
-						_attrsTableHash.hash[name].updateObjectGeometry(ogc_fid.replace('ogc_fid',''));
-		},
-		onRemove: function(elem)
-		{
-			_this.onRemove(elem);
-			
-			if (elem.geometry.type == 'POLYGON' &&
-				_mapHelper.drawingBorders.length() > 0)
-			{
-				_mapHelper.drawingBorders.forEach(function(name, obj)
-				{
-					if (obj.canvas == elem.canvas)
-						_mapHelper.drawingBorders.removeRoute(name);
-				});
-			}
-			
-			for (var name in _attrsTableHash.hash)
-				for (var ogc_fid in _attrsTableHash.hash[name].drawingBorders)
-					if (_attrsTableHash.hash[name].drawingBorders[ogc_fid].canvas == elem.canvas)
-						_attrsTableHash.hash[name].removeObjectGeometry(ogc_fid.replace('ogc_fid',''));
+	_downloadVectorForm = _form([_input(null,[['attr','name','points']]),
+								 _input(null,[['attr','name','lines']]),
+								 _input(null,[['attr','name','polygons']])], [['css','display','none'],['attr','method','POST'],['attr','action',"http://mapstest.kosmosnimki.ru/" + "Shapefile.ashx"]]);
+
+	
+	/** Добавляет объект в "список объектов на карте"
+	@param {drawingObject} drawingObject добавляемый объект */
+	this.Add = function(drawingObject){
+		var _divRow = _div();
+		_(_divList, [_divRow]);
+		var _row = new DrawingObjectInfoRow(_divRow, drawingObject);
+		_containers.push(_divRow);
+		_rows.push(_row);
+		$(_row).bind('onRemove', drawingObject.remove);
+		if (_collection.Count() == 1) show(_divButtons);
+	}
+	
+	/** При удалении объекта из списка
+	@param {object} event событие
+	@param {drawingObject} drawingObject удалённый объект*/
+	var onRemove = function(event, index){
+		if (_collection.Count() == 0) hide(_divButtons);
+		var removedDiv = _containers.splice(index, 1)[0];
+		_rows.splice(index, 1);
+		removedDiv.parentNode.removeChild(removedDiv);
+	}
+	
+	/** Очищает список пользовательских объектов*/
+	this.Clear = function(){
+		while (_collection.Count()>0){
+			_collection.Item(0).remove();
 		}
-	});
-}
-
-queryDrawingObjects.prototype.load = function()
-{
-	if (!this.builded)
-	{
-		_(this.workCanvas, [this.objectsCanvas, this.downloadCanvas])
-		
-		this.builded = true;
-	}
-}
-
-queryDrawingObjects.prototype.downloadMarkers = function()
-{		
-    var objectsByType = {},
-        markerIdx = 1;
-    
-    globalFlashMap.drawing.forEachObject(function(ret)
-    {
-        var type = ret.geometry.type;
-        
-        if (!objectsByType[type])
-            objectsByType[type] = [];
-        if (ret.geometry.type == "POINT" && ((ret.properties.text == "") || !ret.properties.text))
-        {
-            ret.properties.text = "marker " + markerIdx;
-            markerIdx++;
-        }
-        
-        objectsByType[type].push({ geometry: ret.geometry, properties: ret.properties });
-    });
-    
-    this.downloadVectorForm.childNodes[0].value = objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]) : '';
-    this.downloadVectorForm.childNodes[1].value = objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]) : '';
-    this.downloadVectorForm.childNodes[2].value = objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]) : '';
-    
-    this.downloadVectorForm.submit();
-}
-
-queryDrawingObjects.prototype.downloadRasters = function()
-{
-	var obj = false,
-		_this = this;
-	
-	globalFlashMap.drawing.forEachObject(function(elem)
-	{
-		var coords = elem.geometry.coordinates[0];
-		
-		if ((elem.geometry.type == "POLYGON") && (coords.length == 5) && ((coords[0][0] == coords[1][0]) || (coords[0][1] == coords[1][1])))
-			obj = elem;
-	});
-	
-	if (!obj)
-	{
-		showErrorMessage(_gtxt("Выберите область рамкой на карте"), true);
-		
-		return;
 	}
 	
-	var bounds = getBounds(obj.geometry.coordinates),
-		x1 = bounds.minX,
-		y1 = bounds.minY,
-		x2 = bounds.maxX,
-		y2 = bounds.maxY,
-		x = (x1 + x2) / 2,
-		y = (y1 + y2) / 2,
-		layer = false,
-		layersToTest = 0,
-		tryToFinish = function()
-		{
-			if (layersToTest == 0)
+	$(_collection).bind('onRemove', onRemove);
+	$(_collection).bind('onAdd', function(event, drawingObject){ 
+		_this.Add(drawingObject); 
+	});
+	
+	var downloadVector = makeLinkButton(_gtxt("Скачать shp-файл"));
+	downloadVector.onclick = function(){ 
+		downloadMarkers(); 
+	}
+	
+	var downloadRaster = makeLinkButton(_gtxt("Скачать фрагмент растра"));
+	downloadRaster.onclick = function(){
+		downloadRasters();
+	}
+	
+	var delAll = makeLinkButton(_gtxt("Очистить"));
+	delAll.onclick = this.Clear;
+	
+	_(_divButtons, [_div([downloadVector]), _div([downloadRaster, _downloadVectorForm]), _div([delAll])]);
+	_( oInitContainer, [_divList, _divButtons]);
+	if (_collection.Count() == 0) hide(_divButtons);
+	
+	/** Скачивает shp файл*/
+	var downloadMarkers = function(){		
+		var objectsByType = {},
+			markerIdx = 1;
+		
+		for (var i=0; i<_collection.Count(); i++){
+			var ret = _collection.Item(i);
+			var type = ret.geometry.type;
+			
+			if (!objectsByType[type])
+				objectsByType[type] = [];
+			if (ret.geometry.type == "POINT" && ((ret.properties.text == "") || !ret.properties.text))
 			{
-				if (layer)
+				ret.properties.text = "marker " + markerIdx;
+				markerIdx++;
+			}
+			
+			objectsByType[type].push({ geometry: ret.geometry, properties: ret.properties });
+		}
+		
+		_downloadVectorForm.childNodes[0].value = objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]) : '';
+		_downloadVectorForm.childNodes[1].value = objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]) : '';
+		_downloadVectorForm.childNodes[2].value = objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]) : '';
+		
+		_downloadVectorForm.submit();
+	}
+	
+	/** Скачивает растровые слои*/
+	var downloadRasters = function(){
+		var obj = false,
+			_this = this;
+		
+		for (var i=0; i<_collection.Count(); i++){
+			var elem = _collection.Item(i);
+			var coords = elem.geometry.coordinates[0];
+			
+			if ((elem.geometry.type == "POLYGON") && (coords.length == 5) && ((coords[0][0] == coords[1][0]) || (coords[0][1] == coords[1][1])))
+				obj = elem;
+		}
+		
+		if (!obj)
+		{
+			showErrorMessage(_gtxt("Выберите область рамкой на карте"), true);
+			
+			return;
+		}
+		
+		var bounds = getBounds(obj.geometry.coordinates),
+			x1 = bounds.minX,
+			y1 = bounds.minY,
+			x2 = bounds.maxX,
+			y2 = bounds.maxY,
+			x = (x1 + x2) / 2,
+			y = (y1 + y2) / 2,
+			layer = false,
+			layersToTest = 0,
+			tryToFinish = function()
+			{
+				if (layersToTest == 0)
 				{
-                    window.location.href = 
-                            serverBase + "DownloadLayer.ashx" + 
-                            "?t=" + layer.properties.name + 
-                            "&MinX=" + truncate9(Math.min(x1, x2)) + 
-                            "&MinY=" + truncate9(Math.min(y1, y2)) +
-                            "&MaxX=" + truncate9(Math.max(x1, x2)) + 
-                            "&MaxY=" + truncate9(Math.max(y1, y2)) + 
-                            "&Area=" + Math.ceil(fragmentArea([[x1, y1], [x1, y2], [x2, y2], [x2, y1]])/1000000);
+					if (layer)
+					{
+						window.location.href = 
+								serverBase + "DownloadLayer.ashx" + 
+								"?t=" + layer.properties.name + 
+								"&MinX=" + truncate9(Math.min(x1, x2)) + 
+								"&MinY=" + truncate9(Math.min(y1, y2)) +
+								"&MaxX=" + truncate9(Math.max(x1, x2)) + 
+								"&MaxY=" + truncate9(Math.max(y1, y2)) + 
+								"&Area=" + Math.ceil(fragmentArea([[x1, y1], [x1, y2], [x2, y2], [x2, y1]])/1000000);
+					}
+					else
+						showErrorMessage(_gtxt("К прямоугольнику не подходит ни одного растрового слоя"), true);
 				}
-				else
-					showErrorMessage(_gtxt("К прямоугольнику не подходит ни одного растрового слоя"), true);
 			}
+		
+		var testPolygon = function(polygon, x, y){
+			var testRing = function(ring, x, y)
+			{
+				var isInside = false;
+				for (var j = 0; j < ring.length - 1; j++)
+				{
+					var x1 = ring[j][0],
+						y1 = ring[j][1],
+						x2 = ring[j + 1][0],
+						y2 = ring[j + 1][1];
+					
+					if (((y1 >= y) != (y2 >= y)) && ((x1 + (x2 - x1)*(y - y1)/(y2 - y1)) > x))
+						isInside = !isInside;
+				}
+				
+				return isInside;
+			}
+			
+			for (var j = 0; j < polygon.length; j++)
+				if (testRing(polygon[j], x, y) != (j == 0))
+					return false;
+
+			return true;
 		}
-	
-	_mapHelper.forEachMyLayer(function(l)
-	{
-		if (l.properties.type != "Raster")
-			return;
-		if (!l.isVisible)
-			return;
-		if ((x < l.bounds.minX) || (x > l.bounds.maxX) || (y < l.bounds.minY) || (y > l.bounds.maxY))
-			return;
 
-		var coords = l.geometry.coordinates;
+		_mapHelper.forEachMyLayer(function(l)
+		{
+			if (l.properties.type != "Raster")
+				return;
+			if (!l.isVisible)
+				return;
+			if ((x < l.bounds.minX) || (x > l.bounds.maxX) || (y < l.bounds.minY) || (y > l.bounds.maxY))
+				return;
 
-		if (l.geometry.type == "POLYGON" && !_this.testPolygon(coords, x, y))
-			return;
-		else if (l.geometry.type == "MULTIPOLYGON")
-			for (var k = 0; k < coords.length; k++)
-				if (!_this.testPolygon(coords[k], x, y))
-					return;
-		if (l && (!layer || (l.properties.MaxZoom > layer.properties.MaxZoom)))
-			layer = l;
-	});
-	
-	tryToFinish();
+			var coords = l.geometry.coordinates;
+
+			if (l.geometry.type == "POLYGON" && !testPolygon(coords, x, y))
+				return;
+			else if (l.geometry.type == "MULTIPOLYGON")
+				for (var k = 0; k < coords.length; k++)
+					if (!testPolygon(coords[k], x, y))
+						return;
+			if (l && (!layer || (l.properties.MaxZoom > layer.properties.MaxZoom)))
+				layer = l;
+		});
+		
+		tryToFinish();
+	}
 }
 
-queryDrawingObjects.prototype.testRing = function(ring, x, y)
-{
-	var isInside = false;
-	for (var j = 0; j < ring.length - 1; j++)
-	{
-		var x1 = ring[j][0],
-			y1 = ring[j][1],
-			x2 = ring[j + 1][0],
-			y2 = ring[j + 1][1];
-		
-		if (((y1 >= y) != (y2 >= y)) && ((x1 + (x2 - x1)*(y - y1)/(y2 - y1)) > x))
-			isInside = !isInside;
+/** Конструктор
+ @class Встраивает список объектов на карте в геомиксер*/
+var DrawingObjectGeomixer = function() {
+	var _this = this;
+	var oMenu = new leftMenu();
+	var oListDiv = _div(null, [['dir', 'className', 'DrawingObjectsLeftMenu']]);
+	var bVisible = false;
+	
+	/** Вызывается при скрывании меню*/
+	this.Unload = function(){ bVisible = false; };
+	
+	/** Загружает меню*/
+	this.Load = function(){
+		if (oMenu != null){
+			var alreadyLoaded = oMenu.createWorkCanvas("DrawingObjects", this.Unload);
+			if(!alreadyLoaded) _(oMenu.workCanvas, [oListDiv]);
+		}
+		bVisible = true;
 	}
 	
-	return isInside;
-}
+	var oCollection = new DrawingObjectColletection();
+	$(oCollection).bind('onAdd', function (){
+		if(!bVisible) _this.Load();
+	});
+	var fnAddToCollection = function(drawingObject){
+		if (!nsGmx.DrawingObjectCustomControllers.isHidden(drawingObject)) oCollection.Add(drawingObject);
+	}
 	
-queryDrawingObjects.prototype.testPolygon = function(polygon, x, y)
-{
-	for (var j = 0; j < polygon.length; j++)
-		if (this.testRing(polygon[j], x, y) != (j == 0))
-			return false;
-
-	return true;
+	//	if (oDrawingObjectList != null)oDrawingObjectList.Clear();
+	//}
+	
+	/** Встраивает список объектов на карте в геомиксер*/
+	this.Init = function(){
+		globalFlashMap.drawing.forEachObject(function(ret){
+			fnAddToCollection(ret);
+		});
+		
+		window.globalFlashMap.drawing.setHandlers({onAdd: fnAddToCollection});
+		
+		var oDrawingObjectList = new DrawingObjectList(oListDiv, oCollection);
+		AttachEvents();
+	}
 }
 
-var _queryDrawingObjects = new queryDrawingObjects();
+var publicInterface = {
+	AttachEvents: AttachEvents,
+	DrawingObjectColletection: DrawingObjectColletection,
+	DrawingObjectInfoRow: DrawingObjectInfoRow,
+	DrawingObjectList: DrawingObjectList,
+	DrawingObjectGeomixer: DrawingObjectGeomixer
+}
+
+gmxCore.addModule("DrawingObjects", publicInterface);
+
+})(jQuery);
+
+//===================================================================================================================================================================
+
+//===================================================================================================================================================================
 
 _translationsHash.addtext("rus", {
 							"loadShape.Errors.FileTooBigException" : "Файл слишком большой. Ограничение на размер файла 1000 Кб.",
@@ -401,6 +460,10 @@ _translationsHash.addtext("eng", {
 							"loadShape.inputTitle"                 : "Add shp-file (zipped)"
 						 });
 
+var drawingObjects = 
+{
+	loadShp: {}
+}
 
 var queryLoadShp = function()
 {
@@ -486,19 +549,6 @@ queryLoadShp.prototype.upload = function()
 
 var _queryLoadShp = new queryLoadShp();
 
-
-
-drawingObjects.drawingObjects.load = function()
-{
-	var alreadyLoaded = _queryDrawingObjects.createWorkCanvas(arguments[0] || "objects");
-	
-	if (!alreadyLoaded)
-		_queryDrawingObjects.load()
-}
-
-drawingObjects.drawingObjects.unload = function()
-{
-}
 
 drawingObjects.loadShp.load = function()
 {

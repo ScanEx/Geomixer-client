@@ -113,6 +113,10 @@ gmxCore.addModulesCallback(["search"], function(){
 	var oSearchModule = gmxCore.getModule("search");
 	window.oSearchControl = new oSearchModule.SearchGeomixer();
 });
+gmxCore.addModulesCallback(["DrawingObjects"], function(){
+	var oDrawingObjectsModule = gmxCore.getModule("DrawingObjects");
+	window.oDrawingObjectGeomixer = new oDrawingObjectsModule.DrawingObjectGeomixer();
+});
 
 //Инициализация элементов управления
 var fnInitControls = function(){
@@ -124,6 +128,7 @@ var fnInitControls = function(){
 		mapHelper: _mapHelper,
 		Map: globalFlashMap
 	});
+	window.oDrawingObjectGeomixer.Init();
 }
 // используется для сохранения специфичных параметров в пермалинке
 window.collectCustomParams = function()
@@ -162,7 +167,7 @@ var createMenu = function()
 		[
 			{id:'layers', title:_gtxt('Дерево слоев'),onsel:mapLayers.mapLayers.load,onunsel:mapLayers.mapLayers.unload},
 			{id:'externalMaps', title:_gtxt('Дополнительные карты'),onsel:mapHelp.externalMaps.load,onunsel:mapHelp.externalMaps.unload},
-			{id:'objects', title:_gtxt('Объекты на карте'),onsel:drawingObjects.drawingObjects.load,onunsel:drawingObjects.drawingObjects.unload},
+			{id:'DrawingObjects', title:_gtxt('Объекты на карте'),onsel: oDrawingObjectGeomixer.Load, onunsel: oDrawingObjectGeomixer.Unload},
 			{id:'search', title:_gtxt('Результаты поиска'), onsel: oSearchControl.Load,onunsel:oSearchControl.Unload},
 			{id:'mapTabs', title:_gtxt('Закладки'),onsel:mapHelp.tabs.load,onunsel:mapHelp.tabs.unload}
 		]});
@@ -661,9 +666,6 @@ function loadMap(state)
 					mapStyles = state.mapStyles;
 				
 				_queryMapLayers.addLayers(data, condition, mapStyles);
-				
-				_queryDrawingObjects.createCanvas();
-				_queryDrawingObjects.attachMapDrawingEvents();
 				
 				_tab_hash.defaultHash = 'layers';
 				

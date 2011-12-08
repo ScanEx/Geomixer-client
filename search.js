@@ -722,7 +722,7 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	var CenterObject = function(oFoundObject){
 		if (!oFoundObject) return;
 		var iZoom = 100;
-		var iMaxZoom  = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183) ? 9 : 15;
+		var iMaxZoom  = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183 && oFoundObject.TypeName != "дом жилой" ) ? 9 : 15;
 		oMap.setMinMaxZoom(1, iMaxZoom);
 		if (oFoundObject.MinLon != null && oFoundObject.MaxLon != null && oFoundObject.MinLat != null && oFoundObject.MaxLat != null){
 			oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
