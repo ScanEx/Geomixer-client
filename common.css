@@ -473,6 +473,10 @@ div.unit .unitInfo
 }
 
 /* drawingObjects */
+.DrawingObjectsLeftMenu
+{
+	margin: 3px 13px 3px 7px;
+}
 .drawingObjectsCanvas
 {
 	padding: 3px 13px 3px 7px;
@@ -505,7 +509,30 @@ div.unit .unitInfo
 	margin: 0px 2px;
 	color: #215570;
 }
-.drawingObjectsCanvas .remove,
+.drawingObjectsItemCanvas
+{
+	display: inline;
+	margin-right: 10px;
+}
+.drawingObjectsItem
+{
+	display: inline;
+}
+.drawingObjectsItemTitle
+{
+	cursor: pointer;
+	margin: 0px 4px;
+	color: #218580;
+}
+.drawingObjectsItemTitle:hover
+{
+	text-decoration: underline;
+}
+.removeGeometry
+{
+	top: 2px;
+}
+.drawingObjectsCanvas .remove, /* Старая реализация, новая - removeGeometry*/
 .serverDataCanvas .remove
 {
 	cursor: pointer;
