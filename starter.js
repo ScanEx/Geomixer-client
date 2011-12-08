@@ -567,6 +567,7 @@ function loadMap(state)
 		gmxCore.loadModules(['PluginsManager'], function()
 		{
 			var pluginsManager = new (gmxCore.getModule('PluginsManager').PluginsManager)();
+            nsGmx.pluginsManager = pluginsManager;
 			pluginsManager.addCallback( function()
 			{
 				pluginsManager.beforeViewer();
@@ -668,6 +669,19 @@ function loadMap(state)
 				_queryMapLayers.addLayers(data, condition, mapStyles);
 				
 				_tab_hash.defaultHash = 'layers';
+                
+                // расширенная версия пермалинка для авторизации
+				var userObjects = data.properties.UserData;
+				
+				if (typeof state.userObjects != 'undefined')
+					userObjects = state.userObjects;
+				
+				if (userObjects)
+				{
+					_userObjects.data = JSON.parse(userObjects);
+					
+					_userObjects.load();
+				}
 				
 				_menuUp.createMenu = function()
 				{
@@ -803,19 +817,6 @@ function loadMap(state)
 				}
 				else if (state.marker)
 					map.drawing.addObject({ type: "POINT", coordinates: [state.marker.mx, state.marker.my] }, { text: state.marker.mt });
-				
-				// расширенная версия пермалинка для авторизации
-				var userObjects = data.properties.UserData;
-				
-				if (typeof state.userObjects != 'undefined')
-					userObjects = state.userObjects;
-				
-				if (userObjects)
-				{
-					_userObjects.data = JSON.parse(userObjects);
-					
-					_userObjects.load();
-				}
 				
 				_menuUp.checkView();
 				removeUserActions();

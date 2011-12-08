@@ -1012,3 +1012,13 @@ div.layersScroll
 {
     background-color: #ffcccc
 }
+
+.pluginEditor-pluginList
+{
+    height: 100px;
+}
+
+.pluginEditor-table
+{
+    width: 100%;
+}
