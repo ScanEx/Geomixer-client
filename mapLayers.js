@@ -405,8 +405,8 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 	//	if ($(childs[childs.length - 1]).hasClass('hiddenTree')) // несколько стилей
 	//		$(childs[childs.length - 1]).treeview();
 		
-		div.properties = elem;
-		div.properties.content.properties = elemProperties;
+		div.gmxProperties = elem;
+		div.gmxProperties.content.properties = elemProperties;
 	}
 	else
 	{
@@ -415,7 +415,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 		else
 			div = _div(this.drawGroupLayer(elem.content.properties, parentParams, layerManagerFlag, parentVisibility), [['attr','GroupID',elem.content.properties.GroupID]])
 		
-		div.properties = elem;
+		div.gmxProperties = elem;
 	}
 	
 	div.oncontextmenu = function(e)
@@ -578,7 +578,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			icon.onclick = function()
 			{
-				_this.mapHelper.createLayerEditor(this.parentNode, 1,  icon.parentNode.properties.content.properties.styles.length > 1 ? -1 : 0);
+				_this.mapHelper.createLayerEditor(this.parentNode, 1,  icon.parentNode.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 			}
 			
 		}
@@ -978,7 +978,7 @@ layersTree.prototype.addSubGroup = function(div)
 	var groupVisibilityProperties = new layersTree.GroupVisibilityPropertiesModel( false, true );
 	var groupVisibilityPropertiesControls = new layersTree.GroupVisibilityPropertiesView( groupVisibilityProperties, true );
 	
-	var elemProperties = (div.properties.content) ? div.properties.content.properties : div.properties.properties,
+	var elemProperties = (div.gmxProperties.content) ? div.gmxProperties.content.properties : div.gmxProperties.properties,
 	    newName = elemProperties.title,
 		inputIndex = _input(null,[['attr','value', newName + ' ' + newIndex],['dir','className','inputStyle'],['css','width','140px']]),
 		create = makeButton(_gtxt('Создать')),
@@ -988,7 +988,7 @@ layersTree.prototype.addSubGroup = function(div)
 			if (inputIndex.value == '')
 				return;
 			
-			var parentProperties = div.properties,
+			var parentProperties = div.gmxProperties,
 				newGroupProperties = {type:'group', content:{properties:{title:inputIndex.value, list: groupVisibilityProperties.isChildRadio(), visible: true, ShowCheckbox: groupVisibilityProperties.isVisibilityControl(), expanded:true, GroupID: _this.createGroupId()}, children:[]}},
 				li = _this.getChildsList(newGroupProperties, parentProperties, false, div.getAttribute('MapID') ? true : _this.getLayerVisibility(div.firstChild));
 			
@@ -1081,12 +1081,12 @@ layersTree.prototype.removeGroup = function(div)
 				// удаляем все слои
 				$(childsUl).find("div[LayerID],div[MultiLayerID]").each(function()
 				{
-					_queryMapLayers.removeLayer(this.properties.content.properties.name)
-					if (globalFlashMap.layers[this.properties.content.properties.name])
+					_queryMapLayers.removeLayer(this.gmxProperties.content.properties.name)
+					if (globalFlashMap.layers[this.gmxProperties.content.properties.name])
 					{
-						globalFlashMap.layers[this.properties.content.properties.name].remove();
+						globalFlashMap.layers[this.gmxProperties.content.properties.name].remove();
 						
-						delete globalFlashMap.layers[this.properties.content.properties.name];
+						delete globalFlashMap.layers[this.gmxProperties.content.properties.name];
 					}
 				})
 			}
@@ -1119,7 +1119,7 @@ layersTree.prototype.removeGroup = function(div)
 		_this.mapHelper.updateUnloadEvent(true);
 	}
 	
-	showDialog(_gtxt("Удаление группы [value0]", div.properties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 90, pos.left, pos.top)
+	showDialog(_gtxt("Удаление группы [value0]", div.gmxProperties.content.properties.title), _div([box, span, _br(), remove],[['css','textAlign','center']]), 250, 90, pos.left, pos.top)
 }
 
 layersTree.prototype.showSaveStatus = function(parent)
@@ -1253,7 +1253,7 @@ layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibili
 
 layersTree.prototype.layerVisible = function(box, flag)
 {
-	var layerName = box.parentNode.properties.content.properties.name;
+	var layerName = box.parentNode.gmxProperties.content.properties.name;
 	
 	if (globalFlashMap.layers[layerName])
 		globalFlashMap.layers[layerName].setVisible(flag);
@@ -1375,9 +1375,9 @@ layersTree.prototype.setLayerVisibility = function(checkbox)
 				
 				var listFlag;
 				if ($(el.parentNode.parentNode).children("div[GroupID]")[0])
-					listFlag = $(el.parentNode.parentNode).children("div[GroupID]")[0].properties.content.properties.list;
+					listFlag = $(el.parentNode.parentNode).children("div[GroupID]")[0].gmxProperties.content.properties.list;
 				else
-					listFlag = $(el.parentNode.parentNode).children("div[MapID]")[0].properties.properties.list;
+					listFlag = $(el.parentNode.parentNode).children("div[MapID]")[0].gmxProperties.properties.list;
 				
 				if (listFlag)
 					this.disableRadioGroups(el.childNodes[1].firstChild);
@@ -1506,8 +1506,8 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag, addToMap)
 {
     var _this = this;
-	var isFromList = typeof spanSource.parentNode.parentNode.properties.content.geometry === 'undefined';
-	var layerProperties = (spanSource.parentNode.parentNode.properties.type !== 'layer' || !isFromList) ? spanSource.parentNode.parentNode.properties : false,
+	var isFromList = typeof spanSource.parentNode.parentNode.gmxProperties.content.geometry === 'undefined';
+	var layerProperties = (spanSource.parentNode.parentNode.gmxProperties.type !== 'layer' || !isFromList) ? spanSource.parentNode.parentNode.gmxProperties : false,
 		copyFunc = function()
 		{
 			// если копируем слой из списка, но не из карты
@@ -1534,7 +1534,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
             }
 			
 			var node = divDestination.parentNode,
-				parentProperties = swapFlag ? $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0].properties : divDestination.properties,
+				parentProperties = swapFlag ? $(divDestination.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0].gmxProperties : divDestination.gmxProperties,
 				li;
 			
 			if (swapFlag)
@@ -1630,9 +1630,9 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 	
 	if (!layerProperties)
 	{
-		if (spanSource.parentNode.parentNode.properties.content.properties.LayerID)
+		if (spanSource.parentNode.parentNode.gmxProperties.content.properties.LayerID)
 		{
-			sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + spanSource.parentNode.parentNode.properties.content.properties.name, function(response)
+			sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + spanSource.parentNode.parentNode.gmxProperties.content.properties.name, function(response)
 			{
 				if (!parseResponse(response))
 					return;
@@ -1653,7 +1653,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 		}
 		else
 		{
-			sendCrossDomainJSONRequest(serverBase + "MultiLayer/GetMultiLayerJson.ashx?WrapStyle=func&MultiLayerID=" + spanSource.parentNode.parentNode.properties.content.properties.MultiLayerID, function(response)
+			sendCrossDomainJSONRequest(serverBase + "MultiLayer/GetMultiLayerJson.ashx?WrapStyle=func&MultiLayerID=" + spanSource.parentNode.parentNode.gmxProperties.content.properties.MultiLayerID, function(response)
 			{
 				if (!parseResponse(response))
 					return;
@@ -1714,7 +1714,7 @@ layersTree.prototype.addLayersToMap = function(elem)
 
 layersTree.prototype.getParentParams = function(li)
 {
-	var parentParams = li.parentNode.parentNode.childNodes[1].properties,
+	var parentParams = li.parentNode.parentNode.childNodes[1].gmxProperties,
 		listFlag;
 	
 	if (parentParams.content)
@@ -1727,7 +1727,7 @@ layersTree.prototype.getParentParams = function(li)
 
 layersTree.prototype.updateListType = function(li, skipVisible)
 {
-	var parentParams = li.parentNode.parentNode.childNodes[1].properties,
+	var parentParams = li.parentNode.parentNode.childNodes[1].gmxProperties,
 		listFlag;
 	
 	if (parentParams.content)
@@ -1789,11 +1789,11 @@ layersTree.prototype.updateMapLayersVisibility = function(li)
 	
 	$(li).find("div[LayerID],div[MultiLayerID]").each(function()
 	{
-		if (this.properties.content.properties.visible &&
+		if (this.gmxProperties.content.properties.visible &&
 			_this.getLayerVisibility(this.firstChild))
-			globalFlashMap.layers[this.properties.content.properties.name].setVisible(true);
+			globalFlashMap.layers[this.gmxProperties.content.properties.name].setVisible(true);
 		else
-			globalFlashMap.layers[this.properties.content.properties.name].setVisible(false);
+			globalFlashMap.layers[this.gmxProperties.content.properties.name].setVisible(false);
 	})
 }
 
@@ -1964,9 +1964,9 @@ queryMapLayers.prototype.rasterLayersSlider = function(parent)
 				var active = $(parent).find(".active");
 				
 				// слой
-				if (active[0] && active[0].parentNode.getAttribute("LayerID") && active[0].parentNode.properties.content.properties.type != "Vector")
+				if (active[0] && active[0].parentNode.getAttribute("LayerID") && active[0].parentNode.gmxProperties.content.properties.type != "Vector")
 				{
-					globalFlashMap.layers[active[0].parentNode.properties.content.properties.name].setStyle(templateStyle);
+					globalFlashMap.layers[active[0].parentNode.gmxProperties.content.properties.name].setStyle(templateStyle);
 					
 					return;
 				}
@@ -2026,7 +2026,7 @@ queryMapLayers.prototype.saveMap = function()
 	var saveMapInternal = function(newVersion)
 	{
 		_userObjects.collect();
-		$(_queryMapLayers.buildedTree).find("[MapID]")[0].properties.properties.UserData = JSON.stringify(_userObjects.data);
+		$(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.data);
 		
 		for (var name in _mapHelper.layerEditorsHash)
 			_mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].closeFunc();
@@ -2044,7 +2044,7 @@ queryMapLayers.prototype.saveMap = function()
 		sendCrossDomainPostRequest(serverBase + "Map/SaveMap.ashx", 
 									{
 										WrapStyle: 'window',
-										MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].properties.properties.MapID), 
+										MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID), 
 
 										MapJson: JSON.stringify(saveTree)
 									}, 
@@ -2279,7 +2279,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(taskInfo, title)
 		
 		var newLayer = globalFlashMap.layers[newLayerProperties.name],
 			parentDiv = $($$(taskInfo.TaskID).parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0];
-			parentProperties = parentDiv.properties,
+			parentProperties = parentDiv.gmxProperties,
 			li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, parentProperties, false, parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility(parentDiv.firstChild));
 		
 		if ($($$(taskInfo.TaskID).parentNode).hasClass("last"))
@@ -2361,9 +2361,9 @@ queryMapLayers.prototype.asyncUpdateLayer = function(taskInfo, properties, needR
 			
 			newLayerProperties.mapName = _mapHelper.mapProperties.name;
 			newLayerProperties.hostName = _mapHelper.mapProperties.hostName;
-			newLayerProperties.visible = layerDiv.properties.content.properties.visible;
+			newLayerProperties.visible = layerDiv.gmxProperties.content.properties.visible;
 			
-			newLayerProperties.styles = layerDiv.properties.content.properties.styles;
+			newLayerProperties.styles = layerDiv.gmxProperties.content.properties.styles;
 			
 			var convertedCoords = from_merc_geometry(taskInfo.Result.geometry);
 			
@@ -2372,7 +2372,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(taskInfo, properties, needR
 			_layersTree.addLayersToMap({content:{properties:newLayerProperties, geometry:convertedCoords}});
 			
 			var newLayer = globalFlashMap.layers[newLayerProperties.name],
-				parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].properties,
+				parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
 				li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
 			
 				$(layerDiv.parentNode).replaceWith(li);
@@ -3175,7 +3175,7 @@ queryMapLayers.prototype.saveMapAs = function(name)
 	_($$('headerLinks'), [loading]);
 	
 	_userObjects.collect();
-	$(_queryMapLayers.buildedTree).find("[MapID]")[0].properties.properties.UserData = JSON.stringify(_userObjects.data);
+	$(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.data);
 	
 	for (var name in _mapHelper.layerEditorsHash)
 		_mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].closeFunc();
@@ -3194,7 +3194,7 @@ queryMapLayers.prototype.saveMapAs = function(name)
 								{
 									WrapStyle: 'window',
 									Title: name,
-									MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].properties.properties.MapID), 
+									MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID), 
 									MapJson: JSON.stringify(saveTree)
 								}, 
 								function(response)

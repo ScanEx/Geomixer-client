@@ -349,22 +349,22 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 
 mapHelper.prototype.updateTreeStyles = function(newStyles, div)
 {
-	div.properties.content.properties.styles = newStyles;
+	div.gmxProperties.content.properties.styles = newStyles;
 	
 	var multiStyleParent = $(div).children('[multiStyle]')[0];
 	
 	var parentIcon = $(div).children("[styleType]")[0],
-		newIcon = _mapHelper.createStylesEditorIcon(newStyles, div.properties.content.properties.GeometryType.toLowerCase());
+		newIcon = _mapHelper.createStylesEditorIcon(newStyles, div.gmxProperties.content.properties.GeometryType.toLowerCase());
 		newIcon.onclick = function()
 		{
-			_mapHelper.createLayerEditor(div, 1, div.properties.content.properties.styles.length > 1 ? -1 : 0);
+			_mapHelper.createLayerEditor(div, 1, div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 		}
 		
 	$(parentIcon).replaceWith(newIcon);
 	
 	removeChilds(multiStyleParent);
 	
-	_mapHelper.createMultiStyle(div.properties.content.properties, multiStyleParent)
+	_mapHelper.createMultiStyle(div.gmxProperties.content.properties, multiStyleParent)
 }
 
 mapHelper.prototype.getLocalScale = function(x, y)
@@ -532,7 +532,7 @@ mapHelper.prototype.createFilterHeader = function(filtersCanvas, elem, elemCanva
 		if (!_layersTree.getLayerVisibility(elemCanvas.parentNode.firstChild))
 			_layersTree.setVisibility(elemCanvas.parentNode.firstChild, true);
 		
-		var lastStyle = elemCanvas.parentNode.properties.content.properties.styles[elemCanvas.parentNode.properties.content.properties.styles.length - 1],
+		var lastStyle = elemCanvas.parentNode.gmxProperties.content.properties.styles[elemCanvas.parentNode.gmxProperties.content.properties.styles.length - 1],
 			newStyle = {},
 			newFilter = globalFlashMap.layers[elem.name].addObject();
 		
@@ -1128,7 +1128,7 @@ mapHelper.prototype.createFilterEditorInner = function(filter, attrs, elemCanvas
 		setFilter = function()
 		{
 			var filterNum = getOwnChildNumber(filterText.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode),
-				filter = globalFlashMap.layers[elemCanvas.parentNode.properties.content.properties.name].filters[filterNum];
+				filter = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters[filterNum];
 			
 			if (filterText.value != '')
 			{
@@ -1157,8 +1157,8 @@ mapHelper.prototype.createFilterEditorInner = function(filter, attrs, elemCanvas
 		return true;
 	}
 	
-	var mapName = elemCanvas.parentNode.properties.content.properties.mapName,
-		layerName = elemCanvas.parentNode.properties.content.properties.name,
+	var mapName = elemCanvas.parentNode.gmxProperties.content.properties.mapName,
+		layerName = elemCanvas.parentNode.gmxProperties.content.properties.name,
 		attrsSuggest = this.createSuggestCanvas(attrs ? attrs : [], filterText, "\"suggest\"", setFilter, this.attrValues[mapName][layerName], true),
 		valuesSuggest = this.createSuggestCanvas(attrs ? attrs : [], filterText, "\"suggest\"", setFilter, this.attrValues[mapName][layerName]),
 		opsSuggest = this.createSuggestCanvas(['=','>','<','>=','<=','<>','AND','OR','NOT','IN','LIKE','()'], filterText, " suggest ", setFilter);
@@ -1253,7 +1253,7 @@ mapHelper.prototype.createFilterEditor = function(filterParam, attrs, elemCanvas
 {
 	var filter = (typeof filterParam == 'undefined') ? '' : filterParam;
 	
-	if (!this.attrValues[elemCanvas.parentNode.properties.content.properties.mapName][elemCanvas.parentNode.properties.content.properties.name])
+	if (!this.attrValues[elemCanvas.parentNode.gmxProperties.content.properties.mapName][elemCanvas.parentNode.gmxProperties.content.properties.name])
 	{
 		var div = _div([_t(_gtxt("Авторизуйтесь для редактирования фильтров"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
 		
@@ -1279,7 +1279,7 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 		setBalloon = function()
 		{
 			var filterNum = getOwnChildNumber(balloonText.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode),
-				filter = globalFlashMap.layers[elemCanvas.parentNode.properties.content.properties.name].filters[filterNum];
+				filter = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters[filterNum];
 			globalFlashMap.balloonClassObject.setBalloonFromParams(filter, div.getBalloonState());
 			// if (box.checked)
 			// {
@@ -1573,14 +1573,14 @@ mapHelper.prototype.createLoadingFilter = function(parentObject, parentStyle, ge
 	remove.onclick = function()
 	{
 		var num = getOwnChildNumber(filterCanvas),
-			filters = globalFlashMap.layers[elemCanvas.parentNode.properties.content.properties.name].filters,
+			filters = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters,
 			newFilters = [];
 		
 		for (var i = 0; i < filters.length; i++)
 			if (i != num)
 				newFilters.push(filters[i])
 		
-		globalFlashMap.layers[elemCanvas.parentNode.properties.content.properties.name].filters = newFilters;
+		globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters = newFilters;
 		
 		var filtersParent = filterCanvas.parentNode;
 		
@@ -1610,7 +1610,7 @@ mapHelper.prototype.createLoadingFilter = function(parentObject, parentStyle, ge
 
 mapHelper.prototype.swapFilters = function(div, firstNum, filterCanvas)
 {
-	var filters = globalFlashMap.layers[div.properties.content.properties.name].filters,
+	var filters = globalFlashMap.layers[div.gmxProperties.content.properties.name].filters,
 		newFilters = [];
 	
 	for (var i = 0; i < filters.length; i++)
@@ -1623,12 +1623,12 @@ mapHelper.prototype.swapFilters = function(div, firstNum, filterCanvas)
 			newFilters.push(filters[i - 1])
 	}
 	
-	globalFlashMap.layers[div.properties.content.properties.name].filters = newFilters;
+	globalFlashMap.layers[div.gmxProperties.content.properties.name].filters = newFilters;
 	
 	if (!div.firstChild.checked)
 		_click(div.firstChild)
 	
-	globalFlashMap.layers[div.properties.content.properties.name].filters[firstNum].bringToDepth(firstNum + 1);
+	globalFlashMap.layers[div.gmxProperties.content.properties.name].filters[firstNum].bringToDepth(firstNum + 1);
 	
 	$(filterCanvas.childNodes[firstNum]).before(filterCanvas.childNodes[firstNum + 1]);
 	
@@ -1681,9 +1681,9 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 		if (_this.checkZoom(minZoomInput, maxZoomInput))
 		{
 			var filterNum = getOwnChildNumber(ulParent.parentNode.parentNode.parentNode),
-				filter = globalFlashMap.layers[elemCanvas.parentNode.properties.content.properties.name].filters[filterNum];
+				filter = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters[filterNum];
 			
-			if (!globalFlashMap.layers[elemCanvas.parentNode.properties.content.properties.name].objectId)
+			if (!globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].objectId)
 				_click(elemCanvas.parentNode.firstChild)
 				
 			filter.setZoomBounds(Number(minZoomInput.value), Number(maxZoomInput.value));
@@ -1809,7 +1809,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 		DisableBalloonOnClick: typeof parentStyle.DisableBalloonOnClick != 'undefined' ? parentStyle.DisableBalloonOnClick : false,
 	}*/
 	
-	var balloonEditor = this.createBalloonEditor(parentStyle, attrs, elemCanvas, elemCanvas.parentNode.properties.content.properties.identityField);
+	var balloonEditor = this.createBalloonEditor(parentStyle, attrs, elemCanvas, elemCanvas.parentNode.gmxProperties.content.properties.identityField);
 	
 	_(liBalloon.lastChild, [balloonEditor]);
 	
@@ -2200,9 +2200,9 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 
 		if (geometryType == "point")
 		{
-			if (typeof elemCanvas.parentNode.properties != 'undefined' &&
-				elemCanvas.parentNode.properties.content.properties.description &&
-				String(elemCanvas.parentNode.properties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
+			if (typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
+				elemCanvas.parentNode.gmxProperties.content.properties.description &&
+				String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
 			{
 				if (angle.value != '')
 					templateStyle.marker.angle = angle.value;
@@ -2585,9 +2585,9 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
         _(markerSizeParent, markerSizeTds, [['attr','fade',true]]);
 		
 		
-		if (typeof elemCanvas.parentNode.properties != 'undefined' &&
-			elemCanvas.parentNode.properties.content.properties.description &&
-			String(elemCanvas.parentNode.properties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
+		if (typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
+			elemCanvas.parentNode.gmxProperties.content.properties.description &&
+			String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
 		{
 			var markerColor = this.createColorPicker((templateStyle.marker && typeof templateStyle.marker.color != 'undefined') ? templateStyle.marker.color : 0xFF00FF,
 				function (colpkr){
@@ -2853,7 +2853,7 @@ mapHelper.prototype.createGeometryIcon = function(parentStyle, type)
 
 mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, layerProperties)
 {
-	var elemProperties = div.properties.content.properties,
+	var elemProperties = div.gmxProperties.content.properties,
 		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t('загрузка...')], [['css','margin','3px 0px 3px 20px']]),
 		layerRights = _queryMapLayers.layerRights(elemProperties.name)
 		_this = this;
@@ -2870,7 +2870,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 	{
 		if (elemProperties.type == "Vector")
 		{
-			_this.createLayerEditorProperties(div, div.properties.content.properties.type, parent, layerProperties);
+			_this.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, layerProperties);
 			
 			return;
 		}
@@ -2887,7 +2887,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 					
 					loading.removeNode(true);
 					
-					_this.createLayerEditorProperties(div, div.properties.content.properties.type, parent, response.Result)
+					_this.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, response.Result)
 				})
 			}
 		}
@@ -2904,7 +2904,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 	var _this = this,
 		vectorRetilingFlag = false;
 
-	var title = _input(null,[['attr','fieldName','title'],['attr','value',div ? (div.properties.content.properties.title ? div.properties.content.properties.title : '') :  (typeof properties.Title != 'undefined' ? properties.Title : '')],['dir','className','inputStyle'],['css','width','220px']])
+	var title = _input(null,[['attr','fieldName','title'],['attr','value',div ? (div.gmxProperties.content.properties.title ? div.gmxProperties.content.properties.title : '') :  (typeof properties.Title != 'undefined' ? properties.Title : '')],['dir','className','inputStyle'],['css','width','220px']])
 	title.onkeyup = function()
 	{
 		if (div)
@@ -2915,44 +2915,44 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			
 			_(span, [_t(title.value)]);
 
-			div.properties.content.properties.title = title.value;
+			div.gmxProperties.content.properties.title = title.value;
 			
-			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+			_this.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 		}
 		
 		return true;
 	}
 	
-	var copyright = _input(null,[['attr','fieldName','copyright'],['attr','value',div ? (div.properties.content.properties.Copyright ? div.properties.content.properties.Copyright : '') : (typeof properties.Copyright != 'undefined' ? properties.Copyright : '')],['dir','className','inputStyle'],['css','width','220px']])
+	var copyright = _input(null,[['attr','fieldName','copyright'],['attr','value',div ? (div.gmxProperties.content.properties.Copyright ? div.gmxProperties.content.properties.Copyright : '') : (typeof properties.Copyright != 'undefined' ? properties.Copyright : '')],['dir','className','inputStyle'],['css','width','220px']])
 	copyright.onkeyup = function()
 	{
 		if (div)
 		{
-			globalFlashMap.layers[div.properties.content.properties.name].setCopyright(copyright.value);
+			globalFlashMap.layers[div.gmxProperties.content.properties.name].setCopyright(copyright.value);
 			
-			div.properties.content.properties.Copyright = copyright.value;
+			div.gmxProperties.content.properties.Copyright = copyright.value;
 			
-			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+			_this.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 		}
 		
 		return true;
 	}
 	
-	var legend = _input(null,[['attr','fieldName','Legend'],['attr','value',div ? (div.properties.content.properties.Legend ? div.properties.content.properties.Legend : '') : (typeof properties.Legend != 'undefined' ? properties.Legend : '')],['dir','className','inputStyle'],['css','width','220px']])
+	var legend = _input(null,[['attr','fieldName','Legend'],['attr','value',div ? (div.gmxProperties.content.properties.Legend ? div.gmxProperties.content.properties.Legend : '') : (typeof properties.Legend != 'undefined' ? properties.Legend : '')],['dir','className','inputStyle'],['css','width','220px']])
 	legend.onkeyup = function()
 	{
 		if (div)
 		{
-			div.properties.content.properties.Legend = legend.value;
+			div.gmxProperties.content.properties.Legend = legend.value;
 			
-			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+			_this.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 		}
 		
 		return true;
 	}
 	
 	var descr = _textarea(null,[['attr','fieldName','description'],['dir','className','inputStyle'],['css','width','220px'],['css','height','50px']]);
-	descr.value = div ? (div.properties.content.properties.description ? div.properties.content.properties.description : '') : (properties.Description != null ? properties.Description : '');
+	descr.value = div ? (div.gmxProperties.content.properties.description ? div.gmxProperties.content.properties.description : '') : (properties.Description != null ? properties.Description : '');
 	
 	descr.onkeyup = function()
 	{
@@ -2964,9 +2964,9 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			
 			span.innerHTML = descr.value;
 
-			div.properties.content.properties.description = descr.value;
+			div.gmxProperties.content.properties.description = descr.value;
 			
-			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+			_this.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 		}
 		
 		return true;
@@ -3348,7 +3348,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		
 		// shownProperties.push({tr:trTimeLayer});
 		
-		var boxSearch = _checkbox(div ? (div.properties.content.properties.AllowSearch ? div.properties.content.properties.AllowSearch : false) : (typeof properties.AllowSearch != 'undefined' ? properties.AllowSearch : false), 'checkbox');
+		var boxSearch = _checkbox(div ? (div.gmxProperties.content.properties.AllowSearch ? div.gmxProperties.content.properties.AllowSearch : false) : (typeof properties.AllowSearch != 'undefined' ? properties.AllowSearch : false), 'checkbox');
 		boxSearch.setAttribute('fieldName', 'AllowSearch');
 
 		boxSearch.className = 'box';
@@ -3361,9 +3361,9 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		{
 			if (div)
 			{
-				div.properties.content.properties.AllowSearch = this.checked;
+				div.gmxProperties.content.properties.AllowSearch = this.checked;
 				
-				_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+				_this.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 			}
 			
 			return true;
@@ -3700,7 +3700,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 	if (div)
 	{
 		for (var id in this.asyncTasks)
-			if (this.asyncTasks[id] == div.properties.content.properties.name)
+			if (this.asyncTasks[id] == div.gmxProperties.content.properties.name)
 			{
 				haveTask = true;
 				
@@ -3768,7 +3768,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				{
 					needRetiling = vectorRetilingFlag;
 					
-					updateParams = '&VectorLayerID=' + div.properties.content.properties.LayerID;
+					updateParams = '&VectorLayerID=' + div.gmxProperties.content.properties.LayerID;
 					
 					var oldGeometryDadaSource = !properties.ShapePath ? properties.GeometryTable.TableName : properties.ShapePath.Path;
 					
@@ -3796,7 +3796,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 						if (!parseResponse(response))
 								return;
 						
-						_this.asyncTasks[response.Result.TaskID] = div ? div.properties.content.properties.name : true;
+						_this.asyncTasks[response.Result.TaskID] = div ? div.gmxProperties.content.properties.name : true;
 						_queryMapLayers.asyncCreateLayer(response.Result, layerTitle);
 					});
 				}
@@ -3807,7 +3807,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 							if (!parseResponse(response))
 								return;
 						
-							_this.asyncTasks[response.Result.TaskID] = div ? div.properties.content.properties.name : true;
+							_this.asyncTasks[response.Result.TaskID] = div ? div.gmxProperties.content.properties.name : true;
 							
 							if (div)
 								_queryMapLayers.asyncUpdateLayer(response.Result, properties, needRetiling);
@@ -3835,7 +3835,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				
 				if (div)
 				{
-					params["RasterLayerID"] = div.properties.content.properties.LayerID;
+					params["RasterLayerID"] = div.gmxProperties.content.properties.LayerID;
 					
 					var oldShapePath = properties.ShapePath.Path,
 						oldTilePath = properties.TilePath.Path,
@@ -3857,7 +3857,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 						if (!parseResponse(response))
 							return;
 					
-						_this.asyncTasks[response.Result.TaskID] = div ? div.properties.content.properties.name : true;
+						_this.asyncTasks[response.Result.TaskID] = div ? div.gmxProperties.content.properties.name : true;
 						
 						if (div)
 							_queryMapLayers.asyncUpdateLayer(response.Result, properties, needRetiling);
@@ -3874,7 +3874,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			dialog.removeNode(true);
 			
 			if (div)
-				delete _this.layerEditorsHash[div.properties.content.properties.name];
+				delete _this.layerEditorsHash[div.gmxProperties.content.properties.name];
 		}
 		
 		_(parent, [_div([saveButton], [['css','paddingTop','10px']])])
@@ -4129,7 +4129,7 @@ mapHelper.prototype.createPropertiesTable = function(shownProperties, layerPrope
 
 mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 {
-	var elemProperties = (isMap) ? div.properties.properties : div.properties.content.properties,
+	var elemProperties = (isMap) ? div.gmxProperties.properties : div.gmxProperties.content.properties,
 		trs = [],
 		_this = this;
 
@@ -4159,9 +4159,9 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		}
 		
 		if (isMap) {
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 		} else {
-			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+			_this.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 		}
 		
 		var ul = _abstractTree.getChildsUl(div.parentNode),
@@ -4176,7 +4176,7 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		})
 		
 		if (checkbox && _layersTree.getLayerVisibility(checkbox))
-			_layersTree.visibilityFunc(checkbox, true, div.properties.content ? div.properties.content.properties.list : div.properties.properties.list);		
+			_layersTree.visibilityFunc(checkbox, true, div.gmxProperties.content ? div.gmxProperties.content.properties.list : div.gmxProperties.properties.list);		
 	});
 	
 	title.onkeyup = function()
@@ -4198,15 +4198,15 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		
 		if (isMap)
 		{
-			div.properties.properties.title = title.value;
+			div.gmxProperties.properties.title = title.value;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 		}
 		else
 		{
-			div.properties.content.properties.title = title.value;
+			div.gmxProperties.content.properties.title = title.value;
 			
-			_this.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+			_this.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 		}
 		
 		return true;
@@ -4243,55 +4243,55 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		
 		useAPI.onclick = function()
 		{
-			div.properties.properties.UseKosmosnimkiAPI = this.checked;
+			div.gmxProperties.properties.UseKosmosnimkiAPI = this.checked;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 		}
 		useOSM.onclick = function()
 		{
-			div.properties.properties.UseOpenStreetMap = this.checked;
+			div.gmxProperties.properties.UseOpenStreetMap = this.checked;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 		}
 	/*	searchVectors.onclick = function()
 		{
-			div.properties.properties.CanSearchVector = this.checked;
+			div.gmxProperties.properties.CanSearchVector = this.checked;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 		}*/
 	/*	showBalloons.onclick = function()
 		{
-			div.properties.properties.ShowPropertiesBalloons = this.checked;
+			div.gmxProperties.properties.ShowPropertiesBalloons = this.checked;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 		}*/
 		downloadVectors.onclick = function()
 		{
-			div.properties.properties.CanDownloadVectors = this.checked;
+			div.gmxProperties.properties.CanDownloadVectors = this.checked;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 		}
 		downloadRasters.onclick = function()
 		{
-			div.properties.properties.CanDownloadRasters = this.checked;
+			div.gmxProperties.properties.CanDownloadRasters = this.checked;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 		}
         
         WMSAccess.onclick = function()
 		{
-			div.properties.properties.WMSAccess = this.checked;
+			div.gmxProperties.properties.WMSAccess = this.checked;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 		}
 		
 		defLat.onkeyup = function()
 		{
 			if (!isNaN(Number(this.value)))
 			{
-				div.properties.properties.DefaultLat = Number(this.value);
+				div.gmxProperties.properties.DefaultLat = Number(this.value);
 				
-				_this.mapTree.properties = div.properties.properties;
+				_this.mapTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -4300,18 +4300,18 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		{
 			if (!isNaN(Number(this.value)))
 			{
-				div.properties.properties.DefaultLong = Number(this.value);
+				div.gmxProperties.properties.DefaultLong = Number(this.value);
 				
-				_this.mapTree.properties = div.properties.properties;
+				_this.mapTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
 		}
 		defPermalink.onkeyup = function()
 		{
-			div.properties.properties.ViewUrl = this.value;
+			div.gmxProperties.properties.ViewUrl = this.value;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 			
 			return true;
 		}
@@ -4319,9 +4319,9 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		{
 			if (!isNaN(Number(this.value)))
 			{
-				div.properties.properties.DefaultZoom = Number(this.value);
+				div.gmxProperties.properties.DefaultZoom = Number(this.value);
 			
-				_this.mapTree.properties = div.properties.properties;
+				_this.mapTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -4330,9 +4330,9 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		{
 			if (!isNaN(Number(this.value)))
 			{
-				div.properties.properties.MiniMapZoomDelta = Number(this.value);
+				div.gmxProperties.properties.MiniMapZoomDelta = Number(this.value);
 			
-				_this.mapTree.properties = div.properties.properties;
+				_this.mapTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -4340,18 +4340,18 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		
 		onLoad.onkeyup = function()
 		{
-			div.properties.properties.OnLoad = this.value;
+			div.gmxProperties.properties.OnLoad = this.value;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 			
 			return true;
 		}
 		
 		copyright.onkeyup = function()
 		{
-			div.properties.properties.Copyright = this.value;
+			div.gmxProperties.properties.Copyright = this.value;
 			
-			_this.mapTree.properties = div.properties.properties;
+			_this.mapTree.properties = div.gmxProperties.properties;
 			
 			return true;
 		}
@@ -4360,9 +4360,9 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		{
 			if (!isNaN(Number(this.value)))
 			{
-				div.properties.properties.MinViewX = Number(this.value);
+				div.gmxProperties.properties.MinViewX = Number(this.value);
 				
-				_this.mapTree.properties = div.properties.properties;
+				_this.mapTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -4372,9 +4372,9 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		{
 			if (!isNaN(Number(this.value)))
 			{
-				div.properties.properties.MinViewY = Number(this.value);
+				div.gmxProperties.properties.MinViewY = Number(this.value);
 				
-				_this.mapTree.properties = div.properties.properties;
+				_this.mapTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -4384,9 +4384,9 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		{
 			if (!isNaN(Number(this.value)))
 			{
-				div.properties.properties.MaxViewX = Number(this.value);
+				div.gmxProperties.properties.MaxViewX = Number(this.value);
 				
-				_this.mapTree.properties = div.properties.properties;
+				_this.mapTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -4396,9 +4396,9 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 		{
 			if (!isNaN(Number(this.value)))
 			{
-				div.properties.properties.MaxViewY = Number(this.value);
+				div.gmxProperties.properties.MaxViewY = Number(this.value);
 				
-				_this.mapTree.properties = div.properties.properties;
+				_this.mapTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -4467,7 +4467,7 @@ mapHelper.prototype.createGroupEditorProperties = function(div, isMap)
 
 mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex)
 {
-	var elemProperties = div.properties.content.properties,
+	var elemProperties = div.gmxProperties.content.properties,
 		_this = this;
 	
 	if (elemProperties.type == "Vector")
@@ -4705,7 +4705,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 
 mapHelper.prototype.createGroupEditor = function(div)
 {
-	var elemProperties = div.properties.content.properties,
+	var elemProperties = div.gmxProperties.content.properties,
 		_this = this;
 	
 	if (this.groupEditorsHash[elemProperties.GroupID])
@@ -4728,7 +4728,7 @@ mapHelper.prototype.createGroupEditor = function(div)
 
 mapHelper.prototype.createMapEditor = function(div)
 {
-	var elemProperties = div.properties.properties,
+	var elemProperties = div.gmxProperties.properties,
 		_this = this;
 	
 	if (this.mapEditorsHash[elemProperties.MapID])
