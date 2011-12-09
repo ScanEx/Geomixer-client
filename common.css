@@ -509,14 +509,10 @@ div.unit .unitInfo
 	margin: 0px 2px;
 	color: #215570;
 }
+
 .drawingObjectsItemCanvas
 {
-	display: inline;
-	margin-right: 10px;
-}
-.drawingObjectsItem
-{
-	display: inline;
+	position: relative;
 }
 .drawingObjectsItemTitle
 {
@@ -528,10 +524,14 @@ div.unit .unitInfo
 {
 	text-decoration: underline;
 }
-.removeGeometry
+
+.DrawingObjectsLeftMenu .removeGeometry
 {
-	top: 2px;
+	position: absolute;
+	top: 1px;
+	right: 7px;
 }
+
 .drawingObjectsCanvas .remove, /* Старая реализация, новая - removeGeometry*/
 .serverDataCanvas .remove
 {

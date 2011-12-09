@@ -119,7 +119,7 @@ var DrawingObjectInfoRow = function(oInitContainer, drawingObject) {
 	
 	if (_drawingObject.geometry.type == "POINT")
 	{
-		icon = _img(null, [['attr','src','img/flag_min.png']])
+		icon = _img(null, [['attr','src','img/flag_min.png'], ['dir', 'className', 'colorIcon']])
 	}
 	else
 	{
@@ -135,7 +135,7 @@ var DrawingObjectInfoRow = function(oInitContainer, drawingObject) {
 	$(_drawingObject).bind('onRemove', function() { _this.RemoveRow();});
 	$(_drawingObject).bind('onEdit', function() { _this.UpdateRow();});
 			
-	_(_canvas, [_div([icon, _title, _text, _summary], [['dir','className','drawingObjectsItem']]), remove]);
+	_(_canvas, [_span([icon, _title, _text, _summary], [['dir','className','drawingObjectsItem']]), remove]);
 	
 	if ($.browser.msie)
 	{
@@ -205,7 +205,19 @@ var DrawingObjectList = function(oInitContainer, oInitDrawingObjectColletection)
 	_downloadVectorForm = _form([_input(null,[['attr','name','points']]),
 								 _input(null,[['attr','name','lines']]),
 								 _input(null,[['attr','name','polygons']])], [['css','display','none'],['attr','method','POST'],['attr','action',"http://mapstest.kosmosnimki.ru/" + "Shapefile.ashx"]]);
-
+	
+	var checkDownloadRaster = function(){
+		if (!_mapHelper.mapProperties.CanDownloadRasters) return;
+		var found = false;
+		for (var i=0; i< _collection.Count(); i++){
+			if (isRectangle(_collection.Item(i).geometry.coordinates)) {
+				show(downloadRaster);
+				found = true;
+				break;
+			}
+		}
+		if(!found) hide(downloadRaster);
+	}
 	
 	/** Добавляет объект в "список объектов на карте"
 	@param {drawingObject} drawingObject добавляемый объект */
@@ -217,6 +229,7 @@ var DrawingObjectList = function(oInitContainer, oInitDrawingObjectColletection)
 		_rows.push(_row);
 		$(_row).bind('onRemove', drawingObject.remove);
 		if (_collection.Count() == 1) show(_divButtons);
+		if (_mapHelper.mapProperties.CanDownloadRasters && isRectangle(drawingObject.geometry.coordinates)) show(downloadRaster);
 	}
 	
 	/** При удалении объекта из списка
@@ -227,6 +240,7 @@ var DrawingObjectList = function(oInitContainer, oInitDrawingObjectColletection)
 		var removedDiv = _containers.splice(index, 1)[0];
 		_rows.splice(index, 1);
 		removedDiv.parentNode.removeChild(removedDiv);
+		checkDownloadRaster();
 	}
 	
 	/** Очищает список пользовательских объектов*/
@@ -256,6 +270,7 @@ var DrawingObjectList = function(oInitContainer, oInitDrawingObjectColletection)
 	
 	_(_divButtons, [_div([downloadVector]), _div([downloadRaster, _downloadVectorForm]), _div([delAll])]);
 	_( oInitContainer, [_divList, _divButtons]);
+	checkDownloadRaster();
 	if (_collection.Count() == 0) hide(_divButtons);
 	
 	/** Скачивает shp файл*/

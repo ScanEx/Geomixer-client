@@ -20,7 +20,8 @@ _translationsHash.addtext("rus", {
 	"Щелкните по слою в дереве слоёв, чтобы выбрать его": "Щелкните по слою в дереве слоёв, чтобы выбрать его",
 	"Вы действительно хотите удалить это сообщение?" : "Вы действительно хотите удалить это сообщение?",
 	"Удалить привязку к слою": "Удалить привязку к слою",
-	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"
+	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник",
+	"Объект не выбран": "Объект не выбран"
 });
 _translationsHash.addtext("eng", {
 	"Сообщение" : "Message",
@@ -35,12 +36,20 @@ _translationsHash.addtext("eng", {
 	"Щелкните по слою в дереве слоёв, чтобы выбрать его": "Click layer to choose it",
 	"Вы действительно хотите удалить это сообщение?" : "Do you really want to delete the selected message?",
 	"Удалить привязку к слою": "Delete layer reference",
-	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Add new point or rectangle to create a message"
+	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Add new point or rectangle to create a message",
+	"Объект не выбран": "Nothing selected"
 });
 
 /**Контейнер меню (или диалога сообщений), содержащий список сообщений и кнопку "Создать сообщение"
  @memberOf Wiki*/
 var oWikiDiv = _div(null, [['attr', 'Title', _gtxt("Сообщения")]]);
+
+
+var oDrawingObjectsModule = null;
+
+gmxCore.addModulesCallback(["DrawingObjects"], function(){
+	oDrawingObjectsModule = gmxCore.getModule("DrawingObjects");
+});
 
 /**Возвращает Ид. карты
  @memberOf Wiki*/
@@ -325,7 +334,7 @@ var InitEditor = function(target) {
 	}
 	
     var options = {
-        language : "ru",
+        language : _translationsHash.getLanguage().substr(0,2),
         mode: 'exact',
         theme: 'advanced',
 		skin : "o2k7",
@@ -376,10 +385,13 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	this._pageInfo = pageInfo;
 	this._layerChooseFlag = false;
 	this._geometryChooseFlag = false;
-	this._divGeometry = _div([_t(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))],[['dir', 'className', 'wiki-editor-helptext']]);
+	this._geometryRowContainer = _div();
+	this._geometryTable = _table([_tbody([_tr([_td([_t("Объект для привязки: ")]), _td([this._geometryRowContainer]), _td([makeHelpButton(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))])])])]);
+	this._drawingObjectInfoRow = null;
+	//this._divGeometry = _div([_t(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))],[['dir', 'className', 'wiki-editor-helptext']]);
 	this._txtLayer = _input(null, [['attr', 'readonly', 'true'], ['dir', 'className', 'wiki-editor-txtlayer']]);
 	this._btnLayerClear = makeImageButton(pluginPath + '../img/closemin.png', pluginPath + '../img/close_orange.png');
-	this._btnLayerClear.setAttribute('title', _gtxt('Удалить привязку к слою'))
+	this._btnLayerClear.setAttribute('title', _gtxt('Удалить привязку к слою'));
 	this._btnLayerClear.onclick = function(){ this.setLayer(null) }.bind(this);
 	this._hlpLayer = makeHelpButton(_gtxt("Щелкните по слою в дереве слоёв, чтобы выбрать его"));
 	this._txtTitle = _input(null, [['dir', 'className', 'wiki-editor-txttitle']]);
@@ -391,16 +403,22 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	var _btnOK = _button([_t(_gtxt("Сохранить"))], [['dir', 'className', 'wiki-editor-btnok']]);
 	if ($.browser.webkit || $.browser.opera) {_btnOK.style.padding='3px'}
 	_btnOK.onclick = this.updatePage.bind(this);
-	var tblAll = _table([_tbody([_tr([_td([this._divGeometry, this._fieldsTable])]), _tr([_td([this._txtContent], [['css', 'height', '100%']])]), _tr([_td([_br(), _btnOK])])])], [['dir', 'className', 'wiki-editor-tblAll']]);
+	var trContent = _tr([_td([this._txtContent], [['css', 'height', '100%']])]);
+	var tblAll = _table([_tbody([_tr([_td([this._geometryTable, this._fieldsTable])]), trContent, _tr([_td([_br(), _btnOK])])])], [['dir', 'className', 'wiki-editor-tblAll']]);
 	this._div = _div([tblAll], [['attr', 'Title', _gtxt('Сообщение')]]);
-	
 }
 
 WikiEditor.prototype = {
 	/** Отображает диалог редактирования */
 	showDialog: function(){
 		var _this = this;
+		if (this._pageInfo.Geometry) { 
+			if (this._pageInfo.mapObject) this._pageInfo.mapObject.remove();
+			var obj = this._wikiPlugin._map.drawing.addObject(this._pageInfo.Geometry);
+		};
 		this._dialog = showDialog(_gtxt('Сообщение'), this._div, 725, 500 , false, false, false, function(){ $(_this).triggerHandler('dialogclose'); if (_this._drawing) _this._drawing.remove();})
+		$(this._dialog).dialog( "option", "minHeight", 50 );
+		$(this._dialog).dialog( "option", "minWidth", 250 );
 		//$(this._div).dialog({height: 350, width: 500, close: );
 		InitEditor('message_content');
 	},
@@ -422,6 +440,16 @@ WikiEditor.prototype = {
 	/** Устанавливает для сообщения переданный объект на карте в качестве геометрии*/
 	setGeometry: function(drawing){
 		if (drawing && this._drawing) this._drawing.remove();
+		if (drawing) {
+			removeChilds(this._geometryRowContainer);
+			this._drawingObjectInfoRow = new oDrawingObjectsModule.DrawingObjectInfoRow(this._geometryRowContainer, drawing);
+			$(this._drawingObjectInfoRow).bind('onRemove', function(){
+				this._drawing.remove();
+			}.bind(this));
+		}
+		else{
+			_(this._geometryRowContainer, [_t(_gtxt("Объект не выбран"))]);
+		}
 		this._drawing = drawing;
 	},
 	
@@ -504,6 +532,7 @@ WikiPlugin.prototype = {
 			this._wikiEditor = new WikiEditor(pageInfo, this);
 			$(this._wikiEditor).bind('dialogclose', function(){
 					_this._wikiEditor = null;
+					_this._loadPages();
 				});
 			$(this._wikiEditor).bind('updatePage', function(){
 					_this._wikiService.updatePage(pageInfo, function(response) { _this._loadPages(); _this._wikiEditor.closeDialog();  } );
