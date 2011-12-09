@@ -3864,4 +3864,4 @@ mapLayers.mapLayersList.load = function()
 }
 mapLayers.mapLayersList.unload = function()
 {
-}
+};
