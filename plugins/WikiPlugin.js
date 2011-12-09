@@ -602,7 +602,7 @@ WikiPlugin.prototype = {
 		//обработчик события выбора слоя в дереве слоев
         layersTree.prototype.layerVisible = function(box, flag) {
             (oldLayerVisible.bind(this))(box, flag);
-            var layerInfo = box.parentNode.properties.content.properties;
+            var layerInfo = box.parentNode.gmxProperties.content.properties;
             if(that._wikiObjects) that._wikiObjects.setLayerVisible(layerInfo.name, layerInfo.visible);
 			if(that._wikiEditor) that._wikiEditor.setLayer(layerInfo.name);
 

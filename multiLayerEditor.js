@@ -111,9 +111,9 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
             
             _(span, [_t(title.value)]);
 
-            div.properties.content.properties.title = title.value;
+            div.gmxProperties.content.properties.title = title.value;
             
-            mapHelper.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+            mapHelper.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
         }
         
         return true;
@@ -131,9 +131,9 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
             
             span.innerHTML = descr.value;
 
-            div.properties.content.properties.description = descr.value;
+            div.gmxProperties.content.properties.description = descr.value;
             
-            mapHelper.findTreeElem(div).elem.content.properties = div.properties.content.properties;
+            mapHelper.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
         }
         
         return true;
@@ -191,8 +191,8 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
             {
                 mapName:  mapHelper.mapProperties.name,
                 hostName: mapHelper.mapProperties.hostName,
-                visible:  isCreate ? true : layerDiv.properties.content.properties.visible,
-                styles:   isCreate ? [{MinZoom: response.Result.properties.MinZoom, MaxZoom: 21}] : layerDiv.properties.content.properties.styles
+                visible:  isCreate ? true : layerDiv.gmxProperties.content.properties.visible,
+                styles:   isCreate ? [{MinZoom: response.Result.properties.MinZoom, MaxZoom: 21}] : layerDiv.gmxProperties.content.properties.styles
             });
             var convertedCoords = from_merc_geometry(response.Result.geometry);
             
@@ -204,7 +204,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
             
             var divParent = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
             
-            var li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, divParent.properties, false, true);
+            var li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, divParent.gmxProperties, false, true);
             
             
             
