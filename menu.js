@@ -1,14 +1,24 @@
-var Menu = function()
+var UpMenu = function()
 {
-	this.submenus = {};
+    
+    this.submenus = {};
 	this.level2 = [];
 	this.level3 = [];
 	this.currSel = null;
 	this.currUnSel = null;
 	this.refs = {};
-}
+    
+	this.parent = null;
+    this.loginContainer = null;
+    this._isCreated = false;
+};
 
-Menu.prototype.addItem = function(elem)
+// var Menu = function()
+// {
+
+// }
+
+UpMenu.prototype.addItem = function(elem)
 {
 	if (!this.submenus[elem.id])
 	{
@@ -30,10 +40,14 @@ Menu.prototype.addItem = function(elem)
 		this.submenus[elem.id].onsel = elem.onsel;
 	if (elem.onunsel)
 		this.submenus[elem.id].onunsel = elem.onunsel;
+        
+    if (this._isCreated)
+        this.draw();
 }
 
-Menu.prototype.addChildItem = function(newElem, parentID)
+UpMenu.prototype.addChildItem = function(newElem, parentID)
 {
+    var _this = this;
 	//предполагает, что если callback возвращает true, то итерирование можно прекратить
 	var _iterateMenus = function( elem, callback )
 	{
@@ -56,6 +70,10 @@ Menu.prototype.addChildItem = function(newElem, parentID)
 		{
 			if (!elem.childs) elem.childs = [];
 			elem.childs.push(newElem);
+            
+            if (_this._isCreated)
+                _this.draw();
+                
 			return true;
 		}
 	}
@@ -67,20 +85,17 @@ Menu.prototype.addChildItem = function(newElem, parentID)
 	}
 }
 
-var UpMenu = function()
-{
-	this.parent = null;
-    this.loginContainer = null;
-};
-
-UpMenu.prototype = new Menu();
+//UpMenu.prototype = new Menu();
 
 UpMenu.prototype.setParent = function(elem)
 {
 	this.parent = elem;
 	
 	if (elem)
+    {
 		removeChilds(elem);
+        _(elem, [_span()]);
+    }
 	
 	this.disabledTabs = {};
 }
@@ -179,8 +194,10 @@ UpMenu.prototype.draw = function()
 	}
 	
 	_(ul, lis);
-	_(this.parent, [ul]);
-	
+    removeChilds(this.parent.firstChild);
+	_(this.parent.firstChild, [ul]);
+    
+    this._isCreated = true;
 }
 // Создает элемент меню 2го уровня
 UpMenu.prototype.makeLevel2 = function(elem)
