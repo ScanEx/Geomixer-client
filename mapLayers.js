@@ -1452,7 +1452,7 @@ layersTree.prototype.moveHandler = function(spanSource, divDestination)
 		parentTree = spanSource.parentNode.parentNode.parentNode.parentNode;
 
 	this.mapHelper.removeTreeElem(spanSource.parentNode.parentNode);
-	this.mapHelper.addTreeElem(divDestination, 0, spanSource.parentNode.parentNode.properties);
+	this.mapHelper.addTreeElem(divDestination, 0, spanSource.parentNode.parentNode.gmxProperties);
 
 	// добавим новый узел
 	var childsUl = _abstractTree.getChildsUl(node);
@@ -1492,7 +1492,7 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 		divParent = $(divDestination.parentNode.parentNode.parentNode).children("div[MapID],div[GroupID]")[0],
 		index = this.mapHelper.findTreeElem(divElem).index;
 	
-	this.mapHelper.addTreeElem(divParent, index + 1, spanSource.parentNode.parentNode.properties);
+	this.mapHelper.addTreeElem(divParent, index + 1, spanSource.parentNode.parentNode.gmxProperties);
 
 	_abstractTree.swapNode(node, spanSource.parentNode.parentNode.parentNode);
 	
