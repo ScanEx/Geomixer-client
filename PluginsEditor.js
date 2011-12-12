@@ -56,19 +56,21 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
             if (!mapPlugins.isExist(_allPlugins[p]))
                 pluginSelect.append($('<option/>').text(_allPlugins[p]));
         
-        var addPluginButton = $('<button/>').text("Добавить").click(function()
+        var addPluginButton = $('<button/>', {'class': 'pluginEditor-addButton'}).text("Добавить").click(function()
         {
             var selected = [];
             $(":selected", pluginSelect).each(function()
             {
                 selected.push($(this).val());
-                //$(this).remove();
             })
             
             for (var sp = 0; sp < selected.length; sp++)
                 mapPlugins.addPlugin( selected[sp] );
         })
-        $(container).append(pluginSelect).append($('<br/>')).append(addPluginButton);
+        $(container)
+            .append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text('Доступные плагины'))
+            .append(pluginSelect).append($('<br/>'))
+            .append(addPluginButton);
     }
     
     $(mapPlugins).change(update);
@@ -80,16 +82,18 @@ var MapPluginsWidget = function(container, mapPlugins)
     var update = function()
     {
         container.empty();
+        container.append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text('Плагины карты'));
+        
         mapPlugins.each(function(name)
         {
-            var divRow = $('<div/>');
+            var divRow = $('<div/>', {'class': 'pluginEditor-widgetElem'});
             var remove = makeImageButton("img/close.png", "img/close_orange.png");
+            $(remove).addClass('pluginEditor-remove');
             remove.onclick = function()
             {
                 mapPlugins.remove(name);
             }
-            
-            divRow.append($('<span/>').text(name));
+            divRow.text(name);
             divRow.append(remove);
             
             container.append(divRow);
@@ -104,15 +108,15 @@ var createPluginsEditor = function(container, pluginsInfo)
 {
     var mapPlugins = new MapPlugins( pluginsInfo );
         
-    var widgetContainer = $('<div/>');
-    var allPluginsContainer = $('<div/>');
+    var widgetContainer = $('<div/>', {'class': 'pluginEditor-widgetContainer'});
+    var allPluginsContainer = $('<div/>', {'class': 'pluginEditor-allContainer'});
     var mapPluginsWidget = new MapPluginsWidget(widgetContainer, mapPlugins);
     var allPluginsWidget = new GeomixerPluginsWidget(allPluginsContainer, mapPlugins);
     
     $(container)
         .append($('<table/>', {'class': 'pluginEditor-table'}).append($('<tr/>')
-            .append($('<td/>').append(allPluginsContainer))
-            .append($('<td/>').append(widgetContainer))
+            .append($('<td/>', {'class': 'pluginEditor-allTD'}).append(allPluginsContainer))
+            .append($('<td/>', {'class': 'pluginEditor-widgetTD'}).append(widgetContainer))
         ));
     
     return mapPlugins;

@@ -676,20 +676,21 @@ function loadMap(state)
 				if (typeof state.userObjects != 'undefined')
 					userObjects = state.userObjects;
 				
-				if (userObjects)
-				{
-					_userObjects.data = JSON.parse(userObjects);
-					
-					_userObjects.load();
-				}
-				
 				_menuUp.createMenu = function()
 				{
 					createMenu();
-					pluginsManager.addMenuItems(_menuUp);
 				};
 				//_menuUp.createMenu = createMenu;
 				_menuUp.go();
+                
+                if (userObjects)
+				{
+					_userObjects.data = JSON.parse(userObjects);
+					_userObjects.load();
+				}
+                
+                //динамически добавляем пункты в меню
+                pluginsManager.addMenuItems(_menuUp);
 				
 				// конвертируем старый формат eval-строки в новый формат customParamsManager
 				// старый формат использовался только маплетом пожаров
@@ -710,7 +711,6 @@ function loadMap(state)
 							alert(e);
 						}
 					}
-						
 				}
 					
 				if ( typeof state.customParamsCollection != 'undefined')

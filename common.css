@@ -1015,10 +1015,60 @@ div.layersScroll
 
 .pluginEditor-pluginList
 {
-    height: 100px;
+    height: 200px;
+    width: 100%;
+}
+
+.pluginEditor-allContainer
+{
+    padding-right: 10px;
+    text-align: center;
+}
+
+.pluginEditor-widgetContainer
+{
+    height: 200px;
 }
 
 .pluginEditor-table
 {
     width: 100%;
+}
+
+.pluginEditor-remove
+{
+    vertical-align: middle;
+    float: right;
+}
+
+.pluginEditor-widgetHeader
+{
+    text-align: center;
+    padding-bottom: 6px;
+    font-weight: bold;
+}
+
+.pluginEditor-widgetTD
+{
+    vertical-align: top;
+}
+
+.pluginEditor-allTD
+{
+    width: 50%;
+}
+
+.pluginEditor-widgetElem
+{
+    padding: 2px 0px
+}
+
+.pluginEditor-widgetElem:hover
+{
+    background-color: #eeeeee;
+}
+
+.pluginEditor-addButton
+{
+    width: 100%
 }
