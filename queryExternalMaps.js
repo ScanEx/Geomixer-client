@@ -52,7 +52,7 @@ queryExternalMaps.prototype.load = function()
 			nameButton.value = '';
 		}
 
-		this.mapsCanvas = _div(null,[['dir','className','drawingObjectsCanvas'],['css','paddingLeft','0px']]);
+		this.mapsCanvas = _div(null,[['dir','className','drawingObjectsCanvas'],['css','paddingLeft','0px'], ['attr', 'id', 'externalMapsCanvas']]);
 		
 		_(this.workCanvas, [this.mapsCanvas]);
 		
