@@ -321,7 +321,13 @@ window.gmxAPI = {
 	,
 	isRectangle: function(coords)
 	{
-		return (coords && (coords[0].length == 5) && ((coords[0][0][0] == coords[0][1][0]) || (coords[0][0][1] == coords[0][1][1])));
+		return (coords && coords[0].length == 5
+			&& coords[0][4][0] == coords[0][0][0] && coords[0][4][1] == coords[0][0][1]
+			&& ((coords[0][0][0] == coords[0][1][0]) || (coords[0][0][1] == coords[0][1][1]))
+			&& ((coords[0][1][0] == coords[0][2][0]) || (coords[0][1][1] == coords[0][2][1]))
+			&& ((coords[0][2][0] == coords[0][3][0]) || (coords[0][2][1] == coords[0][3][1]))
+			&& ((coords[0][3][0] == coords[0][4][0]) || (coords[0][3][1] == coords[0][4][1]))
+		);
 	}
 	,
 	getScale: function(z)
