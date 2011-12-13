@@ -164,3 +164,37 @@ queryTabs.prototype.show = function(state)
 }
 
 var _queryTabs = new queryTabs();
+
+_userObjects.addDataCollector('tabs', {
+    collect: function()
+    {
+        if (!_queryTabs.tabs.length)
+            return null;
+        
+        var tabs = [];
+        
+        for (var i = 0; i < _queryTabs.tabs.length; i++)
+        {
+            var tab = {};
+            
+            $.extend(tab, _queryTabs.tabs[i]);
+            
+            tabs.push(tab);
+        }
+        
+        return tabs;
+    },
+    load: function(data)
+    {
+        if (!data || !data.length)
+            return;
+	
+        if ($$('left_mapTabs'))
+            $$('left_mapTabs').removeNode(true);
+        
+        _queryTabs.builded = false;
+        _queryTabs.tabs = data;
+        
+        mapHelp.tabs.load('mapTabs');
+    }
+})

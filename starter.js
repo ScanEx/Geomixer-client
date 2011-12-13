@@ -685,7 +685,7 @@ function loadMap(state)
                 
                 if (userObjects)
 				{
-					_userObjects.data = JSON.parse(userObjects);
+					_userObjects.setData(JSON.parse(userObjects));
 					_userObjects.load();
 				}
                 

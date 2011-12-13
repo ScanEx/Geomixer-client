@@ -336,6 +336,12 @@ var queryServerData = function()
 
 queryServerData.prototype = new leftMenu();
 
+//Загружает виджет для добавления/просмотра WMS/WFS слоёв
+//parseFunc - 
+//drawFunc - 
+//customParamsManager - контролер дополнительных параметров. Имеет методы: 
+//  - init(targetDiv)->void Добавляет контрол к элементу targetDiv
+//  - collect()->Object Возвращает выбранные пользователем объекты
 queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManager)
 {
 	window.convertCoords = function(coordsStr)
@@ -437,7 +443,9 @@ queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc)
 	else
 		this.parentCanvas.insertBefore(loading, this.parentCanvas.firstChild);
 	
-	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(url + '?request=GetCapabilities'), function(response)
+    var separator = url.indexOf('?') !== -1 ? '&' : '?';
+    
+	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(url + separator + 'request=GetCapabilities'), function(response)
 	{
 		if (!parseResponse(response)) return;
 		
@@ -712,6 +720,8 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 		_this = this;
 	
 	$(replaceElem).replaceWith(ulCanvas)
+    
+    $(ulCanvas).data('serverParams', serverParams);
 	
 	remove.onclick = function()
 	{
@@ -769,7 +779,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 			srsMaxy = merc_y(maxy);
 		}
 		
-		var transparentParam = serverParams.format === 'png' ? '&transparent=true' : '';
+		var transparentParam = (serverParams && serverParams.format === 'png') ? '&transparent=true' : '';
 		var imgUrl = url + "?VERSION=1.1.0&request=GetMap&crs=EPSG:4326"+ transparentParam +"&layers=" + layer.name + "&srs=" + layer.srs + "&format=image/"+ serverParams.format +"&styles=&width=" + mapBounds.width + "&height=" + mapBounds.height + "&bbox=" + srsMinx + "," + srsMiny + "," + srsMaxx + "," + srsMaxy;
 		
 		parent.setImage(imgUrl, minx, maxy, maxx, maxy, maxx, miny, minx, miny);
@@ -836,6 +846,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 	})
 }
 
+//Добавляет контрол выбора формата запроса к WMS и возвращает его в параметре format (пример: "png", "jpg")
 queryServerData.prototype.customWMSParamsManager = (function()
 {
 	var _targetDiv = null;
@@ -894,7 +905,9 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 			{
 				elemCanvas.clear && elemCanvas.clear();
 				
-				var objUrl = url + "?request=GetFeature&typeName=" + layer.name;
+                var separator = url.indexOf('?') !== -1 ? '&' : '?';
+                
+				var objUrl = url + separator + "request=GetFeature&typeName=" + layer.name;
 				
 				if (formatSelect.value == 'json')
 					objUrl += '&outputFormat=json'
@@ -990,3 +1003,125 @@ loadServerData.WMS.unload = function()
 {
 //	removeChilds($$('leftContent'))
 }
+
+_userObjects.addDataCollector('wms', {
+    collect: function()
+    {
+        if (!_queryServerDataWMS.workCanvas)
+            return null;
+        
+        var value = {};
+        
+        $(_queryServerDataWMS.workCanvas.lastChild).children("ul[url]").each(function()
+        {
+            var url = this.getAttribute('url');
+            var serverParams = $(this).data('serverParams');
+            
+            value[url] = {params: serverParams, layersVisibility: {}};
+            
+            $(this).find("input[type='checkbox']").each(function()
+            {
+                if (this.checked)
+                {
+                    value[url].layersVisibility[this.getAttribute('layerName')] = true;
+                }
+            })
+        })
+        
+        if (!objLength(value))
+            return null;
+        
+        return value;
+    },
+    
+    load: function(data)
+    {
+        if (!data)
+            return;
+
+        if ($$('left_wms'))
+            $$('left_wms').removeNode(true);
+        
+        _queryServerDataWMS.builded = false;
+        
+        loadServerData.WMS.load('wms');
+        
+        for (var url in data)
+        {
+            (function(loadParams)
+            {
+                //поддержка старого формата данных
+                if (!('layersVisibility' in loadParams))
+                {
+                    loadParams = {layersVisibility: loadParams};
+                }
+                
+                _queryServerDataWMS.getCapabilities(url, _queryServerDataWMS.parseWMSCapabilities, function(serviceLayers, url, replaceElem)
+                {
+                    _queryServerDataWMS.drawWMS(serviceLayers, url, replaceElem, loadParams.layersVisibility, loadParams.params);
+                })
+            })(data[url])
+        }
+    }
+})
+
+_userObjects.addDataCollector('wfs', {
+    collect: function()
+    {
+        if (!_queryServerDataWFS.workCanvas)
+            return null;
+        
+        var value = {};
+        
+        $(_queryServerDataWFS.workCanvas.lastChild).children("ul[url]").each(function()
+        {
+            var url = this.getAttribute('url');
+            
+            value[url] = {};
+            
+            $(this).find("input[type='checkbox']").each(function()
+            {
+                if (this.checked)
+                {
+                    var wfsLayerInfo = {};
+                    
+                    $(this.parentNode.lastChild).find(".colorIcon").each(function()
+                    {
+                        wfsLayerInfo[this.geometryType] = {RenderStyle: this.getStyle(), graphDataType: this.parentNode.graphDataType, graphDataProperties: this.parentNode.graphDataProperties}
+                    })
+                    
+                    value[url][this.getAttribute('layerName')] = {format: this.parentNode.lastChild.format, info: wfsLayerInfo};
+                }
+            })
+        })
+        
+        if (!objLength(value))   
+            return null;
+        
+        return value;
+    },
+    
+    load: function(data)
+    {
+        if (!data)
+            return;
+
+        if ($$('left_wfs'))
+            $$('left_wfs').removeNode(true);
+        
+        _queryServerDataWFS.builded = false;
+        
+        loadServerData.WFS.load('wfs');
+        
+        for (var url in data)
+        {
+            (function(loadParams)
+            {
+                _queryServerDataWFS.getCapabilities(url, _queryServerDataWFS.parseWFSCapabilities, function(serviceLayers, url, replaceElem)
+                {
+                    _queryServerDataWFS.drawWFS(serviceLayers, url, replaceElem, loadParams);
+                })
+            })(data[url])
+        }
+    }
+});

@@ -5418,6 +5418,8 @@ mapHelper.prototype.addTreeElem = function(div, index, elemProperties)
 		elem.elem.children.splice(index, 0, elemProperties);
 	else
 		elem.elem.content.children.splice(index, 0, elemProperties);
+        
+    $(this.mapTree).triggerHandler('addTreeElem', [elemProperties]);
 }
 
 mapHelper.prototype.findTreeElem = function(div)

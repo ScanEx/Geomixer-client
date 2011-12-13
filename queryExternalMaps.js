@@ -194,3 +194,36 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 }
 
 var _queryExternalMaps = new queryExternalMaps();
+
+_userObjects.addDataCollector('externalMaps', {
+    collect: function()
+    {
+        if (!_queryExternalMaps.workCanvas)
+            return;
+        
+        var value = [];
+        
+        $(_queryExternalMaps.workCanvas.lastChild).children("div").each(function()
+        {
+            value.push({hostName:this.hostName, mapName:this.mapName})
+        })
+        
+        if (!value.length)        
+            return null;
+        
+        return value;
+    },
+    load: function(data)
+    {
+        if (!data || !data.length)
+            return;
+        
+        if ($$('left_externalMaps'))
+            $$('left_externalMaps').removeNode(true);
+        
+        _queryExternalMaps.builded = false;
+        _queryExternalMaps.maps = data;
+        
+        mapHelp.externalMaps.load('externalMaps');
+    }
+});

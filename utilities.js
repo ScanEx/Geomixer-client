@@ -815,7 +815,7 @@ function reloadMap()
 	
 	// туда же сохраним созданные объекты
 	_userObjects.collect();
-	mapState.userObjects = JSON.stringify(_userObjects.data);
+	mapState.userObjects = JSON.stringify(_userObjects.getData());
 	
 	sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx",
 						{

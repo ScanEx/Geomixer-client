@@ -129,4 +129,28 @@ gmxCore.addModule('PluginsEditor', {
 
 nsGmx.createPluginsEditor = createPluginsEditor;
 
+_userObjects.addDataCollector('mapPlugins', {
+    collect: function()
+    {
+        if (_mapHelper.mapPlugins)
+            return _mapHelper.mapPlugins;
+        else
+            return null;
+    },
+    load: function(data)
+    {
+        if (data)
+        {
+            _mapHelper.mapPlugins = data;
+            
+            for (var p = 0; p < data.length; p++)
+                nsGmx.pluginsManager.setUsePlugin(data[p], true);
+        }
+        else
+        {
+            _mapHelper.mapPlugins = [];
+        }
+    }
+})
+
 })(jQuery);

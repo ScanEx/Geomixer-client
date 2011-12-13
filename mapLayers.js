@@ -2026,7 +2026,7 @@ queryMapLayers.prototype.saveMap = function()
 	var saveMapInternal = function(newVersion)
 	{
 		_userObjects.collect();
-		$(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.data);
+		$(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
 		
 		for (var name in _mapHelper.layerEditorsHash)
 			_mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].closeFunc();
@@ -3175,7 +3175,7 @@ queryMapLayers.prototype.saveMapAs = function(name)
 	_($$('headerLinks'), [loading]);
 	
 	_userObjects.collect();
-	$(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.data);
+	$(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
 	
 	for (var name in _mapHelper.layerEditorsHash)
 		_mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].closeFunc();
