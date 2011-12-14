@@ -100,14 +100,14 @@ var Cadastre = function(oContainer, sCadastreHost, oMap, oMapDiv){
 		oCostByAreaLayer.setVisible(rbCostByAreaLayer.checked);
 		oUseTypeLayer.setVisible(rbUseType.checked);
 		oCategoryLayer.setVisible(rbCategory.checked);
-		oMap.setHandler("onMove", fnRefreshMap);
+		oMap.setHandler("onMoveEnd", fnRefreshMap);
 		
 		_(oContainer, [div]);
 		fnRefreshMap();
 	}
 	/** Выгружает слой */
 	this.unload = function(){
-		oMap.removeHandler("onMove", fnRefreshMap);
+		oMap.removeHandler("onMoveEnd", fnRefreshMap);
 		oDivisionLayer.setVisible(false);
 		oCostLayer.setVisible(false);
 		oCostByAreaLayer.setVisible(false);
