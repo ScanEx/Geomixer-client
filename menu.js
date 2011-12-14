@@ -493,7 +493,7 @@ UpMenu.prototype.checkView = function()
 UpMenu.prototype.addLoginCanvas = function()
 {
 	this.loginContainer = _li(null, [['dir','className','loginCanvas']]);
-	_(this.parent.firstChild, [this.loginContainer]);
+	_(this.parent, [this.loginContainer]);
 }
 
 UpMenu.prototype.addSearchCanvas = function()

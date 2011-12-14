@@ -414,7 +414,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 
 		_(elemDiv, [searchElemHeader]);
 		if (oFoundObject.Parent != null) drawObject(oFoundObject.Parent, elemDiv, true);
-		if (oFoundObject.properties != null) _(elemDiv, [_t(" " + Functions.GetPropertiesString(oFoundObject.properties, "; "))]);
+		if (oFoundObject.properties != null) _(elemDiv, [document.createTextNode(" " + Functions.GetPropertiesString(oFoundObject.properties, "; "))]);
 	}
 	
 	/** Рисует строки списка*/
