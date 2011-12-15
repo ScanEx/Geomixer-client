@@ -1,4 +1,5 @@
 import flash.display.Sprite;
+import flash.display.Graphics;
 
 class PointGeometry extends Geometry
 {
@@ -55,17 +56,33 @@ class PointGeometry extends Geometry
 				if (size > 0.0)
 				{
 					size *= window.scaleY;
-					var dt:Int = cast(Math.abs(size));
-					if(parentNumChildren > MAX_POINTS_CACHEASBITMAP && !sprite.cacheAsBitmap) sprite.cacheAsBitmap = true;	// для убыстрения отрисовки тайлов
-					if(dt > MAX_POINTS_WIDH && parentNumChildren > MAX_POINTS_COUNT) dt = MAX_POINTS_WIDH;	// ограничение размеров точки
-					var graphics = sprite.graphics;
-					var drawer = new DashedLineDrawer(graphics, style.outline, window, properties);
-					Geometry.beginFill(graphics, style.fill);
-					drawer.moveTo(x - dt, y - dt);
-					drawer.lineTo(x + dt, y - dt);
-					drawer.lineTo(x + dt, y + dt);
-					drawer.lineTo(x - dt, y + dt);
-					drawer.lineTo(x - dt, y - dt);
+					var dt:Float = Math.abs(size);
+					if(parentNumChildren > MAX_POINTS_CACHEASBITMAP && !sprite.cacheAsBitmap) sprite.cacheAsBitmap = true; // для убыстрения отрисовки тайлов
+					if(dt > MAX_POINTS_WIDH && parentNumChildren > MAX_POINTS_COUNT) dt = MAX_POINTS_WIDH; // ограничение размеров точки
+
+					var graphics:Graphics = sprite.graphics;
+					var curr:Dynamic = getCurrentStyle(style, graphics);
+					var col:UInt = 0;
+					var opacity:Float = 1;
+					if(style.outline != null) {
+						var thickness = style.outline.thickness;
+						col = (properties != null ? style.outline.getColor(properties) : style.outline.color);
+						opacity = (properties != null ? style.outline.getOpacity(properties) : style.outline.opacity);
+						var lineWidth:Float = Math.abs(thickness*window.scaleY);
+						var dtw:Float = dt + lineWidth;
+						graphics.beginFill(col, opacity);
+						graphics.drawRect(x - dtw, y - dtw, 2*dtw, lineWidth);
+						graphics.drawRect(x + dt, y - dt, lineWidth , 2*dt);
+						graphics.drawRect(x - dtw, y - dt, lineWidth , 2*dt);
+						graphics.drawRect(x - dtw, y + dt , 2*dtw, lineWidth);
+					}
+					if (style.fill != null) {
+						col = style.fill.color;
+						opacity = style.fill.opacity;
+						graphics.beginFill(col, opacity);
+						graphics.drawRect(x - dt, y - dt, 2 * dt, 2 * dt);
+					}
+					
 					graphics.endFill();
 					refreshFlag = false;
 					oldZ = window.getCurrentZ();
@@ -75,6 +92,26 @@ class PointGeometry extends Geometry
 				}
 			}
 		}
+	}
+
+	private function getCurrentStyle(style:Style, gr:Graphics):Dynamic
+	{
+		var out:Dynamic = { };
+		out.graphics = gr;
+		var outline:OutlineStyle = style.outline;
+		if (outline != null && outline.thickness > 0)
+		{
+			out.opacity = (properties != null ? outline.getOpacity(properties) : outline.opacity);
+			out.color = (properties != null ? outline.getColor(properties) : outline.color);
+			out.thickness = outline.thickness;
+		}
+		var fill:FillStyle = style.fill;
+		if (fill != null)
+		{
+			out.fillColor = fill.color;
+			out.fillOpacity = fill.opacity;
+		}
+		return out;
 	}
 
 	public override function distanceTo(x_:Float, y_:Float):Float
