@@ -180,7 +180,8 @@ class RasterImage extends MaskedContent
 	
 	function chkPositionX()
 	{
-		var xshift1:Float = Utils.getShiftX(x1, x2, mapNode);
+		var center:Float = x1 + (x2 - x1) / 2;
+		var xshift1:Float = Utils.getShiftX(center, center, mapNode);
 		var pos:Int = cast(xshift1);
 		if (xshift1 != xshift) {
 			xshift = xshift1;
