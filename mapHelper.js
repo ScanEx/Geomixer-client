@@ -3625,7 +3625,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		
 		tileFileLink.onclick = function()
 		{
-			_fileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img'], function(path)
+			_fileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'tiles'], function(path)
 			{
 				tilePath.value = path;
 				
