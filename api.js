@@ -2855,9 +2855,33 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var isInitial = !initialLayersAdded;
 				var isInvalid = (sessionKey == "INVALID");
 
+				var chkCenterX = function(arr)
+				{ 
+					var centerX = 0;
+					for (var i = 0; i < arr.length; i++)
+					{
+						centerX += parseFloat(arr[i][0]);
+					}
+					centerX /= arr.length;
+					var prevCenter = centerX;
+					while(centerX > 180) centerX -= 360;
+					while(centerX < -180) centerX += 360;
+					var dx = prevCenter - centerX;
+					for (var i = 0; i < arr.length; i++)
+					{
+						arr[i][0] -= dx;
+					}
+				}
+
 				var bounds = false;
-				if (layer.geometry)
+
+				if (layer.geometry) {
+					if(layer.geometry.type == "POLYGON") {		// Проверка сдвига границ слоя
+						var arr = layer.geometry.coordinates[0];
+						chkCenterX(arr);
+					}
 					bounds = gmxAPI.getBounds(gmxAPI.merc_geometry(layer.geometry).coordinates);
+				}
 				
 				var tileFunction = function(i, j, z)
 				{ 
