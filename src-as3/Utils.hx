@@ -594,32 +594,23 @@ class Utils
 	// по xmin, xmax получить смещение обьекта до положения ближайшего к центру экрана
 	public static function getShiftX(xmin:Float, xmax:Float, node:MapNode):Float
 	{
+		var x:Float = (xmin + xmax)/2;
 		var inv = node.window.matrix;
-		var p1:Point = inv.transformPoint(new Point(xmin, 0));
-		var p2:Point = inv.transformPoint(new Point(xmax, 0));
+		var p1:Point = inv.transformPoint(new Point(x, 0));
 		var center:Point = inv.transformPoint(new Point(node.window.currentX, 0));
 
-		var out = 0.0;
-		var x1:Float = p1.x - center.x;
-		var x2:Float = p2.x - center.x;
-		var minx:Float = Math.min(Math.abs(x1), Math.abs(x2));
-
+		var out:Float = 0.0;
 		var ww = 2 * Utils.worldWidth;
-		p1 = inv.transformPoint(new Point(xmin - ww, 0));
-		p2 = inv.transformPoint(new Point(xmax - ww, 0));
-		x1 = p1.x - center.x;
-		x2 = p2.x - center.x;
-		var m1:Float = Math.min(Math.abs(x1), Math.abs(x2));
-		if (m1 < minx) { minx = m1; out = -ww; }
-		
-		p1 = inv.transformPoint(new Point(xmin + ww, 0));
-		p2 = inv.transformPoint(new Point(xmax + ww, 0));
-		x1 = p1.x - center.x;
-		x2 = p2.x - center.x;
-		m1 = Math.min(Math.abs(x1), Math.abs(x2));
-		if (m1 < minx) { minx = m1; out = ww; }
+		var minx:Float = Math.abs(p1.x - center.x);
+		for (i in 1...4) {
+			p1 = inv.transformPoint(new Point(x + ww * i, 0));
+			var m1:Float = Math.abs(p1.x - center.x);
+			if (m1 < minx) { minx = m1; out = ww * i; }
+			p1 = inv.transformPoint(new Point(x - ww * i, 0));
+			m1 = Math.abs(p1.x - center.x);
+			if (m1 < minx) { minx = m1; out = -ww * i; }
+			
+		}
 		return out;
 	}
-
-	
 }

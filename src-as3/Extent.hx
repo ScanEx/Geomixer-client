@@ -29,19 +29,24 @@ class Extent
 	public function contains(x:Float, y:Float, ?halfLine:Float):Bool
 	{
 		if (halfLine == null) halfLine = 0;
-		return ((x >= minx - halfLine) && (y >= miny - halfLine) && (x <= maxx + halfLine) && (y <= maxy + halfLine))
-			|| (maxx > Utils.worldWidth &&  maxx - x > 2*Utils.worldWidth)
-			;
+		var w = 2 * Utils.worldWidth;
+		var flag:Bool = (y >= miny - halfLine && y <= maxy + halfLine) && (
+				(x >= minx - halfLine && x <= maxx + halfLine) ||  
+				(x >= minx - halfLine - w && x <= maxx + halfLine - w) ||  
+				(x >= minx - halfLine + w && x <= maxx + halfLine + w)
+			);
+		return flag;
 	}
 
 	// Переcечение геометрий
 	public static function overlap(e1:Extent, e2:Extent)
 	{
 		var w = 2*Utils.worldWidth;
-		return ((e1.miny <= e2.maxy) && (e2.miny <= e1.maxy) && (
-			((e1.minx <= e2.maxx - w) && (e2.minx - w<= e1.maxx)) ||
-			((e1.minx <= e2.maxx) && (e2.minx<= e1.maxx)) ||
-			((e1.minx <= e2.maxx + w) && (e2.minx + w <= e1.maxx))));
+		return (e1.miny <= e2.maxy && e2.miny <= e1.maxy) && (
+			(e1.minx <= e2.maxx && e2.minx<= e1.maxx) ||
+			(e1.minx <= e2.maxx - w && e2.minx - w <= e1.maxx) ||
+			(e1.minx <= e2.maxx + w && e2.minx + w <= e1.maxx)
+			);
 	}
 
 	public function overlaps(e2:Extent)
@@ -49,13 +54,16 @@ class Extent
 		return overlap(this, e2);
 	}
 
-	// Полное перекрытие геометрий
+	// Полное перекрытие геометрий e1 содержит e2
 	public static function overlapFull(e1:Extent, e2:Extent)
 	{
 		var w = 2*Utils.worldWidth;
 		return (
-			(e1.miny <= e2.miny) && (e1.maxy >= e2.maxy) &&
-			(e1.minx <= e2.minx) && (e1.maxx >= e2.maxx));
+			(e1.miny <= e2.miny && e1.maxy >= e2.maxy) && (
+			(e1.minx <= e2.minx) && e1.maxx >= e2.maxx) ||
+			(e1.minx <= e2.maxx - w && e2.minx - w <= e1.maxx) ||
+			(e1.minx <= e2.maxx + w && e2.minx + w <= e1.maxx)
+			);
 	}
 
 	public function overlapsFull(e2:Extent)
