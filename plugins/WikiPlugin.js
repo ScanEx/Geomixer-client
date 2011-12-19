@@ -44,7 +44,6 @@ _translationsHash.addtext("eng", {
  @memberOf Wiki*/
 var oWikiDiv = _div(null, [['attr', 'Title', _gtxt("Сообщения")]]);
 
-
 var oDrawingObjectsModule = null;
 
 gmxCore.addModulesCallback(["DrawingObjects"], function(){
@@ -136,6 +135,29 @@ WikiService.prototype = {
     }
 }
 
+var bShareModuleLoaded = false;
+
+var addthis_config = {
+	//ui_language: _translationsHash.getLanguage().substr(0,2)
+};
+
+var fnShare = function(pageInfo, container){
+	var fnRenderShare = function(){
+		var shareDiv = _div();
+		addthis.toolbox(document.getElementById('headerLinks'));
+		_(container, [shareDiv]);
+	};
+	
+	if (!bShareModuleLoaded){
+		$LAB.script("http://s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4eeb41dd008d5d93").wait(function(){
+			fnRenderShare();
+		});
+	}
+	else{
+		fnRenderShare();
+	}
+}
+	
 /** Конструктор
  @class Класс, обеспечивающий отображение сообщений на карте
  @memberOf Wiki
@@ -204,6 +226,8 @@ WikiObjectsHandler.prototype = {
 					var divBaloon = _div([divTitle, divContent, divEdit]);
 					
 					removeChilds(div); 
+					fnShare(pageInfo, divBaloon);
+					
 					_(div, [divBaloon]);
 					return {}; 
 				};
