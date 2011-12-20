@@ -101,6 +101,7 @@ class EditableContent extends MapContent
 			root.removeEventListener(MouseEvent.MOUSE_DOWN, listener2);
 			root.removeEventListener(MouseEvent.MOUSE_UP, listener3);
 			me.contentSprite.removeChild(indicator);
+			me.chkGeometry();
 			Main.clickingDisabled = false;
 			me.rebuild();
 			me.mapNode.callHandler("onFinish");
@@ -108,6 +109,25 @@ class EditableContent extends MapContent
 		root.addEventListener(MouseEvent.MOUSE_MOVE, listener1);
 		root.addEventListener(MouseEvent.MOUSE_DOWN, listener2);
 		root.addEventListener(MouseEvent.MOUSE_UP, listener3);
+	}
+	
+	// Проверка сдвига геометрии 
+	function chkGeometry()
+	{
+		var geom:Geometry = getGeometry();
+		var w:Float = Utils.worldWidth;
+		var ww:Float = geom.extent.maxx - geom.extent.minx;
+		if (ww < 2 * w && geom.extent.maxx > w) {	// Поправка только если Extent < размера мира и maxx больше полумира
+			for (i in 0...Std.int(coordinates.length / 2)) coordinates[2 * i] -= 2 * w;
+		}
+	}
+	
+	function chkPositionX(geom:Geometry)
+	{
+		if (geom == null || isDrawing) return;
+		var xshift:Float = Utils.getShiftX(geom.extent.minx, geom.extent.maxx, mapNode);
+		var pos:Int = cast(xshift);
+		if (contentSprite.x != pos) contentSprite.x = pos;
 	}
 
 	public function setGeometry(geometry:Geometry)
@@ -158,14 +178,6 @@ class EditableContent extends MapContent
 		linesPainter.geometry = lines;
 		repaint();
 		mapNode.callHandler("onEdit");
-	}
-	
-	function chkPositionX(geom:Geometry)
-	{
-		if (geom == null || isDrawing) return;
-		var xshift:Float = Utils.getShiftX(geom.extent.minx, geom.extent.maxx, mapNode);
-		var pos:Int = cast(xshift);
-		if (contentSprite.x != pos) contentSprite.x = pos;
 	}
 
 	public override function repaint()

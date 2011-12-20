@@ -126,11 +126,12 @@ class Main
 		var setCurrentPosition = function(x, y, z)
 		{
 			currentX = constrain(minX, x,  maxX);
-			var ww = 2 * Utils.worldWidth;
-			while (currentX > ww)
-				currentX -= ww;
-			while (currentX < -ww)
-				currentX += ww;
+			var ww = Utils.worldWidth;
+			var wd = Utils.worldDelta;
+			while (currentX > ww + wd)
+				currentX -= 2 * ww;
+			while (currentX < -ww + wd)
+				currentX += 2 * ww;
 			currentY = constrain(minY, y, maxY);
 			currentZ = constrain(minZ, z, maxZ);
 			viewportHasMoved = true;
@@ -165,6 +166,12 @@ class Main
 			return mapWindow;
 		}
 
+		
+		var onMoveEnd = function(?event:MouseEvent)
+		{
+			mapWindow.rootNode.callHandlersRecursively("onMoveEnd");
+		}
+		
 		var isFluidMoving:Bool = false;
 		var fluidTargetZ:Float = 0;
 		var stopFluidMove:Void->Void = null;
@@ -207,6 +214,7 @@ class Main
 				root.removeEventListener(Event.ENTER_FRAME, listener);
 				isFluidMoving = false;
 				stopFluidMove = null;
+				onMoveEnd();
 			}
 		}
 
@@ -318,11 +326,6 @@ class Main
 			clickedNode = null;
 			isDragging = false;
 			//viewportHasMoved = true;
-		}
-		
-		var onMoveEnd = function(?event:MouseEvent)
-		{
-			mapWindow.rootNode.callHandlersRecursively("onMoveEnd");
 		}
 		
 		root.addEventListener(MouseEvent.MOUSE_UP, function(event)
@@ -993,7 +996,7 @@ class Main
 					onMoveBegin();
 					Main.bumpFrameRate();
 					fluidMoveTo(attr.x, attr.y, 17 - attr.z, 10);
-					onMoveEnd();
+					//onMoveEnd();
 				case 'zoomBy':
 					onMoveBegin();
 					var dz:Float = attr.dz;
@@ -1006,7 +1009,7 @@ class Main
 						my = sprite.mouseY;
 					}
 					zoomBy(-dz, mx, my);
-					onMoveEnd();
+					//onMoveEnd();
 				case 'freeze':
 					Main.draggingDisabled = true; 
 				case 'unfreeze':
