@@ -126,11 +126,12 @@ class Main
 		var setCurrentPosition = function(x, y, z)
 		{
 			currentX = constrain(minX, x,  maxX);
-			var ww = 2 * Utils.worldWidth;
-			while (currentX > ww)
-				currentX -= ww;
-			while (currentX < -ww)
-				currentX += ww;
+			var ww = Utils.worldWidth;
+			var wd = Utils.worldDelta;
+			while (currentX > ww + wd)
+				currentX -= 2 * ww;
+			while (currentX < -ww + wd)
+				currentX += 2 * ww;
 			currentY = constrain(minY, y, maxY);
 			currentZ = constrain(minZ, z, maxZ);
 			viewportHasMoved = true;
