@@ -858,6 +858,12 @@ window.gmxAPI = {
 		];
 	}
 	,
+	chkPointCenterX: function(centerX) {
+		while(centerX < -180) centerX += 360;
+		while(centerX > 180) centerX -= 360;
+		return centerX;
+	}
+	,
 	convertCoords: function(coordsStr)
 	{
 		var res = [],
@@ -5047,12 +5053,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var isDrawing = true;
 				var ret = {};
 				currentlyDrawnObject = ret;
-				var chkCenterX = function(centerX)
-				{ 
-					while(centerX < -180) centerX += 360;
-					while(centerX > 180) centerX -= 360;
-					return centerX;
-				}
 
 				ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
 
@@ -5090,7 +5090,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				{
 					var updateDOM = function()
 					{
-						xx = chkCenterX(xx);
+						xx = gmxAPI.chkPointCenterX(xx);
 						domObj.update({ type: "POINT", coordinates: [xx, yy] }, text);
 					}
 
@@ -5230,7 +5230,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					}
 					var downCallback = function(x, y)
 					{
-						x = chkCenterX(x);
+						x = gmxAPI.chkPointCenterX(x);
 						startDx = xx - x;
 						startDy = yy - y;
 						isDragged = true;
@@ -7910,9 +7910,9 @@ function BalloonClass(map, div, apiBase)
 			},
 			onClick: function(o, keyPress)
 			{
+				refreshMapPosition();
 				var customBalloonObject = chkAttr('customBalloon', mapObject);		// ѕроверка наличи€ параметра customBalloon по ветке родителей 
 				if(customBalloonObject) {
-					currPosition = map.getPosition();
 					currPosition._x = propsBalloon.x;
 					currPosition._y = propsBalloon.y;
 					var flag = customBalloonObject.onClick(o, keyPress, currPosition);
@@ -8032,6 +8032,8 @@ function BalloonClass(map, div, apiBase)
 			var mx = map.getMouseX();
 			var my = map.getMouseY();
 			
+			mx = gmxAPI.chkPointCenterX(mx);
+
 			if(o.getGeometryType() == 'POINT') {
 				var gObj = o.getGeometry();
 				var x = gObj.coordinates[0];
@@ -8319,12 +8321,17 @@ function BalloonClass(map, div, apiBase)
 				var deltaX = 0;
 
 				if(!balloon.isDraging) {
-					var ww = (gmxAPI.merc_x(180) - gmxAPI.merc_x(-180))/sc;
-					var mind = Math.abs(mapX - gmxAPI.merc_x(this.geoX));
-					var d1 = Math.abs(mapX - gmxAPI.merc_x(this.geoX - 360));
-					if (d1 < mind) { mind = d1; deltaX = -ww; }
-					d1 = Math.abs(mapX - gmxAPI.merc_x(this.geoX + 360));
-					if (d1 < mind) { deltaX = ww; }
+					var pos = gmxAPI.chkPointCenterX(this.geoX);
+					var centrGEO = gmxAPI.from_merc_x(mapX);
+					
+					var mind = Math.abs(pos - centrGEO);
+					for(var i = 1; i<4; i++) {
+						var d1 = Math.abs(pos - centrGEO + i * 360);
+						if (d1 < mind) { mind = d1; deltaX = i * 360; }
+						d1 = Math.abs(pos - centrGEO - i * 360);
+						if (d1 < mind) { mind = d1; deltaX = -i * 360; }
+					}
+					deltaX = gmxAPI.merc_x(deltaX) / sc;
 				}
 
 				var x = div.clientWidth/2 - (mapX - gmxAPI.merc_x(this.geoX))/sc + deltaX;
