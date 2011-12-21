@@ -66,6 +66,7 @@ class VectorObject extends MapContent
 	
 	function chkPositionX()
 	{
+		if (mapNode.propHiden.get('isDraging')) return;
 		var parNode:MapNode = mapNode.parent;
 		if (mapNode.parent != null && mapNode.parent.parent != null && mapNode.parent.parent.propHiden.get('type') == 'FRAMECHILD') return;
 
@@ -73,7 +74,6 @@ class VectorObject extends MapContent
 		var pos:Int = cast(xshift);
 		if (contentSprite.x != pos) contentSprite.x = pos;
 		geometry.propHiden.set('_xshift', xshift);
-		
 	}
 
 	public override function hasLabels()

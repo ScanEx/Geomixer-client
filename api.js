@@ -4984,7 +4984,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				setToolHandlers({
 					onMouseMove: function(o)
 					{
-						dragCallback(map.getMouseX(), map.getMouseY(), o);
+						var currPosition = map.getPosition();
+						var mouseX = gmxAPI.from_merc_x(currPosition['mouseX']);
+						var mouseY = gmxAPI.from_merc_y(currPosition['mouseY']);
+						dragCallback(mouseX, mouseY, o);
 					},
 					onMouseUp: function()
 					{
@@ -5012,8 +5015,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var object = this;
 				var mouseDownHandler = function(o)
 				{
-					if (downCallback)
-						downCallback(map.getMouseX(), map.getMouseY(), o);
+					if (downCallback) {
+						var currPosition = map.getPosition();
+						var mouseX = gmxAPI.from_merc_x(currPosition['mouseX']);
+						var mouseY = gmxAPI.from_merc_y(currPosition['mouseY']);
+						downCallback(mouseX, mouseY, o);
+					}
 					startDrag(object, dragCallback, upCallback);
 				}
 				if (object == map) {
@@ -5040,6 +5047,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var isDrawing = true;
 				var ret = {};
 				currentlyDrawnObject = ret;
+				var chkCenterX = function(centerX)
+				{ 
+					while(centerX < -180) centerX += 360;
+					while(centerX > 180) centerX -= 360;
+					return centerX;
+				}
 
 				ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
 
@@ -5077,6 +5090,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				{
 					var updateDOM = function()
 					{
+						xx = chkCenterX(xx);
 						domObj.update({ type: "POINT", coordinates: [xx, yy] }, text);
 					}
 
@@ -5102,8 +5116,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						xx = x;
 						yy = y;
+						FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
 						obj.setPoint(xx, yy);
-						balloon.setPoint(xx, yy);
+ 						balloon.setPoint(xx, yy, isDragged);
 						updateDOM();
 					}
 
@@ -5215,32 +5230,38 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					}
 					var downCallback = function(x, y)
 					{
+						x = chkCenterX(x);
 						startDx = xx - x;
 						startDy = yy - y;
 						isDragged = true;
+						FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
 					};
 					var upCallback = function()
 					{
 						isDragged = false;
+						FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
+						balloon.setPoint(xx, yy, isDragged);
+						obj.setPoint(xx, yy);
 					}
 					obj.enableDragging(dragCallback, downCallback, upCallback);
 
 					balloon.outerDiv.onmousedown = function(event)
 					{
+						FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': true} });
 						var currPosition = map.getPosition();
 						var mapX = currPosition['x'];
 						var mapY = currPosition['y'];
 						var z = currPosition['z'];
 						scale = gmxAPI.getScale(z);
-						downCallback(
-							gmxAPI.from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale),
-							gmxAPI.from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale)
-						);
+						var x = gmxAPI.from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale);
+						var y = gmxAPI.from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale);
+						downCallback(x, y);
 						startDrag(obj, dragCallback, upCallback);
 						return false;
 					}
 					balloon.outerDiv.onmouseup = function(event)
 					{
+						FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': false} });
 						stopDrag();
 						upCallback();
 					}
@@ -5253,10 +5274,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							var mapY = currPosition['y'];
 							var z = currPosition['z'];
 							scale = gmxAPI.getScale(z);
-							position(
-								startDx + gmxAPI.from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale),
-								startDy + gmxAPI.from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale)
-							);
+							var x = startDx + gmxAPI.from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale);
+							var y = startDy + gmxAPI.from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale);
+							position(x, y);
 							deselect();
 							return false;
 						}
@@ -8241,6 +8261,8 @@ function BalloonClass(map, div, apiBase)
 		balloon.notDelFlag = _notDelFlag;
 		balloon.geoX = 0;
 		balloon.geoY = 0;
+		balloon.isDraging = false;
+		
 		var oldSetVisible = balloon.setVisible;
 		balloon.div.onmouseover = function()
 		{
@@ -8295,12 +8317,15 @@ function BalloonClass(map, div, apiBase)
 				
 				// Смещение Балуна к центру
 				var deltaX = 0;
-				var ww = (gmxAPI.merc_x(180) - gmxAPI.merc_x(-180))/sc;
-				var mind = Math.abs(mapX - gmxAPI.merc_x(this.geoX));
-				var d1 = Math.abs(mapX - gmxAPI.merc_x(this.geoX - 360));
-				if (d1 < mind) { mind = d1; deltaX = -ww; }
-				d1 = Math.abs(mapX - gmxAPI.merc_x(this.geoX + 360));
-				if (d1 < mind) { deltaX = ww; }
+
+				if(!balloon.isDraging) {
+					var ww = (gmxAPI.merc_x(180) - gmxAPI.merc_x(-180))/sc;
+					var mind = Math.abs(mapX - gmxAPI.merc_x(this.geoX));
+					var d1 = Math.abs(mapX - gmxAPI.merc_x(this.geoX - 360));
+					if (d1 < mind) { mind = d1; deltaX = -ww; }
+					d1 = Math.abs(mapX - gmxAPI.merc_x(this.geoX + 360));
+					if (d1 < mind) { deltaX = ww; }
+				}
 
 				var x = div.clientWidth/2 - (mapX - gmxAPI.merc_x(this.geoX))/sc + deltaX;
 				var y = div.clientHeight/2 + (mapY - gmxAPI.merc_y(this.geoY))/sc;
@@ -8330,10 +8355,11 @@ function BalloonClass(map, div, apiBase)
 			balloon.isVisible = flag;
 			this.reposition();
 		}
-		balloon.setPoint = function(x_, y_)
+		balloon.setPoint = function(x_, y_, isDraging_)
 		{
 			this.geoX = x_;
 			this.geoY = y_;
+			this.isDraging = isDraging_;
 			positionBalloons();
 		}
 		balloon.remove = function()
