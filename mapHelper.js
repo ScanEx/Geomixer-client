@@ -500,8 +500,18 @@ mapHelper.prototype.getMapStyles = function()
 
 mapHelper.prototype.showPermalink = function()
 {
-	var _this = this,
-		mapState = this.getMapState();
+	this.createPermalink(function(id){
+									var input = _input(null, [['dir','className','inputStyle'],['attr','value',"http://" + window.location.host + window.location.pathname + "?permalink=" + id + (defaultMapID == globalMapName ? "" : ("&" + globalMapName))],['css','width','270px']])
+				
+									showDialog(_gtxt("Ссылка на текущее состояние карты:"), _div([input]), 311, 80, false, false);
+									
+									input.select();
+								});
+}
+
+mapHelper.prototype.createPermalink = function(callback)
+{
+	var mapState = this.getMapState();
 	
 	sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx",
 								{
@@ -513,12 +523,7 @@ mapHelper.prototype.showPermalink = function()
 									if (!parseResponse(response))
 										return;
 									
-									var id = response.Result,
-										input = _input(null, [['dir','className','inputStyle'],['attr','value',"http://" + window.location.host + window.location.pathname + "?permalink=" + id + (defaultMapID == globalMapName ? "" : ("&" + globalMapName))],['css','width','270px']])
-				
-									showDialog(_gtxt("Ссылка на текущее состояние карты:"), _div([input]), 311, 80, false, false);
-									
-									input.select();
+									callback(response.Result);
 								})
 }
 

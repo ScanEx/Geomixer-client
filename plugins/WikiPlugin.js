@@ -21,7 +21,9 @@ _translationsHash.addtext("rus", {
 	"Вы действительно хотите удалить это сообщение?" : "Вы действительно хотите удалить это сообщение?",
 	"Удалить привязку к слою": "Удалить привязку к слою",
 	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник",
-	"Объект не выбран": "Объект не выбран"
+	"Объект не выбран": "Объект не выбран",
+	"Объект для привязки": "Объект для привязки",
+	"Поделиться": "Поделиться"
 });
 _translationsHash.addtext("eng", {
 	"Сообщение" : "Message",
@@ -37,7 +39,9 @@ _translationsHash.addtext("eng", {
 	"Вы действительно хотите удалить это сообщение?" : "Do you really want to delete the selected message?",
 	"Удалить привязку к слою": "Delete layer reference",
 	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Add new point or rectangle to create a message",
-	"Объект не выбран": "Nothing selected"
+	"Объект не выбран": "Nothing selected",
+	"Объект для привязки": "Message object",
+	"Поделиться": "Share"
 });
 
 /**Контейнер меню (или диалога сообщений), содержащий список сообщений и кнопку "Создать сообщение"
@@ -138,19 +142,39 @@ WikiService.prototype = {
 var bShareModuleLoaded = false;
 
 var addthis_config = {
-	//ui_language: _translationsHash.getLanguage().substr(0,2)
+	pubid: "ra-4eeb41dd008d5d93",
+	domready: true,
+	ui_language: _translationsHash.getLanguage().substr(0,2)
 };
 
 var fnShare = function(pageInfo, container){
 	var fnRenderShare = function(){
-		var shareDiv = _div();
-		addthis.toolbox(document.getElementById('headerLinks'));
-		_(container, [shareDiv]);
+		var btnShare = makeLinkButton(_gtxt('Поделиться'));
+		_(container, [btnShare]);
+		btnShare.onclick = function(){
+			hide(btnShare);
+			_mapHelper.createPermalink(function(id){
+				var toolbox = _div(null, [['attr', 'class', 'addthis_toolbox addthis_default_style']]);
+				var getButton = function(buttonName){
+					return _a(null, [['attr', 'class', 'addthis_button_' + buttonName]]);
+				}
+				_(toolbox, [getButton('facebook'), getButton('twitter'), getButton('vk'), getButton('odnoklassniki_ru'), getButton('compact')]);
+				_(container, [toolbox]);
+				
+				addthis.toolbox(toolbox, {}, {
+					title: pageInfo.Title,
+					url_transforms : { add: {permalink: id}}
+					});
+			});
+		}
 	};
 	
 	if (!bShareModuleLoaded){
+				   //http://s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4eeb41dd008d5d93
 		$LAB.script("http://s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4eeb41dd008d5d93").wait(function(){
+			addthis.init();
 			fnRenderShare();
+			bShareModuleLoaded = true;
 		});
 	}
 	else{
@@ -410,7 +434,7 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	this._layerChooseFlag = false;
 	this._geometryChooseFlag = false;
 	this._geometryRowContainer = _div();
-	this._geometryTable = _table([_tbody([_tr([_td([_t("Объект для привязки: ")]), _td([this._geometryRowContainer]), _td([makeHelpButton(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))])])])]);
+	this._geometryTable = _table([_tbody([_tr([_td([_t(_gtxt("Объект для привязки: "))]), _td([this._geometryRowContainer]), _td([makeHelpButton(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))])])])]);
 	this._drawingObjectInfoRow = null;
 	//this._divGeometry = _div([_t(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))],[['dir', 'className', 'wiki-editor-helptext']]);
 	this._txtLayer = _input(null, [['attr', 'readonly', 'true'], ['dir', 'className', 'wiki-editor-txtlayer']]);
@@ -429,7 +453,7 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	_btnOK.onclick = this.updatePage.bind(this);
 	var trContent = _tr([_td([this._txtContent], [['css', 'height', '100%']])]);
 	var tblAll = _table([_tbody([_tr([_td([this._geometryTable, this._fieldsTable])]), trContent, _tr([_td([_br(), _btnOK])])])], [['dir', 'className', 'wiki-editor-tblAll']]);
-	this._div = _div([tblAll], [['attr', 'Title', _gtxt('Сообщение')]]);
+	this._div = _div([tblAll]);
 }
 
 WikiEditor.prototype = {
@@ -457,7 +481,7 @@ WikiEditor.prototype = {
 			this._drawing.remove();
 			this._drawing = null;
 		}
-		if (!this._pageInfo.Geometry) { alert("Добавьте объект на карту"); return; };
+		if (!this._pageInfo.Geometry) { alert(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник")); return; };
 		$(this).triggerHandler('updatePage', [this._pageInfo]);
 	},
 	
