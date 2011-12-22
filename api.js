@@ -1181,11 +1181,6 @@ window.gmxAPI = {
 	{
 		return Object.prototype.toString.apply(obj) === '[object Array]';
 	}
-	,
-	getServerBase: function()
-	{
-		return window.serverBase || '';
-	}
 }
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
@@ -3595,8 +3590,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 								{
 									var item = req.SearchResult[j];
 									ret.push(new FlashMapFeature( 
-										//gmxAPI.from_merc_geometry(item.geometry),
-										item.geometry,
+										gmxAPI.from_merc_geometry(item.geometry),
 										item.properties,
 										map.layers[req.name]
 									));
