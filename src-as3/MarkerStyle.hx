@@ -262,10 +262,8 @@ class MarkerStyle
 		
 		var s:Float = marker.scale;
 		var ang:Float = marker.angle;
-		if (geom.properties != null) {
-			if(angleFunction != null) ang = angleFunction(geom.properties);
-			if (scaleFunction != null) s = scaleFunction(geom.properties);
-		}
+		if(angleFunction != null) ang = angleFunction(geom.properties);
+		if (scaleFunction != null) s = scaleFunction(geom.properties);
 		if(ang != 0) matrix.rotate(ang*Math.PI/180.0);
 		if (s < minScale) s = minScale;
 		else if (s > maxScale) s = maxScale;
