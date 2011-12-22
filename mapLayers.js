@@ -2433,6 +2433,7 @@ queryMapLayers.prototype.getLayersHandler = function(response)
 	_queryMapLayers.createLayersManager();
 }
 
+//Внутри контейнера помещает табличку со списком слоёв
 //params:
 //  * showType
 //  * enableDragging

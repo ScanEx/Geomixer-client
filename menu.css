@@ -203,7 +203,7 @@ div.login
 /* */
 .iconsParent
 {
-	width: 100%;
+	/*width: 100%;*/
 }
 .iconsParent td
 {
@@ -213,7 +213,7 @@ div.login
 {
 	width: 24px;
 	height: 24px;
-	margin: 5px 0px 0px 6px;
+	margin: 5px 7px 0px 7px;
 }
 .iconMapName
 {

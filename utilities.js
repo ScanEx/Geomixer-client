@@ -904,21 +904,23 @@ function addUserActions()
 	{
 		_queryMapLayers.addUserActions();
 		
-		if (_queryMapLayers.currentMapRights() == "edit")
-			_iconPanel.addUserActions();
+		// if (_queryMapLayers.currentMapRights() == "edit")
+			// _iconPanel.addUserActions();
+        _iconPanel.updateVisibility();
 		
-		if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
-		{
-			_iconPanel.setVisible('createRasterLayer', false);
-			_iconPanel.setVisible('createVectorLayer', false);
-		}
+		// if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
+		// {
+			// _iconPanel.setVisible('createRasterLayer', false);
+			// _iconPanel.setVisible('createVectorLayer', false);
+		// }
 	}
 }
 function removeUserActions()
 {
 	_queryMapLayers.removeUserActions();
 	
-	_iconPanel.removeUserActions();
+	// _iconPanel.removeUserActions();
+    _iconPanel.updateVisibility();
 }
 
 function _title(elem, title)
