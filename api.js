@@ -1186,7 +1186,6 @@ window.gmxAPI = {
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
 window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/gmxAPI.PI;
 
-
 })();
 
 // Блок методов глобальной области видимости
@@ -2019,7 +2018,7 @@ function createFlashMapInternal(div, layers, callback)
 						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'label':attr['label'] } );
 						break;
 					case 'setBackgroundTiles':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZoom':attr['minZoom'], 'maxZoom':attr['maxZoom'], 'func':attr['func'], 'projectionCode':attr['projectionCode'] } );
+						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZoomView':attr['minZoomView'], 'maxZoomView':attr['maxZoomView'], 'minZoom':attr['minZoom'], 'maxZoom':attr['maxZoom'], 'func':attr['func'], 'projectionCode':attr['projectionCode'] } );
 						break;
 					case 'setDisplacement':
 						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'dx':attr['dx'], 'dy':attr['dy'] } );
@@ -2114,7 +2113,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 			FlashMapObject.prototype.setTileCaching = function(flag) { FlashCMD('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
 			FlashMapObject.prototype.setDisplacement = function(dx, dy) { FlashCMD('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
-			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom) { FlashCMD('setBackgroundTiles', { 'obj': this, 'attr':{'func':uniqueGlobalName(imageUrlFunction), 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom} }); }
+			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { FlashCMD('setBackgroundTiles', { 'obj': this, 'attr':{'func':uniqueGlobalName(imageUrlFunction), 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
 			FlashMapObject.prototype.bringToTop = function() { return FlashCMD('bringToTop', { 'obj': this }); }
 			FlashMapObject.prototype.bringToBottom = function() { FlashCMD('bringToBottom', { 'obj': this }); }
 			FlashMapObject.prototype.bringToDepth = function(n) { return FlashCMD('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }

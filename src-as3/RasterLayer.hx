@@ -14,8 +14,13 @@ class RasterLayer extends MaskedContent
 	public var maxZoom:Int;
 	public var minZoom:Int;
 
-	public function new(tileFunction_:Int->Int->Int->String, minZoom_:Int, maxZoom_:Int)
+	var maxZoomView:Int;
+	var minZoomView:Int;
+
+	public function new(tileFunction_:Int->Int->Int->String, minZoom_:Int, maxZoom_:Int, ?minZoomView_:Int, ?maxZoomView_:Int)
 	{
+		maxZoomView = maxZoomView_;
+		minZoomView = minZoomView_;
 		maxZoom = maxZoom_;
 		minZoom = minZoom_;
 		tileFunction = tileFunction_;
@@ -54,7 +59,7 @@ class RasterLayer extends MaskedContent
 		{
 			var tile:RasterTile = tiles.get(id);
 			if (
-				((maxZoom > 0 && z > maxZoom) || (minZoom > 0 && z < minZoom)) ||	// Если установлен minZoom maxZoom
+				((maxZoomView > 0 && z > maxZoomView) || (minZoomView > 0 && z < minZoomView)) ||	// Если установлен minZoomView maxZoomView
 				(tile.isOverlay ? tile.z != z : tile.z > z) ||
 				(!tile.loaded && (tile.isReplacement ? tile.z > z : tile.z != z))
 				)
@@ -109,7 +114,7 @@ class RasterLayer extends MaskedContent
 	{
 		if (z <= mapNode.window.getCurrentZ())
 		{
-			if ((maxZoom > 0 && z > maxZoom) || (minZoom > 0 && z < minZoom)) return; // Если установлен minZoom maxZoom
+			if ((maxZoomView > 0 && z > maxZoomView) || (minZoomView > 0 && z < minZoomView)) return; // Если установлен minZoomView maxZoomView
 			var id = i + "_" + j + "_" + z;
 			if (!tiles.exists(id) && !failedTiles.exists(id))
 				tiles.set(id, new RasterTile(this, i, j, z, isReplacement, isRetrying));
