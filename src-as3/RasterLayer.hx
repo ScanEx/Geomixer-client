@@ -19,10 +19,10 @@ class RasterLayer extends MaskedContent
 
 	public function new(tileFunction_:Int->Int->Int->String, minZoom_:Int, maxZoom_:Int, ?minZoomView_:Int, ?maxZoomView_:Int)
 	{
-		maxZoomView = maxZoomView_;
-		minZoomView = minZoomView_;
-		maxZoom = maxZoom_;
-		minZoom = minZoom_;
+		maxZoomView = (maxZoomView_ > 0 ? maxZoomView_ : 0);
+		minZoomView = (minZoomView_ > 0 ? minZoomView_ : 0);
+		maxZoom = (maxZoom_ > 0 ? maxZoom_ : 0);
+		minZoom = (minZoom_ > 0 ? minZoom_ : 0);
 		tileFunction = tileFunction_;
 		tilesPerZoomLevel = new Array<Int>();
 		for (i in 0...25)
