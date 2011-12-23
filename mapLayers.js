@@ -555,7 +555,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	if (layerManagerFlag == 1)
 		return [_img(null, [['attr','src', (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png')],['css','marginLeft','3px']]), spanParent, spanDescr];
 	
-	if (!layerManagerFlag && !globalFlashMap.layers[elem.name].isVisible)
+	if (this._renderParams.showVisibilityCheckbox && !globalFlashMap.layers[elem.name].isVisible)
 		$(spanParent).addClass("invisible")
 	
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Layer', function(){return true;}, {
@@ -566,7 +566,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 		
 	if (elem.type == "Vector")
 	{
-		var icon = this.mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon'),
+		var icon = this.mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag}),
 			multiStyleParent = _div(null,[['attr','multiStyle',true]]);
 		
 		this.mapHelper.createMultiStyle(elem, multiStyleParent, true, layerManagerFlag);
@@ -1904,7 +1904,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 				{
 					div = div[0];
 					
-					_mapHelper.updateTreeStyles(newStyles, div);
+					_mapHelper.updateTreeStyles(newStyles, div, true);
 				}
 			}
 		}

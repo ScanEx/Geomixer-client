@@ -347,18 +347,23 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 	}
 }
 
-mapHelper.prototype.updateTreeStyles = function(newStyles, div)
+mapHelper.prototype.updateTreeStyles = function(newStyles, div, isEditableStyles)
 {
+    isEditableStyles = typeof isEditableStyles === 'undefined' || isEditableStyles;
 	div.gmxProperties.content.properties.styles = newStyles;
 	
 	var multiStyleParent = $(div).children('[multiStyle]')[0];
 	
 	var parentIcon = $(div).children("[styleType]")[0],
-		newIcon = _mapHelper.createStylesEditorIcon(newStyles, div.gmxProperties.content.properties.GeometryType.toLowerCase());
+		newIcon = _mapHelper.createStylesEditorIcon(newStyles, div.gmxProperties.content.properties.GeometryType.toLowerCase(), {addTitle: isEditableStyles});
+        
+    if ( isEditableStyles )
+    {
 		newIcon.onclick = function()
 		{
 			_mapHelper.createLayerEditor(div, 1, div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 		}
+    }
 		
 	$(parentIcon).replaceWith(newIcon);
 	
@@ -2689,8 +2694,11 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		$(fillParent).find("[fade]")[0].style.display = 'none';
 }
 
-mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type)
+//params:
+//  * addTitle {bool, default: true} 
+mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params)
 {
+    var _params = $.extend({addTitle: true}, params);
 	var icon;
 	
 	if (isArray(parentStyles) && parentStyles.length > 1)
@@ -2764,7 +2772,8 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type)
 		}
 	}
 	
-	_title(icon, _gtxt("Редактировать стили"));
+    if (_params.addTitle)
+        _title(icon, _gtxt("Редактировать стили"));
 	
 	icon.geometryType = type;
 	
@@ -5001,7 +5010,7 @@ mapHelper.prototype.createMultiStyle = function(elem, multiStyleParent, treeview
 	
 	for (var i = 0; i < filters.length; i++)
 	{
-		var icon = this.createStylesEditorIcon([elem.styles[i]], elem.GeometryType.toLowerCase()),
+		var icon = this.createStylesEditorIcon([elem.styles[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
 			name = elem.styles[i].Name || elem.styles[i].Filter || 'Без имени ' + (i + 1),
 			li = _li([_div([icon, _span([_t(name)],[['css','marginLeft','3px']])])]);
 		

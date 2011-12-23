@@ -429,7 +429,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		
 		_mapHelper.updateMapStyles(newStyles, context.elem.name);
 		
-		_mapHelper.updateTreeStyles(newStyles, div);
+		_mapHelper.updateTreeStyles(newStyles, div, true);
 	}
 }, 'Layer');
 

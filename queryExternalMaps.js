@@ -101,7 +101,7 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName)
 			var name = layer.properties.name;
 			
 			if (globalFlashMap.layers[name].external)
-				mapElem.extLayersTree.removeLayer(name);
+				_queryMapLayers.removeLayer(name);
 		});
 	}
 }
@@ -137,7 +137,9 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent)
 		loading.removeNode(true);
 		_(parent, [tree]);
         
-        _queryMapLayers.addDraggable(parent);
+        //добавляем перетаскивание в основную карту только если доп. карта с того же домена
+        if ( hostName === _mapHelper.mapProperties.hostName )
+            _queryMapLayers.addDraggable(parent);
 		
 		parent.extLayersTree = extLayersTree;
 	});
