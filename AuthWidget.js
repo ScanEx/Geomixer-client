@@ -245,7 +245,7 @@ var nsGmx = nsGmx || {};
                 }
                 else
                 {
-                    if (response.Status === 'auth' && response.Result.ClassName === 'System.ArgumentException')
+                    if (response.Status === 'auth' && ('Result' in response) && response.Result.ClassName === 'System.ArgumentException')
                     {
                         var errorDiv = $("<div/>", {'class': 'EmailErrorMessage'}).text(response.Result.Message);
                         $(loginButton).after(errorDiv);
@@ -253,7 +253,6 @@ var nsGmx = nsGmx || {};
                             errorDiv.hide(500, function(){ errorDiv.remove(); });
                         }, 4000)
                     }
-                        
                     failureHandler();
                 }
             },
