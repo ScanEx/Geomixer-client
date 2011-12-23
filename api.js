@@ -1599,8 +1599,10 @@ function loadMapJSON(hostName, mapName, callback, onError)
 					if (key)
 						useAPIKey(key);
 					else
-						haveNoAPIKey();
+						haveNoAPIKey();			// Нет apiKey в config.js
 				}
+				,
+				function() { haveNoAPIKey(); }	// Нет config.js
 			);
 		else
 			haveNoAPIKey();
@@ -6753,8 +6755,9 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 	{
 		loadVariableFromScript(
 			getScriptBase("api.js") + "config.js",
-			"defaultMapID",
-			finish
+			"baseMap",
+			finish,
+			finish			// Нет config.js
 		);
 	}
 	else

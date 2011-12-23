@@ -531,6 +531,28 @@ function addCommonCalendar()
     }
 }
 
+function addMapName(container, name)
+{
+    var parent;
+    if (!$$('iconMapName'))
+    {
+        var div = _div([_t(name)], [['attr','id','iconMapName'], ['dir','className','iconMapName']])
+            td = _td([div],[['css','paddingTop','2px']]);
+        
+        _(container, [_table([_tbody([_tr(
+            [_td([_t(_gtxt("Карта"))], [['css','color','#153069'],['css','fontSize','12px'],['css','paddingTop','2px'],['css','fontFamily','tahoma'], ['css','height','30px']]),
+                      _td([_div(null,[['dir','className','markerRight']])],[['attr','vAlign','top'],['css','paddingTop',($.browser.msie ? '8px' : '10px')]]),
+                       td]
+                       )])])]);
+    }
+    else
+    {
+        removeChilds($$('iconMapName'));
+        
+        $($$('iconMapName'), [_t(name)])
+    }
+}
+
 function loadMap(state)
 {
 	layersShown = (state.isFullScreen == "false");
@@ -731,9 +753,17 @@ function loadMap(state)
 				_mapHelper.gridView = false;
 				
 				//создаём иконку переключения в полноэкранный режим.
-				_leftIconPanel.create($$('leftIconPanel'));
-				
-				_leftIconPanel.addMapName(data.properties.title);
+                var mapNameContainer = _div();
+                var leftIconPanelContainer = _div();
+                addMapName(mapNameContainer, data.properties.title);
+                
+				_leftIconPanel.create(leftIconPanelContainer);
+                _($$('leftIconPanel'), [_table([_tbody([_tr([
+                    _td([mapNameContainer], [['css', 'paddingLeft', '10px'], ['css', 'width', '100%']]), 
+                    _td([leftIconPanelContainer])
+                ])])])]);
+                
+                //_leftIconPanel.addMapName(data.properties.title);
 				
 				//добавим в тулбар две иконки, но видимой будет только одна
 				//по клику переключаем между ними
@@ -749,14 +779,26 @@ function loadMap(state)
 								   function() { _toggleFullscreenIcon(true); });
 				
 				_leftIconPanel.add('fullscreenoff', _gtxt("Свернуть карту"), "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png", 
-									function() { _toggleFullscreenIcon(false); }, true);
+									function() { _toggleFullscreenIcon(false); }, null, true);
 									
 				
 				//создаём тулбар
-				_iconPanel.create($$('iconPanel'));
-				_iconPanel.add('saveMap', _gtxt("Сохранить карту"), "img/toolbar/save_map.png", "img/toolbar/save_map_a.png", function(){_queryMapLayers.saveMap()})
-				_iconPanel.add('createVectorLayer', _gtxt("Создать векторный слой"), "img/toolbar/new_shapefile.png", "img/toolbar/new_shapefile_a.png", function(){_mapHelper.createNewLayer("Vector")})
-				_iconPanel.add('createRasterLayer', _gtxt("Создать растровый слой"), "img/toolbar/new_rastr.png", "img/toolbar/new_rastr_a.png", function(){_mapHelper.createNewLayer("Raster")})
+				
+                var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
+                var searchContainer = _div(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
+                _($$('iconPanel'), [_table([_tbody([_tr([
+                    _td([iconContainer]), 
+                    _td([searchContainer], [['css', 'padding', '0 10px 1px 50px'], ['css', 'width', '100%']])
+                ])])])]);
+                
+                _iconPanel.create(iconContainer);
+                
+                var visFuncSaveMap      = function(){ return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SAVE_MAP) && _queryMapLayers.currentMapRights() === "edit"; };
+                var visFuncCreateLayers = function(){ return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS) && _queryMapLayers.currentMapRights() === "edit"; };
+                
+				_iconPanel.add('saveMap', _gtxt("Сохранить карту"), "img/toolbar/save_map.png", "img/toolbar/save_map_a.png", function(){_queryMapLayers.saveMap()}, visFuncSaveMap)
+				_iconPanel.add('createVectorLayer', _gtxt("Создать векторный слой"), "img/toolbar/new_shapefile.png", "img/toolbar/new_shapefile_a.png", function(){_mapHelper.createNewLayer("Vector")}, visFuncCreateLayers)
+				_iconPanel.add('createRasterLayer', _gtxt("Создать растровый слой"), "img/toolbar/new_rastr.png", "img/toolbar/new_rastr_a.png", function(){_mapHelper.createNewLayer("Raster")}, visFuncCreateLayers)
 				
 				_iconPanel.addDelimeter('userDelimeter', false, true);
 				
@@ -766,13 +808,9 @@ function loadMap(state)
 				_iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
 				_iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
 				
-			//	_iconPanel.addDelimeter('feedbackDelimeter');
-				
-			//	_iconPanel.add('feedback', "Сообщить об ошибке", "img/toolbar/upload.png", false, function(){_mapHelper.userFeedback()})
-				
-				_iconPanel.addSearchCanvas();
-				
-				
+                //_iconPanel.addDelimeter('feedbackDelimeter');
+                //_iconPanel.add('feedback', "Сообщить об ошибке", "img/toolbar/upload.png", false, function(){_mapHelper.userFeedback()})
+								
 				if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages ) 
 					_translationsHash.showLanguages();		
 				
@@ -827,6 +865,7 @@ function loadMap(state)
 				{					
 					addUserActions();
 				}
+                
 				fnInitControls();
                 
                 addCommonCalendar();

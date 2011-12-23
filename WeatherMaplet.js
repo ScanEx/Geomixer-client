@@ -174,7 +174,7 @@
 		  
 			var elem = windParent.addObject();
 		  
-			var angle = 180  + city.Forecast[0].WindDirection * 45,
+			var angle = city.Forecast[0].WindDirection * 45,
 				wind = Math.floor((city.Forecast[0].WindMax + city.Forecast[0].WindMin) / 2),
 				scale,
 				color;
@@ -211,8 +211,7 @@
 			}
 		  
 			elem.setGeometry({type:'POINT', coordinates: [city.Lng, city.Lat]})
-			elem.setStyle({marker:{image: params.imagesHost + 'wind.png', center:true, angle:String(angle), scale: String(scale), color: color}})
-			//elem.setStyle({marker:{angle:String(angle), scale: String(scale), color: color}});
+			elem.setStyle({marker:{image: params.imagesHost + 'wind.png', center:true, angle: angle, scale: scale, color: color}})
 		  
 			var weekdays = ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'],
 				tods = ['ночь','утро','день','вечер'],
