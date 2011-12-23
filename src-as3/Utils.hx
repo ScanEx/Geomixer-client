@@ -71,7 +71,9 @@ class Utils
 
 	public static function getScale(z:Float)
 	{
-		return Math.pow(2, -z)*156543.033928041;
+		var zn:Float = Math.pow(2, -z) * 156543.033928041;
+		//zn = Math.round(zn * 1000000000) / 1000000000;
+		return zn;
 	}
 
 	public static function dateStringToUnixTimeStamp(str:String):String

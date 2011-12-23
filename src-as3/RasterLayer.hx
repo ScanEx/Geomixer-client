@@ -53,7 +53,11 @@ class RasterLayer extends MaskedContent
 		for (id in tiles.keys())
 		{
 			var tile:RasterTile = tiles.get(id);
-			if ((tile.isOverlay ? (tile.z != z) : (tile.z > z)) || (!tile.loaded && (tile.isReplacement ? (tile.z > z) : (tile.z != z))))
+			if (
+				((maxZoom > 0 && z > maxZoom) || (minZoom > 0 && z < minZoom)) ||	// Если установлен minZoom maxZoom
+				(tile.isOverlay ? tile.z != z : tile.z > z) ||
+				(!tile.loaded && (tile.isReplacement ? tile.z > z : tile.z != z))
+				)
 			{
 				tile.remove();
 				tiles.remove(id);
@@ -105,6 +109,7 @@ class RasterLayer extends MaskedContent
 	{
 		if (z <= mapNode.window.getCurrentZ())
 		{
+			if ((maxZoom > 0 && z > maxZoom) || (minZoom > 0 && z < minZoom)) return; // Если установлен minZoom maxZoom
 			var id = i + "_" + j + "_" + z;
 			if (!tiles.exists(id) && !failedTiles.exists(id))
 				tiles.set(id, new RasterTile(this, i, j, z, isReplacement, isRetrying));

@@ -39,6 +39,8 @@ class MapWindow
 	public var cacheRepaintNeeded:Bool;
 	public var labelsRepaintNeeded:Bool;
 
+	var oldPosition:String;
+
 	public function new(sprite:Sprite, getCurrentZ_:Void->Float)
 	{
 		outerSprite = sprite;
@@ -63,6 +65,7 @@ class MapWindow
 		labelTF = new TextField();
 		labelTF.width = 600;
 		labelTF.height = 50;
+		oldPosition = '';
 	}
 
 	function fillWindowArea(sprite:Sprite, color:Int)
@@ -130,8 +133,15 @@ class MapWindow
 		currentX = x;
 		currentY = y;
 		var z = getCurrentZ();
+		var curZ:Int = Math.round(z);
+		var position:String = curZ + '_' + Math.round(x) + '_' + Math.round(y);
+		if (oldPosition == position) return;	// Если позиция не изменилась выходим
+		oldPosition = position;
+		
 		var c:Float = 1/Utils.getScale(z);
-		matrix = new Matrix(c, 0, 0, -c, (x1 + x2)/2 - c*x, (y1 + y2)/2 + c*y);
+		var tx:Float = cast((x1 + x2)/2 - c*x);
+		var ty:Float = cast((y1 + y2)/2 + c*y);
+		matrix = new Matrix(c, 0, 0, -c, tx, ty);
 		innerSprite.transform.matrix = matrix;
 		var inv = matrix.clone();
 		inv.invert();
@@ -141,8 +151,10 @@ class MapWindow
 		visibleExtent.update(p1.x, p1.y);
 		visibleExtent.update(p2.x, p2.y);
 		scaleY = inv.d;
-		cacheRepaintNeeded = true;
-		labelsRepaintNeeded = true;
+		if (curZ == z) {
+			cacheRepaintNeeded = true;
+			labelsRepaintNeeded = true;
+		}
 	}
 
 	public function setCacheBitmapVisible(flag:Bool)
@@ -169,10 +181,7 @@ class MapWindow
 			var mat2 = matrix.clone();
 			mat2.tx -= x1;
 			mat2.ty -= y1;
-			//try {
-				//cacheBitmapData.draw(rootNode.rasterSprite, mat2);
-				cacheBitmapData.draw(rootNode.vectorSprite, mat2);
-			//} catch (e:Error) {}
+			cacheBitmapData.draw(rootNode.vectorSprite, mat2);
 			cacheRepaintNeeded = false;
 		}
 	}
