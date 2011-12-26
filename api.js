@@ -1181,10 +1181,71 @@ window.gmxAPI = {
 	{
 		return Object.prototype.toString.apply(obj) === '[object Array]';
 	}
+	,
+	valueInArray: function(arr, value)
+	{
+		for (var i = 0; i < arr.length; i++)
+			if (arr[i] == value)
+				return true;
+		
+		return false;
+	}
+	,
+	parseWMSCapabilities: function(response)
+	{
+		var serviceLayers = [],
+			strResp = response.replace(/[\t\n\r]/g, ' '),
+			strResp = strResp.replace(/\s+/g, ' '),
+			layersXML = parseXML(response).getElementsByTagName('Layer');
+		
+		for (var i = 0; i < layersXML.length; i++)
+		{
+			var layer = {},
+				name = layersXML[i].getElementsByTagName('Name'),
+				title = layersXML[i].getElementsByTagName('Title'),
+				bbox = layersXML[i].getElementsByTagName('LatLonBoundingBox'),
+				srs = layersXML[i].getElementsByTagName('SRS');
+			
+			if (srs.length)
+			{
+				layer.srs = getTextContent(srs[0]);
+				layer.srs = strip(layer.srs);
+				
+				if (!gmxAPI.valueInArray(gmxAPI.wmsProj, layer.srs))
+					continue;
+			}
+			else
+				layer.srs = gmxAPI.wmsProj[0];
+			
+			if (name.length)
+				layer.name = getTextContent(name[0]);
+			
+			if (bbox.length)
+			{
+				layer.bbox = 
+				{
+					minx: Number(bbox[0].getAttribute('minx')),
+					miny: Number(bbox[0].getAttribute('miny')),
+					maxx: Number(bbox[0].getAttribute('maxx')),
+					maxy: Number(bbox[0].getAttribute('maxy'))
+				};
+			}
+			
+			if (title.length)
+				layer.title = getTextContent(title[0]);
+			
+			if (layer.name)
+				serviceLayers.push(layer);
+		}
+		
+		return serviceLayers;
+	}
 }
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
 window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/gmxAPI.PI;
+window.gmxAPI.wmsProj = ['EPSG:4326','EPSG:3395','EPSG:41001'];	// типы проекций
+window.gmxAPI.serverBase = '';			// HostName основной карты
 
 })();
 
@@ -1632,6 +1693,7 @@ function createFlashMap(div, arg1, arg2, arg3)
 			mapName = arg1;
 			callback = arg2;
 		}
+		gmxAPI.serverBase = hostName;						// HostName основной карты
 		loadMapJSON(hostName, mapName, function(layers)
 		{
 			if (layers != null)
@@ -1669,7 +1731,6 @@ function createFlashMapInternal(div, layers, callback)
 		window.onunload = function() {};
 
 	var apiBase = getAPIFolderRoot();
-	//var aspBase = "http://" + (layers ? layers.properties.hostName : apiBase) + "/";
 
 	var focusLink = document.createElement("a");
 	var flashId = newFlashMapId();
@@ -6326,115 +6387,85 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			FlashMapObject.prototype.loadWMS = function(url, func)
 			{
 				var me = this;
-				var wmsProj = ['EPSG:4326','EPSG:3395','EPSG:41001'];
-				var _hostname = getAPIHostRoot() + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(url + '?request=GetCapabilities');
+				var urlProxyServer = 'http://' + gmxAPI.serverBase + '/';
+
+				url = url.replace(/Request=GetCapabilities/i, '');
+				var st = url;
+				st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetCapabilities';
+				var _hostname = urlProxyServer + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(st);
 				sendCrossDomainJSONRequest(_hostname, function(response)
 				{
 					if(typeof(response) != 'object' || response['Status'] != 'ok') {
 						gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
 						return;
 					}
-					var layersXML = parseXML(response['Result']).getElementsByTagName('Layer');
-	
-					for (var i = 0; i < layersXML.length; i++)(function(layerXML)
+					var serviceLayers = gmxAPI.parseWMSCapabilities(response['Result']);
+					for (var i = 0; i < serviceLayers.length; i++)
 					{
-						var props = {};
-			
-						var nameXML = layerXML.getElementsByTagName('Name');
-						var titleXML = layerXML.getElementsByTagName('Title');
-						var bboxXML = layerXML.getElementsByTagName('LatLonBoundingBox');
-						var srsXML = layerXML.getElementsByTagName('SRS');
-		
-						if (srsXML.length)
-							props.srs = strip(getTextContent(srsXML[0]));
-						else
-							props.srs = wmsProj[0];
-
-						if (wmsProj.indexOf(props.srs) == -1)
-							return;
-
-						if (nameXML.length)
-							props.name = getTextContent(nameXML[0]);
-						else
-							return;
-			
-						var bbox = false;
-						if (bboxXML.length)
-						{
-							bbox = 
-							{
-								minx: Number(bboxXML[0].getAttribute('minx')),
-								miny: Number(bboxXML[0].getAttribute('miny')),
-								maxx: Number(bboxXML[0].getAttribute('maxx')),
-								maxy: Number(bboxXML[0].getAttribute('maxy'))
-							};
-						}
-
-						if (titleXML.length)
-							props.title = getTextContent(titleXML[0]);
-
+						var props = serviceLayers[i];
 						var obj = me.addObject(null, props);
 						obj.setVisible(false);
-						map.onSetVisible[obj.objectId] = function(flag)
-						{
-							obj.setHandler("onMove", flag ? updateFunc : null);
-						}
 
 						var timeout = false;
 						var updateFunc = function()
 						{
-							if (timeout)
-								clearTimeout(timeout);
+							if (timeout) clearTimeout(timeout);
 							timeout = setTimeout(function()
 							{
-								var x = map.getX(), y = map.getY(), z = map.getZ(),
-									scale = gmxAPI.getScale(z),
+								var currPosition = map.getPosition();
+								var x = currPosition['x'];
+								var y = currPosition['y'];
+								var z = currPosition['z'];
+
+								var scale = gmxAPI.getScale(z),
 									w = div.clientWidth,
 									h = div.clientHeight,
 									wGeo = w*scale,
 									hGeo = h*scale;
-/*
-				var currPosition = map.getPosition();
-				var x = from_merc_x(currPosition['x']);
-				var y = from_merc_y(currPosition['y']);
-				var z = currPosition['z'];
-				scale = getScale(z);
-*/
 
-								var miny = Math.max(gmxAPI.from_merc_y(gmxAPI.merc_y(y) - hGeo/2), -90);
-								var maxy = Math.min(gmxAPI.from_merc_y(gmxAPI.merc_y(y) + hGeo/2), 90);
-								var minx = Math.max(gmxAPI.from_merc_x(gmxAPI.merc_x(x) - wGeo/2), -180);
-								var maxx = Math.min(gmxAPI.from_merc_x(gmxAPI.merc_x(x) + wGeo/2), 180);
+								var miny = Math.max(gmxAPI.from_merc_y(y - hGeo/2), -90);
+								var maxy = Math.min(gmxAPI.from_merc_y(y + hGeo/2), 90);
+								var minx = Math.max(gmxAPI.from_merc_x(x - wGeo/2), -180);
+								var maxx = Math.min(gmxAPI.from_merc_x(x + wGeo/2), 180);
 		
-								if (bbox)
+								if (props.bbox)
 								{
-									minx = Math.max(bbox.minx, minx);
-									miny = Math.max(bbox.miny, miny);
-									maxx = Math.min(bbox.maxx, maxx);
-									maxy = Math.min(bbox.maxy, maxy);
+									minx = Math.max(props.bbox.minx, minx);
+									miny = Math.max(props.bbox.miny, miny);
+									maxx = Math.min(props.bbox.maxx, maxx);
+									maxy = Math.min(props.bbox.maxy, maxy);
 				
 									if (minx >= maxx || miny >= maxy)
 										return;
 								}
 			
-								var isMerc = (props.srs == wmsProj[0]);
-			
+								var isMerc = (props.srs == gmxAPI.wmsProj[0]);
+
+								var st = url;
+								st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetMap';
+								st +=   "&layers=" + props.name +
+									"&srs=" + props.srs + 
+									"&format=image/jpeg&styles=" + 
+									"&width=" + w + 
+									"&height=" + h + 
+									"&bbox=" + (isMerc ? minx : gmxAPI.merc_x(minx)) + 
+									"," + (isMerc ? miny : gmxAPI.merc_y(miny)) + 
+									"," + (isMerc ? maxx : gmxAPI.merc_x(maxx)) + 
+									"," + (isMerc ? maxy : gmxAPI.merc_y(maxy))
+								;
+
 								obj.setImage(
-									url + "?request=GetMap&layers=" + props.name + 
-										"&srs=" + props.srs + 
-										"&format=image/jpeg&styles=" + 
-										"&width=" + w + 
-										"&height=" + h + 
-										"&bbox=" + (isMerc ? minx : gmxAPI.merc_x(minx)) + 
-										"," + (isMerc ? miny : gmxAPI.merc_y(miny)) + 
-										"," + (isMerc ? maxx : gmxAPI.merc_x(maxx)) + 
-										"," + (isMerc ? maxy : gmxAPI.merc_y(maxy)),
+									urlProxyServer + "ImgSave.ashx?now=true&get=" + encodeURIComponent(st),
 									minx, maxy, maxx, maxy, maxx, miny, minx, miny
 								);
 							}, 500);
-						}			
-					})(layersXML[i]);
-
+						}
+						
+						map.onSetVisible[obj.objectId] = function(flag)
+						{
+							obj.setHandler("onMove", flag ? updateFunc : null);
+						}
+					}
 					func();
 				})
 			}			
