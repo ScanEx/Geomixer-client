@@ -933,7 +933,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		if (params.IsStrongSearch != null) sQueryString += "&IsStrongSearch=" + escape(params.IsStrongSearch ? "1" : "0");
 		if (params.WithoutGeometry != null) sQueryString += "&WithoutGeometry=" + escape(params.WithoutGeometry ? "1" : "0");
 		//if (sFormatName != null) sQueryString += "&Format=" + escape(sFormatName);
-		sendCrossDomainJSONRequest(sServerBase + "/SearchObject/SearchAddress.ashx?" + sQueryString, function(response){
+		sendCrossDomainJSONRequest(sServerBase + "SearchObject/SearchAddress.ashx?" + sQueryString, function(response){
 			if (response.Status == 'ok') {callback(response.Result);}
 			else {throw response.ErrorInfo.ErrorMessage;}
 		});
@@ -1115,33 +1115,34 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 			for(var iDS=0; iDS<arrResultDataSources.length; iDS++){
 				for(var iFoundObject=0; iFoundObject<arrResultDataSources[iDS].SearchResult.length; iFoundObject++){
 					var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
-					var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = oFoundObject.ObjName;
+					var sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName"), sValue = Functions.GetFullName(oFoundObject.TypeName, oFoundObject.ObjName);
 					if(/[a-zA-Z]/.test(SearchString)){
 						if(oFoundObject.ObjAltNameEng && oFoundObject.ObjAltNameEng.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
-							sValue = oFoundObject.ObjAltNameEng;
-							if (oFoundObject.ObjAltName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
+							sValue = sLabel;
+							if (oFoundObject.ObjAltName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
 						}
 						else{
 							sLabel = fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
-							sValue = oFoundObject.ObjNameEng;
-							if (oFoundObject.ObjName != null && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjName", "ObjName");	
+							sValue = sLabel;
+							if (oFoundObject.ObjName && !/[a-zA-Z]/.test(oFoundObject.ObjName)) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjName", "ObjName");
 						}
 					}
 					else{
 						if(oFoundObject.ObjAltName && oFoundObject.ObjAltName.match(sSearchRegExp)){
 							sLabel = fnGetLabel(oFoundObject, "ObjAltName", "ObjName");
-							sValue = oFoundObject.ObjAltName;
-							if (oFoundObject.ObjAltNameEng != null) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
+							sValue = sLabel;
+							if (oFoundObject.ObjAltNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjAltNameEng", "ObjNameEng");
 						}
 						else{
 							sLabel = fnGetLabel(oFoundObject, "ObjName", "ObjName");
-							if (oFoundObject.ObjNameEng != null) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
+							sValue = sLabel;
+							if (oFoundObject.ObjNameEng) sLabel += ' | ' + fnGetLabel(oFoundObject, "ObjNameEng", "ObjNameEng");
 						}
 					}
 					arrResult.push({
-						label:sLabel,
-						value:Functions.GetFullName(oFoundObject.TypeName, sValue),
+						label: sLabel,
+						value: sValue,
 						GeoObject: oFoundObject});
 				}
 				if(arrResult.length>0) break;
