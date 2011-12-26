@@ -2290,12 +2290,29 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var ret = FlashCMD('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
 				return ret;
 			}
+
+			removeFromMapLayers = function(lid)	// удалить слой из map.layers 
+			{
+				for(var i=0; i<map.layers.length; i++) {			// Удаление слоя из массива
+					if(map.layers[i].properties.LayerID === lid) {
+						map.layers.splice(i, 1);
+						break;
+					}
+				}
+				for(key in map.layers) {							// Удаление слоя из хэша
+					if(map.layers[key].properties.LayerID === lid) {
+						delete map.layers[key];
+					}
+				}
+			}
+
 			FlashMapObject.prototype.remove = function()
 			{
 				if (this.copyright) 
 					map.removeCopyrightedObject(this);
 					
 				if(this.objectId) FlashCMD('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
+				if(this.properties && this.properties.LayerID) removeFromMapLayers(this.properties.LayerID);
 			}
 			FlashMapObject.prototype.setGeometry = function(geometry) {
 				var geom =  gmxAPI.merc_geometry(geometry);
