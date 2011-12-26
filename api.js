@@ -1245,7 +1245,7 @@ window.gmxAPI = {
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
 window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/gmxAPI.PI;
 window.gmxAPI.wmsProj = ['EPSG:4326','EPSG:3395','EPSG:41001'];	// типы проекций
-window.gmxAPI.serverBase = '';			// HostName основной карты
+window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName основной карты по умолчанию
 
 })();
 
@@ -1575,6 +1575,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 		var key = window.KOSMOSNIMKI_SESSION_KEY;
 		if (key == "INVALID")
 			key = false;
+
 		loadVariableFromScript(
 			"http://" + hostName + "/TileSender.ashx?ModeKey=map&MapName=" + mapName + (key ? ("&key=" + encodeURIComponent(key)) : "") + "&" + Math.random(),
 			"getLayers",
@@ -1693,7 +1694,7 @@ function createFlashMap(div, arg1, arg2, arg3)
 			mapName = arg1;
 			callback = arg2;
 		}
-		gmxAPI.serverBase = hostName;						// HostName основной карты
+		gmxAPI.serverBase = hostName;					// HostName основной карты переопределен
 		loadMapJSON(hostName, mapName, function(layers)
 		{
 			if (layers != null)
