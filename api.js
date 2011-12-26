@@ -3379,6 +3379,16 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							return daysDelta;
 						}
 					}
+					if (!isRaster) {
+						// Изменять атрибуты векторного обьекта при невидимом слое нельзя
+						obj.setTileItem = function(data, flag) {
+							return false;
+						}
+						// Получить атрибуты векторного обьекта при невидимом слое нельзя
+						obj.getTileItem = function(vId) {
+							return null;
+						}
+					}
 					obj.addObject = function(geometry, props)
 					{
 						obj.setVisible(true);
