@@ -22,13 +22,13 @@ var AttachEvents = function(){
 /** Конструктор
  @class Коллекция нарисованных объектов
  @memberOf DrawingObjects */
-var DrawingObjectColletection = function() {
+var DrawingObjectCollection = function() {
 	var _objects = [];
 	var _this = this;
 	
 	var onEdit = function(event, drawingObject) {
 		/** Вызывается при изменении объекта в коллекции
-		@name DrawingObjects.DrawingObjectColletection.onEdit
+		@name DrawingObjects.DrawingObjectCollection.onEdit
 		@event
 		@param {drawingObject} drawingObject изменённый объект*/
 		$(_this).triggerHandler('onEdit', [drawingObject]);
@@ -57,7 +57,7 @@ var DrawingObjectColletection = function() {
 		$(drawingObject).bind('onRemove', onRemove);
 		
 		/** Вызывается при добавлении объекта в коллекцию
-		@name DrawingObjects.DrawingObjectColletection.onAdd
+		@name DrawingObjects.DrawingObjectCollection.onAdd
 		@event
 		@param {drawingObject} drawingObject добавленный объект*/
 		$(this).triggerHandler('onAdd', [drawingObject]);
@@ -71,7 +71,7 @@ var DrawingObjectColletection = function() {
 		$(drawingObject).unbind('onRemove', onRemove);
 		
 		/** Вызывается при удалении объекта из коллекции
-		@name DrawingObjects.DrawingObjectColletection.onRemove
+		@name DrawingObjects.DrawingObjectCollection.onRemove
 		@event
 		@param {int} index индекс удаляённого объекта*/
 		$(this).triggerHandler('onRemove', [index]);
@@ -193,11 +193,11 @@ var DrawingObjectInfoRow = function(oInitContainer, drawingObject) {
  @class Строка с описанием объекта и ссылкой на него
  @param {documentElement} oInitContainer Объект, в котором находится контрол (div) 
  @param {drawingObject} drawingObject Объект для добавления на карту*/
-var DrawingObjectList = function(oInitContainer, oInitDrawingObjectColletection){
+var DrawingObjectList = function(oInitContainer, oInitDrawingObjectCollection){
 	var _this = this;
 	var _rows = [];
 	var _containers = [];
-	var _collection = oInitDrawingObjectColletection;
+	var _collection = oInitDrawingObjectCollection;
 	var _container = oInitContainer;
 	var _divList = _div(null, [['dir', 'className', 'DrawingObjectList']]);
 	var _divButtons = _div();
@@ -309,7 +309,7 @@ var DrawingObjectList = function(oInitContainer, oInitDrawingObjectColletection)
 			var elem = _collection.Item(i);
 			var coords = elem.geometry.coordinates[0];
 			
-			if ((elem.geometry.type == "POLYGON") && (coords.length == 5) && ((coords[0][0] == coords[1][0]) || (coords[0][1] == coords[1][1])))
+			if ( (elem.geometry.type == "POLYGON") && gmxAPI.isRectangle(coords) )
 				obj = elem;
 		}
 		
@@ -328,25 +328,21 @@ var DrawingObjectList = function(oInitContainer, oInitDrawingObjectColletection)
 			x = (x1 + x2) / 2,
 			y = (y1 + y2) / 2,
 			layer = false,
-			layersToTest = 0,
 			tryToFinish = function()
 			{
-				if (layersToTest == 0)
-				{
-					if (layer)
-					{
-						window.location.href = 
-								serverBase + "DownloadLayer.ashx" + 
-								"?t=" + layer.properties.name + 
-								"&MinX=" + truncate9(Math.min(x1, x2)) + 
-								"&MinY=" + truncate9(Math.min(y1, y2)) +
-								"&MaxX=" + truncate9(Math.max(x1, x2)) + 
-								"&MaxY=" + truncate9(Math.max(y1, y2)) + 
-								"&Area=" + Math.ceil(fragmentArea([[x1, y1], [x1, y2], [x2, y2], [x2, y1]])/1000000);
-					}
-					else
-						showErrorMessage(_gtxt("К прямоугольнику не подходит ни одного растрового слоя"), true);
-				}
+                if (layer)
+                {
+                    window.location.href = 
+                            serverBase + "DownloadLayer.ashx" + 
+                            "?t=" + layer.properties.name + 
+                            "&MinX=" + truncate9(Math.min(x1, x2)) + 
+                            "&MinY=" + truncate9(Math.min(y1, y2)) +
+                            "&MaxX=" + truncate9(Math.max(x1, x2)) + 
+                            "&MaxY=" + truncate9(Math.max(y1, y2)) + 
+                            "&Area=" + Math.ceil(fragmentArea([[x1, y1], [x1, y2], [x2, y2], [x2, y1]])/1000000);
+                }
+                else
+                    showErrorMessage(_gtxt("К прямоугольнику не подходит ни одного растрового слоя"), true);
 			}
 		
 		var testPolygon = function(polygon, x, y){
@@ -419,7 +415,7 @@ var DrawingObjectGeomixer = function() {
 		bVisible = true;
 	}
 	
-	var oCollection = new DrawingObjectColletection();
+	var oCollection = new DrawingObjectCollection();
 	$(oCollection).bind('onAdd', function (){
 		if(!bVisible) _this.Load();
 	});
@@ -445,7 +441,7 @@ var DrawingObjectGeomixer = function() {
 
 var publicInterface = {
 	AttachEvents: AttachEvents,
-	DrawingObjectColletection: DrawingObjectColletection,
+	DrawingObjectCollection: DrawingObjectCollection,
 	DrawingObjectInfoRow: DrawingObjectInfoRow,
 	DrawingObjectList: DrawingObjectList,
 	DrawingObjectGeomixer: DrawingObjectGeomixer
