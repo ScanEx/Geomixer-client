@@ -1082,12 +1082,6 @@ layersTree.prototype.removeGroup = function(div)
 				$(childsUl).find("div[LayerID],div[MultiLayerID]").each(function()
 				{
 					_queryMapLayers.removeLayer(this.gmxProperties.content.properties.name)
-					if (globalFlashMap.layers[this.gmxProperties.content.properties.name])
-					{
-						globalFlashMap.layers[this.gmxProperties.content.properties.name].remove();
-						
-						delete globalFlashMap.layers[this.gmxProperties.content.properties.name];
-					}
 				})
 			}
 		}
@@ -2377,16 +2371,13 @@ queryMapLayers.prototype.asyncUpdateLayer = function(taskInfo, properties, needR
 			
 				$(layerDiv.parentNode).replaceWith(li);
 				
-				_mapHelper.findTreeElem($(li).children("div[LayerID]")[0]).elem = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}
-
-				//_layersTree.showInfo(newLayer);
+				_mapHelper.findTreeElem($(li).children("div[LayerID]")[0]).elem = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}				
 
 				_queryMapLayers.addSwappable(li);
 				
 				_queryMapLayers.addDraggable(li);
 
-				_layersTree.updateListType(li);
-		//	})
+				_layersTree.updateListType(li);		
 		}
 		else
 		{
@@ -2401,20 +2392,8 @@ queryMapLayers.prototype.asyncUpdateLayer = function(taskInfo, properties, needR
 
 queryMapLayers.prototype.removeLayer = function(name)
 {
-	if (globalFlashMap.layers[name].objectId)
-		globalFlashMap.layers[name].remove();
-
-	for (var i = 0; i < globalFlashMap.layers.length; i++)
-	{
-		if (globalFlashMap.layers[i].properties.name == name)
-		{
-			globalFlashMap.layers.splice(i, 1);
-			
-			break;
-		}	
-	}
-	
-	delete globalFlashMap.layers[name];
+    if ( typeof globalFlashMap.layers[name] !== 'undefined' )
+        globalFlashMap.layers[name].remove();
 }
 
 queryMapLayers.prototype.getLayers = function()
