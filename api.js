@@ -8467,7 +8467,7 @@ function BalloonClass(map, div, apiBase)
                 return;
         }
 
-        var isMerc = (props.srs == wmsProjections[0]);
+        var isMerc = !(props.srs == wmsProjections[0]);
 
         var st = url;
         st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetMap';
@@ -8476,10 +8476,10 @@ function BalloonClass(map, div, apiBase)
             "&format=image/jpeg&styles=" + 
             "&width=" + w + 
             "&height=" + h + 
-            "&bbox=" + (isMerc ? minx : gmxAPI.merc_x(minx)) + 
-            "," + (isMerc ? miny : gmxAPI.merc_y(miny)) + 
-            "," + (isMerc ? maxx : gmxAPI.merc_x(maxx)) + 
-            "," + (isMerc ? maxy : gmxAPI.merc_y(maxy))
+            "&bbox=" + (isMerc ? gmxAPI.merc_x(minx) : minx) + 
+            "," + (isMerc ? gmxAPI.merc_y(miny) : miny) + 
+            "," + (isMerc ? gmxAPI.merc_x(maxx) : maxx) + 
+            "," + (isMerc ? gmxAPI.merc_y(maxy) : maxy)
         ;
         
         return {url: st, bounds: {minX: minx, maxX: maxx, minY: miny, maxY: maxy}};
@@ -8489,7 +8489,8 @@ function BalloonClass(map, div, apiBase)
     {
         var urlProxyServer = 'http://' + gmxAPI.serverBase + '/';
 
-        url = url.replace(/Request=GetCapabilities/i, '');
+		url = url.replace(/Request=GetCapabilities[\&]*/i, '');
+		url = url.replace(/\&$/, '');
         var st = url;
         st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetCapabilities';
         var _hostname = urlProxyServer + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(st);
