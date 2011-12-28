@@ -22,7 +22,7 @@ var memoize = function(func)
 		}
 	};
 
-window.PI = 3.14159265358979;
+window.PI = 3.14159265358979; //устарело - обратная совместимость
 window.gmxAPI = {
 	newElement: function(tagName, props, style, setBorder)
 	{
@@ -103,7 +103,18 @@ window.gmxAPI = {
 	{
 		div.style.visibility = "hidden";
 		div.style.display = "none";
-	}
+	},
+    getTextContent: function(node)
+    {
+        if (typeof node.textContent != 'undefined')
+            return node.textContent;
+        
+        var data = '';
+        for (var i = 0; i < node.childNodes.length; i++)
+            data += node.childNodes[i].data;
+        
+        return data;
+    }
 	,
 	setPositionStyle: function(div, attr)
 	{
@@ -335,16 +346,14 @@ window.gmxAPI = {
 		return Math.pow(2, -z)*156543.033928041;
 	}
 	,
-	PI: 3.14159265358979
-	,
 	deg_rad: function(ang)
 	{
-		return ang * (gmxAPI.PI/180.0);
+		return ang * (Math.PI/180.0);
 	}
 	,
 	deg_decimal: function(rad)
 	{
-		return (rad/gmxAPI.PI) * 180.0;
+		return (rad/Math.PI) * 180.0;
 	}
 	,
 	merc_x: function(lon)
@@ -375,7 +384,7 @@ window.gmxAPI = {
 		var con = eccent * sinphi;
 		var com = .5 * eccent;
 		con = Math.pow(((1.0-con)/(1.0+con)), com);
-		var ts = Math.tan(.5 * ((PI*0.5) - phi))/con;
+		var ts = Math.tan(.5 * ((Math.PI*0.5) - phi))/con;
 		var y = 0 - r_major * Math.log(ts);
 		return y;
 	}
@@ -470,12 +479,12 @@ window.gmxAPI = {
 	,
 	DegToRad: function(deg)
 	{
-        return (deg / 180.0 * gmxAPI.PI)
+        return (deg / 180.0 * Math.PI)
 	}
 	,
 	RadToDeg: function(rad)
 	{
-		return (rad / gmxAPI.PI * 180.0)
+		return (rad / Math.PI * 180.0)
 	}
 	,
 	worldWidthMerc: 20037508,
@@ -704,7 +713,7 @@ window.gmxAPI = {
 	{
 		var pts = [];
 		for (var i in points)
-			pts.push([points[i][0], Math.sin(points[i][1]*PI/180)]);
+			pts.push([points[i][0], Math.sin(points[i][1]*Math.PI/180)]);
 		var area = 0;
 		for (var i in pts)
 		{
@@ -1190,61 +1199,10 @@ window.gmxAPI = {
 		
 		return false;
 	}
-	,
-	parseWMSCapabilities: function(response)
-	{
-		var serviceLayers = [],
-			strResp = response.replace(/[\t\n\r]/g, ' '),
-			strResp = strResp.replace(/\s+/g, ' '),
-			layersXML = parseXML(response).getElementsByTagName('Layer');
-		
-		for (var i = 0; i < layersXML.length; i++)
-		{
-			var layer = {},
-				name = layersXML[i].getElementsByTagName('Name'),
-				title = layersXML[i].getElementsByTagName('Title'),
-				bbox = layersXML[i].getElementsByTagName('LatLonBoundingBox'),
-				srs = layersXML[i].getElementsByTagName('SRS');
-			
-			if (srs.length)
-			{
-				layer.srs = getTextContent(srs[0]);
-				layer.srs = strip(layer.srs);
-				
-				if (!gmxAPI.valueInArray(gmxAPI.wmsProj, layer.srs))
-					continue;
-			}
-			else
-				layer.srs = gmxAPI.wmsProj[0];
-			
-			if (name.length)
-				layer.name = getTextContent(name[0]);
-			
-			if (bbox.length)
-			{
-				layer.bbox = 
-				{
-					minx: Number(bbox[0].getAttribute('minx')),
-					miny: Number(bbox[0].getAttribute('miny')),
-					maxx: Number(bbox[0].getAttribute('maxx')),
-					maxy: Number(bbox[0].getAttribute('maxy'))
-				};
-			}
-			
-			if (title.length)
-				layer.title = getTextContent(title[0]);
-			
-			if (layer.name)
-				serviceLayers.push(layer);
-		}
-		
-		return serviceLayers;
-	}
 }
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
-window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/gmxAPI.PI;
-window.gmxAPI.wmsProj = ['EPSG:4326','EPSG:3395','EPSG:41001'];	// типы проекций
+window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/Math.PI;
 window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName основной карты по умолчанию
 
 })();
@@ -1276,6 +1234,8 @@ function bottomPosition(div, x, y) { gmxAPI.bottomPosition(div, x, y); }
 function size(div, w, h) { gmxAPI.size(div, w, h); }
 function positionSize(div, x, y, w, h) { gmxAPI.positionSize(div, x, y, w, h); }
 function setVisible(div, flag) { gmxAPI.setVisible(div, flag); }
+
+var getTextContent = gmxAPI.getTextContent;
 
 function getScriptURL(scriptName) { return gmxAPI.getScriptURL(scriptName); }
 function getScriptBase(scriptName) { return gmxAPI.getScriptBase(scriptName); }
@@ -1807,7 +1767,7 @@ function createFlashMapInternal(div, layers, callback)
 
 			var flashDiv = document.getElementById(flashId);
 			flashDiv.style.MozUserSelect = "none";
-
+            
 			var Clusters =	function(parent)		// атрибуты кластеризации потомков
 			{
 				this._parent = parent;
@@ -3574,6 +3534,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var oID = FlashCMD('addMapWindow', { 'attr': {'callbackName':uniqueGlobalName(function(z) { return 17 - callback(17 - z); })} });
 				return new FlashMapObject(oID, {}, null);
 			}
+            
+            map.width  = function() { return div.clientWidth;  }
+            map.height = function() { return div.clientHeight; }
 
 			map.getItemsFromExtent = function(x1, x2, y1, y2) {
 				var arr = [];
@@ -4448,6 +4411,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				return distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
 			}
 
+            
 			FlashMapObject.prototype.addMapStateListener = function(eventName, func) { 	return addMapStateListener(this, eventName, func);	}
 			FlashMapObject.prototype.removeMapStateListener = function(eventName, id) { return removeMapStateListener(this, eventName, id); }
 
@@ -6387,89 +6351,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 			FlashMapObject.prototype.loadWMS = function(url, func)
 			{
-				var me = this;
-				var urlProxyServer = 'http://' + gmxAPI.serverBase + '/';
-
-				url = url.replace(/Request=GetCapabilities/i, '');
-				var st = url;
-				st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetCapabilities';
-				var _hostname = urlProxyServer + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(st);
-				sendCrossDomainJSONRequest(_hostname, function(response)
-				{
-					if(typeof(response) != 'object' || response['Status'] != 'ok') {
-						gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
-						return;
-					}
-					var serviceLayers = gmxAPI.parseWMSCapabilities(response['Result']);
-					for (var i = 0; i < serviceLayers.length; i++)
-					{
-						var props = serviceLayers[i];
-						var obj = me.addObject(null, props);
-						obj.setVisible(false);
-
-						var timeout = false;
-						var updateFunc = function()
-						{
-							if (timeout) clearTimeout(timeout);
-							timeout = setTimeout(function()
-							{
-								var currPosition = map.getPosition();
-								var x = currPosition['x'];
-								var y = currPosition['y'];
-								var z = currPosition['z'];
-
-								var scale = gmxAPI.getScale(z),
-									w = div.clientWidth,
-									h = div.clientHeight,
-									wGeo = w*scale,
-									hGeo = h*scale;
-
-								var miny = Math.max(gmxAPI.from_merc_y(y - hGeo/2), -90);
-								var maxy = Math.min(gmxAPI.from_merc_y(y + hGeo/2), 90);
-								var minx = Math.max(gmxAPI.from_merc_x(x - wGeo/2), -180);
-								var maxx = Math.min(gmxAPI.from_merc_x(x + wGeo/2), 180);
-		
-								if (props.bbox)
-								{
-									minx = Math.max(props.bbox.minx, minx);
-									miny = Math.max(props.bbox.miny, miny);
-									maxx = Math.min(props.bbox.maxx, maxx);
-									maxy = Math.min(props.bbox.maxy, maxy);
-				
-									if (minx >= maxx || miny >= maxy)
-										return;
-								}
-			
-								var isMerc = (props.srs == gmxAPI.wmsProj[0]);
-
-								var st = url;
-								st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetMap';
-								st +=   "&layers=" + props.name +
-									"&srs=" + props.srs + 
-									"&format=image/jpeg&styles=" + 
-									"&width=" + w + 
-									"&height=" + h + 
-									"&bbox=" + (isMerc ? minx : gmxAPI.merc_x(minx)) + 
-									"," + (isMerc ? miny : gmxAPI.merc_y(miny)) + 
-									"," + (isMerc ? maxx : gmxAPI.merc_x(maxx)) + 
-									"," + (isMerc ? maxy : gmxAPI.merc_y(maxy))
-								;
-
-								obj.setImage(
-									urlProxyServer + "ImgSave.ashx?now=true&get=" + encodeURIComponent(st),
-									minx, maxy, maxx, maxy, maxx, miny, minx, miny
-								);
-							}, 500);
-						}
-						
-						map.onSetVisible[obj.objectId] = function(flag)
-						{
-							obj.setHandler("onMove", flag ? updateFunc : null);
-						}
-					}
-					func();
-				})
-			}			
+                gmxAPI._loadWMS(map, this, url, func);
+			}
 
 			FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
 			{
@@ -7254,18 +7137,6 @@ function parseXML(str)
 	return xmlDoc;
 }
 
-function getTextContent(node)
-{
-	if (typeof node.textContent != 'undefined')
-		return node.textContent;
-	
-	var data = '';
-	for (var i = 0; i < node.childNodes.length; i++)
-		data += node.childNodes[i].data;
-	
-	return data;
-}
-
 kmlParser.prototype.parse = function(response)
 {
 	var strResp = response.replace(/[\t\n\r]/g, ' '),
@@ -7778,7 +7649,6 @@ var _kmlParser = new kmlParser();
 * @function
 * @memberOf api
 * @param {map} ссылка на обьект карты
-* @param {flashDiv} ссылка на SWF обьект
 * @param {div} ссылка HTML контейнер карты
 * @param {apiBase} URL основного домена
 * @see <a href="http://kosmosnimki.ru/geomixer/docs/">» Пример использования</a>.
@@ -8511,3 +8381,160 @@ function BalloonClass(map, div, apiBase)
 	}
 	this.applyBalloonDefaultStyle = applyBalloonDefaultStyle;
 }
+
+//Поддержка WMS
+(function()
+{
+    var wmsProjections = ['EPSG:4326','EPSG:3395','EPSG:41001'];	// типы проекций
+    
+    var parseWMSCapabilities = function(response)
+	{
+		var serviceLayers = [],
+			strResp = response.replace(/[\t\n\r]/g, ' '),
+			strResp = strResp.replace(/\s+/g, ' '),
+			layersXML = parseXML(response).getElementsByTagName('Layer');
+		
+		for (var i = 0; i < layersXML.length; i++)
+		{
+			var layer = {},
+				name = layersXML[i].getElementsByTagName('Name'),
+				title = layersXML[i].getElementsByTagName('Title'),
+				bbox = layersXML[i].getElementsByTagName('LatLonBoundingBox'),
+				srs = layersXML[i].getElementsByTagName('SRS');
+			
+			if (srs.length)
+			{
+				layer.srs = gmxAPI.getTextContent(srs[0]);
+				layer.srs = strip(layer.srs);
+				
+				if (!gmxAPI.valueInArray(wmsProjections, layer.srs))
+					continue;
+			}
+			else
+				layer.srs = wmsProjections[0];
+			
+			if (name.length)
+				layer.name = gmxAPI.getTextContent(name[0]);
+			
+			if (bbox.length)
+			{
+				layer.bbox = 
+				{
+					minx: Number(bbox[0].getAttribute('minx')),
+					miny: Number(bbox[0].getAttribute('miny')),
+					maxx: Number(bbox[0].getAttribute('maxx')),
+					maxy: Number(bbox[0].getAttribute('maxy'))
+				};
+			}
+			
+			if (title.length)
+				layer.title = gmxAPI.getTextContent(title[0]);
+			
+			if (layer.name)
+				serviceLayers.push(layer);
+		}
+		
+		return serviceLayers;
+	}
+    
+    var getWMSMapURL = function(url, props)
+    {
+        var w = gmxAPI.map.width();
+        var h = gmxAPI.map.height();
+        
+        var currPosition = gmxAPI.map.getPosition();
+        var x = currPosition['x'];
+        var y = currPosition['y'];
+        var z = currPosition['z'];
+
+        var scale = gmxAPI.getScale(z),
+            wGeo = w*scale,
+            hGeo = h*scale;
+
+        var miny = Math.max(gmxAPI.from_merc_y(y - hGeo/2), -90);
+        var maxy = Math.min(gmxAPI.from_merc_y(y + hGeo/2), 90);
+        var minx = Math.max(gmxAPI.from_merc_x(x - wGeo/2), -180);
+        var maxx = Math.min(gmxAPI.from_merc_x(x + wGeo/2), 180);
+
+        if (props.bbox)
+        {
+            minx = Math.max(props.bbox.minx, minx);
+            miny = Math.max(props.bbox.miny, miny);
+            maxx = Math.min(props.bbox.maxx, maxx);
+            maxy = Math.min(props.bbox.maxy, maxy);
+
+            if (minx >= maxx || miny >= maxy)
+                return;
+        }
+
+        var isMerc = (props.srs == wmsProjections[0]);
+
+        var st = url;
+        st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetMap';
+        st +=   "&layers=" + props.name +
+            "&srs=" + props.srs + 
+            "&format=image/jpeg&styles=" + 
+            "&width=" + w + 
+            "&height=" + h + 
+            "&bbox=" + (isMerc ? minx : gmxAPI.merc_x(minx)) + 
+            "," + (isMerc ? miny : gmxAPI.merc_y(miny)) + 
+            "," + (isMerc ? maxx : gmxAPI.merc_x(maxx)) + 
+            "," + (isMerc ? maxy : gmxAPI.merc_y(maxy))
+        ;
+        
+        return {url: st, bounds: {minX: minx, maxX: maxx, minY: miny, maxY: maxy}};
+    }
+    
+    var loadWMS = function(map, container, url, func)
+    {
+        var urlProxyServer = 'http://' + gmxAPI.serverBase + '/';
+
+        url = url.replace(/Request=GetCapabilities/i, '');
+        var st = url;
+        st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetCapabilities';
+        var _hostname = urlProxyServer + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(st);
+        sendCrossDomainJSONRequest(_hostname, function(response)
+        {
+            if(typeof(response) != 'object' || response['Status'] != 'ok') {
+                gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
+                return;
+            }
+            var serviceLayers = gmxAPI.parseWMSCapabilities(response['Result']);
+            for (var i = 0; i < serviceLayers.length; i++)
+            {
+                var props = serviceLayers[i];
+                var obj = container.addObject(null, props);
+                obj.setVisible(false);
+
+                (function(obj, props) {
+                    var timeout = false;
+                    var updateFunc = function() 
+                    {
+                        if (timeout) clearTimeout(timeout);
+                        timeout = setTimeout(function()
+                        {
+                            var res = getWMSMapURL(url, props);
+                            var bbox = res.bounds;
+
+                            obj.setImage(
+                                urlProxyServer + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url),
+                                bbox.minX, bbox.maxY, bbox.maxX, bbox.maxY, bbox.maxX, bbox.minY, bbox.minX, bbox.minY
+                            );
+                        }, 500);
+                    }
+                    
+                    map.onSetVisible[obj.objectId] = function(flag)
+                    {
+                        obj.setHandler("onMove", flag ? updateFunc : null);
+                    }
+                })(obj, props);
+            }
+            func();
+        })
+    }
+    
+    //расширяем namespace
+    gmxAPI.parseWMSCapabilities = parseWMSCapabilities;
+    gmxAPI._loadWMS = loadWMS;
+    gmxAPI.getWMSMapURL = getWMSMapURL;
+})()

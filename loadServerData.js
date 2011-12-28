@@ -455,7 +455,7 @@ queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc)
 	})
 }
 
-queryServerData.prototype.parseWMSCapabilities = function(response)
+/*queryServerData.prototype.parseWMSCapabilities = function(response)
 {
 	var serviceLayers = [],
 		strResp = response.replace(/[\t\n\r]/g, ' '),
@@ -472,7 +472,7 @@ queryServerData.prototype.parseWMSCapabilities = function(response)
 		
 		if (srs.length)
 		{
-			layer.srs = getTextContent(srs[0]);
+			layer.srs = gmxAPI.getTextContent(srs[0]);
 			layer.srs = strip(layer.srs);
 			
 			if (!valueInArray(this.proj, layer.srs))
@@ -482,7 +482,7 @@ queryServerData.prototype.parseWMSCapabilities = function(response)
 			layer.srs = this.proj[0];
 		
 		if (name.length)
-			layer.name = getTextContent(name[0]);
+			layer.name = gmxAPI.getTextContent(name[0]);
 		
 		if (bbox.length)
 		{
@@ -496,14 +496,14 @@ queryServerData.prototype.parseWMSCapabilities = function(response)
 		}
 		
 		if (title.length)
-			layer.title = getTextContent(title[0]);
+			layer.title = gmxAPI.getTextContent(title[0]);
 		
 		if (layer.name)
 			serviceLayers.push(layer);
 	}
 	
 	return serviceLayers;
-}
+}*/
 
 queryServerData.prototype.parseWFSCapabilities = function(response)
 {
@@ -520,13 +520,13 @@ queryServerData.prototype.parseWFSCapabilities = function(response)
 			srs = featuresXML[i].getElementsByTagName('DefaultSRS');
 		
 		if (name.length)
-			layer.name = getTextContent(name[0]);
+			layer.name = gmxAPI.getTextContent(name[0]);
 		
 		if (title.length)
-			layer.title = getTextContent(title[0]);
+			layer.title = gmxAPI.getTextContent(title[0]);
 		
 		if (srs.length)
-			layer.srs = getTextContent(srs[0]);
+			layer.srs = gmxAPI.getTextContent(srs[0]);
 		
 		if (layer.name)
 			serviceLayers.push(layer);
@@ -997,7 +997,7 @@ loadServerData.WMS.load = function()
 	var alreadyLoaded = _queryServerDataWMS.createWorkCanvas(arguments[0]);
 	
 	if (!alreadyLoaded)
-		_queryServerDataWMS.load(_queryServerDataWMS.parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager)
+		_queryServerDataWMS.load(gmxAPI.parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager)
 }
 loadServerData.WMS.unload = function()
 {
@@ -1056,7 +1056,7 @@ _userObjects.addDataCollector('wms', {
                     loadParams = {layersVisibility: loadParams};
                 }
                 
-                _queryServerDataWMS.getCapabilities(url, _queryServerDataWMS.parseWMSCapabilities, function(serviceLayers, url, replaceElem)
+                _queryServerDataWMS.getCapabilities(url, gmxAPI.parseWMSCapabilities, function(serviceLayers, url, replaceElem)
                 {
                     _queryServerDataWMS.drawWMS(serviceLayers, url, replaceElem, loadParams.layersVisibility, loadParams.params);
                 })

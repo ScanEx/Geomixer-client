@@ -998,18 +998,6 @@ function parseXML(str)
 	return xmlDoc;
 }
 
-function getTextContent(node)
-{
-	if (typeof node.textContent != 'undefined')
-		return node.textContent;
-	
-	var data = '';
-	for (var i = 0; i < node.childNodes.length; i++)
-		data += node.childNodes[i].data;
-	
-	return data;
-}
-
 function disableSelection(target)
 {
 	if (typeof target.onselectstart != "undefined")
