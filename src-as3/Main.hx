@@ -543,7 +543,17 @@ class Main
 				ret.push([ff, Reflect.field(props, ff)]);
 			return ret;
 		}
-		
+		var hashToArray = function(p_:Hash<String>)
+		{
+			var p = [];
+			if (p_ != null)
+				for (pkey in p_.keys()) {
+					var zn = p_.get(pkey);
+					p.push([pkey, zn]);
+				}
+			return p;
+		}
+
 		function setHandler(id:String, eventName:String, ?callbackName:String)
 		{ 
 			var node:MapNode = getNode(id);
@@ -893,7 +903,7 @@ class Main
 					if (tilesRemaining == 0)
 					{
 						var geom = layer.geometries.get(fid);
-						Main.cmdToJS(func, geom.export(), exportProperties(geom.properties));
+						Main.cmdToJS(func, geom.export(), hashToArray(geom.properties));
 					}
 				}
 			)(extent);

@@ -1199,6 +1199,14 @@ window.gmxAPI = {
 		
 		return false;
 	}
+	,
+	arrayToHash: function(arr)
+	{
+		var ret = {};
+		for (var i = 0; i < arr.length; i++)
+			ret[arr[i][0]] = arr[i][1];
+		return ret;
+	}
 }
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
@@ -3275,6 +3283,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							FlashCMD('getFeatureById', { 'obj': obj, 'attr':{'fid':fid,
 								'func':uniqueGlobalName(function(geom, props)
 								{
+									if(typeof(props) === 'object' && props.length > 0) {
+										props = gmxAPI.arrayToHash(props);
+									}
 									func(new FlashMapFeature(
 										gmxAPI.from_merc_geometry(geom),
 										props,
