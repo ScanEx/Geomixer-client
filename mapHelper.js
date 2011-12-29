@@ -1895,7 +1895,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
         activeFillType = 'bitmapPattern';
     else if ('pattern' in initFillStyle)
         activeFillType = 'pattern';
-    else if ('color' in initFillStyle)
+    else //if ('color' in initFillStyle)
         activeFillType = 'color';
         
     for (var c in controls)
@@ -2155,9 +2155,9 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
     this.setVisibleSelectors = function(isVisible)
     {
         if (isVisible)
-            selectorIconsDiv.show(500);
+            selectorIconsDiv.show();
         else
-            selectorIconsDiv.hide(500);
+            selectorIconsDiv.hide();
     }
 }
 
@@ -2187,6 +2187,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	_(parent, [_table([_tbody([outlineParent, markerSizeParent, fillParent, iconParent])],[['css','marginLeft','-20px']])]);
 	
 	var fillStyleControl = new this.FillStyleControl(templateStyle, {showSelectors: geometryType !== 'point'});
+    fillStyleControl.setVisibleSelectors(typeof templateStyle.fill != 'undefined');
     $(fillStyleControl).change(function()
     {
         var fillStyle = fillStyleControl.getFillStyle();

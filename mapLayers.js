@@ -767,11 +767,18 @@ layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag, identityF
 	{
 		var titleHeight = $$('layerPropertiesInfo').parentNode.parentNode.firstChild.offsetHeight;
 
-		$($$('layerPropertiesInfo').parentNode).dialog('option', 'height', titleHeight + 6 + div.offsetHeight);
-		$($$('layerPropertiesInfo').parentNode).dialog('option', 'minHeight', titleHeight + 6 + div.offsetHeight);
+        var dialogDiv = $$('layerPropertiesInfo').parentNode;
+		$(dialogDiv).dialog('option', 'height', titleHeight + 6 + div.offsetHeight);
+		$(dialogDiv).dialog('option', 'minHeight', titleHeight + 6 + div.offsetHeight);
 		
-		$$('layerPropertiesInfo').parentNode.style.height = div.offsetHeight + 'px';
-		$$('layerPropertiesInfo').parentNode.style.minHeight = div.offsetHeight + 'px';
+		dialogDiv.style.height = div.offsetHeight + 'px';
+		dialogDiv.style.minHeight = div.offsetHeight + 'px';
+        
+        if ($.browser.msie)
+        {
+            dialogDiv.parentNode.style.height = div.offsetHeight + 'px';
+            dialogDiv.parentNode.style.minHeight = div.offsetHeight + 'px';
+        }
 	}, 100)
 }
 
