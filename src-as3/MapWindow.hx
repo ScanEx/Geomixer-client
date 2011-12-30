@@ -135,7 +135,7 @@ class MapWindow
 		var z = getCurrentZ();
 		var curZ:Int = Math.round(z);
 		var position:String = curZ + '_' + Math.round(x) + '_' + Math.round(y);
-		if (oldPosition == position) return;	// Если позиция не изменилась выходим
+		//if (oldPosition == position) return;	// Если позиция не изменилась выходим
 		oldPosition = position;
 		
 		var c:Float = 1/Utils.getScale(z);
@@ -151,10 +151,10 @@ class MapWindow
 		visibleExtent.update(p1.x, p1.y);
 		visibleExtent.update(p2.x, p2.y);
 		scaleY = inv.d;
-		if (curZ == z) {
+		//if (curZ == z) {
 			cacheRepaintNeeded = true;
 			labelsRepaintNeeded = true;
-		}
+		//}
 	}
 
 	public function setCacheBitmapVisible(flag:Bool)
