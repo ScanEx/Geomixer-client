@@ -6,6 +6,7 @@
 (function wiki($, oFlashMap){
 
 var pluginPath = null;
+var oWiki;
 
 _translationsHash.addtext("rus", {
 	"Сообщение" : "Сообщение",
@@ -147,13 +148,26 @@ var addthis_config = {
 	ui_language: _translationsHash.getLanguage().substr(0,2)
 };
 
+var ActiveMessageID = null;
+_mapHelper.customParamsManager.addProvider({
+	name: 'firesWidget2',
+	loadState: function(state) { 
+		if(state) oWiki.showPage(state); 
+	},
+	saveState: function() { 
+		return ActiveMessageID; 
+	}
+});
+
 var fnShare = function(pageInfo, container){
 	var fnRenderShare = function(){
 		var btnShare = makeLinkButton(_gtxt('Поделиться'));
 		_(container, [btnShare]);
 		btnShare.onclick = function(){
+			ActiveMessageID = pageInfo.MessageID;
 			hide(btnShare);
 			_mapHelper.createPermalink(function(id){
+				ActiveMessageID = null;
 				var toolbox = _div(null, [['attr', 'class', 'addthis_toolbox addthis_default_style']]);
 				var getButton = function(buttonName){
 					return _a(null, [['attr', 'class', 'addthis_button_' + buttonName]]);
@@ -181,6 +195,7 @@ var fnShare = function(pageInfo, container){
 		fnRenderShare();
 	}
 }
+
 	
 /** Конструктор
  @class Класс, обеспечивающий отображение сообщений на карте
@@ -225,6 +240,17 @@ WikiObjectsHandler.prototype = {
 				mapObject.setStyle({outline: {thickness: 1, opacity: 100}});
 				break;
 		}
+	},
+	
+	/** Отображает балун с сообщением*/
+	showPage: function(pageInfo){
+		if (!pageInfo) return;
+		
+		var coords = pageInfo.Geometry.coordinates;
+		var balloon = this._map.addBalloon();
+		balloon.setPoint(coords[0], coords[1]);
+		this._getBaloon(pageInfo)(null, balloon.div);
+		balloon.resize();
 	},
 	
 	/**Возвращает функцию для отображения балуна к статье*/
@@ -535,6 +561,7 @@ WikiPlugin = function() {
     
     this._createButton = null;
     this._filter = null;
+	this._pageToShow = null;
 }
 
 WikiPlugin.prototype = {
@@ -569,6 +596,15 @@ WikiPlugin.prototype = {
 			$('.loginCanvas div.log span.buttonLink').click();
 		}
 	},
+	/** Показывает сообщение */
+	showPage: function(pageID){
+		if (this._pagesCache.length) {
+			this._wikiObjects.showPage(this._getPageInfo(pageID));
+		}
+		else{
+			this._pageToShow = pageID;
+		}
+	},
 	
 	/** Открывает редактор сообщения*/
 	openEditor: function(pageInfo){
@@ -594,6 +630,18 @@ WikiPlugin.prototype = {
 		var _this = this;
 		pageInfo.IsDeleted = 1;
 		this._wikiService.updatePage(pageInfo, function(response) { _this._loadPages(); } );
+	},
+	
+	/** Возвращает сообщение по его Ид.*/
+	_getPageInfo: function(pageID){
+		var pageInfo = null;
+		for(var i=0; i<this._pagesCache.length; i++){
+			if (this._pagesCache[i].MessageID == pageID){
+				pageInfo = this._pagesCache[i];
+				break;
+			}
+		}
+		return pageInfo
 	},
 	
 	/** Проверяет, авторизован ли пользователь*/
@@ -714,6 +762,10 @@ WikiPlugin.prototype = {
 			}
 
 			objects.createObjects(_this._pagesCache);
+			if (_this._pageToShow){
+				objects.showPage(_this._getPageInfo(_this._pageToShow));
+				_this._pageToShow = null;
+			}
 			
 			_this._filter.pagesCache = _this._pagesCache;
 			_this._filter.filter();
@@ -723,7 +775,7 @@ WikiPlugin.prototype = {
     }
 }
 
-var oWiki = new WikiPlugin();
+oWiki = new WikiPlugin();
 var loadMenu = function(){
 	$(oWikiDiv).dialog();
 }
