@@ -1,6 +1,4 @@
-﻿var nsGmx = nsGmx || {};
-
-(function(){
+﻿(function(){
 
 //получает с сервера информацию о мультислое и рисует диалог редактирования его настроек
 var createMultiLayerEditorServer = function(elemProperties, div, mapHelper)

@@ -447,7 +447,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: _gtxt("Редактировать"),
 	clickCallback: function(context)
 	{
-		context.tree.mapHelper.createGroupEditor(context.div);
+		nsGmx.createGroupEditor(context.div);
 	}
 }, 'Group');
 
@@ -455,7 +455,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: _gtxt("Добавить подгруппу"),
 	clickCallback: function(context)
 	{
-		context.tree.addSubGroup(context.div);
+		nsGmx.addSubGroup(context.div, context.tree.mapHelper);
 	}
 }, 'Group');
 
@@ -480,7 +480,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: _gtxt("Редактировать"),
 	clickCallback: function(context)
 	{
-		context.tree.mapHelper.createMapEditor(context.div);
+		nsGmx.createMapEditor(context.div);
 	}
 }, 'Map');
 
@@ -488,7 +488,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: _gtxt("Добавить подгруппу"),
 	clickCallback: function(context)
 	{
-		context.tree.addSubGroup(context.div);
+		nsGmx.addSubGroup(context.div, context.tree.mapHelper);
 	}
 }, 'Map');
 
