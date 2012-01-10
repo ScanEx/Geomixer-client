@@ -765,6 +765,20 @@ class Main
 			return ret;
 		}
 
+		function addObjectsFromSWF(_data:Dynamic)
+		{
+			if (_data.objectId != null && getNode(_data.objectId) != null && _data.attr != null && _data.attr.url != null) {
+				var parentId:String = _data.objectId;
+				var url:String = _data.attr.url;
+				new GetSWFFile(url, function(arr:Array<Dynamic>) {
+					for (i in 0...Std.int(arr.length))
+					{
+						var tId:String = addObject(parentId, arr[i].geometry, arr[i].properties);
+					}
+				});
+			}
+		}
+
 		function setFilter(id:String, ?sql:String):Bool
 		{
 			var func:Hash<String>->Bool = (sql == null) ? 
@@ -1154,6 +1168,8 @@ class Main
 					out = addObject(attr.objectId, attr.geometry, attr.properties);
 				case 'addObjects':
 					out = addObjects(attr);
+				case 'addObjectsFromSWF':
+					addObjectsFromSWF(attr);
 				case 'remove':
 					getNode(attr.objectId).remove();
 				case 'bringToTop':

@@ -2008,6 +2008,9 @@ function createFlashMapInternal(div, layers, callback)
 					case 'addObjects':		// добавить обьекты
 						ret = flashDiv.cmdFromJS(cmd, attr);
 						break;
+					case 'addObjectsFromSWF':	// добавить обьекты из SWF файла
+						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'attr':attr });
+						break;
 					case 'setFilter':		// добавить фильтр к обьекту
 						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'sql':attr['sql'] } );
 						break;
@@ -2272,6 +2275,17 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					this.setHandler(key, handlers[key]);
 			}
 
+			/** Добавление объектов из SWF файла
+			* @function
+			* @memberOf api
+			* @param {String} url SWF файла содержащего массив добавляемых обьектов
+			* @see api.FlashMapObject#addObjects
+			* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">» Пример использования</a>.
+			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+			*/
+			FlashMapObject.prototype.addObjectsFromSWF = function(url) {
+				FlashCMD('addObjectsFromSWF', {'obj': this, 'attr':{'url':url}}); // Отправить команду в SWF
+			}
 			/** Добавление набора статических объектов на карту
 			* @function
 			* @memberOf api

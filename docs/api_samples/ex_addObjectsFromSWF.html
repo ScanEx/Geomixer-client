@@ -1,0 +1,103 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+
+<title>Каталог организаций на карте</title>
+</head>
+
+<body>
+<button id="button1">test</button><select id="sel2"><option> - Выбрать -</option><option>RegionsRF83_UQ4</option><option>osm_poi</option><option>2011_Spot5_DII</option><option>villages</option><option>rayony</option></select><button id="button2">Подготовка данных</button> <span id="cmdHash" class="bodytext"></span>
+
+<div id="map" style="width: 100%; height: 600px;"></div>
+<script>
+
+	createFlashMap(document.getElementById("map"), "maps.kosmosnimki.ru", "7VKHM", function(map)
+        {
+
+				var markers = map.addObject();
+				markers.setStyle({ outline: { color: 0xff0000, thickness: 3, opacity: 100 } });
+//markers.setVisible(false);
+			//var markers = map.addObject();
+			//markers.setStyle({ outline: { color: 0xff0000, thickness: 3, opacity: 100 } });
+			//markers.setStyle({marker: {image: "http://kosmosnimki.ru/img/blau_knopka.png"}});
+			//markers.setStyle({ outline: { color: 0xff0000, thickness: 3, opacity: 90 }, fill: { color: 0xffffff, opacity: 10 } });
+			//markers.enableHoverBalloon(ballonHoverFunction);
+var debObj = document.getElementById("cmdHash");
+
+
+//var inp = rayony['features'];
+//var inp = osm_poi['features'];
+//var inp = RegionsRF83_UQ4['features'];
+			var data = [];
+
+			document.getElementById("button1").onclick = function()
+			{
+var startTime = (new Date()).getTime();
+				//for (var i=0; i<data.length; i+=1000)
+				//{
+					//var obj = markers.addObjects( data.slice(i, i + 1000) );
+				//}
+				var obj = markers.addObjects( data );
+var delta = (new Date()).getTime() - startTime;
+debObj.innerHTML += ' Передача в SWF: ' + delta/1000 + ' сек.';
+			}
+
+			function prpData(inp) {
+				data = [];
+				for (var i=0; i<inp.length; i++)
+				{
+					var prop = inp[i];
+					var coords = prop['geometry']['coordinates'];
+					var type = prop['geometry']['type'].toUpperCase();
+					data.push({
+						"geometry": {
+							'type': type,
+							'coordinates': coords
+						},
+						"properties": {'test': '_' + i}
+						//"properties": prop['properties']
+					});
+				}
+				debObj.innerHTML = 'Обьектов: ' + data.length;
+			}
+
+			function loadData(st) {
+				var onError = null;
+				loadVariableFromScript(
+					st,
+					"data",
+					function(f)
+					{
+						prpData(f['features']);
+					},
+					function()
+					{
+						alert('error: ' + st)
+					},
+					onError ? true : false
+				);
+			}
+
+			document.getElementById("button2").onclick = function()
+			{
+				var sel2 = document.getElementById("sel2");
+				var st = sel2.options[sel2.selectedIndex].text;
+				if(st === 'osm_poi') {
+					markers.setStyle({marker: {image: "http://kosmosnimki.ru/img/blau_knopka.png"}});
+				} else {
+					markers.setStyle({ outline: { color: 0xff0000, thickness: 3, opacity: 100 } });
+				}
+
+				var url = 'http://mapstest.kosmosnimki.ru/api/docs/api_samples/';
+				var url = '';
+				markers.addObjectsFromSWF(url + 'testData/'+st+'.swf')
+				//loadData(url + 'testData/'+st+'.js');
+			}
+			
+		}); 
+
+</script>
+
+</body>
+</html>
