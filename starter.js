@@ -418,9 +418,9 @@ function parseReferences()
 	if ("mode" in params)
 		defaultState.mode = params.mode;
 	
-	defaultMapID = defaultMapID || 'DefaultMap';
+	window.defaultMapID = typeof window.defaultMapID !== 'undefined' ? window.defaultMapID : 'DefaultMap';
 	
-	var mapName = typeof defaultMapID !== 'undefined' && defaultMapID && !givenMapName ? defaultMapID : givenMapName;
+	var mapName = window.defaultMapID && !givenMapName ? window.defaultMapID : givenMapName;
 	window.globalMapName = mapName;
 	
 	if (!window.globalMapName)
