@@ -13,11 +13,6 @@ var UpMenu = function()
     this._isCreated = false;
 };
 
-// var Menu = function()
-// {
-
-// }
-
 UpMenu.prototype.addItem = function(elem)
 {
 	if (!this.submenus[elem.id])
