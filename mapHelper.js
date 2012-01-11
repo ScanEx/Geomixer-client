@@ -181,28 +181,6 @@ mapHelper.prototype.forEachMyLayer = function(callback)
 	});
 }
 
-mapHelper.prototype.getMapBounds = function()
-{
-	var x = globalFlashMap.getX(), y = globalFlashMap.getY(), z = globalFlashMap.getZ(),
-		scale = Math.pow(2, -z) * 156543.033928041,
-		w = $$('flash').clientWidth,
-		h = $$('flash').clientHeight,
-		wGeo = w * scale,
-		hGeo = h * scale;
-	
-	var top = from_merc_y(merc_y(y) + hGeo/2),
-		bottom = from_merc_y(merc_y(y) - hGeo/2),
-		left = from_merc_x(merc_x(x) - wGeo/2),
-		right = from_merc_x(merc_x(x) + wGeo/2);
-	
-	top = Math.min(top, 90);
-	bottom = Math.max(bottom, -90);
-	left = Math.max(left, -180);
-	right = Math.min(right, 180);
-	
-	return {top: top, left: left, bottom: bottom, right: right, width: w, height: h}
-}
-
 mapHelper.prototype.convertColor = function(intColor)
 {
 	var r,g,b;
@@ -4834,9 +4812,9 @@ mapHelper.prototype.userFeedback = function()
 	
 	reasonSelect.onchange = function()
 	{
-		var mapBounds = _mapHelper.getMapBounds();
-		feedbackMarkers[0].setGeometry({type:'POINT', coordinates: [globalFlashMap.getX(),globalFlashMap.getY()]})
-		feedbackMarkers[1].setGeometry({type:'POINT', coordinates: [mapBounds.left + 0.6 * (mapBounds.right - mapBounds.left), mapBounds.bottom + 0.4 * (mapBounds.top - mapBounds.bottom)]})
+		var mapBounds = globalFlashMap.getVisibleExtent();
+        feedbackMarkers[0].setGeometry({type:'POINT', coordinates: [globalFlashMap.getX(),globalFlashMap.getY()]})
+		feedbackMarkers[1].setGeometry({type:'POINT', coordinates: [mapBounds.minX + 0.6 * (mapBounds.maxX - mapBounds.minX), mapBounds.minY + 0.4 * (mapBounds.maxY - mapBounds.minY)]})
 		
 		removeChilds(spanAction);
 			

@@ -749,11 +749,11 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 	}
 	var updateFunc = function(layer, parent)
 	{
-		var mapBounds = _mapHelper.getMapBounds(),
-			minx = mapBounds.left,
-			miny = mapBounds.bottom,
-			maxx = mapBounds.right,
-			maxy = mapBounds.top;
+		var mapBounds = globalFlashMap.getVisibleExtent(),
+			minx = mapBounds.minX,
+			miny = mapBounds.minY,
+			maxx = mapBounds.maxX,
+			maxy = mapBounds.maxY;
 		
 		if (layer.bbox)
 		{
@@ -780,7 +780,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 		}
 		
 		var transparentParam = (serverParams && serverParams.format === 'png') ? '&transparent=true' : '';
-		var imgUrl = url + "?VERSION=1.1.0&request=GetMap&crs=EPSG:4326"+ transparentParam +"&layers=" + layer.name + "&srs=" + layer.srs + "&format=image/"+ serverParams.format +"&styles=&width=" + mapBounds.width + "&height=" + mapBounds.height + "&bbox=" + srsMinx + "," + srsMiny + "," + srsMaxx + "," + srsMaxy;
+		var imgUrl = url + "?VERSION=1.1.0&request=GetMap&crs=EPSG:4326"+ transparentParam +"&layers=" + layer.name + "&srs=" + layer.srs + "&format=image/"+ serverParams.format +"&styles=&width=" + globalFlashMap.width() + "&height=" + globalFlashMap.height() + "&bbox=" + srsMinx + "," + srsMiny + "," + srsMaxx + "," + srsMaxy;
 		
 		parent.setImage(imgUrl, minx, maxy, maxx, maxy, maxx, miny, minx, miny);
 	}
