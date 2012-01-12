@@ -181,27 +181,6 @@ mapHelper.prototype.forEachMyLayer = function(callback)
 	});
 }
 
-mapHelper.prototype.convertColor = function(intColor)
-{
-	var r,g,b;
-	
-	b = (intColor % 256).toString(16);
-	if (b.length == 1)
-		b = '0' + b;
-	
-	intColor = Math.floor(intColor / 256);
-	g = (intColor % 256).toString(16);
-	if (g.length == 1)
-		g = '0' + g;
-	
-	intColor = Math.floor(intColor / 256);
-	r = (intColor % 256).toString(16);
-	if (r.length == 1)
-		r = '0' + r;
-	
-	return '#' + r + g + b;
-}
-
 mapHelper.prototype.setMapStyle = function(parentObject, templateStyle)
 {
 	if (templateStyle.marker && typeof templateStyle.marker.image != 'undefined')
@@ -348,11 +327,6 @@ mapHelper.prototype.updateTreeStyles = function(newStyles, div, isEditableStyles
 	_mapHelper.createMultiStyle(div.gmxProperties.content.properties, multiStyleParent)
 }
 
-mapHelper.prototype.getLocalScale = function(x, y)
-{
-	return distVincenty(x, y, from_merc_x(merc_x(x) + 40), from_merc_y(merc_y(y) + 30))/50;
-};
-
 mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCallback)
 {
 	window.suppressDefaultPermalink = true;
@@ -361,7 +335,7 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
 		//если пермалинк не найден, сервер не возвращает ошибку, а просто пустой результат
 		if ( !parseResponse(response) || !response.Result )
 		{
-			if (errorCallback) errorCallback();
+			errorCallback && errorCallback();
 			return;
 		}
 		
@@ -766,22 +740,6 @@ mapHelper.prototype.makeStyle = function(style)
 	}
 	
 	return givenStyle;
-}
-
-mapHelper.prototype.createColorPicker = function(color, showFunc, hideFunc, changeFunc)
-{
-	var colorPicker = _div(null, [['dir','className','colorSelector'], ['css','backgroundColor',this.convertColor(color)]]);
-	
-	$(colorPicker).ColorPicker({
-		color: this.convertColor(color),
-		onShow: showFunc,
-		onHide: hideFunc,
-		onChange: changeFunc
-	});
-	
-	_title(colorPicker, _gtxt("Цвет"));
-			
-	return colorPicker;
 }
 
 mapHelper.prototype.createSlider = function(opacity, changeFunc)
@@ -1684,7 +1642,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 		fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','30px'],['attr','value', templateStyle.label && templateStyle.label.size || '']]),
 		checkedLabelColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.color != 'undefined') ? templateStyle.label.color : 0x000000,
 		checkedLabelHaloColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.haloColor != 'undefined') ? templateStyle.label.haloColor : 0x000000,
-		labelColor = this.createColorPicker(checkedLabelColor,
+		labelColor = nsGmx.TreeUtils.createColorPicker(checkedLabelColor,
 			function (colpkr){
 				$(colpkr).fadeIn(500);
 				return false;
@@ -1703,7 +1661,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 				
 				_this.setMapStyle(parentObject, templateStyle);
 			}),
-		labelHaloColor = this.createColorPicker(checkedLabelHaloColor,
+		labelHaloColor = nsGmx.TreeUtils.createColorPicker(checkedLabelHaloColor,
 			function (colpkr){
 				$(colpkr).fadeIn(500);
 				return false;
@@ -1908,7 +1866,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 	var fillOpacity = _fillStyle.opacity;
     
 	//выбор цвета
-	var fillColorPicker = _mapHelper.createColorPicker(fillColor,
+	var fillColorPicker = nsGmx.TreeUtils.createColorPicker(fillColor,
 		function (colpkr){
 			$(colpkr).fadeIn(500);
 			return false;
@@ -2015,7 +1973,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 				
 				if (_colors[k] === null) return;
 				
-				var colorPicker = _mapHelper.createColorPicker(_colors[k],
+				var colorPicker = nsGmx.TreeUtils.createColorPicker(_colors[k],
 					function (colpkr){
 						$(colpkr).fadeIn(500);
 						return false;
@@ -2257,7 +2215,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	outlineTitleTds.push(_td([outlineToggle],[['css','width','20px'],['css','height','24px']]));
 	outlineTitleTds.push(_td([_t(_gtxt("Граница"))],[['css','width','70px']]));
 	
-	var outlineColor = this.createColorPicker((templateStyle.outline && typeof templateStyle.outline.color != 'undefined') ? templateStyle.outline.color : 0x0000FF,
+	var outlineColor = nsGmx.TreeUtils.createColorPicker((templateStyle.outline && typeof templateStyle.outline.color != 'undefined') ? templateStyle.outline.color : 0x0000FF,
 		function (colpkr){
 			$(colpkr).fadeIn(500);
 			return false;
@@ -2467,7 +2425,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		
 		var checkedFillColor = (typeof templateStyle.fill != 'undefined' && typeof templateStyle.fill.color != 'undefined') ? templateStyle.fill.color : 0xFFFFFF,
 			checkedFillOpacity = (typeof templateStyle.fill != 'undefined' && typeof templateStyle.fill.opacity != 'undefined') ? templateStyle.fill.opacity : 0,
-			fillColor = this.createColorPicker(checkedFillColor,
+			fillColor = nsGmx.TreeUtils.createColorPicker(checkedFillColor,
 				function (colpkr){
 					$(colpkr).fadeIn(500);
 					return false;
@@ -2576,7 +2534,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 			elemCanvas.parentNode.gmxProperties.content.properties.description &&
 			String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
 		{
-			var markerColor = this.createColorPicker((templateStyle.marker && typeof templateStyle.marker.color != 'undefined') ? templateStyle.marker.color : 0xFF00FF,
+			var markerColor = nsGmx.TreeUtils.createColorPicker((templateStyle.marker && typeof templateStyle.marker.color != 'undefined') ? templateStyle.marker.color : 0xFF00FF,
 				function (colpkr){
 					$(colpkr).fadeIn(500);
 					return false;
@@ -2763,8 +2721,8 @@ mapHelper.prototype.createGeometryIcon = function(parentStyle, type)
 	
 	if (type.indexOf('linestring') < 0)
 	{
-		var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? this.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
-			border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? this.convertColor(parentStyle.outline.color) : "#0000FF"]]),
+		var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
+			border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
 			fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
 			borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
 		
@@ -2809,7 +2767,7 @@ mapHelper.prototype.createGeometryIcon = function(parentStyle, type)
 	}
 	else
 	{
-		var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? this.convertColor(parentStyle.outline.color) : "#0000FF"]]),
+		var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
 			borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
 
 		if ($.browser.msie)
@@ -4388,7 +4346,7 @@ mapHelper.prototype.createDrawingStylesEditor = function(parentObject, style, el
 		
 		outlineTitleTds.push(_td([_t(_gtxt("Граница"))],[['css','width','70px']]));
 		
-		var outlineColor = _this.createColorPicker(templateStyle.outline.color,
+		var outlineColor = nsGmx.TreeUtils.createColorPicker(templateStyle.outline.color,
 			function (colpkr){
 				$(colpkr).fadeIn(500);
 				return false;

@@ -694,7 +694,7 @@ CoverControl.prototype._addWidget = function()
 	var colorTds = [];
 	for (var i = 1; i < this.cloudsCount; i++)
 	{
-		colorTds.push(_td(null,[['css','width', Math.round(100 / (this.cloudsCount - 1)) + 'px'], ['css','height',$.browser.msie ? '6px' : '7px'], ['css','backgroundColor',_mapHelper.convertColor(this.commonStyles[i].RenderStyle.fill.color)]]))
+		colorTds.push(_td(null,[['css','width', Math.round(100 / (this.cloudsCount - 1)) + 'px'], ['css','height',$.browser.msie ? '6px' : '7px'], ['css','backgroundColor', nsGmx.Utils.convertColor(this.commonStyles[i].RenderStyle.fill.color)]]))
 	}
 	
 	_(cloudsSlider, [_table([_tbody([_tr(colorTds)])],[['css','position','absolute'],['css','left','0px'],['css','top','0px'],['css','border','1px solid #999999']])])

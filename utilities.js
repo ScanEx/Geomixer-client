@@ -1,3 +1,5 @@
+var nsGmx = nsGmx || {};
+
 // _el(nodeName, [childs], [attrs])
 function _el(str, childs, attributes)
 {
@@ -904,22 +906,13 @@ function addUserActions()
 	{
 		_queryMapLayers.addUserActions();
 		
-		// if (_queryMapLayers.currentMapRights() == "edit")
-			// _iconPanel.addUserActions();
         _iconPanel.updateVisibility();
-		
-		// if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
-		// {
-			// _iconPanel.setVisible('createRasterLayer', false);
-			// _iconPanel.setVisible('createVectorLayer', false);
-		// }
 	}
 }
 function removeUserActions()
 {
 	_queryMapLayers.removeUserActions();
 	
-	// _iconPanel.removeUserActions();
     _iconPanel.updateVisibility();
 }
 
@@ -1089,3 +1082,36 @@ function equals(x, y)
 
 	return true;
 }
+
+/**
+    @namespace Разнообразные вспомогательные ф-ции
+*/
+nsGmx.Utils = {
+
+    /**
+        Преобразует цвет, заданный в виде числа (0xaabbcc) в строку вида #aabbcc
+        @function
+    */
+    convertColor: function(intColor)
+    {
+        var r,g,b;
+        
+        b = (intColor % 256).toString(16);
+        if (b.length == 1)
+            b = '0' + b;
+        
+        intColor = Math.floor(intColor / 256);
+        g = (intColor % 256).toString(16);
+        if (g.length == 1)
+            g = '0' + g;
+        
+        intColor = Math.floor(intColor / 256);
+        r = (intColor % 256).toString(16);
+        if (r.length == 1)
+            r = '0' + r;
+        
+        return '#' + r + g + b;
+    } 
+}
+
+gmxCore.addModule('utilities', nsGmx.Utils);
