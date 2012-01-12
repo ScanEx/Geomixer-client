@@ -336,13 +336,16 @@ var queryServerData = function()
 
 queryServerData.prototype = new leftMenu();
 
-//Загружает виджет для добавления/просмотра WMS/WFS слоёв
-//parseFunc - 
-//drawFunc - 
-//customParamsManager - контролер дополнительных параметров. Имеет методы: 
-//  - init(targetDiv)->void Добавляет контрол к элементу targetDiv
-//  - collect()->Object Возвращает выбранные пользователем объекты
-queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManager)
+/**
+    Загружает виджет для добавления/просмотра WMS/WFS слоёв
+ @param parseFunc 
+ @param drawFunc
+ @param customParamsManager {object}- контролер дополнительных параметров. Имеет методы: <br/> 
+        - init(targetDiv)->void Добавляет контрол к элементу targetDiv<br/>
+        - collect()->Object Возвращает выбранные пользователем объекты<br/>
+ @param version {string} Версия протокола, которая будет использоваться
+*/
+queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManager, version)
 {
 	window.convertCoords = function(coordsStr)
 	{
@@ -401,7 +404,7 @@ queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManag
 			if ( customParamsManager )
 				_this.customParams = customParamsManager.collect();
 				
-			_this.getCapabilities(strip(inputField.value), parseFunc, drawFunc);
+			_this.getCapabilities(strip(inputField.value), parseFunc, drawFunc, version);
 				
 			inputField.value = '';
 		}
@@ -433,7 +436,7 @@ queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManag
 	_(this.workCanvas, [canvas, this.parentCanvas])
 }
 
-queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc)
+queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc, version)
 {
 	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		_this = this;
@@ -445,7 +448,7 @@ queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc)
 	
     var separator = url.indexOf('?') !== -1 ? '&' : '?';
     
-	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(url + separator + 'request=GetCapabilities'), function(response)
+	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(url + separator + 'request=GetCapabilities&version=' + version), function(response)
 	{
 		if (!parseResponse(response)) return;
 		
@@ -454,56 +457,6 @@ queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc)
 		drawFunc.call(_this, servicelayers, url, loading, undefined, _this.customParams);
 	})
 }
-
-/*queryServerData.prototype.parseWMSCapabilities = function(response)
-{
-	var serviceLayers = [],
-		strResp = response.replace(/[\t\n\r]/g, ' '),
-		strResp = strResp.replace(/\s+/g, ' '),
-		layersXML = parseXML(response).getElementsByTagName('Layer');
-	
-	for (var i = 0; i < layersXML.length; i++)
-	{
-		var layer = {},
-			name = layersXML[i].getElementsByTagName('Name'),
-			title = layersXML[i].getElementsByTagName('Title'),
-			bbox = layersXML[i].getElementsByTagName('LatLonBoundingBox'),
-			srs = layersXML[i].getElementsByTagName('SRS');
-		
-		if (srs.length)
-		{
-			layer.srs = gmxAPI.getTextContent(srs[0]);
-			layer.srs = strip(layer.srs);
-			
-			if (!valueInArray(this.proj, layer.srs))
-				continue;
-		}
-		else
-			layer.srs = this.proj[0];
-		
-		if (name.length)
-			layer.name = gmxAPI.getTextContent(name[0]);
-		
-		if (bbox.length)
-		{
-			layer.bbox = 
-			{
-				minx: Number(bbox[0].getAttribute('minx')),
-				miny: Number(bbox[0].getAttribute('miny')),
-				maxx: Number(bbox[0].getAttribute('maxx')),
-				maxy: Number(bbox[0].getAttribute('maxy'))
-			};
-		}
-		
-		if (title.length)
-			layer.title = gmxAPI.getTextContent(title[0]);
-		
-		if (layer.name)
-			serviceLayers.push(layer);
-	}
-	
-	return serviceLayers;
-}*/
 
 queryServerData.prototype.parseWFSCapabilities = function(response)
 {
@@ -726,8 +679,11 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 	remove.onclick = function()
 	{
 		for (var i = 0; i < ulChilds.childNodes.length; i++)
+        {
 			ulChilds.childNodes[i].firstChild.lastChild.clear && ulChilds.childNodes[i].firstChild.lastChild.clear();
-		
+            ulChilds.childNodes[i].firstChild.lastChild.gmxObject.remove();
+		}
+        
 		this.parentNode.parentNode.parentNode.removeNode(true);
 	}
 	
@@ -749,40 +705,20 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 	}
 	var updateFunc = function(layer, parent)
 	{
-		var mapBounds = globalFlashMap.getVisibleExtent(),
-			minx = mapBounds.minX,
-			miny = mapBounds.minY,
-			maxx = mapBounds.maxX,
-			maxy = mapBounds.maxY;
-		
-		if (layer.bbox)
-		{
-			minx = Math.max(layer.bbox.minx, minx);
-			miny = Math.max(layer.bbox.miny, miny);
-			maxx = Math.min(layer.bbox.maxx, maxx);
-			maxy = Math.min(layer.bbox.maxy, maxy);
-			
-			if (minx >= maxx || miny >= maxy)
-				return
-		}
-		
-		var srsMinx = minx,
-			srsMiny = miny,
-			srsMaxx = maxx,
-			srsMaxy = maxy;
-		
-		if (layer.srs != _queryServerDataWMS.proj[0])
-		{
-			srsMinx = merc_x(minx),
-			srsMiny = merc_y(miny),
-			srsMaxx = merc_x(maxx),
-			srsMaxy = merc_y(maxy);
-		}
-		
-		var transparentParam = (serverParams && serverParams.format === 'png') ? '&transparent=true' : '';
-		var imgUrl = url + "?VERSION=1.1.0&request=GetMap&crs=EPSG:4326"+ transparentParam +"&layers=" + layer.name + "&srs=" + layer.srs + "&format=image/"+ serverParams.format +"&styles=&width=" + globalFlashMap.width() + "&height=" + globalFlashMap.height() + "&bbox=" + srsMinx + "," + srsMiny + "," + srsMaxx + "," + srsMaxy;
-		
-		parent.setImage(imgUrl, minx, maxy, maxx, maxy, maxx, miny, minx, miny);
+        var requestParams = {}
+		if (serverParams && serverParams.format)
+        {
+            requestParams.format = "image/" + serverParams.format;
+            requestParams.transparent = serverParams.format === 'png';
+        }
+        
+        var res = gmxAPI.getWMSMapURL(url, layer, requestParams);
+        
+        if (res)
+        {
+            var b = res.bounds;
+            parent.setImage(res.url, b.minX, b.maxY, b.maxX, b.maxY, b.maxX, b.minY, b.minX, b.minY);
+        }
 	}
 	
 	for (var i = 0; i < serviceLayers.length; i++)
@@ -791,6 +727,8 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 			box = _checkbox(false, 'checkbox'),
 			spanElem = _span([_t(serviceLayers[i].title)], [['css','cursor','pointer'],['dir','className','layerfeature']]),
 			parent = globalFlashMap.rasters.addObject();
+            
+        spanElem.gmxObject = parent;
 		
 		box.className = 'floatLeft';
 		
@@ -907,7 +845,7 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 				
                 var separator = url.indexOf('?') !== -1 ? '&' : '?';
                 
-				var objUrl = url + separator + "request=GetFeature&typeName=" + layer.name;
+				var objUrl = url + separator + "request=GetFeature&version=1.0.0&typeName=" + layer.name;
 				
 				if (formatSelect.value == 'json')
 					objUrl += '&outputFormat=json'
@@ -985,7 +923,7 @@ loadServerData.WFS.load = function()
 	var alreadyLoaded = _queryServerDataWFS.createWorkCanvas(arguments[0]);
 	
 	if (!alreadyLoaded)
-		_queryServerDataWFS.load(_queryServerDataWFS.parseWFSCapabilities, _queryServerDataWFS.drawWFS)
+		_queryServerDataWFS.load(_queryServerDataWFS.parseWFSCapabilities, _queryServerDataWFS.drawWFS, null, '1.0.0');
 }
 loadServerData.WFS.unload = function()
 {
@@ -997,7 +935,7 @@ loadServerData.WMS.load = function()
 	var alreadyLoaded = _queryServerDataWMS.createWorkCanvas(arguments[0]);
 	
 	if (!alreadyLoaded)
-		_queryServerDataWMS.load(gmxAPI.parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager)
+		_queryServerDataWMS.load(gmxAPI.parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager, '1.1.1');
 }
 loadServerData.WMS.unload = function()
 {
@@ -1059,7 +997,7 @@ _userObjects.addDataCollector('wms', {
                 _queryServerDataWMS.getCapabilities(url, gmxAPI.parseWMSCapabilities, function(serviceLayers, url, replaceElem)
                 {
                     _queryServerDataWMS.drawWMS(serviceLayers, url, replaceElem, loadParams.layersVisibility, loadParams.params);
-                })
+                }, '1.1.1')
             })(data[url])
         }
     }
@@ -1120,7 +1058,7 @@ _userObjects.addDataCollector('wfs', {
                 _queryServerDataWFS.getCapabilities(url, _queryServerDataWFS.parseWFSCapabilities, function(serviceLayers, url, replaceElem)
                 {
                     _queryServerDataWFS.drawWFS(serviceLayers, url, replaceElem, loadParams);
-                })
+                }, '1.0.0')
             })(data[url])
         }
     }

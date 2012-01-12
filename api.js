@@ -6374,6 +6374,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 			FlashMapObject.prototype.loadWFS = FlashMapObject.prototype.loadGML;
 
+            /** Заружает WMS слои как подъобъекты данного объекта. Слои добавляются невидимыми
+                @param url {string} - URL WMS сервера
+                @param func {function} - ф-ция, которая будет вызвана когда WMS слои добавятся на карту.
+            */
 			FlashMapObject.prototype.loadWMS = function(url, func)
 			{
                 gmxAPI._loadWMS(map, this, url, func);
@@ -7867,6 +7871,11 @@ function BalloonClass(map, div, apiBase)
 {
     var wmsProjections = ['EPSG:4326','EPSG:3395','EPSG:41001'];	// типы проекций
     
+    /**
+        Возвращает описание WMS-слоёв от XML, которую вернул сервер на запрос GetCapabilities
+        @memberOf gmxAPI
+        @returns {Array} - массив объектов с описанием слоёв
+    */
     var parseWMSCapabilities = function(response)
 	{
 		var serviceLayers = [],
@@ -7917,25 +7926,21 @@ function BalloonClass(map, div, apiBase)
 		return serviceLayers;
 	}
     
-    var getWMSMapURL = function(url, props)
+    /** Формирует URL картинки, который можно использовать для получения WMS слоя для данного положения карты
+        @memberOf gmxAPI
+        @returns {object} - {url: String, bounds: {Extent}}. bounds в географических координатах.
+    */
+    var getWMSMapURL = function(url, props, requestProperties)
     {
-        var w = gmxAPI.map.width();
-        var h = gmxAPI.map.height();
+        requestProperties = requestProperties || {};
+
+        var extend = gmxAPI.map.getVisibleExtent();
+
+        var miny = Math.max(extend.minY, -90);
+        var maxy = Math.min(extend.maxY, 90);
+        var minx = Math.max(extend.minX, -180);
+        var maxx = Math.min(extend.maxX, 180);
         
-        var currPosition = gmxAPI.map.getPosition();
-        var x = currPosition['x'];
-        var y = currPosition['y'];
-        var z = currPosition['z'];
-
-        var scale = gmxAPI.getScale(z),
-            wGeo = w*scale,
-            hGeo = h*scale;
-
-        var miny = Math.max(gmxAPI.from_merc_y(y - hGeo/2), -90);
-        var maxy = Math.min(gmxAPI.from_merc_y(y + hGeo/2), 90);
-        var minx = Math.max(gmxAPI.from_merc_x(x - wGeo/2), -180);
-        var maxx = Math.min(gmxAPI.from_merc_x(x + wGeo/2), 180);
-
         if (props.bbox)
         {
             minx = Math.max(props.bbox.minx, minx);
@@ -7946,20 +7951,30 @@ function BalloonClass(map, div, apiBase)
             if (minx >= maxx || miny >= maxy)
                 return;
         }
+        
+        var scale = gmxAPI.getScale(gmxAPI.map.getZ());
+        var w = Math.round((gmxAPI.merc_x(maxx) - gmxAPI.merc_x(minx))/scale);
+        var h = Math.round((gmxAPI.merc_y(maxy) - gmxAPI.merc_y(miny))/scale);
 
         var isMerc = !(props.srs == wmsProjections[0]);
 
         var st = url;
+        var format = requestProperties.format || 'image/jpeg';
+        var transparentParam = requestProperties.transparent ? 'TRUE' : 'FALSE';
+        
         st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetMap';
-        st +=   "&layers=" + props.name +
+        st += "&layers=" + props.name +
+            "&version=1.1.1" + 
             "&srs=" + props.srs + 
-            "&format=image/jpeg&styles=" + 
+            "&format=" + format + 
+            "&transparent=" + transparentParam + 
+            "&styles=" + 
             "&width=" + w + 
             "&height=" + h + 
             "&bbox=" + (isMerc ? gmxAPI.merc_x(minx) : minx) + 
-            "," + (isMerc ? gmxAPI.merc_y(miny) : miny) + 
-            "," + (isMerc ? gmxAPI.merc_x(maxx) : maxx) + 
-            "," + (isMerc ? gmxAPI.merc_y(maxy) : maxy)
+                 "," + (isMerc ? gmxAPI.merc_y(miny) : miny) + 
+                 "," + (isMerc ? gmxAPI.merc_x(maxx) : maxx) + 
+                 "," + (isMerc ? gmxAPI.merc_y(maxy) : maxy)
         ;
         
         return {url: st, bounds: {minX: minx, maxX: maxx, minY: miny, maxY: maxy}};
@@ -7972,7 +7987,7 @@ function BalloonClass(map, div, apiBase)
 		url = url.replace(/Request=GetCapabilities[\&]*/i, '');
 		url = url.replace(/\&$/, '');
         var st = url;
-        st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetCapabilities';
+        st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetCapabilities&version=1.1.1';
         var _hostname = urlProxyServer + "ApiSave.ashx?debug=1&get=" + encodeURIComponent(st);
         sendCrossDomainJSONRequest(_hostname, function(response)
         {
@@ -7995,12 +8010,16 @@ function BalloonClass(map, div, apiBase)
                         timeout = setTimeout(function()
                         {
                             var res = getWMSMapURL(url, props);
-                            var bbox = res.bounds;
+                            
+                            if (res)
+                            {
+                                var bbox = res.bounds;
 
-                            obj.setImage(
-                                urlProxyServer + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url),
-                                bbox.minX, bbox.maxY, bbox.maxX, bbox.maxY, bbox.maxX, bbox.minY, bbox.minX, bbox.minY
-                            );
+                                obj.setImage(
+                                    urlProxyServer + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url),
+                                    bbox.minX, bbox.maxY, bbox.maxX, bbox.maxY, bbox.maxX, bbox.minY, bbox.minX, bbox.minY
+                                );
+                            }
                         }, 500);
                     }
                     
