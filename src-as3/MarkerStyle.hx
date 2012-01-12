@@ -95,7 +95,8 @@ class MarkerStyle
 					ldr.mouseChildren = false;
 					spr.addChild(ldr);
 				}
-				Main.refreshMap();		// Для обновления маркеров
+				Main.needRefreshMap = true;		// Для обновления маркеров
+				//Main.refreshMap();		// Для обновления маркеров
 				onLoad();
 			});
 		}
@@ -244,7 +245,7 @@ class MarkerStyle
 						graphics.lineTo(p1.x, p1.y);
 						graphics.endFill();
 					}
-					Main.refreshMap();		// Для обновления маркеров
+					Main.needRefreshMap = true;		// Для обновления маркеров
 				}
 				onLoad();
 			});

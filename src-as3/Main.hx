@@ -30,13 +30,14 @@ import flash.net.URLRequestHeader;
 class Main
 {
 	public static var registerMouseDown:MapNode->MouseEvent->MapNode->Void;
-	public static var refreshMap:Void->Void;					// Принудительный Refresh карты
+	public static var refreshMap:Void->Void;			// Принудительный Refresh карты
 	
 	static var flashUrlKey:String = '';					// Ключ сессии SWF
 	public static var useFlashLSO:Bool = false;			// Использовать SharedObject
 	public static var multiSessionLSO:Bool = false;		// Использовать SharedObject между сессиями
 	public static var compressLSO:Bool = false;			// Сжатие SharedObject
 	public static var flashStartTimeStamp:Float = 0;	// timeStamp загрузки SWF
+	public static var needRefreshMap:Bool = false;		// Флаг необходимости обновления карты
 
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
@@ -452,9 +453,14 @@ class Main
 				nextFrameCallbacks = new Array<Void->Void>();
 			}
 
-			if (viewportHasMoved)
+			if (viewportHasMoved || needRefreshMap)
 			{
 				Main.refreshMap();
+				needRefreshMap = false;
+			}
+			
+			if (viewportHasMoved)
+			{
 				mapWindow.rootNode.callHandlersRecursively("onMove");
 				viewportHasMoved = false;
 				wasMoving = isMoving;
@@ -771,10 +777,14 @@ class Main
 				var parentId:String = _data.objectId;
 				var url:String = _data.attr.url;
 				new GetSWFFile(url, function(arr:Array<Dynamic>) {
+var bTime = flash.Lib.getTimer();
 					for (i in 0...Std.int(arr.length))
 					{
 						var tId:String = addObject(parentId, arr[i].geometry, arr[i].properties);
 					}
+bTime = flash.Lib.getTimer() - bTime;
+var st:String = 'Загрузка файла ' + url + ' обьектов: ' + arr.length + ' время: ' + bTime/1000 + ' сек.';
+				Main.messBuffToJS.push( st );
 				});
 			}
 		}
@@ -852,7 +862,8 @@ class Main
 					if (tilesRemaining < 0)
 					{
 						Main.bumpFrameRate();
-						Main.refreshMap();
+						Main.needRefreshMap = true;
+						//Main.refreshMap();
 					}
 				})(mapWindow.visibleExtent);
 			}
