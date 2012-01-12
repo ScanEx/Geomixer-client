@@ -2845,7 +2845,7 @@ mapHelper.prototype.createGeometryIcon = function(parentStyle, type)
 mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, layerProperties)
 {
 	var elemProperties = div.gmxProperties.content.properties,
-		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t('загрузка...')], [['css','margin','3px 0px 3px 20px']]),
+		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		layerRights = _queryMapLayers.layerRights(elemProperties.name)
 		_this = this;
 	
@@ -3987,7 +3987,7 @@ mapHelper.prototype.selectColumns = function(parent, params)
 	
 	if (params.url)
 	{
-	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t('загрузка...')], [['css','margin','3px 0px 3px 20px']]);
+	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]);
 	
 	removeChilds(parent);
 	_(parent, [loading])

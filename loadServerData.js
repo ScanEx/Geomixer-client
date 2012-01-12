@@ -435,7 +435,7 @@ queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManag
 
 queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc)
 {
-	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t('загрузка...')], [['css','margin','3px 0px 3px 20px']]),
+	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		_this = this;
 	
 	if (this.parentCanvas.childNodes.length == 0)

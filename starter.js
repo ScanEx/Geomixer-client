@@ -270,7 +270,6 @@ var createMenu = function()
 					{id:'wms', title:_gtxt('WMS сервер'),onsel:loadServerData.WMS.load,onunsel:loadServerData.WMS.unload}
 				]}
 		//	{id:'pictureBinding', title:_gtxt('Привязать изображение'),onsel:pointsBinding.pointsBinding.load,onunsel:pointsBinding.pointsBinding.unload}
-		//	{id:'request', title:_gtxt('Сообщить об ошибке на карте'),func:_mapHelper.userFeedback, disabled: true}
 		//	{id:'gps', title:'Спутниковый мониторинг',onsel:gps.gps.load,onunsel:gps.gps.unload}
 		]);
 	
@@ -808,9 +807,6 @@ function loadMap(state)
 				_iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
 				_iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
 				
-                //_iconPanel.addDelimeter('feedbackDelimeter');
-                //_iconPanel.add('feedback', "Сообщить об ошибке", "img/toolbar/upload.png", false, function(){_mapHelper.userFeedback()})
-								
 				if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages ) 
 					_translationsHash.showLanguages();		
 				

@@ -149,7 +149,7 @@ attrsTable.prototype.getInfo = function()
 		return;
 	
 	var canvas = _div(null,[['attr','id','attrsTableDialog' + this.layerName]])
-		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t('загрузка...')], [['css','margin','3px 0px 3px 20px']]),
+		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		_this = this;
 	
 	_(canvas, [loading])
@@ -403,7 +403,7 @@ attrsTable.prototype.showLoading = function()
 	this.tableParent.style.display = 'none';
 	this.tableLimit.parentNode.parentNode.parentNode.parentNode.style.display = 'none';
 	
-	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t('загрузка...')], [['css','margin','3px 0px 3px 20px'],['attr','loading',true]]);
+	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px'],['attr','loading',true]]);
 	
 	_(this.tableParent.parentNode, [loading])
 }
@@ -771,7 +771,7 @@ attrsTable.prototype.editObject = function(row)
 	
 	if (row)
 	{
-		var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t('загрузка...')], [['css','margin','3px 0px 3px 20px'],['attr','loading',true]]);
+		var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px'],['attr','loading',true]]);
 	
 		_(canvas, [loading])
 		
