@@ -717,7 +717,8 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
         if (res)
         {
             var b = res.bounds;
-            parent.setImage(res.url, b.minX, b.maxY, b.maxX, b.maxY, b.maxX, b.minY, b.minX, b.minY);
+            // parent.setImage(res.url, b.minX, b.maxY, b.maxX, b.maxY, b.maxX, b.minY, b.minX, b.minY);
+            parent.setImage(serverBase + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url), res.url, b.minX, b.maxY, b.maxX, b.maxY, b.maxX, b.minY, b.minX, b.minY);
         }
 	}
 	
