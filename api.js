@@ -1874,11 +1874,14 @@ function createFlashMapInternal(div, layers, callback)
 							attr['propFields'] = [keyArray, valArray];
 							attr['hideFixedBalloons'] = uniqueGlobalName(function() { map.balloonClassObject.hideHoverBalloons(true); });
 						}
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
-						if('clusters' in obj) {
-							attr['visible'] = true;
-							obj['clusters']['attr'] = attr;
-						}
+						var flag = ('clusters' in obj);	// видимость кластеров
+						if(!flag)
+							obj['clusters'] = new Clusters(obj);
+						else
+							ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
+						attr['visible'] = flag;
+						obj['clusters']['attr'] = attr;
+
 						if(!obj.parent._hoverBalloonAttr) obj.parent.enableHoverBalloon();	// если балунов не установлено
 						break;
 					case 'delClusters':		// Удалить кластеризацию потомков
@@ -2851,7 +2854,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					
 					map.balloonClassObject.applyBalloonDefaultStyle(style);
 					map.balloonClassObject.setBalloonFromParams(filter, style);
-
+					var filterOld = obj.filters[i];
+					if(filterOld && filterOld['clusters']) {	// Перенос атрибутов кластеризации в новый filter
+						filter.setClusters(filterOld['clusters']['attr']);
+					}
 					//filter.properties = style;
 					obj.filters[i] = filter;
 				}
