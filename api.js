@@ -90,9 +90,8 @@ window.gmxAPI = {
 		if(attr['alert']) alert(attr['alert']);
 	},
 	_debugWarnings: [],
-	isIE: function() { 	return (navigator.appName.indexOf("Microsoft") != -1); },
-	isChrome: function() { 	return (navigator.userAgent.toLowerCase().indexOf("chrome") != -1); }
-	,
+	isIE: (navigator.appName.indexOf("Microsoft") != -1),
+	isChrome: (navigator.userAgent.toLowerCase().indexOf("chrome") != -1),
 	show: function(div)
 	{
 		div.style.visibility = "visible";
