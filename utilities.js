@@ -96,9 +96,7 @@ function _p(children,attrs){return _el('P',children,attrs)}
 function _b(children,attrs){return _el('B',children,attrs)}
 function _i(children,attrs){return _el('I',children,attrs)}
 function _nobr(children,attrs){return _el('NOBR',children,attrs)}
-function _param(children){return _el('PARAM',children)}
 function _parametrs(children){return _el('PARAMS',children)}
-function _select(children,attrs){return _el('SELECT',children,attrs)}
 function _input(children,attrs){return _el('INPUT',children,attrs)}
 function _tinput(attrs){return _el('INPUT',null,(attrs&&attrs.concat([['attr','type','text']]))||[['attr','type','text']])}
 function _embed(children,attrs){return _el('EMBED',children,attrs)}
@@ -930,39 +928,6 @@ function _filter(callback, obj)
 			result.push(obj[i]);
 	
     return result;
-}
-
-function createCookie(name, value, days)
-{
-	if (days)
-	{
-		var date = new Date();
-		date.setTime(date.getTime() + (days*24*60*60*1000));
-		var expires = "; expires=" + date.toGMTString();
-	}
-	else
-		var expires = "";
-	document.cookie = name + "=" + value + expires + "; path=/";
-}
-
-function readCookie(name)
-{
-	var nameEQ = name + "=";
-	var ca = document.cookie.split(';');
-	for(var i = 0; i < ca.length; i++)
-	{
-		var c = ca[i];
-		while (c.charAt(0)==' ')
-			c = c.substring(1, c.length);
-		if (c.indexOf(nameEQ) == 0)
-			return c.substring(nameEQ.length, c.length);
-	}
-	return null;
-}
-
-function eraseCookie(name)
-{
-	createCookie(name, "", -1);
 }
 
 function parseXML(str)
