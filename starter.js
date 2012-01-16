@@ -837,14 +837,6 @@ function loadMap(state)
 						
 						elem.setStyle(style, {outline: {color: color, thickness: thickness + 1, opacity: Math.min(100, opacity + 20)}, marker: { size: 4 }, fill: { color: 0xffffff }});
 						
-						if (elem.geometry.type != "POINT")
-						{
-							var icon = _mapHelper.createDrawingStylesEditorIcon(style, elem.geometry.type.toLowerCase());
-							_mapHelper.createDrawingStylesEditor(elem, style, icon);
-							
-							$(elem.canvas).find("div.colorIcon").replaceWith(icon);
-						}
-						
 						if ( 'isBalloonVisible' in state.drawnObjects[i] ) 
 							elem.balloon.setVisible( state.drawnObjects[i].isBalloonVisible );
 					}
