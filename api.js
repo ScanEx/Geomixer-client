@@ -1224,94 +1224,91 @@ window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName основной карты по
 var isIE = gmxAPI.isIE;
 var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";		// ID базовой карты подложек
 
-function parseCoordinates(text, callback) { return gmxAPI.parseCoordinates(text, callback); }
-function setBg(t, imageName) { gmxAPI.setBg(t, imageName); }
-function deselect() { gmxAPI.deselect(); }
+var parseCoordinates = gmxAPI.parseCoordinates;
+var setBg = gmxAPI.setBg;
+var deselect = gmxAPI.deselect;
 
-function compatEvent(event) { return gmxAPI.compatEvent(event); }
-function compatTarget(event) { return gmxAPI.compatTarget(event); }
-function eventX(event) { return gmxAPI.eventX(event); }
-function eventY(event) { return gmxAPI.eventY(event); }
-function getOffsetLeft(div) { return gmxAPI.getOffsetLeft(div); }
-function getOffsetTop(div) { return gmxAPI.getOffsetTop(div); }
+var compatEvent = gmxAPI.compatEvent;
+var compatTarget = gmxAPI.compatTarget;
+var eventX = gmxAPI.eventX;
+var eventY = gmxAPI.eventY;
+var getOffsetLeft = gmxAPI.getOffsetLeft;
+var getOffsetTop = gmxAPI.getOffsetTop;
 
 function newElement(tagName, props, style) { return gmxAPI.newElement(tagName, props, style, true); }
-function newStyledDiv(style) { return gmxAPI.newStyledDiv(style); }
-function newSpan(style) { return gmxAPI.newSpan(innerHTML); }
-function newDiv(className, innerHTML) { return gmxAPI.newDiv(className, innerHTML); }
-function show(div) { return gmxAPI.show(div); }
-function hide(div) { return gmxAPI.hide(div); }
-function setPositionStyle(div, attr) { gmxAPI.setPositionStyle(div, attr); }
-function position(div, x, y) { gmxAPI.position(div, x, y); }
-function bottomPosition(div, x, y) { gmxAPI.bottomPosition(div, x, y); }
-function size(div, w, h) { gmxAPI.size(div, w, h); }
-function positionSize(div, x, y, w, h) { gmxAPI.positionSize(div, x, y, w, h); }
-function setVisible(div, flag) { gmxAPI.setVisible(div, flag); }
-
+var newStyledDiv = gmxAPI.newStyledDiv;
+var newSpan = gmxAPI.newSpan;
+var newDiv = gmxAPI.newDiv;
+var show = gmxAPI.show;
+var hide = gmxAPI.hide;
+var setPositionStyle = gmxAPI.setPositionStyle;
+var position = gmxAPI.position;
+var bottomPosition = gmxAPI.bottomPosition;
+var size = gmxAPI.size;
+var positionSize = gmxAPI.positionSize;
+var setVisible = gmxAPI.setVisible;
 var getTextContent = gmxAPI.getTextContent;
 
-function getScriptURL(scriptName) { return gmxAPI.getScriptURL(scriptName); }
-function getScriptBase(scriptName) { return gmxAPI.getScriptBase(scriptName); }
-function getHostAndPath(url) { return gmxAPI.getHostAndPath(url); }
+var getScriptURL = gmxAPI.getScriptURL;
+var getScriptBase = gmxAPI.getScriptBase;
+var getHostAndPath = gmxAPI.getHostAndPath;
 
-function strip(s) { return gmxAPI.strip(s); }
-function parseUri(str) { return gmxAPI.parseUri(str); }
-function parseColor(str) { return gmxAPI.parseColor(str); }
-function forEachPoint(coords, callback) { return gmxAPI.forEachPoint(coords, callback); }
-function transformGeometry(geom, callbackX, callbackY) { return gmxAPI.transformGeometry(geom, callbackX, callbackY); }
-function merc_geometry(geom) { return gmxAPI.merc_geometry(geom); }
-function from_merc_geometry(geom) { return gmxAPI.from_merc_geometry(geom); }
-function getBounds(coords) { return gmxAPI.getBounds(coords); }
-function boundsIntersect(b1, b2) { return gmxAPI.boundsIntersect(b1, b2); }
-function isRectangle(coords) { return gmxAPI.isRectangle(coords); }
-function getScale(z) { return gmxAPI.getScale(z); }
+var strip = gmxAPI.strip;
+var parseUri = gmxAPI.parseUri;
+var parseColor = gmxAPI.parseColor;
+var forEachPoint = gmxAPI.forEachPoint;
+var transformGeometry = gmxAPI.transformGeometry;
+var merc_geometry = gmxAPI.merc_geometry;
+var from_merc_geometry = gmxAPI.from_merc_geometry;
+var getBounds = gmxAPI.getBounds;
+var boundsIntersect = gmxAPI.boundsIntersect;
+var isRectangle = gmxAPI.isRectangle;
+var getScale = gmxAPI.getScale;
 
-function forEachPointAmb(arg, callback) { gmxAPI.forEachPointAmb(arg, callback); }
-function geoLength(arg1, arg2, arg3, arg4) { return gmxAPI.geoLength(arg1, arg2, arg3, arg4); }
-function geoArea(arg) { return gmxAPI.geoArea(arg); }
-function geoCenter(arg1, arg2, arg3, arg4) { return gmxAPI.geoCenter(arg1, arg2, arg3, arg4); }
-function convertCoords(coordsStr) { return gmxAPI.convertCoords(coordsStr); }
+var forEachPointAmb = gmxAPI.forEachPointAmb;
+var geoLength = gmxAPI.geoLength;
+var geoArea = gmxAPI.geoArea;
+var geoCenter = gmxAPI.geoCenter;
+var convertCoords = gmxAPI.convertCoords;
 
+var parseGML = gmxAPI.parseGML;
+var createGML = gmxAPI.createGML;
+var getTagValue = gmxAPI.getTagValue;
 
-function parseGML(response) { return gmxAPI.parseGML(response); }
-function createGML(geometries, format) { return gmxAPI.createGML(geometries, format); }
-function getTagValue(str, tag) { return gmxAPI.getTagValue(str, tag); }
+var deg_rad = gmxAPI.deg_rad;
+var deg_decimal = gmxAPI.deg_decimal;
+var merc_x = gmxAPI.merc_x;
+var from_merc_x = gmxAPI.from_merc_x;
+var merc_y = gmxAPI.merc_y;
+var from_merc_y = gmxAPI.from_merc_y;
+var merc = gmxAPI.merc;
+var from_merc = gmxAPI.from_merc;
+var distVincenty = gmxAPI.distVincenty;
 
-function deg_rad(ang) { return gmxAPI.deg_rad(ang); }
-function deg_decimal(rad) { return gmxAPI.deg_decimal(rad); }
-function merc_x(lon) { return gmxAPI.merc_x(lon); }
-function from_merc_x(x) { return gmxAPI.from_merc_x(x); }
-function merc_y(lat) { return gmxAPI.merc_y(lat); }
-function from_merc_y(y) { return gmxAPI.from_merc_y(y); }
-function merc(lon,lat) { return gmxAPI.merc(lon,lat); }
-function from_merc(x,y) { return gmxAPI.from_merc(x,y); }
-function distVincenty(lon1,lat1,lon2,lat2) { return gmxAPI.distVincenty(lon1,lat1,lon2,lat2); }
-
-function DegToRad(deg) { return gmxAPI.DegToRad(deg); }
-function RadToDeg(rad) { return gmxAPI.RadToDeg(rad); }
-function ArcLengthOfMeridian(phi) { return gmxAPI.ArcLengthOfMeridian(phi); }
-function UTMCentralMeridian(zone) { return gmxAPI.UTMCentralMeridian(zone); }
-function FootpointLatitude(y) { return gmxAPI.FootpointLatitude(y); }
-function MapLatLonToXY(phi, lambda, lambda0, xy) { return gmxAPI.MapLatLonToXY(phi, lambda, lambda0, xy); }
-function MapXYToLatLon(x, y, lambda0, philambda) { return gmxAPI.MapXYToLatLon(x, y, lambda0, philambda); }
-function LatLonToUTMXY(lat, lon, zone, xy) { return gmxAPI.LatLonToUTMXY(lat, lon, zone, xy); }
-function UTMXYToLatLon(x, y, zone, southhemi, latlon) { return gmxAPI.UTMXYToLatLon(x, y, zone, southhemi, latlon); }
-function truncate9(x) { return gmxAPI.truncate9(x); }
-function prettifyDistance(length) { return gmxAPI.prettifyDistance(length); }
-function prettifyArea(area) { return gmxAPI.prettifyArea(area); }
+var DegToRad = gmxAPI.DegToRad;
+var RadToDeg = gmxAPI.RadToDeg;
+var ArcLengthOfMeridian = gmxAPI.ArcLengthOfMeridian;
+var UTMCentralMeridian = gmxAPI.UTMCentralMeridian;
+var FootpointLatitude = gmxAPI.FootpointLatitude;
+var MapLatLonToXY = gmxAPI.MapLatLonToXY;
+var MapXYToLatLon = gmxAPI.MapXYToLatLon;
+var LatLonToUTMXY = gmxAPI.LatLonToUTMXY;
+var UTMXYToLatLon = gmxAPI.UTMXYToLatLon;
+var truncate9 = gmxAPI.truncate9;
+var prettifyDistance = gmxAPI.prettifyDistance;
+var prettifyArea = gmxAPI.prettifyArea;
 lambertCoefX = gmxAPI.lambertCoefX;
 lambertCoefY = gmxAPI.lambertCoefY;
-function fragmentArea(points) { return gmxAPI.fragmentArea(points); }
-function fragmentAreaMercator(points) { return gmxAPI.fragmentAreaMercator(points); }
-function formatDegreesSimple(angle) { return gmxAPI.formatDegreesSimple(angle); }
-function pad2(t) { return gmxAPI.pad2(t); }
-function formatDegrees(angle) { return gmxAPI.formatDegrees(angle); }
-function formatCoordinates(x, y) { return gmxAPI.formatCoordinates(x, y); }
-function trunc(x) { return gmxAPI.trunc(x); }
-function formatCoordinates2(x, y) { return gmxAPI.formatCoordinates2(x, y); }
+var fragmentArea = gmxAPI.fragmentArea;
+var fragmentAreaMercator = gmxAPI.fragmentAreaMercator;
+var formatDegreesSimple = gmxAPI.formatDegreesSimple;
+var pad2 = gmxAPI.pad2;
+var formatDegrees = gmxAPI.formatDegrees;
+var formatCoordinates = gmxAPI.formatCoordinates;
+var trunc = gmxAPI.trunc;
+var formatCoordinates2 = gmxAPI.formatCoordinates2;
 
-
-function memoize(func) { return gmxAPI.memoize(func); }
+var memoize = gmxAPI.memoize;
 var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoot(); });
 var getAPIHost = gmxAPI.memoize(function() { return gmxAPI.getAPIHost(); });
 var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot(); });
@@ -6359,7 +6356,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			if (window.addEventListener)
 				window.addEventListener('DOMMouseScroll', onWheel, false);
 
-
 			FlashMapObject.prototype.loadKML = function(url, func)
 			{
 				var me = this;
@@ -8568,4 +8564,5 @@ function BalloonClass(map, div, apiBase)
 
     //расширяем namespace
     gmxAPI._kmlParser = new kmlParser();
+
 })();
