@@ -1667,7 +1667,9 @@ function createFlashMap(div, arg1, arg2, arg3)
 			mapName = arg1;
 			callback = arg2;
 		}
-		gmxAPI.serverBase = hostName;					// HostName основной карты переопределен
+
+		var uri = gmxAPI.parseUri(hostName);
+		if(uri.host) gmxAPI.serverBase = uri.host;						// HostName основной карты переопределен
 		loadMapJSON(hostName, mapName, function(layers)
 		{
 			if (layers != null)
