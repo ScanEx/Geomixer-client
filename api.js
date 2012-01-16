@@ -1836,6 +1836,8 @@ function createFlashMapInternal(div, layers, callback)
 				this.flashId = flashId;
 				this.stateListeners = {};	// Пользовательские события
 			}
+			// расширение FlashMapObject
+			gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;	}
 
 			// Передача команды в SWF
 			function FlashCMD(cmd, hash)
@@ -2154,7 +2156,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 */
 				return ret;
 			}
-			FlashMapObject.prototype.addModule = function(name, func) {	FlashMapObject.prototype[name] = func;	}
 			FlashMapObject.prototype.setTileCaching = function(flag) { FlashCMD('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
 			FlashMapObject.prototype.setDisplacement = function(dx, dy) { FlashCMD('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
 			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { FlashCMD('setBackgroundTiles', { 'obj': this, 'attr':{'func':uniqueGlobalName(imageUrlFunction), 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
