@@ -18,7 +18,7 @@ nsGmx.Controls = {
 		_title(colorPicker, _gtxt("Цвет"));
 				
 		return colorPicker;
-	}    
+	},
 	
 	/** */
 	createGeometryIcon: function(parentStyle, type){
@@ -103,7 +103,7 @@ nsGmx.Controls = {
 		}
 		
 		return icon;
-	}
+	},
 	
 	/** */
 	createSlider: function(opacity, changeFunc)	{
@@ -162,7 +162,7 @@ nsGmx.Controls = {
 		_title(divSlider, _gtxt("Прозрачность"));
 		
 		return divSlider;
-	}
+	},
 
 	/** */
 	createInput: function(value, changeFunc){
