@@ -1796,7 +1796,7 @@ queryMapLayers.prototype.load = function(data)
 queryMapLayers.prototype.rasterLayersSlider = function(parent)
 {
 	var templateStyle = {fill: {opacity: 100}},
-		slider = _mapHelper.createSlider(100,
+		slider = nsGmx.Controls.createSlider(100,
 			function(event, ui)
 			{
 				templateStyle.fill.opacity = ui.value;

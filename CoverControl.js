@@ -86,7 +86,7 @@ CoverControl.prototype._addWidget = function()
 {
 	if (this.cloudsIndexes.length == 0 || !this._parent ) return;
 	
-	var	cloudsSlider = _mapHelper.createSlider(this.currCloudsIndex, function(){}),
+	var	cloudsSlider = nsGmx.Controls.createSlider(this.currCloudsIndex, function(){}),
 		_this = this;
 	
 	$(cloudsSlider).slider("option", "step", 1);
@@ -208,7 +208,7 @@ CoverControl.prototype.fixLayers = function()
 		if (typeof _mapHelper == 'undefined') continue;
 		
 		if ($(div[0]).children("[styleType='multi']").length) {
-			var icon = _mapHelper.createGeometryIcon(globalFlashMap.layers[this.coverLayers[i]].properties.styles[0], "polygon");
+			var icon = nsGmx.Controls.createGeometryIcon(globalFlashMap.layers[this.coverLayers[i]].properties.styles[0], "polygon");
 				
 			if ($.browser.msie)
 			{

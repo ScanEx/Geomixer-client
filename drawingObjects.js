@@ -21,7 +21,7 @@ var AttachEvents = function(){
 
 var CreateDrawingStylesEditorIcon = function(style, type)
 {
-	var icon = _mapHelper.createGeometryIcon(style, type);
+	var icon = nsGmx.Controls.createGeometryIcon(style, type);
 	
 	if ($.browser.msie)
 	{
@@ -75,7 +75,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 
 		outlineTds.push(_td([outlineColor],[['css','width','40px']]));
 			
-		var divSlider = _mapHelper.createSlider(templateStyle.outline.opacity,
+		var divSlider = nsGmx.Controls.createSlider(templateStyle.outline.opacity,
 				function(event, ui)
 				{
 					templateStyle.outline.opacity = ui.value;
@@ -87,7 +87,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 
 		outlineTds.push(_td([divSlider],[['css','width','100px'],['css','padding','4px 5px 3px 5px']]));
 		
-		var outlineThick = _mapHelper.createInput((templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined') ? templateStyle.outline.thickness : 2,
+		var outlineThick = nsGmx.Controls.createInput((templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined') ? templateStyle.outline.thickness : 2,
 				function()
 				{
 					templateStyle.outline.thickness = Number(this.value);

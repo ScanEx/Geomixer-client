@@ -209,7 +209,7 @@ queryBinding.prototype.load = function()
 	
 	var tempStyle = typeof this.tempStyle != 'undefined' ? this.tempStyle : {fill: {opacity: 100}};
 	
-	this.slider = _mapHelper.createSlider(typeof this.tempStyle != 'undefined' ? _this.tempStyle.fill.opacity : 100, 
+	this.slider = nsGmx.Controls.createSlider(typeof this.tempStyle != 'undefined' ? _this.tempStyle.fill.opacity : 100, 
 		function(event, ui)
 		{
 			if (_this.parentImage)
