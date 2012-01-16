@@ -40,9 +40,9 @@ queryKML.prototype.load = function()
 				return;
 			}
 			
-			_kmlParser.get(strip(inputField.value), function(resp)
+			gmxAPI._kmlParser.get(strip(inputField.value), function(resp)
 			{
-				var info = _kmlParser.draw(resp.vals, globalFlashMap.addObject());
+				var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
 				
 				_this.addFile(info, resp.name)
 			})
@@ -67,9 +67,9 @@ queryKML.prototype.load = function()
 					return;
 				}
 				
-				_kmlParser.get(strip(inputField.value), function(resp)
+				gmxAPI._kmlParser.get(strip(inputField.value), function(resp)
 				{
-					var info = _kmlParser.draw(resp.vals, globalFlashMap.addObject());
+					var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
 				
 					_this.addFile(info, resp.name)
 				})
@@ -106,9 +106,9 @@ queryKML.prototype.load = function()
 			if (!parseResponse(response))
 				return;
 			
-			var resp = _kmlParser.parse(response.Result);
+			var resp = gmxAPI._kmlParser.parse(response.Result);
 
-			var info = _kmlParser.draw(resp.vals, globalFlashMap.addObject());
+			var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
 			
 			_this.addFile(info, resp.name)
 		});
