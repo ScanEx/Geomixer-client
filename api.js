@@ -1681,6 +1681,22 @@ function createFlashMap(div, arg1, arg2, arg3)
 var createKosmosnimkiMap = createFlashMap;
 var makeFlashMap = createFlashMap;
 
+(function(){
+var flashId = newFlashMapId();
+var FlashMapObject = function(objectId_, properties_, parent_)
+{
+	this.objectId = objectId_;
+	for (var key in properties_)
+		if (properties_[key] == "null")
+			properties_[key] = "";
+	this.properties = properties_;
+	this.parent = parent_;
+	this.flashId = flashId;
+	this.stateListeners = {};	// Пользовательские события
+}
+// расширение FlashMapObject
+gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;	}
+
 function createFlashMapInternal(div, layers, callback)
 {
 	if(layers.properties.name == kosmosnimki_API) {
@@ -1706,7 +1722,6 @@ function createFlashMapInternal(div, layers, callback)
 	var apiBase = getAPIFolderRoot();
 
 	var focusLink = document.createElement("a");
-	var flashId = newFlashMapId();
 	var o = new SWFObject(apiBase + "api.swf?" + Math.random(), flashId, "100%", "100%", "10", "#ffffff");
 	o.addParam('allowScriptAccess', 'always');
 	o.addParam('wmode', 'opaque');
@@ -1822,19 +1837,7 @@ function createFlashMapInternal(div, layers, callback)
 				'getClusterView':	function() { if(!this._attr.clusterView) return null; var out = {}; for(key in this._attr.clusterView) out[key] = this._attr.clusterView[key]; return out; }
 			}
 
-			var FlashMapObject = function(objectId_, properties_, parent_)
-			{
-				this.objectId = objectId_;
-				for (var key in properties_)
-					if (properties_[key] == "null")
-						properties_[key] = "";
-				this.properties = properties_;
-				this.parent = parent_;
-				this.flashId = flashId;
-				this.stateListeners = {};	// Пользовательские события
-			}
-			// расширение FlashMapObject
-			gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;	}
+
 
 			// Передача команды в SWF
 			function FlashCMD(cmd, hash)
@@ -6356,16 +6359,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			if (window.addEventListener)
 				window.addEventListener('DOMMouseScroll', onWheel, false);
 
-			FlashMapObject.prototype.loadKML = function(url, func)
-			{
-				var me = this;
-				gmxAPI._kmlParser.get(url, function(result)
-				{
-					gmxAPI._kmlParser.draw(result.vals, me);
-					if (func)
-						func();
-				}, map);
-			}
 			FlashMapObject.prototype.loadGML = function(url, func)
 			{
 				var me = this;
@@ -6506,6 +6499,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 	return true;
 }
+
+window.createFlashMapInternal = createFlashMapInternal;
+
+})();
 
 function getBaseMapParam(paramName, defaultValue)
 {
@@ -8564,5 +8561,18 @@ function BalloonClass(map, div, apiBase)
 
     //расширяем namespace
     gmxAPI._kmlParser = new kmlParser();
+
+    //расширяем FlashMapObject
+	gmxAPI.extendFMO('loadKML', function(url, func)
+		{
+			var me = this;
+			gmxAPI._kmlParser.get(url, function(result)
+			{
+				gmxAPI._kmlParser.draw(result.vals, me);
+				if (func)
+					func();
+			}, gmxAPI.map);
+		}
+	);
 
 })();
