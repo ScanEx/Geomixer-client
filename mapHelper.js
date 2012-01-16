@@ -1642,7 +1642,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 		fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','30px'],['attr','value', templateStyle.label && templateStyle.label.size || '']]),
 		checkedLabelColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.color != 'undefined') ? templateStyle.label.color : 0x000000,
 		checkedLabelHaloColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.haloColor != 'undefined') ? templateStyle.label.haloColor : 0x000000,
-		labelColor = nsGmx.TreeUtils.createColorPicker(checkedLabelColor,
+		labelColor = nsGmx.Controls.createColorPicker(checkedLabelColor,
 			function (colpkr){
 				$(colpkr).fadeIn(500);
 				return false;
@@ -1661,7 +1661,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 				
 				_this.setMapStyle(parentObject, templateStyle);
 			}),
-		labelHaloColor = nsGmx.TreeUtils.createColorPicker(checkedLabelHaloColor,
+		labelHaloColor = nsGmx.Controls.createColorPicker(checkedLabelHaloColor,
 			function (colpkr){
 				$(colpkr).fadeIn(500);
 				return false;
@@ -1866,7 +1866,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 	var fillOpacity = _fillStyle.opacity;
     
 	//выбор цвета
-	var fillColorPicker = nsGmx.TreeUtils.createColorPicker(fillColor,
+	var fillColorPicker = nsGmx.Controls.createColorPicker(fillColor,
 		function (colpkr){
 			$(colpkr).fadeIn(500);
 			return false;
@@ -1973,7 +1973,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 				
 				if (_colors[k] === null) return;
 				
-				var colorPicker = nsGmx.TreeUtils.createColorPicker(_colors[k],
+				var colorPicker = nsGmx.Controls.createColorPicker(_colors[k],
 					function (colpkr){
 						$(colpkr).fadeIn(500);
 						return false;
@@ -2215,7 +2215,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	outlineTitleTds.push(_td([outlineToggle],[['css','width','20px'],['css','height','24px']]));
 	outlineTitleTds.push(_td([_t(_gtxt("Граница"))],[['css','width','70px']]));
 	
-	var outlineColor = nsGmx.TreeUtils.createColorPicker((templateStyle.outline && typeof templateStyle.outline.color != 'undefined') ? templateStyle.outline.color : 0x0000FF,
+	var outlineColor = nsGmx.Controls.createColorPicker((templateStyle.outline && typeof templateStyle.outline.color != 'undefined') ? templateStyle.outline.color : 0x0000FF,
 		function (colpkr){
 			$(colpkr).fadeIn(500);
 			return false;
@@ -2425,7 +2425,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		
 		var checkedFillColor = (typeof templateStyle.fill != 'undefined' && typeof templateStyle.fill.color != 'undefined') ? templateStyle.fill.color : 0xFFFFFF,
 			checkedFillOpacity = (typeof templateStyle.fill != 'undefined' && typeof templateStyle.fill.opacity != 'undefined') ? templateStyle.fill.opacity : 0,
-			fillColor = nsGmx.TreeUtils.createColorPicker(checkedFillColor,
+			fillColor = nsGmx.Controls.createColorPicker(checkedFillColor,
 				function (colpkr){
 					$(colpkr).fadeIn(500);
 					return false;
@@ -2534,7 +2534,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 			elemCanvas.parentNode.gmxProperties.content.properties.description &&
 			String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
 		{
-			var markerColor = nsGmx.TreeUtils.createColorPicker((templateStyle.marker && typeof templateStyle.marker.color != 'undefined') ? templateStyle.marker.color : 0xFF00FF,
+			var markerColor = nsGmx.Controls.createColorPicker((templateStyle.marker && typeof templateStyle.marker.color != 'undefined') ? templateStyle.marker.color : 0xFF00FF,
 				function (colpkr){
 					$(colpkr).fadeIn(500);
 					return false;
@@ -4311,132 +4311,6 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 		{
             nsGmx.createMultiLayerEditorServer(elemProperties, div, this);
         }
-	}
-}
-
-mapHelper.prototype.createDrawingStylesEditorIcon = function(style, type)
-{
-	var icon = this.createGeometryIcon(style, type);
-	
-	if ($.browser.msie)
-	{
-		icon.style.width = '9px';
-		icon.style.height = '13px';
-		icon.style.margin = '0px 3px -3px 1px';
-	}
-	
-	_title(icon, _gtxt("Редактировать стиль"));
-	
-	return icon;
-}
-
-mapHelper.prototype.createDrawingStylesEditor = function(parentObject, style, elemCanvas)
-{
-	var _this = this,
-		templateStyle = {};
-	
-	$.extend(true, templateStyle, style);
-	
-	elemCanvas.onclick = function()
-	{
-		var canvas = _div(null,[['css','marginTop','10px']]),
-			outlineParent = _tr(),
-			outlineTitleTds = [],
-			outlineTds = [];
-		
-		outlineTitleTds.push(_td([_t(_gtxt("Граница"))],[['css','width','70px']]));
-		
-		var outlineColor = nsGmx.TreeUtils.createColorPicker(templateStyle.outline.color,
-			function (colpkr){
-				$(colpkr).fadeIn(500);
-				return false;
-			},
-			function (colpkr){
-				$(colpkr).fadeOut(500);
-				return false;
-			},
-			function (hsb, hex, rgb) {
-				outlineColor.style.backgroundColor = '#' + hex;
-				
-				templateStyle.outline.color = outlineColor.hex = parseInt('0x' + hex);
-				
-				$(elemCanvas).find(".borderIcon")[0].style.borderColor = '#' + hex;
-				
-				_this.setMapStyle(parentObject, templateStyle);
-			})
-		
-		outlineColor.hex = templateStyle.outline.color;
-		
-		_title(outlineColor, _gtxt("Цвет"));
-
-		outlineTds.push(_td([outlineColor],[['css','width','40px']]));
-			
-		var divSlider = _this.createSlider(templateStyle.outline.opacity,
-				function(event, ui)
-				{
-					templateStyle.outline.opacity = ui.value;
-					
-					_this.setMapStyle(parentObject, templateStyle);
-				})
-		
-		_title(divSlider, _gtxt("Прозрачность"));
-
-		outlineTds.push(_td([divSlider],[['css','width','100px'],['css','padding','4px 5px 3px 5px']]));
-		
-		var outlineThick = _this.createInput((templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined') ? templateStyle.outline.thickness : 2,
-				function()
-				{
-					templateStyle.outline.thickness = Number(this.value);
-					
-					_this.setMapStyle(parentObject, templateStyle);
-					
-					return true;
-				}),
-			closeFunc = function()
-			{
-				var newIcon = _this.createDrawingStylesEditorIcon(templateStyle, parentObject.geometry.type.toLowerCase());
-				_mapHelper.createDrawingStylesEditor(parentObject, templateStyle, newIcon);
-				
-				$(elemCanvas).replaceWith(newIcon);
-				
-				$(canvas).find(".colorSelector").each(function()
-				{
-					$$($(this).data("colorpickerId")).removeNode(true);
-				});
-			};
-		
-		_title(outlineThick, _gtxt("Толщина линии"));
-		
-		outlineTds.push(_td([outlineThick],[['css','width','30px']]));
-		
-		_(outlineParent, outlineTitleTds.concat(_td([_div([_table([_tbody([_tr(outlineTds)])])],[['attr','fade',true]])])));
-		
-		var text = _input(null, [['attr','value', parentObject.properties.text ? parentObject.properties.text : ""],['dir','className','inputStyle'],['css','width','180px']]);
-		text.onkeyup = function()
-		{
-			parentObject.properties.text = this.value;
-			
-			removeChilds(parentObject.text);
-			
-			_(parentObject.text, [_t(this.value ? this.value.replace(/<[^<>]*>/g, " ") : "")]);
-			
-			if (this.value)
-				parentObject.title.style.display = 'none';
-			else
-				parentObject.title.style.display = '';
-			
-			return true;
-		}
-		
-		_(canvas, [_table([_tbody([_tr([_td([_t(_gtxt("Описание"))], [['css','width','70px']]), _td([text])])])]), _br(), _table([_tbody([outlineParent])])])
-		
-		var pos = _this.getDialogPos(elemCanvas, false, 80);
-		showDialog(_gtxt('Редактирование стилей объекта'), canvas, 280, 110, pos.left, pos.top, false, closeFunc)
-	}
-	
-	elemCanvas.getStyle = function()
-	{
-		return templateStyle;
 	}
 }
 
