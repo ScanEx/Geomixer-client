@@ -6359,9 +6359,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			FlashMapObject.prototype.loadKML = function(url, func)
 			{
 				var me = this;
-				_kmlParser.get(url, function(result)
+				gmxAPI._kmlParser.get(url, function(result)
 				{
-					_kmlParser.draw(result.vals, me);
+					gmxAPI._kmlParser.draw(result.vals, me);
 					if (func)
 						func();
 				}, map);
@@ -8057,9 +8057,11 @@ function BalloonClass(map, div, apiBase)
     gmxAPI.parseWMSCapabilities = parseWMSCapabilities;
     gmxAPI._loadWMS = loadWMS;
     gmxAPI.getWMSMapURL = getWMSMapURL;
-})()
+})();
 
 //Поддержка KML
+(function()
+{
 	var kmlParser = function()
 	{
 		this.hrefs = {};
@@ -8560,4 +8562,6 @@ function BalloonClass(map, div, apiBase)
 		return elem;
 	}
 
-	var _kmlParser = new kmlParser();
+    //расширяем namespace
+    gmxAPI._kmlParser = new kmlParser();
+})();
