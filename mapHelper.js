@@ -742,79 +742,6 @@ mapHelper.prototype.makeStyle = function(style)
 	return givenStyle;
 }
 
-mapHelper.prototype.createSlider = function(opacity, changeFunc)
-{
-	var divSlider = _div(null, [['css','width','86px'],['css','height','8px'],['css','border','1px solid #cdcdcd']]);
-	
-	$(divSlider).slider(
-		{
-			min:0,
-			max:100,
-			step:1,
-			value: opacity,
-			slide: function(event, ui)
-			{
-				changeFunc(event, ui);
-				
-				_title(divSlider.firstChild, ui.value)
-			}
-		});
-	
-	divSlider.firstChild.style.zIndex = 1;
-	
-	if ($.browser.msie)
-	{
-		divSlider.firstChild.style.fontSize = '5px';
-		divSlider.firstChild.style.width = '12px';
-		divSlider.firstChild.style.height = '14px';
-		divSlider.firstChild.style.marginTop = '-2px';
-	}
-	
-	divSlider.style.width = '100px';
-	divSlider.style.border = 'none';
-	divSlider.style.backgroundImage = 'url(img/slider.png)';
-	
-	divSlider.firstChild.style.border = 'none';
-	divSlider.firstChild.style.width = '12px';
-	divSlider.firstChild.style.height = '14px';
-	divSlider.firstChild.style.marginLeft = '-6px';
-	
-	if ($.browser.msie)
-		divSlider.firstChild.style.top = '-1px';
-	else
-		divSlider.firstChild.style.top = '-3px';
-
-	divSlider.firstChild.style.background = 'transparent url(img/sliderIcon.png) no-repeat';
-	
-	divSlider.firstChild.onmouseover = function()
-	{
-		divSlider.firstChild.style.backgroundImage = 'url(img/sliderIcon_a.png)';
-	}
-	divSlider.firstChild.onmouseout = function()
-	{
-		divSlider.firstChild.style.backgroundImage = 'url(img/sliderIcon.png)';
-	}
-	
-	_title(divSlider.firstChild, opacity)
-	_title(divSlider, _gtxt("Прозрачность"));
-	
-	return divSlider;
-}
-
-mapHelper.prototype.createSelect = function(value, count, changeFunc)
-{
-	var sel = _select(null, [['dir','className','selectStyle'],['css','width','50px']]);
-	
-	for (var i = 0; i < count; i++)
-		_(sel, [_option([_t(String(i + 1))], [['attr','value', i + 1]])])
-	
-	switchSelect(sel, value);
-	
-	sel.onchange = changeFunc;
-	
-	return sel;
-}
-
 mapHelper.prototype.createInput = function(value, changeFunc)
 {
 	var input = _input(null, [['dir','className','inputStyle'],['css','width','30px'],['attr','value',value]]);
@@ -1881,7 +1808,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
             fillColor = parseInt("0x" + hex);
             $(_this).change();
 		}),
-	fillOpacitySlider = _mapHelper.createSlider(fillOpacity,
+	fillOpacitySlider = nsGmx.Controls.createSlider(fillOpacity,
 		function(event, ui)
 		{
             fillOpacity = ui.value;
@@ -1928,7 +1855,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
     });
     
     var patternOpacity = _fillStyle.opacity;
-	var patternOpacitySlider = _mapHelper.createSlider( _fillStyle.opacity, function(event, ui)
+	var patternOpacitySlider = nsGmx.Controls.createSlider( _fillStyle.opacity, function(event, ui)
     {
         patternOpacity = ui.value;
         $(_this).change();
@@ -2242,7 +2169,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 
 	outlineTds.push(_td([outlineColor],[['css','width','40px']]));
 		
-	var divSlider = this.createSlider((templateStyle.outline && typeof templateStyle.outline.opacity != 'undefined') ? templateStyle.outline.opacity : 100,
+	var divSlider = nsGmx.Controls.createSlider((templateStyle.outline && typeof templateStyle.outline.opacity != 'undefined') ? templateStyle.outline.opacity : 100,
 			function(event, ui)
 			{
 				templateStyle.outline.opacity = ui.value;
@@ -2252,7 +2179,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 
 	outlineTds.push(_td([divSlider],[['css','width','100px'],['css','padding','4px 5px 3px 5px']]));
 	
-	var outlineThick = this.createInput((templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined') ? templateStyle.outline.thickness : 2,
+	var outlineThick = nsGmx.Controls.createInput((templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined') ? templateStyle.outline.thickness : 2,
 			function()
 			{
 				templateStyle.outline.thickness = Number(this.value);
@@ -2444,7 +2371,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 					
 					_this.setMapStyle(parentObject, templateStyle);
 				}),
-			fillSlider = this.createSlider(checkedFillOpacity,
+			fillSlider = nsGmx.Controls.createSlider(checkedFillOpacity,
 				function(event, ui)
 				{
 					templateStyle.fill.opacity = ui.value;
@@ -2500,21 +2427,8 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	_title(inputUrl, _gtxt("Url изображения"));
 	
 	if (geometryType == "point")
-	{
-		// var markerSize = this.createInput(templateStyle.marker && templateStyle.marker.size || 3,
-			// function()
-			// {
-				// templateStyle.marker.size = Number(this.value);
-				
-				// _this.setMapStyle(parentObject, templateStyle);
-				
-				// return true;
-			// })
-		
-		// _title(markerSize, _gtxt("Размер точек"));
-		//fillTds.push(_td([markerSize],[['css','width','30px']]));
-        
-        var markerSizeInput = this.createInput(templateStyle.marker && templateStyle.marker.size || 3,
+	{        
+        var markerSizeInput = nsGmx.Controls.createInput(templateStyle.marker && templateStyle.marker.size || 3,
 			function()
 			{
 				templateStyle.marker.size = Number(this.value);
@@ -2684,7 +2598,7 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 				dummyStyle.outline = {color: parentStyle.marker.color, opacity: 100};
 				dummyStyle.fill = {color: parentStyle.marker.color, opacity: 100};
 				
-				icon = this.createGeometryIcon(dummyStyle, type);
+				icon = nsGmx.Controls.createGeometryIcon(dummyStyle, type);
 			
 				if ($.browser.msie)
 				{
@@ -2696,7 +2610,7 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 		}
 		else
 		{
-			icon = this.createGeometryIcon(parentStyle, type);
+			icon = nsGmx.Controls.createGeometryIcon(parentStyle, type);
 			
 			if ($.browser.msie)
 			{
@@ -2711,91 +2625,6 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
         _title(icon, _gtxt("Редактировать стили"));
 	
 	icon.geometryType = type;
-	
-	return icon;
-}
-
-mapHelper.prototype.createGeometryIcon = function(parentStyle, type)
-{
-	var icon = _div(null, [['css','display',($.browser.msie) ? 'inline' : 'inline-block'],['dir','className','colorIcon'],['attr','styleType','color'],['css','backgroundColor','#FFFFFF']]);
-	
-	if (type.indexOf('linestring') < 0)
-	{
-		var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
-			border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
-			fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
-			borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
-		
-		if ($.browser.msie)
-		{
-			fill.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + fillOpacity + ")";
-			border.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + borderOpacity + ")";
-			
-			border.style.width = '9px';
-			border.style.height = '13px';
-		}
-		else
-		{
-			fill.style.opacity = fillOpacity / 100;
-			border.style.opacity = borderOpacity / 100;
-		}
-		
-		if (type.indexOf('point') > -1)
-		{
-			if ($.browser.msie)
-			{
-				border.style.height = '7px';
-				fill.style.height = '5px';
-				border.style.width = '7px';
-				fill.style.width = '5px';
-			}
-			else
-			{
-				border.style.height = '5px';
-				fill.style.height = '5px';
-				border.style.width = '5px';
-				fill.style.width = '5px';
-			}
-			
-			border.style.top = '3px';
-			fill.style.top = '4px';
-			border.style.left = '1px';
-			fill.style.left = '2px';
-		}
-		
-		_(icon, [border, fill]);
-	}
-	else
-	{
-		var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
-			borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
-
-		if ($.browser.msie)
-		{
-			border.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + borderOpacity + ")";
-			
-			border.style.width = '5px';
-			border.style.height = '13px';
-		}
-		else
-		{
-			border.style.opacity = borderOpacity / 100;
-			
-			border.style.width = '4px';
-			border.style.height = '13px';
-		}
-		
-		border.style.borderTop = 'none';
-		border.style.borderBottom = 'none';
-		border.style.borderLeft = 'none';
-		
-		_(icon, [border]);
-	}
-	
-	icon.oncontextmenu = function(e)
-	{
-		return false;
-	}
 	
 	return icon;
 }
