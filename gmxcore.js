@@ -5,6 +5,7 @@ var gmxCore = function()
     var _globalNamespace = this;
 	var _modulesDefaultHost = "";
 	var _modulePathes = {/*#buildinclude<modules_path.txt>*/};
+	var _moduleFiles = {/*#buildinclude<module_files.txt>*/};
     
     var invokeCallbacks = function()
     {
@@ -72,7 +73,17 @@ var gmxCore = function()
             {
                 var headElem = document.getElementsByTagName("head")[0];
                 var newScript = document.createElement('script');
-				var path = (typeof moduleSource != 'undefined') ? moduleSource : _modulesDefaultHost + moduleName + '.js';
+                
+                var path;
+                if (typeof moduleSource != 'undefined')
+                {
+                    path = moduleSource;
+                }
+                else
+                {
+                    path = (moduleName in _moduleFiles) ? _moduleFiles[moduleName] : _modulesDefaultHost + moduleName + '.js';
+                }
+				// var path = (typeof moduleSource != 'undefined') ? moduleSource : _modulesDefaultHost + moduleName + '.js';
 				
                 newScript.type = 'text/javascript';
                 newScript.src = path + (window.gmxDropBrowserCache ? "?" + Math.random() : "");
