@@ -8,8 +8,6 @@
 * @namespace
 */
 
-if(typeof deconcept=="undefined"){var deconcept=new Object();}if(typeof deconcept.util=="undefined"){deconcept.util=new Object();}if(typeof deconcept.SWFObjectUtil=="undefined"){deconcept.SWFObjectUtil=new Object();}deconcept.SWFObject=function(_1,id,w,h,_5,c,_7,_8,_9,_a){if(!document.getElementById){return;}this.DETECT_KEY=_a?_a:"detectflash";this.skipDetect=deconcept.util.getRequestParameter(this.DETECT_KEY);this.params=new Object();this.variables=new Object();this.attributes=new Array();if(_1){this.setAttribute("swf",_1);}if(id){this.setAttribute("id",id);}if(w){this.setAttribute("width",w);}if(h){this.setAttribute("height",h);}if(_5){this.setAttribute("version",new deconcept.PlayerVersion(_5.toString().split(".")));}this.installedVer=deconcept.SWFObjectUtil.getPlayerVersion();if(!window.opera&&document.all&&this.installedVer.major>7){deconcept.SWFObject.doPrepUnload=true;}if(c){this.addParam("bgcolor",c);}var q=_7?_7:"high";this.addParam("quality",q);this.setAttribute("useExpressInstall",false);this.setAttribute("doExpressInstall",false);var _c=(_8)?_8:window.location;this.setAttribute("xiRedirectUrl",_c);this.setAttribute("redirectUrl","");if(_9){this.setAttribute("redirectUrl",_9);}};deconcept.SWFObject.prototype={useExpressInstall:function(_d){this.xiSWFPath=!_d?"expressinstall.swf":_d;this.setAttribute("useExpressInstall",true);},setAttribute:function(_e,_f){this.attributes[_e]=_f;},getAttribute:function(_10){return this.attributes[_10];},addParam:function(_11,_12){this.params[_11]=_12;},getParams:function(){return this.params;},addVariable:function(_13,_14){this.variables[_13]=_14;},getVariable:function(_15){return this.variables[_15];},getVariables:function(){return this.variables;},getVariablePairs:function(){var _16=new Array();var key;var _18=this.getVariables();for(key in _18){_16[_16.length]=key+"="+_18[key];}return _16;},getSWFHTML:function(){var _19="";if(navigator.plugins&&navigator.mimeTypes&&navigator.mimeTypes.length){if(this.getAttribute("doExpressInstall")){this.addVariable("MMplayerType","PlugIn");this.setAttribute("swf",this.xiSWFPath);}_19="<embed type=\"application/x-shockwave-flash\" src=\""+this.getAttribute("swf")+"\" width=\""+this.getAttribute("width")+"\" height=\""+this.getAttribute("height")+"\" style=\""+this.getAttribute("style")+"\"";_19+=" id=\""+this.getAttribute("id")+"\" name=\""+this.getAttribute("id")+"\" ";var _1a=this.getParams();for(var key in _1a){_19+=[key]+"=\""+_1a[key]+"\" ";}var _1c=this.getVariablePairs().join("&");if(_1c.length>0){_19+="flashvars=\""+_1c+"\"";}_19+="/>";}else{if(this.getAttribute("doExpressInstall")){this.addVariable("MMplayerType","ActiveX");this.setAttribute("swf",this.xiSWFPath);}_19="<object id=\""+this.getAttribute("id")+"\" classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" width=\""+this.getAttribute("width")+"\" height=\""+this.getAttribute("height")+"\" style=\""+this.getAttribute("style")+"\">";_19+="<param name=\"movie\" value=\""+this.getAttribute("swf")+"\" />";var _1d=this.getParams();for(var key in _1d){_19+="<param name=\""+key+"\" value=\""+_1d[key]+"\" />";}var _1f=this.getVariablePairs().join("&");if(_1f.length>0){_19+="<param name=\"flashvars\" value=\""+_1f+"\" />";}_19+="</object>";}return _19;},write:function(_20){if(this.getAttribute("useExpressInstall")){var _21=new deconcept.PlayerVersion([6,0,65]);if(this.installedVer.versionIsValid(_21)&&!this.installedVer.versionIsValid(this.getAttribute("version"))){this.setAttribute("doExpressInstall",true);this.addVariable("MMredirectURL",escape(this.getAttribute("xiRedirectUrl")));document.title=document.title.slice(0,47)+" - Flash Player Installation";this.addVariable("MMdoctitle",document.title);}}if(this.skipDetect||this.getAttribute("doExpressInstall")||this.installedVer.versionIsValid(this.getAttribute("version"))){var n=(typeof _20=="string")?document.getElementById(_20):_20;n.innerHTML=this.getSWFHTML();return true;}else{if(this.getAttribute("redirectUrl")!=""){document.location.replace(this.getAttribute("redirectUrl"));}}return false;}};deconcept.SWFObjectUtil.getPlayerVersion=function(){var _23=new deconcept.PlayerVersion([0,0,0]);if(navigator.plugins&&navigator.mimeTypes.length){var x=navigator.plugins["Shockwave Flash"];if(x&&x.description){_23=new deconcept.PlayerVersion(x.description.replace(/([a-zA-Z]|\s)+/,"").replace(/(\s+r|\s+b[0-9]+)/,".").split("."));}}else{if(navigator.userAgent&&navigator.userAgent.indexOf("Windows CE")>=0){var axo=1;var _26=3;while(axo){try{_26++;axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash."+_26);_23=new deconcept.PlayerVersion([_26,0,0]);}catch(e){axo=null;}}}else{try{var axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash.7");}catch(e){try{var axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash.6");_23=new deconcept.PlayerVersion([6,0,21]);axo.AllowScriptAccess="always";}catch(e){if(_23.major==6){return _23;}}try{axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash");}catch(e){}}if(axo!=null){_23=new deconcept.PlayerVersion(axo.GetVariable("$version").split(" ")[1].split(","));}}}return _23;};deconcept.PlayerVersion=function(_29){this.major=_29[0]!=null?parseInt(_29[0]):0;this.minor=_29[1]!=null?parseInt(_29[1]):0;this.rev=_29[2]!=null?parseInt(_29[2]):0;};deconcept.PlayerVersion.prototype.versionIsValid=function(fv){if(this.major<fv.major){return false;}if(this.major>fv.major){return true;}if(this.minor<fv.minor){return false;}if(this.minor>fv.minor){return true;}if(this.rev<fv.rev){return false;}return true;};deconcept.util={getRequestParameter:function(_2b){var q=document.location.search||document.location.hash;if(_2b==null){return q;}if(q){var _2d=q.substring(1).split("&");for(var i=0;i<_2d.length;i++){if(_2d[i].substring(0,_2d[i].indexOf("="))==_2b){return _2d[i].substring((_2d[i].indexOf("=")+1));}}}return "";}};deconcept.SWFObjectUtil.cleanupSWFs=function(){var _2f=document.getElementsByTagName("OBJECT");for(var i=_2f.length-1;i>=0;i--){_2f[i].style.display="none";for(var x in _2f[i]){if(typeof _2f[i][x]=="function"){_2f[i][x]=function(){};}}}};if(deconcept.SWFObject.doPrepUnload){if(!deconcept.unloadSet){deconcept.SWFObjectUtil.prepUnload=function(){__flash_unloadHandler=function(){};__flash_savedUnloadHandler=function(){};window.attachEvent("onunload",deconcept.SWFObjectUtil.cleanupSWFs);};window.attachEvent("onbeforeunload",deconcept.SWFObjectUtil.prepUnload);deconcept.unloadSet=true;}}if(!document.getElementById&&document.all){document.getElementById=function(id){return document.all[id];};}var getQueryParamValue=deconcept.util.getRequestParameter;var FlashObject=deconcept.SWFObject;var SWFObject=deconcept.SWFObject;
-
 (function()
 {
 
@@ -30,6 +28,11 @@ var memoize = function(func)
 
 window.PI = 3.14159265358979; //устарело - обратная совместимость
 window.gmxAPI = {
+	KOSMOSNIMKI_LOCALIZED: function (rus, eng)
+	{
+		return (window.KOSMOSNIMKI_LANGUAGE == "English") ? eng : rus;
+	}
+	,
 	newElement: function(tagName, props, style, setBorder)
 	{
 		var elem = document.createElement(tagName);
@@ -64,6 +67,27 @@ window.gmxAPI = {
 	newDiv: function(className, innerHTML)
 	{
 		return gmxAPI.newElement("div", { className: className, innerHTML: innerHTML }, null, true);
+	},
+	makeImageButton: function(url, urlHover)
+	{
+		var btn = document.createElement("img");
+		btn.setAttribute('src',url)
+		btn.style.cursor = 'pointer';
+		btn.style.border = 'none';
+		
+		if (urlHover)
+		{
+			btn.onmouseover = function()
+			{
+				this.setAttribute('src', urlHover);
+			}
+			btn.onmouseout = function()
+			{
+				this.setAttribute('src', url);
+			}
+		}
+		
+		return btn;
 	},
 	applyTemplate: function(template, properties)
 	{
@@ -120,6 +144,32 @@ window.gmxAPI = {
         
         return data;
     }
+	,
+	parseXML: function(str)
+	{
+		var xmlDoc;
+		try
+		{
+			if (window.DOMParser)
+			{
+				parser = new DOMParser();
+				xmlDoc = parser.parseFromString(str,"text/xml");
+			}
+			else // Internet Explorer
+			{
+				xmlDoc = new ActiveXObject("MSXML2.DOMDocument.3.0");
+				xmlDoc.validateOnParse = false;
+				xmlDoc.async = false;
+				xmlDoc.loadXML(str);
+			}
+		}
+		catch(e)
+		{
+			gmxAPI.addDebugWarnings({'func': 'parseXML', 'str': str, 'event': e, 'alert': e});
+		}
+		
+		return xmlDoc;
+	}
 	,
 	setPositionStyle: function(div, attr)
 	{
@@ -242,24 +292,6 @@ window.gmxAPI = {
 			else
 				return res;
 		}
-	}
-	,
-	getScriptURL: function(scriptName)
-	{
-		var scripts1 = document.getElementsByTagName("script");
-		for (var i = 0; i < scripts1.length; i++)
-		{
-			var src = scripts1[i].getAttribute("src");
-			if (src && (src.indexOf(scriptName) != -1))
-				return src;
-		}
-		return false;
-	}
-	,
-	getScriptBase: function(scriptName)
-	{
-		var url = gmxAPI.getScriptURL(scriptName);
-		return url.substring(0, url.indexOf(scriptName));
 	}
 	,
 	forEachPoint: function(coords, callback)
@@ -699,19 +731,19 @@ window.gmxAPI = {
 	prettifyDistance: function(length)
 	{
 		if (length < 1000)
-			return Math.round(length) + KOSMOSNIMKI_LOCALIZED(" м", " m");
+			return Math.round(length) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" м", " m");
 		if (length < 100000)
-			return (Math.round(length/10)/100) + KOSMOSNIMKI_LOCALIZED(" км", " km");
-		return Math.round(length/1000) + KOSMOSNIMKI_LOCALIZED(" км", " km");
+			return (Math.round(length/10)/100) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
+		return Math.round(length/1000) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
 	}
 	,
 	prettifyArea: function(area)
 	{
 		if (area < 100000)
-			return Math.round(area) + KOSMOSNIMKI_LOCALIZED(" кв. м", " sq. m");
+			return Math.round(area) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. м", " sq. m");
 		if (area < 100000000)
-			return ("" + (Math.round(area/10000)/100)).replace(".", ",") + KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
-		return (Math.round(area/1000000)) + KOSMOSNIMKI_LOCALIZED(" кв. км", " sq. km");
+			return ("" + (Math.round(area/10000)/100)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
+		return (Math.round(area/1000000)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq. km");
 	}
 	,
 	fragmentArea: function(points)
@@ -1163,6 +1195,34 @@ window.gmxAPI = {
 		return uri;
 	}
 	,
+	memoize : memoize
+	,
+	getScriptURL: function(scriptName)
+	{
+		var scripts1 = document.getElementsByTagName("script");
+		for (var i = 0; i < scripts1.length; i++)
+		{
+			var src = scripts1[i].getAttribute("src");
+			if (src && (src.indexOf(scriptName) != -1))
+				return src;
+		}
+		return false;
+	}
+	,
+	getScriptBase: function(scriptName)
+	{
+		var url = gmxAPI.getScriptURL(scriptName);
+		return url.substring(0, url.indexOf(scriptName));
+	}
+	,
+	getBaseMapParam: function(paramName, defaultValue)
+	{
+		if (typeof window.baseMap !== 'object') window.baseMap = {};
+		if (!window.baseMap[paramName]) window.baseMap[paramName] = defaultValue;
+		return window.baseMap[paramName];
+		//return (window.baseMap && window.baseMap[paramName]) ? window.baseMap[paramName] : defaultValue;
+	}
+	,
 	getHostAndPath: function(url)
 	{
 		var u = gmxAPI.parseUri(url);
@@ -1173,8 +1233,6 @@ window.gmxAPI = {
 			s = s.substring(0, s.length - 1);
 		return s;
 	},
-	memoize : memoize
-	,
 	getAPIFolderRoot: memoize(function()
 	{
 		return gmxAPI.getScriptBase("api.js");
@@ -1221,94 +1279,29 @@ window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName основной карты по
 })();
 
 // Блок методов глобальной области видимости
-var isIE = gmxAPI.isIE;
 var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";		// ID базовой карты подложек
-
-var parseCoordinates = gmxAPI.parseCoordinates;
-var setBg = gmxAPI.setBg;
-var deselect = gmxAPI.deselect;
-
-var compatEvent = gmxAPI.compatEvent;
-var compatTarget = gmxAPI.compatTarget;
-var eventX = gmxAPI.eventX;
-var eventY = gmxAPI.eventY;
-var getOffsetLeft = gmxAPI.getOffsetLeft;
-var getOffsetTop = gmxAPI.getOffsetTop;
+var tmp = [
+	'isIE', 'parseCoordinates', 'setBg', 'deselect', 'compatEvent', 'compatTarget', 'eventX', 'eventY', 'getOffsetLeft', 'getOffsetTop',
+	'newStyledDiv', 'show', 'hide', 'setPositionStyle', 'position', 'bottomPosition', 'size',
+	'makeImageButton', 'setVisible', 'getTextContent', 'parseXML',
+	'getScriptURL', 'getScriptBase', 'getHostAndPath', 'getBaseMapParam', 'strip', 'parseUri', 'parseColor',
+	'forEachPoint',
+	'merc_geometry', 'from_merc_geometry', 'getBounds', 'isRectangle', 'getScale', 'geoLength', 'geoArea', 'geoCenter',
+	'parseGML', 'createGML', 'merc_x', 'from_merc_x', 'merc_y', 'from_merc_y',
+	'distVincenty', 'KOSMOSNIMKI_LOCALIZED',
+	'prettifyDistance', 'prettifyArea',
+	'pad2', 'formatCoordinates', 'formatCoordinates2',
+//	'', '', '', '', '', '', '', '', '', '',
+	// Не используемые в api.js
+	'newDiv', 'newSpan', 'positionSize', 'merc', 'from_merc', 'formatDegrees', 'memoize', 
+	'DegToRad', 'RadToDeg', 'ArcLengthOfMeridian', 'UTMCentralMeridian', 'FootpointLatitude', 'MapLatLonToXY', 'MapXYToLatLon',
+	'LatLonToUTMXY', 'UTMXYToLatLon', 'trunc', 'truncate9', 'lambertCoefX', 'lambertCoefY', 'fragmentArea', 'fragmentAreaMercator', 'formatDegreesSimple',
+	'convertCoords', 'transformGeometry', 'boundsIntersect', 'getTagValue', 
+	'forEachPointAmb', 'deg_rad', 'deg_decimal'
+];
+for (var i=0; i<tmp.length; i++) window[tmp[i]] = gmxAPI[tmp[i]];
 
 function newElement(tagName, props, style) { return gmxAPI.newElement(tagName, props, style, true); }
-var newStyledDiv = gmxAPI.newStyledDiv;
-var newSpan = gmxAPI.newSpan;
-var newDiv = gmxAPI.newDiv;
-var show = gmxAPI.show;
-var hide = gmxAPI.hide;
-var setPositionStyle = gmxAPI.setPositionStyle;
-var position = gmxAPI.position;
-var bottomPosition = gmxAPI.bottomPosition;
-var size = gmxAPI.size;
-var positionSize = gmxAPI.positionSize;
-var setVisible = gmxAPI.setVisible;
-var getTextContent = gmxAPI.getTextContent;
-
-var getScriptURL = gmxAPI.getScriptURL;
-var getScriptBase = gmxAPI.getScriptBase;
-var getHostAndPath = gmxAPI.getHostAndPath;
-
-var strip = gmxAPI.strip;
-var parseUri = gmxAPI.parseUri;
-var parseColor = gmxAPI.parseColor;
-var forEachPoint = gmxAPI.forEachPoint;
-var transformGeometry = gmxAPI.transformGeometry;
-var merc_geometry = gmxAPI.merc_geometry;
-var from_merc_geometry = gmxAPI.from_merc_geometry;
-var getBounds = gmxAPI.getBounds;
-var boundsIntersect = gmxAPI.boundsIntersect;
-var isRectangle = gmxAPI.isRectangle;
-var getScale = gmxAPI.getScale;
-
-var forEachPointAmb = gmxAPI.forEachPointAmb;
-var geoLength = gmxAPI.geoLength;
-var geoArea = gmxAPI.geoArea;
-var geoCenter = gmxAPI.geoCenter;
-var convertCoords = gmxAPI.convertCoords;
-
-var parseGML = gmxAPI.parseGML;
-var createGML = gmxAPI.createGML;
-var getTagValue = gmxAPI.getTagValue;
-
-var deg_rad = gmxAPI.deg_rad;
-var deg_decimal = gmxAPI.deg_decimal;
-var merc_x = gmxAPI.merc_x;
-var from_merc_x = gmxAPI.from_merc_x;
-var merc_y = gmxAPI.merc_y;
-var from_merc_y = gmxAPI.from_merc_y;
-var merc = gmxAPI.merc;
-var from_merc = gmxAPI.from_merc;
-var distVincenty = gmxAPI.distVincenty;
-
-var DegToRad = gmxAPI.DegToRad;
-var RadToDeg = gmxAPI.RadToDeg;
-var ArcLengthOfMeridian = gmxAPI.ArcLengthOfMeridian;
-var UTMCentralMeridian = gmxAPI.UTMCentralMeridian;
-var FootpointLatitude = gmxAPI.FootpointLatitude;
-var MapLatLonToXY = gmxAPI.MapLatLonToXY;
-var MapXYToLatLon = gmxAPI.MapXYToLatLon;
-var LatLonToUTMXY = gmxAPI.LatLonToUTMXY;
-var UTMXYToLatLon = gmxAPI.UTMXYToLatLon;
-var truncate9 = gmxAPI.truncate9;
-var prettifyDistance = gmxAPI.prettifyDistance;
-var prettifyArea = gmxAPI.prettifyArea;
-lambertCoefX = gmxAPI.lambertCoefX;
-lambertCoefY = gmxAPI.lambertCoefY;
-var fragmentArea = gmxAPI.fragmentArea;
-var fragmentAreaMercator = gmxAPI.fragmentAreaMercator;
-var formatDegreesSimple = gmxAPI.formatDegreesSimple;
-var pad2 = gmxAPI.pad2;
-var formatDegrees = gmxAPI.formatDegrees;
-var formatCoordinates = gmxAPI.formatCoordinates;
-var trunc = gmxAPI.trunc;
-var formatCoordinates2 = gmxAPI.formatCoordinates2;
-
-var memoize = gmxAPI.memoize;
 var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoot(); });
 var getAPIHost = gmxAPI.memoize(function() { return gmxAPI.getAPIHost(); });
 var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot(); });
@@ -1502,11 +1495,6 @@ function loadVariableFromScript(url, name, callback, onError, useTimeout)
 	// }, 500);
 }
 
-function KOSMOSNIMKI_LOCALIZED(rus, eng)
-{
-	return (window.KOSMOSNIMKI_LANGUAGE == "English") ? eng : rus;
-}
-
 var APIKeyResponseCache = {};
 var sessionKeyCache = {};
 var KOSMOSNIMKI_SESSION_KEY = false;
@@ -1580,7 +1568,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 	{
 		var haveNoAPIKey = function()
 		{
-			alertAboutAPIKey(KOSMOSNIMKI_LOCALIZED("Не указан API-ключ!", "API key not specified!"));
+			alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("Не указан API-ключ!", "API key not specified!"));
 			window.KOSMOSNIMKI_SESSION_KEY = "INVALID";
 			finish();
 		}
@@ -1592,7 +1580,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 				if (response.Result.Status)
 					window.KOSMOSNIMKI_SESSION_KEY = response.Result.Key;
 				else
-					alertAboutAPIKey(KOSMOSNIMKI_LOCALIZED("Указан неверный API-ключ!", "Incorrect API key specified!"));
+					alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("Указан неверный API-ключ!", "Incorrect API key specified!"));
 				finish();
 			}
 			if (APIKeyResponseCache[key])
@@ -1613,7 +1601,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 		var apiHost = gmxAPI.parseUri(getAPIFolderRoot()).hostOnly;
 		if (apiHost == "") 
 			apiHost = gmxAPI.parseUri(window.location.href).hostOnly;
-		var apiKeyResult = (/key=([a-zA-Z0-9]+)/).exec(getScriptURL("api.js"));
+		var apiKeyResult = (/key=([a-zA-Z0-9]+)/).exec(gmxAPI.getScriptURL("api.js"));
 
 		if ((apiHost == "localhost") || apiHost.match(/127\.\d+\.\d+\.\d+/))
 			useAPIKey("localhost");
@@ -1621,9 +1609,9 @@ function loadMapJSON(hostName, mapName, callback, onError)
 			useAPIKey(apiKeyResult[1]);
 		else if (window.apiKey)
 			useAPIKey(window.apiKey);
-		else if (!getScriptURL("config.js"))
+		else if (!gmxAPI.getScriptURL("config.js"))
 			loadVariableFromScript(
-				getScriptBase("api.js") + "config.js",
+				gmxAPI.getScriptBase("api.js") + "config.js",
 				"apiKey",
 				function(key)
 				{
@@ -1644,7 +1632,8 @@ function loadMapJSON(hostName, mapName, callback, onError)
 
 function createFlashMap(div, arg1, arg2, arg3)
 {
-	if (deconcept.SWFObjectUtil.getPlayerVersion().major < 10)
+	// версия FlashPlayer
+	if (gmxAPI._flashDeconcept.SWFObjectUtil.getPlayerVersion().major < 10)
 		return false;	
 
 	if (!arg2 && !arg3)
@@ -1709,6 +1698,7 @@ function createFlashMapInternal(div, layers, callback)
 		}
 	}
 
+	gmxAPI._div = div;	// DOM элемент - контейнер карты
 	if (div.style.position != "absolute")
 		div.style.position = "relative";
 
@@ -1722,10 +1712,6 @@ function createFlashMapInternal(div, layers, callback)
 	var apiBase = getAPIFolderRoot();
 
 	var focusLink = document.createElement("a");
-	var o = new SWFObject(apiBase + "api.swf?" + Math.random(), flashId, "100%", "100%", "10", "#ffffff");
-	o.addParam('allowScriptAccess', 'always');
-	o.addParam('wmode', 'opaque');
-	o.addVariable("clearCallback", uniqueGlobalName(function(name) { delete window[name]; }));
 
 	// Begin: Блок общих методов не доступных из вне
 	// Обработка пользовательских Listeners на obj
@@ -1793,6 +1779,7 @@ function createFlashMapInternal(div, layers, callback)
 		try {
 
 			var flashDiv = document.getElementById(flashId);
+			gmxAPI.flashDiv = flashDiv;
 			flashDiv.style.MozUserSelect = "none";
             
 			var Clusters =	function(parent)		// атрибуты кластеризации потомков
@@ -1821,7 +1808,7 @@ function createFlashMapInternal(div, layers, callback)
 			};
 			Clusters.prototype = {
 				'_chkToFlash':	function() {
-					if(this._attr.visible && this._parent) FlashCMD('setClusters', { 'obj': this._parent, 'attr': this._attr });
+					if(this._attr.visible && this._parent) gmxAPI._cmdProxy('setClusters', { 'obj': this._parent, 'attr': this._attr });
 				},
 				'setProperties':function(prop) { var out = {}; for(key in prop) out[key] = prop[key]; this._attr.newProperties = out; this._chkToFlash(); },
 				'getProperties':function() { var out = {}; for(key in this._attr.newProperties) out[key] = this._attr.newProperties[key]; return out; },
@@ -1832,381 +1819,63 @@ function createFlashMapInternal(div, layers, callback)
 				'setIterationCount':	function(iterationCount) { this._attr.iterationCount = iterationCount; this._chkToFlash(); },
 				'getIterationCount':	function() { return this._attr.iterationCount; },
 				'getVisible':	function() { return this._attr.visible; },
-				'setVisible':	function(flag) { this._attr.visible = (flag ? true : false); if(this._attr.visible) this._chkToFlash(); else FlashCMD('delClusters', { 'obj': this._parent }); },
+				'setVisible':	function(flag) { this._attr.visible = (flag ? true : false); if(this._attr.visible) this._chkToFlash(); else gmxAPI._cmdProxy('delClusters', { 'obj': this._parent }); },
 				'setClusterView':	function(hash) { this._attr.clusterView = hash; this._chkToFlash(); },
 				'getClusterView':	function() { if(!this._attr.clusterView) return null; var out = {}; for(key in this._attr.clusterView) out[key] = this._attr.clusterView[key]; return out; }
 			}
 
 
-
-			// Передача команды в SWF
-			function FlashCMD(cmd, hash)
-			{
-
-//var startTime = (new Date()).getTime();
-				var flashDomTest = typeof(flashDiv); 
-				var ret = {};
-				var obj = hash['obj'] || null;	// Целевой обьект команды
-				var attr = hash['attr'] || '';
-				switch (cmd) {				// Тип команды
-					case 'setVisible':		// Изменить видимость обьекта
-						if(obj) {
-							flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr } );
-							if (attr && obj.backgroundColor)
-								map.setBackgroundColor(obj.backgroundColor);
-							if (obj.copyright)
-								map.updateCopyright();
-							var func = map.onSetVisible[obj.objectId];
-							if (func)
-								func(attr);
-						}
-						break;
-					case 'sendPNG':			// Сохранение изображения карты на сервер
-						var miniMapFlag = miniMap.getVisibility();
-						var flag = (attr.miniMapSetVisible ? true : false);
-						miniMap.setVisible(flag);
-						if(attr.func) attr.func = uniqueGlobalName(attr.func);
-						ret['base64'] = flashDiv.cmdFromJS(cmd, attr);
-						miniMap.setVisible(miniMapFlag);
-						break;
-					case 'setZoomBounds':	// Установить ограничения по Zoom
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZ':attr['minZ'], 'maxZ':attr['maxZ'] });
-						break;
-					case 'setClusters':		// Установить кластеризацию потомков
-						if(attr && 'newProperties' in attr) {
-							var keyArray = [];
-							var valArray = [];
-							for(key in attr['newProperties'])
-							{
-								keyArray.push(key);
-								valArray.push(attr['newProperties'][key]);
-							}
-							attr['propFields'] = [keyArray, valArray];
-							attr['hideFixedBalloons'] = uniqueGlobalName(function() { map.balloonClassObject.hideHoverBalloons(true); });
-						}
-						var flag = ('clusters' in obj);	// видимость кластеров
-						if(!flag)
-							obj['clusters'] = new Clusters(obj);
-						else
-							ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
-						attr['visible'] = flag;
-						obj['clusters']['attr'] = attr;
-
-						if(!obj.parent._hoverBalloonAttr) obj.parent.enableHoverBalloon();	// если балунов не установлено
-						break;
-					case 'delClusters':		// Удалить кластеризацию потомков
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
-						if('clusters' in obj) obj['clusters']['attr']['visible'] = false;
-						break;
-					case 'setGridVisible':		// Изменить видимость сетки
-						ret = flashDiv.cmdFromJS(cmd, { 'flag':attr } );
-						break;
-					case 'getGridVisibility':	// получить видимость сетки
-						ret = flashDiv.cmdFromJS(cmd, { } );
-						break;
-					case 'getZoomBounds':	// Получить ограничения по Zoom
-					case 'getDepth':		// Получить индекс обьекта
-					case 'getVisibility':	// получить видимость
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
-						break;
-					case 'savePNG':			// Сохранить PNG файл экрана
-						ret = flashDiv.cmdFromJS(cmd, { 'fileName':attr });
-						break;
-					case 'trace':			// Сообщение в SWF
-						ret = flashDiv.cmdFromJS(cmd, { 'data':attr });
-						break;
-					case 'setQuality':		// Установка Quality
-						ret = flashDiv.cmdFromJS(cmd, { 'data':attr });
-						break;
-					case 'disableCaching':	// ????
-						ret = flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'print':			// Печать
-						ret = flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'repaint':			// ????
-						ret = flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'addContextMenuItem':	// Добавить пункт в контекстное меню SWF
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'moveTo':			//позиционирует карту по координатам центра и выбирает масштаб
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'slideTo':			//плавно позиционирует карту по координатам центра и выбирает масштаб
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'zoomBy':			//выбирает масштаб
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'freeze':			// заморозить
-						ret = flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'unfreeze':		// разморозить
-						ret = flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'setCursor':		//установка курсора
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'clearCursor':		//убрать курсор
-						ret = flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'setCursorVisible'://видимость курсора
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'stopDragging':	//убрать флаг Drag
-						ret = flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'isDragging':		//получить флаг Drag
-						ret = flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'resumeDragging':	//возобновить Drag
-						ret = flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'getPosition':		//получить текущие атрибуты SWF
-						ret = flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'getX':			//получить позицию Х центра SWF
-						ret = gmxAPI.from_merc_x(flashDiv.cmdFromJS(cmd, { }));
-						break;
-					case 'getY':			//получить позицию Y центра SWF
-						ret = gmxAPI.from_merc_y(flashDiv.cmdFromJS(cmd, { }));
-						break;
-					case 'getZ':			//получить текущий Z
-						ret = 17 - flashDiv.cmdFromJS(cmd, { });
-						break;
-					case 'getMouseX':		//получить позицию Х MouseX
-						ret = gmxAPI.from_merc_x(flashDiv.cmdFromJS(cmd, { }));
-						break;
-					case 'getMouseY':		//получить позицию Y MouseY
-						ret = gmxAPI.from_merc_y(flashDiv.cmdFromJS(cmd, { }));
-						break;
-					case 'isKeyDown':		//проверить нажатие клавиши в SWF
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'setExtent':		//установить Extent в SWF
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'setMinMaxZoom':	//установить Zoom ограничения
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'addMapWindow':	//Создание окна карты
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'setStyle':		// установить Style обьекта
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-						break;
-					case 'getStyle':		//получить Style обьекта
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'removeDefaults':attr });
-						break;
-					case 'positionWindow':	// 
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-						break;
-					case 'setBackgroundColor':	// 
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'color':attr } );
-						break;
-					case 'getChildren':		// получить список потомков
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'setHandler':		// установка обработчика события
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'eventName':attr['eventName'], 'callbackName':attr['callbackName'] } );
-						break;
-					case 'removeHandler':	// удаление обработчика события
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'eventName':attr['eventName'] } );
-						break;
-					case 'addObject':		// добавить обьект
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geometry':attr['geometry'], 'properties':attr['properties'] } );
-						break;
-					case 'addObjects':		// добавить обьекты
-						ret = flashDiv.cmdFromJS(cmd, attr);
-						break;
-					case 'addObjectsFromSWF':	// добавить обьекты из SWF файла
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'attr':attr });
-						break;
-					case 'setFilter':		// добавить фильтр к обьекту
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'sql':attr['sql'] } );
-						break;
-					case 'remove':			// удалить обьект
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'bringToTop':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'bringToDepth':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'zIndex':attr['zIndex'] } );
-						break;
-					case 'bringToBottom':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'setActive':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr['flag'] } );
-						break;
-					case 'setEditable':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'startDrawing':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'type':attr['type'] } );
-						break;
-					case 'stopDrawing':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'isDrawing':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'getIntermediateLength':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'getCurrentEdgeLength':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'setLabel':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'label':attr['label'] } );
-						break;
-					case 'setBackgroundTiles':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZoomView':attr['minZoomView'], 'maxZoomView':attr['maxZoomView'], 'minZoom':attr['minZoom'], 'maxZoom':attr['maxZoom'], 'func':attr['func'], 'projectionCode':attr['projectionCode'] } );
-						break;
-					case 'setDisplacement':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'dx':attr['dx'], 'dy':attr['dy'] } );
-						break;
-					case 'setTileCaching':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr['flag'] } );
-						break;
-					case 'setImageExtent':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-						break;
-					case 'clearBackgroundImage':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'setGeometry':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-						break;
-					case 'getGeometry':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'getLength':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'getArea':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'getGeometryType':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'getCenter':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'addChildRoot':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'setVectorTiles':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'tileFunction':attr['tileFunction'], 'identityField':attr['cacheFieldName'], 'tiles':attr['dataTiles'], 'filesHash':attr['filesHash'] } );
-						break;
-					case 'setTiles':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'tiles':attr['tiles'], 'flag':attr['flag'] } );
-						break;
-					case 'startLoadTiles':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-						break;
-
-					case 'getStat':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'observeVectorLayer':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'layerId':attr['layerId'], 'func':attr['func'] } );
-						break;
-					case 'setImage':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'url':attr['url'],
-						'x1':attr['x1'], 'y1':attr['y1'], 'x2':attr['x2'], 'y2':attr['y2'], 'x3':attr['x3'], 'y3':attr['y3'], 'x4':attr['x4'], 'y4':attr['y4'],
-						'tx1':attr['tx1'], 'ty1':attr['ty1'], 'tx2':attr['tx2'], 'ty2':attr['ty2'], 'tx3':attr['tx3'], 'ty3':attr['ty3'], 'tx4':attr['tx4'], 'ty4':attr['ty4']
-						} );
-						break;
-					case 'flip':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-						break;
-					case 'getFeatureById':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'fid':attr['fid'], 'func':attr['func'] } );
-						break;
-					case 'getFeatures':
-						flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geom':attr['geom'], 'func':attr['func'] } );
-						break;
-					case 'getTileItem':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'vId':attr } );
-						break;
-					case 'setTileItem':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr['data'], 'flag':attr['flag'] } );
-						break;
-					case 'getItemsFromExtent':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-						break;
-					case 'setFlashLSO':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-						break;
-					case 'setAPIProperties':
-						ret = flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-						break;
-				}
-/*
-if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };
-var delta = (new Date()).getTime() - startTime;
-window._debugTimes.jsToFlash.timeSum += delta;
-window._debugTimes.jsToFlash.callCount += 1;
-if(!window._debugTimes.jsToFlash.callFunc[cmd]) window._debugTimes.jsToFlash.callFunc[cmd] = { 'timeSum':0, 'callCount':0 };
-window._debugTimes.jsToFlash.callFunc[cmd]['timeSum'] += delta;
-window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
-*/
-				return ret;
-			}
-			FlashMapObject.prototype.setTileCaching = function(flag) { FlashCMD('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
-			FlashMapObject.prototype.setDisplacement = function(dx, dy) { FlashCMD('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
-			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { FlashCMD('setBackgroundTiles', { 'obj': this, 'attr':{'func':uniqueGlobalName(imageUrlFunction), 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
-			FlashMapObject.prototype.bringToTop = function() { return FlashCMD('bringToTop', { 'obj': this }); }
-			FlashMapObject.prototype.bringToBottom = function() { FlashCMD('bringToBottom', { 'obj': this }); }
-			FlashMapObject.prototype.bringToDepth = function(n) { return FlashCMD('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
+			FlashMapObject.prototype.setTileCaching = function(flag) { gmxAPI._cmdProxy('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
+			FlashMapObject.prototype.setDisplacement = function(dx, dy) { gmxAPI._cmdProxy('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
+			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':uniqueGlobalName(imageUrlFunction), 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
+			FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
+			FlashMapObject.prototype.bringToBottom = function() { gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
+			FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
 			FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
-			FlashMapObject.prototype.setActive = function(flag) { FlashCMD('setActive', { 'obj': this, 'attr':{'flag':flag} }); }
-			FlashMapObject.prototype.setEditable = function() { FlashCMD('setEditable', { 'obj': this }); }
-			FlashMapObject.prototype.startDrawing = function(type) { FlashCMD('startDrawing', { 'obj': this, 'attr':{'type':type} }); }
-			FlashMapObject.prototype.stopDrawing = function(type) { FlashCMD('stopDrawing', { 'obj': this }); }
-			FlashMapObject.prototype.isDrawing = function() { return FlashCMD('isDrawing', { 'obj': this }); }
-			FlashMapObject.prototype.getIntermediateLength = function() { return FlashCMD('getIntermediateLength', { 'obj': this }); }
-			FlashMapObject.prototype.getCurrentEdgeLength = function() { return FlashCMD('getCurrentEdgeLength', { 'obj': this }); }
-			FlashMapObject.prototype.setLabel = function(label) { FlashCMD('setLabel', { 'obj': this, 'attr':{'label':label} }); }
+			FlashMapObject.prototype.setActive = function(flag) { gmxAPI._cmdProxy('setActive', { 'obj': this, 'attr':{'flag':flag} }); }
+			FlashMapObject.prototype.setEditable = function() { gmxAPI._cmdProxy('setEditable', { 'obj': this }); }
+			FlashMapObject.prototype.startDrawing = function(type) { gmxAPI._cmdProxy('startDrawing', { 'obj': this, 'attr':{'type':type} }); }
+			FlashMapObject.prototype.stopDrawing = function(type) { gmxAPI._cmdProxy('stopDrawing', { 'obj': this }); }
+			FlashMapObject.prototype.isDrawing = function() { return gmxAPI._cmdProxy('isDrawing', { 'obj': this }); }
+			FlashMapObject.prototype.getIntermediateLength = function() { return gmxAPI._cmdProxy('getIntermediateLength', { 'obj': this }); }
+			FlashMapObject.prototype.getCurrentEdgeLength = function() { return gmxAPI._cmdProxy('getCurrentEdgeLength', { 'obj': this }); }
+			FlashMapObject.prototype.setLabel = function(label) { gmxAPI._cmdProxy('setLabel', { 'obj': this, 'attr':{'label':label} }); }
 
-			FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { FlashCMD('positionWindow', { 'obj': this, 'attr':{'x1':x1, 'y1':y1, 'x2':x2, 'y2':y2} }); }
-			FlashMapObject.prototype.setStyle = function(style, activeStyle) { FlashCMD('setStyle', { 'obj': this, 'attr':{'regularStyle':style, 'hoveredStyle':activeStyle} }); }
-			FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return FlashCMD('getStyle', { 'obj': this, 'attr':flag }); }
+			FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { gmxAPI._cmdProxy('positionWindow', { 'obj': this, 'attr':{'x1':x1, 'y1':y1, 'x2':x2, 'y2':y2} }); }
+			FlashMapObject.prototype.setStyle = function(style, activeStyle) { gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':{'regularStyle':style, 'hoveredStyle':activeStyle} }); }
+			FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return gmxAPI._cmdProxy('getStyle', { 'obj': this, 'attr':flag }); }
 
-			FlashMapObject.prototype.getVisibility = function() { return FlashCMD('getVisibility', { 'obj': this }); }
+			FlashMapObject.prototype.getVisibility = function() { return gmxAPI._cmdProxy('getVisibility', { 'obj': this }); }
 			FlashMapObject.prototype.setVisible = function(flag) {
-				FlashCMD('setVisible', { 'obj': this, 'attr': flag });
+				gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag });
 				var val = (flag ? true : false);
 				var prev = this.isVisible;
 				this.isVisible = val;
 				if(prev != val) chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
 			}
-			FlashMapObject.prototype.getDepth = function(attr) { return FlashCMD('getDepth', { 'obj': this }); }
-			FlashMapObject.prototype.delClusters = function(attr) { return FlashCMD('delClusters', { 'obj': this }); }
-			FlashMapObject.prototype.setClusters = function(attr) { return FlashCMD('setClusters', { 'obj': this, 'attr':attr }); }
-			FlashMapObject.prototype.getZoomBounds = function() { return FlashCMD('getZoomBounds', { 'obj': this }); }
-			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return FlashCMD('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} }); }
-			FlashMapObject.prototype.sendPNG = function(attr) { var ret = FlashCMD('sendPNG', { 'attr': attr }); return ret; }
-			FlashMapObject.prototype.savePNG = function(fileName) { FlashCMD('savePNG', { 'attr': fileName }); }
-			FlashMapObject.prototype.trace = function(val) { FlashCMD('trace', { 'attr': val }); }
-			FlashMapObject.prototype.setQuality = function(val) { FlashCMD('setQuality', { 'attr': val }); }
-			FlashMapObject.prototype.disableCaching = function() { FlashCMD('disableCaching', {}); }
-			FlashMapObject.prototype.print = function() { FlashCMD('print', {}); }
-			FlashMapObject.prototype.repaint = function() { FlashCMD('repaint', {}); }
-			FlashMapObject.prototype.moveTo = function(x, y, z) { FlashCMD('moveTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
-			FlashMapObject.prototype.slideTo = function(x, y, z) { FlashCMD('slideTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
+			FlashMapObject.prototype.getDepth = function(attr) { return gmxAPI._cmdProxy('getDepth', { 'obj': this }); }
+			FlashMapObject.prototype.delClusters = function(attr) { return gmxAPI._cmdProxy('delClusters', { 'obj': this }); }
+			FlashMapObject.prototype.setClusters = function(attr) { return gmxAPI._cmdProxy('setClusters', { 'obj': this, 'attr':attr }); }
+			FlashMapObject.prototype.getZoomBounds = function() { return gmxAPI._cmdProxy('getZoomBounds', { 'obj': this }); }
+			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return gmxAPI._cmdProxy('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} }); }
+			FlashMapObject.prototype.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
+			FlashMapObject.prototype.savePNG = function(fileName) { gmxAPI._cmdProxy('savePNG', { 'attr': fileName }); }
+			FlashMapObject.prototype.trace = function(val) { gmxAPI._cmdProxy('trace', { 'attr': val }); }
+			FlashMapObject.prototype.setQuality = function(val) { gmxAPI._cmdProxy('setQuality', { 'attr': val }); }
+			FlashMapObject.prototype.disableCaching = function() { gmxAPI._cmdProxy('disableCaching', {}); }
+			FlashMapObject.prototype.print = function() { gmxAPI._cmdProxy('print', {}); }
+			FlashMapObject.prototype.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
+			FlashMapObject.prototype.moveTo = function(x, y, z) { gmxAPI._cmdProxy('moveTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
+			FlashMapObject.prototype.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
 			
 			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
 				map.balloonClassObject.hideHoverBalloons(true);
-				FlashCMD('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
+				gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
 			}
-			FlashMapObject.prototype.freeze = function() { FlashCMD('freeze', {}); }
-			FlashMapObject.prototype.unfreeze = function() { FlashCMD('unfreeze', {}); }
-			FlashMapObject.prototype.setCursor = function(url, dx, dy) { FlashCMD('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
-			FlashMapObject.prototype.clearCursor = function() { FlashCMD('clearCursor', {}); }
+			FlashMapObject.prototype.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }
+			FlashMapObject.prototype.unfreeze = function() { gmxAPI._cmdProxy('unfreeze', {}); }
+			FlashMapObject.prototype.setCursor = function(url, dx, dy) { gmxAPI._cmdProxy('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
+			FlashMapObject.prototype.clearCursor = function() { gmxAPI._cmdProxy('clearCursor', {}); }
 
 			FlashMapObject.prototype.moveToCoordinates = function(text, z)
 			{
@@ -2257,7 +1926,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 			FlashMapObject.prototype.getChildren = function()
 			{
-				var arr = FlashCMD('getChildren', { 'obj': this });
+				var arr = gmxAPI._cmdProxy('getChildren', { 'obj': this });
 				var ret = [];
 				for (var i = 0; i < arr.length; i++)
 					ret.push(new FlashMapObject(arr[i].id, propertiesFromArray(arr[i].properties), this));
@@ -2267,7 +1936,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			FlashMapObject.prototype.setHandler = function(eventName, handler)
 			{
 				var me = this;
-				FlashCMD('setHandler', { 'obj': this, 'attr': {
+				gmxAPI._cmdProxy('setHandler', { 'obj': this, 'attr': {
 					'eventName':eventName
 					,'callbackName':handler ? uniqueGlobalName(function(subObjectId, a, attr)
 						{
@@ -2278,7 +1947,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 			FlashMapObject.prototype.removeHandler = function(eventName)
 			{
-				FlashCMD('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
+				gmxAPI._cmdProxy('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
 			}
 
 			FlashMapObject.prototype.setHandlers = function(handlers)
@@ -2296,7 +1965,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 			*/
 			FlashMapObject.prototype.addObjectsFromSWF = function(url) {
-				FlashCMD('addObjectsFromSWF', {'obj': this, 'attr':{'url':url}}); // Отправить команду в SWF
+				gmxAPI._cmdProxy('addObjectsFromSWF', {'obj': this, 'attr':{'url':url}}); // Отправить команду в SWF
 			}
 			/** Добавление набора статических объектов на карту
 			* @function
@@ -2322,7 +1991,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
 					out.push(tmp);
 				}
-				var _obj = FlashCMD('addObjects', {'attr':out}); // Отправить команду в SWF
+				var _obj = gmxAPI._cmdProxy('addObjects', {'attr':out}); // Отправить команду в SWF
 
 				out = [];
 				for (var i=0; i<_obj.length; i++)	// Отражение обьектов в JS
@@ -2333,7 +2002,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 			FlashMapObject.prototype.addObject = function(geometry, props) {
 				var geo = gmxAPI.merc_geometry(geometry);
-				var obj = FlashCMD('addObject', { 'obj': this, 'attr':{ 'geometry':geo, 'properties':props }});
+				var obj = gmxAPI._cmdProxy('addObject', { 'obj': this, 'attr':{ 'geometry':geo, 'properties':props }});
 				if(!obj) obj = false;
 				return new FlashMapObject(obj, props, this);
 			}
@@ -2343,7 +2012,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				}
 				if(!sql) sql ='';
 				this._sql = sql;			// атрибуты фильтра установленные юзером
-				var ret = FlashCMD('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
+				var ret = gmxAPI._cmdProxy('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
 				return ret;
 			}
 
@@ -2367,18 +2036,18 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				if (this.copyright) 
 					map.removeCopyrightedObject(this);
 					
-				if(this.objectId) FlashCMD('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
+				if(this.objectId) gmxAPI._cmdProxy('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
 				if(this.properties && this.properties.LayerID) removeFromMapLayers(this.properties.LayerID);
 			}
 			FlashMapObject.prototype.setGeometry = function(geometry) {
 				var geom =  gmxAPI.merc_geometry(geometry);
-				FlashCMD('setGeometry', { 'obj': this, 'attr':geom });
+				gmxAPI._cmdProxy('setGeometry', { 'obj': this, 'attr':geom });
 			}
 			FlashMapObject.prototype.getGeometry = function() 
 			{ 
-				var geom = FlashCMD('getGeometry', { 'obj': this });
+				var geom = gmxAPI._cmdProxy('getGeometry', { 'obj': this });
 				var out = { "type": geom.type };
-				var coords =  forEachPoint(geom.coordinates, function(c) {
+				var coords =  gmxAPI.forEachPoint(geom.coordinates, function(c) {
 						return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
 						}
 					);
@@ -2389,26 +2058,26 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			{
 				var out = 0;
 				if(arg1) out = gmxAPI.geoLength(arg1, arg2, arg3, arg4);
-				else out = FlashCMD('getLength', { 'obj': this });
+				else out = gmxAPI._cmdProxy('getLength', { 'obj': this });
 				return out;
 			}
 			FlashMapObject.prototype.getArea = function(arg)
 			{
 				var out = 0;
 				if(arg) out = gmxAPI.geoArea(arg);
-				else out = FlashCMD('getArea', { 'obj': this });
+				else out = gmxAPI._cmdProxy('getArea', { 'obj': this });
 				return out;
 			}
 			FlashMapObject.prototype.getCenter = function(arg1, arg2, arg3, arg4)
 			{
 				var out = 0;
 				if(arg1) out = gmxAPI.geoCenter(arg1, arg2, arg3, arg4);
-				else out = FlashCMD('getCenter', { 'obj': this });
+				else out = gmxAPI._cmdProxy('getCenter', { 'obj': this });
 				return out;
 			}
 			FlashMapObject.prototype.getGeometryType = function()
 			{
-				return FlashCMD('getGeometryType', { 'obj': this });
+				return gmxAPI._cmdProxy('getGeometryType', { 'obj': this });
 			}
 			FlashMapObject.prototype.setPoint = function(x, y) { this.setGeometry({ type: "POINT", coordinates: [x, y] }); }
 			FlashMapObject.prototype.setLine = function(coords) { this.setGeometry({ type: "LINESTRING", coordinates: coords }); }
@@ -2463,7 +2132,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 				this.setPolygon(coordinates);
 			}
-			FlashMapObject.prototype.clearBackgroundImage = function() { FlashCMD('clearBackgroundImage', { 'obj': this}); }
+			FlashMapObject.prototype.clearBackgroundImage = function() { gmxAPI._cmdProxy('clearBackgroundImage', { 'obj': this}); }
 			FlashMapObject.prototype.setImageExtent = function(attr)
 			{
 				this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
@@ -2477,7 +2146,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						[attr.extent.minX, attr.extent.maxY]
 					]);
 				}
-				FlashCMD('setImageExtent', { 'obj': this, 'attr':attr});
+				gmxAPI._cmdProxy('setImageExtent', { 'obj': this, 'attr':attr});
 			}
 			FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
 			{
@@ -2497,12 +2166,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					};
 				}
 				attr['url'] = url;
-				FlashCMD('setImage', { 'obj': this, 'attr':attr});
+				gmxAPI._cmdProxy('setImage', { 'obj': this, 'attr':attr});
 			}
 			FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
 			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
 			{ 
-				FlashCMD('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
+				gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
 			}
 /* не используется
 			FlashMapObject.prototype.loadJSON = function(url)
@@ -2518,7 +2187,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			FlashMapObject.prototype.setBackgroundColor = function(color)
 			{ 
 				this.backgroundColor = color;
-				FlashCMD('setBackgroundColor', { 'obj': this, 'attr':color });
+				gmxAPI._cmdProxy('setBackgroundColor', { 'obj': this, 'attr':color });
 				if (this.objectId == map.objectId)
 				{
 					var isWhite = (0xff & (color >> 16)) > 80;
@@ -2543,15 +2212,15 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					if (geomType.indexOf("POINT") != -1)
 					{
 						var c = geom.coordinates;
-						out = "<b>" + KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> ";
+						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> ";
 						out += gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
 					}
 					else if (geomType.indexOf("LINESTRING") != -1) {
-						out = "<b>" + KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> ";
+						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> ";
 						out += gmxAPI.prettifyDistance(this.getLength());
 					}
 					else if (geomType.indexOf("POLYGON") != -1) {
-						out = "<b>" + KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> ";
+						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> ";
 						var area = this.getArea();
 						out += gmxAPI.prettifyArea(area);
 					}
@@ -2597,7 +2266,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						var x1, y1, x2, y2, x3, y3, x4, y4;
 						var geom = o.getGeometry();
 						var coord = geom.coordinates;
-						forEachPoint(coord, function(p)
+						gmxAPI.forEachPoint(coord, function(p)
 						{
 							var x = gmxAPI.merc_x(p[0]);
 							var y = gmxAPI.merc_y(p[1]);
@@ -2751,7 +2420,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				});
 			}
 
-			FlashMapObject.prototype.flip = function() { return FlashCMD('flip', { 'obj': this }); }
+			FlashMapObject.prototype.flip = function() { return gmxAPI._cmdProxy('flip', { 'obj': this }); }
 
 			var FlashMapFeature = function(geometry, properties, layer)
 			{
@@ -2808,13 +2477,13 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						}
 						if (style.BorderColor || style.BorderWidth)
 							givenStyle.outline = {
-								color: parseColor(style.BorderColor),
+								color: gmxAPI.parseColor(style.BorderColor),
 								thickness: parseInt(style.BorderWidth || "1"),
 								opacity: (style.BorderWidth == "0" ? 0 : 100)
 							};
 						if (style.FillColor)
 							givenStyle.fill = {
-								color: parseColor(style.FillColor),
+								color: gmxAPI.parseColor(style.FillColor),
 								opacity: 100 - parseInt(style.Transparency || "0")
 							};
 
@@ -2823,7 +2492,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						{
 							givenStyle.label = {
 								field: label.FieldName,
-								color: parseColor(label.FontColor),
+								color: gmxAPI.parseColor(label.FontColor),
 								size: parseInt(label.FontSize || "12")
 							};
 						}
@@ -2904,7 +2573,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				obj.properties = layer.properties;
 				var me = this;
 				var isOverlay = false;
-				var overlayLayerID = getBaseMapParam("overlayLayerID","");
+				var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID","");
 				if(typeof(overlayLayerID) == 'string') {
 					var arr = overlayLayerID.split(",");
 					for (var i = 0; i < arr.length; i++) {
@@ -3263,7 +2932,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					}
 					obj.addObserver = function(o, onChange)
 					{
-						FlashCMD('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'func':uniqueGlobalName(function(geom, props, flag)
+						gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'func':uniqueGlobalName(function(geom, props, flag)
 							{
 								onChange(new FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj), flag);
 							})
@@ -3287,7 +2956,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 									geometry = arg;
 							}
 							if (!str && (obj.properties.GeometryType == "point")) {
-								FlashCMD('getFeatures', { 'obj': obj, 'attr':{
+								gmxAPI._cmdProxy('getFeatures', { 'obj': obj, 'attr':{
 									'geom': gmxAPI.merc_geometry(geometry ? geometry : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] }),
 									'func': uniqueGlobalName(function(geoms, props)
 										{
@@ -3309,7 +2978,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 						obj.getFeatureById = function(fid, func)
 						{
-							FlashCMD('getFeatureById', { 'obj': obj, 'attr':{'fid':fid,
+							gmxAPI._cmdProxy('getFeatureById', { 'obj': obj, 'attr':{'fid':fid,
 								'func':uniqueGlobalName(function(geom, props)
 								{
 									if(typeof(props) === 'object' && props.length > 0) {
@@ -3334,7 +3003,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							};
 							obj.setVectorTiles(tileDateFunction, layer.properties.identityField, arr, temporal);
 							obj.startLoadTiles = function(attr) {
-								var ret = FlashCMD('startLoadTiles', { 'obj': obj, 'attr':attr });
+								var ret = gmxAPI._cmdProxy('startLoadTiles', { 'obj': obj, 'attr':attr });
 								return ret;
 							}
 						} else {
@@ -3357,21 +3026,21 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						}
 						// Изменить атрибуты векторного обьекта из загруженных тайлов
 						obj.setTileItem = function(data, flag) {
-							var _obj = FlashCMD('setTileItem', { 'obj': this, 'attr': {'data':data, 'flag':(flag ? true:false)} });
+							var _obj = gmxAPI._cmdProxy('setTileItem', { 'obj': this, 'attr': {'data':data, 'flag':(flag ? true:false)} });
 							return _obj;
 						}
 						// Получить атрибуты векторного обьекта из загруженных тайлов id по identityField
 						obj.getTileItem = function(vId) {
-							var _obj = FlashCMD('getTileItem', { 'obj': this, 'attr': vId });
+							var _obj = gmxAPI._cmdProxy('getTileItem', { 'obj': this, 'attr': vId });
 							if(_obj.geometry) _obj.geometry = gmxAPI.from_merc_geometry(_obj.geometry);
 							return _obj;
 						}
 						obj.getStat = function() {
-							var _obj = FlashCMD('getStat', { 'obj': this });
+							var _obj = gmxAPI._cmdProxy('getStat', { 'obj': this });
 							return _obj;
 						}
 						obj.setTiles = function(data, flag) {
-							var _obj = FlashCMD('setTiles', { 'obj': obj, 'attr':{'tiles':data, 'flag':(flag ? true:false)} });
+							var _obj = gmxAPI._cmdProxy('setTiles', { 'obj': obj, 'attr':{'tiles':data, 'flag':(flag ? true:false)} });
 							return _obj;
 						}
 
@@ -3535,7 +3204,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				{
 					//return "http://b.tile.openstreetmap.org/" + z + "/" + i + "/" + j + ".png";
 					var letter = ["a", "b", "c", "d"][((i + j)%4 + 4)%4];
-					return "http://" + letter + ".tile.osmosnimki.ru/kosmo" + KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
+					return "http://" + letter + ".tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
 				}
 				this.setBackgroundTiles(function(i, j, z)
 				{
@@ -3558,20 +3227,20 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			map.vectors = map;
 
 			// Методы присущие только Map
-			map.stopDragging = function() {	FlashCMD('stopDragging', { }); }
-			map.isDragging = function() { return FlashCMD('isDragging', { }); }
-			map.resumeDragging = function() { FlashCMD('resumeDragging', { }); }
-			map.setCursorVisible = function(flag) { FlashCMD('setCursorVisible', { 'attr': {'flag':flag} }); }
-			map.getPosition = function() { return FlashCMD('getPosition', { }); }
-			map.getX = function() { return FlashCMD('getX', {}); }
-			map.getY = function() { return FlashCMD('getY', {}); }
-			map.getZ = function() { return FlashCMD('getZ', {}); }
-			map.getMouseX = function() { return FlashCMD('getMouseX', {}); }
-			map.getMouseY = function() { return FlashCMD('getMouseY', {}); }
-			map.isKeyDown = function(code) { return FlashCMD('isKeyDown', {'attr':{'code':code} }); }
-			map.setExtent = function(x1, x2, y1, y2) { return FlashCMD('setExtent', {'attr':{'x1':gmxAPI.merc_x(x1), 'x2':gmxAPI.merc_x(x2), 'y1':gmxAPI.merc_y(y1), 'y2':gmxAPI.merc_y(y2)} }); }
+			map.stopDragging = function() {	gmxAPI._cmdProxy('stopDragging', { }); }
+			map.isDragging = function() { return gmxAPI._cmdProxy('isDragging', { }); }
+			map.resumeDragging = function() { gmxAPI._cmdProxy('resumeDragging', { }); }
+			map.setCursorVisible = function(flag) { gmxAPI._cmdProxy('setCursorVisible', { 'attr': {'flag':flag} }); }
+			map.getPosition = function() { return gmxAPI._cmdProxy('getPosition', { }); }
+			map.getX = function() { return gmxAPI._cmdProxy('getX', {}); }
+			map.getY = function() { return gmxAPI._cmdProxy('getY', {}); }
+			map.getZ = function() { return gmxAPI._cmdProxy('getZ', {}); }
+			map.getMouseX = function() { return gmxAPI._cmdProxy('getMouseX', {}); }
+			map.getMouseY = function() { return gmxAPI._cmdProxy('getMouseY', {}); }
+			map.isKeyDown = function(code) { return gmxAPI._cmdProxy('isKeyDown', {'attr':{'code':code} }); }
+			map.setExtent = function(x1, x2, y1, y2) { return gmxAPI._cmdProxy('setExtent', {'attr':{'x1':gmxAPI.merc_x(x1), 'x2':gmxAPI.merc_x(x2), 'y1':gmxAPI.merc_y(y1), 'y2':gmxAPI.merc_y(y2)} }); }
 			map.addMapWindow = function(callback) {
-				var oID = FlashCMD('addMapWindow', { 'attr': {'callbackName':uniqueGlobalName(function(z) { return 17 - callback(17 - z); })} });
+				var oID = gmxAPI._cmdProxy('addMapWindow', { 'attr': {'callbackName':uniqueGlobalName(function(z) { return 17 - callback(17 - z); })} });
 				return new FlashMapObject(oID, {}, null);
 			}
             
@@ -3581,16 +3250,16 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			map.getItemsFromExtent = function(x1, x2, y1, y2) {
 				var arr = [];
 				for (var i = 0; i < map.layers.length; i++) arr.push(map.layers[i].objectId);
-				return FlashCMD('getItemsFromExtent', { 'obj': this, 'attr':{'layers':arr, 'extent':{'x1':gmxAPI.merc_x(x1), 'x2':gmxAPI.merc_x(x2), 'y1':gmxAPI.merc_y(y1), 'y2':gmxAPI.merc_y(y2)}} });
+				return gmxAPI._cmdProxy('getItemsFromExtent', { 'obj': this, 'attr':{'layers':arr, 'extent':{'x1':gmxAPI.merc_x(x1), 'x2':gmxAPI.merc_x(x2), 'y1':gmxAPI.merc_y(y1), 'y2':gmxAPI.merc_y(y2)}} });
 			}
 
 			map.getItemsFromPosition = function() {
 				var arr = [];
 				for (var i = 0; i < map.layers.length; i++) arr.push(map.layers[i].objectId);
-				return FlashCMD('getItemsFromExtent', { 'obj': this, 'attr':{'layers':arr} });
+				return gmxAPI._cmdProxy('getItemsFromExtent', { 'obj': this, 'attr':{'layers':arr} });
 			}
 			// Использование SharedObject
-			map.setFlashLSO = function(data) { return FlashCMD('setFlashLSO', {'obj': this, 'attr':data }); }
+			map.setFlashLSO = function(data) { return gmxAPI._cmdProxy('setFlashLSO', {'obj': this, 'attr':data }); }
 
 			var needToStopDragging = false;
 			flashDiv.onmouseout = function() 
@@ -3605,7 +3274,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				map.setCursorVisible(true);
 				needToStopDragging = false;
 			}
-			map.balloonClassObject = new BalloonClass(map, div, apiBase);
+			map.balloonClassObject = new gmxAPI.BalloonClass(map, div, apiBase);
 
 			var toolHandlers = {};
 			var userHandlers = {};
@@ -3719,7 +3388,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 			map.addContextMenuItem = function(text, callback)
 			{
-				FlashCMD('addContextMenuItem', { 'attr': {
+				gmxAPI._cmdProxy('addContextMenuItem', { 'attr': {
 					'text': text,
 					'func': uniqueGlobalName(function(x, y)
 						{
@@ -3730,15 +3399,15 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 
 			map.addContextMenuItem(
-				KOSMOSNIMKI_LOCALIZED("Поставить маркер", "Add marker"),
+				gmxAPI.KOSMOSNIMKI_LOCALIZED("Поставить маркер", "Add marker"),
 				function(x, y)
 				{
 					map.drawing.addObject({type: "POINT", coordinates: [x, y]});
 				}
 			);
 			map.grid = {
-				setVisible: function(flag) { FlashCMD('setGridVisible', { 'attr': flag }) },
-				getVisibility: function() { return FlashCMD('getGridVisibility', {}) }
+				setVisible: function(flag) { gmxAPI._cmdProxy('setGridVisible', { 'attr': flag }) },
+				getVisibility: function() { return gmxAPI._cmdProxy('getGridVisibility', {}) }
 			};
 
 			var allTools = gmxAPI.newStyledDiv({ position: "absolute", top: 0, left: 0 });
@@ -3813,8 +3482,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					for (var key in baseLayers)
 						haveBaseLayers = true;
 					var flag = haveBaseLayers && this.isVisible;
-					setVisible(baseLayerBg, flag);
-					setVisible(baseLayerDiv, flag);
+					gmxAPI.setVisible(baseLayerBg, flag);
+					gmxAPI.setVisible(baseLayerDiv, flag);
 				},
 				repaint: function()
 				{
@@ -3991,7 +3660,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				isMinimized: false,
 				setVisible: function(flag)
 				{
-					setVisible(zoomParent, flag);
+					gmxAPI.setVisible(zoomParent, flag);
 					this.isVisible = flag;
 					positionTimeBar();
 				},
@@ -3999,14 +3668,14 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				{
 					var dz = maxZoom - minZoom + 1;
 					var gap = this.isMinimized ? 8 : 12*dz;
-					position(zoomPlus, 20 + gap, 7);
-					size(zoomPlaque, 43 + gap, 32);
+					gmxAPI.position(zoomPlus, 20 + gap, 7);
+					gmxAPI.size(zoomPlaque, 43 + gap, 32);
 					map.zoomControl.width = 43 + gap;
 					for (var i = 0; i < dz; i++) {
 						if(i == zoomArr.length) addZoomItem(i);
-						setVisible(zoomArr[i], !this.isMinimized && (i < dz));
+						gmxAPI.setVisible(zoomArr[i], !this.isMinimized && (i < dz));
 					}
-					if(dz < zoomArr.length) for (var i = dz; i < zoomArr.length; i++) setVisible(zoomArr[i], false);
+					if(dz < zoomArr.length) for (var i = dz; i < zoomArr.length; i++) gmxAPI.setVisible(zoomArr[i], false);
 					positionTimeBar();
 				},
 				minimize: function()
@@ -4025,7 +3694,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				minZoom = z1;
 				maxZoom = z2;
 				map.zoomControl.repaint();
-				return FlashCMD('setMinMaxZoom', {'attr':{'z1':z1, 'z2':z2} });
+				return gmxAPI._cmdProxy('setMinMaxZoom', {'attr':{'z1':z1, 'z2':z2} });
 			}
 
 			var timeBarWidth = 100;
@@ -4062,7 +3731,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 			var positionTimeBar = function()
 			{
-				position(
+				gmxAPI.position(
 					timeBarParent, 
 					40 + (map.zoomControl.isVisible ? (map.zoomControl.width + 3) : 0),
 					5
@@ -4121,7 +3790,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					onmouseout: function()
 					{
 						this.src = apiBase + "img/sliderIcon.png";
-						hide(dateTooltip);
+						gmxAPI.hide(dateTooltip);
 						mouseInMark = false;
 					}
 				},
@@ -4154,7 +3823,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					onmouseout: function()
 					{
 						this.src = apiBase + "img/sliderIcon.png";
-						hide(dateTooltip);
+						gmxAPI.hide(dateTooltip);
 						mouseInMark = false;
 					}
 				},
@@ -4250,11 +3919,11 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
  
 			var startDraggingMark = function(event, isRight)
 			{
-				var startMouseX = eventX(event);
+				var startMouseX = gmxAPI.eventX(event);
 				var startX = isRight ? rightMarkX : leftMarkX;
 				document.documentElement.onmousemove = function(event)
 				{
-					var newX = startX + (eventX(event) - startMouseX);
+					var newX = startX + (gmxAPI.eventX(event) - startMouseX);
 					if (isRight)
 						rightMarkX = Math.max(leftMarkX, Math.min(timeBarWidth, newX));
 					else
@@ -4270,7 +3939,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					if (event && event.stopPropagation)
 						event.stopPropagation();
 					if (!mouseInMark)
-						hide(dateTooltip);
+						gmxAPI.hide(dateTooltip);
 					return false;
 				}
 				if (event && event.stopPropagation)
@@ -4293,7 +3962,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 			var repaintDateTooltip = function(isRight)
 			{
-				show(dateTooltip);
+				gmxAPI.show(dateTooltip);
 				var x = isRight ? rightMarkX : leftMarkX;
 				dateTooltip.style.left = x + (isRight ? 10 : 0);
 				dateTooltip.innerHTML = getDatePretty(getDateByX(x));
@@ -4304,7 +3973,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				setVisible: function(flag)
 				{
 					this.isVisible = flag;
-					setVisible(timeBarParent, flag);
+					gmxAPI.setVisible(timeBarParent, flag);
 					if (flag)
 						updateTimeBar();
 				}
@@ -4448,7 +4117,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			}
 			var getLocalScale = function(x, y)
 			{
-				return distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
+				return gmxAPI.distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
 			}
 
             
@@ -4500,13 +4169,13 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			scaleBar.className = "gmx_scaleBar";
 			div.appendChild(scaleBar);
 			
-			map.scaleBar = { setVisible: function(flag) { setVisible(scaleBar, flag); } };
+			map.scaleBar = { setVisible: function(flag) { gmxAPI.setVisible(scaleBar, flag); } };
 			var scaleBarText, scaleBarWidth;
 			var repaintScaleBar = function()
 			{
 				if (scaleBarText)
 				{
-					size(scaleBar, scaleBarWidth, 16);
+					gmxAPI.size(scaleBar, scaleBarWidth, 16);
 					scaleBar.innerHTML = scaleBarText;
 				}
 			}
@@ -4518,7 +4187,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						if (coordFormat > 2) return; //выдаем окошко с координатами только для стандартных форматов.
 						var oldText = getCoordinatesText();
-						var text = window.prompt(KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты:", "Current center coordinates:"), oldText);
+						var text = window.prompt(gmxAPI.KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты:", "Current center coordinates:"), oldText);
 						if (text && (text != oldText))
 							map.moveToCoordinates(text);
 					}
@@ -4582,7 +4251,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				{ 
 					className: "gmx_changeCoords",
 					src: apiBase + "img/coord_reload.png",
-					title: KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format"),
+					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format"),
 					onclick: function()
 					{
 						coordFormat += 1;
@@ -4601,8 +4270,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			map.coordinates = {
 				setVisible: function(flag) 
 				{ 
-					setVisible(coordinates, flag); 
-					setVisible(changeCoords, flag); 
+					gmxAPI.setVisible(coordinates, flag); 
+					gmxAPI.setVisible(changeCoords, flag); 
 				}
 				,
 				addCoordinatesFormat: function(func) 
@@ -4623,21 +4292,21 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			map.setCoordinatesAlign = function(attr) {			// Изменить позицию контейнера координат
 				var align = attr['align'];
 				if(align === 'br') {		// Позиция br(BottomRight)
-					setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x'], 'left': '' });
-					setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x1'], 'left': '' });
-					setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': coordinatesAttr['scaleBar']['bottom']['x'], 'left': '' });
+					gmxAPI.setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x'], 'left': '' });
+					gmxAPI.setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x1'], 'left': '' });
+					gmxAPI.setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': coordinatesAttr['scaleBar']['bottom']['x'], 'left': '' });
 				} else if(align === 'bl') {		// Позиция bl(BottomLeft)
-					setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x'] });
-					setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x1'] });
-					setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': '', 'left': coordinatesAttr['scaleBar']['bottom']['x'] });
+					gmxAPI.setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x'] });
+					gmxAPI.setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x1'] });
+					gmxAPI.setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': '', 'left': coordinatesAttr['scaleBar']['bottom']['x'] });
 				} else if(align === 'tr') {		// Позиция tr(TopRight)
-					setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x'], 'left': '' });
-					setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x1'], 'left': '' });
-					setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': coordinatesAttr['scaleBar']['top']['x'], 'left': '' });
+					gmxAPI.setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x'], 'left': '' });
+					gmxAPI.setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x1'], 'left': '' });
+					gmxAPI.setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': coordinatesAttr['scaleBar']['top']['x'], 'left': '' });
 				} else if(align === 'tl') {		// Позиция tl(TopLeft)
-					setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x'] });
-					setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x1'] });
-					setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['scaleBar']['top']['x'] });
+					gmxAPI.setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x'] });
+					gmxAPI.setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x1'] });
+					gmxAPI.setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['scaleBar']['top']['x'] });
 				}
 			}
 
@@ -4713,17 +4382,17 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				if(copyrightLastAlign != copyrightAlign) {
 					copyrightLastAlign = copyrightAlign;
 					if(copyrightAlign === 'bc') {				// Позиция bc(BottomCenter)
-						setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': center + 'px' });
+						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': center + 'px' });
 					} else if(copyrightAlign === 'br') {		// Позиция br(BottomRight)
-						setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': copyrightAttr['x'], 'left': '' });
+						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': copyrightAttr['x'], 'left': '' });
 					} else if(copyrightAlign === 'bl') {		// Позиция bl(BottomLeft)
-						setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': copyrightAttr['x'] });
+						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': copyrightAttr['x'] });
 					} else if(copyrightAlign === 'tc') {		// Позиция tc(TopCenter)
-						setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': center + 'px' });
+						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': center + 'px' });
 					} else if(copyrightAlign === 'tr') {		// Позиция tr(TopRight)
-						setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': copyrightAttr['x'], 'left': '' });
+						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': copyrightAttr['x'], 'left': '' });
 					} else if(copyrightAlign === 'tl') {		// Позиция tl(TopLeft)
-						setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr['x'] });
+						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr['x'] });
 					}
 				}
 			}
@@ -4755,7 +4424,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						
 						//первым всегда будет располагаться копирайт СканЭкс. 
 						//Если реализовать возможность задавать порядок отображения копирайтов, можно тоже самое сделать более культурно...
-						var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>";
+						var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>";
 						
 						for (var key in texts)
 						{
@@ -4798,8 +4467,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			div.appendChild(miniMapBottomBorder);
 			var repaintMiniMapBorders = function()
 			{
-				setVisible(miniMapLeftBorder, miniMapAvailable && miniMapShown);
-				setVisible(miniMapBottomBorder, miniMapAvailable && miniMapShown);
+				gmxAPI.setVisible(miniMapLeftBorder, miniMapAvailable && miniMapShown);
+				gmxAPI.setVisible(miniMapBottomBorder, miniMapAvailable && miniMapShown);
 			}
 			var miniMapFrame = gmxAPI.newStyledDiv({
 				position: "absolute",
@@ -4808,8 +4477,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			});
 			miniMapFrame.onmousedown = function(event)
 			{
-				var startMouseX = eventX(event);
-				var startMouseY = eventY(event);
+				var startMouseX = gmxAPI.eventX(event);
+				var startMouseY = gmxAPI.eventY(event);
 				
 				var currPosition = map.getPosition();
 				var startMapX = currPosition['x'];
@@ -4820,8 +4489,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var mouseMoveMode = new HandlerMode(document.documentElement, "mousemove", function(event)
 				{
 					map.moveTo(
-						gmxAPI.from_merc_x(startMapX - (eventX(event) - startMouseX)*scale), 
-						gmxAPI.from_merc_y(startMapY + (eventY(event) - startMouseY)*scale), 
+						gmxAPI.from_merc_x(startMapX - (gmxAPI.eventX(event) - startMouseX)*scale), 
+						gmxAPI.from_merc_y(startMapY + (gmxAPI.eventY(event) - startMouseY)*scale), 
 						map.getZ()
 					);
 					return false;
@@ -4838,12 +4507,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			div.appendChild(miniMapFrame);
 			var repaintMiniMapFrame = function()
 			{
-				setVisible(miniMapFrame, miniMapAvailable && miniMapShown);
+				gmxAPI.setVisible(miniMapFrame, miniMapAvailable && miniMapShown);
 				var scaleFactor = Math.pow(2, map.getZ() - miniMapZ);
 				var w = div.clientWidth/scaleFactor;
 				var h = div.clientHeight/scaleFactor;
 				if ((w >= miniMapSize) || (h >= miniMapSize))
-					setVisible(miniMapFrame, false);
+					gmxAPI.setVisible(miniMapFrame, false);
 				else
 				{
 					var ww = (miniMapSize/2 - w/2);
@@ -4858,8 +4527,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					} else if(miniMapAlign === 'tl') {	// Позиция миникарты по умолчанию tl(TopLeft)
 						ph['left'] = (miniMapSize/2 - w/2) + 'px'; ph['right'] = '';
 					}
-					setPositionStyle(miniMapFrame, ph);
-					size(miniMapFrame, w, h);
+					gmxAPI.setPositionStyle(miniMapFrame, ph);
+					gmxAPI.size(miniMapFrame, w, h);
 				}
 			}
 			var miniMapZ = 0;
@@ -4879,7 +4548,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				{ 
 					className: "gmx_miniMapToggler",
 					src: apiBase + "img/close_map.png",
-					title: KOSMOSNIMKI_LOCALIZED("Показать/скрыть мини-карту", "Show/hide minimap"),
+					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать/скрыть мини-карту", "Show/hide minimap"),
 					onclick: function()
 					{
 						miniMapShown = !miniMapShown;
@@ -4913,24 +4582,24 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				miniMapBottomBorder.style.width = miniMapSize + "px";
 				if(miniMapAlign === 'br') {			// Позиция миникарты br(BottomRight)
 					miniMap.positionWindow((w - miniMapSize)/w, (h - miniMapSize)/h, 1, 1);
-					setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': miniMapSize + 'px', 'left': '' });
-					setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '0px', 'left': '' });
-					setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '0px', 'left': '' });
+					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': miniMapSize + 'px', 'left': '' });
+					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '0px', 'left': '' });
+					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '0px', 'left': '' });
 				} else if(miniMapAlign === 'bl') {	// Позиция миникарты по умолчанию bl(BottomLeft)
 					miniMap.positionWindow(0, (h - miniMapSize)/h, miniMapSize/w, 1);
-					setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': '', 'left': miniMapSize + 'px' });
-					setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '', 'left': '0px' });
-					setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '', 'left': '0px' });
+					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': '', 'left': miniMapSize + 'px' });
+					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '', 'left': '0px' });
+					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '', 'left': '0px' });
 				} else if(miniMapAlign === 'tl') {	// Позиция миникарты по умолчанию tl(TopLeft)
 					miniMap.positionWindow(0, 0, miniMapSize/w, miniMapSize/h);
-					setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': '', 'left': miniMapSize + 'px' });
-					setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '', 'left': '0px' });
-					setPositionStyle(miniMapToggler, { 'top': '0px', 'bottom': '', 'right': '', 'left': '0px' });
+					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': '', 'left': miniMapSize + 'px' });
+					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '', 'left': '0px' });
+					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '0px', 'bottom': '', 'right': '', 'left': '0px' });
 				} else {							// Позиция миникарты по умолчанию tr(TopRight)
 					miniMap.positionWindow((w - miniMapSize)/w, 0, 1, miniMapSize/h);
-					setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': miniMapSize + 'px', 'left': '' });
-					setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '0px', 'left': '' });
-					setPositionStyle(miniMapToggler, { 'top': '0px', 'bottom': '', 'right': '0px', 'left': '' });
+					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': miniMapSize + 'px', 'left': '' });
+					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '0px', 'left': '' });
+					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '0px', 'bottom': '', 'right': '0px', 'left': '' });
 				}
 				repaintMiniMapBorders();
 				repaintMiniMapFrame();
@@ -4940,8 +4609,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			{ 
 				FlashMapObject.prototype.setVisible.call(miniMap, flag);
 				miniMapAvailable = flag;
-				setVisible(miniMapFrame, flag);
-				setVisible(miniMapToggler, flag);
+				gmxAPI.setVisible(miniMapFrame, flag);
+				gmxAPI.setVisible(miniMapToggler, flag);
 				resizeMiniMap();
 			}
 			map.miniMap = miniMap;
@@ -4970,7 +4639,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				"img",
 				{
 					src: apiBase + "img/geomixer_logo_api.png",
-					title: KOSMOSNIMKI_LOCALIZED("© 2007-2011 ИТЦ «СканЭкс»", "(c) 2007-2011 RDC ScanEx"),
+					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("© 2007-2011 ИТЦ «СканЭкс»", "(c) 2007-2011 RDC ScanEx"),
 					width: 130,
 					height: 34
 				},
@@ -4982,13 +4651,13 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			map.setGeomixerLinkAlign = function(attr) {				// Изменить позицию ссылки на Geomixer
 				var align = attr['align'];
 				if(align === 'br') {			// Позиция br(BottomRight)
-					setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '8px', 'left': '' });
+					gmxAPI.setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '8px', 'left': '' });
 				} else if(align === 'bl') {		// Позиция bl(BottomLeft)
-					setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '', 'left': '8px' });
+					gmxAPI.setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '', 'left': '8px' });
 				} else if(align === 'tr') {		// Позиция tr(TopRight)
-					setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '8px', 'left': '' });
+					gmxAPI.setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '8px', 'left': '' });
 				} else if(align === 'tl') {		// Позиция tl(TopLeft)
-					setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '', 'left': '8px' });
+					gmxAPI.setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '', 'left': '8px' });
 				}
 			}
 
@@ -5210,7 +4879,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					{
 						xx = x;
 						yy = y;
-						FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
+						gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
 						obj.setPoint(xx, yy);
  						balloon.setPoint(xx, yy, isDragged);
 						updateDOM();
@@ -5231,7 +4900,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					htmlDiv.onclick = function(event)
 					{
 						event = event || window.event;
-						var e = compatTarget(event);
+						var e = gmxAPI.compatTarget(event);
 						if (e == htmlDiv)
 						{
 							setHTMLVisible(false);
@@ -5260,7 +4929,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						for (var i in lines)
 							cols = Math.max(cols, lines[i].length + 3);
 						input.cols = cols;
-						input.style.width = cols * (fontSize - (isIE ? 5: 6));
+						input.style.width = cols * (fontSize - (gmxAPI.isIE ? 5: 6));
 						text = newText;
 						balloon.resize();
 						updateDOM();
@@ -5283,10 +4952,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 					var setHTMLVisible = function(flag)
 					{
-						setVisible(input, !flag);
-						setVisible(htmlDiv, flag);
+						gmxAPI.setVisible(input, !flag);
+						gmxAPI.setVisible(htmlDiv, flag);
 						if (flag)
-							htmlDiv.innerHTML = (strip(input.value) == "") ? "&nbsp;" : input.value;
+							htmlDiv.innerHTML = (gmxAPI.strip(input.value) == "") ? "&nbsp;" : input.value;
 						balloon.resize();
 					}
 
@@ -5311,8 +4980,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 								setHTMLVisible(true);
 							else
 							{
-								hide(input);
-								hide(htmlDiv);
+								gmxAPI.hide(input);
+								gmxAPI.hide(htmlDiv);
 							}
 						}
 					});
@@ -5328,12 +4997,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 						startDx = xx - x;
 						startDy = yy - y;
 						isDragged = true;
-						FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
+						gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
 					};
 					var upCallback = function()
 					{
 						isDragged = false;
-						FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
+						gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
 						balloon.setPoint(xx, yy, isDragged);
 						obj.setPoint(xx, yy);
 					}
@@ -5341,21 +5010,21 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 
 					balloon.outerDiv.onmousedown = function(event)
 					{
-						FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': true} });
+						gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': true} });
 						var currPosition = map.getPosition();
 						var mapX = currPosition['x'];
 						var mapY = currPosition['y'];
 						var z = currPosition['z'];
 						scale = gmxAPI.getScale(z);
-						var x = gmxAPI.from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale);
-						var y = gmxAPI.from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale);
+						var x = gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div) - div.clientWidth/2)*scale);
+						var y = gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div) - div.clientHeight/2)*scale);
 						downCallback(x, y);
 						startDrag(obj, dragCallback, upCallback);
 						return false;
 					}
 					balloon.outerDiv.onmouseup = function(event)
 					{
-						FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': false} });
+						gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': false} });
 						stopDrag();
 						upCallback();
 					}
@@ -5368,10 +5037,10 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 							var mapY = currPosition['y'];
 							var z = currPosition['z'];
 							scale = gmxAPI.getScale(z);
-							var x = startDx + gmxAPI.from_merc_x(mapX + (eventX(event) - getOffsetLeft(div) - div.clientWidth/2)*scale);
-							var y = startDy + gmxAPI.from_merc_y(mapY - (eventY(event) - getOffsetTop(div) - div.clientHeight/2)*scale);
-							position(x, y);
-							deselect();
+							var x = startDx + gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div) - div.clientWidth/2)*scale);
+							var y = startDy + gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div) - div.clientHeight/2)*scale);
+							gmxAPI.position(x, y);
+							gmxAPI.deselect();
 							return false;
 						}
 					}
@@ -5667,12 +5336,12 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				if (geomType.indexOf("POINT") != -1)
 				{
 					var c = geom.coordinates;
-					return "<b>" + KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
+					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
 				}
 				else if (geomType.indexOf("LINESTRING") != -1)
-					return "<b>" + KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
+					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
 				else if (geomType.indexOf("POLYGON") != -1)
-					return "<b>" + KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> " + gmxAPI.prettifyArea(gmxAPI.geoArea(geom));
+					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> " + gmxAPI.prettifyArea(gmxAPI.geoArea(geom));
 				else
 					return "?";
 			}
@@ -5691,7 +5360,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				var domObj;
 
 				var obj = map.addObject();
-				FlashCMD('setAPIProperties', { 'obj': obj, 'attr':{'type':'FRAME'} });
+				gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'FRAME'} });
 
 				var borders = obj.addObject();
 				var corners = obj.addObject();
@@ -6095,15 +5764,15 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			{
 				toolsMinimized = true;
 				toolPlaqueControl.src = apiBase + "img/tools_off.png";
-				toolPlaqueControl.title = KOSMOSNIMKI_LOCALIZED("Показать инструменты", "Show tools");
-				setVisible(allTools, false);
+				toolPlaqueControl.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать инструменты", "Show tools");
+				gmxAPI.setVisible(allTools, false);
 			}
 			map.maximizeTools = function()
 			{
 				toolsMinimized = false;
 				toolPlaqueControl.src = apiBase + "img/tools_on.png";
-				toolPlaqueControl.title = KOSMOSNIMKI_LOCALIZED("Скрыть инструменты", "Hide tools");
-				setVisible(allTools, true);
+				toolPlaqueControl.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("Скрыть инструменты", "Hide tools");
+				gmxAPI.setVisible(allTools, true);
 				map.baseLayerControl.repaint();
 			}
 			map.maximizeTools();
@@ -6112,9 +5781,9 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				div: allTools,
 				setVisible: function(flag)
 				{
-					setVisible(toolPlaqueBackground, flag);
-					setVisible(toolPlaqueControl, flag);
-					setVisible(allTools, flag);
+					gmxAPI.setVisible(toolPlaqueBackground, flag);
+					gmxAPI.setVisible(toolPlaqueControl, flag);
+					gmxAPI.setVisible(allTools, flag);
 				},
 				minimize: map.minimizeTools,
 				maximize: map.maximizeTools
@@ -6182,8 +5851,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				tools: { 
 					setVisible: function(flag) 
 					{ 
-						setVisible(toolPlaque, flag);
-						setVisible(toolsContainer, flag);
+						gmxAPI.setVisible(toolPlaque, flag);
+						gmxAPI.setVisible(toolsContainer, flag);
 					}
 				},
 				addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
@@ -6250,7 +5919,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 				for (var i = 0; i < toolTypes.length; i++)
 				{
 					var tool = map.drawing.tools[toolTypes[i]];
-					setVisible(tool.control, tool.isVisible);
+					gmxAPI.setVisible(tool.control, tool.isVisible);
 					if (tool.isVisible)
 					{
 						tool.control.style.top = (toolPlaqueY + toolPadding + k*(toolSize + toolSpacing)) + "px";
@@ -6271,7 +5940,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 			{
 				map.drawing.addTool(
 					toolTypes_[i], 
-					KOSMOSNIMKI_LOCALIZED(toolHints[i], toolHintsEng[i]),
+					gmxAPI.KOSMOSNIMKI_LOCALIZED(toolHints[i], toolHintsEng[i]),
 					apiBase + "img/" + imageNames[i] + "_tool.png",
 					apiBase + "img/" + imageNames[i] + "_tool_a.png",
 					drawFunctions[toolTypes_[i]],
@@ -6311,7 +5980,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 					e = window.event;
 	
 				var inMap = false;
-				var elem = compatTarget(e);
+				var elem = gmxAPI.compatTarget(e);
 				while(elem != null) 
 				{
 					if (elem == div)
@@ -6489,12 +6158,7 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 		}
 	}
 
-	o.addVariable("loadCallback", uniqueGlobalName(loadCallback));
-	if(window.gmxFlashLSO) {
-		o.addVariable("useFlashLSO", true);
-		if(window.gmxFlashLSO.multiSession) o.addVariable("multiSessionLSO", true);
-		if(window.gmxFlashLSO.compress) o.addVariable("compressLSO", true);
-	}
+	var o = gmxAPI._addSWFObject(apiBase + "api.swf?" + Math.random(), flashId, "100%", "100%", "10", "#ffffff", loadCallback, window.gmxFlashLSO);
 	o.write(div);
 
 	return true;
@@ -6504,23 +6168,14 @@ window.createFlashMapInternal = createFlashMapInternal;
 
 })();
 
-function getBaseMapParam(paramName, defaultValue)
-{
-	if (typeof window.baseMap !== 'object') window.baseMap = {};
-	if (!window.baseMap[paramName]) window.baseMap[paramName] = defaultValue;
-	return window.baseMap[paramName];
-	
-	//return (window.baseMap && window.baseMap[paramName]) ? window.baseMap[paramName] : defaultValue;
-}
-
 function createKosmosnimkiMapInternal(div, layers, callback)
 {
 	var oldGetLayers = window.getLayers;
 	var finish = function()
 	{
 		loadMapJSON(
-			getBaseMapParam("hostName", "maps.kosmosnimki.ru"), 
-			getBaseMapParam("id", kosmosnimki_API), 
+			gmxAPI.getBaseMapParam("hostName", "maps.kosmosnimki.ru"), 
+			gmxAPI.getBaseMapParam("id", kosmosnimki_API), 
 			function(kosmoLayers)
 			{
 				createFlashMapInternal(div, kosmoLayers, function(map)
@@ -6529,12 +6184,12 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						var obj = map.layers[i];
 						obj.setVisible(false);
 					}
-					var mapString = KOSMOSNIMKI_LOCALIZED("Карта", "Map");
-					var satelliteString = KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
-					var hybridString = KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
+					var mapString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map");
+					var satelliteString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
+					var hybridString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
 					
 					var mapLayers = [];
-					var mapLayerID = getBaseMapParam("mapLayerID", "");
+					var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
 					if(typeof(mapLayerID) == 'string') {
 						var mapLayerNames = mapLayerID.split(',');
 						for (var i = 0; i < mapLayerNames.length; i++)
@@ -6548,7 +6203,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							}
 					}
 					var satelliteLayers = [];
-					var satelliteLayerID = getBaseMapParam("satelliteLayerID", "");
+					var satelliteLayerID = gmxAPI.getBaseMapParam("satelliteLayerID", "");
 					if(typeof(satelliteLayerID) == 'string') {
 						var satelliteLayerNames = satelliteLayerID.split(",");
 						
@@ -6565,7 +6220,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					
 					var isAnyExists = false;
 					var overlayLayers = [];
-					var overlayLayerID = getBaseMapParam("overlayLayerID", "");
+					var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID", "");
 					if(typeof(overlayLayerID) == 'string') {
 						var overlayLayerNames = overlayLayerID.split(',');
 						for (var i = 0; i < overlayLayerNames.length; i++)
@@ -6594,7 +6249,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						}, 10, 18);
 					}
 					
-					var osmEmbedID = getBaseMapParam("osmEmbedID", "");
+					var osmEmbedID = gmxAPI.getBaseMapParam("osmEmbedID", "");
 					if(typeof(osmEmbedID) != 'string') osmEmbedID = "06666F91C6A2419594F41BDF2B80170F";
 					var osmEmbed = map.layers[osmEmbedID];
 					if (osmEmbed)
@@ -6624,7 +6279,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							mapLayers[0],
 							10,
 							20,
-							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>"
+							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>"
 						);
 						obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
 					}
@@ -6643,7 +6298,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							overlayLayers[0],
 							10,
 							20,
-							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>"
+							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>"
 						);
 						
 						obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
@@ -6729,10 +6384,10 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 		);
 	}
 
-	if (!getScriptURL("config.js"))
+	if (!gmxAPI.getScriptURL("config.js"))
 	{
 		loadVariableFromScript(
-			getScriptBase("api.js") + "config.js",
+			gmxAPI.getScriptBase("api.js") + "config.js",
 			"baseMap",
 			finish,
 			finish			// Нет config.js
@@ -6742,1137 +6397,748 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 		finish();
 }
 
-
-if (!this.JSON) {
-    JSON = {};
-}
-(function () {
-
-    function f(n) {
-        // Format integers to have at least two digits.
-        return n < 10 ? '0' + n : n;
-    }
-
-    if (typeof Date.prototype.toJSON !== 'function') {
-
-        Date.prototype.toJSON = function (key) {
-
-            return this.getUTCFullYear()   + '-' +
-                 f(this.getUTCMonth() + 1) + '-' +
-                 f(this.getUTCDate())      + 'T' +
-                 f(this.getUTCHours())     + ':' +
-                 f(this.getUTCMinutes())   + ':' +
-                 f(this.getUTCSeconds())   + 'Z';
-        };
-
-        String.prototype.toJSON =
-        Number.prototype.toJSON =
-        Boolean.prototype.toJSON = function (key) {
-            return this.valueOf();
-        };
-    }
-
-    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        escapeable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        gap,
-        indent,
-        meta = {    // table of character substitutions
-            '\b': '\\b',
-            '\t': '\\t',
-            '\n': '\\n',
-            '\f': '\\f',
-            '\r': '\\r',
-            '"' : '\\"',
-            '\\': '\\\\'
-        },
-        rep;
-
-
-    function quote(string) {
-
-        escapeable.lastIndex = 0;
-        return escapeable.test(string) ?
-            '"' + string.replace(escapeable, function (a) {
-                var c = meta[a];
-                if (typeof c === 'string') {
-                    return c;
-                }
-                return '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-            }) + '"' :
-            '"' + string + '"';
-    }
-
-
-    function str(key, holder) {
-
-        var i,          // The loop counter.
-            k,          // The member key.
-            v,          // The member value.
-            length,
-            mind = gap,
-            partial,
-            value = holder[key];
-
-        if (value && typeof value === 'object' &&
-                typeof value.toJSON === 'function') {
-            value = value.toJSON(key);
-        }
-
-        if (typeof rep === 'function') {
-            value = rep.call(holder, key, value);
-        }
-
-        switch (typeof value) {
-        case 'string':
-            return quote(value);
-
-        case 'number':
-
-            return isFinite(value) ? String(value) : 'null';
-
-        case 'boolean':
-        case 'null':
-
-            return String(value);
-
-        case 'object':
-
-            if (!value) {
-                return 'null';
-            }
-
-            gap += indent;
-            partial = [];
-
-            if (typeof value.length === 'number' &&
-                    !value.propertyIsEnumerable('length')) {
-
-                length = value.length;
-                for (i = 0; i < length; i += 1) {
-                    partial[i] = str(i, value) || 'null';
-                }
-
-                v = partial.length === 0 ? '[]' :
-                    gap ? '[\n' + gap +
-                            partial.join(',\n' + gap) + '\n' +
-                                mind + ']' :
-                          '[' + partial.join(',') + ']';
-                gap = mind;
-                return v;
-            }
-
-            if (rep && typeof rep === 'object') {
-                length = rep.length;
-                for (i = 0; i < length; i += 1) {
-                    k = rep[i];
-                    if (typeof k === 'string') {
-                        v = str(k, value);
-                        if (v) {
-                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
-                        }
-                    }
-                }
-            } else {
-
-                for (k in value) {
-                    if (Object.hasOwnProperty.call(value, k)) {
-                        v = str(k, value);
-                        if (v) {
-                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
-                        }
-                    }
-                }
-            }
-
-            v = partial.length === 0 ? '{}' :
-                gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' +
-                        mind + '}' : '{' + partial.join(',') + '}';
-            gap = mind;
-            return v;
-        }
-    }
-
-    if (typeof JSON.stringify !== 'function') {
-        JSON.stringify = function (value, replacer, space) {
-
-            var i;
-            gap = '';
-            indent = '';
-
-            if (typeof space === 'number') {
-                for (i = 0; i < space; i += 1) {
-                    indent += ' ';
-                }
-
-            } else if (typeof space === 'string') {
-                indent = space;
-            }
-
-            rep = replacer;
-            if (replacer && typeof replacer !== 'function' &&
-                    (typeof replacer !== 'object' ||
-                     typeof replacer.length !== 'number')) {
-                throw new Error('JSON.stringify');
-            }
-
-            return str('', {'': value});
-        };
-    }
-
-    if (typeof JSON.parse !== 'function') {
-        JSON.parse = function (text, reviver) {
-
-            var j;
-
-            function walk(holder, key) {
-
-                var k, v, value = holder[key];
-                if (value && typeof value === 'object') {
-                    for (k in value) {
-                        if (Object.hasOwnProperty.call(value, k)) {
-                            v = walk(value, k);
-                            if (v !== undefined) {
-                                value[k] = v;
-                            } else {
-                                delete value[k];
-                            }
-                        }
-                    }
-                }
-                return reviver.call(holder, key, value);
-            }
-
-            cx.lastIndex = 0;
-            if (cx.test(text)) {
-                text = text.replace(cx, function (a) {
-                    return '\\u' +
-                        ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-                });
-            }
-
-            if (/^[\],:{}\s]*$/.
-test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').
-replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
-replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
-
-                j = eval('(' + text + ')');
-
-                return typeof reviver === 'function' ?
-                    walk({'': j}, '') : j;
-            }
-
-            throw new SyntaxError('JSON.parse');
-        };
-    }
-})();
-
-
-/**
- * Class for working with browser printing
- * @see http://www.anychart.com/blog/projects/acprintmanagerlibrary/
- * @version 0.1
- * @author Alex Batsuev (alex(at)sibental(dot)com)
- */
-var ACPrintManager = function() {}
-
-ACPrintManager.isIE = function() {
-	return isIE;
-}
-
-ACPrintManager.initIE = function(objId) {
-	var obj = document.getElementById(objId);
-	if (obj == null) return;
-	if (obj.onBeforePrint == undefined || obj.onAfterPrint == undefined) return;
-	
-	window.attachEvent("onbeforeprint",function(e) {
-		
-		obj.setAttribute("tmpW",obj.width);
-		obj.setAttribute("tmpH",obj.height);
-		
-		var size = ACPrintManager.getContentSize(obj);
-		
-		obj.width = size.width;
-		obj.height = size.height;
-		
-		obj.onBeforePrint();
-		
-		if (obj.getAttribute("tmpW").indexOf("%") != -1 ||
-		    obj.getAttribute("tmpH").indexOf("%") != -1) {
-			//ie percent width or height hack
-			obj.focus();
-		}
-	});
-	window.attachEvent("onafterprint",function() {
-		obj.onAfterPrint();
-		obj.width = obj.getAttribute("tmpW");
-		obj.height = obj.getAttribute("tmpH");
-	});
-} 
-
-ACPrintManager.initFF = function(objId, imgData) {
-
-	if (isIE)
-		return;
-
-	var obj = document.getElementById(objId);
-	if (obj == null && document.embeds != null) obj = document.embeds[objId];
-	if (obj == null) return;
-	
-	//step #1: get parent node
-	var parent = obj.parentNode;
-	if (parent == null) return;
-	
-	//step #2: get header
-	var head = document.getElementsByTagName('head');
-	head = ((head.length != 1) ? null : head[0]);
-	
-	//step #3: write normal css rule		
-	var style = document.createElement('style');
-	style.setAttribute('type','text/css');
-	style.setAttribute('media','screen');
-	
-	var size = ACPrintManager.getContentSize(obj);
-	
-	var imgDescriptor = 'img#'+objId+'_screen';
-	var imgRule = "width: "+size.width+";\n"+
-				  "height: "+size.height+";\n"+
-				  "padding: 0;\n"+
-				  "margin: 0;\n"+
-				  "border: 0;\n"+
-				  "display: none;";
-	style.appendChild(document.createTextNode(imgDescriptor + '{' + imgRule + "}\n"));
-	//add style to head
-	head.appendChild(style);
-
-	//step #4: write print css rule
-	style = document.createElement('style');
-	style.setAttribute('type','text/css');
-	style.setAttribute('media','print');
-	
-	//write image style
-	imgDescriptor = 'img#'+objId+'_screen';
-	imgRule = 'display: block;';
-	
-	style.appendChild(document.createTextNode(imgDescriptor + '{' + imgRule + '}'));
-	
-	//write object style
-	var objDescriptor = 'embed#'+objId;
-	var objRule = 'display: none;';
-	style.appendChild(document.createTextNode(objDescriptor + '{' + objRule + '}'));
-	
-	//add style to head
-	head.appendChild(style);
-
-	//step #5: get image
-	var needAppend = false;
-	var img = document.getElementById('img');
-	if (img == null) {
-		img = document.createElement('img');
-		needAppend = true;
-	}
-	
-	img.src = 'data:image/png;base64,'+imgData;
-	img.setAttribute('id',objId+"_screen");
-	if (needAppend)
-		parent.appendChild(img);
-}
-
-ACPrintManager.getContentSize = function(obj) {
-	var size = {};
-	size.width = obj.width;
-	size.height = obj.height;
-	if (obj.getWidth != undefined) size.width = obj.getWidth()+'px';
-	if (obj.getHeight != undefined) size.height = obj.getHeight()+'px';
-	return size;
-}
-
-
-
-function parseXML(str)
+//Поддержка Балунов
+(function()
 {
-	var xmlDoc;
-	try
+	/** Класс управления балунами
+	* @function
+	* @memberOf api
+	* @param {map} ссылка на обьект карты
+	* @param {div} ссылка HTML контейнер карты
+	* @param {apiBase} URL основного домена
+	* @see <a href="http://kosmosnimki.ru/geomixer/docs/">» Пример использования</a>.
+	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+	*/
+	function BalloonClass(map, div, apiBase)
 	{
-		if (window.DOMParser)
+		var apiBase = gmxAPI.getAPIFolderRoot();
+		var balloons = [];
+		var curMapObject = null;
+
+		var mapX = 0;
+		var mapY = 0;
+		var stageZoom = 1;						// Коэф. масштабирования браузера
+		var scale = 0;
+		//map.getPosition();
+
+		// Обновить информацию текущего состояния карты
+		function refreshMapPosition()
 		{
-			parser = new DOMParser();
-			xmlDoc = parser.parseFromString(str,"text/xml");
+			currPosition = map.getPosition();
+			mapX = currPosition['x'];
+			mapY = currPosition['y'];
+			scale = gmxAPI.getScale(currPosition['z']);
+			stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
 		}
-		else // Internet Explorer
+		// Формирование ID балуна
+		function setID(o)
 		{
-			xmlDoc = new ActiveXObject("MSXML2.DOMDocument.3.0");
-			xmlDoc.validateOnParse = false;
-			xmlDoc.async = false;
-			xmlDoc.loadXML(str);
+			var id = o.objectId + '_balloon';
+			if(o.properties) {
+				var identityField = gmxAPI.getIdentityField(o);
+				if(o.properties[identityField]) id +=  '_' + o.properties[identityField];
+			}
+			return id;
 		}
-	}
-	catch(e)
-	{
-		gmxAPI.addDebugWarnings({'func': 'parseXML', 'str': str, 'event': e, 'alert': e});
-	}
-	
-	return xmlDoc;
-}
 
-function makeImageButton(url, urlHover)
-{
-	var btn = document.createElement("img");
-	btn.setAttribute('src',url)
-	btn.style.cursor = 'pointer';
-	btn.style.border = 'none';
-	
-	if (urlHover)
-	{
-		btn.onmouseover = function()
+		/** Проверка возвращенного пользовательским callback значения
+		* @function
+		* @memberOf BalloonClass private
+		* @param {text} возвращенное значение пользовательским callback
+		* @param {div} внутренний контейнер для размещения содержимого балуна
+		* @return {<String><Bool><Object>}	
+		*		если тип <String> то div.innerHTML = text
+		*		если тип <Bool> и значение True то div.innerHTML = ''
+		*		если тип <Object> никаких дополнительных действий - все действия были произведены в callback
+		*/
+		function chkBalloonText(text, div)
 		{
-			this.setAttribute('src', urlHover);
+			var type = typeof(text);
+			if(type === 'string') div.innerHTML = '<div style="white-space: nowrap;">' + text + '</div>';
+			else if(type === 'boolean' && text) div.innerHTML = ""; // затираем только если true
+			// в случае type === 'object' ничего не делаем
 		}
-		btn.onmouseout = function()
+
+		// Текст по умолчанию для балуна (innerHTML)
+		function getDefaultBalloonText(o)
 		{
-			this.setAttribute('src', url);
-		}
-	}
-	
-	return btn;
-}
-
-
-/** Класс управления балунами
-* @function
-* @memberOf api
-* @param {map} ссылка на обьект карты
-* @param {div} ссылка HTML контейнер карты
-* @param {apiBase} URL основного домена
-* @see <a href="http://kosmosnimki.ru/geomixer/docs/">» Пример использования</a>.
-* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-*/
-function BalloonClass(map, div, apiBase)
-{
-	var balloons = [];
-	var curMapObject = null;
-
-	var mapX = 0;
-	var mapY = 0;
-	var stageZoom = 1;						// Коэф. масштабирования браузера
-	var scale = 0;
-	map.getPosition();
-
-	// Обновить информацию текущего состояния карты
-	function refreshMapPosition()
-	{
-		currPosition = map.getPosition();
-		mapX = currPosition['x'];
-		mapY = currPosition['y'];
-		scale = gmxAPI.getScale(currPosition['z']);
-		stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
-	}
-	// Формирование ID балуна
-	function setID(o)
-	{
-		var id = o.objectId + '_balloon';
-		if(o.properties) {
+			var text = "";
 			var identityField = gmxAPI.getIdentityField(o);
-			if(o.properties[identityField]) id +=  '_' + o.properties[identityField];
-		}
-		return id;
-	}
-
-	/** Проверка возвращенного пользовательским callback значения
-	* @function
-	* @memberOf BalloonClass private
-	* @param {text} возвращенное значение пользовательским callback
-	* @param {div} внутренний контейнер для размещения содержимого балуна
-	* @return {<String><Bool><Object>}	
-	*		если тип <String> то div.innerHTML = text
-	*		если тип <Bool> и значение True то div.innerHTML = ''
-	*		если тип <Object> никаких дополнительных действий - все действия были произведены в callback
-	*/
-	function chkBalloonText(text, div)
-	{
-		var type = typeof(text);
-		if(type === 'string') div.innerHTML = '<div style="white-space: nowrap;">' + text + '</div>';
-		else if(type === 'boolean' && text) div.innerHTML = ""; // затираем только если true
-		// в случае type === 'object' ничего не делаем
-	}
-
-	// Текст по умолчанию для балуна (innerHTML)
-	function getDefaultBalloonText(o)
-	{
-		var text = "";
-		var identityField = gmxAPI.getIdentityField(o);
-		var props = o.properties;
-		for (var key in props)
-		{
-			if (key != identityField)
+			var props = o.properties;
+			for (var key in props)
 			{
-				var value = "" + props[key];
-				if (value.indexOf("http://") == 0)
-					value = "<a href='" + value + "'>" + value + "</a>";
-				else if (value.indexOf("www.") == 0)
-					value = "<a href='http://" + value + "'>" + value + "</a>";
-				text += "<b>" + key + ":</b> " + value + "<br />";
+				if (key != identityField)
+				{
+					var value = "" + props[key];
+					if (value.indexOf("http://") == 0)
+						value = "<a href='" + value + "'>" + value + "</a>";
+					else if (value.indexOf("www.") == 0)
+						value = "<a href='http://" + value + "'>" + value + "</a>";
+					text += "<b>" + key + ":</b> " + value + "<br />";
+				}
 			}
+			var summary = o.getGeometrySummary();
+			if(summary != '') text += "<br />" + summary;
+			return text;
 		}
-		var summary = o.getGeometrySummary();
-		if(summary != '') text += "<br />" + summary;
-		return text;
-	}
-	this.getDefaultBalloonText = getDefaultBalloonText;
+		this.getDefaultBalloonText = getDefaultBalloonText;
 
-	// Проверка наличия параметра по ветке родителей
-	function chkAttr(name, o)
-	{
-		var attr = false;
-		var hash = o._hoverBalloonAttr;
-		if(hash && name in hash) {
-			attr = hash[name];
-		}
-		if(!attr && o.parent) attr = chkAttr(name, o.parent);
-		return attr;
-	}
-
-	function disableHoverBalloon(mapObject)
-	{
-		mapObject.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null, onClick: null });
-	}
-	this.disableHoverBalloon = disableHoverBalloon;
-
-	/** Задать пользовательский тип балуна для mapObject
-	* @function
-	* @memberOf BalloonClass public
-	* @param {mapObject<mapObject>} обьект карты для которого устанавливается тип балуна
-	* @param {callback<Function>} пользовательский метод формирования содержимого балуна mouseOver
-	*		При вызове в callback передаются параметры:
-	*		@param {obj<Hash>} properties обьекта карты для балуна
-	*		@param {div<DIV>} нода контейнера содержимого балуна
-	*		@return {<String><Bool><Object>}	
-	*			если тип <String> то div.innerHTML = text
-	*			если тип <Bool> и значение True то div.innerHTML = ''
-	*			если тип <Object> никаких дополнительных действий - все действия были произведены в callback
-	* @param {attr:<Hash>} атрибуты управления балуном
-	*		свойства:
-	*			'disableOnMouseOver<Bool>'	- по умолчанию False
-	*			'disableOnClick'<Bool>		- по умолчанию False
-	*			'maxFixedBallons'<Bool>		- по умолчанию 1 (максимальное количество фиксированных балунов)
-	*			'clickCallback'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
-	*				@param {obj<Hash>} properties обьекта карты для балуна
-	*				@param {div<DIV>} нода контейнера содержимого балуна
-	*				@return {<String><Bool><Object>}	
-	*					если тип <String> то div.innerHTML = text
-	*					если тип <Bool> и значение True то div.innerHTML = ''
-	*					если тип <Object> никаких дополнительных действий - все действия были произведены в clickCallback
-	*			'OnClickSwitcher'<Function>	- по умолчанию null (при событии mouseClick - переключатель на пользовательский метод формирования всего фиксированного балуна)
-	*				@param {obj<Hash>} properties обьекта карты для балуна
-	*				@param {keyPress<Hash>} аттрибуты нажатых спец.клавиш при mouseClick событии
-	*				свойства:
-	*					'shiftKey<Bool>'	- по умолчанию False
-	*					'ctrlKey<Bool>'		- по умолчанию False
-	*				@return {Bool} если true то стандартный фиксированный балун НЕ создавать
-	*			'customBalloon'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
-	*				@param {obj<Hash>} properties обьекта карты для балуна
-	*				@param {div<DIV>} нода контейнера содержимого балуна
-	*				@return {Bool} если true то стандартный балун НЕ создавать
-	*/
-	function enableHoverBalloon(mapObject, callback, attr)
-	{
-		var _this = this;
-		mapObject._hoverBalloonAttr = (attr ? attr : {});				// Атрибуты управления балуном
-		if (callback) {													// Пользовательский метод получения текста для балуна
-			this.getDefaultBalloonText = mapObject._hoverBalloonAttr['callback'] = callback;
-		} else {
-			delete mapObject._hoverBalloonAttr['callback'];
+		// Проверка наличия параметра по ветке родителей
+		function chkAttr(name, o)
+		{
+			var attr = false;
+			var hash = o._hoverBalloonAttr;
+			if(hash && name in hash) {
+				attr = hash[name];
+			}
+			if(!attr && o.parent) attr = chkAttr(name, o.parent);
+			return attr;
 		}
 
-		var handlersObj = {
-			onMouseOver: function(o, keyPress)
-			{ 
-				if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
-				if (map.isDragging())
-					return;
+		function disableHoverBalloon(mapObject)
+		{
+			mapObject.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null, onClick: null });
+		}
+		this.disableHoverBalloon = disableHoverBalloon;
 
-				if(chkAttr('disableOnMouseOver', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
-					return;
-				}
-				var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
-				if(customBalloonObject) {
-					currPosition = map.getPosition();
-					currPosition._x = propsBalloon.mouseX || 0;
-					currPosition._y = propsBalloon.mouseY || 0;
-					var flag = customBalloonObject.onMouseOver(o, keyPress, currPosition); // Вызов пользовательского метода вместо или перед балуном
-					if(flag) return;										// Если customBalloon возвращает true выходим
-				}
+		/** Задать пользовательский тип балуна для mapObject
+		* @function
+		* @memberOf BalloonClass public
+		* @param {mapObject<mapObject>} обьект карты для которого устанавливается тип балуна
+		* @param {callback<Function>} пользовательский метод формирования содержимого балуна mouseOver
+		*		При вызове в callback передаются параметры:
+		*		@param {obj<Hash>} properties обьекта карты для балуна
+		*		@param {div<DIV>} нода контейнера содержимого балуна
+		*		@return {<String><Bool><Object>}	
+		*			если тип <String> то div.innerHTML = text
+		*			если тип <Bool> и значение True то div.innerHTML = ''
+		*			если тип <Object> никаких дополнительных действий - все действия были произведены в callback
+		* @param {attr:<Hash>} атрибуты управления балуном
+		*		свойства:
+		*			'disableOnMouseOver<Bool>'	- по умолчанию False
+		*			'disableOnClick'<Bool>		- по умолчанию False
+		*			'maxFixedBallons'<Bool>		- по умолчанию 1 (максимальное количество фиксированных балунов)
+		*			'clickCallback'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
+		*				@param {obj<Hash>} properties обьекта карты для балуна
+		*				@param {div<DIV>} нода контейнера содержимого балуна
+		*				@return {<String><Bool><Object>}	
+		*					если тип <String> то div.innerHTML = text
+		*					если тип <Bool> и значение True то div.innerHTML = ''
+		*					если тип <Object> никаких дополнительных действий - все действия были произведены в clickCallback
+		*			'OnClickSwitcher'<Function>	- по умолчанию null (при событии mouseClick - переключатель на пользовательский метод формирования всего фиксированного балуна)
+		*				@param {obj<Hash>} properties обьекта карты для балуна
+		*				@param {keyPress<Hash>} аттрибуты нажатых спец.клавиш при mouseClick событии
+		*				свойства:
+		*					'shiftKey<Bool>'	- по умолчанию False
+		*					'ctrlKey<Bool>'		- по умолчанию False
+		*				@return {Bool} если true то стандартный фиксированный балун НЕ создавать
+		*			'customBalloon'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
+		*				@param {obj<Hash>} properties обьекта карты для балуна
+		*				@param {div<DIV>} нода контейнера содержимого балуна
+		*				@return {Bool} если true то стандартный балун НЕ создавать
+		*/
+		function enableHoverBalloon(mapObject, callback, attr)
+		{
+			var _this = this;
+			mapObject._hoverBalloonAttr = (attr ? attr : {});				// Атрибуты управления балуном
+			if (callback) {													// Пользовательский метод получения текста для балуна
+				this.getDefaultBalloonText = mapObject._hoverBalloonAttr['callback'] = callback;
+			} else {
+				delete mapObject._hoverBalloonAttr['callback'];
+			}
 
-				//if(keyPress['objType'] == 'cluster') {}; // Надо придумать как бороться с фикс.двойником
+			var handlersObj = {
+				onMouseOver: function(o, keyPress)
+				{ 
+					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
+					if (map.isDragging())
+						return;
 
-				var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
-				//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
-				var text = (textFunc ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
-				if(typeof(text) == 'string' && text == '') return;
-				var id = setID(o);
-				lastHoverBalloonId = o.objectId;
-				
-				if (!fixedHoverBalloons[id]) {
-					propsBalloon.updatePropsBalloon(text);
-				}
-				else {
-					propsBalloon.updatePropsBalloon(false);
-				}
+					if(chkAttr('disableOnMouseOver', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
+						return;
+					}
+					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+					if(customBalloonObject) {
+						currPosition = map.getPosition();
+						currPosition._x = propsBalloon.mouseX || 0;
+						currPosition._y = propsBalloon.mouseY || 0;
+						var flag = customBalloonObject.onMouseOver(o, keyPress, currPosition); // Вызов пользовательского метода вместо или перед балуном
+						if(flag) return;										// Если customBalloon возвращает true выходим
+					}
 
-				map.clickBalloonFix = clickBalloonFix;
-			},
-			onMouseOut: function(o) 
-			{ 
-				var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
-				if(customBalloonObject) {
-					var flag = customBalloonObject.onMouseOut(o);
-					if(flag) return;
+					//if(keyPress['objType'] == 'cluster') {}; // Надо придумать как бороться с фикс.двойником
+
+					var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
+					//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
+					var text = (textFunc ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
+					if(typeof(text) == 'string' && text == '') return;
+					var id = setID(o);
+					lastHoverBalloonId = o.objectId;
+					
+					if (!fixedHoverBalloons[id]) {
+						propsBalloon.updatePropsBalloon(text);
+					}
+					else {
+						propsBalloon.updatePropsBalloon(false);
+					}
+
+					map.clickBalloonFix = clickBalloonFix;
+				},
+				onMouseOut: function(o) 
+				{ 
+					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+					if(customBalloonObject) {
+						var flag = customBalloonObject.onMouseOut(o);
+						if(flag) return;
+					}
+					if (lastHoverBalloonId == o.objectId) {
+						propsBalloon.updatePropsBalloon(false);
+					}
+				},
+				onClick: function(o, keyPress)
+				{
+					refreshMapPosition();
+					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+					if(customBalloonObject) {
+						currPosition._x = propsBalloon.x;
+						currPosition._y = propsBalloon.y;
+						var flag = customBalloonObject.onClick(o, keyPress, currPosition);
+						if(flag) return;
+					}
+					clickBalloonFix(o, keyPress);
 				}
-				if (lastHoverBalloonId == o.objectId) {
-					propsBalloon.updatePropsBalloon(false);
+			};
+
+			if(mapObject == map) return;								// На map Handlers не вешаем
+			if(mapObject._hoverBalloonAttr) {							// есть юзерские настройки балунов
+				if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
+					handlersObj['onMouseOver'] = null;
+					handlersObj['onMouseOut'] = null;
 				}
-			},
-			onClick: function(o, keyPress)
+				if(mapObject._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
+					handlersObj['onClick'] = null;
+				}
+			}
+			mapObject.setHandlers(handlersObj);
+		}
+		this.enableHoverBalloon = enableHoverBalloon;
+
+		var lastHoverBalloonId = false;
+		var fixedHoverBalloons = {};
+
+		function showHoverBalloons()
+		{
+			for (var key in fixedHoverBalloons)
 			{
-				refreshMapPosition();
-				var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
-				if(customBalloonObject) {
-					currPosition._x = propsBalloon.x;
-					currPosition._y = propsBalloon.y;
-					var flag = customBalloonObject.onClick(o, keyPress, currPosition);
-					if(flag) return;
-				}
-				clickBalloonFix(o, keyPress);
-			}
-		};
-
-		if(mapObject == map) return;								// На map Handlers не вешаем
-		if(mapObject._hoverBalloonAttr) {							// есть юзерские настройки балунов
-			if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
-				handlersObj['onMouseOver'] = null;
-				handlersObj['onMouseOut'] = null;
-			}
-			if(mapObject._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
-				handlersObj['onClick'] = null;
+				var balloon = fixedHoverBalloons[key];
+				balloon.setVisible(true);
 			}
 		}
-		mapObject.setHandlers(handlersObj);
-	}
-	this.enableHoverBalloon = enableHoverBalloon;
-
-	var lastHoverBalloonId = false;
-	var fixedHoverBalloons = {};
-
-	function showHoverBalloons()
-	{
-		for (var key in fixedHoverBalloons)
+		
+		function removeHoverBalloons()
 		{
-			var balloon = fixedHoverBalloons[key];
-			balloon.setVisible(true);
-		}
-	}
-	
-	function removeHoverBalloons()
-	{
-		for (var key in fixedHoverBalloons)
-		{
-			fixedHoverBalloons[key].remove();
-			delete fixedHoverBalloons[key];
-		}
-	}
-	this.removeHoverBalloons = removeHoverBalloons;
-	
-	function hideHoverBalloons(flag)
-	{
-		for (var key in fixedHoverBalloons)
-		{
-			var balloon = fixedHoverBalloons[key];
-			if(balloon.objType != 'cluster') {
-				balloon.setVisible(false);
-			}
-			else
+			for (var key in fixedHoverBalloons)
 			{
 				fixedHoverBalloons[key].remove();
 				delete fixedHoverBalloons[key];
 			}
 		}
-		if(flag) {
-			
-			var timeoutShowHoverBalloons = setTimeout(function()
-			{
-				clearTimeout(timeoutShowHoverBalloons);
-				showHoverBalloons();
-			}, 300);
-		}
-	}
-	this.hideHoverBalloons = hideHoverBalloons;
-
-	// Фиксация балуна
-	function clickBalloonFix(o, keyPress)
-	{
-		var OnClickSwitcher = chkAttr('OnClickSwitcher', o);		// Проверка наличия параметра по ветке родителей 
-		if(OnClickSwitcher && typeof(OnClickSwitcher) == 'function') {
-			var flag = OnClickSwitcher(o, keyPress);				// Вызов пользовательского метода вместо или перед балуном
-			if(flag) return;										// Если OnClickSwitcher возвращает true выходим
-		}
-
-		if(chkAttr('disableOnClick', o))	// Проверка наличия параметра disableOnClick по ветке родителей 
-			return;
-
-		var textFunc = chkAttr('clickCallback', o) || chkAttr('callback', o);	// Проверка наличия параметра callback по ветке родителей 
-		if(keyPress) {
-			if(keyPress['shiftKey'] || keyPress['ctrlKey']) return;	// При нажатых не показываем балун
-			if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // взять параметры балуна от фильтра родителя
-		}
-
-		var id = setID(o);
-		if (!fixedHoverBalloons[id])
+		this.removeHoverBalloons = removeHoverBalloons;
+		
+		function hideHoverBalloons(flag)
 		{
-			var maxFixedBallons = chkAttr('maxFixedBallons', o) || 1;	// Проверка наличия параметра maxFixedBallons по ветке родителей
-			if(maxFixedBallons > 0 && balloons.length > 0)
+			for (var key in fixedHoverBalloons)
 			{
-				if(maxFixedBallons <= balloons.length) {
-					var balloon = null;
-					for(var i=0; i<balloons.length; i++) {
-						if(balloons[i].notDelFlag) continue;
-						balloon = balloons[i];
-						break;
-					}
-					if(balloon) {
-						var fixedId = balloon.fixedId;
-						balloon.remove();
-						delete fixedHoverBalloons[fixedId];
-					}
+				var balloon = fixedHoverBalloons[key];
+				if(balloon.objType != 'cluster') {
+					balloon.setVisible(false);
+				}
+				else
+				{
+					fixedHoverBalloons[key].remove();
+					delete fixedHoverBalloons[key];
 				}
 			}
-			var balloon = addBalloon();
-			balloon.fixedId = id;
-			if(keyPress && keyPress['objType']) balloon.objType = keyPress['objType'];
+			if(flag) {
+				
+				var timeoutShowHoverBalloons = setTimeout(function()
+				{
+					clearTimeout(timeoutShowHoverBalloons);
+					showHoverBalloons();
+				}, 300);
+			}
+		}
+		this.hideHoverBalloons = hideHoverBalloons;
 
-			//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
-			var text = (textFunc ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
-			if(typeof(text) == 'string' && text == '') return;
-
-			var mx = map.getMouseX();
-			var my = map.getMouseY();
-			
-			mx = gmxAPI.chkPointCenterX(mx);
-
-			if(o.getGeometryType() == 'POINT') {
-				var gObj = o.getGeometry();
-				var x = gObj.coordinates[0];
-				var y = gObj.coordinates[1];
-
-				balloon.fixedDeltaX =  (gmxAPI.merc_x(mx) -  gmxAPI.merc_x(x))/scale;
-				balloon.fixedDeltaY =  (gmxAPI.merc_y(my) -  gmxAPI.merc_y(y))/scale;
-				mx = x;
-				my = y;
-				balloon.fixedDeltaFlag = true;
+		// Фиксация балуна
+		function clickBalloonFix(o, keyPress)
+		{
+			var OnClickSwitcher = chkAttr('OnClickSwitcher', o);		// Проверка наличия параметра по ветке родителей 
+			if(OnClickSwitcher && typeof(OnClickSwitcher) == 'function') {
+				var flag = OnClickSwitcher(o, keyPress);				// Вызов пользовательского метода вместо или перед балуном
+				if(flag) return;										// Если OnClickSwitcher возвращает true выходим
 			}
 
-			balloon.setPoint(mx, my);
-			chkBalloonText(text, balloon.div);
-
-			balloon.resize();
-			fixedHoverBalloons[id] = balloon;
-			balloon.setVisible(true);
-		}
-		else
-		{
-			fixedHoverBalloons[id].remove();
-			delete fixedHoverBalloons[id];
-		}
-		propsBalloon.updatePropsBalloon(false);
-	}
-	this.clickBalloonFix = clickBalloonFix;
-
-	// Создание DIV и позиционирование балуна
-	function createBalloon()
-	{
-		var tlw = 14;
-		var tlh = 14;
-		var blw = 14;
-		var blh = 41;
-		var trw = 18;
-		var trh = 13;
-		var brw = 20;
-		var brh = 41;
-		var th = 2;
-		var lw = 2;
-		var bh = 2;
-		var rw = 2;
-
-		var legWidth = 68;
-
-		var balloon = gmxAPI.newStyledDiv({
-			position: "absolute",
-
-			paddingLeft: lw + "px",
-			paddingRight: rw + "px",
-			paddingTop: th + "px",
-			paddingBottom: bh + "px",
-
-			width: "auto",
-			//whiteSpace: "nowrap",
-			zIndex: 1000
-		});
-		balloon.className = 'gmx_balloon';
-		div.appendChild(balloon);
-
-		var css = {
-			'table': 'margin: 0px; border-collapse: collapse;',
-			'bg_top_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: 2px 9px; background-image: url(\''+apiBase+'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
-			'bg_top': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
-			'bg_top_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
-			'bg_left': 'background-color: transparent; width: 13px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-left.png\'); background-repeat: repeat-y;',
-			'bg_center': 'background-color: transparent; width: 50px; min-width: 50px; border: 0px none; background-color: white; padding: 4px; padding-right: 14px;',
-			'bg_right': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 0px top; background-image: url(\''+apiBase+'img/tooltip-right.png\'); background-repeat: repeat-y;',
-			'bg_bottom_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
-			'bg_bottom': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center top; background-image: url(\''+apiBase+'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
-			'bg_bottom_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; background-position: -2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
-			'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\''+apiBase+'img/tooltip-leg.png\');'
-		};
-
-		var transp = '';
-		if(gmxAPI.isChrome) transp =  '<img width="10" height="10" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABBJREFUeNpi+P//PwNAgAEACPwC/tuiTRYAAAAASUVORK5CYII=">';	// Для Chrome добавляем невидимый контент в TD
-		var body = '\
-			<table cols="3" cellspacing="0" cellpadding="0" border="0" style="'+css['table']+'">\
-				<tr>\
-					<td style="'+css['bg_top_left']+'">'+transp+'</td>\
-					<td style="'+css['bg_top']+'">'+transp+'</td>\
-					<td style="'+css['bg_top_right']+'">'+transp+'</td>\
-				</tr>\
-				<tr>\
-					<td style="'+css['bg_left']+'">'+transp+'</td>\
-					<td style="'+css['bg_center']+'">\
-						<div class="kosmosnimki_balloon">\
-						</div>\
-					</td>\
-					<td style="'+css['bg_right']+'">'+transp+'</td>\
-				</tr>\
-				<tr>\
-					<td style="'+css['bg_bottom_left']+'">'+transp+'</td>\
-					<td style="'+css['bg_bottom']+'">'+transp+'</td>\
-					<td style="'+css['bg_bottom_right']+'">'+transp+'</td>\
-				</tr>\
-			</table>\
-		';
-		balloon.innerHTML = body;
-		var nodes = balloon.getElementsByTagName("div");
-		var balloonText = nodes[0];
-		
-		var leg = gmxAPI.newElement("img",
-			{
-				src: apiBase + "img/tooltip-leg.png"
-			},
-			{
-				position: "absolute",
-				bottom: "-21px",
-				right: "15px"
-			}
-		);
-		balloon.appendChild(leg);
-
-		var x = 0;
-		var y = 0;
-		var reposition = function()	
-		{
-			var ww = balloon.clientWidth;
-			var hh = balloon.clientHeight;
-
-			var screenWidth = div.clientWidth;
-			var xx = (x + ww < screenWidth) ? x : (ww < screenWidth) ? (screenWidth - ww) : 0;
-			xx = Math.max(xx, x - ww + legWidth + brw);
-			var dx = x - xx;
-			leg.style.left = dx + "px";
-			bottomPosition(balloon, xx + 2, div.clientHeight - y + 20);
-		}
-
-		var updateVisible = function(flag)	
-		{
-			setVisible(balloon, flag);
-			if (flag && !wasVisible)
-				ret.resize();
-			wasVisible = flag;
-		}
-
-		var wasVisible = true;
-
-		var ret = {						// Возвращаемый обьект
-			outerDiv: balloon,
-			div: balloonText,
-			mouseX: 0,
-			mouseY: 0,
-			setVisible: updateVisible,
-			setScreenPosition: function(x_, y_)
-			{
-				x = this.mouseX = x_;
-				y = this.mouseY = y_;
-				reposition();
-			},
-			resize: function()
-			{
-				reposition();
-			},
-			updatePropsBalloon: function(text)
-			{
-				updateVisible(text ? true : false);
-				chkBalloonText(text, balloonText);
-				reposition();
-			}
-		};
-		return ret;
-	}
-
-	var propsBalloon = createBalloon();		// Balloon для mouseOver
-	this.propsBalloon = propsBalloon;
-	propsBalloon.setVisible(false);
-	propsBalloon.outerDiv.style.zIndex = 10000;
-	propsBalloon.outerDiv.style.display = "none";
-	new GlobalHandlerMode("mousemove", function(event)
-	{
-		propsBalloon.setScreenPosition(
-			eventX(event) - getOffsetLeft(div), 
-			eventY(event) - getOffsetTop(div)
-		);
-	}).set();
-	div.onmouseout = function(event)
-	{
-		var tg = compatTarget(event);
-		if (!event)
-			event = window.event;
-		var reltg = event.toElement || event.relatedTarget;
-		while (reltg && (reltg != document.documentElement))
-		{
-			if (reltg == propsBalloon.outerDiv)
+			if(chkAttr('disableOnClick', o))	// Проверка наличия параметра disableOnClick по ветке родителей 
 				return;
-			reltg = reltg.offsetParent;
-		}
-		while (tg && (tg != document.documentElement))
-		{
-			if (tg == propsBalloon.outerDiv)
-				return;
-			tg = tg.offsetParent;
-		}
-		propsBalloon.outerDiv.style.display = "none";
-	}
-	propsBalloon.outerDiv.onmouseover = function()
-	{
-		if (map.isDragging())
-		{
-			needToStopDragging = false;
+
+			var textFunc = chkAttr('clickCallback', o) || chkAttr('callback', o);	// Проверка наличия параметра callback по ветке родителей 
+			if(keyPress) {
+				if(keyPress['shiftKey'] || keyPress['ctrlKey']) return;	// При нажатых не показываем балун
+				if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // взять параметры балуна от фильтра родителя
+			}
+
+			var id = setID(o);
+			if (!fixedHoverBalloons[id])
+			{
+				var maxFixedBallons = chkAttr('maxFixedBallons', o) || 1;	// Проверка наличия параметра maxFixedBallons по ветке родителей
+				if(maxFixedBallons > 0 && balloons.length > 0)
+				{
+					if(maxFixedBallons <= balloons.length) {
+						var balloon = null;
+						for(var i=0; i<balloons.length; i++) {
+							if(balloons[i].notDelFlag) continue;
+							balloon = balloons[i];
+							break;
+						}
+						if(balloon) {
+							var fixedId = balloon.fixedId;
+							balloon.remove();
+							delete fixedHoverBalloons[fixedId];
+						}
+					}
+				}
+				var balloon = addBalloon();
+				balloon.fixedId = id;
+				if(keyPress && keyPress['objType']) balloon.objType = keyPress['objType'];
+
+				//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
+				var text = (textFunc ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
+				if(typeof(text) == 'string' && text == '') return;
+
+				var mx = map.getMouseX();
+				var my = map.getMouseY();
+				
+				mx = gmxAPI.chkPointCenterX(mx);
+
+				if(o.getGeometryType() == 'POINT') {
+					var gObj = o.getGeometry();
+					var x = gObj.coordinates[0];
+					var y = gObj.coordinates[1];
+
+					balloon.fixedDeltaX =  (gmxAPI.merc_x(mx) -  gmxAPI.merc_x(x))/scale;
+					balloon.fixedDeltaY =  (gmxAPI.merc_y(my) -  gmxAPI.merc_y(y))/scale;
+					mx = x;
+					my = y;
+					balloon.fixedDeltaFlag = true;
+				}
+
+				balloon.setPoint(mx, my);
+				chkBalloonText(text, balloon.div);
+
+				balloon.resize();
+				fixedHoverBalloons[id] = balloon;
+				balloon.setVisible(true);
+			}
+			else
+			{
+				fixedHoverBalloons[id].remove();
+				delete fixedHoverBalloons[id];
+			}
 			propsBalloon.updatePropsBalloon(false);
-			map.resumeDragging();
 		}
-	}
+		this.clickBalloonFix = clickBalloonFix;
 
-	var positionBalloons = function()	
-	{
-		refreshMapPosition();
-		balloons.sort(function(b1, b2)
+		// Создание DIV и позиционирование балуна
+		function createBalloon()
 		{
-			return b1.isHovered ? 1 : b2.isHovered ? -1 : (b2.geoY - b1.geoY);
-		});
-		for (var i = 0; i < balloons.length; i++)
-		{
-			balloons[i].reposition();
-			balloons[i].outerDiv.style.zIndex = 1000 + i;
-		}
-	}
-	map.addObject().setHandler("onMove", positionBalloons);
+			var tlw = 14;
+			var tlh = 14;
+			var blw = 14;
+			var blh = 41;
+			var trw = 18;
+			var trh = 13;
+			var brw = 20;
+			var brh = 41;
+			var th = 2;
+			var lw = 2;
+			var bh = 2;
+			var rw = 2;
 
-	function addBalloon(_notDelFlag)
-	{
-		var balloon = createBalloon();
-		balloon.notDelFlag = _notDelFlag;
-		balloon.geoX = 0;
-		balloon.geoY = 0;
-		balloon.isDraging = false;
-		
-		var oldSetVisible = balloon.setVisible;
-		balloon.div.onmouseover = function()
-		{
-			balloon.isHovered = true;
-			positionBalloons();
-		}
-		balloon.div.onmouseout = function()
-		{
-			balloon.isHovered = false;
-			positionBalloons();
-		}
-		balloon.outerDiv.appendChild(gmxAPI.newElement(
-			"img",
+			var legWidth = 68;
+
+			var balloon = gmxAPI.newStyledDiv({
+				position: "absolute",
+
+				paddingLeft: lw + "px",
+				paddingRight: rw + "px",
+				paddingTop: th + "px",
+				paddingBottom: bh + "px",
+
+				width: "auto",
+				//whiteSpace: "nowrap",
+				zIndex: 1000
+			});
+			balloon.className = 'gmx_balloon';
+			div.appendChild(balloon);
+
+			var css = {
+				'table': 'margin: 0px; border-collapse: collapse;',
+				'bg_top_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: 2px 9px; background-image: url(\''+apiBase+'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
+				'bg_top': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
+				'bg_top_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
+				'bg_left': 'background-color: transparent; width: 13px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-left.png\'); background-repeat: repeat-y;',
+				'bg_center': 'background-color: transparent; width: 50px; min-width: 50px; border: 0px none; background-color: white; padding: 4px; padding-right: 14px;',
+				'bg_right': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 0px top; background-image: url(\''+apiBase+'img/tooltip-right.png\'); background-repeat: repeat-y;',
+				'bg_bottom_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; background-position: 2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-left.png\'); background-repeat: no-repeat;',
+				'bg_bottom': 'background-color: transparent; height: 18px; border: 0px none; padding: 1px; background-position: center top; background-image: url(\''+apiBase+'img/tooltip-bottom.png\'); background-repeat: repeat-x;',
+				'bg_bottom_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; background-position: -2px top; background-image: url(\''+apiBase+'img/tooltip-bottom-right.png\'); background-repeat: no-repeat;',
+				'leg': 'bottom: 18px; left: 0px; width: 68px; height: 41px; position: relative; background-repeat: no-repeat; background-image: url(\''+apiBase+'img/tooltip-leg.png\');'
+			};
+
+			var transp = '';
+			if(gmxAPI.isChrome) transp =  '<img width="10" height="10" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABBJREFUeNpi+P//PwNAgAEACPwC/tuiTRYAAAAASUVORK5CYII=">';	// Для Chrome добавляем невидимый контент в TD
+			var body = '\
+				<table cols="3" cellspacing="0" cellpadding="0" border="0" style="'+css['table']+'">\
+					<tr>\
+						<td style="'+css['bg_top_left']+'">'+transp+'</td>\
+						<td style="'+css['bg_top']+'">'+transp+'</td>\
+						<td style="'+css['bg_top_right']+'">'+transp+'</td>\
+					</tr>\
+					<tr>\
+						<td style="'+css['bg_left']+'">'+transp+'</td>\
+						<td style="'+css['bg_center']+'">\
+							<div class="kosmosnimki_balloon">\
+							</div>\
+						</td>\
+						<td style="'+css['bg_right']+'">'+transp+'</td>\
+					</tr>\
+					<tr>\
+						<td style="'+css['bg_bottom_left']+'">'+transp+'</td>\
+						<td style="'+css['bg_bottom']+'">'+transp+'</td>\
+						<td style="'+css['bg_bottom_right']+'">'+transp+'</td>\
+					</tr>\
+				</table>\
+			';
+			balloon.innerHTML = body;
+			var nodes = balloon.getElementsByTagName("div");
+			var balloonText = nodes[0];
+			
+			var leg = gmxAPI.newElement("img",
+				{
+					src: apiBase + "img/tooltip-leg.png"
+				},
+				{
+					position: "absolute",
+					bottom: "-21px",
+					right: "15px"
+				}
+			);
+			balloon.appendChild(leg);
+
+			var x = 0;
+			var y = 0;
+			var reposition = function()	
 			{
-				src: apiBase + "img/close.png",
-				title: KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
-				onclick: function() 
-				{ 
-					if(balloon.notDelFlag) {
-						balloon.setVisible(false);
+				var ww = balloon.clientWidth;
+				var hh = balloon.clientHeight;
+
+				var screenWidth = div.clientWidth;
+				var xx = (x + ww < screenWidth) ? x : (ww < screenWidth) ? (screenWidth - ww) : 0;
+				xx = Math.max(xx, x - ww + legWidth + brw);
+				var dx = x - xx;
+				leg.style.left = dx + "px";
+				gmxAPI.bottomPosition(balloon, xx + 2, div.clientHeight - y + 20);
+			}
+
+			var updateVisible = function(flag)	
+			{
+				gmxAPI.setVisible(balloon, flag);
+				if (flag && !wasVisible)
+					ret.resize();
+				wasVisible = flag;
+			}
+
+			var wasVisible = true;
+
+			var ret = {						// Возвращаемый обьект
+				outerDiv: balloon,
+				div: balloonText,
+				mouseX: 0,
+				mouseY: 0,
+				setVisible: updateVisible,
+				setScreenPosition: function(x_, y_)
+				{
+					x = this.mouseX = x_;
+					y = this.mouseY = y_;
+					reposition();
+				},
+				resize: function()
+				{
+					reposition();
+				},
+				updatePropsBalloon: function(text)
+				{
+					updateVisible(text ? true : false);
+					chkBalloonText(text, balloonText);
+					reposition();
+				}
+			};
+			return ret;
+		}
+
+		var propsBalloon = createBalloon();		// Balloon для mouseOver
+		this.propsBalloon = propsBalloon;
+		propsBalloon.setVisible(false);
+		propsBalloon.outerDiv.style.zIndex = 10000;
+		propsBalloon.outerDiv.style.display = "none";
+		new GlobalHandlerMode("mousemove", function(event)
+		{
+			propsBalloon.setScreenPosition(
+				gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div), 
+				gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div)
+			);
+		}).set();
+		div.onmouseout = function(event)
+		{
+			var tg = gmxAPI.compatTarget(event);
+			if (!event)
+				event = window.event;
+			var reltg = event.toElement || event.relatedTarget;
+			while (reltg && (reltg != document.documentElement))
+			{
+				if (reltg == propsBalloon.outerDiv)
+					return;
+				reltg = reltg.offsetParent;
+			}
+			while (tg && (tg != document.documentElement))
+			{
+				if (tg == propsBalloon.outerDiv)
+					return;
+				tg = tg.offsetParent;
+			}
+			propsBalloon.outerDiv.style.display = "none";
+		}
+		propsBalloon.outerDiv.onmouseover = function()
+		{
+			if (map.isDragging())
+			{
+				needToStopDragging = false;
+				propsBalloon.updatePropsBalloon(false);
+				map.resumeDragging();
+			}
+		}
+
+		var positionBalloons = function()	
+		{
+			refreshMapPosition();
+			balloons.sort(function(b1, b2)
+			{
+				return b1.isHovered ? 1 : b2.isHovered ? -1 : (b2.geoY - b1.geoY);
+			});
+			for (var i = 0; i < balloons.length; i++)
+			{
+				balloons[i].reposition();
+				balloons[i].outerDiv.style.zIndex = 1000 + i;
+			}
+		}
+		map.addObject().setHandler("onMove", positionBalloons);
+
+		function addBalloon(_notDelFlag)
+		{
+			var balloon = createBalloon();
+			balloon.notDelFlag = _notDelFlag;
+			balloon.geoX = 0;
+			balloon.geoY = 0;
+			balloon.isDraging = false;
+			
+			var oldSetVisible = balloon.setVisible;
+			balloon.div.onmouseover = function()
+			{
+				balloon.isHovered = true;
+				positionBalloons();
+			}
+			balloon.div.onmouseout = function()
+			{
+				balloon.isHovered = false;
+				positionBalloons();
+			}
+			balloon.outerDiv.appendChild(gmxAPI.newElement(
+				"img",
+				{
+					src: apiBase + "img/close.png",
+					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
+					onclick: function() 
+					{ 
+						if(balloon.notDelFlag) {
+							balloon.setVisible(false);
+						}
+						else
+						{
+							balloon.remove();
+							balloon.isVisible = false;
+						}
+					},
+					onmouseover: function()
+					{
+						this.src = apiBase + "img/close_orange.png";
+					},
+					onmouseout: function()
+					{
+						this.src = apiBase + "img/close.png";
+					}
+				},
+				{
+					position: "absolute",
+					top: "15px",
+					right: "15px",
+					cursor: "pointer"
+				}
+			));
+			balloon.isVisible = true;
+			balloon.reposition = function()
+			{
+				if (balloon.isVisible)
+				{
+					refreshMapPosition();
+
+					var sc = scale * stageZoom;
+					
+					// Смещение Балуна к центру
+					var deltaX = 0;
+
+					if(!balloon.isDraging) {
+						var pos = gmxAPI.chkPointCenterX(this.geoX);
+						var centrGEO = gmxAPI.from_merc_x(mapX);
+						
+						var mind = Math.abs(pos - centrGEO);
+						for(var i = 1; i<4; i++) {
+							var d1 = Math.abs(pos - centrGEO + i * 360);
+							if (d1 < mind) { mind = d1; deltaX = i * 360; }
+							d1 = Math.abs(pos - centrGEO - i * 360);
+							if (d1 < mind) { mind = d1; deltaX = -i * 360; }
+						}
+						deltaX = gmxAPI.merc_x(deltaX) / sc;
+					}
+
+					var x = div.clientWidth/2 - (mapX - gmxAPI.merc_x(this.geoX))/sc + deltaX;
+					var y = div.clientHeight/2 + (mapY - gmxAPI.merc_y(this.geoY))/sc;
+					if(this.fixedDeltaFlag) {
+						x += balloon.fixedDeltaX;
+						y -= balloon.fixedDeltaY;
+					}
+					var flag = (y < 0 || y > div.clientHeight ? false : true);
+					if (flag) {
+						if (x < 0 || x > div.clientWidth) flag = false;
+					}
+
+					//if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
+					if (flag)
+					{
+						this.setScreenPosition(x, y);
+						oldSetVisible(true);
 					}
 					else
-					{
-						balloon.remove();
-						balloon.isVisible = false;
-					}
-				},
-				onmouseover: function()
-				{
-					this.src = apiBase + "img/close_orange.png";
-				},
-				onmouseout: function()
-				{
-					this.src = apiBase + "img/close.png";
-				}
-			},
-			{
-				position: "absolute",
-				top: "15px",
-				right: "15px",
-				cursor: "pointer"
-			}
-		));
-		balloon.isVisible = true;
-		balloon.reposition = function()
-		{
-			if (balloon.isVisible)
-			{
-				refreshMapPosition();
-
-				var sc = scale * stageZoom;
-				
-				// Смещение Балуна к центру
-				var deltaX = 0;
-
-				if(!balloon.isDraging) {
-					var pos = gmxAPI.chkPointCenterX(this.geoX);
-					var centrGEO = gmxAPI.from_merc_x(mapX);
-					
-					var mind = Math.abs(pos - centrGEO);
-					for(var i = 1; i<4; i++) {
-						var d1 = Math.abs(pos - centrGEO + i * 360);
-						if (d1 < mind) { mind = d1; deltaX = i * 360; }
-						d1 = Math.abs(pos - centrGEO - i * 360);
-						if (d1 < mind) { mind = d1; deltaX = -i * 360; }
-					}
-					deltaX = gmxAPI.merc_x(deltaX) / sc;
-				}
-
-				var x = div.clientWidth/2 - (mapX - gmxAPI.merc_x(this.geoX))/sc + deltaX;
-				var y = div.clientHeight/2 + (mapY - gmxAPI.merc_y(this.geoY))/sc;
-				if(this.fixedDeltaFlag) {
-					x += balloon.fixedDeltaX;
-					y -= balloon.fixedDeltaY;
-				}
-				var flag = (y < 0 || y > div.clientHeight ? false : true);
-				if (flag) {
-					if (x < 0 || x > div.clientWidth) flag = false;
-				}
-
-				//if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
-				if (flag)
-				{
-					this.setScreenPosition(x, y);
-					oldSetVisible(true);
+						oldSetVisible(false);
 				}
 				else
 					oldSetVisible(false);
 			}
-			else
-				oldSetVisible(false);
-		}
-		balloon.setVisible = function(flag)
-		{
-			balloon.isVisible = flag;
-			this.reposition();
-		}
-		balloon.setPoint = function(x_, y_, isDraging_)
-		{
-			this.geoX = x_;
-			this.geoY = y_;
-			this.isDraging = isDraging_;
-			positionBalloons();
-		}
-		balloon.remove = function()
-		{
-			if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
-			var i = 0;
-			while ((i < balloons.length) && (balloons[i] != this))
-				i += 1;
-			if (i < balloons.length)
+			balloon.setVisible = function(flag)
 			{
-				balloons.splice(i, 1);
-				div.removeChild(this.outerDiv);
+				balloon.isVisible = flag;
+				this.reposition();
+			}
+			balloon.setPoint = function(x_, y_, isDraging_)
+			{
+				this.geoX = x_;
+				this.geoY = y_;
+				this.isDraging = isDraging_;
+				positionBalloons();
+			}
+			balloon.remove = function()
+			{
+				if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
+				var i = 0;
+				while ((i < balloons.length) && (balloons[i] != this))
+					i += 1;
+				if (i < balloons.length)
+				{
+					balloons.splice(i, 1);
+					div.removeChild(this.outerDiv);
+				}
+			}
+			balloon.getX = function() { return this.geoX; }
+			balloon.getY = function() { return this.geoY; }
+			balloons.push(balloon);
+			return balloon;
+		}
+		this.addBalloon = addBalloon;
+
+
+		//Параметры:
+		// * Balloon: текст баллуна
+		// * BalloonEnable: показывать ли баллун
+		// * DisableBalloonOnClick: не показывать при клике
+		// * DisableBalloonOnMouseMove: не показывать при наведении
+		var setBalloonFromParams = function(filter, balloonParams)
+		{
+			//по умолчанию балуны показываются
+			if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
+			{
+				disableHoverBalloon(filter);
+				return;
+			}
+			
+			var balloonAttrs = {
+				disableOnClick: balloonParams.DisableBalloonOnClick,
+				disableOnMouseOver: balloonParams.DisableBalloonOnMouseMove
+			}
+			
+			if ( balloonParams.Balloon )
+			{
+				enableHoverBalloon(filter, function(o)
+					{
+						var text = gmxAPI.applyTemplate(balloonParams.Balloon, o.properties);
+						var summary = o.getGeometrySummary();
+						text = gmxAPI.applyTemplate(text, { SUMMARY: summary });
+						text = text.replace(/\[SUMMARY\]/g, '');
+						return text;
+					}
+					,
+					balloonAttrs);
+			}
+			else
+			{
+				enableHoverBalloon(filter, null, balloonAttrs);
 			}
 		}
-		balloon.getX = function() { return this.geoX; }
-		balloon.getY = function() { return this.geoY; }
-		balloons.push(balloon);
-		return balloon;
-	}
-	this.addBalloon = addBalloon;
-
-
-	//Параметры:
-	// * Balloon: текст баллуна
-	// * BalloonEnable: показывать ли баллун
-	// * DisableBalloonOnClick: не показывать при клике
-	// * DisableBalloonOnMouseMove: не показывать при наведении
-	var setBalloonFromParams = function(filter, balloonParams)
-	{
-		//по умолчанию балуны показываются
-		if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
-		{
-			disableHoverBalloon(filter);
-			return;
-		}
+		this.setBalloonFromParams = setBalloonFromParams;
 		
-		var balloonAttrs = {
-			disableOnClick: balloonParams.DisableBalloonOnClick,
-			disableOnMouseOver: balloonParams.DisableBalloonOnMouseMove
-		}
-		
-		if ( balloonParams.Balloon )
+		//явно прописывает все свойства балунов в стиле.
+		var applyBalloonDefaultStyle = function(balloonStyle)
 		{
-			enableHoverBalloon(filter, function(o)
-				{
-					var text = gmxAPI.applyTemplate(balloonParams.Balloon, o.properties);
-					var summary = o.getGeometrySummary();
-					text = gmxAPI.applyTemplate(text, { SUMMARY: summary });
-					text = text.replace(/\[SUMMARY\]/g, '');
-					return text;
-				}
-				,
-				balloonAttrs);
-		}
-		else
-		{
-			enableHoverBalloon(filter, null, balloonAttrs);
-		}
-	}
-	this.setBalloonFromParams = setBalloonFromParams;
-	
-	//явно прописывает все свойства балунов в стиле.
-	var applyBalloonDefaultStyle = function(balloonStyle)
-	{
-		//слой только что создали - всё по умолчанию!
-		if (typeof balloonStyle.BalloonEnable === 'undefined')
-		{
-			balloonStyle.BalloonEnable = true;
-			balloonStyle.DisableBalloonOnClick = false;
-			balloonStyle.DisableBalloonOnMouseMove = true;
-		} 
-		else
-		{
-			//поддержка совместимости - если слой уже был, но новых параметров нет 
-			if (typeof balloonStyle.DisableBalloonOnClick === 'undefined')
+			//слой только что создали - всё по умолчанию!
+			if (typeof balloonStyle.BalloonEnable === 'undefined')
+			{
+				balloonStyle.BalloonEnable = true;
 				balloonStyle.DisableBalloonOnClick = false;
-				
-			if (typeof balloonStyle.DisableBalloonOnMouseMove === 'undefined')
-				balloonStyle.DisableBalloonOnMouseMove = false;
+				balloonStyle.DisableBalloonOnMouseMove = true;
+			} 
+			else
+			{
+				//поддержка совместимости - если слой уже был, но новых параметров нет 
+				if (typeof balloonStyle.DisableBalloonOnClick === 'undefined')
+					balloonStyle.DisableBalloonOnClick = false;
+					
+				if (typeof balloonStyle.DisableBalloonOnMouseMove === 'undefined')
+					balloonStyle.DisableBalloonOnMouseMove = false;
+			}
 		}
+		this.applyBalloonDefaultStyle = applyBalloonDefaultStyle;
 	}
-	this.applyBalloonDefaultStyle = applyBalloonDefaultStyle;
-}
+    gmxAPI.BalloonClass = BalloonClass;
+})();
 
 //Поддержка WMS
 (function()
@@ -7889,7 +7155,7 @@ function BalloonClass(map, div, apiBase)
 		var serviceLayers = [],
 			strResp = response.replace(/[\t\n\r]/g, ' '),
 			strResp = strResp.replace(/\s+/g, ' '),
-			layersXML = parseXML(response).getElementsByTagName('Layer');
+			layersXML = gmxAPI.parseXML(response).getElementsByTagName('Layer');
 		
 		for (var i = 0; i < layersXML.length; i++)
 		{
@@ -7904,7 +7170,7 @@ function BalloonClass(map, div, apiBase)
                 layer.srs = null; 
                 for (var si = 0; si < srs.length; si++)
                 {
-                    var curSrs = strip(gmxAPI.getTextContent(srs[si]))
+                    var curSrs = gmxAPI.strip(gmxAPI.getTextContent(srs[si]))
                     
                     if (gmxAPI.valueInArray(wmsProjections, curSrs))
                     {
@@ -8122,7 +7388,7 @@ function BalloonClass(map, div, apiBase)
 	{
 		var strResp = response.replace(/[\t\n\r]/g, ' '),
 			strResp = strResp.replace(/\s+/g, ' '),
-			xml = parseXML(strResp),
+			xml = gmxAPI.parseXML(strResp),
 			vals = [];
 
 		
@@ -8269,7 +7535,7 @@ function BalloonClass(map, div, apiBase)
 	kmlParser.prototype.convertCoords = function(coordsStr)
 	{
 		var res = [],
-			coordsPairs = strip(coordsStr).replace(/[\t\n\r\s]/g,' ').replace(/\s+/g, ' ').replace(/,\s/g, ',').split(' ');
+			coordsPairs = gmxAPI.strip(coordsStr).replace(/[\t\n\r\s]/g,' ').replace(/\s+/g, ' ').replace(/,\s/g, ',').split(' ');
 		
 		if (coordsStr.indexOf(',') == -1)
 		{
@@ -8500,7 +7766,7 @@ function BalloonClass(map, div, apiBase)
 		this.oldBalloon.setPoint(coords[0], coords[1]);
 		this.oldBalloon.div.appendChild(htmlContent);
 		
-		var remove = makeImageButton("img/close.png", "img/close_orange.png");
+		var remove = gmxAPI.makeImageButton("img/close.png", "img/close_orange.png");
 		remove.onclick = function()
 		{
 			_this.oldBalloon.remove();
@@ -8575,4 +7841,700 @@ function BalloonClass(map, div, apiBase)
 		}
 	);
 
+})();
+
+//Поддержка Печати
+(function()
+{
+	/**
+	 * Class for working with browser printing
+	 * @see http://www.anychart.com/blog/projects/acprintmanagerlibrary/
+	 * @version 0.1
+	 * @author Alex Batsuev (alex(at)sibental(dot)com)
+	 */
+	var ACPrintManager = function() {}
+
+	ACPrintManager.isIE = function() {
+		return gmxAPI.isIE;
+	}
+
+	ACPrintManager.initIE = function(objId) {
+		var obj = document.getElementById(objId);
+		if (obj == null) return;
+		if (obj.onBeforePrint == undefined || obj.onAfterPrint == undefined) return;
+		
+		window.attachEvent("onbeforeprint",function(e) {
+			
+			obj.setAttribute("tmpW",obj.width);
+			obj.setAttribute("tmpH",obj.height);
+			
+			var size = ACPrintManager.getContentSize(obj);
+			
+			obj.width = size.width;
+			obj.height = size.height;
+			
+			obj.onBeforePrint();
+			
+			if (obj.getAttribute("tmpW").indexOf("%") != -1 ||
+				obj.getAttribute("tmpH").indexOf("%") != -1) {
+				//ie percent width or height hack
+				obj.focus();
+			}
+		});
+		window.attachEvent("onafterprint",function() {
+			obj.onAfterPrint();
+			obj.width = obj.getAttribute("tmpW");
+			obj.height = obj.getAttribute("tmpH");
+		});
+	} 
+
+	ACPrintManager.initFF = function(objId, imgData) {
+
+		if (gmxAPI.isIE)
+			return;
+
+		var obj = document.getElementById(objId);
+		if (obj == null && document.embeds != null) obj = document.embeds[objId];
+		if (obj == null) return;
+		
+		//step #1: get parent node
+		var parent = obj.parentNode;
+		if (parent == null) return;
+		
+		//step #2: get header
+		var head = document.getElementsByTagName('head');
+		head = ((head.length != 1) ? null : head[0]);
+		
+		//step #3: write normal css rule		
+		var style = document.createElement('style');
+		style.setAttribute('type','text/css');
+		style.setAttribute('media','screen');
+		
+		var size = ACPrintManager.getContentSize(obj);
+		
+		var imgDescriptor = 'img#'+objId+'_screen';
+		var imgRule = "width: "+size.width+";\n"+
+					  "height: "+size.height+";\n"+
+					  "padding: 0;\n"+
+					  "margin: 0;\n"+
+					  "border: 0;\n"+
+					  "display: none;";
+		style.appendChild(document.createTextNode(imgDescriptor + '{' + imgRule + "}\n"));
+		//add style to head
+		head.appendChild(style);
+
+		//step #4: write print css rule
+		style = document.createElement('style');
+		style.setAttribute('type','text/css');
+		style.setAttribute('media','print');
+		
+		//write image style
+		imgDescriptor = 'img#'+objId+'_screen';
+		imgRule = 'display: block;';
+		
+		style.appendChild(document.createTextNode(imgDescriptor + '{' + imgRule + '}'));
+		
+		//write object style
+		var objDescriptor = 'embed#'+objId;
+		var objRule = 'display: none;';
+		style.appendChild(document.createTextNode(objDescriptor + '{' + objRule + '}'));
+		
+		//add style to head
+		head.appendChild(style);
+
+		//step #5: get image
+		var needAppend = false;
+		var img = document.getElementById('img');
+		if (img == null) {
+			img = document.createElement('img');
+			needAppend = true;
+		}
+		
+		img.src = 'data:image/png;base64,'+imgData;
+		img.setAttribute('id',objId+"_screen");
+		if (needAppend)
+			parent.appendChild(img);
+	}
+
+	ACPrintManager.getContentSize = function(obj) {
+		var size = {};
+		size.width = obj.width;
+		size.height = obj.height;
+		if (obj.getWidth != undefined) size.width = obj.getWidth()+'px';
+		if (obj.getHeight != undefined) size.height = obj.getHeight()+'px';
+		return size;
+	}
+    //расширяем namespace
+    window.ACPrintManager = 
+    gmxAPI.ACPrintManager = ACPrintManager;
+})();
+
+//Поддержка JSON parser
+if (!this.JSON) {
+    JSON = {};
+	(function () {
+
+		function f(n) {
+			// Format integers to have at least two digits.
+			return n < 10 ? '0' + n : n;
+		}
+
+		if (typeof Date.prototype.toJSON !== 'function') {
+
+			Date.prototype.toJSON = function (key) {
+
+				return this.getUTCFullYear()   + '-' +
+					 f(this.getUTCMonth() + 1) + '-' +
+					 f(this.getUTCDate())      + 'T' +
+					 f(this.getUTCHours())     + ':' +
+					 f(this.getUTCMinutes())   + ':' +
+					 f(this.getUTCSeconds())   + 'Z';
+			};
+
+			String.prototype.toJSON =
+			Number.prototype.toJSON =
+			Boolean.prototype.toJSON = function (key) {
+				return this.valueOf();
+			};
+		}
+
+		var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+			escapeable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+			gap,
+			indent,
+			meta = {    // table of character substitutions
+				'\b': '\\b',
+				'\t': '\\t',
+				'\n': '\\n',
+				'\f': '\\f',
+				'\r': '\\r',
+				'"' : '\\"',
+				'\\': '\\\\'
+			},
+			rep;
+
+
+		function quote(string) {
+
+			escapeable.lastIndex = 0;
+			return escapeable.test(string) ?
+				'"' + string.replace(escapeable, function (a) {
+					var c = meta[a];
+					if (typeof c === 'string') {
+						return c;
+					}
+					return '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+				}) + '"' :
+				'"' + string + '"';
+		}
+
+
+		function str(key, holder) {
+
+			var i,          // The loop counter.
+				k,          // The member key.
+				v,          // The member value.
+				length,
+				mind = gap,
+				partial,
+				value = holder[key];
+
+			if (value && typeof value === 'object' &&
+					typeof value.toJSON === 'function') {
+				value = value.toJSON(key);
+			}
+
+			if (typeof rep === 'function') {
+				value = rep.call(holder, key, value);
+			}
+
+			switch (typeof value) {
+			case 'string':
+				return quote(value);
+
+			case 'number':
+
+				return isFinite(value) ? String(value) : 'null';
+
+			case 'boolean':
+			case 'null':
+
+				return String(value);
+
+			case 'object':
+
+				if (!value) {
+					return 'null';
+				}
+
+				gap += indent;
+				partial = [];
+
+				if (typeof value.length === 'number' &&
+						!value.propertyIsEnumerable('length')) {
+
+					length = value.length;
+					for (i = 0; i < length; i += 1) {
+						partial[i] = str(i, value) || 'null';
+					}
+
+					v = partial.length === 0 ? '[]' :
+						gap ? '[\n' + gap +
+								partial.join(',\n' + gap) + '\n' +
+									mind + ']' :
+							  '[' + partial.join(',') + ']';
+					gap = mind;
+					return v;
+				}
+
+				if (rep && typeof rep === 'object') {
+					length = rep.length;
+					for (i = 0; i < length; i += 1) {
+						k = rep[i];
+						if (typeof k === 'string') {
+							v = str(k, value);
+							if (v) {
+								partial.push(quote(k) + (gap ? ': ' : ':') + v);
+							}
+						}
+					}
+				} else {
+
+					for (k in value) {
+						if (Object.hasOwnProperty.call(value, k)) {
+							v = str(k, value);
+							if (v) {
+								partial.push(quote(k) + (gap ? ': ' : ':') + v);
+							}
+						}
+					}
+				}
+
+				v = partial.length === 0 ? '{}' :
+					gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' +
+							mind + '}' : '{' + partial.join(',') + '}';
+				gap = mind;
+				return v;
+			}
+		}
+
+		if (typeof JSON.stringify !== 'function') {
+			JSON.stringify = function (value, replacer, space) {
+
+				var i;
+				gap = '';
+				indent = '';
+
+				if (typeof space === 'number') {
+					for (i = 0; i < space; i += 1) {
+						indent += ' ';
+					}
+
+				} else if (typeof space === 'string') {
+					indent = space;
+				}
+
+				rep = replacer;
+				if (replacer && typeof replacer !== 'function' &&
+						(typeof replacer !== 'object' ||
+						 typeof replacer.length !== 'number')) {
+					throw new Error('JSON.stringify');
+				}
+
+				return str('', {'': value});
+			};
+		}
+
+		if (typeof JSON.parse !== 'function') {
+			JSON.parse = function (text, reviver) {
+
+				var j;
+
+				function walk(holder, key) {
+
+					var k, v, value = holder[key];
+					if (value && typeof value === 'object') {
+						for (k in value) {
+							if (Object.hasOwnProperty.call(value, k)) {
+								v = walk(value, k);
+								if (v !== undefined) {
+									value[k] = v;
+								} else {
+									delete value[k];
+								}
+							}
+						}
+					}
+					return reviver.call(holder, key, value);
+				}
+
+				cx.lastIndex = 0;
+				if (cx.test(text)) {
+					text = text.replace(cx, function (a) {
+						return '\\u' +
+							('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+					});
+				}
+
+				if (/^[\],:{}\s]*$/.
+	test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').
+	replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
+	replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+
+					j = eval('(' + text + ')');
+
+					return typeof reviver === 'function' ?
+						walk({'': j}, '') : j;
+				}
+
+				throw new SyntaxError('JSON.parse');
+			};
+		}
+	})();
+}
+
+//Поддержка Flash
+(function()
+{
+	// Передача команды в SWF
+	function FlashCMD(cmd, hash)
+	{
+		var ret = {};
+		if(!gmxAPI.flashDiv) return ret;
+//var startTime = (new Date()).getTime();
+		var flashDomTest = typeof(gmxAPI.flashDiv); 
+		var obj = hash['obj'] || null;	// Целевой обьект команды
+		var attr = hash['attr'] || '';
+		switch (cmd) {				// Тип команды
+			case 'setVisible':		// Изменить видимость обьекта
+				if(obj) {
+					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr } );
+					if (attr && obj.backgroundColor)
+						gmxAPI.map.setBackgroundColor(obj.backgroundColor);
+					if (obj.copyright)
+						gmxAPI.map.updateCopyright();
+					var func = gmxAPI.map.onSetVisible[obj.objectId];
+					if (func)
+						func(attr);
+				}
+				break;
+			case 'sendPNG':			// Сохранение изображения карты на сервер
+				var miniMapFlag = map.miniMap.getVisibility();
+				var flag = (attr.miniMapSetVisible ? true : false);
+				map.miniMap.setVisible(flag);
+				if(attr.func) attr.func = uniqueGlobalName(attr.func);
+				ret['base64'] = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				map.miniMap.setVisible(miniMapFlag);
+				break;
+			case 'setZoomBounds':	// Установить ограничения по Zoom
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZ':attr['minZ'], 'maxZ':attr['maxZ'] });
+				break;
+			case 'setClusters':		// Установить кластеризацию потомков
+				if(attr && 'newProperties' in attr) {
+					var keyArray = [];
+					var valArray = [];
+					for(key in attr['newProperties'])
+					{
+						keyArray.push(key);
+						valArray.push(attr['newProperties'][key]);
+					}
+					attr['propFields'] = [keyArray, valArray];
+					attr['hideFixedBalloons'] = uniqueGlobalName(function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(true); });
+				}
+				var flag = ('clusters' in obj);	// видимость кластеров
+				if(!flag)
+					obj['clusters'] = new Clusters(obj);
+				else
+					ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
+				attr['visible'] = flag;
+				obj['clusters']['attr'] = attr;
+
+				if(!obj.parent._hoverBalloonAttr) obj.parent.enableHoverBalloon();	// если балунов не установлено
+				break;
+			case 'delClusters':		// Удалить кластеризацию потомков
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
+				if('clusters' in obj) obj['clusters']['attr']['visible'] = false;
+				break;
+			case 'setGridVisible':		// Изменить видимость сетки
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'flag':attr } );
+				break;
+			case 'getGridVisibility':	// получить видимость сетки
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { } );
+				break;
+			case 'getZoomBounds':	// Получить ограничения по Zoom
+			case 'getDepth':		// Получить индекс обьекта
+			case 'getVisibility':	// получить видимость
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
+				break;
+			case 'savePNG':			// Сохранить PNG файл экрана
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'fileName':attr });
+				break;
+			case 'trace':			// Сообщение в SWF
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'data':attr });
+				break;
+			case 'setQuality':		// Установка Quality
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'data':attr });
+				break;
+			case 'disableCaching':	// ????
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'print':			// Печать
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'repaint':			// ????
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'addContextMenuItem':	// Добавить пункт в контекстное меню SWF
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'moveTo':			//позиционирует карту по координатам центра и выбирает масштаб
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'slideTo':			//плавно позиционирует карту по координатам центра и выбирает масштаб
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'zoomBy':			//выбирает масштаб
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'freeze':			// заморозить
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'unfreeze':		// разморозить
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'setCursor':		//установка курсора
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'clearCursor':		//убрать курсор
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'setCursorVisible'://видимость курсора
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'stopDragging':	//убрать флаг Drag
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'isDragging':		//получить флаг Drag
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'resumeDragging':	//возобновить Drag
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'getPosition':		//получить текущие атрибуты SWF
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'getX':			//получить позицию Х центра SWF
+				ret = gmxAPI.from_merc_x(gmxAPI.flashDiv.cmdFromJS(cmd, { }));
+				break;
+			case 'getY':			//получить позицию Y центра SWF
+				ret = gmxAPI.from_merc_y(gmxAPI.flashDiv.cmdFromJS(cmd, { }));
+				break;
+			case 'getZ':			//получить текущий Z
+				ret = 17 - gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				break;
+			case 'getMouseX':		//получить позицию Х MouseX
+				ret = gmxAPI.from_merc_x(gmxAPI.flashDiv.cmdFromJS(cmd, { }));
+				break;
+			case 'getMouseY':		//получить позицию Y MouseY
+				ret = gmxAPI.from_merc_y(gmxAPI.flashDiv.cmdFromJS(cmd, { }));
+				break;
+			case 'isKeyDown':		//проверить нажатие клавиши в SWF
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'setExtent':		//установить Extent в SWF
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'setMinMaxZoom':	//установить Zoom ограничения
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'addMapWindow':	//Создание окна карты
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'setStyle':		// установить Style обьекта
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+				break;
+			case 'getStyle':		//получить Style обьекта
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'removeDefaults':attr });
+				break;
+			case 'positionWindow':	// 
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+				break;
+			case 'setBackgroundColor':	// 
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'color':attr } );
+				break;
+			case 'getChildren':		// получить список потомков
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'setHandler':		// установка обработчика события
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'eventName':attr['eventName'], 'callbackName':attr['callbackName'] } );
+				break;
+			case 'removeHandler':	// удаление обработчика события
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'eventName':attr['eventName'] } );
+				break;
+			case 'addObject':		// добавить обьект
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geometry':attr['geometry'], 'properties':attr['properties'] } );
+				break;
+			case 'addObjects':		// добавить обьекты
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				break;
+			case 'addObjectsFromSWF':	// добавить обьекты из SWF файла
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'attr':attr });
+				break;
+			case 'setFilter':		// добавить фильтр к обьекту
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'sql':attr['sql'] } );
+				break;
+			case 'remove':			// удалить обьект
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'bringToTop':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'bringToDepth':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'zIndex':attr['zIndex'] } );
+				break;
+			case 'bringToBottom':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'setActive':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr['flag'] } );
+				break;
+			case 'setEditable':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'startDrawing':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'type':attr['type'] } );
+				break;
+			case 'stopDrawing':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'isDrawing':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'getIntermediateLength':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'getCurrentEdgeLength':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'setLabel':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'label':attr['label'] } );
+				break;
+			case 'setBackgroundTiles':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZoomView':attr['minZoomView'], 'maxZoomView':attr['maxZoomView'], 'minZoom':attr['minZoom'], 'maxZoom':attr['maxZoom'], 'func':attr['func'], 'projectionCode':attr['projectionCode'] } );
+				break;
+			case 'setDisplacement':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'dx':attr['dx'], 'dy':attr['dy'] } );
+				break;
+			case 'setTileCaching':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr['flag'] } );
+				break;
+			case 'setImageExtent':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+				break;
+			case 'clearBackgroundImage':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'setGeometry':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+				break;
+			case 'getGeometry':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'getLength':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'getArea':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'getGeometryType':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'getCenter':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'addChildRoot':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'setVectorTiles':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'tileFunction':attr['tileFunction'], 'identityField':attr['cacheFieldName'], 'tiles':attr['dataTiles'], 'filesHash':attr['filesHash'] } );
+				break;
+			case 'setTiles':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'tiles':attr['tiles'], 'flag':attr['flag'] } );
+				break;
+			case 'startLoadTiles':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+				break;
+
+			case 'getStat':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'observeVectorLayer':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'layerId':attr['layerId'], 'func':attr['func'] } );
+				break;
+			case 'setImage':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'url':attr['url'],
+				'x1':attr['x1'], 'y1':attr['y1'], 'x2':attr['x2'], 'y2':attr['y2'], 'x3':attr['x3'], 'y3':attr['y3'], 'x4':attr['x4'], 'y4':attr['y4'],
+				'tx1':attr['tx1'], 'ty1':attr['ty1'], 'tx2':attr['tx2'], 'ty2':attr['ty2'], 'tx3':attr['tx3'], 'ty3':attr['ty3'], 'tx4':attr['tx4'], 'ty4':attr['ty4']
+				} );
+				break;
+			case 'flip':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				break;
+			case 'getFeatureById':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'fid':attr['fid'], 'func':attr['func'] } );
+				break;
+			case 'getFeatures':
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geom':attr['geom'], 'func':attr['func'] } );
+				break;
+			case 'getTileItem':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'vId':attr } );
+				break;
+			case 'setTileItem':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr['data'], 'flag':attr['flag'] } );
+				break;
+			case 'getItemsFromExtent':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+				break;
+			case 'setFlashLSO':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+				break;
+			case 'setAPIProperties':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+				break;
+		}
+/*
+if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };
+var delta = (new Date()).getTime() - startTime;
+window._debugTimes.jsToFlash.timeSum += delta;
+window._debugTimes.jsToFlash.callCount += 1;
+if(!window._debugTimes.jsToFlash.callFunc[cmd]) window._debugTimes.jsToFlash.callFunc[cmd] = { 'timeSum':0, 'callCount':0 };
+window._debugTimes.jsToFlash.callFunc[cmd]['timeSum'] += delta;
+window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
+*/
+		return ret;
+	}
+	
+	if(typeof deconcept=="undefined"){var deconcept=new Object();}if(typeof deconcept.util=="undefined"){deconcept.util=new Object();}if(typeof deconcept.SWFObjectUtil=="undefined"){deconcept.SWFObjectUtil=new Object();}deconcept.SWFObject=function(_1,id,w,h,_5,c,_7,_8,_9,_a){if(!document.getElementById){return;}this.DETECT_KEY=_a?_a:"detectflash";this.skipDetect=deconcept.util.getRequestParameter(this.DETECT_KEY);this.params=new Object();this.variables=new Object();this.attributes=new Array();if(_1){this.setAttribute("swf",_1);}if(id){this.setAttribute("id",id);}if(w){this.setAttribute("width",w);}if(h){this.setAttribute("height",h);}if(_5){this.setAttribute("version",new deconcept.PlayerVersion(_5.toString().split(".")));}this.installedVer=deconcept.SWFObjectUtil.getPlayerVersion();if(!window.opera&&document.all&&this.installedVer.major>7){deconcept.SWFObject.doPrepUnload=true;}if(c){this.addParam("bgcolor",c);}var q=_7?_7:"high";this.addParam("quality",q);this.setAttribute("useExpressInstall",false);this.setAttribute("doExpressInstall",false);var _c=(_8)?_8:window.location;this.setAttribute("xiRedirectUrl",_c);this.setAttribute("redirectUrl","");if(_9){this.setAttribute("redirectUrl",_9);}};deconcept.SWFObject.prototype={useExpressInstall:function(_d){this.xiSWFPath=!_d?"expressinstall.swf":_d;this.setAttribute("useExpressInstall",true);},setAttribute:function(_e,_f){this.attributes[_e]=_f;},getAttribute:function(_10){return this.attributes[_10];},addParam:function(_11,_12){this.params[_11]=_12;},getParams:function(){return this.params;},addVariable:function(_13,_14){this.variables[_13]=_14;},getVariable:function(_15){return this.variables[_15];},getVariables:function(){return this.variables;},getVariablePairs:function(){var _16=new Array();var key;var _18=this.getVariables();for(key in _18){_16[_16.length]=key+"="+_18[key];}return _16;},getSWFHTML:function(){var _19="";if(navigator.plugins&&navigator.mimeTypes&&navigator.mimeTypes.length){if(this.getAttribute("doExpressInstall")){this.addVariable("MMplayerType","PlugIn");this.setAttribute("swf",this.xiSWFPath);}_19="<embed type=\"application/x-shockwave-flash\" src=\""+this.getAttribute("swf")+"\" width=\""+this.getAttribute("width")+"\" height=\""+this.getAttribute("height")+"\" style=\""+this.getAttribute("style")+"\"";_19+=" id=\""+this.getAttribute("id")+"\" name=\""+this.getAttribute("id")+"\" ";var _1a=this.getParams();for(var key in _1a){_19+=[key]+"=\""+_1a[key]+"\" ";}var _1c=this.getVariablePairs().join("&");if(_1c.length>0){_19+="flashvars=\""+_1c+"\"";}_19+="/>";}else{if(this.getAttribute("doExpressInstall")){this.addVariable("MMplayerType","ActiveX");this.setAttribute("swf",this.xiSWFPath);}_19="<object id=\""+this.getAttribute("id")+"\" classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" width=\""+this.getAttribute("width")+"\" height=\""+this.getAttribute("height")+"\" style=\""+this.getAttribute("style")+"\">";_19+="<param name=\"movie\" value=\""+this.getAttribute("swf")+"\" />";var _1d=this.getParams();for(var key in _1d){_19+="<param name=\""+key+"\" value=\""+_1d[key]+"\" />";}var _1f=this.getVariablePairs().join("&");if(_1f.length>0){_19+="<param name=\"flashvars\" value=\""+_1f+"\" />";}_19+="</object>";}return _19;},write:function(_20){if(this.getAttribute("useExpressInstall")){var _21=new deconcept.PlayerVersion([6,0,65]);if(this.installedVer.versionIsValid(_21)&&!this.installedVer.versionIsValid(this.getAttribute("version"))){this.setAttribute("doExpressInstall",true);this.addVariable("MMredirectURL",escape(this.getAttribute("xiRedirectUrl")));document.title=document.title.slice(0,47)+" - Flash Player Installation";this.addVariable("MMdoctitle",document.title);}}if(this.skipDetect||this.getAttribute("doExpressInstall")||this.installedVer.versionIsValid(this.getAttribute("version"))){var n=(typeof _20=="string")?document.getElementById(_20):_20;n.innerHTML=this.getSWFHTML();return true;}else{if(this.getAttribute("redirectUrl")!=""){document.location.replace(this.getAttribute("redirectUrl"));}}return false;}};deconcept.SWFObjectUtil.getPlayerVersion=function(){var _23=new deconcept.PlayerVersion([0,0,0]);if(navigator.plugins&&navigator.mimeTypes.length){var x=navigator.plugins["Shockwave Flash"];if(x&&x.description){_23=new deconcept.PlayerVersion(x.description.replace(/([a-zA-Z]|\s)+/,"").replace(/(\s+r|\s+b[0-9]+)/,".").split("."));}}else{if(navigator.userAgent&&navigator.userAgent.indexOf("Windows CE")>=0){var axo=1;var _26=3;while(axo){try{_26++;axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash."+_26);_23=new deconcept.PlayerVersion([_26,0,0]);}catch(e){axo=null;}}}else{try{var axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash.7");}catch(e){try{var axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash.6");_23=new deconcept.PlayerVersion([6,0,21]);axo.AllowScriptAccess="always";}catch(e){if(_23.major==6){return _23;}}try{axo=new ActiveXObject("ShockwaveFlash.ShockwaveFlash");}catch(e){}}if(axo!=null){_23=new deconcept.PlayerVersion(axo.GetVariable("$version").split(" ")[1].split(","));}}}return _23;};deconcept.PlayerVersion=function(_29){this.major=_29[0]!=null?parseInt(_29[0]):0;this.minor=_29[1]!=null?parseInt(_29[1]):0;this.rev=_29[2]!=null?parseInt(_29[2]):0;};deconcept.PlayerVersion.prototype.versionIsValid=function(fv){if(this.major<fv.major){return false;}if(this.major>fv.major){return true;}if(this.minor<fv.minor){return false;}if(this.minor>fv.minor){return true;}if(this.rev<fv.rev){return false;}return true;};deconcept.util={getRequestParameter:function(_2b){var q=document.location.search||document.location.hash;if(_2b==null){return q;}if(q){var _2d=q.substring(1).split("&");for(var i=0;i<_2d.length;i++){if(_2d[i].substring(0,_2d[i].indexOf("="))==_2b){return _2d[i].substring((_2d[i].indexOf("=")+1));}}}return "";}};deconcept.SWFObjectUtil.cleanupSWFs=function(){var _2f=document.getElementsByTagName("OBJECT");for(var i=_2f.length-1;i>=0;i--){_2f[i].style.display="none";for(var x in _2f[i]){if(typeof _2f[i][x]=="function"){_2f[i][x]=function(){};}}}};if(deconcept.SWFObject.doPrepUnload){if(!deconcept.unloadSet){deconcept.SWFObjectUtil.prepUnload=function(){__flash_unloadHandler=function(){};__flash_savedUnloadHandler=function(){};window.attachEvent("onunload",deconcept.SWFObjectUtil.cleanupSWFs);};window.attachEvent("onbeforeunload",deconcept.SWFObjectUtil.prepUnload);deconcept.unloadSet=true;}}if(!document.getElementById&&document.all){document.getElementById=function(id){return document.all[id];};}
+
+	// Добавить SWF в DOM
+	function addSWFObject(url, flashId, ww, hh, v, bg, loadCallback, FlagFlashLSO)
+	{
+		var o = new gmxAPI._flashDeconcept.SWFObject(url, flashId, ww, hh, v, bg);
+		o.addParam('allowScriptAccess', 'always');
+		o.addParam('wmode', 'opaque');
+		o.addVariable("clearCallback", uniqueGlobalName(function(name) { delete window[name]; }));
+		o.addVariable("loadCallback", uniqueGlobalName(loadCallback));
+		if(FlagFlashLSO) {
+			o.addVariable("useFlashLSO", true);
+			if(FlagFlashLSO.multiSession) o.addVariable("multiSessionLSO", true);
+			if(FlagFlashLSO.compress) o.addVariable("compressLSO", true);
+		}
+		return o;
+	}
+	
+	//расширяем namespace
+    gmxAPI._cmdProxy = FlashCMD;	// посылка команд отрисовщику
+    gmxAPI._flashDeconcept = deconcept;	// Утилиты Flash в DOM
+    gmxAPI._addSWFObject = addSWFObject;	// Добавить SWF в DOM
+    
 })();
