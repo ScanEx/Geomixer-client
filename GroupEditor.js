@@ -92,7 +92,7 @@ var addSubGroup = function(div, mapHelper)
 	    newName = elemProperties.title,
 		inputIndex = _input(null,[['attr','value', newName + ' ' + newIndex],['dir','className','inputStyle'],['css','width','140px']]),
 		create = makeButton(_gtxt('Создать')),
-		pos = mapHelper.getDialogPos(div, true, 100),
+		pos = nsGmx.Utils.getDialogPos(div, true, 100),
 		createSubGroup = function()
 		{
 			if (inputIndex.value == '')
@@ -526,7 +526,7 @@ var createGroupEditor = function(div)
 	if (_groupEditorsHash[elemProperties.GroupID])
 		return;
 	
-	var pos = _mapHelper.getDialogPos(div, true, 140),
+	var pos = nsGmx.Utils.getDialogPos(div, true, 140),
 		closeFunc = function()
 		{
 			delete _groupEditorsHash[elemProperties.GroupID];
@@ -555,7 +555,7 @@ var createMapEditor = function(div)
 	if (_mapEditorsHash[elemProperties.MapID])
 		return;
 	
-	var pos = _mapHelper.getDialogPos(div, true, 530),
+	var pos = nsGmx.Utils.getDialogPos(div, true, 530),
 		closeFunc = function()
 		{
 			delete _mapEditorsHash[elemProperties.MapID];

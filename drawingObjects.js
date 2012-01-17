@@ -6,9 +6,9 @@
 (function($){
 
 var IsAttached = false;
-var AttachEvents = function(){
+var AttachEvents = function(map){
 	if (IsAttached) return;
-	window.globalFlashMap.drawing.setHandlers({
+	map.drawing.setHandlers({
 		onEdit: function(elem){
 			$(elem).triggerHandler('onEdit', [elem]);
 		},
@@ -66,7 +66,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 				
 				$(elemCanvas).find(".borderIcon")[0].style.borderColor = '#' + hex;
 				
-				_mapHelper.setMapStyle(parentObject, templateStyle);
+				nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
 			});
 		
 		outlineColor.hex = templateStyle.outline.color;
@@ -80,7 +80,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 				{
 					templateStyle.outline.opacity = ui.value;
 					
-					_mapHelper.setMapStyle(parentObject, templateStyle);
+					nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
 				})
 		
 		_title(divSlider, _gtxt("Прозрачность"));
@@ -92,7 +92,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 				{
 					templateStyle.outline.thickness = Number(this.value);
 					
-					_mapHelper.setMapStyle(parentObject, templateStyle);
+					nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
 					
 					return true;
 				}),
@@ -134,7 +134,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 		
 		_(canvas, [_table([_tbody([_tr([_td([_t(_gtxt("Описание"))], [['css','width','70px']]), _td([text])])])]), _br(), _table([_tbody([outlineParent])])])
 		
-		var pos = _mapHelper.getDialogPos(elemCanvas, false, 80);
+		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 80);
 		showDialog(_gtxt('Редактирование стилей объекта'), canvas, 280, 110, pos.left, pos.top, false, closeFunc)
 	}
 	
@@ -214,11 +214,13 @@ var DrawingObjectCollection = function() {
 /** Конструктор
  @class Строка с описанием объекта и ссылкой на него
  @memberOf DrawingObjects 
+ @param oInitMap Карта
  @param oInitContainer Объект, в котором находится контрол (div) 
  @param drawingObject Объект для добавления на карту*/
-var DrawingObjectInfoRow = function(oInitContainer, drawingObject) {
+var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject) {
 	var _drawingObject = drawingObject;
 	var _this = this;
+	var _map = oInitMap;
 	
 	var _canvas = _div(null, [['dir','className','drawingObjectsItemCanvas']]);
 	var _title = _span(null, [['dir','className','drawingObjectsItemTitle']]);
@@ -228,12 +230,12 @@ var DrawingObjectInfoRow = function(oInitContainer, drawingObject) {
 	_text.onclick = _title.onclick = function()
 	{
 		var bounds = getBounds(_drawingObject.geometry.coordinates),
-			curZ = globalFlashMap.getZ();
+			curZ = _map.getZ();
 		
-		globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+		_map.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
 		
 		if (_drawingObject.geometry.type == "POINT")
-			globalFlashMap.moveTo(globalFlashMap.getX(), globalFlashMap.getY(), Math.max(14, curZ));
+			_map.moveTo(_map.getX(), _map.getY(), Math.max(14, curZ));
 	}
 	
 	var regularDrawingStyle = {
@@ -245,7 +247,7 @@ var DrawingObjectInfoRow = function(oInitContainer, drawingObject) {
 	
 	if (_drawingObject.geometry.type == "POINT")
 	{
-		icon = _img(null, [['attr','src','img/flag_min.png'], ['dir', 'className', 'colorIcon']])
+		icon = _img(null, [['attr','src', gmxAPI.getAPIHostRoot() + 'api/img/flag_min.png'], ['dir', 'className', 'colorIcon']])
 	}
 	else
 	{
@@ -253,7 +255,7 @@ var DrawingObjectInfoRow = function(oInitContainer, drawingObject) {
 		CreateDrawingStylesEditor(_drawingObject, regularDrawingStyle, icon);
 	}
 	
-	var remove = makeImageButton('img/closemin.png','img/close_orange.png')
+	var remove = makeImageButton(gmxAPI.getAPIHostRoot() + 'api/img/closemin.png',gmxAPI.getAPIHostRoot() + 'api/img/close_orange.png')
 	remove.setAttribute('title', _gtxt('Удалить'));
 	remove.className = 'removeGeometry';
 	remove.onclick = function(){ $(_this).triggerHandler('onRemove', [_drawingObject]); }
@@ -318,12 +320,14 @@ var DrawingObjectInfoRow = function(oInitContainer, drawingObject) {
 /** Конструктор
  @class Строка с описанием объекта и ссылкой на него
  @memberOf DrawingObjects 
+ @param oInitMap Карта
  @param {documentElement} oInitContainer Объект, в котором находится контрол (div) 
  @param {drawingObject} drawingObject Объект для добавления на карту*/
-var DrawingObjectList = function(oInitContainer, oInitDrawingObjectCollection){
+var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCollection){
 	var _this = this;
 	var _rows = [];
 	var _containers = [];
+	var _map = oInitMap;
 	var _collection = oInitDrawingObjectCollection;
 	var _container = oInitContainer;
 	var _divList = _div(null, [['dir', 'className', 'DrawingObjectList']]);
@@ -335,7 +339,7 @@ var DrawingObjectList = function(oInitContainer, oInitDrawingObjectCollection){
 	var add = function(drawingObject){
 		var _divRow = _div();
 		_(_divList, [_divRow]);
-		var _row = new DrawingObjectInfoRow(_divRow, drawingObject);
+		var _row = new DrawingObjectInfoRow(_map, _divRow, drawingObject);
 		_containers.push(_divRow);
 		_rows.push(_row);
 		$(_row).bind('onRemove', drawingObject.remove);
@@ -378,8 +382,6 @@ var DrawingObjectList = function(oInitContainer, oInitDrawingObjectCollection){
 	if (_collection.Count() == 0) hide(_divButtons);
 	
 	for (var i=0; i<_collection.Count(); i++){ add(_collection.Item(i));}
-	
-
 }
 
 /** Конструктор
@@ -387,6 +389,7 @@ var DrawingObjectList = function(oInitContainer, oInitDrawingObjectCollection){
  @class Встраивает список объектов на карте в геомиксер*/
 var DrawingObjectGeomixer = function() {
 	var _this = this;
+	var oMap = null;
 	var oMenu = new leftMenu();
 	var oListDiv = _div(null, [['dir', 'className', 'DrawingObjectsLeftMenu']]);
 	var bVisible = false;
@@ -415,7 +418,7 @@ var DrawingObjectGeomixer = function() {
 	}
 	
 	var checkDownloadRaster = function(){
-		if (!_mapHelper.mapProperties.CanDownloadRasters) return;
+		if (!oMap.properties.CanDownloadRasters) return;
 		var found = false;
 		for (var i=0; i< oCollection.Count(); i++){
 			if (isRectangle(oCollection.Item(i).geometry.coordinates)) {
@@ -439,21 +442,22 @@ var DrawingObjectGeomixer = function() {
 	
 	$(oCollection).bind('onRemove', checkDownloadRaster);
 	$(oCollection).bind('onAdd', function(event, drawingObject){ 
-		if (_mapHelper.mapProperties.CanDownloadRasters && isRectangle(drawingObject.geometry.coordinates)) show(downloadRaster);
+		if (oMap.properties.CanDownloadRasters && isRectangle(drawingObject.geometry.coordinates)) show(downloadRaster);
 	});
 	
 	/** Встраивает список объектов на карте в геомиксер*/
-	this.Init = function(){
-		globalFlashMap.drawing.forEachObject(function(ret){
+	this.Init = function(map){
+		oMap = map;
+		oMap.drawing.forEachObject(function(ret){
 			fnAddToCollection(ret);
 		});
 		
-		window.globalFlashMap.drawing.setHandlers({onAdd: fnAddToCollection});
+		oMap.drawing.setHandlers({onAdd: fnAddToCollection});
 		
-		var oDrawingObjectList = new DrawingObjectList(oListDiv, oCollection);
+		var oDrawingObjectList = new DrawingObjectList(oMap, oListDiv, oCollection);
 		_(oDrawingObjectList.GetDivButtons(), [_div([downloadVector]), _div([downloadRaster, _downloadVectorForm])]);
 		checkDownloadRaster();
-		AttachEvents();
+		AttachEvents(oMap);
 	}
 	
 	/** Скачивает shp файл*/
@@ -490,9 +494,8 @@ var DrawingObjectGeomixer = function() {
 		
 		for (var i=0; i<oCollection.Count(); i++){
 			var elem = oCollection.Item(i);
-			var coords = elem.geometry.coordinates[0];
 			
-			if ( (elem.geometry.type == "POLYGON") && gmxAPI.isRectangle(coords) )
+			if ( (elem.geometry.type == "POLYGON") && gmxAPI.isRectangle(elem.geometry.coordinates) )
 				obj = elem;
 		}
 		
@@ -553,8 +556,8 @@ var DrawingObjectGeomixer = function() {
 			return true;
 		}
 
-		_mapHelper.forEachMyLayer(function(l)
-		{
+		for (var iLayerN=0; i<oMap.layers.length; i++){
+			l = oMap.layers[iLayerN];
 			if (l.properties.type != "Raster")
 				return;
 			if (!l.isVisible)
@@ -572,7 +575,7 @@ var DrawingObjectGeomixer = function() {
 						return;
 			if (l && (!layer || (l.properties.MaxZoom > layer.properties.MaxZoom)))
 				layer = l;
-		});
+		};
 		
 		tryToFinish();
 	}

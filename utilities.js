@@ -1076,7 +1076,60 @@ nsGmx.Utils = {
             r = '0' + r;
         
         return '#' + r + g + b;
-    } 
+    },
+	
+	/** Возвращает позицию окна такую, чтобы окно не мешало текущему элементу*/
+	getDialogPos: function(div, offsetFlag, height)
+	{
+		var pos = getOffsetRect(div),
+			left = pos.left + 30,
+			top = pos.top - 10,
+			windowHeight = getWindowHeight();
+		
+		if (offsetFlag)
+		{
+			$(div).children('div,img').each(function()
+			{ 
+				if (!this.getAttribute('multiStyle'))
+					left += this.offsetWidth;
+			})
+		}
+		
+		if (top + 15 + height > windowHeight)
+			top -= (top + 15 + height - windowHeight);
+		
+		return {left: left, top: top}
+	},
+	
+	/** Устанавливает обычный стиль и генерит похожий стиль при наведении мышки 
+	@param mapObject {MapObject} Объект на карте
+	@param templateStyle {Style} Стиль, похожий на который надо установить*/
+	setMapObjectStyle: function(mapObject, templateStyle)
+	{
+		if (templateStyle.marker && typeof templateStyle.marker.image != 'undefined')
+		{
+			try
+			{
+				mapObject.setStyle(templateStyle);
+			}
+			catch(e)
+			{
+			}
+		}
+		else
+		{
+			var hoverStyle = {};
+			$.extend(true, hoverStyle, templateStyle);
+			
+			if (templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined')
+				hoverStyle.outline.thickness = Number(templateStyle.outline.thickness) + 1;
+			
+			if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined')
+				hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
+			
+			mapObject.setStyle(templateStyle, hoverStyle);
+		}
+	}
 }
 
 gmxCore.addModule('utilities', nsGmx.Utils);

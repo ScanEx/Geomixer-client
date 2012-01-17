@@ -128,7 +128,7 @@ var fnInitControls = function(){
 		mapHelper: _mapHelper,
 		Map: globalFlashMap
 	});
-	window.oDrawingObjectGeomixer.Init();
+	window.oDrawingObjectGeomixer.Init(globalFlashMap);
 }
 // используется для сохранения специфичных параметров в пермалинке
 window.collectCustomParams = function()

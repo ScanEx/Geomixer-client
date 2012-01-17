@@ -976,7 +976,7 @@ layersTree.prototype.removeGroup = function(div)
 	var box = _checkbox(false, 'checkbox'),
 		remove = makeButton(_gtxt("Удалить")),
 		span = _span([_t(_gtxt("Включая вложенные слои"))]),
-		pos = this.mapHelper.getDialogPos(div, true, 90),
+		pos = nsGmx.Utils.getDialogPos(div, true, 90),
 		_this = this;
 	
 	if (!$.browser.msie)
