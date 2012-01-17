@@ -23,22 +23,17 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
     
     _queryMapLayers.layersList = layersToAdd;
 
-    _queryMapLayers._createLayersManagerInDiv(commonLayersListDiv, 'multilayers', {
+    var suggestLayersTable = _queryMapLayers._createLayersManagerInDiv(commonLayersListDiv, 'multilayers', {
         showType: false, 
         enableDragging: false,
         onclick: function(context)
         {
-            var filteredValues = _filter(function(elem)
+            context.scrollTable.getDataProvider().filterOriginalItems(function(elem)
             {
                 return elem.LayerID != context.elem.LayerID;
-            }, context.scrollTable.vals);
+            });
             
-            context.scrollTable.setValues(filteredValues);
-            
-            context.scrollTable.drawFilterTable();
-            
-            selectedLayersTable.setValues(selectedLayersTable.vals.concat([context.elem]));
-            selectedLayersTable.drawFilterTable();
+            selectedLayersTable.getDataProvider().addOriginalItem(context.elem);
         }
     });
     
@@ -55,34 +50,34 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
             var _this = this;
             deleteButton.onclick = function()
             {
-                var filteredValues = _filter(function(elem)
+                _this.getDataProvider().filterOriginalItems(function(elem)
                 {
                     return elem.LayerID != layer.LayerID;
-                }, _this.vals);
-                _this.setValues(filteredValues);
-                _this.drawFilterTable();
+                })
+                
+                suggestLayersTable.getDataProvider().addOriginalItem(layer);
             }
             downButton.onclick = function()
             {
-                for (var i = 0; i < _this.vals.length-1; i++)
-                    if (_this.vals[i].LayerID === layer.LayerID)
+                var vals = _this.getDataProvider().getOriginalItems();
+                for (var i = 0; i < vals.length-1; i++)
+                    if (vals[i].LayerID === layer.LayerID)
                     {
-                        _this.vals.splice(i, 1);
-                        _this.vals.splice(i+1, 0, layer);
-                        _this.setValues(_this.vals);
-                        _this.drawFilterTable();
+                        vals.splice(i, 1);
+                        vals.splice(i+1, 0, layer);
+                        _this.getDataProvider().setOriginalItems(vals);
                         break;
                     }
             }
             upButton.onclick = function()
             {
-                for (var i = 1; i < _this.vals.length; i++)
-                    if (_this.vals[i].LayerID === layer.LayerID)
+                var vals = _this.getDataProvider().getOriginalItems();
+                for (var i = 1; i < vals.length; i++)
+                    if (vals[i].LayerID === layer.LayerID)
                     {
-                        _this.vals.splice(i, 1);
-                        _this.vals.splice(i-1, 0, layer);
-                        _this.setValues(_this.vals);
-                        _this.drawFilterTable();
+                        vals.splice(i, 1);
+                        vals.splice(i-1, 0, layer);
+                        _this.getDataProvider().setOriginalItems(vals);
                         break;
                     }
             }
@@ -93,8 +88,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
             return baseTR;
         }, {});
     
-    selectedLayersTable.setValues(layers);
-    selectedLayersTable.drawFilterTable();
+    selectedLayersTable.getDataProvider().setOriginalItems(layers);    
     
     var propertiesDiv = _div(null, [['css', 'width', '100%'], ['css', 'height', '100%']]);
     var shownProperties = [];
@@ -150,7 +144,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
         var errorElems = [];
         
         if (title.value === '') errorElems.push(title);
-        if (!selectedLayersTable.vals.length) errorElems.push(selectedLayersDiv);
+        if (!selectedLayersTable.getDataProvider().getOriginalItems().length) errorElems.push(selectedLayersDiv);
         
         for (var i = 0; i < errorElems.length; i++)
             (function(elem)
@@ -166,8 +160,9 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
         if (errorElems.length) return;
         
         var layers = [];
-        for (var l = 0; l < selectedLayersTable.vals.length; l++)
-            layers.push({LayerID: selectedLayersTable.vals[l].LayerID});
+        var selectedItems = selectedLayersTable.getDataProvider().getOriginalItems();
+        for (var l = 0; l < selectedItems.length; l++)
+            layers.push({LayerID: selectedItems[l].LayerID});
             
         var updateInfo = {Properties: {MultiLayerID: elemProperties.MultiLayerID, Title: title.value, Description: descr.value, WMSAccess: false}, Layers: layers, LayersChanged: true};
         

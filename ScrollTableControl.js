@@ -6,12 +6,14 @@ var scrollTable = function()
 	this.start = 0;
 	this.reportStart = 0;
 	this.allPages = 0;
-	this.vals = [];
 	
 	this.drawFunc = null;
+    
+    this._pageVals = [];
+    this._currValsCount = 0;
 	
 	 // Переход на предыдущую страницу
-	this.next = function(vals)
+	this.next = function()
 	{
 		var _this = this,
 			button = makeImageButton('img/next.png', 'img/next_a.png');
@@ -23,7 +25,7 @@ var scrollTable = function()
 			_this.start += _this.pagesCount;
 			_this.reportStart = _this.start * _this.limit;
 
-			_this._drawPagesRow(vals);
+			_this._drawPagesRow();
 			
 			_this.tableBody.scrollTop = 0;
 			_this.tableParent.scrollTop = 0;
@@ -35,7 +37,7 @@ var scrollTable = function()
 	}
 	
 	// Переход на следующую страницу
-	this.previous = function(vals)
+	this.previous = function()
 	{
 		var _this = this,
 			button = makeImageButton('img/prev.png', 'img/prev_a.png');
@@ -47,7 +49,7 @@ var scrollTable = function()
 			_this.start -= _this.pagesCount;
 			_this.reportStart = _this.start * _this.limit;
 
-			_this._drawPagesRow(vals);
+			_this._drawPagesRow();
 
 			_this.tableBody.scrollTop = 0;
 			_this.tableParent.scrollTop = 0;
@@ -59,7 +61,7 @@ var scrollTable = function()
 	}
 	
 	// Переход на первую страницу
-	this.first = function(vals)
+	this.first = function()
 	{
 		var _this = this,
 			button = makeImageButton('img/first.png', 'img/first_a.png');
@@ -71,7 +73,7 @@ var scrollTable = function()
 			_this.start = 0;
 			_this.reportStart = _this.start * _this.limit;
 
-			_this._drawPagesRow(vals);
+			_this._drawPagesRow();
 
 			_this.tableBody.scrollTop = 0;
 			_this.tableParent.scrollTop = 0;
@@ -83,7 +85,7 @@ var scrollTable = function()
 	}
 	
 	// Переход на последнюю страницу
-	this.last = function(vals)
+	this.last = function()
 	{
 		var _this = this,
 			button = makeImageButton('img/last.png', 'img/last_a.png');
@@ -92,10 +94,10 @@ var scrollTable = function()
 		
 		button.onclick = function()
 		{
-			_this.start = Math.floor(vals.length / (_this.pagesCount * _this.limit)) * _this.pagesCount;
-			_this.reportStart = Math.floor(vals.length / _this.limit) * _this.limit;
+			_this.start = Math.floor(_this._currValsCount / (_this.pagesCount * _this.limit)) * _this.pagesCount;
+			_this.reportStart = Math.floor(_this._currValsCount / _this.limit) * _this.limit;
 
-			_this._drawPagesRow(vals);
+			_this._drawPagesRow();
 
 			_this.tableBody.scrollTop = 0;
 			_this.tableParent.scrollTop = 0;
@@ -112,50 +114,45 @@ var scrollTable = function()
 							 _option([_t("100")], [['attr','value',100]]),
 							 _option([_t("200")], [['attr','value',200]]),
 							 _option([_t("500")], [['attr','value',500]])], [['dir','className','selectStyle floatRight'], ['css','width','60px']])
+                             
+    this._dataProvider = null;
+    
+    this.setDataProvider(new scrollTable.StaticDataProvider());
 }
 
-// scrollTable.prototype.addEmptyRow = function()
-// {
-	// if (this.tableBody.childNodes.length == 0)
-		// _(this.tableBody, [_tr(null,[['css','height','1px'],['attr','empty', true]])])
-// }
-
-scrollTable.prototype._getCurrentSortFunc = function()
+scrollTable.prototype.setDataProvider = function( dataProvider )
 {
-	if (!this.currentSortType) return;
-	
-	return this.sortFuncs[this.currentSortType][this.currentSortIndex[this.currentSortType]];
+    this._dataProvider = dataProvider;
 }
 
-scrollTable.prototype._drawRows = function(vals)
+scrollTable.prototype.getDataProvider = function()
+{
+    return this._dataProvider;
+}
+
+scrollTable.prototype._drawRows = function()
 {
 	var trs = [];
 
 	removeChilds(this.tableBody);
 	
-	for (var i = 0; i < vals.length; i++)
-		trs.push(this.drawFunc(vals[i]));
-/*	var trs = vals.map(function(val)
-	{
-		return _this.drawFunc(val)
-	})*/
+	for (var i = 0; i < this._pageVals.length; i++)
+		trs.push(this.drawFunc(this._pageVals[i]));
 	
 	_(this.tableBody, trs);
 	
-	if (vals.length == 0)
+	if (this._pageVals.length == 0)
 		_(this.tableBody, [_tr(null,[['css','height','1px'],['attr','empty', true]])])
-	
-	// this.addEmptyRow();
 	
 	removeChilds(this.tableCount)
 	
-	if (this.currVals.length)
-		_(this.tableCount, [_t((this.reportStart + 1) + '-' + (Math.min(this.reportStart + this.limit, this.currVals.length))), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(" + this.currVals.length + ")")]);
+	if (this._currValsCount)
+		_(this.tableCount, [_t((this.reportStart + 1) + '-' + (Math.min(this.reportStart + this.limit, this._currValsCount))), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(" + this._currValsCount + ")")]);
 	else
 		_(this.tableCount, [_t("0-0"), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(0)")]);
 }
 
-scrollTable.prototype._drawPages = function(end, vals)
+scrollTable.prototype._drawPages = function(end)
 {
 	var _this = this;
 	for (var i = this.start + 1; i<= end; i++)
@@ -180,7 +177,7 @@ scrollTable.prototype._drawPages = function(end, vals)
 			{
 				_this.reportStart = this.getAttribute('page') * _this.limit;
 				
-				_this._drawPagesRow(vals);
+				_this._drawPagesRow();
 				
 				// мозилла
 				_this.tableBody.scrollTop = 0;
@@ -191,7 +188,28 @@ scrollTable.prototype._drawPages = function(end, vals)
 	}
 }
 
-scrollTable.prototype._drawPagesRow = function(vals)
+scrollTable.prototype._updatePageData = function(callback)
+{
+    var _this = this;
+    this._dataProvider.getCount(function(count)
+    {
+        _this._currValsCount = count;
+        
+        _this._dataProvider.getItems(
+            _this.reportStart, 
+            _this.reportStart + _this.limit, 
+            _this.currentSortType, 
+            _this.currentSortIndex[_this.currentSortType] == 0, 
+            function(values)
+            {
+                _this._pageVals = values;
+                callback();
+            }
+        )
+    });
+}
+
+scrollTable.prototype._drawPagesRow = function()
 {
 	// перерисовывем номера страниц
 	removeChilds(this.tablePages);
@@ -199,15 +217,19 @@ scrollTable.prototype._drawPagesRow = function(vals)
 	var end = (this.start + this.pagesCount <= this.allPages) ? this.start + this.pagesCount : this.allPages;
 	
 	if (this.start - this.pagesCount >= 0)
-		_(this.tablePages,[this.first(vals), this.previous(vals)]);
+		_(this.tablePages,[this.first(), this.previous()]);
 	
-	this._drawPages(end, vals);
+	this._drawPages(end);
 	
 	if (end + 1 <= this.allPages)
-		_(this.tablePages,[this.next(vals), this.last(vals)]);
-	
-	// рисуем выбранный участок таблицы
-	this._drawRows(vals.slice(this.reportStart, this.reportStart + this.limit))
+		_(this.tablePages,[this.next(), this.last()]);
+
+    var _this = this;
+    this._updatePageData(function()
+    {
+        _this._drawRows();
+    })
+    
 }
 
 //Если baseWidth == 0, таблица растягивается на весь контейнер по ширине
@@ -215,6 +237,8 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 {
 	var tds = [],
 		_this = this;
+        
+    this._dataProvider.setSortFunctions(sortFuncs);
 	
 	this.fieldsWidths = fieldsWidths;
 	
@@ -236,7 +260,9 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 				_this.start = 0;
 				_this.reportStart = _this.start * _this.limit;
 				
-				_this.drawTable()
+				_this._drawTable()
+                
+                $(_this).trigger('sortChange');
 			}
 		}
 		else
@@ -254,7 +280,7 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 		_this.start = 0;
 		_this.reportStart = _this.start * _this.limit;
 		
-		_this.drawTable()
+		_this._drawTable()
 	}
 	
 	this.tableCount = _div();
@@ -282,11 +308,6 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 	this.start = 0;
 	this.reportStart = 0;
 	this.allPages = 0;
-	this.vals = [];
-	
-	this.predicate = {};
-	
-	this.filterVals = {};
 	
 	this.sortFuncs = sortFuncs;
 	
@@ -304,115 +325,186 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 	{
 		this.currentSortIndex[name] = 0;
 	}
+    
+    $(this._dataProvider).change(function()
+    {
+        _this._updatePageData(function()
+        {
+            _this._drawTable();
+        })
+    });
 }
 
-scrollTable.prototype.setValues = function(vals)
+scrollTable.prototype._drawTable = function()
 {
-	this.vals = vals;
-	// $(this).trigger('changeData');
-}
-
-scrollTable.prototype.drawTable = function()
-{
-	//this.currVals = vals;
+    var _this = this;
+    this._updatePageData(function()
+    {
 	
-	var curSortFunc = this._getCurrentSortFunc();
-	if (curSortFunc)
-		this.currVals = this.currVals.sort(this._getCurrentSortFunc());
-		
-	$(this).trigger('changeData'); //TODO: сделать более тонкую проверку изменения условий изменения фильтрованных значений
-	var vals = this.currVals;
-	
-	if (vals.length <= this.limit)
-	{
-		removeChilds(this.tablePages);
-		
-		this._drawRows(vals)
-	}
-	else
-	{
-		this.allPages = Math.ceil(vals.length / this.limit)
+        if (_this._currValsCount <= _this.limit)
+        {
+            removeChilds(_this.tablePages);
+            
+            _this._drawRows()
+        }
+        else
+        {
+            _this.allPages = Math.ceil(_this._currValsCount / _this.limit)
 
-		this._drawPagesRow(vals);
-	}
-}
-
-scrollTable.prototype.isEmptyBody = function()
-{
-	return (this.tableBody.firstChild.getAttribute('empty') == true);
-}
-
-scrollTable.prototype.attachFilterEvents = function(inputField, fieldName, predicate)
-{
-	var _this = this;
-	
-	_this.predicate[fieldName] = predicate;
-
-	inputField.onkeyup = function()
-	{	
-	//	if (_this.isEmptyBody())
-	//		return;
-
-		_this.filterVals[fieldName] = this.value;
-		_this.drawFilterTable();
-		//$(_this).trigger('changeData');
-	}
-}
-
-scrollTable.prototype.addFilter = function(fieldName, predicate)
-{
-	this.predicate[fieldName] = predicate;
-	// $(this).trigger('changeData');
-}
-
-scrollTable.prototype.setFilterValue = function(fieldName, value)
-{
-	this.filterVals[fieldName] = value;
-}
-
-scrollTable.prototype.attachSelectFilterEvents = function(selectField, fieldName, predicate)
-{
-	var _this = this;
-	
-	_this.predicate[fieldName] = predicate;
-
-	selectField.onchange = function()
-	{	
-	//	if (_this.isEmptyBody())
-	//		return;
-
-		_this.filterVals[fieldName] = this.value;
-		_this.drawFilterTable();
-		//$(_this).trigger('changeData');
-	}
-}
-
-scrollTable.prototype.drawFilterTable = function()
-{
-	var localValues = this.vals;
-	
-	for (var filterElem in this.filterVals)
-	{
-		localValues = this.predicate[filterElem](filterElem, this.filterVals[filterElem], localValues);
-	}
-	
-	this.currVals = localValues;
-	this.drawTable()
+            _this._drawPagesRow();
+        }
+    })
 }
 
 scrollTable.prototype.setPage = function(iPage)
 {
-	if (this.limit*iPage >= this.currVals.length || iPage < 0 || this.reportStart == iPage * this.limit) 
+	if (this.limit*iPage >= this._currValsCount || iPage < 0 || this.reportStart == iPage * this.limit) 
 		return;
 		
 	this.reportStart = iPage * this.limit;
 	this.start = Math.floor(iPage/this.pagesCount) * this.pagesCount;
 	
-	this._drawPagesRow(this.currVals);
+	this._drawPagesRow();
 	
 	this.tableBody.scrollTop = 0;
 	this.tableParent.scrollTop = 0;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+    
+scrollTable.StaticDataProvider = function()
+{
+    var _vals = []; //исходный список элементов
+    var _filteredVals = []; //список элементов после фильтрации. Валиден только если _isFiltered == true
+    
+    var _isFiltered = false;
+    var _predicate = {}; //фильтры. Ф-ции predicate(name, value, items)->filteredItems
+    var _filterVals = {}; //значения фильтров
+    
+    var _sortFunctions = {};
+    var _this = this;
+    
+    var _filter = function()
+    {
+        if (_isFiltered) return;
+        
+        _filteredVals = _vals;
+        
+        for (var filterElem in _filterVals)
+        {
+            _filteredVals = _predicate[filterElem](filterElem, _filterVals[filterElem], _filteredVals);
+        }
+        
+        _isFiltered = true;
+    }
+    
+    var _update = function()
+    {
+        _isFiltered = false;
+        $(_this).change();
+    }
+    
+    //IDataProvider interface
+    this.getCount = function(callback)
+    {
+        _filter();
+        callback(_filteredVals.length);
+    }
+    
+    this.getItems = function(nMin, nMax, sortParam, sortDec, callback)
+    {
+        _filter();
+        var sortDirIndex = sortDec ? 0 : 1;
+        var sortedVals = _sortFunctions[sortParam] ? _filteredVals.sort(_sortFunctions[sortParam][sortDirIndex]) : _filteredVals;
+        nMin = Math.min(Math.max(nMin, 0), sortedVals.length);
+        nMax = Math.min(Math.max(nMax, 0), sortedVals.length);
+        callback(sortedVals.slice(nMin, nMax));
+    }
+    
+    //задание/получение исходных данных
+    this.setOriginalItems = function(items)
+    {
+        _vals = items;
+        _update();
+    }
+    
+    this.getOriginalItems = function()
+    {
+        return _vals;
+    }
+    
+    this.filterOriginalItems = function(filterFunction)
+    {
+        var newOrigData = [];
+        for (var i = 0; i < _vals.length; i++)
+            if (filterFunction(_vals[i]))
+                newOrigData.push(_vals[i]);
+                
+        _vals = newOrigData;
+        _update();
+    }
+    
+    this.addOriginalItem = function(item)
+    {
+        _vals.push(item);
+        _update();
+    }
+    
+    //фильтрация
+    this.attachFilterEvents = function(inputField, fieldName, predicate)
+    {
+        var _this = this;
+        
+        _predicate[fieldName] = predicate;
+
+        inputField.onkeyup = function()
+        {
+            if (_filterVals[fieldName] !== this.value)
+            {
+                _filterVals[fieldName] = this.value;
+                _update();
+            }
+        }
+        
+        _filterVals[fieldName] = inputField.value;
+        _update();
+    }
+    
+    this.addFilter = function(fieldName, predicate)
+    {
+        _predicate[fieldName] = predicate;
+    }
+    
+    this.setFilterValue = function(fieldName, value)
+    {
+        _filterVals[fieldName] = value;
+        _update();
+    }
+    
+    this.attachSelectFilterEvents = function(selectField, fieldName, predicate)
+    {
+        var _this = this;
+        
+        _predicate[fieldName] = predicate;
+
+        selectField.onchange = function()
+        {
+            _filterVals[fieldName] = this.value;
+            _update();
+        }
+        
+        _filterVals[fieldName] = selectField.value;
+        _update();
+    }
+    
+    //сортировка
+    this.setSortFunctions = function(sortFunctions)
+    {
+        _sortFunctions = sortFunctions;
+    }
+};
 
 var _layersTable = new scrollTable(),
 	_mapsTable = new scrollTable(),

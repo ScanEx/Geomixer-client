@@ -2258,11 +2258,16 @@ queryMapLayers.prototype.getLayersHandler = function(response)
 	_queryMapLayers.createLayersManager();
 }
 
-//Внутри контейнера помещает табличку со списком слоёв
-//params:
-//  * showType
-//  * enableDragging
-//  * onclick {function({ elem: , scrollTable: })}
+/** 
+Внутри контейнера помещает табличку со списком слоёв и контролами для фильтрации
+ @param {HTMLNode} parentDiv Куда помещать контрол
+ @param {String} name Уникальное имя этого инстанса
+ @param {object} params Параметры отображения списка: <br/>
+  * showType <br/>
+  * enableDragging <br/>
+  * onclick {function({ elem: , scrollTable: })}
+ @returns {scrollTable} Контрол со списком слоёв
+*/
 queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, params )
 {
 	var _params = $.extend({showType: true}, params);
@@ -2408,7 +2413,7 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, 
 				return valueDate <= endDate;
 		};
 	
-	_layersTable.attachFilterEvents(layerName, 'title', function(fieldName, fieldValue, vals)
+	_layersTable.getDataProvider().attachFilterEvents(layerName, 'title', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -2422,7 +2427,7 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, 
 		return local;
 	})
 	
-	_layersTable.attachFilterEvents(layerOwner, 'Owner', function(fieldName, fieldValue, vals)
+	_layersTable.getDataProvider().attachFilterEvents(layerOwner, 'Owner', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -2436,7 +2441,7 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, 
 		return local;
 	})
 	
-	_layersTable.attachFilterEvents(dateBegin, 'DateBegin', function(fieldName, fieldValue, vals)
+	_layersTable.getDataProvider().attachFilterEvents(dateBegin, 'DateBegin', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -2452,7 +2457,7 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, 
 		return local;
 	})
 		
-	_layersTable.attachFilterEvents(dateEnd, 'DateEnd', function(fieldName, fieldValue, vals)
+	_layersTable.getDataProvider().attachFilterEvents(dateEnd, 'DateEnd', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -2470,7 +2475,7 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, 
 	
 	if (_params.showType)
 	{
-		_layersTable.attachSelectFilterEvents(typeSel, 'type', function(fieldName, fieldValue, vals)
+		_layersTable.getDataProvider().attachSelectFilterEvents(typeSel, 'type', function(fieldName, fieldValue, vals)
 		{
 			if (fieldValue == "")
 				return vals;
@@ -2492,8 +2497,7 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, 
 			return typeof globalFlashMap.layers[elem.name] == 'undefined';
 		}, valuesToSort);
 	
-	_layersTable.setValues(unloadedLayersList);
-	_layersTable.drawFilterTable();
+	_layersTable.getDataProvider().setOriginalItems(unloadedLayersList);
 	
 	$("#" + name + "DateBegin,#" + name + "DateEnd", canvas).datepicker(
 	{
@@ -2517,6 +2521,8 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, 
 	$(parentDiv).empty().append(canvas);
 	
 	layerName.focus();
+    
+    return _layersTable;
 }
 
 queryMapLayers.prototype.createLayersManager = function()
@@ -2550,14 +2556,10 @@ queryMapLayers.prototype.drawLayers = function(layer, params)
 			if (tr)
 				tr.removeNode(true);
 			
-			var filteredValues = _filter(function(elem)
+            _this.getDataProvider().filterOriginalItems(function(elem)
 			{
 				return elem.name != layer.name;
-			}, _this.vals);
-			
-			_this.setValues(filteredValues);
-			
-			_this.drawFilterTable();
+			});
 			
 			var active = $(_this.buildedTree).find(".active");
 			
@@ -2634,37 +2636,15 @@ queryMapLayers.prototype.deleteLayerHandler = function(response, id, flag)
 	
 	if (response.Result == 'deleted')
 	{
-		var filteredValues = _filter(function(elem)
+        _layersTable.start = 0;
+		_layersTable.reportStart = _layersTable.start * _layersTable.limit;
+        _layersTable.getDataProvider().filterOriginalItems(function(elem)
 		{
 			if (typeof flag != 'undefined' && flag)
 				return elem.MultiLayerID != id;
 			else
 				return elem.LayerID != id;
-		}, _layersTable.vals);
-		
-		_layersTable.setValues(filteredValues);
-		
-		// _layersTable.vals = _filter(function(elem)
-		// {
-			// if (typeof flag != 'undefined' && flag)
-				// return elem.MultiLayerID != id;
-			// else
-				// return elem.LayerID != id;
-		// }, _layersTable.vals);
-		
-		// _layersTable.currVals = _filter(function(elem)
-		// {
-			// if (typeof flag != 'undefined' && flag)
-				// return elem.MultiLayerID != id;
-			// else
-				// return elem.LayerID != id;
-		// }, _layersTable.currVals);
-		
-		_layersTable.start = 0;
-		_layersTable.reportStart = _layersTable.start * _layersTable.limit;
-		
-		//_layersTable.drawTable(_layersTable.currVals);
-		_layersTable.drawFilterTable();
+		});
 	}
 	else
 		showErrorMessage(_gtxt("Ошибка!"), true, "Слоя нет в базе")
@@ -2726,7 +2706,7 @@ queryMapLayers.prototype.createMapsManager = function()
 			return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
 		};
 	
-	_mapsTable.attachFilterEvents(this.mapName, 'Title', function(fieldName, fieldValue, vals)
+	_mapsTable.getDataProvider().attachFilterEvents(this.mapName, 'Title', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -2740,7 +2720,7 @@ queryMapLayers.prototype.createMapsManager = function()
 		return local;
 	})
 	
-	_mapsTable.attachFilterEvents(this.mapOwner, 'Owner', function(fieldName, fieldValue, vals)
+	_mapsTable.getDataProvider().attachFilterEvents(this.mapOwner, 'Owner', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -2781,11 +2761,7 @@ queryMapLayers.prototype.createMapsManager = function()
 
 	resize();
 	
-	_mapsTable.setValues(_queryMapLayers.mapsList);
-	_mapsTable.drawFilterTable();
-	
-	//_mapsTable.vals = _queryMapLayers.mapsList;
-	//_mapsTable.drawTable(_mapsTable.vals)
+	_mapsTable.getDataProvider().setOriginalItems(_queryMapLayers.mapsList);	
 	
 	this.mapName.focus();
 }
@@ -2882,17 +2858,12 @@ queryMapLayers.prototype.deleteMapHandler = function(response, id)
 	
 	if (response.Result == 'deleted')
 	{
-		var filteredValues = _filter(function(elem)
+        _mapsTable.start = 0;
+		_mapsTable.reportStart = _mapsTable.start * _mapsTable.limit;
+        _mapsTable.getDataProvider().filterOriginalItems(function(elem)
 		{
 			return elem.MapID != id;
-		}, _mapsTable.vals);
-		
-		_mapsTable.setValues(filteredValues);
-				
-		_mapsTable.start = 0;
-		_mapsTable.reportStart = _mapsTable.start * _mapsTable.limit;
-		
-		_mapsTable.drawFilterTable();
+		});
 	}
 	else
 		showErrorMessage(_gtxt("Ошибка!"), true, _gtxt("Слоя нет в базе"))
@@ -3161,7 +3132,8 @@ queryMapLayersList.prototype.load = function()
 	_listTable.pagesCount = 5;
 	_listTable.createTable(tableParent, name, 310, [_gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата")], ['10%','65%','25%'], this.drawExtendLayers, sortFuncs);
 	
-	$(_listTable).bind('changeData', function(){ _this._updateSlider()} );
+	$(_listTable).bind('sortChange', function(){ _this._updateSlider()} );
+	$(_listTable.getDataProvider()).change(function(){ _this._updateSlider()});
 	
 	var inputPredicate = function(value, fieldName, fieldValue)
 		{
@@ -3202,7 +3174,7 @@ queryMapLayersList.prototype.load = function()
 				return valueDate <= endDate;
 		};
 	
-	_listTable.attachFilterEvents(layerName, 'title', function(fieldName, fieldValue, vals)
+	_listTable.getDataProvider().attachFilterEvents(layerName, 'title', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -3216,7 +3188,7 @@ queryMapLayersList.prototype.load = function()
 		return local;
 	})
 	
-	_listTable.addFilter('DateBegin', function(fieldName, fieldValue, vals)
+	_listTable.getDataProvider().addFilter('DateBegin', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -3232,7 +3204,7 @@ queryMapLayersList.prototype.load = function()
 		return local;
 	})	
 		
-	_listTable.addFilter('DateEnd', function(fieldName, fieldValue, vals)
+	_listTable.getDataProvider().addFilter('DateEnd', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -3250,12 +3222,11 @@ queryMapLayersList.prototype.load = function()
 	
 	$(dateIntervalControl).change(function()
 	{
-		_listTable.setFilterValue('DateBegin', dateIntervalControl.getDateBegin());
-		_listTable.setFilterValue('DateEnd', dateIntervalControl.getDateEnd());
-		_listTable.drawFilterTable();
+		_listTable.getDataProvider().setFilterValue('DateBegin', dateIntervalControl.getDateBegin());
+		_listTable.getDataProvider().setFilterValue('DateEnd', dateIntervalControl.getDateEnd());
 	});
 	
-	_listTable.attachSelectFilterEvents(typeSel, 'type', function(fieldName, fieldValue, vals)
+	_listTable.getDataProvider().attachSelectFilterEvents(typeSel, 'type', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -3292,33 +3263,15 @@ queryMapLayersList.prototype.load = function()
 	_listTable.tableParent.parentNode.lastChild.style.width = '333px';
 	
 	_listTable.tableHeader.firstChild.childNodes[1].style.textAlign = 'left';
-	
-	// $("#" + name + "DateBegin,#" + name + "DateEnd").datepicker(
-	// {
-		// beforeShow: function(input)
-		// {
-	    	// return {minDate: (input == dateEnd ? $(dateBegin).datepicker("getDate") : null), 
-	        	// maxDate: (input == dateBegin ? $(dateEnd).datepicker("getDate") : null)}; 
-		// },
-		// onSelect: function(dateText, inst) 
-		// {
-			// inst.input[0].onkeyup();
-		// },
-		// changeMonth: true,
-		// changeYear: true,
-		// showOn: "button",
-		// buttonImage: "img/calendar.png",
-		// buttonImageOnly: true,
-		// dateFormat: "dd.mm.yy"
-	// });
 }
 
 //делает видимым только один слой с индексом nVisible
 queryMapLayersList.prototype._updateSliderVisibility = function(nVisible)
 {
-	if (!this._isLayersScrollActive || typeof _listTable.currVals[nVisible] === 'undefined') return;
+    var curLayer = _listTable.getDataProvider().getOriginalItems()[nVisible];
+	if (!this._isLayersScrollActive || typeof curLayer === 'undefined') return;
 	
-	var layerName = _listTable.currVals[nVisible].properties.name;
+	var layerName = curLayer.properties.name;
 	var baseMapName = window.baseMap.id;
 	
 	for (var k = 0; k < globalFlashMap.layers.length; k++)
@@ -3332,7 +3285,7 @@ queryMapLayersList.prototype._updateSliderVisibility = function(nVisible)
 
 queryMapLayersList.prototype._updateSlider = function()
 {
-	if (typeof _listTable.currVals === 'undefined')
+	if (typeof _listTable.getDataProvider().getOriginalItems().length == 0)
 		return;
 
 	var container = $("#layersScrollSlider");
@@ -3346,7 +3299,7 @@ queryMapLayersList.prototype._updateSlider = function()
 	
 	this._scrollDiv = $("<div></div>");
 	this._scrollDiv.slider({
-		max: _listTable.currVals.length-1,
+		max: _listTable.getDataProvider().getOriginalItems().length - 1,
 		slide: function(event, ui) { slideFunction(ui.value); }
 	});
 	
@@ -3384,7 +3337,7 @@ queryMapLayersList.prototype._updateSlider = function()
 	
 	container.append(table);
 	
-	if (_listTable.currVals.length == 0)
+	if (_listTable.getDataProvider().getOriginalItems().length == 0)
 		this._scrollDiv.slider('option', 'disabled', true);
 	else
 		this._updateSliderVisibility(0);
@@ -3637,26 +3590,7 @@ queryMapLayersList.prototype.reloadList = function()
 	_listTable.reportStart = 0;
 	_listTable.allPages = 0;
 	
-	_listTable.setValues(extendLayers);
-	_listTable.drawFilterTable();
-	// _listTable.vals = extendLayers;
-	
-	// var hasFilter = false;
-	
-	// for (var name in _listTable.filterVals)
-		// if (_listTable.filterVals[name] != "")
-		// {
-			// hasFilter = true;
-			
-			// break;
-		// }
-	
-	// if (!hasFilter)
-		// _listTable.drawTable(_listTable.vals)
-	// else
-		// _listTable.drawFilterTable();
-		
-	// this._updateSlider();
+	_listTable.getDataProvider().setOriginalItems(extendLayers);	
 }
 
 var _queryMapLayersList = new queryMapLayersList();

@@ -100,7 +100,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	
 	saveButton.onclick = function()
 	{
-		securityInfo.SecurityInfo.Users = _securityTable.vals;
+		securityInfo.SecurityInfo.Users = _securityTable.getDataProvider().getOriginalItems();
 		
 		var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
 		_($$('headerLinks'), [loading]);
@@ -169,7 +169,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 			usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 300, [_gtxt("Логин")], ['100%'], drawOwnersFunction, sortFuncs);
 			_(canvas, [_div([_t(_gtxt("Логин")), filterOwnerInput], [['css','fontSize','12px']]), tableSuggestParent]);
 			
-			usersTable.attachFilterEvents(filterOwnerInput, 'Login', function(fieldName, fieldValue, vals)
+			usersTable.getDataProvider().attachFilterEvents(filterOwnerInput, 'Login', function(fieldName, fieldValue, vals)
 			{
 				if (fieldValue == "")
 					return vals;
@@ -183,8 +183,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 				return local;
 			});
 			
-			usersTable.setValues( securityInfo.UsersWithoutAccess.concat(securityInfo.SecurityInfo.Users) );
-			usersTable.drawFilterTable();
+			usersTable.getDataProvider().setOriginalItems( securityInfo.UsersWithoutAccess.concat(securityInfo.SecurityInfo.Users) );
 			
 			usersTable.tableParent.style.height = '150px';
 			usersTable.tableBody.parentNode.parentNode.style.height = '130px';
@@ -236,8 +235,9 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		
 		var alreadyAddedFlag = false;
 		
-		for (var i = 0; i < _securityTable.vals.length; ++i)
-			if (_securityTable.vals[i].Login == addMapUserInput.value)
+        var addedUsers = _securityTable.getDataProvider().getOriginalItems();
+		for (var i = 0; i < addedUsers.length; ++i)
+			if (addedUsers[i].Login == addMapUserInput.value)
 			{
 				alreadyAddedFlag = true;
 				
@@ -297,7 +297,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		_securityTableSuggest.pagesCount = 5;
 		_securityTableSuggest.createTable(tableSuggestParent, 'securitySuggestTable', 300, [_gtxt("Логин"), _gtxt("Роль"), ""], ['80%','15%','5%'], this.drawMapUsersSuggest, sortFuncs);
 		
-		_securityTableSuggest.attachFilterEvents(addMapUserSuggestInput, 'Login', function(fieldName, fieldValue, vals)
+		_securityTableSuggest.getDataProvider().attachFilterEvents(addMapUserSuggestInput, 'Login', function(fieldName, fieldValue, vals)
 		{
 			if (fieldValue == "")
 				return vals;
@@ -331,7 +331,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		return _this.drawMapUsers.call(this,arg,_this);
 	}, sortFuncs);
 
-	_securityTable.attachFilterEvents(addMapUserInput, 'Login', function(fieldName, fieldValue, vals)
+	_securityTable.getDataProvider().attachFilterEvents(addMapUserInput, 'Login', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
 			return vals;
@@ -405,12 +405,10 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 			if ( securityInfo.UsersWithoutAccess[u].Role != nsGmx.ROLE_ADMIN )
 				vals.push(securityInfo.UsersWithoutAccess[u]);
 
-		_securityTableSuggest.setValues(vals);
-		_securityTableSuggest.drawFilterTable();
+		_securityTableSuggest.getDataProvider().setOriginalItems(vals);
 	}
 
-	_securityTable.setValues( securityInfo.SecurityInfo.Users );
-	_securityTable.drawFilterTable();
+	_securityTable.getDataProvider().setOriginalItems( securityInfo.SecurityInfo.Users );
 }
 
 security.prototype.drawMapUsers = function(user, securityScope)
@@ -493,22 +491,11 @@ security.prototype.drawMapUsersSuggest = function(user)
 
 security.prototype.removeMapUser = function(user, list)
 {
-	// list.vals = _filter(function(elem)
-	// {
-		// return elem.Login != user.Login;
-	// }, list.vals);
-	
-	// list.currVals = _filter(function(elem)
-	// {
-		// return elem.Login != user.Login;
-	// }, list.currVals);
-	var filteredValues = _filter(function(elem)
-	{
-		return elem.Login != user.Login;
-	}, list.vals);
-	
-	list.setValues(filteredValues);
-	_security.drawFilterTable(list);
+    list.getDataProvider().filterOriginalItems(function(elem)
+    {
+        return elem.Login != user.Login;
+    });
+    
 }
 
 security.prototype.addMapUser = function(user, list)
@@ -518,35 +505,12 @@ security.prototype.addMapUser = function(user, list)
 	$.extend(existedUser, user)
 	
 	existedUser.Access = _security.defaultAccess;
-	list.vals.push(existedUser);
-	
-	list.setValues(list.vals);
-	
+
 	list.start = 0;
 	list.reportStart = 0;
 	list.allPages = 0;
-	
-	_security.drawFilterTable(list)
-}
-
-security.prototype.drawFilterTable = function(list)
-{
-	// var hasFilter = false;
-	
-	// for (var name in list.filterVals)
-		// if (list.filterVals[name] != "")
-		// {
-			// hasFilter = true;
-			
-			// break;
-		// }
-	
-	// if (!hasFilter)
-		// list.drawTable()
-	// else
-		// list.drawFilterTable();
-		
-	list.drawFilterTable()
+    
+    list.getDataProvider().addOriginalItem(existedUser);
 }
 
 var _securityTable = new scrollTable(),
