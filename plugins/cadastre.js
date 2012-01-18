@@ -120,6 +120,7 @@ var Cadastre = function(oContainer, sCadastreHost, oMap, oMapDiv){
 
 var oCadastre;
 var oCadastreLeftMenu = new leftMenu();
+var sCadastreHost = false;
 
 var unloadCadastre = function(){
 	if(oCadastre != null) oCadastre.unload();
@@ -128,7 +129,7 @@ var unloadCadastre = function(){
 var loadCadastre = function(){
 	var alreadyLoaded = oCadastreLeftMenu.createWorkCanvas("cadastre", unloadCadastre);
 	if (!alreadyLoaded){
-		oCadastre = new Cadastre( oCadastreLeftMenu.workCanvas, "http://maps.rosreestr.ru/arcgis/rest/services/Cadastre/", globalFlashMap, document.getElementById("flash"));
+		oCadastre = new Cadastre( oCadastreLeftMenu.workCanvas, sCadastreHost, globalFlashMap, document.getElementById("flash"));
 	}
 	oCadastre.load();
 }
@@ -138,8 +139,17 @@ var addMenuItems = function(upMenu){
 			parentID: 'loadServerData'}];
 }
 
+var afterViewer = function(params){
+	if (params && params.CadastreHost) {
+		sCadastreHost = params.CadastreHost;
+	}else{
+		sCadastreHost = "http://maps.rosreestr.ru/arcgis/rest/services/Cadastre/";
+	}
+}
+
 var publicInterface = {
 	Cadastre: Cadastre,
+	afterViewer: afterViewer,
 	addMenuItems: addMenuItems
 }
 
