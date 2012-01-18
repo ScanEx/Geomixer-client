@@ -519,7 +519,7 @@ var DrawingObjectGeomixer = function() {
                 if (layer)
                 {
                     window.location.href = 
-                            serverBase + "DownloadLayer.ashx" + 
+                            "http://" + layer.properties.hostName + "/DownloadLayer.ashx" + 
                             "?t=" + layer.properties.name + 
                             "&MinX=" + truncate9(Math.min(x1, x2)) + 
                             "&MinY=" + truncate9(Math.min(y1, y2)) +
@@ -558,23 +558,20 @@ var DrawingObjectGeomixer = function() {
 
 		for (var iLayerN=0; i<oMap.layers.length; i++){
 			l = oMap.layers[iLayerN];
-			if (l.properties.type != "Raster")
-				return;
-			if (!l.isVisible)
-				return;
-			if ((x < l.bounds.minX) || (x > l.bounds.maxX) || (y < l.bounds.minY) || (y > l.bounds.maxY))
-				return;
-
-			var coords = l.geometry.coordinates;
-
-			if (l.geometry.type == "POLYGON" && !testPolygon(coords, x, y))
-				return;
-			else if (l.geometry.type == "MULTIPOLYGON")
-				for (var k = 0; k < coords.length; k++)
-					if (!testPolygon(coords[k], x, y))
-						return;
-			if (l && (!layer || (l.properties.MaxZoom > layer.properties.MaxZoom)))
-				layer = l;
+			if (l.properties.type == "Raster" && l.isVisible && (x >= l.bounds.minX) && (x <= l.bounds.maxX) && (y >= l.bounds.minY) && (y <= l.bounds.maxY)){
+				var coords = l.geometry.coordinates;
+				var bIsPolygonBad = false;
+				if (l.geometry.type == "POLYGON" && !testPolygon(coords, x, y))
+					bIsPolygonBad = true;
+				else if (l.geometry.type == "MULTIPOLYGON")
+					for (var k = 0; k < coords.length; k++)
+						if (!testPolygon(coords[k], x, y)){
+							bIsPolygonBad = true;
+							break;
+						}
+				if (!bIsPolygonBad && l && (!layer || (l.properties.MaxZoom > layer.properties.MaxZoom)))
+					layer = l;
+			}
 		};
 		
 		tryToFinish();
