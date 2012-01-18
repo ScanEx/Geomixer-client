@@ -490,7 +490,8 @@ var DrawingObjectGeomixer = function() {
 	/** Скачивает растровые слои*/
 	var downloadRasters = function(){
 		var obj = false,
-			_this = this;
+			_this = this,
+			baseMapName = window.baseMap.id;
 		
 		for (var i=0; i<oCollection.Count(); i++){
 			var elem = oCollection.Item(i);
@@ -556,9 +557,9 @@ var DrawingObjectGeomixer = function() {
 			return true;
 		}
 
-		for (var iLayerN=0; i<oMap.layers.length; i++){
+		for (var iLayerN=0; iLayerN<oMap.layers.length; iLayerN++){
 			l = oMap.layers[iLayerN];
-			if (l.properties.type == "Raster" && l.isVisible && (x >= l.bounds.minX) && (x <= l.bounds.maxX) && (y >= l.bounds.minY) && (y <= l.bounds.maxY)){
+			if (l.properties.type == "Raster" && l.isVisible && l.properties.mapName != baseMapName &&(x >= l.bounds.minX) && (x <= l.bounds.maxX) && (y >= l.bounds.minY) && (y <= l.bounds.maxY)){
 				var coords = l.geometry.coordinates;
 				var bIsPolygonBad = false;
 				if (l.geometry.type == "POLYGON" && !testPolygon(coords, x, y))

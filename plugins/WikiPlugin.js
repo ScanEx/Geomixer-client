@@ -489,6 +489,8 @@ WikiEditor.prototype = {
 		if (this._pageInfo.Geometry) { 
 			if (this._pageInfo.mapObject) this._pageInfo.mapObject.remove();
 			var obj = this._wikiPlugin._map.drawing.addObject(this._pageInfo.Geometry);
+		}else{
+			_(this._geometryRowContainer, [_t(_gtxt("Объект не выбран"))]);
 		};
 		this._dialog = showDialog(_gtxt('Сообщение'), this._div, 725, 500 , false, false, false, function(){ $(_this).triggerHandler('dialogclose'); if (_this._drawing) _this._drawing.remove();})
 		$(this._dialog).dialog( "option", "minHeight", 50 );
@@ -516,7 +518,7 @@ WikiEditor.prototype = {
 		if (drawing && this._drawing) this._drawing.remove();
 		if (drawing) {
 			removeChilds(this._geometryRowContainer);
-			this._drawingObjectInfoRow = new oDrawingObjectsModule.DrawingObjectInfoRow(this._geometryRowContainer, drawing);
+			this._drawingObjectInfoRow = new oDrawingObjectsModule.DrawingObjectInfoRow(this._wikiPlugin._map, this._geometryRowContainer, drawing);
 			$(this._drawingObjectInfoRow).bind('onRemove', function(){
 				this._drawing.remove();
 			}.bind(this));
