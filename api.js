@@ -905,8 +905,12 @@ window.gmxAPI = {
 	}
 	,
 	chkPointCenterX: function(centerX) {
-		while(centerX < -180) centerX += 360;
-		while(centerX > 180) centerX -= 360;
+		if(typeof(centerX) != 'number') centerX = 0;
+		else {
+			centerX = centerX % 360;
+			if(centerX < -180) centerX += 360;
+			if(centerX > 180) centerX -= 360;
+		}
 		return centerX;
 	}
 	,
@@ -1119,7 +1123,7 @@ window.gmxAPI = {
 		// 55°44'35" N, 37°36'56" E
 		// 4187347, 7472103
 
-		if (text.match(/[éöóêåíãøùçõúôûâàïðîëäæýÿ÷ñìèòüáþÉÖÓÊÅÍÃØÙÇÕÚÔÛÂÀÏÐÎËÄÆÝß×ÑÌÈÒÜÁÞqrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM]/))
+		if (text.match(/[éöóêåíãøùçõúôûâàïðîëäæýÿ÷ñìèòüáþÉÖÓÊÅÍÃØÙÇÕÚÔÛÂÀÏÐÎËÄÆÝß×ÑÌÈÒÜÁÞqrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM_]/))
 			return false;
 		if (text.indexOf(" ") != -1)
 			text = text.replace(/,/g, ".");
@@ -2616,8 +2620,7 @@ function createFlashMapInternal(div, layers, callback)
 					}
 					centerX /= arr.length;
 					var prevCenter = centerX;
-					while(centerX > 180) centerX -= 360;
-					while(centerX < -180) centerX += 360;
+					centerX = gmxAPI.chkPointCenterX(centerX);
 					var dx = prevCenter - centerX;
 					for (var i = 0; i < arr.length; i++)
 					{
@@ -4101,8 +4104,10 @@ function createFlashMapInternal(div, layers, callback)
 				var ww = 2 * gmxAPI.worldWidthMerc;
 				var currPosition = map.getPosition();
 				var x = currPosition['x'] + ww;
-				while(x > gmxAPI.worldWidthMerc) x -= ww;
-				while(x < -gmxAPI.worldWidthMerc) x += ww;
+				x = x % ww;
+				if(x > gmxAPI.worldWidthMerc) x -= ww;
+				if(x < -gmxAPI.worldWidthMerc) x += ww;
+
 				var y = currPosition['y'];
 				var scale = gmxAPI.getScale(currPosition['z']);
 
