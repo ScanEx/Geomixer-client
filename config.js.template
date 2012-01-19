@@ -1,15 +1,15 @@
-// var defaultMapID = 'DefaultMap';
+п»ї// var defaultMapID = 'DefaultMap';
 // var mapHostName = false;
 // var apiKey = '33959EF7AFB4FB92EEC2E7B73AE8458B';
 // var serverBase = 'http://mapstest.kosmosnimki.ru/';
 // var copyright = false;
 // var pageTitle = false;
 // var useCatalog = true;
-// var gmxAPIdebugLevel = 0;	// Уровень отладки (по умолчанию =0 - без сбора отладочной информации, >9 - alert при ошибках)
+// var gmxAPIdebugLevel = 0;	// РЈСЂРѕРІРµРЅСЊ РѕС‚Р»Р°РґРєРё (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ =0 - Р±РµР· СЃР±РѕСЂР° РѕС‚Р»Р°РґРѕС‡РЅРѕР№ РёРЅС„РѕСЂРјР°С†РёРё, >9 - alert РїСЂРё РѕС€РёР±РєР°С…)
 
-//var gmxFlashLSO = {		// Использование локального SharedObject - сохранение векторных тайлов в куках Flash
-//	multiSession: false,	// Использовать между сессиями
-//	compress: false		// Использовать сжатие zlib
+//var gmxFlashLSO = {		// РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ Р»РѕРєР°Р»СЊРЅРѕРіРѕ SharedObject - СЃРѕС…СЂР°РЅРµРЅРёРµ РІРµРєС‚РѕСЂРЅС‹С… С‚Р°Р№Р»РѕРІ РІ РєСѓРєР°С… Flash
+//	multiSession: false,	// РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РјРµР¶РґСѓ СЃРµСЃСЃРёСЏРјРё
+//	compress: false		// РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ СЃР¶Р°С‚РёРµ zlib
 //}
 
 //var mapsSite = true;
@@ -23,14 +23,14 @@
 	// satelliteLayerID: false
 // }
 
-// var headerLinks = false; //устарело: используйте gmxViewerUI.headerLinks
+// var headerLinks = false; //СѓСЃС‚Р°СЂРµР»Рѕ: РёСЃРїРѕР»СЊР·СѓР№С‚Рµ gmxViewerUI.headerLinks
 
 // var gmxViewerUI = {
-	// hideLogin    : false, // скрыть информацию о пользователе (вход/выход, имя пользователя)
-	// hideLanguages: false, // скрыть переключалку языков
-	// headerLinks  : false,  // показать ссылки в шапке
-	// hideLogo     : false // не показывать лого в шапке
-	//logoImage  : "img/geomixer_transpar.png" //какую картинку показывать в качестве лого
+	// hideLogin    : false, // СЃРєСЂС‹С‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РїРѕР»СЊР·РѕРІР°С‚РµР»Рµ (РІС…РѕРґ/РІС‹С…РѕРґ, РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ)
+	// hideLanguages: false, // СЃРєСЂС‹С‚СЊ РїРµСЂРµРєР»СЋС‡Р°Р»РєСѓ СЏР·С‹РєРѕРІ
+	// headerLinks  : false,  // РїРѕРєР°Р·Р°С‚СЊ СЃСЃС‹Р»РєРё РІ С€Р°РїРєРµ
+	// hideLogo     : false // РЅРµ РїРѕРєР°Р·С‹РІР°С‚СЊ Р»РѕРіРѕ РІ С€Р°РїРєРµ
+	//logoImage  : "img/geomixer_transpar.png" //РєР°РєСѓСЋ РєР°СЂС‚РёРЅРєСѓ РїРѕРєР°Р·С‹РІР°С‚СЊ РІ РєР°С‡РµСЃС‚РІРµ Р»РѕРіРѕ
 // }
 
 // var gmxJSHost = 'http://maps.kosmosnimki.ru/api/';

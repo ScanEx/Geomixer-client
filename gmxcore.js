@@ -1,4 +1,4 @@
-var gmxCore = function() 
+﻿var gmxCore = function() 
 {
     var _callbacks = [];
     var _modules = {};
