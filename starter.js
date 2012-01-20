@@ -476,10 +476,47 @@ function checkUserInfo(defaultState)
     })
 }
 
-//Добавляем единый календарик для мультивременных слоёв. Только для карт, где есть хотя бы один такой слой
-function addCommonCalendar()
+/**
+    
+*/
+nsGmx.widgets.getCommonCalendar = (function()
 {
-    if (nsGmx.widgets.commonCalendar) return; //общий календарь может быть только один
+    var _calendar = null;
+    return function()
+    {
+        if (!_calendar)
+        {
+            _calendar = new nsGmx.Calendar();
+            _calendar.init('CalendarCommon', {
+                minimized: true,
+                dateMin: new Date(2000, 01, 01),
+                dateMax: new Date(),
+                showTime: false
+            });
+            
+            _calendar.setTimeBegin(0, 0, 0);
+            _calendar.setTimeEnd(23, 59, 59);
+            
+            var calendarDiv = $("<div/>").append(_calendar.canvas);
+            var table = $(_queryMapLayers.workCanvas).children("table");
+            $(table).after(calendarDiv);
+            
+            _mapHelper.customParamsManager.addProvider({
+                name: 'commonCalendar',
+                loadState: function(state) { _calendar.loadState(state); updateTemporalLayers(); },
+                saveState: function() { return _calendar.saveState(); }
+            });
+        }
+        
+        return _calendar;
+    }
+})()
+
+//Отслеживаем изменения календарика и фильтруем все мультивременные слои относительно выбранного периода. 
+//Если выбран не период, а просто дата - фильтруем за последние сутки относительно этой даты
+function filterTemporalLayers()
+{
+    if (filterTemporalLayers.done) return; //привязываемся только один раз
     var isAnyTemporalLayer = false;
     for (var i = 0; i < globalFlashMap.layers.length; i++)
         if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
@@ -490,26 +527,15 @@ function addCommonCalendar()
         
     if (isAnyTemporalLayer)
     {
-        var calendar = new nsGmx.Calendar();
-        calendar.init('TemporalLayersCommon', {
-            minimized: true,
-            dateMin: new Date(2000, 01, 01),
-            dateMax: new Date(),
-            resourceHost: 'http://maps.kosmosnimki.ru/api/',
-            showTime: false
-        });
-        
-        calendar.setTimeBegin(0, 0, 0);
-        calendar.setTimeEnd(23, 59, 59);
-        
-        var calendarDiv = $("<div/>").append(calendar.canvas);
-        var table = $(_queryMapLayers.workCanvas).children("table");
-        $(table).after(calendarDiv);
+        var calendar = nsGmx.widgets.getCommonCalendar();
         
         var updateTemporalLayers = function()
         {
             var dateBegin = calendar.getDateBegin();
             var dateEnd = calendar.getDateEnd();
+            
+            if (dateBegin.valueOf() == dateEnd.valueOf())
+                dateBegin = new Date(dateBegin.valueOf() - 1000*3600*24);
             
             for (var i = 0; i < globalFlashMap.layers.length; i++)
                 if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
@@ -521,15 +547,11 @@ function addCommonCalendar()
         $(calendar).change(updateTemporalLayers);
         updateTemporalLayers();
         
-        _mapHelper.customParamsManager.addProvider({
-            name: 'commonCalendar',
-            loadState: function(state) { calendar.loadState(state); updateTemporalLayers(); },
-            saveState: function() { return calendar.saveState(); }
-        });
-        
-        nsGmx.widgets.commonCalendar = calendar;
+        filterTemporalLayers.done = true;
     }
 }
+
+filterTemporalLayers.done = false;
 
 function addMapName(container, name)
 {
@@ -857,8 +879,8 @@ function loadMap(state)
                 
 				fnInitControls();
                 
-                $(_queryExternalMaps).bind('map_loaded', addCommonCalendar);
-                addCommonCalendar();
+                $(_queryExternalMaps).bind('map_loaded', filterTemporalLayers);
+                filterTemporalLayers();
 				
 				pluginsManager.afterViewer();
 			
