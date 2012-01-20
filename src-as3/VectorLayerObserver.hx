@@ -9,6 +9,8 @@ class VectorLayerObserver extends MapContent
 	public function new(layer_:VectorLayer, onChange_:String->Bool->Void)
 	{
 		layer = layer_;
+		layer.vectorLayerObserver = this;
+		
 		onChange = onChange_;
 		ids = new Hash<Bool>();
 	}
@@ -16,6 +18,11 @@ class VectorLayerObserver extends MapContent
 	public override function createContentSprite()
 	{
 		return Utils.addSprite(mapNode.vectorSprite);
+	}
+
+	public override function flush()
+	{
+		ids = new Hash<Bool>();
 	}
 
 	public override function repaint()

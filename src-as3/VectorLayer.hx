@@ -13,6 +13,7 @@ class VectorLayer extends MapContent
 	public var lastGeometry:Geometry;
 	public var currentId:String;
 	public var currentFilter:VectorLayerFilter;
+	public var vectorLayerObserver:VectorLayerObserver;
 	//var hoverTileExtent:Extent;
 	//var hoverTiles:Array<VectorTile>;
 
@@ -34,6 +35,7 @@ class VectorLayer extends MapContent
 		attrHash = (attr_ != null ? attr_ : null);
 		tileFunction = tileFunction_;
 		temporalCriterion = null;
+		vectorLayerObserver = null;
 		flush();
 		
 		if(attrHash != null) {
@@ -57,6 +59,7 @@ class VectorLayer extends MapContent
 			for (child in mapNode.children)
 				if (Std.is(child.content, VectorLayerFilter))
 					cast(child.content, VectorLayerFilter).flush();
+		if(vectorLayerObserver != null) vectorLayerObserver.flush();
 	}
 
 	public function addTile(i:Int, j:Int, z:Int)

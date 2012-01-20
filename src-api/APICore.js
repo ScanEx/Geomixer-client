@@ -778,7 +778,11 @@ window.gmxAPI = {
 	{
 		var arr = str.split(' ');
 		var arr1 = arr[0].split('.');
-		var ret = new Date((arr1.length > 2 ? arr1[2] : 2008), (arr1.length > 1 ? arr1[1] - 1 : 0), (arr1.length > 0 ? arr1[0] : 1));
+		var d = arr1[0];
+		var m = arr1[1] - 1;
+		var y = arr1[2];
+		if(d > 99) d = arr1[2], y = arr1[0];
+		var ret = new Date(y, m, d);
 		if(arr.length > 1) {
 			arr1 = arr[1].split(':');
 			ret.setHours((arr1.length > 0 ? arr1[0] : 0), (arr1.length > 1 ? arr1[1] : 0), (arr1.length > 2 ? arr1[2] : 0), (arr1.length > 3 ? arr1[3] : 0));
@@ -2345,6 +2349,16 @@ function createFlashMapInternal(div, layers, callback)
 				tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
 				var propsArray = [];
 				var flipCounts = {};
+				var TemporalColumnName = this.properties.TemporalColumnName || '';
+				tilesParent.clearItems  = function()
+				{
+					for(id in images) {
+						images[id].remove();
+					}
+					images = {};
+					propsArray = [];
+					flipCounts = {};
+				}
 				var updateImageDepth = function(o)
 				{
 					var identityField = gmxAPI.getIdentityField(o);
@@ -2362,13 +2376,13 @@ function createFlashMapInternal(div, layers, callback)
 					if (!images[id]) {
 						return;
 					}
-					var lastDate = props.date || props.DATE;
+					var lastDate = (TemporalColumnName ? props[TemporalColumnName] : props.date || props.DATE);
 					var lastFc = flipCounts[id];
 					var n = 0;
 					for (var i = 0; i < propsArray.length; i++)
 					{
 						var pa = propsArray[i];
-						var date = pa.date || pa.DATE;
+						var date = (TemporalColumnName ? pa[TemporalColumnName] : pa.date || pa.DATE);
 						var fc = flipCounts["id_" + pa[identityField]];
 						var isHigher = false;
 						if (!lastFc)
@@ -2898,6 +2912,9 @@ function createFlashMapInternal(div, layers, callback)
 								attr['notClear'] = true;
 							} else {
 								currentData = data;
+								if(obj.tilesParent) {
+									obj.tilesParent.clearItems();
+								}
 							}
 							//LastDaysDelta = currentData['daysDelta'];
 
