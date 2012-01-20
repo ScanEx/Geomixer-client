@@ -479,6 +479,7 @@ function checkUserInfo(defaultState)
 //Добавляем единый календарик для мультивременных слоёв. Только для карт, где есть хотя бы один такой слой
 function addCommonCalendar()
 {
+    if (nsGmx.widgets.commonCalendar) return; //общий календарь может быть только один
     var isAnyTemporalLayer = false;
     for (var i = 0; i < globalFlashMap.layers.length; i++)
         if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
@@ -856,6 +857,7 @@ function loadMap(state)
                 
 				fnInitControls();
                 
+                $(_queryExternalMaps).bind('map_loaded', addCommonCalendar);
                 addCommonCalendar();
 				
 				pluginsManager.afterViewer();
