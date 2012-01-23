@@ -614,36 +614,11 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	}
 }
 
-layersTree.prototype.downloadVectorLayer = function(name, area, mapHostName)
+layersTree.prototype.downloadVectorLayer = function(name, mapHostName)
 {
-	var canvas = _div(),
-		layer = globalFlashMap.layers[name],
-		filename = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','value',translit(layer.properties.title)]]),
-		_this = this;
-	
-	var downloadButton = makeButton(_gtxt("Скачать"));
-	downloadButton.onclick = function()
-	{
-		if (filename.value == '')
-		{
-			$(filename).addClass("error")
-			
-			setTimeout(function(){if (filename) $(filename).removeClass("error")}, 2000);
-			
-			return;
-		}
-		
-		window.location.href = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + 
-			"?name=" + translit(filename.value) + 
-			"&t=" + layer.properties.name;
-		
-		$(canvas.parentNode).dialog("destroy")
-		canvas.parentNode.removeNode(true);
-	}
-	
-	_(canvas, [_div([_t(_gtxt("Введите имя файла для скачивания")), filename],[['css','textAlign','center']]), _div([downloadButton],[['css','height','25px'],['css','width','100px'],['css','margin','15px 0px 0px 100px']])])
-	
-	showDialog(_gtxt("Скачать shp-файл"), canvas, 240, 120, area.left + 150, area.top)
+    var layer = globalFlashMap.layers[name];
+    window.location.href = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + 
+			"?t=" + layer.properties.name;
 }
 
 //При клике на объекте показывает аттрибутивную информацию объекта в виде красивой таблицы. 

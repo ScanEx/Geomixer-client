@@ -340,7 +340,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	clickCallback: function(context)
 	{
-		_layersTree.downloadVectorLayer(context.elem.name, context.contentMenuArea, context.elem.hostName);
+		_layersTree.downloadVectorLayer(context.elem.name, context.elem.hostName);
 	}
 }, 'Layer');
 
