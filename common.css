@@ -768,14 +768,14 @@ skype_pnh_container
 	display:none !important;
 }
 
-.attrsTableBody td
+.attrsTableBody #attrsTableParent td
 {
 	padding: 1px 5px 2px 5px;
 	border: 1px solid #dedede;
 	font-size: 12px;
 	font-weight: normal;
 }
-.attrsTableBody th
+.attrsTableBody #attrsTableParent th
 {
 	background:url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
 	height:20px;
@@ -786,7 +786,7 @@ skype_pnh_container
 	font-weight: normal;
 }
 
-.attrsTableBody .odd td
+.attrsTableBody #attrsTableParent .odd td
 {
 	background-color: #eaeaea;
 }
@@ -1077,3 +1077,9 @@ div.layersScroll
 {
     color: #bbbbbb;
 }
+
+/*.attrTableBody #attrTable2TableParent th, .attrTableBody #attrTable2TableParent td
+{
+    border: 1px solid #DEDEDE;
+    padding: 1px 5px 2px;
+}*/

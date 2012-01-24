@@ -1,16 +1,24 @@
-var scrollTable = function()
+var scrollTable = function( params )
 {
-	this.limit = 50;
-	this.pagesCount = 10;
+    this._params = $.extend(
+    {
+        limit: 50,
+        page: 0,
+        pagesCount: 10
+    }, params);
+    
+	this.limit = this._params.limit;
+	this.pagesCount = this._params.pagesCount;
 	
 	this.start = 0;
 	this.reportStart = 0;
-	this.allPages = 0;
 	
 	this.drawFunc = null;
     
     this._pageVals = [];
     this._currValsCount = 0;
+    
+    this._dataProvider = null;
 	
 	 // Переход на предыдущую страницу
 	this.next = function()
@@ -114,15 +122,12 @@ var scrollTable = function()
 							 _option([_t("100")], [['attr','value',100]]),
 							 _option([_t("200")], [['attr','value',200]]),
 							 _option([_t("500")], [['attr','value',500]])], [['dir','className','selectStyle floatRight'], ['css','width','60px']])
-                             
-    this._dataProvider = null;
-    
-    this.setDataProvider(new scrollTable.StaticDataProvider());
 }
 
 scrollTable.prototype.setDataProvider = function( dataProvider )
 {
     this._dataProvider = dataProvider;
+    this._drawTable();
 }
 
 scrollTable.prototype.getDataProvider = function()
@@ -130,14 +135,54 @@ scrollTable.prototype.getDataProvider = function()
     return this._dataProvider;
 }
 
+// scrollTable.prototype.setActiveFields = function(activeFields)
+// {
+    // var fieldsSet = {}
+    // for (var f = 0; f < activeFields.length; f++)
+        // fieldsSet[activeFields[f]] = true;
+    
+    // for (var f = 0; f < this._fields.length; f++)
+        // this._fields[f].isActive = this._fields[f].title in fieldsSet;
+            
+    // this._drawHeader();
+    // this._drawRows();
+// }
+
+scrollTable.prototype.activateField = function(name, isActive)
+{
+    for (var f = 0; f < this._fields.length; f++)
+        if (this._fields[f].title == name)
+        {
+            if (this._fields[f].isActive == isActive)
+                return;
+                
+            this._fields[f].isActive = isActive;
+            
+            this._drawHeader();
+            this._drawRows();
+        }
+}
+
+scrollTable.prototype._getActiveFields = function()
+{
+    var res = [];
+    for (var f = 0; f < this._fields.length; f++)
+        if (this._fields[f].isActive)
+            res.push(this._fields[f].title);
+            
+    return res;
+}
+
 scrollTable.prototype._drawRows = function()
 {
 	var trs = [];
 
 	removeChilds(this.tableBody);
+    
+    var activeFields = this._getActiveFields();
 	
 	for (var i = 0; i < this._pageVals.length; i++)
-		trs.push(this.drawFunc(this._pageVals[i]));
+		trs.push(this.drawFunc(this._pageVals[i], i, activeFields));
 	
 	_(this.tableBody, trs);
 	
@@ -196,8 +241,8 @@ scrollTable.prototype._updatePageData = function(callback)
         _this._currValsCount = count;
         
         _this._dataProvider.getItems(
-            _this.reportStart, 
-            _this.reportStart + _this.limit, 
+            _this.reportStart / _this.limit,
+            _this.limit,
             _this.currentSortType, 
             _this.currentSortIndex[_this.currentSortType] == 0, 
             function(values)
@@ -211,46 +256,52 @@ scrollTable.prototype._updatePageData = function(callback)
 
 scrollTable.prototype._drawPagesRow = function()
 {
-	// перерисовывем номера страниц
-	removeChilds(this.tablePages);
-	
-	var end = (this.start + this.pagesCount <= this.allPages) ? this.start + this.pagesCount : this.allPages;
-	
-	if (this.start - this.pagesCount >= 0)
-		_(this.tablePages,[this.first(), this.previous()]);
-	
-	this._drawPages(end);
-	
-	if (end + 1 <= this.allPages)
-		_(this.tablePages,[this.next(), this.last()]);
-
     var _this = this;
     this._updatePageData(function()
     {
+        // перерисовывем номера страниц
+        removeChilds(_this.tablePages);
+        
+        if (_this._currValsCount > _this.limit)
+        {
+            var allPages = Math.ceil(_this._currValsCount / _this.limit);
+            
+            var end = (_this.start + _this.pagesCount <= allPages) ? _this.start + _this.pagesCount : allPages;
+            
+            if (_this.start - _this.pagesCount >= 0)
+                _(_this.tablePages,[_this.first(), _this.previous()]);
+            
+            _this._drawPages(end);
+            
+            if (end + 1 <= allPages)
+                _(_this.tablePages,[_this.next(), _this.last()]);
+        }
+        
         _this._drawRows();
     })
     
 }
 
-//Если baseWidth == 0, таблица растягивается на весь контейнер по ширине
-scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fieldsWidths, drawFunc, sortFuncs)
+scrollTable.prototype._drawHeader = function()
 {
-	var tds = [],
-		_this = this;
-        
-    this._dataProvider.setSortFunctions(sortFuncs);
-	
-	this.fieldsWidths = fieldsWidths;
-	
-	for (var i = 0; i < fields.length; i++)
+    var tds = [],
+        _this = this;
+    
+    var headerElemFactory = this._isWidthScroll ? _th : _td;
+    
+	for (var i = 0; i < this._fields.length; i++)
 	{
+        if (!this._fields[i].isActive)
+            continue;
+            
+        var title = this._fields[i].title;
 		var button;
 		
-		if (fields[i] != '' && sortFuncs[fields[i]])
+		if (title != '' && this._fields[i].isSortable)
 		{
-			button = makeLinkButton(fields[i]);
+			button = makeLinkButton(title);
 			
-			button.sortType = fields[i];
+			button.sortType = title;
 			
 			button.onclick = function()
 			{
@@ -266,10 +317,34 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 			}
 		}
 		else
-			button = _t(fields[i])
+			button = _t(title)
 		
-		tds.push(_td([button], [['css','width',this.fieldsWidths[i]]]))
+		tds.push(headerElemFactory([button], [['css','width',this._fields[i].width]]));
 	}
+    
+    $(this._tableHeaderRow).empty();
+    _(this._tableHeaderRow, tds);
+}
+
+//Если baseWidth == 0, таблица растягивается на весь контейнер по ширине
+scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fieldsWidths, drawFunc, sortableFields, isWidthScroll)
+{
+	var _this = this;
+        
+	// this.fieldsWidths = fieldsWidths;
+    // this._fields = fields;
+    // this._activeFields = $.extend({}, fields);
+    this._isWidthScroll = isWidthScroll;
+    
+    this._fields = [];
+    for (var f = 0; f < fields.length; f++)
+        this._fields.push({
+            title: fields[f],
+            width: fieldsWidths[f],
+            isSortable: fields[f] in sortableFields,
+            isActive: true
+        });
+    
 	
 	this.limitSel = switchSelect(this.limitSel,  this.limit)
 	
@@ -287,18 +362,38 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 	this.tableLimit = _div([this.limitSel]);
 	this.tablePages = _div(null,[['dir','className','tablePages']]);
 
-	//как формировать фиксированный заголовок таблицы, зависит от того, будет ли у таблицы фиксированный размер или нет
-	//TODO: убрать возможность задавать фиксированный размер
-	if ( baseWidth )
-		this.tableHeader = _tbody([_tr(tds)],[['attr','id',name + 'TableHeader']]);
-	else
-		this.tableHeader = _tbody([_tr([_td([_table([_tbody([_tr(tds)])])]), _td(null, [['css', 'width', '20px']])])], [['attr','id',name + 'TableHeader']]);
-		
-	this.tableBody = _tbody(null,[['attr','id',name + 'TableBody']]);
-	this.tableParent = _div([
-							_div([_table([this.tableHeader])],[['dir','className','tableHeader']]),
-							_div([_table([this.tableBody])],[['dir','className','tableBody'],['css','width',baseWidth ? baseWidth + 20 + 'px' : "100%"]])
-						],[['attr','id',name + 'TableParent'],['dir','className','scrollTable'],['css','width',baseWidth ? baseWidth + 'px' : "100%"]])
+    this.tableBody = _tbody(null,[['attr','id',name + 'TableBody']]);
+    
+    
+    this._tableHeaderRow = _tr();
+    if (isWidthScroll)
+    {
+        this.tableHeader = _thead([this._tableHeaderRow], [['attr','id',name + 'TableHeader'], ['dir','className','tableHeader']]);
+    }
+    else
+    {
+        //как формировать фиксированный заголовок таблицы, зависит от того, будет ли у таблицы фиксированный размер или нет
+        //TODO: убрать возможность задавать фиксированный размер
+        if ( baseWidth )
+            this.tableHeader = _tbody([this._tableHeaderRow],[['attr','id',name + 'TableHeader']]);
+        else
+            this.tableHeader = _tbody([_tr([_td([_table([_tbody([this._tableHeaderRow])])]), _td(null, [['css', 'width', '20px']])])], [['attr','id',name + 'TableHeader']]);
+    }
+    
+    this._drawHeader();
+    
+    if (isWidthScroll)
+    {
+        this.tableParent = _div([_table([this.tableHeader, this.tableBody])],
+                                [['attr','id',name + 'TableParent'],['dir','className','scrollTable'],['css','width',baseWidth ? baseWidth + 'px' : "100%"], ['css', 'overflow', 'auto']]);
+    }
+    else
+    {
+        this.tableParent = _div([
+                                _div([_table([this.tableHeader])],[['dir','className','tableHeader']]),
+                                _div([_table([this.tableBody])],[['dir','className','tableBody'],['css','width',baseWidth ? baseWidth + 20 + 'px' : "100%"]])
+                            ],[['attr','id',name + 'TableParent'],['dir','className','scrollTable'],['css','width',baseWidth ? baseWidth + 'px' : "100%"]])
+    }
 	
 	_(parent, [this.tableParent])
 	_(parent, [_table([_tbody([_tr([_td([this.tableCount], [['css','width','20%']]), _td([this.tablePages]), _td([this.tableLimit], [['css','width','20%']])])])], [['css','width','100%']])]);
@@ -307,13 +402,10 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 	this.drawFunc = drawFunc;
 	this.start = 0;
 	this.reportStart = 0;
-	this.allPages = 0;
-	
-	this.sortFuncs = sortFuncs;
 	
 	this.currentSortType = null;
 	// сортировка по умолчанию	
-	for (var name in this.sortFuncs)
+	for (var name in sortableFields)
 	{
 		this.currentSortType = name;
 		
@@ -321,39 +413,40 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 	}
 	
 	this.currentSortIndex = {};
-	for (var name in this.sortFuncs)
+	for (var name in sortableFields)
 	{
 		this.currentSortIndex[name] = 0;
 	}
     
+    if (!this._dataProvider)
+        this.setDataProvider(new scrollTable.StaticDataProvider());
+    
     $(this._dataProvider).change(function()
     {
-        _this._updatePageData(function()
-        {
-            _this._drawTable();
-        })
+        _this._drawTable();
     });
+    this._drawTable();
 }
 
 scrollTable.prototype._drawTable = function()
 {
-    var _this = this;
-    this._updatePageData(function()
-    {
+    if (!this.tableBody) return; //ещё не создана таблица
+    this._drawPagesRow();
+    // var _this = this;
+    // this._updatePageData(function()
+    // {
 	
-        if (_this._currValsCount <= _this.limit)
-        {
-            removeChilds(_this.tablePages);
+        // if (_this._currValsCount <= _this.limit)
+        // {
+            // removeChilds(_this.tablePages);
             
-            _this._drawRows()
-        }
-        else
-        {
-            _this.allPages = Math.ceil(_this._currValsCount / _this.limit)
-
-            _this._drawPagesRow();
-        }
-    })
+            // _this._drawRows()
+        // }
+        // else
+        // {
+            // _this._drawPagesRow();
+        // }
+    // })
 }
 
 scrollTable.prototype.setPage = function(iPage)
@@ -413,8 +506,10 @@ scrollTable.StaticDataProvider = function()
         callback(_filteredVals.length);
     }
     
-    this.getItems = function(nMin, nMax, sortParam, sortDec, callback)
+    this.getItems = function(page, pageSize, sortParam, sortDec, callback)
     {
+        var nMin = page*pageSize;
+        var nMax = nMin + pageSize;
         _filter();
         var sortDirIndex = sortDec ? 0 : 1;
         var sortedVals = _sortFunctions[sortParam] ? _filteredVals.sort(_sortFunctions[sortParam][sortDirIndex]) : _filteredVals;

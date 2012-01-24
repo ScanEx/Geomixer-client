@@ -323,9 +323,15 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	clickCallback: function(context)
 	{
 		if (context.elem.LayerID)
-			_layerSecurity.getRights(context.elem.LayerID, context.elem.title);
+        {
+            var securityDialog = new nsGmx.layerSecurity();
+			securityDialog.getRights(context.elem.LayerID, context.elem.title);
+        }
 		else if (context.elem.MultiLayerID)
-			_multiLayerSecurity.getRights(context.elem.MultiLayerID, context.elem.title);
+        {
+            var securityDialog = new nsGmx.multiLayerSecurity();
+			securityDialog.getRights(context.elem.MultiLayerID, context.elem.title);
+        }
 	}
 }, 'Layer');
 
@@ -496,7 +502,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: _gtxt("Права доступа"),
 	clickCallback: function(context)
 	{
-		_mapSecurity.getRights(context.tree.mapHelper.mapProperties.MapID, context.tree.mapHelper.mapProperties.title);
+        var securityDialog = new nsGmx.mapSecurity();
+		securityDialog.getRights(context.tree.mapHelper.mapProperties.MapID, context.tree.mapHelper.mapProperties.title);
 	},
 	isVisible: function(context)
 	{

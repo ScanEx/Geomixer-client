@@ -1,21 +1,18 @@
-var security = function()
+var nsGmx = nsGmx || {};
+
+(function()
 {
-	this.mapTypeSel = null;
-	this.mapAccessSel = null;
-	
-	this.mapAccessArr = {};
-	this.defaultAccess = null;
-	
-	
-	this.getSecurityName = null;
-	this.updateSecurityName = null;
-	this.getUserSecurityName = null;
-	
-	this.propertyValue = null;
-	this.title = null;
+
+var removeMapUser = function(user, dataProvider)
+{
+    dataProvider.filterOriginalItems(function(elem)
+    {
+        return elem.Login != user.Login;
+    });
+    
 }
 
-security.UserInputWidget = function(container)
+var UserInputWidget = function(container)
 {
     var isLogin = true;
     var loginInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
@@ -59,6 +56,29 @@ security.UserInputWidget = function(container)
     }   
 }
 
+var security = function()
+{
+	this.mapTypeSel = null;
+	this.mapAccessSel = null;
+	
+	this.mapAccessArr = {};
+	this.defaultAccess = null;
+	
+	
+	this.getSecurityName = null;
+	this.updateSecurityName = null;
+	this.getUserSecurityName = null;
+	
+	this.propertyValue = null;
+	this.title = null;
+    
+    this._securityTable = new scrollTable({limit:20, pagesCount: 5});
+    this._securityUsersProvider = new scrollTable.StaticDataProvider();
+    
+    this._securityTableSuggest = new scrollTable({limit:20, pagesCount: 5});
+    this._securitySuggestProvider = new scrollTable.StaticDataProvider();
+}
+
 var mapSecurity = function()
 {
 	this.getSecurityName = "Map/GetSecurity.ashx";
@@ -98,8 +118,8 @@ var multiLayerSecurity = function()
 multiLayerSecurity.prototype = new security();
 multiLayerSecurity.prototype.constructor = multiLayerSecurity;
 
-//добавляет в container поля поиска и связывает их с фильтрами table
-security.prototype._createFilterWidget = function(table, container)
+//добавляет в container поля поиска и связывает их с фильтрами dataProvider'a
+security.prototype._createFilterWidget = function(dataProvider, container)
 {
     var inputPredicate = function(value, fieldName, fieldValue)
 	{
@@ -117,7 +137,7 @@ security.prototype._createFilterWidget = function(table, container)
         _span([_t(_gtxt("Псевдоним")), filterNicknameInput], [['css','fontSize','12px'], ['css', 'marginLeft', '20px']])
     ]);
     
-    table.getDataProvider().attachFilterEvents(filterLoginInput, 'Login', function(fieldName, fieldValue, vals)
+    dataProvider.attachFilterEvents(filterLoginInput, 'Login', function(fieldName, fieldValue, vals)
     {
         if (fieldValue == "")
             return vals;
@@ -131,7 +151,7 @@ security.prototype._createFilterWidget = function(table, container)
         return local;
     });
     
-    table.getDataProvider().attachFilterEvents(filterNicknameInput, 'Nickname', function(fieldName, fieldValue, vals)
+    dataProvider.attachFilterEvents(filterNicknameInput, 'Nickname', function(fieldName, fieldValue, vals)
     {
         if (fieldValue == "")
             return vals;
@@ -192,7 +212,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		securityInfo.SecurityInfo.Type = this.value;
 	}
 	
-	_security.defaultAccess = securityInfo.SecurityDescription.DefaultAccess;
+	this.defaultAccess = securityInfo.SecurityDescription.DefaultAccess;
 	
 	for (var i = 0; i < securityInfo.SecurityDescription.AccessList.length; ++i)
 		this.mapAccessArr[securityInfo.SecurityDescription.AccessList[i][0]] = securityInfo.SecurityDescription.AccessList[i][1];
@@ -201,7 +221,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	
 	saveButton.onclick = function()
 	{
-		securityInfo.SecurityInfo.Users = _securityTable.getDataProvider().getOriginalItems();
+		securityInfo.SecurityInfo.Users = _this._securityUsersProvider.getOriginalItems();
 		
 		var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
 		_($$('headerLinks'), [loading]);
@@ -226,7 +246,9 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	{
 		var canvas = _div();
 		var tableSuggestParent = _div();
-		var usersTable = new scrollTable();
+        
+		var usersTable = new scrollTable({limit: 20, pagesCount: 5});
+        var usersProvider = new scrollTable.StaticDataProvider();
 		
 		if (isShowUserSuggest)
 		{
@@ -237,6 +259,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 				
 			var drawOwnersFunction = function(user)
 			{
+                user = $.extend({Login: "", Fullname: "", Nickname: ""}, user);
                 var tdNickname = _td([_div([_t(user.Nickname)], [['css','cursor','pointer'], ['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
 
                 var tds;
@@ -260,34 +283,35 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 				}
 				
 				for (var i = 0; i < tr.childNodes.length; i++)
-					tr.childNodes[i].style.width = this.fieldsWidths[i];
+					tr.childNodes[i].style.width = this._fields[i].width;
 				
 				attachEffects(tr, 'hover');
 				
 				return tr;
 			}
-			
-			usersTable.limit = 20;
-			usersTable.pagesCount = 5;
             
+            var filterContainer = _div();
+            _this._createFilterWidget(usersProvider, filterContainer);
+			usersProvider.setOriginalItems( securityInfo.UsersWithoutAccess.concat(securityInfo.SecurityInfo.Users) );
+			            
+            usersProvider.setSortFunctions(sortFuncs);
+            usersTable.setDataProvider(usersProvider);
+                        
             if (isShowFullname)
                 usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 0, [_gtxt("Логин"), _gtxt("Псевдоним"), _gtxt("Полное имя")], ['33%', '33%', '34%'], drawOwnersFunction, sortFuncs);
             else
                 usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 0, [_gtxt("Логин")], ['100%'], drawOwnersFunction, sortFuncs);
           
-            var filterContainer = _div();
-            _this._createFilterWidget(usersTable, filterContainer);
-            
 			_(canvas, [filterContainer, tableSuggestParent]);
             
-			usersTable.getDataProvider().setOriginalItems( securityInfo.UsersWithoutAccess.concat(securityInfo.SecurityInfo.Users) );
+            
 			
 			usersTable.tableParent.style.height = '150px';
 			usersTable.tableBody.parentNode.parentNode.style.height = '130px';
 		}
 		else
 		{
-            var userInputWidget = new security.UserInputWidget(canvas);
+            var userInputWidget = new UserInputWidget(canvas);
 			var changeOwnerButton = makeLinkButton(_gtxt("Сменить владельца"));
 			changeOwnerButton.onclick = function()
 			{
@@ -331,29 +355,60 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	sortFuncs[_gtxt('Роль')]       = genSortFunction('Role');
 	
     var userFiltersContainer = _div();
-    this._createFilterWidget(_securityTable, userFiltersContainer);
+    this._createFilterWidget(this._securityUsersProvider, userFiltersContainer);
     
 	if (isShowUserSuggest)
     {
         var suggestFilterContainer = _div();
-        this._createFilterWidget(_securityTableSuggest, suggestFilterContainer);
+        this._createFilterWidget(this._securitySuggestProvider, suggestFilterContainer);
         
 		_(canvas, [_div([
             _span([_t(_gtxt("Пользователи без прав доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(),
             suggestFilterContainer, _br(),
             tableSuggestParent
         ])]);
-	
-		_securityTableSuggest.limit = 20;
-		_securityTableSuggest.pagesCount = 5;
-		_securityTableSuggest.createTable(tableSuggestParent, 'securitySuggestTable', 300, [_gtxt("Логин"), _gtxt("Псевдоним"), _gtxt("Полное имя"), _gtxt("Роль"), ""], ['25%','25%','30%','15%','5%'], this.drawMapUsersSuggest, sortFuncs);
-		
         
+        //Предполагаем, что если мы показываем всех пользователей, то имеем всю инфу о них
+        var drawMapUsersSuggest = function(user)
+        {
+            var add = makeImageButton("img/choose.png", "img/choose_a.png"),
+                tr,
+                tdAdd = _td([add]);
+            
+            add.onclick = function()
+            {
+                if (tr)
+                    tr.removeNode(true);
+                
+                // уберем пользователя из одного списка
+                removeMapUser(user, _this._securitySuggestProvider);
+                
+                // добавим в другой
+                _this._addMapUser(user, _this._securityUsersProvider);
+            }
+            
+            var tdLogin = _td([_div([_t(user.Login)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+            var tdNickname = _td([_div([_t(user.Nickname)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+            var tdFullname = _td([_div([_t(user.Fullname)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+            var tdRole = _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]);
+            
+            tr = _tr([tdLogin, tdNickname, tdFullname, tdRole, tdAdd]);
+            
+            for (var i = 0; i < tr.childNodes.length; i++)
+                tr.childNodes[i].style.width = this._fields[i].width;
+            
+            attachEffects(tr, 'hover')
+            
+            return tr;
+        }
+	
+        this._securitySuggestProvider.setSortFunctions(sortFuncs);
+        this._securityTableSuggest.setDataProvider(this._securitySuggestProvider);
+		this._securityTableSuggest.createTable(tableSuggestParent, 'securitySuggestTable', 300, [_gtxt("Логин"), _gtxt("Псевдоним"), _gtxt("Полное имя"), _gtxt("Роль"), ""], ['25%','25%','30%','15%','5%'], drawMapUsersSuggest, sortFuncs);
         
 		_(canvas, [tableSuggestParent]);
 		_(canvas, [_div([
             _span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), 
-            //_table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserInput])])])]), _br(), 
             userFiltersContainer
         ],[['css','borderTop','1px solid #999'],['css','marginTop','10px']])]);
 	}
@@ -361,7 +416,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
     {
         var addMapUserButton = makeLinkButton(_gtxt("Добавить пользователя"));
         var addUserContainer = _div(null, [['css', 'marginBottom', '15px']]);
-        var userInputWidget = new security.UserInputWidget(addUserContainer);
+        var userInputWidget = new UserInputWidget(addUserContainer);
         
         addMapUserButton.style.marginLeft = '10px';
         addMapUserButton.onclick = function()
@@ -375,7 +430,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
                 return;
             }
             
-            var addedUsers = _securityTable.getDataProvider().getOriginalItems();
+            var addedUsers = _this._securityUsersProvider.getOriginalItems();
             
             sendCrossDomainJSONRequest(serverBase + _this.getUserSecurityName + "?WrapStyle=func&" + userParam + "&" + _this.propertyName + "=" + _this.propertyValue, function(response)
             {
@@ -400,10 +455,9 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
                 response.Result.Access = _this.defaultAccess;
                 
                 userInputWidget.clear();
-                //_securityTable.filterVals = {};
                 
                 // добавим в список пользователей с правами
-                _security.addMapUser(response.Result, _securityTable);
+                _this._addMapUser(response.Result, _this._securityUsersProvider);
             })
         }
         _(addUserContainer, [addMapUserButton]);
@@ -414,15 +468,14 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
         ])]);
 	}
     
-	_securityTable.limit = 20;
-	_securityTable.pagesCount = 5;
-    
     var fieldNames   = isShowFullname ? [_gtxt("Логин"), _gtxt("Псевдоним"), _gtxt("Полное имя"), _gtxt("Роль"), _gtxt("Доступ"), ""] : [_gtxt("Псевдоним"), _gtxt("Роль"), _gtxt("Доступ"), ""]
     var fieldWidthes = isShowFullname ? ['20%','20%', '20%', '10%', '25%', '5%'] : ['60%','10%','25%','5%'];
     
-	_securityTable.createTable(tableParent, 'securityTable', 310, fieldNames, fieldWidthes, function(arg)
+    this._securityUsersProvider.setSortFunctions(sortFuncs);
+    this._securityTable.setDataProvider(this._securityUsersProvider);
+	this._securityTable.createTable(tableParent, 'securityTable', 310, fieldNames, fieldWidthes, function(arg)
 	{
-		return _this.drawMapUsers.call(this,arg,_this);
+		return _this.drawMapUsers.call(this, arg, _this);
 	}, sortFuncs);
 
 	_(canvas, [tableParent]);
@@ -435,38 +488,38 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		{
 			mapTableHeight = Math.floor((canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - canvas.childNodes[1].offsetHeight - canvas.childNodes[3].offsetHeight - 50 - 30 - 20) / 2 );
 			
-			_securityTableSuggest.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-			_securityTableSuggest.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
-			_securityTableSuggest.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+			_this._securityTableSuggest.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+			_this._securityTableSuggest.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
+			_this._securityTableSuggest.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
 
-			_securityTableSuggest.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
+			_this._securityTableSuggest.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
 			
-			_securityTableSuggest.tableParent.style.height = mapTableHeight + 'px';
-			_securityTableSuggest.tableBody.parentNode.parentNode.style.height = mapTableHeight - 20 + 'px';
+			_this._securityTableSuggest.tableParent.style.height = mapTableHeight + 'px';
+			_this._securityTableSuggest.tableBody.parentNode.parentNode.style.height = mapTableHeight - 20 + 'px';
 		
 		
-			_securityTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-			_securityTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
-			_securityTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+			_this._securityTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+			_this._securityTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
+			_this._securityTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
 
-			_securityTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
+			_this._securityTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
 			
-			_securityTable.tableParent.style.height = mapTableHeight + 'px';
-			_securityTable.tableBody.parentNode.parentNode.style.height = mapTableHeight - 20 + 'px';
+			_this._securityTable.tableParent.style.height = mapTableHeight + 'px';
+			_this._securityTable.tableBody.parentNode.parentNode.style.height = mapTableHeight - 20 + 'px';
 		}
 		else
 		{
 			//mapTableHeight = (canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - canvas.childNodes[1].offsetHeight - canvas.childNodes[3].offsetHeight - 25 - 20 - 10);
 			mapTableHeight = (canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - canvas.childNodes[1].offsetHeight - 25 - 20 - 10);
 			
-			_securityTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
-			_securityTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
-			_securityTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+			_this._securityTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
+			_this._securityTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
+			_this._securityTable.tableBody.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
 
-			_securityTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
+			_this._securityTable.tablePages.parentNode.parentNode.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 12 - 21 + 'px';
 			
-			_securityTable.tableParent.style.height = mapTableHeight + 'px';
-			_securityTable.tableBody.parentNode.parentNode.style.height = mapTableHeight - 15 + 'px';
+			_this._securityTable.tableParent.style.height = mapTableHeight + 'px';
+			_this._securityTable.tableBody.parentNode.parentNode.style.height = mapTableHeight - 15 + 'px';
 		}
 	}
 
@@ -482,10 +535,10 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 			if ( securityInfo.UsersWithoutAccess[u].Role != nsGmx.ROLE_ADMIN )
 				vals.push(securityInfo.UsersWithoutAccess[u]);
 
-		_securityTableSuggest.getDataProvider().setOriginalItems(vals);
+		this._securitySuggestProvider.setOriginalItems(vals);
 	}
 
-	_securityTable.getDataProvider().setOriginalItems( securityInfo.SecurityInfo.Users );
+	this._securityUsersProvider.setOriginalItems( securityInfo.SecurityInfo.Users );
 }
 
 security.prototype.drawMapUsers = function(user, securityScope)
@@ -507,12 +560,12 @@ security.prototype.drawMapUsers = function(user, securityScope)
 			tr.removeNode(true);
 		
 		// уберем пользователя из одного списка
-		_security.removeMapUser(user, _securityTable);
+		removeMapUser(user, securityScope._securityUsersProvider);
 		
 		if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_ALL_USERS))
 		{
 			// добавим в другой
-			_security.addMapUser(user, _securityTableSuggest);
+			securityScope._addMapUser(user, securityScope._securitySuggestProvider);
 		}
 	}
 	
@@ -552,76 +605,22 @@ security.prototype.drawMapUsers = function(user, securityScope)
     }
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
-		tr.childNodes[i].style.width = this.fieldsWidths[i];
+		tr.childNodes[i].style.width = this._fields[i].width;
 	
 	attachEffects(tr, 'hover')
 	
 	return tr;
 }
 
-//Предполагаем, что если мы показываем всех пользователей, то имеем всю инфу о них
-security.prototype.drawMapUsersSuggest = function(user)
+security.prototype._addMapUser = function(user, dataProvider)
 {
-	var add = makeImageButton("img/choose.png", "img/choose_a.png"),
-		tr,
-		tdAdd = _td([add]),
-		_this = this;
-	
-	add.onclick = function()
-	{
-		if (tr)
-			tr.removeNode(true);
-		
-        // уберем пользователя из одного списка
-        _security.removeMapUser(user, _securityTableSuggest);
-        
-		// добавим в другой
-		_security.addMapUser(user, _securityTable);
-	}
+	var existedUser = $.extend( {Access: this.defaultAccess}, user );
     
-    var tdLogin = _td([_div([_t(user.Login)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-    var tdNickname = _td([_div([_t(user.Nickname)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-    var tdFullname = _td([_div([_t(user.Fullname)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
-	var tdRole = _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]);
-    
-	tr = _tr([tdLogin, tdNickname, tdFullname, tdRole, tdAdd]);
-	
-	for (var i = 0; i < tr.childNodes.length; i++)
-		tr.childNodes[i].style.width = this.fieldsWidths[i];
-	
-	attachEffects(tr, 'hover')
-	
-	return tr;
+    dataProvider.addOriginalItem(existedUser);
 }
 
-security.prototype.removeMapUser = function(user, list)
-{
-    list.getDataProvider().filterOriginalItems(function(elem)
-    {
-        return elem.Login != user.Login;
-    });
-    
-}
+nsGmx.mapSecurity = mapSecurity;
+nsGmx.layerSecurity = layerSecurity;
+nsGmx.multiLayerSecurity = multiLayerSecurity;
 
-security.prototype.addMapUser = function(user, list)
-{
-	var existedUser = {};
-	
-	$.extend(existedUser, user)
-	
-	existedUser.Access = _security.defaultAccess;
-
-	list.start = 0;
-	list.reportStart = 0;
-	list.allPages = 0;
-    
-    list.getDataProvider().addOriginalItem(existedUser);
-}
-
-var _securityTable = new scrollTable(),
-	_securityTableSuggest = new scrollTable();
-
-var _security = new security(),
-	_mapSecurity = new mapSecurity(),
-	_layerSecurity = new layerSecurity(),
-	_multiLayerSecurity = new multiLayerSecurity();
+})();

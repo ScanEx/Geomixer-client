@@ -2316,6 +2316,8 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, 
 				}
 			];
 	
+    
+    
 	_layersTable.createTable(tableParent, name, 0, 
 		["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), ""], 
 		['1%','5%','45%','24%','20%','5%'], 
@@ -2325,6 +2327,7 @@ queryMapLayers.prototype._createLayersManagerInDiv = function( parentDiv, name, 
 		}, 
 		sortFuncs
 	);
+    _layersTable.getDataProvider().setSortFunctions(sortFuncs);
 	
 	// оптимизируем данные для сортировки
 	var valuesToSort = [];
@@ -2597,7 +2600,7 @@ queryMapLayers.prototype.drawLayers = function(layer, params)
 	tr.removeLayerFromList = removeLayerFromList;
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
-		tr.childNodes[i].style.width = this.fieldsWidths[i];
+		tr.childNodes[i].style.width = this._fields[i].width;
 	
 	attachEffects(tr, 'hover')
 	
@@ -2672,6 +2675,7 @@ queryMapLayers.prototype.createMapsManager = function()
 	sortFuncs[_gtxt('Последнее изменение')] = sortFuncFactory(function(_a){ return _a.LastModificationDateTime });
 	
 	_mapsTable.createTable(tableParent, name, 410, ["", "", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '5%', '55%', '15%', '15%', '5%'], this.drawMaps, sortFuncs);
+    _mapsTable.getDataProvider().setSortFunctions(sortFuncs);
 	
 	var inputPredicate = function(value, fieldName, fieldValue)
 		{
@@ -2819,7 +2823,7 @@ queryMapLayers.prototype.drawMaps = function(map)
 	]);
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
-		tr.childNodes[i].style.width = this.fieldsWidths[i];
+		tr.childNodes[i].style.width = this._fields[i].width;
 	
 	attachEffects(tr, 'hover')
 	
@@ -3105,7 +3109,9 @@ queryMapLayersList.prototype.load = function()
 	
 	_listTable.limit = 20;
 	_listTable.pagesCount = 5;
+    
 	_listTable.createTable(tableParent, name, 310, [_gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата")], ['10%','65%','25%'], this.drawExtendLayers, sortFuncs);
+    _listTable.getDataProvider().setSortFunctions(sortFuncs);
 	
 	$(_listTable).bind('sortChange', function(){ _this._updateSlider()} );
 	$(_listTable.getDataProvider()).change(function(){ _this._updateSlider()});
@@ -3477,7 +3483,7 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 	tr = _tr([_td([icon], [['css','textAlign','center']]), _td([_div([layerElems], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap']])]), _td([_t(elem.date)], [['css','textAlign','center'],['dir','className','invisible']])]);
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
-		tr.childNodes[i].style.width = this.fieldsWidths[i];
+		tr.childNodes[i].style.width = this._fields[i].width;
 	
 	attachEffects(tr, 'hover')
 	
@@ -3562,7 +3568,6 @@ queryMapLayersList.prototype.reloadList = function()
 
 	_listTable.start = 0;
 	_listTable.reportStart = 0;
-	_listTable.allPages = 0;
 	
 	_listTable.getDataProvider().setOriginalItems(extendLayers);	
 }

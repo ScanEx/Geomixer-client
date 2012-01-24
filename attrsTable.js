@@ -28,17 +28,89 @@
 
 */
 
+(function(){
+
+var ServerDataProvider = function()
+{
+    var _countRequest = null;
+    var _dataRequest = null;
+    
+    //IDataProvider interface
+    this.getCount = function(callback)
+    {
+        if (!_countRequest)
+        {
+            callback();
+            return;
+        }
+        
+        sendCrossDomainJSONRequest(_countRequest, function(response)
+        {
+            if (!parseResponse(response))
+            {
+                callback();
+                return;
+            }
+            callback(response.Result);
+        })
+    }
+    
+    this.getItems = function(page, pageSize, sortParam, sortDec, callback)
+    {
+        if (!_dataRequest)
+        {
+            callback();
+            return;
+        }
+        
+        var offset = "&page=" + page,
+            limit = "&pagesize=" + pageSize,
+            sortAttr = "&orderby=" + (sortParam || "ogc_fid"),
+            sortOrder = "&orderdirection=" + (sortDec ? "DESC" : "ASC");
+            
+        sendCrossDomainJSONRequest(_dataRequest + offset + limit + sortAttr + sortOrder, function(response)
+        {
+            if (!parseResponse(response))
+            {
+                callback();
+                return;
+            }
+            
+            var fieldsSet = {};
+            
+            for (var f = 0; f < response.Result.fields.length; f++)
+                fieldsSet[response.Result.fields[f]] = f;
+            
+            var res = [];
+            for (var i = 0; i < response.Result.values.length; i++)
+                res.push({
+                    fields: fieldsSet,
+                    values: response.Result.values[i]
+                });
+            
+            callback(res);
+        })
+    }
+    
+    //Задание запросов
+    this.setRequests = function(countRequest, dataRequest)
+    {
+        _countRequest = countRequest;
+        _dataRequest = dataRequest;
+        $(this).change();
+    }
+    
+    this.serverChanged = function()
+    {
+        $(this).change();
+    }
+}
+
 var attrsTable = function(layerName, layerTitle)
 {
 	this.layerName = layerName;
 	this.layerId = globalFlashMap.layers[layerName].properties.LayerID;
 	this.layerTitle = layerTitle;
-	
-	this.pagesCount = 10;
-	this.limit = 20;
-	this.offset = 0;
-	this.total = null;
-	this.fieldsCount = null;
 	
 	this.filterData = null;
 	
@@ -46,101 +118,11 @@ var attrsTable = function(layerName, layerTitle)
 	this.activeColumns = null;
 	
 	this._identityField = globalFlashMap.layers[layerName].properties.identityField;
-	this.sortAttr = this._identityField;
-	this.sortOrder = {};
 	
 	this.resizeFunc = function(){};
 	
 	this.drawingBorders = {};
     this.originalGeometry = {};
-	
-	
-	// Переход на предыдущую страницу
-	this.next = function()
-	{
-		var _this = this,
-			button = makeImageButton('img/next.png', 'img/next_a.png');
-		
-		button.style.marginBottom = '-7px';
-		
-		button.onclick = function()
-		{
-			_this.offset = (Math.floor(_this.offset / (_this.pagesCount * _this.limit)) * _this.pagesCount + _this.pagesCount) * _this.limit;
-
-			_this.getData();
-		}
-		
-		_title(button, _gtxt('Следующие [value0] страниц', _this.pagesCount));
-
-		return button;
-	}
-	
-	// Переход на следующую страницу
-	this.previous = function()
-	{
-		var _this = this,
-			button = makeImageButton('img/prev.png', 'img/prev_a.png');
-		
-		button.style.marginBottom = '-7px';
-		
-		button.onclick = function()
-		{
-			_this.offset = (Math.floor(_this.offset / (_this.pagesCount * _this.limit)) * _this.pagesCount - _this.pagesCount) * _this.limit;
-
-			_this.getData();
-		}							
-		
-		_title(button, _gtxt('Предыдущие [value0] страниц', _this.pagesCount));
-
-		return button;
-	}
-	
-	// Переход на первую страницу
-	this.first = function()
-	{
-		var _this = this,
-			button = makeImageButton('img/first.png', 'img/first_a.png');
-		
-		button.style.marginBottom = '-7px';
-		
-		button.onclick = function()
-		{
-			_this.offset = 0;
-
-			_this.getData();
-		}
-		
-		_title(button, _gtxt('Первая страница'));
-
-		return button;
-	}
-	
-	// Переход на последнюю страницу
-	this.last = function()
-	{
-		var _this = this,
-			button = makeImageButton('img/last.png', 'img/last_a.png');
-		
-		button.style.marginBottom = '-7px';
-		
-		button.onclick = function()
-		{
-			_this.offset = Math.floor(_this.total / _this.limit) * _this.limit;
-
-			_this.getData();
-		}
-		
-		_title(button, _gtxt('Последняя страница'));
-		
-		return button;
-	}
-	
-	this.limitSel = _select([_option([_t("10")], [['attr','value',10]]),
-						 _option([_t("20")], [['attr','value',20]]),
-						 _option([_t("50")], [['attr','value',50]]),
-						 _option([_t("100")], [['attr','value',100]]),
-						 _option([_t("200")], [['attr','value',200]]),
-						 _option([_t("500")], [['attr','value',500]])], [['dir','className','selectStyle floatRight'], ['css','width','60px']])
 }
 
 attrsTable.prototype.getInfo = function()
@@ -181,6 +163,15 @@ attrsTable.prototype.drawDialog = function(info)
 		oldCanvasWidth = false,
 		_this = this;
 	
+    this._serverDataProvider = new ServerDataProvider();
+    var updateSearchString = function()
+    {
+        _this._serverDataProvider.setRequests(
+            serverBase + "VectorLayer/Search.ashx?WrapStyle=func&count=true&layer=" + _this.layerName + "&query=" + encodeURIComponent(_this.textarea.value),
+            serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + _this.layerName + "&query=" + encodeURIComponent(_this.textarea.value)
+        );
+    }
+    
 	paramsButton.onclick = function()
 	{
 		oldCanvasWidth = canvas.parentNode.parentNode.offsetWidth;
@@ -202,14 +193,14 @@ attrsTable.prototype.drawDialog = function(info)
 	searchButton.onclick = function()
 	{
 		_this.offset = 0;
-		_this.getLength();
+        updateSearchString();
 	}
 	
 	cleanButton.onclick = function()
 	{
 		_this.textarea.value = "";
 		_this.offset = 0;
-		_this.getLength();
+        updateSearchString();
 	}	
 	
 	addObjectButton.onclick = function()
@@ -221,35 +212,93 @@ attrsTable.prototype.drawDialog = function(info)
 	
 	tdParams.style.display = 'none';
 	
-	this.limitSel = switchSelect(this.limitSel,  this.limit)
-	
-	this.limitSel.onchange = function()
-	{
-		_this.limit = Number(this.value);
-		
-		_this.offset = 0;
-
-		_this.getData();
-	}
-	
 	var name = 'attrsTable' + info.Name;
-	this.tableCount = _div();
-	this.tableLimit = _div([this.limitSel]);
-	this.tablePages = _div(null,[['dir','className','tablePages']]);
-	this.tableHeader = _thead([_tr()],[['attr','id',name + 'TableHeader']]);
-	this.tableBody = _tbody(null,[['attr','id',name + 'TableBody']]);
-	this.tableParent = _div([_div([_table([this.tableHeader, this.tableBody])],[['dir','className','attrsTableBody']])
-						],[['attr','id',name + 'TableParent'],['css','overflow','auto']])
-	
-	_(tdTable, [this.tableParent])
-	_(tdTable, [_table([_tbody([_tr([_td([this.tableCount], [['css','width','20%']]), _td([this.tablePages]), _td([this.tableLimit], [['css','width','20%']])])])], [['css','width','100%']])]);
+                        
+	var attrNames = [this._identityField].concat(globalFlashMap.layers[info.Name].properties.attributes);
+    var fielsWidth = [""];
+    var attrNamesHash = {};
+    for (var f = 0; f < attrNames.length; f++)
+    {
+        fielsWidth.push("");
+        attrNamesHash[attrNames[f]] = true;
+    }
+                        
+    this.divTable2 = _div(null, [['css','overflow','auto'], ['dir', 'className', 'attrsTableBody']]);
+    var tdTable2 = _td([this.divTable2], [['attr','vAlign','top']]);
+    this.table2 = new scrollTable({pagesCount: 10, limit: 20});
+    var drawTableItem2 = function(elem, curIndex, activeHeaders)
+    {
+        tds = [];
+			
+        var showButton = makeImageButton('img/choose.png','img/choose_a.png'),
+            editButton = makeImageButton('img/misc.png'),
+            tdControl = _td([_div([showButton, editButton],[['css','width','35px']])]);
+        
+        editButton.style.marginLeft = '5px';
+
+        editButton.onclick = function()
+        {
+            _this.editObject(elem.values)
+        }
+        
+        showButton.onclick = function()
+        {
+            globalFlashMap.layers[_this.layerName].getFeatureById(elem.values[0], function(result)
+            {
+                globalFlashMap.layers[_this.layerName].setVisible(true);
+                
+                var bounds = getBounds(result.geometry.coordinates);
+                globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+            }); 
+        }
+        
+        _title(editButton, _gtxt("Редактировать"))
+        _title(showButton, _gtxt("Показать"))
+        
+        tds.push(tdControl);
+        
+        for (var j = 0; j < activeHeaders.length; ++j)
+        {
+            if (activeHeaders[j] == "")
+                continue;
+                
+            if (activeHeaders[j] in elem.fields)
+            {
+                var valIndex = elem.fields[activeHeaders[j]],
+                    strData = String(elem.values[valIndex]),
+                    td = _td();
+                
+                _(td, [_t(strData)])
+                
+                if (!isNaN(Number(elem.values[valIndex])))
+                    td.style.textAlign = 'right';
+                
+                tds.push(td);
+            }
+            else
+            {
+                tds.push(_td());
+            }
+        }
+        
+        var tr = _tr(tds);
+        
+        if (curIndex % 2 != 0)
+            tr.className = 'odd';
+        
+        return tr;
+    }
+    
+	this.textarea = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','280px'],['css','height','70px']]);
+    
+    updateSearchString();
+    
+    this.table2.setDataProvider(this._serverDataProvider);
+    this.table2.createTable(this.divTable2, 'attrs', 0, [""].concat(attrNames), fielsWidth, drawTableItem2, attrNamesHash, true);
 	
 	_(canvas, [_div([paramsButton, addObjectButton],[['css','margin','10px 0px 10px 1px']])])
-	_(canvas, [_table([_tbody([_tr([tdParams, tdTable])])],['css','width','100%'])])
+	_(canvas, [_table([_tbody([_tr([tdParams, tdTable2])])],['css','width','100%'])])
 	
-	var attrNames = [this._identityField].concat(globalFlashMap.layers[info.Name].properties.attributes);
-	
-	this.textarea = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','280px'],['css','height','70px']]);
 	
 	var attrsSuggest = _mapHelper.createSuggestCanvas(attrNames, this.textarea, "\"suggest\"", function(){}, info.Attributes, true),
 		valuesSuggest = _mapHelper.createSuggestCanvas(attrNames, this.textarea, "\"suggest\"", function(){}, info.Attributes),
@@ -338,11 +387,7 @@ attrsTable.prototype.drawDialog = function(info)
 		this.activeColumns = {};
 		
 		for (var i = 0; i < attrNames.length; ++i)
-		{
 			this.activeColumns[attrNames[i]] = true;
-			
-			this.sortOrder[attrNames[i]] = 'ASC';
-		}
 	}
 		
 	for (var i = 0; i < columnsNames.length; ++i)
@@ -356,15 +401,14 @@ attrsTable.prototype.drawDialog = function(info)
 		if ($.browser.msie)
 			box.style.margin = '-3px -2px 0px -2px';
 		
-		(function(i)
+		(function(columnsName)
 		{
 			box.onclick = function()
 			{
-				_this.activeColumns[columnsNames[i]] = this.checked;
-				
-				_this.drawData(null, _this.filterData);
+				_this.activeColumns[columnsName] = this.checked;
+				_this.table2.activateField(columnsName, this.checked);
 			}
-		})(i)
+		})(columnsNames[i])
 		
 		_(columnsList, [columnName])
 	}	
@@ -382,11 +426,11 @@ attrsTable.prototype.drawDialog = function(info)
 		oldCanvasWidth = false;
 		
 		canvas.childNodes[1].style.width = dialogWidth - 21 - 10 + 'px';
-		tdTable.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
-		_this.tableParent.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
+		tdTable2.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
+		_this.divTable2.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
 		
-		_this.tableParent.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 10 - 30 + 'px';
-		columnsList.style.height = _this.tableParent.offsetHeight - tdParams.firstChild.offsetHeight - tdParams.childNodes[1].offsetHeight - 25 + 'px';
+		_this.divTable2.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 10 - 30 + 'px';
+		columnsList.style.height = _this.divTable2.offsetHeight - tdParams.firstChild.offsetHeight - tdParams.childNodes[1].offsetHeight - 25 + 'px';
 	}
 	
 	this.resizeFunc = resizeFunc;
@@ -394,287 +438,24 @@ attrsTable.prototype.drawDialog = function(info)
 	resizeFunc();
 	
 	this.columnsNames = columnsNames;
-	
-	this.getLength();
 }
 
 attrsTable.prototype.showLoading = function()
 {
-	this.tableParent.style.display = 'none';
-	this.tableLimit.parentNode.parentNode.parentNode.parentNode.style.display = 'none';
+	//this.tableParent.style.display = 'none';
+	//this.tableLimit.parentNode.parentNode.parentNode.parentNode.style.display = 'none';
 	
-	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px'],['attr','loading',true]]);
+	//var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px'],['attr','loading',true]]);
 	
-	_(this.tableParent.parentNode, [loading])
+	//_(this.tableParent.parentNode, [loading])
 }
 
 attrsTable.prototype.hideLoading = function()
 {
-	this.tableParent.style.display = '';
-	this.tableLimit.parentNode.parentNode.parentNode.parentNode.style.display = '';
+	// this.tableParent.style.display = '';
+	// this.tableLimit.parentNode.parentNode.parentNode.parentNode.style.display = '';
 	
-	$(this.tableParent.parentNode).children("[loading]").remove();
-}
-
-attrsTable.prototype.getLength = function()
-{
-	this.showLoading();
-	
-	var query = this.textarea.value != "" ? "&query=" + encodeURIComponent(this.textarea.value) : "",
-		_this = this;
-	
-	sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&count=true&layer=" + this.layerName + query, function(response)
-	{
-		if (!parseResponse(response))
-		{
-			_this.hideLoading();
-			return;
-		}
-		
-		_this.total = response.Result;
-		
-		_this.getData();
-	})
-}
-
-attrsTable.prototype.getData = function()
-{
-	if (this.tableParent.style.display != 'none')
-		this.showLoading();
-	
-	var query = this.textarea.value != "" ? "&query=" + encodeURIComponent(this.textarea.value) : "",
-		offset = "&page=" + Math.floor(this.offset / this.limit),
-		limit = "&pagesize=" + this.limit,
-		sortAttr = "&orderby=" + this.sortAttr,
-		sortOrder = "&orderdirection=" + this.sortOrder[this.sortAttr],
-		currOffset = this.offset,
-		_this = this;
-	
-	sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + this.layerName + query + offset + limit + sortAttr + sortOrder, function(response)
-	{
-		if (!parseResponse(response))
-		{
-			_this.hideLoading();
-			return;
-		}
-		
-		response.Result.offset = currOffset;
-		_this.drawData(response.Result)
-	})
-}
-
-attrsTable.prototype.drawData = function(data, savedData)
-{
-	this.hideLoading();
-	
-	var resp;
-	if (typeof savedData == 'undefined')
-	{
-		resp = data;
-		
-		this.filterData = resp;
-		
-		this.offset = resp.offset;
-		this.fieldsCount = resp.fields.length;
-		this.reportFields = resp.fields;
-	}
-	else
-		resp = savedData;
-	
-	removeChilds(this.tableBody);
-	removeChilds(this.tableHeader);
-	removeChilds(this.tablePages);
-	
-	// рисуем заголовок
-	_(this.tableHeader, this.drawTableFields(resp.fields))
-	
-	// рисуем данные
-	_(this.tableBody, this.drawTableData(resp.values))
-		
-	this.tableParent.scrollTop = 0;
-	
- 	var allPagesCount = Math.ceil(this.total / this.limit),
- 		pageStart = Math.floor(this.offset / (this.pagesCount * this.limit)) * this.pagesCount,
-		end = (pageStart + this.pagesCount <= allPagesCount) ? pageStart + this.pagesCount : allPagesCount;
-	
-	if (pageStart - this.pagesCount >= 0)
-		_(this.tablePages, [this.first(), this.previous()]);
-	
-	this.drawPages(end)
-		
-	if (end + 1 <= allPagesCount)
-		_(this.tablePages, [this.next(), this.last()]);
-	
-	removeChilds(this.tableCount)
-	
-	if (resp.values && resp.values.length)
-		_(this.tableCount, [_t((this.offset + 1) + '-' + (Math.min(this.offset + this.limit, this.total))), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(" + this.total + ")")]);
-	else
-		_(this.tableCount, [_t("0-0"), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(0)")]);
-}
-
-attrsTable.prototype.drawPages = function(end)
-{
-	var pageStart = Math.floor(this.offset / (this.pagesCount * this.limit)) * this.pagesCount,
-		_this = this;
-		
-	for (var i = pageStart + 1; i <= end; ++i)
-	{
-		// текущий элемент
- 		if (i - 1 == this.offset / this.limit)
- 		{
-		    var el = _span([_t(i.toString())]);
-			_(_this.tablePages, [el]);
-			$(el).addClass('page');
-		}
-		else
-		{
-			var link = makeLinkButton(i.toString());
-			
-			link.setAttribute('page', i - 1);
-			link.style.margin = '0px 2px';
-			
-			_(_this.tablePages, [link]);
-			
-			link.onclick = function()
-			{
-				_this.offset = this.getAttribute('page') * _this.limit;
-				
-				_this.getData();
-			};
-		}
-	}
-}
-
-attrsTable.prototype.drawTableFields = function()
-{
-	var _this = this;
-	
-	if (this.fieldsCount > 0)
-	{
-		var tds = [_th()];
-		
-		for (var i = 0; i < this.fieldsCount; ++i)
-		{
-			if (!this.activeColumns[this.reportFields[i]])
-				continue;
-			
-			var th;
-			
-			var	button = makeLinkButton(this.reportFields[i]);
-		
-			button.sortAttr = this.reportFields[i];
-			
-			button.onclick = function()
-			{
-				if (_this.sortAttr === this.sortAttr)
-					_this.sortOrder[this.sortAttr] = _this.sortOrder[this.sortAttr] == 'ASC' ? 'DESC' : 'ASC';
-
-				_this.sortAttr = this.sortAttr;
-				
-				_this.offset = 0;
-				
-				_this.getData()
-			}
-			
-			if (this.sortAttr === button.sortAttr)
-			{
-				var imgName = this.sortOrder[this.sortAttr] === 'ASC' ? 'img/down.png' : 'img/up.png'
-				th = _th([button, _img(null, [['attr', 'src', imgName], ['css', 'verticalAlign', 'middle']])]);
-			}
-			else
-			{
-				th = _th([button]);
-			}
-			
-			
-			tds.push(th)
-		}
-		
-		return [_tr(tds)]
-	}
-	else
-	{
-		// заголовок пустой, нужно сказать об этом
-		return [_tr([_th([_t(_gtxt("Нет полей"))], [['css','textAlign','center']])])]
-	}
-}
-
-attrsTable.prototype.drawTableData = function(data)
-{
-	var _this = this;
-	
-	if (data != null && data.length > 0)
-	{
-		var trs = [],
-			tds = [];
-			
-		for (var i = 0; i < data.length; ++i)
-		{
-			tds = [];
-			
-			var showButton = makeImageButton('img/choose.png','img/choose_a.png'),
-				editButton = makeImageButton('img/misc.png'),
-				tdControl = _td([_div([showButton, editButton],[['css','width','35px']])]);
-			
-			editButton.style.marginLeft = '5px';
-			
-			(function(i)
-			{
-				editButton.onclick = function()
-				{
-					_this.editObject(data[i])
-				}
-				
-				showButton.onclick = function()
-				{
-					globalFlashMap.layers[_this.layerName].getFeatureById(data[i][0], function(result)
-					{
-						globalFlashMap.layers[_this.layerName].setVisible(true);
-						
-						var bounds = getBounds(result.geometry.coordinates);
-						globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-					}); 
-				}
-			})(i);
-			
-			_title(editButton, _gtxt("Редактировать"))
-			_title(showButton, _gtxt("Показать"))
-			
-			tds.push(tdControl);
-			
-			for (var j = 0; j < this.fieldsCount; ++j)
-			{
-				if (!this.activeColumns[this.reportFields[j]])
-					continue;
-				
-				var strData = String(data[i][j]),
-					td = _td();
-				
-				_(td, [_t(strData)])
-				
-				if (!isNaN(Number(data[i][j])))
-					td.style.textAlign = 'right';
-				
-				
-				tds.push(td);
-			}
-			
-			var tr = _tr(tds);
-			
-			if (i % 2 != 0)
-				tr.className = 'odd';
-			
-			trs.push(tr)
-		}
-		
-		return trs;
-	}
-	else
-	{
-		// отчет пустой, нужно сказать об этом
-		//return [_tr([_td([_t(_gtxt("Нет данных"))], [['css','textAlign','center'], ['attr', 'colspan', this.fieldsCount]])])];
-	}
+	// $(this.tableParent.parentNode).children("[loading]").remove();
 }
 
 attrsTable.prototype.editObject = function(row)
@@ -730,7 +511,8 @@ attrsTable.prototype.editObject = function(row)
             newItem.properties.ogc_fid = row[0];
             
             globalFlashMap.layers[_this.layerName].setTileItem(newItem, false);
-			_this.getLength();
+			//_this.getLength();
+            _this._serverDataProvider.serverChanged();
             
             closeFunc();
             $(dialogDiv).dialog("destroy");
@@ -999,27 +781,6 @@ attrsTable.prototype.removeObjectGeometry = function(ogc_fid)
 		removeChilds($$('objectEdit' + this.layerName + ogc_fid));
 }
 
-attrsTable.prototype.gen = function(offset, limit, max)
-{
-	var res = {offset: offset, fields: this.attrs, data:[]},
-		count = Math.min(max - offset, limit);
-	
-	for (var i = 0; i < count; i++)
-	{
-		var row = [];
-		
-		row.push("POINT (" + String(Math.random() * 360 - 180) + " " + String(Math.random() * 180 - 90) + " )");
-		row.push(i + offset + 1);
-		
-		for (var j = 0; j < this.attrs.length; ++j)
-			row.push((Math.random() * 100).toFixed(2))
-		
-		res.values.push(row);
-	}
-	
-	return res;
-}
-
 var attrsTableHash = function()
 {
 	this.hash = {};
@@ -1042,4 +803,6 @@ attrsTableHash.prototype.create = function(name)
 	}
 }
 
-var _attrsTableHash = new attrsTableHash();
+window._attrsTableHash = new attrsTableHash();
+
+})();

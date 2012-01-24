@@ -13,7 +13,7 @@ div.tableHeader
 	border-collapse: collapse;
 	width: 100%
 }
-.tableHeader td
+.tableHeader td, .tableHeader th
 {
 	background: url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
 	height: 20px;
