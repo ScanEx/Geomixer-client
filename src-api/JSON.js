@@ -1,4 +1,4 @@
-//Поддержка JSON parser
+//РџРѕРґРґРµСЂР¶РєР° JSON parser
 if (!this.JSON) {
     JSON = {};
 	(function () {

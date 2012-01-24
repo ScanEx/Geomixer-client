@@ -1,9 +1,9 @@
-/** Пространство имён GeoMixer API
+/** РџСЂРѕСЃС‚СЂР°РЅСЃС‚РІРѕ РёРјС‘РЅ GeoMixer API
 * @name gmxAPI
 * @namespace
 */
 
-/** Описание API JS 
+/** РћРїРёСЃР°РЅРёРµ API JS 
 * @name api
 * @namespace
 */
@@ -26,7 +26,7 @@ var memoize = function(func)
 		}
 	};
 
-window.PI = 3.14159265358979; //устарело - обратная совместимость
+window.PI = 3.14159265358979; //СѓСЃС‚Р°СЂРµР»Рѕ - РѕР±СЂР°С‚РЅР°СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ
 window.gmxAPI = {
 	KOSMOSNIMKI_LOCALIZED: function (rus, eng)
 	{
@@ -91,7 +91,7 @@ window.gmxAPI = {
 	},
 	applyTemplate: function(template, properties)
 	{
-		return template.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
+		return template.replace(/\[([a-zA-Z0-9_Р°-СЏРђ-РЇ ]+)\]/g, function()
 		{
 			var value = properties[arguments[1]];
 			if (value != undefined)
@@ -362,7 +362,7 @@ window.gmxAPI = {
 		return ret;
 	}
 	,
-	boundsIntersect: function(b1, b2)	// в api.js не используется
+	boundsIntersect: function(b1, b2)	// РІ api.js РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ
 	{
 		return ((b1.minX < b2.maxX) && (b1.minY < b2.maxY) && (b2.minX < b1.maxX) && (b2.minY < b1.maxY));
 	}
@@ -731,19 +731,19 @@ window.gmxAPI = {
 	prettifyDistance: function(length)
 	{
 		if (length < 1000)
-			return Math.round(length) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" м", " m");
+			return Math.round(length) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" Рј", " m");
 		if (length < 100000)
-			return (Math.round(length/10)/100) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
-		return Math.round(length/1000) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
+			return (Math.round(length/10)/100) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРј", " km");
+		return Math.round(length/1000) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРј", " km");
 	}
 	,
 	prettifyArea: function(area)
 	{
 		if (area < 100000)
-			return Math.round(area) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. м", " sq. m");
+			return Math.round(area) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРІ. Рј", " sq. m");
 		if (area < 100000000)
-			return ("" + (Math.round(area/10000)/100)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
-		return (Math.round(area/1000000)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq. km");
+			return ("" + (Math.round(area/10000)/100)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРІ. РєРј", " sq.km");
+		return (Math.round(area/1000000)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" РєРІ. РєРј", " sq. km");
 	}
 	,
 	fragmentArea: function(points)
@@ -813,7 +813,7 @@ window.gmxAPI = {
 		var a1 = Math.floor(angle);
 		var a2 = Math.floor(60*(angle - a1));
 		var a3 = gmxAPI.pad2(3600*(angle - a1 - a2/60)).substring(0, 2);
-		return gmxAPI.pad2(a1) + "°" + gmxAPI.pad2(a2) + "'" + a3 + '"';
+		return gmxAPI.pad2(a1) + "В°" + gmxAPI.pad2(a2) + "'" + a3 + '"';
 	}
 	,
 	formatCoordinates: function(x, y)
@@ -1124,10 +1124,10 @@ window.gmxAPI = {
 	{
 		// should understand the following formats:
 		// 55.74312, 37.61558
-		// 55°44'35" N, 37°36'56" E
+		// 55В°44'35" N, 37В°36'56" E
 		// 4187347, 7472103
 
-		if (text.match(/[йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮqrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM_]/))
+		if (text.match(/[Р№С†СѓРєРµРЅРіС€С‰Р·С…СЉС„С‹РІР°РїСЂРѕР»РґР¶СЌСЏС‡СЃРјРёС‚СЊР±СЋР™Р¦РЈРљР•РќР“РЁР©Р—РҐРЄР¤Р«Р’РђРџР РћР›Р”Р–Р­РЇР§РЎРњРРўР¬Р‘Р®qrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM_]/))
 			return false;
 		if (text.indexOf(" ") != -1)
 			text = text.replace(/,/g, ".");
@@ -1249,7 +1249,7 @@ window.gmxAPI = {
 	getAPIHost: memoize(function()
 	{
 		var apiHost = gmxAPI.getHostAndPath(gmxAPI.getAPIFolderRoot());
-		return /(.*)\/[^\/]*/.exec((apiHost != "") ? apiHost : gmxAPI.getHostAndPath(window.location.href))[1]; //удаляем последний каталог в адресе
+		return /(.*)\/[^\/]*/.exec((apiHost != "") ? apiHost : gmxAPI.getHostAndPath(window.location.href))[1]; //СѓРґР°Р»СЏРµРј РїРѕСЃР»РµРґРЅРёР№ РєР°С‚Р°Р»РѕРі РІ Р°РґСЂРµСЃРµ
 	})
 	,
 	getAPIHostRoot: memoize(function()
@@ -1282,12 +1282,12 @@ window.gmxAPI = {
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
 window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/Math.PI;
-window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName основной карты по умолчанию
+window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName РѕСЃРЅРѕРІРЅРѕР№ РєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
 
 })();
 
-// Блок методов глобальной области видимости
-var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";		// ID базовой карты подложек
+// Р‘Р»РѕРє РјРµС‚РѕРґРѕРІ РіР»РѕР±Р°Р»СЊРЅРѕР№ РѕР±Р»Р°СЃС‚Рё РІРёРґРёРјРѕСЃС‚Рё
+var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";		// ID Р±Р°Р·РѕРІРѕР№ РєР°СЂС‚С‹ РїРѕРґР»РѕР¶РµРє
 var tmp = [
 	'isIE', 'parseCoordinates', 'setBg', 'deselect', 'compatEvent', 'compatTarget', 'eventX', 'eventY', 'getOffsetLeft', 'getOffsetTop',
 	'newStyledDiv', 'show', 'hide', 'setPositionStyle', 'position', 'bottomPosition', 'size',
@@ -1300,7 +1300,7 @@ var tmp = [
 	'prettifyDistance', 'prettifyArea',
 	'pad2', 'formatCoordinates', 'formatCoordinates2',
 //	'', '', '', '', '', '', '', '', '', '',
-	// Не используемые в api.js
+	// РќРµ РёСЃРїРѕР»СЊР·СѓРµРјС‹Рµ РІ api.js
 	'newDiv', 'newSpan', 'positionSize', 'merc', 'from_merc', 'formatDegrees', 'memoize', 
 	'DegToRad', 'RadToDeg', 'ArcLengthOfMeridian', 'UTMCentralMeridian', 'FootpointLatitude', 'MapLatLonToXY', 'MapXYToLatLon',
 	'LatLonToUTMXY', 'UTMXYToLatLon', 'trunc', 'truncate9', 'lambertCoefX', 'lambertCoefY', 'fragmentArea', 'fragmentAreaMercator', 'formatDegreesSimple',
@@ -1515,7 +1515,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 	if (hostName.charAt(hostName.length-1) == '/')
 		hostName = hostName.slice(0, -1);
 		
-	//относительный путь в загружаемой карте
+	//РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅС‹Р№ РїСѓС‚СЊ РІ Р·Р°РіСЂСѓР¶Р°РµРјРѕР№ РєР°СЂС‚Рµ
 	if (hostName.charAt(0) == '/')
 		hostName = getAPIHost() + hostName;
 	
@@ -1576,7 +1576,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 	{
 		var haveNoAPIKey = function()
 		{
-			alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("Не указан API-ключ!", "API key not specified!"));
+			alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("РќРµ СѓРєР°Р·Р°РЅ API-РєР»СЋС‡!", "API key not specified!"));
 			window.KOSMOSNIMKI_SESSION_KEY = "INVALID";
 			finish();
 		}
@@ -1588,7 +1588,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 				if (response.Result.Status)
 					window.KOSMOSNIMKI_SESSION_KEY = response.Result.Key;
 				else
-					alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("Указан неверный API-ключ!", "Incorrect API key specified!"));
+					alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("РЈРєР°Р·Р°РЅ РЅРµРІРµСЂРЅС‹Р№ API-РєР»СЋС‡!", "Incorrect API key specified!"));
 				finish();
 			}
 			if (APIKeyResponseCache[key])
@@ -1626,10 +1626,10 @@ function loadMapJSON(hostName, mapName, callback, onError)
 					if (key)
 						useAPIKey(key);
 					else
-						haveNoAPIKey();			// Нет apiKey в config.js
+						haveNoAPIKey();			// РќРµС‚ apiKey РІ config.js
 				}
 				,
-				function() { haveNoAPIKey(); }	// Нет config.js
+				function() { haveNoAPIKey(); }	// РќРµС‚ config.js
 			);
 		else
 			haveNoAPIKey();
@@ -1640,7 +1640,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 
 function createFlashMap(div, arg1, arg2, arg3)
 {
-	// версия FlashPlayer
+	// РІРµСЂСЃРёСЏ FlashPlayer
 	if (gmxAPI._flashDeconcept.SWFObjectUtil.getPlayerVersion().major < 10)
 		return false;	
 
@@ -1663,7 +1663,7 @@ function createFlashMap(div, arg1, arg2, arg3)
 		}
 
 		var uri = gmxAPI.parseUri(hostName);
-		if(uri.host) gmxAPI.serverBase = uri.host;						// HostName основной карты переопределен
+		if(uri.host) gmxAPI.serverBase = uri.host;						// HostName РѕСЃРЅРѕРІРЅРѕР№ РєР°СЂС‚С‹ РїРµСЂРµРѕРїСЂРµРґРµР»РµРЅ
 		loadMapJSON(hostName, mapName, function(layers)
 		{
 			if (layers != null)
@@ -1689,15 +1689,15 @@ var FlashMapObject = function(objectId_, properties_, parent_)
 	this.properties = properties_;
 	this.parent = parent_;
 	this.flashId = flashId;
-	this.stateListeners = {};	// Пользовательские события
+	this.stateListeners = {};	// РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРµ СЃРѕР±С‹С‚РёСЏ
 }
-// расширение FlashMapObject
+// СЂР°СЃС€РёСЂРµРЅРёРµ FlashMapObject
 gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;	}
 
 function createFlashMapInternal(div, layers, callback)
 {
 	if(layers.properties.name == kosmosnimki_API) {
-		if (layers.properties.OnLoad)		//  Обработка маплета базовой карты
+		if (layers.properties.OnLoad)		//  РћР±СЂР°Р±РѕС‚РєР° РјР°РїР»РµС‚Р° Р±Р°Р·РѕРІРѕР№ РєР°СЂС‚С‹
 		{
 			try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(); }
 			catch (e) {
@@ -1706,7 +1706,7 @@ function createFlashMapInternal(div, layers, callback)
 		}
 	}
 
-	gmxAPI._div = div;	// DOM элемент - контейнер карты
+	gmxAPI._div = div;	// DOM СЌР»РµРјРµРЅС‚ - РєРѕРЅС‚РµР№РЅРµСЂ РєР°СЂС‚С‹
 	if (div.style.position != "absolute")
 		div.style.position = "relative";
 
@@ -1721,8 +1721,8 @@ function createFlashMapInternal(div, layers, callback)
 
 	var focusLink = document.createElement("a");
 
-	// Begin: Блок общих методов не доступных из вне
-	// Обработка пользовательских Listeners на obj
+	// Begin: Р‘Р»РѕРє РѕР±С‰РёС… РјРµС‚РѕРґРѕРІ РЅРµ РґРѕСЃС‚СѓРїРЅС‹С… РёР· РІРЅРµ
+	// РћР±СЂР°Р±РѕС‚РєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёС… Listeners РЅР° obj
 	function chkListeners(eventName, obj, attr)
 	{
 		var out = true;
@@ -1736,13 +1736,13 @@ function createFlashMapInternal(div, layers, callback)
 		return out;
 	}
 
-	/** Пользовательские Listeners изменений состояния карты
+	/** РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРµ Listeners РёР·РјРµРЅРµРЅРёР№ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєР°СЂС‚С‹
 	* @function addMapStateListener
-	* @memberOf api - добавление прослушивателя
-	* @param {eventName} название события
-	* @param {func} вызываемый метод
-	* @return {id} присвоенный id прослушивателя
-	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+	* @memberOf api - РґРѕР±Р°РІР»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»СЏ
+	* @param {eventName} РЅР°Р·РІР°РЅРёРµ СЃРѕР±С‹С‚РёСЏ
+	* @param {func} РІС‹Р·С‹РІР°РµРјС‹Р№ РјРµС‚РѕРґ
+	* @return {id} РїСЂРёСЃРІРѕРµРЅРЅС‹Р№ id РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»СЏ
+	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">В» РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ</a>.
 	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 	*/
 	function addMapStateListener(obj, eventName, func)
@@ -1753,13 +1753,13 @@ function createFlashMapInternal(div, layers, callback)
 		return id;
 	}
 
-	/** Пользовательские Listeners изменений состояния карты
+	/** РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРµ Listeners РёР·РјРµРЅРµРЅРёР№ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєР°СЂС‚С‹
 	* @function removeMapStateListener
-	* @memberOf api - удаление прослушивателя
-	* @param {eventName} название события
-	* @param {id} вызываемый метод
-	* @return {Bool} true - удален false - не найден
-	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+	* @memberOf api - СѓРґР°Р»РµРЅРёРµ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»СЏ
+	* @param {eventName} РЅР°Р·РІР°РЅРёРµ СЃРѕР±С‹С‚РёСЏ
+	* @param {id} РІС‹Р·С‹РІР°РµРјС‹Р№ РјРµС‚РѕРґ
+	* @return {Bool} true - СѓРґР°Р»РµРЅ false - РЅРµ РЅР°Р№РґРµРЅ
+	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">В» РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ</a>.
 	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 	*/
 	function removeMapStateListener(obj, eventName, id)
@@ -1773,7 +1773,7 @@ function createFlashMapInternal(div, layers, callback)
 		obj.stateListeners[eventName] = arr;
 		return true;
 	}
-	// End: Блок общих методов не доступных из вне
+	// End: Р‘Р»РѕРє РѕР±С‰РёС… РјРµС‚РѕРґРѕРІ РЅРµ РґРѕСЃС‚СѓРїРЅС‹С… РёР· РІРЅРµ
 
 
 	var loadCallback = function(rootObjectId)
@@ -1790,27 +1790,27 @@ function createFlashMapInternal(div, layers, callback)
 			gmxAPI.flashDiv = flashDiv;
 			flashDiv.style.MozUserSelect = "none";
             
-			var Clusters =	function(parent)		// атрибуты кластеризации потомков
+			var Clusters =	function(parent)		// Р°С‚СЂРёР±СѓС‚С‹ РєР»Р°СЃС‚РµСЂРёР·Р°С†РёРё РїРѕС‚РѕРјРєРѕРІ
 			{
 				this._parent = parent;
-				var RenderStyle = {		// стили кластеров
-					marker: { image: 'http://kosmosnimki.ru/poi2/cluster_img.png', center: true, minScale: 0.5, maxScale: 2, scale: '[Количество]/50' },
-					label: { size: 12, align:'center', color: 0xff00ff, haloColor: 0xffffff, value:'[Метка]', field:'Количество' }
+				var RenderStyle = {		// СЃС‚РёР»Рё РєР»Р°СЃС‚РµСЂРѕРІ
+					marker: { image: 'http://kosmosnimki.ru/poi2/cluster_img.png', center: true, minScale: 0.5, maxScale: 2, scale: '[РљРѕР»РёС‡РµСЃС‚РІРѕ]/50' },
+					label: { size: 12, align:'center', color: 0xff00ff, haloColor: 0xffffff, value:'[РњРµС‚РєР°]', field:'РљРѕР»РёС‡РµСЃС‚РІРѕ' }
 				};
-				var HoverStyle = {		// стили кластеров при наведении
-					marker: { image: 'http://kosmosnimki.ru/poi2/cluster_img_hover.png', center: true, minScale: 0.5, maxScale: 2, scale: '[Количество]/50' },
-					label: { size: 12, align:'center', color: 0xff0000, haloColor: 0xffffff, value:'[Метка]', field:'Количество' }
+				var HoverStyle = {		// СЃС‚РёР»Рё РєР»Р°СЃС‚РµСЂРѕРІ РїСЂРё РЅР°РІРµРґРµРЅРёРё
+					marker: { image: 'http://kosmosnimki.ru/poi2/cluster_img_hover.png', center: true, minScale: 0.5, maxScale: 2, scale: '[РљРѕР»РёС‡РµСЃС‚РІРѕ]/50' },
+					label: { size: 12, align:'center', color: 0xff0000, haloColor: 0xffffff, value:'[РњРµС‚РєР°]', field:'РљРѕР»РёС‡РµСЃС‚РІРѕ' }
 				};
 
 				this._attr = {
 					'radius': 20,
 					'iterationCount': 1,
-					'newProperties': {						// Заполняемые поля properties кластеров
-						'Количество': '[objectInCluster]'	// objectInCluster - количество обьектов попавших в кластер (по умолчанию 'Количество')
+					'newProperties': {						// Р—Р°РїРѕР»РЅСЏРµРјС‹Рµ РїРѕР»СЏ properties РєР»Р°СЃС‚РµСЂРѕРІ
+						'РљРѕР»РёС‡РµСЃС‚РІРѕ': '[objectInCluster]'	// objectInCluster - РєРѕР»РёС‡РµСЃС‚РІРѕ РѕР±СЊРµРєС‚РѕРІ РїРѕРїР°РІС€РёС… РІ РєР»Р°СЃС‚РµСЂ (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ 'РљРѕР»РёС‡РµСЃС‚РІРѕ')
 					},
-					'RenderStyle': RenderStyle,				// стили кластеров
-					'HoverStyle': HoverStyle,				// стили кластеров при наведении
-					'clusterView': {},						// Атрибуты отображения членов кластера (при null не отображать)
+					'RenderStyle': RenderStyle,				// СЃС‚РёР»Рё РєР»Р°СЃС‚РµСЂРѕРІ
+					'HoverStyle': HoverStyle,				// СЃС‚РёР»Рё РєР»Р°СЃС‚РµСЂРѕРІ РїСЂРё РЅР°РІРµРґРµРЅРёРё
+					'clusterView': {},						// РђС‚СЂРёР±СѓС‚С‹ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ С‡Р»РµРЅРѕРІ РєР»Р°СЃС‚РµСЂР° (РїСЂРё null РЅРµ РѕС‚РѕР±СЂР°Р¶Р°С‚СЊ)
 					'visible': false
 				};
 			};
@@ -1859,7 +1859,7 @@ function createFlashMapInternal(div, layers, callback)
 				var val = (flag ? true : false);
 				var prev = this.isVisible;
 				this.isVisible = val;
-				if(prev != val) chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
+				if(prev != val) chkListeners('onChangeVisible', this, val);	// Р’С‹Р·РѕРІ Listeners СЃРѕР±С‹С‚РёСЏ 'onChangeVisible'
 			}
 			FlashMapObject.prototype.getDepth = function(attr) { return gmxAPI._cmdProxy('getDepth', { 'obj': this }); }
 			FlashMapObject.prototype.delClusters = function(attr) { return gmxAPI._cmdProxy('delClusters', { 'obj': this }); }
@@ -1964,29 +1964,29 @@ function createFlashMapInternal(div, layers, callback)
 					this.setHandler(key, handlers[key]);
 			}
 
-			/** Добавление объектов из SWF файла
+			/** Р”РѕР±Р°РІР»РµРЅРёРµ РѕР±СЉРµРєС‚РѕРІ РёР· SWF С„Р°Р№Р»Р°
 			* @function
 			* @memberOf api
-			* @param {String} url SWF файла содержащего массив добавляемых обьектов
+			* @param {String} url SWF С„Р°Р№Р»Р° СЃРѕРґРµСЂР¶Р°С‰РµРіРѕ РјР°СЃСЃРёРІ РґРѕР±Р°РІР»СЏРµРјС‹С… РѕР±СЊРµРєС‚РѕРІ
 			* @see api.FlashMapObject#addObjects
-			* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">» Пример использования</a>.
+			* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">В» РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ</a>.
 			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 			*/
 			FlashMapObject.prototype.addObjectsFromSWF = function(url) {
-				gmxAPI._cmdProxy('addObjectsFromSWF', {'obj': this, 'attr':{'url':url}}); // Отправить команду в SWF
+				gmxAPI._cmdProxy('addObjectsFromSWF', {'obj': this, 'attr':{'url':url}}); // РћС‚РїСЂР°РІРёС‚СЊ РєРѕРјР°РЅРґСѓ РІ SWF
 			}
-			/** Добавление набора статических объектов на карту
+			/** Р”РѕР±Р°РІР»РµРЅРёРµ РЅР°Р±РѕСЂР° СЃС‚Р°С‚РёС‡РµСЃРєРёС… РѕР±СЉРµРєС‚РѕРІ РЅР° РєР°СЂС‚Сѓ
 			* @function
 			* @memberOf api
-			* @param {array} data массив добавляемых обьектов
-			* @return {array} массив добавленных обьектов
+			* @param {array} data РјР°СЃСЃРёРІ РґРѕР±Р°РІР»СЏРµРјС‹С… РѕР±СЊРµРєС‚РѕРІ
+			* @return {array} РјР°СЃСЃРёРІ РґРѕР±Р°РІР»РµРЅРЅС‹С… РѕР±СЊРµРєС‚РѕРІ
 			* @see api.FlashMapObject#addObject
-			* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">» Пример использования</a>.
+			* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">В» РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ</a>.
 			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 			*/
 			FlashMapObject.prototype.addObjects = function(data) {
 				var out = [];
-				for (var i=0; i<data.length; i++)	// Подготовка массива обьектов
+				for (var i=0; i<data.length; i++)	// РџРѕРґРіРѕС‚РѕРІРєР° РјР°СЃСЃРёРІР° РѕР±СЊРµРєС‚РѕРІ
 				{
 					var ph = data[i];
 					var props = ph['properties'] || null;
@@ -1999,10 +1999,10 @@ function createFlashMapInternal(div, layers, callback)
 					if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
 					out.push(tmp);
 				}
-				var _obj = gmxAPI._cmdProxy('addObjects', {'attr':out}); // Отправить команду в SWF
+				var _obj = gmxAPI._cmdProxy('addObjects', {'attr':out}); // РћС‚РїСЂР°РІРёС‚СЊ РєРѕРјР°РЅРґСѓ РІ SWF
 
 				out = [];
-				for (var i=0; i<_obj.length; i++)	// Отражение обьектов в JS
+				for (var i=0; i<_obj.length; i++)	// РћС‚СЂР°Р¶РµРЅРёРµ РѕР±СЊРµРєС‚РѕРІ РІ JS
 				{
 					out.push(new FlashMapObject(_obj[i], data[i].properties, this));
 				}
@@ -2016,23 +2016,23 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			FlashMapObject.prototype.setFilter = function(sql) {
 				if(!this.clusters) {
-					this.clusters = new Clusters(this);	// атрибуты кластеризации потомков по фильтру
+					this.clusters = new Clusters(this);	// Р°С‚СЂРёР±СѓС‚С‹ РєР»Р°СЃС‚РµСЂРёР·Р°С†РёРё РїРѕС‚РѕРјРєРѕРІ РїРѕ С„РёР»СЊС‚СЂСѓ
 				}
 				if(!sql) sql ='';
-				this._sql = sql;			// атрибуты фильтра установленные юзером
+				this._sql = sql;			// Р°С‚СЂРёР±СѓС‚С‹ С„РёР»СЊС‚СЂР° СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹Рµ СЋР·РµСЂРѕРј
 				var ret = gmxAPI._cmdProxy('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
 				return ret;
 			}
 
-			removeFromMapLayers = function(lid)	// удалить слой из map.layers 
+			removeFromMapLayers = function(lid)	// СѓРґР°Р»РёС‚СЊ СЃР»РѕР№ РёР· map.layers 
 			{
-				for(var i=0; i<map.layers.length; i++) {			// Удаление слоя из массива
+				for(var i=0; i<map.layers.length; i++) {			// РЈРґР°Р»РµРЅРёРµ СЃР»РѕСЏ РёР· РјР°СЃСЃРёРІР°
 					if(map.layers[i].properties.LayerID === lid) {
 						map.layers.splice(i, 1);
 						break;
 					}
 				}
-				for(key in map.layers) {							// Удаление слоя из хэша
+				for(key in map.layers) {							// РЈРґР°Р»РµРЅРёРµ СЃР»РѕСЏ РёР· С…СЌС€Р°
 					if(map.layers[key].properties.LayerID === lid) {
 						delete map.layers[key];
 					}
@@ -2044,7 +2044,7 @@ function createFlashMapInternal(div, layers, callback)
 				if (this.copyright) 
 					map.removeCopyrightedObject(this);
 					
-				if(this.objectId) gmxAPI._cmdProxy('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
+				if(this.objectId) gmxAPI._cmdProxy('remove', { 'obj': this}); // РЈРґР°Р»СЏС‚СЊ РІ SWF С‚РѕР»СЊРєРѕ РµСЃР»Рё С‚Р°Рј РµСЃС‚СЊ РѕР±СЊРµРєС‚
 				if(this.properties && this.properties.LayerID) removeFromMapLayers(this.properties.LayerID);
 			}
 			FlashMapObject.prototype.setGeometry = function(geometry) {
@@ -2102,12 +2102,12 @@ function createFlashMapInternal(div, layers, callback)
 					];
 				}
 
-				var n = 100;            //кол-во точек
-				var a = Math.PI*x/180;  //долгота центра окружности в радианах
-				var b = Math.PI*y/180;  //широта центра окружности в радианах
+				var n = 100;            //РєРѕР»-РІРѕ С‚РѕС‡РµРє
+				var a = Math.PI*x/180;  //РґРѕР»РіРѕС‚Р° С†РµРЅС‚СЂР° РѕРєСЂСѓР¶РЅРѕСЃС‚Рё РІ СЂР°РґРёР°РЅР°С…
+				var b = Math.PI*y/180;  //С€РёСЂРѕС‚Р° С†РµРЅС‚СЂР° РѕРєСЂСѓР¶РЅРѕСЃС‚Рё РІ СЂР°РґРёР°РЅР°С…
 
-				var R = 6372795; // Радиус Земли
-				//      6378137 - Некоторые источники дают такое число.
+				var R = 6372795; // Р Р°РґРёСѓСЃ Р—РµРјР»Рё
+				//      6378137 - РќРµРєРѕС‚РѕСЂС‹Рµ РёСЃС‚РѕС‡РЅРёРєРё РґР°СЋС‚ С‚Р°РєРѕРµ С‡РёСЃР»Рѕ.
 
 				var d = R * Math.sin(r / R);
 				var Rd = R * Math.cos(r / R);
@@ -2181,7 +2181,7 @@ function createFlashMapInternal(div, layers, callback)
 			{ 
 				gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
 			}
-/* не используется
+/* РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ
 			FlashMapObject.prototype.loadJSON = function(url)
 			{
 				flashDiv.loadJSON(this.objectId, url);
@@ -2220,15 +2220,15 @@ function createFlashMapInternal(div, layers, callback)
 					if (geomType.indexOf("POINT") != -1)
 					{
 						var c = geom.coordinates;
-						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> ";
+						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("РљРѕРѕСЂРґРёРЅР°С‚С‹:", "Coordinates:") + "</b> ";
 						out += gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
 					}
 					else if (geomType.indexOf("LINESTRING") != -1) {
-						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> ";
+						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Р”Р»РёРЅР°:", "Length:") + "</b> ";
 						out += gmxAPI.prettifyDistance(this.getLength());
 					}
 					else if (geomType.indexOf("POLYGON") != -1) {
-						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> ";
+						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("РџР»РѕС‰Р°РґСЊ:", "Area:") + "</b> ";
 						var area = this.getArea();
 						out += gmxAPI.prettifyArea(area);
 					}
@@ -2365,7 +2365,7 @@ function createFlashMapInternal(div, layers, callback)
 					var id = 'id_' + o.properties[identityField];
 					var props = o.properties;
 
-					// Установка балуна для тайлов меньше Zoom растров
+					// РЈСЃС‚Р°РЅРѕРІРєР° Р±Р°Р»СѓРЅР° РґР»СЏ С‚Р°Р№Р»РѕРІ РјРµРЅСЊС€Рµ Zoom СЂР°СЃС‚СЂРѕРІ
 					var curZ = map.getZ();
 					var flag = (minZoom && curZ < minZoom ? true : false);
 					var mZ = (maxZoom ? maxZoom : 18);
@@ -2459,7 +2459,7 @@ function createFlashMapInternal(div, layers, callback)
 				return gmxAPI.geoArea(this.geometry);
 			}
 
-			// получить minZoom maxZoom для слоя по фильтрам
+			// РїРѕР»СѓС‡РёС‚СЊ minZoom maxZoom РґР»СЏ СЃР»РѕСЏ РїРѕ С„РёР»СЊС‚СЂР°Рј
 			function getMinMaxZoom(prop)
 			{
 				var minZoom = 20, maxZoom = 0;
@@ -2552,7 +2552,7 @@ function createFlashMapInternal(div, layers, callback)
 					map.balloonClassObject.applyBalloonDefaultStyle(style);
 					map.balloonClassObject.setBalloonFromParams(filter, style);
 					var filterOld = obj.filters[i];
-					if(filterOld && filterOld['clusters']) {	// Перенос атрибутов кластеризации в новый filter
+					if(filterOld && filterOld['clusters']) {	// РџРµСЂРµРЅРѕСЃ Р°С‚СЂРёР±СѓС‚РѕРІ РєР»Р°СЃС‚РµСЂРёР·Р°С†РёРё РІ РЅРѕРІС‹Р№ filter
 						filter.setClusters(filterOld['clusters']['attr']);
 					}
 					//filter.properties = style;
@@ -2645,7 +2645,7 @@ function createFlashMapInternal(div, layers, callback)
 				var bounds = false;
 
 				if (layer.geometry) {
-					if(layer.geometry.type == "POLYGON") {		// Проверка сдвига границ слоя
+					if(layer.geometry.type == "POLYGON") {		// РџСЂРѕРІРµСЂРєР° СЃРґРІРёРіР° РіСЂР°РЅРёС† СЃР»РѕСЏ
 						var arr = layer.geometry.coordinates[0];
 						chkCenterX(arr);
 					}
@@ -2678,14 +2678,14 @@ function createFlashMapInternal(div, layers, callback)
 						(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
 				}
 
-				var isTemporal = layer.properties.Temporal;	// признак мультивременного слоя
+				var isTemporal = layer.properties.Temporal;	// РїСЂРёР·РЅР°Рє РјСѓР»СЊС‚РёРІСЂРµРјРµРЅРЅРѕРіРѕ СЃР»РѕСЏ
 				var tileDateFunction = null;
 				var setDateInterval = null;
 				if(isTemporal) {
-					var TimeTemporal = true;	// Добавлять время в фильтры - пока только для поля layer.properties.TemporalColumnName == 'DateTime'
+					var TimeTemporal = true;	// Р”РѕР±Р°РІР»СЏС‚СЊ РІСЂРµРјСЏ РІ С„РёР»СЊС‚СЂС‹ - РїРѕРєР° С‚РѕР»СЊРєРѕ РґР»СЏ РїРѕР»СЏ layer.properties.TemporalColumnName == 'DateTime'
 
-					var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
-					var ZeroDateString = layer.properties.ZeroDate || '01.01.2008';	// нулевая дата
+					var deltaArr = [];			// РёРЅС‚РµСЂРІР°Р»С‹ РІСЂРµРјРµРЅРЅС‹С… С‚Р°Р№Р»РѕРІ [8, 16, 32, 64, 128, 256]
+					var ZeroDateString = layer.properties.ZeroDate || '01.01.2008';	// РЅСѓР»РµРІР°СЏ РґР°С‚Р°
 					var arr = ZeroDateString.split('.');
 					var ZeroDate = new Date(
 						(arr.length > 2 ? arr[2] : 2008),
@@ -2729,9 +2729,9 @@ function createFlashMapInternal(div, layers, callback)
 					}
 
 					temporalData = prpTemporalTiles(layer.properties.TemporalTiles);
-					var oneDay = 1000*60*60*24;					// один день
+					var oneDay = 1000*60*60*24;					// РѕРґРёРЅ РґРµРЅСЊ
 					
-					// Начальный интервал дат
+					// РќР°С‡Р°Р»СЊРЅС‹Р№ РёРЅС‚РµСЂРІР°Р» РґР°С‚
 					temporalData['DateEnd'] = new Date();
 					if(layer.properties.DateEnd) {
 						var arr = layer.properties.DateEnd.split('.');
@@ -2739,7 +2739,7 @@ function createFlashMapInternal(div, layers, callback)
 					}
 					temporalData['DateBegin'] = new Date(temporalData['DateEnd'] - oneDay);
 
-					var currentData = {};			// список тайлов для текущего daysDelta
+					var currentData = {};			// СЃРїРёСЃРѕРє С‚Р°Р№Р»РѕРІ РґР»СЏ С‚РµРєСѓС‰РµРіРѕ daysDelta
 
 					tileDateFunction = function(i, j, z)
 					{ 
@@ -2753,11 +2753,11 @@ function createFlashMapInternal(div, layers, callback)
  
 					prpTemporalFilter = function(DateBegin, DateEnd)
 					{
-						var dt1 = ddt1;			// начало текущих суток
-						var dt2 = ddt2;			// конец текущих суток
+						var dt1 = ddt1;			// РЅР°С‡Р°Р»Рѕ С‚РµРєСѓС‰РёС… СЃСѓС‚РѕРє
+						var dt2 = ddt2;			// РєРѕРЅРµС† С‚РµРєСѓС‰РёС… СЃСѓС‚РѕРє
 						var tp = Object.prototype.toString.apply(DateEnd);
 						if(tp === '[object Date]') dt2 = DateEnd;
-						else if(tp === '[object String]') {						// формат 23.08.2011
+						else if(tp === '[object String]') {						// С„РѕСЂРјР°С‚ 23.08.2011
 							dt2 = gmxAPI.strToDate(DateEnd);
 						}
 						tp = Object.prototype.toString.apply(DateBegin);
@@ -2774,7 +2774,7 @@ function createFlashMapInternal(div, layers, callback)
 						return {'dt1': dt1, 'dt2': dt2, 'ut1': parseInt(dt1.getTime()/1000), 'ut2': parseInt(dt2.getTime()/1000), 'curFilter': curFilter};
 					}
 
-					var getDateIntervalTiles = function(dt1, dt2) {			// Расчет вариантов от begDate до endDate
+					var getDateIntervalTiles = function(dt1, dt2) {			// Р Р°СЃС‡РµС‚ РІР°СЂРёР°РЅС‚РѕРІ РѕС‚ begDate РґРѕ endDate
 						var days = parseInt(1 + (dt2 - dt1)/oneDay);
 						var minFiles = 1000;
 						var outHash = {};
@@ -2810,7 +2810,7 @@ function createFlashMapInternal(div, layers, callback)
 									var z = pt[2];
 									var file = _prefix + "&Level=" + daysDelta + "&Span=" + dz + "&z=" + z + "&x=" + x + "&y=" + y;
 
-									if(layer.properties._TemporalDebugPath) file = _prefix + daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // тайлы расположены в WEB папке
+									if(layer.properties._TemporalDebugPath) file = _prefix + daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // С‚Р°Р№Р»С‹ СЂР°СЃРїРѕР»РѕР¶РµРЅС‹ РІ WEB РїР°РїРєРµ
 									
 									if(!ph['tiles'][z]) ph['tiles'][z] = {};
 									if(!ph['tiles'][z][x]) ph['tiles'][z][x] = {};
@@ -2848,7 +2848,7 @@ function createFlashMapInternal(div, layers, callback)
 								'daysDelta': curDaysDelta
 								,'files': ph['files']
 								,'tiles': ph['tiles']
-								,'dtiles': ph['dtiles'] || []		// список тайлов для daysDelta
+								,'dtiles': ph['dtiles'] || []		// СЃРїРёСЃРѕРє С‚Р°Р№Р»РѕРІ РґР»СЏ daysDelta
 								,'out': ph['out']
 								,'beg': ph['beg']
 								,'end': ph['end']
@@ -2863,9 +2863,9 @@ function createFlashMapInternal(div, layers, callback)
 
 						return out;
 					}
-					var ddt1 = new Date(); ddt1.setHours(0, 0, 0, 0);			// начало текущих суток
-					var ddt2 = new Date(); ddt2.setHours(23, 59, 59, 999);	// конец текущих суток
-					currentData = getDateIntervalTiles(ddt1, ddt2);	// По умолчанию за текущие сутки
+					var ddt1 = new Date(); ddt1.setHours(0, 0, 0, 0);			// РЅР°С‡Р°Р»Рѕ С‚РµРєСѓС‰РёС… СЃСѓС‚РѕРє
+					var ddt2 = new Date(); ddt2.setHours(23, 59, 59, 999);	// РєРѕРЅРµС† С‚РµРєСѓС‰РёС… СЃСѓС‚РѕРє
+					currentData = getDateIntervalTiles(ddt1, ddt2);	// РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ Р·Р° С‚РµРєСѓС‰РёРµ СЃСѓС‚РєРё
 
 					obj.getTemporalFilter = function()
 					{
@@ -2908,7 +2908,7 @@ function createFlashMapInternal(div, layers, callback)
 								'ut2': data['ut2']
 							};
 							if(oldDaysDelta == data['daysDelta'] && data['dt1'] >= oldDt1 && data['dt2'] <= oldDt2) {
-										// если интервал временных тайлов не изменился и интервал дат не расширяется - только добавление новых тайлов 
+										// РµСЃР»Рё РёРЅС‚РµСЂРІР°Р» РІСЂРµРјРµРЅРЅС‹С… С‚Р°Р№Р»РѕРІ РЅРµ РёР·РјРµРЅРёР»СЃСЏ Рё РёРЅС‚РµСЂРІР°Р» РґР°С‚ РЅРµ СЂР°СЃС€РёСЂСЏРµС‚СЃСЏ - С‚РѕР»СЊРєРѕ РґРѕР±Р°РІР»РµРЅРёРµ РЅРѕРІС‹С… С‚Р°Р№Р»РѕРІ 
 								attr['notClear'] = true;
 							} else {
 								currentData = data;
@@ -2921,7 +2921,7 @@ function createFlashMapInternal(div, layers, callback)
 							if(layer.properties.visible) {
 								if(attr) obj.startLoadTiles(attr);
 								//curTemporalFilter = hash['curFilter'];
-								for (var i=0; i<obj.filters.length; i++)	// переустановка фильтров
+								for (var i=0; i<obj.filters.length; i++)	// РїРµСЂРµСѓСЃС‚Р°РЅРѕРІРєР° С„РёР»СЊС‚СЂРѕРІ
 									obj.filters[i].setFilter(obj.filters[i]._sql, true);
 
 								map.balloonClassObject.removeHoverBalloons();
@@ -3013,7 +3013,7 @@ function createFlashMapInternal(div, layers, callback)
 							} });
 						}
 
-						if(isTemporal) {	// Для мультивременных слоёв
+						if(isTemporal) {	// Р”Р»СЏ РјСѓР»СЊС‚РёРІСЂРµРјРµРЅРЅС‹С… СЃР»РѕС‘РІ
 							var arr = (currentData['dtiles'] ? currentData['dtiles'] : []);
 							var temporal = {
 								'temporalFilter': obj.getTemporalFilter
@@ -3044,12 +3044,12 @@ function createFlashMapInternal(div, layers, callback)
 							obj.filters = [];
 							reSetStyles(styles, obj);
 						}
-						// Изменить атрибуты векторного обьекта из загруженных тайлов
+						// РР·РјРµРЅРёС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ РІРµРєС‚РѕСЂРЅРѕРіРѕ РѕР±СЊРµРєС‚Р° РёР· Р·Р°РіСЂСѓР¶РµРЅРЅС‹С… С‚Р°Р№Р»РѕРІ
 						obj.setTileItem = function(data, flag) {
 							var _obj = gmxAPI._cmdProxy('setTileItem', { 'obj': this, 'attr': {'data':data, 'flag':(flag ? true:false)} });
 							return _obj;
 						}
-						// Получить атрибуты векторного обьекта из загруженных тайлов id по identityField
+						// РџРѕР»СѓС‡РёС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ РІРµРєС‚РѕСЂРЅРѕРіРѕ РѕР±СЊРµРєС‚Р° РёР· Р·Р°РіСЂСѓР¶РµРЅРЅС‹С… С‚Р°Р№Р»РѕРІ id РїРѕ identityField
 						obj.getTileItem = function(vId) {
 							var _obj = gmxAPI._cmdProxy('getTileItem', { 'obj': this, 'attr': vId });
 							if(_obj.geometry) _obj.geometry = gmxAPI.from_merc_geometry(_obj.geometry);
@@ -3131,11 +3131,11 @@ function createFlashMapInternal(div, layers, callback)
 						}
 					}
 					if (!isRaster) {
-						// Изменять атрибуты векторного обьекта при невидимом слое нельзя
+						// РР·РјРµРЅСЏС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ РІРµРєС‚РѕСЂРЅРѕРіРѕ РѕР±СЊРµРєС‚Р° РїСЂРё РЅРµРІРёРґРёРјРѕРј СЃР»РѕРµ РЅРµР»СЊР·СЏ
 						obj.setTileItem = function(data, flag) {
 							return false;
 						}
-						// Получить атрибуты векторного обьекта при невидимом слое нельзя
+						// РџРѕР»СѓС‡РёС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ РІРµРєС‚РѕСЂРЅРѕРіРѕ РѕР±СЊРµРєС‚Р° РїСЂРё РЅРµРІРёРґРёРјРѕРј СЃР»РѕРµ РЅРµР»СЊР·СЏ
 						obj.getTileItem = function(vId) {
 							return null;
 						}
@@ -3213,8 +3213,8 @@ function createFlashMapInternal(div, layers, callback)
 				return osm;
 			}
 
-			// keepGeometry - если не указан или false, объект будет превращён в полигон размером во весь мир (показывать OSM везде), 
-			//                иначе геометрия не будет изменяться (например, чтобы делать вклейки из OSM в другие тайлы)
+			// keepGeometry - РµСЃР»Рё РЅРµ СѓРєР°Р·Р°РЅ РёР»Рё false, РѕР±СЉРµРєС‚ Р±СѓРґРµС‚ РїСЂРµРІСЂР°С‰С‘РЅ РІ РїРѕР»РёРіРѕРЅ СЂР°Р·РјРµСЂРѕРј РІРѕ РІРµСЃСЊ РјРёСЂ (РїРѕРєР°Р·С‹РІР°С‚СЊ OSM РІРµР·РґРµ), 
+			//                РёРЅР°С‡Рµ РіРµРѕРјРµС‚СЂРёСЏ РЅРµ Р±СѓРґРµС‚ РёР·РјРµРЅСЏС‚СЊСЃСЏ (РЅР°РїСЂРёРјРµСЂ, С‡С‚РѕР±С‹ РґРµР»Р°С‚СЊ РІРєР»РµР№РєРё РёР· OSM РІ РґСЂСѓРіРёРµ С‚Р°Р№Р»С‹)
 			FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 			{
 				if (!keepGeometry)
@@ -3246,7 +3246,7 @@ function createFlashMapInternal(div, layers, callback)
 			map.tiledQuicklooks = map;
 			map.vectors = map;
 
-			// Методы присущие только Map
+			// РњРµС‚РѕРґС‹ РїСЂРёСЃСѓС‰РёРµ С‚РѕР»СЊРєРѕ Map
 			map.stopDragging = function() {	gmxAPI._cmdProxy('stopDragging', { }); }
 			map.isDragging = function() { return gmxAPI._cmdProxy('isDragging', { }); }
 			map.resumeDragging = function() { gmxAPI._cmdProxy('resumeDragging', { }); }
@@ -3278,7 +3278,7 @@ function createFlashMapInternal(div, layers, callback)
 				for (var i = 0; i < map.layers.length; i++) arr.push(map.layers[i].objectId);
 				return gmxAPI._cmdProxy('getItemsFromExtent', { 'obj': this, 'attr':{'layers':arr} });
 			}
-			// Использование SharedObject
+			// РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ SharedObject
 			map.setFlashLSO = function(data) { return gmxAPI._cmdProxy('setFlashLSO', {'obj': this, 'attr':data }); }
 
 			var needToStopDragging = false;
@@ -3419,7 +3419,7 @@ function createFlashMapInternal(div, layers, callback)
 			}
 
 			map.addContextMenuItem(
-				gmxAPI.KOSMOSNIMKI_LOCALIZED("Поставить маркер", "Add marker"),
+				gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРѕСЃС‚Р°РІРёС‚СЊ РјР°СЂРєРµСЂ", "Add marker"),
 				function(x, y)
 				{
 					map.drawing.addObject({type: "POINT", coordinates: [x, y]});
@@ -3871,7 +3871,7 @@ function createFlashMapInternal(div, layers, callback)
 
 			var getDatePretty = function(date)
 			{
-				return date.getDate() + " " + ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"][date.getMonth()] + " " + date.getFullYear();
+				return date.getDate() + " " + ["СЏРЅРІР°СЂСЏ", "С„РµРІСЂР°Р»СЏ", "РјР°СЂС‚Р°", "Р°РїСЂРµР»СЏ", "РјР°СЏ", "РёСЋРЅСЏ", "РёСЋР»СЏ", "Р°РІРіСѓСЃС‚Р°", "СЃРµРЅС‚СЏР±СЂСЏ", "РѕРєС‚СЏР±СЂСЏ", "РЅРѕСЏР±СЂСЏ", "РґРµРєР°Р±СЂСЏ"][date.getMonth()] + " " + date.getFullYear();
 			}
  
 			var filterUpdateTimeout = false;
@@ -3893,7 +3893,7 @@ function createFlashMapInternal(div, layers, callback)
 					for (var i = 0; i < map.layers.length; i++)
 					{
 						var layer = map.layers[i];
-						if ((layer.isVisible || layer.hiddenByTimeBar) && (layer.properties.type == "Vector") && (layer.properties.description.toLowerCase() == "спутниковое покрытие"))
+						if ((layer.isVisible || layer.hiddenByTimeBar) && (layer.properties.type == "Vector") && (layer.properties.description.toLowerCase() == "СЃРїСѓС‚РЅРёРєРѕРІРѕРµ РїРѕРєСЂС‹С‚РёРµ"))
 						{
 							var attrs = layer.properties.attributes;
 							var hasDateAttribute = false;
@@ -4099,7 +4099,7 @@ function createFlashMapInternal(div, layers, callback)
 				}
 				if (layers.properties.MiniMapZoomDelta)
 					miniMapZoomDelta = layers.properties.MiniMapZoomDelta;
-				if (layers.properties.OnLoad && layers.properties.name !== kosmosnimki_API)	//  Обработка маплета карты - для базовой уже вызывали
+				if (layers.properties.OnLoad && layers.properties.name !== kosmosnimki_API)	//  РћР±СЂР°Р±РѕС‚РєР° РјР°РїР»РµС‚Р° РєР°СЂС‚С‹ - РґР»СЏ Р±Р°Р·РѕРІРѕР№ СѓР¶Рµ РІС‹Р·С‹РІР°Р»Рё
 				{
 					try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(map); }
 					catch (e) {
@@ -4146,13 +4146,13 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.addMapStateListener = function(eventName, func) { 	return addMapStateListener(this, eventName, func);	}
 			FlashMapObject.prototype.removeMapStateListener = function(eventName, id) { return removeMapStateListener(this, eventName, id); }
 
-			/** Отображение строки текущего положения карты
+			/** РћС‚РѕР±СЂР°Р¶РµРЅРёРµ СЃС‚СЂРѕРєРё С‚РµРєСѓС‰РµРіРѕ РїРѕР»РѕР¶РµРЅРёСЏ РєР°СЂС‚С‹
 			* @function
-			* @memberOf api - перегружаемый внешними плагинами
-			* @param {object['div']} элемент DOM модели для отображения строки, где будет показываться текущее положение карты
-			* @param {object['screenGeometry']} геометрия видимой части экрана
-			* @param {object['properties']} свойства карты
-			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+			* @memberOf api - РїРµСЂРµРіСЂСѓР¶Р°РµРјС‹Р№ РІРЅРµС€РЅРёРјРё РїР»Р°РіРёРЅР°РјРё
+			* @param {object['div']} СЌР»РµРјРµРЅС‚ DOM РјРѕРґРµР»Рё РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ СЃС‚СЂРѕРєРё, РіРґРµ Р±СѓРґРµС‚ РїРѕРєР°Р·С‹РІР°С‚СЊСЃСЏ С‚РµРєСѓС‰РµРµ РїРѕР»РѕР¶РµРЅРёРµ РєР°СЂС‚С‹
+			* @param {object['screenGeometry']} РіРµРѕРјРµС‚СЂРёСЏ РІРёРґРёРјРѕР№ С‡Р°СЃС‚Рё СЌРєСЂР°РЅР°
+			* @param {object['properties']} СЃРІРѕР№СЃС‚РІР° РєР°СЂС‚С‹
+			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">В» РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ</a>.
 			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 			*/
 			map.setLocationTitleDiv = null;
@@ -4167,17 +4167,17 @@ function createFlashMapInternal(div, layers, callback)
 
 
 			var coordinatesAttr = {
-				'x': '27px'						// отступ по горизонтали
-				,'y': '25px'					// по вертикали
-				,'x1': '5px'					// отступ по горизонтали иконки смены формата координат
+				'x': '27px'						// РѕС‚СЃС‚СѓРї РїРѕ РіРѕСЂРёР·РѕРЅС‚Р°Р»Рё
+				,'y': '25px'					// РїРѕ РІРµСЂС‚РёРєР°Р»Рё
+				,'x1': '5px'					// РѕС‚СЃС‚СѓРї РїРѕ РіРѕСЂРёР·РѕРЅС‚Р°Р»Рё РёРєРѕРЅРєРё СЃРјРµРЅС‹ С„РѕСЂРјР°С‚Р° РєРѕРѕСЂРґРёРЅР°С‚
 				,'scaleBar': {
 					'bottom': {
-						'x': '27px'				// отступ по горизонтали для scaleBar
-						,'y': '47px'			// по вертикали
+						'x': '27px'				// РѕС‚СЃС‚СѓРї РїРѕ РіРѕСЂРёР·РѕРЅС‚Р°Р»Рё РґР»СЏ scaleBar
+						,'y': '47px'			// РїРѕ РІРµСЂС‚РёРєР°Р»Рё
 					}
 					,'top': {
-						'x': '27px'				// отступ по горизонтали для scaleBar
-						,'y': '3px'				// по вертикали
+						'x': '27px'				// РѕС‚СЃС‚СѓРї РїРѕ РіРѕСЂРёР·РѕРЅС‚Р°Р»Рё РґР»СЏ scaleBar
+						,'y': '3px'				// РїРѕ РІРµСЂС‚РёРєР°Р»Рё
 					}
 				}
 			};
@@ -4207,9 +4207,9 @@ function createFlashMapInternal(div, layers, callback)
 					className: "gmx_coordinates",
 					onclick: function()
 					{
-						if (coordFormat > 2) return; //выдаем окошко с координатами только для стандартных форматов.
+						if (coordFormat > 2) return; //РІС‹РґР°РµРј РѕРєРѕС€РєРѕ СЃ РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё С‚РѕР»СЊРєРѕ РґР»СЏ СЃС‚Р°РЅРґР°СЂС‚РЅС‹С… С„РѕСЂРјР°С‚РѕРІ.
 						var oldText = getCoordinatesText();
-						var text = window.prompt(gmxAPI.KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты:", "Current center coordinates:"), oldText);
+						var text = window.prompt(gmxAPI.KOSMOSNIMKI_LOCALIZED("РўРµРєСѓС‰РёРµ РєРѕРѕСЂРґРёРЅР°С‚С‹ С†РµРЅС‚СЂР° РєР°СЂС‚С‹:", "Current center coordinates:"), oldText);
 						if (text && (text != oldText))
 							map.moveToCoordinates(text);
 					}
@@ -4248,7 +4248,7 @@ function createFlashMapInternal(div, layers, callback)
 					coordinates.removeChild(coordinates.childNodes[i]);
 			}
 
-			var coordFormatCallbacks = [		// методы формирования форматов координат
+			var coordFormatCallbacks = [		// РјРµС‚РѕРґС‹ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ С„РѕСЂРјР°С‚РѕРІ РєРѕРѕСЂРґРёРЅР°С‚
 				function() { coordinates.innerHTML = getCoordinatesText(); },
 				function() { coordinates.innerHTML = getCoordinatesText(); },
 				function() { coordinates.innerHTML = getCoordinatesText(); },
@@ -4273,7 +4273,7 @@ function createFlashMapInternal(div, layers, callback)
 				{ 
 					className: "gmx_changeCoords",
 					src: apiBase + "img/coord_reload.png",
-					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format"),
+					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("РЎРјРµРЅРёС‚СЊ С„РѕСЂРјР°С‚ РєРѕРѕСЂРґРёРЅР°С‚", "Toggle coordinates format"),
 					onclick: function()
 					{
 						coordFormat += 1;
@@ -4311,31 +4311,31 @@ function createFlashMapInternal(div, layers, callback)
 				setFormat: setCoordinatesFormat
 			}
 
-			map.setCoordinatesAlign = function(attr) {			// Изменить позицию контейнера координат
+			map.setCoordinatesAlign = function(attr) {			// РР·РјРµРЅРёС‚СЊ РїРѕР·РёС†РёСЋ РєРѕРЅС‚РµР№РЅРµСЂР° РєРѕРѕСЂРґРёРЅР°С‚
 				var align = attr['align'];
-				if(align === 'br') {		// Позиция br(BottomRight)
+				if(align === 'br') {		// РџРѕР·РёС†РёСЏ br(BottomRight)
 					gmxAPI.setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x'], 'left': '' });
 					gmxAPI.setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x1'], 'left': '' });
 					gmxAPI.setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': coordinatesAttr['scaleBar']['bottom']['x'], 'left': '' });
-				} else if(align === 'bl') {		// Позиция bl(BottomLeft)
+				} else if(align === 'bl') {		// РџРѕР·РёС†РёСЏ bl(BottomLeft)
 					gmxAPI.setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x'] });
 					gmxAPI.setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x1'] });
 					gmxAPI.setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': '', 'left': coordinatesAttr['scaleBar']['bottom']['x'] });
-				} else if(align === 'tr') {		// Позиция tr(TopRight)
+				} else if(align === 'tr') {		// РџРѕР·РёС†РёСЏ tr(TopRight)
 					gmxAPI.setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x'], 'left': '' });
 					gmxAPI.setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x1'], 'left': '' });
 					gmxAPI.setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': coordinatesAttr['scaleBar']['top']['x'], 'left': '' });
-				} else if(align === 'tl') {		// Позиция tl(TopLeft)
+				} else if(align === 'tl') {		// РџРѕР·РёС†РёСЏ tl(TopLeft)
 					gmxAPI.setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x'] });
 					gmxAPI.setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x1'] });
 					gmxAPI.setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['scaleBar']['top']['x'] });
 				}
 			}
 
-			// Begin: Блок управления копирайтами
+			// Begin: Р‘Р»РѕРє СѓРїСЂР°РІР»РµРЅРёСЏ РєРѕРїРёСЂР°Р№С‚Р°РјРё
 			var copyrightAttr = {
-				'x': '26px'					// отступ по горизонтали
-				,'y': '7px'					// отступ по вертикали
+				'x': '26px'					// РѕС‚СЃС‚СѓРї РїРѕ РіРѕСЂРёР·РѕРЅС‚Р°Р»Рё
+				,'y': '7px'					// РѕС‚СЃС‚СѓРї РїРѕ РІРµСЂС‚РёРєР°Р»Рё
 			};
 			var copyright = gmxAPI.newElement(
 				"span",
@@ -4350,7 +4350,7 @@ function createFlashMapInternal(div, layers, callback)
 			);
 			var copyrightAlign = '';
 			div.appendChild(copyright);
-			// Изменить позицию контейнера копирайтов
+			// РР·РјРµРЅРёС‚СЊ РїРѕР·РёС†РёСЋ РєРѕРЅС‚РµР№РЅРµСЂР° РєРѕРїРёСЂР°Р№С‚РѕРІ
 			map.setCopyrightAlign = function(attr) {
 				if(attr['align']) {
 					copyrightAlign = attr['align'];
@@ -4397,23 +4397,23 @@ function createFlashMapInternal(div, layers, callback)
 			var copyrightUpdateTimeout = false;
 			var copyrightLastAlign = null;
 
-			// Изменить координаты HTML элемента
+			// РР·РјРµРЅРёС‚СЊ РєРѕРѕСЂРґРёРЅР°С‚С‹ HTML СЌР»РµРјРµРЅС‚Р°
 			function copyrightPosition()
 			{
 				var center = (div.clientWidth - copyright.clientWidth) / 2;
 				if(copyrightLastAlign != copyrightAlign) {
 					copyrightLastAlign = copyrightAlign;
-					if(copyrightAlign === 'bc') {				// Позиция bc(BottomCenter)
+					if(copyrightAlign === 'bc') {				// РџРѕР·РёС†РёСЏ bc(BottomCenter)
 						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': center + 'px' });
-					} else if(copyrightAlign === 'br') {		// Позиция br(BottomRight)
+					} else if(copyrightAlign === 'br') {		// РџРѕР·РёС†РёСЏ br(BottomRight)
 						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': copyrightAttr['x'], 'left': '' });
-					} else if(copyrightAlign === 'bl') {		// Позиция bl(BottomLeft)
+					} else if(copyrightAlign === 'bl') {		// РџРѕР·РёС†РёСЏ bl(BottomLeft)
 						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': copyrightAttr['x'] });
-					} else if(copyrightAlign === 'tc') {		// Позиция tc(TopCenter)
+					} else if(copyrightAlign === 'tc') {		// РџРѕР·РёС†РёСЏ tc(TopCenter)
 						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': center + 'px' });
-					} else if(copyrightAlign === 'tr') {		// Позиция tr(TopRight)
+					} else if(copyrightAlign === 'tr') {		// РџРѕР·РёС†РёСЏ tr(TopRight)
 						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': copyrightAttr['x'], 'left': '' });
-					} else if(copyrightAlign === 'tl') {		// Позиция tl(TopLeft)
+					} else if(copyrightAlign === 'tl') {		// РџРѕР·РёС†РёСЏ tl(TopLeft)
 						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr['x'] });
 					}
 				}
@@ -4444,9 +4444,9 @@ function createFlashMapInternal(div, layers, callback)
 							}
 						}
 						
-						//первым всегда будет располагаться копирайт СканЭкс. 
-						//Если реализовать возможность задавать порядок отображения копирайтов, можно тоже самое сделать более культурно...
-						var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>";
+						//РїРµСЂРІС‹Рј РІСЃРµРіРґР° Р±СѓРґРµС‚ СЂР°СЃРїРѕР»Р°РіР°С‚СЊСЃСЏ РєРѕРїРёСЂР°Р№С‚ РЎРєР°РЅР­РєСЃ. 
+						//Р•СЃР»Рё СЂРµР°Р»РёР·РѕРІР°С‚СЊ РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊ Р·Р°РґР°РІР°С‚СЊ РїРѕСЂСЏРґРѕРє РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РєРѕРїРёСЂР°Р№С‚РѕРІ, РјРѕР¶РЅРѕ С‚РѕР¶Рµ СЃР°РјРѕРµ СЃРґРµР»Р°С‚СЊ Р±РѕР»РµРµ РєСѓР»СЊС‚СѓСЂРЅРѕ...
+						var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;РЎРєР°РЅР­РєСЃ&raquo;", "RDC ScanEx") + "</a>";
 						
 						for (var key in texts)
 						{
@@ -4462,7 +4462,7 @@ function createFlashMapInternal(div, layers, callback)
 					}, 0);
 				}
 			}
-			// End: Блок управления копирайтами
+			// End: Р‘Р»РѕРє СѓРїСЂР°РІР»РµРЅРёСЏ РєРѕРїРёСЂР°Р№С‚Р°РјРё
 
 			var sunscreen = map.addObject();
 			sunscreen.setStyle({ fill: { color: 0xffffff, opacity: 1 } });
@@ -4539,14 +4539,14 @@ function createFlashMapInternal(div, layers, callback)
 				{
 					var ww = (miniMapSize/2 - w/2);
 					var hh = (miniMapSize/2 - h/2);
-					var ph = { 'top': hh + 'px', 'bottom': '', 'right': ww + 'px', 'left': '' };	// Позиция миникарты по умолчанию tr(TopRight)
-					if(miniMapAlign === 'br') {		// Позиция миникарты br(BottomRight)
+					var ph = { 'top': hh + 'px', 'bottom': '', 'right': ww + 'px', 'left': '' };	// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ tr(TopRight)
+					if(miniMapAlign === 'br') {		// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ br(BottomRight)
 						ph['left'] = ''; ph['right'] = ww + 'px';
 						ph['bottom'] = hh + 'px';	ph['top'] = '';
-					} else if(miniMapAlign === 'bl') {	// Позиция миникарты по умолчанию bl(BottomLeft)
+					} else if(miniMapAlign === 'bl') {	// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ bl(BottomLeft)
 						ph['left'] = ww + 'px';		ph['right'] = '';
 						ph['bottom'] = hh + 'px';	ph['top'] = '';
-					} else if(miniMapAlign === 'tl') {	// Позиция миникарты по умолчанию tl(TopLeft)
+					} else if(miniMapAlign === 'tl') {	// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ tl(TopLeft)
 						ph['left'] = (miniMapSize/2 - w/2) + 'px'; ph['right'] = '';
 					}
 					gmxAPI.setPositionStyle(miniMapFrame, ph);
@@ -4570,7 +4570,7 @@ function createFlashMapInternal(div, layers, callback)
 				{ 
 					className: "gmx_miniMapToggler",
 					src: apiBase + "img/close_map.png",
-					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать/скрыть мини-карту", "Show/hide minimap"),
+					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРѕРєР°Р·Р°С‚СЊ/СЃРєСЂС‹С‚СЊ РјРёРЅРё-РєР°СЂС‚Сѓ", "Show/hide minimap"),
 					onclick: function()
 					{
 						miniMapShown = !miniMapShown;
@@ -4602,22 +4602,22 @@ function createFlashMapInternal(div, layers, callback)
 				miniMapSize = (miniMapAvailable && miniMapShown) ? Math.round(w/7) : 0;
 				miniMapLeftBorder.style.height = (miniMapSize + miniMapBorderWidth) + "px";
 				miniMapBottomBorder.style.width = miniMapSize + "px";
-				if(miniMapAlign === 'br') {			// Позиция миникарты br(BottomRight)
+				if(miniMapAlign === 'br') {			// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ br(BottomRight)
 					miniMap.positionWindow((w - miniMapSize)/w, (h - miniMapSize)/h, 1, 1);
 					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': miniMapSize + 'px', 'left': '' });
 					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '0px', 'left': '' });
 					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '0px', 'left': '' });
-				} else if(miniMapAlign === 'bl') {	// Позиция миникарты по умолчанию bl(BottomLeft)
+				} else if(miniMapAlign === 'bl') {	// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ bl(BottomLeft)
 					miniMap.positionWindow(0, (h - miniMapSize)/h, miniMapSize/w, 1);
 					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': '', 'left': miniMapSize + 'px' });
 					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '', 'left': '0px' });
 					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '', 'left': '0px' });
-				} else if(miniMapAlign === 'tl') {	// Позиция миникарты по умолчанию tl(TopLeft)
+				} else if(miniMapAlign === 'tl') {	// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ tl(TopLeft)
 					miniMap.positionWindow(0, 0, miniMapSize/w, miniMapSize/h);
 					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': '', 'left': miniMapSize + 'px' });
 					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '', 'left': '0px' });
 					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '0px', 'bottom': '', 'right': '', 'left': '0px' });
-				} else {							// Позиция миникарты по умолчанию tr(TopRight)
+				} else {							// РџРѕР·РёС†РёСЏ РјРёРЅРёРєР°СЂС‚С‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ tr(TopRight)
 					miniMap.positionWindow((w - miniMapSize)/w, 0, 1, miniMapSize/h);
 					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': miniMapSize + 'px', 'left': '' });
 					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '0px', 'left': '' });
@@ -4638,7 +4638,7 @@ function createFlashMapInternal(div, layers, callback)
 			map.miniMap = miniMap;
 			miniMap.setVisible(false);
 			var miniMapAlign = 'tr';
-			// Изменить позицию miniMap
+			// РР·РјРµРЅРёС‚СЊ РїРѕР·РёС†РёСЋ miniMap
 			map.setMiniMapAlign = function(attr) {
 				if(attr['align']) miniMapAlign = attr['align'];
 				resizeMiniMap();
@@ -4661,7 +4661,7 @@ function createFlashMapInternal(div, layers, callback)
 				"img",
 				{
 					src: apiBase + "img/geomixer_logo_api.png",
-					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("© 2007-2011 ИТЦ «СканЭкс»", "(c) 2007-2011 RDC ScanEx"),
+					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("В© 2007-2011 РРўР¦ В«РЎРєР°РЅР­РєСЃВ»", "(c) 2007-2011 RDC ScanEx"),
 					width: 130,
 					height: 34
 				},
@@ -4670,15 +4670,15 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			));
 			div.appendChild(geomixerLink);
-			map.setGeomixerLinkAlign = function(attr) {				// Изменить позицию ссылки на Geomixer
+			map.setGeomixerLinkAlign = function(attr) {				// РР·РјРµРЅРёС‚СЊ РїРѕР·РёС†РёСЋ СЃСЃС‹Р»РєРё РЅР° Geomixer
 				var align = attr['align'];
-				if(align === 'br') {			// Позиция br(BottomRight)
+				if(align === 'br') {			// РџРѕР·РёС†РёСЏ br(BottomRight)
 					gmxAPI.setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '8px', 'left': '' });
-				} else if(align === 'bl') {		// Позиция bl(BottomLeft)
+				} else if(align === 'bl') {		// РџРѕР·РёС†РёСЏ bl(BottomLeft)
 					gmxAPI.setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '', 'left': '8px' });
-				} else if(align === 'tr') {		// Позиция tr(TopRight)
+				} else if(align === 'tr') {		// РџРѕР·РёС†РёСЏ tr(TopRight)
 					gmxAPI.setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '8px', 'left': '' });
-				} else if(align === 'tl') {		// Позиция tl(TopLeft)
+				} else if(align === 'tl') {		// РџРѕР·РёС†РёСЏ tl(TopLeft)
 					gmxAPI.setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '', 'left': '8px' });
 				}
 			}
@@ -4723,9 +4723,9 @@ function createFlashMapInternal(div, layers, callback)
 				setCoordinatesFormat();
 				//coordinates.innerHTML = getCoordinatesText(currPosition);
 
-				/** Пользовательское событие positionChanged
+				/** РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРµ СЃРѕР±С‹С‚РёРµ positionChanged
 				* @function callback
-				* @param {object} атрибуты прослушивателя
+				* @param {object} Р°С‚СЂРёР±СѓС‚С‹ РїСЂРѕСЃР»СѓС€РёРІР°С‚РµР»СЏ
 				*/
 				if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
 					var attr = {'div': locationTitleDiv, 'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
@@ -4742,8 +4742,8 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			var eventMapObject = map.addObject();
 			eventMapObject.setHandler("onMove", updatePosition);
-			// onMoveBegin	- перед onMove
-			// onMoveEnd	- после onMove
+			// onMoveBegin	- РїРµСЂРµРґ onMove
+			// onMoveEnd	- РїРѕСЃР»Рµ onMove
 
 			updatePosition();
 
@@ -4887,7 +4887,7 @@ function createFlashMapInternal(div, layers, callback)
 					}
 
 					obj = map.addObject();
-					balloon = map.balloonClassObject.addBalloon(true);	// Редактируемый балун (только скрывать)
+					balloon = map.balloonClassObject.addBalloon(true);	// Р РµРґР°РєС‚РёСЂСѓРµРјС‹Р№ Р±Р°Р»СѓРЅ (С‚РѕР»СЊРєРѕ СЃРєСЂС‹РІР°С‚СЊ)
 					ret.setVisible = function(flag)
 					{
 						ret.isVisible = flag;
@@ -5336,7 +5336,7 @@ function createFlashMapInternal(div, layers, callback)
 					for (var i = 0; i < coords.length; i++) {
 						var lastNum = coords[i].length - 1; 
 						if (coords[i][0][0] == coords[i][lastNum][0] && coords[i][0][1] == coords[i][lastNum][1]) {
-							coords[i].pop();	// если последняя точка совпадает с первой удаляем ее
+							coords[i].pop();	// РµСЃР»Рё РїРѕСЃР»РµРґРЅСЏСЏ С‚РѕС‡РєР° СЃРѕРІРїР°РґР°РµС‚ СЃ РїРµСЂРІРѕР№ СѓРґР°Р»СЏРµРј РµРµ
 						}
 					}
 
@@ -5358,12 +5358,12 @@ function createFlashMapInternal(div, layers, callback)
 				if (geomType.indexOf("POINT") != -1)
 				{
 					var c = geom.coordinates;
-					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
+					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("РљРѕРѕСЂРґРёРЅР°С‚С‹:", "Coordinates:") + "</b> " + gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
 				}
 				else if (geomType.indexOf("LINESTRING") != -1)
-					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
+					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Р”Р»РёРЅР°:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
 				else if (geomType.indexOf("POLYGON") != -1)
-					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> " + gmxAPI.prettifyArea(gmxAPI.geoArea(geom));
+					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("РџР»РѕС‰Р°РґСЊ:", "Area:") + "</b> " + gmxAPI.prettifyArea(gmxAPI.geoArea(geom));
 				else
 					return "?";
 			}
@@ -5421,14 +5421,14 @@ function createFlashMapInternal(div, layers, callback)
 				var x2y1Corner = corners.addObject();
 				var x2y2Corner = corners.addObject();
 
-				// Проверка пользовательских Listeners
+				// РџСЂРѕРІРµСЂРєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёС… Listeners
 				var chkEvent = function()
 				{
 					chkListeners(eventType, map.drawing, domObj);
 
 				}
 
-				// Высвечивание балуна в зависимости от типа geometry
+				// Р’С‹СЃРІРµС‡РёРІР°РЅРёРµ Р±Р°Р»СѓРЅР° РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ С‚РёРїР° geometry
 				var chkBalloon = function(tp)
 				{
 					if(!isDraging) {
@@ -5786,14 +5786,14 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				toolsMinimized = true;
 				toolPlaqueControl.src = apiBase + "img/tools_off.png";
-				toolPlaqueControl.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать инструменты", "Show tools");
+				toolPlaqueControl.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("РџРѕРєР°Р·Р°С‚СЊ РёРЅСЃС‚СЂСѓРјРµРЅС‚С‹", "Show tools");
 				gmxAPI.setVisible(allTools, false);
 			}
 			map.maximizeTools = function()
 			{
 				toolsMinimized = false;
 				toolPlaqueControl.src = apiBase + "img/tools_on.png";
-				toolPlaqueControl.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("Скрыть инструменты", "Hide tools");
+				toolPlaqueControl.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("РЎРєСЂС‹С‚СЊ РёРЅСЃС‚СЂСѓРјРµРЅС‚С‹", "Hide tools");
 				gmxAPI.setVisible(allTools, true);
 				map.baseLayerControl.repaint();
 			}
@@ -5828,7 +5828,7 @@ function createFlashMapInternal(div, layers, callback)
 						this.enabledHoverBalloon = false;
 					}
 				,				
-				//props опционально
+				//props РѕРїС†РёРѕРЅР°Р»СЊРЅРѕ
 				addObject: function(geom, props)
 				{
 					if (geom.type.indexOf("MULTI") != -1)
@@ -5850,9 +5850,9 @@ function createFlashMapInternal(div, layers, callback)
 					}
 				},
 				
-				//поддерживаются events: onAdd, onRemove, onEdit
-				//onRemove вызывается непосредственно ПЕРЕД удалением объекта
-				//для FRAME поддерживается event onMouseUp - завершение изменения формы рамки
+				//РїРѕРґРґРµСЂР¶РёРІР°СЋС‚СЃСЏ events: onAdd, onRemove, onEdit
+				//onRemove РІС‹Р·С‹РІР°РµС‚СЃСЏ РЅРµРїРѕСЃСЂРµРґСЃС‚РІРµРЅРЅРѕ РџР•Р Р•Р” СѓРґР°Р»РµРЅРёРµРј РѕР±СЉРµРєС‚Р°
+				//РґР»СЏ FRAME РїРѕРґРґРµСЂР¶РёРІР°РµС‚СЃСЏ event onMouseUp - Р·Р°РІРµСЂС€РµРЅРёРµ РёР·РјРµРЅРµРЅРёСЏ С„РѕСЂРјС‹ СЂР°РјРєРё
 				setHandler: function(eventName, callback)
 				{
 					if (!(eventName in this.handlers)) 
@@ -5954,7 +5954,7 @@ function createFlashMapInternal(div, layers, callback)
 			var toolTypes = [];
 			var toolTypes_ = ["move", "zoom", "POINT", "LINESTRING", "POLYGON", "FRAME"];
 			var imageNames = ["move", "select", "marker", "line", "polygon", "frame"];
-			var toolHints = ["Перемещение", "Увеличение", "Маркер", "Линия", "Полигон", "Рамка"];
+			var toolHints = ["РџРµСЂРµРјРµС‰РµРЅРёРµ", "РЈРІРµР»РёС‡РµРЅРёРµ", "РњР°СЂРєРµСЂ", "Р›РёРЅРёСЏ", "РџРѕР»РёРіРѕРЅ", "Р Р°РјРєР°"];
 			var toolHintsEng = ["Move", "Zoom", "Marker", "Line", "Polygon", "Rectangle"];
 			var toolsContainer = gmxAPI.newStyledDiv({ position: "absolute", top: 0, left: 0 });
 			allTools.appendChild(toolsContainer);
@@ -6069,9 +6069,9 @@ function createFlashMapInternal(div, layers, callback)
 			}
 			FlashMapObject.prototype.loadWFS = FlashMapObject.prototype.loadGML;
 
-            /** Заружает WMS слои как подъобъекты данного объекта. Слои добавляются невидимыми
-                @param url {string} - URL WMS сервера
-                @param func {function} - ф-ция, которая будет вызвана когда WMS слои добавятся на карту.
+            /** Р—Р°СЂСѓР¶Р°РµС‚ WMS СЃР»РѕРё РєР°Рє РїРѕРґСЉРѕР±СЉРµРєС‚С‹ РґР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°. РЎР»РѕРё РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ РЅРµРІРёРґРёРјС‹РјРё
+                @param url {string} - URL WMS СЃРµСЂРІРµСЂР°
+                @param func {function} - С„-С†РёСЏ, РєРѕС‚РѕСЂР°СЏ Р±СѓРґРµС‚ РІС‹Р·РІР°РЅР° РєРѕРіРґР° WMS СЃР»РѕРё РґРѕР±Р°РІСЏС‚СЃСЏ РЅР° РєР°СЂС‚Сѓ.
             */
 			FlashMapObject.prototype.loadWMS = function(url, func)
 			{
@@ -6206,9 +6206,9 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						var obj = map.layers[i];
 						obj.setVisible(false);
 					}
-					var mapString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map");
-					var satelliteString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
-					var hybridString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
+					var mapString = gmxAPI.KOSMOSNIMKI_LOCALIZED("РљР°СЂС‚Р°", "Map");
+					var satelliteString = gmxAPI.KOSMOSNIMKI_LOCALIZED("РЎРЅРёРјРєРё", "Satellite");
+					var hybridString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Р“РёР±СЂРёРґ", "Hybrid");
 					
 					var mapLayers = [];
 					var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
@@ -6218,7 +6218,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							if (mapLayerNames[i] in map.layers)
 							{
 								var mapLayer = map.layers[mapLayerNames[i]];
-								//mapLayer.setVisible(true);						// Слои BaseMap должны быть видимыми
+								//mapLayer.setVisible(true);						// РЎР»РѕРё BaseMap РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РІРёРґРёРјС‹РјРё
 								mapLayer.setAsBaseLayer(mapString);
 								mapLayer.setBackgroundColor(0xffffff);
 								mapLayers.push(mapLayer);
@@ -6301,12 +6301,12 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							mapLayers[0],
 							10,
 							20,
-							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>"
+							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("Р—РђРћ &laquo;Р“РµРѕС†РµРЅС‚СЂ-РљРѕРЅСЃР°Р»С‚РёРЅРі&raquo;", "Geocentre Consulting") + "</a>"
 						);
 						obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
 					}
 					
-					//те же копирайты, что и для карт
+					//С‚Рµ Р¶Рµ РєРѕРїРёСЂР°Р№С‚С‹, С‡С‚Рѕ Рё РґР»СЏ РєР°СЂС‚
 					if (overlayLayers.length > 0)
 					{
 						setCopyright(
@@ -6320,7 +6320,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							overlayLayers[0],
 							10,
 							20,
-							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>"
+							"<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("Р—РђРћ &laquo;Р“РµРѕС†РµРЅС‚СЂ-РљРѕРЅСЃР°Р»С‚РёРЅРі&raquo;", "Geocentre Consulting") + "</a>"
 						);
 						
 						obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
@@ -6395,7 +6395,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.properties = layers.properties;
 					}
 
-					callback(map);		// Вызов HTML маплета
+					callback(map);		// Р’С‹Р·РѕРІ HTML РјР°РїР»РµС‚Р°
 				});
 			},
 			function()
@@ -6412,9 +6412,9 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 			gmxAPI.getScriptBase("api.js") + "config.js",
 			"baseMap",
 			finish,
-			finish			// Нет config.js
+			finish			// РќРµС‚ config.js
 		);
 	}
 	else
 		finish();
-}
+};

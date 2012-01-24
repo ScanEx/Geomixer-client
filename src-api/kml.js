@@ -1,4 +1,4 @@
-//Поддержка KML
+//РџРѕРґРґРµСЂР¶РєР° KML
 (function()
 {
 	var kmlParser = function()
@@ -501,10 +501,10 @@
 		return elem;
 	}
 
-    //расширяем namespace
+    //СЂР°СЃС€РёСЂСЏРµРј namespace
     gmxAPI._kmlParser = new kmlParser();
 
-    //расширяем FlashMapObject
+    //СЂР°СЃС€РёСЂСЏРµРј FlashMapObject
 	gmxAPI.extendFMO('loadKML', function(url, func)
 		{
 			var me = this;

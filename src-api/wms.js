@@ -1,12 +1,12 @@
-//Поддержка WMS
+//РџРѕРґРґРµСЂР¶РєР° WMS
 (function()
 {
-    var wmsProjections = ['EPSG:4326','EPSG:3395','EPSG:41001'];	// типы проекций
+    var wmsProjections = ['EPSG:4326','EPSG:3395','EPSG:41001'];	// С‚РёРїС‹ РїСЂРѕРµРєС†РёР№
     
     /**
-        Возвращает описание WMS-слоёв от XML, которую вернул сервер на запрос GetCapabilities
+        Р’РѕР·РІСЂР°С‰Р°РµС‚ РѕРїРёСЃР°РЅРёРµ WMS-СЃР»РѕС‘РІ РѕС‚ XML, РєРѕС‚РѕСЂСѓСЋ РІРµСЂРЅСѓР» СЃРµСЂРІРµСЂ РЅР° Р·Р°РїСЂРѕСЃ GetCapabilities
         @memberOf gmxAPI
-        @returns {Array} - массив объектов с описанием слоёв
+        @returns {Array} - РјР°СЃСЃРёРІ РѕР±СЉРµРєС‚РѕРІ СЃ РѕРїРёСЃР°РЅРёРµРј СЃР»РѕС‘РІ
     */
     var parseWMSCapabilities = function(response)
 	{
@@ -67,9 +67,9 @@
 		return serviceLayers;
 	}
     
-    /** Формирует URL картинки, который можно использовать для получения WMS слоя для данного положения карты
+    /** Р¤РѕСЂРјРёСЂСѓРµС‚ URL РєР°СЂС‚РёРЅРєРё, РєРѕС‚РѕСЂС‹Р№ РјРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ WMS СЃР»РѕСЏ РґР»СЏ РґР°РЅРЅРѕРіРѕ РїРѕР»РѕР¶РµРЅРёСЏ РєР°СЂС‚С‹
         @memberOf gmxAPI
-        @returns {object} - {url: String, bounds: {Extent}}. bounds в географических координатах.
+        @returns {object} - {url: String, bounds: {Extent}}. bounds РІ РіРµРѕРіСЂР°С„РёС‡РµСЃРєРёС… РєРѕРѕСЂРґРёРЅР°С‚Р°С….
     */
     var getWMSMapURL = function(url, props, requestProperties)
     {
@@ -174,7 +174,7 @@
         })
     }
     
-    //расширяем namespace
+    //СЂР°СЃС€РёСЂСЏРµРј namespace
     gmxAPI.parseWMSCapabilities = parseWMSCapabilities;
     gmxAPI._loadWMS = loadWMS;
     gmxAPI.getWMSMapURL = getWMSMapURL;

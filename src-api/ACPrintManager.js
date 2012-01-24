@@ -1,4 +1,4 @@
-//Поддержка Печати
+//РџРѕРґРґРµСЂР¶РєР° РџРµС‡Р°С‚Рё
 (function()
 {
 	/**
@@ -119,7 +119,7 @@
 		if (obj.getHeight != undefined) size.height = obj.getHeight()+'px';
 		return size;
 	}
-    //расширяем namespace
+    //СЂР°СЃС€РёСЂСЏРµРј namespace
     window.ACPrintManager = 
     gmxAPI.ACPrintManager = ACPrintManager;
 })();

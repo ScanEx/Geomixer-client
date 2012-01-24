@@ -1,13 +1,13 @@
-//Поддержка Балунов
+//РџРѕРґРґРµСЂР¶РєР° Р‘Р°Р»СѓРЅРѕРІ
 (function()
 {
-	/** Класс управления балунами
+	/** РљР»Р°СЃСЃ СѓРїСЂР°РІР»РµРЅРёСЏ Р±Р°Р»СѓРЅР°РјРё
 	* @function
 	* @memberOf api
-	* @param {map} ссылка на обьект карты
-	* @param {div} ссылка HTML контейнер карты
-	* @param {apiBase} URL основного домена
-	* @see <a href="http://kosmosnimki.ru/geomixer/docs/">» Пример использования</a>.
+	* @param {map} СЃСЃС‹Р»РєР° РЅР° РѕР±СЊРµРєС‚ РєР°СЂС‚С‹
+	* @param {div} СЃСЃС‹Р»РєР° HTML РєРѕРЅС‚РµР№РЅРµСЂ РєР°СЂС‚С‹
+	* @param {apiBase} URL РѕСЃРЅРѕРІРЅРѕРіРѕ РґРѕРјРµРЅР°
+	* @see <a href="http://kosmosnimki.ru/geomixer/docs/">В» РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ</a>.
 	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 	*/
 	function BalloonClass(map, div, apiBase)
@@ -18,20 +18,20 @@
 
 		var mapX = 0;
 		var mapY = 0;
-		var stageZoom = 1;						// Коэф. масштабирования браузера
+		var stageZoom = 1;						// РљРѕСЌС„. РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ Р±СЂР°СѓР·РµСЂР°
 		var scale = 0;
 		//map.getPosition();
 
-		// Обновить информацию текущего состояния карты
+		// РћР±РЅРѕРІРёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ С‚РµРєСѓС‰РµРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєР°СЂС‚С‹
 		function refreshMapPosition()
 		{
 			currPosition = map.getPosition();
 			mapX = currPosition['x'];
 			mapY = currPosition['y'];
 			scale = gmxAPI.getScale(currPosition['z']);
-			stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
+			stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// РљРѕСЌС„. РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ Р±СЂР°СѓР·РµСЂР°
 		}
-		// Формирование ID балуна
+		// Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ ID Р±Р°Р»СѓРЅР°
 		function setID(o)
 		{
 			var id = o.objectId + '_balloon';
@@ -42,25 +42,25 @@
 			return id;
 		}
 
-		/** Проверка возвращенного пользовательским callback значения
+		/** РџСЂРѕРІРµСЂРєР° РІРѕР·РІСЂР°С‰РµРЅРЅРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРј callback Р·РЅР°С‡РµРЅРёСЏ
 		* @function
 		* @memberOf BalloonClass private
-		* @param {text} возвращенное значение пользовательским callback
-		* @param {div} внутренний контейнер для размещения содержимого балуна
+		* @param {text} РІРѕР·РІСЂР°С‰РµРЅРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРј callback
+		* @param {div} РІРЅСѓС‚СЂРµРЅРЅРёР№ РєРѕРЅС‚РµР№РЅРµСЂ РґР»СЏ СЂР°Р·РјРµС‰РµРЅРёСЏ СЃРѕРґРµСЂР¶РёРјРѕРіРѕ Р±Р°Р»СѓРЅР°
 		* @return {<String><Bool><Object>}	
-		*		если тип <String> то div.innerHTML = text
-		*		если тип <Bool> и значение True то div.innerHTML = ''
-		*		если тип <Object> никаких дополнительных действий - все действия были произведены в callback
+		*		РµСЃР»Рё С‚РёРї <String> С‚Рѕ div.innerHTML = text
+		*		РµСЃР»Рё С‚РёРї <Bool> Рё Р·РЅР°С‡РµРЅРёРµ True С‚Рѕ div.innerHTML = ''
+		*		РµСЃР»Рё С‚РёРї <Object> РЅРёРєР°РєРёС… РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… РґРµР№СЃС‚РІРёР№ - РІСЃРµ РґРµР№СЃС‚РІРёСЏ Р±С‹Р»Рё РїСЂРѕРёР·РІРµРґРµРЅС‹ РІ callback
 		*/
 		function chkBalloonText(text, div)
 		{
 			var type = typeof(text);
 			if(type === 'string') div.innerHTML = '<div style="white-space: nowrap;">' + text + '</div>';
-			else if(type === 'boolean' && text) div.innerHTML = ""; // затираем только если true
-			// в случае type === 'object' ничего не делаем
+			else if(type === 'boolean' && text) div.innerHTML = ""; // Р·Р°С‚РёСЂР°РµРј С‚РѕР»СЊРєРѕ РµСЃР»Рё true
+			// РІ СЃР»СѓС‡Р°Рµ type === 'object' РЅРёС‡РµРіРѕ РЅРµ РґРµР»Р°РµРј
 		}
 
-		// Текст по умолчанию для балуна (innerHTML)
+		// РўРµРєСЃС‚ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РґР»СЏ Р±Р°Р»СѓРЅР° (innerHTML)
 		function getDefaultBalloonText(o)
 		{
 			var text = "";
@@ -84,7 +84,7 @@
 		}
 		this.getDefaultBalloonText = getDefaultBalloonText;
 
-		// Проверка наличия параметра по ветке родителей
+		// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№
 		function chkAttr(name, o)
 		{
 			var attr = false;
@@ -102,47 +102,47 @@
 		}
 		this.disableHoverBalloon = disableHoverBalloon;
 
-		/** Задать пользовательский тип балуна для mapObject
+		/** Р—Р°РґР°С‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ С‚РёРї Р±Р°Р»СѓРЅР° РґР»СЏ mapObject
 		* @function
 		* @memberOf BalloonClass public
-		* @param {mapObject<mapObject>} обьект карты для которого устанавливается тип балуна
-		* @param {callback<Function>} пользовательский метод формирования содержимого балуна mouseOver
-		*		При вызове в callback передаются параметры:
-		*		@param {obj<Hash>} properties обьекта карты для балуна
-		*		@param {div<DIV>} нода контейнера содержимого балуна
+		* @param {mapObject<mapObject>} РѕР±СЊРµРєС‚ РєР°СЂС‚С‹ РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ С‚РёРї Р±Р°Р»СѓРЅР°
+		* @param {callback<Function>} РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ РјРµС‚РѕРґ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ СЃРѕРґРµСЂР¶РёРјРѕРіРѕ Р±Р°Р»СѓРЅР° mouseOver
+		*		РџСЂРё РІС‹Р·РѕРІРµ РІ callback РїРµСЂРµРґР°СЋС‚СЃСЏ РїР°СЂР°РјРµС‚СЂС‹:
+		*		@param {obj<Hash>} properties РѕР±СЊРµРєС‚Р° РєР°СЂС‚С‹ РґР»СЏ Р±Р°Р»СѓРЅР°
+		*		@param {div<DIV>} РЅРѕРґР° РєРѕРЅС‚РµР№РЅРµСЂР° СЃРѕРґРµСЂР¶РёРјРѕРіРѕ Р±Р°Р»СѓРЅР°
 		*		@return {<String><Bool><Object>}	
-		*			если тип <String> то div.innerHTML = text
-		*			если тип <Bool> и значение True то div.innerHTML = ''
-		*			если тип <Object> никаких дополнительных действий - все действия были произведены в callback
-		* @param {attr:<Hash>} атрибуты управления балуном
-		*		свойства:
-		*			'disableOnMouseOver<Bool>'	- по умолчанию False
-		*			'disableOnClick'<Bool>		- по умолчанию False
-		*			'maxFixedBallons'<Bool>		- по умолчанию 1 (максимальное количество фиксированных балунов)
-		*			'clickCallback'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
-		*				@param {obj<Hash>} properties обьекта карты для балуна
-		*				@param {div<DIV>} нода контейнера содержимого балуна
+		*			РµСЃР»Рё С‚РёРї <String> С‚Рѕ div.innerHTML = text
+		*			РµСЃР»Рё С‚РёРї <Bool> Рё Р·РЅР°С‡РµРЅРёРµ True С‚Рѕ div.innerHTML = ''
+		*			РµСЃР»Рё С‚РёРї <Object> РЅРёРєР°РєРёС… РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… РґРµР№СЃС‚РІРёР№ - РІСЃРµ РґРµР№СЃС‚РІРёСЏ Р±С‹Р»Рё РїСЂРѕРёР·РІРµРґРµРЅС‹ РІ callback
+		* @param {attr:<Hash>} Р°С‚СЂРёР±СѓС‚С‹ СѓРїСЂР°РІР»РµРЅРёСЏ Р±Р°Р»СѓРЅРѕРј
+		*		СЃРІРѕР№СЃС‚РІР°:
+		*			'disableOnMouseOver<Bool>'	- РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ False
+		*			'disableOnClick'<Bool>		- РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ False
+		*			'maxFixedBallons'<Bool>		- РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ 1 (РјР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ С„РёРєСЃРёСЂРѕРІР°РЅРЅС‹С… Р±Р°Р»СѓРЅРѕРІ)
+		*			'clickCallback'<Function>	- РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ РјРµС‚РѕРґ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ СЃРѕРґРµСЂР¶РёРјРѕРіРѕ С„РёРєСЃРёСЂРѕРІР°РЅРЅРѕРіРѕ Р±Р°Р»СѓРЅР° РїСЂРё mouseClick
+		*				@param {obj<Hash>} properties РѕР±СЊРµРєС‚Р° РєР°СЂС‚С‹ РґР»СЏ Р±Р°Р»СѓРЅР°
+		*				@param {div<DIV>} РЅРѕРґР° РєРѕРЅС‚РµР№РЅРµСЂР° СЃРѕРґРµСЂР¶РёРјРѕРіРѕ Р±Р°Р»СѓРЅР°
 		*				@return {<String><Bool><Object>}	
-		*					если тип <String> то div.innerHTML = text
-		*					если тип <Bool> и значение True то div.innerHTML = ''
-		*					если тип <Object> никаких дополнительных действий - все действия были произведены в clickCallback
-		*			'OnClickSwitcher'<Function>	- по умолчанию null (при событии mouseClick - переключатель на пользовательский метод формирования всего фиксированного балуна)
-		*				@param {obj<Hash>} properties обьекта карты для балуна
-		*				@param {keyPress<Hash>} аттрибуты нажатых спец.клавиш при mouseClick событии
-		*				свойства:
-		*					'shiftKey<Bool>'	- по умолчанию False
-		*					'ctrlKey<Bool>'		- по умолчанию False
-		*				@return {Bool} если true то стандартный фиксированный балун НЕ создавать
-		*			'customBalloon'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
-		*				@param {obj<Hash>} properties обьекта карты для балуна
-		*				@param {div<DIV>} нода контейнера содержимого балуна
-		*				@return {Bool} если true то стандартный балун НЕ создавать
+		*					РµСЃР»Рё С‚РёРї <String> С‚Рѕ div.innerHTML = text
+		*					РµСЃР»Рё С‚РёРї <Bool> Рё Р·РЅР°С‡РµРЅРёРµ True С‚Рѕ div.innerHTML = ''
+		*					РµСЃР»Рё С‚РёРї <Object> РЅРёРєР°РєРёС… РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… РґРµР№СЃС‚РІРёР№ - РІСЃРµ РґРµР№СЃС‚РІРёСЏ Р±С‹Р»Рё РїСЂРѕРёР·РІРµРґРµРЅС‹ РІ clickCallback
+		*			'OnClickSwitcher'<Function>	- РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ null (РїСЂРё СЃРѕР±С‹С‚РёРё mouseClick - РїРµСЂРµРєР»СЋС‡Р°С‚РµР»СЊ РЅР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ РјРµС‚РѕРґ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ РІСЃРµРіРѕ С„РёРєСЃРёСЂРѕРІР°РЅРЅРѕРіРѕ Р±Р°Р»СѓРЅР°)
+		*				@param {obj<Hash>} properties РѕР±СЊРµРєС‚Р° РєР°СЂС‚С‹ РґР»СЏ Р±Р°Р»СѓРЅР°
+		*				@param {keyPress<Hash>} Р°С‚С‚СЂРёР±СѓС‚С‹ РЅР°Р¶Р°С‚С‹С… СЃРїРµС†.РєР»Р°РІРёС€ РїСЂРё mouseClick СЃРѕР±С‹С‚РёРё
+		*				СЃРІРѕР№СЃС‚РІР°:
+		*					'shiftKey<Bool>'	- РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ False
+		*					'ctrlKey<Bool>'		- РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ False
+		*				@return {Bool} РµСЃР»Рё true С‚Рѕ СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РёРєСЃРёСЂРѕРІР°РЅРЅС‹Р№ Р±Р°Р»СѓРЅ РќР• СЃРѕР·РґР°РІР°С‚СЊ
+		*			'customBalloon'<Function>	- РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ РјРµС‚РѕРґ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ СЃРѕРґРµСЂР¶РёРјРѕРіРѕ С„РёРєСЃРёСЂРѕРІР°РЅРЅРѕРіРѕ Р±Р°Р»СѓРЅР° РїСЂРё mouseClick
+		*				@param {obj<Hash>} properties РѕР±СЊРµРєС‚Р° РєР°СЂС‚С‹ РґР»СЏ Р±Р°Р»СѓРЅР°
+		*				@param {div<DIV>} РЅРѕРґР° РєРѕРЅС‚РµР№РЅРµСЂР° СЃРѕРґРµСЂР¶РёРјРѕРіРѕ Р±Р°Р»СѓРЅР°
+		*				@return {Bool} РµСЃР»Рё true С‚Рѕ СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ Р±Р°Р»СѓРЅ РќР• СЃРѕР·РґР°РІР°С‚СЊ
 		*/
 		function enableHoverBalloon(mapObject, callback, attr)
 		{
 			var _this = this;
-			mapObject._hoverBalloonAttr = (attr ? attr : {});				// Атрибуты управления балуном
-			if (callback) {													// Пользовательский метод получения текста для балуна
+			mapObject._hoverBalloonAttr = (attr ? attr : {});				// РђС‚СЂРёР±СѓС‚С‹ СѓРїСЂР°РІР»РµРЅРёСЏ Р±Р°Р»СѓРЅРѕРј
+			if (callback) {													// РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№ РјРµС‚РѕРґ РїРѕР»СѓС‡РµРЅРёСЏ С‚РµРєСЃС‚Р° РґР»СЏ Р±Р°Р»СѓРЅР°
 				this.getDefaultBalloonText = mapObject._hoverBalloonAttr['callback'] = callback;
 			} else {
 				delete mapObject._hoverBalloonAttr['callback'];
@@ -151,25 +151,25 @@
 			var handlersObj = {
 				onMouseOver: function(o, keyPress)
 				{ 
-					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
+					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// РџСЂРё РЅР°Р¶Р°С‚С‹С… РЅРµ РїРѕРєР°Р·С‹РІР°РµРј Р±Р°Р»СѓРЅ
 					if (map.isDragging())
 						return;
 
-					if(chkAttr('disableOnMouseOver', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
+					if(chkAttr('disableOnMouseOver', mapObject)) {			// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° disableOnMouseOver РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 						return;
 					}
-					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+					var customBalloonObject = chkAttr('customBalloon', mapObject);		// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° customBalloon РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 					if(customBalloonObject) {
 						currPosition = map.getPosition();
 						currPosition._x = propsBalloon.mouseX || 0;
 						currPosition._y = propsBalloon.mouseY || 0;
-						var flag = customBalloonObject.onMouseOver(o, keyPress, currPosition); // Вызов пользовательского метода вместо или перед балуном
-						if(flag) return;										// Если customBalloon возвращает true выходим
+						var flag = customBalloonObject.onMouseOver(o, keyPress, currPosition); // Р’С‹Р·РѕРІ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ РјРµС‚РѕРґР° РІРјРµСЃС‚Рѕ РёР»Рё РїРµСЂРµРґ Р±Р°Р»СѓРЅРѕРј
+						if(flag) return;										// Р•СЃР»Рё customBalloon РІРѕР·РІСЂР°С‰Р°РµС‚ true РІС‹С…РѕРґРёРј
 					}
 
-					//if(keyPress['objType'] == 'cluster') {}; // Надо придумать как бороться с фикс.двойником
+					//if(keyPress['objType'] == 'cluster') {}; // РќР°РґРѕ РїСЂРёРґСѓРјР°С‚СЊ РєР°Рє Р±РѕСЂРѕС‚СЊСЃСЏ СЃ С„РёРєСЃ.РґРІРѕР№РЅРёРєРѕРј
 
-					var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
+					var textFunc = chkAttr('callback', mapObject);			// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° callback РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 					//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
 					var text = (textFunc ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
 					if(typeof(text) == 'string' && text == '') return;
@@ -187,7 +187,7 @@
 				},
 				onMouseOut: function(o) 
 				{ 
-					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+					var customBalloonObject = chkAttr('customBalloon', mapObject);		// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° customBalloon РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 					if(customBalloonObject) {
 						var flag = customBalloonObject.onMouseOut(o);
 						if(flag) return;
@@ -199,7 +199,7 @@
 				onClick: function(o, keyPress)
 				{
 					refreshMapPosition();
-					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
+					var customBalloonObject = chkAttr('customBalloon', mapObject);		// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° customBalloon РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 					if(customBalloonObject) {
 						currPosition._x = propsBalloon.x;
 						currPosition._y = propsBalloon.y;
@@ -210,13 +210,13 @@
 				}
 			};
 
-			if(mapObject == map) return;								// На map Handlers не вешаем
-			if(mapObject._hoverBalloonAttr) {							// есть юзерские настройки балунов
-				if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// для отключения балунов при наведении на обьект
+			if(mapObject == map) return;								// РќР° map Handlers РЅРµ РІРµС€Р°РµРј
+			if(mapObject._hoverBalloonAttr) {							// РµСЃС‚СЊ СЋР·РµСЂСЃРєРёРµ РЅР°СЃС‚СЂРѕР№РєРё Р±Р°Р»СѓРЅРѕРІ
+				if(mapObject._hoverBalloonAttr['disableOnMouseOver']) {			// РґР»СЏ РѕС‚РєР»СЋС‡РµРЅРёСЏ Р±Р°Р»СѓРЅРѕРІ РїСЂРё РЅР°РІРµРґРµРЅРёРё РЅР° РѕР±СЊРµРєС‚
 					handlersObj['onMouseOver'] = null;
 					handlersObj['onMouseOut'] = null;
 				}
-				if(mapObject._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
+				if(mapObject._hoverBalloonAttr['disableOnClick']) {				// РґР»СЏ РѕС‚РєР»СЋС‡РµРЅРёСЏ С„РёРєСЃРёСЂРѕРІР°РЅРЅС‹С… Р±Р°Р»СѓРЅРѕРІ
 					handlersObj['onClick'] = null;
 				}
 			}
@@ -271,28 +271,28 @@
 		}
 		this.hideHoverBalloons = hideHoverBalloons;
 
-		// Фиксация балуна
+		// Р¤РёРєСЃР°С†РёСЏ Р±Р°Р»СѓРЅР°
 		function clickBalloonFix(o, keyPress)
 		{
-			var OnClickSwitcher = chkAttr('OnClickSwitcher', o);		// Проверка наличия параметра по ветке родителей 
+			var OnClickSwitcher = chkAttr('OnClickSwitcher', o);		// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 			if(OnClickSwitcher && typeof(OnClickSwitcher) == 'function') {
-				var flag = OnClickSwitcher(o, keyPress);				// Вызов пользовательского метода вместо или перед балуном
-				if(flag) return;										// Если OnClickSwitcher возвращает true выходим
+				var flag = OnClickSwitcher(o, keyPress);				// Р’С‹Р·РѕРІ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ РјРµС‚РѕРґР° РІРјРµСЃС‚Рѕ РёР»Рё РїРµСЂРµРґ Р±Р°Р»СѓРЅРѕРј
+				if(flag) return;										// Р•СЃР»Рё OnClickSwitcher РІРѕР·РІСЂР°С‰Р°РµС‚ true РІС‹С…РѕРґРёРј
 			}
 
-			if(chkAttr('disableOnClick', o))	// Проверка наличия параметра disableOnClick по ветке родителей 
+			if(chkAttr('disableOnClick', o))	// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° disableOnClick РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 				return;
 
-			var textFunc = chkAttr('clickCallback', o) || chkAttr('callback', o);	// Проверка наличия параметра callback по ветке родителей 
+			var textFunc = chkAttr('clickCallback', o) || chkAttr('callback', o);	// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° callback РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№ 
 			if(keyPress) {
-				if(keyPress['shiftKey'] || keyPress['ctrlKey']) return;	// При нажатых не показываем балун
-				if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // взять параметры балуна от фильтра родителя
+				if(keyPress['shiftKey'] || keyPress['ctrlKey']) return;	// РџСЂРё РЅР°Р¶Р°С‚С‹С… РЅРµ РїРѕРєР°Р·С‹РІР°РµРј Р±Р°Р»СѓРЅ
+				if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // РІР·СЏС‚СЊ РїР°СЂР°РјРµС‚СЂС‹ Р±Р°Р»СѓРЅР° РѕС‚ С„РёР»СЊС‚СЂР° СЂРѕРґРёС‚РµР»СЏ
 			}
 
 			var id = setID(o);
 			if (!fixedHoverBalloons[id])
 			{
-				var maxFixedBallons = chkAttr('maxFixedBallons', o) || 1;	// Проверка наличия параметра maxFixedBallons по ветке родителей
+				var maxFixedBallons = chkAttr('maxFixedBallons', o) || 1;	// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°СЂР°РјРµС‚СЂР° maxFixedBallons РїРѕ РІРµС‚РєРµ СЂРѕРґРёС‚РµР»РµР№
 				if(maxFixedBallons > 0 && balloons.length > 0)
 				{
 					if(maxFixedBallons <= balloons.length) {
@@ -350,7 +350,7 @@
 		}
 		this.clickBalloonFix = clickBalloonFix;
 
-		// Создание DIV и позиционирование балуна
+		// РЎРѕР·РґР°РЅРёРµ DIV Рё РїРѕР·РёС†РёРѕРЅРёСЂРѕРІР°РЅРёРµ Р±Р°Р»СѓРЅР°
 		function createBalloon()
 		{
 			var tlw = 14;
@@ -398,7 +398,7 @@
 			};
 
 			var transp = '';
-			if(gmxAPI.isChrome) transp =  '<img width="10" height="10" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABBJREFUeNpi+P//PwNAgAEACPwC/tuiTRYAAAAASUVORK5CYII=">';	// Для Chrome добавляем невидимый контент в TD
+			if(gmxAPI.isChrome) transp =  '<img width="10" height="10" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABBJREFUeNpi+P//PwNAgAEACPwC/tuiTRYAAAAASUVORK5CYII=">';	// Р”Р»СЏ Chrome РґРѕР±Р°РІР»СЏРµРј РЅРµРІРёРґРёРјС‹Р№ РєРѕРЅС‚РµРЅС‚ РІ TD
 			var body = 
 				'<table cols="3" cellspacing="0" cellpadding="0" border="0" style="'+css['table']+'">'+
 					'<tr>'+
@@ -461,7 +461,7 @@
 
 			var wasVisible = true;
 
-			var ret = {						// Возвращаемый обьект
+			var ret = {						// Р’РѕР·РІСЂР°С‰Р°РµРјС‹Р№ РѕР±СЊРµРєС‚
 				outerDiv: balloon,
 				div: balloonText,
 				mouseX: 0,
@@ -487,7 +487,7 @@
 			return ret;
 		}
 
-		var propsBalloon = createBalloon();		// Balloon для mouseOver
+		var propsBalloon = createBalloon();		// Balloon РґР»СЏ mouseOver
 		this.propsBalloon = propsBalloon;
 		propsBalloon.setVisible(false);
 		propsBalloon.outerDiv.style.zIndex = 10000;
@@ -567,7 +567,7 @@
 				"img",
 				{
 					src: apiBase + "img/close.png",
-					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
+					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Р—Р°РєСЂС‹С‚СЊ", "Close"),
 					onclick: function() 
 					{ 
 						if(balloon.notDelFlag) {
@@ -604,7 +604,7 @@
 
 					var sc = scale * stageZoom;
 					
-					// Смещение Балуна к центру
+					// РЎРјРµС‰РµРЅРёРµ Р‘Р°Р»СѓРЅР° Рє С†РµРЅС‚СЂСѓ
 					var deltaX = 0;
 
 					if(!balloon.isDraging) {
@@ -676,14 +676,14 @@
 		this.addBalloon = addBalloon;
 
 
-		//Параметры:
-		// * Balloon: текст баллуна
-		// * BalloonEnable: показывать ли баллун
-		// * DisableBalloonOnClick: не показывать при клике
-		// * DisableBalloonOnMouseMove: не показывать при наведении
+		//РџР°СЂР°РјРµС‚СЂС‹:
+		// * Balloon: С‚РµРєСЃС‚ Р±Р°Р»Р»СѓРЅР°
+		// * BalloonEnable: РїРѕРєР°Р·С‹РІР°С‚СЊ Р»Рё Р±Р°Р»Р»СѓРЅ
+		// * DisableBalloonOnClick: РЅРµ РїРѕРєР°Р·С‹РІР°С‚СЊ РїСЂРё РєР»РёРєРµ
+		// * DisableBalloonOnMouseMove: РЅРµ РїРѕРєР°Р·С‹РІР°С‚СЊ РїСЂРё РЅР°РІРµРґРµРЅРёРё
 		var setBalloonFromParams = function(filter, balloonParams)
 		{
-			//по умолчанию балуны показываются
+			//РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ Р±Р°Р»СѓРЅС‹ РїРѕРєР°Р·С‹РІР°СЋС‚СЃСЏ
 			if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
 			{
 				disableHoverBalloon(filter);
@@ -715,10 +715,10 @@
 		}
 		this.setBalloonFromParams = setBalloonFromParams;
 		
-		//явно прописывает все свойства балунов в стиле.
+		//СЏРІРЅРѕ РїСЂРѕРїРёСЃС‹РІР°РµС‚ РІСЃРµ СЃРІРѕР№СЃС‚РІР° Р±Р°Р»СѓРЅРѕРІ РІ СЃС‚РёР»Рµ.
 		var applyBalloonDefaultStyle = function(balloonStyle)
 		{
-			//слой только что создали - всё по умолчанию!
+			//СЃР»РѕР№ С‚РѕР»СЊРєРѕ С‡С‚Рѕ СЃРѕР·РґР°Р»Рё - РІСЃС‘ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ!
 			if (typeof balloonStyle.BalloonEnable === 'undefined')
 			{
 				balloonStyle.BalloonEnable = true;
@@ -727,7 +727,7 @@
 			} 
 			else
 			{
-				//поддержка совместимости - если слой уже был, но новых параметров нет 
+				//РїРѕРґРґРµСЂР¶РєР° СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё - РµСЃР»Рё СЃР»РѕР№ СѓР¶Рµ Р±С‹Р», РЅРѕ РЅРѕРІС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ РЅРµС‚ 
 				if (typeof balloonStyle.DisableBalloonOnClick === 'undefined')
 					balloonStyle.DisableBalloonOnClick = false;
 					
