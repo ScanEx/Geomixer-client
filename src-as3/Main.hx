@@ -1183,6 +1183,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					addObjectsFromSWF(attr);
 				case 'remove':
 					getNode(attr.objectId).remove();
+					Main.needRefreshMap = true;
 				case 'bringToTop':
 					var node = getNode(attr.objectId);
 					var n = node.rasterSprite.parent.numChildren - 1;
