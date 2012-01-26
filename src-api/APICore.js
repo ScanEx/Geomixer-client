@@ -3468,10 +3468,8 @@ function createFlashMapInternal(div, layers, callback)
 						baseLayers[oldName][i].setVisible(false);
 				currentBaseLayerName = '';
 			}
-			var oldNames = { "Карта": 'map', "Снимки": 'satellite', "Гибрид": 'hybrid' };
 			map.setBaseLayer = function(name)
 			{
-				if(oldNames[name]) name = oldNames[name]
 				for (var oldName in baseLayers)
 					if (oldName != name)
 						for (var i = 0; i < baseLayers[oldName].length; i++)
@@ -4998,14 +4996,13 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						var obj = map.layers[i];
 						obj.setVisible(false);
 					}
-					var mapString = 'map';
-					var satelliteString = 'satellite';
-					var hybridString = 'hybrid';
+					var mapString = KOSMOSNIMKI_LOCALIZED("Карта", "Map");
+					var satelliteString = KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
+					var hybridString = KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
 
-					//var oldNames = { "Карта": 'map', "Снимки": 'satellite', "Гибрид": 'hybrid' };
 					var baseLayerTypes = {
 						'map': {
-							'onClick': function() { gmxAPI.map.setBaseLayer('map'); },
+							'onClick': function() { gmxAPI.map.setBaseLayer(mapString); },
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
@@ -5013,7 +5010,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						}
 						,
 						'satellite': {
-							'onClick': function() { gmxAPI.map.setBaseLayer('satellite'); },
+							'onClick': function() { gmxAPI.map.setBaseLayer(satelliteString); },
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
@@ -5021,7 +5018,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						}
 						,
 						'hybrid': {
-							'onClick': function() { gmxAPI.map.setBaseLayer('hybrid'); },
+							'onClick': function() { gmxAPI.map.setBaseLayer(hybridString); },
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
@@ -5179,15 +5176,15 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					}
 
 					var currentMode = false;
-					var oldNames = { "Карта": 'map', "Снимки": 'satellite', "Гибрид": 'hybrid' };
 					map.getMode = function()
 					{ 
 						return map.toolsAll.baseLayersTools.activeToolName;
 					}
 					map.setMode = function(mode) 
 					{
-						if(oldNames[mode]) mode = oldNames[mode]
-						map.toolsAll.baseLayersTools.selectTool(mode);
+						var name = { map: mapString, satellite: satelliteString, hybrid: hybridString }[mode];
+						map.setBaseLayer(name);
+						map.toolsAll.baseLayersTools.selectTool(name);
 					}
 					map.setMode(mapLayers.length > 0 ? "map" : "satellite");
 					map.miniMap.setVisible(true);
