@@ -15,6 +15,50 @@ var security = function()
 	this.title = null;
 }
 
+security.UserInputWidget = function(container)
+{
+    var isLogin = true;
+    var loginInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
+    var nicknameInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
+    $(nicknameInput).addClass('uiw-inactive');
+    
+    loginInput.onfocus = function()
+    {
+        isLogin = true;
+        $(loginInput).removeClass('uiw-inactive');
+        $(nicknameInput).addClass('uiw-inactive');
+    }
+    
+    nicknameInput.onfocus = function()
+    {
+        isLogin = false;
+        $(nicknameInput).removeClass('uiw-inactive');
+        $(loginInput).addClass('uiw-inactive');
+    }
+    
+    _(container, [
+                _span([_t(_gtxt("Логин")), loginInput], [['css','fontSize','12px']]), 
+                _span([_t(_gtxt("Псевдоним")), nicknameInput], [['css','fontSize','12px'], ['css', 'marginLeft', '20px']])
+            ]);
+            
+    this.getUserInfo = function()
+    {
+        var value = isLogin ? loginInput.value : nicknameInput.value;
+        return {isLogin: isLogin, value: value}
+    }
+    
+    this.showError = function()
+    {
+        inputError( isLogin ? loginInput : nicknameInput );
+    }
+    
+    this.clear = function()
+    {
+        loginInput.value = "";
+        nicknameInput.value = "";
+    }   
+}
+
 var mapSecurity = function()
 {
 	this.getSecurityName = "Map/GetSecurity.ashx";
@@ -54,6 +98,54 @@ var multiLayerSecurity = function()
 multiLayerSecurity.prototype = new security();
 multiLayerSecurity.prototype.constructor = multiLayerSecurity;
 
+//добавляет в container поля поиска и связывает их с фильтрами table
+security.prototype._createFilterWidget = function(table, container)
+{
+    var inputPredicate = function(value, fieldName, fieldValue)
+	{
+		if (!value[fieldName])
+			return false;
+		
+		return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
+	};
+    
+    var filterLoginInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
+    var filterNicknameInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
+    
+    _(container, [
+        _span([_t(_gtxt("Логин")), filterLoginInput], [['css','fontSize','12px']]), 
+        _span([_t(_gtxt("Псевдоним")), filterNicknameInput], [['css','fontSize','12px'], ['css', 'marginLeft', '20px']])
+    ]);
+    
+    table.getDataProvider().attachFilterEvents(filterLoginInput, 'Login', function(fieldName, fieldValue, vals)
+    {
+        if (fieldValue == "")
+            return vals;
+        
+        var filterFunc = function(value)
+            {
+                return inputPredicate(value, fieldName, fieldValue);
+            },
+            local = _filter(filterFunc, vals);
+        
+        return local;
+    });
+    
+    table.getDataProvider().attachFilterEvents(filterNicknameInput, 'Nickname', function(fieldName, fieldValue, vals)
+    {
+        if (fieldValue == "")
+            return vals;
+        
+        var filterFunc = function(value)
+            {
+                return inputPredicate(value, fieldName, fieldValue);
+            },
+            local = _filter(filterFunc, vals);
+        
+        return local;
+    });
+}
+
 security.prototype.getRights = function(value, title)
 {
 	var _this = this;
@@ -72,7 +164,16 @@ security.prototype.getRights = function(value, title)
 
 security.prototype.createMapSecurityDialog = function(securityInfo)
 {
+    var genSortFunction = function(field)
+    {
+        return [
+            function(a,b){if (a[field] > b[field]) return 1; else if (a[field] < b[field]) return -1; else return 0},
+            function(a,b){if (a[field] < b[field]) return 1; else if (a[field] > b[field]) return -1; else return 0}
+        ];
+    }
+            
 	var isShowUserSuggest = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_ALL_USERS);
+    var isShowFullname    = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_USER_FULLNAME);
 	if ($$('securityDialog'))
 		removeDialog($$('securityDialog'))
 	
@@ -118,14 +219,6 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 							})
 	}
 	
-	var inputPredicate = function(value, fieldName, fieldValue)
-	{
-		if (!value[fieldName])
-			return false;
-		
-		return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
-	};	
-	
 	//смена владельца карты
 	var changeOwnerLink = makeLinkButton(securityInfo.SecurityInfo.Owner);
 	changeOwnerLink.setAttribute('id', 'changeOwnerLink');
@@ -134,25 +227,35 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		var canvas = _div();
 		var tableSuggestParent = _div();
 		var usersTable = new scrollTable();
-		var filterOwnerInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
 		
 		if (isShowUserSuggest)
 		{
-		
 			var sortFuncs = {};
-			sortFuncs[_gtxt('Логин')] = [
-					function(a,b){if (a.Login > b.Login) return 1; else if (a.Login < b.Login) return -1; else return 0},
-					function(a,b){if (a.Login < b.Login) return 1; else if (a.Login > b.Login) return -1; else return 0}
-				];
+			sortFuncs[_gtxt('Логин')     ] = genSortFunction('Login');
+			sortFuncs[_gtxt('Псевдоним') ] = genSortFunction('Nickname');
+			sortFuncs[_gtxt('Полное имя')] = genSortFunction('Fullname');
 				
 			var drawOwnersFunction = function(user)
 			{
-				var tr = _tr([_td([_div([_t(user.Login)], [['css','cursor','pointer'], ['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])])]);
+                var tdNickname = _td([_div([_t(user.Nickname)], [['css','cursor','pointer'], ['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+
+                var tds;
+                
+                if (isShowFullname)
+                {
+                    var tdLogin = _td([_div([_t(user.Login)], [['css','cursor','pointer'], ['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+                    var tdFullname = _td([_div([_t(user.Fullname)], [['css','cursor','pointer'], ['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+                    tds = [tdLogin, tdNickname, tdFullname];
+                }
+                else
+                    tds = [tdNickname];
+                
+				var tr = _tr(tds);
 				
-				tr.onclick = function()
+                tr.onclick = function()
 				{
 					removeDialog(dialogCanvas);
-					$('#changeOwnerLink').text(user.Login);
+					$('#changeOwnerLink').text(user.Nickname);
 					securityInfo.SecurityInfo.NewOwnerID = user.UserID;
 				}
 				
@@ -166,23 +269,17 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 			
 			usersTable.limit = 20;
 			usersTable.pagesCount = 5;
-			usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 300, [_gtxt("Логин")], ['100%'], drawOwnersFunction, sortFuncs);
-			_(canvas, [_div([_t(_gtxt("Логин")), filterOwnerInput], [['css','fontSize','12px']]), tableSuggestParent]);
-			
-			usersTable.getDataProvider().attachFilterEvents(filterOwnerInput, 'Login', function(fieldName, fieldValue, vals)
-			{
-				if (fieldValue == "")
-					return vals;
-				
-				var filterFunc = function(value)
-					{
-						return inputPredicate(value, fieldName, fieldValue);
-					},
-					local = _filter(filterFunc, vals);
-				
-				return local;
-			});
-			
+            
+            if (isShowFullname)
+                usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 0, [_gtxt("Логин"), _gtxt("Псевдоним"), _gtxt("Полное имя")], ['33%', '33%', '34%'], drawOwnersFunction, sortFuncs);
+            else
+                usersTable.createTable(tableSuggestParent, 'securityOwnerTable', 0, [_gtxt("Логин")], ['100%'], drawOwnersFunction, sortFuncs);
+          
+            var filterContainer = _div();
+            _this._createFilterWidget(usersTable, filterContainer);
+            
+			_(canvas, [filterContainer, tableSuggestParent]);
+            
 			usersTable.getDataProvider().setOriginalItems( securityInfo.UsersWithoutAccess.concat(securityInfo.SecurityInfo.Users) );
 			
 			usersTable.tableParent.style.height = '150px';
@@ -190,161 +287,144 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		}
 		else
 		{
+            var userInputWidget = new security.UserInputWidget(canvas);
 			var changeOwnerButton = makeLinkButton(_gtxt("Сменить владельца"));
 			changeOwnerButton.onclick = function()
 			{
-				sendCrossDomainJSONRequest(serverBase + _this.getUserSecurityName + "?WrapStyle=func&Login=" + filterOwnerInput.value + "&" + _this.propertyName + "=" + _this.propertyValue, function(response)
+                var res = userInputWidget.getUserInfo();
+                var userParam = (res.isLogin ? "Login=" : "Nickname=") + res.value;
+                                
+				sendCrossDomainJSONRequest(serverBase + _this.getUserSecurityName + "?WrapStyle=func&" + userParam + "&" + _this.propertyName + "=" + _this.propertyValue, function(response)
 				{
 					if (!parseResponse(response))
 						return;
 					
 					if (response.Result == null || response.Result.IsOwner == true)
 					{
-						inputError(filterOwnerInput);
+						userInputWidget.showError();
 						return;
 					}
 					
 					removeDialog(dialogCanvas);
-					$('#changeOwnerLink').text(response.Result.Login);
+					$('#changeOwnerLink').text(response.Result.Nickname);
 					securityInfo.SecurityInfo.NewOwnerID = response.Result.UserID;
 				});
 			}
-			_(canvas, [_div([_t(_gtxt("Логин")), filterOwnerInput, changeOwnerButton], [['css','fontSize','12px']]), tableSuggestParent]);
-			
+            changeOwnerButton.style.marginLeft = '10px';
+            $(canvas).append(changeOwnerButton);
 		}
 		
-		var dialogCanvas = showDialog(_gtxt("Выберите нового владельца"), canvas, 350, isShowUserSuggest ? 250 : 70);
+		var dialogCanvas = showDialog(_gtxt("Выберите нового владельца"), canvas, isShowFullname ? 600 : 500, isShowUserSuggest ? 250 : 70);
 	}
 	
 	var ownerInfo = _div([_t(_gtxt('Владелец') + ": "), changeOwnerLink], [['css','fontSize','12px'], ['css','margin','5px 0px 10px 0px'], ['css','height','25px']]);
 	var typeInfo = _div([_table([_tbody([_tr([_td([_t(_gtxt("Тип"))],[['css','width','40px'],['css','fontSize','12px'],['css','textAlign','right']]), _td([this.mapTypeSel]), _td([saveButton],[['css','paddingLeft','30px']])])])],[['dir','className','floatRight']])],[['css','margin','5px 0px 10px 0px'],['css','height','25px']]);
 	_(canvas, [_table([_tbody([_tr([_td([ownerInfo]), _td([typeInfo])])])], [['css', 'width', '100%']])]);
 	
-	var addMapUserButton = makeLinkButton(_gtxt("Добавить пользователя")),
-		addMapUserInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]),
-		addMapUserSuggestInput = _input(null, [['css','width','110px'],['dir','className','selectStyle']]);
-
-	addMapUserButton.onclick = function()
-	{
-		if (addMapUserInput.value == "")
-		{
-			inputError(addMapUserInput);
-			
-			return;
-		}
-		
-		var alreadyAddedFlag = false;
-		
-        var addedUsers = _securityTable.getDataProvider().getOriginalItems();
-		for (var i = 0; i < addedUsers.length; ++i)
-			if (addedUsers[i].Login == addMapUserInput.value)
-			{
-				alreadyAddedFlag = true;
-				
-				break;
-			}
-		
-		if (alreadyAddedFlag)
-		{
-			inputError(addMapUserInput);
-			
-			return;
-		}
-		
-		sendCrossDomainJSONRequest(serverBase + _this.getUserSecurityName + "?WrapStyle=func&Login=" + addMapUserInput.value + "&" + _this.propertyName + "=" + _this.propertyValue, function(response)
-		{
-			if (!parseResponse(response))
-				return;
-			
-			if (response.Result == null || response.Result.Role == 'admin' || response.Result.IsOwner == true)
-			{
-				inputError(addMapUserInput);
-				return;
-			}
-			
-			delete response.Result.IsOwner;
-			response.Result.Access = _this.defaultAccess;
-			
-			addMapUserInput.value = "";
-			_securityTable.filterVals = {};
-			
-			// добавим в другой
-			_security.addMapUser(response.Result, _securityTable);				
-		})
-	}
-
 	var tableParent = _div(),
 		tableSuggestParent = _div(),
 		sortFuncs = {};
 
-	sortFuncs[_gtxt('Логин')] = [
-				function(a,b){if (a.Login > b.Login) return 1; else if (a.Login < b.Login) return -1; else return 0},
-				function(a,b){if (a.Login < b.Login) return 1; else if (a.Login > b.Login) return -1; else return 0}
-			];
-	sortFuncs[_gtxt('Роль')] = [
-				function(a,b){if (a.Role > b.Role) return 1; else if (a.Role < b.Role) return -1; else return 0},
-				function(a,b){if (a.Role < b.Role) return 1; else if (a.Role > b.Role) return -1; else return 0}
-			];
+	sortFuncs[_gtxt('Логин')]      = genSortFunction('Login');
+	sortFuncs[_gtxt('Псевдоним')]  = genSortFunction('Nickname');
+	sortFuncs[_gtxt('Полное имя')] = genSortFunction('Fullname');
+	sortFuncs[_gtxt('Роль')]       = genSortFunction('Role');
 	
+    var userFiltersContainer = _div();
+    this._createFilterWidget(_securityTable, userFiltersContainer);
+    
 	if (isShowUserSuggest)
-		_(canvas, [_div([_span([_t(_gtxt("Пользователи без прав доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserSuggestInput])])])]), _br(), tableSuggestParent])]);
-	else
-		_(canvas, [_div()]);
+    {
+        var suggestFilterContainer = _div();
+        this._createFilterWidget(_securityTableSuggest, suggestFilterContainer);
+        
+		_(canvas, [_div([
+            _span([_t(_gtxt("Пользователи без прав доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(),
+            suggestFilterContainer, _br(),
+            tableSuggestParent
+        ])]);
 	
-	if (isShowUserSuggest)
-	{
 		_securityTableSuggest.limit = 20;
 		_securityTableSuggest.pagesCount = 5;
-		_securityTableSuggest.createTable(tableSuggestParent, 'securitySuggestTable', 300, [_gtxt("Логин"), _gtxt("Роль"), ""], ['80%','15%','5%'], this.drawMapUsersSuggest, sortFuncs);
+		_securityTableSuggest.createTable(tableSuggestParent, 'securitySuggestTable', 300, [_gtxt("Логин"), _gtxt("Псевдоним"), _gtxt("Полное имя"), _gtxt("Роль"), ""], ['25%','25%','30%','15%','5%'], this.drawMapUsersSuggest, sortFuncs);
 		
-		_securityTableSuggest.getDataProvider().attachFilterEvents(addMapUserSuggestInput, 'Login', function(fieldName, fieldValue, vals)
-		{
-			if (fieldValue == "")
-				return vals;
-			
-			var filterFunc = function(value)
-					{
-						return inputPredicate(value, fieldName, fieldValue);
-					},
-				local = _filter(filterFunc, vals);
-			
-			return local;
-		});
-		
-		_securityTableSuggest.tableHeader.firstChild.childNodes[0].style.textAlign = 'left';
-		_securityTableSuggest.tableHeader.firstChild.childNodes[0].style.paddingLeft = '3px';
-			
+        
+        
 		_(canvas, [tableSuggestParent]);
+		_(canvas, [_div([
+            _span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), 
+            //_table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserInput])])])]), _br(), 
+            userFiltersContainer
+        ],[['css','borderTop','1px solid #999'],['css','marginTop','10px']])]);
 	}
 	else
-		_(canvas, [_div()])
-
-	if (isShowUserSuggest)
-		_(canvas, [_div([_span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserInput])])])]), _br(), tableParent],[['css','borderTop','1px solid #999'],['css','marginTop','10px']])]);
-	else
-		_(canvas, [_div([_span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), _table([_tbody([_tr([_td([_t(_gtxt("Логин"))],[['css','fontSize','12px'],['css','textAlign','right']]), _td([addMapUserInput]), _td([addMapUserButton])])])]), _br(), tableParent])]);
-	
+    {
+        var addMapUserButton = makeLinkButton(_gtxt("Добавить пользователя"));
+        var addUserContainer = _div(null, [['css', 'marginBottom', '15px']]);
+        var userInputWidget = new security.UserInputWidget(addUserContainer);
+        
+        addMapUserButton.style.marginLeft = '10px';
+        addMapUserButton.onclick = function()
+        {
+            var res = userInputWidget.getUserInfo();
+            var userParam = (res.isLogin ? "Login=" : "Nickname=") + res.value;
+                
+            if (res.value == "")
+            {
+                userInputWidget.showError();
+                return;
+            }
+            
+            var addedUsers = _securityTable.getDataProvider().getOriginalItems();
+            
+            sendCrossDomainJSONRequest(serverBase + _this.getUserSecurityName + "?WrapStyle=func&" + userParam + "&" + _this.propertyName + "=" + _this.propertyValue, function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                
+                if (response.Result == null || response.Result.Role == 'admin' || response.Result.IsOwner == true)
+                {
+                    userInputWidget.showError();
+                    return;
+                }
+                
+                //нет ли у нас в таблице такого пользователя?
+                for (var i = 0; i < addedUsers.length; ++i)
+                    if (addedUsers[i].UserID == response.Result.UserID)
+                    {
+                        userInputWidget.showError();
+                        return;
+                    }
+                
+                delete response.Result.IsOwner;
+                response.Result.Access = _this.defaultAccess;
+                
+                userInputWidget.clear();
+                //_securityTable.filterVals = {};
+                
+                // добавим в список пользователей с правами
+                _security.addMapUser(response.Result, _securityTable);
+            })
+        }
+        _(addUserContainer, [addMapUserButton]);
+		_(canvas, [_div([
+            addUserContainer,
+            _span([_t(_gtxt("Пользователи с правами доступа:"))],[['css','fontSize','12px'],['css','fontWeight','bold']]), _br(), 
+            userFiltersContainer
+        ])]);
+	}
+    
 	_securityTable.limit = 20;
 	_securityTable.pagesCount = 5;
-	_securityTable.createTable(tableParent, 'securityTable', 310, [_gtxt("Логин"), _gtxt("Роль"), "", ""], ['60%','10%','25%','5%'], function(arg)
+    
+    var fieldNames   = isShowFullname ? [_gtxt("Логин"), _gtxt("Псевдоним"), _gtxt("Полное имя"), _gtxt("Роль"), _gtxt("Доступ"), ""] : [_gtxt("Псевдоним"), _gtxt("Роль"), _gtxt("Доступ"), ""]
+    var fieldWidthes = isShowFullname ? ['20%','20%', '20%', '10%', '25%', '5%'] : ['60%','10%','25%','5%'];
+    
+	_securityTable.createTable(tableParent, 'securityTable', 310, fieldNames, fieldWidthes, function(arg)
 	{
 		return _this.drawMapUsers.call(this,arg,_this);
 	}, sortFuncs);
 
-	_securityTable.getDataProvider().attachFilterEvents(addMapUserInput, 'Login', function(fieldName, fieldValue, vals)
-	{
-		if (fieldValue == "")
-			return vals;
-		
-		var filterFunc = function(value)
-				{
-					return inputPredicate(value, fieldName, fieldValue);
-				},
-			local = _filter(filterFunc, vals);
-		
-		return local;
-	})
-		
 	_(canvas, [tableParent]);
 
 	var resize = function()
@@ -376,7 +456,8 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		}
 		else
 		{
-			mapTableHeight = (canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - canvas.childNodes[1].offsetHeight - canvas.childNodes[3].offsetHeight - 25 - 20 - 10);
+			//mapTableHeight = (canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - canvas.childNodes[1].offsetHeight - canvas.childNodes[3].offsetHeight - 25 - 20 - 10);
+			mapTableHeight = (canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - canvas.childNodes[1].offsetHeight - 25 - 20 - 10);
 			
 			_securityTable.tableParent.style.width = canvas.parentNode.parentNode.offsetWidth - 35 - 21 + 'px';
 			_securityTable.tableBody.parentNode.parentNode.style.width = canvas.parentNode.parentNode.offsetWidth - 15 - 21 + 'px';
@@ -389,13 +470,9 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 		}
 	}
 
-	showDialog(_gtxt(this.dialogTitle, this.title), canvas, 571, isShowUserSuggest ? 470 : 370, false, false, resize);
+	showDialog(_gtxt(this.dialogTitle, this.title), canvas, isShowFullname ? 670 : 571, isShowUserSuggest ? 470 : 370, false, false, resize);
 	
-	_securityTable.tableHeader.firstChild.childNodes[0].style.textAlign = 'left';
-	_securityTable.tableHeader.firstChild.childNodes[0].style.paddingLeft = '3px';
-	_(_securityTable.tableHeader.firstChild.childNodes[2], [_span([_t(_gtxt("Доступ"))],[['css','fontSize','12px'],['css','color','#293D6B']])])
-	
-	resize();
+    resize();
 	
 	if ( isShowUserSuggest )
 	{
@@ -414,17 +491,16 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 security.prototype.drawMapUsers = function(user, securityScope)
 {
 	var remove = makeImageButton('img/closemin.png', 'img/close_orange.png'),
-		tdRemove = user.Login == nsGmx.AuthManager.isLogin() ? _td() : _td([remove]),
+		tdRemove = user.Login == nsGmx.AuthManager.getLogin() ? _td() : _td([remove]),
 		maxLayerWidth = this.tableHeader.firstChild.childNodes[0].offsetWidth + 'px',
 		accessSel = _select(null, [['dir','className','selectStyle'],['css','width','110px']]),
+        isShowFullname = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_USER_FULLNAME),
 		tr,
 		_this = this;
 	
 	for (var i = 0; i < user.AccessList.length; ++i)
 		_(accessSel, [_option([_t(securityScope.mapAccessArr[user.AccessList[i]])],[['attr','value',user.AccessList[i]]])])
 
-//	switchSelect(accessSel, securityScope.defaultAccess);
-	
 	remove.onclick = function()
 	{
 		if (tr)
@@ -446,8 +522,34 @@ security.prototype.drawMapUsers = function(user, securityScope)
 	{
 		user.Access = this.value;
 	}
-
-	tr = _tr([_td([_div([_t(user.Login)], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]), _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]), _td([accessSel],[['css','textAlign','center']]), tdRemove]);
+    
+    var tdNickname = _td([_div([_t(user.Nickname)], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+    var tdRole  = _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]);
+    var tdAccess = _td([accessSel],[['css','textAlign','center']]);
+    
+    if (isShowFullname)
+    {
+        var tdLogin = _td([_div([_t(user.Login)], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+        var tdFullname = _td([_div([_t(user.Fullname)], [['css','width',maxLayerWidth],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+        
+        tr = _tr([
+            tdLogin,
+            tdNickname,
+            tdFullname,
+            tdRole,
+            tdAccess,
+            tdRemove
+        ]);
+    }
+    else
+    {
+        tr = _tr([
+            tdNickname,
+            tdRole,
+            tdAccess,
+            tdRemove
+        ]);
+    }
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this.fieldsWidths[i];
@@ -457,6 +559,7 @@ security.prototype.drawMapUsers = function(user, securityScope)
 	return tr;
 }
 
+//Предполагаем, что если мы показываем всех пользователей, то имеем всю инфу о них
 security.prototype.drawMapUsersSuggest = function(user)
 {
 	var add = makeImageButton("img/choose.png", "img/choose_a.png"),
@@ -469,17 +572,19 @@ security.prototype.drawMapUsersSuggest = function(user)
 		if (tr)
 			tr.removeNode(true);
 		
-		if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_ALL_USERS))
-		{
-			// уберем пользователя из одного списка
-			_security.removeMapUser(user, _securityTableSuggest);
-		}
-		
+        // уберем пользователя из одного списка
+        _security.removeMapUser(user, _securityTableSuggest);
+        
 		// добавим в другой
 		_security.addMapUser(user, _securityTable);
 	}
-	
-	tr = _tr([_td([_div([_t(user.Login)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]), _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]), tdAdd]);
+    
+    var tdLogin = _td([_div([_t(user.Login)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+    var tdNickname = _td([_div([_t(user.Nickname)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+    var tdFullname = _td([_div([_t(user.Fullname)], [['css','width','140px'],['css','overflowX','hidden'],['css','whiteSpace','nowrap'],['css','padding','1px 0px 1px 3px'],['css','fontSize','12px']])]);
+	var tdRole = _td([_t(user.Role)], [['css','textAlign','center'],['css','color','#999999']]);
+    
+	tr = _tr([tdLogin, tdNickname, tdFullname, tdRole, tdAdd]);
 	
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this.fieldsWidths[i];

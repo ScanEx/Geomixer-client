@@ -1072,3 +1072,8 @@ div.layersScroll
 {
     width: 100%
 }
+
+.uiw-inactive
+{
+    color: #bbbbbb;
+}

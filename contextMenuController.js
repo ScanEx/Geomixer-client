@@ -317,8 +317,8 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	{
 		return !context.layerManagerFlag && 
 				_queryMapLayers.currentMapRights() === "edit" && 
-				nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
-				( _mapHelper.mapProperties.Owner == nsGmx.AuthManager.getUserName() || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
+				nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
+				( _mapHelper.mapProperties.Owner == nsGmx.AuthManager.getLogin() || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
 	},
 	clickCallback: function(context)
 	{
@@ -501,7 +501,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	isVisible: function(context)
 	{
 		return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
-		 ( (context.tree.mapHelper.mapProperties.Owner == nsGmx.AuthManager.getUserName()) || 
+		 ( (context.tree.mapHelper.mapProperties.Owner == nsGmx.AuthManager.getLogin()) || 
 		   nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
 	}
 }, 'Map');

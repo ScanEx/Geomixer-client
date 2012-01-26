@@ -21,7 +21,8 @@ var nsGmx = nsGmx || {};
         ACTION_SEE_PRIVATE_MAP_LIST : 'privateMap',
         ACTION_SEE_MAP_RIGHTS       : 'seeRights',
         ACTION_SEE_FILE_STRUCTURE   : 'seeFiles',
-        ACTION_SEE_ALL_USERS        : 'seeUsers'
+        ACTION_SEE_ALL_USERS        : 'seeUsers',
+        ACTION_SEE_USER_FULLNAME    : 'seeUserFullname'
     });
     
     var _actions = {};
@@ -35,6 +36,7 @@ var nsGmx = nsGmx || {};
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_SEE_MAP_RIGHTS      ] = true;
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_SEE_FILE_STRUCTURE  ] = true;
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_SEE_ALL_USERS       ] = true;
+    _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_SEE_USER_FULLNAME   ] = true;
     
     _actions[nsGmx.ROLE_USER] = {};
     _actions[nsGmx.ROLE_USER][nsGmx.ACTION_CREATE_LAYERS     ] = true;
@@ -53,11 +55,24 @@ var nsGmx = nsGmx || {};
         var _userInfo = null;
         var _this = this;
         
-        this.getUserName = function()
+        this.getLogin = function()
         {
             if (!_userInfo) return null;
             return _userInfo.Login;
         };
+        
+        this.getNickname = function()
+        {
+            if (!_userInfo) return null;
+            return _userInfo.Nickname;
+        };
+        
+        this.getFullname = function()
+        {
+            if (!_userInfo) return null;
+            return _userInfo.Fullname;
+        };
+        
         this.getUserFolder = function()
         {
             if (!_userInfo) return null;

@@ -228,6 +228,8 @@ _translationsHash.hash["eng"] = {
 	"Выход" : "Logout",
 	"Логин" : "User name",
 	"Пароль" : "Password",
+    "Псевдоним": "Nickname",
+    "Полное имя": "Full name",
 	"Пожалуйста, авторизуйтесь" : "Please, authorize",
 	"Ошибка сервера" : "Server error",
 	"Папка" : "Folder",

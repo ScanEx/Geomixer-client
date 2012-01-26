@@ -141,7 +141,10 @@ var nsGmx = nsGmx || {};
                 logout();
             }
             
-            var userSpan = _span([_t(_authManager.getUserName())], [['css','cursor','pointer']]);
+            var userText = _authManager.getLogin();
+            if (_authManager.getFullname() !== null && _authManager.getFullname() !== '')
+                userText += ' (' + _authManager.getFullname() + ')';
+            var userSpan = _span([_t(userText)], [['css','cursor','pointer']]);
             
             userSpan.onclick = function()
             {
