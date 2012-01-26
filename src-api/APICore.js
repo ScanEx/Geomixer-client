@@ -1316,6 +1316,22 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 
 ////
 
+var lastFlashMapId = 0;
+var newFlashMapId = function()
+{
+	lastFlashMapId += 1;
+	return "random_" + lastFlashMapId;
+}
+
+var uniqueGlobalName = function(thing)
+{
+	var id = newFlashMapId();
+	window[id] = thing;
+	return id;
+}
+
+var flashMapAlreadyLoading = false;
+
 function HandlerMode(div, event, handler)
 {
 	this.div = div;
@@ -1358,23 +1374,6 @@ function sendCrossDomainJSONRequest(url, callback, callbackParamName)
 	script.setAttribute("src", url + sepSym + callbackParamName + "=" + callbackName + "&" + Math.random());
 	document.getElementsByTagName("head").item(0).appendChild(script);
 }
-
-var lastFlashMapId = 0;
-var newFlashMapId = function()
-{
-	lastFlashMapId += 1;
-	return "random_" + lastFlashMapId;
-}
-
-var uniqueGlobalName = function(thing)
-{
-	var id = newFlashMapId();
-	window[id] = thing;
-	return id;
-}
-
-
-var flashMapAlreadyLoading = false;
 
 function isRequiredAPIKey( hostName )
 {
@@ -1735,6 +1734,7 @@ function createFlashMapInternal(div, layers, callback)
 		}
 		return out;
 	}
+	gmxAPI._chkListeners = chkListeners;
 
 	/** Пользовательские Listeners изменений состояния карты
 	* @function addMapStateListener
@@ -3314,6 +3314,8 @@ function createFlashMapInternal(div, layers, callback)
 				toolHandlers[eventName] = callback;
 				updateMapHandler(eventName);
 			}
+			gmxAPI._setToolHandler = setToolHandler;
+
 			var setToolHandlers = function(handlers)
 			{
 				for (var eventName in handlers)
@@ -3432,15 +3434,28 @@ function createFlashMapInternal(div, layers, callback)
 
 			var allTools = gmxAPI.newStyledDiv({ position: "absolute", top: 0, left: 0 });
 			div.appendChild(allTools);
+			gmxAPI._allToolsDIV = allTools;
+
+			//Begin: tools
+			var toolsAll = new gmxAPI._ToolsAll(allTools);
+			map.toolsAll = toolsAll;
+			var drawFunctions = gmxAPI._drawFunctions;
+			map.drawing = gmxAPI._drawing
+			map.drawing.addMapStateListener = function(eventName, func) { return addMapStateListener(this, eventName, func); }
+			map.drawing.removeMapStateListener = function(eventName, id){ return removeMapStateListener(this, eventName, id); }
 
 			var baseLayers = {};
 			var currentBaseLayerName = false;
-			FlashMapObject.prototype.setAsBaseLayer = function(name)
+			FlashMapObject.prototype.setAsBaseLayer = function(name, attr)
 			{
 				if (!baseLayers[name])
 					baseLayers[name] = [];
 				baseLayers[name].push(this);
-				map.baseLayerControl.repaint();
+				if(!this.objectId) {	// Подложки должны быть в SWF
+					this.setVisible(true);
+					this.setVisible(false);
+				}
+				map.toolsAll.baseLayersTools.chkBaseLayerTool(name, attr);
 			}
 			map.getCurrentBaseLayerName = function()
 			{
@@ -3453,8 +3468,10 @@ function createFlashMapInternal(div, layers, callback)
 						baseLayers[oldName][i].setVisible(false);
 				currentBaseLayerName = '';
 			}
+			var oldNames = { "Карта": 'map', "Снимки": 'satellite', "Гибрид": 'hybrid' };
 			map.setBaseLayer = function(name)
 			{
+				if(oldNames[name]) name = oldNames[name]
 				for (var oldName in baseLayers)
 					if (oldName != name)
 						for (var i = 0; i < baseLayers[oldName].length; i++)
@@ -3464,99 +3481,27 @@ function createFlashMapInternal(div, layers, callback)
 				if (newBaseLayers)
 					for (var i = 0; i < newBaseLayers.length; i++)
 						newBaseLayers[i].setVisible(true);
-				map.baseLayerControl.repaint();
-				if (map.baseLayerControl.onChange)
-					map.baseLayerControl.onChange(name);
 			}
 			map.getBaseLayer = function()
 			{
 				return currentBaseLayerName;
 			}
-			var baseLayerDiv = gmxAPI.newStyledDiv({
-				position: "absolute",
-				left: "40px",
-				top: "40px",
-				display: "none",
-				fontWeight: "bold",
-				textAlign: "center"
-			});
-			var baseLayerBg = gmxAPI.newStyledDiv({
-				position: "absolute",
-				left: "40px",
-				top: "40px",
-				backgroundColor: "#016a8a",
-				opacity: 0.5
-			});
-			allTools.appendChild(baseLayerBg);
-			allTools.appendChild(baseLayerDiv);
+
 			map.baseLayerControl = {
 				isVisible: true,
 				setVisible: function(flag)
 				{
-					this.isVisible = flag;
-					this.updateVisibility();
+					map.toolsAll.baseLayersTools.setVisible(flag);
 				},
 				updateVisibility: function()
 				{
-					var haveBaseLayers = false;
-					for (var key in baseLayers)
-						haveBaseLayers = true;
-					var flag = haveBaseLayers && this.isVisible;
-					gmxAPI.setVisible(baseLayerBg, flag);
-					gmxAPI.setVisible(baseLayerDiv, flag);
+					map.toolsAll.baseLayersTools.updateVisibility();
 				},
 				repaint: function()
 				{
-					baseLayerDiv.innerHTML = "";
-					for (var name in baseLayers) (function(name)
-					{
-						var color = (name == currentBaseLayerName ? "orange" : "white");
-/*
-						if (name == currentBaseLayerName)
-						{
-							baseLayerDiv.appendChild(gmxAPI.newElement(
-								"div",
-								{ innerHTML: name },
-								{ 
-									padding: "15px",
-									paddingTop: "8px", 
-									paddingBottom: "9px", 
-									fontSize: "12px",
-									fontFamily: "sans-serif",
-									color: "orange"
-								}
-							));
-						}
-						else
-*/
-						{
-							baseLayerDiv.appendChild(gmxAPI.newElement(
-								"div",
-								{
-									innerHTML: name,
-									onmouseover: function() { this.style.color = "orange"; },
-									onmouseout: function() { if(currentBaseLayerName != name) this.style.color = "white"; },
-									onclick: function() { if(currentBaseLayerName != name) map.setBaseLayer(name); else map.unSetBaseLayer(); }
-								},
-								{ 
-									padding: "15px", 
-									paddingTop: "8px", 
-									paddingBottom: "9px", 
-									fontSize: "12px",
-									fontFamily: "sans-serif",
-									cursor: "pointer", 
-									color: color
-								}
-							));
-						}
-					})(name);
-					setTimeout(function()
-					{
-						baseLayerBg.style.width = baseLayerDiv.clientWidth + "px";
-						baseLayerBg.style.height = baseLayerDiv.clientHeight + "px";
-					}, 50);
-					this.updateVisibility();
+					map.toolsAll.baseLayersTools.repaint();
 				}, 
+
 				getBaseLayerNames: function()
 				{
 					var res = [];
@@ -4465,6 +4410,7 @@ function createFlashMapInternal(div, layers, callback)
 			// End: Блок управления копирайтами
 
 			var sunscreen = map.addObject();
+			gmxAPI._sunscreen = sunscreen;
 			sunscreen.setStyle({ fill: { color: 0xffffff, opacity: 1 } });
 			sunscreen.setRectangle(-180, -85, 180, 85);
 			sunscreen.setVisible(false);
@@ -4753,21 +4699,6 @@ function createFlashMapInternal(div, layers, callback)
 			map.defaultHostName = layers.properties.hostName;
 			map.addLayers(layers);
 
-			var outlineColor = 0x0000ff;
-			var fillColor = 0xffffff;
-			var regularDrawingStyle = {
-				marker: { size: 3 },
-				outline: { color: outlineColor, thickness: 3, opacity: 80 },
-				fill: { color: fillColor }
-			};
-			var hoveredDrawingStyle = { 
-				marker: { size: 4 },
-				outline: { color: outlineColor, thickness: 4 },
-				fill: { color: fillColor }
-			};
-			var regularLastLineStyle = { outline: { color: outlineColor, thickness: 1 } };
-			var activeLastLineStyle = { outline: { color: outlineColor, thickness: 2 } };
-
 			var startDrag = function(object, dragCallback, upCallback)
 			{
 				map.freeze();
@@ -4788,6 +4719,7 @@ function createFlashMapInternal(div, layers, callback)
 					}
 				});
 			}
+			gmxAPI._startDrag = startDrag;
 
 			var stopDrag = function()
 			{
@@ -4795,6 +4727,7 @@ function createFlashMapInternal(div, layers, callback)
 				map.unfreeze();
 				sunscreen.setVisible(false);
 			}
+			gmxAPI._stopDrag = stopDrag;
 
 			FlashMapObject.prototype.startDrag = function(dragCallback, upCallback)
 			{
@@ -4819,818 +4752,6 @@ function createFlashMapInternal(div, layers, callback)
 				} else {
 					object.setHandler("onMouseDown", mouseDownHandler);
 				}
-			}
-
-			var drawFunctions = {};
-
-			drawFunctions.POINT = function(coords, props)
-			{
-				if (!props)
-					props = {};
-
-				var text = props.text;
-				if (!text)
-					text = "";
-				var x, y;
-				var obj = false;
-				var balloon = false;
-				var domObj;
-				var isDrawing = true;
-				var ret = {};
-				currentlyDrawnObject = ret;
-
-				ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
-
-				ret.stopDrawing = function()
-				{
-					if (!isDrawing)
-						return;
-					isDrawing = false;
-					if (!coords)
-					{
-						map.unfreeze();
-						sunscreen.setVisible(false);
-						setToolHandler("onClick", null);
-						setToolHandler("onMouseDown", null);
-						map.clearCursor();
-					}
-				}
-
-				ret.remove = function()
-				{
-					if (isDrawing)
-						selectTool("move");
-					if (obj)
-					{
-						chkListeners('onRemove', map.drawing, domObj);
-						obj.remove();
-						balloon.remove();
-						domObj.removeInternal();
-					}
-				}
-
-				ret.setStyle = function(regularStyle, hoveredStyle) {}
-
-				var done = function(xx, yy)
-				{
-					var updateDOM = function()
-					{
-						xx = gmxAPI.chkPointCenterX(xx);
-						domObj.update({ type: "POINT", coordinates: [xx, yy] }, text);
-					}
-
-					ret.setText = function(newText)
-					{
-						text = newText;
-						input.value = newText;
-						updateText();
-					}
-
-					obj = map.addObject();
-					balloon = map.balloonClassObject.addBalloon(true);	// Редактируемый балун (только скрывать)
-					ret.setVisible = function(flag)
-					{
-						ret.isVisible = flag;
-						obj.setVisible(ret.isVisible);
-						balloon.setVisible(ret.isVisible && balloonVisible);
-					}
-					ret.balloon = balloon;
-					ret.getStyle = function( removeDefaults ){ return obj.getStyle( removeDefaults ); };
-
-					var position = function(x, y)
-					{
-						xx = x;
-						yy = y;
-						gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
-						obj.setPoint(xx, yy);
- 						balloon.setPoint(xx, yy, isDragged);
-						updateDOM();
-					}
-
-					obj.setStyle(
-						{ 
-							marker: { image: apiBase + "img/flag_blau1.png", dx: -6, dy: -36 },
-							label: { size: 12, color: 0xffffc0 }
-						},
-						{ 
-							marker: { image: apiBase + "img/flag_blau1_a.png", dx: -6, dy: -36 },
-							label: { size: 12, color: 0xffffc0 }
-						}
-					);
-
-					var htmlDiv = document.createElement("div");
-					htmlDiv.onclick = function(event)
-					{
-						event = event || window.event;
-						var e = gmxAPI.compatTarget(event);
-						if (e == htmlDiv)
-						{
-							setHTMLVisible(false);
-							input.focus();
-						}
-					}
-					balloon.div.appendChild(htmlDiv);
-					var input = document.createElement("textarea");
-					input.style.backgroundColor = "transparent";
-					input.style.border = 0;
-					input.style.overflow = "hidden";
-					var fontSize = 16;
-					input.style.fontSize = fontSize + 'px';
-					input.setAttribute("wrap", "off");
-					input.value = text ? text : "";
-					var updateText = function() 
-					{ 
-						var newText = input.value;
-						var rows = 1;
-						for (var i = 0; i < newText.length; i++)
-							if (newText.charAt(i) == '\n'.charAt(0))
-								rows += 1;
-						input.rows = rows;
-						var lines = newText.split("\n");
-						var cols = 2;
-						for (var i in lines)
-							cols = Math.max(cols, lines[i].length + 3);
-						input.cols = cols;
-						input.style.width = cols * (fontSize - (gmxAPI.isIE ? 5: 6));
-						text = newText;
-						balloon.resize();
-						updateDOM();
-					};
-					input.onkeyup = updateText;
-					input.onblur = function()
-					{
-						setHTMLVisible(true);
-					}
-					input.onmousedown = function(e)
-					{
-						if (!e)
-							e = window.event;
-						if (e.stopPropagation)
-							e.stopPropagation();
-						else
-							e.cancelBubble = true;
-					}
-					balloon.div.appendChild(input);
-
-					var setHTMLVisible = function(flag)
-					{
-						gmxAPI.setVisible(input, !flag);
-						gmxAPI.setVisible(htmlDiv, flag);
-						if (flag)
-							htmlDiv.innerHTML = (gmxAPI.strip(input.value) == "") ? "&nbsp;" : input.value;
-						balloon.resize();
-					}
-
-					var balloonVisible = (text && (text != "")) ? true : false;
-					setHTMLVisible(balloonVisible);
-
-					var clickTimeout = false;
-					obj.setHandler("onClick", function()
-					{
-						if (clickTimeout)
-						{
-							clearTimeout(clickTimeout);
-							clickTimeout = false;
-							ret.remove();
-						}
-						else
-						{
-							clickTimeout = setTimeout(function() { clickTimeout = false; }, 500);
-							balloonVisible = !balloon.isVisible;
-							balloon.setVisible(balloonVisible);
-							if (balloonVisible)
-								setHTMLVisible(true);
-							else
-							{
-								gmxAPI.hide(input);
-								gmxAPI.hide(htmlDiv);
-							}
-						}
-					});
-					var startDx, startDy, isDragged = false;
-					var dragCallback = function(x, y)
-					{
-						position(x + startDx, y + startDy);
-						chkListeners('onEdit', map.drawing, domObj);
-					}
-					var downCallback = function(x, y)
-					{
-						x = gmxAPI.chkPointCenterX(x);
-						startDx = xx - x;
-						startDy = yy - y;
-						isDragged = true;
-						gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
-					};
-					var upCallback = function()
-					{
-						isDragged = false;
-						gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
-						balloon.setPoint(xx, yy, isDragged);
-						obj.setPoint(xx, yy);
-					}
-					obj.enableDragging(dragCallback, downCallback, upCallback);
-
-					balloon.outerDiv.onmousedown = function(event)
-					{
-						gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': true} });
-						var currPosition = map.getPosition();
-						var mapX = currPosition['x'];
-						var mapY = currPosition['y'];
-						var z = currPosition['z'];
-						scale = gmxAPI.getScale(z);
-						var x = gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div) - div.clientWidth/2)*scale);
-						var y = gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div) - div.clientHeight/2)*scale);
-						downCallback(x, y);
-						startDrag(obj, dragCallback, upCallback);
-						return false;
-					}
-					balloon.outerDiv.onmouseup = function(event)
-					{
-						gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': false} });
-						stopDrag();
-						upCallback();
-					}
-					balloon.outerDiv.onmousemove = function(event)
-					{
-						if (isDragged)
-						{
-							var currPosition = map.getPosition();
-							var mapX = currPosition['x'];
-							var mapY = currPosition['y'];
-							var z = currPosition['z'];
-							scale = gmxAPI.getScale(z);
-							var x = startDx + gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div) - div.clientWidth/2)*scale);
-							var y = startDy + gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div) - div.clientHeight/2)*scale);
-							gmxAPI.position(x, y);
-							gmxAPI.deselect();
-							return false;
-						}
-					}
-
-					domObj = createDOMObject(ret);
-					position(xx, yy);
-					balloon.setVisible(balloonVisible);
-					updateText();
-					chkListeners('onAdd', map.drawing, domObj);
-
-					ret.setVisible(ret.isVisible);
-				}
-
-				if (!coords)
-				{
-					sunscreen.bringToTop();
-					sunscreen.setVisible(true);
-					map.setCursor(apiBase + "img/flag_blau1.png", -6, -36);
-					setToolHandler("onClick", function() 
-					{
-						done(map.getMouseX(), map.getMouseY());
-						selectTool("move");
-						if (map.isKeyDown(16))
-							selectTool("POINT");
-					});
-				}
-				else
-					done(coords[0], coords[1]);
-
-				return ret;
-			}
-
-			drawFunctions.LINESTRING = function(coords, props)
-			{
-				if (!props)
-					props = {};
-
-				var text = props.text;
-				if (!text)
-					text = "";
-
-				var ret = {};
-				var domObj = false;
-				var propsBalloon = map.balloonClassObject.propsBalloon;
-
-				var obj = map.addObject();
-				obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
-				obj.setEditable(true);
-				obj.setHandlers({
-					onEdit: function()
-					{
-						var eventName = 'onEdit';
-						if (!domObj) {
-							domObj = createDOMObject(ret, props);
-							eventName = 'onAdd';
-						}
-						callOnChange();
-						chkListeners(eventName, map.drawing, domObj);
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
-					},
-					onFinish: function()
-					{
-						selectTool("move");
-						chkListeners('onFinish', map.drawing, domObj);
-					},
-					onRemove: function()
-					{
-						ret.remove();
-					},
-					onNodeMouseOver: function(cobj, attr)
-					{
-						if(attr && attr['buttonDown']) return;
-						var out = '';
-						var type = obj.getGeometryType();
-						if (type == "LINESTRING") out = gmxAPI.prettifyDistance(obj.getIntermediateLength());
-						else if (type == "POLYGON")	out = obj.getGeometrySummary();
-						if(out && map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(out);
-						chkListeners('onNodeMouseOver', map.drawing, domObj);
-					},
-					onNodeMouseOut: function(cobj, attr)
-					{
-						if(attr && attr['buttonDown']) return;
-						chkListeners('onNodeMouseOut', map.drawing, domObj);
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
-					},
-					onEdgeMouseOver: function(cobj, attr)
-					{
-						if(attr && attr['buttonDown']) return;
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
-						chkListeners('onEdgeMouseOver', map.drawing, domObj);
-					},
-					onEdgeMouseOut: function(cobj, attr)
-					{
-						if(attr && attr['buttonDown']) return;
-						chkListeners('onEdgeMouseOut', map.drawing, domObj);
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
-					}
-				});
-
-				ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
-				ret.setVisible = function(flag) 
-				{ 
-					obj.setVisible(flag);
-					ret.isVisible = flag;
-				}
-				ret.setVisible(ret.isVisible);
-
-				ret.remove = function()
-				{
-//					if (obj.isDrawing()) selectTool("move");
-					obj.remove();
-					if (domObj) {
-						chkListeners('onRemove', map.drawing, domObj);
-						domObj.removeInternal();
-					}
-				}
-
-				ret.setText = function(newText)
-				{
-					text = newText;
-					callOnChange();
-				}
-
-				ret.setStyle = function(regularStyle, hoveredStyle) 
-				{
-					obj.setStyle(regularStyle, hoveredStyle);
-				}
-
-				ret.getStyle = function(removeDefaults){ return obj.getStyle(removeDefaults); };
-
-				var callOnChange = function()
-				{
-					var geom = obj.getGeometry();
-					if(domObj) domObj.update(geom, text);
-				}
-
-				currentlyDrawnObject = ret;
-
-				ret.stopDrawing = function()
-				{
-					obj.stopDrawing();
-				}
-
-				if (coords)
-				{
-					domObj = createDOMObject(ret, props);
-					obj.setGeometry({ type: "LINESTRING", coordinates: coords });
-					callOnChange();
-				}
-				else
-				{
-					obj.startDrawing("LINESTRING");
-				}
-
-				return ret;
-			}
-
-
-			drawFunctions.POLYGON = function(coords, props)
-			{
-				if (gmxAPI.isRectangle(coords))
-					return drawFunctions.FRAME(coords, props);
-
-				if (!props)
-					props = {};
-
-				var text = props.text;
-				if (!text)
-					text = "";
-
-				var ret = {};
-				var domObj = false;
-
-				var propsBalloon = map.balloonClassObject.propsBalloon;
-				var obj = map.addObject();
-				obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
-				obj.setEditable(true);
-				obj.setHandlers({
-					onEdit: function()
-					{
-						var eventName = 'onEdit';
-						if (!domObj) {
-							domObj = createDOMObject(ret, props);
-							eventName = 'onAdd';
-						}
-						callOnChange();
-						chkListeners(eventName, map.drawing, domObj);
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
-					},
-					onFinish: function()
-					{
-						chkListeners('onFinish', map.drawing, domObj);
-						selectTool("move");
-					},
-					onRemove: function()
-					{
-						ret.remove();
-					},
-					onNodeMouseOver: function(cobj, attr)
-					{
-						if(attr && attr['buttonDown']) return;
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(obj.getGeometrySummary());
-						chkListeners('onNodeMouseOver', map.drawing, domObj);
-					},
-					onNodeMouseOut: function(cobj, attr)
-					{
-						if(attr && attr['buttonDown']) return;
-						chkListeners('onNodeMouseOut', map.drawing, domObj);
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
-					},
-					onEdgeMouseOver: function(cobj, attr)
-					{
-						if(attr && attr['buttonDown']) return;
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
-						chkListeners('onEdgeMouseOver', map.drawing, domObj);
-					},
-					onEdgeMouseOut: function(cobj, attr)
-					{
-						if(attr && attr['buttonDown']) return;
-						chkListeners('onEdgeMouseOut', map.drawing, domObj);
-						if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
-					}
-				});
-
-				ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
-				ret.setVisible = function(flag) 
-				{ 
-					obj.setVisible(flag); 
-					ret.isVisible = flag;
-				}
-				ret.setVisible(ret.isVisible);
-
-				ret.remove = function()
-				{
-					//if (obj.isDrawing())	selectTool("move");
-					obj.remove();
-					if (domObj) {
-						chkListeners('onRemove', map.drawing, domObj);
-						domObj.removeInternal();
-					}
-				}
-
-				ret.setText = function(newText)
-				{
-					text = newText;
-					callOnChange();
-				}
-
-				ret.setStyle = function(regularStyle, hoveredStyle) 
-				{
-					obj.setStyle(regularStyle, hoveredStyle);
-				}
-
-				ret.getStyle = function(removeDefaults){ return obj.getStyle(removeDefaults); };
-
-				var callOnChange = function()
-				{
-					var geom = obj.getGeometry();
-					if(domObj) domObj.update(geom, text);
-				}
-
-				currentlyDrawnObject = ret;
-
-				ret.stopDrawing = function()
-				{
-					obj.stopDrawing();
-				}
-
-				if (coords)
-				{
-					for (var i = 0; i < coords.length; i++) {
-						var lastNum = coords[i].length - 1; 
-						if (coords[i][0][0] == coords[i][lastNum][0] && coords[i][0][1] == coords[i][lastNum][1]) {
-							coords[i].pop();	// если последняя точка совпадает с первой удаляем ее
-						}
-					}
-
-					domObj = createDOMObject(ret, props);
-					obj.setGeometry({ type: "POLYGON", coordinates: coords });
-					callOnChange();
-				}
-				else
-				{
-					obj.startDrawing("POLYGON");
-				}
-
-				return ret;
-			}
-
-			function getGeometryTitleMerc(geom)
-			{
-				var geomType = geom['type'];
-				if (geomType.indexOf("POINT") != -1)
-				{
-					var c = geom.coordinates;
-					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
-				}
-				else if (geomType.indexOf("LINESTRING") != -1)
-					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
-				else if (geomType.indexOf("POLYGON") != -1)
-					return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> " + gmxAPI.prettifyArea(gmxAPI.geoArea(geom));
-				else
-					return "?";
-			}
-
-			drawFunctions.FRAME = function(coords, props)
-			{
-				if (!props)
-					props = {};
-
-				var text = props.text;
-				if (!text)
-					text = "";
-
-				var ret = {};
-				currentlyDrawnObject = ret;
-				var domObj;
-
-				var obj = map.addObject();
-				gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'FRAME'} });
-
-				var borders = obj.addObject();
-				var corners = obj.addObject();
-				var x1, y1, x2, y2;
-				var isDraging = false;
-				var eventType = '';
-
-				ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
-				ret.setVisible = function(flag)
-				{ 
-					obj.setVisible(flag); 
-					ret.isVisible = flag;
-				}
-				ret.setVisible(ret.isVisible);
-
-				borders.setStyle(regularDrawingStyle, hoveredDrawingStyle);
-
-				var x1Border = borders.addObject();
-				var y1Border = borders.addObject();
-				var x2Border = borders.addObject();
-				var y2Border = borders.addObject();
-
-				var propsBalloon = map.balloonClassObject.propsBalloon;
-				var mouseUP = function()
-				{
-					isDraging = false;
-					propsBalloon.updatePropsBalloon(false);
-					domObj.triggerInternal("onMouseUp");
-					chkEvent(null);
-				}
-
-				corners.setStyle(regularDrawingStyle, hoveredDrawingStyle);
-
-				var x1y1Corner = corners.addObject();
-				var x1y2Corner = corners.addObject();
-				var x2y1Corner = corners.addObject();
-				var x2y2Corner = corners.addObject();
-
-				// Проверка пользовательских Listeners
-				var chkEvent = function()
-				{
-					chkListeners(eventType, map.drawing, domObj);
-
-				}
-
-				// Высвечивание балуна в зависимости от типа geometry
-				var chkBalloon = function(tp)
-				{
-					if(!isDraging) {
-						var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
-						if(map.drawing.enabledHoverBalloon) {
-								switch(tp) {
-									case 'x1b':
-										geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x1, y2]]] };
-										break;
-									case 'x2b':
-										geom = { type: "LINESTRING", coordinates: [[[x2, y1], [x2, y2]]] };
-										break;
-									case 'y1b':
-										geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1]]] };
-										break;
-									case 'y2b':
-										geom = { type: "LINESTRING", coordinates: [[[x1, y2], [x2, y2]]] };
-										break;
-								}
-							propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
-						}
-					}
-					chkEvent();
-				}
-
-				var repaint = function(flag)
-				{
-					x1Border.setLine([[x1, y1], [x1, y2]]);
-					y1Border.setLine([[x1, y1], [x2, y1]]);
-					x2Border.setLine([[x2, y1], [x2, y2]]);
-					y2Border.setLine([[x1, y2], [x2, y2]]);
-	
-					x1y1Corner.setPoint(x1, y1);
-					x1y2Corner.setPoint(x1, y2);
-					x2y1Corner.setPoint(x2, y1);
-					x2y2Corner.setPoint(x2, y2);
-
-					var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
-					domObj.update(geom, text);
-				}
-				x1Border.setHandlers({
-					onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('x1b') },
-					onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
-				});
-				x2Border.setHandlers({
-					onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('x2b') },
-					onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
-				});
-				y1Border.setHandlers({
-					onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('y1b') },
-					onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
-				});
-				y2Border.setHandlers({
-					onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('y2b') },
-					onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
-				});
-
-				var objHandlerCorner = {
-					onMouseOver: function() { eventType = 'onNodeMouseOver'; chkBalloon() },
-					onMouseOut: function() { eventType = 'onNodeMouseOut'; if(!isDraging) mouseUP(); }
-				};
-				x1y1Corner.setHandlers(objHandlerCorner);
-				x1y2Corner.setHandlers(objHandlerCorner);
-				x2y1Corner.setHandlers(objHandlerCorner);
-				x2y2Corner.setHandlers(objHandlerCorner);
-
-				var dragMe = function(tp)
-				{
-					isDraging = true;
-					chkBalloon(tp)
-					repaint();
-					eventType = 'onEdit';
-					chkEvent(null);
-					if(map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
-				}
-				x1Border.enableDragging(function(x, y) { x1 = x; dragMe('x1b'); }, null, mouseUP);
-				y1Border.enableDragging(function(x, y) { y1 = y; dragMe('y1b'); }, null, mouseUP);
-				x2Border.enableDragging(function(x, y) { x2 = x; dragMe('x2b'); }, null, mouseUP);
-				y2Border.enableDragging(function(x, y) { y2 = y; dragMe('y2b'); }, null, mouseUP);
-	
-				x1y1Corner.enableDragging(function(x, y) { x1 = x; y1 = y; dragMe(); }, null, mouseUP);
-				x1y2Corner.enableDragging(function(x, y) { x1 = x; y2 = y; dragMe(); }, null, mouseUP);
-				x2y1Corner.enableDragging(function(x, y) { x2 = x; y1 = y; dragMe(); }, null, mouseUP);
-				x2y2Corner.enableDragging(function(x, y) { x2 = x; y2 = y; dragMe(); }, null, mouseUP);
-
-				var created = false;
-
-				if (coords)
-				{
-					x1 = coords[0][0][0];
-					y1 = coords[0][0][1];
-					x2 = coords[0][2][0];
-					y2 = coords[0][2][1];
-					domObj = createDOMObject(ret, props);
-					repaint();
-					eventType = 'onAdd';
-					chkEvent(null);
-				}
-				else
-				{
-					sunscreen.bringToTop();
-					sunscreen.setVisible(true);
-					map.enableDragging(
-						function(x, y)
-						{
-							isDraging = true;
-							x2 = x;
-							y2 = y;
-							eventType = 'onEdit';
-							if (!created) {
-								domObj = createDOMObject(ret, props);
-								eventType = 'onAdd';
-							}
-							chkEvent(null);
-							created = true;
-							repaint();
-						},
-						function(x, y)
-						{
-							x1 = x;
-							y1 = y;
-						},
-						function()
-						{
-							isDraging = false;
-							propsBalloon.updatePropsBalloon(false);
-							setToolHandler("onMouseDown", null);
-							selectTool("move");
-							if(domObj) domObj.triggerInternal("onMouseUp");
-							eventType = 'onFinish';
-							chkEvent(null);
-						}
-					);
-				}
-
-				ret.remove = function()
-				{
-					eventType = 'onRemove';
-					chkEvent(null);
-					obj.remove();
-					domObj.removeInternal();
-				}
-
-				ret.setStyle = function(regularStyle, hoveredStyle) 
-				{
-					borders.setStyle(regularStyle, hoveredStyle);
-					corners.setStyle(regularStyle, hoveredStyle);
-				}
-
-				ret.getStyle = function(removeDefaults){ return borders.getStyle(removeDefaults); };
-
-				ret.stopDrawing = function()
-				{
-					map.unfreeze();
-					sunscreen.setVisible(false);
-					setToolHandler("onMouseDown", null);
-				}
-
-				ret.setText = function(newText)
-				{
-					text = newText;
-					repaint();
-				}
-
-				return ret;
-			}
-
-			drawFunctions.zoom = function()
-			{
-				var x1, y1, x2, y2;
-				var rect;
-				currentlyDrawnObject = {
-					stopDrawing: function()
-					{
-						setToolHandler("onMouseDown", null);
-					}
-				}
-				map.enableDragging(
-					function(x, y)
-					{
-						x2 = x;
-						y2 = y;
-						rect.setRectangle(x1, y1, x2, y2);
-					},
-					function(x, y)
-					{
-						x1 = x;
-						y1 = y;
-						rect = map.addObject();
-						rect.setStyle({ outline: { color: 0xa0a0a0, thickness: 1, opacity: 70 } });
-					},
-					function()
-					{
-						var d = 10*gmxAPI.getScale(map.getZ());
-						if (!x1 || !x2 || !y1 || !y2 || ((Math.abs(gmxAPI.merc_x(x1) - gmxAPI.merc_x(x2)) < d) && (Math.abs(gmxAPI.merc_y(y1) - gmxAPI.merc_y(y2)) < d)))
-							map.zoomBy(1, true);
-						else
-							map.slideToExtent(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2));
-						rect.remove();
-						selectTool("move");
-					}
-				);
 			}
 
 			window.kosmosnimkiBeginZoom = function() 
@@ -5666,335 +4787,6 @@ function createFlashMapInternal(div, layers, callback)
 				});
 				return true;
 			}
-
-			var createDOMObject = function(ret, properties)
-			{
-				var myId = newFlashMapId();
-				var myContents;
-				var callHandler = function(eventName)
-				{
-					var handlers = map.drawing.handlers[eventName] || [];
-					for (var i = 0; i < handlers.length; i++)
-						handlers[i](objects[myId]);
-				}
-				var addHandlerCalled = false;
-				objects[myId] = {
-					properties: properties || {},
-					setText: ret.setText,
-					setVisible: function(flag)
-					{
-						ret.setVisible(flag);
-						this.properties.isVisible = flag;
-					},
-					update: function(geometry, text)
-					{
-						//this.properties = { text: text, isVisible: ret.isVisible };
-						this.properties.text = text;
-						this.properties.isVisible = ret.isVisible;
-						this.geometry = geometry;
-						this.balloon = ret.balloon;
-						callHandler(addHandlerCalled ? "onEdit" : "onAdd");
-						addHandlerCalled = true;
-					},
-					remove: function() { ret.remove(); },
-					removeInternal: function()
-					{
-						callHandler("onRemove");
-						delete objects[myId];
-					},
-					triggerInternal: function( callbackName ){ callHandler(callbackName); },
-					getGeometry: function() { return this.geometry; },
-					getLength: function() { return gmxAPI.geoLength(this.geometry); },
-					getArea: function() { return gmxAPI.geoArea(this.geometry); },
-					getCenter: function() { return gmxAPI.geoCenter(this.geometry); },
-					setStyle: function(regularStyle, hoveredStyle) { ret.setStyle(regularStyle, hoveredStyle); },
-					getStyle: function(removeDefaults) { return ret.getStyle(removeDefaults); }
-				}
-				ret.domObj = objects[myId];
-				return objects[myId];
-			}
-
-			drawFunctions["move"] = function() {}
-
-			//Begin: tools
-			var objects = {};
-			var currentlyDrawnObject = false;
-			var activeToolName = false;
-			var toolControls = {};
-
-			var toolPlaqueX = 5;
-			var toolPlaqueY = 40;
-			var toolSize = 24;
-			var toolPadding = 4;
-			var toolSpacing = 8;
-			var toolPlaque = gmxAPI.newStyledDiv({
-				position: "absolute",
-				left: toolPlaqueX + "px",
-				top: toolPlaqueY + "px",
-				width: (toolSize + 2*toolPadding) + "px",
-				backgroundColor: "#016a8a",
-				opacity: 0.5
-			});
-			allTools.appendChild(toolPlaque);
-						
-			var toolsMinimized;
-			var toolPlaqueControl = gmxAPI.newElement(
-				"img",
-				{
-					onclick: function()
-					{
-						if (toolsMinimized)
-							map.maximizeTools();
-						else
-							map.minimizeTools();
-					},
-					onmouseover: function()
-					{
-						if (toolsMinimized)
-							this.src = apiBase + "img/tools_off_a.png";
-						else
-							this.src = apiBase + "img/tools_on_a.png";
-					},
-					onmouseout: function()
-					{
-						if (toolsMinimized)
-							this.src = apiBase + "img/tools_off.png";
-						else
-							this.src = apiBase + "img/tools_on.png";
-					}
-				},
-				{
-					position: "absolute",
-					left: "8px",
-					top: "8px",
-					cursor: "pointer"
-				}
-			);
-			
-			var toolPlaqueBackground = gmxAPI.newStyledDiv({
-				position: "absolute",
-				left: "5px",
-				top: "5px",
-				width: "32px",
-				height: "32px",
-				backgroundColor: "#016a8a",
-				opacity: 0.5
-			});
-			div.appendChild(toolPlaqueBackground);
-			div.appendChild(toolPlaqueControl);
-			map.minimizeTools = function()
-			{
-				toolsMinimized = true;
-				toolPlaqueControl.src = apiBase + "img/tools_off.png";
-				toolPlaqueControl.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать инструменты", "Show tools");
-				gmxAPI.setVisible(allTools, false);
-			}
-			map.maximizeTools = function()
-			{
-				toolsMinimized = false;
-				toolPlaqueControl.src = apiBase + "img/tools_on.png";
-				toolPlaqueControl.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("Скрыть инструменты", "Hide tools");
-				gmxAPI.setVisible(allTools, true);
-				map.baseLayerControl.repaint();
-			}
-			map.maximizeTools();
-
-			map.allControls = {
-				div: allTools,
-				setVisible: function(flag)
-				{
-					gmxAPI.setVisible(toolPlaqueBackground, flag);
-					gmxAPI.setVisible(toolPlaqueControl, flag);
-					gmxAPI.setVisible(allTools, flag);
-				},
-				minimize: map.minimizeTools,
-				maximize: map.maximizeTools
-			}
-			
-			map.drawing = {
-				handlers: { onAdd: [], onEdit: [], onRemove: [] },
-				mouseState: 'up',
-				stateListeners: {},
-				addMapStateListener: function(eventName, func) { return addMapStateListener(this, eventName, func); },
-				removeMapStateListener: function(eventName, id){ return removeMapStateListener(this, eventName, id);},
-				enabledHoverBalloon: true,
-				enableHoverBalloon: function()
-					{
-						this.enabledHoverBalloon = true;
-					}
-				,
-				disableHoverBalloon: function()
-					{
-						this.enabledHoverBalloon = false;
-					}
-				,				
-				//props опционально
-				addObject: function(geom, props)
-				{
-					if (geom.type.indexOf("MULTI") != -1)
-					{
-						for (var i = 0; i < geom.coordinates.length; i++)
-							this.addObject(
-								{ 
-									type: geom.type.replace("MULTI", ""),
-									coordinates: geom.coordinates[i]
-								},
-								props
-							);
-					}
-					else
-					{
-						var o = drawFunctions[geom.type](geom.coordinates, props);
-						selectTool("move");
-						return o.domObj;
-					}
-				},
-				
-				//поддерживаются events: onAdd, onRemove, onEdit
-				//onRemove вызывается непосредственно ПЕРЕД удалением объекта
-				//для FRAME поддерживается event onMouseUp - завершение изменения формы рамки
-				setHandler: function(eventName, callback)
-				{
-					if (!(eventName in this.handlers)) 
-						this.handlers[eventName] = [];
-						
-					this.handlers[eventName].push(callback);
-				},
-				setHandlers: function(handlers)
-				{
-					for (var eventName in handlers)
-						this.setHandler(eventName, handlers[eventName]);
-				},
-				forEachObject: function(callback)
-				{
-					for (var id in objects)
-						callback(objects[id]);
-				},
-				tools: { 
-					setVisible: function(flag) 
-					{ 
-						gmxAPI.setVisible(toolPlaque, flag);
-						gmxAPI.setVisible(toolsContainer, flag);
-					}
-				},
-				addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
-				{
-					var control = gmxAPI.newElement(
-						"img",
-						{
-							src: regularImageUrl,
-							title: hint,
-							onclick: function()
-							{
-								selectTool(tn);
-							},
-							onmouseover: function()	
-							{
-								this.src = activeImageUrl;
-							},
-							onmouseout: function()	
-							{
-								this.src = (tn == activeToolName) ? activeImageUrl : regularImageUrl;
-							}
-						},
-						{
-							position: "absolute",
-							left: (toolPlaqueX + toolPadding) + "px",
-							cursor: "pointer"
-						}
-					);
-					map.drawing.tools[tn] = {
-						isVisible: true,
-						control: control,
-						setVisible: function(flag) 
-						{
-							this.isVisible = flag;
-							positionTools();
-						},
-						setToolImage: function(a1, a2) {},
-						repaint: function()
-						{
-							this.control.src = (tn == activeToolName) ? activeImageUrl : regularImageUrl;
-						},
-						onClick: onClick,
-						onCancel: onCancel,
-						select: function()
-						{
-							selectTool(tn);
-						}
-					}
-					toolsContainer.appendChild(control);
-					toolControls[tn] = control;
-					toolTypes.push(tn);
-					positionTools();
-					return map.drawing.tools[tn];
-				}, 
-				selectTool: function(toolName)
-				{
-					selectTool(toolName);
-				}
-			}
-
-			var positionTools = function()
-			{
-				var k = 0;
-				for (var i = 0; i < toolTypes.length; i++)
-				{
-					var tool = map.drawing.tools[toolTypes[i]];
-					gmxAPI.setVisible(tool.control, tool.isVisible);
-					if (tool.isVisible)
-					{
-						tool.control.style.top = (toolPlaqueY + toolPadding + k*(toolSize + toolSpacing)) + "px";
-						k += 1;
-					}
-				}
-				toolPlaque.style.height = (k*toolSize + 2*toolPadding + (k - 1)*toolSpacing) + "px";
-			}
-
-			var toolTypes = [];
-			var toolTypes_ = ["move", "zoom", "POINT", "LINESTRING", "POLYGON", "FRAME"];
-			var imageNames = ["move", "select", "marker", "line", "polygon", "frame"];
-			var toolHints = ["Перемещение", "Увеличение", "Маркер", "Линия", "Полигон", "Рамка"];
-			var toolHintsEng = ["Move", "Zoom", "Marker", "Line", "Polygon", "Rectangle"];
-			var toolsContainer = gmxAPI.newStyledDiv({ position: "absolute", top: 0, left: 0 });
-			allTools.appendChild(toolsContainer);
-			for (var i = 0; i < toolTypes_.length; i++)
-			{
-				map.drawing.addTool(
-					toolTypes_[i], 
-					gmxAPI.KOSMOSNIMKI_LOCALIZED(toolHints[i], toolHintsEng[i]),
-					apiBase + "img/" + imageNames[i] + "_tool.png",
-					apiBase + "img/" + imageNames[i] + "_tool_a.png",
-					drawFunctions[toolTypes_[i]],
-					function() {}
-				);
-			}
-
-			var selectTool = function(toolName)
-			{
-				if (toolName == activeToolName)
-					toolName = "move";
-				if (currentlyDrawnObject && 'stopDrawing' in currentlyDrawnObject)
-					currentlyDrawnObject.stopDrawing();
-				
-				currentlyDrawnObject = false;
-				if (toolName != activeToolName)
-				{
-					var oldToolName = activeToolName;
-					activeToolName = toolName;
-					for (var i = 0; i < toolTypes.length; i++)
-					{
-						var tn = toolTypes[i];
-						var tool = map.drawing.tools[tn];
-						if (tn == oldToolName)
-							tool.onCancel();
-						tool.repaint();
-					}
-					map.drawing.tools[activeToolName].onClick();
-				}
-			}
-
-			selectTool("move");
 
 			var onWheel = function(e)
 			{
@@ -6206,9 +4998,36 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						var obj = map.layers[i];
 						obj.setVisible(false);
 					}
-					var mapString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map");
-					var satelliteString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
-					var hybridString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
+					var mapString = 'map';
+					var satelliteString = 'satellite';
+					var hybridString = 'hybrid';
+
+					//var oldNames = { "Карта": 'map', "Снимки": 'satellite', "Гибрид": 'hybrid' };
+					var baseLayerTypes = {
+						'map': {
+							'onClick': function() { gmxAPI.map.setBaseLayer('map'); },
+							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
+							'onmouseover': function() { this.style.color = "orange"; },
+							'onmouseout': function() { this.style.color = "white"; },
+							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map")
+						}
+						,
+						'satellite': {
+							'onClick': function() { gmxAPI.map.setBaseLayer('satellite'); },
+							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
+							'onmouseover': function() { this.style.color = "orange"; },
+							'onmouseout': function() { this.style.color = "white"; },
+							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite")
+						}
+						,
+						'hybrid': {
+							'onClick': function() { gmxAPI.map.setBaseLayer('hybrid'); },
+							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
+							'onmouseover': function() { this.style.color = "orange"; },
+							'onmouseout': function() { this.style.color = "white"; },
+							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid")
+						}
+					};
 					
 					var mapLayers = [];
 					var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
@@ -6219,7 +5038,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							{
 								var mapLayer = map.layers[mapLayerNames[i]];
 								//mapLayer.setVisible(true);						// Слои BaseMap должны быть видимыми
-								mapLayer.setAsBaseLayer(mapString);
+								mapLayer.setAsBaseLayer(mapString, baseLayerTypes['map']);
 								mapLayer.setBackgroundColor(0xffffff);
 								mapLayers.push(mapLayer);
 							}
@@ -6235,7 +5054,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 								
 						for (var i = 0; i < satelliteLayers.length; i++)
 						{
-							satelliteLayers[i].setAsBaseLayer(satelliteString)
+							satelliteLayers[i].setAsBaseLayer(satelliteString, baseLayerTypes['satellite'])
 							satelliteLayers[i].setBackgroundColor(0x000001);
 						}
 					}
@@ -6250,14 +5069,14 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							{
 								isAnyExists = true;
 								var overlayLayer = map.layers[overlayLayerNames[i]];
-								overlayLayer.setAsBaseLayer(hybridString);
+								overlayLayer.setAsBaseLayer(hybridString, baseLayerTypes['hybrid']);
 								overlayLayers.push(overlayLayer);
 							}
 						
 						if (isAnyExists)
 						{
 							for (var i = 0; i < satelliteLayers.length; i++)
-								satelliteLayers[i].setAsBaseLayer(hybridString);						
+								satelliteLayers[i].setAsBaseLayer(hybridString, baseLayerTypes['hybrid']);						
 						}
 					}
 					
@@ -6360,17 +5179,15 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					}
 
 					var currentMode = false;
-					map.baseLayerControl.onChange = function(name)
-					{ 
-						currentMode = (name == mapString) ? "map" : (name == satelliteString) ? "satellite" : "hybrid";
-					}
+					var oldNames = { "Карта": 'map', "Снимки": 'satellite', "Гибрид": 'hybrid' };
 					map.getMode = function()
 					{ 
-						return currentMode;
+						return map.toolsAll.baseLayersTools.activeToolName;
 					}
 					map.setMode = function(mode) 
 					{
-						map.setBaseLayer({ map: mapString, satellite: satelliteString, hybrid: hybridString }[mode]);
+						if(oldNames[mode]) mode = oldNames[mode]
+						map.toolsAll.baseLayersTools.selectTool(mode);
 					}
 					map.setMode(mapLayers.length > 0 ? "map" : "satellite");
 					map.miniMap.setVisible(true);
