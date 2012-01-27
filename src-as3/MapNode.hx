@@ -330,8 +330,10 @@ vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлен�
 			var somethingHasChanged_ = somethingHasChanged || somethingHasChangedAbove;
 			if ((content != null) && somethingHasChanged_)
 				content.repaint();
-			for (child in children)
+			for (i in 0...Std.int(children.length)) {	// отрисовка слоев в обратном порядке
+				var child = children[children.length - 1 - i];
 				child.repaintRecursively(somethingHasChanged_);
+			}
 			somethingHasChanged = false;
 		}
 	}
