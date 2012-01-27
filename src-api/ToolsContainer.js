@@ -7,7 +7,7 @@
 	* @param {name} ID контейнера
 	* @param {attr} Hash дополнительных аттрибутов
 	*		ключи:
-	*			flag: Int - тип контейнера (по умолчанию 0)
+	*			contType: Int - тип контейнера (по умолчанию 0)
 	*					0 - стандартный пользовательский тип контейнера 
 	*					1 - тип для drawing вкладки
 	*					2 - тип для вкладки базовых подложек
@@ -23,9 +23,9 @@
 		var toolHash = {};
 		var activeToolName = '';
 
-		var flag = (attr['flag'] ? attr['flag'] : 0);
-		var independentFlag = (flag == 0 ? true : false);
-		var notSelectedFlag = (flag != 1 ? true : false);
+		var contType = (attr['contType'] ? attr['contType'] : 0);
+		var independentFlag = (contType == 0 ? true : false);
+		var notSelectedFlag = (contType != 1 ? true : false);
 		var currentlyDrawnObject = false;
 
 		if(!name) name = 'testTool';
@@ -87,7 +87,7 @@
 			});
 		gmxTools.appendChild(div);
 
-		var toolsContainer = gmxAPI.newElement("table", {}, {});
+		var toolsContainer = gmxAPI.newElement("table", {}, {'borderCollapse': 'collapse'});
 		div.appendChild(toolsContainer);
 		var tBody = gmxAPI.newElement("tbody", {}, {});
 		toolsContainer.appendChild(tBody);
@@ -108,7 +108,7 @@
 			var tool = toolHash[oldToolName];
 
 
-			if (tool && flag != 0) {
+			if (tool && contType != 0) {
 				if ('onCancel' in tool) tool.onCancel();
 				tool.repaint();
 			}
@@ -116,21 +116,21 @@
 			activeToolName = (notSelectedFlag && toolName == oldToolName ? '' : toolName);
 
 			tool = toolHash[toolName];
-			if (flag == 0) {								// для добавляемых юзером меню
+			if (contType == 0) {								// для добавляемых юзером меню
 				if (tool.isActive) {
 					if ('onCancel' in tool) tool.onCancel();
 				} else {
 					if ('onClick' in tool) tool.onClick();
 				}
 				tool.repaint();
-			} else if (flag == 1) {							// тип для drawing
+			} else if (contType == 1) {							// тип для drawing
 				if ('onClick' in tool) {
 					currentlyDrawnObject = tool.onClick();
 					tool.repaint();
 				} else {
 					currentlyDrawnObject = false;
 				}
-			} else if (flag == 2) {							// тип для подложек
+			} else if (contType == 2) {							// тип для подложек
 				if ('onClick' in tool && toolName != oldToolName) {
 					tool.onClick();
 					tool.repaint();

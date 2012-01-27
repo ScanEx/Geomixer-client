@@ -132,7 +132,7 @@
 				color: 'orange'
 			}
 			,
-			'flag': 1	// режим для drawing tools
+			'contType': 1	// режим для drawing tools
 		};
 		var standartTools = new gmxAPI._ToolsContainer('standart', attr);
 		var arr = [
@@ -237,7 +237,7 @@
 			,
 			'activeStyle': activeStyle
 			,
-			'flag': 2	// режим отключения выбора item
+			'contType': 2	// режим отключения выбора item
 		};
 
 		var baseLayersTools = new gmxAPI._ToolsContainer('baseLayers', attr);
