@@ -349,8 +349,11 @@ vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлен�
 		{
 			if (content != null)
 				content.paintLabels();
-			for (child in children)
+			//for (child in children) {
+			for (i in 0...Std.int(children.length)) {	// отрисовка Label в обратном порядке
+				var child = children[children.length - 1 - i];
 				child.repaintLabelsRecursively();
+			}
 		}
 	}
 
