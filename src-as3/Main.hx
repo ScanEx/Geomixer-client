@@ -1148,7 +1148,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					node.setStyle(new Style(data.regularStyle), (data.hoveredStyle != null) ? new Style(data.hoveredStyle) : null);
 				case 'getStyle':
 					var node = getNode(attr.objectId);
-					out = cast(node.getStyle(attr.removeDefaults));
+					if(node != null) out = cast(node.getStyle(attr.removeDefaults));
 				case 'positionWindow':
 					var window = MapWindow.allWindows.get(attr.objectId);
 					var data:Dynamic = cast(attr.data);
