@@ -14,6 +14,8 @@ class ClusterPointsViewer extends MapContent
 	private var paintFlag:Bool;							// флаг отрисовки
 	private var clusterViewAttr:Dynamic;				// Атрибуты отображения членов кластера 
 	private	var scaleCurrent:Float;						// текущий scale
+	private	var contSprite:Sprite;						// контейнер
+	private	var depth:Int;								// глубина слоя
 	
 	public function new(vlf_:VectorLayerFilter)
 	{
@@ -21,18 +23,22 @@ class ClusterPointsViewer extends MapContent
 		eventsFlag = false;
 		paintFlag = false;
 		flush();
+		depth = vlFilter.layer.mapNode.getDepth();
+		vlFilter.layer.mapNode.bringToDepth(vlFilter.layer.mapNode.vectorSprite.parent.numChildren - 1);
 	}
 
 	public override function createContentSprite()
 	{
-		bgSprite = Utils.addSprite(mapNode.vectorSprite);
-		//bgSprite.mouseEnabled = false;
+		contSprite = mapNode.vectorSprite;
+		bgSprite = Utils.addSprite(contSprite);
 		mapNode.setStyle(vlFilter.regularStyleOrig, vlFilter.hoverStyleOrig);
-		return Utils.addSprite(mapNode.vectorSprite);
+		return Utils.addSprite(contSprite);
 	}
 
 	public function remove()
 	{
+		vlFilter.layer.mapNode.bringToDepth(depth);
+		vlFilter.layer.mapNode.noteSomethingHasChanged();
 		mapNode.remove();
 	}
 	
@@ -103,7 +109,8 @@ class ClusterPointsViewer extends MapContent
 		var attr:Dynamic = clusterViewAttr.bgStyle.outline;
 		bgSprite.graphics.lineStyle(attr.thickness, attr.color, attr.opacity/100);
 		
-		bgSprite.graphics.drawCircle(centrGeometry.x, centrGeometry.y, clusterViewAttr.radius * scaleCurrent);
+		var shift:Int = (clusterViewAttr.shift ? clusterViewAttr.shift : 5);
+		bgSprite.graphics.drawCircle(centrGeometry.x, centrGeometry.y, (shift + clusterViewAttr.radius) * scaleCurrent);
 		
 		var rad:Float = clusterViewAttr.radius * scaleCurrent;
 		var deltaAlpha:Float = 2*Math.PI/members.length;
@@ -125,7 +132,7 @@ class ClusterPointsViewer extends MapContent
 			Main.removeClusterPointsViewer(event);
 			event.stopPropagation();
 		});
-		mapNode.vectorSprite.addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent)
+		contSprite.addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent)
 		{
 			Main.removeClusterPointsViewer(event);
 			event.stopPropagation();

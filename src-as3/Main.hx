@@ -114,6 +114,7 @@ class Main
 		var mapSprite = Utils.addSprite(root);
 		var mapWindow = new MapWindow(mapSprite, function() { return currentZ; });
 		var crosshair = Utils.addSprite(root);
+		crosshair.mouseEnabled = crosshair.mouseChildren = false;
 		var mapRoot = mapWindow.rootNode.addChild();
 		var grid = mapWindow.rootNode.addChild();
 		grid.setVisible(false);
