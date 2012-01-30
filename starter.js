@@ -503,7 +503,7 @@ nsGmx.widgets.getCommonCalendar = (function()
             
             _mapHelper.customParamsManager.addProvider({
                 name: 'commonCalendar',
-                loadState: function(state) { _calendar.loadState(state); updateTemporalLayers(); },
+                loadState: function(state) { _calendar.loadState(state); },
                 saveState: function() { return _calendar.saveState(); }
             });
         }
