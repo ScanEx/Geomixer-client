@@ -1529,7 +1529,8 @@ layersTree.prototype.addLayersToMap = function(elem)
 
 layersTree.prototype.getParentParams = function(li)
 {
-	var parentParams = li.parentNode.parentNode.childNodes[1].gmxProperties,
+    //при визуализации дерева в него добавляются новые элементы. Используем хак, чтобы понять, было отрисовано дерево или нет
+	var parentParams = li.parentNode.parentNode.childNodes[1].tagName == "DIV" ? li.parentNode.parentNode.childNodes[1].gmxProperties : li.parentNode.parentNode.childNodes[0].gmxProperties,
 		listFlag;
 	
 	if (parentParams.content)
@@ -1542,15 +1543,14 @@ layersTree.prototype.getParentParams = function(li)
 
 layersTree.prototype.updateListType = function(li, skipVisible)
 {
-	var parentParams = li.parentNode.parentNode.childNodes[1].gmxProperties,
+    //при визуализации дерева в него добавляются новые элементы. Используем хак, чтобы понять, было отрисовано дерево или нет
+	var parentParams = li.parentNode.parentNode.childNodes[1].tagName == "DIV" ? li.parentNode.parentNode.childNodes[1].gmxProperties : li.parentNode.parentNode.childNodes[0].gmxProperties,
 		listFlag;
 	
 	if (parentParams.content)
 		listFlag = parentParams.content.properties.list;
 	else
 		listFlag = parentParams.properties.list;
-	
-	//var showCheckbox = parentParams.content ? parentParams.content.properties.showCheckbox : parentParams.properties.showCheckbox;
 	
 	var box = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0].firstChild,
 		newBox,
