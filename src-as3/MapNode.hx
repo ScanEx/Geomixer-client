@@ -132,6 +132,15 @@ vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлен�
 		}
 		return retStyle;
 	}
+	
+	// Получить Style с учетом фильтров по ветке родителей
+	public function getVisibleStyle()
+	{
+		var res: Dynamic = {};
+		res.regular = getRegularStyleRecursion();
+		res.hovered = getHoveredStyleRecursion();
+		return res;
+	}
 
 	public function getHoveredStyle()
 	{

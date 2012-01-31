@@ -14,6 +14,15 @@
 		fill: { color: fillColor }
 	};
 
+	var getStyle = function(removeDefaults, mObj){
+		var out = mObj.getStyle( removeDefaults );
+		if(out && !removeDefaults) {
+			if(!out.regular) out.regular = regularDrawingStyle;
+			if(!out.hovered) out.hovered = hoveredDrawingStyle;
+		}
+		return out;
+	};
+
 	var objects = {};
 	var drawFunctions = {};
 
@@ -58,6 +67,7 @@
 			getArea: function() { return gmxAPI.geoArea(this.geometry); },
 			getCenter: function() { return gmxAPI.geoCenter(this.geometry); },
 			setStyle: function(regularStyle, hoveredStyle) { ret.setStyle(regularStyle, hoveredStyle); },
+			getVisibleStyle: function() { return ret.getVisibleStyle(); },
 			getStyle: function(removeDefaults) { return ret.getStyle(removeDefaults); }
 		}
 		ret.domObj = objects[myId];
@@ -102,7 +112,7 @@
 		ret.remove = function()
 		{
 			if (isDrawing)
-				selectTool("move");
+				toolsContainer.selectTool("move");
 			if (obj)
 			{
 				gmxAPI._chkListeners('onRemove', gmxAPI.map.drawing, domObj);
@@ -138,7 +148,8 @@
 				balloon.setVisible(ret.isVisible && balloonVisible);
 			}
 			ret.balloon = balloon;
-			ret.getStyle = function( removeDefaults ){ return obj.getStyle( removeDefaults ); };
+			ret.getVisibleStyle = function() { return obj.getVisibleStyle(); };
+			ret.getStyle = function(removeDefaults) { return getStyle(removeDefaults, obj); };
 
 			var position = function(x, y)
 			{
@@ -372,8 +383,9 @@
 			},
 			onFinish: function()
 			{
-				toolsContainer.selectTool("move");
+				callOnChange();
 				gmxAPI._chkListeners('onFinish', gmxAPI.map.drawing, domObj);
+				toolsContainer.selectTool("move");
 			},
 			onRemove: function()
 			{
@@ -438,7 +450,8 @@
 			obj.setStyle(regularStyle, hoveredStyle);
 		}
 
-		ret.getStyle = function(removeDefaults){ return obj.getStyle(removeDefaults); };
+		ret.getVisibleStyle = function() { return obj.getVisibleStyle(); };
+		ret.getStyle = function(removeDefaults) { return getStyle(removeDefaults, obj); };
 
 		var callOnChange = function()
 		{
@@ -564,7 +577,8 @@
 			obj.setStyle(regularStyle, hoveredStyle);
 		}
 
-		ret.getStyle = function(removeDefaults){ return obj.getStyle(removeDefaults); };
+		ret.getVisibleStyle = function() { return obj.getVisibleStyle(); };
+		ret.getStyle = function(removeDefaults) { return getStyle(removeDefaults, obj); };
 
 		var callOnChange = function()
 		{
@@ -657,7 +671,6 @@
 		var chkEvent = function()
 		{
 			gmxAPI._chkListeners(eventType, gmxAPI.map.drawing, domObj);
-
 		}
 
 		function getGeometryTitleMerc(geom)
@@ -764,6 +777,38 @@
 
 		var created = false;
 
+		ret.remove = function()
+		{
+			eventType = 'onRemove';
+			chkEvent(null);
+			obj.remove();
+			domObj.removeInternal();
+		}
+
+		ret.setStyle = function(regularStyle, hoveredStyle) 
+		{
+			borders.setStyle(regularStyle, hoveredStyle);
+			corners.setStyle(regularStyle, hoveredStyle);
+		}
+
+		ret.getVisibleStyle = function(){
+			return borders.getVisibleStyle();
+		};
+		ret.getStyle = function(removeDefaults) { return getStyle(removeDefaults, borders); };
+
+		ret.stopDrawing = function()
+		{
+			gmxAPI.map.unfreeze();
+			gmxAPI._sunscreen.setVisible(false);
+			gmxAPI._setToolHandler("onMouseDown", null);
+		}
+
+		ret.setText = function(newText)
+		{
+			text = newText;
+			repaint();
+		}
+
 		if (coords)
 		{
 			x1 = coords[0][0][0];
@@ -810,35 +855,6 @@
 					chkEvent(null);
 				}
 			);
-		}
-
-		ret.remove = function()
-		{
-			eventType = 'onRemove';
-			chkEvent(null);
-			obj.remove();
-			domObj.removeInternal();
-		}
-
-		ret.setStyle = function(regularStyle, hoveredStyle) 
-		{
-			borders.setStyle(regularStyle, hoveredStyle);
-			corners.setStyle(regularStyle, hoveredStyle);
-		}
-
-		ret.getStyle = function(removeDefaults){ return borders.getStyle(removeDefaults); };
-
-		ret.stopDrawing = function()
-		{
-			gmxAPI.map.unfreeze();
-			gmxAPI._sunscreen.setVisible(false);
-			gmxAPI._setToolHandler("onMouseDown", null);
-		}
-
-		ret.setText = function(newText)
-		{
-			text = newText;
-			repaint();
 		}
 
 		return ret;

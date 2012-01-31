@@ -109,7 +109,7 @@ class ClusterPointsViewer extends MapContent
 		var attr:Dynamic = clusterViewAttr.bgStyle.outline;
 		bgSprite.graphics.lineStyle(attr.thickness, attr.color, attr.opacity/100);
 		
-		var shift:Int = (clusterViewAttr.shift ? clusterViewAttr.shift : 5);
+		var shift:Int = (clusterViewAttr.shift ? clusterViewAttr.shift : 10);
 		bgSprite.graphics.drawCircle(centrGeometry.x, centrGeometry.y, (shift + clusterViewAttr.radius) * scaleCurrent);
 		
 		var rad:Float = clusterViewAttr.radius * scaleCurrent;

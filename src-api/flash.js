@@ -161,6 +161,9 @@
 			case 'getStyle':		//получить Style обьекта
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'removeDefaults':attr });
 				break;
+			case 'getVisibleStyle':		//получить Style обьекта с учетом родителей
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
+				break;
 			case 'positionWindow':	// 
 				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
 				break;

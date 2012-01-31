@@ -1150,6 +1150,9 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'getStyle':
 					var node = getNode(attr.objectId);
 					if(node != null) out = cast(node.getStyle(attr.removeDefaults));
+				case 'getVisibleStyle':
+					var node = getNode(attr.objectId);
+					if(node != null) out = cast(node.getVisibleStyle());
 				case 'positionWindow':
 					var window = MapWindow.allWindows.get(attr.objectId);
 					var data:Dynamic = cast(attr.data);

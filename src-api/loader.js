@@ -9,11 +9,11 @@
         var filesToLoad = [/*#buildinclude<api_files.txt>*/];
         
         var LABInstance = $LAB;
-		
+
 		for (var f = 0; f < filesToLoad.length-1; f++)
-			LABInstance = LABInstance.script({src: filesToLoad[f] + "?" + Math.random() }).wait();
+			LABInstance = LABInstance.script({src: filesToLoad[f] }).wait();
 			
-		LABInstance.script({src: filesToLoad[filesToLoad.length-1] + "?" + Math.random()}).wait(function()
+		LABInstance.script({src: filesToLoad[filesToLoad.length-1] }).wait(function()
         {
             if (waitArgs)
             {
