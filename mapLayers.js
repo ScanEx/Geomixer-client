@@ -3327,9 +3327,8 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 		box,
 		clickFunc = function()
 		{
-			_layersTree.setListActive(span);
-			
-			_queryMapLayers.activeListLayer = elem.name;
+			//_layersTree.setListActive(span);
+			//_queryMapLayers.activeListLayer = elem.name;
 			
 			globalFlashMap.layers[elem.name].setVisible(true);
 			
