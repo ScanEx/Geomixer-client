@@ -5,24 +5,23 @@ var KML = {
 var queryKML = function()
 {
 	this.parentCanvas = null;
+    this._loadedKML = [];
+    this._uniqueID = 0;
 }
 
 queryKML.prototype = new leftMenu();
 
+queryKML.prototype.newID = function()
+{
+    var newID = "id" + this._uniqueID;
+    this._uniqueID++;
+    return newID;
+}
+
 queryKML.prototype.load = function()
 {
 	var inputField = _input(null, [['dir','className','inputStyle'],['css','width','200px']]),
-		inputError = function()
-		{
-			$(inputField).addClass('error');
-			
-			setTimeout(function()
-			{
-				if (inputField)
-					$(inputField).removeClass('error');
-			}, 1000)
-		},
-		_this = this;;
+		_this = this;
 	
 	this.parentCanvas = _div(null, [['dir','className','drawingObjectsCanvas']]);
 	
@@ -39,24 +38,33 @@ queryKML.prototype.load = function()
 				
 				return;
 			}
-			
-			gmxAPI._kmlParser.get(strip(inputField.value), function(resp)
+            
+			var kmlURL = strip(inputField.value);
+			gmxAPI._kmlParser.get(kmlURL, function(resp)
 			{
 				var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
 				
-				_this.addFile(info, resp.name)
+                var kmlInfo = {
+                    id: _this.newID(), 
+                    url: kmlURL, 
+                    name: resp.name,
+                    isVisible: true
+                };
+                _this._loadedKML.push(kmlInfo);
+                
+				_this.addFile(info, resp.name, kmlInfo.id);
 			})
 				
 			inputField.value = '';
 		}
 		else
-			inputError();
+			inputError(inputField);
 	}
 	
 	inputField.onkeydown = function(e)
 	{
 		var evt = e || window.event;
-	  	if (getkey(evt) == 13) 
+	  	if (getkey(evt) == 13)
 	  	{	
 			if (inputField.value != '')
 			{
@@ -67,17 +75,25 @@ queryKML.prototype.load = function()
 					return;
 				}
 				
-				gmxAPI._kmlParser.get(strip(inputField.value), function(resp)
+                var kmlURL = strip(inputField.value);
+				gmxAPI._kmlParser.get(kmlURL, function(resp)
 				{
 					var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
 				
-					_this.addFile(info, resp.name)
+                    var kmlInfo = {
+                        id: _this.newID(), 
+                        url: kmlURL, 
+                        name: resp.name,
+                        isVisible: true
+                    };
+                    _this._loadedKML.push(kmlInfo);
+					_this.addFile(info, resp.name, kmlInfo.id);
 				})
 					
 				inputField.value = '';
 			}
 			else
-				inputError();
+				inputError(inputField);
 	  		
 	  		return false;
 	  	}
@@ -121,19 +137,27 @@ queryKML.prototype.load = function()
 	_(this.workCanvas, [canvas, _table([_tbody([_tr([_td([formFile],[['css','width','220px']]), _td([loadButton])])])],[['css','margin','5px 0px 10px 10px']]), this.parentCanvas])
 }
 
-queryKML.prototype.addFile = function(info, name)
+queryKML.prototype.addFile = function(info, name, isVisible, kmlID)
 {
 	var canvas = _div(null, [['dir','className','canvas']]),
 		title = makeLinkButton(name.length > 45 ? name.substr(0, 45) + '...' : name),
 		remove = makeImageButton('img/closemin.png','img/close_orange.png'),
-		box = _checkbox(true, 'checkbox'),
+		box = _checkbox(isVisible, 'checkbox'),
 		_this = this;
 	
 	_title(title, name);
+    info.parent.setVisible(isVisible);
 	
 	box.onclick = function()
 	{
 		info.parent.setVisible(this.checked);
+        
+        for (var k = 0; k < _this._loadedKML.length; k++)
+            if (_this._loadedKML[k].id == kmlID)
+            {
+                _this._loadedKML[k].isVisible = this.checked;
+                break;
+            }
 	}
 	
 	title.onclick = function()
@@ -150,6 +174,16 @@ queryKML.prototype.addFile = function(info, name)
 	remove.onclick = function()
 	{
 		info.parent.remove();
+        
+        if (typeof kmlID !== 'undefined')
+        {
+            for (var k = 0; k < _this._loadedKML.length; k++)
+                if (_this._loadedKML[k].id == kmlID)
+                {
+                    _this._loadedKML.splice(k, 1);
+                    break;
+                }
+        }
 		
 		canvas.removeNode(true);
 	}
@@ -174,3 +208,53 @@ KML.KML.load = function()
 KML.KML.unload = function()
 {
 }
+
+_userObjects.addDataCollector('kml', {
+    collect: function()
+    {
+        if (_queryKML.parentCanvas == null || _queryKML._loadedKML.length == 0)
+            return null;
+            
+        var res = [];
+        for (var k = 0; k < _queryKML._loadedKML.length; k++)
+            res.push({url: _queryKML._loadedKML[k].url, isVisible: _queryKML._loadedKML[k].isVisible});
+            
+        return res;
+    },
+    
+    load: function(data)
+    {
+        if (!data)
+            return;
+        
+        KML.KML.load();
+        
+        _queryKML._loadedKML = [];
+        var loadedCount = 0;
+        var allInfo = [];
+        
+        var showKML = function()
+        {
+            for (var k = 0; k < _queryKML._loadedKML.length; k++)
+                _queryKML.addFile(allInfo[k], _queryKML._loadedKML[k].name, _queryKML._loadedKML[k].isVisible, _queryKML._loadedKML[k].id);
+        }
+        
+        for (var k = 0; k < data.length; k++)
+        (function(curKMLData, index)
+        {
+            gmxAPI._kmlParser.get(curKMLData.url, function(resp)
+			{
+				var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
+				
+                _queryKML._loadedKML[index] = {id: _queryKML.newID(), url: curKMLData.url, name: resp.name, isVisible: curKMLData.isVisible};
+                allInfo[index] = info;
+                
+                loadedCount++;
+                
+                //когда всё загрузили, можно показать пользователям
+                if (loadedCount == data.length)
+                    showKML();
+			})
+        })(data[k], k)
+    }
+});
