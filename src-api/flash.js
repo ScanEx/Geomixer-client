@@ -27,7 +27,7 @@
 				var miniMapFlag = map.miniMap.getVisibility();
 				var flag = (attr.miniMapSetVisible ? true : false);
 				map.miniMap.setVisible(flag);
-				if(attr.func) attr.func = uniqueGlobalName(attr.func);
+				if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
 				ret['base64'] = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
 				map.miniMap.setVisible(miniMapFlag);
 				break;
@@ -44,7 +44,7 @@
 						valArray.push(attr['newProperties'][key]);
 					}
 					attr['propFields'] = [keyArray, valArray];
-					attr['hideFixedBalloons'] = uniqueGlobalName(function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(true); });
+					attr['hideFixedBalloons'] = gmxAPI.uniqueGlobalName(function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(true); });
 				}
 				var flag = ('clusters' in obj);	// видимость кластеров
 				if(!flag)
@@ -330,8 +330,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 		var o = new gmxAPI._flashDeconcept.SWFObject(url, flashId, ww, hh, v, bg);
 		o.addParam('allowScriptAccess', 'always');
 		o.addParam('wmode', 'opaque');
-		o.addVariable("clearCallback", uniqueGlobalName(function(name) { delete window[name]; }));
-		o.addVariable("loadCallback", uniqueGlobalName(loadCallback));
+		o.addVariable("clearCallback", gmxAPI.uniqueGlobalName(function(name) { delete window[name]; }));
+		o.addVariable("loadCallback", gmxAPI.uniqueGlobalName(loadCallback));
 		if(FlagFlashLSO) {
 			o.addVariable("useFlashLSO", true);
 			if(FlagFlashLSO.multiSession) o.addVariable("multiSessionLSO", true);

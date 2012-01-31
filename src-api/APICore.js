@@ -1278,6 +1278,85 @@ window.gmxAPI = {
 			ret[arr[i][0]] = arr[i][1];
 		return ret;
 	}
+	,
+	lastFlashMapId: 0
+	,
+	newFlashMapId: function()
+	{
+		this.lastFlashMapId += 1;
+		return "random_" + this.lastFlashMapId;
+	}
+	,
+	uniqueGlobalName: function(thing)
+	{
+		var id = this.newFlashMapId();
+		window[id] = thing;
+		return id;
+	}
+	,
+	loadVariableFromScript: function(url, name, callback, onError, useTimeout)
+	{
+		window[name] = undefined;
+		var script = document.createElement("script");
+		var done = false;
+		
+		script.onerror = function()
+		{
+			if (!done)
+			{
+				clearInterval(intervalError);
+				if (onError) onError();
+				done = true;
+			}
+		}
+		
+		script.onload = function()
+		{
+			if (!done)
+			{
+				clearInterval(intervalError);
+				if ( window[name] !== undefined )
+					callback(window[name]);
+				else if (onError) onError();
+				done = true;
+			}
+		}
+		
+		script.onreadystatechange = function()
+		{
+			if (!done)
+			{
+				if ( this.readyState === 'loaded' )
+				{
+					clearInterval(intervalError);
+					if ( window[name] !== undefined )
+						callback(window[name]);
+					else if (onError) onError();
+					done = true;
+				}
+			}
+		}
+		
+		var intervalError = setInterval(function()
+		{
+			if (!done)
+			{
+				if (script.readyState === 'loaded')
+				{
+					clearInterval(intervalError);
+					if (typeof window[name] === 'undefined')
+					{
+						if (onError) onError();
+					}
+					done = true;
+				}
+			}
+		}, 50);
+		
+		script.setAttribute("charset", "UTF-8");
+		document.getElementsByTagName("head").item(0).appendChild(script);
+		script.setAttribute("src", url);
+	}
 }
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
@@ -1299,7 +1378,7 @@ var tmp = [
 	'distVincenty', 'KOSMOSNIMKI_LOCALIZED',
 	'prettifyDistance', 'prettifyArea',
 	'pad2', 'formatCoordinates', 'formatCoordinates2',
-//	'', '', '', '', '', '', '', '', '', '',
+	'lastFlashMapId', 'newFlashMapId', 'uniqueGlobalName', 'loadVariableFromScript',
 	// Не используемые в api.js
 	'newDiv', 'newSpan', 'positionSize', 'merc', 'from_merc', 'formatDegrees', 'memoize', 
 	'DegToRad', 'RadToDeg', 'ArcLengthOfMeridian', 'UTMCentralMeridian', 'FootpointLatitude', 'MapLatLonToXY', 'MapXYToLatLon',
@@ -1315,21 +1394,6 @@ var getAPIHost = gmxAPI.memoize(function() { return gmxAPI.getAPIHost(); });
 var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot(); });
 
 ////
-
-var lastFlashMapId = 0;
-var newFlashMapId = function()
-{
-	lastFlashMapId += 1;
-	return "random_" + lastFlashMapId;
-}
-
-var uniqueGlobalName = function(thing)
-{
-	var id = newFlashMapId();
-	window[id] = thing;
-	return id;
-}
-
 var flashMapAlreadyLoading = false;
 
 function HandlerMode(div, event, handler)
@@ -1362,7 +1426,7 @@ function sendCrossDomainJSONRequest(url, callback, callbackParamName)
     
 	var script = document.createElement("script");
 	script.setAttribute("charset", "UTF-8");
-	var callbackName = uniqueGlobalName(function(obj)
+	var callbackName = gmxAPI.uniqueGlobalName(function(obj)
 	{
 		callback && callback(obj);
 		window[callbackName] = false;
@@ -1408,100 +1472,6 @@ function forEachLayer(layers, callback)
 	forEachLayerRec({type: "group", content: { children: layers.children, properties: { visible: true } } }, true);
 }
 
-function loadVariableFromScript(url, name, callback, onError, useTimeout)
-{
-	window[name] = undefined;
-	var script = document.createElement("script");
-	var done = false;
-	
-	script.onerror = function()
-		{
-		if (!done)
-		{
-			// alert('onerror');
-			clearInterval(intervalError);
-			if (onError) onError();
-			done = true;
-		}
-	}
-	
-	script.onload = function()
-	{
-		if (!done)
-		{
-			// alert('onload');
-			clearInterval(intervalError);
-
-			if ( window[name] !== undefined )
-				callback(window[name]);
-			else if (onError) onError();
-
-			done = true;
-		}
-	}
-	
-	script.onreadystatechange = function()
-	{
-		if (!done)
-		{
-			//alert('onreadystatechange: ' + this.readyState);
-			if ( this.readyState === 'loaded' )
-			{
-				clearInterval(intervalError);
-				
-				if ( window[name] !== undefined )
-					callback(window[name]);
-				else if (onError) onError();
-				done = true;
-			}
-		}
-	}
-	
-	// alert('readyState exists');
-		var intervalError = setInterval(function()
-		{
-		if (!done)
-		{
-			if (script.readyState === 'loaded')
-			{
-				clearInterval(intervalError);
-				if (typeof window[name] === 'undefined')
-				{
-					//canceled = true;
-					if (onError) onError();
-				}
-				done = true;
-			}
-	}
-	}, 50);
-	
-	script.setAttribute("charset", "UTF-8");
-	document.getElementsByTagName("head").item(0).appendChild(script);
-	script.setAttribute("src", url);
-
-	//var startTime = (new Date()).getTime();
-	//var canceled = false;
-	// var interval = setInterval(function()
-	// {
-		// alert(window[name]);
-		// if (window[name] !== undefined)
-		// {
-			// clearInterval(interval);
-			// if (!canceled)
-				// callback(window[name]);
-		// }
-		// else if (useTimeout && ((new Date()).getTime() - startTime > 10000))
-		// {
-			// clearInterval(interval);
-			
-			// if (!canceled)
-				// onError();
-			
-			// canceled = true;
-		// }
-	// }, 500);
-}
-
 var APIKeyResponseCache = {};
 var sessionKeyCache = {};
 var KOSMOSNIMKI_SESSION_KEY = false;
@@ -1541,7 +1511,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 		if (key == "INVALID")
 			key = false;
 
-		loadVariableFromScript(
+		gmxAPI.loadVariableFromScript(
 			"http://" + hostName + "/TileSender.ashx?ModeKey=map&MapName=" + mapName + (key ? ("&key=" + encodeURIComponent(key)) : "") + "&" + Math.random(),
 			"getLayers",
 			function(f)
@@ -1617,7 +1587,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 		else if (window.apiKey)
 			useAPIKey(window.apiKey);
 		else if (!gmxAPI.getScriptURL("config.js"))
-			loadVariableFromScript(
+			gmxAPI.loadVariableFromScript(
 				gmxAPI.getScriptBase("api.js") + "config.js",
 				"apiKey",
 				function(key)
@@ -1678,7 +1648,7 @@ var createKosmosnimkiMap = createFlashMap;
 var makeFlashMap = createFlashMap;
 
 (function(){
-var flashId = newFlashMapId();
+var flashId = gmxAPI.newFlashMapId();
 var FlashMapObject = function(objectId_, properties_, parent_)
 {
 	this.objectId = objectId_;
@@ -1748,7 +1718,7 @@ function createFlashMapInternal(div, layers, callback)
 	function addMapStateListener(obj, eventName, func)
 	{
 		if(!obj.stateListeners[eventName]) obj.stateListeners[eventName] = [];
-		var id = newFlashMapId();
+		var id = gmxAPI.newFlashMapId();
 		obj.stateListeners[eventName].push({"id": id, "func": func });
 		return id;
 	}
@@ -1835,7 +1805,7 @@ function createFlashMapInternal(div, layers, callback)
 
 			FlashMapObject.prototype.setTileCaching = function(flag) { gmxAPI._cmdProxy('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
 			FlashMapObject.prototype.setDisplacement = function(dx, dy) { gmxAPI._cmdProxy('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
-			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':uniqueGlobalName(imageUrlFunction), 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
+			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':gmxAPI.uniqueGlobalName(imageUrlFunction), 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
 			FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
 			FlashMapObject.prototype.bringToBottom = function() { gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
 			FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
@@ -1878,7 +1848,7 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
 			
 			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
-				map.balloonClassObject.hideHoverBalloons(true);
+				if(map.balloonClassObject) map.balloonClassObject.hideHoverBalloons(true);
 				gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
 			}
 			FlashMapObject.prototype.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }
@@ -1947,7 +1917,7 @@ function createFlashMapInternal(div, layers, callback)
 				var me = this;
 				gmxAPI._cmdProxy('setHandler', { 'obj': this, 'attr': {
 					'eventName':eventName
-					,'callbackName':handler ? uniqueGlobalName(function(subObjectId, a, attr)
+					,'callbackName':handler ? gmxAPI.uniqueGlobalName(function(subObjectId, a, attr)
 						{
 							handler(new FlashMapObject(subObjectId, propertiesFromArray(a), me), attr);
 						}) : null
@@ -2180,7 +2150,7 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
 			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
 			{ 
-				gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
+				gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':gmxAPI.uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
 			}
 /* не используется
 			FlashMapObject.prototype.loadJSON = function(url)
@@ -2238,9 +2208,9 @@ function createFlashMapInternal(div, layers, callback)
 			}
 
 
-			FlashMapObject.prototype.addBalloon = function() {	return map.balloonClassObject.addBalloon();	}
-			FlashMapObject.prototype.enableHoverBalloon = function(callback, attr) { map.balloonClassObject.enableHoverBalloon(this, callback, attr); }
-			FlashMapObject.prototype.disableHoverBalloon = function() { map.balloonClassObject.disableHoverBalloon(this); }
+			FlashMapObject.prototype.addBalloon = function() {	return (map.balloonClassObject ? map.balloonClassObject.addBalloon() : null);	}
+			FlashMapObject.prototype.enableHoverBalloon = function(callback, attr) { if(map.balloonClassObject) map.balloonClassObject.enableHoverBalloon(this, callback, attr); }
+			FlashMapObject.prototype.disableHoverBalloon = function() { if(map.balloonClassObject) map.balloonClassObject.disableHoverBalloon(this); }
 
 			FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
 			{
@@ -2319,7 +2289,7 @@ function createFlashMapInternal(div, layers, callback)
 						gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
 						//alert(e);
 					}
-					map.balloonClassObject.clickBalloonFix(o);
+					if(map.balloonClassObject) map.balloonClassObject.clickBalloonFix(o);
 				});
 			}
 
@@ -2371,7 +2341,7 @@ function createFlashMapInternal(div, layers, callback)
 					var flag = (minZoom && curZ < minZoom ? true : false);
 					var mZ = (maxZoom ? maxZoom : 18);
 					if(!flag && curZ > mZ) flag = true;
-					if(flag) map.balloonClassObject.clickBalloonFix(o);
+					if(flag && map.balloonClassObject) map.balloonClassObject.clickBalloonFix(o);
 					///// End
 
 					if (!images[id]) {
@@ -2550,8 +2520,10 @@ function createFlashMapInternal(div, layers, callback)
 					filter.setZoomBounds(style.MinZoom, style.MaxZoom);
 					filter.setStyle(givenStyle, hoveredStyle);
 					
-					map.balloonClassObject.applyBalloonDefaultStyle(style);
-					map.balloonClassObject.setBalloonFromParams(filter, style);
+					if(map.balloonClassObject) {
+						map.balloonClassObject.applyBalloonDefaultStyle(style);
+						map.balloonClassObject.setBalloonFromParams(filter, style);
+					}
 					var filterOld = obj.filters[i];
 					if(filterOld && filterOld['clusters']) {	// Перенос атрибутов кластеризации в новый filter
 						filter.setClusters(filterOld['clusters']['attr']);
@@ -2925,7 +2897,7 @@ function createFlashMapInternal(div, layers, callback)
 								for (var i=0; i<obj.filters.length; i++)	// переустановка фильтров
 									obj.filters[i].setFilter(obj.filters[i]._sql, true);
 
-								map.balloonClassObject.removeHoverBalloons();
+								if(map.balloonClassObject) map.balloonClassObject.removeHoverBalloons();
 							}
 							return currentData['daysDelta'];
 						}
@@ -2953,7 +2925,7 @@ function createFlashMapInternal(div, layers, callback)
 					}
 					obj.addObserver = function(o, onChange)
 					{
-						gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'func':uniqueGlobalName(function(geom, props, flag)
+						gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'func':gmxAPI.uniqueGlobalName(function(geom, props, flag)
 							{
 								onChange(new FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj), flag);
 							})
@@ -2979,7 +2951,7 @@ function createFlashMapInternal(div, layers, callback)
 							if (!str && (obj.properties.GeometryType == "point")) {
 								gmxAPI._cmdProxy('getFeatures', { 'obj': obj, 'attr':{
 									'geom': gmxAPI.merc_geometry(geometry ? geometry : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] }),
-									'func': uniqueGlobalName(function(geoms, props)
+									'func': gmxAPI.uniqueGlobalName(function(geoms, props)
 										{
 											var ret = [];
 											for (var i = 0; i < geoms.length; i++)
@@ -3000,7 +2972,7 @@ function createFlashMapInternal(div, layers, callback)
 						obj.getFeatureById = function(fid, func)
 						{
 							gmxAPI._cmdProxy('getFeatureById', { 'obj': obj, 'attr':{'fid':fid,
-								'func':uniqueGlobalName(function(geom, props)
+								'func':gmxAPI.uniqueGlobalName(function(geom, props)
 								{
 									if(typeof(props) === 'object' && props.length > 0) {
 										props = gmxAPI.arrayToHash(props);
@@ -3261,7 +3233,7 @@ function createFlashMapInternal(div, layers, callback)
 			map.isKeyDown = function(code) { return gmxAPI._cmdProxy('isKeyDown', {'attr':{'code':code} }); }
 			map.setExtent = function(x1, x2, y1, y2) { return gmxAPI._cmdProxy('setExtent', {'attr':{'x1':gmxAPI.merc_x(x1), 'x2':gmxAPI.merc_x(x2), 'y1':gmxAPI.merc_y(y1), 'y2':gmxAPI.merc_y(y2)} }); }
 			map.addMapWindow = function(callback) {
-				var oID = gmxAPI._cmdProxy('addMapWindow', { 'attr': {'callbackName':uniqueGlobalName(function(z) { return 17 - callback(17 - z); })} });
+				var oID = gmxAPI._cmdProxy('addMapWindow', { 'attr': {'callbackName':gmxAPI.uniqueGlobalName(function(z) { return 17 - callback(17 - z); })} });
 				return new FlashMapObject(oID, {}, null);
 			}
             
@@ -3295,7 +3267,8 @@ function createFlashMapInternal(div, layers, callback)
 				map.setCursorVisible(true);
 				needToStopDragging = false;
 			}
-			map.balloonClassObject = new gmxAPI.BalloonClass(map, div, apiBase);
+
+			map.balloonClassObject = ('BalloonClass' in gmxAPI ? new gmxAPI.BalloonClass(map, div, apiBase) : null);
 
 			var toolHandlers = {};
 			var userHandlers = {};
@@ -3413,7 +3386,7 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				gmxAPI._cmdProxy('addContextMenuItem', { 'attr': {
 					'text': text,
-					'func': uniqueGlobalName(function(x, y)
+					'func': gmxAPI.uniqueGlobalName(function(x, y)
 						{
 							callback(gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y));
 						})
@@ -4008,7 +3981,7 @@ function createFlashMapInternal(div, layers, callback)
 					if (result)
 					{
 						var permalink = result[1];
-						var callbackName = uniqueGlobalName(function(obj)
+						var callbackName = gmxAPI.uniqueGlobalName(function(obj)
 						{
 							if (obj.position)
 								map.moveTo(gmxAPI.from_merc_x(obj.position.x), gmxAPI.from_merc_y(obj.position.y), 17 - obj.position.z);
@@ -5223,7 +5196,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 
 	if (!gmxAPI.getScriptURL("config.js"))
 	{
-		loadVariableFromScript(
+		gmxAPI.loadVariableFromScript(
 			gmxAPI.getScriptBase("api.js") + "config.js",
 			"baseMap",
 			finish,

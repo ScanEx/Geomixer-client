@@ -28,7 +28,7 @@
 
 	var createDOMObject = function(ret, properties)
 	{
-		var myId = newFlashMapId();
+		var myId = gmxAPI.newFlashMapId();
 		var myContents;
 		var callHandler = function(eventName)
 		{
@@ -117,7 +117,7 @@
 			{
 				gmxAPI._chkListeners('onRemove', gmxAPI.map.drawing, domObj);
 				obj.remove();
-				balloon.remove();
+				if(balloon) balloon.remove();
 				domObj.removeInternal();
 			}
 		}
@@ -126,6 +126,9 @@
 
 		var done = function(xx, yy)
 		{
+			obj = gmxAPI.map.addObject();
+			balloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.addBalloon(true) : null);	// Редактируемый балун (только скрывать)
+
 			var updateDOM = function()
 			{
 				xx = gmxAPI.chkPointCenterX(xx);
@@ -134,18 +137,17 @@
 
 			ret.setText = function(newText)
 			{
+				if(!balloon) return;
 				text = newText;
 				input.value = newText;
 				updateText();
 			}
 
-			obj = gmxAPI.map.addObject();
-			balloon = gmxAPI.map.balloonClassObject.addBalloon(true);	// Редактируемый балун (только скрывать)
 			ret.setVisible = function(flag)
 			{
 				ret.isVisible = flag;
 				obj.setVisible(ret.isVisible);
-				balloon.setVisible(ret.isVisible && balloonVisible);
+				if(balloon) balloon.setVisible(ret.isVisible && balloonVisible);
 			}
 			ret.balloon = balloon;
 			ret.getVisibleStyle = function() { return obj.getVisibleStyle(); };
@@ -157,7 +159,7 @@
 				yy = y;
 				gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
 				obj.setPoint(xx, yy);
-				balloon.setPoint(xx, yy, isDragged);
+				if(balloon) balloon.setPoint(xx, yy, isDragged);
 				updateDOM();
 			}
 			var apiBase = gmxAPI.getAPIFolderRoot();
@@ -172,73 +174,6 @@
 					label: { size: 12, color: 0xffffc0 }
 				}
 			);
-
-			var htmlDiv = document.createElement("div");
-			htmlDiv.onclick = function(event)
-			{
-				event = event || window.event;
-				var e = gmxAPI.compatTarget(event);
-				if (e == htmlDiv)
-				{
-					setHTMLVisible(false);
-					input.focus();
-				}
-			}
-			balloon.div.appendChild(htmlDiv);
-			var input = document.createElement("textarea");
-			input.style.backgroundColor = "transparent";
-			input.style.border = 0;
-			input.style.overflow = "hidden";
-			var fontSize = 16;
-			input.style.fontSize = fontSize + 'px';
-			input.setAttribute("wrap", "off");
-			input.value = text ? text : "";
-			var updateText = function() 
-			{ 
-				var newText = input.value;
-				var rows = 1;
-				for (var i = 0; i < newText.length; i++)
-					if (newText.charAt(i) == '\n'.charAt(0))
-						rows += 1;
-				input.rows = rows;
-				var lines = newText.split("\n");
-				var cols = 2;
-				for (var i in lines)
-					cols = Math.max(cols, lines[i].length + 3);
-				input.cols = cols;
-				input.style.width = cols * (fontSize - (gmxAPI.isIE ? 5: 6));
-				text = newText;
-				balloon.resize();
-				updateDOM();
-			};
-			input.onkeyup = updateText;
-			input.onblur = function()
-			{
-				setHTMLVisible(true);
-			}
-			input.onmousedown = function(e)
-			{
-				if (!e)
-					e = window.event;
-				if (e.stopPropagation)
-					e.stopPropagation();
-				else
-					e.cancelBubble = true;
-			}
-			balloon.div.appendChild(input);
-
-			var setHTMLVisible = function(flag)
-			{
-				gmxAPI.setVisible(input, !flag);
-				gmxAPI.setVisible(htmlDiv, flag);
-				if (flag)
-					htmlDiv.innerHTML = (gmxAPI.strip(input.value) == "") ? "&nbsp;" : input.value;
-				balloon.resize();
-			}
-
-			var balloonVisible = (text && (text != "")) ? true : false;
-			setHTMLVisible(balloonVisible);
-
 			var clickTimeout = false;
 			obj.setHandler("onClick", function()
 			{
@@ -251,14 +186,16 @@
 				else
 				{
 					clickTimeout = setTimeout(function() { clickTimeout = false; }, 500);
-					balloonVisible = !balloon.isVisible;
-					balloon.setVisible(balloonVisible);
-					if (balloonVisible)
-						setHTMLVisible(true);
-					else
-					{
-						gmxAPI.hide(input);
-						gmxAPI.hide(htmlDiv);
+					if(balloon) {
+						balloonVisible = !balloon.isVisible;
+						balloon.setVisible(balloonVisible);
+						if (balloonVisible)
+							setHTMLVisible(true);
+						else
+						{
+							gmxAPI.hide(input);
+							gmxAPI.hide(htmlDiv);
+						}
 					}
 				}
 			});
@@ -280,52 +217,122 @@
 			{
 				isDragged = false;
 				gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
-				balloon.setPoint(xx, yy, isDragged);
+				if(balloon) balloon.setPoint(xx, yy, isDragged);
 				obj.setPoint(xx, yy);
 			}
 			obj.enableDragging(dragCallback, downCallback, upCallback);
 
-			balloon.outerDiv.onmousedown = function(event)
-			{
-				gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': true} });
-				var currPosition = gmxAPI.map.getPosition();
-				var mapX = currPosition['x'];
-				var mapY = currPosition['y'];
-				var z = currPosition['z'];
-				scale = gmxAPI.getScale(z);
-				var x = gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(gmxAPI._div) - gmxAPI._div.clientWidth/2)*scale);
-				var y = gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(gmxAPI._div) - gmxAPI._div.clientHeight/2)*scale);
-				downCallback(x, y);
-				gmxAPI._startDrag(obj, dragCallback, upCallback);
-				return false;
-			}
-			balloon.outerDiv.onmouseup = function(event)
-			{
-				gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': false} });
-				gmxAPI._stopDrag();
-				upCallback();
-			}
-			balloon.outerDiv.onmousemove = function(event)
-			{
-				if (isDragged)
+			if(balloon) {	// Это все касается балуна для маркера
+				var htmlDiv = document.createElement("div");
+				htmlDiv.onclick = function(event)
 				{
+					event = event || window.event;
+					var e = gmxAPI.compatTarget(event);
+					if (e == htmlDiv)
+					{
+						setHTMLVisible(false);
+						input.focus();
+					}
+				}
+				balloon.div.appendChild(htmlDiv);
+				var input = document.createElement("textarea");
+				input.style.backgroundColor = "transparent";
+				input.style.border = 0;
+				input.style.overflow = "hidden";
+				var fontSize = 16;
+				input.style.fontSize = fontSize + 'px';
+				input.setAttribute("wrap", "off");
+				input.value = text ? text : "";
+				var updateText = function() 
+				{ 
+					var newText = input.value;
+					var rows = 1;
+					for (var i = 0; i < newText.length; i++)
+						if (newText.charAt(i) == '\n'.charAt(0))
+							rows += 1;
+					input.rows = rows;
+					var lines = newText.split("\n");
+					var cols = 2;
+					for (var i in lines)
+						cols = Math.max(cols, lines[i].length + 3);
+					input.cols = cols;
+					input.style.width = cols * (fontSize - (gmxAPI.isIE ? 5: 6));
+					text = newText;
+					if(balloon) balloon.resize();
+					updateDOM();
+				};
+				input.onkeyup = updateText;
+				input.onblur = function()
+				{
+					setHTMLVisible(true);
+				}
+				input.onmousedown = function(e)
+				{
+					if (!e)
+						e = window.event;
+					if (e.stopPropagation)
+						e.stopPropagation();
+					else
+						e.cancelBubble = true;
+				}
+				if(balloon) balloon.div.appendChild(input);
+
+				var setHTMLVisible = function(flag)
+				{
+					gmxAPI.setVisible(input, !flag);
+					gmxAPI.setVisible(htmlDiv, flag);
+					if (flag)
+						htmlDiv.innerHTML = (gmxAPI.strip(input.value) == "") ? "&nbsp;" : input.value;
+					if(balloon) balloon.resize();
+				}
+
+				var balloonVisible = (text && (text != "")) ? true : false;
+				setHTMLVisible(balloonVisible);
+
+				balloon.outerDiv.onmousedown = function(event)
+				{
+					gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': true} });
 					var currPosition = gmxAPI.map.getPosition();
 					var mapX = currPosition['x'];
 					var mapY = currPosition['y'];
 					var z = currPosition['z'];
 					scale = gmxAPI.getScale(z);
-					var x = startDx + gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(gmxAPI._div) - gmxAPI._div.clientWidth/2)*scale);
-					var y = startDy + gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(gmxAPI._div) - gmxAPI._div.clientHeight/2)*scale);
-					position(x, y);
-					gmxAPI.deselect();
+					var x = gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(gmxAPI._div) - gmxAPI._div.clientWidth/2)*scale);
+					var y = gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(gmxAPI._div) - gmxAPI._div.clientHeight/2)*scale);
+					downCallback(x, y);
+					gmxAPI._startDrag(obj, dragCallback, upCallback);
 					return false;
+				}
+				balloon.outerDiv.onmouseup = function(event)
+				{
+					gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': false} });
+					gmxAPI._stopDrag();
+					upCallback();
+				}
+				balloon.outerDiv.onmousemove = function(event)
+				{
+					if (isDragged)
+					{
+						var currPosition = gmxAPI.map.getPosition();
+						var mapX = currPosition['x'];
+						var mapY = currPosition['y'];
+						var z = currPosition['z'];
+						scale = gmxAPI.getScale(z);
+						var x = startDx + gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(gmxAPI._div) - gmxAPI._div.clientWidth/2)*scale);
+						var y = startDy + gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(gmxAPI._div) - gmxAPI._div.clientHeight/2)*scale);
+						position(x, y);
+						gmxAPI.deselect();
+						return false;
+					}
 				}
 			}
 
 			domObj = createDOMObject(ret);
 			position(xx, yy);
-			balloon.setVisible(balloonVisible);
-			updateText();
+			if(balloon) {
+				balloon.setVisible(balloonVisible);
+				updateText();
+			}
 			gmxAPI._chkListeners('onAdd', gmxAPI.map.drawing, domObj);
 
 			ret.setVisible(ret.isVisible);
@@ -364,7 +371,7 @@
 
 		var ret = {};
 		var domObj = false;
-		var propsBalloon = gmxAPI.map.balloonClassObject.propsBalloon;
+		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
 
 		var obj = gmxAPI.map.addObject();
 		obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
@@ -497,7 +504,7 @@
 		var ret = {};
 		var domObj = false;
 
-		var propsBalloon = gmxAPI.map.balloonClassObject.propsBalloon;
+		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
 		var obj = gmxAPI.map.addObject();
 		obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 		obj.setEditable(true);
@@ -651,11 +658,11 @@
 		var x2Border = borders.addObject();
 		var y2Border = borders.addObject();
 
-		var propsBalloon = gmxAPI.map.balloonClassObject.propsBalloon;
+		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
 		var mouseUP = function()
 		{
 			isDraging = false;
-			propsBalloon.updatePropsBalloon(false);
+			if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 			domObj.triggerInternal("onMouseUp");
 			chkEvent(null);
 		}
@@ -692,7 +699,7 @@
 		// Высвечивание балуна в зависимости от типа geometry
 		var chkBalloon = function(tp)
 		{
-			if(!isDraging) {
+			if(!isDraging && propsBalloon) {
 				var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
 				if(gmxAPI.map.drawing.enabledHoverBalloon) {
 						switch(tp) {
@@ -763,7 +770,7 @@
 			repaint();
 			eventType = 'onEdit';
 			chkEvent(null);
-			if(gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
+			if(propsBalloon && gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
 		}
 		x1Border.enableDragging(function(x, y) { x1 = x; dragMe('x1b'); }, null, mouseUP);
 		y1Border.enableDragging(function(x, y) { y1 = y; dragMe('y1b'); }, null, mouseUP);
@@ -847,7 +854,7 @@
 				function()
 				{
 					isDraging = false;
-					propsBalloon.updatePropsBalloon(false);
+					if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 					gmxAPI._setToolHandler("onMouseDown", null);
 					toolsContainer.selectTool("move");
 					if(domObj) domObj.triggerInternal("onMouseUp");
