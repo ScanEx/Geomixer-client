@@ -28,6 +28,27 @@ var memoize = function(func)
 
 window.PI = 3.14159265358979; //устарело - обратная совместимость
 window.gmxAPI = {
+	clone: function (o)
+	{
+		if(!o || typeof(o) !== 'object')  {
+			return o;
+		}
+		var c = 'function' === typeof(o.pop) ? [] : {};
+		var p, v;
+		for(p in o) {
+			if(o.hasOwnProperty(p)) {
+				v = o[p];
+				if(v && 'object' === typeof v) {
+					c[p] = gmxAPI.clone(v);
+				}
+				else {
+					c[p] = v;
+				}
+			}
+		}
+		return c;
+	}
+	,
 	KOSMOSNIMKI_LOCALIZED: function (rus, eng)
 	{
 		return (window.KOSMOSNIMKI_LANGUAGE == "English") ? eng : rus;
@@ -1363,8 +1384,80 @@ window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
 window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/Math.PI;
 window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName основной карты по умолчанию
 
-})();
+	(function()
+	{
+		// Begin: Блок общих методов не доступных из вне
+		var stateListeners = {};	// Глобальные события
+		
+		function getArr(eventName, obj)
+		{
+			var arr = (obj ? 
+				('stateListeners' in obj && eventName in obj.stateListeners ? obj.stateListeners[eventName] : [])
+				: ( eventName in stateListeners ? stateListeners[eventName] : [])
+			);
+			return arr;
+		}
+		// Обработка пользовательских Listeners на obj
+		function chkListeners(eventName, obj, attr)
+		{
+			var out = true;
+			var arr = getArr(eventName, obj);
+			for (var i=0; i<arr.length; i++)
+			{
+				out = arr[i].func(attr);
+			}
+			return out;
+		}
 
+		/** Пользовательские Listeners изменений состояния карты
+		* @function addMapStateListener
+		* @memberOf api - добавление прослушивателя
+		* @param {eventName} название события
+		* @param {func} вызываемый метод
+		* @return {id} присвоенный id прослушивателя
+		* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+		* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+		*/
+		function addMapStateListener(obj, eventName, func)
+		{
+			var arr = getArr(eventName, obj);
+			var id = gmxAPI.newFlashMapId();
+			arr.push({"id": id, "func": func });
+			if(obj) obj.stateListeners[eventName] = arr;
+			else stateListeners[eventName] = arr;
+			return id;
+		}
+
+		/** Пользовательские Listeners изменений состояния карты
+		* @function removeMapStateListener
+		* @memberOf api - удаление прослушивателя
+		* @param {eventName} название события
+		* @param {id} вызываемый метод
+		* @return {Bool} true - удален false - не найден
+		* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+		* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+		*/
+		function removeMapStateListener(obj, eventName, id)
+		{
+			var arr = getArr(eventName, obj);
+			var out = [];
+			for (var i=0; i<arr.length; i++)
+			{
+				if(id != arr[i]["id"]) out.push(arr [i]);
+			}
+			if(obj) obj.stateListeners[eventName] = out;
+			else stateListeners[eventName] = out;
+			return true;
+		}
+		gmxAPI._listeners = {
+			'chkListeners': chkListeners,
+			'addMapStateListener': addMapStateListener,
+			'removeMapStateListener': removeMapStateListener
+		};
+		// End: Блок общих методов не доступных из вне
+	})();
+
+})();
 // Блок методов глобальной области видимости
 var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";		// ID базовой карты подложек
 var tmp = [
@@ -1690,61 +1783,9 @@ function createFlashMapInternal(div, layers, callback)
 
 	var focusLink = document.createElement("a");
 
-	// Begin: Блок общих методов не доступных из вне
-	// Обработка пользовательских Listeners на obj
-	function chkListeners(eventName, obj, attr)
-	{
-		var out = true;
-		if ('stateListeners' in obj && eventName in obj.stateListeners) {
-			var arr = obj.stateListeners[eventName];
-			for (var i=0; i<arr.length; i++)
-			{
-				out = arr[i].func(attr);
-			}
-		}
-		return out;
-	}
-	gmxAPI._chkListeners = chkListeners;
-
-	/** Пользовательские Listeners изменений состояния карты
-	* @function addMapStateListener
-	* @memberOf api - добавление прослушивателя
-	* @param {eventName} название события
-	* @param {func} вызываемый метод
-	* @return {id} присвоенный id прослушивателя
-	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
-	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-	*/
-	function addMapStateListener(obj, eventName, func)
-	{
-		if(!obj.stateListeners[eventName]) obj.stateListeners[eventName] = [];
-		var id = gmxAPI.newFlashMapId();
-		obj.stateListeners[eventName].push({"id": id, "func": func });
-		return id;
-	}
-
-	/** Пользовательские Listeners изменений состояния карты
-	* @function removeMapStateListener
-	* @memberOf api - удаление прослушивателя
-	* @param {eventName} название события
-	* @param {id} вызываемый метод
-	* @return {Bool} true - удален false - не найден
-	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
-	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-	*/
-	function removeMapStateListener(obj, eventName, id)
-	{
-		if(!obj.stateListeners[eventName]) return false;
-		var arr = [];
-		for (var i=0; i<obj.stateListeners[eventName].length; i++)
-		{
-			if(id != obj.stateListeners[eventName][i]["id"]) arr.push(obj.stateListeners[eventName][i]);
-		}
-		obj.stateListeners[eventName] = arr;
-		return true;
-	}
-	// End: Блок общих методов не доступных из вне
-
+	gmxAPI._chkListeners = gmxAPI._listeners.chkListeners;
+	addMapStateListener = gmxAPI._listeners.addMapStateListener;
+	removeMapStateListener = gmxAPI._listeners.removeMapStateListener;
 
 	var loadCallback = function(rootObjectId)
 	{ 
@@ -1830,7 +1871,7 @@ function createFlashMapInternal(div, layers, callback)
 				var val = (flag ? true : false);
 				var prev = this.isVisible;
 				this.isVisible = val;
-				if(prev != val) chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
+				if(prev != val) gmxAPI._listeners.chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
 			}
 			FlashMapObject.prototype.getDepth = function(attr) { return gmxAPI._cmdProxy('getDepth', { 'obj': this }); }
 			FlashMapObject.prototype.delClusters = function(attr) { return gmxAPI._cmdProxy('delClusters', { 'obj': this }); }
@@ -1846,11 +1887,6 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
 			FlashMapObject.prototype.moveTo = function(x, y, z) { gmxAPI._cmdProxy('moveTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
 			FlashMapObject.prototype.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
-			
-			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
-				if(map.balloonClassObject) map.balloonClassObject.hideHoverBalloons(true);
-				gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
-			}
 			FlashMapObject.prototype.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }
 			FlashMapObject.prototype.unfreeze = function() { gmxAPI._cmdProxy('unfreeze', {}); }
 			FlashMapObject.prototype.setCursor = function(url, dx, dy) { gmxAPI._cmdProxy('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
@@ -2207,11 +2243,6 @@ function createFlashMapInternal(div, layers, callback)
 				return out;
 			}
 
-
-			FlashMapObject.prototype.addBalloon = function() {	return (map.balloonClassObject ? map.balloonClassObject.addBalloon() : null);	}
-			FlashMapObject.prototype.enableHoverBalloon = function(callback, attr) { if(map.balloonClassObject) map.balloonClassObject.enableHoverBalloon(this, callback, attr); }
-			FlashMapObject.prototype.disableHoverBalloon = function() { if(map.balloonClassObject) map.balloonClassObject.disableHoverBalloon(this); }
-
 			FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
 			{
 				this.setStyle(
@@ -2289,7 +2320,7 @@ function createFlashMapInternal(div, layers, callback)
 						gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
 						//alert(e);
 					}
-					if(map.balloonClassObject) map.balloonClassObject.clickBalloonFix(o);
+					gmxAPI._listeners.chkListeners('clickBalloonFix', map, o);	// Проверка map Listeners на clickBalloonFix
 				});
 			}
 
@@ -2341,7 +2372,7 @@ function createFlashMapInternal(div, layers, callback)
 					var flag = (minZoom && curZ < minZoom ? true : false);
 					var mZ = (maxZoom ? maxZoom : 18);
 					if(!flag && curZ > mZ) flag = true;
-					if(flag && map.balloonClassObject) map.balloonClassObject.clickBalloonFix(o);
+					if(flag) gmxAPI._listeners.chkListeners('clickBalloonFix', map, o);	// Проверка map Listeners на clickBalloonFix
 					///// End
 
 					if (!images[id]) {
@@ -2520,10 +2551,8 @@ function createFlashMapInternal(div, layers, callback)
 					filter.setZoomBounds(style.MinZoom, style.MaxZoom);
 					filter.setStyle(givenStyle, hoveredStyle);
 					
-					if(map.balloonClassObject) {
-						map.balloonClassObject.applyBalloonDefaultStyle(style);
-						map.balloonClassObject.setBalloonFromParams(filter, style);
-					}
+					gmxAPI._listeners.chkListeners('reSetStyles', map, {'filter': filter, 'style':style} );	// Проверка map Listeners на reSetStyles
+					
 					var filterOld = obj.filters[i];
 					if(filterOld && filterOld['clusters']) {	// Перенос атрибутов кластеризации в новый filter
 						filter.setClusters(filterOld['clusters']['attr']);
@@ -2897,7 +2926,7 @@ function createFlashMapInternal(div, layers, callback)
 								for (var i=0; i<obj.filters.length; i++)	// переустановка фильтров
 									obj.filters[i].setFilter(obj.filters[i]._sql, true);
 
-								if(map.balloonClassObject) map.balloonClassObject.removeHoverBalloons();
+								gmxAPI._listeners.chkListeners('hideBalloons', map);	// Проверка map Listeners на hideBalloons
 							}
 							return currentData['daysDelta'];
 						}
@@ -3268,7 +3297,7 @@ function createFlashMapInternal(div, layers, callback)
 				needToStopDragging = false;
 			}
 
-			map.balloonClassObject = ('BalloonClass' in gmxAPI ? new gmxAPI.BalloonClass(map, div, apiBase) : null);
+			gmxAPI._listeners.chkListeners('mapInit', null, map);	// Глобальный Listeners
 
 			var toolHandlers = {};
 			var userHandlers = {};
@@ -4181,7 +4210,7 @@ function createFlashMapInternal(div, layers, callback)
 				var attr = {'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
 				coordFormatCallbacks[coordFormat](coordinates, attr);
 				//coordinates.innerHTML = getCoordinatesText();
-				chkListeners('onSetCoordinatesFormat', map, coordFormat);
+				gmxAPI._listeners.chkListeners('onSetCoordinatesFormat', map, coordFormat);
 			}
 
 			var coordFormat = 0;
@@ -4647,7 +4676,7 @@ function createFlashMapInternal(div, layers, callback)
 				*/
 				if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
 					var attr = {'div': locationTitleDiv, 'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
-					chkListeners('positionChanged', map, attr);
+					gmxAPI._listeners.chkListeners('positionChanged', map, attr);
 				}
 
 				if (copyrightUpdateTimeout2)
@@ -4924,6 +4953,11 @@ function createFlashMapInternal(div, layers, callback)
 				document.body.appendChild(gplForm);
 	
 				gplForm.submit();
+			}
+			
+			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
+				gmxAPI._listeners.chkListeners('zoomBy', map);			// Проверка map Listeners на zoomBy
+				gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
 			}
 
 			if (callback)

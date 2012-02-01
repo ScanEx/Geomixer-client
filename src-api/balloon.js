@@ -4,14 +4,13 @@
 	/** Класс управления балунами
 	* @function
 	* @memberOf api
-	* @param {map} ссылка на обьект карты
-	* @param {div} ссылка HTML контейнер карты
-	* @param {apiBase} URL основного домена
-	* @see <a href="http://kosmosnimki.ru/geomixer/docs/">» Пример использования</a>.
+	* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_examples.html">» Примеры использования</a>.
 	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 	*/
-	function BalloonClass(map, div, apiBase)
+	function BalloonClass()
 	{
+		var map = gmxAPI.map;
+		var div = gmxAPI._div;
 		var apiBase = gmxAPI.getAPIFolderRoot();
 		var balloons = [];
 		var curMapObject = null;
@@ -718,24 +717,48 @@
 		//явно прописывает все свойства балунов в стиле.
 		var applyBalloonDefaultStyle = function(balloonStyle)
 		{
+			var out = gmxAPI.clone(balloonStyle);
 			//слой только что создали - всё по умолчанию!
-			if (typeof balloonStyle.BalloonEnable === 'undefined')
+			if (typeof out.BalloonEnable === 'undefined')
 			{
-				balloonStyle.BalloonEnable = true;
-				balloonStyle.DisableBalloonOnClick = false;
-				balloonStyle.DisableBalloonOnMouseMove = true;
+				out.BalloonEnable = true;
+				out.DisableBalloonOnClick = false;
+				out.DisableBalloonOnMouseMove = true;
 			} 
 			else
 			{
 				//поддержка совместимости - если слой уже был, но новых параметров нет 
-				if (typeof balloonStyle.DisableBalloonOnClick === 'undefined')
-					balloonStyle.DisableBalloonOnClick = false;
+				if (typeof out.DisableBalloonOnClick === 'undefined')
+					out.DisableBalloonOnClick = false;
 					
-				if (typeof balloonStyle.DisableBalloonOnMouseMove === 'undefined')
-					balloonStyle.DisableBalloonOnMouseMove = false;
+				if (typeof out.DisableBalloonOnMouseMove === 'undefined')
+					out.DisableBalloonOnMouseMove = false;
 			}
+			return out;
 		}
 		this.applyBalloonDefaultStyle = applyBalloonDefaultStyle;
 	}
-    gmxAPI.BalloonClass = BalloonClass;
+
+	// Добавление прослушивателей событий
+	gmxAPI._listeners.addMapStateListener(null, 'mapInit', function(map)	// Глобальный Listener инициализации map
+		{
+			if(!map || map.balloonClassObject) return;
+			map.balloonClassObject = new BalloonClass();
+			gmxAPI._listeners.addMapStateListener(map, 'zoomBy', function()	{ map.balloonClassObject.hideHoverBalloons(true); });
+			gmxAPI._listeners.addMapStateListener(map, 'hideBalloons', function() { map.balloonClassObject.hideHoverBalloons(); });
+			gmxAPI._listeners.addMapStateListener(map, 'clickBalloonFix', function(o) { map.balloonClassObject.clickBalloonFix(o); });
+			gmxAPI._listeners.addMapStateListener(map, 'reSetStyles', function(data)
+				{
+					var fullStyle = map.balloonClassObject.applyBalloonDefaultStyle(data['style']);
+					map.balloonClassObject.setBalloonFromParams(data['filter'], fullStyle);
+				}
+			);
+			
+			//расширяем FlashMapObject
+			gmxAPI.extendFMO('addBalloon', function() { return map.balloonClassObject.addBalloon(); });
+			gmxAPI.extendFMO('enableHoverBalloon', function(callback, attr) { map.balloonClassObject.enableHoverBalloon(this, callback, attr); });
+			gmxAPI.extendFMO('disableHoverBalloon', function() { map.balloonClassObject.disableHoverBalloon(this); });
+		}
+	);
+	//gmxAPI.BalloonClass = BalloonClass;
 })();

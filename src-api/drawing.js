@@ -22,7 +22,7 @@
 		}
 		return out;
 	};
-
+	
 	var objects = {};
 	var drawFunctions = {};
 
@@ -93,7 +93,6 @@
 		toolsContainer.currentlyDrawnObject = ret;
 
 		ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
-
 		ret.stopDrawing = function()
 		{
 			if (!isDrawing)
@@ -115,7 +114,7 @@
 				toolsContainer.selectTool("move");
 			if (obj)
 			{
-				gmxAPI._chkListeners('onRemove', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.chkListeners('onRemove', gmxAPI.map.drawing, domObj);
 				obj.remove();
 				if(balloon) balloon.remove();
 				domObj.removeInternal();
@@ -203,7 +202,7 @@
 			var dragCallback = function(x, y)
 			{
 				position(x + startDx, y + startDy);
-				gmxAPI._chkListeners('onEdit', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.chkListeners('onEdit', gmxAPI.map.drawing, domObj);
 			}
 			var downCallback = function(x, y)
 			{
@@ -333,7 +332,7 @@
 				balloon.setVisible(balloonVisible);
 				updateText();
 			}
-			gmxAPI._chkListeners('onAdd', gmxAPI.map.drawing, domObj);
+			gmxAPI._listeners.chkListeners('onAdd', gmxAPI.map.drawing, domObj);
 
 			ret.setVisible(ret.isVisible);
 		}
@@ -376,6 +375,17 @@
 		var obj = gmxAPI.map.addObject();
 		obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 		obj.setEditable(true);
+		
+		// Проверка пользовательских Listeners
+		var chkEvent = function(eType, out)
+		{
+			if(gmxAPI.map.drawing.enabledHoverBalloon) {
+				var st = (out ? out : false);
+				propsBalloon.updatePropsBalloon(st);
+			}
+			gmxAPI._listeners.chkListeners(eType, gmxAPI.map.drawing, domObj);
+		}
+		
 		obj.setHandlers({
 			onEdit: function()
 			{
@@ -385,13 +395,12 @@
 					eventName = 'onAdd';
 				}
 				callOnChange();
-				gmxAPI._chkListeners(eventName, gmxAPI.map.drawing, domObj);
-				if(gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
+				chkEvent(eventName, false);
 			},
 			onFinish: function()
 			{
 				callOnChange();
-				gmxAPI._chkListeners('onFinish', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.chkListeners('onFinish', gmxAPI.map.drawing, domObj);
 				toolsContainer.selectTool("move");
 			},
 			onRemove: function()
@@ -405,26 +414,22 @@
 				var type = obj.getGeometryType();
 				if (type == "LINESTRING") out = gmxAPI.prettifyDistance(obj.getIntermediateLength());
 				else if (type == "POLYGON")	out = obj.getGeometrySummary();
-				if(out && gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(out);
-				gmxAPI._chkListeners('onNodeMouseOver', gmxAPI.map.drawing, domObj);
+				chkEvent('onNodeMouseOver', out);
 			},
 			onNodeMouseOut: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
-				gmxAPI._chkListeners('onNodeMouseOut', gmxAPI.map.drawing, domObj);
-				if(gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
+				chkEvent('onNodeMouseOut', false);
 			},
 			onEdgeMouseOver: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
-				if(gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
-				gmxAPI._chkListeners('onEdgeMouseOver', gmxAPI.map.drawing, domObj);
+				chkEvent('onEdgeMouseOver', gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
 			},
 			onEdgeMouseOut: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
-				gmxAPI._chkListeners('onEdgeMouseOut', gmxAPI.map.drawing, domObj);
-				if(gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
+				chkEvent('onEdgeMouseOut', false);
 			}
 		});
 
@@ -441,7 +446,7 @@
 //					if (obj.isDrawing()) selectTool("move");
 			obj.remove();
 			if (domObj) {
-				gmxAPI._chkListeners('onRemove', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.chkListeners('onRemove', gmxAPI.map.drawing, domObj);
 				domObj.removeInternal();
 			}
 		}
@@ -503,11 +508,22 @@
 
 		var ret = {};
 		var domObj = false;
-
+		
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
 		var obj = gmxAPI.map.addObject();
 		obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 		obj.setEditable(true);
+
+		// Проверка пользовательских Listeners
+		var chkEvent = function(eType, out)
+		{
+			if(gmxAPI.map.drawing.enabledHoverBalloon) {
+				var st = (out ? out : false);
+				propsBalloon.updatePropsBalloon(st);
+			}
+			gmxAPI._listeners.chkListeners(eType, gmxAPI.map.drawing, domObj);
+		}
+
 		obj.setHandlers({
 			onEdit: function()
 			{
@@ -517,12 +533,11 @@
 					eventName = 'onAdd';
 				}
 				callOnChange();
-				gmxAPI._chkListeners(eventName, gmxAPI.map.drawing, domObj);
-				if(gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
+				chkEvent(eventName, false);
 			},
 			onFinish: function()
 			{
-				gmxAPI._chkListeners('onFinish', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.chkListeners('onFinish', gmxAPI.map.drawing, domObj);
 				toolsContainer.selectTool("move");
 			},
 			onRemove: function()
@@ -532,26 +547,22 @@
 			onNodeMouseOver: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
-				if(gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(obj.getGeometrySummary());
-				gmxAPI._chkListeners('onNodeMouseOver', gmxAPI.map.drawing, domObj);
+				chkEvent('onNodeMouseOver', obj.getGeometrySummary());
 			},
 			onNodeMouseOut: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
-				gmxAPI._chkListeners('onNodeMouseOut', gmxAPI.map.drawing, domObj);
-				if(gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
+				chkEvent('onNodeMouseOut', false);
 			},
 			onEdgeMouseOver: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
-				if(gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
-				gmxAPI._chkListeners('onEdgeMouseOver', gmxAPI.map.drawing, domObj);
+				chkEvent('onEdgeMouseOver', gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
 			},
 			onEdgeMouseOut: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
-				gmxAPI._chkListeners('onEdgeMouseOut', gmxAPI.map.drawing, domObj);
-				if(gmxAPI.map.drawing.enabledHoverBalloon) propsBalloon.updatePropsBalloon(false);
+				chkEvent('onEdgeMouseOut', false);
 			}
 		});
 
@@ -568,7 +579,7 @@
 			//if (obj.isDrawing())	selectTool("move");
 			obj.remove();
 			if (domObj) {
-				gmxAPI._chkListeners('onRemove', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.chkListeners('onRemove', gmxAPI.map.drawing, domObj);
 				domObj.removeInternal();
 			}
 		}
@@ -677,7 +688,7 @@
 		// Проверка пользовательских Listeners
 		var chkEvent = function()
 		{
-			gmxAPI._chkListeners(eventType, gmxAPI.map.drawing, domObj);
+			gmxAPI._listeners.chkListeners(eventType, gmxAPI.map.drawing, domObj);
 		}
 
 		function getGeometryTitleMerc(geom)

@@ -1645,7 +1645,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	}
 	
 	// balloon
-	globalFlashMap.balloonClassObject.applyBalloonDefaultStyle(parentStyle);
+	parentStyle = globalFlashMap.balloonClassObject.applyBalloonDefaultStyle(parentStyle);
 	/*var balloonProps = {
 		Ballon: parentStyle.Balloon, 
 		BalloonEnable: typeof parentStyle.BalloonEnable !== 'undefined' ? parentStyle.BalloonEnable : true,
