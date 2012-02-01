@@ -51,6 +51,7 @@
 		sendCrossDomainJSONRequest(_hostname, function(response)
 		{
 			if(typeof(response) != 'object' || response['Status'] != 'ok') {
+				callback(null);
 				gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
 				return;
 			}
@@ -510,9 +511,9 @@
 			var me = this;
 			gmxAPI._kmlParser.get(url, function(result)
 			{
-				gmxAPI._kmlParser.draw(result.vals, me);
+				if(result) gmxAPI._kmlParser.draw(result.vals, me);
 				if (func)
-					func();
+					func(result);
 			}, gmxAPI.map);
 		}
 	);
