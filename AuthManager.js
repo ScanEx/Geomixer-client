@@ -22,7 +22,8 @@ var nsGmx = nsGmx || {};
         ACTION_SEE_MAP_RIGHTS       : 'seeRights',
         ACTION_SEE_FILE_STRUCTURE   : 'seeFiles',
         ACTION_SEE_ALL_USERS        : 'seeUsers',
-        ACTION_SEE_USER_FULLNAME    : 'seeUserFullname'
+        ACTION_SEE_USER_FULLNAME    : 'seeUserFullname',
+        ACTION_UPLOAD_FILES         : 'uploadFiles'
     });
     
     var _actions = {};
@@ -37,6 +38,7 @@ var nsGmx = nsGmx || {};
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_SEE_FILE_STRUCTURE  ] = true;
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_SEE_ALL_USERS       ] = true;
     _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_SEE_USER_FULLNAME   ] = true;
+    _actions[nsGmx.ROLE_ADMIN][nsGmx.ACTION_UPLOAD_FILES        ] = true;
     
     _actions[nsGmx.ROLE_USER] = {};
     _actions[nsGmx.ROLE_USER][nsGmx.ACTION_CREATE_LAYERS     ] = true;
@@ -44,6 +46,7 @@ var nsGmx = nsGmx || {};
     _actions[nsGmx.ROLE_USER][nsGmx.ACTION_SAVE_MAP          ] = true;
     _actions[nsGmx.ROLE_USER][nsGmx.ACTION_SEE_OPEN_MAP_LIST ] = true;
     _actions[nsGmx.ROLE_USER][nsGmx.ACTION_SEE_MAP_RIGHTS    ] = true;
+    _actions[nsGmx.ROLE_USER][nsGmx.ACTION_UPLOAD_FILES      ] = true;
     
     _actions[nsGmx.ROLE_GUEST] = {}
     _actions[nsGmx.ROLE_GUEST][nsGmx.ACTION_SEE_OPEN_MAP_LIST ] = true;

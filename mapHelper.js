@@ -1697,7 +1697,6 @@ mapHelper.ImageInputControl = function(initURL)
     var inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', prevValue], ['css','width','180px']]);
     _title(inputUrl, _gtxt("URL изображения"));
     
-    var userImageIcon = makeImageButton("img/choose2.png", "img/choose2_a.png");
     var _this = this;
     
     var update = function()
@@ -1709,31 +1708,35 @@ mapHelper.ImageInputControl = function(initURL)
         }
     }
     
-    userImageIcon.onclick = function()
-    {
-        var imagesDir = nsGmx.AuthManager.getUserFolder() + '\\images';
-        sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(imagesDir), function(response)
-        {
-            if (!parseResponse(response))
-				return;
-                
-            _fileBrowser.currentDir = imagesDir;
-            _fileBrowser.createBrowser(_gtxt("Изображение"), ['jpg', 'png', 'gif', 'swf'], function(path)
-            {
-                var relativePath = path.substring(imagesDir.length);
-                if (relativePath[0] == '\\') 
-                    relativePath = relativePath.substring(1);
-                    
-                inputUrl.value = serverBase + "GetImage.ashx?usr=" + encodeURIComponent(nsGmx.AuthManager.getLogin()) + "&img=" + encodeURIComponent(relativePath);
-                update();
-            })
-        })
-    }
-    
+    var mainDiv = $("<div/>").append(inputUrl);
     inputUrl.onkeyup = inputUrl.change = update;
     
-    var mainDiv = $("<div/>").append(inputUrl).append(userImageIcon);
-    
+    if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_UPLOAD_FILES))
+    {
+        var userImageIcon = makeImageButton("img/choose2.png", "img/choose2_a.png");
+        userImageIcon.onclick = function()
+        {
+            var imagesDir = nsGmx.AuthManager.getUserFolder() + '\\images';
+            sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(imagesDir), function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                    
+                _fileBrowser.currentDir = imagesDir;
+                _fileBrowser.createBrowser(_gtxt("Изображение"), ['jpg', 'png', 'gif', 'swf'], function(path)
+                {
+                    var relativePath = path.substring(imagesDir.length);
+                    if (relativePath[0] == '\\') 
+                        relativePath = relativePath.substring(1);
+                        
+                    inputUrl.value = serverBase + "GetImage.ashx?usr=" + encodeURIComponent(nsGmx.AuthManager.getLogin()) + "&img=" + encodeURIComponent(relativePath);
+                    update();
+                })
+            })
+        }
+        mainDiv.append(userImageIcon);
+    }
+
     this.getControl = function()
     {
         return mainDiv[0];
