@@ -461,7 +461,7 @@ UpMenu.prototype.checkView = function()
 	{
 		this.enableMenus();
 		
-		this.disableMenus(['mapCreate', 'mapSave', 'mapSaveAs', 'layersMenu', 'pictureBinding', 'kml']);
+		this.disableMenus(['mapCreate', 'mapSave', 'mapSaveAs', 'layersMenu', 'pictureBinding']);
 	}
 	else if (_queryMapLayers.currentMapRights() != "edit")
 	{

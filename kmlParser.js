@@ -52,7 +52,7 @@ queryKML.prototype.load = function()
                 };
                 _this._loadedKML.push(kmlInfo);
                 
-				_this.addFile(info, resp.name, kmlInfo.id);
+				_this.addFile(info, resp.name, true, kmlInfo.id);
 			})
 				
 			inputField.value = '';
@@ -87,7 +87,7 @@ queryKML.prototype.load = function()
                         isVisible: true
                     };
                     _this._loadedKML.push(kmlInfo);
-					_this.addFile(info, resp.name, kmlInfo.id);
+					_this.addFile(info, resp.name, true, kmlInfo.id);
 				})
 					
 				inputField.value = '';
@@ -99,39 +99,70 @@ queryKML.prototype.load = function()
 	  	}
 	}
 	
+    
+    
 	var canvas = _div([_div([_span([_t(_gtxt("URL файла"))])], [['css','marginBottom','3px']]),_table([_tbody([_tr([_td([inputField],[['css','width','220px']]),_td([goButton])])])], [['css','marginBottom','5px']])],[['css','margin','3px 0px 0px 10px']])
 
-	var formFile = ($.browser.msie) ? document.createElement('<form enctype="multipart/form-data" method="post" action="' + serverBase + 'ApiSave.ashx?WrapStyle=window" id="form" target="kml_iframe">') : _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'ApiSave.ashx?WrapStyle=window'],['attr','target','kml_iframe']]);
-	formFile.style.width = '200px';
-	formFile.style.marginLeft = '3px';
+	//var formFile = ($.browser.msie) ? document.createElement('<form enctype="multipart/form-data" method="post" action="' + serverBase + 'ApiSave.ashx?WrapStyle=window" id="form" target="kml_iframe">') : _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'ApiSave.ashx?WrapStyle=window'],['attr','target','kml_iframe']]);
 
 	var attach = ($.browser.msie) ? document.createElement('<input type="file" name="rawdata" width="220px">') : _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','220px']]);
-	_(formFile, [attach]);
+    var formFile = _form([attach], [['attr', 'method', 'POST'], ['attr', 'encoding', 'multipart/form-data'], ['attr', 'enctype', 'multipart/form-data'], ['attr', 'id', 'upload_shapefile_form']]);
+    formFile.style.width = '200px';
+	formFile.style.marginLeft = '3px';
 	
 	var loadButton = makeButton(_gtxt("Загрузить"));
 	loadButton.onclick = function()
 	{
-		if (!nsGmx.AuthManager.isLogin())
+        //если пользователь может загружать файлы и сохранять карту, то будем загружать KML к нему на диск и хранить в карте её адрес
+        //иначе просто прокачаем через наш сервер без сохранения
+		if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_UPLOAD_FILES) && nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SAVE_MAP) && _queryMapLayers.currentMapRights() === "edit")
 		{
-			nsGmx.widgets.authWidget.showLoginDialog();
-			return;
-		}
-		
-		var iframe = createPostIframe("kml_iframe", function(response)
-		{
-			if (!parseResponse(response))
-				return;
-			
-			var resp = gmxAPI._kmlParser.parse(response.Result);
+        
+            var shareKMLFolder = nsGmx.AuthManager.getUserFolder() + "\\share\\kml";
+            sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + shareKMLFolder, function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                    
+                var randomFilename = String(Math.random()).slice(2) + '.kml';
+                sendCrossDomainPostRequest(serverBase + "FileBrowser/Upload.ashx", {WrapStyle: "window", ParentDir: shareKMLFolder, name: randomFilename}, function(response)
+                {
+                    var kmlURL = serverBase + "GetFile.ashx?login=" + encodeURIComponent(nsGmx.AuthManager.getLogin()) + "&file=" + encodeURIComponent("kml\\" + randomFilename);
+                    sendCrossDomainJSONRequest(serverBase + 'ApiSave.ashx?get=' + encodeURIComponent(kmlURL), function(response)
+                    {
+                        if (!parseResponse(response))
+                            return;
+                        
+                        var resp = gmxAPI._kmlParser.parse(response.Result);
 
-			var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
-			
-			_this.addFile(info, resp.name)
-		});
-		
-		_(document.body, [iframe]);
-		
-		formFile.submit();
+                        var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
+                        
+                        var kmlInfo = {
+                            id: _this.newID(), 
+                            url: kmlURL, 
+                            name: resp.name,
+                            isVisible: true
+                        };
+                        _this._loadedKML.push(kmlInfo);
+                        _this.addFile(info, resp.name, true, kmlInfo.id);
+                    });
+                }, formFile)
+            })
+        }
+        else
+        {
+            sendCrossDomainPostRequest(serverBase + "ApiSave.ashx", {WrapStyle: "window"}, function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                
+                var resp = gmxAPI._kmlParser.parse(response.Result);
+
+                var info = gmxAPI._kmlParser.draw(resp.vals, globalFlashMap.addObject());
+                
+                _this.addFile(info, resp.name, true)
+            }, formFile);
+        }
 	}
 	
 	_(this.workCanvas, [canvas, _table([_tbody([_tr([_td([formFile],[['css','width','220px']]), _td([loadButton])])])],[['css','margin','5px 0px 10px 10px']]), this.parentCanvas])
@@ -227,7 +258,7 @@ _userObjects.addDataCollector('kml', {
         if (!data)
             return;
         
-        KML.KML.load();
+        KML.KML.load('kml');
         
         _queryKML._loadedKML = [];
         var loadedCount = 0;
