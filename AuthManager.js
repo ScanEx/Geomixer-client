@@ -58,19 +58,19 @@ var nsGmx = nsGmx || {};
         this.getLogin = function()
         {
             if (!_userInfo) return null;
-            return _userInfo.Login;
+            return _userInfo.Login || null;
         };
         
         this.getNickname = function()
         {
             if (!_userInfo) return null;
-            return _userInfo.Nickname;
+            return _userInfo.Nickname || null;
         };
         
         this.getFullname = function()
         {
             if (!_userInfo) return null;
-            return _userInfo.Fullname;
+            return _userInfo.Fullname || null;
         };
         
         this.getUserFolder = function()
