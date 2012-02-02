@@ -1800,50 +1800,7 @@ function createFlashMapInternal(div, layers, callback)
 			var flashDiv = document.getElementById(flashId);
 			gmxAPI.flashDiv = flashDiv;
 			flashDiv.style.MozUserSelect = "none";
-            
-			var Clusters =	function(parent)		// атрибуты кластеризации потомков
-			{
-				this._parent = parent;
-				var RenderStyle = {		// стили кластеров
-					marker: { image: 'http://kosmosnimki.ru/poi2/cluster_img.png', center: true, minScale: 0.5, maxScale: 2, scale: '[Количество]/50' },
-					label: { size: 12, align:'center', color: 0xff00ff, haloColor: 0xffffff, value:'[Метка]', field:'Количество' }
-				};
-				var HoverStyle = {		// стили кластеров при наведении
-					marker: { image: 'http://kosmosnimki.ru/poi2/cluster_img_hover.png', center: true, minScale: 0.5, maxScale: 2, scale: '[Количество]/50' },
-					label: { size: 12, align:'center', color: 0xff0000, haloColor: 0xffffff, value:'[Метка]', field:'Количество' }
-				};
-
-				this._attr = {
-					'radius': 20,
-					'iterationCount': 1,
-					'newProperties': {						// Заполняемые поля properties кластеров
-						'Количество': '[objectInCluster]'	// objectInCluster - количество обьектов попавших в кластер (по умолчанию 'Количество')
-					},
-					'RenderStyle': RenderStyle,				// стили кластеров
-					'HoverStyle': HoverStyle,				// стили кластеров при наведении
-					'clusterView': {},						// Атрибуты отображения членов кластера (при null не отображать)
-					'visible': false
-				};
-			};
-			Clusters.prototype = {
-				'_chkToFlash':	function() {
-					if(this._attr.visible && this._parent) gmxAPI._cmdProxy('setClusters', { 'obj': this._parent, 'attr': this._attr });
-				},
-				'setProperties':function(prop) { var out = {}; for(key in prop) out[key] = prop[key]; this._attr.newProperties = out; this._chkToFlash(); },
-				'getProperties':function() { var out = {}; for(key in this._attr.newProperties) out[key] = this._attr.newProperties[key]; return out; },
-				'setStyle':		function(style, activeStyle) { this._attr.RenderStyle = style; this._attr.HoverStyle = (activeStyle ? activeStyle : style); this._chkToFlash(); },
-				'getStyle':		function() { var out = {}; if(this._attr.RenderStyle) out.RenderStyle = this._attr.RenderStyle; if(this._attr.HoverStyle) out.HoverStyle = this._attr.HoverStyle; return out; },
-				'setRadius':	function(radius) { this._attr.radius = radius; this._chkToFlash(); },
-				'getRadius':	function() { return this._attr.radius; },
-				'setIterationCount':	function(iterationCount) { this._attr.iterationCount = iterationCount; this._chkToFlash(); },
-				'getIterationCount':	function() { return this._attr.iterationCount; },
-				'getVisible':	function() { return this._attr.visible; },
-				'setVisible':	function(flag) { this._attr.visible = (flag ? true : false); if(this._attr.visible) this._chkToFlash(); else gmxAPI._cmdProxy('delClusters', { 'obj': this._parent }); },
-				'setClusterView':	function(hash) { this._attr.clusterView = hash; this._chkToFlash(); },
-				'getClusterView':	function() { if(!this._attr.clusterView) return null; var out = {}; for(key in this._attr.clusterView) out[key] = this._attr.clusterView[key]; return out; }
-			}
-
-
+			
 			FlashMapObject.prototype.setTileCaching = function(flag) { gmxAPI._cmdProxy('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
 			FlashMapObject.prototype.setDisplacement = function(dx, dy) { gmxAPI._cmdProxy('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
 			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':gmxAPI.uniqueGlobalName(imageUrlFunction), 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
@@ -1874,8 +1831,6 @@ function createFlashMapInternal(div, layers, callback)
 				if(prev != val) gmxAPI._listeners.chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
 			}
 			FlashMapObject.prototype.getDepth = function(attr) { return gmxAPI._cmdProxy('getDepth', { 'obj': this }); }
-			FlashMapObject.prototype.delClusters = function(attr) { return gmxAPI._cmdProxy('delClusters', { 'obj': this }); }
-			FlashMapObject.prototype.setClusters = function(attr) { return gmxAPI._cmdProxy('setClusters', { 'obj': this, 'attr':attr }); }
 			FlashMapObject.prototype.getZoomBounds = function() { return gmxAPI._cmdProxy('getZoomBounds', { 'obj': this }); }
 			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return gmxAPI._cmdProxy('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} }); }
 			FlashMapObject.prototype.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
@@ -2022,8 +1977,8 @@ function createFlashMapInternal(div, layers, callback)
 				return new FlashMapObject(obj, props, this);
 			}
 			FlashMapObject.prototype.setFilter = function(sql) {
-				if(!this.clusters) {
-					this.clusters = new Clusters(this);	// атрибуты кластеризации потомков по фильтру
+				if(!this.clusters && '_Clusters' in gmxAPI) {
+					this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
 				}
 				if(!sql) sql ='';
 				this._sql = sql;			// атрибуты фильтра установленные юзером
@@ -2551,12 +2506,14 @@ function createFlashMapInternal(div, layers, callback)
 					filter.setZoomBounds(style.MinZoom, style.MaxZoom);
 					filter.setStyle(givenStyle, hoveredStyle);
 					
-					gmxAPI._listeners.chkListeners('reSetStyles', map, {'filter': filter, 'style':style} );	// Проверка map Listeners на reSetStyles
-					
 					var filterOld = obj.filters[i];
-					if(filterOld && filterOld['clusters']) {	// Перенос атрибутов кластеризации в новый filter
+					gmxAPI._listeners.chkListeners('reSetStyles', map, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка map Listeners на reSetStyles
+					gmxAPI._listeners.chkListeners('reSetStyles', filterOld, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка filterOld Listeners на reSetStyles
+/*					
+					if(filterOld && filterOld['clusters'] && 'setClusters' in filter) {	// Перенос атрибутов кластеризации в новый filter
 						filter.setClusters(filterOld['clusters']['attr']);
 					}
+*/					
 					//filter.properties = style;
 					obj.filters[i] = filter;
 				}
