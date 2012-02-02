@@ -1691,6 +1691,60 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	}
 }
 
+mapHelper.ImageInputControl = function(initURL)
+{
+    var prevValue = initURL || '';
+    var inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', prevValue], ['css','width','180px']]);
+    _title(inputUrl, _gtxt("URL изображения"));
+    
+    var userImageIcon = makeImageButton("img/choose2.png", "img/choose2_a.png");
+    var _this = this;
+    
+    var update = function()
+    {
+        if (inputUrl.value != prevValue)
+        {
+            prevValue = inputUrl.value;
+            $(_this).change();
+        }
+    }
+    
+    userImageIcon.onclick = function()
+    {
+        var imagesDir = nsGmx.AuthManager.getUserFolder() + '\\images';
+        sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(imagesDir), function(response)
+        {
+            if (!parseResponse(response))
+				return;
+                
+            _fileBrowser.currentDir = imagesDir;
+            _fileBrowser.createBrowser(_gtxt("Изображение"), ['jpg', 'png', 'gif', 'swf'], function(path)
+            {
+                var relativePath = path.substring(imagesDir.length);
+                if (relativePath[0] == '\\') 
+                    relativePath = relativePath.substring(1);
+                    
+                inputUrl.value = serverBase + "GetImage.ashx?usr=" + encodeURIComponent(nsGmx.AuthManager.getLogin()) + "&img=" + encodeURIComponent(relativePath);
+                update();
+            })
+        })
+    }
+    
+    inputUrl.onkeyup = inputUrl.change = update;
+    
+    var mainDiv = $("<div/>").append(inputUrl).append(userImageIcon);
+    
+    this.getControl = function()
+    {
+        return mainDiv[0];
+    }
+    
+    this.value = function()
+    {
+        return inputUrl.value;
+    }
+}
+
 mapHelper.prototype.FillStyleControl = function(initStyle, params)
 {
     var _params = $.extend({showSelectors: true}, params);
@@ -1794,11 +1848,18 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 	));
 	
 	//выбор внешнего паттерна
-	var patternURL = $("<input/>", {"type":"text", title: _gtxt("URL рисунка")}).val(_fillStyle.image).change(function()
+	// var patternURL = $("<input/>", {"type":"text", title: _gtxt("URL рисунка")}).val(_fillStyle.image).change(function()
+    // {
+        // $(_this).change();
+    // });
+	// imagePatternContainer.append(patternURL);
+    
+    var patternURL = new mapHelper.ImageInputControl(_fillStyle.image);
+    $(patternURL).change(function()
     {
         $(_this).change();
     });
-	imagePatternContainer.append(patternURL);
+    imagePatternContainer.append(patternURL.getControl());
 	
 	//выбор втроенных паттернов
     var patternTypeIcons = [
@@ -1970,7 +2031,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
         }
         else if (activeFillType === 'bitmapPattern')
         {
-            fillStyle.image = patternURL.val();
+            fillStyle.image = patternURL.value();
         } 
         else if (activeFillType === 'pattern')
         {
@@ -2037,7 +2098,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		_this.showStyle(iconParent);
 		
 		templateStyle.marker = {};
-		templateStyle.marker.image = inputUrl.value;
+		templateStyle.marker.image = inputUrl.value();
 		templateStyle.marker.center = true;
 		
 		delete templateStyle.outline;
@@ -2370,18 +2431,10 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	iconTitleTds.push(_td([iconToggle],[['css','width','20px'],['css','height','24px'],['attr','vAlign','top'],['css','paddingTop',$.browser.msie ? '2px' : '5px']]));
 	iconTitleTds.push(_td([_t(_gtxt("Маркер URL"))],[['css','width','70px'],['attr','vAlign','top'],['css','paddingTop','5px']]));
 
-	inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', (typeof templateStyle.marker != 'undefined' && templateStyle.marker.image) ? templateStyle.marker.image : ''],['css','width','180px']]);
-	
-	inputUrl.onkeyup = function()
-	{
-		if (this.value != '')
-/*		{
-			showMarker();
-			
-			outlineToggle.checked = true;
-			iconToggle.checked = false;
-		}
-		else*/
+    var inputUrl = new mapHelper.ImageInputControl((typeof templateStyle.marker != 'undefined' && templateStyle.marker.image) ? templateStyle.marker.image : '');
+    $(inputUrl).change(function()
+    {
+        if (inputUrl.value() != '')
 		{
 			showIcon();
 			
@@ -2392,12 +2445,31 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		if (typeof templateStyle.marker == 'undefined')
 			templateStyle.marker = {};
 			
-		templateStyle.marker.image = this.value;
+		templateStyle.marker.image = inputUrl.value();
 		
 		nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
-	}
+    });
+    
+	//inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', (typeof templateStyle.marker != 'undefined' && templateStyle.marker.image) ? templateStyle.marker.image : ''],['css','width','180px']]);	
+	// inputUrl.onkeyup = function()
+	// {
+		// if (this.value != '')
+		// {
+			// showIcon();
+			
+			// outlineToggle.checked = false;
+			// iconToggle.checked = true;
+		// }
+		
+		// if (typeof templateStyle.marker == 'undefined')
+			// templateStyle.marker = {};
+			
+		// templateStyle.marker.image = this.value;
+		
+		// nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+	// }
 	
-	_title(inputUrl, _gtxt("Url изображения"));
+	//_title(inputUrl, _gtxt("Url изображения"));
 	
 	if (geometryType == "point")
 	{        
@@ -2471,17 +2543,17 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 			
 			_title(angle, _gtxt("Угол поворота"))
 			
-			iconTds.push(_td([_table([_tbody([_tr([_td([inputUrl], [['attr','colSpan',3]])]),
+			iconTds.push(_td([_table([_tbody([_tr([_td([inputUrl.getControl()], [['attr','colSpan',3]])]),
 												_tr([_td([markerColor], [['css','paddingLeft','1px']]), _td([angle]), _td([scale], [['css','paddingRight','3px']])])])])]));
 		}
 		else
-			iconTds.push(_td([inputUrl]));
+			iconTds.push(_td([inputUrl.getControl()]));
 	}
 	else if (geometryType == "polygon" || geometryType == "linestring")
 	{
 	//	hide(iconParent);
 	
-		iconTds.push(_td([inputUrl]));
+		iconTds.push(_td([inputUrl.getControl()]));
 		
 		if (geometryType == "linestring")
 			hide(fillParent);
