@@ -1132,4 +1132,5 @@ nsGmx.Utils = {
 	}
 }
 
-gmxCore.addModule('utilities', nsGmx.Utils);
+if (typeof gmxCore !== 'undefined')
+    gmxCore.addModule('utilities', nsGmx.Utils);
