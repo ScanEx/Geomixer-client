@@ -834,7 +834,7 @@ function loadMap(state)
 					_translationsHash.showLanguages();		
 				
 				var isHeaderLinks = false;
-				if (typeof window.headerLinks != 'undefined') isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
+				if (typeof window.headerLinks === 'boolean') isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
 				if ( typeof window.gmxViewerUI != 'undefined' && typeof window.gmxViewerUI.headerLinks != 'undefined' ) isHeaderLinks = window.gmxViewerUI.headerLinks;
 				
 				if (isHeaderLinks) 
@@ -898,8 +898,7 @@ function loadMap(state)
 function addHeaderLinks()
 {
 	_($$('headerLinks'), [_a([_img(null, [['attr','src','img/zoom_tool2.png']]), _t("Поиск снимков")],[['attr','href','http://search.kosmosnimki.ru'],['attr','target','_blank']]),
-							  _a([_img(null, [['attr','src','img/api2.png']]), _t("API (beta)")],[['attr','href','http://kosmosnimki.ru/geomixer/docs/api_start.html'],['attr','target','_blank']]),
-							  _a([_img(null, [['attr','src','img/construct.png']]), _t("Проекты")],[['attr','href','http://kosmosnimki.ru/geomixer/projects.html'],['attr','target','_blank']]),
+							  _a([_img(null, [['attr','src','img/api2.png']]), _t("Документация")],[['attr','href','http://docs.geomixer.ru'],['attr','target','_blank']]),
 							  _a([_img(null, [['attr','src','img/blog.png']]), _t("Блог")],[['attr','href','http://blog.kosmosnimki.ru'],['attr','target','_blank']])])
 
 }
