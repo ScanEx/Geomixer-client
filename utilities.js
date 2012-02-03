@@ -900,13 +900,14 @@ function parseResponse(response, customErrorDescriptions)
 
 function addUserActions()
 {
+    _queryMapLayers.addUserActions();
+    
 	if ( !nsGmx.AuthManager.isAccounts() )
 	{
-		_queryMapLayers.addUserActions();
-		
         _iconPanel.updateVisibility();
 	}
 }
+
 function removeUserActions()
 {
 	_queryMapLayers.removeUserActions();
