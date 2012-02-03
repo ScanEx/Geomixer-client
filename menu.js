@@ -483,6 +483,11 @@ UpMenu.prototype.checkView = function()
 	{
             this.disableMenus(['layersVector', 'layersRaster', 'layersMultiRaster']);
 	}
+    
+    if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_MAP))
+	{
+            this.disableMenus(['mapCreate']);
+	}
 }
 
 UpMenu.prototype.addLoginCanvas = function()

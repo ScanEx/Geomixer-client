@@ -13,17 +13,17 @@ var nsGmx = nsGmx || {};
         ROLE_GUEST        : 'guest',
         ROLE_UNAUTHORIZED : 'none',
         
-        ACTION_CREATE_LAYERS        : 'createData',
-        ACTION_CREATE_MAP           : 'createMap',
-        ACTION_SAVE_MAP             : 'saveMap',
-        ACTION_CHANGE_MAP_TYPE      : 'changeType',
-        ACTION_SEE_OPEN_MAP_LIST    : 'openMap',
-        ACTION_SEE_PRIVATE_MAP_LIST : 'privateMap',
-        ACTION_SEE_MAP_RIGHTS       : 'seeRights',
-        ACTION_SEE_FILE_STRUCTURE   : 'seeFiles',
-        ACTION_SEE_ALL_USERS        : 'seeUsers',
-        ACTION_SEE_USER_FULLNAME    : 'seeUserFullname',
-        ACTION_UPLOAD_FILES         : 'uploadFiles'
+        ACTION_CREATE_LAYERS        : 'createData',      // Создавать новые слои (векторные и растровые)
+        ACTION_CREATE_MAP           : 'createMap',       // Cоздавать новые карты
+        ACTION_SAVE_MAP             : 'saveMap',         // Сохранять карту (нужны права редактирования на карту)
+        ACTION_CHANGE_MAP_TYPE      : 'changeType',      // Менять тип карты (публичная/открытая/закрытая и т.п.)
+        ACTION_SEE_OPEN_MAP_LIST    : 'openMap',         // Видеть список публичных карт
+        ACTION_SEE_PRIVATE_MAP_LIST : 'privateMap',      // Видеть спискок всех карт
+        ACTION_SEE_MAP_RIGHTS       : 'seeRights',       // Видеть и редактировать права пользователей (для объектов, владельцем которых является)
+        ACTION_SEE_FILE_STRUCTURE   : 'seeFiles',        // Видеть всю файловую структуру сервера, а не только свою дом. директорию
+        ACTION_SEE_ALL_USERS        : 'seeUsers',        // Видеть список всех пользователей
+        ACTION_SEE_USER_FULLNAME    : 'seeUserFullname', // Видеть полные имена и логины пользователей (а не только псевдонимы)
+        ACTION_UPLOAD_FILES         : 'uploadFiles'      // Загружать файлы на сервер через web-интерфейс
     });
     
     var _actions = {};
@@ -50,7 +50,6 @@ var nsGmx = nsGmx || {};
     
     _actions[nsGmx.ROLE_GUEST] = {}
     _actions[nsGmx.ROLE_GUEST][nsGmx.ACTION_SEE_OPEN_MAP_LIST ] = true;
-    _actions[nsGmx.ROLE_GUEST][nsGmx.ACTION_CREATE_MAP        ] = true;
     _actions[nsGmx.ROLE_GUEST][nsGmx.ACTION_SAVE_MAP          ] = true;
     
     nsGmx.AuthManager = new function()
