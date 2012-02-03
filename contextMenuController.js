@@ -316,9 +316,9 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	isVisible: function(context)
 	{
 		return !context.layerManagerFlag && 
-				_queryMapLayers.currentMapRights() === "edit" && 
+				//_queryMapLayers.currentMapRights() === "edit" && 
 				nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
-				( _mapHelper.mapProperties.Owner == nsGmx.AuthManager.getLogin() || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
+				( context.elem.Owner == nsGmx.AuthManager.getNickname() || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
 	},
 	clickCallback: function(context)
 	{

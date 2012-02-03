@@ -223,7 +223,7 @@ fileBrowser.prototype.createHeader = function(discs)
 	discButtonTds.push(_td([homeButton], [['attr','vAlign','top']]));
 	
 	var newFolderName = _input(null, [['dir','className','inputStyle'], ['css','width','150px']]),
-		showFolderButton = makeImageButton("img/newfolder.png")
+		showFolderButton = makeImageButton("img/newfolder.png"),
 		newFolderButton = makeButton(_gtxt("Создать")),
 		inputError = function()
 		{
