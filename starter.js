@@ -759,19 +759,7 @@ function loadMap(state)
 					
 				if ( typeof state.customParamsCollection != 'undefined')
 					_mapHelper.customParamsManager.loadParams(state.customParamsCollection);
-				
-					
-				/*if (state.customParams)
-				{
-					try
-					{
-						eval(state.customParams);
-					}
-					catch (e) 
-					{
-						alert(e);
-					}
-				}*/
+
 				_mapHelper.gridView = false;
 				
 				//создаём иконку переключения в полноэкранный режим.
@@ -837,7 +825,12 @@ function loadMap(state)
 				if (typeof window.headerLinks === 'boolean') isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
 				if ( typeof window.gmxViewerUI != 'undefined' && typeof window.gmxViewerUI.headerLinks != 'undefined' ) isHeaderLinks = window.gmxViewerUI.headerLinks;
 				
-				if (isHeaderLinks) 
+				if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
+                {
+                    $('#headerLinks').append(_a([_t(_gtxt('Администрирование'))], [['dir', 'href', serverBase + '/Administration/SettingsAdmin.aspx'], ['attr','target','_blank'], ['css', 'marginTop', '7px'], ['css', 'fontWeight', 'bold']]));
+                }
+                
+                if (isHeaderLinks) 
 					addHeaderLinks();
 				
 				if (state.mode)

@@ -544,5 +544,6 @@ _translationsHash.hash["eng"] = {
     "WMS доступ": "WMS access",
     "Слой '[value0]' уже есть в карте": "Layer '[value0]' already exists in this map",
     "Группа '[value0]' уже есть в карте": "Group '[value0]' already exists in this map",
-    "Плагины": "Plugins"
+    "Плагины": "Plugins",
+    "Администрирование": "Administration"
 };
