@@ -3044,12 +3044,8 @@ function createFlashMapInternal(div, layers, callback)
 						delete filter["enableHoverBalloon"];
 					}
 
-					if (!isInvalid) {
-						var tmp = getMinMaxZoom(layer.properties);
-						obj.setZoomBounds(tmp['minZoom'], tmp['maxZoom']);
-					} else {
-						obj.setZoomBounds(20, 20);
-					}
+					var tmp = getMinMaxZoom(layer.properties);
+					obj.setZoomBounds(tmp['minZoom'], tmp['maxZoom']);
 
 					if (layer.properties.Copyright)
 						obj.setCopyright(layer.properties.Copyright);
