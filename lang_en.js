@@ -529,6 +529,7 @@ _translationsHash.hash["eng"] = {
 	"Кодировка": "Encoding",
 	"helpPostfix": "_eng.html",
 	"Показывать чекбокс видимости": "Visibility checkbox",
+	"Разворачивать автоматически": "Expand automatically",
 	"Другая": "Another",
 	"Временнóй слой": "Temporal layer",
 	"Колонка даты": "Date column",

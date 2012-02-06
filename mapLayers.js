@@ -218,6 +218,11 @@ layersTree.prototype.getChildsList = function(elem, parentParams, layerManagerFl
 	if (elem.content && elem.content.children && elem.content.children.length > 0)
 	{
 		var	childsUl = _ul();
+        
+        // initExpand - временное свойство, сохраняющее начальное состояние развёрнутости группы.
+        // В expanded будет храниться только текущее состояние (не сохраняется)
+        if (typeof elem.content.properties.initExpand == 'undefined')
+            elem.content.properties.initExpand = elem.content.properties.expanded;
 		
 		if (!elem.content.properties.expanded)
 		{
@@ -1831,72 +1836,6 @@ queryMapLayers.prototype.layerRights = function(name)
 	return globalFlashMap.layers[name].properties.Access;
 }
 
-queryMapLayers.prototype.saveMap = function()
-{
-	$('#headerLinks').find("[savestatus]").remove();
-	
-	var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-	_($$('headerLinks'), [loading]);
-	
-	var saveMapInternal = function(newVersion)
-	{
-		_userObjects.collect();
-		$(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
-		
-		for (var name in _mapHelper.layerEditorsHash)
-			_mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].closeFunc();
-		
-		var saveTree = {};
-		
-		$.extend(true, saveTree, _mapHelper.mapTree)
-		// закрываем все группы
-		_mapHelper.findTreeElems(saveTree, function(child, flag)
-		{
-			if (child.type == "group")
-				child.content.properties.expanded = false;
-		}, true);
-		
-		sendCrossDomainPostRequest(serverBase + "Map/SaveMap.ashx", 
-									{
-										WrapStyle: 'window',
-										MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID), 
-
-										MapJson: JSON.stringify(saveTree)
-									}, 
-									function(response)
-									{
-										if (!parseResponse(response))
-											return;
-										
-										_mapHelper.mapProperties.Version = newVersion + 1;
-										
-										_mapHelper.updateUnloadEvent(false);
-										
-										_layersTree.showSaveStatus($$('headerLinks'));
-									})
-	}
-	
-	sendCrossDomainJSONRequest(serverBase + "Map/GetMapVersion.ashx?WrapStyle=func&MapName=" + _mapHelper.mapProperties.name, function(response)
-	{
-		if (!parseResponse(response))
-		{
-			loading.removeNode(true);
-			
-			return;
-		}
-		
-		if (response.Result > _mapHelper.mapProperties.Version)
-		{
-			if (confirm(_gtxt("Карта имеет более новую версию. Сохранить?")))
-				saveMapInternal(response.Result);
-			else
-				loading.removeNode(true);
-		}
-		else
-			saveMapInternal(response.Result);
-	})
-}
-
 queryMapLayers.prototype.addUserActions = function()
 {
 	if (this.currentMapRights() == "edit")
@@ -2941,48 +2880,111 @@ queryMapLayers.prototype.createMap = function(name)
 		
 		window.location.replace(window.location.href.split(/\?|#/)[0] + "?" + response.Result);
 	})
-}
+};
 
-queryMapLayers.prototype.saveMapAs = function(name)
+(function()
 {
-	$('#headerLinks').find("[savestatus]").remove();
-	
-	var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
-	_($$('headerLinks'), [loading]);
-	
-	_userObjects.collect();
-	$(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
-	
-	for (var name in _mapHelper.layerEditorsHash)
-		_mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].closeFunc();
-	
-	var saveTree = {};
-	
-	$.extend(true, saveTree, _mapHelper.mapTree)
-	// закрываем все группы
-	_mapHelper.findTreeElems(saveTree, function(child, flag)
-	{
-		if (child.type == "group")
-			child.content.properties.expanded = false;
-	}, true);
-	
-	sendCrossDomainPostRequest(serverBase + "Map/SaveAs.ashx", 
-								{
-									WrapStyle: 'window',
-									Title: name,
-									MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID), 
-									MapJson: JSON.stringify(saveTree)
-								}, 
-								function(response)
-								{
-									if (!parseResponse(response))
-										return;
-									
-									_mapHelper.updateUnloadEvent(false);
-									
-									_layersTree.showSaveStatus($$('headerLinks'));
-								})
-}
+
+    var saveMapInternal = function(scriptName, mapTitle, callback)
+    {
+        _userObjects.collect();
+        $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
+        
+        for (var name in _mapHelper.layerEditorsHash)
+            _mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].closeFunc();
+        
+        var saveTree = {};
+        
+        $.extend(true, saveTree, _mapHelper.mapTree)
+        // закрываем все группы
+        _mapHelper.findTreeElems(saveTree, function(child, flag)
+        {
+            if (child.type == "group")
+            {
+                var props = child.content.properties;
+                props.expanded = typeof props.initExpand !== 'undefined' ? props.initExpand : false;
+                delete props.initExpand;
+            }
+        }, true);
+        
+        var params = {
+                WrapStyle: 'window',
+                MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID), 
+
+                MapJson: JSON.stringify(saveTree)
+            }
+            
+        if (mapTitle)
+            params.Title = mapTitle;
+        
+        sendCrossDomainPostRequest(serverBase + scriptName, params, 
+            function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                
+                //_mapHelper.mapProperties.Version = newVersion + 1;
+                callback && callback(response.Result);
+                
+                _mapHelper.updateUnloadEvent(false);
+                
+                _layersTree.showSaveStatus($$('headerLinks'));
+            }
+        )
+    }
+    
+    queryMapLayers.prototype.saveMap = function()
+    {
+        $('#headerLinks').find("[savestatus]").remove();
+        
+        var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
+        _($$('headerLinks'), [loading]);
+        
+        sendCrossDomainJSONRequest(serverBase + "Map/GetMapVersion.ashx?WrapStyle=func&MapName=" + _mapHelper.mapProperties.name, function(response)
+        {
+            if (!parseResponse(response))
+            {
+                loading.removeNode(true);
+                
+                return;
+            }
+            
+            var doSave = function()
+            {
+                saveMapInternal("Map/SaveMap.ashx", null, function()
+                    {
+                        _mapHelper.mapProperties.Version = response.Result + 1;
+                    });
+            }
+            
+            if (response.Result > _mapHelper.mapProperties.Version)
+            {
+                if (confirm(_gtxt("Карта имеет более новую версию. Сохранить?")))
+                {
+                    doSave();
+                }
+                else
+                {
+                    loading.removeNode(true);
+                    return;
+                }
+            }
+            else
+                doSave();
+        })
+    }
+
+    queryMapLayers.prototype.saveMapAs = function(name)
+    {
+        $('#headerLinks').find("[savestatus]").remove();
+        
+        var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
+        _($$('headerLinks'), [loading]);
+        
+        saveMapInternal("Map/SaveAs.ashx", name);
+    }
+
+})();
 
 var _queryMapLayers = new queryMapLayers();
 

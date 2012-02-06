@@ -2,13 +2,15 @@
 
 (function(){
 
-var GroupVisibilityPropertiesModel = function(isChildRadio, isVisibilityControl)
+var GroupVisibilityPropertiesModel = function(isChildRadio, isVisibilityControl, isExpanded)
 {
 	var _isChildRadio = isChildRadio;
 	var _isVisibilityControl = isVisibilityControl;
+    var _isExpanded = isExpanded;
 	
 	this.isVisibilityControl = function() { return _isVisibilityControl; }
 	this.isChildRadio = function() { return _isChildRadio; }
+	this.isExpanded = function() { return _isExpanded; }
 	
 	this.setVisibilityControl = function(isVisibilityControl)
 	{
@@ -23,28 +25,42 @@ var GroupVisibilityPropertiesModel = function(isChildRadio, isVisibilityControl)
 		_isChildRadio = isChildRadio;
 		if (isChange) $(this).change();
 	}
+    
+    this.setExpanded = function(isExpanded)
+	{
+		var isChange = _isExpanded !== isExpanded;
+		_isExpanded = isExpanded;
+		if (isChange) $(this).change();
+	}
 }
 
 //возвращает массив описания элементов таблицы для использования в mapHelper.createPropertiesTable
 //model {GroupVisibilityPropertiesModel} - ассоциированные параметры видимости
 //showVisibilityCheckbox {bool} - добавлять ли возможность скрывать чекбокс видимости или нет
-var GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox )
+var GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox, showExpanded )
 {
 	var _model = model;
 	var boxSwitch = _checkbox(!_model.isChildRadio(), 'checkbox'),
 		radioSwitch = _checkbox(_model.isChildRadio(), 'radio');
 	var showCheckbox = _checkbox(_model.isVisibilityControl(), 'checkbox');
+	var isExpanded = _checkbox(_model.isExpanded(), 'checkbox');
 	
 	if (!$.browser.msie)
 	{
 		boxSwitch.style.margin = "0px 4px 0px 3px";
 		radioSwitch.style.margin = "0px 4px 0px 3px";
 		showCheckbox.style.margin = "0px 4px 0px 3px";
+		isExpanded.style.margin = "0px 4px 0px 3px";
 	}
 	
 	showCheckbox.onclick = function()
 	{
 		_model.setVisibilityControl( this.checked );
+	}
+    
+    isExpanded.onclick = function()
+	{
+		_model.setExpanded( this.checked );
 	}
 	
 	boxSwitch.onclick = function()
@@ -65,8 +81,11 @@ var GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox )
 	
 	var ret = [{name: _gtxt("Вид вложенных элементов"), field: 'list', elem: _div([boxSwitch, radioSwitch])}];
 	
-	if (typeof showVisibilityCheckbox === 'undefined' || showVisibilityCheckbox)
-		ret.push({name: _gtxt("Показывать чекбокс видимости"), field: 'list', elem: _div([showCheckbox])});
+	if (showVisibilityCheckbox)
+		ret.push({name: _gtxt("Показывать чекбокс видимости"), elem: _div([showCheckbox])});
+        
+    if (showExpanded)
+		ret.push({name: _gtxt("Разворачивать автоматически"), elem: _div([isExpanded])});
 	
 	return ret;
 }
@@ -85,8 +104,8 @@ var addSubGroup = function(div, mapHelper)
 	else
 		newIndex = ul.childNodes.length + 1;
 	
-	var groupVisibilityProperties = new GroupVisibilityPropertiesModel( false, true );
-	var groupVisibilityPropertiesControls = new GroupVisibilityPropertiesView( groupVisibilityProperties, true );
+	var groupVisibilityProperties = new GroupVisibilityPropertiesModel( false, true, false );
+	var groupVisibilityPropertiesControls = new GroupVisibilityPropertiesView( groupVisibilityProperties, true, true );
 	
 	var elemProperties = (div.gmxProperties.content) ? div.gmxProperties.content.properties : div.gmxProperties.properties,
 	    newName = elemProperties.title,
@@ -99,7 +118,20 @@ var addSubGroup = function(div, mapHelper)
 				return;
 			
 			var parentProperties = div.gmxProperties,
-				newGroupProperties = {type:'group', content:{properties:{title:inputIndex.value, list: groupVisibilityProperties.isChildRadio(), visible: true, ShowCheckbox: groupVisibilityProperties.isVisibilityControl(), expanded:true, GroupID: _layersTree.createGroupId()}, children:[]}},
+				newGroupProperties = {
+                    type:'group', 
+                    content:{
+                        properties:{
+                            title:inputIndex.value, 
+                            list: groupVisibilityProperties.isChildRadio(), 
+                            visible: true, 
+                            ShowCheckbox: groupVisibilityProperties.isVisibilityControl(), 
+                            expanded: groupVisibilityProperties.isExpanded(), 
+                            initExpand: groupVisibilityProperties.isExpanded(), 
+                            GroupID: _layersTree.createGroupId()
+                        }, children:[]
+                    }
+                },
 				li = _layersTree.getChildsList(newGroupProperties, parentProperties, false, div.getAttribute('MapID') ? true : _layersTree.getLayerVisibility(div.firstChild));
 			
 			_queryMapLayers.addDraggable(li)
@@ -174,12 +206,17 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 
 	var title = _input(null,[['attr','value',typeof elemProperties.title != 'undefined' ? elemProperties.title : ''],['dir','className','inputStyle'],['css','width','206px']])
 	
-	var visibilityProperties = new GroupVisibilityPropertiesModel(elemProperties.list, typeof elemProperties.ShowCheckbox === 'undefined' ? true : elemProperties.ShowCheckbox);
-	var visibilityPropertiesView = GroupVisibilityPropertiesView(visibilityProperties, !isMap);
+	var visibilityProperties = new GroupVisibilityPropertiesModel(
+        elemProperties.list, 
+        typeof elemProperties.ShowCheckbox === 'undefined' ? true : elemProperties.ShowCheckbox, 
+        typeof elemProperties.initExpand === 'undefined' ? false : elemProperties.initExpand
+    );
+	var visibilityPropertiesView = GroupVisibilityPropertiesView(visibilityProperties, !isMap, !isMap);
 	$(visibilityProperties).change(function()
 	{
 		elemProperties.list = visibilityProperties.isChildRadio();
 		elemProperties.ShowCheckbox = visibilityProperties.isVisibilityControl();
+		elemProperties.expanded = elemProperties.initExpand = visibilityProperties.isExpanded();
 		
 		var curBox = div.firstChild;
 		if (!elemProperties.ShowCheckbox)
@@ -535,7 +572,7 @@ var createGroupEditor = function(div)
 		};
 	
 	var canvas = createGroupEditorProperties(div, false, _mapHelper);
-	showDialog(_gtxt('Группа [value0]', elemProperties.title), canvas, 340, 140, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Группа [value0]', elemProperties.title), canvas, 340, 160, pos.left, pos.top, null, closeFunc);
 	_groupEditorsHash[elemProperties.GroupID] = true;
 	
 	canvas.parentNode.style.width = canvas.clientWidth + 'px';
