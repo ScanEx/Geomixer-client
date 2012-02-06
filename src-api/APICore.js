@@ -1755,6 +1755,8 @@ var FlashMapObject = function(objectId_, properties_, parent_)
 }
 // расширение FlashMapObject
 gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;	}
+FlashMapObject.prototype.addMapStateListener = function(eventName, func) { 	return addMapStateListener(this, eventName, func);	}
+FlashMapObject.prototype.removeMapStateListener = function(eventName, id) { return removeMapStateListener(this, eventName, id); }
 
 function createFlashMapInternal(div, layers, callback)
 {
@@ -2219,58 +2221,58 @@ function createFlashMapInternal(div, layers, callback)
 				this.setHandler("onClick", function(o)
 				{
 					try {
-					var identityField = gmxAPI.getIdentityField(o);
-					var id = 'id_' + o.properties[identityField];
-					if (!shownQuicklooks[id])
-					{
-						var url = callback(o);
-						var d1 = 100000000;
-						var d2 = 100000000;
-						var d3 = 100000000;
-						var d4 = 100000000;
-						var x1, y1, x2, y2, x3, y3, x4, y4;
-						var geom = o.getGeometry();
-						var coord = geom.coordinates;
-						gmxAPI.forEachPoint(coord, function(p)
+						var identityField = gmxAPI.getIdentityField(o);
+						var id = 'id_' + o.properties[identityField];
+						if (!shownQuicklooks[id])
 						{
-							var x = gmxAPI.merc_x(p[0]);
-							var y = gmxAPI.merc_y(p[1]);
-							if ((x - y) < d1)
+							var url = callback(o);
+							var d1 = 100000000;
+							var d2 = 100000000;
+							var d3 = 100000000;
+							var d4 = 100000000;
+							var x1, y1, x2, y2, x3, y3, x4, y4;
+							var geom = o.getGeometry();
+							var coord = geom.coordinates;
+							gmxAPI.forEachPoint(coord, function(p)
 							{
-								d1 = x - y;
-								x1 = p[0];
-								y1 = p[1];
-							}
-							if ((-x - y) < d2)
-							{
-								d2 = -x - y;
-								x2 = p[0];
-								y2 = p[1];
-							}
-							if ((-x + y) < d3)
-							{
-								d3 = -x + y;
-								x3 = p[0];
-								y3 = p[1];
-							}
-							if ((x + y) < d4)
-							{
-								d4 = x + y;
-								x4 = p[0];
-								y4 = p[1];
-							}
-						});
+								var x = gmxAPI.merc_x(p[0]);
+								var y = gmxAPI.merc_y(p[1]);
+								if ((x - y) < d1)
+								{
+									d1 = x - y;
+									x1 = p[0];
+									y1 = p[1];
+								}
+								if ((-x - y) < d2)
+								{
+									d2 = -x - y;
+									x2 = p[0];
+									y2 = p[1];
+								}
+								if ((-x + y) < d3)
+								{
+									d3 = -x + y;
+									x3 = p[0];
+									y3 = p[1];
+								}
+								if ((x + y) < d4)
+								{
+									d4 = x + y;
+									x4 = p[0];
+									y4 = p[1];
+								}
+							});
 
-						var q = o.addObject(null, o.properties);
-						shownQuicklooks[id] = q;
-						q.setStyle({ fill: { opacity: 100 } });
-						q.setImage(url, x1, y1, x2, y2, x3, y3, x4, y4);
-					}
-					else
-					{
-						shownQuicklooks[id].remove();
-						delete shownQuicklooks[id];
-					}
+							var q = o.addObject(null, o.properties);
+							shownQuicklooks[id] = q;
+							q.setStyle({ fill: { opacity: 100 } });
+							q.setImage(url, x1, y1, x2, y2, x3, y3, x4, y4);
+						}
+						else
+						{
+							shownQuicklooks[id].remove();
+							delete shownQuicklooks[id];
+						}
 					} catch (e) {
 						gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
 						//alert(e);
@@ -2638,207 +2640,8 @@ function createFlashMapInternal(div, layers, callback)
 				}
 
 				var isTemporal = layer.properties.Temporal;	// признак мультивременного слоя
-				var tileDateFunction = null;
-				var setDateInterval = null;
-				if(isTemporal) {
-					var TimeTemporal = true;	// Добавлять время в фильтры - пока только для поля layer.properties.TemporalColumnName == 'DateTime'
-
-					var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
-					var ZeroDateString = layer.properties.ZeroDate || '01.01.2008';	// нулевая дата
-					var arr = ZeroDateString.split('.');
-					var ZeroDate = new Date(
-						(arr.length > 2 ? arr[2] : 2008),
-						(arr.length > 1 ? arr[1] - 1 : 0),
-						(arr.length > 0 ? arr[0] : 1)
-						);
-
-					var temporalData = null;
-					function prpTemporalTiles(data) {
-						var deltaHash = {};
-						var ph = {};
-						var arr = [];
-						for (var nm=0; nm<data.length; nm++)
-						{
-							arr = data[nm];
-							if(!gmxAPI.isArray(arr) || arr.length < 5) {
-								gmxAPI.addDebugWarnings({'func': 'prpTemporalTiles', 'layer': layer.properties.title, 'alert': 'Error in TemporalTiles array - line: '+nm+''});
-								continue;
-							}
-							var z = arr[4];
-							var i = arr[2];
-							var j = arr[3];
-							if(!ph[z]) ph[z] = {};
-							if(!ph[z][i]) ph[z][i] = {};
-							if(!ph[z][i][j]) ph[z][i][j] = [];
-							ph[z][i][j].push(arr);
-
-							if(!deltaHash[arr[0]]) deltaHash[arr[0]] = {};
-							if(!deltaHash[arr[0]][arr[1]]) deltaHash[arr[0]][arr[1]] = [];
-							deltaHash[arr[0]][arr[1]].push([i, j, z]);
-						}
-						var arr = [];
-						for (var z in ph)
-							for (var i in ph[z])
-								for (var j in ph[z][i])
-									arr.push(i, j, z);
-						
-						for (var delta in deltaHash) deltaArr.push(parseInt(delta));
-						deltaArr = deltaArr.sort(function (a,b) { return a - b;});
-						return {'dateTiles': arr, 'hash': ph, 'deltaHash': deltaHash};
-					}
-
-					temporalData = prpTemporalTiles(layer.properties.TemporalTiles);
-					var oneDay = 1000*60*60*24;					// один день
-					
-					// Начальный интервал дат
-					temporalData['DateEnd'] = new Date();
-					if(layer.properties.DateEnd) {
-						var arr = layer.properties.DateEnd.split('.');
-						if(arr.length > 2) temporalData['DateEnd'] = new Date(arr[2], arr[1] - 1, arr[0]);
-					}
-					temporalData['DateBegin'] = new Date(temporalData['DateEnd'] - oneDay);
-
-					var currentData = {};			// список тайлов для текущего daysDelta
-
-					tileDateFunction = function(i, j, z)
-					{ 
-						var filesHash = currentData['tiles'] || {};
-						var outArr = [];
-						if(filesHash[z] && filesHash[z][i] && filesHash[z][i][j]) {
-							outArr = filesHash[z][i][j];
-						}
-						return outArr;
-					}
- 
-					prpTemporalFilter = function(DateBegin, DateEnd)
-					{
-						var dt1 = ddt1;			// начало текущих суток
-						var dt2 = ddt2;			// конец текущих суток
-						var tp = Object.prototype.toString.apply(DateEnd);
-						if(tp === '[object Date]') dt2 = DateEnd;
-						else if(tp === '[object String]') {						// формат 23.08.2011
-							dt2 = gmxAPI.strToDate(DateEnd);
-						}
-						tp = Object.prototype.toString.apply(DateBegin);
-						if(tp === '[object Date]') dt1 = DateBegin;
-						else if(tp === '[object String]') {
-							dt1 = gmxAPI.strToDate(DateBegin);
-						}
-						var dt1str = dt1.getFullYear() + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + gmxAPI.pad2(dt1.getDate());
-						if(TimeTemporal) dt1str += ' ' + gmxAPI.pad2(dt1.getHours()) + ":" + gmxAPI.pad2(dt1.getMinutes()) + ":" + gmxAPI.pad2(dt1.getSeconds());
-						var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
-						if(TimeTemporal) dt2str += ' ' + gmxAPI.pad2(dt2.getHours()) + ":" + gmxAPI.pad2(dt2.getMinutes()) + ":" + gmxAPI.pad2(dt2.getSeconds());
-						var TemporalColumnName = layer.properties.TemporalColumnName || 'Date';
-						var curFilter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
-						return {'dt1': dt1, 'dt2': dt2, 'ut1': parseInt(dt1.getTime()/1000), 'ut2': parseInt(dt2.getTime()/1000), 'curFilter': curFilter};
-					}
-
-					var getDateIntervalTiles = function(dt1, dt2) {			// Расчет вариантов от begDate до endDate
-						var days = parseInt(1 + (dt2 - dt1)/oneDay);
-						var minFiles = 1000;
-						var outHash = {};
-
-						var _prefix = baseAddress + 
-							"TileSender.ashx?ModeKey=tile" + 
-							"&MapName=" + layer.properties.mapName + 
-							"&LayerName=" + layerName + 
-							(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
-							(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
-						if(layer.properties._TemporalDebugPath) _prefix = layer.properties._TemporalDebugPath;
-
-						function getFiles(daysDelta) {
-							var ph = {'files': [], 'dtiles': [], 'tiles': {}, 'out': ''};
-							var mn = oneDay * daysDelta;
-							var zn = parseInt((dt1 - ZeroDate)/mn);
-							ph['beg'] = zn;
-							ph['begDate'] = new Date(ZeroDate.getTime() + daysDelta * zn * oneDay);
-							zn = parseInt(zn);
-							var zn1 = Math.floor((dt2 - ZeroDate)/mn);
-							ph['end'] = zn1;
-							ph['endDate'] = new Date(ZeroDate.getTime() + daysDelta * oneDay * (zn1 + 1) - 1000);
-							zn1 = parseInt(zn1);
-							var dHash = temporalData['deltaHash'][daysDelta] || {};
-							for (var dz in dHash) {
-								if(dz < zn || dz > zn1) continue;
-								var arr = dHash[dz] || [];
-								for (var i=0; i<arr.length; i++)
-								{
-									var pt = arr[i];
-									var x = pt[0];
-									var y = pt[1];
-									var z = pt[2];
-									var file = _prefix + "&Level=" + daysDelta + "&Span=" + dz + "&z=" + z + "&x=" + x + "&y=" + y;
-
-									if(layer.properties._TemporalDebugPath) file = _prefix + daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // тайлы расположены в WEB папке
-									
-									if(!ph['tiles'][z]) ph['tiles'][z] = {};
-									if(!ph['tiles'][z][x]) ph['tiles'][z][x] = {};
-									if(!ph['tiles'][z][x][y]) ph['tiles'][z][x][y] = [];
-									ph['tiles'][z][x][y].push(file);
-									ph['files'].push(file);
-								}
-							}
-							
-							var arr = [];
-							for (var z in ph['tiles'])
-								for (var i in ph['tiles'][z])
-									for (var j in ph['tiles'][z][i])
-										arr.push(i, j, z);
-							ph['dtiles'] = arr;
-							return ph;
-						}
-
-						var i = deltaArr.length - 1;
-						var curDaysDelta = deltaArr[i];
-						while (i>=0)
-						{
-							curDaysDelta = deltaArr[i];
-							if(days >= deltaArr[i]) {
-								break;
-							}
-							i--;
-						}
-						var ph = getFiles(curDaysDelta);
-						minFiles = ph['files'].length;
-
-						var hash = prpTemporalFilter(dt1, dt2);
-						var curTemporalFilter = hash['curFilter'];
-						var out = {
-								'daysDelta': curDaysDelta
-								,'files': ph['files']
-								,'tiles': ph['tiles']
-								,'dtiles': ph['dtiles'] || []		// список тайлов для daysDelta
-								,'out': ph['out']
-								,'beg': ph['beg']
-								,'end': ph['end']
-								,'begDate': ph['begDate']
-								,'endDate': ph['endDate']
-								,'ut1': hash['ut1']
-								,'ut2': hash['ut2']
-								,'dt1': dt1
-								,'dt2': dt2
-								,'curTemporalFilter': hash['curFilter']
-							};
-
-						return out;
-					}
-					var ddt1 = new Date(); ddt1.setHours(0, 0, 0, 0);			// начало текущих суток
-					var ddt2 = new Date(); ddt2.setHours(23, 59, 59, 999);	// конец текущих суток
-					currentData = getDateIntervalTiles(ddt1, ddt2);	// По умолчанию за текущие сутки
-
-					obj.getTemporalFilter = function()
-					{
-						return (currentData['curTemporalFilter'] ? currentData['curTemporalFilter'] : '');
-					}
-
-					setDateInterval = function(DateBegin, DateEnd)
-					{
-						var hash = prpTemporalFilter(DateBegin, DateEnd);
-						var dt1 = hash['dt1'];
-						var dt2 = hash['dt2'];
-						currentData = getDateIntervalTiles(dt1, dt2);
-						return currentData['daysDelta'];
-					}
+				if(isTemporal && '_TemporalTiles' in gmxAPI) {
+					obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
 				}
 
 				var deferredMethodNames = ["setHandler", "setStyle", "setBackgroundColor", "setCopyright", "addObserver", "enableTiledQuicklooks", "enableTiledQuicklooksEx"];
@@ -2849,51 +2652,11 @@ function createFlashMapInternal(div, layers, callback)
 					obj.objectId = obj_.objectId;
 					obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
 					
-					if(isTemporal) {
-						obj.setDateInterval = function(dt1, dt2)
-						{
-							var oldDt1 = currentData['begDate'];
-							var oldDt2 = currentData['endDate'];
-							var oldDaysDelta = currentData['daysDelta'];
-
-							var hash = prpTemporalFilter(dt1, dt2);
-							var ddt1 = hash['dt1'];
-							var ddt2 = hash['dt2'];
-							var data = getDateIntervalTiles(ddt1, ddt2);
-
-							var attr = {
-								'dtiles': (data['dtiles'] ? data['dtiles'] : []),
-								'ut1': data['ut1'],
-								'ut2': data['ut2']
-							};
-							if(oldDaysDelta == data['daysDelta'] && data['dt1'] >= oldDt1 && data['dt2'] <= oldDt2) {
-										// если интервал временных тайлов не изменился и интервал дат не расширяется - только добавление новых тайлов 
-								attr['notClear'] = true;
-							} else {
-								currentData = data;
-								if(obj.tilesParent) {
-									obj.tilesParent.clearItems();
-								}
-							}
-							//LastDaysDelta = currentData['daysDelta'];
-
-							if(layer.properties.visible) {
-								if(attr) obj.startLoadTiles(attr);
-								//curTemporalFilter = hash['curFilter'];
-								for (var i=0; i<obj.filters.length; i++)	// переустановка фильтров
-									obj.filters[i].setFilter(obj.filters[i]._sql, true);
-
-								gmxAPI._listeners.chkListeners('hideBalloons', map);	// Проверка map Listeners на hideBalloons
-							}
-							return currentData['daysDelta'];
-						}
-					}
+					gmxAPI._listeners.chkListeners('onLayerCreated', obj, {'obj': obj });
+				
 					obj.setVisible = function(flag)
 					{
 						FlashMapObject.prototype.setVisible.call(obj, flag);
-						if(isTemporal) {
-							obj.setDateInterval(currentData['dt1'], currentData['dt2']);
-						}
 					}
 
 					for (var i = 0; i < deferredMethodNames.length; i++)
@@ -2972,19 +2735,8 @@ function createFlashMapInternal(div, layers, callback)
 							} });
 						}
 
-						if(isTemporal) {	// Для мультивременных слоёв
-							var arr = (currentData['dtiles'] ? currentData['dtiles'] : []);
-							var temporal = {
-								'temporalFilter': obj.getTemporalFilter
-								,'TemporalColumnName': layer.properties.TemporalColumnName
-								,'ut1': currentData['ut1']
-								,'ut2': currentData['ut2']
-							};
-							obj.setVectorTiles(tileDateFunction, layer.properties.identityField, arr, temporal);
-							obj.startLoadTiles = function(attr) {
-								var ret = gmxAPI._cmdProxy('startLoadTiles', { 'obj': obj, 'attr':attr });
-								return ret;
-							}
+						if(obj._temporalTiles) {	// Для мультивременных слоёв
+							obj._temporalTiles.setVectorTiles();
 						} else {
 							obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
 						}
@@ -3044,6 +2796,7 @@ function createFlashMapInternal(div, layers, callback)
 						delete filter["enableHoverBalloon"];
 					}
 
+					// Установка видимости по Zoom
 					var tmp = getMinMaxZoom(layer.properties);
 					obj.setZoomBounds(tmp['minZoom'], tmp['maxZoom']);
 
@@ -3076,15 +2829,7 @@ function createFlashMapInternal(div, layers, callback)
 								deferred[i]();
 						}
 					}
-					if(isTemporal) {
-						obj.setDateInterval = function(dt1, dt2)
-						{
-							obj.setVisible(true);
-							var daysDelta = setDateInterval(dt1, dt2);
-							obj.setVisible(false);
-							return daysDelta;
-						}
-					}
+
 					if (!isRaster) {
 						// Изменять атрибуты векторного обьекта при невидимом слое нельзя
 						obj.setTileItem = function(data, flag) {
@@ -4040,10 +3785,6 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				return gmxAPI.distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
 			}
-
-            
-			FlashMapObject.prototype.addMapStateListener = function(eventName, func) { 	return addMapStateListener(this, eventName, func);	}
-			FlashMapObject.prototype.removeMapStateListener = function(eventName, id) { return removeMapStateListener(this, eventName, id); }
 
 			/** Отображение строки текущего положения карты
 			* @function
