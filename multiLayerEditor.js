@@ -23,7 +23,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
     
     _queryMapLayers.layersList = layersToAdd;
 
-    var suggestLayersTable = _queryMapLayers._createLayersManagerInDiv(commonLayersListDiv, 'multilayers', {
+    var suggestLayersTable = nsGmx.createLayersManagerInDiv(commonLayersListDiv, 'multilayers', {
         showType: false, 
         enableDragging: false,
         onclick: function(context)
@@ -43,7 +43,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
         ['1%','5%','40%','19%','20%', '5%', '5%', '5%'], 
         function(layer)
         {
-            var baseTR = _queryMapLayers.drawLayers.apply(this, [layer, {onclick: null, enableDragging: false}]);
+            var baseTR = nsGmx.drawLayers.apply(this, [layer, {onclick: null, enableDragging: false}]);
             var downButton = makeImageButton('img/down.png', 'img/down_a.png');
             var upButton = makeImageButton('img/up.png', 'img/up_a.png');
             var deleteButton = makeImageButton('img/recycle.png', 'img/recycle_a.png');

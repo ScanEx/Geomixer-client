@@ -601,6 +601,6 @@ scrollTable.StaticDataProvider = function()
     }
 };
 
-var _layersTable = new scrollTable(),
+var //_layersTable = new scrollTable(),
 	_mapsTable = new scrollTable(),
 	_listTable = new scrollTable();
