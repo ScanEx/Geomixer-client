@@ -1806,11 +1806,9 @@ function createFlashMapInternal(div, layers, callback)
 
 //		try {
 
-			//if (gmxAPI.proxyType === 'flash') {			// Это Flash версия
-				var flashDiv = document.getElementById(flashId);
-				gmxAPI.flashDiv = flashDiv;
-				flashDiv.style.MozUserSelect = "none";
-			//}
+			var flashDiv = document.getElementById(flashId);
+			gmxAPI.flashDiv = flashDiv;
+			flashDiv.style.MozUserSelect = "none";
 			
 			FlashMapObject.prototype.setTileCaching = function(flag) { gmxAPI._cmdProxy('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
 			FlashMapObject.prototype.setDisplacement = function(dx, dy) { gmxAPI._cmdProxy('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
@@ -1837,6 +1835,14 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setVisible = function(flag) {
 				gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag });
 				var val = (flag ? true : false);
+				if (val && this.backgroundColor)
+					gmxAPI.map.setBackgroundColor(this.backgroundColor);
+				if (this.copyright)
+					gmxAPI.map.updateCopyright();
+				var func = gmxAPI.map.onSetVisible[this.objectId];
+				if (func)
+					func(attr);
+
 				var prev = this.isVisible;
 				this.isVisible = val;
 				if(prev != val) gmxAPI._listeners.chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
@@ -2167,21 +2173,15 @@ function createFlashMapInternal(div, layers, callback)
 				map.addCopyrightedObject(this);
 			}
 			FlashMapObject.prototype.setBackgroundColor = function(color)
-			{ 
+			{
 				this.backgroundColor = color;
 				gmxAPI._cmdProxy('setBackgroundColor', { 'obj': this, 'attr':color });
 				if (this.objectId == map.objectId)
 				{
 					var isWhite = (0xff & (color >> 16)) > 80;
 					var htmlColor = isWhite ? "black" : "white";
-					coordinates.style.fontSize = "14px";
-					coordinates.style.color = htmlColor;
-					scaleBar.style.border = "1px solid " + htmlColor;
-					scaleBar.style.fontSize = "11px";
-					scaleBar.style.color = htmlColor;
-					copyright.style.fontSize = "11px";
-					copyright.style.color = htmlColor;
-					changeCoords.src = apiBase + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png");
+					gmxAPI._setCoordinatesColor(htmlColor, apiBase + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png"));
+					gmxAPI._setCopyrightColor(htmlColor);
 				}
 			}
 
@@ -2893,328 +2893,10 @@ function createFlashMapInternal(div, layers, callback)
 					maxY: gmxAPI.from_merc_y(y + h2)
 				};
 			}
-			var getLocalScale = function(x, y)
-			{
-				return gmxAPI.distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
-			}
 
-			/** Отображение строки текущего положения карты
-			* @function
-			* @memberOf api - перегружаемый внешними плагинами
-			* @param {object['div']} элемент DOM модели для отображения строки, где будет показываться текущее положение карты
-			* @param {object['screenGeometry']} геометрия видимой части экрана
-			* @param {object['properties']} свойства карты
-			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
-			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-			*/
-			map.setLocationTitleDiv = null;
-			var locationTitleDiv = gmxAPI.newElement(
-				"div",
-				{
-				},
-				{
-				}
-			);
-			div.appendChild(locationTitleDiv);
-
-
-			var coordinatesAttr = {
-				'x': '27px'						// отступ по горизонтали
-				,'y': '25px'					// по вертикали
-				,'x1': '5px'					// отступ по горизонтали иконки смены формата координат
-				,'scaleBar': {
-					'bottom': {
-						'x': '27px'				// отступ по горизонтали для scaleBar
-						,'y': '47px'			// по вертикали
-					}
-					,'top': {
-						'x': '27px'				// отступ по горизонтали для scaleBar
-						,'y': '3px'				// по вертикали
-					}
-				}
-			};
-
-			var scaleBar = gmxAPI.newStyledDiv({
-				position: "absolute",
-				right: coordinatesAttr['scaleBar']['bottom']['x'],
-				bottom: coordinatesAttr['scaleBar']['bottom']['y'],
-				textAlign: "center"
-			});
-			scaleBar.className = "gmx_scaleBar";
-			div.appendChild(scaleBar);
-			
-			map.scaleBar = { setVisible: function(flag) { gmxAPI.setVisible(scaleBar, flag); } };
-			var scaleBarText, scaleBarWidth;
-			var repaintScaleBar = function()
-			{
-				if (scaleBarText)
-				{
-					gmxAPI.size(scaleBar, scaleBarWidth, 16);
-					scaleBar.innerHTML = scaleBarText;
-				}
-			}
-			var coordinates = gmxAPI.newElement(
-				"div",
-				{
-					className: "gmx_coordinates",
-					onclick: function()
-					{
-						if (coordFormat > 2) return; //выдаем окошко с координатами только для стандартных форматов.
-						var oldText = getCoordinatesText();
-						var text = window.prompt(gmxAPI.KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты:", "Current center coordinates:"), oldText);
-						if (text && (text != oldText))
-							map.moveToCoordinates(text);
-					}
-				},
-				{
-					position: "absolute",
-					right: coordinatesAttr['x'],
-					bottom: coordinatesAttr['y'],
-					cursor: "pointer"
-				}
-			);
-			div.appendChild(coordinates);
-
-			var getCoordinatesText = function(currPosition)
-			{
-				if(!currPosition) currPosition = map.getPosition();
-				var x = gmxAPI.from_merc_x(currPosition['x']);
-				var y = gmxAPI.from_merc_y(currPosition['y']);
-				if (x > 180)
-					x -= 360;
-				if (x < -180)
-					x += 360;
-				x = gmxAPI.merc_x(x);
-				y = gmxAPI.merc_y(y);
-				if (coordFormat%3 == 0)
-					return gmxAPI.formatCoordinates(x, y);
-				else if (coordFormat%3 == 1)
-					return gmxAPI.formatCoordinates2(x, y);
-				else
-					return Math.round(x) + ", " + Math.round(y);
-			}
-
-			var clearCoordinates = function()
-			{
-				for (var i = 0; i < coordinates.childNodes.length; i++)
-					coordinates.removeChild(coordinates.childNodes[i]);
-			}
-
-			var coordFormatCallbacks = [		// методы формирования форматов координат
-				function() { coordinates.innerHTML = getCoordinatesText(); },
-				function() { coordinates.innerHTML = getCoordinatesText(); },
-				function() { coordinates.innerHTML = getCoordinatesText(); },
-			]; 
-
-			var setCoordinatesFormat = function(num)
-			{
-				if(!num) num = coordFormat;
-				if(num < 0) num = coordFormatCallbacks.length - 1;
-				else if(num >= coordFormatCallbacks.length) num = 0;
-				coordFormat = num;
-				//coordinates.innerHTML = '';
-				var attr = {'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
-				coordFormatCallbacks[coordFormat](coordinates, attr);
-				//coordinates.innerHTML = getCoordinatesText();
-				gmxAPI._listeners.chkListeners('onSetCoordinatesFormat', map, coordFormat);
-			}
-
-			var coordFormat = 0;
-			var changeCoords = gmxAPI.newElement(
-				"img", 
-				{ 
-					className: "gmx_changeCoords",
-					src: apiBase + "img/coord_reload.png",
-					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format"),
-					onclick: function()
-					{
-						coordFormat += 1;
-						setCoordinatesFormat(coordFormat);
-					}
-				},
-				{
-					position: "absolute",
-					right: coordinatesAttr['x1'],
-					bottom: coordinatesAttr['y'],
-					cursor: "pointer"
-				}
-			);
-			div.appendChild(changeCoords);
-
-			map.coordinates = {
-				setVisible: function(flag) 
-				{ 
-					gmxAPI.setVisible(coordinates, flag); 
-					gmxAPI.setVisible(changeCoords, flag); 
-				}
-				,
-				addCoordinatesFormat: function(func) 
-				{ 
-					coordFormatCallbacks.push(func);
-					return coordFormatCallbacks.length - 1;
-				}
-				,
-				removeCoordinatesFormat: function(num) 
-				{ 
-					coordFormatCallbacks.splice(num, 1);
-					return coordFormatCallbacks.length - 1;
-				}
-				,
-				setFormat: setCoordinatesFormat
-			}
-
-			map.setCoordinatesAlign = function(attr) {			// Изменить позицию контейнера координат
-				var align = attr['align'];
-				if(align === 'br') {		// Позиция br(BottomRight)
-					gmxAPI.setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x'], 'left': '' });
-					gmxAPI.setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x1'], 'left': '' });
-					gmxAPI.setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': coordinatesAttr['scaleBar']['bottom']['x'], 'left': '' });
-				} else if(align === 'bl') {		// Позиция bl(BottomLeft)
-					gmxAPI.setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x'] });
-					gmxAPI.setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x1'] });
-					gmxAPI.setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': '', 'left': coordinatesAttr['scaleBar']['bottom']['x'] });
-				} else if(align === 'tr') {		// Позиция tr(TopRight)
-					gmxAPI.setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x'], 'left': '' });
-					gmxAPI.setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x1'], 'left': '' });
-					gmxAPI.setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': coordinatesAttr['scaleBar']['top']['x'], 'left': '' });
-				} else if(align === 'tl') {		// Позиция tl(TopLeft)
-					gmxAPI.setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x'] });
-					gmxAPI.setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x1'] });
-					gmxAPI.setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['scaleBar']['top']['x'] });
-				}
-			}
-
-			// Begin: Блок управления копирайтами
-			var copyrightAttr = {
-				'x': '26px'					// отступ по горизонтали
-				,'y': '7px'					// отступ по вертикали
-			};
-			var copyright = gmxAPI.newElement(
-				"span",
-				{
-					className: "gmx_copyright"
-				},
-				{
-					position: "absolute",
-					right: copyrightAttr['x'],
-					bottom: copyrightAttr['y']
-				}
-			);
-			var copyrightAlign = '';
-			div.appendChild(copyright);
-			// Изменить позицию контейнера копирайтов
-			map.setCopyrightAlign = function(attr) {
-				if(attr['align']) {
-					copyrightAlign = attr['align'];
-				}
-				copyrightPosition();
-			}
-			var copyrightedObjects = [];
-			map.addCopyrightedObject = function(obj)
-			{
-				var exists = false;
-				for (var i = 0; i < copyrightedObjects.length; i++)
-					if (copyrightedObjects[i] == obj)
-					{
-						exists = true;
-						break;
-					}
-					
-				if (!exists)
-				{
-					copyrightedObjects.push(obj);
-					map.updateCopyright();
-				}
-				
-			}
-			map.removeCopyrightedObject = function(obj)
-			{
-				var foundID = -1;
-				for (var i = 0; i < copyrightedObjects.length; i++)
-					if (copyrightedObjects[i] == obj)
-					{
-						foundID = i;
-						break;
-					}
-					
-				if ( foundID >= 0 )
-				{
-					copyrightedObjects.splice(foundID, 1);
-					map.updateCopyright();
-				}
-					
-				
-			}
-			
-			var copyrightUpdateTimeout = false;
-			var copyrightLastAlign = null;
-
-			// Изменить координаты HTML элемента
-			function copyrightPosition()
-			{
-				var center = (div.clientWidth - copyright.clientWidth) / 2;
-				if(copyrightLastAlign != copyrightAlign) {
-					copyrightLastAlign = copyrightAlign;
-					if(copyrightAlign === 'bc') {				// Позиция bc(BottomCenter)
-						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': center + 'px' });
-					} else if(copyrightAlign === 'br') {		// Позиция br(BottomRight)
-						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': copyrightAttr['x'], 'left': '' });
-					} else if(copyrightAlign === 'bl') {		// Позиция bl(BottomLeft)
-						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': copyrightAttr['x'] });
-					} else if(copyrightAlign === 'tc') {		// Позиция tc(TopCenter)
-						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': center + 'px' });
-					} else if(copyrightAlign === 'tr') {		// Позиция tr(TopRight)
-						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': copyrightAttr['x'], 'left': '' });
-					} else if(copyrightAlign === 'tl') {		// Позиция tl(TopLeft)
-						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr['x'] });
-					}
-				}
-			}
-
-			map.updateCopyright = function()
-			{
-				if (!copyrightUpdateTimeout)
-				{
-					copyrightUpdateTimeout = setTimeout(function()
-					{
-						var currPosition = map.getPosition();
-						var x = gmxAPI.from_merc_x(currPosition['x']);
-						var y = gmxAPI.from_merc_y(currPosition['y']);
-						var texts = {};
-						for (var i = 0; i < copyrightedObjects.length; i++)
-						{
-							var obj = copyrightedObjects[i];
-							if (obj.copyright && obj.objectId && obj.getVisibility())
-							{
-								if (obj.geometry)
-								{
-									var bounds = gmxAPI.getBounds(obj.geometry.coordinates);
-									if ((x < bounds.minX) || (x > bounds.maxX) || (y < bounds.minY) || (y > bounds.maxY))
-										continue;
-								}
-								texts[obj.copyright] = true;
-							}
-						}
-						
-						//первым всегда будет располагаться копирайт СканЭкс. 
-						//Если реализовать возможность задавать порядок отображения копирайтов, можно тоже самое сделать более культурно...
-						var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>";
-						
-						for (var key in texts)
-						{
-							if (text != "")
-								text += " ";
-							text += key.split("<a").join("<a target='_blank' style='color: inherit;'");
-						}
-						copyright.innerHTML = text;
-						copyrightUpdateTimeout = false;
-						if(copyrightAlign) {
-							copyrightPosition();
-						}
-					}, 0);
-				}
-			}
-			// End: Блок управления копирайтами
+			if('_addLocationTitleDiv' in gmxAPI) gmxAPI._addLocationTitleDiv(div);
+			if('_addGeomixerLink' in gmxAPI) gmxAPI._addGeomixerLink(div);
+			if('_addCopyrightControl' in gmxAPI) gmxAPI._addCopyrightControl(div);
 
 			var sunscreen = map.addObject();
 			gmxAPI._sunscreen = sunscreen;
@@ -3223,98 +2905,35 @@ function createFlashMapInternal(div, layers, callback)
 			sunscreen.setVisible(false);
 
 
-			var geomixerLink = gmxAPI.newElement(
-				"a",
-				{
-					href: "http://kosmosnimki.ru/geomixer",
-					target: "_blank",
-					className: "gmx_geomixerLink"
-				},
-				{
-					position: "absolute",
-					left: "8px",
-					bottom: "8px"
-				}
-			);
-			geomixerLink.appendChild(gmxAPI.newElement(
-				"img",
-				{
-					src: apiBase + "img/geomixer_logo_api.png",
-					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("© 2007-2011 ИТЦ «СканЭкс»", "(c) 2007-2011 RDC ScanEx"),
-					width: 130,
-					height: 34
-				},
-				{
-					border: 0
-				}
-			));
-			div.appendChild(geomixerLink);
-			map.setGeomixerLinkAlign = function(attr) {				// Изменить позицию ссылки на Geomixer
-				var align = attr['align'];
-				if(align === 'br') {			// Позиция br(BottomRight)
-					gmxAPI.setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '8px', 'left': '' });
-				} else if(align === 'bl') {		// Позиция bl(BottomLeft)
-					gmxAPI.setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '', 'left': '8px' });
-				} else if(align === 'tr') {		// Позиция tr(TopRight)
-					gmxAPI.setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '8px', 'left': '' });
-				} else if(align === 'tl') {		// Позиция tl(TopLeft)
-					gmxAPI.setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '', 'left': '8px' });
+			if(gmxAPI.proxyType === 'flash') {
+				if('_miniMapInit' in gmxAPI) {
+					gmxAPI._miniMapInit(div);
+					sunscreen.setHandler("onResize", gmxAPI._resizeMiniMap);
 				}
 			}
 
-if(gmxAPI.proxyType === 'flash') {
-	if('_miniMapInit' in gmxAPI) {
-		gmxAPI._miniMapInit(div);
-		sunscreen.setHandler("onResize", gmxAPI._resizeMiniMap);
-	}
-}
-
-			var copyrightUpdateTimeout2 = false;
 			var updatePosition = function(ev)
 			{
 				var currPosition = map.getPosition();
 				gmxAPI.currPosition = currPosition;
 
 				var z = currPosition['z'];
-				if (z == Math.round(z))
-				{
-					var metersPerPixel = getLocalScale(gmxAPI.from_merc_x(currPosition['x']), gmxAPI.from_merc_y(currPosition['y']))*gmxAPI.getScale(z);
-					for (var i = 0; i < 30; i++)
-					{
-						var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
-						var w = distance/metersPerPixel;
-						if (w > 100)
-						{
-							var name = gmxAPI.prettifyDistance(distance);
-							if ((name != scaleBarText) || (w != scaleBarWidth))
-							{
-								scaleBarText = name;
-								scaleBarWidth = w;
-								repaintScaleBar();
-							}
-							break;
-						}
-					}
-				}
-
-				setCoordinatesFormat();
 
 				/** Пользовательское событие positionChanged
 				* @function callback
 				* @param {object} атрибуты прослушивателя
 				*/
 				if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
-					var attr = {'currZ': z, 'div': locationTitleDiv, 'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
+					var attr = {
+						'currZ': z,
+						'currX': gmxAPI.from_merc_x(currPosition['x']),
+						'currY': gmxAPI.from_merc_y(currPosition['y']),
+						'div': gmxAPI._locationTitleDiv,
+						'screenGeometry': map.getScreenGeometry(),
+						'properties': map.properties
+					};
 					gmxAPI._listeners.chkListeners('positionChanged', map, attr);
 				}
-
-				if (copyrightUpdateTimeout2)
-					clearTimeout(copyrightUpdateTimeout2);
-				copyrightUpdateTimeout2 = setTimeout(function()
-				{
-					map.updateCopyright();
-					copyrightUpdateTimeout2 = false;
-				}, 250);
 			}
 			gmxAPI._updatePosition = updatePosition;
 			var eventMapObject = map.addObject();
@@ -5050,3 +4669,451 @@ map.miniMap.setBackgroundColor(0xffffff);
 
 })();
 
+//Поддержка copyright
+(function()
+{
+	var addCopyrightControl = function(cont)
+	{
+		var map = gmxAPI.map;
+		// Begin: Блок управления копирайтами
+		var copyrightAttr = {
+			'x': '26px'					// отступ по горизонтали
+			,'y': '7px'					// отступ по вертикали
+		};
+		var copyright = gmxAPI.newElement(
+			"span",
+			{
+				className: "gmx_copyright"
+			},
+			{
+				position: "absolute",
+				right: copyrightAttr['x'],
+				bottom: copyrightAttr['y']
+			}
+		);
+		gmxAPI._setCopyrightColor = function(color)
+		{
+			copyright.style.fontSize = "11px";
+			copyright.style.color = color;
+		};
+
+		var copyrightAlign = '';
+		cont.appendChild(copyright);
+		// Изменить позицию контейнера копирайтов
+		map.setCopyrightAlign = function(attr) {
+			if(attr['align']) {
+				copyrightAlign = attr['align'];
+			}
+			copyrightPosition();
+		}
+		var copyrightedObjects = [];
+		map.addCopyrightedObject = function(obj)
+		{
+			var exists = false;
+			for (var i = 0; i < copyrightedObjects.length; i++)
+				if (copyrightedObjects[i] == obj)
+				{
+					exists = true;
+					break;
+				}
+				
+			if (!exists)
+			{
+				copyrightedObjects.push(obj);
+				map.updateCopyright();
+			}
+			
+		}
+		map.removeCopyrightedObject = function(obj)
+		{
+			var foundID = -1;
+			for (var i = 0; i < copyrightedObjects.length; i++)
+				if (copyrightedObjects[i] == obj)
+				{
+					foundID = i;
+					break;
+				}
+				
+			if ( foundID >= 0 )
+			{
+				copyrightedObjects.splice(foundID, 1);
+				map.updateCopyright();
+			}
+				
+			
+		}
+		
+		var copyrightUpdateTimeout = false;
+		var copyrightLastAlign = null;
+
+		// Изменить координаты HTML элемента
+		function copyrightPosition()
+		{
+			var center = (cont.clientWidth - copyright.clientWidth) / 2;
+			if(copyrightLastAlign != copyrightAlign) {
+				copyrightLastAlign = copyrightAlign;
+				if(copyrightAlign === 'bc') {				// Позиция bc(BottomCenter)
+					gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': center + 'px' });
+				} else if(copyrightAlign === 'br') {		// Позиция br(BottomRight)
+					gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': copyrightAttr['x'], 'left': '' });
+				} else if(copyrightAlign === 'bl') {		// Позиция bl(BottomLeft)
+					gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': copyrightAttr['x'] });
+				} else if(copyrightAlign === 'tc') {		// Позиция tc(TopCenter)
+					gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': center + 'px' });
+				} else if(copyrightAlign === 'tr') {		// Позиция tr(TopRight)
+					gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': copyrightAttr['x'], 'left': '' });
+				} else if(copyrightAlign === 'tl') {		// Позиция tl(TopLeft)
+					gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr['x'] });
+				}
+			}
+		}
+
+		map.updateCopyright = function()
+		{
+			if (!copyrightUpdateTimeout)
+			{
+				copyrightUpdateTimeout = setTimeout(function()
+				{
+					var currPosition = map.getPosition();
+					var x = gmxAPI.from_merc_x(currPosition['x']);
+					var y = gmxAPI.from_merc_y(currPosition['y']);
+					var texts = {};
+					for (var i = 0; i < copyrightedObjects.length; i++)
+					{
+						var obj = copyrightedObjects[i];
+						if (obj.copyright && obj.objectId && obj.getVisibility())
+						{
+							if (obj.geometry)
+							{
+								var bounds = gmxAPI.getBounds(obj.geometry.coordinates);
+								if ((x < bounds.minX) || (x > bounds.maxX) || (y < bounds.minY) || (y > bounds.maxY))
+									continue;
+							}
+							texts[obj.copyright] = true;
+						}
+					}
+					
+					//первым всегда будет располагаться копирайт СканЭкс. 
+					//Если реализовать возможность задавать порядок отображения копирайтов, можно тоже самое сделать более культурно...
+					var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>";
+					
+					for (var key in texts)
+					{
+						if (text != "")
+							text += " ";
+						text += key.split("<a").join("<a target='_blank' style='color: inherit;'");
+					}
+					copyright.innerHTML = text;
+					copyrightUpdateTimeout = false;
+					if(copyrightAlign) {
+						copyrightPosition();
+					}
+				}, 0);
+			}
+		}
+
+		var copyrightUpdateTimeout2 = false;
+		// Добавление прослушивателей событий
+		gmxAPI._listeners.addMapStateListener(gmxAPI.map, 'positionChanged', function(ph)
+			{
+				if (copyrightUpdateTimeout2)
+					clearTimeout(copyrightUpdateTimeout2);
+				copyrightUpdateTimeout2 = setTimeout(function()
+				{
+					map.updateCopyright();
+					copyrightUpdateTimeout2 = false;
+				}, 250);
+			}
+		);
+
+		// End: Блок управления копирайтами
+	}
+	gmxAPI._addCopyrightControl = addCopyrightControl;
+})();
+
+//Поддержка geomixerLink
+(function()
+{
+	var addGeomixerLink = function(cont)
+	{
+		var apiBase = gmxAPI.getAPIFolderRoot();
+		var geomixerLink = gmxAPI.newElement(
+			"a",
+			{
+				href: "http://kosmosnimki.ru/geomixer",
+				target: "_blank",
+				className: "gmx_geomixerLink"
+			},
+			{
+				position: "absolute",
+				left: "8px",
+				bottom: "8px"
+			}
+		);
+		geomixerLink.appendChild(gmxAPI.newElement(
+			"img",
+			{
+				src: apiBase + "img/geomixer_logo_api.png",
+				title: gmxAPI.KOSMOSNIMKI_LOCALIZED("© 2007-2011 ИТЦ «СканЭкс»", "(c) 2007-2011 RDC ScanEx"),
+				width: 130,
+				height: 34
+			},
+			{
+				border: 0
+			}
+		));
+		cont.appendChild(geomixerLink);
+		gmxAPI.map.setGeomixerLinkAlign = function(attr) {				// Изменить позицию ссылки на Geomixer
+			var align = attr['align'];
+			if(align === 'br') {			// Позиция br(BottomRight)
+				gmxAPI.setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '8px', 'left': '' });
+			} else if(align === 'bl') {		// Позиция bl(BottomLeft)
+				gmxAPI.setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '', 'left': '8px' });
+			} else if(align === 'tr') {		// Позиция tr(TopRight)
+				gmxAPI.setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '8px', 'left': '' });
+			} else if(align === 'tl') {		// Позиция tl(TopLeft)
+				gmxAPI.setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '', 'left': '8px' });
+			}
+		}
+	}
+	gmxAPI._addGeomixerLink = addGeomixerLink;
+})();
+
+//Поддержка - отображения строки текущего положения карты
+(function()
+{
+	var addLocationTitleDiv = function(cont)
+	{
+		/** Отображение строки текущего положения карты
+		* @function
+		* @memberOf api - перегружаемый внешними плагинами
+		* @param {object['div']} элемент DOM модели для отображения строки, где будет показываться текущее положение карты
+		* @param {object['screenGeometry']} геометрия видимой части экрана
+		* @param {object['properties']} свойства карты
+		* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+		* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+		*/
+		var apiBase = gmxAPI.getAPIFolderRoot();
+		gmxAPI.map.setLocationTitleDiv = null;
+		var locationTitleDiv = gmxAPI.newElement(
+			"div",
+			{
+			},
+			{
+			}
+		);
+		cont.appendChild(locationTitleDiv);
+		gmxAPI._locationTitleDiv = locationTitleDiv;
+
+		var coordinatesAttr = {
+			'x': '27px'						// отступ по горизонтали
+			,'y': '25px'					// по вертикали
+			,'x1': '5px'					// отступ по горизонтали иконки смены формата координат
+			,'scaleBar': {
+				'bottom': {
+					'x': '27px'				// отступ по горизонтали для scaleBar
+					,'y': '47px'			// по вертикали
+				}
+				,'top': {
+					'x': '27px'				// отступ по горизонтали для scaleBar
+					,'y': '3px'				// по вертикали
+				}
+			}
+		};
+
+		var scaleBar = gmxAPI.newStyledDiv({
+			position: "absolute",
+			right: coordinatesAttr['scaleBar']['bottom']['x'],
+			bottom: coordinatesAttr['scaleBar']['bottom']['y'],
+			textAlign: "center"
+		});
+		scaleBar.className = "gmx_scaleBar";
+		cont.appendChild(scaleBar);
+		
+		gmxAPI.map.scaleBar = { setVisible: function(flag) { gmxAPI.setVisible(scaleBar, flag); } };
+		var scaleBarText, scaleBarWidth;
+		var repaintScaleBar = function()
+		{
+			if (scaleBarText)
+			{
+				gmxAPI.size(scaleBar, scaleBarWidth, 16);
+				scaleBar.innerHTML = scaleBarText;
+			}
+		}
+		var coordinates = gmxAPI.newElement(
+			"div",
+			{
+				className: "gmx_coordinates",
+				onclick: function()
+				{
+					if (coordFormat > 2) return; //выдаем окошко с координатами только для стандартных форматов.
+					var oldText = getCoordinatesText();
+					var text = window.prompt(gmxAPI.KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты:", "Current center coordinates:"), oldText);
+					if (text && (text != oldText))
+						gmxAPI.map.moveToCoordinates(text);
+				}
+			},
+			{
+				position: "absolute",
+				right: coordinatesAttr['x'],
+				bottom: coordinatesAttr['y'],
+				cursor: "pointer"
+			}
+		);
+		cont.appendChild(coordinates);
+
+		var getCoordinatesText = function(currPosition)
+		{
+			if(!currPosition) currPosition = gmxAPI.map.getPosition();
+			var x = gmxAPI.from_merc_x(currPosition['x']);
+			var y = gmxAPI.from_merc_y(currPosition['y']);
+			if (x > 180)
+				x -= 360;
+			if (x < -180)
+				x += 360;
+			x = gmxAPI.merc_x(x);
+			y = gmxAPI.merc_y(y);
+			if (coordFormat%3 == 0)
+				return gmxAPI.formatCoordinates(x, y);
+			else if (coordFormat%3 == 1)
+				return gmxAPI.formatCoordinates2(x, y);
+			else
+				return Math.round(x) + ", " + Math.round(y);
+		}
+
+		var clearCoordinates = function()
+		{
+			for (var i = 0; i < coordinates.childNodes.length; i++)
+				coordinates.removeChild(coordinates.childNodes[i]);
+		}
+
+		var coordFormatCallbacks = [		// методы формирования форматов координат
+			function() { coordinates.innerHTML = getCoordinatesText(); },
+			function() { coordinates.innerHTML = getCoordinatesText(); },
+			function() { coordinates.innerHTML = getCoordinatesText(); },
+		]; 
+
+		var setCoordinatesFormat = function(num)
+		{
+			if(!num) num = coordFormat;
+			if(num < 0) num = coordFormatCallbacks.length - 1;
+			else if(num >= coordFormatCallbacks.length) num = 0;
+			coordFormat = num;
+			//coordinates.innerHTML = '';
+			var attr = {'screenGeometry': gmxAPI.map.getScreenGeometry(), 'properties': gmxAPI.map.properties };
+			coordFormatCallbacks[coordFormat](coordinates, attr);
+			//coordinates.innerHTML = getCoordinatesText();
+			gmxAPI._listeners.chkListeners('onSetCoordinatesFormat', gmxAPI.map, coordFormat);
+		}
+
+		var coordFormat = 0;
+		var changeCoords = gmxAPI.newElement(
+			"img", 
+			{ 
+				className: "gmx_changeCoords",
+				src: apiBase + "img/coord_reload.png",
+				title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format"),
+				onclick: function()
+				{
+					coordFormat += 1;
+					setCoordinatesFormat(coordFormat);
+				}
+			},
+			{
+				position: "absolute",
+				right: coordinatesAttr['x1'],
+				bottom: coordinatesAttr['y'],
+				cursor: "pointer"
+			}
+		);
+		cont.appendChild(changeCoords);
+
+		gmxAPI.map.coordinates = {
+			setVisible: function(flag) 
+			{ 
+				gmxAPI.setVisible(coordinates, flag); 
+				gmxAPI.setVisible(changeCoords, flag); 
+			}
+			,
+			addCoordinatesFormat: function(func) 
+			{ 
+				coordFormatCallbacks.push(func);
+				return coordFormatCallbacks.length - 1;
+			}
+			,
+			removeCoordinatesFormat: function(num) 
+			{ 
+				coordFormatCallbacks.splice(num, 1);
+				return coordFormatCallbacks.length - 1;
+			}
+			,
+			setFormat: setCoordinatesFormat
+		}
+
+		gmxAPI.map.setCoordinatesAlign = function(attr) {			// Изменить позицию контейнера координат
+			var align = attr['align'];
+			if(align === 'br') {		// Позиция br(BottomRight)
+				gmxAPI.setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x'], 'left': '' });
+				gmxAPI.setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x1'], 'left': '' });
+				gmxAPI.setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': coordinatesAttr['scaleBar']['bottom']['x'], 'left': '' });
+			} else if(align === 'bl') {		// Позиция bl(BottomLeft)
+				gmxAPI.setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x'] });
+				gmxAPI.setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x1'] });
+				gmxAPI.setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': '', 'left': coordinatesAttr['scaleBar']['bottom']['x'] });
+			} else if(align === 'tr') {		// Позиция tr(TopRight)
+				gmxAPI.setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x'], 'left': '' });
+				gmxAPI.setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x1'], 'left': '' });
+				gmxAPI.setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': coordinatesAttr['scaleBar']['top']['x'], 'left': '' });
+			} else if(align === 'tl') {		// Позиция tl(TopLeft)
+				gmxAPI.setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x'] });
+				gmxAPI.setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x1'] });
+				gmxAPI.setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['scaleBar']['top']['x'] });
+			}
+		}
+		var getLocalScale = function(x, y)
+		{
+			return gmxAPI.distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
+		}
+
+		// Добавление прослушивателей событий
+		gmxAPI._listeners.addMapStateListener(gmxAPI.map, 'positionChanged', function(ph)
+			{
+				var z = ph['currZ'];
+				if (z == Math.round(z))
+				{
+					var metersPerPixel = getLocalScale(ph['currX'], ph['currY'])*gmxAPI.getScale(z);
+					for (var i = 0; i < 30; i++)
+					{
+						var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
+						var w = distance/metersPerPixel;
+						if (w > 100)
+						{
+							var name = gmxAPI.prettifyDistance(distance);
+							if ((name != scaleBarText) || (w != scaleBarWidth))
+							{
+								scaleBarText = name;
+								scaleBarWidth = w;
+								repaintScaleBar();
+							}
+							break;
+						}
+					}
+				}
+
+				setCoordinatesFormat();
+			}
+		);
+
+		gmxAPI._setCoordinatesColor = function(color, url)
+		{
+			coordinates.style.fontSize = "14px";
+			coordinates.style.color = color;
+			scaleBar.style.border = "1px solid " + color;
+			scaleBar.style.fontSize = "11px";
+			scaleBar.style.color = color;
+			changeCoords.src = url;
+		}
+
+	}
+	gmxAPI._addLocationTitleDiv = addLocationTitleDiv;
+})();

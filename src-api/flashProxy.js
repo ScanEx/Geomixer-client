@@ -14,13 +14,6 @@
 			case 'setVisible':		// Изменить видимость обьекта
 				if(obj) {
 					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr } );
-					if (attr && obj.backgroundColor)
-						gmxAPI.map.setBackgroundColor(obj.backgroundColor);
-					if (obj.copyright)
-						gmxAPI.map.updateCopyright();
-					var func = gmxAPI.map.onSetVisible[obj.objectId];
-					if (func)
-						func(attr);
 				}
 				break;
 			case 'sendPNG':			// Сохранение изображения карты на сервер

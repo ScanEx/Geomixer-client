@@ -61,7 +61,11 @@
 				return 'id' + nextId;
 			}
 			,
-			'setVisible':	function(ph)	{					// видимость mapObject
+			'getVisibility': function(ph)	{					// получить видимость mapObject
+				return ph.obj.isVisible;
+			}
+			,
+			'setVisible':	function(ph)	{					// установить видимость mapObject
 				var id = ph.obj.objectId;
 				var myLayer = leafLetLayers[id];
 				if(myLayer) {							// видимость слоя
@@ -139,24 +143,26 @@
 		}
 	}
 
-	// Добавить SWF в DOM
+	// Добавить leaflet.js в DOM
 	function addLeafLetObject(apiBase, flashId, ww, hh, v, bg, loadCallback, FlagFlashLSO)
 	{
 		mapDivID = flashId;
 		initFunc = loadCallback;
 		//
-		var script = document.createElement("script");
-		script.setAttribute("charset", "windows-1251");
-		script.setAttribute("src", "leaflet/jquery-1.6.4.min.js");
-		document.getElementsByTagName("head").item(0).appendChild(script);
-		script.setAttribute("onLoad", onload );
 
+		var script = null;
+		if(!'jQuery' in window) {
+			script = document.createElement("script");
+			script.setAttribute("charset", "windows-1251");
+			script.setAttribute("src", "jquery/jquery-1.5.1.min.js");
+			document.getElementsByTagName("head").item(0).appendChild(script);
+		}
 		 
 		script = document.createElement("script");
 		script.setAttribute("charset", "windows-1251");
 		script.setAttribute("src", "leaflet/leaflet.js");
 		document.getElementsByTagName("head").item(0).appendChild(script);
-		script.setAttribute("onLoad", onload );
+		//script.setAttribute("onLoad", onload );
 		
 		var css = document.createElement("link");
 		css.setAttribute("type", "text/css");
