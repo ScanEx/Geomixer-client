@@ -7,6 +7,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
 var gmxJSHost = window.gmxJSHost || "";
 
+//скопирована из API, так как используется до его загрузки
 function parseUri(str) 
 {
 	var	o   = parseUri.options,
@@ -486,8 +487,21 @@ function filterTemporalLayers()
                 dateBegin = new Date(dateBegin.valueOf() - 1000*3600*24);
             
             for (var i = 0; i < globalFlashMap.layers.length; i++)
-                if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
-                    globalFlashMap.layers[i].setDateInterval(dateBegin, dateEnd);
+                if (globalFlashMap.layers[i].properties.Temporal)
+                {
+                    //если для слоя задан только один временной период, считаем, что он "однолистный" - 
+                    //не имеет смысл показывать данные за несколько периодов (например, погода, ветер)
+                    //поэтому задаём период не больше периода слоя
+                    if (globalFlashMap.layers[i].properties.TemporalPeriods && globalFlashMap.layers[i].properties.TemporalPeriods.length == 1)
+                    {
+                        var layerPeriod = globalFlashMap.layers[i].properties.TemporalPeriods[0]*24*3600*1000 - 1000;
+                        var newDateBegin = layerPeriod < dateEnd.valueOf() - dateBegin.valueOf() ? new Date(dateEnd.valueOf() - layerPeriod) : dateBegin;
+                        
+                        globalFlashMap.layers[i].setDateInterval(newDateBegin, dateEnd);
+                    }
+                    else
+                        globalFlashMap.layers[i].setDateInterval(dateBegin, dateEnd);
+                }
                     
             //console.log(dateBegin + '-' + dateEnd);
         }
