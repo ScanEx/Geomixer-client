@@ -28,6 +28,7 @@
 			leafLetLayers[layer.objectId] = myLayer;
 			leafLetMap.addLayer(myLayer);
 			myLayer._isVisible = true;
+			myLayer.bringToDepth(ph.attr.zIndex);
 		//}
 		return out;
 	}
@@ -59,6 +60,24 @@
 			'addObject':	function(ph)	{					// добавить mapObject
 				nextId++;
 				return 'id' + nextId;
+			}
+			,
+			'bringToTop': function(ph)	{					// установка z-index
+				//var id = ph.obj.objectId;
+				//var myLayer = leafLetLayers[id];
+				//return ph.obj.isVisible;
+			}
+			,
+			'bringToBottom': function(ph)	{					// установка z-index
+				return ph.obj.isVisible;
+			}
+			,
+			'bringToDepth': function(ph)	{					// установка z-index
+				var id = ph.obj.objectId;
+				var myLayer = leafLetLayers[id];
+				if(myLayer) {
+					myLayer.bringToDepth(ph.attr.zIndex);
+				}
 			}
 			,
 			'getVisibility': function(ph)	{					// получить видимость mapObject
@@ -109,8 +128,7 @@
 	// 
 	function waitMe(e)
 	{
-		var test = window.L;
-		if(test) {
+		if('L' in window) {
 			clearInterval(intervalID);
 			leafLetMap = new L.Map(leafLetCont_,
 				{
@@ -120,12 +138,36 @@
 				}
 			);
 
-			var pos = new L.LatLng(55, 80);
-			leafLetMap.setView(pos, 3);
+			//var pos = new L.LatLng(55, 80);
+			var pos = new L.LatLng(50.478250, 30.541992);
+			leafLetMap.setView(pos, 9);
 			leafLetMap.on('moveend', function(e) { gmxAPI._updatePosition(e); });
 
 			L.TileLayer.ScanEx = L.TileLayer.extend({
 				key: null,
+				bringToBottom: function(zIndex) {
+					var tt = this;
+					var rr = 1;
+				}
+				,
+				bringToTop: function(zIndex) {
+					var tt = this;
+					var rr = 1;
+				}
+				,
+				bringToDepth: function(zIndex) {
+					if(this._container) {
+					   this._container.style.zIndex = zIndex;
+					   this.options.zIndex = zIndex;
+					}
+				}
+				,
+				_initContainer: function () {
+					this.constructor.superclass._initContainer.apply(this);
+					if ('zIndex' in this.options)
+						this._container.style.zIndex = this.options.zIndex;
+				}
+				,
 				getTileUrl: function(tilePoint, zoom) {
 					var res = '';
 					if(zoom < this.options.minZoom || zoom > this.options.maxZoom) return res;
@@ -148,19 +190,10 @@
 	{
 		mapDivID = flashId;
 		initFunc = loadCallback;
-		//
 
-		var script = null;
-		if(!'jQuery' in window) {
-			script = document.createElement("script");
-			script.setAttribute("charset", "windows-1251");
-			script.setAttribute("src", "jquery/jquery-1.5.1.min.js");
-			document.getElementsByTagName("head").item(0).appendChild(script);
-		}
-		 
-		script = document.createElement("script");
+		var script = document.createElement("script");
 		script.setAttribute("charset", "windows-1251");
-		script.setAttribute("src", "leaflet/leaflet.js");
+		script.setAttribute("src", "leaflet/leaflet-src.js");
 		document.getElementsByTagName("head").item(0).appendChild(script);
 		//script.setAttribute("onLoad", onload );
 		
