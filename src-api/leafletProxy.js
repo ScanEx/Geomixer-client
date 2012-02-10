@@ -193,7 +193,7 @@
 
 		var script = document.createElement("script");
 		script.setAttribute("charset", "windows-1251");
-		script.setAttribute("src", "leaflet/leaflet-src.js");
+		script.setAttribute("src", "leaflet/leaflet.js");
 		document.getElementsByTagName("head").item(0).appendChild(script);
 		//script.setAttribute("onLoad", onload );
 		
