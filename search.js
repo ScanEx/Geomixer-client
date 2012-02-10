@@ -518,9 +518,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 		var downloadButton = makeButton(_gtxt("Скачать"));
 		downloadButton.onclick = function() {
 			if (filename.value == '') {
-				$(filename).addClass("error")
-
-				setTimeout(function() { if (filename) $(filename).removeClass("error") }, 2000);
+				inputError(filename, 2000);
 
 				return;
 			}

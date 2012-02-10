@@ -3509,17 +3509,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				if (inputField.length && inputField[0].value == '')
 				{
 					errorFlag = true;
-
-					(function(input)
-					{
-						$(input).addClass('error');
-						
-						setTimeout(function()
-						{
-							if (input)
-								$(input).removeClass('error')
-						}, 2000)
-					})(inputField[0])
+					inputError(inputField[0], 2000);
 				}
 			}
 			

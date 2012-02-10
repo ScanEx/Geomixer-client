@@ -145,15 +145,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
         if (!selectedLayersTable.getDataProvider().getOriginalItems().length) errorElems.push(selectedLayersDiv);
         
         for (var i = 0; i < errorElems.length; i++)
-            (function(elem)
-            {
-                $(elem).addClass('error');                
-                setTimeout(function()
-                {
-                    if (elem)
-                        $(elem).removeClass('error')
-                }, 2000)
-            })(errorElems[i]);
+            inputError(errorElems[i], 2000);
         
         if (errorElems.length) return;
         

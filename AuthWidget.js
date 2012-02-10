@@ -43,16 +43,8 @@ var nsGmx = nsGmx || {};
                            _div([changeButton],[['css','textAlign','center'],['css','margin','5px']])],[['attr','id','changePasswordCanvas']]),
             failureHandler = function()
             {
-                jQuery(newInput).addClass('error');
-                jQuery(confirmInput).addClass('error');
-                
+                inputError([newInput, confirmInput], 2000);
                 newInput.focus();
-                
-                setTimeout(function()
-                    {
-                        jQuery(newInput).removeClass('error');
-                        jQuery(confirmInput).removeClass('error');
-                    }, 2000)
             },
             checkPasswHandler = function(response)
             {
@@ -212,16 +204,8 @@ var nsGmx = nsGmx || {};
                            _div([loginButton],[['css','textAlign','center'],['css','margin','5px']])],[['attr','id','loginCanvas']]),
             failureHandler = function()
             {
-                $(loginInput).addClass('error');
-                $(passwordInput).addClass('error');
-                
+                inputError([loginInput, passwordInput], 2000);
                 loginInput.focus();
-                
-                setTimeout(function()
-                    {
-                        $(loginInput).removeClass('error');
-                        $(passwordInput).removeClass('error');
-                    }, 2000)
             },
             checkLoginHandler = function(response)
             {
