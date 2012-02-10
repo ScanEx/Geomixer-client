@@ -1259,41 +1259,6 @@ mapHelper.prototype.hideStyle = function(elem)
 	$(div).fadeOut(300);
 }
 
-mapHelper.prototype.checkZoom = function(minZoomInput, maxZoomInput)
-{
-	if (minZoomInput.value == '' ||
-		isNaN(Number(minZoomInput.value)) ||
-		Number(minZoomInput.value) != Math.floor(Number(minZoomInput.value)) ||
-		Number(minZoomInput.value) < 1 ||
-		Number(minZoomInput.value) > 21)
-		$(minZoomInput).addClass("error");
-	else
-		$(minZoomInput).removeClass("error");
-		
-	if (maxZoomInput.value == '' ||
-		isNaN(Number(maxZoomInput.value)) ||
-		Number(maxZoomInput.value) != Math.floor(Number(maxZoomInput.value)) ||
-		Number(maxZoomInput.value) < 1 ||
-		Number(maxZoomInput.value) > 21)
-		$(maxZoomInput).addClass("error");
-	else
-		$(maxZoomInput).removeClass("error");
-	
-	if (!$(minZoomInput).hasClass("error") &&
-		!$(maxZoomInput).hasClass("error") &&
-		Number(minZoomInput.value) > Number(maxZoomInput.value))
-	{
-		$(minZoomInput).addClass("error");
-		$(maxZoomInput).addClass("error");
-	}
-	
-	if ($(minZoomInput).hasClass("error") ||
-		$(maxZoomInput).hasClass("error"))
-		return false
-	else
-		return true;
-}
-
 mapHelper.prototype.createLoadingFilter = function(parentObject, parentStyle, geometryType, attrs, elemCanvas, openedFlag)
 {
 	var templateStyle = {},
@@ -1504,11 +1469,11 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	
 	$.extend(true, templateStyle, this.makeStyle(parentStyle));
 	
+    var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(parentStyle.MinZoom, parentStyle.MaxZoom);
+    
 	var filterInput = _textarea([_t(parentStyle.Filter || '')], [['dir','className','inputStyle'],['css','overflow','auto'],['css','margin','1px 0px'],['css','width','260px'],['css','height','40px']]),
-		minZoomInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','MinZoom'],['css','width','30px'],['attr','value', parentStyle.MinZoom || 1]]),
-		maxZoomInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','MaxZoom'],['css','width','30px'],['attr','value', parentStyle.MaxZoom || 17]]),
-		liMinZoom = _li([_div([_table([_tbody([_tr([_td([_span([_t(_gtxt("Мин. зум"))],[['css','fontSize','12px']])],[['css','width','60px']]),_td([minZoomInput])])])])])]),
-		liMaxZoom = _li([_div([_table([_tbody([_tr([_td([_span([_t(_gtxt("Макс. зум"))],[['css','fontSize','12px']])],[['css','width','60px']]),_td([maxZoomInput])])])])])]),
+        liMinZoom = zoomPropertiesControl.getMinLi(),
+		liMaxZoom = zoomPropertiesControl.getMaxLi(),
 		ulfilterExpr = _ul([_li([_div()],[['css','paddingLeft','0px'],['css','background','none']])]),
 		liLabel = _li([_div()],[['css','paddingLeft','0px'],['css','background','none']]),
 		ulLabel = _ul([liLabel]),
@@ -1516,25 +1481,19 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 		ulBalloon = _ul([liBalloon]),
 		liStyle = _li([_div()],[['css','paddingLeft','0px'],['css','background','none']]),
 		ulStyle = _ul([liStyle]);
+        
 	
 	// zoom
-	this.checkZoom(minZoomInput, maxZoomInput);
-	
-	minZoomInput.onkeyup = maxZoomInput.onkeyup = function()
-	{
-		if (_this.checkZoom(minZoomInput, maxZoomInput))
-		{
-			var filterNum = getOwnChildNumber(ulParent.parentNode.parentNode.parentNode),
+	$(zoomPropertiesControl).change(function()
+    {
+        var filterNum = getOwnChildNumber(ulParent.parentNode.parentNode.parentNode),
 				filter = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters[filterNum];
 			
-			if (!globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].objectId)
-				_click(elemCanvas.parentNode.firstChild)
-				
-			filter.setZoomBounds(Number(minZoomInput.value), Number(maxZoomInput.value));
-		}
-		
-		return true;
-	}
+        if (!globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].objectId)
+            _click(elemCanvas.parentNode.firstChild)
+            
+        filter.setZoomBounds(this.getMinZoom(), this.getMaxZoom());
+    })
 	
 	// label
 	
@@ -1646,12 +1605,6 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	
 	// balloon
 	parentStyle = globalFlashMap.balloonClassObject.applyBalloonDefaultStyle(parentStyle);
-	/*var balloonProps = {
-		Ballon: parentStyle.Balloon, 
-		BalloonEnable: typeof parentStyle.BalloonEnable !== 'undefined' ? parentStyle.BalloonEnable : true,
-		DisableBalloonOnMouseMove: typeof parentStyle.DisableBalloonOnMouseMove != 'undefined' ? parentStyle.DisableBalloonOnMouseMove : false,
-		DisableBalloonOnClick: typeof parentStyle.DisableBalloonOnClick != 'undefined' ? parentStyle.DisableBalloonOnClick : false,
-	}*/
 	
 	var balloonEditor = this.createBalloonEditor(parentStyle, attrs, elemCanvas, elemCanvas.parentNode.gmxProperties.content.properties.identityField);
 	
@@ -3865,7 +3818,7 @@ mapHelper.prototype.createNewLayer = function(type)
             if (!parseResponse(response))
                 return;
                 
-            nsGmx.doCreateMultiLayerEditor({title: '', description: ''}, [], response.Result.LayersToAdd, null, _this);
+            nsGmx.doCreateMultiLayerEditor({}, [], response.Result.LayersToAdd, null, _this);
         });
     }
 }
@@ -4135,22 +4088,18 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 			
 			_(tabMenu, [divProperties, divStyles]);
 			
+            
 			var parentObject = globalFlashMap.layers[elemProperties.name],
-				parentStyle = elemProperties.styles[0],
-				minZoomInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','MinZoom'],['css','width','30px'],['attr','value', parentStyle.MinZoom || 1]]),
-				maxZoomInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','MaxZoom'],['css','width','30px'],['attr','value', parentStyle.MaxZoom || 21]]),
-				liMinZoom = _li([_div([_table([_tbody([_tr([_td([_span([_t("Мин. зум")],[['css','fontSize','12px']])],[['css','width','100px']]),_td([minZoomInput])])])])])]),
-				liMaxZoom = _li([_div([_table([_tbody([_tr([_td([_span([_t("Макс. зум")],[['css','fontSize','12px']])],[['css','width','100px']]),_td([maxZoomInput])])])])])]);
+				parentStyle = elemProperties.styles[0];
+                
+            var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(parentStyle.MinZoom, parentStyle.MaxZoom),
+                liMinZoom = zoomPropertiesControl.getMinLi(),
+                liMaxZoom = zoomPropertiesControl.getMaxLi();
 			
-			this.checkZoom(minZoomInput, maxZoomInput);
-			
-			minZoomInput.onkeyup = maxZoomInput.onkeyup = function()
-			{
-				if (_this.checkZoom(minZoomInput, maxZoomInput))
-					parentObject.setZoomBounds(Number(minZoomInput.value), Number(maxZoomInput.value));
-				
-				return true;
-			}
+            $(zoomPropertiesControl).change(function()
+            {
+                parentObject.setZoomBounds(this.getMinZoom(), this.getMaxZoom());
+            });
 
 			_(divStyles, [_ul([liMinZoom, liMaxZoom])]);
 
@@ -4159,8 +4108,8 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 			var pos = nsGmx.Utils.getDialogPos(div, true, 330),
 				closeFunc = function()
 				{
-					elemProperties.styles[0].MinZoom = minZoomInput.value;
-					elemProperties.styles[0].MaxZoom = maxZoomInput.value;
+					elemProperties.styles[0].MinZoom = zoomPropertiesControl.getMinZoom();
+					elemProperties.styles[0].MaxZoom = zoomPropertiesControl.getMaxZoom();
 					
 					delete _this.layerEditorsHash[elemProperties.name];
 					
