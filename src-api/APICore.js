@@ -3619,7 +3619,21 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				return ret;
 			}
 		}
-
+		
+		var getLastIndex = function()
+		{ 
+			var myIdx = parentObj.layers.length;
+			var n = 0;
+			for (var i = 0; i < myIdx; i++)
+			{
+				var l = parentObj.layers[i];
+				if (l.objectId && (l.properties.type != "Overlay"))
+					n += 1;
+			}
+			return n;
+		}
+		
+		
 		if (isVisible === undefined)
 			isVisible = true;
 		if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
@@ -3882,9 +3896,6 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 
 			if (layer.properties.Copyright)
 				obj.setCopyright(layer.properties.Copyright);
-			if(gmxAPI.proxyType === 'leaflet') {
-				gmxAPI._cmdProxy('addScanExTileLayer', { 'obj': parentObj, 'attr':{'layer':obj, 'prefix':tileSenderPrefix, 'isVisible':isVisible} });
-			}
 		}
 
 		obj.isVisible = isVisible;
@@ -3899,13 +3910,15 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				if (flag)
 				{
 					createThisLayer();
-					var n = 0;
+					var n = getLastIndex();
+/*					
 					for (var i = 0; i < myIdx; i++)
 					{
 						var l = parentObj.layers[i];
 						if (l.objectId && (l.properties.type != "Overlay"))
 							n += 1;
 					}
+*/					
 					if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
 					obj.bringToDepth(n);
 					for (var i = 0; i < deferred.length; i++)
@@ -3976,11 +3989,16 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 
 //		if (isRaster && (layer.properties.MaxZoom > maxRasterZoom))
 //			maxRasterZoom = layer.properties.MaxZoom;
-		var myIdx = parentObj.layers.length;
+//		var myIdx = parentObj.layers.length;
 		parentObj.layers.push(obj);
 		parentObj.layers[layerName] = obj;
 		if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
 			parentObj.layers[layer.properties.title] = obj;
+		
+		if(gmxAPI.proxyType === 'leaflet') {
+			var zIndex = getLastIndex();
+			gmxAPI._cmdProxy('addScanExTileLayer', { 'obj': parentObj, 'attr':{'layer':obj, 'prefix':tileSenderPrefix, 'zIndex':zIndex, 'isVisible':isVisible} });
+		}
 		
 		return obj;
 	}
