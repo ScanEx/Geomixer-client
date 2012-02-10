@@ -782,18 +782,13 @@ function loadMap(state)
 				
 				if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages ) 
 					_translationsHash.showLanguages();		
-				
-				var isHeaderLinks = false;
-				if (typeof window.headerLinks === 'boolean') isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
-				if ( typeof window.gmxViewerUI != 'undefined' && typeof window.gmxViewerUI.headerLinks != 'undefined' ) isHeaderLinks = window.gmxViewerUI.headerLinks;
-				
+								
 				if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
                 {
                     $('#headerLinks').append(_a([_t(_gtxt('Администрирование'))], [['dir', 'href', serverBase + 'Administration/SettingsAdmin.aspx'], ['attr','target','_blank'], ['css', 'marginTop', '7px'], ['css', 'fontWeight', 'bold']]));
                 }
                 
-                if (isHeaderLinks) 
-					addHeaderLinks();
+                nsGmx.addHeaderLinks($$('headerLinks'));
 				
 				if (state.mode)
 				{
@@ -848,14 +843,6 @@ function loadMap(state)
 	
 	if (!success)
 		$$("noflash").style.display = "block";
-}
-
-function addHeaderLinks()
-{
-	_($$('headerLinks'), [_a([_img(null, [['attr','src','img/zoom_tool2.png']]), _t("Поиск снимков")],[['attr','href','http://search.kosmosnimki.ru'],['attr','target','_blank']]),
-							  _a([_img(null, [['attr','src','img/api2.png']]), _t("Документация")],[['attr','href','http://docs.geomixer.ru'],['attr','target','_blank']]),
-							  _a([_img(null, [['attr','src','img/blog.png']]), _t("Блог")],[['attr','href','http://blog.kosmosnimki.ru'],['attr','target','_blank']])])
-
 }
 
 function promptFunction(title, value)
