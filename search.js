@@ -721,22 +721,19 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	/**Центрует карту по переданному объекту*/
 	var CenterObject = function(oFoundObject){
 		if (!oFoundObject) return;
-		var iZoom = 100;
-		var iMaxZoom  = (oFoundObject.CountryCode != 28000 && oFoundObject.CountryCode != 310000183 && oFoundObject.TypeName != "дом жилой" ) ? 9 : 15;
-		oMap.setMinMaxZoom(1, iMaxZoom);
+		var iZoom = (oFoundObject.TypeName != "дом жилой" ) ? oMap.getZ() : 15;
 		if (oFoundObject.MinLon != null && oFoundObject.MaxLon != null && oFoundObject.MinLat != null && oFoundObject.MaxLat != null){
 			oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
 		}
-		else if (oFoundObject.Geometry!=null){
+		else if (oFoundObject.Geometry!=null && oFoundObject.Geometry.type != 'POINT'){
 			var oExtent = getBounds(oFoundObject.Geometry.coordinates);
 			oMap.zoomToExtent(oExtent.minX, oExtent.minY, oExtent.maxX, oExtent.maxY);
 		}
 		else
 		{
-			var dCntrLon = oFoundObject.CntrLon, dCntrLat = oFoundObject.CntrLat;
-			oMap.moveTo(dCntrLon, dCntrLat, 15);
+			var dCntrLon = oFoundObject.CntrLon || oFoundObject.Geometry.coordinates[0], dCntrLat = oFoundObject.CntrLat || oFoundObject.Geometry.coordinates[1];
+			oMap.moveTo(dCntrLon, dCntrLat, iZoom);
 		}
-		oMap.setMinMaxZoom(1, 17);
 	};
 	
 	/**Центрует карту по переданному объекту
