@@ -3737,7 +3737,17 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 			obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
 		}
 
-		var deferredMethodNames = ["setHandler", "setStyle", "setBackgroundColor", "setCopyright", "addObserver", "enableTiledQuicklooks", "enableTiledQuicklooksEx"];
+		var deferredMethodNames = [
+			'getChildren', 'getItemsFromExtent', 'getTileItem', 'setTileItem',
+			'getDepth', 'getZoomBounds', 'getVisibility', 'getStyle', 'getIntermediateLength',
+			'getCurrentEdgeLength', 'getLength', 'getArea', 'getGeometryType', 'getStat', 'flip', 
+			'setZoomBounds', 'setBackgroundTiles', 'startLoadTiles', 'setVectorTiles', 'setTiles', 'setTileCaching',
+			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'bringToBottom',
+			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
+			'removeHandler', 'remove', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
+			'setHandler', 'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
+		];
+		// не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
 
 		var createThisLayer = function()
 		{
@@ -3911,14 +3921,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				{
 					createThisLayer();
 					var n = getLastIndex();
-/*					
-					for (var i = 0; i < myIdx; i++)
-					{
-						var l = parentObj.layers[i];
-						if (l.objectId && (l.properties.type != "Overlay"))
-							n += 1;
-					}
-*/					
+				
 					if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
 					obj.bringToDepth(n);
 					for (var i = 0; i < deferred.length; i++)
