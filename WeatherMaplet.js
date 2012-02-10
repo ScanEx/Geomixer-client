@@ -1,4 +1,5 @@
-﻿(function(){
+﻿//Устаревший мапплет - используйте plugins/WeatherPlugin.js
+(function(){
 
 	var winds = null;
 	var weathers = null;

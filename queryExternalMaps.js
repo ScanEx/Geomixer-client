@@ -26,7 +26,7 @@ queryExternalMaps.prototype.load = function()
 		
 		paramsTable.style.display = 'none';
 		
-		hostButton.value = (window.mapHostName ? window.mapHostName : parseUri(window.location.href).host);
+		hostButton.value = (window.mapHostName ? window.mapHostName : gmxAPI.parseUri(window.location.href).host);
 		
 		addMap.onclick = function()
 		{
