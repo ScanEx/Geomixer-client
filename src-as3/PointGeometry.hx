@@ -58,7 +58,7 @@ class PointGeometry extends Geometry
 					size *= window.scaleY;
 					var dt:Float = Math.abs(size);
 					if(parentNumChildren > MAX_POINTS_CACHEASBITMAP && !sprite.cacheAsBitmap) sprite.cacheAsBitmap = true; // для убыстрения отрисовки тайлов
-					if(dt > MAX_POINTS_WIDH && parentNumChildren > MAX_POINTS_COUNT) dt = MAX_POINTS_WIDH; // ограничение размеров точки
+					//if(dt > MAX_POINTS_WIDH && parentNumChildren > MAX_POINTS_COUNT) dt = MAX_POINTS_WIDH; // ограничение размеров точки
 
 					var graphics:Graphics = sprite.graphics;
 					var curr:Dynamic = getCurrentStyle(style, graphics);
