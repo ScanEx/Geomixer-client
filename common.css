@@ -1083,3 +1083,18 @@ div.layersScroll
     border: 1px solid #DEDEDE;
     padding: 1px 5px 2px;
 }*/
+
+.layertags-type
+{
+    width: 80px;
+}
+
+.layertags-table input
+{
+    margin: 1px;
+}
+
+.layertags-table td
+{
+    border: 0px;
+}

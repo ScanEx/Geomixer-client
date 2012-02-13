@@ -3,124 +3,6 @@ var nsGmx = nsGmx || {};
 
 (function(){
 
-var LayerTags = function()
-{
-    var uniqueID = 0;
-    var tags = {};
-    
-    this.updateTag = function(id, tag, value)
-    {
-        if ( !(id in tags) ) return;
-        
-        if (tags[id].tag !== tag || tags[id].value !== value)
-        {
-            tags[id] = {tag: tag, value: value};
-            $(this).change();
-        }
-    }
-    
-    this.deleteTag = function(id)
-    {
-        if ( !(id in tags) ) return;
-        
-        delete tags[id];
-        $(this).change();
-    }
-    
-    this.each = function(callback)
-    {
-        for (var tagId in tags)
-            callback(tagId, tags[tagId].tag, tags[tagId].value);
-    }
-    
-    this.addNewTag = function()
-    {
-        var newId = 'id' + (++uniqueID);
-        tags[newId] = { tag:'', value:'' };
-        $(this).change();
-        return newId;
-    }
-    
-    this.isTag = function(tagId)
-    {
-        return tagId in tags;
-    }
-}
-
-var LayerTagSearchControl = function(layerTags, container)
-{
-    var mainTable = $('<table/>').appendTo(container);
-    mainTable.append($('<tr/>')
-        .append($('<th/>').text('Тег'))
-        .append($('<th/>').text('Значение'))
-        .append($('<th/>'))
-    );
-    
-    var rows = {};
-    
-    var addNewRow = function(tagId, tag, value)
-    {
-        var tagInput = $('<input/>').val(tag);
-        var valueInput = $('<input/>').val(value);
-        
-        var updateModel = function()
-        {
-            layerTags.updateTag(tagId, tagInput.val(), valueInput.val());
-        }
-        
-        tagInput.bind('keyup', updateModel);
-        valueInput.bind('keyup', updateModel);
-        
-        var deleteButton = makeImageButton('img/recycle.png', 'img/recycle_a.png');
-        deleteButton.onclick = function()
-        {
-            layerTags.deleteTag(tagId);
-        }
-        
-        var tr = $('<tr/>')
-            .append($('<td/>').append(tagInput))
-            .append($('<td/>').append(valueInput))
-            .append($('<td/>').append(deleteButton));
-        mainTable.append(tr);
-        
-        rows[tagId] = {tr: tr, tag: tagInput, value: valueInput};
-    }
-    
-    $(layerTags).change(function()
-    {
-        //mainTable.empty();
-        var isAnyEmpty = false;
-        layerTags.each(function(tagId, tag, value)
-        {
-            if (tag == '' && value == '')
-                isAnyEmpty = true;
-            
-            if (!(tagId in rows))
-                addNewRow(tagId, tag, value);
-            else 
-            {
-                if (rows[tagId].tag.val() !== tag)
-                    rows[tagId].tag.val(tag)
-                    
-                if (rows[tagId].value.val() !== value)
-                    rows[tagId].value.val(value)
-            }
-        });
-        
-        for (var tagId in rows)
-            if (!(layerTags.isTag(tagId)))
-            {
-                rows[tagId].tr.remove();
-                delete rows[tagId];
-            }
-        
-        if (!isAnyEmpty)
-            layerTags.addNewTag();
-    });
-    
-    layerTags.addNewTag();
-}
-
 var LayersListProvider = function(filtersProvider)
 {
     var _this = this;
@@ -355,8 +237,8 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
 	
     var tagsParent = _div();
     _(canvas, [tagsParent]);
-    var layerTags = new LayerTags();
-    var layerTagSearchControl = new LayerTagSearchControl(layerTags, tagsParent);
+    var layerTags = new nsGmx.LayerTags();
+    var layerTagSearchControl = new nsGmx.LayerTagSearchControl(layerTags, tagsParent);
     
     var LayersFilterParams = (function()
     {

@@ -2788,6 +2788,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 	
 	var columnsParent = _div();
 	var encodingParent = _div();
+    var layerTagsParent = _div();
 	var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
 	
 	//event: change
@@ -2892,6 +2893,9 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		
 		return _public;
 	})();
+    
+    var layerTags = new nsGmx.LayerTags();
+    var layerTagsControl = new nsGmx.LayerTagSearchControl(layerTags, layerTagsParent);
 	
 	if (type == "Vector")
 	{
@@ -2903,8 +2907,6 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			tilePath = _div([_t(typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')],[['css','marginLeft','3px'],['css','width','220px'],['css','whiteSpace','nowrap'],['css','overflowX','hidden']]),
 			trTiles = _tr([_td([_t(_gtxt("Каталог с тайлами"))],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
 						  _td([tilePath])]);
-			// trTimeLayer = _tr([_td([_t("Временнóй слой")],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
-						  // _td([_t("test")])]);
 		
 		shapePath.oldValue = shapePath.value;
 		
@@ -3061,7 +3063,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			var propertiesTable = $('<table></table>').append(tr0).append(tr1).append(tr2).appendTo(parentDiv);
 			propertiesTable.css('display', 'none');
 		}
-		
+                
 		tableLink.onclick = function()
 		{
 			_tableBrowser.createBrowser(function(name)
@@ -3124,7 +3126,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		
 		if (div)
 			shownProperties.push({tr:trTiles});
-		
+            		
 		// shownProperties.push({tr:trTimeLayer});
 		
 		var boxSearch = _checkbox(div ? (div.gmxProperties.content.properties.AllowSearch ? div.gmxProperties.content.properties.AllowSearch : false) : (typeof properties.AllowSearch != 'undefined' ? properties.AllowSearch : false), 'checkbox');
@@ -3449,6 +3451,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		shownProperties.push({tr:trPath});
 		shownProperties.push({tr:trShape});
 	}
+    
+    shownProperties.push({tr:_tr([_td([layerTagsParent], [['attr', 'colspan', 2]])])});
 	
 	// for (var i = 0; i < shownProperties.length; i++)
 	// {
@@ -3792,12 +3796,12 @@ mapHelper.prototype.createNewLayer = function(type)
 		return;
 
 	var parent = _div(null, [['attr','id','new' + type + 'Layer']]),
-		height = (type == 'Vector') ? 270 : 285;
+		height = (type == 'Vector') ? 270 : 295;
 
     if (type !== 'Multi')
     {
 		var properties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
-        showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 330, height, false, false);
+        showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 350, height, false, false);
         this.createLayerEditorProperties(false, type, parent, properties);
     }
     else
