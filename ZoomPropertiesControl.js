@@ -47,7 +47,7 @@
     {
         var _this = this;
         var minZoomInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','MinZoom'],['css','width','30px'],['attr','value', minZoom || 1]]);
-        var maxZoomInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','MinZoom'],['css','width','30px'],['attr','value', maxZoom || 17]]);
+        var maxZoomInput = _input(null, [['dir','className','inputStyle'],['attr','paramName','MaxZoom'],['css','width','30px'],['attr','value', maxZoom || 17]]);
         checkZoom(minZoomInput, maxZoomInput);
         
         var liMinZoom = _li([_div([_table([_tbody([_tr([_td([_span([_t(_gtxt("Мин. зум"))],[['css','fontSize','12px']])],[['css','width','60px']]),_td([minZoomInput])])])])])]);
