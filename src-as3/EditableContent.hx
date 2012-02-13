@@ -115,10 +115,12 @@ class EditableContent extends MapContent
 	function chkGeometry()
 	{
 		var geom:Geometry = getGeometry();
-		var w:Float = Utils.worldWidth;
-		var ww:Float = geom.extent.maxx - geom.extent.minx;
-		if (ww < 2 * w && geom.extent.maxx > w) {	// Поправка только если Extent < размера мира и maxx больше полумира
-			for (i in 0...Std.int(coordinates.length / 2)) coordinates[2 * i] -= 2 * w;
+		if(geom != null) {
+			var w:Float = Utils.worldWidth;
+			var ww:Float = geom.extent.maxx - geom.extent.minx;
+			if (ww < 2 * w && geom.extent.maxx > w) {	// Поправка только если Extent < размера мира и maxx больше полумира
+				for (i in 0...Std.int(coordinates.length / 2)) coordinates[2 * i] -= 2 * w;
+			}
 		}
 	}
 	
