@@ -1,13 +1,17 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<script src="http://maps.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script>
+	<script src="http://mapstest.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script>
 </head>
 
 <body>
 
-<form method="POST" action="/" onsubmit="loadWMS(); return false;">
- <input type="text" size=80 id="wms_url" value="http://maps.kosmosnimki.ru/TileService.ashx?apikey=L5VW1QBBHJ" />
+<form method="POST" action="/" onsubmit="loadWMS('wms_url_internal'); return false;">
+ <input type="text" size=80 id="wms_url_internal" value="http://maps.kosmosnimki.ru/TileService.ashx?apikey=L5VW1QBBHJ" />
+ <input type="submit" value="Загрузить WMS" />
+</form>
+<form method="POST" action="/" onsubmit="loadWMS('wms_url_external'); return false;">
+ <input type="text" size=80 id="wms_url_external" value="http://wms.lizardtech.com/lizardtech/iserv/ows" />
  <input type="submit" value="Загрузить WMS" />
 </form>
 
@@ -17,10 +21,10 @@
 	createFlashMap(document.getElementById("map"), function(map)
 		{
 			map.moveTo(80.41, 64.79, 3);//позиционирует карту по координатам центра и выбирает масштаб
-			window.loadWMS = function()
+			window.loadWMS = function(st)
 			{
 				var o = map.addObject();
-				var url = document.getElementById("wms_url").value;
+				var url = document.getElementById(st).value;
 				o.loadWMS(
 					url,
 					function(wmsLayers)
