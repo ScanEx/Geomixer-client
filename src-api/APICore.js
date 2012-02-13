@@ -3594,6 +3594,13 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 			}
 			if (!filterSet)
 				filter.setFilter();
+
+			filter.getPatternIcon = function(ph, size)
+			{
+				if(!size) size = 32;
+				if(!ph) ph = givenStyle;
+				return gmxAPI._cmdProxy('getPatternIcon', { 'attr':{'size':size, 'style':ph} });
+			}
 			filter.setZoomBounds(style.MinZoom, style.MaxZoom);
 			filter.setStyle(givenStyle, hoveredStyle);
 			

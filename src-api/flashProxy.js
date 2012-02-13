@@ -310,6 +310,9 @@
 			case 'setAPIProperties':
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
 				break;
+			case 'getPatternIcon':
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'data':attr } );
+				break;
 		}
 /*
 if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };

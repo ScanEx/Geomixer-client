@@ -42,6 +42,7 @@ class FillStyle
 	public function new(fill:Dynamic)
 	{
 		patternCacheFlag = true;
+		if (fill == null) fill = { };
 
 		colorFunction = null;
 		if (Std.is(fill.color, String)) {
@@ -106,6 +107,8 @@ class FillStyle
 		if (bitmapData != null) {
 			return bitmapData;
 		}
+		if (pattern == null) return null;
+
 		var curKey:String = patternKey;
 		if (propHiden != null && propHiden.exists('_patternKey')) {
 			curKey = propHiden.get('_patternKey');
@@ -114,7 +117,8 @@ class FillStyle
 			return bmdCache.get(curKey);
 		}
 
-		var arr:Array<Int> = cast(pattern.colors);
+		var arr:Array<Int> = new Array<Int>();
+		if(pattern.colors != null) arr = cast(pattern.colors);
 		var count:Int = Std.int(arr.length);
 
 		var step:Int = (pattern.step > 0 ? pattern.step : 0);		// шаг между линиями
@@ -140,8 +144,9 @@ class FillStyle
 		curKey += '_' + size;
 		curKey += '_' + step;
 		var resColors:Array<Int> = new Array<Int>();
+		var rgb:Array<Int> = [0xff0000, 0x00ff00, 0x0000ff];
 		for (i in 0...count) {
-			var col:Int = (patternColorsFunction[i] != null && prop != null ? cast(patternColorsFunction[i](prop)) : arr[i]);
+			var col:Int = (patternColorsFunction[i] != null ? (prop != null ? cast(patternColorsFunction[i](prop)): rgb[i%3]) : arr[i]);
 			resColors.push(col);
 		}
 		curKey += '_' + resColors.join('_');

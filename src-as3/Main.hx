@@ -1,9 +1,12 @@
+import flash.display.Shape;
 import flash.display.Sprite;
 import flash.display.Stage;
 import flash.display.StageAlign;
 import flash.display.StageScaleMode;
 import flash.display.StageQuality;
 import flash.display.BitmapData;
+//import flash.filters.ConvolutionFilter;
+//import flash.geom.Point;
 import flash.ui.ContextMenu;
 import flash.ui.ContextMenuItem;
 import flash.ui.Mouse;
@@ -1350,6 +1353,28 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'setAPIProperties':	// Установка дополнительных свойств
 					var node = getNode(attr.objectId);
 					out = cast(node != null ? node.setAPIProperties(attr.data) : false);
+				case 'getPatternIcon':		// base64-иконка по FillStyle
+					var size = (attr.data.size != null ? attr.data.size : 32);
+					var style = (attr.data.style != null && attr.data.style.fill != null ? attr.data.style.fill : {});
+					var fillStyle:FillStyle = new FillStyle(style);
+					var data:BitmapData = fillStyle.getBitmapData();
+					if(data != null) {
+						var inv = mapWindow.matrix.clone();
+						inv.invert();
+						var scale = Math.abs(inv.a);
+						inv.scale(size / (scale*data.width), size / (scale*data.height));
+						inv.tx = 0;
+						inv.ty = 0;
+						var shape:Shape = new Shape();
+						shape.graphics.beginBitmapFill(data, inv);
+						shape.graphics.drawRect(0, 0, size, size);
+						shape.graphics.endFill();
+						var res:BitmapData = new BitmapData(size, size, true, 0x00FFFFFF);
+						res.draw(shape);
+						//res.applyFilter(res, res.rect, new Point(0, 0), new ConvolutionFilter( 3, 3, [1, 1, 1, 1, 0, 1, 1, 1, 1], 9));
+						var pngData:ByteArray = PNGEncoder.encode(res);
+						out = cast(Base64.encode64(pngData, true));
+					}
 			}
 			return out;
 		}
