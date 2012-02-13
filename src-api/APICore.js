@@ -1839,9 +1839,9 @@ function createFlashMapInternal(div, layers, callback)
 					gmxAPI.map.setBackgroundColor(this.backgroundColor);
 				if (this.copyright)
 					gmxAPI.map.updateCopyright();
-				var func = gmxAPI.map.onSetVisible[this.objectId];
-				if (func)
-					func(attr);
+				//var func = gmxAPI.map.onSetVisible[this.objectId];
+				//if (func)
+				//	func(attr);
 
 				var prev = this.isVisible;
 				this.isVisible = val;
@@ -2474,7 +2474,7 @@ function createFlashMapInternal(div, layers, callback)
 
 			var map = new FlashMapObject(rootObjectId, {}, null);
 			gmxAPI.map = map;
-			map.onSetVisible = {};
+			//map.onSetVisible = {};
 			map.layers = [];
 			map.rasters = map;
 			map.tiledQuicklooks = map;
