@@ -2429,16 +2429,6 @@ queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, add
 {
 	var input = _input(null, [['attr','value', ''],['css','margin','10px 10px 15px 10px'],['dir','className','inputStyle'],['css','width','220px']]),
 		button = makeButton(buttonName),
-		inputError = function()
-		{
-			$(input).addClass('error');
-			
-			setTimeout(function()
-			{
-				if (input)
-					$(input).removeClass('error');
-			}, 1000)
-		},
 		canvas = _div([input, button],[['css','textAlign','center']]);
 		_this = this;
 	
@@ -2455,7 +2445,7 @@ queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, add
 				canvas.parentNode.removeNode(true);
 			}
 			else
-				inputError();
+				inputError(input);
 	  		
 	  		return false;
 	  	}
@@ -2471,7 +2461,7 @@ queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, add
 			canvas.parentNode.removeNode(true);
 		}
 		else
-			inputError();
+			inputError(input);
 	}
 	
 	if (addLink)
@@ -2507,7 +2497,8 @@ queryMapLayers.prototype.createMap = function(name)
         var saveTree = {};
         
         $.extend(true, saveTree, _mapHelper.mapTree)
-        // закрываем все группы
+        
+        //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)
         {
             if (child.type == "group")
@@ -2534,7 +2525,6 @@ queryMapLayers.prototype.createMap = function(name)
                 if (!parseResponse(response))
                     return;
                 
-                //_mapHelper.mapProperties.Version = newVersion + 1;
                 callback && callback(response.Result);
                 
                 _mapHelper.updateUnloadEvent(false);

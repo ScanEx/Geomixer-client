@@ -3,7 +3,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<link rel="stylesheet" type="text/css" href="http://maps.kosmosnimki.ru/api/jquery/jquery-ui-1.7.2.custom.css">
 	
-	<script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+	<script src="http://mapstest.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
 	<script src="http://maps.kosmosnimki.ru/api/jquery/jquery-1.5.1.min.js"></script>
 	<script src="http://maps.kosmosnimki.ru/api/jquery/jquery-ui-1.8.10.custom.min.js"></script>
 	
@@ -65,7 +65,7 @@
 		<tr><td>
 			Цвета
 		</td><td>
-			<input type="edit" value="0x0000FF,0xFF0000,0xFFFFFF" id="colors"></input><br>
+			<input type="edit" value="0x0000FF,0xFF0000,0x00FF00" id="colors"></input><br>
 		</td></tr>
 		<tr><td>
 			Прозрачность
@@ -75,25 +75,23 @@
 		</td></tr>
 	</tbody></table>
 	<button id="apply">Применить</button>
+	 <img id="cmdHash" src="">
 </div>
 <script>
-	createFlashMap(document.getElementById("map_container"), 'maps.kosmosnimki.ru', "DefaultMap", function(map)
+	createFlashMap(document.getElementById("map_container"), 'maps.kosmosnimki.ru', "7VKHM", function(map)
 	{
-		var myLayer = map.layers["79EF26840533426DB96521279AC660F1"];
-
-		var updateStyle = function()
+		map.moveTo(80.41, 64.79, 3);
+		var myLayer = map.layers["RegionsRF83_pop2"];
+		myLayer.setVisible(true);
+		var ph = {};
+		
+		var prpStyle = function()
 		{
 			var style = $("#style option:selected").val();
 			var size = $("#size").val();
 			var step = $("#step").val();
 			var colors = $("#colors").val();
 			var opacity = $("#opacity").val();
-			var ph = {
-				fill: {
-					image: "http://mapstest.kosmosnimki.ru/GetLines.ashx?colors="+ colors +"&size="+ size +"&style=" + style + "&opacity=" + opacity + "&step=" + step,
-					opacity: 0.1
-				}
-			};
 			
 			var tmp = colors.split(',');
 			var arr = [];
@@ -101,9 +99,9 @@
 			{
 				arr[i] = parseInt(tmp[i]);
 			}
-			var ph = {
+			ph = {
 				fill: {
-				  opacity: opacity,
+				  opacity: parseInt(opacity),
 				  pattern: {
 						colors: arr,
 						width: parseInt(size),
@@ -112,51 +110,18 @@
 					}
 				}
 			};
-
-			map.layers["79EF26840533426DB96521279AC660F1"].filters[0].setStyle(ph);
 		}
+
+		var updateStyle = function()
+		{
+			prpStyle();
+			myLayer.filters[0].setStyle(ph);
+			document.getElementById("cmdHash").src = 'data:image/png;base64,' + myLayer.filters[0].getPatternIcon(ph);
+		}
+
 		$("#apply").click(updateStyle );
 		$("#style").change(updateStyle );
 		updateStyle();
-/*
-		document.getElementById("button1").onclick = function()
-		{
-			var style = {
-				fill: {
-				  opacity: '20 * [Плотность]',
-				  pattern: {
-						colors:[0xFF0000, 0x00FF00, 0x0000FF], // 0xffffff, 0xff00ff, 
-						width: '4 * [Плотность]',
-						style: "diagonal2", //тут могут быть заданные строки или число - угол наклона [0..360], horizontal, vertical, diagonal1, diagonal2, circle, cross, cross1
-						step: 0
-					}
-				}
-			};
-			var style = {
-				fill: {
-				  opacity: 80,
-				  pattern: {
-						colors:['16777215 - [Численность]*100', '16277215 - [Численность]*100'],
-						width: '4 * [Плотность]',
-						style: "diagonal2", //тут могут быть заданные строки или число - угол наклона [0..360], horizontal, vertical, diagonal1, diagonal2, circle, cross, cross1
-						step: 0
-					}
-				}
-			};
-			var style = {
-				fill: {
-				  opacity: 80,
-				  pattern: {
-						colors:[0xFF0000, 0x00FF00, 0x0000FF],
-						width: 12,
-						style: "horizontal", //тут могут быть заданные строки или число - угол наклона [0..360], horizontal, vertical, diagonal1, diagonal2, circle, cross, cross1
-						step: 0
-					}
-				}
-			};
-			myLayer.filters[0].setStyle(style); 
-		}
-*/
 
 	});
 </script>

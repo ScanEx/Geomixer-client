@@ -225,16 +225,6 @@ fileBrowser.prototype.createHeader = function(discs)
 	var newFolderName = _input(null, [['dir','className','inputStyle'], ['css','width','150px']]),
 		showFolderButton = makeImageButton("img/newfolder.png"),
 		newFolderButton = makeButton(_gtxt("Создать")),
-		inputError = function()
-		{
-			$(newFolderName).addClass('error');
-			
-			setTimeout(function()
-			{
-				if (newFolderName)
-					$(newFolderName).removeClass('error');
-			}, 1000)
-		},
 		createFolder = function()
 		{
 			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + _this.currentDir + '\\' + newFolderName.value, function(response)
@@ -284,7 +274,7 @@ fileBrowser.prototype.createHeader = function(discs)
 	  		if (newFolderName.value != '')
 				createFolder();
 			else
-				inputError();
+				inputError(newFolderName);
 	  		
 	  		return false;
 	  	}
@@ -295,7 +285,7 @@ fileBrowser.prototype.createHeader = function(discs)
 		if (newFolderName.value != '')
 			createFolder();
 		else
-			inputError();
+			inputError(newFolderName);
 	}
 	
 	this.tdAddFolder = _td([_table([_tbody([_tr([_td([showFolderButton], [['attr','vAlign','top']]),_td([newFolderName]),_td([newFolderButton])])])])], [['attr','vAlign','top']]),

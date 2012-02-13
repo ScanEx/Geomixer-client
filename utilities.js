@@ -107,19 +107,6 @@ function isArray(a)
 {
 	return a && (typeof a =='object') && (a.constructor == Array)
 }
-/*
-if (![].map) 
-{
-	Array.prototype.map = function(callback)
-	{
-		var arr = [];
-		
-		for (var i = 0; i < this.length; i++)
-			arr.push(callback(this[i]))
-		
-		return arr;
-	}
-}*/
 
 if (window.Node && window.Node.prototype)
 {
@@ -1000,15 +987,26 @@ function stringDateTime(msec)
 	return stringDate(msec) + ' ' +  (excHour < 10 ? '0' + excHour : excHour) + ':' + (excMin < 10 ? '0' + excMin : excMin) + ':' + (excSec < 10 ? '0' + excSec : excSec);
 }
 
-function inputError(input)
+/**
+    Подсвечивает красным input, убирает подсветку через некоторое время
+    @param input {Array or HTMLDOMElement} целевой input-элемент или массив таких элементов
+    @param delay {integer} время подсвечивания ошибки в миллисекундах
+*/
+function inputError(input, delay)
 {
-	jQuery(input).addClass('error');
+    delay = delay || 1000;
+    if (!isArray(input)) 
+        input = [input];
+    
+    for (var k = 0; k < input.length; k++)
+        jQuery(input[k]).addClass('error');
 	
 	setTimeout(function()
 	{
-		if (input)
-			jQuery(input).removeClass('error');
-	}, 1000)
+        for (var k = 0; k < input.length; k++)
+            if (input[k])
+                jQuery(input[k]).removeClass('error');
+	}, delay)
 }
 
 function equals(x, y)

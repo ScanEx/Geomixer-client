@@ -380,17 +380,7 @@ queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManag
 			return [];
 	}
 	
-	var inputField = _input(null, [['dir','className','inputStyle'],['css','width','200px']]),
-		inputError = function()
-		{
-			$(inputField).addClass('error');
-			
-			setTimeout(function()
-			{
-				if (inputField)
-					$(inputField).removeClass('error');
-			}, 1000)
-		};
+	var inputField = _input(null, [['dir','className','inputStyle'],['css','width','200px']]);
 	
 	this.parentCanvas = _div(null, [['dir','className','serverDataCanvas']]);
 	
@@ -409,7 +399,7 @@ queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManag
 			inputField.value = '';
 		}
 		else
-			inputError();
+			inputError(inputField);
 	}
 	
 	goButton.onclick = doGetCapabilities;

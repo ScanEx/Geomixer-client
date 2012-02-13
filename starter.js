@@ -7,6 +7,7 @@ nsGmx.widgets = nsGmx.widgets || {};
 
 var gmxJSHost = window.gmxJSHost || "";
 
+//скопирована из API, так как используется до его загрузки
 function parseUri(str) 
 {
 	var	o   = parseUri.options,
@@ -48,63 +49,9 @@ var _getFileName = function( localName )
 {
 	return gmxJSHost + localName + ( window.gmxDropBrowserCache ? "?" + Math.random() : "");
 }
-
-//последовательно загружает все файлы js из jsLoadSchedule.txt и вызывает после этого callback
-var loadJS = function(callback)
+	
+nsGmx.initGeoMixer = function()
 {
-    var process = function(fileList)
-    {
-        var LABInstance = $LAB;
-		
-		for (var f = 0; f < fileList.length-1; f++)
-			LABInstance = LABInstance.script(_getFileName(fileList[f])).wait();
-			
-		LABInstance.script(_getFileName(fileList[fileList.length-1])).wait(callback);
-    }
-    
-    var fileName = gmxJSHost + "jsLoadSchedule.txt";
-    
-    var filesToLoad = [/*#buildinclude<load_js.txt>*/];
-    
-    //если система сборки не вставила явно список файлов вьюера, попробуем его загрузить из внешнего файла...
-    if (filesToLoad.length === 0)
-    {
-        if (fileName.indexOf("http://") === 0)
-        {
-            $.getJSON(_serverBase + "ApiSave.ashx?CallbackName=?&get=" + encodeURIComponent(fileName), function(response)
-            {
-                process(eval(response.Result));
-            });
-        }
-        else
-            $.getJSON(fileName, process);
-    }
-    else
-        process(filesToLoad);
-}
-
-$LAB.
-	script(_getFileName("jquery/jquery-1.5.1.min.js")).wait().
-	script(_getFileName("jquery/jquery.getCSS.js")).wait(function()
-	{
-		$.getCSS(_getFileName("common.css"));
-		$.getCSS(_getFileName("jquery/jquery-ui-1.7.2.custom.css"));
-		$.getCSS(_getFileName("colorpicker/css/colorpicker.css"));
-		$.getCSS(_getFileName("menu.css"));
-		$.getCSS(_getFileName("table.css"));
-		$.getCSS(_getFileName("buttons.css"));
-		$.getCSS(_getFileName("treeview.css"));
-		$.getCSS(_getFileName("search.css"));
-	}).
-	script(_getFileName("jquery/jquery-ui-1.8.10.custom.min.js")).wait().
-	script(_getFileName("jquery/ui.datepicker-ru.js")).wait().
-	script(_getFileName("jquery/jquery.treeview.js")).wait().
-	
-	script(_getFileName("colorpicker/js/colorpicker.js")).wait().
-	script(_getFileName("colorpicker/js/eye.js")).wait().
-	script(_getFileName("colorpicker/js/utils.js")).wait(function(){
-	
-loadJS(function(){
 
 var oSearchLeftMenu = new leftMenu();
 				
@@ -380,12 +327,14 @@ function parseReferences()
 		kvp = (q.length > 1) ? q.substring(1).split("&") : [];
 	
 	for (var i = 0; i < kvp.length; i++)
+    {
 		kvp[i] = kvp[i].split("=");
-	
+    }
+
 	var params = {},
 		givenMapName = false;
 	
-	for (var j in kvp)
+	for (var j=0; j < kvp.length; j++)
 	{
 		if (kvp[j].length == 1)
 		{
@@ -538,8 +487,21 @@ function filterTemporalLayers()
                 dateBegin = new Date(dateBegin.valueOf() - 1000*3600*24);
             
             for (var i = 0; i < globalFlashMap.layers.length; i++)
-                if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
-                    globalFlashMap.layers[i].setDateInterval(dateBegin, dateEnd);
+                if (globalFlashMap.layers[i].properties.Temporal)
+                {
+                    //если для слоя задан только один временной период, считаем, что он "однолистный" - 
+                    //не имеет смысл показывать данные за несколько периодов (например, погода, ветер)
+                    //поэтому задаём период не больше периода слоя
+                    if (globalFlashMap.layers[i].properties.TemporalPeriods && globalFlashMap.layers[i].properties.TemporalPeriods.length == 1)
+                    {
+                        var layerPeriod = globalFlashMap.layers[i].properties.TemporalPeriods[0]*24*3600*1000 - 1000;
+                        var newDateBegin = layerPeriod < dateEnd.valueOf() - dateBegin.valueOf() ? new Date(dateEnd.valueOf() - layerPeriod) : dateBegin;
+                        
+                        globalFlashMap.layers[i].setDateInterval(newDateBegin, dateEnd);
+                    }
+                    else
+                        globalFlashMap.layers[i].setDateInterval(dateBegin, dateEnd);
+                }
                     
             //console.log(dateBegin + '-' + dateEnd);
         }
@@ -820,18 +782,13 @@ function loadMap(state)
 				
 				if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages ) 
 					_translationsHash.showLanguages();		
-				
-				var isHeaderLinks = false;
-				if (typeof window.headerLinks === 'boolean') isHeaderLinks = window.headerLinks; //совместимость с предыдущими версиями
-				if ( typeof window.gmxViewerUI != 'undefined' && typeof window.gmxViewerUI.headerLinks != 'undefined' ) isHeaderLinks = window.gmxViewerUI.headerLinks;
-				
+								
 				if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
                 {
-                    $('#headerLinks').append(_a([_t(_gtxt('Администрирование'))], [['dir', 'href', serverBase + '/Administration/SettingsAdmin.aspx'], ['attr','target','_blank'], ['css', 'marginTop', '7px'], ['css', 'fontWeight', 'bold']]));
+                    $('#headerLinks').append(_a([_t(_gtxt('Администрирование'))], [['dir', 'href', serverBase + 'Administration/SettingsAdmin.aspx'], ['attr','target','_blank'], ['css', 'marginTop', '7px'], ['css', 'fontWeight', 'bold']]));
                 }
                 
-                if (isHeaderLinks) 
-					addHeaderLinks();
+                nsGmx.addHeaderLinks($$('headerLinks'));
 				
 				if (state.mode)
 				{
@@ -888,14 +845,6 @@ function loadMap(state)
 		$$("noflash").style.display = "block";
 }
 
-function addHeaderLinks()
-{
-	_($$('headerLinks'), [_a([_img(null, [['attr','src','img/zoom_tool2.png']]), _t("Поиск снимков")],[['attr','href','http://search.kosmosnimki.ru'],['attr','target','_blank']]),
-							  _a([_img(null, [['attr','src','img/api2.png']]), _t("Документация")],[['attr','href','http://docs.geomixer.ru'],['attr','target','_blank']]),
-							  _a([_img(null, [['attr','src','img/blog.png']]), _t("Блог")],[['attr','href','http://blog.kosmosnimki.ru'],['attr','target','_blank']])])
-
-}
-
 function promptFunction(title, value)
 {
 	var input = _input(null, [['attr','value', value],['css','margin','20px 10px'],['dir','className','inputStyle'],['css','width','220px']]);
@@ -920,8 +869,6 @@ function promptFunction(title, value)
 
 window.prompt = promptFunction;
 
-}); //loadjs
-
-}); //$LAB
+};
 
 })();

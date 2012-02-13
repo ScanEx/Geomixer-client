@@ -3,8 +3,7 @@
 */
 nsGmx.Controls = {
 
-	/** Создаёт контрол выбора цвета
-	*/
+	/** Создаёт контрол выбора цвета */
 	createColorPicker: function(color, showFunc, hideFunc, changeFunc){
 		var colorPicker = _div(null, [['dir','className','colorSelector'], ['css','backgroundColor',nsGmx.Utils.convertColor(color)]]);
 		
@@ -169,6 +168,67 @@ nsGmx.Controls = {
 		var input = _input(null, [['dir','className','inputStyle'],['css','width','30px'],['attr','value',value]]);
 		input.onkeyup = changeFunc;
 		return input;
+	},
+	
+	/** Создаёт элемент ввода типа данных, зависящих от параметров
+	@param fieldInfo Информация о поле
+	@param fieldValue Значение поля*/
+	createInputRow: function(fieldInfo, fieldValue){
+		var input = null;
+		if (fieldInfo.TypeID == 1){ //Decimal
+			input = _input(null, [['css', 'width', '100%']]);
+			if (fieldValue.DecimalValue != null){
+				input.value = fieldValue.DecimalValue;
+			}
+			input.onchange = function(){
+				if (/^-?\d*\.?\d*$/.test(input.value)){
+					fieldValue.DecimalValue = input.value;
+				}
+				else {
+					input.value = fieldValue.DecimalValue;
+				}
+			}
+		}
+		else if(fieldInfo.TypeID == 2){ //Date
+			input = _input(null, [['css', 'width', '100%']]);
+			$(input).datepicker({
+				onSelect: function(dateText, inst){
+					fieldValue.DateValue = $(input).datepicker("getDate");
+				},
+				showAnim: 'fadeIn',
+				changeMonth: true,
+				changeYear: true,
+				defaultDate: fieldValue.DateValue ? fieldValue.DateValue : new Date()
+			});
+		}
+		else if(fieldInfo.TypeID == 3) { //String
+			input = _textarea(null, [['css', 'width', '100%']]);
+			if (fieldValue.StringValue != null){
+				input.value = fieldValue.StringValue;
+			}
+			input.onchange = function(){
+				fieldValue.StringValue = input.value;
+			}
+		}
+		return input;
+	},
+	
+	/** Создаёт форму ввода с настраиваемым набором полей 
+	@param fieldInfoList Хэш информации о типе полей
+	@param fieldValues Хэш значений */
+	createInputForm: function(fieldInfoList, fieldValues){
+		var container = _div(null, [['dir','className','message-input-form']]);
+		var tbody = _tbody(null, [['css', 'width', '100%']]);
+		_(container, [_table([tbody], [['css', 'width', '100%']])]);
+		for (var iFieldIndex=0; iFieldIndex<fieldInfoList.length; iFieldIndex++){
+			var oFieldInfo = fieldInfoList[iFieldIndex];
+			if (!fieldValues[oFieldInfo.MessageAttributeID]) fieldValues[oFieldInfo.MessageAttributeID] = {};
+			var td = _td([_t(oFieldInfo.Name), _br()]);
+			_(tbody, [_tr([td])]);
+			_(td, [this.createInputRow(oFieldInfo, fieldValues[oFieldInfo.MessageAttributeID])]);
+		}
+		
+		return container;
 	}
 }
 

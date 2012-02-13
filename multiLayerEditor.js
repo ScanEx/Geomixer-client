@@ -19,8 +19,6 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
     
     var selectedLayersTable = new scrollTable();
     
-    // var _this = this;
-    
     _queryMapLayers.layersList = layersToAdd;
 
     var suggestLayersTable = nsGmx.createLayersManagerInDiv(commonLayersListDiv, 'multilayers', {
@@ -92,7 +90,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
     
     var propertiesDiv = _div(null, [['css', 'width', '100%'], ['css', 'height', '100%']]);
     var shownProperties = [];
-    var title = _input(null,[['attr','fieldName','title'],['attr','value', elemProperties.title],['dir','className','inputStyle'],['css','width','220px']])
+    var title = _input(null,[['attr','fieldName','title'],['attr','value', elemProperties.title || ''],['dir','className','inputStyle'],['css','width','220px']])
     title.onkeyup = function()
     {
         if (div)
@@ -111,7 +109,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
         return true;
     }
     var descr = _textarea(null,[['attr','fieldName','description'],['dir','className','inputStyle'],['css','width','220px'],['css','height','50px']]);
-    descr.value = elemProperties.description;
+    descr.value = elemProperties.description || '';
     
     descr.onkeyup = function()
     {
@@ -147,15 +145,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
         if (!selectedLayersTable.getDataProvider().getOriginalItems().length) errorElems.push(selectedLayersDiv);
         
         for (var i = 0; i < errorElems.length; i++)
-            (function(elem)
-            {
-                $(elem).addClass('error');                
-                setTimeout(function()
-                {
-                    if (elem)
-                        $(elem).removeClass('error')
-                }, 2000)
-            })(errorElems[i]);
+            inputError(errorElems[i], 2000);
         
         if (errorElems.length) return;
         
@@ -185,19 +175,20 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
                 mapName:  mapHelper.mapProperties.name,
                 hostName: mapHelper.mapProperties.hostName,
                 visible:  isCreate ? true : layerDiv.gmxProperties.content.properties.visible,
-                styles:   isCreate ? [{MinZoom: response.Result.properties.MinZoom, MaxZoom: 21}] : layerDiv.gmxProperties.content.properties.styles
+                styles:   isCreate ? [{MinZoom: response.Result.properties.MinZoom, MaxZoom: response.Result.properties.MaxZoom}] : layerDiv.gmxProperties.content.properties.styles
             });
             var convertedCoords = from_merc_geometry(response.Result.geometry);
             
+            var layerData = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}};
             
             if (!isCreate)
                 _queryMapLayers.removeLayer(newLayerProperties.name);
 
-            _layersTree.addLayersToMap({content:{properties:newLayerProperties, geometry:convertedCoords}});
+            _layersTree.addLayersToMap(layerData);
             
             var divParent = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
             
-            var li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, divParent.gmxProperties, false, true);
+            var li = _layersTree.getChildsList(layerData, divParent.gmxProperties, false, true);
             
             
             
@@ -207,12 +198,12 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
             if (isCreate)
             {
                 _abstractTree.addNode(_queryMapLayers.buildedTree.firstChild, li);
-                _mapHelper.addTreeElem(divParent, index, {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}});
+                _mapHelper.addTreeElem(divParent, index, layerData);
             }
             else
             {
                 $(layerDiv.parentNode).replaceWith(li);
-                _mapHelper.findTreeElem($(li).children("div[MultiLayerID]")[0]).elem = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}};
+                _mapHelper.findTreeElem($(li).children("div[MultiLayerID]")[0]).elem = layerData;
             }
                 
             _queryMapLayers.addSwappable(li);
@@ -226,8 +217,8 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
         });
     }
     
-    var dialogDiv = _div();
-    _(dialogDiv, [_table([_tbody([
+    var divProperties = _div();
+    _(divProperties, [_table([_tbody([
         _tr([
             _td([_table([_tbody([
                 _tr([_td([propertiesDiv])]),
@@ -235,9 +226,38 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
             ])], [['css', 'width', '100%']])], [['css', 'verticalAlign', 'top']]),
             _td([commonLayersListDiv], [['css', 'width', '60%']])]),
         _tr([_td([saveButton], [['attr', 'colspan', '2']])])
-    ])], [['css', 'width', '100%'], ['css', 'height', '100%']])]);
+    ])], [['css', 'width', '100%']])], [['attr','id','properties' + elemProperties.name]]);
     
-    var jQueryDialog = showDialog(_gtxt('Мультислой [value0]', elemProperties.title), dialogDiv, 900, 500, false, false, null);
+    var dialogContainer;
+    if (!isCreate)
+    {
+        var divStyles = _div(null, [['attr','id','styles' + elemProperties.name]]);
+        
+        var zoomPropertiesControl = new nsGmx.ZoomPropertiesControl(elemProperties.styles[0].MinZoom, elemProperties.styles[0].MaxZoom),
+            liMinZoom = zoomPropertiesControl.getMinLi(),
+            liMaxZoom = zoomPropertiesControl.getMaxLi();
+                
+        _(divStyles, [_ul([liMinZoom, liMaxZoom])]);
+                
+        $(zoomPropertiesControl).change(function()
+        {
+            globalFlashMap.layers[elemProperties.name].setZoomBounds(this.getMinZoom(), this.getMaxZoom());
+            elemProperties.styles[0].MinZoom = zoomPropertiesControl.getMinZoom();
+            elemProperties.styles[0].MaxZoom = zoomPropertiesControl.getMaxZoom();
+            
+            _mapHelper.findTreeElem(div).elem.content.properties = elemProperties;
+        });
+        
+        var dialogContainer = _div([_ul([_li([_a([_t(_gtxt("Свойства"))],[['attr','href','#properties' + elemProperties.name]])]),
+                                 _li([_a([_t(_gtxt("Стили"))],[['attr','href','#styles' + elemProperties.name]])])])]);
+                             
+        _(dialogContainer, [divProperties, divStyles]);
+        $(dialogContainer).tabs({selected: 0});
+    }
+    else
+        dialogContainer = divProperties;
+    
+    var jQueryDialog = showDialog(_gtxt('Мультислой [value0]', elemProperties.title || ''), dialogContainer, 900, 500, false, false, null);
 }
 
 gmxCore.addModule('MultiLayerEditor', {

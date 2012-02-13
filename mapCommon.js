@@ -119,16 +119,6 @@
 				getAPI = makeLinkButton(_gtxt("Получить API-ключ")),
 				mapTextArea = _textarea(null,[['dir','className','inputStyle'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]),
 				canvas = _div([_span([_div([_span([_t(_gtxt("Введите API-ключ"))],[['css','fontSize','12px'],['css','margin','0px 7px']]), getAPI, _div([input, button], [['css','margin','10px 0px 10px 5px']])])], [['attr', 'id', 'embedCodeControls'], ['css', 'display', 'block']]), mapTextArea]),
-				inputError = function()
-				{
-					$(input).addClass('error');
-					
-					setTimeout(function()
-					{
-						if (input)
-							$(input).removeClass('error');
-					}, 1000)
-				},
 				resize = function()
 				{
 					mapTextArea.style.height = mapTextArea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 15 + 'px';
@@ -202,7 +192,7 @@
 						if (input.value != '')
 							_generate(input.value);
 						else
-							inputError();
+							inputError(input);
 						
 						return false;
 					}
@@ -215,7 +205,7 @@
 						_generate(input.value);
 					}
 					else
-						inputError();
+						inputError(input);
 				}
 				
 				getAPI.style.marginLeft = '5px';

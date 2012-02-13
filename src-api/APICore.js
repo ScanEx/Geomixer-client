@@ -1383,6 +1383,10 @@ window.gmxAPI = {
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
 window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/Math.PI;
 window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName основной карты по умолчанию
+window.gmxAPI.proxyType = 'flash';						// Тип отображения
+window.gmxAPI.miniMapAvailable = false;
+window.gmxAPI.maxRasterZoom = 1;
+window.gmxAPI.miniMapZoomDelta = -4;
 
 	(function()
 	{
@@ -1702,10 +1706,6 @@ function loadMapJSON(hostName, mapName, callback, onError)
 
 function createFlashMap(div, arg1, arg2, arg3)
 {
-	// версия FlashPlayer
-	if (gmxAPI._flashDeconcept.SWFObjectUtil.getPlayerVersion().major < 10)
-		return false;	
-
 	if (!arg2 && !arg3)
 		createKosmosnimkiMapInternal(div, false, arg1);
 	else
@@ -1752,9 +1752,12 @@ var FlashMapObject = function(objectId_, properties_, parent_)
 	this.parent = parent_;
 	this.flashId = flashId;
 	this.stateListeners = {};	// Пользовательские события
+	//this.maxRasterZoom = 1;		// Максимальный зум растровых слоев
 }
 // расширение FlashMapObject
 gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;	}
+gmxAPI._FMO = FlashMapObject;
+
 FlashMapObject.prototype.addMapStateListener = function(eventName, func) { 	return addMapStateListener(this, eventName, func);	}
 FlashMapObject.prototype.removeMapStateListener = function(eventName, id) { return removeMapStateListener(this, eventName, id); }
 
@@ -1789,15 +1792,19 @@ function createFlashMapInternal(div, layers, callback)
 	addMapStateListener = gmxAPI._listeners.addMapStateListener;
 	removeMapStateListener = gmxAPI._listeners.removeMapStateListener;
 
-	var loadCallback = function(rootObjectId)
+	var loadCallback = function(rootObjectId, type)
 	{ 
-		if (!window.__flash__toXML)
-		{
-			setTimeout(function() { loadCallback(rootObjectId); }, 100);
-			return;
+		if (type === 'leaflet') {			// Это leaflet версия
+			gmxAPI.proxyType = 'leaflet';
+		} else {							// Это Flash версия
+			if (!window.__flash__toXML)
+			{
+				setTimeout(function() { loadCallback(rootObjectId); }, 100);
+				return;
+			}
 		}
 
-		try {
+//		try {
 
 			var flashDiv = document.getElementById(flashId);
 			gmxAPI.flashDiv = flashDiv;
@@ -1805,7 +1812,7 @@ function createFlashMapInternal(div, layers, callback)
 			
 			FlashMapObject.prototype.setTileCaching = function(flag) { gmxAPI._cmdProxy('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
 			FlashMapObject.prototype.setDisplacement = function(dx, dy) { gmxAPI._cmdProxy('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
-			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':gmxAPI.uniqueGlobalName(imageUrlFunction), 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
+			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':imageUrlFunction, 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
 			FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
 			FlashMapObject.prototype.bringToBottom = function() { gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
 			FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
@@ -1828,13 +1835,23 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setVisible = function(flag) {
 				gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag });
 				var val = (flag ? true : false);
+				if (val && this.backgroundColor)
+					gmxAPI.map.setBackgroundColor(this.backgroundColor);
+				if (this.copyright)
+					gmxAPI.map.updateCopyright();
+				var func = gmxAPI.map.onSetVisible[this.objectId];
+				if (func)
+					func(attr);
+
 				var prev = this.isVisible;
 				this.isVisible = val;
 				if(prev != val) gmxAPI._listeners.chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
 			}
 			FlashMapObject.prototype.getDepth = function(attr) { return gmxAPI._cmdProxy('getDepth', { 'obj': this }); }
 			FlashMapObject.prototype.getZoomBounds = function() { return gmxAPI._cmdProxy('getZoomBounds', { 'obj': this }); }
-			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return gmxAPI._cmdProxy('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} }); }
+			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) {
+				return gmxAPI._cmdProxy('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} });
+				}
 			FlashMapObject.prototype.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
 			FlashMapObject.prototype.savePNG = function(fileName) { gmxAPI._cmdProxy('savePNG', { 'attr': fileName }); }
 			FlashMapObject.prototype.trace = function(val) { gmxAPI._cmdProxy('trace', { 'attr': val }); }
@@ -1908,12 +1925,13 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setHandler = function(eventName, handler)
 			{
 				var me = this;
+				var func = function(subObjectId, a, attr)
+					{
+						handler(new FlashMapObject(subObjectId, propertiesFromArray(a), me), attr);
+					};
 				gmxAPI._cmdProxy('setHandler', { 'obj': this, 'attr': {
 					'eventName':eventName
-					,'callbackName':handler ? gmxAPI.uniqueGlobalName(function(subObjectId, a, attr)
-						{
-							handler(new FlashMapObject(subObjectId, propertiesFromArray(a), me), attr);
-						}) : null
+					,'callbackName':handler ? func : null
 					}
 				});
 			}
@@ -2143,7 +2161,7 @@ function createFlashMapInternal(div, layers, callback)
 			FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
 			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
 			{ 
-				gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction':gmxAPI.uniqueGlobalName(dataUrlFunction), 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
+				gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction': dataUrlFunction, 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
 			}
 /* не используется
 			FlashMapObject.prototype.loadJSON = function(url)
@@ -2157,21 +2175,15 @@ function createFlashMapInternal(div, layers, callback)
 				map.addCopyrightedObject(this);
 			}
 			FlashMapObject.prototype.setBackgroundColor = function(color)
-			{ 
+			{
 				this.backgroundColor = color;
 				gmxAPI._cmdProxy('setBackgroundColor', { 'obj': this, 'attr':color });
 				if (this.objectId == map.objectId)
 				{
 					var isWhite = (0xff & (color >> 16)) > 80;
 					var htmlColor = isWhite ? "black" : "white";
-					coordinates.style.fontSize = "14px";
-					coordinates.style.color = htmlColor;
-					scaleBar.style.border = "1px solid " + htmlColor;
-					scaleBar.style.fontSize = "11px";
-					scaleBar.style.color = htmlColor;
-					copyright.style.fontSize = "11px";
-					copyright.style.color = htmlColor;
-					changeCoords.src = apiBase + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png");
+					gmxAPI._setCoordinatesColor(htmlColor, apiBase + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png"));
+					gmxAPI._setCopyrightColor(htmlColor);
 				}
 			}
 
@@ -2273,6 +2285,7 @@ function createFlashMapInternal(div, layers, callback)
 							shownQuicklooks[id].remove();
 							delete shownQuicklooks[id];
 						}
+
 					} catch (e) {
 						gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
 						//alert(e);
@@ -2418,489 +2431,6 @@ function createFlashMapInternal(div, layers, callback)
 				return gmxAPI.geoArea(this.geometry);
 			}
 
-			// получить minZoom maxZoom для слоя по фильтрам
-			function getMinMaxZoom(prop)
-			{
-				var minZoom = 20, maxZoom = 0;
-				for (var i = 0; i < prop.styles.length; i++)
-				{
-					var style = prop.styles[i];
-					minZoom = Math.min(style.MinZoom, minZoom);
-					maxZoom = Math.max(style.MaxZoom, maxZoom);
-				}
-				return {'minZoom': minZoom, 'maxZoom': maxZoom};
-			}
-
-			function reSetStyles(styles, obj)
-			{
-				for (var i = 0; i < styles.length; i++)
-				{
-					var style = styles[i];
-					var givenStyle = {};
-					if (typeof style.StyleJSON != 'undefined')
-						givenStyle = style.StyleJSON;
-					else if (typeof style.RenderStyle != 'undefined')
-						givenStyle = style.RenderStyle;
-					else
-					{
-						if (style.PointSize)
-							givenStyle.marker = { size: parseInt(style.PointSize) };
-						if (style.Icon)
-						{
-							var src = (style.Icon.indexOf("http://") != -1) ?
-								style.Icon :
-								(baseAddress + "/" + style.Icon);
-							givenStyle.marker = { image: src, "center": true };
-						}
-						if (style.BorderColor || style.BorderWidth)
-							givenStyle.outline = {
-								color: gmxAPI.parseColor(style.BorderColor),
-								thickness: parseInt(style.BorderWidth || "1"),
-								opacity: (style.BorderWidth == "0" ? 0 : 100)
-							};
-						if (style.FillColor)
-							givenStyle.fill = {
-								color: gmxAPI.parseColor(style.FillColor),
-								opacity: 100 - parseInt(style.Transparency || "0")
-							};
-
-						var label = style.label || style.Label;
-						if (label)
-						{
-							givenStyle.label = {
-								field: label.FieldName,
-								color: gmxAPI.parseColor(label.FontColor),
-								size: parseInt(label.FontSize || "12")
-							};
-						}
-					}
-
-					if (givenStyle.marker)
-						givenStyle.marker.center = true;
-
-					var hoveredStyle = JSON.parse(JSON.stringify(givenStyle));
-					if (hoveredStyle.marker && hoveredStyle.marker.size)
-						hoveredStyle.marker.size += 1;
-					if (hoveredStyle.outline)
-						hoveredStyle.outline.thickness += 1;
-
-					var filter = obj.addObject();
-					var filterSet = false;
-					if (style.Filter)
-					{
-						if (/^\s*\[/.test(style.Filter))
-						{
-							var a = style.Filter.match(/^\s*\[([a-zA-Z0-9_]+)\]\s*([<>=]=?)\s*(.*)$/);
-							if (a && (a.length == 4))
-							{
-								filter.setFilter(a[1] + " " + a[2] + " '" + a[3] + "'");
-								filterSet = true;
-							}
-						}
-						else
-						{
-							filter.setFilter(style.Filter);
-							filterSet = true;
-						}
-					}
-					if (!filterSet)
-						filter.setFilter();
-					filter.setZoomBounds(style.MinZoom, style.MaxZoom);
-					filter.setStyle(givenStyle, hoveredStyle);
-					
-					var filterOld = obj.filters[i];
-					gmxAPI._listeners.chkListeners('reSetStyles', map, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка map Listeners на reSetStyles
-					gmxAPI._listeners.chkListeners('reSetStyles', filterOld, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка filterOld Listeners на reSetStyles
-/*					
-					if(filterOld && filterOld['clusters'] && 'setClusters' in filter) {	// Перенос атрибутов кластеризации в новый filter
-						filter.setClusters(filterOld['clusters']['attr']);
-					}
-*/					
-					//filter.properties = style;
-					obj.filters[i] = filter;
-				}
-			}
-
-			var maxRasterZoom = 1;
-			var initialLayersAdded = false;
-			FlashMapObject.prototype.addLayer = function(layer, isVisible)
-			{
-				if (!this.layers)
-					this.layers = [];
-				if (!this.layersParent)
-					this.layersParent = this.addObject();
-				if (!this.overlays)
-				{
-					this.overlays = this.addObject();
-					this.addObject = function(geom, props)
-					{
-						var ret = FlashMapObject.prototype.addObject.call(this, geom, props);
-						this.overlays.bringToTop();
-						return ret;
-					}
-				}
-
-				if (isVisible === undefined)
-					isVisible = true;
-
-				if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
-				var isRaster = (layer.properties.type == "Raster");
-				//var t = layer.properties.name || layer.properties.image;
-				var layerName = layer.properties.name || layer.properties.image;
-				var obj = new FlashMapObject(false, {}, this);
-				obj.geometry = layer.geometry;
-				obj.properties = layer.properties;
-				var me = this;
-				var isOverlay = false;
-				var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID","");
-				if(typeof(overlayLayerID) == 'string') {
-					var arr = overlayLayerID.split(",");
-					for (var i = 0; i < arr.length; i++) {
-						if(layerName == arr[i]) {
-							isOverlay = true;
-							break;
-						}
-					}
-				}
-
-				if (isOverlay)
-					layer.properties.type = "Overlay";
-
-				obj.filters = [];
-				if (!isRaster)
-				{
-					for (var i = 0; i < layer.properties.styles.length; i++)
-					{
-						var tmp = new FlashMapObject(false, {}, this);
-						obj.filters.push(tmp);
-						var style = layer.properties.styles[i];
-						if (style.Filter && style.Filter.Name)
-							obj.filters[style.Filter.Name] = tmp;
-					}
-				}
-
-				var baseAddress = "http://" + layer.properties.hostName + "/";
-				//var sessionKey = (layer.properties.hostName.indexOf("maps.kosmosnimki.ru") != -1 || window.KOSMOSNIMKI_SESSION_KEY) ? window.KOSMOSNIMKI_SESSION_KEY : false;
-				var sessionKey = isRequiredAPIKey( layer.properties.hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
-				var sessionKey2 = window.sessionKeyCache[layer.properties.mapName];
-				var isInitial = !initialLayersAdded;
-				var isInvalid = (sessionKey == "INVALID");
-
-				var chkCenterX = function(arr)
-				{ 
-					var centerX = 0;
-					for (var i = 0; i < arr.length; i++)
-					{
-						centerX += parseFloat(arr[i][0]);
-					}
-					centerX /= arr.length;
-					var prevCenter = centerX;
-					centerX = gmxAPI.chkPointCenterX(centerX);
-					var dx = prevCenter - centerX;
-					for (var i = 0; i < arr.length; i++)
-					{
-						arr[i][0] -= dx;
-					}
-				}
-
-				var bounds = false;
-
-				if (layer.geometry) {
-					if(layer.geometry.type == "POLYGON") {		// Проверка сдвига границ слоя
-						var arr = layer.geometry.coordinates[0];
-						chkCenterX(arr);
-					}
-					bounds = gmxAPI.getBounds(gmxAPI.merc_geometry(layer.geometry).coordinates);
-				}
-				
-				var tileFunction = function(i, j, z)
-				{ 
-					if (bounds)
-					{
-						var tileSize = gmxAPI.getScale(z)*256;
-						var minx = i*tileSize;
-						var maxx = minx + tileSize;
-						if (maxx < bounds.minX) {
-							i += Math.pow(2, z);
-						}
-						else if (minx > bounds.maxX) {
-							i -= Math.pow(2, z);
-						}
-					}
-
-					return baseAddress + 
-						"TileSender.ashx?ModeKey=tile" + 
-						"&MapName=" + layer.properties.mapName + 
-						"&LayerName=" + layerName + 
-						"&z=" + z + 
-						"&x=" + i + 
-						"&y=" + j + 
-						(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
-						(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
-				}
-
-				var isTemporal = layer.properties.Temporal;	// признак мультивременного слоя
-				if(isTemporal && '_TemporalTiles' in gmxAPI) {
-					obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
-				}
-
-				var deferredMethodNames = ["setHandler", "setStyle", "setBackgroundColor", "setCopyright", "addObserver", "enableTiledQuicklooks", "enableTiledQuicklooksEx"];
-
-				var createThisLayer = function()
-				{
-					var obj_ = (isOverlay ? me.overlays : me.layersParent).addObject(obj.geometry, obj.properties);
-					obj.objectId = obj_.objectId;
-					obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
-					
-					gmxAPI._listeners.chkListeners('onLayerCreated', obj, {'obj': obj });
-				
-					obj.setVisible = function(flag)
-					{
-						FlashMapObject.prototype.setVisible.call(obj, flag);
-					}
-
-					for (var i = 0; i < deferredMethodNames.length; i++)
-						delete obj[deferredMethodNames[i]];
-					delete obj["getFeatures"];
-					delete obj["getFeatureById"];
-					if (!isRaster)
-					{
-						obj.setHandler = function(eventName, handler)
-						{
-							FlashMapObject.prototype.setHandler.call(obj, eventName, handler);
-							for (var i = 0; i < obj.filters.length; i++)
-								obj.filters[i].setHandler(eventName, handler);
-						}
-					}
-					obj.addObserver = function(o, onChange)
-					{
-						gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'func':gmxAPI.uniqueGlobalName(function(geom, props, flag)
-							{
-								onChange(new FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj), flag);
-							})
-						} });
-					}
-					if (isRaster) {
-						obj.setBackgroundTiles(tileFunction, 0, layer.properties['MinZoom'], layer.properties['MaxZoom']);
-					} else
-					{
-						obj.getFeatures = function()
-						{
-							var callback, geometry, str;
-							for (var i = 0; i < 3; i++)
-							{
-								var arg = arguments[i];
-								if (typeof arg == 'function')
-									callback = arg;
-								else if (typeof arg == 'string')
-									str = arg;
-								else if (typeof arg == 'object')
-									geometry = arg;
-							}
-							if (!str && (obj.properties.GeometryType == "point")) {
-								gmxAPI._cmdProxy('getFeatures', { 'obj': obj, 'attr':{
-									'geom': gmxAPI.merc_geometry(geometry ? geometry : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] }),
-									'func': gmxAPI.uniqueGlobalName(function(geoms, props)
-										{
-											var ret = [];
-											for (var i = 0; i < geoms.length; i++)
-												ret.push(new FlashMapFeature(
-													gmxAPI.from_merc_geometry(geoms[i]),
-													props[i],
-													obj
-												));
-											callback(ret);
-										})
-									}
-								});
-							}
-							else
-								map.getFeatures(str, geometry, callback, [obj.properties.name]);
-						}
-
-						obj.getFeatureById = function(fid, func)
-						{
-							gmxAPI._cmdProxy('getFeatureById', { 'obj': obj, 'attr':{'fid':fid,
-								'func':gmxAPI.uniqueGlobalName(function(geom, props)
-								{
-									if(typeof(props) === 'object' && props.length > 0) {
-										props = gmxAPI.arrayToHash(props);
-									}
-									func(new FlashMapFeature(
-										gmxAPI.from_merc_geometry(geom),
-										props,
-										obj
-									));
-								})
-							} });
-						}
-
-						if(obj._temporalTiles) {	// Для мультивременных слоёв
-							obj._temporalTiles.setVectorTiles();
-						} else {
-							obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
-						}
-						obj.setStyle = function(style, activeStyle)
-						{
-							for (var i = 0; i < obj.filters.length; i++)
-								obj.filters[i].setStyle(style, activeStyle);
-						}
-
-						reSetStyles(layer.properties.styles, obj);
-						obj.reSetStyles =  function(styles)
-						{
-							for (var i = 0; i < obj.filters.length; i++) {
-								obj.filters[i].remove();
-							}
-							obj.filters = [];
-							reSetStyles(styles, obj);
-						}
-						// Изменить атрибуты векторного обьекта из загруженных тайлов
-						obj.setTileItem = function(data, flag) {
-							var _obj = gmxAPI._cmdProxy('setTileItem', { 'obj': this, 'attr': {'data':data, 'flag':(flag ? true:false)} });
-							return _obj;
-						}
-						// Получить атрибуты векторного обьекта из загруженных тайлов id по identityField
-						obj.getTileItem = function(vId) {
-							var _obj = gmxAPI._cmdProxy('getTileItem', { 'obj': this, 'attr': vId });
-							if(_obj.geometry) _obj.geometry = gmxAPI.from_merc_geometry(_obj.geometry);
-							return _obj;
-						}
-						obj.getStat = function() {
-							var _obj = gmxAPI._cmdProxy('getStat', { 'obj': this });
-							return _obj;
-						}
-						obj.setTiles = function(data, flag) {
-							var _obj = gmxAPI._cmdProxy('setTiles', { 'obj': obj, 'attr':{'tiles':data, 'flag':(flag ? true:false)} });
-							return _obj;
-						}
-
-						if (layer.properties.Quicklook)
-							obj.enableQuicklooks(function(o)
-							{
-								return gmxAPI.applyTemplate(layer.properties.Quicklook, o.properties);
-							});
-						if (layer.properties.TiledQuicklook)
-							obj.enableTiledQuicklooks(function(o)
-							{
-								return gmxAPI.applyTemplate(layer.properties.TiledQuicklook, o.properties);
-							}, layer.properties.TiledQuicklookMinZoom);
-					}
-
-					for (var i = 0; i < obj.filters.length; i++)
-					{
-						var filter = obj.filters[i];
-						delete filter["setVisible"];
-						delete filter["setStyle"];
-						delete filter["setFilter"];
-						delete filter["enableHoverBalloon"];
-					}
-
-					// Установка видимости по Zoom
-					var tmp = getMinMaxZoom(layer.properties);
-					obj.setZoomBounds(tmp['minZoom'], tmp['maxZoom']);
-
-					if (layer.properties.Copyright)
-						obj.setCopyright(layer.properties.Copyright);
-				}
-
-				obj.isVisible = isVisible;
-				if (isVisible) {
-					createThisLayer();
-				}
-				else
-				{
-					var deferred = [];
-					obj.setVisible = function(flag)
-					{
-						if (flag)
-						{
-							createThisLayer();
-							var n = 0;
-							for (var i = 0; i < myIdx; i++)
-							{
-								var l = me.layers[i];
-								if (l.objectId && (l.properties.type != "Overlay"))
-									n += 1;
-							}
-							if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
-							obj.bringToDepth(n);
-							for (var i = 0; i < deferred.length; i++)
-								deferred[i]();
-						}
-					}
-
-					if (!isRaster) {
-						// Изменять атрибуты векторного обьекта при невидимом слое нельзя
-						obj.setTileItem = function(data, flag) {
-							return false;
-						}
-						// Получить атрибуты векторного обьекта при невидимом слое нельзя
-						obj.getTileItem = function(vId) {
-							return null;
-						}
-					}
-					obj.addObject = function(geometry, props)
-					{
-						obj.setVisible(true);
-						var newObj = FlashMapObject.prototype.addObject.call(obj, geometry, props);
-						obj.setVisible(false);
-						return newObj;
-					}
-					for (var i = 0; i < deferredMethodNames.length; i++) (function(name)
-					{
-						obj[name] = function(p1, p2, p3, p4) 
-						{ 
-							deferred.push(function() { obj[name].call(obj, p1, p2, p3, p4); });
-						}
-					})(deferredMethodNames[i]);
-					if (!isRaster)
-					{
-						obj.getFeatures = function(arg1, arg2, arg3)
-						{							
-							obj.setVisible(true);
-							obj.getFeatures(arg1, arg2, arg3);
-							obj.setVisible(false);
-						}
-						obj.getFeatureById = function(arg1, arg2, arg3)
-						{							
-							obj.setVisible(true);
-							obj.getFeatureById(arg1, arg2, arg3);
-							obj.setVisible(false);
-						}
-						for (var i = 0; i < layer.properties.styles.length; i++) (function(i)
-						{
-							obj.filters[i].setVisible = function(flag)
-							{
-								deferred.push(function() { obj.filters[i].setVisible(flag); });
-							}
-							obj.filters[i].setStyle = function(style, activeStyle)
-							{
-								deferred.push(function() { obj.filters[i].setStyle(style, activeStyle); });
-							}
-							obj.filters[i].setFilter = function(sql)
-							{
-								deferred.push(function() { obj.filters[i].setFilter(sql); });
-								return true;
-							}
-							obj.filters[i].enableHoverBalloon = function(callback)
-							{
-								deferred.push(function() { obj.filters[i].enableHoverBalloon(callback); });
-							}
-						})(i);
-					}
-				}
-
-				if (isRaster && (layer.properties.MaxZoom > maxRasterZoom))
-					maxRasterZoom = layer.properties.MaxZoom;
-				var myIdx = this.layers.length;
-				this.layers.push(obj);
-				this.layers[layerName] = obj;
-				if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
-					this.layers[layer.properties.title] = obj;
-				return obj;
-			}
-
 			FlashMapObject.prototype.observeVectorLayer = function(obj, onChange)
 			{
 				obj.addObserver(this, onChange);
@@ -2936,6 +2466,10 @@ function createFlashMapInternal(div, layers, callback)
 					
 				this.setBackgroundColor(0xffffff);
 				this.setTileCaching(false);
+				if(gmxAPI.proxyType === 'leaflet') {
+					var urlOSM = "http://{s}.tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/{z}/{x}/{y}.png";
+					gmxAPI._cmdProxy('addOSMTileLayer', { 'obj': this, 'attr':{'layer':this, 'urlOSM':urlOSM, 'subdomains':'abcd'} });
+				}
 			}
 
 			var map = new FlashMapObject(rootObjectId, {}, null);
@@ -2960,7 +2494,7 @@ function createFlashMapInternal(div, layers, callback)
 			map.isKeyDown = function(code) { return gmxAPI._cmdProxy('isKeyDown', {'attr':{'code':code} }); }
 			map.setExtent = function(x1, x2, y1, y2) { return gmxAPI._cmdProxy('setExtent', {'attr':{'x1':gmxAPI.merc_x(x1), 'x2':gmxAPI.merc_x(x2), 'y1':gmxAPI.merc_y(y1), 'y2':gmxAPI.merc_y(y2)} }); }
 			map.addMapWindow = function(callback) {
-				var oID = gmxAPI._cmdProxy('addMapWindow', { 'attr': {'callbackName':gmxAPI.uniqueGlobalName(function(z) { return 17 - callback(17 - z); })} });
+				var oID = gmxAPI._cmdProxy('addMapWindow', { 'attr': {'callbackName':function(z) { return 17 - callback(17 - z); }} });
 				return new FlashMapObject(oID, {}, null);
 			}
             
@@ -3113,10 +2647,10 @@ function createFlashMapInternal(div, layers, callback)
 			{
 				gmxAPI._cmdProxy('addContextMenuItem', { 'attr': {
 					'text': text,
-					'func': gmxAPI.uniqueGlobalName(function(x, y)
+					'func': function(x, y)
 						{
 							callback(gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y));
-						})
+						}
 					}
 				});
 			}
@@ -3140,6 +2674,10 @@ function createFlashMapInternal(div, layers, callback)
 			//Begin: tools
 			var toolsAll = new gmxAPI._ToolsAll(allTools);
 			map.toolsAll = toolsAll;
+			if('_addZoomControl' in gmxAPI) gmxAPI._addZoomControl(allTools);
+			if('_timeBarInit' in gmxAPI) gmxAPI._timeBarInit(allTools);
+			//if('_miniMapInit' in gmxAPI) gmxAPI._miniMapInit(div);
+
 			var drawFunctions = gmxAPI._drawFunctions;
 			map.drawing = gmxAPI._drawing
 			map.drawing.addMapStateListener = function(eventName, func) { return addMapStateListener(this, eventName, func); }
@@ -3165,8 +2703,9 @@ function createFlashMapInternal(div, layers, callback)
 			map.unSetBaseLayer = function()
 			{
 				for (var oldName in baseLayers)
-					for (var i = 0; i < baseLayers[oldName].length; i++)
+					for (var i = 0; i < baseLayers[oldName].length; i++) {
 						baseLayers[oldName][i].setVisible(false);
+					}
 				currentBaseLayerName = '';
 			}
 			map.setBaseLayer = function(name)
@@ -3213,442 +2752,10 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			}
 
-			var zoomParent = gmxAPI.newStyledDiv({
-				position: "absolute",
-				left: "40px",
-				top: "5px"
-			});
-			allTools.appendChild(zoomParent);
-			var zoomPlaque = gmxAPI.newStyledDiv({
-				backgroundColor: "#016a8a",
-				opacity: 0.5,
-				position: "absolute",
-				left: 0,
-				top: 0
-			});
-			zoomParent.appendChild(zoomPlaque);
-
-			zoomParent.appendChild(gmxAPI.newElement(
-				"img",
-				{
-					src: apiBase + "img/zoom_minus.png",
-					onclick: function()
-					{
-						map.zoomBy(-1);
-					},
-					onmouseover: function()
-					{
-						this.src = apiBase + "img/zoom_minus_a.png";
-					},
-					onmouseout: function()
-					{
-						this.src = apiBase + "img/zoom_minus.png"
-					}
-				},
-				{
-					position: "absolute",
-					left: "5px",
-					top: "7px",
-					cursor: "pointer"
-				}
-			));
-			var zoomPlus = gmxAPI.newElement(
-				"img",
-				{
-					src: apiBase + "img/zoom_plus.png",
-					onclick: function()
-					{
-						map.zoomBy(1);
-					},
-					onmouseover: function()
-					{
-						this.src = apiBase + "img/zoom_plus_a.png";
-					},
-					onmouseout: function()
-					{
-						this.src = apiBase + "img/zoom_plus.png"
-					}
-				},
-				{
-					position: "absolute",
-					cursor: "pointer"
-				}
-			)
-			zoomParent.appendChild(zoomPlus);
-
-			var addZoomItem = function(i)
-			{
-				var zoomObj_ = gmxAPI.newElement(
-					"img",
-					{
-						src: apiBase + "img/zoom_raw.png",
-						title: "" + (i + 1),
-						onclick: function()
-						{
-							map.zoomBy(i + minZoom - map.getZ());
-						},
-						onmouseover: function()
-						{
-							this.src = apiBase + "img/zoom_active.png";
-							this.title = "" + (i + minZoom);
-						},
-						onmouseout: function()
-						{
-							this.src = (this == zoomObj) ? (apiBase + "img/zoom_active.png") : (apiBase + "img/zoom_raw.png");
-						}
-					},
-					{
-						position: "absolute",
-						left: (22 + 12*i) + "px",
-						top: "12px",
-						width: "12px",
-						height: "8px",
-						border: 0,
-						cursor: "pointer"
-					}
-				);
-				zoomParent.appendChild(zoomObj_);
-				zoomArr.push(zoomObj_);
-			};
-
-			var zoomArr = [];
-			var zoomObj = false;
-			for (var i = 0; i < 20; i++)
-			{
-				addZoomItem(i);
-			}
-
-			var minZoom, maxZoom;
-			map.zoomControl = {
-				isVisible: true,
-				isMinimized: false,
-				setVisible: function(flag)
-				{
-					gmxAPI.setVisible(zoomParent, flag);
-					this.isVisible = flag;
-					positionTimeBar();
-				},
-				repaint: function()
-				{
-					var dz = maxZoom - minZoom + 1;
-					var gap = this.isMinimized ? 8 : 12*dz;
-					gmxAPI.position(zoomPlus, 20 + gap, 7);
-					gmxAPI.size(zoomPlaque, 43 + gap, 32);
-					map.zoomControl.width = 43 + gap;
-					for (var i = 0; i < dz; i++) {
-						if(i == zoomArr.length) addZoomItem(i);
-						gmxAPI.setVisible(zoomArr[i], !this.isMinimized && (i < dz));
-					}
-					if(dz < zoomArr.length) for (var i = dz; i < zoomArr.length; i++) gmxAPI.setVisible(zoomArr[i], false);
-					positionTimeBar();
-				},
-				minimize: function()
-				{
-					this.isMinimized = true;
-					this.repaint();
-				},
-				maximize: function()
-				{
-					this.isMinimized = false;
-					this.repaint();
-				}
-			}
-
-			map.setMinMaxZoom = function(z1, z2) {
-				minZoom = z1;
-				maxZoom = z2;
-				map.zoomControl.repaint();
-				return gmxAPI._cmdProxy('setMinMaxZoom', {'attr':{'z1':z1, 'z2':z2} });
-			}
-
-			var timeBarWidth = 100;
-			var leftMarkX = 0;
-			var rightMarkX = timeBarWidth;
-
-			var timeBarParent = gmxAPI.newStyledDiv({
-				position: "absolute",
-				top: "5px",
-				display: "none"
-			});
-			allTools.appendChild(timeBarParent);
-			var timeBarPlaque = gmxAPI.newStyledDiv({
-				backgroundColor: "#016a8a",
-				opacity: 0.5,
-				position: "absolute",
-				left: 0,
-				top: 0,
-				height: "32px"
-			});
-			timeBarParent.appendChild(timeBarPlaque);
-			var timeBar = gmxAPI.newStyledDiv({
-				position: "absolute",
-				height: "4px",
-				border: "1px solid white",
-				backgroundColor: "#387eaa",
-				top: "13px",
-				left: "13px"
-			});
-			timeBarParent.appendChild(timeBar);
- 
-			timeBar.style.width = timeBarWidth + 12 + "px";
-			timeBarPlaque.style.width = timeBarWidth + 40 + "px";
-
-			var positionTimeBar = function()
-			{
-				gmxAPI.position(
-					timeBarParent, 
-					40 + (map.zoomControl.isVisible ? (map.zoomControl.width + 3) : 0),
-					5
-				);
-			}
-
-			var minTime, maxTime;
-			var tickMarks = [];
-			var timeBarMinYear = 2050;
-			window.updateTimeBarMinYear = function(year)
-			{
-				if (year >= timeBarMinYear)
-					return;
-				timeBarMinYear = year;
-				minTime = new Date(year, 6, 1).getTime();
-				maxTime = new Date().getTime();
-
-				for (var i = 0; i < tickMarks.length; i++)
-					timeBar.removeChild(tickMarks[i]);
-				tickMarks = [];
-
-				var curTime = new Date(year, 1, 1).getTime();
-				while (curTime < maxTime)
-				{
-					var tickMark = gmxAPI.newStyledDiv({
-						position: "absolute",
-						height: "4px",
-						top: 0,
-						width: 0,
-						borderLeft: "1px solid #b0b0b0",
-						left: 6 + Math.round(timeBarWidth*(curTime - minTime)/(maxTime - minTime)) + "px"
-					});
-					tickMarks.push(tickMark);
-					timeBar.appendChild(tickMark);
-					var curDate = new Date(curTime);
-					curTime = new Date(curDate.getFullYear(), curDate.getMonth() + 1, curDate.getDate()).getTime();
-				}
-				updateTimeBar();
-			}
-
-			var mouseInMark = false;
-			var leftMark = gmxAPI.newElement(
-				"img",
-				{
-					src: apiBase + "img/sliderIcon.png",
-					onmousedown: function(event)
-					{
-						return startDraggingMark(event, false);
-					},
-					onmouseover: function()
-					{
-						this.src = apiBase + "img/sliderIcon_a.png";
-						repaintDateTooltip(false);
-						mouseInMark = true;
-					},
-					onmouseout: function()
-					{
-						this.src = apiBase + "img/sliderIcon.png";
-						gmxAPI.hide(dateTooltip);
-						mouseInMark = false;
-					}
-				},
-				{
-					display: "block",
-					position: "absolute",
-					top: "-5px",
-					width: "12px",
-					height: "14px",
-					cursor: "pointer",
-					marginLeft: "-6px"
-				}
-			);
-			timeBar.appendChild(leftMark);
- 
-			var rightMark = gmxAPI.newElement(
-				"img",
-				{
-					src: apiBase + "img/sliderIcon.png",
-					onmousedown: function(event)
-					{
-						return startDraggingMark(event, true);
-					},
-					onmouseover: function()
-					{
-						this.src = apiBase + "img/sliderIcon_a.png";
-						repaintDateTooltip(true);
-						mouseInMark = true;
-					},
-					onmouseout: function()
-					{
-						this.src = apiBase + "img/sliderIcon.png";
-						gmxAPI.hide(dateTooltip);
-						mouseInMark = false;
-					}
-				},
-				{
-					display: "block",
-					position: "absolute",
-					top: "-5px",
-					width: "12px",
-					height: "14px",
-					cursor: "pointer",
-					marginLeft: "6px"
-				}
-			);
-			timeBar.appendChild(rightMark);
-
-			var getDateByX = function(x)
-			{
-				return new Date(minTime + (x/timeBarWidth)*(maxTime - minTime));
-			}
-
-			var getDateString = function(date)
-			{
-				return date.getFullYear() + "-" + gmxAPI.pad2(date.getMonth() + 1) + "-" + gmxAPI.pad2(date.getDate());
-			}
-
-			var getDatePretty = function(date)
-			{
-				return date.getDate() + " " + ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"][date.getMonth()] + " " + date.getFullYear();
-			}
- 
-			var filterUpdateTimeout = false;
- 
-			var updateTimeBar = function()
-			{
-				if (!map.timeBar.isVisible)
-					return;
-				leftMark.style.left = leftMarkX + "px";
-				rightMark.style.left = rightMarkX + "px";
-				var leftDate = getDateByX(leftMarkX);
-				var rightDate = getDateByX(rightMarkX);
-				var leftDateString = getDateString(leftDate);
-				var rightDateString = getDateString(rightDate);
-				if (filterUpdateTimeout)
-					clearTimeout(filterUpdateTimeout);
-				filterUpdateTimeout = setTimeout(function()
-				{
-					for (var i = 0; i < map.layers.length; i++)
-					{
-						var layer = map.layers[i];
-						if ((layer.isVisible || layer.hiddenByTimeBar) && (layer.properties.type == "Vector") && (layer.properties.description.toLowerCase() == "спутниковое покрытие"))
-						{
-							var attrs = layer.properties.attributes;
-							var hasDateAttribute = false;
-							for (var j = 0; j < attrs.length; j++)
-							{
-								var attr = attrs[j];
-								if (attr.toLowerCase() == "date")
-								{
-									hasDateAttribute = true;
-									var filterString = "`" + attr + "` >= '" + leftDateString + "' AND `" + attr + "` <= '" + rightDateString + "'";
-									var filters = layer.filters;
-									for (var k = 0; k < filters.length; k++)
-									{
-										var lastFilter = layer.properties.styles[k].Filter;
-										filters[k].setFilter((lastFilter && (lastFilter == "")) ? ("(" + lastFilter + ") AND" + filterString) : filterString);
-									}
-								}
-							}
-							if (!hasDateAttribute)
-							{
-								var date = layer.properties.date;
-								if (date.length == 10)
-								{
-									var date2 = date.substring(6, 10) + "-" + date.substring(3, 5) + "-" + date.substring(0, 2);
-									var dateInRange = ((date2 >= leftDateString) && (date2 <= rightDateString));
-									if (layer.isVisible && !dateInRange)
-									{
-										//layer.hiddenByTimeBar = true;
-										//layer.setVisible(false);
-									}
-									else if (!layer.isVisible && layer.hiddenByTimeBar && dateInRange)
-									{
-										layer.hiddenByTimeBar = false;
-										layer.setVisible(true);
-									}
-								}
-							}
-						}
-					}
-					filterUpdateTimeout = false;
-				}, 50);
-			}
- 
-			var startDraggingMark = function(event, isRight)
-			{
-				var startMouseX = gmxAPI.eventX(event);
-				var startX = isRight ? rightMarkX : leftMarkX;
-				document.documentElement.onmousemove = function(event)
-				{
-					var newX = startX + (gmxAPI.eventX(event) - startMouseX);
-					if (isRight)
-						rightMarkX = Math.max(leftMarkX, Math.min(timeBarWidth, newX));
-					else
-						leftMarkX = Math.min(rightMarkX, Math.max(0, newX));
-					repaintDateTooltip(isRight);
-					updateTimeBar();
-					return false;
-				}
-				document.documentElement.onmouseup = function(event)
-				{
-					document.documentElement.onmousemove = null;
-					document.documentElement.onmouseup = null;
-					if (event && event.stopPropagation)
-						event.stopPropagation();
-					if (!mouseInMark)
-						gmxAPI.hide(dateTooltip);
-					return false;
-				}
-				if (event && event.stopPropagation)
-					event.stopPropagation();
-				return false;
-			}
-
-			var dateTooltip = gmxAPI.newStyledDiv({
-				position: "absolute",
-				top: "30px",
-				padding: "3px",
-				fontSize: "11px",
-				fontFamily: "sans-serif",
-				border: "1px solid black",
-				backgroundColor: "#ffffe0",
-				whiteSpace: "nowrap",
-				display: "none"
-			});
-			timeBar.appendChild(dateTooltip);
-
-			var repaintDateTooltip = function(isRight)
-			{
-				gmxAPI.show(dateTooltip);
-				var x = isRight ? rightMarkX : leftMarkX;
-				dateTooltip.style.left = x + (isRight ? 10 : 0);
-				dateTooltip.innerHTML = getDatePretty(getDateByX(x));
-			}
-
-			map.timeBar = {
-				isVisible: false,
-				setVisible: function(flag)
-				{
-					this.isVisible = flag;
-					gmxAPI.setVisible(timeBarParent, flag);
-					if (flag)
-						updateTimeBar();
-				}
-			}
-			window.updateTimeBarMinYear(2010);
-
-			map.setMinMaxZoom(1, 17);
-
 			var haveOSM = false;
 
-			var miniMapZoomDelta = -4;
+			//var maxRasterZoom = 1;
+			//var miniMapZoomDelta = -4;
 			map.addLayers = function(layers)
 			{
 				var b = gmxAPI.getBounds();
@@ -3659,6 +2766,8 @@ function createFlashMapInternal(div, layers, callback)
 					b.update(layer.geometry.coordinates);
 					for (var i = 0; i < layer.properties.styles.length; i++)
 						minLayerZoom = Math.min(minLayerZoom, layer.properties.styles[i].MinZoom);
+					if (layer.properties.type == "Raster" && layer.properties.MaxZoom > gmxAPI.maxRasterZoom)
+						gmxAPI.maxRasterZoom = layer.properties.MaxZoom;
 				});
 				if (layers.properties.UseOpenStreetMap && !haveOSM)
 				{
@@ -3668,22 +2777,27 @@ function createFlashMapInternal(div, layers, callback)
 					o.setAsBaseLayer("OSM");
 					haveOSM = true;
 
-					if (!miniMapAvailable)
+					if (!gmxAPI.miniMapAvailable)
 					{
-						map.miniMap.setVisible(true);
-						var miniOSM = map.miniMap.addObject();
-						miniOSM.setOSMTiles();
-						miniOSM.setAsBaseLayer("OSM");
-						map.setBaseLayer("OSM");
+						if('miniMap' in map) {
+							map.miniMap.setVisible(true);
+							var miniOSM = map.miniMap.addObject();
+							miniOSM.setOSMTiles();
+							miniOSM.setAsBaseLayer("OSM");
+						}
+						//map.setBaseLayer("OSM");
 					}
 					else
 					{
-						var miniOSM = map.miniMap.addObject();
-						miniOSM.setOSMTiles();
-						miniOSM.setAsBaseLayer("OSM");
-						miniOSM.setVisible(false);
+						if('miniMap' in map) {
+							var miniOSM = map.miniMap.addObject();
+							miniOSM.setOSMTiles();
+							miniOSM.setAsBaseLayer("OSM");
+							miniOSM.setVisible(false);
+						}
 						o.setVisible(false);
 					}
+
 				}
 				if (layers.properties.DefaultLat && layers.properties.DefaultLong && layers.properties.DefaultZoom)
 					map.moveTo(
@@ -3734,15 +2848,15 @@ function createFlashMapInternal(div, layers, callback)
 						layers.properties.MaxViewY
 					);
 				}
-				if (maxRasterZoom > 17)
-					map.setMinMaxZoom(1, maxRasterZoom);
+				if (gmxAPI.maxRasterZoom > 17)
+					map.setMinMaxZoom(1, gmxAPI.maxRasterZoom);
 				if (layers.properties.Copyright)
 				{
 					var obj = map.addObject();
 					obj.setCopyright(layers.properties.Copyright);
 				}
 				if (layers.properties.MiniMapZoomDelta)
-					miniMapZoomDelta = layers.properties.MiniMapZoomDelta;
+					gmxAPI.miniMapZoomDelta = layers.properties.MiniMapZoomDelta;
 				if (layers.properties.OnLoad && layers.properties.name !== kosmosnimki_API)	//  Обработка маплета карты - для базовой уже вызывали
 				{
 					try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(map); }
@@ -3781,328 +2895,10 @@ function createFlashMapInternal(div, layers, callback)
 					maxY: gmxAPI.from_merc_y(y + h2)
 				};
 			}
-			var getLocalScale = function(x, y)
-			{
-				return gmxAPI.distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
-			}
 
-			/** Отображение строки текущего положения карты
-			* @function
-			* @memberOf api - перегружаемый внешними плагинами
-			* @param {object['div']} элемент DOM модели для отображения строки, где будет показываться текущее положение карты
-			* @param {object['screenGeometry']} геометрия видимой части экрана
-			* @param {object['properties']} свойства карты
-			* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
-			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-			*/
-			map.setLocationTitleDiv = null;
-			var locationTitleDiv = gmxAPI.newElement(
-				"div",
-				{
-				},
-				{
-				}
-			);
-			div.appendChild(locationTitleDiv);
-
-
-			var coordinatesAttr = {
-				'x': '27px'						// отступ по горизонтали
-				,'y': '25px'					// по вертикали
-				,'x1': '5px'					// отступ по горизонтали иконки смены формата координат
-				,'scaleBar': {
-					'bottom': {
-						'x': '27px'				// отступ по горизонтали для scaleBar
-						,'y': '47px'			// по вертикали
-					}
-					,'top': {
-						'x': '27px'				// отступ по горизонтали для scaleBar
-						,'y': '3px'				// по вертикали
-					}
-				}
-			};
-
-			var scaleBar = gmxAPI.newStyledDiv({
-				position: "absolute",
-				right: coordinatesAttr['scaleBar']['bottom']['x'],
-				bottom: coordinatesAttr['scaleBar']['bottom']['y'],
-				textAlign: "center"
-			});
-			scaleBar.className = "gmx_scaleBar";
-			div.appendChild(scaleBar);
-			
-			map.scaleBar = { setVisible: function(flag) { gmxAPI.setVisible(scaleBar, flag); } };
-			var scaleBarText, scaleBarWidth;
-			var repaintScaleBar = function()
-			{
-				if (scaleBarText)
-				{
-					gmxAPI.size(scaleBar, scaleBarWidth, 16);
-					scaleBar.innerHTML = scaleBarText;
-				}
-			}
-			var coordinates = gmxAPI.newElement(
-				"div",
-				{
-					className: "gmx_coordinates",
-					onclick: function()
-					{
-						if (coordFormat > 2) return; //выдаем окошко с координатами только для стандартных форматов.
-						var oldText = getCoordinatesText();
-						var text = window.prompt(gmxAPI.KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты:", "Current center coordinates:"), oldText);
-						if (text && (text != oldText))
-							map.moveToCoordinates(text);
-					}
-				},
-				{
-					position: "absolute",
-					right: coordinatesAttr['x'],
-					bottom: coordinatesAttr['y'],
-					cursor: "pointer"
-				}
-			);
-			div.appendChild(coordinates);
-
-			var getCoordinatesText = function(currPosition)
-			{
-				if(!currPosition) currPosition = map.getPosition();
-				var x = gmxAPI.from_merc_x(currPosition['x']);
-				var y = gmxAPI.from_merc_y(currPosition['y']);
-				if (x > 180)
-					x -= 360;
-				if (x < -180)
-					x += 360;
-				x = gmxAPI.merc_x(x);
-				y = gmxAPI.merc_y(y);
-				if (coordFormat%3 == 0)
-					return gmxAPI.formatCoordinates(x, y);
-				else if (coordFormat%3 == 1)
-					return gmxAPI.formatCoordinates2(x, y);
-				else
-					return Math.round(x) + ", " + Math.round(y);
-			}
-
-			var clearCoordinates = function()
-			{
-				for (var i = 0; i < coordinates.childNodes.length; i++)
-					coordinates.removeChild(coordinates.childNodes[i]);
-			}
-
-			var coordFormatCallbacks = [		// методы формирования форматов координат
-				function() { coordinates.innerHTML = getCoordinatesText(); },
-				function() { coordinates.innerHTML = getCoordinatesText(); },
-				function() { coordinates.innerHTML = getCoordinatesText(); },
-			]; 
-
-			var setCoordinatesFormat = function(num)
-			{
-				if(!num) num = coordFormat;
-				if(num < 0) num = coordFormatCallbacks.length - 1;
-				else if(num >= coordFormatCallbacks.length) num = 0;
-				coordFormat = num;
-				//coordinates.innerHTML = '';
-				var attr = {'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
-				coordFormatCallbacks[coordFormat](coordinates, attr);
-				//coordinates.innerHTML = getCoordinatesText();
-				gmxAPI._listeners.chkListeners('onSetCoordinatesFormat', map, coordFormat);
-			}
-
-			var coordFormat = 0;
-			var changeCoords = gmxAPI.newElement(
-				"img", 
-				{ 
-					className: "gmx_changeCoords",
-					src: apiBase + "img/coord_reload.png",
-					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format"),
-					onclick: function()
-					{
-						coordFormat += 1;
-						setCoordinatesFormat(coordFormat);
-					}
-				},
-				{
-					position: "absolute",
-					right: coordinatesAttr['x1'],
-					bottom: coordinatesAttr['y'],
-					cursor: "pointer"
-				}
-			);
-			div.appendChild(changeCoords);
-
-			map.coordinates = {
-				setVisible: function(flag) 
-				{ 
-					gmxAPI.setVisible(coordinates, flag); 
-					gmxAPI.setVisible(changeCoords, flag); 
-				}
-				,
-				addCoordinatesFormat: function(func) 
-				{ 
-					coordFormatCallbacks.push(func);
-					return coordFormatCallbacks.length - 1;
-				}
-				,
-				removeCoordinatesFormat: function(num) 
-				{ 
-					coordFormatCallbacks.splice(num, 1);
-					return coordFormatCallbacks.length - 1;
-				}
-				,
-				setFormat: setCoordinatesFormat
-			}
-
-			map.setCoordinatesAlign = function(attr) {			// Изменить позицию контейнера координат
-				var align = attr['align'];
-				if(align === 'br') {		// Позиция br(BottomRight)
-					gmxAPI.setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x'], 'left': '' });
-					gmxAPI.setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': coordinatesAttr['x1'], 'left': '' });
-					gmxAPI.setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': coordinatesAttr['scaleBar']['bottom']['x'], 'left': '' });
-				} else if(align === 'bl') {		// Позиция bl(BottomLeft)
-					gmxAPI.setPositionStyle(coordinates, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x'] });
-					gmxAPI.setPositionStyle(changeCoords, { 'top': '', 'bottom': coordinatesAttr['y'], 'right': '', 'left': coordinatesAttr['x1'] });
-					gmxAPI.setPositionStyle(scaleBar, { 'top': '', 'bottom': coordinatesAttr['scaleBar']['bottom']['y'], 'right': '', 'left': coordinatesAttr['scaleBar']['bottom']['x'] });
-				} else if(align === 'tr') {		// Позиция tr(TopRight)
-					gmxAPI.setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x'], 'left': '' });
-					gmxAPI.setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': coordinatesAttr['x1'], 'left': '' });
-					gmxAPI.setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': coordinatesAttr['scaleBar']['top']['x'], 'left': '' });
-				} else if(align === 'tl') {		// Позиция tl(TopLeft)
-					gmxAPI.setPositionStyle(coordinates, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x'] });
-					gmxAPI.setPositionStyle(changeCoords, { 'top': coordinatesAttr['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['x1'] });
-					gmxAPI.setPositionStyle(scaleBar, { 'top': coordinatesAttr['scaleBar']['top']['y'], 'bottom': '', 'right': '', 'left': coordinatesAttr['scaleBar']['top']['x'] });
-				}
-			}
-
-			// Begin: Блок управления копирайтами
-			var copyrightAttr = {
-				'x': '26px'					// отступ по горизонтали
-				,'y': '7px'					// отступ по вертикали
-			};
-			var copyright = gmxAPI.newElement(
-				"span",
-				{
-					className: "gmx_copyright"
-				},
-				{
-					position: "absolute",
-					right: copyrightAttr['x'],
-					bottom: copyrightAttr['y']
-				}
-			);
-			var copyrightAlign = '';
-			div.appendChild(copyright);
-			// Изменить позицию контейнера копирайтов
-			map.setCopyrightAlign = function(attr) {
-				if(attr['align']) {
-					copyrightAlign = attr['align'];
-				}
-				copyrightPosition();
-			}
-			var copyrightedObjects = [];
-			map.addCopyrightedObject = function(obj)
-			{
-				var exists = false;
-				for (var i = 0; i < copyrightedObjects.length; i++)
-					if (copyrightedObjects[i] == obj)
-					{
-						exists = true;
-						break;
-					}
-					
-				if (!exists)
-				{
-					copyrightedObjects.push(obj);
-					map.updateCopyright();
-				}
-				
-			}
-			map.removeCopyrightedObject = function(obj)
-			{
-				var foundID = -1;
-				for (var i = 0; i < copyrightedObjects.length; i++)
-					if (copyrightedObjects[i] == obj)
-					{
-						foundID = i;
-						break;
-					}
-					
-				if ( foundID >= 0 )
-				{
-					copyrightedObjects.splice(foundID, 1);
-					map.updateCopyright();
-				}
-					
-				
-			}
-			
-			var copyrightUpdateTimeout = false;
-			var copyrightLastAlign = null;
-
-			// Изменить координаты HTML элемента
-			function copyrightPosition()
-			{
-				var center = (div.clientWidth - copyright.clientWidth) / 2;
-				if(copyrightLastAlign != copyrightAlign) {
-					copyrightLastAlign = copyrightAlign;
-					if(copyrightAlign === 'bc') {				// Позиция bc(BottomCenter)
-						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': center + 'px' });
-					} else if(copyrightAlign === 'br') {		// Позиция br(BottomRight)
-						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': copyrightAttr['x'], 'left': '' });
-					} else if(copyrightAlign === 'bl') {		// Позиция bl(BottomLeft)
-						gmxAPI.setPositionStyle(copyright, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': copyrightAttr['x'] });
-					} else if(copyrightAlign === 'tc') {		// Позиция tc(TopCenter)
-						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': center + 'px' });
-					} else if(copyrightAlign === 'tr') {		// Позиция tr(TopRight)
-						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': copyrightAttr['x'], 'left': '' });
-					} else if(copyrightAlign === 'tl') {		// Позиция tl(TopLeft)
-						gmxAPI.setPositionStyle(copyright, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr['x'] });
-					}
-				}
-			}
-
-			map.updateCopyright = function()
-			{
-				if (!copyrightUpdateTimeout)
-				{
-					copyrightUpdateTimeout = setTimeout(function()
-					{
-						var currPosition = map.getPosition();
-						var x = gmxAPI.from_merc_x(currPosition['x']);
-						var y = gmxAPI.from_merc_y(currPosition['y']);
-						var texts = {};
-						for (var i = 0; i < copyrightedObjects.length; i++)
-						{
-							var obj = copyrightedObjects[i];
-							if (obj.copyright && obj.objectId && obj.getVisibility())
-							{
-								if (obj.geometry)
-								{
-									var bounds = gmxAPI.getBounds(obj.geometry.coordinates);
-									if ((x < bounds.minX) || (x > bounds.maxX) || (y < bounds.minY) || (y > bounds.maxY))
-										continue;
-								}
-								texts[obj.copyright] = true;
-							}
-						}
-						
-						//первым всегда будет располагаться копирайт СканЭкс. 
-						//Если реализовать возможность задавать порядок отображения копирайтов, можно тоже самое сделать более культурно...
-						var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>";
-						
-						for (var key in texts)
-						{
-							if (text != "")
-								text += " ";
-							text += key.split("<a").join("<a target='_blank' style='color: inherit;'");
-						}
-						copyright.innerHTML = text;
-						copyrightUpdateTimeout = false;
-						if(copyrightAlign) {
-							copyrightPosition();
-						}
-					}, 0);
-				}
-			}
-			// End: Блок управления копирайтами
+			if('_addLocationTitleDiv' in gmxAPI) gmxAPI._addLocationTitleDiv(div);
+			if('_addGeomixerLink' in gmxAPI) gmxAPI._addGeomixerLink(div);
+			if('_addCopyrightControl' in gmxAPI) gmxAPI._addCopyrightControl(div);
 
 			var sunscreen = map.addObject();
 			gmxAPI._sunscreen = sunscreen;
@@ -4110,277 +2906,38 @@ function createFlashMapInternal(div, layers, callback)
 			sunscreen.setRectangle(-180, -85, 180, 85);
 			sunscreen.setVisible(false);
 
-			var miniMapBorderWidth = 5;
-			var miniMapLeftBorder = gmxAPI.newStyledDiv({
-				position: "absolute",
-				top: 0,
-				width: miniMapBorderWidth + "px",
-				backgroundColor: "#216B9C",
-				opacity: 0.5
-			});
-			var miniMapBottomBorder = gmxAPI.newStyledDiv({
-				position: "absolute",
-				right: 0,
-				height: miniMapBorderWidth + "px",
-				backgroundColor: "#216B9C",
-				opacity: 0.5,
-				fontSize: 0
-			});
-			div.appendChild(miniMapLeftBorder);
-			div.appendChild(miniMapBottomBorder);
-			var repaintMiniMapBorders = function()
-			{
-				gmxAPI.setVisible(miniMapLeftBorder, miniMapAvailable && miniMapShown);
-				gmxAPI.setVisible(miniMapBottomBorder, miniMapAvailable && miniMapShown);
-			}
-			var miniMapFrame = gmxAPI.newStyledDiv({
-				position: "absolute",
-				backgroundColor: "#216b9c",
-				opacity: 0.2
-			});
-			miniMapFrame.onmousedown = function(event)
-			{
-				var startMouseX = gmxAPI.eventX(event);
-				var startMouseY = gmxAPI.eventY(event);
-				
-				var currPosition = map.getPosition();
-				var startMapX = currPosition['x'];
-				var startMapY = currPosition['y'];
 
-				var scale = gmxAPI.getScale(miniMapZ);
-				
-				var mouseMoveMode = new HandlerMode(document.documentElement, "mousemove", function(event)
-				{
-					map.moveTo(
-						gmxAPI.from_merc_x(startMapX - (gmxAPI.eventX(event) - startMouseX)*scale), 
-						gmxAPI.from_merc_y(startMapY + (gmxAPI.eventY(event) - startMouseY)*scale), 
-						map.getZ()
-					);
-					return false;
-				});
-				var mouseUpMode = new HandlerMode(document.documentElement, "mouseup", function(event)
-				{
-					mouseMoveMode.clear();
-					mouseUpMode.clear();
-				});
-				mouseMoveMode.set();
-				mouseUpMode.set();
-				return false;
-			}
-			div.appendChild(miniMapFrame);
-			var repaintMiniMapFrame = function()
-			{
-				gmxAPI.setVisible(miniMapFrame, miniMapAvailable && miniMapShown);
-				var scaleFactor = Math.pow(2, map.getZ() - miniMapZ);
-				var w = div.clientWidth/scaleFactor;
-				var h = div.clientHeight/scaleFactor;
-				if ((w >= miniMapSize) || (h >= miniMapSize))
-					gmxAPI.setVisible(miniMapFrame, false);
-				else
-				{
-					var ww = (miniMapSize/2 - w/2);
-					var hh = (miniMapSize/2 - h/2);
-					var ph = { 'top': hh + 'px', 'bottom': '', 'right': ww + 'px', 'left': '' };	// Позиция миникарты по умолчанию tr(TopRight)
-					if(miniMapAlign === 'br') {		// Позиция миникарты br(BottomRight)
-						ph['left'] = ''; ph['right'] = ww + 'px';
-						ph['bottom'] = hh + 'px';	ph['top'] = '';
-					} else if(miniMapAlign === 'bl') {	// Позиция миникарты по умолчанию bl(BottomLeft)
-						ph['left'] = ww + 'px';		ph['right'] = '';
-						ph['bottom'] = hh + 'px';	ph['top'] = '';
-					} else if(miniMapAlign === 'tl') {	// Позиция миникарты по умолчанию tl(TopLeft)
-						ph['left'] = (miniMapSize/2 - w/2) + 'px'; ph['right'] = '';
-					}
-					gmxAPI.setPositionStyle(miniMapFrame, ph);
-					gmxAPI.size(miniMapFrame, w, h);
-				}
-			}
-			var miniMapZ = 0;
-			var miniMapAvailable = false;
-			var miniMapSize = 0;
-			var miniMap = map.addMapWindow(function(z) 
-			{ 
-				miniMapZ = Math.max(minZoom, Math.min(maxRasterZoom, z + miniMapZoomDelta));
-				try { repaintMiniMapFrame(); } catch (e) {
-					gmxAPI.addDebugWarnings({'func': 'repaintMiniMapFrame', 'event': e});
-				}
-				return miniMapZ;
-			});
-			var miniMapShown = true;
-			var miniMapToggler = gmxAPI.newElement(
-				"img",
-				{ 
-					className: "gmx_miniMapToggler",
-					src: apiBase + "img/close_map.png",
-					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать/скрыть мини-карту", "Show/hide minimap"),
-					onclick: function()
-					{
-						miniMapShown = !miniMapShown;
-						miniMapToggler.src = apiBase + (miniMapShown ? "img/close_map_a.png" : "img/open_map_a.png");
-						resizeMiniMap();
-					},
-					onmouseover: function()
-					{
-						miniMapToggler.src = apiBase + (miniMapShown ? "img/close_map_a.png" : "img/open_map_a.png");
-					},
-					onmouseout: function()
-					{
-						miniMapToggler.src = apiBase + (miniMapShown ? "img/close_map.png" : "img/open_map.png");
-					}
-				},
-				{
-					position: "absolute",
-					right: 0,
-					top: 0,
-					cursor: "pointer"
-				}
-			);
-			div.appendChild(miniMapToggler);
-
-			var resizeMiniMap = function()
-			{
-				var w = div.clientWidth;
-				var h = div.clientHeight;
-				miniMapSize = (miniMapAvailable && miniMapShown) ? Math.round(w/7) : 0;
-				miniMapLeftBorder.style.height = (miniMapSize + miniMapBorderWidth) + "px";
-				miniMapBottomBorder.style.width = miniMapSize + "px";
-				if(miniMapAlign === 'br') {			// Позиция миникарты br(BottomRight)
-					miniMap.positionWindow((w - miniMapSize)/w, (h - miniMapSize)/h, 1, 1);
-					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': miniMapSize + 'px', 'left': '' });
-					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '0px', 'left': '' });
-					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '0px', 'left': '' });
-				} else if(miniMapAlign === 'bl') {	// Позиция миникарты по умолчанию bl(BottomLeft)
-					miniMap.positionWindow(0, (h - miniMapSize)/h, miniMapSize/w, 1);
-					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '', 'bottom': '0px', 'right': '', 'left': miniMapSize + 'px' });
-					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': '', 'bottom': miniMapSize + 'px', 'right': '', 'left': '0px' });
-					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '', 'bottom': '0px', 'right': '', 'left': '0px' });
-				} else if(miniMapAlign === 'tl') {	// Позиция миникарты по умолчанию tl(TopLeft)
-					miniMap.positionWindow(0, 0, miniMapSize/w, miniMapSize/h);
-					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': '', 'left': miniMapSize + 'px' });
-					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '', 'left': '0px' });
-					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '0px', 'bottom': '', 'right': '', 'left': '0px' });
-				} else {							// Позиция миникарты по умолчанию tr(TopRight)
-					miniMap.positionWindow((w - miniMapSize)/w, 0, 1, miniMapSize/h);
-					gmxAPI.setPositionStyle(miniMapLeftBorder, { 'top': '0px', 'bottom': '', 'right': miniMapSize + 'px', 'left': '' });
-					gmxAPI.setPositionStyle(miniMapBottomBorder, { 'top': miniMapSize + 'px', 'bottom': '', 'right': '0px', 'left': '' });
-					gmxAPI.setPositionStyle(miniMapToggler, { 'top': '0px', 'bottom': '', 'right': '0px', 'left': '' });
-				}
-				repaintMiniMapBorders();
-				repaintMiniMapFrame();
-			}
-
-			miniMap.setVisible = function(flag) 
-			{ 
-				FlashMapObject.prototype.setVisible.call(miniMap, flag);
-				miniMapAvailable = flag;
-				gmxAPI.setVisible(miniMapFrame, flag);
-				gmxAPI.setVisible(miniMapToggler, flag);
-				resizeMiniMap();
-			}
-			map.miniMap = miniMap;
-			miniMap.setVisible(false);
-			var miniMapAlign = 'tr';
-			// Изменить позицию miniMap
-			map.setMiniMapAlign = function(attr) {
-				if(attr['align']) miniMapAlign = attr['align'];
-				resizeMiniMap();
-			}
-
-			var geomixerLink = gmxAPI.newElement(
-				"a",
-				{
-					href: "http://kosmosnimki.ru/geomixer",
-					target: "_blank",
-					className: "gmx_geomixerLink"
-				},
-				{
-					position: "absolute",
-					left: "8px",
-					bottom: "8px"
-				}
-			);
-			geomixerLink.appendChild(gmxAPI.newElement(
-				"img",
-				{
-					src: apiBase + "img/geomixer_logo_api.png",
-					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("© 2007-2011 ИТЦ «СканЭкс»", "(c) 2007-2011 RDC ScanEx"),
-					width: 130,
-					height: 34
-				},
-				{
-					border: 0
-				}
-			));
-			div.appendChild(geomixerLink);
-			map.setGeomixerLinkAlign = function(attr) {				// Изменить позицию ссылки на Geomixer
-				var align = attr['align'];
-				if(align === 'br') {			// Позиция br(BottomRight)
-					gmxAPI.setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '8px', 'left': '' });
-				} else if(align === 'bl') {		// Позиция bl(BottomLeft)
-					gmxAPI.setPositionStyle(geomixerLink, { 'top': '', 'bottom': '8px', 'right': '', 'left': '8px' });
-				} else if(align === 'tr') {		// Позиция tr(TopRight)
-					gmxAPI.setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '8px', 'left': '' });
-				} else if(align === 'tl') {		// Позиция tl(TopLeft)
-					gmxAPI.setPositionStyle(geomixerLink, { 'top': '8px', 'bottom': '', 'right': '', 'left': '8px' });
+			if(gmxAPI.proxyType === 'flash') {
+				if('_miniMapInit' in gmxAPI) {
+					gmxAPI._miniMapInit(div);
+					sunscreen.setHandler("onResize", gmxAPI._resizeMiniMap);
 				}
 			}
 
-			sunscreen.setHandler("onResize", resizeMiniMap);
-
-			var copyrightUpdateTimeout2 = false;
-			var updatePosition = function()
+			var updatePosition = function(ev)
 			{
 				var currPosition = map.getPosition();
 				gmxAPI.currPosition = currPosition;
 
 				var z = currPosition['z'];
-				if (z == Math.round(z))
-				{
-					var metersPerPixel = getLocalScale(gmxAPI.from_merc_x(currPosition['x']), gmxAPI.from_merc_y(currPosition['y']))*gmxAPI.getScale(z);
-					for (var i = 0; i < 30; i++)
-					{
-						var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
-						var w = distance/metersPerPixel;
-						if (w > 100)
-						{
-							var name = gmxAPI.prettifyDistance(distance);
-							if ((name != scaleBarText) || (w != scaleBarWidth))
-							{
-								scaleBarText = name;
-								scaleBarWidth = w;
-								repaintScaleBar();
-							}
-							break;
-						}
-					}
-				}
-				var newZoomObj = zoomArr[Math.round(z) - minZoom];
-				if (newZoomObj != zoomObj)
-				{
-					if (zoomObj)
-						zoomObj.src = apiBase + "img/zoom_raw.png";
-					zoomObj = newZoomObj;
-					zoomObj.src = apiBase + "img/zoom_active.png";
-				}
-				setCoordinatesFormat();
-				//coordinates.innerHTML = getCoordinatesText(currPosition);
 
 				/** Пользовательское событие positionChanged
 				* @function callback
 				* @param {object} атрибуты прослушивателя
 				*/
 				if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
-					var attr = {'div': locationTitleDiv, 'screenGeometry': map.getScreenGeometry(), 'properties': map.properties };
+					var attr = {
+						'currZ': z,
+						'currX': gmxAPI.from_merc_x(currPosition['x']),
+						'currY': gmxAPI.from_merc_y(currPosition['y']),
+						'div': gmxAPI._locationTitleDiv,
+						'screenGeometry': map.getScreenGeometry(),
+						'properties': map.properties
+					};
 					gmxAPI._listeners.chkListeners('positionChanged', map, attr);
 				}
-
-				if (copyrightUpdateTimeout2)
-					clearTimeout(copyrightUpdateTimeout2);
-				copyrightUpdateTimeout2 = setTimeout(function()
-				{
-					map.updateCopyright();
-					copyrightUpdateTimeout2 = false;
-				}, 250);
 			}
+			gmxAPI._updatePosition = updatePosition;
 			var eventMapObject = map.addObject();
 			eventMapObject.setHandler("onMove", updatePosition);
 			// onMoveBegin	- перед onMove
@@ -4389,7 +2946,7 @@ function createFlashMapInternal(div, layers, callback)
 			updatePosition();
 
 			map.setBackgroundColor(0x000001);
-			miniMap.setBackgroundColor(0xffffff);
+//			map.miniMap.setBackgroundColor(0xffffff);
 
 			map.defaultHostName = layers.properties.hostName;
 			map.addLayers(layers);
@@ -4657,8 +3214,7 @@ function createFlashMapInternal(div, layers, callback)
 			if (callback)
 				callback(map);
 
-			initialLayersAdded = true;
-
+/*
 		} catch (e) {
 			var err = '';
 			if(e.lineNumber) {
@@ -4670,10 +3226,21 @@ function createFlashMapInternal(div, layers, callback)
 			gmxAPI.addDebugWarnings({'event': e, 'alert': err});
 			//alert(err);
 		}
+*/
 	}
 
-	var o = gmxAPI._addSWFObject(apiBase + "api.swf?" + Math.random(), flashId, "100%", "100%", "10", "#ffffff", loadCallback, window.gmxFlashLSO);
-	o.write(div);
+	if('_addProxyObject' in gmxAPI) {	// Добавление обьекта отображения в DOM
+		var o = gmxAPI._addProxyObject(apiBase, flashId, "100%", "100%", "10", "#ffffff", loadCallback, window.gmxFlashLSO);
+		if(o.nodeName === 'DIV') {
+			gmxAPI._div.innerHTML = '';
+			gmxAPI._div.appendChild(o);
+			//gmxAPI._div.appendChild(div);
+		}
+		else 
+		{
+			o.write(div);
+		}
+	}
 
 	return true;
 }
@@ -4888,16 +3455,17 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.setBaseLayer(name);
 						map.toolsAll.baseLayersTools.selectTool(name);
 					}
-					map.setMode(mapLayers.length > 0 ? "map" : "satellite");
-					map.miniMap.setVisible(true);
-					
-					for (var m = 0; m < mapLayers.length; m++)
-						map.miniMap.addLayer(mapLayers[m]);
-					
-					if (osmEmbed)
-					{
-						map.miniMap.addLayer(osmEmbed);
-						setOSMEmbed(map.miniMap.layers[osmEmbed.properties.name]);
+					if('miniMap' in map) {
+						map.miniMap.setVisible(true);
+						
+						for (var m = 0; m < mapLayers.length; m++)
+							map.miniMap.addLayer(mapLayers[m]);
+						
+						if (osmEmbed)
+						{
+							map.miniMap.addLayer(osmEmbed);
+							setOSMEmbed(map.miniMap.layers[osmEmbed.properties.name]);
+						}
 					}
 		                
 					if (!window.baseMap || !window.baseMap.hostName || (window.baseMap.hostName == "maps.kosmosnimki.ru"))
@@ -4910,6 +3478,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.addLayers(layers);
 						map.properties = layers.properties;
 					}
+					map.setMode(mapLayers.length > 0 ? "map" : "satellite");
 
 					callback(map);		// Вызов HTML маплета
 				});
@@ -4934,3 +3503,538 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 	else
 		finish();
 };
+
+//Поддержка addLayer
+(function()
+{
+	// получить minZoom maxZoom для слоя по фильтрам
+	function getMinMaxZoom(prop)
+	{
+		var minZoom = 20, maxZoom = 0;
+		for (var i = 0; i < prop.styles.length; i++)
+		{
+			var style = prop.styles[i];
+			minZoom = Math.min(style.MinZoom, minZoom);
+			maxZoom = Math.max(style.MaxZoom, maxZoom);
+		}
+		return {'minZoom': minZoom, 'maxZoom': maxZoom};
+	}
+
+	function reSetStyles(styles, obj)
+	{
+		for (var i = 0; i < styles.length; i++)
+		{
+			var style = styles[i];
+			var givenStyle = {};
+			if (typeof style.StyleJSON != 'undefined')
+				givenStyle = style.StyleJSON;
+			else if (typeof style.RenderStyle != 'undefined')
+				givenStyle = style.RenderStyle;
+			else
+			{
+				if (style.PointSize)
+					givenStyle.marker = { size: parseInt(style.PointSize) };
+				if (style.Icon)
+				{
+					var src = (style.Icon.indexOf("http://") != -1) ?
+						style.Icon :
+						(baseAddress + "/" + style.Icon);
+					givenStyle.marker = { image: src, "center": true };
+				}
+				if (style.BorderColor || style.BorderWidth)
+					givenStyle.outline = {
+						color: gmxAPI.parseColor(style.BorderColor),
+						thickness: parseInt(style.BorderWidth || "1"),
+						opacity: (style.BorderWidth == "0" ? 0 : 100)
+					};
+				if (style.FillColor)
+					givenStyle.fill = {
+						color: gmxAPI.parseColor(style.FillColor),
+						opacity: 100 - parseInt(style.Transparency || "0")
+					};
+
+				var label = style.label || style.Label;
+				if (label)
+				{
+					givenStyle.label = {
+						field: label.FieldName,
+						color: gmxAPI.parseColor(label.FontColor),
+						size: parseInt(label.FontSize || "12")
+					};
+				}
+			}
+
+			if (givenStyle.marker)
+				givenStyle.marker.center = true;
+
+			var hoveredStyle = JSON.parse(JSON.stringify(givenStyle));
+			if (hoveredStyle.marker && hoveredStyle.marker.size)
+				hoveredStyle.marker.size += 1;
+			if (hoveredStyle.outline)
+				hoveredStyle.outline.thickness += 1;
+
+			var filter = obj.addObject();
+			var filterSet = false;
+			if (style.Filter)
+			{
+				if (/^\s*\[/.test(style.Filter))
+				{
+					var a = style.Filter.match(/^\s*\[([a-zA-Z0-9_]+)\]\s*([<>=]=?)\s*(.*)$/);
+					if (a && (a.length == 4))
+					{
+						filter.setFilter(a[1] + " " + a[2] + " '" + a[3] + "'");
+						filterSet = true;
+					}
+				}
+				else
+				{
+					filter.setFilter(style.Filter);
+					filterSet = true;
+				}
+			}
+			if (!filterSet)
+				filter.setFilter();
+
+			filter.getPatternIcon = function(ph, size)
+			{
+				if(!size) size = 32;
+				if(!ph) ph = givenStyle;
+				return gmxAPI._cmdProxy('getPatternIcon', { 'attr':{'size':size, 'style':ph} });
+			}
+			filter.setZoomBounds(style.MinZoom, style.MaxZoom);
+			filter.setStyle(givenStyle, hoveredStyle);
+			
+			var filterOld = obj.filters[i];
+			gmxAPI._listeners.chkListeners('reSetStyles', gmxAPI.map, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка map Listeners на reSetStyles
+			gmxAPI._listeners.chkListeners('reSetStyles', filterOld, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка filterOld Listeners на reSetStyles
+			obj.filters[i] = filter;
+		}
+	}
+
+	var addLayer = function(parentObj, layer, isVisible)
+	{
+		var FlashMapObject = gmxAPI._FMO;
+		if (!parentObj.layers)
+			parentObj.layers = [];
+		if (!parentObj.layersParent)
+			parentObj.layersParent = parentObj.addObject();
+		if (!parentObj.overlays)
+		{
+			parentObj.overlays = parentObj.addObject();
+			parentObj.addObject = function(geom, props)
+			{
+				var ret = FlashMapObject.prototype.addObject.call(parentObj, geom, props);
+				parentObj.overlays.bringToTop();
+				return ret;
+			}
+		}
+		
+		var getLastIndex = function()
+		{ 
+			var myIdx = parentObj.layers.length;
+			var n = 0;
+			for (var i = 0; i < myIdx; i++)
+			{
+				var l = parentObj.layers[i];
+				if (l.objectId && (l.properties.type != "Overlay"))
+					n += 1;
+			}
+			return n;
+		}
+		
+		
+		if (isVisible === undefined)
+			isVisible = true;
+		if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
+		var isRaster = (layer.properties.type == "Raster");
+		//var t = layer.properties.name || layer.properties.image;
+		var layerName = layer.properties.name || layer.properties.image;
+		var obj = new FlashMapObject(false, {}, parentObj);
+		obj.geometry = layer.geometry;
+		obj.properties = layer.properties;
+//		var me = this;
+		var isOverlay = false;
+		var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID","");
+		if(typeof(overlayLayerID) == 'string') {
+			var arr = overlayLayerID.split(",");
+			for (var i = 0; i < arr.length; i++) {
+				if(layerName == arr[i]) {
+					isOverlay = true;
+					break;
+				}
+			}
+		}
+
+		if (isOverlay)
+			layer.properties.type = "Overlay";
+
+		obj.filters = [];
+		if (!isRaster)
+		{
+			for (var i = 0; i < layer.properties.styles.length; i++)
+			{
+				var tmp = new FlashMapObject(false, {}, parentObj);
+				obj.filters.push(tmp);
+				var style = layer.properties.styles[i];
+				if (style.Filter && style.Filter.Name)
+					obj.filters[style.Filter.Name] = tmp;
+			}
+		}
+
+		var baseAddress = "http://" + layer.properties.hostName + "/";
+		//var sessionKey = (layer.properties.hostName.indexOf("maps.kosmosnimki.ru") != -1 || window.KOSMOSNIMKI_SESSION_KEY) ? window.KOSMOSNIMKI_SESSION_KEY : false;
+		var sessionKey = isRequiredAPIKey( layer.properties.hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
+		var sessionKey2 = window.sessionKeyCache[layer.properties.mapName];
+		var isInvalid = (sessionKey == "INVALID");
+
+		var chkCenterX = function(arr)
+		{ 
+			var centerX = 0;
+			for (var i = 0; i < arr.length; i++)
+			{
+				centerX += parseFloat(arr[i][0]);
+			}
+			centerX /= arr.length;
+			var prevCenter = centerX;
+			centerX = gmxAPI.chkPointCenterX(centerX);
+			var dx = prevCenter - centerX;
+			for (var i = 0; i < arr.length; i++)
+			{
+				arr[i][0] -= dx;
+			}
+		}
+
+		var bounds = false;
+
+		if (layer.geometry) {
+			if(layer.geometry.type == "POLYGON") {		// Проверка сдвига границ слоя
+				var arr = layer.geometry.coordinates[0];
+				chkCenterX(arr);
+			}
+			bounds = gmxAPI.getBounds(gmxAPI.merc_geometry(layer.geometry).coordinates);
+		}
+		var tileSenderPrefix = baseAddress + 
+			"TileSender.ashx?ModeKey=tile" + 
+			"&MapName=" + layer.properties.mapName + 
+			"&LayerName=" + layerName + 
+			(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
+			(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
+
+		var tileFunction = function(i, j, z)
+		{ 
+			if (bounds)
+			{
+				var tileSize = gmxAPI.getScale(z)*256;
+				var minx = i*tileSize;
+				var maxx = minx + tileSize;
+				if (maxx < bounds.minX) {
+					i += Math.pow(2, z);
+				}
+				else if (minx > bounds.maxX) {
+					i -= Math.pow(2, z);
+				}
+			}
+
+			return tileSenderPrefix + 
+				"&z=" + z + 
+				"&x=" + i + 
+				"&y=" + j;
+		}
+
+		var isTemporal = layer.properties.Temporal;	// признак мультивременного слоя
+		if(isTemporal && '_TemporalTiles' in gmxAPI) {
+			obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
+		}
+
+		var deferredMethodNames = [
+			'getChildren', 'getItemsFromExtent', 'getTileItem', 'setTileItem',
+			'getDepth', 'getZoomBounds', 'getVisibility', 'getStyle', 'getIntermediateLength',
+			'getCurrentEdgeLength', 'getLength', 'getArea', 'getGeometryType', 'getStat', 'flip', 
+			'setZoomBounds', 'setBackgroundTiles', 'startLoadTiles', 'setVectorTiles', 'setTiles', 'setTileCaching',
+			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'bringToBottom',
+			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
+			'removeHandler', 'remove', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
+			'setHandler', 'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
+		];
+		// не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
+
+		var createThisLayer = function()
+		{
+			var obj_ = (isOverlay ? parentObj.overlays : parentObj.layersParent).addObject(obj.geometry, obj.properties);
+			obj.objectId = obj_.objectId;
+			obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
+			
+			gmxAPI._listeners.chkListeners('onLayerCreated', obj, {'obj': obj });
+		
+			obj.setVisible = function(flag)
+			{
+				FlashMapObject.prototype.setVisible.call(obj, flag);
+			}
+
+			for (var i = 0; i < deferredMethodNames.length; i++)
+				delete obj[deferredMethodNames[i]];
+			delete obj["getFeatures"];
+			delete obj["getFeatureById"];
+			if (!isRaster)
+			{
+				obj.setHandler = function(eventName, handler)
+				{
+					FlashMapObject.prototype.setHandler.call(obj, eventName, handler);
+					for (var i = 0; i < obj.filters.length; i++)
+						obj.filters[i].setHandler(eventName, handler);
+				}
+			}
+			obj.addObserver = function(o, onChange)
+			{
+				gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId,
+					'func': function(geom, props, flag)
+					{
+						onChange(new FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj), flag);
+					}
+				} });
+			}
+			if (isRaster) {
+				obj.setBackgroundTiles(tileFunction, 0, layer.properties['MinZoom'], layer.properties['MaxZoom']);
+			} else
+			{
+				obj.getFeatures = function()
+				{
+					var callback, geometry, str;
+					for (var i = 0; i < 3; i++)
+					{
+						var arg = arguments[i];
+						if (typeof arg == 'function')
+							callback = arg;
+						else if (typeof arg == 'string')
+							str = arg;
+						else if (typeof arg == 'object')
+							geometry = arg;
+					}
+					if (!str && (obj.properties.GeometryType == "point")) {
+						gmxAPI._cmdProxy('getFeatures', { 'obj': obj, 'attr':{
+							'geom': gmxAPI.merc_geometry(geometry ? geometry : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] }),
+							'func':  function(geoms, props)
+								{
+									var ret = [];
+									for (var i = 0; i < geoms.length; i++)
+										ret.push(new FlashMapFeature(
+											gmxAPI.from_merc_geometry(geoms[i]),
+											props[i],
+											obj
+										));
+									callback(ret);
+								}
+							}
+						});
+					}
+					else
+						map.getFeatures(str, geometry, callback, [obj.properties.name]);
+				}
+
+				obj.getFeatureById = function(fid, func)
+				{
+					gmxAPI._cmdProxy('getFeatureById', { 'obj': obj, 'attr':{'fid':fid,
+						'func': function(geom, props)
+						{
+							if(typeof(props) === 'object' && props.length > 0) {
+								props = gmxAPI.arrayToHash(props);
+							}
+							func(new FlashMapFeature(
+								gmxAPI.from_merc_geometry(geom),
+								props,
+								obj
+							));
+						}
+					} });
+				}
+
+				if(obj._temporalTiles) {	// Для мультивременных слоёв
+					obj._temporalTiles.setVectorTiles();
+				} else {
+					obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
+				}
+				obj.setStyle = function(style, activeStyle)
+				{
+					for (var i = 0; i < obj.filters.length; i++)
+						obj.filters[i].setStyle(style, activeStyle);
+				}
+
+				reSetStyles(layer.properties.styles, obj);
+				obj.reSetStyles =  function(styles)
+				{
+					for (var i = 0; i < obj.filters.length; i++) {
+						obj.filters[i].remove();
+					}
+					obj.filters = [];
+					reSetStyles(styles, obj);
+				}
+				// Изменить атрибуты векторного обьекта из загруженных тайлов
+				obj.setTileItem = function(data, flag) {
+					var _obj = gmxAPI._cmdProxy('setTileItem', { 'obj': this, 'attr': {'data':data, 'flag':(flag ? true:false)} });
+					return _obj;
+				}
+				// Получить атрибуты векторного обьекта из загруженных тайлов id по identityField
+				obj.getTileItem = function(vId) {
+					var _obj = gmxAPI._cmdProxy('getTileItem', { 'obj': this, 'attr': vId });
+					if(_obj.geometry) _obj.geometry = gmxAPI.from_merc_geometry(_obj.geometry);
+					return _obj;
+				}
+				obj.getStat = function() {
+					var _obj = gmxAPI._cmdProxy('getStat', { 'obj': this });
+					return _obj;
+				}
+				obj.setTiles = function(data, flag) {
+					var _obj = gmxAPI._cmdProxy('setTiles', { 'obj': obj, 'attr':{'tiles':data, 'flag':(flag ? true:false)} });
+					return _obj;
+				}
+
+				if (layer.properties.Quicklook)
+					obj.enableQuicklooks(function(o)
+					{
+						return gmxAPI.applyTemplate(layer.properties.Quicklook, o.properties);
+					});
+				if (layer.properties.TiledQuicklook)
+					obj.enableTiledQuicklooks(function(o)
+					{
+						return gmxAPI.applyTemplate(layer.properties.TiledQuicklook, o.properties);
+					}, layer.properties.TiledQuicklookMinZoom);
+			}
+
+			for (var i = 0; i < obj.filters.length; i++)
+			{
+				var filter = obj.filters[i];
+				delete filter["setVisible"];
+				delete filter["setStyle"];
+				delete filter["setFilter"];
+				delete filter["enableHoverBalloon"];
+				filter["setZoomBounds"] = FlashMapObject.prototype.setZoomBounds;
+			}
+
+			// Установка видимости по Zoom
+			var tmp = getMinMaxZoom(layer.properties);
+			obj.setZoomBounds(tmp['minZoom'], tmp['maxZoom']);
+
+			if (layer.properties.Copyright)
+				obj.setCopyright(layer.properties.Copyright);
+		}
+
+		obj.isVisible = isVisible;
+		if (isVisible) {
+			createThisLayer();
+		}
+		else
+		{
+			var deferred = [];
+			obj.setVisible = function(flag)
+			{
+				if (flag)
+				{
+					createThisLayer();
+					var n = getLastIndex();
+				
+					if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
+					obj.bringToDepth(n);
+					for (var i = 0; i < deferred.length; i++) {
+						deferred[i]();
+					}
+				}
+			}
+
+			if (!isRaster) {
+				// Изменять атрибуты векторного обьекта при невидимом слое нельзя
+				obj.setTileItem = function(data, flag) {
+					return false;
+				}
+				// Получить атрибуты векторного обьекта при невидимом слое нельзя
+				obj.getTileItem = function(vId) {
+					return null;
+				}
+			}
+			obj.addObject = function(geometry, props)
+			{
+				obj.setVisible(true);
+				var newObj = FlashMapObject.prototype.addObject.call(obj, geometry, props);
+				obj.setVisible(false);
+				return newObj;
+			}
+			for (var i = 0; i < deferredMethodNames.length; i++) (function(name)
+			{
+				obj[name] = function(p1, p2, p3, p4) 
+				{ 
+					deferred.push(function() { obj[name].call(obj, p1, p2, p3, p4); });
+				}
+			})(deferredMethodNames[i]);
+			if (!isRaster)
+			{
+				obj.getFeatures = function(arg1, arg2, arg3)
+				{							
+					obj.setVisible(true);
+					obj.getFeatures(arg1, arg2, arg3);
+					obj.setVisible(false);
+				}
+				obj.getFeatureById = function(arg1, arg2, arg3)
+				{							
+					obj.setVisible(true);
+					obj.getFeatureById(arg1, arg2, arg3);
+					obj.setVisible(false);
+				}
+				for (var i = 0; i < layer.properties.styles.length; i++) (function(i)
+				{
+					obj.filters[i].setZoomBounds = function(minZoom, maxZoom)
+					{
+						deferred.push(function() {
+							obj.filters[i].setZoomBounds(minZoom, maxZoom);
+							});
+					}
+					obj.filters[i].setVisible = function(flag)
+					{
+						deferred.push(function() {
+							obj.filters[i].setVisible(flag);
+							});
+					}
+					obj.filters[i].setStyle = function(style, activeStyle)
+					{
+						deferred.push(function() {
+							obj.filters[i].setStyle(style, activeStyle);
+							});
+					}
+					obj.filters[i].setFilter = function(sql)
+					{
+						deferred.push(function() { 
+							obj.filters[i].setFilter(sql);
+							});
+						return true;
+					}
+					obj.filters[i].enableHoverBalloon = function(callback)
+					{
+						deferred.push(function() {
+							obj.filters[i].enableHoverBalloon(callback);
+							});
+					}
+				})(i);
+			}
+		}
+
+//		if (isRaster && (layer.properties.MaxZoom > maxRasterZoom))
+//			maxRasterZoom = layer.properties.MaxZoom;
+//		var myIdx = parentObj.layers.length;
+		parentObj.layers.push(obj);
+		parentObj.layers[layerName] = obj;
+		if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
+			parentObj.layers[layer.properties.title] = obj;
+		
+		if(gmxAPI.proxyType === 'leaflet') {
+			var zIndex = getLastIndex();
+			gmxAPI._cmdProxy('addScanExTileLayer', { 'obj': parentObj, 'attr':{'layer':obj, 'prefix':tileSenderPrefix, 'zIndex':zIndex, 'isVisible':isVisible} });
+		}
+		
+		return obj;
+	}
+
+	//расширяем FlashMapObject
+	gmxAPI.extendFMO('addLayer', function(layer, isVisible) {
+		addLayer(this, layer, isVisible);
+	} );
+
+})();
+
