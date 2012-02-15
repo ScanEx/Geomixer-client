@@ -1377,7 +1377,11 @@ window.gmxAPI = {
 		script.setAttribute("charset", "UTF-8");
 		document.getElementsByTagName("head").item(0).appendChild(script);
 		script.setAttribute("src", url);
-	}
+	},
+    getPatternIcon: function(ph, size)
+    {
+        return gmxAPI._cmdProxy('getPatternIcon', { 'attr':{'size': size || 32, 'style':ph} });
+    }
 }
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
@@ -3595,12 +3599,11 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 			if (!filterSet)
 				filter.setFilter();
 
-			filter.getPatternIcon = function(ph, size)
+			filter.getPatternIcon = function(size)
 			{
-				if(!size) size = 32;
-				if(!ph) ph = givenStyle;
-				return gmxAPI._cmdProxy('getPatternIcon', { 'attr':{'size':size, 'style':ph} });
+                return gmxAPI.getPatternIcon(givenStyle, size);
 			}
+            
 			filter.setZoomBounds(style.MinZoom, style.MaxZoom);
 			filter.setStyle(givenStyle, hoveredStyle);
 			

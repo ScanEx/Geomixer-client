@@ -25,49 +25,57 @@ nsGmx.Controls = {
 		
 		if (type.indexOf('linestring') < 0)
 		{
-			var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
-				border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
-				fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
-				borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
-			
-			if ($.browser.msie)
-			{
-				fill.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + fillOpacity + ")";
-				border.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + borderOpacity + ")";
-				
-				border.style.width = '9px';
-				border.style.height = '13px';
-			}
-			else
-			{
-				fill.style.opacity = fillOpacity / 100;
-				border.style.opacity = borderOpacity / 100;
-			}
-			
-			if (type.indexOf('point') > -1)
-			{
-				if ($.browser.msie)
-				{
-					border.style.height = '7px';
-					fill.style.height = '5px';
-					border.style.width = '7px';
-					fill.style.width = '5px';
-				}
-				else
-				{
-					border.style.height = '5px';
-					fill.style.height = '5px';
-					border.style.width = '5px';
-					fill.style.width = '5px';
-				}
-				
-				border.style.top = '3px';
-				fill.style.top = '4px';
-				border.style.left = '1px';
-				fill.style.left = '2px';
-			}
-			
-			_(icon, [border, fill]);
+            if (parentStyle.fill && parentStyle.fill.pattern)
+            {
+                var opaqueStyle = $.extend(true, {}, parentStyle, {fill: {opacity: 100}});
+                icon = _img(null, [['attr','src', 'data:image/png;base64,' + gmxAPI.getPatternIcon(opaqueStyle, 13)],['dir','className','icon'],['attr','styleType','icon']]);
+            }
+            else
+            {
+                var fill = _div(null, [['dir','className','fillIcon'],['css','backgroundColor',(parentStyle.fill && typeof parentStyle.fill.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.fill.color) : "#FFFFFF"]]),
+                    border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
+                    fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
+                    borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
+                
+                if ($.browser.msie)
+                {
+                    fill.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + fillOpacity + ")";
+                    border.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + borderOpacity + ")";
+                    
+                    border.style.width = '9px';
+                    border.style.height = '13px';
+                }
+                else
+                {
+                    fill.style.opacity = fillOpacity / 100;
+                    border.style.opacity = borderOpacity / 100;
+                }
+                
+                if (type.indexOf('point') > -1)
+                {
+                    if ($.browser.msie)
+                    {
+                        border.style.height = '7px';
+                        fill.style.height = '5px';
+                        border.style.width = '7px';
+                        fill.style.width = '5px';
+                    }
+                    else
+                    {
+                        border.style.height = '5px';
+                        fill.style.height = '5px';
+                        border.style.width = '5px';
+                        fill.style.width = '5px';
+                    }
+                    
+                    border.style.top = '3px';
+                    fill.style.top = '4px';
+                    border.style.left = '1px';
+                    fill.style.left = '2px';
+                }
+                
+                _(icon, [border, fill]);
+            }
 		}
 		else
 		{
