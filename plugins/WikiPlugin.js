@@ -237,7 +237,7 @@ WikiObjectsHandler.prototype = {
 				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : pluginPath + "img/wiki/page.gif"), center: true }});
 				break;
 			case 'POLYGON':
-				mapObject.setStyle({outline: {thickness: 1, opacity: 100}});
+				mapObject.setStyle({outline: {thickness: 2, opacity: 100}});
 				break;
 		}
 	},

@@ -5,6 +5,33 @@
 */
 (function($){
 
+_translationsHash.addtext("rus", {
+	"Сообщение" : "Сообщение",
+	"Сообщения" : "Сообщения",
+	"Искать в видимой области" : "Искать в видимой области",
+	"Добавьте объект на карту" : "Добавьте объект на карту",
+	"Создать сообщение" : "Создать сообщение",
+	"Сообщение уже редактируется": "Сообщение уже редактируется",
+	"Вы действительно хотите удалить это сообщение?" : "Вы действительно хотите удалить это сообщение?",
+	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник",
+	"Объект не выбран": "Объект не выбран",
+	"Объект для привязки: ": "Объект для привязки: ",
+	"Поделиться": "Поделиться"
+});
+_translationsHash.addtext("eng", {
+	"Сообщение" : "Message",
+	"Сообщения" : "Messages",
+	"Искать в видимой области" : "Only search in visible area",
+	"Добавьте объект на карту" : "Add object on map",
+	"Создать сообщение" : "Create message",
+	"Сообщение уже редактируется": "Message editor is already open",
+	"Вы действительно хотите удалить это сообщение?" : "Do you really want to delete the selected message?",
+	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Add new point or rectangle to create a message",
+	"Объект не выбран": "Nothing selected",
+	"Объект для привязки: ": "Message object: ",
+	"Поделиться": "Share"
+});
+
 var oDrawingObjectsModule = null;
 gmxCore.addModulesCallback(["DrawingObjects"], function(){
 	oDrawingObjectsModule = gmxCore.getModule("DrawingObjects");
@@ -37,11 +64,11 @@ var MessageService = function(sServerBase){
 	}
 	
 	/** Обновляет сообщение*/
-	this.UpdateMessage = function(oMessage, callback){
+	this.UpdateMessage = function(oMessage, oFlashMap, callback){
 		var _data = { WrapStyle: 'window'
 				, MessageInstanceID: oMessage.MessageInstanceID.toString()
 				, ClassID: oMessage.ClassID
-				, MapName: oMessage.MapName
+				, MapName: getMapId(oFlashMap) 
 				, Geometry: JSON.stringify(oMessage.Geometry)
 				, AuthorNickname: oMessage.AuthorNickname
 				, IsDeleted: oMessage.IsDeleted
@@ -82,8 +109,11 @@ var MessageEditor = function(oInitContainer, oService, oMessage, oFlashMap){
 		$(_this).triggerHandler('Update');
 	}
 	
-		
-	var setGeometry = function(drawing){
+	var setEmptyGeometryWarning = function(){
+		_(_geometryRowContainer, [_t(_gtxt("Объект не выбран"))]);
+	}
+	
+	this.SetGeometry = function(drawing){
 		if (drawing && drawing.geometry.type == 'POLYGON'){
 			var style = drawing.getStyle();
 			style.regular.outline.color = 0x007700;
@@ -91,7 +121,7 @@ var MessageEditor = function(oInitContainer, oService, oMessage, oFlashMap){
 			drawing.setStyle(style.regular, style.hovered);
 		}
 			
-		if (drawing && _drawing) _drawing.remove();
+		if (_drawing && !(_drawing === drawing) ) _drawing.remove();
 		if (drawing) {
 			removeChilds(_geometryRowContainer);
 			var _drawingObjectInfoRow = new oDrawingObjectsModule.DrawingObjectInfoRow(oFlashMap, _geometryRowContainer, drawing);
@@ -100,18 +130,19 @@ var MessageEditor = function(oInitContainer, oService, oMessage, oFlashMap){
 			}.bind(this));
 		}
 		else{
-			_(this._geometryRowContainer, [_t(_gtxt("Объект не выбран"))]);
+			setEmptyGeometryWarning()
 		}
 		_drawing = drawing;
 	}
 	
-	oFlashMap.drawing.setHandlers({
-		onAdd: setGeometry,
-		onRemove: function(){setGeometry(null);}
-	});
-	
-	_(container, [_geometryRowContainer, attrsDiv, btnOK]);
+	_(container, [_t(_gtxt("Объект для привязки: ")), _br(), _geometryRowContainer, attrsDiv, btnOK]);
 	_(oInitContainer, [container]);
+	//var oMapObject;
+	if (oMessage.Geometry) {
+		var oMapObj = oFlashMap.drawing.addObject(oMessage.Geometry);
+		this.SetGeometry(oMapObj);
+	}
+	else setEmptyGeometryWarning();
 }
 
 var publicInterface = {

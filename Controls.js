@@ -193,13 +193,13 @@ nsGmx.Controls = {
 			input = _input(null, [['css', 'width', '100%']]);
 			$(input).datepicker({
 				onSelect: function(dateText, inst){
-					fieldValue.DateValue = $(input).datepicker("getDate");
+					fieldValue.DecimalValue = $(input).datepicker("getDate").valueOf();
 				},
 				showAnim: 'fadeIn',
 				changeMonth: true,
-				changeYear: true,
-				defaultDate: fieldValue.DateValue ? fieldValue.DateValue : new Date()
+				changeYear: true
 			});
+			if (fieldValue.DecimalValue) $(input).datepicker("setDate", new Date(fieldValue.DecimalValue));
 		}
 		else if(fieldInfo.TypeID == 3) { //String
 			input = _textarea(null, [['css', 'width', '100%']]);
