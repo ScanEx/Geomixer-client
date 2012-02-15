@@ -123,7 +123,7 @@ WikiService.prototype = {
 				, MapName: pageInfo.MapName
 				, LayerName: pageInfo.LayerName
 				, Geometry: JSON.stringify(pageInfo.Geometry)
-				, AuthorLogin: pageInfo.AuthorLogin
+				, AuthorNickname: pageInfo.AuthorNickname
 				, IsDeleted: pageInfo.IsDeleted
 		};
 			
@@ -258,7 +258,7 @@ WikiObjectsHandler.prototype = {
 		var _this = this;
 		return function(attr, div) { 
 					var divEdit = _div();
-					if (nsGmx.AuthManager.getLogin() == pageInfo.AuthorLogin || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)){
+					if (nsGmx.AuthManager.getNickname() == pageInfo.AuthorNickname || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)){
 						var btnEdit = makeLinkButton(_gtxt("Редактировать"));
 						var btnDelete = makeLinkButton(_gtxt("Удалить"));
 						btnEdit.onclick = function() {_this._wikiPlugin.openEditor(pageInfo); _this._map.balloonClassObject.hideHoverBalloons(); }
@@ -393,7 +393,7 @@ var InitEditor = function(target) {
 				_wikiFileBrowser.currentDir = sFolder;
 				
 				var oDialog = _wikiFileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'gif', 'bmp'], function(path){ 
-					win.document.getElementById(field_name).value = getAPIHostRoot() + "GetImage.ashx?usr=" + nsGmx.AuthManager.getLogin() + "&img=" + path;  
+					win.document.getElementById(field_name).value = getAPIHostRoot() + "GetImage.ashx?usr=" + nsGmx.AuthManager.getNickname() + "&img=" + path;  
 				});
 				
 			});
@@ -592,7 +592,7 @@ WikiPlugin.prototype = {
 	/** Создает новое сообщение */
 	createPage: function(layerID){
 		if (this._isUserLoggedIn()) {
-			this.openEditor({MessageID: -1, MapName: getMapId(), LayerName: layerID, AuthorLogin: nsGmx.AuthManager.getLogin(), IsDeleted: 0});
+			this.openEditor({MessageID: -1, MapName: getMapId(), LayerName: layerID, AuthorNickname: nsGmx.AuthManager.getNickname(), IsDeleted: 0});
 		}
 		else {
 			$('.loginCanvas div.log span.buttonLink').click();

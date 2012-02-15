@@ -54,8 +54,8 @@
 		if (idsString == ""){alert("Корзина пуста"); return;}
 		_mapHelper.createPermalink(function(id){
 			var permalinkUrl = "http://" + window.location.host + window.location.pathname + "?permalink=" + id;
-			var EMail = nsGmx.AuthManager.isAccounts() ? escape(nsGmx.AuthManager.getLogin()) : escape("sales@scanex.ru");
-			Url = "http://search.kosmosnimki.ru/CreateOrder.ashx?TinyReference=" + escape(permalinkUrl) + "&Surname=" + escape(nsGmx.AuthManager.getLogin()) + "&Name=TilesOrder&Organization=TilesOrder&Email=" + EMail +"&Phone=TilesOrder&Comment=" + escape(oCommentInput.value) + "&ReceiveWay=Tiles";
+			var EMail = nsGmx.AuthManager.isAccounts() ? escape(nsGmx.AuthManager.getNickname()) : escape("sales@scanex.ru");
+			Url = "http://search.kosmosnimki.ru/CreateOrder.ashx?TinyReference=" + escape(permalinkUrl) + "&Surname=" + escape(nsGmx.AuthManager.getNickname()) + "&Name=TilesOrder&Organization=TilesOrder&Email=" + EMail +"&Phone=TilesOrder&Comment=" + escape(oCommentInput.value) + "&ReceiveWay=Tiles";
 			location.replace(Url);
 		});
 		
