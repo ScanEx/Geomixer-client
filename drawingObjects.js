@@ -5,6 +5,7 @@
 */
 (function($){
 
+//Расширение механизма событий API на отдельные drawing объекты с использованием jQuery. Lazy initialization.
 var IsAttached = false;
 var AttachEvents = function(map){
 	if (IsAttached) return;
@@ -146,10 +147,13 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 
 /** Конструктор
  @class Коллекция нарисованных объектов
- @memberOf DrawingObjects */
-var DrawingObjectCollection = function() {
+ @memberOf DrawingObjects 
+ @param oInitMap Карта, из которой будут добавляться объекты в коллекцию
+*/
+var DrawingObjectCollection = function(oInitMap) {
 	var _objects = [];
 	var _this = this;
+    var _map = oInitMap;
 	
 	var onEdit = function(event, drawingObject) {
 		/** Вызывается при изменении объекта в коллекции
@@ -178,6 +182,8 @@ var DrawingObjectCollection = function() {
 	@param {drawingObject} drawingObject Добавляемый объект*/
 	this.Add = function(drawingObject){
 		_objects.push(drawingObject);
+        
+        AttachEvents(_map);
 		$(drawingObject).bind('onEdit', onEdit);
 		$(drawingObject).bind('onRemove', onRemove);
 		
@@ -226,7 +232,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject) {
 	var _title = _span(null, [['dir','className','drawingObjectsItemTitle']]);
 	var _text = _span(null, [['dir','className','text']]);
 	var _summary = _span(null, [['dir','className','summary']]);
-	
+    	
 	_text.onclick = _title.onclick = function()
 	{
 		var bounds = getBounds(_drawingObject.geometry.coordinates),
@@ -258,11 +264,10 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject) {
 	var remove = makeImageButton(gmxAPI.getAPIHostRoot() + 'api/img/closemin.png',gmxAPI.getAPIHostRoot() + 'api/img/close_orange.png')
 	remove.setAttribute('title', _gtxt('Удалить'));
 	remove.className = 'removeGeometry';
-	remove.onclick = function(){ $(_this).triggerHandler('onRemove', [_drawingObject]); }
-	
-	$(_drawingObject).bind('onRemove', function() { _this.RemoveRow();});
-	$(_drawingObject).bind('onEdit', function() { _this.UpdateRow();});
-			
+	remove.onclick = function(){
+        $(_this).triggerHandler('onRemove', [_drawingObject]);
+    }
+				
 	_(_canvas, [_span([icon, _title, _text, _summary], [['dir','className','drawingObjectsItem']]), remove]);
 	
 	if ($.browser.msie)
@@ -311,18 +316,21 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject) {
 	this.RemoveRow = function(){
 		_canvas.parentNode.removeChild(_canvas);
 	}
-	
+    
+    AttachEvents(_map);
+    $(_drawingObject).bind('onRemove', this.RemoveRow);
+	$(_drawingObject).bind('onEdit',   this.UpdateRow);
+    
 	this.UpdateRow ();
-	//if (_queryDrawingObjects.downloadRasterCanvas && isRectangle(_drawingObject.geometry.coordinates))
-	//	_queryDrawingObjects.downloadRasterCanvas.style.display = '';
 }
 
 /** Конструктор
- @class Строка с описанием объекта и ссылкой на него
+ @class Контрол для отображения коллекции пользовательских объектов
  @memberOf DrawingObjects 
  @param oInitMap Карта
  @param {documentElement} oInitContainer Объект, в котором находится контрол (div) 
- @param {drawingObject} drawingObject Объект для добавления на карту*/
+ @param {DrawingObjectCollection} oInitDrawingObjectCollection Коллекция пользовательских объектов
+*/
 var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCollection){
 	var _this = this;
 	var _rows = [];
@@ -342,7 +350,7 @@ var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCol
 		var _row = new DrawingObjectInfoRow(_map, _divRow, drawingObject);
 		_containers.push(_divRow);
 		_rows.push(_row);
-		$(_row).bind('onRemove', drawingObject.remove);
+		$(_row).bind('onRemove', function(){ drawingObject.remove(); } );
 		if (_collection.Count() == 1) show(_divButtons);
 	}
 	
@@ -393,10 +401,8 @@ var DrawingObjectGeomixer = function() {
 	var oMenu = new leftMenu();
 	var oListDiv = _div(null, [['dir', 'className', 'DrawingObjectsLeftMenu']]);
 	var bVisible = false;
-	
-	var _downloadVectorForm = _form([_input(null,[['attr','name','points']]),
-							 _input(null,[['attr','name','lines']]),
-							 _input(null,[['attr','name','polygons']])], [['css','display','none'],['attr','method','POST'],['attr','action',"http://mapstest.kosmosnimki.ru/" + "Shapefile.ashx"]]);
+    var oCollection = null;
+	                             
 	/** Вызывается при скрывании меню*/
 	this.Unload = function(){ bVisible = false; };
 	
@@ -409,10 +415,6 @@ var DrawingObjectGeomixer = function() {
 		bVisible = true;
 	}
 	
-	var oCollection = new DrawingObjectCollection();
-	$(oCollection).bind('onAdd', function (){
-		if(!bVisible) _this.Load();
-	});
 	var fnAddToCollection = function(drawingObject){
 		if (!nsGmx.DrawingObjectCustomControllers.isHidden(drawingObject)) oCollection.Add(drawingObject);
 	}
@@ -439,12 +441,7 @@ var DrawingObjectGeomixer = function() {
 	downloadRaster.onclick = function(){
 		downloadRasters();
 	}
-	
-	$(oCollection).bind('onRemove', checkDownloadRaster);
-	$(oCollection).bind('onAdd', function(event, drawingObject){ 
-		if (oMap.properties.CanDownloadRasters && isRectangle(drawingObject.geometry.coordinates)) show(downloadRaster);
-	});
-	
+		
 	/** Встраивает список объектов на карте в геомиксер*/
 	this.Init = function(map){
 		oMap = map;
@@ -454,10 +451,19 @@ var DrawingObjectGeomixer = function() {
 		
 		oMap.drawing.setHandlers({onAdd: fnAddToCollection});
 		
-		var oDrawingObjectList = new DrawingObjectList(oMap, oListDiv, oCollection);
-		_(oDrawingObjectList.GetDivButtons(), [_div([downloadVector]), _div([downloadRaster, _downloadVectorForm])]);
+        oCollection = new DrawingObjectCollection(map);
+        $(oCollection).bind('onAdd', function (){
+            if(!bVisible) _this.Load();
+        });
+        
+        $(oCollection).bind('onRemove', checkDownloadRaster);
+        $(oCollection).bind('onAdd', function(event, drawingObject){ 
+            if (oMap.properties.CanDownloadRasters && isRectangle(drawingObject.geometry.coordinates)) show(downloadRaster);
+        });
+        
+        var oDrawingObjectList = new DrawingObjectList(oMap, oListDiv, oCollection);
+		_(oDrawingObjectList.GetDivButtons(), [_div([downloadVector]), _div([downloadRaster])]);
 		checkDownloadRaster();
-		AttachEvents(oMap);
 	}
 	
 	/** Скачивает shp файл*/
@@ -479,12 +485,12 @@ var DrawingObjectGeomixer = function() {
 			
 			objectsByType[type].push({ geometry: ret.geometry, properties: ret.properties });
 		}
-		
-		_downloadVectorForm.childNodes[0].value = objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]) : '';
-		_downloadVectorForm.childNodes[1].value = objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]) : '';
-		_downloadVectorForm.childNodes[2].value = objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]) : '';
-		
-		_downloadVectorForm.submit();
+		        
+        sendCrossDomainPostRequest(serverBase + "Shapefile.ashx", {
+            points:   objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]) : '',
+            lines:    objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]) : '',
+            polygons: objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]) : ''
+        })
 	}
 	
 	/** Скачивает растровые слои*/
@@ -580,7 +586,6 @@ var DrawingObjectGeomixer = function() {
 }
 
 var publicInterface = {
-	AttachEvents: AttachEvents,
 	DrawingObjectCollection: DrawingObjectCollection,
 	DrawingObjectInfoRow: DrawingObjectInfoRow,
 	DrawingObjectList: DrawingObjectList,
