@@ -680,7 +680,7 @@ function loadFunc(iframe, callback)
 			parsedData = {Status:"error",ErrorInfo: {ErrorMessage: "JSON.parse exeption", ExceptionType:"JSON.parse", StackTrace: data}}
 		}
 		
-		callback(parsedData);
+		callback && callback(parsedData);
 	}
 	else
 	{
