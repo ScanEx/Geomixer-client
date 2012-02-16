@@ -1270,7 +1270,12 @@ window.gmxAPI = {
 	getAPIHost: memoize(function()
 	{
 		var apiHost = gmxAPI.getHostAndPath(gmxAPI.getAPIFolderRoot());
-		return /(.*)\/[^\/]*/.exec((apiHost != "") ? apiHost : gmxAPI.getHostAndPath(window.location.href))[1]; //удаляем последний каталог в адресе
+		if(apiHost == "") {
+			apiHost = gmxAPI.getHostAndPath(window.location.href);
+		}
+		var arr = /(.*)\/[^\/]*/.exec(apiHost);
+		res = (arr && arr.length > 1 ? arr[1] : '');	 //удаляем последний каталог в адресе
+		return res;
 	})
 	,
 	getAPIHostRoot: memoize(function()
