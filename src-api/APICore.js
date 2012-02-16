@@ -1792,102 +1792,18 @@ var FlashMapObject = function(objectId_, properties_, parent_)
 gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;	}
 gmxAPI._FMO = FlashMapObject;
 
-// 
-FlashMapObject.prototype.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
-FlashMapObject.prototype.savePNG = function(fileName) { gmxAPI._cmdProxy('savePNG', { 'attr': fileName }); }
-FlashMapObject.prototype.trace = function(val) { gmxAPI._cmdProxy('trace', { 'attr': val }); }
-FlashMapObject.prototype.setQuality = function(val) { gmxAPI._cmdProxy('setQuality', { 'attr': val }); }
-FlashMapObject.prototype.disableCaching = function() { gmxAPI._cmdProxy('disableCaching', {}); }
-FlashMapObject.prototype.print = function() { gmxAPI._cmdProxy('print', {}); }
-FlashMapObject.prototype.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
-FlashMapObject.prototype.moveTo = function(x, y, z) { gmxAPI._cmdProxy('moveTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
-FlashMapObject.prototype.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
-FlashMapObject.prototype.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }
-FlashMapObject.prototype.unfreeze = function() { gmxAPI._cmdProxy('unfreeze', {}); }
-FlashMapObject.prototype.setCursor = function(url, dx, dy) { gmxAPI._cmdProxy('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
-FlashMapObject.prototype.clearCursor = function() { gmxAPI._cmdProxy('clearCursor', {}); }
-FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
-	gmxAPI._listeners.chkListeners('zoomBy', gmxAPI.map);			// Проверка map Listeners на zoomBy
-	gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
-}
-FlashMapObject.prototype.getBestZ = function(minX, minY, maxX, maxY)
-{
-	if ((minX == maxX) && (minY == maxY))
-		return 17;
-	return Math.max(0, 17 - Math.ceil(Math.log(Math.max(
-		Math.abs(gmxAPI.merc_x(maxX) - gmxAPI.merc_x(minX))/gmxAPI.flashDiv.clientWidth,
-		Math.abs(gmxAPI.merc_y(maxY) - gmxAPI.merc_y(minY))/gmxAPI.flashDiv.clientHeight
-	))/Math.log(2)));
-}
-
-var gplForm = false;
-FlashMapObject.prototype.loadObjects = function(url, callback)
-{
-	var _hostname = getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url);
-	sendCrossDomainJSONRequest(_hostname, function(response)
-	{
-		if(typeof(response) != 'object' || response['Status'] != 'ok') {
-			gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
-			return;
-		}
-		var geometries = gmxAPI.parseGML(response['Result']);
-		callback(geometries);
-	})
-}
-FlashMapObject.prototype.saveObjects = function(geometries, fileName, format)
-{
-	var inputName, inputText;
-	if (!gplForm)
-	{
-		gplForm = document.createElement('<form>'),
-		inputName = document.createElement('<input>'),
-		inputText = document.createElement('<input>');
-	}
-	else
-	{
-		gplForm = $('download_gpl_form'),
-		inputName = gplForm.firstChild,
-		inputText = gplForm.lastChild;
-	}
-
-	gplForm.setAttribute('method', 'post');
-	var _hostname = getAPIHostRoot();
-	gplForm.setAttribute('action', _hostname + 'ApiSave.ashx');
-	gplForm.style.display = 'none';
-	inputName.value = fileName;
-	inputName.setAttribute('name', 'name')
-	if (!format)
-		format = "gml";
-	inputText.value = gmxAPI.createGML(geometries, format.toLowerCase());
-	inputText.setAttribute('name', 'text')
-
-	gplForm.appendChild(inputName);
-	gplForm.appendChild(inputText);
-
-	document.body.appendChild(gplForm);
-
-	gplForm.submit();
-}
-
+// Для MapObject
 FlashMapObject.prototype.addMapStateListener = function(eventName, func) { 	return addMapStateListener(this, eventName, func);	}
 FlashMapObject.prototype.removeMapStateListener = function(eventName, id) { return removeMapStateListener(this, eventName, id); }
-FlashMapObject.prototype.setTileCaching = function(flag) { gmxAPI._cmdProxy('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
-FlashMapObject.prototype.setDisplacement = function(dx, dy) { gmxAPI._cmdProxy('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
-FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':imageUrlFunction, 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
 FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
 FlashMapObject.prototype.bringToBottom = function() { gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
 FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
 FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
-FlashMapObject.prototype.setActive = function(flag) { gmxAPI._cmdProxy('setActive', { 'obj': this, 'attr':{'flag':flag} }); }
-FlashMapObject.prototype.setEditable = function() { gmxAPI._cmdProxy('setEditable', { 'obj': this }); }
 FlashMapObject.prototype.startDrawing = function(type) { gmxAPI._cmdProxy('startDrawing', { 'obj': this, 'attr':{'type':type} }); }
 FlashMapObject.prototype.stopDrawing = function(type) { gmxAPI._cmdProxy('stopDrawing', { 'obj': this }); }
 FlashMapObject.prototype.isDrawing = function() { return gmxAPI._cmdProxy('isDrawing', { 'obj': this }); }
-FlashMapObject.prototype.getIntermediateLength = function() { return gmxAPI._cmdProxy('getIntermediateLength', { 'obj': this }); }
-FlashMapObject.prototype.getCurrentEdgeLength = function() { return gmxAPI._cmdProxy('getCurrentEdgeLength', { 'obj': this }); }
 FlashMapObject.prototype.setLabel = function(label) { gmxAPI._cmdProxy('setLabel', { 'obj': this, 'attr':{'label':label} }); }
 
-FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { gmxAPI._cmdProxy('positionWindow', { 'obj': this, 'attr':{'x1':x1, 'y1':y1, 'x2':x2, 'y2':y2} }); }
 FlashMapObject.prototype.setStyle = function(style, activeStyle) { gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':{'regularStyle':style, 'hoveredStyle':activeStyle} }); }
 FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return gmxAPI._cmdProxy('getStyle', { 'obj': this, 'attr':flag }); }
 FlashMapObject.prototype.getVisibleStyle = function() { return gmxAPI._cmdProxy('getVisibleStyle', { 'obj': this }); }
@@ -1904,34 +1820,6 @@ FlashMapObject.prototype.setVisible = function(flag) {
 	var prev = this.isVisible;
 	this.isVisible = val;
 	if(prev != val) gmxAPI._listeners.chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
-}
-FlashMapObject.prototype.getDepth = function(attr) { return gmxAPI._cmdProxy('getDepth', { 'obj': this }); }
-FlashMapObject.prototype.getZoomBounds = function() { return gmxAPI._cmdProxy('getZoomBounds', { 'obj': this }); }
-FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return gmxAPI._cmdProxy('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} });}
-
-FlashMapObject.prototype.moveToCoordinates = function(text, z)
-{
-	var me = this;
-	return gmxAPI.parseCoordinates(text, function(x, y)
-	{
-		me.moveTo(x, y, z ? z : me.getZ());
-	});
-}
-FlashMapObject.prototype.zoomToExtent = function(minx, miny, maxx, maxy)
-{
-	this.moveTo(
-		gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
-		gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
-		this.getBestZ(minx, miny, maxx, maxy)
-	);
-}
-FlashMapObject.prototype.slideToExtent = function(minx, miny, maxx, maxy)
-{
-	this.slideTo(
-		gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
-		gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
-		this.getBestZ(minx, miny, maxx, maxy)
-	);
 }
 
 FlashMapObject.prototype.getChildren = function()
@@ -2034,15 +1922,6 @@ FlashMapObject.prototype.addObject = function(geometry, props) {
 	
 	return pObj;
 }
-FlashMapObject.prototype.setFilter = function(sql) {
-	if(!this.clusters && '_Clusters' in gmxAPI) {
-		this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
-	}
-	if(!sql) sql ='';
-	this._sql = sql;			// атрибуты фильтра установленные юзером
-	var ret = gmxAPI._cmdProxy('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
-	return ret;
-}
 
 FlashMapObject.prototype.remove = function()
 {
@@ -2104,13 +1983,6 @@ FlashMapObject.prototype.getArea = function(arg)
 	var out = 0;
 	if(arg) out = gmxAPI.geoArea(arg);
 	else out = gmxAPI._cmdProxy('getArea', { 'obj': this });
-	return out;
-}
-FlashMapObject.prototype.getCenter = function(arg1, arg2, arg3, arg4)
-{
-	var out = 0;
-	if(arg1) out = gmxAPI.geoCenter(arg1, arg2, arg3, arg4);
-	else out = gmxAPI._cmdProxy('getCenter', { 'obj': this });
 	return out;
 }
 FlashMapObject.prototype.getGeometryType = function()
@@ -2206,27 +2078,6 @@ FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4
 	attr['url'] = url;
 	gmxAPI._cmdProxy('setImage', { 'obj': this, 'attr':attr});
 }
-FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
-FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
-{ 
-	gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction': dataUrlFunction, 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
-}
-/* не используется
-FlashMapObject.prototype.loadJSON = function(url)
-{
-	flashDiv.loadJSON(this.objectId, url);
-}
-*/
-FlashMapObject.prototype.setCopyright = function(copyright)
-{
-	this.copyright = copyright;
-	gmxAPI.map.addCopyrightedObject(this);
-}
-FlashMapObject.prototype.setBackgroundColor = function(color)
-{
-	this.backgroundColor = color;
-	gmxAPI._cmdProxy('setBackgroundColor', { 'obj': this, 'attr':color });
-}
 
 FlashMapObject.prototype.getGeometrySummary = function()
 {
@@ -2253,6 +2104,14 @@ FlashMapObject.prototype.getGeometrySummary = function()
 	return out;
 }
 
+FlashMapObject.prototype.getCenter = function(arg1, arg2, arg3, arg4)
+{
+	var out = 0;
+	if(arg1) out = gmxAPI.geoCenter(arg1, arg2, arg3, arg4);
+	else out = gmxAPI._cmdProxy('getCenter', { 'obj': this });
+	return out;
+}
+
 FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
 {
 	var apiBase = gmxAPI.getAPIFolderRoot();
@@ -2260,6 +2119,52 @@ FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
 		{ marker: { image: apiBase + "img/" + imageName } },
 		activeImageName ? { marker: { image: apiBase + "img/" + activeImageName } } : null
 	);
+}
+
+// Для Filter
+FlashMapObject.prototype.flip = function() { return gmxAPI._cmdProxy('flip', { 'obj': this }); }
+
+FlashMapObject.prototype.setFilter = function(sql) {
+	if(!this.clusters && '_Clusters' in gmxAPI) {
+		this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
+	}
+	if(!sql) sql ='';
+	this._sql = sql;			// атрибуты фильтра установленные юзером
+	var ret = gmxAPI._cmdProxy('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
+	return ret;
+}
+
+// Для minimap
+FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { gmxAPI._cmdProxy('positionWindow', { 'obj': this, 'attr':{'x1':x1, 'y1':y1, 'x2':x2, 'y2':y2} }); }
+
+// Возможно только для Layer
+FlashMapObject.prototype.getIntermediateLength = function() { return gmxAPI._cmdProxy('getIntermediateLength', { 'obj': this }); }
+FlashMapObject.prototype.getCurrentEdgeLength = function() { return gmxAPI._cmdProxy('getCurrentEdgeLength', { 'obj': this }); }
+FlashMapObject.prototype.setEditable = function() { gmxAPI._cmdProxy('setEditable', { 'obj': this }); }
+FlashMapObject.prototype.setTileCaching = function(flag) { gmxAPI._cmdProxy('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
+FlashMapObject.prototype.setDisplacement = function(dx, dy) { gmxAPI._cmdProxy('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
+FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':imageUrlFunction, 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
+FlashMapObject.prototype.setActive = function(flag) { gmxAPI._cmdProxy('setActive', { 'obj': this, 'attr':{'flag':flag} }); }
+FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
+FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
+{ 
+	gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction': dataUrlFunction, 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
+}
+
+// Для Layer
+FlashMapObject.prototype.getDepth = function(attr) { return gmxAPI._cmdProxy('getDepth', { 'obj': this }); }
+FlashMapObject.prototype.getZoomBounds = function() { return gmxAPI._cmdProxy('getZoomBounds', { 'obj': this }); }
+FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return gmxAPI._cmdProxy('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} });}
+
+FlashMapObject.prototype.setCopyright = function(copyright)
+{
+	this.copyright = copyright;
+	gmxAPI.map.addCopyrightedObject(this);
+}
+FlashMapObject.prototype.setBackgroundColor = function(color)
+{
+	this.backgroundColor = color;
+	gmxAPI._cmdProxy('setBackgroundColor', { 'obj': this, 'attr':color });
 }
 
 FlashMapObject.prototype.enableQuicklooks = function(callback)
@@ -2452,9 +2357,6 @@ FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, m
 	});
 }
 
-FlashMapObject.prototype.flip = function() { return gmxAPI._cmdProxy('flip', { 'obj': this }); }
-
-
 FlashMapObject.prototype.observeVectorLayer = function(obj, onChange) { obj.addObserver(this, onChange); }
 FlashMapObject.prototype.addOSM = function() { var osm = this.addObject(); osm.setOSMTiles(); return osm; }
 
@@ -2487,10 +2389,18 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 	}
 }
 
+/* не используется
+FlashMapObject.prototype.loadJSON = function(url)
+{
+	flashDiv.loadJSON(this.objectId, url);
+}
+*/
+
+// Будут внешние
 FlashMapObject.prototype.loadGML = function(url, func)
 {
 	var me = this;
-	var _hostname = getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url);
+	var _hostname = gmxAPI.getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url);
 	sendCrossDomainJSONRequest(_hostname, function(response)
 	{
 		if(typeof(response) != 'object' || response['Status'] != 'ok') {
@@ -3450,6 +3360,112 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 		map.vectors = map;
 
 		// Методы присущие только Map
+		map.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
+		map.savePNG = function(fileName) { gmxAPI._cmdProxy('savePNG', { 'attr': fileName }); }
+		map.trace = function(val) { gmxAPI._cmdProxy('trace', { 'attr': val }); }
+		map.setQuality = function(val) { gmxAPI._cmdProxy('setQuality', { 'attr': val }); }
+		map.disableCaching = function() { gmxAPI._cmdProxy('disableCaching', {}); }
+		map.print = function() { gmxAPI._cmdProxy('print', {}); }
+		map.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
+		map.moveTo = function(x, y, z) { gmxAPI._cmdProxy('moveTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
+		map.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
+		map.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }
+		map.unfreeze = function() { gmxAPI._cmdProxy('unfreeze', {}); }
+		map.setCursor = function(url, dx, dy) { gmxAPI._cmdProxy('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
+		map.clearCursor = function() { gmxAPI._cmdProxy('clearCursor', {}); }
+		map.zoomBy = function(dz, useMouse) {
+			gmxAPI._listeners.chkListeners('zoomBy', gmxAPI.map);			// Проверка map Listeners на zoomBy
+			gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
+		}
+		map.getBestZ = function(minX, minY, maxX, maxY)
+		{
+			if ((minX == maxX) && (minY == maxY))
+				return 17;
+			return Math.max(0, 17 - Math.ceil(Math.log(Math.max(
+				Math.abs(gmxAPI.merc_x(maxX) - gmxAPI.merc_x(minX))/gmxAPI.flashDiv.clientWidth,
+				Math.abs(gmxAPI.merc_y(maxY) - gmxAPI.merc_y(minY))/gmxAPI.flashDiv.clientHeight
+			))/Math.log(2)));
+		}
+
+		var gplForm = false;
+		map.loadObjects = function(url, callback)
+		{
+			var _hostname = gmxAPI.getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url);
+			sendCrossDomainJSONRequest(_hostname, function(response)
+			{
+				if(typeof(response) != 'object' || response['Status'] != 'ok') {
+					gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
+					return;
+				}
+				var geometries = gmxAPI.parseGML(response['Result']);
+				callback(geometries);
+			})
+		}
+		map.saveObjects = function(geometries, fileName, format)
+		{
+			var inputName, inputText;
+			if (!gplForm)
+			{
+				gplForm = document.createElement('<form>'),
+				inputName = document.createElement('<input>'),
+				inputText = document.createElement('<input>');
+			}
+			else
+			{
+				gplForm = document.getElementById('download_gpl_form'),
+				inputName = gplForm.firstChild,
+				inputText = gplForm.lastChild;
+			}
+
+			gplForm.setAttribute('method', 'post');
+			var _hostname = gmxAPI.getAPIHostRoot();
+			gplForm.setAttribute('action', _hostname + 'ApiSave.ashx');
+			gplForm.style.display = 'none';
+			inputName.value = fileName;
+			inputName.setAttribute('name', 'name')
+			if (!format)
+				format = "gml";
+			inputText.value = gmxAPI.createGML(geometries, format.toLowerCase());
+			inputText.setAttribute('name', 'text')
+
+			gplForm.appendChild(inputName);
+			gplForm.appendChild(inputText);
+
+			document.body.appendChild(gplForm);
+
+			gplForm.submit();
+		}
+
+		map.moveToCoordinates = function(text, z)
+		{
+			return gmxAPI.parseCoordinates(text, function(x, y)
+			{
+				map.moveTo(x, y, z ? z : map.getZ());
+			});
+		}
+		map.zoomToExtent = function(minx, miny, maxx, maxy)
+		{
+			map.moveTo(
+				gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
+				gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
+				map.getBestZ(minx, miny, maxx, maxy)
+			);
+		}
+		map.slideToExtent = function(minx, miny, maxx, maxy)
+		{
+			map.slideTo(
+				gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
+				gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
+				map.getBestZ(minx, miny, maxx, maxy)
+			);
+		}
+		
+		var tmp = [			// Для обратной совместимости - методы ранее были в MapObject
+			'saveObjects', 'loadObjects', 'getBestZ', 'zoomBy', 'clearCursor', 'setCursor', 'unfreeze', 'freeze', 'slideTo', 'moveTo',
+			'repaint', 'print', 'disableCaching', 'setQuality', 'trace', 'savePNG', 'sendPNG', 'moveToCoordinates', 'zoomToExtent', 'slideToExtent'
+		];
+		for (var i=0; i<tmp.length; i++) gmxAPI.extendFMO(tmp[i], map[tmp[i]]);
+		
 		map.stopDragging = function() {	gmxAPI._cmdProxy('stopDragging', { }); }
 		map.isDragging = function() { return gmxAPI._cmdProxy('isDragging', { }); }
 		map.resumeDragging = function() { gmxAPI._cmdProxy('resumeDragging', { }); }
