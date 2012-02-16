@@ -1300,6 +1300,19 @@ window.gmxAPI = {
 		return ret;
 	}
 	,
+	propertiesFromArray: function(a)
+	{
+		a.sort(function(e1, e2)
+		{
+			var f1 = e1[0], f2 = e2[0];
+			return (f1 < f2) ? -1 : (f1 == f2) ? 0 : 1;
+		});
+		var p_ = {};
+		for (var i = 0; i < a.length; i++)
+			p_[a[i][0]] = a[i][1];
+		return p_;
+	}
+	,
 	lastFlashMapId: 0
 	,
 	newFlashMapId: function()
@@ -1467,13 +1480,51 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		// End: Блок общих методов не доступных из вне
 	})();
 
+	(function()
+	{
+		var FlashMapFeature = function(geometry, properties, layer)
+		{
+			this.geometry = geometry;
+			this.properties = properties;
+			this.layer = layer;
+		}
+		FlashMapFeature.prototype.getGeometry = function() { return this.geometry; }
+		FlashMapFeature.prototype.getLength = function() { return gmxAPI.geoLength(this.geometry); }
+		FlashMapFeature.prototype.getArea = function() { return gmxAPI.geoArea(this.geometry); }
+		gmxAPI._FlashMapFeature = FlashMapFeature;
+	})();
+
+	(function()
+	{
+		function HandlerMode(div, event, handler)
+		{
+			this.div = div;
+			this.event = event;
+			this.handler = handler;
+		}
+		HandlerMode.prototype.set = function()   
+		{
+			if(this.div.attachEvent) this.div.attachEvent("on"+this.event, this.handler); 
+			if(this.div.addEventListener) this.div.addEventListener(this.event, this.handler, false);
+		}
+		HandlerMode.prototype.clear = function() 
+		{
+			if(this.div.detachEvent) this.div.detachEvent("on"+this.event, this.handler); 
+			if(this.div.removeEventListener) this.div.removeEventListener(this.event, this.handler, false);
+		}
+
+		gmxAPI._HandlerMode = HandlerMode;
+	})();
+
+window.gmxAPI.GlobalHandlerMode = function(event, handler) { return new gmxAPI._HandlerMode(document.documentElement, event, handler); }
+
 })();
 // Блок методов глобальной области видимости
 var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";		// ID базовой карты подложек
 var tmp = [
 	'isIE', 'parseCoordinates', 'setBg', 'deselect', 'compatEvent', 'compatTarget', 'eventX', 'eventY', 'getOffsetLeft', 'getOffsetTop',
 	'newStyledDiv', 'show', 'hide', 'setPositionStyle', 'position', 'bottomPosition', 'size',
-	'makeImageButton', 'setVisible', 'getTextContent', 'parseXML',
+	'makeImageButton', 'setVisible', 'getTextContent', 'parseXML', 'GlobalHandlerMode',
 	'getScriptURL', 'getScriptBase', 'getHostAndPath', 'getBaseMapParam', 'strip', 'parseUri', 'parseColor',
 	'forEachPoint',
 	'merc_geometry', 'from_merc_geometry', 'getBounds', 'isRectangle', 'getScale', 'geoLength', 'geoArea', 'geoCenter',
@@ -1498,30 +1549,6 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 
 ////
 var flashMapAlreadyLoading = false;
-
-function HandlerMode(div, event, handler)
-{
-	this.div = div;
-	this.event = event;
-	this.handler = handler;
-}
-
-HandlerMode.prototype.set = function()   
-{
-	if(this.div.attachEvent) this.div.attachEvent("on"+this.event, this.handler); 
-	if(this.div.addEventListener) this.div.addEventListener(this.event, this.handler, false);
-}
-
-HandlerMode.prototype.clear = function() 
-{
-	if(this.div.detachEvent) this.div.detachEvent("on"+this.event, this.handler); 
-	if(this.div.removeEventListener) this.div.removeEventListener(this.event, this.handler, false);
-}
-
-function GlobalHandlerMode(event, handler)
-{
-	return new HandlerMode(document.documentElement, event, handler);
-}
 
 function sendCrossDomainJSONRequest(url, callback, callbackParamName)
 {
@@ -1760,21 +1787,768 @@ var FlashMapObject = function(objectId_, properties_, parent_)
 	this.stateListeners = {};	// Пользовательские события
 	//this.maxRasterZoom = 1;		// Максимальный зум растровых слоев
 	this.childsID = {};			// Хэш ID потомков
-/*	
-	var currID = (this.objectId ? this.objectId : gmxAPI.newFlashMapId() + '_gen');
-	gmxAPI.mapNodes[currID] = this;
-	if(parent_) {
-		parent_.childsID[currID] = true; 
-	}
-*/
-
 }
 // расширение FlashMapObject
 gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;	}
 gmxAPI._FMO = FlashMapObject;
 
+// 
+FlashMapObject.prototype.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
+FlashMapObject.prototype.savePNG = function(fileName) { gmxAPI._cmdProxy('savePNG', { 'attr': fileName }); }
+FlashMapObject.prototype.trace = function(val) { gmxAPI._cmdProxy('trace', { 'attr': val }); }
+FlashMapObject.prototype.setQuality = function(val) { gmxAPI._cmdProxy('setQuality', { 'attr': val }); }
+FlashMapObject.prototype.disableCaching = function() { gmxAPI._cmdProxy('disableCaching', {}); }
+FlashMapObject.prototype.print = function() { gmxAPI._cmdProxy('print', {}); }
+FlashMapObject.prototype.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
+FlashMapObject.prototype.moveTo = function(x, y, z) { gmxAPI._cmdProxy('moveTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
+FlashMapObject.prototype.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
+FlashMapObject.prototype.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }
+FlashMapObject.prototype.unfreeze = function() { gmxAPI._cmdProxy('unfreeze', {}); }
+FlashMapObject.prototype.setCursor = function(url, dx, dy) { gmxAPI._cmdProxy('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
+FlashMapObject.prototype.clearCursor = function() { gmxAPI._cmdProxy('clearCursor', {}); }
+FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
+	gmxAPI._listeners.chkListeners('zoomBy', gmxAPI.map);			// Проверка map Listeners на zoomBy
+	gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
+}
+FlashMapObject.prototype.getBestZ = function(minX, minY, maxX, maxY)
+{
+	if ((minX == maxX) && (minY == maxY))
+		return 17;
+	return Math.max(0, 17 - Math.ceil(Math.log(Math.max(
+		Math.abs(gmxAPI.merc_x(maxX) - gmxAPI.merc_x(minX))/gmxAPI.flashDiv.clientWidth,
+		Math.abs(gmxAPI.merc_y(maxY) - gmxAPI.merc_y(minY))/gmxAPI.flashDiv.clientHeight
+	))/Math.log(2)));
+}
+
+var gplForm = false;
+FlashMapObject.prototype.loadObjects = function(url, callback)
+{
+	var _hostname = getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url);
+	sendCrossDomainJSONRequest(_hostname, function(response)
+	{
+		if(typeof(response) != 'object' || response['Status'] != 'ok') {
+			gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
+			return;
+		}
+		var geometries = gmxAPI.parseGML(response['Result']);
+		callback(geometries);
+	})
+}
+FlashMapObject.prototype.saveObjects = function(geometries, fileName, format)
+{
+	var inputName, inputText;
+	if (!gplForm)
+	{
+		gplForm = document.createElement('<form>'),
+		inputName = document.createElement('<input>'),
+		inputText = document.createElement('<input>');
+	}
+	else
+	{
+		gplForm = $('download_gpl_form'),
+		inputName = gplForm.firstChild,
+		inputText = gplForm.lastChild;
+	}
+
+	gplForm.setAttribute('method', 'post');
+	var _hostname = getAPIHostRoot();
+	gplForm.setAttribute('action', _hostname + 'ApiSave.ashx');
+	gplForm.style.display = 'none';
+	inputName.value = fileName;
+	inputName.setAttribute('name', 'name')
+	if (!format)
+		format = "gml";
+	inputText.value = gmxAPI.createGML(geometries, format.toLowerCase());
+	inputText.setAttribute('name', 'text')
+
+	gplForm.appendChild(inputName);
+	gplForm.appendChild(inputText);
+
+	document.body.appendChild(gplForm);
+
+	gplForm.submit();
+}
+
 FlashMapObject.prototype.addMapStateListener = function(eventName, func) { 	return addMapStateListener(this, eventName, func);	}
 FlashMapObject.prototype.removeMapStateListener = function(eventName, id) { return removeMapStateListener(this, eventName, id); }
+FlashMapObject.prototype.setTileCaching = function(flag) { gmxAPI._cmdProxy('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
+FlashMapObject.prototype.setDisplacement = function(dx, dy) { gmxAPI._cmdProxy('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
+FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':imageUrlFunction, 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
+FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
+FlashMapObject.prototype.bringToBottom = function() { gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
+FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
+FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
+FlashMapObject.prototype.setActive = function(flag) { gmxAPI._cmdProxy('setActive', { 'obj': this, 'attr':{'flag':flag} }); }
+FlashMapObject.prototype.setEditable = function() { gmxAPI._cmdProxy('setEditable', { 'obj': this }); }
+FlashMapObject.prototype.startDrawing = function(type) { gmxAPI._cmdProxy('startDrawing', { 'obj': this, 'attr':{'type':type} }); }
+FlashMapObject.prototype.stopDrawing = function(type) { gmxAPI._cmdProxy('stopDrawing', { 'obj': this }); }
+FlashMapObject.prototype.isDrawing = function() { return gmxAPI._cmdProxy('isDrawing', { 'obj': this }); }
+FlashMapObject.prototype.getIntermediateLength = function() { return gmxAPI._cmdProxy('getIntermediateLength', { 'obj': this }); }
+FlashMapObject.prototype.getCurrentEdgeLength = function() { return gmxAPI._cmdProxy('getCurrentEdgeLength', { 'obj': this }); }
+FlashMapObject.prototype.setLabel = function(label) { gmxAPI._cmdProxy('setLabel', { 'obj': this, 'attr':{'label':label} }); }
+
+FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { gmxAPI._cmdProxy('positionWindow', { 'obj': this, 'attr':{'x1':x1, 'y1':y1, 'x2':x2, 'y2':y2} }); }
+FlashMapObject.prototype.setStyle = function(style, activeStyle) { gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':{'regularStyle':style, 'hoveredStyle':activeStyle} }); }
+FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return gmxAPI._cmdProxy('getStyle', { 'obj': this, 'attr':flag }); }
+FlashMapObject.prototype.getVisibleStyle = function() { return gmxAPI._cmdProxy('getVisibleStyle', { 'obj': this }); }
+
+FlashMapObject.prototype.getVisibility = function() { return gmxAPI._cmdProxy('getVisibility', { 'obj': this }); }
+FlashMapObject.prototype.setVisible = function(flag) {
+	gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag });
+	var val = (flag ? true : false);
+	if (val && this.backgroundColor)
+		gmxAPI.map.setBackgroundColor(this.backgroundColor);
+	if (this.copyright)
+		gmxAPI.map.updateCopyright();
+
+	var prev = this.isVisible;
+	this.isVisible = val;
+	if(prev != val) gmxAPI._listeners.chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
+}
+FlashMapObject.prototype.getDepth = function(attr) { return gmxAPI._cmdProxy('getDepth', { 'obj': this }); }
+FlashMapObject.prototype.getZoomBounds = function() { return gmxAPI._cmdProxy('getZoomBounds', { 'obj': this }); }
+FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) { return gmxAPI._cmdProxy('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} });}
+
+FlashMapObject.prototype.moveToCoordinates = function(text, z)
+{
+	var me = this;
+	return gmxAPI.parseCoordinates(text, function(x, y)
+	{
+		me.moveTo(x, y, z ? z : me.getZ());
+	});
+}
+FlashMapObject.prototype.zoomToExtent = function(minx, miny, maxx, maxy)
+{
+	this.moveTo(
+		gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
+		gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
+		this.getBestZ(minx, miny, maxx, maxy)
+	);
+}
+FlashMapObject.prototype.slideToExtent = function(minx, miny, maxx, maxy)
+{
+	this.slideTo(
+		gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
+		gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
+		this.getBestZ(minx, miny, maxx, maxy)
+	);
+}
+
+FlashMapObject.prototype.getChildren = function()
+{
+	var arr = gmxAPI._cmdProxy('getChildren', { 'obj': this });
+	var ret = [];
+	for (var i = 0; i < arr.length; i++) {
+		var id = arr[i].id;
+		var pObj = (gmxAPI.mapNodes[id] ? gmxAPI.mapNodes[id] : new FlashMapObject(id, {}, this));		// если MapObject отсутствует создаем
+		pObj.properties = gmxAPI.propertiesFromArray(arr[i].properties);
+		ret.push(pObj);
+	}
+	return ret;
+}
+
+FlashMapObject.prototype.setHandler = function(eventName, handler)
+{
+	var me = this;
+	var func = function(subObjectId, a, attr)
+		{
+			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new FlashMapObject(subObjectId, gmxAPI.propertiesFromArray(a), me));		// если MapObject отсутствует создаем
+			handler(pObj, attr);
+		};
+	gmxAPI._cmdProxy('setHandler', { 'obj': this, 'attr': {
+		'eventName':eventName
+		,'callbackName':handler ? func : null
+		}
+	});
+}
+FlashMapObject.prototype.removeHandler = function(eventName)
+{
+	gmxAPI._cmdProxy('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
+}
+
+FlashMapObject.prototype.setHandlers = function(handlers)
+{
+	for (var key in handlers)
+		this.setHandler(key, handlers[key]);
+}
+
+/** Добавление объектов из SWF файла
+* @function
+* @memberOf api
+* @param {String} url SWF файла содержащего массив добавляемых обьектов
+* @see api.FlashMapObject#addObjects
+* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">» Пример использования</a>.
+* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+*/
+FlashMapObject.prototype.addObjectsFromSWF = function(url) {
+	gmxAPI._cmdProxy('addObjectsFromSWF', {'obj': this, 'attr':{'url':url}}); // Отправить команду в SWF
+}
+/** Добавление набора статических объектов на карту
+* @function
+* @memberOf api
+* @param {array} data массив добавляемых обьектов
+* @return {array} массив добавленных обьектов
+* @see api.FlashMapObject#addObject
+* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">» Пример использования</a>.
+* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+*/
+FlashMapObject.prototype.addObjects = function(data) {
+	var out = [];
+	for (var i=0; i<data.length; i++)	// Подготовка массива обьектов
+	{
+		var ph = data[i];
+		var props = ph['properties'] || null;
+		var tmp = {
+			"parentId": this.objectId,
+			"geometry": gmxAPI.merc_geometry(ph['geometry']),
+			"properties": props
+		};
+		if(ph['setStyle']) tmp['setStyle'] = ph['setStyle'];
+		if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
+		out.push(tmp);
+	}
+	var _obj = gmxAPI._cmdProxy('addObjects', {'attr':out}); // Отправить команду в SWF
+
+	out = [];
+	for (var i=0; i<_obj.length; i++)	// Отражение обьектов в JS
+	{
+		var pObj = new FlashMapObject(_obj[i], data[i].properties, this);	// обычный MapObject
+		out.push(pObj);
+		// пополнение mapNodes
+		var currID = (pObj.objectId ? pObj.objectId : gmxAPI.newFlashMapId() + '_gen1');
+		gmxAPI.mapNodes[currID] = pObj;
+		if(pObj.parent) pObj.parent.childsID[currID] = true; 
+	}
+	return out;
+}
+FlashMapObject.prototype.addObject = function(geometry, props) {
+	var geo = gmxAPI.merc_geometry(geometry);
+	var obj = gmxAPI._cmdProxy('addObject', { 'obj': this, 'attr':{ 'geometry':geo, 'properties':props }});
+	if(!obj) obj = false;
+	var pObj = new FlashMapObject(obj, props, this);	// обычный MapObject
+
+	// пополнение mapNodes
+	var currID = (pObj.objectId ? pObj.objectId : gmxAPI.newFlashMapId() + '_gen1');
+	gmxAPI.mapNodes[currID] = pObj;
+	if(pObj.parent) pObj.parent.childsID[currID] = true; 
+	
+	return pObj;
+}
+FlashMapObject.prototype.setFilter = function(sql) {
+	if(!this.clusters && '_Clusters' in gmxAPI) {
+		this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
+	}
+	if(!sql) sql ='';
+	this._sql = sql;			// атрибуты фильтра установленные юзером
+	var ret = gmxAPI._cmdProxy('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
+	return ret;
+}
+
+FlashMapObject.prototype.remove = function()
+{
+	if (this.copyright) 
+		gmxAPI.map.removeCopyrightedObject(this);
+		
+	if(this.objectId) {
+		// чистка mapNodes
+		for(id in this.childsID) {
+			var pObj = gmxAPI.mapNodes[id];
+			pObj.remove();
+			var tt = 1;
+		}
+
+		gmxAPI._cmdProxy('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
+		delete gmxAPI.mapNodes[this.objectId];
+	}
+	var removeFromMapLayers = function(lid)	// удалить слой из map.layers 
+	{
+		for(var i=0; i<gmxAPI.map.layers.length; i++) {			// Удаление слоя из массива
+			if(gmxAPI.map.layers[i].properties.LayerID === lid) {
+				gmxAPI.map.layers.splice(i, 1);
+				break;
+			}
+		}
+		for(key in gmxAPI.map.layers) {							// Удаление слоя из хэша
+			if(gmxAPI.map.layers[key].properties.LayerID === lid) {
+				delete gmxAPI.map.layers[key];
+			}
+		}
+	}
+
+	if(this.properties && this.properties.LayerID) removeFromMapLayers(this.properties.LayerID);
+}
+FlashMapObject.prototype.setGeometry = function(geometry) {
+	var geom =  gmxAPI.merc_geometry(geometry);
+	gmxAPI._cmdProxy('setGeometry', { 'obj': this, 'attr':geom });
+}
+FlashMapObject.prototype.getGeometry = function() 
+{ 
+	var geom = gmxAPI._cmdProxy('getGeometry', { 'obj': this });
+	var out = { "type": geom.type };
+	var coords =  gmxAPI.forEachPoint(geom.coordinates, function(c) {
+			return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
+			}
+		);
+	out["coordinates"] = coords;
+	return out;
+}
+FlashMapObject.prototype.getLength = function(arg1, arg2, arg3, arg4)
+{
+	var out = 0;
+	if(arg1) out = gmxAPI.geoLength(arg1, arg2, arg3, arg4);
+	else out = gmxAPI._cmdProxy('getLength', { 'obj': this });
+	return out;
+}
+FlashMapObject.prototype.getArea = function(arg)
+{
+	var out = 0;
+	if(arg) out = gmxAPI.geoArea(arg);
+	else out = gmxAPI._cmdProxy('getArea', { 'obj': this });
+	return out;
+}
+FlashMapObject.prototype.getCenter = function(arg1, arg2, arg3, arg4)
+{
+	var out = 0;
+	if(arg1) out = gmxAPI.geoCenter(arg1, arg2, arg3, arg4);
+	else out = gmxAPI._cmdProxy('getCenter', { 'obj': this });
+	return out;
+}
+FlashMapObject.prototype.getGeometryType = function()
+{
+	return gmxAPI._cmdProxy('getGeometryType', { 'obj': this });
+}
+FlashMapObject.prototype.setPoint = function(x, y) { this.setGeometry({ type: "POINT", coordinates: [x, y] }); }
+FlashMapObject.prototype.setLine = function(coords) { this.setGeometry({ type: "LINESTRING", coordinates: coords }); }
+FlashMapObject.prototype.setPolygon = function(coords) { this.setGeometry({ type: "POLYGON", coordinates: [coords] }); }
+FlashMapObject.prototype.setRectangle = function(x1, y1, x2, y2) { this.setPolygon([[x1, y1], [x1, y2], [x2, y2], [x2, y1]]); }
+FlashMapObject.prototype.setCircle = function(x, y, r)
+{
+	function v_fi (fi, a, b)
+	{
+		return [
+			-Math.cos(fi)*Math.sin(a)+Math.sin(fi)*Math.sin(b)*Math.cos(a),
+			Math.cos(fi)*Math.cos(a)+Math.sin(fi)*Math.sin(b)*Math.sin(a),
+			-Math.sin(fi)*Math.cos(b)
+		];
+	}
+
+	var n = 100;            //кол-во точек
+	var a = Math.PI*x/180;  //долгота центра окружности в радианах
+	var b = Math.PI*y/180;  //широта центра окружности в радианах
+
+	var R = 6372795; // Радиус Земли
+	//      6378137 - Некоторые источники дают такое число.
+
+	var d = R * Math.sin(r / R);
+	var Rd = R * Math.cos(r / R);
+	var VR = [];
+	VR[0] = Rd * Math.cos(b) * Math.cos(a);
+	VR[1] = Rd * Math.cos(b) * Math.sin(a);
+	VR[2] = Rd * Math.sin(b);
+
+	var circle = [];
+	var coordinates = [];
+
+	for (var fi = 0; fi < 2*Math.PI + 0.000001; fi += (2*Math.PI/n))
+	{
+		var v = v_fi(fi, a, b);
+		for (var i=0; i<3; i++)
+			circle[i] = VR[i] + d*v[i];
+
+		var t1 = (180*Math.asin(circle[2]/R)/Math.PI);
+		var r = Math.sqrt(circle[0]*circle[0]+circle[1]*circle[1]);
+		var t2 = circle[1]<0 ? -180*Math.acos(circle[0]/r)/Math.PI :
+			180*Math.acos(circle[0]/r)/Math.PI;
+
+		if (t2 < x - 180)
+			t2 += 360;
+		else if (t2 > x + 180)
+			t2 -= 360;
+
+		coordinates.push([t2, t1]);
+	}
+
+	this.setPolygon(coordinates);
+}
+FlashMapObject.prototype.clearBackgroundImage = function() { gmxAPI._cmdProxy('clearBackgroundImage', { 'obj': this}); }
+FlashMapObject.prototype.setImageExtent = function(attr)
+{
+	this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
+	if (attr.notSetPolygon)
+	{
+		this.setPolygon([
+			[attr.extent.minX, attr.extent.maxY],
+			[attr.extent.maxX, attr.extent.maxY],
+			[attr.extent.maxX, attr.extent.minY],
+			[attr.extent.minX, attr.extent.minY],
+			[attr.extent.minX, attr.extent.maxY]
+		]);
+	}
+	gmxAPI._cmdProxy('setImageExtent', { 'obj': this, 'attr':attr});
+}
+FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
+{
+	this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
+	var attr = {};
+	if (tx1) {
+		attr = {
+			'x1': gmxAPI.merc_x(tx1), 'y1': gmxAPI.merc_y(ty1), 'x2': gmxAPI.merc_x(tx2), 'y2': gmxAPI.merc_y(ty2), 'x3': gmxAPI.merc_x(tx3), 'y3': gmxAPI.merc_y(ty3), 'x4': gmxAPI.merc_x(tx4), 'y4': gmxAPI.merc_y(ty4)
+			,'tx1': x1, 'ty1': y1, 'tx2': x2, 'ty2': y2, 'tx3': x3, 'ty3': y3, 'tx4': x4, 'ty4': y4
+		};
+	}
+	else
+	{
+		this.setPolygon([[x1, y1], [x2, y2], [x3, y3], [x4, y4], [x1, y1]]);
+		attr = {
+			'x1': gmxAPI.merc_x(x1), 'y1': gmxAPI.merc_y(y1), 'x2': gmxAPI.merc_x(x2), 'y2': gmxAPI.merc_y(y2), 'x3': gmxAPI.merc_x(x3), 'y3': gmxAPI.merc_y(y3), 'x4': gmxAPI.merc_x(x4), 'y4': gmxAPI.merc_y(y4)
+		};
+	}
+	attr['url'] = url;
+	gmxAPI._cmdProxy('setImage', { 'obj': this, 'attr':attr});
+}
+FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
+FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
+{ 
+	gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction': dataUrlFunction, 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
+}
+/* не используется
+FlashMapObject.prototype.loadJSON = function(url)
+{
+	flashDiv.loadJSON(this.objectId, url);
+}
+*/
+FlashMapObject.prototype.setCopyright = function(copyright)
+{
+	this.copyright = copyright;
+	gmxAPI.map.addCopyrightedObject(this);
+}
+FlashMapObject.prototype.setBackgroundColor = function(color)
+{
+	this.backgroundColor = color;
+	gmxAPI._cmdProxy('setBackgroundColor', { 'obj': this, 'attr':color });
+}
+
+FlashMapObject.prototype.getGeometrySummary = function()
+{
+	var out = '';
+	var geom = this.getGeometry();
+	var geomType = (geom ? geom.type : '');
+	if(geom) {
+		if (geomType.indexOf("POINT") != -1)
+		{
+			var c = geom.coordinates;
+			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> ";
+			out += gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
+		}
+		else if (geomType.indexOf("LINESTRING") != -1) {
+			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> ";
+			out += gmxAPI.prettifyDistance(this.getLength());
+		}
+		else if (geomType.indexOf("POLYGON") != -1) {
+			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> ";
+			var area = this.getArea();
+			out += gmxAPI.prettifyArea(area);
+		}
+	}
+	return out;
+}
+
+FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
+{
+	var apiBase = gmxAPI.getAPIFolderRoot();
+	this.setStyle(
+		{ marker: { image: apiBase + "img/" + imageName } },
+		activeImageName ? { marker: { image: apiBase + "img/" + activeImageName } } : null
+	);
+}
+
+FlashMapObject.prototype.enableQuicklooks = function(callback)
+{
+	var flag = true;
+
+	if (this.shownQuicklooks)
+		for (var url in this.shownQuicklooks)
+			this.shownQuicklooks[url].remove();
+	var shownQuicklooks = {};
+	this.shownQuicklooks = shownQuicklooks;
+
+	this.setHandler("onClick", function(o)
+	{
+		try {
+			var identityField = gmxAPI.getIdentityField(o);
+			var id = 'id_' + o.properties[identityField];
+			if (!shownQuicklooks[id])
+			{
+				var url = callback(o);
+				var d1 = 100000000;
+				var d2 = 100000000;
+				var d3 = 100000000;
+				var d4 = 100000000;
+				var x1, y1, x2, y2, x3, y3, x4, y4;
+				var geom = o.getGeometry();
+				var coord = geom.coordinates;
+				gmxAPI.forEachPoint(coord, function(p)
+				{
+					var x = gmxAPI.merc_x(p[0]);
+					var y = gmxAPI.merc_y(p[1]);
+					if ((x - y) < d1)
+					{
+						d1 = x - y;
+						x1 = p[0];
+						y1 = p[1];
+					}
+					if ((-x - y) < d2)
+					{
+						d2 = -x - y;
+						x2 = p[0];
+						y2 = p[1];
+					}
+					if ((-x + y) < d3)
+					{
+						d3 = -x + y;
+						x3 = p[0];
+						y3 = p[1];
+					}
+					if ((x + y) < d4)
+					{
+						d4 = x + y;
+						x4 = p[0];
+						y4 = p[1];
+					}
+				});
+
+				var q = o.addObject(null, o.properties);
+				shownQuicklooks[id] = q;
+				q.setStyle({ fill: { opacity: 100 } });
+				q.setImage(url, x1, y1, x2, y2, x3, y3, x4, y4);
+			}
+			else
+			{
+				shownQuicklooks[id].remove();
+				delete shownQuicklooks[id];
+			}
+
+		} catch (e) {
+			gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
+			//alert(e);
+		}
+		gmxAPI._listeners.chkListeners('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
+	});
+}
+
+FlashMapObject.prototype.enableTiledQuicklooks = function(callback, minZoom, maxZoom)
+{
+	this.enableTiledQuicklooksEx(function(o, image)
+	{
+		var path = callback(o);
+		image.setTiles(function(i, j, z) 
+		{
+			if (path.indexOf("{") > 0){
+				return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z);
+			}
+			else{
+				return path + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
+			}
+		});
+	}, minZoom, maxZoom);
+}
+
+FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, maxZoom)
+{
+	var images = {};
+	if (this.tilesParent)
+		this.tilesParent.remove();
+	var tilesParent = this.addObject();
+	this.tilesParent = tilesParent;
+	tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
+	var propsArray = [];
+	var flipCounts = {};
+	var TemporalColumnName = this.properties.TemporalColumnName || '';
+	tilesParent.clearItems  = function()
+	{
+		for(id in images) {
+			images[id].remove();
+		}
+		images = {};
+		propsArray = [];
+		flipCounts = {};
+	}
+	var updateImageDepth = function(o)
+	{
+		var identityField = gmxAPI.getIdentityField(o);
+		var id = 'id_' + o.properties[identityField];
+		var props = o.properties;
+
+		// Установка балуна для тайлов меньше Zoom растров
+		var curZ = gmxAPI.map.getZ();
+		var flag = (minZoom && curZ < minZoom ? true : false);
+		var mZ = (maxZoom ? maxZoom : 18);
+		if(!flag && curZ > mZ) flag = true;
+		if(flag) gmxAPI._listeners.chkListeners('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
+		///// End
+
+		if (!images[id]) {
+			return;
+		}
+		var lastDate = (TemporalColumnName ? props[TemporalColumnName] : props.date || props.DATE);
+		var lastFc = flipCounts[id];
+		var n = 0;
+		for (var i = 0; i < propsArray.length; i++)
+		{
+			var pa = propsArray[i];
+			var date = (TemporalColumnName ? pa[TemporalColumnName] : pa.date || pa.DATE);
+			var fc = flipCounts["id_" + pa[identityField]];
+			var isHigher = false;
+			if (!lastFc)
+				isHigher = !fc ? (lastDate && (date > lastDate)) : (fc < 0);
+			else if (lastFc > 0)
+				isHigher = !fc || (fc < lastFc);
+			else if (lastFc < 0)
+				isHigher = fc && (fc < lastFc);
+
+			if (!isHigher)
+				n += 1;
+		}
+		images[id].bringToDepth(n - 1);
+	}
+	tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
+	tilesParent.observeVectorLayer(this, function(o, flag)
+	{
+		var identityField = gmxAPI.getIdentityField(o);
+		var id = 'id_' + o.properties[identityField];
+		if (flag && !images[id])
+		{
+			var image = tilesParent.addObject(o.geometry, o.properties);
+			callback(o, image);
+			images[id] = image;
+			propsArray.push(o.properties);
+			updateImageDepth(o);
+		}
+		else if (!flag && images[id])
+		{
+			images[id].remove();
+			delete images[id];
+			for (var i = 0; i < propsArray.length; i++)
+			{
+				if (propsArray[i][identityField] == o.properties[identityField])
+				{
+					propsArray.splice(i, 1);
+					break;
+				}
+			}
+		}
+	});
+	this.setHandler("onClick", function(o)
+	{
+		try {
+			var identityField = gmxAPI.getIdentityField(o);
+			var id = 'id_' + o.properties[identityField];
+			flipCounts[id] = o.flip();
+			updateImageDepth(o);
+		} catch (e) {
+			gmxAPI.addDebugWarnings({'func': 'enableTiledQuicklooksEx', 'handler': 'onClick', 'event': e, 'alert': e});
+			//alert(e);
+		}
+	});
+}
+
+FlashMapObject.prototype.flip = function() { return gmxAPI._cmdProxy('flip', { 'obj': this }); }
+
+
+FlashMapObject.prototype.observeVectorLayer = function(obj, onChange) { obj.addObserver(this, onChange); }
+FlashMapObject.prototype.addOSM = function() { var osm = this.addObject(); osm.setOSMTiles(); return osm; }
+
+// keepGeometry - если не указан или false, объект будет превращён в полигон размером во весь мир (показывать OSM везде), 
+//                иначе геометрия не будет изменяться (например, чтобы делать вклейки из OSM в другие тайлы)
+FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
+{
+	if (!keepGeometry)
+		this.setPolygon([-180, -85, -180, 85, 180, 85, 180, -85, -180, -85]);
+		
+	var func = window.OSMTileFunction ? window.OSMTileFunction : function(i, j, z)
+	{
+		//return "http://b.tile.openstreetmap.org/" + z + "/" + i + "/" + j + ".png";
+		var letter = ["a", "b", "c", "d"][((i + j)%4 + 4)%4];
+		return "http://" + letter + ".tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
+	}
+	this.setBackgroundTiles(function(i, j, z)
+	{
+		var size = Math.pow(2, z - 1);
+		return func(i + size, size - j - 1, z);
+	}, 1);
+	
+	this.setCopyright("<a href='http://openstreetmap.org'>&copy; OpenStreetMap</a>, <a href='http://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>");
+		
+	this.setBackgroundColor(0xffffff);
+	this.setTileCaching(false);
+	if(gmxAPI.proxyType === 'leaflet') {
+		var urlOSM = "http://{s}.tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/{z}/{x}/{y}.png";
+		gmxAPI._cmdProxy('addOSMTileLayer', { 'obj': this, 'attr':{'layer':this, 'urlOSM':urlOSM, 'subdomains':'abcd'} });
+	}
+}
+
+FlashMapObject.prototype.loadGML = function(url, func)
+{
+	var me = this;
+	var _hostname = getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url);
+	sendCrossDomainJSONRequest(_hostname, function(response)
+	{
+		if(typeof(response) != 'object' || response['Status'] != 'ok') {
+			gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
+			return;
+		}
+		var geometries = gmxAPI.parseGML(response['Result']);
+		for (var i = 0; i < geometries.length; i++)
+			me.addObject(geometries[i], null);
+		if (func)
+			func();
+	})
+}
+FlashMapObject.prototype.loadWFS = FlashMapObject.prototype.loadGML;
+
+/** Заружает WMS слои как подъобъекты данного объекта. Слои добавляются невидимыми
+	@param url {string} - URL WMS сервера
+	@param func {function} - ф-ция, которая будет вызвана когда WMS слои добавятся на карту.
+*/
+FlashMapObject.prototype.loadWMS = function(url, func)
+{
+	gmxAPI._loadWMS(gmxAPI.map, this, url, func);
+}
+
+FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
+{
+	var hostName = gmxAPI.map.defaultHostName;
+	var mapName = null;
+	var callback = null;
+	if (arg3)
+	{
+		hostName = arg1;
+		mapName = arg2;
+		callback = arg3;
+	}
+	else if (arg2)
+	{
+		if (typeof(arg2) == 'function')
+		{
+			mapName = arg1;
+			callback = arg2;
+		}
+		else
+		{
+			hostName = arg1;
+			mapName = arg2;
+		}
+	}
+	else
+		mapName = arg1;
+	var me = this;
+	loadMapJSON(hostName, mapName, function(layers)
+	{
+		me.addLayers(layers);
+		if (callback)
+			callback();
+	});
+}
 
 function createFlashMapInternal(div, layers, callback)
 {
@@ -1799,9 +2573,9 @@ function createFlashMapInternal(div, layers, callback)
 	if (!window.onunload)
 		window.onunload = function() {};
 
-	var apiBase = getAPIFolderRoot();
+	var apiBase = gmxAPI.getAPIFolderRoot();
 
-	var focusLink = document.createElement("a");
+	//var focusLink = document.createElement("a");
 
 	gmxAPI._chkListeners = gmxAPI._listeners.chkListeners;
 	addMapStateListener = gmxAPI._listeners.addMapStateListener;
@@ -1825,804 +2599,6 @@ function createFlashMapInternal(div, layers, callback)
 			gmxAPI.flashDiv = flashDiv;
 			flashDiv.style.MozUserSelect = "none";
 			
-			FlashMapObject.prototype.setTileCaching = function(flag) { gmxAPI._cmdProxy('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
-			FlashMapObject.prototype.setDisplacement = function(dx, dy) { gmxAPI._cmdProxy('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
-			FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':imageUrlFunction, 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
-			FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
-			FlashMapObject.prototype.bringToBottom = function() { gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
-			FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
-			FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
-			FlashMapObject.prototype.setActive = function(flag) { gmxAPI._cmdProxy('setActive', { 'obj': this, 'attr':{'flag':flag} }); }
-			FlashMapObject.prototype.setEditable = function() { gmxAPI._cmdProxy('setEditable', { 'obj': this }); }
-			FlashMapObject.prototype.startDrawing = function(type) { gmxAPI._cmdProxy('startDrawing', { 'obj': this, 'attr':{'type':type} }); }
-			FlashMapObject.prototype.stopDrawing = function(type) { gmxAPI._cmdProxy('stopDrawing', { 'obj': this }); }
-			FlashMapObject.prototype.isDrawing = function() { return gmxAPI._cmdProxy('isDrawing', { 'obj': this }); }
-			FlashMapObject.prototype.getIntermediateLength = function() { return gmxAPI._cmdProxy('getIntermediateLength', { 'obj': this }); }
-			FlashMapObject.prototype.getCurrentEdgeLength = function() { return gmxAPI._cmdProxy('getCurrentEdgeLength', { 'obj': this }); }
-			FlashMapObject.prototype.setLabel = function(label) { gmxAPI._cmdProxy('setLabel', { 'obj': this, 'attr':{'label':label} }); }
-
-			FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { gmxAPI._cmdProxy('positionWindow', { 'obj': this, 'attr':{'x1':x1, 'y1':y1, 'x2':x2, 'y2':y2} }); }
-			FlashMapObject.prototype.setStyle = function(style, activeStyle) { gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':{'regularStyle':style, 'hoveredStyle':activeStyle} }); }
-			FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return gmxAPI._cmdProxy('getStyle', { 'obj': this, 'attr':flag }); }
-			FlashMapObject.prototype.getVisibleStyle = function() { return gmxAPI._cmdProxy('getVisibleStyle', { 'obj': this }); }
-
-			FlashMapObject.prototype.getVisibility = function() { return gmxAPI._cmdProxy('getVisibility', { 'obj': this }); }
-			FlashMapObject.prototype.setVisible = function(flag) {
-				gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag });
-				var val = (flag ? true : false);
-				if (val && this.backgroundColor)
-					gmxAPI.map.setBackgroundColor(this.backgroundColor);
-				if (this.copyright)
-					gmxAPI.map.updateCopyright();
-				//var func = gmxAPI.map.onSetVisible[this.objectId];
-				//if (func)
-				//	func(attr);
-
-				var prev = this.isVisible;
-				this.isVisible = val;
-				if(prev != val) gmxAPI._listeners.chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
-			}
-			FlashMapObject.prototype.getDepth = function(attr) { return gmxAPI._cmdProxy('getDepth', { 'obj': this }); }
-			FlashMapObject.prototype.getZoomBounds = function() { return gmxAPI._cmdProxy('getZoomBounds', { 'obj': this }); }
-			FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) {
-				return gmxAPI._cmdProxy('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} });
-				}
-			FlashMapObject.prototype.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
-			FlashMapObject.prototype.savePNG = function(fileName) { gmxAPI._cmdProxy('savePNG', { 'attr': fileName }); }
-			FlashMapObject.prototype.trace = function(val) { gmxAPI._cmdProxy('trace', { 'attr': val }); }
-			FlashMapObject.prototype.setQuality = function(val) { gmxAPI._cmdProxy('setQuality', { 'attr': val }); }
-			FlashMapObject.prototype.disableCaching = function() { gmxAPI._cmdProxy('disableCaching', {}); }
-			FlashMapObject.prototype.print = function() { gmxAPI._cmdProxy('print', {}); }
-			FlashMapObject.prototype.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
-			FlashMapObject.prototype.moveTo = function(x, y, z) { gmxAPI._cmdProxy('moveTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
-			FlashMapObject.prototype.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
-			FlashMapObject.prototype.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }
-			FlashMapObject.prototype.unfreeze = function() { gmxAPI._cmdProxy('unfreeze', {}); }
-			FlashMapObject.prototype.setCursor = function(url, dx, dy) { gmxAPI._cmdProxy('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
-			FlashMapObject.prototype.clearCursor = function() { gmxAPI._cmdProxy('clearCursor', {}); }
-
-			FlashMapObject.prototype.moveToCoordinates = function(text, z)
-			{
-				var me = this;
-				return gmxAPI.parseCoordinates(text, function(x, y)
-				{
-					me.moveTo(x, y, z ? z : me.getZ());
-				});
-			}
-			FlashMapObject.prototype.getBestZ = function(minX, minY, maxX, maxY)
-			{
-				if ((minX == maxX) && (minY == maxY))
-					return 17;
-				return Math.max(0, 17 - Math.ceil(Math.log(Math.max(
-					Math.abs(gmxAPI.merc_x(maxX) - gmxAPI.merc_x(minX))/flashDiv.clientWidth,
-					Math.abs(gmxAPI.merc_y(maxY) - gmxAPI.merc_y(minY))/flashDiv.clientHeight
-				))/Math.log(2)));
-			}
-			FlashMapObject.prototype.zoomToExtent = function(minx, miny, maxx, maxy)
-			{
-				this.moveTo(
-					gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
-					gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
-					this.getBestZ(minx, miny, maxx, maxy)
-				);
-			}
-			FlashMapObject.prototype.slideToExtent = function(minx, miny, maxx, maxy)
-			{
-				this.slideTo(
-					gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
-					gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
-					this.getBestZ(minx, miny, maxx, maxy)
-				);
-			}
-
-			var propertiesFromArray = function(a)
-			{
-				a.sort(function(e1, e2)
-				{
-					var f1 = e1[0], f2 = e2[0];
-					return (f1 < f2) ? -1 : (f1 == f2) ? 0 : 1;
-				});
-				var p_ = {};
-				for (var i = 0; i < a.length; i++)
-					p_[a[i][0]] = a[i][1];
-				return p_;
-			}
-
-			FlashMapObject.prototype.getChildren = function()
-			{
-				var arr = gmxAPI._cmdProxy('getChildren', { 'obj': this });
-				var ret = [];
-				for (var i = 0; i < arr.length; i++) {
-					var id = arr[i].id;
-					var pObj = (gmxAPI.mapNodes[id] ? gmxAPI.mapNodes[id] : new FlashMapObject(id, {}, this));		// если MapObject отсутствует создаем
-					pObj.properties = propertiesFromArray(arr[i].properties);
-					ret.push(pObj);
-				}
-				return ret;
-			}
-
-			FlashMapObject.prototype.setHandler = function(eventName, handler)
-			{
-				var me = this;
-				var func = function(subObjectId, a, attr)
-					{
-						handler(new FlashMapObject(subObjectId, propertiesFromArray(a), me), attr);		// вспомогательный MapObject для handler
-					};
-				gmxAPI._cmdProxy('setHandler', { 'obj': this, 'attr': {
-					'eventName':eventName
-					,'callbackName':handler ? func : null
-					}
-				});
-			}
-			FlashMapObject.prototype.removeHandler = function(eventName)
-			{
-				gmxAPI._cmdProxy('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
-			}
-
-			FlashMapObject.prototype.setHandlers = function(handlers)
-			{
-				for (var key in handlers)
-					this.setHandler(key, handlers[key]);
-			}
-
-			/** Добавление объектов из SWF файла
-			* @function
-			* @memberOf api
-			* @param {String} url SWF файла содержащего массив добавляемых обьектов
-			* @see api.FlashMapObject#addObjects
-			* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">» Пример использования</a>.
-			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-			*/
-			FlashMapObject.prototype.addObjectsFromSWF = function(url) {
-				gmxAPI._cmdProxy('addObjectsFromSWF', {'obj': this, 'attr':{'url':url}}); // Отправить команду в SWF
-			}
-			/** Добавление набора статических объектов на карту
-			* @function
-			* @memberOf api
-			* @param {array} data массив добавляемых обьектов
-			* @return {array} массив добавленных обьектов
-			* @see api.FlashMapObject#addObject
-			* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">» Пример использования</a>.
-			* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-			*/
-			FlashMapObject.prototype.addObjects = function(data) {
-				var out = [];
-				for (var i=0; i<data.length; i++)	// Подготовка массива обьектов
-				{
-					var ph = data[i];
-					var props = ph['properties'] || null;
-					var tmp = {
-						"parentId": this.objectId,
-						"geometry": gmxAPI.merc_geometry(ph['geometry']),
-						"properties": props
-					};
-					if(ph['setStyle']) tmp['setStyle'] = ph['setStyle'];
-					if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
-					out.push(tmp);
-				}
-				var _obj = gmxAPI._cmdProxy('addObjects', {'attr':out}); // Отправить команду в SWF
-
-				out = [];
-				for (var i=0; i<_obj.length; i++)	// Отражение обьектов в JS
-				{
-					var pObj = new FlashMapObject(_obj[i], data[i].properties, this);	// обычный MapObject
-					out.push(pObj);
-					// пополнение mapNodes
-					var currID = (pObj.objectId ? pObj.objectId : gmxAPI.newFlashMapId() + '_gen1');
-					gmxAPI.mapNodes[currID] = pObj;
-					if(pObj.parent) pObj.parent.childsID[currID] = true; 
-				}
-				return out;
-			}
-			FlashMapObject.prototype.addObject = function(geometry, props) {
-				var geo = gmxAPI.merc_geometry(geometry);
-				var obj = gmxAPI._cmdProxy('addObject', { 'obj': this, 'attr':{ 'geometry':geo, 'properties':props }});
-				if(!obj) obj = false;
-				var pObj = new FlashMapObject(obj, props, this);	// обычный MapObject
-
-				// пополнение mapNodes
-				var currID = (pObj.objectId ? pObj.objectId : gmxAPI.newFlashMapId() + '_gen1');
-				gmxAPI.mapNodes[currID] = pObj;
-				if(pObj.parent) pObj.parent.childsID[currID] = true; 
-				
-				return pObj;
-			}
-			FlashMapObject.prototype.setFilter = function(sql) {
-				if(!this.clusters && '_Clusters' in gmxAPI) {
-					this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
-				}
-				if(!sql) sql ='';
-				this._sql = sql;			// атрибуты фильтра установленные юзером
-				var ret = gmxAPI._cmdProxy('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
-				return ret;
-			}
-
-			removeFromMapLayers = function(lid)	// удалить слой из map.layers 
-			{
-				for(var i=0; i<gmxAPI.map.layers.length; i++) {			// Удаление слоя из массива
-					if(gmxAPI.map.layers[i].properties.LayerID === lid) {
-						gmxAPI.map.layers.splice(i, 1);
-						break;
-					}
-				}
-				for(key in gmxAPI.map.layers) {							// Удаление слоя из хэша
-					if(gmxAPI.map.layers[key].properties.LayerID === lid) {
-						delete gmxAPI.map.layers[key];
-					}
-				}
-			}
-
-			FlashMapObject.prototype.remove = function()
-			{
-				if (this.copyright) 
-					gmxAPI.map.removeCopyrightedObject(this);
-					
-				if(this.objectId) {
-					// чистка mapNodes
-					for(id in this.childsID) {
-						var pObj = gmxAPI.mapNodes[id];
-						pObj.remove();
-						var tt = 1;
-					}
-
-					gmxAPI._cmdProxy('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
-					delete gmxAPI.mapNodes[this.objectId];
-				}
-				if(this.properties && this.properties.LayerID) removeFromMapLayers(this.properties.LayerID);
-			}
-			FlashMapObject.prototype.setGeometry = function(geometry) {
-				var geom =  gmxAPI.merc_geometry(geometry);
-				gmxAPI._cmdProxy('setGeometry', { 'obj': this, 'attr':geom });
-			}
-			FlashMapObject.prototype.getGeometry = function() 
-			{ 
-				var geom = gmxAPI._cmdProxy('getGeometry', { 'obj': this });
-				var out = { "type": geom.type };
-				var coords =  gmxAPI.forEachPoint(geom.coordinates, function(c) {
-						return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
-						}
-					);
-				out["coordinates"] = coords;
-				return out;
-			}
-			FlashMapObject.prototype.getLength = function(arg1, arg2, arg3, arg4)
-			{
-				var out = 0;
-				if(arg1) out = gmxAPI.geoLength(arg1, arg2, arg3, arg4);
-				else out = gmxAPI._cmdProxy('getLength', { 'obj': this });
-				return out;
-			}
-			FlashMapObject.prototype.getArea = function(arg)
-			{
-				var out = 0;
-				if(arg) out = gmxAPI.geoArea(arg);
-				else out = gmxAPI._cmdProxy('getArea', { 'obj': this });
-				return out;
-			}
-			FlashMapObject.prototype.getCenter = function(arg1, arg2, arg3, arg4)
-			{
-				var out = 0;
-				if(arg1) out = gmxAPI.geoCenter(arg1, arg2, arg3, arg4);
-				else out = gmxAPI._cmdProxy('getCenter', { 'obj': this });
-				return out;
-			}
-			FlashMapObject.prototype.getGeometryType = function()
-			{
-				return gmxAPI._cmdProxy('getGeometryType', { 'obj': this });
-			}
-			FlashMapObject.prototype.setPoint = function(x, y) { this.setGeometry({ type: "POINT", coordinates: [x, y] }); }
-			FlashMapObject.prototype.setLine = function(coords) { this.setGeometry({ type: "LINESTRING", coordinates: coords }); }
-			FlashMapObject.prototype.setPolygon = function(coords) { this.setGeometry({ type: "POLYGON", coordinates: [coords] }); }
-			FlashMapObject.prototype.setRectangle = function(x1, y1, x2, y2) { this.setPolygon([[x1, y1], [x1, y2], [x2, y2], [x2, y1]]); }
-			FlashMapObject.prototype.setCircle = function(x, y, r)
-			{
-				function v_fi (fi, a, b)
-				{
-					return [
-						-Math.cos(fi)*Math.sin(a)+Math.sin(fi)*Math.sin(b)*Math.cos(a),
-						Math.cos(fi)*Math.cos(a)+Math.sin(fi)*Math.sin(b)*Math.sin(a),
-						-Math.sin(fi)*Math.cos(b)
-					];
-				}
-
-				var n = 100;            //кол-во точек
-				var a = Math.PI*x/180;  //долгота центра окружности в радианах
-				var b = Math.PI*y/180;  //широта центра окружности в радианах
-
-				var R = 6372795; // Радиус Земли
-				//      6378137 - Некоторые источники дают такое число.
-
-				var d = R * Math.sin(r / R);
-				var Rd = R * Math.cos(r / R);
-				var VR = [];
-				VR[0] = Rd * Math.cos(b) * Math.cos(a);
-				VR[1] = Rd * Math.cos(b) * Math.sin(a);
-				VR[2] = Rd * Math.sin(b);
-
-				var circle = [];
-				var coordinates = [];
-
-				for (var fi = 0; fi < 2*Math.PI + 0.000001; fi += (2*Math.PI/n))
-				{
-					var v = v_fi(fi, a, b);
-					for (var i=0; i<3; i++)
-						circle[i] = VR[i] + d*v[i];
-
-					var t1 = (180*Math.asin(circle[2]/R)/Math.PI);
-					var r = Math.sqrt(circle[0]*circle[0]+circle[1]*circle[1]);
-					var t2 = circle[1]<0 ? -180*Math.acos(circle[0]/r)/Math.PI :
-						180*Math.acos(circle[0]/r)/Math.PI;
-
-					if (t2 < x - 180)
-						t2 += 360;
-					else if (t2 > x + 180)
-						t2 -= 360;
-
-					coordinates.push([t2, t1]);
-				}
-
-				this.setPolygon(coordinates);
-			}
-			FlashMapObject.prototype.clearBackgroundImage = function() { gmxAPI._cmdProxy('clearBackgroundImage', { 'obj': this}); }
-			FlashMapObject.prototype.setImageExtent = function(attr)
-			{
-				this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
-				if (attr.notSetPolygon)
-				{
-					this.setPolygon([
-						[attr.extent.minX, attr.extent.maxY],
-						[attr.extent.maxX, attr.extent.maxY],
-						[attr.extent.maxX, attr.extent.minY],
-						[attr.extent.minX, attr.extent.minY],
-						[attr.extent.minX, attr.extent.maxY]
-					]);
-				}
-				gmxAPI._cmdProxy('setImageExtent', { 'obj': this, 'attr':attr});
-			}
-			FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
-			{
-				this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
-				var attr = {};
-				if (tx1) {
-					attr = {
-						'x1': gmxAPI.merc_x(tx1), 'y1': gmxAPI.merc_y(ty1), 'x2': gmxAPI.merc_x(tx2), 'y2': gmxAPI.merc_y(ty2), 'x3': gmxAPI.merc_x(tx3), 'y3': gmxAPI.merc_y(ty3), 'x4': gmxAPI.merc_x(tx4), 'y4': gmxAPI.merc_y(ty4)
-						,'tx1': x1, 'ty1': y1, 'tx2': x2, 'ty2': y2, 'tx3': x3, 'ty3': y3, 'tx4': x4, 'ty4': y4
-					};
-				}
-				else
-				{
-					this.setPolygon([[x1, y1], [x2, y2], [x3, y3], [x4, y4], [x1, y1]]);
-					attr = {
-						'x1': gmxAPI.merc_x(x1), 'y1': gmxAPI.merc_y(y1), 'x2': gmxAPI.merc_x(x2), 'y2': gmxAPI.merc_y(y2), 'x3': gmxAPI.merc_x(x3), 'y3': gmxAPI.merc_y(y3), 'x4': gmxAPI.merc_x(x4), 'y4': gmxAPI.merc_y(y4)
-					};
-				}
-				attr['url'] = url;
-				gmxAPI._cmdProxy('setImage', { 'obj': this, 'attr':attr});
-			}
-			FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
-			FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
-			{ 
-				gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction': dataUrlFunction, 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
-			}
-/* не используется
-			FlashMapObject.prototype.loadJSON = function(url)
-			{
-				flashDiv.loadJSON(this.objectId, url);
-			}
-*/
-			FlashMapObject.prototype.setCopyright = function(copyright)
-			{
-				this.copyright = copyright;
-				gmxAPI.map.addCopyrightedObject(this);
-			}
-			FlashMapObject.prototype.setBackgroundColor = function(color)
-			{
-				this.backgroundColor = color;
-				gmxAPI._cmdProxy('setBackgroundColor', { 'obj': this, 'attr':color });
-			}
-
-			FlashMapObject.prototype.getGeometrySummary = function()
-			{
-				var out = '';
-				var geom = this.getGeometry();
-				var geomType = (geom ? geom.type : '');
-				if(geom) {
-					if (geomType.indexOf("POINT") != -1)
-					{
-						var c = geom.coordinates;
-						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> ";
-						out += gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
-					}
-					else if (geomType.indexOf("LINESTRING") != -1) {
-						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> ";
-						out += gmxAPI.prettifyDistance(this.getLength());
-					}
-					else if (geomType.indexOf("POLYGON") != -1) {
-						out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> ";
-						var area = this.getArea();
-						out += gmxAPI.prettifyArea(area);
-					}
-				}
-				return out;
-			}
-
-			FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
-			{
-				this.setStyle(
-					{ marker: { image: apiBase + "img/" + imageName } },
-					activeImageName ? { marker: { image: apiBase + "img/" + activeImageName } } : null
-				);
-			}
-
-			FlashMapObject.prototype.enableQuicklooks = function(callback)
-			{
-				var flag = true;
-
-				if (this.shownQuicklooks)
-					for (var url in this.shownQuicklooks)
-						this.shownQuicklooks[url].remove();
-				var shownQuicklooks = {};
-				this.shownQuicklooks = shownQuicklooks;
-
-				this.setHandler("onClick", function(o)
-				{
-					try {
-						var identityField = gmxAPI.getIdentityField(o);
-						var id = 'id_' + o.properties[identityField];
-						if (!shownQuicklooks[id])
-						{
-							var url = callback(o);
-							var d1 = 100000000;
-							var d2 = 100000000;
-							var d3 = 100000000;
-							var d4 = 100000000;
-							var x1, y1, x2, y2, x3, y3, x4, y4;
-							var geom = o.getGeometry();
-							var coord = geom.coordinates;
-							gmxAPI.forEachPoint(coord, function(p)
-							{
-								var x = gmxAPI.merc_x(p[0]);
-								var y = gmxAPI.merc_y(p[1]);
-								if ((x - y) < d1)
-								{
-									d1 = x - y;
-									x1 = p[0];
-									y1 = p[1];
-								}
-								if ((-x - y) < d2)
-								{
-									d2 = -x - y;
-									x2 = p[0];
-									y2 = p[1];
-								}
-								if ((-x + y) < d3)
-								{
-									d3 = -x + y;
-									x3 = p[0];
-									y3 = p[1];
-								}
-								if ((x + y) < d4)
-								{
-									d4 = x + y;
-									x4 = p[0];
-									y4 = p[1];
-								}
-							});
-
-							var q = o.addObject(null, o.properties);
-							shownQuicklooks[id] = q;
-							q.setStyle({ fill: { opacity: 100 } });
-							q.setImage(url, x1, y1, x2, y2, x3, y3, x4, y4);
-						}
-						else
-						{
-							shownQuicklooks[id].remove();
-							delete shownQuicklooks[id];
-						}
-
-					} catch (e) {
-						gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
-						//alert(e);
-					}
-					gmxAPI._listeners.chkListeners('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
-				});
-			}
-
-			FlashMapObject.prototype.enableTiledQuicklooks = function(callback, minZoom, maxZoom)
-			{
-				this.enableTiledQuicklooksEx(function(o, image)
-				{
-					var path = callback(o);
-					image.setTiles(function(i, j, z) 
-					{
-						if (path.indexOf("{") > 0){
-							return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z);
-						}
-						else{
-							return path + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
-						}
-					});
-				}, minZoom, maxZoom);
-			}
-
-			FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, maxZoom)
-			{
-				var images = {};
-				if (this.tilesParent)
-					this.tilesParent.remove();
-				var tilesParent = this.addObject();
-				this.tilesParent = tilesParent;
-				tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
-				var propsArray = [];
-				var flipCounts = {};
-				var TemporalColumnName = this.properties.TemporalColumnName || '';
-				tilesParent.clearItems  = function()
-				{
-					for(id in images) {
-						images[id].remove();
-					}
-					images = {};
-					propsArray = [];
-					flipCounts = {};
-				}
-				var updateImageDepth = function(o)
-				{
-					var identityField = gmxAPI.getIdentityField(o);
-					var id = 'id_' + o.properties[identityField];
-					var props = o.properties;
-
-					// Установка балуна для тайлов меньше Zoom растров
-					var curZ = gmxAPI.map.getZ();
-					var flag = (minZoom && curZ < minZoom ? true : false);
-					var mZ = (maxZoom ? maxZoom : 18);
-					if(!flag && curZ > mZ) flag = true;
-					if(flag) gmxAPI._listeners.chkListeners('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
-					///// End
-
-					if (!images[id]) {
-						return;
-					}
-					var lastDate = (TemporalColumnName ? props[TemporalColumnName] : props.date || props.DATE);
-					var lastFc = flipCounts[id];
-					var n = 0;
-					for (var i = 0; i < propsArray.length; i++)
-					{
-						var pa = propsArray[i];
-						var date = (TemporalColumnName ? pa[TemporalColumnName] : pa.date || pa.DATE);
-						var fc = flipCounts["id_" + pa[identityField]];
-						var isHigher = false;
-						if (!lastFc)
-							isHigher = !fc ? (lastDate && (date > lastDate)) : (fc < 0);
-						else if (lastFc > 0)
-							isHigher = !fc || (fc < lastFc);
-						else if (lastFc < 0)
-							isHigher = fc && (fc < lastFc);
-
-						if (!isHigher)
-							n += 1;
-					}
-					images[id].bringToDepth(n - 1);
-				}
-				tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
-				tilesParent.observeVectorLayer(this, function(o, flag)
-				{
-					var identityField = gmxAPI.getIdentityField(o);
-					var id = 'id_' + o.properties[identityField];
-					if (flag && !images[id])
-					{
-						var image = tilesParent.addObject(o.geometry, o.properties);
-						callback(o, image);
-						images[id] = image;
-						propsArray.push(o.properties);
-						updateImageDepth(o);
-					}
-					else if (!flag && images[id])
-					{
-						images[id].remove();
-						delete images[id];
-						for (var i = 0; i < propsArray.length; i++)
-						{
-							if (propsArray[i][identityField] == o.properties[identityField])
-							{
-								propsArray.splice(i, 1);
-								break;
-							}
-						}
-					}
-				});
-				this.setHandler("onClick", function(o)
-				{
-					try {
-						var identityField = gmxAPI.getIdentityField(o);
-						var id = 'id_' + o.properties[identityField];
-						flipCounts[id] = o.flip();
-						updateImageDepth(o);
-					} catch (e) {
-						gmxAPI.addDebugWarnings({'func': 'enableTiledQuicklooksEx', 'handler': 'onClick', 'event': e, 'alert': e});
-						//alert(e);
-					}
-				});
-			}
-
-			FlashMapObject.prototype.flip = function() { return gmxAPI._cmdProxy('flip', { 'obj': this }); }
-
-			var FlashMapFeature = function(geometry, properties, layer)
-			{
-				this.geometry = geometry;
-				this.properties = properties;
-				this.layer = layer;
-			}
-			FlashMapFeature.prototype.getGeometry = function()
-			{
-				return this.geometry;
-			}
-			FlashMapFeature.prototype.getLength = function()
-			{
-				return gmxAPI.geoLength(this.geometry);
-			}
-			FlashMapFeature.prototype.getArea = function()
-			{
-				return gmxAPI.geoArea(this.geometry);
-			}
-
-			FlashMapObject.prototype.observeVectorLayer = function(obj, onChange)
-			{
-				obj.addObserver(this, onChange);
-			}
-
-			FlashMapObject.prototype.addOSM = function()
-			{
-				var osm = this.addObject();
-				osm.setOSMTiles();
-				return osm;
-			}
-
-			// keepGeometry - если не указан или false, объект будет превращён в полигон размером во весь мир (показывать OSM везде), 
-			//                иначе геометрия не будет изменяться (например, чтобы делать вклейки из OSM в другие тайлы)
-			FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
-			{
-				if (!keepGeometry)
-					this.setPolygon([-180, -85, -180, 85, 180, 85, 180, -85, -180, -85]);
-					
-				var func = window.OSMTileFunction ? window.OSMTileFunction : function(i, j, z)
-				{
-					//return "http://b.tile.openstreetmap.org/" + z + "/" + i + "/" + j + ".png";
-					var letter = ["a", "b", "c", "d"][((i + j)%4 + 4)%4];
-					return "http://" + letter + ".tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
-				}
-				this.setBackgroundTiles(function(i, j, z)
-				{
-					var size = Math.pow(2, z - 1);
-					return func(i + size, size - j - 1, z);
-				}, 1);
-				
-				this.setCopyright("<a href='http://openstreetmap.org'>&copy; OpenStreetMap</a>, <a href='http://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>");
-					
-				this.setBackgroundColor(0xffffff);
-				this.setTileCaching(false);
-				if(gmxAPI.proxyType === 'leaflet') {
-					var urlOSM = "http://{s}.tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/{z}/{x}/{y}.png";
-					gmxAPI._cmdProxy('addOSMTileLayer', { 'obj': this, 'attr':{'layer':this, 'urlOSM':urlOSM, 'subdomains':'abcd'} });
-				}
-			}
-
-			FlashMapObject.prototype.loadGML = function(url, func)
-			{
-				var me = this;
-				var _hostname = getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url);
-				sendCrossDomainJSONRequest(_hostname, function(response)
-				{
-					if(typeof(response) != 'object' || response['Status'] != 'ok') {
-						gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
-						return;
-					}
-					var geometries = gmxAPI.parseGML(response['Result']);
-					for (var i = 0; i < geometries.length; i++)
-						me.addObject(geometries[i], null);
-					if (func)
-						func();
-				})
-			}
-			FlashMapObject.prototype.loadWFS = FlashMapObject.prototype.loadGML;
-
-            /** Заружает WMS слои как подъобъекты данного объекта. Слои добавляются невидимыми
-                @param url {string} - URL WMS сервера
-                @param func {function} - ф-ция, которая будет вызвана когда WMS слои добавятся на карту.
-            */
-			FlashMapObject.prototype.loadWMS = function(url, func)
-			{
-                gmxAPI._loadWMS(gmxAPI.map, this, url, func);
-			}
-
-			FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
-			{
-				var hostName = gmxAPI.map.defaultHostName;
-				var mapName = null;
-				var callback = null;
-				if (arg3)
-				{
-					hostName = arg1;
-					mapName = arg2;
-					callback = arg3;
-				}
-				else if (arg2)
-				{
-					if (typeof(arg2) == 'function')
-					{
-						mapName = arg1;
-						callback = arg2;
-					}
-					else
-					{
-						hostName = arg1;
-						mapName = arg2;
-					}
-				}
-				else
-					mapName = arg1;
-				var me = this;
-				loadMapJSON(hostName, mapName, function(layers)
-				{
-					me.addLayers(layers);
-					if (callback)
-						callback();
-				});
-			}
-
-			var gplForm = false;
-			FlashMapObject.prototype.loadObjects = function(url, callback)
-			{
-				var _hostname = getAPIHostRoot() + "ApiSave.ashx?get=" + encodeURIComponent(url);
-				sendCrossDomainJSONRequest(_hostname, function(response)
-				{
-					if(typeof(response) != 'object' || response['Status'] != 'ok') {
-						gmxAPI.addDebugWarnings({'_hostname': _hostname, 'url': url, 'Error': 'bad response'});
-						return;
-					}
-					var geometries = gmxAPI.parseGML(response['Result']);
-					callback(geometries);
-				})
-			}
-			FlashMapObject.prototype.saveObjects = function(geometries, fileName, format)
-			{
-				var inputName, inputText;
-				if (!gplForm)
-				{
-					gplForm = document.createElement('<form>'),
-					inputName = document.createElement('<input>'),
-					inputText = document.createElement('<input>');
-				}
-				else
-				{
-					gplForm = $('download_gpl_form'),
-					inputName = gplForm.firstChild,
-					inputText = gplForm.lastChild;
-				}
-	
-				gplForm.setAttribute('method', 'post');
-				var _hostname = getAPIHostRoot();
-				gplForm.setAttribute('action', _hostname + 'ApiSave.ashx');
-				gplForm.style.display = 'none';
-				inputName.value = fileName;
-				inputName.setAttribute('name', 'name')
-				if (!format)
-					format = "gml";
-				inputText.value = gmxAPI.createGML(geometries, format.toLowerCase());
-				inputText.setAttribute('name', 'text')
-	
-				gplForm.appendChild(inputName);
-				gplForm.appendChild(inputText);
-	
-				document.body.appendChild(gplForm);
-	
-				gplForm.submit();
-			}
-			
-			FlashMapObject.prototype.zoomBy = function(dz, useMouse) {
-				gmxAPI._listeners.chkListeners('zoomBy', gmxAPI.map);			// Проверка map Listeners на zoomBy
-				gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
-			}
-
 			
 			var map = gmxAPI._addNewMap(rootObjectId, layers, callback);
 			
@@ -2645,7 +2621,7 @@ function createFlashMapInternal(div, layers, callback)
 	}
 
 	if('_addProxyObject' in gmxAPI) {	// Добавление обьекта отображения в DOM
-		var o = gmxAPI._addProxyObject(apiBase, flashId, "100%", "100%", "10", "#ffffff", loadCallback, window.gmxFlashLSO);
+		var o = gmxAPI._addProxyObject(gmxAPI.getAPIFolderRoot(), flashId, "100%", "100%", "10", "#ffffff", loadCallback, window.gmxFlashLSO);
 		if(o.nodeName === 'DIV') {
 			gmxAPI._div.innerHTML = '';
 			gmxAPI._div.appendChild(o);
@@ -3013,7 +2989,8 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 
 			filter.getPatternIcon = function(size)
 			{
-                return gmxAPI.getPatternIcon(givenStyle, size);
+                var ph = filter.getStyle(true);
+				return gmxAPI.getPatternIcon(ph['regular'], size);
 			}
 				
 			filter.setZoomBounds(style.MinZoom, style.MaxZoom);
@@ -3208,7 +3185,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId,
 					'func': function(geom, props, flag)
 					{
-						onChange(new FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj), flag);
+						onChange(new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj), flag);
 					}
 				} });
 			}
@@ -3236,7 +3213,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 								{
 									var ret = [];
 									for (var i = 0; i < geoms.length; i++)
-										ret.push(new FlashMapFeature(
+										ret.push(new gmxAPI._FlashMapFeature(
 											gmxAPI.from_merc_geometry(geoms[i]),
 											props[i],
 											obj
@@ -3258,7 +3235,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							if(typeof(props) === 'object' && props.length > 0) {
 								props = gmxAPI.arrayToHash(props);
 							}
-							func(new FlashMapFeature(
+							func(new gmxAPI._FlashMapFeature(
 								gmxAPI.from_merc_geometry(geom),
 								props,
 								obj
@@ -3600,7 +3577,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							for (var j = 0; j < req.SearchResult.length; j++)
 							{
 								var item = req.SearchResult[j];
-								ret.push(new FlashMapFeature( 
+								ret.push(new gmxAPI._FlashMapFeature( 
 									gmxAPI.from_merc_geometry(item.geometry),
 									item.properties,
 									map.layers[req.name]
