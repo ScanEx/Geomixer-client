@@ -134,7 +134,7 @@ class Utils
 		{ 
 			timer.stop();
 			var imgData:Dynamic = { };
-			imgData.isOverlay = null;
+			imgData.isOverlay = false;
 			imgData.loader = loader;
 			onLoad(imgData);
 			Main.bumpFrameRate();
@@ -203,7 +203,7 @@ class Utils
 		{ 
 			timer.stop();
 			var imgData:Dynamic = { };
-			imgData.isOverlay = null;
+			imgData.isOverlay = false;
 			imgData.loader = loader;
 			var flag:Bool = event.target.parentAllowsChild;
 			if(flag) {
