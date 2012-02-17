@@ -117,7 +117,7 @@
 			var attr = {'screenGeometry': gmxAPI.map.getScreenGeometry(), 'properties': gmxAPI.map.properties };
 			coordFormatCallbacks[coordFormat](coordinates, attr);
 			//coordinates.innerHTML = getCoordinatesText();
-			gmxAPI._listeners.chkListeners('onSetCoordinatesFormat', gmxAPI.map, coordFormat);
+			gmxAPI._listeners.dispatchEvent('onSetCoordinatesFormat', gmxAPI.map, coordFormat);
 		}
 
 		var coordFormat = 0;

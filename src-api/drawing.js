@@ -114,7 +114,7 @@
 				toolsContainer.selectTool("move");
 			if (obj)
 			{
-				gmxAPI._listeners.chkListeners('onRemove', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onRemove', gmxAPI.map.drawing, domObj);
 				obj.remove();
 				if(balloon) balloon.remove();
 				domObj.removeInternal();
@@ -202,7 +202,7 @@
 			var dragCallback = function(x, y)
 			{
 				position(x + startDx, y + startDy);
-				gmxAPI._listeners.chkListeners('onEdit', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onEdit', gmxAPI.map.drawing, domObj);
 			}
 			var downCallback = function(x, y)
 			{
@@ -332,7 +332,7 @@
 				balloon.setVisible(balloonVisible);
 				updateText();
 			}
-			gmxAPI._listeners.chkListeners('onAdd', gmxAPI.map.drawing, domObj);
+			gmxAPI._listeners.dispatchEvent('onAdd', gmxAPI.map.drawing, domObj);
 
 			ret.setVisible(ret.isVisible);
 		}
@@ -383,7 +383,7 @@
 				var st = (out ? out : false);
 				propsBalloon.updatePropsBalloon(st);
 			}
-			gmxAPI._listeners.chkListeners(eType, gmxAPI.map.drawing, domObj);
+			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
 		}
 		
 		obj.setHandlers({
@@ -400,7 +400,7 @@
 			onFinish: function()
 			{
 				callOnChange();
-				gmxAPI._listeners.chkListeners('onFinish', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
 				toolsContainer.selectTool("move");
 			},
 			onRemove: function()
@@ -446,7 +446,7 @@
 //					if (obj.isDrawing()) selectTool("move");
 			obj.remove();
 			if (domObj) {
-				gmxAPI._listeners.chkListeners('onRemove', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onRemove', gmxAPI.map.drawing, domObj);
 				domObj.removeInternal();
 			}
 		}
@@ -521,7 +521,7 @@
 				var st = (out ? out : false);
 				propsBalloon.updatePropsBalloon(st);
 			}
-			gmxAPI._listeners.chkListeners(eType, gmxAPI.map.drawing, domObj);
+			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
 		}
 
 		obj.setHandlers({
@@ -537,7 +537,7 @@
 			},
 			onFinish: function()
 			{
-				gmxAPI._listeners.chkListeners('onFinish', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
 				toolsContainer.selectTool("move");
 			},
 			onRemove: function()
@@ -579,7 +579,7 @@
 			//if (obj.isDrawing())	selectTool("move");
 			obj.remove();
 			if (domObj) {
-				gmxAPI._listeners.chkListeners('onRemove', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onRemove', gmxAPI.map.drawing, domObj);
 				domObj.removeInternal();
 			}
 		}
@@ -688,7 +688,7 @@
 		// Проверка пользовательских Listeners
 		var chkEvent = function()
 		{
-			gmxAPI._listeners.chkListeners(eventType, gmxAPI.map.drawing, domObj);
+			gmxAPI._listeners.dispatchEvent(eventType, gmxAPI.map.drawing, domObj);
 		}
 
 		function getGeometryTitleMerc(geom)

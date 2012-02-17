@@ -1426,7 +1426,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 			return arr;
 		}
 		// Обработка пользовательских Listeners на obj
-		function chkListeners(eventName, obj, attr)
+		function dispatchEvent(eventName, obj, attr)
 		{
 			var out = true;
 			var arr = getArr(eventName, obj);
@@ -1478,7 +1478,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 			return true;
 		}
 		gmxAPI._listeners = {
-			'chkListeners': chkListeners,
+			'dispatchEvent': dispatchEvent,
 			'addMapStateListener': addMapStateListener,
 			'removeMapStateListener': removeMapStateListener
 		};
@@ -1809,7 +1809,7 @@ FlashMapObject.prototype.stopDrawing = function(type) { gmxAPI._cmdProxy('stopDr
 FlashMapObject.prototype.isDrawing = function() { return gmxAPI._cmdProxy('isDrawing', { 'obj': this }); }
 FlashMapObject.prototype.setLabel = function(label) { gmxAPI._cmdProxy('setLabel', { 'obj': this, 'attr':{'label':label} }); }
 
-FlashMapObject.prototype.setStyle = function(style, activeStyle) { gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':{'regularStyle':style, 'hoveredStyle':activeStyle} }); }
+FlashMapObject.prototype.setStyle = function(style, activeStyle) { var attr = {'regularStyle':style, 'hoveredStyle':activeStyle}; gmxAPI._cmdProxy('setStyle', { 'obj': this, 'attr':attr }); gmxAPI._listeners.dispatchEvent('onSetStyle', this, attr); }
 FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typeof removeDefaults == 'undefined' ? false : removeDefaults); return gmxAPI._cmdProxy('getStyle', { 'obj': this, 'attr':flag }); }
 FlashMapObject.prototype.getVisibleStyle = function() { return gmxAPI._cmdProxy('getVisibleStyle', { 'obj': this }); }
 
@@ -1824,7 +1824,7 @@ FlashMapObject.prototype.setVisible = function(flag) {
 
 	var prev = this.isVisible;
 	this.isVisible = val;
-	if(prev != val) gmxAPI._listeners.chkListeners('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
+	if(prev != val) gmxAPI._listeners.dispatchEvent('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
 }
 
 FlashMapObject.prototype.getChildren = function()
@@ -2243,7 +2243,7 @@ FlashMapObject.prototype.enableQuicklooks = function(callback)
 			gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
 			//alert(e);
 		}
-		gmxAPI._listeners.chkListeners('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
+		gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
 	});
 }
 
@@ -2295,7 +2295,7 @@ FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, m
 		var flag = (minZoom && curZ < minZoom ? true : false);
 		var mZ = (maxZoom ? maxZoom : 18);
 		if(!flag && curZ > mZ) flag = true;
-		if(flag) gmxAPI._listeners.chkListeners('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
+		if(flag) gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
 		///// End
 
 		if (!images[id]) {
@@ -2493,7 +2493,7 @@ function createFlashMapInternal(div, layers, callback)
 
 	//var focusLink = document.createElement("a");
 
-	gmxAPI._chkListeners = gmxAPI._listeners.chkListeners;
+	gmxAPI._dispatchEvent = gmxAPI._listeners.dispatchEvent;
 	addMapStateListener = gmxAPI._listeners.addMapStateListener;
 	removeMapStateListener = gmxAPI._listeners.removeMapStateListener;
 
@@ -2913,8 +2913,8 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 			filter.setStyle(givenStyle, hoveredStyle);
 			
 			var filterOld = obj.filters[i];
-			gmxAPI._listeners.chkListeners('reSetStyles', gmxAPI.map, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка map Listeners на reSetStyles
-			gmxAPI._listeners.chkListeners('reSetStyles', filterOld, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка filterOld Listeners на reSetStyles
+			gmxAPI._listeners.dispatchEvent('reSetStyles', gmxAPI.map, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка map Listeners на reSetStyles
+			gmxAPI._listeners.dispatchEvent('reSetStyles', filterOld, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка filterOld Listeners на reSetStyles
 			obj.filters[i] = filter;
 		}
 	}
@@ -3076,7 +3076,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 			obj.objectId = obj_.objectId;
 			obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
 			
-			gmxAPI._listeners.chkListeners('onLayerCreated', obj, {'obj': obj });
+			gmxAPI._listeners.dispatchEvent('onLayerCreated', obj, {'obj': obj });
 		
 			obj.setVisible = function(flag)
 			{
@@ -3380,7 +3380,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 		map.setCursor = function(url, dx, dy) { gmxAPI._cmdProxy('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
 		map.clearCursor = function() { gmxAPI._cmdProxy('clearCursor', {}); }
 		map.zoomBy = function(dz, useMouse) {
-			gmxAPI._listeners.chkListeners('zoomBy', gmxAPI.map);			// Проверка map Listeners на zoomBy
+			gmxAPI._listeners.dispatchEvent('zoomBy', gmxAPI.map);			// Проверка map Listeners на zoomBy
 			gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
 		}
 		map.getBestZ = function(minX, minY, maxX, maxY)
@@ -3520,7 +3520,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 			needToStopDragging = false;
 		}
 
-		gmxAPI._listeners.chkListeners('mapInit', null, map);	// Глобальный Listeners
+		gmxAPI._listeners.dispatchEvent('mapInit', null, map);	// Глобальный Listeners
 
 		var toolHandlers = {};
 		var userHandlers = {};
@@ -3931,7 +3931,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					'screenGeometry': map.getScreenGeometry(),
 					'properties': map.properties
 				};
-				gmxAPI._listeners.chkListeners('positionChanged', map, attr);
+				gmxAPI._listeners.dispatchEvent('positionChanged', map, attr);
 			}
 		}
 		gmxAPI._updatePosition = updatePosition;
