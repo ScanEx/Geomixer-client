@@ -17,7 +17,7 @@
         {
             if (waitArgs)
             {
-                window.createFlashMap.call(this, waitArgs);
+                window.createFlashMap.apply(this, waitArgs);
             }
         });
     }

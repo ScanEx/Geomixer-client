@@ -1845,7 +1845,8 @@ FlashMapObject.prototype.setHandler = function(eventName, handler)
 	var me = this;
 	var func = function(subObjectId, a, attr)
 		{
-			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new FlashMapObject(subObjectId, gmxAPI.propertiesFromArray(a), me));		// если MapObject отсутствует создаем
+			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new FlashMapObject(subObjectId, {}, me));		// если MapObject отсутствует создаем
+			pObj.properties = gmxAPI.propertiesFromArray(a);
 			handler(pObj, attr);
 		};
 	gmxAPI._cmdProxy('setHandler', { 'obj': this, 'attr': {
