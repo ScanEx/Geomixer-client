@@ -14,8 +14,12 @@ var LayersListProvider = function(filtersProvider)
     var getQueryText = function()
     {
         var filterStrings = [];
-        filterStrings.push("@Title>\"" + filtersProvider.getTitle() + "\"");
-        filterStrings.push("@Owner>\"" + filtersProvider.getOwner() + "\"");
+        
+        if (filtersProvider.getTitle() !== '')
+            filterStrings.push("@Title>\"" + filtersProvider.getTitle() + "\"");
+        
+        if (filtersProvider.getOwner() !== '')
+            filterStrings.push("@Owner=\"" + filtersProvider.getOwner() + "\"");
         
         var type = filtersProvider.getType();
         if (type)
@@ -35,7 +39,7 @@ var LayersListProvider = function(filtersProvider)
         layerTags.each(function(id, tag, value)
         {
             if (tag)
-                filterStrings.push('"' + tag + '"="' + value + '"');
+                filterStrings.push('"' + tag + '">"' + value + '"');
         });
         
         return '&query=' + encodeURIComponent(filterStrings.join(' AND '));
@@ -65,7 +69,7 @@ var LayersListProvider = function(filtersProvider)
         
         var query = getQueryText();
         
-        sendCrossDomainJSONRequest(serverBase + 'Layer/Search.ashx?page=' + (page+1) + '&pageSize=' + pageSize + "&orderby=" + sortParams[sortParam] + "&orderdirection=" + (sortDec ? "DESC" : "ASC") + query, function(response)
+        sendCrossDomainJSONRequest(serverBase + 'Layer/Search.ashx?page=' + page + '&pageSize=' + pageSize + "&orderby=" + sortParams[sortParam] + " " + (sortDec ? "DESC" : "ASC") + query, function(response)
         {
             if (!parseResponse(response))
             {
