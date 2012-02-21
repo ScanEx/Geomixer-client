@@ -4,9 +4,13 @@ class Style
 	public var outline:OutlineStyle;
 	public var fill:FillStyle;
 	public var label:LabelStyle;
+	public var curCount:Int;
+	static var count:Int = 0;
 
 	public function new(?style:Dynamic)
 	{
+		count++;
+		curCount = count;
 		if (style != null)
 		{
 			marker = (style.marker != null) ? (new MarkerStyle(style.marker, this)) : null;

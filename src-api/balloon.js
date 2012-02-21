@@ -491,7 +491,7 @@
 		propsBalloon.setVisible(false);
 		propsBalloon.outerDiv.style.zIndex = 10000;
 		propsBalloon.outerDiv.style.display = "none";
-		new GlobalHandlerMode("mousemove", function(event)
+		new gmxAPI.GlobalHandlerMode("mousemove", function(event)
 		{
 			propsBalloon.setScreenPosition(
 				gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div), 

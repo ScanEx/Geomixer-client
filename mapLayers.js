@@ -572,7 +572,22 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	if (elem.type == "Vector")
 	{
 		var icon = this.mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag}),
-			multiStyleParent = _div(null,[['attr','multiStyle',true]]);
+			multiStyleParent = _div(null,[['attr','multiStyle',true]]),
+            iconSpan = _span([icon]);
+        
+        if (elem.styles.length == 1)
+        {
+            globalFlashMap.layers[elem.name].filters[0].addMapStateListener('onSetStyle', function(style)
+            {
+                if (globalFlashMap.layers[elem.name].filters.length == 1)
+                {
+                    var newIcon = _this.mapHelper.createStylesEditorIcon([{MinZoom:1, MaxZoom: 21, RenderStyle: style.regularStyle}], elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag});
+                    $(iconSpan).empty().append(newIcon);
+                }
+            });
+        }
+            
+        $(iconSpan).attr('styleType', $(icon).attr('styleType'));
 		
 		this.mapHelper.createMultiStyle(elem, multiStyleParent, true, layerManagerFlag);
 		
@@ -581,17 +596,17 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			if (!parentVisibility || !elem.visible)
 				$(multiStyleParent).addClass("invisible")
 			
-			icon.onclick = function()
+			iconSpan.onclick = function()
 			{
-				_this.mapHelper.createLayerEditor(this.parentNode, 1,  icon.parentNode.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+				_this.mapHelper.createLayerEditor(this.parentNode, 1,  iconSpan.parentNode.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 			}
 			
 		}
         
         if (this._renderParams.showVisibilityCheckbox)
-			return [box, icon, spanParent, spanDescr, multiStyleParent];
+			return [box, iconSpan, spanParent, spanDescr, multiStyleParent];
 		else
-			return [icon, spanParent, spanDescr, multiStyleParent];
+			return [iconSpan, spanParent, spanDescr, multiStyleParent];
 	}
 	else
 	{

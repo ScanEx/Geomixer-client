@@ -2,7 +2,7 @@ import flash.display.Sprite;
 
 class VectorTilePainter
 {
-	var oldStyle:Style;
+	var oldStyleID:Int;
 	var oldZ:Int;
 	public var vectorLayerFilter:VectorLayerFilter;
 	public var painter:GeometryPainter;
@@ -31,6 +31,7 @@ class VectorTilePainter
 		sprite.name = tile.z + '_' + tile.i + '_' + tile.j;
 		rasterSprite.name = 'r' + sprite.name;
 		vectorSprite.name = 'v' + sprite.name;
+		oldStyleID = 0;
 	}
 
 	public function remove()
@@ -44,15 +45,6 @@ class VectorTilePainter
 		if(vectorSprite.x != dx) {
 			rasterSprite.x = dx;
 			vectorSprite.x = dx;
-		}
-	}
-
-	private function clearCacheSprite()
-	{
-		if (cacheSprite != null)
-		{
-			if(cacheSprite.parent != null) cacheSprite.parent.removeChild(cacheSprite);
-			cacheSprite = null;
 		}
 	}
 
@@ -70,7 +62,7 @@ class VectorTilePainter
 			painter.geometry = tileGeometry;
 		} else {
 			var tileIntersect = mapWindow.visibleExtent.overlaps(tile.extent);		// Частичное перекрытие геометрии тайла
-			if (tileIntersect && !tileOverlap) oldStyle = null;
+			if (tileIntersect && !tileOverlap) oldStyleID = 0;
 			if (tileIntersect) {
 				clustersGeometry = Utils.getClusters(vectorLayerFilter, tileGeometry, tile, currentZ);
 				painter.geometry = clustersGeometry;
@@ -78,10 +70,11 @@ class VectorTilePainter
 		}
 
 		//tileOverlap = mapWindow.visibleExtent.overlapsFull(painter.geometry.extent);	// Полное перекрытие геометрий
-		if (style != oldStyle || oldZ != currentZ)
+		var repaintCache:Bool = false;
+		if ((style != null && style.curCount != oldStyleID) || oldZ != currentZ)
 		{
-			clearCacheSprite();
-			oldStyle = style;
+			repaintCache = true;
+			oldStyleID = style.curCount;
 			oldZ = currentZ;
 		}
 
@@ -91,9 +84,12 @@ class VectorTilePainter
 			{
 				cacheSprite = new Sprite();
 				//cacheSprite.cacheAsBitmap = true;
-				painter.repaintWithoutExtent(style, cacheSprite, vectorLayerFilter.layer.temporalCriterion);
-				rasterSprite.addChild(cacheSprite);
 			}
+			if (repaintCache) {
+				cacheSprite.graphics.clear();
+				painter.repaintWithoutExtent(style, cacheSprite, vectorLayerFilter.layer.temporalCriterion);
+			}
+			if (cacheSprite.parent == null) rasterSprite.addChild(cacheSprite);
 
 			if(!rasterSprite.visible) rasterSprite.visible = true;
 			if(vectorSprite.visible) vectorSprite.visible = false;

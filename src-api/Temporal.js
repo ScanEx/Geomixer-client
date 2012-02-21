@@ -245,7 +245,7 @@
 			}
 
 			resetTiles(attr, mapObj);
-			gmxAPI._listeners.chkListeners('hideBalloons', gmxAPI.map);	// Проверка map Listeners на hideBalloons
+			gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map);	// Проверка map Listeners на hideBalloons
 			return data['daysDelta'];
 		}
 		this.setDateInterval = setDateInterval;
@@ -301,7 +301,7 @@
 		gmxAPI._listeners.addMapStateListener(mapObj, 'onChangeVisible', function(flag)
 			{
 				if(flag) me.setDateInterval();
-				gmxAPI._listeners.chkListeners('hideBalloons', gmxAPI.map);	// Проверка map Listeners на hideBalloons
+				gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map);	// Проверка map Listeners на hideBalloons
 			}
 		);
 	}

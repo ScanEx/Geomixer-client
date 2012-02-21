@@ -124,6 +124,7 @@
     var loadWMS = function(map, container, url, func)
     {
         var urlProxyServer = 'http://' + gmxAPI.serverBase + '/';
+        var wmsLayers = [];
 
 		url = url.replace(/Request=GetCapabilities[\&]*/i, '');
 		url = url.replace(/\&$/, '');
@@ -142,6 +143,7 @@
                 var props = serviceLayers[i];
                 var obj = container.addObject(null, props);
                 obj.setVisible(false);
+				wmsLayers.push(obj);
 
                 (function(obj, props) {
                     var timeout = false;
@@ -163,14 +165,17 @@
                             }
                         }, 500);
                     }
-                    
-                    map.onSetVisible[obj.objectId] = function(flag)
-                    {
-                        obj.setHandler("onMove", flag ? updateFunc : null);
-                    }
+					// Добавление прослушивателей событий
+					gmxAPI._listeners.addMapStateListener(obj, 'onChangeVisible', function(flag)
+						{
+							obj.setHandler("onMove", flag ? updateFunc : null);
+						}
+					);
+
+
                 })(obj, props);
             }
-            func();
+            func(wmsLayers);
         })
     }
     

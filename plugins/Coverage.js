@@ -21,7 +21,7 @@
 		}
 		if (layerStatus[layerId] == 1){
 			var sSubject = escape("Coverage layerName=" + layer.elem.content.properties.title);
-			var sBody = escape("LayerID=" + layerId + "; User: " + nsGmx.AuthManager.getLogin() + "; Map ID: " + _mapHelper.mapProperties.name + "; Map Title: " + _mapHelper.mapProperties.title);
+			var sBody = escape("LayerID=" + layerId + "; User: " + nsGmx.AuthManager.getNickname() + "; Map ID: " + _mapHelper.mapProperties.name + "; Map Title: " + _mapHelper.mapProperties.title);
 			var sLink = "mailto:sales@scanex.ru?subject=" + sSubject + "&body=" + sBody;
 			var btnSend = _a([_t('Отправить заказ')], [["attr", "href", sLink]]);
 			btnSend.onclick = function(){

@@ -1173,6 +1173,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					var window = MapWindow.allWindows.get(attr.objectId);
 					if (window != null)
 						window.setBackgroundColor(attr.color);
+					
 					if (window == mapWindow)
 						repaintCrosshair();
 						
@@ -1355,7 +1356,11 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					out = cast(node != null ? node.setAPIProperties(attr.data) : false);
 				case 'getPatternIcon':		// base64-иконка по FillStyle
 					var size = (attr.data.size != null ? attr.data.size : 32);
-					var style = (attr.data.style != null && attr.data.style.fill != null ? attr.data.style.fill : {});
+					var style:Dynamic = (attr.data.style != null && attr.data.style.fill != null ? attr.data.style.fill : {});
+					if (style.pattern != null && (style.pattern.style == 'diagonal1' || style.pattern.style == 'diagonal2')) {
+						style.pattern.style = (style.pattern.style == 'diagonal2' ? 'diagonal1':'diagonal2');
+					}
+
 					var fillStyle:FillStyle = new FillStyle(style);
 					var data:BitmapData = fillStyle.getBitmapData();
 					if(data != null) {

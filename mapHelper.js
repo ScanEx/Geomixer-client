@@ -275,6 +275,7 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 	}
 }
 
+//TODO: remove isEditableStyles
 mapHelper.prototype.updateTreeStyles = function(newStyles, div, isEditableStyles)
 {
     isEditableStyles = typeof isEditableStyles === 'undefined' || isEditableStyles;
@@ -285,15 +286,16 @@ mapHelper.prototype.updateTreeStyles = function(newStyles, div, isEditableStyles
 	var parentIcon = $(div).children("[styleType]")[0],
 		newIcon = _mapHelper.createStylesEditorIcon(newStyles, div.gmxProperties.content.properties.GeometryType.toLowerCase(), {addTitle: isEditableStyles});
         
-    if ( isEditableStyles )
-    {
-		newIcon.onclick = function()
-		{
-			_mapHelper.createLayerEditor(div, 1, div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
-		}
-    }
+        
+    // if ( isEditableStyles )
+    // {
+		// newIcon.onclick = function()
+		// {
+			// _mapHelper.createLayerEditor(div, 1, div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+		// }
+    // }
 		
-	$(parentIcon).replaceWith(newIcon);
+	$(parentIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));
 	
 	removeChilds(multiStyleParent);
 	
@@ -1480,9 +1482,11 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 		liBalloon = _li([_div()],[['css','paddingLeft','0px'],['css','background','none']]),
 		ulBalloon = _ul([liBalloon]),
 		liStyle = _li([_div()],[['css','paddingLeft','0px'],['css','background','none']]),
-		ulStyle = _ul([liStyle]);
+		ulStyle = _ul([liStyle]),
+        liClusters = _li([_div()],[['css','paddingLeft','0px'],['css','background','none']]),
+		ulClusters = _ul([liClusters]);
         
-	
+        var clusterControl = new nsGmx.ClusterParamsControl(liClusters);
 	// zoom
 	$(zoomPropertiesControl).change(function()
     {
@@ -1618,14 +1622,29 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	
 	// common
 	
-	_(ulParent, [liMinZoom, liMaxZoom, _li([_div([_span([_t(_gtxt("Фильтр"))],[['css','fontSize','12px']])]), ulfilterExpr]), _li([_div([_span([_t(_gtxt("Подпись"))],[['css','fontSize','12px']])]), ulLabel]), _li([_div([_span([_t(_gtxt("Балун"))],[['css','fontSize','12px']])]), ulBalloon]),  _li([_div([_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']])]), ulStyle])]);
+	_(ulParent, [
+        liMinZoom, liMaxZoom, 
+        _li([_div([_span([_t(_gtxt("Фильтр"))],[['css','fontSize','12px']])]), ulfilterExpr]),
+        _li([_div([_span([_t(_gtxt("Подпись"))],[['css','fontSize','12px']])]), ulLabel]), 
+        _li([_div([_span([_t(_gtxt("Балун"))],[['css','fontSize','12px']])]), ulBalloon]),
+        _li([_div([_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']])]), ulStyle]),
+        _li([_div([_span([_t(_gtxt("Кластеризация"))],[['css','fontSize','12px']])]), ulClusters])
+    ]);
 	
 	if (treeviewFlag)
 		$(ulParent).treeview();
 	
 	// styles
 	
-	this.createStyleEditor(liStyle.lastChild, parentObject, templateStyle, geometryType, elemCanvas);
+    var isWindLayer = typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
+				elemCanvas.parentNode.gmxProperties.content.properties.description &&
+				String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0;
+	templateStyle = this.createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
+    
+    $(templateStyle).change(function()
+    {
+        nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+    })
 	
 	ulParent.parentNode.parentNode.parentNode.getStyle = function()
 	{
@@ -2012,7 +2031,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
     }
 }
 
-mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateStyle, geometryType, elemCanvas)
+mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 {
 	var markerSizeParent = _tr(),
         outlineParent = _tr(),
@@ -2035,7 +2054,8 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		scale,
 		_this = this;
 	
-	_(parent, [_table([_tbody([outlineParent, markerSizeParent, fillParent, iconParent])],[['css','marginLeft','-20px']])]);
+	// _(parent, [_table([_tbody([outlineParent, markerSizeParent, fillParent, iconParent])],[['css','marginLeft','-20px']])]);
+	_(parent, [_table([_tbody([outlineParent, markerSizeParent, fillParent, iconParent])])]);
 	
 	var fillStyleControl = new this.FillStyleControl(templateStyle, {showSelectors: geometryType !== 'point'});
     fillStyleControl.setVisibleSelectors(typeof templateStyle.fill != 'undefined');
@@ -2043,7 +2063,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
     {
         var fillStyle = fillStyleControl.getFillStyle();
         templateStyle.fill = fillStyle;
-        nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+        $(templateStyle).change();
     });
 	
 	showIcon = function()
@@ -2062,9 +2082,10 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 
 		if (geometryType == "point")
 		{
-			if (typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
-				elemCanvas.parentNode.gmxProperties.content.properties.description &&
-				String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
+			// if (typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
+				// elemCanvas.parentNode.gmxProperties.content.properties.description &&
+				// String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
+            if ( isWindLayer )
 			{
 				if (angle.value != '')
 					templateStyle.marker.angle = angle.value;
@@ -2082,7 +2103,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 			fillToggle.disabled = true;
         }
 			
-		nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+		$(templateStyle).change();
 	}
 	
 	showMarker = function()
@@ -2117,7 +2138,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 		templateStyle.outline.color = $(outlineParent).find(".colorSelector")[0].hex;
 		templateStyle.outline.opacity = $($(outlineParent).find(".ui-slider")[0]).slider('option', 'value');
 
-		nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+		$(templateStyle).change();
 	}
 	
 	outlineToggle = _checkbox(geometryType == "point" && typeof templateStyle.marker != 'undefined' && typeof templateStyle.marker.image == 'undefined' || geometryType != "point" && (typeof templateStyle.marker == 'undefined' || typeof templateStyle.marker != 'undefined' && typeof templateStyle.marker.image == 'undefined'),'radio');
@@ -2146,10 +2167,10 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 			
 			templateStyle.outline.color = outlineColor.hex = parseInt('0x' + hex);
 			
-			if (elemCanvas.nodeName == 'DIV')
-				$(elemCanvas).find(".borderIcon")[0].style.borderColor = '#' + hex;
+			// if (elemCanvas.nodeName == 'DIV')
+				// $(elemCanvas).find(".borderIcon")[0].style.borderColor = '#' + hex;
 			
-			nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+			$(templateStyle).change();
 		})
 	
 	if (templateStyle.outline && typeof templateStyle.outline.color != 'undefined')
@@ -2164,7 +2185,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 			{
 				templateStyle.outline.opacity = ui.value;
 				
-				nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+				$(templateStyle).change();
 			})
 
 	outlineTds.push(_td([divSlider],[['css','width','100px'],['css','padding','4px 5px 3px 5px']]));
@@ -2174,7 +2195,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 			{
 				templateStyle.outline.thickness = Number(this.value);
 				
-				nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+				$(templateStyle).change();
 				
 				return true;
 			});
@@ -2229,7 +2250,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 					delete templateStyle.outline.dashes;
 			}
 			
-			nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+			$(templateStyle).change();
 		};
 	
 	if (geometryType != "point")
@@ -2321,7 +2342,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 				//if (elemCanvas.nodeName == 'DIV')
 					//$(elemCanvas).find(".fillIcon")[0].style.backgroundColor = $(fillParent).find(".colorSelector")[0].style.backgroundColor;
 																
-				nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+				$(templateStyle).change();
 			}
 			else
 			{
@@ -2329,10 +2350,10 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 				
 				delete templateStyle.fill;
 				
-				if (elemCanvas.nodeName == 'DIV')
-					$(elemCanvas).find(".fillIcon")[0].style.backgroundColor = "#FFFFFF";
+				// if (elemCanvas.nodeName == 'DIV')
+					// $(elemCanvas).find(".fillIcon")[0].style.backgroundColor = "#FFFFFF";
 				
-				nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+				$(templateStyle).change();
 			}
 		}
 		
@@ -2356,17 +2377,17 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 					
 					templateStyle.fill.color = fillColor.hex = parseInt('0x' + hex);
 					
-					if (elemCanvas.nodeName == 'DIV')
-						$(elemCanvas).find(".fillIcon")[0].style.backgroundColor = '#' + hex;
+					// if (elemCanvas.nodeName == 'DIV')
+						// $(elemCanvas).find(".fillIcon")[0].style.backgroundColor = '#' + hex;
 					
-					nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+					$(templateStyle).change();
 				}),
 			fillSlider = nsGmx.Controls.createSlider(checkedFillOpacity,
 				function(event, ui)
 				{
 					templateStyle.fill.opacity = ui.value;
 					
-					nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+					$(templateStyle).change();
 				});
 		
 		fillColor.hex = checkedFillColor;
@@ -2403,7 +2424,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 			
 		templateStyle.marker.image = inputUrl.value();
 		
-		nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+		$(templateStyle).change();
     });
     
 	//inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', (typeof templateStyle.marker != 'undefined' && templateStyle.marker.image) ? templateStyle.marker.image : ''],['css','width','180px']]);	
@@ -2422,7 +2443,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 			
 		// templateStyle.marker.image = this.value;
 		
-		// nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+		// $(templateStyle).change();
 	// }
 	
 	//_title(inputUrl, _gtxt("Url изображения"));
@@ -2434,7 +2455,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 			{
 				templateStyle.marker.size = Number(this.value);
 				
-				nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+				$(templateStyle).change();
 				
 				return true;
 			})
@@ -2445,9 +2466,10 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
         _(markerSizeParent, markerSizeTds, [['attr','fade',true]]);
 		
 		
-		if (typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
-			elemCanvas.parentNode.gmxProperties.content.properties.description &&
-			String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
+		// if (typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
+			// elemCanvas.parentNode.gmxProperties.content.properties.description &&
+			// String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
+        if ( isWindLayer )
 		{
 			var markerColor = nsGmx.Controls.createColorPicker((templateStyle.marker && typeof templateStyle.marker.color != 'undefined') ? templateStyle.marker.color : 0xFF00FF,
 				function (colpkr){
@@ -2463,7 +2485,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 					
 					templateStyle.marker.color = markerColor.hex = parseInt('0x' + hex);
 					
-					nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+					$(templateStyle).change();
 				})
 			
 			if (templateStyle.marker && typeof templateStyle.marker.color != 'undefined')
@@ -2480,7 +2502,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 				else
 					delete templateStyle.marker.scale;
 				
-				nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+				$(templateStyle).change();
 			}
 			
 			_title(scale, _gtxt("Масштаб"))
@@ -2494,7 +2516,7 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 				else
 					delete templateStyle.marker.angle;
 				
-				nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+				$(templateStyle).change();
 			}
 			
 			_title(angle, _gtxt("Угол поворота"))
@@ -2542,6 +2564,8 @@ mapHelper.prototype.createStyleEditor = function(parent, parentObject, templateS
 	
 	if (geometryType != "linestring" && typeof templateStyle.fill == 'undefined')
 		$(fillParent).find("[fade]")[0].style.display = 'none';
+        
+    return templateStyle;
 }
 
 //params:
@@ -4014,12 +4038,12 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 						else
 						{
 							var newIcon = _this.createStylesEditorIcon(newStyles, elemProperties.GeometryType.toLowerCase());
-							newIcon.onclick = function()
-							{
-								_this.createLayerEditor(div, 1, elemProperties.styles.length > 1 ? -1 : 0);
-							}
+							// newIcon.onclick = function()
+							// {
+								// _this.createLayerEditor(div, 1, elemProperties.styles.length > 1 ? -1 : 0);
+							// }
 							
-							$(parentIcon).replaceWith(newIcon);
+							$(parentIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));
 						}
 						
 						removeChilds(multiStyleParent);
@@ -4035,7 +4059,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 				
 				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties);
 				
-				showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 330, 390, pos.left, pos.top, null, closeFunc);
+				showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 350, 390, pos.left, pos.top, null, closeFunc);
 				_this.layerEditorsHash[elemProperties.name] = tabMenu;
 				
 				// при сохранении карты сбросим все временные стили в json карты
@@ -4134,32 +4158,40 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 	}
 }
 
-mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, elemCanvas, geometryType, divCanvas)
+mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geometryType, divCanvas)
 {
 	var _this = this,
 		templateStyle = {};
 	
 	$.extend(true, templateStyle, style);
-	
-	elemCanvas.onclick = function()
+    
+    var elemCanvas = _mapHelper.createStylesEditorIcon([{MinZoom:1, MaxZoom: 21, RenderStyle: style.regularStyle}], geometryType);
+    var spanIcon = _span([elemCanvas]);
+    
+	spanIcon.onclick = function()
 	{
+        var listenerId = parentObject.addMapStateListener('onSetStyle', function(style)
+            {
+                var newIcon = _this.createStylesEditorIcon([{MinZoom:1,MaxZoom:21,RenderStyle:style.regularStyle}], geometryType);
+                $(spanIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));
+            });
+            
 		var canvasStyles = _div(null,[['css','marginTop','10px']]),
 			canvasCharts = _div(null,[['css','marginTop','10px']]),
 			closeFunc = function()
 			{
-				var newIcon = _this.createStylesEditorIcon([{MinZoom:1,MaxZoom:21,RenderStyle:templateStyle}], geometryType);
-				_mapHelper.createWFSStylesEditor(parentObject, templateStyle, newIcon, geometryType, divCanvas);
-				
-				$(elemCanvas).replaceWith(newIcon);
-				
 				$(canvasStyles).find(".colorSelector").each(function()
 				{
-					$$($(this).data("colorpickerId")).removeNode(true);
+					var colorPicker = $$($(this).data("colorpickerId"));
+                    if (colorPicker)
+                         colorPicker.removeNode(true);
 				});
 				
 				var layerElemCanvas = $(divCanvas).find("[geometryType='" + geometryType.toUpperCase() + "']")[0];
 				layerElemCanvas.graphDataType = $(canvasCharts).find("select")[0].value;
 				layerElemCanvas.graphDataProperties = $(canvasCharts).find("input")[0].value;
+                
+                parentObject.removeMapStateListener('onSetStyle', listenerId);
 			};
 		
 		var id = 'wfstabs' + String(Math.random()).substring(2, 9),
@@ -4170,7 +4202,13 @@ mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, elemCa
 		
 		_(tabMenu, [divStyles, divGraph]);
 		
-		_mapHelper.createStyleEditor(canvasStyles, parentObject, templateStyle, geometryType, elemCanvas);
+		templateStyle = _mapHelper.createStyleEditor(canvasStyles, templateStyle, geometryType, false);
+        
+        $(templateStyle).change(function()
+        {
+            nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+        })
+        
 		canvasStyles.firstChild.style.marginLeft = '0px';
 		_(divStyles, [canvasStyles]);
 		
@@ -4178,16 +4216,18 @@ mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, elemCa
 		canvasCharts.firstChild.style.marginLeft = '0px';
 		_(divGraph, [canvasCharts]);
 		
-		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 160);
-		showDialog(_gtxt('Редактирование стилей объекта'), tabMenu, 310, 160, pos.left, pos.top, false, closeFunc);
+		var pos = nsGmx.Utils.getDialogPos(spanIcon, false, 160);
+		showDialog(_gtxt('Редактирование стилей объекта'), tabMenu, 330, 180, pos.left, pos.top, false, closeFunc);
 		
 		$(tabMenu).tabs({selected: 0});
 	}
 	
-	elemCanvas.getStyle = function()
+	spanIcon.getStyle = function()
 	{
 		return templateStyle;
 	}
+    
+    return spanIcon;
 }
 
 mapHelper.prototype.createChartsEditor = function(parent, elemCanvas)
@@ -4222,13 +4262,16 @@ mapHelper.prototype.createMultiStyle = function(elem, multiStyleParent, treeview
 	{
 		var icon = this.createStylesEditorIcon([elem.styles[i]], elem.GeometryType.toLowerCase(), {addTitle: !layerManagerFlag}),
 			name = elem.styles[i].Name || elem.styles[i].Filter || 'Без имени ' + (i + 1),
-			li = _li([_div([icon, _span([_t(name)],[['css','marginLeft','3px']])])]);
+            iconSpan = _span([icon]),
+			li = _li([_div([iconSpan, _span([_t(name)],[['css','marginLeft','3px']])])]);
+            
+        $(iconSpan).attr('styleType', $(icon).attr('styleType'));
 		
 		if (!layerManagerFlag)
 		{ 
 			(function(i)
 			{
-				icon.onclick = function()
+				iconSpan.onclick = function()
 				{
 					_mapHelper.createLayerEditor(multiStyleParent.parentNode, 1, i);
 				}
