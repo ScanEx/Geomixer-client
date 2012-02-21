@@ -128,61 +128,6 @@ var createMenu = function()
 	
 	var services = [];
 	
-	if (typeof useCatalog != 'undefined' && useCatalog)
-	{
-		var catalogTab = function()
-		{
-		}
-		
-		catalogTab.prototype = new leftMenu();
-		
-		catalogTab.prototype.load = function(params)
-		{
-		    if (!this.builded)
-		    {
-		    	var _this = this;
-		    	
-				$.getScript((window.mapHostName ? ("http://" + window.mapHostName + "/api/catalog/") : parseUri(window.location.href).directory + "catalog/") + 'js/CatalogPageController.js', function()
-				{
-					window.pageController = new CatalogPageController({
-				        View: _this.workCanvas,
-				        Map: globalFlashMap,
-				        TreeView: null,
-				        Params: params
-				    });
-				});
-				
-				this.builded = true;
-			}
-		}
-		
-		window._catalogTab = new catalogTab();
-		
-		window.closeCatalog = function(){}
-		window.reloadCatalog = function(){}
-		window.unloadCatalog = function(){}
-		
-		window.catalogTabPage = {};
-		catalogTabPage.load = function()
-		{
-		    var alreadyLoaded = _catalogTab.createWorkCanvas(arguments[0], closeCatalog);
-		   
-		    if (!alreadyLoaded)
-		        _catalogTab.load(arguments.length > 1 ? arguments[1]: null)
-		    else
-				reloadCatalog();
-		}
-		catalogTabPage.unload = function()
-		{
-			unloadCatalog()
-		}
-		
-		_translationsHash.hash["rus"]["Поиск снимков"] = "Поиск снимков";
-		_translationsHash.hash["eng"]["Поиск снимков"] = "Search imagery";
-		
-		services.push({id:'searchCatalog', title:_gtxt("Поиск снимков"),onsel:catalogTabPage.load,onunsel:catalogTabPage.unload})
-	}
-	
 	if (typeof useFiresMap != 'undefined' && useFiresMap.hostName && useFiresMap.mapName)
 	{
 		services.push({id:'operative', title:'Оперативный мониторинг', childs:

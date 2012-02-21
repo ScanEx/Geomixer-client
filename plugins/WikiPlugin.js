@@ -150,7 +150,7 @@ var addthis_config = {
 
 var ActiveMessageID = null;
 _mapHelper.customParamsManager.addProvider({
-	name: 'firesWidget2',
+	name: 'WikiPlugin',
 	loadState: function(state) { 
 		if(state) oWiki.showPage(state); 
 	},
