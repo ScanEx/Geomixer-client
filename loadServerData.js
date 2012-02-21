@@ -616,7 +616,7 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 	for (var type in geomsPresent)
 	{
 		var elemCanvas = _div(null, [['css','padding','2px'],['attr','geometryType', type]]),
-			icon = _mapHelper.createStylesEditorIcon([{MinZoom:1,MaxZoom:20,RenderStyle:styles[type]}], type.toLowerCase()),
+			//icon = _mapHelper.createStylesEditorIcon([{MinZoom:1,MaxZoom:20,RenderStyle:styles[type]}], type.toLowerCase()),
 			spanElem = _span(null, [['dir','className','layerfeature']]);
 		
 		if (type == 'POINT')
@@ -626,8 +626,9 @@ queryServerData.prototype.drawGML = function(geometries, url, parentTreeCanvas, 
 		else if (type == 'POLYGON')
 			_(spanElem, [_t(_gtxt('многоугольники'))]);
 		
+        var icon;
 		(function(type){
-			_mapHelper.createWFSStylesEditor(parent[type], styles[type], icon, type.toLowerCase(), divCanvas)
+			icon = _mapHelper.createWFSStylesEditor(parent[type], styles[type], type.toLowerCase(), divCanvas)
 		})(type);
 		
 		if (typeof loadLayerParams != 'undefined' && loadLayerParams[type.toLowerCase()])

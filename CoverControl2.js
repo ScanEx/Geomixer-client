@@ -178,6 +178,8 @@ CoverControl2.prototype.init = function(coverLayersDescription, cloudsAttribute,
 
 CoverControl2.prototype.fixLayers = function()
 {
+    if (typeof _mapHelper == 'undefined') return;
+    
 	for (var i = 0; i < this.coverLayers.length; ++i)
 	{
 		var layerId = globalFlashMap.layers[this.coverLayers[i]].properties.LayerID,
@@ -188,9 +190,8 @@ CoverControl2.prototype.fixLayers = function()
 		
 		$(div[0]).children("[multiStyle]").hide();
 		
-		if (typeof _mapHelper == 'undefined') continue;
-		
-		if ($(div[0]).children("[styleType='multi']").length) {
+		if ($(div[0]).children("[styleType='multi']").length) 
+        {
 			var icon = nsGmx.Controls.createGeometryIcon(globalFlashMap.layers[this.coverLayers[i]].properties.styles[0], "polygon");
 				
 			if ($.browser.msie)
@@ -204,12 +205,13 @@ CoverControl2.prototype.fixLayers = function()
 			
 			icon.geometryType = "polygon";
 			
-			icon.onclick = function()
-			{
-				_mapHelper.createLayerEditor(this.parentNode, 1, -1);
-			}
+			// icon.onclick = function()
+			// {
+				// _mapHelper.createLayerEditor(this.parentNode, 1, -1);
+			// }
 			
-			$(div[0]).children("[styleType='multi']").replaceWith(icon);
+			//$(div[0]).children("[styleType='multi']").replaceWith(icon);
+            $(div[0]).children("[styleType='multi']").empty().append(icon);
 		}
 	}
 }
