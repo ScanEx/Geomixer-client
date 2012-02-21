@@ -108,6 +108,7 @@ class PolygonGeometry extends Geometry
 				else
 					drawer.lineTo(x, y);
 			}
+			drawer = null;
 		}		
 
 		graphics.endFill();
