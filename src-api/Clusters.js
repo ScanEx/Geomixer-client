@@ -1,6 +1,14 @@
 //Управление клиентской кластеризацией 
 (function()
 {
+	var chkAttr = function(data)
+	{
+		if(!data['RenderStyle']) data['RenderStyle'] = RenderStyle;
+		if(!data['HoverStyle']) data['HoverStyle'] = HoverStyle;
+		if(!data['clusterView']) data['clusterView'] = {};
+		return data;
+	}
+
 	var Clusters =	function(parent)		// атрибуты кластеризации потомков
 	{
 		this._parent = parent;
@@ -39,7 +47,6 @@
 				}
 			}
 		);
-		
 	};
 	Clusters.prototype = {
 		'_chkToFlash':	function() {
@@ -63,6 +70,6 @@
     gmxAPI._Clusters = Clusters;
 	
 	//расширяем FlashMapObject
-	gmxAPI.extendFMO('setClusters', function(attr) { var ph = (attr ? attr : this.clusters._attr); return gmxAPI._cmdProxy('setClusters', { 'obj': this, 'attr':ph }); });
+	gmxAPI.extendFMO('setClusters', function(attr) { var ph = (attr ? chkAttr(attr) : this.clusters._attr); return gmxAPI._cmdProxy('setClusters', { 'obj': this, 'attr': ph }); });
 	gmxAPI.extendFMO('delClusters', function(attr) { return gmxAPI._cmdProxy('delClusters', { 'obj': this }); });
 })();
