@@ -1938,8 +1938,7 @@ FlashMapObject.prototype.remove = function()
 		// чистка mapNodes
 		for(id in this.childsID) {
 			var pObj = gmxAPI.mapNodes[id];
-			pObj.remove();
-			var tt = 1;
+			if(pObj) pObj.remove();
 		}
 
 		gmxAPI._cmdProxy('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект

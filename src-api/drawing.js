@@ -68,7 +68,10 @@
 			getCenter: function() { return gmxAPI.geoCenter(this.geometry); },
 			setStyle: function(regularStyle, hoveredStyle) { ret.setStyle(regularStyle, hoveredStyle); },
 			getVisibleStyle: function() { return ret.getVisibleStyle(); },
-			getStyle: function(removeDefaults) { return ret.getStyle(removeDefaults); }
+			getStyle: function(removeDefaults) { return ret.getStyle(removeDefaults); },
+			stateListeners: {},
+			addMapStateListener: function(eventName, func) { return gmxAPI._listeners.addMapStateListener(this, eventName, func); },
+			removeMapStateListener: function(eventName, id)	{ return gmxAPI._listeners.removeMapStateListener(this, eventName, id); }
 		}
 		ret.domObj = objects[myId];
 		return objects[myId];
@@ -115,6 +118,7 @@
 			if (obj)
 			{
 				gmxAPI._listeners.dispatchEvent('onRemove', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);
 				obj.remove();
 				if(balloon) balloon.remove();
 				domObj.removeInternal();
@@ -202,6 +206,7 @@
 			var dragCallback = function(x, y)
 			{
 				position(x + startDx, y + startDy);
+				gmxAPI._listeners.dispatchEvent('onEdit', domObj, domObj);
 				gmxAPI._listeners.dispatchEvent('onEdit', gmxAPI.map.drawing, domObj);
 			}
 			var downCallback = function(x, y)
@@ -333,6 +338,7 @@
 				updateText();
 			}
 			gmxAPI._listeners.dispatchEvent('onAdd', gmxAPI.map.drawing, domObj);
+			gmxAPI._listeners.dispatchEvent('onAdd', domObj, domObj);
 
 			ret.setVisible(ret.isVisible);
 		}
@@ -355,6 +361,7 @@
 		else
 			done(coords[0], coords[1]);
 
+		domObj.objectId = obj.objectId;
 		return ret;
 	}
 
@@ -384,6 +391,7 @@
 				propsBalloon.updatePropsBalloon(st);
 			}
 			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
+			gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
 		}
 		
 		obj.setHandlers({
@@ -401,6 +409,7 @@
 			{
 				callOnChange();
 				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
 				toolsContainer.selectTool("move");
 			},
 			onRemove: function()
@@ -447,6 +456,7 @@
 			obj.remove();
 			if (domObj) {
 				gmxAPI._listeners.dispatchEvent('onRemove', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);
 				domObj.removeInternal();
 			}
 		}
@@ -489,6 +499,7 @@
 			obj.startDrawing("LINESTRING");
 		}
 
+		domObj.objectId = obj.objectId;
 		return ret;
 	}
 
@@ -522,6 +533,7 @@
 				propsBalloon.updatePropsBalloon(st);
 			}
 			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
+			gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
 		}
 
 		obj.setHandlers({
@@ -538,6 +550,7 @@
 			onFinish: function()
 			{
 				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
 				toolsContainer.selectTool("move");
 			},
 			onRemove: function()
@@ -580,6 +593,7 @@
 			obj.remove();
 			if (domObj) {
 				gmxAPI._listeners.dispatchEvent('onRemove', gmxAPI.map.drawing, domObj);
+				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);
 				domObj.removeInternal();
 			}
 		}
@@ -629,6 +643,7 @@
 			obj.startDrawing("POLYGON");
 		}
 
+		domObj.objectId = obj.objectId;
 		return ret;
 	}
 	drawFunctions.FRAME = function(coords, props)
@@ -689,6 +704,7 @@
 		var chkEvent = function()
 		{
 			gmxAPI._listeners.dispatchEvent(eventType, gmxAPI.map.drawing, domObj);
+			gmxAPI._listeners.dispatchEvent(eventType, domObj, domObj);
 		}
 
 		function getGeometryTitleMerc(geom)
@@ -875,6 +891,7 @@
 			);
 		}
 
+		domObj.objectId = obj.objectId;
 		return ret;
 	}
 
