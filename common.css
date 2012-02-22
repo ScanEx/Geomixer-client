@@ -911,6 +911,11 @@ div.layersScroll
 	border:none;
 }
 
+.fillColorOpacity
+{
+    margin-left: 9px;
+}
+
 .fillStyleControls #patternStyleSelector
 {
 	width: 100%;
@@ -1076,6 +1081,24 @@ div.layersScroll
 .uiw-inactive
 {
     color: #bbbbbb;
+}
+
+.clusterStyleControl {
+    border-color: #bbbbbb;
+    border-style: solid;
+    border-width: 1px;
+    padding-left: 6px;
+    margin-left: -6px;
+}
+
+.clusterViewContainer td
+{
+    margin: 1px;
+}
+
+.clusterViewContainer input
+{
+    width: 30px;
 }
 
 /*.attrTableBody #attrTable2TableParent th, .attrTableBody #attrTable2TableParent td
