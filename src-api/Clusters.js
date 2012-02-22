@@ -1,19 +1,11 @@
 //Управление клиентской кластеризацией 
 (function()
 {
-	var chkAttr = function(data)
-	{
-		if(!data['RenderStyle']) data['RenderStyle'] = RenderStyle;
-		if(!data['HoverStyle']) data['HoverStyle'] = HoverStyle;
-		if(!data['clusterView']) data['clusterView'] = {};
-		return data;
-	}
-
 	var Clusters =	function(parent)		// атрибуты кластеризации потомков
 	{
 		this._parent = parent;
-
-		var countKeyName = gmxAPI.KOSMOSNIMKI_LOCALIZED("Количество", "Count")
+        
+		var countKeyName = gmxAPI.KOSMOSNIMKI_LOCALIZED("Количество", "Count");
 		var RenderStyle = {		// стили кластеров
 			marker: { image: 'http://images.kosmosnimki.ru/clusters/cluster_circ.png', center: true, minScale: 0.5, maxScale: 2, scale: '['+countKeyName+']/50' },
 			label: { size: 12, align:'center', color: 0xff00ff, haloColor: 0xffffff, value:'[Метка]', field: countKeyName }
@@ -22,6 +14,14 @@
 			marker: { image: 'http://images.kosmosnimki.ru/clusters/cluster_circ_hov.png', center: true, minScale: 0.5, maxScale: 2, scale: '['+countKeyName+']/50' },
 			label: { size: 12, align:'center', color: 0xff0000, haloColor: 0xffffff, value:'[Метка]', field: countKeyName }
 		};
+        
+        this._chkAttr = function(data)
+        {
+            if(!data['RenderStyle']) data['RenderStyle'] = RenderStyle;
+            if(!data['HoverStyle']) data['HoverStyle'] = HoverStyle;
+            if(!data['clusterView']) data['clusterView'] = {};
+            return data;
+        }
 
 		var newProperties = {						// Заполняемые поля properties кластеров
 		};
@@ -70,6 +70,6 @@
     gmxAPI._Clusters = Clusters;
 	
 	//расширяем FlashMapObject
-	gmxAPI.extendFMO('setClusters', function(attr) { var ph = (attr ? chkAttr(attr) : this.clusters._attr); return gmxAPI._cmdProxy('setClusters', { 'obj': this, 'attr': ph }); });
+	gmxAPI.extendFMO('setClusters', function(attr) { var ph = (attr ? this.clusters._chkAttr(attr) : this.clusters._attr); return gmxAPI._cmdProxy('setClusters', { 'obj': this, 'attr': ph }); });
 	gmxAPI.extendFMO('delClusters', function() { return gmxAPI._cmdProxy('delClusters', { 'obj': this }); });
 })();

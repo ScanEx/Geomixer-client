@@ -1494,13 +1494,10 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
                 
         if (clusterControl.isApplyCLuster())
         {
-            console.log('set clusters');
-            console.log(clusterControl.getClusterStyle());
             filter.setClusters(clusterControl.getClusterStyle());
         }
         else
         {
-            console.log('del clusters');
             filter.delClusters();
         }
     })
