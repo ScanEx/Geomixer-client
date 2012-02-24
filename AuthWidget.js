@@ -190,7 +190,7 @@ var nsGmx = nsGmx || {};
             return;
             
         var isMapsSite = typeof mapsSite != 'undefined' && mapsSite;
-        var dialogHeight = isMapsSite ? 180 : 135;
+        var dialogHeight = isMapsSite ? 190 : 135;
         
         var loginInput = _input(null, [['dir','className','inputStyle'],['css','width','160px']]),
             passwordInput = _input(null, [['dir','className','inputStyle'],['css','width','160px'],['attr','type','password']]),
@@ -232,13 +232,13 @@ var nsGmx = nsGmx || {};
                 }
                 else
                 {
-                    if (response.Status === 'auth' && ('Result' in response) && response.Result.ClassName === 'System.ArgumentException')
+                    if (response.Status === 'auth' && ('Result' in response) && ('ExceptionType' in response.Result) && response.Result.ExceptionType.indexOf('System.ArgumentException') == 0)
                     {
                         var errorDiv = $("<div/>", {'class': 'EmailErrorMessage'}).text(response.Result.Message);
                         $(loginButton).after(errorDiv);
                         setTimeout(function(){
                             errorDiv.hide(500, function(){ errorDiv.remove(); });
-                        }, 4000)
+                        }, 8000)
                     }
                     failureHandler();
                 }
