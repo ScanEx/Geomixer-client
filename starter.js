@@ -41,7 +41,11 @@ parseUri.options = {
 	}
 };
 
+if (!window.mapHostName && window.gmxJSHost)
+    window.mapHostName = /http:\/\/(.*)\/api\//.exec(window.gmxJSHost)[1];
+    
 var _mapHostName = window.mapHostName ? "http://" + window.mapHostName + "/api/" : parseUri(window.location.href).directory;
+
 var _serverBase = window.serverBase || /(.*)\/[^\/]*\//.exec(_mapHostName)[1] + '/';
 
 //подставляет к локальному имени файла хост (window.gmxJSHost) и, опционально, рандомное поле для сброса кэша (window.gmxDropBrowserCache)
