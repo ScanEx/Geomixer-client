@@ -32,6 +32,7 @@ class VectorTilePainter
 		rasterSprite.name = 'r' + sprite.name;
 		vectorSprite.name = 'v' + sprite.name;
 		oldStyleID = 0;
+		cacheSprite = new Sprite();
 	}
 
 	public function remove()
@@ -69,7 +70,6 @@ class VectorTilePainter
 			}
 		}
 
-		//tileOverlap = mapWindow.visibleExtent.overlapsFull(painter.geometry.extent);	// Полное перекрытие геометрий
 		var repaintCache:Bool = false;
 		if ((style != null && style.curCount != oldStyleID) || oldZ != currentZ)
 		{
@@ -80,12 +80,7 @@ class VectorTilePainter
 
 		if (tileOverlap)
 		{
-			if (cacheSprite == null)
-			{
-				cacheSprite = new Sprite();
-				//cacheSprite.cacheAsBitmap = true;
-			}
-			if (repaintCache) {
+			if (repaintCache || cacheSprite.width == 0 || cacheSprite.height == 0) {
 				cacheSprite.graphics.clear();
 				painter.repaintWithoutExtent(style, cacheSprite, vectorLayerFilter.layer.temporalCriterion);
 			}
@@ -96,7 +91,6 @@ class VectorTilePainter
 		}
 		else
 		{
-			//trace('ddddddddddddddd ' + sprite.name);
 			painter.repaint(style, vectorLayerFilter.layer.temporalCriterion);
 			if(rasterSprite.visible) rasterSprite.visible = false;
 			if(!vectorSprite.visible) vectorSprite.visible = true;

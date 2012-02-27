@@ -51,7 +51,7 @@
 				break;
 			case 'delClusters':		// Удалить кластеризацию потомков
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
-				if('clusters' in obj) obj['clusters']['attr']['visible'] = false;
+				if('clusters' in obj && obj['clusters']['attr']) obj['clusters']['attr']['visible'] = false;
 				break;
 			case 'setGridVisible':		// Изменить видимость сетки
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'flag':attr } );

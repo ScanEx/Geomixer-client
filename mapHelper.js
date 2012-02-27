@@ -1486,7 +1486,29 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
         liClusters = _li([_div()],[['css','paddingLeft','0px'],['css','background','none']]),
 		ulClusters = _ul([liClusters]);
         
-        var clusterControl = new nsGmx.ClusterParamsControl(liClusters);
+    var clusterControl = new nsGmx.ClusterParamsControl(liClusters);
+    $(clusterControl).change(function()
+    {
+        var filterNum = getOwnChildNumber(ulParent.parentNode.parentNode.parentNode),
+				filter = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters[filterNum];
+                
+        if (clusterControl.isApplyCLuster())
+        {
+            filter.setClusters(clusterControl.getClusterStyle());
+        }
+        else
+        {
+            filter.delClusters();
+        }
+    })
+    
+    var clusterCheckbox = _checkbox(false, 'checkbox');
+    clusterCheckbox.style.marginTop = '2px';
+    clusterCheckbox.onchange = function()
+    {
+        clusterControl.applyClusters(this.checked);
+    }
+        
 	// zoom
 	$(zoomPropertiesControl).change(function()
     {
@@ -1621,14 +1643,14 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	}
 	
 	// common
-	
+    
 	_(ulParent, [
         liMinZoom, liMaxZoom, 
         _li([_div([_span([_t(_gtxt("Фильтр"))],[['css','fontSize','12px']])]), ulfilterExpr]),
         _li([_div([_span([_t(_gtxt("Подпись"))],[['css','fontSize','12px']])]), ulLabel]), 
         _li([_div([_span([_t(_gtxt("Балун"))],[['css','fontSize','12px']])]), ulBalloon]),
         _li([_div([_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']])]), ulStyle]),
-        _li([_div([_span([_t(_gtxt("Кластеризация"))],[['css','fontSize','12px']])]), ulClusters])
+        _li([_div([clusterCheckbox, _span([_t(_gtxt("Кластеризация"))],[['css','fontSize','12px'], ['css', 'marginLeft', '4px']])]), ulClusters])
     ]);
 	
 	if (treeviewFlag)
@@ -1772,7 +1794,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
         .append(patternIcon)
         .append(patternURLIcon);
         
-	selectorDiv.append($("<span>Заливка</span><br/>"));
+	selectorDiv.append($("<span/>").text(_gtxt("Заливка"))).append($("<br/>"));
     
     if (_params.showSelectors)
         selectorDiv.append(selectorIconsDiv);
@@ -1819,7 +1841,7 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 		
 	colorContainer.append($("<table/>").append($("<tr/>")
 		.append($("<td/>").append(fillColorPicker))
-		.append($("<td/>").append(fillOpacitySlider))
+		.append($("<td/>", {'class': 'fillColorOpacity'}).append(fillOpacitySlider))
 	));
 	
 	//выбор внешнего паттерна
@@ -2071,6 +2093,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 		_this.hideStyle(outlineParent);
 		_this.hideStyle(fillParent);
         fillStyleControl.setVisibleSelectors(false);
+        fillParent.style.display = 'none';
 		_this.showStyle(iconParent);
 		
 		templateStyle.marker = {};
@@ -2096,6 +2119,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 				templateStyle.marker.color = $(iconParent).find(".colorSelector")[0].hex;				
 			}
             _this.hideStyle(markerSizeParent);
+            markerSizeParent.style.display = 'none';
 		}
 		
 		if (geometryType != "linestring")
@@ -2110,10 +2134,12 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 	{
 		_this.showStyle(outlineParent);
         _this.showStyle(markerSizeParent);
+        markerSizeParent.style.display = '';
 		_this.hideStyle(iconParent);
 		
 		if (geometryType != "linestring")
 		{
+            fillParent.style.display = '';
 			if (fillToggle.checked)
             {
 				_this.showStyle(fillParent);

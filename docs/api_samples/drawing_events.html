@@ -1,0 +1,87 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<script src="http://mapstest.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+
+<title>GeoMixer API - примеры использования</title>
+</head>
+
+<body>
+<button id="button2">События</button><button id="button1">Удаление Событий</button><button id="button3">Удаление обьекта</button><span id="cmdHash1" class="bodytext"></span><span id="cmdHash2" class="bodytext"></span>
+
+<div id="map" style="width: 800px; height: 600px;"></div> <!--задаем контейнер, в который загружается карта -->
+<br/>
+<br/>
+
+ <script>
+      createFlashMap(document.getElementById("map"), function(map) {
+
+	   map.moveTo(134.16369, 45.711663, 9);
+	   var tObj = map.drawing.addObject({ type: "POINT", coordinates: [134.16369, 45.711663]}); //добавляет точечный объект (маркер) на карту
+	   var tObj2 = map.drawing.addObject({ type: "POINT", coordinates: [134.56369, 45.711663]}); //добавляет точечный объект (маркер) на карту
+	   var tObj3 = 	map.drawing.addObject({	type: "POLYGON", coordinates: 
+			[[[134.06617, 45.75344],
+				[134.106, 45.61484],
+				[134.31062, 45.62736],
+				[134.32023, 45.74191],
+				[134.21998, 45.85813],
+				[134.06617, 45.75344]]]}
+		); // рисуем полигональный пользовательский объект
+
+		
+		var tObj4 = map.drawing.addObject({
+			type: "LINESTRING", coordinates: 
+			[[133.99339, 45.65337],[134.04419, 45.80725],[134.17877, 45.84854]]}
+		); // рисуем линию
+
+		var test11 = function(obj)
+		{
+			var st = obj.objectId;
+			document.getElementById("cmdHash1").innerHTML = 'Обьект: ' + st + ' удален';
+		}
+		var test = function(obj)
+		{
+			var st = obj.objectId;
+			document.getElementById("cmdHash1").innerHTML = st;
+		}
+
+		var test2 = function(obj)
+		{
+			var st = obj.objectId;
+			document.getElementById("cmdHash2").innerHTML = st;
+		}
+
+	   var listID1 = 0;
+	   var listID11 = 0;
+	   var listID2 = 0;
+	   var listID3 = 0;
+	   var listID4 = 0;
+	   document.getElementById("button2").onclick = function()
+		{
+			var tt = tObj;
+			listID1 = tObj.addMapStateListener('onEdit', test);
+			listID11 = tObj.addMapStateListener('onRemove', test11);
+			
+			listID2 = tObj2.addMapStateListener('onEdit', test2);
+			listID3 = tObj3.addMapStateListener('onEdit', test2);
+			listID4 = tObj4.addMapStateListener('onEdit', test2);
+			var tt = 1;
+		}
+
+	   document.getElementById("button1").onclick = function()
+		{
+			tObj.removeMapStateListener('onEdit', listID1);
+			tObj2.removeMapStateListener('onEdit', listID2);
+			document.getElementById("cmdHash1").innerHTML = document.getElementById("cmdHash2").innerHTML = '';
+		}
+		
+
+	   document.getElementById("button3").onclick = function()
+		{
+			tObj.remove();
+		}
+		
+      });
+  </script>
+</body>
+</html>

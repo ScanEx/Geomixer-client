@@ -1357,15 +1357,19 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'getPatternIcon':		// base64-иконка по FillStyle
 					var size = (attr.data.size != null ? attr.data.size : 32);
 					var style:Dynamic = (attr.data.style != null && attr.data.style.fill != null ? attr.data.style.fill : {});
-					if (style.pattern != null && (style.pattern.style == 'diagonal1' || style.pattern.style == 'diagonal2')) {
-						style.pattern.style = (style.pattern.style == 'diagonal2' ? 'diagonal1':'diagonal2');
+					if (style.pattern != null) {
+						if (style.pattern.style == 'diagonal1' || style.pattern.style == 'diagonal2') {
+							style.pattern.style = (style.pattern.style == 'diagonal2' ? 'diagonal1':'diagonal2');
+						} else if (style.pattern.style == 'cross' || style.pattern.style == 'cross1') {
+							style.pattern.style = (style.pattern.style == 'cross1' ? 'cross':'cross1');
+						}
 					}
 
 					var fillStyle:FillStyle = new FillStyle(style);
 					var data:BitmapData = fillStyle.getBitmapData();
 					if(data != null) {
 						var inv = mapWindow.matrix.clone();
-						inv.invert();
+						//inv.invert();
 						var scale = Math.abs(inv.a);
 						inv.scale(size / (scale*data.width), size / (scale*data.height));
 						inv.tx = 0;
