@@ -14,97 +14,154 @@
 		return {'minZoom': minZoom, 'maxZoom': maxZoom};
 	}
 
-	function reSetStyles(styles, obj)
+	// Подготовка атрибутов фильтра стилей 
+	function getFilterAttr(style)
 	{
-		for (var i = 0; i < styles.length; i++)
+		// Получение стилей фильтра
+		var regularStyle = {};
+		if (typeof style.StyleJSON != 'undefined')
+			regularStyle = style.StyleJSON;
+		else if (typeof style.RenderStyle != 'undefined')
+			regularStyle = style.RenderStyle;
+		else
 		{
-			var style = styles[i];
-			var givenStyle = {};
-			if (typeof style.StyleJSON != 'undefined')
-				givenStyle = style.StyleJSON;
-			else if (typeof style.RenderStyle != 'undefined')
-				givenStyle = style.RenderStyle;
+			if (style.PointSize)
+				regularStyle.marker = { size: parseInt(style.PointSize) };
+			if (style.Icon)
+			{
+				var src = (style.Icon.indexOf("http://") != -1) ?
+					style.Icon :
+					(baseAddress + "/" + style.Icon);
+				regularStyle.marker = { image: src, "center": true };
+			}
+			if (style.BorderColor || style.BorderWidth)
+				regularStyle.outline = {
+					color: gmxAPI.parseColor(style.BorderColor),
+					thickness: parseInt(style.BorderWidth || "1"),
+					opacity: (style.BorderWidth == "0" ? 0 : 100)
+				};
+			if (style.FillColor)
+				regularStyle.fill = {
+					color: gmxAPI.parseColor(style.FillColor),
+					opacity: 100 - parseInt(style.Transparency || "0")
+				};
+
+			var label = style.label || style.Label;
+			if (label)
+			{
+				regularStyle.label = {
+					field: label.FieldName,
+					color: gmxAPI.parseColor(label.FontColor),
+					size: parseInt(label.FontSize || "12")
+				};
+			}
+		}
+
+		if (regularStyle.marker)
+			regularStyle.marker.center = true;
+
+		var hoveredStyle = JSON.parse(JSON.stringify(regularStyle));
+		if (hoveredStyle.marker && hoveredStyle.marker.size)
+			hoveredStyle.marker.size += 1;
+		if (hoveredStyle.outline)
+			hoveredStyle.outline.thickness += 1;
+
+		// Получение sql строки фильтра
+		var name = '';
+		var sql = '';
+		if (style.Filter)
+		{
+			if (/^\s*\[/.test(style.Filter))
+			{
+				var a = style.Filter.match(/^\s*\[([a-zA-Z0-9_]+)\]\s*([<>=]=?)\s*(.*)$/);
+				if (a && (a.length == 4))
+				{
+					sql = a[1] + " " + a[2] + " '" + a[3] + "'";
+				}
+			}
 			else
 			{
-				if (style.PointSize)
-					givenStyle.marker = { size: parseInt(style.PointSize) };
-				if (style.Icon)
-				{
-					var src = (style.Icon.indexOf("http://") != -1) ?
-						style.Icon :
-						(baseAddress + "/" + style.Icon);
-					givenStyle.marker = { image: src, "center": true };
-				}
-				if (style.BorderColor || style.BorderWidth)
-					givenStyle.outline = {
-						color: gmxAPI.parseColor(style.BorderColor),
-						thickness: parseInt(style.BorderWidth || "1"),
-						opacity: (style.BorderWidth == "0" ? 0 : 100)
-					};
-				if (style.FillColor)
-					givenStyle.fill = {
-						color: gmxAPI.parseColor(style.FillColor),
-						opacity: 100 - parseInt(style.Transparency || "0")
-					};
-
-				var label = style.label || style.Label;
-				if (label)
-				{
-					givenStyle.label = {
-						field: label.FieldName,
-						color: gmxAPI.parseColor(label.FontColor),
-						size: parseInt(label.FontSize || "12")
-					};
-				}
+				sql = style.Filter;
 			}
-
-			if (givenStyle.marker)
-				givenStyle.marker.center = true;
-
-			var hoveredStyle = JSON.parse(JSON.stringify(givenStyle));
-			if (hoveredStyle.marker && hoveredStyle.marker.size)
-				hoveredStyle.marker.size += 1;
-			if (hoveredStyle.outline)
-				hoveredStyle.outline.thickness += 1;
-
-			var filter = obj.addObject();
-			var filterSet = false;
-			if (style.Filter)
-			{
-				if (/^\s*\[/.test(style.Filter))
-				{
-					var a = style.Filter.match(/^\s*\[([a-zA-Z0-9_]+)\]\s*([<>=]=?)\s*(.*)$/);
-					if (a && (a.length == 4))
-					{
-						filter.setFilter(a[1] + " " + a[2] + " '" + a[3] + "'");
-						filterSet = true;
-					}
-				}
-				else
-				{
-					filter.setFilter(style.Filter);
-					filterSet = true;
-				}
-			}
-			if (!filterSet)
-				filter.setFilter();
-
-			filter.getPatternIcon = function(size)
-			{
-                var ph = filter.getStyle(true);
-				return gmxAPI.getPatternIcon(ph['regular'], size);
-			}
-				
-			filter.setZoomBounds(style.MinZoom, style.MaxZoom);
-			filter.setStyle(givenStyle, hoveredStyle);
-			
-			var filterOld = obj.filters[i];
-			gmxAPI._listeners.dispatchEvent('reSetStyles', gmxAPI.map, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка map Listeners на reSetStyles
-			gmxAPI._listeners.dispatchEvent('reSetStyles', filterOld, {'filter': filter, 'style':style, 'filterOld':filterOld} );	// Проверка filterOld Listeners на reSetStyles
-			obj.filters[i] = filter;
+			if (style.Filter.Name) name = style.Filter.Name;	// имя фильтра - для map.layers в виде хэша
 		}
+		var out = {
+			'name': name,
+			'BalloonEnable': style.BalloonEnable,
+			'DisableBalloonOnClick': style.DisableBalloonOnClick,
+			'DisableBalloonOnMouseMove': style.DisableBalloonOnMouseMove,
+			'regularStyle': regularStyle,
+			'hoveredStyle': hoveredStyle,
+			'MinZoom': style.MinZoom,
+			'MaxZoom': style.MaxZoom,
+			'style': style,
+			'sql': sql
+		};
+		if(style.Balloon) out['Balloon'] = style.Balloon;
+		return out;
 	}
 
+	// Инициализация фильтра
+	var initFilter = function(prnt, num)
+	{
+		var filter = prnt.filters[num];
+		var obj_ = prnt.addObject();
+		filter.objectId = obj_.objectId;
+
+		var attr = filter._attr;
+		filter.setFilter(attr['sql']);
+
+		filter.getPatternIcon = function(size)
+		{
+			var ph = filter.getStyle(true);
+			return gmxAPI.getPatternIcon(ph['regular'], size);
+		}
+			
+		filter.setZoomBounds(attr['MinZoom'], attr['MaxZoom']);
+		filter.setStyle(attr['regularStyle'], attr['hoveredStyle']);
+		filter['_attr'] = attr;
+
+		gmxAPI._listeners.dispatchEvent('initFilter', gmxAPI.map, {'filter': filter} );	// Проверка map Listeners на reSetStyles - для балунов
+		prnt.filters[num] = filter;
+		return filter;
+	}
+
+	// Добавление фильтра
+	var addFilter = function(prnt, attr)
+	{
+		var filter = new gmxAPI._FMO(false, {}, prnt);	// MapObject для фильтра
+		var num = prnt.filters.length;					// Номер фильтра в массиве фильтров
+		var lastFilter = (num > 0 ? prnt.filters[num - 1] : null);	// Последний существующий фильтр
+		if(!attr) {
+			attr = gmxAPI.clone(lastFilter['_attr']);
+		}
+		if(!attr['MinZoom']) attr['MinZoom'] = 1;
+		if(!attr['MaxZoom']) attr['MaxZoom'] = 21;
+
+		filter['_attr'] = attr;
+		prnt.filters.push(filter);
+		if (attr['name'])
+			prnt.filters[attr.name] = filter;
+		
+		gmxAPI._listeners.dispatchEvent('addFilter', prnt, {'filter': filter} );			// Listeners на слое - произошло добавление фильтра
+		if(prnt.objectId) filter = initFilter(prnt, num);	// если слой виден - инициализация фильтра
+		
+		// Удаление фильтра
+		filter.remove = function()
+		{
+			var ret = gmxAPI._FMO.prototype.remove.call(this);
+			if(prnt.filters[attr.name]) delete prnt.filters[attr.name];
+			for(var i=0; i<prnt.filters.length; i++) {
+				if(this == prnt.filters[i]) {
+					prnt.filters.splice(i, 1);
+					break;
+				}
+			}
+		}
+		return filter;
+	}
+
+	// Добавление слоя
 	var addLayer = function(parentObj, layer, isVisible)
 	{
 		var FlashMapObject = gmxAPI._FMO;
@@ -168,14 +225,14 @@
 		obj.filters = [];
 		if (!isRaster)
 		{
+			// Добавление начальных фильтров
 			for (var i = 0; i < layer.properties.styles.length; i++)
 			{
-				var tmp = new gmxAPI._FMO(false, {}, parentObj);	// MapObject для фильтров
-				obj.filters.push(tmp);
 				var style = layer.properties.styles[i];
-				if (style.Filter && style.Filter.Name)
-					obj.filters[style.Filter.Name] = tmp;
+				var attr = getFilterAttr(style);
+				addFilter(obj, attr);
 			}
+			obj.addFilter = function(attr) { return addFilter(obj, attr); };
 		}
 
 		var baseAddress = "http://" + layer.properties.hostName + "/";
@@ -246,7 +303,7 @@
 		var deferredMethodNames = [
 			'getChildren', 'getItemsFromExtent', 'getTileItem', 'setTileItem',
 			'getDepth', 'getZoomBounds', 'getVisibility', 'getStyle', 'getIntermediateLength',
-			'getCurrentEdgeLength', 'getLength', 'getArea', 'getGeometryType', 'getStat', 'flip', 
+			'getCurrentEdgeLength', 'getLength', 'getArea', 'getGeometryType', 'getStat', 'flip',
 			'setZoomBounds', 'setBackgroundTiles', 'startLoadTiles', 'setVectorTiles', 'setTiles', 'setTileCaching',
 			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'bringToBottom',
 			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
@@ -357,15 +414,10 @@
 						obj.filters[i].setStyle(style, activeStyle);
 				}
 
-				reSetStyles(layer.properties.styles, obj);
-				obj.reSetStyles =  function(styles)
-				{
-					for (var i = 0; i < obj.filters.length; i++) {
-						obj.filters[i].remove();
-					}
-					obj.filters = [];
-					reSetStyles(styles, obj);
+				for (var i = 0; i < obj.filters.length; i++) {
+					obj.filters[i] = initFilter(obj, i);
 				}
+
 				// Изменить атрибуты векторного обьекта из загруженных тайлов
 				obj.setTileItem = function(data, flag) {
 					var _obj = gmxAPI._cmdProxy('setTileItem', { 'obj': this, 'attr': {'data':data, 'flag':(flag ? true:false)} });
@@ -436,6 +488,7 @@
 					for (var i = 0; i < deferred.length; i++) {
 						deferred[i]();
 					}
+					gmxAPI._listeners.dispatchEvent('onLayer', obj, obj);	// Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
 				}
 			}
 

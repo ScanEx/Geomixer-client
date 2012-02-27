@@ -747,9 +747,9 @@
 			gmxAPI._listeners.addMapStateListener(map, 'zoomBy', function()	{ map.balloonClassObject.hideHoverBalloons(true); });
 			gmxAPI._listeners.addMapStateListener(map, 'hideBalloons', function() { map.balloonClassObject.hideHoverBalloons(); });
 			gmxAPI._listeners.addMapStateListener(map, 'clickBalloonFix', function(o) { map.balloonClassObject.clickBalloonFix(o); });
-			gmxAPI._listeners.addMapStateListener(map, 'reSetStyles', function(data)
+			gmxAPI._listeners.addMapStateListener(map, 'initFilter', function(data)
 				{
-					var fullStyle = map.balloonClassObject.applyBalloonDefaultStyle(data['style']);
+					var fullStyle = map.balloonClassObject.applyBalloonDefaultStyle(data['filter']['_attr']);
 					map.balloonClassObject.setBalloonFromParams(data['filter'], fullStyle);
 				}
 			);
