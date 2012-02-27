@@ -1,0 +1,65 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+    
+	<title>Каталог организаций на карте</title>
+</head>
+
+<body>
+    <button id="setVisible">setVisible</button>
+    <button id="addempty">addFilter</button>
+    <button id="delete">Remove added filter</button>
+    <button id="delete1">Remove other filter</button>
+    <span id="res"></span>
+
+<div id="map" style="width: 100%; height: 500px;"></div>
+   
+<script>
+	var myLayer = null;
+	var myFilter = null;
+
+	createFlashMap(document.getElementById("map"), 'mapstest.kosmosnimki.ru', '9ESDN', function(map) {
+		//map.setMinMaxZoom(1, 17);
+		map.moveTo(37.586769, 55.732883, 4);//позиционирует карту по координатам центра и выбирает масштаб
+
+		myLayer = map.layers["RegionsRF83"];
+		var onAddFilter = function(obj)
+		{
+			var st = 'addFilter event: ' + obj.filter;
+			document.getElementById("res").innerHTML = st;
+		}
+		gmxAPI._listeners.addMapStateListener(myLayer, 'addFilter', onAddFilter);
+		
+		document.getElementById("setVisible").onclick = function()
+		{
+			myLayer.setVisible(!myLayer.isVisible);
+		}
+		
+		document.getElementById("delete1").onclick = function()
+		{
+			myLayer.filters[1].remove();
+		}
+		
+		document.getElementById("delete").onclick = function()
+		{
+			if(myFilter) myFilter.remove();
+		}
+		document.getElementById("addempty").onclick = function()
+		{
+			var ph = {
+				'sql': '"ogc_fid" = 35',
+				'regularStyle': {
+					'fill': { color: 0x0000FF, opacity: 100}				
+				}
+			};
+			myFilter = myLayer.addFilter(ph);
+		}
+		
+    });
+	
+</script>
+
+</body>
+</html>

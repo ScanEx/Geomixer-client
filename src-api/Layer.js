@@ -127,6 +127,15 @@
 	}
 
 	// Добавление фильтра
+	// Ключи :
+	// * Balloon: текст баллуна
+	// * BalloonEnable: показывать ли баллун
+	// * DisableBalloonOnClick: не показывать при клике
+	// * DisableBalloonOnMouseMove: не показывать при наведении
+	// * RenderStyle: стиль фильтра
+	// * MinZoom: мин.зум
+	// * MaxZoom: макс.зум
+	// * sql: строка фильтра
 	var addFilter = function(prnt, attr)
 	{
 		var filter = new gmxAPI._FMO(false, {}, prnt);	// MapObject для фильтра
