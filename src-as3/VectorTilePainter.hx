@@ -91,6 +91,7 @@ class VectorTilePainter
 		}
 		else
 		{
+			if (cacheSprite.width > 0) cacheSprite.graphics.clear();
 			painter.repaint(style, vectorLayerFilter.layer.temporalCriterion);
 			if(rasterSprite.visible) rasterSprite.visible = false;
 			if(!vectorSprite.visible) vectorSprite.visible = true;
