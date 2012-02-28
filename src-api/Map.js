@@ -300,8 +300,6 @@
 
 		var drawFunctions = gmxAPI._drawFunctions;
 		map.drawing = gmxAPI._drawing
-		//map.drawing.addMapStateListener = function(eventName, func) { return addMapStateListener(this, eventName, func); }
-		//map.drawing.removeMapStateListener = function(eventName, id){ return removeMapStateListener(this, eventName, id); }
 
 		map.addContextMenuItem = function(text, callback)
 		{

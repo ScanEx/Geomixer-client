@@ -2,7 +2,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	
-	<script src="http://maps.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+	<script src="http://mapstest.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
 	
 	<title>GeoMixer API - Прослушивать событие изменения видимости слоя</title>
 </head>
@@ -19,21 +19,21 @@
 	{
 		map.moveTo(105.506, 61.825, 3);//позиционирует карту по координатам центра и выбирает масштаб
 
-		map.layers['Hybrid_world'].addMapStateListener("onChangeVisible", function(attr) {
+		map.layers['Hybrid_world'].addListener("onChangeVisible", function(attr) {
 				var out = '<br>Видимость слоя Hybrid_world: ' + attr;
 				document.getElementById("cmdHash").innerHTML += out;
 				return;
 			}
 		);
 
-		map.layers['БазоваяКарта'].addMapStateListener("onChangeVisible", function(attr) {
+		map.layers['БазоваяКарта'].addListener("onChangeVisible", function(attr) {
 				var out = '<br>Видимость слоя БазоваяКарта: ' + attr;
 				document.getElementById("cmdHash").innerHTML += out;
 				return;
 			}
 		);
 
-		map.layers['БазовоеПокрытиеАПИ'].addMapStateListener("onChangeVisible", function(attr) {
+		map.layers['БазовоеПокрытиеАПИ'].addListener("onChangeVisible", function(attr) {
 				var out = '<br>Видимость слоя БазовоеПокрытиеАПИ: ' + attr;
 				document.getElementById("cmdHash").innerHTML += out;
 				return;

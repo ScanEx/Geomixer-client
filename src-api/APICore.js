@@ -1438,7 +1438,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		}
 
 		/** Пользовательские Listeners изменений состояния карты
-		* @function addMapStateListener
+		* @function addListener
 		* @memberOf api - добавление прослушивателя
 		* @param {eventName} название события
 		* @param {func} вызываемый метод
@@ -1446,7 +1446,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
 		* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 		*/
-		function addMapStateListener(obj, eventName, func)
+		function addListener(obj, eventName, func)
 		{
 			var arr = getArr(eventName, obj);
 			var id = gmxAPI.newFlashMapId();
@@ -1457,7 +1457,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		}
 
 		/** Пользовательские Listeners изменений состояния карты
-		* @function removeMapStateListener
+		* @function removeListener
 		* @memberOf api - удаление прослушивателя
 		* @param {eventName} название события
 		* @param {id} вызываемый метод
@@ -1465,7 +1465,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
 		* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 		*/
-		function removeMapStateListener(obj, eventName, id)
+		function removeListener(obj, eventName, id)
 		{
 			var arr = getArr(eventName, obj);
 			var out = [];
@@ -1479,8 +1479,8 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		}
 		gmxAPI._listeners = {
 			'dispatchEvent': dispatchEvent,
-			'addMapStateListener': addMapStateListener,
-			'removeMapStateListener': removeMapStateListener
+			'addListener': addListener,
+			'removeListener': removeListener
 		};
 		// End: Блок общих методов не доступных из вне
 	})();
@@ -1798,8 +1798,11 @@ gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;
 gmxAPI._FMO = FlashMapObject;
 
 // Для MapObject
-FlashMapObject.prototype.addMapStateListener = function(eventName, func) { 	return addMapStateListener(this, eventName, func);	}
-FlashMapObject.prototype.removeMapStateListener = function(eventName, id) { return removeMapStateListener(this, eventName, id); }
+FlashMapObject.prototype.addListener = function(eventName, func) { 	return addListener(this, eventName, func);	}
+FlashMapObject.prototype.addMapStateListener = FlashMapObject.prototype.addListener;
+FlashMapObject.prototype.removeListener = function(eventName, id) { return removeListener(this, eventName, id); }
+FlashMapObject.prototype.removeMapStateListener = FlashMapObject.prototype.removeListener;
+
 FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
 FlashMapObject.prototype.bringToBottom = function() { gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
 FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
@@ -2493,8 +2496,8 @@ function createFlashMapInternal(div, layers, callback)
 	//var focusLink = document.createElement("a");
 
 	gmxAPI._dispatchEvent = gmxAPI._listeners.dispatchEvent;
-	addMapStateListener = gmxAPI._listeners.addMapStateListener;
-	removeMapStateListener = gmxAPI._listeners.removeMapStateListener;
+	addListener = gmxAPI._listeners.addListener;
+	removeListener = gmxAPI._listeners.removeListener;
 
 	var loadCallback = function(rootObjectId, type)
 	{ 

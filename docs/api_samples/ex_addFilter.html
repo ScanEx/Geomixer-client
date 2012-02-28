@@ -1,8 +1,7 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-
-    <script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+	<script src="http://mapstest.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
     
 	<title>Каталог организаций на карте</title>
 </head>
@@ -30,7 +29,7 @@
 			var st = 'addFilter event: ' + obj.filter;
 			document.getElementById("res").innerHTML = st;
 		}
-		gmxAPI._listeners.addMapStateListener(myLayer, 'addFilter', onAddFilter);
+		gmxAPI._listeners.addListener(myLayer, 'addFilter', onAddFilter);
 		
 		document.getElementById("setVisible").onclick = function()
 		{

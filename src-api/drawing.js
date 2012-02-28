@@ -70,8 +70,8 @@
 			getVisibleStyle: function() { return ret.getVisibleStyle(); },
 			getStyle: function(removeDefaults) { return ret.getStyle(removeDefaults); },
 			stateListeners: {},
-			addMapStateListener: function(eventName, func) { return gmxAPI._listeners.addMapStateListener(this, eventName, func); },
-			removeMapStateListener: function(eventName, id)	{ return gmxAPI._listeners.removeMapStateListener(this, eventName, id); }
+			addListener: function(eventName, func) { return gmxAPI._listeners.addListener(this, eventName, func); },
+			removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
 		}
 		ret.domObj = objects[myId];
 		return objects[myId];

@@ -46,7 +46,7 @@
 			if(!filter['clusters'] || !filter['clusters']['attr']) return;	// Кластеризация не устанавливалась
 			filter.setClusters(filter['clusters']['attr']);
 		}
-		gmxAPI._listeners.addMapStateListener(parent.parent, 'onLayer', chkFilter); // Отложенная установка кластеризации
+		gmxAPI._listeners.addListener(parent.parent, 'onLayer', chkFilter); // Отложенная установка кластеризации
 
 	};
 	Clusters.prototype = {

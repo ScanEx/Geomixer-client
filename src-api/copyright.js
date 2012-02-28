@@ -143,7 +143,7 @@
 
 		var copyrightUpdateTimeout2 = false;
 		// Добавление прослушивателей событий
-		gmxAPI._listeners.addMapStateListener(gmxAPI.map, 'positionChanged', function(ph)
+		gmxAPI._listeners.addListener(gmxAPI.map, 'positionChanged', function(ph)
 			{
 				if (copyrightUpdateTimeout2)
 					clearTimeout(copyrightUpdateTimeout2);
