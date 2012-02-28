@@ -2584,6 +2584,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
+							'alias': 'map',
 							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map")
 						}
 						,
@@ -2592,6 +2593,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
+							'alias': 'satellite',
 							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite")
 						}
 						,
@@ -2600,6 +2602,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
+							'alias': 'hybrid',
 							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid")
 						}
 					};
@@ -2753,17 +2756,6 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						);
 					}
 
-					var currentMode = false;
-					map.getMode = function()
-					{ 
-						return map.toolsAll.baseLayersTools.activeToolName;
-					}
-					map.setMode = function(mode) 
-					{
-						var name = { map: mapString, satellite: satelliteString, hybrid: hybridString }[mode];
-						map.setBaseLayer(name);
-						map.toolsAll.baseLayersTools.selectTool(name);
-					}
 					if('miniMap' in map) {
 						map.miniMap.setVisible(true);
 						

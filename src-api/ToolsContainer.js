@@ -19,6 +19,7 @@
 	function ToolsContainer(name, attr)
 	{
 		if(!attr) attr = {};
+		var aliasNames = {};		// Hash алиасов основных подложек для map.setMode
 		var toolNames = [];
 		var toolHash = {};
 		var activeToolName = '';
@@ -116,24 +117,26 @@
 			activeToolName = (notSelectedFlag && toolName == oldToolName ? '' : toolName);
 
 			tool = toolHash[toolName];
-			if (contType == 0) {								// для добавляемых юзером меню
-				if (tool.isActive) {
-					if ('onCancel' in tool) tool.onCancel();
-				} else {
-					if ('onClick' in tool) tool.onClick();
-				}
-				tool.repaint();
-			} else if (contType == 1) {							// тип для drawing
-				if ('onClick' in tool) {
-					currentlyDrawnObject = tool.onClick();
+			if(tool) {
+				if (contType == 0) {								// для добавляемых юзером меню
+					if (tool.isActive) {
+						if ('onCancel' in tool) tool.onCancel();
+					} else {
+						if ('onClick' in tool) tool.onClick();
+					}
 					tool.repaint();
-				} else {
-					currentlyDrawnObject = false;
-				}
-			} else if (contType == 2) {							// тип для подложек
-				if ('onClick' in tool && toolName != oldToolName) {
-					tool.onClick();
-					tool.repaint();
+				} else if (contType == 1) {							// тип для drawing
+					if ('onClick' in tool) {
+						currentlyDrawnObject = tool.onClick();
+						tool.repaint();
+					} else {
+						currentlyDrawnObject = false;
+					}
+				} else if (contType == 2) {							// тип для подложек
+					if ('onClick' in tool && toolName != oldToolName) {
+						tool.onClick();
+						tool.repaint();
+					}
 				}
 			}
 		}
@@ -180,6 +183,12 @@
 		}
 		this.chkBaseLayerTool = chkBaseLayerTool;
 
+		function getAlias(tn)
+		{
+			return aliasNames[tn] || tn;
+		}
+		this.getAlias = getAlias;
+
 		function addTool(tn, attr)
 		{
 			var tr = gmxAPI.newElement("tr", {	"className": 'tools_tr_' + name + '_' + tn	});
@@ -192,7 +201,8 @@
 				title: attr['hint'],
 				onclick: function() { selectTool(tn); }
 			};
-
+			if(attr['alias']) aliasNames[attr['alias']] = tn;
+			
 			var setStyle = function(elem, style) {
 				for (var key in style)
 				{
