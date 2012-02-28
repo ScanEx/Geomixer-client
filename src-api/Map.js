@@ -28,8 +28,8 @@
 		map.setCursor = function(url, dx, dy) { gmxAPI._cmdProxy('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
 		map.clearCursor = function() { gmxAPI._cmdProxy('clearCursor', {}); }
 		map.zoomBy = function(dz, useMouse) {
-			gmxAPI._listeners.dispatchEvent('zoomBy', gmxAPI.map);			// Проверка map Listeners на zoomBy
 			gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
+			gmxAPI._listeners.dispatchEvent('zoomBy', gmxAPI.map);			// Проверка map Listeners на zoomBy
 		}
 		map.getBestZ = function(minX, minY, maxX, maxY)
 		{
@@ -754,6 +754,7 @@
 		if (window.addEventListener)
 			window.addEventListener('DOMMouseScroll', onWheel, false);
 			
+		map.ToolsContainer = gmxAPI._ToolsContainer;
 		return map;
 	}
 	//расширяем namespace

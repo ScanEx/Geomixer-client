@@ -164,6 +164,12 @@
 		}
 		this.updateVisibility = updateVisibility;
 
+		function remove()
+		{
+			gmxAPI._allToolsDIV.removeChild(gmxTools);
+		}
+		this.remove = remove;
+
 		function chkBaseLayerTool(tn, attr)
 		{
 			if (toolHash[tn]) return false;
@@ -282,8 +288,10 @@
 			var num = getToolIndex(tn);
 			if(num === -1 || !toolHash[tn]) return false;
 			toolNames.splice(num, 1);
-			toolsContainer.removeChild(toolHash[tn]['line']);
+			tBody.removeChild(toolHash[tn]['line']);
 			delete toolHash[tn];
+			divBG.style.width = div.clientWidth;
+			divBG.style.height = div.clientHeight;
 			return true;
 		}
 		this.removeTool = removeTool;
@@ -295,12 +303,12 @@
 			toolNames.splice(num, 1);
 
 			var hash = toolHash[tn];
-			var obj = toolsContainer.removeChild(hash['line']);
+			var obj = tBody.removeChild(hash['line']);
 
-			var len = toolsContainer.children.length;
+			var len = tBody.children.length;
 			if(ind >= len) ind = len - 1;
 			
-			toolHash[tn]['line'] = toolsContainer.insertBefore(obj, toolsContainer.children[ind]);
+			toolHash[tn]['line'] = tBody.insertBefore(obj, tBody.children[ind]);
 			toolNames.splice(i, 0, tn);
 			return true;
 		}
@@ -315,5 +323,4 @@
 	}
 	//расширяем namespace
     gmxAPI._ToolsContainer = ToolsContainer;
-
 })();
