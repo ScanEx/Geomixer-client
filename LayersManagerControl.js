@@ -32,7 +32,7 @@ var LayersListProvider = function(filtersProvider)
         {
             dateBegin = dateBegin ? dateBegin.valueOf()/1000 : "";
             dateEnd = dateEnd ? ((dateEnd.valueOf()/1000) + 23*3600 + 59*60 + 59): ""; //До конца суток: 23:59:59
-            filterStrings.push("@Date=\"" + dateBegin + '-' + dateEnd + "\"");
+            filterStrings.push("@Date=\"" + dateBegin + '~' + dateEnd + "\"");
         }
         
         var layerTags = filtersProvider.getTags();
