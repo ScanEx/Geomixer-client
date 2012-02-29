@@ -1971,6 +1971,7 @@ FlashMapObject.prototype.setGeometry = function(geometry) {
 FlashMapObject.prototype.getGeometry = function() 
 { 
 	var geom = gmxAPI._cmdProxy('getGeometry', { 'obj': this });
+	if(!geom) return null;
 	var out = { "type": geom.type };
 	var coords =  gmxAPI.forEachPoint(geom.coordinates, function(c) {
 			return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];

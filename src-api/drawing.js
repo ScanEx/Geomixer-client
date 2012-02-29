@@ -330,6 +330,7 @@
 			}
 
 			domObj = createDOMObject(ret);
+			domObj.objectId = obj.objectId;
 			position(xx, yy);
 			if(balloon) {
 				balloon.setVisible(balloonVisible);
@@ -358,7 +359,6 @@
 		else
 			done(coords[0], coords[1]);
 
-		domObj.objectId = obj.objectId;
 		return ret;
 	}
 
@@ -396,6 +396,7 @@
 				var eventName = 'onEdit';
 				if (!domObj) {
 					domObj = createDOMObject(ret, props);
+					domObj.objectId = obj.objectId;
 					eventName = 'onAdd';
 				}
 				callOnChange();
@@ -405,7 +406,7 @@
 			{
 				callOnChange();
 				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
-				toolsContainer.selectTool("move");
+				if(domObj.geometry) toolsContainer.selectTool("move");
 			},
 			onRemove: function()
 			{
@@ -485,6 +486,7 @@
 		if (coords)
 		{
 			domObj = createDOMObject(ret, props);
+			domObj.objectId = obj.objectId;
 			obj.setGeometry({ type: "LINESTRING", coordinates: coords });
 			callOnChange();
 		}
@@ -493,7 +495,6 @@
 			obj.startDrawing("LINESTRING");
 		}
 
-		domObj.objectId = obj.objectId;
 		return ret;
 	}
 
@@ -535,6 +536,7 @@
 				var eventName = 'onEdit';
 				if (!domObj) {
 					domObj = createDOMObject(ret, props);
+					domObj.objectId = obj.objectId;
 					eventName = 'onAdd';
 				}
 				callOnChange();
@@ -543,7 +545,7 @@
 			onFinish: function()
 			{
 				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
-				toolsContainer.selectTool("move");
+				if(domObj.geometry) toolsContainer.selectTool("move");
 			},
 			onRemove: function()
 			{
@@ -626,6 +628,7 @@
 			}
 
 			domObj = createDOMObject(ret, props);
+			domObj.objectId = obj.objectId;
 			obj.setGeometry({ type: "POLYGON", coordinates: coords });
 			callOnChange();
 		}
@@ -634,7 +637,6 @@
 			obj.startDrawing("POLYGON");
 		}
 
-		domObj.objectId = obj.objectId;
 		return ret;
 	}
 	drawFunctions.FRAME = function(coords, props)
@@ -840,6 +842,7 @@
 			x2 = coords[0][2][0];
 			y2 = coords[0][2][1];
 			domObj = createDOMObject(ret, props);
+			domObj.objectId = obj.objectId;
 			repaint();
 			eventType = 'onAdd';
 			chkEvent(null);
@@ -857,6 +860,7 @@
 					eventType = 'onEdit';
 					if (!created) {
 						domObj = createDOMObject(ret, props);
+						domObj.objectId = obj.objectId;
 						eventType = 'onAdd';
 					}
 					chkEvent(null);
@@ -881,7 +885,6 @@
 			);
 		}
 
-		domObj.objectId = obj.objectId;
 		return ret;
 	}
 
