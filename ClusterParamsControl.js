@@ -81,7 +81,7 @@
         
         $(resObject).change(function()
         {
-            ph.RenderStyle = templateStyle;
+            ph.RenderStyle = initStyle;
             $(_this).change();
         });
         
