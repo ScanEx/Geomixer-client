@@ -166,7 +166,7 @@
                         }, 500);
                     }
 					// Добавление прослушивателей событий
-					gmxAPI._listeners.addMapStateListener(obj, 'onChangeVisible', function(flag)
+					gmxAPI._listeners.addListener(obj, 'onChangeVisible', function(flag)
 						{
 							obj.setHandler("onMove", flag ? updateFunc : null);
 						}

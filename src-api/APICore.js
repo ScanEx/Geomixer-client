@@ -1438,7 +1438,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		}
 
 		/** Пользовательские Listeners изменений состояния карты
-		* @function addMapStateListener
+		* @function addListener
 		* @memberOf api - добавление прослушивателя
 		* @param {eventName} название события
 		* @param {func} вызываемый метод
@@ -1446,7 +1446,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
 		* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 		*/
-		function addMapStateListener(obj, eventName, func)
+		function addListener(obj, eventName, func)
 		{
 			var arr = getArr(eventName, obj);
 			var id = gmxAPI.newFlashMapId();
@@ -1457,7 +1457,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		}
 
 		/** Пользовательские Listeners изменений состояния карты
-		* @function removeMapStateListener
+		* @function removeListener
 		* @memberOf api - удаление прослушивателя
 		* @param {eventName} название события
 		* @param {id} вызываемый метод
@@ -1465,7 +1465,7 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
 		* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 		*/
-		function removeMapStateListener(obj, eventName, id)
+		function removeListener(obj, eventName, id)
 		{
 			var arr = getArr(eventName, obj);
 			var out = [];
@@ -1479,8 +1479,8 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		}
 		gmxAPI._listeners = {
 			'dispatchEvent': dispatchEvent,
-			'addMapStateListener': addMapStateListener,
-			'removeMapStateListener': removeMapStateListener
+			'addListener': addListener,
+			'removeListener': removeListener
 		};
 		// End: Блок общих методов не доступных из вне
 	})();
@@ -1710,9 +1710,9 @@ function loadMapJSON(hostName, mapName, callback, onError)
 				);
 			}
 		}
-		var apiHost = gmxAPI.parseUri(getAPIFolderRoot()).hostOnly;
-		if (apiHost == "") 
-			apiHost = gmxAPI.parseUri(window.location.href).hostOnly;
+		var apiHost = gmxAPI.parseUri(window.location.href).hostOnly;
+		if (apiHost == '') 
+			apiHost = 'localhost';
 		var apiKeyResult = (/key=([a-zA-Z0-9]+)/).exec(gmxAPI.getScriptURL("api.js"));
 
 		if ((apiHost == "localhost") || apiHost.match(/127\.\d+\.\d+\.\d+/))
@@ -1798,8 +1798,11 @@ gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;
 gmxAPI._FMO = FlashMapObject;
 
 // Для MapObject
-FlashMapObject.prototype.addMapStateListener = function(eventName, func) { 	return addMapStateListener(this, eventName, func);	}
-FlashMapObject.prototype.removeMapStateListener = function(eventName, id) { return removeMapStateListener(this, eventName, id); }
+FlashMapObject.prototype.addListener = function(eventName, func) { 	return addListener(this, eventName, func);	}
+FlashMapObject.prototype.addMapStateListener = FlashMapObject.prototype.addListener;
+FlashMapObject.prototype.removeListener = function(eventName, id) { return removeListener(this, eventName, id); }
+FlashMapObject.prototype.removeMapStateListener = FlashMapObject.prototype.removeListener;
+
 FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
 FlashMapObject.prototype.bringToBottom = function() { gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
 FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
@@ -1817,7 +1820,7 @@ FlashMapObject.prototype.getVisibility = function() { return gmxAPI._cmdProxy('g
 FlashMapObject.prototype.setVisible = function(flag) {
 	gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag });
 	var val = (flag ? true : false);
-	if (val && this.backgroundColor)
+	if (val && 'backgroundColor' in this)
 		gmxAPI.map.setBackgroundColor(this.backgroundColor);
 	if (this.copyright)
 		gmxAPI.map.updateCopyright();
@@ -2493,8 +2496,8 @@ function createFlashMapInternal(div, layers, callback)
 	//var focusLink = document.createElement("a");
 
 	gmxAPI._dispatchEvent = gmxAPI._listeners.dispatchEvent;
-	addMapStateListener = gmxAPI._listeners.addMapStateListener;
-	removeMapStateListener = gmxAPI._listeners.removeMapStateListener;
+	addListener = gmxAPI._listeners.addListener;
+	removeListener = gmxAPI._listeners.removeListener;
 
 	var loadCallback = function(rootObjectId, type)
 	{ 
@@ -2581,6 +2584,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
+							'alias': 'map',
 							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map")
 						}
 						,
@@ -2589,6 +2593,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
+							'alias': 'satellite',
 							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite")
 						}
 						,
@@ -2597,6 +2602,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
+							'alias': 'hybrid',
 							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid")
 						}
 					};
@@ -2750,17 +2756,6 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						);
 					}
 
-					var currentMode = false;
-					map.getMode = function()
-					{ 
-						return map.toolsAll.baseLayersTools.activeToolName;
-					}
-					map.setMode = function(mode) 
-					{
-						var name = { map: mapString, satellite: satelliteString, hybrid: hybridString }[mode];
-						map.setBaseLayer(name);
-						map.toolsAll.baseLayersTools.selectTool(name);
-					}
 					if('miniMap' in map) {
 						map.miniMap.setVisible(true);
 						

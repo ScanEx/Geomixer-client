@@ -163,7 +163,7 @@
 		gmxAPI.map.setMinMaxZoom(1, 17);
 
 		// Добавление прослушивателей событий
-		gmxAPI._listeners.addMapStateListener(gmxAPI.map, 'positionChanged', function(ph)
+		gmxAPI._listeners.addListener(gmxAPI.map, 'positionChanged', function(ph)
 			{
 				var z = ph.currZ;
 				var newZoomObj = zoomArr[Math.round(z) - minZoom];

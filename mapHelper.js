@@ -4181,7 +4181,7 @@ mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geomet
     
 	spanIcon.onclick = function()
 	{
-        var listenerId = parentObject.addMapStateListener('onSetStyle', function(style)
+        var listenerId = parentObject.addListener('onSetStyle', function(style)
             {
                 var newIcon = _this.createStylesEditorIcon([{MinZoom:1,MaxZoom:21,RenderStyle:style.regularStyle}], geometryType);
                 $(spanIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));

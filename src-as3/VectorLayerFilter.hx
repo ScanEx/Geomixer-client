@@ -224,7 +224,7 @@ class VectorLayerFilter extends MapContent
 		{
 			me.layer.repaintIndicator();
 		});
-		contentSprite.addEventListener(MouseEvent.ROLL_OUT, function(event:Event)
+		var roll_out = function(event:Event)
 		{
 			if (me.layer.currentFilter != null)
 			{
@@ -234,6 +234,9 @@ class VectorLayerFilter extends MapContent
 			me.layer.hoverPainter.repaint(null);
 			me.layer.currentId = null;
 			me.layer.currentFilter = null;
-		});
+		};
+		contentSprite.addEventListener(MouseEvent.ROLL_OUT, roll_out);
+		flash.Lib.current.stage.addEventListener(Event.MOUSE_LEAVE, roll_out);
+	
 	}
 }

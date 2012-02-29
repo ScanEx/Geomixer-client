@@ -59,19 +59,19 @@
 	   document.getElementById("button2").onclick = function()
 		{
 			var tt = tObj;
-			listID1 = tObj.addMapStateListener('onEdit', test);
-			listID11 = tObj.addMapStateListener('onRemove', test11);
+			listID1 = tObj.addListener('onEdit', test);
+			listID11 = tObj.addListener('onRemove', test11);
 			
-			listID2 = tObj2.addMapStateListener('onEdit', test2);
-			listID3 = tObj3.addMapStateListener('onEdit', test2);
-			listID4 = tObj4.addMapStateListener('onEdit', test2);
+			listID2 = tObj2.addListener('onEdit', test2);
+			listID3 = tObj3.addListener('onEdit', test2);
+			listID4 = tObj4.addListener('onEdit', test2);
 			var tt = 1;
 		}
 
 	   document.getElementById("button1").onclick = function()
 		{
-			tObj.removeMapStateListener('onEdit', listID1);
-			tObj2.removeMapStateListener('onEdit', listID2);
+			tObj.removeListener('onEdit', listID1);
+			tObj2.removeListener('onEdit', listID2);
 			document.getElementById("cmdHash1").innerHTML = document.getElementById("cmdHash2").innerHTML = '';
 		}
 		

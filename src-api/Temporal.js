@@ -298,7 +298,7 @@
 		} );
 		
 		// Добавление прослушивателей событий
-		gmxAPI._listeners.addMapStateListener(mapObj, 'onChangeVisible', function(flag)
+		gmxAPI._listeners.addListener(mapObj, 'onChangeVisible', function(flag)
 			{
 				if(flag) me.setDateInterval();
 				gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map);	// Проверка map Listeners на hideBalloons

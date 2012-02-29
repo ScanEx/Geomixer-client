@@ -28,8 +28,8 @@
 		map.setCursor = function(url, dx, dy) { gmxAPI._cmdProxy('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
 		map.clearCursor = function() { gmxAPI._cmdProxy('clearCursor', {}); }
 		map.zoomBy = function(dz, useMouse) {
-			gmxAPI._listeners.dispatchEvent('zoomBy', gmxAPI.map);			// Проверка map Listeners на zoomBy
 			gmxAPI._cmdProxy('zoomBy', { 'attr': {'dz':-dz, 'useMouse':useMouse} });
+			gmxAPI._listeners.dispatchEvent('zoomBy', gmxAPI.map);			// Проверка map Listeners на zoomBy
 		}
 		map.getBestZ = function(minX, minY, maxX, maxY)
 		{
@@ -300,8 +300,6 @@
 
 		var drawFunctions = gmxAPI._drawFunctions;
 		map.drawing = gmxAPI._drawing
-		map.drawing.addMapStateListener = function(eventName, func) { return addMapStateListener(this, eventName, func); }
-		map.drawing.removeMapStateListener = function(eventName, id){ return removeMapStateListener(this, eventName, id); }
 
 		map.addContextMenuItem = function(text, callback)
 		{
@@ -323,8 +321,9 @@
 			}
 		);
 
+		// Управление базовыми подложками
 		var baseLayers = {};
-		var currentBaseLayerName = false;
+		var currentBaseLayerName = '';
 		//расширяем FlashMapObject
 		gmxAPI.extendFMO('setAsBaseLayer', function(name, attr)
 		{
@@ -337,35 +336,40 @@
 			}
 			map.toolsAll.baseLayersTools.chkBaseLayerTool(name, attr);
 		});
-		
-		map.getCurrentBaseLayerName = function()
+
+		var unSetBaseLayer = function()
 		{
-			return currentBaseLayerName;
-		}
-		map.unSetBaseLayer = function()
-		{
-			for (var oldName in baseLayers)
+			for (var oldName in baseLayers) {
 				for (var i = 0; i < baseLayers[oldName].length; i++) {
 					baseLayers[oldName][i].setVisible(false);
 				}
+			}
 			currentBaseLayerName = '';
 		}
+		map.unSetBaseLayer = unSetBaseLayer;
+		
 		map.setBaseLayer = function(name)
 		{
-			for (var oldName in baseLayers)
-				if (oldName != name)
-					for (var i = 0; i < baseLayers[oldName].length; i++)
-						baseLayers[oldName][i].setVisible(false);
+			unSetBaseLayer();
 			currentBaseLayerName = name;
 			var newBaseLayers = baseLayers[currentBaseLayerName];
 			if (newBaseLayers)
 				for (var i = 0; i < newBaseLayers.length; i++)
 					newBaseLayers[i].setVisible(true);
 		}
+		map.setMode = function(mode) 
+		{
+			var name = map.toolsAll.baseLayersTools.getAlias(mode);
+			map.setBaseLayer(name);
+			map.toolsAll.baseLayersTools.selectTool(name);
+		}
+
 		map.getBaseLayer = function()
 		{
 			return currentBaseLayerName;
 		}
+		map.getCurrentBaseLayerName = map.getBaseLayer;
+		map.getMode = map.getBaseLayer;
 
 		map.baseLayerControl = {
 			isVisible: true,
@@ -750,6 +754,7 @@
 		if (window.addEventListener)
 			window.addEventListener('DOMMouseScroll', onWheel, false);
 			
+		map.ToolsContainer = gmxAPI._ToolsContainer;
 		return map;
 	}
 	//расширяем namespace

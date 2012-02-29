@@ -391,7 +391,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
             
         if (this._renderParams.showVisibilityCheckbox && layerManagerFlag !== 1)
         {
-            globalFlashMap.layers[elemProperties.name].addMapStateListener("onChangeVisible", function(attr)
+            globalFlashMap.layers[elemProperties.name].addListener("onChangeVisible", function(attr)
             {
                 var box = div.firstChild;
                 if (attr != box.checked)
@@ -577,7 +577,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
         
         if (elem.styles.length == 1)
         {
-            globalFlashMap.layers[elem.name].filters[0].addMapStateListener('onSetStyle', function(style)
+            globalFlashMap.layers[elem.name].filters[0].addListener('onSetStyle', function(style)
             {
                 if (globalFlashMap.layers[elem.name].filters.length == 1)
                 {
@@ -3075,7 +3075,7 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 		globalFlashMap.layers[elem.name].setVisible(this.checked);
 	}
 	
-	globalFlashMap.layers[elem.name].addMapStateListener("onChangeVisible", function(attr)
+	globalFlashMap.layers[elem.name].addListener("onChangeVisible", function(attr)
 	{
 		box.checked = attr;
 	});

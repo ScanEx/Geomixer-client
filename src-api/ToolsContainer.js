@@ -19,6 +19,7 @@
 	function ToolsContainer(name, attr)
 	{
 		if(!attr) attr = {};
+		var aliasNames = {};		// Hash алиасов основных подложек для map.setMode
 		var toolNames = [];
 		var toolHash = {};
 		var activeToolName = '';
@@ -116,24 +117,26 @@
 			activeToolName = (notSelectedFlag && toolName == oldToolName ? '' : toolName);
 
 			tool = toolHash[toolName];
-			if (contType == 0) {								// для добавляемых юзером меню
-				if (tool.isActive) {
-					if ('onCancel' in tool) tool.onCancel();
-				} else {
-					if ('onClick' in tool) tool.onClick();
-				}
-				tool.repaint();
-			} else if (contType == 1) {							// тип для drawing
-				if ('onClick' in tool) {
-					currentlyDrawnObject = tool.onClick();
+			if(tool) {
+				if (contType == 0) {								// для добавляемых юзером меню
+					if (tool.isActive) {
+						if ('onCancel' in tool) tool.onCancel();
+					} else {
+						if ('onClick' in tool) tool.onClick();
+					}
 					tool.repaint();
-				} else {
-					currentlyDrawnObject = false;
-				}
-			} else if (contType == 2) {							// тип для подложек
-				if ('onClick' in tool && toolName != oldToolName) {
-					tool.onClick();
-					tool.repaint();
+				} else if (contType == 1) {							// тип для drawing
+					if ('onClick' in tool) {
+						currentlyDrawnObject = tool.onClick();
+						tool.repaint();
+					} else {
+						currentlyDrawnObject = false;
+					}
+				} else if (contType == 2) {							// тип для подложек
+					if ('onClick' in tool && toolName != oldToolName) {
+						tool.onClick();
+						tool.repaint();
+					}
 				}
 			}
 		}
@@ -161,6 +164,12 @@
 		}
 		this.updateVisibility = updateVisibility;
 
+		function remove()
+		{
+			gmxAPI._allToolsDIV.removeChild(gmxTools);
+		}
+		this.remove = remove;
+
 		function chkBaseLayerTool(tn, attr)
 		{
 			if (toolHash[tn]) return false;
@@ -180,6 +189,12 @@
 		}
 		this.chkBaseLayerTool = chkBaseLayerTool;
 
+		function getAlias(tn)
+		{
+			return aliasNames[tn] || tn;
+		}
+		this.getAlias = getAlias;
+
 		function addTool(tn, attr)
 		{
 			var tr = gmxAPI.newElement("tr", {	"className": 'tools_tr_' + name + '_' + tn	});
@@ -192,7 +207,8 @@
 				title: attr['hint'],
 				onclick: function() { selectTool(tn); }
 			};
-
+			if(attr['alias']) aliasNames[attr['alias']] = tn;
+			
 			var setStyle = function(elem, style) {
 				for (var key in style)
 				{
@@ -272,8 +288,10 @@
 			var num = getToolIndex(tn);
 			if(num === -1 || !toolHash[tn]) return false;
 			toolNames.splice(num, 1);
-			toolsContainer.removeChild(toolHash[tn]['line']);
+			tBody.removeChild(toolHash[tn]['line']);
 			delete toolHash[tn];
+			divBG.style.width = div.clientWidth;
+			divBG.style.height = div.clientHeight;
 			return true;
 		}
 		this.removeTool = removeTool;
@@ -285,12 +303,12 @@
 			toolNames.splice(num, 1);
 
 			var hash = toolHash[tn];
-			var obj = toolsContainer.removeChild(hash['line']);
+			var obj = tBody.removeChild(hash['line']);
 
-			var len = toolsContainer.children.length;
+			var len = tBody.children.length;
 			if(ind >= len) ind = len - 1;
 			
-			toolHash[tn]['line'] = toolsContainer.insertBefore(obj, toolsContainer.children[ind]);
+			toolHash[tn]['line'] = tBody.insertBefore(obj, tBody.children[ind]);
 			toolNames.splice(i, 0, tn);
 			return true;
 		}
@@ -305,5 +323,4 @@
 	}
 	//расширяем namespace
     gmxAPI._ToolsContainer = ToolsContainer;
-
 })();

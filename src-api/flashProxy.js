@@ -41,7 +41,7 @@
 				}
 				var flag = ('clusters' in obj);	// видимость кластеров
 				if(!flag)
-					obj['clusters'] = new Clusters(obj);
+					obj['clusters'] = new gmxAPI._Clusters(obj);
 				else
 					ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
 				attr['visible'] = flag;

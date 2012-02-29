@@ -70,8 +70,8 @@
 			getVisibleStyle: function() { return ret.getVisibleStyle(); },
 			getStyle: function(removeDefaults) { return ret.getStyle(removeDefaults); },
 			stateListeners: {},
-			addMapStateListener: function(eventName, func) { return gmxAPI._listeners.addMapStateListener(this, eventName, func); },
-			removeMapStateListener: function(eventName, id)	{ return gmxAPI._listeners.removeMapStateListener(this, eventName, id); }
+			addListener: function(eventName, func) { return gmxAPI._listeners.addListener(this, eventName, func); },
+			removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
 		}
 		ret.domObj = objects[myId];
 		return objects[myId];
@@ -117,7 +117,6 @@
 				toolsContainer.selectTool("move");
 			if (obj)
 			{
-				gmxAPI._listeners.dispatchEvent('onRemove', gmxAPI.map.drawing, domObj);
 				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);
 				obj.remove();
 				if(balloon) balloon.remove();
@@ -207,7 +206,6 @@
 			{
 				position(x + startDx, y + startDy);
 				gmxAPI._listeners.dispatchEvent('onEdit', domObj, domObj);
-				gmxAPI._listeners.dispatchEvent('onEdit', gmxAPI.map.drawing, domObj);
 			}
 			var downCallback = function(x, y)
 			{
@@ -337,7 +335,6 @@
 				balloon.setVisible(balloonVisible);
 				updateText();
 			}
-			gmxAPI._listeners.dispatchEvent('onAdd', gmxAPI.map.drawing, domObj);
 			gmxAPI._listeners.dispatchEvent('onAdd', domObj, domObj);
 
 			ret.setVisible(ret.isVisible);
@@ -390,7 +387,6 @@
 				var st = (out ? out : false);
 				propsBalloon.updatePropsBalloon(st);
 			}
-			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
 			gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
 		}
 		
@@ -408,7 +404,6 @@
 			onFinish: function()
 			{
 				callOnChange();
-				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
 				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
 				toolsContainer.selectTool("move");
 			},
@@ -455,7 +450,6 @@
 //					if (obj.isDrawing()) selectTool("move");
 			obj.remove();
 			if (domObj) {
-				gmxAPI._listeners.dispatchEvent('onRemove', gmxAPI.map.drawing, domObj);
 				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);
 				domObj.removeInternal();
 			}
@@ -532,7 +526,6 @@
 				var st = (out ? out : false);
 				propsBalloon.updatePropsBalloon(st);
 			}
-			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
 			gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
 		}
 
@@ -549,7 +542,6 @@
 			},
 			onFinish: function()
 			{
-				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
 				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
 				toolsContainer.selectTool("move");
 			},
@@ -592,7 +584,6 @@
 			//if (obj.isDrawing())	selectTool("move");
 			obj.remove();
 			if (domObj) {
-				gmxAPI._listeners.dispatchEvent('onRemove', gmxAPI.map.drawing, domObj);
 				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);
 				domObj.removeInternal();
 			}
@@ -703,7 +694,6 @@
 		// Проверка пользовательских Listeners
 		var chkEvent = function()
 		{
-			gmxAPI._listeners.dispatchEvent(eventType, gmxAPI.map.drawing, domObj);
 			gmxAPI._listeners.dispatchEvent(eventType, domObj, domObj);
 		}
 

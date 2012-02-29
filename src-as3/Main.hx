@@ -78,6 +78,11 @@ class Main
 		if (event.altKey) eventAttr.altKey = 1;
 		if (event.buttonDown) eventAttr.buttonDown = 1;
 	}
+
+	public static function dispatchMouseLeave()
+	{
+		flash.Lib.current.stage.dispatchEvent (new Event(Event.MOUSE_LEAVE));
+	}
 	
 	static function main()
 	{
@@ -426,7 +431,7 @@ class Main
 			}
 			
 		}
-		
+
 		var initCalled = false;
 		root.addEventListener(Event.ENTER_FRAME, function(event:Event)
 		{
@@ -1150,6 +1155,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					var node = getNode(attr.objectId);
 					var data:Dynamic = cast(attr.data);
 					node.setStyle(new Style(data.regularStyle), (data.hoveredStyle != null) ? new Style(data.hoveredStyle) : null);
+					Main.dispatchMouseLeave();
 				case 'getStyle':
 					var node = getNode(attr.objectId);
 					if(node != null) out = cast(node.getStyle(attr.removeDefaults));
