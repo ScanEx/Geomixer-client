@@ -77,9 +77,9 @@
         
         var initStyle = {};
         
-        var templateStyle = _mapHelper.createStyleEditor(clusterStyleContainer[0], initStyle, "point", false);
+        var resObject = _mapHelper.createStyleEditor(clusterStyleContainer[0], initStyle, "point", false);
         
-        $(templateStyle).change(function()
+        $(resObject).change(function()
         {
             ph.RenderStyle = templateStyle;
             $(_this).change();

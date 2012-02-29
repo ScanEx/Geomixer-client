@@ -1652,9 +1652,9 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
     var isWindLayer = typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
 				elemCanvas.parentNode.gmxProperties.content.properties.description &&
 				String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0;
-	templateStyle = this.createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
+	var resObject = this.createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
     
-    $(templateStyle).change(function()
+    $(resObject).change(function()
     {
         nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
     })
@@ -2065,6 +2065,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 		hideIcon,
 		angle,
 		scale,
+        resObject = {},
 		_this = this;
 	
 	// _(parent, [_table([_tbody([outlineParent, markerSizeParent, fillParent, iconParent])],[['css','marginLeft','-20px']])]);
@@ -2076,7 +2077,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
     {
         var fillStyle = fillStyleControl.getFillStyle();
         templateStyle.fill = fillStyle;
-        $(templateStyle).change();
+        $(resObject).change();
     });
 	
 	showIcon = function()
@@ -2118,7 +2119,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 			fillToggle.disabled = true;
         }
 			
-		$(templateStyle).change();
+		$(resObject).change();
 	}
 	
 	showMarker = function()
@@ -2155,7 +2156,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 		templateStyle.outline.color = $(outlineParent).find(".colorSelector")[0].hex;
 		templateStyle.outline.opacity = $($(outlineParent).find(".ui-slider")[0]).slider('option', 'value');
 
-		$(templateStyle).change();
+		$(resObject).change();
 	}
 	
 	outlineToggle = _checkbox(geometryType == "point" && typeof templateStyle.marker != 'undefined' && typeof templateStyle.marker.image == 'undefined' || geometryType != "point" && (typeof templateStyle.marker == 'undefined' || typeof templateStyle.marker != 'undefined' && typeof templateStyle.marker.image == 'undefined'),'radio');
@@ -2187,7 +2188,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 			// if (elemCanvas.nodeName == 'DIV')
 				// $(elemCanvas).find(".borderIcon")[0].style.borderColor = '#' + hex;
 			
-			$(templateStyle).change();
+			$(resObject).change();
 		})
 	
 	if (templateStyle.outline && typeof templateStyle.outline.color != 'undefined')
@@ -2202,7 +2203,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 			{
 				templateStyle.outline.opacity = ui.value;
 				
-				$(templateStyle).change();
+				$(resObject).change();
 			})
 
 	outlineTds.push(_td([divSlider],[['css','width','100px'],['css','padding','4px 5px 3px 5px']]));
@@ -2212,7 +2213,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 			{
 				templateStyle.outline.thickness = Number(this.value);
 				
-				$(templateStyle).change();
+				$(resObject).change();
 				
 				return true;
 			});
@@ -2267,7 +2268,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 					delete templateStyle.outline.dashes;
 			}
 			
-			$(templateStyle).change();
+			$(resObject).change();
 		};
 	
 	if (geometryType != "point")
@@ -2359,7 +2360,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 				//if (elemCanvas.nodeName == 'DIV')
 					//$(elemCanvas).find(".fillIcon")[0].style.backgroundColor = $(fillParent).find(".colorSelector")[0].style.backgroundColor;
 																
-				$(templateStyle).change();
+				$(resObject).change();
 			}
 			else
 			{
@@ -2370,7 +2371,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 				// if (elemCanvas.nodeName == 'DIV')
 					// $(elemCanvas).find(".fillIcon")[0].style.backgroundColor = "#FFFFFF";
 				
-				$(templateStyle).change();
+				$(resObject).change();
 			}
 		}
 		
@@ -2397,14 +2398,14 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 					// if (elemCanvas.nodeName == 'DIV')
 						// $(elemCanvas).find(".fillIcon")[0].style.backgroundColor = '#' + hex;
 					
-					$(templateStyle).change();
+					$(resObject).change();
 				}),
 			fillSlider = nsGmx.Controls.createSlider(checkedFillOpacity,
 				function(event, ui)
 				{
 					templateStyle.fill.opacity = ui.value;
 					
-					$(templateStyle).change();
+					$(resObject).change();
 				});
 		
 		fillColor.hex = checkedFillColor;
@@ -2441,7 +2442,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 			
 		templateStyle.marker.image = inputUrl.value();
 		
-		$(templateStyle).change();
+		$(resObject).change();
     });
     
 	//inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', (typeof templateStyle.marker != 'undefined' && templateStyle.marker.image) ? templateStyle.marker.image : ''],['css','width','180px']]);	
@@ -2472,7 +2473,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 			{
 				templateStyle.marker.size = Number(this.value);
 				
-				$(templateStyle).change();
+				$(resObject).change();
 				
 				return true;
 			})
@@ -2502,7 +2503,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 					
 					templateStyle.marker.color = markerColor.hex = parseInt('0x' + hex);
 					
-					$(templateStyle).change();
+					$(resObject).change();
 				})
 			
 			if (templateStyle.marker && typeof templateStyle.marker.color != 'undefined')
@@ -2519,7 +2520,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 				else
 					delete templateStyle.marker.scale;
 				
-				$(templateStyle).change();
+				$(resObject).change();
 			}
 			
 			_title(scale, _gtxt("Масштаб"))
@@ -2533,7 +2534,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 				else
 					delete templateStyle.marker.angle;
 				
-				$(templateStyle).change();
+				$(resObject).change();
 			}
 			
 			_title(angle, _gtxt("Угол поворота"))
@@ -2582,7 +2583,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 	if (geometryType != "linestring" && typeof templateStyle.fill == 'undefined')
 		$(fillParent).find("[fade]")[0].style.display = 'none';
         
-    return templateStyle;
+    return resObject;
 }
 
 //params:
@@ -4213,9 +4214,9 @@ mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geomet
 		
 		_(tabMenu, [divStyles, divGraph]);
 		
-		templateStyle = _mapHelper.createStyleEditor(canvasStyles, templateStyle, geometryType, false);
+		var resObject = _mapHelper.createStyleEditor(canvasStyles, templateStyle, geometryType, false);
         
-        $(templateStyle).change(function()
+        $(resObject).change(function()
         {
             nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
         })
