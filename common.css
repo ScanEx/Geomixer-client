@@ -1121,3 +1121,13 @@ div.layersScroll
 {
     border: 0px;
 }
+
+.ui_tpicker_minute .ui-slider, .ui_tpicker_hour .ui-slider
+{
+    background-color: #6EB8CE;
+}
+
+#ui-datepicker-div .ui-state-active
+{
+    background-color: #FFCCCC;
+}

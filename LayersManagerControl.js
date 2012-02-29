@@ -228,6 +228,25 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
 		}
 		catch(e){}
 	}
+    
+	$("#" + name + "DateBegin,#" + name + "DateEnd", canvas).datepicker(
+	{
+		beforeShow: function(input)
+		{
+	    	return {minDate: (input == dateEnd ? $(dateBegin).datepicker("getDate") : null), 
+	        	maxDate: (input == dateBegin ? $(dateEnd).datepicker("getDate") : null)}; 
+		},
+		onSelect: function(dateText, inst) 
+		{
+			inst.input[0].onkeyup();
+		},
+		changeMonth: true,
+		changeYear: true,
+		showOn: "button",
+		buttonImage: "img/calendar.png",
+		buttonImageOnly: true,
+		dateFormat: "dd.mm.yy"
+	});    
 	
 	var tableParent = _div();
     
@@ -283,26 +302,7 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
 	);
 
 	_(canvas, [tableParent]);
-		
-	$("#" + name + "DateBegin,#" + name + "DateEnd", canvas).datepicker(
-	{
-		beforeShow: function(input)
-		{
-	    	return {minDate: (input == dateEnd ? $(dateBegin).datepicker("getDate") : null), 
-	        	maxDate: (input == dateBegin ? $(dateEnd).datepicker("getDate") : null)}; 
-		},
-		onSelect: function(dateText, inst) 
-		{
-			inst.input[0].onkeyup();
-		},
-		changeMonth: true,
-		changeYear: true,
-		showOn: "button",
-		buttonImage: "img/calendar.png",
-		buttonImageOnly: true,
-		dateFormat: "dd.mm.yy"
-	});
-		
+
 	$(parentDiv).empty().append(canvas);
 	
 	layerName.focus();

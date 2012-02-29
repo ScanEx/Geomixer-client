@@ -32,6 +32,7 @@ $LAB.
 	{
 		$.getCSS(_getFileName("common.css"));
 		$.getCSS(_getFileName("jquery/jquery-ui-1.7.2.custom.css"));
+		$.getCSS(_getFileName("jquery/jquery-ui-timepicker-addon.css"));
 		$.getCSS(_getFileName("colorpicker/css/colorpicker.css"));
 		$.getCSS(_getFileName("menu.css"));
 		$.getCSS(_getFileName("table.css"));
@@ -41,6 +42,8 @@ $LAB.
 	}).
 	script(_getFileName("jquery/jquery-ui-1.8.10.custom.min.js")).wait().
 	script(_getFileName("jquery/ui.datepicker-ru.js")).wait().
+	script(_getFileName("jquery/jquery-ui-timepicker-addon.js")).wait().
+	script(_getFileName("jquery/ui.timepicker-ru.js")).wait().
 	script(_getFileName("jquery/jquery.treeview.js")).wait().
 	
 	script(_getFileName("colorpicker/js/colorpicker.js")).wait().

@@ -217,15 +217,6 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 			newFilter.setFilter();
 		
 		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, newStyles[i]);
-		// if (typeof newStyles[i].BalloonEnable == 'undefined' || newStyles[i].BalloonEnable)
-		// {
-			// if (newStyles[i].Balloon)
-				// this.setBalloon(newFilter, newStyles[i].Balloon);
-			// else
-				// newFilter.enableHoverBalloon();
-		// }
-		// else
-			// newFilter.disableHoverBalloon();
 		
 		newFilter.setStyle(newStyles[i].RenderStyle);
 		
@@ -2944,7 +2935,13 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 		return _public;
 	})();
     
-    var layerTags = new nsGmx.LayerTags();
+    var convertedTagValues = {};
+    for (var mp in properties.MetaProperties)
+    {
+        var tagtype = properties.MetaProperties[mp].Type;
+        convertedTagValues[mp] = {Type: tagtype, Value: nsGmx.LayerTagSearchControl.convertFromServer(tagtype, properties.MetaProperties[mp].Value)};
+    }
+    var layerTags = new nsGmx.LayerTags(convertedTagValues);
     var layerTagsControl = new nsGmx.LayerTagSearchControl(layerTags, layerTagsParent);
 	
 	if (type == "Vector")
@@ -3503,28 +3500,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 	}
     
     shownProperties.push({tr:_tr([_td([layerTagsParent], [['attr', 'colspan', 2]])])});
-	
-	// for (var i = 0; i < shownProperties.length; i++)
-	// {
-		// var td;
-		// if (typeof shownProperties[i].tr != 'undefined')
-		// {
-			// trs.push(shownProperties[i].tr);
-			
-			// continue;
-		// }
-		// else if (typeof shownProperties[i].elem != 'undefined')
-			// td = _td([shownProperties[i].elem]);
-		// else
-			// td = _td([_t(properties[shownProperties[i].field] != null ? properties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
 		
-		// td.style.border = '1px solid #DEDEDE';
-		
-		// var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width','70px'],['css','paddingLeft','5px'],['css','fontSize','12px']]), td])
-		
-		// trs.push(tr);
-	// }
-	
 	var trs = this.createPropertiesTable(shownProperties, properties, {leftWidth: 70});
 	_(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
 	
@@ -3569,6 +3545,14 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			
 			if (errorFlag)
 				return;
+                
+            var metaProperties = {};
+            layerTags.eachValid(function(id, tag, value, type)
+            {
+                    metaProperties[tag] = {Value: layerTagsControl.convertTagValue(id, type, value), Type: type};
+            })
+            
+            var metadataString = '&MetaProperties=' + encodeURIComponent(JSON.stringify(metaProperties));
 			
 			if (type == "Vector")
 			{
@@ -3625,7 +3609,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				}
 				else
 				{
-					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + encoding + temporalParams, function(response)
+					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + encoding + temporalParams + metadataString, function(response)
 						{
 							if (!parseResponse(response))
 								return;
@@ -3651,7 +3635,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 						TilePath: $(parent).find("[fieldName='TilePath.Path']")[0].value,
 						BorderFile: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? $(parent).find("[fieldName='ShapePath.Path']")[0].value : '',
 						BorderGeometry: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? '' : JSON.stringify(merc_geometry(_this.drawingBorders.get(properties.Name).geometry)),
-						MapName: _mapHelper.mapProperties.name
+						MapName: _mapHelper.mapProperties.name,
+                        MetaProperties: JSON.stringify(metaProperties)
 					},
 					needRetiling = false,
 					layerTitle = title.value;
