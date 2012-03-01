@@ -1707,8 +1707,7 @@ mapHelper.ImageInputControl = function(initURL)
                 if (!parseResponse(response))
                     return;
                     
-                _fileBrowser.currentDir = imagesDir;
-                _fileBrowser.createBrowser(_gtxt("Изображение"), ['jpg', 'png', 'gif', 'swf'], function(path)
+                _fileBrowser.createBrowser(_gtxt("Изображение"), ['jpg', 'jpeg', 'png', 'gif', 'swf'], function(path)
                 {
                     var relativePath = path.substring(imagesDir.length);
                     if (relativePath[0] == '\\') 
@@ -1716,7 +1715,7 @@ mapHelper.ImageInputControl = function(initURL)
                         
                     inputUrl.value = serverBase + "GetImage.ashx?usr=" + encodeURIComponent(nsGmx.AuthManager.getLogin()) + "&img=" + encodeURIComponent(relativePath);
                     update();
-                })
+                }, {startDir: imagesDir, restrictDir: imagesDir})
             })
         }
         mainDiv.append(userImageIcon);

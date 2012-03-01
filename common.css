@@ -686,6 +686,21 @@ div.unit .unitInfo
 	background: url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
 }
 
+.fileBrowser-pathWidget
+{
+    margin: 2px 0px
+}
+
+.fileBrowser-pathElem
+{
+    cursor: pointer;
+}
+
+.fileBrowser-activePathElem
+{
+    background-color: #b7e7eb;
+}
+
 .vectorInfoParams
 {
 	width: 100%;

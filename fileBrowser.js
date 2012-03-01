@@ -1,8 +1,11 @@
+/** 
+* @class Веб браузер для выбора и загрузки файлов на сервер
+*/
 var fileBrowser = function()
 {
 	this.parentCanvas = null;
 	
-	this.homeDir = '';
+	this._homeDir = '';
 	
 	this.currentDir = '';
 	this.currentFiles = [];
@@ -66,15 +69,31 @@ var fileBrowser = function()
 
 	this.returnMask = ['noname'];
 	
-	this.driveRE = new RegExp(/^[a-z]:\\$/i);
+	this.driveRE = new RegExp("^[a-z]:\\" + this.slash + "$", "i");
 	
-	this.discs = null;
+	this._discs = null;
+     
+    this._params = null;
 	
 	this.ext7z = ['7Z', 'ZIP', 'GZIP', 'BZIP2', 'TAR', 'ARJ', 'CAB', 'CHM', 'CPIO', 'DEB', 'DMG', 'HFS', 'ISO', 'LZH', 'LZMA', 'MSI', 'NSIS', 'RAR', 'RPM', 'UDF', 'WIM', 'XAR', 'Z'];
 }
 
-fileBrowser.prototype.createBrowser = function(title, mask, closeFunc)
+/**
+ Показать браузер пользователю. Если браузер уже показывается, он будет закрыт и открыт новый
+ @param title {String} Заголовок окна браузера
+ @param mask {Array[String]} Массив допустимых для выбора разрешений файлов. Если массив пустой, то выбираются директории, а не отдельный файлы
+ @param closeFunc {function(path)} Функция, которая будет вызвана при выборе файла/директории (если браузер просто закрыли, не вызовется)
+ @param params {Object} Параметры браузера: <br/>
+     restrictDir {string} Ограничивающая директория (поддерево). Нельзя посмотреть файлы вне этой директории (даже для админов)
+     startDir {string} Начальная директория. Если нет, то будет открыто в том же месте, где и закрыт в прошлый раз.
+*/
+fileBrowser.prototype.createBrowser = function(title, mask, closeFunc, params)
 {
+    this._params = $.extend({restrictDir: null, startDir: null}, params);
+    
+    if (this._params.startDir !== null)
+        this.currentDir = this._params.startDir;
+    
 	if ($$('fileBrowserDialog'))
 	{
 		$($$('fileBrowserDialog').parentNode).dialog("destroy");
@@ -89,11 +108,12 @@ fileBrowser.prototype.createBrowser = function(title, mask, closeFunc)
 	this.returnMask = mask;
 	this.parentCanvas = canvas;
 	this.closeFunc = closeFunc;
+    this._homeDir = nsGmx.AuthManager.getUserFolder();
 	
-	if (!this.discs)
+	if (this._discs === null && nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
 		this.loadInfo();
 	else
-		this.loadInfoHandler(this.discs)
+		this.loadInfoHandler()
 		
 	return oDialog;
 }
@@ -127,14 +147,12 @@ fileBrowser.prototype.loadInfo = function()
 		if (!parseResponse(response))
 			return;
 		
-		_this.loadInfoHandler(response.Result)
+        _this._discs = response.Result;
+		_this.loadInfoHandler()
 	})
 }
-fileBrowser.prototype.loadInfoHandler = function(discs)
+fileBrowser.prototype.loadInfoHandler = function()
 {
-	this.discs = discs;
-	this.homeDir = nsGmx.AuthManager.getUserFolder();
-	
 	if (this.currentDir == '')
 	{
 		if (_mapHelper.mapProperties.LayersDir)
@@ -151,17 +169,17 @@ fileBrowser.prototype.loadInfoHandler = function(discs)
 	
 	_(this.parentCanvas, [this.fileHeader, this.fileCanvas, this.fileUpload]);
 	
-	this.createHeader(this.discs);
+	this.createHeader();
 	this.createUpload();
 	
-	this.checkUploadVisibility();
+	this._updateUploadVisibility();
 	
 	this.getFiles();
 }
 
-fileBrowser.prototype.checkUploadVisibility = function()
+fileBrowser.prototype._updateUploadVisibility = function()
 {
-	if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) || this.currentDir.indexOf(this.homeDir) == 0)
+	if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) || this.currentDir.indexOf(this._homeDir) == 0)
 	{
 		this.fileUpload.style.display = '';
 		this.tdAddFolder.style.display = '';
@@ -173,7 +191,7 @@ fileBrowser.prototype.checkUploadVisibility = function()
 	}
 }
 
-fileBrowser.prototype.createHeader = function(discs)
+fileBrowser.prototype.createHeader = function()
 {
 	var reloadButton = makeImageButton("img/reload.png"),
 		homeButton = makeImageButton("img/home.png"),
@@ -198,20 +216,20 @@ fileBrowser.prototype.createHeader = function(discs)
 	
 	homeButton.onclick = function()
 	{
-		_this.getFiles(_this.homeDir);
+		_this.getFiles(_this._homeDir);
 	}
 	
 	if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
 	{
-		for (var i = 0; i < discs.length; i++)
+		for (var i = 0; i < this._discs.length; i++)
 		{
-			var discButtons = makeButton(discs[i]);
+			var discButtons = makeButton(this._discs[i]);
 			
 			(function(i)
 			{
 				discButtons.onclick = function()
 				{
-					_this.getFiles(discs[i])
+					_this.getFiles(_this._discs[i])
 				}
 			})(i)
 			
@@ -227,7 +245,7 @@ fileBrowser.prototype.createHeader = function(discs)
 		newFolderButton = makeButton(_gtxt("Создать")),
 		createFolder = function()
 		{
-			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + _this.currentDir + '\\' + newFolderName.value, function(response)
+			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + _this.currentDir + _this.slash + newFolderName.value, function(response)
 			{
 				if (!parseResponse(response))
 					return;
@@ -314,7 +332,7 @@ fileBrowser.prototype.createUpload = function()
 			if (!parseResponse(response))
 				return;
 			
-			var indexSlash = String(response.Result).lastIndexOf('\\'),
+			var indexSlash = String(response.Result).lastIndexOf(_this.slash),
 				fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
 			
 			_this.shownPath = fileName;
@@ -337,6 +355,9 @@ fileBrowser.prototype.getFiles = function(path)
 {
 	var path = (typeof path != 'undefined') ? path : this.currentDir;
 	var _this = this;
+    
+    if (this._isRestrictedPath(path)) 
+        return;
 	
 	sendCrossDomainJSONRequest(serverBase + "FileBrowser/GetDirectoryContent.ashx?WrapStyle=func&root=" + path,  function(response)
 	{
@@ -352,23 +373,76 @@ fileBrowser.prototype.getFilesHandler = function(files, path)
 	this.currentDir = path;
 	this.currentFiles = files;
 
-	this.checkUploadVisibility();
+	this._updateUploadVisibility();
 
 	this.reloadFiles();
 }
 
-fileBrowser.prototype.minimizeUserPath = function()
+fileBrowser.prototype.pathWidget = function()
 {
+    var shortPath;
+    var _this = this;
+    
 	if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
-		return this.currentDir;
+		shortPath = this.currentDir;
+    else 
+        shortPath = this.currentDir.replace(this._homeDir, "");
 	
-	var shortPath = this.currentDir.replace(this.homeDir, "");
-	
-	if (shortPath == "")
-		shortPath = "\\";
-	
-	return shortPath;
+    var parent = $('<span/>', {'class': 'fileBrowser-pathWidget'});//.append($('<span/>').text(shortPath)).append($('<br/>'));
+    var pathElements = [];
+    
+    var highlightPath = function(index)
+    {
+        for (var e = 0; e < pathElements.length; e++)
+            if (e <= index)
+                pathElements[e].addClass('fileBrowser-activePathElem');
+            else
+                pathElements[e].removeClass('fileBrowser-activePathElem');
+    }
+    
+    var appendElem = function(text, path){
+        var elemIndex = pathElements.length;
+        var newElem = $('<span/>', {'class': 'fileBrowser-pathElem'}).text(text + _this.slash)
+        .click(function()
+        {
+            _this.getFiles(path);
+        })
+        .hover(function(){highlightPath(elemIndex)}, function(){highlightPath(-1)});
+        
+        pathElements.push(newElem);
+        parent.append(newElem);//.append( $('<span/>').text(_this.slash) );
+    }
+    
+    var curFolder = '';
+    while (shortPath.length)
+    {
+        var index = shortPath.indexOf(this.slash);
+        if (index == 0) break;
+            
+        if (index < 0)
+        {
+            appendElem(shortPath, curFolder + shortPath);
+            break;
+        }
+        var curText = shortPath.substr(0, index);
+        curFolder += curText + this.slash;
+        shortPath = shortPath.substr(index+1);
+        
+        appendElem(curText, curFolder.substr(0, curFolder.length-1));
+    }
+    
+    return parent[0];
 }
+
+// fileBrowser.prototype.minimizeUserPath = function()
+// {
+	// if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
+		// return this.currentDir;
+	
+	// var shortPath = this.currentDir.replace(this._homeDir, "");
+	
+	// return shortPath == "" ? this.slash : shortPath;
+// }
 
 fileBrowser.prototype.quickSearch = function()
 {
@@ -408,7 +482,7 @@ fileBrowser.prototype.reloadFiles = function()
 {
 	removeChilds(this.fileCanvas)
 	
-	_(this.fileCanvas, [_div([_t(this.minimizeUserPath()), _br(), _t(_gtxt("Фильтр")), this.quickSearch()], [['dir','className','currentDir'],['css','color','#153069'],['css','fontSize','12px']])]);
+	_(this.fileCanvas, [_div([this.pathWidget(), _br(), _t(_gtxt("Фильтр")), this.quickSearch()], [['dir','className','currentDir'],['css','color','#153069'],['css','fontSize','12px']])]);
 	
 	_(this.fileCanvas, [this.draw(this.currentFiles)]);
 	
@@ -420,6 +494,22 @@ fileBrowser.prototype.reloadFiles = function()
 		
 		this.shownPathScroll = false;
 	}
+}
+
+fileBrowser.prototype._getParentFolder = function(path)
+{
+    var index = String(path).lastIndexOf(this.slash),
+        newPath = String(path).substr(0, index);
+    
+    if (new RegExp(/^[a-z]:$/i).test(newPath))
+        newPath += this.slash;
+        
+    return newPath;
+}
+
+fileBrowser.prototype._isRestrictedPath = function(path)
+{
+    return this._params.restrictDir !== null && path.indexOf(this._params.restrictDir) != 0;
 }
 
 fileBrowser.prototype.draw = function(files)
@@ -447,7 +537,7 @@ fileBrowser.prototype.draw = function(files)
 	
 	if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
 	{
-		var rootButton = makeButton("\\");
+		var rootButton = makeButton(this.slash);
 		
 		_(tdRoot, [rootButton]);
 		
@@ -464,23 +554,23 @@ fileBrowser.prototype.draw = function(files)
 		prevDirTr = _tr([_td(), _td([_t("[..]")]), _td(), _td(), _td()]),
 		tableFilesTrs = [];
 	
-	if (!this.isDrive())
+	if (!this.isDrive() && !this._isRestrictedPath(_this._getParentFolder(_this.currentDir)))
 	{
 		if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) ||
-			this.currentDir.indexOf(this.homeDir) == 0 && this.currentDir.length > this.homeDir.length)
+			this.currentDir.indexOf(this._homeDir) == 0 && this.currentDir.length > this._homeDir.length)
 			tableFilesTrs.push(prevDirTr)
 	
 		attachEffects(prevDirTr, 'hover')
 
 		prevDirTr.onclick = function()
 		{
-			var index = String(_this.currentDir).lastIndexOf(_this.slash),
-				newPath = String(_this.currentDir).substr(0, index);
+			// var index = String(_this.currentDir).lastIndexOf(_this.slash),
+				// newPath = String(_this.currentDir).substr(0, index);
 			
-			if (new RegExp(/^[a-z]:$/i).test(newPath))
-				newPath += _this.slash;
+			// if (new RegExp(/^[a-z]:$/i).test(newPath))
+				// newPath += _this.slash;
 			
-			_this.getFiles(newPath);
+			_this.getFiles(_this._getParentFolder(_this.currentDir));
 		}
 	}
 	
@@ -649,10 +739,10 @@ fileBrowser.prototype.createFolderActions = function(name)
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFolder', 
 		function()
 		{
-			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
+			return _this.currentDir.indexOf(_this._homeDir) >= 0 || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
 		}, 
 		{
-			fullPath: this.currentDir + '\\' + name,
+			fullPath: this.currentDir + this.slash + name,
 			fileBrowser: this,
 			enableZip: true
 		}
@@ -673,10 +763,10 @@ fileBrowser.prototype.createFileActions = function(name, ext)
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFile', 
 		function()
 		{
-			return _this.currentDir.indexOf(_this.homeDir) >= 0 || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
+			return _this.currentDir.indexOf(_this._homeDir) >= 0 || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
 		}, 
 		{
-			fullPath: this.currentDir + '\\' + name + '.' + ext,
+			fullPath: this.currentDir + this.slash + name + '.' + ext,
 			fileBrowser: this,
 			enableUnzip: valueInArray(_this.ext7z, ext.toUpperCase())
 		}
@@ -685,6 +775,7 @@ fileBrowser.prototype.createFileActions = function(name, ext)
 	return spanParent;
 }
 
+//TODO: translate
 fileBrowser.prototype.makeSize = function(size)
 {
 	if (size > 1024 * 1024 * 1024)
@@ -699,139 +790,85 @@ fileBrowser.prototype.makeSize = function(size)
 
 var _fileBrowser = new fileBrowser();
 
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////// Контекстное меню браузера //////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
-var tableBrowser = function()
-{
-	this.parentCanvas = null;
-	
-	this.sortFuncs = 
-	{
-		name:[
-			function(_a,_b){var a = String(_a).toLowerCase(), b = String(_b).toLowerCase(); if (a > b) return 1; else if (a < b) return -1; else return 0},
-			function(_a,_b){var a = String(_a).toLowerCase(), b = String(_b).toLowerCase(); if (a < b) return 1; else if (a > b) return -1; else return 0}
-		]
-	};
-		
-	this.currentSortType = 'name';
-	this.currentSortIndex = 
-	{
-		name: 0
-	};
-	
-	this.tables = [];
-}
+(function(){
 
-tableBrowser.prototype.createBrowser = function(closeFunc)
+//фабрика, которая может возвращать элементы меню для архивирования (isZip=true) и разархивирования (isZip=false)
+var zipUnzipActionFactory = function(isZip)
 {
-	if ($$('tableBrowserDialog'))
-	{
-		$($$('tableBrowserDialog').parentNode).dialog("destroy");
-		
-		$$('tableBrowserDialog').parentNode.removeNode(true);
-	}
-	
-	var canvas = _div(null, [['attr','id','tableBrowserDialog']]);
-	
-	showDialog(_gtxt("Список таблиц"), canvas, 300, 300, false, false);
-	
-	this.parentCanvas = canvas;
-	this.closeFunc = closeFunc;
-	
-	if (!this.tables.length)
-		this.loadInfo();
-	else
-		this.loadInfoHandler(this.tables)
-}
-
-tableBrowser.prototype.close = function(name)
-{
-	this.closeFunc(name);
-	
-	var canvas = $$('tableBrowserDialog');
-	
-	$(canvas.parentNode).dialog("destroy");
-	
-	canvas.parentNode.removeNode(true);
-}
-
-tableBrowser.prototype.loadInfo = function()
-{
-	sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetGeometryTables.ashx?WrapStyle=func", function(response)
-	{
-		if (!parseResponse(response))
-			return;
-		
-		_tableBrowser.loadInfoHandler(response.Result)
-	})
-}
-
-tableBrowser.prototype.loadInfoHandler = function(tables)
-{
-	this.tables = tables;
-	
-	this.currentSortFunc = this.sortFuncs['name'][0];
-	
-	this.tablesCanvas = _div(null, [['dir','className','fileCanvas']]);	
-	
-	_(this.parentCanvas, [this.tablesCanvas]);
-	
-	this.reloadTables();
-}
-
-tableBrowser.prototype.reloadTables = function()
-{
-	removeChilds(this.tablesCanvas)
-	
-	_(this.tablesCanvas, [this.draw()]);
-}
-
-tableBrowser.prototype.draw = function()
-{
-	var nameSort = makeLinkButton(_gtxt("Имя")),
-		trs = [],
-		_this = this;
-	
-	nameSort.sortType = 'name';
-	
-	nameSort.onclick = function()
-	{
-		_this.currentSortType = this.sortType;
-		_this.currentSortIndex[_this.currentSortType] = 1 - _this.currentSortIndex[_this.currentSortType];
-		
-		_this.reloadTables();
-	}
-	
-	this.tables = this.tables.sort(this.getCurrentSortFunc());
-	
-	for (var i = 0; i < this.tables.length; i++)
-	{
-		var	tdName = _td([_t(this.tables[i])],[['css','fontSize','12px']]),
-			returnButton = makeImageButton("img/choose.png", "img/choose_a.png"),
-			tr = _tr([_td([returnButton]), tdName]);
-		
-		returnButton.style.cursor = 'pointer';
-		returnButton.style.marginLeft = '5px';
-	
-		_title(returnButton, _gtxt("Выбрать"));
-			
-		(function(i){
-			returnButton.onclick = function()
+	return {
+		title: isZip ? _gtxt("Упаковать") : _gtxt("Извлечь"),
+		clickCallback: function(context)
+		{
+			sendCrossDomainJSONRequest(serverBase + (context.enableUnzip ? 'FileBrowser/Unzip.ashx' : 'FileBrowser/Zip.ashx') + '?WrapStyle=func&FullName=' + context.fullPath, function(response)
 			{
-				_this.close(_this.tables[i]);
-			}
-		})(i);
-		
-		attachEffects(tr, 'hover')
-		
-		trs.push(tr)
+				if (!parseResponse(response))
+					return;
+				
+				var indexSlash = String(response.Result).lastIndexOf('\\'),
+					fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
+				
+				context.fileBrowser.shownPath = fileName;
+				
+				context.fileBrowser.getFiles();
+			})
+		},
+		isVisible: function(context)
+		{
+			return isZip ? !context.enableUnzip : context.enableUnzip; //XOR
+		}
 	}
-	
-	return _table([_thead([_tr([_td(null, [['css','width','25px']]),_td([nameSort], [['css','textAlign','left']])])]), _tbody(trs)], [['css','width','100%']]);
 }
 
-tableBrowser.prototype.getCurrentSortFunc = function()
-{
-	return this.sortFuncs[this.currentSortType][this.currentSortIndex[this.currentSortType]];
-}
+nsGmx.ContextMenuController.addContextMenuElem({
+	title: _gtxt("Скачать"),
+	clickCallback: function(context)
+	{
+		var form = _form([_input(null,[['attr','name','FullName'], ['attr','value', context.fullPath]])], [['css','display','none'],['attr','method','POST'],['attr','action',serverBase + "FileBrowser/Download.ashx"]]);
+		
+		_(document.body, [form]);
+		
+		form.submit();
+		
+		form.removeNode(true);
+	}
+}, ['FileBrowserFolder', 'FileBrowserFile']);
 
-var _tableBrowser = new tableBrowser();
+nsGmx.ContextMenuController.addContextMenuElem({
+	title: _gtxt("Удалить"),
+	clickCallback: function(context)
+	{
+		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/Delete.ashx?WrapStyle=func&FullName=' + context.fullPath, function(response)
+		{
+			if (!parseResponse(response))
+				return;
+			
+			context.fileBrowser.getFiles();
+		})
+	}
+}, ['FileBrowserFolder', 'FileBrowserFile']);
+
+nsGmx.ContextMenuController.addContextMenuElem({
+	title: _gtxt("Очистить"),
+	clickCallback: function(context)
+	{
+		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CleanFolder.ashx?WrapStyle=func&FullName=' + context.fullPath, function(response)
+		{
+			if (!parseResponse(response))
+				return;
+			
+			context.fileBrowser.getFiles();
+		})	
+	}
+}, 'FileBrowserFolder');
+
+//упаковываем и файлы и папки
+nsGmx.ContextMenuController.addContextMenuElem(zipUnzipActionFactory(true), ['FileBrowserFolder', 'FileBrowserFile']);
+
+//распаковываем только файлы
+nsGmx.ContextMenuController.addContextMenuElem(zipUnzipActionFactory(false), 'FileBrowserFile');
+
+})();
