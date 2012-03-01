@@ -2624,10 +2624,7 @@ queryMapLayersList.prototype.load = function()
 	
 	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]),
 		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]);
-	
-	// var dateBegin = _input(null,[['attr','id', name + 'DateBegin'],['dir','className','inputStyle'],['css','width','100px']]),
-		// dateEnd = _input(null,[['attr','id', name + 'DateEnd'],['dir','className','inputStyle'],['css','width','100px']]);
-	
+
 	var intersectSel = _select(
 							   [_option([_t(_gtxt("По границе экрана"))], [['attr','value','bounds']]),
 								_option([_t(_gtxt("По центру экрана"))], [['attr','value','center']])], 
@@ -3114,7 +3111,7 @@ queryMapLayersList.prototype.attachMapChangeEvent = function()
 	
 	var timer = null;
 	
-	globalFlashMap.setHandler("onMove", function()
+	this._listenerId = globalFlashMap.addListener("positionChanged", function()
 	{
 		if (timer)
 			clearTimeout(timer);
@@ -3127,7 +3124,8 @@ queryMapLayersList.prototype.attachMapChangeEvent = function()
 
 queryMapLayersList.prototype.detachMapChangeEvent = function()
 {
-	globalFlashMap.setHandler("onMove", function(){})
+    if ( typeof this._listenerId !== undefined )
+        globalFlashMap.removeListener( "positionChanged", this._listenerId );
 	
 	this.mapEvent = false;
 }

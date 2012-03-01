@@ -331,10 +331,11 @@ WikiFilter.prototype = {
 		var fnFilter = function(){ return _this.filter();}
 		this._checkExtent.onclick = function(){ 
 			if (this.checked) {
-				oFlashMap.setHandler("onMove", fnFilter);
+				_this._moveListenerId = oFlashMap.addListener("positionChanged", fnFilter);
 			}
 			else{
-				oFlashMap.removeHandler("onMove", fnFilter);
+				if (typeof _this._moveListenerId !== 'undefined')
+                    oFlashMap.removeHandler("positionChanged", _this._moveListenerId);
 			}
 			return _this.filter();
 		};

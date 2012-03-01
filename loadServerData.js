@@ -757,7 +757,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 	
 	var timer = null;
 	
-	globalFlashMap.setHandler('onMove', function()
+	globalFlashMap.addListener('positionChanged', function()
 	{
 		if (timer)
 			clearTimeout(timer);
