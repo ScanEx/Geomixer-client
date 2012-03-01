@@ -10,10 +10,10 @@
 							"clusterControl.radius" : "Clustering radius"
 						 });
                          
-    var ClusterParamsControl = function(container)
+    var ClusterParamsControl = function(container, initStyle)
     {
         var _this = this;
-        var isApplyClusters = false;
+        var isApplyClusters = typeof initStyle !== 'undefined';
         var clusterView = {        // Атрибуты отображения членов кластера (при отсутствии не отображать)
             'maxMembers': 10,    // максимальное колич.обьектов в кластере (по умолчанию '10')
             'radius': 40,        // максимальный радиус сдвига координат обьектов попавших в кластер (по умолчанию '50')
@@ -24,10 +24,6 @@
             },
             'lineStyle': { 'color': 0x0600ff, 'opacity': 30, 'thickness': 1 }    // Стиль линии соединяющей центр кластера с отображаемым обьектом
         };
-        
-        var RenderStyle = {        // стили кластеров
-            //marker: { image: 'http://kosmosnimki.ru/poi2/cluster_img.png', center: true, minScale: 0.5, maxScale: 2 }
-        };
     
         var clusterStyle = {
         }
@@ -35,10 +31,12 @@
         var ph = {
             radius: 50,                // радиус кластеризации в пикселах (по умолчанию 20)
             iterationCount: 1,        // количество итераций K-means (по умолчанию 1)
-            clusterView: clusterView,       // Атрибуты отображения членов кластера (при отсутствии не отображать)
+            clusterView: clusterView, // Атрибуты отображения членов кластера (при отсутствии не отображать)
             RenderStyle: null,      // стили кластеров
             HoverStyle: null        // стили кластеров при наведении
         };
+        
+        ph = $.extend(true, ph, initStyle);
                 
         var clusterStyleControl = $('<div/>', {'class': 'clusterStyleControl'});
         var clusterStyleContainer = $('<div/>');
@@ -75,19 +73,18 @@
         
         $(container).append(clusterStyleControl).append(clusterViewContainer);
         
-        var initStyle = {};
+        var initRenderStyle = ph.RenderStyle || {marker:{size:3}, outline: {color: 0xff0000, opacity: 100, thickness: 2}};
         
-        var resObject = _mapHelper.createStyleEditor(clusterStyleContainer[0], initStyle, "point", false);
+        var resObject = _mapHelper.createStyleEditor(clusterStyleContainer[0], initRenderStyle, "point", false);
         
         $(resObject).change(function()
         {
-            ph.RenderStyle = initStyle;
+            ph.RenderStyle = initRenderStyle;
             $(_this).change();
         });
         
-        this.isApplyCLuster = function()
+        this.isApplyCluster = function()
         {
-            // return applyCheckbox[0].checked;
             return isApplyClusters;
         }
         
@@ -100,6 +97,7 @@
         {
             if (isApply != isApplyClusters)
             {
+                ph.RenderStyle = initRenderStyle;
                 isApplyClusters = isApply;
                 $(_this).change();
             }

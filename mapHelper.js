@@ -1475,29 +1475,40 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 		liStyle = _li([_div()],[['css','paddingLeft','0px'],['css','background','none']]),
 		ulStyle = _ul([liStyle]),
         liClusters = _li([_div()],[['css','paddingLeft','0px'],['css','background','none']]),
-		ulClusters = _ul([liClusters]);
+		ulClusters = _ul([liClusters]),
+        clusterCheckbox,
+        clusterControl;
         
-    var clusterControl = new nsGmx.ClusterParamsControl(liClusters);
-    $(clusterControl).change(function()
+    if (geometryType == 'point')
     {
-        var filterNum = getOwnChildNumber(ulParent.parentNode.parentNode.parentNode),
-				filter = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters[filterNum];
-                
-        if (clusterControl.isApplyCLuster())
+        clusterControl = new nsGmx.ClusterParamsControl(liClusters, parentStyle.clusters);
+        $(clusterControl).change(function()
         {
-            filter.setClusters(clusterControl.getClusterStyle());
-        }
-        else
+            var filterNum = getOwnChildNumber(ulParent.parentNode.parentNode.parentNode),
+                    filter = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters[filterNum];
+                    
+            if (clusterControl.isApplyCluster())
+            {
+                filter.setClusters(clusterControl.getClusterStyle());
+            }
+            else
+            {
+                filter.delClusters();
+            }
+        })
+        
+        clusterCheckbox = _checkbox(clusterControl.isApplyCluster(), 'checkbox');
+        clusterCheckbox.style.marginTop = '2px';
+        clusterCheckbox.onchange = function()
         {
-            filter.delClusters();
+            clusterControl.applyClusters(this.checked);
         }
-    })
-    
-    var clusterCheckbox = _checkbox(false, 'checkbox');
-    clusterCheckbox.style.marginTop = '2px';
-    clusterCheckbox.onchange = function()
-    {
-        clusterControl.applyClusters(this.checked);
+        
+        if (!clusterControl.isApplyCluster())
+        {
+            ulClusters.style.display = 'none';
+            ulClusters.className = 'hiddenTree';
+        }
     }
         
 	// zoom
@@ -1640,9 +1651,17 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
         _li([_div([_span([_t(_gtxt("Фильтр"))],[['css','fontSize','12px']])]), ulfilterExpr]),
         _li([_div([_span([_t(_gtxt("Подпись"))],[['css','fontSize','12px']])]), ulLabel]), 
         _li([_div([_span([_t(_gtxt("Балун"))],[['css','fontSize','12px']])]), ulBalloon]),
-        _li([_div([_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']])]), ulStyle]),
-        _li([_div([clusterCheckbox, _span([_t(_gtxt("Кластеризация"))],[['css','fontSize','12px'], ['css', 'marginLeft', '4px']])]), ulClusters])
+        _li([_div([_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']])]), ulStyle])
     ]);
+    
+    if (geometryType == 'point')
+    {
+        _(ulParent, [_li([
+            _div([clusterCheckbox, 
+            _span([_t(_gtxt("Кластеризация"))],[['css','fontSize','12px'], ['css', 'marginLeft', '4px']])]), 
+            ulClusters
+        ])])
+    }
 	
 	if (treeviewFlag)
 		$(ulParent).treeview();
@@ -1662,6 +1681,11 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	ulParent.parentNode.parentNode.parentNode.getStyle = function()
 	{
 		return templateStyle;
+	}
+    
+    ulParent.parentNode.parentNode.parentNode.getClusterStyle = function()
+	{
+		return clusterControl && clusterControl.isApplyCluster() ? clusterControl.getClusterStyle() : null;
 	}
 	
 	ulParent.parentNode.parentNode.parentNode.removeColorPickers = function()
@@ -1833,13 +1857,6 @@ mapHelper.prototype.FillStyleControl = function(initStyle, params)
 		.append($("<td/>").append(fillColorPicker))
 		.append($("<td/>", {'class': 'fillColorOpacity'}).append(fillOpacitySlider))
 	));
-	
-	//выбор внешнего паттерна
-	// var patternURL = $("<input/>", {"type":"text", title: _gtxt("URL рисунка")}).val(_fillStyle.image).change(function()
-    // {
-        // $(_this).change();
-    // });
-	// imagePatternContainer.append(patternURL);
     
     var patternURL = new mapHelper.ImageInputControl(_fillStyle.image);
     $(patternURL).change(function()
@@ -2096,9 +2113,6 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 
 		if (geometryType == "point")
 		{
-			// if (typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
-				// elemCanvas.parentNode.gmxProperties.content.properties.description &&
-				// String(elemCanvas.parentNode.gmxProperties.content.properties.description).toLowerCase().indexOf('карта ветра') == 0)
             if ( isWindLayer )
 			{
 				if (angle.value != '')
@@ -2183,9 +2197,6 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 			outlineColor.style.backgroundColor = '#' + hex;
 			
 			templateStyle.outline.color = outlineColor.hex = parseInt('0x' + hex);
-			
-			// if (elemCanvas.nodeName == 'DIV')
-				// $(elemCanvas).find(".borderIcon")[0].style.borderColor = '#' + hex;
 			
 			$(resObject).change();
 		})
@@ -2351,14 +2362,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 			{
                  templateStyle.fill = fillStyleControl.getFillStyle();
 				_this.showStyle(fillParent);
-				
-				//templateStyle.fill = {};
-				//templateStyle.fill.color = $(fillParent).find(".colorSelector")[0].hex;
-				//templateStyle.fill.opacity = $($(fillParent).find(".ui-slider")[0]).slider('option', 'value');
-				
-				//if (elemCanvas.nodeName == 'DIV')
-					//$(elemCanvas).find(".fillIcon")[0].style.backgroundColor = $(fillParent).find(".colorSelector")[0].style.backgroundColor;
-																
+
 				$(resObject).change();
 			}
 			else
@@ -4344,6 +4348,10 @@ mapHelper.prototype.updateStyles = function(filterCanvas)
 			newFilterStyle.MinZoom = 21;
 		
 		newFilterStyle.RenderStyle = filter.getStyle();
+        
+        var clusterStyle = filter.getClusterStyle();
+        if (clusterStyle !== null)
+            newFilterStyle.clusters = filter.getClusterStyle();
 		
 		styles.push(newFilterStyle);
 	}
