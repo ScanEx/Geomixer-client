@@ -57,6 +57,11 @@ var _getFileName = function( localName )
 nsGmx.initGeoMixer = function()
 {
 
+nsGmx.mapLayersList = {
+    load:   gmxCore.createDeferredFunction('mapLayersList', 'load'),
+    unload: gmxCore.createDeferredFunction('mapLayersList', 'unload')
+}
+
 var oSearchLeftMenu = new leftMenu();
 				
 gmxCore.loadModule("search", _getFileName("search.js"));
@@ -124,10 +129,10 @@ var createMenu = function()
 		]});
 	
 	_menuUp.addItem(
-	{id:"instrumentsMenu", title:_gtxt("Инструменты"),childs:
+        {id:"instrumentsMenu", title:_gtxt("Инструменты"),childs:
 		[
-			{id:'layersList', title:_gtxt('Поиск слоев'),onsel:mapLayers.mapLayersList.load,onunsel:mapLayers.mapLayersList.unload},
-			{id:'mapGrid', title:_gtxt('Координатная сетка'), func:function(){_mapHelper.gridView = !_mapHelper.gridView; globalFlashMap.grid.setVisible(_mapHelper.gridView);}}
+			{id: 'layersList', title:_gtxt('Поиск слоев'), onsel: nsGmx.mapLayersList.load, onunsel: nsGmx.mapLayersList.unload},
+			{id: 'mapGrid', title:_gtxt('Координатная сетка'), func:function(){_mapHelper.gridView = !_mapHelper.gridView; globalFlashMap.grid.setVisible(_mapHelper.gridView);}}
 		]});
 	
 	var services = [];
