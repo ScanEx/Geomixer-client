@@ -151,6 +151,27 @@ var Calendar = function()
 	 */
 	this.getDateMin = function() { return this.dateMin; }
     
+    this.setDateMin = function(dateMin)
+    {
+        this.dateMin = dateMin;
+        $([this.dateBegin, this.dateEnd]).datepicker('option', 'minDate', 
+            new Date(this.dateMin.valueOf() + this.dateMin.getTimezoneOffset()*60*1000)
+        )
+    }
+    
+    this.setDateMax = function(dateMax)
+    {
+        this.dateMax = dateMax;
+        this.dateMax.setHours(23);
+        this.dateMax.setMinutes(59);
+        this.dateMax.setSeconds(59);
+        $([this.dateBegin, this.dateEnd]).datepicker('option', 'maxDate', 
+            new Date(this.dateMax.valueOf() + this.dateMin.getTimezoneOffset()*60*1000)
+        )
+    }
+    
+    /**
+    */
     this.setShowTime = function(isShowTime)
     {
         this._params.showTime = isShowTime;
