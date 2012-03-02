@@ -75,11 +75,11 @@
         
         var initRenderStyle = ph.RenderStyle || {marker:{size:3}, outline: {color: 0xff0000, opacity: 100, thickness: 2}};
         
-        var resObject = _mapHelper.createStyleEditor(clusterStyleContainer[0], initRenderStyle, "point", false);
+        var resObject = _mapHelper.createStyleEditor(clusterStyleContainer[0], initRenderStyle, "point", true);
         
         $(resObject).change(function()
         {
-            ph.RenderStyle = initRenderStyle;
+            ph.RenderStyle = ph.HoverStyle = initRenderStyle;
             $(_this).change();
         });
         
