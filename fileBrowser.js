@@ -388,7 +388,7 @@ fileBrowser.prototype.pathWidget = function()
     else 
         shortPath = this.currentDir.replace(this._homeDir, "");
 	
-    var parent = $('<span/>', {'class': 'fileBrowser-pathWidget'});//.append($('<span/>').text(shortPath)).append($('<br/>'));
+    var parent = $('<span/>', {'class': 'fileBrowser-pathWidget'});
     var pathElements = [];
     
     var highlightPath = function(index)
@@ -405,7 +405,7 @@ fileBrowser.prototype.pathWidget = function()
         var newElem = $('<span/>', {'class': 'fileBrowser-pathElem'}).text(text + _this.slash)
         .click(function()
         {
-            _this.getFiles(path);
+            _this.getFiles(/^[a-z]:$/i.test(path) ? path  + _this.slash : path);
         })
         .hover(function(){highlightPath(elemIndex)}, function(){highlightPath(-1)});
         
@@ -564,12 +564,6 @@ fileBrowser.prototype.draw = function(files)
 
 		prevDirTr.onclick = function()
 		{
-			// var index = String(_this.currentDir).lastIndexOf(_this.slash),
-				// newPath = String(_this.currentDir).substr(0, index);
-			
-			// if (new RegExp(/^[a-z]:$/i).test(newPath))
-				// newPath += _this.slash;
-			
 			_this.getFiles(_this._getParentFolder(_this.currentDir));
 		}
 	}
