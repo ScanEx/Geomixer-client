@@ -98,6 +98,7 @@
 			'sql': sql
 		};
 		if(style.Balloon) out['Balloon'] = style.Balloon;
+		if(style.clusters) out['clusters'] = style.clusters;
 		return out;
 	}
 
@@ -151,7 +152,7 @@
 		prnt.filters.push(filter);
 		if (attr['name'])
 			prnt.filters[attr.name] = filter;
-		
+
 		gmxAPI._listeners.dispatchEvent('addFilter', prnt, {'filter': filter} );			// Listeners на слое - произошло добавление фильтра
 		if(prnt.objectId) filter = initFilter(prnt, num);	// если слой виден - инициализация фильтра
 		

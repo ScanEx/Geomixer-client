@@ -10,33 +10,35 @@
 		marker: { image: 'http://images.kosmosnimki.ru/clusters/cluster_circ_hov.png', center: true, minScale: 0.5, maxScale: 2, scale: '['+countKeyName+']/50' },
 		label: { size: 12, align:'center', color: 0xff0000, haloColor: 0xffffff, value:'[Метка]', field: countKeyName }
 	};
+
+	var newProperties = {						// Заполняемые поля properties кластеров
+	};
+	newProperties[countKeyName] = '[objectInCluster]';	// objectInCluster - количество обьектов попавших в кластер (по умолчанию 'Количество')
+
+	var defaultAttr = {
+		'radius': 20,
+		'iterationCount': 1,
+		'newProperties': newProperties,			// Заполняемые поля properties кластеров
+		'RenderStyle': RenderStyle,				// стили кластеров
+		'HoverStyle': HoverStyle,				// стили кластеров при наведении
+		'clusterView': {},						// Атрибуты отображения членов кластера (при null не отображать)
+		'visible': false
+	};
 	
 	var _chkAttr = function(data)
 	{
+		if(data['radius'] < 1) data['radius'] = 20;
 		if(!data['RenderStyle']) data['RenderStyle'] = RenderStyle;
 		if(!data['HoverStyle']) data['HoverStyle'] = HoverStyle;
 		if(!data['clusterView']) data['clusterView'] = {};
+		if(!data['newProperties']) data['newProperties'] = newProperties;
 		return data;
 	}
 
 	var Clusters =	function(parent)		// атрибуты кластеризации потомков
 	{
 		this._parent = parent;
-        
-
-		var newProperties = {						// Заполняемые поля properties кластеров
-		};
-		newProperties[countKeyName] = '[objectInCluster]';	// objectInCluster - количество обьектов попавших в кластер (по умолчанию 'Количество')
-
-		this._attr = {
-			'radius': 20,
-			'iterationCount': 1,
-			'newProperties': newProperties,			// Заполняемые поля properties кластеров
-			'RenderStyle': RenderStyle,				// стили кластеров
-			'HoverStyle': HoverStyle,				// стили кластеров при наведении
-			'clusterView': {},						// Атрибуты отображения членов кластера (при null не отображать)
-			'visible': false
-		};
+		this._attr = gmxAPI.clone(defaultAttr);
 
 		// Добавление прослушивателей событий
 		var me = this;
@@ -69,6 +71,7 @@
 
 	//расширяем namespace
     gmxAPI._Clusters = Clusters;
+    gmxAPI._getDefaultClustersAttr = function() { return defaultAttr; }
 	
 	//расширяем FlashMapObject
 	gmxAPI.extendFMO('setClusters', function(attr) { var ph = (attr ? _chkAttr(attr) : this._attr); return gmxAPI._cmdProxy('setClusters', { 'obj': this, 'attr': ph }); });

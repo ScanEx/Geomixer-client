@@ -2134,12 +2134,17 @@ FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
 FlashMapObject.prototype.flip = function() { return gmxAPI._cmdProxy('flip', { 'obj': this }); }
 
 FlashMapObject.prototype.setFilter = function(sql) {
-	if(!this.clusters && '_Clusters' in gmxAPI) {
-		this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
-	}
 	if(!sql) sql ='';
 	this._sql = sql;			// атрибуты фильтра установленные юзером
 	var ret = gmxAPI._cmdProxy('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
+
+	if(!this.clusters && '_Clusters' in gmxAPI) {
+		this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
+	}
+	if(this._attr && this._attr.clusters) {
+		this.setClusters(this._attr.clusters);
+	}
+
 	return ret;
 }
 
