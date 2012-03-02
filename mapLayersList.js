@@ -1,3 +1,4 @@
+//Поиск слоёв, динамически загружаемый модуль
 (function(){
 
 var mapLayersList = 
@@ -265,7 +266,8 @@ queryMapLayersList.prototype.load = function()
 //делает видимым только один слой с индексом nVisible
 queryMapLayersList.prototype._updateSliderVisibility = function(nVisible)
 {
-    var curLayer = _listTable.getDataProvider().getOriginalItems()[nVisible];
+    // var curLayer = _listTable.getDataProvider().getOriginalItems()[nVisible];
+    var curLayer = _listTable.getDataProvider().getItemsDirect( nVisible, 1, _listTable.getSortType(), _listTable.getSortDirection() )[0];
 	if (!this._isLayersScrollActive || typeof curLayer === 'undefined') return;
 	
 	var layerName = curLayer.properties.name;
@@ -273,7 +275,7 @@ queryMapLayersList.prototype._updateSliderVisibility = function(nVisible)
 	
 	for (var k = 0; k < globalFlashMap.layers.length; k++)
 		if (globalFlashMap.layers[k].properties.mapName !== baseMapName) //слои базовой карты не трогаем
-	{
+        {
 			var isVisible = layerName == globalFlashMap.layers[k].properties.name;
 			if (isVisible !== globalFlashMap.layers[k].isVisible)
 				globalFlashMap.layers[k].setVisible(isVisible);
@@ -282,7 +284,7 @@ queryMapLayersList.prototype._updateSliderVisibility = function(nVisible)
 
 queryMapLayersList.prototype._updateSlider = function()
 {
-	if (typeof _listTable.getDataProvider().getOriginalItems().length == 0)
+	if (typeof _listTable.getDataProvider().getCountDirect() == 0)
 		return;
 
 	var container = $("#layersScrollSlider");
@@ -296,7 +298,7 @@ queryMapLayersList.prototype._updateSlider = function()
 	
 	this._scrollDiv = $("<div></div>");
 	this._scrollDiv.slider({
-		max: _listTable.getDataProvider().getOriginalItems().length - 1,
+		max: _listTable.getDataProvider().getCountDirect() - 1,
 		slide: function(event, ui) { slideFunction(ui.value); }
 	});
 	
@@ -334,7 +336,7 @@ queryMapLayersList.prototype._updateSlider = function()
 	
 	container.append(table);
 	
-	if (_listTable.getDataProvider().getOriginalItems().length == 0)
+	if (_listTable.getDataProvider().getCountDirect() == 0)
 		this._scrollDiv.slider('option', 'disabled', true);
 	else
 		this._updateSliderVisibility(0);

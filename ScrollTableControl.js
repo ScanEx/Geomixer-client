@@ -135,19 +135,6 @@ scrollTable.prototype.getDataProvider = function()
     return this._dataProvider;
 }
 
-// scrollTable.prototype.setActiveFields = function(activeFields)
-// {
-    // var fieldsSet = {}
-    // for (var f = 0; f < activeFields.length; f++)
-        // fieldsSet[activeFields[f]] = true;
-    
-    // for (var f = 0; f < this._fields.length; f++)
-        // this._fields[f].isActive = this._fields[f].title in fieldsSet;
-            
-    // this._drawHeader();
-    // this._drawRows();
-// }
-
 scrollTable.prototype.activateField = function(name, isActive)
 {
     for (var f = 0; f < this._fields.length; f++)
@@ -330,10 +317,6 @@ scrollTable.prototype._drawHeader = function()
 scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fieldsWidths, drawFunc, sortableFields, isWidthScroll)
 {
 	var _this = this;
-        
-	// this.fieldsWidths = fieldsWidths;
-    // this._fields = fields;
-    // this._activeFields = $.extend({}, fields);
     this._isWidthScroll = isWidthScroll;
     
     this._fields = [];
@@ -432,21 +415,6 @@ scrollTable.prototype._drawTable = function()
 {
     if (!this.tableBody) return; //ещё не создана таблица
     this._drawPagesRow();
-    // var _this = this;
-    // this._updatePageData(function()
-    // {
-	
-        // if (_this._currValsCount <= _this.limit)
-        // {
-            // removeChilds(_this.tablePages);
-            
-            // _this._drawRows()
-        // }
-        // else
-        // {
-            // _this._drawPagesRow();
-        // }
-    // })
 }
 
 scrollTable.prototype.setPage = function(iPage)
@@ -461,6 +429,17 @@ scrollTable.prototype.setPage = function(iPage)
 	
 	this.tableBody.scrollTop = 0;
 	this.tableParent.scrollTop = 0;
+}
+
+scrollTable.prototype.getSortType = function()
+{
+    return this.currentSortType;
+}
+
+//false - по убыванию, true - по возрастанию
+scrollTable.prototype.getSortDirection = function()
+{
+    return this.currentSortIndex[this.currentSortType] == 0
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -499,14 +478,14 @@ scrollTable.StaticDataProvider = function()
         $(_this).change();
     }
     
-    //IDataProvider interface
-    this.getCount = function(callback)
+    //
+    this.getCountDirect = function()
     {
         _filter();
-        callback(_filteredVals.length);
+        return _filteredVals.length;
     }
     
-    this.getItems = function(page, pageSize, sortParam, sortDec, callback)
+    this.getItemsDirect = function(page, pageSize, sortParam, sortDec)
     {
         var nMin = page*pageSize;
         var nMax = nMin + pageSize;
@@ -515,7 +494,18 @@ scrollTable.StaticDataProvider = function()
         var sortedVals = _sortFunctions[sortParam] ? _filteredVals.sort(_sortFunctions[sortParam][sortDirIndex]) : _filteredVals;
         nMin = Math.min(Math.max(nMin, 0), sortedVals.length);
         nMax = Math.min(Math.max(nMax, 0), sortedVals.length);
-        callback(sortedVals.slice(nMin, nMax));
+        return sortedVals.slice(nMin, nMax);
+    }
+    
+    //IDataProvider interface
+    this.getCount = function(callback)
+    {
+        callback(this.getCountDirect());
+    }
+    
+    this.getItems = function(page, pageSize, sortParam, sortDec, callback)
+    {
+        callback(this.getItemsDirect(page, pageSize, sortParam, sortDec, callback));
     }
     
     //задание/получение исходных данных
@@ -601,6 +591,5 @@ scrollTable.StaticDataProvider = function()
     }
 };
 
-var //_layersTable = new scrollTable(),
-	_mapsTable = new scrollTable(),
+var _mapsTable = new scrollTable(),
 	_listTable = new scrollTable();
