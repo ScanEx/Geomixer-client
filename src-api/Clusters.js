@@ -75,5 +75,5 @@
 	
 	//расширяем FlashMapObject
 	gmxAPI.extendFMO('setClusters', function(attr) { var ph = (attr ? _chkAttr(attr) : this._attr); return gmxAPI._cmdProxy('setClusters', { 'obj': this, 'attr': ph }); });
-	gmxAPI.extendFMO('delClusters', function() { return gmxAPI._cmdProxy('delClusters', { 'obj': this }); });
+	gmxAPI.extendFMO('delClusters', function() { 	if(this.clusters && this.clusters.attr) delete this.clusters.attr; return gmxAPI._cmdProxy('delClusters', { 'obj': this }); });
 })();

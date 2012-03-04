@@ -19,9 +19,7 @@ class PointGeometry extends Geometry
 
 	public override function paint(attr:Dynamic)
 	{
-		if (attr.func != null && !attr.func(propTemporal)) return;	// Фильтр мультивременных данных
-
-		var contains = attr.window.visibleExtent.contains(x, y);	// Точка в области видимости
+		var contains:Bool = attr.window.visibleExtent.contains(x, y);	// Точка в области видимости
 		if (contains)
 		{
 			putPoint(attr);

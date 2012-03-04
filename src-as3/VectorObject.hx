@@ -9,6 +9,7 @@ class VectorObject extends MapContent
 	public var label:String;
 
 	var curNodeFilter:MapNode;
+	var curFilter:VectorLayerFilter;
 	var layer:VectorLayer;
 	var xshift:Float;
 	
@@ -17,6 +18,7 @@ class VectorObject extends MapContent
 		geometry = geometry_;
 		isActive = false;
 		curNodeFilter = null;
+		curFilter = null;
 		layer = null;
 		xshift = 0.0;
 	}
@@ -32,7 +34,18 @@ class VectorObject extends MapContent
 		painter = new GeometryPainter(geometry, contentSprite, mapNode.window);
 		if (Std.is(mapNode.parent.content, VectorLayer)) {
 			layer = cast(mapNode.parent.content, VectorLayer);
+			if (layer.attrHash != null) {
+				if (layer.attrHash.TemporalColumnName != null) {
+					var pt = geometry.properties.get(layer.attrHash.TemporalColumnName);
+					if(pt != null) {
+						var unixTimeStamp:String = Utils.dateStringToUnixTimeStamp(pt);
+						if(unixTimeStamp != '') geometry.propTemporal.set('unixTimeStamp', unixTimeStamp);			// посчитали unixTimeStamp для фильтра
+					}
+				}
+			}
+
 			contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event) {
+				me.layer.lastGeometry = null; // для обнуления предыдущей геометрии под мышкой в тайле
 				if(me.curNodeFilter != null) Main.registerMouseDown(me.curNodeFilter, event, me.mapNode);
 			});
 		} else {
@@ -47,18 +60,25 @@ class VectorObject extends MapContent
 	public override function repaint()
 	{
 		var curStyle = null;
+		var curTemporalCriterion = null;
 		if (layer != null) {
-			curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
-			if (curNodeFilter != null) {
+			curFilter = findFilter();
+			if (curFilter != null && curFilter.clusterAttr != null) {
+				curStyle = (isActive ? curFilter.hoverStyleOrig : curFilter.regularStyleOrig);
+			} else {
+				curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
+			}
+			curTemporalCriterion = layer.temporalCriterion;
+			if (layer.currentFilter != null) {
 				layer.hoverPainter.repaint(null);
-				curNodeFilter.callHandler('onMouseOut', mapNode);
+				curFilter.mapNode.callHandler('onMouseOut', mapNode);
 			}
 			layer.lastId = null;
 			layer.currentId = null;
 		} else {
 			curStyle = (isActive ? mapNode.getHoveredStyle() : mapNode.getRegularStyle());			
 		}
-		painter.repaint(curStyle);
+		painter.repaint(curStyle, curTemporalCriterion);
 		isActive = false;
 		curNodeFilter = null;
 		chkPositionX();
@@ -91,24 +111,34 @@ class VectorObject extends MapContent
 		mapNode.window.paintLabel(label, geometry, style, xshift);
 	}
 
+	function findFilter()
+	{
+		var nodeFilter = null;
+		for (key in mapNode.parent.filters.keys()) {
+			nodeFilter = mapNode.parent.filters.get(key);
+			if (nodeFilter != null) {
+				var vectorLayerFilter = cast(nodeFilter.content, VectorLayerFilter);
+				if (vectorLayerFilter.criterion(mapNode.propHash)) {
+					return vectorLayerFilter;
+				}
+			}
+		}
+		return null;
+	}
+
 	function highlight()
 	{
 		isActive = true;
 		if (layer != null) {
 			layer.lastId = mapNode.id;
-			var curStyle = mapNode.getHoveredStyleRecursion();
-			curNodeFilter = null;
 			layer.currentId = mapNode.propHash.get(layer.identityField);
-			for (key in mapNode.parent.filters.keys()) {
-				curNodeFilter = mapNode.parent.filters.get(key);
-				if (curNodeFilter != null) {
-					var vectorLayerFilter = cast(curNodeFilter.content, VectorLayerFilter);
-					if (vectorLayerFilter.criterion(mapNode.propHash)) {
-						curStyle = curNodeFilter.getHoveredStyle();
-						layer.currentFilter = vectorLayerFilter;
-						break;
-					}
-				}
+
+			var curStyle = mapNode.getHoveredStyleRecursion();
+			curFilter = findFilter();
+			if (curFilter != null) {
+				curNodeFilter = curFilter.mapNode;
+				curStyle = curNodeFilter.getHoveredStyle();
+				layer.currentFilter = curFilter;
 			}
 			layer.hoverPainter.geometry = geometry;
 			layer.hoverPainter.repaint(curStyle);

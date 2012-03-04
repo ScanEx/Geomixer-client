@@ -2141,8 +2141,8 @@ FlashMapObject.prototype.setFilter = function(sql) {
 	if(!this.clusters && '_Clusters' in gmxAPI) {
 		this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
 	}
-	if(this._attr && this._attr.clusters) {
-		this.setClusters(this._attr.clusters);
+	if(this.clusters.attr) {
+		this.setClusters(this.clusters.attr);
 	}
 
 	return ret;

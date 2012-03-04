@@ -19,6 +19,7 @@ class GeometryPainter
 		//sprite.graphics.clear();
 		Utils.clearSprite(sprite);
 		if ((geometry != null) && (style != null)) {
+			if (func != null && geometry.properties != null && !func(geometry.propTemporal)) return;	// Фильтр мультивременных данных
 			var attr:Dynamic = { };
 			attr.sprite = sprite; attr.style = style; attr.window = window; attr.func = func;
 			geometry.paintWithExtent(attr);
@@ -31,6 +32,7 @@ class GeometryPainter
 		Utils.clearSprite(sprite_);
 		//sprite_.graphics.clear();
 		if ((geometry != null) && (style != null)) {
+			if (func != null && geometry.properties != null && !func(geometry.propTemporal)) return;	// Фильтр мультивременных данных
 			var attr:Dynamic = { };
 			attr.sprite = sprite_; attr.style = style; attr.window = window; attr.func = func;
 			geometry.paint(attr);

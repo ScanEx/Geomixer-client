@@ -9,6 +9,7 @@ class ClusterPointsViewer extends MapContent
 	public var vlFilter:VectorLayerFilter;				// фильтр родитель
 	private var centrGeometry:PointGeometry;			// центр кластера
 	private var members:Array<PointGeometry>;			// члены кластера
+	private var curGeos:Array<Geometry>;				// отрисованные Geometry
 	private var bgSprite:Sprite;						// 
 	private var eventsFlag:Bool;						// флаг установки событий
 	private var paintFlag:Bool;							// флаг отрисовки
@@ -46,6 +47,7 @@ class ClusterPointsViewer extends MapContent
 	{
 		centrGeometry = cast(vlFilter.layer.lastGeometry, PointGeometry);
 		members = centrGeometry.propHiden.get('_members');
+		curGeos = new Array<Geometry>();
 		
 		clusterViewAttr = (vlFilter.clusterAttr.clusterView != null ? vlFilter.clusterAttr.clusterView : { } );
 		if (clusterViewAttr.radius == null) clusterViewAttr.radius = 50;	// максимальный радиус сдвига координат обьектов попавших в кластер (по умолчанию '50')
@@ -82,9 +84,12 @@ class ClusterPointsViewer extends MapContent
 		
 		node = mapNode.addChild();
 		var point:PointGeometry = new PointGeometry(xx, yy);
+		point.properties = pt.properties;
 		node.properties = pt.properties;
-		node.setContent(new VectorObject(point));
-		return node.id;
+		
+		var vp:VectorObject = new VectorObject(point);
+		node.setContent(vp);
+		return point;
 	}
 
 	function clearChildren()
@@ -114,13 +119,26 @@ class ClusterPointsViewer extends MapContent
 		
 		var rad:Float = clusterViewAttr.radius * scaleCurrent;
 		var deltaAlpha:Float = 2*Math.PI/members.length;
+		curGeos = new Array<Geometry>();
 		for (i in 0...Std.int(members.length))
 		{
-			addPoint(i, deltaAlpha, (rad - Math.random() * clusterViewAttr.delta * scaleCurrent));
+			curGeos.push(addPoint(i, deltaAlpha, (rad - Math.random() * clusterViewAttr.delta * scaleCurrent)));
 		}
 		paintFlag = true;
-//trace('repaint xxxxxxxxxxxxxxxxxx ' + mapNode + ' : ' + contentSprite.numChildren);
-		
+	}
+
+	private function findIntersect(x:Float, y:Float, arr:Array<Geometry>):Array<Geometry>
+	{
+		var halfLine = 10 * Math.abs(mapNode.window.scaleY) / 2;
+		var out:Array<Geometry> = new Array<Geometry>();
+		for (i in 0...Std.int(arr.length))
+		{
+			var geo:Geometry = arr[i];
+			if (geo.extent.contains(x, y, halfLine)) {
+				out.push(geo);
+			}
+		}
+		return out;
 	}
 
 	public override function addHandlers()
@@ -134,8 +152,32 @@ class ClusterPointsViewer extends MapContent
 		});
 		contSprite.addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent)
 		{
+			vlFilter.layer.lastGeometry = null;
+			me.vlFilter.mapNode.callHandler("onMouseOut");
 			Main.removeClusterPointsViewer(event);
 			event.stopPropagation();
 		});
+		
+		contSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
+		{
+			var items:Array<Geometry> = findIntersect(event.localX, event.localY, curGeos);
+			if(items.length > 0) {
+				vlFilter.layer.lastGeometry = items[0];
+				me.vlFilter.mapNode.callHandler("onMouseOver");
+			} else {
+				vlFilter.layer.lastGeometry = null;
+				me.vlFilter.mapNode.callHandler("onMouseOut");
+			}
+		});
+		
+		contSprite.addEventListener(MouseEvent.MOUSE_UP, function(event:MouseEvent)
+		{
+			var items:Array<Geometry> = findIntersect(event.localX, event.localY, curGeos);
+			if(items.length > 0) {
+				vlFilter.layer.lastGeometry = items[0];
+				me.vlFilter.mapNode.callHandler("onClick");
+			}
+		});
+		
 	}
 }

@@ -70,8 +70,10 @@ class VectorTile
 						if (me.layer.attrHash != null) {
 							if (me.layer.attrHash.TemporalColumnName != null) {
 								var pt = properties.get(me.layer.attrHash.TemporalColumnName);
-								var unixTimeStamp:String = Utils.dateStringToUnixTimeStamp(pt);
-								geometry.propTemporal.set('unixTimeStamp', unixTimeStamp);			// посчитали unixTimeStamp для фильтра
+								if(pt != null) {
+									var unixTimeStamp:String = Utils.dateStringToUnixTimeStamp(pt);
+									geometry.propTemporal.set('unixTimeStamp', unixTimeStamp);			// посчитали unixTimeStamp для фильтра
+								}
 							}
 						}
 						geometry.properties = properties;

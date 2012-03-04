@@ -48,17 +48,24 @@ class VectorLayerFilter extends MapContent
 	public override function delClusters():Dynamic
 	{
 		clusterAttr = null;
-		if(regularStyleOrig != null) mapNode.setStyle(regularStyleOrig, hoverStyleOrig);
+		//if(regularStyleOrig != null) mapNode.setStyle(regularStyleOrig, hoverStyleOrig);
+		Main.needRefreshMap = true;
+	}
+
+	// Проверка кластеризации на фильтре
+	public function chkClusters()
+	{
+		if(clusterAttr != null) runClusters(clusterAttr);
 	}
 
 	// Инициализация кластеризации на фильтре
 	private function runClusters(attr:Dynamic)
 	{
-		clusterAttr = attr;
+		if(attr != null) clusterAttr = attr;
 		var regularStyle = null;
-		if (clusterAttr.RenderStyle != null) regularStyle = new Style(clusterAttr.RenderStyle);
+		if (clusterAttr.RenderStyle != null) clusterAttr.regularStyle = new Style(clusterAttr.RenderStyle);
 		var hoverStyle = null;
-		if (clusterAttr.HoverStyle != null) hoverStyle = new Style(clusterAttr.HoverStyle);
+		if (clusterAttr.HoverStyle != null) clusterAttr.hoverStyle = new Style(clusterAttr.HoverStyle);
 
 		clusterAttr._zoomDisabledHash = new Hash<Bool>();
 		if (clusterAttr.zoomDisabled != null) {
@@ -68,9 +75,10 @@ class VectorLayerFilter extends MapContent
 			}
 		}
 		
+		Main.needRefreshMap = true;
 		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
 		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
-		mapNode.setStyle(regularStyle, hoverStyle);
+		//mapNode.setStyle(clusterAttr.regularStyle, clusterAttr.hoverStyle);
 	}
 
 	// Установить кластеризацию на фильтре
@@ -147,8 +155,9 @@ class VectorLayerFilter extends MapContent
 
 		if(clusterAttr != null) {
 			var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
-			if (clusterAttr._zoomDisabledHash.exists(currentZ)) {
-				curStyle = regularStyleOrig;
+			if (!clusterAttr._zoomDisabledHash.exists(currentZ)) {
+				curStyle = clusterAttr.regularStyle;
+				//curStyle = regularStyleOrig;
 			}
 		}
 

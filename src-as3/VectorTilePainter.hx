@@ -74,7 +74,7 @@ class VectorTilePainter
 		if ((style != null && style.curCount != oldStyleID) || oldZ != currentZ)
 		{
 			repaintCache = true;
-			oldStyleID = style.curCount;
+			oldStyleID = (style != null ? style.curCount : 0);
 			oldZ = currentZ;
 		}
 

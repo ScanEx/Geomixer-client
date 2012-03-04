@@ -153,6 +153,11 @@
 		if (attr['name'])
 			prnt.filters[attr.name] = filter;
 
+		if(!filter.clusters && attr['clusters'] && '_Clusters' in gmxAPI) {
+			filter.clusters = new gmxAPI._Clusters(filter);	// атрибуты кластеризации потомков по фильтру
+			filter.setClusters(attr['clusters']);
+		}
+		
 		gmxAPI._listeners.dispatchEvent('addFilter', prnt, {'filter': filter} );			// Listeners на слое - произошло добавление фильтра
 		if(prnt.objectId) filter = initFilter(prnt, num);	// если слой виден - инициализация фильтра
 		

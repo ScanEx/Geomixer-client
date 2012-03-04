@@ -34,13 +34,13 @@ class Main
 {
 	public static var registerMouseDown:MapNode->MouseEvent->MapNode->Void;
 	public static var refreshMap:Void->Void;			// Принудительный Refresh карты
+	public static var needRefreshMap:Bool = false;		// Флаг необходимости обновления карты
 	
 	static var flashUrlKey:String = '';					// Ключ сессии SWF
 	public static var useFlashLSO:Bool = false;			// Использовать SharedObject
 	public static var multiSessionLSO:Bool = false;		// Использовать SharedObject между сессиями
 	public static var compressLSO:Bool = false;			// Сжатие SharedObject
 	public static var flashStartTimeStamp:Float = 0;	// timeStamp загрузки SWF
-	public static var needRefreshMap:Bool = false;		// Флаг необходимости обновления карты
 
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
@@ -304,6 +304,7 @@ class Main
 		var chkClusterPointsViewer = function(vlf:VectorLayerFilter):Bool
 		{
 			if (vlf.clusterAttr.clusterView == null) return false;
+			if (vlf.layer.lastGeometry == null) return false; // пред.геометрия
 			var centrGeometry:PointGeometry = cast(vlf.layer.lastGeometry, PointGeometry);
 			var members:Array<PointGeometry> = centrGeometry.propHiden.get('_members');
 			if (members.length == 1) return false;
@@ -1155,6 +1156,9 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					var node = getNode(attr.objectId);
 					var data:Dynamic = cast(attr.data);
 					node.setStyle(new Style(data.regularStyle), (data.hoveredStyle != null) ? new Style(data.hoveredStyle) : null);
+					if (Std.is(node.content, VectorLayerFilter)) {
+						cast(node.content, VectorLayerFilter).chkClusters();
+					}
 					Main.dispatchMouseLeave();
 				case 'getStyle':
 					var node = getNode(attr.objectId);

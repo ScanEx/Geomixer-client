@@ -235,8 +235,8 @@ class VectorLayer extends MapContent
 				if(curGeom == null) continue;		// пропускаем ноды без MultiGeometry
 				for (member in curGeom.members)
 				{
-					if (temporalCriterion != null && !temporalCriterion(member.propTemporal)) {
-						continue;					// пропускаем ноды отфильтрованные мультивременными интервалами
+					if (filter.clusterAttr == null && temporalCriterion != null && !temporalCriterion(member.propTemporal)) {
+						continue;					// пропускаем ноды отфильтрованные мультивременными интервалами только если нет кластеризации
 					}
 					
 					var d = member.distanceTo(x, y);
@@ -290,8 +290,9 @@ class VectorLayer extends MapContent
 		}
 		if (newCurrentId != currentId)
 		{
-			if ((newCurrentFilter != currentFilter) && (currentFilter != null))
+			if ((newCurrentFilter != currentFilter) && (currentFilter != null)) {
 				currentFilter.mapNode.callHandler("onMouseOut");
+			}
 			currentId = newCurrentId;
 			if (newCurrentFilter != null) {
 				if(newCurrentFilter.clusterAttr == null) {

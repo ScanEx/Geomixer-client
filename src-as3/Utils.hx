@@ -78,11 +78,15 @@ class Utils
 
 	public static function dateStringToUnixTimeStamp(str:String):String
 	{
-		var ret:String = '0';
-		if(str != '' ) { 
+		var ret:String = '';
+		if (str != '' ) {
 			var regObject = ~/\./g;
-			var dt:Date = Date.fromString(regObject.replace(str, '-'));
-			ret = cast(dt.getTime() / 1000);
+			str = regObject.replace(str, '-');
+			regObject = ~/\-/g;
+			if(regObject.match(str)) {
+				var dt:Date = Date.fromString(str);
+				ret = cast(dt.getTime() / 1000);
+			}
 		}
 		return ret;
 	}
@@ -396,7 +400,7 @@ class Utils
 		var scale:Float = Utils.getScale(currentZ);		// размер пиксела в метрах меркатора
 		var radMercator:Float = radius * scale;			// размер радиуса кластеризации в метрах меркатора
 		
-		if(identityField == null) identityField = 'ogc_fid';
+		if(identityField == null) identityField = (vectorLayerFilter.layer.identityField != '' ? vectorLayerFilter.layer.identityField : 'ogc_fid');
 		var grpHash = new Hash<Dynamic>();
 		for (i in 0...Std.int(geom.members.length))
 		{

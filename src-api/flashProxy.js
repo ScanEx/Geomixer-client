@@ -45,9 +45,9 @@
 				else
 					ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
 				attr['visible'] = flag;
-				obj['clusters']['attr'] = attr;
+				obj['clusters']['attr'] = attr;		// признак наличия кластеризации в SWF
 
-				if(!obj.parent._hoverBalloonAttr) obj.parent.enableHoverBalloon();	// если балунов не установлено
+				//if(!obj.parent._hoverBalloonAttr) obj.parent.enableHoverBalloon();	// если балунов не установлено
 				break;
 			case 'delClusters':		// Удалить кластеризацию потомков
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
