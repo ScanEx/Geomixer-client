@@ -112,7 +112,9 @@
         );
         
         var rows = {}; //ссылки на контролы для каждого элемента
+        var rowsVector = [];
         
+        //в зависимости от типа ввода (type) прикрепляет к valueInput виджет выбора даты, время или даты/время
         var updateInput = function(valueInput, type)
         {
             if ( type == 'Date' )
@@ -137,7 +139,6 @@
                 {
                     changeMonth: true,
                     changeYear: true,
-                    //buttonImage: "img/calendar.png",
                     dateFormat: "dd.mm.yy",
                     timeOnly: false
                 }).addClass('layertags-datetimeinput');
@@ -199,6 +200,7 @@
             mainTable.append(tr);
             
             rows[tagId] = {tr: tr, tag: tagInput, value: valueInput, type: typeSelect, valueType: type};
+            rowsVector.push( {id: tagId, row: rows[tagId]} );
         }
         
         var convertFunctions = {
@@ -224,6 +226,21 @@
         this.convertTagValue = function(id, type, value)
         {
             return type in convertFunctions ? convertFunctions[type](id, value) : value;
+        }
+        
+        var moveEmptyLayersToBottom = function()
+        {
+            var lastEmptyId = -1;
+            for (var irow = 0; irow < rowsVector.length; irow++)
+                if (layerTags.isEmptyTag(rowsVector[irow].id))
+                    lastEmptyId = irow;
+            
+            if (lastEmptyId >= 0 && lastEmptyId < rowsVector.length)
+            {
+                var tr = rowsVector[lastEmptyId].row.tr;
+                $(tr).detach();
+                mainTable.append(tr);
+            }
         }
         
         $(layerTags).change(function()
@@ -279,6 +296,8 @@
             
             if (!isAnyEmpty)
                 layerTags.addNewTag();
+                
+            moveEmptyLayersToBottom();
         });
         
         layerTags.addNewTag();

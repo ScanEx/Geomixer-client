@@ -3454,6 +3454,21 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				}
 			})
 		}
+        
+        var appendMetadata = function(data)
+        {
+            if (!data) return;
+            
+            for (var mp in data)
+                
+            
+            var convertedTagValues = {};
+            for (var mp in data)
+            {
+                var tagtype = data[mp].Type;
+                layerTags.addNewTag(mp, nsGmx.LayerTagSearchControl.convertFromServer(tagtype, data[mp].Value), tagtype);
+            }
+        }
 		
 		tileFileLink.onclick = function()
 		{
@@ -3461,16 +3476,22 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 			{
 				tilePath.value = path;
 				
-				var index = String(path).lastIndexOf('.'),
-					ext = String(path).substr(index + 1, path.length);
-				
 				if (title.value == '')
 				{
+                    var indexExt = String(path).lastIndexOf('.');
 					var indexSlash = String(path).lastIndexOf('\\'),
-						fileName = String(path).substring(indexSlash + 1, index);
+						fileName = String(path).substring(indexSlash + 1, indexExt);
 					
 					title.value = fileName;
 				}
+                
+                sendCrossDomainJSONRequest(serverBase + 'Layer/GetMetadata.ashx?basepath=' + encodeURIComponent(path), function(response)
+                {
+                    if (!parseResponse(response))
+                        return;
+                        
+                    appendMetadata(response.Result.MetaProperties);
+                })
 			})
 		}
 		
@@ -3481,6 +3502,14 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				shapePath.value = path;
 				
 				shapeVisible(true);
+                
+                sendCrossDomainJSONRequest(serverBase + 'Layer/GetMetadata.ashx?geometryfile=' + encodeURIComponent(path), function(response)
+                {
+                    if (!parseResponse(response))
+                        return;
+                        
+                    appendMetadata(response.Result.MetaProperties);
+                })
 			})
 		}
 		
@@ -3635,7 +3664,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 						Copyright: copyright.value,
 						Legend: legend.value,
 						Description: descr.value,
-						"Date": dateField.value,
+						Date: dateField.value,
 						TilePath: $(parent).find("[fieldName='TilePath.Path']")[0].value,
 						BorderFile: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? $(parent).find("[fieldName='ShapePath.Path']")[0].value : '',
 						BorderGeometry: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? '' : JSON.stringify(merc_geometry(_this.drawingBorders.get(properties.Name).geometry)),
