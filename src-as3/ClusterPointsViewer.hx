@@ -152,7 +152,7 @@ class ClusterPointsViewer extends MapContent
 		});
 		contSprite.addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent)
 		{
-			vlFilter.layer.lastGeometry = null;
+			me.vlFilter.layer.lastGeometry = null;
 			me.vlFilter.mapNode.callHandler("onMouseOut");
 			Main.removeClusterPointsViewer(event);
 			event.stopPropagation();
@@ -160,21 +160,21 @@ class ClusterPointsViewer extends MapContent
 		
 		contSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
-			var items:Array<Geometry> = findIntersect(event.localX, event.localY, curGeos);
+			var items:Array<Geometry> = me.findIntersect(event.localX, event.localY, me.curGeos);
 			if(items.length > 0) {
-				vlFilter.layer.lastGeometry = items[0];
+				me.vlFilter.layer.lastGeometry = items[0];
 				me.vlFilter.mapNode.callHandler("onMouseOver");
 			} else {
-				vlFilter.layer.lastGeometry = null;
+				me.vlFilter.layer.lastGeometry = null;
 				me.vlFilter.mapNode.callHandler("onMouseOut");
 			}
 		});
 		
 		contSprite.addEventListener(MouseEvent.MOUSE_UP, function(event:MouseEvent)
 		{
-			var items:Array<Geometry> = findIntersect(event.localX, event.localY, curGeos);
+			var items:Array<Geometry> = me.findIntersect(event.localX, event.localY, me.curGeos);
 			if(items.length > 0) {
-				vlFilter.layer.lastGeometry = items[0];
+				me.vlFilter.layer.lastGeometry = items[0];
 				me.vlFilter.mapNode.callHandler("onClick");
 			}
 		});
