@@ -22,9 +22,9 @@
 		//map.getPosition();
 
 		// Обновить информацию текущего состояния карты
-		function refreshMapPosition()
+		function refreshMapPosition(ph)
 		{
-			currPosition = map.getPosition();
+			currPosition = ph || map.getPosition();
 			mapX = currPosition['x'];
 			mapY = currPosition['y'];
 			scale = gmxAPI.getScale(currPosition['z']);
@@ -528,21 +528,28 @@
 			}
 		}
 
-		var positionBalloons = function()	
+		var positionBalloons = function(ph)	
 		{
-			refreshMapPosition();
+			refreshMapPosition(ph);
 			balloons.sort(function(b1, b2)
 			{
 				return b1.isHovered ? 1 : b2.isHovered ? -1 : (b2.geoY - b1.geoY);
 			});
 			for (var i = 0; i < balloons.length; i++)
 			{
-				balloons[i].reposition();
-				balloons[i].outerDiv.style.zIndex = 1000 + i;
+				var bal = balloons[i];
+				bal.reposition();
+				if(bal.outerDiv.style.zIndex != 1000 + i) bal.outerDiv.style.zIndex = 1000 + i;
 			}
 		}
-		map.addObject().setHandler("onMove", positionBalloons);
+		//map.addObject().setHandler("onMove", positionBalloons);
+		gmxAPI._listeners.addListener(gmxAPI.map, 'positionChanged', function(ph)
+			{
+				positionBalloons(gmxAPI.currPosition);
+			}
+		);
 
+		
 		function addBalloon(_notDelFlag)
 		{
 			var balloon = createBalloon();

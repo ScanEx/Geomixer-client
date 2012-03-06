@@ -229,9 +229,11 @@ class VectorLayerFilter extends MapContent
 			if (me.layer.currentFilter != null)
 				Main.registerMouseDown(me.layer.currentFilter.mapNode, event, null);
 		});
-		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:Event)
+		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
-			me.layer.repaintIndicator();
+			me.layer.repaintIndicator(event);
+			//me.layer.needRepaintIndicator = true;
+			//Main.bumpFrameRate();
 		});
 		var roll_out = function(event:Event)
 		{

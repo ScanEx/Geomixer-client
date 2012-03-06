@@ -34,6 +34,7 @@ class Main
 {
 	public static var registerMouseDown:MapNode->MouseEvent->MapNode->Void;
 	public static var refreshMap:Void->Void;			// Принудительный Refresh карты
+	public static var chkStatus:Void->Dynamic;			// Текущие статусы карты
 	public static var needRefreshMap:Bool = false;		// Флаг необходимости обновления карты
 	
 	static var flashUrlKey:String = '';					// Ключ сессии SWF
@@ -406,14 +407,17 @@ class Main
 			{
 //				isMoving = true;
                 var c = Utils.getScale(draggedWindow.getCurrentZ());
-				setCurrentPosition(
-					startMapX - (root.mouseX - startMouseX)*c,
-					startMapY + (root.mouseY - startMouseY)*c,
-					currentZ
-				);
+                var px = startMapX - (root.mouseX - startMouseX)*c;
+                var py = startMapY + (root.mouseY - startMouseY)*c;
+				setCurrentPosition(px, py, currentZ);
 			}
 		};
 		mapSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
+
+		Main.chkStatus = function():Dynamic
+		{
+			return { isDragging: isDragging };
+		}
 
 		Main.refreshMap = function()
 		{

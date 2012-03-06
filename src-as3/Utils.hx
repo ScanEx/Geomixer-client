@@ -619,4 +619,20 @@ class Utils
 		}
 		return out;
 	}
+	
+	// найти Geometry из MultiGeometry пересекающую Extent
+	public static function findIntersect(ext:Extent, geom:Geometry):Geometry
+	{
+		var out:Geometry = null;
+		var isMultiGeometry:Bool = Std.is(geom, MultiGeometry);
+		if (isMultiGeometry) {
+			for (member in cast(geom, MultiGeometry).members) {
+				out = findIntersect(ext, member);
+				if(out != null) break;
+			}
+		}
+		else if (geom.extent.overlaps(ext)) out = geom;	// пропускаем обьекты не пересекающие Extent
+		return out;
+	}
+	
 }

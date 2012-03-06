@@ -1,4 +1,5 @@
 import flash.events.Event;
+import flash.events.MouseEvent;
 
 class VectorLayer extends MapContent
 {	
@@ -187,17 +188,16 @@ class VectorLayer extends MapContent
 		return out;
 	}
 
-	public function repaintIndicator()
+	public function repaintIndicator(ev:MouseEvent)
 	{
 		var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
 		var distance:Float = Geometry.MAX_DISTANCE;
 		var x = contentSprite.mouseX;
 		var y = contentSprite.mouseY;
 		var w = Utils.worldWidth;
-		while (x > w)
-			x -= 2*w;
-		while (x < -w)
-			x += 2*w;
+		x %= 2 * w;
+		if(x > w) x -= 2*w;
+		if(x < -w) x += 2*w;
 
 		var newCurrentId:String = null;
 		var newCurrentFilter:VectorLayerFilter = null;
@@ -414,7 +414,7 @@ class VectorLayer extends MapContent
 		if (currentId != null)
 		{
 			flipCounts.set(currentId, ret);
-			repaintIndicator();
+			repaintIndicator(null);
 		}
 		return ret;
 	}
