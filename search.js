@@ -251,7 +251,8 @@ var SearchInput = function (oInitContainer, params) {
 		/** Слова, содержащиеся в строке поиска */
 		$(searchField).autocomplete("widget")[0].arrSearchWords = [];
 		
-		$.ui.autocomplete.prototype._renderItem = function( ul, item) {
+        
+		$(searchField).data("autocomplete")._renderItem = function( ul, item) {
 			var t = item.label;
 			for (var i=0; i<ul[0].arrSearchWords.length; i++){
 				if(ul[0].arrSearchWords[i].length > 1){

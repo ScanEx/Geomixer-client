@@ -2189,7 +2189,7 @@ queryMapLayers.prototype.createLayersManager = function()
 {
 	var canvas = _div();
 	nsGmx.createLayersManagerInDiv(canvas, 'layers');
-	showDialog(_gtxt("Список слоев"), canvas, 571, 470, 535, 130);
+	showDialog(_gtxt("Список слоев"), canvas, 571, 475, 535, 130);
 }
 
 queryMapLayers.prototype.getMaps = function()

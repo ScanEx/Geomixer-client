@@ -2720,6 +2720,16 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 
 mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, properties)
 {
+    var _this = this;
+    nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
+    {
+        if (tagsInfo)
+            _this._createLayerEditorPropertiesWithTags(div, type, parent, properties, tagsInfo);
+    })
+}
+
+mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, parent, properties, tagsInfo)
+{
 	var getFileExt = function(path)
 	{
 		return String(path).substr(String(path).lastIndexOf('.') + 1, path.length);
@@ -2833,7 +2843,7 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 	
 	var columnsParent = _div();
 	var encodingParent = _div();
-    var layerTagsParent = _div();
+    var layerTagsParent = _div(null, [['dir', 'className', 'layertags-container']]);
 	var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
 	
 	//event: change
@@ -2945,7 +2955,8 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
         var tagtype = properties.MetaProperties[mp].Type;
         convertedTagValues[mp] = {Type: tagtype, Value: nsGmx.LayerTagSearchControl.convertFromServer(tagtype, properties.MetaProperties[mp].Value)};
     }
-    var layerTags = new nsGmx.LayerTags(convertedTagValues);
+    
+    var layerTags = new nsGmx.LayerTags(tagsInfo, convertedTagValues);
     var layerTagsControl = new nsGmx.LayerTagSearchControl(layerTags, layerTagsParent);
 	
 	if (type == "Vector")
@@ -3459,9 +3470,6 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
         {
             if (!data) return;
             
-            for (var mp in data)
-                
-            
             var convertedTagValues = {};
             for (var mp in data)
             {
@@ -3580,9 +3588,10 @@ mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, pr
 				return;
                 
             var metaProperties = {};
-            layerTags.eachValid(function(id, tag, value, type)
+            layerTags.eachValid(function(id, tag, value)
             {
-                    metaProperties[tag] = {Value: layerTagsControl.convertTagValue(id, type, value), Type: type};
+                var type = layerTags.getTagMetaInfo().getTagType(tag);
+                metaProperties[tag] = {Value: layerTagsControl.convertTagValue(id, value), Type: type};
             })
             
             var metadataString = '&MetaProperties=' + encodeURIComponent(JSON.stringify(metaProperties));
@@ -3864,12 +3873,12 @@ mapHelper.prototype.createNewLayer = function(type)
 		return;
 
 	var parent = _div(null, [['attr','id','new' + type + 'Layer']]),
-		height = (type == 'Vector') ? 270 : 295;
+		height = (type == 'Vector') ? 330 : 375;
 
     if (type !== 'Multi')
     {
 		var properties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
-        showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 350, height, false, false);
+        showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 320, height, false, false);
         this.createLayerEditorProperties(false, type, parent, properties);
     }
     else
@@ -4103,7 +4112,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 				
 				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties);
 				
-				showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 350, 390, pos.left, pos.top, null, closeFunc);
+				showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 350, 490, pos.left, pos.top, null, closeFunc);
 				_this.layerEditorsHash[elemProperties.name] = tabMenu;
 				
 				// при сохранении карты сбросим все временные стили в json карты
@@ -4191,7 +4200,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 					return false;
 				};
 			
-			showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 330, 330, pos.left, pos.top, null, closeFunc);
+			showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 330, 430, pos.left, pos.top, null, closeFunc);
 			
 			$(tabMenu).tabs({selected: 0});
 		}

@@ -1127,14 +1127,33 @@ div.layersScroll
     width: 80px;
 }
 
+.layertags-container
+{
+    height: 110px;
+    overflow: auto;
+    margin-top: 5px;
+}
+
 .layertags-table input
 {
     margin: 1px;
+    width: 130px;
 }
 
 .layertags-table td
 {
     border: 0px;
+}
+
+.layertags-delete
+{
+    padding-left: 2px;
+}
+
+#layertagstable .ui-autocomplete
+{
+    background-color: #eeeeff;
+    border: 1px solid #AFC0D5;
 }
 
 .ui_tpicker_minute .ui-slider, .ui_tpicker_hour .ui-slider

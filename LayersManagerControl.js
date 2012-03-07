@@ -36,11 +36,15 @@ var LayersListProvider = function(filtersProvider)
         }
         
         var layerTags = filtersProvider.getTags();
-        layerTags.each(function(id, tag, value)
+        
+        if (layerTags)
         {
-            if (tag)
-                filterStrings.push('"' + tag + '">"' + value + '"');
-        });
+            layerTags.each(function(id, tag, value)
+            {
+                if (tag)
+                    filterStrings.push('"' + tag + '">"' + value + '"');
+            });
+        }
         
         return '&query=' + encodeURIComponent(filterStrings.join(' AND '));
     }
@@ -260,8 +264,6 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
 	
     var tagsParent = _div();
     _(canvas, [tagsParent]);
-    var layerTags = new nsGmx.LayerTags();
-    var layerTagSearchControl = new nsGmx.LayerTagSearchControl(layerTags, tagsParent);
     
     var LayersFilterParams = (function()
     {
@@ -270,22 +272,34 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
             $(pi).change();
         }
         
-        $(layerTags).change(function()
-        {
-            $(pi).change();
-        })
+        var _layerTags = null;
         
         var pi = {
+            setTags: function(layerTags)
+            {
+                _layerTags = layerTags;
+                $(_layerTags).change(function()
+                {
+                    $(pi).change();
+                })
+            },
             getTitle:     function() { return layerName.value; },
             getOwner:     function() { return layerOwner.value; },
             getType:      function() { return $("option:selected", typeSel).val() },
             getDateBegin: function() { return $(dateBegin).datepicker('getDate') },
             getDateEnd:   function() { return $(dateEnd).datepicker('getDate') },
-            getTags:      function() { return layerTags; }
+            getTags:      function() { return _layerTags; }
         }
         
         return pi;
     })();
+    
+    nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
+    {
+        var layerTags = new nsGmx.LayerTags(tagsInfo);
+        new nsGmx.LayerTagSearchControl(layerTags, tagsParent);
+        LayersFilterParams.setTags(layerTags);
+    });
     
     var layersListProvider = new LayersListProvider(LayersFilterParams);
     var layersTable = new scrollTable();

@@ -1,11 +1,57 @@
 ﻿(function()
 {
-    var LayerTags = function(initTags)
+    var TagMetaInfo = function(initTagsInfo)
     {
-        var uniqueID = 0;
+        var tags = initTagsInfo || {};
+        
+        this.isTag = function(tag)
+        {
+            return tag in tags;
+        }
+        
+        this.getTagType = function(tag)
+        {
+            return tag in tags ? tags[tag].Type : null;
+        }
+        
+        this.getTagArray = function()
+        {
+            var res = [];
+            for (var t in tags)
+                res.push(t);
+            return res;
+        }
+    };
+    
+    (function()
+    {
+        var metaInfo = null;
+        TagMetaInfo.loadFromServer = function(callback)
+        {
+            if (metaInfo)
+            {
+                callback(new TagMetaInfo(metaInfo));
+                return;
+            }
+            
+            sendCrossDomainJSONRequest(serverBase + 'Layer/MetaKeys.ashx', function(response)
+            {
+                if (!parseResponse(response))
+                {
+                    callback();
+                    return;
+                }
+                metaInfo = response.Result;
+                callback(new TagMetaInfo(metaInfo));
+            })
+        }
+    })();
+    
+    var LayerTags = function(tagMetaInfo, initTags)
+    {
+        var uniqueID = 1;
         var tags = {};
         
-        var DEFAULT_TYPE = 'String';
         var types = [
             {title: 'Number', key: 'Number'},
             {title: 'String',  key: 'String'},
@@ -17,11 +63,21 @@
         var verificationFunctions = {
             'Number': function(value)
             {
-                return !isNaN(Number(value));
+                return value.length && !isNaN(Number(value));
             },
             'String': function(value)
             {
                 return true; 
+            },
+            'Date': function(value)
+            {
+                try {
+                    $.datepicker.parseDate('dd.mm.yy', value);
+                    return true;
+                }
+                catch(err) {
+                    return false;
+                }
             }
         }
                 
@@ -30,13 +86,19 @@
             return !(type in verificationFunctions) || verificationFunctions[type](value);
         }
         
-        this.updateTag = function(id, tag, value, type)
+        this.getTagMetaInfo = function()
+        {
+            return tagMetaInfo;
+        }
+        
+        this.updateTag = function(id, tag, value)
         {
             if ( !(id in tags) ) return false;
-            
-            if (tags[id].tag !== tag || tags[id].value !== value || tags[id].type !== type )
+            if ( tags[id].tag !== tag || tags[id].value !== value )
             {
-                tags[id] = {tag: tag, value: value, type: type};
+                //if (!tagMetaInfo.isTag(tag)) return false;
+                
+                tags[id] = {tag: tag, value: value};
                 $(this).change();
             }
             
@@ -54,20 +116,23 @@
         this.each = function(callback)
         {
             for (var tagId in tags)
-                callback(tagId, tags[tagId].tag, tags[tagId].value, tags[tagId].type);
+                callback(tagId, tags[tagId].tag, tags[tagId].value);
         }
         
         this.eachValid = function(callback)
         {
             for (var tagId in tags)
-                if (this.isValidTagname(tags[tagId].tag) && this.isValidValue(tagId) && !this.isEmptyTag(tagId))
-                    callback(tagId, tags[tagId].tag, tags[tagId].value, tags[tagId].type);
+                if (this.isValidValue(tagId) && !this.isEmptyTag(tagId))
+                    callback(tagId, tags[tagId].tag, tags[tagId].value);
         }
         
-        this.addNewTag = function(tag, value, type)
+        this.addNewTag = function(tag, value)
         {
+            tag = tag || '';
+            value = value || '';
+            //if (tag !== '' && !tagMetaInfo.isTag(tag)) return;
             var newId = 'id' + (++uniqueID);
-            tags[newId] = { tag: tag || '', value: value || '',  type: type || DEFAULT_TYPE };
+            tags[newId] = { tag: tag || '', value: value || ''};
             $(this).change();
             return newId;
         }
@@ -77,10 +142,10 @@
             return tagId in tags;
         }
         
-        this.getTypes = function()
-        {
-            return types;
-        }
+        // this.getTypes = function()
+        // {
+            // return types;
+        // }
         
         this.isEmptyTag = function(tagId)
         {
@@ -89,16 +154,23 @@
         
         this.isValidValue = function(tagId)
         {
-            return tagId in tags && _isValidTypeValue(tags[tagId].type, tags[tagId].value);
+            if (!(tagId in tags)) return false;
+            var type = tagMetaInfo.getTagType(tags[tagId].tag);
+            return type && _isValidTypeValue(type, tags[tagId].value);
         }
         
         this.isValidTagname = function(tagname)
         {
-            return tagname !== '';
+            return tagMetaInfo.isTag(tagname);
+        }
+        
+        this.getTag = function(tagId)
+        {
+            return tags[tagId];
         }
         
         for (var tag in initTags)
-            this.addNewTag(tag, initTags[tag].Value, initTags[tag].Type);
+            this.addNewTag(tag, initTags[tag].Value);
     }
 
     var LayerTagSearchControl = function(layerTags, container)
@@ -107,14 +179,19 @@
         mainTable.append($('<tr/>')
             .append($('<th/>').text('Тег'))
             .append($('<th/>').text('Значение'))
-            .append($('<th/>').text('Тип'))
+            // .append($('<th/>').text('Тип'))
             .append($('<th/>'))
         );
+        
+        //добавляем к body элемент с id чтобы добавить к нему jQuery autocomplete и задать стили
+        //к текущему виджету добавить нельзя, так как он ещё не добавлен в общее дерево, а виджет ac требует глобального селектора
+        if ($('#layertagstable').length == 0)
+            $('body').append("<div/>").attr('id', 'layertagstable');
         
         var rows = {}; //ссылки на контролы для каждого элемента
         var rowsVector = [];
         
-        //в зависимости от типа ввода (type) прикрепляет к valueInput виджет выбора даты, время или даты/время
+        //в зависимости от типа ввода (type), прикрепляет к valueInput виджет выбора даты, время или даты/время
         var updateInput = function(valueInput, type)
         {
             if ( type == 'Date' )
@@ -159,32 +236,48 @@
             }
         }
         
-        var addNewRow = function(tagId, tag, value, type)
+        var validateRow = function(row)
         {
-            var tagInput = $('<input/>').val(tag);
+            if ( !layerTags.isEmptyTag(row.id) && !layerTags.isValidTagname(row.tag.val()) )
+                row.tag.addClass('error');
+            else
+                row.tag.removeClass('error');
+                
+            if (!layerTags.isEmptyTag(row.id) && !layerTags.isValidValue(row.id) )
+                row.value.addClass('error');
+            else
+                row.value.removeClass('error');
+        }
+        
+        var addNewRow = function(tagId, tag, value)
+        {
+            var tagInput = $('<input/>').val(tag).autocomplete({
+                source: layerTags.getTagMetaInfo().getTagArray(),
+                minLength: 0,
+                delay: 0,
+                appendTo: "#layertagstable",
+                select: function(event, ui)
+                {
+                    tagInput.val(ui.item.value);
+                    updateModel(ui.item.value, valueInput.val());
+                    return false;
+                }
+            }).bind('focus click', function(){
+                $(tagInput).autocomplete("search", "");
+            });
             var valueInput = $('<input/>').val(value);
             
-            var typeSelect = $('<select/>', {'class': 'layertags-type selectStyle'});
-            var types = layerTags.getTypes();
-            for (var t = 0; t < types.length; t++)
-            {
-                var opt = $('<option/>').val(types[t].key).text(types[t].title);
-                if (type == types[t].key) opt.attr('selected', 'selected');
-                    
-                typeSelect.append(opt);
-            }
+            var type = layerTags.getTagMetaInfo().getTagType(tag);
             updateInput(valueInput, type);
+            
                 
             var updateModel = function()
             {
-                var type = $('option:selected', typeSelect).val();
-                
-                layerTags.updateTag(tagId, tagInput.val(), valueInput.val(), type);
+                layerTags.updateTag(tagId, tagInput.val(), valueInput.val());
             }
-            
-            tagInput.bind('keyup', updateModel);
+                        
+            tagInput.bind('keyup change', updateModel);
             valueInput.bind('keyup change', updateModel);
-            typeSelect.change(updateModel);
             
             var deleteButton = makeImageButton('img/recycle.png', 'img/recycle_a.png');
             deleteButton.onclick = function()
@@ -195,12 +288,13 @@
             var tr = $('<tr/>')
                 .append($('<td/>').append(tagInput))
                 .append($('<td/>').append(valueInput))
-                .append($('<td/>').append(typeSelect))
-                .append($('<td/>').append(deleteButton));
+                //.append($('<td/>').append(typeSelect))
+                .append($('<td/>', {'class': 'layertags-delete'}).append(deleteButton));
             mainTable.append(tr);
             
-            rows[tagId] = {tr: tr, tag: tagInput, value: valueInput, type: typeSelect, valueType: type};
-            rowsVector.push( {id: tagId, row: rows[tagId]} );
+            rows[tagId] = {id: tagId, tr: tr, tag: tagInput, value: valueInput, type: type};
+            rowsVector.push(rows[tagId]);
+            validateRow(rows[tagId]);
         }
         
         var convertFunctions = {
@@ -223,8 +317,10 @@
             }
         }
         
-        this.convertTagValue = function(id, type, value)
+        this.convertTagValue = function(id, value)
         {
+            var tag = layerTags.getTag(id).tag;
+            var type = layerTags.getTagMetaInfo().getTagType(tag);
             return type in convertFunctions ? convertFunctions[type](id, value) : value;
         }
         
@@ -237,7 +333,7 @@
             
             if (lastEmptyId >= 0 && lastEmptyId < rowsVector.length)
             {
-                var tr = rowsVector[lastEmptyId].row.tr;
+                var tr = rowsVector[lastEmptyId].tr;
                 $(tr).detach();
                 mainTable.append(tr);
             }
@@ -246,13 +342,13 @@
         $(layerTags).change(function()
         {
             var isAnyEmpty = false;
-            layerTags.each(function(tagId, tag, value, type)
+            layerTags.each(function(tagId, tag, value)
             {
                 if (tag == '' && value == '')
                     isAnyEmpty = true;
                 
                 if (!(tagId in rows))
-                    addNewRow(tagId, tag, value, type);
+                    addNewRow(tagId, tag, value);
                 else 
                 {
                     if (rows[tagId].tag.val() !== tag)
@@ -260,39 +356,27 @@
                         
                     if (rows[tagId].value.val() !== value)
                         rows[tagId].value.val(value)
-                    
-                    if (rows[tagId].valueType !== type)
-                    {
-                        rows[tagId].valueType = type;
-                        $('option', rows[tagId].type).each(function()
-                        {
-                            if ($(this).val() == type)
-                                $(this).attr('selected', 'selected');
-                            else
-                                $(this).removeAttr('selected');
-                        });
                         
+                        
+                    var type = layerTags.getTagMetaInfo().getTagType(tag);
+                    if (rows[tagId].type !== type)
+                    {
+                        rows[tagId].type = type;
                         updateInput(rows[tagId].value, type);
                     }
                     
-                    if ( !layerTags.isEmptyTag(tagId) && !layerTags.isValidTagname(tag) )
-                        rows[tagId].tag.addClass('error');
-                    else
-                        rows[tagId].tag.removeClass('error');
-                        
-                    if (!layerTags.isEmptyTag(tagId) && !layerTags.isValidValue(tagId) )
-                        rows[tagId].value.addClass('error');
-                    else
-                        rows[tagId].value.removeClass('error');
+                    validateRow(rows[tagId]);
                 }
             });
             
             for (var tagId in rows)
+            {
                 if (!(layerTags.isTag(tagId)))
                 {
                     rows[tagId].tr.remove();
                     delete rows[tagId];
                 }
+            }
             
             if (!isAnyEmpty)
                 layerTags.addNewTag();
@@ -321,10 +405,15 @@
         {
             return $.datepicker.formatDate('dd.mm.yy', new Date(value*1000));
         }
+        else if (type === 'Number')
+        {
+            return value.toString();
+        }
         else
             return value;
     }
     
     nsGmx.LayerTagSearchControl = LayerTagSearchControl;
     nsGmx.LayerTags = LayerTags;
+    nsGmx.TagMetaInfo = TagMetaInfo;
 })();
