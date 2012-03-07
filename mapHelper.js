@@ -2806,26 +2806,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		return true;
 	}
 	
-	var dateField = _input(null,[['attr','fieldName','date'],['attr','value', typeof properties.Date != null ? properties.Date : ''],['dir','className','inputStyle'],['css','width','100px']]);
-	
-	if (!div)
-	{
-		var today = new Date(),
-			todayDate = today.getDate(),
-			todayMonth = today.getMonth() + 1,
-			todayYear = today.getFullYear();
-		
-		// Для растровых слоёв заставим пользователя вводить дату, для векторых подставляем сегодняшний день по умолчанию
-		if (type === "Vector")
-		{
-		dateField.value = (todayDate < 10 ? '0' + todayDate : todayDate) + '.' + (todayMonth < 10 ? '0' + todayMonth : todayMonth) + '.' + todayYear;
-	}
-		else
-		{
-			dateField.value = '';
-		}
-	}
-
 	var shownProperties = [];
 		
 	shownProperties.push({name: _gtxt("Имя"), field: 'Title', elem: title});
@@ -2838,8 +2818,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 	
 	if (type != "Vector")
 		shownProperties.push({name: _gtxt("Легенда"), field: 'Legend', elem: legend});
-	
-	shownProperties.push({name: _gtxt("Дата"), field: 'Date', elem: dateField});
 	
 	var columnsParent = _div();
 	var encodingParent = _div();
@@ -3640,7 +3618,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 					}
 					
 					sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + 
-															"&Description=" + descr.value + "&Date=" + dateField.value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + columnsString, function(response)
+															"&Description=" + descr.value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + columnsString, function(response)
 					{
 						if (!parseResponse(response))
 								return;
@@ -3651,7 +3629,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				}
 				else
 				{
-					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&Date=" + dateField.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + encoding + temporalParams + metadataString, function(response)
+					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + encoding + temporalParams + metadataString, function(response)
 						{
 							if (!parseResponse(response))
 								return;
@@ -3673,7 +3651,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 						Copyright: copyright.value,
 						Legend: legend.value,
 						Description: descr.value,
-						Date: dateField.value,
 						TilePath: $(parent).find("[fieldName='TilePath.Path']")[0].value,
 						BorderFile: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? $(parent).find("[fieldName='ShapePath.Path']")[0].value : '',
 						BorderGeometry: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? '' : JSON.stringify(merc_geometry(_this.drawingBorders.get(properties.Name).geometry)),
@@ -3729,21 +3706,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		
 		_(parent, [_div([saveButton], [['css','paddingTop','10px']])])
 	}
-	
-	$(dateField).datepicker(
-		{
-			beforeShow: function(input)
-			{
-		    	return {maxDate: new Date()}; 
-			},
-			changeMonth: true,
-			changeYear: true,
-			showAnim: 'fadeIn',
-			showOn: "button",
-			buttonImage: "img/calendar.png",
-			buttonImageOnly: true,
-			dateFormat: "dd.mm.yy"
-		});
 	
 	if (!div)
 		title.focus();
@@ -3873,7 +3835,7 @@ mapHelper.prototype.createNewLayer = function(type)
 		return;
 
 	var parent = _div(null, [['attr','id','new' + type + 'Layer']]),
-		height = (type == 'Vector') ? 330 : 375;
+		height = (type == 'Vector') ? 310 : 355;
 
     if (type !== 'Multi')
     {
@@ -4112,7 +4074,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 				
 				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties);
 				
-				showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 350, 490, pos.left, pos.top, null, closeFunc);
+				showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 350, 470, pos.left, pos.top, null, closeFunc);
 				_this.layerEditorsHash[elemProperties.name] = tabMenu;
 				
 				// при сохранении карты сбросим все временные стили в json карты
@@ -4200,7 +4162,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 					return false;
 				};
 			
-			showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 330, 430, pos.left, pos.top, null, closeFunc);
+			showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 330, 410, pos.left, pos.top, null, closeFunc);
 			
 			$(tabMenu).tabs({selected: 0});
 		}
