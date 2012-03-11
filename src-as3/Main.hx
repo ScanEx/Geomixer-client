@@ -993,6 +993,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 		var parseCmdFromJS = function(cmd:String, attr:Dynamic)
 		{
 			var out = { };
+//trace('ssssssssssss ' + cmd + ' : ' + flash.Lib.getTimer());
 			switch (cmd) {
 				case 'setFilter':
 					out = cast(setFilter(attr.objectId, attr.sql));

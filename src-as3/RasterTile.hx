@@ -24,7 +24,7 @@ class RasterTile
 
 	static function loadNext(?e:Event)
 	{
-		while (tilesCurrentlyLoading < 8 && loadQueue.length > 0)
+		while (tilesCurrentlyLoading < 128 && loadQueue.length > 0)
 		{
 			tilesCurrentlyLoading += 1;
 			loadQueue.pop().load();
