@@ -96,9 +96,13 @@ var Calendar = function()
 	this.getDateBegin = function()
 	{
 		var date = $(this.dateBegin).datepicker("getDate");
-		date.setHours(_this._timeBegin.hours);
-		date.setMinutes(_this._timeBegin.minutes);
-		date.setSeconds(_this._timeBegin.seconds);
+        
+        if (date)
+        {
+            date.setHours(_this._timeBegin.hours);
+            date.setMinutes(_this._timeBegin.minutes);
+            date.setSeconds(_this._timeBegin.seconds);
+        }
 		return date;
 	}
     	
@@ -109,9 +113,12 @@ var Calendar = function()
 	{
 		// return $(this.dateEnd).datepicker("getDate"); 
 		var date = $(this.dateEnd).datepicker("getDate");
-		date.setHours(_this._timeEnd.hours);
-		date.setMinutes(_this._timeEnd.minutes);
-		date.setSeconds(_this._timeEnd.seconds);
+        if (date)
+        {
+            date.setHours(_this._timeEnd.hours);
+            date.setMinutes(_this._timeEnd.minutes);
+            date.setSeconds(_this._timeEnd.seconds);
+        }
 		return date;
 	}
     
@@ -120,9 +127,12 @@ var Calendar = function()
 	 */	    
     this.setDateBegin = function(date)
     {
-        _this._timeBegin.hours = date.getUTCHours();
-        _this._timeBegin.minutes = date.getMinutes();
-        _this._timeBegin.seconds = date.getSeconds();
+        if (date)
+        {
+            _this._timeBegin.hours = date.getUTCHours();
+            _this._timeBegin.minutes = date.getMinutes();
+            _this._timeBegin.seconds = date.getSeconds();
+        }
         $(this.dateBegin).datepicker("setDate", date);
         _updateInfo();
         $(this).change();
@@ -133,10 +143,13 @@ var Calendar = function()
 	 */	    
     this.setDateEnd = function(date)
     {
-        _this._timeEnd.hours = date.getUTCHours();
-        _this._timeEnd.minutes = date.getMinutes();
-        _this._timeEnd.seconds = date.getSeconds();
-        $(this.dateEnd).datepicker("setDate", date);
+        if (date)
+        {
+            _this._timeEnd.hours = date.getUTCHours();
+            _this._timeEnd.minutes = date.getMinutes();
+            _this._timeEnd.seconds = date.getSeconds();
+            $(this.dateEnd).datepicker("setDate", date);
+        }
         _updateInfo();
         $(this).change();
     }
@@ -272,7 +285,10 @@ Calendar.prototype.init = function( name, params )
 		resourceHost: "",
 		minimized: true,
 		showSwitcher: true,
-        showTime: true
+        showTime: true,
+        dateMax: new Date(),
+        dateMin: new Date(1900, 1, 1),
+        
 	}, params)
 	
 	this.lazyDate = _select([_option([_t(_gtxt("calendarWidget.Custom"))],[['attr','value','']]),
@@ -417,7 +433,8 @@ Calendar.prototype.init = function( name, params )
 
 Calendar.prototype.fixDate = function(date)
 {
-	date.setHours(12);
+	if (date) 
+        date.setHours(12);
 	
 	return date;
 }
@@ -448,6 +465,9 @@ Calendar.prototype.daysAtYear = function(year)
 Calendar.prototype.getBeginByEnd = function(endDate)
 {
 	var end = endDate ? endDate : $(this.dateEnd).datepicker("getDate");
+    
+    if (!end) return null;
+    
 	this.fixDate(end)
 	
 	switch(this.lazyDate.value)
@@ -468,6 +488,9 @@ Calendar.prototype.getBeginByEnd = function(endDate)
 Calendar.prototype.getEndByBegin = function(beginDate)
 {
 	var begin = beginDate ? beginDate : $(this.dateBegin).datepicker("getDate");
+    
+    if (!begin) return null;
+    
 	this.fixDate(begin)
 	
 	switch(this.lazyDate.value)
@@ -529,6 +552,8 @@ Calendar.prototype.firstClickFunc = function()
 		end = $(this.dateEnd).datepicker("getDate"),
 		newDateBegin,
 		newDateEnd;
+        
+    if (!begin || !end) return;
 	
 	this.fixDate(begin);
 	this.fixDate(end);
@@ -583,6 +608,8 @@ Calendar.prototype.firstClickFunc = function()
 
 Calendar.prototype.lastClickFunc = function()
 {
+    if (!begin || !end) return;
+    
 	var begin = $(this.dateBegin).datepicker("getDate"),
 		end = $(this.dateEnd).datepicker("getDate"),
 		newDateBegin,
@@ -649,7 +676,10 @@ Calendar.prototype.selectFunc = function(inst)
 			this.updateEnd();
 	}
 	else {
-		if ( $(this.dateBegin).datepicker("getDate") > $(this.dateEnd).datepicker("getDate") )
+        var begin = $(this.dateBegin).datepicker("getDate");
+        var end   = $(this.dateEnd).datepicker("getDate");
+        
+		if ( end && begin > end )
 		{
 			var dateToFix = inst.input[0] == this.dateEnd ? this.dateBegin : this.dateEnd;
 			$(dateToFix).datepicker( "setDate", $(inst.input[0]).datepicker("getDate") );
