@@ -203,54 +203,33 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
 		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
 		_this = this;
 	
-	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','160px']]),
-		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','160px']]);
+	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','185px']]),
+		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','185px']]);
 	
-	var dateBegin = _input(null,[['attr','id', name + 'DateBegin'],['dir','className','inputStyle'],['css','width','100px']]),
-		dateEnd = _input(null,[['attr','id', name + 'DateEnd'],['dir','className','inputStyle'],['css','width','100px']]);
+	// var dateBegin = _input(null,[['attr','id', name + 'DateBegin'],['dir','className','inputStyle'],['css','width','100px']]),
+		// dateEnd = _input(null,[['attr','id', name + 'DateEnd'],['dir','className','inputStyle'],['css','width','100px']]);
 	
 	
 	var typeSel = _select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
 					   _option([_t(_gtxt("Векторный"))], [['attr','value','vector']]),
 					   _option([_t(_gtxt("Растровый"))], [['attr','value','raster']]),
 					   _option([_t(_gtxt("Мультислой"))], [['attr','value','multilayer']])], [['dir','className','selectStyle'], ['css','width','100px']]);
+                       
+    var calendar = new nsGmx.Calendar();
+    calendar.init('layerManager', {
+        minimized: false, 
+        showSwitcher: false,
+        dateBegin: null,
+        dateEnd: null
+    });
 					   
-	_(searchCanvas, [_div([_table([_tbody([_tr([_td([_span([_t(_gtxt("Название"))],[['css','fontSize','12px']])],[['css','width','90px']]), _td([layerName],[['css','width','170px']]),_td([_span([_t(_gtxt("Начало периода"))],[['css','fontSize','12px']])],[['css','width','120px']]), _td([dateBegin])]),
-										   _tr([_td([_span([_t(_gtxt("Владелец"))],[['css','fontSize','12px']])]),_td([layerOwner]), _td([_span([_t(_gtxt("Окончание периода"))],[['css','fontSize','12px']])]), _td([dateEnd])]),
-										   _tr([_td([_span([_t(_gtxt("Тип"))],[['css','fontSize','12px']])]), _td([typeSel]), _td(), _td()])])],[['css','width','100%']])], [['css','marginBottom','10px']])]);
+	_(searchCanvas, [_div([_table([_tbody([_tr([_td([_span([_t(_gtxt("Название"))],[['css','fontSize','12px']])]), _td([layerName])]),
+										   _tr([_td([_span([_t(_gtxt("Владелец"))],[['css','fontSize','12px']])]),_td([layerOwner])]),
+                                           _tr([_td([_span([_t(_gtxt("Период"))],[['css','fontSize','12px']])]),_td([calendar.canvas])]),
+										   _tr([_td([_span([_t(_gtxt("Тип"))],[['css','fontSize','12px']])]), _td([typeSel])])])])], [['css','marginBottom','10px']])]);
 										   
-	if (!_params.showType) 
+	if (!_params.showType)
 		$("tr:last", searchCanvas).hide();
-	
-	_(canvas, [searchCanvas]);
-	
-	dateBegin.onfocus = dateEnd.onfocus = function()
-	{
-		try
-		{
-			this.blur();
-		}
-		catch(e){}
-	}
-    
-	$("#" + name + "DateBegin,#" + name + "DateEnd", canvas).datepicker(
-	{
-		beforeShow: function(input)
-		{
-	    	return {minDate: (input == dateEnd ? $(dateBegin).datepicker("getDate") : null), 
-	        	maxDate: (input == dateBegin ? $(dateEnd).datepicker("getDate") : null)}; 
-		},
-		onSelect: function(dateText, inst) 
-		{
-			inst.input[0].onkeyup();
-		},
-		changeMonth: true,
-		changeYear: true,
-		showOn: "button",
-		buttonImage: "img/calendar.png",
-		buttonImageOnly: true,
-		dateFormat: "dd.mm.yy"
-	});    
 	
 	var tableParent = _div();
     
@@ -262,15 +241,26 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
     if (_params.showType)
         sortColumns[_gtxt('Тип')] = true;
 	
-    var tagsParent = _div();
-    _(canvas, [tagsParent]);
+    var tagsParent = _div(null, [['css', 'height', '100px'], ['css', 'overflow', 'auto']]);
+    
+    _(canvas, [_table([_tbody([_tr([
+        _td([searchCanvas], [['css', 'width', '50%']]),
+        _td([tagsParent])
+    ])])], [['css', 'width', '100%']])]);
+	//_(canvas, [searchCanvas]);
+    //_(canvas, [tagsParent]);
     
     var LayersFilterParams = (function()
     {
-        layerName.onkeyup = layerOwner.onkeyup = typeSel.onchange = dateBegin.onkeyup = dateEnd.onkeyup = function()
+        layerName.onkeyup = layerOwner.onkeyup = typeSel.onchange = function()
         {
             $(pi).change();
         }
+        
+        $(calendar).change(function()
+        {
+            $(pi).change();
+        });
         
         var _layerTags = null;
         
@@ -286,8 +276,10 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
             getTitle:     function() { return layerName.value; },
             getOwner:     function() { return layerOwner.value; },
             getType:      function() { return $("option:selected", typeSel).val() },
-            getDateBegin: function() { return $(dateBegin).datepicker('getDate') },
-            getDateEnd:   function() { return $(dateEnd).datepicker('getDate') },
+            // getDateBegin: function() { return $(dateBegin).datepicker('getDate') },
+            // getDateEnd:   function() { return $(dateEnd).datepicker('getDate') },
+            getDateBegin: function() { return calendar.getDateBegin(); },
+            getDateEnd:   function() { return calendar.getDateEnd(); },
             getTags:      function() { return _layerTags; }
         }
         
@@ -297,7 +289,7 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
     nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
     {
         var layerTags = new nsGmx.LayerTags(tagsInfo);
-        new nsGmx.LayerTagSearchControl(layerTags, tagsParent);
+        new nsGmx.LayerTagSearchControl(layerTags, tagsParent, {inputWidth: 115});
         LayersFilterParams.setTags(layerTags);
     });
     

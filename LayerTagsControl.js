@@ -173,8 +173,9 @@
             this.addNewTag(tag, initTags[tag].Value);
     }
 
-    var LayerTagSearchControl = function(layerTags, container)
+    var LayerTagSearchControl = function(layerTags, container, params)
     {
+        var _params = $.extend( {inputWidth: 130}, params )
         var mainTable = $('<table/>', {'class': 'layertags-table'}).appendTo(container);
         mainTable.append($('<tr/>')
             .append($('<th/>').text('Тег'))
@@ -251,7 +252,7 @@
         
         var addNewRow = function(tagId, tag, value)
         {
-            var tagInput = $('<input/>').val(tag).autocomplete({
+            var tagInput = $('<input/>').val(tag).css('width', _params.inputWidth).autocomplete({
                 source: layerTags.getTagMetaInfo().getTagArray(),
                 minLength: 0,
                 delay: 0,
@@ -265,7 +266,7 @@
             }).bind('focus click', function(){
                 $(tagInput).autocomplete("search", "");
             });
-            var valueInput = $('<input/>').val(value);
+            var valueInput = $('<input/>').val(value).css('width', _params.inputWidth);
             
             var type = layerTags.getTagMetaInfo().getTagType(tag);
             updateInput(valueInput, type);

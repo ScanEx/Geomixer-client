@@ -277,7 +277,7 @@ nsGmx.ContextMenuController.IContextMenuElem = {
 
 /*
 В контексте типа "Layer" присутствуют следующие атрибуты:
- * LayerManagerFlag {int} Тип дерева
+ * layerManagerFlag {int} Тип дерева
  * elem Элемент (слой), для которого стротся меню
  * tree {layersTree} Текущее дерево, внутри которого находится слой
 */
