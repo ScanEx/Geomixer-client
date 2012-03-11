@@ -18,13 +18,15 @@
 		}
 		,
 		'bringToTop': function(ph)	{					// установка z-index
-			//var id = ph.obj.objectId;
+			var id = ph.obj.objectId;
 			//var myLayer = leafLetLayers[id];
 			//return ph.obj.isVisible;
 		}
 		,
 		'bringToBottom': function(ph)	{					// установка z-index
-			return ph.obj.isVisible;
+			var id = ph.obj.objectId;
+			//var myLayer = leafLetLayers[id];
+			//return ph.obj.isVisible;
 		}
 		,
 		'bringToDepth': function(ph)	{					// установка z-index
@@ -69,7 +71,15 @@
 		'zoomBy':	function(ph)	{				// установка Zoom карты
 			var currZ = leafLetMap.getZoom() - ph.attr.dz;
 			if(currZ > leafLetMap.getMaxZoom() || currZ < leafLetMap.getMinZoom()) return;
-			leafLetMap.setZoom(currZ);
+			var pos = leafLetMap.getCenter();
+			if (ph.attr.useMouse && mousePos)
+			{
+				var k = Math.pow(2, leafLetMap.getZoom() - currZ);
+				pos.lat = mousePos.lat + k*(pos.lat - mousePos.lat);
+				pos.lng = mousePos.lng + k*(pos.lng - mousePos.lng);
+			}
+			leafLetMap.setView(pos, currZ);
+			//leafLetMap.setZoom(currZ);
 		}
 		,
 		'moveTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
@@ -111,19 +121,37 @@
 			var minZoom = layer.properties.MinZoom;
 			var maxZoom = layer.properties.MaxZoom;
 			var myLayer = null;
-//if(layer.properties.title != "карта Украины") return out;
+//if(layer.properties.title != "Spot5_Volgograd") return out;
 
-			var geom = layer.geometry.coordinates[0];
-			if(geom.length > 50) {
+			//var geom = layer.geometry.coordinates[0];
+			var mask = false;
+			var type = layer.geometry.type;
+			var geom = null;
+			if(layer.geometry.coordinates) {
+				if(type == 'POLYGON' && layer.geometry.coordinates.length > 0 && layer.geometry.coordinates[0].length > 5) {
+					geom = [layer.geometry.coordinates];
+					mask = true;
+				} else if(type == 'MULTIPOLYGON') {
+					geom = layer.geometry.coordinates;
+				}
+			}
+			if(geom) {
+/*
 				var pointsArr = [];
 				for (var i = 0; i < geom.length; i++)
 				{
-					var p = new L.Point( geom[i][0], geom[i][1] );
-					pointsArr.push(p);
+					var pArr = [];
+					for (var j = 0; j < geom[i].length; j++)
+					{
+						var p = new L.Point( geom[i][j][0], geom[i][j][1] );
+						pArr.push(p);
+					}
+					pointsArr.push(pArr);
 				}
 				pointsArr = geom;
+*/
 				myLayer = new L.TileLayer.ScanExCanvas(url, {minZoom: minZoom, maxZoom: maxZoom });
-				myLayer._pointsArr = pointsArr;
+				myLayer._pointsArr = geom;
 			}
 			else
 			{
@@ -156,6 +184,7 @@
 	var mapDivID = '';
 	var initFunc = null;
 	var intervalID = 0;
+	var mousePos = null;
 	// 
 	function waitMe(e)
 	{
@@ -164,6 +193,8 @@
 			leafLetMap = new L.Map(leafLetCont_,
 				{
 					zoomControl: false,	
+					//zoomAnimation: false,	
+					//fadeAnimation: false,	
 					crs: L.CRS.EPSG3395
 					//'crs': L.CRS.EPSG3857 // L.CRS.EPSG4326 // L.CRS.EPSG3395 L.CRS.EPSG3857
 				}
@@ -172,7 +203,8 @@
 			//var pos = new L.LatLng(55, 80);
 			var pos = new L.LatLng(50.499276, 35.760498);
 			leafLetMap.setView(pos, 3);
-			leafLetMap.on('moveend', function(e) { gmxAPI._updatePosition(e); });
+			leafLetMap.on('moveend', function(e) {	gmxAPI._updatePosition(e); });
+			leafLetMap.on('mousemove', function(e) { mousePos = e.latlng; });
 
 			var getTileUrl = function(obj, tilePoint, zoom) {
 				var res = '';
@@ -188,7 +220,7 @@
 			};
 
 			var ScanEx = {
-				key: null,
+				__badTiles: {},
 				bringToBottom: function(zIndex) {
 					var tt = this;
 					var rr = 1;
@@ -228,6 +260,7 @@
 			L.TileLayer.ScanEx = L.TileLayer.extend(ScanEx);
 
 			var ScanExCanvas = {
+				__badTiles: {},
 				bringToBottom: function(zIndex) {
 					var tt = this;
 					var rr = 1;
@@ -251,6 +284,9 @@
 				}
 				,
 				drawTile : function(tile, tilePoint, zoom) {
+					var st = zoom + '_' + tilePoint.x + '_' + tilePoint.y;
+					if(tile._layer.__badTiles[st]) return;	// пропускаем плохие тайлы
+
 					var tileX = 256 * tilePoint.x;
 					var tileY = 256 * tilePoint.y;
 
@@ -264,25 +300,36 @@
 
 					var ctx = tile.getContext('2d');
 					var imageObj = new Image();
+					imageObj.onerror = function() {			// пометить плохой тайл
+						tile._layer.__badTiles[st] = true;
+					}
 					imageObj.onload = function(){
-						ctx.beginPath();
-						var tileMaskPointsArr = L.PolyUtil.clipPolygon(tile._layer._pointsArr, bounds);
-						for (var p = 0; p < tileMaskPointsArr.length; p++)
+						var geom = tile._layer._pointsArr;
+						//var pArr = L.PolyUtil.clipPolygon(geom, bounds);
+						for (var i = 0; i < geom.length; i++)
 						{
-							var t1 = new L.LatLng(tileMaskPointsArr[p][1], tileMaskPointsArr[p][0]);
-							var pp = leafLetMap.project(t1, zoom);
-							var px = pp.x - tileX;
-							var py = pp.y - tileY;
-							if(p == 0) ctx.moveTo(px, py);
-							ctx.lineTo(px, py);
+							//ctx.strokeStyle = "#000";
+							//ctx.lineWidth = 2;
+							ctx.beginPath();
+							var pArr = L.PolyUtil.clipPolygon(geom[i], bounds);
+							//var pArr = geom[i];
+							for (var p = 0; p < pArr[0].length; p++)
+							{
+								var t1 = new L.LatLng(pArr[0][p][1], pArr[0][p][0]);
+								var pp = leafLetMap.project(t1, zoom);
+								var px = pp.x - tileX;
+								var py = pp.y - tileY;
+								if(p == 0) ctx.moveTo(px, py);
+								ctx.lineTo(px, py);
+							}
+							//ctx.stroke();
 						}
-						ctx.clip();
+						//ctx.clip();
+						//ctx.beginPath();
+						//ctx.rect(0, 0, tile.width, tile.height);
 						var pattern = ctx.createPattern(imageObj, "repeat");
-						ctx.beginPath();
-						ctx.rect(0, 0, tile.width, tile.height);
 						ctx.fillStyle = pattern;
 						ctx.fill();
-						ctx.closePath();
 					};
 					var src = getTileUrl(tile._layer, tilePoint, zoom);
 					imageObj.src = src;
