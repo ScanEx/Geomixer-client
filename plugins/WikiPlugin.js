@@ -791,7 +791,7 @@ var beforeViewer = function(){
 		title: _gtxt("Создать сообщение"),
 		isVisible: function(context)
 		{
-			return nsGmx.AuthManager.isLogin();
+			return !context.layerManagerFlag && nsGmx.AuthManager.isLogin();
 		},
 		isSeparatorBefore: function(layerManagerFlag, elem)
 		{
