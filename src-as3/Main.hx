@@ -1044,8 +1044,13 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'slideTo':
 					onMoveBegin();
 					Main.bumpFrameRate();
-					fluidMoveTo(attr.x, attr.y, 17 - attr.z, 10);
+					fluidMoveTo(attr.x, attr.y, attr.z, 10);
 					//onMoveEnd();
+				case 'moveTo':
+					onMoveBegin();
+					Main.bumpFrameRate();
+					setCurrentPosition(attr.x, attr.y, Math.round(attr.z));
+					onMoveEnd();
 				case 'zoomBy':
 					onMoveBegin();
 					var dz:Float = attr.dz;
@@ -1112,18 +1117,13 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'getY':
 					out = cast(currentY);
 				case 'getZ':
-					out = cast(17 - currentZ);
+					out = cast(currentZ);
 				case 'getMouseX':
 					out = cast(mapWindow.innerSprite.mouseX);
 				case 'getMouseY':
 					out = cast(mapWindow.innerSprite.mouseY);
 				case 'isKeyDown':
 					out = cast(Key.isDown(attr.code));
-				case 'moveTo':
-					onMoveBegin();
-					Main.bumpFrameRate();
-					setCurrentPosition(attr.x, attr.y, Math.round(17 - attr.z));
-					onMoveEnd();
 				case 'setExtent':
 					minX = attr.x1;
 					minY = attr.y1;
@@ -1146,8 +1146,8 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 						{
 							lastCurrentZ = currentZ;
 							lastComputedZ = 0;
-							var pz:Int = Main.cmdToJS(attr.callbackName, 17 - currentZ);
-							lastComputedZ = 17 - pz;
+							var pz:Int = Main.cmdToJS(attr.callbackName, currentZ);
+							lastComputedZ = pz;
 						}
 						return lastComputedZ;
 					});

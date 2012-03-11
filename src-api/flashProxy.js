@@ -87,9 +87,13 @@
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
 				break;
 			case 'moveTo':			//позиционирует карту по координатам центра и выбирает масштаб
+				attr['x'] = gmxAPI.merc_x(attr['x']);
+				attr['y'] = gmxAPI.merc_y(attr['y']);
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
 				break;
 			case 'slideTo':			//плавно позиционирует карту по координатам центра и выбирает масштаб
+				attr['x'] = gmxAPI.merc_x(attr['x']);
+				attr['y'] = gmxAPI.merc_y(attr['y']);
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
 				break;
 			case 'zoomBy':			//выбирает масштаб
@@ -129,7 +133,7 @@
 				ret = gmxAPI.from_merc_y(gmxAPI.flashDiv.cmdFromJS(cmd, { }));
 				break;
 			case 'getZ':			//получить текущий Z
-				ret = 17 - gmxAPI.flashDiv.cmdFromJS(cmd, { });
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
 				break;
 			case 'getMouseX':		//получить позицию Х MouseX
 				ret = gmxAPI.from_merc_x(gmxAPI.flashDiv.cmdFromJS(cmd, { }));

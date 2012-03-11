@@ -21,8 +21,8 @@
 		map.disableCaching = function() { gmxAPI._cmdProxy('disableCaching', {}); }
 		map.print = function() { gmxAPI._cmdProxy('print', {}); }
 		map.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
-		map.moveTo = function(x, y, z) { gmxAPI._cmdProxy('moveTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
-		map.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':17 - z} }); }
+		map.moveTo = function(x, y, z) { gmxAPI._cmdProxy('moveTo', { 'attr': {'x':x, 'y':y, 'z':z} }); }
+		map.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':x, 'y':y, 'z':z} }); }
 		map.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }
 		map.unfreeze = function() { gmxAPI._cmdProxy('unfreeze', {}); }
 		map.setCursor = function(url, dx, dy) { gmxAPI._cmdProxy('setCursor', { 'attr': {'url':url, 'dx':dx, 'dy':dy} }); }
@@ -133,7 +133,7 @@
 		map.isKeyDown = function(code) { return gmxAPI._cmdProxy('isKeyDown', {'attr':{'code':code} }); }
 		map.setExtent = function(x1, x2, y1, y2) { return gmxAPI._cmdProxy('setExtent', {'attr':{'x1':gmxAPI.merc_x(x1), 'x2':gmxAPI.merc_x(x2), 'y1':gmxAPI.merc_y(y1), 'y2':gmxAPI.merc_y(y2)} }); }
 		map.addMapWindow = function(callback) {
-			var oID = gmxAPI._cmdProxy('addMapWindow', { 'attr': {'callbackName':function(z) { return 17 - callback(17 - z); }} });
+			var oID = gmxAPI._cmdProxy('addMapWindow', { 'attr': {'callbackName':function(z) { return z; }} });
 			return new gmxAPI._FMO(oID, {}, null);		// MapObject миникарты
 		}
 		
@@ -459,11 +459,12 @@
 				var z = map.getBestZ(b.minX, b.minY, b.maxX, b.maxY);
 				if (minLayerZoom != 20)
 					z = Math.max(z, minLayerZoom);
-				map.moveTo(
-					gmxAPI.from_merc_x((gmxAPI.merc_x(b.minX) + gmxAPI.merc_x(b.maxX))/2),
-					gmxAPI.from_merc_y((gmxAPI.merc_y(b.minY) + gmxAPI.merc_y(b.maxY))/2),
-					z
-				);
+				if(z > 0) 
+					map.moveTo(
+						gmxAPI.from_merc_x((gmxAPI.merc_x(b.minX) + gmxAPI.merc_x(b.maxX))/2),
+						gmxAPI.from_merc_y((gmxAPI.merc_y(b.minY) + gmxAPI.merc_y(b.maxY))/2),
+						z
+					);
 			}
 			if (layers.properties.ViewUrl && !window.suppressDefaultPermalink)
 			{
@@ -474,7 +475,7 @@
 					var callbackName = gmxAPI.uniqueGlobalName(function(obj)
 					{
 						if (obj.position)
-							map.moveTo(gmxAPI.from_merc_x(obj.position.x), gmxAPI.from_merc_y(obj.position.y), 17 - obj.position.z);
+							map.moveTo(obj.position.x, obj.position.y, obj.position.z);
 						if (obj.drawnObjects)
 							for (var i =0; i < obj.drawnObjects.length; i++)
 							{
