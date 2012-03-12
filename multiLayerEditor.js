@@ -225,7 +225,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
                 _tr([_td([selectedLayersDiv])])
             ])], [['css', 'width', '100%']])], [['css', 'verticalAlign', 'top']]),
             _td([commonLayersListDiv], [['css', 'width', '60%']])]),
-        _tr([_td([saveButton], [['attr', 'colspan', '2']])])
+        _tr([_td([saveButton], [['attr', 'colSpan', '2']])])
     ])], [['css', 'width', '100%']])], [['attr','id','properties' + elemProperties.name]]);
     
     var dialogContainer;

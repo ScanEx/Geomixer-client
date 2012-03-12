@@ -3329,7 +3329,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		
         //временно отключили
 		// var attrViewParent = _div();
-		// var createLayerFields = _tr([_td([boxManualAttributes, _span([_t("Задать аттрибуты вручную")]), _br(), addAttribute, _br(), attrViewParent], [['attr', 'colspan', 2]])]);
+		// var createLayerFields = _tr([_td([boxManualAttributes, _span([_t("Задать аттрибуты вручную")]), _br(), addAttribute, _br(), attrViewParent], [['attr', 'colSpan', 2]])]);
 		// attrView.init(attrViewParent, attrModel);
 		
 		// shownProperties.push({tr: createLayerFields});
@@ -3518,7 +3518,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		shownProperties.push({tr:trShape});
 	}
     
-    shownProperties.push({tr:_tr([_td([layerTagsParent], [['attr', 'colspan', 2]])])});
+    shownProperties.push({tr:_tr([_td([layerTagsParent], [['attr', 'colSpan', 2]])])});
 		
 	var trs = this.createPropertiesTable(shownProperties, properties, {leftWidth: 70});
 	_(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
@@ -3835,7 +3835,7 @@ mapHelper.prototype.createNewLayer = function(type)
 		return;
 
 	var parent = _div(null, [['attr','id','new' + type + 'Layer']]),
-		height = (type == 'Vector') ? 310 : 355;
+		height = (type == 'Vector') ? 315 : 360;
 
     if (type !== 'Multi')
     {

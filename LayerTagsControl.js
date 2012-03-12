@@ -21,6 +21,15 @@
                 res.push(t);
             return res;
         }
+        
+        this.getTagArrayExt = function()
+        {
+            var res = [];
+            for (var t in tags)
+                res.push( {name: t, type: tags[t].Type, desc: tags[t].Description} );
+                
+            return res;
+        }
     };
     
     (function()
@@ -178,9 +187,8 @@
         var _params = $.extend( {inputWidth: 130}, params )
         var mainTable = $('<table/>', {'class': 'layertags-table'}).appendTo(container);
         mainTable.append($('<tr/>')
-            .append($('<th/>').text('Тег'))
-            .append($('<th/>').text('Значение'))
-            // .append($('<th/>').text('Тип'))
+            .append($('<th/>').text(_gtxt('Параметр')))
+            .append($('<th/>').text(_gtxt('Значение')))
             .append($('<th/>'))
         );
         
@@ -253,7 +261,7 @@
         var addNewRow = function(tagId, tag, value)
         {
             var tagInput = $('<input/>').val(tag).css('width', _params.inputWidth).autocomplete({
-                source: layerTags.getTagMetaInfo().getTagArray(),
+                source: layerTags.getTagMetaInfo().getTagArrayExt(),
                 minLength: 0,
                 delay: 0,
                 appendTo: "#layertagstable",
@@ -263,9 +271,18 @@
                     updateModel(ui.item.value, valueInput.val());
                     return false;
                 }
-            }).bind('focus click', function(){
+            }).bind('click', function(){
                 $(tagInput).autocomplete("search", "");
             });
+            
+            tagInput.data( "autocomplete" )._renderItem = function( ul, item ) 
+            {
+                return $( "<li/>")
+                    .data( "item.autocomplete", {value: item.name} )
+                    .append( $("<a/>", {title: item.desc}).text(item.name) )
+                    .appendTo( ul );
+            }
+            
             var valueInput = $('<input/>').val(value).css('width', _params.inputWidth);
             
             var type = layerTags.getTagMetaInfo().getTagType(tag);

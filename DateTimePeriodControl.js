@@ -287,8 +287,7 @@ Calendar.prototype.init = function( name, params )
 		showSwitcher: true,
         showTime: true,
         dateMax: new Date(),
-        dateMin: new Date(1900, 1, 1),
-        
+        dateMin: new Date(1900, 1, 1)
 	}, params)
 	
 	this.lazyDate = _select([_option([_t(_gtxt("calendarWidget.Custom"))],[['attr','value','']]),

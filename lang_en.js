@@ -91,6 +91,8 @@ _translationsHash.hash["eng"] = {
 	"Упаковать" : "Add to archive",
 	"Список таблиц" : "Tables list",
 	"Загрузить" : "Download",
+    "Параметр" : "Parameter",
+    "Значение" : "Value",
 	"URL сервера" : "Server URL",
 	"Формат изображения" : "Image format",
 	"Введите имя gml-файла для скачивания:" : "Enter gml-file name to download:",
