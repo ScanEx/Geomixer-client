@@ -102,7 +102,7 @@
 		var attr = {
 			'properties': { 'className': 'gmxTools' }
 			,
-			'style': { 'position': "absolute", 'top': 40, 'left': 5, 'opacity': 0.5, 'backgroundColor': '#016A8A' }
+			'style': { 'position': "absolute", 'top': 40, 'left': 5 }
 			,
 			'regularStyle': {
 				paddingTop: "0px", 

@@ -66,25 +66,14 @@
 			for(key in attr['activeStyle']) activeStyle[key] = attr['activeStyle'][key];
 		}
 
-		// Подложка
-		var divBG = gmxAPI.newElement("div", {}, {
-				"display": 'block',
-				"float": 'left',
-				"width": '100%',
-				"height": '100%',
-				"opacity": 0.5,
-				"backgroundColor": '#016A8A'
-			}
-		);
-		gmxTools.appendChild(divBG);
-
 		// div с таблицей
 		var div = gmxAPI.newElement("div", {},
 			{
 				"position": 'absolute',
 				"top": '0px',
 				"left": '0px',
-				"display": 'block'
+				"display": 'block',
+				"backgroundColor": "rgba(1, 106, 138, 0.5)"
 			});
 		gmxTools.appendChild(div);
 
@@ -267,8 +256,6 @@
 			var pos = (attr['pos'] > 0 ? attr['pos'] : toolNames.length);
 			toolNames.splice(pos, 0, tn);
 			//positionTools();
-			divBG.style.width = div.clientWidth;
-			divBG.style.height = div.clientHeight;
 			return toolHash[tn];
 		}
 		this.addTool = addTool;
@@ -290,8 +277,6 @@
 			toolNames.splice(num, 1);
 			tBody.removeChild(toolHash[tn]['line']);
 			delete toolHash[tn];
-			divBG.style.width = div.clientWidth;
-			divBG.style.height = div.clientHeight;
 			return true;
 		}
 		this.removeTool = removeTool;

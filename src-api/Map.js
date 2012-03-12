@@ -647,6 +647,13 @@
 			gmxAPI._startDrag(this, dragCallback, upCallback);
 		});
 
+		gmxAPI.extendFMO('disableDragging', function(dragCallback, downCallback, upCallback)
+		{
+			gmxAPI._FMO.prototype.removeHandler.call(map, 'onMouseMove');
+			gmxAPI._FMO.prototype.removeHandler.call(map, 'onMouseUp');
+			gmxAPI._FMO.prototype.removeHandler.call(map, 'onMouseDown');
+		});
+
 		gmxAPI.extendFMO('enableDragging', function(dragCallback, downCallback, upCallback)
 		{
 			var object = this;
