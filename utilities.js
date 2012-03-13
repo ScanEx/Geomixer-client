@@ -482,7 +482,7 @@ function sendCrossDomainJSONRequest(url, callback, callbackParamName)
     
     var script = document.createElement("script");
 	script.setAttribute("charset", "UTF-8");
-	var callbackName = uniqueGlobalName(function(obj)
+	var callbackName = gmxAPI.uniqueGlobalName(function(obj)
 	{
 		callback && callback(obj);
 		window[callbackName] = false;
@@ -693,7 +693,7 @@ function loadFunc(iframe, callback)
 function createPostIframe(id, callback)
 {
 	var userAgent = navigator.userAgent.toLowerCase(),
-		callbackName = uniqueGlobalName(function()
+		callbackName = gmxAPI.uniqueGlobalName(function()
 		{
 			loadFunc(iframe, callback);
 		}),
