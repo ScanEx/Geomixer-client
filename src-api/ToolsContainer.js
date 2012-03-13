@@ -26,7 +26,7 @@
 		var toolHash = {};
 		var activeToolName = '';
 
-		var notSticky = (attr['notSticky'] ? attr['oneclick'] : 0);
+		var notSticky = (attr['notSticky'] ? attr['notSticky'] : 0);
 		var contType = (attr['contType'] ? attr['contType'] : 0);
 		var independentFlag = (contType == 0 ? true : false);
 		var notSelectedFlag = (contType != 1 ? true : false);
