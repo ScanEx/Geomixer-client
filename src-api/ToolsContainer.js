@@ -11,8 +11,8 @@
 	*					0 - стандартный пользовательский тип контейнера 
 	*					1 - тип для drawing вкладки
 	*					2 - тип для вкладки базовых подложек
-	*          notSticky: 0 - по умолчанию, инструмент выключается только после выбора другого инструмента.
-						  1 - автоматически выключать инструмент полсе активации
+	*           notSticky: 0 - по умолчанию, инструмент выключается только после повторного нажатия или выбора другого инструмента.
+						   1 - автоматически выключать инструмент полсе активации
 	*			properties: Hash - properties DIV контейнера (по умолчанию { 'className': 'tools_' + name })
 	*			style: Hash - стили DIV контейнера (по умолчанию { 'position': "absolute", 'top': 40 })
 	*			regularStyle: Hash - регулярного стиля DIV элементов в контейнере (по умолчанию { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold",	textAlign: "center", cursor: "pointer", opacity: 1, color: "wheat" })
