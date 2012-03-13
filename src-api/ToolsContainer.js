@@ -39,7 +39,11 @@
 			properties['className'] = 'tools_' + name;
 		}
 
-		var style = { 'position': "absolute", "display": 'block', "backgroundColor": "rgba(1, 106, 138, 0.5)", 'top': 40 };
+		var style = { 'position': "absolute", "display": 'block', 'top': 40 };
+		// Установка backgroundColor c alpha
+		if(gmxAPI.isIE) style['filter'] = "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A)";
+		else style['backgroundColor'] = "rgba(1, 106, 138, 0.5)";
+
 		if(attr['style']) {
 			for(key in attr['style']) style[key] = attr['style'][key];
 		}
