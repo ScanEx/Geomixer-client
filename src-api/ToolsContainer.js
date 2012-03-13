@@ -211,6 +211,8 @@
 				}
 			}
 
+			var myActiveStyle = (attr.activeStyle ? attr.activeStyle : activeStyle);
+			var myRegularStyle = (attr.regularStyle ? attr.regularStyle : regularStyle);
 			var repaintFunc = null;
 			if('regularImageUrl' in attr) {
 				elAttr['onmouseover'] = function()	{ this.src = attr['activeImageUrl']; };
@@ -219,17 +221,17 @@
 			} else {
 				elType = 'div';
 				repaintFunc = function(obj) {
-					setStyle(obj, (toolHash[tn].isActive ? activeStyle : regularStyle));
+					setStyle(obj, (toolHash[tn].isActive ? myActiveStyle : myRegularStyle));
 					};
 				elAttr['onmouseover'] = function()	{
-					setStyle(this, (toolHash[tn].isActive ? activeStyle : regularStyle));
+					setStyle(this, (toolHash[tn].isActive ? myActiveStyle : myRegularStyle));
 				};
 				elAttr['innerHTML'] = attr['hint'];
 			}
 			elAttr['onmouseout'] = function()	{
 				repaintFunc(this);
 			};
-			var control = gmxAPI.newElement( elType, elAttr, regularStyle);	// tool элемент 
+			var control = gmxAPI.newElement( elType, elAttr, myRegularStyle);	// tool элемент 
 
 			toolHash[tn] = {
 				key: tn,
