@@ -39,7 +39,7 @@
 			properties['className'] = 'tools_' + name;
 		}
 
-		var style = { 'position': "absolute", 'top': 40 };
+		var style = { 'position': "absolute", "display": 'block', "backgroundColor": "rgba(1, 106, 138, 0.5)", 'top': 40 };
 		if(attr['style']) {
 			for(key in attr['style']) style[key] = attr['style'][key];
 		}
@@ -69,19 +69,8 @@
 			for(key in attr['activeStyle']) activeStyle[key] = attr['activeStyle'][key];
 		}
 
-		// div с таблицей
-		var div = gmxAPI.newElement("div", {},
-			{
-				"position": 'absolute',
-				"top": '0px',
-				"left": '0px',
-				"display": 'block',
-				"backgroundColor": "rgba(1, 106, 138, 0.5)"
-			});
-		gmxTools.appendChild(div);
-
 		var toolsContainer = gmxAPI.newElement("table", {}, {'borderCollapse': 'collapse'});
-		div.appendChild(toolsContainer);
+		gmxTools.appendChild(toolsContainer);
 		var tBody = gmxAPI.newElement("tbody", {}, {});
 		toolsContainer.appendChild(tBody);
 
@@ -151,7 +140,7 @@
 
 		function setVisible(flag)
 		{
-			gmxAPI.setVisible(div, flag);
+			gmxAPI.setVisible(gmxTools, flag);
 		}
 		this.setVisible = setVisible;
 
