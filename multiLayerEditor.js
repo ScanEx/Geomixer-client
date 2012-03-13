@@ -21,20 +21,17 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
     
     _queryMapLayers.layersList = layersToAdd;
 
-    var suggestLayersTable = nsGmx.createLayersManagerInDiv(commonLayersListDiv, 'multilayers', {
-        showType: false, 
+    var suggestLayersControl = new nsGmx.LayerManagerControl(commonLayersListDiv, 'multilayers', {
+        fixType: 'raster', 
         enableDragging: false,
         onclick: function(context)
         {
-            context.scrollTable.getDataProvider().filterOriginalItems(function(elem)
-            {
-                return elem.LayerID != context.elem.LayerID;
-            });
-            
             selectedLayersTable.getDataProvider().addOriginalItem(context.elem);
+            suggestLayersControl.disableLayers(context.elem.name);
         }
     });
     
+    var suggestLayersTable = suggestLayersControl.getScrollTable();
     
     selectedLayersTable.createTable(selectedLayersDiv, 'selectedLayersTables', 0, 
         ["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), "", "", ""],
@@ -53,7 +50,8 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
                     return elem.LayerID != layer.LayerID;
                 })
                 
-                suggestLayersTable.getDataProvider().addOriginalItem(layer);
+                //suggestLayersTable.getDataProvider().addOriginalItem(layer);
+                suggestLayersControl.enableLayers(layer.name);
             }
             downButton.onclick = function()
             {

@@ -88,7 +88,7 @@ var LayersListProvider = function(filtersProvider)
 
 var drawLayers = function(layer, params)
 {
-	var _params = $.extend({onclick: function(){ removeLayerFromList(); }, enableDragging: true}, params);
+	var _params = $.extend({onclick: function(){ removeLayerFromList(); }, enableDragging: true, disabled: false}, params);
 	var newLayerProperties = {properties:layer};
 	
 	newLayerProperties.properties.mapName = _mapHelper.mapProperties.name;
@@ -147,16 +147,26 @@ var drawLayers = function(layer, params)
 	}
 	
 	var span = $(res).find("span.layer")[0];
+    
+    if (_params.disabled)
+            $(span).addClass('invisible');
 	
-	if (_params.onclick)
+	if (!_params.disabled)
 	{
 		span.onclick = function()
 		{
 			_params.onclick({ elem: layer, scrollTable: _this });
 		}
 	}
+    else
+    {
+        span.onclick = null;
+        $(span).css('cursor', 'auto');
+    }
+    
+    span.ondblclick = null;
 	
-	if (_params.enableDragging)
+	if (_params.enableDragging && !params.disabled)
 	{
 		$(res).find("span[dragg]").draggable(
 		{
@@ -175,9 +185,7 @@ var drawLayers = function(layer, params)
 	var nameDiv = _div([nameDivInternal], [['css', 'position', 'relative'], ['css', 'height', '100%']]);
 	
 	tr = _tr([_td(), _td([icon], [['css','textAlign','center']]), _td([nameDiv]), _td([_t(layer.date)], [['css','textAlign','center'],['dir','className','invisible']]),  _td([_t(layer.Owner)], [['css','textAlign','center'],['dir','className','invisible']]), tdRemove]);
-	
-	tr.removeLayerFromList = removeLayerFromList;
-	
+    
 	for (var i = 0; i < tr.childNodes.length; i++)
 		tr.childNodes[i].style.width = this._fields[i].width;
 	
@@ -191,24 +199,19 @@ var drawLayers = function(layer, params)
  @param {HTMLNode} parentDiv Куда помещать контрол
  @param {String} name Уникальное имя этого инстанса
  @param {object} params Параметры отображения списка: <br/>
-  * showType <br/>
+  * fixType {String} Какой тип слоёв показывать. 'vector', 'raster', 'multilayer' или ''. Если '', то добавится контрол с выбором типа слоя<br/>
   * enableDragging <br/>
   * onclick {function({ elem: , scrollTable: })}
- @returns {scrollTable} Контрол со списком слоёв
 */
-var createLayersManagerInDiv = function( parentDiv, name, params )
+var LayerManagerControl = function( parentDiv, name, params )
 {
-	var _params = $.extend({showType: true}, params);
+	var _params = $.extend({fixType: ''}, params);
 	var canvas = _div(null, [['attr','id','layersList']]),
 		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
 		_this = this;
 	
 	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','185px']]),
 		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','185px']]);
-	
-	// var dateBegin = _input(null,[['attr','id', name + 'DateBegin'],['dir','className','inputStyle'],['css','width','100px']]),
-		// dateEnd = _input(null,[['attr','id', name + 'DateEnd'],['dir','className','inputStyle'],['css','width','100px']]);
-	
 	
 	var typeSel = _select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
 					   _option([_t(_gtxt("Векторный"))], [['attr','value','vector']]),
@@ -222,13 +225,15 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
         dateBegin: null,
         dateEnd: null
     });
+    
+    var _disabledLayers = {};
 					   
 	_(searchCanvas, [_div([_table([_tbody([_tr([_td([_span([_t(_gtxt("Название"))],[['css','fontSize','12px']])]), _td([layerName])]),
 										   _tr([_td([_span([_t(_gtxt("Владелец"))],[['css','fontSize','12px']])]),_td([layerOwner])]),
                                            _tr([_td([_span([_t(_gtxt("Период"))],[['css','fontSize','12px']])]),_td([calendar.canvas])]),
 										   _tr([_td([_span([_t(_gtxt("Тип"))],[['css','fontSize','12px']])]), _td([typeSel])])])])], [['css','marginBottom','10px']])]);
 										   
-	if (!_params.showType)
+	if (_params.fixType !== '')
 		$("tr:last", searchCanvas).hide();
 	
 	var tableParent = _div();
@@ -238,7 +243,7 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
     sortColumns[_gtxt('Владелец')] = true;
     sortColumns[_gtxt('Дата')] = true;
     
-    if (_params.showType)
+    if (_params.fixType === '')
         sortColumns[_gtxt('Тип')] = true;
 	
     var tagsParent = _div(null, [['css', 'height', '100px'], ['css', 'overflow', 'auto']]);
@@ -247,8 +252,6 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
         _td([searchCanvas], [['css', 'width', '50%']]),
         _td([tagsParent])
     ])])], [['css', 'width', '100%']])]);
-	//_(canvas, [searchCanvas]);
-    //_(canvas, [tagsParent]);
     
     var LayersFilterParams = (function()
     {
@@ -275,12 +278,10 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
             },
             getTitle:     function() { return layerName.value; },
             getOwner:     function() { return layerOwner.value; },
-            getType:      function() { return $("option:selected", typeSel).val() },
-            // getDateBegin: function() { return $(dateBegin).datepicker('getDate') },
-            // getDateEnd:   function() { return $(dateEnd).datepicker('getDate') },
             getDateBegin: function() { return calendar.getDateBegin(); },
             getDateEnd:   function() { return calendar.getDateEnd(); },
-            getTags:      function() { return _layerTags; }
+            getTags:      function() { return _layerTags; },
+            getType:      function() { return _params.fixType ? _params.fixType : $("option:selected", typeSel).val(); }
         }
         
         return pi;
@@ -302,7 +303,8 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
 		['1%','5%','45%','24%','20%','5%'], 
 		function(layer)
 		{
-			return drawLayers.apply(this, [layer, _params]);
+            var curParams = $.extend( {}, _params, {disabled: layer.name in _disabledLayers } );
+			return drawLayers.apply(this, [layer, curParams]);
 		}, 
 		sortColumns
 	);
@@ -313,14 +315,45 @@ var createLayersManagerInDiv = function( parentDiv, name, params )
 	
 	layerName.focus();
     
-    return layersTable;
+    this.getScrollTable = function()
+    {
+        return layersTable;
+    }
+    
+    /**
+      @param layerNames {String or Array} - массив имён слоёв (или просто имя), которые нужно сделать активными
+    */
+    this.disableLayers = function(layerNames)
+    {
+        if (!$.isArray(layerNames))
+            layerNames = [layerNames];
+           
+        for (var k = 0; k < layerNames.length; k++)
+            _disabledLayers[layerNames[k]] = true;
+            
+        layersTable.repaint();
+    }
+    
+    /**
+      @param layerNames {String or Array} - массив имён слоёв (или просто имя), которые нужно сделать неактивными
+    */
+    this.enableLayers = function(layerNames)
+    {
+        if (!$.isArray(layerNames))
+            layerNames = [layerNames];
+        
+        for (var k = 0; k < layerNames.length; k++)
+            delete _disabledLayers[layerNames[k]];
+            
+        layersTable.repaint();
+    }
 }
 
-nsGmx.createLayersManagerInDiv = createLayersManagerInDiv;
+nsGmx.LayerManagerControl = LayerManagerControl;
 nsGmx.drawLayers = drawLayers;
 
 gmxCore.addModule('LayersManagerControl', {
-    createLayersManagerInDiv: createLayersManagerInDiv,
+    LayerManagerControl: LayerManagerControl,
     drawLayers: drawLayers
 });
 

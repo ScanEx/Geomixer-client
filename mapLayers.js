@@ -2188,7 +2188,14 @@ queryMapLayers.prototype.getLayers = function()
 queryMapLayers.prototype.createLayersManager = function()
 {
 	var canvas = _div();
-	nsGmx.createLayersManagerInDiv(canvas, 'layers');
+	var layerManagerControl = new nsGmx.LayerManagerControl(canvas, 'layers');
+    
+    var existLayers = [];
+    for (var i = 0; i < globalFlashMap.layers.length; i++)
+        existLayers.push(globalFlashMap.layers[i].properties.name);
+        
+    layerManagerControl.disableLayers(existLayers);
+    
 	showDialog(_gtxt("Список слоев"), canvas, 571, 475, 535, 130);
 }
 
