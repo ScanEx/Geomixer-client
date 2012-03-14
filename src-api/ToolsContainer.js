@@ -39,25 +39,24 @@
 			properties['className'] = 'tools_' + name;
 		}
 
-		var style = { 'position': "absolute", "display": 'block', 'top': 40 };
+		var style = { "display": 'block', 'marginLeft': '4px', 'padding': '4px 0' };
+
 		// Установка backgroundColor c alpha
-		if(gmxAPI.isIE) style['filter'] = "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A)";
-		else style['backgroundColor'] = "rgba(1, 106, 138, 0.5)";
+		if(gmxAPI.isIE) {
+			style['filter'] = "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A)";
+			style['styleFloat'] = 'left';
+		}
+		else 
+		{
+			style['backgroundColor'] = "rgba(1, 106, 138, 0.5)";
+			style['cssFloat'] = 'left';
+		}
 
 		if(attr['style']) {
 			for(key in attr['style']) style[key] = attr['style'][key];
 		}
 
 		var toolsContHash = gmxAPI._toolsContHash;
-		if(!style['left']) {
-			var lastPos = 0;
-			for(key in toolsContHash) {
-				var ph = toolsContHash[key];
-				var pos = ph.offsetLeft + ph.clientWidth;
-				if(pos > lastPos) lastPos = pos;
-			}
-			style['left'] = (2 + lastPos) + 'px';
-		}
 
 		var gmxTools = gmxAPI.newElement('div', properties, style);
 		gmxAPI._allToolsDIV.appendChild(gmxTools);
@@ -192,7 +191,7 @@
 		{
 			var tr = gmxAPI.newElement("tr", {	"className": 'tools_tr_' + name + '_' + tn	});
 			tBody.appendChild(tr);
-			var td = gmxAPI.newElement("td", null, { padding: "4px" });
+			var td = gmxAPI.newElement("td", null, { padding: "4px" });		// { padding: "4px", textAlign: "center" }
 			tr.appendChild(td);
 
 			var elType = 'img';

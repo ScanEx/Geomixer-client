@@ -252,7 +252,7 @@ var VerificationControl = function(parentDivId,fireControl)
 	function showVerificationToolbox(){
 		hideMyToolboxes();
 	
-		var verificationToolbox = new globalFlashMap.ToolsContainer('verificationToolbox',{'notSticky':1,'style':{ 'position': "absolute", 'top': 40,'left': 6 }});
+		var verificationToolbox = new globalFlashMap.ToolsContainer('verificationToolbox',{'notSticky':1,'style':{ 'position': "absolute", 'top': 0,'left': 0 }});
 
 		verificationToolbox.addTool( 
 			"extinguish", 
@@ -433,7 +433,7 @@ var VerificationControl = function(parentDivId,fireControl)
 	function showExtinguishToolbox() {
 		hideMyToolboxes();
 		
-		var extinguishToolbox = new globalFlashMap.ToolsContainer('extinguishToolbox',{'notSticky':1,'style':{ 'color':'white','position': "absolute", 'top': 40,'left': 6 }});
+		var extinguishToolbox = new globalFlashMap.ToolsContainer('extinguishToolbox',{'notSticky':1,'style':{ 'color':'white','position': "absolute", 'top': 0,'left': 0 }});
 		
 		addMoveTool(extinguishToolbox);
 		

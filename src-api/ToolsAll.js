@@ -102,7 +102,7 @@
 		var attr = {
 			'properties': { 'className': 'gmxTools' }
 			,
-			'style': { 'position': "absolute", 'top': 40, 'left': 5 }
+			'style': { }
 			,
 			'regularStyle': {
 				paddingTop: "0px", 
@@ -197,11 +197,6 @@
 		standartTools.selectTool("move");
 		this.standartTools = standartTools;
 
-
-		//var baseLayersToolsDIV = gmxAPI.newElement('div', {"className": 'gmxTools'}, { 'position': "absolute", 'top': 40, 'left': 40, 'paddingLeft': '1px', 'paddingRight': '1px', 'opacity': 0.5, 'backgroundColor': '#016A8A' });
-//		var baseLayersToolsDIV = gmxAPI.newElement('div', {"className": 'gmxTools'}, { 'position': "absolute", 'top': 40, 'left': 40, 'paddingLeft': '1px', 'paddingRight': '1px' });
-//		toolsAllCont.appendChild(baseLayersToolsDIV);
-
 		var regularStyle = {
 			paddingTop: "4px", 
 			paddingBottom: "4px", 
@@ -231,7 +226,7 @@
 		var attr = {
 			'properties': { 'className': 'gmxTools' }
 			,
-			'style': { 'position': "absolute", 'top': 40, 'left': 40, 'paddingLeft': '1px', 'paddingRight': '1px' }
+			'style': { }
 			,
 			'regularStyle': regularStyle
 			,

@@ -8,7 +8,7 @@
 		var zoomParent = gmxAPI.newStyledDiv({
 			position: "absolute",
 			left: "40px",
-			top: "5px"
+			top: "-35px"
 		});
 		cont.appendChild(zoomParent);
 		var zoomPlaque = gmxAPI.newStyledDiv({

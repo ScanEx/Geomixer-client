@@ -287,7 +287,7 @@
 			getVisibility: function() { return gmxAPI._cmdProxy('getGridVisibility', {}) }
 		};
 
-		var allTools = gmxAPI.newStyledDiv({ position: "absolute", top: 0, left: 0 });
+		var allTools = gmxAPI.newStyledDiv({ position: "absolute", top: '40px', left: 0, marginLeft: '1px' });
 		gmxAPI._div.appendChild(allTools);
 		gmxAPI._allToolsDIV = allTools;
 
