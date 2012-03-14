@@ -8,14 +8,18 @@
 							"RyndaMapplet.Description" : "User messages"
 						 });
 
-	var RyndaProvider = function()
+	var RyndaProvider = function( params )
 	{
+        var _params = params || {};
 		this.getDescription = function() { return _gtxt("RyndaMapplet.Description"); }
 		this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 		{
 			var timestepFrom = Math.round(dateBegin.valueOf()/1000);
 			var timestepTo = Math.round(dateEnd.valueOf()/1000);
-			var url = "http://rynda.org/public_api/messages?format=jsonp&date_added_from=" + timestepFrom + "&date_added_to=" + timestepTo;
+            
+            var subdomainString = ('subdomain' in _params) ? '&subdomain=' + _params.subdomain : '';
+            
+			var url = "http://rynda.org/public_api/messages?format=jsonp" + subdomainString + "&date_added_from=" + timestepFrom + "&date_added_to=" + timestepTo;
 			
 			$.ajax({url: url, dataType: 'jsonp', success: function(data)
 			{
@@ -83,14 +87,14 @@
 		}
 	};
 	
-	var addRyndaProvider = function(fireControl, isVisible)
+	var addRyndaProvider = function(fireControl, params )
 	{
 		fireControl.whenInited(function()
 		{
 			fireControl.addDataProvider( "rynda",
-				new RyndaProvider(),
+				new RyndaProvider( params ),
 				new RyndaRenderer(),
-				{ isVisible: isVisible }
+				{ isVisible: params.visible }
 			);
 		});
 	}
@@ -100,14 +104,13 @@
 		{
             var _params = $.extend({visible: true}, params);
             
-			gmxCore.loadModule('FireMapplet', 'plugins/FireMapplet.js');
 			gmxCore.addModulesCallback(['FireMapplet'], function()
 			{
                 var mFire = gmxCore.getModule('FireMapplet');
 				if (mFire.FireControlCollection.instances.length)
-					addRyndaProvider(mFire.FireControlCollection.instances[0], _params.visible)
+					addRyndaProvider(mFire.FireControlCollection.instances[0], _params)
 				else
-					$(mFire.FireControlCollection).bind('newInstance', function(){ addRyndaProvider(mFire.FireControlCollection.instances[0], _params.visible) });
+					$(mFire.FireControlCollection).bind('newInstance', function(){ addRyndaProvider(mFire.FireControlCollection.instances[0], _params) });
 			});
 		}
 	}, 
