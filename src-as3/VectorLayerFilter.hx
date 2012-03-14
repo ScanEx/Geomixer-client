@@ -48,7 +48,7 @@ class VectorLayerFilter extends MapContent
 	public override function delClusters():Dynamic
 	{
 		clusterAttr = null;
-		//if(regularStyleOrig != null) mapNode.setStyle(regularStyleOrig, hoverStyleOrig);
+		if(regularStyleOrig != null) mapNode.setStyle(regularStyleOrig, hoverStyleOrig);
 		Main.needRefreshMap = true;
 	}
 
@@ -78,7 +78,7 @@ class VectorLayerFilter extends MapContent
 		Main.needRefreshMap = true;
 		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
 		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
-		//mapNode.setStyle(clusterAttr.regularStyle, clusterAttr.hoverStyle);
+		mapNode.setStyle(clusterAttr.regularStyle, clusterAttr.hoverStyle);
 	}
 
 	// Установить кластеризацию на фильтре
