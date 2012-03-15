@@ -537,7 +537,7 @@ function loadMap(state)
 				
 				if (!data)
 				{
-					_tab_hash.defaultHash = 'usage';
+					_menuUp.defaultHash = 'usage';
 					
 					_menuUp.createMenu = function()
 					{
@@ -628,7 +628,7 @@ function loadMap(state)
 				
 				_queryMapLayers.addLayers(data, condition, mapStyles);
 				
-				_tab_hash.defaultHash = 'layers';
+				_menuUp.defaultHash = 'layers';
                 
                 // расширенная версия пермалинка для авторизации
 				var userObjects = data.properties.UserData;

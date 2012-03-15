@@ -11,6 +11,7 @@ var UpMenu = function()
 	this.parent = null;
     this.loginContainer = null;
     this._isCreated = false;
+    this.defaultHash = 'layers';
 };
 
 UpMenu.prototype.addItem = function(elem)
@@ -307,7 +308,7 @@ UpMenu.prototype.openRef = function(hash)
 {
 	_menuUp.removeSelections();
 	_menuUp.hideMenus();
-	_tab_hash.setHash(hash);
+	_menuUp.openTab(hash);
 }
 
 UpMenu.prototype.openFunc = function(func)
@@ -374,14 +375,15 @@ UpMenu.prototype.attachEventOnMouseclick = function(elem, id)
 	{
 		if (_this.refs[id].func)
 			_menuUp.openFunc(_this.refs[id].func);
-		else if (id == _tab_hash.recentHash && $$('left_' + id) && $$('left_' + id).style.display == 'none')
+		//else if (id == _tab_hash.recentHash && $$('left_' + id) && $$('left_' + id).style.display == 'none')
+        else
 		{
 			_menuUp.removeSelections();
 			_menuUp.hideMenus();
-			_tab_hash.openTab();
+			_menuUp.openTab(id);
 		}
-		else 
-			_menuUp.openRef(id);
+		// else 
+			// _menuUp.openRef(id);
 	}
 }
 // Показывает путь в меню к текущему элементу
@@ -469,15 +471,15 @@ UpMenu.prototype.checkView = function()
 		
 		this.disableMenus(['mapSave', 'mapSaveAs', 'layersVector', 'layersRaster', 'layersMultiRaster']);
 	}
-	else
-	{
-		var openFlag = _menuUp.disabledTabs[_tab_hash.recentHash];
+	// else
+	// {
+		// var openFlag = _menuUp.disabledTabs[_tab_hash.recentHash];
 		
-		this.enableMenus();
+		// this.enableMenus();
 
-		if (openFlag)
-			_tab_hash.openTab();
-	}
+		// if (openFlag)
+			// _tab_hash.openTab();
+	// }
 	
 	if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
 	{
@@ -518,81 +520,23 @@ UpMenu.prototype.go = function(reloadAfterLoginFlag)
 		this.currUnsel = function(){};
 	}
 	
-	_tab_hash.loadTabs();
-	_tab_hash.openTab();
+	this.openTab(this.defaultHash);
+}
+
+UpMenu.prototype.openTab = function(path)
+{
+    if (this.disabledTabs[path])
+		return;
+        
+    if (!this.refs[path]) 
+		return;
+	
+	var sel = this.refs[path].onsel;
+
+	sel && sel(path);
 }
 
 var _menuUp = new UpMenu();
-
-var TabHash = function()
-{
-	// текущее значение
-	this.recentHash = "";
-	// вспомогательный ифрйем для ие
-	this.tempFrame = null;
-	
-	this.defaultHash = 'layers';
-}
-
-TabHash.prototype.setHash = function(str)
-{
-	window.location.replace("#" + str);
-}
-
-TabHash.prototype.loadTabs = function() 
-{
-	var temp = (!window.location.hash || window.location.hash == '#') ? this.defaultHash : window.location.hash.replace(/^#/,'');
-
-	this.recentHash = temp;
-	setInterval(this.pollHash, 100);
-}
-
-TabHash.prototype.unloadTabs = function()
-{
-	window.clearInterval(this.pollHash)
-}
-// Открывает закладку по содержимому в hash
-TabHash.prototype.openTab = function()
-{
-	var path = this.recentHash;
-	
-	if (_menuUp.disabledTabs[path])
-	{
-		return;
-	}
-	
-	if (_menuUp.currUnsel) 
-		_menuUp.currUnsel();
-	
-	if (!_menuUp.refs[path]) 
-		return;
-	
-	var sel = _menuUp.refs[path].onsel,
-		unsel = _menuUp.refs[path].onunsel;
-	
-	_menuUp.currUnsel = unsel;
-
-	sel && sel.call(this, path);
-}
- 
-TabHash.prototype.pollHash = function() 
-{
-	document.title = window.shownTitle;
-	
-	if (window.location.hash == '')
-		return;
-	
-	var temp = window.location.hash.replace(/^#/,'');
-	if (temp == _tab_hash.recentHash) 
-		return; 
-
-	_tab_hash.recentHash = temp;
-	
-	_tab_hash.openTab();
-}
-
-var _tab_hash = new TabHash();
-
 
 // содержит ссылку на рабочую область для текущей вкладки
 var leftMenu = function()
