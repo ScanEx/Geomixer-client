@@ -711,107 +711,12 @@ mapHelper.prototype.makeStyle = function(style)
 	return givenStyle;
 }
 
-mapHelper.prototype.createInput = function(value, changeFunc)
-{
-	var input = _input(null, [['dir','className','inputStyle'],['css','width','30px'],['attr','value',value]]);
-	
-	input.onkeyup = changeFunc;
-	
-	return input;
-}
-
-//Интерфейс для провайдеров значений параметров
-function ILazyAttributeValuesProvider()
-{
-	this.isAttributeExists = function( attrName ){};
-	this.getValuesForAttribute = function( attrName, callback ){};
-};
-
-//Простая обёртка над массивами для обратной совместимости
-function LazyAttributeValuesProviderFromArray( attributes )
-{
-	var _attrs = attributes;
-
-	this.isAttributeExists = function( attrName )
-	{
-		return attrName in _attrs; 
-	};
-	
-	this.getValuesForAttribute = function( attrName, callback )
-	{
-		if ( attrName in _attrs )
-			callback(_attrs[attrName]);
-		else
-			callback();
-	};
-};
-LazyAttributeValuesProviderFromArray.prototype = new ILazyAttributeValuesProvider();
-
-//При необходимости этот провайдер будет запрашивать значения аттрибутов у сервера
-function LazyAttributeValuesProviderFromServer( attributes, layerID )
-{
-	var _attrs = attributes;
-	var _layerID = layerID;
-	var _isInited = false;
-	var _isProcessing = false;
-	
-	//в процессе ожидания ответа от сервера мы можем получать запросы на разные аттрибуты
-	//важно все их правильно сохранить и выхвать при получении данных
-	var _callbacks = {};
-
-	this.isAttributeExists = function( attrName )
-	{
-		return attrName in _attrs; 
-	};
-	
-	this.getValuesForAttribute = function( attrName, callback )
-	{
-		if ( !(attrName in _attrs) ) //вообще нет такого имени
-			callback();
-		else if ( _attrs[attrName].length ) //есть вектор значений!
-			callback( _attrs[attrName] ); 
-		else if (_isInited) //вектора значений всё ещё нет и уже ходили на сервер - второй раз пробовать не будем...
-			callback(); 
-		else
-		{
-			if ( !(attrName in _callbacks) )
-				_callbacks[attrName] = [];
-			
-			_callbacks[attrName].push(callback);
-			
-			if (_isProcessing) return;
-			//идём на сервер и запрашиваем значения аттрибутов!
-			
-			_isProcessing = true;
-			sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetVectorAttrValues.ashx?WrapStyle=func&LayerID=" + _layerID, function(response)
-			{
-				_isInited = true;
-				_isProcessing = false;
-				if (!parseResponse(response))
-				{
-					for (var n in _callbacks)
-						for (var k = 0; k < _callbacks[n].length; k++)
-							_callbacks[n][k]();
-					return;
-				}
-				
-				_attrs = response.Result;
-				for (var n in _callbacks)
-					for (var k = 0; k < _callbacks[n].length; k++)
-						_callbacks[n][k](_attrs[n]);
-			});
-		}
-	};
-}
-LazyAttributeValuesProviderFromServer.prototype = new ILazyAttributeValuesProvider();
-
-
 mapHelper.prototype.createSuggestCanvas = function(values, textarea, textTamplate, func, valuesArr, addValueFlag)
 {
 	var _this = this;
 	
-	if ( typeof valuesArr != 'undefined' && valuesArr && !(valuesArr instanceof ILazyAttributeValuesProvider) )
-		valuesArr = new LazyAttributeValuesProviderFromArray(valuesArr);
+	if ( typeof valuesArr != 'undefined' && valuesArr && !(valuesArr instanceof nsGmx.ILazyAttributeValuesProvider) )
+		valuesArr = new nsGmx.LazyAttributeValuesProviderFromArray(valuesArr);
 	
 	var canvas = _div(null, [['dir','className','attrsHelper']]);
 	canvas.style.display = 'none';
@@ -2828,107 +2733,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 	var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
 	
 	//event: change
-	var encodingWidget = (function()
-	{
-		var _encodings = {
-			'windows-1251': 'windows-1251',
-			'utf-8': 'utf-8',
-			'koi8-r': 'koi8-r',
-			'utf-7': 'utf-7',
-			'iso-8859-5': 'iso-8859-5',
-			'koi8-u': 'koi8-u',
-			'cp866': 'cp866'
-			
-		};
-		var _DEFAULT_ENCODING = 'windows-1251';
-		var _curEncoding = _DEFAULT_ENCODING;
-		
-		//
-		var _public = {
-			drawWidget: function(container, initialEncoding)
-			{
-				initialEncoding = initialEncoding || _DEFAULT_ENCODING;
-				var select = $("<select></select>").addClass('selectStyle VectorLayerEncodingInput');
-				select.change(function()
-				{
-					_curEncoding = $('option:selected', select).val();
-					$(_public).change();
-				});
-				
-				var isStandard = false;
-				for (var enc in _encodings)
-				{
-					var opt = $('<option></option>').val(enc).text(enc);
-					
-					if (_encodings[enc] === initialEncoding)
-					{
-						opt.attr('selected', 'selected');
-						_curEncoding = enc;
-						isStandard = true;
-					}
-						
-					select.append(opt);
-				}
-				
-				var anotherCheckbox = $("<input></input>", {'class': 'box', type: 'checkbox', id: 'otherEncoding'});
-				var anotherInput = $("<input></input>", {'class': 'VectorLayerEncodingInput'});
-				
-				if (!isStandard)
-				{
-					anotherCheckbox[0].checked = 'checked';
-					anotherInput.val(initialEncoding);
-					select.attr('disabled', 'disabled');
-				}
-				else
-				{
-					anotherInput.attr('disabled', 'disabled');
-				}
-				
-				anotherInput.bind('keyup', function()
-				{
-					_curEncoding = this.value;
-					$(_public).change();
-				});
-				
-				anotherCheckbox.click(function()
-				{
-					if (this.checked)
-					{
-						select.attr('disabled', 'disabled');
-						anotherInput.removeAttr('disabled');
-						anotherInput.focus();
-						_curEncoding = anotherInput.val();
-					}
-					else
-					{
-						select.removeAttr('disabled');
-						anotherInput.attr('disabled', 'disabled');
-						_curEncoding = $('option:selected', select).val();
-					}
-					$(_public).change();
-				});
-				
-				
-				var tr1 = $("<tr></tr>")
-					.append($("<td></td>").text(_gtxt("Кодировка")))
-					.append($("<td></td>").append(select));
-					
-				var tr2 = $("<tr></tr>")
-					.append($("<td></td>").append(anotherCheckbox).append($("<label></label>", {'for': 'otherEncoding'}).text(_gtxt("Другая"))))
-					.append($("<td></td>").append(anotherInput));
-				
-				$(container)
-					.append($("<table></table>", {'class': 'VectorLayerEncoding'})
-						.append(tr1).append(tr2));
-			},
-			getServerEncoding: function()
-			{
-				return _curEncoding;
-			}
-		}
-		
-		return _public;
-	})();
+	var encodingWidget = new nsGmx.ShpEncodingWidget();
     
     var convertedTagValues = {};
     for (var mp in properties.MetaProperties)
@@ -4102,7 +3907,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 			if (!parseResponse(response))
 				return;
 			
-			_this.attrValues[mapName][layerName] = new LazyAttributeValuesProviderFromServer(response.Result.Attributes, elemProperties.LayerID);
+			_this.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer(response.Result.Attributes, elemProperties.LayerID);
 			
 			createTabs(response.Result);
 		})
