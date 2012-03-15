@@ -406,7 +406,7 @@ nsGmx.widgets.getCommonCalendar = (function()
             
             _mapHelper.customParamsManager.addProvider({
                 name: 'commonCalendar',
-                loadState: function(state) { _calendar.loadState(state); },
+                loadState: function(state) { _calendar.loadState(state); $(_calendar).change(); },
                 saveState: function() { return _calendar.saveState(); }
             });
         }

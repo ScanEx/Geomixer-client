@@ -153,6 +153,9 @@ queryTabs.prototype.show = function(state)
 	}
 	
 	_queryMapLayers.applyState(parsedState.condition, parsedState.mapStyles);
+    
+    if ( typeof parsedState.customParamsCollection != 'undefined')
+        _mapHelper.customParamsManager.loadParams(parsedState.customParamsCollection);
 }
 
 var _queryTabs = new queryTabs();
