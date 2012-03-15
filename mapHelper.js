@@ -219,6 +219,9 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, newStyles[i]);
 		
 		newFilter.setStyle(newStyles[i].RenderStyle);
+        
+        if (newStyles[i].clusters)
+            newFilter.setClusters(newStyles[i].clusters);
 		
 		newFilter.setZoomBounds(Number(newStyles[i].MinZoom), Number(newStyles[i].MaxZoom));
 		
