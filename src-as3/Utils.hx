@@ -514,7 +514,8 @@ class Utils
 				if (arr.length == 1) {
 					var propOrig = geom.members[arr[0]].properties;
 					for(key in propOrig.keys()) prop.set(key, propOrig.get(key));
-					pt.propHiden.set('_paintStyle', vectorLayerFilter.regularStyleOrig);
+					//pt.propHiden.set('_paintStyle', vectorLayerFilter.regularStyleOrig);
+					pt.propHiden.set('_vectorLayerFilter', vectorLayerFilter);
 				}
 				else
 				{
@@ -535,6 +536,7 @@ class Utils
 		
 		if(attr.debug != null) {
 			var out = '';
+			out += ' getTimer: ' + flash.Lib.getTimer();
 			out += ' iterCount: ' + iterCount;
 			out += ' objCount: ' + geom.members.length;
 			out += ' clustersCount: ' + centersGeometry.members.length;

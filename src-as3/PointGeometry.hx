@@ -31,7 +31,8 @@ class PointGeometry extends Geometry
 	function putPoint(attr:Dynamic)
 	{
 		var sprite:Sprite = attr.sprite;
-		var style:Style = (propHiden.exists('_paintStyle') ? propHiden.get('_paintStyle') : attr.style);
+		var style:Style = attr.style;
+		if(propHiden.exists('_vectorLayerFilter')) style = propHiden.get('_vectorLayerFilter').regularStyleOrig;
 		var window:MapWindow = attr.window;
 		var parentNumChildren:Int = attr.parentNumChildren;
 		

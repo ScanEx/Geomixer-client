@@ -1,4 +1,5 @@
 import flash.display.Sprite;
+import flash.display.Stage;
 import flash.events.Event;
 import flash.events.MouseEvent;
 import flash.utils.Timer;
@@ -18,11 +19,14 @@ class VectorLayerFilter extends MapContent
 	public var regularStyleOrig:Style;
 	public var hoverStyleOrig:Style;
 	public var paintersHash:Hash<VectorTilePainter>;	// Хэш отрисовщиков тайлов данного фильтра
+	var curChkData:Dynamic;								// Текущие данные для проверки обновлений
+	var evTarget:Stage;									// Обьект глобальных событий
 
 	public function new(criterion_:Hash<String>->Bool)
 	{
 		criterion = criterion_;
 		flush();
+		evTarget = flash.Lib.current.stage;
 	}
 
 	public override function createContentSprite()
@@ -42,6 +46,7 @@ class VectorLayerFilter extends MapContent
 		if (layer != null)
 			createLoader();
 		delClusters();
+		curChkData = {};
 	}
 
 	// Удалить кластеризацию на фильтре
@@ -52,16 +57,25 @@ class VectorLayerFilter extends MapContent
 		Main.needRefreshMap = true;
 	}
 
-	// Проверка кластеризации на фильтре
+	// Проверка кластеризации на фильтре - сохранение стилей фильтра до кластеризации
 	public function chkClusters()
 	{
+		regularStyleOrig = mapNode.regularStyle;
+		hoverStyleOrig = mapNode.hoveredStyle;
 		if(clusterAttr != null) runClusters(clusterAttr);
 	}
 
 	// Инициализация кластеризации на фильтре
 	private function runClusters(attr:Dynamic)
 	{
-		if(attr != null) clusterAttr = attr;
+		if (attr != null) clusterAttr = attr;
+		// Проверка изменения атрибутов кластеризации
+		if (curChkData.iterationCount != clusterAttr.iterationCount || curChkData.radius != clusterAttr.radius) {
+			clusterAttr.needRefresh = true;
+			curChkData.iterationCount = clusterAttr.iterationCount;
+			curChkData.radius = clusterAttr.radius;
+		}
+		
 		var regularStyle = null;
 		if (clusterAttr.RenderStyle != null) clusterAttr.regularStyle = new Style(clusterAttr.RenderStyle);
 		var hoverStyle = null;
@@ -76,14 +90,25 @@ class VectorLayerFilter extends MapContent
 		}
 		
 		Main.needRefreshMap = true;
-		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
-		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
 		mapNode.setStyle(clusterAttr.regularStyle, clusterAttr.hoverStyle);
+	}
+
+	// Проверка движения карты
+	private function chkMapMove(attr)
+	{
+		var pos:Dynamic = attr.data;
+		if(clusterAttr != null) {
+			if (curChkData.currentX != pos.currentX || curChkData.currentY != pos.currentY || curChkData.currentZ != pos.currentZ) {
+				clusterAttr.needRefresh = true;
+			}
+		}
 	}
 
 	// Установить кластеризацию на фильтре
 	public override function setClusters(attr:Dynamic):Dynamic
 	{
+		if(!evTarget.hasEventListener(APIEvent.CUSTOM_EVENT))
+			evTarget.addEventListener( APIEvent.CUSTOM_EVENT, chkMapMove );		
 		var me = this;
 		if(mapNode.regularStyle == null) {
 			var timer:Timer = new Timer(20);
@@ -164,17 +189,22 @@ class VectorLayerFilter extends MapContent
 		for (painter in painters)
 		{
 			painter.repaint(curStyle);
-			var e2 = painter.painter.geometry.extent;
-			var cx2 = (e2.minx + e2.maxx)/2;
-			var d1 = Math.abs(cx2 - cx1 - w);
-			var d2 = Math.abs(cx2 - cx1);
-			var d3 = Math.abs(cx2 - cx1 + w);
-			if ((d1 <= d2) && (d1 <= d3))
-				painter.setOffset(-w);
-			else if ((d2 <= d1) && (d2 <= d3))
-				painter.setOffset(0);
-			else if ((d3 <= d1) && (d3 <= d2))
-				painter.setOffset(w);
+			if(painter.painter.geometry != null) {
+				var e2 = painter.painter.geometry.extent;
+				var cx2 = (e2.minx + e2.maxx)/2;
+				var d1 = Math.abs(cx2 - cx1 - w);
+				var d2 = Math.abs(cx2 - cx1);
+				var d3 = Math.abs(cx2 - cx1 + w);
+				if ((d1 <= d2) && (d1 <= d3))
+					painter.setOffset(-w);
+				else if ((d2 <= d1) && (d2 <= d3))
+					painter.setOffset(0);
+				else if ((d3 <= d1) && (d3 <= d2))
+					painter.setOffset(w);
+			}
+		}
+		if(clusterAttr != null) {
+			clusterAttr.needRefresh = false;
 		}
 	}
 
@@ -247,7 +277,7 @@ class VectorLayerFilter extends MapContent
 			me.layer.currentFilter = null;
 		};
 		contentSprite.addEventListener(MouseEvent.ROLL_OUT, roll_out);
-		flash.Lib.current.stage.addEventListener(Event.MOUSE_LEAVE, roll_out);
+		evTarget.addEventListener(Event.MOUSE_LEAVE, roll_out);
 	
 	}
 }

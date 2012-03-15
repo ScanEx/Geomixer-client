@@ -33,6 +33,7 @@ class VectorTilePainter
 		vectorSprite.name = 'v' + sprite.name;
 		oldStyleID = 0;
 		cacheSprite = new Sprite();
+		clustersGeometry = null;
 	}
 
 	public function remove()
@@ -49,7 +50,7 @@ class VectorTilePainter
 		}
 	}
 
-	public function repaint(style:Style)
+	public function repaint(style:Style, ?clearCache:Bool)
 	{
 		var curZ:Float = mapWindow.getCurrentZ();
 		if (mapWindow.cacheBitmap.visible || (curZ != Math.round(curZ)))
@@ -65,12 +66,14 @@ class VectorTilePainter
 			var tileIntersect = mapWindow.visibleExtent.overlaps(tile.extent);		// Частичное перекрытие геометрии тайла
 			if (tileIntersect && !tileOverlap) oldStyleID = 0;
 			if (tileIntersect) {
-				clustersGeometry = Utils.getClusters(vectorLayerFilter, tileGeometry, tile, currentZ);
+				if (vectorLayerFilter.clusterAttr.needRefresh || clustersGeometry == null) {
+					clustersGeometry = Utils.getClusters(vectorLayerFilter, tileGeometry, tile, currentZ);
+				}
 				painter.geometry = clustersGeometry;
 			}
 		}
 
-		var repaintCache:Bool = false;
+		var repaintCache:Bool = (clearCache ? clearCache : false);
 		if ((style != null && style.curCount != oldStyleID) || oldZ != currentZ)
 		{
 			repaintCache = true;

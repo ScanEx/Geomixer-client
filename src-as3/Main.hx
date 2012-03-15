@@ -134,6 +134,15 @@ class Main
 		
 		var getNode = function(id) { return MapNode.allNodes.get(id); }
 		var constrain = function(a:Float, t:Float, b:Float) { return (t < a) ? a : (t > b) ? b : t; }
+		
+		var dispatchEventPosition = function()
+		{
+			var pos:Dynamic = { };
+			pos.currentX = currentX;
+			pos.currentY = currentY;
+			pos.currentZ = currentZ;
+			stage.dispatchEvent( new APIEvent(APIEvent.CUSTOM_EVENT, pos) );
+		}
 		var setCurrentPosition = function(x, y, z)
 		{
 			currentX = constrain(minX, x,  maxX);
@@ -181,6 +190,7 @@ class Main
 		var onMoveEnd = function(?event:MouseEvent)
 		{
 			mapWindow.rootNode.callHandlersRecursively("onMoveEnd");
+			dispatchEventPosition();
 		}
 		
 		var isFluidMoving:Bool = false;
@@ -308,7 +318,7 @@ class Main
 			if (vlf.layer.lastGeometry == null) return false; // пред.геометрия
 			var centrGeometry:PointGeometry = cast(vlf.layer.lastGeometry, PointGeometry);
 			var members:Array<PointGeometry> = centrGeometry.propHiden.get('_members');
-			if (members.length == 1) return false;
+			if (members == null || members.length == 1) return false;
 			var maxMembers:Int = (vlf.clusterAttr.clusterView.maxMembers == null ? 10 : cast(vlf.clusterAttr.clusterView.maxMembers));
 			if (members.length > maxMembers) return false;
 

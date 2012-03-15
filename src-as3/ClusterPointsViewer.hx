@@ -168,6 +168,7 @@ class ClusterPointsViewer extends MapContent
 				me.vlFilter.layer.lastGeometry = null;
 				me.vlFilter.mapNode.callHandler("onMouseOut");
 			}
+			event.stopPropagation();
 		});
 		
 		contSprite.addEventListener(MouseEvent.MOUSE_UP, function(event:MouseEvent)
@@ -176,7 +177,10 @@ class ClusterPointsViewer extends MapContent
 			if(items.length > 0) {
 				me.vlFilter.layer.lastGeometry = items[0];
 				me.vlFilter.mapNode.callHandler("onClick");
+			} else {
+				me.vlFilter.layer.lastGeometry = null;
 			}
+			event.stopPropagation();
 		});
 		
 	}

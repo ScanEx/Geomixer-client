@@ -405,6 +405,8 @@ class VectorLayer extends MapContent
 	public override function addHandlers()
 	{
 		hoverPainter = new GeometryPainter(null, Utils.addSprite(contentSprite), mapNode.window);
+		//contentSprite.mouseChildren = false;
+		//contentSprite.mouseEnabled = false;
 	}
 
 	public function flip():Int
