@@ -52,6 +52,7 @@ $LAB.
 	
 loadJS(function()
 {
+    gmxCore.setDefaultModulesHost(gmxJSHost);
     nsGmx.initGeoMixer();
 });
 
