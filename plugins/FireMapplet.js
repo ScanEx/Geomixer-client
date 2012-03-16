@@ -1740,6 +1740,7 @@ FireControl.prototype.update = function()
 
 
 var publicInterface = {
+    IDataProvider: IDataProvider,
 	FireControl: FireControl,
 	FireControlCollection: FireControlCollection
 }
