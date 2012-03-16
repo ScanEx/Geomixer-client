@@ -86,6 +86,7 @@ _translationsHash.hash["eng"] = {
 	"Тип" : "Type",
 	"Размер" : "Size",
 	"Дата" : "Date",
+    "Дата создания": "Дата создания",
 	"Удалить" : "Delete",
 	"Извлечь" : "Extract",
 	"Упаковать" : "Add to archive",

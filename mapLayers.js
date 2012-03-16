@@ -574,7 +574,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			multiStyleParent = _div(null,[['attr','multiStyle',true]]),
             iconSpan = _span([icon]);
         
-        if (elem.styles.length == 1)
+        if ( elem.styles.length == 1 && elem.name in globalFlashMap.layers )
         {
             globalFlashMap.layers[elem.name].filters[0].addListener('onSetStyle', function(style)
             {
@@ -609,22 +609,23 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	}
 	else
 	{
-		var borderDescr = _span(),
-			metaCount = 0;;
+		var borderDescr = _span();
 		
-		for (var key in elem.metadata)
-			if (key != elem.identityField && key != 'PLCH' && key != 'Field1' && elem.metadata[key] != '' &&  elem.metadata[key] != null)
-				metaCount++;
-		
-		if (elem.metadata && metaCount > 0 || elem.Legend)
-		{
-			_(borderDescr, [_t('i')], [['css','fontWeight','bold'],['css','fontStyle','italic'],['css','margin','0px 5px'],['css','cursor','pointer']]);
-			
-			borderDescr.onclick = function()
+        if (elem.MetaProperties)
+        {
+            var props = {};
+            for (key in elem.MetaProperties)
+            {
+                var tagtype = elem.MetaProperties[key].Type;
+                props[key] = nsGmx.LayerTagSearchControl.convertFromServer(tagtype, elem.MetaProperties[key].Value);
+            }
+                
+            _(borderDescr, [_t('i')], [['css','fontWeight','bold'],['css','fontStyle','italic'],['css','margin','0px 5px'],['css','cursor','pointer']]);
+            borderDescr.onclick = function()
 			{
-				_this.showLayerInfo({properties:elem}, {properties: elem.metadata && metaCount > 0 ? elem.metadata : {}}, false, elem.identityField)
+				_this.showLayerInfo({properties:elem}, {properties: props}, false, elem.identityField);
 			}
-		}
+        }
 		
 		if (this._renderParams.showVisibilityCheckbox)
 			return [box, spanParent, spanDescr, borderDescr];
@@ -662,6 +663,7 @@ layersTree.prototype.showInfo = function(layer)
 layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag, identityField)
 {
 	var trs = [];
+    var typeSpans = {};
 	for (var key in obj.properties)
 		if (geoInfoFlag || (key != identityField && key != 'PLCH' && key != 'Field1' && obj.properties[key] != '' &&  obj.properties[key] != null))
 		{
@@ -672,8 +674,12 @@ layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag, identityF
 				contentText = "<a href=\"" + contentText + "\" target=\"_blank\">" + contentText + "</a>";
 			
 			content.innerHTML = contentText;
+            
+            var typeSpan = _span([_t(key)]);
+            
+            typeSpans[key] = typeSpan;
 			
-			trs.push(_tr([_td([_t(key)], [['css','width','30%']]), _td([content], [['css','width','70%']])]));
+			trs.push(_tr([_td([typeSpan], [['css','width','30%']]), _td([content], [['css','width','70%']])]));
 		}
 	
 	var title = _span(null, [['dir','className','title'], ['css','cursor','default']]),
@@ -774,6 +780,15 @@ layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag, identityF
             dialogDiv.parentNode.style.minHeight = div.offsetHeight + 'px';
         }
 	}, 100)
+    
+    nsGmx.TagMetaInfo.loadFromServer(function(tagInfo)
+    {
+        for (var key in typeSpans)
+        {
+            if (tagInfo.isTag(key))
+                $(typeSpans[key]).attr('title', tagInfo.getTagDescription(key));
+        }
+    });
 }
 
 layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)

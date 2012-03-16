@@ -68,7 +68,7 @@ var LayersListProvider = function(filtersProvider)
         var sortParams = {};
         sortParams[_gtxt("Тип")] = "Type";
         sortParams[_gtxt("Имя")] = "Title";
-        sortParams[_gtxt("Дата")] = "Date";
+        sortParams[_gtxt("Дата создания")] = "Date";
         sortParams[_gtxt("Владелец")] = "Owner";
         
         var query = getQueryText();
@@ -241,7 +241,7 @@ var LayerManagerControl = function( parentDiv, name, params )
     var sortColumns = {};
     sortColumns[_gtxt('Имя')] = true;
     sortColumns[_gtxt('Владелец')] = true;
-    sortColumns[_gtxt('Дата')] = true;
+    sortColumns[_gtxt('Дата создания')] = true;
     
     if (_params.fixType === '')
         sortColumns[_gtxt('Тип')] = true;
@@ -299,7 +299,7 @@ var LayerManagerControl = function( parentDiv, name, params )
     layersTable.setDataProvider(layersListProvider);
     
 	layersTable.createTable(tableParent, name, 0, 
-		["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата"), _gtxt("Владелец"), ""], 
+		["", _gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата создания"), _gtxt("Владелец"), ""], 
 		['1%','5%','45%','24%','20%','5%'], 
 		function(layer)
 		{

@@ -14,6 +14,11 @@
             return tag in tags ? tags[tag].Type : null;
         }
         
+        this.getTagDescription = function(tag)
+        {
+            return tag in tags ? tags[tag].Description : null;
+        }
+        
         this.getTagArray = function()
         {
             var res = [];
