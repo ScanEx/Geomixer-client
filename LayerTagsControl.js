@@ -320,6 +320,8 @@
             validateRow(rows[tagId]);
         }
         
+        var timeOffset = (new Date()).getTimezoneOffset()*60;
+        
         var convertFunctions = {
             'Number': function(id, value)
             {
@@ -327,16 +329,16 @@
             },
             'Date': function(id, value)
             {
-                return rows[id].value.datepicker('getDate').valueOf()/1000;
+                return rows[id].value.datepicker('getDate').valueOf()/1000 - timeOffset;
             },
             'DateTime': function(id, value)
             {
-                return rows[id].value.datetimepicker('getDate').valueOf()/1000;
+                return rows[id].value.datetimepicker('getDate').valueOf()/1000 - timeOffset;
             },
             'Time': function(id, value)
             {
                 var date = $(rows[id].value).datetimepicker('getDate');
-                return date.getHours()*3600 + date.getMinutes()*60 + date.getSeconds();
+                return date.getUTCHours()*3600 + date.getUTCMinutes()*60 + date.getUTCSeconds();
             }
         }
         
@@ -412,21 +414,22 @@
     
     LayerTagSearchControl.convertFromServer = function(type, value)
     {
+        var timeOffset = (new Date()).getTimezoneOffset()*60*1000;
         if (type === 'DateTime')
         {
             var tempInput = $('<input/>').datetimepicker({timeOnly: false});
-            $(tempInput).datetimepicker('setDate', new Date(value*1000));
+            $(tempInput).datetimepicker('setDate', new Date(value*1000 + timeOffset));
             return $(tempInput).val();
         }
         else if (type === 'Time')
         {
             var tempInput = $('<input/>').timepicker({timeOnly: true});
-            $(tempInput).timepicker('setTime', new Date(value*1000));
+            $(tempInput).timepicker('setTime', new Date(value*1000 + timeOffset));
             return $(tempInput).val();
         }
         else if (type === 'Date')
         {
-            return $.datepicker.formatDate('dd.mm.yy', new Date(value*1000));
+            return $.datepicker.formatDate('dd.mm.yy', new Date(value*1000 + timeOffset));
         }
         else if (type === 'Number')
         {
