@@ -141,6 +141,14 @@
 		}
 		this.forEachObject = forEachObject;
 
+		function getToolByName(tn)
+		{
+			if(!toolHash[tn]) return false;
+			
+			return toolHash[tn];
+		}
+		this.getToolByName = getToolByName;
+		
 		function setVisible(flag)
 		{
 			gmxAPI.setVisible(gmxTools, flag);
