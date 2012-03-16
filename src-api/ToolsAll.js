@@ -93,7 +93,7 @@
 			{
 				gmxAPI.setVisible(toolPlaqueBackground, flag);
 				gmxAPI.setVisible(toolPlaqueControl, flag);
-				gmxAPI.setVisible(allTools, flag);
+				gmxAPI.setVisible(gmxAPI._allToolsDIV, flag);
 			},
 			minimize: gmxAPI.map.minimizeTools,
 			maximize: gmxAPI.map.maximizeTools
