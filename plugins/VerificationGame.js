@@ -5,6 +5,8 @@ var pluginPath = '';
 var VerificationControl = function(parentDivId,fireControl)
 {
 	var PIXEL_RADIUS = 10;
+	
+	var fireModule = gmxCore.getModule('FireMapplet');
 		
 	var _verificationURL = "http://dev2.kosmosnimki.ru/";
 	var _hotspotRequestURL = 'http://sender.kosmosnimki.ru/v3/';
@@ -1390,7 +1392,7 @@ var VerificationControl = function(parentDivId,fireControl)
 					{
 						if (data.Result != 'Ok')
 						{
-							//onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
+							//onError( data.Result == 'TooMuch' ? fireModule.IDataProvider.ERROR_TOO_MUCH_DATA : fireModule.IDataProvider.SERVER_ERROR );
 							alert("Server error on logging in!");
 							return;
 						}
@@ -1465,7 +1467,7 @@ var VerificationControl = function(parentDivId,fireControl)
 					{
 						if (data.Result != 'Ok')
 						{
-							//onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
+							//onError( data.Result == 'TooMuch' ? fireModule.IDataProvider.ERROR_TOO_MUCH_DATA : fireModule.IDataProvider.SERVER_ERROR );
 							alert("ERROR on registering user!");
 							return;
 						}
@@ -1779,7 +1781,7 @@ var VerificationControl = function(parentDivId,fireControl)
 			{
 				if (data.Result != 'Ok')
 				{
-					//onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
+					//onError( data.Result == 'TooMuch' ? fireModule.IDataProvider.ERROR_TOO_MUCH_DATA : fireModule.IDataProvider.SERVER_ERROR );
 					alert("ERROR on getting next hotspot!");
 					return;
 				}
@@ -1815,7 +1817,7 @@ var VerificationControl = function(parentDivId,fireControl)
 			{
 				if (data.Result != 'Ok')
 				{
-					//onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
+					//onError( data.Result == 'TooMuch' ? fireModule.IDataProvider.ERROR_TOO_MUCH_DATA : fireModule.IDataProvider.SERVER_ERROR );
 					alert("ERROR on getting next hotspot!");
 					return;
 				}
@@ -2331,11 +2333,11 @@ var VerificationControl = function(parentDivId,fireControl)
 			
 			var modisUrl = _params.host  + "DBWebProxy.ashx?Type=GetSpotHotSpots&Name=" + spotLandsatImageName;
 			
-			IDataProvider.sendCachedCrossDomainJSONRequest(modisUrl, function(data)
+			fireModule.IDataProvider.sendCachedCrossDomainJSONRequest(modisUrl, function(data)
 			{
 				if (data.Result != 'Ok')
 				{
-					onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
+					onError( data.Result == 'TooMuch' ? fireModule.IDataProvider.ERROR_TOO_MUCH_DATA : fireModule.IDataProvider.SERVER_ERROR );
 					return;
 				}
 				
@@ -2419,8 +2421,8 @@ var publicInterface = {
 			$(table).after(verificationDiv);
 			$(table).after(div);
 			
-			gmxCore.loadModule('DateTimePeriodControl', 'http://maps.kosmosnimki.ru/api/DateTimePeriodControl.js');
-			gmxCore.loadModule('FireMapplet',           'http://maps.kosmosnimki.ru/api/plugins/FireMapplet.js'  );
+			gmxCore.loadModule('DateTimePeriodControl', 'DateTimePeriodControl.js');
+			gmxCore.loadModule('FireMapplet',           'plugins/FireMapplet.js'  );
 			
 			gmxCore.addModulesCallback(['DateTimePeriodControl', 'FireMapplet'], function()
 			{
