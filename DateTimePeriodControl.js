@@ -607,12 +607,12 @@ Calendar.prototype.firstClickFunc = function()
 
 Calendar.prototype.lastClickFunc = function()
 {
-    if (!begin || !end) return;
-    
 	var begin = $(this.dateBegin).datepicker("getDate"),
 		end = $(this.dateEnd).datepicker("getDate"),
 		newDateBegin,
 		newDateEnd;
+        
+    if (!begin || !end) return;
 
 	this.fixDate(begin);
 	this.fixDate(end);
