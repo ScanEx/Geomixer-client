@@ -567,24 +567,31 @@
 		var updatePosition = function(ev)
 		{
 			var currPosition = map.getPosition();
+			
+			var eventFlag = (gmxAPI.currPosition && currPosition['x'] == gmxAPI.currPosition['x']
+				&& currPosition['y'] == gmxAPI.currPosition['y']
+				&& currPosition['z'] == gmxAPI.currPosition['z']
+				? false : true);
+
 			gmxAPI.currPosition = currPosition;
+			if(eventFlag) {						// Если позиция карты изменилась - формируем событие positionChanged
+				var z = currPosition['z'];
 
-			var z = currPosition['z'];
-
-			/** Пользовательское событие positionChanged
-			* @function callback
-			* @param {object} атрибуты прослушивателя
-			*/
-			if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
-				var attr = {
-					'currZ': z,
-					'currX': gmxAPI.from_merc_x(currPosition['x']),
-					'currY': gmxAPI.from_merc_y(currPosition['y']),
-					'div': gmxAPI._locationTitleDiv,
-					'screenGeometry': map.getScreenGeometry(),
-					'properties': map.properties
-				};
-				gmxAPI._listeners.dispatchEvent('positionChanged', map, attr);
+				/** Пользовательское событие positionChanged
+				* @function callback
+				* @param {object} атрибуты прослушивателя
+				*/
+				if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
+					var attr = {
+						'currZ': z,
+						'currX': gmxAPI.from_merc_x(currPosition['x']),
+						'currY': gmxAPI.from_merc_y(currPosition['y']),
+						'div': gmxAPI._locationTitleDiv,
+						'screenGeometry': map.getScreenGeometry(),
+						'properties': map.properties
+					};
+					gmxAPI._listeners.dispatchEvent('positionChanged', map, attr);
+				}
 			}
 		}
 		gmxAPI._updatePosition = updatePosition;
