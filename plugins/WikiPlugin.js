@@ -1,4 +1,4 @@
-﻿/** 
+/** 
 * @name Wiki
 * @namespace Предоставляет возможность написания сообщений
 * @description Предоставляет возможность написания сообщений
@@ -582,6 +582,8 @@ WikiPlugin.prototype = {
 		this._filter = new WikiFilter(oWikiDiv);
 
 		this._map.drawing.addTool('textTool'
+									,'activeStyle': {}
+									,'regularStyle': {}
 									, _gtxt("Создать сообщение")
 									, pluginPath + 'img/wiki/text_tool.png'
 									, pluginPath + 'img/wiki/text_tool_a.png'
