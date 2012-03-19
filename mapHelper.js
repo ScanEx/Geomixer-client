@@ -1178,6 +1178,11 @@ mapHelper.prototype.createLoadingFilter = function(parentObject, parentStyle, ge
 	{
 		return templateStyle;
 	}
+    
+    filterCanvas.getClusterStyle = function()
+	{
+		return parentStyle.clusters;
+	}
 	
 	filterCanvas.getFilter = function()
 	{
@@ -4158,8 +4163,8 @@ mapHelper.prototype.updateStyles = function(filterCanvas)
 		newFilterStyle.RenderStyle = filter.getStyle();
         
         var clusterStyle = filter.getClusterStyle();
-        if (clusterStyle !== null)
-            newFilterStyle.clusters = filter.getClusterStyle();
+        if (clusterStyle)
+            newFilterStyle.clusters = clusterStyle;
 		
 		styles.push(newFilterStyle);
 	}
