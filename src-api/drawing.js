@@ -927,6 +927,7 @@
 				else
 					gmxAPI.map.slideToExtent(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2));
 				rect.remove();
+				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, null);
 				toolsContainer.selectTool("move");
 			}
 		);
