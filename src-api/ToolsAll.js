@@ -138,6 +138,8 @@
 		var arr = [
 			{
 				'key': "move",
+				'activeStyle': {},
+				'regularStyle': {},
 				'regularImageUrl': apiBase + "img/move_tool.png",
 				'activeImageUrl': apiBase + "img/move_tool_a.png",
 				'onClick': gmxAPI._drawFunctions['move'],
@@ -147,6 +149,8 @@
 			,
 			{
 				'key': "zoom",
+				'activeStyle': {},
+				'regularStyle': {},
 				'regularImageUrl': apiBase + "img/select_tool.png",
 				'activeImageUrl': apiBase + "img/select_tool_a.png",
 				'onClick': gmxAPI._drawFunctions['zoom'],
@@ -156,6 +160,8 @@
 			,
 			{
 				'key': "POINT",
+				'activeStyle': {},
+				'regularStyle': {},
 				'regularImageUrl': apiBase + "img/marker_tool.png",
 				'activeImageUrl': apiBase + "img/marker_tool_a.png",
 				'onClick': gmxAPI._drawFunctions['POINT'],
@@ -165,6 +171,8 @@
 			,
 			{
 				'key': "LINESTRING",
+				'activeStyle': {},
+				'regularStyle': {},
 				'regularImageUrl': apiBase + "img/line_tool.png",
 				'activeImageUrl': apiBase + "img/line_tool_a.png",
 				'onClick': gmxAPI._drawFunctions['LINESTRING'],
@@ -174,6 +182,8 @@
 			,
 			{
 				'key': "POLYGON",
+				'activeStyle': {},
+				'regularStyle': {},
 				'regularImageUrl': apiBase + "img/polygon_tool.png",
 				'activeImageUrl': apiBase + "img/polygon_tool_a.png",
 				'onClick': gmxAPI._drawFunctions['POLYGON'],
@@ -183,6 +193,8 @@
 			,
 			{
 				'key': "FRAME",
+				'activeStyle': {},
+				'regularStyle': {},
 				'regularImageUrl': apiBase + "img/frame_tool.png",
 				'activeImageUrl': apiBase + "img/frame_tool_a.png",
 				'onClick': gmxAPI._drawFunctions['FRAME'],
