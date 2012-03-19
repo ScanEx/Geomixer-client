@@ -998,6 +998,8 @@
 		{
 			return gmxAPI.map.toolsAll.standartTools.addTool(tn, {
 					'key': tn,
+					'activeStyle': {},
+					'regularStyle': {},
 					'regularImageUrl': regularImageUrl,
 					'activeImageUrl': activeImageUrl,
 					'onClick': onClick,
