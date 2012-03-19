@@ -338,7 +338,7 @@
             'Time': function(id, value)
             {
                 var date = $(rows[id].value).datetimepicker('getDate');
-                return date.getUTCHours()*3600 + date.getUTCMinutes()*60 + date.getUTCSeconds();
+                return date.getHours()*3600 + date.getMinutes()*60 + date.getSeconds();
             }
         }
         
