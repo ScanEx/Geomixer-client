@@ -269,6 +269,7 @@
 			var pos = (attr['pos'] > 0 ? attr['pos'] : toolNames.length);
 			toolNames.splice(pos, 0, tn);
 			//positionTools();
+			if(!gmxAPI._drawing.tools[tn]) gmxAPI._drawing.tools[tn] = toolHash[tn];
 			return toolHash[tn];
 		}
 		this.addTool = addTool;
@@ -290,6 +291,7 @@
 			toolNames.splice(num, 1);
 			tBody.removeChild(toolHash[tn]['line']);
 			delete toolHash[tn];
+			if(gmxAPI._drawing.tools[tn]) delete gmxAPI._drawing.tools[tn];
 			return true;
 		}
 		this.removeTool = removeTool;

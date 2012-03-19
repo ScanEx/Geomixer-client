@@ -339,6 +339,7 @@
 			gmxAPI._listeners.dispatchEvent('onAdd', domObj, domObj);
 
 			ret.setVisible(ret.isVisible);
+			gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
 		}
 
 		if (!coords)
@@ -380,7 +381,7 @@
 		obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 		obj.setEditable(true);
 		
-		// Проверка пользовательских Listeners
+		// Проверка пользовательских Listeners LINESTRING
 		var chkEvent = function(eType, out)
 		{
 			if(gmxAPI.map.drawing.enabledHoverBalloon) {
@@ -388,6 +389,7 @@
 				propsBalloon.updatePropsBalloon(st);
 			}
 			gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
+			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
 		}
 		
 		obj.setHandlers({
@@ -406,6 +408,7 @@
 			{
 				callOnChange();
 				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
+				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
 				if(domObj.geometry) toolsContainer.selectTool("move");
 			},
 			onRemove: function()
@@ -520,7 +523,7 @@
 		obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 		obj.setEditable(true);
 
-		// Проверка пользовательских Listeners
+		// Проверка пользовательских Listeners POLYGON
 		var chkEvent = function(eType, out)
 		{
 			if(gmxAPI.map.drawing.enabledHoverBalloon) {
@@ -528,6 +531,7 @@
 				propsBalloon.updatePropsBalloon(st);
 			}
 			gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
+			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
 		}
 
 		obj.setHandlers({
@@ -545,6 +549,7 @@
 			onFinish: function()
 			{
 				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
+				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
 				if(domObj.geometry) toolsContainer.selectTool("move");
 			},
 			onRemove: function()
@@ -693,10 +698,11 @@
 		var x2y1Corner = corners.addObject();
 		var x2y2Corner = corners.addObject();
 
-		// Проверка пользовательских Listeners
+		// Проверка пользовательских Listeners FRAME
 		var chkEvent = function()
 		{
 			gmxAPI._listeners.dispatchEvent(eventType, domObj, domObj);
+			gmxAPI._listeners.dispatchEvent(eventType, gmxAPI.map.drawing, domObj);
 		}
 
 		function getGeometryTitleMerc(geom)
@@ -935,6 +941,8 @@
 		handlers: { onAdd: [], onEdit: [], onRemove: [] },
 		mouseState: 'up',
 		stateListeners: {},
+		addListener: function(eventName, func) { return gmxAPI._listeners.addListener(this, eventName, func); },
+		removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); },
 		enabledHoverBalloon: true,
 		enableHoverBalloon: function()
 			{
@@ -996,17 +1004,24 @@
 		},
 		addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
 		{
-			return gmxAPI.map.toolsAll.standartTools.addTool(tn, {
-					'key': tn,
-					'activeStyle': {},
-					'regularStyle': {},
-					'regularImageUrl': regularImageUrl,
-					'activeImageUrl': activeImageUrl,
-					'onClick': onClick,
-					'onCancel': onCancel,
-					'hint': hint
-				});
+			var ret = gmxAPI.map.toolsAll.standartTools.addTool(tn, {
+				'key': tn,
+				'activeStyle': {},
+				'regularStyle': {},
+				'regularImageUrl': regularImageUrl,
+				'activeImageUrl': activeImageUrl,
+				'onClick': onClick,
+				'onCancel': onCancel,
+				'hint': hint
+			});
+			return ret;
 		}, 
+		removeTool: function(tn)
+		{
+			if(this.tools[tn]) {
+				gmxAPI.map.toolsAll.standartTools.removeTool(tn);
+			}
+		},
 		selectTool: function(toolName)
 		{
 			gmxAPI._tools['standart'].selectTool(toolName);
