@@ -1155,7 +1155,7 @@ div.layersScroll
     border: 1px solid #AFC0D5;
 }
 
-.ui_tpicker_minute .ui-slider, .ui_tpicker_hour .ui-slider
+.ui_tpicker_minute .ui-slider, .ui_tpicker_hour .ui-slider, .ui_tpicker_second .ui-slider
 {
     background-color: #6EB8CE;
 }

@@ -107,7 +107,7 @@ queryMapLayersList.prototype.load = function()
 				function(a,b){if (a._sort_type > b._sort_type) return 1; else if (a._sort_type < b._sort_type) return -1; else return 0},
 				function(a,b){if (a._sort_type < b._sort_type) return 1; else if (a._sort_type > b._sort_type) return -1; else return 0}
 			];
-	sortFuncs[_gtxt('Дата')]  = [
+	sortFuncs[_gtxt('Дата создания')]  = [
 				function(a,b)
 				{
 					if (!a._sort_date || !b._sort_date)
@@ -127,7 +127,7 @@ queryMapLayersList.prototype.load = function()
 	_listTable.limit = 20;
 	_listTable.pagesCount = 5;
     
-	_listTable.createTable(tableParent, name, 310, [_gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата")], ['10%','65%','25%'], this.drawExtendLayers, sortFuncs);
+	_listTable.createTable(tableParent, name, 310, [_gtxt("Тип"), _gtxt("Имя"), _gtxt("Дата создания")], ['10%','65%','25%'], this.drawExtendLayers, sortFuncs);
     _listTable.getDataProvider().setSortFunctions(sortFuncs);
 	
 	$(_listTable).bind('sortChange', function(){ _this._updateSlider()} );

@@ -231,6 +231,8 @@
                     changeMonth: true,
                     changeYear: true,
                     dateFormat: "dd.mm.yy",
+                    timeFormat: "hh:mm:ss",
+                    showSecond: true,
                     timeOnly: false
                 }).addClass('layertags-datetimeinput');
             }
@@ -240,7 +242,11 @@
                 $(valueInput).datepicker('destroy');
                 $(valueInput).datetimepicker('destroy');
                 
-                $(valueInput).timepicker({timeOnly: true});
+                $(valueInput).timepicker({
+                    timeOnly: true,
+                    timeFormat: "hh:mm:ss",
+                    showSecond: true
+                });
             }
             else
             {
@@ -417,13 +423,13 @@
         var timeOffset = (new Date()).getTimezoneOffset()*60*1000;
         if (type === 'DateTime')
         {
-            var tempInput = $('<input/>').datetimepicker({timeOnly: false});
+            var tempInput = $('<input/>').datetimepicker({timeOnly: false, timeFormat: "hh:mm:ss"});
             $(tempInput).datetimepicker('setDate', new Date(value*1000 + timeOffset));
             return $(tempInput).val();
         }
         else if (type === 'Time')
         {
-            var tempInput = $('<input/>').timepicker({timeOnly: true});
+            var tempInput = $('<input/>').timepicker({timeOnly: true, timeFormat: "hh:mm:ss"});
             $(tempInput).timepicker('setTime', new Date(value*1000 + timeOffset));
             return $(tempInput).val();
         }
