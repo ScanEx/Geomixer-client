@@ -475,7 +475,7 @@
 					var callbackName = gmxAPI.uniqueGlobalName(function(obj)
 					{
 						if (obj.position)
-							map.moveTo(gmxAPI.from_merc_x(obj.position.x), gmxAPI.from_merc_y(obj.position.y), obj.position.z);
+							map.moveTo(gmxAPI.from_merc_x(obj.position.x), gmxAPI.from_merc_y(obj.position.y), 17 - obj.position.z);
 						if (obj.drawnObjects)
 							for (var i =0; i < obj.drawnObjects.length; i++)
 							{
