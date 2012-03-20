@@ -571,6 +571,8 @@ if(gmxAPI.proxyType === 'leaflet') {
 					}
 					obj.filters[i].setFilter = function(sql)
 					{
+						if(!obj.filters[i]['_attr']) obj.filters[i]['_attr'] = {};
+						obj.filters[i]['_attr']['sql'] = sql;
 						deferred.push(function() { 
 							obj.filters[i].setFilter(sql);
 							});
