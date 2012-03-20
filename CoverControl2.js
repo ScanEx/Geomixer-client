@@ -13,6 +13,9 @@ var CoverControl2 = function()
 	this.commonStyles = null;
 	this.cloudsCount = 0;
 	this.coverLayers = [];
+    this._parent = null;
+    
+    CoverControlInstance.addInstance(this);
 }
 
 /**
@@ -38,7 +41,7 @@ CoverControl2.prototype.loadState = function( data )
 
 CoverControl2.prototype._updateStyles = function()
 {
-	if ( this.commonStyles || this.coverLayers.length == 0 ) return;
+	if ( this.commonStyles || this.coverLayers.length == 0 || !(this.coverLayers[0] in globalFlashMap.layers) ) return;
 	
 	var commonStyles = globalFlashMap.layers[this.coverLayers[0]].properties.styles,
 		cloudsCount = 0;
@@ -130,7 +133,7 @@ CoverControl2.prototype._addWidget = function()
 		
 		_(cloudsLabelDiv, [img])
 	}
-	
+    
 	var trs = [];
 	
 	trs.push(_tr([_td(),_td([_span([_t(_gtxt("Облачность"))],[['css','fontSize','12px'],['css','margin','0px 10px 0px 7px']])]), _td([cloudsLabelDiv,cloudsSlider],[['attr','colSpan',2]])]));
@@ -142,7 +145,7 @@ CoverControl2.prototype._addWidget = function()
 /**
 * @function
 * @param {Array} coverLayersDescription Массив имён слоёв для фильтрации
-* @param {String} cloudsAttribute Имя аттрибута слоёв с облачностью
+* @param {String} cloudsAttribute Имя атрибута слоёв с облачностью
 * @param {Array} icons Массив с именами иконок для облачности
 * @param {Integer} initCloudIndex Начальная облачность
 */
@@ -205,12 +208,6 @@ CoverControl2.prototype.fixLayers = function()
 			
 			icon.geometryType = "polygon";
 			
-			// icon.onclick = function()
-			// {
-				// _mapHelper.createLayerEditor(this.parentNode, 1, -1);
-			// }
-			
-			//$(div[0]).children("[styleType='multi']").replaceWith(icon);
             $(div[0]).children("[styleType='multi']").empty().append(icon);
 		}
 	}
@@ -227,7 +224,7 @@ CoverControl2.prototype.setFilters = function()
 			continue;
 		
 		var filters = layer.filters;
-		
+        
 		for (var j = 0; j < this.cloudsCount; j++)
 		{
 			if (j <= this.currCloudsIndex)
@@ -254,12 +251,46 @@ CoverControl2.prototype.add = function(parent)
 	this._parent = parent;
 	this._updateStyles();
 	this._addWidget();
+    $(this).trigger('init');
 }
+
+CoverControl2.prototype.getContainer = function()
+{
+	return this._parent;
+}
+
+//предосталяет доступ к первому созданному инстансу CoverControl2
+var CoverControlInstance = (function()
+{
+    var deffered = new $.Deferred();
+    var theInstance = null;
+    return {
+        addInstance: function(coverControl)
+        {
+            if (theInstance) return;
+            
+            theInstance = coverControl;
+            $(coverControl).bind('init', function()
+            {
+                deffered.resolve();
+            });
+        },
+        getInstance: function()
+        {
+            return theInstance;
+        },
+        whenInited: function(callback)
+        {
+            deffered.done(callback);
+        }
+    };
+})();
 
 if ( typeof gmxCore !== 'undefined' )
 {
 	gmxCore.addModule('CoverControl2', {
-		CoverControl2: CoverControl2
+		CoverControl2: CoverControl2,
+        CoverControlInstance: CoverControlInstance
 	});
 }
 

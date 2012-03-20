@@ -1,0 +1,20 @@
+﻿.daynight-check
+{
+    margin: 3px;
+}
+
+.daynight-checkcont
+{
+    padding-left: 5px;
+}
+
+.daynight-class
+{
+    margin-left: 29px;
+    margin-bottom: 10px;
+}
+
+.daynight-class *
+{
+    font-size: 12px;
+}
