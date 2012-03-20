@@ -248,6 +248,11 @@
 		};
 
 		var baseLayersTools = new gmxAPI._ToolsContainer('baseLayers', attr);
+		gmxAPI._listeners.addListener(gmxAPI.map, 'baseLayerSelected', function(ph)
+			{
+				baseLayersTools.seActiveTool(ph);
+			}
+		);
 
 		this.baseLayersTools = baseLayersTools;
 	}

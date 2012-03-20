@@ -352,10 +352,13 @@
 		{
 			unSetBaseLayer();
 			currentBaseLayerName = name;
+			gmxAPI._listeners.dispatchEvent('baseLayerSelected', map, currentBaseLayerName);
 			var newBaseLayers = baseLayers[currentBaseLayerName];
-			if (newBaseLayers)
-				for (var i = 0; i < newBaseLayers.length; i++)
+			if (newBaseLayers) {
+				for (var i = 0; i < newBaseLayers.length; i++) {
 					newBaseLayers[i].setVisible(true);
+				}
+			}
 		}
 		map.setMode = function(mode) 
 		{

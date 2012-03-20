@@ -77,6 +77,17 @@
 		var tBody = gmxAPI.newElement("tbody", {}, {});
 		toolsContainer.appendChild(tBody);
 
+		var seActiveTool = function(toolName)
+		{
+			activeToolName = toolName;
+			var tool = toolHash[activeToolName];
+			if (tool) {
+				tool.isActive = true;
+				tool.repaint();
+			}
+		}
+		this.seActiveTool = seActiveTool;
+		
 		var selectTool = function(toolName)
 		{
 			if (name == 'standart') {	// только для колонки 'standart'
@@ -207,7 +218,9 @@
 				title: attr['hint'],
 				onclick: function() { selectTool(tn); }
 			};
-			if(attr['alias']) aliasNames[attr['alias']] = tn;
+			if(attr['alias']) {
+				aliasNames[attr['alias']] = tn;
+			}
 			
 			var setStyle = function(elem, style) {
 				for (var key in style)
