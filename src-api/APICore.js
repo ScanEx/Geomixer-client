@@ -228,7 +228,7 @@ window.gmxAPI = {
 	,
 	setBg: function(t, imageName)
 	{
-		if (this.isIE)
+		if (gmxAPI.isIE)
 			t.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" + imageName + "',sizingMethod='scale')";
 		else
 			t.style.backgroundImage = "url('" + imageName + "')";
@@ -942,7 +942,7 @@ window.gmxAPI = {
 	convertCoords: function(coordsStr)
 	{
 		var res = [],
-			coordsPairs = this.strip(coordsStr).replace(/\s+/,' ').split(' ');
+			coordsPairs = gmxAPI.strip(coordsStr).replace(/\s+/,' ').split(' ');
 
 		if (coordsStr.indexOf(',') == -1)
 		{
@@ -1322,13 +1322,13 @@ window.gmxAPI = {
 	,
 	newFlashMapId: function()
 	{
-		this.lastFlashMapId += 1;
-		return "random_" + this.lastFlashMapId;
+		gmxAPI.lastFlashMapId += 1;
+		return "random_" + gmxAPI.lastFlashMapId;
 	}
 	,
 	uniqueGlobalName: function(thing)
 	{
-		var id = this.newFlashMapId();
+		var id = gmxAPI.newFlashMapId();
 		window[id] = thing;
 		return id;
 	}
