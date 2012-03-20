@@ -58,6 +58,9 @@ class VectorTile
 					actualExtent.update((me.extent.minx + me.extent.maxx)/2, (me.extent.miny + me.extent.maxy)/2);
 					for (object in arr)
 					{
+						if(object == null) {	// Пропускаем бракованные обьекты
+							continue;
+						}
 						var geometry = Utils.parseGeometry(object.geometry, me.extent);
 						actualExtent.update(geometry.extent.minx, geometry.extent.miny);
 						actualExtent.update(geometry.extent.maxx, geometry.extent.maxy);
@@ -73,6 +76,12 @@ class VectorTile
 								if(pt != null) {
 									var unixTimeStamp:String = Utils.dateStringToUnixTimeStamp(pt);
 									geometry.propTemporal.set('unixTimeStamp', unixTimeStamp);			// посчитали unixTimeStamp для фильтра
+									if (Std.is(geometry, MultiGeometry)) {			// Для MultiGeometry надо расставить unixTimeStamp
+										var multi = cast(geometry, MultiGeometry);
+										for (member in multi.members) {
+											member.propTemporal.set('unixTimeStamp', unixTimeStamp);
+										}
+									}
 								}
 							}
 						}
