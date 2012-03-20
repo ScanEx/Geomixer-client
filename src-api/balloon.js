@@ -205,6 +205,7 @@
 						var flag = customBalloonObject.onClick(o, keyPress, currPosition);
 						if(flag) return;
 					}
+					keyPress['textFunc'] = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
 					clickBalloonFix(o, keyPress);
 				}
 			};
@@ -286,6 +287,7 @@
 			if(keyPress) {
 				if(keyPress['shiftKey'] || keyPress['ctrlKey']) return;	// При нажатых не показываем балун
 				if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // взять параметры балуна от фильтра родителя
+				else if('textFunc' in keyPress) textFunc = keyPress['textFunc'];
 			}
 
 			var id = setID(o);

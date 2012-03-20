@@ -8,6 +8,8 @@
 
 	// Команды в leaflet
 	var commands = {				// Тип команды
+		'setBackgroundTiles': setBackgroundTiles			// добавить OSM слой
+		,
 		'addOSMTileLayer': addOSMTileLayer					// добавить OSM слой
 		,
 		'addScanExTileLayer': addScanExTileLayer			// добавить ScanEx тайловый слой
@@ -100,8 +102,32 @@
 		var ret = {};
 		var obj = hash['obj'] || null;	// Целевой обьект команды
 		var attr = hash['attr'] || '';
+if(!(cmd in commands)
+	&& cmd != 'setCursorVisible'
+	&& cmd != 'stopDragging'
+	&& cmd != 'addContextMenuItem'
+	&& cmd != 'setStyle'
+	&& cmd != 'setGeometry'
+	&& cmd != 'setHandler'
+	&& cmd != 'setBackgroundColor'
+	&& cmd != 'setZoomBounds'
+	&& cmd != 'setVectorTiles'
+	&& cmd != 'setFilter'
+	&& cmd != 'setExtent'
+	&& cmd != 'setClusters'
+	&& cmd != 'setBackgroundTiles'
+	) {
+	// cmd"" cmd""
+	var tt = 1;
+}
 		ret = (cmd in commands ? commands[cmd].call(commands, hash) : {});
 		return ret;
+	}
+
+	function setBackgroundTiles(ph)	{	// добавить растровый слой
+		var out = {};
+		var layer = ph.attr;
+		return out;
 	}
 
 	function getMapPosition() {
