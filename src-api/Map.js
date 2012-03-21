@@ -352,19 +352,19 @@
 		{
 			unSetBaseLayer();
 			currentBaseLayerName = name;
-			gmxAPI._listeners.dispatchEvent('baseLayerSelected', map, currentBaseLayerName);
 			var newBaseLayers = baseLayers[currentBaseLayerName];
 			if (newBaseLayers) {
 				for (var i = 0; i < newBaseLayers.length; i++) {
 					newBaseLayers[i].setVisible(true);
 				}
 			}
+			gmxAPI._listeners.dispatchEvent('baseLayerSelected', map, currentBaseLayerName);
 		}
 		map.setMode = function(mode) 
 		{
 			var name = map.toolsAll.baseLayersTools.getAlias(mode);
 			map.setBaseLayer(name);
-			map.toolsAll.baseLayersTools.selectTool(name);
+			//map.toolsAll.baseLayersTools.selectTool(name);
 		}
 
 		map.getBaseLayer = function()

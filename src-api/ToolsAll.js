@@ -206,7 +206,7 @@
 			var ph = arr[i]['key']
 			standartTools.addTool(arr[i]['key'], arr[i]);
 		}
-		standartTools.selectTool("move");
+		//standartTools.selectTool("move");
 		this.standartTools = standartTools;
 
 		var regularStyle = {

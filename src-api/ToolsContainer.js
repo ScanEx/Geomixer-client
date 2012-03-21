@@ -79,12 +79,14 @@
 
 		var seActiveTool = function(toolName)
 		{
-			activeToolName = toolName;
-			var tool = toolHash[activeToolName];
-			if (tool) {
-				tool.isActive = true;
-				tool.repaint();
+			for (var id in toolHash) {
+				var tool = toolHash[id];
+				if (tool)  {
+					tool.isActive = (id == toolName ? true : false);
+				}
 			}
+			activeToolName = toolName;
+			this.repaint();			
 		}
 		this.seActiveTool = seActiveTool;
 		
@@ -168,6 +170,12 @@
 
 		function repaint()
 		{
+			for (var id in toolHash) {
+				var tool = toolHash[id];
+				if (tool)  {
+					tool.repaint();
+				}
+			}
 		}
 		this.repaint = repaint;
 		function updateVisibility()
