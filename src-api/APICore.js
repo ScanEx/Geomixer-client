@@ -2778,6 +2778,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					if (!window.baseMap || !window.baseMap.hostName || (window.baseMap.hostName == "maps.kosmosnimki.ru"))
 						map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : "http://maps.kosmosnimki.ru/";
 		
+					map.setMode(mapLayers.length > 0 ? "map" : "satellite");
 					if (layers)
 					{
 						map.defaultHostName = layers.properties.hostName;
@@ -2785,7 +2786,6 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.addLayers(layers);
 						map.properties = layers.properties;
 					}
-					map.setMode(mapLayers.length > 0 ? "map" : "satellite");
 
 					callback(map);		// Вызов HTML маплета
 				});
