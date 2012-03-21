@@ -1938,31 +1938,31 @@ FlashMapObject.prototype.remove = function()
 		gmxAPI.map.removeCopyrightedObject(this);
 		
 	if(this.objectId) {
+		gmxAPI._cmdProxy('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
 		// чистка mapNodes
 		for(id in this.childsID) {
-			var pObj = gmxAPI.mapNodes[id];
-			if(pObj) pObj.remove();
+			delete gmxAPI.mapNodes[id];
 		}
-
-		gmxAPI._cmdProxy('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
 		delete gmxAPI.mapNodes[this.objectId];
 	}
-	var removeFromMapLayers = function(lid)	// удалить слой из map.layers 
-	{
-		for(var i=0; i<gmxAPI.map.layers.length; i++) {			// Удаление слоя из массива
-			if(gmxAPI.map.layers[i].properties.LayerID === lid) {
-				gmxAPI.map.layers.splice(i, 1);
-				break;
-			}
-		}
-		for(key in gmxAPI.map.layers) {							// Удаление слоя из хэша
-			if(gmxAPI.map.layers[key].properties.LayerID === lid) {
-				delete gmxAPI.map.layers[key];
-			}
-		}
-	}
 
-	if(this.properties && this.properties.LayerID) removeFromMapLayers(this.properties.LayerID);
+	if(this.properties && this.properties.LayerID) {
+		var removeFromMapLayers = function(lid)	// удалить слой из map.layers 
+		{
+			for(var i=0; i<gmxAPI.map.layers.length; i++) {			// Удаление слоя из массива
+				if(gmxAPI.map.layers[i].properties.LayerID === lid) {
+					gmxAPI.map.layers.splice(i, 1);
+					break;
+				}
+			}
+			for(key in gmxAPI.map.layers) {							// Удаление слоя из хэша
+				if(gmxAPI.map.layers[key].properties.LayerID === lid) {
+					delete gmxAPI.map.layers[key];
+				}
+			}
+		}
+		removeFromMapLayers(this.properties.LayerID);
+	}
 }
 FlashMapObject.prototype.setGeometry = function(geometry) {
 	var geom =  gmxAPI.merc_geometry(geometry);
