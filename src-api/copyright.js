@@ -110,7 +110,7 @@
 					for (var i = 0; i < copyrightedObjects.length; i++)
 					{
 						var obj = copyrightedObjects[i];
-						if (obj.copyright && obj.objectId && obj.isVisible)
+						if (obj.copyright && obj.objectId && obj.getVisibility())
 						{
 							if (obj.geometry)
 							{
