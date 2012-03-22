@@ -218,7 +218,7 @@
 		{
 			var tr = gmxAPI.newElement("tr", {	"className": 'tools_tr_' + name + '_' + tn	});
 			tBody.appendChild(tr);
-			var td = gmxAPI.newElement("td", null, { padding: "4px" });		// { padding: "4px", textAlign: "center" }
+			var td = gmxAPI.newElement("td", null, { padding: "4px", cursor: "pointer" });		// { padding: "4px", textAlign: "center" }
 			tr.appendChild(td);
 
 			var elType = 'img';
