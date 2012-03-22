@@ -686,7 +686,7 @@
 
 		window.kosmosnimkiBeginZoom = function() 
 		{
-			if (activeToolName != "move")
+			if (!gmxAPI._drawing.tools['move'].isActive)
 				return false;
 			gmxAPI.map.freeze();
 			sunscreen.setVisible(true);
