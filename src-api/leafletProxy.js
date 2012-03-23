@@ -5,28 +5,36 @@
 	var leafLetMap = null;					// leafLet карта
 	var leafLetLayers = {					// Хэш leafLet слоев - пока растровые тайловые слои
 	};
+	var mapNodes = {						// Хэш нод обьектов карты - аналог MapNodes.hx
+	};
 
 	// Команды в leaflet
 	var commands = {				// Тип команды
 		'setBackgroundTiles': setBackgroundTiles			// добавить OSM слой
 		,
 		'addOSMTileLayer': addOSMTileLayer					// добавить OSM слой
-		,
-		'addScanExTileLayer': addScanExTileLayer			// добавить ScanEx тайловый слой
+		//,
+		//'addScanExTileLayer': addScanExTileLayer			// добавить ScanEx тайловый слой
 		,
 		'addObject':	function(ph)	{					// добавить mapObject
 			nextId++;
 			return 'id' + nextId;
 		}
 		,
-		'bringToTop': function(ph)	{					// установка z-index
+		'bringToTop': function(ph)	{						// установка zIndex - вверх
 			var id = ph.obj.objectId;
+			var myLayer = leafLetLayers[id];
+			if(myLayer) {							// видимость слоя
+			}
 			//var myLayer = leafLetLayers[id];
 			//return ph.obj.isVisible;
 		}
 		,
 		'bringToBottom': function(ph)	{					// установка z-index
 			var id = ph.obj.objectId;
+			var myLayer = leafLetLayers[id];
+			if(myLayer) {							// видимость слоя
+			}
 			//var myLayer = leafLetLayers[id];
 			//return ph.obj.isVisible;
 		}
@@ -81,18 +89,12 @@
 				pos.lng = mousePos.lng + k*(pos.lng - mousePos.lng);
 			}
 			leafLetMap.setView(pos, currZ);
-//var pos = new L.LatLng(50.499276, 35.760498);
-//leafLetMap.setView(pos, 8);
-			
-			//leafLetMap.setZoom(currZ);
 		}
 		,
 		'moveTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
 			if(ph.attr['z'] > leafLetMap.getMaxZoom() || ph.attr['z'] < leafLetMap.getMinZoom()) return;
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
 			leafLetMap.setView(pos, ph.attr['z']);
-//var pos = new L.LatLng(50.499276, 35.760498);
-//leafLetMap.setView(pos, 7);
 		}
 	}
 
@@ -115,7 +117,7 @@ if(!(cmd in commands)
 	&& cmd != 'setFilter'
 	&& cmd != 'setExtent'
 	&& cmd != 'setClusters'
-	&& cmd != 'setBackgroundTiles'
+	//&& cmd != 'setBackgroundTiles'
 	) {
 	// cmd"" cmd""
 	var tt = 1;
@@ -124,12 +126,59 @@ if(!(cmd in commands)
 		return ret;
 	}
 
-	function setBackgroundTiles(ph)	{	// добавить растровый слой
+	// Получить последний zIndex в контейнере слоев
+	var getLastIndex = function(prnt)
+	{ 
+		var myIdx = prnt.layers.length;
+		var n = 0;
+		for (var i = 0; i < myIdx; i++)
+		{
+			var l = prnt.layers[i];
+			if (l.objectId && (l.properties.type != "Overlay"))
+				n += 1;
+		}
+		return n;
+	}
+	
+	// Добавить растровый слой
+	function setBackgroundTiles(ph)	{
 		var out = {};
-		var layer = ph.attr;
+		var layer = ph.obj;
+		var inpAttr = ph.attr;
+
+		var id = layer.objectId;
+		var attr = prpLayerAttr(layer);
+//if(layer.properties.title != "Spot5_Volgograd") return out;
+//if(layer.properties.title != "карта Украины") return out;
+
+		var option = {
+			'tileFunc': inpAttr['func']
+			,'minZoom': inpAttr['minZoom'] || attr['minZoom']
+			,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom']
+			,'attr': attr
+			,'layer': layer
+			,'index':getLastIndex(layer.parent)
+		};
+		var geom = attr['geom'];
+		var myLayer = null;
+		//if(geom) {
+			myLayer = new L.TileLayer.ScanExCanvas(option);
+		//}
+		//else
+		//{
+		//	myLayer = new L.TileLayer.ScanEx(option);
+		//}
+		leafLetLayers[layer.objectId] = myLayer;
+		myLayer.bringToDepth(ph.attr.zIndex);
+		myLayer.setDOMid(layer.objectId);
+		myLayer._isVisible = (layer.isVisible ? true : false);
+		if(myLayer._isVisible) 
+			leafLetMap.addLayer(myLayer);
+		
 		return out;
 	}
 
+	// Получить позицию карты
 	function getMapPosition() {
 		var pos = leafLetMap.getCenter();
 		return {
@@ -139,6 +188,7 @@ if(!(cmd in commands)
 		};
 	}
 
+	// Подготовка атрибутов слоя
 	function prpLayerAttr(layer) {
 		var out = {};
 		if(layer) {
@@ -187,43 +237,8 @@ if(!(cmd in commands)
 		return out;
 	}
 
-	function addScanExTileLayer(ph)	{	// добавить ScanEx тайловый слой
-		var out = {};
-		var layer = ph.attr.layer;
-
-
-		var id = layer.objectId;
-		var isRaster = (layer.properties.type == "Raster");
-		if(isRaster) {
-			var url = ph.attr.prefix + "&z={z}&x={x}&y={y}";
-			var attr = prpLayerAttr(layer);
-//if(layer.properties.title != "Spot5_Volgograd") return out;
-//if(layer.properties.title != "карта Украины") return out;
-
-			var option = {'url': url, 'minZoom': attr['minZoom'], 'maxZoom': attr['maxZoom'], 'attr': attr, 'layer': layer, 'index':ph.attr.zIndex};
-			//var option = {'url': url, 'unloadInvisibleTiles': true, 'minZoom': attr['minZoom'], 'maxZoom': attr['maxZoom'], 'attr': attr, 'layer': layer, 'index':ph.attr.zIndex};
-			var geom = attr['geom'];
-			var myLayer = null;
-			if(geom) {
-				myLayer = new L.TileLayer.ScanExCanvas(option);
-				//myLayer._pointsArr = geom;
-			}
-			else
-			{
-				myLayer = new L.TileLayer.ScanEx(url, option);
-			}
-			//myLayer._url = url;
-			leafLetLayers[layer.objectId] = myLayer;
-			myLayer.bringToDepth(ph.attr.zIndex);
-			myLayer.setDOMid(layer.objectId);
-			myLayer._isVisible = (layer.isVisible ? true : false);
-			if(myLayer._isVisible) 
-				leafLetMap.addLayer(myLayer);
-		}
-		return out;
-	}
-
-	function addOSMTileLayer(ph)	{	// добавить OSM тайловый слой
+	// Добавить OSM тайловый слой
+	function addOSMTileLayer(ph)	{
 		var out = {};
 		var layer = ph.attr.layer;
 		var id = layer.objectId;
@@ -241,7 +256,8 @@ if(!(cmd in commands)
 	var initFunc = null;
 	var intervalID = 0;
 	var mousePos = null;
-	// 
+	
+	// Инициализация LeafLet карты
 	function waitMe(e)
 	{
 		if('L' in window) {
@@ -262,18 +278,22 @@ if(!(cmd in commands)
 			leafLetMap.on('moveend', function(e) {	gmxAPI._updatePosition(e); });
 			leafLetMap.on('mousemove', function(e) { mousePos = e.latlng; });
 
+			// Получение URL тайла
 			var getTileUrl = function(obj, tilePoint, zoom) {
 				var res = '';
-				var urlParams = (obj._urlParams ? obj._urlParams : {});
-				
+				if(!('tileFunc' in obj.options)) return res;
 				if(zoom < obj.options.minZoom || zoom > obj.options.maxZoom) return res;
-				res = L.Util.template(obj.options.url, L.Util.extend({
-					z: zoom + obj.options.zoomOffset,
-					x: tilePoint.x - Math.round(Math.pow(2, zoom - 1)),
-					y: -tilePoint.y - 1 + Math.round(Math.pow(2, zoom - 1))
-				}, urlParams));
+
+				var urlParams = (obj._urlParams ? obj._urlParams : {});
+				res = obj.options.tileFunc(
+					tilePoint.x - Math.round(Math.pow(2, zoom - 1))
+					,-tilePoint.y - 1 + Math.round(Math.pow(2, zoom - 1))
+					,zoom + obj.options.zoomOffset
+				);
 				return res;
 			};
+
+			// Перемещение обьекта на глубину zIndex
 			var bringToDepth = function(obj, zIndex) {
 				if(obj._container) {
 				   obj.options.zIndex = zIndex;
@@ -281,16 +301,20 @@ if(!(cmd in commands)
 				   if(obj._container.style.position != 'relative') obj._container.style.position = 'relative';
 				}
 			};
+
+			// Установка ID контейнера
 			var setGMXid = function(obj, id) {
 				if(obj._container) {
 				   if(obj._container.id != id) obj._container.id = id;
 				}
 			};
+			
+			// Проверка Node
 			var chkNode = function(obj) {
 				setGMXid(obj, obj.options.layer.objectId);
 				bringToDepth(obj, obj.options.index);
 			};
-
+/*
 			var ScanEx = {
 				bringToBottom: function(zIndex) {
 					var tt = this;
@@ -314,7 +338,7 @@ if(!(cmd in commands)
 				}
 			};
 			L.TileLayer.ScanEx = L.TileLayer.extend(ScanEx);
-
+*/
 			L.TileLayer.ScanExCanvas = L.TileLayer.Canvas.extend(
 			{
 				_initContainer: function () {

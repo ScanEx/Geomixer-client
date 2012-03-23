@@ -197,7 +197,7 @@
 			}
 			
 		}
-		
+
 		var getLastIndex = function()
 		{ 
 			var myIdx = parentObj.layers.length;
@@ -210,7 +210,6 @@
 			}
 			return n;
 		}
-		
 		
 		if (isVisible === undefined)
 			isVisible = true;
@@ -365,10 +364,6 @@
 			}
 			if (isRaster) {
 				obj.setBackgroundTiles(tileFunction, 0, layer.properties['MinZoom'], layer.properties['MaxZoom']);
-if(gmxAPI.proxyType === 'leaflet') {
-	var zIndex = getLastIndex();
-	gmxAPI._cmdProxy('addScanExTileLayer', { 'obj': parentObj, 'attr':{'layer':obj, 'prefix':tileSenderPrefix, 'zIndex':zIndex, 'isVisible':isVisible} });
-}
 			} else
 			{
 				obj.getFeatures = function()
@@ -595,12 +590,6 @@ if(gmxAPI.proxyType === 'leaflet') {
 		parentObj.layers[layerName] = obj;
 		if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
 			parentObj.layers[layer.properties.title] = obj;
-/*		
-		if(gmxAPI.proxyType === 'leaflet') {
-			var zIndex = getLastIndex();
-			gmxAPI._cmdProxy('addScanExTileLayer', { 'obj': parentObj, 'attr':{'layer':obj, 'prefix':tileSenderPrefix, 'zIndex':zIndex, 'isVisible':isVisible} });
-		}
-*/		
 		return obj;
 	}
 
