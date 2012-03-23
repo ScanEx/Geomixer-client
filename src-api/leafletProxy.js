@@ -10,11 +10,9 @@
 
 	// Команды в leaflet
 	var commands = {				// Тип команды
-		'setBackgroundTiles': setBackgroundTiles			// добавить OSM слой
+		'setBackgroundTiles': setBackgroundTiles			// добавить ScanEx растровый тайловый слой
 		,
 		'addOSMTileLayer': addOSMTileLayer					// добавить OSM слой
-		//,
-		//'addScanExTileLayer': addScanExTileLayer			// добавить ScanEx тайловый слой
 		,
 		'addObject':	function(ph)	{					// добавить mapObject
 			nextId++;
@@ -23,20 +21,32 @@
 		,
 		'bringToTop': function(ph)	{						// установка zIndex - вверх
 			var id = ph.obj.objectId;
-			var myLayer = leafLetLayers[id];
-			if(myLayer) {							// видимость слоя
+			var zIndex = getLastIndex(gmxAPI.map.layers[0].parent);
+
+			for (key in ph.obj.childsID) {
+				var myLayer = leafLetLayers[key];
+				if(myLayer) {
+					myLayer.bringToDepth(zIndex);
+				}
 			}
-			//var myLayer = leafLetLayers[id];
-			//return ph.obj.isVisible;
+			return zIndex;
 		}
 		,
-		'bringToBottom': function(ph)	{					// установка z-index
+		'bringToBottom': function(ph)	{					// установка zIndex - вниз
 			var id = ph.obj.objectId;
 			var myLayer = leafLetLayers[id];
-			if(myLayer) {							// видимость слоя
+			if(myLayer) {
+				myLayer.bringToDepth(0);
+				return;
 			}
-			//var myLayer = leafLetLayers[id];
-			//return ph.obj.isVisible;
+			
+			for (key in ph.obj.childsID) {
+				myLayer = leafLetLayers[key];
+				if(myLayer) {
+					myLayer.bringToDepth(0);
+				}
+			}
+			return 0;
 		}
 		,
 		'bringToDepth': function(ph)	{					// установка z-index
@@ -101,6 +111,7 @@
 	// Передача команды в leaflet
 	function leafletCMD(cmd, hash)
 	{
+	
 		var ret = {};
 		var obj = hash['obj'] || null;	// Целевой обьект команды
 		var attr = hash['attr'] || '';
@@ -153,8 +164,8 @@ if(!(cmd in commands)
 
 		var option = {
 			'tileFunc': inpAttr['func']
-			,'minZoom': inpAttr['minZoom'] || attr['minZoom']
-			,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom']
+			,'minZoom': inpAttr['minZoom'] || attr['minZoom'] || 1
+			,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom'] || 1
 			,'attr': attr
 			,'layer': layer
 			,'index':getLastIndex(layer.parent)
@@ -239,15 +250,29 @@ if(!(cmd in commands)
 
 	// Добавить OSM тайловый слой
 	function addOSMTileLayer(ph)	{
+gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
+		
 		var out = {};
-		var layer = ph.attr.layer;
+		var layer = ph.obj;
+		var attr = prpLayerAttr(layer);
+		var inpAttr = ph.attr;
 		var id = layer.objectId;
 		var url = ph.attr.urlOSM;
 		var subdomains = ph.attr.subdomains;
-		var myLayer = new L.TileLayer(url, {subdomains: subdomains});
+		var option = {
+			'subdomains': subdomains
+			,'minZoom': inpAttr['minZoom'] || attr['minZoom'] || 1
+			,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom'] || 21
+			,'attr': attr
+			,'layer': layer
+			,'index':getLastIndex(layer.parent)
+		};
+		
+		var myLayer = new L.TileLayer.OSMTileLayer(url, option);
 		leafLetLayers[layer.objectId] = myLayer;
-		leafLetMap.addLayer(myLayer);
-		myLayer._isVisible = true;
+		myLayer._isVisible = (layer.isVisible ? true : false);
+		if(myLayer._isVisible) 
+			leafLetMap.addLayer(myLayer);
 		return out;
 	}
 	
@@ -339,6 +364,30 @@ if(!(cmd in commands)
 			};
 			L.TileLayer.ScanEx = L.TileLayer.extend(ScanEx);
 */
+			L.TileLayer.OSMTileLayer = L.TileLayer.extend(
+			{
+				_initContainer: function () {
+					var tilePane = this._map.getPanes().tilePane,
+						first = tilePane.firstChild;
+
+					if (!this._container || tilePane.empty) {
+						this._container = L.DomUtil.create('div', 'leaflet-layer');
+
+						if (this._insertAtTheBottom && first) {
+							tilePane.insertBefore(this._container, first);
+						} else {
+							tilePane.appendChild(this._container);
+						}
+
+						//this._setOpacity(this.options.opacity);
+						chkNode(this);
+					}
+				},
+				bringToDepth: function(zIndex) { bringToDepth(this, zIndex); }
+				,
+				setDOMid: function(id) { setGMXid(this, id); }
+			});
+
 			L.TileLayer.ScanExCanvas = L.TileLayer.Canvas.extend(
 			{
 				_initContainer: function () {
@@ -358,14 +407,6 @@ if(!(cmd in commands)
 						chkNode(this);
 					}
 				},
-				bringToBottom: function(zIndex) {
-					var tt = this;
-				}
-				,
-				bringToTop: function(zIndex) {
-					var tt = this;
-				}
-				,
 				bringToDepth: function(zIndex) { bringToDepth(this, zIndex); }
 				,
 				setDOMid: function(id) { setGMXid(this, id); }
