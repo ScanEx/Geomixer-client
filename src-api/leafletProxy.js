@@ -11,8 +11,8 @@
 	// Команды в leaflet
 	var commands = {				// Тип команды
 		'setBackgroundTiles': setBackgroundTiles			// добавить ScanEx растровый тайловый слой
-		,
-		'addOSMTileLayer': addOSMTileLayer					// добавить OSM слой
+		//,
+		//'addOSMTileLayer': addOSMTileLayer					// добавить OSM слой
 		,
 		'addObject':	function(ph)	{					// добавить mapObject
 			nextId++;
@@ -150,6 +150,33 @@ if(!(cmd in commands)
 		}
 		return n;
 	}
+
+	// Добавить OSM тайловый слой
+	function addOSMTileLayer(ph)	{
+		
+		var out = {};
+		var layer = ph.obj;
+		var attr = prpLayerAttr(layer);
+		var inpAttr = ph.attr;
+		var id = layer.objectId;
+		var url = ph.attr.urlOSM;
+		var subdomains = ph.attr.subdomains;
+		var option = {
+			'subdomains': subdomains
+			,'minZoom': inpAttr['minZoom'] || attr['minZoom'] || 1
+			,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom'] || 21
+			,'attr': attr
+			,'layer': layer
+			,'index':getLastIndex(layer.parent)
+		};
+		
+		var myLayer = new L.TileLayer.OSMTileLayer(url, option);
+		leafLetLayers[layer.objectId] = myLayer;
+		myLayer._isVisible = (layer.isVisible ? true : false);
+		if(myLayer._isVisible) 
+			leafLetMap.addLayer(myLayer);
+		return out;
+	}
 	
 	// Добавить растровый слой
 	function setBackgroundTiles(ph)	{
@@ -157,6 +184,11 @@ if(!(cmd in commands)
 		var layer = ph.obj;
 		var inpAttr = ph.attr;
 
+if(!layer.properties) {
+gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
+gmxAPI._tools['baseLayers'].removeTool('OSM');	// OSM пока не добавляем
+return;
+}
 		var id = layer.objectId;
 		var attr = prpLayerAttr(layer);
 //if(layer.properties.title != "Spot5_Volgograd") return out;
@@ -165,7 +197,7 @@ if(!(cmd in commands)
 		var option = {
 			'tileFunc': inpAttr['func']
 			,'minZoom': inpAttr['minZoom'] || attr['minZoom'] || 1
-			,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom'] || 1
+			,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom'] || 21
 			,'attr': attr
 			,'layer': layer
 			,'index':getLastIndex(layer.parent)
@@ -247,34 +279,6 @@ if(!(cmd in commands)
 		}
 		return out;
 	}
-
-	// Добавить OSM тайловый слой
-	function addOSMTileLayer(ph)	{
-gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
-		
-		var out = {};
-		var layer = ph.obj;
-		var attr = prpLayerAttr(layer);
-		var inpAttr = ph.attr;
-		var id = layer.objectId;
-		var url = ph.attr.urlOSM;
-		var subdomains = ph.attr.subdomains;
-		var option = {
-			'subdomains': subdomains
-			,'minZoom': inpAttr['minZoom'] || attr['minZoom'] || 1
-			,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom'] || 21
-			,'attr': attr
-			,'layer': layer
-			,'index':getLastIndex(layer.parent)
-		};
-		
-		var myLayer = new L.TileLayer.OSMTileLayer(url, option);
-		leafLetLayers[layer.objectId] = myLayer;
-		myLayer._isVisible = (layer.isVisible ? true : false);
-		if(myLayer._isVisible) 
-			leafLetMap.addLayer(myLayer);
-		return out;
-	}
 	
 	var leafLetCont_ = null;
 	var mapDivID = '';
@@ -296,6 +300,7 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 					//'crs': L.CRS.EPSG3857 // L.CRS.EPSG4326 // L.CRS.EPSG3395 L.CRS.EPSG3857
 				}
 			);
+			gmxAPI._leafLetMap = leafLetMap;				// Внешняя ссылка на карту
 
 			//var pos = new L.LatLng(55, 80);
 			var pos = new L.LatLng(50.499276, 35.760498);
@@ -383,6 +388,10 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 						chkNode(this);
 					}
 				},
+				getTileUrl: function(tilePoint, zoom) {
+					return getTileUrl(this, tilePoint, zoom);
+				}
+				,
 				bringToDepth: function(zIndex) { bringToDepth(this, zIndex); }
 				,
 				setDOMid: function(id) { setGMXid(this, id); }
@@ -429,7 +438,7 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 					var bounds = new L.Bounds(p1, p2);
 
 					var attr = this.options.attr;
-					if(!bounds.intersects(attr.bounds))	{						// Тайл не пересекает границы слоя
+					if(attr.bounds && !bounds.intersects(attr.bounds))	{						// Тайл не пересекает границы слоя
 						return;
 					}
 					var ctx = tile.getContext('2d');
@@ -444,25 +453,27 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 						ctx.clip();
 
 						var geom = attr['geom'];
-						for (var i = 0; i < geom.length; i++)
-						{
-							var pt = geom[i];
-							//ctx.strokeStyle = "#000";
-							//ctx.lineWidth = 2;
-							ctx.beginPath();
-							var pArr = L.PolyUtil.clipPolygon(pt, bounds);
-							for (var j = 0; j < pArr.length; j++)
+						if(geom) {
+							for (var i = 0; i < geom.length; i++)
 							{
-								var p = new L.LatLng(pArr[j].y, pArr[j].x);
-								var pp = leafLetMap.project(p, zoom);
-								var px = pp.x - tileX;
-								var py = pp.y - tileY;
-								if(j == 0) ctx.moveTo(px, py);
-								ctx.lineTo(px, py);
+								var pt = geom[i];
+								//ctx.strokeStyle = "#000";
+								//ctx.lineWidth = 2;
+								ctx.beginPath();
+								var pArr = L.PolyUtil.clipPolygon(pt, bounds);
+								for (var j = 0; j < pArr.length; j++)
+								{
+									var p = new L.LatLng(pArr[j].y, pArr[j].x);
+									var pp = leafLetMap.project(p, zoom);
+									var px = pp.x - tileX;
+									var py = pp.y - tileY;
+									if(j == 0) ctx.moveTo(px, py);
+									ctx.lineTo(px, py);
+								}
+								pArr = null;
+								//ctx.stroke();
+								//ctx.closePath();
 							}
-							pArr = null;
-							//ctx.stroke();
-							//ctx.closePath();
 						}
 						
 						var pattern = ctx.createPattern(imageObj, "no-repeat");

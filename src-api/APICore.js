@@ -2397,10 +2397,12 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 		
 	this.setBackgroundColor(0xffffff);
 	this.setTileCaching(false);
+	
 	if(gmxAPI.proxyType === 'leaflet') {
 		var urlOSM = "http://{s}.tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/{z}/{x}/{y}.png";
 		gmxAPI._cmdProxy('addOSMTileLayer', { 'obj': this, 'attr':{'layer':this, 'urlOSM':urlOSM, 'subdomains':'abcd'} });
 	}
+	
 }
 
 /* не используется

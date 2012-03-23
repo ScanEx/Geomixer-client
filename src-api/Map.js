@@ -425,8 +425,8 @@
 			{
 				var o = map.addObject();
 				o.bringToBottom();
-				o.setOSMTiles();
 				o.setAsBaseLayer("OSM");
+				o.setOSMTiles();
 				haveOSM = true;
 
 				if (!gmxAPI.miniMapAvailable)
