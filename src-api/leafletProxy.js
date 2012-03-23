@@ -184,9 +184,9 @@ if(!(cmd in commands)
 		var layer = ph.obj;
 		var inpAttr = ph.attr;
 
-if(!layer.properties) {
 gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
 gmxAPI._tools['baseLayers'].removeTool('OSM');	// OSM пока не добавляем
+if(!layer.properties) {
 return;
 }
 		var id = layer.objectId;
