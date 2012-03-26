@@ -1395,13 +1395,25 @@ window.gmxAPI = {
 		script.setAttribute("charset", "UTF-8");
 		document.getElementsByTagName("head").item(0).appendChild(script);
 		script.setAttribute("src", url);
-	},
+	}
+	,
     getPatternIcon: function(ph, size)
     {
         return gmxAPI._cmdProxy('getPatternIcon', { 'attr':{'size': size || 32, 'style':ph} });
     }
 	,
 	mapNodes: {}	// ноды mapObjects
+	,
+    isProxyReady: function()
+    {
+		var chkObj = null;
+		if (gmxAPI.proxyType === 'leaflet') {			// Это leaflet версия
+			chkObj = gmxAPI._leafLetMap;
+		} else {										// Это Flash версия
+			chkObj = window.__flash__toXML;
+		}
+		return (chkObj ? true : false);
+    }
 }
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
@@ -1919,8 +1931,7 @@ FlashMapObject.prototype.addObjects = function(data) {
 	return out;
 }
 FlashMapObject.prototype.addObject = function(geometry, props) {
-	var geo = gmxAPI.merc_geometry(geometry);
-	var obj = gmxAPI._cmdProxy('addObject', { 'obj': this, 'attr':{ 'geometry':geo, 'properties':props }});
+	var obj = gmxAPI._cmdProxy('addObject', { 'obj': this, 'attr':{ 'geometry':geometry, 'properties':props }});
 	if(!obj) obj = false;
 	var pObj = new FlashMapObject(obj, props, this);	// обычный MapObject
 
@@ -2387,6 +2398,9 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 		var letter = ["a", "b", "c", "d"][((i + j)%4 + 4)%4];
 		return "http://" + letter + ".tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
 	}
+	var urlOSM = "http://{s}.tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/{z}/{x}/{y}.png";
+	this._subdomains = 'abcd';
+	this._urlOSM = urlOSM;
 	this.setBackgroundTiles(function(i, j, z)
 	{
 		var size = Math.pow(2, z - 1);
@@ -2397,12 +2411,6 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 		
 	this.setBackgroundColor(0xffffff);
 	this.setTileCaching(false);
-	
-	if(gmxAPI.proxyType === 'leaflet') {
-		var urlOSM = "http://{s}.tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/{z}/{x}/{y}.png";
-		gmxAPI._cmdProxy('addOSMTileLayer', { 'obj': this, 'attr':{'layer':this, 'urlOSM':urlOSM, 'subdomains':'abcd'} });
-	}
-	
 }
 
 /* не используется
@@ -2507,43 +2515,22 @@ function createFlashMapInternal(div, layers, callback)
 	addListener = gmxAPI._listeners.addListener;
 	removeListener = gmxAPI._listeners.removeListener;
 
-	var loadCallback = function(rootObjectId, type)
-	{ 
-		if (type === 'leaflet') {			// Это leaflet версия
-			gmxAPI.proxyType = 'leaflet';
-		} else {							// Это Flash версия
-			if (!window.__flash__toXML)
-			{
-				setTimeout(function() { loadCallback(rootObjectId); }, 100);
-				return;
-			}
+	var loadCallback = function(rootObjectId)
+	{
+		if (!gmxAPI.isProxyReady())
+		{
+			setTimeout(function() { loadCallback(rootObjectId); }, 100);
+			return;
 		}
 
-//		try {
+		var flashDiv = document.getElementById(flashId);
+		gmxAPI.flashDiv = flashDiv;
+		flashDiv.style.MozUserSelect = "none";
 
-			var flashDiv = document.getElementById(flashId);
-			gmxAPI.flashDiv = flashDiv;
-			flashDiv.style.MozUserSelect = "none";
-			
-			
-			var map = gmxAPI._addNewMap(rootObjectId, layers, callback);
-			
-			if (callback)
-				callback(gmxAPI.map);
+		var map = gmxAPI._addNewMap(rootObjectId, layers, callback);
 
-/*
-		} catch (e) {
-			var err = '';
-			if(e.lineNumber) {
-				err += 'api.js Line: ' + e.lineNumber + '\n' + e;
-			}
-			else {
-				err += e + '\n';
-			}
-			gmxAPI.addDebugWarnings({'event': e, 'alert': err});
-			//alert(err);
-		}
-*/
+		if (callback)
+			callback(gmxAPI.map);
 	}
 
 	if('_addProxyObject' in gmxAPI) {	// Добавление обьекта отображения в DOM
@@ -2785,6 +2772,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					{
 						map.defaultHostName = layers.properties.hostName;
 						window.getLayers = function() { return layers; }
+//layers.properties.UseOpenStreetMap = true;
 						map.addLayers(layers);
 						map.properties = layers.properties;
 					}

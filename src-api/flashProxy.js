@@ -180,7 +180,8 @@
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'eventName':attr['eventName'] } );
 				break;
 			case 'addObject':		// добавить обьект
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geometry':attr['geometry'], 'properties':attr['properties'] } );
+				var geo = gmxAPI.merc_geometry(attr['geometry']);
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geometry':geo, 'properties':attr['properties'] } );
 				break;
 			case 'addObjects':		// добавить обьекты
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
