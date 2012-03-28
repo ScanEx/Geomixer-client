@@ -380,7 +380,7 @@ var tinyMCELoaded = false;
  @param {string} target id объекта для преобразования в tiny_mce editor
  */
 var InitEditor = function(target) {
-	var sFolder = nsGmx.AuthManager.getUserFolder() + '\\images';
+	var sFolder = nsGmx.AuthManager.getUserFolder() + '\\images\\';
 
 	if (!window.WikiFileBrowser_open){
 
@@ -394,8 +394,9 @@ var InitEditor = function(target) {
 				_wikiFileBrowser.currentDir = sFolder;
 				
 				var oDialog = _wikiFileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'gif', 'bmp'], function(path){ 
+					var relativePath = path.slice(sFolder.length - path.length);
 					win.document.getElementById(field_name).value = getAPIHostRoot() + "GetImage.ashx?usr=" + nsGmx.AuthManager.getNickname() + "&img=" + path;  
-				});
+				}, { restrictDir: sFolder});
 				
 			});
 		}
@@ -431,8 +432,8 @@ var InitEditor = function(target) {
 		oninit: applyChromeBugfix
     };
 
-    //if (fileBrowser) 
-	options.file_browser_callback = "WikiFileBrowser_open";
+    if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_UPLOAD_FILES) ) 
+		options.file_browser_callback = "WikiFileBrowser_open";
 	
 	if(!tinyMCELoaded) {
 		$LAB.script(getAPIHostRoot() + "/api/plugins/tiny_mce/tiny_mce_src.js").wait(function(){

@@ -529,7 +529,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 			@event
 			@param {string} filename Имя файла, которой необходимо будет сформировать
 			@param {object[]} SearchResult Результаты поиска, которые необходимо сохранить в файл*/
-			$(_this).triggerHandler('onDownloadSHP', [filename, oDataSource.SearchResult]);
+			$(_this).triggerHandler('onDownloadSHP', [filename.value, oDataSource.SearchResult]);
 			
 			$(canvas.parentNode).dialog("destroy");
 			canvas.parentNode.removeNode(true);
@@ -1326,7 +1326,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	_(oInitResultListMap.getContainerList(), [downloadVectorForm]);
 	
 	/**Осуществляет загрузку SHP-файла*/
-	var fnDownloadSHP = function(filename, arrObjectsToDownload){
+	var fnDownloadSHP = function(event, filename, arrObjectsToDownload){
 		var objectsByType = {};
 
 		for (var i = 0; i < arrObjectsToDownload.length; i++) {
@@ -1338,7 +1338,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 			objectsByType[type].push({ geometry: arrObjectsToDownload[i].Geometry, properties: {} });
 		}
 
-		downloadVectorForm.childNodes[0].value = filename.value;
+		downloadVectorForm.childNodes[0].value = filename;
 		downloadVectorForm.childNodes[1].value = objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]).split("%22").join("\\\"") : '';
 		downloadVectorForm.childNodes[2].value = objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]).split("%22").join("\\\"") : '';
 		downloadVectorForm.childNodes[3].value = objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]).split("%22").join("\\\"") : '';
