@@ -1976,8 +1976,7 @@ FlashMapObject.prototype.remove = function()
 	}
 }
 FlashMapObject.prototype.setGeometry = function(geometry) {
-	var geom =  gmxAPI.merc_geometry(geometry);
-	gmxAPI._cmdProxy('setGeometry', { 'obj': this, 'attr':geom });
+	gmxAPI._cmdProxy('setGeometry', { 'obj': this, 'attr':geometry });
 }
 FlashMapObject.prototype.getGeometry = function() 
 { 
@@ -2772,7 +2771,6 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					{
 						map.defaultHostName = layers.properties.hostName;
 						window.getLayers = function() { return layers; }
-//layers.properties.UseOpenStreetMap = true;
 						map.addLayers(layers);
 						map.properties = layers.properties;
 					}

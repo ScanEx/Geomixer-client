@@ -58,7 +58,7 @@
 		var baseAddress = "http://" + prop.hostName + "/";
 		var layerName = prop.name || prop.image;
 		var sessionKey = isRequiredAPIKey( prop.hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
-		var sessionKey2 = window.sessionKeyCache[prop.mapName];
+		var sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[prop.mapName] : false);
 		var prefix = baseAddress + 
 				"TileSender.ashx?ModeKey=tile" + 
 				"&MapName=" + prop.mapName + 

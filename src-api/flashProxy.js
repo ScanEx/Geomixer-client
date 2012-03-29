@@ -245,7 +245,8 @@
 				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
 				break;
 			case 'setGeometry':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
+				var geo = gmxAPI.merc_geometry(attr);
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':geo } );
 				break;
 			case 'getGeometry':
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );

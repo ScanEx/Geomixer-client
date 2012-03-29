@@ -198,15 +198,17 @@
 			
 		}
 
-		var getLastIndex = function()
+		var getIndexLayer = function(sid)
 		{ 
 			var myIdx = parentObj.layers.length;
 			var n = 0;
 			for (var i = 0; i < myIdx; i++)
 			{
 				var l = parentObj.layers[i];
-				if (l.objectId && (l.properties.type != "Overlay"))
+				if (l.objectId && (l.properties.type != "Overlay")) {
+					if (l.objectId == sid) break;
 					n += 1;
+				}
 			}
 			return n;
 		}
@@ -252,7 +254,7 @@
 		var baseAddress = "http://" + layer.properties.hostName + "/";
 		//var sessionKey = (layer.properties.hostName.indexOf("maps.kosmosnimki.ru") != -1 || window.KOSMOSNIMKI_SESSION_KEY) ? window.KOSMOSNIMKI_SESSION_KEY : false;
 		var sessionKey = isRequiredAPIKey( layer.properties.hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
-		var sessionKey2 = window.sessionKeyCache[layer.properties.mapName];
+		var sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[layer.properties.mapName] : false);
 		var isInvalid = (sessionKey == "INVALID");
 
 		var chkCenterX = function(arr)
@@ -486,6 +488,8 @@
 		obj.isVisible = isVisible;
 		if (isVisible) {
 			createThisLayer();
+			var zIndexCur = getIndexLayer(obj.objectId);
+			obj.bringToDepth(zIndexCur);
 		}
 		else
 		{
@@ -495,14 +499,13 @@
 				if (flag)
 				{
 					createThisLayer();
-					var n = getLastIndex();
-				
 					if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
-					obj.bringToDepth(n);
 					for (var i = 0; i < deferred.length; i++) {
 						deferred[i]();
 					}
 					gmxAPI._listeners.dispatchEvent('onLayer', obj, obj);	// Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
+					var zIndexCur = getIndexLayer(obj.objectId);
+					obj.bringToDepth(zIndexCur);
 				}
 			}
 

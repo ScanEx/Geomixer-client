@@ -269,8 +269,8 @@ class Main
 				if (nodeFrom_ != null) eventAttr.nodeFilter = node.id;
 			}
 
-			//if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
-			if (Key.isDown(16) && Main.cmdToJS("kosmosnimkiBeginZoom"))
+			if (Key.isDown(16) && ExternalInterface.call("kosmosnimkiBeginZoom"))
+			//if (Key.isDown(16) && Main.cmdToJS("kosmosnimkiBeginZoom"))
 				clickedNode = node;
 			else if ((node.getHandler("onMouseDown") != null) || (node.getHandler("onMouseUp") != null) || (node.getHandler("onClick") != null))
 			{
