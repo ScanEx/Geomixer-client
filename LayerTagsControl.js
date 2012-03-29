@@ -183,6 +183,13 @@
             return tags[tagId];
         }
         
+        this.getTagByName = function(tagName)
+        {
+            for (var tagId in tags)
+                if (tags[tagId].tag == tagName)
+                    return tags[tagId];
+        }
+        
         for (var tag in initTags)
             this.addNewTag(tag, initTags[tag].Value);
     }
@@ -329,30 +336,28 @@
         var timeOffset = (new Date()).getTimezoneOffset()*60;
         
         var convertFunctions = {
-            'Number': function(id, value)
+            'Number': function(value)
             {
                 return Number(value);
             },
-            'Date': function(id, value)
+            'Date': function(value)
             {
-                return rows[id].value.datepicker('getDate').valueOf()/1000 - timeOffset;
+                return $.datepicker.parseDate('dd.mm.yy', value).valueOf()/1000 - timeOffset;
             },
-            'DateTime': function(id, value)
+            'DateTime': function(value)
             {
-                return rows[id].value.datetimepicker('getDate').valueOf()/1000 - timeOffset;
+                return $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value).valueOf()/1000 - timeOffset;
             },
-            'Time': function(id, value)
+            'Time': function(value)
             {
-                var date = $(rows[id].value).datetimepicker('getDate');
-                return date.getHours()*3600 + date.getMinutes()*60 + date.getSeconds();
+                var resTime = $.datepicker.parseTime('hh:mm:ss', value);
+                return resTime.hour*3600 + resTime.minute*60 + resTime.second;
             }
         }
         
-        this.convertTagValue = function(id, value)
+        this.convertTagValue = function(type, value)
         {
-            var tag = layerTags.getTag(id).tag;
-            var type = layerTags.getTagMetaInfo().getTagType(tag);
-            return type in convertFunctions ? convertFunctions[type](id, value) : value;
+            return type in convertFunctions ? convertFunctions[type](value) : value;
         }
         
         var moveEmptyLayersToBottom = function()
