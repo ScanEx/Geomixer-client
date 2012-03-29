@@ -81,31 +81,31 @@ var nsGmx = nsGmx || {};
             return _userInfo.Folder;
         };
         
-        this.setUserInfo = function(userInfo)
-        {
-            _userInfo = $.extend({}, {IsAccounts: false, Role: this.ROLE_UNAUTHORIZED}, userInfo);
-            $(this).trigger('change');
-        };
-        
         this.isRole = function(role)
         {
-            return _userInfo.Role === role;
+            return _userInfo && _userInfo.Role === role;
         };
         
         this.canDoAction = function(action)
         {
-            return _userInfo.Role in _actions && action in _actions[_userInfo.Role];
+            return _userInfo && _userInfo.Role in _actions && action in _actions[_userInfo.Role];
         };
         
         this.isAccounts = function()
         {
-            return _userInfo.IsAccounts;
+            return _userInfo && _userInfo.IsAccounts;
         };
         
         this.isLogin = function()
         {
             return _userInfo && _userInfo.Login !== false && _userInfo.Role !== this.ROLE_UNAUTHORIZED;
         };
+        
+        this.setUserInfo = function(userInfo)
+        {
+            _userInfo = $.extend({}, {IsAccounts: false, Role: this.ROLE_UNAUTHORIZED}, userInfo);
+            $(this).trigger('change');
+        };        
         
         this.checkUserInfo = function(callback, errorCallback)
         {
@@ -119,7 +119,6 @@ var nsGmx = nsGmx || {};
                 if (response.Result == null || !resOk)
                 {
                     // юзер не авторизован
-                    userInfo = function(){return {Login: false}};
                     _this.setUserInfo({Login: false});
                     
                     if (isTokenUsed)
@@ -133,16 +132,12 @@ var nsGmx = nsGmx || {};
                     if (!isTokenUsed && response.Result.IsAccounts)
                     {
                         sendCrossDomainJSONRequest(serverBase + "Logout.ashx?WrapStyle=func&WithoutRedirection=1");
+                        
                         // юзер не авторизован
-                        userInfo = function(){return {Login: false}};
                         _this.setUserInfo({Login: false});
                     }
                     else
                     {
-                        userInfo = function()
-                        {
-                            return response.Result;
-                        }
                         _this.setUserInfo(response.Result);
                     }
                 }
@@ -170,6 +165,77 @@ var nsGmx = nsGmx || {};
                 sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
             }
             
+        }
+        
+        this.login = function(login, password, callback, errorCallback)
+        {
+            sendCrossDomainJSONRequest(serverBase + "Login.ashx?WrapStyle=func&login=" + login + "&pass=" + password, function(response)
+            {
+                if (response.Status == 'ok' && response.Result)
+                {
+                    if (response.Result.IsAccounts)
+                    {
+                        //авторизуемся на центральном сервере авторизации
+                        sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Login?login=" + encodeURIComponent(login) + "&password=" + encodeURIComponent(password), function()
+                        {
+                            //TODO: check result
+                            _this.setUserInfo(response.Result);
+                            callback && callback();
+                        }, 'callback');
+                    }
+                    else
+                    {
+                        _this.setUserInfo(response.Result);
+                        callback && callback();
+                    }
+                }
+                else
+                {
+                    if (response.Status === 'auth' && ('Result' in response) && ('ExceptionType' in response.Result) && response.Result.ExceptionType.indexOf('System.ArgumentException') == 0)
+                    {
+                        errorCallback && errorCallback({emailWarning: true, message: response.Result.Message})
+                    }
+                    errorCallback && errorCallback({emailWarning: false});
+                }
+            });
+        }
+        
+        this.logout = function(callback)
+        {
+            sendCrossDomainJSONRequest(serverBase + "Logout.ashx?WrapStyle=func&WithoutRedirection=1", function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                    
+                if (_this.isAccounts() && window.gmxAuthServer)
+                {
+                    sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Logout", function(response)
+                    {
+                        //TODO: check result
+                        _this.setUserInfo({Login: false});
+                        callback && callback();
+                    }, 'callback');
+                }
+                else
+                {
+                    _this.setUserInfo({Login: false});
+                    callback && callback();
+                }
+            });
+        }
+        
+        this.changePassword = function(oldPass, newPass, callback, errorCallback)
+        {
+            sendCrossDomainJSONRequest(serverBase + "ChangePassword.ashx?WrapStyle=func&old=" + oldPass + "&new=" + newPass, function(response)
+            {
+                if (response.Status == 'ok' && response.Result)
+                    callback && callback();
+                else
+                {
+                    var msg = response.ErrorInfo && typeof response.ErrorInfo.ErrorMessage != 'undefined' ? response.ErrorInfo.ErrorMessage : null;
+                    errorCallback && errorCallback(msg);
+                }
+            });
         }
     }
 })(jQuery);
