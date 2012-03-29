@@ -3267,6 +3267,24 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                 var tagtype = data[mp].Type;
                 layerTags.addNewTag(mp, nsGmx.LayerTagSearchControl.convertFromServer(tagtype, data[mp].Value), tagtype);
             }
+            
+            if (title.value == '' )
+            {
+                var platform = layerTags.getTagByName('platform');
+                var dateTag = layerTags.getTagByName('acdate');
+                
+                if (typeof platform !== 'undefined' && typeof dateTag !== 'undefined')
+                {
+                    var timeOffset = (new Date()).getTimezoneOffset()*60*1000;
+                    var dateInt = layerTagsControl.convertTagValue('DateTime', dateTag.value);
+                    var date = new Date(dateInt*1000 + timeOffset);
+                    
+                    var dateString = $.datepicker.formatDate('yy.mm.dd', date);
+                    var timeString = $.datepicker.formatTime('hh:mm', {hour: date.getHours(), minute: date.getMinutes()});
+                    
+                    title.value = platform.value + '_' + dateString + '_' + timeString + '_UTC';
+                }
+            }
         }
 		
 		tileFileLink.onclick = function()
@@ -3274,15 +3292,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			_fileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'tiles'], function(path)
 			{
 				tilePath.value = path;
-				
-				if (title.value == '')
-				{
-                    var indexExt = String(path).lastIndexOf('.');
-					var indexSlash = String(path).lastIndexOf('\\'),
-						fileName = String(path).substring(indexSlash + 1, indexExt);
-					
-					title.value = fileName;
-				}
                 
                 sendCrossDomainJSONRequest(serverBase + 'Layer/GetMetadata.ashx?basepath=' + encodeURIComponent(path), function(response)
                 {
@@ -3290,6 +3299,15 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                         return;
                         
                     appendMetadata(response.Result.MetaProperties);
+                    
+                    if (title.value == '')
+                    {
+                        var indexExt = String(path).lastIndexOf('.');
+                        var indexSlash = String(path).lastIndexOf('\\'),
+                            fileName = String(path).substring(indexSlash + 1, indexExt);
+                        
+                        title.value = fileName;
+                    }
                 })
 			})
 		}
@@ -3382,7 +3400,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
             layerTags.eachValid(function(id, tag, value)
             {
                 var type = layerTags.getTagMetaInfo().getTagType(tag);
-                metaProperties[tag] = {Value: layerTagsControl.convertTagValue(id, value), Type: type};
+                metaProperties[tag] = {Value: layerTagsControl.convertTagValue(type, value), Type: type};
             })
             
             var metadataString = '&MetaProperties=' + encodeURIComponent(JSON.stringify(metaProperties));

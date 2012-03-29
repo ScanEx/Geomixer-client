@@ -21,7 +21,7 @@ var nsGmx = nsGmx || {};
             if (!parseResponse(response))
                 return;
             
-            if (globalFlashMap)
+            if (typeof globalFlashMap !== 'undefined')
                 reloadMap();
             else
                 window.location.replace(window.location.href.split("?")[0] + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
