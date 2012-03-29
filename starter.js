@@ -264,7 +264,7 @@ $(document).ready(function()
 	);
 	var interval = setInterval(function()
 	{
-		if (window.createFlashMap)
+		if (window.gmxAPI && window.gmxAPI.APILoaded)
 		{
 			clearInterval(interval);
 			parseReferences();
