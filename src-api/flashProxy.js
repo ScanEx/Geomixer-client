@@ -358,5 +358,6 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 	//расширяем namespace
     gmxAPI._cmdProxy = FlashCMD;			// посылка команд отрисовщику
     gmxAPI._addProxyObject = addSWFObject;	// Добавить SWF в DOM
+    gmxAPI.APILoaded = true;				// Флаг возможности использования gmxAPI сторонними модулями
     
 })();

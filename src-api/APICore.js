@@ -28,6 +28,8 @@ var memoize = function(func)
 
 window.PI = 3.14159265358979; //устарело - обратная совместимость
 window.gmxAPI = {
+    APILoaded: false							// Флаг возможности использования gmxAPI сторонними модулями
+	,
 	clone: function (o)
 	{
 		if(!o || typeof(o) !== 'object')  {

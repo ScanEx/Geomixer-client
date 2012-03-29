@@ -14,6 +14,101 @@
 	};
 
 	var utils = {							// Утилиты leafletProxy
+		'parseStyle': function(st)	{			// перевод Style Scanex->leaflet
+			var pt =  {
+			};
+			if(!st) return null;
+			
+			pt['fill'] = false;
+			if('fill' in st) {					//	Есть стиль заполнения
+				pt['fill'] = true;
+				var ph = st['fill'];
+				if('color' in ph) pt['fillColor'] = ph['color'];
+				if('opacity' in ph) pt['fillOpacity'] = ph['opacity'];
+			}
+			pt['stroke'] = false;
+			if('outline' in st) {				//	Есть стиль контура
+				pt['stroke'] = true;
+				var ph = st['outline'];
+				if('color' in ph) pt['color'] = ph['color'];
+				if('opacity' in ph) pt['opacity'] = ph['opacity'];
+				if('thickness' in ph) pt['weight'] = ph['thickness'];
+				//if('dashes' in ph) pt['opacity'] = ph['dashes'];
+				
+			}
+			if('marker' in st) {				//	Есть стиль marker
+				pt['marker'] = true;
+				var ph = st['marker'];
+				if('color' in ph) pt['color'] = ph['color'];
+				if('opacity' in ph) pt['opacity'] = ph['opacity'];
+				if('size' in ph) pt['size'] = ph['size'];
+				if('image' in ph) pt['iconUrl'] = ph['image'];
+				if('center' in ph) pt['center'] = ph['center'];
+				
+			}
+			return pt;
+		}
+		,
+		'chkPropsInString': function(str, prop)	{							// парсинг значений свойств в строке
+			var zn = str;
+			if(typeof(zn) === 'string') {
+				var reg = /\[([^\]]+)\]/i;
+				var matches = reg.exec(zn);
+				while(matches && matches.length > 1) {
+					zn = zn.replace(matches[0], prop[matches[1]]);
+					matches = reg.exec(zn);
+				}
+				zn = eval(zn);
+			}
+			return zn
+		}
+		,
+		'evalStyle': function(style, prop)	{								// парсинг стиля
+			var out = {};
+			for(var key in style) {
+				var zn = utils.chkPropsInString(style[key], prop);
+				if(key === 'fillColor' || key === 'color') {
+					zn = utils.dec2hex(zn);
+					if(zn.substr(0,1) != '#') zn = '#' + zn;
+				} else if(key === 'fillOpacity' || key === 'opacity') {
+					zn = zn / 100;
+				}
+				out[key] = zn;
+			}
+			return out;
+		}
+		,
+		'getNodeProp': function(node, type, recursion)	{					// получить свойство ноды - рекурсивно
+			if(type in node) return node[type];
+			if(recursion) return (node.parentId in mapNodes ? utils.getNodeProp(mapNodes[node.parentId], type, recursion) : null);
+		}
+		,
+		'repaintNode': function(node, type, recursion)	{					// перерисовать ноду - рекурсивно
+			var regularStyle = utils.getNodeProp(node, type, true);
+			if(regularStyle && node.geometry && node.geometry.type) {
+				node.geometry.id = node.id;
+				var featureparse = function(e) {
+if('iconUrl' in regularStyle) {
+var tt = 1;
+}
+					if('setStyle' in e.layer) {
+						e.layer.setStyle(utils.evalStyle(regularStyle, e.properties));
+					//} else if('setIcon' in e.layer && 'iconUrl' in regularStyle) {
+						//e.layer.setIcon(regularStyle['iconUrl']);
+					}
+				};
+				node.leaflet = utils.drawGeometry(node.geometry, featureparse);
+			}
+			if(recursion) {
+				var pt = gmxAPI.mapNodes[node['id']];
+				if(!pt) return;
+				for(var key in pt['childsID']) {
+					var child = mapNodes[key];
+					utils.repaintNode(child, type, recursion);
+				}
+			}
+		}
+		,
 		'parseGeometry': function(geo)	{			// перевод геометрии Scanex->leaflet
 			var pt = {};
 			var type = geo.type;
@@ -24,12 +119,16 @@
 			else if(type === 'MULTILINESTRING')		pt['type'] = 'MultiLineString';
 			else if(type === 'LINESTRING')			pt['type'] = 'LineString';
 			else if(type === 'GeometryCollection')	pt['type'] = 'GeometryCollection';
-			var geojson = new L.GeoJSON();
-			geojson.addGeoJSON(pt);
+			//var geojson = new L.GeoJSON();
+			//geojson.addGeoJSON(pt);
 			return pt;
 		}
-		,'drawGeometry': function(geo)	{			// отрисовка leaflet геометрии
+		,
+		'drawGeometry': function(geo, featureparse)	{			// отрисовка leaflet геометрии
 			var geojson = new L.GeoJSON();
+			if(featureparse) {
+				geojson.on('featureparse', featureparse);
+			}
 			geojson.addGeoJSON(geo);
 			LMap.addLayer(geojson);
 			return geojson;
@@ -58,13 +157,14 @@
 		}
 		,'bringToDepth': function(obj, zIndex)	{				// Перемещение ноды на глубину zIndex
 			if(!obj) return;
-			obj['zIndex'] = zIndex;
+			//obj['zIndex'] = zIndex;
 			if(!obj['leaflet']) return;
 			var lObj = obj['leaflet'];
 			lObj.options.zIndex = zIndex;
 			if(lObj._container && lObj._container.style.zIndex != zIndex) lObj._container.style.zIndex = zIndex;
 		}
-		,'getLastIndex': function()	{			// Получить последний zIndex в mapNodes
+		,
+		'getLastIndex': function()	{			// Получить последний zIndex в mapNodes
 			var n = 0;
 			for (id in mapNodes)
 			{
@@ -72,13 +172,32 @@
 			}
 			return n + 1;
 		}
+		,
+		'getIndexLayer': function(sid)
+		{ 
+			var myIdx = gmxAPI.map.layers.length;
+			var n = 0;
+			for (var i = 0; i < myIdx; i++)
+			{
+				var l = gmxAPI.map.layers[i];
+				if (l.objectId && (l.properties.type != "Overlay")) {
+					if (l.objectId == sid) break;
+					n += 1;
+				}
+			}
+			return n;
+		}
+		
 		,'getMapPosition': function()	{			// Получить позицию карты
 			var pos = LMap.getCenter();
 			return {
 				'z': LMap.getZoom()
-				,'x': gmxAPI.merc_x(pos['lat'])
-				,'y': gmxAPI.merc_y(pos['lng'])
+				,'x': gmxAPI.merc_x(pos['lng'])
+				,'y': gmxAPI.merc_y(pos['lat'])
 			};
+		}
+		,'dec2hex': function(i)	{					// convert decimal to hex
+			return (i+0x1000000).toString(16).substr(-6).toUpperCase();
 		}
 	};
 
@@ -91,24 +210,47 @@
 			var id = 'id' + nextId;
 			var pt = {
 				'type': 'mapObject'
+				,'id': id
 				,'parentId': ph.obj['objectId']
 			};
 			if(ph.attr) {
-				if(ph.attr['properties']) pt['properties'] = ph.attr['properties'];
-				if(ph.attr['geometry']) pt['geometry'] = utils.parseGeometry(ph.attr['geometry']);
+				var geo = {};
+				if(ph.attr['geometry']) geo = utils.parseGeometry(ph.attr['geometry']);
+				if(ph.attr['properties']) geo['properties'] = ph.attr['properties'];
+				pt['geometry'] = geo;
 			}
 			pt['zIndex'] = utils.getLastIndex();
 			mapNodes[id] = pt;
+			if(pt['geometry']['type']) {
+				utils.repaintNode(pt, 'regularStyle', true);
+			}
 			return id;
+		}
+		,
+		'setGeometry': function(ph)	{						// установка geometry
+			var layer = ph.obj;
+			var id = layer.objectId;
+			var node = mapNodes[id];
+			if(!node) return;						// Нода не определена
+			if(ph.attr) {
+				var geo = utils.parseGeometry(ph.attr);
+				node['geometry'] = geo;
+				if(node['geometry']['type']) {
+					utils.repaintNode(node, 'regularStyle', true);
+				}
+			}
 		}
 		,
 		'bringToTop': function(ph)	{						// установка zIndex - вверх
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			var zIndex = utils.getLastIndex();
+			node['zIndex'] = zIndex;
+			utils.bringToDepth(node, zIndex);
 
 			for (key in ph.obj.childsID) {
 				var node = mapNodes[key];
+				node['zIndex'] = zIndex;
 				utils.bringToDepth(node, zIndex);
 			}
 			return zIndex;
@@ -118,10 +260,12 @@
 			var obj = ph.obj;
 			var id = obj.objectId;
 			var node = mapNodes[id];
+			node['zIndex'] = 0;
 			utils.bringToDepth(node, 0);
 			
 			for (key in obj.childsID) {
 				node = mapNodes[key];
+				node['zIndex'] = 0;
 				utils.bringToDepth(node, 0);
 			}
 			return 0;
@@ -129,9 +273,11 @@
 		,
 		'bringToDepth': function(ph)	{					// установка z-index
 			var id = ph.obj.objectId;
-			var myLayer = mapNodes[id];
-			if(myLayer) {
-				utils.bringToDepth(myLayer, ph.attr.zIndex);
+			var zIndex = ph.attr.zIndex;
+			var node = mapNodes[id];
+			node['zIndex'] = zIndex;
+			if(node) {
+				utils.bringToDepth(node, zIndex);
 			}
 		}
 		,
@@ -141,21 +287,23 @@
 		,
 		'setVisible':	function(ph)	{					// установить видимость mapObject
 			var id = ph.obj.objectId;
-			var myLayer = mapNodes[id];
-			if(myLayer) {							// видимость слоя
+			var node = mapNodes[id];
+			if(node) {							// видимость слоя
 				if(ph.attr) {
-					if(myLayer['type'] === 'RasterLayer') {
-						if(!myLayer['leaflet']) return;
-						if(!myLayer['leaflet']._isVisible) {
-							myLayer['leaflet']._isVisible = true, LMap.addLayer(myLayer['leaflet']);
+					if(node['type'] === 'RasterLayer') {
+						if(!node['leaflet']) return;
+						if(!node['leaflet']._isVisible) {
+							node['leaflet']._isVisible = true, LMap.addLayer(node['leaflet']);
+							utils.bringToDepth(node, node['zIndex']);
+
 						}
-					} else if(myLayer['type'] === 'MapObject') {
-						if(myLayer['geometry'] && !myLayer['leaflet']) myLayer['leaflet'] = utils.drawGeometry(myLayer['geometry']);
+					} else if(node['type'] === 'MapObject') {
+						//if(node['geometry'] && !node['leaflet']) node['leaflet'] = utils.drawGeometry(node['geometry']);
 					}
 				}
 				else
 				{
-					if(myLayer['leaflet'] && myLayer['leaflet']._isVisible) myLayer['leaflet']._isVisible = false, LMap.removeLayer(myLayer['leaflet']);
+					if(node['leaflet'] && node['leaflet']._isVisible) node['leaflet']._isVisible = false, LMap.removeLayer(node['leaflet']);
 				}
 			}
 		}
@@ -191,6 +339,16 @@
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
 			LMap.setView(pos, ph.attr['z']);
 		}
+		,
+		'setStyle':	function(ph)	{				// Установка стилей обьекта
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return;						// Нода не была создана через addObject
+			var attr = ph.attr;
+			if(attr.hoveredStyle) node.hoveredStyle = utils.parseStyle(attr.hoveredStyle);
+			if(attr.regularStyle) node.regularStyle = utils.parseStyle(attr.regularStyle);
+			utils.repaintNode(node, 'regularStyle', true);
+		}
 	}
 
 	// Передача команды в leaflet
@@ -204,7 +362,7 @@ if(!(cmd in commands)
 	&& cmd != 'setCursorVisible'
 	&& cmd != 'stopDragging'
 	&& cmd != 'addContextMenuItem'
-	&& cmd != 'setStyle'
+	//&& cmd != 'setStyle'
 	&& cmd != 'setGeometry'
 	&& cmd != 'setHandler'
 	&& cmd != 'setBackgroundColor'
@@ -280,7 +438,7 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 				var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng));
 				gmxAPI.position(myLayer._container, 0, point.y - p1.y);
 			}
-			utils.bringToDepth(node, node['zIndex']);
+			//utils.bringToDepth(node, node['zIndex']);
 		});
 		
 		return out;
@@ -517,5 +675,5 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
     gmxAPI._cmdProxy = leafletCMD;				// посылка команд отрисовщику
     gmxAPI._addProxyObject = addLeafLetObject;	// Добавить в DOM
 	gmxAPI.proxyType = 'leaflet';
-
+    gmxAPI.APILoaded = true;				// Флаг возможности использования gmxAPI сторонними модулями
 })();
