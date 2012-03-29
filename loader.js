@@ -40,7 +40,7 @@ $LAB.
 		$.getCSS(_getFileName("treeview.css"));
 		$.getCSS(_getFileName("search.css"));
 	}).
-	script(_getFileName("jquery/jquery-ui-1.8.10.custom.min.js")).wait().
+	script(_getFileName("jquery/jquery-ui-1.8.18.custom.min.js")).wait().
 	script(_getFileName("jquery/ui.datepicker-ru.js")).wait().
 	script(_getFileName("jquery/jquery-ui-timepicker-addon.js")).wait().
 	script(_getFileName("jquery/ui.timepicker-ru.js")).wait().
