@@ -1609,7 +1609,8 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 				$$($(this).data("colorpickerId")).removeNode(true);
 		})
 		
-		$$($(labelColor).data("colorpickerId")).removeNode(true);
+        if ($$($(labelColor).data("colorpickerId")))
+            $$($(labelColor).data("colorpickerId")).removeNode(true);
 	}
 }
 
@@ -3896,8 +3897,6 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 						
 						_this.createMultiStyle(elemProperties, multiStyleParent)
 						
-						delete _this.layerEditorsHash[elemProperties.name];
-						
 						_this.findTreeElem(div).elem.content.properties = elemProperties;
 						
 						return false;
@@ -3905,7 +3904,12 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 				
 				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties);
 				
-				showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 350, 470, pos.left, pos.top, null, closeFunc);
+				showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 350, 470, pos.left, pos.top, null, function()
+                {
+                    closeFunc();
+                    delete _this.layerEditorsHash[elemProperties.name];
+                });
+                
 				_this.layerEditorsHash[elemProperties.name] = tabMenu;
 				
 				// при сохранении карты сбросим все временные стили в json карты
