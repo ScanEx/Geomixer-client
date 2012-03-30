@@ -132,7 +132,7 @@ class VectorLayer extends MapContent
 					func(tile, nRemaining);
 				});
 			}
-			if(nRemaining == 0) func(null, nRemaining);
+			//if(nRemaining == 0) func(null, nRemaining);
 		}
 	}
 
