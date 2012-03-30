@@ -267,7 +267,10 @@
 				isVisible: true,
 				control: control,
 				line: tr,
-				setVisible: function(flag) { this.isVisible = flag; },
+				setVisible: function(flag) {
+					this.isVisible = flag;
+					gmxAPI.setVisible(tr, flag);
+				},
 				setToolImage: function(a1, a2) {},
 				repaint: function()	{
 					repaintFunc(this.control);

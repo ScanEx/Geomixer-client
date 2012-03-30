@@ -294,12 +294,41 @@
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
 				break;
 			case 'getFeatureById':
-				if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'fid':attr['fid'], 'func':attr['func'] } );
+				if(attr.func) {
+					var func = function(geom, props)
+					{
+						if(geom && geom['type'] != 'unknown') {
+							if(typeof(props) === 'object' && props.length > 0) {
+								props = gmxAPI.arrayToHash(props);
+							}
+							attr.func(new gmxAPI._FlashMapFeature(
+								gmxAPI.from_merc_geometry(geom),
+								props,
+								obj
+							));
+						} else {
+							gmxAPI.addDebugWarnings({'alert':'Object: ' + attr['fid'] + ' not found in layer: ' + obj.objectId});
+						}
+					}
+					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'fid':attr['fid'], 'func':gmxAPI.uniqueGlobalName(func) } );
+				}
 				break;
 			case 'getFeatures':
-				if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geom':attr['geom'], 'func':attr['func'] } );
+				if(attr.func) {
+					var geo = gmxAPI.merc_geometry(attr.geom ? attr.geom : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] });
+					var func = function(geoms, props)
+					{
+						var ret = [];
+						for (var i = 0; i < geoms.length; i++)
+							ret.push(new gmxAPI._FlashMapFeature(
+								gmxAPI.from_merc_geometry(geoms[i]),
+								props[i],
+								obj
+							));
+						attr.func(ret);
+					}
+					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geom':geo, 'func':gmxAPI.uniqueGlobalName(func) } );
+				}
 				break;
 			case 'getTileItem':
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'vId':attr } );

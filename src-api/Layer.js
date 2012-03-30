@@ -382,41 +382,17 @@
 							geometry = arg;
 					}
 					if (!str && (obj.properties.GeometryType == "point")) {
-						gmxAPI._cmdProxy('getFeatures', { 'obj': obj, 'attr':{
-							'geom': gmxAPI.merc_geometry(geometry ? geometry : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] }),
-							'func':  function(geoms, props)
-								{
-									var ret = [];
-									for (var i = 0; i < geoms.length; i++)
-										ret.push(new gmxAPI._FlashMapFeature(
-											gmxAPI.from_merc_geometry(geoms[i]),
-											props[i],
-											obj
-										));
-									callback(ret);
-								}
-							}
-						});
+						gmxAPI._cmdProxy('getFeatures', { 'obj': obj, 'attr':{'geom': geometry, 'func': callback}});
 					}
 					else
-						map.getFeatures(str, geometry, callback, [obj.properties.name]);
+					{
+						gmxAPI.map.getFeatures(str, geometry, callback, [obj.properties.name]);		// Поиск через JSONP запрос
+					}
 				}
 
 				obj.getFeatureById = function(fid, func)
 				{
-					gmxAPI._cmdProxy('getFeatureById', { 'obj': obj, 'attr':{'fid':fid,
-						'func': function(geom, props)
-						{
-							if(typeof(props) === 'object' && props.length > 0) {
-								props = gmxAPI.arrayToHash(props);
-							}
-							func(new gmxAPI._FlashMapFeature(
-								gmxAPI.from_merc_geometry(geom),
-								props,
-								obj
-							));
-						}
-					} });
+					gmxAPI._cmdProxy('getFeatureById', { 'obj': obj, 'attr':{'fid':fid, 'func': func} });
 				}
 
 				if(obj._temporalTiles) {	// Для мультивременных слоёв

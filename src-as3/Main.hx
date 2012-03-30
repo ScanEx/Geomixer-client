@@ -941,7 +941,8 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 
 		function getFeatureById(id:String, fid:String, func:String)
 		{
-			var layer = cast(getNode(id).content, VectorLayer);
+			var node = getNode(id);
+			var layer = cast(node.content, VectorLayer);
 			var extent = new Extent();
 			var ww = Utils.worldWidth;
 			extent.update(-ww, -ww);
@@ -951,7 +952,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				{
 					if (tilesRemaining == 0)
 					{
-						var geom = layer.geometries.get(fid);
+						var geom = (layer.geometries.exists(fid) ? layer.geometries.get(fid) : new Geometry());
 						Main.cmdToJS(func, geom.export(), hashToArray(geom.properties));
 					}
 				}
@@ -960,25 +961,28 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 		
 		function getFeatures(id:String, geom:Dynamic, func:String)
 		{
+			var node = getNode(id);
 			var ret = new Hash<Bool>();
 			var queryGeom = Utils.parseGeometry(geom);
 			var queryExtent = queryGeom.extent;
-			var layer = cast(getNode(id).content, VectorLayer);
+			var layer = cast(node.content, VectorLayer);
 			layer.createLoader(
 				function(tile:VectorTile, tilesRemaining:Int)
 				{
-					for (i in 0...tile.ids.length)
-					{
-						var id = tile.ids[i];
-						var geom = tile.geometries[i];
-						if (Std.is(geom, PointGeometry))
+					if(tile != null) {
+						for (i in 0...tile.ids.length)
 						{
-							var p = cast(geom, PointGeometry);
-							if (queryGeom.distanceTo(p.x, p.y) == 0)
+							var id = tile.ids[i];
+							var geom = tile.geometries[i];
+							if (Std.is(geom, PointGeometry))
+							{
+								var p = cast(geom, PointGeometry);
+								if (queryGeom.distanceTo(p.x, p.y) == 0)
+									ret.set(id, true);
+							}
+							else if (queryExtent.overlaps(geom.extent))
 								ret.set(id, true);
 						}
-						else if (queryExtent.overlaps(geom.extent))
-							ret.set(id, true);
 					}
 		
 					if (tilesRemaining == 0)
