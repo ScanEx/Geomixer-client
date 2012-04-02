@@ -84,16 +84,15 @@
                     path = (moduleName in _moduleFiles) ? _moduleFiles[moduleName] : _modulesDefaultHost + moduleName + '.js';
                 }
 				// var path = (typeof moduleSource != 'undefined') ? moduleSource : _modulesDefaultHost + moduleName + '.js';
+
+                var pathRegexp = /(.*)\/[^\/]+/;
+                if ( typeof _modulePathes[moduleName] === 'undefined' )
+                    _modulePathes[moduleName] = pathRegexp.test(path) ? path.match(pathRegexp)[1] + "/" : "";
 				
                 newScript.type = 'text/javascript';
                 newScript.src = path + (window.gmxDropBrowserCache ? "?" + Math.random() : "");
                 newScript.charset = "utf-8";
                 headElem.appendChild(newScript);
-				
-				var pathRegexp = /(.*)\/[^\/]+/;
-                
-                if ( typeof _modulePathes[moduleName] === 'undefined' )
-                    _modulePathes[moduleName] = pathRegexp.test(path) ? path.match(pathRegexp)[1] + "/" : "";
             }
         },
 		
