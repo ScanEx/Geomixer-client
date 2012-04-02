@@ -3272,13 +3272,15 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
             if (title.value == '' )
             {
                 var platform = layerTags.getTagByName('platform');
-                var dateTag = layerTags.getTagByName('acdate');
+                var dateTag  = layerTags.getTagByName('acdate');
+                var timeTag  = layerTags.getTagByName('actime');
                 
-                if (typeof platform !== 'undefined' && typeof dateTag !== 'undefined')
+                if (typeof platform !== 'undefined' && typeof dateTag !== 'undefined' && typeof timeTag !== 'undefined')
                 {
                     var timeOffset = (new Date()).getTimezoneOffset()*60*1000;
-                    var dateInt = layerTagsControl.convertTagValue('DateTime', dateTag.value);
-                    var date = new Date(dateInt*1000 + timeOffset);
+                    var dateInt = layerTagsControl.convertTagValue('Date', dateTag.value);
+                    var timeInt = layerTagsControl.convertTagValue('Time', timeTag.value);
+                    var date = new Date( (dateInt+timeInt)*1000 + timeOffset );
                     
                     var dateString = $.datepicker.formatDate('yy.mm.dd', date);
                     var timeString = $.datepicker.formatTime('hh:mm', {hour: date.getHours(), minute: date.getMinutes()});
