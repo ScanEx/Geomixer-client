@@ -333,7 +333,6 @@
             validateRow(rows[tagId]);
         }
         
-        var timeOffset = (new Date()).getTimezoneOffset()*60;
         
         var convertFunctions = {
             'Number': function(value)
@@ -342,11 +341,17 @@
             },
             'Date': function(value)
             {
-                return $.datepicker.parseDate('dd.mm.yy', value).valueOf()/1000 - timeOffset;
+                var localValue = $.datepicker.parseDate('dd.mm.yy', value).valueOf()/1000;
+                var timeOffset = (new Date(localValue)).getTimezoneOffset()*60;
+                
+                return localValue - timeOffset;
             },
             'DateTime': function(value)
             {
-                return $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value).valueOf()/1000 - timeOffset;
+                var localValue = $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value).valueOf()/1000;
+                var timeOffset = (new Date(localValue)).getTimezoneOffset()*60;
+                
+                return localValue - timeOffset;
             },
             'Time': function(value)
             {
@@ -425,21 +430,23 @@
     
     LayerTagSearchControl.convertFromServer = function(type, value)
     {
-        var timeOffset = (new Date()).getTimezoneOffset()*60*1000;
         if (type === 'DateTime')
         {
+            var timeOffset = (new Date(value)).getTimezoneOffset()*60*1000;
             var tempInput = $('<input/>').datetimepicker({timeOnly: false, timeFormat: "hh:mm:ss"});
             $(tempInput).datetimepicker('setDate', new Date(value*1000 + timeOffset));
             return $(tempInput).val();
         }
         else if (type === 'Time')
         {
+            var timeOffset = (new Date(value)).getTimezoneOffset()*60*1000;
             var tempInput = $('<input/>').timepicker({timeOnly: true, timeFormat: "hh:mm:ss"});
             $(tempInput).timepicker('setTime', new Date(value*1000 + timeOffset));
             return $(tempInput).val();
         }
         else if (type === 'Date')
         {
+            var timeOffset = (new Date(value)).getTimezoneOffset()*60*1000;
             return $.datepicker.formatDate('dd.mm.yy', new Date(value*1000 + timeOffset));
         }
         else if (type === 'Number')
