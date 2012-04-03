@@ -13,6 +13,8 @@ class VectorObject extends MapContent
 	var layer:VectorLayer;
 	var xshift:Float;
 	
+	var criterion:Hash<String>->Bool;
+
 	public function new(geometry_:Geometry)
 	{
 		geometry = geometry_;
@@ -32,8 +34,13 @@ class VectorObject extends MapContent
 	{
 		var me = this;
 		painter = new GeometryPainter(geometry, contentSprite, mapNode.window);
-		if (Std.is(mapNode.parent.content, VectorLayer)) {
-			layer = cast(mapNode.parent.content, VectorLayer);
+		
+		var node:MapNode = findHidenKeyNode(mapNode, '_FilterVisibility');
+		criterion = (node == null ? null : node.propHiden.get('_FilterVisibility'));
+
+		node = findLayer(mapNode);
+		if (node != null && Std.is(node.content, VectorLayer)) {
+			layer = cast(node.content, VectorLayer);
 			if (layer.attrHash != null) {
 				if (layer.attrHash.TemporalColumnName != null) {
 					var pt = geometry.properties.get(layer.attrHash.TemporalColumnName);
@@ -61,22 +68,24 @@ class VectorObject extends MapContent
 	{
 		var curStyle = null;
 		var curTemporalCriterion = null;
-		if (layer != null) {
-			curFilter = findFilter();
-			if (curFilter != null && curFilter.clusterAttr != null) {
-				curStyle = (isActive ? curFilter.hoverStyleOrig : curFilter.regularStyleOrig);
+		if(criterion == null || criterion(geometry.properties)) {
+			if (layer != null) {
+				curFilter = findFilter();
+				if (curFilter != null && curFilter.clusterAttr != null) {
+					curStyle = (isActive ? curFilter.hoverStyleOrig : curFilter.regularStyleOrig);
+				} else {
+					curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
+				}
+				curTemporalCriterion = layer.temporalCriterion;
+				if (layer.currentFilter != null) {
+					layer.hoverPainter.repaint(null);
+					layer.currentFilter.mapNode.callHandler('onMouseOut', mapNode);
+				}
+				layer.lastId = null;
+				layer.currentId = null;
 			} else {
-				curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
+				curStyle = (isActive ? mapNode.getHoveredStyle() : mapNode.getRegularStyle());			
 			}
-			curTemporalCriterion = layer.temporalCriterion;
-			if (layer.currentFilter != null) {
-				layer.hoverPainter.repaint(null);
-				curFilter.mapNode.callHandler('onMouseOut', mapNode);
-			}
-			layer.lastId = null;
-			layer.currentId = null;
-		} else {
-			curStyle = (isActive ? mapNode.getHoveredStyle() : mapNode.getRegularStyle());			
 		}
 		painter.repaint(curStyle, curTemporalCriterion);
 		isActive = false;
@@ -104,11 +113,13 @@ class VectorObject extends MapContent
 
 	public override function paintLabels()
 	{
-		var style = mapNode.getRegularStyleRecursion();
-		if (style == null || style.label == null) return;
-		if(style.label.field != null) label = mapNode.propHash.get(style.label.field);
-		if(label == null) return;
-		mapNode.window.paintLabel(label, geometry, style, xshift);
+		if(criterion == null || criterion(geometry.properties)) {
+			var style = mapNode.getRegularStyleRecursion();
+			if (style == null || style.label == null) return;
+			if(style.label.field != null) label = mapNode.propHash.get(style.label.field);
+			if(label == null) return;
+			mapNode.window.paintLabel(label, geometry, style, xshift);
+		}
 	}
 
 	function findFilter()
@@ -126,6 +137,22 @@ class VectorObject extends MapContent
 		return null;
 	}
 
+	function findLayer(node:MapNode):MapNode
+	{
+		if (node == null) return null;
+		else if (Std.is(node.content, VectorLayer)) return node;
+		else if (node.parent != null) return findLayer(node.parent);
+		return null;
+	}
+
+	function findHidenKeyNode(node:MapNode, key):MapNode
+	{
+		if (node == null) return null;
+		else if (node.propHiden.exists(key)) return node;
+		else if (node.parent != null) return findHidenKeyNode(node.parent, key);
+		return null;
+	}
+	
 	function highlight()
 	{
 		isActive = true;

@@ -189,7 +189,8 @@
 			case 'addObjectsFromSWF':	// добавить обьекты из SWF файла
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'attr':attr });
 				break;
-			case 'setFilter':		// добавить фильтр к обьекту
+			case 'setVisibilityFilter':		// добавить фильтр видимости к обьекту
+			case 'setFilter':				// добавить фильтр к обьекту
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'sql':attr['sql'] } );
 				break;
 			case 'remove':			// удалить обьект

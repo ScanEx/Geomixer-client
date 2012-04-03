@@ -2160,6 +2160,13 @@ FlashMapObject.prototype.setFilter = function(sql) {
 	return ret;
 }
 
+FlashMapObject.prototype.setVisibilityFilter = function(sql) {
+	if(!sql) sql ='';
+	this._sqlVisibility = sql;			// атрибуты фильтра видимости mapObject установленные юзером
+	var ret = gmxAPI._cmdProxy('setVisibilityFilter', { 'obj': this, 'attr':{ 'sql':sql }});
+	return ret;
+}
+
 // Для minimap
 FlashMapObject.prototype.positionWindow = function(x1, y1, x2, y2) { gmxAPI._cmdProxy('positionWindow', { 'obj': this, 'attr':{'x1':x1, 'y1':y1, 'x2':x2, 'y2':y2} }); }
 

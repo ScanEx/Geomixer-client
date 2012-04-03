@@ -829,6 +829,22 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			return false;
 		}
 
+		function setVisibilityFilter(id:String, ?sql:String):Bool
+		{
+			var func:Hash<String>->Bool = (sql == null) ? 
+				function(props:Hash<String>):Bool { return true; } :
+				Parsers.parseSQL(sql);
+
+			var node = getNode(id);
+			if (func != null && node != null)
+			{
+				node.propHiden.set('_FilterVisibility', func);
+				Main.bumpFrameRate();
+				return true;
+			}
+			return false;
+		}
+
 		function setBackgroundTiles(id:String, func:String, minZoom:Int, maxZoom:Int, ?minZoomView:Int, ?maxZoomView:Int, ?projectionCode:Int)
 		{ 
 			var node = getNode(id);
@@ -1011,6 +1027,8 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			switch (cmd) {
 				case 'setFilter':
 					out = cast(setFilter(attr.objectId, attr.sql));
+				case 'setVisibilityFilter':
+					out = cast(setVisibilityFilter(attr.objectId, attr.sql));
 				case 'getChildren':
 					out = getChildren(attr.objectId);
 				case 'getDepth':		// Получить индекс обьекта
