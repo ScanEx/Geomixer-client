@@ -797,29 +797,11 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
 
 function reloadMap()
 {
-	// сохраняем состояние карты и перезагружаем ее
-	var mapState = _mapHelper.getMapState();
-	
-	// туда же сохраним созданные объекты
-	_userObjects.collect();
-	mapState.userObjects = JSON.stringify(_userObjects.getData());
-	
-	sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx",
-						{
-							WrapStyle: 'window',
-							content: JSON.stringify(mapState)
-						}, 
-						function(response)
-						{
-							if (!parseResponse(response))
-								return;
-							
-							var id = response.Result;
-							
-							createCookie("TempPermalink", id);
-							
-							window.location.replace(window.location.href.split("?")[0] + "?permalink=" + id + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
-						})
+    gmxAPI.Utils.getMapStateAsPermalink(function(parmalinkID)
+    {
+        createCookie("TempPermalink", parmalinkID);
+        window.location.replace(window.location.href.split("?")[0] + "?permalink=" + parmalinkID + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
+    })
 }
 
 /** Обрабатывает результат выполнения серверного скрипта
@@ -1128,7 +1110,29 @@ nsGmx.Utils = {
 			
 			mapObject.setStyle(templateStyle, hoverStyle);
 		}
-	}
+	},
+    getMapStateAsPermalink: function(callback)
+    {
+        // сохраняем состояние карты
+        var mapState = _mapHelper.getMapState();
+        
+        // туда же сохраним созданные объекты
+        _userObjects.collect();
+        mapState.userObjects = JSON.stringify(_userObjects.getData());
+        
+        sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx",
+        {
+            WrapStyle: 'window',
+            content: JSON.stringify(mapState)
+        }, 
+        function(response)
+        {
+            if (!parseResponse(response))
+                return;
+            
+            callback(response.Result);
+        })
+    }
 }
 
 if (typeof gmxCore !== 'undefined')

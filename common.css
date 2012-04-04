@@ -129,11 +129,13 @@ div.active
 }
 div.log
 {
-	position: absolute;
+	/*position: absolute;
 	width: 40px;
 	top: 8px;
 	right: 10px;
-	text-align: right;
+	text-align: right;*/
+    float: right;
+    margin: 8px 10px 0px 0px;
 }
 div.log span
 {
@@ -143,13 +145,14 @@ div.log span
 div.user
 {
 	float: right;
-	text-align: right;
+	/*text-align: right;
 	position: absolute;
 	width: 300px;
 	top: 8px;
-	right: 50px;
+	right: 50px;*/
 	white-space: nowrap;
 	overflow: hidden;
+    margin: 8px 4px 0px 0px;
 }
 div.user span
 {

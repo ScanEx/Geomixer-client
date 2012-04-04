@@ -144,6 +144,15 @@ var nsGmx = nsGmx || {};
                 
                 resOk && callback && callback();
             }
+            
+            for (var iProvider = 0; iProvider < checkProviders.length; iProvider++)
+            {
+                if (checkProviders[iProvider].canAuth())
+                {
+                    checkProviders[iProvider].doAuth(callback, errorCallback);
+                    return;
+                }
+            }
         
             if (window.mapsSite && window.gmxAuthServer)
             {
@@ -237,5 +246,14 @@ var nsGmx = nsGmx || {};
                 }
             });
         }
+    }
+    
+    var checkProviders = [];
+    
+    //canAuth() -> bool
+    //doAuth(callbackSuccess, callbackError)
+    nsGmx.AuthManager.addCheckUserMethod = function(provider)
+    {
+        checkProviders.push(provider);
     }
 })(jQuery);

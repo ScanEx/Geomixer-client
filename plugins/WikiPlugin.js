@@ -3,9 +3,10 @@
 * @namespace Предоставляет возможность написания сообщений
 * @description Предоставляет возможность написания сообщений
 */
-(function wiki($, oFlashMap){
+(function wiki($){
 
 var pluginPath = null;
+var oFlashMap = null;
 var oWiki;
 
 _translationsHash.addtext("rus", {
@@ -788,6 +789,7 @@ var unloadMenu = function(){
 }
 
 var beforeViewer = function(){
+    oFlashMap = globalFlashMap; //инициализируем карту - тут она уже должна быть доступна
 	nsGmx.ContextMenuController.addContextMenuElem({
 		title: _gtxt("Создать сообщение"),
 		isVisible: function(context)
@@ -836,4 +838,4 @@ gmxCore.addModule("wiki", publicInterface, {init: function(module, path)
     }
 });
 
-})(jQuery, globalFlashMap)
+})(jQuery);

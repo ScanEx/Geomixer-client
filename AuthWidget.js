@@ -129,7 +129,7 @@ var nsGmx = nsGmx || {};
             
             _title(userSpan, _gtxt("Изменение пароля"))
             
-            _(_container, [_div([userSpan], [['attr','id','user'],['dir','className','user']]),_div([logoutSpan], [['attr','id','log'],['dir','className','log']])]);
+            _(_container, [_div([logoutSpan], [['attr','id','log'],['dir','className','log']]), _div([userSpan], [['attr','id','user'],['dir','className','user']])]);
         }
         
         var _update = function()
@@ -235,6 +235,11 @@ var nsGmx = nsGmx || {};
                 
                 return true;
             }
-        }    
+        }
+        
+        this.getContainer = function()
+        {
+            return _container;
+        }
     }
 })(jQuery);

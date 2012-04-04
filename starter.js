@@ -275,66 +275,73 @@ $(document).ready(function()
 
 function parseReferences()
 {
-	window.documentHref = window.location.href.split("?")[0];
-	
-	var q = window.location.search,
-		kvp = (q.length > 1) ? q.substring(1).split("&") : [];
-	
-	for (var i = 0; i < kvp.length; i++)
+    nsGmx.pluginsManager = new (gmxCore.getModule('PluginsManager').PluginsManager)();
+    nsGmx.pluginsManager.addCallback( function()
     {
-		kvp[i] = kvp[i].split("=");
-    }
+        nsGmx.pluginsManager.beforeMap();
+        
+        window.documentHref = window.location.href.split("?")[0];
+        
+        var q = window.location.search,
+            kvp = (q.length > 1) ? q.substring(1).split("&") : [];
+        
+        for (var i = 0; i < kvp.length; i++)
+        {
+            kvp[i] = kvp[i].split("=");
+        }
 
-	var params = {},
-		givenMapName = false;
-	
-	for (var j=0; j < kvp.length; j++)
-	{
-		if (kvp[j].length == 1)
-		{
-			if (!givenMapName)
-				givenMapName = kvp[j][0];
-		}
-		else
-			params[kvp[j][0]] = kvp[j][1];
-	}
-	if (params["permalink"])
-	{
-		eraseCookie("TinyReference");
-		createCookie("TinyReference", params["permalink"]);
-		
-		window.location.replace(documentHref + (givenMapName ? ("?" + givenMapName) : ""));
-		return;
-	}
-	
-	var defaultState = { isFullScreen: params["fullscreen"] == "true" || params["fullscreen"] == "false" ? params["fullscreen"] : "false" };
-	
-	if ("x" in params && "y" in params && "z" in params &&
-		!isNaN(Number(params.x)) && !isNaN(Number(params.y)) && !isNaN(Number(params.z)))
-		defaultState.position = {x: Number(params.x), y: Number(params.y), z: Number(params.z)}
-	
-	if ("mx" in params && "my" in params &&
-		!isNaN(Number(params.mx)) && !isNaN(Number(params.my)))
-		defaultState.marker = {mx: Number(params.mx), my: Number(params.my), mt: "mt" in params ? params.mt : false}
-	
-	if ("mode" in params)
-		defaultState.mode = params.mode;
-	
-	window.defaultMapID = typeof window.defaultMapID !== 'undefined' ? window.defaultMapID : 'DefaultMap';
-	
-	var mapName = window.defaultMapID && !givenMapName ? window.defaultMapID : givenMapName;
-	window.globalMapName = mapName;
-	
-	if (!window.globalMapName)
-	{
-		// нужно прописать дефолтную карту в конфиге
-		
-		alert(_gtxt("$$phrase$$_1"))
-		
-		return;
-	}
-	else
-		checkUserInfo(defaultState);
+        var params = {},
+            givenMapName = false;
+        
+        for (var j=0; j < kvp.length; j++)
+        {
+            if (kvp[j].length == 1)
+            {
+                if (!givenMapName)
+                    givenMapName = kvp[j][0];
+            }
+            else
+                params[kvp[j][0]] = kvp[j][1];
+        }
+        
+        if (params["permalink"])
+        {
+            eraseCookie("TinyReference");
+            createCookie("TinyReference", params["permalink"]);
+            
+            window.location.replace(documentHref + (givenMapName ? ("?" + givenMapName) : ""));
+            return;
+        }
+        
+        var defaultState = { isFullScreen: params["fullscreen"] == "true" || params["fullscreen"] == "false" ? params["fullscreen"] : "false" };
+        
+        if ("x" in params && "y" in params && "z" in params &&
+            !isNaN(Number(params.x)) && !isNaN(Number(params.y)) && !isNaN(Number(params.z)))
+            defaultState.position = {x: Number(params.x), y: Number(params.y), z: Number(params.z)}
+        
+        if ("mx" in params && "my" in params &&
+            !isNaN(Number(params.mx)) && !isNaN(Number(params.my)))
+            defaultState.marker = {mx: Number(params.mx), my: Number(params.my), mt: "mt" in params ? params.mt : false}
+        
+        if ("mode" in params)
+            defaultState.mode = params.mode;
+        
+        window.defaultMapID = typeof window.defaultMapID !== 'undefined' ? window.defaultMapID : 'DefaultMap';
+        
+        var mapName = window.defaultMapID && !givenMapName ? window.defaultMapID : givenMapName;
+        
+        window.globalMapName = mapName;
+        
+        if (!window.globalMapName)
+        {
+            // нужно прописать дефолтную карту в конфиге
+            alert(_gtxt("$$phrase$$_1"))
+            
+            return;
+        }
+        else
+            checkUserInfo(defaultState);
+    })
 }
 
 function checkUserInfo(defaultState)
@@ -355,7 +362,8 @@ function checkUserInfo(defaultState)
 			eraseCookie("TinyReference");
 			_mapHelper.restoreTinyReference(tinyRef, function(obj)
 			{
-				loadMap((obj.mapName == globalMapName) ? obj : defaultState);
+                window.globalMapName = obj.mapName;
+				loadMap(obj);
 			}, function()
 			{
 				loadMap(defaultState); //если пермалинк какой-то не такой, просто открываем дефолтное состояние
@@ -523,274 +531,262 @@ function loadMap(state)
 	var mapCallback = function(map)
 	{
 		globalFlashMap = map;
-		
-		gmxCore.loadModules(['PluginsManager'], function()
-		{
-			var pluginsManager = new (gmxCore.getModule('PluginsManager').PluginsManager)();
-            nsGmx.pluginsManager = pluginsManager;
-			pluginsManager.addCallback( function()
-			{
-				pluginsManager.beforeViewer();
-				
-				var data = getLayers();
-				
-				
-				if (!data)
-				{
-					_menuUp.defaultHash = 'usage';
-					
-					_menuUp.createMenu = function()
-					{
-						createDefaultMenu();
-						pluginsManager.addMenuItems(_menuUp);
-					};
-					
-					_menuUp.go(true);
-                    
-                    nsGmx.widgets.authWidget = new nsGmx.AuthWidget(_menuUp.loginContainer, nsGmx.AuthManager, defaultLoginCallback(true));
-					
-					if ($$('left_usage'))
-						hide($$('left_usage'))
-										
-					_menuUp.checkView();
-					
-					var divStatus = _div([_span([_t(_gtxt("У вас нет прав на просмотр данной карты"))],[['css','marginLeft','10px'],['css','color','red'],['attr','savestatus',true]])], [['css','paddingTop','10px']]);
-					
-					_($$('headerLinks'), [divStatus])
-					
-					window.onresize = resizeAll;
-					resizeAll();
-					
-					nsGmx.widgets.authWidget.showLoginDialog();
-					
-					return;
-				}
-                
-				//для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
-				(function fixVisibilityConstrains (o, isVisible)
-				{
-					o.content.properties.visible = o.content.properties.visible && isVisible;
-					isVisible = o.content.properties.visible;
-					if (o.type === "group")
-					{
-						var a = o.content.children;
-						for (var k = a.length - 1; k >= 0; k--)
-							fixVisibilityConstrains(a[k], isVisible);
-					}
-				})({type: "group", content: { children: data.children, properties: { visible: true } } }, true);
-				
-				window.oldTree = JSON.parse(JSON.stringify(data));
-				
-				window.defaultLayersVisibility = {};
-				if (map.layers)
-					for (var k = 0; k < map.layers.length; k++)
-						window.defaultLayersVisibility[map.layers[k].properties.name] = typeof map.layers[k].isVisible != 'undefined' ? map.layers[k].isVisible : false;
-				
-				//data.properties.hostName = getAPIHost();
-				data.properties.hostName = window.serverBase.slice(7).slice(0, -1); //основная карта всегда загружена с того-же сайта, что и серверные скрипты
-				
-				_mapHelper.mapProperties = data.properties;
-				_mapHelper.mapTree = data;
-				
-				if (window.copyright)
-					map.setCopyright(window.copyright);
-				
-				if (state.position)
-				{
-					map.moveTo(state.position.x, state.position.y, state.position.z);
-				}
-				
-				if (!data.properties.UseKosmosnimkiAPI)
-				{
-					for (var i = 0; i < map.layers.length; i++)
-					{
-						var layer = map.layers[i];
-						if (layer && layer.properties.type == "Raster")
-						{
-							map.miniMap.addLayer(layer, false);
-							layer.miniLayer = map.miniMap.layers[map.miniMap.layers.length - 1];
-						}
-					}
-				}
-				
-				for (var i = map.layers.length - 1; i >= 0; i--)
-					if (map.layers[i])
-						map.layers[i].bounds = getLayerBounds(map.layers[i].geometry.coordinates[0], map.layers[i]);
-				
-				var condition = false,
-					mapStyles = false;
-				
-				if (state.condition)
-					condition = state.condition;
-				
-				if (state.mapStyles)
-					mapStyles = state.mapStyles;
-				
-				_queryMapLayers.addLayers(data, condition, mapStyles);
-				
-				_menuUp.defaultHash = 'layers';
-                
-                // расширенная версия пермалинка для авторизации
-				var userObjects = data.properties.UserData;
-				
-				if (typeof state.userObjects != 'undefined')
-					userObjects = state.userObjects;
-				
-				_menuUp.createMenu = function()
-				{
-					createMenu();
-				};
-				//_menuUp.createMenu = createMenu;
-				_menuUp.go();
-                
-                if (userObjects)
-				{
-					_userObjects.setData(JSON.parse(userObjects));
-					_userObjects.load();
-				}
-                
-                //динамически добавляем пункты в меню
-                pluginsManager.addMenuItems(_menuUp);
-				
-				// конвертируем старый формат eval-строки в новый формат customParamsManager
-				// старый формат использовался только маплетом пожаров
-				if (typeof state.customParams != 'undefined' && state.customParams)
-				{
-					var newFiresFormat = mapCalendar.convertEvalState(state.customParams);
-					if (newFiresFormat)
-						state.customParamsCollection = { firesWidget : newFiresFormat };
-					else
-					{
-						//старый формат данных пожаров...
-						try
-						{
-							eval(state.customParams);
-						}
-						catch (e) 
-						{
-							alert(e);
-						}
-					}
-				}
-					
-				if ( typeof state.customParamsCollection != 'undefined')
-					_mapHelper.customParamsManager.loadParams(state.customParamsCollection);
 
-				_mapHelper.gridView = false;
-				
-				//создаём иконку переключения в полноэкранный режим.
-                var mapNameContainer = _div();
-                var leftIconPanelContainer = _div();
-                addMapName(mapNameContainer, data.properties.title);
-                
-				_leftIconPanel.create(leftIconPanelContainer);
-                _($$('leftIconPanel'), [_table([_tbody([_tr([
-                    _td([mapNameContainer], [['css', 'paddingLeft', '10px'], ['css', 'width', '100%']]), 
-                    _td([leftIconPanelContainer])
-                ])])])]);
-                
-                //_leftIconPanel.addMapName(data.properties.title);
-				
-				//добавим в тулбар две иконки, но видимой будет только одна
-				//по клику переключаем между ними
-				var _toggleFullscreenIcon = function(isFullScreen)
-				{
-					_leftIconPanel.setVisible('fullscreenon', !isFullScreen);
-					_leftIconPanel.setVisible('fullscreenoff', isFullScreen);
-					layersShown = !layersShown;
-					resizeAll();
-				}
-				
-				_leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
-								   function() { _toggleFullscreenIcon(true); });
-				
-				_leftIconPanel.add('fullscreenoff', _gtxt("Свернуть карту"), "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png", 
-									function() { _toggleFullscreenIcon(false); }, null, true);
-									
-				
-				//создаём тулбар
-				
-                var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
-                var searchContainer = _div(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
-                _($$('iconPanel'), [_table([_tbody([_tr([
-                    _td([iconContainer]), 
-                    _td([searchContainer], [['css', 'padding', '0 10px 1px 50px'], ['css', 'width', '100%']])
-                ])])])]);
-                
-                _iconPanel.create(iconContainer);
-                
-                var visFuncSaveMap      = function(){ return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SAVE_MAP) && _queryMapLayers.currentMapRights() === "edit"; };
-                var visFuncCreateLayers = function(){ return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS) && _queryMapLayers.currentMapRights() === "edit"; };
-                
-				_iconPanel.add('saveMap', _gtxt("Сохранить карту"), "img/toolbar/save_map.png", "img/toolbar/save_map_a.png", function(){_queryMapLayers.saveMap()}, visFuncSaveMap)
-				_iconPanel.add('createVectorLayer', _gtxt("Создать векторный слой"), "img/toolbar/new_shapefile.png", "img/toolbar/new_shapefile_a.png", function(){_mapHelper.createNewLayer("Vector")}, visFuncCreateLayers)
-				_iconPanel.add('createRasterLayer', _gtxt("Создать растровый слой"), "img/toolbar/new_rastr.png", "img/toolbar/new_rastr_a.png", function(){_mapHelper.createNewLayer("Raster")}, visFuncCreateLayers)
-				
-				_iconPanel.addDelimeter('userDelimeter', false, true);
-				
-				_iconPanel.add('uploadFile', _gtxt("Загрузить файл"), "img/toolbar/upload.png", "img/toolbar/upload_a.png", function(){drawingObjects.loadShp.load()})
-				_iconPanel.add('permalink', _gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
-				_iconPanel.add('bookmark', _gtxt("Добавить закладку"), "img/toolbar/bookmark.png", "img/toolbar/bookmark_a.png", function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();})
-				_iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
-				_iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
-				
-				if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages ) 
-					_translationsHash.showLanguages();		
-								
-				if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
+        nsGmx.pluginsManager.beforeViewer();
+        
+        var data = getLayers();
+        
+        
+        if (!data)
+        {
+            _menuUp.defaultHash = 'usage';
+            
+            _menuUp.createMenu = function()
+            {
+                createDefaultMenu();
+                nsGmx.pluginsManager.addMenuItems(_menuUp);
+            };
+            
+            _menuUp.go(true);
+            
+            nsGmx.widgets.authWidget = new nsGmx.AuthWidget(_menuUp.loginContainer, nsGmx.AuthManager, defaultLoginCallback(true));
+            
+            if ($$('left_usage'))
+                hide($$('left_usage'))
+                                
+            _menuUp.checkView();
+            
+            var divStatus = _div([_span([_t(_gtxt("У вас нет прав на просмотр данной карты"))],[['css','marginLeft','10px'],['css','color','red'],['attr','savestatus',true]])], [['css','paddingTop','10px']]);
+            
+            _($$('headerLinks'), [divStatus])
+            
+            window.onresize = resizeAll;
+            resizeAll();
+            
+            nsGmx.widgets.authWidget.showLoginDialog();
+            
+            return;
+        }
+        
+        //для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
+        (function fixVisibilityConstrains (o, isVisible)
+        {
+            o.content.properties.visible = o.content.properties.visible && isVisible;
+            isVisible = o.content.properties.visible;
+            if (o.type === "group")
+            {
+                var a = o.content.children;
+                for (var k = a.length - 1; k >= 0; k--)
+                    fixVisibilityConstrains(a[k], isVisible);
+            }
+        })({type: "group", content: { children: data.children, properties: { visible: true } } }, true);
+        
+        window.oldTree = JSON.parse(JSON.stringify(data));
+        
+        window.defaultLayersVisibility = {};
+        if (map.layers)
+            for (var k = 0; k < map.layers.length; k++)
+                window.defaultLayersVisibility[map.layers[k].properties.name] = typeof map.layers[k].isVisible != 'undefined' ? map.layers[k].isVisible : false;
+        
+        //data.properties.hostName = getAPIHost();
+        data.properties.hostName = window.serverBase.slice(7).slice(0, -1); //основная карта всегда загружена с того-же сайта, что и серверные скрипты
+        
+        _mapHelper.mapProperties = data.properties;
+        _mapHelper.mapTree = data;
+        
+        if (window.copyright)
+            map.setCopyright(window.copyright);
+        
+        if (state.position)
+        {
+            map.moveTo(state.position.x, state.position.y, state.position.z);
+        }
+        
+        if (!data.properties.UseKosmosnimkiAPI)
+        {
+            for (var i = 0; i < map.layers.length; i++)
+            {
+                var layer = map.layers[i];
+                if (layer && layer.properties.type == "Raster")
                 {
-                    $('#headerLinks').append(_a([_t(_gtxt('Администрирование'))], [['dir', 'href', serverBase + 'Administration/SettingsAdmin.aspx'], ['attr','target','_blank'], ['css', 'marginTop', '7px'], ['css', 'fontWeight', 'bold']]));
+                    map.miniMap.addLayer(layer, false);
+                    layer.miniLayer = map.miniMap.layers[map.miniMap.layers.length - 1];
                 }
+            }
+        }
+        
+        for (var i = map.layers.length - 1; i >= 0; i--)
+            if (map.layers[i])
+                map.layers[i].bounds = getLayerBounds(map.layers[i].geometry.coordinates[0], map.layers[i]);
+        
+        var condition = false,
+            mapStyles = false;
+        
+        if (state.condition)
+            condition = state.condition;
+        
+        if (state.mapStyles)
+            mapStyles = state.mapStyles;
+        
+        _queryMapLayers.addLayers(data, condition, mapStyles);
+        
+        _menuUp.defaultHash = 'layers';
+        
+        // расширенная версия пермалинка для авторизации
+        var userObjects = data.properties.UserData;
+        
+        if (typeof state.userObjects != 'undefined')
+            userObjects = state.userObjects;
+        
+        _menuUp.createMenu = function()
+        {
+            createMenu();
+        };
+
+        _menuUp.go();
+        
+        if (userObjects)
+        {
+            _userObjects.setData(JSON.parse(userObjects));
+            _userObjects.load();
+        }
+        
+        //динамически добавляем пункты в меню
+        nsGmx.pluginsManager.addMenuItems(_menuUp);
+        
+        // конвертируем старый формат eval-строки в новый формат customParamsManager
+        // старый формат использовался только маплетом пожаров
+        if (typeof state.customParams != 'undefined' && state.customParams)
+        {
+            var newFiresFormat = mapCalendar.convertEvalState(state.customParams);
+            if (newFiresFormat)
+                state.customParamsCollection = { firesWidget : newFiresFormat };
+            else
+            {
+                //старый формат данных пожаров...
+                try
+                {
+                    eval(state.customParams);
+                }
+                catch (e) 
+                {
+                    alert(e);
+                }
+            }
+        }
+            
+        if ( typeof state.customParamsCollection != 'undefined')
+            _mapHelper.customParamsManager.loadParams(state.customParamsCollection);
+
+        _mapHelper.gridView = false;
+        
+        //создаём иконку переключения в полноэкранный режим.
+        var mapNameContainer = _div();
+        var leftIconPanelContainer = _div();
+        addMapName(mapNameContainer, data.properties.title);
+        
+        _leftIconPanel.create(leftIconPanelContainer);
+        _($$('leftIconPanel'), [_table([_tbody([_tr([
+            _td([mapNameContainer], [['css', 'paddingLeft', '10px'], ['css', 'width', '100%']]), 
+            _td([leftIconPanelContainer])
+        ])])])]);
+        
+        //добавим в тулбар две иконки, но видимой будет только одна
+        //по клику переключаем между ними
+        var _toggleFullscreenIcon = function(isFullScreen)
+        {
+            _leftIconPanel.setVisible('fullscreenon', !isFullScreen);
+            _leftIconPanel.setVisible('fullscreenoff', isFullScreen);
+            layersShown = !layersShown;
+            resizeAll();
+        }
+        
+        _leftIconPanel.add('fullscreenon', _gtxt("Развернуть карту"), "img/toolbar/fullscreenon.png", "img/toolbar/fullscreenon_a.png", 
+                           function() { _toggleFullscreenIcon(true); });
+        
+        _leftIconPanel.add('fullscreenoff', _gtxt("Свернуть карту"), "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png", 
+                            function() { _toggleFullscreenIcon(false); }, null, true);
+                            
+        
+        //создаём тулбар
+        
+        var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
+        var searchContainer = _div(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
+        _($$('iconPanel'), [_table([_tbody([_tr([
+            _td([iconContainer]), 
+            _td([searchContainer], [['css', 'padding', '0 10px 1px 50px'], ['css', 'width', '100%']])
+        ])])])]);
+        
+        _iconPanel.create(iconContainer);
+        
+        var visFuncSaveMap      = function(){ return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SAVE_MAP) && _queryMapLayers.currentMapRights() === "edit"; };
+        var visFuncCreateLayers = function(){ return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS) && _queryMapLayers.currentMapRights() === "edit"; };
+        
+        _iconPanel.add('saveMap', _gtxt("Сохранить карту"), "img/toolbar/save_map.png", "img/toolbar/save_map_a.png", function(){_queryMapLayers.saveMap()}, visFuncSaveMap)
+        _iconPanel.add('createVectorLayer', _gtxt("Создать векторный слой"), "img/toolbar/new_shapefile.png", "img/toolbar/new_shapefile_a.png", function(){_mapHelper.createNewLayer("Vector")}, visFuncCreateLayers)
+        _iconPanel.add('createRasterLayer', _gtxt("Создать растровый слой"), "img/toolbar/new_rastr.png", "img/toolbar/new_rastr_a.png", function(){_mapHelper.createNewLayer("Raster")}, visFuncCreateLayers)
+        
+        _iconPanel.addDelimeter('userDelimeter', false, true);
+        
+        _iconPanel.add('uploadFile', _gtxt("Загрузить файл"), "img/toolbar/upload.png", "img/toolbar/upload_a.png", function(){drawingObjects.loadShp.load()})
+        _iconPanel.add('permalink', _gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
+        _iconPanel.add('bookmark', _gtxt("Добавить закладку"), "img/toolbar/bookmark.png", "img/toolbar/bookmark_a.png", function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();})
+        _iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
+        _iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
+        
+        if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages ) 
+            _translationsHash.showLanguages();		
+                        
+        if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
+        {
+            $('#headerLinks').append(_a([_t(_gtxt('Администрирование'))], [['dir', 'href', serverBase + 'Administration/SettingsAdmin.aspx'], ['attr','target','_blank'], ['css', 'marginTop', '7px'], ['css', 'fontWeight', 'bold']]));
+        }
+        
+        nsGmx.addHeaderLinks($$('headerLinks'));
+        
+        if (state.mode)
+        {
+            if (state.mode == "map" || state.mode == "satellite" || state.mode == "hybrid")
+                map.setBaseLayer({ map: "Карта", satellite: "Снимки", hybrid: "Гибрид" }[state.mode]);
+            else
+                map.setBaseLayer(state.mode);
+        }
+        
+        if (state.drawnObjects)
+        {
+            for (var i = 0; i < state.drawnObjects.length; i++)
+            {
+                var color = state.drawnObjects[i].color || 0x0000FF,
+                    thickness = state.drawnObjects[i].thickness || 3,
+                    opacity = state.drawnObjects[i].opacity || 80,
+                    elem = map.drawing.addObject(state.drawnObjects[i].geometry, state.drawnObjects[i].properties),
+                    style = {outline: {color: color, thickness: thickness, opacity: opacity }, marker: { size: 3 }, fill: { color: 0xffffff }};
                 
-                nsGmx.addHeaderLinks($$('headerLinks'));
-				
-				if (state.mode)
-				{
-					if (state.mode == "map" || state.mode == "satellite" || state.mode == "hybrid")
-						map.setBaseLayer({ map: "Карта", satellite: "Снимки", hybrid: "Гибрид" }[state.mode]);
-					else
-						map.setBaseLayer(state.mode);
-				}
-				
-				if (state.drawnObjects)
-				{
-					for (var i = 0; i < state.drawnObjects.length; i++)
-					{
-						var color = state.drawnObjects[i].color || 0x0000FF,
-							thickness = state.drawnObjects[i].thickness || 3,
-							opacity = state.drawnObjects[i].opacity || 80,
-							elem = map.drawing.addObject(state.drawnObjects[i].geometry, state.drawnObjects[i].properties),
-							style = {outline: {color: color, thickness: thickness, opacity: opacity }, marker: { size: 3 }, fill: { color: 0xffffff }};
-						
-						elem.setStyle(style, {outline: {color: color, thickness: thickness + 1, opacity: Math.min(100, opacity + 20)}, marker: { size: 4 }, fill: { color: 0xffffff }});
-						
-						if ( 'isBalloonVisible' in state.drawnObjects[i] ) 
-							elem.balloon.setVisible( state.drawnObjects[i].isBalloonVisible );
-					}
-				}
-				else if (state.marker)
-					map.drawing.addObject({ type: "POINT", coordinates: [state.marker.mx, state.marker.my] }, { text: state.marker.mt });
-				
-				_menuUp.checkView();
-				removeUserActions();
+                elem.setStyle(style, {outline: {color: color, thickness: thickness + 1, opacity: Math.min(100, opacity + 20)}, marker: { size: 4 }, fill: { color: 0xffffff }});
                 
-                nsGmx.widgets.authWidget = new nsGmx.AuthWidget(_menuUp.loginContainer, nsGmx.AuthManager, defaultLoginCallback());
-				
-				if (nsGmx.AuthManager.isLogin())
-				{					
-					addUserActions();
-				}
-                
-				fnInitControls();
-                
-                $(_queryExternalMaps).bind('map_loaded', filterTemporalLayers);
-                filterTemporalLayers();
-				
-				pluginsManager.afterViewer();
-			
-			}); //pluginsManager
-		
-		}); //loadModule
+                if ( 'isBalloonVisible' in state.drawnObjects[i] ) 
+                    elem.balloon.setVisible( state.drawnObjects[i].isBalloonVisible );
+            }
+        }
+        else if (state.marker)
+            map.drawing.addObject({ type: "POINT", coordinates: [state.marker.mx, state.marker.my] }, { text: state.marker.mt });
+        
+        _menuUp.checkView();
+        removeUserActions();
+        
+        nsGmx.widgets.authWidget = new nsGmx.AuthWidget(_menuUp.loginContainer, nsGmx.AuthManager, defaultLoginCallback());
+        
+        if (nsGmx.AuthManager.isLogin())
+        {					
+            addUserActions();
+        }
+        
+        fnInitControls();
+        
+        $(_queryExternalMaps).bind('map_loaded', filterTemporalLayers);
+        filterTemporalLayers();
+        
+        nsGmx.pluginsManager.afterViewer();
 	}
 
 	var success = createFlashMap($$("flash"), window.serverBase, globalMapName, mapCallback);

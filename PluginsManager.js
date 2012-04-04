@@ -12,6 +12,7 @@
     * pluginName - имя плагина. Должно быть по возможности уникальным
     * mapPlugin {bool, default: true} - является ли плагин плагином карт. Если является, то не будет грузиться по умолчанию.
   Каждый плагин хранится в отдельном модуле (через свойство modules) или подгружается в явном виде (через свойство plugins). В модуле могут быть определены следующие методы:<br/>
+  * beforeMap (params)- вызовется сразу после загрузки всех модулей ядра вьюера (до инициализации карты, проверки пользователя и т.п.)<br/>
   * beforeViewer (params)- вызовется до начала инициализации вьюера (сразу после инициализации карты)<br/>
   * afterViewer(params) - вызовется после инициализации вьюера<br/>
   * addMenuItems - должен вернуть вектор из пунктов меню, которые плагин хочет добавить.
@@ -102,6 +103,17 @@ var PluginsManager = function()
 		else
 			callback();
 	}
+    
+	/**
+	 @method
+	 Вызывает beforeMap() у всех плагинов
+	*/
+	this.beforeMap = function()
+	{
+		for (var p = 0; p < _plugins.length; p++)
+			if ( _plugins[p]._inUse && typeof _plugins[p].body.beforeMap !== 'undefined')
+				_plugins[p].body.beforeMap( _plugins[p].params );
+	};    
 	
 	/**
 	 @method
