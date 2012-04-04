@@ -797,7 +797,7 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
 
 function reloadMap()
 {
-    gmxAPI.Utils.getMapStateAsPermalink(function(parmalinkID)
+    nsGmx.Utils.getMapStateAsPermalink(function(parmalinkID)
     {
         createCookie("TempPermalink", parmalinkID);
         window.location.replace(window.location.href.split("?")[0] + "?permalink=" + parmalinkID + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
