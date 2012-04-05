@@ -836,12 +836,14 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				Parsers.parseSQL(sql);
 
 			var node = getNode(id);
-			if (func != null && node != null)
+			if (node != null)
 			{
+				node.noteSomethingHasChanged();
 				node.propHiden.set('_FilterVisibility', func);
 				Main.bumpFrameRate();
 				return true;
 			}
+			
 			return false;
 		}
 

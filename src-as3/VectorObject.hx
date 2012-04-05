@@ -35,10 +35,7 @@ class VectorObject extends MapContent
 		var me = this;
 		painter = new GeometryPainter(geometry, contentSprite, mapNode.window);
 		
-		var node:MapNode = findHidenKeyNode(mapNode, '_FilterVisibility');
-		criterion = (node == null ? null : node.propHiden.get('_FilterVisibility'));
-
-		node = findLayer(mapNode);
+		var node:MapNode = findLayer(mapNode);
 		if (node != null && Std.is(node.content, VectorLayer)) {
 			layer = cast(node.content, VectorLayer);
 			if (layer.attrHash != null) {
@@ -68,6 +65,10 @@ class VectorObject extends MapContent
 	{
 		var curStyle = null;
 		var curTemporalCriterion = null;
+
+		var node:MapNode = findHidenKeyNode(mapNode, '_FilterVisibility');
+		criterion = (node == null ? null : node.propHiden.get('_FilterVisibility'));
+
 		if(criterion == null || criterion(geometry.properties)) {
 			if (layer != null) {
 				curFilter = findFilter();
