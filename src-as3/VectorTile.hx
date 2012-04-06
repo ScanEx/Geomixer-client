@@ -102,7 +102,7 @@ class VectorTile
 							me.layer.geometries.set(id, newGeometry);
 						}
 					}
-
+/*
 					var d = (me.extent.maxx - me.extent.minx)/50;
 					if (Math.abs(actualExtent.minx - me.extent.minx) < d)
 						me.extent.minx = actualExtent.minx;
@@ -112,7 +112,7 @@ class VectorTile
 						me.extent.maxx = actualExtent.maxx;
 					if (Math.abs(actualExtent.maxy - me.extent.maxy) < d)
 						me.extent.maxy = actualExtent.maxy;
-
+*/
 					me.finishedLoading = true;
 					for (func in me.loadCallbacks)
 						func();

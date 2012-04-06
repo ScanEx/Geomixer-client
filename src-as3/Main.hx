@@ -787,8 +787,10 @@ class Main
 				}
 				if (_data[i].setLabel) {
 					var node = getNode(tId);
-					if ((node != null) && Std.is(node.content, VectorObject))
+					if ((node != null) && Std.is(node.content, VectorObject)) {
 						cast(node.content, VectorObject).label = _data[i].setLabel;
+						node.noteSomethingHasChanged();
+					}
 				}
 				ret.push(tId);
 			}
