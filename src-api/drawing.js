@@ -47,7 +47,7 @@
 			},
 			update: function(geometry, text)
 			{
-				//this.properties = { text: text, isVisible: ret.isVisible };
+				if(!geometry) return;				// Если нет geometry ничего не делаем
 				this.properties.text = text;
 				this.properties.isVisible = ret.isVisible;
 				this.geometry = geometry;
