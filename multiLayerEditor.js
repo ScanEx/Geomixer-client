@@ -156,63 +156,68 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
         
         var scriptName = isCreate ? "Insert.ashx" : "Update.ashx";
         
-        sendCrossDomainJSONRequest(serverBase + "MultiLayer/" + scriptName + "?MultiLayerInfo=" + encodeURIComponent(JSON.stringify(updateInfo)), function(response)
-        {
-            if ( !parseResponse(response) ) 
-                return;
-                
-            var layerDiv = null;
-            
-            if (!isCreate)
+        sendCrossDomainPostRequest(serverBase + "MultiLayer/" + scriptName, {
+                WrapStyle: 'window',
+                MultiLayerInfo: JSON.stringify(updateInfo)
+            }, 
+            function(response)
             {
-                layerDiv = $(_queryMapLayers.buildedTree).find("[MultiLayerID='" + response.Result.properties.MultiLayerID + "']")[0];
-            }
+                if ( !parseResponse(response) ) 
+                    return;
+                    
+                var layerDiv = null;
                 
-            var newLayerProperties = $.extend(true, response.Result.properties,
-            {
-                mapName:  mapHelper.mapProperties.name,
-                hostName: mapHelper.mapProperties.hostName,
-                visible:  isCreate ? true : layerDiv.gmxProperties.content.properties.visible,
-                styles:   isCreate ? [{MinZoom: response.Result.properties.MinZoom, MaxZoom: response.Result.properties.MaxZoom}] : layerDiv.gmxProperties.content.properties.styles
-            });
-            var convertedCoords = from_merc_geometry(response.Result.geometry);
-            
-            var layerData = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}};
-            
-            if (!isCreate)
-                _queryMapLayers.removeLayer(newLayerProperties.name);
+                if (!isCreate)
+                {
+                    layerDiv = $(_queryMapLayers.buildedTree).find("[MultiLayerID='" + response.Result.properties.MultiLayerID + "']")[0];
+                }
+                    
+                var newLayerProperties = $.extend(true, response.Result.properties,
+                {
+                    mapName:  mapHelper.mapProperties.name,
+                    hostName: mapHelper.mapProperties.hostName,
+                    visible:  isCreate ? true : layerDiv.gmxProperties.content.properties.visible,
+                    styles:   isCreate ? [{MinZoom: response.Result.properties.MinZoom, MaxZoom: response.Result.properties.MaxZoom}] : layerDiv.gmxProperties.content.properties.styles
+                });
+                var convertedCoords = from_merc_geometry(response.Result.geometry);
+                
+                var layerData = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}};
+                
+                if (!isCreate)
+                    _queryMapLayers.removeLayer(newLayerProperties.name);
 
-            _layersTree.addLayersToMap(layerData);
-            
-            var divParent = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
-            
-            var li = _layersTree.getChildsList(layerData, divParent.gmxProperties, false, true);
-            
-            
-            
-            var divElem = $(li).children("div[MultiLayerID]")[0],
-                index = _mapHelper.findTreeElem(divElem).index;
+                _layersTree.addLayersToMap(layerData);
                 
-            if (isCreate)
-            {
-                _abstractTree.addNode(_queryMapLayers.buildedTree.firstChild, li);
-                _mapHelper.addTreeElem(divParent, index, layerData);
-            }
-            else
-            {
-                $(layerDiv.parentNode).replaceWith(li);
-                _mapHelper.findTreeElem($(li).children("div[MultiLayerID]")[0]).elem = layerData;
-            }
+                var divParent = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
                 
-            _queryMapLayers.addSwappable(li);
-            _queryMapLayers.addDraggable(li);
-            _layersTree.updateListType(li);
-            _mapHelper.updateUnloadEvent(true);
-            
-            $(jQueryDialog).dialog("close");
-			$(jQueryDialog).dialog("destroy");
-            jQueryDialog.removeNode(true);
-        });
+                var li = _layersTree.getChildsList(layerData, divParent.gmxProperties, false, true);
+                
+                
+                
+                var divElem = $(li).children("div[MultiLayerID]")[0],
+                    index = _mapHelper.findTreeElem(divElem).index;
+                    
+                if (isCreate)
+                {
+                    _abstractTree.addNode(_queryMapLayers.buildedTree.firstChild, li);
+                    _mapHelper.addTreeElem(divParent, index, layerData);
+                }
+                else
+                {
+                    $(layerDiv.parentNode).replaceWith(li);
+                    _mapHelper.findTreeElem($(li).children("div[MultiLayerID]")[0]).elem = layerData;
+                }
+                    
+                _queryMapLayers.addSwappable(li);
+                _queryMapLayers.addDraggable(li);
+                _layersTree.updateListType(li);
+                _mapHelper.updateUnloadEvent(true);
+                
+                $(jQueryDialog).dialog("close");
+                $(jQueryDialog).dialog("destroy");
+                jQueryDialog.removeNode(true);
+            }
+        );
     }
     
     var divProperties = _div();
