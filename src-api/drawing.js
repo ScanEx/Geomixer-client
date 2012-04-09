@@ -26,6 +26,15 @@
 	var objects = {};
 	var drawFunctions = {};
 
+	gmxAPI._listeners.addListener(null, 'mapInit', function(map){
+		gmxAPI._listeners.addListener(map, 'beforeToolSelect', function(){
+			for (var id in objects) {
+				var cObj = objects[id];
+				if(!cObj.geometry) cObj.remove();
+			}
+		});
+	});
+
 	var createDOMObject = function(ret, properties)
 	{
 		var myId = gmxAPI.newFlashMapId();
@@ -994,8 +1003,11 @@
 		},
 		forEachObject: function(callback)
 		{
-			for (var id in objects)
-				callback(objects[id]);
+			if(!callback) return;
+			for (var id in objects) {
+				var cObj = objects[id];
+				if(cObj.geometry) callback(cObj);
+			}
 		},
 		tools: { 
 			setVisible: function(flag) 
