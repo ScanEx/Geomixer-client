@@ -300,7 +300,7 @@ scrollTable.prototype._drawHeader = function()
 				
 				_this._drawTable()
                 
-                $(_this).trigger('sortChange');
+                $(_this).triggerHandler('sortChange');
 			}
 		}
 		else

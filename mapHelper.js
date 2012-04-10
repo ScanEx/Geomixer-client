@@ -3023,23 +3023,23 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				addAttribute: function(type, name)
 				{
 					_attributes.push({type: type, name: name});
-					$(this).trigger('newAttribute');
+					$(this).triggerHandler('newAttribute');
 				},
 				changeName: function(idx, newName)
 				{
 					_attributes[idx].name = newName;
-					$(this).trigger('updateAttribute');
+					$(this).triggerHandler('updateAttribute');
 				},
 				changeType: function(idx, newType)
 				{
 					_attributes[idx].type = newType;
-					$(this).trigger('updateAttribute');
+					$(this).triggerHandler('updateAttribute');
 				},
 				deleteAttribute: function(idx)
 				{
 					//delete _attributes[idx];
 					_attributes.splice(idx, 1);
-					$(this).trigger('delAttribute');
+					$(this).triggerHandler('delAttribute');
 				},
 				getAttribute: function(idx){ return _attributes[idx]; },
 				getCount: function(){ return _attributes.length; }

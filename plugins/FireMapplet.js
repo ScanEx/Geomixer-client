@@ -151,7 +151,7 @@ var SearchBboxControl = function(map)
 		_extent = newExtent;
 		
 		if ( changed && !keepSilence )
-			$(_this).trigger('change');
+			$(_this).triggerHandler('change');
 	};
 	
 	var _bindDrawing = function( elem )
@@ -318,7 +318,7 @@ var AggregateStatus = function()
 		_statusCommon = newStatus;
 			
 		if (isStatusChanged) 
-			$(_this).trigger('change');
+			$(_this).triggerHandler('change');
 	}
 	
 	//public
@@ -1216,7 +1216,7 @@ var FireControl = function(map)
 	this._initDeferred = new $.Deferred();
 	
 	FireControlCollection.instances.push(this);
-	$(FireControlCollection).trigger('newInstance');
+	$(FireControlCollection).triggerHandler('newInstance');
 }
 
 var FireControlCollection = {instances: []};

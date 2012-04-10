@@ -104,7 +104,7 @@ var nsGmx = nsGmx || {};
         this.setUserInfo = function(userInfo)
         {
             _userInfo = $.extend({}, {IsAccounts: false, Role: this.ROLE_UNAUTHORIZED}, userInfo);
-            $(this).trigger('change');
+            $(this).triggerHandler('change');
         };        
         
         this.checkUserInfo = function(callback, errorCallback)

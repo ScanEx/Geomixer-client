@@ -42,7 +42,7 @@ var Calendar = function()
 			},
 			setMode: function(mode) { 
 				curMode = mode;
-				$(this).trigger('change');
+				$(this).triggerHandler('change');
 			},
 			toggleMode: function() 
 			{
@@ -254,7 +254,7 @@ var Calendar = function()
 		this.updateBegin();
 		
 		if (!keepSilence) 
-			$(this).trigger('change');
+			$(this).triggerHandler('change');
 	}
 	
 	this.getModeController = function()
@@ -302,7 +302,7 @@ Calendar.prototype.init = function( name, params )
 	
 	this.lazyDate.onchange = function() {
 		_this.updateBegin();
-		$(_this).trigger('change');
+		$(_this).triggerHandler('change');
 	}
 	
 	this.yearBox = _checkbox(false, 'checkbox');
@@ -329,7 +329,7 @@ Calendar.prototype.init = function( name, params )
 		onSelect: function(dateText, inst) 
 		{
 			_this.selectFunc(inst);
-			$(_this).trigger('change');
+			$(_this).triggerHandler('change');
 		},
 		showAnim: 'fadeIn',
 		changeMonth: true,
@@ -602,7 +602,7 @@ Calendar.prototype.firstClickFunc = function()
 		}
 	}
 	
-	$(this).trigger('change');
+	$(this).triggerHandler('change');
 }
 
 Calendar.prototype.lastClickFunc = function()
@@ -662,7 +662,7 @@ Calendar.prototype.lastClickFunc = function()
 		}
 	}
 	
-	$(this).trigger('change');
+	$(this).triggerHandler('change');
 }
 
 Calendar.prototype.selectFunc = function(inst)

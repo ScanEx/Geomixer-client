@@ -180,18 +180,18 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 			data.properties.hostName = hostName;
 			
 			callback(data);
-			$(_queryExternalMaps).trigger('map_loaded', data);
+			$(_queryExternalMaps).triggerHandler('map_loaded', data);
 		}
 		else
 		{
 			callback(null);
-			$(_queryExternalMaps).trigger('map_loaded', null);
+			$(_queryExternalMaps).triggerHandler('map_loaded', null);
 		}
 	}, 
 	function()
 	{
 		callback(null);
-		$(_queryExternalMaps).trigger('map_loaded', null);
+		$(_queryExternalMaps).triggerHandler('map_loaded', null);
 	});
 }
 
