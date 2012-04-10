@@ -3,6 +3,8 @@
 {
 	var outlineColor = 0x0000ff;
 	var fillColor = 0xffffff;
+	var currentDOMObject = null;		// текущий обьект рисования
+	
 	var regularDrawingStyle = {
 		marker: { size: 3 },
 		outline: { color: outlineColor, thickness: 3, opacity: 80 },
@@ -26,14 +28,17 @@
 	var objects = {};
 	var drawFunctions = {};
 
-	gmxAPI._listeners.addListener(null, 'mapInit', function(map){
-		gmxAPI._listeners.addListener(map, 'beforeToolSelect', function(){
-			for (var id in objects) {
-				var cObj = objects[id];
-				if(!cObj.geometry) cObj.remove();
-			}
-		});
-	});
+	var chkDrawingObjects = function() {
+		for (var id in objects) {
+			var cObj = objects[id];
+			if(!cObj.geometry) cObj.remove();
+		}
+	};
+	var endDrawing = function() {			// Вызывается при выходе из режима редактирования
+		chkDrawingObjects();
+		//gmxAPI._listeners.dispatchEvent('endDrawing', drawing, currentDOMObject);	// Генерация события выхода из режима редактирования
+		currentDOMObject = null;
+	};
 
 	var createDOMObject = function(ret, properties)
 	{
@@ -82,7 +87,7 @@
 			addListener: function(eventName, func) { return gmxAPI._listeners.addListener(this, eventName, func); },
 			removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
 		}
-		ret.domObj = objects[myId];
+		currentDOMObject = ret.domObj = objects[myId];
 		return objects[myId];
 	}
 
@@ -664,8 +669,8 @@
 			text = "";
 
 		var ret = {};
-		toolsContainer.currentlyDrawnObject = ret;
 		var domObj;
+		toolsContainer.currentlyDrawnObject = ret;
 
 		var obj = gmxAPI.map.addObject();
 		gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'FRAME'} });
@@ -942,14 +947,15 @@
 		);
 		return ret;
 	}
+
 	drawFunctions["move"] = function()
 	{
 	}
 
-
 	var drawing = {
 		handlers: { onAdd: [], onEdit: [], onRemove: [] },
 		mouseState: 'up',
+		endDrawing: endDrawing,
 		stateListeners: {},
 		addListener: function(eventName, func) { return gmxAPI._listeners.addListener(this, eventName, func); },
 		removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); },

@@ -165,7 +165,7 @@
 				'regularImageUrl': apiBase + "img/marker_tool.png",
 				'activeImageUrl': apiBase + "img/marker_tool_a.png",
 				'onClick': gmxAPI._drawFunctions['POINT'],
-				'onCancel': function() {},
+				'onCancel': gmxAPI._drawing.endDrawing,
 				'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
 			}
 			,
@@ -176,7 +176,7 @@
 				'regularImageUrl': apiBase + "img/line_tool.png",
 				'activeImageUrl': apiBase + "img/line_tool_a.png",
 				'onClick': gmxAPI._drawFunctions['LINESTRING'],
-				'onCancel': function() {},
+				'onCancel': gmxAPI._drawing.endDrawing,
 				'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
 			}
 			,
@@ -187,7 +187,7 @@
 				'regularImageUrl': apiBase + "img/polygon_tool.png",
 				'activeImageUrl': apiBase + "img/polygon_tool_a.png",
 				'onClick': gmxAPI._drawFunctions['POLYGON'],
-				'onCancel': function() {},
+				'onCancel': gmxAPI._drawing.endDrawing,
 				'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Полигон", "Polygon")
 			}
 			,
@@ -198,7 +198,7 @@
 				'regularImageUrl': apiBase + "img/frame_tool.png",
 				'activeImageUrl': apiBase + "img/frame_tool_a.png",
 				'onClick': gmxAPI._drawFunctions['FRAME'],
-				'onCancel': function() {},
+				'onCancel': gmxAPI._drawing.endDrawing,
 				'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
 			}
 		];
@@ -208,7 +208,13 @@
 		}
 		standartTools.selectTool("move");
 		this.standartTools = standartTools;
-
+/*		
+		gmxAPI._listeners.addListener(gmxAPI._drawing, 'endDrawing', function(ph)
+			{
+				if(ph) standartTools.selectTool("move");
+			}
+		);
+*/
 		var regularStyle = {
 			paddingTop: "4px", 
 			paddingBottom: "4px", 

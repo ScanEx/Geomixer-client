@@ -92,7 +92,6 @@
 		
 		var selectTool = function(toolName)
 		{
-			gmxAPI._listeners.dispatchEvent('beforeToolSelect', gmxAPI.map, toolName);	// Перед выбором Tool можно выполнить какие либо действия
 			if (name == 'standart') {	// только для колонки 'standart'
 				if (toolName == activeToolName) toolName = (toolNames.length > 0 ? toolNames[0] : '');	// если toolName совпадает с активным tool переключаем на 1 tool
 
