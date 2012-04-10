@@ -251,7 +251,7 @@ CoverControl2.prototype.add = function(parent)
 	this._parent = parent;
 	this._updateStyles();
 	this._addWidget();
-    $(this).trigger('init');
+    $(this).triggerHandler('init');
 }
 
 CoverControl2.prototype.getContainer = function()
