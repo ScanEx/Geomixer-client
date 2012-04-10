@@ -445,13 +445,14 @@ var DrawingObjectGeomixer = function() {
 	/** Встраивает список объектов на карте в геомиксер*/
 	this.Init = function(map){
 		oMap = map;
+		oCollection = new DrawingObjectCollection(map);
+		
 		oMap.drawing.forEachObject(function(ret){
 			fnAddToCollection(ret);
 		});
 		
 		oMap.drawing.setHandlers({onAdd: fnAddToCollection});
 		
-        oCollection = new DrawingObjectCollection(map);
         $(oCollection).bind('onAdd', function (){
             if(!bVisible) _this.Load();
         });
