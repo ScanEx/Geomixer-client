@@ -864,7 +864,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 					
 					_this.mapHelper.findChilds(_this.mapHelper.findTreeElem(span.parentNode.parentNode).elem, function(child)
 					{
-						if (child.type == 'layer' && child.content.properties.LayerID)
+						if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) )
 						{
 							var layer = globalFlashMap.layers[child.content.properties.name],
 								layerBounds = layer.bounds;
