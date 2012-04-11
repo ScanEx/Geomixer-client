@@ -567,6 +567,28 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 		elem: elem, 
 		tree: this
 	});
+    
+    var borderDescr = _span();
+    if (elem.MetaProperties)
+    {
+        var props = {};
+        var count = 0;
+        for (key in elem.MetaProperties)
+        {
+            var tagtype = elem.MetaProperties[key].Type;
+            props[key] = nsGmx.LayerTagSearchControl.convertFromServer(tagtype, elem.MetaProperties[key].Value);
+            count++;
+        }
+        
+        if (count)
+        {
+            _(borderDescr, [_t('i')], [['css','fontWeight','bold'],['css','fontStyle','italic'],['css','margin','0px 5px'],['css','cursor','pointer']]);
+            borderDescr.onclick = function()
+            {
+                _this.showLayerInfo({properties:elem}, {properties: props});
+            }
+        }
+    }    
 		
 	if (elem.type == "Vector")
 	{
@@ -603,30 +625,12 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 		}
         
         if (this._renderParams.showVisibilityCheckbox)
-			return [box, iconSpan, spanParent, spanDescr, multiStyleParent];
+			return [box, iconSpan, spanParent, spanDescr, borderDescr, multiStyleParent];
 		else
-			return [iconSpan, spanParent, spanDescr, multiStyleParent];
+			return [iconSpan, spanParent, spanDescr, borderDescr, multiStyleParent];
 	}
 	else
 	{
-		var borderDescr = _span();
-		
-        if (elem.MetaProperties)
-        {
-            var props = {};
-            for (key in elem.MetaProperties)
-            {
-                var tagtype = elem.MetaProperties[key].Type;
-                props[key] = nsGmx.LayerTagSearchControl.convertFromServer(tagtype, elem.MetaProperties[key].Value);
-            }
-                
-            _(borderDescr, [_t('i')], [['css','fontWeight','bold'],['css','fontStyle','italic'],['css','margin','0px 5px'],['css','cursor','pointer']]);
-            borderDescr.onclick = function()
-			{
-				_this.showLayerInfo({properties:elem}, {properties: props}, false, elem.identityField);
-			}
-        }
-		
 		if (this._renderParams.showVisibilityCheckbox)
 			return [box, spanParent, spanDescr, borderDescr];
 		else
@@ -641,70 +645,31 @@ layersTree.prototype.downloadVectorLayer = function(name, mapHostName)
 			"?t=" + layer.properties.name;
 }
 
-//При клике на объекте показывает аттрибутивную информацию объекта в виде красивой таблицы. 
-//На данный момент нигде не используется
-layersTree.prototype.showInfo = function(layer)
-{
-	if (layer.properties.type != 'Vector')
-		return;
-	
-	if (layer.properties.Quicklook != null && layer.properties.Quicklook != '')
-		return;
-	
-	var _this = this;
-	
-	layer.setHandler("onClick", function(obj)
-	{
-		_this.showLayerInfo(layer, obj, true, layer.properties.identityField)
-	})
-}
-
 //Показывает аттрибутивную информацию объекта в виде таблички в отдельном диалоге
-layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag, identityField)
+layersTree.prototype.showLayerInfo = function(layer, obj)
 {
 	var trs = [];
     var typeSpans = {};
 	for (var key in obj.properties)
-		if (geoInfoFlag || (key != identityField && key != 'PLCH' && key != 'Field1' && obj.properties[key] != '' &&  obj.properties[key] != null))
-		{
-			var content = _div(),
-				contentText = String(obj.properties[key]);
-			
-			if (contentText.indexOf("http://") == 0 || contentText.indexOf("www.") == 0)
-				contentText = "<a href=\"" + contentText + "\" target=\"_blank\">" + contentText + "</a>";
-			
-			content.innerHTML = contentText;
-            
-            var typeSpan = _span([_t(key)]);
-            
-            typeSpans[key] = typeSpan;
-			
-			trs.push(_tr([_td([typeSpan], [['css','width','30%']]), _td([content], [['css','width','70%']])]));
-		}
+    {
+        var content = _div(),
+            contentText = String(obj.properties[key]);
+        
+        if (contentText.indexOf("http://") == 0 || contentText.indexOf("www.") == 0)
+            contentText = "<a href=\"" + contentText + "\" target=\"_blank\">" + contentText + "</a>";
+        
+        content.innerHTML = contentText;
+        
+        var typeSpan = _span([_t(key)]);
+        
+        typeSpans[key] = typeSpan;
+        
+        trs.push(_tr([_td([typeSpan], [['css','width','30%']]), _td([content], [['css','width','70%']])]));
+    }
 	
 	var title = _span(null, [['dir','className','title'], ['css','cursor','default']]),
 		summary = _span(null, [['dir','className','summary']]),
 		div;
-	
-	if (geoInfoFlag)
-	{
-		if (layer.properties.GeometryType == "point")
-		{
-			_(title, [_t(_gtxt("Координаты"))]);
-			var coords = obj.getGeometry().coordinates;
-			_(summary, [_t(formatCoordinates(merc_x(coords[0]), merc_y(coords[1])))]);
-		}
-		else if (layer.properties.GeometryType == "linestring")
-		{
-			_(title, [_t(_gtxt("Длина"))]);
-			_(summary, [_t(prettifyDistance(obj.getLength()))]);
-		}
-		else if (layer.properties.GeometryType == "polygon")
-		{
-			_(title, [_t(_gtxt("Площадь"))]);
-			_(summary, [_t(prettifyArea(obj.getArea()))]);
-		}
-	}
 	
 	if ($$('layerPropertiesInfo'))
 	{
@@ -719,10 +684,7 @@ layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag, identityF
 		
 		removeChilds(div);
 		
-		_(div, [_div([title], [['css','padding','5px 0px'],['dir','className','drawingObjectsCanvas']]),_table([_tbody(trs)], [['dir','className','vectorInfoParams']])]);
-		
-		if (geoInfoFlag)
-			_(div.firstChild, [summary]);
+		_(div, [_table([_tbody(trs)], [['dir','className','vectorInfoParams']])]);
 		
 		if (layer.properties.type == "Raster" && layer.properties.Legend)
 		{
@@ -746,10 +708,7 @@ layersTree.prototype.showLayerInfo = function(layer, obj, geoInfoFlag, identityF
 		if (!trs.length && !(layer.properties.type == "Raster" && layer.properties.Legend))
 			return;
 		
-		div = _div([_div([title], [['css','padding','5px 0px'],['dir','className','drawingObjectsCanvas']]),_table([_tbody(trs)], [['dir','className','vectorInfoParams']])], [['attr','id','layerPropertiesInfo']]);
-		
-		if (geoInfoFlag)
-			_(div.firstChild, [summary]);
+		div = _div([_table([_tbody(trs)], [['dir','className','vectorInfoParams']])], [['attr','id','layerPropertiesInfo']]);
 
 		if (layer.properties.type == "Raster" && layer.properties.Legend)
 		{
@@ -1548,8 +1507,6 @@ layersTree.prototype.addLayersToMap = function(elem)
 			
 			globalFlashMap.layers[name].setVisible(visibility);
 			globalFlashMap.layers[name].bounds = getLayerBounds( elem.content.geometry.coordinates[0], globalFlashMap.layers[name]);
-			
-			//this.showInfo(globalFlashMap.layers[name])
 		}
 		else
 		{
@@ -2076,8 +2033,6 @@ queryMapLayers.prototype.asyncCreateLayer = function(taskInfo, title)
 	
 		_mapHelper.addTreeElem(divParent, index, {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}});
 		
-		//_layersTree.showInfo(newLayer)
-
 		_queryMapLayers.addSwappable(li);
 		
 		_queryMapLayers.addDraggable(li);
@@ -2188,16 +2143,6 @@ queryMapLayers.prototype.removeLayer = function(name)
 queryMapLayers.prototype.getLayers = function()
 {
     this.createLayersManager();
-	// if (!$$('layersList'))
-		// sendCrossDomainJSONRequest(serverBase + "Layer/GetLayers.ashx?WrapStyle=func", function(response)
-        // {
-            // if (!parseResponse(response))
-            // return;
-        
-            // _queryMapLayers.layersList = response.Result.Layers.concat(response.Result.MultiLayers);
-
-            // _queryMapLayers.createLayersManager();
-        // })
 }
 
 queryMapLayers.prototype.createLayersManager = function()
