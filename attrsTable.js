@@ -490,10 +490,10 @@ attrsTable.prototype.editObject = function(row)
             
             if (origGeomString !== curGeomString)
             {
-                showErrorMessage(_gtxt("Геометрия не сохранена. Эта возможность будет реализована в будущих версиях Геомиксера."));
+                //showErrorMessage(_gtxt("Геометрия не сохранена. Эта возможность будет реализована в будущих версиях Геомиксера."));
                 //var div = $("<div/>").text(_gtxt("Геометрия не сохранена. Эта возможность будет реализована в будущих версиях платформы."));
-                //showDialog(_gtxt("", this.layerTitle), canvas, 800, 500, false, false, function(){_this.resizeFunc.apply(_this,arguments)})                
-                //obj.geometry = gmxAPI.merc_geometry(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
+                //showDialog(_gtxt("", this.layerTitle), canvas, 800, 500, false, false, function(){_this.resizeFunc.apply(_this,arguments)});
+                obj.geometry = gmxAPI.merc_geometry(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
             }
         }
             
@@ -576,7 +576,7 @@ attrsTable.prototype.editObject = function(row)
 				{
                     //временно отключаем выбор геометрии...
                     
-					// var objectEdit = _span(null, [['attr','id','objectEdit' + _this.layerName + geometryRow[1]],['css','color','#215570'],['css','marginLeft','3px'],['css','fontSize','12px']]);
+					var objectEdit = _span(null, [['attr','id','objectEdit' + _this.layerName + geometryRow[1]],['css','color','#215570'],['css','marginLeft','3px'],['css','fontSize','12px']]);
 
 					if (geometryRow[0].type == "POINT" || geometryRow[0].type == "LINESTRING" || geometryRow[0].type == "POLYGON")
 					{
@@ -596,27 +596,27 @@ attrsTable.prototype.editObject = function(row)
 						
 						_this.drawingBorders['ogc_fid' + geometryRow[1]] = drawingBorder;
 						
-						// _this.updateObjectGeometry(geometryRow[1], objectEdit);
+						_this.updateObjectGeometry(geometryRow[1], objectEdit);
 						
-						// _(tdValue, [objectEdit]);
+						_(tdValue, [objectEdit]);
 					}
-					// else
-					// {
-						// var info = _span([_t(geometryRow[0].type)], [['css','marginLeft','3px'],['css','fontSize','12px']]);
+					else
+					{
+						var info = _span([_t(geometryRow[0].type)], [['css','marginLeft','3px'],['css','fontSize','12px']]);
 						
-						// _title(info, JSON.stringify(geometryRow[0].coordinates));
-					// }
+						_title(info, JSON.stringify(geometryRow[0].coordinates));
+					}
 					
-					// var drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
+					var drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
 					
-					// drawingBorderLink.onclick = function()
-					// {
-						// _this.chooseDrawingBorderDialog(geometryRow[1]);
-					// }
+					drawingBorderLink.onclick = function()
+					{
+						_this.chooseDrawingBorderDialog(geometryRow[1]);
+					}
 					
-					// drawingBorderLink.style.margin = '0px 5px 0px 3px';
+					drawingBorderLink.style.margin = '0px 5px 0px 3px';
                     
-					// trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), tdValue]))
+					trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), tdValue]))
 				}
 				else if (i == 1)
 				{
