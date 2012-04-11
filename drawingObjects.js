@@ -446,6 +446,9 @@ var DrawingObjectGeomixer = function() {
 	this.Init = function(map){
 		oMap = map;
 		oCollection = new DrawingObjectCollection(map);
+        $(oCollection).bind('onAdd', function (){
+            if(!bVisible) _this.Load();
+        });
 		
 		oMap.drawing.forEachObject(function(ret){
 			fnAddToCollection(ret);
@@ -453,9 +456,6 @@ var DrawingObjectGeomixer = function() {
 		
 		oMap.drawing.setHandlers({onAdd: fnAddToCollection});
 		
-        $(oCollection).bind('onAdd', function (){
-            if(!bVisible) _this.Load();
-        });
         
         $(oCollection).bind('onRemove', checkDownloadRaster);
         $(oCollection).bind('onAdd', function(event, drawingObject){ 
