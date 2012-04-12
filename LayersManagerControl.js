@@ -213,7 +213,7 @@ var LayerManagerControl = function( parentDiv, name, params )
 	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','185px']]),
 		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','185px']]);
 	
-	var typeSel = _select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
+	var typeSel = nsGmx.Utils._select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
 					   _option([_t(_gtxt("Векторный"))], [['attr','value','vector']]),
 					   _option([_t(_gtxt("Растровый"))], [['attr','value','raster']]),
 					   _option([_t(_gtxt("Мультислой"))], [['attr','value','multilayer']])], [['dir','className','selectStyle'], ['css','width','100px']]);

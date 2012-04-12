@@ -782,7 +782,7 @@ queryServerData.prototype.customWMSParamsManager = (function()
 	return {
 		init: function(targetDiv) 
 		{
-			var select = _select([_option([_t('png')]), _option([_t('jpeg')])], [['dir','className','selectStyle'], ['css', 'width', '60px']]);
+			var select = nsGmx.Utils._select([_option([_t('png')]), _option([_t('jpeg')])], [['dir','className','selectStyle'], ['css', 'width', '60px']]);
 			_targetDiv = targetDiv;
 			_(_targetDiv, [_t(_gtxt('Формат изображения') + ': '), select]);
 			_targetDiv.style.marginBottom = '5px';
@@ -816,7 +816,7 @@ queryServerData.prototype.drawWFS = function(serviceLayers, url, replaceElem, lo
 	
 	_(ulCanvas, [_li([_div([_span([_t(url.length < 45 ? url : url.substr(0, 45) + '...')],[['dir','className','urlHeader']]), divFormat, remove],[['css','position','relative']]), ulChilds])]);
 	
-	var formatSelect = _select([_option([_t("JSON")], [['attr','value','json']]),
+	var formatSelect = nsGmx.Utils._select([_option([_t("JSON")], [['attr','value','json']]),
 								_option([_t("GML / KML")], [['attr','value','gml']])], [['dir','className','selectStyle'],['css','width','100px']])
 	
 	_(divFormat, [_table([_tbody([_tr([_td([formatSelect])])])], [['css','marginLeft','5px']])])

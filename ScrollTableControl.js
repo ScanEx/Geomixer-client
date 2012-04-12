@@ -116,7 +116,7 @@ var scrollTable = function( params )
 		return button;
 	}
 	
-	this.limitSel = _select([_option([_t("10")], [['attr','value',10]]),
+	this.limitSel = nsGmx.Utils._select([_option([_t("10")], [['attr','value',10]]),
 							 _option([_t("20")], [['attr','value',20]]),
 							 _option([_t("50")], [['attr','value',50]]),
 							 _option([_t("100")], [['attr','value',100]]),

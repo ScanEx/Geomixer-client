@@ -482,19 +482,29 @@ attrsTable.prototype.editObject = function(row)
 			properties[elem.rowName] = $(elem).val();
 		});
 		
-        var obj = {action: 'update', properties: properties, id: row[0]};
-        if ( 'ogc_fid' + row[0] in _this.drawingBorders)
+        var obj = { action: row ? 'update': 'insert', properties: properties };
+        
+        if (row)
         {
-            var curGeomString = JSON.stringify(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
-            var origGeomString = JSON.stringify(_this.originalGeometry['ogc_fid' + row[0]]);
-            
-            if (origGeomString !== curGeomString)
+            obj.id = row[0];
+            if ( 'ogc_fid' + row[0] in _this.drawingBorders)
             {
-                //showErrorMessage(_gtxt("Геометрия не сохранена. Эта возможность будет реализована в будущих версиях Геомиксера."));
-                //var div = $("<div/>").text(_gtxt("Геометрия не сохранена. Эта возможность будет реализована в будущих версиях платформы."));
-                //showDialog(_gtxt("", this.layerTitle), canvas, 800, 500, false, false, function(){_this.resizeFunc.apply(_this,arguments)});
-                obj.geometry = gmxAPI.merc_geometry(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
+                var curGeomString = JSON.stringify(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
+                var origGeomString = JSON.stringify(_this.originalGeometry['ogc_fid' + row[0]]);
+                
+                if (origGeomString !== curGeomString)
+                {
+                    //showErrorMessage(_gtxt("Геометрия не сохранена. Эта возможность будет реализована в будущих версиях Геомиксера."));
+                    //var div = $("<div/>").text(_gtxt("Геометрия не сохранена. Эта возможность будет реализована в будущих версиях платформы."));
+                    //showDialog(_gtxt("", this.layerTitle), canvas, 800, 500, false, false, function(){_this.resizeFunc.apply(_this,arguments)});
+                    obj.geometry = gmxAPI.merc_geometry(_this.drawingBorders['ogc_fid' + row[0]].getGeometry());
+                }
             }
+        } 
+        else
+        {
+            if ('ogc_fid0' in _this.drawingBorders)
+                obj.geometry = gmxAPI.merc_geometry(_this.drawingBorders['ogc_fid0'].getGeometry());
         }
             
 		var objects = JSON.stringify([obj]);

@@ -273,7 +273,7 @@ Calendar.prototype.init = function( params )
 {
 	var _this = this;
 	
-	this.lazyDate = _select([_option([_t(_gtxt("calendarWidget.Custom"))],[['attr','value','']]),
+	this.lazyDate = nsGmx.Utils._select([_option([_t(_gtxt("calendarWidget.Custom"))],[['attr','value','']]),
 								_option([_t(_gtxt("calendarWidget.Day"))],[['attr','value','day']]),
 								_option([_t(_gtxt("calendarWidget.Week"))],[['attr','value','week']]),
 								_option([_t(_gtxt("calendarWidget.Month"))],[['attr','value','month']]),

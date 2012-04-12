@@ -200,7 +200,7 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 	var canvas = _div(null, [['attr','id','securityDialog']]),
 		_this = this;
 	
-	this.mapTypeSel = _select(null, [['dir','className','selectStyle'],['css','width','160px']]);
+	this.mapTypeSel = nsGmx.Utils._select(null, [['dir','className','selectStyle'],['css','width','160px']]);
 	
 	for (var i = 0; i < securityInfo.SecurityDescription.Types.length; ++i)
 		_(this.mapTypeSel, [_option([_t(securityInfo.SecurityDescription.Types[i][1])],[['attr','value',securityInfo.SecurityDescription.Types[i][0]]])])
@@ -546,7 +546,7 @@ security.prototype.drawMapUsers = function(user, securityScope)
 	var remove = makeImageButton('img/closemin.png', 'img/close_orange.png'),
 		tdRemove = user.Login == nsGmx.AuthManager.getLogin() ? _td() : _td([remove]),
 		maxLayerWidth = this.tableHeader.firstChild.childNodes[0].offsetWidth + 'px',
-		accessSel = _select(null, [['dir','className','selectStyle'],['css','width','110px']]),
+		accessSel = nsGmx.Utils._select(null, [['dir','className','selectStyle'],['css','width','110px']]),
         isShowFullname = nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_USER_FULLNAME),
 		tr,
 		_this = this;

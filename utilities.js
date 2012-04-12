@@ -1,107 +1,115 @@
 var nsGmx = nsGmx || {};
+nsGmx.Utils = nsGmx.Utils || {};
 
-// _el(nodeName, [childs], [attrs])
-function _el(str, childs, attributes)
+(function()
 {
-	var el = document.createElement(str),
-		children = childs,
-		attrs = attributes;
-	
-	if (children)
-		_childs(el, children)
-		
-	if (attrs && attrs.length)
-		_attr(el, attrs)
-	
-	return el;
-}
-// _(elem, [childs], [attrs])
-function _(ent,childs,attributes)
-{
-	var el = ent,
-		children = childs,
-		attrs = attributes;
+    var domManipulation = {
+        // _el(nodeName, [childs], [attrs])
+        _el: function(str, childs, attributes)
+        {
+            var el = document.createElement(str),
+                children = childs,
+                attrs = attributes;
+            
+            if (children)
+                _childs(el, children)
+                
+            if (attrs && attrs.length)
+                _attr(el, attrs)
+            
+            return el;
+        },
+        // _(elem, [childs], [attrs])
+        _: function(ent,childs,attributes)
+        {
+            var el = ent,
+                children = childs,
+                attrs = attributes;
 
-	if (children)
-		_childs(el, children)
-		
-	if (attrs && attrs.length)
-		_attr(el, attrs)
-	
-	return el;
-}
-// _t("some text")
-function _t(str)
-{
-	return document.createTextNode(String(str));
-}
-// children - всегда массив
-function _childs(el, children)
-{
-	for (var i = 0; i < children.length; ++i)
-		el.appendChild(children[i]);
-}
-//[['css','width','100%']]
-//[['dir','className','name']]
-//[['attr','colSpan',2]]
-function _attr(el, attrs)
-{
-	for (var i = 0; i < attrs.length; ++i)
-	{	
-		var atr = attrs[i],
-			type = atr[0];
+            if (children)
+                _childs(el, children)
+                
+            if (attrs && attrs.length)
+                _attr(el, attrs)
+            
+            return el;
+        },
+        // _t("some text")
+        _t: function(str)
+        {
+            return document.createTextNode(String(str));
+        },
+        // children - всегда массив
+        _childs: function(el, children)
+        {
+            for (var i = 0; i < children.length; ++i)
+                el.appendChild(children[i]);
+        },
+        //[['css','width','100%']]
+        //[['dir','className','name']]
+        //[['attr','colSpan',2]]
+        _attr: function(el, attrs)
+        {
+            for (var i = 0; i < attrs.length; ++i)
+            {	
+                var atr = attrs[i],
+                    type = atr[0];
 
-		switch(type)
-		{
-			case 'css':
-				(el.style[atr[1]] = atr[2]);
-				break;
-			case 'dir':
-				el[atr[1]] = atr[2];
-				break;
-			case 'attr':
-				el.setAttribute(atr[1], atr[2]);
-				break;
-		}
-	}
-}
- 
-function _table(children,attrs){return _el('TABLE',children,attrs)}
-function _caption(children,attrs){return _el('CAPTION',children,attrs)}
-function _thead(children,attrs){return _el('THEAD',children,attrs)}
-function _tbody(children,attrs){return _el('TBODY',children,attrs)}
-function _tfoot(children,attrs){return _el('TFOOT',children,attrs)}
-function _textarea(children,attrs){return _el('TEXTAREA',children,attrs)}
-function _th(children,attrs){return _el('TH',children,attrs);} 
-function _tr(children,attrs){return _el('TR',children,attrs);}
-function _td(children,attrs){return _el('TD',children,attrs);}
-function _span(children,attrs){return _el('SPAN',children,attrs);}
-function _label(children,attrs){return _el('LABEL',children,attrs);}
-function _li(children,attrs){return _el('LI',children,attrs);}
-function _ul(children,attrs){return _el('UL',children,attrs);}
-function _div(children,attrs){return _el('DIV',children,attrs);}
-//function _checkbox(attrs){return _el('INPUT',null,(attrs&&attrs.concat([['attr','type','checkbox']]))||[['attr','type','checkbox']]);}
-function _radio(attrs){return _el('INPUT',null,(attrs&&attrs.concat([['attr','type','radio']]))||[['attr','type','radio']])}
-function _button(children,attrs){return _el('BUTTON',children,attrs)}
-function _a(children,attrs){return _el('A',children,attrs)}
-function _select(children,attrs){return _el('SELECT',children,attrs)}
-function _option(children,attrs){return _el('OPTION',children,attrs);}
-function _form(children,attrs){return _el('FORM',children,attrs)}
-function _iframe(children,attrs){return _el('IFRAME',children,attrs)}
-function _image(children,attrs){return _el('IMG',children,attrs)}
-function _img(children,attrs){return _el('IMG',children,attrs)}
-function _br(){return _el('BR')}
-function _hr(){return _el('HR')}
-function _p(children,attrs){return _el('P',children,attrs)}
-function _b(children,attrs){return _el('B',children,attrs)}
-function _i(children,attrs){return _el('I',children,attrs)}
-function _nobr(children,attrs){return _el('NOBR',children,attrs)}
-function _parametrs(children){return _el('PARAMS',children)}
-function _input(children,attrs){return _el('INPUT',children,attrs)}
-function _tinput(attrs){return _el('INPUT',null,(attrs&&attrs.concat([['attr','type','text']]))||[['attr','type','text']])}
-function _embed(children,attrs){return _el('EMBED',children,attrs)}
-function _object(children,attrs){return _el('OBJECT',children,attrs)}
-function _param(children,attrs){return _el('PARAM',children,attrs)}
+                switch(type)
+                {
+                    case 'css':
+                        (el.style[atr[1]] = atr[2]);
+                        break;
+                    case 'dir':
+                        el[atr[1]] = atr[2];
+                        break;
+                    case 'attr':
+                        el.setAttribute(atr[1], atr[2]);
+                        break;
+                }
+            }
+        },        
+        _table: function(children,attrs){return _el('TABLE',children,attrs)},
+        _caption: function(children,attrs){return _el('CAPTION',children,attrs)},
+        _thead: function(children,attrs){return _el('THEAD',children,attrs)},
+        _tbody: function(children,attrs){return _el('TBODY',children,attrs)},
+        _tfoot: function(children,attrs){return _el('TFOOT',children,attrs)},
+        _textarea: function(children,attrs){return _el('TEXTAREA',children,attrs)},
+        _th: function(children,attrs){return _el('TH',children,attrs);} ,
+        _tr: function(children,attrs){return _el('TR',children,attrs);},
+        _td: function(children,attrs){return _el('TD',children,attrs);},
+        _span: function(children,attrs){return _el('SPAN',children,attrs);},
+        _label: function(children,attrs){return _el('LABEL',children,attrs);},
+        _li: function(children,attrs){return _el('LI',children,attrs);},
+        _ul: function(children,attrs){return _el('UL',children,attrs);},
+        _div: function(children,attrs){return _el('DIV',children,attrs);},
+        //_checkbox: function(attrs){return _el('INPUT',null,(attrs&&attrs.concat([['attr','type','checkbox']]))||[['attr','type','checkbox']]);},
+        _radio: function(attrs){return _el('INPUT',null,(attrs&&attrs.concat([['attr','type','radio']]))||[['attr','type','radio']])},
+        _button: function(children,attrs){return _el('BUTTON',children,attrs)},
+        _a: function(children,attrs){return _el('A',children,attrs)},
+        _select: function(children,attrs){return _el('SELECT',children,attrs)},
+        _option: function(children,attrs){return _el('OPTION',children,attrs);},
+        _form: function(children,attrs){return _el('FORM',children,attrs)},
+        _iframe: function(children,attrs){return _el('IFRAME',children,attrs)},
+        _image: function(children,attrs){return _el('IMG',children,attrs)},
+        _img: function(children,attrs){return _el('IMG',children,attrs)},
+        _br: function(){return _el('BR')},
+        _hr: function(){return _el('HR')},
+        _p: function(children,attrs){return _el('P',children,attrs)},
+        _b: function(children,attrs){return _el('B',children,attrs)},
+        _i: function(children,attrs){return _el('I',children,attrs)},
+        _nobr: function(children,attrs){return _el('NOBR',children,attrs)},
+        _parametrs: function(children){return _el('PARAMS',children)},
+        _input: function(children,attrs){return _el('INPUT',children,attrs)},
+        _tinput: function(attrs){return _el('INPUT',null,(attrs&&attrs.concat([['attr','type','text']]))||[['attr','type','text']])},
+        _embed: function(children,attrs){return _el('EMBED',children,attrs)},
+        _object: function(children,attrs){return _el('OBJECT',children,attrs)},
+        _param: function(children,attrs){return _el('PARAM',children,attrs)}
+    }
+    
+    jQuery.extend(window, domManipulation);      //для обратной совместимости
+    jQuery.extend(nsGmx.Utils, domManipulation);
+})();
 
 function isArray(a)
 {
@@ -1025,7 +1033,7 @@ function equals(x, y)
 /**
     @namespace Разнообразные вспомогательные ф-ции
 */
-nsGmx.Utils = {
+$.extend(nsGmx.Utils, {
 
     /**
         Преобразует цвет, заданный в виде числа (0xaabbcc) в строку вида #aabbcc
@@ -1126,7 +1134,7 @@ nsGmx.Utils = {
             callback(response.Result);
         })
     }
-}
+});
 
 if (typeof gmxCore !== 'undefined')
     gmxCore.addModule('utilities', nsGmx.Utils);

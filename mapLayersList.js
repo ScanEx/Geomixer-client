@@ -27,7 +27,7 @@ queryMapLayersList.prototype.load = function()
 	var layerName = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]),
 		layerOwner = _input(null, [['dir','className','inputStyle'],['css','width','100%'], ['css', 'margin', '1px 0px']]);
 
-	var intersectSel = _select(
+	var intersectSel = nsGmx.Utils._select(
 							   [_option([_t(_gtxt("По границе экрана"))], [['attr','value','bounds']]),
 								_option([_t(_gtxt("По центру экрана"))], [['attr','value','center']])], 
 							[['dir','className','selectStyle'], ['css','width','100%'], ['css', 'margin', '1px 0px']]);
@@ -40,7 +40,7 @@ queryMapLayersList.prototype.load = function()
 		_this.reloadList();
 	});
 	
-	var typeSel = _select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
+	var typeSel = nsGmx.Utils._select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
 						   _option([_t(_gtxt("Векторный"))], [['attr','value','Vector']]),
 						   _option([_t(_gtxt("Растровый"))], [['attr','value','Raster']])], [['dir','className','selectStyle'], ['css','width','100%'], ['css', 'margin', '1px 0px']]);
 	

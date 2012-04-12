@@ -1438,7 +1438,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	
 	// label
 	
-	var labelAttrSel = _select([_option([_t('')],[['attr','value','']])],[['dir','className','selectStyle'],['css','width','142px']]),
+	var labelAttrSel = nsGmx.Utils._select([_option([_t('')],[['attr','value','']])],[['dir','className','selectStyle'],['css','width','142px']]),
 		fontSizeInput = _input(null, [['dir','className','inputStyle'],['attr','labelParamName','FontSize'],['css','width','30px'],['attr','value', templateStyle.label && templateStyle.label.size || '']]),
 		checkedLabelColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.color != 'undefined') ? templateStyle.label.color : 0x000000,
 		checkedLabelHaloColor = (typeof templateStyle.label != 'undefined' && typeof templateStyle.label.haloColor != 'undefined') ? templateStyle.label.haloColor : 0x000000,
@@ -2147,7 +2147,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 	outlineTds.push(_td([outlineThick],[['css','width','30px']]));
 	
 	var dashInput = _input(null, [['attr', 'value', templateStyle.outline && typeof templateStyle.outline.dashes != 'undefined' ? templateStyle.outline.dashes : ''],['dir','className','inputStyle'],['css','width','140px']]),
-		dashSelect = _select(null, [['dir','className','selectStyle'],['css','width','50px'],['css','fontSize','12px'],['css','fontWeight','bold']]),
+		dashSelect = nsGmx.Utils._select(null, [['dir','className','selectStyle'],['css','width','50px'],['css','fontSize','12px'],['css','fontWeight','bold']]),
 		borderValues = {
 				"1" : "",
 				"2" : "4,4",
@@ -3062,7 +3062,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			
 			var createTypeSelector = function()
 			{
-				var s = _select(null, [['css', 'width', '100px']]);
+				var s = nsGmx.Utils._select(null, [['css', 'width', '100px']]);
 				for (var type in attrModel.TYPES)
 					$(s).append(_option([_t(attrModel.TYPES[type].user)], [['dir', 'attrType', attrModel.TYPES[type]], ['attr', 'id', attrModel.TYPES[type].server]]));
 				return s;
@@ -3618,8 +3618,8 @@ mapHelper.prototype.selectColumns = function(parent, params)
 	
 		if (fields && fields.length > 0)
 	{
-			var selectLat = _select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
-				selectLon = _select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
+			var selectLat = nsGmx.Utils._select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
+				selectLon = nsGmx.Utils._select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
 
 			for (var i = 0; i < fields.length; i++)
 			{
@@ -4084,7 +4084,7 @@ mapHelper.prototype.createWFSStylesEditor = function(parentObject, style, geomet
 
 mapHelper.prototype.createChartsEditor = function(parent, elemCanvas)
 {
-	var graphTypeSel = _select([_option([_t(_gtxt("График по времени"))], [['attr','value','func']]),
+	var graphTypeSel = nsGmx.Utils._select([_option([_t(_gtxt("График по времени"))], [['attr','value','func']]),
 								_option([_t(_gtxt("Круговая"))], [['attr','value','pie']])], [['dir','className','selectStyle'],['css','width','180px']]),
 		propertiesMask = _input(null, [['dir','className','inputStyle'],['css','width','180px']]);
 	

@@ -70,7 +70,7 @@
             })(i)
         }
         
-        var reasonSelect = _select([_option([_t(_gtxt("Отсутствие объекта на карте"))],[['attr','value','1']]),
+        var reasonSelect = nsGmx.Utils._select([_option([_t(_gtxt("Отсутствие объекта на карте"))],[['attr','value','1']]),
                                     _option([_t(_gtxt("Неверное название объекта"))],[['attr','value','2']]),
                                     _option([_t(_gtxt("Объекта не должно быть на карте"))],[['attr','value','3']]),
                                     _option([_t(_gtxt("Неправильное расположене объекта"))],[['attr','value','4']]),

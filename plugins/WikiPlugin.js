@@ -186,7 +186,7 @@ var fnShare = function(pageInfo, container){
 	
 	if (!bShareModuleLoaded){
 				   //http://s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4eeb41dd008d5d93
-		$LAB.script("http://s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4eeb41dd008d5d93").wait(function(){
+		$LAB.script("http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4eeb41dd008d5d93").wait(function(){
 			addthis.init();
 			fnRenderShare();
 			bShareModuleLoaded = true;
