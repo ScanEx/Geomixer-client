@@ -515,7 +515,7 @@ attrsTable.prototype.editObject = function(row)
             _this._serverDataProvider.serverChanged();
             
             closeFunc();
-            $(dialogDiv).dialog("destroy");
+            removeDialog(dialogDiv);
 		});
 	}
 	
@@ -574,8 +574,6 @@ attrsTable.prototype.editObject = function(row)
 				
 				if (i == 0)
 				{
-                    //временно отключаем выбор геометрии...
-                    
 					var objectEdit = _span(null, [['attr','id','objectEdit' + _this.layerName + geometryRow[1]],['css','color','#215570'],['css','marginLeft','3px'],['css','fontSize','12px']]);
 
 					if (geometryRow[0].type == "POINT" || geometryRow[0].type == "LINESTRING" || geometryRow[0].type == "POLYGON")

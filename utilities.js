@@ -343,17 +343,10 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
 						},
 						close: function(ev, ui)
 						{
-							var res;
-							
-							if (closeFunc)
-								res = closeFunc();
-							
-							if (res)
-								return;
-							
-							jQuery(canvas).dialog("destroy")
-								
-							canvas.removeNode(true);
+							if (closeFunc && closeFunc())
+                                return;
+
+							removeDialog(canvas);
 						}});
 	
 	canvas.parentNode.style.height = height + 'px';
