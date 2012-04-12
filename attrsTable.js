@@ -229,16 +229,37 @@ attrsTable.prototype.drawDialog = function(info)
     var drawTableItem2 = function(elem, curIndex, activeHeaders)
     {
         tds = [];
-			
+
         var showButton = makeImageButton('img/choose.png','img/choose_a.png'),
-            editButton = makeImageButton('img/misc.png'),
-            tdControl = _td([_div([showButton, editButton],[['css','width','35px']])]);
+            editButton = makeImageButton('img/edit.png'),
+            deleteButton = makeImageButton("img/recycle.png", "img/recycle_a.png"),
+            tdControl = _td([_div([showButton, editButton, deleteButton],[['css','width','45px']])]);
         
         editButton.style.marginLeft = '5px';
+        editButton.style.width = '12px';
+        deleteButton.style.marginLeft = '5px';
 
         editButton.onclick = function()
         {
             _this.editObject(elem.values)
+        }
+        
+        deleteButton.onclick = function()
+        {
+            var remove = makeButton(_gtxt("Удалить"));
+            remove.onclick = function()
+            {
+                var objects = JSON.stringify([{action: 'delete', id: elem.values[0]}]);
+                sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", {WrapStyle: 'window', LayerName: _this.layerName, objects: objects}, function(response)
+                {
+                    if (!parseResponse(response))
+                        return;
+                    
+                    removeDialog(jDialog);
+                });
+            };
+            
+            var jDialog = showDialog(_gtxt("Удалить объект?"), _div([remove],[['css','textAlign','center']]), 150, 60);
         }
         
         showButton.onclick = function()
@@ -252,6 +273,7 @@ attrsTable.prototype.drawDialog = function(info)
             }); 
         }
         
+        _title(deleteButton, _gtxt("Удалить"))
         _title(editButton, _gtxt("Редактировать"))
         _title(showButton, _gtxt("Показать"))
         
@@ -666,7 +688,7 @@ attrsTable.prototype.editObject = function(row)
 		
 		for (var i = 1; i < _this.columnsNames.length; ++i)
 		{
-			var input = _input(null,[['css','width','200px'],['dir','className','inputStyle']]);
+			var input = _input(null,[['css','width','200px'],['dir','className','inputStyle'], ['dir', 'rowName', _this.columnsNames[i]]]);
 			
 			trs.push(_tr([_td([_span([_t(_this.columnsNames[i])],[['css','fontSize','12px']])]), _td([input])]))
 		}

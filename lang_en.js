@@ -192,6 +192,7 @@ _translationsHash.hash["eng"] = {
 	"$$serviceHelp$$_2" : "Link saves current map state, and also user objects and texts.",
 	"$$serviceHelp$$_3" : "Print current map fragment.",
 	"Редактировать" : "Edit",
+    "Удалить объект?": "Delete object?",
 	"Длина" : "Length",
 	"Площадь" : "Area",
 	"Добавить подгруппу" : "Create group",
