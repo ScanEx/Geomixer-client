@@ -617,11 +617,49 @@ var FireSpotClusterProvider = (function(){
 		var clusters = {};
 		var dailyClusters = {};
 		var clusterCentroids = {};
+		var clustersMinMaxDates = {};
+        
+        var updateMinMaxDates = function(id, hotSpot)
+        {
+            var mm = clustersMinMaxDates[id];
+            var datetimeStr = hotSpot.date + ' ' + hotSpot.time;
+            var localValue = $.datepicker.parseDateTime('yy.mm.dd', 'hh:mm', datetimeStr).valueOf()/1000;
+            var timeOffset = (new Date(localValue*1000)).getTimezoneOffset()*60;
+            
+            var datetimeInt = localValue - timeOffset;
+            
+            if (mm.min === null || mm.min > datetimeInt) 
+            {
+                mm.min = datetimeInt;
+                mm.minStr = datetimeStr;
+            }
+            
+            if (mm.max === null || mm.max < datetimeInt)
+            {
+                mm.max = datetimeInt;
+                mm.maxStr = datetimeStr;
+            }
+        }
+        
 		for ( var d = 0; d < data.Response.length; d++ )
 		{
 			var a = data.Response[d];
-			var dateInt = $.datepicker.parseDate('yy.mm.dd', a[3]).valueOf();
-			var hotSpot = {clusterId: a[2], hotspotId: a[7], x: a[1], y: a[0], date: a[3], dateInt: dateInt, category: a[6] < 50 ? 0 : (a[4] < 100 ? 1 : 2), balloonProps: {"Время": a[4] + "&nbsp;(Greenwich Mean Time)"/*, "Вероятность": a[5]*/} };
+            var parsedTime = $.datepicker.parseTime('hh:mm', a[4]);
+			var dateInt = $.datepicker.parseDate('yy.mm.dd', a[3]).valueOf()/1000 + parsedTime.hour*3600 + parsedTime.minute*60;
+            var datetimeString = $.datepicker.formatTime('yy.mm.dd', a[3]).valueOf()/1000 + parsedTime.hour*3600 + parsedTime.minute*60;
+            
+			var hotSpot = {
+                clusterId: a[2], 
+                hotspotId: a[7], 
+                x: a[1], 
+                y: a[0], 
+                date: a[3], 
+                time: a[4], 
+                dateInt: dateInt, 
+                category: a[6] < 50 ? 0 : (a[4] < 100 ? 1 : 2), 
+                balloonProps: {"Время": a[4] + "&nbsp;(Greenwich Mean Time)"} 
+            };
+            
 			resArr.push(hotSpot);
 			var clusterID = 'id' + a[2];
 			
@@ -632,11 +670,14 @@ var FireSpotClusterProvider = (function(){
 					clusters[clusterID] = [];
 					dailyClusters[clusterID] = {};
 					clusterCentroids[clusterID] = {x: 0, y:0};
+                    clustersMinMaxDates[clusterID] = { min: null, max: null };
 				}
 					
 				clusters[clusterID].push([hotSpot.x, hotSpot.y]);
 				clusterCentroids[clusterID].x += hotSpot.x;
 				clusterCentroids[clusterID].y += hotSpot.y;
+                
+                updateMinMaxDates(clusterID, hotSpot);
 				
 				if (typeof dailyClusters[clusterID][hotSpot.date] === 'undefined')
 					dailyClusters[clusterID][hotSpot.date] = [];
@@ -646,7 +687,6 @@ var FireSpotClusterProvider = (function(){
 		}
 		
 		var resDialyClusters = [];
-		var clustersMinMaxDates = {};
 		for (var k in dailyClusters)
 		{
 			var minDate = null;
@@ -660,7 +700,7 @@ var FireSpotClusterProvider = (function(){
 			
 			var numberDays = maxDate - minDate;
 			
-			clustersMinMaxDates[k] = {min: $.datepicker.formatDate('yy.mm.dd', new Date(minDate)), max: $.datepicker.formatDate('yy.mm.dd', new Date(maxDate))};
+			//clustersMinMaxDates[k] = {min: $.datepicker.formatDate('yy.mm.dd', new Date(minDate)), max: $.datepicker.formatDate('yy.mm.dd', new Date(maxDate))};
 			
 			for (var d in dailyClusters[k])
 			{
@@ -685,13 +725,20 @@ var FireSpotClusterProvider = (function(){
 			for (var l = 0; l < lines.length; l++)
 				polyCoordinates.push(lines[l][1]);
 			
-			resClusters.push( { geometry: {type: "POLYGON", coordinates: [polyCoordinates]}, x: clusterCentroids[k].x/clusters[k].length, y: clusterCentroids[k].y/clusters[k].length,
+            var geometry = {type: "POLYGON", coordinates: [polyCoordinates]};
+            
+			resClusters.push({ geometry: geometry,
+                                x: clusterCentroids[k].x/clusters[k].length, 
+                                y: clusterCentroids[k].y/clusters[k].length,
 								label: clusters[k].length,
 								points: clusters[k].length,
 								clusterId: k.substr(2),
-								balloonProps: {"Кол-во горячих точек": clusters[k].length, 
-											   "Период наблюдения": _datePeriodHelper(clustersMinMaxDates[k].min, clustersMinMaxDates[k].max)}
-							 } );
+								balloonProps: {
+                                    "Кол-во горячих точек": clusters[k].length, 
+                                    "Период наблюдения": _datePeriodHelper(clustersMinMaxDates[k].minStr, clustersMinMaxDates[k].maxStr),
+                                    "Площадь горения": prettifyArea(geoArea(geometry))
+                                }
+							});
 		}
 		
 		return {fires: resArr, clusters: resClusters, dialyClusters: resDialyClusters};
@@ -802,7 +849,23 @@ var FireClusterSimpleProvider = function( params )
 					// geom.push([a[8].coordinates[0][i][1], a[8].coordinates[0][i][0]]);
 				
 				//var hotSpot = { x: a[2], y: a[1], power: a[7], points: a[5], label: a[5], balloonProps: {"Кол-во очагов пожара": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]} };
-				var hotSpot = { clusterId: a[0], geometry: a[8], power: a[7], points: a[5], label: a[5], dateBegin: a[3], dateEnd: a[4] /*, balloonProps: {"Кол-во очагов пожара": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]}*/ };
+				var hotSpot = {
+                    clusterId: a[0], 
+                    geometry: a[8], 
+                    power: a[7], 
+                    points: a[5], 
+                    label: a[5], 
+                    dateBegin: a[3], 
+                    dateEnd: a[4], 
+                    balloonProps: {
+                        "Кол-во очагов пожара": a[5], 
+                        //"Мощность": Number(a[7]).toFixed(), 
+                        "Период горения": _datePeriodHelper(a[3], a[4])
+                        // "Дата начала": a[3]
+                        // "Дата конца": a[4]
+                        //"Площадь": prettifyArea(geoArea(a[8]))
+                    }
+                };
 				// var hotSpot = { geometry: {type: "POLYGON", coordinates: [geom]}, power: a[7], points: a[5], label: a[5], balloonProps: {"Кол-во очагов пожара": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]} };
 				resArr.push(hotSpot);
 			}
@@ -866,6 +929,10 @@ var FireSpotRenderer = function( params )
 	this.bindData = function(data)
 	{
 		if (_firesObj) _firesObj.remove();
+        _firesObj = null;
+        
+        if (!data) return;
+        
 		_balloonProps = {};
 		_firesObj = _depthContainer.addObject();
 		_firesObj.setVisible(false);
@@ -1011,6 +1078,10 @@ var FireBurntRenderer = function( params )
 	this.bindData = function(data)
 	{
 		if (_burntObj) _burntObj.remove();
+        _burntObj = null;
+        
+        if (!data) return;
+        
 		_balloonProps = {};
 		_burntObj = _depthContainer.addObject();
 		_burntObj.setZoomBounds(_params.minZoom, _params.maxZoom);
@@ -1063,6 +1134,9 @@ var ModisImagesRenderer = function( params )
 	this.bindData = function(data)
 	{
 		if (_imagesObj) _imagesObj.remove();
+        
+        if (!data) return;
+        
 		_imagesObj = globalFlashMap.addObject();
 		
 		if ( typeof _params.depth !== 'undefined' )
@@ -1120,6 +1194,7 @@ var CombinedFiresRenderer = function( params )
 	//это некоторый хак для того, чтобы объединить в балунах контуров пожаров оперативную и историческую информацию о пожарах.
 	var mergeBalloonsData = function(data)
 	{
+        if (!data) return;
 		//будем переносить данные из инсторических в оперативных кластеры
 		var clusterHash = {};
 		
@@ -1137,15 +1212,21 @@ var CombinedFiresRenderer = function( params )
 		}
 	}
 	
-	this.bindData = function(data)
+	this.bindData = function(data, calendar)
 	{
-		mergeBalloonsData(data);
+		//mergeBalloonsData(data);
+        
+        data = data || [{clusters: null, fires: null}, null];
 	
 		_curData = data;
 		_clustersRenderer.bindData(data[0].clusters);
 		_geometryRenderer.bindData(data[0].clusters);
 		_hotspotRenderer.bindData(data[0].fires);
-		_wholeFireRenderer.bindData(data[1]);
+        
+        if ( calendar.getModeController().getMode() !==  calendar.getModeController().SIMPLE_MODE )
+            _wholeFireRenderer.bindData(data[1]);
+        else
+            _wholeFireRenderer.bindData( null );
 	}
 	
 	this.setVisible = function(flag)
@@ -1444,7 +1525,7 @@ FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
 							_this.processingModel.setStatus( curController.name, true);
 							_this.statusModel.setStatus( curController.name, true );
 							
-							curController.renderer.bindData( data );
+							curController.renderer.bindData( data, _this._calendar );
 							curController.renderer.setVisible(curController.visible && _this._currentVisibility);
 						}, 
 						function( type )
@@ -1461,8 +1542,8 @@ FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
 
 FireControl.prototype.add = function(parent, firesOptions, calendar)
 {
-	this._visModeController = calendar._visModeController;
 	this._calendar = calendar;
+	this._visModeController = calendar.getModeController();
 	
 	this._firesOptions = $.extend( {}, FireControl.DEFAULT_OPTIONS, firesOptions );
 	this._initExtent = new BoundsExt( firesOptions.initExtent ? firesOptions.initExtent : BoundsExt.WHOLE_WORLD );
