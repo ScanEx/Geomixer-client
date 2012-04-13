@@ -349,7 +349,7 @@
             'DateTime': function(value)
             {
                 var localValue = $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value).valueOf()/1000;
-                var timeOffset = (new Date(localValue)).getTimezoneOffset()*60;
+                var timeOffset = (new Date(localValue*1000)).getTimezoneOffset()*60;
                 
                 return localValue - timeOffset;
             },
