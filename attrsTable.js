@@ -256,6 +256,7 @@ attrsTable.prototype.drawDialog = function(info)
                         return;
                     
                     removeDialog(jDialog);
+                    _this._serverDataProvider.serverChanged();
                 });
             };
             

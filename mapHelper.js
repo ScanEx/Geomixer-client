@@ -2956,24 +2956,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				defaultX: properties.GeometryTable.XCol,
 				defaultY: properties.GeometryTable.YCol
 			});
-			// var selectLat = _select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
-				// selectLon = _select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
-
-			// for (var i = 0; i < properties.GeometryTable.Columns.length; i++)
-			// {
-				// var opt = _option([_t(properties.GeometryTable.Columns[i])], [['attr','value',properties.GeometryTable.Columns[i]]]);
-				
-				// _(selectLat, [opt.cloneNode(true)]);
-				// _(selectLon, [opt.cloneNode(true)]);
-			// }
-			
-			// selectLon = switchSelect(selectLon, properties.GeometryTable.XCol);
-
-			// selectLat = switchSelect(selectLat, properties.GeometryTable.YCol);
-			
-			// _(columnsParent, [_table([_tbody([_tr([_td([_span([_t(_gtxt("Y (широта)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLat], [['css','width','150px'],['css','border','none']])]),
-										// _tr([_td([_span([_t(_gtxt("X (долгота)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLon], [['css','width','150px'],['css','border','none']])])])])])
-
 		}
 		
 		shownProperties.push({tr:trPath});
@@ -3009,7 +2991,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			
 		//редактирование полей слоя
 		var boxManualAttributes = _checkbox(false, 'checkbox');
-		var addAttribute = makeLinkButton("Добавить аттрибут");
+		var addAttribute = makeLinkButton("Добавить атрибут");
 		addAttribute.onclick = function()
 		{
 			attrModel.addAttribute(attrModel.TYPES.STRING, "NewAttribute");
@@ -3062,7 +3044,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			
 			var createTypeSelector = function()
 			{
-				var s = nsGmx.Utils._select(null, [['css', 'width', '100px']]);
+				var s = nsGmx.Utils._select(null, [['css', 'width', '100px'], ['dir', 'className', 'selectStyle']]);
 				for (var type in attrModel.TYPES)
 					$(s).append(_option([_t(attrModel.TYPES[type].user)], [['dir', 'attrType', attrModel.TYPES[type]], ['attr', 'id', attrModel.TYPES[type].server]]));
 				return s;
@@ -3109,7 +3091,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 						_model.deleteAttribute(this.attrIdx);
 					}
 					
-					var moveIcon = _img(null, [['attr', 'src', "img/moveIcon.gif"], ['dir', 'className', 'moveIcon'], ['css', 'cursor', 'move']]);
+					var moveIcon = _img(null, [['attr', 'src', "img/moveIcon.gif"], ['dir', 'className', 'moveIcon'], ['css', 'cursor', 'move'], ['css', 'width', '13px']]);
 					
 					_trs.push(_tr([_td([nameSelector]), _td([typeSelector]), _td([deleteIcon]), _td([moveIcon])]));
 				}
@@ -3142,11 +3124,11 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		})();
 		
         //временно отключили
-		// var attrViewParent = _div();
-		// var createLayerFields = _tr([_td([boxManualAttributes, _span([_t("Задать аттрибуты вручную")]), _br(), addAttribute, _br(), attrViewParent], [['attr', 'colSpan', 2]])]);
-		// attrView.init(attrViewParent, attrModel);
+		var attrViewParent = _div();
+		var createLayerFields = _tr([_td([boxManualAttributes, _span([_t("Задать атрибуты вручную")]), _br(), addAttribute, _br(), attrViewParent], [['attr', 'colSpan', 2]])]);
+		attrView.init(attrViewParent, attrModel);
 		
-		// shownProperties.push({tr: createLayerFields});
+		shownProperties.push({tr: createLayerFields});
 	}
 	else
 	{
