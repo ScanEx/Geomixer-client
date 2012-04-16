@@ -185,6 +185,9 @@ CoverControl2.prototype.fixLayers = function()
     
 	for (var i = 0; i < this.coverLayers.length; ++i)
 	{
+        if (!globalFlashMap.layers[this.coverLayers[i]])
+            continue;
+            
 		var layerId = globalFlashMap.layers[this.coverLayers[i]].properties.LayerID,
 			div = $("[LayerID='" + layerId + "']");
 		
