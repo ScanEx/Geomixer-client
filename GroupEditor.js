@@ -195,7 +195,7 @@ var addSubGroup = function(div, mapHelper)
 	var propsTable = _div([_table([_tbody(trsControls)],[['dir','className','propertiesTable']])]);
 	_(parentDiv, [propsTable, _br(), create]);
 	
-	var dialogDiv = showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 180, pos.left, pos.top);
+	var dialogDiv = showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 210, pos.left, pos.top);
 }
 
 var createGroupEditorProperties = function(div, isMap, mapHelper)

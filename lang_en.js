@@ -536,7 +536,7 @@ _translationsHash.hash["eng"] = {
 	"Показывать чекбокс видимости": "Visibility checkbox",
 	"Разворачивать автоматически": "Expand automatically",
 	"Другая": "Another",
-	"Временнóй слой": "Temporal layer",
+	"Временнóй слой": "Multitemporal layer",
 	"Колонка даты": "Date column",
 	"Минимальный период": "Min. period (days)",
 	"Максимальный период": "Max. period (days)",

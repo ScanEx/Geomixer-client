@@ -3651,12 +3651,12 @@ mapHelper.prototype.createNewLayer = function(type)
 		return;
 
 	var parent = _div(null, [['attr','id','new' + type + 'Layer']]),
-		height = (type == 'Vector') ? 315 : 360;
+		height = (type == 'Vector') ? 340 : 360;
 
     if (type !== 'Multi')
     {
 		var properties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
-        showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 320, height, false, false);
+        showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 325, height, false, false);
         this.createLayerEditorProperties(false, type, parent, properties);
     }
     else
