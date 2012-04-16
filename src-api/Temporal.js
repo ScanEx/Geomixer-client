@@ -23,6 +23,7 @@
 					gmxAPI.addDebugWarnings({'func': 'prpTemporalTiles', 'layer': prop.title, 'alert': 'Error in TemporalTiles array - line: '+nm+''});
 					continue;
 				}
+				var v = arr[5] || 0;
 				var z = arr[4];
 				var i = arr[2];
 				var j = arr[3];
@@ -33,7 +34,7 @@
 
 				if(!deltaHash[arr[0]]) deltaHash[arr[0]] = {};
 				if(!deltaHash[arr[0]][arr[1]]) deltaHash[arr[0]][arr[1]] = [];
-				deltaHash[arr[0]][arr[1]].push([i, j, z]);
+				deltaHash[arr[0]][arr[1]].push([i, j, z, v]);
 			}
 			var arr = [];
 			for (var z in ph)

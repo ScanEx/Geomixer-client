@@ -315,6 +315,10 @@
 		if(isTemporal && '_TemporalTiles' in gmxAPI) {
 			obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
 		}
+		// Если есть версии тайлов слоя
+		if('tilesVers' in layer.properties && gmxAPI._layersVersion) {
+			gmxAPI._layersVersion.chkVersion(obj);
+		}
 
 		var deferredMethodNames = [
 			'getChildren', 'getItemsFromExtent', 'getTileItem', 'setTileItem',
@@ -466,6 +470,7 @@
 			createThisLayer();
 			var zIndexCur = getIndexLayer(obj.objectId);
 			obj.bringToDepth(zIndexCur);
+			gmxAPI._listeners.dispatchEvent('onLayer', obj, obj);	// Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
 		}
 		else
 		{
@@ -479,9 +484,9 @@
 					for (var i = 0; i < deferred.length; i++) {
 						deferred[i]();
 					}
-					gmxAPI._listeners.dispatchEvent('onLayer', obj, obj);	// Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
 					var zIndexCur = getIndexLayer(obj.objectId);
 					obj.bringToDepth(zIndexCur);
+					gmxAPI._listeners.dispatchEvent('onLayer', obj, obj);	// Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
 				}
 			}
 

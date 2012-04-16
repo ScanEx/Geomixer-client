@@ -410,7 +410,10 @@
 			var b = gmxAPI.getBounds();
 			var minLayerZoom = 20;
 			forEachLayer(layers, function(layer, isVisible) 
-			{ 
+			{
+				if('LayerVersion' in layer.properties && gmxAPI._layersVersion) {
+					gmxAPI._layersVersion.chkVersionLayers(layers, layer);
+				}
 				map.addLayer(layer, isVisible);
 				b.update(layer.geometry.coordinates);
 				var arr = layer.properties.styles || [];

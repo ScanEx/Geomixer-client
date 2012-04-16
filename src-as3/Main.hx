@@ -776,12 +776,12 @@ class Main
 			return node.id;
 		}
 
-		function addObjects(_data:Array<Dynamic>):Array<String>
+		function addObjects(_data:Array<Dynamic>, ?parentId:String):Array<String>
 		{
 			var ret = new Array<String>();
 			for (i in 0...Std.int(_data.length))
 			{
-				var tId:String = addObject(_data[i].parentId, _data[i].geometry, _data[i].properties);
+				var tId:String = addObject((_data[i].parentId ? _data[i].parentId : parentId), _data[i].geometry, _data[i].properties);
 				if (_data[i].setStyle) {
 					getNode(tId).setStyle(new Style(_data[i].setStyle.regularStyle), (_data[i].setStyle.hoveredStyle != null) ? new Style(_data[i].setStyle.hoveredStyle) : null);
 				}
@@ -875,19 +875,29 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 		{
 			var node = getNode(id);
 			if (node == null || node.content == null || !Std.is(node.content, VectorLayer)) return;
-			cast(node.content, VectorLayer).startLoadTiles(attr, mapWindow);
+			var vLayer:VectorLayer = cast(node.content, VectorLayer);
+			vLayer.startLoadTiles(attr, mapWindow);
 			//viewportHasMoved = true;
 		}
 
-		function setVectorTiles(id:String, tileFunction:Dynamic, identityField:String, tiles:Array<Int>, ?attrHash:Dynamic)
+		function setVectorTiles(attr:Dynamic)	//
 		{
+			var id:String = attr.objectId;
+			var tileFunction:Dynamic = attr.tileFunction;
+			var identityField:String = attr.identityField;
+			var tiles:Array<Int> = attr.tiles;
+			var tilesVers:Array<Int> = attr.tilesVers;
+			var attrHash:Dynamic = attr.filesHash;
+			
 			var content = new VectorLayer(identityField, attrHash, function(i:Int, j:Int, z:Int):Dynamic
 			{
 				var out:Dynamic = Main.cmdToJS(tileFunction, i, j, z);
 				return out;
 			});
-			for (i in 0...Std.int(tiles.length/3))
-				content.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
+			for (i in 0...Std.int(tiles.length / 3)) {
+				var ver:Int = (tilesVers != null ? tilesVers[i] : 0);
+				content.addTile(tiles[i * 3], tiles[i * 3 + 1], tiles[i * 3 + 2], ver);
+			}
 			getNode(id).setContent(content);
 		}
 
@@ -899,7 +909,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				layer.flush();
 				//if (clrFlag) layer.tiles = new Array<VectorTile>();
 				for (i in 0...Std.int(tiles.length/3))
-					layer.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2]);
+					layer.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2], 0);
 				layer.createLoader(function(tile:VectorTile, tilesRemaining:Int)
 				{
 					//trace('--------tile ---- visibleextent ------ ' + tilesRemaining + ' : ' );
@@ -1316,7 +1326,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'addChildRoot':
 					out = getNode(attr.objectId).addChild().id;
 				case 'setVectorTiles':
-					setVectorTiles(attr.objectId, attr.tileFunction, attr.identityField, attr.tiles, attr.filesHash);
+					setVectorTiles(attr);
 				case 'startLoadTiles':
 					startLoadTiles(attr.objectId, attr.data);
 				case 'setTiles':
@@ -1402,9 +1412,6 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 						
 					}
 					out = (useFlashLSO ? 1 : 0);
-				case 'setAPIProperties':	// Установка дополнительных свойств
-					var node = getNode(attr.objectId);
-					out = cast(node != null ? node.setAPIProperties(attr.data) : false);
 				case 'getPatternIcon':		// base64-иконка по FillStyle
 					var size = (attr.data.size != null ? attr.data.size : 32);
 					var style:Dynamic = (attr.data.style != null && attr.data.style.fill != null ? attr.data.style.fill : {});
@@ -1434,6 +1441,17 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 						//res.applyFilter(res, res.rect, new Point(0, 0), new ConvolutionFilter( 3, 3, [1, 1, 1, 1, 0, 1, 1, 1, 1], 9));
 						var pngData:ByteArray = PNGEncoder.encode(res);
 						out = cast(Base64.encode64(pngData, true));
+					}
+				case 'setAPIProperties':	// Установка дополнительных свойств
+					var node = getNode(attr.objectId);
+					out = cast(node != null ? node.setAPIProperties(attr.data) : false);
+				case 'setEditObjects':		// Установка редактируемых обьектов слоя
+					var node = getNode(attr.objectId);
+					if (node == null || node.content == null || !Std.is(node.content, VectorLayer)) out = cast(false);
+					else {
+						var vLayer:VectorLayer = cast(node.content, VectorLayer);
+						out = addObjects(attr.processing.addObjects, attr.objectId);
+						vLayer.setEditedObjects(attr.processing.removeIDS, out);
 					}
 			}
 			return out;

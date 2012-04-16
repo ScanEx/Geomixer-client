@@ -1,6 +1,39 @@
 //Поддержка Flash
 (function()
 {
+	var addObjects = function(parentId, attr) {
+		var out = [];
+		var data = attr['data'];
+		var fmt = (attr['format'] ? attr['format'] : 'LatLng');
+		for (var i=0; i<data.length; i++)	// Подготовка массива обьектов
+		{
+			var ph = data[i];
+			var props = ph['properties'] || null;
+			var tmp = {
+				"parentId": parentId,
+				"geometry": (fmt == 'LatLng' ? gmxAPI.merc_geometry(ph['geometry']) : ph['geometry']),
+				"properties": props
+			};
+			if(ph['setStyle']) tmp['setStyle'] = ph['setStyle'];
+			if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
+			out.push(tmp);
+		}
+		var _obj = gmxAPI.flashDiv.cmdFromJS('addObjects', out); // Отправить команду в SWF
+
+		out = [];
+		var pObj = gmxAPI.mapNodes[parentId];	// обычный MapObject
+		for (var i=0; i<_obj.length; i++)	// Отражение обьектов в JS
+		{
+			var aObj = new gmxAPI._FMO(_obj[i], data[i].properties, pObj);	// обычный MapObject
+			out.push(aObj);
+			// пополнение mapNodes
+			var currID = (aObj.objectId ? aObj.objectId : gmxAPI.newFlashMapId() + '_gen1');
+			gmxAPI.mapNodes[currID] = aObj;
+			if(aObj.parent) aObj.parent.childsID[currID] = true; 
+		}
+		return out;
+	}
+
 	// Передача команды в SWF
 	function FlashCMD(cmd, hash)
 	{
@@ -11,18 +44,21 @@
 		var obj = hash['obj'] || null;	// Целевой обьект команды
 		var attr = hash['attr'] || '';
 		switch (cmd) {				// Тип команды
+			case 'setEditObjects':		// Установка редактируемых обьектов слоя
+				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'processing':attr } );
+				break;
 			case 'setVisible':		// Изменить видимость обьекта
 				if(obj) {
 					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr } );
 				}
 				break;
 			case 'sendPNG':			// Сохранение изображения карты на сервер
-				var miniMapFlag = map.miniMap.getVisibility();
+				var miniMapFlag = gmxAPI.map.miniMap.getVisibility();
 				var flag = (attr.miniMapSetVisible ? true : false);
-				map.miniMap.setVisible(flag);
+				gmxAPI.map.miniMap.setVisible(flag);
 				if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
 				ret['base64'] = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				map.miniMap.setVisible(miniMapFlag);
+				gmxAPI.map.miniMap.setVisible(miniMapFlag);
 				break;
 			case 'setZoomBounds':	// Установить ограничения по Zoom
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZ':attr['minZ'], 'maxZ':attr['maxZ'] });
@@ -184,7 +220,7 @@
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geometry':geo, 'properties':attr['properties'] } );
 				break;
 			case 'addObjects':		// добавить обьекты
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
+				ret = addObjects(obj.objectId, attr);
 				break;
 			case 'addObjectsFromSWF':	// добавить обьекты из SWF файла
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'attr':attr });
@@ -269,7 +305,7 @@
 				break;
 			case 'setVectorTiles':
 				if(attr.tileFunction) attr.tileFunction = gmxAPI.uniqueGlobalName(attr.tileFunction);
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'tileFunction':attr['tileFunction'], 'identityField':attr['cacheFieldName'], 'tiles':attr['dataTiles'], 'filesHash':attr['filesHash'] } );
+				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'tilesVers':attr['tilesVers'], 'tileFunction':attr['tileFunction'], 'identityField':attr['cacheFieldName'], 'tiles':attr['dataTiles'], 'filesHash':attr['filesHash'] } );
 				break;
 			case 'setTiles':
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'tiles':attr['tiles'], 'flag':attr['flag'] } );
@@ -320,12 +356,17 @@
 					var func = function(geoms, props)
 					{
 						var ret = [];
-						for (var i = 0; i < geoms.length; i++)
+						for (var i = 0; i < geoms.length; i++) {
+							var cProp = props[i];
+							if(typeof(cProp) === 'object' && cProp.length > 0) {
+								cProp = gmxAPI.arrayToHash(cProp);
+							}
 							ret.push(new gmxAPI._FlashMapFeature(
 								gmxAPI.from_merc_geometry(geoms[i]),
-								props[i],
+								cProp,
 								obj
 							));
+						}
 						attr.func(ret);
 					}
 					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geom':geo, 'func':gmxAPI.uniqueGlobalName(func) } );

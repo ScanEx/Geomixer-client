@@ -30,6 +30,23 @@ class VectorTile
 		extent.update((i + 1)*tileSize, (j + 1)*tileSize);
 	}
 
+	public function removeItems(ph:Dynamic<Bool>)
+	{
+		if (layer == null) return;
+		var tmp:Array<String> = new Array<String>();
+		var geoms:Array<Geometry> = new Array<Geometry>();
+		for (i in 0...Std.int(geometries.length)) {
+			var geo:Geometry = geometries[i];
+			var key:String = geo.properties.get(layer.identityField);
+			if (!Reflect.field(ph, key)) {
+				tmp.push(key);
+				geoms.push(geometries[i]);
+			}
+		}
+		ids = tmp;
+		geometries = geoms;
+	}
+
 	public function load(onLoad:Void->Void)
 	{
 		if (finishedLoading)
@@ -47,6 +64,7 @@ class VectorTile
 
 				var me = this;
 				var field = me.layer.identityField;
+				var st:String = z + '_' + i + '_' + j;
 
 				function parseTile(arr:Array<Dynamic>)
 				{
@@ -54,65 +72,22 @@ class VectorTile
 					me.ids = new Array<String>();
 					me.geometries = new Array<Geometry>();
 					
-					var actualExtent = new Extent();
-					actualExtent.update((me.extent.minx + me.extent.maxx)/2, (me.extent.miny + me.extent.maxy)/2);
 					for (object in arr)
 					{
 						if(object == null) {	// Пропускаем бракованные обьекты
 							continue;
 						}
-						var geometry = Utils.parseGeometry(object.geometry, me.extent);
-						actualExtent.update(geometry.extent.minx, geometry.extent.miny);
-						actualExtent.update(geometry.extent.maxx, geometry.extent.maxy);
-						var properties = new Hash<String>();
-						var props_:Array<String> = object.properties;
-						for (i in 0...Std.int(props_.length/2))
-							properties.set(props_[i*2], props_[i*2 + 1]);
-						var id = properties.exists(field) ? properties.get(field) : Utils.getNextId();
-			
-						if (me.layer.attrHash != null) {
-							if (me.layer.attrHash.TemporalColumnName != null) {
-								var pt = properties.get(me.layer.attrHash.TemporalColumnName);
-								if(pt != null) {
-									var unixTimeStamp:String = Utils.dateStringToUnixTimeStamp(pt);
-									geometry.propTemporal.set('unixTimeStamp', unixTimeStamp);			// посчитали unixTimeStamp для фильтра
-									if (Std.is(geometry, MultiGeometry)) {			// Для MultiGeometry надо расставить unixTimeStamp
-										var multi = cast(geometry, MultiGeometry);
-										for (member in multi.members) {
-											member.propTemporal.set('unixTimeStamp', unixTimeStamp);
-										}
-									}
-								}
-							}
+						var obj = me.layer.parseObject(object, me.extent);
+						if(obj == null) {		// Пропускаем отбракованные слоем обьекты
+							continue;
 						}
-						geometry.properties = properties;
+						var id = obj.id;
+						var geometry = obj.geometry;
+						
 						me.geometries.push(geometry);
 						me.ids.push(id);
-
-						if (!me.layer.geometries.exists(id))
-							me.layer.geometries.set(id, geometry);
-						else
-						{
-							var newGeometry = new MultiGeometry();
-							var geomPrev = me.layer.geometries.get(id);
-							newGeometry.properties = geomPrev.properties;
-							newGeometry.propTemporal = geomPrev.propTemporal;
-							newGeometry.addMember(geomPrev);
-							newGeometry.addMember(geometry);
-							me.layer.geometries.set(id, newGeometry);
-						}
 					}
-/*
-					var d = (me.extent.maxx - me.extent.minx)/50;
-					if (Math.abs(actualExtent.minx - me.extent.minx) < d)
-						me.extent.minx = actualExtent.minx;
-					if (Math.abs(actualExtent.miny - me.extent.miny) < d)
-						me.extent.miny = actualExtent.miny;
-					if (Math.abs(actualExtent.maxx - me.extent.maxx) < d)
-						me.extent.maxx = actualExtent.maxx;
-					if (Math.abs(actualExtent.maxy - me.extent.maxy) < d)
-						me.extent.maxy = actualExtent.maxy;
-*/
+
 					me.finishedLoading = true;
 					for (func in me.loadCallbacks)
 						func();
@@ -122,14 +97,15 @@ class VectorTile
 				}
 
 				var urlTiles:Dynamic = layer.tileFunction(i, j, z);
+				var ver:Int = (layer.hashTilesVers.exists(st) ? layer.hashTilesVers.get(st) : 0);
 
 				if (Std.is(urlTiles, Array))	// нужна склейка тайлов
 				{
 					var arr:Array<String> = urlTiles;
-					if(urlTiles.length > 0) new GetSWFTile(arr, function(data_:Array<Dynamic>) { parseTile(data_); });
+					if(urlTiles.length > 0) new GetSWFTile(arr, ver, function(data_:Array<Dynamic>) { parseTile(data_); });
 				} else if (Std.is(urlTiles, String)) {
 					var url:String = urlTiles;
-					if (url != "") new GetSWFFile(url, function(data_:Array<Dynamic>) { parseTile(data_);	});
+					if (url != "") new GetSWFFile(url + '&v='+ver, function(data_:Array<Dynamic>) { parseTile(data_);	});
 				}
 			}
 		}

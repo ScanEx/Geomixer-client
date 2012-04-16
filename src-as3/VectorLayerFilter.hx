@@ -8,7 +8,7 @@ import flash.events.TimerEvent;
 class VectorLayerFilter extends MapContent
 {
 	public var criterion:Hash<String>->Bool;
-	public var loadedTiles:Array<VectorTile>;
+	//public var loadedTiles:Array<VectorTile>;
 	public var painters:Array<VectorTilePainter>;
 	public var tilesSprite:Sprite;
 	public var loader:Extent->Void;
@@ -39,7 +39,7 @@ class VectorLayerFilter extends MapContent
 		if (painters != null)
 			for (painter in painters)
 				painter.remove();
-		loadedTiles = new Array<VectorTile>();
+		//loadedTiles = new Array<VectorTile>();
 		painters = new Array<VectorTilePainter>();
 		paintersHash = new Hash<VectorTilePainter>();
 		ids = new Hash<Bool>();
@@ -47,6 +47,46 @@ class VectorLayerFilter extends MapContent
 			createLoader();
 		delClusters();
 		curChkData = {};
+	}
+
+	// Удалить устаревшие тайлы слоя - вызывается из VectorLayer
+	public function removeTiles(pt:Dynamic)
+	{
+		if (pt.del != null) {
+			var newArr = new Array<VectorTilePainter>();
+			for (painter in painters) {
+				var tile:VectorTile = painter.tile;
+				var st:String = tile.z+'_'+tile.i+'_'+tile.j;
+				var flag:Bool = Reflect.field(pt.del, st);
+				if (flag) {
+					var ids:Array<String> = tile.ids;
+					for (i in 0...Std.int(tile.ids.length))
+					{
+						var id = tile.ids[i];
+						ids.remove(tile.ids[i]);	// Удалить обьекты по ogc_fid из списка обьектов в фильтре
+					}
+					paintersHash.remove(st);
+					painter.remove();
+					layer.hashTiles.remove(st);
+				} else {
+					newArr.push(painter);
+				}
+			}
+			painters = newArr;
+		}
+	}
+
+	// Удалить обьекты из тайлов слоя находящиеся в режиме редактирования - вызывается из VectorLayer
+	public function removeItems(ph:Dynamic<Bool>)
+	{
+		for (painter in painters) {
+			painter.tile.removeItems(ph);
+			painter.tileGeometry = getTileMultiGeometry(painter.tile);
+		}
+		for (key in Reflect.fields(ph)) {
+			ids.remove(cast(key));
+		}
+		
 	}
 
 	// Удалить кластеризацию на фильтре
@@ -128,26 +168,35 @@ class VectorLayerFilter extends MapContent
 		return true;
 	}
 
+	function getTileMultiGeometry(tile:VectorTile):MultiGeometry
+	{
+		var tileGeometry = new MultiGeometry();
+		if (layer != null) {
+			for (i in 0...tile.geometries.length)
+			{
+				var geom = tile.geometries[i];
+				if (layer.temporalCriterion != null && !layer.temporalCriterion(geom.propTemporal)) {
+					continue;
+				}
+				if (criterion(geom.properties))
+				{
+					var oId:String = geom.properties.get(layer.identityField);
+					ids.set(oId, true);
+					//ids.set(tile.ids[i], true);
+					tileGeometry.addMember(geom);
+				}
+			}
+		}
+		return tileGeometry;
+	}
+
 	function createLoader()
 	{
 		var me = this;
 		loader = layer.createLoader(function(tile:VectorTile, tilesRemaining:Int)
 		{
-			me.loadedTiles.push(tile);
-			var tileGeometry = new MultiGeometry();
-			for (i in 0...tile.geometries.length)
-			{
-				var geom = tile.geometries[i];
-				if (me.layer.temporalCriterion != null && !me.layer.temporalCriterion(geom.propTemporal)) {
-					continue;
-				}
-				if (me.criterion(geom.properties))
-				{
-					me.ids.set(tile.ids[i], true);
-					tileGeometry.addMember(geom);
-				}
-			}
-			
+			//me.loadedTiles.push(tile);
+			var tileGeometry = me.getTileMultiGeometry(tile);
 			var window = me.mapNode.window;
 			var painter = new VectorTilePainter(tileGeometry, me, tile);
 			me.painters.push(painter);
@@ -165,7 +214,6 @@ class VectorLayerFilter extends MapContent
 					if (Std.is(child.content, VectorLayerObserver))
 						child.noteSomethingHasChanged();
 				Main.needRefreshMap = true;		// Для обновления карты
-				//Main.refreshMap();
 			}
 		});
 	}

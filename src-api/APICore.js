@@ -1587,6 +1587,7 @@ function sendCrossDomainJSONRequest(url, callback, callbackParamName)
 	script.setAttribute("src", url + sepSym + callbackParamName + "=" + callbackName + "&" + Math.random());
 	document.getElementsByTagName("head").item(0).appendChild(script);
 }
+gmxAPI.sendCrossDomainJSONRequest = sendCrossDomainJSONRequest;
 
 function isRequiredAPIKey( hostName )
 {
@@ -1903,34 +1904,8 @@ FlashMapObject.prototype.addObjectsFromSWF = function(url) {
 * @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">» Пример использования</a>.
 * @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 */
-FlashMapObject.prototype.addObjects = function(data) {
-	var out = [];
-	for (var i=0; i<data.length; i++)	// Подготовка массива обьектов
-	{
-		var ph = data[i];
-		var props = ph['properties'] || null;
-		var tmp = {
-			"parentId": this.objectId,
-			"geometry": gmxAPI.merc_geometry(ph['geometry']),
-			"properties": props
-		};
-		if(ph['setStyle']) tmp['setStyle'] = ph['setStyle'];
-		if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
-		out.push(tmp);
-	}
-	var _obj = gmxAPI._cmdProxy('addObjects', {'attr':out}); // Отправить команду в SWF
-
-	out = [];
-	for (var i=0; i<_obj.length; i++)	// Отражение обьектов в JS
-	{
-		var pObj = new FlashMapObject(_obj[i], data[i].properties, this);	// обычный MapObject
-		out.push(pObj);
-		// пополнение mapNodes
-		var currID = (pObj.objectId ? pObj.objectId : gmxAPI.newFlashMapId() + '_gen1');
-		gmxAPI.mapNodes[currID] = pObj;
-		if(pObj.parent) pObj.parent.childsID[currID] = true; 
-	}
-	return out;
+FlashMapObject.prototype.addObjects = function(data, format) {
+	return gmxAPI._cmdProxy('addObjects', {'obj': this, 'attr':{'arr': data, 'format': format}}); // Отправить команду в SWF
 }
 FlashMapObject.prototype.addObject = function(geometry, props) {
 	var obj = gmxAPI._cmdProxy('addObject', { 'obj': this, 'attr':{ 'geometry':geometry, 'properties':props }});
@@ -2180,8 +2155,10 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
 FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
 FlashMapObject.prototype.setActive = function(flag) { gmxAPI._cmdProxy('setActive', { 'obj': this, 'attr':{'flag':flag} }); }
 FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
-{ 
-	gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':{'tileFunction': dataUrlFunction, 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles}});
+{
+	var ph = {'tileFunction': dataUrlFunction, 'cacheFieldName':cacheFieldName, 'filesHash':filesHash, 'dataTiles':dataTiles};
+	if(this.properties && this.properties['tilesVers']) ph['tilesVers'] = this.properties['tilesVers'];
+	gmxAPI._cmdProxy('setVectorTiles', { 'obj': this, 'attr':ph });
 }
 
 // Для Layer

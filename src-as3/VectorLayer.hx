@@ -18,12 +18,16 @@ class VectorLayer extends MapContent
 	//var hoverTileExtent:Extent;
 	//var hoverTiles:Array<VectorTile>;
 
-	var hashTiles:Hash<Bool>;
 	var flipCounts:Hash<Int>;
 	var lastFlipCount:Int;
 	var flipDown:Bool;
 	
-	public var attrHash:Dynamic;	// дополнительные свойства слоя
+	public var hashTiles:Hash<Bool>;
+	public var attrHash:Dynamic;					// дополнительные свойства слоя
+	public var hashTilesVers:Hash<Int>;				// версии тайлов
+	
+	public var deletedObjects:Hash<Bool>;			// Списки обьектов удаляемых из тайлов
+	var editedObjects:Array<String>;				// Списки обьектов слоя в режиме редактирования
 
 	public override function createContentSprite()
 	{
@@ -52,7 +56,10 @@ class VectorLayer extends MapContent
 	{
 		tiles = new Array<VectorTile>();
 		hashTiles = new Hash<Bool>();
-		
+		hashTilesVers = new Hash<Int>();
+		deletedObjects = new Hash<Bool>();
+		editedObjects = new Array<String>();
+
 		geometries = new Hash<Geometry>();
 		flipCounts = new Hash<Int>();
 		lastFlipCount = 0;
@@ -63,10 +70,103 @@ class VectorLayer extends MapContent
 		if(vectorLayerObserver != null) vectorLayerObserver.flush();
 	}
 
-	public function addTile(i:Int, j:Int, z:Int)
+	public function addTile(i:Int, j:Int, z:Int, ?v:Int)
 	{
 		tiles.push(new VectorTile(this, i, j, z));
-		hashTiles.set(z + '_' + i + '_' + j, true);
+		var st:String = z + '_' + i + '_' + j;
+		hashTiles.set(st, true);
+		hashTilesVers.set(st, (v > 0 ? v : 0));
+	}
+
+	// Выборочная чистка списков тайлов
+	function flushTiles(attr:Dynamic)
+	{
+		if (mapNode != null)
+			for (child in mapNode.children)
+				if (Std.is(child.content, VectorLayerFilter))
+					cast(child.content, VectorLayerFilter).removeTiles(attr);
+	}
+
+	// Пометить обьекты из тайлов слоя находящиеся в режиме редактирования
+	public function setEditedObjects(ph:Dynamic, arr:Dynamic)
+	{
+		if (mapNode == null) return;
+		if (editedObjects.length > 0) {
+			// Если имеются обьекты находящиеся в режиме редактирования - очистим их
+			for (dId in editedObjects) {
+				var node = MapNode.allNodes.get(dId);
+				if(node != null) node.remove();
+			}
+		}
+		
+		for (child in mapNode.children) {
+			if (Std.is(child.content, VectorLayerFilter))
+				cast(child.content, VectorLayerFilter).removeItems(ph);
+		}
+
+		deletedObjects = new Hash<Bool>();
+		for (key in Reflect.fields(ph)) {
+			var id:String = cast(key, String);
+			deletedObjects.set(id, true);
+			//var val:String = Reflect.field(arr, key);
+			geometries.remove(id);
+		}
+		editedObjects = arr;
+		mapNode.noteSomethingHasChanged();
+		mapNode.repaintRecursively(true);
+	}
+
+	function addObjectGeometry(geom:Geometry)
+	{
+		var id = geom.properties.get(identityField);
+		if (!geometries.exists(id))
+			geometries.set(id, geom);
+		else
+		{
+			var newGeometry = new MultiGeometry();
+			var geomPrev = geometries.get(id);
+			newGeometry.properties = geomPrev.properties;
+			newGeometry.propTemporal = geomPrev.propTemporal;
+			newGeometry.addMember(geomPrev);
+			newGeometry.addMember(geom);
+			geometries.set(id, newGeometry);
+		}
+	}
+
+	public function parseObject(obj:Dynamic, ?tileExtent:Extent):Dynamic
+	{
+		var properties = new Hash<String>();
+		var props_:Array<String> = obj.properties;
+		for (i in 0...Std.int(props_.length/2))
+			properties.set(props_[i*2], props_[i*2 + 1]);
+		
+		var id = properties.exists(identityField) ? properties.get(identityField) : Utils.getNextId();
+		if(deletedObjects.exists(id)) return null;
+
+		var geom = Utils.parseGeometry(obj.geometry, tileExtent);
+
+		if (attrHash != null) {
+			if (attrHash.TemporalColumnName != null) {
+				var pt = properties.get(attrHash.TemporalColumnName);
+				if(pt != null) {
+					var unixTimeStamp:String = Utils.dateStringToUnixTimeStamp(pt);
+					geom.propTemporal.set('unixTimeStamp', unixTimeStamp);			// посчитали unixTimeStamp для фильтра
+					if (Std.is(geom, MultiGeometry)) {								// Для MultiGeometry надо расставить unixTimeStamp
+						var multi = cast(geom, MultiGeometry);
+						for (member in multi.members) {
+							member.propTemporal.set('unixTimeStamp', unixTimeStamp);
+						}
+					}
+				}
+			}
+		}
+		geom.properties = properties;
+		addObjectGeometry(geom);
+		
+		var out:Dynamic = { };
+		out.id = id;
+		out.geometry = geom;
+		return out;
 	}
 
 	// Управление списком тайлов
@@ -76,23 +176,48 @@ class VectorLayer extends MapContent
 			if (attr.notClear != true) {
 				flush();	// Полная перезагрузка тайлов
 			}
-
-			var sql:String = 'unixTimeStamp >= ' + attr.ut1 + ' AND unixTimeStamp <= ' + attr.ut2;
-			temporalCriterion = (attr.ut1 > attr.ut2) ? 
-				function(props:Hash<String>):Bool { return true; } :
-				Parsers.parseSQL(sql)
-			;
-			
-			var ptiles:Array<Int> = attr.dtiles;
-			for (ii in 0...Std.int(ptiles.length / 3)) {
-				var i:Int = ptiles[ii * 3];
-				var j:Int = ptiles[ii * 3 + 1];
-				var z:Int = ptiles[ii * 3 + 2];
-				if (!hashTiles.get(z + '_' + i + '_' + j)) addTile(i, j, z);
+			if (attr.add != null || attr.del != null) {			// Для обычных слоев
+				if (attr.del != null) flushTiles(attr);
+				
+				if (attr.add != null) {							// Добавление тайлов
+					var ptiles:Array<Array<Int>> = attr.add;
+					for (ii in 0...Std.int(ptiles.length)) {
+						var pt:Array<Int> = ptiles[ii];
+						var i:Int = pt[0];
+						var j:Int = pt[1];
+						var z:Int = pt[2];
+						var v:Int = pt[3];
+						if (!hashTiles.exists(z + '_' + i + '_' + j)) addTile(i, j, z, v);
+					}
+						
+					createLoader(function(tile:VectorTile, tilesRemaining:Int)
+					{
+						if (tilesRemaining < 1)
+						{
+							Main.bumpFrameRate();
+							Main.needRefreshMap = true;
+						}
+					})(mapWindow.visibleExtent);
+				}
+			}
+			else if(attr.dtiles != null) {		// Для мультивременных слоев
+				var sql:String = 'unixTimeStamp >= ' + attr.ut1 + ' AND unixTimeStamp <= ' + attr.ut2;
+				temporalCriterion = (attr.ut1 > attr.ut2) ? 
+					function(props:Hash<String>):Bool { return true; } :
+					Parsers.parseSQL(sql)
+				;
+				
+				var ptiles:Array<Int> = attr.dtiles;
+				for (ii in 0...Std.int(ptiles.length / 3)) {
+					var i:Int = ptiles[ii * 3];
+					var j:Int = ptiles[ii * 3 + 1];
+					var z:Int = ptiles[ii * 3 + 2];
+					var st:String = z + '_' + i + '_' + j;
+					if (!hashTiles.get(st)) addTile(i, j, z);
+				}
 			}
 		}
 	}
-
 
 	public function createLoader(func:VectorTile->Int->Void)
 	{

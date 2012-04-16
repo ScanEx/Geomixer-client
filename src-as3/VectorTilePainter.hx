@@ -14,7 +14,7 @@ class VectorTilePainter
 
 	public var tileGeometry:MultiGeometry;
 	public var clustersGeometry:MultiGeometry;
-	var tile:VectorTile;
+	public var tile:VectorTile;
 
 	public function new(geometry_:MultiGeometry, vlf_:VectorLayerFilter, tile_:VectorTile)
 	{
