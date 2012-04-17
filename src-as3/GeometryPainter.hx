@@ -14,10 +14,10 @@ class GeometryPainter
 		window = window_;
 	}
 
-	public function repaint(style:Style, ?func:Hash<String>->Bool)
+	public function repaint(style:Style, ?func:Hash<String>->Bool, ?notClearFlag:Bool)
 	{
 		//sprite.graphics.clear();
-		Utils.clearSprite(sprite);
+		if(!notClearFlag) Utils.clearSprite(sprite);
 		if ((geometry != null) && (style != null)) {
 			if (func != null && geometry.properties != null && !func(geometry.propTemporal)) return;	// Фильтр мультивременных данных
 			var attr:Dynamic = { };

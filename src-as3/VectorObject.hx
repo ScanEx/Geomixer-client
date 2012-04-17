@@ -68,15 +68,11 @@ class VectorObject extends MapContent
 
 		var node:MapNode = findHidenKeyNode(mapNode, '_FilterVisibility');
 		criterion = (node == null ? null : node.propHiden.get('_FilterVisibility'));
+		var notClearFlag:Bool = false;
 
-		if(criterion == null || criterion(geometry.properties)) {
-			if (layer != null) {
-				curFilter = findFilter();
-				if (curFilter != null && curFilter.clusterAttr != null) {
-					curStyle = (isActive ? curFilter.hoverStyleOrig : curFilter.regularStyleOrig);
-				} else {
-					curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
-				}
+		if (criterion == null || criterion(geometry.properties)) {
+			curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
+			if (layer != null) {	// обьект лежит в слое - отрисовка по фильтрам
 				curTemporalCriterion = layer.temporalCriterion;
 				if (layer.currentFilter != null) {
 					layer.hoverPainter.repaint(null);
@@ -84,16 +80,27 @@ class VectorObject extends MapContent
 				}
 				layer.lastId = null;
 				layer.currentId = null;
-			} else {
-				curStyle = (isActive ? mapNode.getHoveredStyle() : mapNode.getRegularStyle());			
+
+				var nodeFilter = null;
+				for (key in mapNode.parent.filters.keys()) {
+					nodeFilter = mapNode.parent.filters.get(key);
+					if (nodeFilter != null) {
+						var vectorLayerFilter = cast(nodeFilter.content, VectorLayerFilter);
+						if (vectorLayerFilter.criterion(mapNode.propHash)) {
+							curStyle = (isActive ? vectorLayerFilter.hoverStyleOrig : vectorLayerFilter.regularStyleOrig);
+							painter.repaint(curStyle, curTemporalCriterion, notClearFlag);
+							notClearFlag = true;
+						}
+					}
+				}
 			}
 		}
-		painter.repaint(curStyle, curTemporalCriterion);
+		if(!notClearFlag) painter.repaint(curStyle, curTemporalCriterion);
 		isActive = false;
 		curNodeFilter = null;
 		chkPositionX();
 	}
-	
+
 	function chkPositionX()
 	{
 		if (mapNode.propHiden.get('isDraging')) return;
