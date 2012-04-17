@@ -222,8 +222,13 @@ var DrawingObjectCollection = function(oInitMap) {
  @memberOf DrawingObjects 
  @param oInitMap Карта
  @param oInitContainer Объект, в котором находится контрол (div) 
- @param drawingObject Объект для добавления на карту*/
-var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject) {
+ @param drawingObject Объект для добавления на карту
+ @param options параметры отображения<br>
+     allowDelete - рисовать ли крестик удаления объекта<br>
+     editStyle - нужна ли возможность редактировать стили
+*/
+var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, options) {
+    var _options = $.extend({allowDelete: true, editStyle: true}, options);
 	var _drawingObject = drawingObject;
 	var _this = this;
 	var _map = oInitMap;
@@ -251,30 +256,42 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject) {
 		},
 		icon = null;
 	
-	if (_drawingObject.geometry.type == "POINT")
-	{
-		icon = _img(null, [['attr','src', gmxAPI.getAPIHostRoot() + 'api/img/flag_min.png'], ['dir', 'className', 'colorIcon']])
-	}
-	else
-	{
-		icon = CreateDrawingStylesEditorIcon(regularDrawingStyle, _drawingObject.geometry.type.toLowerCase());
-		CreateDrawingStylesEditor(_drawingObject, regularDrawingStyle, icon);
-	}
-	
-	var remove = makeImageButton(gmxAPI.getAPIHostRoot() + 'api/img/closemin.png',gmxAPI.getAPIHostRoot() + 'api/img/close_orange.png')
-	remove.setAttribute('title', _gtxt('Удалить'));
-	remove.className = 'removeGeometry';
-	remove.onclick = function(){
-        $(_this).triggerHandler('onRemove', [_drawingObject]);
+    if (_options.editStyle)
+    {
+        if (_drawingObject.geometry.type == "POINT")
+        {
+            icon = _img(null, [['attr','src', gmxAPI.getAPIHostRoot() + 'api/img/flag_min.png'], ['dir', 'className', 'colorIcon']])
+        }
+        else
+        {
+            icon = CreateDrawingStylesEditorIcon(regularDrawingStyle, _drawingObject.geometry.type.toLowerCase());
+            CreateDrawingStylesEditor(_drawingObject, regularDrawingStyle, icon);
+        }
+            
+        if ($.browser.msie)
+        {
+            icon.style.marginLeft = '2px';
+            icon.style.marginRight = '9px';
+        }
     }
+    else
+        icon = _span();
+	
+	var remove = null;
+    
+    if (_options.allowDelete)
+    {
+        remove = makeImageButton(gmxAPI.getAPIHostRoot() + 'api/img/closemin.png',gmxAPI.getAPIHostRoot() + 'api/img/close_orange.png')
+        remove.setAttribute('title', _gtxt('Удалить'));
+        remove.className = 'removeGeometry';
+        remove.onclick = function(){
+            $(_this).triggerHandler('onRemove', [_drawingObject]);
+        }
+    }
+    else
+        remove = _span();
 				
 	_(_canvas, [_span([icon, _title, _text, _summary], [['dir','className','drawingObjectsItem']]), remove]);
-	
-	if ($.browser.msie)
-	{
-		icon.style.marginLeft = '2px';
-		icon.style.marginRight = '9px';
-	}
 	
 	_(oInitContainer, [_canvas])
 	
@@ -314,14 +331,18 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject) {
 	
 	/** Удаляет строчку */
 	this.RemoveRow = function(){
-		_canvas.parentNode.removeChild(_canvas);
+    
+		if (_canvas.parentNode)
+            _canvas.parentNode.removeChild(_canvas);
+            
+        $(_drawingObject).unbind('.drawing');
 	}
     
     AttachEvents(_map);
-    $(_drawingObject).bind('onRemove', this.RemoveRow);
-	$(_drawingObject).bind('onEdit',   this.UpdateRow);
+    $(_drawingObject).bind('onRemove.drawing', this.RemoveRow);
+	$(_drawingObject).bind('onEdit.drawing',   this.UpdateRow);
     
-	this.UpdateRow ();
+	this.UpdateRow();
 }
 
 /** Конструктор
