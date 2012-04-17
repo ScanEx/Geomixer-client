@@ -385,7 +385,8 @@
 						else if (typeof arg == 'object')
 							geometry = arg;
 					}
-					if (!str && (obj.properties.GeometryType == "point")) {
+					//if (!str && (obj.properties.GeometryType == "point")) {
+					if (!str) {
 						gmxAPI._cmdProxy('getFeatures', { 'obj': obj, 'attr':{'geom': geometry, 'func': callback}});
 					}
 					else

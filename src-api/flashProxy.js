@@ -334,15 +334,24 @@
 				if(attr.func) {
 					var func = function(geom, props)
 					{
+						var ret = null;
 						if(geom && geom['type'] != 'unknown') {
-							if(typeof(props) === 'object' && props.length > 0) {
-								props = gmxAPI.arrayToHash(props);
+							if(typeof(props) === 'object' && props.length > 0) { props = gmxAPI.arrayToHash(props); }
+							ret = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj);
+						} else if(obj._Processing && obj._Processing.addObjects) {
+							var arr = obj._Processing.addObjects;
+							var identityField = obj.properties.identityField;
+							for (var i = 0; i < arr.length; i++) {
+								var prop = arr[i].properties;
+								if(prop[identityField] == attr['fid']) {
+									ret = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(arr[i].geometry), arr[i].properties, obj);
+									break;
+								}
 							}
-							attr.func(new gmxAPI._FlashMapFeature(
-								gmxAPI.from_merc_geometry(geom),
-								props,
-								obj
-							));
+						}
+
+						if(ret) {
+							attr.func(ret);
 						} else {
 							gmxAPI.addDebugWarnings({'alert':'Object: ' + attr['fid'] + ' not found in layer: ' + obj.objectId});
 						}
@@ -352,7 +361,8 @@
 				break;
 			case 'getFeatures':
 				if(attr.func) {
-					var geo = gmxAPI.merc_geometry(attr.geom ? attr.geom : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] });
+					var geo = (attr.geom ? attr.geom : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] });
+					var bound = gmxAPI.getBounds(geo.coordinates);
 					var func = function(geoms, props)
 					{
 						var ret = [];
@@ -367,9 +377,24 @@
 								obj
 							));
 						}
+						if(obj._Processing && obj._Processing.addObjects) {
+							var arr = obj._Processing.addObjects;
+							for (var i = 0; i < arr.length; i++) {
+								var geom = gmxAPI.from_merc_geometry(arr[i].geometry);
+								var bounds = gmxAPI.getBounds(geom.coordinates);
+								if(gmxAPI.boundsIntersect(bound, bounds)) {
+									ret.push(new gmxAPI._FlashMapFeature(
+										geom,
+										arr[i].properties,
+										obj
+									));
+								}
+							}
+						}
+						
 						attr.func(ret);
 					}
-					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geom':geo, 'func':gmxAPI.uniqueGlobalName(func) } );
+					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geom':gmxAPI.merc_geometry(geo), 'func':gmxAPI.uniqueGlobalName(func) } );
 				}
 				break;
 			case 'getTileItem':
