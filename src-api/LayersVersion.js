@@ -4,6 +4,24 @@
 	var intervalID = 0;
 	var versionLayers = {};				// Версии слоев по картам
 
+	// Запрос обновления версий слоев карты mapName
+	function sendVersionRequest(host, mapName, arr)
+	{
+		if(arr.length > 0) {
+			var url = 'http://' + host + '/Layer/CheckVersion.ashx?layers=[' + arr.join(',') + ']';
+			gmxAPI.sendCrossDomainJSONRequest(
+				url,
+				function(response)
+				{
+					if(response && response['Result'] && response['Result'].length > 0) {
+						// Обработка запроса изменения версий слоев
+						CheckVersionResponse({'host': host, 'mapName': mapName, 'arr': response['Result']});
+					}
+				}
+			);
+		}
+	}
+	
 	// Проверка версий слоев
 	function chkVersion(e)
 	{
@@ -15,18 +33,8 @@
 					if(layersArr[layerName].isVisible) arr.push('{ "Name":"'+ layerName +'","Version":' + layersArr[layerName]['properties']['LayerVersion'] +' }');
 				}
 				if(arr.length > 0) {
-					var url = 'http://' + host + '/Layer/CheckVersion.ashx?layers=[' + arr.join(',') + ']';
+					sendVersionRequest(host, mapName, arr);
 					arr = [];
-					gmxAPI.sendCrossDomainJSONRequest(
-						url,
-						function(response)
-						{
-							if(response && response['Result'] && response['Result'].length > 0) {
-								// Обработка запроса изменения версий слоев
-								CheckVersionResponse({'host': host, 'mapName': mapName, 'arr': response['Result']});
-							}
-						}
-					);
 				}
 			}
 		}
@@ -153,6 +161,13 @@
 			gmxAPI._listeners.addListener(layer, 'onLayer', function(ph) {
 				ph['_Processing'] = chkProcessing(ph, ph.properties);
 			});
+		}
+		,'chkLayerVersion': function (layer) {		// Запросить проверку версии слоя
+			var host = layer.properties.hostName;
+			var mapName = layer.properties.mapName;
+			var layerName = layer.properties.name;
+			var LayerVersion = layer.properties.LayerVersion;
+			sendVersionRequest(host, mapName, ['{ "Name":"'+ layerName +'","Version":' + LayerVersion +' }']);
 		}
 	};
 	

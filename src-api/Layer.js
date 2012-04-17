@@ -567,6 +567,11 @@
 			}
 		}
 
+		// Проверить версию векторного слоя
+		obj.chkLayerVersion = function() {
+			gmxAPI._layersVersion.chkLayerVersion(obj);
+		}
+		
 //		if (isRaster && (layer.properties.MaxZoom > maxRasterZoom))
 //			maxRasterZoom = layer.properties.MaxZoom;
 //		var myIdx = parentObj.layers.length;
