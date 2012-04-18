@@ -569,8 +569,8 @@
 		}
 
 		// Проверить версию векторного слоя
-		obj.chkLayerVersion = function() {
-			gmxAPI._layersVersion.chkLayerVersion(obj);
+		obj.chkLayerVersion = function(callback) {
+			gmxAPI._layersVersion.chkLayerVersion(obj, callback);
 		}
 		
 //		if (isRaster && (layer.properties.MaxZoom > maxRasterZoom))

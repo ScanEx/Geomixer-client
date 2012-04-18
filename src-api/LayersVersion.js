@@ -5,7 +5,7 @@
 	var versionLayers = {};				// Версии слоев по картам
 
 	// Запрос обновления версий слоев карты mapName
-	function sendVersionRequest(host, mapName, arr)
+	function sendVersionRequest(host, mapName, arr, callback)
 	{
 		if(arr.length > 0) {
 			var url = 'http://' + host + '/Layer/CheckVersion.ashx?layers=[' + arr.join(',') + ']';
@@ -16,6 +16,7 @@
 					if(response && response['Result'] && response['Result'].length > 0) {
 						// Обработка запроса изменения версий слоев
 						CheckVersionResponse({'host': host, 'mapName': mapName, 'arr': response['Result']});
+						if(callback) callback(response);
 					}
 				}
 			);
@@ -162,12 +163,12 @@
 				ph['_Processing'] = chkProcessing(ph, ph.properties);
 			});
 		}
-		,'chkLayerVersion': function (layer) {		// Запросить проверку версии слоя
+		,'chkLayerVersion': function (layer, callback) {		// Запросить проверку версии слоя
 			var host = layer.properties.hostName;
 			var mapName = layer.properties.mapName;
 			var layerName = layer.properties.name;
 			var LayerVersion = layer.properties.LayerVersion;
-			sendVersionRequest(host, mapName, ['{ "Name":"'+ layerName +'","Version":' + LayerVersion +' }']);
+			sendVersionRequest(host, mapName, ['{ "Name":"'+ layerName +'","Version":' + LayerVersion +' }'], callback);
 		}
 	};
 	
