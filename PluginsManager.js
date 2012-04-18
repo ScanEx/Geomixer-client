@@ -11,12 +11,14 @@
 	* params - объект параметров, будет передаваться в методы модуля
     * pluginName - имя плагина. Должно быть по возможности уникальным
     * mapPlugin {bool, default: true} - является ли плагин плагином карт. Если является, то не будет грузиться по умолчанию.
-  Каждый плагин хранится в отдельном модуле (через свойство modules) или подгружается в явном виде (через свойство plugins). В модуле могут быть определены следующие методы:<br/>
+  Если очередной элемент массива просто строка (например, "name"), то это эквивалентно {module: "name", file: "plugins/name.js"}
+  Каждый плагин хранится в отдельном модуле (через свойство module) или подгружается в явном виде (через свойство plugin). В модуле могут быть определены следующие методы:<br/>
   * beforeMap (params)- вызовется сразу после загрузки всех модулей ядра вьюера (до инициализации карты, проверки пользователя и т.п.)<br/>
   * beforeViewer (params)- вызовется до начала инициализации вьюера (сразу после инициализации карты)<br/>
   * afterViewer(params) - вызовется после инициализации вьюера<br/>
   * addMenuItems - должен вернуть вектор из пунктов меню, которые плагин хочет добавить.
                    Формат каждого элемента вектора: item - описание меню (см Menu.addElem()), parentID: id меню родителя (1 или 2 уровня)
+                   Устарело! Используйте непосредственное добавление элемента к меню из afterViewer()
 */
 var PluginsManager = function()
 {
@@ -32,28 +34,33 @@ var PluginsManager = function()
 		var modules = [];
 		for (var p = 0; p < window.gmxPlugins.length; p++)
 		{
-			if ('plugin' in window.gmxPlugins[p])
+            var curPlugin = window.gmxPlugins[p];
+            
+            if (typeof curPlugin === 'string')
+                curPlugin = { module: curPlugin, file: 'plugins/' + curPlugin + '.js' };
+            
+			if ('plugin' in curPlugin)
 			{
 				var plugin = { 
-                    body:      window.gmxPlugins[p].plugin, 
-                    params:    window.gmxPlugins[p].params,
-                    name:      window.gmxPlugins[p].pluginName,
-                    mapPlugin: window.gmxPlugins[p].mapPlugin,
-                    _inUse:    !window.gmxPlugins[p].mapPlugin
+                    body:      curPlugin.plugin, 
+                    params:    curPlugin.params,
+                    name:      curPlugin.pluginName,
+                    mapPlugin: curPlugin.mapPlugin,
+                    _inUse:    !curPlugin.mapPlugin
                 };
 				
-                if (typeof window.gmxPlugins[p].pluginName !== 'undefined' )
-                    _pluginsWithName[ window.gmxPlugins[p].pluginName ] = plugin;
+                if (typeof curPlugin.pluginName !== 'undefined' )
+                    _pluginsWithName[ curPlugin.pluginName ] = plugin;
                     
 				_plugins.push( plugin );
 			}
 			else
 			{
-                var moduleName = window.gmxPlugins[p].module;
-				if ( typeof window.gmxPlugins[p].file !== 'undefined' )
-					gmxCore.loadModule(moduleName, window.gmxPlugins[p].file);
+                var moduleName = curPlugin.module;
+				if ( typeof curPlugin.file !== 'undefined' )
+					gmxCore.loadModule(moduleName, curPlugin.file);
 				
-                _modulePlugins[moduleName] = window.gmxPlugins[p];
+                _modulePlugins[moduleName] = curPlugin;
 				
 				modules.push(moduleName);
 			}
