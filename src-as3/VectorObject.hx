@@ -71,28 +71,33 @@ class VectorObject extends MapContent
 		var notClearFlag:Bool = false;
 
 		if (criterion == null || criterion(geometry.properties)) {
-			curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
+			curStyle = (isActive ? mapNode.getHoveredStyle() : mapNode.getRegularStyle());
 			if (layer != null) {	// обьект лежит в слое - отрисовка по фильтрам
 				curTemporalCriterion = layer.temporalCriterion;
 				if (layer.currentFilter != null) {
 					layer.hoverPainter.repaint(null);
 					layer.currentFilter.mapNode.callHandler('onMouseOut', mapNode);
+					//layer.currentFilter = null;
 				}
 				layer.lastId = null;
 				layer.currentId = null;
 
-				var nodeFilter = null;
-				for (key in mapNode.parent.filters.keys()) {
-					nodeFilter = mapNode.parent.filters.get(key);
-					if (nodeFilter != null) {
-						var vectorLayerFilter = cast(nodeFilter.content, VectorLayerFilter);
-						if (vectorLayerFilter.criterion(mapNode.propHash)) {
-							curStyle = (isActive ? vectorLayerFilter.hoverStyleOrig : vectorLayerFilter.regularStyleOrig);
-							painter.repaint(curStyle, curTemporalCriterion, notClearFlag);
-							notClearFlag = true;
+				if (curStyle == null) {			// Собственного стиля у обьекта нет
+					var nodeFilter = null;
+					for (key in mapNode.parent.filters.keys()) {
+						nodeFilter = mapNode.parent.filters.get(key);
+						if (nodeFilter != null) {
+							var vectorLayerFilter = cast(nodeFilter.content, VectorLayerFilter);
+							if (vectorLayerFilter.criterion(mapNode.propHash)) {
+								curStyle = (isActive ? vectorLayerFilter.hoverStyleOrig : vectorLayerFilter.regularStyleOrig);
+								painter.repaint(curStyle, curTemporalCriterion, notClearFlag);
+								notClearFlag = true;
+							}
 						}
 					}
 				}
+			} else {					// Для обьектов не в векторном слое найти рекурсивный стиль
+				curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
 			}
 		}
 		if(!notClearFlag) painter.repaint(curStyle, curTemporalCriterion);
@@ -179,7 +184,7 @@ class VectorObject extends MapContent
 			layer.hoverPainter.repaint(curStyle);
 			if (curNodeFilter != null) curNodeFilter.callHandler("onMouseOver", mapNode);
 		} else {
-			repaint();
+			//repaint();
 		}
 	}
 

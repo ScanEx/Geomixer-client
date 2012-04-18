@@ -3,7 +3,7 @@
 {
 	var addObjects = function(parentId, attr) {
 		var out = [];
-		var data = attr['data'];
+		var data = attr['arr'];
 		var fmt = (attr['format'] ? attr['format'] : 'LatLng');
 		for (var i=0; i<data.length; i++)	// Подготовка массива обьектов
 		{
