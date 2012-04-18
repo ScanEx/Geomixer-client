@@ -1,0 +1,19 @@
+.slick-canvas input
+{
+    margin: 3px;
+}
+
+.slick-region input
+{
+    margin: 3px;
+}
+
+.slick-table input
+{
+    width: 130px;
+}
+
+input.slick-coords
+{
+    width: 62px;
+}
