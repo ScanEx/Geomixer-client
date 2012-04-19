@@ -1,5 +1,7 @@
 ﻿(function ($, map){
 
+var g_tagMetaInfo = null;
+
 _translationsHash.addtext("rus", {
 	"Генерация слоёв по сценам" : "Генерация слоёв по сценам"
 });
@@ -7,77 +9,140 @@ _translationsHash.addtext("eng", {
 	"Генерация слоёв по сценам" : "Generate layers using scenes"
 });
 
+var propertiesToTagsIkonos = function(properties)
+{
+    var dateLocal = $.datepicker.parseDate('yy-mm-dd', properties.DATE);
+    var timeOffset = dateLocal.getTimezoneOffset()*60;
+    
+    var parseTimeRes = properties.TIME.match(/(\d\d):(\d\d):(\d\d)/)
+    
+    var values = {
+        sceneid:    properties.Name,
+        platform:   'IKONOS',
+        resolution: 1.0,
+        acdate:     dateLocal.valueOf()/1000 - timeOffset,
+        actime:     parseTimeRes[1]*3600 + parseTimeRes[2]*60 + parseTimeRes[3]*1
+    }
+    
+    var meta = {};
+    for (var t in values)
+        meta[t] = {value: values[t], type: g_tagMetaInfo.getTagType(t)};
+        
+    return meta;
+}
+
+var createIkonosLayer = function(curSceneName)
+{
+    if (curSceneName == "") return;
+        
+    var ikonosLayerName = '5D1858A954544BA892E182F81461A361';
+    var ikonosTilePath = 'G:\\Piccolo\\[SCENE]_tiles';
+    
+    var query = encodeURIComponent('("sceneid"="' + curSceneName + '") AND ("platform"="IKONOS")');
+    sendCrossDomainJSONRequest(serverBase + 'Layer/Search.ashx?count=true&PropQuery=' + query, function(response)
+    {
+        if (!parseResponse(response))
+            return;
+            
+        if (response.Result.count > 0)
+        {
+            console && console.log('Already exists: ' + curSceneName);
+            return;
+        }
+            
+        var searchString = '"Name"="'+ curSceneName +'"';
+        
+        sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + ikonosLayerName + "&page=0&pagesize=1&orderby=ogc_fid&geometry=true&query=" + encodeURIComponent(searchString), function(response)
+        {
+            if (!parseResponse(response))
+            {
+                console && console.log('Error: ' + curSceneName);
+                return;
+            }
+            
+            if (response.Result.values.length == 0)
+            {
+                console && console.log('Unknown scene: ' + curSceneName);
+                return;
+            }
+            
+            var curFolder = ikonosTilePath.replace("[SCENE]", curSceneName);
+            var properties = {};
+            
+            for (var f = 0; f < response.Result.fields.length; f++)
+                properties[response.Result.fields[f]] = response.Result.values[0][f];
+            
+            var geom = JSON.stringify(properties['geomixergeojson']);
+            
+            var requestParams = {
+                WrapStyle: "window",
+                Title: "wms_ikonos_" + curSceneName,
+                Copyright: "",
+                Legend: "",
+                Description: "",
+                MetaProperties: JSON.stringify(propertiesToTagsIkonos(properties)),
+                TilePath: curFolder,
+                BorderFile: '',
+                BorderGeometry: geom,
+                MapName: _mapHelper.mapProperties.name
+            }
+            
+            // console.log(requestParams);
+            sendCrossDomainPostRequest(serverBase + "RasterLayer/Insert.ashx", requestParams, function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                    
+                _mapHelper.asyncTasks[response.Result.TaskID] = true;
+                _queryMapLayers.asyncCreateLayer(response.Result, requestParams.Title);
+            });
+        });
+    });
+}
+
 var showWidget = function()
 {
     var canvas = $('<div/>');
     var scenesList = $('<textarea/>', {'class': 'wmsSales-scenelist'});
-    var baseFolderInput = $('<input/>', {'class': 'wmsSales-basefolder'});
-    var coverageLayerInput = $('<input/>', {'class': 'wmsSales-coveragelayer'});
+    
+    var selectLayer = $('<select/>', {'class': 'wmsSales-select selectStyle'}).append($('<option/>').val('picollo').text('IKONOS Piccolo'));
     
     var generateButton = $('<button/>', {'class': 'wmsSales-genbutton'}).text('Генерить слои').click(function()
     {
         var scenes = scenesList.val().split('\n');
-        var folderTemplate = baseFolderInput.val();
-        
-        for (var s = 0; s < scenes.length; s++)
-        {
-            (function(curSceneName){
-                var curFolder = folderTemplate.replace("[SCENE]", curSceneName);
                 
-                var searchString = '"Name"="'+ curSceneName +'"';
-                sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + coverageLayerInput.val() + "&page=0&pagesize=1&orderby=ogc_fid&geometry=true&query=" + encodeURIComponent(searchString), function(response)
-                {
-                    if (!parseResponse(response))
-                    {
-                        console.log('Error: ' + curSceneName);
-                        return;
-                    }
-                    
-                    var geom = JSON.stringify(response.Result.values[0][0]);
-                    var dateString = response.Result.values[0][10];
-                    
-                    var requestParams = {
-                        WrapStyle: "window",
-                        Title: "wms_" + curSceneName,
-                        Copyright: "",
-                        Legend: "",
-                        Description: "",
-                        Date: $.datepicker.formatDate("dd.mm.yy", $.datepicker.parseDate("yy-mm-dd", dateString)),
-                        TilePath: curFolder,
-                        BorderFile: '',
-                        BorderGeometry: geom,
-                        MapName: _mapHelper.mapProperties.name
-                    }
-                    
-                    sendCrossDomainPostRequest(serverBase + "RasterLayer/Insert.ashx", requestParams, function(response)
-                    {
-                        if (!parseResponse(response))
-                            return;
-                            
-                        _mapHelper.asyncTasks[response.Result.TaskID] = true;
-                        _queryMapLayers.asyncCreateLayer(response.Result, requestParams.Title);
-                    });
-                });
-            })(scenes[s]);
-        }
+        for (var s = 0; s < scenes.length; s++)
+            createIkonosLayer(scenes[s]);
     });
     
     canvas
         .append($("<div/>").text("Список сцен:")).append(scenesList)
-        .append($("<div/>").text("Шаблон папки ('[SCENE]' - имя сцены):")).append(baseFolderInput)
-        .append($("<div/>").text("Слой спутникого покрытия:")).append(coverageLayerInput)
+        .append($("<div/>").text("Выбор спутникого покрытия:")).append(selectLayer)
         .append(generateButton);
         
     showDialog(_gtxt("Генерация слоёв по сценам"), canvas[0], 400, 400);
 }
 
-var afterViewer = function(params)
+var publicInterface = 
 {
-    _menuUp.addChildItem({id: 'wmsSales', title:_gtxt('Генерация слоёв по сценам'), func: showWidget}, 'instrumentsMenu');
-}
-
-var publicInterface = {
-	afterViewer: afterViewer
+	afterViewer: function(params)
+    {
+        if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
+            return;
+            
+        _menuUp.addChildItem({
+            id: 'wmsSales', 
+            title:_gtxt('Генерация слоёв по сценам'), 
+            func: function()
+            {
+                nsGmx.TagMetaInfo.loadFromServer(function(tagMetaInfo)
+                {
+                    g_tagMetaInfo = tagMetaInfo;
+                    showWidget();
+                });
+            }
+        }, 'instrumentsMenu');
+    }
 }
 
 gmxCore.addModule("WMSSalesPlugin", publicInterface, 
@@ -97,4 +162,4 @@ gmxCore.addModule("WMSSalesPlugin", publicInterface,
     }
 );
 
-})(jQuery, globalFlashMap)
+})(jQuery)
