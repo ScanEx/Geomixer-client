@@ -394,7 +394,17 @@ var FireSpotProvider = function( params )
 			for ( var d = 0; d < data.Response.length; d++ )
 			{
 				var a = data.Response[d];
-				resArr.push({ x: a[1], y: a[0], date: a[4], category: a[3] < 50 ? 0 : (a[3] < 100 ? 1 : 2), balloonProps: {"Время": a[5] + "&nbsp;(Greenwich Mean Time)", "Вероятность": a[2]}});
+				resArr.push({
+                    x: a[1], 
+                    y: a[0], 
+                    date: a[4], 
+                    category: a[3] < 50 ? 0 : (a[3] < 100 ? 1 : 2), 
+                    balloonProps: {
+                        "Время наблюдения": a[5] + ' ' + a[4] + " (UTC)", 
+                        //"Время": a[5] + "&nbsp;(Greenwich Mean Time)", 
+                        "Вероятность": a[2]
+                    }
+                });
 			}
 			onSucceess( resArr );
 		});
@@ -657,7 +667,10 @@ var FireSpotClusterProvider = (function(){
                 time: a[4], 
                 dateInt: dateInt, 
                 category: a[6] < 50 ? 0 : (a[4] < 100 ? 1 : 2), 
-                balloonProps: {"Время": a[4] + "&nbsp;(Greenwich Mean Time)"} 
+                balloonProps: {
+                    "Время наблюдения": a[3] + ' ' + a[4] + " (UTC)"
+                    //"Время": a[4] + "&nbsp;(Greenwich Mean Time)"
+                } 
             };
             
 			resArr.push(hotSpot);
@@ -735,7 +748,7 @@ var FireSpotClusterProvider = (function(){
 								clusterId: k.substr(2),
 								balloonProps: {
                                     "Кол-во горячих точек": clusters[k].length, 
-                                    "Период наблюдения": _datePeriodHelper(clustersMinMaxDates[k].minStr, clustersMinMaxDates[k].maxStr),
+                                    "Время наблюдения": _datePeriodHelper(clustersMinMaxDates[k].minStr, clustersMinMaxDates[k].maxStr),
                                     "Площадь горения": prettifyArea(geoArea(geometry))
                                 }
 							});
@@ -975,7 +988,8 @@ var FireSpotRenderer = function( params )
 			if (!a) continue;
 			
 			var objContainer = null;
-			var addBallonProps = {"Дата": a.date };
+			// var addBallonProps = {"Дата": a.date };
+			var addBallonProps = {};
 			
 			var key = 'medium';
 			if (typeof a.category != 'undefined')
@@ -1031,7 +1045,7 @@ var FireSpotRenderer = function( params )
 		medium.enableHoverBalloon(ballonHoverFunction);
 		strong.enableHoverBalloon(ballonHoverFunction);
 		
-		if (_params.onclick !== 'undefined')
+		if (_params.onclick)
 		{
 			weak.setHandler  ('onClick', _params.onclick );
 			medium.setHandler('onClick', _params.onclick );
@@ -1186,7 +1200,7 @@ var CombinedFiresRenderer = function( params )
 	];
 	
 	var _clustersRenderer  = new FireSpotRenderer  ({maxZoom: _params.maxClustersZoom,  title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>", customStyleProvider: customStyleProvider});
-	var _wholeFireRenderer = new FireBurntRenderer ({minZoom: _params.minWholeFireZoom,  defStyle: wholeDefStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>"});
+	var _wholeFireRenderer = new FireBurntRenderer ({minZoom: _params.minWholeFireZoom,  defStyle: wholeDefStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Суммарный контур пожара</b></div>"});
 	var _geometryRenderer  = new FireBurntRenderer ({minZoom: _params.minGeometryZoom,  defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", addGeometrySummary: false});
 	var _hotspotRenderer   = new FireSpotRenderer  ({minZoom: _params.minHotspotZoom, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>"});
 	var _curData = null;
