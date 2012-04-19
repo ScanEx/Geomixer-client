@@ -193,6 +193,10 @@ UpMenu.prototype.draw = function()
     removeChilds(this.parent.firstChild);
 	_(this.parent.firstChild, [ul]);
     
+    //убираем все скрытые меню
+    for (var d in this.disabledTabs)
+        this.disableMenus([d]);
+    
     this._isCreated = true;
 }
 // Создает элемент меню 2го уровня
