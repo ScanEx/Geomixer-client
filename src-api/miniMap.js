@@ -45,7 +45,7 @@
 
 			var scale = gmxAPI.getScale(miniMapZ);
 			
-			var mouseMoveMode = new HandlerMode(document.documentElement, "mousemove", function(event)
+			var mouseMoveMode = new gmxAPI._HandlerMode(document.documentElement, "mousemove", function(event)
 			{
 				map.moveTo(
 					gmxAPI.from_merc_x(startMapX - (gmxAPI.eventX(event) - startMouseX)*scale), 
@@ -54,7 +54,7 @@
 				);
 				return false;
 			});
-			var mouseUpMode = new HandlerMode(document.documentElement, "mouseup", function(event)
+			var mouseUpMode = new gmxAPI._HandlerMode(document.documentElement, "mouseup", function(event)
 			{
 				mouseMoveMode.clear();
 				mouseUpMode.clear();
