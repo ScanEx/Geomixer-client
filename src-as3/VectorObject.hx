@@ -90,7 +90,7 @@ class VectorObject extends MapContent
 							var vectorLayerFilter = cast(nodeFilter.content, VectorLayerFilter);
 							if (vectorLayerFilter.criterion(mapNode.propHash)) {
 								curStyle = (isActive ? vectorLayerFilter.hoverStyleOrig : vectorLayerFilter.regularStyleOrig);
-								painter.repaint(curStyle, curTemporalCriterion, notClearFlag);
+								painter.repaint(curStyle, curTemporalCriterion, null, notClearFlag);
 								notClearFlag = true;
 							}
 						}

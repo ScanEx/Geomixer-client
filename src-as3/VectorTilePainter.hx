@@ -50,6 +50,14 @@ class VectorTilePainter
 		}
 	}
 
+	function findHidenKeyNode(node:MapNode, key):MapNode
+	{
+		if (node == null) return null;
+		else if (node.propHiden.exists(key)) return node;
+		else if (node.parent != null) return findHidenKeyNode(node.parent, key);
+		return null;
+	}
+
 	public function repaint(style:Style, ?clearCache:Bool)
 	{
 		var curZ:Float = mapWindow.getCurrentZ();
@@ -73,6 +81,13 @@ class VectorTilePainter
 			}
 		}
 
+		var node:MapNode = findHidenKeyNode(vectorLayerFilter.mapNode, '_FilterVisibility');
+		var criterion:Hash<String>->Bool = null;
+		if(node != null) {
+			criterion = node.propHiden.get('_FilterVisibility');
+			clearCache = true;
+		}
+		
 		var repaintCache:Bool = (clearCache ? clearCache : false);
 		if ((style != null && style.curCount != oldStyleID) || oldZ != currentZ)
 		{
@@ -85,7 +100,7 @@ class VectorTilePainter
 		{
 			if (repaintCache || cacheSprite.width == 0 || cacheSprite.height == 0) {
 				cacheSprite.graphics.clear();
-				painter.repaintWithoutExtent(style, cacheSprite, vectorLayerFilter.layer.temporalCriterion);
+				painter.repaintWithoutExtent(style, cacheSprite, vectorLayerFilter.layer.temporalCriterion, criterion);
 			}
 			if (cacheSprite.parent == null) rasterSprite.addChild(cacheSprite);
 
@@ -95,7 +110,7 @@ class VectorTilePainter
 		else
 		{
 			if (cacheSprite.width > 0) cacheSprite.graphics.clear();
-			painter.repaint(style, vectorLayerFilter.layer.temporalCriterion);
+			painter.repaint(style, vectorLayerFilter.layer.temporalCriterion, criterion);
 			if(rasterSprite.visible) rasterSprite.visible = false;
 			if(!vectorSprite.visible) vectorSprite.visible = true;
 		}

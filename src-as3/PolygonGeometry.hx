@@ -20,6 +20,7 @@ class PolygonGeometry extends Geometry
 	public override function paint(attr:Dynamic)
 	{
 		if (attr.func != null && !attr.func(propTemporal)) return;	// Фильтр мультивременных данных
+		if (attr.func1 != null && !attr.func1(properties)) return;	// фильтр видимости setVisibilityFilter
 
 		var sprite:Sprite = attr.sprite;
 		var style:Style = attr.style;
