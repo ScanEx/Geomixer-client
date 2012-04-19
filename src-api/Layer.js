@@ -358,6 +358,25 @@
 					for (var i = 0; i < obj.filters.length; i++)
 						obj.filters[i].setHandler(eventName, handler);
 				}
+				obj.removeHandler = function(eventName)
+				{
+					FlashMapObject.prototype.removeHandler.call(obj, eventName);
+					for (var i = 0; i < obj.filters.length; i++)
+						obj.filters[i].removeHandler(eventName);
+				}
+				obj.addListener = function(eventName, handler)
+				{
+					FlashMapObject.prototype.addListener.call(obj, eventName, handler);
+					for (var i = 0; i < obj.filters.length; i++)
+						obj.filters[i].addListener(eventName, handler);
+				}
+				obj.removeListener = function(eventName, eID)
+				{
+					FlashMapObject.prototype.removeListener.call(obj, eventName, eID);
+					for (var i = 0; i < obj.filters.length; i++)
+						obj.filters[i].removeListener(eventName);	// Удаляем весь массив события eventName  
+				}
+				
 			}
 			obj.addObserver = function(o, onChange)
 			{

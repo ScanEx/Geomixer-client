@@ -1428,79 +1428,6 @@ window.gmxAPI.miniMapZoomDelta = -4;
 
 	(function()
 	{
-		// Begin: Блок общих методов не доступных из вне
-		var stateListeners = {};	// Глобальные события
-		
-		function getArr(eventName, obj)
-		{
-			var arr = (obj ? 
-				('stateListeners' in obj && eventName in obj.stateListeners ? obj.stateListeners[eventName] : [])
-				: ( eventName in stateListeners ? stateListeners[eventName] : [])
-			);
-			return arr;
-		}
-		// Обработка пользовательских Listeners на obj
-		function dispatchEvent(eventName, obj, attr)
-		{
-			var out = true;
-			var arr = getArr(eventName, obj);
-			for (var i=0; i<arr.length; i++)
-			{
-				out = arr[i].func(attr);
-			}
-			return out;
-		}
-
-		/** Пользовательские Listeners изменений состояния карты
-		* @function addListener
-		* @memberOf api - добавление прослушивателя
-		* @param {eventName} название события
-		* @param {func} вызываемый метод
-		* @return {id} присвоенный id прослушивателя
-		* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
-		* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-		*/
-		function addListener(obj, eventName, func)
-		{
-			var arr = getArr(eventName, obj);
-			var id = gmxAPI.newFlashMapId();
-			arr.push({"id": id, "func": func });
-			if(obj) obj.stateListeners[eventName] = arr;
-			else stateListeners[eventName] = arr;
-			return id;
-		}
-
-		/** Пользовательские Listeners изменений состояния карты
-		* @function removeListener
-		* @memberOf api - удаление прослушивателя
-		* @param {eventName} название события
-		* @param {id} вызываемый метод
-		* @return {Bool} true - удален false - не найден
-		* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
-		* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-		*/
-		function removeListener(obj, eventName, id)
-		{
-			var arr = getArr(eventName, obj);
-			var out = [];
-			for (var i=0; i<arr.length; i++)
-			{
-				if(id != arr[i]["id"]) out.push(arr [i]);
-			}
-			if(obj) obj.stateListeners[eventName] = out;
-			else stateListeners[eventName] = out;
-			return true;
-		}
-		gmxAPI._listeners = {
-			'dispatchEvent': dispatchEvent,
-			'addListener': addListener,
-			'removeListener': removeListener
-		};
-		// End: Блок общих методов не доступных из вне
-	})();
-
-	(function()
-	{
 		var FlashMapFeature = function(geometry, properties, layer)
 		{
 			this.geometry = geometry;
@@ -1535,9 +1462,10 @@ window.gmxAPI.miniMapZoomDelta = -4;
 		gmxAPI._HandlerMode = HandlerMode;
 	})();
 
-window.gmxAPI.GlobalHandlerMode = function(event, handler) { return new gmxAPI._HandlerMode(document.documentElement, event, handler); }
-
+	window.gmxAPI.GlobalHandlerMode = function(event, handler) { return new gmxAPI._HandlerMode(document.documentElement, event, handler); }
+	
 })();
+
 // Блок методов глобальной области видимости
 var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";		// ID базовой карты подложек
 var tmp = [
@@ -1565,6 +1493,158 @@ function newElement(tagName, props, style) { return gmxAPI.newElement(tagName, p
 var getAPIFolderRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIFolderRoot(); });
 var getAPIHost = gmxAPI.memoize(function() { return gmxAPI.getAPIHost(); });
 var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot(); });
+
+// Поддержка setHandler и Listeners
+(function()
+{
+
+	var flashEvents = {		// События передающиеся в SWF
+		'onClick': true
+		,'onMouseDown': true
+		,'onMouseUp': true
+		,'onMouseOver': true
+		,'onMouseOut': true
+		,'onMove': true
+		,'onMoveBegin': true
+		,'onMoveEnd': true
+		,'onResize': true
+		,'onEdit': true
+		,'onNodeMouseOver': true
+		,'onNodeMouseOut': true
+		,'onEdgeMouseOver': true
+		,'onEdgeMouseOut': true
+		,'onFinish': true
+		,'onRemove': true
+	};
+
+	function setHandler(obj, eventName, handler) {
+		var func = function(subObjectId, a, attr)
+		{
+			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// если MapObject отсутствует создаем
+			pObj.properties = gmxAPI.propertiesFromArray(a);
+			if(obj.handlers[eventName]) handler(pObj, attr);
+			gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });
+		};
+
+		var callback = (handler ? func : null);
+		if(callback || !obj.stateListeners[eventName]) { 	// Если есть callback или нет Listeners на обьекте
+			gmxAPI._cmdProxy('setHandler', { 'obj': obj, 'attr': {
+				'eventName':eventName
+				,'callbackName':callback
+				}
+			});
+		}
+	}
+	
+	var InitHandlersFunc = function() {
+		gmxAPI.extendFMO('setHandler', function(eventName, handler) {
+			setHandler(this, eventName, handler);
+			this.handlers[eventName] = true;		// true если установлено через setHandler
+			flashEvents[eventName] = true;
+		});
+
+		gmxAPI.extendFMO('removeHandler', function(eventName) {
+			if(!(eventName in this.stateListeners) || this.stateListeners[eventName].length == 0) { 	// Если нет Listeners на обьекте
+				gmxAPI._cmdProxy('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
+			}
+			delete this.handlers[eventName];
+		});
+
+		gmxAPI.extendFMO('setHandlers', function(handlers) {
+			for (var key in handlers)
+				this.setHandler(key, handlers[key]);
+		});
+	};
+	
+	var ret = {
+		'Init': function () {
+			InitHandlersFunc();
+		}
+	};
+	
+	//расширяем namespace
+	gmxAPI._handlers = ret;
+
+	// Begin: Блок Listeners
+	var stateListeners = {};	// Глобальные события
+	
+	function getArr(eventName, obj)
+	{
+		var arr = (obj ? 
+			('stateListeners' in obj && eventName in obj.stateListeners ? obj.stateListeners[eventName] : [])
+			: ( eventName in stateListeners ? stateListeners[eventName] : [])
+		);
+		return arr;
+	}
+	// Обработка пользовательских Listeners на obj
+	function dispatchEvent(eventName, obj, attr)
+	{
+		var out = true;
+		var arr = getArr(eventName, obj);
+		for (var i=0; i<arr.length; i++)
+		{
+			out = arr[i].func(attr);
+		}
+		return out;
+	}
+
+	/** Пользовательские Listeners изменений состояния карты
+	* @function addListener
+	* @memberOf api - добавление прослушивателя
+	* @param {eventName} название события
+	* @param {func} вызываемый метод
+	* @return {id} присвоенный id прослушивателя
+	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+	*/
+	function addListener(obj, eventName, func)
+	{
+		var arr = getArr(eventName, obj);
+		var id = gmxAPI.newFlashMapId();
+		arr.push({"id": id, "func": func });
+		if(obj) {	// Это Listener на mapObject
+			obj.stateListeners[eventName] = arr;
+			if(flashEvents[eventName] && !obj.handlers[eventName]) setHandler(obj, eventName, func);
+		}
+		else {		// Это глобальный Listener
+			stateListeners[eventName] = arr;
+		}
+		return id;
+	}
+
+	/** Пользовательские Listeners изменений состояния карты
+	* @function removeListener
+	* @memberOf api - удаление прослушивателя
+	* @param {eventName} название события
+	* @param {id} вызываемый метод
+	* @return {Bool} true - удален false - не найден
+	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
+	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
+	*/
+	function removeListener(obj, eventName, id)
+	{
+		var arr = getArr(eventName, obj);
+		var out = [];
+		for (var i=0; i<arr.length; i++)
+		{
+			if(id && id != arr[i]["id"]) out.push(arr [i]);
+		}
+		if(obj) {
+			obj.stateListeners[eventName] = out;
+			if(!obj.handlers[eventName] && out.length == 0) obj.removeHandler(eventName);
+			
+		}
+		else stateListeners[eventName] = out;
+		return true;
+	}
+	gmxAPI._listeners = {
+		'dispatchEvent': dispatchEvent,
+		'addListener': addListener,
+		'removeListener': removeListener
+	};
+	
+	// End: Блок Listeners
+})();
 
 ////
 var flashMapAlreadyLoading = false;
@@ -1805,6 +1885,7 @@ var FlashMapObject = function(objectId_, properties_, parent_)
 	this.parent = parent_;
 	this.flashId = flashId;
 	this.stateListeners = {};	// Пользовательские события
+	this.handlers = {};			// Пользовательские события во Flash
 	//this.maxRasterZoom = 1;		// Максимальный зум растровых слоев
 	this.childsID = {};			// Хэш ID потомков
 }
@@ -1858,31 +1939,7 @@ FlashMapObject.prototype.getChildren = function()
 	return ret;
 }
 
-FlashMapObject.prototype.setHandler = function(eventName, handler)
-{
-	var me = this;
-	var func = function(subObjectId, a, attr)
-		{
-			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new FlashMapObject(subObjectId, {}, me));		// если MapObject отсутствует создаем
-			pObj.properties = gmxAPI.propertiesFromArray(a);
-			handler(pObj, attr);
-		};
-	gmxAPI._cmdProxy('setHandler', { 'obj': this, 'attr': {
-		'eventName':eventName
-		,'callbackName':handler ? func : null
-		}
-	});
-}
-FlashMapObject.prototype.removeHandler = function(eventName)
-{
-	gmxAPI._cmdProxy('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
-}
-
-FlashMapObject.prototype.setHandlers = function(handlers)
-{
-	for (var key in handlers)
-		this.setHandler(key, handlers[key]);
-}
+if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация handlers
 
 /** Добавление объектов из SWF файла
 * @function
