@@ -197,8 +197,10 @@ var EditObjectControl = function(layerName, objectId)
                 $(_this).trigger('modify');
                 closeFunc();
                 removeDialog(dialogDiv);
-                layer.chkLayerVersion();
-                layer.setVisibilityFilter();
+                layer.chkLayerVersion(function()
+                {
+                    layer.setVisibilityFilter();
+                });
             });
         }
     
