@@ -457,6 +457,7 @@
 				if (layer.properties.Quicklook)
 					obj.enableQuicklooks(function(o)
 					{
+						obj.bringToTop();
 						return gmxAPI.applyTemplate(layer.properties.Quicklook, o.properties);
 					});
 				if (layer.properties.TiledQuicklook)
