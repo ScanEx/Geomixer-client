@@ -1604,7 +1604,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		arr.push({"id": id, "func": func });
 		if(obj) {	// Это Listener на mapObject
 			obj.stateListeners[eventName] = arr;
-			if(flashEvents[eventName] && (!obj.handlers || !obj.handlers[eventName])) setHandler(obj, eventName, func);
+			if(flashEvents[eventName] && (!obj.handlers || !obj.handlers[eventName])) obj.setHandler(eventName, func);
 		}
 		else {		// Это глобальный Listener
 			stateListeners[eventName] = arr;
