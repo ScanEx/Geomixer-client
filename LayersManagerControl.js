@@ -109,10 +109,11 @@ var drawLayers = function(layer, params)
 		{
 			var active = $(_this.buildedTree).find(".active");
 			
+            var gmxProperties = $(res).find("span[dragg]")[0].parentNode.parentNode.gmxProperties;
 			if (active.length && (active[0].parentNode.getAttribute('MapID') || active[0].parentNode.getAttribute('GroupID')))
-				_layersTree.copyHandler($(res).find("span[dragg]")[0], active[0].parentNode, false, true)
+				_layersTree.copyHandler(gmxProperties, active[0].parentNode, false, true)
 			else
-				_layersTree.copyHandler($(res).find("span[dragg]")[0], $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0], false, true)
+				_layersTree.copyHandler(gmxProperties, $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0], false, true)
 		},
 		_this = this;
 	

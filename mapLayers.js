@@ -1311,11 +1311,13 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 	
 	this.mapHelper.updateUnloadEvent(true);
 }
-layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag, addToMap)
+
+layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapFlag, addToMap)
 {
     var _this = this;
-	var isFromList = typeof spanSource.parentNode.parentNode.gmxProperties.content.geometry === 'undefined';
-	var layerProperties = (spanSource.parentNode.parentNode.gmxProperties.type !== 'layer' || !isFromList) ? spanSource.parentNode.parentNode.gmxProperties : false,
+    //var gmxProperties = spanSource.parentNode.parentNode.gmxProperties;
+	var isFromList = typeof gmxProperties.content.geometry === 'undefined';
+	var layerProperties = (gmxProperties.type !== 'layer' || !isFromList) ? gmxProperties : false,
 		copyFunc = function()
 		{
 			// если копируем слой из списка, но не из карты
@@ -1329,7 +1331,8 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
             }
             else
             {
-                if ( _this.mapHelper.findTreeElem(spanSource.parentNode.parentNode) )
+                // if ( _this.mapHelper.findTreeElem(spanSource.parentNode.parentNode) )
+                if ( _this.mapHelper.findTreeElemByGmxProperties(gmxProperties) )
                 {
                     if (layerProperties.type === 'layer')
                         showErrorMessage(_gtxt("Слой '[value0]' уже есть в карте", layerProperties.content.properties.title), true)
@@ -1338,7 +1341,6 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
                         
                     return;
                 }
-                    
             }
 			
 			var node = divDestination.parentNode,
@@ -1438,9 +1440,9 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 	
 	if (!layerProperties)
 	{
-		if (spanSource.parentNode.parentNode.gmxProperties.content.properties.LayerID)
+		if (gmxProperties.content.properties.LayerID)
 		{
-			sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + spanSource.parentNode.parentNode.gmxProperties.content.properties.name, function(response)
+			sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + gmxProperties.content.properties.name, function(response)
 			{
 				if (!parseResponse(response))
 					return;
@@ -1461,7 +1463,7 @@ layersTree.prototype.copyHandler = function(spanSource, divDestination, swapFlag
 		}
 		else
 		{
-			sendCrossDomainJSONRequest(serverBase + "MultiLayer/GetMultiLayerJson.ashx?WrapStyle=func&MultiLayerID=" + spanSource.parentNode.parentNode.gmxProperties.content.properties.MultiLayerID, function(response)
+			sendCrossDomainJSONRequest(serverBase + "MultiLayer/GetMultiLayerJson.ashx?WrapStyle=func&MultiLayerID=" + gmxProperties.content.properties.MultiLayerID, function(response)
 			{
 				if (!parseResponse(response))
 					return;
@@ -1898,7 +1900,7 @@ queryMapLayers.prototype.addDroppable = function(parent)
 		if (!layerManager)
 			_layersTree.moveHandler(ui.draggable[0], this)
 		else				
-			_layersTree.copyHandler(ui.draggable[0], this, false, !isFromExternalMaps)
+			_layersTree.copyHandler(ui.draggable[0].parentNode.parentNode.gmxProperties, this, false, !isFromExternalMaps)
 	}})
 }
 queryMapLayers.prototype.removeDroppable = function(parent)
@@ -1937,11 +1939,13 @@ queryMapLayers.prototype.addSwappable = function(parent)
             if ( this == $$('externalMapsCanvas') )
                 isFromExternalMaps = true;
 		})
+        
+        var gmxProperties = ui.draggable[0].parentNode.parentNode.gmxProperties;
 		
 		if (!layerManager)
 			_layersTree.swapHandler(ui.draggable[0], this)
 		else
-			_layersTree.copyHandler(ui.draggable[0], this, true, !isFromExternalMaps)
+			_layersTree.copyHandler(gmxProperties, this, true, !isFromExternalMaps)
 	}})
 }
 queryMapLayers.prototype.removeSwappable = function(parent)

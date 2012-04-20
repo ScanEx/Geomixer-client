@@ -3027,14 +3027,16 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				getCount: function(){ return _attributes.length; }
 			}
 		})();
-		attrModel.TYPES = 
-			{
-				DOUBLE:   {user: 'Float',    server: 'float'},
-				STRING:   {user: 'String',   server: 'string'},
-				TIME:     {user: 'Time',     server: 'time'},
-				DATETIME: {user: 'DateTime', server: 'datetime'},
-				INTEGER:  {user: 'Integer',  server: 'integer'}
-			};
+		attrModel.TYPES = {
+            DOUBLE:   {user: 'Float',    server: 'float'    },
+            INTEGER:  {user: 'Integer',  server: 'integer'  },
+            STRING:   {user: 'String',   server: 'string'   },
+            TIME:     {user: 'Time',     server: 'time'     },
+            DATE:     {user: 'Date',     server: 'date'     },
+            DATETIME: {user: 'DateTime', server: 'datetime' },
+            INTEGER:  {user: 'Integer',  server: 'integer'  },
+            BOOL:     {user: 'Boolean',  server: 'boolean'  }
+        };
 		
 		var attrView = (function()
 		{
@@ -3434,13 +3436,20 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 					}
 					
 					sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + 
-															"&Description=" + descr.value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + columnsString, function(response)
+															"&Description=" + descr.value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + columnsString + "&geometrytype=POLYGON", function(response)
 					{
 						if (!parseResponse(response))
 								return;
-						
-						_this.asyncTasks[response.Result.TaskID] = div ? div.gmxProperties.content.properties.name : true;
-						_queryMapLayers.asyncCreateLayer(response.Result, layerTitle);
+                        
+                        var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
+                        var gmxProperties = {type: 'layer', content: response.Result};
+                        gmxProperties.content.properties.mapName = _mapHelper.mapProperties.name;
+                        gmxProperties.content.properties.hostName = _mapHelper.mapProperties.hostName;
+                        gmxProperties.content.properties.visible = true;
+                        
+                        gmxProperties.content.properties.styles = [{MinZoom: gmxProperties.content.properties.MinZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]}];
+                        
+                        _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
 					});
 				}
 				else
@@ -4400,6 +4409,16 @@ mapHelper.prototype.addTreeElem = function(div, index, elemProperties)
 		elem.elem.content.children.splice(index, 0, elemProperties);
         
     $(this.mapTree).triggerHandler('addTreeElem', [elemProperties]);
+}
+
+mapHelper.prototype.findTreeElemByGmxProperties = function(gmxProperties)
+{
+	if (gmxProperties.type == 'group') //группа
+		return this.findElem(this.mapTree, "GroupID", gmxProperties.content.properties.GroupID, [this.mapTree]);
+	else if (typeof gmxProperties.content.properties.LayerID !== 'undefined') //слой
+		return this.findElem(this.mapTree, "LayerID", gmxProperties.content.properties.LayerID, [this.mapTree]);
+	else if (typeof gmxProperties.content.properties.MultiLayerID !== 'undefined') //мультислой
+		return this.findElem(this.mapTree, "MultiLayerID", gmxProperties.content.properties.MultiLayerID, [this.mapTree]);
 }
 
 mapHelper.prototype.findTreeElem = function(div)

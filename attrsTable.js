@@ -79,7 +79,7 @@ var ServerDataProvider = function()
             var fieldsSet = {};
             
             for (var f = 0; f < response.Result.fields.length; f++)
-                fieldsSet[response.Result.fields[f]] = f;
+                fieldsSet[response.Result.fields[f]] = { index: f, type: response.Result.types[f] };
             
             var res = [];
             for (var i = 0; i < response.Result.values.length; i++)
@@ -144,6 +144,46 @@ attrsTable.prototype.getInfo = function()
 		
 		_this.drawDialog(response.Result);
 	})
+}
+
+//TODO: выделить в отдельный класс, убрать из глобальной видимости
+window._convertFromServer = function(type, value)
+{
+    if (value === null) return "null";
+    
+    if (type == 'string')
+    {
+        return value;
+    }
+    else if (type == 'integer')
+    {
+        return String(value);
+    }
+    else if (type == 'float')
+    {
+        return String(value);
+    }
+    else if (type == 'date')
+    {
+        var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
+        return $.datepicker.formatDate('dd.mm.yy', new Date(value*1000 + timeOffset));
+    }
+    else if (type == 'time')
+    {
+        var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
+        var tempInput = $('<input/>').timepicker({timeOnly: true, timeFormat: "hh:mm:ss"});
+        $(tempInput).timepicker('setTime', new Date(value*1000 + timeOffset));
+        return $(tempInput).val();
+    }
+    else if (type == 'datetime')
+    {
+        var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
+        var tempInput = $('<input/>').datetimepicker({timeOnly: false, timeFormat: "hh:mm:ss"});
+        $(tempInput).datetimepicker('setDate', new Date(value*1000 + timeOffset));
+        return $(tempInput).val();
+    }
+    
+    return value;
 }
 
 attrsTable.prototype.drawDialog = function(info)
@@ -238,7 +278,7 @@ attrsTable.prototype.drawDialog = function(info)
 
         editButton.onclick = function()
         {
-            var id = elem.values[elem.fields[_this._identityField]];
+            var id = elem.values[elem.fields[_this._identityField].index];
             new nsGmx.EditObjectControl(_this.layerName, id);
         }
         
@@ -247,7 +287,7 @@ attrsTable.prototype.drawDialog = function(info)
             var remove = makeButton(_gtxt("Удалить"));
             remove.onclick = function()
             {
-                var id = elem.values[elem.fields[_this._identityField]];
+                var id = elem.values[elem.fields[_this._identityField].index];
                 var objects = JSON.stringify([{action: 'delete', id: id}]);
                 sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", {WrapStyle: 'window', LayerName: _this.layerName, objects: objects}, function(response)
                 {
@@ -286,13 +326,12 @@ attrsTable.prototype.drawDialog = function(info)
                 
             if (activeHeaders[j] in elem.fields)
             {
-                var valIndex = elem.fields[activeHeaders[j]],
-                    strData = String(elem.values[valIndex]),
+                var valIndex = elem.fields[activeHeaders[j]].index,
                     td = _td();
                 
-                _(td, [_t(strData)])
+                _(td, [_t(window._convertFromServer(elem.fields[activeHeaders[j]].type, elem.values[valIndex]))])
                 
-                if (!isNaN(Number(elem.values[valIndex])))
+                if (elem.fields[activeHeaders[j]].type == 'integer')
                     td.style.textAlign = 'right';
                 
                 tds.push(td);

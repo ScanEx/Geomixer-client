@@ -30,6 +30,77 @@ var EditObjectControlsManager = {
     }
 }
 
+var getValueForServer = function(type, input)
+{
+        
+    if (type == 'integer' || type == 'float')
+        return parseFloat(input.value);
+        
+    var value = input.value;
+        
+    if (type == 'date')
+    {
+        var localValue = $.datepicker.parseDate('dd.mm.yy', value).valueOf();
+        var timeOffset = (new Date(localValue)).getTimezoneOffset()*60;
+        
+        return localValue/1000 - timeOffset;
+    }
+    else if (type == 'datetime')
+    {
+        var localValue = $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value).valueOf();
+        var timeOffset = (new Date(localValue*1000)).getTimezoneOffset()*60;
+        
+        return localValue/1000 - timeOffset;
+    }
+    else if (type == 'time')
+    {
+        var resTime = $.datepicker.parseTime('hh:mm:ss', value);
+        return resTime.hour*3600 + resTime.minute*60 + resTime.second;
+    }
+    
+    return input.value;
+}
+
+var getInputElement = function(type)
+{
+    var input = _input( null,[['css','width','200px'],['dir','className','inputStyle']] );
+    
+    if (type == 'date')
+    {
+        $(input).datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: "dd.mm.yy"
+        });
+    }
+    else if ( type == 'datetime' )
+    {
+        $(input).datetimepicker(
+        {
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: "dd.mm.yy",
+            timeFormat: "hh:mm:ss",
+            showSecond: true,
+            timeOnly: false
+        })
+    }
+    else if ( type == "time" )
+    {
+        $(input).timepicker({
+            timeOnly: true,
+            timeFormat: "hh:mm:ss",
+            showSecond: true
+        });
+    }
+    
+    return input;
+    // if (type == 'integer' || type == 'float' || type == 'string' || type == 'boolean')
+        // return _input( null,[['css','width','200px'],['dir','className','inputStyle']] );
+        
+    //return _span([_t('Не поддерживается')]);
+}
+
 var EditObjectControl = function(layerName, objectId)
 {
     var _this = this;
@@ -164,7 +235,7 @@ var EditObjectControl = function(layerName, objectId)
             var properties = {};
             $(".inputStyle", canvas).each(function(index, elem)
             {
-                properties[elem.rowName] = $(elem).val();
+                properties[elem.rowName] = getValueForServer(elem.rowType, elem);
             });
             
             var obj = { action: isNew ? 'insert' : 'update', properties: properties };
@@ -195,11 +266,12 @@ var EditObjectControl = function(layerName, objectId)
                     return;
 
                 $(_this).trigger('modify');
-                closeFunc();
+                //closeFunc();
                 removeDialog(dialogDiv);
                 layer.chkLayerVersion(function()
                 {
-                    layer.setVisibilityFilter();
+                    //layer.setVisibilityFilter();
+                    closeFunc();
                 });
             });
         }
@@ -245,6 +317,7 @@ var EditObjectControl = function(layerName, objectId)
                 $(canvas).children("[loading]").remove();
                 
                 var geometryRow = response.Result.values[0];
+                var types = response.Result.types;
                 
                 trs[0] = trs[1] = null; //резервируем место под геометрию и строчку идентификатора
                 for (var i = 0; i < geometryRow.length; ++i)
@@ -298,7 +371,12 @@ var EditObjectControl = function(layerName, objectId)
                     }
                     else
                     {
-                        var input = _input(null,[['attr','value',geometryRow[i]],['css','width','200px'],['dir','className','inputStyle'], ['dir', 'rowName', columnNames[i]]]);
+                        // var input = getInputElement(layer.properties.attrTypes[i]);
+                        var input = getInputElement(types[i]);
+                        input.rowName = columnNames[i];
+                        input.rowType = types[i];
+                        input.value = window._convertFromServer(types[i], geometryRow[i]);
+                        //var input = _input(null,[['attr','value',geometryRow[i]],['css','width','200px'],['dir','className','inputStyle'], ['dir', 'rowName', columnNames[i]]]);
                         
                         _(tdValue, [input]);
                         
@@ -328,9 +406,11 @@ var EditObjectControl = function(layerName, objectId)
             
             trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), _td([geometryInfoContainer])]));
             
-            for (var i = 1; i < layer.properties.attributes.length; ++i)
+            for (var i = 0; i < layer.properties.attributes.length; ++i)
             {
-                var input = _input(null,[['css','width','200px'],['dir','className','inputStyle'], ['dir', 'rowName', layer.properties.attributes[i]]]);
+                var input = getInputElement(layer.properties.attrTypes[i]);
+                input.rowName = layer.properties.attributes[i];
+                input.rowType = layer.properties.attrTypes[i];
                 
                 trs.push(_tr([_td([_span([_t(layer.properties.attributes[i])],[['css','fontSize','12px']])]), _td([input])]))
             }
