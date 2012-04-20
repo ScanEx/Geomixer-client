@@ -97,14 +97,13 @@ class VectorTile
 				}
 
 				var urlTiles:Dynamic = layer.tileFunction(i, j, z);
-				var ver:Int = (layer.hashTilesVers.exists(st) ? layer.hashTilesVers.get(st) : 0);
-
 				if (Std.is(urlTiles, Array))	// нужна склейка тайлов
 				{
 					var arr:Array<String> = urlTiles;
-					if(urlTiles.length > 0) new GetSWFTile(arr, ver, function(data_:Array<Dynamic>) { parseTile(data_); });
+					if(urlTiles.length > 0) new GetSWFTile(arr, function(data_:Array<Dynamic>) { parseTile(data_); });
 				} else if (Std.is(urlTiles, String)) {
 					var url:String = urlTiles;
+					var ver:Int = (layer.hashTilesVers.exists(st) ? layer.hashTilesVers.get(st) : 0);
 					if (url != "") new GetSWFFile(url + '&v='+ver, function(data_:Array<Dynamic>) { parseTile(data_);	});
 				}
 			}

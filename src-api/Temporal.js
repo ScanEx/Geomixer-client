@@ -11,7 +11,7 @@
 		var temporalData = null;
 		var currentData = {};		// список тайлов для текущего daysDelta
 
-		function prpTemporalTiles(data) {
+		function prpTemporalTiles(data, vers) {
 			var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
 			var deltaHash = {};
 			var ph = {};
@@ -23,8 +23,9 @@
 					gmxAPI.addDebugWarnings({'func': 'prpTemporalTiles', 'layer': prop.title, 'alert': 'Error in TemporalTiles array - line: '+nm+''});
 					continue;
 				}
-				var v = arr[5] || 0;
+				var v = vers[nm] || 0;
 				var z = arr[4];
+				if(z < 1) continue;
 				var i = arr[2];
 				var j = arr[3];
 				if(!ph[z]) ph[z] = {};
@@ -47,7 +48,7 @@
 			return {'dateTiles': arr, 'hash': ph, 'deltaHash': deltaHash, 'deltaArr': deltaArr};
 		}
 
-		temporalData = prpTemporalTiles(prop.TemporalTiles);
+		temporalData = prpTemporalTiles(prop.TemporalTiles, prop.TemporalVers);
 		var ZeroDateString = prop.ZeroDate || '01.01.2008';	// нулевая дата
 		var arr = ZeroDateString.split('.');
 		var ZeroDate = new Date(
@@ -129,9 +130,9 @@
 						var x = pt[0];
 						var y = pt[1];
 						var z = pt[2];
-						var file = _prefix + "&Level=" + daysDelta + "&Span=" + dz + "&z=" + z + "&x=" + x + "&y=" + y;
-						if(_TemporalDebugPath) file = _prefix + daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // тайлы расположены в WEB папке
-						
+						var v = pt[3];
+						var file = _prefix + "&Level=" + daysDelta + "&Span=" + dz + "&z=" + z + "&x=" + x + "&y=" + y + "&v=" + v;
+						//if(_TemporalDebugPath) file = _prefix + daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // тайлы расположены в WEB папке
 						if(!ph['tiles'][z]) ph['tiles'][z] = {};
 						if(!ph['tiles'][z][x]) ph['tiles'][z][x] = {};
 						if(!ph['tiles'][z][x][y]) ph['tiles'][z][x][y] = [];

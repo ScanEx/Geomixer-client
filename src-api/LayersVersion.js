@@ -131,12 +131,13 @@
 		var removeIDS = {};
 		if (prop.Processing.Deleted && prop.Processing.Deleted.length > 0) {		// список удаляемых обьектов слоя
 			for (var i = 0; i < prop.Processing.Deleted.length; i++) {			// добавляемые обьекты также необходимо удалить из тайлов
-				removeIDS[prop.Processing.Deleted[i]['id']] = true;
+				removeIDS[prop.Processing.Deleted[i]] = true;
 			}
 		}
 		var arr = getAddObjects(prop.Processing);		// addobjects
 		for (var i = 0; i < arr.length; i++) {			// добавляемые обьекты также необходимо удалить из тайлов
-			removeIDS[arr[i]['id']] = true;
+			var pt = arr[i];
+			removeIDS[pt['id']] = true;
 		}
 		var out = {
 			'removeIDS': removeIDS, 

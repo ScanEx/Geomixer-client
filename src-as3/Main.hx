@@ -888,7 +888,6 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			var tiles:Array<Int> = attr.tiles;
 			var tilesVers:Array<Int> = attr.tilesVers;
 			var attrHash:Dynamic = attr.filesHash;
-			
 			var content = new VectorLayer(identityField, attrHash, function(i:Int, j:Int, z:Int):Dynamic
 			{
 				var out:Dynamic = Main.cmdToJS(tileFunction, i, j, z);

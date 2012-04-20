@@ -987,7 +987,7 @@
 			else
 			{
 				var o = drawFunctions[geom.type](geom.coordinates, props);
-				gmxAPI._tools['standart'].selectTool("move");
+				//gmxAPI._tools['standart'].selectTool("move");
 				return o.domObj;
 			}
 		},
