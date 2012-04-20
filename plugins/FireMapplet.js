@@ -1017,25 +1017,29 @@ var FireSpotRenderer = function( params )
 		{
 			var ph = _obj[k];
 			if(ph.arr.length > 0) {
-				var arr = ph.node.addObjects( ph.arr );
-				for (var i = 0; i < arr.length; i++)
-				{
-					_balloonProps[arr[i].objectId] = ph.balloonProps[i];
-				}
 				
 				//кастомные стили для каждого объекта
 				if (_params.customStyleProvider)
-					for (var i = 0; i < arr.length; i++)
-						arr[i].setStyle(_params.customStyleProvider(ph.arr[i].src));
+                {
+					for (var i = 0; i < ph.arr.length; i++)
+						//arr[i].setStyle(_params.customStyleProvider(ph.arr[i].src));
+						ph.arr[i].setStyle = {'regularStyle': _params.customStyleProvider(ph.arr[i].src)};
+                }
 				
 				//метки
-				for (var i = 0; i < arr.length; i++){
+				for (var i = 0; i < ph.arr.length; i++){
 					if (typeof ph.arr[i].src.label !== 'undefined'){
-						arr[i].setLabel(ph.arr[i].src.label);
+                        ph.arr[i].setLabel = ph.arr[i].src.label;
+						//arr[i].setLabel(ph.arr[i].src.label);
 					}
 				}
-				
-				
+                
+				var arr = ph.node.addObjects( ph.arr );
+                
+                for (var i = 0; i < arr.length; i++)
+				{
+					_balloonProps[arr[i].objectId] = ph.balloonProps[i];
+				}
 			}
 		}
 		
