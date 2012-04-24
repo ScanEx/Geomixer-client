@@ -61,22 +61,39 @@
 			layer['_Processing'] = chkProcessing(layer, ph.properties);
 
 			var ptOld = prev[layerName];
-			var pt = getTilesHash(ph.properties, ptOld['tilesHash']);
-			if(pt['count'] != ptOld['count'] || pt['add'].length > 0 || pt['del'].length > 0) {
-				// обновить список тайлов слоя
-				layer.properties['tiles'] = ph.properties['tiles'];
-				layer.properties['tilesVers'] = ph.properties['tilesVers'];
-				var attr = {
-					'processing': layer['_Processing'],
-					'tiles': layer.properties['tiles'],
-					'tilesVers': layer.properties['tilesVers'],
-					'add': pt['add'],
-					'del': pt['del'],
-					'notClear': true,
-					'refresh': true
-				};
-				gmxAPI._cmdProxy('startLoadTiles', { 'obj': layer, 'attr':attr });
+			var pt = null;
+			var attr = {
+				'processing': layer['_Processing'],
+				'notClear': true,
+				'refresh': true
+			};
+			if('_temporalTiles' in layer) {		// мультивременной слой	- обновить в Temporal.js
+				pt = layer._temporalTiles.getTilesHash(ph.properties, ptOld['tilesHash']);
+				if(pt['count'] != ptOld['count'] || pt['add'].length > 0 || pt['del'].length > 0) {
+					layer.properties['TemporalTiles'] = ph.properties['TemporalTiles'];
+					layer.properties['TemporalVers'] = ph.properties['TemporalVers'];
+					attr['add'] = pt['add'];
+					attr['del'] = pt['del'];
+
+					attr['ut1'] = pt['ut1'];
+					attr['ut2'] = pt['ut2'];
+					attr['dtiles'] = pt['dtiles'];
+				}
+			} else {
+				pt = getTilesHash(ph.properties, ptOld['tilesHash']);
+				if(pt['count'] != ptOld['count'] || pt['add'].length > 0 || pt['del'].length > 0) {
+					layer.properties['tiles'] = ph.properties['tiles'];
+					layer.properties['tilesVers'] = ph.properties['tilesVers'];
+					attr['add'] = pt['add'];
+					attr['del'] = pt['del'];
+
+					attr['tiles'] = layer.properties['tiles'];
+					attr['tilesVers'] = layer.properties['tilesVers'];
+				}
 			}
+			// обновить список тайлов слоя
+			gmxAPI._cmdProxy('startLoadTiles', { 'obj': layer, 'attr':attr });
+			versionLayers[mapHost][mapName][layerName] = { 'LayerVersion': layer.properties.LayerVersion, 'tilesHash': pt['hash'], 'count': pt['count'] };
 		}
 		return arr;
 	}
@@ -154,7 +171,8 @@
 				var mapName = layers.properties.name;
 				if(!versionLayers[mapHost]) versionLayers[mapHost] = {};
 				if(!versionLayers[mapHost][mapName]) versionLayers[mapHost][mapName] = {};
-				var pt = getTilesHash(layer.properties);
+				var layerObj = gmxAPI.map.layers[layer.properties.name];
+				var pt = ('_temporalTiles' in layerObj ? layerObj._temporalTiles.getTilesHash(layer.properties) : getTilesHash(layer.properties));
 				versionLayers[mapHost][mapName][layer.properties.name] = { 'LayerVersion': layer.properties.LayerVersion, 'tilesHash': pt['hash'], 'count': pt['count'] };
 			}
 		}

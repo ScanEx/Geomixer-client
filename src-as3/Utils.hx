@@ -312,7 +312,12 @@ class Utils
 			var complete = function(e)
 			{ 
 					var bitmapData:BitmapData = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
-					bitmapData.draw(loader);
+					try {
+						bitmapData.draw(loader);
+					} catch (error:Error) {			// в случае отсутствия crossdomain.xml показывает пустышку
+						bitmapData = new BitmapData(Std.int(loader.width), Std.int(loader.height));
+					}
+	
 					if (noCache ) onLoad(bitmapData);
 					else addToCache(bitmapData);
 					loaderActive = false;

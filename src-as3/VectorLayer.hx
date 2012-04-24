@@ -41,6 +41,7 @@ class VectorLayer extends MapContent
 		tileFunction = tileFunction_;
 		temporalCriterion = null;
 		vectorLayerObserver = null;
+		editedObjects = new Array<String>();
 		flush();
 		
 		if(attrHash != null) {
@@ -58,7 +59,6 @@ class VectorLayer extends MapContent
 		hashTiles = new Hash<Bool>();
 		hashTilesVers = new Hash<Int>();
 		deletedObjects = new Hash<Bool>();
-		editedObjects = new Array<String>();
 
 		geometries = new Hash<Geometry>();
 		flipCounts = new Hash<Int>();
@@ -87,18 +87,22 @@ class VectorLayer extends MapContent
 					cast(child.content, VectorLayerFilter).removeTiles(attr);
 	}
 
-	// Пометить обьекты из тайлов слоя находящиеся в режиме редактирования
-	public function setEditedObjects(ph:Dynamic, arr:Dynamic)
+	// Если имеются обьекты находящиеся в режиме редактирования - очистим их
+	function removeEditedObjects()
 	{
-		if (mapNode == null) return;
-		if (editedObjects.length > 0) {
-			// Если имеются обьекты находящиеся в режиме редактирования - очистим их
+		if (editedObjects != null && editedObjects.length > 0) {
 			for (dId in editedObjects) {
 				var node = MapNode.allNodes.get(dId);
 				if(node != null) node.remove();
 			}
 		}
-		
+	}
+
+	// Пометить обьекты из тайлов слоя находящиеся в режиме редактирования
+	public function setEditedObjects(ph:Dynamic, arr:Dynamic)
+	{
+		if (mapNode == null) return;
+		removeEditedObjects();
 		for (child in mapNode.children) {
 			if (Std.is(child.content, VectorLayerFilter))
 				cast(child.content, VectorLayerFilter).removeItems(ph);
@@ -189,18 +193,9 @@ class VectorLayer extends MapContent
 						var v:Int = pt[3];
 						if (!hashTiles.exists(z + '_' + i + '_' + j)) addTile(i, j, z, v);
 					}
-						
-					createLoader(function(tile:VectorTile, tilesRemaining:Int)
-					{
-						if (tilesRemaining < 1)
-						{
-							Main.bumpFrameRate();
-							Main.needRefreshMap = true;
-						}
-					})(mapWindow.visibleExtent);
 				}
 			}
-			else if(attr.dtiles != null) {		// Для мультивременных слоев
+			if(attr.dtiles != null) {		// Для мультивременных слоев
 				var sql:String = 'unixTimeStamp >= ' + attr.ut1 + ' AND unixTimeStamp <= ' + attr.ut2;
 				temporalCriterion = (attr.ut1 > attr.ut2) ? 
 					function(props:Hash<String>):Bool { return true; } :
@@ -215,6 +210,16 @@ class VectorLayer extends MapContent
 					var st:String = z + '_' + i + '_' + j;
 					if (!hashTiles.get(st)) addTile(i, j, z);
 				}
+			}
+			if (attr.add != null) {							// Было добавление тайлов
+				createLoader(function(tile:VectorTile, tilesRemaining:Int)
+				{
+					if (tilesRemaining < 1)
+					{
+						Main.bumpFrameRate();
+						Main.needRefreshMap = true;
+					}
+				})(mapWindow.visibleExtent);
 			}
 		}
 	}

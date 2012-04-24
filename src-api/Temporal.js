@@ -10,6 +10,74 @@
 		var oneDay = 1000*60*60*24;	// один день
 		var temporalData = null;
 		var currentData = {};		// список тайлов для текущего daysDelta
+		var ZeroDateString = prop.ZeroDate || '01.01.2008';	// нулевая дата
+		var arr = ZeroDateString.split('.');
+		var ZeroDate = new Date(					// Начальная дата
+			(arr.length > 2 ? arr[2] : 2008),
+			(arr.length > 1 ? arr[1] - 1 : 0),
+			(arr.length > 0 ? arr[0] : 1)
+			);
+
+		var baseAddress = "http://" + prop.hostName + "/";
+		var layerName = prop.name || prop.image;
+		var sessionKey = isRequiredAPIKey( prop.hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
+		var sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[prop.mapName] : false);
+		var prefix = baseAddress + 
+				"TileSender.ashx?ModeKey=tile" + 
+				"&MapName=" + prop.mapName + 
+				"&LayerName=" + layerName + 
+				(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
+				(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
+		if(prop._TemporalDebugPath) {
+			prefix = prop._TemporalDebugPath;
+			//temporalData['_TemporalDebugPath'] = prop._TemporalDebugPath;
+		}
+		var identityField = prop.identityField;
+		var TemporalColumnName = prop.TemporalColumnName || 'Date';
+		
+		// Начальный интервал дат
+		var DateEnd = new Date();
+		if(prop.DateEnd) {
+			var arr = prop.DateEnd.split('.');
+			if(arr.length > 2) DateEnd = new Date(arr[2], arr[1] - 1, arr[0]);
+		}
+		var DateBegin = new Date(DateEnd - oneDay);
+			
+			
+		// Формирование Hash списка версий тайлов мультивременного слоя
+		function getTilesHash(prop, ph)
+		{
+			var tdata = prpTemporalTiles(prop.TemporalTiles, prop.TemporalVers, ph);
+			var currentData = this.temporalData.currentData;
+			var data = getDateIntervalTiles(currentData['dt1'], currentData['dt1'], tdata);
+
+			var out = {'hash':{}, 'del': {}, 'add': [], 'count': 0 };
+			var ptAdd = {};
+			for (var key in data['TilesVersionHash']) {
+				if(!currentData['TilesVersionHash'][key]) {
+					var arr = key.split('_');
+					var st = arr[0] + '_' + arr[1] + '_' + arr[2];
+					ptAdd[st] = true;
+					out['del'][arr[2] + '_' + arr[0] + '_' + arr[1]] = true;
+				}
+			}
+			for (var key in currentData['TilesVersionHash']) {
+				if(!data['TilesVersionHash'][key]) {
+					var arr = key.split('_');
+					out['del'][arr[2] + '_' + arr[0] + '_' + arr[1]] = true;
+				}
+			}
+			for (var key in ptAdd) {
+				var arr = key.split('_');
+				out['add'].push([arr[0], arr[1], arr[2]]);
+			}
+			out['count'] = data['dtiles'].length / 3;
+			out['dtiles'] = data['dtiles'];
+			out['ut1'] = data['ut1'];
+			out['ut2'] = data['ut2'];
+			return out;
+		}
+		this.getTilesHash = getTilesHash;
 
 		function prpTemporalTiles(data, vers) {
 			var deltaArr = [];			// интервалы временных тайлов [8, 16, 32, 64, 128, 256]
@@ -49,45 +117,11 @@
 		}
 
 		temporalData = prpTemporalTiles(prop.TemporalTiles, prop.TemporalVers);
-		var ZeroDateString = prop.ZeroDate || '01.01.2008';	// нулевая дата
-		var arr = ZeroDateString.split('.');
-		var ZeroDate = new Date(
-			(arr.length > 2 ? arr[2] : 2008),
-			(arr.length > 1 ? arr[1] - 1 : 0),
-			(arr.length > 0 ? arr[0] : 1)
-			);
-		temporalData['ZeroDate'] = ZeroDate;
-		var baseAddress = "http://" + prop.hostName + "/";
-		var layerName = prop.name || prop.image;
-		var sessionKey = isRequiredAPIKey( prop.hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
-		var sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[prop.mapName] : false);
-		var prefix = baseAddress + 
-				"TileSender.ashx?ModeKey=tile" + 
-				"&MapName=" + prop.mapName + 
-				"&LayerName=" + layerName + 
-				(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
-				(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
-		if(prop._TemporalDebugPath) {
-			prefix = prop._TemporalDebugPath;
-			temporalData['_TemporalDebugPath'] = prop._TemporalDebugPath;
-		}
-		temporalData['_prefix'] = prefix;
-		temporalData['identityField'] = prop.identityField;
-		temporalData['TemporalColumnName'] = prop.TemporalColumnName || 'Date';
-		temporalData['mapObj'] = mapObj;
-		
-		// Начальный интервал дат
-		temporalData['DateEnd'] = new Date();
-		if(prop.DateEnd) {
-			var arr = prop.DateEnd.split('.');
-			if(arr.length > 2) temporalData['DateEnd'] = new Date(arr[2], arr[1] - 1, arr[0]);
-		}
-		temporalData['DateBegin'] = new Date(temporalData['DateEnd'] - oneDay);
 
 		this.temporalData = temporalData;
 
 
-		var prpTemporalFilter = function(DateBegin, DateEnd, TemporalColumnName)	// Подготовка строки фильтра
+		var prpTemporalFilter = function(DateBegin, DateEnd, columnName)	// Подготовка строки фильтра
 		{
 			var dt1 = DateBegin;		// начало периода
 			var dt2 = DateEnd;			// конец периода
@@ -95,7 +129,7 @@
 			if(TimeTemporal) dt1str += ' ' + gmxAPI.pad2(dt1.getHours()) + ":" + gmxAPI.pad2(dt1.getMinutes()) + ":" + gmxAPI.pad2(dt1.getSeconds());
 			var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
 			if(TimeTemporal) dt2str += ' ' + gmxAPI.pad2(dt2.getHours()) + ":" + gmxAPI.pad2(dt2.getMinutes()) + ":" + gmxAPI.pad2(dt2.getSeconds());
-			var curFilter = "\""+TemporalColumnName+"\" >= '"+dt1str+"' AND \""+TemporalColumnName+"\" <= '"+dt2str+"'";
+			var curFilter = "\""+columnName+"\" >= '"+dt1str+"' AND \""+columnName+"\" <= '"+dt2str+"'";
 			return {'dt1': dt1, 'dt2': dt2, 'ut1': parseInt(dt1.getTime()/1000), 'ut2': parseInt(dt2.getTime()/1000), 'curFilter': curFilter};
 		}
 
@@ -104,12 +138,10 @@
 			var minFiles = 1000;
 			var outHash = {};
 
-			var ZeroDate = tdata['ZeroDate'];
-			var _prefix = tdata['_prefix'];
-			var _TemporalDebugPath = tdata['_TemporalDebugPath'];
+			//var _TemporalDebugPath = tdata['_TemporalDebugPath'];
 
 			function getFiles(daysDelta) {
-				var ph = {'files': [], 'dtiles': [], 'tiles': {}, 'out': ''};
+				var ph = {'files': [], 'dtiles': [], 'tiles': {}, 'TilesVersionHash': {}, 'out': ''};
 				var mn = oneDay * daysDelta;
 				var zn = parseInt((dt1 - ZeroDate)/mn);
 				ph['beg'] = zn;
@@ -131,13 +163,15 @@
 						var y = pt[1];
 						var z = pt[2];
 						var v = pt[3];
-						var file = _prefix + "&Level=" + daysDelta + "&Span=" + dz + "&z=" + z + "&x=" + x + "&y=" + y + "&v=" + v;
+						var file = prefix + "&Level=" + daysDelta + "&Span=" + dz + "&z=" + z + "&x=" + x + "&y=" + y + "&v=" + v;
 						//if(_TemporalDebugPath) file = _prefix + daysDelta + '/' + dz + '/' + z + '/' + x + '/' + z + '_' + x + '_' + y + '.swf'; // тайлы расположены в WEB папке
 						if(!ph['tiles'][z]) ph['tiles'][z] = {};
 						if(!ph['tiles'][z][x]) ph['tiles'][z][x] = {};
 						if(!ph['tiles'][z][x][y]) ph['tiles'][z][x][y] = [];
 						ph['tiles'][z][x][y].push(file);
 						ph['files'].push(file);
+						var st = x + '_' + y + '_' + z + '_' + daysDelta + '_' + dz + '_' + v;
+						ph['TilesVersionHash'][st] = true;
 					}
 				}
 				
@@ -164,7 +198,7 @@
 			var ph = getFiles(curDaysDelta);
 			minFiles = ph['files'].length;
 
-			var hash = prpTemporalFilter(dt1, dt2, tdata['TemporalColumnName']);
+			var hash = prpTemporalFilter(dt1, dt2, TemporalColumnName);
 			var curTemporalFilter = hash['curFilter'];
 			
 			var tileDateFunction = function(i, j, z)
@@ -193,6 +227,7 @@
 					,'dt2': dt2
 					,'curTemporalFilter': hash['curFilter']
 					,'tileDateFunction': tileDateFunction
+					,'TilesVersionHash': ph['TilesVersionHash']
 				};
 
 			return out;
@@ -208,7 +243,6 @@
 		var setDateInterval = function(dt1, dt2, tdata)
 		{
 			if(!tdata) tdata = me.temporalData;
-			var mapObj = tdata['mapObj'];
 			var currentData = tdata['currentData'];
 			if(!dt1) {
 				dt1 = currentData['dt1'];
@@ -226,7 +260,7 @@
 			var oldDt2 = currentData['endDate'];
 			var oldDaysDelta = currentData['daysDelta'];
 
-			var hash = prpTemporalFilter(dt1, dt2, tdata['TemporalColumnName']);
+			var hash = prpTemporalFilter(dt1, dt2, TemporalColumnName);
 			var ddt1 = hash['dt1'];
 			var ddt2 = hash['dt2'];
 			var data = getDateIntervalTiles(ddt1, ddt2, tdata);
@@ -272,24 +306,24 @@
 				'dtiles': (currentData['dtiles'] ? currentData['dtiles'] : []),
 				'temporal': {
 					'temporalFilter': (currentData['curTemporalFilter'] ? currentData['curTemporalFilter'] : '')
-					,'TemporalColumnName': tdata['TemporalColumnName']
+					,'TemporalColumnName': TemporalColumnName
 					,'ut1': currentData['ut1']
 					,'ut2': currentData['ut2']
 				}
 			};
-			mapObj.setVectorTiles(ph['tileDateFunction'], tdata['identityField'], ph['dtiles'], ph['temporal']);
+			mapObj.setVectorTiles(ph['tileDateFunction'], identityField, ph['dtiles'], ph['temporal']);
 		}
 		this.setVectorTiles = setVectorTiles;
 
-		resetTiles = function(attr, mapObj) {
-			if(attr) startLoadTiles(attr, mapObj);
-			for (var i=0; i<mapObj.filters.length; i++)	{ // переустановка фильтров
-				mapObj.filters[i].setFilter(mapObj.filters[i]._sql, true);
+		resetTiles = function(attr, obj) {
+			if(attr) startLoadTiles(attr, obj);
+			for (var i=0; i<obj.filters.length; i++)	{ // переустановка фильтров
+				obj.filters[i].setFilter(obj.filters[i]._sql, true);
 			}
 		}
 
-		startLoadTiles = function(attr, mapObj) {
-			var ret = gmxAPI._cmdProxy('startLoadTiles', { 'obj': mapObj, 'attr':attr });
+		startLoadTiles = function(attr, obj) {
+			var ret = gmxAPI._cmdProxy('startLoadTiles', { 'obj': obj, 'attr':attr });
 			return ret;
 		}
 

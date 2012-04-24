@@ -34,7 +34,11 @@ class PointGeometry extends Geometry
 	{
 		var sprite:Sprite = attr.sprite;
 		var style:Style = attr.style;
-		if(propHiden.exists('_vectorLayerFilter')) style = propHiden.get('_vectorLayerFilter').regularStyleOrig;
+		if (propHiden.exists('_vectorLayerFilter')) {
+			var vlfStyle:Style = propHiden.get('_vectorLayerFilter').regularStyleOrig;
+			if(vlfStyle != null) style = vlfStyle;
+		}
+
 		var window:MapWindow = attr.window;
 		var parentNumChildren:Int = attr.parentNumChildren;
 		
