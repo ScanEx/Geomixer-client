@@ -2244,7 +2244,8 @@ FlashMapObject.prototype.enableQuicklooks = function(callback)
 	var shownQuicklooks = {};
 	this.shownQuicklooks = shownQuicklooks;
 
-	this.setHandler("onClick", function(o)
+	this['_Quicklooks_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
+	//this.setHandler("onClick", function(o)
 	{
 		try {
 			var identityField = gmxAPI.getIdentityField(o);
@@ -2410,7 +2411,8 @@ FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, m
 			}
 		}
 	});
-	this.setHandler("onClick", function(o)
+	this['_TiledQuicklooksEx_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
+	//this.setHandler("onClick", function(o)
 	{
 		try {
 			var identityField = gmxAPI.getIdentityField(o);
@@ -2577,6 +2579,10 @@ function createFlashMapInternal(div, layers, callback)
 
 	if('_addProxyObject' in gmxAPI) {	// Добавление обьекта отображения в DOM
 		var o = gmxAPI._addProxyObject(gmxAPI.getAPIFolderRoot(), flashId, "100%", "100%", "10", "#ffffff", loadCallback, window.gmxFlashLSO);
+		if(o === '') {
+			var warnDiv = document.getElementById('noflash');
+			warnDiv.style.display = 'block';
+		}
 		if(o.nodeName === 'DIV') {
 			gmxAPI._div.innerHTML = '';
 			gmxAPI._div.appendChild(o);

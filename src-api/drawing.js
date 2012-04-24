@@ -127,8 +127,8 @@
 
 		ret.remove = function()
 		{
-			if (isDrawing)
-				toolsContainer.selectTool("move");
+//			if (isDrawing)
+//				toolsContainer.selectTool("move");
 			if (obj)
 			{
 				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);

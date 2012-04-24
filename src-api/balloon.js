@@ -97,7 +97,14 @@
 
 		function disableHoverBalloon(mapObject)
 		{
-			mapObject.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null, onClick: null });
+			//mapObject.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null, onClick: null });
+			var listeners = mapObject.stateListeners
+			for (var key in listeners) {
+				for (var i=0; i<listeners[key].length; i++) {
+					mapObject.removeListener(key, listeners[key][i]['id']);
+				}
+			}
+			
 		}
 		this.disableHoverBalloon = disableHoverBalloon;
 
@@ -205,6 +212,7 @@
 						var flag = customBalloonObject.onClick(o, keyPress, currPosition);
 						if(flag) return;
 					}
+					if(!keyPress) keyPress = {};
 					keyPress['textFunc'] = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
 					clickBalloonFix(o, keyPress);
 				}
@@ -219,8 +227,14 @@
 				if(mapObject._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
 					handlersObj['onClick'] = null;
 				}
+				mapObject._hoverBalloonAttr['disableOnMouseOver']
 			}
-			mapObject.setHandlers(handlersObj);
+			//mapObject.setHandlers(handlersObj);
+			for (var key in handlersObj) {
+				if(handlersObj[key]) {
+					var eID = gmxAPI._listeners.addListener(mapObject, key, handlersObj[key]);
+				}
+			}
 		}
 		this.enableHoverBalloon = enableHoverBalloon;
 
@@ -691,13 +705,14 @@
 		// * DisableBalloonOnMouseMove: не показывать при наведении
 		var setBalloonFromParams = function(filter, balloonParams)
 		{
+/*			
 			//по умолчанию балуны показываются
 			if ( typeof balloonParams.BalloonEnable !== 'undefined' && !balloonParams.BalloonEnable )
 			{
 				disableHoverBalloon(filter);
-				return;
+				//return;
 			}
-			
+*/			
 			var balloonAttrs = {
 				disableOnClick: balloonParams.DisableBalloonOnClick,
 				disableOnMouseOver: balloonParams.DisableBalloonOnMouseMove
