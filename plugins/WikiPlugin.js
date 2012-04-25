@@ -395,8 +395,8 @@ var InitEditor = function(target) {
 				_wikiFileBrowser.currentDir = sFolder;
 				
 				var oDialog = _wikiFileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'gif', 'bmp'], function(path){ 
-					var relativePath = path.slice(sFolder.length - path.length);
-					win.document.getElementById(field_name).value = getAPIHostRoot() + "GetImage.ashx?usr=" + nsGmx.AuthManager.getNickname() + "&img=" + path;  
+					var relativePath = path.slice(sFolder.length - path.length + 1);
+					win.document.getElementById(field_name).value = getAPIHostRoot() + "GetImage.ashx?usr=" + nsGmx.AuthManager.getNickname() + "&img=" + relativePath;  
 				}, { restrictDir: sFolder});
 				
 			});
