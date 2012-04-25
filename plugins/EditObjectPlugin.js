@@ -24,21 +24,25 @@ var publicInterface = {
                 for (var iL = 0; iL < globalFlashMap.layers.length; iL++)
                 if (_queryMapLayers.layerRights(globalFlashMap.layers[iL].properties.name) == 'edit')
                 {
-                    // var listenerId = globalFlashMap.layers[iL].addListener('onClick', function(obj)
-                    globalFlashMap.layers[iL].setHandler('onClick', function(obj)
+                    var listenerId = globalFlashMap.layers[iL].addListener('onClick', function(attr)
                     {
+                        var obj = attr.obj;
                         var layer = obj.parent;
                         var id = obj.properties[layer.properties.identityField];
-                        new nsGmx.EditObjectControl(layer.properties.name, id);
+						new nsGmx.EditObjectControl(layer.properties.name, id);
+						return true;	// Отключить дальнейшую обработку события
                     });
-                    
-                    // listeners.push({layerName: globalFlashMap.layers[iL].properties.name, listenerId: listenerId});
-                    listeners.push({layerName: globalFlashMap.layers[iL].properties.name});
+                    listeners.push({layerName: globalFlashMap.layers[iL].properties.name, listenerId: listenerId});
                 }
             }
             , function()
             {
-                
+                for (var i = 0; i < listeners.length; i++) {
+                    var pt = listeners[i];
+                    var layer = globalFlashMap.layers[pt['layerName']];
+                    layer.removeListener('onClick', pt['listenerId']);
+				}
+				listeners = [];
             }
         )
     }
