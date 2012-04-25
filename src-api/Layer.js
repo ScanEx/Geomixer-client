@@ -366,15 +366,16 @@
 				}
 				obj.addListener = function(eventName, handler)
 				{
-					FlashMapObject.prototype.addListener.call(obj, eventName, handler);
+					var pID = FlashMapObject.prototype.addListener.call(obj, eventName, handler);
 					for (var i = 0; i < obj.filters.length; i++)
-						obj.filters[i].addListener(eventName, handler);
+						arr.push(obj.filters[i].addListener(eventName, handler, pID));
+					return pID;
 				}
 				obj.removeListener = function(eventName, eID)
 				{
 					FlashMapObject.prototype.removeListener.call(obj, eventName, eID);
 					for (var i = 0; i < obj.filters.length; i++)
-						obj.filters[i].removeListener(eventName);	// Удаляем весь массив события eventName  
+						obj.filters[i].removeListener(eventName, eID);	// Удаляем массив события eventName по id события слоя
 				}
 				
 			}

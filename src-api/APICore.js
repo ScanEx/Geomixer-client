@@ -1535,35 +1535,6 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			});
 		}
 	}
-	
-	var InitHandlersFunc = function() {
-		gmxAPI.extendFMO('setHandler', function(eventName, handler) {
-			setHandler(this, eventName, handler);
-			this.handlers[eventName] = true;		// true если установлено через setHandler
-			flashEvents[eventName] = true;
-		});
-
-		gmxAPI.extendFMO('removeHandler', function(eventName) {
-			if(!(eventName in this.stateListeners) || this.stateListeners[eventName].length == 0) { 	// Если нет Listeners на обьекте
-				gmxAPI._cmdProxy('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
-			}
-			delete this.handlers[eventName];
-		});
-
-		gmxAPI.extendFMO('setHandlers', function(handlers) {
-			for (var key in handlers)
-				this.setHandler(key, handlers[key]);
-		});
-	};
-	
-	var ret = {
-		'Init': function () {
-			InitHandlersFunc();
-		}
-	};
-	
-	//расширяем namespace
-	gmxAPI._handlers = ret;
 
 	// Begin: Блок Listeners
 	var stateListeners = {};	// Глобальные события
@@ -1581,9 +1552,14 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	{
 		var out = true;
 		var arr = getArr(eventName, obj);
-		for (var i=0; i<arr.length; i++)
+		for (var i=arr.length-1; i>=0; i--)	// Сачала вызываем наиболее современные callback
 		{
-			out = arr[i].func(attr);
+			try {
+				out = arr[i].func(attr);
+				if(out) break;				// если callback возвращает true заканчиваем цепочку вызова
+			} catch(e) {
+				gmxAPI.addDebugWarnings({'func': 'dispatchEvent', 'handler': eventName, 'event': e, 'alert': e});
+			}
 		}
 		return out;
 	}
@@ -1597,14 +1573,14 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
 	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 	*/
-	function addListener(obj, eventName, func)
+	function addListener(obj, eventName, func, pID)
 	{
 		var arr = getArr(eventName, obj);
 		var id = gmxAPI.newFlashMapId();
-		arr.push({"id": id, "func": func });
+		arr.push({"id": id, "func": func, "pID": pID  });
 		if(obj) {	// Это Listener на mapObject
 			obj.stateListeners[eventName] = arr;
-			if('setHandler' in obj && flashEvents[eventName] && (!obj.handlers || !obj.handlers[eventName])) obj.setHandler(eventName, func);
+			if('setHandler' in obj && flashEvents[eventName] && (!obj.handlers || !obj.handlers[eventName])) setHandler(obj, eventName, function(){});
 		}
 		else {		// Это глобальный Listener
 			stateListeners[eventName] = arr;
@@ -1627,7 +1603,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		var out = [];
 		for (var i=0; i<arr.length; i++)
 		{
-			if(id && id != arr[i]["id"]) out.push(arr [i]);
+			if(id && id != arr[i]["id"] && id != arr[i]["pID"]) out.push(arr[i]);
 		}
 		if(obj) {
 			obj.stateListeners[eventName] = out;
@@ -1642,8 +1618,42 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		'addListener': addListener,
 		'removeListener': removeListener
 	};
-	
 	// End: Блок Listeners
+
+	var InitHandlersFunc = function() {
+		gmxAPI.extendFMO('setHandler', function(eventName, handler) {
+			setHandler(this, eventName, handler);
+			this.handlers[eventName] = true;		// true если установлено через setHandler
+			flashEvents[eventName] = true;
+		});
+
+		gmxAPI.extendFMO('removeHandler', function(eventName) {
+			if(!(eventName in this.stateListeners) || this.stateListeners[eventName].length == 0) { 	// Если нет Listeners на обьекте
+				gmxAPI._cmdProxy('removeHandler', { 'obj': this, 'attr':{ 'eventName':eventName }});
+			}
+			delete this.handlers[eventName];
+		});
+
+		gmxAPI.extendFMO('setHandlers', function(handlers) {
+			for (var key in handlers)
+				this.setHandler(key, handlers[key]);
+		});
+
+		gmxAPI.extendFMO('addListener', function(eventName, func, id) {	return addListener(this, eventName, func, id); });
+		gmxAPI.extendFMO('addMapStateListener', function(eventName, func, id) {	return addListener(this, eventName, func, id); });
+		gmxAPI.extendFMO('removeListener', function(eventName, id) { return removeListener(this, eventName, id); });
+		gmxAPI.extendFMO('removeMapStateListener', function(eventName, id) { return removeListener(this, eventName, id); });
+	};
+	
+	var ret = {
+		'Init': function () {
+			InitHandlersFunc();
+		}
+	};
+	
+	//расширяем namespace
+	gmxAPI._handlers = ret;
+	
 })();
 
 ////
@@ -1894,11 +1904,6 @@ gmxAPI.extendFMO = function(name, func) {	FlashMapObject.prototype[name] = func;
 gmxAPI._FMO = FlashMapObject;
 
 // Для MapObject
-FlashMapObject.prototype.addListener = function(eventName, func) { 	return addListener(this, eventName, func);	}
-FlashMapObject.prototype.addMapStateListener = FlashMapObject.prototype.addListener;
-FlashMapObject.prototype.removeListener = function(eventName, id) { return removeListener(this, eventName, id); }
-FlashMapObject.prototype.removeMapStateListener = FlashMapObject.prototype.removeListener;
-
 FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
 FlashMapObject.prototype.bringToBottom = function() { gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
 FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }

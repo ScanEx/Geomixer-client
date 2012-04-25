@@ -157,6 +157,10 @@
 			var handlersObj = {
 				onMouseOver: function(o, keyPress)
 				{ 
+					if('obj' in o) {
+						if('attr' in o && 'textFunc' in o.attr) keyPress = o.attr;
+						o = o.obj;
+					}
 					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
 					if (map.isDragging())
 						return;
@@ -193,6 +197,9 @@
 				},
 				onMouseOut: function(o) 
 				{ 
+					if('obj' in o) {
+						o = o.obj;
+					}
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
 					if(customBalloonObject) {
 						var flag = customBalloonObject.onMouseOut(o);
@@ -204,6 +211,10 @@
 				},
 				onClick: function(o, keyPress)
 				{
+					if('obj' in o) {
+						if('attr' in o && 'textFunc' in o.attr) keyPress = o.attr;
+						o = o.obj;
+					}
 					refreshMapPosition();
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
 					if(customBalloonObject) {
@@ -211,6 +222,9 @@
 						currPosition._y = propsBalloon.y;
 						var flag = customBalloonObject.onClick(o, keyPress, currPosition);
 						if(flag) return;
+					}
+					if(chkAttr('disableOnClick', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
+						return;
 					}
 					if(!keyPress) keyPress = {};
 					keyPress['textFunc'] = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
