@@ -84,6 +84,7 @@
 			var deltaHash = {};
 			var ph = {};
 			var arr = [];
+			if(!vers) vers = [];
 			for (var nm=0; nm<data.length; nm++)
 			{
 				arr = data[nm];

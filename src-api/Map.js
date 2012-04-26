@@ -513,11 +513,11 @@
 			}
 			if (layers.properties.MiniMapZoomDelta)
 				gmxAPI.miniMapZoomDelta = layers.properties.MiniMapZoomDelta;
-			if (layers.properties.OnLoad && layers.properties.name !== kosmosnimki_API)	//  Обработка маплета карты - для базовой уже вызывали
+			if (layers.properties.OnLoad && layers.properties.name !== kosmosnimki_API)	//  Обработка маплета карты - mapplet для базовой карты уже вызывали
 			{
 				try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(map); }
 				catch (e) {
-					gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
+					gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': e+'\n---------------------------------'+'\n' + layers.properties.OnLoad});
 				}
 			}
 		}

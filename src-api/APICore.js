@@ -2578,8 +2578,13 @@ function createFlashMapInternal(div, layers, callback)
 
 		var map = gmxAPI._addNewMap(rootObjectId, layers, callback);
 
-		if (callback)
-			callback(gmxAPI.map);
+		if (callback) {
+			try {
+				callback(gmxAPI.map);		// Вызов createFlashMapInternal
+			} catch(e) {
+				gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
+			}
+		}
 	}
 
 	if('_addProxyObject' in gmxAPI) {	// Добавление обьекта отображения в DOM
@@ -2828,8 +2833,11 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.addLayers(layers);
 						map.properties = layers.properties;
 					}
-
-					callback(map);		// Вызов HTML маплета
+					try {
+						callback(map);		// Вызов HTML маплета
+					} catch(e) {
+						gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'event': e, 'alert': e});
+					}
 				});
 			},
 			function()
