@@ -1208,6 +1208,9 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					node.setStyle(new Style(data.regularStyle), (data.hoveredStyle != null) ? new Style(data.hoveredStyle) : null);
 					if (Std.is(node.content, VectorLayerFilter)) {
 						cast(node.content, VectorLayerFilter).chkClusters();
+						node.parent.repaintObjects();			// отрисовка обьектов addObject родителя
+					} else {
+						node.repaintObjects();			// отрисовка обьектов addObject
 					}
 					Main.dispatchMouseLeave();
 				case 'getStyle':
