@@ -448,7 +448,7 @@ class VectorLayer extends MapContent
 				lastGeometry = hoverGeom;
 			}
 
-			newCurrentFilter.mapNode.callHandler("onMouseOver");
+			if (newCurrentFilter != null) newCurrentFilter.mapNode.callHandler("onMouseOver");
 			hoverPainter.geometry = hoverGeom;
 			hoverPainter.repaint(hoverStyle);
 		}
