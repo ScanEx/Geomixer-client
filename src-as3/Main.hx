@@ -58,6 +58,7 @@ class Main
 		var ret = null;
 		try {
 			ret = ExternalInterface.call(cmd, p1, p2, p3);
+			//trace(cmd + ' : ' + p1 + ' : ' + p2 + ' : ' + p3);
 		} catch (e:Error) {  }
 		return ret;
 	}
@@ -1036,7 +1037,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 		var parseCmdFromJS = function(cmd:String, attr:Dynamic)
 		{
 			var out = { };
-//trace('ssssssssssss ' + cmd + ' : ' + flash.Lib.getTimer());
+			//trace('parseCmdFromJS ' + cmd + ' : ' + flash.Lib.getTimer());
 			switch (cmd) {
 				case 'setFilter':
 					out = cast(setFilter(attr.objectId, attr.sql));

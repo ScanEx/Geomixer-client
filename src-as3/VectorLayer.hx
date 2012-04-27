@@ -343,7 +343,7 @@ class VectorLayer extends MapContent
 
 		var hoverGeom = null;
 		var hoverStyle = null;
-
+//trace(ev.target.name + ' : ' + flash.Lib.getTimer());
 		for (tile in tiles)			// Просмотр содержимого тайлов под мышкой
 		{
 			if (!tile.finishedLoading) continue;									// пропускаем тайлы - не загруженные
@@ -359,6 +359,7 @@ class VectorLayer extends MapContent
 				var tPainter = filter.paintersHash.get(tileKey);
 				
 				var curGeom:MultiGeometry = tPainter.tileGeometry;
+				if (!curGeom.extent.overlaps(pointExtent)) continue;				// пропускаем не пересекающие точку
 				if (filter.clusterAttr != null && !filter.clusterAttr._zoomDisabledHash.exists(currentZ)) {
 					curGeom = tPainter.clustersGeometry;
 					hoverStyle = node.getHoveredStyle();
@@ -366,6 +367,7 @@ class VectorLayer extends MapContent
 				if(curGeom == null) continue;		// пропускаем ноды без MultiGeometry
 				for (member in curGeom.members)
 				{
+					if (!member.extent.overlaps(pointExtent)) continue;		// пропускаем не пересекающие точку
 					if (filter.clusterAttr == null && temporalCriterion != null && !temporalCriterion(member.propTemporal)) {
 						continue;					// пропускаем ноды отфильтрованные мультивременными интервалами только если нет кластеризации
 					}
@@ -386,7 +388,7 @@ class VectorLayer extends MapContent
 				}
 			}
 		}
-		
+
 		var len = zeroDistanceIds.length;
 		flipDown = (len > 1);
 		if (len > 0)
@@ -439,7 +441,6 @@ class VectorLayer extends MapContent
 					}
 				}
 				lastGeometry = hoverGeom;
-				newCurrentFilter.mapNode.callHandler("onMouseOver");
 			}
 			currentFilter = newCurrentFilter;
 			if (currentId != null) {
@@ -447,6 +448,7 @@ class VectorLayer extends MapContent
 				lastGeometry = hoverGeom;
 			}
 
+			newCurrentFilter.mapNode.callHandler("onMouseOver");
 			hoverPainter.geometry = hoverGeom;
 			hoverPainter.repaint(hoverStyle);
 		}

@@ -33,6 +33,7 @@ class VectorTilePainter
 		vectorSprite.name = 'v' + sprite.name;
 		oldStyleID = 0;
 		cacheSprite = new Sprite();
+		cacheSprite.mouseEnabled = false;
 		clustersGeometry = null;
 	}
 

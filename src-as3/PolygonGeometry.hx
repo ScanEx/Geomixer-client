@@ -155,9 +155,15 @@ class PolygonGeometry extends Geometry
 
 	public override function getArea():Float
 	{
-		var ret:Float = areaOfRing(coordinates[0]);
-		for (i in 1...coordinates.length)
-			ret -= areaOfRing(coordinates[i]);
+		var ret:Float = 0.0;
+		if (propHiden.exists('_area')) {
+			ret = propHiden.get('_area');
+		} else {
+			ret = areaOfRing(coordinates[0]);
+			for (i in 1...coordinates.length)
+				ret -= areaOfRing(coordinates[i]);
+			propHiden.set('_area', ret);
+		}
 		return ret;
 	}
 
