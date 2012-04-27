@@ -146,9 +146,9 @@ class Main
 		}
 		var setCurrentPosition = function(x, y, z)
 		{
-			currentX = constrain(-100000000, x, 100000000);
-			//currentX = constrain(minX, x,  maxX);
 			var ww = Utils.worldWidth;
+			if(ww < maxX) currentX = constrain(-100000000, x, 100000000);
+			else currentX = constrain(minX, x,  maxX);
 			var wd = Utils.worldDelta;
 			while (currentX > ww + wd)
 				currentX -= 2 * ww;
