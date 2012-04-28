@@ -179,7 +179,7 @@
 		,'chkVersion': function (layer) {		// Обработка списка редактируемых обьектов слоя
 			if(!layer || !('Processing' in layer.properties)) return;
 			gmxAPI._listeners.addListener(layer, 'onLayer', function(ph) {
-				ph['_Processing'] = chkProcessing(ph, ph.properties);
+				ph['_Processing'] = chkProcessing(ph, ph.properties);			// слой инициализирован во Flash
 			});
 		}
 		,'chkLayerVersion': function (layer, callback) {		// Запросить проверку версии слоя

@@ -43,6 +43,7 @@
 		var flashDomTest = typeof(gmxAPI.flashDiv); 
 		var obj = hash['obj'] || null;	// Целевой обьект команды
 		var attr = hash['attr'] || '';
+//console.log(cmd);
 		switch (cmd) {				// Тип команды
 			case 'setEditObjects':		// Установка редактируемых обьектов слоя
 				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'processing':attr } );
