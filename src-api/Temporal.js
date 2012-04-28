@@ -75,6 +75,8 @@
 			out['dtiles'] = data['dtiles'];
 			out['ut1'] = data['ut1'];
 			out['ut2'] = data['ut2'];
+			this.temporalData = tdata;						// Обновление temporalData
+			this.temporalData['currentData'] = data;
 			return out;
 		}
 		this.getTilesHash = getTilesHash;
