@@ -343,7 +343,7 @@ class VectorLayer extends MapContent
 
 		var hoverGeom = null;
 		var hoverStyle = null;
-//trace(ev.target.name + ' : ' + flash.Lib.getTimer());
+
 		for (tile in tiles)			// Просмотр содержимого тайлов под мышкой
 		{
 			if (!tile.finishedLoading) continue;									// пропускаем тайлы - не загруженные
@@ -354,6 +354,7 @@ class VectorLayer extends MapContent
 			for (node in mapNode.children)
 			{
 				if (!node.vectorSprite.visible || !Std.is(node.content, VectorLayerFilter)) continue; // пропускаем - не видимые спрайты и не фильтры
+				if (node.getHandler('onMouseOver') == null && node.getHandler('onClick') == null) continue;	// нет Handler-ов на ноде
 				var filter = cast(node.content, VectorLayerFilter);
 				if (!filter.paintersHash.exists(tileKey)) continue;	// пропускаем фильтры тайлов - без VectorTilePainter
 				var tPainter = filter.paintersHash.get(tileKey);

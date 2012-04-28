@@ -287,8 +287,11 @@ vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлен�
 
 	public function setHandler(name:String, handler:MapNode->MapNode->Void)
 	{
-		handlers.set(name, handler);
-		updateHandCursor();
+		if (handler == null) removeHandler(name);
+		else {
+			handlers.set(name, handler);
+			updateHandCursor();
+		}
 	}
 
 	public function removeHandler(name:String)

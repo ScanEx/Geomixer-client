@@ -97,14 +97,11 @@
 
 		function disableHoverBalloon(mapObject)
 		{
-			//mapObject.setHandlers({ onMouseOver: null, onmouseOut: null, onMouseDown: null, onClick: null });
-			var listeners = mapObject.stateListeners
-			for (var key in listeners) {
-				for (var i=0; i<listeners[key].length; i++) {
-					mapObject.removeListener(key, listeners[key][i]['id']);
-				}
+			var listenersID = mapObject._attr['balloonListeners'];
+			for (var key in listenersID) {
+				mapObject.removeListener(key, listenersID[key]);
 			}
-			
+			mapObject._attr['balloonListeners'] = {};
 		}
 		this.disableHoverBalloon = disableHoverBalloon;
 
@@ -241,12 +238,15 @@
 				if(mapObject._hoverBalloonAttr['disableOnClick']) {				// для отключения фиксированных балунов
 					handlersObj['onClick'] = null;
 				}
-				mapObject._hoverBalloonAttr['disableOnMouseOver']
+				//mapObject._hoverBalloonAttr['disableOnMouseOver']
 			}
 			//mapObject.setHandlers(handlersObj);
+			if(!mapObject._attr['balloonListeners']) mapObject._attr['balloonListeners'] = {};
+			disableHoverBalloon(mapObject);
 			for (var key in handlersObj) {
 				if(handlersObj[key]) {
 					var eID = gmxAPI._listeners.addListener(mapObject, key, handlersObj[key]);
+					mapObject._attr['balloonListeners'][key] = eID;
 				}
 			}
 		}

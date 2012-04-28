@@ -1552,13 +1552,15 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	{
 		var out = true;
 		var arr = getArr(eventName, obj);
-		for (var i=arr.length-1; i>=0; i--)	// Сачала вызываем наиболее современные callback
+		for (var i=arr.length-1; i>=0; i--)	// Сначала вызываем наиболее современные callback
 		{
-			try {
-				out = arr[i].func(attr);
-				if(out) break;				// если callback возвращает true заканчиваем цепочку вызова
-			} catch(e) {
-				gmxAPI.addDebugWarnings({'func': 'dispatchEvent', 'handler': eventName, 'event': e, 'alert': e});
+			if(typeof(arr[i].func) === 'function') {
+				try {
+					out = arr[i].func(attr);
+					if(out) break;				// если callback возвращает true заканчиваем цепочку вызова
+				} catch(e) {
+					gmxAPI.addDebugWarnings({'func': 'dispatchEvent', 'handler': eventName, 'event': e, 'alert': e});
+				}
 			}
 		}
 		return out;
@@ -1580,7 +1582,10 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		arr.push({"id": id, "func": func, "pID": pID  });
 		if(obj) {	// Это Listener на mapObject
 			obj.stateListeners[eventName] = arr;
-			if('setHandler' in obj && flashEvents[eventName] && (!obj.handlers || !obj.handlers[eventName])) obj.setHandler(eventName, function(){});
+			if('setHandler' in obj && flashEvents[eventName] && (!obj.handlers || !obj.handlers[eventName])) {
+				obj.setHandler(eventName, function(){});
+				delete obj.handlers[eventName];		// для установленных через addListener событий убираем handler
+			}
 		}
 		else {		// Это глобальный Listener
 			stateListeners[eventName] = arr;
