@@ -1899,6 +1899,7 @@ var FlashMapObject = function(objectId_, properties_, parent_)
 	this.properties = properties_;
 	this.parent = parent_;
 	this.flashId = flashId;
+	this._attr = {};			// Дополнительные атрибуты
 	this.stateListeners = {};	// Пользовательские события
 	this.handlers = {};			// Пользовательские события во Flash
 	//this.maxRasterZoom = 1;		// Максимальный зум растровых слоев

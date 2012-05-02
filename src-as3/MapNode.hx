@@ -244,7 +244,8 @@ vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлен�
 
 	public function updateHandCursor()
 	{
-		var flag:Bool = (hoveredStyle != null) || (getHandler("onClick") != null);
+		//var flag:Bool = (hoveredStyle != null) || (getHandler("onClick") != null);
+		var flag:Bool = (getHandler("onClick") != null) || (getHandler("onMouseOver") != null);
 		if (vectorSprite.buttonMode != flag) vectorSprite.buttonMode = vectorSprite.useHandCursor = flag;
 	}
 
