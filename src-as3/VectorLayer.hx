@@ -85,6 +85,19 @@ class VectorLayer extends MapContent
 			for (child in mapNode.children)
 				if (Std.is(child.content, VectorLayerFilter))
 					cast(child.content, VectorLayerFilter).removeTiles(attr);
+
+		var newTiles = new Array<VectorTile>();
+		for (tile in tiles)			// Переформируем список тайлов
+		{
+			var st:String = tile.z+'_'+tile.i+'_'+tile.j;
+			var flag:Bool = Reflect.field(attr.del, st);
+			if (!flag) newTiles.push(tile);
+			else {
+				hashTiles.remove(st);
+				hashTilesVers.remove(st);
+			}
+		}
+		tiles = newTiles;
 	}
 
 	// Если имеются обьекты находящиеся в режиме редактирования - очистим их
@@ -211,15 +224,13 @@ class VectorLayer extends MapContent
 					if (!hashTiles.get(st)) addTile(i, j, z);
 				}
 			}
-			if (attr.add != null) {							// Было добавление тайлов
-				createLoader(function(tile:VectorTile, tilesRemaining:Int)
-				{
-					if (tilesRemaining < 1)
-					{
-						Main.bumpFrameRate();
-						Main.needRefreshMap = true;
+			if (attr.add != null && mapNode != null) {							// Было добавление тайлов - необходимо обновить фильтры
+				for (child in mapNode.children) {
+					if (Std.is(child.content, VectorLayerFilter)) {
+						cast(child.content, VectorLayerFilter).createLoader();
+						Main.needRefreshMap = true;		// Для обновления карты
 					}
-				})(mapWindow.visibleExtent);
+				}
 			}
 		}
 	}
@@ -227,8 +238,9 @@ class VectorLayer extends MapContent
 	public function createLoader(func:VectorTile->Int->Void)
 	{
 		var loaded = new Array<Bool>();
-		for (tile in tiles)
-			loaded.push(false);
+		for (tile in tiles) {
+			loaded.push(tile.finishedLoading);
+		}
 		var nRemaining = 0;
 		var me = this;
 		var w = 2 * Utils.worldWidth;

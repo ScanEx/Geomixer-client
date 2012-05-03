@@ -131,7 +131,14 @@ window.gmxAPI = {
 	},
 	swfWarning: function(attr)
 	{
-		gmxAPI._debugWarnings.push(attr);
+		if(typeof(attr) == 'object' && attr.eventType === 'chkLayerVersion') {		// сигнал о необходимости проверки версии слоя
+			var chkLayer = gmxAPI.mapNodes[attr.layerID] || false;
+			if(chkLayer && gmxAPI._layersVersion) {
+				gmxAPI._layersVersion.chkLayerVersion(chkLayer);
+			}
+		} else {
+			gmxAPI._debugWarnings.push(attr);
+		}
 	},
 	addDebugWarnings: function(attr)
 	{

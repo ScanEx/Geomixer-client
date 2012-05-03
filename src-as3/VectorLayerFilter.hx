@@ -190,17 +190,23 @@ class VectorLayerFilter extends MapContent
 		return tileGeometry;
 	}
 
-	function createLoader()
+	public function createLoader()
 	{
 		var me = this;
 		loader = layer.createLoader(function(tile:VectorTile, tilesRemaining:Int)
 		{
-			//me.loadedTiles.push(tile);
+			var st:String = tile.z + '_' + tile.i + '_' + tile.j;
 			var tileGeometry = me.getTileMultiGeometry(tile);
 			var window = me.mapNode.window;
-			var painter = new VectorTilePainter(tileGeometry, me, tile);
-			me.painters.push(painter);
-			me.paintersHash.set(tile.z+'_'+tile.i+'_'+tile.j, painter);
+
+			var painter = null;
+			if (me.paintersHash.exists(st)) {
+				painter = me.paintersHash.get(st);
+			} else {
+				painter = new VectorTilePainter(tileGeometry, me, tile);
+				me.painters.push(painter);
+				me.paintersHash.set(st, painter);
+			}
 
 			painter.repaint(me.mapNode.getRegularStyle());
 

@@ -144,6 +144,12 @@ class Main
 			pos.currentZ = currentZ;
 			stage.dispatchEvent( new APIEvent(APIEvent.CUSTOM_EVENT, pos) );
 		}
+
+		stage.addEventListener( 'chkLayerVersion', function(attr:Dynamic)		// событие проверки версии слоя
+		{
+			Main.cmdToJS('gmxAPI.swfWarning', attr.data);
+		} );		
+
 		var setCurrentPosition = function(x, y, z)
 		{
 			var ww = Utils.worldWidth;
@@ -813,7 +819,7 @@ var bTime = flash.Lib.getTimer();
 bTime = flash.Lib.getTimer() - bTime;
 var st:String = 'Загрузка файла ' + url + ' обьектов: ' + arr.length + ' время: ' + bTime/1000 + ' сек.';
 				Main.messBuffToJS.push( st );
-				});
+				}, function(tileUrl:String) {});
 			}
 		}
 

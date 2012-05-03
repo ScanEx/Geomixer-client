@@ -3,17 +3,19 @@ import flash.events.Event;
 class GetSWFTile
 {
 	private var onLoad:Array<Dynamic>->Void;
+	private var errorCallback:String->Void;
 	private var links:Array<String>;
 	private var data:Array<Dynamic>;
 
 	private var count:Int;
 	//private var ver:Int;
 	
-	public function new(links_:Array<String>, onLoad_:Array<Dynamic>->Void)
+	public function new(links_:Array<String>, onLoad_:Array<Dynamic>->Void, errorCallback_:String->Void)
 	{
 		links = links_;
 		//ver = ver_;
 		onLoad = onLoad_;
+		errorCallback = errorCallback_;
 		init();
 		count = links.length;
 	}
@@ -31,7 +33,7 @@ class GetSWFTile
 				if (me.count < 1) {
 					me.onLoad(me.data);
 				}
-			});
+			}, errorCallback);
 		}
 	}
 }

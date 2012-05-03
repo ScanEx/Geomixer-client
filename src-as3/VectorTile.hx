@@ -66,6 +66,20 @@ class VectorTile
 				var field = me.layer.identityField;
 				var st:String = z + '_' + i + '_' + j;
 
+				// При ответе 404 - возможно версия тайла изменилась
+				function onError(url:String)
+				{
+					var out:Dynamic = {};
+					out.eventType = 'chkLayerVersion';
+					out.layerID = me.layer.mapNode.id;
+					out.z = me.z;
+					out.i = me.i;
+					out.j = me.j;
+					out.url = url;
+					flash.Lib.current.stage.dispatchEvent( new APIEvent('chkLayerVersion', out) );
+				}
+
+				// При ответе 200 - парсинг содержимого тайла
 				function parseTile(arr:Array<Dynamic>)
 				{
 					if (arr == null) return;
@@ -100,11 +114,11 @@ class VectorTile
 				if (Std.is(urlTiles, Array))	// нужна склейка тайлов
 				{
 					var arr:Array<String> = urlTiles;
-					if(urlTiles.length > 0) new GetSWFTile(arr, function(data_:Array<Dynamic>) { parseTile(data_); });
+					if(urlTiles.length > 0) new GetSWFTile(arr, function(data_:Array<Dynamic>) { parseTile(data_); }, onError);
 				} else if (Std.is(urlTiles, String)) {
 					var url:String = urlTiles;
 					var ver:Int = (layer.hashTilesVers.exists(st) ? layer.hashTilesVers.get(st) : 0);
-					if (url != "") new GetSWFFile(url + '&v='+ver, function(data_:Array<Dynamic>) { parseTile(data_);	});
+					if (url != "") new GetSWFFile(url + '&v='+ver, function(data_:Array<Dynamic>) { parseTile(data_); }, onError);
 				}
 			}
 		}

@@ -8,13 +8,15 @@ import flash.events.Event;
 class GetSWFFile
 {
 	private var onLoad:Array<Dynamic>->Void;
+	private var errorCallback:String->Void;
 	private var url:String;
 	private var stream:URLStream;
 	
-	public function new(url_:String, onLoad_:Array<Dynamic>->Void)
+	public function new(url_:String, onLoad_:Array<Dynamic>->Void, errorCallback_:String->Void)
 	{
 		url = url_;
 		onLoad = onLoad_;
+		errorCallback = errorCallback_;
 		init();
 	}
 
@@ -51,6 +53,7 @@ class GetSWFFile
 	{
 		//trace("error reading vector tile: " + url);
 		destructor(null);
+		if(errorCallback != null) errorCallback(url);
 	}
 
 	private function onComplete(event:Event)

@@ -92,7 +92,9 @@
 				}
 			}
 			// обновить список тайлов слоя
-			gmxAPI._cmdProxy('startLoadTiles', { 'obj': layer, 'attr':attr });
+			if(attr['add'] || attr['del'] || attr['dtiles']) {
+				gmxAPI._cmdProxy('startLoadTiles', { 'obj': layer, 'attr':attr });
+			}
 			versionLayers[mapHost][mapName][layerName] = { 'LayerVersion': layer.properties.LayerVersion, 'tilesHash': pt['hash'], 'count': pt['count'] };
 		}
 		return arr;
