@@ -445,7 +445,7 @@ class Main
 				if (isMoving && !wasMoving)
 					window.repaintCacheBitmap();
 				window.setCenter(currentX, currentY);
-				window.setCacheBitmapVisible(isMoving);
+				window.setCacheBitmapVisible(isMoving || isDragging);		// Если Drag или Move режим - показываем CacheBitmap
 				if (!isMoving)
 				{
 					window.rootNode.repaintRecursively(true);
