@@ -825,6 +825,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 
 		function setFilter(id:String, ?sql:String):Bool
 		{
+			if(sql == '') sql = null;
 			var func:Hash<String>->Bool = (sql == null) ? 
 				function(props:Hash<String>):Bool { return true; } :
 				Parsers.parseSQL(sql);

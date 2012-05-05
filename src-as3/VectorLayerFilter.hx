@@ -190,8 +190,24 @@ class VectorLayerFilter extends MapContent
 		return tileGeometry;
 	}
 
+	// Переформируем список VectorTilePainter для загруженных тайлов
+	function chkLoadedTiles(arr:Array<VectorTile>)
+	{
+		for (tile in arr)
+		{
+			if (tile.finishedLoading) {
+				var st:String = tile.z+'_'+tile.i+'_'+tile.j;
+				var tileGeometry = getTileMultiGeometry(tile);
+				var painter:VectorTilePainter = new VectorTilePainter(tileGeometry, this, tile);
+				painters.push(painter);
+				paintersHash.set(st, painter);
+			}
+		}
+	}
+
 	public function createLoader()
 	{
+		chkLoadedTiles(layer.tiles);
 		var me = this;
 		loader = layer.createLoader(function(tile:VectorTile, tilesRemaining:Int)
 		{
@@ -303,9 +319,9 @@ class VectorLayerFilter extends MapContent
 
 	public override function addHandlers()
 	{
+		tilesSprite = Utils.addSprite(contentSprite);
 		layer = cast(mapNode.parent.content, VectorLayer);
 		createLoader();
-		tilesSprite = Utils.addSprite(contentSprite);
 
 		var me = this;
 		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
