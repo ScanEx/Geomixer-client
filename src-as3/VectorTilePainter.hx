@@ -62,9 +62,8 @@ class VectorTilePainter
 	public function repaint(style:Style, ?clearCache:Bool)
 	{
 		var curZ:Float = mapWindow.getCurrentZ();
-		if (mapWindow.cacheBitmap.visible || (curZ != Math.round(curZ)))
+		if (curZ != Math.round(curZ))
 			return;
-
 		var currentZ:Int = Std.int(curZ);
 		var tileOverlap = mapWindow.visibleExtent.overlapsFull(tile.extent);	// Полное перекрытие геометрии тайла
 
@@ -86,6 +85,11 @@ class VectorTilePainter
 		var criterion:Hash<String>->Bool = null;
 		if(node != null) {
 			criterion = node.propHiden.get('_FilterVisibility');
+			clearCache = true;
+		}
+			
+		if (mapWindow.cacheBitmap.visible) {
+			style = null;
 			clearCache = true;
 		}
 		
