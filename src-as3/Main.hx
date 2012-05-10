@@ -306,6 +306,8 @@ class Main
 		});
 		var windowMouseDown = function(event)
 		{
+			mapWindow.rootNode.repaintRecursively(true);
+			mapWindow.repaintCacheBitmap();
 			Main.mousePressed = true;
 			if (!Main.draggingDisabled)
 			{
