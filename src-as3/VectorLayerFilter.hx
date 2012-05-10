@@ -207,7 +207,7 @@ class VectorLayerFilter extends MapContent
 
 	public function createLoader()
 	{
-		chkLoadedTiles(layer.tiles);
+		//chkLoadedTiles(layer.tiles);
 		var me = this;
 		loader = layer.createLoader(function(tile:VectorTile, tilesRemaining:Int)
 		{
