@@ -65,43 +65,44 @@ class VectorObject extends MapContent
 	{
 		var curStyle = null;
 		var curTemporalCriterion = null;
-
-		var node:MapNode = findHidenKeyNode(mapNode, '_FilterVisibility');
-		criterion = (node == null ? null : node.propHiden.get('_FilterVisibility'));
 		var notClearFlag:Bool = false;
+		if(!mapNode.window.cacheBitmap.visible) {
+			var node:MapNode = findHidenKeyNode(mapNode, '_FilterVisibility');
+			criterion = (node == null ? null : node.propHiden.get('_FilterVisibility'));
 
-		if (criterion == null || criterion(geometry.properties)) {
-			curStyle = (isActive ? mapNode.getHoveredStyle() : mapNode.getRegularStyle());
-			if (layer != null) {	// обьект лежит в слое - отрисовка по фильтрам
-				curTemporalCriterion = layer.temporalCriterion;
-				if (layer.currentFilter != null) {
-					layer.hoverPainter.repaint(null);
-					layer.currentFilter.mapNode.callHandler('onMouseOut', mapNode);
-					//layer.currentFilter = null;
-				}
-				layer.lastId = null;
-				layer.currentId = null;
+			if (criterion == null || criterion(geometry.properties)) {
+				curStyle = (isActive ? mapNode.getHoveredStyle() : mapNode.getRegularStyle());
+				if (layer != null) {	// обьект лежит в слое - отрисовка по фильтрам
+					curTemporalCriterion = layer.temporalCriterion;
+					if (layer.currentFilter != null) {
+						layer.hoverPainter.repaint(null);
+						layer.currentFilter.mapNode.callHandler('onMouseOut', mapNode);
+						//layer.currentFilter = null;
+					}
+					layer.lastId = null;
+					layer.currentId = null;
 
-				if (curStyle == null) {			// Собственного стиля у обьекта нет
-					var nodeFilter = null;
-					for (key in mapNode.parent.filters.keys()) {
-						nodeFilter = mapNode.parent.filters.get(key);
-						if (nodeFilter != null) {
-							var vectorLayerFilter = cast(nodeFilter.content, VectorLayerFilter);
-							if (vectorLayerFilter.criterion(mapNode.propHash)) {
-								if(vectorLayerFilter.clusterAttr != null) {
-									curStyle = (isActive ? vectorLayerFilter.hoverStyleOrig : vectorLayerFilter.regularStyleOrig);
-								} else {
-									curStyle = (isActive ? nodeFilter.getHoveredStyle() : nodeFilter.getRegularStyle());
+					if (curStyle == null) {			// Собственного стиля у обьекта нет
+						var nodeFilter = null;
+						for (key in mapNode.parent.filters.keys()) {
+							nodeFilter = mapNode.parent.filters.get(key);
+							if (nodeFilter != null) {
+								var vectorLayerFilter = cast(nodeFilter.content, VectorLayerFilter);
+								if (vectorLayerFilter.criterion(mapNode.propHash)) {
+									if(vectorLayerFilter.clusterAttr != null) {
+										curStyle = (isActive ? vectorLayerFilter.hoverStyleOrig : vectorLayerFilter.regularStyleOrig);
+									} else {
+										curStyle = (isActive ? nodeFilter.getHoveredStyle() : nodeFilter.getRegularStyle());
+									}
+									painter.repaint(curStyle, curTemporalCriterion, null, notClearFlag);
+									notClearFlag = true;
 								}
-								painter.repaint(curStyle, curTemporalCriterion, null, notClearFlag);
-								notClearFlag = true;
 							}
 						}
 					}
+				} else {					// Для обьектов не в векторном слое найти рекурсивный стиль
+					curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
 				}
-			} else {					// Для обьектов не в векторном слое найти рекурсивный стиль
-				curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
 			}
 		}
 		if(!notClearFlag) painter.repaint(curStyle, curTemporalCriterion);
