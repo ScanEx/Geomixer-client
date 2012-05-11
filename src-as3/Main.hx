@@ -502,7 +502,7 @@ class Main
 			else if (!isMoving)
 				for (window in MapWindow.allWindows)
 					window.rootNode.repaintRecursively(false);
-			if (!isMoving)
+			if (!isMoving && !isDragging)
 				for (window in MapWindow.allWindows)
 					window.repaintLabels();
 
