@@ -217,7 +217,7 @@
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'eventName':attr['eventName'] } );
 				break;
 			case 'addObject':		// добавить обьект
-				var geo = gmxAPI.merc_geometry(attr['geometry']);
+				var geo = gmxAPI.merc_geometry(attr['geometry']) || null;
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geometry':geo, 'properties':attr['properties'] } );
 				break;
 			case 'addObjects':		// добавить обьекты

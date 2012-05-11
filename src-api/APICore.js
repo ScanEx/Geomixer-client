@@ -342,8 +342,9 @@ window.gmxAPI = {
 		else
 		{
 			var ret = [];
-			for (var i = 0; i < coords.length; i++)
-				ret.push(gmxAPI.forEachPoint(coords[i], callback));
+			for (var i = 0; i < coords.length; i++) {
+				if(typeof(coords[i]) != 'string') ret.push(gmxAPI.forEachPoint(coords[i], callback));
+			}
 			return ret;
 		}
 	}
@@ -361,12 +362,12 @@ window.gmxAPI = {
 	,
 	merc_geometry: function(geom)
 	{
-		return gmxAPI.transformGeometry(geom, gmxAPI.merc_x, gmxAPI.merc_y);
+		return (geom ? gmxAPI.transformGeometry(geom, gmxAPI.merc_x, gmxAPI.merc_y) : null);
 	}
 	,
 	from_merc_geometry: function(geom)
 	{
-		return gmxAPI.transformGeometry(geom, gmxAPI.from_merc_x, gmxAPI.from_merc_y);
+		return (geom ? gmxAPI.transformGeometry(geom, gmxAPI.from_merc_x, gmxAPI.from_merc_y) : null);
 	}
 	,
 	getBounds: function(coords)

@@ -368,8 +368,11 @@
 				obj.addListener = function(eventName, handler)
 				{
 					var pID = FlashMapObject.prototype.addListener.call(obj, eventName, handler);
-					for (var i = 0; i < obj.filters.length; i++)
+					var arr = obj.stateListeners[eventName] || [];
+					for (var i = 0; i < obj.filters.length; i++) {
 						arr.push(obj.filters[i].addListener(eventName, handler, pID));
+					}
+					obj.stateListeners[eventName] = arr;
 					return pID;
 				}
 				obj.removeListener = function(eventName, eID)
