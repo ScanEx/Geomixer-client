@@ -360,6 +360,7 @@
 			}
 			gmxAPI._listeners.dispatchEvent('baseLayerSelected', map, currentBaseLayerName);
 		}
+
 		map.setMode = function(mode) 
 		{
 			var name = map.toolsAll.baseLayersTools.getAlias(mode);
@@ -400,6 +401,11 @@
 				return baseLayers[name];
 			}
 		}
+
+		// Поддержка устаревшего map.baseLayerControl.onChange 
+		gmxAPI._listeners.addListener(map, 'baseLayerSelected', function(name)	{
+			if('onChange' in map.baseLayerControl) map.baseLayerControl.onChange(name);
+		});
 
 		var haveOSM = false;
 
