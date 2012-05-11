@@ -34,8 +34,8 @@ var DayNightFilteringControl = function(container, params)
 
     var setFilter = function()
     {
-        var isDay = $(dayCheckbox).attr('checked');
-        var isNight = $(nightCheckbox).attr('checked');
+        var isDay = dayCheckbox.attr('checked');
+        var isNight = nightCheckbox.attr('checked');
         var paramValue;
         var showAll = isDay && isNight;
         
@@ -69,6 +69,29 @@ var DayNightFilteringControl = function(container, params)
     
     $('input', container).change(setFilter);
     setFilter();
+    
+    
+    this.isDay  = function() { return dayCheckbox.attr('checked'); };
+    this.setDay  = function(isDay)
+    {
+        if (isDay)
+            dayCheckbox.attr('checked', true);
+        else
+            dayCheckbox.removeAttr('checked');
+            
+        setFilter();
+    };
+    
+    this.isNight = function() { return nightCheckbox.attr('checked'); };
+    this.setNight = function(isNight)
+    {
+        if (isNight)
+            nightCheckbox.attr('checked', true);
+        else
+            nightCheckbox.removeAttr('checked');
+            
+        setFilter();
+    };
 }
 
 gmxCore.addModule('DayNightFilteringPlugin', 
@@ -80,10 +103,25 @@ gmxCore.addModule('DayNightFilteringPlugin',
                 mCoverControl.CoverControlInstance.whenInited(function()
                 {
                     var container = mCoverControl.CoverControlInstance.getInstance().getContainer();
-                    new DayNightFilteringControl(container, params);
+                    var control = new DayNightFilteringControl(container, params);
+                    
+                    _mapHelper.customParamsManager.addProvider({
+                        name: 'DayNightFilteringPlugin',
+                        loadState: function(state) 
+                        {
+                            control.setDay(state.isDay); 
+                            control.setNight(state.isNight); 
+                        },
+                        saveState: function() 
+                        {
+                            return {
+                                isDay: control.isDay(),
+                                isNight: control.isNight()
+                            }
+                        }
+                    });
                 })
             })
-            //var container = $('<div/>').insertAfter($(_queryMapLayers.workCanvas).children("table"));        
         }
     }, 
     { init: function(module, path)
