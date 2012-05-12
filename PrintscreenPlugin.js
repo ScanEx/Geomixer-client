@@ -1,4 +1,4 @@
-﻿(function ($, map){
+﻿(function ($){
 _translationsHash.addtext("rus", {
 	"screenshotPlugin.menuTitle" : "Сохранить как PNG",
 	"screenshotPlugin.print" : "Напечатать",
@@ -105,7 +105,7 @@ var makeScreeshot = function()
 	// showScreenshot( "data:image/png;base64," + map.sendPNG({getBase64: true}).base64 );
 	
 	//имя передаём только ради разширения, из которого сервер вытащит тип картинки
-	map.sendPNG({url: serverBase + 'ImgSave.ashx?filename=a.png&WrapStyle=None', func: showScreenshot});
+	globalFlashMap.sendPNG({url: serverBase + 'ImgSave.ashx?filename=a.png&WrapStyle=None', func: showScreenshot});
 }
 
 //PluginInterface
@@ -132,4 +132,4 @@ var publicInterface = {
 
 gmxCore.addModule("PrintscreenPlugin", publicInterface);
 
-})(jQuery, globalFlashMap)
+})(jQuery)
