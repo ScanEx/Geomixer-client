@@ -375,7 +375,7 @@ var EditObjectControl = function(layerName, objectId)
                         var input = getInputElement(types[i]);
                         input.rowName = columnNames[i];
                         input.rowType = types[i];
-                        input.value = window._convertFromServer(types[i], geometryRow[i]);
+                        input.value = nsGmx.Utils.convertFromServer(types[i], geometryRow[i]);
                         //var input = _input(null,[['attr','value',geometryRow[i]],['css','width','200px'],['dir','className','inputStyle'], ['dir', 'rowName', columnNames[i]]]);
                         
                         _(tdValue, [input]);

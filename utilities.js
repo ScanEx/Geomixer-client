@@ -1133,6 +1133,88 @@ $.extend(nsGmx.Utils, {
             
             callback(response.Result);
         })
+    },
+    
+    // Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
+    // Форматы сервера:
+    // * datetime - unix timestamp
+    // * date - unix timestamp, кратный 24*3600 секунд
+    // * time - кол-во секунд с полуночи
+    // Форматы клиента:
+    // * все числа превращаются в строки
+    // * дата - строка в формате dd.mm.yy
+    // * время - строка в формате hh:mm:ss
+    // * дата-время - dd.mm.yy hh:mm:ss
+    
+    convertFromServer: function(type, value)
+    {
+        if (value === null) return "null";
+        
+        var lowerCaseType = type.toLowerCase();
+        
+        if (lowerCaseType == 'string')
+        {
+            return value;
+        }
+        else if (lowerCaseType == 'integer' || lowerCaseType == 'float' || lowerCaseType == 'number')
+        {
+            return String(value);
+        }
+        else if (lowerCaseType == 'date')
+        {
+            var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
+            return $.datepicker.formatDate('dd.mm.yy', new Date(value*1000 + timeOffset));
+        }
+        else if (lowerCaseType == 'time')
+        {
+            var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
+            var tempInput = $('<input/>').timepicker({timeOnly: true, timeFormat: "hh:mm:ss"});
+            $(tempInput).timepicker('setTime', new Date(value*1000 + timeOffset));
+            return $(tempInput).val();
+        }
+        else if (lowerCaseType == 'datetime')
+        {
+            var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
+            var tempInput = $('<input/>').datetimepicker({timeOnly: false, timeFormat: "hh:mm:ss"});
+            $(tempInput).datetimepicker('setDate', new Date(value*1000 + timeOffset));
+            return $(tempInput).val();
+        }
+        
+        return value;
+    },
+    convertToServer: function(type, value)
+    {
+        if (value === null) return null;
+        
+        var lowerCaseType = type.toLowerCase();
+        
+        if (lowerCaseType == 'string')
+        {
+            return value;
+        }
+        else if (lowerCaseType == 'integer' || lowerCaseType == 'float' || lowerCaseType == 'number')
+        {
+            return Number(value);
+        }
+        else if (lowerCaseType == 'date')
+        {
+            var localValue = $.datepicker.parseDate('dd.mm.yy', value).valueOf()/1000;
+            var timeOffset = (new Date(localValue)).getTimezoneOffset()*60;
+            return localValue - timeOffset;
+        }
+        else if (lowerCaseType == 'time')
+        {
+            var resTime = $.datepicker.parseTime('hh:mm:ss', value);
+            return resTime.hour*3600 + resTime.minute*60 + resTime.second;
+        }
+        else if (lowerCaseType == 'datetime')
+        {
+            var localValue = $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value).valueOf()/1000;
+            var timeOffset = (new Date(localValue*1000)).getTimezoneOffset()*60;
+            return localValue - timeOffset;
+        }
+        
+        return value;        
     }
 });
 

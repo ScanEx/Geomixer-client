@@ -163,46 +163,6 @@ attrsTable.prototype.getInfo = function()
 	})
 }
 
-//TODO: выделить в отдельный класс, убрать из глобальной видимости
-window._convertFromServer = function(type, value)
-{
-    if (value === null) return "null";
-    
-    if (type == 'string')
-    {
-        return value;
-    }
-    else if (type == 'integer')
-    {
-        return String(value);
-    }
-    else if (type == 'float')
-    {
-        return String(value);
-    }
-    else if (type == 'date')
-    {
-        var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
-        return $.datepicker.formatDate('dd.mm.yy', new Date(value*1000 + timeOffset));
-    }
-    else if (type == 'time')
-    {
-        var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
-        var tempInput = $('<input/>').timepicker({timeOnly: true, timeFormat: "hh:mm:ss"});
-        $(tempInput).timepicker('setTime', new Date(value*1000 + timeOffset));
-        return $(tempInput).val();
-    }
-    else if (type == 'datetime')
-    {
-        var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
-        var tempInput = $('<input/>').datetimepicker({timeOnly: false, timeFormat: "hh:mm:ss"});
-        $(tempInput).datetimepicker('setDate', new Date(value*1000 + timeOffset));
-        return $(tempInput).val();
-    }
-    
-    return value;
-}
-
 attrsTable.prototype.drawDialog = function(info)
 {
 	var canvas = $$('attrsTableDialog' + info.Name),
@@ -346,7 +306,7 @@ attrsTable.prototype.drawDialog = function(info)
                 var valIndex = elem.fields[activeHeaders[j]].index,
                     td = _td();
                 
-                _(td, [_t(window._convertFromServer(elem.fields[activeHeaders[j]].type, elem.values[valIndex]))])
+                _(td, [_t(nsGmx.Utils.convertFromServer(elem.fields[activeHeaders[j]].type, elem.values[valIndex]))])
                 
                 if (elem.fields[activeHeaders[j]].type == 'integer')
                     td.style.textAlign = 'right';
@@ -517,10 +477,17 @@ attrsTable.prototype.drawDialog = function(info)
 	
 	this.columnsNames = columnsNames;
     
-    this._listenerId = globalFlashMap.layers[this.layerName].addListener('onChangeLayerVersion', function()
-    {
-        _this._serverDataProvider.serverChanged();
-    });
+    
+    gmxAPI._listeners.addListener(globalFlashMap.layers[this.layerName], 'onChangeLayerVersion', 
+        function() {
+            _this._serverDataProvider.serverChanged();
+        }
+    );
+
+    // this._listenerId = globalFlashMap.layers[this.layerName].addListener('onChangeLayerVersion', function()
+    // {
+        // _this._serverDataProvider.serverChanged();
+    // });
 }
 
 attrsTable.prototype.showLoading = function()

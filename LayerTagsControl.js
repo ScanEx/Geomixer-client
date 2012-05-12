@@ -324,45 +324,12 @@
             var tr = $('<tr/>')
                 .append($('<td/>').append(tagInput))
                 .append($('<td/>').append(valueInput))
-                //.append($('<td/>').append(typeSelect))
                 .append($('<td/>', {'class': 'layertags-delete'}).append(deleteButton));
             mainTable.append(tr);
             
             rows[tagId] = {id: tagId, tr: tr, tag: tagInput, value: valueInput, type: type};
             rowsVector.push(rows[tagId]);
             validateRow(rows[tagId]);
-        }
-        
-        
-        var convertFunctions = {
-            'Number': function(value)
-            {
-                return Number(value);
-            },
-            'Date': function(value)
-            {
-                var localValue = $.datepicker.parseDate('dd.mm.yy', value).valueOf()/1000;
-                var timeOffset = (new Date(localValue)).getTimezoneOffset()*60;
-                
-                return localValue - timeOffset;
-            },
-            'DateTime': function(value)
-            {
-                var localValue = $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value).valueOf()/1000;
-                var timeOffset = (new Date(localValue*1000)).getTimezoneOffset()*60;
-                
-                return localValue - timeOffset;
-            },
-            'Time': function(value)
-            {
-                var resTime = $.datepicker.parseTime('hh:mm:ss', value);
-                return resTime.hour*3600 + resTime.minute*60 + resTime.second;
-            }
-        }
-        
-        this.convertTagValue = function(type, value)
-        {
-            return type in convertFunctions ? convertFunctions[type](value) : value;
         }
         
         var moveEmptyLayersToBottom = function()
@@ -426,35 +393,6 @@
         });
         
         layerTags.addNewTag();
-    }
-    
-    LayerTagSearchControl.convertFromServer = function(type, value)
-    {
-        if (type === 'DateTime')
-        {
-            var timeOffset = (new Date(value)).getTimezoneOffset()*60*1000;
-            var tempInput = $('<input/>').datetimepicker({timeOnly: false, timeFormat: "hh:mm:ss"});
-            $(tempInput).datetimepicker('setDate', new Date(value*1000 + timeOffset));
-            return $(tempInput).val();
-        }
-        else if (type === 'Time')
-        {
-            var timeOffset = (new Date(value)).getTimezoneOffset()*60*1000;
-            var tempInput = $('<input/>').timepicker({timeOnly: true, timeFormat: "hh:mm:ss"});
-            $(tempInput).timepicker('setTime', new Date(value*1000 + timeOffset));
-            return $(tempInput).val();
-        }
-        else if (type === 'Date')
-        {
-            var timeOffset = (new Date(value)).getTimezoneOffset()*60*1000;
-            return $.datepicker.formatDate('dd.mm.yy', new Date(value*1000 + timeOffset));
-        }
-        else if (type === 'Number')
-        {
-            return value.toString();
-        }
-        else
-            return value;
     }
     
     nsGmx.LayerTagSearchControl = LayerTagSearchControl;

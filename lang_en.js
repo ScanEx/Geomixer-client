@@ -551,5 +551,7 @@ _translationsHash.hash["eng"] = {
     "Слой '[value0]' уже есть в карте": "Layer '[value0]' already exists in this map",
     "Группа '[value0]' уже есть в карте": "Group '[value0]' already exists in this map",
     "Плагины": "Plugins",
+    "Задать атрибуты вручную": "Set attributes manually",
+    "Добавить атрибут": "Add attribute",
     "Администрирование": "Administration"
 };

@@ -576,7 +576,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
         for (key in elem.MetaProperties)
         {
             var tagtype = elem.MetaProperties[key].Type;
-            props[key] = nsGmx.LayerTagSearchControl.convertFromServer(tagtype, elem.MetaProperties[key].Value);
+            props[key] = nsGmx.Utils.convertFromServer(tagtype, elem.MetaProperties[key].Value);
             count++;
         }
         

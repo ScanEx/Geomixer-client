@@ -2745,7 +2745,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
     for (var mp in properties.MetaProperties)
     {
         var tagtype = properties.MetaProperties[mp].Type;
-        convertedTagValues[mp] = {Type: tagtype, Value: nsGmx.LayerTagSearchControl.convertFromServer(tagtype, properties.MetaProperties[mp].Value)};
+        convertedTagValues[mp] = {Type: tagtype, Value: nsGmx.Utils.convertFromServer(tagtype, properties.MetaProperties[mp].Value)};
     }
     
     var layerTags = new nsGmx.LayerTags(tagsInfo, convertedTagValues);
@@ -2991,7 +2991,26 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			
 		//редактирование полей слоя
 		var boxManualAttributes = _checkbox(false, 'checkbox');
-		var addAttribute = makeLinkButton("Добавить атрибут");
+        boxManualAttributes.style.margin = '3px';
+        var updateManualAttrVisibility = function()
+        {
+            if (boxManualAttributes.checked)
+            {
+                $(addAttribute).show();
+                $(attrViewParent).show();
+                $(trPath).hide();
+            }
+            else
+            {
+                $(addAttribute).hide();
+                $(attrViewParent).hide();
+                $(trPath).show();
+            }
+        }
+        
+        boxManualAttributes.onclick = updateManualAttrVisibility;
+        
+		var addAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
 		addAttribute.onclick = function()
 		{
 			attrModel.addAttribute(attrModel.TYPES.STRING, "NewAttribute");
@@ -3125,12 +3144,17 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			}
 		})();
 		
-        //временно отключили
-		var attrViewParent = _div();
-		var createLayerFields = _tr([_td([boxManualAttributes, _span([_t("Задать атрибуты вручную")]), _br(), addAttribute, _br(), attrViewParent], [['attr', 'colSpan', 2]])]);
-		attrView.init(attrViewParent, attrModel);
+        //вручную задавать атрибуты можно только для новых слоёв
+        if (!div)
+        {
+            var attrViewParent = _div();
+            var createLayerFields = _tr([_td([boxManualAttributes, _span([_t(_gtxt("Задать атрибуты вручную"))]), _div([addAttribute], [['css', 'margin', '3px']]), _div([attrViewParent], [['css', 'margin', '3px']])], [['attr', 'colSpan', 2]])]);
+            attrView.init(attrViewParent, attrModel);
 		
-		shownProperties.push({tr: createLayerFields});
+            shownProperties.push({tr: createLayerFields});
+            
+            updateManualAttrVisibility();
+        }
 	}
 	else
 	{
@@ -3250,7 +3274,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
             for (var mp in data)
             {
                 var tagtype = data[mp].Type;
-                layerTags.addNewTag(mp, nsGmx.LayerTagSearchControl.convertFromServer(tagtype, data[mp].Value), tagtype);
+                layerTags.addNewTag(mp, nsGmx.Utils.convertFromServer(tagtype, data[mp].Value), tagtype);
             }
             
             if (title.value == '' )
@@ -3262,8 +3286,12 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                 if (typeof platform !== 'undefined' && typeof dateTag !== 'undefined' && typeof timeTag !== 'undefined')
                 {
                     var timeOffset = (new Date()).getTimezoneOffset()*60*1000;
-                    var dateInt = layerTagsControl.convertTagValue('Date', dateTag.value);
-                    var timeInt = layerTagsControl.convertTagValue('Time', timeTag.value);
+                    //var dateInt = layerTagsControl.convertTagValue('Date', dateTag.value);
+                    //var timeInt = layerTagsControl.convertTagValue('Time', timeTag.value);
+                    
+                    var dateInt = nsGmx.Utils.convertToServer('Date', dateTag.value);
+                    var timeInt = nsGmx.Utils.convertToServer('Time', timeTag.value);
+                    
                     var date = new Date( (dateInt+timeInt)*1000 + timeOffset );
                     
                     var dateString = $.datepicker.formatDate('yy.mm.dd', date);
@@ -3387,7 +3415,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
             layerTags.eachValid(function(id, tag, value)
             {
                 var type = layerTags.getTagMetaInfo().getTagType(tag);
-                metaProperties[tag] = {Value: layerTagsControl.convertTagValue(type, value), Type: type};
+                metaProperties[tag] = {Value: nsGmx.Utils.convertToServer(type, value), Type: type};
             })
             
             var metadataString = '&MetaProperties=' + encodeURIComponent(JSON.stringify(metaProperties));
