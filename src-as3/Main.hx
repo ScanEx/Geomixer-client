@@ -983,6 +983,13 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 		{
 			var node = getNode(id);
 			var layer = cast(node.content, VectorLayer);
+			var geom = layer.getTileItem(fid);
+			if (geom != null) {			// Тайл уже загружен
+				Main.cmdToJS(func, geom.export(), hashToArray(geom.properties));
+				return;
+			}
+			
+			// В остальных случаях загрузка тайлов
 			var extent = new Extent();
 			var ww = Utils.worldWidth;
 			extent.update(-ww, -ww);
