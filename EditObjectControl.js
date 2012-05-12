@@ -30,37 +30,6 @@ var EditObjectControlsManager = {
     }
 }
 
-var getValueForServer = function(type, input)
-{
-        
-    if (type == 'integer' || type == 'float')
-        return parseFloat(input.value);
-        
-    var value = input.value;
-        
-    if (type == 'date')
-    {
-        var localValue = $.datepicker.parseDate('dd.mm.yy', value).valueOf();
-        var timeOffset = (new Date(localValue)).getTimezoneOffset()*60;
-        
-        return localValue/1000 - timeOffset;
-    }
-    else if (type == 'datetime')
-    {
-        var localValue = $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value).valueOf();
-        var timeOffset = (new Date(localValue*1000)).getTimezoneOffset()*60;
-        
-        return localValue/1000 - timeOffset;
-    }
-    else if (type == 'time')
-    {
-        var resTime = $.datepicker.parseTime('hh:mm:ss', value);
-        return resTime.hour*3600 + resTime.minute*60 + resTime.second;
-    }
-    
-    return input.value;
-}
-
 var getInputElement = function(type)
 {
     var input = _input( null,[['css','width','200px'],['dir','className','inputStyle']] );
@@ -95,10 +64,6 @@ var getInputElement = function(type)
     }
     
     return input;
-    // if (type == 'integer' || type == 'float' || type == 'string' || type == 'boolean')
-        // return _input( null,[['css','width','200px'],['dir','className','inputStyle']] );
-        
-    //return _span([_t('Не поддерживается')]);
 }
 
 var EditObjectControl = function(layerName, objectId)
@@ -156,7 +121,8 @@ var EditObjectControl = function(layerName, objectId)
         
         globalFlashMap.drawing.forEachObject(function(obj)
         {
-            objects.push(obj);
+            if (obj.geometry.type === layer.geometry.type)
+                objects.push(obj);
         })
         
         if (!objects.length)
@@ -233,12 +199,28 @@ var EditObjectControl = function(layerName, objectId)
         createButton.onclick = function()
         {
             var properties = {};
+            var anyErrors = false;
             $(".inputStyle", canvas).each(function(index, elem)
             {
-                properties[elem.rowName] = getValueForServer(elem.rowType, elem);
+                var value = nsGmx.Utils.convertToServer(elem.rowType, elem.value);
+                if (value !== null)
+                    properties[elem.rowName] = nsGmx.Utils.convertToServer(elem.rowType, elem.value);
+                else
+                {
+                    anyErrors = true;
+                    inputError(elem);
+                }
             });
             
+            if (anyErrors) return;
+            
             var obj = { action: isNew ? 'insert' : 'update', properties: properties };
+            
+            if (!selectedDrawingObject)
+            {
+                showErrorMessage("Геометрия для объекта не задана", true, "Геометрия для объекта не задана");
+                return;
+            }
             
             if (!isNew)
             {
@@ -266,13 +248,8 @@ var EditObjectControl = function(layerName, objectId)
                     return;
 
                 $(_this).trigger('modify');
-                //closeFunc();
                 removeDialog(dialogDiv);
-                layer.chkLayerVersion(function()
-                {
-                    //layer.setVisibilityFilter();
-                    closeFunc();
-                });
+                layer.chkLayerVersion(closeFunc);
             });
         }
     

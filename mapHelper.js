@@ -3415,7 +3415,9 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
             layerTags.eachValid(function(id, tag, value)
             {
                 var type = layerTags.getTagMetaInfo().getTagType(tag);
-                metaProperties[tag] = {Value: nsGmx.Utils.convertToServer(type, value), Type: type};
+                var value = nsGmx.Utils.convertToServer(type, value);
+                if (value !== null)
+                    metaProperties[tag] = {Value: value, Type: type};
             })
             
             var metadataString = '&MetaProperties=' + encodeURIComponent(JSON.stringify(metaProperties));

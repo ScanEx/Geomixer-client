@@ -1194,22 +1194,31 @@ $.extend(nsGmx.Utils, {
         }
         else if (lowerCaseType == 'integer' || lowerCaseType == 'float' || lowerCaseType == 'number')
         {
-            return Number(value);
+            var num = Number(value);
+            return isNaN(num) ? null : num;
         }
         else if (lowerCaseType == 'date')
         {
-            var localValue = $.datepicker.parseDate('dd.mm.yy', value).valueOf()/1000;
+            var localDateValue = $.datepicker.parseDate('dd.mm.yy', value);
+            if (localDateValue === null) return null;
+            
+            var localValue = localDateValue.valueOf()/1000;
             var timeOffset = (new Date(localValue)).getTimezoneOffset()*60;
             return localValue - timeOffset;
         }
         else if (lowerCaseType == 'time')
         {
             var resTime = $.datepicker.parseTime('hh:mm:ss', value);
+            if (!resTime) return null;
+            
             return resTime.hour*3600 + resTime.minute*60 + resTime.second;
         }
         else if (lowerCaseType == 'datetime')
         {
-            var localValue = $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value).valueOf()/1000;
+            var localDateValue = $.datepicker.parseDateTime('dd.mm.yy', 'hh:mm:ss', value);
+            if (localDateValue === null) return null;
+            
+            var localValue = localDateValue.valueOf()/1000;
             var timeOffset = (new Date(localValue*1000)).getTimezoneOffset()*60;
             return localValue - timeOffset;
         }
