@@ -197,17 +197,19 @@ class VectorLayerFilter extends MapContent
 		{
 			if (tile.finishedLoading) {
 				var st:String = tile.z+'_'+tile.i+'_'+tile.j;
-				var tileGeometry = getTileMultiGeometry(tile);
-				var painter:VectorTilePainter = new VectorTilePainter(tileGeometry, this, tile);
-				painters.push(painter);
-				paintersHash.set(st, painter);
+				if(!paintersHash.exists(st)) {
+					var tileGeometry = getTileMultiGeometry(tile);
+					var painter:VectorTilePainter = new VectorTilePainter(tileGeometry, this, tile);
+					painters.push(painter);
+					paintersHash.set(st, painter);
+				}
 			}
 		}
 	}
 
 	public function createLoader()
 	{
-		//chkLoadedTiles(layer.tiles);
+		chkLoadedTiles(layer.tiles);
 		var me = this;
 		loader = layer.createLoader(function(tile:VectorTile, tilesRemaining:Int)
 		{

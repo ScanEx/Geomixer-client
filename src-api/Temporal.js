@@ -333,7 +333,7 @@
 		//расширяем FlashMapObject
 		gmxAPI.extendFMO('setDateInterval', function(dt1, dt2) {
 			var tdata = this._temporalTiles.temporalData;
-			setDateInterval(dt1, dt2, tdata);
+			this._temporalTiles.setDateInterval(dt1, dt2, tdata);
 		} );
 		
 		// Добавление прослушивателей событий

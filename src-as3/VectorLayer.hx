@@ -221,7 +221,7 @@ class VectorLayer extends MapContent
 					var j:Int = ptiles[ii * 3 + 1];
 					var z:Int = ptiles[ii * 3 + 2];
 					var st:String = z + '_' + i + '_' + j;
-					if (!hashTiles.get(st)) addTile(i, j, z);
+					if (!hashTiles.exists(st)) addTile(i, j, z);
 				}
 			}
 			if (attr.add != null && mapNode != null) {							// Было добавление тайлов - необходимо обновить фильтры
