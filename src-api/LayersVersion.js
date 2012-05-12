@@ -59,7 +59,6 @@
 			// обновить версию слоя
 			layer.properties['LayerVersion'] = ph.properties['LayerVersion'];
 			layer['_Processing'] = chkProcessing(layer, ph.properties);
-
 			var ptOld = prev[layerName] || {};
 			var pt = null;
 			var attr = {
@@ -96,6 +95,8 @@
 				gmxAPI._cmdProxy('startLoadTiles', { 'obj': layer, 'attr':attr });
 			}
 			versionLayers[mapHost][mapName][layerName] = { 'LayerVersion': layer.properties.LayerVersion, 'tilesHash': pt['hash'], 'count': pt['count'] };
+
+			layer.geometry = gmxAPI.from_merc_geometry(ph.geometry);	// Обновить геометрию слоя
 			gmxAPI._listeners.dispatchEvent('onChangeLayerVersion', layer, layer.properties['LayerVersion'] );			// Listeners на слое - произошло изменение LayerVersion
 		}
 		return arr;

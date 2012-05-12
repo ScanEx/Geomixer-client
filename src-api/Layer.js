@@ -276,13 +276,20 @@
 
 		var bounds = false;
 
-		if (layer.geometry) {
-			if(layer.geometry.type == "POLYGON") {		// Проверка сдвига границ слоя
-				var arr = layer.geometry.coordinates[0];
-				chkCenterX(arr);
+		var chkBounds = function(geom) {
+			if (geom) {
+				if(geom.type == "POLYGON") {		// Проверка сдвига границ слоя
+					var arr = geom.coordinates[0];
+					chkCenterX(arr);
+				}
+				bounds = gmxAPI.getBounds(gmxAPI.merc_geometry(geom).coordinates);
 			}
-			bounds = gmxAPI.getBounds(gmxAPI.merc_geometry(layer.geometry).coordinates);
-		}
+		};
+		chkBounds(layer.geometry);
+		gmxAPI._listeners.addListener(obj, 'onChangeLayerVersion', function() {
+			chkBounds(obj.geometry);
+		});
+
 		var tileSenderPrefix = baseAddress + 
 			"TileSender.ashx?ModeKey=tile" + 
 			"&MapName=" + layer.properties.mapName + 
@@ -328,7 +335,7 @@
 			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'bringToBottom',
 			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
 			'removeHandler', 'remove', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
-			'setHandler', 'addListener', 'removeListener',
+			'setHandler', //'addListener', 'removeListener',
 			'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
 		];
 		// не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
