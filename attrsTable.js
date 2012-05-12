@@ -123,10 +123,14 @@ var attrsTable = function(layerName, layerTitle)
 	this._identityField = globalFlashMap.layers[layerName].properties.identityField;
 	
 	this.resizeFunc = function(){};
+    
+    this._listenerId = null;
 }
 
 attrsTable.prototype.getInfo = function()
 {
+    var _this = this;
+    
 	if ($$('attrsTableDialog' + this.layerName))
 		return;
 	
@@ -136,7 +140,17 @@ attrsTable.prototype.getInfo = function()
 	
 	_(canvas, [loading])
 
-	showDialog(_gtxt("Таблица атрибутов слоя [value0]", this.layerTitle), canvas, 800, 500, false, false, function(){_this.resizeFunc.apply(_this,arguments)})
+	showDialog(_gtxt("Таблица атрибутов слоя [value0]", this.layerTitle), canvas, 800, 500, false, false, 
+        function()
+        {
+            _this.resizeFunc.apply(_this,arguments)
+        },
+        function()
+        {
+            if (_this._listenerId !== null)
+                globalFlashMap.layers[_this.layerName].removeListener( 'onChangeLayerVersion', _this._listenerId );
+        }
+    )
 	
 	sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&LayerID=" + this.layerId, function(response)
 	{
@@ -298,7 +312,7 @@ attrsTable.prototype.drawDialog = function(info)
                         return;
                     
                     removeDialog(jDialog);
-                    _this._serverDataProvider.serverChanged();
+                    globalFlashMap.layers[_this.layerName].chkLayerVersion();
                 });
             };
             
@@ -502,6 +516,11 @@ attrsTable.prototype.drawDialog = function(info)
 	resizeFunc();
 	
 	this.columnsNames = columnsNames;
+    
+    this._listenerId = globalFlashMap.layers[this.layerName].addListener('onChangeLayerVersion', function()
+    {
+        _this._serverDataProvider.serverChanged();
+    });
 }
 
 attrsTable.prototype.showLoading = function()
