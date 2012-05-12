@@ -78,8 +78,11 @@ var ServerDataProvider = function()
             
             var fieldsSet = {};
             
-            for (var f = 0; f < response.Result.fields.length; f++)
-                fieldsSet[response.Result.fields[f]] = { index: f, type: response.Result.types[f] };
+            if (response.Result.fields)
+            {
+                for (var f = 0; f < response.Result.fields.length; f++)
+                    fieldsSet[response.Result.fields[f]] = { index: f, type: response.Result.types[f] };
+            }
             
             var res = [];
             for (var i = 0; i < response.Result.values.length; i++)
