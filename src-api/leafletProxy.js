@@ -113,6 +113,8 @@ var tt = 1;
 						}
 					};
 					node.leaflet = utils.drawGeometry(node.geometry, featureparse);
+//LMap.addLayer(node.leaflet);
+//LMap.addLayer(node.leaflet);
 				}
 			}
 			if(recursion) {
@@ -154,7 +156,7 @@ var tt = 1;
 				geojson.on('featureparse', featureparse);
 			}
 			geojson.addGeoJSON(geo);
-			LMap.addLayer(geojson);
+			//LMap.addLayer(geojson);
 			return geojson;
 		}
 		,'getTileUrl': function(obj, tilePoint, zoom)	{			// Получение URL тайла
@@ -323,8 +325,12 @@ var tt = 1;
 			,'parentId': ph.obj['objectId']
 		};
 		var pNode = mapNodes[pt['parentId']];
-		if(!pNode) pNode = {'type': 'map', 'children':[]};
+		if(!pNode) pNode = {'type': 'map', 'children':[], 'group':LMap};
 		pNode.children.push(id);
+
+		pt['group'] = new L.LayerGroup();
+		pNode['group'].addLayer(pt['group']);
+		
 		if(ph.attr) {
 			var geo = {};
 			if(ph.attr['geometry']) geo = utils.parseGeometry(ph.attr['geometry']);
@@ -335,6 +341,11 @@ var tt = 1;
 		mapNodes[id] = pt;
 		if(pt['geometry']['type']) {
 			utils.repaintNode(pt, true);
+			if(pt['leaflet']) {
+				pNode.group.addLayer(pt['leaflet']);
+//LMap.addLayer(node.leaflet);
+var tt =1;				
+			}
 		}
 		return id;
 	}
