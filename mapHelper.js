@@ -2991,19 +2991,20 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			
 		//редактирование полей слоя
 		var boxManualAttributes = _checkbox(false, 'checkbox');
-        boxManualAttributes.style.margin = '3px';
+        
+        if (!$.browser.msie)
+            boxManualAttributes.style.margin = '3px';
+        
         var updateManualAttrVisibility = function()
         {
             if (boxManualAttributes.checked)
             {
-                $(addAttribute).show();
-                $(attrViewParent).show();
+                $(attrContainer).show();
                 $(trPath).hide();
             }
             else
             {
-                $(addAttribute).hide();
-                $(attrViewParent).hide();
+                $(attrContainer).hide();
                 $(trPath).show();
             }
         }
@@ -3147,8 +3148,26 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
         //вручную задавать атрибуты можно только для новых слоёв
         if (!div)
         {
+            var geometryTypes = [
+                { title: 'Полигон', type: 'POLYGON'    },
+                { title: 'Линия',   type: 'LINESTRING' },
+                { title: 'Точка',   type: 'POINT'      }
+            ];
+            
+            var geometryTypeSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '80px');
+            for (var g = 0; g < geometryTypes.length; g++)
+                $('<option/>').text(geometryTypes[g].title).val(geometryTypes[g].type).appendTo(geometryTypeSelect);
+                
             var attrViewParent = _div();
-            var createLayerFields = _tr([_td([boxManualAttributes, _span([_t(_gtxt("Задать атрибуты вручную"))]), _div([addAttribute], [['css', 'margin', '3px']]), _div([attrViewParent], [['css', 'margin', '3px']])], [['attr', 'colSpan', 2]])]);
+            var attrContainer = _div([
+                _div([_table([_tbody([_tr([
+                    _td([addAttribute], [['css', 'margin', '3px'], ['css', 'border', 'none']]), 
+                    _td([_div([_span([_t('Геометрия: ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]), geometryTypeSelect[0]])], [['css', 'textAlign', 'right'], ['css', 'border', 'none']])
+                ])])], [['css', 'width', '100%']])]),
+                _div([attrViewParent], [['css', 'margin', '3px']])
+            ]);
+            
+            var createLayerFields = _tr([_td([boxManualAttributes, _span([_t(_gtxt("Задать атрибуты вручную"))]), attrContainer], [['attr', 'colSpan', 2]])]);
             attrView.init(attrViewParent, attrModel);
 		
             shownProperties.push({tr: createLayerFields});
@@ -3464,9 +3483,11 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 					for (var k = 0; k < count; k++){
 						columnsString += "&fieldName" + k + "=" + attrModel.getAttribute(k).name + "&fieldType" + k + "=" + attrModel.getAttribute(k).type.server;
 					}
+                    
+                    var geomType = $(':selected', geometryTypeSelect).val();
 					
 					sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + 
-															"&Description=" + descr.value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + columnsString + "&geometrytype=POLYGON", function(response)
+															"&Description=" + descr.value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + columnsString + "&geometrytype=" + geomType, function(response)
 					{
 						if (!parseResponse(response))
 								return;

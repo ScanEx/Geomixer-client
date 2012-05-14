@@ -121,7 +121,7 @@ var EditObjectControl = function(layerName, objectId)
         
         globalFlashMap.drawing.forEachObject(function(obj)
         {
-            if (obj.geometry.type === layer.geometry.type)
+            if (obj.geometry.type.toLowerCase() === layer.properties.GeometryType.toLowerCase())
                 objects.push(obj);
         })
         
