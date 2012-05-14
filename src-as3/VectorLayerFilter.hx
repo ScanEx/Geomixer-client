@@ -59,11 +59,11 @@ class VectorLayerFilter extends MapContent
 				var st:String = tile.z+'_'+tile.i+'_'+tile.j;
 				var flag:Bool = Reflect.field(pt.del, st);
 				if (flag) {
-					var ids:Array<String> = tile.ids;
 					for (i in 0...Std.int(tile.ids.length))
 					{
-						var id = tile.ids[i];
-						ids.remove(tile.ids[i]);	// Удалить обьекты по ogc_fid из списка обьектов в фильтре
+						var id:String = cast(tile.ids[i]);
+						ids.remove(id);					// Удалить обьекты по ogc_fid из списка обьектов в фильтре
+						layer.geometries.remove(id);	// из geometries слоя
 					}
 					paintersHash.remove(st);
 					painter.remove();

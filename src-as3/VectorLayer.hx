@@ -135,9 +135,10 @@ class VectorLayer extends MapContent
 
 	function addObjectGeometry(geom:Geometry)
 	{
-		var id = geom.properties.get(identityField);
-		if (!geometries.exists(id))
+		var id:String = geom.properties.get(identityField);
+		if (!geometries.exists(id)) {
 			geometries.set(id, geom);
+		}
 		else
 		{
 			var newGeometry = new MultiGeometry();
@@ -157,7 +158,7 @@ class VectorLayer extends MapContent
 		for (i in 0...Std.int(props_.length/2))
 			properties.set(props_[i*2], props_[i*2 + 1]);
 		
-		var id = properties.exists(identityField) ? properties.get(identityField) : Utils.getNextId();
+		var id:String = properties.exists(identityField) ? properties.get(identityField) : Utils.getNextId();
 		if(deletedObjects.exists(id)) return null;
 
 		var geom = Utils.parseGeometry(obj.geometry, tileExtent);

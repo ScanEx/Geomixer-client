@@ -95,7 +95,7 @@ class VectorTile
 						if(obj == null) {		// Пропускаем отбракованные слоем обьекты
 							continue;
 						}
-						var id = obj.id;
+						var id:String = cast(obj.id);
 						var geometry = obj.geometry;
 						
 						me.geometries.push(geometry);
