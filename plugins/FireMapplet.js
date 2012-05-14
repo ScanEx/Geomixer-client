@@ -798,8 +798,17 @@ var FireSpotClusterProvider = (function(){
 		this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 		{
 			var urlBbox = bbox ? '&MinX='+ bbox.minX + '&MinY='+ bbox.minY + '&MaxX='+ bbox.maxX + '&MaxY='+ bbox.maxY : "";
-			// var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
-			var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + _formatDateForServer(dateBegin) + "&EndDate=" + _formatDateForServer(dateEnd) + urlBbox;
+            var restrictionString = "";
+            if (_params.minPower !== null)
+                restrictionString += '&Power=' + _params.minPower;
+            if (_params.minConfidence !== null)
+                restrictionString += '&Conf=' + _params.minConfidence;
+                
+			var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + 
+                "&StartDate=" + _formatDateForServer(dateBegin) + 
+                "&EndDate=" + _formatDateForServer(dateEnd) + 
+                urlBbox + 
+                restrictionString;
 			
 			//IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
 			_addRequestCallback(urlFires, function(data)
@@ -1330,6 +1339,9 @@ FireControl.DEFAULT_OPTIONS =
 	modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/',
 	
 	initExtent: null,
+    
+    minPower: null,
+    minConfidence: null,
 
 	dateFormat: "dd.mm.yy",
 	fires:      true,
@@ -1596,7 +1608,13 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 							  
 	if ( this._firesOptions.fires )
 	{
-		var spotProvider = new FireSpotClusterProvider({host: this._firesOptions.host || 'http://sender.kosmosnimki.ru/v3/', description: "firesWidget.FireCombinedDescription", requestType: this._firesOptions.requestType});
+		var spotProvider = new FireSpotClusterProvider({
+            host:          this._firesOptions.host || 'http://sender.kosmosnimki.ru/v3/',
+            description:   "firesWidget.FireCombinedDescription",
+            requestType:   this._firesOptions.requestType,
+            minPower:      this._firesOptions.minPower,
+            minConfidence: this._firesOptions.minConfidence
+        });
 		var wholeClusterProvider = new FireClusterSimpleProvider();
 		
 		this.addDataProvider( "firedots",
@@ -1664,24 +1682,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 		if (curDrawing)
 			curDrawing.remove();
 	}
-	
-	// var trackVisibleArea = true;
-	// globalFlashMap.setHandler('onMove', function()
-	// {
-		// if (!trackVisibleArea || _this._visModeController.getMode() ===  _this._visModeController.SIMPLE_MODE) return;
-		// var savedExtent = globalFlashMap.getVisibleExtent();
-		// setTimeout(function()
-		// {
-			// if (!trackVisibleArea) return;
-			// var curExtent = globalFlashMap.getVisibleExtent();
-			// if ( curExtent.minX === savedExtent.minX && curExtent.maxX === savedExtent.maxX && 
-				 // curExtent.minY === savedExtent.minY && curExtent.maxY === savedExtent.maxY )
-				 // {
-					// restrictByVisibleExtent();
-				 // }
-		// }, 1000);
-	// })
-	
+    
 	var button = $("<button>").attr('className', 'findFiresButton')[0];
 	
 	$(button).text(_gtxt('firesWidget.AdvancedSearchButton'));
@@ -1796,13 +1797,6 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	});
 	
 	updateTimeInfo();
-	
-	// var now = new Date();
-	// this._timeShift = {
-		// hours: now.getUTCHours(), 
-		// minutes: now.getUTCMinutes(), 
-		// seconds: now.getUTCSeconds()
-	// };
 	
 	var internalTable = _table([_tbody([_tr([_td([button])/*, _td([processImg])*/])])], [['css', 'marginLeft', '15px']]);
 	trs.push(_tr([_td([internalTable], [['attr','colSpan',2]])]));
