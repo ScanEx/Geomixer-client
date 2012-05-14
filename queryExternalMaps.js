@@ -66,6 +66,9 @@ queryExternalMaps.prototype.load = function()
 
 queryExternalMaps.prototype.addMapElem = function(hostName, mapName)
 {
+    this.createWorkCanvas('externalMaps');
+    this.load();
+    
 	var mapElem = _div(),
 		div = _div(null, [['css','position','relative'],['css','margin','2px 0px']]),
 		remove = makeImageButton('img/closemin.png','img/close_orange.png');
