@@ -2737,6 +2737,30 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 	var encodingParent = _div();
     var layerTagsParent = _div(null, [['dir', 'className', 'layertags-container']]);
 	var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
+    
+    var contentTr = _tr([_td([layerTagsParent], [['dir', 'colSpan', '2']])]);
+    var collapseTagIcon = _img(null, [['css', 'marginBottom', '4px']]);
+    var updateTagsCollapse = function()
+    {
+        isCollapsed = !isCollapsed;
+        collapseTagIcon.src = 'http://kosmosnimki.ru/img/' + (isCollapsed ? 'expand.gif' : 'collapse.gif');
+        
+        if (isCollapsed)
+            contentTr.style.display = 'none';
+        else
+            contentTr.style.display = '';
+    }
+    
+    var isCollapsed = type != 'Vector';
+    var headerTr = _tr([
+        _td([collapseTagIcon], [['css', 'textAlign', 'center'], ['css', 'cursor', 'pointer'], ['css', 'width', '20px']]),
+        _td([_t(_gtxt('Метаданные слоя'))], [['css', 'fontWeight', 'bold'], ['css', 'cursor', 'pointer']])
+    ]);
+    var collapsableTagsParent = _table([_tbody([headerTr, contentTr])], [['dir', 'className', 'layertags-collapsable']]);
+    
+    headerTr.onclick = updateTagsCollapse;
+    updateTagsCollapse();
+    
 	
 	//event: change
 	var encodingWidget = new nsGmx.ShpEncodingWidget();
@@ -3383,7 +3407,8 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		shownProperties.push({tr:trShape});
 	}
     
-    shownProperties.push({tr:_tr([_td([layerTagsParent], [['attr', 'colSpan', 2]])])});
+    // shownProperties.push({tr:_tr([_td([layerTagsParent], [['attr', 'colSpan', 2]])])});
+    shownProperties.push({tr:_tr([_td([collapsableTagsParent], [['attr', 'colSpan', 2]])])});
 		
 	var trs = this.createPropertiesTable(shownProperties, properties, {leftWidth: 70});
 	_(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);

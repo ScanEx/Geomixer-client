@@ -1132,7 +1132,6 @@ div.layersScroll
 
 .layertags-container
 {
-    height: 110px;
     overflow: auto;
     margin-top: 5px;
 }
@@ -1150,6 +1149,12 @@ div.layersScroll
 .layertags-delete
 {
     padding-left: 2px;
+}
+
+.layertags-collapsable td
+{
+    border: none;
+    width: 250px;
 }
 
 #layertagstable .ui-autocomplete
