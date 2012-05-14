@@ -54,12 +54,12 @@
 				}
 				break;
 			case 'sendPNG':			// Сохранение изображения карты на сервер
-				var miniMapFlag = gmxAPI.map.miniMap.getVisibility();
+				var miniMapFlag = gmxAPI.miniMapAvailable;
 				var flag = (attr.miniMapSetVisible ? true : false);
-				gmxAPI.map.miniMap.setVisible(flag);
+				if(miniMapFlag != flag) gmxAPI.map.miniMap.setVisible(flag);
 				if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
 				ret['base64'] = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				gmxAPI.map.miniMap.setVisible(miniMapFlag);
+				if(miniMapFlag) gmxAPI.map.miniMap.setVisible(miniMapFlag);
 				break;
 			case 'setZoomBounds':	// Установить ограничения по Zoom
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZ':attr['minZ'], 'maxZ':attr['maxZ'] });

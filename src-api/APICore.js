@@ -1935,7 +1935,7 @@ FlashMapObject.prototype.getVisibility = function() { return gmxAPI._cmdProxy('g
 FlashMapObject.prototype.setVisible = function(flag) {
 	gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag });
 	var val = (flag ? true : false);
-	if (val && 'backgroundColor' in this)
+	if (val && 'backgroundColor' in this && this != gmxAPI.map.miniMap)
 		gmxAPI.map.setBackgroundColor(this.backgroundColor);
 	if (this.copyright)
 		gmxAPI.map.updateCopyright();
