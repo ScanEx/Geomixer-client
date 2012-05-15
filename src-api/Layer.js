@@ -275,7 +275,6 @@
 		}
 
 		var bounds = false;
-
 		var chkBounds = function(geom) {
 			if (geom) {
 				if(geom.type == "POLYGON") {		// Проверка сдвига границ слоя
@@ -289,6 +288,7 @@
 		gmxAPI._listeners.addListener(obj, 'onChangeLayerVersion', function() {
 			chkBounds(obj.geometry);
 		});
+		obj.getLayerBounds = function() { return bounds; }		// Getter bounds для внешних плагинов
 
 		var tileSenderPrefix = baseAddress + 
 			"TileSender.ashx?ModeKey=tile" + 
