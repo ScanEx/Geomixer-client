@@ -2397,7 +2397,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 		
         _title(markerSizeInput, _gtxt("Размер точек"));
 		
-        var markerSizeTds = [_td(), _td([_t("Размер")]), _td([markerSizeInput], [['attr','fade',true]])];
+        var markerSizeTds = [_td(), _td([_t(_gtxt("Размер"))]), _td([markerSizeInput], [['attr','fade',true]])];
         _(markerSizeParent, markerSizeTds, [['attr','fade',true]]);
 		
 		

@@ -3,10 +3,16 @@
 var g_tagMetaInfo = null;
 
 _translationsHash.addtext("rus", {
-	"Генерация слоёв по сценам" : "Генерация слоёв по сценам"
+	"wmsSalesPlugin.menuTitle" : "Генерация слоёв по сценам",
+	"wmsSalesPlugin.coverageTitle" : "Выбор спутникого покрытия:",
+	"wmsSalesPlugin.sceneList" : "Список сцен:",
+	"wmsSalesPlugin.generate" : "Генерить слои"
 });
 _translationsHash.addtext("eng", {
-	"Генерация слоёв по сценам" : "Generate layers using scenes"
+	"wmsSalesPlugin.menuTitle" : "Generate layers using scenes",
+    "wmsSalesPlugin.coverageTitle" : "Select coverage layer:",
+	"wmsSalesPlugin.sceneList" : "Scenes:",
+	"wmsSalesPlugin.generate" : "Generate layers"
 });
 
 var propertiesToTagsIkonos = function(properties)
@@ -107,7 +113,7 @@ var showWidget = function()
     
     var selectLayer = $('<select/>', {'class': 'wmsSales-select selectStyle'}).append($('<option/>').val('picollo').text('IKONOS Piccolo'));
     
-    var generateButton = $('<button/>', {'class': 'wmsSales-genbutton'}).text('Генерить слои').click(function()
+    var generateButton = $('<button/>', {'class': 'wmsSales-genbutton'}).text(_gtxt('wmsSalesPlugin.generate')).click(function()
     {
         var scenes = scenesList.val().split('\n');
                 
@@ -116,11 +122,11 @@ var showWidget = function()
     });
     
     canvas
-        .append($("<div/>").text("Список сцен:")).append(scenesList)
-        .append($("<div/>").text("Выбор спутникого покрытия:")).append(selectLayer)
+        .append($("<div/>").text(_gtxt("wmsSalesPlugin.sceneList"))).append(scenesList)
+        .append($("<div/>").text(_gtxt("wmsSalesPlugin.coverageTitle"))).append(selectLayer)
         .append(generateButton);
         
-    showDialog(_gtxt("Генерация слоёв по сценам"), canvas[0], 400, 400);
+    showDialog(_gtxt('wmsSalesPlugin.menuTitle'), canvas[0], 400, 400);
 }
 
 var publicInterface = 
@@ -132,7 +138,7 @@ var publicInterface =
             
         _menuUp.addChildItem({
             id: 'wmsSales', 
-            title:_gtxt('Генерация слоёв по сценам'), 
+            title:_gtxt('wmsSalesPlugin.menuTitle'), 
             func: function()
             {
                 nsGmx.TagMetaInfo.loadFromServer(function(tagMetaInfo)

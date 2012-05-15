@@ -2,6 +2,18 @@
 
 (function($){
 
+_translationsHash.addtext("rus", {
+                        "pluginsEditor.selectedTitle" : "Плагины карты",
+                        "pluginsEditor.availableTitle" : "Доступные плагины",
+                        "pluginsEditor.add" : "Добавить плагин"
+                     });
+                     
+_translationsHash.addtext("eng", {
+                        "pluginsEditor.selectedTitle" : "Map plugins",
+                        "pluginsEditor.availableTitle" : "Available plugins",
+                        "pluginsEditor.add" : "Add plugin"
+                     });
+
 var MapPlugins = function( plugins )
 {
     var _plugins = plugins || [];
@@ -56,7 +68,7 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
             if (!mapPlugins.isExist(_allPlugins[p]))
                 pluginSelect.append($('<option/>').text(_allPlugins[p]));
         
-        var addPluginButton = $('<button/>', {'class': 'pluginEditor-addButton'}).text("Добавить").click(function()
+        var addPluginButton = $('<button/>', {'class': 'pluginEditor-addButton'}).text(_gtxt("pluginsEditor.add")).click(function()
         {
             var selected = [];
             $(":selected", pluginSelect).each(function()
@@ -68,7 +80,7 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
                 mapPlugins.addPlugin( selected[sp] );
         })
         $(container)
-            .append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text('Доступные плагины'))
+            .append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text(_gtxt('pluginsEditor.availableTitle')))
             .append(pluginSelect).append($('<br/>'))
             .append(addPluginButton);
     }
@@ -82,7 +94,7 @@ var MapPluginsWidget = function(container, mapPlugins)
     var update = function()
     {
         container.empty();
-        container.append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text('Плагины карты'));
+        container.append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text(_gtxt('pluginsEditor.selectedTitle')));
         
         mapPlugins.each(function(name)
         {

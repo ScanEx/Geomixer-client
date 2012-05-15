@@ -2,12 +2,14 @@
 {
     _translationsHash.addtext("rus", {
 							"clusterControl.maxMembers" : "Макс. объектов",
-							"clusterControl.radius" : "Радиус кластеризации"
+							"clusterControl.radius" : "Радиус кластеризации",
+                            "clusterControl.title": "Стиль кластера"
 						 });
 						 
     _translationsHash.addtext("eng", {
 							"clusterControl.maxMembers" : "Max. members in cluster",
-							"clusterControl.radius" : "Clustering radius"
+							"clusterControl.radius" : "Clustering radius",
+                            "clusterControl.title": "Cluster style"
 						 });
                          
     var ClusterParamsControl = function(container, initStyle)
@@ -40,7 +42,7 @@
                 
         var clusterStyleControl = $('<div/>', {'class': 'clusterStyleControl'});
         var clusterStyleContainer = $('<div/>');
-        clusterStyleControl.append($('<span/>').text('Стиль кластера')).append(clusterStyleContainer);
+        clusterStyleControl.append($('<span/>').text(_gtxt('clusterControl.title'))).append(clusterStyleContainer);
         
         var clusterRadiusInput = $('<input/>', {'class': 'inputStyle'}).val(ph.radius).bind('keyup', function()
         {
