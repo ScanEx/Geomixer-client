@@ -174,7 +174,7 @@ nsGmx.ContextMenuController = (function()
 				
 				bAnyElem = true;
 				
-				var titleLink = makeLinkButton(menuElem.title);
+				var titleLink = makeLinkButton(typeof menuElem.title === 'function' ? menuElem.title() : menuElem.title);
 				titleLink.onclick = function()
 				{
 					context.contentMenuArea = getOffsetRect(this);
@@ -266,10 +266,13 @@ nsGmx.ContextMenuController.IContextMenuElem = {
 	*/
 	clickCallback:     function(context){},
 	
-	/** Строка, которую нужно отображать в контекстном меню
+	/** Строка или ф-ция, которую нужно отображать в контекстном меню. Если ф-ция, то она будет вызываться при каждом формировании меню и должна возвращать строку.
 	*/
 	title: ""
 }
+
+
+//Все заголовки элементов меню заданы как ф-ции, так как на момент выполенения этого кода неизвестен выбранный язык системы
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Контекстное меню слоёв ////////////////////////////
@@ -283,7 +286,7 @@ nsGmx.ContextMenuController.IContextMenuElem = {
 */
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Редактировать"),
+	title: function() { return _gtxt("Редактировать"); },
 	isVisible: function(context)
 	{
 		return !context.layerManagerFlag && _queryMapLayers.currentMapRights() === "edit";
@@ -300,7 +303,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Layer');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Таблица атрибутов"),
+	title: function() { return _gtxt("Таблица атрибутов"); },
 	isVisible: function(context)
 	{
 		return !context.layerManagerFlag && _queryMapLayers.currentMapRights() === "edit" && context.elem.type === "Vector";
@@ -312,11 +315,10 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Layer');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Права доступа"),
+	title: function() { return _gtxt("Права доступа"); },
 	isVisible: function(context)
 	{
 		return !context.layerManagerFlag && 
-				//_queryMapLayers.currentMapRights() === "edit" && 
 				nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
 				( context.elem.Owner == nsGmx.AuthManager.getNickname() || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
 	},
@@ -336,7 +338,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Layer');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Скачать"),
+	title: function() { return _gtxt("Скачать"); },
 	isVisible: function(context)
 	{
 		return !context.layerManagerFlag && 
@@ -351,7 +353,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Layer');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Удалить"),
+	title: function() { return _gtxt("Удалить"); },
 	isVisible: function(context)
 	{
 		return !context.layerManagerFlag && _queryMapLayers.currentMapRights() === "edit";
@@ -382,7 +384,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Layer');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Копировать стиль"),
+	title: function() { return _gtxt("Копировать стиль"); },
 	isVisible: function(context)
 	{
 		return context.elem.type == "Vector" && 
@@ -393,13 +395,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		return !context.layerManagerFlag;
 	},
 	clickCallback: function(context)
-	{
-        
-		// if (context.elem.LayerID)
-			// div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.LayerID + "']")[0];
-		// else
-			// div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
-            
+	{            
 		var elem;
         var mapHelper = context.tree.mapHelper;
         if (context.elem.LayerID)
@@ -412,7 +408,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Layer');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Применить стиль"),
+	title: function() { return _gtxt("Применить стиль"); },
 	isVisible: function(context)
 	{
 		return !context.layerManagerFlag && 
@@ -450,7 +446,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 */
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Редактировать"),
+	title: function() { return _gtxt("Редактировать"); },
 	clickCallback: function(context)
 	{
 		nsGmx.createGroupEditor(context.div);
@@ -458,7 +454,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Group');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Добавить подгруппу"),
+	title: function() { return _gtxt("Добавить подгруппу"); },
 	clickCallback: function(context)
 	{
 		nsGmx.addSubGroup(context.div, context.tree.mapHelper);
@@ -466,7 +462,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Group');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Удалить"),
+	title: function() { return _gtxt("Удалить"); },
 	clickCallback: function(context)
 	{
 		context.tree.removeGroup(context.div);
@@ -483,7 +479,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
  * tree {layersTree} Текущее дерево карты
 */
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Редактировать"),
+	title: function() { return _gtxt("Редактировать"); },
 	clickCallback: function(context)
 	{
 		nsGmx.createMapEditor(context.div);
@@ -491,7 +487,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Map');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Добавить подгруппу"),
+	title: function() { return _gtxt("Добавить подгруппу"); },
 	clickCallback: function(context)
 	{
 		nsGmx.addSubGroup(context.div, context.tree.mapHelper);
@@ -499,7 +495,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Map');
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Права доступа"),
+	title: function() { return _gtxt("Права доступа"); },
 	clickCallback: function(context)
 	{
         var securityDialog = new nsGmx.mapSecurity();

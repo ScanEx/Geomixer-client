@@ -794,7 +794,7 @@ var _fileBrowser = new fileBrowser();
 var zipUnzipActionFactory = function(isZip)
 {
 	return {
-		title: isZip ? _gtxt("Упаковать") : _gtxt("Извлечь"),
+		title:  function() { return isZip ? _gtxt("Упаковать") : _gtxt("Извлечь"); },
 		clickCallback: function(context)
 		{
 			sendCrossDomainJSONRequest(serverBase + (context.enableUnzip ? 'FileBrowser/Unzip.ashx' : 'FileBrowser/Zip.ashx') + '?WrapStyle=func&FullName=' + context.fullPath, function(response)
@@ -818,7 +818,7 @@ var zipUnzipActionFactory = function(isZip)
 }
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Скачать"),
+	title: function() { return _gtxt("Скачать"); },
 	clickCallback: function(context)
 	{
 		var form = _form([_input(null,[['attr','name','FullName'], ['attr','value', context.fullPath]])], [['css','display','none'],['attr','method','POST'],['attr','action',serverBase + "FileBrowser/Download.ashx"]]);
@@ -832,7 +832,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, ['FileBrowserFolder', 'FileBrowserFile']);
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Удалить"),
+	title: function() { return _gtxt("Удалить"); },
 	clickCallback: function(context)
 	{
 		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/Delete.ashx?WrapStyle=func&FullName=' + context.fullPath, function(response)
@@ -846,7 +846,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, ['FileBrowserFolder', 'FileBrowserFile']);
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: _gtxt("Очистить"),
+	title: function() { return _gtxt("Очистить"); },
 	clickCallback: function(context)
 	{
 		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CleanFolder.ashx?WrapStyle=func&FullName=' + context.fullPath, function(response)
