@@ -49,7 +49,7 @@
 		{
 			var tdata = prpTemporalTiles(prop.TemporalTiles, prop.TemporalVers, ph);
 			var currentData = this.temporalData.currentData;
-			var data = getDateIntervalTiles(currentData['dt1'], currentData['dt1'], tdata);
+			var data = getDateIntervalTiles(currentData['dt1'], currentData['dt2'], tdata);
 
 			var out = {'hash':{}, 'del': {}, 'add': [], 'count': 0 };
 			var ptAdd = {};
