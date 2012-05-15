@@ -56,11 +56,10 @@ queryExternalMaps.prototype.load = function()
 		
 		_(this.workCanvas, [this.mapsCanvas]);
 		
+		this.builded = true;
+        
 		for (var i = 0; i < this.maps.length; ++i)
 			this.addMapElem(this.maps[i].hostName, this.maps[i].mapName);
-		
-		
-		this.builded = true;
 	}
 }
 
