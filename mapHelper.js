@@ -3173,12 +3173,12 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
         if (!div)
         {
             var geometryTypes = [
-                { title: 'Полигон', type: 'POLYGON'    },
-                { title: 'Линия',   type: 'LINESTRING' },
-                { title: 'Точка',   type: 'POINT'      }
+                { title: _gtxt('многоугольники'), type: 'POLYGON'    },
+                { title: _gtxt('линии'),          type: 'LINESTRING' },
+                { title: _gtxt('точки'),          type: 'POINT'      }
             ];
             
-            var geometryTypeSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '80px');
+            var geometryTypeSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '110px');
             for (var g = 0; g < geometryTypes.length; g++)
                 $('<option/>').text(geometryTypes[g].title).val(geometryTypes[g].type).appendTo(geometryTypeSelect);
                 
@@ -3511,8 +3511,13 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                     
                     var geomType = $(':selected', geometryTypeSelect).val();
 					
-					sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + 
-															"&Description=" + descr.value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + columnsString + "&geometrytype=" + geomType, function(response)
+					sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func&Title=" + title.value + 
+                        "&Copyright=" + copyright.value + 
+                        "&Description=" + descr.value + 
+                        "&MapName=" + _mapHelper.mapProperties.name + 
+                        cols + updateParams + columnsString + 
+                        "&geometrytype=" + geomType +
+                        metadataString, function(response)
 					{
 						if (!parseResponse(response))
 								return;
