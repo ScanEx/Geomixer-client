@@ -26,17 +26,17 @@
 	// Проверка версий слоев
 	function chkVersion(e)
 	{
-		var arr = [];
 		var layersArr = gmxAPI.map.layers;
 		for(var host in versionLayers) {
+			var arr = [];
 			for(var mapName in versionLayers[host]) {
 				for(var layerName in versionLayers[host][mapName]) {
 					if(layersArr[layerName].isVisible) arr.push('{ "Name":"'+ layerName +'","Version":' + layersArr[layerName]['properties']['LayerVersion'] +' }');
 				}
-				if(arr.length > 0) {
-					sendVersionRequest(host, mapName, arr);
-					arr = [];
-				}
+			}
+			if(arr.length > 0) {
+				sendVersionRequest(host, mapName, arr);
+				arr = [];
 			}
 		}
 	}
