@@ -107,9 +107,10 @@ function _gtxt()
 	return _translationsHash.gettext.apply(_translationsHash, arguments)	
 }
 
-/*
-function _gtxt(arg)
+if (typeof gmxCore !== 'undefined')
 {
-	return arg;
+    gmxCore.addModule('translations', 
+    {
+        _translationsHash: _translationsHash
+    })
 }
-*/

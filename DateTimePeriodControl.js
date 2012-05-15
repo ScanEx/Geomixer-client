@@ -2,28 +2,31 @@ var nsGmx = nsGmx || {};
 
 (function($){
 
-_translationsHash.addtext("rus", {
-							"calendarWidget.Custom" : " ",
-							"calendarWidget.Day" : "День",
-							"calendarWidget.Week" : "Неделя",
-							"calendarWidget.Month" : "Месяц",
-							"calendarWidget.Year" : "Год",
-							"calendarWidget.EveryYear" : "Ежегодно",
-							"calendarWidget.ExtendedView" : "Расширенный поиск",
-							"calendarWidget.Period" : "Задать период",
-							"calendarWidget.UTC": "Всемирное координированное время"
-						 });
-						 
-_translationsHash.addtext("eng", {
-							"calendarWidget.Custom" : " ",
-							"calendarWidget.Day" : "Day",
-							"calendarWidget.Week" : "Week",
-							"calendarWidget.Month" : "Month",
-							"calendarWidget.Year" : "Year",
-							"calendarWidget.EveryYear" : "Every year",
-							"calendarWidget.ExtendedView" : "Extended search",
-							"calendarWidget.UTC": "Coordinated Universal Time"
-						 });
+var initTranslations = function()
+{
+    _translationsHash.addtext("rus", {
+                                "calendarWidget.Custom" : " ",
+                                "calendarWidget.Day" : "День",
+                                "calendarWidget.Week" : "Неделя",
+                                "calendarWidget.Month" : "Месяц",
+                                "calendarWidget.Year" : "Год",
+                                "calendarWidget.EveryYear" : "Ежегодно",
+                                "calendarWidget.ExtendedView" : "Расширенный поиск",
+                                "calendarWidget.Period" : "Задать период",
+                                "calendarWidget.UTC": "Всемирное координированное время"
+                             });
+                             
+    _translationsHash.addtext("eng", {
+                                "calendarWidget.Custom" : " ",
+                                "calendarWidget.Day" : "Day",
+                                "calendarWidget.Week" : "Week",
+                                "calendarWidget.Month" : "Month",
+                                "calendarWidget.Year" : "Year",
+                                "calendarWidget.EveryYear" : "Every year",
+                                "calendarWidget.ExtendedView" : "Extended search",
+                                "calendarWidget.UTC": "Coordinated Universal Time"
+                             });
+}
 
 /**
  @memberOf cover
@@ -280,9 +283,12 @@ Calendar.prototype.init = function( name, params )
 {
 	var _this = this;
 	this._name = name;
+    
+    //Если загружен как модуль, берём ресурсы из папки модуля, иначе локально относительно html
+    var resourceHost = typeof gmxCore !== 'undefined' ? gmxCore.getModulePath('DateTimePeriodControl') || '' : '';
 	
 	this._params = $.extend({
-		resourceHost: "",
+		resourceHost: resourceHost,
 		minimized: true,
 		showSwitcher: true,
         showTime: true,
@@ -693,8 +699,10 @@ var publicInterface = {
 if ( typeof gmxCore !== 'undefined' )
 {
 	gmxCore.addModule('DateTimePeriodControl', publicInterface, 
-	{ init: function(module, path)
+	{ 
+        init: function(module, path)
 		{
+            initTranslations();
 			var doLoadCss = function()
 			{
 				path = path || window.gmxJSHost || "";
@@ -705,8 +713,13 @@ if ( typeof gmxCore !== 'undefined' )
 				doLoadCss();
 			else
 				jQuery.getScript(path + "jquery/jquery.getCSS.js", doLoadCss);
-		}
+		},
+        require: ['translations', 'utilities']
 	});
+}
+else
+{
+    initTranslations();
 }
 
 nsGmx.Calendar = Calendar;
