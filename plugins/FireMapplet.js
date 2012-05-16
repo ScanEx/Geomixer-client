@@ -1687,11 +1687,11 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	
 	$(button).text(_gtxt('firesWidget.AdvancedSearchButton'));
 	
-	$(this._calendar).change( function()
-	{
-		_this.update();
-		updateTimeInfo();
-	});
+	// $(this._calendar).change( function()
+	// {
+		// _this.update();
+		// updateTimeInfo();
+	// });
 	
 	
 	// $(button)
@@ -1768,7 +1768,8 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 		}
 	}
 	
-	$(this._visModeController).bind('change', function()
+	// $(this._visModeController).bind('change', function()
+	$(this._calendar).bind('change', function()
 	{
 		if ( _this._visModeController.getMode() ===  _this._visModeController.SIMPLE_MODE )
 		{

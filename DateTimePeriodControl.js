@@ -151,8 +151,9 @@ var Calendar = function()
             _this._timeEnd.hours = date.getUTCHours();
             _this._timeEnd.minutes = date.getMinutes();
             _this._timeEnd.seconds = date.getSeconds();
-            $(this.dateEnd).datepicker("setDate", date);
         }
+        
+        $(this.dateEnd).datepicker("setDate", date);
         _updateInfo();
         $(this).change();
     }
@@ -254,9 +255,11 @@ var Calendar = function()
 	this.setLazyDate = function(lazyDate, keepSilence)
 	{
 		this.lazyDate.value = lazyDate;
+        var prevDate = this.getDateBegin();
 		this.updateBegin();
+        var newDate = this.getDateBegin();
 		
-		if (!keepSilence) 
+		if ( !keepSilence && prevDate.valueOf() !== newDate.valueOf() )
 			$(this).triggerHandler('change');
 	}
 	
@@ -412,11 +415,9 @@ Calendar.prototype.init = function( name, params )
 		$("#calendar .onlyMaxVersion", _this.canvas).css({display: isSimple ? 'none': ''});
 		
 		_this.setLazyDate(isSimple ? 'day' : '', true);
+        $(_this).triggerHandler('change'); //всегда генерим событие, так как в целом состояние календаря изменилось
 		
 		_this.moreIcon.src = 'http://kosmosnimki.ru/img/' + (isSimple ? 'expand.gif' : 'collapse.gif');
-		
-		// if ( isSimple )
-			// _this.setDates();
 	});
 					
 	$("#calendar .onlyMinVersion", this.canvas).css({display: this._params.minimized ? '' : 'none'});
