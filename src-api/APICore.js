@@ -2263,8 +2263,8 @@ FlashMapObject.prototype.enableQuicklooks = function(callback)
 	var shownQuicklooks = {};
 	this.shownQuicklooks = shownQuicklooks;
 
-	this['_Quicklooks_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
-	//this.setHandler("onClick", function(o)
+	//this['_Quicklooks_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
+	this.setHandler("onClick", function(o)
 	{
 		try {
 			var identityField = gmxAPI.getIdentityField(o);
@@ -2319,7 +2319,6 @@ FlashMapObject.prototype.enableQuicklooks = function(callback)
 				shownQuicklooks[id].remove();
 				delete shownQuicklooks[id];
 			}
-
 		} catch (e) {
 			gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
 			//alert(e);
@@ -2430,8 +2429,8 @@ FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, m
 			}
 		}
 	});
-	this['_TiledQuicklooksEx_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
-	//this.setHandler("onClick", function(o)
+	//this['_TiledQuicklooksEx_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
+	this.setHandler("onClick", function(o)
 	{
 		try {
 			var identityField = gmxAPI.getIdentityField(o);
