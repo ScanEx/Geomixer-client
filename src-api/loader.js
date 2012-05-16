@@ -30,9 +30,9 @@
         var LABInstance = $LAB;
 
 		for (var f = 0; f < filesToLoad.length-1; f++)
-			LABInstance = LABInstance.script({src: filesToLoad[f] }).wait();
+			LABInstance = LABInstance.script({src: apiHost + filesToLoad[f] }).wait();
 			
-		LABInstance.script({src: filesToLoad[filesToLoad.length-1] }).wait(function()
+		LABInstance.script({src: apiHost + filesToLoad[filesToLoad.length-1] }).wait(function()
         {
             if (waitArgs)
             {
