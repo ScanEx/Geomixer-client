@@ -101,6 +101,7 @@ class VectorObject extends MapContent
 						}
 					}
 				} else {					// Для обьектов не в векторном слое найти рекурсивный стиль
+					if (isActive) return;
 					curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
 				}
 			}
