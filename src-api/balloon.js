@@ -247,6 +247,7 @@
 				if(handlersObj[key]) {
 					var eID = gmxAPI._listeners.addListener(mapObject, key, handlersObj[key]);
 					mapObject._attr['balloonListeners'][key] = eID;
+					//gmxAPI._listeners.bringToBottom(mapObject, key, eID);
 				}
 			}
 		}

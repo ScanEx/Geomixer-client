@@ -1530,8 +1530,9 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		{
 			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// если MapObject отсутствует создаем
 			pObj.properties = gmxAPI.propertiesFromArray(a);
-			if(obj.handlers[eventName]) handler(pObj, attr);
-			gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });
+			var flag = false;
+			if(obj.handlers[eventName]) flag = handler(pObj, attr);
+			if(!flag) gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });
 		};
 
 		var callback = (handler ? func : null);
@@ -1626,9 +1627,27 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		else stateListeners[eventName] = out;
 		return true;
 	}
+	function bringToBottom(obj, eventName, id)
+	{
+		var arr = getArr(eventName, obj);
+		var item = null;
+		var out = [];
+		for (var i=0; i<arr.length; i++)
+		{
+			if(id != arr[i]["id"] && id != arr[i]["pID"]) out.push(arr[i]);
+			else item = arr[i];
+		}
+		if(item) out.unsift(item);
+		if(obj) {
+			obj.stateListeners[eventName] = out;
+		}
+		else stateListeners[eventName] = out;
+		return true;
+	}
 	gmxAPI._listeners = {
 		'dispatchEvent': dispatchEvent,
 		'addListener': addListener,
+		'bringToBottom': bringToBottom,
 		'removeListener': removeListener
 	};
 	// End: Блок Listeners
@@ -2323,7 +2342,7 @@ FlashMapObject.prototype.enableQuicklooks = function(callback)
 			gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
 			//alert(e);
 		}
-		gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
+		//gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
 	});
 }
 
@@ -2375,11 +2394,12 @@ FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, m
 		var flag = (minZoom && curZ < minZoom ? true : false);
 		var mZ = (maxZoom ? maxZoom : 18);
 		if(!flag && curZ > mZ) flag = true;
-		if(flag) gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
+		if(flag) return false;		// неподходящий zoom
+		//if(flag) gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
 		///// End
 
 		if (!images[id]) {
-			return;
+			return false;
 		}
 		var lastDate = (TemporalColumnName ? props[TemporalColumnName] : props.date || props.DATE);
 		var lastFc = flipCounts[id];
@@ -2401,19 +2421,21 @@ FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, m
 				n += 1;
 		}
 		images[id].bringToDepth(n - 1);
+		return true;
 	}
 	tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
 	tilesParent.observeVectorLayer(this, function(o, flag)
 	{
 		var identityField = gmxAPI.getIdentityField(o);
 		var id = 'id_' + o.properties[identityField];
+		var ret = false;
 		if (flag && !images[id])
 		{
 			var image = tilesParent.addObject(o.geometry, o.properties);
 			callback(o, image);
 			images[id] = image;
 			propsArray.push(o.properties);
-			updateImageDepth(o);
+			ret = updateImageDepth(o);
 		}
 		else if (!flag && images[id])
 		{
@@ -2427,7 +2449,9 @@ FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, m
 					break;
 				}
 			}
+			ret = true;
 		}
+		return ret;
 	});
 	//this['_TiledQuicklooksEx_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
 	this.setHandler("onClick", function(o)
@@ -2436,7 +2460,7 @@ FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, m
 			var identityField = gmxAPI.getIdentityField(o);
 			var id = 'id_' + o.properties[identityField];
 			flipCounts[id] = o.flip();
-			updateImageDepth(o);
+			return updateImageDepth(o);
 		} catch (e) {
 			gmxAPI.addDebugWarnings({'func': 'enableTiledQuicklooksEx', 'handler': 'onClick', 'event': e, 'alert': e});
 			//alert(e);
