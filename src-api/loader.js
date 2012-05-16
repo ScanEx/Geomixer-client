@@ -1,5 +1,24 @@
 (function (global, oDOC, handler) {
 
+	var getScriptURL = function(scriptName)
+	{
+		var scripts1 = document.getElementsByTagName("script");
+		for (var i = 0; i < scripts1.length; i++)
+		{
+			var src = scripts1[i].getAttribute("src");
+			if (src && (src.indexOf(scriptName) != -1))
+				return src;
+		}
+		return false;
+	}
+	var getScriptBase = function(scriptName)
+	{
+		var url = getScriptURL(scriptName);
+		return url.substring(0, url.indexOf(scriptName));
+	}
+    
+    var apiHost = getScriptBase("api.js");
+
     var waitArgs = null;
     window.createFlashMap = function() {
         waitArgs = [].slice.call(arguments);
@@ -45,7 +64,7 @@
                 scriptdone = true;
                 LABjsLoaded();
             };
-            scriptElem.src = "LAB.min.js";
+            scriptElem.src = apiHost + "LAB.min.js";
             head.insertBefore(scriptElem, head.firstChild);
         }, 0);
 
