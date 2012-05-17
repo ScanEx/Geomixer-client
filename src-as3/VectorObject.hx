@@ -56,7 +56,7 @@ class VectorObject extends MapContent
 			super.addHandlers();
 		}
 		contentSprite.addEventListener(MouseEvent.MOUSE_OVER, function(event) { me.highlight(); });
-		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event) { me.isActive = false;	me.repaint(); });
+		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event) { me.isActive = false;	me.highlight(); });
 
 		contentSprite.buttonMode = contentSprite.useHandCursor = true;
 	}
@@ -101,8 +101,12 @@ class VectorObject extends MapContent
 						}
 					}
 				} else {					// Для обьектов не в векторном слое найти рекурсивный стиль
-					if (isActive) return;
-					curStyle = (isActive ? mapNode.getHoveredStyleRecursion() : mapNode.getRegularStyleRecursion());
+					if (isActive) {
+						curStyle = mapNode.getHoveredStyleRecursion();
+						if(curStyle == null) curStyle = mapNode.getRegularStyleRecursion();
+					} else {
+						curStyle = mapNode.getRegularStyleRecursion();
+					}
 				}
 			}
 		}
@@ -190,7 +194,7 @@ class VectorObject extends MapContent
 			layer.hoverPainter.repaint(curStyle);
 			if (curNodeFilter != null) curNodeFilter.callHandler("onMouseOver", mapNode);
 		} else {
-			//repaint();
+			repaint();
 		}
 	}
 
