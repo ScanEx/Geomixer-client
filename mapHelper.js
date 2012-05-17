@@ -2954,7 +2954,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				
 				_this.selectColumns(columnsParent, {url: serverBase + "VectorLayer/GetTableCoordinateColumns.ashx?WrapStyle=func&TableName=" + encodeURIComponent(name)})
 				
-				sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetTableColumns.ashx?ColumnTypes=date&SourceName=" + encodeURIComponent(name), function(response)
+				sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetTableColumns.ashx?ColumnTypes=date,datetime&SourceName=" + encodeURIComponent(name), function(response)
 				{
 					if (!parseResponse(response)) return;
 					var columns = response.Result;
