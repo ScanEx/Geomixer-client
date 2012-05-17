@@ -111,84 +111,6 @@ var EditObjectControl = function(layerName, objectId)
         );        
     }
     
-    var chooseDrawingBorderDialog = function()
-    {
-        if (drawingBorderDialog)
-            return;
-        
-        var objects = [],
-            _this = this;
-        
-        globalFlashMap.drawing.forEachObject(function(obj)
-        {
-            if (obj.geometry.type.toLowerCase() === layer.properties.GeometryType.toLowerCase())
-                objects.push(obj);
-        })
-        
-        if (!objects.length)
-            showErrorMessage(_gtxt("$$phrase$$_12"), true, _gtxt("$$phrase$$_12"));
-        else
-        {
-            var trs = [];
-            
-            for (var i = 0; i < objects.length; i++)
-            {
-                var type = objects[i].geometry.type,
-                    coords = objects[i].geometry.coordinates,
-                    title = _span(null, [['dir','className','title']]),
-                    summary = _span(null, [['dir','className','summary']]),
-                    tdName = _td([title, summary]),
-                    returnButton = makeImageButton("img/choose.png", "img/choose_a.png"),
-                    tr = _tr([_td([returnButton]), tdName]);
-                
-                if (type == "POINT")
-                {
-                    _(title, [_t(_gtxt("точка"))]);
-                    _(summary, [_t("(" + formatCoordinates(merc_x(coords[0]), merc_y(coords[1])) + ")")]);
-                }
-                else if (type == "LINESTRING")
-                {
-                    _(title, [_t(_gtxt("линия"))]);
-                    _(summary, [_t("(" + prettifyDistance(geoLength(coords)) + ")")]);
-                }
-                else if (type == "POLYGON")
-                {
-                    _(title, [_t(isRectangle(coords) ? _gtxt("прямоугольник") : _gtxt("многоугольник"))]);
-                    _(summary, [_t("(" + prettifyArea(geoArea(coords)) + ")")]);
-                }
-                
-                returnButton.style.cursor = 'pointer';
-                returnButton.style.marginLeft = '5px';
-                    
-                (function(obj){
-                    returnButton.onclick = function()
-                    {
-                        bindDrawingObject(obj);
-                        removeDialog(drawingBorderDialog);
-                        drawingBorderDialog = null;
-                    }
-                })(objects[i]);
-                
-                attachEffects(tr, 'hover')
-                
-                trs.push(tr)
-            }
-        
-            var table = _table([_tbody(trs)], [['css','width','100%']]);
-            
-            drawingBorderDialog = showDialog(
-                _gtxt("Выбор контура"), 
-                _div([table], [['dir','className','drawingObjectsCanvas'],['css','width','220px']]), 
-                250, 180, 
-                false, false,
-                false, function()
-                {
-                    drawingBorderDialog = null;
-                }
-            );
-        }
-    }    
-    
     var createDialog = function()
     {
         var canvas = _div(),
@@ -333,7 +255,11 @@ var EditObjectControl = function(layerName, objectId)
                         
                         drawingBorderLink.onclick = function()
                         {
-                            chooseDrawingBorderDialog();
+                            nsGmx.Controls.chooseDrawingBorderDialog(
+                                'editObject', 
+                                bindDrawingObject, 
+                                { geomType: layer.properties.GeometryType }
+                            );
                         }
                         
                         drawingBorderLink.style.margin = '0px 5px 0px 3px';
@@ -376,7 +302,11 @@ var EditObjectControl = function(layerName, objectId)
             
             drawingBorderLink.onclick = function()
             {
-                chooseDrawingBorderDialog();
+                nsGmx.Controls.chooseDrawingBorderDialog(
+                    'editObject', 
+                    bindDrawingObject, 
+                    { geomType: layer.properties.GeometryType }
+                );
             }
             
             drawingBorderLink.style.margin = '0px 5px 0px 3px';

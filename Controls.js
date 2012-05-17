@@ -237,7 +237,64 @@ nsGmx.Controls = {
 		}
 		
 		return container;
-	}
+	},
+    chooseDrawingBorderDialog: function(name, callback, params)
+    {
+        var _params = $.extend({
+            title:         _gtxt("Выбор контура"),
+            geomType:      null,
+            errorTitle:   _gtxt("$$phrase$$_12"),
+            errorMessage: _gtxt("$$phrase$$_12")
+        }, params);
+        
+        if ($$('drawingBorderDialog' + name))
+            return;
+        
+        var polygons = [],
+            _this = this;
+        
+        globalFlashMap.drawing.forEachObject(function(obj)
+        {
+            if (!_params.geomType || obj.geometry.type.toLowerCase() === _params.geomType.toLowerCase())
+                polygons.push(obj);
+        })
+        
+        if (!polygons.length)
+            showErrorMessage(_params.errorMessage, true, _params.errorTitle);
+        else
+        {
+            var trs = [];
+            
+            for (var i = 0; i < polygons.length; i++)
+            {
+                var	coords = polygons[i].geometry.coordinates,
+                    title = _span([_t(_gtxt("многоугольник"))], [['dir','className','title']]),
+                    summary = _span([_t("(" + prettifyArea(geoArea(coords)) + ")")], [['dir','className','summary']]),
+                    tdName = _td([title, summary]),
+                    returnButton = makeImageButton("img/choose.png", "img/choose_a.png"),
+                    tr = _tr([_td([returnButton]), tdName]);
+                
+                returnButton.style.cursor = 'pointer';
+                returnButton.style.marginLeft = '5px';
+                    
+                (function(polygon){
+                    returnButton.onclick = function()
+                    {
+                        callback && callback(polygon);
+                        removeDialog($$('drawingBorderDialog' + name).parentNode);
+                    }
+                })(polygons[i]);
+                
+                attachEffects(tr, 'hover')
+                
+                trs.push(tr)
+            }
+        
+            var table = _table([_tbody(trs)], [['css','width','100%']]);
+            
+            showDialog(_params.title, _div([table], [['attr','id','drawingBorderDialog' + name],['dir','className','drawingObjectsCanvas'],['css','width','220px']]), 250, 180, false, false)
+        }
+    }
 }
 
 gmxCore.addModule('Controls', nsGmx.Controls);

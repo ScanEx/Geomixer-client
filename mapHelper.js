@@ -3390,10 +3390,13 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		
 		drawingBorderLink.onclick = function()
 		{
-			_this.chooseDrawingBorderDialog(properties.Name, function()
+            nsGmx.Controls.chooseDrawingBorderDialog( properties.Name, function(polygon)
 			{
+                _this.drawingBorders.set(properties.Name, polygon);
+                _this.drawingBorders.updateBorder(properties.Name);
 				shapeVisible(false);
-			});
+                
+			}, {geomType: 'POLYGON', errorMessage: _gtxt("$$phrase$$_17")} );
 		}
 		
 		tileCatalogLink.style.marginLeft = '3px';
@@ -3615,62 +3618,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 	
 	if (!div)
 		title.focus();
-}
-
-mapHelper.prototype.chooseDrawingBorderDialog = function(name, closeFunc)
-{
-	if ($$('drawingBorderDialog' + name))
-		return;
-	
-	var polygons = [],
-		_this = this;
-	
-	globalFlashMap.drawing.forEachObject(function(obj)
-	{
-		if (obj.geometry.type == 'POLYGON')
-			polygons.push(obj);
-	})
-	
-	if (!polygons.length)
-		showErrorMessage(_gtxt("$$phrase$$_17"), true, _gtxt("$$phrase$$_12"));
-	else
-	{
-		var trs = [];
-		
-		for (var i = 0; i < polygons.length; i++)
-		{
-			var	coords = polygons[i].geometry.coordinates,
-				title = _span([_t(_gtxt("многоугольник"))], [['dir','className','title']]),
-				summary = _span([_t("(" + prettifyArea(geoArea(coords)) + ")")], [['dir','className','summary']]),
-				tdName = _td([title, summary]),
-				returnButton = makeImageButton("img/choose.png", "img/choose_a.png"),
-				tr = _tr([_td([returnButton]), tdName]);
-			
-			returnButton.style.cursor = 'pointer';
-			returnButton.style.marginLeft = '5px';
-				
-			(function(i){
-				returnButton.onclick = function()
-				{
-					//_this.drawingBorders[name] = polygons[i];
-					_this.drawingBorders.set(name, polygons[i]);
-					_this.drawingBorders.updateBorder(name);
-					
-					removeDialog($$('drawingBorderDialog' + name).parentNode);
-					
-					closeFunc();
-				}
-			})(i);
-			
-			attachEffects(tr, 'hover')
-			
-			trs.push(tr)
-		}
-	
-		var table = _table([_tbody(trs)], [['css','width','100%']]);
-		
-		showDialog(_gtxt("Выбор контура"), _div([table], [['attr','id','drawingBorderDialog' + name],['dir','className','drawingObjectsCanvas'],['css','width','220px']]), 250, 180, false, false)
-	}
 }
 
 /** Виджет для выбора полей для X и Y координат из списка полей
