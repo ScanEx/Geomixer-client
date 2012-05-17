@@ -275,6 +275,18 @@
 		}
 
 		var bounds = false;
+		obj.getLayerBounds = function() {			// Получение bounds для внешних плагинов
+			var out = false;
+			if(bounds) {
+				out = {
+					minX: gmxAPI.from_merc_x(bounds['minX']),
+					minY: gmxAPI.from_merc_y(bounds['minY']),
+					maxX: gmxAPI.from_merc_x(bounds['maxX']),
+					maxY: gmxAPI.from_merc_y(bounds['maxY']),
+				};
+			}
+			return out;
+		}
 		var chkBounds = function(geom) {
 			if (geom) {
 				if(geom.type == "POLYGON") {		// Проверка сдвига границ слоя
@@ -288,7 +300,6 @@
 		gmxAPI._listeners.addListener(obj, 'onChangeLayerVersion', function() {
 			chkBounds(obj.geometry);
 		});
-		obj.getLayerBounds = function() { return bounds; }		// Getter bounds для внешних плагинов
 
 		var tileSenderPrefix = baseAddress + 
 			"TileSender.ashx?ModeKey=tile" + 
@@ -334,8 +345,8 @@
 			'setZoomBounds', 'setBackgroundTiles', 'startLoadTiles', 'setVectorTiles', 'setTiles', 'setTileCaching',
 			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'bringToBottom',
 			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
-			'removeHandler', 'remove', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
-			'setHandler', //'addListener', 'removeListener',
+			'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
+			'setHandler', //'remove', 'addListener', 'removeListener',
 			'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
 		];
 		// не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
