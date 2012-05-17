@@ -1586,6 +1586,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	*/
 	function addListener(obj, eventName, func, pID)
 	{
+		if(pID && !flashEvents[eventName]) return false;
 		var arr = getArr(eventName, obj);
 		var id = gmxAPI.newFlashMapId();
 		arr.push({"id": id, "func": func, "pID": pID  });
@@ -2584,7 +2585,7 @@ function createFlashMapInternal(div, layers, callback)
 		{
 			try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(); }
 			catch (e) {
-				gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'OnLoad', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
+				gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'маплет карты', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
 			}
 		}
 	}
