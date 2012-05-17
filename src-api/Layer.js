@@ -282,7 +282,7 @@
 					minX: gmxAPI.from_merc_x(bounds['minX']),
 					minY: gmxAPI.from_merc_y(bounds['minY']),
 					maxX: gmxAPI.from_merc_x(bounds['maxX']),
-					maxY: gmxAPI.from_merc_y(bounds['maxY']),
+					maxY: gmxAPI.from_merc_y(bounds['maxY'])
 				};
 			}
 			return out;
