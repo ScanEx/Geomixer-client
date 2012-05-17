@@ -632,22 +632,22 @@ function resizeAll()
 	}
 }
 
-function getLayerBounds(c, layer)
-{
-	var ret = getBounds(c);
-	ret.centerX = from_merc_x((merc_x(ret.minX) + merc_x(ret.maxX))/2);
-	ret.centerY = from_merc_y((merc_y(ret.minY) + merc_y(ret.maxY))/2);
-	ret.getScreenZ = function()
-	{
-		var z = globalFlashMap.getBestZ(ret.minX, ret.minY, ret.maxX, ret.maxY);
-		if (layer && layer.properties.styles && layer.properties.styles[0])
-			z = Math.max(z, layer.properties.styles[0].MinZoom);
+// function getLayerBounds(c, layer)
+// {
+	// var ret = getBounds(c);
+	// ret.centerX = from_merc_x((merc_x(ret.minX) + merc_x(ret.maxX))/2);
+	// ret.centerY = from_merc_y((merc_y(ret.minY) + merc_y(ret.maxY))/2);
+	// ret.getScreenZ = function()
+	// {
+		// var z = globalFlashMap.getBestZ(ret.minX, ret.minY, ret.maxX, ret.maxY);
+		// if (layer && layer.properties.styles && layer.properties.styles[0])
+			// z = Math.max(z, layer.properties.styles[0].MinZoom);
 		
-		return z;
-	}
+		// return z;
+	// }
 	
-	return ret;
-}
+	// return ret;
+// }
 
 function loadFunc(iframe, callback)
 {

@@ -615,9 +615,9 @@ function loadMap(state)
             }
         }
         
-        for (var i = map.layers.length - 1; i >= 0; i--)
-            if (map.layers[i])
-                map.layers[i].bounds = getLayerBounds(map.layers[i].geometry.coordinates[0], map.layers[i]);
+        // for (var i = map.layers.length - 1; i >= 0; i--)
+            // if (map.layers[i])
+                // map.layers[i].bounds = getLayerBounds(map.layers[i].geometry.coordinates[0], map.layers[i]);
         
         var condition = false,
             mapStyles = false;

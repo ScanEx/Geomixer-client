@@ -519,7 +519,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
             {
                 var minLayerZoom = _this.getMinLayerZoom(layer);
                 
-                _this.layerZoomToExtent(layer.bounds, minLayerZoom);
+                _this.layerZoomToExtent(layer.getLayerBounds(), minLayerZoom);
             }
         };
     
@@ -826,7 +826,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 						if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) )
 						{
 							var layer = globalFlashMap.layers[child.content.properties.name],
-								layerBounds = layer.bounds;
+								layerBounds = layer.getLayerBounds();
 						
 							bounds.minX = Math.min(layerBounds.minX, bounds.minX);
 							bounds.minY = Math.min(layerBounds.minY, bounds.minY);
@@ -1508,7 +1508,7 @@ layersTree.prototype.addLayersToMap = function(elem)
 			globalFlashMap.addLayer(layer, visibility);
 			
 			globalFlashMap.layers[name].setVisible(visibility);
-			globalFlashMap.layers[name].bounds = getLayerBounds( elem.content.geometry.coordinates[0], globalFlashMap.layers[name]);
+			//globalFlashMap.layers[name].bounds = getLayerBounds( elem.content.geometry.coordinates[0], globalFlashMap.layers[name]);
 		}
 		else
 		{

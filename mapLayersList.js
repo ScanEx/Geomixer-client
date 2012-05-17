@@ -368,7 +368,7 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 			if (layer)
 			{
 				var minLayerZoom = _layersTree.getMinLayerZoom(layer);				
-				_layersTree.layerZoomToExtent(layer.bounds, minLayerZoom);
+				_layersTree.layerZoomToExtent(layer.getLayerBounds(), minLayerZoom);
 			}
 			
 			/* временно отключили разворачиание дерева
@@ -546,7 +546,7 @@ queryMapLayersList.prototype.reloadList = function()
 		if (globalFlashMap.layers[i].properties.mapName === baseMapName)
 			continue;
 		
-		var bounds = globalFlashMap.layers[i].bounds;
+		var bounds = globalFlashMap.layers[i].getLayerBounds();
 		
 		var isIntersected = null;
 		if (this._isIntersectCenter)

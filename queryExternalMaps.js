@@ -161,7 +161,7 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 				{
 					globalFlashMap.addLayer(layer, isVisible);
 					globalFlashMap.layers[name].setVisible(isVisible);
-					globalFlashMap.layers[name].bounds = getLayerBounds(globalFlashMap.layers[name].geometry.coordinates[0], globalFlashMap.layers[name]);
+					//globalFlashMap.layers[name].bounds = getLayerBounds(globalFlashMap.layers[name].geometry.coordinates[0], globalFlashMap.layers[name]);
 					
 					globalFlashMap.layers[name].external = true;
 				}

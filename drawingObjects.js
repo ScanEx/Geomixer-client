@@ -586,8 +586,11 @@ var DrawingObjectGeomixer = function() {
 		}
 
 		for (var iLayerN=0; iLayerN<oMap.layers.length; iLayerN++){
-			l = oMap.layers[iLayerN];
-			if (l.properties.type == "Raster" && l.isVisible && l.properties.mapName != baseMapName &&(x >= l.bounds.minX) && (x <= l.bounds.maxX) && (y >= l.bounds.minY) && (y <= l.bounds.maxY)){
+			var l = oMap.layers[iLayerN],
+                layerBounds = l.getLayerBounds();
+                
+			if ( l.properties.type == "Raster" && l.isVisible && l.properties.mapName != baseMapName && 
+                 x >= layerBounds.minX && x <= layerBounds.maxX && y >= layerBounds.minY && y <= layerBounds.maxY ){
 				var coords = l.geometry.coordinates;
 				var bIsPolygonBad = false;
 				if (l.geometry.type == "POLYGON" && !testPolygon(coords, x, y))
