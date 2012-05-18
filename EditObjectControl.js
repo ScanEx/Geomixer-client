@@ -83,33 +83,19 @@ var EditObjectControl = function(layerName, objectId, params)
     var drawingBorderDialog = null;
     var identityField = layer.properties.identityField;
     
-    
-    var selectedDrawingObject = null;
-    var selectedDrawingListener = null;
-    var geometryInfoRow = null;
-    
     layer.setVisibilityFilter('"' + identityField + '"<>' + objectId);
     
+    var geometryInfoRow = null;
     var bindDrawingObject = function(obj)
-    {
-        if (selectedDrawingObject && selectedDrawingListener !== null)
-        {
-            selectedDrawingObject.removeListener('onRemove', selectedDrawingListener);
-        }
-        selectedDrawingObject = obj;
-        selectedDrawingListener = selectedDrawingObject.addListener('onRemove', function()
-        {
-            selectedDrawingObject = null;
-        })
-        
+    {        
         geometryInfoRow && geometryInfoRow.RemoveRow();
-        $(geometryInfoContainer).empty();
-        geometryInfoRow = new gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow(
+        var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
+        geometryInfoRow = new InfoRow(
             globalFlashMap, 
             geometryInfoContainer, 
-            selectedDrawingObject, 
+            obj, 
             { editStyle: false, allowDelete: false }
-        );        
+        );
     }
     
     var createDialog = function()
@@ -154,6 +140,8 @@ var EditObjectControl = function(layerName, objectId, params)
             if (anyErrors) return;
             
             var obj = { action: isNew ? 'insert' : 'update', properties: properties };
+            
+            var selectedDrawingObject = geometryInfoRow ? geometryInfoRow.getDrawingObject() : null;
             
             if (!selectedDrawingObject)
             {
@@ -202,8 +190,7 @@ var EditObjectControl = function(layerName, objectId, params)
         
         var closeFunc = function()
         {
-            if (selectedDrawingObject)
-                selectedDrawingObject.remove();
+            geometryInfoRow && geometryInfoRow.getDrawingObject() && geometryInfoRow.getDrawingObject().remove();
                 
             originalGeometry = null;
             
@@ -257,8 +244,8 @@ var EditObjectControl = function(layerName, objectId, params)
                             var geom = from_merc_geometry(geometryRow[i]);
                             bindDrawingObject(globalFlashMap.drawing.addObject(geom));
                             
-                            originalGeometry = selectedDrawingObject.getGeometry();
-
+                            originalGeometry = geometryInfoRow.getDrawingObject().getGeometry();
+                            
                             _(tdValue, [geometryInfoContainer]);
                         }
                         else
@@ -291,12 +278,10 @@ var EditObjectControl = function(layerName, objectId, params)
                     }
                     else
                     {
-                        // var input = getInputElement(layer.properties.attrTypes[i]);
                         var input = getInputElement(types[i]);
                         input.rowName = columnNames[i];
                         input.rowType = types[i];
                         input.value = nsGmx.Utils.convertFromServer(types[i], geometryRow[i]);
-                        //var input = _input(null,[['attr','value',geometryRow[i]],['css','width','200px'],['dir','className','inputStyle'], ['dir', 'rowName', columnNames[i]]]);
                         
                         _(tdValue, [input]);
                         

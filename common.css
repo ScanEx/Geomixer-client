@@ -546,6 +546,11 @@ div.unit .unitInfo
 	right: 7px;
 }
 
+.removeGeometry
+{
+    vertical-align: middle;
+}
+
 .drawingObjectsCanvas .remove, /* Старая реализация, новая - removeGeometry*/
 .serverDataCanvas .remove
 {

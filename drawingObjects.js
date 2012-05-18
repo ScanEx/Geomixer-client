@@ -346,13 +346,21 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 		if (_canvas.parentNode)
             _canvas.parentNode.removeChild(_canvas);
             
+        if (_drawingObject === null) return;
+            
         $(_drawingObject).unbind('.drawing');
         
         _drawingObject.removeListener('onMouseOver', mouseOverListenerId);
         _drawingObject.removeListener('onMouseOut', mouseOutListenerId);
+        
+        _drawingObject = null;
 	}
     
     nsGmx.ContextMenuController.bindMenuToElem(_title, 'DrawingObject', function(){return true; }, {obj: _drawingObject} );
+    
+    this.getDrawingObject = function(){
+        return _drawingObject;
+    }
     
     AttachEvents(_map);
     $(_drawingObject).bind('onRemove.drawing', this.RemoveRow);
