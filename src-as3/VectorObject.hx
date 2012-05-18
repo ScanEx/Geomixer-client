@@ -66,7 +66,8 @@ class VectorObject extends MapContent
 		var curStyle = null;
 		var curTemporalCriterion = null;
 		var notClearFlag:Bool = false;
-		if(!mapNode.window.cacheBitmap.visible) {
+		var notCacheBitmap:Bool = (mapNode.window.cacheBitmap == null || !mapNode.window.cacheBitmap.visible ? true : false);
+		if(notCacheBitmap) {
 			var node:MapNode = findHidenKeyNode(mapNode, '_FilterVisibility');
 			criterion = (node == null ? null : node.propHiden.get('_FilterVisibility'));
 

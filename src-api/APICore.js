@@ -2881,7 +2881,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					try {
 						callback(map);		// Вызов HTML маплета
 					} catch(e) {
-						gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'event': e, 'alert': e});
+						gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'event': e, 'alert': 'Ошибка в HTML маплете:\n'+e});
 					}
 				});
 			},

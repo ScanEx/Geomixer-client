@@ -318,16 +318,17 @@
 		}
 		this.setVectorTiles = setVectorTiles;
 
-		resetTiles = function(attr, obj) {
-			if(attr) startLoadTiles(attr, obj);
-			for (var i=0; i<obj.filters.length; i++)	{ // переустановка фильтров
-				obj.filters[i].setFilter(obj.filters[i]._sql, true);
-			}
-		}
-
 		startLoadTiles = function(attr, obj) {
 			var ret = gmxAPI._cmdProxy('startLoadTiles', { 'obj': obj, 'attr':attr });
 			return ret;
+		}
+
+		resetTiles = function(attr, obj) {
+			if(attr) startLoadTiles(attr, obj);
+			for (var i=0; i<obj.filters.length; i++)	{ // переустановка фильтров
+				var filt = obj.filters[i];
+				if(filt && 'setFilter' in filt) filt.setFilter(filt._sql, true);
+			}
 		}
 
 		//расширяем FlashMapObject
