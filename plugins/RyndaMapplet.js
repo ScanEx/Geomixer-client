@@ -7,6 +7,11 @@
 	_translationsHash.addtext("eng", {
 							"RyndaMapplet.Description" : "User messages"
 						 });
+                         
+    var convertDateFromMSString = function(dateStr)
+    {
+        return new Date(parseInt(dateStr.substring(6)));
+    }
 
 	var RyndaProvider = function( params )
 	{
@@ -27,6 +32,44 @@
 			}});
 		}
 	};
+    
+	var AutoNewsProvider = function( params )
+	{
+        var _params = params || {};
+		this.getDescription = function() { return _gtxt("RyndaMapplet.Description"); }
+		this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
+		{
+			var beginString = nsGmx.Utils.convertFromServer('datetime', dateBegin.valueOf()/1000);
+			var endString = nsGmx.Utils.convertFromServer('datetime', dateEnd.valueOf()/1000);
+            
+			var url =  "http://sender.kosmosnimki.ru/v3/DBWebProxy.ashx?Type=GetNewsForDateTimeRange&NewsType=fires&StartDateTime=" + beginString + "&EndDateTime=" + endString;
+			
+            sendCrossDomainJSONRequest(url, function(data)
+			{
+				if (data.Result !== 'Ok')
+                {
+                    onError();
+                    return;
+                }
+                
+                var res = [];
+                for (var iN = 0; iN < data.Response.length; iN++)
+                {
+                    var msg = data.Response[iN];
+                    res.push({
+                        title: msg[3], 
+                        text: '', 
+                        url: msg[4], 
+                        lng: msg[1], 
+                        lat: msg[2], 
+                        date_added: convertDateFromMSString(msg[5]).valueOf()/1000
+                    })
+                }
+                
+                onSucceess({data: res});
+			});
+		}
+	};    
 	
 	var RyndaRenderer = function()
 	{
@@ -59,7 +102,7 @@
 				$(balloonDiv).empty();
 				var container = $("<div></div>").css({width: "400px", whiteSpace: 'normal'});
 				var titleDiv = $("<b></b>", {className: "RyndaTitle"}).text(obj.properties.title);
-				var textDiv = $("<div></div>", {className: "RyndaText"}).html(obj.properties.text);
+				var textDiv = obj.properties.text !== '' ? $("<div></div>", {className: "RyndaText"}).html(obj.properties.text) : null;
 				
 				//maxHeight не работает...
 				if ($.browser.msie) textDiv.css({height: "200px"});
@@ -89,10 +132,18 @@
 	
 	var addRyndaProvider = function(fireControl, params )
 	{
+        var providers = {
+            rynda: RyndaProvider,
+            autoNews: AutoNewsProvider
+        }
+        
+        if (!(params.provider in providers))
+            return;
+        
 		fireControl.whenInited(function()
 		{
 			fireControl.addDataProvider( "rynda",
-				new RyndaProvider( params ),
+				new providers[params.provider]( params ),
 				new RyndaRenderer(),
 				{ isVisible: params.visible }
 			);
@@ -102,7 +153,7 @@
 	gmxCore.addModule('RyndaMapplet', {
 		afterViewer: function(params)
 		{
-            var _params = $.extend({visible: true}, params);
+            var _params = $.extend({visible: true, provider: 'rynda'}, params);
             
 			gmxCore.addModulesCallback(['FireMapplet'], function()
 			{
