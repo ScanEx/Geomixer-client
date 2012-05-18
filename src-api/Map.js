@@ -287,15 +287,11 @@
 			getVisibility: function() { return gmxAPI._cmdProxy('getGridVisibility', {}) }
 		};
 
-		var allTools = gmxAPI.newStyledDiv({ position: "absolute", top: '40px', left: 0, marginLeft: '1px' });
-		gmxAPI._div.appendChild(allTools);
-		gmxAPI._allToolsDIV = allTools;
-
 		//Begin: tools
-		var toolsAll = new gmxAPI._ToolsAll(allTools);
+		var toolsAll = new gmxAPI._ToolsAll(gmxAPI._div);
 		map.toolsAll = toolsAll;
-		if('_addZoomControl' in gmxAPI) gmxAPI._addZoomControl(allTools);
-		if('_timeBarInit' in gmxAPI) gmxAPI._timeBarInit(allTools);
+		if('_addZoomControl' in gmxAPI) gmxAPI._addZoomControl(gmxAPI._allToolsDIV);
+		if('_timeBarInit' in gmxAPI) gmxAPI._timeBarInit(gmxAPI._allToolsDIV);
 		//if('_miniMapInit' in gmxAPI) gmxAPI._miniMapInit(div);
 
 		var drawFunctions = gmxAPI._drawFunctions;

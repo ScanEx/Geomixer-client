@@ -21,7 +21,10 @@
 		var toolPadding = 4;
 		var toolSpacing = 8;
 
-		var toolsAllCont = cont;
+		var toolsAllCont = gmxAPI.newStyledDiv({ position: "absolute", top: '40px', left: 0, height: '1px', marginLeft: '1px' });
+		cont.appendChild(toolsAllCont);
+		gmxAPI._allToolsDIV = toolsAllCont;
+
 		this.toolsAllCont = toolsAllCont;
 		gmxAPI._toolsContHash = toolsContHash;
 
