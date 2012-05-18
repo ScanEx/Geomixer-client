@@ -1615,7 +1615,10 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
             minPower:      this._firesOptions.minPower,
             minConfidence: this._firesOptions.minConfidence
         });
-		var wholeClusterProvider = new FireClusterSimpleProvider();
+		var wholeClusterProvider = new FireClusterSimpleProvider({
+            host: this._firesOptions.wholeClustersHost,
+            requestType:  this._firesOptions.wholeClusterRequestType
+        });
 		
 		this.addDataProvider( "firedots",
 							  new CombinedProvider( "firesWidget.FireCombinedDescription", [spotProvider, wholeClusterProvider] ),
