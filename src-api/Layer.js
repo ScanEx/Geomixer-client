@@ -561,12 +561,14 @@
 			})(deferredMethodNames[i]);
 			if (!isRaster)
 			{
+/*
 				obj.setHandler = function(eventName, handler)
 				{							
 					obj.setVisible(true);
 					obj.setHandler(eventName, handler);
 					obj.setVisible(false);
 				}
+*/
 				obj.getFeatures = function(arg1, arg2, arg3)
 				{							
 					obj.setVisible(true);

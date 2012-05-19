@@ -55,7 +55,7 @@ class VectorObject extends MapContent
 		} else {
 			super.addHandlers();
 		}
-		contentSprite.addEventListener(MouseEvent.MOUSE_OVER, function(event) { me.highlight(); });
+		contentSprite.addEventListener(MouseEvent.MOUSE_OVER, function(event) { me.isActive = true; me.highlight(); });
 		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event) { me.isActive = false;	me.highlight(); });
 
 		contentSprite.buttonMode = contentSprite.useHandCursor = true;
@@ -179,10 +179,9 @@ class VectorObject extends MapContent
 	
 	function highlight()
 	{
-		isActive = true;
+		//isActive = true;
 		if (layer != null) {
-			layer.lastId = mapNode.id;
-			layer.currentId = mapNode.propHash.get(layer.identityField);
+			var oId = mapNode.propHash.get(layer.identityField);
 
 			var curStyle = mapNode.getHoveredStyleRecursion();
 			curFilter = findFilter();
@@ -191,9 +190,13 @@ class VectorObject extends MapContent
 				curStyle = curNodeFilter.getHoveredStyle();
 				layer.currentFilter = curFilter;
 			}
-			layer.hoverPainter.geometry = geometry;
-			layer.hoverPainter.repaint(curStyle);
-			if (curNodeFilter != null) curNodeFilter.callHandler("onMouseOver", mapNode);
+			layer.lastId = mapNode.id;
+			layer.currentId = oId;
+			if(!layer.deletedObjects.exists(oId)) {				// подсветка только не удаляемых обьектов тайла
+				layer.hoverPainter.geometry = geometry;
+				layer.hoverPainter.repaint(curStyle);
+			}
+			if (curNodeFilter != null) curNodeFilter.callHandler((isActive ? "onMouseOver" : "onMouseOut"), mapNode);
 		} else {
 			repaint();
 		}
