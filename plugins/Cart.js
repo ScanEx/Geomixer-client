@@ -1,5 +1,5 @@
-﻿(function($, oMap){
-	var pluginPath;
+﻿(function($){
+	var pluginPath, oMap;
 	_translationsHash.addtext("rus", {
 		"Корзина": "Корзина",
 		"Отправить заказ": "Отправить заказ",
@@ -96,7 +96,12 @@
 		return [{item: {id:'Cart', title:_gtxt('Корзина'),func:loadMenu},
 				parentID: 'servicesMenu'}];
 	}
+	var afterViewer = function(){
+		oMap = globalFlashMap;
+	}
+	
 	var publicInterface = {
+		afterViewer: afterViewer,
 		addMenuItems: addMenuItems,
 		loadMenu: loadMenu,
 		addToCart: addToCart
@@ -113,4 +118,4 @@
 			pluginPath = path;
 		}
 	});
-})(jQuery, globalFlashMap)
+})(jQuery)
