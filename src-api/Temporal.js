@@ -323,8 +323,15 @@
 			return ret;
 		}
 
+		this.ut1Prev = 0;
+		this.ut2Prev = 0;
 		resetTiles = function(attr, obj) {
-			if(attr) startLoadTiles(attr, obj);
+			if(attr) {
+				startLoadTiles(attr, obj);
+				if(attr.ut1 == me.ut1Prev && attr.ut2 == me.ut2Prev) return;
+				me.ut1Prev = attr.ut1;
+				me.ut2Prev = attr.ut2;
+			}
 			for (var i=0; i<obj.filters.length; i++)	{ // переустановка фильтров
 				var filt = obj.filters[i];
 				if(filt && 'setFilter' in filt) filt.setFilter(filt._sql, true);
