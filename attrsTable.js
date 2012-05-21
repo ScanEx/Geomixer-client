@@ -477,17 +477,11 @@ attrsTable.prototype.drawDialog = function(info)
 	
 	this.columnsNames = columnsNames;
     
-    
-    gmxAPI._listeners.addListener(globalFlashMap.layers[this.layerName], 'onChangeLayerVersion', 
+	this._listenerId = globalFlashMap.layers[this.layerName].addListener('onChangeLayerVersion', 
         function() {
             _this._serverDataProvider.serverChanged();
         }
     );
-
-    // this._listenerId = globalFlashMap.layers[this.layerName].addListener('onChangeLayerVersion', function()
-    // {
-        // _this._serverDataProvider.serverChanged();
-    // });
 }
 
 attrsTable.prototype.showLoading = function()
