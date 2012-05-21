@@ -388,7 +388,8 @@
 					var pID = FlashMapObject.prototype.addListener.call(obj, eventName, handler);
 					var arr = obj.stateListeners[eventName] || [];
 					for (var i = 0; i < obj.filters.length; i++) {
-						var fID = obj.filters[i].addListener(eventName, handler, pID);
+						var fID = gmxAPI._listeners.addListener({'level': -10, 'pID': pID, 'obj': obj.filters[i], 'eventName': eventName, 'func': handler});
+						//var fID = obj.filters[i].addListener(eventName, handler, pID);
 						if(fID) arr.push(fID);
 					}
 					obj.stateListeners[eventName] = arr;
