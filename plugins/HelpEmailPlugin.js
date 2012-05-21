@@ -13,7 +13,7 @@ _translationsHash.addtext("eng", {
 var publicInterface = {
 	afterViewer: function(params)
 	{
-		var _params = params.extend({EMail: "help@kosmosnimki.ru", Message: {rus: "Что-то не работает - напишите нам в техническую поддержку!", eng: "Something works wrong? Write an e-mail to our support!"}});
+		var _params = $.extend({EMail: "help@kosmosnimki.ru", Message: {rus: "Что-то не работает - напишите нам в техническую поддержку!", eng: "Something works wrong? Write an e-mail to our support!"}}, params);
 		_translationsHash.addtext("rus", {
 			"HelpEmailPlugin.Message" : _params.Message.rus
 		});
