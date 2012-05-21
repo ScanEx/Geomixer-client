@@ -297,7 +297,7 @@
 			}
 		};
 		chkBounds(layer.geometry);
-		gmxAPI._listeners.addListener(obj, 'onChangeLayerVersion', function() {
+		obj.addListener('onChangeLayerVersion', function() {
 			chkBounds(obj.geometry);
 		});
 

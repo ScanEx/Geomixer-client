@@ -86,7 +86,7 @@
 			getVisibleStyle: function() { return ret.getVisibleStyle(); },
 			getStyle: function(removeDefaults) { return ret.getStyle(removeDefaults); },
 			stateListeners: {},
-			addListener: function(eventName, func) { return gmxAPI._listeners.addListener(this, eventName, func); },
+			addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },
 			removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
 		}
 		currentDOMObject = ret.domObj = objects[myId];
@@ -959,7 +959,7 @@
 		mouseState: 'up',
 		endDrawing: endDrawing,
 		stateListeners: {},
-		addListener: function(eventName, func) { return gmxAPI._listeners.addListener(this, eventName, func); },
+		addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },
 		removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); },
 		enabledHoverBalloon: true,
 		enableHoverBalloon: function()

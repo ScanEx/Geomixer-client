@@ -1554,14 +1554,14 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			('stateListeners' in obj && eventName in obj.stateListeners ? obj.stateListeners[eventName] : [])
 			: ( eventName in stateListeners ? stateListeners[eventName] : [])
 		);
-		return arr;
+		return arr.sort(function(a, b) {return (b['level'] > a['level'] ? 1 : -1);});
 	}
 	// Обработка пользовательских Listeners на obj
 	function dispatchEvent(eventName, obj, attr)
 	{
 		var out = true;
 		var arr = getArr(eventName, obj);
-		for (var i=arr.length-1; i>=0; i--)	// Сначала вызываем наиболее современные callback
+		for (var i=0; i<arr.length; i++)	// Вызываем по убыванию 'level'
 		{
 			if(typeof(arr[i].func) === 'function') {
 				try {
@@ -1580,16 +1580,25 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	* @memberOf api - добавление прослушивателя
 	* @param {eventName} название события
 	* @param {func} вызываемый метод
+	* @param {pID} Listener унаследован от родительского обьекта
 	* @return {id} присвоенный id прослушивателя
 	* @see <a href="http://mapstest.kosmosnimki.ru/api/ex_locationTitleDiv.html">» Пример использования</a>.
 	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 	*/
-	function addListener(obj, eventName, func, pID)
+	function addListener(ph)
 	{
-		if(pID && !flashEvents[eventName]) return false;
+		var eventName = ph['eventName'];
+		var pID = ph['pID'];
+		if(pID && !flashEvents[eventName]) return false;		// Если есть наследование от родительского Listener и событие не передается в SWF то выходим
+
+		var obj = ph['obj'];
+		var func = ph['func'];
+		var level = ph['level'] || 0;
 		var arr = getArr(eventName, obj);
 		var id = gmxAPI.newFlashMapId();
-		arr.push({"id": id, "func": func, "pID": pID  });
+		var pt = {"id": id, "func": func, "level": level };
+		if(pID) pt['pID'] = pID;
+		arr.push(pt);
 		if(obj) {	// Это Listener на mapObject
 			obj.stateListeners[eventName] = arr;
 			if('setHandler' in obj && flashEvents[eventName] && (!obj.handlers || !obj.handlers[eventName])) {
@@ -1628,27 +1637,9 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		else stateListeners[eventName] = out;
 		return true;
 	}
-	function bringToBottom(obj, eventName, id)
-	{
-		var arr = getArr(eventName, obj);
-		var item = null;
-		var out = [];
-		for (var i=0; i<arr.length; i++)
-		{
-			if(id != arr[i]["id"] && id != arr[i]["pID"]) out.push(arr[i]);
-			else item = arr[i];
-		}
-		if(item) out.unsift(item);
-		if(obj) {
-			obj.stateListeners[eventName] = out;
-		}
-		else stateListeners[eventName] = out;
-		return true;
-	}
 	gmxAPI._listeners = {
 		'dispatchEvent': dispatchEvent,
 		'addListener': addListener,
-		'bringToBottom': bringToBottom,
 		'removeListener': removeListener
 	};
 	// End: Блок Listeners
@@ -1672,8 +1663,12 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 				this.setHandler(key, handlers[key]);
 		});
 
-		gmxAPI.extendFMO('addListener', function(eventName, func, id) {	return addListener(this, eventName, func, id); });
-		gmxAPI.extendFMO('addMapStateListener', function(eventName, func, id) {	return addListener(this, eventName, func, id); });
+		gmxAPI.extendFMO('addListener', function(eventName, func, level) {
+			var ph = {'obj':this, 'eventName': eventName, 'func': func, 'level': level};
+			return addListener(ph);
+		});
+		//gmxAPI.extendFMO('addListener', function(eventName, func, id) {	return addListener(this, eventName, func, id); });
+		//gmxAPI.extendFMO('addMapStateListener', function(eventName, func, id) {	return addListener(this, eventName, func, id); });
 		gmxAPI.extendFMO('removeListener', function(eventName, id) { return removeListener(this, eventName, id); });
 		gmxAPI.extendFMO('removeMapStateListener', function(eventName, id) { return removeListener(this, eventName, id); });
 	};
@@ -2605,9 +2600,9 @@ function createFlashMapInternal(div, layers, callback)
 
 	//var focusLink = document.createElement("a");
 
-	gmxAPI._dispatchEvent = gmxAPI._listeners.dispatchEvent;
-	addListener = gmxAPI._listeners.addListener;
-	removeListener = gmxAPI._listeners.removeListener;
+	//gmxAPI._dispatchEvent = gmxAPI._listeners.dispatchEvent;
+	//addListener = gmxAPI._listeners.addListener;
+	//removeListener = gmxAPI._listeners.removeListener;
 
 	var loadCallback = function(rootObjectId)
 	{

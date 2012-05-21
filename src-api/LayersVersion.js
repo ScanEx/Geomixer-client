@@ -41,8 +41,9 @@
 		}
 	}
 
-	gmxAPI._listeners.addListener(null, 'mapInit', function(map) {
+	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
 		intervalID = setInterval(chkVersion, 20000);
+		}
 	});
 
 	// Обработка ответа запроса CheckVersion
@@ -182,7 +183,7 @@
 		}
 		,'chkVersion': function (layer) {		// Обработка списка редактируемых обьектов слоя
 			if(!layer || !('Processing' in layer.properties)) return;
-			gmxAPI._listeners.addListener(layer, 'onLayer', function(ph) {
+			layer.addListener('onLayer', function(ph) {
 				ph['_Processing'] = chkProcessing(ph, ph.properties);			// слой инициализирован во Flash
 			});
 		}

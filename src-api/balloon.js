@@ -245,7 +245,7 @@
 			disableHoverBalloon(mapObject);
 			for (var key in handlersObj) {
 				if(handlersObj[key]) {
-					var eID = gmxAPI._listeners.addListener(mapObject, key, handlersObj[key]);
+					var eID = mapObject.addListener(key, handlersObj[key]);
 					mapObject._attr['balloonListeners'][key] = eID;
 					//gmxAPI._listeners.bringToBottom(mapObject, key, eID);
 				}
@@ -574,11 +574,11 @@
 			}
 		}
 		//map.addObject().setHandler("onMove", positionBalloons);
-		gmxAPI._listeners.addListener(gmxAPI.map, 'positionChanged', function(ph)
+		gmxAPI.map.addListener('positionChanged', function(ph)
 			{
 				positionBalloons(gmxAPI.currPosition);
 			}
-		);
+		, -10);
 
 		
 		function addBalloon(_notDelFlag)
@@ -779,14 +779,13 @@
 	}
 
 	// Добавление прослушивателей событий
-	gmxAPI._listeners.addListener(null, 'mapInit', function(map)	// Глобальный Listener инициализации map
-		{
+	gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': function(map) {
 			if(!map || map.balloonClassObject) return;
 			map.balloonClassObject = new BalloonClass();
-			gmxAPI._listeners.addListener(map, 'zoomBy', function()	{ map.balloonClassObject.hideHoverBalloons(true); });
-			gmxAPI._listeners.addListener(map, 'hideBalloons', function() { map.balloonClassObject.hideHoverBalloons(); });
-			gmxAPI._listeners.addListener(map, 'clickBalloonFix', function(o) { map.balloonClassObject.clickBalloonFix(o); });
-			gmxAPI._listeners.addListener(map, 'initFilter', function(data)
+			gmxAPI.map.addListener('zoomBy', function()	{ map.balloonClassObject.hideHoverBalloons(true); });
+			gmxAPI.map.addListener('hideBalloons', function() { map.balloonClassObject.hideHoverBalloons(); });
+			gmxAPI.map.addListener('clickBalloonFix', function(o) { map.balloonClassObject.clickBalloonFix(o); });
+			gmxAPI.map.addListener('initFilter', function(data)
 				{
 					var fullStyle = map.balloonClassObject.applyBalloonDefaultStyle(data['filter']['_attr']);
 					map.balloonClassObject.setBalloonFromParams(data['filter'], fullStyle);
@@ -798,6 +797,6 @@
 			gmxAPI.extendFMO('enableHoverBalloon', function(callback, attr) { map.balloonClassObject.enableHoverBalloon(this, callback, attr); });
 			gmxAPI.extendFMO('disableHoverBalloon', function() { map.balloonClassObject.disableHoverBalloon(this); });
 		}
-	);
+	});
 	//gmxAPI.BalloonClass = BalloonClass;
 })();

@@ -190,7 +190,7 @@
 		}
 
 		// Добавление прослушивателей событий
-		gmxAPI._listeners.addListener(gmxAPI.map, 'positionChanged', function(ph)
+		gmxAPI.map.addListener('positionChanged', function(ph)
 			{
 				var z = ph['currZ'];
 				if (z == Math.round(z))

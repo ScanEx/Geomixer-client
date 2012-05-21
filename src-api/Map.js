@@ -399,7 +399,7 @@
 		}
 
 		// Поддержка устаревшего map.baseLayerControl.onChange 
-		gmxAPI._listeners.addListener(map, 'baseLayerSelected', function(name)	{
+		map.addListener('baseLayerSelected', function(name)	{
 			if('onChange' in map.baseLayerControl) map.baseLayerControl.onChange(name);
 		});
 
