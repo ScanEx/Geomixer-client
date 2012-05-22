@@ -209,7 +209,8 @@
 				onClick: function(o, keyPress)
 				{
 					if('obj' in o) {
-						if('attr' in o && 'textFunc' in o.attr) keyPress = o.attr;
+						if('attr' in o) keyPress = o.attr;
+						//if('attr' in o && 'textFunc' in o.attr) keyPress = o.attr;
 						o = o.obj;
 					}
 					refreshMapPosition();
@@ -225,7 +226,7 @@
 					}
 					if(!keyPress) keyPress = {};
 					keyPress['textFunc'] = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
-					clickBalloonFix(o, keyPress);
+					return clickBalloonFix(o, keyPress);
 				}
 			};
 
@@ -306,15 +307,15 @@
 			var OnClickSwitcher = chkAttr('OnClickSwitcher', o);		// Проверка наличия параметра по ветке родителей 
 			if(OnClickSwitcher && typeof(OnClickSwitcher) == 'function') {
 				var flag = OnClickSwitcher(o, keyPress);				// Вызов пользовательского метода вместо или перед балуном
-				if(flag) return;										// Если OnClickSwitcher возвращает true выходим
+				if(flag) return true;										// Если OnClickSwitcher возвращает true выходим
 			}
 
 			if(chkAttr('disableOnClick', o))	// Проверка наличия параметра disableOnClick по ветке родителей 
-				return;
+				return false;
 
 			var textFunc = chkAttr('clickCallback', o) || chkAttr('callback', o);	// Проверка наличия параметра callback по ветке родителей 
 			if(keyPress) {
-				if(keyPress['shiftKey'] || keyPress['ctrlKey']) return;	// При нажатых не показываем балун
+				if(keyPress['shiftKey'] || keyPress['ctrlKey']) return false;	// При нажатых не показываем балун
 				if(keyPress['nodeFilter'] == o.parent.objectId && o.parent._hoverBalloonAttr.callback) textFunc = o.parent._hoverBalloonAttr.callback; // взять параметры балуна от фильтра родителя
 				else if('textFunc' in keyPress) textFunc = keyPress['textFunc'];
 			}
@@ -345,7 +346,7 @@
 
 				//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
 				var text = (textFunc ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
-				if(typeof(text) == 'string' && text == '') return;
+				if(typeof(text) == 'string' && text == '') return false;
 
 				var mx = map.getMouseX();
 				var my = map.getMouseY();
@@ -377,6 +378,7 @@
 				delete fixedHoverBalloons[id];
 			}
 			propsBalloon.updatePropsBalloon(false);
+			return true;
 		}
 		this.clickBalloonFix = clickBalloonFix;
 

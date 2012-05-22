@@ -85,8 +85,9 @@ class ClusterPointsViewer extends MapContent
 		node = mapNode.addChild();
 		var point:PointGeometry = new PointGeometry(xx, yy);
 		point.properties = pt.properties;
+		node.propHash = pt.properties;
 		node.properties = pt.properties;
-		
+
 		var vp:VectorObject = new VectorObject(point);
 		node.setContent(vp);
 		return point;

@@ -181,8 +181,6 @@ class VectorObject extends MapContent
 	{
 		//isActive = true;
 		if (layer != null) {
-			var oId = mapNode.propHash.get(layer.identityField);
-
 			var curStyle = mapNode.getHoveredStyleRecursion();
 			curFilter = findFilter();
 			if (curFilter != null) {
@@ -191,10 +189,20 @@ class VectorObject extends MapContent
 				layer.currentFilter = curFilter;
 			}
 			layer.lastId = mapNode.id;
+			var oId = mapNode.propHash.get(layer.identityField);
 			layer.currentId = oId;
 			if(!layer.deletedObjects.exists(oId)) {				// подсветка только не удаляемых обьектов тайла
-				layer.hoverPainter.geometry = geometry;
-				layer.hoverPainter.repaint(curStyle);
+				var hStyle = curStyle;
+				if (isActive) 
+				{
+					layer.hoverPainter.geometry = geometry;
+				}
+				else
+				{
+					layer.lastId = mapNode.id;
+					hStyle = null;
+				}
+				layer.hoverPainter.repaint(hStyle);
 			}
 			if (curNodeFilter != null) curNodeFilter.callHandler((isActive ? "onMouseOver" : "onMouseOut"), mapNode);
 		} else {

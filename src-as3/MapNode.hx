@@ -61,10 +61,9 @@ vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлен�
 
 	public function remove()
 	{
-		if(content == null) {
-			rasterSprite.parent.removeChild(rasterSprite);
-			vectorSprite.parent.removeChild(vectorSprite);
-		} else {
+		rasterSprite.parent.removeChild(rasterSprite);
+		vectorSprite.parent.removeChild(vectorSprite);
+		if(content != null) {
 			content.contentSprite.parent.removeChild(content.contentSprite);
 		}
 		noteSomethingHasChanged();
