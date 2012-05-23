@@ -247,9 +247,10 @@
 			//mapObject.setHandlers(handlersObj);
 			if(!mapObject._attr['balloonListeners']) mapObject._attr['balloonListeners'] = {};
 			disableHoverBalloon(mapObject);
+			var level = (attr && attr['level'] ? attr['level'] : -10);
 			for (var key in handlersObj) {
 				if(handlersObj[key]) {
-					var eID = mapObject.addListener(key, handlersObj[key]);
+					var eID = mapObject.addListener(key, handlersObj[key], level);
 					mapObject._attr['balloonListeners'][key] = eID;
 					//gmxAPI._listeners.bringToBottom(mapObject, key, eID);
 				}
