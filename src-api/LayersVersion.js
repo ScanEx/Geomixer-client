@@ -172,11 +172,11 @@
 	var ret = {
 		'chkVersionLayers': function (layers, layer) {
 			if('LayerVersion' in layer.properties) {
-				var mapHost = layers.properties.hostName;
-				var mapName = layers.properties.name;
+				var mapHost = layers.properties.hostName || layer.properties.hostName;
+				var mapName = layers.properties.name || layer.properties.mapName;
 				if(!versionLayers[mapHost]) versionLayers[mapHost] = {};
 				if(!versionLayers[mapHost][mapName]) versionLayers[mapHost][mapName] = {};
-				var layerObj = gmxAPI.map.layers[layer.properties.name];
+				var layerObj = ('stateListeners' in layer ? layer : gmxAPI.map.layers[layer.properties.name]);
 				var pt = ('_temporalTiles' in layerObj ? layerObj._temporalTiles.getTilesHash(layer.properties) : getTilesHash(layer.properties));
 				versionLayers[mapHost][mapName][layer.properties.name] = { 'LayerVersion': layer.properties.LayerVersion, 'tilesHash': pt['hash'], 'count': pt['count'] };
 			}
@@ -184,6 +184,7 @@
 		,'chkVersion': function (layer) {		// Обработка списка редактируемых обьектов слоя
 			if(!layer || !('Processing' in layer.properties)) return;
 			layer.addListener('onLayer', function(ph) {
+				gmxAPI._layersVersion.chkVersionLayers(layer.parent, layer);
 				ph['_Processing'] = chkProcessing(ph, ph.properties);			// слой инициализирован во Flash
 			});
 		}
