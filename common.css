@@ -1157,6 +1157,28 @@ div.layersScroll
     width: 250px;
 }
 
+#layerSource .ui-tabs-nav li
+{
+    width: 31%;
+    text-align: center;
+}
+
+#layerSource .ui-tabs-nav a
+{
+    width: 88%;
+}
+
+#layerSource .ui-widget-header
+{
+    background: none;
+    border: 0px;
+}
+
+#layerSource .ui-tabs-selected
+{
+    background: #DCE3E5
+}
+
 #layertagstable .ui-autocomplete
 {
     background-color: #eeeeff;

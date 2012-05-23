@@ -2733,10 +2733,9 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 	if (type != "Vector")
 		shownProperties.push({name: _gtxt("Легенда"), field: 'Legend', elem: legend});
 	
-	var columnsParent = _div();
 	var encodingParent = _div();
     var layerTagsParent = _div(null, [['dir', 'className', 'layertags-container']]);
-	var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
+	//var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
     
     var contentTr = _tr([_td([layerTagsParent], [['dir', 'colSpan', '2']])]);
     var collapseTagIcon = _img(null, [['css', 'marginBottom', '4px']]);
@@ -2777,11 +2776,11 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 	
 	if (type == "Vector")
 	{
-		var shapePath = _input(null,[['attr','fieldName','ShapePath.Path'],['attr','value',!properties.ShapePath ? properties.GeometryTable.TableName : properties.ShapePath.Path],['dir','className','inputStyle'],['css','width','220px']]),
+		var shapePath = _input(null,[['attr','fieldName','ShapePath.Path'],['attr','value',!properties.ShapePath ? properties.GeometryTable.TableName : properties.ShapePath.Path],['dir','className','inputStyle'],['css','width', div ? '200px' : '275px']]),
 			shapeFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
 			tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
-			trPath = _tr([_td([_t(_gtxt("Файл")), shapeFileLink, _br(), _t(_gtxt("Таблица")), tableLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
-						  _td([shapePath, columnsParent, encodingParent, temporalLayerParent])]),
+			// trPath = _tr([_td([_t(_gtxt("Файл")), shapeFileLink, _br(), _t(_gtxt("Таблица")), tableLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
+						  // _td([shapePath, columnsParent, encodingParent])]),
 			tilePath = _div([_t(typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')],[['css','marginLeft','3px'],['css','width','220px'],['css','whiteSpace','nowrap'],['css','overflowX','hidden']]),
 			trTiles = _tr([_td([_t(_gtxt("Каталог с тайлами"))],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
 						  _td([tilePath])]);
@@ -2828,9 +2827,9 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				}
 				
 				if (valueInArray(['xls', 'xlsx', 'xlsm'], ext))
-					_this.selectColumns(columnsParent, {url: serverBase + "VectorLayer/GetExcelColumns.ashx?WrapStyle=func&ExcelFile=" + encodeURIComponent(path) })
+					_this.selectColumns(xlsColumnsParent, {url: serverBase + "VectorLayer/GetExcelColumns.ashx?WrapStyle=func&ExcelFile=" + encodeURIComponent(path) })
 				else
-					removeChilds(columnsParent);
+					removeChilds(xlsColumnsParent);
 					
 				$(encodingParent).empty();
 				if (ext === 'shp')
@@ -2839,127 +2838,26 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				}
 			})
 		}
-		
-		var temporalLayerParams = (function()
-		{
-			var PERIOD_STEP = 4;
-			var _minPeriod = 1;
-			var _maxPeriod = 1;
-			var _columnName = null;
-			var _isTemporal = false;
-			return {
-				setPeriods: function(minPeriod, maxPeriod) { _minPeriod = minPeriod; _maxPeriod = maxPeriod; },
-				setColumnName: function(name) { _columnName = name; },
-				getColumnName: function() { return _columnName; },
-				getPeriodString: function()
-				{
-					var curPeriod = _minPeriod;
-					var periods = [];
-					while ( curPeriod <= _maxPeriod )
-					{
-						periods.push(curPeriod);
-						curPeriod *= PERIOD_STEP;
-					}
-					return periods.join(',');
-				},
-				setTemporal: function(isTemporal) { _isTemporal = isTemporal; },
-				getTemporal: function() { return _isTemporal; }
-			}
-		})();
-		
-		var TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
-		{
-			var temporalCheckbox = $("<input></input>", {'class': 'box', type: 'checkbox', id: 'timeLayer'});
-			temporalCheckbox.change(function()
-			{
-				paramsModel.setTemporal(this.checked);
-				propertiesTable.css('display', this.checked ? '' : 'none');
-			});
-			
-			if (columns.length ==0)
-				temporalCheckbox.attr('disabled', 'disabled');
-			
-			$(parentDiv)
-				.append(temporalCheckbox)
-				.append(
-					$("<label></label>", {'for': 'timeLayer'}).text(_gtxt("Временнóй слой"))
-				);
-			
-			var temporalPeriods = [1, 4, 16, 64, 256, 1024, 4096];
-			
-			var addOptions = function(select)
-			{
-				for (var k = 0; k < temporalPeriods.length; k++)
-					select.append($("<option></option>", {periodIndex: k}).text(temporalPeriods[k]));
-			}
-				
-			var selectMinPeriod = $("<select></select>", {'class': 'selectStyle'});
-			addOptions(selectMinPeriod);
-			var selectMaxPeriod = selectMinPeriod.clone();
-			
-			$([selectMinPeriod[0], selectMaxPeriod[0]]).change(function()
-			{
-				var minPeriod = parseInt($("option:selected", selectMinPeriod).attr('periodIndex'));
-				var maxPeriod = parseInt($("option:selected", selectMaxPeriod).attr('periodIndex'));
-				if (minPeriod > maxPeriod)
-				{
-					$([selectMinPeriod[0], selectMaxPeriod[0]]).addClass('ErrorPeriod');
-				}
-				else
-				{
-					$([selectMinPeriod[0], selectMaxPeriod[0]]).removeClass('ErrorPeriod');
-					paramsModel.setPeriods(temporalPeriods[minPeriod], temporalPeriods[maxPeriod]);
-				}
-			});
-			
-			var selectDateColumn = $("<select></select>", {'class': 'selectStyle'});
-			for (var i = 0; i < columns.length; i++)
-			{
-				selectDateColumn.append($("<option></option>").text(columns[i].Name));
-			}
-			
-			selectDateColumn.change(function()
-			{
-				paramsModel.setColumnName( $("option:selected", this).val() );
-			});
-			
-			if (columns.length)
-                temporalLayerParams.setColumnName(columns[0].Name);
-			
-			var tr0 = $('<tr></tr>')
-						.append($('<td></td>').text(_gtxt('Колонка даты')))
-						.append($('<td></td>').append(selectDateColumn));
-			
-			var tr1 = $('<tr></tr>')
-						.append($('<td></td>').text(_gtxt('Минимальный период')))
-						.append($('<td></td>').append(selectMinPeriod));
-						
-			var tr2 = $('<tr></tr>')
-						.append($('<td></td>').text(_gtxt('Максимальный период')))
-						.append($('<td></td>').append(selectMaxPeriod));
-			
-			var propertiesTable = $('<table></table>').append(tr0).append(tr1).append(tr2).appendTo(parentDiv);
-			propertiesTable.css('display', 'none');
-		}
-                
+        
 		tableLink.onclick = function()
 		{
 			_tableBrowser.createBrowser(function(name)
 			{
-				shapePath.value = name;
+				//shapePath.value = name;
+				tablePath.value = name;
 				vectorRetilingFlag = true;
 				
 				if (title.value == '')
 					title.value = name;
 				
-				_this.selectColumns(columnsParent, {url: serverBase + "VectorLayer/GetTableCoordinateColumns.ashx?WrapStyle=func&TableName=" + encodeURIComponent(name)})
+				_this.selectColumns(tableColumnsParent, {url: serverBase + "VectorLayer/GetTableCoordinateColumns.ashx?WrapStyle=func&TableName=" + encodeURIComponent(name)})
 				
 				sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetTableColumns.ashx?ColumnTypes=date,datetime&SourceName=" + encodeURIComponent(name), function(response)
 				{
 					if (!parseResponse(response)) return;
 					var columns = response.Result;
 					
-					new TemporalLayerParamsControl(temporalLayerParent, temporalLayerParams, columns);
+					temporalLayerViewTable.updateColumns(columns);
 				});
 			})
 		}
@@ -2975,14 +2873,14 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		if ((!properties.ShapePath || valueInArray(['xls', 'xlsx', 'xlsm'], ext)) && (properties.GeometryTable.XCol || properties.GeometryTable.YCol) &&
 			properties.GeometryTable.Columns.length)
 		{
-			this.selectColumns(columnsParent, {
+			this.selectColumns(tableColumnsParent, {
 				fields: properties.GeometryTable.Columns,
 				defaultX: properties.GeometryTable.XCol,
 				defaultY: properties.GeometryTable.YCol
 			});
 		}
 		
-		shownProperties.push({tr:trPath});
+		//shownProperties.push({tr:trPath});
 		
 		if (div)
 			shownProperties.push({tr:trTiles});
@@ -3014,26 +2912,26 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			shownProperties.push({name: _gtxt("Разрешить поиск"), elem: boxSearch});
 			
 		//редактирование полей слоя
-		var boxManualAttributes = _checkbox(false, 'checkbox');
+		// var boxManualAttributes = _checkbox(false, 'checkbox');
         
-        if (!$.browser.msie)
-            boxManualAttributes.style.margin = '3px';
+        // if (!$.browser.msie)
+            // boxManualAttributes.style.margin = '3px';
         
-        var updateManualAttrVisibility = function()
-        {
-            if (boxManualAttributes.checked)
-            {
-                $(attrContainer).show();
-                $(trPath).hide();
-            }
-            else
-            {
-                $(attrContainer).hide();
-                $(trPath).show();
-            }
-        }
+        // var updateManualAttrVisibility = function()
+        // {
+            // if (boxManualAttributes.checked)
+            // {
+                // $(attrContainer).show();
+                // $(trPath).hide();
+            // }
+            // else
+            // {
+                // $(attrContainer).hide();
+                // $(trPath).show();
+            // }
+        // }
         
-        boxManualAttributes.onclick = updateManualAttrVisibility;
+        //boxManualAttributes.onclick = updateManualAttrVisibility;
         
 		var addAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
 		addAttribute.onclick = function()
@@ -3041,7 +2939,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			attrModel.addAttribute(attrModel.TYPES.STRING, "NewAttribute");
 		}
 		
-		//events: newAttribute, delAttribute, updateAttribute
+		//events: newAttribute, delAttribute, updateAttribute, change
 		var attrModel = (function()
 		{
 			var _attributes = [];
@@ -3050,22 +2948,26 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				{
 					_attributes.push({type: type, name: name});
 					$(this).triggerHandler('newAttribute');
+					$(this).triggerHandler('change');
 				},
 				changeName: function(idx, newName)
 				{
 					_attributes[idx].name = newName;
 					$(this).triggerHandler('updateAttribute');
+					$(this).triggerHandler('change');
 				},
 				changeType: function(idx, newType)
 				{
 					_attributes[idx].type = newType;
 					$(this).triggerHandler('updateAttribute');
+					$(this).triggerHandler('change');
 				},
 				deleteAttribute: function(idx)
 				{
 					//delete _attributes[idx];
 					_attributes.splice(idx, 1);
 					$(this).triggerHandler('delAttribute');
+					$(this).triggerHandler('change');
 				},
 				getAttribute: function(idx){ return _attributes[idx]; },
 				getCount: function(){ return _attributes.length; }
@@ -3122,7 +3024,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 					
 					$(nameSelector).attr({attrIdx: i}).val(attr.name);
 					
-					$(nameSelector).bind('change', function()
+					$(nameSelector).bind('keyup', function()
 					{
 						var idx = $(this).attr('attrIdx');
 						var name = $(this).val();
@@ -3170,8 +3072,10 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		})();
 		
         //вручную задавать атрибуты можно только для новых слоёв
-        if (!div)
-        {
+        // if (!div)
+        // {
+        var selectedSource = 0;
+        
             var geometryTypes = [
                 { title: _gtxt('многоугольники'), type: 'POLYGON'    },
                 { title: _gtxt('линии'),          type: 'LINESTRING' },
@@ -3191,13 +3095,91 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                 _div([attrViewParent], [['css', 'margin', '3px']])
             ]);
             
-            var createLayerFields = _tr([_td([boxManualAttributes, _span([_t(_gtxt("Задать атрибуты вручную"))]), attrContainer], [['attr', 'colSpan', 2]])]);
+            //var createLayerFields = _tr([_td([boxManualAttributes, _span([_t(_gtxt("Задать атрибуты вручную"))]), attrContainer], [['attr', 'colSpan', 2]])]);
             attrView.init(attrViewParent, attrModel);
 		
-            shownProperties.push({tr: createLayerFields});
+            //shownProperties.push({tr: createLayerFields});
             
-            updateManualAttrVisibility();
-        }
+            var sourceTab = _div([_ul([
+                _li([_a([_t(_gtxt('Файл'))],   [['attr','href','#fileSource' + properties.name]])]),
+                _li([_a([_t(_gtxt('Таблица'))],[['attr','href','#tableSource' + properties.name]])]),
+                _li([_a([_t(_gtxt('Вручную'))],[['attr','href','#manualSource' + properties.name]])])
+            ])]);
+			
+            var sourceFile = _div(null, [['dir', 'id', 'fileSource' + properties.name]])
+			var xlsColumnsParent = _div();
+			_(sourceFile, [shapePath, shapeFileLink, encodingParent, xlsColumnsParent]);
+			//var temporalFileLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
+			//var temporalLayerParamsFile = new nsGmx.TemporalLayerParams();
+			//new nsGmx.TemporalLayerParamsControl(temporalFileLayerParent, temporalLayerParamsFile, columns);
+			
+			var tablePath = _input(null,[
+				['attr','fieldName','GeometryTable.TableName'],
+				['attr','value',properties.GeometryTable ? properties.GeometryTable.TableName : ''],
+				['dir','className','inputStyle'],
+				['css','width', div ? '200px' : '275px']
+			]);
+			var temporalLayerParentTable = _div(null, [['dir', 'className', 'TemporalLayer']]);
+			var temporalLayerParamsTable = new nsGmx.TemporalLayerParams();
+			var temporalLayerViewTable = new nsGmx.TemporalLayerParamsControl(temporalLayerParentTable, temporalLayerParamsTable, []);
+			var tableColumnsParent = _div();
+            var sourceTable = _div([tablePath, tableLink, temporalLayerParentTable, tableColumnsParent], [['dir', 'id', 'tableSource' + properties.name]])
+			
+			var temporalLayerParamsManual = new nsGmx.TemporalLayerParams();
+			var temporalLayerParentManual = _div(null, [['dir', 'className', 'TemporalLayer']]);
+			var temporalLayerViewManual = new nsGmx.TemporalLayerParamsControl(temporalLayerParentManual, temporalLayerParamsManual, []);
+            var sourceManual = _div([attrContainer, temporalLayerParentManual], [['dir', 'id', 'manualSource' + properties.name]])
+			$(attrModel).change(function()
+			{
+				var count = attrModel.getCount();
+				var columns = [];
+				for (var k = 0; k < count; k++){
+					var attr = attrModel.getAttribute(k);
+					if (attr.type.server == 'date' || attr.type.server == 'datetime')
+						columns.push({Name: attrModel.getAttribute(k).name});
+				}
+				temporalLayerViewManual.updateColumns(columns);
+			});
+			
+            var sourceTr;
+            if (!div)
+            {            
+                _(sourceTab, [sourceFile, sourceTable, sourceManual]);
+                selectedSource = 0;
+                $(sourceTab).tabs({
+                    selected: selectedSource,
+                    select: function(event, ui)
+                    {
+                        selectedSource = ui.index;
+                    }
+                });
+                sourceTr = _tr([_td([sourceTab], [['dir', 'id', 'layerSource'], ['dir', 'colSpan', 2]])]);
+                shownProperties.push({tr: sourceTr});
+            }
+            else
+            {
+                if (properties.ShapePath && properties.ShapePath.Path) //из файла
+                {
+                    selectedSource = 0;
+                    //sourceTab = _div([, ]);
+                    shownProperties.push({name: _gtxt("Файл"), elem: sourceFile});
+                    // sourceTr = _tr([_td([_t('Источник данных (файл)')]), _td([sourceFile], [['dir', 'id', 'layerSource']])]);
+                }
+                else if (properties.GeometryTable && properties.GeometryTable.TableName)
+                {
+                    selectedSource = 1;
+                    // sourceTr = _tr([_td([_t('Источник данных (таблица)')]), _td([sourceTable], [['dir', 'id', 'layerSource']])]);
+                    shownProperties.push({name: _gtxt("Таблица"), elem: sourceTable});
+                    //sourceTab = _div([_div([_t('Источник данных (таблица):')]), sourceTable]);
+                }
+                else
+                {
+                    selectedSource = 2;
+                    sourceTab = _div();
+                }
+            }
+            
+        // }
 	}
 	else
 	{
@@ -3437,12 +3419,18 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		
 		saveButton.onclick = function()
 		{
-			var isCustomAttributes = type === "Vector" && boxManualAttributes.checked;
+			//var selectedSource = $(sourceTab).tabs('option', 'selected'); //0 - файл, 1 - таблица, 2 - вручную
+			var isCustomAttributes = type === "Vector" && selectedSource === 2;
 			var errorFlag = false,
 				checkFields = (type == "Vector" ? ['title', 'date'] : ['title', 'date']);
 				
 			if (!isCustomAttributes)
-				checkFields.push(type == "Vector" ? 'ShapePath.Path' : 'TilePath.Path');
+			if (type !== "Vector")
+				checkFields.push('TilePath.Path');
+			else if (selectedSource == 0)
+				checkFields.push('ShapePath.Path');
+			else if (selectedSource == 1)
+				checkFields.push('GeometryTable.TableName');
 				
 			for (var i = 0; i < checkFields.length; i++)
 			{
@@ -3475,11 +3463,13 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 					updateParams = '',
 					encoding = '&EncodeSource=' + encodingWidget.getServerEncoding(),
 					needRetiling = false,
+					columnsParent = selectedSource == 0 ? xlsColumnsParent : tableColumnsParent,
 					colXElem = $(columnsParent).find("[selectLon]"),
 					colYElem = $(columnsParent).find("[selectLat]"),
 					layerTitle = title.value,
 					temporalParams = '';
 				
+				var temporalLayerParams = selectedSource == 1 ? temporalLayerParamsTable : temporalLayerParamsManual;
 				if ( temporalLayerParams.getTemporal() )
 					temporalParams = '&TemporalLayer=true&TemporalColumnName=' + temporalLayerParams.getColumnName() + '&TemporalPeriods=' + temporalLayerParams.getPeriodString();
 				
@@ -3492,10 +3482,10 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 					
 					updateParams = '&VectorLayerID=' + div.gmxProperties.content.properties.LayerID;
 					
-					var oldGeometryDadaSource = !properties.ShapePath ? properties.GeometryTable.TableName : properties.ShapePath.Path;
+					var oldGeometryDataSource = properties.ShapePath ? properties.ShapePath.Path : properties.GeometryTable.TableName;
 					
 					// если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
-					if ($(parent).find("[fieldName='ShapePath.Path']")[0].value != oldGeometryDadaSource ||
+					if ((shapePath.value || tablePath.value) != oldGeometryDataSource ||
 						colXElem.length && colXElem[0].value != properties.GeometryTable.XCol ||
 						colYElem.length && colYElem[0].value != properties.GeometryTable.YCol)
 						needRetiling = true;
@@ -3514,31 +3504,42 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                     
                     var geomType = $(':selected', geometryTypeSelect).val();
 					
-					sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func&Title=" + title.value + 
+					sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func" + 
+                        "&Title=" + title.value + 
                         "&Copyright=" + copyright.value + 
                         "&Description=" + descr.value + 
                         "&MapName=" + _mapHelper.mapProperties.name + 
-                        cols + updateParams + columnsString + 
+                        cols + updateParams + columnsString + temporalParams + 
                         "&geometrytype=" + geomType +
-                        metadataString, function(response)
-					{
-						if (!parseResponse(response))
-								return;
-                        
-                        var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
-                        var gmxProperties = {type: 'layer', content: response.Result};
-                        gmxProperties.content.properties.mapName = _mapHelper.mapProperties.name;
-                        gmxProperties.content.properties.hostName = _mapHelper.mapProperties.hostName;
-                        gmxProperties.content.properties.visible = true;
-                        
-                        gmxProperties.content.properties.styles = [{MinZoom: gmxProperties.content.properties.MinZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]}];
-                        
-                        _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
-					});
+                        metadataString, 
+						function(response)
+						{
+							if (!parseResponse(response))
+									return;
+							
+							var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
+							var gmxProperties = {type: 'layer', content: response.Result};
+							gmxProperties.content.properties.mapName = _mapHelper.mapProperties.name;
+							gmxProperties.content.properties.hostName = _mapHelper.mapProperties.hostName;
+							gmxProperties.content.properties.visible = true;
+							
+							gmxProperties.content.properties.styles = [{MinZoom: gmxProperties.content.properties.MinZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]}];
+							
+							_layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+						}
+					);
 				}
 				else
 				{
-					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func&Title=" + title.value + "&Copyright=" + copyright.value + "&Description=" + descr.value + "&GeometryDataSource=" + $(parent).find("[fieldName='ShapePath.Path']")[0].value + "&MapName=" + _mapHelper.mapProperties.name + cols + updateParams + encoding + temporalParams + metadataString, function(response)
+					var geometryDataSource = selectedSource == 0 ? shapePath.value : tablePath.value;
+					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func" + 
+                        "&Title=" + title.value + 
+                        "&Copyright=" + copyright.value + 
+                        "&Description=" + descr.value + 
+                        "&GeometryDataSource=" + geometryDataSource + 
+                        "&MapName=" + _mapHelper.mapProperties.name + 
+                        cols + updateParams + encoding + temporalParams + metadataString, 
+                        function(response)
 						{
 							if (!parseResponse(response))
 								return;
@@ -3549,7 +3550,8 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 								_queryMapLayers.asyncUpdateLayer(response.Result, properties, needRetiling);
 							else
 								_queryMapLayers.asyncCreateLayer(response.Result, layerTitle);
-						})
+						}
+                    )
 				}
 			}
 			else
