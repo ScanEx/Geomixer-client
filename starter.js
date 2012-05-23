@@ -241,6 +241,7 @@ $(document).ready(function()
 		window.KOSMOSNIMKI_LANGUAGE = "English";
 	
 	window.shownTitle =  typeof pageTitle !== 'undefined' && pageTitle ? pageTitle : _gtxt('ScanEx Web Geomixer - просмотр карты');
+	document.title = window.shownTitle;
 	
 	createHeader();
 	
