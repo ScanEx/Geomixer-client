@@ -155,15 +155,16 @@
 				onMouseOver: function(o, keyPress)
 				{ 
 					if('obj' in o) {
-						if('attr' in o && 'textFunc' in o.attr) keyPress = o.attr;
+						//if('attr' in o && 'textFunc' in o.attr) keyPress = o.attr;
+						if('attr' in o) keyPress = o.attr;
 						o = o.obj;
 					}
-					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return;	// При нажатых не показываем балун
+					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return false;	// При нажатых не показываем балун
 					if (map.isDragging())
-						return;
+						return false;
 
 					if(chkAttr('disableOnMouseOver', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
-						return;
+						return false;
 					}
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
 					if(customBalloonObject) {
@@ -171,7 +172,7 @@
 						currPosition._x = propsBalloon.mouseX || 0;
 						currPosition._y = propsBalloon.mouseY || 0;
 						var flag = customBalloonObject.onMouseOver(o, keyPress, currPosition); // Вызов пользовательского метода вместо или перед балуном
-						if(flag) return;										// Если customBalloon возвращает true выходим
+						if(flag) return false;										// Если customBalloon возвращает true выходим
 					}
 
 					//if(keyPress['objType'] == 'cluster') {}; // Надо придумать как бороться с фикс.двойником
@@ -179,7 +180,7 @@
 					var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
 					//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
 					var text = (textFunc ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
-					if(typeof(text) == 'string' && text == '') return;
+					if(typeof(text) == 'string' && text == '') return false;
 					var id = setID(o);
 					lastHoverBalloonId = o.objectId;
 					
@@ -191,6 +192,7 @@
 					}
 
 					map.clickBalloonFix = clickBalloonFix;
+					return true;
 				},
 				onMouseOut: function(o) 
 				{ 
@@ -200,11 +202,12 @@
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
 					if(customBalloonObject) {
 						var flag = customBalloonObject.onMouseOut(o);
-						if(flag) return;
+						if(flag) return false;
 					}
 					if (lastHoverBalloonId == o.objectId) {
 						propsBalloon.updatePropsBalloon(false);
 					}
+					return true;
 				},
 				onClick: function(o, keyPress)
 				{
@@ -219,10 +222,10 @@
 						currPosition._x = propsBalloon.x;
 						currPosition._y = propsBalloon.y;
 						var flag = customBalloonObject.onClick(o, keyPress, currPosition);
-						if(flag) return;
+						if(flag) return false;
 					}
 					if(chkAttr('disableOnClick', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
-						return;
+						return false;
 					}
 					if(!keyPress) keyPress = {};
 					keyPress['textFunc'] = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
