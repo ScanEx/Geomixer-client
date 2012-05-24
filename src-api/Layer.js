@@ -333,9 +333,13 @@
 		if(isTemporal && '_TemporalTiles' in gmxAPI) {
 			obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
 		}
-		// Если есть версии тайлов слоя
-		if('tilesVers' in layer.properties && gmxAPI._layersVersion) {
+
+		var isLayerVers = obj.properties.tilesVers || obj.properties.TemporalVers;
+		if(gmxAPI._layersVersion && isLayerVers) {		// Установлен модуль версий слоев + есть версии тайлов слоя
 			gmxAPI._layersVersion.chkVersion(obj);
+			obj.chkLayerVersion = function(callback) {
+				gmxAPI._layersVersion.chkLayerVersion(obj, callback);
+			}
 		}
 
 		var deferredMethodNames = [
@@ -620,11 +624,6 @@
 				})(i);
 			}
 		}
-
-		// Проверить версию векторного слоя
-		obj.chkLayerVersion = function(callback) {
-			gmxAPI._layersVersion.chkLayerVersion(obj, callback);
-		}
 		
 //		if (isRaster && (layer.properties.MaxZoom > maxRasterZoom))
 //			maxRasterZoom = layer.properties.MaxZoom;
@@ -633,6 +632,23 @@
 		parentObj.layers[layerName] = obj;
 		if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
 			parentObj.layers[layer.properties.title] = obj;
+			
+		obj.addListener('AfterLayerRemove', function(layerName) {			// Удален слой
+			for(var i=0; i<gmxAPI.map.layers.length; i++) {			// Удаление слоя из массива
+				var prop = gmxAPI.map.layers[i].properties;
+				if(prop.name === layerName) {
+					gmxAPI.map.layers.splice(i, 1);
+					break;
+				}
+			}
+			for(key in gmxAPI.map.layers) {							// Удаление слоя из хэша
+				var prop = gmxAPI.map.layers[key].properties;
+				if(prop.name === layerName) {
+					delete gmxAPI.map.layers[key];
+				}
+			}
+		}, 101);	// Перед всеми пользовательскими Listeners
+
 		return obj;
 	}
 

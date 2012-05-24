@@ -187,6 +187,15 @@
 				gmxAPI._layersVersion.chkVersionLayers(layer.parent, layer);
 				ph['_Processing'] = chkProcessing(ph, ph.properties);			// слой инициализирован во Flash
 			});
+			layer.addListener('BeforeLayerRemove', function(layerName) {				// Удаляется слой
+				if(layer.properties.name != layerName) return false;
+				var mapHost = layer.properties.hostName;
+				if(!versionLayers[mapHost]) return false;
+				var mapName = layer.properties.mapName;
+				if(!versionLayers[mapHost][mapName]) return false;
+				delete versionLayers[mapHost][mapName][layer.properties.name];
+				gmxAPI._listeners.dispatchEvent('AfterLayerRemove', layer, layer.properties.name);	// Удален слой
+			}, -10);
 		}
 		,'chkLayerVersion': function (layer, callback) {		// Запросить проверку версии слоя
 			var host = layer.properties.hostName;

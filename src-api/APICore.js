@@ -2027,26 +2027,8 @@ FlashMapObject.prototype.remove = function()
 
 	if(this.properties) {
 		var layerID = this.properties.LayerID || this.properties.MultiLayerID;
-		if(layerID) {
-			var removeFromMapLayers = function(lid)	// удалить слой из map.layers 
-			{
-				for(var i=0; i<gmxAPI.map.layers.length; i++) {			// Удаление слоя из массива
-					var prop = gmxAPI.map.layers[i].properties;
-					var cID = prop.LayerID || prop.MultiLayerID;
-					if(cID === lid) {
-						gmxAPI.map.layers.splice(i, 1);
-						break;
-					}
-				}
-				for(key in gmxAPI.map.layers) {							// Удаление слоя из хэша
-					var prop = gmxAPI.map.layers[key].properties;
-					var cID = prop.LayerID || prop.MultiLayerID;
-					if(cID === lid) {
-						delete gmxAPI.map.layers[key];
-					}
-				}
-			}
-			removeFromMapLayers(this.properties.LayerID || this.properties.MultiLayerID);
+		if(layerID) {		// Это слой
+			gmxAPI._listeners.dispatchEvent('BeforeLayerRemove', this, this.properties.name);	// Удаляется слой
 		}
 	}
 }
