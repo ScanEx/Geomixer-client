@@ -286,7 +286,7 @@ nsGmx.ContextMenuController.IContextMenuElem = {
 */
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: function() { return _gtxt("Редактировать"); },
+	title: function() { return _gtxt("Свойства"); },
 	isVisible: function(context)
 	{
 		return !context.layerManagerFlag && _queryMapLayers.currentMapRights() === "edit";
@@ -446,7 +446,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 */
 
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: function() { return _gtxt("Редактировать"); },
+	title: function() { return _gtxt("Свойства"); },
 	clickCallback: function(context)
 	{
 		nsGmx.createGroupEditor(context.div);
@@ -479,7 +479,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
  * tree {layersTree} Текущее дерево карты
 */
 nsGmx.ContextMenuController.addContextMenuElem({
-	title: function() { return _gtxt("Редактировать"); },
+	title: function() { return _gtxt("Свойства"); },
 	clickCallback: function(context)
 	{
 		nsGmx.createMapEditor(context.div);

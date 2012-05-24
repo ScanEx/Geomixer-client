@@ -251,7 +251,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
             _mapHelper.findTreeElem(div).elem.content.properties = elemProperties;
         });
         
-        var dialogContainer = _div([_ul([_li([_a([_t(_gtxt("Свойства"))],[['attr','href','#properties' + elemProperties.name]])]),
+        var dialogContainer = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#properties' + elemProperties.name]])]),
                                  _li([_a([_t(_gtxt("Стили"))],[['attr','href','#styles' + elemProperties.name]])])])]);
                              
         _(dialogContainer, [divProperties, divStyles]);

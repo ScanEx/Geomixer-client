@@ -3828,7 +3828,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 				{
 					divQuicklook = _div(null,[['attr','id','quicklook' + id]]);
 					
-					tabMenu = _div([_ul([_li([_a([_t(_gtxt("Свойства"))],[['attr','href','#properties' + id]])]),
+					tabMenu = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#properties' + id]])]),
 										 _li([_a([_t(_gtxt("Стили"))],[['attr','href','#styles' + id]])]),
 										 _li([_a([_t(_gtxt("Накладываемое изображение"))],[['attr','href','#quicklook' + id]])])])]);
 					
@@ -3839,7 +3839,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 				}
 				else
 				{
-					tabMenu = _div([_ul([_li([_a([_t(_gtxt("Свойства"))],[['attr','href','#properties' + id]])]),
+					tabMenu = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#properties' + id]])]),
 										 _li([_a([_t(_gtxt("Стили"))],[['attr','href','#styles' + id]])])])]);
 					
 					_(tabMenu, [divProperties, divStyles]);
@@ -3972,7 +3972,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 			this.layerEditorsHash[elemProperties.name] = true;
 			
 			var id = 'layertabs' + elemProperties.name,
-				tabMenu = _div([_ul([_li([_a([_t(_gtxt("Свойства"))],[['attr','href','#properties' + id]])]),
+				tabMenu = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#properties' + id]])]),
 									 _li([_a([_t(_gtxt("Стили"))],[['attr','href','#styles' + id]])])])]),
 				divProperties = _div(null,[['attr','id','properties' + id]]),
 				divStyles = _div(null,[['attr','id','styles' + id]]);
