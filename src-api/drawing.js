@@ -192,32 +192,51 @@
 					label: { size: 12, color: 0xffffc0 }
 				}
 			);
+
+			var startDx, startDy, isDragged = false;
 			var clickTimeout = false;
-			obj.setHandler("onClick", function()
-			{
-				if (clickTimeout)
+			var needMouseOver = true;
+			obj.setHandlers({
+				"onClick": function()
 				{
-					clearTimeout(clickTimeout);
-					clickTimeout = false;
-					ret.remove();
-				}
-				else
-				{
-					clickTimeout = setTimeout(function() { clickTimeout = false; }, 500);
-					if(balloon) {
-						balloonVisible = !balloon.isVisible;
-						balloon.setVisible(balloonVisible);
-						if (balloonVisible)
-							setHTMLVisible(true);
-						else
-						{
-							gmxAPI.hide(input);
-							gmxAPI.hide(htmlDiv);
+					if (clickTimeout)
+					{
+						clearTimeout(clickTimeout);
+						clickTimeout = false;
+						ret.remove();
+					}
+					else
+					{
+						clickTimeout = setTimeout(function() { clickTimeout = false; }, 500);
+						if(balloon) {
+							balloonVisible = !balloon.isVisible;
+							balloon.setVisible(balloonVisible);
+							if (balloonVisible)
+								setHTMLVisible(true);
+							else
+							{
+								gmxAPI.hide(input);
+								gmxAPI.hide(htmlDiv);
+							}
 						}
 					}
 				}
+				,"onMouseOver": function()
+				{
+					if(!isDragged && needMouseOver) {
+						gmxAPI._listeners.dispatchEvent('onMouseOver', domObj, domObj);
+						needMouseOver = false;
+					}
+				}
+				,"onMouseOut": function()
+				{
+					if(!isDragged && !needMouseOver) {
+						gmxAPI._listeners.dispatchEvent('onMouseOut', domObj, domObj);
+						needMouseOver = true;
+					}
+				}
 			});
-			var startDx, startDy, isDragged = false;
+
 			var dragCallback = function(x, y)
 			{
 				position(x + startDx, y + startDy);
@@ -233,10 +252,10 @@
 			};
 			var upCallback = function()
 			{
-				isDragged = false;
-				gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
-				if(balloon) balloon.setPoint(xx, yy, isDragged);
+				gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': false} });
+				if(balloon) balloon.setPoint(xx, yy, false);
 				obj.setPoint(xx, yy);
+				isDragged = false;
 			}
 			obj.enableDragging(dragCallback, downCallback, upCallback);
 
@@ -408,6 +427,7 @@
 			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
 		}
 		
+		var needMouseOver = true;
 		obj.setHandlers({
 			onEdit: function()
 			{
@@ -439,21 +459,29 @@
 				if (type == "LINESTRING") out = gmxAPI.prettifyDistance(obj.getIntermediateLength());
 				else if (type == "POLYGON")	out = obj.getGeometrySummary();
 				chkEvent('onNodeMouseOver', out);
+				if(needMouseOver) gmxAPI._listeners.dispatchEvent('onMouseOver', domObj, domObj);
+				needMouseOver = false;
 			},
 			onNodeMouseOut: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
 				chkEvent('onNodeMouseOut', false);
+				if(!needMouseOver) gmxAPI._listeners.dispatchEvent('onMouseOut', domObj, domObj);
+				needMouseOver = true;
 			},
 			onEdgeMouseOver: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
 				chkEvent('onEdgeMouseOver', gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
+				if(needMouseOver) gmxAPI._listeners.dispatchEvent('onMouseOver', domObj, domObj);
+				needMouseOver = false;
 			},
 			onEdgeMouseOut: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
 				chkEvent('onEdgeMouseOut', false);
+				if(!needMouseOver) gmxAPI._listeners.dispatchEvent('onMouseOut', domObj, domObj);
+				needMouseOver = true;
 			}
 		});
 
@@ -550,6 +578,7 @@
 			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
 		}
 
+		var needMouseOver = true;
 		obj.setHandlers({
 			onEdit: function()
 			{
@@ -576,21 +605,29 @@
 			{
 				if(attr && attr['buttonDown']) return;
 				chkEvent('onNodeMouseOver', obj.getGeometrySummary());
+				if(needMouseOver) gmxAPI._listeners.dispatchEvent('onMouseOver', domObj, domObj);
+				needMouseOver = false;
 			},
 			onNodeMouseOut: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
 				chkEvent('onNodeMouseOut', false);
+				if(!needMouseOver) gmxAPI._listeners.dispatchEvent('onMouseOut', domObj, domObj);
+				needMouseOver = true;
 			},
 			onEdgeMouseOver: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
 				chkEvent('onEdgeMouseOver', gmxAPI.prettifyDistance(obj.getCurrentEdgeLength()));
+				if(needMouseOver) gmxAPI._listeners.dispatchEvent('onMouseOver', domObj, domObj);
+				needMouseOver = false;
 			},
 			onEdgeMouseOut: function(cobj, attr)
 			{
 				if(attr && attr['buttonDown']) return;
 				chkEvent('onEdgeMouseOut', false);
+				if(!needMouseOver) gmxAPI._listeners.dispatchEvent('onMouseOut', domObj, domObj);
+				needMouseOver = true;
 			}
 		});
 
@@ -778,26 +815,31 @@
 			var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
 			domObj.update(geom, text);
 		}
+		var mouseHandler = function(ev) { gmxAPI._listeners.dispatchEvent(ev, domObj, domObj); };
+		
+		var needMouseOver = true;
+				if(!needMouseOver) gmxAPI._listeners.dispatchEvent('onMouseOut', domObj, domObj);
+				needMouseOver = true;
 		x1Border.setHandlers({
-			onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('x1b') },
-			onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
+			onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('x1b'); if(needMouseOver) mouseHandler('onMouseOver'); needMouseOver = false;},
+			onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); if(!needMouseOver) mouseHandler('onMouseOut'); needMouseOver = true;}
 		});
 		x2Border.setHandlers({
-			onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('x2b') },
-			onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
+			onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('x2b'); if(needMouseOver) mouseHandler('onMouseOver'); needMouseOver = false;},
+			onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); if(!needMouseOver) mouseHandler('onMouseOut'); needMouseOver = true;}
 		});
 		y1Border.setHandlers({
-			onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('y1b') },
-			onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
+			onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('y1b'); if(needMouseOver) mouseHandler('onMouseOver'); needMouseOver = false;},
+			onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); if(!needMouseOver) mouseHandler('onMouseOut'); needMouseOver = true;}
 		});
 		y2Border.setHandlers({
-			onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('y2b') },
-			onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); }
+			onMouseOver: function() { eventType = 'onEdgeMouseOver'; chkBalloon('y2b'); if(needMouseOver) mouseHandler('onMouseOver'); needMouseOver = false;},
+			onMouseOut: function() { eventType = 'onEdgeMouseOut'; if(!isDraging) mouseUP(); if(!needMouseOver) mouseHandler('onMouseOut'); needMouseOver = true;}
 		});
 
 		var objHandlerCorner = {
-			onMouseOver: function() { eventType = 'onNodeMouseOver'; chkBalloon() },
-			onMouseOut: function() { eventType = 'onNodeMouseOut'; if(!isDraging) mouseUP(); }
+			onMouseOver: function() { eventType = 'onNodeMouseOver'; chkBalloon(); if(needMouseOver) mouseHandler('onMouseOver'); needMouseOver = false;},
+			onMouseOut: function() { eventType = 'onNodeMouseOut'; if(!isDraging) mouseUP(); if(!needMouseOver) mouseHandler('onMouseOut'); needMouseOver = true;}
 		};
 		x1y1Corner.setHandlers(objHandlerCorner);
 		x1y2Corner.setHandlers(objHandlerCorner);
