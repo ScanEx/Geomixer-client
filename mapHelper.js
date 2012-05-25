@@ -2783,7 +2783,9 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 						  // _td([shapePath, columnsParent, encodingParent])]),
 			tilePath = _div([_t(typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')],[['css','marginLeft','3px'],['css','width','220px'],['css','whiteSpace','nowrap'],['css','overflowX','hidden']]),
 			trTiles = _tr([_td([_t(_gtxt("Каталог с тайлами"))],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
-						  _td([tilePath])]);
+						  _td([tilePath])]),
+            tableColumnsParent = _div(),
+            xlsColumnsParent = _div();
 		
 		shapePath.oldValue = shapePath.value;
 		
@@ -2873,7 +2875,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		if ((!properties.ShapePath || valueInArray(['xls', 'xlsx', 'xlsm'], ext)) && (properties.GeometryTable.XCol || properties.GeometryTable.YCol) &&
 			properties.GeometryTable.Columns.length)
 		{
-			this.selectColumns(tableColumnsParent, {
+			this.selectColumns(properties.ShapePath ? xlsColumnsParent : tableColumnsParent, {
 				fields: properties.GeometryTable.Columns,
 				defaultX: properties.GeometryTable.XCol,
 				defaultY: properties.GeometryTable.YCol
@@ -3107,7 +3109,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
             ])]);
 			
             var sourceFile = _div(null, [['dir', 'id', 'fileSource' + properties.name]])
-			var xlsColumnsParent = _div();
 			_(sourceFile, [shapePath, shapeFileLink, encodingParent, xlsColumnsParent]);
 			//var temporalFileLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
 			//var temporalLayerParamsFile = new nsGmx.TemporalLayerParams();
@@ -3122,7 +3123,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			var temporalLayerParentTable = _div(null, [['dir', 'className', 'TemporalLayer']]);
 			var temporalLayerParamsTable = new nsGmx.TemporalLayerParams();
 			var temporalLayerViewTable = new nsGmx.TemporalLayerParamsControl(temporalLayerParentTable, temporalLayerParamsTable, []);
-			var tableColumnsParent = _div();
             var sourceTable = _div([tablePath, tableLink, temporalLayerParentTable, tableColumnsParent], [['dir', 'id', 'tableSource' + properties.name]])
 			
 			var temporalLayerParamsManual = new nsGmx.TemporalLayerParams();
