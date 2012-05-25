@@ -636,6 +636,9 @@
 		if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
 			parentObj.layers[layer.properties.title] = obj;
 			
+		obj.addListener('BeforeLayerRemove', function(layerName) {				// Удаляется слой
+			gmxAPI._listeners.dispatchEvent('AfterLayerRemove', obj, obj.properties.name);	// Удален слой
+		}, -10);
 		obj.addListener('AfterLayerRemove', function(layerName) {			// Удален слой
 			for(var i=0; i<gmxAPI.map.layers.length; i++) {			// Удаление слоя из массива
 				var prop = gmxAPI.map.layers[i].properties;

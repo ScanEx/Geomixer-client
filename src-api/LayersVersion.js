@@ -172,6 +172,7 @@
 	var ret = {
 		'chkVersionLayers': function (layers, layer) {
 			if('LayerVersion' in layer.properties) {
+				if(!layer.properties.tilesVers && !layer.properties.TemporalVers) return false;
 				var mapHost = layers.properties.hostName || layer.properties.hostName;
 				var mapName = layers.properties.name || layer.properties.mapName;
 				if(!versionLayers[mapHost]) versionLayers[mapHost] = {};
@@ -194,10 +195,11 @@
 				var mapName = layer.properties.mapName;
 				if(!versionLayers[mapHost][mapName]) return false;
 				delete versionLayers[mapHost][mapName][layer.properties.name];
-				gmxAPI._listeners.dispatchEvent('AfterLayerRemove', layer, layer.properties.name);	// Удален слой
-			}, -10);
+				//gmxAPI._listeners.dispatchEvent('AfterLayerRemove', layer, layer.properties.name);	// Удален слой
+			}, -9);
 		}
 		,'chkLayerVersion': function (layer, callback) {		// Запросить проверку версии слоя
+			if(!layer.properties.tilesVers && !layer.properties.TemporalVers) return false;
 			var host = layer.properties.hostName;
 			var mapName = layer.properties.mapName;
 			var layerName = layer.properties.name;
