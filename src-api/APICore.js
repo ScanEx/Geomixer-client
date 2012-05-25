@@ -1734,13 +1734,14 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			iframe;
 
 		if (/msie/.test(userAgent) && !/opera/.test(userAgent))
-			iframe = document.createElement('<iframe style="display:none" onload="' + callbackName + '()" src="javascript:true" id="' + id + '" name="' + id + '"></iframe>');
+			iframe = document.createElement('<iframe style="display:none" charset="UTF-8" onload="' + callbackName + '()" src="javascript:true" id="' + id + '" name="' + id + '"></iframe>');
 		else
 		{
 			iframe = document.createElement("iframe");
 			iframe.style.display = 'none';
 			iframe.setAttribute('id', id);
 			iframe.setAttribute('name', id);
+			iframe.charset = 'UTF-8';
 			iframe.src = 'javascript:true';
 			iframe.onload = window[callbackName];
 		}	
