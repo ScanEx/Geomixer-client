@@ -853,6 +853,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			{
 				node.noteSomethingHasChanged();
 				node.propHiden.set('_FilterVisibility', func);
+				Main.needRefreshMap = true;		// Для обновления карты
 				Main.bumpFrameRate();
 				return true;
 			}

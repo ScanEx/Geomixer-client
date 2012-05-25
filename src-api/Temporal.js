@@ -245,7 +245,7 @@
 		
 		var setDateInterval = function(dt1, dt2, tdata)
 		{
-			if(!tdata) tdata = me.temporalData;
+			if(!tdata) tdata = mapObj._temporalTiles.temporalData;
 			var currentData = tdata['currentData'];
 			if(!dt1) {
 				dt1 = currentData['dt1'];
@@ -328,9 +328,9 @@
 		resetTiles = function(attr, obj) {
 			if(attr) {
 				startLoadTiles(attr, obj);
-				if(attr.ut1 == me.ut1Prev && attr.ut2 == me.ut2Prev) return;
-				me.ut1Prev = attr.ut1;
-				me.ut2Prev = attr.ut2;
+				if(attr.ut1 == obj._temporalTiles.ut1Prev && attr.ut2 == obj._temporalTiles.ut2Prev) return;
+				obj._temporalTiles.ut1Prev = attr.ut1;
+				obj._temporalTiles.ut2Prev = attr.ut2;
 			}
 			for (var i=0; i<obj.filters.length; i++)	{ // переустановка фильтров
 				var filt = obj.filters[i];
