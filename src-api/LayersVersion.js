@@ -8,9 +8,9 @@
 	function sendVersionRequest(host, mapName, arr, callback)
 	{
 		if(arr.length > 0) {
-			var url = 'http://' + host + '/Layer/CheckVersion.ashx?layers=[' + arr.join(',') + ']';
-			gmxAPI.sendCrossDomainJSONRequest(
-				url,
+			gmxAPI.sendCrossDomainPostRequest(
+				'http://' + host + '/Layer/CheckVersion.ashx',
+				{'WrapStyle': 'window', 'layers':'[' + arr.join(',') + ']'},
 				function(response)
 				{
 					if(response && response['Result'] && response['Result'].length > 0) {

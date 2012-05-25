@@ -1684,6 +1684,154 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	
 })();
 
+// кроссдоменный POST запрос
+(function()
+{
+	function loadFunc(iframe, callback)
+	{
+		var win = iframe.contentWindow;
+		
+		try
+		{
+			//skip first onload in safari
+			if (!iframe.loaded && (win.location == 'about:blank' || win.location == 'javascript:true'))
+				return;
+		}
+		catch (e) {}
+		
+		if (iframe.loaded)
+		{
+			var data = decodeURIComponent(win.name.replace(/\n/g,'\n\\'));
+			iframe.parentNode && iframe.parentNode.removeChild(iframe);
+			
+			var parsedData;
+			try
+			{
+				parsedData = JSON.parse(data)
+			}
+			catch(e)
+			{
+				parsedData = {Status:"error",ErrorInfo: {ErrorMessage: "JSON.parse exeption", ExceptionType:"JSON.parse", StackTrace: data}}
+			}
+			
+			callback && callback(parsedData);
+		}
+		else
+		{
+			win.location = 'about:blank';
+		}
+		
+		iframe.loaded = true;
+	}
+
+	function createPostIframe(id, callback)
+	{
+		var userAgent = navigator.userAgent.toLowerCase(),
+			callbackName = gmxAPI.uniqueGlobalName(function()
+			{
+				loadFunc(iframe, callback);
+			}),
+			iframe;
+
+		if (/msie/.test(userAgent) && !/opera/.test(userAgent))
+			iframe = document.createElement('<iframe style="display:none" onload="' + callbackName + '()" src="javascript:true" id="' + id + '" name="' + id + '"></iframe>');
+		else
+		{
+			iframe = document.createElement("iframe");
+			iframe.style.display = 'none';
+			iframe.setAttribute('id', id);
+			iframe.setAttribute('name', id);
+			iframe.src = 'javascript:true';
+			iframe.onload = window[callbackName];
+		}	
+
+		return iframe;
+	}
+
+	/** Посылает кроссдоменный POST запрос
+	* @namespace utilities
+	* @function
+	* 
+	* @param url {string} - URL запроса
+	* @param params {object} - хэш параметров-запросов
+	* @param callback {function} - callback, который вызывается при приходе ответа с сервера. Единственный параметр ф-ции - собственно данные
+	* @param baseForm {DOMElement} - базовая форма запроса. Используется, когда нужно отправить на сервер файл. 
+	*                                В функции эта форма будет модифицироваться, но после отправления запроса будет приведена к исходному виду.
+	*/
+	function sendCrossDomainPostRequest(url, params, callback, baseForm)
+	{
+		var form,
+			rnd = String(Math.random()),
+			id = '$$iframe_' + url + rnd;
+
+		var userAgent = navigator.userAgent.toLowerCase(),
+			iframe = createPostIframe(id, callback),
+			originalFormAction;
+			
+		if (baseForm)
+		{
+			form = baseForm;
+			originalFormAction = form.getAttribute('action');
+			form.setAttribute('action', url);
+			form.target = id;
+			
+		}
+		else
+		{
+			if (/msie/.test(userAgent) && !/opera/.test(userAgent))
+				form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>');
+			else
+			{
+				form = document.createElement("form");
+				form.style.display = 'none';
+				form.setAttribute('enctype', 'multipart/form-data');
+				form.target = id;
+				form.setAttribute('method', 'POST');
+				form.setAttribute('action', url);
+				form.id = id;
+			}
+		}
+		
+		var hiddenParamsDiv = document.createElement("div");
+		hiddenParamsDiv.style.display = 'none';
+		
+		for (var paramName in params)
+		{
+			var input = document.createElement("input");
+			
+			input.setAttribute('type', 'hidden');
+			input.setAttribute('name', paramName);
+			input.setAttribute('value', params[paramName]);
+			
+			hiddenParamsDiv.appendChild(input)
+		}
+		
+		form.appendChild(hiddenParamsDiv);
+		
+		if (!baseForm)
+			document.body.appendChild(form);
+			
+		document.body.appendChild(iframe);
+		
+		form.submit();
+		
+		if (baseForm)
+		{
+			form.removeChild(hiddenParamsDiv);
+			if (originalFormAction !== null)
+				form.setAttribute('action', originalFormAction);
+			else
+				form.removeAttribute('action');
+		}
+		else
+		{
+			form.parentNode.removeChild(form);
+		}
+	}
+	//расширяем namespace
+	gmxAPI.sendCrossDomainPostRequest = sendCrossDomainPostRequest;
+})();
+
 ////
 var flashMapAlreadyLoading = false;
 
