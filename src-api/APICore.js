@@ -1947,7 +1947,7 @@ FlashMapObject.prototype.getStyle = function( removeDefaults ) { var flag = (typ
 FlashMapObject.prototype.getVisibleStyle = function() { return gmxAPI._cmdProxy('getVisibleStyle', { 'obj': this }); }
 
 FlashMapObject.prototype.getVisibility = function() { return gmxAPI._cmdProxy('getVisibility', { 'obj': this }); }
-FlashMapObject.prototype.setVisible = function(flag) {
+FlashMapObject.prototype.setVisible = function(flag, notDispatch) {
 	gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag });
 	var val = (flag ? true : false);
 	if (val && 'backgroundColor' in this && this != gmxAPI.map.miniMap)
@@ -1957,7 +1957,7 @@ FlashMapObject.prototype.setVisible = function(flag) {
 
 	var prev = this.isVisible;
 	this.isVisible = val;
-	if(prev != val) gmxAPI._listeners.dispatchEvent('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
+	if(prev != val && !notDispatch) gmxAPI._listeners.dispatchEvent('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
 }
 
 FlashMapObject.prototype.getChildren = function()

@@ -530,7 +530,7 @@
 				if (flag)
 				{
 					createThisLayer();
-					if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag);
+					if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag, true);		// без Dispatch события
 					for (var i = 0; i < deferred.length; i++) {
 						deferred[i]();
 					}
@@ -554,7 +554,8 @@
 			{
 				obj.setVisible(true);
 				var newObj = FlashMapObject.prototype.addObject.call(obj, geometry, props);
-				obj.setVisible(false);
+				FlashMapObject.prototype.setVisible.call(obj, false, true);		// без Dispatch события
+				//obj.setVisible(false);
 				return newObj;
 			}
 			for (var i = 0; i < deferredMethodNames.length; i++) (function(name)
@@ -578,13 +579,15 @@
 				{							
 					obj.setVisible(true);
 					obj.getFeatures(arg1, arg2, arg3);
-					obj.setVisible(false);
+					FlashMapObject.prototype.setVisible.call(obj, false, true);		// без Dispatch события
+					//obj.setVisible(false);
 				}
 				obj.getFeatureById = function(arg1, arg2, arg3)
 				{							
 					obj.setVisible(true);
 					obj.getFeatureById(arg1, arg2, arg3);
-					obj.setVisible(false);
+					FlashMapObject.prototype.setVisible.call(obj, false, true);		// без Dispatch события
+					//obj.setVisible(false);
 				}
 				for (var i = 0; i < layer.properties.styles.length; i++) (function(i)
 				{
