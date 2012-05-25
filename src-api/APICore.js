@@ -1733,15 +1733,16 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			}),
 			iframe;
 
+			//iframe = document.createElement('<iframe style="display:none" encoding="UTF-8" onload="' + callbackName + '()" src="javascript:true" id="' + id + '" name="' + id + '"></iframe>');
 		if (/msie/.test(userAgent) && !/opera/.test(userAgent))
-			iframe = document.createElement('<iframe style="display:none" charset="UTF-8" onload="' + callbackName + '()" src="javascript:true" id="' + id + '" name="' + id + '"></iframe>');
+			iframe = document.createElement('<iframe style="display:none" onload="' + callbackName + '()" src="javascript:true" id="' + id + '" name="' + id + '"></iframe>');
 		else
 		{
 			iframe = document.createElement("iframe");
 			iframe.style.display = 'none';
 			iframe.setAttribute('id', id);
 			iframe.setAttribute('name', id);
-			iframe.charset = 'UTF-8';
+			//iframe.charset = 'UTF-8';
 			iframe.src = 'javascript:true';
 			iframe.onload = window[callbackName];
 		}	
@@ -1780,10 +1781,11 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		else
 		{
 			if (/msie/.test(userAgent) && !/opera/.test(userAgent))
-				form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>');
+				form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post" accept-charset="UTF-8"></form>');
 			else
 			{
 				form = document.createElement("form");
+				form.acceptCharset = 'UTF-8';
 				form.style.display = 'none';
 				form.setAttribute('enctype', 'multipart/form-data');
 				form.target = id;
