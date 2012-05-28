@@ -51,14 +51,6 @@ class VectorTilePainter
 		}
 	}
 
-	function findHidenKeyNode(node:MapNode, key):MapNode
-	{
-		if (node == null) return null;
-		else if (node.propHiden.exists(key)) return node;
-		else if (node.parent != null) return findHidenKeyNode(node.parent, key);
-		return null;
-	}
-
 	public function repaint(style:Style, ?clearCache:Bool)
 	{
 		var curZ:Float = mapWindow.getCurrentZ();
@@ -81,7 +73,7 @@ class VectorTilePainter
 			}
 		}
 
-		var node:MapNode = findHidenKeyNode(vectorLayerFilter.mapNode, '_FilterVisibility');
+		var node:MapNode = vectorLayerFilter.mapNode.findHidenKeyNode('_FilterVisibility');
 		var criterion:Hash<String>->Bool = null;
 		if(node != null) {
 			criterion = node.propHiden.get('_FilterVisibility');

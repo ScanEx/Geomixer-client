@@ -30,6 +30,28 @@ window.PI = 3.14159265358979; //устарело - обратная совмес
 window.gmxAPI = {
     APILoaded: false							// Флаг возможности использования gmxAPI сторонними модулями
 	,
+	'parseSQL': function(sql)	{							// парсинг SQL строки
+		var zn = sql;
+		if(typeof(zn) === 'string') {
+			zn = zn.replace(/ AND /g, ' && ');
+		}
+		return zn
+	}
+	,
+	'chkPropsInString': function(str, prop, type)	{							// парсинг значений свойств в строке
+		var zn = str;
+		if(typeof(zn) === 'string') {
+			var reg = (type ? /\"([^\"]+)\"/i : /\[([^\]]+)\]/i);
+			var matches = reg.exec(zn);
+			while(matches && matches.length > 1) {
+				zn = zn.replace(matches[0], prop[matches[1]]);
+				matches = reg.exec(zn);
+			}
+			zn = eval(zn);
+		}
+		return zn
+	}
+	,
 	clone: function (o)
 	{
 		if(!o || typeof(o) !== 'object')  {
@@ -1984,6 +2006,8 @@ function loadMapJSON(hostName, mapName, callback, onError)
 			else
 			{
 				var apikeyRequestHost = window.apikeyRequestHost  ? window.apikeyRequestHost  : "maps.kosmosnimki.ru";
+//finish();
+//return;
 				sendCrossDomainJSONRequest(
 					"http://" + apikeyRequestHost + "/ApiKey.ashx?WrapStyle=func&Key=" + key,
 					function(response)

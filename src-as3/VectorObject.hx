@@ -68,7 +68,7 @@ class VectorObject extends MapContent
 		var notClearFlag:Bool = false;
 		var notCacheBitmap:Bool = (mapNode.window.cacheBitmap == null || !mapNode.window.cacheBitmap.visible ? true : false);
 		if(notCacheBitmap) {
-			var node:MapNode = findHidenKeyNode(mapNode, '_FilterVisibility');
+			var node:MapNode = mapNode.findHidenKeyNode('_FilterVisibility');
 			criterion = (node == null ? null : node.propHiden.get('_FilterVisibility'));
 
 			if (criterion == null || criterion(geometry.properties)) {
@@ -166,14 +166,6 @@ class VectorObject extends MapContent
 		if (node == null) return null;
 		else if (Std.is(node.content, VectorLayer)) return node;
 		else if (node.parent != null) return findLayer(node.parent);
-		return null;
-	}
-
-	function findHidenKeyNode(node:MapNode, key):MapNode
-	{
-		if (node == null) return null;
-		else if (node.propHiden.exists(key)) return node;
-		else if (node.parent != null) return findHidenKeyNode(node.parent, key);
 		return null;
 	}
 	

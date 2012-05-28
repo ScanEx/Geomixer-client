@@ -84,6 +84,13 @@ vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлен�
 		return true;
 	}
 
+	public function findHidenKeyNode(key:String):MapNode
+	{
+		if (this.propHiden.exists(key)) return this;
+		else if (this.parent != null) return this.parent.findHidenKeyNode(key);
+		return null;
+	}
+
 	public function getRegularStyle()
 	{
 		return 

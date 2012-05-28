@@ -356,6 +356,8 @@ class VectorLayer extends MapContent
 
 		var hoverGeom = null;
 		var hoverStyle = null;
+		
+		var criterion:Hash<String>->Bool = (mapNode.propHiden.exists('_FilterVisibility') ? mapNode.propHiden.get('_FilterVisibility') : null);
 
 		for (tile in tiles)			// Просмотр содержимого тайлов под мышкой
 		{
@@ -382,6 +384,7 @@ class VectorLayer extends MapContent
 				for (member in curGeom.members)
 				{
 					if (!member.extent.overlaps(pointExtent)) continue;		// пропускаем не пересекающие точку
+					if (criterion != null && !criterion(member.properties)) continue;	// пропускаем ноды отфильтрованные setVisibilityFilter
 					if (filter.clusterAttr == null && temporalCriterion != null && !temporalCriterion(member.propTemporal)) {
 						continue;					// пропускаем ноды отфильтрованные мультивременными интервалами только если нет кластеризации
 					}

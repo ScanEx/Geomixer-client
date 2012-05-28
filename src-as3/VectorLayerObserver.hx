@@ -27,48 +27,51 @@ class VectorLayerObserver extends MapContent
 
 	public override function repaint()
 	{
-		try {
-
-		var filters = new Array<VectorLayerFilter>();
-		for (child in layer.mapNode.children)
-			if (Std.is(child.content, VectorLayerFilter) && !child.hidden)
-				filters.push(cast(child.content, VectorLayerFilter));
-		var toAdd = new Hash<Bool>();
-		var toRemove = new Hash<Bool>();
-		var extent = mapNode.window.visibleExtent;
-		for (tile in layer.tiles)
-		{
-			if ((tile.ids != null) && tile.extent.overlaps(extent))
+		var criterion:Hash<String>->Bool = layer.mapNode.propHiden.get('_FilterVisibility');
+//		try {
+			var filters = new Array<VectorLayerFilter>();
+			for (child in layer.mapNode.children)
+				if (Std.is(child.content, VectorLayerFilter) && !child.hidden)
+					filters.push(cast(child.content, VectorLayerFilter));
+			var toAdd = new Hash<Bool>();
+			var toRemove = new Hash<Bool>();
+			var extent = mapNode.window.visibleExtent;
+			for (tile in layer.tiles)
 			{
-				for (id in tile.ids)
+				if ((tile.ids != null) && tile.extent.overlaps(extent))
 				{
-					var isIn = false;
-					for (filter in filters)
+					for (id in tile.ids)
 					{
-						if (filter.ids.exists(id) && layer.geometries.get(id).extent.overlaps(extent))
-						{
-							isIn = true;
-							break;
+						var geom:Geometry = layer.geometries.get(id);
+						var isIn = false;
+						if (criterion == null || criterion(geom.properties)) {		// Проверка на setVisibilityFilter
+							for (filter in filters)
+							{
+								if (filter.ids.exists(id) && layer.geometries.get(id).extent.overlaps(extent))
+								{
+									isIn = true;
+									break;
+								}
+							}
 						}
-					}
-					if (isIn && !ids.exists(id))
-					{
-						toAdd.set(id, true);
-						ids.set(id, true);
-					}
-					else if (!isIn && ids.exists(id))
-					{
-						toRemove.set(id, true);
-						ids.remove(id);
+						if (isIn && !ids.exists(id))
+						{
+							toAdd.set(id, true);
+							ids.set(id, true);
+						}
+						else if (!isIn && ids.exists(id))
+						{
+							toRemove.set(id, true);
+							ids.remove(id);
+						}
 					}
 				}
 			}
-		}
-		for (id in toAdd.keys())
-			onChange(id, true);
-		for (id in toRemove.keys())
-			onChange(id, false);
+			for (id in toAdd.keys())
+				onChange(id, true);
+			for (id in toRemove.keys())
+				onChange(id, false);
 
-		} catch (e:Error) { /*trace(e);*/ }
+//		} catch (e:Error) { /*trace(e);*/ }
 	}
 }
