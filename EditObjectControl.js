@@ -66,10 +66,11 @@ var getInputElement = function(type)
     return input;
 }
 
-var EditObjectControl = function(layerName, objectId)
+var EditObjectControl = function(layerName, objectId, params)
 {
+    var _params = $.extend({drawingObject: null}, params);
     var _this = this;
-    var isNew = typeof objectId === 'undefined';
+    var isNew = objectId == null;
     if (!isNew && EditObjectControlsManager.find(layerName, objectId))
         return EditObjectControlsManager.find(layerName, objectId);
     
@@ -115,8 +116,24 @@ var EditObjectControl = function(layerName, objectId)
     {
         var canvas = _div(),
 		createButton = makeLinkButton(isNew ? _gtxt("Создать") : _gtxt("Изменить")),
+        removeButton = makeLinkButton(_gtxt("Удалить")),
 		trs = [],
 		tdGeometry = _td();
+        
+        removeButton.onclick = function()
+        {
+            var objects = JSON.stringify([{action: 'delete', id: objectId}]);
+            sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", {WrapStyle: 'window', LayerName: layerName, objects: objects}, function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                
+                removeDialog(dialogDiv);
+                layer.chkLayerVersion(closeFunc);
+            });
+        }
+        
+        removeButton.style.marginLeft = '10px';
 	
         createButton.onclick = function()
         {
@@ -289,7 +306,7 @@ var EditObjectControl = function(layerName, objectId)
                 
                 _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
                 
-                _(canvas, [_div([createButton],[['css','margin','10px 0px'],['css','height','20px']])]);
+                _(canvas, [_div([createButton, removeButton],[['css','margin','10px 0px'],['css','height','20px']])]);
                 
                 resizeFunc();
             })
@@ -308,6 +325,8 @@ var EditObjectControl = function(layerName, objectId)
                     { geomType: layer.properties.GeometryType }
                 );
             }
+            
+            _params.drawingObject && bindDrawingObject(_params.drawingObject);
             
             drawingBorderLink.style.margin = '0px 5px 0px 3px';
             

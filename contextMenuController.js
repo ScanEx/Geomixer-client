@@ -226,8 +226,6 @@ nsGmx.ContextMenuController = (function()
 		 */
 		bindMenuToElem: function(elem, type, checkFunc, context)
 		{
-			if (typeof _menuItems[type] === 'undefined') return;
-			
 			_context(elem, function()
 			{
 				if (typeof context === 'function')

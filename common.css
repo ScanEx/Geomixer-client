@@ -517,6 +517,12 @@ div.unit .unitInfo
 {
 	position: relative;
 }
+
+.drawingObjectsActiveItemCanvas
+{
+	background-color: #ffffcc;
+}
+
 .drawingObjectsItemTitle
 {
 	cursor: pointer;

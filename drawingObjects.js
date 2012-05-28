@@ -219,7 +219,8 @@ var DrawingObjectCollection = function(oInitMap) {
 
 /** Конструктор
  @class Строка с описанием объекта и ссылкой на него
- @memberOf DrawingObjects 
+ @description К строке биндится контекстное меню типа "DrawingObject"
+ @memberOf DrawingObjects
  @param oInitMap Карта
  @param oInitContainer Объект, в котором находится контрол (div) 
  @param drawingObject Объект для добавления на карту
@@ -294,6 +295,16 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	_(_canvas, [_span([icon, _title, _text, _summary], [['dir','className','drawingObjectsItem']]), remove]);
 	
 	_(oInitContainer, [_canvas])
+    
+    var mouseOverListenerId = _drawingObject.addListener('onMouseOver', function()
+    {
+        $(_canvas).addClass('drawingObjectsActiveItemCanvas');
+    })
+    
+    var mouseOutListenerId = _drawingObject.addListener('onMouseOut', function()
+    {
+        $(_canvas).removeClass('drawingObjectsActiveItemCanvas');
+    })    
 	
 	/** Обновляет информацию о геометрии */
 	this.UpdateRow = function(){
@@ -336,7 +347,12 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
             _canvas.parentNode.removeChild(_canvas);
             
         $(_drawingObject).unbind('.drawing');
+        
+        _drawingObject.removeListener('onMouseOver', mouseOverListenerId);
+        _drawingObject.removeListener('onMouseOut', mouseOutListenerId);
 	}
+    
+    nsGmx.ContextMenuController.bindMenuToElem(_title, 'DrawingObject', function(){return true; }, {obj: _drawingObject} );
     
     AttachEvents(_map);
     $(_drawingObject).bind('onRemove.drawing', this.RemoveRow);
@@ -362,7 +378,6 @@ var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCol
 	var _divList = _div(null, [['dir', 'className', 'DrawingObjectList']]);
 	var _divButtons = _div();
 	
-	
 	/** Добавляет объект в "список объектов на карте"
 	@param {drawingObject} drawingObject добавляемый объект */
 	var add = function(drawingObject){
@@ -384,7 +399,7 @@ var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCol
 		_rows.splice(index, 1);
 		removedDiv.parentNode.removeChild(removedDiv);
 	}
-	
+    
 	/** Очищает список пользовательских объектов*/
 	this.Clear = function(){
 		while (_collection.Count()>0){
@@ -399,7 +414,7 @@ var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCol
 	
 	$(_collection).bind('onRemove', onRemove);
 	$(_collection).bind('onAdd', function(event, drawingObject){ 
-		add(drawingObject); 
+		add(drawingObject);
 	});
 	
 	var delAll = makeLinkButton(_gtxt("Очистить"));
