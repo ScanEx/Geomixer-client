@@ -107,7 +107,7 @@ var drawLayers = function(layer, params)
 		tdRemove = (layer.Access == 'edit') ? _td([remove], [['css','textAlign','center']]) : _td(),
 		removeLayerFromList = function()
 		{
-			var active = $(_this.buildedTree).find(".active");
+			var active = $(_queryMapLayers.buildedTree).find(".active");
 			
             var gmxProperties = $(res).find("span[dragg]")[0].parentNode.parentNode.gmxProperties;
 			if (active.length && (active[0].parentNode.getAttribute('MapID') || active[0].parentNode.getAttribute('GroupID')))
