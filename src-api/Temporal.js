@@ -352,6 +352,13 @@
 				gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map);	// Проверка map Listeners на hideBalloons
 			}
 		);
+		mapObj.addListener('onLayer', function(obj)
+			{
+				var currentData = obj._temporalTiles.temporalData.currentData;
+				obj.setDateInterval(currentData.dt1, currentData.dt2);
+			}
+		);
+		
 	}
 	//расширяем namespace
     gmxAPI._TemporalTiles = TemporalTiles;
