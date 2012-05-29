@@ -652,14 +652,13 @@ function resizeAll()
 function loadFunc(iframe, callback)
 {
 	var win = iframe.contentWindow;
-	
-	try
-	{
-		//skip first onload in safari
-		if (!iframe.loaded && (win.location == 'about:blank' || win.location == 'javascript:true'))
-			return;
-	}
-	catch (e) {}
+
+    //skip first onload in safari
+    if ( jQuery.browser.safari && !iframe.safariSkipped)
+    {
+        iframe.safariSkipped = true;
+        return;
+    }
 	
 	if (iframe.loaded)
 	{
