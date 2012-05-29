@@ -388,58 +388,85 @@ function checkUserInfo(defaultState)
     })
 }
 
-/**
-    
-*/
-nsGmx.widgets.getCommonCalendar = (function()
-{
-    var _calendar = null;
-    return function()
+nsGmx.widgets.commonCalendar = {
+    _calendar: null,
+    _isAppended: false,
+    get: function()
     {
-        if (!_calendar)
+        var _this = this;
+        if (!this._calendar)
         {
-            _calendar = new nsGmx.Calendar();
-            _calendar.init('CalendarCommon', {
+            this._calendar = new nsGmx.Calendar();
+            this._calendar.init('CalendarCommon', {
                 minimized: true,
                 dateMin: new Date(2000, 01, 01),
                 dateMax: new Date(),
                 showTime: false
             });
             
-            _calendar.setTimeBegin(0, 0, 0);
-            _calendar.setTimeEnd(23, 59, 59);
-            
-            var calendarDiv = $("<div/>").append(_calendar.canvas);
-            var table = $(_queryMapLayers.workCanvas).children("table");
-            $(table).after(calendarDiv);
+            this._calendar.setTimeBegin(0, 0, 0);
+            this._calendar.setTimeEnd(23, 59, 59);
             
             _mapHelper.customParamsManager.addProvider({
                 name: 'commonCalendar',
-                loadState: function(state) { _calendar.loadState(state); $(_calendar).change(); },
-                saveState: function() { return _calendar.saveState(); }
+                loadState: function(state) { _this._calendar.loadState(state); $(_this._calendar).change(); },
+                saveState: function() { return _this._calendar.saveState(); }
             });
         }
         
-        return _calendar;
+        return this._calendar;
+    },
+    show: function()
+    {
+        if (!this._isAppended)
+        {
+            this._isAppended = true;
+            var calendarDiv = $("<div/>").append(this.get().canvas);
+            var table = $(_queryMapLayers.workCanvas).children("table");
+            $(table).after(calendarDiv);
+        }
     }
-})()
+}
+
+//устарело, используйте commonCalendar
+nsGmx.widgets.getCommonCalendar = function()
+{
+    nsGmx.widgets.commonCalendar.show();
+    return nsGmx.widgets.commonCalendar.get();
+}
 
 //Отслеживаем изменения календарика и фильтруем все мультивременные слои относительно выбранного периода. 
 //Если выбран не период, а просто дата - фильтруем за последние сутки относительно этой даты
 function filterTemporalLayers()
 {
-    if (filterTemporalLayers.done) return; //привязываемся только один раз
     var isAnyTemporalLayer = false;
     for (var i = 0; i < globalFlashMap.layers.length; i++)
-        if (typeof globalFlashMap.layers[i].properties.Temporal !== 'undefined' && globalFlashMap.layers[i].properties.Temporal)
+        if (globalFlashMap.layers[i].properties.Temporal)
         {
+            // temporalLayers[globalFlashMap.layers[i].properties.name] = globalFlashMap.layers[i];
             isAnyTemporalLayer = true;
-            break;
         }
         
     if (isAnyTemporalLayer)
     {
-        var calendar = nsGmx.widgets.getCommonCalendar();
+        var calendar = nsGmx.widgets.commonCalendar.get();
+        nsGmx.widgets.commonCalendar.show();
+        
+        var updateOneLayer = function(layer, dateBegin, dateEnd)
+        {
+            //если для слоя задан только один временной период, считаем, что он "однолистный" - 
+            //не имеет смысл показывать данные за несколько периодов (например, погода, ветер)
+            //поэтому задаём период не больше периода слоя
+            if (layer.properties.TemporalPeriods && layer.properties.TemporalPeriods.length == 1)
+            {
+                var layerPeriod = layer.properties.TemporalPeriods[0]*24*3600*1000 - 1000;
+                var newDateBegin = layerPeriod < dateEnd.valueOf() - dateBegin.valueOf() ? new Date(dateEnd.valueOf() - layerPeriod) : dateBegin;
+                
+                layer.setDateInterval(newDateBegin, dateEnd);
+            }
+            else
+                layer.setDateInterval(dateBegin, dateEnd);
+        }
         
         var updateTemporalLayers = function()
         {
@@ -449,34 +476,32 @@ function filterTemporalLayers()
             if (dateBegin.valueOf() == dateEnd.valueOf())
                 dateBegin = new Date(dateBegin.valueOf() - 1000*3600*24);
             
+            //for (var name in temporalLayers)
             for (var i = 0; i < globalFlashMap.layers.length; i++)
-                if (globalFlashMap.layers[i].properties.Temporal)
-                {
-                    //если для слоя задан только один временной период, считаем, что он "однолистный" - 
-                    //не имеет смысл показывать данные за несколько периодов (например, погода, ветер)
-                    //поэтому задаём период не больше периода слоя
-                    if (globalFlashMap.layers[i].properties.TemporalPeriods && globalFlashMap.layers[i].properties.TemporalPeriods.length == 1)
-                    {
-                        var layerPeriod = globalFlashMap.layers[i].properties.TemporalPeriods[0]*24*3600*1000 - 1000;
-                        var newDateBegin = layerPeriod < dateEnd.valueOf() - dateBegin.valueOf() ? new Date(dateEnd.valueOf() - layerPeriod) : dateBegin;
-                        
-                        globalFlashMap.layers[i].setDateInterval(newDateBegin, dateEnd);
-                    }
-                    else
-                        globalFlashMap.layers[i].setDateInterval(dateBegin, dateEnd);
-                }
-                    
-            //console.log(dateBegin + '-' + dateEnd);
+            {
+                var name = globalFlashMap.layers[i].properties.name;
+                if (!(name in filterTemporalLayers.unbindedTemporalLayers))
+                    updateOneLayer(globalFlashMap.layers[i], dateBegin, dateEnd);
+            }
         }
         
         $(calendar).change(updateTemporalLayers);
         updateTemporalLayers();
-        
-        filterTemporalLayers.done = true;
+    }
+    
+    //расширяем стандартный календарик вьюера
+    nsGmx.widgets.commonCalendar.get().bindLayer = function(layerName)
+    {
+        delete filterTemporalLayers.unbindedTemporalLayers[layerName];
+        updateTemporalLayers();
+    }
+    
+    nsGmx.widgets.commonCalendar.get().unbindLayer = function(layerName)
+    {
+        filterTemporalLayers.unbindedTemporalLayers[layerName] = globalFlashMap.layers[layerName];
     }
 }
-
-filterTemporalLayers.done = false;
+filterTemporalLayers.unbindedTemporalLayers = {};
 
 function addMapName(container, name)
 {
@@ -784,8 +809,8 @@ function loadMap(state)
         
         fnInitControls();
         
-        $(_queryExternalMaps).bind('map_loaded', filterTemporalLayers);
         filterTemporalLayers();
+        $(_queryExternalMaps).bind('map_loaded', filterTemporalLayers);
         
         nsGmx.pluginsManager.afterViewer();
 	}
