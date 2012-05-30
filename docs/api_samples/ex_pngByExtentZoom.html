@@ -1,0 +1,223 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--    <script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> -->
+	<script src="http://maps.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script>
+	<title>Вывод PNG файлов карты по задданому extent и zoom</title>
+</head>
+
+<body>
+<!--   <button id="button0">setVisibilityFilter</button> <input id="sf" type="text" size="44" value='"CLOUDS" < 96'> -->
+Zoom: <input id="zoom" type="text" size="4" value="8"><button id="button2">Старт</button> <input id="chkbox" type="checkbox" checked=true> <input id="auto" type="text" size="4" value='10'>сек
+<button id="button1">Взять кадр</button><span id="cmdHash1" class="bodytext"></span><span id="cmdHash2" class="bodytext"></span>
+<br>
+<textarea id="resOut" col="40" style="display:none;"></textarea>
+
+	<div id="map" style="width: 1500px; height: 600px;"></div>
+<br>
+	<div id="results"></div>
+<script>
+	createFlashMap(document.getElementById("map"), 'maps.kosmosnimki.ru', 'ATTBP', function(map)
+	{
+		map.moveTo(37.586769, 55.732883, 2);//позиционирует карту по координатам центра и выбирает масштаб
+
+		var ext = null;
+		var chkExt = function(obj)
+		{
+			ext = {'minX': 0, 'maxX': 0, 'minY': 0, 'maxY': 0};
+			var st = obj.objectId + ' : ';
+			var geom = obj.geometry;
+			if(!geom) return;
+			st += ' type: ' + geom.type;
+			var coord = geom.coordinates;
+			if(!coord ) return;
+			ext['minX'] = coord[0][0][0];
+			ext['maxX'] = coord[0][1][0];
+			ext['minY'] = coord[0][2][1];
+			ext['maxY'] = coord[0][0][1];
+/*
+			var ww = gmxAPI.distVincenty(ext['minX'], ext['minY'], ext['maxX'], ext['minY']);
+			st += ' width: ' + ww;
+			var hh = gmxAPI.distVincenty(ext['minX'], ext['minY'], ext['minX'], ext['maxY']);
+			st += ' height: ' + hh;
+			//document.getElementById("cmdHash1").innerHTML = 'onEdit: ' + st;
+			map.setExtent(
+				ext['minX'],
+				ext['maxX'],
+				ext['minY'],
+				ext['maxY']
+			);
+*/			
+			document.getElementById("button1").disabled = document.getElementById("button2").disabled = false;
+		}
+		document.getElementById("button1").disabled = true;
+		map.drawing.addListener('onEdit', chkExt);
+		
+		var resOut = [];
+		var data = {};
+		var curRow = 0;
+		var curCol = -1;
+		var curOutNum = 0;
+		var lastRowIndex = 0;
+		var lastColIndex = 0;
+		var intervalID = 0;
+		var timerID = 0;
+		var resWin = null;
+		var ctx = null;  
+
+		var prpPages = function()
+		{
+			var zn = parseInt(document.getElementById("zoom").value);
+			var auto = document.getElementById("chkbox").checked;
+			var timeDelay = parseInt(document.getElementById("auto").value);
+			var res = {'row':[], 'col':[], 'z':zn, 'auto':auto, 'timeDelay':timeDelay};
+			var scale = gmxAPI.getScale(zn);
+
+			var w = scale * gmxAPI._div.clientWidth;
+			var widthMerc = gmxAPI.merc_x(ext['maxX']) - gmxAPI.merc_x(ext['minX']);
+			lastColIndex = widthMerc / w;
+			var xm = gmxAPI.merc_x(ext['minX']) + w/2 - 40;
+			for(var i=0; i<=lastColIndex; i++) {
+				var x = gmxAPI.from_merc_x(xm + i * w);
+				res['col'].push(x);
+			}
+
+			var h = scale * gmxAPI._div.clientHeight;
+			var heightMerc = gmxAPI.merc_y(ext['maxY']) - gmxAPI.merc_y(ext['minY']);
+			lastRowIndex = heightMerc / h;
+			var ym = gmxAPI.merc_y(ext['minY']) - h/2 + 40;
+			for(var i=lastRowIndex; i>=0; i--) {
+				var y = gmxAPI.from_merc_y(ym + i * h);
+				res['row'].push(y);
+			}
+			var st = 'row: ' + res['row'].join(',');
+			st += ' col: ' + res['col'].join(',');
+			st = parseInt(res['col'].length) * parseInt(res['row'].length);
+			//st += ' : ' + res['col'].length + ' : ' + res['row'].length;
+			document.getElementById("cmdHash2").innerHTML = ' Всего кадров: ' + st;
+/*			
+			var canvasElement = gmxAPI.newElement("canvas", false, false, false);
+			canvasElement.width = lastColIndex * gmxAPI._div.clientWidth;
+			canvasElement.height = lastRowIndex * gmxAPI._div.clientHeight;
+			document.getElementById("results").appendChild(canvasElement);
+			ctx = canvasElement.getContext('2d');  
+*/			
+			return res;
+		}
+		
+		var goToNextPage = function()
+		{
+			curCol++;
+			if(lastColIndex < curCol) curRow++, curCol = 0;
+			if(lastRowIndex < curRow) {
+				//if(intervalID) clearInterval(intervalID);
+				document.getElementById("button1").disabled = document.getElementById("button2").disabled = false;
+				//document.getElementById("resOut").innerHTML = '[\n'+resOut.join(',')+'\n]';
+				//document.getElementById("resOut").style.display = 'block';
+				alert('Все кадры получены');
+				return;
+			}
+			document.getElementById("button1").disabled = document.getElementById("chkbox").checked;
+
+			var yy = data['row'][curRow];
+			var xx = data['col'][curCol];
+			map.moveTo(xx, yy, data['z']);//позиционирует карту по координатам центра и выбирает масштаб
+			curOutNum++;
+			if(timerID) clearTimeout(timerID);
+			if(document.getElementById("chkbox").checked) {
+				var timeDelay = 1000*parseInt(document.getElementById("auto").value);
+				timerID = setTimeout(getImage, timeDelay);
+			}
+		}
+		
+		function draw(ph) {  
+			var img = new Image();  
+			img.onload = function(){  
+			  ctx.drawImage(img, ph['left'], ph['top']);
+/*			  
+			  
+			  ctx.beginPath();  
+			  ctx.moveTo(30,96);  
+			  ctx.lineTo(70,66);  
+			  ctx.lineTo(103,76);  
+			  ctx.lineTo(170,15);  
+			  ctx.stroke();  
+*/			  
+			};  
+			img.src = ph['base64'];
+		}
+
+		var getImage = function()
+		{
+			var ph = {
+				'getBase64':true
+				,'notSetGridVisible':true
+			};
+			var res = map.sendPNG(ph);
+
+			var dy = 0;
+			if(!resWin) openResultWin();
+			var toOut = resWin.document.body;
+			//var toOut = document.getElementById("results"); dy = 700;
+
+			var posX = curCol * gmxAPI._div.clientWidth;
+			var posY = dy + curRow * gmxAPI._div.clientHeight;
+			var style = {
+				position: 'absolute',
+				top: posY + "px",
+				left: posX + "px"
+			};
+			var leg = gmxAPI.newElement("img",
+				{
+					src: 'data:image/png;base64,' + res['base64']
+				},
+				style
+			);
+
+			toOut.appendChild(leg);
+
+			var st = ' Получен кадр: ' +curOutNum;
+			document.getElementById("cmdHash1").innerHTML = st;
+/*			
+			var ph = {
+				"top": posY,
+				"left": posX,
+				"base64": res['base64']
+			};
+			//draw(ph);
+			//st = '{"top": ' + posY + ', "left": ' + posX + ', "base64": "' + res['base64'] + '"}\n';
+			//resOut.push('{"top": ' + posY + ', "left": ' + posX + ', "base64": "' + res['base64'] + '"}\n');
+*/			
+			goToNextPage();
+		}
+		document.getElementById("button1").onclick = getImage;
+
+		document.getElementById("button2").onclick = function()
+		{
+			if(!ext) { alert('Задайте прямоугольник'); return; }
+			data = prpPages();
+			goToNextPage();
+			//intervalID = setInterval(getImage, 20000);
+			if(document.getElementById("chkbox").checked) document.getElementById("button2").disabled = true;
+		}
+		
+		var openResultWin = function()
+		{
+			var params = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
+			resWin = window.open("", "PNG", params);
+		}
+/*
+		document.getElementById("button0").onclick = function()
+		{
+			var zn = document.getElementById("sf").value;
+			var mLayer = map.layers['OPERATIVE_SPOT4_MS'];
+			
+			mLayer.setVisibilityFilter(zn);
+		}
+*/		
+	});
+
+</script>
+
+</body>
+</html>

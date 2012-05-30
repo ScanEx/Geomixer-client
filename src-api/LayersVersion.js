@@ -2,6 +2,7 @@
 (function()
 {
 	var intervalID = 0;
+    var chkVersionTimeOut = 20000;
 	var versionLayers = {};				// Версии слоев по картам
 
 	// Запрос обновления версий слоев карты mapName
@@ -41,8 +42,12 @@
 		}
 	}
 
+	var setVersionCheck = function(msek) {
+		if(intervalID) clearInterval(intervalID);		
+		intervalID = setInterval(chkVersion, msek);
+	}
 	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
-		intervalID = setInterval(chkVersion, 20000);
+		setVersionCheck(chkVersionTimeOut);
 		}
 	});
 
@@ -206,6 +211,7 @@
 			var LayerVersion = layer.properties.LayerVersion;
 			sendVersionRequest(host, mapName, ['{ "Name":"'+ layerName +'","Version":' + LayerVersion +' }'], callback);
 		}
+		,'setVersionCheck': setVersionCheck						// Переустановка задержки запросов проверки версий слоев
 	};
 	
 	//расширяем namespace
