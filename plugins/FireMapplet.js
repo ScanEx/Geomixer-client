@@ -452,55 +452,94 @@ var FireBurntProvider = function( params )
 * @memberOf FireMapplet
 * @class 
 * @param {Object} params Параметры класса: <br/>
-* <i> {String} host </i> Сервер, с которого берутся данные покрытии. Default: http://sender.kosmosnimki.ru/ <br/>
-* <i> {String} modisImagesHost </i> Путь, с которого будут загружаться тайлы. Default: http://images.kosmosnimki.ru/MODIS/
+* <i> {String} host </i> Сервер, с которого загружаются слои с модисом. Default: http://maps.kosmosnimki.ru/<br/>
 */
 var ModisImagesProvider = function( params )
 {
-	
-	var _params = $.extend({host: 'http://sender.kosmosnimki.ru/v3/',
-							modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/'
-						   }, params);
+    var _params = $.extend({host: "http://maps.kosmosnimki.ru/"}, params)
+    var layersNamesToLoad = ['EB271FC4D2AD425A9BAA78ADEA041AB9', '533FCC7439DA4A2EB97A2BE77887A462'],
+        leftToLoad = layersNamesToLoad.length,
+        modisLayers = {};
+        
+	var addModisLayers = function(callback)
+    {
+        if (leftToLoad == 0)
+        {
+            callback(modisLayers);
+            return;
+        }
+        
+        for (var iL = 0; iL < layersNamesToLoad.length; iL++)
+            (function(layerName)
+            {
+                sendCrossDomainJSONRequest(_params.host + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + layerName, function(response)
+                {
+                    if (!parseResponse(response))
+                        return;
+                    
+                    var layerProperties = {type:'layer', content: response.Result};
+                    
+                    layerProperties.content.properties.styles = [
+                        {
+                            "Name":"контура",
+                            "MinZoom":1,
+                            "MaxZoom":2,
+                            "BalloonEnable":true,
+                            "DisableBalloonOnClick":false,
+                            "DisableBalloonOnMouseMove":true,
+                            "RenderStyle":{"outline":{"color":255,"thickness":1},"fill":{"color":16777215,"opacity":0}}
+                        },
+                        {
+                            "Name":"изображения",
+                            "MinZoom":3,
+                            "MaxZoom":10,
+                            "BalloonEnable":true,
+                            "DisableBalloonOnClick":false,
+                            "DisableBalloonOnMouseMove":true,
+                            "RenderStyle":{}
+                        }
+                    ]
+                    
+                    var TiledQuicklook = _params.host + 'TileSenderSimple.ashx?TilePath=OperativeMODIS[TILES]/';
+                    
+                    layerProperties.content.properties.mapName = _mapHelper.mapProperties.name;
+                    layerProperties.content.properties.hostName = _mapHelper.mapProperties.hostName;
+                    layerProperties.content.properties.visible = true;
+                    
+                    globalFlashMap.addLayer(layerProperties.content, true);
+                    modisLayers[layerName] = globalFlashMap.layers[layerName];
+                    // modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
+                    modisLayers[layerName].setVisibilityFilter("`IsDay` = 'True'");
+                    
+                    modisLayers[layerName].enableTiledQuicklooks(function(o)
+                    {
+                        return TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
+                        {
+                            return o.properties[arguments[1]];
+                        });
+                    }, 3, 10);
+                    
+                    leftToLoad--;
+                    
+                    if (leftToLoad == 0) //всё загрузили - возвращаем список слоёв
+                        callback(modisLayers);
+                })
+            })( layersNamesToLoad[iL] );
+    }
 	
 	this.getDescription = function() { return _gtxt("firesWidget.DialyCoverage.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
-		//запрашиваем только за первый день периода
-		var modisUrl = _params.host + "DBWebProxy.ashx?Type=GetModis&Date=" + _formatDateForServer(dateEnd, true);
-		
-		IDataProvider.sendCachedCrossDomainJSONRequest(modisUrl, function(data)
-		{
-			if (data.Result != 'Ok')
-			{
-				onError( data.Result == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
-				return;
-			}
-			
-			data.Response.sort(function(a, b)
-			{
-				var dateA = $.datepicker.parseDate('dd.mm.yy', a[1]).valueOf();
-				var dateB = $.datepicker.parseDate('dd.mm.yy', b[1]).valueOf();
-				
-				if (dateA != dateB) return dateA - dateB;
-				
-				if (a[2] == b[2]) return 0;
-				
-				return a[2] < b[2] ? -1 : 1;
-			});
-			
-			var resArr = [];
-			
-			for ( var d = 0; d < data.Response.length; d++ )
-			{
-				var curImage = data.Response[d];
-				resArr.push({ geometry: from_merc_geometry(curImage[3]),
-							  dirName: params.modisImagesHost + curImage[4].split("\\").join("/"),
-							  date: curImage[1]
-						    });
-			}
-			
-			onSucceess( resArr );
-		});
+		addModisLayers(function()
+        {
+            addModisLayers(function(layers)
+            {
+                for (var iL in layers)
+                    layers[iL].setDateInterval(dateBegin, dateEnd);
+                    
+                onSucceess({modisLayers: layers});
+            })
+        })
 	}
 }
 
@@ -1155,39 +1194,18 @@ var FireBurntRenderer = function( params )
 */
 var ModisImagesRenderer = function( params )
 {
-	var _params = $.extend( {}, params );
-	
-	var _imagesObj = null;
+    var modisLayers = null;
 	this.bindData = function(data)
 	{
-		if (_imagesObj) _imagesObj.remove();
-        
-        if (!data) return;
-        
-		_imagesObj = globalFlashMap.addObject();
-		
-		if ( typeof _params.depth !== 'undefined' )
-			_imagesObj.bringToDepth( _params.depth );
-		
-		_imagesObj.setZoomBounds(1, 9);
-		_imagesObj.setVisible(false);
-		
-		for (var i = 0; i < data.length; i++) (function(imgData)
-		{
-			if (!imgData) return;
-			
-			var img = _imagesObj.addObject(imgData.geometry);
-			img.setTiles(function(i, j, z)
-			{
-				return imgData.dirName + "/" + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
-			});
-				
-		})(data[i]);
+        if (data)
+            modisLayers = data.modisLayers;
 	}
 	
 	this.setVisible = function(flag)
 	{
-		if (_imagesObj) _imagesObj.setVisible(flag);
+		if (modisLayers)
+            for (iL in modisLayers)
+                modisLayers[iL].setVisible(flag);
 	}
 }
 
@@ -1333,10 +1351,10 @@ var FireControlCollection = {instances: []};
 FireControl.DEFAULT_OPTIONS = 
 {
 	firesHost:       'http://sender.kosmosnimki.ru/v3/',
-	imagesHost:      'http://sender.kosmosnimki.ru/v3/',
+	modisHost:      'http://maps.kosmosnimki.ru/',
 	burntHost:       'http://sender.kosmosnimki.ru/',
 	fireIconsHost:   'http://maps.kosmosnimki.ru/images/',
-	modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/',
+	//modisImagesHost: 'http://images.kosmosnimki.ru/MODIS/',
 	
 	initExtent: null,
     
@@ -1602,7 +1620,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 						  
 	if ( this._firesOptions.images ) 
 		this.addDataProvider( "images",
-							  new ModisImagesProvider( {host: this._firesOptions.imagesHost, modisImagesHost: this._firesOptions.modisImagesHost} ),
+							  new ModisImagesProvider( {host: this._firesOptions.modisHost} ),
 							  new ModisImagesRenderer( {depth: this._firesOptions.modisDepth } ),
 							  { isVisible: this._firesOptions.imagesInit, isUseBbox: false } );
 							  
