@@ -2649,8 +2649,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		return String(path).substr(String(path).lastIndexOf('.') + 1, path.length);
 	}
 	
-	var _this = this,
-		vectorRetilingFlag = false;
+	var _this = this;
 
 	var title = _input(null,[['attr','fieldName','title'],['attr','value',div ? (div.gmxProperties.content.properties.title ? div.gmxProperties.content.properties.title : '') :  (typeof properties.Title != 'undefined' ? properties.Title : '')],['dir','className','inputStyle'],['css','width','220px']])
 	title.onkeyup = function()
@@ -2789,14 +2788,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		
 		shapePath.oldValue = shapePath.value;
 		
-		shapePath.onkeyup = function()
-		{
-			if (this.value != this.oldValue)
-				vectorRetilingFlag = true;
-			
-			return true;
-		}
-		
 		if (div && getFileExt(shapePath.value) === 'shp')
 		{
 			encodingWidget.drawWidget(encodingParent, properties.EncodeSource);
@@ -2815,7 +2806,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			_fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml'], function(path)
 			{
 				shapePath.value = path;
-				vectorRetilingFlag = true;
 				
 				var index = String(path).lastIndexOf('.'),
 					ext = String(path).substr(index + 1, path.length);
@@ -2847,7 +2837,6 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			{
 				//shapePath.value = name;
 				tablePath.value = name;
-				vectorRetilingFlag = true;
 				
 				if (title.value == '')
 					title.value = name;
@@ -3123,7 +3112,18 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			var temporalLayerParentTable = _div(null, [['dir', 'className', 'TemporalLayer']]);
 			var temporalLayerParamsTable = new nsGmx.TemporalLayerParams();
 			var temporalLayerViewTable = new nsGmx.TemporalLayerParamsControl(temporalLayerParentTable, temporalLayerParamsTable, []);
-            var sourceTable = _div([tablePath, tableLink, temporalLayerParentTable, tableColumnsParent], [['dir', 'id', 'tableSource' + properties.name]])
+            
+            var TableCSParent = _div();
+            var TableCSSelect = $('<select/>', {'class': 'selectStyle'})
+                .append($('<option>').val('EPSG:4326').text(_gtxt('Широта/Долгота (EPSG:4326)')))
+                .append($('<option>').val('EPSG:3395').text(_gtxt('Меркатор (EPSG:3395)')));
+                
+            if (properties.TableCS)
+                TableCSSelect.find('[value="' + properties.TableCS +'"]').attr('selected', 'selected');
+                
+            $(TableCSParent).append($('<span/>').text(_gtxt('Проекция')).css('margin', '3px')).append(TableCSSelect);
+            
+            var sourceTable = _div([tablePath, tableLink, TableCSParent, temporalLayerParentTable, tableColumnsParent, ], [['dir', 'id', 'tableSource' + properties.name]])
 			
 			var temporalLayerParamsManual = new nsGmx.TemporalLayerParams();
 			var temporalLayerParentManual = _div(null, [['dir', 'className', 'TemporalLayer']]);
@@ -3462,12 +3462,12 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				var cols = '',
 					updateParams = '',
 					encoding = '&EncodeSource=' + encodingWidget.getServerEncoding(),
-					needRetiling = false,
 					columnsParent = selectedSource == 0 ? xlsColumnsParent : tableColumnsParent,
 					colXElem = $(columnsParent).find("[selectLon]"),
 					colYElem = $(columnsParent).find("[selectLat]"),
 					layerTitle = title.value,
-					temporalParams = '';
+					temporalParams = '',
+                    tableCSParam = selectedSource == 1 ? '&TableCS=' + TableCSSelect.find(':selected').val() : '';
 				
 				var temporalLayerParams = selectedSource == 1 ? temporalLayerParamsTable : temporalLayerParamsManual;
 				if ( temporalLayerParams.getTemporal() )
@@ -3478,21 +3478,8 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				
 				if (div)
 				{
-					needRetiling = vectorRetilingFlag;
-					
 					updateParams = '&VectorLayerID=' + div.gmxProperties.content.properties.LayerID;
-					
-					var oldGeometryDataSource = properties.ShapePath ? properties.ShapePath.Path : properties.GeometryTable.TableName;
-					
-					// если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
-					if ((shapePath.value || tablePath.value) != oldGeometryDataSource ||
-						colXElem.length && colXElem[0].value != properties.GeometryTable.XCol ||
-						colYElem.length && colYElem[0].value != properties.GeometryTable.YCol)
-						needRetiling = true;
 				}
-				
-				if (needRetiling)
-					updateParams += '&NeedRetiling=true';
 				
 				if (isCustomAttributes)
 				{
@@ -3509,7 +3496,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                         "&Copyright=" + copyright.value + 
                         "&Description=" + descr.value + 
                         "&MapName=" + _mapHelper.mapProperties.name + 
-                        cols + updateParams + columnsString + temporalParams + 
+                        cols + columnsString + temporalParams +
                         "&geometrytype=" + geomType +
                         metadataString, 
 						function(response)
@@ -3532,13 +3519,13 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				else
 				{
 					var geometryDataSource = selectedSource == 0 ? shapePath.value : tablePath.value;
-					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (!div ? "Insert.ashx" : "Update.ashx") + "?WrapStyle=func" + 
+					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (div ? "Update.ashx" : "Insert.ashx") + "?WrapStyle=func" + 
                         "&Title=" + title.value + 
                         "&Copyright=" + copyright.value + 
                         "&Description=" + descr.value + 
                         "&GeometryDataSource=" + geometryDataSource + 
                         "&MapName=" + _mapHelper.mapProperties.name + 
-                        cols + updateParams + encoding + temporalParams + metadataString, 
+                        cols + updateParams + encoding + temporalParams + metadataString + tableCSParam, 
                         function(response)
 						{
 							if (!parseResponse(response))
@@ -3547,7 +3534,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 							_this.asyncTasks[response.Result.TaskID] = div ? div.gmxProperties.content.properties.name : true;
 							
 							if (div)
-								_queryMapLayers.asyncUpdateLayer(response.Result, properties, needRetiling);
+								_queryMapLayers.asyncUpdateLayer(response.Result, properties, true);
 							else
 								_queryMapLayers.asyncCreateLayer(response.Result, layerTitle);
 						}

@@ -156,7 +156,7 @@ _translationsHash.hash["eng"] = {
 	"Растровых слоев" : "Raster layers",
 	"Масштабирование в миникарте" : "Minimap zoom delta",
 	"Показывать всплывающие подсказки" : "Show tooltips",
-	"Свойства" : "Features",
+	"Свойства" : "Properties",
 	"Стили" : "Styles",
 	"Изображение на карте" : "Ground overlay",
 	"Слой [value0]" : "Layer [value0]",
@@ -554,5 +554,8 @@ _translationsHash.hash["eng"] = {
     "Плагины": "Plugins",
     "Вручную": "Manually",
     "Добавить атрибут": "Add attribute",
+    "Проекция": "Projection",
+    "Широта/Долгота (EPSG:4326)": "Lat/Lon (EPSG:4326)",
+    "Меркатор (EPSG:3395)": "Mercator (EPSG:3395)",
     "Администрирование": "Administration"
 };
