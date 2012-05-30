@@ -3701,13 +3701,7 @@ mapHelper.prototype.createNewLayer = function(type)
     else
     { //мультислой
         var _this = this;
-        sendCrossDomainJSONRequest(serverBase + "MultiLayer/GetInsertInfo.ashx", function(response)
-        {
-            if (!parseResponse(response))
-                return;
-                
-            nsGmx.doCreateMultiLayerEditor({}, [], response.Result.LayersToAdd, null, _this);
-        });
+        nsGmx.createMultiLayerEditorNew( this );
     }
 }
 
@@ -4586,7 +4580,7 @@ mapHelp.externalMaps.unload = function()
 
 //Редактирование мультислоя
 nsGmx.createMultiLayerEditorServer = gmxCore.createDeferredFunction('MultiLayerEditor', 'createMultiLayerEditorServer');
-nsGmx.doCreateMultiLayerEditor = gmxCore.createDeferredFunction('MultiLayerEditor', 'doCreateMultiLayerEditor');
+nsGmx.createMultiLayerEditorNew = gmxCore.createDeferredFunction('MultiLayerEditor', 'createMultiLayerEditorNew');
 
 //Редактирование карты и группы
 nsGmx.addSubGroup = gmxCore.createDeferredFunction('GroupEditor', 'addSubGroup');

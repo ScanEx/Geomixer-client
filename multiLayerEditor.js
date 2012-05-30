@@ -1,6 +1,12 @@
 ﻿(function(){
 
 //получает с сервера информацию о мультислое и рисует диалог редактирования его настроек
+
+var createMultiLayerEditorNew = function(mapHelper)
+{
+    doCreateMultiLayerEditor( {}, [], null, mapHelper );
+}
+
 var createMultiLayerEditorServer = function(elemProperties, div, mapHelper)
 {
     sendCrossDomainJSONRequest(serverBase + "MultiLayer/GetMultiLayerFullInfo.ashx?MultiLayerID=" + elemProperties.MultiLayerID, function(response)
@@ -8,19 +14,17 @@ var createMultiLayerEditorServer = function(elemProperties, div, mapHelper)
         if (!parseResponse(response))
             return;
             
-        doCreateMultiLayerEditor(elemProperties, response.Result.Layers, response.Result.LayersToAdd, div, mapHelper);
+        doCreateMultiLayerEditor(elemProperties, response.Result.Layers, div, mapHelper);
     })
 }
 
-var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div, mapHelper)
+var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
 {
     var commonLayersListDiv = _div(null, [['css', 'height', '100%'], ['css', 'width', '100%']]);
     var selectedLayersDiv = _div(null, [['css', 'height', '100%'], ['css', 'margin', '10px 10px 0px 0px']]);
     
     var selectedLayersTable = new scrollTable();
     
-    _queryMapLayers.layersList = layersToAdd;
-
     var suggestLayersControl = new nsGmx.LayerManagerControl(commonLayersListDiv, 'multilayers', {
         fixType: 'raster', 
         enableDragging: false,
@@ -265,7 +269,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, layersToAdd, div
 
 gmxCore.addModule('MultiLayerEditor', {
     createMultiLayerEditorServer: createMultiLayerEditorServer,
-    doCreateMultiLayerEditor: doCreateMultiLayerEditor
+    createMultiLayerEditorNew: createMultiLayerEditorNew
 })
 
 })();
