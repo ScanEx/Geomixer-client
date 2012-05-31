@@ -925,20 +925,6 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 	return [spanParent];
 }
 
-layersTree.prototype.createGroupId = function()
-{
-	var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz",
-		randomstring = '';
-	
-	for (var i = 0; i < 16; i++) 
-	{
-		var rnum = Math.floor(Math.random() * chars.length);
-		randomstring += chars.charAt(rnum);
-	}
-	
-	return randomstring;
-}
-
 layersTree.prototype.removeGroup = function(div)
 {
 	var box = _checkbox(false, 'checkbox'),
