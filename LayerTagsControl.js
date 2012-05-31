@@ -278,7 +278,7 @@
         
         var addNewRow = function(tagId, tag, value)
         {
-            var tagInput = $('<input/>').val(tag).css('width', _params.inputWidth).autocomplete({
+            var tagInput = $('<input/>', {'class': 'inputStyle'}).val(tag).css('width', _params.inputWidth).autocomplete({
                 source: layerTags.getTagMetaInfo().getTagArrayExt(),
                 minLength: 0,
                 delay: 0,
@@ -301,7 +301,7 @@
                     .appendTo( ul );
             }
             
-            var valueInput = $('<input/>').val(value).css('width', _params.inputWidth);
+            var valueInput = $('<input/>', {'class': 'inputStyle'}).val(value).css('width', _params.inputWidth);
             
             var type = layerTags.getTagMetaInfo().getTagType(tag);
             updateInput(valueInput, type);

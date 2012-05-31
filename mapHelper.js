@@ -2753,7 +2753,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
     var isCollapsed = type != 'Vector';
     var headerTr = _tr([
         _td([collapseTagIcon], [['css', 'textAlign', 'center'], ['css', 'cursor', 'pointer'], ['css', 'width', '20px']]),
-        _td([_t(_gtxt('Метаданные слоя'))], [['css', 'fontWeight', 'bold'], ['css', 'cursor', 'pointer']])
+        _td([_t(_gtxt('Метаданные'))], [['css', 'fontWeight', 'bold'], ['css', 'cursor', 'pointer']])
     ]);
     var collapsableTagsParent = _table([_tbody([headerTr, contentTr])], [['dir', 'className', 'layertags-collapsable']]);
     
