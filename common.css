@@ -520,7 +520,12 @@ div.unit .unitInfo
 
 .drawingObjectsActiveItemCanvas
 {
-	background-color: #ffffcc;
+	/*background-color: #ffff00;*/
+	background-color: #94CAEB;
+}
+.drawingObjectsActiveItemCanvas .drawingObjectsItemTitle
+{
+	color: #003366;
 }
 
 .drawingObjectsItemTitle
