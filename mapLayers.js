@@ -1744,6 +1744,8 @@ queryMapLayers.prototype.load = function(data)
 		this.applyState(_layersTree.condition, _layersTree.mapStyles);
 
 		this.builded = true;
+        
+        $(this).triggerHandler('load');
 	}
 }
 
