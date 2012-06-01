@@ -416,7 +416,7 @@ var InitEditor = function(target) {
         theme: 'advanced',
 		skin : "o2k7",
         elements: target,
-        //relative_urls : false,
+		relative_urls: false,
         
 		dialog_type: "window",
 		
