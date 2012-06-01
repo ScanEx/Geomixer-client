@@ -447,12 +447,6 @@
 				{
 					gmxAPI._cmdProxy('getFeatureById', { 'obj': obj, 'attr':{'fid':fid, 'func': func} });
 				}
-
-				if(obj._temporalTiles) {	// Для мультивременных слоёв
-					obj._temporalTiles.setVectorTiles();
-				} else {
-					obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
-				}
 				obj.setStyle = function(style, activeStyle)
 				{
 					for (var i = 0; i < obj.filters.length; i++)
@@ -461,6 +455,12 @@
 
 				for (var i = 0; i < obj.filters.length; i++) {
 					obj.filters[i] = initFilter(obj, i);
+				}
+
+				if(obj._temporalTiles) {	// Для мультивременных слоёв
+					obj._temporalTiles.setVectorTiles();
+				} else {
+					obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
 				}
 
 				// Изменить атрибуты векторного обьекта из загруженных тайлов
