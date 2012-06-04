@@ -453,14 +453,14 @@
 						obj.filters[i].setStyle(style, activeStyle);
 				}
 
-				for (var i = 0; i < obj.filters.length; i++) {
-					obj.filters[i] = initFilter(obj, i);
-				}
-
 				if(obj._temporalTiles) {	// Для мультивременных слоёв
 					obj._temporalTiles.setVectorTiles();
 				} else {
 					obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
+				}
+
+				for (var i = 0; i < obj.filters.length; i++) {
+					obj.filters[i] = initFilter(obj, i);
 				}
 
 				// Изменить атрибуты векторного обьекта из загруженных тайлов
