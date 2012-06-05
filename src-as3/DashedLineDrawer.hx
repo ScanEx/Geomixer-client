@@ -14,10 +14,12 @@ class DashedLineDrawer
 	var totalDashesLength:Float;
 	var prop:Hash<String>;
 
-	public function new(graphics_:Graphics, outline_:OutlineStyle, window_:MapWindow, ?prop_:Hash<String>)
+	public function new(graphics_:Graphics, outline_:OutlineStyle, window_:MapWindow, ?prop_:Hash<String>, ?propTemporal_:Hash<String>)
 	{
 		graphics = graphics_;
-		prop = prop_;
+		prop = new Hash<String>();
+		if (prop_ != null) for (key in prop_.keys()) prop.set(key, prop_.get(key));
+		if (propTemporal_ != null) for (key in propTemporal_.keys()) prop.set('_'+key, propTemporal_.get(key));
 		outline = outline_;
 		window = window_;
 		penIsVisible = false;

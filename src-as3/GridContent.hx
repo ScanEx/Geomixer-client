@@ -78,6 +78,8 @@ class GridContent extends MapContent
 
 	static function formatFloat(f:Float)
 	{
+		if (f > 180) f -= 360;
+		else if (f < -180) f += 360;
 		return Math.round(f*1000.0)/1000.0;
 	}
 }
