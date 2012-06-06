@@ -94,6 +94,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
     var propertiesDiv = _div(null, [['css', 'width', '100%'], ['css', 'height', '100%']]);
     var shownProperties = [];
     var title = _input(null,[['attr','fieldName','title'],['attr','value', elemProperties.title || ''],['dir','className','inputStyle'],['css','width','220px']])
+    var isCreatedDrawing = false;
     title.onkeyup = function()
     {
         if (div)
@@ -133,15 +134,77 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
     }
     
     var borderContainer = _div(),
-        borderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
+        shpContainer = _div(null, [['css', 'display', 'none'], ['css', 'margin', '3px']]),
+        borderLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
+        shpBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
     var borderTr = _tr([
-        _td([_t(_gtxt("Граница")), borderLink], [['css','paddingLeft','5px'],['css','fontSize','12px']]), 
-        _td([borderContainer])
+        _td([_t(_gtxt("Граница")), borderLink, _br(), _t(_gtxt("Из файла")), shpBorderLink], [['css','paddingLeft','5px'],['css','fontSize','12px']]), 
+        _td([borderContainer, shpContainer])
     ]);
+    
+    var shpGeometry = null;
+    var multiObj = null;
+    var fileInput = _input(null, [['attr', 'type', 'file'], ['attr', 'name', 'file'], ['attr', 'id', 'upload_shapefile']]);
+	fileInput.onchange = function()
+	{
+		if (this.value === "") 
+            return;
+            
+        sendCrossDomainPostRequest(serverBase + "ShapeLoader.ashx", {WrapStyle: "window"}, function(response)
+            {
+                var errorMessages = {
+                        "CommonUtil.FileTooBigException" : _gtxt("loadShape.Errors.FileTooBigException"),
+                        "CommonUtil.ErrorUploadExeption" : _gtxt("loadShape.Errors.ErrorUploadExeption"),
+                        "CommonUtil.NoGeometryFile"      : _gtxt("loadShape.Errors.NoGeometryFile"),
+                        "CommonUtil.ErrorUploadNoDependentFiles": _gtxt("loadShape.Errors.ErrorUploadNoDependentFiles")
+                };
+                
+                if (parseResponse(response, errorMessages))
+                {
+                    var obj = response.Result;
+                    
+                    if (obj.length == 0)
+                    {
+                        showErrorMessage(_gtxt("Загруженный shp-файл пуст"), true);
+                        return;
+                    }
+                    
+                    var polygonObjects = [];
+                    for (var i = 0; i < obj.length; i++)
+                    {
+                        if (obj[i].geometry.type == 'POLYGON')
+                            polygonObjects.push(obj[i].geometry.coordinates);
+                    }
+                    
+                    if (polygonObjects.length > 1)
+                        bindMultipolygon({type: "MULTIPOLYGON", coordinates: polygonObjects})
+                    else if (polygonObjects.length == 1)
+                    {
+                        isCreatedDrawing = true;
+                        bindPolygon(globalFlashMap.drawing.addObject({type: "POLYGON", coordinates: polygonObjects[0]}))
+                    }
+                    else
+                    {
+                        //TODO: ошибка
+                    }
+                    
+                    $(borderContainer).show();
+                    $(shpContainer).hide();
+                }
+            }, postForm);
+	}
+	
+	//задаём одновременно и enctype и encoding для корректной работы в IE
+	var postForm = _form([fileInput], [['attr', 'method', 'POST'], ['attr', 'encoding', 'multipart/form-data'], ['attr', 'enctype', 'multipart/form-data'], ['attr', 'id', 'upload_shapefile_form']]);
+    $(shpContainer).append(postForm);
     
     var bindPolygon = function(polygon)
     {
+        $(borderContainer).show();
+        $(shpContainer).hide();
+        
         geometryInfoRow && geometryInfoRow.RemoveRow();
+        removeMultipolygon();
         var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
         geometryInfoRow = new InfoRow(
             globalFlashMap, 
@@ -152,13 +215,57 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
         
         $(geometryInfoRow).bind('onRemove', function()
         {
-            geometryInfoRow.getDrawingObject().remove();
+            if (isCreatedDrawing)
+                geometryInfoRow.getDrawingObject().remove();
+            else
+                geometryInfoRow.RemoveRow();
+            
+            isCreatedDrawing = false;
+            
             geometryInfoRow = null;
         })
     }
     
+    var removeMultipolygon = function()
+    {
+        if (multiObj || shpGeometry)
+        {
+            multiObj && multiObj.remove();
+            shpGeometry = null;
+            $(borderContainer).empty();
+        }
+    }
+    
+    var bindMultipolygon = function(multigeometry)
+    {
+        multiObj = globalFlashMap.addObject(multigeometry);
+        multiObj.setStyle({outline: {color: 0x0000ff, thickness: 3}});
+        
+        if (geometryInfoRow && geometryInfoRow.getDrawingObject())
+        {
+            if (isCreatedDrawing)
+                 geometryInfoRow.getDrawingObject().remove();
+            else
+                geometryInfoRow.RemoveRow();
+                
+            isCreatedDrawing = false;
+        }
+        
+        geometryInfoRow = null;
+        
+        $(borderContainer).append($('<span/>').css('margin', '3px').text(_gtxt("Мультиполигон")));
+        shpGeometry = multigeometry;
+        var remove = makeImageButton(serverBase + 'api/img/closemin.png', serverBase + 'api/img/close_orange.png');
+        remove.setAttribute('title', _gtxt('Удалить'));
+        remove.onclick = removeMultipolygon;
+        remove.style.verticalAlign = 'middle';
+        
+        $(borderContainer).append(remove);
+    }
+    
     var geometryInfoRow = null;
     borderLink.style.marginLeft = '3px';
+    shpBorderLink.style.marginLeft = '3px';
     borderLink.onclick = function()
     {
         nsGmx.Controls.chooseDrawingBorderDialog( 
@@ -168,8 +275,24 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
         );
     }
     
+    shpBorderLink.onclick = function()
+    {
+        $(borderContainer).hide();
+        $(shpContainer).show();
+    }
+    
     if (elemProperties.UserBorder)
-        bindPolygon(globalFlashMap.drawing.addObject(gmxAPI.from_merc_geometry(elemProperties.UserBorder)));
+    {
+        if (elemProperties.UserBorder.type == "MULTIPOLYGON")
+        {
+            bindMultipolygon(gmxAPI.from_merc_geometry(elemProperties.UserBorder));
+        }
+        else
+        {
+            isCreatedDrawing = true;
+            bindPolygon(globalFlashMap.drawing.addObject(gmxAPI.from_merc_geometry(elemProperties.UserBorder)));
+        }
+    }
     
     shownProperties.push({name: _gtxt("Имя"), field: 'Title', elem: title});
     shownProperties.push({name: _gtxt("Описание"), field: 'Description', elem: descr});
@@ -177,6 +300,14 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
     
     var trs = _mapHelper.createPropertiesTable(shownProperties, elemProperties, {leftWidth: 70});
     _(propertiesDiv, [_table([_tbody(trs)],[['dir','className','propertiesTable']])]);
+    
+    var getUserBorder = function()
+    {
+        if (geometryInfoRow && geometryInfoRow.getDrawingObject())
+            return merc_geometry(geometryInfoRow.getDrawingObject().geometry);
+        
+        return merc_geometry(shpGeometry) || null;
+    }
     
     var isCreate = div === null;
     var saveButton = makeLinkButton(isCreate ? _gtxt("Создать") : _gtxt("Изменить"));
@@ -203,7 +334,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
                 Title: title.value, 
                 Description: descr.value, 
                 WMSAccess: false,
-                UserBorder: geometryInfoRow && geometryInfoRow.getDrawingObject() ? merc_geometry(geometryInfoRow.getDrawingObject().geometry) : null
+                UserBorder: getUserBorder()
             },
             Layers: layers, 
             LayersChanged: true
@@ -261,10 +392,9 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
                     _mapHelper.findTreeElem($(li).children("div[MultiLayerID]")[0]).elem = layerData;
                 }
                 
-                if (geometryInfoRow && geometryInfoRow.getDrawingObject())
-                {
-                    geometryInfoRow.getDrawingObject().remove();
-                }
+                geometryInfoRow && geometryInfoRow.getDrawingObject() && geometryInfoRow.getDrawingObject().remove();
+                
+                removeMultipolygon();
                     
                 _queryMapLayers.addSwappable(li);
                 _queryMapLayers.addDraggable(li);
@@ -316,8 +446,23 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
     }
     else
         dialogContainer = divProperties;
+        
+    var closeFunc = function()
+    {
+        removeMultipolygon();
+        
+        if (geometryInfoRow && geometryInfoRow.getDrawingObject())
+        {
+            if (isCreatedDrawing)
+                 geometryInfoRow.getDrawingObject().remove();
+            else
+                geometryInfoRow.RemoveRow();
+                
+            isCreatedDrawing = false;
+        }
+    }
     
-    var jQueryDialog = showDialog(_gtxt('Мультислой [value0]', elemProperties.title || ''), dialogContainer, 900, 530, false, false, null);
+    var jQueryDialog = showDialog(_gtxt('Мультислой [value0]', elemProperties.title || ''), dialogContainer, 900, 530, false, false, null, closeFunc);
 }
 
 gmxCore.addModule('MultiLayerEditor', {

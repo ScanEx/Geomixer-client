@@ -557,5 +557,7 @@ _translationsHash.hash["eng"] = {
     "Проекция": "Projection",
     "Широта/Долгота (EPSG:4326)": "Lat/Lon (EPSG:4326)",
     "Меркатор (EPSG:3395)": "Mercator (EPSG:3395)",
+    "Из файла": "From file",
+    "Мультиполигон": "Multipolygon",
     "Администрирование": "Administration"
 };
