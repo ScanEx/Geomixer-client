@@ -181,7 +181,7 @@
 			{
 				getAPI.onclick = function()
 				{
-					window.open("http://account.kosmosnimki.ru", "_blank");
+					window.open("http://my.kosmosnimki.ru", "_blank");
 				}
 				
 				input.onkeydown = function(e)
