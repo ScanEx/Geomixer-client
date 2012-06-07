@@ -1448,8 +1448,8 @@ window.gmxAPI = {
     }
 }
 
-window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);
-window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/Math.PI;
+window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);				// 111319.5;
+window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/Math.PI;	// 6335440.712613423;
 window.gmxAPI.serverBase = 'maps.kosmosnimki.ru';		// HostName основной карты по умолчанию
 window.gmxAPI.proxyType = 'flash';						// Тип отображения
 window.gmxAPI.miniMapAvailable = false;
@@ -1952,33 +1952,30 @@ function loadMapJSON(hostName, mapName, callback, onError)
 		if (key == "INVALID")
 			key = false;
 
-		gmxAPI.loadVariableFromScript(
+		sendCrossDomainJSONRequest(
 			"http://" + hostName + "/TileSender.ashx?ModeKey=map&MapName=" + mapName + (key ? ("&key=" + encodeURIComponent(key)) : "") + "&" + Math.random(),
-			"getLayers",
-			function(f)
+			function(response)
 			{
-				var layers = f();
-				if (layers)
-				{
-					layers.properties.hostName = hostName;
-					window.sessionKeyCache[mapName] = layers.properties.MapSessionKey;
-					forEachLayer(layers, function(layer)
-					{ 
-						layer.properties.mapName = layers.properties.name;
-						layer.properties.hostName = hostName;
-						layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
-					});
+				if(response && response['Status'] === 'ok' && response['Result']) {
+					var layers = response['Result'];
+					if (layers)
+					{
+						layers.properties.hostName = hostName;
+						window.sessionKeyCache[mapName] = layers.properties.MapSessionKey;
+						forEachLayer(layers, function(layer)
+						{ 
+							layer.properties.mapName = layers.properties.name;
+							layer.properties.hostName = hostName;
+							layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
+						});
+					}
+					callback(layers);
+					flashMapAlreadyLoading = false;
+				} else {
+					flashMapAlreadyLoading = false;
+					if (onError) onError();
 				}
-				callback(layers);
-				flashMapAlreadyLoading = false;
-			},
-			function()
-			{
-				flashMapAlreadyLoading = false;
-				if (onError)
-					onError();
-			},
-			onError ? true : false
+			}
 		);
 	}
 
@@ -2777,7 +2774,7 @@ function createFlashMapInternal(div, layers, callback)
 
 		if (callback) {
 			try {
-				callback(gmxAPI.map);		// Вызов createFlashMapInternal
+				callback(gmxAPI.map, layers);		// Вызов createFlashMapInternal
 			} catch(e) {
 				gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
 			}
@@ -2810,7 +2807,6 @@ window.createFlashMapInternal = createFlashMapInternal;
 
 function createKosmosnimkiMapInternal(div, layers, callback)
 {
-	var oldGetLayers = window.getLayers;
 	var finish = function()
 	{
 		loadMapJSON(
@@ -3026,20 +3022,18 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					if (layers)
 					{
 						map.defaultHostName = layers.properties.hostName;
-						window.getLayers = function() { return layers; }
 						map.addLayers(layers);
 						map.properties = layers.properties;
 					}
 					try {
-						callback(map);		// Вызов HTML маплета
+						callback(map, layers);		// Передача управления
 					} catch(e) {
-						gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'event': e, 'alert': 'Ошибка в HTML маплете:\n'+e});
+						gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'event': e, 'alert': 'Ошибка в callback:\n'+e});
 					}
 				});
 			},
 			function()
 			{
-				window.getLayers = oldGetLayers;
 				createFlashMapInternal(div, layers, callback);
 			}
 		);

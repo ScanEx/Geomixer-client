@@ -78,7 +78,7 @@ input
 			{
 				clearInterval(interval);
 				
-				createFlashMap(document.getElementById("mapParent").firstChild, state.host, state.mapName, function(map)
+				createFlashMap(document.getElementById("mapParent").firstChild, state.host, state.mapName, function(map, data)
 				{
 					globalFlashMap = map;
 					map.moveTo(state.position.x, state.position.y, state.position.z);
@@ -102,11 +102,10 @@ input
 							elem.setStyle(style, {outline: {color: color, thickness: thickness + 1, opacity: Math.min(100, opacity + 20)}, marker: { size: 4 }, fill: { color: 0xffffff }});
 						}
 					}
-					
-					if (!getLayers)
+					if (!data)
 						return;
 					
-					forEachLayer(getLayers(), function(layer)
+					forEachLayer(data, function(layer)
 					{
 						if (typeof state.layersVisibility[layer.properties.name] != 'undefined')
 							globalFlashMap.layers[layer.properties.name].setVisible(state.layersVisibility[layer.properties.name]);

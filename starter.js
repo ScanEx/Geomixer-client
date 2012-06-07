@@ -554,13 +554,13 @@ function loadMap(state)
         }
     }
 	
-	var mapCallback = function(map)
+	var mapCallback = function(map, data)
 	{
 		globalFlashMap = map;
 
         nsGmx.pluginsManager.beforeViewer();
         
-        var data = getLayers();
+        //var data = getLayers();
         
         
         if (!data)

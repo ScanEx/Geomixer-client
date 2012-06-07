@@ -179,7 +179,7 @@
 			if('LayerVersion' in layer.properties) {
 				if(!layer.properties.tilesVers && !layer.properties.TemporalVers) return false;
 				var mapHost = layers.properties.hostName || layer.properties.hostName;
-				var mapName = layers.properties.name || layer.properties.mapName;
+				var mapName = layer.properties.mapName || layers.properties.name;
 				if(!versionLayers[mapHost]) versionLayers[mapHost] = {};
 				if(!versionLayers[mapHost][mapName]) versionLayers[mapHost][mapName] = {};
 				var layerObj = ('stateListeners' in layer ? layer : gmxAPI.map.layers[layer.properties.name]);
