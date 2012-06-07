@@ -1974,6 +1974,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 				} else {
 					flashMapAlreadyLoading = false;
 					if (onError) onError();
+					else callback(layers);
 				}
 			}
 		);
