@@ -557,6 +557,26 @@ class Parsers
 				}
 			),
 			action(
+				sequence([token("round("), additiveExpression, token(")")]),
+				function(state:LinkedList):Dynamic
+				{
+					return function(props:Hash<String>):Float
+					{
+						return Math.round(state.head(props));
+					}
+				}
+			),
+			action(
+				sequence([token("floor("), additiveExpression, token(")")]),
+				function(state:LinkedList):Dynamic
+				{
+					return function(props:Hash<String>):Float
+					{
+						return Math.floor(state.head(props));
+					}
+				}
+			),
+			action(
 				sequence([token("["), fieldName, token("]")]),
 				function(state:LinkedList):Dynamic
 				{
