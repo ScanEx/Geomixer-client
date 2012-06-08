@@ -45,6 +45,7 @@
         // * options - {Object}. Following options are possible:
         //    * require - {Array of string}. What modules should be loaded before this one
         //    * init - {Function} function to initialize module. Signature: function moduleInit(moduleObj, modulePath)
+        //    * css - {Array || String} css files to load for module. css path is relative to module's path
         addModule: function(moduleName, moduleObj, options)
         {
             var requiredModules = (options && 'require' in options) ? options.require : [];
@@ -60,6 +61,28 @@
                 if (options && 'init' in options)
 				{
                     options.init(moduleObj, _modulePathes[moduleName]);
+				}
+                
+                if (options && 'css' in options)
+				{
+                    var doLoadCss = function()
+                    {
+                        var cssFiles = typeof options.css === 'string' ? [options.css] : options.css;
+                        var path = _modulePathes[moduleName] || window.gmxJSHost || "";
+                        
+                        for (var iF = 0; iF < cssFiles.length; iF++)
+                            $.getCSS(path + cssFiles[iF]);
+                    }
+                    
+                    if ('getCSS' in $)
+                    {
+                        doLoadCss();
+                    }
+                    else
+                    {
+                        var path = gmxAPI.getScriptBase('gmxcore.js');
+                        $.getScript(path + "jquery/jquery.getCSS.js", doLoadCss);
+                    }
 				}
                 
                 _modules[moduleName] = moduleObj;
