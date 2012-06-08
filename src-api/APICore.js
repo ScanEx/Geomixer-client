@@ -2374,17 +2374,21 @@ FlashMapObject.prototype.setToolImage = function(imageName, activeImageName)
 FlashMapObject.prototype.flip = function() { return gmxAPI._cmdProxy('flip', { 'obj': this }); }
 
 FlashMapObject.prototype.setFilter = function(sql) {
-	if(!sql) sql ='';
-	this._sql = sql;			// атрибуты фильтра установленные юзером
-	var ret = gmxAPI._cmdProxy('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
+	var ret = false;
+	if(this.parent && 'filters' in this.parent) {
+		if(!sql) sql ='';
+		this._sql = sql;			// атрибуты фильтра установленные юзером
+		ret = gmxAPI._cmdProxy('setFilter', { 'obj': this, 'attr':{ 'sql':sql }});
 
-	if(!this.clusters && '_Clusters' in gmxAPI) {
-		this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
+		if(!this.clusters && '_Clusters' in gmxAPI) {
+			this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
+		}
+		if(this.clusters.attr) {
+			this.setClusters(this.clusters.attr);
+		}
+	} else {
+		return this.setVisibilityFilter(sql);
 	}
-	if(this.clusters.attr) {
-		this.setClusters(this.clusters.attr);
-	}
-
 	return ret;
 }
 
