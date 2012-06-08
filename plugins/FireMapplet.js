@@ -503,13 +503,13 @@ var ModisImagesProvider = function( params )
                     var TiledQuicklook = _params.host + 'TileSenderSimple.ashx?TilePath=OperativeMODIS[TILES]/';
                     
                     layerProperties.content.properties.mapName = _mapHelper.mapProperties.name;
-                    layerProperties.content.properties.hostName = _mapHelper.mapProperties.hostName;
+                    layerProperties.content.properties.hostName = _params.host.substring(7, _params.host.length-1);
                     layerProperties.content.properties.visible = true;
                     
                     globalFlashMap.addLayer(layerProperties.content, true);
                     modisLayers[layerName] = globalFlashMap.layers[layerName];
                     // modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
-                    modisLayers[layerName].setVisibilityFilter("`IsDay` = 'True'");
+                    modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
                     
                     modisLayers[layerName].enableTiledQuicklooks(function(o)
                     {
