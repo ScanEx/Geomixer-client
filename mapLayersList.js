@@ -370,66 +370,6 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 				var minLayerZoom = _layersTree.getMinLayerZoom(layer);				
 				_layersTree.layerZoomToExtent(layer.getLayerBounds(), minLayerZoom);
 			}
-			
-			/* временно отключили разворачиание дерева
-			
-			var div;
-			
-			if (elem.LayerID)
-				div = $(_queryMapLayers.treeCanvas).find("div[LayerID='" + elem.LayerID + "']");
-			else
-				div = $(_queryMapLayers.treeCanvas).find("div[MultiLayerID='" + elem.MultiLayerID + "']");
-			
-			// слой еще не нарисован, нужно развернуть дерево
-			// либо развернем все родительские группы
-			var treeElem,
-				groupParent = _queryMapLayers.treeCanvas;
-			
-			if (elem.LayerID)	
-				treeElem = _mapHelper.findElem(_mapHelper.mapTree, "LayerID", elem.LayerID, []);
-			else
-				treeElem = _mapHelper.findElem(_mapHelper.mapTree, "MultiLayerID", elem.MultiLayerID, []);
-			
-			for (var i = treeElem.parents.length - 2; i >= 0; i--) // корень не считаем
-			{
-				if (!treeElem.parents[i].content.properties.expanded)
-				{
-					var group = $(groupParent).find("div[GroupID='" + treeElem.parents[i].content.properties.GroupID + "']")[0];
-					
-					if ($(group.parentNode.firstChild).hasClass('expandable-hitarea'))
-						$(group.parentNode.firstChild).trigger("click");
-					
-					groupParent = group.parentNode;
-				}
-			}
-			
-			if (elem.LayerID)
-				div = $(groupParent).find("div[LayerID='" + elem.LayerID + "']");
-			else
-				div = $(groupParent).find("div[MultiLayerID='" + elem.MultiLayerID + "']");
-			
-			var spanLayer = $(div[0]).find("span.layer")[0];
-			
-			_layersTree.setActive(spanLayer);
-			
-			var box = spanLayer.parentNode.parentNode.firstChild;
-			
-			box.checked = true;
-			
-			var parentParams = _layersTree.getParentParams(spanLayer.parentNode.parentNode.parentNode);
-			
-			_layersTree.visibilityFunc(box, true, parentParams.list);
-			
-		//	$(_queryMapLayers.treeButton).trigger("click");
-			
-			var scroll = getOffsetRect(spanLayer).top - $$('header').offsetHeight;
-			
-			if (scroll > 100)
-				scroll = scroll - 100;
-			
-			$$('leftContent').scrollTop = scroll;
-			
-			*/
 		};
 
 	span.layerName = elem.name;

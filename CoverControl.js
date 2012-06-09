@@ -68,7 +68,7 @@ CoverControl.prototype._updateLayers = function()
 {
 	if (typeof _mapHelper === 'undefined') return;
 	//проверим основную карту
-	this.coverLayers = nsMapCommon.selectLayersFromTree( globalFlashMap, _mapHelper.mapTree, this._coverLayersDescription ).names();
+	this.coverLayers = nsMapCommon.selectLayersFromTree( globalFlashMap, _layersTree._mapTree, this._coverLayersDescription ).names();
 
 	//и все дополнительные тоже будем фильтровать
 	if (typeof _queryExternalMaps.mapsCanvas != 'undefined')
@@ -77,7 +77,7 @@ CoverControl.prototype._updateLayers = function()
 		{
 			var mapElem = _queryExternalMaps.mapsCanvas.childNodes[m].childNodes[0];
 			if (mapElem.extLayersTree)
-				this.coverLayers = this.coverLayers.concat( nsMapCommon.selectLayersFromTree( globalFlashMap, mapElem.extLayersTree.mapHelper.mapTree, this._coverLayersDescription ).names() );
+				this.coverLayers = this.coverLayers.concat( nsMapCommon.selectLayersFromTree( globalFlashMap, mapElem.extLayersTree._mapTree, this._coverLayersDescription ).names() );
 		}
 	}
 }

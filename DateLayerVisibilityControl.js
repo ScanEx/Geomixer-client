@@ -59,11 +59,11 @@ var LayerFiltersControl = function()
 			{
 				var mapElem = _queryExternalMaps.mapsCanvas.childNodes[m].childNodes[0];
 				if (mapElem.extLayersTree)
-					_updateTree(mapElem.extLayersTree, mapElem.extLayersTree.mapHelper.mapTree, mapElem);
+					_updateTree(mapElem.extLayersTree, mapElem.extLayersTree._mapTree, mapElem);
 			}
 		}
 		
-		_updateTree(_layersTree, _mapHelper.mapTree, _queryMapLayers.buildedTree);
+		_updateTree(_layersTree, _layersTree._mapTree, _queryMapLayers.buildedTree);
 	}
 	
 	var _updateTree = function(layersTree, mapTree, domTreeRoot)

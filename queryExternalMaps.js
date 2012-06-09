@@ -130,6 +130,7 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent)
 			extLayersTree = new layersTree({showVisibilityCheckbox: true, allowActive: false, allowDblClick: true});
 		
 		extMapHelper.mapTree = treeJSON;
+		extMapHelper._treeView = extLayersTree;
 		extLayersTree.mapHelper = extMapHelper;
 		
 		var	tree = extLayersTree.drawTree(treeJSON, 2);

@@ -1,3 +1,9 @@
+var nsGmx = nsGmx || {};
+
+nsGmx.mapHelper = {
+    
+}
+
 var mapHelp =
 {
 	mapHelp: {},
@@ -10,6 +16,7 @@ var mapHelp =
 var mapHelper = function()
 {
 	this.builded = false;
+    this._treeView = false;
 	
 	this.defaultStyles = 
 	{
@@ -3688,7 +3695,7 @@ mapHelper.prototype.createNewLayer = function(type)
     else
     { //мультислой
         var _this = this;
-        nsGmx.createMultiLayerEditorNew( this );
+        nsGmx.createMultiLayerEditorNew( this._treeView );
     }
 }
 
@@ -4007,7 +4014,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 		}
 		else
 		{
-            nsGmx.createMultiLayerEditorServer(elemProperties, div, this);
+            nsGmx.createMultiLayerEditorServer(elemProperties, div, this._treeView);
         }
 	}
 }
@@ -4379,69 +4386,22 @@ mapHelper.prototype.print = function()
 		return false;
 }
 
-mapHelper.prototype.findElem = function(elem, attrName, name, parents)
-{
-	var childs = typeof elem.children != 'undefined' ? elem.children : elem.content.children;
-	
-	for (var i = 0; i < childs.length; i++)
-	{
-		if (childs[i].content.properties[attrName] == name)
-			return {elem:childs[i], parents: [elem].concat(parents), index: i};
-		
-		if (typeof childs[i].content.children != 'undefined')
-		{
-			var res = this.findElem(childs[i], attrName, name, [elem].concat(parents));
-			
-			if (res)
-				return res;
-		}
-	}
-	
-	return false;
-}
-
+//TODO: depricated, remove
 mapHelper.prototype.removeTreeElem = function(div)
 {
-	var elem = this.findTreeElem(div);
-	
-	if (typeof elem.parents[0].children != 'undefined')
-		elem.parents[0].children.splice(elem.index, 1);
-	else
-		elem.parents[0].content.children.splice(elem.index, 1);
+    return this._treeView.removeTreeElem(div);
 }
 
+//TODO: depricated, remove
 mapHelper.prototype.addTreeElem = function(div, index, elemProperties)
 {
-	var elem = this.findTreeElem(div);
-	
-	if (typeof elem.elem.children != 'undefined')
-		elem.elem.children.splice(index, 0, elemProperties);
-	else
-		elem.elem.content.children.splice(index, 0, elemProperties);
-        
-    $(this.mapTree).triggerHandler('addTreeElem', [elemProperties]);
+    return this._treeView.addTreeElem(div);
 }
 
-mapHelper.prototype.findTreeElemByGmxProperties = function(gmxProperties)
-{
-	if (gmxProperties.type == 'group') //группа
-		return this.findElem(this.mapTree, "GroupID", gmxProperties.content.properties.GroupID, [this.mapTree]);
-	else if (typeof gmxProperties.content.properties.LayerID !== 'undefined') //слой
-		return this.findElem(this.mapTree, "LayerID", gmxProperties.content.properties.LayerID, [this.mapTree]);
-	else if (typeof gmxProperties.content.properties.MultiLayerID !== 'undefined') //мультислой
-		return this.findElem(this.mapTree, "MultiLayerID", gmxProperties.content.properties.MultiLayerID, [this.mapTree]);
-}
-
+//TODO: depricated, remove
 mapHelper.prototype.findTreeElem = function(div)
 {
-	if (div.getAttribute("MapID"))
-		return {elem:this.mapTree, parents:[], index:false};
-	else if (div.getAttribute("GroupID"))
-		return this.findElem(this.mapTree, "GroupID", div.getAttribute("GroupID"), [this.mapTree]);
-	else if (div.getAttribute("LayerID"))
-		return this.findElem(this.mapTree, "LayerID", div.getAttribute("LayerID"), [this.mapTree]);
-	else if (div.getAttribute("MultiLayerID"))
-		return this.findElem(this.mapTree, "MultiLayerID", div.getAttribute("MultiLayerID"), [this.mapTree]);
+    return this._treeView.findTreeElem(div);
 }
 
 mapHelper.prototype.findChilds = function(treeElem, callback, flag)

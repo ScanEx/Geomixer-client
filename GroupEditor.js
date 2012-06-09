@@ -106,9 +106,9 @@ var GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox, sho
 
 /** Показывает диалог добавления новой подгруппы
   @param div {HTMLNode} - куда добавлять новую подгруппу (группа или карта)
-  @param mapHelper {mapHelper} - вспомогательный класс
+  @param layersTree {layersTree} - дерево главной карты
 */
-var addSubGroup = function(div, mapHelper)
+var addSubGroup = function(div, layersTree)
 {
 	var ul = _abstractTree.getChildsUl(div.parentNode),
 		newIndex;
@@ -154,7 +154,7 @@ var addSubGroup = function(div, mapHelper)
 			
 			_queryMapLayers.addSwappable(li);
 			
-			mapHelper.addTreeElem(div, 0, newGroupProperties);
+			layersTree.addTreeElem(div, 0, newGroupProperties);
 			
 			var childsUl = _abstractTree.getChildsUl(div.parentNode);
 			
@@ -177,7 +177,7 @@ var addSubGroup = function(div, mapHelper)
 			$(dialogDiv).dialog('destroy');
 			dialogDiv.removeNode(true);
 			
-			mapHelper.updateUnloadEvent(true);
+			_mapHelper.updateUnloadEvent(true);
 		};
 	
 	create.onclick = createSubGroup;
@@ -205,18 +205,20 @@ var addSubGroup = function(div, mapHelper)
 	var parentDiv = _div([inputIndex, _br(), create],[['css','textAlign','center']]);
 	var trs = [{name: _gtxt("Имя группы"), elem: inputIndex}].concat(groupVisibilityPropertiesControls);
 	
-	var trsControls = mapHelper.createPropertiesTable(trs, elemProperties, {leftWidth: 100});
+	var trsControls = _mapHelper.createPropertiesTable(trs, elemProperties, {leftWidth: 100});
 	var propsTable = _div([_table([_tbody(trsControls)],[['dir','className','propertiesTable']])]);
 	_(parentDiv, [propsTable, _br(), create]);
 	
 	var dialogDiv = showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 210, pos.left, pos.top);
 }
 
-var createGroupEditorProperties = function(div, isMap, mapHelper)
+var createGroupEditorProperties = function(div, isMap, layersTree)
 {
 	var elemProperties = (isMap) ? div.gmxProperties.properties : div.gmxProperties.content.properties,
 		trs = [],
 		_this = this;
+        
+    var rawTree = layersTree.treeModel.getRawTree();
 
 	var title = _input(null,[['attr','value',typeof elemProperties.title != 'undefined' ? elemProperties.title : ''],['dir','className','inputStyle'],['css','width','206px']])
 	
@@ -248,9 +250,9 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 		}
 		
 		if (isMap) {
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
+			rawTree.properties = div.gmxProperties.properties;
 		} else {
-			mapHelper.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+			layersTree.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 		}
 		
 		var ul = _abstractTree.getChildsUl(div.parentNode),
@@ -289,13 +291,13 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 		{
 			div.gmxProperties.properties.title = title.value;
 			
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
+			rawTree.properties = div.gmxProperties.properties;
 		}
 		else
 		{
 			div.gmxProperties.content.properties.title = title.value;
 			
-			mapHelper.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+			layersTree.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 		}
 		
 		return true;
@@ -303,7 +305,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 		
 	var addProperties = function(shownProperties)
 	{		
-		return mapHelper.createPropertiesTable(shownProperties, elemProperties, {leftWidth: 100});
+		return _mapHelper.createPropertiesTable(shownProperties, elemProperties, {leftWidth: 100});
 	};
 	
 	if (isMap)
@@ -334,44 +336,32 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 		{
 			div.gmxProperties.properties.UseKosmosnimkiAPI = this.checked;
 			
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
+			rawTree.properties = div.gmxProperties.properties;
 		}
 		useOSM.onclick = function()
 		{
 			div.gmxProperties.properties.UseOpenStreetMap = this.checked;
 			
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
+			rawTree.properties = div.gmxProperties.properties;
 		}
-	/*	searchVectors.onclick = function()
-		{
-			div.gmxProperties.properties.CanSearchVector = this.checked;
-			
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
-		}*/
-	/*	showBalloons.onclick = function()
-		{
-			div.gmxProperties.properties.ShowPropertiesBalloons = this.checked;
-			
-			_mapHelper.mapTree.properties = div.gmxProperties.properties;
-		}*/
 		downloadVectors.onclick = function()
 		{
 			div.gmxProperties.properties.CanDownloadVectors = this.checked;
 			
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
+			rawTree.properties = div.gmxProperties.properties;
 		}
 		downloadRasters.onclick = function()
 		{
 			div.gmxProperties.properties.CanDownloadRasters = this.checked;
 			
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
+			rawTree.properties = div.gmxProperties.properties;
 		}
         
         WMSAccess.onclick = function()
 		{
 			div.gmxProperties.properties.WMSAccess = this.checked;
 			
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
+			rawTree.properties = div.gmxProperties.properties;
 		}
 		
 		defLat.onkeyup = function()
@@ -380,7 +370,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 			{
 				div.gmxProperties.properties.DefaultLat = Number(this.value);
 				
-				mapHelper.mapTree.properties = div.gmxProperties.properties;
+				rawTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -391,7 +381,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 			{
 				div.gmxProperties.properties.DefaultLong = Number(this.value);
 				
-				mapHelper.mapTree.properties = div.gmxProperties.properties;
+				rawTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -400,7 +390,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 		{
 			div.gmxProperties.properties.ViewUrl = this.value;
 			
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
+			rawTree.properties = div.gmxProperties.properties;
 			
 			return true;
 		}
@@ -410,7 +400,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 			{
 				div.gmxProperties.properties.DefaultZoom = Number(this.value);
 			
-				mapHelper.mapTree.properties = div.gmxProperties.properties;
+				rawTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -421,7 +411,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 			{
 				div.gmxProperties.properties.MiniMapZoomDelta = Number(this.value);
 			
-				mapHelper.mapTree.properties = div.gmxProperties.properties;
+				rawTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -431,7 +421,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 		{
 			div.gmxProperties.properties.OnLoad = this.value;
 			
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
+			rawTree.properties = div.gmxProperties.properties;
 			
 			return true;
 		}
@@ -440,7 +430,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 		{
 			div.gmxProperties.properties.Copyright = this.value;
 			
-			mapHelper.mapTree.properties = div.gmxProperties.properties;
+			rawTree.properties = div.gmxProperties.properties;
 			
 			return true;
 		}
@@ -451,7 +441,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 			{
 				div.gmxProperties.properties.MinViewX = Number(this.value);
 				
-				mapHelper.mapTree.properties = div.gmxProperties.properties;
+				rawTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -463,7 +453,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 			{
 				div.gmxProperties.properties.MinViewY = Number(this.value);
 				
-				mapHelper.mapTree.properties = div.gmxProperties.properties;
+				rawTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -475,7 +465,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 			{
 				div.gmxProperties.properties.MaxViewX = Number(this.value);
 				
-				mapHelper.mapTree.properties = div.gmxProperties.properties;
+				rawTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -487,7 +477,7 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 			{
 				div.gmxProperties.properties.MaxViewY = Number(this.value);
 				
-				mapHelper.mapTree.properties = div.gmxProperties.properties;
+				rawTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -545,13 +535,13 @@ var createGroupEditorProperties = function(div, isMap, mapHelper)
 		_(divView,   [_table([_tbody(addProperties(shownViewProperties))],  [['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divOnload, [onLoad])
         
-        var mapPlugins = nsGmx.createPluginsEditor(divPlugins, mapHelper.mapPlugins);
+        var mapPlugins = nsGmx.createPluginsEditor(divPlugins, _mapHelper.mapPlugins);
         $(mapPlugins).change(function()
         {
-            mapHelper.mapPlugins = [];
+            _mapHelper.mapPlugins = [];
             mapPlugins.each(function(p)
             {
-                mapHelper.mapPlugins.push(p);
+                _mapHelper.mapPlugins.push(p);
             });
         });
 		
@@ -585,7 +575,7 @@ var createGroupEditor = function(div)
 			return false;
 		};
 	
-	var canvas = createGroupEditorProperties(div, false, _mapHelper);
+	var canvas = createGroupEditorProperties(div, false, _layersTree);
 	showDialog(_gtxt('Группа [value0]', elemProperties.title), canvas, 340, 160, pos.left, pos.top, null, closeFunc);
 	_groupEditorsHash[elemProperties.GroupID] = true;
 	
@@ -614,7 +604,7 @@ var createMapEditor = function(div)
 			return false;
 		};
 	
-	var canvas = createGroupEditorProperties(div, true, _mapHelper);
+	var canvas = createGroupEditorProperties(div, true, _layersTree);
 	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 340, 330, pos.left, pos.top, null, closeFunc);
 	_mapEditorsHash[elemProperties.MapID] = true;
 	

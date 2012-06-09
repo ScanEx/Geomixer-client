@@ -229,6 +229,7 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
         var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false});
 		
 		previewMapHelper.mapTree = layers;
+        previewMapHelper._treeView = previewLayersTree;
 		previewLayersTree.mapHelper = previewMapHelper;
         
         var ul = previewLayersTree.drawTree(layers, 2);

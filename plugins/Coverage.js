@@ -3,7 +3,7 @@
 	var layerStatus = {};
 
 	var fnRefreshLayer = function(layerId){
-		var layer = _mapHelper.findElem(_mapHelper.mapTree, "LayerID", layerId, []);
+		var layer = _layersTree.treeModel.findElem("LayerID", layerId);
 		if (!layerStatus[layerId]) return;
 		
 		if(layerId in coverageContainers) {

@@ -367,11 +367,11 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		else
 			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
 		
-		var treeElem = _mapHelper.findTreeElem(div).elem,
+		var treeElem = _layersTree.findTreeElem(div).elem,
 			node = div.parentNode,
 			parentTree = node.parentNode;
 		
-		_mapHelper.removeTreeElem(div);
+		_layersTree.removeTreeElem(div);
 
 		node.removeNode(true);
 		
@@ -394,12 +394,12 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	},
 	clickCallback: function(context)
 	{            
-		var elem;
-        var mapHelper = context.tree.mapHelper;
+		var rawTree = context.tree.treeModel,
+            elem;
         if (context.elem.LayerID)
-			elem = mapHelper.findElem(mapHelper.mapTree, "LayerID", context.elem.LayerID).elem;
+			elem = rawTree.findElem("LayerID", context.elem.LayerID).elem;
 		else
-			elem = mapHelper.findElem(mapHelper.mapTree, "MultiLayerID", context.elem.MultiLayerID).elem;
+			elem = rawTree.findElem("MultiLayerID", context.elem.MultiLayerID).elem;
 
         nsGmx.ClipboardController.addItem('LayerStyle', {type: context.elem.GeometryType, style: elem.content.properties.styles});
 	}
@@ -455,7 +455,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Добавить подгруппу"); },
 	clickCallback: function(context)
 	{
-		nsGmx.addSubGroup(context.div, context.tree.mapHelper);
+		nsGmx.addSubGroup(context.div, context.tree);
 	}
 }, 'Group');
 
@@ -464,7 +464,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	clickCallback: function(context)
 	{
 		context.tree.removeGroup(context.div);
-		context.tree.mapHelper.updateUnloadEvent(true);
+		_mapHelper.updateUnloadEvent(true);
 	}
 }, 'Group');
 ///////////////////////////////////////////////////////////////////////////////
@@ -488,7 +488,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Добавить подгруппу"); },
 	clickCallback: function(context)
 	{
-		nsGmx.addSubGroup(context.div, context.tree.mapHelper);
+		nsGmx.addSubGroup(context.div, context.tree);
 	}
 }, 'Map');
 

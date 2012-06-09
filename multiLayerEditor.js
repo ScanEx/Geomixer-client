@@ -1,13 +1,12 @@
 ﻿(function(){
 
-//получает с сервера информацию о мультислое и рисует диалог редактирования его настроек
-
-var createMultiLayerEditorNew = function(mapHelper)
+var createMultiLayerEditorNew = function(layersTree)
 {
-    doCreateMultiLayerEditor( {}, [], null, mapHelper );
+    doCreateMultiLayerEditor( {}, [], null, layersTree );
 }
 
-var createMultiLayerEditorServer = function(elemProperties, div, mapHelper)
+//получает с сервера информацию о мультислое и рисует диалог редактирования его настроек
+var createMultiLayerEditorServer = function(elemProperties, div, layersTree)
 {
     sendCrossDomainJSONRequest(serverBase + "MultiLayer/GetMultiLayerFullInfo.ashx?MultiLayerID=" + elemProperties.MultiLayerID, function(response)
     {
@@ -15,11 +14,11 @@ var createMultiLayerEditorServer = function(elemProperties, div, mapHelper)
             return;
             
         var elemPropertiesFull = $.extend(true, response.Result.Properties, elemProperties);
-        doCreateMultiLayerEditor(elemPropertiesFull, response.Result.Layers, div, mapHelper);
+        doCreateMultiLayerEditor(elemPropertiesFull, response.Result.Layers, div, layersTree);
     })
 }
 
-var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
+var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
 {
     var commonLayersListDiv = _div(null, [['css', 'height', '100%'], ['css', 'width', '100%']]);
     var selectedLayersDiv = _div(null, [['css', 'height', '100%'], ['css', 'margin', '10px 10px 0px 0px']]);
@@ -107,7 +106,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
 
             div.gmxProperties.content.properties.title = title.value;
             
-            mapHelper.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+            layersTree.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
         }
         
         return true;
@@ -127,7 +126,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
 
             div.gmxProperties.content.properties.description = descr.value;
             
-            mapHelper.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+            layersTree.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
         }
         
         return true;
@@ -231,6 +230,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
         if (multiObj || shpGeometry)
         {
             multiObj && multiObj.remove();
+            multiObj = null;
             shpGeometry = null;
             $(borderContainer).empty();
         }
@@ -360,8 +360,8 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
                     
                 var newLayerProperties = $.extend(true, response.Result.properties,
                 {
-                    mapName:  mapHelper.mapProperties.name,
-                    hostName: mapHelper.mapProperties.hostName,
+                    mapName:  layersTree.treeModel.getMapProperties().name,
+                    hostName: layersTree.treeModel.getMapProperties().hostName,
                     visible:  isCreate ? true : layerDiv.gmxProperties.content.properties.visible,
                     styles:   isCreate ? [{MinZoom: response.Result.properties.MinZoom, MaxZoom: response.Result.properties.MaxZoom}] : layerDiv.gmxProperties.content.properties.styles
                 });
@@ -379,17 +379,17 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
                 var li = _layersTree.getChildsList(layerData, divParent.gmxProperties, false, true);
                 
                 var divElem = $(li).children("div[MultiLayerID]")[0],
-                    index = _mapHelper.findTreeElem(divElem).index;
+                    index = _layersTree.findTreeElem(divElem).index;
                     
                 if (isCreate)
                 {
                     _abstractTree.addNode(_queryMapLayers.buildedTree.firstChild, li);
-                    _mapHelper.addTreeElem(divParent, index, layerData);
+                    layersTree.addTreeElem(divParent, index, layerData);
                 }
                 else
                 {
                     $(layerDiv.parentNode).replaceWith(li);
-                    _mapHelper.findTreeElem($(li).children("div[MultiLayerID]")[0]).elem = layerData;
+                    _layersTree.findTreeElem($(li).children("div[MultiLayerID]")[0]).elem = layerData;
                 }
                 
                 geometryInfoRow && geometryInfoRow.getDrawingObject() && geometryInfoRow.getDrawingObject().remove();
@@ -435,7 +435,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, mapHelper)
             elemProperties.styles[0].MinZoom = zoomPropertiesControl.getMinZoom();
             elemProperties.styles[0].MaxZoom = zoomPropertiesControl.getMaxZoom();
             
-            _mapHelper.findTreeElem(div).elem.content.properties = elemProperties;
+            _layersTree.findTreeElem(div).elem.content.properties = elemProperties;
         });
         
         var dialogContainer = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#properties' + elemProperties.name]])]),
