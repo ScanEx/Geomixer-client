@@ -119,7 +119,7 @@
 		}
 			
 		filter.setZoomBounds(attr['MinZoom'], attr['MaxZoom']);
-		filter.setStyle(attr['regularStyle'], attr['hoveredStyle']);
+		//filter.setStyle(attr['regularStyle'], attr['hoveredStyle']);
 		filter['_attr'] = attr;
 
 		gmxAPI._listeners.dispatchEvent('initFilter', gmxAPI.map, {'filter': filter} );	// Проверка map Listeners на reSetStyles - для балунов
@@ -504,6 +504,7 @@
 				delete filter["setFilter"];
 				delete filter["enableHoverBalloon"];
 				filter["setZoomBounds"] = FlashMapObject.prototype.setZoomBounds;
+				filter.setStyle(filter['_attr']['regularStyle'], filter['_attr']['hoveredStyle']);
 			}
 
 			// Установка видимости по Zoom
