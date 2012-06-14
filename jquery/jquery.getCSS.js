@@ -104,7 +104,7 @@
               } catch(e) {
                 // Gecko: catch NS_ERROR_DOM_SECURITY_ERR
                 // Webkit: catch SECURITY
-                if (/SECURITY/.test(e)) {
+                if (/SECURITY/i.test(e)) {
 
                   // setTimeout(callback, 0);
                   callback(link, "success");
