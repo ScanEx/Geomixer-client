@@ -685,9 +685,9 @@ function loadFunc(iframe, callback)
 	else
 	{
 		win.location = 'about:blank';
+        iframe.loaded = true;
 	}
 	
-	iframe.loaded = true;
 }
 
 function createPostIframe(id, callback)
