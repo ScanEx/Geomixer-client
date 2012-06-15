@@ -71,7 +71,7 @@ vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлен�
 		for (child in children)
 			child.remove();
 		if (parent != null) {
-			parent.children.remove(this);
+			//parent.children.remove(this);
 			parent.somethingHasChanged = true;
 			//parent.noteSomethingHasChanged();
 		}

@@ -1275,7 +1275,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					var node = getNode(attr.objectId);
 					if(node != null) {
 						node.remove();
-						//node.parent.children.remove(node);
+						if(node.parent != null) node.parent.children.remove(node);
 						Main.needRefreshMap = true;
 					}
 				case 'bringToTop':
