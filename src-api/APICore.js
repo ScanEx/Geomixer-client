@@ -1551,7 +1551,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		var func = function(subObjectId, a, attr)
 		{
 			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// если MapObject отсутствует создаем
-			pObj.properties = gmxAPI.propertiesFromArray(a);
+			pObj.properties = (typeof(a) === 'object' && a.length > 0 ? gmxAPI.propertiesFromArray(a) : a);
 			var flag = false;
 			if(obj.handlers[eventName]) flag = handler(pObj, attr);
 			if(!flag) gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });
@@ -1576,7 +1576,8 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			('stateListeners' in obj && eventName in obj.stateListeners ? obj.stateListeners[eventName] : [])
 			: ( eventName in stateListeners ? stateListeners[eventName] : [])
 		);
-		return arr.sort(function(a, b) {return (b['level'] > a['level'] ? 1 : -1);});
+		return arr;
+		//return arr.sort(function(a, b) {return (b['level'] > a['level'] ? 1 : -1);});
 	}
 	// Обработка пользовательских Listeners на obj
 	function dispatchEvent(eventName, obj, attr)
@@ -1621,6 +1622,8 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		var pt = {"id": id, "func": func, "level": level };
 		if(pID) pt['pID'] = pID;
 		arr.push(pt);
+		arr = arr.sort(function(a, b) {return (b['level'] > a['level'] ? 1 : -1);});
+		
 		if(obj) {	// Это Listener на mapObject
 			obj.stateListeners[eventName] = arr;
 			if('setHandler' in obj && flashEvents[eventName] && (!obj.handlers || !obj.handlers[eventName])) {
@@ -1741,9 +1744,9 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		else
 		{
 			win.location = 'about:blank';
-            iframe.loaded = true;
 		}
 		
+		iframe.loaded = true;
 	}
 
 	function createPostIframe(id, callback)
@@ -2212,13 +2215,7 @@ FlashMapObject.prototype.getGeometry = function()
 { 
 	var geom = gmxAPI._cmdProxy('getGeometry', { 'obj': this });
 	if(!geom) return null;
-	var out = { "type": geom.type };
-	var coords =  gmxAPI.forEachPoint(geom.coordinates, function(c) {
-			return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
-			}
-		);
-	out["coordinates"] = coords;
-	return out;
+	return geom;
 }
 FlashMapObject.prototype.getLength = function(arg1, arg2, arg3, arg4)
 {
@@ -2346,7 +2343,8 @@ FlashMapObject.prototype.getGeometrySummary = function()
 		}
 		else if (geomType.indexOf("POLYGON") != -1) {
 			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> ";
-			var area = this.getArea();
+			//var area = this.getArea();
+			var area = this.getArea(geom);
 			out += gmxAPI.prettifyArea(area);
 		}
 	}

@@ -287,7 +287,14 @@
 				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':geo } );
 				break;
 			case 'getGeometry':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				geom = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
+				var out = { "type": geom.type };
+				var coords =  gmxAPI.forEachPoint(geom.coordinates, function(c) {
+						return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
+						}
+					);
+				out["coordinates"] = coords;
+				ret = out;
 				break;
 			case 'getLength':
 				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
