@@ -66,14 +66,18 @@ vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлен�
 		if(content != null) {
 			content.contentSprite.parent.removeChild(content.contentSprite);
 		}
-		noteSomethingHasChanged();
+		somethingHasChanged = true;
+		//noteSomethingHasChanged();
 		for (child in children)
 			child.remove();
 		if (parent != null) {
 			parent.children.remove(this);
-			parent.noteSomethingHasChanged();
+			parent.somethingHasChanged = true;
+			//parent.noteSomethingHasChanged();
 		}
 		allNodes.remove(id);
+		window.cacheRepaintNeeded = true;
+		window.labelsRepaintNeeded = true;
 	}
 	
 	public function setAPIProperties(attr:Dynamic):Bool
