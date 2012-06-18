@@ -30,9 +30,10 @@ class VectorLayerObserver extends MapContent
 		var criterion:Hash<String>->Bool = layer.mapNode.propHiden.get('_FilterVisibility');
 //		try {
 			var filters = new Array<VectorLayerFilter>();
-			for (child in layer.mapNode.children)
+			for (child in layer.mapNode.children) {
 				if (Std.is(child.content, VectorLayerFilter) && !child.hidden)
 					filters.push(cast(child.content, VectorLayerFilter));
+			}
 			var toAdd = new Hash<Bool>();
 			var toRemove = new Hash<Bool>();
 			var extent = mapNode.window.visibleExtent;

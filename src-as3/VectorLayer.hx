@@ -559,6 +559,11 @@ class VectorLayer extends MapContent
 		//contentSprite.mouseEnabled = false;
 	}
 
+	public function checkFlip()
+	{
+		if(vectorLayerObserver == null) flip();
+	}
+
 	public function flip():Int
 	{
 		lastFlipCount += 1;

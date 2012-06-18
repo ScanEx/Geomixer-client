@@ -81,7 +81,9 @@ class VectorObject extends MapContent
 						//layer.currentFilter = null;
 					}
 					layer.lastId = null;
-					layer.currentId = null;
+					if(layer.currentId == mapNode.propHash.get(layer.identityField)) {
+						layer.currentId = null;
+					}
 
 					if (curStyle == null) {			// Собственного стиля у обьекта нет
 						var nodeFilter = null;
