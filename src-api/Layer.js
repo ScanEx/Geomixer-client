@@ -483,17 +483,19 @@
 					return _obj;
 				}
 
-				if (layer.properties.Quicklook)
+				if (layer.properties.Quicklook) {
 					obj.enableQuicklooks(function(o)
 					{
 						obj.bringToTop();
 						return gmxAPI.applyTemplate(layer.properties.Quicklook, o.properties);
 					});
-				if (layer.properties.TiledQuicklook)
+				}
+				if (layer.properties.TiledQuicklook) {
 					obj.enableTiledQuicklooks(function(o)
 					{
 						return gmxAPI.applyTemplate(layer.properties.TiledQuicklook, o.properties);
 					}, layer.properties.TiledQuicklookMinZoom);
+				}
 			}
 
 			for (var i = 0; i < obj.filters.length; i++)

@@ -2613,7 +2613,19 @@ FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, m
 		}
 		return ret;
 	});
-	//this['_TiledQuicklooksEx_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
+
+	this.addListener('onClick', function(o)
+	{
+		if('obj' in o) {
+			o = o.obj;
+		}
+		var identityField = gmxAPI.getIdentityField(o);
+		var id = 'id_' + o.properties[identityField];
+		flipCounts[id] = o.flip();
+		updateImageDepth(o);
+		return false;
+	}, -5);
+/*
 	this.setHandler("onClick", function(o)
 	{
 		try {
@@ -2626,6 +2638,7 @@ FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, m
 			//alert(e);
 		}
 	});
+*/
 }
 
 FlashMapObject.prototype.observeVectorLayer = function(obj, onChange) { obj.addObserver(this, onChange); }
