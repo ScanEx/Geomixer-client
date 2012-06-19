@@ -1370,6 +1370,7 @@ window.gmxAPI = {
 		window[name] = undefined;
 		var script = document.createElement("script");
 		var done = false;
+		//var count = 0;
 		
 		script.onerror = function()
 		{
@@ -1410,6 +1411,7 @@ window.gmxAPI = {
 		
 		var intervalError = setInterval(function()
 		{
+//			count++;
 			if (!done)
 			{
 				if (script.readyState === 'loaded')
@@ -1420,6 +1422,12 @@ window.gmxAPI = {
 						if (onError) onError();
 					}
 					done = true;
+/*					
+				} else if (count > 100)
+				{
+					clearInterval(intervalError);
+					if (onError) onError();
+*/					
 				}
 			}
 		}, 50);
@@ -1706,7 +1714,232 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	
 	//расширяем namespace
 	gmxAPI._handlers = ret;
-	
+})();
+
+// Quicklooks
+(function()
+{
+	//FlashMapObject.prototype.enableQuicklooks = function(callback)
+	var enableQuicklooks = function(callback)
+	{
+		var flag = true;
+
+		if (this.shownQuicklooks)
+			for (var url in this.shownQuicklooks)
+				this.shownQuicklooks[url].remove();
+		var shownQuicklooks = {};
+		this.shownQuicklooks = shownQuicklooks;
+
+		//this['_Quicklooks_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
+		//this.setHandler("onClick", function(o)
+		this.addListener('onClick', function(o)
+		{
+			try {
+				var identityField = gmxAPI.getIdentityField(o);
+				var id = 'id_' + o.properties[identityField];
+				if (!shownQuicklooks[id])
+				{
+					var url = callback(o);
+					var d1 = 100000000;
+					var d2 = 100000000;
+					var d3 = 100000000;
+					var d4 = 100000000;
+					var x1, y1, x2, y2, x3, y3, x4, y4;
+					var geom = o.getGeometry();
+					var coord = geom.coordinates;
+					gmxAPI.forEachPoint(coord, function(p)
+					{
+						var x = gmxAPI.merc_x(p[0]);
+						var y = gmxAPI.merc_y(p[1]);
+						if ((x - y) < d1)
+						{
+							d1 = x - y;
+							x1 = p[0];
+							y1 = p[1];
+						}
+						if ((-x - y) < d2)
+						{
+							d2 = -x - y;
+							x2 = p[0];
+							y2 = p[1];
+						}
+						if ((-x + y) < d3)
+						{
+							d3 = -x + y;
+							x3 = p[0];
+							y3 = p[1];
+						}
+						if ((x + y) < d4)
+						{
+							d4 = x + y;
+							x4 = p[0];
+							y4 = p[1];
+						}
+					});
+
+					var q = o.addObject(null, o.properties);
+					shownQuicklooks[id] = q;
+					q.setStyle({ fill: { opacity: 100 } });
+					q.setImage(url, x1, y1, x2, y2, x3, y3, x4, y4);
+				}
+				else
+				{
+					shownQuicklooks[id].remove();
+					delete shownQuicklooks[id];
+				}
+			} catch (e) {
+				gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
+				//alert(e);
+			}
+			//gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
+		}, -5);
+	}
+
+	//FlashMapObject.prototype.enableTiledQuicklooks = function(callback, minZoom, maxZoom)
+	var enableTiledQuicklooks = function(callback, minZoom, maxZoom)
+	{
+		this.enableTiledQuicklooksEx(function(o, image)
+		{
+			var path = callback(o);
+			image.setTiles(function(i, j, z) 
+			{
+				if (path.indexOf("{") > 0){
+					return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z);
+				}
+				else{
+					return path + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
+				}
+			});
+		}, minZoom, maxZoom);
+	}
+
+	var enableTiledQuicklooksEx = function(callback, minZoom, maxZoom)
+	{
+		var images = {};
+		if (this.tilesParent)
+			this.tilesParent.remove();
+		var tilesParent = this.addObject();
+		this.tilesParent = tilesParent;
+		tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
+		var propsArray = [];
+		var flipCounts = {};
+		var TemporalColumnName = this.properties.TemporalColumnName || '';
+		tilesParent.clearItems  = function()
+		{
+			for(id in images) {
+				images[id].remove();
+			}
+			images = {};
+			propsArray = [];
+			flipCounts = {};
+		}
+		var updateImageDepth = function(o)
+		{
+			var identityField = gmxAPI.getIdentityField(o);
+			var id = 'id_' + o.properties[identityField];
+			var props = o.properties;
+
+			// Установка балуна для тайлов меньше Zoom растров
+			var curZ = gmxAPI.map.getZ();
+			var flag = (minZoom && curZ < minZoom ? true : false);
+			var mZ = (maxZoom ? maxZoom : 18);
+			if(!flag && curZ > mZ) flag = true;
+			if(flag) return false;		// неподходящий zoom
+			//if(flag) gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
+			///// End
+
+			if (!images[id]) {
+				return false;
+			}
+			var lastDate = (TemporalColumnName ? props[TemporalColumnName] : props.date || props.DATE);
+			var lastFc = flipCounts[id];
+			var n = 0;
+			for (var i = 0; i < propsArray.length; i++)
+			{
+				var pa = propsArray[i];
+				var date = (TemporalColumnName ? pa[TemporalColumnName] : pa.date || pa.DATE);
+				var fc = flipCounts["id_" + pa[identityField]];
+				var isHigher = false;
+				if (!lastFc)
+					isHigher = !fc ? (lastDate && (date > lastDate)) : (fc < 0);
+				else if (lastFc > 0)
+					isHigher = !fc || (fc < lastFc);
+				else if (lastFc < 0)
+					isHigher = fc && (fc < lastFc);
+
+				if (!isHigher)
+					n += 1;
+			}
+			images[id].bringToDepth(n - 1);
+			return true;
+		}
+		tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
+		tilesParent.observeVectorLayer(this, function(o, flag)
+		{
+			var identityField = gmxAPI.getIdentityField(o);
+			var id = 'id_' + o.properties[identityField];
+			var ret = false;
+			if (flag && !images[id])
+			{
+				var image = tilesParent.addObject(o.geometry, o.properties);
+				callback(o, image);
+				images[id] = image;
+				propsArray.push(o.properties);
+				ret = updateImageDepth(o);
+			}
+			else if (!flag && images[id])
+			{
+				images[id].remove();
+				delete images[id];
+				for (var i = 0; i < propsArray.length; i++)
+				{
+					if (propsArray[i][identityField] == o.properties[identityField])
+					{
+						propsArray.splice(i, 1);
+						break;
+					}
+				}
+				ret = true;
+			}
+			return ret;
+		});
+
+		this.addListener('onClick', function(o)
+		{
+			if('obj' in o) {
+				o = o.obj;
+			}
+			var identityField = gmxAPI.getIdentityField(o);
+			var id = 'id_' + o.properties[identityField];
+			flipCounts[id] = o.flip();
+			updateImageDepth(o);
+			return false;
+		}, -5);
+	/*
+		this.setHandler("onClick", function(o)
+		{
+			try {
+				var identityField = gmxAPI.getIdentityField(o);
+				var id = 'id_' + o.properties[identityField];
+				flipCounts[id] = o.flip();
+				return updateImageDepth(o);
+			} catch (e) {
+				gmxAPI.addDebugWarnings({'func': 'enableTiledQuicklooksEx', 'handler': 'onClick', 'event': e, 'alert': e});
+				//alert(e);
+			}
+		});
+	*/
+	}
+
+	//FlashMapObject.prototype.observeVectorLayer = function(obj, onChange) { obj.addObserver(this, onChange); }
+	//расширяем FlashMapObject
+	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
+			gmxAPI.extendFMO('observeVectorLayer', function(obj, onChange) { obj.addObserver(this, onChange); } );
+			gmxAPI.extendFMO('enableTiledQuicklooksEx', enableTiledQuicklooksEx);
+			gmxAPI.extendFMO('enableTiledQuicklooks', enableTiledQuicklooks);
+			gmxAPI.extendFMO('enableQuicklooks', enableQuicklooks);
+		}
+	});
 })();
 
 // кроссдоменный POST запрос
@@ -2431,217 +2664,6 @@ FlashMapObject.prototype.setBackgroundColor = function(color)
 	this.backgroundColor = color;
 	gmxAPI._cmdProxy('setBackgroundColor', { 'obj': this, 'attr':color });
 }
-
-FlashMapObject.prototype.enableQuicklooks = function(callback)
-{
-	var flag = true;
-
-	if (this.shownQuicklooks)
-		for (var url in this.shownQuicklooks)
-			this.shownQuicklooks[url].remove();
-	var shownQuicklooks = {};
-	this.shownQuicklooks = shownQuicklooks;
-
-	//this['_Quicklooks_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
-	this.setHandler("onClick", function(o)
-	{
-		try {
-			var identityField = gmxAPI.getIdentityField(o);
-			var id = 'id_' + o.properties[identityField];
-			if (!shownQuicklooks[id])
-			{
-				var url = callback(o);
-				var d1 = 100000000;
-				var d2 = 100000000;
-				var d3 = 100000000;
-				var d4 = 100000000;
-				var x1, y1, x2, y2, x3, y3, x4, y4;
-				var geom = o.getGeometry();
-				var coord = geom.coordinates;
-				gmxAPI.forEachPoint(coord, function(p)
-				{
-					var x = gmxAPI.merc_x(p[0]);
-					var y = gmxAPI.merc_y(p[1]);
-					if ((x - y) < d1)
-					{
-						d1 = x - y;
-						x1 = p[0];
-						y1 = p[1];
-					}
-					if ((-x - y) < d2)
-					{
-						d2 = -x - y;
-						x2 = p[0];
-						y2 = p[1];
-					}
-					if ((-x + y) < d3)
-					{
-						d3 = -x + y;
-						x3 = p[0];
-						y3 = p[1];
-					}
-					if ((x + y) < d4)
-					{
-						d4 = x + y;
-						x4 = p[0];
-						y4 = p[1];
-					}
-				});
-
-				var q = o.addObject(null, o.properties);
-				shownQuicklooks[id] = q;
-				q.setStyle({ fill: { opacity: 100 } });
-				q.setImage(url, x1, y1, x2, y2, x3, y3, x4, y4);
-			}
-			else
-			{
-				shownQuicklooks[id].remove();
-				delete shownQuicklooks[id];
-			}
-		} catch (e) {
-			gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
-			//alert(e);
-		}
-		//gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
-	});
-}
-
-FlashMapObject.prototype.enableTiledQuicklooks = function(callback, minZoom, maxZoom)
-{
-	this.enableTiledQuicklooksEx(function(o, image)
-	{
-		var path = callback(o);
-		image.setTiles(function(i, j, z) 
-		{
-			if (path.indexOf("{") > 0){
-				return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z);
-			}
-			else{
-				return path + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
-			}
-		});
-	}, minZoom, maxZoom);
-}
-
-FlashMapObject.prototype.enableTiledQuicklooksEx = function(callback, minZoom, maxZoom)
-{
-	var images = {};
-	if (this.tilesParent)
-		this.tilesParent.remove();
-	var tilesParent = this.addObject();
-	this.tilesParent = tilesParent;
-	tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
-	var propsArray = [];
-	var flipCounts = {};
-	var TemporalColumnName = this.properties.TemporalColumnName || '';
-	tilesParent.clearItems  = function()
-	{
-		for(id in images) {
-			images[id].remove();
-		}
-		images = {};
-		propsArray = [];
-		flipCounts = {};
-	}
-	var updateImageDepth = function(o)
-	{
-		var identityField = gmxAPI.getIdentityField(o);
-		var id = 'id_' + o.properties[identityField];
-		var props = o.properties;
-
-		// Установка балуна для тайлов меньше Zoom растров
-		var curZ = gmxAPI.map.getZ();
-		var flag = (minZoom && curZ < minZoom ? true : false);
-		var mZ = (maxZoom ? maxZoom : 18);
-		if(!flag && curZ > mZ) flag = true;
-		if(flag) return false;		// неподходящий zoom
-		//if(flag) gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
-		///// End
-
-		if (!images[id]) {
-			return false;
-		}
-		var lastDate = (TemporalColumnName ? props[TemporalColumnName] : props.date || props.DATE);
-		var lastFc = flipCounts[id];
-		var n = 0;
-		for (var i = 0; i < propsArray.length; i++)
-		{
-			var pa = propsArray[i];
-			var date = (TemporalColumnName ? pa[TemporalColumnName] : pa.date || pa.DATE);
-			var fc = flipCounts["id_" + pa[identityField]];
-			var isHigher = false;
-			if (!lastFc)
-				isHigher = !fc ? (lastDate && (date > lastDate)) : (fc < 0);
-			else if (lastFc > 0)
-				isHigher = !fc || (fc < lastFc);
-			else if (lastFc < 0)
-				isHigher = fc && (fc < lastFc);
-
-			if (!isHigher)
-				n += 1;
-		}
-		images[id].bringToDepth(n - 1);
-		return true;
-	}
-	tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
-	tilesParent.observeVectorLayer(this, function(o, flag)
-	{
-		var identityField = gmxAPI.getIdentityField(o);
-		var id = 'id_' + o.properties[identityField];
-		var ret = false;
-		if (flag && !images[id])
-		{
-			var image = tilesParent.addObject(o.geometry, o.properties);
-			callback(o, image);
-			images[id] = image;
-			propsArray.push(o.properties);
-			ret = updateImageDepth(o);
-		}
-		else if (!flag && images[id])
-		{
-			images[id].remove();
-			delete images[id];
-			for (var i = 0; i < propsArray.length; i++)
-			{
-				if (propsArray[i][identityField] == o.properties[identityField])
-				{
-					propsArray.splice(i, 1);
-					break;
-				}
-			}
-			ret = true;
-		}
-		return ret;
-	});
-
-	this.addListener('onClick', function(o)
-	{
-		if('obj' in o) {
-			o = o.obj;
-		}
-		var identityField = gmxAPI.getIdentityField(o);
-		var id = 'id_' + o.properties[identityField];
-		flipCounts[id] = o.flip();
-		updateImageDepth(o);
-		return false;
-	}, -5);
-/*
-	this.setHandler("onClick", function(o)
-	{
-		try {
-			var identityField = gmxAPI.getIdentityField(o);
-			var id = 'id_' + o.properties[identityField];
-			flipCounts[id] = o.flip();
-			return updateImageDepth(o);
-		} catch (e) {
-			gmxAPI.addDebugWarnings({'func': 'enableTiledQuicklooksEx', 'handler': 'onClick', 'event': e, 'alert': e});
-			//alert(e);
-		}
-	});
-*/
-}
-
-FlashMapObject.prototype.observeVectorLayer = function(obj, onChange) { obj.addObserver(this, onChange); }
 FlashMapObject.prototype.addOSM = function() { var osm = this.addObject(); osm.setOSMTiles(); return osm; }
 
 // keepGeometry - если не указан или false, объект будет превращён в полигон размером во весь мир (показывать OSM везде), 
@@ -2737,7 +2759,7 @@ FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
 	var me = this;
 	loadMapJSON(hostName, mapName, function(layers)
 	{
-		me.addLayers(layers);
+		me.addLayers(layers, true);
 		if (callback)
 			callback();
 	});
@@ -2745,7 +2767,7 @@ FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
 
 function createFlashMapInternal(div, layers, callback)
 {
-	if(layers.properties.name == kosmosnimki_API) {
+	if(layers.properties && layers.properties.name == kosmosnimki_API) {
 		if (layers.properties.OnLoad)		//  Обработка маплета базовой карты
 		{
 			try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(); }
@@ -3054,13 +3076,19 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 			}
 		);
 	}
-
+/*
+	var errorConfig = function()
+	{
+		createFlashMapInternal(div, {}, callback);
+	}
+*/	
 	if (!gmxAPI.getScriptURL("config.js"))
 	{
 		gmxAPI.loadVariableFromScript(
 			gmxAPI.getScriptBase("api.js") + "config.js",
 			"baseMap",
 			finish,
+			//errorConfig	// Нет config.js
 			finish			// Нет config.js
 		);
 	}

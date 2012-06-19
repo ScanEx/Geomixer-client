@@ -407,7 +407,7 @@
 
 		//var maxRasterZoom = 1;
 		//var miniMapZoomDelta = -4;
-		map.addLayers = function(layers)
+		map.addLayers = function(layers, notMoveFlag)
 		{
 			var b = gmxAPI.getBounds();
 			var minLayerZoom = 20;
@@ -462,7 +462,7 @@
 					parseFloat(layers.properties.DefaultLat),
 					parseInt(layers.properties.DefaultZoom)
 				);
-			else
+			else if(!notMoveFlag)
 			{
 				var z = map.getBestZ(b.minX, b.minY, b.maxX, b.maxY);
 				if (minLayerZoom != 20)
