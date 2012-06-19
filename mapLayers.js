@@ -1066,7 +1066,7 @@ layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibili
 		// Делаем видимость всех потомков узла дерева такой же, как видимость этого слоя. 
 		if (forceChildVisibility)
 		{
-			this.findTreeElems(treeElem, function(child, visflag, list, index)
+			this.mapHelper.findTreeElems(treeElem, function(child, visflag, list, index)
 			{
 				if (!visflag || (list && index != 0))
 				{
@@ -1658,7 +1658,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 		visFlag = typeof div == 'undefined' ? true : _layersTree.getLayerVisibility(div.firstChild),
 		_this = this;
 	
-	_layersTree.findTreeElems(parentElem, function(elem, visibleFlag)
+	_mapHelper.findTreeElems(parentElem, function(elem, visibleFlag)
 	{
 		if (elem.type == 'group')
 		{
