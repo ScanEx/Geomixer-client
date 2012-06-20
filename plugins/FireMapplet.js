@@ -1,28 +1,31 @@
 ﻿(function($){
 
-_translationsHash.addtext("rus", {
-							"searchBbox.SearchInArea" : "Искать в области",
-							"searchBbox.CancelSearchInArea" : "Отменить поиск по области",
-							"firesWidget.FireSpots.Description" : "Очаги пожаров",
-							"firesWidget.Burnt.Description" : "Границы гарей",
-							"firesWidget.DialyCoverage.Description" : "Космоснимки",
-							"firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
-							"firesWidget.FireCombinedDescription" : "Пожары",
-							"firesWidget.ExtendedView" : "Расширенный поиск",
-							"firesWidget.AdvancedSearchButton" : "Искать по области"
-						 });
-						 
-_translationsHash.addtext("eng", {
-							"searchBbox.SearchInArea" : "Search in area",
-							"searchBbox.CancelSearchInArea" : "Cancel search in area",
-							"firesWidget.FireSpots.Description" : "Fire spots",
-							"firesWidget.Burnt.Description" : "Fire areas",
-							"firesWidget.DialyCoverage.Description" : "Satellite images",
-							"firesWidget.tooManyDataWarning" : "Too much data - downsize search area!",
-							"firesWidget.FireCombinedDescription" : "Fires",
-							"firesWidget.ExtendedView" : "Extended search",
-							"firesWidget.AdvancedSearchButton" : "Search inside area"
-						 });
+var initTranslations = function()
+{
+    _translationsHash.addtext("rus", {
+                                "searchBbox.SearchInArea" : "Искать в области",
+                                "searchBbox.CancelSearchInArea" : "Отменить поиск по области",
+                                "firesWidget.FireSpots.Description" : "Очаги пожаров",
+                                "firesWidget.Burnt.Description" : "Границы гарей",
+                                "firesWidget.DialyCoverage.Description" : "Космоснимки",
+                                "firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
+                                "firesWidget.FireCombinedDescription" : "Пожары",
+                                "firesWidget.ExtendedView" : "Расширенный поиск",
+                                "firesWidget.AdvancedSearchButton" : "Искать по области"
+                             });
+                             
+    _translationsHash.addtext("eng", {
+                                "searchBbox.SearchInArea" : "Search in area",
+                                "searchBbox.CancelSearchInArea" : "Cancel search in area",
+                                "firesWidget.FireSpots.Description" : "Fire spots",
+                                "firesWidget.Burnt.Description" : "Fire areas",
+                                "firesWidget.DialyCoverage.Description" : "Satellite images",
+                                "firesWidget.tooManyDataWarning" : "Too much data - downsize search area!",
+                                "firesWidget.FireCombinedDescription" : "Fires",
+                                "firesWidget.ExtendedView" : "Extended search",
+                                "firesWidget.AdvancedSearchButton" : "Search inside area"
+                             });
+}
 
  /*
  ************************************
@@ -458,20 +461,32 @@ var ModisImagesProvider = function( params )
 {
     var _params = $.extend({host: "http://maps.kosmosnimki.ru/"}, params)
     var layersNamesToLoad = ['EB271FC4D2AD425A9BAA78ADEA041AB9', '533FCC7439DA4A2EB97A2BE77887A462'],
-        leftToLoad = layersNamesToLoad.length,
-        modisLayers = {};
+        //leftToLoad = layersNamesToLoad.length,
+        modisLayers = {},
+        overallDeferred = null;
         
 	var addModisLayers = function(callback)
     {
-        if (leftToLoad == 0)
+        if (overallDeferred)
         {
-            callback(modisLayers);
+            overallDeferred.done(function()
+            {
+                callback(modisLayers);
+            });
             return;
         }
+        // if (leftToLoad == 0)
+        // {
+            // callback(modisLayers);
+            // return;
+        // }
         
+        var deferreds = [];
         for (var iL = 0; iL < layersNamesToLoad.length; iL++)
             (function(layerName)
             {
+                var curDef = new $.Deferred();
+                deferreds.push(curDef);
                 sendCrossDomainJSONRequest(_params.host + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + layerName, function(response)
                 {
                     if (!parseResponse(response))
@@ -502,7 +517,7 @@ var ModisImagesProvider = function( params )
                     
                     var TiledQuicklook = _params.host + 'TileSenderSimple.ashx?TilePath=OperativeMODIS[TILES]/';
                     
-                    layerProperties.content.properties.mapName = _mapHelper.mapProperties.name;
+                    layerProperties.content.properties.mapName = globalFlashMap.properties.name;
                     layerProperties.content.properties.hostName = _params.host.substring(7, _params.host.length-1);
                     layerProperties.content.properties.visible = true;
                     
@@ -519,26 +534,30 @@ var ModisImagesProvider = function( params )
                         });
                     }, 3, 10);
                     
-                    leftToLoad--;
+                    curDef.resolve();
+                    //leftToLoad--;
                     
-                    if (leftToLoad == 0) //всё загрузили - возвращаем список слоёв
-                        callback(modisLayers);
+                    // if (leftToLoad == 0) //всё загрузили - возвращаем список слоёв
+                        // callback(modisLayers);
                 })
             })( layersNamesToLoad[iL] );
+        
+        overallDeferred = $.when.apply($, deferreds).done(function()
+        {
+            callback(modisLayers);
+        });
+       
     }
 	
 	this.getDescription = function() { return _gtxt("firesWidget.DialyCoverage.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
-		addModisLayers(function()
+        addModisLayers(function(layers)
         {
-            addModisLayers(function(layers)
-            {
-                for (var iL in layers)
-                    layers[iL].setDateInterval(dateBegin, dateEnd);
-                    
-                onSucceess({modisLayers: layers});
-            })
+            for (var iL in layers)
+                layers[iL].setDateInterval(dateBegin, dateEnd);
+                
+            onSucceess({modisLayers: layers});
         })
 	}
 }
@@ -1852,19 +1871,129 @@ FireControl.prototype.update = function()
 		this.loadForDates( this._calendar.getDateBegin(), this._calendar.getDateEnd() );
 }
 
+var FireControl2 = function(map, params)
+{
+    params = params || {};
+    params.data = params.data || "+fires -images";
+    
+    var parseParams = function(params)
+    {
+        var arr = params.split(' ');
+        var res = {}
+        for (var p = 0; p < arr.length; p++)
+        {
+            var parsed = arr[p].match(/([!+-]?)(\w+)/);
+            if (!parsed) return;
+            
+            res[parsed[2]] = {
+                show: parsed[1] !== '!',
+                init: parsed[1] !== '-'
+            };
+        }
+        return res;
+    }
+    
+    var parsedData = parseParams(params.data);
+    
+    this.getProviderParams = function(providerName)
+    {
+        return parsedData[providerName];
+    }
+    
+    var baseFireControl = new FireControl(map);
 
+    var doCreate = function()
+    {
+        if (typeof params.calendar === 'undefined')
+        {
+            //в ГеоМиксере берём общий календарь, иначе создаём новый
+            if (typeof nsGmx !== 'undefined' && 'getCommonCalendar' in nsGmx)
+            {
+                params.calendar = nsGmx.getCommonCalendar();
+            }
+            else
+            {
+                var mCalendar = gmxCore.getModule('DateTimePeriodControl');
+                params.calendar = new mCalendar.Calendar();
+                params.calendar.init('FireCalendar', {
+					minimized: true,
+					dateMin: new Date(2009, 05, 29),
+					dateMax: new Date(),
+                    dateFormat: "dd.mm.yy",
+					resourceHost: 'http://maps.kosmosnimki.ru/api/'
+				});
+                $(params.container).append(params.calendar.canvas);
+            }
+        }
+        
+        var fireOptions = $.extend({}, params);
+        
+        if ('images' in parsedData)
+        {
+            fireOptions.images = parsedData.images.show;
+            fireOptions.imagesInit = parsedData.images.init;
+        }
+        
+        if ('fires' in parsedData)
+        {
+            fireOptions.fires = parsedData.fires.show;
+            fireOptions.firesInit = parsedData.fires.init;
+        }
+        
+        if ('burnt' in parsedData)
+        {
+            fireOptions.burnt = parsedData.burnt.show;
+            fireOptions.burntInit = parsedData.burnt.init;
+        }
+        
+        baseFireControl.add(params.container, fireOptions, params.calendar);
+    }
+    
+    if (typeof params.container === 'string')
+        params.container = $('#' + params.container)[0];
+        
+    if (!params.container)
+    {
+        //в Геомиксере будем добавлять непосредственно перед деревом слоёв
+        if ('_queryMapLayers' in window)
+        {
+            $(_queryMapLayers).bind('load', function()
+            {
+                var table = $(_queryMapLayers.workCanvas).children("table")[0],
+                    div = _div(null, [['css', 'margin', '5px']])
+                $(table).after(div);
+                
+                params.container = div;
+                
+                doCreate();
+            });
+        }
+        else
+            return; //ошибка
+    }
+    else
+    {
+        doCreate();
+    }
+    
+    return baseFireControl;
+}
 
 var publicInterface = {
     IDataProvider: IDataProvider,
 	FireControl: FireControl,
+	FireControl2: FireControl2,
 	FireControlCollection: FireControlCollection
 }
 
 if ( typeof gmxCore !== 'undefined' )
 {
 	gmxCore.addModule('FireMapplet', publicInterface, 
-	{ init: function(module, path)
+	{ 
+        init: function(module, path)
 		{
+            initTranslations();
+            
 			var doLoadCss = function()
 			{
 				path = path || window.gmxJSHost || "";
@@ -1875,8 +2004,11 @@ if ( typeof gmxCore !== 'undefined' )
 				doLoadCss();
 			else
 				$.getScript(path + "../jquery/jquery.getCSS.js", doLoadCss);
-		}
+		},
+        require: ['DateTimePeriodControl']
 	});
 }
+else
+    initTranslations();
 
 })(jQuery);
