@@ -89,13 +89,15 @@
                 invokeCallbacks();
             });
         },
-        //Load module from file. If not defined moduleSource, filename is constructed as (moduleName + '.js')
-        loadModule: function(moduleName, moduleSource)
+        //Load module from file. If not defined moduleSource, filename is constructed as (defaultHost + moduleName + '.js')
+        loadModule: function(moduleName, moduleSource, callback)
         {
             if ( ! (moduleName in _modules) )
             {
                 var headElem = document.getElementsByTagName("head")[0];
                 var newScript = document.createElement('script');
+                
+                callback && this.addModulesCallback([moduleName], callback);
                 
                 var path;
                 if (typeof moduleSource != 'undefined')
@@ -106,7 +108,6 @@
                 {
                     path = (moduleName in _moduleFiles) ? _moduleFiles[moduleName] : _modulesDefaultHost + moduleName + '.js';
                 }
-				// var path = (typeof moduleSource != 'undefined') ? moduleSource : _modulesDefaultHost + moduleName + '.js';
 
                 var pathRegexp = /(.*)\/[^\/]+/;
                 if ( typeof _modulePathes[moduleName] === 'undefined' )
