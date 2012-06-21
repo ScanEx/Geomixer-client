@@ -1,3 +1,4 @@
+import flash.display.Sprite;
 import flash.events.Event;
 import flash.events.MouseEvent;
 
@@ -18,9 +19,13 @@ class VectorLayer extends MapContent
 	//var hoverTileExtent:Extent;
 	//var hoverTiles:Array<VectorTile>;
 
-	var flipCounts:Hash<Int>;
+	var hoverGeom:Geometry;
+	var hoverStyle:Style;
+	//var flipCounts:Hash<Int>;
 	var lastFlipCount:Int;
 	var flipDown:Bool;
+	var zeroDistanceIds:Array<Geometry>;
+	var zeroDistanceFilters:Array<VectorLayerFilter>;
 	
 	public var hashTiles:Hash<Bool>;
 	public var attrHash:Dynamic;					// дополнительные свойства слоя
@@ -59,9 +64,11 @@ class VectorLayer extends MapContent
 		hashTiles = new Hash<Bool>();
 		hashTilesVers = new Hash<Int>();
 		deletedObjects = new Hash<Bool>();
+		zeroDistanceIds = new Array<Geometry>();
+		zeroDistanceFilters = new Array<VectorLayerFilter>();
 
 		geometries = new Hash<Geometry>();
-		flipCounts = new Hash<Int>();
+		//flipCounts = new Hash<Int>();
 		lastFlipCount = 0;
 		if (mapNode != null)
 			for (child in mapNode.children)
@@ -332,7 +339,7 @@ class VectorLayer extends MapContent
 		return out;
 	}
 
-	public function repaintIndicator(ev:MouseEvent)
+	public function repaintIndicator(?ev:MouseEvent)
 	{
 		var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
 		var distance:Float = Geometry.MAX_DISTANCE;
@@ -345,8 +352,8 @@ class VectorLayer extends MapContent
 
 		var newCurrentId:String = null;
 		var newCurrentFilter:VectorLayerFilter = null;
-		var zeroDistanceIds = new Array<Geometry>();
-		var zeroDistanceFilters = new Array<VectorLayerFilter>();
+		zeroDistanceIds = new Array<Geometry>();
+		zeroDistanceFilters = new Array<VectorLayerFilter>();
 		//hoverTiles = new Array<VectorTile>();
 
 		var pointSize = 15*Math.abs(mapNode.window.scaleY);
@@ -354,8 +361,6 @@ class VectorLayer extends MapContent
 		pointExtent.update(x - pointSize, y - pointSize);
 		pointExtent.update(x + pointSize, y + pointSize);
 
-		var hoverGeom = null;
-		var hoverStyle = null;
 		
 		var criterion:Hash<String>->Bool = (mapNode.propHiden.exists('_FilterVisibility') ? mapNode.propHiden.get('_FilterVisibility') : null);
 
@@ -381,8 +386,9 @@ class VectorLayer extends MapContent
 					hoverStyle = node.getHoveredStyle();
 				}
 				if(curGeom == null) continue;		// пропускаем ноды без MultiGeometry
-				for (member in curGeom.members)
+				for (i in 0...curGeom.members.length)
 				{
+					var member:Geometry = curGeom.members[i];
 					if (!member.extent.overlaps(pointExtent)) continue;		// пропускаем не пересекающие точку
 					if (criterion != null && !criterion(member.properties)) continue;	// пропускаем ноды отфильтрованные setVisibilityFilter
 					if (filter.clusterAttr == null && temporalCriterion != null && !temporalCriterion(member.propTemporal)) {
@@ -405,39 +411,16 @@ class VectorLayer extends MapContent
 				}
 			}
 		}
-
+		
 		var len = zeroDistanceIds.length;
-		flipDown = (len > 1);
-		if (len > 0)
+		if (lastFlipCount < len)
 		{
-			var lastFc:Null<Int> = 100000000;
-			var lastDate = "1900-00-00";
-			for (i in 0...zeroDistanceIds.length)
-			{
-				var geom = zeroDistanceIds[i];
-				var prop = geom.properties;
-				var id = prop.get(identityField);
-				
-				var fc:Null<Int> = flipCounts.get(id);
-				var date = Utils.getDateProperty(prop);
-				var isHigher:Bool = false;
-				var isHigherDate = (date == null) || (date > lastDate);
-				if (lastFc == null)
-					isHigher = (fc == null) ? isHigherDate : (fc < 0);
-				else if (lastFc > 0)
-					isHigher = (fc == null) || (fc < lastFc);
-				else if (lastFc < 0)
-					isHigher = (fc != null) && (fc < lastFc);
-				if (isHigher)
-				{
-					lastFc = fc;
-					lastDate = date;
-					newCurrentId = id;
-					newCurrentFilter = zeroDistanceFilters[i];
-					hoverGeom = geom;
-				}
-			}
+			newCurrentFilter = zeroDistanceFilters[lastFlipCount];
+			var geom = zeroDistanceIds[lastFlipCount];
+			newCurrentId = geom.properties.get(identityField);
+			hoverGeom = geom;
 		}
+
 		if (newCurrentId != currentId)
 		{
 			if ((newCurrentFilter != currentFilter) && (currentFilter != null)) {
@@ -554,25 +537,33 @@ class VectorLayer extends MapContent
 	
 	public override function addHandlers()
 	{
-		hoverPainter = new GeometryPainter(null, Utils.addSprite(contentSprite), mapNode.window);
-		//contentSprite.mouseChildren = false;
-		//contentSprite.mouseEnabled = false;
+		// Отображение Hover выше самих обьектов слоя
+		var spr:Sprite = Utils.addSprite(mapNode.parent.vectorSprite);
+		//var spr:Sprite = Utils.addSprite(contentSprite);
+		spr.mouseChildren = false;
+		spr.mouseEnabled = false;
+		hoverPainter = new GeometryPainter(null, spr, mapNode.window);
+		//hoverPainter = new GeometryPainter(null, Utils.addSprite(contentSprite), mapNode.window);
 	}
 
+	// Перелистование векторов
 	public function checkFlip()
 	{
-		if(vectorLayerObserver == null) flip();
+		if (vectorLayerObserver == null) 
+		flip(true);
 	}
 
-	public function flip():Int
+	// Перелистование векторов + передача в JS текущего ID векторного обьекта для квиклуков
+	public function flip(?flag:Bool):String
 	{
+		var out:String = '';
 		lastFlipCount += 1;
-		var ret = flipDown ? lastFlipCount : -lastFlipCount;
-		if (currentId != null)
-		{
-			flipCounts.set(currentId, ret);
-			repaintIndicator(null);
+		if (lastFlipCount >= zeroDistanceIds.length) lastFlipCount = 0;
+		if (!flag) {
+			var geom = zeroDistanceIds[lastFlipCount];
+			out = geom.properties.get(identityField);
 		}
-		return ret;
+		repaintIndicator();
+		return out;		
 	}
 }

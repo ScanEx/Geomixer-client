@@ -11,6 +11,7 @@ class MapContent
 	{
 		mapNode = mapNode_;
 		contentSprite = createContentSprite();
+		contentSprite.name = 'cont_' + mapNode.id;	
 		addHandlers();
 	}
 

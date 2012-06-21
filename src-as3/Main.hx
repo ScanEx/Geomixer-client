@@ -1281,7 +1281,11 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'bringToTop':
 					var node = getNode(attr.objectId);
 					var n = node.rasterSprite.parent.numChildren - 1;
-					node.bringToDepth(n);
+					if (node.content != null && Std.is(node.content, RasterLayer)) {
+						cast(node.content, RasterLayer).bringToTop();
+					}
+					else 
+						node.bringToDepth(n);
 					out = cast(n);
 				case 'bringToDepth':
 					var node = getNode(attr.objectId);
@@ -1371,7 +1375,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					);
 				case 'flip':
 					var content = getNode(attr.objectId).content;
-					out = (Std.is(content, VectorLayerFilter) ? cast(content, VectorLayerFilter).layer.flip() : 0);
+					out = (Std.is(content, VectorLayerFilter) ? cast(content, VectorLayerFilter).layer.flip() : '');
 				case 'getFeatureGeometry':		// не используется
 					var geom:Geometry = getFeatureGeometry(attr.objectId, attr.featureId);
 					out = geom.export();

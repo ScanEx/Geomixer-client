@@ -1730,7 +1730,6 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		var shownQuicklooks = {};
 		this.shownQuicklooks = shownQuicklooks;
 
-		//this['_Quicklooks_eventID'] = gmxAPI._listeners.addListener(this, 'onClick', function(o)
 		//this.setHandler("onClick", function(o)
 		this.addListener('onClick', function(o)
 		{
@@ -1789,13 +1788,10 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 				}
 			} catch (e) {
 				gmxAPI.addDebugWarnings({'func': 'enableQuicklooks', 'handler': 'onClick', 'event': e, 'alert': e});
-				//alert(e);
 			}
-			//gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
 		}, -5);
 	}
 
-	//FlashMapObject.prototype.enableTiledQuicklooks = function(callback, minZoom, maxZoom)
 	var enableTiledQuicklooks = function(callback, minZoom, maxZoom)
 	{
 		this.enableTiledQuicklooksEx(function(o, image)
@@ -1815,15 +1811,14 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 
 	var enableTiledQuicklooksEx = function(callback, minZoom, maxZoom)
 	{
+		maxZoom = (maxZoom ? maxZoom : 18);
 		var images = {};
 		if (this.tilesParent)
 			this.tilesParent.remove();
 		var tilesParent = this.addObject();
 		this.tilesParent = tilesParent;
-		tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
+		tilesParent.setZoomBounds(minZoom, maxZoom);
 		var propsArray = [];
-		var flipCounts = {};
-		var TemporalColumnName = this.properties.TemporalColumnName || '';
 		tilesParent.clearItems  = function()
 		{
 			for(id in images) {
@@ -1831,49 +1826,9 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			}
 			images = {};
 			propsArray = [];
-			flipCounts = {};
 		}
-		var updateImageDepth = function(o)
-		{
-			var identityField = gmxAPI.getIdentityField(o);
-			var id = 'id_' + o.properties[identityField];
-			var props = o.properties;
-
-			// Установка балуна для тайлов меньше Zoom растров
-			var curZ = gmxAPI.map.getZ();
-			var flag = (minZoom && curZ < minZoom ? true : false);
-			var mZ = (maxZoom ? maxZoom : 18);
-			if(!flag && curZ > mZ) flag = true;
-			if(flag) return false;		// неподходящий zoom
-			//if(flag) gmxAPI._listeners.dispatchEvent('clickBalloonFix', gmxAPI.map, o);	// Проверка map Listeners на clickBalloonFix
-			///// End
-
-			if (!images[id]) {
-				return false;
-			}
-			var lastDate = (TemporalColumnName ? props[TemporalColumnName] : props.date || props.DATE);
-			var lastFc = flipCounts[id];
-			var n = 0;
-			for (var i = 0; i < propsArray.length; i++)
-			{
-				var pa = propsArray[i];
-				var date = (TemporalColumnName ? pa[TemporalColumnName] : pa.date || pa.DATE);
-				var fc = flipCounts["id_" + pa[identityField]];
-				var isHigher = false;
-				if (!lastFc)
-					isHigher = !fc ? (lastDate && (date > lastDate)) : (fc < 0);
-				else if (lastFc > 0)
-					isHigher = !fc || (fc < lastFc);
-				else if (lastFc < 0)
-					isHigher = fc && (fc < lastFc);
-
-				if (!isHigher)
-					n += 1;
-			}
-			images[id].bringToDepth(n - 1);
-			return true;
-		}
-		tilesParent.setZoomBounds(minZoom, maxZoom ? maxZoom : 18);
+			
+		tilesParent.setZoomBounds(minZoom, maxZoom);
 		tilesParent.observeVectorLayer(this, function(o, flag)
 		{
 			var identityField = gmxAPI.getIdentityField(o);
@@ -1885,7 +1840,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 				callback(o, image);
 				images[id] = image;
 				propsArray.push(o.properties);
-				ret = updateImageDepth(o);
+				ret = true;
 			}
 			else if (!flag && images[id])
 			{
@@ -1906,32 +1861,14 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 
 		this.addListener('onClick', function(o)
 		{
-			if('obj' in o) {
-				o = o.obj;
-			}
-			var identityField = gmxAPI.getIdentityField(o);
-			var id = 'id_' + o.properties[identityField];
-			flipCounts[id] = o.flip();
-			updateImageDepth(o);
+			if('obj' in o)  o = o.obj;
+			var idt = 'id_' + o.flip();
+			var curZ = gmxAPI.currPosition['z'];
+			if(images[idt] && curZ >= minZoom && curZ <= maxZoom) images[idt].bringToTop();		// только для zoom со снимками
 			return false;
 		}, -5);
-	/*
-		this.setHandler("onClick", function(o)
-		{
-			try {
-				var identityField = gmxAPI.getIdentityField(o);
-				var id = 'id_' + o.properties[identityField];
-				flipCounts[id] = o.flip();
-				return updateImageDepth(o);
-			} catch (e) {
-				gmxAPI.addDebugWarnings({'func': 'enableTiledQuicklooksEx', 'handler': 'onClick', 'event': e, 'alert': e});
-				//alert(e);
-			}
-		});
-	*/
 	}
 
-	//FlashMapObject.prototype.observeVectorLayer = function(obj, onChange) { obj.addObserver(this, onChange); }
 	//расширяем FlashMapObject
 	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
 			gmxAPI.extendFMO('observeVectorLayer', function(obj, onChange) { obj.addObserver(this, onChange); } );

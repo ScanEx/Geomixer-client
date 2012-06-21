@@ -34,7 +34,9 @@ class MapNode
 		window = window_;
 		rasterSprite = rasterSprite_;
 		vectorSprite = vectorSprite_;
-vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлении векторов в растр
+		rasterSprite.name = 'node_r_' + id;
+		vectorSprite.name = 'node_v_' + id;
+		vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлении векторов в растр
 		regularStyle = null;
 		hoveredStyle = null;
 		hidden = false;

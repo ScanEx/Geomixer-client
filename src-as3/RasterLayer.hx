@@ -1,3 +1,4 @@
+import flash.display.DisplayObjectContainer;
 import flash.display.Sprite;
 import flash.geom.Matrix;
 
@@ -119,5 +120,11 @@ class RasterLayer extends MaskedContent
 			if (!tiles.exists(id) && !failedTiles.exists(id))
 				tiles.set(id, new RasterTile(this, i, j, z, isReplacement, isRetrying));
 		}
+	}
+
+	public function bringToTop()
+	{
+		var spr:DisplayObjectContainer = mapNode.rasterSprite;
+		spr.parent.setChildIndex(spr, spr.parent.numChildren - 1);
 	}
 }
