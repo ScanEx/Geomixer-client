@@ -41,7 +41,7 @@ var VerificationControl = function(parentDivId,fireControl)
 							"validationControl.MenuSearch" : "Dispatch<br>Brigades",
 							"validationControl.MenuAchievments" : "<br>Achievments",
 							"validationControl.MenuAdmin" : "<br>Admin",
-							"validationControl.AlertMinScore" : "You need to become fire chief to access this mode. For that you need to score at least 750 points!",
+							"validationControl.AlertMinScore" : "You need to become fire chief to access this mode. For that you need to score at least 250 points!",
 							"validationControl.Place" : "Place",
 							"validationControl.BtnRegister" : "Register",
 							"validationControl.BestUsers" : "Top Firefighters",
@@ -121,7 +121,7 @@ var VerificationControl = function(parentDivId,fireControl)
 							"validationControl.MenuSearch" : "Направить<br>Бригады",
 							"validationControl.MenuAchievments" : "<br>Достижения",
 							"validationControl.MenuAdmin" : "<br>Админ",
-							"validationControl.AlertMinScore" : "Для этого нужно дослужится до Бригадира! Для этого необходимо набрать как минимум 750 баллов!",
+							"validationControl.AlertMinScore" : "Для этого нужно дослужится до Бригадира! Для этого необходимо набрать как минимум 250 баллов!",
 							"validationControl.Place" : "Место",
 							"validationControl.BtnRegister" : "Зарегистрировать",
 							"validationControl.BestUsers" : "Лучшие пользователи:",
@@ -1177,7 +1177,7 @@ var VerificationControl = function(parentDivId,fireControl)
 		var menuItem1 = $('<LI></LI>').append($("<a href='#'>"+_gtxt("validationControl.MenuHome")+"</a>").click(function(){_validationControl.showStartScreen(currentScore)}));
 		var menuItem2 = $('<LI></LI>').append($("<a href='#'>"+_gtxt("validationControl.MenuVerification")+"</a>").click(function(){changeFlashMapUIVerification();_validationControl.nextVerificationHotspot()}));
 		var menuItem3 = $('<LI></LI>').append($("<a href='#'>"+_gtxt("validationControl.MenuSearch")+"</a>").click(function(){
-				if(currentScore < 750){
+				if(currentScore < 250){
 					alert(_gtxt("validationControl.AlertMinScore"));
 				}else{
 					changeFlashMapUIDispatch();_validationControl.nextFireSearchImage();
