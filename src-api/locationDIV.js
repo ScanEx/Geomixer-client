@@ -78,7 +78,7 @@
 
 		var getCoordinatesText = function(currPosition)
 		{
-			if(!currPosition) currPosition = gmxAPI.map.getPosition();
+			if(!currPosition) currPosition = gmxAPI.currPosition || gmxAPI.map.getPosition();
 			var x = gmxAPI.from_merc_x(currPosition['x']);
 			var y = gmxAPI.from_merc_y(currPosition['y']);
 			if (x > 180)

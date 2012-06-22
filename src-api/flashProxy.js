@@ -34,397 +34,514 @@
 		return out;
 	}
 
+	// Команды в SWF
+	var commands = {				// Тип команды
+		'setEditObjects':	function(hash)	{							// Установка редактируемых обьектов слоя
+			return gmxAPI.flashDiv.cmdFromJS('setEditObjects', { 'objectId':hash.obj.objectId, 'processing':hash['attr'] } );
+		}
+		,
+		'setVisible':	function(hash)	{								// Изменить видимость обьекта
+			if(hash['obj']) {
+				gmxAPI.flashDiv.cmdFromJS('setVisible', { 'objectId':hash.obj.objectId, 'flag':hash['attr'] } );
+			}
+		}
+		,
+		'sendPNG':	function(hash)	{									// Сохранение изображения карты на сервер
+			var miniMapFlag = gmxAPI.miniMapAvailable;
+			var attr = hash['attr'];
+			var flag = (attr.miniMapSetVisible ? true : false);
+			if(miniMapFlag != flag) gmxAPI.map.miniMap.setVisible(flag);
+			if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
+			var ret = {'base64': gmxAPI.flashDiv.cmdFromJS('sendPNG', attr)};
+			if(miniMapFlag) gmxAPI.map.miniMap.setVisible(miniMapFlag);
+			return ret;
+		}
+		,
+		'savePNG':	function(hash)	{									// Сохранить PNG файл экрана
+			return gmxAPI.flashDiv.cmdFromJS('savePNG', { 'fileName':hash['attr'] });
+		}
+		,
+		'setZoomBounds':	function(hash)	{							// Установить ограничения по Zoom
+			return gmxAPI.flashDiv.cmdFromJS('setZoomBounds', { 'objectId':hash.obj.objectId, 'minZ':hash['attr']['minZ'], 'maxZ':hash['attr']['maxZ'] });
+		}
+		,
+		'setClusters':	function(hash)	{								// Установить кластеризацию потомков
+			var obj = hash['obj'];
+			var attr = hash['attr'];
+			var ret = {};
+			if(attr && 'newProperties' in attr) {
+				var keyArray = [];
+				var valArray = [];
+				for(key in attr['newProperties'])
+				{
+					keyArray.push(key);
+					valArray.push(attr['newProperties'][key]);
+				}
+				attr['propFields'] = [keyArray, valArray];
+				attr['hideFixedBalloons'] = gmxAPI.uniqueGlobalName(function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(true); });
+			}
+			var flag = ('clusters' in obj);	// видимость кластеров
+			if(!flag)
+				obj['clusters'] = new gmxAPI._Clusters(obj);
+			else
+				ret = gmxAPI.flashDiv.cmdFromJS('setClusters', { 'objectId':obj.objectId, 'data':attr });
+			attr['visible'] = flag;
+			obj['clusters']['attr'] = attr;		// признак наличия кластеризации в SWF
+			//if(!obj.parent._hoverBalloonAttr) obj.parent.enableHoverBalloon();	// если балунов не установлено
+			return ret;
+		}
+		,
+		'delClusters':	function(hash)	{								// Удалить кластеризацию потомков
+			var obj = hash['obj'];
+			var ret = gmxAPI.flashDiv.cmdFromJS('delClusters', { 'objectId':obj.objectId });
+			if('clusters' in obj && obj['clusters']['attr']) obj['clusters']['attr']['visible'] = false;
+			return ret;
+		}
+		,
+		'setGridVisible':	function(hash)	{							// Изменить видимость сетки
+			return gmxAPI.flashDiv.cmdFromJS('setGridVisible', { 'flag':hash['attr'] } );
+		}
+		,
+		'getGridVisibility':	function(hash)	{						// получить видимость сетки
+			return gmxAPI.flashDiv.cmdFromJS('getGridVisibility', { } );
+		}
+		,
+		'getZoomBounds':	function(hash)	{							// Получить ограничения по Zoom
+			return gmxAPI.flashDiv.cmdFromJS('getZoomBounds', { 'objectId':hash.obj.objectId });
+		}
+		,
+		'getDepth':	function(hash)	{									// Получить индекс обьекта
+			return gmxAPI.flashDiv.cmdFromJS('getDepth', { 'objectId':hash.obj.objectId });
+		}
+		,
+		'getVisibility':	function(hash)	{							// Получить видимость
+			return gmxAPI.flashDiv.cmdFromJS('getVisibility', { 'objectId':hash.obj.objectId });
+		}
+		,
+		'trace':	function(hash)	{									// Сообщение в SWF
+			return gmxAPI.flashDiv.cmdFromJS('trace', { 'data':hash['attr'] });
+		}
+		,
+		'setQuality':	function(hash)	{								// Установка Quality
+			return gmxAPI.flashDiv.cmdFromJS('setQuality', { 'data':hash['attr'] });
+		}
+		,
+		'disableCaching':	function(hash)	{	// ????
+			return gmxAPI.flashDiv.cmdFromJS('disableCaching', { });
+		}
+		,
+		'print':	function(hash)	{									// Печать
+			return gmxAPI.flashDiv.cmdFromJS('print', { });
+		}
+		,
+		'repaint':	function(hash)	{		// ????
+			return gmxAPI.flashDiv.cmdFromJS('repaint', { });
+		}
+		,
+		'addContextMenuItem':	function(hash)	{						// Добавить пункт в контекстное меню SWF
+			if(hash['attr'].func) hash['attr'].func = gmxAPI.uniqueGlobalName(hash['attr'].func);
+			return gmxAPI.flashDiv.cmdFromJS('addContextMenuItem', hash['attr']);
+		}
+		,
+		'moveTo':	function(hash)	{									//позиционирует карту по координатам центра и выбирает масштаб
+			var attr = hash['attr'];
+			attr['x'] = gmxAPI.merc_x(attr['x']);
+			attr['y'] = gmxAPI.merc_y(attr['y']);
+			return gmxAPI.flashDiv.cmdFromJS('moveTo', attr);
+		}
+		,
+		'slideTo':	function(hash)	{									//плавно позиционирует карту по координатам центра и выбирает масштаб
+			var attr = hash['attr'];
+			attr['x'] = gmxAPI.merc_x(attr['x']);
+			attr['y'] = gmxAPI.merc_y(attr['y']);
+			return gmxAPI.flashDiv.cmdFromJS('slideTo', attr);
+		}
+		,
+		'zoomBy':	function(hash)	{									//выбирает масштаб
+			return gmxAPI.flashDiv.cmdFromJS('zoomBy', hash['attr']);
+		}
+		,
+		'freeze':	function(hash)	{									// заморозить
+			return gmxAPI.flashDiv.cmdFromJS('freeze', { });
+		}
+		,
+		'unfreeze':	function(hash)	{									// разморозить
+			return gmxAPI.flashDiv.cmdFromJS('unfreeze', { });
+		}
+		,
+		'setCursor':	function(hash)	{								//установка курсора
+			return gmxAPI.flashDiv.cmdFromJS('setCursor', hash['attr']);
+		}
+		,
+		'clearCursor':	function(hash)	{								//убрать курсор
+			return gmxAPI.flashDiv.cmdFromJS('clearCursor', { });
+		}
+		,
+		'setCursorVisible':	function(hash)	{							//видимость курсора
+			return gmxAPI.flashDiv.cmdFromJS('setCursorVisible', hash['attr']);
+		}
+		,
+		'stopDragging':	function(hash)	{								//убрать флаг Drag
+			return gmxAPI.flashDiv.cmdFromJS('stopDragging', { });
+		}
+		,
+		'isDragging':	function(hash)	{								//получить флаг Drag
+			return gmxAPI.flashDiv.cmdFromJS('isDragging', { });
+		}
+		,
+		'resumeDragging':	function(hash)	{							//возобновить Drag
+			return gmxAPI.flashDiv.cmdFromJS('resumeDragging', { });
+		}
+		,
+		'getPosition':	function(hash)	{								//получить текущие атрибуты SWF
+			return gmxAPI.flashDiv.cmdFromJS('getPosition', { });
+		}
+		,
+		'getX':	function(hash)	{										//получить позицию Х центра SWF
+			return gmxAPI.from_merc_x(gmxAPI.flashDiv.cmdFromJS('getX', { }));
+		}
+		,
+		'getY':	function(hash)	{										//получить позицию Y центра SWF
+			return gmxAPI.from_merc_y(gmxAPI.flashDiv.cmdFromJS('getY', { }));
+		}
+		,
+		'getZ':	function(hash)	{										//получить текущий Z
+			return gmxAPI.flashDiv.cmdFromJS('getZ', { });
+		}
+		,
+		'getMouseX':	function(hash)	{								//получить позицию Х MouseX
+			return gmxAPI.from_merc_x(gmxAPI.flashDiv.cmdFromJS('getMouseX', { }));
+		}
+		,
+		'getMouseY':	function(hash)	{								//получить позицию Y MouseY
+			return gmxAPI.from_merc_y(gmxAPI.flashDiv.cmdFromJS('getMouseY', { }));
+		}
+		,
+		'isKeyDown':	function(hash)	{								//проверить нажатие клавиши в SWF
+			return gmxAPI.flashDiv.cmdFromJS('isKeyDown', hash['attr']);
+		}
+		,
+		'setExtent':	function(hash)	{								//установить Extent в SWF
+			return gmxAPI.flashDiv.cmdFromJS('setExtent', hash['attr']);
+		}
+		,
+		'setMinMaxZoom':	function(hash)	{							//установить Zoom ограничения
+			return gmxAPI.flashDiv.cmdFromJS('setMinMaxZoom', hash['attr']);
+		}
+		,
+		'addMapWindow':	function(hash)	{								//Создание окна карты
+			var attr = hash['attr'];
+			if(attr.callbackName) attr.callbackName = gmxAPI.uniqueGlobalName(attr.callbackName);
+			return gmxAPI.flashDiv.cmdFromJS('addMapWindow', attr);
+		}
+		,
+		'setStyle':	function(hash)	{									// установить Style обьекта
+			gmxAPI.flashDiv.cmdFromJS('setStyle', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
+		}
+		,
+		'getStyle':	function(hash)	{									//получить Style обьекта
+			return gmxAPI.flashDiv.cmdFromJS('getStyle', { 'objectId':hash.obj.objectId, 'removeDefaults':hash['attr'] });
+		}
+		,
+		'getVisibleStyle':	function(hash)	{							//получить Style обьекта с учетом родителей
+			return gmxAPI.flashDiv.cmdFromJS('getVisibleStyle', { 'objectId':hash.obj.objectId });
+		}
+		,
+		'positionWindow':	function(hash)	{							// 
+			gmxAPI.flashDiv.cmdFromJS('positionWindow', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
+		}
+		,
+		'setBackgroundColor':	function(hash)	{// 
+			gmxAPI.flashDiv.cmdFromJS('setBackgroundColor', { 'objectId':hash.obj.objectId, 'color':hash['attr'] } );
+		}
+		,
+		'getChildren':	function(hash)	{							// получить список потомков
+			return gmxAPI.flashDiv.cmdFromJS('getChildren', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'setHandler':	function(hash)	{							// установка обработчика события
+			var attr = hash['attr'];
+			if(attr.callbackName) attr.callbackName = gmxAPI.uniqueGlobalName(attr.callbackName);
+			return gmxAPI.flashDiv.cmdFromJS('setHandler', { 'objectId':hash.obj.objectId, 'eventName':attr['eventName'], 'callbackName':attr['callbackName'] } );
+		}
+		,
+		'removeHandler':	function(hash)	{						// удаление обработчика события
+			return gmxAPI.flashDiv.cmdFromJS('removeHandler', { 'objectId':hash.obj.objectId, 'eventName':hash['attr']['eventName'] } );
+		}
+		,
+		'addObject':	function(hash)	{							// добавить обьект
+			var attr = hash['attr'];
+			var geo = gmxAPI.merc_geometry(attr['geometry']) || null;
+			return gmxAPI.flashDiv.cmdFromJS('addObject', { 'objectId':hash.obj.objectId, 'geometry':geo, 'properties':attr['properties'] } );
+		}
+		,
+		'addObjects':	function(hash)	{							// добавить обьекты
+			return addObjects(hash.obj.objectId, hash['attr']);
+		}
+		,
+		'addObjectsFromSWF':	function(hash)	{					// добавить обьекты из SWF файла
+			return gmxAPI.flashDiv.cmdFromJS('addObjectsFromSWF', { 'objectId':hash.obj.objectId, 'attr':hash['attr'] });
+		}
+		,
+		'setVisibilityFilter':	function(hash)	{	// добавить фильтр видимости к обьекту
+			return gmxAPI.flashDiv.cmdFromJS('setVisibilityFilter', { 'objectId':hash.obj.objectId, 'sql':hash['attr']['sql'] } );
+		}
+		,
+		'setFilter':	function(hash)	{							// добавить фильтр к обьекту
+			return gmxAPI.flashDiv.cmdFromJS('setFilter', { 'objectId':hash.obj.objectId, 'sql':hash['attr']['sql'] } );
+		}
+		,
+		'remove':	function(hash)	{		// удалить обьект
+			gmxAPI.flashDiv.cmdFromJS('remove', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'bringToTop':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('bringToTop', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'bringToDepth':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('bringToDepth', { 'objectId':hash.obj.objectId, 'zIndex':hash['attr']['zIndex'] } );
+		}
+		,
+		'bringToBottom':	function(hash)	{
+			gmxAPI.flashDiv.cmdFromJS('bringToBottom', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'setActive':	function(hash)	{
+			gmxAPI.flashDiv.cmdFromJS('setActive', { 'objectId':hash.obj.objectId, 'flag':hash['attr']['flag'] } );
+		}
+		,
+		'setEditable':	function(hash)	{
+			gmxAPI.flashDiv.cmdFromJS('setEditable', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'startDrawing':	function(hash)	{
+			var attr = (hash ? { 'objectId':hash.obj.objectId, 'type':hash['attr']['type'] } : null);
+			gmxAPI.flashDiv.cmdFromJS('startDrawing', attr );
+		}
+		,
+		'stopDrawing':	function(hash)	{
+			var attr = (hash ? { 'objectId':hash.obj.objectId } : null);
+			gmxAPI.flashDiv.cmdFromJS('stopDrawing', attr );
+		}
+		,
+		'isDrawing':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('isDrawing', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'getIntermediateLength':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('getIntermediateLength', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'getCurrentEdgeLength':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('getCurrentEdgeLength', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'setLabel':	function(hash)	{
+			gmxAPI.flashDiv.cmdFromJS('setLabel', { 'objectId':hash.obj.objectId, 'label':hash['attr']['label'] } );
+		}
+		,
+		'setBackgroundTiles':	function(hash)	{
+			var attr = hash['attr'];
+			if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
+			gmxAPI.flashDiv.cmdFromJS('setBackgroundTiles', { 'objectId':hash.obj.objectId, 'minZoomView':attr['minZoomView'], 'maxZoomView':attr['maxZoomView'], 'minZoom':attr['minZoom'], 'maxZoom':attr['maxZoom'], 'func':attr['func'], 'projectionCode':attr['projectionCode'] } );
+		}
+		,
+		'setDisplacement':	function(hash)	{
+			gmxAPI.flashDiv.cmdFromJS('setDisplacement', { 'objectId':hash.obj.objectId, 'dx':hash['attr']['dx'], 'dy':hash['attr']['dy'] } );
+		}
+		,
+		'setTileCaching':	function(hash)	{
+			gmxAPI.flashDiv.cmdFromJS('setTileCaching', { 'objectId':hash.obj.objectId, 'flag':hash['attr']['flag'] } );
+		}
+		,
+		'setImageExtent':	function(hash)	{
+			gmxAPI.flashDiv.cmdFromJS('setImageExtent', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
+		}
+		,
+		'clearBackgroundImage':	function(hash)	{
+			gmxAPI.flashDiv.cmdFromJS('clearBackgroundImage', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'setGeometry':	function(hash)	{
+			var geo = gmxAPI.merc_geometry(hash['attr']);
+			gmxAPI.flashDiv.cmdFromJS('setGeometry', { 'objectId':hash.obj.objectId, 'data':geo } );
+		}
+		,
+		'getGeometry':	function(hash)	{
+			var geom = gmxAPI.flashDiv.cmdFromJS('getGeometry', { 'objectId':hash.obj.objectId } );
+			if(!geom) return null;
+			var out = { "type": geom.type };
+			var coords =  gmxAPI.forEachPoint(geom.coordinates, function(c) {
+					return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
+					}
+				);
+			out["coordinates"] = coords;
+			return out;
+		}
+		,
+		'getLength':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('getLength', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'getArea':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('getArea', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'getGeometryType':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('getGeometryType', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'getCenter':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('getCenter', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'addChildRoot':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('addChildRoot', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'setVectorTiles':	function(hash)	{
+			var attr = hash['attr'];
+			if(attr.tileFunction) attr.tileFunction = gmxAPI.uniqueGlobalName(attr.tileFunction);
+			return gmxAPI.flashDiv.cmdFromJS('setVectorTiles', { 'objectId':hash.obj.objectId, 'tilesVers':attr['tilesVers'], 'tileFunction':attr['tileFunction'], 'identityField':attr['cacheFieldName'], 'tiles':attr['dataTiles'], 'filesHash':attr['filesHash'] } );
+		}
+		,
+		'setTiles':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('setTiles', { 'objectId':hash.obj.objectId, 'tiles':attr['tiles'], 'flag':attr['flag'] } );
+		}
+		,
+		'startLoadTiles':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('startLoadTiles', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
+		}
+		,
+		'getStat':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('getStat', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'observeVectorLayer':	function(hash)	{
+			var attr = hash['attr'];
+			if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
+			gmxAPI.flashDiv.cmdFromJS('observeVectorLayer', { 'objectId':hash.obj.objectId, 'layerId':attr['layerId'], 'func':attr['func'] } );
+		}
+		,
+		'setImage':	function(hash)	{
+			var attr = hash['attr'];
+			gmxAPI.flashDiv.cmdFromJS('setImage', { 'objectId':hash.obj.objectId, 'url':attr['url'],
+			'x1':attr['x1'], 'y1':attr['y1'], 'x2':attr['x2'], 'y2':attr['y2'], 'x3':attr['x3'], 'y3':attr['y3'], 'x4':attr['x4'], 'y4':attr['y4'],
+			'tx1':attr['tx1'], 'ty1':attr['ty1'], 'tx2':attr['tx2'], 'ty2':attr['ty2'], 'tx3':attr['tx3'], 'ty3':attr['ty3'], 'tx4':attr['tx4'], 'ty4':attr['ty4']
+			} );
+		}
+		,
+		'flip':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('flip', { 'objectId':hash.obj.objectId } );
+		}
+		,
+		'getFeatureById':	function(hash)	{
+			var attr = hash['attr'];
+			if(attr.func) {
+				var func = function(geom, props)
+				{
+					var ret = null;
+					if(geom && geom['type'] != 'unknown') {
+						if(typeof(props) === 'object' && props.length > 0) { props = gmxAPI.arrayToHash(props); }
+						ret = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj);
+					} else if(obj._Processing && obj._Processing.addObjects) {
+						var arr = obj._Processing.addObjects;
+						var identityField = obj.properties.identityField;
+						for (var i = 0; i < arr.length; i++) {
+							var prop = arr[i].properties;
+							if(prop[identityField] == attr['fid']) {
+								ret = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(arr[i].geometry), arr[i].properties, obj);
+								break;
+							}
+						}
+					}
+
+					if(ret) {
+						attr.func(ret);
+					} else {
+						gmxAPI.addDebugWarnings({'alert':'Object: ' + attr['fid'] + ' not found in layer: ' + hash.obj.objectId});
+					}
+				}
+				gmxAPI.flashDiv.cmdFromJS('getFeatureById', { 'objectId':hash.obj.objectId, 'fid':attr['fid'], 'func':gmxAPI.uniqueGlobalName(func) } );
+			}
+		}
+		,
+		'getFeatures':	function(hash)	{
+			var attr = hash['attr'];
+			if(attr.func) {
+				var geo = (attr.geom ? attr.geom : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] });
+				var bound = gmxAPI.getBounds(geo.coordinates);
+				var func = function(geoms, props)
+				{
+					var ret = [];
+					for (var i = 0; i < geoms.length; i++) {
+						var cProp = props[i];
+						if(typeof(cProp) === 'object' && cProp.length > 0) {
+							cProp = gmxAPI.arrayToHash(cProp);
+						}
+						ret.push(new gmxAPI._FlashMapFeature(
+							gmxAPI.from_merc_geometry(geoms[i]),
+							cProp,
+							obj
+						));
+					}
+					if(obj._Processing && obj._Processing.addObjects) {
+						var arr = obj._Processing.addObjects;
+						for (var i = 0; i < arr.length; i++) {
+							var geom = gmxAPI.from_merc_geometry(arr[i].geometry);
+							var bounds = gmxAPI.getBounds(geom.coordinates);
+							if(gmxAPI.boundsIntersect(bound, bounds)) {
+								ret.push(new gmxAPI._FlashMapFeature(
+									geom,
+									arr[i].properties,
+									obj
+								));
+							}
+						}
+					}
+					
+					attr.func(ret);
+				}
+				gmxAPI.flashDiv.cmdFromJS('getFeatures', { 'objectId':hash.obj.objectId, 'geom':gmxAPI.merc_geometry(geo), 'func':gmxAPI.uniqueGlobalName(func) } );
+			}
+		}
+		,
+		'getTileItem':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('getTileItem', { 'objectId':hash.obj.objectId, 'vId':hash['attr'] } );
+		}
+		,
+		'setTileItem':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('setTileItem', { 'objectId':hash.obj.objectId, 'data':hash['attr']['data'], 'flag':hash['attr']['flag'] } );
+		}
+		,
+		'getItemsFromExtent':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('getItemsFromExtent', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
+		}
+		,
+		'setFlashLSO':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('setFlashLSO', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
+		}
+		,
+		'setAPIProperties':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('setAPIProperties', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
+		}
+		,
+		'getPatternIcon':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('getPatternIcon', { 'data':hash['attr'] } );
+		}
+	};
+
 	// Передача команды в SWF
 	function FlashCMD(cmd, hash)
 	{
 		var ret = {};
 		if(!gmxAPI.flashDiv) return ret;
 //var startTime = (new Date()).getTime();
-		var flashDomTest = typeof(gmxAPI.flashDiv); 
-		var obj = hash['obj'] || null;	// Целевой обьект команды
-		var attr = hash['attr'] || '';
-		//console.log(cmd + ' : ' + attr);
-		switch (cmd) {				// Тип команды
-			case 'setEditObjects':		// Установка редактируемых обьектов слоя
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'processing':attr } );
-				break;
-			case 'setVisible':		// Изменить видимость обьекта
-				if(obj) {
-					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr } );
-				}
-				break;
-			case 'sendPNG':			// Сохранение изображения карты на сервер
-				var miniMapFlag = gmxAPI.miniMapAvailable;
-				var flag = (attr.miniMapSetVisible ? true : false);
-				if(miniMapFlag != flag) gmxAPI.map.miniMap.setVisible(flag);
-				if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
-				ret['base64'] = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				if(miniMapFlag) gmxAPI.map.miniMap.setVisible(miniMapFlag);
-				break;
-			case 'setZoomBounds':	// Установить ограничения по Zoom
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZ':attr['minZ'], 'maxZ':attr['maxZ'] });
-				break;
-			case 'setClusters':		// Установить кластеризацию потомков
-				if(attr && 'newProperties' in attr) {
-					var keyArray = [];
-					var valArray = [];
-					for(key in attr['newProperties'])
-					{
-						keyArray.push(key);
-						valArray.push(attr['newProperties'][key]);
-					}
-					attr['propFields'] = [keyArray, valArray];
-					attr['hideFixedBalloons'] = gmxAPI.uniqueGlobalName(function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(true); });
-				}
-				var flag = ('clusters' in obj);	// видимость кластеров
-				if(!flag)
-					obj['clusters'] = new gmxAPI._Clusters(obj);
-				else
-					ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr });
-				attr['visible'] = flag;
-				obj['clusters']['attr'] = attr;		// признак наличия кластеризации в SWF
-
-				//if(!obj.parent._hoverBalloonAttr) obj.parent.enableHoverBalloon();	// если балунов не установлено
-				break;
-			case 'delClusters':		// Удалить кластеризацию потомков
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
-				if('clusters' in obj && obj['clusters']['attr']) obj['clusters']['attr']['visible'] = false;
-				break;
-			case 'setGridVisible':		// Изменить видимость сетки
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'flag':attr } );
-				break;
-			case 'getGridVisibility':	// получить видимость сетки
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { } );
-				break;
-			case 'getZoomBounds':	// Получить ограничения по Zoom
-			case 'getDepth':		// Получить индекс обьекта
-			case 'getVisibility':	// получить видимость
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
-				break;
-			case 'savePNG':			// Сохранить PNG файл экрана
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'fileName':attr });
-				break;
-			case 'trace':			// Сообщение в SWF
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'data':attr });
-				break;
-			case 'setQuality':		// Установка Quality
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'data':attr });
-				break;
-			case 'disableCaching':	// ????
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'print':			// Печать
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'repaint':			// ????
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'addContextMenuItem':	// Добавить пункт в контекстное меню SWF
-				if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				break;
-			case 'moveTo':			//позиционирует карту по координатам центра и выбирает масштаб
-				attr['x'] = gmxAPI.merc_x(attr['x']);
-				attr['y'] = gmxAPI.merc_y(attr['y']);
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				break;
-			case 'slideTo':			//плавно позиционирует карту по координатам центра и выбирает масштаб
-				attr['x'] = gmxAPI.merc_x(attr['x']);
-				attr['y'] = gmxAPI.merc_y(attr['y']);
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				break;
-			case 'zoomBy':			//выбирает масштаб
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				break;
-			case 'freeze':			// заморозить
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'unfreeze':		// разморозить
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'setCursor':		//установка курсора
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				break;
-			case 'clearCursor':		//убрать курсор
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'setCursorVisible'://видимость курсора
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				break;
-			case 'stopDragging':	//убрать флаг Drag
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'isDragging':		//получить флаг Drag
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'resumeDragging':	//возобновить Drag
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'getPosition':		//получить текущие атрибуты SWF
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'getX':			//получить позицию Х центра SWF
-				ret = gmxAPI.from_merc_x(gmxAPI.flashDiv.cmdFromJS(cmd, { }));
-				break;
-			case 'getY':			//получить позицию Y центра SWF
-				ret = gmxAPI.from_merc_y(gmxAPI.flashDiv.cmdFromJS(cmd, { }));
-				break;
-			case 'getZ':			//получить текущий Z
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { });
-				break;
-			case 'getMouseX':		//получить позицию Х MouseX
-				ret = gmxAPI.from_merc_x(gmxAPI.flashDiv.cmdFromJS(cmd, { }));
-				break;
-			case 'getMouseY':		//получить позицию Y MouseY
-				ret = gmxAPI.from_merc_y(gmxAPI.flashDiv.cmdFromJS(cmd, { }));
-				break;
-			case 'isKeyDown':		//проверить нажатие клавиши в SWF
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				break;
-			case 'setExtent':		//установить Extent в SWF
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				break;
-			case 'setMinMaxZoom':	//установить Zoom ограничения
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				break;
-			case 'addMapWindow':	//Создание окна карты
-				if(attr.callbackName) attr.callbackName = gmxAPI.uniqueGlobalName(attr.callbackName);
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, attr);
-				break;
-			case 'setStyle':		// установить Style обьекта
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-				break;
-			case 'getStyle':		//получить Style обьекта
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'removeDefaults':attr });
-				break;
-			case 'getVisibleStyle':		//получить Style обьекта с учетом родителей
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId });
-				break;
-			case 'positionWindow':	// 
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-				break;
-			case 'setBackgroundColor':	// 
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'color':attr } );
-				break;
-			case 'getChildren':		// получить список потомков
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'setHandler':		// установка обработчика события
-				if(attr.callbackName) attr.callbackName = gmxAPI.uniqueGlobalName(attr.callbackName);
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'eventName':attr['eventName'], 'callbackName':attr['callbackName'] } );
-				break;
-			case 'removeHandler':	// удаление обработчика события
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'eventName':attr['eventName'] } );
-				break;
-			case 'addObject':		// добавить обьект
-				var geo = gmxAPI.merc_geometry(attr['geometry']) || null;
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geometry':geo, 'properties':attr['properties'] } );
-				break;
-			case 'addObjects':		// добавить обьекты
-				ret = addObjects(obj.objectId, attr);
-				break;
-			case 'addObjectsFromSWF':	// добавить обьекты из SWF файла
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'attr':attr });
-				break;
-			case 'setVisibilityFilter':		// добавить фильтр видимости к обьекту
-			case 'setFilter':				// добавить фильтр к обьекту
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'sql':attr['sql'] } );
-				break;
-			case 'remove':			// удалить обьект
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'bringToTop':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'bringToDepth':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'zIndex':attr['zIndex'] } );
-				break;
-			case 'bringToBottom':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'setActive':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr['flag'] } );
-				break;
-			case 'setEditable':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'startDrawing':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'type':attr['type'] } );
-				break;
-			case 'stopDrawing':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'isDrawing':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'getIntermediateLength':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'getCurrentEdgeLength':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'setLabel':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'label':attr['label'] } );
-				break;
-			case 'setBackgroundTiles':
-				if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'minZoomView':attr['minZoomView'], 'maxZoomView':attr['maxZoomView'], 'minZoom':attr['minZoom'], 'maxZoom':attr['maxZoom'], 'func':attr['func'], 'projectionCode':attr['projectionCode'] } );
-				break;
-			case 'setDisplacement':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'dx':attr['dx'], 'dy':attr['dy'] } );
-				break;
-			case 'setTileCaching':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'flag':attr['flag'] } );
-				break;
-			case 'setImageExtent':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-				break;
-			case 'clearBackgroundImage':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'setGeometry':
-				var geo = gmxAPI.merc_geometry(attr);
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':geo } );
-				break;
-			case 'getGeometry':
-				geom = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				var out = { "type": geom.type };
-				var coords =  gmxAPI.forEachPoint(geom.coordinates, function(c) {
-						return [gmxAPI.from_merc_x(c[0]), gmxAPI.from_merc_y(c[1])];
-						}
-					);
-				out["coordinates"] = coords;
-				ret = out;
-				break;
-			case 'getLength':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'getArea':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'getGeometryType':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'getCenter':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'addChildRoot':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'setVectorTiles':
-				if(attr.tileFunction) attr.tileFunction = gmxAPI.uniqueGlobalName(attr.tileFunction);
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'tilesVers':attr['tilesVers'], 'tileFunction':attr['tileFunction'], 'identityField':attr['cacheFieldName'], 'tiles':attr['dataTiles'], 'filesHash':attr['filesHash'] } );
-				break;
-			case 'setTiles':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'tiles':attr['tiles'], 'flag':attr['flag'] } );
-				break;
-			case 'startLoadTiles':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-				break;
-
-			case 'getStat':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'observeVectorLayer':
-				if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'layerId':attr['layerId'], 'func':attr['func'] } );
-				break;
-			case 'setImage':
-				gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'url':attr['url'],
-				'x1':attr['x1'], 'y1':attr['y1'], 'x2':attr['x2'], 'y2':attr['y2'], 'x3':attr['x3'], 'y3':attr['y3'], 'x4':attr['x4'], 'y4':attr['y4'],
-				'tx1':attr['tx1'], 'ty1':attr['ty1'], 'tx2':attr['tx2'], 'ty2':attr['ty2'], 'tx3':attr['tx3'], 'ty3':attr['ty3'], 'tx4':attr['tx4'], 'ty4':attr['ty4']
-				} );
-				break;
-			case 'flip':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId } );
-				break;
-			case 'getFeatureById':
-				if(attr.func) {
-					var func = function(geom, props)
-					{
-						var ret = null;
-						if(geom && geom['type'] != 'unknown') {
-							if(typeof(props) === 'object' && props.length > 0) { props = gmxAPI.arrayToHash(props); }
-							ret = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj);
-						} else if(obj._Processing && obj._Processing.addObjects) {
-							var arr = obj._Processing.addObjects;
-							var identityField = obj.properties.identityField;
-							for (var i = 0; i < arr.length; i++) {
-								var prop = arr[i].properties;
-								if(prop[identityField] == attr['fid']) {
-									ret = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(arr[i].geometry), arr[i].properties, obj);
-									break;
-								}
-							}
-						}
-
-						if(ret) {
-							attr.func(ret);
-						} else {
-							gmxAPI.addDebugWarnings({'alert':'Object: ' + attr['fid'] + ' not found in layer: ' + obj.objectId});
-						}
-					}
-					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'fid':attr['fid'], 'func':gmxAPI.uniqueGlobalName(func) } );
-				}
-				break;
-			case 'getFeatures':
-				if(attr.func) {
-					var geo = (attr.geom ? attr.geom : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] });
-					var bound = gmxAPI.getBounds(geo.coordinates);
-					var func = function(geoms, props)
-					{
-						var ret = [];
-						for (var i = 0; i < geoms.length; i++) {
-							var cProp = props[i];
-							if(typeof(cProp) === 'object' && cProp.length > 0) {
-								cProp = gmxAPI.arrayToHash(cProp);
-							}
-							ret.push(new gmxAPI._FlashMapFeature(
-								gmxAPI.from_merc_geometry(geoms[i]),
-								cProp,
-								obj
-							));
-						}
-						if(obj._Processing && obj._Processing.addObjects) {
-							var arr = obj._Processing.addObjects;
-							for (var i = 0; i < arr.length; i++) {
-								var geom = gmxAPI.from_merc_geometry(arr[i].geometry);
-								var bounds = gmxAPI.getBounds(geom.coordinates);
-								if(gmxAPI.boundsIntersect(bound, bounds)) {
-									ret.push(new gmxAPI._FlashMapFeature(
-										geom,
-										arr[i].properties,
-										obj
-									));
-								}
-							}
-						}
-						
-						attr.func(ret);
-					}
-					gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'geom':gmxAPI.merc_geometry(geo), 'func':gmxAPI.uniqueGlobalName(func) } );
-				}
-				break;
-			case 'getTileItem':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'vId':attr } );
-				break;
-			case 'setTileItem':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr['data'], 'flag':attr['flag'] } );
-				break;
-			case 'getItemsFromExtent':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-				break;
-			case 'setFlashLSO':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-				break;
-			case 'setAPIProperties':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'objectId':obj.objectId, 'data':attr } );
-				break;
-			case 'getPatternIcon':
-				ret = gmxAPI.flashDiv.cmdFromJS(cmd, { 'data':attr } );
-				break;
-		}
+		var flashDomTest = typeof(gmxAPI.flashDiv);
+		ret = (cmd in commands ? commands[cmd].call(commands, hash) : {});
 /*
+console.log(cmd + ' : ' + ret);
 if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };
 var delta = (new Date()).getTime() - startTime;
 window._debugTimes.jsToFlash.timeSum += delta;

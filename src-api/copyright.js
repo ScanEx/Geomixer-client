@@ -103,7 +103,7 @@
 			{
 				copyrightUpdateTimeout = setTimeout(function()
 				{
-					var currPosition = map.getPosition();
+					var currPosition = gmxAPI.currPosition || map.getPosition();
 					var x = gmxAPI.from_merc_x(currPosition['x']);
 					var y = gmxAPI.from_merc_y(currPosition['y']);
 					var texts = {};

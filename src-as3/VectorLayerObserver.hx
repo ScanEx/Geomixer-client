@@ -27,6 +27,7 @@ class VectorLayerObserver extends MapContent
 
 	public override function repaint()
 	{
+		//if(Main.isDraggingNow) return;
 		var criterion:Hash<String>->Bool = layer.mapNode.propHiden.get('_FilterVisibility');
 //		try {
 			var filters = new Array<VectorLayerFilter>();
@@ -48,10 +49,13 @@ class VectorLayerObserver extends MapContent
 						if (criterion == null || criterion(geom.properties)) {		// Проверка на setVisibilityFilter
 							for (filter in filters)
 							{
-								if (filter.ids.exists(id) && layer.geometries.get(id).extent.overlaps(extent))
-								{
-									isIn = true;
-									break;
+								if (filter.ids.exists(id)) {
+									var geom:Geometry = layer.geometries.get(id);
+									if (geom != null && geom.extent.overlaps(extent))
+									{
+										isIn = true;
+										break;
+									}
 								}
 							}
 						}

@@ -535,7 +535,7 @@
 		map.getVisibleExtent = function()
 		{
 			var ww = 2 * gmxAPI.worldWidthMerc;
-			var currPosition = map.getPosition();
+			var currPosition = gmxAPI.currPosition || map.getPosition();
 			var x = currPosition['x'] + ww;
 			x = x % ww;
 			if(x > gmxAPI.worldWidthMerc) x -= ww;

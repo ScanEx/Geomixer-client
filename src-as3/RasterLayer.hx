@@ -44,6 +44,8 @@ class RasterLayer extends MaskedContent
 
 	public override function repaint()
 	{
+		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
+//		if(Main.isDraggingNow) return;
 		super.repaint();
 
 		var window = mapNode.window;

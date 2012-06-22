@@ -92,9 +92,11 @@ class EditableContent extends MapContent
 				me.rebuild();
 			}
 		}
+		Main.isDrawing = true;
 		isDrawing = true;
 		stopDrawing = function()
 		{
+			Main.isDrawing = false;
 			me.isDrawing = false;
 			me.stopDrawing = function() {};
 			root.removeEventListener(MouseEvent.MOUSE_MOVE, listener1);
@@ -247,6 +249,7 @@ class EditableContent extends MapContent
 		});
 		pointsPainter.sprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:Event)
 		{
+			Main.isDrawing = true;
 			event.stopPropagation();
 			calculateEditIndex();
 
@@ -298,6 +301,7 @@ class EditableContent extends MapContent
 			var listener2:Event->Void = null;
 			listener2 = function(event:Event)
 			{
+				Main.isDrawing = false;
 				root.removeEventListener(MouseEvent.MOUSE_MOVE, listener1);
 				root.removeEventListener(MouseEvent.MOUSE_UP, listener2);
 				Main.draggingDisabled = false;

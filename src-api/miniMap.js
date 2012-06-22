@@ -39,7 +39,7 @@
 			var startMouseX = gmxAPI.eventX(event);
 			var startMouseY = gmxAPI.eventY(event);
 			
-			var currPosition = map.getPosition();
+			var currPosition = gmxAPI.currPosition || map.getPosition();
 			var startMapX = currPosition['x'];
 			var startMapY = currPosition['y'];
 

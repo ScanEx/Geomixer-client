@@ -168,7 +168,7 @@
 					}
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
 					if(customBalloonObject) {
-						currPosition = map.getPosition();
+						currPosition = gmxAPI.currPosition || map.getPosition();
 						currPosition._x = propsBalloon.mouseX || 0;
 						currPosition._y = propsBalloon.mouseY || 0;
 						var flag = customBalloonObject.onMouseOver(o, keyPress, currPosition); // Вызов пользовательского метода вместо или перед балуном
@@ -476,6 +476,7 @@
 			var y = 0;
 			var reposition = function()	
 			{
+				if(!wasVisible ) return;
 				var ww = balloon.clientWidth;
 				var hh = balloon.clientHeight;
 
@@ -494,6 +495,10 @@
 					ret.resize();
 				wasVisible = flag;
 			}
+			var isVisible = function()	
+			{
+				return wasVisible;
+			}
 
 			var wasVisible = true;
 
@@ -502,6 +507,7 @@
 				div: balloonText,
 				mouseX: 0,
 				mouseY: 0,
+				isVisible: isVisible,
 				setVisible: updateVisible,
 				setScreenPosition: function(x_, y_)
 				{
@@ -530,10 +536,12 @@
 		propsBalloon.outerDiv.style.display = "none";
 		new gmxAPI.GlobalHandlerMode("mousemove", function(event)
 		{
-			propsBalloon.setScreenPosition(
-				gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div), 
-				gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div)
-			);
+			if(propsBalloon.isVisible()) {
+				propsBalloon.setScreenPosition(
+					gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div), 
+					gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div)
+				);
+			}
 		}).set();
 		div.onmouseout = function(event)
 		{
@@ -567,6 +575,7 @@
 
 		var positionBalloons = function(ph)	
 		{
+			if(balloons.length < 1) return;
 			refreshMapPosition(ph);
 			balloons.sort(function(b1, b2)
 			{

@@ -114,6 +114,7 @@
 		ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
 		ret.stopDrawing = function()
 		{
+			gmxAPI._cmdProxy('stopDrawing');
 			if (!isDrawing)
 				return;
 			isDrawing = false;
@@ -395,6 +396,7 @@
 		else
 			done(coords[0], coords[1]);
 
+		gmxAPI._cmdProxy('startDrawing');
 		return ret;
 	}
 
@@ -888,6 +890,7 @@
 
 		ret.stopDrawing = function()
 		{
+			gmxAPI._cmdProxy('stopDrawing');
 			gmxAPI.map.unfreeze();
 			gmxAPI._sunscreen.setVisible(false);
 			gmxAPI._setToolHandler("onMouseDown", null);
@@ -949,6 +952,7 @@
 			);
 		}
 
+		gmxAPI._cmdProxy('startDrawing');
 		return ret;
 	}
 

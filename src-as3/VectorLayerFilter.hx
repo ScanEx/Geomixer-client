@@ -244,6 +244,7 @@ class VectorLayerFilter extends MapContent
 
 	public override function repaint()
 	{
+		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
 		if(loader != null) loader(mapNode.window.visibleExtent);
 		var w = 2 * Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;
@@ -288,6 +289,7 @@ class VectorLayerFilter extends MapContent
 
 	public override function paintLabels()
 	{
+		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
 		if (hasLabels())
 		{
 			var style = mapNode.getRegularStyle();
@@ -328,21 +330,29 @@ class VectorLayerFilter extends MapContent
 		var me = this;
 		contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
 		{
+			if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
+			
+			//if (event.ctrlKey) return;
 			//me.layer.currentFilter = me;
 			if (me.layer.currentFilter != null) {
 				me.layer.checkFlip();
 				Main.registerMouseDown(me.layer.currentFilter.mapNode, event, null);
+//event.stopImmediatePropagation();
 			}
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
+			if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
+			//if (event.ctrlKey) return;
 			//me.layer.currentFilter = me;
 			me.layer.repaintIndicator(event);
+//event.stopImmediatePropagation();
 			//me.layer.needRepaintIndicator = true;
 			//Main.bumpFrameRate();
 		});
 		var roll_out = function(event:Event)
 		{
+			if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
 			if (me.layer.currentFilter != null)
 			{
 				var node = me.layer.currentFilter.mapNode;

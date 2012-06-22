@@ -43,6 +43,8 @@ class Main
 	public static var compressLSO:Bool = false;			// Сжатие SharedObject
 	public static var flashStartTimeStamp:Float = 0;	// timeStamp загрузки SWF
 
+public static var isDrawing:Bool = false;			// Глобальный признак режима рисования
+	public static var isDraggingNow:Bool = false;		// Глобальный признак Drag режима
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
 	public static var mousePressed:Bool = false;
@@ -312,6 +314,7 @@ class Main
 			if (!Main.draggingDisabled)
 			{
 				isDragging = true;
+				Main.isDraggingNow = true;
 				draggedWindow = getWindowUnderMouse();
 				startMouseX = root.mouseX;
 				startMouseY = root.mouseY;
@@ -357,6 +360,7 @@ class Main
 			nodeFrom = null;
 			clickedNode = null;
 			isDragging = false;
+			Main.isDraggingNow = false;
 			//viewportHasMoved = true;
 		}
 		
@@ -366,6 +370,7 @@ class Main
 			if (event != null) {
 				Main.chkEventAttr(event);
 			}
+			Main.isDraggingNow = false;
 			isDragging = false;
 			if (!isFluidMoving)
 			{
@@ -441,6 +446,7 @@ class Main
 
 		Main.refreshMap = function()
 		{
+			//if(Main.isDraggingNow) return;
 			//viewportHasMoved = true;
 			for (window in MapWindow.allWindows)
 			{
@@ -492,7 +498,7 @@ class Main
 				Main.refreshMap();
 				needRefreshMap = false;
 			}
-			
+
 			if (viewportHasMoved)
 			{
 				mapWindow.rootNode.callHandlersRecursively("onMove");
@@ -502,6 +508,7 @@ class Main
 			else if (!isMoving)
 				for (window in MapWindow.allWindows)
 					window.rootNode.repaintRecursively(false);
+
 			if (!isMoving && !isDragging)
 				for (window in MapWindow.allWindows)
 					window.repaintLabels();
@@ -1154,6 +1161,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					cursor.visible = attr.flag;
 				case 'stopDragging':
 					isDragging = false;
+					Main.isDraggingNow = false;
 					if (!isFluidMoving)
 						isMoving = false;
 				case 'isDragging':
@@ -1303,9 +1311,11 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'setEditable':
 					getNode(attr.objectId).setContent(new EditableContent());
 				case 'startDrawing':
-					cast(getNode(attr.objectId).content, EditableContent).startDrawing(attr.type);
+					Main.isDrawing = true;
+					if(attr != null && attr.objectId != null) cast(getNode(attr.objectId).content, EditableContent).startDrawing(attr.type);
 				case 'stopDrawing':
-					cast(getNode(attr.objectId).content, EditableContent).stopDrawing();
+					Main.isDrawing = false;
+					if (attr != null && attr.objectId != null) cast(getNode(attr.objectId).content, EditableContent).stopDrawing();
 				case 'isDrawing':
 					var flag:Bool = (cast(getNode(attr.objectId).content, EditableContent).stopDrawing != null);
 					out = cast(flag);
@@ -1374,8 +1384,11 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 						attr.tx1, attr.ty1, attr.tx2, attr.ty2, attr.tx3, attr.ty3, attr.tx4, attr.ty4
 					);
 				case 'flip':
-					var content = getNode(attr.objectId).content;
-					out = (Std.is(content, VectorLayerFilter) ? cast(content, VectorLayerFilter).layer.flip() : '');
+					var node = getNode(attr.objectId);
+					if(node != null) {
+						var content = node.content;
+						out = (Std.is(content, VectorLayerFilter) ? cast(content, VectorLayerFilter).layer.flip() : '');
+					}
 				case 'getFeatureGeometry':		// не используется
 					var geom:Geometry = getFeatureGeometry(attr.objectId, attr.featureId);
 					out = geom.export();

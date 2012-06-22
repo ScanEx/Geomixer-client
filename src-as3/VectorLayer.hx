@@ -341,6 +341,7 @@ class VectorLayer extends MapContent
 
 	public function repaintIndicator(?ev:MouseEvent)
 	{
+		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
 		var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
 		var distance:Float = Geometry.MAX_DISTANCE;
 		var x = contentSprite.mouseX;
@@ -561,7 +562,8 @@ class VectorLayer extends MapContent
 		if (lastFlipCount >= zeroDistanceIds.length) lastFlipCount = 0;
 		if (!flag) {
 			var geom = zeroDistanceIds[lastFlipCount];
-			out = geom.properties.get(identityField);
+			// todo - необходимо доделать для обьектов в режиме редактирования
+			if(geom != null) out = geom.properties.get(identityField);
 		}
 		repaintIndicator();
 		return out;		
