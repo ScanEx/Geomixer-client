@@ -2782,7 +2782,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 	
 	if (type == "Vector")
 	{
-		var shapePath = _input(null,[['attr','fieldName','ShapePath.Path'],['attr','value',!properties.ShapePath ? properties.GeometryTable.TableName : properties.ShapePath.Path],['dir','className','inputStyle'],['css','width', div ? '200px' : '275px']]),
+		var shapePath = _input(null,[['attr','fieldName','ShapePath.Path'],['attr','value',!properties.ShapePath ? properties.GeometryTable.TableName : properties.ShapePath.Path],['dir','className','inputStyle'],['css','width', '200px']]),
 			shapeFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
 			tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
 			// trPath = _tr([_td([_t(_gtxt("Файл")), shapeFileLink, _br(), _t(_gtxt("Таблица")), tableLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
@@ -2990,7 +2990,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			
 			var createTypeSelector = function()
 			{
-				var s = nsGmx.Utils._select(null, [['css', 'width', '100px'], ['dir', 'className', 'selectStyle']]);
+				var s = nsGmx.Utils._select(null, [['css', 'width', '83px'], ['dir', 'className', 'selectStyle']]);
 				for (var type in attrModel.TYPES)
 					$(s).append(_option([_t(attrModel.TYPES[type].user)], [['dir', 'attrType', attrModel.TYPES[type]], ['attr', 'id', attrModel.TYPES[type].server]]));
 				return s;
@@ -3018,7 +3018,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 						_model.changeType(this.attrIdx, attrType);
 					});
 					
-					var nameSelector = _input(null, [['attr', 'class', 'customAttrNameInput']]);
+					var nameSelector = _input(null, [['attr', 'class', 'customAttrNameInput inputStyle'], ['css', 'width', '80px']]);
 					
 					$(nameSelector).attr({attrIdx: i}).val(attr.name);
 					
@@ -3086,23 +3086,47 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                 
             var attrViewParent = _div();
             var attrContainer = _div([
-                _div([_table([_tbody([_tr([
-                    _td([addAttribute], [['css', 'margin', '3px'], ['css', 'border', 'none']]), 
-                    _td([_div([_span([_t('Геометрия: ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]), geometryTypeSelect[0]])], [['css', 'textAlign', 'right'], ['css', 'border', 'none']])
-                ])])], [['css', 'width', '100%']])]),
+                _div([
+                    _div([_span([_t('Геометрия: ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]), geometryTypeSelect[0]]),
+                    addAttribute
+                ]),
+                // _div([_table([_tbody([_tr([
+                    // _td([addAttribute], [['css', 'margin', '3px'], ['css', 'border', 'none']]), 
+                    // _td([_div([_span([_t('Геометрия: ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]), geometryTypeSelect[0]])], [['css', 'textAlign', 'right'], ['css', 'border', 'none']])
+                // ])])], [['css', 'width', '100%']])]),
                 _div([attrViewParent], [['css', 'margin', '3px']])
-            ]);
+            ], [['css', 'marginLeft', '3px']]);
             
             //var createLayerFields = _tr([_td([boxManualAttributes, _span([_t(_gtxt("Задать атрибуты вручную"))]), attrContainer], [['attr', 'colSpan', 2]])]);
             attrView.init(attrViewParent, attrModel);
 		
             //shownProperties.push({tr: createLayerFields});
             
+            var sourceCheckbox = $('<form/>')
+                .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxFileSource', checked: 'checked'}).data('containerIdx', 0))
+                .append($('<lable/>', {'for': 'chxFileSource'}).text(_gtxt('Файл'))).append('<br/>')
+                .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxTableSource'}).data('containerIdx', 1))
+                .append($('<lable/>', {'for': 'chxTableSource'}).text(_gtxt('Таблица'))).append('<br/>')
+                .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxManualSource'}).data('containerIdx', 2))
+                .append($('<lable/>', {'for': 'chxManualSource'}).text(_gtxt('Вручную')));
+                
+            $(sourceCheckbox).find('input, label').css('verticalAlign', 'middle');
+                
+            var sourceTab2 = $('<div/>');
+            var sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top']]), _td([sourceTab2[0]])]);
+            shownProperties.push({tr: sourceTr2});
+            
+            sourceCheckbox.find('input').click(function()
+            {
+                var activeIdx = $(this).data('containerIdx');
+                $(sourceTab).tabs('select', activeIdx);
+            });
+            
             var sourceTab = _div([_ul([
                 _li([_a([_t(_gtxt('Файл'))],   [['attr','href','#fileSource' + properties.name]])]),
                 _li([_a([_t(_gtxt('Таблица'))],[['attr','href','#tableSource' + properties.name]])]),
                 _li([_a([_t(_gtxt('Вручную'))],[['attr','href','#manualSource' + properties.name]])])
-            ])]);
+            ], [['css', 'display', 'none']])]);
 			
             var sourceFile = _div(null, [['dir', 'id', 'fileSource' + properties.name]])
 			_(sourceFile, [shapePath, shapeFileLink, encodingParent, xlsColumnsParent]);
@@ -3114,14 +3138,14 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				['attr','fieldName','GeometryTable.TableName'],
 				['attr','value',properties.GeometryTable ? properties.GeometryTable.TableName : ''],
 				['dir','className','inputStyle'],
-				['css','width', div ? '200px' : '275px']
+				['css','width', '200px']
 			]);
 			var temporalLayerParentTable = _div(null, [['dir', 'className', 'TemporalLayer']]);
 			var temporalLayerParamsTable = new nsGmx.TemporalLayerParams();
 			var temporalLayerViewTable = new nsGmx.TemporalLayerParamsControl(temporalLayerParentTable, temporalLayerParamsTable, []);
             
             var TableCSParent = _div();
-            var TableCSSelect = $('<select/>', {'class': 'selectStyle'})
+            var TableCSSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '165px')
                 .append($('<option>').val('EPSG:4326').text(_gtxt('Широта/Долгота (EPSG:4326)')))
                 .append($('<option>').val('EPSG:3395').text(_gtxt('Меркатор (EPSG:3395)')));
                 
@@ -3130,7 +3154,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                 
             $(TableCSParent).append($('<span/>').text(_gtxt('Проекция')).css('margin', '3px')).append(TableCSSelect);
             
-            var sourceTable = _div([tablePath, tableLink, TableCSParent, temporalLayerParentTable, tableColumnsParent, ], [['dir', 'id', 'tableSource' + properties.name]])
+            var sourceTable = _div([tablePath, tableLink, TableCSParent, temporalLayerParentTable, tableColumnsParent], [['dir', 'id', 'tableSource' + properties.name]])
 			
 			var temporalLayerParamsManual = new nsGmx.TemporalLayerParams();
 			var temporalLayerParentManual = _div(null, [['dir', 'className', 'TemporalLayer']]);
@@ -3147,11 +3171,14 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				}
 				temporalLayerViewManual.updateColumns(columns);
 			});
+            
+            var sourceContainers = [sourceFile, sourceTable, sourceManual];
 			
             var sourceTr;
             if (!div)
             {            
-                _(sourceTab, [sourceFile, sourceTable, sourceManual]);
+                // _(sourceTab2[0], sourceContainers);
+                _(sourceTab, sourceContainers);
                 selectedSource = 0;
                 $(sourceTab).tabs({
                     selected: selectedSource,
@@ -3160,8 +3187,9 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                         selectedSource = ui.index;
                     }
                 });
-                sourceTr = _tr([_td([sourceTab], [['dir', 'id', 'layerSource'], ['dir', 'colSpan', 2]])]);
-                shownProperties.push({tr: sourceTr});
+                _(sourceTab2[0], [sourceTab]);
+                // sourceTr = _tr([_td([sourceTab], [['dir', 'id', 'layerSource'], ['dir', 'colSpan', 2]])]);
+                // shownProperties.push({tr: sourceTr});
             }
             else
             {
@@ -3182,7 +3210,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                 else
                 {
                     selectedSource = 2;
-                    sourceTab = _div();
+                    // sourceTab = _div();
                 }
             }
             

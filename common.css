@@ -833,7 +833,6 @@ skype_pnh_container
 }
 
 .customAttributes td {
-	padding: 2px;
 	border-width: 0px;
 	background-color: 0xffffff;
 }
@@ -870,6 +869,7 @@ skype_pnh_container
 .TemporalLayer
 {
 	margin-top: 8px;
+    margin-left: 3px;
 }
 
 .TemporalLayer table
