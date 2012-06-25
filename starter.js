@@ -135,34 +135,9 @@ var createMenu = function()
 			{id: 'mapGrid', title:_gtxt('Координатная сетка'), func:function(){_mapHelper.gridView = !_mapHelper.gridView; globalFlashMap.grid.setVisible(_mapHelper.gridView);}}
 		]});
 	
-	var services = [];
 	
-	if (typeof useFiresMap != 'undefined' && useFiresMap.hostName && useFiresMap.mapName)
-	{
-		services.push({id:'operative', title:'Оперативный мониторинг', childs:
-			[
-				{id:'firesMap', title:'Карта пожаров',func:function()
-				{
-					mapHelp.externalMaps.load("externalMaps")
-					
-					var existsFlag = false;
-					
-					$(_queryExternalMaps.workCanvas.lastChild).children("div").each(function()
-					{
-						if (this.hostName == useFiresMap.hostName &&
-							this.mapName == useFiresMap.mapName)
-							existsFlag = true;
-					});
-					
-					if (existsFlag)
-						return;
-						
-					_queryExternalMaps.addMapElem(useFiresMap.hostName, useFiresMap.mapName);
-				}}
-			]})
-	}
 	
-	services = services.concat([
+	var services = [
 			{id:'shp', title:_gtxt('Загрузить файл'),onsel:drawingObjects.loadShp.load,onunsel:drawingObjects.loadShp.unload},
 			{id:'kml', title:_gtxt('Загрузить KML'),onsel:KML.KML.load,onunsel:KML.KML.unload},
 			{id:'loadServerData', title:_gtxt('Загрузить данные'), childs:
@@ -170,9 +145,7 @@ var createMenu = function()
 					{id:'wfs', title:_gtxt('WFS сервер'),onsel:loadServerData.WFS.load,onunsel:loadServerData.WFS.unload},
 					{id:'wms', title:_gtxt('WMS сервер'),onsel:loadServerData.WMS.load,onunsel:loadServerData.WMS.unload}
 				]}
-		//	{id:'pictureBinding', title:_gtxt('Привязать изображение'),onsel:pointsBinding.pointsBinding.load,onunsel:pointsBinding.pointsBinding.unload}
-		//	{id:'gps', title:'Спутниковый мониторинг',onsel:gps.gps.load,onunsel:gps.gps.unload}
-		]);
+		];
 	
 	_menuUp.addItem(
 	{id:"servicesMenu", title:_gtxt("Сервисы"),childs:services});

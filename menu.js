@@ -14,6 +14,13 @@ var UpMenu = function()
     this.defaultHash = 'layers';
 };
 
+/**
+    Добавляет к меню новый элемент верхнего уровня
+    @param elem {Object} элемент меню со слудующими свойствами <br/>
+        id - уникальный идентификатор элемента меню
+        title - текст, который будет показываться пользователю
+        
+*/
 UpMenu.prototype.addItem = function(elem)
 {
 	if (!this.submenus[elem.id])
