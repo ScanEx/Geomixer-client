@@ -2527,12 +2527,12 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 		{
 			if (typeof parentStyle.marker.color == 'undefined')
 			{
-				icon = _img(null, [['attr','src',parentStyle.marker.image],['dir','className','icon'],['attr','styleType','icon']]);
+				icon = _img(null, [['dir','className','icon'],['attr','styleType','icon']]);
 				
 				var fixFunc = function()
 					{
-						var width = icon.offsetWidth,
-							height = icon.offsetHeight,
+						var width = this.width,
+							height = this.height,
 							scaleX = 14.0 / width,
 							scaleY = 14.0 / height,
 							scale = Math.min(scaleX, scaleY);
@@ -2542,19 +2542,10 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 							icon.style.width = Math.round(width * scale) + 'px';
 							icon.style.height = Math.round(height * scale) + 'px';
 						}, 10);
-					},
-					loadFunc = function()
-					{
-						if (icon.offsetWidth)
-							fixFunc();
-						else
-							setTimeout(loadFunc, 50)
-					};
+					}
 				
-				icon.onload = function()
-				{
-					loadFunc();
-				}
+				icon.onload = fixFunc;
+                icon.src = parentStyle.marker.image;
 			}
 			else
 			{
