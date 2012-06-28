@@ -329,6 +329,7 @@
 
 				balloon.outerDiv.onmousedown = function(event)
 				{
+					gmxAPI._cmdProxy('startDrawing');
 					gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': true} });
 					var currPosition = gmxAPI.map.getPosition();
 					var mapX = currPosition['x'];
@@ -343,6 +344,7 @@
 				}
 				balloon.outerDiv.onmouseup = function(event)
 				{
+					gmxAPI._cmdProxy('stopDrawing');
 					gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': false} });
 					gmxAPI._stopDrag();
 					upCallback();
@@ -375,7 +377,6 @@
 			gmxAPI._listeners.dispatchEvent('onAdd', domObj, domObj);
 
 			ret.setVisible(ret.isVisible);
-			gmxAPI._cmdProxy('stopDrawing');
 			gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
 		}
 
@@ -397,7 +398,6 @@
 		else
 			done(coords[0], coords[1]);
 
-		gmxAPI._cmdProxy('startDrawing');
 		return ret;
 	}
 
