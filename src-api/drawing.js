@@ -375,6 +375,7 @@
 			gmxAPI._listeners.dispatchEvent('onAdd', domObj, domObj);
 
 			ret.setVisible(ret.isVisible);
+			gmxAPI._cmdProxy('stopDrawing');
 			gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
 		}
 
