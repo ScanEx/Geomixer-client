@@ -14,8 +14,8 @@
   Если очередной элемент массива просто строка (например, "name"), то это эквивалентно {module: "name", file: "plugins/name.js"}
   Каждый плагин хранится в отдельном модуле (через свойство module) или подгружается в явном виде (через свойство plugin). В модуле могут быть определены следующие методы:<br/>
   * beforeMap (params)- вызовется сразу после загрузки всех модулей ядра вьюера (до инициализации карты, проверки пользователя и т.п.)<br/>
-  * beforeViewer (params)- вызовется до начала инициализации вьюера (сразу после инициализации карты)<br/>
-  * afterViewer(params) - вызовется после инициализации вьюера<br/>
+  * beforeViewer (params, map)- вызовется до начала инициализации вьюера (сразу после инициализации карты)<br/>
+  * afterViewer(params, map) - вызовется после инициализации вьюера<br/>
   * addMenuItems - должен вернуть вектор из пунктов меню, которые плагин хочет добавить.
                    Формат каждого элемента вектора: item - описание меню (см Menu.addElem()), parentID: id меню родителя (1 или 2 уровня)
                    Устарело! Используйте непосредственное добавление элемента к меню из afterViewer()
@@ -126,22 +126,22 @@ var PluginsManager = function()
 	 @method
 	 Вызывает beforeViewer() у всех плагинов
 	*/
-	this.beforeViewer = function()
+	this.beforeViewer = function(map)
 	{
 		for (var p = 0; p < _plugins.length; p++)
 			if ( _plugins[p]._inUse && typeof _plugins[p].body.beforeViewer !== 'undefined')
-				_plugins[p].body.beforeViewer( _plugins[p].params );
+				_plugins[p].body.beforeViewer( _plugins[p].params, map || window.globalFlashMap );
 	};
 	
 	/**
 	 @method
 	 Вызывает afterViewer() у всех плагинов
 	*/
-	this.afterViewer = function()
+	this.afterViewer = function(map)
 	{
 		for (var p = 0; p < _plugins.length; p++)
 			if ( _plugins[p]._inUse && typeof _plugins[p].body.afterViewer !== 'undefined')
-				_plugins[p].body.afterViewer( _plugins[p].params );
+				_plugins[p].body.afterViewer( _plugins[p].params, map || window.globalFlashMap );
 	};
 	
 	/**
