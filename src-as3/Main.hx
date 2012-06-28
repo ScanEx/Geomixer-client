@@ -246,6 +246,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				isFluidMoving = false;
 				stopFluidMove = null;
 				onMoveEnd();
+				Main.isDrawing = false;
 			}
 		}
 
