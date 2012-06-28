@@ -213,6 +213,7 @@ class VectorLayerFilter extends MapContent
 		var me = this;
 		loader = layer.createLoader(function(tile:VectorTile, tilesRemaining:Int)
 		{
+			if (tile == null) return;
 			var st:String = tile.z + '_' + tile.i + '_' + tile.j;
 			var tileGeometry = me.getTileMultiGeometry(tile);
 			var window = me.mapNode.window;
@@ -244,7 +245,7 @@ class VectorLayerFilter extends MapContent
 
 	public override function repaint()
 	{
-		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
+//		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
 		if(loader != null) loader(mapNode.window.visibleExtent);
 		var w = 2 * Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;

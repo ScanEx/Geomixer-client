@@ -606,9 +606,16 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		{ 
 			var node:MapNode = getNode(id);
 
+//			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode, ?data_:Dynamic)
 			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode)
 			{
 				var props:Dynamic;
+/*				
+				if (data_ != null)
+				{
+					eventAttr.data = data_;
+				}
+*/				
 				if (Std.is(node2.content, VectorLayerFilter))
 				{
 					if(nodeFrom_ == null) {
@@ -1019,13 +1026,15 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 		{
 			var node = getNode(id);
 			var ret = new Hash<Bool>();
+			var empty:Bool = true;
 			var queryGeom = Utils.parseGeometry(geom);
 			var queryExtent = queryGeom.extent;
 			var layer = cast(node.content, VectorLayer);
 			layer.createLoader(
 				function(tile:VectorTile, tilesRemaining:Int)
 				{
-					if(tile != null) {
+					var addItems = function(tile:VectorTile)
+					{
 						for (i in 0...tile.ids.length)
 						{
 							var id = tile.ids[i];
@@ -1040,16 +1049,41 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 								ret.set(id, true);
 						}
 					}
+					
+					if (tile != null) {
+						empty = false;
+						addItems(tile);
+					}
 		
 					if (tilesRemaining == 0)
 					{
+						if (empty)		// Все нужные тайлы уже были загружены
+						{
+							var w = 2 * Utils.worldWidth;
+							for (i in 0...layer.tiles.length)
+							{
+								var tile = layer.tiles[i];
+								if (tile.finishedLoading) {
+									var e2 = tile.extent;
+									if ((queryExtent.miny < e2.maxy) && (e2.miny < queryExtent.maxy) && (
+										((queryExtent.minx < e2.maxx) && (e2.minx < queryExtent.maxx)) || 
+										((queryExtent.minx < e2.maxx + w) && (e2.minx + w < queryExtent.maxx)) || 
+										((queryExtent.minx < e2.maxx - w) && (e2.minx - w < queryExtent.maxx))
+									))
+									{
+										addItems(tile);
+									}
+								}
+							}
+							
+						}
 						var geoms = new Array<String>();
 						var props = new Array<Dynamic>();
 						for (id in ret.keys())
 						{
 							var geom = layer.geometries.get(id);
 							geoms.push(geom.export());
-							props.push(exportProperties(geom.properties));
+							props.push(hashToArray(geom.properties));
 						}
 						Main.cmdToJS(func, geoms, props);
 					}
