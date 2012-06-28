@@ -1553,6 +1553,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		,'onEdgeMouseOut': true
 		,'onFinish': true
 		,'onRemove': true
+		,'onTileLoaded': true
 	};
 
 	function setHandler(obj, eventName, handler) {
@@ -1831,7 +1832,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		tilesParent.setZoomBounds(minZoom, maxZoom);
 		tilesParent.observeVectorLayer(this, function(o, flag)
 		{
-			var identityField = gmxAPI.getIdentityField(o);
+			var identityField = gmxAPI.getIdentityField(tilesParent);
 			var id = 'id_' + o.properties[identityField];
 			var ret = false;
 			if (flag && !images[id])
