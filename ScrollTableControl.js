@@ -292,15 +292,7 @@ scrollTable.prototype._drawHeader = function()
 			
 			button.onclick = function()
 			{
-				_this.currentSortType = this.sortType;
-				_this.currentSortIndex[_this.currentSortType] = 1 - _this.currentSortIndex[_this.currentSortType];
-				
-				_this.start = 0;
-				_this.reportStart = _this.start * _this.limit;
-				
-				_this._drawTable()
-                
-                $(_this).triggerHandler('sortChange');
+                _this.setSortParams(this.sortType, 1 - _this.currentSortIndex[this.sortType]);
 			}
 		}
 		else
@@ -434,6 +426,19 @@ scrollTable.prototype.setPage = function(iPage)
 scrollTable.prototype.getSortType = function()
 {
     return this.currentSortType;
+}
+
+scrollTable.prototype.setSortParams = function(sortType, sortDirection)
+{
+    this.currentSortType = sortType;
+    this.currentSortIndex[this.currentSortType] = sortDirection;
+    
+    this.start = 0;
+    this.reportStart = this.start * this.limit;
+    
+    this._drawTable()
+    
+    $(this).triggerHandler('sortChange');
 }
 
 //false - по убыванию, true - по возрастанию
