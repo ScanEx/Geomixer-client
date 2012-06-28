@@ -745,6 +745,7 @@
 			if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 			domObj.triggerInternal("onMouseUp");
 			chkEvent(null);
+			gmxAPI._cmdProxy('stopDrawing');
 		}
 
 		corners.setStyle(regularDrawingStyle, hoveredDrawingStyle);
@@ -851,6 +852,7 @@
 
 		var dragMe = function(tp)
 		{
+			gmxAPI._cmdProxy('startDrawing');
 			isDraging = true;
 			chkBalloon(tp)
 			repaint();
@@ -922,6 +924,7 @@
 			gmxAPI.map.enableDragging(
 				function(x, y)
 				{
+					gmxAPI._cmdProxy('startDrawing');
 					isDraging = true;
 					x2 = x;
 					y2 = y;
@@ -942,6 +945,7 @@
 				},
 				function()
 				{
+					gmxAPI._cmdProxy('stopDrawing');
 					isDraging = false;
 					if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 					gmxAPI._setToolHandler("onMouseDown", null);
@@ -953,7 +957,6 @@
 			);
 		}
 
-		gmxAPI._cmdProxy('startDrawing');
 		return ret;
 	}
 

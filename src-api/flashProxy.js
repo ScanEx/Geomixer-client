@@ -483,11 +483,11 @@
 						ret.push(new gmxAPI._FlashMapFeature(
 							gmxAPI.from_merc_geometry(geoms[i]),
 							cProp,
-							obj
+							hash.obj
 						));
 					}
-					if(obj._Processing && obj._Processing.addObjects) {
-						var arr = obj._Processing.addObjects;
+					if(hash.obj._Processing && hash.obj._Processing.addObjects) {
+						var arr = hash.obj._Processing.addObjects;
 						for (var i = 0; i < arr.length; i++) {
 							var geom = gmxAPI.from_merc_geometry(arr[i].geometry);
 							var bounds = gmxAPI.getBounds(geom.coordinates);
@@ -495,7 +495,7 @@
 								ret.push(new gmxAPI._FlashMapFeature(
 									geom,
 									arr[i].properties,
-									obj
+									hash.obj
 								));
 							}
 						}
