@@ -30,8 +30,9 @@
 
 (function(){
 
-var ServerDataProvider = function()
+var ServerDataProvider = function(params)
 {
+    var _params = $.extend({defaultSortParam: 'ogc_fid'}, params);
     var _countRequest = null;
     var _dataRequest = null;
     
@@ -65,7 +66,7 @@ var ServerDataProvider = function()
         
         var offset = "&page=" + page,
             limit = "&pagesize=" + pageSize,
-            sortAttr = "&orderby=" + (sortParam || "ogc_fid"),
+            sortAttr = "&orderby=" + (sortParam || _params.defaultSortParam),
             sortOrder = "&orderdirection=" + (sortDec ? "DESC" : "ASC");
             
         sendCrossDomainJSONRequest(_dataRequest + offset + limit + sortAttr + sortOrder, function(response)
@@ -523,6 +524,8 @@ attrsTableHash.prototype.create = function(name)
 		this.hash[name] = newAttrsTable;
 	}
 }
+
+scrollTable.AttributesServerDataProvider = ServerDataProvider;
 
 window._attrsTableHash = new attrsTableHash();
 
