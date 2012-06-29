@@ -1,0 +1,18 @@
+﻿.activeImageRow
+{
+    background-color: #ffffaa;
+}
+
+.eventFilterButton
+{
+    background-color: #EEEEFF;
+    float: left;
+    margin: 3px;
+    padding: 3px;
+    cursor: pointer;
+}
+
+.eventFilterOn
+{
+    background-color: #CCCCFF;
+}
