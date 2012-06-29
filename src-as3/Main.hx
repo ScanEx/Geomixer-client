@@ -606,16 +606,13 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		{ 
 			var node:MapNode = getNode(id);
 
-//			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode, ?data_:Dynamic)
-			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode)
+			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode, ?data_:Dynamic)
 			{
 				var props:Dynamic;
-/*				
 				if (data_ != null)
 				{
 					eventAttr.data = data_;
 				}
-*/				
 				if (Std.is(node2.content, VectorLayerFilter))
 				{
 					if(nodeFrom_ == null) {
@@ -640,6 +637,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				var arr = propertiesToArray(props);
 
 				if ((eventName == "onMouseOver")
+					|| (eventName == "onTileLoaded")
 					|| (eventName == "onMoveBegin")
 					|| (eventName == "onMoveEnd")
 					|| (eventName == "onMouseOut")
@@ -1049,7 +1047,6 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 								ret.set(id, true);
 						}
 					}
-					
 					if (tile != null) {
 						empty = false;
 						addItems(tile);

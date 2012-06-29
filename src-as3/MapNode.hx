@@ -18,7 +18,7 @@ class MapNode
 	public var maxZ:Int;
 	public var content:MapContent;
 	public var children:Array<MapNode>;
-	public var handlers:Hash<MapNode->MapNode->Void>;
+	public var handlers:Hash<MapNode->MapNode->Dynamic->Void>;
 	public var properties:Dynamic;
 	public var propHash:Hash<String>;
 	public var propHiden:Hash<Dynamic>;		// внутренние свойства ноды
@@ -44,7 +44,7 @@ class MapNode
 		maxZ = 100;
 		content = null;
 		children = new Array<MapNode>();
-		handlers = new Hash<MapNode->MapNode->Void>();
+		handlers = new Hash<MapNode->MapNode->Dynamic->Void>();
 		filters = new Hash<MapNode>();
 		propHiden = new Hash<Dynamic>();
 
@@ -301,7 +301,7 @@ class MapNode
 		noteSomethingHasChanged();
 	}
 
-	public function setHandler(name:String, handler:MapNode->MapNode->Void)
+	public function setHandler(name:String, handler:MapNode->MapNode->Dynamic->Void)
 	{
 		if (handler == null) removeHandler(name);
 		else {
@@ -316,7 +316,7 @@ class MapNode
 		updateHandCursor();
 	}
 
-	public function getHandler(name:String):MapNode->MapNode->Void
+	public function getHandler(name:String):MapNode->MapNode->Dynamic->Void
 	{
 		var handler = handlers.get(name);
 		return 
@@ -327,18 +327,18 @@ class MapNode
 				null;
 	}
 
-	public function callHandler(name:String, ?nodeFrom:MapNode)
+	public function callHandler(name:String, ?nodeFrom:MapNode, ?data_:Dynamic)
 	{
 		var handler = getHandler(name);
 		if (handler != null)
-			handler(this, nodeFrom);
+			handler(this, nodeFrom, data_);
 	}
 
 	public function callHandlersRecursively(name:String)
 	{
 		var handler = handlers.get(name);
 		if (handler != null)
-			handler(this, null);
+			handler(this, null, null);
 		for (child in children)
 			child.callHandlersRecursively(name);
 	}

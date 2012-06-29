@@ -80,7 +80,7 @@ class VectorTile
 				}
 
 				// При ответе 200 - парсинг содержимого тайла
-				function parseTile(arr:Array<Dynamic>)
+				function parseTile(arr:Array<Dynamic>, tileID)
 				{
 					if (arr == null) return;
 					me.ids = new Array<String>();
@@ -106,7 +106,14 @@ class VectorTile
 					for (func in me.loadCallbacks)
 						func();
 
+					if (me.layer.mapNode.handlers.exists('onTileLoaded')) {
+						var tOut:Dynamic = { };
+						tOut.data = arr;
+						tOut.tileID = tileID;
+						me.layer.mapNode.callHandler('onTileLoaded', null, tOut);
+					}
 					Main.bumpFrameRate();
+
 					arr = null;
 				}
 
@@ -114,11 +121,11 @@ class VectorTile
 				if (Std.is(urlTiles, Array))	// нужна склейка тайлов
 				{
 					var arr:Array<String> = urlTiles;
-					if(urlTiles.length > 0) new GetSWFTile(arr, function(data_:Array<Dynamic>) { parseTile(data_); }, onError);
+					if(urlTiles.length > 0) new GetSWFTile(arr, function(data_:Array<Dynamic>) { parseTile(data_, st); }, onError);
 				} else if (Std.is(urlTiles, String)) {
 					var url:String = urlTiles;
 					var ver:Int = (layer.hashTilesVers.exists(st) ? layer.hashTilesVers.get(st) : 0);
-					if (url != "") new GetSWFFile(url + '&v='+ver, function(data_:Array<Dynamic>) { parseTile(data_); }, onError);
+					if (url != "") new GetSWFFile(url + '&v='+ver, function(data_:Array<Dynamic>) { parseTile(data_, st); }, onError);
 				}
 			}
 		}

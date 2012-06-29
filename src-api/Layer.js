@@ -350,7 +350,7 @@
 			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'bringToBottom',
 			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
 			'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
-			'setHandler', //'remove', 'addListener', 'removeListener',
+			'setHandler', 'setVisibilityFilter', //'remove', 'addListener', 'removeListener',
 			'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
 		];
 		// не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea

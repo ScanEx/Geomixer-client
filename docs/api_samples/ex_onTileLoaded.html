@@ -1,0 +1,55 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<script src="../../api.js?key=56AAB7DB8B06FE39BDB3FDCA7276302B" charset="windows-1251"></script> 
+<title>GeoMixer API - примеры использования</title>
+</head>
+
+<body>
+<button id="runTest">Установить событие получения объектов векторного слоя</button>
+<button id="setVisible">Загрузка векторного слоя</button>
+<br/>
+  <div id="map2" style="width: 600px; height: 450px;"></div>
+  <span id="res" style="left: 700px; top: 0; position: absolute;"></span>
+ <br/>
+
+<script>
+
+	createFlashMap(document.getElementById("map2"), "maps.kosmosnimki.ru", "7VKHM", function(map)
+	{
+		map.moveTo(37.461, 55.651, 9);
+		//var myLayer = map.layers["выходы метро"];
+		var myLayer = map.layers["POI"];
+		
+		document.getElementById("runTest").onclick = function()
+		{
+			myLayer.addListener('onTileLoaded', function(ph) {
+				var layer = ph.obj;
+				var arr = ph.attr.data;
+				var st = '<br>В слой: <b>' + layer.objectId;
+				st += '</b> загружено обьектов: <b>' + arr.length + '</b>';
+				//alert(st);
+				document.getElementById("res").innerHTML += st;
+			});
+		}
+		document.getElementById("setVisible").onclick = function()
+		{
+			myLayer.setVisible(true);
+		}
+
+/*
+	" обьектов: 75 время: 0.011 сек."
+	" обьектов: 121 время: 0.03 сек."
+	" обьектов: 258 время: 0.057 сек."
+	" обьектов: 715 время: 0.101 сек."
+	" обьектов: 435 время: 0.061 сек."
+	" обьектов: 4044 время: 0.523 сек."
+	" обьектов: 3902 время: 0.447 сек."
+	" обьектов: 3668 время: 0.45 сек."
+	" обьектов: 3213 время: 0.385 сек."
+*/
+	});
+
+</script>
+</body>
+</html>
