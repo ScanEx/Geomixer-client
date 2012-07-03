@@ -20,15 +20,16 @@
 		var stageZoom = 1;						// Коэф. масштабирования браузера
 		var scale = 0;
 		//map.getPosition();
+		var currPos = null;
 
 		// Обновить информацию текущего состояния карты
 		function refreshMapPosition(ph)
 		{
-			currPosition = ph || map.getPosition();
-			mapX = currPosition['x'];
-			mapY = currPosition['y'];
-			scale = gmxAPI.getScale(currPosition['z']);
-			stageZoom =  currPosition['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
+			currPos = ph || gmxAPI.currPosition || map.getPosition();
+			mapX = currPos['x'];
+			mapY = currPos['y'];
+			scale = gmxAPI.getScale(currPos['z']);
+			stageZoom =  currPos['stageHeight'] / div.clientHeight;	// Коэф. масштабирования браузера
 		}
 		// Формирование ID балуна
 		function setID(o)
@@ -168,10 +169,10 @@
 					}
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
 					if(customBalloonObject) {
-						currPosition = gmxAPI.currPosition || map.getPosition();
-						currPosition._x = propsBalloon.mouseX || 0;
-						currPosition._y = propsBalloon.mouseY || 0;
-						var flag = customBalloonObject.onMouseOver(o, keyPress, currPosition); // Вызов пользовательского метода вместо или перед балуном
+						currPos = gmxAPI.currPosition || map.getPosition();
+						currPos._x = propsBalloon.mouseX || 0;
+						currPos._y = propsBalloon.mouseY || 0;
+						var flag = customBalloonObject.onMouseOver(o, keyPress, currPos); // Вызов пользовательского метода вместо или перед балуном
 						if(flag) return false;										// Если customBalloon возвращает true выходим
 					}
 
@@ -219,9 +220,9 @@
 					refreshMapPosition();
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
 					if(customBalloonObject) {
-						currPosition._x = propsBalloon.x;
-						currPosition._y = propsBalloon.y;
-						var flag = customBalloonObject.onClick(o, keyPress, currPosition);
+						currPos._x = propsBalloon.x;
+						currPos._y = propsBalloon.y;
+						var flag = customBalloonObject.onClick(o, keyPress, currPos);
 						if(flag) return false;
 					}
 					if(chkAttr('disableOnClick', mapObject)) {			// Проверка наличия параметра disableOnMouseOver по ветке родителей 
@@ -534,6 +535,7 @@
 		propsBalloon.setVisible(false);
 		propsBalloon.outerDiv.style.zIndex = 10000;
 		propsBalloon.outerDiv.style.display = "none";
+		
 		new gmxAPI.GlobalHandlerMode("mousemove", function(event)
 		{
 			if(propsBalloon.isVisible()) {
@@ -543,33 +545,38 @@
 				);
 			}
 		}).set();
+		
 		div.onmouseout = function(event)
 		{
-			var tg = gmxAPI.compatTarget(event);
-			if (!event)
-				event = window.event;
-			var reltg = event.toElement || event.relatedTarget;
-			while (reltg && (reltg != document.documentElement))
-			{
-				if (reltg == propsBalloon.outerDiv)
-					return;
-				reltg = reltg.offsetParent;
+			if(propsBalloon.isVisible()) {
+				var tg = gmxAPI.compatTarget(event);
+				if (!event)
+					event = window.event;
+				var reltg = event.toElement || event.relatedTarget;
+				while (reltg && (reltg != document.documentElement))
+				{
+					if (reltg == propsBalloon.outerDiv)
+						return;
+					reltg = reltg.offsetParent;
+				}
+				while (tg && (tg != document.documentElement))
+				{
+					if (tg == propsBalloon.outerDiv)
+						return;
+					tg = tg.offsetParent;
+				}
+				propsBalloon.outerDiv.style.display = "none";
 			}
-			while (tg && (tg != document.documentElement))
-			{
-				if (tg == propsBalloon.outerDiv)
-					return;
-				tg = tg.offsetParent;
-			}
-			propsBalloon.outerDiv.style.display = "none";
 		}
 		propsBalloon.outerDiv.onmouseover = function()
 		{
-			if (map.isDragging())
-			{
-				needToStopDragging = false;
-				propsBalloon.updatePropsBalloon(false);
-				map.resumeDragging();
+			if(propsBalloon.isVisible()) {
+				if (map.isDragging())
+				{
+					//needToStopDragging = false;
+					propsBalloon.updatePropsBalloon(false);
+					map.resumeDragging();
+				}
 			}
 		}
 

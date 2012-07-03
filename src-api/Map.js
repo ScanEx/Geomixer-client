@@ -8,6 +8,7 @@
 		gmxAPI.mapNodes[rootObjectId] = map;	// основная карта
 
 		//map.onSetVisible = {};
+		map.isVisible = true;
 		map.layers = [];
 		map.rasters = map;
 		map.tiledQuicklooks = map;
@@ -157,15 +158,18 @@
 		var needToStopDragging = false;
 		gmxAPI.flashDiv.onmouseout = function() 
 		{ 
-			needToStopDragging = true;
-			map.setCursorVisible(false);
+			if (!needToStopDragging) {
+				map.setCursorVisible(false);
+				needToStopDragging = true;
+			}
 		}
 		gmxAPI.flashDiv.onmouseover = function()
 		{
-			if (needToStopDragging)
+			if (needToStopDragging) {
 				map.stopDragging();
-			map.setCursorVisible(true);
-			needToStopDragging = false;
+				map.setCursorVisible(true);
+				needToStopDragging = false;
+			}
 		}
 
 		gmxAPI._listeners.dispatchEvent('mapInit', null, map);	// Глобальный Listeners
@@ -534,15 +538,17 @@
 		}
 		map.getVisibleExtent = function()
 		{
+			var currPos = gmxAPI.currPosition || map.getPosition();
+			if(currPos['latlng'] && currPos['latlng']['extent']) return currPos['latlng']['extent'];
+
 			var ww = 2 * gmxAPI.worldWidthMerc;
-			var currPosition = gmxAPI.currPosition || map.getPosition();
-			var x = currPosition['x'] + ww;
+			var x = currPos['x'] + ww;
 			x = x % ww;
 			if(x > gmxAPI.worldWidthMerc) x -= ww;
 			if(x < -gmxAPI.worldWidthMerc) x += ww;
 
-			var y = currPosition['y'];
-			var scale = gmxAPI.getScale(currPosition['z']);
+			var y = currPos['y'];
+			var scale = gmxAPI.getScale(currPos['z']);
 
 			var w2 = scale * gmxAPI._div.clientWidth/2;
 			var h2 = scale * gmxAPI._div.clientHeight/2;
@@ -572,33 +578,48 @@
 			}
 		}
 
-		var updatePosition = function(ev)
+		var updatePosition = function(ev, attr)
 		{
-			var currPosition = map.getPosition();
+			var currPos = (attr && attr.currPosition ? attr.currPosition : map.getPosition());
 			
-			var eventFlag = (gmxAPI.currPosition && currPosition['x'] == gmxAPI.currPosition['x']
-				&& currPosition['y'] == gmxAPI.currPosition['y']
-				&& currPosition['z'] == gmxAPI.currPosition['z']
+			var eventFlag = (gmxAPI.currPosition && currPos['x'] == gmxAPI.currPosition['x']
+				&& currPos['y'] == gmxAPI.currPosition['y']
+				&& currPos['z'] == gmxAPI.currPosition['z']
 				? false : true);
 
-			gmxAPI.currPosition = currPosition;
+			currPos['latlng'] = {
+				'x': gmxAPI.from_merc_x(currPos['x']),
+				'y': gmxAPI.from_merc_y(currPos['y']),
+				'mouseX': gmxAPI.from_merc_x(currPos['mouseX']),
+				'mouseY': gmxAPI.from_merc_y(currPos['mouseY'])
+			};
+			if(currPos['extent']) {
+				currPos['latlng']['extent'] = {
+					minX: gmxAPI.from_merc_x(currPos['extent']['minx']),
+					minY: gmxAPI.from_merc_y(currPos['extent']['miny']),
+					maxX: gmxAPI.from_merc_x(currPos['extent']['maxx']),
+					maxY: gmxAPI.from_merc_y(currPos['extent']['maxy'])
+				};
+			}
+
+			gmxAPI.currPosition = currPos;
 			if(eventFlag) {						// Если позиция карты изменилась - формируем событие positionChanged
-				var z = currPosition['z'];
+				var z = currPos['z'];
 
 				/** Пользовательское событие positionChanged
 				* @function callback
 				* @param {object} атрибуты прослушивателя
 				*/
 				if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {
-					var attr = {
+					var pattr = {
 						'currZ': z,
-						'currX': gmxAPI.from_merc_x(currPosition['x']),
-						'currY': gmxAPI.from_merc_y(currPosition['y']),
+						'currX': currPos['latlng']['x'],
+						'currY': currPos['latlng']['y'],
 						'div': gmxAPI._locationTitleDiv,
 						'screenGeometry': map.getScreenGeometry(),
 						'properties': map.properties
 					};
-					gmxAPI._listeners.dispatchEvent('positionChanged', map, attr);
+					gmxAPI._listeners.dispatchEvent('positionChanged', map, pattr);
 				}
 			}
 		}
@@ -634,10 +655,8 @@
 			setToolHandlers({
 				onMouseMove: function(o)
 				{
-					var currPosition = map.getPosition();
-					var mouseX = gmxAPI.from_merc_x(currPosition['mouseX']);
-					var mouseY = gmxAPI.from_merc_y(currPosition['mouseY']);
-					dragCallback(mouseX, mouseY, o);
+					var currPos = gmxAPI.currPosition || map.getPosition();
+					dragCallback(currPos['latlng']['mouseX'], currPos['latlng']['mouseY'], o);
 				},
 				onMouseUp: function()
 				{
@@ -675,10 +694,8 @@
 			var mouseDownHandler = function(o)
 			{
 				if (downCallback) {
-					var currPosition = map.getPosition();
-					var mouseX = gmxAPI.from_merc_x(currPosition['mouseX']);
-					var mouseY = gmxAPI.from_merc_y(currPosition['mouseY']);
-					downCallback(mouseX, mouseY, o);
+					var currPos = gmxAPI.currPosition || map.getPosition();
+					dragCallback(currPos['latlng']['mouseX'], currPos['latlng']['mouseY'], o);
 				}
 				gmxAPI._startDrag(object, dragCallback, upCallback);
 			}

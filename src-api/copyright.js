@@ -99,45 +99,39 @@
 
 		map.updateCopyright = function()
 		{
-			if (!copyrightUpdateTimeout)
+			var currPos = gmxAPI.currPosition || map.getPosition();
+			var x = currPos['latlng']['x'];
+			var y = currPos['latlng']['y'];
+			var texts = {};
+			for (var i = 0; i < copyrightedObjects.length; i++)
 			{
-				copyrightUpdateTimeout = setTimeout(function()
+				var obj = copyrightedObjects[i];
+				if (obj.copyright && obj.objectId && obj.getVisibility())
 				{
-					var currPosition = gmxAPI.currPosition || map.getPosition();
-					var x = gmxAPI.from_merc_x(currPosition['x']);
-					var y = gmxAPI.from_merc_y(currPosition['y']);
-					var texts = {};
-					for (var i = 0; i < copyrightedObjects.length; i++)
+					if (obj.geometry)
 					{
-						var obj = copyrightedObjects[i];
-						if (obj.copyright && obj.objectId && obj.getVisibility())
-						{
-							if (obj.geometry)
-							{
-								var bounds = gmxAPI.getBounds(obj.geometry.coordinates);
-								if ((x < bounds.minX) || (x > bounds.maxX) || (y < bounds.minY) || (y > bounds.maxY))
-									continue;
-							}
-							texts[obj.copyright] = true;
-						}
+						var bounds = obj.bounds || gmxAPI.getBounds(obj.geometry.coordinates);
+						if ((x < bounds.minX) || (x > bounds.maxX) || (y < bounds.minY) || (y > bounds.maxY))
+							continue;
 					}
-					
-					//первым всегда будет располагаться копирайт СканЭкс. 
-					//Если реализовать возможность задавать порядок отображения копирайтов, можно тоже самое сделать более культурно...
-					var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>";
-					
-					for (var key in texts)
-					{
-						if (text != "")
-							text += " ";
-						text += key.split("<a").join("<a target='_blank' style='color: inherit;'");
-					}
-					copyright.innerHTML = text;
-					copyrightUpdateTimeout = false;
-					if(copyrightAlign) {
-						copyrightPosition();
-					}
-				}, 0);
+					texts[obj.copyright] = true;
+				}
+			}
+			
+			//первым всегда будет располагаться копирайт СканЭкс. 
+			//Если реализовать возможность задавать порядок отображения копирайтов, можно тоже самое сделать более культурно...
+			var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2011 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>";
+			
+			for (var key in texts)
+			{
+				if (text != "")
+					text += " ";
+				text += key.split("<a").join("<a target='_blank' style='color: inherit;'");
+			}
+			copyright.innerHTML = text;
+			copyrightUpdateTimeout = false;
+			if(copyrightAlign) {
+				copyrightPosition();
 			}
 		}
 

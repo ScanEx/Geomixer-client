@@ -327,18 +327,25 @@
 				var balloonVisible = (text && (text != "")) ? true : false;
 				setHTMLVisible(balloonVisible);
 
+				var getEventPoint = function(event)
+				{
+					var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+					var mapX = currPos['x'];
+					var mapY = currPos['y'];
+					var scale = gmxAPI.getScale(currPos['z']);
+					return {
+						'x': gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(gmxAPI._div) - gmxAPI._div.clientWidth/2)*scale)
+						,
+						'y': gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(gmxAPI._div) - gmxAPI._div.clientHeight/2)*scale)
+					};
+				}
+				
 				balloon.outerDiv.onmousedown = function(event)
 				{
 					gmxAPI._cmdProxy('startDrawing');
 					gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': true} });
-					var currPosition = gmxAPI.map.getPosition();
-					var mapX = currPosition['x'];
-					var mapY = currPosition['y'];
-					var z = currPosition['z'];
-					scale = gmxAPI.getScale(z);
-					var x = gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(gmxAPI._div) - gmxAPI._div.clientWidth/2)*scale);
-					var y = gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(gmxAPI._div) - gmxAPI._div.clientHeight/2)*scale);
-					downCallback(x, y);
+					var eventPoint = getEventPoint(event);
+					downCallback(eventPoint['x'], eventPoint['y']);
 					gmxAPI._startDrag(obj, dragCallback, upCallback);
 					return false;
 				}
@@ -353,14 +360,8 @@
 				{
 					if (isDragged)
 					{
-						var currPosition = gmxAPI.map.getPosition();
-						var mapX = currPosition['x'];
-						var mapY = currPosition['y'];
-						var z = currPosition['z'];
-						scale = gmxAPI.getScale(z);
-						var x = startDx + gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(gmxAPI._div) - gmxAPI._div.clientWidth/2)*scale);
-						var y = startDy + gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(gmxAPI._div) - gmxAPI._div.clientHeight/2)*scale);
-						position(x, y);
+						var eventPoint = getEventPoint(event);
+						position(startDx + eventPoint['x'], startDy + eventPoint['y']);
 						gmxAPI.deselect();
 						return false;
 					}
@@ -762,13 +763,13 @@
 			gmxAPI._listeners.dispatchEvent(eventType, gmxAPI.map.drawing, domObj);
 		}
 
-		function getGeometryTitleMerc(geom)
+		function getGeometryTitle(geom)
 		{
 			var geomType = geom['type'];
 			if (geomType.indexOf("POINT") != -1)
 			{
 				var c = geom.coordinates;
-				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + gmxAPI.formatCoordinates(gmxAPI.merc_x(c[0]), gmxAPI.merc_y(c[1]));
+				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Координаты:", "Coordinates:") + "</b> " + gmxAPI.LatLon_formatCoordinates(c[0], c[1]);
 			}
 			else if (geomType.indexOf("LINESTRING") != -1)
 				return "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> " + gmxAPI.prettifyDistance(gmxAPI.geoLength(geom));
@@ -798,7 +799,7 @@
 								geom = { type: "LINESTRING", coordinates: [[[x1, y2], [x2, y2]]] };
 								break;
 						}
-					propsBalloon.updatePropsBalloon(getGeometryTitleMerc(geom));
+					propsBalloon.updatePropsBalloon(getGeometryTitle(geom));
 				}
 			}
 			chkEvent();

@@ -275,9 +275,11 @@
 		}
 
 		var bounds = false;
+		var boundsLatLon = false;
 		obj.getLayerBounds = function() {			// Получение bounds для внешних плагинов
 			var out = false;
-			if(bounds) {
+			if(obj.bounds) out = obj.bounds;
+			else {
 				out = {
 					minX: gmxAPI.from_merc_x(bounds['minX']),
 					minY: gmxAPI.from_merc_y(bounds['minY']),
@@ -293,7 +295,14 @@
 					var arr = geom.coordinates[0];
 					chkCenterX(arr);
 				}
-				bounds = gmxAPI.getBounds(gmxAPI.merc_geometry(geom).coordinates);
+				//bounds = gmxAPI.getBounds(gmxAPI.merc_geometry(geom).coordinates);
+				obj.bounds = boundsLatLon = gmxAPI.getBounds(geom.coordinates);
+				bounds = {
+					minX: gmxAPI.merc_x(bounds['minX']),
+					minY: gmxAPI.merc_y(bounds['minY']),
+					maxX: gmxAPI.merc_x(bounds['maxX']),
+					maxY: gmxAPI.merc_y(bounds['maxY'])
+				};
 			}
 		};
 		chkBounds(layer.geometry);
@@ -360,6 +369,9 @@
 			var pObj = (isOverlay ? parentObj.overlays : parentObj.layersParent);
 			var obj_ = pObj.addObject(obj.geometry, obj.properties);
 			obj.objectId = obj_.objectId;
+			if(pObj.isMiniMap) {
+				obj.isMiniMap = true;			// Все добавляемые к миникарте ноды имеют этот признак
+			}
 			obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
 			
 			gmxAPI._listeners.dispatchEvent('onLayerCreated', obj, {'obj': obj });
@@ -513,8 +525,10 @@
 			var tmp = getMinMaxZoom(layer.properties);
 			obj.setZoomBounds(tmp['minZoom'], tmp['maxZoom']);
 
-			if (layer.properties.Copyright) {
-				obj.setCopyright(layer.properties.Copyright);
+			if(!obj.isMiniMap) {					// если это не miniMap
+				if (layer.properties.Copyright) {
+					obj.setCopyright(layer.properties.Copyright);
+				}
 			}
 		}
 
@@ -658,6 +672,7 @@
 			}
 		}, 101);	// Перед всеми пользовательскими Listeners
 
+		if(obj.objectId) gmxAPI.mapNodes[obj.objectId] = obj;
 		return obj;
 	}
 

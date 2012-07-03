@@ -45,7 +45,7 @@
 		cont.appendChild(scaleBar);
 		
 		gmxAPI.map.scaleBar = { setVisible: function(flag) { gmxAPI.setVisible(scaleBar, flag); } };
-		var scaleBarText, scaleBarWidth;
+		var scaleBarText, scaleBarWidth, oldZ;
 		var repaintScaleBar = function()
 		{
 			if (scaleBarText)
@@ -76,23 +76,19 @@
 		);
 		cont.appendChild(coordinates);
 
-		var getCoordinatesText = function(currPosition)
+		var getCoordinatesText = function(currPos)
 		{
-			if(!currPosition) currPosition = gmxAPI.currPosition || gmxAPI.map.getPosition();
-			var x = gmxAPI.from_merc_x(currPosition['x']);
-			var y = gmxAPI.from_merc_y(currPosition['y']);
-			if (x > 180)
-				x -= 360;
-			if (x < -180)
-				x += 360;
-			x = gmxAPI.merc_x(x);
-			y = gmxAPI.merc_y(y);
+			if(!currPos) currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+			var x = (currPos['latlng'] ? currPos['latlng']['x'] : gmxAPI.from_merc_x(currPos['x']));
+			var y = (currPos['latlng'] ? currPos['latlng']['y'] : gmxAPI.from_merc_y(currPos['y']));
+			if (x > 180) x -= 360;
+			if (x < -180) x += 360;
 			if (coordFormat%3 == 0)
-				return gmxAPI.formatCoordinates(x, y);
+				return gmxAPI.LatLon_formatCoordinates(x, y);
 			else if (coordFormat%3 == 1)
-				return gmxAPI.formatCoordinates2(x, y);
+				return gmxAPI.LatLon_formatCoordinates2(x, y);
 			else
-				return Math.round(x) + ", " + Math.round(y);
+				return Math.round(gmxAPI.merc_x(x)) + ", " + Math.round(gmxAPI.merc_y(y));
 		}
 
 		var clearCoordinates = function()
@@ -102,25 +98,27 @@
 		}
 
 		var coordFormatCallbacks = [		// методы формирования форматов координат
-			function() { coordinates.innerHTML = getCoordinatesText(); },
-			function() { coordinates.innerHTML = getCoordinatesText(); },
-			function() { coordinates.innerHTML = getCoordinatesText(); },
-		]; 
+			function() { return getCoordinatesText(); },
+			function() { return getCoordinatesText(); },
+			function() { return getCoordinatesText(); },
+		];
 
-		var setCoordinatesFormat = function(num)
+		var coordFormat = 0;
+		var prevCoordinates = '';
+		var setCoordinatesFormat = function(num, screenGeometry)
 		{
 			if(!num) num = coordFormat;
 			if(num < 0) num = coordFormatCallbacks.length - 1;
 			else if(num >= coordFormatCallbacks.length) num = 0;
 			coordFormat = num;
-			//coordinates.innerHTML = '';
-			var attr = {'screenGeometry': gmxAPI.map.getScreenGeometry(), 'properties': gmxAPI.map.properties };
-			coordFormatCallbacks[coordFormat](coordinates, attr);
-			//coordinates.innerHTML = getCoordinatesText();
+			if(!screenGeometry) screenGeometry = gmxAPI.map.getScreenGeometry();
+			var attr = {'screenGeometry': screenGeometry, 'properties': gmxAPI.map.properties };
+			var res = coordFormatCallbacks[coordFormat](coordinates, attr);		// если есть res значит запомним ответ
+			if(res && prevCoordinates != res) coordinates.innerHTML = res;
+			prevCoordinates = res;
 			gmxAPI._listeners.dispatchEvent('onSetCoordinatesFormat', gmxAPI.map, coordFormat);
 		}
 
-		var coordFormat = 0;
 		var changeCoords = gmxAPI.newElement(
 			"img", 
 			{ 
@@ -192,9 +190,10 @@
 		// Добавление прослушивателей событий
 		gmxAPI.map.addListener('positionChanged', function(ph)
 			{
-				var z = ph['currZ'];
-				if (z == Math.round(z))
+				var z = Math.round(ph['currZ']);
+				if (oldZ != z)
 				{
+					oldZ = z;
 					var metersPerPixel = getLocalScale(ph['currX'], ph['currY'])*gmxAPI.getScale(z);
 					for (var i = 0; i < 30; i++)
 					{
@@ -213,8 +212,7 @@
 						}
 					}
 				}
-
-				setCoordinatesFormat();
+				setCoordinatesFormat(null, ph['screenGeometry']);
 			}
 		);
 

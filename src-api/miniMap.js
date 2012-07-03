@@ -39,9 +39,9 @@
 			var startMouseX = gmxAPI.eventX(event);
 			var startMouseY = gmxAPI.eventY(event);
 			
-			var currPosition = gmxAPI.currPosition || map.getPosition();
-			var startMapX = currPosition['x'];
-			var startMapY = currPosition['y'];
+			var currPos = gmxAPI.currPosition || map.getPosition();
+			var startMapX = currPos['x'];
+			var startMapY = currPos['y'];
 
 			var scale = gmxAPI.getScale(miniMapZ);
 			
@@ -176,6 +176,7 @@
 			resizeMiniMap();
 		}
 		map.miniMap = miniMap;
+		map.miniMap.isMiniMap = true;
 		map.miniMap.setBackgroundColor(0xffffff);
 		//miniMap.setVisible(false);
 		var miniMapAlign = 'tr';
