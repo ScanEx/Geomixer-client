@@ -1981,6 +1981,21 @@ var FireControl2 = function(map, params)
 
 var publicInterface = {
     IDataProvider: IDataProvider,
+    
+    //провайдеры данных
+    FireSpotProvider: FireSpotProvider,
+    FireBurntProvider: FireBurntProvider,
+    ModisImagesProvider: ModisImagesProvider,
+    FireSpotClusterProvider: FireSpotClusterProvider,
+    FireClusterSimpleProvider: FireClusterSimpleProvider,
+    CombinedProvider: CombinedProvider,
+    
+    //рендереры
+    FireSpotRenderer: FireSpotRenderer,
+    FireBurntRenderer: FireBurntRenderer,
+    ModisImagesRenderer: ModisImagesRenderer,
+    CombinedFiresRenderer: CombinedFiresRenderer,
+    
 	FireControl: FireControl,
 	FireControl2: FireControl2,
 	FireControlCollection: FireControlCollection
