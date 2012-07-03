@@ -45,14 +45,9 @@ nsGmx.ContextMenuController = (function()
                     _(elem, [contextMenu]);
 					
 					elem.style.backgroundColor = '#DAEAF3';
-					contextMenu.style.top = elem.offsetHeight + 'px';
 					contextMenu.style.left = "0px";
-					
-                    //после появления меню ему нужно заново выставить позицию, так как в Opera почему-то изменяется размеры
-					jQuery(contextMenu).fadeIn(500, function()
-                    {
-                        contextMenu.style.top = elem.offsetHeight + 'px';
-                    });
+                    
+					jQuery(contextMenu).fadeIn(500);
 					
 				}, suggestTimeout)
 			}
