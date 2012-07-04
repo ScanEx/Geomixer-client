@@ -5,8 +5,6 @@ import flash.display.StageAlign;
 import flash.display.StageScaleMode;
 import flash.display.StageQuality;
 import flash.display.BitmapData;
-//import flash.filters.ConvolutionFilter;
-//import flash.geom.Point;
 import flash.ui.ContextMenu;
 import flash.ui.ContextMenuItem;
 import flash.ui.Mouse;
@@ -17,7 +15,7 @@ import flash.events.Event;
 import flash.events.MouseEvent;
 import flash.events.ContextMenuEvent;
 import flash.errors.Error;
-import flash.geom.Rectangle;
+//import flash.geom.Rectangle;
 import flash.geom.Matrix;
 import flash.printing.PrintJob;
 import flash.printing.PrintJobOptions;
@@ -53,6 +51,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 	public static var removeClusterPointsViewer:MouseEvent->Void;		// Удаление ClusterPointsViewer
 
 	public static var messBuffToJS:Array<Dynamic> = new Array<Dynamic>();
+	static var frameRate:Int = 40;			// максимальный frameRate
 
 	// Команды от SWF в JS
 	public static function cmdToJS(cmd:String, ?p1:Dynamic, ?p2:Dynamic, ?p3:Dynamic):Dynamic
@@ -70,8 +69,8 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 	{
 		lastFrameBumpTime = Date.now().getTime();
 		var stage = flash.Lib.current.stage;
-		if (stage.frameRate != 40)
-			stage.frameRate = 40;
+		if (stage.frameRate != frameRate)
+			stage.frameRate = frameRate;
 	}
 
 	public static function chkEventAttr(event:MouseEvent)
@@ -304,6 +303,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		root.addEventListener(MouseEvent.MOUSE_DOWN, function(event)
 		{
 			pressTime = flash.Lib.getTimer();
+			Main.bumpFrameRate();
 			Main.mousePressed = true;
 			onMoveBegin(event);
 		});
@@ -311,7 +311,6 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		{
 			mapWindow.rootNode.repaintRecursively(true);
 			mapWindow.repaintCacheBitmap();
-			Main.mousePressed = true;
 			if (!Main.draggingDisabled)
 			{
 				isDragging = true;
@@ -323,6 +322,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				startMapY = currentY;
 			}
 			Main.bumpFrameRate();
+			Main.mousePressed = true;
 		};
 		mapSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
 		
@@ -418,15 +418,6 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			if (cursor.numChildren > 0)
 				cursor.removeChildAt(0);
 		}
-		root.addEventListener(MouseEvent.MOUSE_MOVE, function(event)
-		{
-			var dx:Float = root.mouseX - startMouseX;
-			var dy:Float = root.mouseY - startMouseY;
-			if ((dx*dx) + (dy*dy) > 6*6)
-				pressTime = 0;
-			Main.bumpFrameRate();
-			repaintCursor();
-		});
 		var windowMouseMove = function(?event)
 		{
 			if (isDragging && !Main.draggingDisabled && (currentZ == Math.round(currentZ)))
@@ -438,7 +429,18 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				setCurrentPosition(px, py, currentZ);
 			}
 		};
-		mapSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
+
+		//mapSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
+		root.addEventListener(MouseEvent.MOUSE_MOVE, function(event)
+		{
+			windowMouseMove(event);
+			var dx:Float = root.mouseX - startMouseX;
+			var dy:Float = root.mouseY - startMouseY;
+			if ((dx*dx) + (dy*dy) > 6*6)
+				pressTime = 0;
+			Main.bumpFrameRate();
+			repaintCursor();
+		});
 
 		Main.chkStatus = function():Dynamic
 		{
@@ -451,21 +453,52 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			//viewportHasMoved = true;
 			for (window in MapWindow.allWindows)
 			{
-				if (isMoving && !wasMoving)
-					window.repaintCacheBitmap();
+				//if (isMoving && !wasMoving)
+					//window.repaintCacheBitmap();
 				window.setCenter(currentX, currentY);
 				window.setCacheBitmapVisible(isMoving || isDragging);		// Если Drag или Move режим - показываем CacheBitmap
 				if (!isMoving)
 				{
 					window.rootNode.repaintRecursively(true);
-					window.repaintCacheBitmap();
+					//window.repaintCacheBitmap();
 				}
 			}
 			
 		}
 
+		// текущее положение карты
+		var getPosition = function():Dynamic
+		{
+			var res:Dynamic = { };
+			res.mouseX = mapWindow.innerSprite.mouseX;
+			res.mouseY = mapWindow.innerSprite.mouseY;
+			res.stageHeight = stage.stageHeight;
+			res.stageWidth = stage.stageWidth;
+			res.x = currentX;
+			res.y = currentY;
+			res.z = currentZ;
+			if (Main.mousePressed) res.mousePressed = Main.mousePressed;
+			var extent:Dynamic = { };
+			extent.minx = mapWindow.visibleExtent.minx;
+			extent.maxx = mapWindow.visibleExtent.maxx;
+			extent.miny = mapWindow.visibleExtent.miny;
+			extent.maxy = mapWindow.visibleExtent.maxy;
+			res.extent = extent;
+			eventAttr.currPosition = res;			
+			return res;
+		}
+
 		var initCalled = false;
-		root.addEventListener(Event.ENTER_FRAME, function(event:Event)
+		var needCallMoveHandler = 0.;
+		var curTimer = 0.;
+		var callHandlers = function(evName:String)
+		{
+			if(evName == 'onMove') {
+				mapWindow.rootNode.callHandlersRecursively(evName);
+				needCallMoveHandler = 0;
+			}
+		}
+		stage.addEventListener(Event.ENTER_FRAME, function(event:Event)
 		{
 			if (!initCalled)
 			{
@@ -474,6 +507,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 					initCalled = true;
 				} catch (e:Error) {  }
 			}
+			var curTimerNew = Date.now().getTime();
 
 			var w = stage.stageWidth;
 			var h = stage.stageHeight;
@@ -487,10 +521,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 
 			if (nextFrameCallbacks.length > 0)
 			{
-				//try {
-					for (func in nextFrameCallbacks)
-						func();
-				//} catch (e:Error) {  }
+				for (func in nextFrameCallbacks) func();
 				nextFrameCallbacks = new Array<Void->Void>();
 			}
 
@@ -502,7 +533,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 
 			if (viewportHasMoved)
 			{
-				mapWindow.rootNode.callHandlersRecursively("onMove");
+				if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 200;
 				viewportHasMoved = false;
 				wasMoving = isMoving;
 			}
@@ -514,7 +545,11 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				for (window in MapWindow.allWindows)
 					window.repaintLabels();
 
-			if ((Date.now().getTime() - Main.lastFrameBumpTime) > 2000)
+			curTimer = curTimerNew;
+			if(needCallMoveHandler > 0 && needCallMoveHandler < curTimerNew) callHandlers('onMove');
+
+			if (!Main.mousePressed && (curTimer - Main.lastFrameBumpTime) > 2000)
+			//if ((curTimer - Main.lastFrameBumpTime) > 2000)
 			{
 				if (stage.frameRate != 2)
 					stage.frameRate = 2;
@@ -635,9 +670,11 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 					props = node2.properties;
 				}
 				var arr = propertiesToArray(props);
+				if (eventName == "onMove") getPosition();
 
 				if ((eventName == "onMouseOver")
 					|| (eventName == "onTileLoaded")
+					|| (eventName == "onMove")
 					|| (eventName == "onMoveBegin")
 					|| (eventName == "onMoveEnd")
 					|| (eventName == "onMouseOut")
@@ -1190,7 +1227,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					Mouse.show();
 					currentCursorURL = null;
 				case 'setCursorVisible':
-					cursor.visible = attr.flag;
+					if(cursor.visible != attr.flag) cursor.visible = attr.flag;
 				case 'stopDragging':
 					isDragging = false;
 					Main.isDraggingNow = false;
@@ -1201,22 +1238,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'resumeDragging':
 					windowMouseMove();
 				case 'getPosition':
-					var res:Dynamic = { };
-					res.mouseX = mapWindow.innerSprite.mouseX;
-					res.mouseY = mapWindow.innerSprite.mouseY;
-					res.stageHeight = stage.stageHeight;
-					res.stageWidth = stage.stageWidth;
-					res.x = currentX;
-					res.y = currentY;
-					res.z = currentZ;
-					if (Main.mousePressed) res.mousePressed = Main.mousePressed;
-					var extent:Dynamic = { };
-					extent.minx = mapWindow.visibleExtent.minx;
-					extent.maxx = mapWindow.visibleExtent.maxx;
-					extent.miny = mapWindow.visibleExtent.miny;
-					extent.maxy = mapWindow.visibleExtent.maxy;
-					res.extent = extent;
-					out = cast(res);
+					out = cast(getPosition());
 				case 'getX':
 					out = cast(currentX);
 				case 'getY':

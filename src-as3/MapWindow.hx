@@ -2,7 +2,7 @@ import flash.display.Sprite;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
 import flash.events.Event;
-import flash.errors.Error;
+//import flash.errors.Error;
 import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
@@ -170,6 +170,7 @@ class MapWindow
 	public function repaintCacheBitmap()
 	{
 		if (cacheRepaintNeeded && !Main.mousePressed)
+		//if (cacheRepaintNeeded)
 		{
 			var inv = matrix.clone();
 			inv.invert();
@@ -188,6 +189,7 @@ class MapWindow
 
 	public function repaintLabels()
 	{
+		if (Main.mousePressed) return;
 		if (labelsRepaintNeeded)
 		{
 			var inv = matrix.clone();
@@ -201,6 +203,7 @@ class MapWindow
 
 	public function paintLabel(labelText:String, geometry:Geometry, style:Style, ?xshift:Float)
 	{
+		if (Main.mousePressed) return;
 		if ((labelText == null) || (labelText == ""))
 			return;
 		if (xshift == null) xshift = 0;

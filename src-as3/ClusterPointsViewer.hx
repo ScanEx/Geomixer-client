@@ -153,6 +153,7 @@ class ClusterPointsViewer extends MapContent
 		});
 		contSprite.addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent)
 		{
+			if (Main.mousePressed) return;
 			me.vlFilter.layer.lastGeometry = null;
 			me.vlFilter.mapNode.callHandler("onMouseOut");
 			Main.removeClusterPointsViewer(event);
@@ -161,6 +162,7 @@ class ClusterPointsViewer extends MapContent
 		
 		contSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
+			if (Main.mousePressed) return;
 			var items:Array<Geometry> = me.findIntersect(event.localX, event.localY, me.curGeos);
 			if(items.length > 0) {
 				me.vlFilter.layer.lastGeometry = items[0];

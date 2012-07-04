@@ -1,12 +1,15 @@
 import flash.display.Sprite;
 import flash.external.ExternalInterface;
 import flash.events.Event;
+import flash.Lib;
 
 class MapNode
 {
 	public static var allNodes:Hash<MapNode> = new Hash<MapNode>();
+	static var handlerNodes:Hash<String> = new Hash<String>();		// Hash ID нод с установленными handler
 
 	public var id:String;
+	var nodeHaveRaster:Bool;
 	public var parent:MapNode;
 	public var window:MapWindow;
 	public var rasterSprite:Sprite;
@@ -30,6 +33,7 @@ class MapNode
 	public function new(rasterSprite_:Sprite, vectorSprite_:Sprite, window_:MapWindow)
 	{
 		id = Utils.getNextId();
+		nodeHaveRaster = false;
 		allNodes.set(id, this);
 		window = window_;
 		rasterSprite = rasterSprite_;
@@ -78,6 +82,7 @@ class MapNode
 			//parent.noteSomethingHasChanged();
 		}
 		allNodes.remove(id);
+		handlerNodes.remove(id);
 		window.cacheRepaintNeeded = true;
 		window.labelsRepaintNeeded = true;
 	}
@@ -264,6 +269,12 @@ class MapNode
 		if (vectorSprite.buttonMode != flag) vectorSprite.buttonMode = vectorSprite.useHandCursor = flag;
 	}
 
+	function setHaveRasterRecursively()
+	{
+		nodeHaveRaster = true;
+		if (parent != null) parent.setHaveRasterRecursively();
+	}
+
 	public function setContent(content_:MapContent)
 	{
 		var oldContent = content;
@@ -288,6 +299,9 @@ class MapNode
 		}
 		if (content != null) {
 			content.initialize(this);
+			if (content.isRaster && !nodeHaveRaster) {
+				setHaveRasterRecursively();
+			}
 			if (parent != null && Std.is(content, VectorLayerFilter))
 			{
 				parent.filters.set(id, this);
@@ -306,6 +320,7 @@ class MapNode
 		if (handler == null) removeHandler(name);
 		else {
 			handlers.set(name, handler);
+			handlerNodes.set(id, name);
 			updateHandCursor();
 		}
 	}
@@ -336,15 +351,16 @@ class MapNode
 
 	public function callHandlersRecursively(name:String)
 	{
-		var handler = handlers.get(name);
-		if (handler != null)
-			handler(this, null, null);
-		for (child in children)
-			child.callHandlersRecursively(name);
+		for (nID in handlerNodes.keys()) {
+			if (handlerNodes.get(nID) == name) {
+				allNodes.get(nID).callHandler(name);
+			}
+		}
 	}
 
 	public function repaintObjects()
 	{
+		if (Main.mousePressed) return;
 		for (child in children) {
 			if(Std.is(child.content, VectorObject)) child.content.repaint();
 		}
@@ -352,10 +368,11 @@ class MapNode
 
 	public function repaintRecursively(somethingHasChangedAbove:Bool)
 	{
+		if (Main.mousePressed && !nodeHaveRaster) return;
 		var z = window.getCurrentZ();
 		var isVisible = !hidden && (z >= minZ) && (z <= maxZ);
-		rasterSprite.visible = isVisible;
-		vectorSprite.visible = isVisible;
+		if(rasterSprite.visible != isVisible) rasterSprite.visible = isVisible;
+		if(vectorSprite.visible != isVisible) vectorSprite.visible = isVisible;
 		if (isVisible)
 		{
 			var somethingHasChanged_ = somethingHasChanged || somethingHasChangedAbove;
@@ -381,11 +398,11 @@ class MapNode
 
 	public function repaintLabelsRecursively()
 	{
+		if (Main.mousePressed) return;		// При нажатой мышке labels не перерисовываем
 		if (rasterSprite.visible)
 		{
 			if (content != null)
 				content.paintLabels();
-			//for (child in children) {
 			for (i in 0...Std.int(children.length)) {	// отрисовка Label в обратном порядке
 				var child = children[children.length - 1 - i];
 				child.repaintLabelsRecursively();
@@ -397,10 +414,10 @@ class MapNode
 	{
 		somethingHasChanged = true;
 		window.cacheRepaintNeeded = true;
-		if (containsLabels())
+		//if (containsLabels())
 			window.labelsRepaintNeeded = true;
 	}
-
+/*
 	function containsLabels()
 	{
 		if ((content != null) && content.hasLabels())
@@ -410,7 +427,7 @@ class MapNode
 				return true;
 		return false;
 	}
-
+*/
 	public function bringToDepth(n:Int)
 	{
 		if ((n >= 0) && (n < rasterSprite.parent.numChildren))

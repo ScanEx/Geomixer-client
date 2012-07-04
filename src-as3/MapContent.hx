@@ -6,6 +6,7 @@ class MapContent
 {
 	public var mapNode:MapNode;
 	public var contentSprite:Sprite;
+	public var isRaster:Bool;
 
 	public function initialize(mapNode_:MapNode)
 	{
@@ -53,15 +54,18 @@ class MapContent
 		var node = this.mapNode;
 		contentSprite.addEventListener(MouseEvent.MOUSE_OVER, function(event:MouseEvent)
 		{
+			if (Main.mousePressed) return;
 			node.callHandler("onMouseOver");
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event:MouseEvent)
 		{
+			if (Main.mousePressed) return;
 			Main.chkEventAttr(event);
 			node.callHandler("onMouseOut");
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
+			if (Main.mousePressed) return;
 			Main.chkEventAttr(event);
 			node.callHandler("onMouseMove");
 		});

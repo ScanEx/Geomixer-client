@@ -55,8 +55,16 @@ class VectorObject extends MapContent
 		} else {
 			super.addHandlers();
 		}
-		contentSprite.addEventListener(MouseEvent.MOUSE_OVER, function(event) { me.isActive = true; me.highlight(); });
-		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event) { me.isActive = false;	me.highlight(); });
+		contentSprite.addEventListener(MouseEvent.MOUSE_OVER, function(event) {
+			if (Main.mousePressed) return;
+			me.isActive = true;
+			me.highlight();
+		});
+		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event) {
+			if (Main.mousePressed) return;
+			me.isActive = false;
+			me.highlight();
+		});
 
 		contentSprite.buttonMode = contentSprite.useHandCursor = true;
 	}

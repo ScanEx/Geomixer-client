@@ -33,6 +33,7 @@ class RasterLayer extends MaskedContent
 		tileCaching = true;
 		myDx = function(x:Float):Float { return 0; };
 		myDy = function(y:Float):Float { return 0; };
+		isRaster = true;
 	}
 
 	public function setDisplacement(dx_:Float->Float, dy_:Float->Float)
@@ -92,7 +93,7 @@ class RasterLayer extends MaskedContent
 		}
 
 		var tileSize:Float = 256*Utils.getScale(z);
-		var worldSize:Float = Math.pow(2, z);
+		//var worldSize:Float = Math.pow(2, z);
 
 		while (bx1 < vb.maxx)
 		{
