@@ -82,7 +82,7 @@ class VectorObject extends MapContent
 			if (criterion == null || criterion(geometry.properties)) {
 				curStyle = (isActive ? mapNode.getHoveredStyle() : mapNode.getRegularStyle());
 				if (layer != null) {	// обьект лежит в слое - отрисовка по фильтрам
-					if(layer.currentId != null && layer.currentId == mapNode.propHash.get(layer.identityField)) {
+					if(layer.currentId != null && mapNode.propHash != null && layer.currentId == mapNode.propHash.get(layer.identityField)) {
 						curTemporalCriterion = layer.temporalCriterion;
 						if (layer.currentFilter != null) {
 							layer.hoverPainter.repaint(null);
