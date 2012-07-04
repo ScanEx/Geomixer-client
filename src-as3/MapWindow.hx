@@ -93,12 +93,12 @@ class MapWindow
 
 		if (cacheBitmap != null)
 		{
-			innerSprite.removeChild(cacheBitmap);
+			if(cacheBitmap.parent != null) innerSprite.removeChild(cacheBitmap);
 			cacheBitmapData.dispose();
 		}
 		if (labelsBitmap != null)
 		{
-			innerSprite.removeChild(labelsBitmap);
+			if(labelsBitmap.parent != null) innerSprite.removeChild(labelsBitmap);
 			labelsBitmapData.dispose();
 		}
 
@@ -164,10 +164,12 @@ class MapWindow
 			if (flag) {
 				if(cacheBitmap.parent == null) innerSprite.addChild(cacheBitmap);
 				if(rootNode.vectorSprite.parent != null) rootNode.vectorSprite.parent.removeChild(rootNode.vectorSprite);
+				if(labelsBitmap.parent != null) innerSprite.removeChild(labelsBitmap);
 			}
 			else {
 				if(cacheBitmap.parent != null) innerSprite.removeChild(cacheBitmap);
 				if(rootNode.vectorSprite.parent  == null) innerSprite.addChild(rootNode.vectorSprite);
+				if(labelsBitmap.parent == null) innerSprite.addChild(labelsBitmap);
 			}
 			cacheBitmap.visible = flag;
 			rootNode.vectorSprite.visible = !flag;
