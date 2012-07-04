@@ -7,6 +7,23 @@
 	var _modulePathes = {/*#buildinclude<modules_path.txt>*/};
 	var _moduleFiles = {/*#buildinclude<module_files.txt>*/};
     
+    var getScriptURL = function(scriptName)
+	{
+		var scripts1 = document.getElementsByTagName("script");
+		for (var i = 0; i < scripts1.length; i++)
+		{
+			var src = scripts1[i].getAttribute("src");
+			if (src && (src.indexOf(scriptName) != -1))
+				return src;
+		}
+		return false;
+	}
+	var getScriptBase = function(scriptName)
+	{
+		var url = getScriptURL(scriptName);
+		return url.substring(0, url.indexOf(scriptName));
+	}
+    
     var invokeCallbacks = function()
     {
         for (var k = 0; k < _callbacks.length; k++)
@@ -28,13 +45,31 @@
             {
                 var curCallback = _callbacks[k].callback;
                 
-                //first delete, than callback!
+                //first delete, then callback!
                 _callbacks.splice(k, 1);
                 k = k - 1;
                 curCallback.apply(null, modules);
             }
         }
     }
+    
+    var lazyLoadLABjs = function(callback)
+    {
+        if ('$LAB' in window) {
+            callback();
+            return;
+        }
+        
+        //load LAB.js (snippest from its website)
+        (function(g,b,d){var c=b.head||b.getElementsByTagName("head"),D="readyState",E="onreadystatechange",F="DOMContentLoaded",G="addEventListener",H=setTimeout;
+        H(function(){if("item"in c){if(!c[0]){H(arguments.callee,25);return}c=c[0]}var a=b.createElement("script"),e=false;a.onload=a[E]=function(){if((a[D]&&a[D]!=="complete"&&a[D]!=="loaded")||e){return false}a.onload=a[E]=null;e=true;callback()};
+
+        a.src = getScriptBase('gmxcore.js') + 'LAB.min.js';
+
+        c.insertBefore(a,c.firstChild)},0);if(b[D]==null&&b[G]){b[D]="loading";b[G](F,d=function(){b.removeEventListener(F,d,false);b[D]="complete"},false)}})(this,document);
+    }
+    
+    var cssLoader = null;
     
     //public methods
     return {
@@ -44,11 +79,13 @@
         // * moduleObj - {Object} object, which represents module.
         // * options - {Object}. Following options are possible:
         //    * require - {Array of string}. What modules should be loaded before this one
-        //    * init - {Function} function to initialize module. Signature: function moduleInit(moduleObj, modulePath)
+        //    * init - {Function} function to initialize module. Signature: function moduleInit(moduleObj, modulePath). If return jQuery Deferred, loader will wait its resolving
         //    * css - {Array || String} css files to load for module. css path is relative to module's path
         addModule: function(moduleName, moduleObj, options)
         {
             var requiredModules = (options && 'require' in options) ? options.require : [];
+            var initDeferred = null;
+            var _this = this;
             
             for (var r = 0; r < requiredModules.length; r++)
                 this.loadModule( requiredModules[r] );
@@ -60,33 +97,24 @@
                         
                 if (options && 'init' in options)
 				{
-                    options.init(moduleObj, _modulePathes[moduleName]);
+                    initDeferred = options.init(moduleObj, _modulePathes[moduleName]);
 				}
                 
                 if (options && 'css' in options)
 				{
-                    var doLoadCss = function()
-                    {
-                        var cssFiles = typeof options.css === 'string' ? [options.css] : options.css;
-                        var path = _modulePathes[moduleName] || window.gmxJSHost || "";
-                        
-                        for (var iF = 0; iF < cssFiles.length; iF++)
-                            $.getCSS(path + cssFiles[iF]);
-                    }
+                    var cssFiles = typeof options.css === 'string' ? [options.css] : options.css;
+                    var path = _modulePathes[moduleName] || window.gmxJSHost || "";
                     
-                    if ('getCSS' in $)
-                    {
-                        doLoadCss();
-                    }
-                    else
-                    {
-                        var path = gmxAPI.getScriptBase('gmxcore.js');
-                        $.getScript(path + "jquery/jquery.getCSS.js", doLoadCss);
-                    }
+                    for (var iF = 0; iF < cssFiles.length; iF++)
+                        _this.loadCSS(path + cssFiles[iF]);
 				}
                 
                 _modules[moduleName] = moduleObj;
-                invokeCallbacks();
+                
+                if (initDeferred)
+                    initDeferred.done(invokeCallbacks);
+                else
+                    invokeCallbacks();
             });
         },
         //Load module from file. If not defined moduleSource, filename is constructed as (defaultHost + moduleName + '.js')
@@ -177,6 +205,84 @@
                     var res = module[functionName].apply(this, args);
                     callback && callback(res);
                 });
+            }
+        },
+        
+        //Checks several requirements and loads js and css files.
+        //"filesInfo" is array of objects with the following properties:
+        //  - check: function() -> Bool. If return value is true, no js and css loading will be performed
+        //  - script: String. Optional. Script to load if check fails
+        //  - css: String. Optional. CSS file to load if check fails
+        // Return jQuery Deferred, that will be resolved when all the scripts will be loaded (css loading is not checked)
+        loadScriptWithCheck: function(filesInfo)
+        {
+            var _this = this;
+            var localFilesInfo = filesInfo.splice(0);
+            var def = $.Deferred();
+            
+            var doLoad = function(info)
+            {
+                if (localFilesInfo.length > 0)
+                {
+                    var curInfo = localFilesInfo.shift();
+                    if (curInfo.check())
+                        doLoad()
+                    else
+                    {
+                        curInfo.css && _this.loadCSS(curInfo.css);
+                        
+                        if (curInfo.script)
+                            _this.loadScript(curInfo.script).then(doLoad);
+                        else
+                            doLoad();
+                    }
+                }
+                else
+                    def.resolve();
+            }
+            
+            doLoad();
+            return def.promise();
+        },
+        
+        //Single script is loaded.
+        //Params: 
+        //  - fileName: String. Scripts filename.
+        //  - callback: function. Optional. Will be called when script is loaded.
+        //  - Returns jQuery deferred
+        loadScript: function(fileName, callback)
+        {
+            var def = $.Deferred();
+            lazyLoadLABjs(function()
+            {
+                $LAB.script(fileName).wait(function()
+                {
+                    def.resolve();
+                    callback && callback();
+                })
+            })
+            return def.promise();
+        }, 
+        
+        
+        //Single css file is loaded.
+        //Params: 
+        //  - cssFilename: String. CSS filename.
+        loadCSS: function(cssFilename)
+        {
+            var doLoadCss = function()
+            {
+                $.getCSS(cssFilename);
+            }
+            
+            if (cssLoader)
+            {
+                cssLoader.done(doLoadCss);
+            }
+            else
+            {
+                var path = getScriptBase('gmxcore.js');
+                cssLoader = $.getScript(path + "jquery/jquery.getCSS.js", doLoadCss);
             }
         }
     }
