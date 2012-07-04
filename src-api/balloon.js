@@ -536,16 +536,6 @@
 		propsBalloon.outerDiv.style.zIndex = 10000;
 		propsBalloon.outerDiv.style.display = "none";
 		
-		new gmxAPI.GlobalHandlerMode("mousemove", function(event)
-		{
-			if(propsBalloon.isVisible()) {
-				propsBalloon.setScreenPosition(
-					gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div), 
-					gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div)
-				);
-			}
-		}).set();
-		
 		div.onmouseout = function(event)
 		{
 			if(propsBalloon.isVisible()) {
@@ -595,7 +585,22 @@
 				if(bal.outerDiv.style.zIndex != 1000 + i) bal.outerDiv.style.zIndex = 1000 + i;
 			}
 		}
+
 		//map.addObject().setHandler("onMove", positionBalloons);
+		var onmousemove = function(event)
+		{
+			if(propsBalloon.isVisible()) {
+				propsBalloon.setScreenPosition(
+					gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div), 
+					gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div)
+				);
+			}
+		}
+
+
+		new gmxAPI.GlobalHandlerMode("mousemove", onmousemove).set();
+		
+		
 		gmxAPI.map.addListener('positionChanged', function(ph)
 			{
 				positionBalloons(gmxAPI.currPosition);

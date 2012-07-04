@@ -297,6 +297,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		
 		var onMoveBegin = function(?event:MouseEvent)
 		{
+			Main.bumpFrameRate();
 			mapWindow.rootNode.callHandlersRecursively("onMoveBegin");
 		}
 
@@ -438,8 +439,8 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			var dy:Float = root.mouseY - startMouseY;
 			if ((dx*dx) + (dy*dy) > 6*6)
 				pressTime = 0;
-			Main.bumpFrameRate();
 			repaintCursor();
+			event.stopImmediatePropagation();
 		});
 
 		Main.chkStatus = function():Dynamic

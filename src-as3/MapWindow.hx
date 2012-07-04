@@ -161,8 +161,15 @@ class MapWindow
 	{
 		if (cacheBitmap.visible != flag)
 		{
+			if (flag) {
+				if(cacheBitmap.parent == null) innerSprite.addChild(cacheBitmap);
+				if(rootNode.vectorSprite.parent != null) rootNode.vectorSprite.parent.removeChild(rootNode.vectorSprite);
+			}
+			else {
+				if(cacheBitmap.parent != null) innerSprite.removeChild(cacheBitmap);
+				if(rootNode.vectorSprite.parent  == null) innerSprite.addChild(rootNode.vectorSprite);
+			}
 			cacheBitmap.visible = flag;
-			//rootNode.rasterSprite.visible = !flag;
 			rootNode.vectorSprite.visible = !flag;
 		}
 	}

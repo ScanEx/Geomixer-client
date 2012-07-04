@@ -71,6 +71,7 @@ class VectorObject extends MapContent
 
 	public override function repaint()
 	{
+		if (Main.mousePressed) return;		// При нажатой мышке labels не перерисовываем
 		var curStyle = null;
 		var curTemporalCriterion = null;
 		var notClearFlag:Bool = false;
@@ -147,6 +148,7 @@ class VectorObject extends MapContent
 
 	public override function paintLabels()
 	{
+		if (Main.mousePressed) return;		// При нажатой мышке labels не перерисовываем
 		if(criterion == null || criterion(geometry.properties)) {
 			var style = mapNode.getRegularStyleRecursion();
 			if (style == null || style.label == null) return;
@@ -181,6 +183,7 @@ class VectorObject extends MapContent
 	
 	function highlight()
 	{
+		if (Main.mousePressed) return;		// При нажатой мышке labels не перерисовываем
 		//isActive = true;
 		if (layer != null) {
 			var curStyle = mapNode.getHoveredStyleRecursion();
