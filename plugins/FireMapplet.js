@@ -459,7 +459,7 @@ var FireBurntProvider = function( params )
 */
 var ModisImagesProvider = function( params )
 {
-    var _params = $.extend({host: "http://maps.kosmosnimki.ru/"}, params)
+    var _params = $.extend({host: "http://maps.kosmosnimki.ru/", map: window.globalFlashMap}, params)
     var layersNamesToLoad = ['EB271FC4D2AD425A9BAA78ADEA041AB9', '533FCC7439DA4A2EB97A2BE77887A462'],
         //leftToLoad = layersNamesToLoad.length,
         modisLayers = {},
@@ -517,12 +517,12 @@ var ModisImagesProvider = function( params )
                     
                     var TiledQuicklook = _params.host + 'TileSenderSimple.ashx?TilePath=OperativeMODIS[TILES]/';
                     
-                    layerProperties.content.properties.mapName = globalFlashMap.properties.name;
+                    layerProperties.content.properties.mapName = _params.map.properties.name;
                     layerProperties.content.properties.hostName = _params.host.substring(7, _params.host.length-1);
                     layerProperties.content.properties.visible = true;
                     
-                    globalFlashMap.addLayer(layerProperties.content, true);
-                    modisLayers[layerName] = globalFlashMap.layers[layerName];
+                    _params.map.addLayer(layerProperties.content, true);
+                    modisLayers[layerName] = _params.map.layers[layerName];
                     // modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
                     modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
                     
@@ -921,14 +921,7 @@ var FireClusterSimpleProvider = function( params )
 			for ( var d = 0; d < data.Response.length; d++ )
 			{
 				var a = data.Response[d];
-				// var t = globalFlashMap.addObject();
-				// t.setCircle(a[2], a[1], 10000);
-				
-				// var geom = [];
-				// for (var i = 0; i < a[8].coordinates[0].length; i++)
-					// geom.push([a[8].coordinates[0][i][1], a[8].coordinates[0][i][0]]);
-				
-				//var hotSpot = { x: a[2], y: a[1], power: a[7], points: a[5], label: a[5], balloonProps: {"Кол-во очагов пожара": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]} };
+
 				var hotSpot = {
                     clusterId: a[0], 
                     geometry: a[8], 
@@ -999,9 +992,17 @@ var CombinedProvider = function( description, providers )
 */
 var FireSpotRenderer = function( params )
 {
-	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minZoom: 1, maxZoom: 17, customStyleProvider: null, onclick: null, bringToDepth: false }, params);
+	var _params = $.extend({
+        fireIconsHost: 'http://maps.kosmosnimki.ru/images/', 
+        minZoom: 1, 
+        maxZoom: 17, 
+        customStyleProvider: null, 
+        onclick: null, 
+        bringToDepth: false, 
+        map: window.globalFlashMap
+    }, params);
 	
-	var _depthContainer = globalFlashMap.addObject();
+	var _depthContainer = _params.map.addObject();
 	if (_params.bringToDepth) _depthContainer.bringToDepth(_params.bringToDepth);
 	
 	var _firesObj = null;
@@ -1153,10 +1154,18 @@ var FireBurntRenderer = function( params )
 			{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xffffff, opacity: 5 } },
 			{ outline: { color: 0xff0000, thickness: 3 }, fill: { color: 0xffffff, opacity: 15 } }
 		];
-	var _params = $.extend({ minZoom: 1, maxZoom: 17, defStyle: defaultStyle, bringToDepth: false, title: "<b style='color: red;'>СЛЕД ПОЖАРА</b><br />" }, params);
+	var _params = $.extend({
+        minZoom: 1,
+        maxZoom: 17, 
+        defStyle: defaultStyle, 
+        bringToDepth: false, 
+        title: "<b style='color: red;'>СЛЕД ПОЖАРА</b><br />",
+        map: window.globalFlashMap
+    }, params);
+    
 	var _burntObj = null;
 	
-	var _depthContainer = globalFlashMap.addObject();
+	var _depthContainer = _params.map.addObject();
 	if (_params.bringToDepth) _depthContainer.bringToDepth(_params.bringToDepth);
 	
 	var _balloonProps = {};
@@ -1230,7 +1239,7 @@ var ModisImagesRenderer = function( params )
 
 var CombinedFiresRenderer = function( params )
 {
-	var _params = $.extend({ fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minHotspotZoom: 11, minGeometryZoom: 8, minWholeFireZoom: 8, maxClustersZoom: 7}, params);
+	var _params = $.extend({ map: window.globalFlashMap, fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minHotspotZoom: 11, minGeometryZoom: 8, minWholeFireZoom: 8, maxClustersZoom: 7}, params);
 	var customStyleProvider = function(obj)
 	{
 		var style = { marker: { image: _params.fireIconsHost + 'fire_sample.png', center: true, scale: String(Math.sqrt(obj.points)/5)} };
@@ -1249,10 +1258,10 @@ var CombinedFiresRenderer = function( params )
 		{ outline: { color: 0xff00ff, thickness: 1, dashes: [3,3] }, fill: { color: 0xff00ff, opacity: 7 } }
 	];
 	
-	var _clustersRenderer  = new FireSpotRenderer  ({maxZoom: _params.maxClustersZoom,  title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>", customStyleProvider: customStyleProvider});
-	var _wholeFireRenderer = new FireBurntRenderer ({minZoom: _params.minWholeFireZoom,  defStyle: wholeDefStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Суммарный контур пожара</b></div>"});
-	var _geometryRenderer  = new FireBurntRenderer ({minZoom: _params.minGeometryZoom,  defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", addGeometrySummary: false});
-	var _hotspotRenderer   = new FireSpotRenderer  ({minZoom: _params.minHotspotZoom, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>"});
+	var _clustersRenderer  = new FireSpotRenderer  ({map: _params.map, maxZoom: _params.maxClustersZoom,  title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>", customStyleProvider: customStyleProvider});
+	var _wholeFireRenderer = new FireBurntRenderer ({map: _params.map, minZoom: _params.minWholeFireZoom,  defStyle: wholeDefStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Суммарный контур пожара</b></div>"});
+	var _geometryRenderer  = new FireBurntRenderer ({map: _params.map, minZoom: _params.minGeometryZoom,  defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", addGeometrySummary: false});
+	var _hotspotRenderer   = new FireSpotRenderer  ({map: _params.map, minZoom: _params.minHotspotZoom, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>"});
 	var _curData = null;
 	
 	//это некоторый хак для того, чтобы объединить в балунах контуров пожаров оперативную и историческую информацию о пожарах.
@@ -1612,7 +1621,10 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	this._calendar = calendar;
 	this._visModeController = calendar.getModeController();
 	
-	this._firesOptions = $.extend( {}, FireControl.DEFAULT_OPTIONS, firesOptions );
+    var resourceHost = typeof gmxCore !== 'undefined' ? gmxCore.getModulePath('FireMapplet') + '../' || '' : '';
+	this._firesOptions = $.extend( {resourceHost: resourceHost, map: this._map}, FireControl.DEFAULT_OPTIONS, firesOptions );
+    
+    
 	this._initExtent = new BoundsExt( firesOptions.initExtent ? firesOptions.initExtent : BoundsExt.WHOLE_WORLD );
 	if ( firesOptions.initExtent && firesOptions.showInitExtent )
 	{
@@ -1639,7 +1651,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 						  
 	if ( this._firesOptions.images ) 
 		this.addDataProvider( "images",
-							  new ModisImagesProvider( {host: this._firesOptions.modisHost} ),
+							  new ModisImagesProvider( {host: this._firesOptions.modisHost, map: this._map} ),
 							  new ModisImagesRenderer( {depth: this._firesOptions.modisDepth } ),
 							  { isVisible: this._firesOptions.imagesInit, isUseBbox: false } );
 							  
@@ -1919,8 +1931,8 @@ var FireControl2 = function(map, params)
 					minimized: true,
 					dateMin: new Date(2009, 05, 29),
 					dateMax: new Date(),
-                    dateFormat: "dd.mm.yy",
-					resourceHost: 'http://maps.kosmosnimki.ru/api/'
+                    dateFormat: "dd.mm.yy"/*,
+					resourceHost: 'http://maps.kosmosnimki.ru/api/'*/
 				});
                 $(params.container).append(params.calendar.canvas);
             }
@@ -2005,20 +2017,16 @@ if ( typeof gmxCore !== 'undefined' )
 {
 	gmxCore.addModule('FireMapplet', publicInterface, 
 	{ 
+        css: 'FireMapplet.css',
         init: function(module, path)
 		{
             initTranslations();
-            
-			var doLoadCss = function()
-			{
-				path = path || window.gmxJSHost || "";
-				$.getCSS(path + "FireMapplet.css");
-			}
-			
-			if ('getCSS' in $)
-				doLoadCss();
-			else
-				$.getScript(path + "../jquery/jquery.getCSS.js", doLoadCss);
+            return gmxCore.loadScriptWithCheck([
+                {
+                    check: function(){ return jQuery.datepicker.parseDateTime; },
+                    script: path + '../jquery/jquery-ui-timepicker-addon.js'
+                }
+            ]);
 		},
         require: ['DateTimePeriodControl']
 	});

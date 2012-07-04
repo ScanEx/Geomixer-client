@@ -700,20 +700,19 @@ var publicInterface = {
 if ( typeof gmxCore !== 'undefined' )
 {
 	gmxCore.addModule('DateTimePeriodControl', publicInterface, 
-	{ 
+	{
+        css: 'DateTimePeriodControl.css',
         init: function(module, path)
 		{
             initTranslations();
-			var doLoadCss = function()
-			{
-				path = path || window.gmxJSHost || "";
-				jQuery.getCSS(path + "DateTimePeriodControl.css");
-			}
-			
-			if ('getCSS' in $)
-				doLoadCss();
-			else
-				jQuery.getScript(path + "jquery/jquery.getCSS.js", doLoadCss);
+            
+            return gmxCore.loadScriptWithCheck([
+                { 
+                    check: function(){ return jQuery.ui; },
+                    script: path + 'jquery/jquery-ui-1.7.2.custom.min.js',
+                    css: path + 'jquery/jquery-ui-1.7.2.custom.css'
+                }
+            ]);
 		},
         require: ['translations', 'utilities']
 	});
