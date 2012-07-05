@@ -54,11 +54,18 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 	static var frameRate:Int = 40;			// максимальный frameRate
 
 	// Команды от SWF в JS
-	public static function cmdToJS(cmd:String, ?p1:Dynamic, ?p2:Dynamic, ?p3:Dynamic):Dynamic
+	public static function cmdToJS(cmd:String, ?p1:Dynamic, ?p2:Dynamic, ?p3:Dynamic, ?eventName:String):Dynamic
 	{
 		var ret = null;
 		//try {
-			ret = ExternalInterface.call(cmd, p1, p2, p3);
+			//if(eventName == 'onTileLoaded') {
+				//var st1:String = (p1 != null ? JSON.stringify(p1) : '');
+				//var st2:String = (p2 != null ? JSON.stringify(p2) : '');
+				//var st3:String = (p3 != null ? JSON.stringify(p3) : '');
+				//ret = ExternalInterface.call(cmd, st1, st2, st3);
+			//} else {
+				ret = ExternalInterface.call(cmd, p1, p2, p3);
+			//}
 			//trace(cmd + ' : ' + p1 + ' : ' + p2 + ' : ' + p3);
 		//} catch (e:Error) {  }
 		return ret;
@@ -687,7 +694,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 					|| (eventName == "onMoveEnd")
 					|| (eventName == "onMouseOut")
 					|| (eventName == "onMouseDown")) {
-					Main.cmdToJS(callbackName, node2.id, arr, eventAttr);
+					Main.cmdToJS(callbackName, node2.id, arr, eventAttr, eventName);
 				}
 				else
 				{
@@ -779,13 +786,14 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		
 		function setVisible(id:String, flag:Bool)
 		{
-			Main.bumpFrameRate();
+			//Main.bumpFrameRate();
 			var node = getNode(id);
 			node.setVisible(flag);
 			if (node.parent != null)
 				for (child in node.parent.children)
 					if (Std.is(child.content, VectorLayerObserver))
 						child.noteSomethingHasChanged();
+			Main.needRefreshMap = true;
 		}
 		
 		function setZoomBounds(id:String, minZ:Int, maxZ:Int):Dynamic

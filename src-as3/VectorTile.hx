@@ -110,7 +110,11 @@ class VectorTile
 						var tOut:Dynamic = { };
 						tOut.data = arr;
 						tOut.tileID = tileID;
+//var bTime = flash.Lib.getTimer();
 						me.layer.mapNode.callHandler('onTileLoaded', null, tOut);
+//bTime = flash.Lib.getTimer() - bTime;
+//var st:String = 'Тайл ' + tileID + ' обьектов: ' + arr.length + ' время: ' + bTime / 1000 + ' сек.';
+//trace('ddddddddd ' + st);
 					}
 					Main.bumpFrameRate();
 
