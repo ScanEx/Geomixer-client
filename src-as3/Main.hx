@@ -57,10 +57,10 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 	public static function cmdToJS(cmd:String, ?p1:Dynamic, ?p2:Dynamic, ?p3:Dynamic):Dynamic
 	{
 		var ret = null;
-		try {
+		//try {
 			ret = ExternalInterface.call(cmd, p1, p2, p3);
 			//trace(cmd + ' : ' + p1 + ' : ' + p2 + ' : ' + p3);
-		} catch (e:Error) {  }
+		//} catch (e:Error) {  }
 		return ret;
 	}
 	
@@ -164,6 +164,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			currentY = constrain(minY, y, maxY);
 			currentZ = constrain(minZ, z, maxZ);
 			viewportHasMoved = true;
+			Main.needRefreshMap = true;
 		}
 
 		var repaintCrosshair = function()
@@ -200,6 +201,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		{
 			mapWindow.rootNode.callHandlersRecursively("onMoveEnd");
 			dispatchEventPosition();
+			Main.needRefreshMap = true;
 		}
 		
 		var isFluidMoving:Bool = false;
@@ -297,7 +299,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		
 		var onMoveBegin = function(?event:MouseEvent)
 		{
-			Main.bumpFrameRate();
+			//Main.bumpFrameRate();
 			mapWindow.rootNode.callHandlersRecursively("onMoveBegin");
 		}
 
@@ -305,13 +307,15 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		{
 			pressTime = flash.Lib.getTimer();
 			Main.bumpFrameRate();
+			mapWindow.setCenter(currentX, currentY);
+			mapWindow.rootNode.repaintRecursively(true);
+			mapWindow.repaintCacheBitmap();
+			mapWindow.setCacheBitmapVisible(true);		// Если Drag или Move режим - показываем CacheBitmap
 			Main.mousePressed = true;
 			onMoveBegin(event);
 		});
 		var windowMouseDown = function(event)
 		{
-			mapWindow.rootNode.repaintRecursively(true);
-			mapWindow.repaintCacheBitmap();
 			if (!Main.draggingDisabled)
 			{
 				isDragging = true;
@@ -322,8 +326,8 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				startMapX = currentX;
 				startMapY = currentY;
 			}
-			Main.bumpFrameRate();
-			Main.mousePressed = true;
+			//Main.bumpFrameRate();
+			//Main.mousePressed = true;
 		};
 		mapSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
 		
@@ -369,6 +373,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		root.addEventListener(MouseEvent.MOUSE_UP, function(event)
 		{
 			Main.mousePressed = false;
+			mapWindow.setCacheBitmapVisible(false);		// Если Drag или Move режим - показываем CacheBitmap
 			if (event != null) {
 				Main.chkEventAttr(event);
 			}
@@ -440,7 +445,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			if ((dx*dx) + (dy*dy) > 6*6)
 				pressTime = 0;
 			repaintCursor();
-			event.stopImmediatePropagation();
+			//if (!Main.isDraggingNow)	event.stopImmediatePropagation();
 		});
 
 		Main.chkStatus = function():Dynamic
@@ -450,21 +455,20 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 
 		Main.refreshMap = function()
 		{
-			//if(Main.isDraggingNow) return;
 			//viewportHasMoved = true;
 			for (window in MapWindow.allWindows)
 			{
 				//if (isMoving && !wasMoving)
 					//window.repaintCacheBitmap();
 				window.setCenter(currentX, currentY);
-				window.setCacheBitmapVisible(isMoving || isDragging);		// Если Drag или Move режим - показываем CacheBitmap
+				//window.setCacheBitmapVisible(isMoving || isDragging);		// Если Drag или Move режим - показываем CacheBitmap
 				if (!isMoving)
 				{
+//trace('refreshMap _____________ ' + ' : ' + isMoving + ' : ' + Main.mousePressed + ' : ' +  flash.Lib.getTimer());
 					window.rootNode.repaintRecursively(true);
 					//window.repaintCacheBitmap();
 				}
 			}
-			
 		}
 
 		// текущее положение карты
@@ -526,22 +530,25 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				nextFrameCallbacks = new Array<Void->Void>();
 			}
 
-			if (viewportHasMoved || needRefreshMap)
+			if (viewportHasMoved || Main.needRefreshMap)
 			{
 				Main.refreshMap();
-				needRefreshMap = false;
+				Main.needRefreshMap = false;
 			}
 
 			if (viewportHasMoved)
 			{
-				if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 200;
+				if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 20;
 				viewportHasMoved = false;
 				wasMoving = isMoving;
 			}
+/*			
 			else if (!isMoving)
-				for (window in MapWindow.allWindows)
-					window.rootNode.repaintRecursively(false);
-
+//trace('refreshMap ____1_________ ' + ' : ' + isMoving + ' : ' + Main.mousePressed + ' : ' +  flash.Lib.getTimer());
+				for (window in MapWindow.allWindows) {
+					//window.rootNode.repaintRecursively(false);
+				}
+*/
 			if (!isMoving && !isDragging)
 				for (window in MapWindow.allWindows)
 					window.repaintLabels();

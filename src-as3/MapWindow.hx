@@ -115,6 +115,7 @@ class MapWindow
 
 		fillWindowArea(maskSprite, 0xffffff);
 		updateBackground();
+		setCacheBitmapVisible(false);
 	}
 
 	public function setBackgroundColor(color)
@@ -162,14 +163,18 @@ class MapWindow
 		if (cacheBitmap.visible != flag)
 		{
 			if (flag) {
-				if(cacheBitmap.parent == null) innerSprite.addChild(cacheBitmap);
+				if (cacheBitmap.parent == null) {
+						innerSprite.addChild(cacheBitmap);
+						innerSprite.setChildIndex(labelsBitmap, innerSprite.numChildren - 1);
+				}
 				if(rootNode.vectorSprite.parent != null) rootNode.vectorSprite.parent.removeChild(rootNode.vectorSprite);
-				if(labelsBitmap.parent != null) innerSprite.removeChild(labelsBitmap);
 			}
 			else {
 				if(cacheBitmap.parent != null) innerSprite.removeChild(cacheBitmap);
-				if(rootNode.vectorSprite.parent  == null) innerSprite.addChild(rootNode.vectorSprite);
-				if(labelsBitmap.parent == null) innerSprite.addChild(labelsBitmap);
+				if (rootNode.vectorSprite.parent  == null) {
+					innerSprite.addChild(rootNode.vectorSprite);
+					innerSprite.setChildIndex(labelsBitmap, innerSprite.numChildren - 1);
+				}
 			}
 			cacheBitmap.visible = flag;
 			rootNode.vectorSprite.visible = !flag;

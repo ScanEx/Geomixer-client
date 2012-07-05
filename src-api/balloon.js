@@ -154,7 +154,7 @@
 
 			var handlersObj = {
 				onMouseOver: function(o, keyPress)
-				{ 
+				{
 					if('obj' in o) {
 						//if('attr' in o && 'textFunc' in o.attr) keyPress = o.attr;
 						if('attr' in o) keyPress = o.attr;
@@ -477,7 +477,7 @@
 			var y = 0;
 			var reposition = function()	
 			{
-				if(!wasVisible ) return;
+				if(!wasVisible || (x+y) == 0) return;
 				var ww = balloon.clientWidth;
 				var hh = balloon.clientHeight;
 
@@ -595,18 +595,25 @@
 					gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div)
 				);
 			}
+			if (event.preventDefault)
+			{
+				event.stopPropagation();
+			}
+			else 
+			{
+				event.cancelBubble = true;
+			}
+			
 		}
 
-
-		new gmxAPI.GlobalHandlerMode("mousemove", onmousemove).set();
-		
+		gmxAPI._div.onmousemove = onmousemove;
+		//new gmxAPI.GlobalHandlerMode("mousemove", onmousemove).set();
 		
 		gmxAPI.map.addListener('positionChanged', function(ph)
 			{
 				positionBalloons(gmxAPI.currPosition);
 			}
 		, -10);
-
 		
 		function addBalloon(_notDelFlag)
 		{
@@ -807,8 +814,8 @@
 
 	// Добавление прослушивателей событий
 	gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': function(map) {
-			if(!map || map.balloonClassObject) return;
-			map.balloonClassObject = new BalloonClass();
+			if(!gmxAPI.map || gmxAPI.map.balloonClassObject) return;
+			gmxAPI.map.balloonClassObject = new BalloonClass();
 			gmxAPI.map.addListener('zoomBy', function()	{ map.balloonClassObject.hideHoverBalloons(true); });
 			gmxAPI.map.addListener('hideBalloons', function() { map.balloonClassObject.hideHoverBalloons(); });
 			gmxAPI.map.addListener('clickBalloonFix', function(o) { map.balloonClassObject.clickBalloonFix(o); });
