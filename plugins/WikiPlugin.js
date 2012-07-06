@@ -238,7 +238,7 @@ WikiObjectsHandler.prototype = {
 				mapObject.setStyle({ marker: { image: (pageInfo.IconUrl ? pageInfo.IconUrl : pluginPath + "img/wiki/page.gif"), center: true }});
 				break;
 			case 'POLYGON':
-				mapObject.setStyle({outline: {thickness: 2, opacity: 100}});
+				mapObject.setStyle({outline: {outline: 0xFF0000,thickness: 2, opacity: 100}});
 				break;
 		}
 	},
@@ -259,7 +259,7 @@ WikiObjectsHandler.prototype = {
 		var _this = this;
 		return function(attr, div) { 
 					var divEdit = _div();
-					if (nsGmx.AuthManager.getNickname() == pageInfo.AuthorNickname || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)){
+					if (nsGmx.canDoAction(nsGmx.ACTION_SAVE_MAP)){
 						var btnEdit = makeLinkButton(_gtxt("Редактировать"));
 						var btnDelete = makeLinkButton(_gtxt("Удалить"));
 						btnEdit.onclick = function() {_this._wikiPlugin.openEditor(pageInfo); _this._map.balloonClassObject.hideHoverBalloons(); }
@@ -352,7 +352,13 @@ WikiFilter.prototype = {
 			var layerOK = !page.BadLayer && (!page.LayerID || oFlashMap.layers[page.LayerID].isVisible)
 			var extentOK = !this._checkExtent.checked || boundsIntersect(getBounds(page.Geometry.coordinates), oFlashMap.getVisibleExtent());
 			if ( layerOK && extentOK && (!sFilter || page.Title.match(sFilter))){
-				var oPageRow = _span([_t(page.Title)], [['dir', 'className', 'wiki-filter-page']]);
+				var oPageRow;
+				if(page.Title && page.Title.length){
+					oPageRow = _span([_t(page.Title)], [['dir', 'className', 'wiki-filter-page']]);
+				}
+				else{
+					oPageRow = _span([_t(page.Content.substring(Math.Min(page.Content.length, 50)))]);
+				}
 				oPageRow.PageInfo = page;
 				oPageRow.onclick = function(){
 					oFlashMap.setMinMaxZoom(1, 13);
