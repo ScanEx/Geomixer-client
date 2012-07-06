@@ -14,6 +14,7 @@
 		map.tiledQuicklooks = map;
 		map.vectors = map;
 		map.needMove = null;
+		map.needSetMode = null;
 
 		// Методы присущие только Map
 		map.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
@@ -353,6 +354,7 @@
 		{
 			unSetBaseLayer();
 			currentBaseLayerName = name;
+			map.needSetMode = null;
 			var newBaseLayers = baseLayers[currentBaseLayerName];
 			if (newBaseLayers) {
 				for (var i = 0; i < newBaseLayers.length; i++) {

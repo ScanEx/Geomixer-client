@@ -1238,8 +1238,29 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 //console.log('waitMe ' , pos);
 		//LMap.on('moveend', function(e) { gmxAPI._updatePosition(e); });
 			LMap.on('move', function(e) {
-				gmxAPI._updatePosition(e);
-				});
+				var pos = LMap.getCenter();
+				var size = LMap.getSize();
+				var vbounds = LMap.getBounds();
+				var nw = vbounds.getNorthWest();
+				var se = vbounds.getSouthEast();
+				var attr = {
+					'currPosition': {
+						'z': LMap.getZoom()
+						,'x': gmxAPI.merc_x(pos['lng'])
+						,'y': gmxAPI.merc_y(pos['lat'])
+						,'stageHeight': size['y']
+						,'mouseX': gmxAPI.merc_x(mousePos ? mousePos.lng : 0)
+						,'mouseY': gmxAPI.merc_y(mousePos ? mousePos.lat : 0)
+						,'extent': {
+							'minX': gmxAPI.merc_x(nw['lng']),
+							'minY': gmxAPI.merc_y(nw['lat']),
+							'maxX': gmxAPI.merc_x(se['lng']),
+							'maxY': gmxAPI.merc_y(se['lat'])
+						}
+					}
+				};
+				gmxAPI._updatePosition(e, attr);
+			});
 			LMap.on('mousemove', function(e) { mousePos = e.latlng; });
 
 

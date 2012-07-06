@@ -2949,13 +2949,14 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					if (!window.baseMap || !window.baseMap.hostName || (window.baseMap.hostName == "maps.kosmosnimki.ru"))
 						map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : "http://maps.kosmosnimki.ru/";
 		
-					map.setMode(mapLayers.length > 0 ? "map" : "satellite");
+					map.needSetMode = (mapLayers.length > 0 ? "map" : "satellite");
 					if (layers)
 					{
 						map.defaultHostName = layers.properties.hostName;
 						map.addLayers(layers);
 						map.properties = layers.properties;
 					}
+					if(map.needSetMode) map.setMode(map.needSetMode);
 					
 					// копирайты
 					var setCopyright = function(o, z1, z2, text)
