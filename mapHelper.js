@@ -3557,12 +3557,14 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 							if (!parseResponse(response))
 								return;
 						
-							_this.asyncTasks[response.Result.TaskID] = div ? div.gmxProperties.content.properties.name : true;
-							
+                        
+							//_this.asyncTasks[response.Result.TaskID] = div ? div.gmxProperties.content.properties.name : true;
+							var task = nsGmx.asyncTaskManager.addTask(response.Result, div ? div.gmxProperties.content.properties.name : null);
+                            
 							if (div)
-								_queryMapLayers.asyncUpdateLayer(response.Result, properties, true);
+								_queryMapLayers.asyncUpdateLayer(task, properties, true);
 							else
-								_queryMapLayers.asyncCreateLayer(response.Result, layerTitle);
+								_queryMapLayers.asyncCreateLayer(task, layerTitle);
 						}
                     )
 				}
@@ -3608,12 +3610,13 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 						if (!parseResponse(response))
 							return;
 					
-						_this.asyncTasks[response.Result.TaskID] = div ? div.gmxProperties.content.properties.name : true;
+						//_this.asyncTasks[response.Result.TaskID] = div ? div.gmxProperties.content.properties.name : true;
+                        var task = nsGmx.asyncTaskManager.addTask(response.Result, div ? div.gmxProperties.content.properties.name : null);
 						
 						if (div)
-							_queryMapLayers.asyncUpdateLayer(response.Result, properties, needRetiling);
+							_queryMapLayers.asyncUpdateLayer(task, properties, needRetiling);
 						else
-							_queryMapLayers.asyncCreateLayer(response.Result, layerTitle);
+							_queryMapLayers.asyncCreateLayer(task, layerTitle);
 					})
 			}
 			
@@ -3716,53 +3719,6 @@ mapHelper.prototype.createNewLayer = function(type)
         var _this = this;
         nsGmx.createMultiLayerEditorNew( this._treeView );
     }
-}
-
-mapHelper.prototype.updateTask = function(taskInfo, title)
-{
-	if (!taskInfo.Completed)
-	{
-		var taskDiv;
-		
-		if (!$$(taskInfo.TaskID))
-		{
-			taskDiv = _div(null, [['attr','id',taskInfo.TaskID],['css','margin','5px 0px 5px 5px']]);
-			
-			_($$('layersStatus'), [taskDiv])
-		}
-		else
-		{
-			taskDiv = $$(taskInfo.TaskID);
-			
-			removeChilds(taskDiv);
-		}
-		
-		_(taskDiv, [_span([_t(title + ':')], [['css','color','#153069'],['css','margin','0px 3px']]), _t(taskInfo.Status)])	
-		
-		setTimeout(function()
-		{
-			sendCrossDomainJSONRequest(serverBase + "AsyncTask.ashx?WrapStyle=func&TaskID=" + taskInfo.TaskID, function(response)
-			{
-				if (!parseResponse(response))
-					return;
-				
-				_mapHelper.updateTask(response.Result, title)
-			});
-		}, 2000)
-	}
-	else
-	{
-		delete this.asyncTasks[taskInfo.TaskID];
-		
-		$$(taskInfo.TaskID).removeNode(true);
-		
-		if (!$$('layersStatus').childNodes.length)
-		{
-			$($$('layersStatus').parentNode).dialog('destroy');
-			
-			$$('layersStatus').parentNode.removeNode(true);
-		}
-	}
 }
 
 // Формирует набор элементов tr используя контролы из shownProperties.

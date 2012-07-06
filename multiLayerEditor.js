@@ -1,8 +1,12 @@
 ﻿(function(){
 
-var createMultiLayerEditorNew = function(layersTree)
+//params:
+//  properties - свойства слоя по умолчанию
+//  layers - список слоёв по умолчанию
+var createMultiLayerEditorNew = function(layersTree, params)
 {
-    doCreateMultiLayerEditor( {}, [], null, layersTree );
+    params = params || {};
+    doCreateMultiLayerEditor( params.properties || {}, params.layers || [], null, layersTree );
 }
 
 //получает с сервера информацию о мультислое и рисует диалог редактирования его настроек
