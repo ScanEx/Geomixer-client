@@ -1,0 +1,47 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<script src="http://mapstest.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+<title>GeoMixer API - примеры использования</title>
+</head>
+
+<body>
+<button id="runTest">Установить событие получения URL тайлов</button>
+<button id="setVisible">Загрузка векторного слоя</button>
+<br/>
+  <div id="map2" style="width: 600px; height: 450px;"></div>
+  <span id="res" style="left: 700px; top: 0; position: absolute;"></span>
+ <br/>
+
+<script>
+
+	createFlashMap(document.getElementById("map2"), "maps.kosmosnimki.ru", "7VKHM", function(map)
+	{
+		map.moveTo(37.461, 55.651, 9);
+		//var myLayer = map.layers["выходы метро"];
+		var myLayer = map.layers["POI"];
+		myLayer.setVisibilityFilter('ogc_fid=0');
+		
+		document.getElementById("runTest").onclick = function()
+		{
+			myLayer.addListener('onTileLoadedURL', function(ph) {
+				var layer = ph.obj;
+				var tileID = ph.attr.data.tileID;
+				var arr = ph.attr.data.data;
+				var st = '<br>В слой: <b>' + layer.objectId + '</b>';
+				st += ' загружен тайл: <b>' + tileID + '</b>';
+				st += ' links: <b>' + arr.length + '</b>';
+				//st += ' URL array: <br><b>' + arr.join('<br>') + '</b>';	// Для получения содержимого тайлов из JS к необходимо добавить параметр &r=t
+				document.getElementById("res").innerHTML += st;
+			});
+		}
+		document.getElementById("setVisible").onclick = function()
+		{
+			myLayer.setVisible(true);
+		}
+
+	});
+
+</script>
+</body>
+</html>

@@ -689,6 +689,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 
 				if ((eventName == "onMouseOver")
 					|| (eventName == "onTileLoaded")
+					|| (eventName == "onTileLoadedURL")
 					|| (eventName == "onMove")
 					|| (eventName == "onMoveBegin")
 					|| (eventName == "onMoveEnd")

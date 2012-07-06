@@ -122,14 +122,22 @@ class VectorTile
 				}
 
 				var urlTiles:Dynamic = layer.tileFunction(i, j, z);
+				var arr:Array<String> = new Array<String>();
 				if (Std.is(urlTiles, Array))	// нужна склейка тайлов
 				{
-					var arr:Array<String> = urlTiles;
+					arr = urlTiles;
 					if(urlTiles.length > 0) new GetSWFTile(arr, function(data_:Array<Dynamic>) { parseTile(data_, st); }, onError);
 				} else if (Std.is(urlTiles, String)) {
-					var url:String = urlTiles;
 					var ver:Int = (layer.hashTilesVers.exists(st) ? layer.hashTilesVers.get(st) : 0);
-					if (url != "") new GetSWFFile(url + '&v='+ver, function(data_:Array<Dynamic>) { parseTile(data_, st); }, onError);
+					var url:String = urlTiles + '&v=' + ver;
+					if (url != "") new GetSWFFile(url, function(data_:Array<Dynamic>) { parseTile(data_, st); }, onError);
+					arr.push(url);
+				}
+				if (me.layer.mapNode.handlers.exists('onTileLoadedURL')) {
+					var tOut:Dynamic = { };
+					tOut.data = arr;
+					tOut.tileID = st;
+					me.layer.mapNode.callHandler('onTileLoadedURL', null, tOut);
 				}
 			}
 		}
