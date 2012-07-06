@@ -13,6 +13,7 @@
 		map.rasters = map;
 		map.tiledQuicklooks = map;
 		map.vectors = map;
+		map.needMove = null;
 
 		// Методы присущие только Map
 		map.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
@@ -22,7 +23,7 @@
 		map.disableCaching = function() { gmxAPI._cmdProxy('disableCaching', {}); }
 		map.print = function() { gmxAPI._cmdProxy('print', {}); }
 		map.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
-		map.moveTo = function(x, y, z) { gmxAPI._cmdProxy('moveTo', { 'attr': {'x':x, 'y':y, 'z':z} }); }
+		map.moveTo = function(x, y, z) { map.needMove = null; gmxAPI._cmdProxy('moveTo', { 'attr': {'x':x, 'y':y, 'z':z} }); }
 		map.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':x, 'y':y, 'z':z} }); }
 		map.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }
 		map.unfreeze = function() { gmxAPI._cmdProxy('unfreeze', {}); }
@@ -460,23 +461,23 @@
 				}
 
 			}
-			if (layers.properties.DefaultLat && layers.properties.DefaultLong && layers.properties.DefaultZoom)
-				map.moveTo(
-					parseFloat(layers.properties.DefaultLong),
-					parseFloat(layers.properties.DefaultLat),
-					parseInt(layers.properties.DefaultZoom)
-				);
-			else if(!notMoveFlag)
+			if (layers.properties.DefaultLat && layers.properties.DefaultLong && layers.properties.DefaultZoom) {
+				map.needMove = {
+					'x': parseFloat(layers.properties.DefaultLong),
+					'y': parseFloat(layers.properties.DefaultLat),
+					'z': parseInt(layers.properties.DefaultZoom)
+				};
+			} else if(!notMoveFlag)
 			{
 				var z = map.getBestZ(b.minX, b.minY, b.maxX, b.maxY);
 				if (minLayerZoom != 20)
 					z = Math.max(z, minLayerZoom);
 				if(z > 0) 
-					map.moveTo(
-						gmxAPI.from_merc_x((gmxAPI.merc_x(b.minX) + gmxAPI.merc_x(b.maxX))/2),
-						gmxAPI.from_merc_y((gmxAPI.merc_y(b.minY) + gmxAPI.merc_y(b.maxY))/2),
-						z
-					);
+					map.needMove = {
+						'x': gmxAPI.from_merc_x((gmxAPI.merc_x(b.minX) + gmxAPI.merc_x(b.maxX))/2),
+						'y': gmxAPI.from_merc_y((gmxAPI.merc_y(b.minY) + gmxAPI.merc_y(b.maxY))/2),
+						'z': z
+					};
 			}
 			if (layers.properties.ViewUrl && !window.suppressDefaultPermalink)
 			{
@@ -487,7 +488,11 @@
 					var callbackName = gmxAPI.uniqueGlobalName(function(obj)
 					{
 						if (obj.position)
-							map.moveTo(gmxAPI.from_merc_x(obj.position.x), gmxAPI.from_merc_y(obj.position.y), 17 - obj.position.z);
+							map.needMove = {
+								'x': gmxAPI.from_merc_x(obj.position.x),
+								'y': gmxAPI.from_merc_y(obj.position.y),
+								'z': 17 - obj.position.z
+							};
 						if (obj.drawnObjects)
 							for (var i =0; i < obj.drawnObjects.length; i++)
 							{

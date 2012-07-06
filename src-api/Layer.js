@@ -368,6 +368,7 @@
 		{
 			var pObj = (isOverlay ? parentObj.overlays : parentObj.layersParent);
 			var obj_ = pObj.addObject(obj.geometry, obj.properties);
+			obj_['stateListeners'] = obj['stateListeners'];
 			obj.objectId = obj_.objectId;
 			if(pObj.isMiniMap) {
 				obj.isMiniMap = true;			// Все добавляемые к миникарте ноды имеют этот признак

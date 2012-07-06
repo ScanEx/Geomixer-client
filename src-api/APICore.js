@@ -1567,6 +1567,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		,'onFinish': true
 		,'onRemove': true
 		,'onTileLoaded': true
+		,'onTileLoadedURL': true
 	};
 
 	function setHandler(obj, eventName, handler) {
@@ -2995,6 +2996,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					} catch(e) {
 						gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'event': e, 'alert': 'Ошибка в callback:\n'+e});
 					}
+					if(map.needMove) map.moveTo(map.needMove['x'], map.needMove['y'], map.needMove['z']);
 				});
 			},
 			function()

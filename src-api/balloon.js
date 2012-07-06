@@ -595,15 +595,16 @@
 					gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div)
 				);
 			}
-			if (event.preventDefault)
-			{
-				event.stopPropagation();
+			if(gmxAPI.proxyType == 'flash') {
+				if (event.preventDefault)
+				{
+					event.stopPropagation();
+				}
+				else 
+				{
+					event.cancelBubble = true;
+				}
 			}
-			else 
-			{
-				event.cancelBubble = true;
-			}
-			
 		}
 
 		gmxAPI._div.onmousemove = onmousemove;
