@@ -1467,6 +1467,19 @@ window.gmxAPI = {
 		}
 		return (chkObj ? true : false);
     }
+	,
+    getTileBounds: function(z, x, y)					// Определение границ тайла
+    {
+		var tileSize = gmxAPI.getScale(z)*256;
+		var minX = x*tileSize;
+		var minY = y*tileSize;
+		return {
+			minX: gmxAPI.from_merc_x(minX),
+			minY: gmxAPI.from_merc_y(minY),
+			maxX: gmxAPI.from_merc_x(minX + tileSize),
+			maxY: gmxAPI.from_merc_y(minY + tileSize)
+		};
+    }
 }
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);				// 111319.5;
