@@ -131,7 +131,9 @@ var VectorSceneManager = function(params)
             
             for (var iS = 0; iS < responses.length; iS++)
                 if (responses[iS].count > 0)
-                    res[sceneIds[iS]] = $.extend(res[sceneIds[iS]], {status: 'layer'});
+                {
+                    res[sceneIds[iS]] = $.extend(res[sceneIds[iS]], {status: 'layer', layerProperties: responses[iS].Layers[0]});
+                }
             
             callback(res);
         }).fail(callback);
@@ -166,7 +168,8 @@ var VectorSceneManager = function(params)
         var def = $.Deferred();
         this._check(scenesToGenerate, function(sceneInfo)
         {
-            for (var sid in sceneInfo)
+            var deferreds = [];
+            for (var s in sceneInfo) (function(sid)
             {
                 if (sceneInfo[sid].status === 'exist')
                 {
@@ -186,18 +189,30 @@ var VectorSceneManager = function(params)
                         MapName: _mapHelper.mapProperties.name
                     }
                     
+                    var doneDef = $.Deferred();
+                    deferreds.push(doneDef);
+                    
                     sendCrossDomainPostRequest(serverBase + "RasterLayer/Insert.ashx", requestParams, function(response)
                     {
                         if (!parseResponse(response))
                             return;
                             
-                        _mapHelper.asyncTasks[response.Result.TaskID] = true;
-                        _queryMapLayers.asyncCreateLayer(response.Result, requestParams.Title);
+                        //_mapHelper.asyncTasks[response.Result.TaskID] = true;
+                        var task = nsGmx.asyncTaskManager.addTask(response.Result);
+                        _queryMapLayers.asyncCreateLayer(task, requestParams.Title);
+                        task.deferred.done(function(taskInfo)
+                        {
+                            sceneInfo[sid].layerProperties = taskInfo.Result.properties;
+                            doneDef.resolve();
+                        });
                     });
                 }
-            }
+            })(s);
             
-            def.resolve(sceneInfo);
+            $.when.apply($, deferreds).then(
+                function(){ def.resolve(sceneInfo); },
+                function(){ def.reject(); }
+            );
         })
         
         scenesToGenerate = [];
@@ -254,8 +269,6 @@ var showWidget = function()
 {
     var canvas = $('<div/>');
     var scenesList = $('<textarea/>', {'class': 'wmsSales-scenelist'});
-    
-    // var selectLayer = $('<select/>', {'class': 'wmsSales-select selectStyle'}).append($('<option/>').val('picollo').text('IKONOS Piccolo'));
         
     var ikonosManager = new VectorSceneManager({
         layerName: '5D1858A954544BA892E182F81461A361',
@@ -298,15 +311,24 @@ var showWidget = function()
         $.when(ikonosManager.generate(), geoeyeManager.generate()).done(function(sceneInfoIkonos, sceneInfoGeoeye)
         {
             var missingScenes = [],
-                layerScenes = [];
+                layerScenes = [],
+                existScenes = [];
                 
             for (var sid in sceneInfoIkonos)
             {
                 if (sceneInfoIkonos[sid].status === 'missing' && sceneInfoGeoeye[sid].status === 'missing')
                     missingScenes.push(sid);
-                else if (sceneInfoIkonos[sid].status === 'layer' || sceneInfoGeoeye[sid].status === 'layer')
-                    layerScenes.push(sid);
+                else 
+                {
+                    existScenes.push(sceneInfoIkonos[sid].layerProperties || sceneInfoGeoeye[sid].layerProperties);
+                    if (sceneInfoIkonos[sid].status === 'layer' || sceneInfoGeoeye[sid].status === 'layer')
+                        layerScenes.push(sid);
+                }
             }
+            
+            //console.log(existScenes);
+            nsGmx.createMultiLayerEditorNew(_layersTree, {layers: existScenes});
+            
                 
             if (missingScenes.length > 0 || layerScenes.length > 0)
             {
@@ -356,15 +378,13 @@ var showWidget = function()
     
     canvas
         .append($("<div/>").text(_gtxt("wmsSalesPlugin.sceneList"))).append(scenesList)
-        // .append($("<div/>").text(_gtxt("wmsSalesPlugin.coverageTitle"))).append(selectLayer)
         .append(generateButton)
         .append(checkButton);
         
     showDialog(_gtxt('wmsSalesPlugin.menuTitle'), canvas[0], 400, 400);
 }
 
-var publicInterface = 
-{
+var publicInterface = {
 	afterViewer: function(params)
     {
         if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
