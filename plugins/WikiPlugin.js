@@ -357,7 +357,7 @@ WikiFilter.prototype = {
 					oPageRow = _span([_t(page.Title)], [['dir', 'className', 'wiki-filter-page']]);
 				}
 				else{
-					oPageRow = _span([_t(page.Content.substring(Math.Min(page.Content.length, 50)))]);
+					oPageRow = _span([_t(page.Content.substring(Math.min(page.Content.length, 50)))]);
 				}
 				oPageRow.PageInfo = page;
 				oPageRow.onclick = function(){
