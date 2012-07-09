@@ -38,7 +38,7 @@ class Geometry
 	{
 	}
 
-	public function distanceTo(x:Float, y:Float):Float
+	public function distanceTo(x:Float, y:Float, ?flag:Bool):Float
 	{
 		return MAX_DISTANCE;
 	}

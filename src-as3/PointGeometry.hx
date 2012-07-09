@@ -119,7 +119,7 @@ class PointGeometry extends Geometry
 		return out;
 	}
 
-	public override function distanceTo(x_:Float, y_:Float):Float
+	public override function distanceTo(x_:Float, y_:Float, ?flag:Bool):Float
 	{
 		var cx = x - x_;
 		var cy = y - y_;

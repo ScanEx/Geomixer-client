@@ -37,7 +37,7 @@ class MultiGeometry extends Geometry
 			halfLine = attr.style.outline.thickness * Math.abs(attr.window.scaleY) / 2;
 	}
 
-	public override function distanceTo(x:Float, y:Float):Float
+	public override function distanceTo(x:Float, y:Float, ?flag:Bool):Float
 	{
 		var distance = Geometry.MAX_DISTANCE;
 		for (member in members)

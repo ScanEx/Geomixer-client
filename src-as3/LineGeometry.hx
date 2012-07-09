@@ -59,12 +59,12 @@ class LineGeometry extends Geometry
 		}
 	}
 
-	public override function distanceTo(x:Float, y:Float):Float
+	public override function distanceTo(x:Float, y:Float, ?flag:Bool):Float
 	{
-		if (!extent.contains(x, y, halfLine))
-			return Geometry.MAX_DISTANCE;
-
 		var distance:Float = Geometry.MAX_DISTANCE;
+		if (!flag && !extent.contains(x, y, halfLine))
+			return distance;
+
 		for (i in 0...(Std.int(coordinates.length/2) - 1))
 		{
 			var ii = i*2;

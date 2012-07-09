@@ -120,7 +120,7 @@ class PolygonGeometry extends Geometry
 			halfLine = style.outline.thickness * Math.abs(window.scaleY) / 2;
 	}
 
-	public override function distanceTo(x:Float, y:Float)
+	public override function distanceTo(x:Float, y:Float, ?flag:Bool)
 	{
 		if (!extent.contains(x, y, halfLine))
 			return Geometry.MAX_DISTANCE;

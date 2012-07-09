@@ -1,6 +1,7 @@
 import flash.display.Sprite;
 import flash.events.Event;
 import flash.events.MouseEvent;
+import flash.Lib;
 
 class VectorLayer extends MapContent
 {	
@@ -362,8 +363,10 @@ class VectorLayer extends MapContent
 		pointExtent.update(x - pointSize, y - pointSize);
 		pointExtent.update(x + pointSize, y + pointSize);
 
+		var tileKeyFromEvent:String = (ev != null ? ev.target.name.substr(1) : '');
 		
 		var criterion:Hash<String>->Bool = (mapNode.propHiden.exists('_FilterVisibility') ? mapNode.propHiden.get('_FilterVisibility') : null);
+		var distZero:Float = 0.;	// дистанция при которой обьекты перекрывают мышь
 
 		for (tile in tiles)			// Просмотр содержимого тайлов под мышкой
 		{
@@ -371,7 +374,6 @@ class VectorLayer extends MapContent
 			if (tile.ids == null || !tile.extent.overlaps(pointExtent)) continue;	// пропускаем тайлы - без обьектов и не пересекающих точку
 			
 			var tileKey:String = tile.z + '_' + tile.i + '_' + tile.j;
-			
 			for (node in mapNode.children)
 			{
 				if (!node.vectorSprite.visible || !Std.is(node.content, VectorLayerFilter)) continue; // пропускаем - не видимые спрайты и не фильтры
@@ -379,9 +381,17 @@ class VectorLayer extends MapContent
 				var filter = cast(node.content, VectorLayerFilter);
 				if (!filter.paintersHash.exists(tileKey)) continue;	// пропускаем фильтры тайлов - без VectorTilePainter
 				var tPainter = filter.paintersHash.get(tileKey);
-				
+
+				var filterStyle:Style = filter.mapNode.getHoveredStyle();
+				if (filterStyle.hasMarkerImage()) {		// Если стиль имеет маркер то мин.дистанция = размер маркера
+					distZero = filterStyle.marker.markerWidth * filterStyle.marker.markerWidth;
+					distZero += filterStyle.marker.markerHeight * filterStyle.marker.markerHeight;
+				} else {
+					distZero = 0.; 
+				}
+	
 				var curGeom:MultiGeometry = tPainter.tileGeometry;
-				if (!curGeom.extent.overlaps(pointExtent)) continue;				// пропускаем не пересекающие точку
+				if (tileKey != tileKeyFromEvent && !curGeom.extent.overlaps(pointExtent)) continue;				// пропускаем не пересекающие точку
 				if (filter.clusterAttr != null && !filter.clusterAttr._zoomDisabledHash.exists(currentZ)) {
 					curGeom = tPainter.clustersGeometry;
 					hoverStyle = node.getHoveredStyle();
@@ -390,13 +400,12 @@ class VectorLayer extends MapContent
 				for (i in 0...curGeom.members.length)
 				{
 					var member:Geometry = curGeom.members[i];
-					if (!member.extent.overlaps(pointExtent)) continue;		// пропускаем не пересекающие точку
+					if (tileKey != tileKeyFromEvent && !member.extent.overlaps(pointExtent)) continue;		// пропускаем не пересекающие точку
 					if (criterion != null && !criterion(member.properties)) continue;	// пропускаем ноды отфильтрованные setVisibilityFilter
 					if (filter.clusterAttr == null && temporalCriterion != null && !temporalCriterion(member.propTemporal)) {
 						continue;					// пропускаем ноды отфильтрованные мультивременными интервалами только если нет кластеризации
 					}
-					
-					var d = member.distanceTo(x, y);
+					var d = member.distanceTo(x, y, (distZero != 0 ? true : false));
 					if (d <= distance)		// Берем только минимальное растояние
 					{
 						hoverGeom = member;
@@ -404,7 +413,7 @@ class VectorLayer extends MapContent
 						newCurrentFilter = filter;
 						
 						distance = d;
-						if (distance == 0) {
+						if (distance < distZero) {
 							zeroDistanceIds.push(hoverGeom);
 							zeroDistanceFilters.push(filter);
 						}
@@ -548,24 +557,24 @@ class VectorLayer extends MapContent
 	}
 
 	// Перелистование векторов
-	public function checkFlip()
+	public function checkFlip(ev:MouseEvent)
 	{
 		if (vectorLayerObserver == null) 
-		flip(true);
+		flip(ev);
 	}
 
 	// Перелистование векторов + передача в JS текущего ID векторного обьекта для квиклуков
-	public function flip(?flag:Bool):String
+	public function flip(?ev:MouseEvent):String
 	{
 		var out:String = '';
 		lastFlipCount += 1;
 		if (lastFlipCount >= zeroDistanceIds.length) lastFlipCount = 0;
-		if (!flag) {
+		if (ev == null) {
 			var geom = zeroDistanceIds[lastFlipCount];
 			// todo - необходимо доделать для обьектов в режиме редактирования
 			if(geom != null) out = geom.properties.get(identityField);
 		}
-		repaintIndicator();
+		repaintIndicator(ev);
 		return out;		
 	}
 }

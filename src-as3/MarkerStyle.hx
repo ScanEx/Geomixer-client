@@ -18,6 +18,9 @@ class MarkerStyle
 {
 	public var imageUrl:String;
 	public var size:Float;
+
+	public var markerWidth:Float;		// ширина маркера в Меркаторе
+	public var markerHeight:Float;		// высота маркера в Меркаторе
 	
 	var marker:Dynamic;
 	var minScale:Float;
@@ -48,6 +51,8 @@ class MarkerStyle
 	public function new(marker_:Dynamic, parent:Style)
 	{
 		marker = marker_;
+		markerWidth = 0.;
+		markerHeight = 0.;
 		imageUrl = Std.is(marker.image, String) ? marker.image : null;
 		if (imageUrl == "")
 			imageUrl = null;
@@ -91,6 +96,8 @@ class MarkerStyle
 					ldr.rotation = ang;
 					var sc = ldr.scaleX * (me.scaleFunction != null ? me.scaleFunction(geom.properties) : me.marker.scale);
 					ldr.scaleX = ldr.scaleY = sc;
+					me.markerWidth = w * sc;
+					me.markerHeight = h * sc;
 					ldr.mouseEnabled = false;
 					ldr.mouseChildren = false;
 					spr.addChild(ldr);
@@ -244,6 +251,8 @@ class MarkerStyle
 						graphics.lineTo(p4.x, p4.y);
 						graphics.lineTo(p1.x, p1.y);
 						graphics.endFill();
+						me.markerWidth = bitmapData.width * scaleY;
+						me.markerHeight = bitmapData.height * scaleY;
 					}
 					Main.needRefreshMap = true;		// Для обновления маркеров
 				}
