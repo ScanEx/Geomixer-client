@@ -135,3 +135,8 @@ span.wiki-filter-page:hover
 	cursor: pointer;
 	background-image: url(img/wiki/sendMessage_a.png);
 }
+
+.wiki-filter-canvas{
+	overflow: visible;
+	max-height: 700;
+}

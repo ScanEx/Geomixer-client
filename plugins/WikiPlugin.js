@@ -25,7 +25,8 @@ _translationsHash.addtext("rus", {
 	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник",
 	"Объект не выбран": "Объект не выбран",
 	"Объект для привязки: ": "Объект для привязки: ",
-	"Поделиться": "Поделиться"
+	"Поделиться": "Поделиться",
+	"<Без темы>": "<Без темы>"
 });
 _translationsHash.addtext("eng", {
 	"Сообщение" : "Message",
@@ -43,7 +44,8 @@ _translationsHash.addtext("eng", {
 	"Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник": "Add new point or rectangle to create a message",
 	"Объект не выбран": "Nothing selected",
 	"Объект для привязки: ": "Message object: ",
-	"Поделиться": "Share"
+	"Поделиться": "Share",
+	"<Без темы>": "<Untitled>"
 });
 
 /**Контейнер меню (или диалога сообщений), содержащий список сообщений и кнопку "Создать сообщение"
@@ -357,7 +359,7 @@ WikiFilter.prototype = {
 					oPageRow = _span([_t(page.Title)], [['dir', 'className', 'wiki-filter-page']]);
 				}
 				else{
-					oPageRow = _span([_t(page.Content.substring(Math.min(page.Content.length, 50)))]);
+					oPageRow = _span([_t(_gtxt('<Без темы>'))], [['dir', 'className', 'wiki-filter-page']]);
 				}
 				oPageRow.PageInfo = page;
 				oPageRow.onclick = function(){
