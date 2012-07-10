@@ -413,7 +413,7 @@ class VectorLayer extends MapContent
 						newCurrentFilter = filter;
 						
 						distance = d;
-						if (distance < distZero) {
+						if (distance <= distZero) {
 							zeroDistanceIds.push(hoverGeom);
 							zeroDistanceFilters.push(filter);
 						}
@@ -559,8 +559,8 @@ class VectorLayer extends MapContent
 	// Перелистование векторов
 	public function checkFlip(ev:MouseEvent)
 	{
-		if (vectorLayerObserver == null) 
-		flip(ev);
+		if (vectorLayerObserver == null)
+			flip(ev);
 	}
 
 	// Перелистование векторов + передача в JS текущего ID векторного обьекта для квиклуков
