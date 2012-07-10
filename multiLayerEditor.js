@@ -176,7 +176,14 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                     for (var i = 0; i < obj.length; i++)
                     {
                         if (obj[i].geometry.type == 'POLYGON')
+                        {
                             polygonObjects.push(obj[i].geometry.coordinates);
+                        }
+                        else if (obj[i].geometry.type == 'MULTIPOLYGON')
+                        {
+                            for (var iC = 0; iC < obj[i].geometry.coordinates.length; iC++)
+                                polygonObjects.push(obj[i].geometry.coordinates[iC]);
+                        }
                     }
                     
                     if (polygonObjects.length > 1)
