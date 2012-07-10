@@ -21,7 +21,7 @@
 	var getScriptBase = function(scriptName)
 	{
 		var url = getScriptURL(scriptName);
-		return url.substring(0, url.indexOf(scriptName));
+		return url ? url.substring(0, url.indexOf(scriptName)) : "";
 	}
     
     var invokeCallbacks = function()
