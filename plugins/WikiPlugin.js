@@ -261,7 +261,7 @@ WikiObjectsHandler.prototype = {
 		var _this = this;
 		return function(attr, div) { 
 					var divEdit = _div();
-					if (nsGmx.canDoAction(nsGmx.ACTION_SAVE_MAP)){
+					if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SAVE_MAP)){
 						var btnEdit = makeLinkButton(_gtxt("Редактировать"));
 						var btnDelete = makeLinkButton(_gtxt("Удалить"));
 						btnEdit.onclick = function() {_this._wikiPlugin.openEditor(pageInfo); _this._map.balloonClassObject.hideHoverBalloons(); }
