@@ -620,11 +620,14 @@ var DrawingObjectGeomixer = function() {
 				if (l.geometry.type == "POLYGON" && !testPolygon(coords, x, y))
 					bIsPolygonBad = true;
 				else if (l.geometry.type == "MULTIPOLYGON")
+                {
+                    bIsPolygonBad = true;
 					for (var k = 0; k < coords.length; k++)
-						if (!testPolygon(coords[k], x, y)){
-							bIsPolygonBad = true;
+						if (testPolygon(coords[k], x, y)){
+							bIsPolygonBad = false;
 							break;
 						}
+                }
 				if (!bIsPolygonBad && l && (!layer || (l.properties.MaxZoom > layer.properties.MaxZoom)))
 					layer = l;
 			}
