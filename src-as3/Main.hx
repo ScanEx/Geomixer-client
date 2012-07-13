@@ -459,17 +459,17 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			}
 		};
 
-		//mapSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
+		mapSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
 		root.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
-			windowMouseMove(event);
+			//windowMouseMove(event);
 			var dx:Float = root.mouseX - startMouseX;
 			var dy:Float = root.mouseY - startMouseY;
 			if ((dx*dx) + (dy*dy) > 6*6)
 				pressTime = 0;
 			repaintCursor();
 			//if (!Main.isDraggingNow)	event.stopImmediatePropagation();
-			if(!Main.draggingDisabled && event.buttonDown && needCacheBitmap) {		// При нажатой мышке и needCacheBitmap
+			if (!Main.draggingDisabled && event.buttonDown && needCacheBitmap) {		// При нажатой мышке и needCacheBitmap
 				needCacheBitmap = false;
 				Main.bumpFrameRate();
 				Main.mousePressed = false;
@@ -536,6 +536,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		}
 		stage.addEventListener(Event.ENTER_FRAME, function(event:Event)
 		{
+//var bTime = flash.Lib.getTimer();
 			if (!initCalled)
 			{
 				try {
@@ -569,7 +570,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 
 			if (viewportHasMoved)
 			{
-				if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 20;
+				if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 200;
 				viewportHasMoved = false;
 				wasMoving = isMoving;
 			}
@@ -589,7 +590,8 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 					window.repaintLabels();
 
 			curTimer = curTimerNew;
-			if(needCallMoveHandler > 0 && needCallMoveHandler < curTimerNew) callHandlers('onMove');
+			var onMoveFlag:Bool = (needCallMoveHandler > 0 && (needCallMoveHandler < curTimerNew || Main.draggingDisabled));
+			if(onMoveFlag) callHandlers('onMove');
 
 			if (!Main.mousePressed && (curTimer - Main.lastFrameBumpTime) > 2000)
 			//if ((curTimer - Main.lastFrameBumpTime) > 2000)
@@ -602,6 +604,9 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 					Main.messBuffToJS = [];
 				}
 			}
+//bTime = flash.Lib.getTimer() - bTime;
+//var st:String = ' : ' + Main.draggingDisabled + ' время: ' + bTime / 1000 + ' сек.' + mapWindow.cacheBitmap.visible;
+//if(bTime > 10) trace('vvvvvvvvvvvvv ' + st);
 		});
 
 

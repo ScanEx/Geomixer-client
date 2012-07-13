@@ -62,7 +62,6 @@ class VectorObject extends MapContent
 			me.highlight();
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event) {
-//trace('MOUSE_OUT ' + Main.mousePressed + ' : ' + Main.draggingDisabled);
 			if (Main.mousePressed && !Main.draggingDisabled) return;		// При нажатой мышке и не рисование ничего не делаем
 			me.isActive = false;
 			me.highlight();

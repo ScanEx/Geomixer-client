@@ -72,7 +72,6 @@
 			
 		}
 		
-		var copyrightUpdateTimeout = false;
 		var copyrightLastAlign = null;
 
 		// Изменить координаты HTML элемента
@@ -129,22 +128,21 @@
 				text += key.split("<a").join("<a target='_blank' style='color: inherit;'");
 			}
 			copyright.innerHTML = text;
-			copyrightUpdateTimeout = false;
 			if(copyrightAlign) {
 				copyrightPosition();
 			}
 		}
 
-		var copyrightUpdateTimeout2 = false;
+		var copyrightUpdateTimeout = false;
 		// Добавление прослушивателей событий
 		gmxAPI.map.addListener('positionChanged', function(ph)
 			{
-				if (copyrightUpdateTimeout2)
-					clearTimeout(copyrightUpdateTimeout2);
-				copyrightUpdateTimeout2 = setTimeout(function()
+				if (copyrightUpdateTimeout) return;
+				copyrightUpdateTimeout = setTimeout(function()
 				{
 					map.updateCopyright();
-					copyrightUpdateTimeout2 = false;
+					clearTimeout(copyrightUpdateTimeout);
+					copyrightUpdateTimeout = false;
 				}, 250);
 			}
 		);

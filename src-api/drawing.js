@@ -334,10 +334,12 @@
 					var mapX = currPos['x'];
 					var mapY = currPos['y'];
 					var scale = gmxAPI.getScale(currPos['z']);
+					var px = gmxAPI.eventX(event) - gmxAPI.contDivPos['x']; 
+					var py = gmxAPI.eventY(event) - gmxAPI.contDivPos['y'];
 					return {
-						'x': gmxAPI.from_merc_x(mapX + (gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(gmxAPI._div) - gmxAPI._div.clientWidth/2)*scale)
+						'x': gmxAPI.from_merc_x(mapX + (px - gmxAPI._div.clientWidth/2)*scale)
 						,
-						'y': gmxAPI.from_merc_y(mapY - (gmxAPI.eventY(event) - gmxAPI.getOffsetTop(gmxAPI._div) - gmxAPI._div.clientHeight/2)*scale)
+						'y': gmxAPI.from_merc_y(mapY - (py - gmxAPI._div.clientHeight/2)*scale)
 					};
 				}
 				

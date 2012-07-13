@@ -187,14 +187,16 @@
 			return gmxAPI.distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
 		}
 
+		var setCoordinatesFormatTimeout = false;
 		// Добавление прослушивателей событий
 		gmxAPI.map.addListener('positionChanged', function(ph)
 			{
-				var z = Math.round(ph['currZ']);
+				var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+				var z = Math.round(currPos['z']);
 				if (oldZ != z)
 				{
 					oldZ = z;
-					var metersPerPixel = getLocalScale(ph['currX'], ph['currY'])*gmxAPI.getScale(z);
+					var metersPerPixel = getLocalScale(currPos['latlng']['x'], currPos['latlng']['y'])*gmxAPI.getScale(z);
 					for (var i = 0; i < 30; i++)
 					{
 						var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
@@ -212,7 +214,15 @@
 						}
 					}
 				}
-				setCoordinatesFormat(null, ph['screenGeometry']);
+				if (setCoordinatesFormatTimeout) return;
+				setCoordinatesFormatTimeout = setTimeout(function()
+				{
+					setCoordinatesFormat();
+					clearTimeout(setCoordinatesFormatTimeout);
+					setCoordinatesFormatTimeout = false;
+				}, 250);
+				
+				//setCoordinatesFormat(null, ph['screenGeometry']);
 			}
 		);
 

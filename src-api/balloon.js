@@ -477,7 +477,7 @@
 			var y = 0;
 			var reposition = function()	
 			{
-				if(!wasVisible || (x+y) == 0) return;
+				if(!wasVisible) return;
 				var ww = balloon.clientWidth;
 				var hh = balloon.clientHeight;
 
@@ -587,12 +587,16 @@
 		}
 
 		//map.addObject().setHandler("onMove", positionBalloons);
+		gmxAPI.contDivPos = {
+			'x': gmxAPI.getOffsetLeft(div),
+			'y': gmxAPI.getOffsetTop(div)
+		};
 		var onmousemove = function(event)
 		{
-			propsBalloon.setScreenPosition(
-				gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div), 
-				gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div)
-			);
+			var px = gmxAPI.eventX(event) - gmxAPI.contDivPos['x']; 
+			var py = gmxAPI.eventY(event) - gmxAPI.contDivPos['y'];
+			propsBalloon.setScreenPosition(px, py);
+/*		
 			if(gmxAPI.proxyType == 'flash') {
 				if (event.preventDefault)
 				{
@@ -603,6 +607,7 @@
 					event.cancelBubble = true;
 				}
 			}
+*/			
 		}
 
 		gmxAPI._div.onmousemove = onmousemove;

@@ -302,6 +302,8 @@ window.gmxAPI = {
 		return gmxAPI.compatEvent(event).clientY + theTop;
 	}
 	,
+	contDivPos: null		// позиция основного контейнера
+	,
 	getOffsetLeft: function(div)
 	{
 		var ret = 0;
