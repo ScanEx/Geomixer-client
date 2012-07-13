@@ -172,7 +172,7 @@
 				map.setCursorVisible(true);
 				needToStopDragging = false;
 			}
-		}
+		}		
 
 		gmxAPI._listeners.dispatchEvent('mapInit', null, map);	// Глобальный Listeners
 
@@ -662,11 +662,14 @@
 			setToolHandlers({
 				onMouseMove: function(o)
 				{
-					var currPos = gmxAPI.currPosition || map.getPosition();
-					dragCallback(currPos['latlng']['mouseX'], currPos['latlng']['mouseY'], o);
+					var currPosition = map.getPosition();
+					var mouseX = gmxAPI.from_merc_x(currPosition['mouseX']);
+					var mouseY = gmxAPI.from_merc_y(currPosition['mouseY']);
+					dragCallback(mouseX, mouseY, o);
 				},
 				onMouseUp: function()
 				{
+					updatePosition();
 					gmxAPI._stopDrag();
 					if (upCallback)
 						upCallback();
@@ -701,8 +704,10 @@
 			var mouseDownHandler = function(o)
 			{
 				if (downCallback) {
-					var currPos = gmxAPI.currPosition || map.getPosition();
-					dragCallback(currPos['latlng']['mouseX'], currPos['latlng']['mouseY'], o);
+					var currPosition = map.getPosition();
+					var mouseX = gmxAPI.from_merc_x(currPosition['mouseX']);
+					var mouseY = gmxAPI.from_merc_y(currPosition['mouseY']);
+					downCallback(mouseX, mouseY, o);
 				}
 				gmxAPI._startDrag(object, dragCallback, upCallback);
 			}

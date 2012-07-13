@@ -889,7 +889,7 @@ window.gmxAPI = {
 	formatCoordinates2: function(x, y)
 	{
 		return  gmxAPI.LatLon_formatCoordinates2(gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y));
-	}
+	}	
 	,
 	forEachPointAmb: function(arg, callback)
 	{
@@ -1758,21 +1758,20 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		var shownQuicklooks = {};
 		this.shownQuicklooks = shownQuicklooks;
 
-		//this.setHandler("onClick", function(o)
 		this.addListener('onClick', function(o)
 		{
 			try {
-				var identityField = gmxAPI.getIdentityField(o);
-				var id = 'id_' + o.properties[identityField];
+				var identityField = gmxAPI.getIdentityField(o.obj);
+				var id = 'id_' + o.obj.properties[identityField];
 				if (!shownQuicklooks[id])
 				{
-					var url = callback(o);
+					var url = callback(o.obj);
 					var d1 = 100000000;
 					var d2 = 100000000;
 					var d3 = 100000000;
 					var d4 = 100000000;
 					var x1, y1, x2, y2, x3, y3, x4, y4;
-					var geom = o.getGeometry();
+					var geom = o.obj.getGeometry();
 					var coord = geom.coordinates;
 					gmxAPI.forEachPoint(coord, function(p)
 					{
@@ -1804,7 +1803,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 						}
 					});
 
-					var q = o.addObject(null, o.properties);
+					var q = o.obj.addObject(null, o.obj.properties);
 					shownQuicklooks[id] = q;
 					q.setStyle({ fill: { opacity: 100 } });
 					q.setImage(url, x1, y1, x2, y2, x3, y3, x4, y4);
@@ -2397,7 +2396,6 @@ FlashMapObject.prototype.addObject = function(geometry, props) {
 		}
 	}
 	pObj.isVisible = true;
-	
 	return pObj;
 }
 
@@ -2970,7 +2968,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.properties = layers.properties;
 					}
 					if(map.needSetMode) map.setMode(map.needSetMode);
-					
+
 					// копирайты
 					var setCopyright = function(o, z1, z2, text)
 					{
@@ -3004,7 +3002,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						setCopyright(satelliteLayers[0], 9,	17,	"<a href='http://www.geoeye.com'>&copy; GeoEye Inc.</a>");
 					}
 					////
-
+					
 					try {
 						callback(map, layers);		// Передача управления
 					} catch(e) {

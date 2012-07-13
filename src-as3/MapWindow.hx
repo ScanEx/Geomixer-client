@@ -38,6 +38,7 @@ class MapWindow
 	public var labelTF:TextField;
 	public var cacheRepaintNeeded:Bool;
 	public var labelsRepaintNeeded:Bool;
+	public var onUpdated:Bool;
 
 	var oldPosition:String;
 
@@ -45,9 +46,11 @@ class MapWindow
 	{
 		outerSprite = sprite;
 		innerSprite = Utils.addSprite(sprite);
-		rootNode = new MapNode(Utils.addSprite(innerSprite), Utils.addSprite(innerSprite), this);
+		innerSprite.name = 'innerSprite';
+		rootNode = new MapNode(Utils.addSprite(innerSprite), Utils.addSprite(innerSprite), this, 'rootNode');
 		visibleExtent = new Extent();
 		scaleY = 1;
+		onUpdated = true;
 
 		getCurrentZ = getCurrentZ_;
 		maskSprite = Utils.addSprite(outerSprite);

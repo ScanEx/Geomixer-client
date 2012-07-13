@@ -329,7 +329,8 @@
 
 				var getEventPoint = function(event)
 				{
-					var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+					//var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+					var currPos = gmxAPI.map.getPosition();
 					var mapX = currPos['x'];
 					var mapY = currPos['y'];
 					var scale = gmxAPI.getScale(currPos['z']);
@@ -394,6 +395,7 @@
 				if (gmxAPI.map.isKeyDown(16)) {
 					toolsContainer.selectTool("POINT");
 				}
+				ret.stopDrawing();
 			});
 		}
 		else

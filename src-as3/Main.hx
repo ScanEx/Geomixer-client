@@ -93,9 +93,10 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 	{
 		flash.Lib.current.stage.dispatchEvent (new Event(Event.MOUSE_LEAVE));
 	}
-	
+
 	static function main()
 	{
+		var needCacheBitmap:Bool = false;
 		var root = flash.Lib.current;
 		var menu = new ContextMenu();
 		menu.hideBuiltInItems();
@@ -130,11 +131,13 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		var nextFrameCallbacks = new Array<Void->Void>();
 
 		var mapSprite = Utils.addSprite(root);
+		mapSprite.name = 'mapSprite';
 		var mapWindow = new MapWindow(mapSprite, function() { return currentZ; });
 		var crosshair = Utils.addSprite(root);
+		crosshair.name = 'crosshair';
 		crosshair.mouseEnabled = crosshair.mouseChildren = false;
-		var mapRoot = mapWindow.rootNode.addChild();
-		var grid = mapWindow.rootNode.addChild();
+		var mapRoot = mapWindow.rootNode.addChild('mapRoot');
+		var grid = mapWindow.rootNode.addChild('grid');
 		grid.setVisible(false);
 		nextFrameCallbacks.push(function() { grid.setContent(new GridContent()); });
 		mapWindow.setCenter(currentX, currentY);
@@ -310,20 +313,20 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			mapWindow.rootNode.callHandlersRecursively("onMoveBegin");
 		}
 
-		root.addEventListener(MouseEvent.MOUSE_DOWN, function(event)
+		var repaintCacheBitmap = function()
 		{
-			pressTime = flash.Lib.getTimer();
-			Main.bumpFrameRate();
-			mapWindow.setCenter(currentX, currentY);
 			mapWindow.rootNode.repaintRecursively(true);
-			mapWindow.repaintCacheBitmap();
+			//if(mapWindow.onUpdated) {
+				mapWindow.cacheRepaintNeeded = true;
+				mapWindow.repaintCacheBitmap();
+			//}
+			//mapWindow.onUpdated = false;
 			mapWindow.setCacheBitmapVisible(true);		// Если Drag или Move режим - показываем CacheBitmap
-			Main.mousePressed = true;
-			onMoveBegin(event);
-		});
+		}
+
 		var windowMouseDown = function(event)
 		{
-			if (!Main.draggingDisabled)
+			if (!Main.draggingDisabled && clusterPointsViewer == null)
 			{
 				isDragging = true;
 				Main.isDraggingNow = true;
@@ -336,7 +339,18 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			//Main.bumpFrameRate();
 			//Main.mousePressed = true;
 		};
-		mapSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
+		//mapSprite.addEventListener(MouseEvent.MOUSE_DOWN, windowMouseDown);
+		root.addEventListener(MouseEvent.MOUSE_DOWN, function(event)
+		{
+			windowMouseDown(event);
+			pressTime = flash.Lib.getTimer();
+			mapWindow.setCenter(currentX, currentY);
+//			repaintCacheBitmap();
+			Main.mousePressed = true;
+			needCacheBitmap = true;
+			Main.bumpFrameRate();
+			onMoveBegin(event);
+		});
 		
 		var chkClusterPointsViewer = function(vlf:VectorLayerFilter):Bool
 		{
@@ -374,6 +388,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			clickedNode = null;
 			isDragging = false;
 			Main.isDraggingNow = false;
+			//Main.draggingDisabled = false;
 			//viewportHasMoved = true;
 		}
 		
@@ -384,6 +399,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			if (event != null) {
 				Main.chkEventAttr(event);
 			}
+			needCacheBitmap = false;
 			Main.isDraggingNow = false;
 			isDragging = false;
 			if (!isFluidMoving)
@@ -418,8 +434,8 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			clickedNode = null;
 		});
 		var cursor:Sprite = Utils.addSprite(root);
-		cursor.mouseEnabled = false;
-		cursor.mouseChildren = false;
+		cursor.name = 'cursor';
+		cursor.mouseEnabled = cursor.mouseChildren = false;
 		var currentCursorURL:String = null;
 		var repaintCursor = function()
 		{
@@ -444,7 +460,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		};
 
 		//mapSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
-		root.addEventListener(MouseEvent.MOUSE_MOVE, function(event)
+		root.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
 			windowMouseMove(event);
 			var dx:Float = root.mouseX - startMouseX;
@@ -453,6 +469,14 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				pressTime = 0;
 			repaintCursor();
 			//if (!Main.isDraggingNow)	event.stopImmediatePropagation();
+			if(!Main.draggingDisabled && event.buttonDown && needCacheBitmap) {		// При нажатой мышке и needCacheBitmap
+				needCacheBitmap = false;
+				Main.bumpFrameRate();
+				Main.mousePressed = false;
+				repaintCacheBitmap();
+				Main.mousePressed = true;
+			}
+			
 		});
 
 		Main.chkStatus = function():Dynamic
@@ -556,6 +580,10 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 					//window.rootNode.repaintRecursively(false);
 				}
 */
+			if(Main.draggingDisabled) {
+				mapWindow.rootNode.repaintRecursively(false);
+			}
+
 			if (!isMoving && !isDragging)
 				for (window in MapWindow.allWindows)
 					window.repaintLabels();

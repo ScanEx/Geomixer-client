@@ -245,7 +245,7 @@ class VectorLayerFilter extends MapContent
 
 	public override function repaint()
 	{
-//		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
+		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
 		if(loader != null) loader(mapNode.window.visibleExtent);
 		var w = 2 * Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;
@@ -343,7 +343,7 @@ class VectorLayerFilter extends MapContent
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
-			if (Main.mousePressed || Main.isDrawing) return;		// В режиме рисования ничего не делаем
+			if (Main.mousePressed || Main.isDrawing || Main.draggingDisabled) return;		// В режиме рисования ничего не делаем
 			//if (event.ctrlKey) return;
 			//me.layer.currentFilter = me;
 			me.layer.repaintIndicator(event);
@@ -353,7 +353,7 @@ class VectorLayerFilter extends MapContent
 		});
 		var roll_out = function(event:Event)
 		{
-			if (Main.mousePressed || Main.isDrawing) return;		// В режиме рисования ничего не делаем
+			if (Main.mousePressed || Main.isDrawing || Main.draggingDisabled) return;		// В режиме рисования ничего не делаем
 			if (me.layer.currentFilter != null)
 			{
 				var node = me.layer.currentFilter.mapNode;

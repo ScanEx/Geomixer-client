@@ -589,12 +589,10 @@
 		//map.addObject().setHandler("onMove", positionBalloons);
 		var onmousemove = function(event)
 		{
-			if(propsBalloon.isVisible()) {
-				propsBalloon.setScreenPosition(
-					gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div), 
-					gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div)
-				);
-			}
+			propsBalloon.setScreenPosition(
+				gmxAPI.eventX(event) - gmxAPI.getOffsetLeft(div), 
+				gmxAPI.eventY(event) - gmxAPI.getOffsetTop(div)
+			);
 			if(gmxAPI.proxyType == 'flash') {
 				if (event.preventDefault)
 				{

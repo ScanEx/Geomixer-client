@@ -54,18 +54,18 @@ class MapContent
 		var node = this.mapNode;
 		contentSprite.addEventListener(MouseEvent.MOUSE_OVER, function(event:MouseEvent)
 		{
-			if (Main.mousePressed) return;
+			//if (Main.mousePressed && !Main.isDrawing && !Main.draggingDisabled) return;		// При нажатой мышке и не рисование ничего не делаем
 			node.callHandler("onMouseOver");
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event:MouseEvent)
 		{
-			if (Main.mousePressed) return;
+			//if (Main.mousePressed && !Main.isDrawing && !Main.draggingDisabled) return;		// При нажатой мышке и не рисование ничего не делаем
 			Main.chkEventAttr(event);
 			node.callHandler("onMouseOut");
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
-			if (Main.mousePressed) return;
+			//if (Main.mousePressed && !Main.isDrawing && !Main.draggingDisabled) return;		// При нажатой мышке и не рисование ничего не делаем
 			Main.chkEventAttr(event);
 			node.callHandler("onMouseMove");
 		});

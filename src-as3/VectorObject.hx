@@ -50,18 +50,20 @@ class VectorObject extends MapContent
 
 			contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event) {
 				me.layer.lastGeometry = null; // для обнуления предыдущей геометрии под мышкой в тайле
-				if(me.curNodeFilter != null) Main.registerMouseDown(me.curNodeFilter, event, me.mapNode);
+				//if (me.curNodeFilter != null) 
+				Main.registerMouseDown(me.curNodeFilter, event, me.mapNode);
 			});
 		} else {
 			super.addHandlers();
 		}
 		contentSprite.addEventListener(MouseEvent.MOUSE_OVER, function(event) {
-			if (Main.mousePressed) return;
+			if (Main.mousePressed && !Main.draggingDisabled) return;		// При нажатой мышке и не рисование ничего не делаем
 			me.isActive = true;
 			me.highlight();
 		});
 		contentSprite.addEventListener(MouseEvent.MOUSE_OUT, function(event) {
-			if (Main.mousePressed) return;
+//trace('MOUSE_OUT ' + Main.mousePressed + ' : ' + Main.draggingDisabled);
+			if (Main.mousePressed && !Main.draggingDisabled) return;		// При нажатой мышке и не рисование ничего не делаем
 			me.isActive = false;
 			me.highlight();
 		});
@@ -71,7 +73,7 @@ class VectorObject extends MapContent
 
 	public override function repaint()
 	{
-		if (Main.mousePressed) return;		// При нажатой мышке labels не перерисовываем
+		if (Main.mousePressed && !Main.draggingDisabled) return;		// При нажатой мышке и не рисование не перерисовываем
 		var curStyle = null;
 		var curTemporalCriterion = null;
 		var notClearFlag:Bool = false;

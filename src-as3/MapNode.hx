@@ -30,16 +30,19 @@ class MapNode
 	
 	public var somethingHasChanged:Bool;
 
-	public function new(rasterSprite_:Sprite, vectorSprite_:Sprite, window_:MapWindow)
+	public function new(rasterSprite_:Sprite, vectorSprite_:Sprite, window_:MapWindow, ?spName:String)
 	{
 		id = Utils.getNextId();
 		nodeHaveRaster = false;
 		allNodes.set(id, this);
 		window = window_;
 		rasterSprite = rasterSprite_;
+		rasterSprite.visible = false;		// по умолчанию растровый контейнер невидим
+//rasterSprite.mouseEnabled = rasterSprite.mouseChildren = false;
 		vectorSprite = vectorSprite_;
-		rasterSprite.name = 'node_r_' + id;
-		vectorSprite.name = 'node_v_' + id;
+		var st:String = (spName != null ? spName + '_' : '');
+		rasterSprite.name = st + 'node_r_' + id;
+		vectorSprite.name = st + 'node_v_' + id;
 		vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлении векторов в растр
 		regularStyle = null;
 		hoveredStyle = null;
@@ -55,9 +58,9 @@ class MapNode
 		somethingHasChanged = false;
 	}
 
-	public function addChild()
+	public function addChild(?spName:String)
 	{
-		var child:MapNode = new MapNode(Utils.addSprite(rasterSprite), Utils.addSprite(vectorSprite), window);
+		var child:MapNode = new MapNode(Utils.addSprite(rasterSprite), Utils.addSprite(vectorSprite), window, spName);
 		child.parent = this;
 		var st:String = propHiden.get('type');
 		if (st == 'FRAME' || st == 'FRAMECHILD') propHiden.set('type', 'FRAMECHILD');
@@ -368,10 +371,11 @@ class MapNode
 
 	public function repaintRecursively(somethingHasChangedAbove:Bool)
 	{
-		if (Main.mousePressed && !nodeHaveRaster) return;
+		if (Main.mousePressed && !Main.draggingDisabled && !nodeHaveRaster) return;
 		var z = window.getCurrentZ();
 		var isVisible = !hidden && (z >= minZ) && (z <= maxZ);
-		if(rasterSprite.visible != isVisible) rasterSprite.visible = isVisible;
+		if(nodeHaveRaster && rasterSprite.visible != isVisible) rasterSprite.visible = isVisible;
+		//if(rasterSprite.visible != isVisible) rasterSprite.visible = isVisible;
 		if(vectorSprite.visible != isVisible) vectorSprite.visible = isVisible;
 		if (isVisible)
 		{
@@ -379,7 +383,8 @@ class MapNode
 			
 			if ((content != null) && somethingHasChanged_) {
 				content.repaint();
-				//parent.repaintObjects();			// отрисовка обьектов addObject родителя
+				//window.onUpdated = true;			
+				//if(Main.draggingDisabled) parent.repaintObjects();			// отрисовка обьектов addObject родителя
 			}
 			for (i in 0...Std.int(children.length)) {	// отрисовка слоев в обратном порядке
 				var child = children[children.length - 1 - i];

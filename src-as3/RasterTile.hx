@@ -136,6 +136,7 @@ class RasterTile
 			if (obj_.isOverlay != null) isOverlay = obj_.isOverlay;
 			if (isOverlay && isReplacement)
 				remove();
+			Main.needRefreshMap = true;
 		}
 	}
 
