@@ -121,14 +121,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 		{
 			parentObject.properties.text = this.value;
 			
-			removeChilds(parentObject.text);
-			
-			_(parentObject.text, [_t(this.value ? this.value.replace(/<[^<>]*>/g, " ") : "")]);
-			
-			if (this.value)
-				parentObject.title.style.display = 'none';
-			else
-				parentObject.title.style.display = '';
+			$(parentObject).triggerHandler('onEdit', [parentObject]);
 			
 			return true;
 		}
@@ -285,7 +278,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         remove = makeImageButton(gmxAPI.getAPIHostRoot() + 'api/img/closemin.png',gmxAPI.getAPIHostRoot() + 'api/img/close_orange.png')
         remove.setAttribute('title', _gtxt('Удалить'));
         remove.className = 'removeGeometry';
-		if ($.browser.msie) remove.style.right = '15px';
+		if ($.browser.msie) remove.style.right = '20px';
         remove.onclick = function(){
             $(_this).triggerHandler('onRemove', [_drawingObject]);
         }
