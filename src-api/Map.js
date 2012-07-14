@@ -157,23 +157,6 @@
 		// Использование SharedObject
 		map.setFlashLSO = function(data) { return gmxAPI._cmdProxy('setFlashLSO', {'obj': this, 'attr':data }); }
 
-		var needToStopDragging = false;
-		gmxAPI.flashDiv.onmouseout = function() 
-		{ 
-			if (!needToStopDragging) {
-				map.setCursorVisible(false);
-				needToStopDragging = true;
-			}
-		}
-		gmxAPI.flashDiv.onmouseover = function()
-		{
-			if (needToStopDragging) {
-				map.stopDragging();
-				map.setCursorVisible(true);
-				needToStopDragging = false;
-			}
-		}		
-
 		gmxAPI._listeners.dispatchEvent('mapInit', null, map);	// Глобальный Listeners
 
 		var toolHandlers = {};

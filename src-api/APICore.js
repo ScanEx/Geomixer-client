@@ -2802,6 +2802,23 @@ function createFlashMapInternal(div, layers, callback)
 				gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
 			}
 		}
+
+		var needToStopDragging = false;
+		gmxAPI.flashDiv.onmouseout = function() 
+		{ 
+			if (!needToStopDragging) {
+				gmxAPI.map.setCursorVisible(false);
+				needToStopDragging = true;
+			}
+		}
+		gmxAPI.flashDiv.onmouseover = function()
+		{
+			if (needToStopDragging) {
+				gmxAPI.map.stopDragging();
+				gmxAPI.map.setCursorVisible(true);
+				needToStopDragging = false;
+			}
+		}
 	}
 
 	if('_addProxyObject' in gmxAPI) {	// Добавление обьекта отображения в DOM
