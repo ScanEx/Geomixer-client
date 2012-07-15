@@ -270,6 +270,10 @@
 				}
 			);
 		}
+		map.setMinMaxZoom = function(z1, z2) {
+			if(gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setMinMaxZoom(z1, z2);
+			return gmxAPI._cmdProxy('setMinMaxZoom', {'attr':{'z1':z1, 'z2':z2} });
+		}
 
 		map.grid = {
 			setVisible: function(flag) { gmxAPI._cmdProxy('setGridVisible', { 'attr': flag }) },
@@ -277,11 +281,14 @@
 		};
 
 		//Begin: tools
-		var toolsAll = new gmxAPI._ToolsAll(gmxAPI._div);
-		map.toolsAll = toolsAll;
-		if('_addZoomControl' in gmxAPI) gmxAPI._addZoomControl(gmxAPI._allToolsDIV);
+		if('_ToolsAll' in gmxAPI) {
+			map.toolsAll = new gmxAPI._ToolsAll(gmxAPI._div);
+		}
+		if('_addZoomControl' in gmxAPI) {
+			gmxAPI._addZoomControl(gmxAPI._allToolsDIV);
+			map.setMinMaxZoom(1, 17);
+		}
 		if('_timeBarInit' in gmxAPI) gmxAPI._timeBarInit(gmxAPI._allToolsDIV);
-		//if('_miniMapInit' in gmxAPI) gmxAPI._miniMapInit(div);
 
 		var drawFunctions = gmxAPI._drawFunctions;
 		map.drawing = gmxAPI._drawing
@@ -319,7 +326,8 @@
 				this.setVisible(true);
 				this.setVisible(false);
 			}
-			map.toolsAll.baseLayersTools.chkBaseLayerTool(name, attr);
+			if(gmxAPI.baseLayersTools)
+				gmxAPI.baseLayersTools.chkBaseLayerTool(name, attr);
 		});
 
 		var unSetBaseLayer = function()
@@ -349,9 +357,8 @@
 
 		map.setMode = function(mode) 
 		{
-			var name = map.toolsAll.baseLayersTools.getAlias(mode);
+			var name = (gmxAPI.baseLayersTools ? gmxAPI.baseLayersTools.getAlias(mode) : mode);
 			map.setBaseLayer(name);
-			//map.toolsAll.baseLayersTools.selectTool(name);
 		}
 
 		map.getBaseLayer = function()
@@ -365,15 +372,15 @@
 			isVisible: true,
 			setVisible: function(flag)
 			{
-				map.toolsAll.baseLayersTools.setVisible(flag);
+				if(gmxAPI.baseLayersTools) gmxAPI.baseLayersTools.setVisible(flag);
 			},
 			updateVisibility: function()
 			{
-				map.toolsAll.baseLayersTools.updateVisibility();
+				if(gmxAPI.baseLayersTools) gmxAPI.baseLayersTools.updateVisibility();
 			},
 			repaint: function()
 			{
-				map.toolsAll.baseLayersTools.repaint();
+				if(gmxAPI.baseLayersTools) gmxAPI.baseLayersTools.repaint();
 			}, 
 
 			getBaseLayerNames: function()
@@ -628,8 +635,8 @@
 			gmxAPI._cmdProxy('setBackgroundColor', { 'obj': map, 'attr':color });
 			var isWhite = (0xff & (color >> 16)) > 80;
 			var htmlColor = isWhite ? "black" : "white";
-			gmxAPI._setCoordinatesColor(htmlColor, gmxAPI.getAPIFolderRoot() + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png"));
-			gmxAPI._setCopyrightColor(htmlColor);
+			if(gmxAPI._setCoordinatesColor) gmxAPI._setCoordinatesColor(htmlColor, gmxAPI.getAPIFolderRoot() + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png"));
+			if(gmxAPI._setCopyrightColor) gmxAPI._setCopyrightColor(htmlColor);
 		}
 		
 		map.setBackgroundColor(0x000001);

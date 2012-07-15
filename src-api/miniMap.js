@@ -114,6 +114,7 @@
 					miniMapShown = !miniMapShown;
 					miniMapToggler.src = apiBase + (miniMapShown ? "img/close_map_a.png" : "img/open_map_a.png");
 					resizeMiniMap();
+					gmxAPI._FMO.prototype.setVisible.call(map.miniMap, miniMapShown);
 				},
 				onmouseover: function()
 				{

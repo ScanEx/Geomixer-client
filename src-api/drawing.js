@@ -99,7 +99,6 @@
 		if (!props)
 			props = {};
 
-		var toolsContainer = gmxAPI._tools['standart'];
 		var text = props.text;
 		if (!text)
 			text = "";
@@ -109,7 +108,11 @@
 		var domObj;
 		var isDrawing = true;
 		var ret = {};
-		toolsContainer.currentlyDrawnObject = ret;
+		var toolsContainer = null;
+		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
+			toolsContainer = gmxAPI._tools['standart'];
+			toolsContainer.currentlyDrawnObject = ret;
+		}
 
 		ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
 		ret.stopDrawing = function()
@@ -130,8 +133,6 @@
 
 		ret.remove = function()
 		{
-//			if (isDrawing)
-//				toolsContainer.selectTool("move");
 			if (obj)
 			{
 				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);
@@ -393,9 +394,11 @@
 			gmxAPI._setToolHandler("onClick", function() 
 			{
 				done(gmxAPI.map.getMouseX(), gmxAPI.map.getMouseY());
-				toolsContainer.selectTool("move");
-				if (gmxAPI.map.isKeyDown(16)) {
-					toolsContainer.selectTool("POINT");
+				if(toolsContainer) {
+					toolsContainer.selectTool("move");
+					if (gmxAPI.map.isKeyDown(16)) {
+						toolsContainer.selectTool("POINT");
+					}
 				}
 				ret.stopDrawing();
 			});
@@ -411,13 +414,19 @@
 		if (!props)
 			props = {};
 
-		var toolsContainer = gmxAPI._tools['standart'];
 		var text = props.text;
 		if (!text)
 			text = "";
 
 		var ret = {};
 		var domObj = false;
+
+		var toolsContainer = null;
+		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
+			toolsContainer = gmxAPI._tools['standart'];
+			toolsContainer.currentlyDrawnObject = ret;
+		}
+
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
 
 		var obj = gmxAPI.map.addObject();
@@ -453,7 +462,7 @@
 				callOnChange();
 				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
 				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
-				if(domObj.geometry) toolsContainer.selectTool("move");
+				if(domObj.geometry && toolsContainer) toolsContainer.selectTool("move");
 			},
 			onRemove: function()
 			{
@@ -503,7 +512,6 @@
 
 		ret.remove = function()
 		{
-//					if (obj.isDrawing()) selectTool("move");
 			obj.remove();
 			if (domObj) {
 				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);
@@ -531,8 +539,6 @@
 			if(domObj) domObj.update(geom, text);
 		}
 
-		toolsContainer.currentlyDrawnObject = ret;
-
 		ret.stopDrawing = function()
 		{
 			obj.stopDrawing();
@@ -559,7 +565,6 @@
 		if (gmxAPI.isRectangle(coords))
 			return drawFunctions.FRAME(coords, props);
 
-		var toolsContainer = gmxAPI._tools['standart'];
 		if (!props)
 			props = {};
 
@@ -569,6 +574,11 @@
 
 		var ret = {};
 		var domObj = false;
+		var toolsContainer = null;
+		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
+			toolsContainer = gmxAPI._tools['standart'];
+			toolsContainer.currentlyDrawnObject = ret;
+		}
 		
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
 		var obj = gmxAPI.map.addObject();
@@ -603,7 +613,7 @@
 			{
 				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
 				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
-				if(domObj.geometry) toolsContainer.selectTool("move");
+				if(domObj.geometry && toolsContainer) toolsContainer.selectTool("move");
 			},
 			onRemove: function()
 			{
@@ -649,7 +659,6 @@
 
 		ret.remove = function()
 		{
-			//if (obj.isDrawing())	selectTool("move");
 			obj.remove();
 			if (domObj) {
 				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);
@@ -676,8 +685,6 @@
 			var geom = obj.getGeometry();
 			if(domObj) domObj.update(geom, text);
 		}
-
-		toolsContainer.currentlyDrawnObject = ret;
 
 		ret.stopDrawing = function()
 		{
@@ -710,14 +717,17 @@
 		if (!props)
 			props = {};
 
-		var toolsContainer = gmxAPI._tools['standart'];
 		var text = props.text;
 		if (!text)
 			text = "";
 
 		var ret = {};
 		var domObj;
-		toolsContainer.currentlyDrawnObject = ret;
+		var toolsContainer = null;
+		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
+			toolsContainer = gmxAPI._tools['standart'];
+			toolsContainer.currentlyDrawnObject = ret;
+		}
 
 		var obj = gmxAPI.map.addObject();
 		gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'FRAME'} });
@@ -954,7 +964,7 @@
 					isDraging = false;
 					if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 					gmxAPI._setToolHandler("onMouseDown", null);
-					toolsContainer.selectTool("move");
+					if(toolsContainer) toolsContainer.selectTool("move");
 					if(domObj) domObj.triggerInternal("onMouseUp");
 					eventType = 'onFinish';
 					chkEvent(null);
@@ -969,7 +979,11 @@
 	{
 		var x1, y1, x2, y2;
 		var rect;
-		var toolsContainer = gmxAPI._tools['standart'];
+		var toolsContainer = null;
+		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
+			toolsContainer = gmxAPI._tools['standart'];
+		}
+
 		var ret = {
 			stopDrawing: function()
 			{
@@ -999,7 +1013,7 @@
 					gmxAPI.map.slideToExtent(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2));
 				rect.remove();
 				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, null);
-				toolsContainer.selectTool("move");
+				if(toolsContainer) toolsContainer.selectTool("move");
 			}
 		);
 		return ret;
@@ -1071,13 +1085,15 @@
 				var cObj = objects[id];
 				if(cObj.geometry) callback(cObj);
 			}
-		},
+		}
+		,
 		tools: { 
 			setVisible: function(flag) 
 			{ 
-				gmxAPI.map.toolsAll.standartTools.setVisible(flag);
+				if('toolsAll' in gmxAPI.map && 'standartTools' in gmxAPI.map.toolsAll) gmxAPI.map.toolsAll.standartTools.setVisible(flag);
 			}
-		},
+		}
+		,
 		addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
 		{
 			var ret = gmxAPI.map.toolsAll.standartTools.addTool(tn, {
@@ -1091,7 +1107,8 @@
 				'hint': hint
 			});
 			return ret;
-		}, 
+		}
+		, 
 		removeTool: function(tn)
 		{
 			if(this.tools[tn]) {
@@ -1103,7 +1120,7 @@
 			gmxAPI._tools['standart'].selectTool(toolName);
 		}
 	}
-	
+
 	//расширяем namespace
     gmxAPI._drawFunctions = drawFunctions;
     gmxAPI._drawing = drawing;

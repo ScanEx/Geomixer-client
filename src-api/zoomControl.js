@@ -134,6 +134,12 @@
 				if(dz < zoomArr.length) for (var i = dz; i < zoomArr.length; i++) gmxAPI.setVisible(zoomArr[i], false);
 				if('_timeBarPosition' in gmxAPI) gmxAPI._timeBarPosition();
 			},
+			setMinMaxZoom: function(z1, z2)
+			{
+				minZoom = z1;
+				maxZoom = z2;
+				this.repaint();
+			},
 			getMinZoom: function()
 			{
 				return minZoom;
@@ -153,14 +159,6 @@
 				this.repaint();
 			}
 		}
-
-		gmxAPI.map.setMinMaxZoom = function(z1, z2) {
-			minZoom = z1;
-			maxZoom = z2;
-			gmxAPI.map.zoomControl.repaint();
-			return gmxAPI._cmdProxy('setMinMaxZoom', {'attr':{'z1':z1, 'z2':z2} });
-		}
-		gmxAPI.map.setMinMaxZoom(1, 17);
 
 		// Добавление прослушивателей событий
 		gmxAPI.map.addListener('positionChanged', function(ph)

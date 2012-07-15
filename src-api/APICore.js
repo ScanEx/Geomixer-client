@@ -2342,7 +2342,7 @@ FlashMapObject.prototype.setVisible = function(flag, notDispatch) {
 	var prev = this.isVisible;
 	this.isVisible = val;
 	if(prev != val && !notDispatch) gmxAPI._listeners.dispatchEvent('onChangeVisible', this, val);	// Вызов Listeners события 'onChangeVisible'
-	if (this.copyright)
+	if (this.copyright && 'updateCopyright' in gmxAPI.map)
 		gmxAPI.map.updateCopyright();
 }
 
@@ -2403,7 +2403,7 @@ FlashMapObject.prototype.addObject = function(geometry, props) {
 
 FlashMapObject.prototype.remove = function()
 {
-	if (this.copyright) 
+	if(this.copyright && 'removeCopyrightedObject' in gmxAPI.map)
 		gmxAPI.map.removeCopyrightedObject(this);
 		
 	if(this.objectId) {
@@ -2595,7 +2595,7 @@ FlashMapObject.prototype.setFilter = function(sql) {
 		if(!this.clusters && '_Clusters' in gmxAPI) {
 			this.clusters = new gmxAPI._Clusters(this);	// атрибуты кластеризации потомков по фильтру
 		}
-		if(this.clusters.attr) {
+		if(this.clusters && this.clusters.attr) {
 			this.setClusters(this.clusters.attr);
 		}
 	} else {
@@ -2641,8 +2641,10 @@ FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) {
 
 FlashMapObject.prototype.setCopyright = function(copyright)
 {
-	this.copyright = copyright;
-	gmxAPI.map.addCopyrightedObject(this);
+	if('addCopyrightedObject' in gmxAPI.map) {
+		this.copyright = copyright;
+		gmxAPI.map.addCopyrightedObject(this);
+	}
 }
 FlashMapObject.prototype.setBackgroundColor = function(color)
 {
@@ -2979,7 +2981,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					if (!window.baseMap || !window.baseMap.hostName || (window.baseMap.hostName == "maps.kosmosnimki.ru"))
 						map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : "http://maps.kosmosnimki.ru/";
 		
-					map.needSetMode = (mapLayers.length > 0 ? "map" : "satellite");
+					map.needSetMode = (mapLayers.length > 0 ? mapString : satelliteString);
 					if (layers)
 					{
 						map.defaultHostName = layers.properties.hostName;
