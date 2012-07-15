@@ -583,8 +583,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			}
 
 			if (!isMoving && !isDragging)
-				for (window in MapWindow.allWindows)
-					window.repaintLabels();
+				mapWindow.repaintLabels();
 
 			curTimer = curTimerNew;
 			var onMoveFlag:Bool = (needCallMoveHandler > 0 && (needCallMoveHandler < curTimerNew || Main.draggingDisabled));

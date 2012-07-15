@@ -383,7 +383,7 @@ class VectorLayer extends MapContent
 				var tPainter = filter.paintersHash.get(tileKey);
 
 				var filterStyle:Style = filter.mapNode.getHoveredStyle();
-				if (filterStyle.hasMarkerImage()) {		// Если стиль имеет маркер то мин.дистанция = размер маркера
+				if (filterStyle.hasMarkerImage() && filter.clusterAttr == null) {		// Если стиль имеет маркер то мин.дистанция = размер маркера
 					distZero = filterStyle.marker.markerWidth * filterStyle.marker.markerWidth;
 					distZero += filterStyle.marker.markerHeight * filterStyle.marker.markerHeight;
 				} else {
@@ -411,7 +411,6 @@ class VectorLayer extends MapContent
 						hoverGeom = member;
 						newCurrentId = member.properties.get(identityField);
 						newCurrentFilter = filter;
-						
 						distance = d;
 						if (distance <= distZero) {
 							zeroDistanceIds.push(hoverGeom);
