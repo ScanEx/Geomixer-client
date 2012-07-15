@@ -183,6 +183,7 @@ class MapNode
 	public function setVisible(flag:Bool)
 	{
 		hidden = !flag;
+		if(content != null) content.contentSprite.visible = flag;
 		noteSomethingHasChanged();
 	}
 

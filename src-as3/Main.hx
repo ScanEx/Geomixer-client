@@ -166,11 +166,9 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			var ww = Utils.worldWidth;
 			if(ww < maxX) currentX = constrain(-100000000, x, 100000000);
 			else currentX = constrain(minX, x,  maxX);
-			var wd = Utils.worldDelta;
-			while (currentX > ww + wd)
-				currentX -= 2 * ww;
-			while (currentX < -ww + wd)
-				currentX += 2 * ww;
+			currentX %= 2 * ww;
+			if (currentX > ww) currentX -= 2*ww;
+			else if (currentX < -ww) currentX += 2*ww;
 			currentY = constrain(minY, y, maxY);
 			currentZ = constrain(minZ, z, maxZ);
 			viewportHasMoved = true;
@@ -447,7 +445,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			if (cursor.numChildren > 0)
 				cursor.removeChildAt(0);
 		}
-		var windowMouseMove = function(?event)
+		var windowMouseMove = function(?event:MouseEvent)
 		{
 			if (isDragging && !Main.draggingDisabled && (currentZ == Math.round(currentZ)))
 			{
@@ -476,7 +474,6 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				repaintCacheBitmap();
 				Main.mousePressed = true;
 			}
-			
 		});
 
 		Main.chkStatus = function():Dynamic

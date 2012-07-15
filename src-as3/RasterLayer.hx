@@ -46,13 +46,29 @@ class RasterLayer extends MaskedContent
 	public override function repaint()
 	{
 		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
-//		if(Main.isDraggingNow) return;
 		super.repaint();
 
 		var window = mapNode.window;
 		var z = Std.int(window.getCurrentZ());
 
 		var vb = window.visibleExtent;
+		var ww = Utils.worldWidth;
+
+		var extent:Extent;
+		if (maskGeometry != null)
+			extent = maskGeometry.extent;
+		else
+		{
+			extent = new Extent();
+			extent.update(-ww, -ww);
+			extent.update(ww, ww);
+		}
+		if (!extent.overlaps(vb)) {
+			if(contentSprite.visible) contentSprite.visible = false;
+			return;
+		}
+		if(!contentSprite.visible) contentSprite.visible = true;
+		
 		var dx:Float = myDx((vb.minx + vb.maxx)/2);
 		var dy:Float = myDy((vb.miny + vb.maxy)/2);
 
@@ -73,17 +89,6 @@ class RasterLayer extends MaskedContent
 			}
 		}
 
-		var ww = Utils.worldWidth;
-
-		var extent:Extent;
-		if (maskGeometry != null)
-			extent = maskGeometry.extent;
-		else
-		{
-			extent = new Extent();
-			extent.update(-ww, -ww);
-			extent.update(ww, ww);
-		}
 		var bx1 = extent.minx, bx2 = extent.maxx;
 
 		while (bx2 > vb.minx + 2*ww)
@@ -93,7 +98,6 @@ class RasterLayer extends MaskedContent
 		}
 
 		var tileSize:Float = 256*Utils.getScale(z);
-		//var worldSize:Float = Math.pow(2, z);
 
 		while (bx1 < vb.maxx)
 		{
