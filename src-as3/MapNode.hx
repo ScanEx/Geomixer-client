@@ -405,7 +405,7 @@ class MapNode
 	public function repaintLabelsRecursively()
 	{
 		if (Main.mousePressed) return;		// При нажатой мышке labels не перерисовываем
-		if (!hidden)
+		if (!hidden && vectorSprite.visible)
 		{
 			if (content != null)
 				content.paintLabels();

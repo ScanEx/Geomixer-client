@@ -256,6 +256,8 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				stopFluidMove = null;
 				onMoveEnd();
 				Main.isDrawing = false;
+				mapWindow.rootNode.noteSomethingHasChanged();
+				Main.needRefreshMap = true;
 			}
 		}
 
@@ -654,6 +656,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 						node.setContent(new VectorObject(geometry));
 				}
 			});
+			Main.bumpFrameRate();
 		}
 		var exportProperties = function(p_:Hash<String>):Dynamic
 		{
@@ -715,12 +718,12 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				}
 				var arr = propertiesToArray(props);
 				if (eventName == "onMove") getPosition();
-
 				if ((eventName == "onMouseOver")
 					|| (eventName == "onTileLoaded")
 					|| (eventName == "onTileLoadedURL")
 					|| (eventName == "onMove")
 					|| (eventName == "onMoveBegin")
+					|| (eventName == "onMouseMove")
 					|| (eventName == "onMoveEnd")
 					|| (eventName == "onMouseOut")
 					|| (eventName == "onMouseDown")) {
