@@ -405,6 +405,7 @@ class VectorLayer extends MapContent
 					if (filter.clusterAttr == null && temporalCriterion != null && !temporalCriterion(member.propTemporal)) {
 						continue;					// пропускаем ноды отфильтрованные мультивременными интервалами только если нет кластеризации
 					}
+					if (member.currSize > 0) distZero = member.currSize;
 					var d = member.distanceTo(x, y, (distZero != 0 ? true : false));
 					if (d <= distance)		// Берем только минимальное растояние
 					{
@@ -420,7 +421,6 @@ class VectorLayer extends MapContent
 				}
 			}
 		}
-		
 		var len = zeroDistanceIds.length;
 		if (lastFlipCount < len)
 		{

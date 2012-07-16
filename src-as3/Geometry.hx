@@ -14,6 +14,7 @@ class Geometry
 	public var refreshFlag:Bool;
 	public var oldZ:Float;
 	public var halfLine:Float;				// половина линии обводки
+	public var currSize:Float;				// текущий отображаемый размер геометрии
 
 	public function new()
 	{
@@ -23,6 +24,7 @@ class Geometry
 		propHiden = new Hash<Dynamic>();
 		propTemporal = new Hash<String>();
 		halfLine = 0;
+		currSize = 0;
 	}
 
 	public function paintWithExtent(attr:Dynamic)

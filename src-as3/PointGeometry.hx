@@ -62,6 +62,7 @@ class PointGeometry extends Geometry
 				{
 					size *= window.scaleY;
 					var dt:Float = Math.abs(size);
+					currSize = dt * dt;
 					if(parentNumChildren > MAX_POINTS_CACHEASBITMAP && !sprite.cacheAsBitmap) sprite.cacheAsBitmap = true; // для убыстрения отрисовки тайлов
 					//if(dt > MAX_POINTS_WIDH && parentNumChildren > MAX_POINTS_COUNT) dt = MAX_POINTS_WIDH; // ограничение размеров точки
 
@@ -75,6 +76,7 @@ class PointGeometry extends Geometry
 						opacity = (properties != null ? style.outline.getOpacity(properties) : style.outline.opacity);
 						var lineWidth:Float = Math.abs(thickness*window.scaleY);
 						var dtw:Float = dt + lineWidth;
+						currSize = dtw * dtw;
 						graphics.beginFill(col, opacity);
 						graphics.drawRect(x - dtw, y - dtw, 2*dtw, lineWidth);
 						graphics.drawRect(x + dt, y - dt, lineWidth , 2*dt);

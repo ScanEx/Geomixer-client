@@ -336,7 +336,7 @@ class VectorLayerFilter extends MapContent
 			//if (event.ctrlKey) return;
 			//me.layer.currentFilter = me;
 			if (me.layer.currentFilter != null) {
-				if(me.clusterAttr != null)  me.layer.checkFlip(event);
+				if(me.clusterAttr == null)  me.layer.checkFlip(event);
 				Main.registerMouseDown(me.layer.currentFilter.mapNode, event, null);
 //event.stopImmediatePropagation();
 			}
