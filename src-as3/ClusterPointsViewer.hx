@@ -172,7 +172,7 @@ class ClusterPointsViewer extends MapContent
 			//event.stopPropagation();
 		});
 		
-		contSprite.addEventListener(MouseEvent.MOUSE_UP, function(event:MouseEvent)
+		contSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent)
 		{
 			var items:Array<Geometry> = me.findIntersect(event.localX, event.localY, me.curGeos);
 			if(items.length > 0) {

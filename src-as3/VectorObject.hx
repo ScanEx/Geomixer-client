@@ -50,8 +50,7 @@ class VectorObject extends MapContent
 
 			contentSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event) {
 				me.layer.lastGeometry = null; // для обнуления предыдущей геометрии под мышкой в тайле
-				//if (me.curNodeFilter != null) 
-				Main.registerMouseDown(me.curNodeFilter, event, me.mapNode);
+				if (me.curNodeFilter != null) Main.registerMouseDown(me.curNodeFilter, event, me.mapNode);
 			});
 		} else {
 			super.addHandlers();

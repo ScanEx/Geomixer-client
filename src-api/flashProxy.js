@@ -78,7 +78,7 @@
 					valArray.push(attr['newProperties'][key]);
 				}
 				attr['propFields'] = [keyArray, valArray];
-				attr['hideFixedBalloons'] = gmxAPI.uniqueGlobalName(function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(true); });
+				attr['hideFixedBalloons'] = gmxAPI.uniqueGlobalName(function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(false); });
 			}
 			var flag = ('clusters' in obj);	// видимость кластеров
 			if(!flag)
