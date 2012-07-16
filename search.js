@@ -804,7 +804,7 @@ var LocationTitleRenderer = function(oInitMap, fnSearchLocation){
 		}});
 	};
 	
-	oMap.coordinates.addCoordinatesFormat(setLocationTitleDiv);
+	if (oMap.coordinates) oMap.coordinates.addCoordinatesFormat(setLocationTitleDiv);
 }
 
 /** Возвращает контрол, отображающий результаты поиска в виде списка с нанесением на карту 
