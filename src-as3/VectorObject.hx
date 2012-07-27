@@ -132,7 +132,7 @@ class VectorObject extends MapContent
 	{
 		if (mapNode.propHiden.get('isDraging')) return;
 		var parNode:MapNode = mapNode.parent;
-		if (mapNode.parent != null && mapNode.parent.parent != null && mapNode.parent.parent.propHiden.get('type') == 'FRAMECHILD') return;
+		//if (mapNode.parent != null && mapNode.parent.parent != null && mapNode.parent.parent.propHiden.get('type') == 'FRAMECHILD') return;
 
 		xshift = Utils.getShiftX(geometry.extent.minx, geometry.extent.maxx, mapNode);
 		var pos:Int = cast(xshift);
@@ -142,7 +142,7 @@ class VectorObject extends MapContent
 
 	public override function hasLabels()
 	{
-		if(mapNode.propHiden.exists('clusterItem')) return false;
+		//if(mapNode.propHiden.exists('clusterItem')) return false;
 		
 		var style = mapNode.getRegularStyleRecursion();
 		return ((label != null) && (style != null) && (style.label != null));
@@ -150,7 +150,8 @@ class VectorObject extends MapContent
 
 	public override function paintLabels()
 	{
-		if (Main.mousePressed || mapNode.propHiden.exists('clusterItem')) return;		// При нажатой мышке labels не перерисовываем
+		if (Main.mousePressed) return;		// При нажатой мышке labels не перерисовываем
+		//if (Main.mousePressed || mapNode.propHiden.exists('clusterItem')) return;		// При нажатой мышке labels не перерисовываем
 		if(criterion == null || criterion(geometry.properties)) {
 			var style = mapNode.getRegularStyleRecursion();
 			if (style == null || style.label == null) return;

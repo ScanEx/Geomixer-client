@@ -590,7 +590,10 @@ function loadMap(state)
         //data.properties.hostName = getAPIHost();
         data.properties.hostName = window.serverBase.slice(7).slice(0, -1); //основная карта всегда загружена с того-же сайта, что и серверные скрипты
         
+        //DEPRICATED. Do not use it!
         _mapHelper.mapProperties = data.properties;
+        
+        //DEPRICATED. Do not use it!
         _mapHelper.mapTree = data;
         
         if (window.copyright)

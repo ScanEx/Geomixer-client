@@ -1,5 +1,6 @@
 ﻿(function($){
 
+
 var initTranslations = function()
 {
     _translationsHash.addtext("rus", {
@@ -26,6 +27,40 @@ var initTranslations = function()
                                 "firesWidget.AdvancedSearchButton" : "Search inside area"
                              });
 }
+						 
+						 
+// Lookup table for pixel dimensions based on scan index of the pixel
+
+var ModisPixelDimensions = [];
+
+function buildModisPixelDimensionsTable()
+{
+	// Don't rebuild the table if it was already built
+	if(ModisPixelDimensions.length > 0){
+		return;
+	}
+	
+	var h = 705.0;		// Terra/Aqua orbit altitude [km]
+	var p = 1.0;		// nadir pixel resolution [km]
+	var EARTH_RADIUS = 6371.0;
+    var SAMPLES = 1354;
+    
+	var r = EARTH_RADIUS + h;	/* [km] */
+	var s = p / h;                  /* [rad] */
+
+	for(var sample = 0;sample<1354;sample++){
+		var theta = sample * s + 0.5 * s - (0.5*SAMPLES) * s;
+		var cos_theta = Math.cos(theta);
+
+		var temp = Math.pow((EARTH_RADIUS/r),2.0) - Math.pow(Math.sin(theta),2.0);
+		var sqrt_temp = Math.sqrt(temp);
+
+		var DS = EARTH_RADIUS * s * (cos_theta/sqrt_temp - 1.0)*1000;
+		var DT = r*s*(cos_theta - sqrt_temp)*1000;
+		ModisPixelDimensions[sample] = [DS,DT];
+	}
+}
+
 
  /*
  ************************************
@@ -358,13 +393,17 @@ IDataProvider.sendCachedCrossDomainJSONRequest = function(url, callback)
 {
 	var jsonCache = IDataProvider.sendCachedCrossDomainJSONRequest.jsonCache;
 	if (jsonCache[url])
-		callback(jsonCache[url]);
+    {
+		jsonCache[url].done(callback);
+    }
 	else
+    {
+        jsonCache[url] = $.Deferred().done(callback);
 		sendCrossDomainJSONRequest(url, function(ret)
 		{
-			jsonCache[url] = ret;
-			callback(jsonCache[url]);
+			jsonCache[url].resolve(ret);
 		});
+    }
 }
 IDataProvider.sendCachedCrossDomainJSONRequest.jsonCache = {};
 
@@ -475,11 +514,6 @@ var ModisImagesProvider = function( params )
             });
             return;
         }
-        // if (leftToLoad == 0)
-        // {
-            // callback(modisLayers);
-            // return;
-        // }
         
         var deferreds = [];
         for (var iL = 0; iL < layersNamesToLoad.length; iL++)
@@ -535,10 +569,7 @@ var ModisImagesProvider = function( params )
                     }, 3, 10);
                     
                     curDef.resolve();
-                    //leftToLoad--;
-                    
-                    // if (leftToLoad == 0) //всё загрузили - возвращаем список слоёв
-                        // callback(modisLayers);
+
                 })
             })( layersNamesToLoad[iL] );
         
@@ -646,6 +677,186 @@ var _hq = {
 		var ch = [].concat(this.buildConvexHull([minPt, maxPt], points),
 						   this.buildConvexHull([maxPt, minPt], points))
 		return ch;
+	},
+	MultiPolygonUnion: function(multiPolygon)
+	{
+		var matrixMultiPolygon = [];
+		var unitedMultiPolygon = [];
+		var nStartPolygons = 0;
+		
+		do {
+			nStartPolygons = multiPolygon.length;
+			unitedMultiPolygon = [];
+			
+			while(multiPolygon.length > 0){
+				currentPolygon = multiPolygon.pop()
+				var iOther = 0;
+				
+				// Check if it overlaps with any remaining polygons
+				while(iOther < multiPolygon.length) {
+				
+					var unionResults = currentPolygon.union(multiPolygon[iOther]);
+					
+					if(unionResults != null){
+						currentPolygon = unionResults;
+						multiPolygon.splice(iOther,1);
+					} else {
+						iOther++;
+					}					
+				}			
+				unitedMultiPolygon.push(currentPolygon)				
+			}
+			multiPolygon = unitedMultiPolygon;
+		}while(multiPolygon.length < nStartPolygons);
+		
+		for(var i = 0; i < unitedMultiPolygon.length;i++) {
+			var poly = unitedMultiPolygon[i].to_point_array_2d();
+			poly.push(poly[0]); 
+			
+			matrixMultiPolygon.push([poly]);
+		}	
+		
+		return matrixMultiPolygon;
+		
+		/*
+		
+		var currentPolygon = [];
+		
+		
+		function getPolygonBBox(polygon){
+			bbox = [1000,1000,-1000,-1000];
+			for(var i = 0;i < polygon.length) {
+				if(polygon[i][0] < bbox[0])
+					bbox[0] = polygon[i][0];
+				if(polygon[i][1] < bbox[1])
+					bbox[1] = polygon[i][1];
+				if(polygon[i][0] > bbox[0])
+					bbox[2] = polygon[i][0];
+				if(polygon[i][1] > bbox[1])
+					bbox[3] = polygon[i][1];
+			}
+			return bbox;
+		}
+		
+		// For every polygon
+		while((currentPolygon = multiPolygon.pop()) != null) {
+			
+			
+			curBbox = getPolygonBBox(currentPolygon);
+			
+			
+			// Check if it overlaps with any remaining polygons
+			for(var iOther = 0;iOther < multiPolygon.length;iOther++) {
+				otherBbox = getPolygonBBox(currentPolygon);
+				
+				// First check the bounding boxes, if they dont overlap, skip checking for intersetctions.
+				if(otherBbox[0] > curBbox[3] || otherBbox[3] < curBbox[0] || otherBbox[1] > curBbox[4] || otherBbox[4] < curBbox[1]){
+					continue;
+				}
+				
+				// Otherwise lets check if any of the lines intersect
+				newPoly1 = []
+				for(var iCurLine = 0;iCurLine < polygon.length-1) {
+					curStart = currentPolygon[iCurLine];
+					curEnd = currentPolygon[iCurLine+1];
+					
+					curHoriz = (curStart[1] == curEnd[1]);
+					
+					for(var iOtherLine = 0;iOtherLine < multiPolygon[iOther].length-1) {
+						othStart = currentPolygon[iCurLine];
+						othEnd = currentPolygon[iCurLine+1];
+						
+						othHoriz = (othStart[1] == othEnd[1]);
+						
+						// Since the lines are horizontal or vertical we can easily check intersections
+						// Cases:
+						//    a) Both Vertical - no intersection
+						//    b) Both horizontal = no intersection
+						//    c) One is to the left, to the right to the top to the bottom of the other - no intersection.
+						//    d) otherwise intersection at a point that is the Y of the horizontal, and the X of vertical line.
+						
+						if(curHoriz == othHoriz){
+							continue;
+						}
+						if(curHoriz == 1 && ((curStart[1] > othStart[1] && curStart[1] > othEnd[1]) || curStart[1] < othStart[1] && curStart[1] < othEnd[1])) {
+							continue
+						}
+						if(curHoriz == 0 && ((curStart[0] > othStart[0] && curStart[0] > othEnd[0]) || curStart[0] < othStart[0] && curStart[0] < othEnd[0])) {
+							continue
+						}
+						
+						if(curHoriz == 1) {
+							intersection = [othStart[0] curStart[1]];
+						}else{
+							intersection = [curStart[0] othStart[1]];
+						}
+					}
+					
+				}
+			}
+			
+			unitedMultiPolygon.push(currentPolygon);
+		}
+		*/
+		return unitedMultiPolygon;
+		
+	},
+	getPixelMultiPolygon: function(points) {
+		results = [];
+		
+		for(var i = 0;i < points.length;i++) {
+			var pt = points[i];
+			var dims = ModisPixelDimensions[pt[2]];
+			
+			var X1 = merc_x(pt[0]);
+			var Y1 = merc_y(pt[1]);
+			
+			var X2 = X1 + 1000;
+			var Y2 = Y1;
+			
+			var newLat = pt[1];
+			var newLon = from_merc_x(X2);
+			
+			var mdelta = distVincenty(pt[0],pt[1],newLon,newLat);
+
+			var h_scale = dims[0] / mdelta;
+			var v_scale = dims[1] / mdelta;
+			
+					
+			var h_dx = 0.5*(X2 - X1)*h_scale;
+			var h_dy = 0.5*(Y2 - Y1)*h_scale;
+			
+			var v_dx = 0.5*(Y2-Y1)*v_scale;
+			var v_dy = 0.5*(X2-X1)*v_scale;
+			
+			var frontX = X1 + h_dx;
+			var frontY = Y1 + h_dy;
+			
+			var backX = X1 - h_dx;
+			var backY = Y1 - h_dy;
+		
+			var corner1x =  frontX + v_dx;
+			var corner1y =  frontY + v_dy;
+		
+			var corner2x =  frontX - v_dx;
+			var corner2y =  frontY - v_dy;
+		
+			var corner3x =  backX - v_dx;
+			var corner3y =  backY - v_dy;
+			
+			var corner4x =  backX + v_dx;
+			var corner4y =  backY + v_dy;    
+			
+			
+			results.push( SpatialQuery.$p([
+				[from_merc_x(corner1x),from_merc_y(corner1y)],
+				[from_merc_x(corner2x),from_merc_y(corner2y)],
+				[from_merc_x(corner3x),from_merc_y(corner3y)],
+				[from_merc_x(corner4x),from_merc_y(corner4y)]
+				]));
+		}
+		
+		return results;
 	}
 }
 
@@ -683,7 +894,6 @@ var FireSpotClusterProvider = (function(){
 		
 		var resArr = [];
 		var clusters = {};
-		var dailyClusters = {};
 		var clusterCentroids = {};
 		var clustersMinMaxDates = {};
         
@@ -721,6 +931,7 @@ var FireSpotClusterProvider = (function(){
                 hotspotId: a[7], 
                 x: a[1], 
                 y: a[0], 
+				trackId: a[8],
                 date: a[3], 
                 time: a[4], 
                 dateInt: dateInt, 
@@ -739,80 +950,37 @@ var FireSpotClusterProvider = (function(){
 				if (typeof clusters[clusterID] === 'undefined')
 				{
 					clusters[clusterID] = [];
-					dailyClusters[clusterID] = {};
 					clusterCentroids[clusterID] = {x: 0, y:0};
                     clustersMinMaxDates[clusterID] = { min: null, max: null };
 				}
 					
-				clusters[clusterID].push([hotSpot.x, hotSpot.y]);
+				clusters[clusterID].push([hotSpot.x, hotSpot.y,hotSpot.trackId]);
 				clusterCentroids[clusterID].x += hotSpot.x;
 				clusterCentroids[clusterID].y += hotSpot.y;
                 
-                updateMinMaxDates(clusterID, hotSpot);
-				
-				if (typeof dailyClusters[clusterID][hotSpot.date] === 'undefined')
-					dailyClusters[clusterID][hotSpot.date] = [];
-					
-				dailyClusters[clusterID][hotSpot.date].push([hotSpot.x, hotSpot.y]);
+                updateMinMaxDates(clusterID, hotSpot);				
 			}
 		}
-		
-		var resDialyClusters = [];
-		for (var k in dailyClusters)
-		{
-			var minDate = null;
-			var maxDate = null;
-			for (var d in dailyClusters[k])
-			{
-				var curDate = $.datepicker.parseDate('yy.mm.dd', d).valueOf();
-				minDate = minDate != null ? Math.min(curDate, minDate) : curDate;
-				maxDate = maxDate != null ? Math.max(curDate, maxDate) : curDate;
-			}
-			
-			var numberDays = maxDate - minDate;
-			
-			//clustersMinMaxDates[k] = {min: $.datepicker.formatDate('yy.mm.dd', new Date(minDate)), max: $.datepicker.formatDate('yy.mm.dd', new Date(maxDate))};
-			
-			for (var d in dailyClusters[k])
-			{
-				var daysFromBegin = ($.datepicker.parseDate('yy.mm.dd', d).valueOf() - minDate)/(24*3600*1000);
-				var colorIndex = Math.round(($.datepicker.parseDate('yy.mm.dd', d).valueOf() - minDate)/numberDays*127);
-				var lines = _hq.getConvexHull(dailyClusters[k][d]);
-				var polyCoordinates = [lines[0][0]];
-		
-				for (var l = 0; l < lines.length; l++)
-					polyCoordinates.push(lines[l][1]);
 				
-				resDialyClusters.push( { geometry: {type: "POLYGON", coordinates: [polyCoordinates]}, styleID: colorIndex, balloonProps: {"Кол-во очагов пожара": clusters[k].length, "Дата": d, "День:": daysFromBegin} } );
-			}
-		}
-		
 		var resClusters = [];
-		for (var k in clusters)
-		{
-			var lines = _hq.getConvexHull(clusters[k]);
-			var polyCoordinates = [lines[0][0]];
-	
-			for (var l = 0; l < lines.length; l++)
-				polyCoordinates.push(lines[l][1]);
-			
-            var geometry = {type: "POLYGON", coordinates: [polyCoordinates]};
-            
-			resClusters.push({ geometry: geometry,
-                                x: clusterCentroids[k].x/clusters[k].length, 
-                                y: clusterCentroids[k].y/clusters[k].length,
-								label: clusters[k].length,
-								points: clusters[k].length,
-								clusterId: k.substr(2),
-								balloonProps: {
-                                    "Кол-во горячих точек": clusters[k].length, 
-                                    "Время наблюдения": _datePeriodHelper(clustersMinMaxDates[k].minStr, clustersMinMaxDates[k].maxStr),
-                                    "Площадь горения": prettifyArea(geoArea(geometry))
-                                }
-							});
+		
+		// Compute convex hulls for all clusters. We will compute pixel areas later, on demand
+		for(var k in clusters) {
+
+			resClusters.push({ 
+					x: clusterCentroids[k].x/clusters[k].length, 
+					y: clusterCentroids[k].y/clusters[k].length,
+					label: clusters[k].length,
+					points: clusters[k].length,
+					clusterId: k.substr(2),
+					balloonProps: {
+						"Кол-во точек пожаров": clusters[k].length, 
+						"Время наблюдения": _datePeriodHelper(clustersMinMaxDates[k].minStr, clustersMinMaxDates[k].maxStr)
+					}
+				});
 		}
 		
-		return {fires: resArr, clusters: resClusters, dialyClusters: resDialyClusters};
+		return {fires: resArr, clusters: resClusters, clusterData: clusters};
 	}
 	
 	//кэширует уже обработанные данные
@@ -828,10 +996,10 @@ var FireSpotClusterProvider = (function(){
 			{
 				if (curRequestId !== _lastRequestId) return;
 				
-				_cache[url].status = 'done';
-				_cache[url].data = _processResponce(data);
-				for (var k = 0; k < _cache[url].callbacks.length; k++)
-					_cache[url].callbacks[k](_cache[url].data);
+                _cache[url].status = 'done';
+                _cache[url].data = _processResponce(data);
+                for (var k = 0; k < _cache[url].callbacks.length; k++)
+                    _cache[url].callbacks[k](_cache[url].data);
 			});
 		} else {
 			if (_cache[url].status === 'done')
@@ -848,7 +1016,6 @@ var FireSpotClusterProvider = (function(){
 			requestType: 'GetClustersPointsBBoxV2',
 			onlyPoints: false, 
 			onlyClusters: false, 
-			onlyDialyClusters: false, 
 			description: "firesWidget.FireSpotClusters.Description"
 		}, params );
 		
@@ -876,10 +1043,10 @@ var FireSpotClusterProvider = (function(){
 					onError( data == 'TooMuch' ? IDataProvider.ERROR_TOO_MUCH_DATA : IDataProvider.SERVER_ERROR );
 					return;
 				}
+                data.fires.dateBegin = dateBegin;
+                data.fires.dateEnd = dateEnd;
 				if (_params.onlyClusters)
 					onSucceess( data.clusters );
-				else if (_params.onlyDialyClusters)
-					onSucceess( data.dialyClusters );
 				else if (_params.onlyPoints)
 					onSucceess( data.fires );
 				else
@@ -903,10 +1070,15 @@ var FireClusterSimpleProvider = function( params )
 	this.getDescription = function() { return _gtxt(_params.description); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
-	
+        //кластеры пожаров мы показываем только когда есть ограничение по экстенту
+        if (!bbox)
+        {
+            onSucceess([]);
+            return;
+        }
+        
 		var urlBbox = bbox ? '&MinX='+ bbox.minX + '&MinY='+ bbox.minY + '&MaxX='+ bbox.maxX + '&MaxY='+ bbox.maxY : "";
 		var urlFires = _params.host + "DBWebProxy.ashx?Type=" + _params.requestType + "&StartDate=" + _formatDateForServer(dateBegin) + "&EndDate=" + _formatDateForServer(dateEnd) + urlBbox;
-		//var urlFires = _params.host + "DBWebProxy.ashx?Type=GetClusters&StartDate=" + dateBegin + "&EndDate=" + dateEnd + urlBbox;
 		
 		IDataProvider.sendCachedCrossDomainJSONRequest(urlFires, function(data)
 		{
@@ -931,15 +1103,14 @@ var FireClusterSimpleProvider = function( params )
                     dateBegin: a[3], 
                     dateEnd: a[4], 
                     balloonProps: {
-                        "Кол-во очагов пожара": a[5], 
-                        //"Мощность": Number(a[7]).toFixed(), 
-                        "Период горения": _datePeriodHelper(a[3], a[4])
+                        "Кол-во точек пожаров": a[5], 
+                        //"Мощность": Number(a[7]).toFixed(),
+                        "Период горения": _datePeriodHelper(a[3], a[4]),
                         // "Дата начала": a[3]
                         // "Дата конца": a[4]
-                        //"Площадь": prettifyArea(geoArea(a[8]))
+                        "Площадь горения": prettifyArea(geoArea(a[8]))
                     }
                 };
-				// var hotSpot = { geometry: {type: "POLYGON", coordinates: [geom]}, power: a[7], points: a[5], label: a[5], balloonProps: {"Кол-во очагов пожара": a[5], "Мощность": Number(a[7]).toFixed(), "Дата начала": a[3], "Дата конца": a[4]} };
 				resArr.push(hotSpot);
 			}
 			
@@ -1144,6 +1315,64 @@ var FireSpotRenderer = function( params )
 	}
 }
 
+var FireSpotRendererLayer = function( params )
+{
+    var _params = $.extend({
+        pointLayerName: 'A78AC25E0D924258B5AF40048C21F7E7', 
+        geomLayerName: '51905F330AD84C23B4C0F5ABFDACEBE5',
+        mapName: '3PORS', 
+        host: 'maps.kosmosnimki.ru'}, params);
+    
+    var requestSent = false;
+    var curPeriod = null;
+    var curVisibility = false;
+    
+    var loadFireLayers = function()
+    {
+        if (requestSent) return;
+        requestSent = true;
+        _params.map.loadMap(_params.host, _params.mapName, function(data)
+        {
+            var layer = _params.map.layers[_params.pointLayerName];
+            if (curPeriod)
+            {
+                if (typeof _params.minZoom !== 'undefined')
+                {
+                    //var maxZoom = layer.getZoomBounds();
+                    layer.setZoomBounds(_params.minZoom, 17);
+                }
+                
+                layer.setDateInterval(curPeriod.dateBegin, curPeriod.dateEnd);
+            }
+            
+            _params.map.layers[_params.pointLayerName].setVisible(curVisibility)
+        });
+    }
+    
+    
+    this.bindData = function(data)
+	{
+        curPeriod = {dateBegin: data.dateBegin, dateEnd: data.dateEnd};
+        loadFireLayers();
+        
+        if (_params.pointLayerName in _params.map.layers)
+        {
+            _params.map.layers[_params.pointLayerName].setDateInterval(data.dateBegin, data.dateEnd);
+        }
+    }
+    
+    this.setVisible = function(flag)
+	{
+        curVisibility = flag;
+        loadFireLayers();
+        
+        if (_params.pointLayerName in _params.map.layers)
+        {
+            _params.map.layers[_params.pointLayerName].setVisible(flag);
+        }
+	}
+}
+
 /** Рисует на карте гари
 * @memberOf FireMapplet
 * @class
@@ -1166,7 +1395,8 @@ var FireBurntRenderer = function( params )
 	var _burntObj = null;
 	
 	var _depthContainer = _params.map.addObject();
-	if (_params.bringToDepth) _depthContainer.bringToDepth(_params.bringToDepth);
+	if (typeof _params.bringToDepth !== 'undefined')
+        _depthContainer.bringToDepth(_params.bringToDepth);
 	
 	var _balloonProps = {};
 	this.bindData = function(data)
@@ -1175,7 +1405,7 @@ var FireBurntRenderer = function( params )
         _burntObj = null;
         
         if (!data) return;
-        
+	        
 		_balloonProps = {};
 		_burntObj = _depthContainer.addObject();
 		_burntObj.setZoomBounds(_params.minZoom, _params.maxZoom);
@@ -1192,22 +1422,136 @@ var FireBurntRenderer = function( params )
 				}
 				
 				var obj = _burntObj.addObject( b.geometry );
-				
-				// var debObj = globalFlashMap.addObject( b.geometry );
-				// debObj.setStyle({ outline: { color: 0xff00ff, thickness: 1, dashes: [3,3] }, fill: { color: 0xff00ff, opacity: 10 } });
-				// console.log(obj.getGeometry());
-				
+
 				if (typeof b.styleID !== 'undefined' && typeof _params.styles != 'undefined' && typeof _params.styles[b.styleID] != 'undefined')
 					obj.setStyle( _params.styles[b.styleID][0], _params.styles[b.styleID][1] );
 					
-				if (typeof b.balloonProps !== 'undefined')
+				if (typeof b.balloonProps !== 'undefined'){					
 					_balloonProps[obj.objectId] = $.extend({}, b.balloonProps, {"Дата": b.date});
-				else
+				}else{
 					_balloonProps[obj.objectId] = null;
+				}
 					
 			})(data[i]);
 			
 		_burntObj.enableHoverBalloon(_createHoverFunction(_params, _balloonProps));
+
+		
+	}
+	
+	this.setVisible = function(flag)
+	{
+		if (_burntObj) _burntObj.setVisible(flag);
+	}
+}
+
+/** Рисует на карте гари
+* @memberOf FireMapplet
+* @class
+*/
+var FireBurntRenderer2 = function( params )
+{
+	var defaultStyle = [
+			{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xffffff, opacity: 5 } },
+			{ outline: { color: 0xff0000, thickness: 3 }, fill: { color: 0xffffff, opacity: 15 } }
+		];
+	var _params = $.extend({
+        minZoom: 1,
+        maxZoom: 17, 
+        defStyle: defaultStyle, 
+        title: "<b style='color: red;'>СЛЕД ПОЖАРА</b><br />",
+        map: window.globalFlashMap
+    }, params);
+    
+	var _burntObj = null;
+	
+	var clusterData = {};
+	var clusterObjects = {};
+	var resClustersData = {};
+	
+	var _depthContainer = _params.map.addObject();
+	if (_params.bringToDepth !== 'undefined') 
+        _depthContainer.bringToDepth(_params.bringToDepth);
+	
+	var _balloonProps = {};
+    
+    var updateClusters = function()
+    {		
+        var z = gmxAPI.map.getZ();
+        if ( z > _params.maxZoom || z < _params.minZoom ) 
+            return;
+			
+		// Compute modis pixel dimensions table
+		buildModisPixelDimensionsTable();
+		
+        // console.time('onMoveEnd');
+        var bounds = gmxAPI.map.getVisibleExtent();
+
+        for (var cCluster in resClustersData)
+        {
+            
+            var clusterId = resClustersData[cCluster].clusterId;
+            var balloonProps = resClustersData[cCluster].balloonProps;
+            
+            // Check if cluster is within bounds, if it is we compute geometry for it.
+            if(resClustersData[cCluster].x < bounds.minX || resClustersData[cCluster].x > bounds.maxX || resClustersData[cCluster].y < bounds.minY || resClustersData[cCluster].y > bounds.maxY){
+                continue;
+            }
+            
+            multiPolygon = _hq.getPixelMultiPolygon(clusterData["id"+clusterId]);
+                
+            tmpPolygon = _hq.MultiPolygonUnion(multiPolygon);
+            
+            polyCoordinates = tmpPolygon;
+            
+            var geometry = {type: "MULTIPOLYGON", coordinates: polyCoordinates};
+ 
+			var strArea = prettifyArea(geoArea(geometry));
+			
+            // clusterObjects[clusterId].remove();
+            var obj = _burntObj.addObject( geometry );
+            
+            clusterObjects[clusterId] = obj;
+            
+            if (typeof balloonProps !== 'undefined')
+			{
+                _balloonProps[obj.objectId] = $.extend({}, balloonProps, {"Дата": resClustersData[cCluster].date,"Площадь горения":strArea});
+            }else{
+                _balloonProps[obj.objectId] = null;
+            }
+            
+            delete resClustersData[cCluster];
+            
+        }
+        //console.profileEnd();
+        // console.timeEnd('onMoveEnd');
+    };
+    
+    gmxAPI.map.addListener('onMoveEnd', updateClusters);
+    
+	this.bindData = function(data)
+	{
+		if (_burntObj) _burntObj.remove();
+        _burntObj = null;
+        
+        if (!data) return;
+		
+		if(typeof data.clusterData !== 'undefined'){
+			clusterData = $.extend(true, {}, data.clusterData);
+		}
+		if(typeof data.clusters !== 'undefined'){
+			resClustersData = $.extend(true, {}, data.clusters);
+		}
+        
+		_balloonProps = {};
+		_burntObj = _depthContainer.addObject();
+		_burntObj.setZoomBounds(_params.minZoom, _params.maxZoom);
+		_burntObj.setVisible(false);
+		_burntObj.setStyle( _params.defStyle[0], _params.defStyle[1] );
+        
+        updateClusters();
+        
+        _burntObj.enableHoverBalloon(_createHoverFunction(_params, _balloonProps));
 	}
 	
 	this.setVisible = function(flag)
@@ -1239,7 +1583,7 @@ var ModisImagesRenderer = function( params )
 
 var CombinedFiresRenderer = function( params )
 {
-	var _params = $.extend({ map: window.globalFlashMap, fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minHotspotZoom: 11, minGeometryZoom: 8, minWholeFireZoom: 8, maxClustersZoom: 7}, params);
+	var _params = $.extend({ map: window.globalFlashMap, fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minGeometryZoom: 8, minWholeFireZoom: 8, maxClustersZoom: 7}, params);
 	var customStyleProvider = function(obj)
 	{
 		var style = { marker: { image: _params.fireIconsHost + 'fire_sample.png', center: true, scale: String(Math.sqrt(obj.points)/5)} };
@@ -1250,7 +1594,7 @@ var CombinedFiresRenderer = function( params )
 	
 	var defStyle = [
 		{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 15 }, marker: {size: 2, color: 0xff0000, thickness: 1} },
-		{ outline: { color: 0xff0000, thickness: 2 }, fill: { color: 0xff0000, opacity: 15 }, marker: {size: 2, color: 0xff0000, thickness: 1} }
+		{ outline: { color: 0xff4444, thickness: 2 }, fill: { color: 0xff4444, opacity: 40 }, marker: {size: 2, color: 0xff0000, thickness: 1} }
 	];
 	
 	var wholeDefStyle = [
@@ -1259,9 +1603,9 @@ var CombinedFiresRenderer = function( params )
 	];
 	
 	var _clustersRenderer  = new FireSpotRenderer  ({map: _params.map, maxZoom: _params.maxClustersZoom,  title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>", customStyleProvider: customStyleProvider});
-	var _wholeFireRenderer = new FireBurntRenderer ({map: _params.map, minZoom: _params.minWholeFireZoom,  defStyle: wholeDefStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Суммарный контур пожара</b></div>"});
-	var _geometryRenderer  = new FireBurntRenderer ({map: _params.map, minZoom: _params.minGeometryZoom,  defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", addGeometrySummary: false});
-	var _hotspotRenderer   = new FireSpotRenderer  ({map: _params.map, minZoom: _params.minHotspotZoom, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>"});
+	var _wholeFireRenderer = new FireBurntRenderer ({bringToDepth: 0, map: _params.map, minZoom: _params.minWholeFireZoom,  defStyle: wholeDefStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Суммарный контур пожара</b></div>", addGeometrySummary: false});
+	var _geometryRenderer  = new FireBurntRenderer2 ({bringToDepth: 1, map: _params.map, minZoom: _params.minGeometryZoom,  defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", addGeometrySummary: false});
+	var _hotspotRenderer   = new FireSpotRendererLayer  ({map: _params.map, minZoom: _params.minHotspotZoom, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>"});
 	var _curData = null;
 	
 	//это некоторый хак для того, чтобы объединить в балунах контуров пожаров оперативную и историческую информацию о пожарах.
@@ -1293,7 +1637,7 @@ var CombinedFiresRenderer = function( params )
 	
 		_curData = data;
 		_clustersRenderer.bindData(data[0].clusters);
-		_geometryRenderer.bindData(data[0].clusters);
+		_geometryRenderer.bindData(data[0]);
 		_hotspotRenderer.bindData(data[0].fires);
         
         if ( calendar.getModeController().getMode() !==  calendar.getModeController().SIMPLE_MODE )
@@ -1389,7 +1733,6 @@ FireControl.DEFAULT_OPTIONS =
     minPower: null,
     minConfidence: null,
 
-	dateFormat: "dd.mm.yy",
 	fires:      true,
 	firesInit:  true,
 	images:     true,
@@ -1591,7 +1934,6 @@ FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
 				(function(curController){
 					curController.curRequestIndex++;
 					var requestIndex = curController.curRequestIndex;
-					//curController.provider.getData( $.datepicker.formatDate(_this._firesOptions.dateFormat, dateBegin), $.datepicker.formatDate(_this._firesOptions.dateFormat, dateEnd), curExtent.getBounds(), 
 					curController.provider.getData( dateBegin, dateEnd, curExtent.getBounds(), 
 						function( data )
 						{
@@ -1618,13 +1960,23 @@ FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
 
 FireControl.prototype.add = function(parent, firesOptions, calendar)
 {
-	this._calendar = calendar;
-	this._visModeController = calendar.getModeController();
-	
     var resourceHost = typeof gmxCore !== 'undefined' ? gmxCore.getModulePath('FireMapplet') + '../' || '' : '';
 	this._firesOptions = $.extend( {resourceHost: resourceHost, map: this._map}, FireControl.DEFAULT_OPTIONS, firesOptions );
     
-    
+	/*
+	console.log('testing FireControl');
+	var myLayer = gmxAPI.map.layers["FireHotSpots3"];
+	myLayer.addListener('onTileLoadedURL', function(ph) {
+		var layer = ph.obj;
+		var tileID = ph.attr.data.tileID;
+		var arr = ph.attr.data.data;
+		var params = tileID.split('_');
+		var bounds = gmxAPI.getTileBounds(params[0],params[1],params[2]);
+
+		
+	});*/
+	
+	
 	this._initExtent = new BoundsExt( firesOptions.initExtent ? firesOptions.initExtent : BoundsExt.WHOLE_WORLD );
 	if ( firesOptions.initExtent && firesOptions.showInitExtent )
 	{
@@ -1675,6 +2027,9 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 							  { isVisible: this._firesOptions.firesInit } );
     }
 	
+    this._calendar = calendar;
+	this._visModeController = calendar.getModeController();
+    
 	this.searchBboxController.init();
 	
 	//var processImg = _img(null, [['attr','src', globalOptions.resourceHost + 'img/progress.gif'],['css','marginLeft','10px'], ['css', 'display', 'none']]);
@@ -1820,6 +2175,8 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 		}
 	}
 	
+	updateTimeInfo();
+    
 	// $(this._visModeController).bind('change', function()
 	$(this._calendar).bind('change', function()
 	{
@@ -1849,8 +2206,6 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 		_this.update();
 	});
 	
-	updateTimeInfo();
-	
 	var internalTable = _table([_tbody([_tr([_td([button])/*, _td([processImg])*/])])], [['css', 'marginLeft', '15px']]);
 	trs.push(_tr([_td([internalTable], [['attr','colSpan',2]])]));
 	
@@ -1875,6 +2230,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	this.update();
 	
 	this._initDeferred.resolve();
+	
 }
 
 FireControl.prototype.update = function()
@@ -1886,7 +2242,7 @@ FireControl.prototype.update = function()
 var FireControl2 = function(map, params)
 {
     params = params || {};
-    params.data = params.data || "+fires -images";
+    params.data = params.data || "+fires !images";
     
     var parseParams = function(params)
     {
@@ -1898,8 +2254,8 @@ var FireControl2 = function(map, params)
             if (!parsed) return;
             
             res[parsed[2]] = {
-                show: parsed[1] !== '!',
-                init: parsed[1] !== '-'
+                init: parsed[1] !== '!',
+                show: parsed[1] !== '-'
             };
         }
         return res;
@@ -1919,9 +2275,11 @@ var FireControl2 = function(map, params)
         if (typeof params.calendar === 'undefined')
         {
             //в ГеоМиксере берём общий календарь, иначе создаём новый
-            if (typeof nsGmx !== 'undefined' && 'getCommonCalendar' in nsGmx)
+            if (window.nsGmx && nsGmx.widgets && nsGmx.widgets.commonCalendar)
             {
-                params.calendar = nsGmx.getCommonCalendar();
+                params.calendar = nsGmx.widgets.commonCalendar.get();
+                nsGmx.widgets.commonCalendar.show();
+                nsGmx.widgets.commonCalendar.get().setShowTime(true);
             }
             else
             {
@@ -1931,8 +2289,8 @@ var FireControl2 = function(map, params)
 					minimized: true,
 					dateMin: new Date(2009, 05, 29),
 					dateMax: new Date(),
-                    dateFormat: "dd.mm.yy"/*,
-					resourceHost: 'http://maps.kosmosnimki.ru/api/'*/
+                    dateFormat: "dd.mm.yy",
+                    showTime: true
 				});
                 $(params.container).append(params.calendar.canvas);
             }
@@ -1971,6 +2329,12 @@ var FireControl2 = function(map, params)
         {
             $(_queryMapLayers).bind('load', function()
             {
+                //если не указан календарик, то мы будем использовать общий. 
+                //Однако в этом случае мы хотим, чтобы календарик был под списком провайдеров
+                //Поэтому покажем календарик заранее
+                if (typeof params.calendar === 'undefined')
+                    nsGmx.widgets.commonCalendar.show();
+                
                 var table = $(_queryMapLayers.workCanvas).children("table")[0],
                     div = _div(null, [['css', 'margin', '5px']])
                 $(table).after(div);
@@ -2020,11 +2384,21 @@ if ( typeof gmxCore !== 'undefined' )
         css: 'FireMapplet.css',
         init: function(module, path)
 		{
+            if (typeof gmxCore.loadScriptWithCheck === 'undefined')
+            {
+                alert('Плагин пожаров не совместим с данной версией ГеоМиксера! Необходима версия 1.9.1 или старше');
+                return;
+            }
+            
             initTranslations();
             return gmxCore.loadScriptWithCheck([
                 {
                     check: function(){ return jQuery.datepicker.parseDateTime; },
                     script: path + '../jquery/jquery-ui-timepicker-addon.js'
+                },
+                {
+                    check: function(){ return window.SpatialQuery; },
+                    script: path + 'spatial_query.js'
                 }
             ]);
 		},

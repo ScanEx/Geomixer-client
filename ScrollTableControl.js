@@ -1,10 +1,13 @@
+//Таблица с разбиением данных по страницам. Сильно кастомизируемый виджет. Поддерживает различные провайдеры данных и рендереры.
 var scrollTable = function( params )
 {
     this._params = $.extend(
     {
         limit: 50,
         page: 0,
-        pagesCount: 10
+        pagesCount: 10,
+        height: 300,
+        showFooter: true
     }, params);
     
 	this.limit = this._params.limit;
@@ -308,15 +311,39 @@ scrollTable.prototype._drawHeader = function()
 //Если baseWidth == 0, таблица растягивается на весь контейнер по ширине
 scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fieldsWidths, drawFunc, sortableFields, isWidthScroll)
 {
+    var params = null
+    //передача параметров в виде структуры
+    if (arguments.length === 1)
+    {
+        params = $.extend(true, {
+            sortableFields: {}
+        }, parent);
+    }
+    else
+    {
+        params = {
+            parent: parent,
+            name: name,
+            baseWidth: baseWidth,
+            fields: fields,
+            fieldsWidths: fieldsWidths,
+            drawFunc: drawFunc,
+            sortableFields: sortableFields,
+            isWidthScroll: isWidthScroll
+        }
+    }
+    
+    var name = params.name;
+    
 	var _this = this;
-    this._isWidthScroll = isWidthScroll;
+    this._isWidthScroll = params.isWidthScroll;
     
     this._fields = [];
-    for (var f = 0; f < fields.length; f++)
+    for (var f = 0; f < params.fields.length; f++)
         this._fields.push({
-            title: fields[f],
-            width: fieldsWidths[f],
-            isSortable: fields[f] in sortableFields,
+            title: params.fields[f],
+            width: params.fieldsWidths[f],
+            isSortable: params.fields[f] in params.sortableFields,
             isActive: true
         });
     
@@ -341,7 +368,7 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
     
     
     this._tableHeaderRow = _tr();
-    if (isWidthScroll)
+    if (this._isWidthScroll)
     {
         this.tableHeader = _thead([this._tableHeaderRow], [['attr','id',name + 'TableHeader'], ['dir','className','tableHeader']]);
     }
@@ -349,7 +376,7 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
     {
         //как формировать фиксированный заголовок таблицы, зависит от того, будет ли у таблицы фиксированный размер или нет
         //TODO: убрать возможность задавать фиксированный размер
-        if ( baseWidth )
+        if ( params.baseWidth )
             this.tableHeader = _tbody([this._tableHeaderRow],[['attr','id',name + 'TableHeader']]);
         else
             this.tableHeader = _tbody([_tr([_td([_table([_tbody([this._tableHeaderRow])])]), _td(null, [['css', 'width', '20px']])])], [['attr','id',name + 'TableHeader']]);
@@ -357,30 +384,32 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
     
     this._drawHeader();
     
-    if (isWidthScroll)
+    if (this._isWidthScroll)
     {
-        this.tableParent = _div([_table([this.tableHeader, this.tableBody])],
-                                [['attr','id',name + 'TableParent'],['dir','className','scrollTable'],['css','width',baseWidth ? baseWidth + 'px' : "100%"], ['css', 'overflow', 'auto']]);
+        this.tableParent = _div([_table([this.tableHeader, this.tableBody], [['css', 'width', '100%']])],
+                                [['attr','id',name + 'TableParent'],['dir','className','scrollTable'],['css','width',baseWidth ? baseWidth + 'px' : "100%"], ['css', 'height', this._params.height], ['css', 'overflow', 'auto']]);
     }
     else
     {
         this.tableParent = _div([
                                 _div([_table([this.tableHeader])],[['dir','className','tableHeader']]),
-                                _div([_table([this.tableBody])],[['dir','className','tableBody'],['css','width',baseWidth ? baseWidth + 20 + 'px' : "100%"]])
-                            ],[['attr','id',name + 'TableParent'],['dir','className','scrollTable'],['css','width',baseWidth ? baseWidth + 'px' : "100%"]])
+                                _div([_table([this.tableBody])],[['dir','className','tableBody'],['css', 'height', this._params.height], ['css','width', params.baseWidth ? params.baseWidth + 20 + 'px' : "100%"]])
+                            ],[['attr','id',name + 'TableParent'],['dir','className','scrollTable'], ['css', 'height', this._params.height], ['css','width', params.baseWidth ? params.baseWidth + 'px' : "100%"]])
     }
 	
-	_(parent, [this.tableParent])
-	_(parent, [_table([_tbody([_tr([_td([this.tableCount], [['css','width','20%']]), _td([this.tablePages]), _td([this.tableLimit], [['css','width','20%']])])])], [['css','width','100%']])]);
+	_(params.parent, [this.tableParent])
+    
+    if (this._params.showFooter)
+        _(params.parent, [_table([_tbody([_tr([_td([this.tableCount], [['css','width','20%']]), _td([this.tablePages]), _td([this.tableLimit], [['css','width','20%']])])])], [['css','width','100%']])]);
 	
 	
-	this.drawFunc = drawFunc;
+	this.drawFunc = params.drawFunc;
 	this.start = 0;
 	this.reportStart = 0;
 	
 	this.currentSortType = null;
 	// сортировка по умолчанию	
-	for (var name in sortableFields)
+	for (var name in params.sortableFields)
 	{
 		this.currentSortType = name;
 		
@@ -388,7 +417,7 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 	}
 	
 	this.currentSortIndex = {};
-	for (var name in sortableFields)
+	for (var name in params.sortableFields)
 	{
 		this.currentSortIndex[name] = 0;
 	}

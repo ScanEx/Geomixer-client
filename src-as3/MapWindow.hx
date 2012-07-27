@@ -229,11 +229,11 @@ class MapWindow
 		var approxTextWidth = label.size*labelText.length*0.6;
 		var geoTextWidth = approxTextWidth*Math.abs(scaleY)/2;
 		if (
-			(extent.maxx >= visibleExtent.minx - geoTextWidth) 
+			(extent.maxx + xshift >= visibleExtent.minx - geoTextWidth) 
 			&& 
 			(extent.maxy >= visibleExtent.miny - geoTextWidth) 
 			&& 
-			(extent.minx <= visibleExtent.maxx + geoTextWidth) 
+			(extent.minx + xshift <= visibleExtent.maxx + geoTextWidth) 
 			&& 
 			(extent.miny <= visibleExtent.maxy + geoTextWidth)
 		)
@@ -303,7 +303,7 @@ class MapWindow
 					}
 					if (!boundsTestFailed)
 					{
-						sprite.filters = filters;
+						sprite.filters = cast(filters);
 						var i = 0;
 						var n = sprite.numChildren;
 						for (i in 0...n)
@@ -377,7 +377,7 @@ class MapWindow
 				if (label.dx != 0) posX += label.dx;
 				labelTF.embedFonts = true;
 				labelTF.antiAliasType = flash.text.AntiAliasType.ADVANCED;
-				labelTF.filters = filters;
+				labelTF.filters = cast(filters);
 				labelTF.text = labelText;
 				fmt.align = align;
 				labelTF.setTextFormat(fmt);

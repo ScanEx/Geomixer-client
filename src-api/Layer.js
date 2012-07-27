@@ -155,6 +155,7 @@
 
 		if(!filter.clusters && attr['clusters'] && '_Clusters' in gmxAPI) {
 			filter.clusters = new gmxAPI._Clusters(filter);	// атрибуты кластеризации потомков по фильтру
+			//filter.clusters.setProperties(attr['clusters']);
 			filter.setClusters(attr['clusters']);
 		}
 		
@@ -295,14 +296,18 @@
 					var arr = geom.coordinates[0];
 					chkCenterX(arr);
 				}
-				//bounds = gmxAPI.getBounds(gmxAPI.merc_geometry(geom).coordinates);
 				obj.bounds = boundsLatLon = gmxAPI.getBounds(geom.coordinates);
-				bounds = {
-					minX: gmxAPI.merc_x(bounds['minX']),
-					minY: gmxAPI.merc_y(bounds['minY']),
-					maxX: gmxAPI.merc_x(bounds['maxX']),
-					maxY: gmxAPI.merc_y(bounds['maxY'])
-				};
+				if(layer.mercGeometry) {
+					bounds = gmxAPI.getBounds(layer.mercGeometry.coordinates);
+				} else 
+				{
+					bounds = {
+						minX: gmxAPI.merc_x(obj.bounds['minX']),
+						minY: gmxAPI.merc_y(obj.bounds['minY']),
+						maxX: gmxAPI.merc_x(obj.bounds['maxX']),
+						maxY: gmxAPI.merc_y(obj.bounds['maxY'])
+					};
+				}
 			}
 		};
 		chkBounds(layer.geometry);
@@ -514,12 +519,12 @@
 			for (var i = 0; i < obj.filters.length; i++)
 			{
 				var filter = obj.filters[i];
+				filter.setStyle(filter['_attr']['regularStyle'], filter['_attr']['hoveredStyle']);
 				delete filter["setVisible"];
 				delete filter["setStyle"];
 				delete filter["setFilter"];
 				delete filter["enableHoverBalloon"];
 				filter["setZoomBounds"] = FlashMapObject.prototype.setZoomBounds;
-				filter.setStyle(filter['_attr']['regularStyle'], filter['_attr']['hoveredStyle']);
 			}
 
 			// Установка видимости по Zoom

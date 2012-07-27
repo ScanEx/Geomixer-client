@@ -77,15 +77,16 @@ class MapNode
 		}
 		somethingHasChanged = true;
 		//noteSomethingHasChanged();
+
 		for (child in children)
 			child.remove();
 		if (parent != null) {
-			//parent.children.remove(this);
+			parent.children.remove(this);
 			parent.somethingHasChanged = true;
 			//parent.noteSomethingHasChanged();
 		}
 		allNodes.remove(id);
-		handlerNodes.remove(id);
+handlerNodes.remove(id);
 		window.cacheRepaintNeeded = true;
 		window.labelsRepaintNeeded = true;
 	}
@@ -275,6 +276,7 @@ class MapNode
 
 	function setHaveRasterRecursively()
 	{
+		rasterSprite.visible = true;
 		nodeHaveRaster = true;
 		if (parent != null) parent.setHaveRasterRecursively();
 	}
@@ -312,6 +314,7 @@ class MapNode
 				var vlf:VectorLayerFilter = cast(content, VectorLayerFilter);
 				if(regularStyleOrig != null) vlf.regularStyleOrig = regularStyleOrig;
 				if(hoverStyleOrig != null) vlf.hoverStyleOrig = hoverStyleOrig;
+				setHaveRasterRecursively();
 				parent.repaintObjects();
 			}
 		}
@@ -321,6 +324,7 @@ class MapNode
 
 	public function setHandler(name:String, handler:MapNode->MapNode->Dynamic->Void)
 	{
+//trace('setHandler  ' + id + ' : ' + handler + ' : ' + name);
 		if (handler == null) removeHandler(name);
 		else {
 			handlers.set(name, handler);
@@ -331,6 +335,7 @@ class MapNode
 
 	public function removeHandler(name:String)
 	{
+//trace('________removeHandler________  ' + id + ' : ' + ' : ' + name);
 		handlers.remove(name);
 		updateHandCursor();
 	}
@@ -349,11 +354,20 @@ class MapNode
 	public function callHandler(name:String, ?nodeFrom:MapNode, ?data_:Dynamic)
 	{
 		var handler = getHandler(name);
+//trace('________________d  ' + id + ' : ' + handler + ' : ' + name);
 		if (handler != null)
 			handler(this, nodeFrom, data_);
 	}
-
 	public function callHandlersRecursively(name:String)
+	{
+		var handler = handlers.get(name);
+		if (handler != null)
+			handler(this, null, null);
+		for (child in children)
+			child.callHandlersRecursively(name);
+	}
+/*
+	public function callHandlersRecursively_bak(name:String)	// не понятно почему не находит onMoveEnd
 	{
 		for (nID in handlerNodes.keys()) {
 			if (handlerNodes.get(nID) == name) {
@@ -361,7 +375,7 @@ class MapNode
 			}
 		}
 	}
-
+*/
 	public function repaintObjects()
 	{
 		if (Main.mousePressed) return;

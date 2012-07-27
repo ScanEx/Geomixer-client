@@ -67,3 +67,20 @@ div.tableBody tr.rowSelected td
 	font-weight: bold;
 	margin: 0px 2px;
 }
+
+.tableTableRow
+{
+	border-top: 1px solid #D0D8DF;
+	border-bottom: 1px solid #D0D8DF;
+}
+
+.tableTableRow.hover
+{
+	background-color: #DEDEDE;
+}
+
+.tableFilter
+{
+    font-size: 12px;
+    margin-left: 8px;
+}

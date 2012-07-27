@@ -91,8 +91,9 @@ var drawLayers = function(layer, params)
 	var _params = $.extend({onclick: function(){ removeLayerFromList(); }, enableDragging: true, disabled: false}, params);
 	var newLayerProperties = {properties:layer};
 	
-	newLayerProperties.properties.mapName = _mapHelper.mapProperties.name;
-	newLayerProperties.properties.hostName = _mapHelper.mapProperties.hostName;
+    var mapProperties = _layersTree.treeModel.getMapProperties();
+	newLayerProperties.properties.mapName = mapProperties.name;
+	newLayerProperties.properties.hostName = mapProperties.hostName;
 	newLayerProperties.properties.visible = false;
 	
 	if (newLayerProperties.properties.type == 'Vector')

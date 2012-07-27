@@ -201,6 +201,7 @@
 			obj.setHandlers({
 				"onClick": function()
 				{
+					if(domObj.stateListeners['onClick'] && gmxAPI._listeners.dispatchEvent('onClick', domObj, domObj)) return;	// если установлен пользовательский onClick возвращающий true выходим
 					if (clickTimeout)
 					{
 						clearTimeout(clickTimeout);

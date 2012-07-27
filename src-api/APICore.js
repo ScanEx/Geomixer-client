@@ -1378,7 +1378,7 @@ window.gmxAPI = {
 		window[name] = undefined;
 		var script = document.createElement("script");
 		var done = false;
-		//var count = 0;
+		//var count = 0;		// Попытки загрузки
 		
 		script.onerror = function()
 		{
@@ -1406,7 +1406,7 @@ window.gmxAPI = {
 		{
 			if (!done)
 			{
-				if ( this.readyState === 'loaded' )
+				if ( this.readyState === 'loaded' || this.readyState === 'complete' )
 				{
 					clearInterval(intervalError);
 					if ( window[name] !== undefined )
@@ -1422,7 +1422,7 @@ window.gmxAPI = {
 //			count++;
 			if (!done)
 			{
-				if (script.readyState === 'loaded')
+				if (script.readyState === 'loaded' || this.readyState === 'complete')
 				{
 					clearInterval(intervalError);
 					if (typeof window[name] === 'undefined')
@@ -1430,12 +1430,12 @@ window.gmxAPI = {
 						if (onError) onError();
 					}
 					done = true;
-/*					
+/*
 				} else if (count > 100)
 				{
 					clearInterval(intervalError);
 					if (onError) onError();
-*/					
+*/
 				}
 			}
 		}, 50);
@@ -1956,10 +1956,10 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			}),
 			iframe;
 
-			//iframe = document.createElement('<iframe style="display:none" encoding="UTF-8" onload="' + callbackName + '()" src="javascript:true" id="' + id + '" name="' + id + '"></iframe>');
-		if (/msie/.test(userAgent) && !/opera/.test(userAgent))
+		try{
 			iframe = document.createElement('<iframe style="display:none" onload="' + callbackName + '()" src="javascript:true" id="' + id + '" name="' + id + '"></iframe>');
-		else
+        }
+		catch (e)
 		{
 			iframe = document.createElement("iframe");
 			iframe.style.display = 'none';
@@ -2003,9 +2003,10 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		}
 		else
 		{
-			if (/msie/.test(userAgent) && !/opera/.test(userAgent))
+            try {
 				form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post" accept-charset="UTF-8"></form>');
-			else
+            }
+			catch (e)
 			{
 				form = document.createElement("form");
 				form.acceptCharset = 'UTF-8';
@@ -2167,6 +2168,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 						{ 
 							layer.properties.mapName = layers.properties.name;
 							layer.properties.hostName = hostName;
+							layer.mercGeometry = gmxAPI.clone(layer.geometry);
 							layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
 						});
 					}
@@ -3038,12 +3040,10 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 			}
 		);
 	}
-/*
 	var errorConfig = function()
 	{
 		createFlashMapInternal(div, {}, callback);
 	}
-*/	
 	if (!gmxAPI.getScriptURL("config.js"))
 	{
 		gmxAPI.loadVariableFromScript(
@@ -3051,7 +3051,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 			"baseMap",
 			finish,
 			//errorConfig	// Нет config.js
-			finish			// Нет config.js
+			finish			// Есть config.js
 		);
 	}
 	else

@@ -1,4 +1,6 @@
-﻿(function(){
+﻿//рисует диалог со списком карт.
+//позволяет загрузить карту, просмотреть слои карты, перетащить слой в текущую карту
+(function(){
 
 nsGmx.MapsManagerControl = function()
 {
@@ -154,7 +156,7 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapsManager)
 	
 	addExternal.onclick = function()
 	{
-		_queryExternalMaps.addMapElem(_mapHelper.mapProperties.hostName, map.Name)
+		_queryExternalMaps.addMapElem(_layersTree.treeModel.getMapProperties().hostName, map.Name);
 	}
 	
 	remove.onclick = function()
@@ -228,7 +230,7 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
 		var previewMapHelper = new mapHelper();
         var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false});
 		
-		previewMapHelper.mapTree = layers;
+		//previewMapHelper.mapTree = layers;
         previewMapHelper._treeView = previewLayersTree;
 		previewLayersTree.mapHelper = previewMapHelper;
         

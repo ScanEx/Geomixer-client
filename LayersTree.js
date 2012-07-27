@@ -49,5 +49,10 @@ nsGmx.LayersTree = function( tree )
             return this.findElem("LayerID", gmxProperties.content.properties.LayerID);
         else if (typeof gmxProperties.content.properties.MultiLayerID !== 'undefined') //мультислой
             return this.findElem("MultiLayerID", gmxProperties.content.properties.MultiLayerID);
-    }    
+    }
+    
+    this.forEachLayer = function(callback)
+    {
+        forEachLayer(_tree, callback);
+    }
 }

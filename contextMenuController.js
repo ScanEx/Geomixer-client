@@ -337,7 +337,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		return !context.layerManagerFlag && 
 				( _queryMapLayers.currentMapRights() === "edit" || (_queryMapLayers.currentMapRights() == "view" && nsGmx.AuthManager.isLogin() ) ) && 
 				context.elem.type == "Vector" &&
-				_mapHelper.mapProperties.CanDownloadVectors;
+				context.tree.treeModel.getMapProperties().CanDownloadVectors;
 	},
 	clickCallback: function(context)
 	{
@@ -492,12 +492,12 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	clickCallback: function(context)
 	{
         var securityDialog = new nsGmx.mapSecurity();
-		securityDialog.getRights(context.tree.mapHelper.mapProperties.MapID, context.tree.mapHelper.mapProperties.title);
+		securityDialog.getRights(context.tree.treeModel.getMapProperties().MapID, context.tree.treeModel.getMapProperties().title);
 	},
 	isVisible: function(context)
 	{
 		return nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_MAP_RIGHTS ) && 
-		 ( (context.tree.mapHelper.mapProperties.Owner == nsGmx.AuthManager.getNickname()) || 
+		 ( (context.tree.treeModel.getMapProperties().Owner == nsGmx.AuthManager.getNickname()) || 
 		   nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) );
 	}
 }, 'Map');

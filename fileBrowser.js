@@ -155,10 +155,7 @@ fileBrowser.prototype.loadInfoHandler = function()
 {
 	if (this.currentDir == '')
 	{
-		if (_mapHelper.mapProperties.LayersDir)
-			this.currentDir = _mapHelper.mapProperties.LayersDir;
-		else
-			this.currentDir = nsGmx.AuthManager.getUserFolder();
+        this.currentDir = _layersTree.treeModel.getMapProperties().LayersDir || nsGmx.AuthManager.getUserFolder();
 	}
 	
 	this.currentSortFunc = this.sortFuncs['name'][0];

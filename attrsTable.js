@@ -141,15 +141,20 @@ attrsTable.prototype.getInfo = function()
 	
 	_(canvas, [loading])
 
-	showDialog(_gtxt("Таблица атрибутов слоя [value0]", this.layerTitle), canvas, 800, 500, false, false, 
-        function()
+	showDialog(_gtxt("Таблица атрибутов слоя [value0]", this.layerTitle), canvas, 
         {
-            _this.resizeFunc.apply(_this,arguments)
-        },
-        function()
-        {
-            if (_this._listenerId !== null)
-                globalFlashMap.layers[_this.layerName].removeListener( 'onChangeLayerVersion', _this._listenerId );
+            width: 800, 
+            height: 500, 
+            resizeFunc: function()
+            {
+                _this.resizeFunc.apply(_this,arguments)
+            },
+            closeFunc: function()
+            {
+                if (_this._listenerId !== null)
+                    globalFlashMap.layers[_this.layerName].removeListener( 'onChangeLayerVersion', _this._listenerId );
+            },
+            setMinSize: false
         }
     )
 	

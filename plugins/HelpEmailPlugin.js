@@ -25,8 +25,9 @@ var publicInterface = {
 			if (_queryMapLayers.buildedTree){
 				leftContentHeightDecrease = 50;
 				clearInterval(interval);
-				var sSubject = escape("BugReport: MapID=" + _mapHelper.mapProperties.name + " ; Login=" + nsGmx.AuthManager.getLogin());
-				var sBody = escape("MapUrl: http://maps.kosmosnimki.ru/api/index.html?" + _mapHelper.mapProperties.name);
+                var sMapID = _layersTree.treeModel.getMapProperties().name;
+				var sSubject = escape("BugReport: MapID=" + sMapID + " ; Login=" + nsGmx.AuthManager.getLogin());
+				var sBody = escape("MapUrl: http://maps.kosmosnimki.ru/api/index.html?" + sMapID);
 				var sAddress = "mailto:" + _params.EMail + "?subject=" + sSubject + "&body=" + sBody; 
 				var oLink = _a([_t(_gtxt("HelpEmailPlugin.Message"))], [[ "attr", "href", sAddress]]);
 				oLink.style.textDecoration = "none"

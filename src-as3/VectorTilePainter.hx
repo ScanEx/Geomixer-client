@@ -11,6 +11,7 @@ class VectorTilePainter
 	var rasterSprite:Sprite;
 	var vectorSprite:Sprite;
 	var cacheSprite:Sprite;
+	public var xShift:Float;
 
 	public var tileGeometry:MultiGeometry;
 	public var clustersGeometry:MultiGeometry;
@@ -35,6 +36,7 @@ class VectorTilePainter
 		cacheSprite = new Sprite();
 		cacheSprite.mouseEnabled = false;
 		clustersGeometry = null;
+		xShift = 0;
 	}
 
 	public function remove()
@@ -46,8 +48,7 @@ class VectorTilePainter
 	public function setOffset(dx:Float)
 	{
 		if(vectorSprite.x != dx) {
-			rasterSprite.x = dx;
-			vectorSprite.x = dx;
+			xShift = rasterSprite.x = vectorSprite.x = dx;
 		}
 	}
 

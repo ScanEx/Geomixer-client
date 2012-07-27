@@ -446,6 +446,7 @@ class Utils
 				xx += memberSource.x;
 				yy += memberSource.y;
 				members.push(memberSource);
+//trace('sssssssss ' + memberSource.propTemporal);
 			}
 			xx /= arr.length;
 			yy /= arr.length;
@@ -462,8 +463,9 @@ class Utils
 			objIndexes.push(ph.arr);
 			var pt:PointGeometry = getCenterGeometry(ph.arr);
 			var prop:Hash<String> = new Hash<String>();
+			var first = geom.members[ph.arr[0]];
 			if (ph.arr.length == 1) {
-				var propOrig = geom.members[ph.arr[0]].properties;
+				var propOrig = first.properties;
 				for (key in propOrig.keys()) prop.set(key, propOrig.get(key));
 				pt.propHiden.set('_paintStyle', vectorLayerFilter.regularStyleOrig);
 			}
@@ -472,7 +474,9 @@ class Utils
 				prop.set(identityField, 'cl_' + getNextId());
 				setProperties(prop, ph.arr.length);
 			}
-			
+
+			if(first.propTemporal != null) pt.propTemporal = first.propTemporal;
+//trace('sssssssss ' + pt.propTemporal);
 			pt.properties = prop;
 			centersGeometry.addMember(pt);
 		}

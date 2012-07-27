@@ -21,7 +21,7 @@ class MarkerStyle
 
 	public var markerWidth:Float;		// ширина маркера в Меркаторе
 	public var markerHeight:Float;		// высота маркера в Меркаторе
-	
+
 	var marker:Dynamic;
 	var minScale:Float;
 	var maxScale:Float;
@@ -96,12 +96,12 @@ class MarkerStyle
 					ldr.rotation = ang;
 					var sc = ldr.scaleX * (me.scaleFunction != null ? me.scaleFunction(geom.properties) : me.marker.scale);
 					ldr.scaleX = ldr.scaleY = sc;
-					me.markerWidth = w * sc;
-					me.markerHeight = h * sc;
 					ldr.mouseEnabled = false;
 					ldr.mouseChildren = false;
 					spr.addChild(ldr);
 				}
+				me.markerWidth = w;
+				me.markerHeight = h;
 				Main.needRefreshMap = true;		// Для обновления маркеров
 				//Main.refreshMap();		// Для обновления маркеров
 				onLoad();
@@ -238,7 +238,7 @@ class MarkerStyle
 					var h = bitmapData.height;
 					me.drawFunction = function(geom:PointGeometry, graphics:Graphics, scaleY:Float)
 					{
-						var matrix = me.getMatrix(geom, bitmapData.width, bitmapData.height, scaleY);
+						var matrix = me.getMatrix(geom, w, h, scaleY);
 						var p1 = matrix.transformPoint(new Point(0, 0));
 						var p2 = matrix.transformPoint(new Point(w, 0));
 						var p3 = matrix.transformPoint(new Point(w, h));
@@ -251,9 +251,9 @@ class MarkerStyle
 						graphics.lineTo(p4.x, p4.y);
 						graphics.lineTo(p1.x, p1.y);
 						graphics.endFill();
-						me.markerWidth = bitmapData.width * scaleY;
-						me.markerHeight = bitmapData.height * scaleY;
 					}
+					me.markerWidth = w;
+					me.markerHeight = h;
 					Main.needRefreshMap = true;		// Для обновления маркеров
 				}
 				onLoad();

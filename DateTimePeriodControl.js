@@ -32,7 +32,7 @@ var initTranslations = function()
  @memberOf cover
  @class Контрол для задания диапазона дат. Сontrols: два календарика, выбор периода, галочка с выбором года
 */
-var Calendar = function()
+var Calendar = function(name, params)
 {
 	this._visModeController = (function()
 	{
@@ -267,6 +267,9 @@ var Calendar = function()
 	{
 		return this._visModeController;
 	}
+    
+    if (typeof name !== 'undefined')
+        this.init(name, params);
 }
 
 /**
@@ -281,6 +284,7 @@ var Calendar = function()
  * showSwitcher - {bool} показывать ли иконку для разворачивания/сворачивания периода<br/>
  * dateBegin, dateEnd - {Date} текущие даты для календарей <br/>
  * showTime - {bool} показывать ли время (default: true)
+ * container - {string} куда добавлять календарик
  */
 Calendar.prototype.init = function( name, params )
 {
@@ -296,7 +300,8 @@ Calendar.prototype.init = function( name, params )
 		showSwitcher: true,
         showTime: true,
         dateMax: new Date(),
-        dateMin: new Date(1900, 1, 1)
+        dateMin: new Date(1900, 1, 1),
+        dateFormat: 'dd.mm.yy'
 	}, params)
 	
 	this.lazyDate = nsGmx.Utils._select([_option([_t(_gtxt("calendarWidget.Custom"))],[['attr','value','']]),
@@ -435,6 +440,9 @@ Calendar.prototype.init = function( name, params )
 		$(this.dateBegin).datepicker("setDate", this.lazyDate.value === '' ? curUTCDate : this.getBeginByEnd() );
 	else
 		$(this.dateBegin).datepicker("setDate", this._params.dateBegin );
+        
+    if (this._params.container)
+        $('#' + this._params.container).append(this.canvas);
 }
 
 Calendar.prototype.fixDate = function(date)

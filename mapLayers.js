@@ -1191,7 +1191,7 @@ layersTree.prototype.setLayerVisibility = function(checkbox)
 // приводит в соответствие видимость слоев на карте вложенным слоям указанного элемента дерева
 layersTree.prototype.updateChildLayersMapVisibility = function(div)
 {
-	var treeParent = div.getAttribute('MapID') ? this.mapHelper.mapTree : this.findTreeElem(div).elem
+	var treeParent = div.getAttribute('MapID') ? this.treeModel.getRawTree() : this.findTreeElem(div).elem
 	
 	this.mapHelper.findChilds(treeParent, function(child, visible)
 	{
@@ -1315,7 +1315,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
             }
             else
             {
-                if ( _this.treeModel.findTreeElemByGmxProperties(gmxProperties) )
+                if ( _this.treeModel.findElemByGmxProperties(gmxProperties) )
                 {
                     if (layerProperties.type === 'layer')
                         showErrorMessage(_gtxt("Слой '[value0]' уже есть в карте", layerProperties.content.properties.title), true)
@@ -1437,8 +1437,8 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 				else if (layerProperties.content.properties.type != 'Vector' && !layerProperties.content.properties.MultiLayerID)
 					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:21}];
 				
-				layerProperties.content.properties.mapName = _this.mapHelper.mapProperties.name;
-				layerProperties.content.properties.hostName = _this.mapHelper.mapProperties.hostName;
+				layerProperties.content.properties.mapName = _this.treeModel.getMapProperties().name;
+				layerProperties.content.properties.hostName = _this.treeModel.getMapProperties().hostName;
 				layerProperties.content.properties.visible = true;
 				
 				copyFunc();
@@ -1455,8 +1455,8 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 				
 				layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:20}];
 				
-				layerProperties.content.properties.mapName = _this.mapHelper.mapProperties.name;
-				layerProperties.content.properties.hostName = _this.mapHelper.mapProperties.hostName;
+				layerProperties.content.properties.mapName = _this.treeModel.getMapProperties().name;
+				layerProperties.content.properties.hostName = _this.treeModel.getMapProperties().hostName;
 				layerProperties.content.properties.visible = true;
 				
 				copyFunc();
@@ -1654,7 +1654,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 	if (!objLength(condition.visible) && !objLength(condition.expanded) && !objLength(mapLayersParam))
 		return;
 
-	var parentElem = typeof div == 'undefined' ? _mapHelper.mapTree : _layersTree.findTreeElem(div).elem,
+	var parentElem = typeof div == 'undefined' ? _layersTree.treeModel.getRawTree() : _layersTree.findTreeElem(div).elem,
 		visFlag = typeof div == 'undefined' ? true : _layersTree.getLayerVisibility(div.firstChild),
 		_this = this;
 	
@@ -1809,7 +1809,7 @@ queryMapLayers.prototype.rasterLayersSlider = function(parent)
 				}
 				
 				// группа или карта
-				var treeElem = !active.length ? {elem:_mapHelper.mapTree, parents:[], index:false} : _layersTree.findTreeElem(active[0].parentNode);
+				var treeElem = !active.length ? {elem: _layersTree.treeModel.getRawTree(), parents:[], index:false} : _layersTree.findTreeElem(active[0].parentNode);
 				
 				_mapHelper.findChilds(treeElem.elem, function(child)
 				{
@@ -1838,7 +1838,8 @@ queryMapLayers.prototype.rasterLayersSlider = function(parent)
 
 queryMapLayers.prototype.currentMapRights = function()
 {
-	return _mapHelper.mapProperties ? _mapHelper.mapProperties.Access : "none";
+    var mapProperties = _layersTree.treeModel.getMapProperties();
+	return mapProperties ? mapProperties.Access : "none";
 }
 
 queryMapLayers.prototype.layerRights = function(name)
@@ -1989,8 +1990,9 @@ queryMapLayers.prototype.asyncCreateLayer = function(task, title)
     {
 		var newLayerProperties = taskInfo.Result.properties;
 		
-		newLayerProperties.mapName = _mapHelper.mapProperties.name;
-		newLayerProperties.hostName = _mapHelper.mapProperties.hostName;
+        var mapProperties = _layersTree.treeModel.getMapProperties()
+		newLayerProperties.mapName = mapProperties.name;
+		newLayerProperties.hostName = mapProperties.hostName;
 		newLayerProperties.visible = true;
 		
 		if (!newLayerProperties.styles)
@@ -2072,8 +2074,9 @@ queryMapLayers.prototype.asyncUpdateLayer = function(task, properties, needRetil
                 var newLayerProperties = taskInfo.Result.properties,
                     layerDiv = $(_queryMapLayers.buildedTree).find("[LayerID='" + properties.LayerID + "']")[0];
                 
-                newLayerProperties.mapName = _mapHelper.mapProperties.name;
-                newLayerProperties.hostName = _mapHelper.mapProperties.hostName;
+                var mapProperties = _layersTree.treeModel.getMapProperties();
+                newLayerProperties.mapName = mapProperties.name;
+                newLayerProperties.hostName = mapProperties.hostName;
                 newLayerProperties.visible = layerDiv.gmxProperties.content.properties.visible;
                 
                 newLayerProperties.styles = layerDiv.gmxProperties.content.properties.styles;
@@ -2245,7 +2248,7 @@ queryMapLayers.prototype.createMap = function(name)
         
         var saveTree = {};
         
-        $.extend(true, saveTree, _mapHelper.mapTree)
+        $.extend(true, saveTree, _layersTree.treeModel.getRawTree())
         
         //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)
@@ -2290,7 +2293,7 @@ queryMapLayers.prototype.createMap = function(name)
         var loading = _img(null, [['attr','src','img/loader2.gif'],['attr','savestatus','true'],['css','margin','8px 0px 0px 10px']]);
         _($$('headerLinks'), [loading]);
         
-        sendCrossDomainJSONRequest(serverBase + "Map/GetMapVersion.ashx?WrapStyle=func&MapName=" + _mapHelper.mapProperties.name, function(response)
+        sendCrossDomainJSONRequest(serverBase + "Map/GetMapVersion.ashx?WrapStyle=func&MapName=" + _layersTree.treeModel.getMapProperties().name, function(response)
         {
             if (!parseResponse(response))
             {
@@ -2303,11 +2306,11 @@ queryMapLayers.prototype.createMap = function(name)
             {
                 saveMapInternal("Map/SaveMap.ashx", null, function()
                     {
-                        _mapHelper.mapProperties.Version = response.Result + 1;
+                        _layersTree.treeModel.getMapProperties().Version = response.Result + 1;
                     });
             }
             
-            if (response.Result > _mapHelper.mapProperties.Version)
+            if (response.Result > _layersTree.treeModel.getMapProperties().Version)
             {
                 if (confirm(_gtxt("Карта имеет более новую версию. Сохранить?")))
                 {

@@ -96,6 +96,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 
 	static function main()
 	{
+		var needOnMoveEnd:Bool = false;
 		var needCacheBitmap:Bool = false;
 		var root = flash.Lib.current;
 		var menu = new ContextMenu();
@@ -166,9 +167,11 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			var ww = Utils.worldWidth;
 			if(ww < maxX) currentX = constrain(-100000000, x, 100000000);
 			else currentX = constrain(minX, x,  maxX);
-			currentX %= 2 * ww;
-			if (currentX > ww) currentX -= 2*ww;
-			else if (currentX < -ww) currentX += 2*ww;
+			if(mapWindow.cacheBitmap != null && !mapWindow.cacheBitmap.visible) {
+				currentX %= 2 * ww;
+				if (currentX > ww) currentX -= 2*ww;
+				else if (currentX < -ww) currentX += 2*ww;
+			}
 			currentY = constrain(minY, y, maxY);
 			currentZ = constrain(minZ, z, maxZ);
 			viewportHasMoved = true;
@@ -254,7 +257,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				root.removeEventListener(Event.ENTER_FRAME, listener);
 				isFluidMoving = false;
 				stopFluidMove = null;
-				onMoveEnd();
+				needOnMoveEnd = true;
 				Main.isDrawing = false;
 				mapWindow.rootNode.noteSomethingHasChanged();
 				Main.needRefreshMap = true;
@@ -388,6 +391,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			clickedNode = null;
 			isDragging = false;
 			Main.isDraggingNow = false;
+			mapWindow.rootNode.noteSomethingHasChanged();
 			//Main.draggingDisabled = false;
 			//viewportHasMoved = true;
 		}
@@ -406,7 +410,6 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			{
 				isMoving = false;
 				viewportHasMoved = true;	// вьюпорт не двигался
-				onMoveEnd(event);
 			}
 			if (clickedNode != null)
 				clickedNode.callHandler("onMouseUp", nodeFrom);
@@ -432,6 +435,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			}
 			nodeFrom = null;
 			clickedNode = null;
+			setCurrentPosition(currentX, currentY, currentZ);
 		});
 		var cursor:Sprite = Utils.addSprite(root);
 		cursor.name = 'cursor';
@@ -462,6 +466,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		mapSprite.addEventListener(MouseEvent.MOUSE_MOVE, windowMouseMove);
 		root.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
+			Main.bumpFrameRate();
 			//windowMouseMove(event);
 			var dx:Float = root.mouseX - startMouseX;
 			var dy:Float = root.mouseY - startMouseY;
@@ -470,11 +475,12 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			repaintCursor();
 			//if (!Main.isDraggingNow)	event.stopImmediatePropagation();
 			if (!Main.draggingDisabled && event.buttonDown && needCacheBitmap) {		// При нажатой мышке и needCacheBitmap
+//trace('__MOUSE_MOVE___ ' + Main.draggingDisabled + ' : ' + event.buttonDown + ' : ' + Main.mousePressed + ' : ' + mapWindow.rootNode.id);
 				needCacheBitmap = false;
-				Main.bumpFrameRate();
 				Main.mousePressed = false;
 				repaintCacheBitmap();
 				Main.mousePressed = true;
+				needOnMoveEnd = true;
 			}
 		});
 
@@ -569,7 +575,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 
 			if (viewportHasMoved)
 			{
-				if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 200;
+				if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 40;
 				viewportHasMoved = false;
 				wasMoving = isMoving;
 			}
@@ -589,7 +595,14 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 
 			curTimer = curTimerNew;
 			var onMoveFlag:Bool = (needCallMoveHandler > 0 && (needCallMoveHandler < curTimerNew || Main.draggingDisabled));
-			if(onMoveFlag) callHandlers('onMove');
+			if (onMoveFlag) {
+				callHandlers('onMove');
+			}
+			if (needOnMoveEnd && !Main.mousePressed) {
+//trace('_______onMoveEnd________ ' + needOnMoveEnd + ' : ' + mapWindow.id + ' : ' + mapWindow.rootNode.getHandler('onMoveEnd') + ' : ' + Main.mousePressed);
+				onMoveEnd();
+				needOnMoveEnd = false;
+			}
 
 			if (!Main.mousePressed && (curTimer - Main.lastFrameBumpTime) > 2000)
 			//if ((curTimer - Main.lastFrameBumpTime) > 2000)
@@ -654,6 +667,8 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 					}
 					else
 						node.setContent(new VectorObject(geometry));
+					Main.needRefreshMap = true;
+					Main.bumpFrameRate();
 				}
 			});
 			Main.bumpFrameRate();
@@ -687,9 +702,11 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		function setHandler(id:String, eventName:String, ?callbackName:String)
 		{ 
 			var node:MapNode = getNode(id);
+//trace('_______________ ' + eventName + ' : ' + id + ' : ' + callbackName);
 
 			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode, ?data_:Dynamic)
 			{
+//trace('ssss22sss ' + eventName + ' : ' + callbackName + ' : ' + id);
 				var props:Dynamic;
 				if (data_ != null)
 				{
@@ -837,17 +854,18 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		function setClusters(id:String, data:Dynamic):Dynamic
 		{
 			var node = getNode(id);
-			if (node == null || node.content == null) return null;
-			if (!Reflect.isFunction(node.content.setClusters)) return null;
-			return node.content.setClusters(data);
+			if (node == null || node.content == null || !Std.is(node.content, VectorLayerFilter)) return null;
+			var ret = cast(node.content, VectorLayerFilter).setClusters(data);
+			node.noteSomethingHasChanged();
+			Main.needRefreshMap = true;
+			return ret;
 		}
 
 		function delClusters(id:String):Dynamic
 		{
 			var node = getNode(id);
-			if (node == null || node.content == null) return null;
-			if (!Reflect.isFunction(node.content.delClusters)) return null;
-			return node.content.delClusters();
+			if (node == null || node.content == null || !Std.is(node.content, VectorLayerFilter)) return null;
+			return cast(node.content, VectorLayerFilter).delClusters();
 		}
 
 		function getDepth(id:String):Dynamic
@@ -881,6 +899,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				var geom = Utils.parseGeometry(geometry);
 				geom.properties = node.propHash;
 				node.setContent(new VectorObject(geom));
+				Main.needRefreshMap = true;
 			}
 			return node.id;
 		}
@@ -903,6 +922,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				}
 				ret.push(tId);
 			}
+			Main.needRefreshMap = true;
 			return ret;
 		}
 
@@ -934,7 +954,16 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			var node = getNode(id);
 			if (func != null && node != null)
 			{
-				node.setContent(new VectorLayerFilter(func));
+				var clustersAttr:Dynamic = null;
+				var cont:VectorLayerFilter = cast(node.content);
+				if (cont != null && Std.is(cont, VectorLayerFilter)) {
+					clustersAttr = cont.clusterAttr;
+				}
+				cont = new VectorLayerFilter(func);
+				node.setContent(cont);
+				if (clustersAttr != null) {
+					cont.setClusters(clustersAttr);
+				}
 				Main.bumpFrameRate();
 				return true;
 			}
@@ -1063,6 +1092,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			if ((node.content != null) && Std.is(node.content, VectorObject))
 				newContent.setMask(cast(node.content, VectorObject).geometry);
 			node.setContent(newContent);
+			Main.needRefreshMap = true;
 		}
 
 		function setImage(id:String, url:String, 
@@ -1077,6 +1107,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			if ((node.content != null) && Std.is(node.content, VectorObject))
 				newContent.setMask(cast(node.content, VectorObject).geometry);
 			node.setContent(newContent);
+			Main.needRefreshMap = true;
 		}
 
 		function getFeatureById(id:String, fid:String, func:String)
@@ -1235,12 +1266,12 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					onMoveBegin();
 					Main.bumpFrameRate();
 					fluidMoveTo(attr.x, attr.y, attr.z, 10);
-					//onMoveEnd();
+					//needOnMoveEnd = true;
 				case 'moveTo':
 					onMoveBegin();
 					Main.bumpFrameRate();
 					setCurrentPosition(attr.x, attr.y, Math.round(attr.z));
-					onMoveEnd();
+					//needOnMoveEnd = true;
 				case 'zoomBy':
 					onMoveBegin();
 					var dz:Float = attr.dz;
@@ -1253,7 +1284,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 						my = sprite.mouseY;
 					}
 					zoomBy(-dz, mx, my);
-					//onMoveEnd();
+					//needOnMoveEnd = true;
 				case 'freeze':
 					Main.draggingDisabled = true; 
 				case 'unfreeze':
@@ -1307,13 +1338,13 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					maxY = attr.y2;
 					onMoveBegin();
 					setCurrentPosition(currentX, currentY, currentZ);
-					onMoveEnd();
+					//needOnMoveEnd = true;
 				case 'setMinMaxZoom':
 					minZ = attr.z1;
 					maxZ = attr.z2;
 					onMoveBegin();
 					setCurrentPosition(currentX, currentY, currentZ);
-					onMoveEnd();
+					//needOnMoveEnd = true;
 				case 'addMapWindow':
 					var lastCurrentZ:Float = -100, lastComputedZ:Float = 0;
 					var window = new MapWindow(Utils.addSprite(root), function()
@@ -1343,6 +1374,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 						node.repaintObjects();			// отрисовка обьектов addObject
 					}
 					Main.dispatchMouseLeave();
+					Main.needRefreshMap = true;
 				case 'getStyle':
 					var node = getNode(attr.objectId);
 					if(node != null) out = cast(node.getStyle(attr.removeDefaults));

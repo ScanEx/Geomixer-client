@@ -64,7 +64,7 @@
         (function(g,b,d){var c=b.head||b.getElementsByTagName("head"),D="readyState",E="onreadystatechange",F="DOMContentLoaded",G="addEventListener",H=setTimeout;
         H(function(){if("item"in c){if(!c[0]){H(arguments.callee,25);return}c=c[0]}var a=b.createElement("script"),e=false;a.onload=a[E]=function(){if((a[D]&&a[D]!=="complete"&&a[D]!=="loaded")||e){return false}a.onload=a[E]=null;e=true;callback()};
 
-        a.src = getScriptBase('gmxcore.js') + 'LAB.min.js';
+        a.src = ( getScriptBase('gmxcore.js') || window.gmxJSHost || "" ) + 'LAB.min.js';
 
         c.insertBefore(a,c.firstChild)},0);if(b[D]==null&&b[G]){b[D]="loading";b[G](F,d=function(){b.removeEventListener(F,d,false);b[D]="complete"},false)}})(this,document);
     }
@@ -120,21 +120,22 @@
         //Load module from file. If not defined moduleSource, filename is constructed as (defaultHost + moduleName + '.js')
         loadModule: function(moduleName, moduleSource, callback)
         {
+            callback && this.addModulesCallback([moduleName], callback);
+            
             if ( ! (moduleName in _modules) )
             {
                 var headElem = document.getElementsByTagName("head")[0];
                 var newScript = document.createElement('script');
                 
-                callback && this.addModulesCallback([moduleName], callback);
                 
                 var path;
                 if (typeof moduleSource != 'undefined')
                 {
-                    path = moduleSource;
+                    path = moduleSource.match(/^http:\/\//i) ? moduleSource : (window.gmxJSHost || "") + moduleSource;
                 }
                 else
                 {
-                    path = (moduleName in _moduleFiles) ? _moduleFiles[moduleName] : _modulesDefaultHost + moduleName + '.js';
+                    path = (moduleName in _moduleFiles) ? _moduleFiles[moduleName] : (_modulesDefaultHost || window.gmxJSHost || "") + moduleName + '.js';
                 }
 
                 var pathRegexp = /(.*)\/[^\/]+/;
@@ -217,7 +218,7 @@
         loadScriptWithCheck: function(filesInfo)
         {
             var _this = this;
-            var localFilesInfo = filesInfo.splice(0);
+            var localFilesInfo = filesInfo.slice(0);
             var def = $.Deferred();
             
             var doLoad = function(info)

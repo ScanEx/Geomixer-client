@@ -98,7 +98,7 @@ queryExternalMaps.prototype.addMapElem = function(hostName, mapName)
 		if (!mapElem.extLayersTree)
 			return;
 		
-		forEachLayer(mapElem.extLayersTree.mapHelper.mapTree, function(layer, isVisible) 
+		mapElem.extLayersTree.treeModel.forEachLayer(function(layer, isVisible) 
 		{ 
 			var name = layer.properties.name;
 			
@@ -141,7 +141,7 @@ queryExternalMaps.prototype.addMap = function(hostName, mapName, parent)
 		_(parent, [tree]);
         
         //добавляем перетаскивание в основную карту только если доп. карта с того же домена
-        if ( hostName === _mapHelper.mapProperties.hostName )
+        if ( hostName === _layersTree.treeModel.getMapProperties().hostName )
             _queryMapLayers.addDraggable(parent);
 		
 		parent.extLayersTree = extLayersTree;
@@ -162,7 +162,6 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 				{
 					globalFlashMap.addLayer(layer, isVisible);
 					globalFlashMap.layers[name].setVisible(isVisible);
-					//globalFlashMap.layers[name].bounds = getLayerBounds(globalFlashMap.layers[name].geometry.coordinates[0], globalFlashMap.layers[name]);
 					
 					globalFlashMap.layers[name].external = true;
 				}

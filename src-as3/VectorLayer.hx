@@ -358,6 +358,7 @@ class VectorLayer extends MapContent
 		zeroDistanceFilters = new Array<VectorLayerFilter>();
 		//hoverTiles = new Array<VectorTile>();
 
+		var sc2:Float = mapNode.window.scaleY * mapNode.window.scaleY;
 		var pointSize = 15*Math.abs(mapNode.window.scaleY);
 		var pointExtent = new Extent();
 		pointExtent.update(x - pointSize, y - pointSize);
@@ -386,6 +387,7 @@ class VectorLayer extends MapContent
 				if (filterStyle.hasMarkerImage() && filter.clusterAttr == null) {		// Если стиль имеет маркер то мин.дистанция = размер маркера
 					distZero = filterStyle.marker.markerWidth * filterStyle.marker.markerWidth;
 					distZero += filterStyle.marker.markerHeight * filterStyle.marker.markerHeight;
+					distZero *= sc2;
 				} else {
 					distZero = 0.; 
 				}

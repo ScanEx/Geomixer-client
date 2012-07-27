@@ -180,14 +180,6 @@ mapHelper.prototype.updateUnloadEvent = function(flag)
 		window.onbeforeunload = null;
 }
 
-mapHelper.prototype.forEachMyLayer = function(callback)
-{
-	forEachLayer(this.mapTree, function(layer)
-	{
-		callback(globalFlashMap.layers[layer.properties.name]);
-	});
-}
-
 mapHelper.prototype.setBalloon = function(filter, template)
 {
 	filter.enableHoverBalloon(function(o)
@@ -333,19 +325,6 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
 	});
 }
 
-mapHelper.prototype.addTinyReference = function()
-{
-	var a = _a([_img(null,[['attr','src','img/link.gif'],['css','margin','0px 3px -2px 0px']]),_t(_gtxt("Сохранить состояние карты"))],[['attr','href','javascript:void(0)']]),
-		_this = this;
-	
-	a.onclick = function()
-	{
-		_this.showPermalink()
-	}
-		
-	$$('headerSubCanvas').insertBefore(a, $$('headerSubCanvas').firstChild)
-}
-
 mapHelper.prototype.getMapState = function()
 {
 	var drawnObjects = [],
@@ -373,7 +352,7 @@ mapHelper.prototype.getMapState = function()
 		drawnObjects.push(elem);
 	});
 	
-	this.findTreeElems(this.mapTree, function(elem)
+	this.findTreeElems(_layersTree.treeModel.getRawTree(), function(elem)
 	{
 		if (elem.type == 'group')
 		{
@@ -396,7 +375,7 @@ mapHelper.prototype.getMapState = function()
 		}
 	})
 	
-	var mapState = {
+	return {
 		mode: globalFlashMap.getBaseLayer(),
 		mapName: globalMapName,
 		position: { 
@@ -412,15 +391,13 @@ mapHelper.prototype.getMapState = function()
 		customParams : typeof window.collectCustomParams != 'undefined' ? window.collectCustomParams() : null,
 		customParamsCollection: this.customParamsManager.saveParams()
 	}
-	
-	return mapState;
 }
 
 mapHelper.prototype.getMapStyles = function()
 {
 	var styles = {};
 	
-	this.findChilds(this.mapTree, function(child)
+	this.findChilds(_layersTree.treeModel.getRawTree(), function(child)
 	{
 		if (child.content.properties.type == "Vector" && $("div[LayerID='" + child.content.properties.LayerID + "']").length)
 			styles[child.content.properties.name] = child.content.properties.styles;
@@ -3445,7 +3422,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		
 		saveButton.onclick = function()
 		{
-			//var selectedSource = $(sourceTab).tabs('option', 'selected'); //0 - файл, 1 - таблица, 2 - вручную
+            var mapProperties = _layersTree.treeModel.getMapProperties();
 			var isCustomAttributes = type === "Vector" && selectedSource === 2;
 			var errorFlag = false,
 				checkFields = (type == "Vector" ? ['title', 'date'] : ['title', 'date']);
@@ -3521,7 +3498,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                         "&Title=" + title.value + 
                         "&Copyright=" + copyright.value + 
                         "&Description=" + descr.value + 
-                        "&MapName=" + _mapHelper.mapProperties.name + 
+                        "&MapName=" + mapProperties.name + 
                         cols + columnsString + temporalParams +
                         "&geometrytype=" + geomType +
                         metadataString, 
@@ -3532,8 +3509,8 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 							
 							var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
 							var gmxProperties = {type: 'layer', content: response.Result};
-							gmxProperties.content.properties.mapName = _mapHelper.mapProperties.name;
-							gmxProperties.content.properties.hostName = _mapHelper.mapProperties.hostName;
+							gmxProperties.content.properties.mapName = mapProperties.name;
+							gmxProperties.content.properties.hostName = mapProperties.hostName;
 							gmxProperties.content.properties.visible = true;
 							
 							gmxProperties.content.properties.styles = [{MinZoom: gmxProperties.content.properties.MinZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]}];
@@ -3550,7 +3527,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                         "&Copyright=" + copyright.value + 
                         "&Description=" + descr.value + 
                         "&GeometryDataSource=" + geometryDataSource + 
-                        "&MapName=" + _mapHelper.mapProperties.name + 
+                        "&MapName=" + mapProperties.name + 
                         cols + updateParams + encoding + temporalParams + metadataString + tableCSParam, 
                         function(response)
 						{
@@ -3580,7 +3557,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 						TilePath: $(parent).find("[fieldName='TilePath.Path']")[0].value,
 						BorderFile: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? $(parent).find("[fieldName='ShapePath.Path']")[0].value : '',
 						BorderGeometry: typeof _this.drawingBorders.get(properties.Name) == 'undefined' ? '' : JSON.stringify(merc_geometry(_this.drawingBorders.get(properties.Name).geometry)),
-						MapName: _mapHelper.mapProperties.name,
+						MapName: mapProperties.name,
                         MetaProperties: JSON.stringify(metaProperties)
 					},
 					needRetiling = false,
@@ -3969,12 +3946,6 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 					
 					_this.findTreeElem(div).elem.content.properties = elemProperties;
 					
-					// if (_this.drawingBorders.[elemProperties.name])
-					// {
-						// _this.drawingBorders[elemProperties.name].remove();
-						
-						// delete _this.drawingBorders[elemProperties.name];
-					// }
 					_this.drawingBorders.removeRoute(elemProperties.name, true);
 					
 					if ($$('drawingBorderDialog' + elemProperties.name))
@@ -4280,16 +4251,17 @@ mapHelper.prototype.version = function()
 
 mapHelper.prototype.createAPIMapDialog = function()
 {
+    var mapProperties = _layersTree.treeModel.getMapProperties();
 	var options = {
-			requestAPIKey: (this.mapProperties.UseKosmosnimkiAPI || this.mapProperties.hostName == "maps.kosmosnimki.ru") && window.apiKey !== false,
+			requestAPIKey: (mapProperties.UseKosmosnimkiAPI || mapProperties.hostName == "maps.kosmosnimki.ru") && window.apiKey !== false,
 			saveBaseLayers: false
 		};
 		
 	if (window.defaultLayersVisibility) options.defaultLayersVisibility = window.defaultLayersVisibility;
 	
 	nsMapCommon.createAPIMapDialog(
-		_mapHelper.mapProperties.name, 
-		_mapHelper.mapProperties.hostName, 
+		mapProperties.name, 
+		mapProperties.hostName, 
 		options
 	);
 }
@@ -4325,7 +4297,7 @@ mapHelper.prototype.print = function()
 				});
 				
 				var mapState = {
-					host: _mapHelper.mapProperties.hostName,
+					host: _layersTree.treeModel.getMapProperties().hostName,
 					mode: globalFlashMap.getBaseLayer(),
 					mapName: globalMapName,
 					position: { 

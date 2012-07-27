@@ -45,6 +45,7 @@ class RasterImage extends MaskedContent
 		?attr_:Dynamic
 	)
 	{
+		isRaster = true;
 		xshift = 0.0;
 		url = url_;
 		added = false;

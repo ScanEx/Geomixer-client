@@ -186,7 +186,7 @@ var VectorSceneManager = function(params)
                         TilePath: curFolder,
                         BorderFile: '',
                         BorderGeometry: geom,
-                        MapName: _mapHelper.mapProperties.name
+                        MapName: _layersTree.treeModel.getMapProperties().name
                     }
                     
                     var doneDef = $.Deferred();

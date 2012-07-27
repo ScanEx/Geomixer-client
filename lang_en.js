@@ -90,7 +90,6 @@ _translationsHash.hash["eng"] = {
 	"Удалить" : "Delete",
 	"Извлечь" : "Extract",
 	"Упаковать" : "Add to archive",
-	"Список таблиц" : "Tables list",
 	"Загрузить" : "Download",
     "Параметр" : "Parameter",
     "Значение" : "Value",

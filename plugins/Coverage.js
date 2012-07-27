@@ -20,8 +20,9 @@
 			}, 20);
 		}
 		if (layerStatus[layerId] == 1){
+            var oMapProperties = _layersTree.treeModel.getMapProperties();
 			var sSubject = escape("Coverage layerName=" + layer.elem.content.properties.title);
-			var sBody = escape("LayerID=" + layerId + "; User: " + nsGmx.AuthManager.getNickname() + "; Map ID: " + _mapHelper.mapProperties.name + "; Map Title: " + _mapHelper.mapProperties.title);
+			var sBody = escape("LayerID=" + layerId + "; User: " + nsGmx.AuthManager.getNickname() + "; Map ID: " + oMapProperties.name + "; Map Title: " + oMapProperties.title);
 			var sLink = "mailto:sales@scanex.ru?subject=" + sSubject + "&body=" + sBody;
 			var btnSend = _a([_t('Отправить заказ')], [["attr", "href", sLink]]);
 			btnSend.onclick = function(){
@@ -64,7 +65,7 @@
 	
 	var afterViewer = function(){
 		fnRefreshTree();
-		$(_mapHelper.mapTree).bind('addTreeElem', function(event, layer){
+		$(_layersTree.treeModel.getRawTree()).bind('addTreeElem', function(event, layer){
 			layerStatus[layer.content.properties.LayerID] = 1;
 			fnRefreshLayer(layer.content.properties.LayerID);
 		})

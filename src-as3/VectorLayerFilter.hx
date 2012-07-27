@@ -117,7 +117,9 @@ class VectorLayerFilter extends MapContent
 		}
 		
 		var regularStyle = null;
-		if (clusterAttr.RenderStyle != null) clusterAttr.regularStyle = new Style(clusterAttr.RenderStyle);
+		if (clusterAttr.RenderStyle != null) {
+			clusterAttr.regularStyle = new Style(clusterAttr.RenderStyle);
+		}
 		var hoverStyle = null;
 		if (clusterAttr.HoverStyle != null) clusterAttr.hoverStyle = new Style(clusterAttr.HoverStyle);
 
@@ -150,6 +152,7 @@ class VectorLayerFilter extends MapContent
 		if(!evTarget.hasEventListener(APIEvent.CUSTOM_EVENT))
 			evTarget.addEventListener( APIEvent.CUSTOM_EVENT, chkMapMove );		
 		var me = this;
+/*		
 		if(mapNode.regularStyle == null) {
 			var timer:Timer = new Timer(20);
 			timer.addEventListener("timer", function(e:TimerEvent)
@@ -162,6 +165,7 @@ class VectorLayerFilter extends MapContent
 			});
 			timer.start();
 		} else
+*/			
 		{
 			runClusters(attr);
 		}
@@ -256,6 +260,10 @@ class VectorLayerFilter extends MapContent
 			var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
 			if (!clusterAttr._zoomDisabledHash.exists(currentZ)) {
 				curStyle = clusterAttr.regularStyle;
+				//if (curStyle != null && curStyle.marker != null && curStyle.marker.imageUrl != null && curStyle.marker.markerWidth == 0) {
+					//Main.needRefreshMap = true;
+					//return;			
+				//}
 				//curStyle = regularStyleOrig;
 			}
 		}
@@ -313,6 +321,7 @@ class VectorLayerFilter extends MapContent
 								member.properties.get(style.label.field),
 								member,
 								style
+								,tPainter.xShift
 							);
 							idsAlreadyPainted.set(id, true);
 						}

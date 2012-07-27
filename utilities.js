@@ -301,7 +301,7 @@ function makeHelpButton(helpText){
 	var btn = makeImageButton(getAPIHostRoot() + 'api/img/help.gif');
 	btn.setAttribute('title', helpText)
 	btn.onclick = function(){
-		showDialog('', _t(helpText));
+		showDialog('', _t(helpText), 300, 150);
 	}
 	return btn;
 }
@@ -329,36 +329,80 @@ function stopEvent(e)
 	return false;
 }
 
+//Показывает диалог (на основе jQuery UI dialog)
+//Параметры можно передавать явно и в виде объекта params:
+//1. showDialog(title, content, width, height, ?posX, ?posY, ?resizeFunc, ?closeFunc)
+//2. showDialog(title, content, params)
+//Параметры:
+// - title {string} Заголовок диалога
+// - content {HTMLDomElement} контент диалога
+// - width, height {int} высота и ширина диалога (обязательные параметры!)
+// - posX, posY {int} положение диалога относительно экрана. Если не задано - по центру
+// - resizeFunc {function} будет вызываться при изменении размера диалога
+// - closeFunc {function} будет вызываться при закрытии диалога
+// - setMinSize {bool} если true (по умолчанию), будут заданы минимальная ширина и высота, равные начальным размерам (width, height)
 function showDialog(title, content, width, height, posX, posY, resizeFunc, closeFunc)
 {
+    var params = null;
+    if (arguments.length == 3)
+    {
+        params = $.extend({
+            posX: false, 
+            posY: false,
+            setMinSize: true
+        }, width);
+    }
+    else
+    {
+        params = {
+            width: width,
+            height: height,
+            posX: posX,
+            posY: posY,
+            resizeFunc: resizeFunc,
+            closeFunc: closeFunc,
+            setMinSize: true
+        }
+    }
 	var canvas = _div([content]);
 	
 	_(document.body, [canvas])
-	jQuery(canvas).dialog({width:width,height:height,minWidth:width,minHeight:height,
-						title: title,
-						position: posX == false ? 'center' : [posX, posY],
-						resizable: true,
-						resize: function()
-						{
-							canvas.style.width = 'auto';
-							canvas.style.height = canvas.parentNode.clientHeight - canvas.parentNode.firstChild.clientHeight - 6 + 'px';
-							
-							// баги ие
-							if (jQuery.browser.msie)
-								canvas.parentNode.style.width = canvas.parentNode.firstChild.offsetWidth + 'px';
-							
-							resizeFunc && resizeFunc();
-						},
-						close: function(ev, ui)
-						{
-							if (closeFunc && closeFunc())
-                                return;
+	var dialogParams = {
+        width: params.width,
+        height: params.height,
+        title: title,
+        position: params.posX == false ? 'center' : [params.posX, params.posY],
+        resizable: true,
+        resize: function()
+        {
+            canvas.style.width = 'auto';
+            canvas.style.height = canvas.parentNode.clientHeight - canvas.parentNode.firstChild.clientHeight - 6 + 'px';
+            
+            // баги ие
+            if (jQuery.browser.msie)
+                canvas.parentNode.style.width = canvas.parentNode.firstChild.offsetWidth + 'px';
+            
+            params.resizeFunc && params.resizeFunc();
+        },
+        close: function(ev, ui)
+        {
+            if (params.closeFunc && params.closeFunc())
+                return;
 
-							removeDialog(canvas);
-						}});
+            removeDialog(canvas);
+        }
+    };
+    
+    if (params.setMinSize)
+    {
+        dialogParams.minWidth = params.width;
+        dialogParams.minHeight = params.height;
+    }
+                        
+    jQuery(canvas).dialog(dialogParams);
 	
-	canvas.parentNode.style.height = height + 'px';
-	canvas.style.height = height - canvas.parentNode.firstChild.clientHeight - 6 + 'px';
+	canvas.parentNode.style.height = params.height + 'px';
+	canvas.style.height = params.height - canvas.parentNode.firstChild.clientHeight - 6 + 'px';
 							
 	var dialog = canvas.parentNode;
 	dialog.style.overflow = '';
@@ -699,9 +743,10 @@ function createPostIframe(id, callback)
 		}),
 		iframe;
 
-	if (/msie/.test(userAgent) && !/opera/.test(userAgent))
+	try {
 		iframe = document.createElement('<iframe style="display:none" onload="' + callbackName + '()" src="javascript:true" id="' + id + '" name="' + id + '"></iframe>');
-	else
+    }
+	catch(e)
 	{
 		iframe = document.createElement("iframe");
 		iframe.style.display = 'none';
@@ -744,9 +789,10 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
 	}
 	else
 	{
-		if (/msie/.test(userAgent) && !/opera/.test(userAgent))
+		try {
 			form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>');
-		else
+        }
+		catch (e)
 		{
 			form = document.createElement("form");
 			form.style.display = 'none';
@@ -1202,7 +1248,7 @@ $.extend(nsGmx.Utils, {
             if (localDateValue === null) return null;
             
             var localValue = localDateValue.valueOf()/1000;
-            var timeOffset = (new Date(localValue)).getTimezoneOffset()*60;
+            var timeOffset = (new Date(localValue*1000)).getTimezoneOffset()*60;
             return localValue - timeOffset;
         }
         else if (lowerCaseType == 'time')

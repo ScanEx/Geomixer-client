@@ -7,6 +7,8 @@
 		gmxAPI.map = map;
 		gmxAPI.mapNodes[rootObjectId] = map;	// основная карта
 
+		if(!layers.properties) layers.properties = {};
+		if(!layers.children) layers.children = [];
 		//map.onSetVisible = {};
 		map.isVisible = true;
 		map.layers = [];
@@ -536,7 +538,9 @@
 		map.getVisibleExtent = function()
 		{
 			var currPos = gmxAPI.currPosition || map.getPosition();
-			if(currPos['latlng'] && currPos['latlng']['extent']) return currPos['latlng']['extent'];
+			if(currPos['latlng'] && currPos['latlng']['extent']) {
+				return currPos['latlng']['extent'];
+			}
 
 			var ww = 2 * gmxAPI.worldWidthMerc;
 			var x = currPos['x'] + ww;
@@ -549,12 +553,13 @@
 
 			var w2 = scale * gmxAPI._div.clientWidth/2;
 			var h2 = scale * gmxAPI._div.clientHeight/2;
-			return {
+			var out = {
 				minX: gmxAPI.from_merc_x(x - w2),
 				minY: gmxAPI.from_merc_y(y - h2),
 				maxX: gmxAPI.from_merc_x(x + w2),
 				maxY: gmxAPI.from_merc_y(y + h2)
 			};
+			return out;
 		}
 
 		if('_addLocationTitleDiv' in gmxAPI) gmxAPI._addLocationTitleDiv(gmxAPI._div);
@@ -591,12 +596,14 @@
 				'mouseY': gmxAPI.from_merc_y(currPos['mouseY'])
 			};
 			if(currPos['extent']) {
-				currPos['latlng']['extent'] = {
-					minX: gmxAPI.from_merc_x(currPos['extent']['minx']),
-					minY: gmxAPI.from_merc_y(currPos['extent']['miny']),
-					maxX: gmxAPI.from_merc_x(currPos['extent']['maxx']),
-					maxY: gmxAPI.from_merc_y(currPos['extent']['maxy'])
-				};
+				if(currPos['extent']['minx'] != 0 || currPos['extent']['maxx'] != 0) {
+					currPos['latlng']['extent'] = {
+						minX: gmxAPI.from_merc_x(currPos['extent']['minx']),
+						minY: gmxAPI.from_merc_y(currPos['extent']['miny']),
+						maxX: gmxAPI.from_merc_x(currPos['extent']['maxx']),
+						maxY: gmxAPI.from_merc_y(currPos['extent']['maxy'])
+					};
+				}
 			}
 
 			gmxAPI.currPosition = currPos;
@@ -642,7 +649,7 @@
 		map.setBackgroundColor(0x000001);
 //			map.miniMap.setBackgroundColor(0xffffff);
 
-		map.defaultHostName = layers.properties.hostName;
+		map.defaultHostName = layers.properties.hostName || '';
 		map.addLayers(layers);
 
 		var startDrag = function(object, dragCallback, upCallback)

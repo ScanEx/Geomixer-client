@@ -1,19 +1,22 @@
-﻿var tableBrowser = function()
+﻿
+_translationsHash.addtext("rus", {
+                            "tableBrowser.title" : "Список таблиц",
+                            "tableBrowser.filterText" : "Фильтр по названию"
+                         });
+                         
+_translationsHash.addtext("eng", {
+                            "tableBrowser.title" : "Tables list",
+                            "tableBrowser.filterText" : "Filter by name"
+                         });                         
+
+var tableBrowser = function()
 {
-	this.parentCanvas = null;
-	
 	this.sortFuncs = 
 	{
 		name:[
 			function(_a,_b){var a = String(_a).toLowerCase(), b = String(_b).toLowerCase(); if (a > b) return 1; else if (a < b) return -1; else return 0},
 			function(_a,_b){var a = String(_a).toLowerCase(), b = String(_b).toLowerCase(); if (a < b) return 1; else if (a > b) return -1; else return 0}
 		]
-	};
-		
-	this.currentSortType = 'name';
-	this.currentSortIndex = 
-	{
-		name: 0
 	};
 	
 	this.tables = [];
@@ -27,12 +30,7 @@ tableBrowser.prototype.createBrowser = function(closeFunc)
 		
 		$$('tableBrowserDialog').parentNode.removeNode(true);
 	}
-	
-	var canvas = _div(null, [['attr','id','tableBrowserDialog']]);
-	
-	showDialog(_gtxt("Список таблиц"), canvas, 300, 300, false, false);
-	
-	this.parentCanvas = canvas;
+		
 	this.closeFunc = closeFunc;
 	
 	if (!this.tables.length)
@@ -66,70 +64,65 @@ tableBrowser.prototype.loadInfo = function()
 tableBrowser.prototype.loadInfoHandler = function(tables)
 {
 	this.tables = tables;
-	
-	this.currentSortFunc = this.sortFuncs['name'][0];
-	
-	this.tablesCanvas = _div(null, [['dir','className','fileCanvas']]);	
-	
-	_(this.parentCanvas, [this.tablesCanvas]);
-	
-	this.reloadTables();
-}
-
-tableBrowser.prototype.reloadTables = function()
-{
-	removeChilds(this.tablesCanvas)
-	
-	_(this.tablesCanvas, [this.draw()]);
-}
-
-tableBrowser.prototype.draw = function()
-{
-	var nameSort = makeLinkButton(_gtxt("Имя")),
-		trs = [],
-		_this = this;
-	
-	nameSort.sortType = 'name';
-	
-	nameSort.onclick = function()
-	{
-		_this.currentSortType = this.sortType;
-		_this.currentSortIndex[_this.currentSortType] = 1 - _this.currentSortIndex[_this.currentSortType];
-		
-		_this.reloadTables();
-	}
-	
-	this.tables = this.tables.sort(this.getCurrentSortFunc());
-	
-	for (var i = 0; i < this.tables.length; i++)
-	{
-		var	tdName = _td([_t(this.tables[i])],[['css','fontSize','12px']]),
+    
+    var _this = this;
+    var renderTableRow = function(table)
+    {
+        var	tdName = _td([_t(table)],[['css','fontSize','12px']]),
 			returnButton = makeImageButton("img/choose.png", "img/choose_a.png"),
-			tr = _tr([_td([returnButton]), tdName]);
+			tr = _tr([_td([returnButton]), tdName], [['dir', 'className', 'tableTableRow']]);
 		
 		returnButton.style.cursor = 'pointer';
 		returnButton.style.marginLeft = '5px';
 	
 		_title(returnButton, _gtxt("Выбрать"));
 			
-		(function(i){
-			returnButton.onclick = function()
-			{
-				_this.close(_this.tables[i]);
-			}
-		})(i);
+        returnButton.onclick = function()
+        {
+            _this.close(table);
+        }
 		
-		attachEffects(tr, 'hover')
-		
-		trs.push(tr)
-	}
-	
-	return _table([_thead([_tr([_td(null, [['css','width','25px']]),_td([nameSort], [['css','textAlign','left']])])]), _tbody(trs)], [['css','width','100%']]);
-}
-
-tableBrowser.prototype.getCurrentSortFunc = function()
-{
-	return this.sortFuncs[this.currentSortType][this.currentSortIndex[this.currentSortType]];
+		attachEffects(tr, 'hover');
+        
+        for (var i = 0; i < tr.childNodes.length; i++)
+            tr.childNodes[i].style.width = this._fields[i].width;
+        
+        return tr;
+    }
+    
+    var sortFuncs = {};
+    sortFuncs[_gtxt('Имя')] = this.sortFuncs['name'];
+    
+    var tableProvider = new scrollTable.StaticDataProvider();
+    tableProvider.setOriginalItems(this.tables);
+    tableProvider.setSortFunctions(sortFuncs);
+    
+    var tableTable = new scrollTable({limit:5000, pagesCount: 5, height: '220px', showFooter: false});
+    tableTable.setDataProvider(tableProvider);
+    
+    var tableParent = _div(null, [['dir', 'id', 'tableBrowserDialog']]);
+    tableTable.createTable({
+        parent: tableParent, 
+        name: 'tableTable', 
+        width: 0, 
+        fields: ['', _gtxt('Имя')], 
+        fieldsWidths: ['10%', '90%'], 
+        sortableFields: sortFuncs,
+        drawFunc: renderTableRow, 
+        isWidthScroll: false
+    });
+    
+    var filterInput = _input(null, [['css','width','150px'],['dir','className','selectStyle']]);
+    $(tableParent).prepend(filterInput).prepend($('<span/>', {'class': 'tableFilter'}).text(_gtxt("tableBrowser.filterText") + ": "));
+    tableProvider.attachFilterEvents(filterInput, 'Table', function(fieldName, fieldValue, vals)
+    {
+        return _filter(function(val)
+        {
+            return String(val).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
+        }, vals);
+    });
+    
+    showDialog( _gtxt("tableBrowser.title"), tableParent, {width: 300, height: 300} );
 }
 
 var _tableBrowser = new tableBrowser();
