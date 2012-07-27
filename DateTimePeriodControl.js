@@ -442,7 +442,12 @@ Calendar.prototype.init = function( name, params )
 		$(this.dateBegin).datepicker("setDate", this._params.dateBegin );
         
     if (this._params.container)
-        $('#' + this._params.container).append(this.canvas);
+    {
+        if (typeof this._params.container === 'string')
+            $('#' + this._params.container).append(this.canvas);
+        else
+            $(this._params.container).append(this.canvas);
+    }
 }
 
 Calendar.prototype.fixDate = function(date)
