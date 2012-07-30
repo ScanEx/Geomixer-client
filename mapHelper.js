@@ -3807,15 +3807,22 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 				_(divStyles, [filterHeader, filtersCanvas]);
 				
 				var pos = nsGmx.Utils.getDialogPos(div, true, 390),
+                    updateFunc = function()
+                    {
+                        var newStyles = _this.updateStyles(filtersCanvas);
+                        elemProperties.styles = newStyles;
+                        
+                        _this.findTreeElem(div).elem.content.properties = elemProperties;
+                    },
 					closeFunc = function()
 					{
+                        updateFunc();
+                        
 						var newStyles = _this.updateStyles(filtersCanvas),
 							multiStyleParent = $(div).children('[multiStyle]')[0];
 						
 						for (var i = 0; i < filtersCanvas.childNodes.length; i++)
 							filtersCanvas.childNodes[i].removeColorPickers();
-						
-						elemProperties.styles = newStyles;
 												
 						if (elemProperties.GeometryType == 'polygon' &&
 							elemProperties.description &&
@@ -3848,10 +3855,6 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 						else
 						{
 							var newIcon = _this.createStylesEditorIcon(newStyles, elemProperties.GeometryType.toLowerCase());
-							// newIcon.onclick = function()
-							// {
-								// _this.createLayerEditor(div, 1, elemProperties.styles.length > 1 ? -1 : 0);
-							// }
 							
 							$(parentIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));
 						}
@@ -3859,8 +3862,6 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 						removeChilds(multiStyleParent);
 						
 						_this.createMultiStyle(elemProperties, multiStyleParent)
-						
-						_this.findTreeElem(div).elem.content.properties = elemProperties;
 						
 						return false;
 					};
@@ -3877,6 +3878,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 				
 				// при сохранении карты сбросим все временные стили в json карты
 				tabMenu.closeFunc = closeFunc;
+				tabMenu.updateFunc = updateFunc;
 				
 				$(tabMenu).tabs({selected: selected});
 				
