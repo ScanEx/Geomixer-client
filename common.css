@@ -1055,7 +1055,13 @@ div.layersScroll
 .pluginEditor-pluginList
 {
     height: 200px;
+    width: 150px;
+}
+
+.pluginEditor-pluginInput
+{
     width: 100%;
+    margin: 2px 0px;
 }
 
 .pluginEditor-allContainer

@@ -17,10 +17,22 @@ _translationsHash.addtext("eng", {
 var MapPlugins = function( plugins )
 {
     var _plugins = plugins || [];
-    this.addPlugin = function(plugin)
+    var _pluginsByName = {};
+    
+    for (var iP = 0; iP < _plugins.length; iP++)
+        _pluginsByName[plugins[iP]] = true;
+    
+    this.addPlugin = function(pluginName)
     {
-        _plugins.push(plugin);
+        if (pluginName in _pluginsByName)
+            return false;
+        
+        _pluginsByName[pluginName] = true;
+        
+        _plugins.push(pluginName);
         $(this).change();
+        
+        return true;
     }
     
     this.each = function(callback)
@@ -29,10 +41,11 @@ var MapPlugins = function( plugins )
             callback(_plugins[p]);
     }
     
-    this.remove = function(name)
+    this.remove = function(pluginName)
     {
+        delete _pluginsByName[pluginName];
         for (var p = 0; p < _plugins.length; p++)
-            if (_plugins[p] === name)
+            if (_plugins[p] === pluginName)
             {
                 _plugins.splice(p, 1);
                 $(this).change();
@@ -40,21 +53,20 @@ var MapPlugins = function( plugins )
             }
     }
     
-    this.isExist = function(name)
+    this.isExist = function(pluginName)
     {
-        for (var p = 0; p < _plugins.length; p++)
-            if (_plugins[p] === name) return true;
-        return false;
+        return pluginName in _pluginsByName;
     }
 }
 
 var GeomixerPluginsWidget = function(container, mapPlugins)
 {
     var _allPlugins = [];
+    var isListActive = [];
     
     nsGmx.pluginsManager.forEachPlugin(function(plugin)
     {
-        if ( typeof plugin.name !== 'undefined' && plugin.mapPlugin )
+        if ( typeof plugin.name !== 'undefined' && plugin.mapPlugin && (plugin.isPublic || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) )
         {
             _allPlugins.push(plugin.name);
         }
@@ -63,18 +75,42 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
     var update = function()
     {
         $(container).empty();
-        var pluginSelect = $('<select/>', {multiple: 'multiple', 'class': 'pluginEditor-pluginList'});
+        var pluginSelect = $('<select/>', {multiple: 'multiple', 'class': 'pluginEditor-pluginList'}).bind('focus', function()
+        {
+            isListActive = true;
+        });
+        
         for (var p = 0; p < _allPlugins.length; p++)
             if (!mapPlugins.isExist(_allPlugins[p]))
                 pluginSelect.append($('<option/>').text(_allPlugins[p]));
+                
+        var pluginInput = $('<input/>', {'class': 'inputStyle pluginEditor-pluginInput'}).bind('focus', function()
+        {
+            isListActive = false;
+        });
         
         var addPluginButton = $('<button/>', {'class': 'pluginEditor-addButton'}).text(_gtxt("pluginsEditor.add")).click(function()
         {
             var selected = [];
-            $(":selected", pluginSelect).each(function()
+            
+            if (isListActive)
             {
-                selected.push($(this).val());
-            })
+                $(":selected", pluginSelect).each(function()
+                {
+                    selected.push($(this).val());
+                })
+            }
+            else
+            {
+                if ( nsGmx.pluginsManager.getPluginByName(pluginInput.val()) )
+                {
+                    selected.push(pluginInput.val());
+                }
+                else
+                {
+                    inputError(pluginInput[0]);
+                }
+            }
             
             for (var sp = 0; sp < selected.length; sp++)
                 mapPlugins.addPlugin( selected[sp] );
@@ -82,6 +118,7 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
         $(container)
             .append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text(_gtxt('pluginsEditor.availableTitle')))
             .append(pluginSelect).append($('<br/>'))
+            .append(pluginInput).append($('<br/>'))
             .append(addPluginButton);
     }
     
@@ -105,8 +142,7 @@ var MapPluginsWidget = function(container, mapPlugins)
             {
                 mapPlugins.remove(name);
             }
-            divRow.text(name);
-            divRow.append(remove);
+            divRow.append(remove).append($('<span/>').text(name));
             
             container.append(divRow);
         });
