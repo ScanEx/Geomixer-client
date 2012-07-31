@@ -443,6 +443,16 @@ function showErrorMessage(message, removeFlag, title)
 function _checkbox(flag, type, name)
 {
 	var box;
+    
+    var initBoxNormal = function()
+    {
+        box = _input(null, [['attr','type',type]]);
+		box.checked = flag;
+		
+		if (name)
+			box.setAttribute('name', name);
+    }
+    
 	if (jQuery.browser.msie)
 	{
 		var nameTag = "";
@@ -451,18 +461,21 @@ function _checkbox(flag, type, name)
 			nameTag = " name=\"" + name + "\"";
 		
 		// костыль для ие
-		if (flag)
-			box = window.document.createElement("<input type=\"" + type + "\" checked=\"true\"" + nameTag + "></input>");
-		else
-			box = window.document.createElement("<input type=\"" + type + "\"" + nameTag + "></input>");
+        
+        try {
+            if (flag)
+                box = window.document.createElement("<input type=\"" + type + "\" checked=\"true\"" + nameTag + "></input>");
+            else
+                box = window.document.createElement("<input type=\"" + type + "\"" + nameTag + "></input>");
+        } 
+        catch(e)
+        { //в ie9 создавать через createElement() не получится, но уже можно воспользоваться стандартными методами
+            initBoxNormal();
+        }
 	}
 	else
 	{
-		box = _input(null, [['attr','type',type]]);
-		box.checked = flag;
-		
-		if (name)
-			box.setAttribute('name', name);
+		initBoxNormal();
 	}
 	
 	return box;
