@@ -2244,7 +2244,7 @@ queryMapLayers.prototype.createMap = function(name)
         $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
         
         for (var name in _mapHelper.layerEditorsHash)
-            _mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].closeFunc();
+            _mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].updateFunc();
         
         var saveTree = {};
         

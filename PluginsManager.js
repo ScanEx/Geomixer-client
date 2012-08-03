@@ -11,11 +11,13 @@
 	* params - объект параметров, будет передаваться в методы модуля
     * pluginName - имя плагина. Должно быть по возможности уникальным
     * mapPlugin {bool, default: true} - является ли плагин плагином карт. Если является, то не будет грузиться по умолчанию.
+    * isPublic {bool, default: false} - нужно ли показывать плагин в списках плагинов (для некоторых плагинов хочется иметь возможность подключать их к картам, но не показывать всем пользователям)
   Если очередной элемент массива просто строка (например, "name"), то это эквивалентно {module: "name", file: "plugins/name.js"}
-  Каждый плагин хранится в отдельном модуле (через свойство module) или подгружается в явном виде (через свойство plugin). В модуле могут быть определены следующие методы:<br/>
-  * beforeMap (params)- вызовется сразу после загрузки всех модулей ядра вьюера (до инициализации карты, проверки пользователя и т.п.)<br/>
-  * beforeViewer (params, map)- вызовется до начала инициализации вьюера (сразу после инициализации карты)<br/>
-  * afterViewer(params, map) - вызовется после инициализации вьюера<br/>
+  Каждый плагин хранится в отдельном модуле (через свойство module) или подгружается в явном виде (через свойство plugin). В модуле могут быть определены следующие методы и свойства:<br/>
+  * pluginName {string} - имя плагина. Используется если в описании плагина в config.js не указано имя<br/>
+  * beforeMap {function(params)} - вызовется сразу после загрузки всех модулей ядра вьюера (до инициализации карты, проверки пользователя и т.п.)<br/>
+  * beforeViewer {function(params, map)} - вызовется до начала инициализации вьюера (сразу после инициализации карты)<br/>
+  * afterViewer{function(params, map)} - вызовется после инициализации вьюера<br/>
   * addMenuItems - должен вернуть вектор из пунктов меню, которые плагин хочет добавить.
                    Формат каждого элемента вектора: item - описание меню (см Menu.addElem()), parentID: id меню родителя (1 или 2 уровня)
                    Устарело! Используйте непосредственное добавление элемента к меню из afterViewer()
@@ -44,8 +46,9 @@ var PluginsManager = function()
 				var plugin = { 
                     body:      curPlugin.plugin, 
                     params:    curPlugin.params,
-                    name:      curPlugin.pluginName,
+                    name:      curPlugin.pluginName || curPlugin.plugin.pluginName,
                     mapPlugin: curPlugin.mapPlugin,
+                    isPublic:  curPlugin.isPublic || false,
                     _inUse:    !curPlugin.mapPlugin
                 };
 				
@@ -70,11 +73,13 @@ var PluginsManager = function()
 		{
 			for (var m = 0; m < modules.length; m++)
 			{
+                var pluginBody = gmxCore.getModule(modules[m]);
 				var plugin = {
-                    body:      gmxCore.getModule(modules[m]), 
+                    body:      pluginBody, 
                     params:    _modulePlugins[modules[m]].params, 
-                    name:      _modulePlugins[modules[m]].pluginName,
+                    name:      _modulePlugins[modules[m]].pluginName || pluginBody.pluginName,
                     mapPlugin: _modulePlugins[modules[m]].mapPlugin,
+                    isPublic:  _modulePlugins[modules[m]].isPublic || false,
                     _inUse:    !_modulePlugins[modules[m]].mapPlugin
                 };
                 
@@ -96,6 +101,16 @@ var PluginsManager = function()
 	{
 		_initDone = true;
 	}
+    
+    var _genIterativeFunction = function(funcName)
+    {
+        return function(map)
+        {
+            for (var p = 0; p < _plugins.length; p++)
+                if ( _plugins[p]._inUse && typeof _plugins[p].body[funcName] !== 'undefined')
+                    _plugins[p].body[funcName]( _plugins[p].params, map || window.globalFlashMap );
+        }
+    }
 		
 	//interface
 	
@@ -115,38 +130,24 @@ var PluginsManager = function()
 	 @method
 	 Вызывает beforeMap() у всех плагинов
 	*/
-	this.beforeMap = function()
-	{
-		for (var p = 0; p < _plugins.length; p++)
-			if ( _plugins[p]._inUse && typeof _plugins[p].body.beforeMap !== 'undefined')
-				_plugins[p].body.beforeMap( _plugins[p].params );
-	};    
+	this.beforeMap = _genIterativeFunction('beforeMap');
 	
 	/**
 	 @method
 	 Вызывает beforeViewer() у всех плагинов
 	*/
-	this.beforeViewer = function(map)
-	{
-		for (var p = 0; p < _plugins.length; p++)
-			if ( _plugins[p]._inUse && typeof _plugins[p].body.beforeViewer !== 'undefined')
-				_plugins[p].body.beforeViewer( _plugins[p].params, map || window.globalFlashMap );
-	};
+	this.beforeViewer = _genIterativeFunction('beforeViewer');
 	
 	/**
 	 @method
 	 Вызывает afterViewer() у всех плагинов
 	*/
-	this.afterViewer = function(map)
-	{
-		for (var p = 0; p < _plugins.length; p++)
-			if ( _plugins[p]._inUse && typeof _plugins[p].body.afterViewer !== 'undefined')
-				_plugins[p].body.afterViewer( _plugins[p].params, map || window.globalFlashMap );
-	};
+	this.afterViewer = _genIterativeFunction('afterViewer');
 	
 	/**
 	 @method
 	 Добавляет пункты меню всех плагинов к меню upMenu
+     Устарело! Используйте непосредственное добавление элемента к меню из afterViewer()
 	*/
 	this.addMenuItems = function( upMenu )
 	{
@@ -159,6 +160,10 @@ var PluginsManager = function()
 			}
 	};
     
+    /**
+	 @method
+	 Вызывает callback(plugin) для каждого плагина
+	*/
     this.forEachPlugin = function(callback)
     {
         if (!_initDone) return;
@@ -166,10 +171,28 @@ var PluginsManager = function()
             callback(_plugins[p]);
     }
     
+    /**
+	 @method
+	 Задаёт, нужно ли в дальнейшем использовать данный плагин
+	*/    
     this.setUsePlugin = function(pluginName, isInUse)
     {
         if (pluginName in _pluginsWithName)
             _pluginsWithName[pluginName]._inUse = isInUse;
+    }
+    
+    this.getPluginByName = function(pluginName)
+    {
+        return _pluginsWithName[pluginName];
+    }
+    
+    /**
+	 @method
+	 Проверка публичности плагина (можно ли его показывать в различных списках с перечислением подключенных плагинов)
+	*/
+    this.isPublic = function(pluginName)
+    {
+        return _pluginsWithName[pluginName] && _pluginsWithName[pluginName].isPublic;
     }
 }
 
