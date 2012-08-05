@@ -269,6 +269,7 @@
 				var balloon = fixedHoverBalloons[key];
 				balloon.setVisible(true);
 			}
+			positionBalloons();
 		}
 		
 		function removeHoverBalloons()
@@ -615,7 +616,14 @@
 		
 		gmxAPI.map.addListener('positionChanged', function(ph)
 			{
-				positionBalloons(gmxAPI.currPosition);
+				if(ph && ph.currZ != Math.floor(ph.currZ)) return;
+				positionBalloons();
+			}
+		, -10);
+		
+		gmxAPI.map.addListener('onResizeMap', function()
+			{
+				positionBalloons();
 			}
 		, -10);
 		
@@ -717,7 +725,9 @@
 						oldSetVisible(false);
 				}
 				else
+				{
 					oldSetVisible(false);
+				}
 			}
 			balloon.setVisible = function(flag)
 			{
@@ -820,13 +830,13 @@
 	gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': function(map) {
 			if(!gmxAPI.map || gmxAPI.map.balloonClassObject) return;
 			gmxAPI.map.balloonClassObject = new BalloonClass();
-			gmxAPI.map.addListener('zoomBy', function()	{ map.balloonClassObject.hideHoverBalloons(true); });
-			gmxAPI.map.addListener('hideBalloons', function() { map.balloonClassObject.hideHoverBalloons(); });
-			gmxAPI.map.addListener('clickBalloonFix', function(o) { map.balloonClassObject.clickBalloonFix(o); });
+			gmxAPI.map.addListener('zoomBy', function()	{ gmxAPI.map.balloonClassObject.hideHoverBalloons(true); });
+			gmxAPI.map.addListener('hideBalloons', function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(); });
+			gmxAPI.map.addListener('clickBalloonFix', function(o) { gmxAPI.map.balloonClassObject.clickBalloonFix(o); });
 			gmxAPI.map.addListener('initFilter', function(data)
 				{
-					var fullStyle = map.balloonClassObject.applyBalloonDefaultStyle(data['filter']['_attr']);
-					map.balloonClassObject.setBalloonFromParams(data['filter'], fullStyle);
+					var fullStyle = gmxAPI.map.balloonClassObject.applyBalloonDefaultStyle(data['filter']['_attr']);
+					gmxAPI.map.balloonClassObject.setBalloonFromParams(data['filter'], fullStyle);
 				}
 			);
 			

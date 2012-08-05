@@ -186,6 +186,7 @@
 			if(attr['align']) miniMapAlign = attr['align'];
 			resizeMiniMap();
 		}
+		map.addListener('onResizeMap', resizeMiniMap, -12);
 	}
 
 	gmxAPI._miniMapInit = miniMapInit;

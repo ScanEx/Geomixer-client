@@ -571,12 +571,15 @@
 		sunscreen.setStyle({ fill: { color: 0xffffff, opacity: 1 } });
 		sunscreen.setRectangle(-180, -85, 180, 85);
 		sunscreen.setVisible(false);
-
+		sunscreen.addListener("onResize", function()
+		{
+			gmxAPI._updatePosition();
+			gmxAPI._listeners.dispatchEvent('onResizeMap', map);
+		});
 
 		if(gmxAPI.proxyType === 'flash') {
 			if('_miniMapInit' in gmxAPI) {
 				gmxAPI._miniMapInit(gmxAPI._div);
-				sunscreen.setHandler("onResize", gmxAPI._resizeMiniMap);
 			}
 		}
 
