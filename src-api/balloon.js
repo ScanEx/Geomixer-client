@@ -587,12 +587,12 @@
 		}
 
 		//map.addObject().setHandler("onMove", positionBalloons);
-		gmxAPI.contDivPos = {
-			'x': gmxAPI.getOffsetLeft(div),
-			'y': gmxAPI.getOffsetTop(div)
-		};
 		var onmousemove = function(event)
 		{
+			gmxAPI.contDivPos = {
+				'x': gmxAPI.getOffsetLeft(div),
+				'y': gmxAPI.getOffsetTop(div)
+			};
 			var px = gmxAPI.eventX(event) - gmxAPI.contDivPos['x']; 
 			var py = gmxAPI.eventY(event) - gmxAPI.contDivPos['y'];
 			propsBalloon.setScreenPosition(px, py);
