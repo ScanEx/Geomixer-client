@@ -384,7 +384,7 @@ class VectorLayer extends MapContent
 				var tPainter = filter.paintersHash.get(tileKey);
 
 				var filterStyle:Style = filter.mapNode.getHoveredStyle();
-				if (filterStyle.hasMarkerImage() && filter.clusterAttr == null) {		// Если стиль имеет маркер то мин.дистанция = размер маркера
+				if (filterStyle != null && filterStyle.hasMarkerImage() && filter.clusterAttr == null) {		// Если стиль имеет маркер то мин.дистанция = размер маркера
 					distZero = filterStyle.marker.markerWidth * filterStyle.marker.markerWidth;
 					distZero += filterStyle.marker.markerHeight * filterStyle.marker.markerHeight;
 					distZero *= sc2;
