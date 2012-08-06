@@ -1,0 +1,85 @@
+﻿<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<script src="http://maps.kosmosnimki.ru/api/api.js?key=56AAB7DB8B06FE39BDB3FDCA7276302B" charset="windows-1251"></script> 
+
+<title>GeoMixer API - примеры использования</title>
+</head>
+<body>
+<button id="show_objects">Найти обьект ogc_fid = 5650</button>
+<br />
+<table><tbody><tr>
+	<td>
+		<div id="map" style="width: 800px; height: 600px;"></div> <!--задаем контейнер, в который загружается карта -->
+	</td>
+	<td valign="top">
+		<div id="result"></div>
+	</td>
+</tr></tbody></table>
+<script>
+
+var div = document.getElementById('map');
+
+createFlashMap(div, 'maps.kosmosnimki.ru', "7VKHM",
+	function (map) 
+	{
+		map.moveTo(37, 55, 2);
+		map.setBaseLayer("Карта");
+		map.baseLayerControl.setVisible(false);
+/*		
+		gmxAPI.map.toolsAll.standartTools.removeTool('zoom');
+		gmxAPI.map.toolsAll.standartTools.removeTool('POINT');
+		gmxAPI.map.toolsAll.standartTools.removeTool('LINESTRING');
+		gmxAPI.map.toolsAll.standartTools.removeTool('POLYGON');
+*/
+		
+		map.drawing.tools["zoom"].setVisible(false);
+		map.drawing.tools["POINT"].setVisible(false);
+		map.drawing.tools["LINESTRING"].setVisible(false);
+		map.drawing.tools["POLYGON"].setVisible(false);
+		map.drawing.tools["zoom"].setVisible(true);
+
+		var myLayer = map.layers['АЗС'];
+		var identityField = gmxAPI.getIdentityField(myLayer);
+
+		var currentFrame = false;
+		map.drawing.setHandlers({
+			onAdd: function(o)
+			{
+				if (currentFrame)
+					currentFrame.remove();
+					currentFrame = o;
+			}
+		});
+
+		myLayer.enableHoverBalloon(function(o) // выбор слоя карты по его названию
+		{ 
+			return o.properties["NAME"]; 
+		});
+
+		var button = document.getElementById("show_objects");
+		button.onclick = function()
+		{
+			myLayer.getFeatureById( 5650, 
+				function(features) 
+				{
+					var out = identityField + ': <b>' + features.properties[identityField] + "</b>" + (features.properties['NAME'] ? ' <b>' + features.properties['NAME'] + "</b>" : '');
+					var geo = features.getGeometry();
+					if(geo.type == 'POINT') {
+						var c = geo.coordinates;
+						out += " (" + c[0] + ", " + c[1] + ")";
+					}
+					var str = 'Слой: <b>' + myLayer.properties.title + '</b><br>';
+					str += out;
+					//alert(str);
+					document.getElementById("result").innerHTML = str;
+				}
+			);
+		}
+	}
+);
+
+</script>
+
+</body>
+</html>
