@@ -444,14 +444,14 @@
 					var ret = null;
 					if(geom && geom['type'] != 'unknown') {
 						if(typeof(props) === 'object' && props.length > 0) { props = gmxAPI.arrayToHash(props); }
-						ret = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj);
-					} else if(obj._Processing && obj._Processing.addObjects) {
-						var arr = obj._Processing.addObjects;
-						var identityField = obj.properties.identityField;
+						ret = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, hash.obj);
+					} else if(hash.obj._Processing && hash.obj._Processing.addObjects) {
+						var arr = hash.obj._Processing.addObjects;
+						var identityField = hash.obj.properties.identityField;
 						for (var i = 0; i < arr.length; i++) {
 							var prop = arr[i].properties;
 							if(prop[identityField] == attr['fid']) {
-								ret = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(arr[i].geometry), arr[i].properties, obj);
+								ret = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(arr[i].geometry), arr[i].properties, hash.obj);
 								break;
 							}
 						}
