@@ -408,12 +408,12 @@
 
 			var balloon = gmxAPI.newStyledDiv({
 				position: "absolute",
-
+/*
 				paddingLeft: lw + "px",
 				paddingRight: rw + "px",
 				paddingTop: th + "px",
 				paddingBottom: bh + "px",
-
+*/
 				width: "auto",
 				//whiteSpace: "nowrap",
 				zIndex: 1000
@@ -468,7 +468,8 @@
 				},
 				{
 					position: "absolute",
-					bottom: "-21px",
+					bottom: "-23px",
+					"-webkit-padding-after": "2px",
 					right: "15px"
 				}
 			);

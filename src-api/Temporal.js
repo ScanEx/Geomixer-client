@@ -257,7 +257,6 @@
 			} else {
 				currentData['dt2'] = dt2; 
 			}
-			if(!mapObj.isVisible) return;
 
 			var oldDt1 = currentData['begDate'];
 			var oldDt2 = currentData['endDate'];
@@ -268,6 +267,7 @@
 			var ddt2 = hash['dt2'];
 			var data = getDateIntervalTiles(ddt1, ddt2, tdata);
 			tdata['currentData'] = data;
+			if(!mapObj.isVisible) return;
 
 			var attr = {
 				'dtiles': (data['dtiles'] ? data['dtiles'] : []),
