@@ -641,10 +641,10 @@
 							});
 						return true;
 					}
-					obj.filters[i].enableHoverBalloon = function(callback)
+					obj.filters[i].enableHoverBalloon = function(callback, attr)
 					{
 						deferred.push(function() {
-							obj.filters[i].enableHoverBalloon(callback);
+							obj.filters[i].enableHoverBalloon(callback, attr);
 							});
 					}
 				})(i);
