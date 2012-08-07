@@ -252,6 +252,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 					mapWindow.rootNode.noteSomethingHasChanged();
 					Main.needRefreshMap = true;
 				}
+				mapWindow.setCenter(currentX, currentY);
 			}
 			root.addEventListener(Event.ENTER_FRAME, listener);
 			stopFluidMove = function()
@@ -287,7 +288,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				return;
 			if (isFluidMoving)
 				stopFluidMove();
-			fluidMoveTo(mx + k*(currentX - mx), my + k*(currentY - my), newZ, 15);
+			fluidMoveTo(mx + k*(currentX - mx), my + k*(currentY - my), newZ, 5);
 		}
 		
 		Main.registerMouseDown = function(node:MapNode, ?event:MouseEvent, ?nodeFrom_:MapNode)
@@ -575,6 +576,8 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				{
 					Main.refreshMap();
 					Main.needRefreshMap = false;
+				} else if(Main.draggingDisabled) {
+					mapWindow.rootNode.repaintRecursively(false);
 				}
 
 				if (viewportHasMoved)
@@ -590,33 +593,30 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 					//window.rootNode.repaintRecursively(false);
 				}
 */
-				if(Main.draggingDisabled) {
-					mapWindow.rootNode.repaintRecursively(false);
-				}
 
 				if (!isMoving && !isDragging && !Main.draggingDisabled)
 					mapWindow.repaintLabels();
-				curTimer = curTimerNew;
-				var onMoveFlag:Bool = (needCallMoveHandler > 0 && (needCallMoveHandler < curTimerNew || Main.draggingDisabled));
-				if (onMoveFlag) {
-					callHandlers('onMove');
-				}
-				if (needOnMoveEnd && !Main.mousePressed) {
-	//trace('_______onMoveEnd________ ' + needOnMoveEnd + ' : ' + mapWindow.id + ' : ' + mapWindow.rootNode.getHandler('onMoveEnd') + ' : ' + Main.mousePressed);
-					onMoveEnd();
-					needOnMoveEnd = false;
-				}
+			}
+			curTimer = curTimerNew;
+			var onMoveFlag:Bool = (needCallMoveHandler > 0 && (needCallMoveHandler < curTimerNew || Main.draggingDisabled));
+			if (onMoveFlag) {
+				callHandlers('onMove');
+			}
+			if (needOnMoveEnd && !Main.mousePressed) {
+//trace('_______onMoveEnd________ ' + needOnMoveEnd + ' : ' + mapWindow.id + ' : ' + mapWindow.rootNode.getHandler('onMoveEnd') + ' : ' + Main.mousePressed);
+				onMoveEnd();
+				needOnMoveEnd = false;
+			}
 
-				if (!Main.mousePressed && (curTimer - Main.lastFrameBumpTime) > 2000)
-				//if ((curTimer - Main.lastFrameBumpTime) > 2000)
-				{
-					if (stage.frameRate != 2)
-						stage.frameRate = 2;
+			if (!Main.mousePressed && (curTimer - Main.lastFrameBumpTime) > 2000)
+			//if ((curTimer - Main.lastFrameBumpTime) > 2000)
+			{
+				if (stage.frameRate != 2)
+					stage.frameRate = 2;
 
-					if(Main.messBuffToJS.length > 0) {
-						Main.cmdToJS('gmxAPI.swfWarning', Main.messBuffToJS);
-						Main.messBuffToJS = [];
-					}
+				if(Main.messBuffToJS.length > 0) {
+					Main.cmdToJS('gmxAPI.swfWarning', Main.messBuffToJS);
+					Main.messBuffToJS = [];
 				}
 			}
 //bTime = flash.Lib.getTimer() - bTime;
