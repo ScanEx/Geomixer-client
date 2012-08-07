@@ -174,6 +174,7 @@ window.gmxAPI = {
 	_debugWarnings: [],
 	isIE: (navigator.appName.indexOf("Microsoft") != -1),
 	isChrome: (navigator.userAgent.toLowerCase().indexOf("chrome") != -1),
+	isSafari: (navigator.userAgent.toLowerCase().indexOf("safari") != -1),
 	show: function(div)
 	{
 		div.style.visibility = "visible";

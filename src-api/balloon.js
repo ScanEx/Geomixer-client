@@ -284,11 +284,13 @@
 		
 		function hideHoverBalloons(flag)
 		{
+			var showFlag = false;
 			for (var key in fixedHoverBalloons)
 			{
 				var balloon = fixedHoverBalloons[key];
 				if(balloon.objType != 'cluster') {
 					balloon.setVisible(false);
+					showFlag = true;
 				}
 				else
 				{
@@ -296,8 +298,7 @@
 					delete fixedHoverBalloons[key];
 				}
 			}
-			if(flag) {
-				
+			if(flag && showFlag) {
 				var timeoutShowHoverBalloons = setTimeout(function()
 				{
 					clearTimeout(timeoutShowHoverBalloons);
@@ -462,16 +463,17 @@
 			var nodes = balloon.getElementsByTagName("div");
 			var balloonText = nodes[0];
 			
+			var imgStyle =	{
+				position: "absolute",
+				bottom: "-23px",
+				right: "15px"
+			};
+			if(document.doctype && (gmxAPI.isChrome || gmxAPI.isSafari || gmxAPI.isIE)) imgStyle["bottom"] = "-21px";
 			var leg = gmxAPI.newElement("img",
 				{
 					src: apiBase + "img/tooltip-leg.png"
 				},
-				{
-					position: "absolute",
-					bottom: "-23px",
-					"-webkit-padding-after": "2px",
-					right: "15px"
-				}
+				imgStyle
 			);
 			balloon.appendChild(leg);
 
@@ -589,15 +591,20 @@
 		}
 
 		//map.addObject().setHandler("onMove", positionBalloons);
+		gmxAPI.contDivPos = null;
 		var onmousemove = function(event)
 		{
-			gmxAPI.contDivPos = {
-				'x': gmxAPI.getOffsetLeft(div),
-				'y': gmxAPI.getOffsetTop(div)
-			};
-			var px = gmxAPI.eventX(event) - gmxAPI.contDivPos['x']; 
-			var py = gmxAPI.eventY(event) - gmxAPI.contDivPos['y'];
-			propsBalloon.setScreenPosition(px, py);
+			if(!gmxAPI.contDivPos) {
+				gmxAPI.contDivPos = {
+					'x': gmxAPI.getOffsetLeft(div),
+					'y': gmxAPI.getOffsetTop(div)
+				};
+			}
+			if(propsBalloon.isVisible()) {
+				var px = gmxAPI.eventX(event) - gmxAPI.contDivPos['x']; 
+				var py = gmxAPI.eventY(event) - gmxAPI.contDivPos['y'];
+				propsBalloon.setScreenPosition(px, py);
+			}
 /*		
 			if(gmxAPI.proxyType == 'flash') {
 				if (event.preventDefault)

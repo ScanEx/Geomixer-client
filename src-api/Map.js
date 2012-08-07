@@ -132,7 +132,10 @@
 		map.getPosition = function() { return gmxAPI._cmdProxy('getPosition', { }); }
 		map.getX = function() { return gmxAPI._cmdProxy('getX', {}); }
 		map.getY = function() { return gmxAPI._cmdProxy('getY', {}); }
-		map.getZ = function() { return gmxAPI._cmdProxy('getZ', {}); }
+		map.getZ = function() {
+			var zz = (gmxAPI.currPosition ? gmxAPI.currPosition.z : gmxAPI._cmdProxy('getZ', {}));
+			return zz;
+		}
 		map.getMouseX = function() { return gmxAPI._cmdProxy('getMouseX', {}); }
 		map.getMouseY = function() { return gmxAPI._cmdProxy('getMouseY', {}); }
 		map.isKeyDown = function(code) { return gmxAPI._cmdProxy('isKeyDown', {'attr':{'code':code} }); }
