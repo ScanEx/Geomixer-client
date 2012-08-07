@@ -3,11 +3,49 @@
 */
 var fileBrowser = function()
 {
+    var _this = this;
 	this.parentCanvas = null;
 	
 	this._homeDir = '';
+    
+    this._path = (function()
+    {
+        var path;
+        return {
+            set: function(newPath)
+            {
+                path = newPath + (newPath[newPath.length-1] === _this.slash ? '' : _this.slash);
+                $(this).change();
+            },
+            get: function()
+            {
+                return path;
+            },
+            isRoot: function()
+            {
+                return path && path.indexOf(_this.slash) === path.length-1;
+            },
+            isInited: function()
+            {
+                return typeof path !== 'undefined';
+            },
+            isInHome: function()
+            {
+                return path && path.indexOf(_this._homeDir) === 0;
+            },
+            getRoot: function()
+            {
+                var index = String(path).indexOf(_this.slash);
+                return newPath = String(path).substr(0, index+1);
+            },
+            getParentFolder: function()
+            {
+                var index = String(path).lastIndexOf(_this.slash, path.length-2);
+                return String(path).substr(0, index+1);
+            }
+        }
+    })();
 	
-	this.currentDir = '';
 	this.currentFiles = [];
 	
 	this.slash = "\\";
@@ -92,7 +130,7 @@ fileBrowser.prototype.createBrowser = function(title, mask, closeFunc, params)
     this._params = $.extend({restrictDir: null, startDir: null}, params);
     
     if (this._params.startDir !== null)
-        this.currentDir = this._params.startDir;
+        this._path.set(this._params.startDir);
     
 	if ($$('fileBrowserDialog'))
 	{
@@ -153,9 +191,9 @@ fileBrowser.prototype.loadInfo = function()
 }
 fileBrowser.prototype.loadInfoHandler = function()
 {
-	if (this.currentDir == '')
+	if (!this._path.isInited())
 	{
-        this.currentDir = _layersTree.treeModel.getMapProperties().LayersDir || nsGmx.AuthManager.getUserFolder();
+        this._path.set(_layersTree.treeModel.getMapProperties().LayersDir || nsGmx.AuthManager.getUserFolder());
 	}
 	
 	this.currentSortFunc = this.sortFuncs['name'][0];
@@ -176,7 +214,7 @@ fileBrowser.prototype.loadInfoHandler = function()
 
 fileBrowser.prototype._updateUploadVisibility = function()
 {
-	if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) || this.currentDir.indexOf(this._homeDir) == 0)
+	if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN) || this._path.isInHome())
 	{
 		this.fileUpload.style.display = '';
 		this.tdAddFolder.style.display = '';
@@ -242,7 +280,7 @@ fileBrowser.prototype.createHeader = function()
 		newFolderButton = makeButton(_gtxt("Создать")),
 		createFolder = function()
 		{
-			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + _this.currentDir + _this.slash + newFolderName.value, function(response)
+			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + _this._path.get() + newFolderName.value, function(response)
 			{
 				if (!parseResponse(response))
 					return;
@@ -339,7 +377,7 @@ fileBrowser.prototype.createUpload = function()
 		
 		_(document.body, [iframe]);
 		
-		uploadPath.setAttribute('value',_this.currentDir)
+		uploadPath.setAttribute('value',_this._path.get())
 		formFile.submit();
 	}
 	
@@ -350,7 +388,7 @@ fileBrowser.prototype.createUpload = function()
 
 fileBrowser.prototype.getFiles = function(path)
 {
-	var path = (typeof path != 'undefined') ? path : this.currentDir;
+	var path = (typeof path != 'undefined') ? path : this._path.get();
 	var _this = this;
     
     if (this._isRestrictedPath(path)) 
@@ -367,7 +405,7 @@ fileBrowser.prototype.getFiles = function(path)
 
 fileBrowser.prototype.getFilesHandler = function(files, path)
 {
-	this.currentDir = path;
+	this._path.set(path);
 	this.currentFiles = files;
 
 	this._updateUploadVisibility();
@@ -377,14 +415,9 @@ fileBrowser.prototype.getFilesHandler = function(files, path)
 
 fileBrowser.prototype.pathWidget = function()
 {
-    var shortPath;
+    var shortPath = this._path.get();
     var _this = this;
     
-	if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
-		shortPath = this.currentDir;
-    else 
-        shortPath = this.currentDir.replace(this._homeDir, "");
-	
     var parent = $('<span/>', {'class': 'fileBrowser-pathWidget'});
     var pathElements = [];
     
@@ -430,16 +463,6 @@ fileBrowser.prototype.pathWidget = function()
     
     return parent[0];
 }
-
-// fileBrowser.prototype.minimizeUserPath = function()
-// {
-	// if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
-		// return this.currentDir;
-	
-	// var shortPath = this.currentDir.replace(this._homeDir, "");
-	
-	// return shortPath == "" ? this.slash : shortPath;
-// }
 
 fileBrowser.prototype.quickSearch = function()
 {
@@ -540,10 +563,7 @@ fileBrowser.prototype.draw = function(files)
 		
 		rootButton.onclick = function()
 		{
-			var index = String(_this.currentDir).indexOf(_this.slash),
-				newPath = String(_this.currentDir).substr(0, index) + _this.slash;
-			
-			_this.getFiles(newPath);
+			_this.getFiles(_this._path.getRoot());
 		}
 	}
 	
@@ -551,17 +571,16 @@ fileBrowser.prototype.draw = function(files)
 		prevDirTr = _tr([_td(), _td([_t("[..]")]), _td(), _td(), _td()]),
 		tableFilesTrs = [];
 	
-	if (!this.isDrive() && !this._isRestrictedPath(_this._getParentFolder(_this.currentDir)))
+    var parentFolder = _this._path.getParentFolder();
+	if (parentFolder && !this._isRestrictedPath(parentFolder))
 	{
-		if (nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) ||
-			this.currentDir.indexOf(this._homeDir) == 0 && this.currentDir.length > this._homeDir.length)
-			tableFilesTrs.push(prevDirTr)
+        tableFilesTrs.push(prevDirTr)
 	
 		attachEffects(prevDirTr, 'hover')
 
 		prevDirTr.onclick = function()
 		{
-			_this.getFiles(_this._getParentFolder(_this.currentDir));
+			_this.getFiles(parentFolder);
 		}
 	}
 	
@@ -569,11 +588,6 @@ fileBrowser.prototype.draw = function(files)
 	tableFilesTrs = tableFilesTrs.concat(this.drawFiles(files));
 	
 	return _div([_table([_thead([tableHeaderTr]), _tbody(tableFilesTrs)], [['css','width','100%']])], [['css','overflowY','scroll']]);
-}
-
-fileBrowser.prototype.isDrive = function()
-{
-	return this.driveRE.test(this.currentDir);
 }
 
 fileBrowser.prototype.getCurrentSortFunc = function()
@@ -628,19 +642,25 @@ fileBrowser.prototype.drawFolders = function(arr)
 			(function(i){
 				returnButton.onclick = function(e)
 				{
-					_this.close(_this.currentDir + (_this.isDrive() ? '' : _this.slash) + folders[i].Name);
+					_this.close(_this._path.get() + folders[i].Name + _this.slash);
 				}
 			})(i);
 			
 			_(tdReturn, [returnButton])
 		}
 		
-		var tr = _tr([tdReturn, _td([_img(null, [['attr','src','img/folder.png'],['css','margin','0px 3px -3px 0px']]), this.createFolderActions(folders[i].Name)]), _td(), _td([_t(_gtxt("Папка"))],[['css','textAlign','center'],['dir','className','invisible']]), _td([_t(this.formatDate(folders[i].Date))],[['css','textAlign','center'],['dir','className','invisible']])]);
+		var tr = _tr([
+            tdReturn, 
+            _td([_img(null, [['attr','src','img/folder.png'],['css','margin','0px 3px -3px 0px']]), this.createFolderActions(folders[i].Name)]), 
+            _td(), 
+            _td([_t(_gtxt("Папка"))],[['css','textAlign','center'],['dir','className','invisible']]), 
+            _td([_t(this.formatDate(folders[i].Date))],[['css','textAlign','center'],['dir','className','invisible']])
+        ]);
 		
 		(function(i){
 			tr.onclick = function()
 			{
-				_this.getFiles(_this.currentDir + (_this.isDrive() ? '' : _this.slash) + folders[i].Name);
+				_this.getFiles(_this._path.get() + folders[i].Name);
 			}
 		})(i);
 		
@@ -692,7 +712,7 @@ fileBrowser.prototype.drawFiles = function(arr)
 			(function(i){
 				returnButton.onclick = function(e)
 				{
-					_this.close(_this.currentDir + (_this.isDrive() ? '' : _this.slash) + files[i].Name);
+					_this.close(_this._path.get() + files[i].Name);
 				}
 			})(i);
 			
@@ -730,10 +750,10 @@ fileBrowser.prototype.createFolderActions = function(name)
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFolder', 
 		function()
 		{
-			return _this.currentDir.indexOf(_this._homeDir) >= 0 || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
+			return _this._path.isInHome() || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
 		}, 
 		{
-			fullPath: this.currentDir + this.slash + name,
+			fullPath: this._path.get() + name + this.slash,
 			fileBrowser: this,
 			enableZip: true
 		}
@@ -754,10 +774,10 @@ fileBrowser.prototype.createFileActions = function(name, ext)
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFile', 
 		function()
 		{
-			return _this.currentDir.indexOf(_this._homeDir) >= 0 || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
+			return _this._path.isInHome() || nsGmx.AuthManager.canDoAction( nsGmx.ACTION_SEE_FILE_STRUCTURE );
 		}, 
 		{
-			fullPath: this.currentDir + this.slash + name + '.' + ext,
+			fullPath: this._path.get() + name + '.' + ext,
 			fileBrowser: this,
 			enableUnzip: valueInArray(_this.ext7z, ext.toUpperCase())
 		}
