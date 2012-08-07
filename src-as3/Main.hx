@@ -249,6 +249,8 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				{
 					stopFluidMove();
 					isMoving = false;
+					mapWindow.rootNode.noteSomethingHasChanged();
+					Main.needRefreshMap = true;
 				}
 			}
 			root.addEventListener(Event.ENTER_FRAME, listener);
@@ -259,8 +261,9 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				stopFluidMove = null;
 				needOnMoveEnd = true;
 				Main.isDrawing = false;
-				mapWindow.rootNode.noteSomethingHasChanged();
-				Main.needRefreshMap = true;
+//				mapWindow.rootNode.noteSomethingHasChanged();
+//				Main.needRefreshMap = true;
+				mapWindow.setCenter(currentX, currentY);
 			}
 		}
 
@@ -455,6 +458,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 		{
 			if (isDragging && !Main.draggingDisabled && (currentZ == Math.round(currentZ)))
 			{
+				// Происходит Drag карты
 //				isMoving = true;
                 var c = Utils.getScale(draggedWindow.getCurrentZ());
                 var px = startMapX - (root.mouseX - startMouseX)*c;
@@ -475,7 +479,6 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			repaintCursor();
 			//if (!Main.isDraggingNow)	event.stopImmediatePropagation();
 			if (!Main.draggingDisabled && event.buttonDown && needCacheBitmap) {		// При нажатой мышке и needCacheBitmap
-//trace('__MOUSE_MOVE___ ' + Main.draggingDisabled + ' : ' + event.buttonDown + ' : ' + Main.mousePressed + ' : ' + mapWindow.rootNode.id);
 				needCacheBitmap = false;
 				Main.mousePressed = false;
 				repaintCacheBitmap();
@@ -500,7 +503,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				//window.setCacheBitmapVisible(isMoving || isDragging);		// Если Drag или Move режим - показываем CacheBitmap
 				if (!isMoving)
 				{
-//trace('refreshMap _____________ ' + ' : ' + isMoving + ' : ' + Main.mousePressed + ' : ' +  flash.Lib.getTimer());
+//trace('refreshMap _____________ ' + ' : ' + currentX + ' : ' + currentY + ' : ' + isMoving + ' : ' + Main.mousePressed + ' : ' +  flash.Lib.getTimer());
 					window.rootNode.repaintRecursively(true);
 					//window.repaintCacheBitmap();
 				}
@@ -566,19 +569,20 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				for (func in nextFrameCallbacks) func();
 				nextFrameCallbacks = new Array<Void->Void>();
 			}
+			if(!isFluidMoving) {
 
-			if (viewportHasMoved || Main.needRefreshMap)
-			{
-				Main.refreshMap();
-				Main.needRefreshMap = false;
-			}
+				if (!Main.draggingDisabled && (viewportHasMoved || Main.needRefreshMap))
+				{
+					Main.refreshMap();
+					Main.needRefreshMap = false;
+				}
 
-			if (viewportHasMoved)
-			{
-				if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 40;
-				viewportHasMoved = false;
-				wasMoving = isMoving;
-			}
+				if (viewportHasMoved)
+				{
+					if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 40;
+					viewportHasMoved = false;
+					wasMoving = isMoving;
+				}
 /*			
 			else if (!isMoving)
 //trace('refreshMap ____1_________ ' + ' : ' + isMoving + ' : ' + Main.mousePressed + ' : ' +  flash.Lib.getTimer());
@@ -586,33 +590,33 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 					//window.rootNode.repaintRecursively(false);
 				}
 */
-			if(Main.draggingDisabled) {
-				mapWindow.rootNode.repaintRecursively(false);
-			}
+				if(Main.draggingDisabled) {
+					mapWindow.rootNode.repaintRecursively(false);
+				}
 
-			if (!isMoving && !isDragging)
-				mapWindow.repaintLabels();
+				if (!isMoving && !isDragging && !Main.draggingDisabled)
+					mapWindow.repaintLabels();
+				curTimer = curTimerNew;
+				var onMoveFlag:Bool = (needCallMoveHandler > 0 && (needCallMoveHandler < curTimerNew || Main.draggingDisabled));
+				if (onMoveFlag) {
+					callHandlers('onMove');
+				}
+				if (needOnMoveEnd && !Main.mousePressed) {
+	//trace('_______onMoveEnd________ ' + needOnMoveEnd + ' : ' + mapWindow.id + ' : ' + mapWindow.rootNode.getHandler('onMoveEnd') + ' : ' + Main.mousePressed);
+					onMoveEnd();
+					needOnMoveEnd = false;
+				}
 
-			curTimer = curTimerNew;
-			var onMoveFlag:Bool = (needCallMoveHandler > 0 && (needCallMoveHandler < curTimerNew || Main.draggingDisabled));
-			if (onMoveFlag) {
-				callHandlers('onMove');
-			}
-			if (needOnMoveEnd && !Main.mousePressed) {
-//trace('_______onMoveEnd________ ' + needOnMoveEnd + ' : ' + mapWindow.id + ' : ' + mapWindow.rootNode.getHandler('onMoveEnd') + ' : ' + Main.mousePressed);
-				onMoveEnd();
-				needOnMoveEnd = false;
-			}
+				if (!Main.mousePressed && (curTimer - Main.lastFrameBumpTime) > 2000)
+				//if ((curTimer - Main.lastFrameBumpTime) > 2000)
+				{
+					if (stage.frameRate != 2)
+						stage.frameRate = 2;
 
-			if (!Main.mousePressed && (curTimer - Main.lastFrameBumpTime) > 2000)
-			//if ((curTimer - Main.lastFrameBumpTime) > 2000)
-			{
-				if (stage.frameRate != 2)
-					stage.frameRate = 2;
-
-				if(Main.messBuffToJS.length > 0) {
-					Main.cmdToJS('gmxAPI.swfWarning', Main.messBuffToJS);
-					Main.messBuffToJS = [];
+					if(Main.messBuffToJS.length > 0) {
+						Main.cmdToJS('gmxAPI.swfWarning', Main.messBuffToJS);
+						Main.messBuffToJS = [];
+					}
 				}
 			}
 //bTime = flash.Lib.getTimer() - bTime;
