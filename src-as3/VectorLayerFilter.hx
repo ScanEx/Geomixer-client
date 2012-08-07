@@ -260,10 +260,10 @@ class VectorLayerFilter extends MapContent
 			var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
 			if (!clusterAttr._zoomDisabledHash.exists(currentZ)) {
 				curStyle = clusterAttr.regularStyle;
-				//if (curStyle != null && curStyle.marker != null && curStyle.marker.imageUrl != null && curStyle.marker.markerWidth == 0) {
-					//Main.needRefreshMap = true;
-					//return;			
-				//}
+				if (curStyle != null && curStyle.marker != null && curStyle.marker.imageUrl != null && curStyle.marker.markerWidth == 0) {
+					Main.needRefreshMap = true;
+					return;			
+				}
 				//curStyle = regularStyleOrig;
 			}
 		}
