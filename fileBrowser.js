@@ -280,7 +280,7 @@ fileBrowser.prototype.createHeader = function()
 		newFolderButton = makeButton(_gtxt("Создать")),
 		createFolder = function()
 		{
-			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + _this._path.get() + newFolderName.value, function(response)
+			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(_this._path.get() + newFolderName.value), function(response)
 			{
 				if (!parseResponse(response))
 					return;
@@ -394,7 +394,7 @@ fileBrowser.prototype.getFiles = function(path)
     if (this._isRestrictedPath(path)) 
         return;
 	
-	sendCrossDomainJSONRequest(serverBase + "FileBrowser/GetDirectoryContent.ashx?WrapStyle=func&root=" + path,  function(response)
+	sendCrossDomainJSONRequest(serverBase + "FileBrowser/GetDirectoryContent.ashx?WrapStyle=func&root=" + encodeURIComponent(path),  function(response)
 	{
 		if (!parseResponse(response))
 			return;
@@ -814,7 +814,7 @@ var zipUnzipActionFactory = function(isZip)
 		title:  function() { return isZip ? _gtxt("Упаковать") : _gtxt("Извлечь"); },
 		clickCallback: function(context)
 		{
-			sendCrossDomainJSONRequest(serverBase + (context.enableUnzip ? 'FileBrowser/Unzip.ashx' : 'FileBrowser/Zip.ashx') + '?WrapStyle=func&FullName=' + context.fullPath, function(response)
+			sendCrossDomainJSONRequest(serverBase + (context.enableUnzip ? 'FileBrowser/Unzip.ashx' : 'FileBrowser/Zip.ashx') + '?WrapStyle=func&FullName=' + encodeURIComponent(context.fullPath), function(response)
 			{
 				if (!parseResponse(response))
 					return;
@@ -852,7 +852,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Удалить"); },
 	clickCallback: function(context)
 	{
-		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/Delete.ashx?WrapStyle=func&FullName=' + context.fullPath, function(response)
+		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/Delete.ashx?WrapStyle=func&FullName=' + encodeURIComponent(context.fullPath), function(response)
 		{
 			if (!parseResponse(response))
 				return;
@@ -866,7 +866,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Очистить"); },
 	clickCallback: function(context)
 	{
-		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CleanFolder.ashx?WrapStyle=func&FullName=' + context.fullPath, function(response)
+		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CleanFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(context.fullPath), function(response)
 		{
 			if (!parseResponse(response))
 				return;

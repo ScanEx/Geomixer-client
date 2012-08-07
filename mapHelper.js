@@ -3464,20 +3464,20 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 			{
 				var cols = '',
 					updateParams = '',
-					encoding = '&EncodeSource=' + encodingWidget.getServerEncoding(),
+					encoding = '&EncodeSource=' + encodeURIComponent(encodingWidget.getServerEncoding()),
 					columnsParent = selectedSource == 0 ? xlsColumnsParent : tableColumnsParent,
 					colXElem = $(columnsParent).find("[selectLon]"),
 					colYElem = $(columnsParent).find("[selectLat]"),
 					layerTitle = title.value,
 					temporalParams = '',
-                    tableCSParam = selectedSource == 1 ? '&TableCS=' + TableCSSelect.find(':selected').val() : '';
+                    tableCSParam = selectedSource == 1 ? '&TableCS=' + encodeURIComponent(TableCSSelect.find(':selected').val()) : '';
 				
 				var temporalLayerParams = selectedSource == 1 ? temporalLayerParamsTable : temporalLayerParamsManual;
 				if ( temporalLayerParams.getTemporal() )
-					temporalParams = '&TemporalLayer=true&TemporalColumnName=' + temporalLayerParams.getColumnName() + '&TemporalPeriods=' + temporalLayerParams.getPeriodString();
+					temporalParams = '&TemporalLayer=true&TemporalColumnName=' + encodeURIComponent(temporalLayerParams.getColumnName()) + '&TemporalPeriods=' + encodeURIComponent(temporalLayerParams.getPeriodString());
 				
 				if (colXElem.length && colYElem.length)
-					cols = '&ColY=' + colYElem[0].value + '&ColX=' + colXElem[0].value;
+					cols = '&ColY=' + encodeURIComponent(colYElem[0].value) + '&ColX=' + encodeURIComponent(colXElem[0].value);
 				
 				if (div)
 				{
@@ -3489,16 +3489,16 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 					var count = attrModel.getCount();
 					var columnsString = "&FieldsCount=" + count;
 					for (var k = 0; k < count; k++){
-						columnsString += "&fieldName" + k + "=" + attrModel.getAttribute(k).name + "&fieldType" + k + "=" + attrModel.getAttribute(k).type.server;
+						columnsString += "&fieldName" + k + "=" + encodeURIComponent(attrModel.getAttribute(k).name) + "&fieldType" + k + "=" + attrModel.getAttribute(k).type.server;
 					}
                     
                     var geomType = $(':selected', geometryTypeSelect).val();
 					
 					sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func" + 
-                        "&Title=" + title.value + 
-                        "&Copyright=" + copyright.value + 
-                        "&Description=" + descr.value + 
-                        "&MapName=" + mapProperties.name + 
+                        "&Title=" + encodeURIComponent(title.value) + 
+                        "&Copyright=" + encodeURIComponent(copyright.value) + 
+                        "&Description=" + encodeURIComponent(descr.value) + 
+                        "&MapName=" + encodeURIComponent(mapProperties.name) + 
                         cols + columnsString + temporalParams +
                         "&geometrytype=" + geomType +
                         metadataString, 
@@ -3523,11 +3523,11 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 				{
 					var geometryDataSource = selectedSource == 0 ? shapePath.value : tablePath.value;
 					sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (div ? "Update.ashx" : "Insert.ashx") + "?WrapStyle=func" + 
-                        "&Title=" + title.value + 
-                        "&Copyright=" + copyright.value + 
-                        "&Description=" + descr.value + 
-                        "&GeometryDataSource=" + geometryDataSource + 
-                        "&MapName=" + mapProperties.name + 
+                        "&Title=" + encodeURIComponent(title.value) + 
+                        "&Copyright=" + encodeURIComponent(copyright.value) + 
+                        "&Description=" + encodeURIComponent(descr.value) + 
+                        "&GeometryDataSource=" + encodeURIComponent(geometryDataSource) + 
+                        "&MapName=" + encodeURIComponent(mapProperties.name) + 
                         cols + updateParams + encoding + temporalParams + metadataString + tableCSParam, 
                         function(response)
 						{
@@ -3631,7 +3631,7 @@ mapHelper.prototype.selectColumns = function(parent, params)
 		removeChilds(parent);
 	
 		if (fields && fields.length > 0)
-	{
+        {
 			var selectLat = nsGmx.Utils._select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
 				selectLon = nsGmx.Utils._select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
 
@@ -3641,7 +3641,7 @@ mapHelper.prototype.selectColumns = function(parent, params)
 		
 				_(selectLat, [opt.cloneNode(true)]);
 				_(selectLon, [opt.cloneNode(true)]);
-	}
+            }
 	
 			_(parent, [_table([_tbody([_tr([_td([_span([_t(_gtxt("Y (широта)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLat], [['css','width','150px'],['css','border','none']])]),
 										_tr([_td([_span([_t(_gtxt("X (долгота)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLon], [['css','width','150px'],['css','border','none']])])])])])
@@ -3661,7 +3661,7 @@ mapHelper.prototype.selectColumns = function(parent, params)
 	removeChilds(parent);
 	_(parent, [loading])
 	
-		sendCrossDomainJSONRequest(params.url, function(response)
+	sendCrossDomainJSONRequest(params.url, function(response)
 	{
 		removeChilds(parent);
 	

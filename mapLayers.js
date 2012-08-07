@@ -2226,7 +2226,7 @@ queryMapLayers.prototype.createMapDialog = function(title, buttonName, func, add
 
 queryMapLayers.prototype.createMap = function(name)
 {
-	sendCrossDomainJSONRequest(serverBase + 'Map/Insert.ashx?WrapStyle=func&Title=' + name, function(response)
+	sendCrossDomainJSONRequest(serverBase + 'Map/Insert.ashx?WrapStyle=func&Title=' + encodeURIComponent(name), function(response)
 	{
 		if (!parseResponse(response))
 			return;
