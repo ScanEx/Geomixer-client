@@ -223,6 +223,7 @@ class Main
 		{
 			if (isFluidMoving)
 				return;
+			mapWindow.setCacheBitmapVisible(true);
 			steps = 5;
 			var oldX:Float = currentX;
 			var oldY:Float = currentY;
@@ -253,6 +254,7 @@ class Main
 					mapWindow.rootNode.callHandlersRecursively("onMoveEnd");
 					dispatchEventPosition();
 					Main.needRefreshMap = true;
+					mapWindow.setCacheBitmapVisible(false);
 				}
 				mapWindow.setCenter(currentX, currentY);
 			}
