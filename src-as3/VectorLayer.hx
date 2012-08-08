@@ -275,6 +275,8 @@ class VectorLayer extends MapContent
 					tilesToLoad.push(tile);
 				}
 			}
+//trace('needRefreshMap ____2_________ ' + ' : ' + nRemaining + ' : ' + Main.isFluidZoom + ' : ' +  flash.Lib.getTimer());
+			if(nRemaining == 0) func(null, nRemaining);
 			for (tile in tilesToLoad)
 			{
 				tile.load(function()
@@ -283,7 +285,6 @@ class VectorLayer extends MapContent
 					func(tile, nRemaining);
 				});
 			}
-			if(nRemaining == 0) func(null, nRemaining);
 		}
 	}
 

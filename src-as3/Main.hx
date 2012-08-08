@@ -41,7 +41,8 @@ class Main
 	public static var compressLSO:Bool = false;			// Сжатие SharedObject
 	public static var flashStartTimeStamp:Float = 0;	// timeStamp загрузки SWF
 
-public static var isDrawing:Bool = false;			// Глобальный признак режима рисования
+	public static var isFluidZoom:Bool = false;			// Глобальный признак режима FluidZoom
+	public static var isDrawing:Bool = false;			// Глобальный признак режима рисования
 	public static var isDraggingNow:Bool = false;		// Глобальный признак Drag режима
 	public static var draggingDisabled:Bool = false;
 	public static var clickingDisabled:Bool = false;
@@ -228,7 +229,7 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			var oldZ:Float = currentZ;
 			fluidTargetZ = newZ;
 			var t:Float = 0;
-			isFluidMoving = true;
+			Main.isFluidZoom = isFluidMoving = true;
 			isMoving = true;
 			Main.bumpFrameRate();
 			var listener = function(event)
@@ -249,7 +250,8 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 				{
 					stopFluidMove();
 					isMoving = false;
-					mapWindow.rootNode.noteSomethingHasChanged();
+					mapWindow.rootNode.callHandlersRecursively("onMoveEnd");
+					dispatchEventPosition();
 					Main.needRefreshMap = true;
 				}
 				mapWindow.setCenter(currentX, currentY);
@@ -258,13 +260,9 @@ public static var isDrawing:Bool = false;			// Глобальный призна
 			stopFluidMove = function()
 			{
 				root.removeEventListener(Event.ENTER_FRAME, listener);
-				isFluidMoving = false;
+				Main.isFluidZoom = isFluidMoving = false;
 				stopFluidMove = null;
-				needOnMoveEnd = true;
 				Main.isDrawing = false;
-//				mapWindow.rootNode.noteSomethingHasChanged();
-//				Main.needRefreshMap = true;
-				mapWindow.setCenter(currentX, currentY);
 			}
 		}
 
@@ -1055,7 +1053,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					layer.addTile(tiles[i*3], tiles[i*3 + 1], tiles[i*3 + 2], 0);
 				layer.createLoader(function(tile:VectorTile, tilesRemaining:Int)
 				{
-					//trace('--------tile ---- visibleextent ------ ' + tilesRemaining + ' : ' );
+					//trace('--------tile ---- visibleextent ------ ' + tilesRemaining + ' : ' +  flash.Lib.getTimer() );
 					if (tilesRemaining < 0)
 					{
 						Main.bumpFrameRate();

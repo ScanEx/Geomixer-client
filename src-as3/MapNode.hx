@@ -276,7 +276,7 @@ handlerNodes.remove(id);
 
 	function setHaveRasterRecursively()
 	{
-		rasterSprite.visible = true;
+		if(!rasterSprite.visible) rasterSprite.visible = true;
 		nodeHaveRaster = true;
 		if (parent != null) parent.setHaveRasterRecursively();
 	}
