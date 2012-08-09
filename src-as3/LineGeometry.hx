@@ -17,8 +17,10 @@ class LineGeometry extends Geometry
 
 	public override function paint(attr:Dynamic)
 	{
+		isPainted = false;
 		if (attr.func != null && !attr.func(propTemporal)) return;	// Фильтр мультивременных данных
 		if (attr.func1 != null && !attr.func1(properties)) return;	// фильтр видимости setVisibilityFilter
+		isPainted = true;
 		var sprite:Sprite = attr.sprite;
 		var style:Style = attr.style;
 		var window:MapWindow = attr.window;

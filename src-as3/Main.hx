@@ -1074,8 +1074,22 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				function(id:String, flag:Bool)
 				{
 					var geom = layer.geometries.get(id);
-					var geoExp:Dynamic = geom.export();
-					var prop:Dynamic = exportProperties(geom.properties);
+					var geoExp:Dynamic = null;
+					var prop:Dynamic = null;
+					if(geom == null) {
+						var pNode:MapNode = getNode(id);
+						if (pNode.content != null && Std.is(pNode.content, VectorObject)) {
+							var vObj:VectorObject = cast(pNode.content, VectorObject);
+							geoExp = vObj.geometry.export();
+							prop = exportProperties(pNode.propHash);
+						}
+					}
+					else
+					{
+						geoExp = geom.export();
+						prop = exportProperties(geom.properties);
+					}
+//trace('-------- observeVectorLayer ------ ' + id + ' : ' +  flash.Lib.getTimer() );
 					Main.cmdToJS(func, geoExp, prop, flag);
 				}
 			));

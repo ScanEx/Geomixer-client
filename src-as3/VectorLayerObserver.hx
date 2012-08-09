@@ -25,6 +25,11 @@ class VectorLayerObserver extends MapContent
 		ids = new Hash<Bool>();
 	}
 
+	public function callFromVectorItem(node:MapNode, flag:Bool)
+	{
+		onChange(node.id, flag);
+	}
+
 	public override function repaint()
 	{
 		//if(Main.isDraggingNow) return;

@@ -17,7 +17,10 @@ class GeometryPainter
 	public function repaint(style:Style, ?func:Hash<String>->Bool, ?criterion:Hash<String>->Bool, ?notClearFlag:Bool)
 	{
 		//sprite.graphics.clear();
-		if(!notClearFlag) Utils.clearSprite(sprite);
+		if (!notClearFlag) {
+			Utils.clearSprite(sprite);
+			if (geometry != null) geometry.isPainted = false;
+		}
 		if ((geometry != null) && (style != null)) {
 			if (func != null && geometry.properties != null && !func(geometry.propTemporal)) return;	// Фильтр мультивременных данных
 			var attr:Dynamic = { };
@@ -33,6 +36,7 @@ class GeometryPainter
 		Utils.clearSprite(sprite_);
 		//sprite_.graphics.clear();
 		if ((geometry != null) && (style != null)) {
+			geometry.isPainted = false;
 			if (func != null && geometry.properties != null && !func(geometry.propTemporal)) return;	// Фильтр мультивременных данных
 			var attr:Dynamic = { };
 			attr.sprite = sprite_; attr.style = style; attr.window = window; attr.func = func;

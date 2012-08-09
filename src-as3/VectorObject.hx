@@ -14,11 +14,13 @@ class VectorObject extends MapContent
 	var xshift:Float;
 	
 	var criterion:Hash<String>->Bool;
+	var isPainted:Bool;			// обьект отображен
 
 	public function new(geometry_:Geometry)
 	{
 		geometry = geometry_;
 		isActive = false;
+		isPainted = false;
 		curNodeFilter = null;
 		curFilter = null;
 		layer = null;
@@ -126,6 +128,18 @@ class VectorObject extends MapContent
 		isActive = false;
 		curNodeFilter = null;
 		chkPositionX();
+		if (layer != null && layer.vectorLayerObserver != null) {
+//trace('-------- VectorObject -222----- ' + isPainted + ' : ' + geometry.isPainted + ' : ' + layer.vectorLayerObserver + ' : ' + mapNode.properties + ' : ' +  flash.Lib.getTimer() );
+			var flag:Bool = false;
+			if (isPainted) {
+				if (!geometry.isPainted) layer.vectorLayerObserver.callFromVectorItem(mapNode, flag);		
+			} else {
+				flag = true;
+				if (geometry.isPainted) layer.vectorLayerObserver.callFromVectorItem(mapNode, flag);		
+				
+			}
+			isPainted = geometry.isPainted;
+		}
 	}
 
 	function chkPositionX()

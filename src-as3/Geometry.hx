@@ -15,11 +15,13 @@ class Geometry
 	public var oldZ:Float;
 	public var halfLine:Float;				// половина линии обводки
 	public var currSize:Float;				// текущий отображаемый размер геометрии
+	public var isPainted:Bool;
 
 	public function new()
 	{
 		extent = new Extent();
 		refreshFlag = true;
+		isPainted = false;
 		properties = null;
 		propHiden = new Hash<Dynamic>();
 		propTemporal = new Hash<String>();
