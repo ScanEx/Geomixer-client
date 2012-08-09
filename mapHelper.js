@@ -3813,18 +3813,8 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
                         elemProperties.styles = newStyles;
                         
                         _this.findTreeElem(div).elem.content.properties = elemProperties;
-                    },
-					closeFunc = function()
-					{
-                        updateFunc();
                         
-						var newStyles = _this.updateStyles(filtersCanvas),
-							multiStyleParent = $(div).children('[multiStyle]')[0];
-						
-						for (var i = 0; i < filtersCanvas.childNodes.length; i++)
-							filtersCanvas.childNodes[i].removeColorPickers();
-												
-						if (elemProperties.GeometryType == 'polygon' &&
+                        if (elemProperties.GeometryType == 'polygon' &&
 							elemProperties.description &&
 							String(elemProperties.description).toLowerCase().indexOf('спутниковое покрытие') == 0 &&
 							divQuicklook)
@@ -3846,7 +3836,17 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 							else
 								elemProperties.TiledQuicklookMaxZoom = null;
 						}
+                    },
+					closeFunc = function()
+					{
+                        updateFunc();
+                        
+						var newStyles = _this.updateStyles(filtersCanvas),
+							multiStyleParent = $(div).children('[multiStyle]')[0];
 						
+						for (var i = 0; i < filtersCanvas.childNodes.length; i++)
+							filtersCanvas.childNodes[i].removeColorPickers();
+												
 						var multiFiltersFlag = (parentIcon.getAttribute('styleType') == 'multi' && filtersCanvas.childNodes.length > 1), // было много стилей и осталось
 							colorIconFlag = (parentIcon.getAttribute('styleType') == 'color' && filtersCanvas.childNodes.length == 1 && (typeof newStyles[0].RenderStyle.marker != 'undefined') && (typeof newStyles[0].RenderStyle.marker.image == 'undefined')); // была не иконка и осталась
 						
