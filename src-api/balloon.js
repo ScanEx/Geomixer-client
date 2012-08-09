@@ -518,7 +518,7 @@
 				{
 					x = this.mouseX = x_;
 					y = this.mouseY = y_;
-					reposition();
+					if(wasVisible) reposition();
 				},
 				resize: function()
 				{
@@ -601,11 +601,9 @@
 					'y': gmxAPI.getOffsetTop(div)
 				};
 			}
-			if(propsBalloon.isVisible()) {
-				var px = gmxAPI.eventX(event) - gmxAPI.contDivPos['x']; 
-				var py = gmxAPI.eventY(event) - gmxAPI.contDivPos['y'];
-				propsBalloon.setScreenPosition(px, py);
-			}
+			var px = gmxAPI.eventX(event) - gmxAPI.contDivPos['x']; 
+			var py = gmxAPI.eventY(event) - gmxAPI.contDivPos['y'];
+			propsBalloon.setScreenPosition(px, py);
 /*		
 			if(gmxAPI.proxyType == 'flash') {
 				if (event.preventDefault)
