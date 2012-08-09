@@ -562,6 +562,7 @@
 				propsBalloon.outerDiv.style.display = "none";
 			}
 		}
+/*		
 		propsBalloon.outerDiv.onmouseover = function()
 		{
 			if(propsBalloon.isVisible()) {
@@ -573,7 +574,7 @@
 				}
 			}
 		}
-
+*/
 		var positionBalloons = function(ph)	
 		{
 			if(balloons.length < 1) return;

@@ -295,8 +295,14 @@
 		}
 		if('_timeBarInit' in gmxAPI) gmxAPI._timeBarInit(gmxAPI._allToolsDIV);
 
-		var drawFunctions = gmxAPI._drawFunctions;
-		map.drawing = gmxAPI._drawing
+		if (gmxAPI._drawing) {
+			map.drawing = gmxAPI._drawing;
+		} else {
+			map.drawing = {
+				'setHandlers': function() { return false; }
+				,'forEachObject': function() { return false; }
+			};
+		}
 
 		map.addContextMenuItem = function(text, callback)
 		{
@@ -310,13 +316,15 @@
 			});
 		}
 
-		map.addContextMenuItem(
-			gmxAPI.KOSMOSNIMKI_LOCALIZED("Поставить маркер", "Add marker"),
-			function(x, y)
-			{
-				map.drawing.addObject({type: "POINT", coordinates: [x, y]});
-			}
-		);
+		if (gmxAPI._drawing) {
+			map.addContextMenuItem(
+				gmxAPI.KOSMOSNIMKI_LOCALIZED("Поставить маркер", "Add marker"),
+				function(x, y)
+				{
+					map.drawing.addObject({type: "POINT", coordinates: [x, y]});
+				}
+			);
+		}
 
 		// Управление базовыми подложками
 		var baseLayers = {};
@@ -490,7 +498,7 @@
 								'y': gmxAPI.from_merc_y(obj.position.y),
 								'z': 17 - obj.position.z
 							};
-						if (obj.drawnObjects)
+						if (obj.drawnObjects && gmxAPI._drawing)
 							for (var i =0; i < obj.drawnObjects.length; i++)
 							{
 								var o = obj.drawnObjects[i];
@@ -723,7 +731,7 @@
 
 		window.kosmosnimkiBeginZoom = function() 
 		{
-			if (!gmxAPI._drawing.tools['move'].isActive)
+			if (gmxAPI._drawing && !gmxAPI._drawing.tools['move'].isActive)
 				return false;
 			gmxAPI.map.freeze();
 			sunscreen.setVisible(true);
