@@ -632,6 +632,10 @@
 		
 		gmxAPI.map.addListener('onResizeMap', function()
 			{
+				gmxAPI.contDivPos = {
+					'x': gmxAPI.getOffsetLeft(div),
+					'y': gmxAPI.getOffsetTop(div)
+				};
 				positionBalloons();
 			}
 		, -10);
