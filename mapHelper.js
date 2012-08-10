@@ -2564,7 +2564,7 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 	return icon;
 }
 
-mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, layerProperties)
+mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, layerProperties, params)
 {
 	var elemProperties = div.gmxProperties.content.properties,
 		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
@@ -2583,7 +2583,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 	{
 		if (elemProperties.type == "Vector")
 		{
-			_this.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, layerProperties);
+			_this.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, layerProperties, params);
 			
 			return;
 		}
@@ -2600,25 +2600,26 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 					
 					loading.removeNode(true);
 					
-					_this.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, response.Result)
+					_this.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, response.Result, params)
 				})
 			}
 		}
 	}
 }
 
-mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, properties)
+mapHelper.prototype.createLayerEditorProperties = function(div, type, parent, properties, params)
 {
     var _this = this;
     nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
     {
         if (tagsInfo)
-            _this._createLayerEditorPropertiesWithTags(div, type, parent, properties, tagsInfo);
+            _this._createLayerEditorPropertiesWithTags(div, type, parent, properties, tagsInfo, params);
     })
 }
 
-mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, parent, properties, tagsInfo)
+mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, parent, properties, tagsInfo, params)
 {
+    var _params = $.extend({addToMap: true, doneCallback: null}, params);
 	var getFileExt = function(path)
 	{
 		return String(path).substr(String(path).lastIndexOf('.') + 1, path.length);
@@ -3534,14 +3535,21 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 							if (!parseResponse(response))
 								return;
 						
-                        
-							//_this.asyncTasks[response.Result.TaskID] = div ? div.gmxProperties.content.properties.name : true;
+							
 							var task = nsGmx.asyncTaskManager.addTask(response.Result, div ? div.gmxProperties.content.properties.name : null);
                             
-							if (div)
-								_queryMapLayers.asyncUpdateLayer(task, properties, true);
-							else
-								_queryMapLayers.asyncCreateLayer(task, layerTitle);
+                            
+                            if (div)
+                            {
+                                _queryMapLayers.asyncUpdateLayer(task, properties, true);
+                            }
+                            else 
+                            {
+                                if (_params.addToMap)
+                                    _queryMapLayers.asyncCreateLayer(task, layerTitle);
+                            }
+                            
+                            _params.doneCallback && _params.doneCallback(task, layerTitle);
 						}
                     )
 				}
@@ -3591,19 +3599,19 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                         var task = nsGmx.asyncTaskManager.addTask(response.Result, div ? div.gmxProperties.content.properties.name : null);
 						
 						if (div)
+                        {
 							_queryMapLayers.asyncUpdateLayer(task, properties, needRetiling);
+                        }
 						else
-							_queryMapLayers.asyncCreateLayer(task, layerTitle);
+                        {
+                            if (_params.addToMap)
+                                _queryMapLayers.asyncCreateLayer(task, layerTitle);
+                        }
+                        
+                        _params.doneCallback && _params.doneCallback(task, layerTitle);
 					})
 			}
-			
-			var dialog = parent.parentNode.parentNode;
-			
-			$(dialog).dialog("close")
-			$(dialog).dialog("destroy");
-			
-			dialog.removeNode(true);
-			
+
 			if (div)
 				delete _this.layerEditorsHash[div.gmxProperties.content.properties.name];
 		}
@@ -3688,8 +3696,15 @@ mapHelper.prototype.createNewLayer = function(type)
     if (type !== 'Multi')
     {
 		var properties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
-        showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 325, height, false, false);
-        this.createLayerEditorProperties(false, type, parent, properties);
+        var dialogDiv = showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 325, height, false, false);
+        this.createLayerEditorProperties(false, type, parent, properties, 
+            {
+                doneCallback: function() 
+                {
+                    removeDialog(dialogDiv); 
+                }
+            }
+        );
     }
     else
     { //мультислой
@@ -3866,9 +3881,12 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 						return false;
 					};
 				
-				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties);
+				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties, {doneCallback: function()
+                {
+                    removeDialog(divDialog);
+                }});
 				
-				showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 350, 470, pos.left, pos.top, null, function()
+				var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 350, 470, pos.left, pos.top, null, function()
                 {
                     closeFunc();
                     delete _this.layerEditorsHash[elemProperties.name];
@@ -3936,7 +3954,11 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 
 			_(divStyles, [_ul([liMinZoom, liMaxZoom])]);
 
-			this.createLoadingLayerEditorProperties(div, divProperties);
+			this.createLoadingLayerEditorProperties(div, divProperties, null, {doneCallback: function()
+                {
+                    removeDialog(divDialog);
+                }}
+            );
 			
 			var pos = nsGmx.Utils.getDialogPos(div, true, 330),
 				closeFunc = function()
@@ -3956,7 +3978,7 @@ mapHelper.prototype.createLayerEditor = function(div, selected, openedStyleIndex
 					return false;
 				};
 			
-			showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 330, 410, pos.left, pos.top, null, closeFunc);
+			var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 330, 410, pos.left, pos.top, null, closeFunc);
 			
 			$(tabMenu).tabs({selected: 0});
 		}
