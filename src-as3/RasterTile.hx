@@ -26,7 +26,6 @@ class RasterTile
 	{
 		while (tilesCurrentlyLoading < 128 && loadQueue.length > 0)
 		{
-			tilesCurrentlyLoading += 1;
 			loadQueue.pop().load();
 		}
 		if (loadQueue.length < 1 && timer != null) timer.stop();
@@ -71,6 +70,7 @@ class RasterTile
 
 	public function load()
 	{
+		if(Main.isFluidZoom) return;
 		if (!removed)
 		{
 			try {
@@ -79,6 +79,7 @@ class RasterTile
 				var ii:Int = Math.round((i + 3 * worldSize / 2) % worldSize - worldSize / 2);
 				var zz:Int = Math.round(z);
 				var url:String = layer.tileFunction(ii, j, zz);
+				tilesCurrentlyLoading += 1;
 				Utils.loadCacheImage(
 					url, 
 					function(contents:Dynamic) { return me.onLoad(contents); },
@@ -91,7 +92,7 @@ class RasterTile
 			}
 		}
 		else {
-			tilesCurrentlyLoading -= 1;
+			//tilesCurrentlyLoading -= 1;
 			//loadDone();
 		}
 	}
@@ -138,6 +139,7 @@ class RasterTile
 				remove();
 			//Main.needRefreshMap = true;		// Нельзя перерисовывать все
 		}
+		if(!timer.running) timer.start();
 	}
 
 	function onError()
@@ -160,6 +162,7 @@ class RasterTile
 				layer.loadTile(ii, jj, zz, true, false);
 			}
 		}
+		if(!timer.running) timer.start();
 	}
 
 	function updateAlpha()

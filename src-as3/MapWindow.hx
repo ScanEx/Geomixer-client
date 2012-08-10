@@ -155,10 +155,10 @@ class MapWindow
 		visibleExtent.update(p1.x, p1.y);
 		visibleExtent.update(p2.x, p2.y);
 		scaleY = inv.d;
-		//if (curZ == z) {
+		if (!Main.isFluidZoom) {
 			cacheRepaintNeeded = true;
 			labelsRepaintNeeded = true;
-		//}
+		}
 	}
 
 	public function setCacheBitmapVisible(flag:Bool)
@@ -186,9 +186,10 @@ class MapWindow
 
 	public function repaintCacheBitmap()
 	{
-		if (cacheRepaintNeeded && !Main.mousePressed)
+		if (cacheRepaintNeeded && !Main.mousePressed && !Main.isFluidZoom)
 		//if (cacheRepaintNeeded)
 		{
+//trace('repaintCacheBitmap _____________ ' + ' : ' + Main.mousePressed + ' : ' +  flash.Lib.getTimer());
 			var inv = matrix.clone();
 			inv.invert();
 			cacheBitmap.transform.matrix = inv;

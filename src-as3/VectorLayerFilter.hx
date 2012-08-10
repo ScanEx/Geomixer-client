@@ -249,7 +249,7 @@ class VectorLayerFilter extends MapContent
 
 	public override function repaint()
 	{
-		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
+		if (Main.isFluidZoom || Main.isDrawing) return;		// В режиме рисования ничего не делаем
 		if(loader != null) loader(mapNode.window.visibleExtent);
 		var w = 2 * Utils.worldWidth;
 		var e1 = mapNode.window.visibleExtent;

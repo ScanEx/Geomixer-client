@@ -255,6 +255,7 @@ class Main
 					dispatchEventPosition();
 					Main.needRefreshMap = true;
 					mapWindow.setCacheBitmapVisible(false);
+					Main.isFluidZoom = false;
 				}
 				mapWindow.setCenter(currentX, currentY);
 			}
@@ -262,7 +263,7 @@ class Main
 			stopFluidMove = function()
 			{
 				root.removeEventListener(Event.ENTER_FRAME, listener);
-				Main.isFluidZoom = isFluidMoving = false;
+				isFluidMoving = false;
 				stopFluidMove = null;
 				Main.isDrawing = false;
 			}
@@ -509,6 +510,7 @@ class Main
 					//window.repaintCacheBitmap();
 				}
 			}
+			mapWindow.repaintCacheBitmap();
 		}
 
 		// текущее положение карты
@@ -570,7 +572,7 @@ class Main
 				for (func in nextFrameCallbacks) func();
 				nextFrameCallbacks = new Array<Void->Void>();
 			}
-			if(!isFluidMoving) {
+			if(!Main.isFluidZoom) {
 
 				if (!Main.draggingDisabled && (viewportHasMoved || Main.needRefreshMap))
 				{
@@ -611,6 +613,8 @@ class Main
 			if (!Main.mousePressed && (curTimer - Main.lastFrameBumpTime) > 2000)
 			//if ((curTimer - Main.lastFrameBumpTime) > 2000)
 			{
+				//mapWindow.cacheRepaintNeeded = true;
+				mapWindow.repaintCacheBitmap();
 				if (stage.frameRate != 2)
 					stage.frameRate = 2;
 
@@ -749,6 +753,7 @@ class Main
 					|| (eventName == "onMouseOut")
 					|| (eventName == "onMouseDown")) {
 					Main.cmdToJS(callbackName, node2.id, arr, eventAttr, eventName);
+					//|| (eventName == "onNodeMouseOver")	|| (eventName == "onNodeMouseOut") || (eventName == "onEdgeMouseOut") || (eventName == "onEdgeMouseOver") || (eventName == "onFinish") || (eventName == "onEdit") || (eventName == "onRemove")
 				}
 				else
 				{

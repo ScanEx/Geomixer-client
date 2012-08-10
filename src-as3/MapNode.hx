@@ -87,7 +87,7 @@ class MapNode
 		}
 		allNodes.remove(id);
 handlerNodes.remove(id);
-		window.cacheRepaintNeeded = true;
+		//window.cacheRepaintNeeded = true;
 		window.labelsRepaintNeeded = true;
 	}
 	
@@ -433,11 +433,11 @@ handlerNodes.remove(id);
 	public function noteSomethingHasChanged()
 	{
 		somethingHasChanged = true;
-		window.cacheRepaintNeeded = true;
-		//if (containsLabels())
+//		window.cacheRepaintNeeded = true;
+		if (containsLabels())
 			window.labelsRepaintNeeded = true;
 	}
-/*
+
 	function containsLabels()
 	{
 		if ((content != null) && content.hasLabels())
@@ -447,7 +447,7 @@ handlerNodes.remove(id);
 				return true;
 		return false;
 	}
-*/
+
 	public function bringToDepth(n:Int)
 	{
 		if ((n >= 0) && (n < rasterSprite.parent.numChildren))

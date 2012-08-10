@@ -240,7 +240,7 @@ class Utils
 		loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, function(event)
 		{
 			timer.stop();
-			callOnError();
+			//callOnError();
 			var arr:Array<ReqImg> = imgWaitCache.get(url);
 			for (req in arr) {
 				req.onError();
