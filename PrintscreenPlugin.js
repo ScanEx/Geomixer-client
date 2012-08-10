@@ -120,7 +120,7 @@ var afterViewer = function(params){
 
 var addMenuItems = function(upMenu){
 	
-	return [{item: {id:'wiki', title: _gtxt("screenshotPlugin.menuTitle"),func: makeScreeshot},
+	return [{item: {id:'savepng', title: _gtxt("screenshotPlugin.menuTitle"),func: makeScreeshot},
 			parentID: 'mapsMenu'}];
 }
  
