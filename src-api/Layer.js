@@ -292,10 +292,12 @@
 		}
 		var chkBounds = function(geom) {
 			if (geom) {
+/*
 				if(geom.type == "POLYGON") {		// Проверка сдвига границ слоя
 					var arr = geom.coordinates[0];
 					chkCenterX(arr);
 				}
+*/
 				obj.bounds = boundsLatLon = gmxAPI.getBounds(geom.coordinates);
 				if(layer.mercGeometry) {
 					bounds = gmxAPI.getBounds(layer.mercGeometry.coordinates);
