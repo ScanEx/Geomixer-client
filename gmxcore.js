@@ -276,14 +276,19 @@
                 $.getCSS(cssFilename);
             }
             
-            if (cssLoader)
+            if ('getCSS' in $)
             {
-                cssLoader.done(doLoadCss);
+                doLoadCss()
             }
             else
             {
-                var path = getScriptBase('gmxcore.js');
-                cssLoader = $.getScript(path + "jquery/jquery.getCSS.js", doLoadCss);
+                if (!cssLoader)
+                {
+                    var path = getScriptBase('gmxcore.js') || window.gmxJSHost || "";
+                    cssLoader = $.getScript(path + "jquery/jquery.getCSS.js");
+                }
+                
+                cssLoader.done(doLoadCss);
             }
         }
     }
