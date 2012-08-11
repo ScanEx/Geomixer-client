@@ -48,7 +48,7 @@ var VectorSceneManager = function(params)
     {
         var deferred = $.Deferred();
         var params = $.extend({
-            WrapStyle: 'window',
+            WrapStyle: 'window'
         }, _params.layerSearchQuery(sceneId));
         
         sendCrossDomainPostRequest(serverBase + 'Layer/Search.ashx', params, function(response)
