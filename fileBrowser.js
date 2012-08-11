@@ -14,7 +14,7 @@ var fileBrowser = function()
         return {
             set: function(newPath)
             {
-                path = newPath + (newPath[newPath.length-1] === _this.slash ? '' : _this.slash);
+                path = newPath + (newPath.charAt(newPath.length-1) === _this.slash ? '' : _this.slash);
                 $(this).change();
             },
             get: function()
