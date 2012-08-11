@@ -6,7 +6,7 @@ var scrollTable = function( params )
         limit: 50,
         page: 0,
         pagesCount: 10,
-        height: 300,
+        height: '',
         showFooter: true
     }, params);
     
