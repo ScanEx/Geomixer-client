@@ -3073,17 +3073,20 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
             
             var sourceCheckbox = $('<form/>')
                 .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxFileSource', checked: 'checked'}).data('containerIdx', 0))
-                .append($('<lable/>', {'for': 'chxFileSource'}).text(_gtxt('Файл'))).append('<br/>')
+                .append($('<label/>', {'for': 'chxFileSource'}).text(_gtxt('Файл'))).append('<br/>')
                 .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxTableSource'}).data('containerIdx', 1))
-                .append($('<lable/>', {'for': 'chxTableSource'}).text(_gtxt('Таблица'))).append('<br/>')
+                .append($('<label/>', {'for': 'chxTableSource'}).text(_gtxt('Таблица'))).append('<br/>')
                 .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxManualSource'}).data('containerIdx', 2))
-                .append($('<lable/>', {'for': 'chxManualSource'}).text(_gtxt('Вручную')));
+                .append($('<label/>', {'for': 'chxManualSource'}).text(_gtxt('Вручную')));
                 
-            $(sourceCheckbox).find('input, label').css('verticalAlign', 'middle');
+            $(sourceCheckbox).find('input, label').css({verticalAlign: 'middle'});
+            $(sourceCheckbox).find('label').css({marginLeft: 2});
                 
             var sourceTab2 = $('<div/>');
-            var sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top']]), _td([sourceTab2[0]])]);
-            shownProperties.push({tr: sourceTr2});
+            var sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), _td([sourceTab2[0]])]);
+            
+            if (!div)
+                shownProperties.push({tr: sourceTr2});
             
             sourceCheckbox.find('input').click(function()
             {
@@ -3401,6 +3404,9 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
 		
 	var trs = this.createPropertiesTable(shownProperties, properties, {leftWidth: 70});
 	_(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
+    
+    // в IE инициализировать чекбоксы можно только после их добавления в DOM-дерево
+    $('input#chxFileSource').attr('checked', 'checked');
 	
 	// смотрим, а не выполняются ли для этого слоя задачи
 	var haveTask = false;
