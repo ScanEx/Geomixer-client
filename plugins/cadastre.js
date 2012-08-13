@@ -93,6 +93,7 @@ var Cadastre = function(oContainer, sCadastreHost, oMap, oMapDiv){
 	oCategoryLayer = this._mapObject.addObject();
 	oDivisionLayer = this._mapObject.addObject();
 	
+	var iListenerID = -1;
 	/** Загружает слой */
 	this.load = function(){
 		oDivisionLayer.setVisible(cbDivision.checked);
@@ -100,14 +101,14 @@ var Cadastre = function(oContainer, sCadastreHost, oMap, oMapDiv){
 		oCostByAreaLayer.setVisible(rbCostByAreaLayer.checked);
 		oUseTypeLayer.setVisible(rbUseType.checked);
 		oCategoryLayer.setVisible(rbCategory.checked);
-		oMap.setHandler("onMoveEnd", fnRefreshMap);
+		iListenerID = oMap.addListener("onMoveEnd", fnRefreshMap);
 		
 		_(oContainer, [div]);
 		fnRefreshMap();
 	}
 	/** Выгружает слой */
 	this.unload = function(){
-		oMap.removeHandler("onMoveEnd", fnRefreshMap);
+		oMap.removeListener("onMoveEnd", iListenerID);
 		oDivisionLayer.setVisible(false);
 		oCostLayer.setVisible(false);
 		oCostByAreaLayer.setVisible(false);
@@ -143,7 +144,7 @@ var afterViewer = function(params){
 	if (params && params.CadastreHost) {
 		sCadastreHost = params.CadastreHost;
 	}else{
-		sCadastreHost = "http://maps.rosreestr.ru/arcgis/rest/services/Cadastre/";
+		sCadastreHost = "http://maps.rosreestr.ru/arcgis/rest/services/CadastreNew/";
 	}
 }
 
