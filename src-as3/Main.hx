@@ -251,8 +251,9 @@ class Main
 				{
 					stopFluidMove();
 					isMoving = false;
-					mapWindow.rootNode.callHandlersRecursively("onMoveEnd");
-					dispatchEventPosition();
+					//mapWindow.rootNode.callHandlersRecursively("onMoveEnd");
+					//dispatchEventPosition();
+					needOnMoveEnd = true;
 					Main.needRefreshMap = true;
 					mapWindow.setCacheBitmapVisible(false);
 					Main.isFluidZoom = false;
@@ -603,11 +604,11 @@ class Main
 			var onMoveFlag:Bool = (needCallMoveHandler > 0 && (needCallMoveHandler < curTimerNew || Main.draggingDisabled));
 			if (onMoveFlag) {
 				callHandlers('onMove');
-			}
-			if (needOnMoveEnd && !Main.mousePressed) {
+				if (needOnMoveEnd && !Main.mousePressed) {
 //trace('_______onMoveEnd________ ' + needOnMoveEnd + ' : ' + mapWindow.id + ' : ' + mapWindow.rootNode.getHandler('onMoveEnd') + ' : ' + Main.mousePressed);
-				onMoveEnd();
-				needOnMoveEnd = false;
+					onMoveEnd();
+					needOnMoveEnd = false;
+				}
 			}
 
 			if (!Main.mousePressed && (curTimer - Main.lastFrameBumpTime) > 2000)
