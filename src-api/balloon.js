@@ -160,6 +160,10 @@
 						if('attr' in o) keyPress = o.attr;
 						o = o.obj;
 					}
+					gmxAPI.contDivPos = {
+						'x': gmxAPI.getOffsetLeft(div),
+						'y': gmxAPI.getOffsetTop(div)
+					};
 					if(keyPress && (keyPress['shiftKey'] || keyPress['ctrlKey'])) return false;	// При нажатых не показываем балун
 					if (map.isDragging())
 						return false;
