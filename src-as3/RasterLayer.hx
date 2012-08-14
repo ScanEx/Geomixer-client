@@ -45,7 +45,7 @@ class RasterLayer extends MaskedContent
 
 	public override function repaint()
 	{
-		if (Main.isDrawing || Main.isFluidZoom) return;		// В режиме рисования ничего не делаем
+		if (Main.isFluidZoom) return;		// В режиме zoom ничего не делаем
 		super.repaint();
 
 		var window = mapNode.window;
