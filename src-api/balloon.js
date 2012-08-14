@@ -473,7 +473,9 @@
 				bottom: "-21px",
 				right: "15px"
 			};
-			if(document.doctype && (gmxAPI.isChrome || gmxAPI.isSafari || gmxAPI.isIE)) imgStyle["bottom"] = (document.doctype.systemId ? "-19px" : "-17px");
+			if(document.doctype) {
+				if(gmxAPI.isChrome || gmxAPI.isSafari || gmxAPI.isIE) imgStyle["bottom"] = "-19px";
+			} else if(gmxAPI.isIE && document.documentMode >= 8) imgStyle["bottom"] = "-19px";
 			var leg = gmxAPI.newElement("img",
 				{
 					src: apiBase + "img/tooltip-leg.png"
