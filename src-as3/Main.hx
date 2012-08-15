@@ -715,7 +715,7 @@ class Main
 
 			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode, ?data_:Dynamic)
 			{
-//trace('ssss22sss ' + eventName + ' : ' + callbackName + ' : ' + id);
+//trace('ssss22sss ' + eventName + ' : ' + callbackName + ' : ' + id + ' : ' + flash.Lib.getTimer());
 				var props:Dynamic;
 				if (data_ != null)
 				{

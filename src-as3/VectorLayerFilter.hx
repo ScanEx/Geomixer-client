@@ -353,12 +353,16 @@ class VectorLayerFilter extends MapContent
 //event.stopImmediatePropagation();
 			}
 		});
+		var prevMove:Int = flash.Lib.getTimer();
 		contentSprite.addEventListener(MouseEvent.MOUSE_MOVE, function(event:MouseEvent)
 		{
 			if (Main.mousePressed || Main.isDrawing || Main.draggingDisabled) return;		// В режиме рисования ничего не делаем
+			var newMove:Int = flash.Lib.getTimer();
+			if (newMove - prevMove < 200) return;
 			//if (event.ctrlKey) return;
 			//me.layer.currentFilter = me;
 			me.layer.repaintIndicator(event);
+			prevMove = newMove;
 //event.stopImmediatePropagation();
 			//me.layer.needRepaintIndicator = true;
 			//Main.bumpFrameRate();
