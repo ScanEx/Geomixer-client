@@ -200,7 +200,7 @@
 					return true;
 				},
 				onMouseOut: function(o) 
-				{ 
+				{
 					if('obj' in o) {
 						o = o.obj;
 					}
@@ -513,6 +513,11 @@
 			}
 
 			var wasVisible = true;
+			var setMousePos = function(x_, y_)	
+			{
+				x = this.mouseX = x_;
+				y = this.mouseY = y_;
+			}
 
 			var ret = {						// Возвращаемый обьект
 				outerDiv: balloon,
@@ -521,10 +526,10 @@
 				mouseY: 0,
 				isVisible: isVisible,
 				setVisible: updateVisible,
+				setMousePos: setMousePos,
 				setScreenPosition: function(x_, y_)
 				{
-					x = this.mouseX = x_;
-					y = this.mouseY = y_;
+					setMousePos(x_, y_);
 					if(wasVisible) reposition();
 				},
 				resize: function()
@@ -546,42 +551,20 @@
 		propsBalloon.setVisible(false);
 		propsBalloon.outerDiv.style.zIndex = 10000;
 		propsBalloon.outerDiv.style.display = "none";
-		
-		div.onmouseout = function(event)
+
+		document.onmouseout = function(event)
 		{
-			if(propsBalloon.isVisible()) {
-				var tg = gmxAPI.compatTarget(event);
-				if (!event)
-					event = window.event;
-				var reltg = event.toElement || event.relatedTarget;
-				while (reltg && (reltg != document.documentElement))
-				{
-					if (reltg == propsBalloon.outerDiv)
-						return;
-					reltg = reltg.offsetParent;
-				}
-				while (tg && (tg != document.documentElement))
-				{
-					if (tg == propsBalloon.outerDiv)
-						return;
-					tg = tg.offsetParent;
-				}
-				propsBalloon.outerDiv.style.display = "none";
-			}
+			if(!gmxAPI.contDivPos) return;
+			var minx = gmxAPI.contDivPos['x'];
+			var maxx = minx + gmxAPI._div.clientWidth;
+			var eventX = gmxAPI.eventX(event);
+			var miny = gmxAPI.contDivPos['y'];
+			var maxy = miny + gmxAPI._div.clientHeight;
+			var eventY = gmxAPI.eventY(event);
+			if(eventX >= minx && eventX <= maxx && eventY >= miny && eventY <= maxy) return;
+			propsBalloon.outerDiv.style.display = "none";
 		}
-/*		
-		propsBalloon.outerDiv.onmouseover = function()
-		{
-			if(propsBalloon.isVisible()) {
-				if (map.isDragging())
-				{
-					//needToStopDragging = false;
-					propsBalloon.updatePropsBalloon(false);
-					map.resumeDragging();
-				}
-			}
-		}
-*/
+
 		var positionBalloons = function(ph)	
 		{
 			if(balloons.length < 1) return;
@@ -600,18 +583,25 @@
 
 		//map.addObject().setHandler("onMove", positionBalloons);
 		gmxAPI.contDivPos = null;
+		var eventXprev = 0; 
+		var eventYprev = 0;
 		var onmousemove = function(event)
 		{
+			var eventX = gmxAPI.eventX(event); 
+			var eventY = gmxAPI.eventY(event);
+			if(eventX == eventXprev && eventY == eventYprev) return;
+			eventXprev = eventX; 
+			eventYprev = eventY;
 			if(!gmxAPI.contDivPos) {
 				gmxAPI.contDivPos = {
 					'x': gmxAPI.getOffsetLeft(div),
 					'y': gmxAPI.getOffsetTop(div)
 				};
 			}
-			var px = gmxAPI.eventX(event) - gmxAPI.contDivPos['x']; 
-			var py = gmxAPI.eventY(event) - gmxAPI.contDivPos['y'];
+			var px = eventX - gmxAPI.contDivPos['x']; 
+			var py = eventY - gmxAPI.contDivPos['y'];
 			propsBalloon.setScreenPosition(px, py);
-/*		
+/*
 			if(gmxAPI.proxyType == 'flash') {
 				if (event.preventDefault)
 				{
@@ -622,7 +612,7 @@
 					event.cancelBubble = true;
 				}
 			}
-*/			
+*/
 		}
 
 		gmxAPI._div.onmousemove = onmousemove;
@@ -707,7 +697,6 @@
 					
 					// Смещение Балуна к центру
 					var deltaX = 0;
-
 					if(!balloon.isDraging) {
 						var pos = gmxAPI.chkPointCenterX(this.geoX);
 						var centrGEO = gmxAPI.from_merc_x(mapX);
