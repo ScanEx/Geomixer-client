@@ -370,7 +370,7 @@ class VectorLayerFilter extends MapContent
 		var roll_out = function(event:Event)
 		{
 			if (Main.mousePressed || Main.isDrawing || Main.draggingDisabled) return;		// В режиме рисования ничего не делаем
-			if (Std.is(event, MouseEvent) && cast(event, MouseEvent).relatedObject == null) return;		// мышь ушла за пределы swf например на балун
+			//if (Std.is(event, MouseEvent) && cast(event, MouseEvent).relatedObject == null) return;		// мышь ушла за пределы swf например на балун
 			if (me.layer.currentFilter != null)
 			{
 				var node = me.layer.currentFilter.mapNode;
