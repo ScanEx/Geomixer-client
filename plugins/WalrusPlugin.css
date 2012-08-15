@@ -8,3 +8,18 @@
     margin: 0px 10px 0px 1px;
     font-size: 12px;
 }
+
+.walrus-main-container
+{
+    padding-right: 16px;
+}
+
+.walrus-images-row, .walrus-row
+{
+    cursor: pointer;
+}
+
+.walrus-images-row:hover, .walrus-row:hover
+{
+    background-color: #DDDDDD;
+}
