@@ -66,9 +66,17 @@ var getInputElement = function(type)
     return input;
 }
 
+//layerName {string} - ID слоя
+//objectId {int} - ID объекта. Если новый объект, то null
+//params
+//  * drawingObject {DrawingObject} - пользовательский объект для задании геометрии или null, если геометрия не задана
+//  * fields {Array} - массив со значениями атрибутов. Должен содержать только атрибуты, которые есть в слое. Каждый элемент массива может содержать:
+//     * name {String} - имя атрибута (обязательно)
+//     * value {String|int} - значение атрибута в формате сервера (может отсутствовать)
+//     * constant {bool} - можно ли редактировать атрибут (по умолчанию - можно)
 var EditObjectControl = function(layerName, objectId, params)
 {
-    var _params = $.extend({drawingObject: null}, params);
+    var _params = $.extend({drawingObject: null, fields: {}}, params);
     var _this = this;
     var isNew = objectId == null;
     if (!isNew && EditObjectControlsManager.find(layerName, objectId))
@@ -77,7 +85,7 @@ var EditObjectControl = function(layerName, objectId, params)
     EditObjectControlsManager.add(layerName, objectId, this);
     
     var layer = globalFlashMap.layers[layerName];
-    var geometryInfoContainer = null;
+    var geometryInfoContainer = _span(null, [['css','color','#215570'],['css','marginLeft','3px'],['css','fontSize','12px']]);
     
     var originalGeometry = null;
     var drawingBorderDialog = null;
@@ -87,7 +95,7 @@ var EditObjectControl = function(layerName, objectId, params)
     
     var geometryInfoRow = null;
     var bindDrawingObject = function(obj)
-    {        
+    {
         geometryInfoRow && geometryInfoRow.RemoveRow();
         var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
         geometryInfoRow = new InfoRow(
@@ -125,11 +133,14 @@ var EditObjectControl = function(layerName, objectId, params)
         {
             var properties = {};
             var anyErrors = false;
-            $(".inputStyle", canvas).each(function(index, elem)
+            $(".edit-attr-value", canvas).each(function(index, elem)
             {
-                var value = nsGmx.Utils.convertToServer(elem.rowType, elem.value);
+                if (elem.rowName === identityField) 
+                    return;
+                
+                var value = nsGmx.Utils.convertToServer(elem.rowType, 'value' in elem ? elem.value : elem.innerText);
                 if (value !== null)
-                    properties[elem.rowName] = nsGmx.Utils.convertToServer(elem.rowType, elem.value);
+                    properties[elem.rowName] = value;
                 else
                 {
                     anyErrors = true;
@@ -201,6 +212,98 @@ var EditObjectControl = function(layerName, objectId, params)
             layer.setVisibilityFilter();
         }
         
+        var drawAttrList = function(drawingObject, fields)
+        {
+            var trs = [];
+            
+            //сначала идёт геометрия
+            var drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
+            
+            drawingBorderLink.onclick = function()
+            {
+                nsGmx.Controls.chooseDrawingBorderDialog(
+                    'editObject', 
+                    bindDrawingObject, 
+                    { geomType: layer.properties.GeometryType }
+                );
+            }
+            drawingBorderLink.style.margin = '0px 5px 0px 3px';
+            
+            var td = _td();
+            if (drawingObject)
+            {
+                var geom = drawingObject.getGeometry();
+                if (geom.type == "POINT" || geom.type == "LINESTRING" || geom.type == "POLYGON")
+                {
+                    bindDrawingObject(drawingObject);
+                    originalGeometry = geometryInfoRow.getDrawingObject().getGeometry();
+                    
+                    _(td, [geometryInfoContainer]);
+                }
+                else
+                {
+                    var info = _span([_t(geom.type)], [['css','marginLeft','3px'],['css','fontSize','12px']]);
+                    _title(info, JSON.stringify(geom.coordinates));
+                    _(td, [info]);
+                }
+            }
+            else
+            {
+                _(td, [geometryInfoContainer]);
+            }
+            
+            trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), td]))
+            
+            //потом все остальные поля
+            for (var iF = 0; iF < fields.length; iF++)
+            {
+                var td = _td();
+                if (fields[iF].constant)
+                {
+                    if ('value' in fields[iF])
+                    {
+                        var span = _span(null,[['css','marginLeft','3px'],['css','fontSize','12px'], ['dir', 'className', 'edit-attr-value']])
+                        span.rowName = fields[iF].name;
+                        span.rowType = fields[iF].type;
+                        _(span, [_t(nsGmx.Utils.convertFromServer(fields[iF].type, fields[iF].value))]);
+                    }
+                    _(td, [span])
+                }
+                else
+                {
+                    var input = getInputElement(fields[iF].type);
+                    input.rowName = fields[iF].name;
+                    input.rowType = fields[iF].type;
+                    
+                    if ('value' in fields[iF])
+                        input.value = nsGmx.Utils.convertFromServer(fields[iF].type, fields[iF].value);
+                        
+                    $(input).addClass('edit-attr-value');
+                        
+                    _(td, [input]);
+                }
+                
+                trs.push(_tr([_td([_span([_t(fields[iF].name)],[['css','fontSize','12px']])]), td], [['css', 'height', '22px']]));
+            }
+            
+            return trs;
+        }
+        
+        var extendFields = function(fields, newFields)
+        {
+            for (var iNF = 0; iNF < newFields.length; iNF++)
+            {
+                for (var iF = 0; iF < fields.length; iF++)
+                    if ( fields[iF].name === newFields[iNF].name )
+                    {
+                        $.extend( true, fields[iF], newFields[iNF] );
+                        break;
+                    }
+            }
+            
+            return fields;
+        }
+        
         var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", layer.properties.title) : _gtxt("Редактировать объект слоя [value0]", layer.properties.title), canvas, 400, 300, false, false, resizeFunc, closeFunc);
         
         if (!isNew)
@@ -215,79 +318,41 @@ var EditObjectControl = function(layerName, objectId, params)
                 if (!parseResponse(response))
                     return;
                     
-                var columnNames = response.Result.fields;
-                
                 $(canvas).children("[loading]").remove();
                 
+                var columnNames = response.Result.fields;
+                var drawingObject = null;
                 var geometryRow = response.Result.values[0];
                 var types = response.Result.types;
                 
-                trs[0] = trs[1] = null; //резервируем место под геометрию и строчку идентификатора
+                var fields = [];
+                
                 for (var i = 0; i < geometryRow.length; ++i)
                 {
-                    var tdValue = _td();
-                    
                     if (columnNames[i] === 'geomixergeojson')
                     {
-                        geometryInfoContainer = _span(null, [['css','color','#215570'],['css','marginLeft','3px'],['css','fontSize','12px']]);
-
-                        if (geometryRow[i].type == "POINT" || geometryRow[i].type == "LINESTRING" || geometryRow[i].type == "POLYGON")
-                        {
-                            
-                            // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
-                            /*	if (geometryRow[0].type == "POLYGON")
-                            {
-                                geometryRow[0].coordinates[0][0][0] += 0.00001;
-                                geometryRow[0].coordinates[0][0][1] += 0.00001;
-                            }*/
-                            
-                            var geom = from_merc_geometry(geometryRow[i]);
-                            bindDrawingObject(globalFlashMap.drawing.addObject(geom));
-                            
-                            originalGeometry = geometryInfoRow.getDrawingObject().getGeometry();
-                            
-                            _(tdValue, [geometryInfoContainer]);
-                        }
-                        else
-                        {
-                            var info = _span([_t(geometryRow[i].type)], [['css','marginLeft','3px'],['css','fontSize','12px']]);
-                            
-                            _title(info, JSON.stringify(geometryRow[i].coordinates));
-                        }
-                        
-                        var drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
-                        
-                        drawingBorderLink.onclick = function()
-                        {
-                            nsGmx.Controls.chooseDrawingBorderDialog(
-                                'editObject', 
-                                bindDrawingObject, 
-                                { geomType: layer.properties.GeometryType }
-                            );
-                        }
-                        
-                        drawingBorderLink.style.margin = '0px 5px 0px 3px';
-                        
-                        trs[0] = _tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), tdValue])
-                    }
-                    else if ( columnNames[i] === identityField )
-                    {
-                        _(tdValue, [_span([_t(geometryRow[i])],[['css','marginLeft','3px'],['css','fontSize','12px']])])
-                            
-                        trs[1] = _tr([_td([_span([_t(columnNames[i])],[['css','fontSize','12px']])],[['css','height','20px']]), tdValue])
+                        var geom = from_merc_geometry(geometryRow[i]);
+                        drawingObject = globalFlashMap.drawing.addObject(geom);
                     }
                     else
                     {
-                        var input = getInputElement(types[i]);
-                        input.rowName = columnNames[i];
-                        input.rowType = types[i];
-                        input.value = nsGmx.Utils.convertFromServer(types[i], geometryRow[i]);
+                        var item = {
+                            value: geometryRow[i],
+                            type: types[i], 
+                            name: columnNames[i], 
+                            constant: columnNames[i] === identityField
+                        };
                         
-                        _(tdValue, [input]);
-                        
-                        trs.push(_tr([_td([_span([_t(columnNames[i])],[['css','fontSize','12px']])]), tdValue]))
+                        if (columnNames[i] === identityField)
+                            fields.unshift(item);
+                        else
+                            fields.push(item);
                     }
                 }
+                
+                extendFields(fields, _params.fields);
+                
+                var trs = drawAttrList(drawingObject, fields);
                 
                 _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
                 
@@ -298,33 +363,16 @@ var EditObjectControl = function(layerName, objectId, params)
         }
         else
         {
-            geometryInfoContainer = _span(null, [['css','color','#215570'],['css','marginLeft','3px'],['css','fontSize','12px']]);
-
-            var drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
-            
-            drawingBorderLink.onclick = function()
-            {
-                nsGmx.Controls.chooseDrawingBorderDialog(
-                    'editObject', 
-                    bindDrawingObject, 
-                    { geomType: layer.properties.GeometryType }
-                );
-            }
-            
-            _params.drawingObject && bindDrawingObject(_params.drawingObject);
-            
-            drawingBorderLink.style.margin = '0px 5px 0px 3px';
-            
-            trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), _td([geometryInfoContainer])]));
+            var fields = [];
             
             for (var i = 0; i < layer.properties.attributes.length; ++i)
             {
-                var input = getInputElement(layer.properties.attrTypes[i]);
-                input.rowName = layer.properties.attributes[i];
-                input.rowType = layer.properties.attrTypes[i];
-                
-                trs.push(_tr([_td([_span([_t(layer.properties.attributes[i])],[['css','fontSize','12px']])]), _td([input])]))
+                fields.push({type: layer.properties.attrTypes[i], name: layer.properties.attributes[i]});
             }
+            
+            extendFields(fields, _params.fields);
+            
+            var trs = drawAttrList(_params.drawingObject, fields);
             
             _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
             
