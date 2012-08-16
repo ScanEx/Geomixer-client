@@ -370,7 +370,6 @@ class VectorLayerFilter extends MapContent
 		var roll_out = function(event:Event)
 		{
 			if (Main.mousePressed || Main.isDrawing || Main.draggingDisabled) return;		// В режиме рисования ничего не делаем
-			//if (Std.is(event, MouseEvent) && cast(event, MouseEvent).relatedObject == null) return;		// мышь ушла за пределы swf например на балун
 			if (me.layer.currentFilter != null)
 			{
 				var node = me.layer.currentFilter.mapNode;
@@ -382,9 +381,13 @@ class VectorLayerFilter extends MapContent
 			//me.layer.lastGeometry = null;
 			event.stopImmediatePropagation();
 		};
-		contentSprite.addEventListener(MouseEvent.ROLL_OUT, roll_out);
+		contentSprite.addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent) {
+			var pos:Dynamic = Main.getMousePos();
+			var flag:Bool = me.contentSprite.hitTestPoint(pos.mouseX, pos.mouseY, true);
+			//trace('roll_out _____________ ' + ' : ' + flag + ' : ' + pos.mouseX + ' : ' + pos.mouseY + ' : ' + me.contentSprite.scaleX + ' : ' + me.contentSprite.scaleY + ' : ' +  flash.Lib.getTimer());
+			if (flag) return;
+			roll_out(event);
+		});
 		evTarget.addEventListener(Event.MOUSE_LEAVE, roll_out);
-		evTarget.addEventListener(MouseEvent.MOUSE_OVER, function(event:MouseEvent) { me.layer.currentId = null; } );
-	
 	}
 }

@@ -50,6 +50,7 @@ class Main
 	public static var eventAttr:Dynamic = {};
 	public static var clusterPointsViewer:ClusterPointsViewer = null;
 	public static var removeClusterPointsViewer:MouseEvent->Void;		// Удаление ClusterPointsViewer
+	public static var getMousePos:Void->Dynamic;		// Получить позицию мыши
 
 	public static var messBuffToJS:Array<Dynamic> = new Array<Dynamic>();
 	static var frameRate:Int = 40;			// максимальный frameRate
@@ -148,6 +149,14 @@ class Main
 		
 		var getNode = function(id) { return MapNode.allNodes.get(id); }
 		var constrain = function(a:Float, t:Float, b:Float) { return (t < a) ? a : (t > b) ? b : t; }
+		
+		Main.getMousePos = function():Dynamic
+		{
+			var pos:Dynamic = { };
+			pos.mouseX = root.mouseX;
+			pos.mouseY = root.mouseY;
+			return pos;
+		}
 		
 		var dispatchEventPosition = function()
 		{
