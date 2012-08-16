@@ -998,7 +998,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				Parsers.parseSQL(sql);
 
 			var node = getNode(id);
-			if (node != null)
+			if (node != null && func != null)
 			{
 				node.noteSomethingHasChanged();
 				node.propHiden.set('_FilterVisibility', func);
