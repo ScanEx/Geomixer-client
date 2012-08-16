@@ -1,7 +1,8 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<script src="http://mapstest.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+	<script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> 
+<!--	<script src="http://mapstest.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script> -->
 
 <title>GeoMixer API - примеры использования</title>
 </head>
@@ -50,12 +51,24 @@
 			var st = obj.objectId;
 			document.getElementById("cmdHash2").innerHTML = st;
 		}
+		var test3 = function(obj)
+		{
+			var st = obj.objectId;
+			document.getElementById("cmdHash1").innerHTML = 'onFinish: ' + st + ' добавлен';
+		}
+		var test4 = function(obj)
+		{
+			var st = obj.objectId;
+			document.getElementById("cmdHash1").innerHTML = 'onAdd: ' + st + ' происходит добавление';
+		}
 
 	   var listID1 = 0;
 	   var listID11 = 0;
 	   var listID2 = 0;
 	   var listID3 = 0;
 	   var listID4 = 0;
+	   var listID5 = 0;
+	   var listID6 = 0;
 	   document.getElementById("button2").onclick = function()
 		{
 			var tt = tObj;
@@ -65,7 +78,9 @@
 			listID2 = tObj2.addListener('onEdit', test2);
 			listID3 = tObj3.addListener('onEdit', test2);
 			listID4 = tObj4.addListener('onEdit', test2);
-			var tt = 1;
+			listID5 = map.drawing.addListener('onFinish', test3);
+			listID6 = map.drawing.addListener('onAdd', test4);
+			
 		}
 
 	   document.getElementById("button1").onclick = function()
@@ -79,6 +94,10 @@
 	   document.getElementById("button3").onclick = function()
 		{
 			tObj.remove();
+		}
+	   document.onkeyup = function(arg)
+		{
+			tObj3.remove();
 		}
 		
       });

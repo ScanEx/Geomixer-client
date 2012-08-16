@@ -579,7 +579,9 @@ class Main
 
 			if (nextFrameCallbacks.length > 0)
 			{
-				for (func in nextFrameCallbacks) func();
+				for (func in nextFrameCallbacks) {
+					try { func(); } catch (e:Error) { } // Error при удаленных в JS callback
+				}
 				nextFrameCallbacks = new Array<Void->Void>();
 			}
 			if(!Main.isFluidZoom) {
