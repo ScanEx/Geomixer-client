@@ -18,125 +18,132 @@ _translationsHash.addtext("eng", {
     'walrusPlugin.dialogTitle': 'Add image'
 });
 
-var doAddLayerWithProperties = function(targetLayerName, layerInfo)
+var AddImageControl = function(map, layerName)
 {
-    var metaProps = layerInfo.properties.MetaProperties;
-    
-    var obj = {
-        action: 'insert',
-        geometry: layerInfo.geometry,
-        properties: {
-            LayerName: layerInfo.properties.name,
-            title: layerInfo.properties.title,
-            acdate: metaProps.acdate.Value,
-            //actime: metaProps.actime.Value,
-            platform: metaProps.platform.Value,
-            sceneid: metaProps.sceneid.Value,
-            views: 0
-        }
-    };
-    
-    var objects = JSON.stringify([obj]);
-    
-    sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
-        {
-            WrapStyle: 'window', 
-            LayerName: targetLayerName,
-            objects: objects
-        }, 
-        function(response)
-        {
-            if (!parseResponse(response))
-                return;
-        }
-    )
-}
-
-var doAddLayer = function(targetLayerName, newLayer)
-{
-    var newLayerName = newLayer.name;
-    var testQuery = 'LayerName="' + newLayerName + '"'
-    sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&count=true" + "&layer=" + targetLayerName + "&query=" + encodeURIComponent(testQuery), function(response)
+    var doAddLayerWithProperties = function(layerInfo)
     {
-        if (!parseResponse(response))
-            return;
-            
-        if (response.Result > 0)
-        {
-            alert(_gtxt('walrusPlugin.alreadyExistWarn'));
-            return;
-        }
+        var metaProps = layerInfo.properties.MetaProperties;
         
-        sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + newLayerName, function(response)
+        var obj = {
+            action: 'insert',
+            geometry: layerInfo.geometry,
+            properties: {
+                LayerName: layerInfo.properties.name,
+                title: layerInfo.properties.title,
+                acdate: metaProps.acdate.Value,
+                //actime: metaProps.actime.Value,
+                platform: metaProps.platform.Value,
+                sceneid: metaProps.sceneid.Value,
+                views: 0
+            }
+        };
+        
+        var objects = JSON.stringify([obj]);
+        
+        sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
+            {
+                WrapStyle: 'window', 
+                LayerName: layerName,
+                objects: objects
+            }, 
+            function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                    
+                map.layers[layerName].chkLayerVersion();
+            }
+        )
+    }
+
+    var doAddLayer = function(newLayer)
+    {
+        var newLayerName = newLayer.name;
+        var testQuery = 'LayerName="' + newLayerName + '"'
+        sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&count=true" + "&layer=" + layerName + "&query=" + encodeURIComponent(testQuery), function(response)
         {
             if (!parseResponse(response))
                 return;
                 
-            doAddLayerWithProperties(targetLayerName, response.Result);
-        })
-    })
-}
-
-var createAddImageDialog = function(layerName)
-{
-    var layerManagerCanvas = _div();
-    var newLayerCanvas = _div(null, [['css', 'marginTop', '10px']]);
-    var suggestLayersControl = new nsGmx.LayerManagerControl(layerManagerCanvas, 'addimage', {
-        fixType: 'raster', 
-        enableDragging: false,
-        onclick: function(clickContext) { doAddLayer(layerName, clickContext.elem);}
-    });
-    
-    var newLayerRadio = $('<input/>', {'class': 'walrus-radio', type: 'radio', id: 'addNewLayer', name: 'newLayer'}).click(function()
-    {
-        $(layerManagerCanvas).hide();
-        $(newLayerCanvas).show();
-        
-    });
-    
-    var existLayerRadio = $('<input/>', {'class': 'walrus-radio', type: 'radio', id: 'addExistingLayer', name: 'newLayer', checked: 'checked'}).click(function()
-    {
-        $(layerManagerCanvas).show();
-        $(newLayerCanvas).hide();
-    });
-    
-    $(newLayerCanvas).hide();
-    
-    var properties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
-    
-    var initNewLayerCanvas = function()
-    {
-        $(newLayerCanvas).empty();
-        _mapHelper.createLayerEditorProperties(false, 'Raster', newLayerCanvas, properties, 
+            if (response.Result > 0)
             {
-                addToMap: false, 
-                doneCallback: function(task)
-                {
-                    initNewLayerCanvas();
-                    task.deferred.done(function(taskInfo)
-                    {
-                        doAddLayerWithProperties(layerName, taskInfo.Result);
-                    })
-                }
+                alert(_gtxt('walrusPlugin.alreadyExistWarn'));
+                return;
             }
-        );
+            
+            sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + newLayerName, function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                    
+                doAddLayerWithProperties(response.Result);
+            })
+        })
     }
-    initNewLayerCanvas();
+
+    var createAddImageDialog = function()
+    {
+        var layerManagerCanvas = _div();
+        var newLayerCanvas = _div(null, [['css', 'marginTop', '10px']]);
+        var suggestLayersControl = new nsGmx.LayerManagerControl(layerManagerCanvas, 'addimage', {
+            fixType: 'raster', 
+            enableDragging: false,
+            onclick: function(clickContext) { doAddLayer(clickContext.elem);}
+        });
+        
+        var newLayerRadio = $('<input/>', {'class': 'walrus-radio', type: 'radio', id: 'addNewLayer', name: 'newLayer'}).click(function()
+        {
+            $(layerManagerCanvas).hide();
+            $(newLayerCanvas).show();
+            
+        });
+        
+        var existLayerRadio = $('<input/>', {'class': 'walrus-radio', type: 'radio', id: 'addExistingLayer', name: 'newLayer', checked: 'checked'}).click(function()
+        {
+            $(layerManagerCanvas).show();
+            $(newLayerCanvas).hide();
+        });
+        
+        $(newLayerCanvas).hide();
+        
+        var properties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
+        
+        var initNewLayerCanvas = function()
+        {
+            $(newLayerCanvas).empty();
+            _mapHelper.createLayerEditorProperties(false, 'Raster', newLayerCanvas, properties, 
+                {
+                    addToMap: false, 
+                    doneCallback: function(task)
+                    {
+                        initNewLayerCanvas();
+                        task.deferred.done(function(taskInfo)
+                        {
+                            doAddLayerWithProperties(layerName, taskInfo.Result);
+                        })
+                    }
+                }
+            );
+        }
+        initNewLayerCanvas();
+        
+        var canvas = $('<div/>').
+            append($('<form/>'))
+                .append($('<table/>', {'class': 'walrus-switchcontainer'}).append($('<tr/>')
+                    .append($('<td/>').append(existLayerRadio))
+                    .append($('<td/>').append($('<label/>', {'class': 'walrus-label', type: 'radio', 'for': 'addExistingLayer'}).text(_gtxt('walrusPlugin.labelExistLayer'))))
+                    .append($('<td/>').append(newLayerRadio))
+                    .append($('<td/>').append($('<label/>', {'class': 'walrus-label', type: 'radio', 'for': 'addNewLayer'}).text(_gtxt('walrusPlugin.labelNewLayer'))))
+                ))
+            .append(layerManagerCanvas)
+            .append(newLayerCanvas);
+        
+        showDialog(_gtxt('walrusPlugin.dialogTitle'), canvas[0], {width: 600, height: 600});
+        
+        existLayerRadio[0].checked = true;    
+    }
     
-    var canvas = $('<div/>').
-        append($('<form/>'))
-            .append($('<table/>', {'class': 'walrus-switchcontainer'}).append($('<tr/>')
-                .append($('<td/>').append(existLayerRadio))
-                .append($('<td/>').append($('<label/>', {'class': 'walrus-label', type: 'radio', 'for': 'addExistingLayer'}).text(_gtxt('walrusPlugin.labelExistLayer'))))
-                .append($('<td/>').append(newLayerRadio))
-                .append($('<td/>').append($('<label/>', {'class': 'walrus-label', type: 'radio', 'for': 'addNewLayer'}).text(_gtxt('walrusPlugin.labelNewLayer'))))
-            ))
-        .append(layerManagerCanvas)
-        .append(newLayerCanvas);
-    
-    showDialog(_gtxt('walrusPlugin.dialogTitle'), canvas[0], {width: 600, height: 600});
-    
-    existLayerRadio[0].checked = true;    
+    createAddImageDialog();
 }
 
 var WalrusControl = function(map, container, walrusLayerName)
@@ -170,7 +177,7 @@ var WalrusControl = function(map, container, walrusLayerName)
             serverBase + "VectorLayer/Search.ashx?WrapStyle=func&geometry=true&layer=" + walrusLayerName + query
         );
         
-        map.layers[walrusLayerName].setVisibilityFilter('"sceneid"="' + _sceneid + '"');
+        map.layers[walrusLayerName].setVisibilityFilter('"sceneid"=\'' + _sceneid + '\'');
     }
     
     var _sceneid = '__NOT_EXISTENT_SCENE__';
@@ -216,10 +223,15 @@ var WalrusControl = function(map, container, walrusLayerName)
         updateData();
     }
     
+    this.reloadFromServer = function()
+    {
+        walrusDataProvider.serverChanged();
+    }
     
 }
 
 var publicInterface = {
+    pluginName: 'Walrus',
 	afterViewer: function(params, map)
     {
         var imageLayerName = '26EE541B6E0C43DBB3B4CAA3563F94E9';
@@ -233,7 +245,7 @@ var publicInterface = {
         var walrusContainer = _div();
         var addImageButton = $('<button/>').text('Добавить снимок').click(function()
         {
-            createAddImageDialog(imageLayerName);
+            new AddImageControl(map, imageLayerName);
         })
         
         var menuContainer = $('<div/>', {'class': 'walrus-main-container'}).append(addImageButton).append(imagesContainer).append(walrusContainer);
@@ -264,7 +276,10 @@ var publicInterface = {
                     var merc_geom = image.values[image.fields.geomixergeojson.index];
                     var bounds = gmxAPI.getBounds(gmxAPI.from_merc_geometry(merc_geom).coordinates);
                     map.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-                    map.layers[imageLayerName].setVisibilityFilter('"sceneid"="' + sceneId + '"');
+                    map.layers[imageLayerName].setVisibilityFilter('"sceneid"=\'' + sceneId + '\'');
+                    
+                    $(this).addClass('walrus-active-image');
+                    $(this).siblings().removeClass('walrus-active-image');
                 })[0];
                 
             for (var i = 0; i < tr.childNodes.length; i++)
@@ -282,6 +297,18 @@ var publicInterface = {
             fieldsWidths: ['70%', '30%'],
             drawFunc: drawWalrusImages
         });
+        
+        map.layers[imageLayerName].addListener('onChangeLayerVersion', function()
+        {
+            walrusImagesdataProvider.serverChanged();
+        })
+        
+        map.layers[walrusLayerName].addListener('onChangeLayerVersion', function()
+        {
+            walrusControl.reloadFromServer();
+        })
+        
+        
     }
 }
 
