@@ -687,7 +687,8 @@
 
 	//расширяем FlashMapObject
 	gmxAPI.extendFMO('addLayer', function(layer, isVisible) {
-		addLayer(this, layer, isVisible);
+		var obj = addLayer(this, layer, isVisible);
+		gmxAPI._listeners.dispatchEvent('onAddExternalLayer', gmxAPI.map, obj);	// Добавлен внешний слой
 	} );
 
 })();
