@@ -558,7 +558,8 @@ var ModisImagesProvider = function( params )
                     _params.map.addLayer(layerProperties.content, true);
                     modisLayers[layerName] = _params.map.layers[layerName];
                     // modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
-                    modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
+                    //modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
+                    modisLayers[layerName].setVisibilityFilter("IsDay = 'True'");
                     
                     modisLayers[layerName].enableTiledQuicklooks(function(o)
                     {
