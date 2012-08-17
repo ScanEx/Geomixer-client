@@ -315,7 +315,7 @@ class Utils
 					try {
 						bitmapData.draw(loader);
 					} catch (error:Error) {			// в случае отсутствия crossdomain.xml показывает пустышку
-						bitmapData = new BitmapData(Std.int(loader.width), Std.int(loader.height));
+						//bitmapData = new BitmapData(Std.int(loader.width), Std.int(loader.height));
 					}
 	
 					if (noCache ) onLoad(bitmapData);
