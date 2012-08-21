@@ -1275,6 +1275,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'setGridVisible':
 					Main.bumpFrameRate();
 					grid.setVisible(attr.flag);
+					Main.needRefreshMap = true;
 				case 'getGridVisibility':
 					out = cast(grid.getVisibility());
 				case 'sendPNG':
