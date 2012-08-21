@@ -1305,7 +1305,19 @@ window.gmxAPI = {
 	},
 	getAPIFolderRoot: memoize(function()
 	{
-		return gmxAPI.getScriptBase("api.js");
+		var str = '';
+		var scripts1 = document.getElementsByTagName("script");
+		for (var i = 0; i < scripts1.length; i++)
+		{
+			var src = scripts1[i].getAttribute("src");
+			var u = gmxAPI.parseUri(src);
+			if(u && u.file == 'api.js') {
+				str = src.substring(0, src.indexOf('api.js'));
+				break;
+			}
+		}
+		//return gmxAPI.getScriptBase("api.js");
+		return str;
 	})
 	,
 	getAPIHost: memoize(function()
