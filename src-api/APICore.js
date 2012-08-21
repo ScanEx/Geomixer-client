@@ -1303,21 +1303,30 @@ window.gmxAPI = {
 			s = s.substring(0, s.length - 1);
 		return s;
 	},
-	getAPIFolderRoot: memoize(function()
+	getAPIUri: memoize(function()
 	{
-		var str = '';
 		var scripts1 = document.getElementsByTagName("script");
 		for (var i = 0; i < scripts1.length; i++)
 		{
 			var src = scripts1[i].getAttribute("src");
 			var u = gmxAPI.parseUri(src);
 			if(u && u.file == 'api.js') {
-				str = src.substring(0, src.indexOf('api.js'));
-				break;
+				return u;
 			}
 		}
-		//return gmxAPI.getScriptBase("api.js");
-		return str;
+		return {};
+	})
+	,
+	getAPIKey: memoize(function()
+	{
+		var u = gmxAPI.getAPIUri();
+		return (u.source ? (/key=([a-zA-Z0-9]+)/).exec(u.source) : '');
+	})
+	,
+	getAPIFolderRoot: memoize(function()
+	{
+		var u = gmxAPI.getAPIUri();
+		return (u.source ? u.source.substring(0, u.source.indexOf('api.js')) : '');
 	})
 	,
 	getAPIHost: memoize(function()
@@ -2235,7 +2244,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 		var apiHost = gmxAPI.parseUri(window.location.href).hostOnly;
 		if (apiHost == '') 
 			apiHost = 'localhost';
-		var apiKeyResult = (/key=([a-zA-Z0-9]+)/).exec(gmxAPI.getAPIFolderRoot("api.js"));
+		var apiKeyResult = gmxAPI.getAPIKey();
 
 		if ((apiHost == "localhost") || apiHost.match(/127\.\d+\.\d+\.\d+/))
 			useAPIKey("localhost");
