@@ -2245,7 +2245,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 			useAPIKey(window.apiKey);
 		else if (!gmxAPI.getScriptURL("config.js"))
 			gmxAPI.loadVariableFromScript(
-				gmxAPI.getScriptBase("api.js") + "config.js",
+				gmxAPI.getAPIFolderRoot() + "config.js",
 				"apiKey",
 				function(key)
 				{
@@ -3060,7 +3060,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 	if (!gmxAPI.getScriptURL("config.js"))
 	{
 		gmxAPI.loadVariableFromScript(
-			gmxAPI.getScriptBase("api.js") + "config.js",
+			gmxAPI.getAPIFolderRoot() + "config.js",
 			"baseMap",
 			finish,
 			//errorConfig	// Нет config.js
