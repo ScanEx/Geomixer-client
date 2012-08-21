@@ -2235,7 +2235,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 		var apiHost = gmxAPI.parseUri(window.location.href).hostOnly;
 		if (apiHost == '') 
 			apiHost = 'localhost';
-		var apiKeyResult = (/key=([a-zA-Z0-9]+)/).exec(gmxAPI.getScriptURL("api.js"));
+		var apiKeyResult = (/key=([a-zA-Z0-9]+)/).exec(gmxAPI.getAPIFolderRoot("api.js"));
 
 		if ((apiHost == "localhost") || apiHost.match(/127\.\d+\.\d+\.\d+/))
 			useAPIKey("localhost");
