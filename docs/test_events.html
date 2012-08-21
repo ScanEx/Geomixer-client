@@ -1,0 +1,83 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--	<script src="../../api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script>  -->
+	<script src="http://mapstest.kosmosnimki.ru/api/api.js?key=E5FB6CCB5D23B5E119D2F1B26BCC57BD" charset="windows-1251"></script>
+
+<title>GeoMixer API - примеры использования</title>
+</head>
+
+<body>
+<!-- <button id="button2">События</button><button id="button1">Удаление Событий</button><button id="button3">Удаление обьекта</button> -->
+<span id="cmdHash1" class="bodytext"></span><span id="cmdHash2" class="bodytext"></span>
+<br>
+<div id="map" style="width: 100%; height: 90%;"></div> <!--задаем контейнер, в который загружается карта -->
+<br/>
+<br/>
+
+ <script>
+	createFlashMap(document.getElementById("map"), function(map) {
+		map.moveTo(37.601817, 55.672229, 8);
+		var cont = map.addObject(); 	//добавляем контейнер
+        cont.setStyle(
+			{
+				fill: { color: 0xff0000, opacity: 0 },
+				outline: { color: 0x0000ff, thickness: 1 }
+			}
+			,
+			{
+				fill: { color: 0xff0000, opacity: 10 },
+				outline: { color: 0x0000ff, thickness: 2 }
+			}
+		);
+		
+		var click = cont.addListener('onClick', function(ev)
+		{
+			var obj = ev.obj;
+			for(var id in obj.childsID) {		// если есть уже потомки удалим картинку и выйдем
+				gmxAPI.mapNodes[id].remove();
+				return;
+			}
+
+			var st = obj.objectId + ' : onClick';
+			document.getElementById("cmdHash1").innerHTML = st;
+
+			var prop = obj.properties;
+			var geom = obj.getGeometry();
+			if(geom) {
+				var qlook = obj.addObject(geom, prop);
+				qlook.setStyle({ fill: { opacity: 100 } });
+				qlook.setImageExtent({url: prop.url, extent: gmxAPI.getBounds(geom.coordinates)});
+			}
+		});
+		var over = cont.addListener('onMouseOver', function(ev)
+		{
+			var st = ev.obj.objectId + ' : onMouseOver';
+			document.getElementById("cmdHash1").innerHTML = st;
+		});
+		var out = cont.addListener('onMouseOut', function(ev)
+		{
+			var st = ev.obj.objectId + ' : onMouseOut';
+			document.getElementById("cmdHash1").innerHTML = st;
+		});
+	   
+		var data = [{"sat_name":"WV02","date":"2012-05-03","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=1030010018CDAB00&imageHeight=1024&imageWidth=1024","off_nadir":4,"cloud_cover":0,"x1":37.2604,"y1":56.2227,"x2":37.5266,"y2":56.2227,"x3":37.5236,"y3":55.3103,"x4":37.2642,"y4":55.3108,"id":"1030010018CDAB00","path_id":"1030010018CDAB00","stereo":"NONE"},{"sat_name":"WV01","date":"2012-04-28","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=102001001AD23D00&imageHeight=1024&imageWidth=1024","off_nadir":30,"cloud_cover":0,"x1":37.221,"y1":56.2229,"x2":37.5784,"y2":56.2548,"x3":37.5825,"y3":55.306399999999996,"x4":37.2235,"y4":55.2651,"id":"102001001AD23D00","path_id":"102001001AD23D00","stereo":"NONE"},{"sat_name":"GE-1","date":"2012-07-23","url":"http://geofuse.geoeye.com/static/browse/geoeye/ge1/2012/07/23/2012072308320141603031606578_0.jpg","off_nadir":24,"cloud_cover":26,"x1":37.2558,"y1":55.7212,"x2":37.5259,"y2":55.7196,"x3":37.5455,"y3":55.5655,"x4":37.2794,"y4":55.5632,"id":"2012072308320141603031606578_000","path_id":"2012072308320141603031606578","stereo":"NONE"},{"sat_name":"WV02","date":"2012-04-06","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=1030010013CB3400&imageHeight=1024&imageWidth=1024","off_nadir":1,"cloud_cover":13,"x1":37.2818,"y1":56.2228,"x2":37.5472,"y2":56.2226,"x3":37.5415,"y3":55.3136,"x4":37.2828,"y4":55.3138,"id":"1030010013CB3400","path_id":"1030010013CB3400","stereo":"NONE"},{"sat_name":"GE-1","date":"2012-08-03","url":"http://geofuse.geoeye.com/static/browse/geoeye/ge1/2012/08/03/2012080308330101603031605101_0.jpg","off_nadir":24,"cloud_cover":0,"x1":37.2561,"y1":55.7366,"x2":37.5257,"y2":55.7349,"x3":37.5444,"y3":55.5782,"x4":37.2785,"y4":55.5756,"id":"2012080308330101603031605101_000","path_id":"2012080308330101603031605101","stereo":"NONE"},{"sat_name":"EROS-B","date":"2012-07-27","url":"http://catalog.scanex.ru/dew/ql/EROS/sceneQL/1Am10/SCN1-e2346983-4.1A.jpg","off_nadir":-1,"cloud_cover":-1,"x1":37.4698,"y1":55.661,"x2":37.4696,"y2":55.5973,"x3":37.3551,"y3":55.5978,"x4":37.3555,"y4":55.6607,"id":"SCN1-e2346983-4","path_id":null,"stereo":"NONE"},{"sat_name":"EROS-B","date":"2012-04-28","url":"http://catalog.scanex.ru/dew/ql/EROS/sceneQL/1Am10/SCN1-e2333324-4.1A.jpg","off_nadir":-1,"cloud_cover":-1,"x1":37.2638,"y1":55.7256,"x2":37.4334,"y2":55.7027,"x3":37.4342,"y3":55.6159,"x4":37.2636,"y4":55.6378,"id":"SCN1-e2333324-4","path_id":null,"stereo":"NONE"},{"sat_name":"WV01","date":"2012-03-24","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=102001001A671F00&imageHeight=1024&imageWidth=1024","off_nadir":23,"cloud_cover":18,"x1":37.2506,"y1":56.2401,"x2":37.5708,"y2":56.225,"x3":37.5749,"y3":55.3158,"x4":37.2462,"y4":55.339,"id":"102001001A671F00","path_id":"102001001A671F00","stereo":"NONE"},{"sat_name":"WV01","date":"2012-04-28","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=102001001C65DB00&imageHeight=1024&imageWidth=1024","off_nadir":14,"cloud_cover":0,"x1":37.246,"y1":56.2303,"x2":37.5536,"y2":56.2245,"x3":37.5476,"y3":55.309,"x4":37.2526,"y4":55.3105,"id":"102001001C65DB00","path_id":"102001001C65DB00","stereo":"102001001AD23D00"},{"sat_name":"EROS-B","date":"2012-07-10","url":"http://catalog.scanex.ru/dew/ql/EROS/sceneQL/1Am10/SCN1-e2344401.1A.jpg","off_nadir":-1,"cloud_cover":-1,"x1":37.3864,"y1":55.6573,"x2":37.4975,"y2":55.6569,"x3":37.4973,"y3":55.594,"x4":37.3865,"y4":55.5947,"id":"SCN1-e2344401","path_id":null,"stereo":"NONE"},{"sat_name":"WV02","date":"2012-03-26","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=1030010011849F00&imageHeight=1024&imageWidth=1024","off_nadir":4,"cloud_cover":0,"x1":37.26,"y1":56.2226,"x2":37.5258,"y2":56.2227,"x3":37.5249,"y3":55.3112,"x4":37.2638,"y4":55.3116,"id":"1030010011849F00","path_id":"1030010011849F00","stereo":"NONE"},{"sat_name":"WV02","date":"2012-06-02","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=1030010019228000&imageHeight=1024&imageWidth=1024","off_nadir":1,"cloud_cover":22,"x1":37.2829,"y1":56.2224,"x2":37.5476,"y2":56.2222,"x3":37.542,"y3":55.3144,"x4":37.2836,"y4":55.3147,"id":"1030010019228000","path_id":"1030010019228000","stereo":"NONE"},{"sat_name":"WV02","date":"2012-03-15","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=1030010012BE6000&imageHeight=1024&imageWidth=1024","off_nadir":9,"cloud_cover":14,"x1":37.2586,"y1":56.224,"x2":37.5296,"y2":56.2229,"x3":37.5337,"y3":55.2973,"x4":37.2649,"y4":55.2993,"id":"1030010012BE6000","path_id":"1030010012BE6000","stereo":"NONE"},{"sat_name":"WV01","date":"2012-04-06","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=102001001BBFE200&imageHeight=1024&imageWidth=1024","off_nadir":12,"cloud_cover":11,"x1":37.2553,"y1":56.225,"x2":37.5535,"y2":56.2254,"x3":37.5538,"y3":55.3172,"x4":37.2576,"y4":55.3194,"id":"102001001BBFE200","path_id":"102001001BBFE200","stereo":"102001001A568500"},{"sat_name":"EROS-B","date":"2012-06-04","url":"http://catalog.scanex.ru/dew/ql/EROS/sceneQL/1Am10/SCN1-e2338941-4.1A.jpg","off_nadir":-1,"cloud_cover":-1,"x1":37.4037,"y1":55.6778,"x2":37.55,"y2":55.6594,"x3":37.5499,"y3":55.5721,"x4":37.4037,"y4":55.5898,"id":"SCN1-e2338941-4","path_id":null,"stereo":"NONE"},{"sat_name":"EROS-B","date":"2012-07-21","url":"http://catalog.scanex.ru/dew/ql/EROS/sceneQL/1Am10/SCN1-e2346072.1A.jpg","off_nadir":-1,"cloud_cover":-1,"x1":37.4895,"y1":55.6627,"x2":37.4926,"y2":55.5936,"x3":37.3735,"y3":55.5942,"x4":37.3709,"y4":55.6613,"id":"SCN1-e2346072","path_id":null,"stereo":"NONE"},{"sat_name":"WV01","date":"2012-03-24","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=102001001A671300&imageHeight=1024&imageWidth=1024","off_nadir":33,"cloud_cover":17,"x1":37.2098,"y1":56.2182,"x2":37.6127,"y2":56.2681,"x3":37.6021,"y3":55.3309,"x4":37.2131,"y4":55.2932,"id":"102001001A671300","path_id":"102001001A671300","stereo":"102001001A671F00"},{"sat_name":"EROS-B","date":"2012-01-24","url":"http://catalog.scanex.ru/dew/ql/EROS/sceneQL/1Am10/SCN1-e2318903-3.1A.jpg","off_nadir":-1,"cloud_cover":-1,"x1":37.3655,"y1":55.6438,"x2":37.4987,"y2":55.6408,"x3":37.4992,"y3":55.5763,"x4":37.365,"y4":55.5785,"id":"SCN1-e2318903-3","path_id":null,"stereo":"NONE"},{"sat_name":"GE-1","date":"2012-07-29","url":"http://geofuse.geoeye.com/static/browse/geoeye/ge1/2012/07/29/2012072908501801603031601030_0.jpg","off_nadir":20,"cloud_cover":13,"x1":37.28,"y1":55.7351,"x2":37.5426,"y2":55.7332,"x3":37.5266,"y3":55.5836,"x4":37.2631,"y4":55.5832,"id":"2012072908501801603031601030_000","path_id":"2012072908501801603031601030","stereo":"NONE"},{"sat_name":"WV01","date":"2012-04-06","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=102001001A568500&imageHeight=1024&imageWidth=1024","off_nadir":31,"cloud_cover":19,"x1":37.2405,"y1":56.2302,"x2":37.5675,"y2":56.225,"x3":37.5749,"y3":55.3074,"x4":37.2356,"y4":55.3168,"id":"102001001A568500","path_id":"102001001A568500","stereo":"NONE"},{"sat_name":"QB02","date":"2012-05-03","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=101001000F43FB00&imageHeight=1024&imageWidth=1024","off_nadir":40,"cloud_cover":2,"x1":37.4222,"y1":55.8181,"x2":37.8282,"y2":55.8895,"x3":37.8261,"y3":55.6349,"x4":37.4252,"y4":55.5642,"id":"101001000F43FB00","path_id":"101001000F43FB00","stereo":"NONE"},{"sat_name":"WV02","date":"2012-06-05","url":"https://browse.digitalglobe.com/imagefinder/showBrowseImage?catalogId=103001001861AC00&imageHeight=1024&imageWidth=1024","off_nadir":14,"cloud_cover":3,"x1":37.2699,"y1":56.2294,"x2":37.5532,"y2":56.2216,"x3":37.5447,"y3":55.2967,"x4":37.273,"y4":55.3026,"id":"103001001861AC00","path_id":"103001001861AC00","stereo":"NONE"},{"sat_name":"EROS-B","date":"2012-01-24","url":"http://catalog.scanex.ru/dew/ql/EROS/sceneQL/1Am10/SCN1-e2318904-1.1A.jpg","off_nadir":-1,"cloud_cover":-1,"x1":37.3383,"y1":55.6816,"x2":37.4871,"y2":55.6909,"x3":37.4886,"y3":55.6085,"x4":37.3368,"y4":55.5975,"id":"SCN1-e2318904-1","path_id":null,"stereo":"NONE"},{"sat_name":"EROS-B","date":"2012-04-28","url":"http://catalog.scanex.ru/dew/ql/EROS/sceneQL/1Am10/SCN1-e2333325-4.1A.jpg","off_nadir":-1,"cloud_cover":-1,"x1":37.3654,"y1":55.7247,"x2":37.5484,"y2":55.7184,"x3":37.5502,"y3":55.6298,"x4":37.3642,"y4":55.6344,"id":"SCN1-e2333325-4","path_id":null,"stereo":"NONE"},{"sat_name":"GE-1","date":"2012-08-01","url":"http://geofuse.geoeye.com/static/browse/geoeye/ge1/2012/08/01/2012080108585381603031603389_0.jpg","off_nadir":19,"cloud_cover":23,"x1":37.2592,"y1":55.7289,"x2":37.5286,"y2":55.7289,"x3":37.5409,"y3":55.5809,"x4":37.2677,"y4":55.5828,"id":"2012080108585381603031603389_000","path_id":"2012080108585381603031603389","stereo":"NONE"},{"sat_name":"EROS-B","date":"2012-08-02","url":"http://catalog.scanex.ru/dew/ql/EROS/sceneQL/1Am10/SCN1-e2347894-2.1A.jpg","off_nadir":-1,"cloud_cover":-1,"x1":37.5038,"y1":55.6541,"x2":37.4952,"y2":55.5813,"x3":37.3772,"y3":55.5825,"x4":37.3848,"y4":55.653,"id":"SCN1-e2347894-2","path_id":null,"stereo":"NONE"},{"sat_name":"SPOT 5","date":"2012-04-26","url":"http://catalog.scanex.ru/dew/ql/SP5/ql/106/SP5_106237_1204260814105_2J.jpg","off_nadir":-1,"cloud_cover":20,"x1":37.4452,"y1":55.8467,"x2":38.6422,"y2":55.6965,"x3":38.4347,"y3":55.1747,"x4":37.2533,"y4":55.324,"id":"SP5_106237_1204260814105_2J","path_id":null,"stereo":"NONE","prod_order":5},{"sat_name":"SPOT 5","date":"2012-08-02","url":"http://catalog.scanex.ru/dew/ql/SP5/ql/105/SP5_105237_1208020826434_2J.jpg","off_nadir":-1,"cloud_cover":10,"x1":36.9649,"y1":55.8449,"x2":37.9528,"y2":55.6947,"x3":37.7032,"y3":55.1762,"x4":36.7277,"y4":55.3252,"id":"SP5_105237_1208020826434_2J","path_id":null,"stereo":"NONE","prod_order":5},{"sat_name":"SPOT 5","date":"2012-07-26","url":"http://catalog.scanex.ru/dew/ql/SP5/ql/105/SP5_105237_1207260901363_2J.jpg","off_nadir":-1,"cloud_cover":10,"x1":36.8173,"y1":55.8762,"x2":37.8647,"y2":55.6409,"x3":37.5029,"y3":55.1396,"x4":36.4671,"y4":55.3723,"id":"SP5_105237_1207260901363_2J","path_id":null,"stereo":"NONE","prod_order":5},{"sat_name":"SPOT 5","date":"2012-06-21","url":"http://catalog.scanex.ru/dew/ql/SP5/ql/105/SP5_105237_1206210835463_2J.jpg","off_nadir":-1,"cloud_cover":10,"x1":36.7709,"y1":55.8459,"x2":37.7032,"y2":55.6908,"x3":37.4311,"y3":55.1748,"x4":36.5104,"y4":55.3285,"id":"SP5_105237_1206210835463_2J","path_id":null,"stereo":"NONE","prod_order":5},{"sat_name":"SPOT 5","date":"2012-07-26","url":"http://catalog.scanex.ru/dew/ql/SP5/ql/105/SP5_105237_1207260901363_2J.jpg","off_nadir":-1,"cloud_cover":10,"x1":36.8173,"y1":55.8762,"x2":37.8647,"y2":55.6409,"x3":37.5029,"y3":55.1396,"x4":36.4671,"y4":55.3723,"id":"SP5_105237_1207260901363_2J","path_id":null,"stereo":"NONE","prod_order":3},{"sat_name":"SPOT 5","date":"2012-04-26","url":"http://catalog.scanex.ru/dew/ql/SP5/ql/106/SP5_106237_1204260814105_2J.jpg","off_nadir":-1,"cloud_cover":20,"x1":37.4452,"y1":55.8467,"x2":38.6422,"y2":55.6965,"x3":38.4347,"y3":55.1747,"x4":37.2533,"y4":55.324,"id":"SP5_106237_1204260814105_2J","path_id":null,"stereo":"NONE","prod_order":3},{"sat_name":"SPOT 5","date":"2012-08-02","url":"http://catalog.scanex.ru/dew/ql/SP5/ql/105/SP5_105237_1208020826434_2J.jpg","off_nadir":-1,"cloud_cover":10,"x1":36.9649,"y1":55.8449,"x2":37.9528,"y2":55.6947,"x3":37.7032,"y3":55.1762,"x4":36.7277,"y4":55.3252,"id":"SP5_105237_1208020826434_2J","path_id":null,"stereo":"NONE","prod_order":3},{"sat_name":"SPOT 5","date":"2012-07-31","url":"http://catalog.scanex.ru/dew/ql/SP5/ql/105/SP5_105237_1207310905194_2J.jpg","off_nadir":-1,"cloud_cover":10,"x1":36.6853,"y1":55.8845,"x2":37.7822,"y2":55.6293,"x3":37.4092,"y3":55.1304,"x4":36.3242,"y4":55.3827,"id":"SP5_105237_1207310905194_2J","path_id":null,"stereo":"NONE","prod_order":3},{"sat_name":"SPOT 5","date":"2012-06-21","url":"http://catalog.scanex.ru/dew/ql/SP5/ql/105/SP5_105237_1206210835463_2J.jpg","off_nadir":-1,"cloud_cover":10,"x1":36.7709,"y1":55.8459,"x2":37.7032,"y2":55.6908,"x3":37.4311,"y3":55.1748,"x4":36.5104,"y4":55.3285,"id":"SP5_105237_1206210835463_2J","path_id":null,"stereo":"NONE","prod_order":3}];
+		var objArr = [];
+		for(var i=0; i<data.length; i++) {
+			var prop = data[i];
+			var geom = { type: "POLYGON", coordinates: [
+					[
+					prop.x1, prop.y1,
+					prop.x2, prop.y2,
+					prop.x3, prop.y3,
+					prop.x4, prop.y4,
+					prop.x1, prop.y1
+					]
+				]};
+			var tObj = cont.addObject(geom, prop); //добавляет точечный объект (маркер) на карту
+		}		
+		
+      });
+  </script>
+</body>
+</html>

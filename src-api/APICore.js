@@ -2436,6 +2436,7 @@ FlashMapObject.prototype.remove = function()
 		for(id in this.childsID) {
 			delete gmxAPI.mapNodes[id];
 		}
+		if(this.parent) delete this.parent.childsID[this.objectId];
 		delete gmxAPI.mapNodes[this.objectId];
 	}
 
