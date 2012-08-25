@@ -2830,16 +2830,19 @@ function createFlashMapInternal(div, layers, callback)
 			}
 		}
 
+		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
 		var needToStopDragging = false;
-		gmxAPI.flashDiv.onmouseout = function() 
-		{ 
+		gmxAPI.flashDiv.onmouseout = function(ev) 
+		{
+			if(propsBalloon && propsBalloon.leg == ev.relatedTarget) return;
 			if (!needToStopDragging) {
 				gmxAPI.map.setCursorVisible(false);
 				needToStopDragging = true;
 			}
 		}
-		gmxAPI.flashDiv.onmouseover = function()
+		gmxAPI.flashDiv.onmouseover = function(ev)
 		{
+			if(propsBalloon && propsBalloon.leg == ev.relatedTarget) return;
 			if (needToStopDragging) {
 				gmxAPI.map.stopDragging();
 				gmxAPI.map.setCursorVisible(true);

@@ -96,6 +96,17 @@
 			return attr;
 		}
 
+		function setDelayHide()
+		{
+			if(propsBalloon.delayHide) clearTimeout(propsBalloon.delayHide);
+			propsBalloon.delayHide = setTimeout(function()
+			{
+				propsBalloon.chkMouseOut();
+				clearTimeout(propsBalloon.delayHide);
+				propsBalloon.delayHide = false;
+			}, 100);
+		}
+
 		function disableHoverBalloon(mapObject)
 		{
 			var listenersID = mapObject._attr['balloonListeners'];
@@ -189,6 +200,7 @@
 					var id = setID(o);
 					lastHoverBalloonId = o.objectId;
 					
+					if(propsBalloon.delayHide) { clearTimeout(propsBalloon.delayHide); propsBalloon.delayHide = false; }
 					if (!fixedHoverBalloons[id]) {
 						propsBalloon.updatePropsBalloon(text);
 					}
@@ -210,7 +222,8 @@
 						if(flag) return false;
 					}
 					if (lastHoverBalloonId == o.objectId) {
-						propsBalloon.updatePropsBalloon(false);
+						setDelayHide();
+						//propsBalloon.updatePropsBalloon(false);
 					}
 					return true;
 				},
@@ -486,6 +499,9 @@
 
 			var x = 0;
 			var y = 0;
+			var legX = null;
+			var bposX = 0;
+			var bposY = 0;
 			var reposition = function()	
 			{
 				if(!wasVisible) return;
@@ -496,8 +512,13 @@
 				var xx = (x + ww < screenWidth) ? x : (ww < screenWidth) ? (screenWidth - ww) : 0;
 				xx = Math.max(xx, x - ww + legWidth + brw);
 				var dx = x - xx;
-				leg.style.left = dx + "px";
-				gmxAPI.bottomPosition(balloon, xx + 2, div.clientHeight - y + 20);
+				if(legX != dx) leg.style.left = dx + "px";
+				legX = dx;
+				xx += 2;
+				var yy = div.clientHeight - y + 20;
+				if(bposX != xx || bposY != yy) gmxAPI.bottomPosition(balloon, xx, yy);
+				bposX = xx;
+				bposY = yy;
 			}
 
 			var updateVisible = function(flag)	
@@ -522,8 +543,10 @@
 			var ret = {						// Возвращаемый обьект
 				outerDiv: balloon,
 				div: balloonText,
+				leg: leg,
 				mouseX: 0,
 				mouseY: 0,
+				delayHide: false,
 				isVisible: isVisible,
 				setVisible: updateVisible,
 				setMousePos: setMousePos,
@@ -541,6 +564,10 @@
 					updateVisible(text ? true : false);
 					chkBalloonText(text, balloonText);
 					reposition();
+				},
+				chkMouseOut: function()
+				{
+					if(propsBalloon.delayHide) updateVisible(false);
 				}
 			};
 			return ret;
@@ -552,6 +579,11 @@
 		propsBalloon.outerDiv.style.zIndex = 10000;
 		propsBalloon.outerDiv.style.display = "none";
 
+		document.onmouseover = function(event)
+		{
+			if(event.target != propsBalloon.leg) setDelayHide();
+		}
+/*
 		document.onmouseout = function(event)
 		{
 			if(!gmxAPI.contDivPos) return;
@@ -564,7 +596,7 @@
 			if(eventX >= minx && eventX <= maxx && eventY >= miny && eventY <= maxy) return;
 			propsBalloon.outerDiv.style.display = "none";
 		}
-
+*/
 		var positionBalloons = function(ph)	
 		{
 			if(balloons.length < 1) return;
@@ -603,6 +635,7 @@
 			propsBalloon.setScreenPosition(px, py);
 /*
 			if(gmxAPI.proxyType == 'flash') {
+event.stopImmediatePropagation();
 				if (event.preventDefault)
 				{
 					event.stopPropagation();

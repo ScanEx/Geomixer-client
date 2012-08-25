@@ -382,10 +382,10 @@ class VectorLayerFilter extends MapContent
 			event.stopImmediatePropagation();
 		};
 		contentSprite.addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent) {
-			var pos:Dynamic = Main.getMousePos();
-			var flag:Bool = me.contentSprite.hitTestPoint(pos.mouseX, pos.mouseY, true);
+			//var pos:Dynamic = Main.getMousePos();
+			//var flag:Bool = me.contentSprite.hitTestPoint(pos.mouseX, pos.mouseY, true);
 			//trace('roll_out _____________ ' + ' : ' + flag + ' : ' + pos.mouseX + ' : ' + pos.mouseY + ' : ' + me.contentSprite.scaleX + ' : ' + me.contentSprite.scaleY + ' : ' +  flash.Lib.getTimer());
-			if (flag) return;
+			//if (flag) return;
 			roll_out(event);
 		});
 		evTarget.addEventListener(Event.MOUSE_LEAVE, roll_out);

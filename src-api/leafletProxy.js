@@ -213,6 +213,17 @@
 		}
 		,
 		'drawPolygon': function(node, style)	{			// отрисовка Polygon геометрии
+
+			var geojsonFeature = {
+				"type": "Feature",
+				"properties": node.properties,
+				"geometry": node.geometry
+			};
+			var out = L.geoJson(geojsonFeature, {
+				style: utils.evalStyle(style, node)
+			});
+			
+/*			
 			var geo = node.geometry;
 			var featureparse = function(e) {
 				if('setStyle' in e.layer) {
@@ -221,7 +232,7 @@
 				}
 			};
 			out = utils.drawGeometry(geo, featureparse);
-			return out;
+*/			return out;
 		}
 		,
 		'drawNode': function(node, style)	{			// отрисовка геометрии node
@@ -271,6 +282,16 @@
 		}
 		,
 		'drawGeometry': function(geo, featureparse)	{			// отрисовка GeoJSON геометрии
+/*			
+			var geojsonFeature = {
+				"type": "Feature",
+				"properties": geo.properties,
+				"geometry": geo.geometry
+			};
+			var geojson = L.geoJson(myLines, {
+				//style: myStyle
+			});
+*/
 			var geojson = new L.GeoJSON();
 			if(featureparse) {
 				geojson.on('featureparse', featureparse);
@@ -284,8 +305,9 @@
 			if(zoom < obj.options.minZoom || zoom > obj.options.maxZoom) return res;
 
 			var pz = Math.round(Math.pow(2, zoom - 1));
+			var pz1 = Math.pow(2, zoom);
 			res = obj.options.tileFunc(
-				tilePoint.x - pz
+				tilePoint.x%pz1 - pz
 				,-tilePoint.y - 1 + pz
 				,zoom + obj.options.zoomOffset
 			);
@@ -361,11 +383,25 @@
 
 			var p1 = new L.Point(tileX, tileY);
 			var pp1 = LMap.unproject(p1, zoom);					// Перевод экранных координат тайла в latlng
+			//pp1 = new L.LatLng(pp1.lat, pp1.lng);
 			p1.x = pp1.lng; p1.y = pp1.lat;
 			var	p2 = new L.Point(tileX + 256, tileY + 256);
 			var pp2 = LMap.unproject(p2, zoom);
+			//pp2 = new L.LatLng(pp2.lat, pp2.lng);
 			p2.x = pp2.lng; p2.y = pp2.lat;
 			var bounds = new L.Bounds(p1, p2);
+			//bounds.min.x %= 360;
+			if(bounds.max.x > 180) {
+				var cnt = Math.floor(bounds.max.x / 360);
+				if(cnt == 0) cnt = 1;
+				bounds.max.x -= cnt*360;
+				bounds.min.x -= cnt*360
+			}
+			else if(bounds.min.x < -180) {
+				var cnt = Math.floor(bounds.min.x / 360);
+				if(cnt == 0) cnt = 1;
+				bounds.max.x += cnt*360; bounds.min.x += cnt*360
+			}
 			return bounds;
 		}
 		,
@@ -1225,6 +1261,7 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 			LMap = new L.Map(leafLetCont_,
 				{
 					zoomControl: false,	
+					//worldCopyJump: false,	
 					//zoomAnimation: false,	
 					crs: L.CRS.EPSG3395
 					//'crs': L.CRS.EPSG3857 // L.CRS.EPSG4326 // L.CRS.EPSG3395 L.CRS.EPSG3857
@@ -1266,7 +1303,56 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 
 			// Обработчик события - mapInit
 			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': onMapInit});
-	
+
+			function drawCanvasPolygon( ctx, x, y, geom, zoom, bounds ) {
+				if(!geom) return;
+				ctx.save();
+				//ctx.translate(x, y);
+				ctx.beginPath();
+				
+				for (var i = 0; i < geom.length; i++)
+				{
+					var pt = geom[i];
+					//ctx.strokeStyle = "#ff";
+					//ctx.lineWidth = 6;
+					//ctx.beginPath();
+					//var pArr = pt;
+					var pArr = L.PolyUtil.clipPolygon(pt, bounds);
+					//pArr.push(pArr[0]);
+					for (var j = 0; j < pArr.length; j++)
+					{
+						var p = new L.LatLng(pArr[j].y, pArr[j].x);
+						var pp = LMap.project(p, zoom);
+						var px = pp.x - x;
+						var py = pp.y - y;
+						px = (0.5 + px) << 0;
+						py = (0.5 + py) << 0;
+			//console.log('ttt1: ' , p, pp, px, py); 
+						if(j == 0) ctx.moveTo(px, py);
+						ctx.lineTo(px, py);
+					}
+					pArr = null;
+					//ctx.stroke();
+					ctx.closePath();
+				}
+				ctx.restore();
+			}
+
+	// requestAnim shim layer by Paul Irish
+	var requestAnimFrame = (function(){
+	  return  window.requestAnimationFrame       ||
+			  window.webkitRequestAnimationFrame ||
+			  window.mozRequestAnimationFrame    ||
+			  window.oRequestAnimationFrame      ||
+			  window.msRequestAnimationFrame;
+			  //||  function(/* function */ callback, /* DOMElement */ element){ window.setTimeout(callback, 1000 / 60);  };
+			  
+	})();
+	function animate() {
+		requestAnimFrame( animate );
+		//draw();
+	}
+			
 			// Растровый слой OSM
 			L.TileLayer.OSMTileLayer = L.TileLayer.extend(
 			{
@@ -1316,11 +1402,30 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				drawTile: function (tile, tilePoint, zoom) {
 					// override with rendering code
 					if(!this._isVisible) return;								// Слой невидим
+//if(tilePoint.x > 1) return; 
+//console.log('ttt: ' + tilePoint.x); 
+					if(!zoom) zoom = LMap.getZoom();
 					var st = zoom + '_' + tilePoint.x + '_' + tilePoint.y;
 					//if(tile._layer.__badTiles[st]) return;	// пропускаем отсутствующие тайлы
+					var pz = Math.pow(2, zoom - 1);
+					var pz1 = Math.pow(2, zoom);
+					//if(tilePoint.x > pz) tilePoint.x = tilePoint.x % pz1; 
+					//else if(tilePoint.x < -pz) tilePoint.x = tilePoint.x % pz1; 
+					//var pp = new L.Point(tilePoint.x - pz, -tilePoint.y - 1 + pz);
+
+					var bounds = utils.getTileBounds(tilePoint, zoom);
 					var tileX = 256 * tilePoint.x;								// позиция тайла в stage
 					var tileY = 256 * tilePoint.y;
+					
 /*
+					var tileX = 256 * (tilePoint.x%pz1 - pz);								// позиция тайла в stage
+					var tileY = 256 * (-tilePoint.y - 1 + pz);
+				tilePoint.x%pz1 - pz
+				,-tilePoint.y - 1 + pz
+					var tileX = 256 * tilePoint.x;								// позиция тайла в stage
+					var tileY = 256 * tilePoint.y;
+			tilePoint.x = tilePoint.x - pz;
+			tilePoint.y = -tilePoint.y - 1 + pz
 
 					var p1 = new L.Point(tileX, tileY);
 					var pp1 = LMap.unproject(p1, zoom);					// Перевод экранных координат тайла в latlng
@@ -1329,54 +1434,42 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					var pp2 = LMap.unproject(p2, zoom);
 					p2.x = pp2.lng; p2.y = pp2.lat;
 					var bounds = new L.Bounds(p1, p2);
+		var m_canvas = document.createElement('canvas');					
+		m_canvas.width = 256; m_canvas.height = 256;
+		var m_context = m_canvas.getContext('2d');
 */					
-					var bounds = utils.getTileBounds(tilePoint, zoom);
 
 					var attr = this.options.attr;
-					if(attr.bounds && !bounds.intersects(attr.bounds))	{	// Тайл не пересекает границы слоя
-						return;
+					var flagAll = false;
+					if(attr.bounds.min.x < -179
+						&& attr.bounds.min.y < -85
+						&& attr.bounds.max.x > 179
+						&& attr.bounds.max.y > 85)
+					{
+						flagAll = true;
 					}
 					var ctx = tile.getContext('2d');
-					var imageObj = new Image();
-					//imageObj.onerror = function() {			// пометить отсутствующий тайл
-						//tile._layer.__badTiles[st] = true;
-					//}
-					
-					imageObj.onload = function(){
-						ctx.beginPath();
-						ctx.rect(0, 0, tile.width, tile.height);
-						ctx.clip();
-
-						var geom = attr['geom'];
-						if(geom) {
-							for (var i = 0; i < geom.length; i++)
-							{
-								var pt = geom[i];
-								//ctx.strokeStyle = "#000";
-								//ctx.lineWidth = 2;
-								ctx.beginPath();
-								var pArr = L.PolyUtil.clipPolygon(pt, bounds);
-								for (var j = 0; j < pArr.length; j++)
-								{
-									var p = new L.LatLng(pArr[j].y, pArr[j].x);
-									var pp = LMap.project(p, zoom);
-									var px = pp.x - tileX;
-									var py = pp.y - tileY;
-									if(j == 0) ctx.moveTo(px, py);
-									ctx.lineTo(px, py);
-								}
-								pArr = null;
-								//ctx.stroke();
-								//ctx.closePath();
-							}
+					if(!flagAll) {
+						if(attr.bounds && !bounds.intersects(attr.bounds))	{	// Тайл не пересекает границы слоя
+							return;
 						}
-						
+						var geom = attr['geom'];
+						drawCanvasPolygon( ctx, tileX, tileY, geom, zoom, bounds );
+					}
+					var imageObj = new Image();
+					imageObj.onload = function(){
 						var pattern = ctx.createPattern(imageObj, "no-repeat");
+						//ctx.save();
+						//ctx.drawImage(m_canvas, 0, 0);
+						//ctx.restore();
 						ctx.fillStyle = pattern;
+						if(flagAll) ctx.fillRect(0, 0, 256, 256);
 						ctx.fill();
 					};
 					var src = utils.getTileUrl(tile._layer, tilePoint, zoom);
+//console.log('ttt1: ' , tilePoint, bounds, attr.bounds, src); 
 					imageObj.src = src;
+//requestAnimFrame();					
 				}
 			}
 			);
@@ -1407,7 +1500,7 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					// override with rendering code
 //					if(!this._isVisible) return;								// Слой невидим
 					//var st = zoom + '_' + tilePoint.x + '_' + tilePoint.y;
-
+					if(!zoom) zoom = LMap.getZoom();
 					var bounds = utils.getTileBounds(tilePoint, zoom);
 					var opt = this.options;
 					if(opt.attr.bounds && !bounds.intersects(opt.attr.bounds))	{	// Тайл не пересекает границы слоя
