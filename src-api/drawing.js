@@ -150,10 +150,13 @@
 			balloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.addBalloon(true) : null);	// Редактируемый балун (только скрывать)
 
 			gmxAPI.map.addListener('zoomBy', function() {
-				gmxAPI.setVisible(balloon.outerDiv, false);
+				if(balloon.isVisible) gmxAPI.setVisible(balloon.outerDiv, false);
 			});
 			gmxAPI.map.addListener('onMoveEnd', function() {
-				gmxAPI.setVisible(balloon.outerDiv, true);
+				if(balloon.isVisible) {
+					gmxAPI.setVisible(balloon.outerDiv, true);
+					balloon.reposition();
+				}
 			});
 
 			var updateDOM = function()
