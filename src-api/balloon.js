@@ -288,6 +288,7 @@
 			}
 			positionBalloons();
 		}
+		this.showHoverBalloons = showHoverBalloons;
 		
 		function removeHoverBalloons()
 		{
@@ -315,6 +316,7 @@
 					delete fixedHoverBalloons[key];
 				}
 			}
+/*
 			if(flag && showFlag) {
 				var timeoutShowHoverBalloons = setTimeout(function()
 				{
@@ -322,6 +324,7 @@
 					showHoverBalloons();
 				}, 300);
 			}
+*/
 		}
 		this.hideHoverBalloons = hideHoverBalloons;
 
@@ -872,6 +875,8 @@ event.stopImmediatePropagation();
 			gmxAPI.map.balloonClassObject = new BalloonClass();
 			gmxAPI.map.addListener('zoomBy', function()	{ gmxAPI.map.balloonClassObject.hideHoverBalloons(true); });
 			gmxAPI.map.addListener('hideBalloons', function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(); });
+			gmxAPI.map.addListener('onMoveEnd', function() { gmxAPI.map.balloonClassObject.showHoverBalloons(); });
+
 			gmxAPI.map.addListener('clickBalloonFix', function(o) { gmxAPI.map.balloonClassObject.clickBalloonFix(o); });
 			gmxAPI.map.addListener('initFilter', function(data)
 				{
