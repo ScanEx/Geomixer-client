@@ -582,9 +582,10 @@
 		propsBalloon.outerDiv.style.zIndex = 10000;
 		propsBalloon.outerDiv.style.display = "none";
 
-		document.onmouseover = function(event)
+		document.onmouseover = function(ev)
 		{
-			if(event.target != propsBalloon.leg) setDelayHide();
+			var event = gmxAPI.compatEvent(ev);
+			if(event && event.target != propsBalloon.leg) setDelayHide();
 		}
 /*
 		document.onmouseout = function(event)

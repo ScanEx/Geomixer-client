@@ -35,6 +35,8 @@
 			L.DomEvent.addListener(_img, 'load', getSize, this);
 			_img.src = url;
 		}
+		,'getMouseX':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lng : 0); }			// Позиция мыши X
+		,'getMouseY':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lat : 0);	}		// Позиция мыши Y
 		,
 		'parseStyle': function(st)	{			// перевод Style Scanex->leaflet
 			var pt =  {
@@ -235,6 +237,19 @@
 */			return out;
 		}
 		,
+		'drawMultiPolygon': function(node, style)	{			// отрисовка Polygon геометрии
+
+			var geojsonFeature = {
+				"type": "Feature",
+				"properties": node.properties,
+				"geometry": node.geometry
+			};
+			var out = L.geoJson(geojsonFeature, {
+				style: utils.evalStyle(style, node)
+			});
+			return out;
+		}
+		,
 		'drawNode': function(node, style)	{			// отрисовка геометрии node
 			if(!node.geometry || !node.geometry.type) return null;
 			var geo = node.geometry;
@@ -243,6 +258,9 @@
 			//if(type === 'MULTIPOLYGON') 			pt['type'] = 'MultiPolygon';
 			if(type === 'Point') 					return utils.drawPoint(node, style);
 			else if(type === 'Polygon')				return utils.drawPolygon(node, style);
+			else if(type === 'MultiPolygon')		{
+				return utils.drawMultiPolygon(node, style);
+			}
 			else if(type === 'MultiPoint')			pt['type'] = 'MultiPoint';
 			else if(type === 'POINT')				pt['type'] = 'Point';
 			else if(type === 'MULTILINESTRING')		pt['type'] = 'MultiLineString';
@@ -689,11 +707,14 @@
 			var currZ = LMap.getZoom() - ph.attr.dz;
 			if(currZ > LMap.getMaxZoom() || currZ < LMap.getMinZoom()) return;
 			var pos = LMap.getCenter();
-			if (ph.attr.useMouse && mousePos)
+			if (ph.attr.useMouse && gmxAPI._leaflet['mousePos'])
 			{
 				var k = Math.pow(2, LMap.getZoom() - currZ);
-				pos.lat = mousePos.lat + k*(pos.lat - mousePos.lat);
-				pos.lng = mousePos.lng + k*(pos.lng - mousePos.lng);
+				
+				var lat = utils.getMouseY();
+				var lng = utils.getMouseX();
+				pos.lat = lat + k*(pos.lat - lat);
+				pos.lng = lng + k*(pos.lng - lng);
 			}
 			LMap.setView(pos, currZ);
 		}
@@ -781,17 +802,19 @@ var id = ph.obj.objectId;
 		,'getX':	function()	{ var pos = LMap.getCenter(); return pos['lat']; }	// получить X карты
 		,'getY':	function()	{ var pos = LMap.getCenter(); return pos['lng']; }	// получить Y карты
 		,'getZ':	function()	{ return LMap.getZoom(); }							// получить Zoom карты
-		,'getMouseX':	function()	{ return (mousePos ? mousePos.lng : 0); }		// Позиция мыши X
-		,'getMouseY':	function()	{ return (mousePos ? mousePos.lat : 0);	}		// Позиция мыши Y
+		,'getMouseX':	function()	{ return utils.getMouseX(); }			// Позиция мыши X
+		,'getMouseY':	function()	{ return utils.getMouseY();	}		// Позиция мыши Y
 	}
 
 	// Передача команды в leaflet
 	function leafletCMD(cmd, hash)
 	{
-	
+		if(!LMap) LMap = gmxAPI._leaflet['LMap'];				// Внешняя ссылка на карту
+		
 		var ret = {};
 		var obj = hash['obj'] || null;	// Целевой обьект команды
 		var attr = hash['attr'] || '';
+/*		
 if(!(cmd in commands)
 	&& cmd != 'setCursorVisible'
 	&& cmd != 'stopDragging'
@@ -810,6 +833,7 @@ if(!(cmd in commands)
 	// cmd"" cmd"" getVisibility	setDateInterval		
 	var tt = 1;
 }
+*/
 		ret = (cmd in commands ? commands[cmd].call(commands, hash) : {});
 //console.log(cmd + ' : ' + hash + ' : ' + ret);
 		return ret;
@@ -1234,7 +1258,22 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 		}
 		return out;
 	}
+	//расширяем namespace
+	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
+	gmxAPI._leaflet['cmdProxy'] = leafletCMD;				// посылка команд отрисовщику
+	gmxAPI._leaflet['utils'] = utils;						// утилиты для leaflet
+	gmxAPI._leaflet['mapNodes'] = mapNodes;					// Хэш нод обьектов карты - аналог MapNodes.hx
+    
+	//gmxAPI._cmdProxy = leafletCMD;				// посылка команд отрисовщику
+	//gmxAPI._leafletUtils = utils;
+//	var mapNodes = {						// Хэш нод обьектов карты - аналог MapNodes.hx
+	
+})();
+////////////////////////////
 
+//Плагины для leaflet
+(function()
+{
 	// Обработчик события - mapInit
 	function onMapInit(ph) {
 /*	
@@ -1247,17 +1286,24 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 */		
 	}
 	
+	var utils = null;							// Утилиты leafletProxy
+	var mapNodes = null;						// Хэш нод обьектов карты - аналог MapNodes.hx
 	var leafLetCont_ = null;
 	var mapDivID = '';
 	var initFunc = null;
 	var intervalID = 0;
-	var mousePos = null;
 	
 	// Инициализация LeafLet карты
 	function waitMe(e)
 	{
 		if('L' in window) {
 			clearInterval(intervalID);
+			if(!utils) utils = gmxAPI._leaflet['utils'];
+			if(!mapNodes) {
+				mapNodes = gmxAPI._leaflet['mapNodes'];
+				gmxAPI._cmdProxy = gmxAPI._leaflet['cmdProxy'];			// Установка прокси для leaflet
+			}
+
 			LMap = new L.Map(leafLetCont_,
 				{
 					zoomControl: false,	
@@ -1267,7 +1313,7 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					//'crs': L.CRS.EPSG3857 // L.CRS.EPSG4326 // L.CRS.EPSG3395 L.CRS.EPSG3857
 				}
 			);
-			gmxAPI._leafLetMap = LMap;				// Внешняя ссылка на карту
+			gmxAPI._leaflet['LMap'] = LMap;			// Внешняя ссылка на карту
 
 			var pos = new L.LatLng(50, 35);
 			//var pos = new L.LatLng(50.499276, 35.760498);
@@ -1286,8 +1332,8 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 						,'x': gmxAPI.merc_x(pos['lng'])
 						,'y': gmxAPI.merc_y(pos['lat'])
 						,'stageHeight': size['y']
-						,'mouseX': gmxAPI.merc_x(mousePos ? mousePos.lng : 0)
-						,'mouseY': gmxAPI.merc_y(mousePos ? mousePos.lat : 0)
+						,'mouseX': gmxAPI.merc_x(utils.getMouseX())
+						,'mouseY': gmxAPI.merc_y(utils.getMouseY())
 						,'extent': {
 							'minX': gmxAPI.merc_x(nw['lng']),
 							'minY': gmxAPI.merc_y(nw['lat']),
@@ -1298,7 +1344,7 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				};
 				gmxAPI._updatePosition(e, attr);
 			});
-			LMap.on('mousemove', function(e) { mousePos = e.latlng; });
+			LMap.on('mousemove', function(e) { gmxAPI._leaflet['mousePos'] = e.latlng; });
 
 
 			// Обработчик события - mapInit
@@ -1657,9 +1703,10 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 	}
 	
 	//расширяем namespace
-    gmxAPI._cmdProxy = leafletCMD;				// посылка команд отрисовщику
+    //gmxAPI._cmdProxy = leafletCMD;				// посылка команд отрисовщику
     gmxAPI._addProxyObject = addLeafLetObject;	// Добавить в DOM
 	gmxAPI.proxyType = 'leaflet';
     gmxAPI.APILoaded = true;					// Флаг возможности использования gmxAPI сторонними модулями
-gmxAPI._testme = mapNodes;
+	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
+	//gmxAPI._leaflet['LMap'] = LMap;				// leafLet карта
 })();

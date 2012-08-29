@@ -1485,7 +1485,7 @@ window.gmxAPI = {
     {
 		var chkObj = null;
 		if (gmxAPI.proxyType === 'leaflet') {			// Это leaflet версия
-			chkObj = gmxAPI._leafLetMap;
+			chkObj = (gmxAPI._leaflet && gmxAPI._leaflet['LMap'] ? true : false);
 		} else {										// Это Flash версия
 			chkObj = window.__flash__toXML;
 		}
@@ -2144,6 +2144,7 @@ var alertedAboutAPIKey = false;
 
 function loadMapJSON(hostName, mapName, callback, onError)
 {
+	if(window.apikeyRequestHost) hostName = window.apikeyRequestHost;
 	if (hostName.indexOf("http://") == 0)
 		hostName = hostName.slice(7);
 	if (hostName.charAt(hostName.length-1) == '/')
@@ -2153,7 +2154,20 @@ function loadMapJSON(hostName, mapName, callback, onError)
 	if (hostName.charAt(0) == '/')
 		hostName = getAPIHost() + hostName;
 	
-	if (flashMapAlreadyLoading)
+	var configFlag = false;
+	if (!gmxAPI.getScriptURL("config.js")) {
+		gmxAPI.loadVariableFromScript(
+			gmxAPI.getAPIFolderRoot() + "config.js",
+			"apiKey",
+			function(key) { configFlag = true; }
+			,
+			function() { configFlag = true; }	// Нет config.js
+		);
+	} else {
+		configFlag = true;	
+	}
+		
+	if (flashMapAlreadyLoading || !configFlag)
 	{
 		setTimeout(function() { loadMapJSON(hostName, mapName, callback, onError); }, 200);
 		return;
@@ -2834,7 +2848,8 @@ function createFlashMapInternal(div, layers, callback)
 		var needToStopDragging = false;
 		gmxAPI.flashDiv.onmouseout = function(ev) 
 		{
-			if(propsBalloon && propsBalloon.leg == ev.relatedTarget) return;
+			var event = gmxAPI.compatEvent(ev);
+			if(!event || (propsBalloon && propsBalloon.leg == event.relatedTarget)) return;
 			if (!needToStopDragging) {
 				gmxAPI.map.setCursorVisible(false);
 				needToStopDragging = true;
@@ -2842,7 +2857,8 @@ function createFlashMapInternal(div, layers, callback)
 		}
 		gmxAPI.flashDiv.onmouseover = function(ev)
 		{
-			if(propsBalloon && propsBalloon.leg == ev.relatedTarget) return;
+			var event = gmxAPI.compatEvent(ev);
+			if(!event || (propsBalloon && propsBalloon.leg == event.relatedTarget)) return;
 			if (needToStopDragging) {
 				gmxAPI.map.stopDragging();
 				gmxAPI.map.setCursorVisible(true);
