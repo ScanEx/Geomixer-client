@@ -2144,7 +2144,7 @@ var alertedAboutAPIKey = false;
 
 function loadMapJSON(hostName, mapName, callback, onError)
 {
-	if(window.apikeyRequestHost) hostName = window.apikeyRequestHost;
+	//if(window.apikeyRequestHost) hostName = window.apikeyRequestHost;
 	if (hostName.indexOf("http://") == 0)
 		hostName = hostName.slice(7);
 	if (hostName.charAt(hostName.length-1) == '/')
