@@ -343,6 +343,10 @@
 			if(!this._temporalTiles) return false;
 			var tdata = this._temporalTiles.temporalData;
 			this._temporalTiles.setDateInterval(dt1, dt2, tdata);
+			if(!this.isVisible) {
+				delete tdata.currentData['begDate'];
+				delete tdata.currentData['endDate'];
+			}
 			gmxAPI._listeners.dispatchEvent('onChangeDateInterval', this, {'ut1':dt1, 'ut2':dt2});	// Изменился календарик
 		} );
 		
