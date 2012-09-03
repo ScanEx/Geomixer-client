@@ -95,7 +95,7 @@
 			if(!attr && o.parent) attr = chkAttr(name, o.parent);
 			return attr;
 		}
-
+/*
 		function setDelayHide()
 		{
 			if(propsBalloon.delayHide) clearTimeout(propsBalloon.delayHide);
@@ -105,6 +105,17 @@
 				clearTimeout(propsBalloon.delayHide);
 				propsBalloon.delayHide = false;
 			}, 100);
+		}
+*/
+		function setDelayShow(text)
+		{
+			if(propsBalloon.delayShow) clearTimeout(propsBalloon.delayShow);
+			propsBalloon.delayShow = setTimeout(function()
+			{
+				propsBalloon.updatePropsBalloon(text);
+				clearTimeout(propsBalloon.delayShow);
+				propsBalloon.delayShow = false;
+			}, 200);
 		}
 
 		function disableHoverBalloon(mapObject)
@@ -200,9 +211,10 @@
 					var id = setID(o);
 					lastHoverBalloonId = o.objectId;
 					
-					if(propsBalloon.delayHide) { clearTimeout(propsBalloon.delayHide); propsBalloon.delayHide = false; }
+					//if(propsBalloon.delayHide) { clearTimeout(propsBalloon.delayHide); propsBalloon.delayHide = false; }
 					if (!fixedHoverBalloons[id]) {
-						propsBalloon.updatePropsBalloon(text);
+						setDelayShow(text);
+						//propsBalloon.updatePropsBalloon(text);
 					}
 					else {
 						propsBalloon.updatePropsBalloon(false);
@@ -222,8 +234,9 @@
 						if(flag) return false;
 					}
 					if (lastHoverBalloonId == o.objectId) {
-						setDelayHide();
-						//propsBalloon.updatePropsBalloon(false);
+						//setDelayHide();
+						if(propsBalloon.delayShow) { clearTimeout(propsBalloon.delayShow); propsBalloon.delayShow = false; }
+						propsBalloon.updatePropsBalloon(false);
 					}
 					return true;
 				},
@@ -549,7 +562,8 @@
 				leg: leg,
 				mouseX: 0,
 				mouseY: 0,
-				delayHide: false,
+				//delayHide: false,
+				delayShow: false,
 				isVisible: isVisible,
 				setVisible: updateVisible,
 				setMousePos: setMousePos,
@@ -582,12 +596,12 @@
 		propsBalloon.outerDiv.style.zIndex = 10000;
 		propsBalloon.outerDiv.style.display = "none";
 
+/*
 		document.onmouseover = function(ev)
 		{
 			var event = gmxAPI.compatEvent(ev);
 			if(event && event.target != propsBalloon.leg) setDelayHide();
 		}
-/*
 		document.onmouseout = function(event)
 		{
 			if(!gmxAPI.contDivPos) return;

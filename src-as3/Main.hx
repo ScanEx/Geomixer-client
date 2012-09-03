@@ -60,14 +60,10 @@ class Main
 	{
 		var ret = null;
 		//try {
-			//if(eventName == 'onTileLoaded') {
-				//var st1:String = (p1 != null ? JSON.stringify(p1) : '');
-				//var st2:String = (p2 != null ? JSON.stringify(p2) : '');
-				//var st3:String = (p3 != null ? JSON.stringify(p3) : '');
-				//ret = ExternalInterface.call(cmd, st1, st2, st3);
-			//} else {
-				ret = ExternalInterface.call(cmd, p1, p2, p3);
-			//}
+			if(p1 == null) p1 = '';
+			if(p2 == null) p2 = '';
+			if(p3 == null) p3 = '';
+			ret = ExternalInterface.call(cmd, p1, p2, p3);
 			//trace(cmd + ' : ' + p1 + ' : ' + p2 + ' : ' + p3);
 		//} catch (e:Error) {  }
 		return ret;
@@ -754,6 +750,8 @@ class Main
 					props = node2.properties;
 				}
 				var arr = propertiesToArray(props);
+				if(arr.length == 0) arr = null;
+
 				if (eventName == "onMove") getPosition();
 				if ((eventName == "onMouseOver")
 					|| (eventName == "onTileLoaded")
