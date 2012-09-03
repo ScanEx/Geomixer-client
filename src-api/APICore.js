@@ -1611,7 +1611,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		var func = function(subObjectId, a, attr)
 		{
 			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// если MapObject отсутствует создаем
-			pObj.properties = (typeof(a) === 'object' && a.length > 0 ? gmxAPI.propertiesFromArray(a) : a);
+			if(pObj && !pObj.properties) pObj.properties = (typeof(a) === 'object' && a.length > 0 ? gmxAPI.propertiesFromArray(a) : a);
 			var flag = false;
 			if(obj.handlers[eventName]) flag = handler(pObj, attr);
 			if(!flag) gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });
@@ -2871,16 +2871,17 @@ function createFlashMapInternal(div, layers, callback)
 		var o = gmxAPI._addProxyObject(gmxAPI.getAPIFolderRoot(), flashId, "100%", "100%", "10", "#ffffff", loadCallback, window.gmxFlashLSO);
 		if(o === '') {
 			var warnDiv = document.getElementById('noflash');
-			warnDiv.style.display = 'block';
-		}
-		if(o.nodeName === 'DIV') {
-			gmxAPI._div.innerHTML = '';
-			gmxAPI._div.appendChild(o);
-			//gmxAPI._div.appendChild(div);
-		}
-		else 
-		{
-			o.write(div);
+			if(warnDiv) warnDiv.style.display = 'block';
+		} else {
+			if(o.nodeName === 'DIV') {
+				gmxAPI._div.innerHTML = '';
+				gmxAPI._div.appendChild(o);
+				//gmxAPI._div.appendChild(div);
+			}
+			else 
+			{
+				o.write(div);
+			}
 		}
 	}
 

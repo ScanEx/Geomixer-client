@@ -8,6 +8,7 @@
 		gmxAPI.mapNodes[rootObjectId] = map;	// основная карта
 
 		if(!layers.properties) layers.properties = {};
+		map.properties = layers.properties;
 		if(!layers.children) layers.children = [];
 		//map.onSetVisible = {};
 		map.isVisible = true;
