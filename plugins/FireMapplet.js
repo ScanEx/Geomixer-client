@@ -371,8 +371,8 @@ var AggregateStatus = function()
 
 var _formatDateForServer = function( datetime, skipTime )
 {
-	var dateString = datetime.getDate() + "." + (datetime.getMonth()+1) + "." + datetime.getFullYear();
-	var timeString = (typeof skipTime === 'undefined' || !skipTime) ? " " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds() : "";
+	var dateString = datetime.getUTCDate() + "." + (datetime.getUTCMonth()+1) + "." + datetime.getUTCFullYear();
+	var timeString = (typeof skipTime === 'undefined' || !skipTime) ? " " + datetime.getUTCHours() + ":" + datetime.getUTCMinutes() + ":" + datetime.getUTCSeconds() : "";
 	return dateString + timeString;
 }
 
