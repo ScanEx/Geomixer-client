@@ -272,7 +272,7 @@ var showWidget = function()
         
     var ikonosManager = new VectorSceneManager({
         layerName: '5D1858A954544BA892E182F81461A361',
-        tilePath: 'G:\\Piccolo\\[SCENE]_tiles',
+        tilePath: 'kosmosnimki\\Piccolo\\[SCENE].tiles',
         propertiesToTags: propertiesToTagsIkonos,
         layerSearchQuery: function(sid)
         {
