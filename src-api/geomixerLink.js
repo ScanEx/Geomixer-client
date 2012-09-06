@@ -7,7 +7,7 @@
 		var geomixerLink = gmxAPI.newElement(
 			"a",
 			{
-				href: "http://kosmosnimki.ru/geomixer",
+				href: "http://geomixer.ru",
 				target: "_blank",
 				className: "gmx_geomixerLink"
 			},
