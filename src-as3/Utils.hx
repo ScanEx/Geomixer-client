@@ -5,6 +5,7 @@ import flash.display.DisplayObject;
 import flash.display.Loader;
 import flash.display.Stage;
 import flash.geom.Point;
+import flash.Lib;
 
 import flash.events.Event;
 import flash.events.IOErrorEvent;
@@ -46,6 +47,8 @@ class Utils
 	static var imgWaitCache:Hash<Array<ReqImg>> = new Hash<Array<ReqImg>>();	// Очередь ожидающих загрузки URL
 	static var imgCache:Hash<Bool> = new Hash<Bool>();		// Файлы IMG в процессе загрузки
 	
+	static var timeZoneShift:Int = cast(untyped Date.now().getTimezoneOffset()*1000*60);
+
 	public static function getNextId()
 	{
 		nextId += 1;
@@ -85,7 +88,7 @@ class Utils
 			regObject = ~/\-/g;
 			if(regObject.match(str)) {
 				var dt:Date = Date.fromString(str);
-				ret = cast(dt.getTime() / 1000);
+				ret = cast((dt.getTime() - timeZoneShift)  / 1000);
 			}
 		}
 		return ret;
