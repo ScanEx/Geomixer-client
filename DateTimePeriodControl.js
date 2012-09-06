@@ -93,12 +93,14 @@ var Calendar = function(name, params)
     
     this._fromUTC = function(date)
     {
+        if (!date) return null;
         var timeOffset = date.getTimezoneOffset()*60*1000;
         return new Date(date.valueOf() - timeOffset);
     }
     
     this._toUTC = function(date)
     {
+        if (!date) return null;
         var timeOffset = date.getTimezoneOffset()*60*1000;
         return new Date(date.valueOf() + timeOffset);
     }
