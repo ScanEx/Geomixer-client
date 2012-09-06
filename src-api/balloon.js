@@ -615,6 +615,29 @@
 			propsBalloon.outerDiv.style.display = "none";
 		}
 */
+		div.onmouseout = function(ev)		// скрыть балун по наведению если мышь ушла
+		{
+			if(propsBalloon.isVisible()) {
+				var event = gmxAPI.compatEvent(ev);
+				var tg = gmxAPI.compatTarget(event);
+				var reltg = event.toElement || event.relatedTarget;
+				while (reltg && (reltg != document.documentElement))
+				{
+					if (reltg == propsBalloon.outerDiv) {
+						return;
+					}
+					reltg = reltg.offsetParent;
+				}
+				while (tg && (tg != document.documentElement))
+				{
+					if (tg == propsBalloon.outerDiv)
+						return;
+					tg = tg.offsetParent;
+				}
+				propsBalloon.outerDiv.style.display = "none";
+			}
+		}
+
 		var positionBalloons = function(ph)	
 		{
 			if(balloons.length < 1) return;
