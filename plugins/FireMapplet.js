@@ -158,6 +158,23 @@ BoundsExt.WHOLE_WORLD = "world";
  *          SearchBboxControl       *
  ************************************/
  
+var _bboxDelegateAdded = false;
+var _addBboxDelegateLazy = function()
+{
+    if (!_bboxDelegateAdded && typeof nsGmx !== 'undefined' && typeof nsGmx.DrawingObjectCustomControllers !== 'undefined')
+	{
+		nsGmx.DrawingObjectCustomControllers.addDelegate(
+		{
+			isHidden: function(obj)
+			{
+				return typeof obj.properties.firesBbox !== 'undefined';
+			}
+		});
+        
+        _bboxDelegateAdded = true;
+	}
+}
+ 
  /**
  * @memberOf FireMapplet
  * @class
@@ -170,6 +187,8 @@ BoundsExt.WHOLE_WORLD = "world";
  */
 var SearchBboxControl = function(map)
 {
+    _addBboxDelegateLazy();
+    
 	 /**
 	 * @name cover.SearchBboxControl.change
 	 * @event
