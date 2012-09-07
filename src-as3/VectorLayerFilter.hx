@@ -102,8 +102,8 @@ class VectorLayerFilter extends MapContent
 	// Проверка кластеризации на фильтре - сохранение стилей фильтра до кластеризации
 	public function chkClusters(?attr:Dynamic)
 	{
-		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
-		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
+		regularStyleOrig = mapNode.regularStyle;
+		hoverStyleOrig = mapNode.hoveredStyle;
 		if(attr != null) runClusters(attr);
 	}
 
