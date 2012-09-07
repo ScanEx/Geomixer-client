@@ -441,7 +441,8 @@ class Main
 				else if (!Main.clickingDisabled)
 				{
 					var sprite = draggedWindow.innerSprite;
-					fluidMoveTo(sprite.mouseX, sprite.mouseY, currentZ, 10);
+					setCurrentPosition(sprite.mouseX, sprite.mouseY, currentZ);
+					//fluidMoveTo(sprite.mouseX, sprite.mouseY, currentZ, 10);
 				}
 			}
 			nodeFrom = null;
