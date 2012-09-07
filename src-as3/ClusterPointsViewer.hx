@@ -79,6 +79,7 @@ class ClusterPointsViewer extends MapContent
 		var yy:Float = centrGeometry.y + rad * Math.sin(i*deltaAlpha);
 		
 		var line:LineGeometry = new LineGeometry([centrGeometry.x, centrGeometry.y, xx, yy]);
+		if(pt.propTemporal != null) line.propTemporal = pt.propTemporal;
 		node.setContent(new VectorObject(line));
 		node.content.contentSprite.mouseEnabled = false;
 		

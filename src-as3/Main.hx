@@ -867,6 +867,7 @@ class Main
 		
 		function setZoomBounds(id:String, minZ:Int, maxZ:Int):Dynamic
 		{
+			Main.needRefreshMap = true;
 			return getNode(id).setZoomBounds(minZ, maxZ);
 		}
 

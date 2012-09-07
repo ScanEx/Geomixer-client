@@ -41,7 +41,7 @@ class VectorObject extends MapContent
 		if (node != null && Std.is(node.content, VectorLayer)) {
 			layer = cast(node.content, VectorLayer);
 			if (layer.attrHash != null) {
-				if (layer.attrHash.TemporalColumnName != null) {
+				if (layer.attrHash.TemporalColumnName != null && geometry.properties != null) {
 					var pt = geometry.properties.get(layer.attrHash.TemporalColumnName);
 					if(pt != null) {
 						var unixTimeStamp:String = Utils.dateStringToUnixTimeStamp(pt);

@@ -608,6 +608,7 @@ class Utils
 					setProperties(prop, arr.length);
 				}
 				pt.properties = prop;
+				if(geom.members[arr[0]].propTemporal != null) pt.propTemporal = geom.members[arr[0]].propTemporal;
 				
 				centersGeometry.addMember(pt);
 				objIndexes.push(arr);
