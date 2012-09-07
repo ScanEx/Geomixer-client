@@ -45,6 +45,8 @@ class VectorLayerFilter extends MapContent
 		ids = new Hash<Bool>();
 		if (layer != null)
 			createLoader();
+		regularStyleOrig = null;
+		hoverStyleOrig = null;
 		delClusters();
 		curChkData = {};
 	}
@@ -98,11 +100,11 @@ class VectorLayerFilter extends MapContent
 	}
 
 	// Проверка кластеризации на фильтре - сохранение стилей фильтра до кластеризации
-	public function chkClusters()
+	public function chkClusters(?attr:Dynamic)
 	{
-		regularStyleOrig = mapNode.regularStyle;
-		hoverStyleOrig = mapNode.hoveredStyle;
-		if(clusterAttr != null) runClusters(clusterAttr);
+		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
+		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
+		if(attr != null) runClusters(attr);
 	}
 
 	// Инициализация кластеризации на фильтре
@@ -151,24 +153,8 @@ class VectorLayerFilter extends MapContent
 	{
 		if(!evTarget.hasEventListener(APIEvent.CUSTOM_EVENT))
 			evTarget.addEventListener( APIEvent.CUSTOM_EVENT, chkMapMove );		
-		var me = this;
-/*		
-		if(mapNode.regularStyle == null) {
-			var timer:Timer = new Timer(20);
-			timer.addEventListener("timer", function(e:TimerEvent)
-			{
-				if (me.mapNode.regularStyle != null) {
-					timer.stop();
-					timer = null;
-					me.runClusters(attr);
-				}
-			});
-			timer.start();
-		} else
-*/			
-		{
-			runClusters(attr);
-		}
+
+		chkClusters(attr);
 		return true;
 	}
 
