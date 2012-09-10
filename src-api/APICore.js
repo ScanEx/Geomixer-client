@@ -1851,7 +1851,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			image.setTiles(function(i, j, z) 
 			{
 				if (path.indexOf("{") > 0){
-					return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z).replace(new RegExp("{key}", "gi"), window.KOSMOSNIMKI_SESSION_KEY);
+					return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z);
 				}
 				else{
 					return path + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
@@ -2845,6 +2845,10 @@ function createFlashMapInternal(div, layers, callback)
 		}
 
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
+		if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
+			gmxAPI.map.miniMap.setVisible(true);
+		}
+		
 		var needToStopDragging = false;
 		gmxAPI.flashDiv.onmouseout = function(ev) 
 		{
@@ -3011,8 +3015,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					}
 
 					if('miniMap' in map) {
-						map.miniMap.setVisible(true);
-						
+						//map.miniMap.setVisible(true);
 						for (var m = 0; m < mapLayers.length; m++)
 							map.miniMap.addLayer(mapLayers[m]);
 						

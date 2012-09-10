@@ -445,27 +445,12 @@
 				o.setOSMTiles();
 				haveOSM = true;
 
-				if (!gmxAPI.miniMapAvailable)
-				{
-					if('miniMap' in map) {
-						map.miniMap.setVisible(true);
-						var miniOSM = map.miniMap.addObject();
-						miniOSM.setOSMTiles();
-						miniOSM.setAsBaseLayer("OSM");
-					}
-					//map.setBaseLayer("OSM");
+				if('miniMap' in map) {
+					var miniOSM = map.miniMap.addObject();
+					miniOSM.setVisible(false);
+					miniOSM.setOSMTiles();
+					miniOSM.setAsBaseLayer("OSM");
 				}
-				else
-				{
-					if('miniMap' in map) {
-						var miniOSM = map.miniMap.addObject();
-						miniOSM.setOSMTiles();
-						miniOSM.setAsBaseLayer("OSM");
-						miniOSM.setVisible(false);
-					}
-					o.setVisible(false);
-				}
-
 			}
 			if (layers.properties.DefaultLat && layers.properties.DefaultLong && layers.properties.DefaultZoom) {
 				map.needMove = {

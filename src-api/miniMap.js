@@ -187,6 +187,7 @@
 			resizeMiniMap();
 		}
 		map.addListener('onResizeMap', resizeMiniMap, -12);
+		miniMap.setVisible(false);
 	}
 
 	gmxAPI._miniMapInit = miniMapInit;
