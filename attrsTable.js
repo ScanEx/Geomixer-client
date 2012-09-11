@@ -110,6 +110,15 @@ var ServerDataProvider = function(params)
     }
 }
 
+ServerDataProvider.convertValuesToHash = function(objParameters)
+{
+    var resHash = {};
+    for (var i in objParameters.fields)
+        resHash[i] = objParameters.values[objParameters.fields[i].index];
+        
+    return resHash;
+}
+
 var attrsTable = function(layerName, layerTitle)
 {
 	this.layerName = layerName;
