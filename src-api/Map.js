@@ -336,10 +336,12 @@
 			if (!baseLayers[name])
 				baseLayers[name] = [];
 			baseLayers[name].push(this);
+/*
 			if(!this.objectId) {	// Подложки должны быть в SWF
 				this.setVisible(true);
 				this.setVisible(false);
 			}
+*/
 			if(gmxAPI.baseLayersTools)
 				gmxAPI.baseLayersTools.chkBaseLayerTool(name, attr);
 		});
@@ -365,6 +367,8 @@
 				for (var i = 0; i < newBaseLayers.length; i++) {
 					newBaseLayers[i].setVisible(true);
 				}
+				var backgroundColor = (newBaseLayers.length && newBaseLayers[0].backgroundColor ? newBaseLayers[0].backgroundColor : 0xffffff);
+				map.setBackgroundColor(backgroundColor);
 			}
 			gmxAPI._listeners.dispatchEvent('baseLayerSelected', map, currentBaseLayerName);
 		}
@@ -418,7 +422,7 @@
 
 		//var maxRasterZoom = 1;
 		//var miniMapZoomDelta = -4;
-		map.addLayers = function(layers, notMoveFlag)
+		map.addLayers = function(layers, notMoveFlag, notVisible)
 		{
 			var b = gmxAPI.getBounds();
 			var minLayerZoom = 20;
@@ -436,10 +440,11 @@
 				}
 				if (layer.properties.type == "Raster" && layer.properties.MaxZoom > gmxAPI.maxRasterZoom)
 					gmxAPI.maxRasterZoom = layer.properties.MaxZoom;
-			});
+			}, notVisible);
 			if (layers.properties.UseOpenStreetMap && !haveOSM)
 			{
 				var o = map.addObject();
+				o.setVisible(false);
 				o.bringToBottom();
 				o.setAsBaseLayer("OSM");
 				o.setOSMTiles();
@@ -650,7 +655,11 @@
 //			map.miniMap.setBackgroundColor(0xffffff);
 
 		map.defaultHostName = layers.properties.hostName || '';
-		map.addLayers(layers);
+		map.addLayers(layers, false, true);
+		
+		if(!map.needSetMode && haveOSM) {								// если нигде не устанавливалась текущая подложка и есть OSM
+			map.setMode('OSM');
+		}
 
 		var startDrag = function(object, dragCallback, upCallback)
 		{

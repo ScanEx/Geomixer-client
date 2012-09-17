@@ -375,6 +375,7 @@
 		{
 			var pObj = (isOverlay ? parentObj.overlays : parentObj.layersParent);
 			var obj_ = pObj.addObject(obj.geometry, obj.properties);
+			obj_['backgroundColor'] = obj['backgroundColor'];
 			obj_['stateListeners'] = obj['stateListeners'];
 			if(obj['_temporalTiles']) obj_['_temporalTiles'] = obj['_temporalTiles'];
 			obj.objectId = obj_.objectId;
@@ -542,7 +543,7 @@
 		}
 
 		obj.isVisible = isVisible;
-		if (isVisible) {
+		if (isVisible || gmxAPI.proxyType === 'leaflet') {			// В leaflet версии deferredMethod не нужны
 			createThisLayer();
 			var zIndexCur = getIndexLayer(obj.objectId);
 			obj.bringToDepth(zIndexCur);

@@ -2120,7 +2120,7 @@ function isRequiredAPIKey( hostName )
 	return false;
 }
 
-function forEachLayer(layers, callback)
+function forEachLayer(layers, callback, notVisible)
 {
 	var forEachLayerRec = function(o, isVisible)
 	{
@@ -2134,7 +2134,7 @@ function forEachLayer(layers, callback)
 				forEachLayerRec(a[k], isVisible);
 		}
 	}
-	forEachLayerRec({type: "group", content: { children: layers.children, properties: { visible: true } } }, true);
+	forEachLayerRec({type: "group", content: { children: layers.children, properties: { visible: (notVisible ? false : true) } } }, true);
 }
 
 var APIKeyResponseCache = {};
@@ -2705,9 +2705,15 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 		var letter = ["a", "b", "c", "d"][((i + j)%4 + 4)%4];
 		return "http://" + letter + ".tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
 	}
+
 	var urlOSM = "http://{s}.tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/{z}/{x}/{y}.png";
 	this._subdomains = 'abcd';
 	this._urlOSM = urlOSM;
+	if (gmxAPI.proxyType === 'leaflet' && window.OSMhash) {			// Это leaflet версия
+		this._subdomains = window.OSMhash.subdomains;
+		this._urlOSM = window.OSMhash.urlOSM;
+	}
+
 	this.setBackgroundTiles(function(i, j, z)
 	{
 		var size = Math.pow(2, z - 1);
@@ -2921,6 +2927,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
+							'backgroundColor': 0xffffff,
 							'alias': 'map',
 							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map")
 						}
@@ -2930,6 +2937,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
+							'backgroundColor': 0x000001,
 							'alias': 'satellite',
 							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite")
 						}
@@ -2939,6 +2947,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 							'onmouseover': function() { this.style.color = "orange"; },
 							'onmouseout': function() { this.style.color = "white"; },
+							'backgroundColor': 0x000001,
 							'alias': 'hybrid',
 							'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid")
 						}
@@ -2954,7 +2963,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 								var mapLayer = map.layers[mapLayerNames[i]];
 								//mapLayer.setVisible(true);						// Слои BaseMap должны быть видимыми
 								mapLayer.setAsBaseLayer(mapString, baseLayerTypes['map']);
-								mapLayer.setBackgroundColor(0xffffff);
+								mapLayer.setBackgroundColor(baseLayerTypes['map']['backgroundColor']);
 								mapLayers.push(mapLayer);
 							}
 					}
@@ -2970,7 +2979,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						for (var i = 0; i < satelliteLayers.length; i++)
 						{
 							satelliteLayers[i].setAsBaseLayer(satelliteString, baseLayerTypes['satellite'])
-							satelliteLayers[i].setBackgroundColor(0x000001);
+							satelliteLayers[i].setBackgroundColor(baseLayerTypes['satellite']['backgroundColor']);
 						}
 					}
 					
@@ -2985,13 +2994,16 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 								isAnyExists = true;
 								var overlayLayer = map.layers[overlayLayerNames[i]];
 								overlayLayer.setAsBaseLayer(hybridString, baseLayerTypes['hybrid']);
+								overlayLayer.setBackgroundColor(baseLayerTypes['hybrid']['backgroundColor']);
 								overlayLayers.push(overlayLayer);
 							}
 						
 						if (isAnyExists)
 						{
-							for (var i = 0; i < satelliteLayers.length; i++)
+							for (var i = 0; i < satelliteLayers.length; i++) {
 								satelliteLayers[i].setAsBaseLayer(hybridString, baseLayerTypes['hybrid']);						
+								satelliteLayers[i].setBackgroundColor(baseLayerTypes['hybrid']['backgroundColor']);
+							}
 						}
 					}
 					
