@@ -17,6 +17,12 @@
 .walrus-images-row, .walrus-row
 {
     cursor: pointer;
+    text-align: center;
+}
+
+.walrus-row > td
+{
+    padding: 0px 2px
 }
 
 .walrus-images-row:hover, .walrus-row:hover
@@ -27,4 +33,24 @@
 .walrus-active-image
 {
     background-color: #DDFFFF;
+}
+
+.walrus-filter-button
+{
+    background-color: #EEEEFF;
+    float: left;
+    margin: 3px;
+    padding: 3px;
+    cursor: pointer;
+}
+
+.walrus-filter-on
+{
+    background-color: #CCCCFF;
+}
+
+.walrus-edit-icon
+{
+    width: 12px;
+    margin: 0px 4px;
 }
