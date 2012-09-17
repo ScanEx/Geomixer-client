@@ -2841,6 +2841,9 @@ function createFlashMapInternal(div, layers, callback)
 		flashDiv.style.MozUserSelect = "none";
 
 		var map = gmxAPI._addNewMap(rootObjectId, layers, callback);
+		if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
+			gmxAPI.map.miniMap.setVisible(true);
+		}
 
 		if (callback) {
 			try {
@@ -2851,9 +2854,6 @@ function createFlashMapInternal(div, layers, callback)
 		}
 
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
-		if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
-			gmxAPI.map.miniMap.setVisible(true);
-		}
 		
 		var needToStopDragging = false;
 		gmxAPI.flashDiv.onmouseout = function(ev) 
