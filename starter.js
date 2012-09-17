@@ -604,7 +604,7 @@ function loadMap(state)
             map.moveTo(state.position.x, state.position.y, state.position.z);
         }
         
-        if (!data.properties.UseKosmosnimkiAPI)
+        if ( !data.properties.UseKosmosnimkiAPI && map.miniMap )
         {
             for (var i = 0; i < map.layers.length; i++)
             {
