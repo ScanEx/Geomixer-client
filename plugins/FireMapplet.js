@@ -916,6 +916,7 @@ var FireSpotClusterProvider = (function(){
 		var clusters = {};
 		var clusterCentroids = {};
 		var clustersMinMaxDates = {};
+		var clustersIsUrban = {};
         
         var updateMinMaxDates = function(id, hotSpot)
         {
@@ -954,6 +955,7 @@ var FireSpotClusterProvider = (function(){
 				trackId: a[8],
                 date: a[3], 
                 time: a[4], 
+                isUrban: a[9],
                 dateInt: dateInt, 
                 category: a[6] < 50 ? 0 : (a[4] < 100 ? 1 : 2), 
                 balloonProps: {
@@ -972,11 +974,13 @@ var FireSpotClusterProvider = (function(){
 					clusters[clusterID] = [];
 					clusterCentroids[clusterID] = {x: 0, y:0};
                     clustersMinMaxDates[clusterID] = { min: null, max: null };
+                    clustersIsUrban[clusterID] = false;
 				}
 					
 				clusters[clusterID].push([hotSpot.x, hotSpot.y,hotSpot.trackId]);
 				clusterCentroids[clusterID].x += hotSpot.x;
 				clusterCentroids[clusterID].y += hotSpot.y;
+                clustersIsUrban[clusterID] = clustersIsUrban[clusterID] || hotSpot.isUrban;
                 
                 updateMinMaxDates(clusterID, hotSpot);				
 			}
@@ -986,18 +990,26 @@ var FireSpotClusterProvider = (function(){
 		
 		// Compute convex hulls for all clusters. We will compute pixel areas later, on demand
 		for(var k in clusters) {
-
-			resClusters.push({ 
-					x: clusterCentroids[k].x/clusters[k].length, 
-					y: clusterCentroids[k].y/clusters[k].length,
-					label: clusters[k].length,
-					points: clusters[k].length,
-					clusterId: k.substr(2),
-					balloonProps: {
-						"Кол-во точек пожаров": clusters[k].length, 
-						"Время наблюдения": _datePeriodHelper(clustersMinMaxDates[k].minStr, clustersMinMaxDates[k].maxStr)
-					}
-				});
+			var curCluster = { 
+                x: clusterCentroids[k].x/clusters[k].length, 
+                y: clusterCentroids[k].y/clusters[k].length,
+                isUrban: clustersIsUrban[k],
+                label: clusters[k].length,
+                points: clusters[k].length,
+                clusterId: k.substr(2),
+                balloonProps: {
+                    "Кол-во точек пожаров": clusters[k].length, 
+                    "Время наблюдения": _datePeriodHelper(clustersMinMaxDates[k].minStr, clustersMinMaxDates[k].maxStr)
+                }
+            };
+                
+            if (curCluster.isUrban)
+            {
+                delete curCluster.balloonProps["Кол-во точек пожаров"];
+                curCluster.balloonProps["Тип пожара"] = '<b style="color: red">Техногенный </b><a href="http://blog.kosmosnimki.ru/faq-fires#techno" target="_blank">?</a>';
+            }
+                
+            resClusters.push(curCluster);
 		}
 		
 		return {fires: resArr, clusters: resClusters, clusterData: clusters};
@@ -1606,9 +1618,17 @@ var CombinedFiresRenderer = function( params )
 	var _params = $.extend({ map: window.globalFlashMap, fireIconsHost: 'http://maps.kosmosnimki.ru/images/', minGeometryZoom: 8, minWholeFireZoom: 8, maxClustersZoom: 7}, params);
 	var customStyleProvider = function(obj)
 	{
-		var style = { marker: { image: _params.fireIconsHost + 'fire_sample.png', center: true, scale: String(Math.sqrt(obj.points)/5)} };
-		if (obj.label >= 10)
-			style.label = { size: 12, color: 0xffffff, align: 'center'};
+        var style;
+        if (obj.isUrban)
+        {
+            style = { marker: { image: _params.fireIconsHost + 'fires9.png', center: true }};
+        }
+        else
+        {
+            style = { marker: { image: _params.fireIconsHost + 'fire_sample.png', center: true, scale: String(Math.sqrt(obj.points)/5)} };
+            if (obj.label >= 10)
+                style.label = { size: 12, color: 0xffffff, align: 'center'};
+        }
 		return style;
 	}
 	
