@@ -79,7 +79,7 @@ var getInputElement = function(type)
 //       * constant {bool} - можно ли редактировать атрибут (по умолчанию - можно)
 var EditObjectControl = function(layerName, objectId, params)
 {
-    var _params = $.extend({drawingObject: null, fields: {}}, params);
+    var _params = $.extend({drawingObject: null, fields: []}, params);
     var _this = this;
     var isNew = objectId == null;
     if (!isNew && EditObjectControlsManager.find(layerName, objectId))
@@ -141,7 +141,7 @@ var EditObjectControl = function(layerName, objectId, params)
                 if (elem.rowName === identityField) 
                     return;
                 
-                var value = nsGmx.Utils.convertToServer(elem.rowType, 'value' in elem ? elem.value : elem.innerText);
+                var value = nsGmx.Utils.convertToServer(elem.rowType, 'value' in elem ? elem.value : $(elem).text());
                 if (value !== null)
                     properties[elem.rowName] = value;
                 else
