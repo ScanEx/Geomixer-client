@@ -531,7 +531,18 @@ scrollTable.StaticDataProvider = function()
         var nMax = nMin + pageSize;
         _filter();
         var sortDirIndex = sortDec ? 0 : 1;
-        var sortedVals = _sortFunctions[sortParam] ? _filteredVals.sort(_sortFunctions[sortParam][sortDirIndex]) : _filteredVals;
+        var sortedVals;
+
+        if (_sortFunctions[sortParam])
+        {
+            if (typeof _sortFunctions[sortParam] === 'function') //если нет ф-ции для сортировки в обратном порядке, инвертируем прямую ф-цию
+                sortedVals = _filteredVals.sort(function(a, b) { return (1-2*sortDirIndex) * _sortFunctions[sortParam](a, b); });
+            else 
+                sortedVals = _filteredVals.sort(_sortFunctions[sortParam][sortDirIndex]);
+        }
+        else
+            sortedVals = _filteredVals;
+            
         nMin = Math.min(Math.max(nMin, 0), sortedVals.length);
         nMax = Math.min(Math.max(nMax, 0), sortedVals.length);
         return sortedVals.slice(nMin, nMax);
@@ -625,11 +636,49 @@ scrollTable.StaticDataProvider = function()
     }
     
     //сортировка
+    //Хеш из ф-ций {Имя столбца -> ф-ция или массив из двух ф-ций}
+    //Если массив из двух ф-ций, то первая используется для сортировки по возрастанию, вторая - по убыванию
+    //Если просто ф-ция, то по убыванию используется инвертная к ней
+    //Формат ф-ции совпадает с ф-цией для sort()
     this.setSortFunctions = function(sortFunctions)
     {
         _sortFunctions = sortFunctions;
     }
 };
+
+// простое стравнение по атрибутам объекта. 
+// Использование: genAttrSort(func(a)->value), genAttrSort(attrName), genAttrSort(attrName1, attrName2)
+scrollTable.StaticDataProvider.genAttrSort = function(attrName1, attrName2)
+{
+    if (typeof attrName1 === 'function')
+    {
+        return function(a, b) {
+            var av = attrName1(a),
+                bv = attrName1(b);
+            if (av > bv)      return 1; 
+            else if (av < bv) return -1;
+            else              return 0;
+        }
+    }
+    else if (attrName2)
+    {
+        return function(a, b) {
+            var av = a[attrName1][attrName2];
+            var bv = b[attrName1][attrName2];
+            if (av > bv)      return 1; 
+            else if (av < bv) return -1;
+            else              return 0;
+        }
+    } else {
+        return function(a, b) {
+            var av = a[attrName1];
+            var bv = b[attrName1];
+            if (av > bv)      return 1;
+            else if (av < bv) return -1;
+            else              return 0;
+        }
+    }
+}
 
 var _mapsTable = new scrollTable(),
 	_listTable = new scrollTable();
