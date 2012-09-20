@@ -2659,8 +2659,22 @@ FlashMapObject.prototype.getCurrentEdgeLength = function() { return gmxAPI._cmdP
 FlashMapObject.prototype.setEditable = function() { gmxAPI._cmdProxy('setEditable', { 'obj': this }); }
 FlashMapObject.prototype.setTileCaching = function(flag) { gmxAPI._cmdProxy('setTileCaching', { 'obj': this, 'attr':{'flag':flag} }); }
 FlashMapObject.prototype.setDisplacement = function(dx, dy) { gmxAPI._cmdProxy('setDisplacement', { 'obj': this, 'attr':{'dx':dx, 'dy':dy} }); }
-FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView) { gmxAPI._cmdProxy('setBackgroundTiles', { 'obj': this, 'attr':{'func':imageUrlFunction, 'projectionCode':projectionCode, 'minZoom':minZoom, 'maxZoom':maxZoom, 'minZoomView':minZoomView, 'maxZoomView':maxZoomView} }); }
+FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, projectionCode, minZoom, maxZoom, minZoomView, maxZoomView, attr) {
+	var ph = {
+		'func':imageUrlFunction
+		,'projectionCode':projectionCode
+		,'minZoom':minZoom
+		,'maxZoom':maxZoom
+		,'minZoomView':minZoomView
+		,'maxZoomView':maxZoomView
+	};
+	if(attr) {
+		if('subType' in attr) ph['subType'] = attr['subType'];
+	}
+	gmxAPI._cmdProxy('setBackgroundTiles', {'obj': this, 'attr':ph });
+}
 FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
+
 FlashMapObject.prototype.setActive = function(flag) { gmxAPI._cmdProxy('setActive', { 'obj': this, 'attr':{'flag':flag} }); }
 FlashMapObject.prototype.setVectorTiles = function(dataUrlFunction, cacheFieldName, dataTiles, filesHash) 
 {
@@ -2720,8 +2734,7 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 		return func(i + size, size - j - 1, z);
 	}, 1);
 	
-	this.setCopyright("<a href='http://openstreetmap.org'>&copy; OpenStreetMap</a>, <a href='http://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>");
-		
+	this.setCopyright("&copy; участники OpenStreetMap, <a href='http://www.opendatacommons.org/licenses/odbl/'>ODbL</a>");
 	this.setBackgroundColor(0xffffff);
 	this.setTileCaching(false);
 }
