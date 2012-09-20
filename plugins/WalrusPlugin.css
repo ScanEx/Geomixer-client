@@ -27,12 +27,17 @@
 
 .walrus-images-row:hover, .walrus-row:hover
 {
-    background-color: #DDDDDD;
+    background-color: #EEEEEE;
 }
 
 .walrus-active-image
 {
-    background-color: #DDFFFF;
+    background-color: #99FFFF;
+}
+
+.walrus-active-image:hover
+{
+    background-color: #77FFFF;
 }
 
 .walrus-filter-button

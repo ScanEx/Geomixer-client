@@ -309,6 +309,16 @@ var WalrusImagesView = function(map, container, imageCollection)
         walrusImagesDataProvider.setOriginalItems(imageCollection.getAsArray());
     })
     
+    $(imageCollection).bind('activeChange', function()
+    {
+        if ( imageCollection.getActive() )
+            map.layers[imageCollection.getLayerName()].setVisibilityFilter('"sceneid"=\'' + imageCollection.getActive().get('sceneid') + '\'');
+        else
+            map.layers[imageCollection.getLayerName()].setVisibilityFilter();
+            
+        imagesTable.repaint();
+    })
+    
     var drawWalrusImages = function(image)
     {
         var imageProps = image.getOrig();
@@ -335,18 +345,26 @@ var WalrusImagesView = function(map, container, imageCollection)
             .append($('<td/>').text(nsGmx.Utils.convertFromServer('date', imageProps.acdate)))
             .append($('<td/>').text(imageProps.walruses))
             .append($('<td/>').text(imageProps.views))
-            .append($('<td/>').append($(editButton).addClass('walrus-edit-icon')))
             .click(function()
             {
-                imageCollection.setActive(sceneId);
-                var merc_geom = imageProps.geomixergeojson;
-                var bounds = gmxAPI.getBounds(gmxAPI.from_merc_geometry(merc_geom).coordinates);
-                map.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-                map.layers[imageCollection.getLayerName()].setVisibilityFilter('"sceneid"=\'' + sceneId + '\'');
+                if (imageCollection.getActive() && sceneId === imageCollection.getActive().get('sceneid'))
+                {
+                    imageCollection.setActive(null);
+                }
+                else
+                {
+                    imageCollection.setActive(sceneId);
                 
-                $(this).addClass('walrus-active-image');
-                $(this).siblings().removeClass('walrus-active-image');
+                    var merc_geom = imageProps.geomixergeojson;
+                    var bounds = gmxAPI.getBounds(gmxAPI.from_merc_geometry(merc_geom).coordinates);
+                    map.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+                }
             })[0];
+            
+        if (nsGmx.AuthManager.isLogin() && _queryMapLayers.layerRights(imageCollection.getLayerName()) == 'edit')
+            $(tr).append($('<td/>').append($(editButton).addClass('walrus-edit-icon')))
+        else
+            $(tr).append($('<td/>'));
             
         if (imageCollection.getActive() && imageProps.ogc_fid === imageCollection.getActive().get('ogc_fid'))
             $(tr).addClass('walrus-active-image');
@@ -485,13 +503,17 @@ var WalrusView = function(map, container, walrusCollection, imageCollection)
     {
         var sceneId = walrus.sceneid;
         
-        var imgProps = imageCollection.getBySceneId(sceneId).getOrig();
+        var image = imageCollection.getBySceneId(sceneId);
+        var imgProps = image ? imageCollection.getBySceneId(sceneId).getOrig() : null;
         
         var recycleButton = makeImageButton('img/recycle.png', 'img/recycle_a.png');
         recycleButton.onclick = function(e)
         {
             removeObject(map, walrusCollection.getLayerName(), walrus);
-            imageCollection.getBySceneId(sceneId).set( 'walruses', imgProps.walruses - 1 );
+            
+            if (imgProps)
+                image.set( 'walruses', imgProps.walruses - 1 );
+                
             stopEvent(e);
         }
         
@@ -509,19 +531,29 @@ var WalrusView = function(map, container, walrusCollection, imageCollection)
             
             stopEvent(e);
         }
+        
+        var imgDate = imgProps ? nsGmx.Utils.convertFromServer('date', imgProps.acdate) : ""
             
         var tr = $('<tr/>', {'class': 'walrus-row'})
-            .append($('<td/>').text(nsGmx.Utils.convertFromServer('date', imgProps.acdate)))
-            .append($('<td/>').text(imgProps.sea))
+            .append($('<td/>').text(imgDate))
+            .append($('<td/>').text(imgProps ? imgProps.sea : ""))
             .append($('<td/>').text(nsGmx.Utils.convertFromServer('date',  walrus.adddate)))
             .append($('<td/>').text(walrus.comment))
-            .append($('<td/>').append(recycleButton))
-            .append($('<td/>').append($(editButton).addClass('walrus-edit-icon')))
             .click(function() {
                 var merc_geom = walrus.geomixergeojson;
                 var bounds = gmxAPI.getBounds(gmxAPI.from_merc_geometry(merc_geom).coordinates);
-                map.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+                map.moveTo( (bounds.minX + bounds.maxX)/2, (bounds.maxY + bounds.minY)/2, 16 );
+                
+                if (!imageCollection.getActive() && imgProps)
+                {
+                    imageCollection.setActive(walrus.sceneid);
+                }
+                
             })[0];
+            
+        if (nsGmx.AuthManager.isLogin() && _queryMapLayers.layerRights(imageCollection.getLayerName()) == 'edit')
+            $(tr).append($('<td/>').append(recycleButton))
+                .append($('<td/>').append($(editButton).addClass('walrus-edit-icon')))
             
         for (var i = 0; i < tr.childNodes.length; i++)
             tr.childNodes[i].style.width = this._fields[i].width;
@@ -534,6 +566,8 @@ var WalrusView = function(map, container, walrusCollection, imageCollection)
     
     walrusDataProvider.addFilter('sceneid', function(name, value, items)
     {
+        if (value === null) return items;
+        
         var filteredVals = [];
         for (var iI = 0; iI < items.length; iI++)
             if (items[iI].sceneid === value)
@@ -543,8 +577,8 @@ var WalrusView = function(map, container, walrusCollection, imageCollection)
     
     var genFunction = scrollTable.StaticDataProvider.genAttrSort;
     var sortFunctions = {
-        'Дата снимка':  genFunction(function(a){ return imageCollection.getBySceneId(a.sceneid).get('acdate'); }),
-        'Море':         genFunction(function(a){ return imageCollection.getBySceneId(a.sceneid).get('sea'   ); }),
+        'Дата снимка':  genFunction(function(a){ var img = imageCollection.getBySceneId(a.sceneid); return img ? img.get('acdate') : 0; }),
+        'Море':         genFunction(function(a){ var img = imageCollection.getBySceneId(a.sceneid); return img ? img.get('sea'   ) : 0; }),
         'Дата отметки': genFunction('adddate'),
         'Комментарии':  genFunction('comment')
     };
@@ -561,7 +595,12 @@ var WalrusView = function(map, container, walrusCollection, imageCollection)
     
     $(imageCollection).bind('activeChange', function()
     {
-        if (!imageCollection.getActive()) return;
+        if (!imageCollection.getActive())
+        {
+            walrusDataProvider.setFilterValue('sceneid', null);
+            return;
+        }
+        
         var sceneId = imageCollection.getActive().getOrig().sceneid;
         walrusDataProvider.setFilterValue('sceneid', sceneId);
         
@@ -575,6 +614,8 @@ var WalrusView = function(map, container, walrusCollection, imageCollection)
         
     var doneInspectButton = $('<button/>').text('Просмотрено').css({'float': 'right'}).click(function()
     {
+        if (!imageCollection.getActive()) return;
+        
         $(this).attr('disabled', 'disabled');
         var imageProps = imageCollection.getActive().getOrig();
         viewedIDs[imageProps.sceneid] = true;
@@ -611,7 +652,10 @@ var WalrusView = function(map, container, walrusCollection, imageCollection)
     
     var tableContainer = $('<div/>');
     
-    $(container).append(doneInspectButton).append(addWalrusButton).append(tableContainer);
+    if (nsGmx.AuthManager.isLogin() && _queryMapLayers.layerRights(imageCollection.getLayerName()) == 'edit')
+        $(container).append(doneInspectButton).append(addWalrusButton);
+    
+    $(container).append(tableContainer);
 
     walrusTable.createTable({
         parent: tableContainer[0],
@@ -631,6 +675,9 @@ var publicInterface = {
         var imageLayerName = 'A11B56BA40DD42AF8726356849A41297';
         var walrusLayerName = '62D064DA30D74A98861B2E1C50A93E3F';
         
+        var walrusCollection = new WalrusCollection(map, walrusLayerName);
+        var imageCollection = new WalrusImageCollection(map, imageLayerName, walrusCollection);
+        
         nsGmx.widgets.commonCalendar.get().unbindLayer(imageLayerName);
         map.layers[imageLayerName].setDateInterval(new Date(2000, 1, 1), new Date(2100, 1, 1));
         map.layers[imageLayerName].setVisibilityFilter('"ogc_fid"=-1');
@@ -643,14 +690,18 @@ var publicInterface = {
             new AddImageControl(map, imageLayerName);
         })
         
-        var menuContainer = $('<div/>', {'class': 'walrus-main-container'}).append(tagsContainer).append(addImageButton).append(imagesContainer).append(walrusContainer);
+        var menuContainer = $('<div/>', {'class': 'walrus-main-container'}).append(tagsContainer)
+        
+        if (nsGmx.AuthManager.isLogin() && _queryMapLayers.layerRights(imageCollection.getLayerName()) == 'edit')
+            menuContainer.append(addImageButton);
+            
+        menuContainer.append(imagesContainer).append(walrusContainer);
         
         var menu = new leftMenu();
         menu.createWorkCanvas("walrus", function(){});
         _(menu.workCanvas, [menuContainer[0]]);
                 
-        var walrusCollection = new WalrusCollection(map, walrusLayerName);
-        var imageCollection = new WalrusImageCollection(map, imageLayerName, walrusCollection);
+        
         $.when(imageCollection.initFromServer(), walrusCollection.initFromServer()).done(function()
         {
             var tagFilters = new Filters();
