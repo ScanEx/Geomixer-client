@@ -1363,6 +1363,9 @@ var FireSpotRendererLayer = function( params )
     {
         if (requestSent) return;
         requestSent = true;
+        if (_params.host.indexOf('http://') === 0)
+            _params.host = _params.host.substring(7, _params.host.length - 1);
+            
         _params.map.loadMap(_params.host, _params.mapName, function(data)
         {
             var layer = _params.map.layers[_params.pointLayerName];
@@ -1645,7 +1648,7 @@ var CombinedFiresRenderer = function( params )
 	var _clustersRenderer  = new FireSpotRenderer  ({map: _params.map, maxZoom: _params.maxClustersZoom,  title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>", endTitle: "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>", customStyleProvider: customStyleProvider});
 	var _wholeFireRenderer = new FireBurntRenderer ({bringToDepth: 0, map: _params.map, minZoom: _params.minWholeFireZoom,  defStyle: wholeDefStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Суммарный контур пожара</b></div>", addGeometrySummary: false});
 	var _geometryRenderer  = new FireBurntRenderer2 ({bringToDepth: 1, map: _params.map, minZoom: _params.minGeometryZoom,  defStyle: defStyle, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>", addGeometrySummary: false});
-	var _hotspotRenderer   = new FireSpotRendererLayer  ({map: _params.map, minZoom: _params.minHotspotZoom, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>"});
+	var _hotspotRenderer   = new FireSpotRendererLayer ({host: _params.hotspotLayerHost, map: _params.map, minZoom: _params.minHotspotZoom, title: "<div style='margin-bottom: 5px;'><b style='color: red;'>Очаг пожара</b></div>"});
 	var _curData = null;
 	
 	//это некоторый хак для того, чтобы объединить в балунах контуров пожаров оперативную и историческую информацию о пожарах.
@@ -2002,20 +2005,6 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 {
     var resourceHost = typeof gmxCore !== 'undefined' ? gmxCore.getModulePath('FireMapplet') + '../' || '' : '';
 	this._firesOptions = $.extend( {resourceHost: resourceHost, map: this._map}, FireControl.DEFAULT_OPTIONS, firesOptions );
-    
-	/*
-	console.log('testing FireControl');
-	var myLayer = gmxAPI.map.layers["FireHotSpots3"];
-	myLayer.addListener('onTileLoadedURL', function(ph) {
-		var layer = ph.obj;
-		var tileID = ph.attr.data.tileID;
-		var arr = ph.attr.data.data;
-		var params = tileID.split('_');
-		var bounds = gmxAPI.getTileBounds(params[0],params[1],params[2]);
-
-		
-	});*/
-	
 	
 	this._initExtent = new BoundsExt( firesOptions.initExtent ? firesOptions.initExtent : BoundsExt.WHOLE_WORLD );
 	if ( firesOptions.initExtent && firesOptions.showInitExtent )
