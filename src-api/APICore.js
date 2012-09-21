@@ -1850,6 +1850,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			var path = callback(o);
 			image.setTiles(function(i, j, z) 
 			{
+				if (z > 3 & i < 0) i = -i;
 				if (path.indexOf("{") > 0){
                     return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z).replace(new RegExp("{key}", "gi"), encodeURIComponent(window.KOSMOSNIMKI_SESSION_KEY));
 				}

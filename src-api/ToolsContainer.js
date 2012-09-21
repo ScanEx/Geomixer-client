@@ -165,6 +165,7 @@
 		function setVisible(flag)
 		{
 			gmxAPI.setVisible(gmxTools, flag);
+			this.isVisible = flag;
 		}
 		this.setVisible = setVisible;
 
@@ -341,6 +342,7 @@
 		
 		this.currentlyDrawnObject = currentlyDrawnObject;
 		this.activeToolName = activeToolName;
+		this.isVisible = true;
 
 		if(!gmxAPI._tools) gmxAPI._tools = {};
 		gmxAPI._tools[name] = this;
