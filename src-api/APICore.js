@@ -1864,7 +1864,8 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 
 	var enableTiledQuicklooksEx = function(callback, minZoom, maxZoom)
 	{
-		maxZoom = (maxZoom ? maxZoom : 18);
+		if(!minZoom) minZoom = 1;
+		if(!maxZoom) maxZoom = 18;
 		var images = {};
 		if (this.tilesParent)
 			this.tilesParent.remove();
