@@ -1848,11 +1848,13 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		this.enableTiledQuicklooksEx(function(o, image)
 		{
 			var path = callback(o);
+			var oBounds = gmxAPI.getBounds(o.geometry.coordinates);
+			var boundsType = (oBounds && oBounds.minX < -179.999 && oBounds.maxX > 179.999 ? true : false);
 			image.setTiles(function(i, j, z) 
 			{
 				var posX = gmxAPI.currPosition.latlng.x;
-				if (z > 3 && i < 0 && Math.abs(posX) > 90) i = -i;
-				if (path.indexOf("{") > 0){
+				if (boundsType && i < 0) i = -i;
+				if (path.indexOf("{") >= 0){
                     return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z).replace(new RegExp("{key}", "gi"), encodeURIComponent(window.KOSMOSNIMKI_SESSION_KEY));
 				}
 				else{
