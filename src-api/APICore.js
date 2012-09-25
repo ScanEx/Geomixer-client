@@ -1923,6 +1923,15 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			if(images[idt] && curZ >= minZoom && curZ <= maxZoom) images[idt].bringToTop();		// только для zoom со снимками
 			return false;
 		}, -5);
+
+		this.getRasterLayerFromTile = function(id)	// получить обьект растрового слоя для тайлового квиклука
+		{
+			var idt = 'id_' + id;
+			if(images[idt]) {
+				return images[idt];
+			}
+			return null;
+		};
 	}
 
 	//расширяем FlashMapObject
