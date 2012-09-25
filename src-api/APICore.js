@@ -1924,13 +1924,14 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			return false;
 		}, -5);
 
-		this.getRasterLayerFromTile = function(id)	// получить обьект растрового слоя для тайлового квиклука
+		this.bringToTopImage = function(id)			// обьект растрового слоя переместить вверх
 		{
 			var idt = 'id_' + id;
 			if(images[idt]) {
-				return images[idt];
+				images[idt].bringToTop();
+				return true;
 			}
-			return null;
+			return false;
 		};
 	}
 
