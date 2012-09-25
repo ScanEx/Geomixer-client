@@ -93,12 +93,18 @@ class VectorTilePainter
 			oldStyleID = (style != null ? style.curCount : 0);
 			oldZ = currentZ;
 		}
-
+		
+		var addHiddenFill:Bool = vectorLayerFilter.mapNode.parent.propHiden.get('addHiddenFill');
 		if (tileOverlap)
 		{
 			if (repaintCache || cacheSprite.width == 0 || cacheSprite.height == 0) {
 				cacheSprite.graphics.clear();
-				painter.repaintWithoutExtent(style, cacheSprite, vectorLayerFilter.layer.temporalCriterion, criterion);
+				var attr:Dynamic = { };
+				attr.sprite = cacheSprite; attr.style = style; attr.window = mapWindow;
+				attr.func = vectorLayerFilter.layer.temporalCriterion; attr.addHiddenFill = addHiddenFill;
+				attr.func1 = criterion;		// фильтр видимости setVisibilityFilter
+				painter.repaintWithoutExtent(attr);
+				
 			}
 			if (cacheSprite.parent == null) rasterSprite.addChild(cacheSprite);
 
@@ -108,10 +114,9 @@ class VectorTilePainter
 		else
 		{
 			if (cacheSprite.width > 0) cacheSprite.graphics.clear();
-			painter.repaint(style, vectorLayerFilter.layer.temporalCriterion, criterion);
+			painter.repaint(style, vectorLayerFilter.layer.temporalCriterion, criterion, false, addHiddenFill);
 			if(rasterSprite.visible) rasterSprite.visible = false;
 			if(!vectorSprite.visible) vectorSprite.visible = true;
 		}
-
 	}
 }

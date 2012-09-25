@@ -14,7 +14,7 @@ class GeometryPainter
 		window = window_;
 	}
 
-	public function repaint(style:Style, ?func:Hash<String>->Bool, ?criterion:Hash<String>->Bool, ?notClearFlag:Bool)
+	public function repaint(style:Style, ?func:Hash<String>->Bool, ?criterion:Hash<String>->Bool, ?notClearFlag:Bool, ?addHiddenFill:Bool)
 	{
 		//sprite.graphics.clear();
 		if (!notClearFlag) {
@@ -25,22 +25,19 @@ class GeometryPainter
 			if (func != null && geometry.properties != null && !func(geometry.propTemporal)) return;	// Фильтр мультивременных данных
 			var attr:Dynamic = { };
 			attr.sprite = sprite; attr.style = style; attr.window = window; attr.func = func;
+			attr.addHiddenFill = addHiddenFill;
 			attr.func1 = criterion;		// фильтр видимости setVisibilityFilter
 			geometry.paintWithExtent(attr);
 		}
 	}
 
-	public function repaintWithoutExtent(style:Style, sprite_:Sprite, ?func:Hash<String>->Bool, ?criterion:Hash<String>->Bool)
+	public function repaintWithoutExtent(attr:Dynamic)
 	{
-		if (sprite_ == null) sprite_ = sprite;
-		Utils.clearSprite(sprite_);
-		//sprite_.graphics.clear();
-		if ((geometry != null) && (style != null)) {
+		if(attr.sprite == null) attr.sprite = sprite;
+		Utils.clearSprite(attr.sprite);
+		if ((geometry != null) && (attr.style != null)) {
 			geometry.isPainted = false;
-			if (func != null && geometry.properties != null && !func(geometry.propTemporal)) return;	// Фильтр мультивременных данных
-			var attr:Dynamic = { };
-			attr.sprite = sprite_; attr.style = style; attr.window = window; attr.func = func;
-			attr.func1 = criterion;		// фильтр видимости setVisibilityFilter
+			if (attr.func != null && geometry.properties != null && !attr.func(geometry.propTemporal)) return;	// Фильтр мультивременных данных
 			geometry.paint(attr);
 		}
 	}

@@ -64,6 +64,9 @@ class PolygonGeometry extends Geometry
 				Geometry.beginFill(graphics, style.fill);
 			}
 		}
+		else if(attr.addHiddenFill) {
+			graphics.beginFill(0x00, 0);
+		}
 
 		var minx:Float;
 		var miny:Float;
