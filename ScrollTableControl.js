@@ -486,9 +486,9 @@ scrollTable.prototype.repaint = function()
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
     
-scrollTable.StaticDataProvider = function()
+scrollTable.StaticDataProvider = function( originalData )
 {
-    var _vals = []; //исходный список элементов
+    var _vals = originalData || []; //исходный список элементов
     var _filteredVals = []; //список элементов после фильтрации. Валиден только если _isFiltered == true
     
     var _isFiltered = false;
