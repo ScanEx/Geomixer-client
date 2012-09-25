@@ -40,6 +40,13 @@
     background-color: #77FFFF;
 }
 
+.walrus-button
+{
+    margin: 3px;
+    padding: 3px;
+    border-radius: 3px;
+}
+
 .walrus-filter-button
 {
     background-color: #EEEEFF;
@@ -47,6 +54,7 @@
     margin: 3px;
     padding: 3px;
     cursor: pointer;
+    border-radius: 3px;
 }
 
 .walrus-filter-on
@@ -58,4 +66,34 @@
 {
     width: 12px;
     margin: 0px 4px;
+}
+
+.walrus-search-button
+{
+    float: right;
+}
+
+.walrus-relative-row
+{
+    cursor: pointer;
+    text-align: center;
+}
+
+.walrus-relative-active-row
+{
+    background-color: #77FFFF;
+}
+
+.walrus-relative-title
+{
+    width: 100%;
+    text-align: center;
+    font-size: 13;
+    font-weight: bold;
+    margin-top: 6px;
+}
+
+.walrus-images-container
+{
+    margin-bottom: 10px;
 }
