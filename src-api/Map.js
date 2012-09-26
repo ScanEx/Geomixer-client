@@ -29,7 +29,7 @@
 		map.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
 		map.moveTo = function(x, y, z) {
 			var pos = {'x':x, 'y':y, 'z':z};
-			updatePosition(null, {'currPosition': pos});
+			updatePosition(null, {'currPosition': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':z}});
 			map.needMove = null; gmxAPI._cmdProxy('moveTo', { 'attr': pos });
 		}
 		map.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':x, 'y':y, 'z':z} }); }
@@ -462,24 +462,34 @@
 				}
 			}
 			if (layers.properties.DefaultLat && layers.properties.DefaultLong && layers.properties.DefaultZoom) {
-				map.needMove = {
+				var pos = {
 					'x': parseFloat(layers.properties.DefaultLong),
 					'y': parseFloat(layers.properties.DefaultLat),
 					'z': parseInt(layers.properties.DefaultZoom)
 				};
-				updatePosition(null, {'currPosition': map.needMove});
+				map.needMove = pos;
+				updatePosition(null, {'currPosition': {
+					'x': gmxAPI.merc_x(pos['x']),
+					'y': gmxAPI.merc_y(pos['y']),
+					'z': pos['z']
+				}});
 			} else if(!notMoveFlag)
 			{
 				var z = map.getBestZ(b.minX, b.minY, b.maxX, b.maxY);
 				if (minLayerZoom != 20)
 					z = Math.max(z, minLayerZoom);
 				if(z > 0)  {
-					map.needMove = {
-						'x': gmxAPI.from_merc_x((gmxAPI.merc_x(b.minX) + gmxAPI.merc_x(b.maxX))/2),
-						'y': gmxAPI.from_merc_y((gmxAPI.merc_y(b.minY) + gmxAPI.merc_y(b.maxY))/2),
+					var pos = {
+						'x': (gmxAPI.merc_x(b.minX) + gmxAPI.merc_x(b.maxX))/2,
+						'y': (gmxAPI.merc_y(b.minY) + gmxAPI.merc_y(b.maxY))/2,
 						'z': z
 					};
-					updatePosition(null, {'currPosition': map.needMove});
+					map.needMove = {
+						'x': gmxAPI.from_merc_x(pos['x']),
+						'y': gmxAPI.from_merc_y(pos['y']),
+						'z': z
+					};
+					updatePosition(null, {'currPosition': pos});
 				}
 			}
 			if (layers.properties.ViewUrl && !window.suppressDefaultPermalink)
@@ -491,12 +501,17 @@
 					var callbackName = gmxAPI.uniqueGlobalName(function(obj)
 					{
 						if (obj.position) {
-							map.needMove = {
-								'x': gmxAPI.from_merc_x(obj.position.x),
-								'y': gmxAPI.from_merc_y(obj.position.y),
+							var pos = {
+								'x': obj.position.x,
+								'y': obj.position.y,
 								'z': 17 - obj.position.z
 							};
-							updatePosition(null, {'currPosition': map.needMove});
+							map.needMove = {
+								'x': gmxAPI.from_merc_x(pos['x']),
+								'y': gmxAPI.from_merc_y(pos['y']),
+								'z': pos['z']
+							};
+							updatePosition(null, {'currPosition': pos});
 						}
 						if (obj.drawnObjects && gmxAPI._drawing)
 							for (var i =0; i < obj.drawnObjects.length; i++)

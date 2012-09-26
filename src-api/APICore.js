@@ -1873,7 +1873,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			this.tilesParent.remove();
 		var tilesParent = this.addObject();
 		this.tilesParent = tilesParent;
-		gmxAPI._cmdProxy('setAPIProperties', { 'obj': this, 'attr':{'addHiddenFill':true} });	// при отсутствии style.fill дополнить невидимым заполнением
+		//gmxAPI._cmdProxy('setAPIProperties', { 'obj': this, 'attr':{'addHiddenFill':true} });	// при отсутствии style.fill дополнить невидимым заполнением - ломает старые проекты
 
 		tilesParent.setZoomBounds(minZoom, maxZoom);
 		var propsArray = [];
