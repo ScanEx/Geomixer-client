@@ -20,6 +20,11 @@
     text-align: center;
 }
 
+.walrus-list-elem
+{
+    font-size: 11px;
+}
+
 .walrus-row > td
 {
     padding: 0px 2px
@@ -45,6 +50,7 @@
     margin: 3px;
     padding: 3px;
     border-radius: 3px;
+    font-size: 11px;
 }
 
 .walrus-filter-button
@@ -55,6 +61,7 @@
     padding: 3px;
     cursor: pointer;
     border-radius: 3px;
+    font-size: 11px;
 }
 
 .walrus-filter-on
