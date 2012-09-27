@@ -29,7 +29,7 @@
 		map.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
 		map.moveTo = function(x, y, z) {
 			var pos = {'x':x, 'y':y, 'z':z};
-			updatePosition(null, {'currPosition': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':z}});
+			//setCurrPosition(null, {'currPosition': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':z}});
 			map.needMove = null; gmxAPI._cmdProxy('moveTo', { 'attr': pos });
 		}
 		map.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':x, 'y':y, 'z':z} }); }
@@ -468,7 +468,7 @@
 					'z': parseInt(layers.properties.DefaultZoom)
 				};
 				map.needMove = pos;
-				updatePosition(null, {'currPosition': {
+				setCurrPosition(null, {'currPosition': {
 					'x': gmxAPI.merc_x(pos['x']),
 					'y': gmxAPI.merc_y(pos['y']),
 					'z': pos['z']
@@ -489,7 +489,7 @@
 						'y': gmxAPI.from_merc_y(pos['y']),
 						'z': z
 					};
-					updatePosition(null, {'currPosition': pos});
+					setCurrPosition(null, {'currPosition': pos});
 				}
 			}
 			if (layers.properties.ViewUrl && !window.suppressDefaultPermalink)
@@ -511,7 +511,7 @@
 								'y': gmxAPI.from_merc_y(pos['y']),
 								'z': pos['z']
 							};
-							updatePosition(null, {'currPosition': pos});
+							setCurrPosition(null, {'currPosition': pos});
 						}
 						if (obj.drawnObjects && gmxAPI._drawing)
 							for (var i =0; i < obj.drawnObjects.length; i++)
@@ -609,7 +609,7 @@
 			}
 		}
 
-		var updatePosition = function(ev, attr)
+		var setCurrPosition = function(ev, attr)
 		{
 			var currPos = (attr && attr.currPosition ? attr.currPosition : map.getPosition());
 			
@@ -636,7 +636,14 @@
 			}
 
 			gmxAPI.currPosition = currPos;
+			return eventFlag;
+		}
+
+		var updatePosition = function(ev, attr)
+		{
+			var eventFlag = setCurrPosition(ev, attr);
 			if(eventFlag) {						// Если позиция карты изменилась - формируем событие positionChanged
+				var currPos = gmxAPI.currPosition;
 				var z = currPos['z'];
 
 				/** Пользовательское событие positionChanged
