@@ -1,4 +1,7 @@
-﻿(function(){
+﻿var nsGmx = {};
+nsGmx.GeomixerFramework = true;
+
+(function(){
 
 var gmxJSHost = window.gmxJSHost || "";
 
