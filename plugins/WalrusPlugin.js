@@ -3,6 +3,10 @@
 var modulePath = '';
 var ScrollTable = null;
 
+var getServerBase = function()
+{
+    return window.serverBase || gmxAPI.getAPIHostRoot();
+}
 
 var appendTranslations = function()
 {
@@ -27,7 +31,7 @@ var getObjectsFromServer = function(layerName)
 {
     var deferred = $.Deferred();
         
-    sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&geometry=true&layer=" + layerName, function(response)
+    sendCrossDomainJSONRequest(getServerBase() + "VectorLayer/Search.ashx?WrapStyle=func&geometry=true&layer=" + layerName, function(response)
     {
         if (!parseResponse(response))
         {
@@ -60,7 +64,7 @@ var removeObject = function(map, layerName, walrus)
 {
     var objects = JSON.stringify([{action: 'delete', id: walrus.ogc_fid}]);
     
-    sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
+    sendCrossDomainPostRequest(getServerBase() + "VectorLayer/ModifyVectorObjects.ashx", 
         {
             WrapStyle: 'window', 
             LayerName: layerName,
@@ -151,7 +155,7 @@ var WalrusImage = function(image, map, layerName)
         
         var objects = JSON.stringify([obj]);
         
-        sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
+        sendCrossDomainPostRequest(getServerBase() + "VectorLayer/ModifyVectorObjects.ashx", 
             {
                 WrapStyle: 'window', 
                 LayerName: layerName,
@@ -329,7 +333,7 @@ var WalrusImagesView = function(map, container, imageCollection)
         var imageProps = image.getOrig();
         var sceneId = imageProps.sceneid;
         
-        var editButton = makeImageButton('img/edit.png');
+        var editButton = makeImageButton(modulePath + '../img/edit.png');
         editButton.onclick = function(e)
         {
             new nsGmx.EditObjectControl(imageCollection.getLayerName(), imageProps.ogc_fid, {
@@ -421,7 +425,7 @@ var AddImageControl = function(map, layerName)
     {
         var newLayerName = newLayer.name;
         var testQuery = 'LayerName="' + newLayerName + '"'
-        sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&count=true" + "&layer=" + layerName + "&query=" + encodeURIComponent(testQuery), function(response)
+        sendCrossDomainJSONRequest(getServerBase() + "VectorLayer/Search.ashx?WrapStyle=func&count=true" + "&layer=" + layerName + "&query=" + encodeURIComponent(testQuery), function(response)
         {
             if (!parseResponse(response))
                 return;
@@ -432,7 +436,7 @@ var AddImageControl = function(map, layerName)
                 return;
             }
             
-            sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + newLayerName, function(response)
+            sendCrossDomainJSONRequest(getServerBase() + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + newLayerName, function(response)
             {
                 if (!parseResponse(response))
                     return;
@@ -515,7 +519,7 @@ var WalrusView = function(map, container, walrusCollection, imageCollection)
         var image = imageCollection.getBySceneId(sceneId);
         var imgProps = image ? imageCollection.getBySceneId(sceneId).getOrig() : null;
         
-        var recycleButton = makeImageButton('img/recycle.png', 'img/recycle_a.png');
+        var recycleButton = makeImageButton(modulePath + '../img/recycle.png', modulePath + '../img/recycle_a.png');
         recycleButton.onclick = function(e)
         {
             removeObject(map, walrusCollection.getLayerName(), walrus);
@@ -526,7 +530,7 @@ var WalrusView = function(map, container, walrusCollection, imageCollection)
             stopEvent(e);
         }
         
-        var editButton = makeImageButton('img/edit.png');
+        var editButton = makeImageButton(modulePath + '../img/edit.png');
         editButton.onclick = function(e)
         {
             new nsGmx.EditObjectControl(walrusCollection.getLayerName(), walrus.ogc_fid, {
