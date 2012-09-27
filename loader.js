@@ -2,6 +2,9 @@
 
 var gmxJSHost = window.gmxJSHost || "";
 
+window.nsGmx = {};
+window.nsGmx.GeomixerFramework = true;
+
 //подставляет к локальному имени файла хост (window.gmxJSHost) и, опционально, рандомное поле для сброса кэша (window.gmxDropBrowserCache)
 var _getFileName = function( localName )
 {
@@ -35,7 +38,6 @@ $LAB.
 		$.getCSS(_getFileName("jquery/jquery-ui-timepicker-addon.css"));
 		$.getCSS(_getFileName("colorpicker/css/colorpicker.css"));
 		$.getCSS(_getFileName("menu.css"));
-		$.getCSS(_getFileName("table.css"));
 		$.getCSS(_getFileName("buttons.css"));
 		$.getCSS(_getFileName("treeview.css"));
 		$.getCSS(_getFileName("search.css"));

@@ -1,3 +1,24 @@
+(function($) {
+
+var modulePath = "";
+
+var appendTranslations = function()
+{
+    _translationsHash.addtext("rus", {
+        "Следующие [value0] страниц" : "Следующие [value0] страниц",
+        "Предыдущие [value0] страниц" : "Предыдущие [value0] страниц",
+        "Первая страница" : "Первая страница",
+        "Последняя страница" : "Последняя страница"
+    });
+
+    _translationsHash.addtext("eng", {
+        "Следующие [value0] страниц" : "Next [value0] pages",
+        "Предыдущие [value0] страниц" : "Previous [value0] pages",
+        "Первая страница" : "First page",
+        "Последняя страница" : "Last page"
+    });
+}
+
 //Таблица с разбиением данных по страницам. Сильно кастомизируемый виджет. Поддерживает различные провайдеры данных и рендереры.
 var scrollTable = function( params )
 {
@@ -27,7 +48,7 @@ var scrollTable = function( params )
 	this.next = function()
 	{
 		var _this = this,
-			button = makeImageButton('img/next.png', 'img/next_a.png');
+			button = makeImageButton(modulePath + 'img/next.png', modulePath + 'img/next_a.png');
 		
 		button.style.marginBottom = '-7px';
 		
@@ -51,7 +72,7 @@ var scrollTable = function( params )
 	this.previous = function()
 	{
 		var _this = this,
-			button = makeImageButton('img/prev.png', 'img/prev_a.png');
+			button = makeImageButton(modulePath + 'img/prev.png', modulePath + 'img/prev_a.png');
 		
 		button.style.marginBottom = '-7px';
 		
@@ -75,7 +96,7 @@ var scrollTable = function( params )
 	this.first = function()
 	{
 		var _this = this,
-			button = makeImageButton('img/first.png', 'img/first_a.png');
+			button = makeImageButton(modulePath + 'img/first.png', modulePath + 'img/first_a.png');
 		
 		button.style.marginBottom = '-7px';
 		
@@ -99,7 +120,7 @@ var scrollTable = function( params )
 	this.last = function()
 	{
 		var _this = this,
-			button = makeImageButton('img/last.png', 'img/last_a.png');
+			button = makeImageButton(modulePath + 'img/last.png', modulePath + 'img/last_a.png');
 		
 		button.style.marginBottom = '-7px';
 		
@@ -680,5 +701,30 @@ scrollTable.StaticDataProvider.genAttrSort = function(attrName1, attrName2)
     }
 }
 
-var _mapsTable = new scrollTable(),
-	_listTable = new scrollTable();
+//если есть вьюер, добавляем для него переменные в глобальный namespace
+if ('nsGmx' in window && 'GeomixerFramework' in window.nsGmx)
+{
+    window.scrollTable = scrollTable;
+    window._mapsTable = new scrollTable();
+	window._listTable = new scrollTable();
+}
+    
+if (typeof window.gmxCore !== 'undefined')
+{
+    gmxCore.addModule("ScrollTableControl", 
+        {
+            ScrollTable: scrollTable
+        }, 
+        {
+            require: ['translations', 'utilities'],
+            css: 'table.css',
+            init: function(module, path)
+            {
+                modulePath = path || "";
+                appendTranslations();
+            }
+        }
+    );
+}
+
+})(jQuery);
