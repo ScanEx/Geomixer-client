@@ -649,7 +649,7 @@ var WalrusView = function(map, container, walrusCollection, imageCollection)
 
 var VisibleImagesWidget = function(map, container, imageCollection)
 {
-    var title = $('<div/>').attr('class', 'walrus-relative-title').text('Снимки на экране');
+    var title = $('<div/>').attr('class', 'walrus-relative-title').text('Снимки для проверки');
     var tableDiv = _div();
     
     var mainImage = null;
@@ -741,6 +741,8 @@ var RelativeImagesWidget = function(map, container, imageCollection, walrusColle
     var mainImage = null;
     var activeRelativeImage = null;
     
+    var feedbackHost = 'http://mapstest.kosmosnimki.ru/sender/';
+    
     var mapObject = null;
     
     this.setMainSceneId = function(sceneId)
@@ -775,6 +777,7 @@ var RelativeImagesWidget = function(map, container, imageCollection, walrusColle
     {
         if (!mainImage) return;
         
+        
         // if (!nsGmx.AuthManager.isLogin() || _queryMapLayers.layerRights(imageCollection.getLayerName()) != 'edit')
         // {
             // alert('Данный функционал находится в разработке');
@@ -787,7 +790,9 @@ var RelativeImagesWidget = function(map, container, imageCollection, walrusColle
             
             var imageProps = mainImage.getOrig();
             
-            if ('AuthManager' in nsGmx && nsGmx.AuthManager.isLogin() && _queryMapLayers.layerRights(imageCollection.getLayerName()) === 'edit')
+            var isLogin = 'AuthManager' in nsGmx && nsGmx.AuthManager.isLogin();
+            
+            if (isLogin && _queryMapLayers.layerRights(imageCollection.getLayerName()) === 'edit')
             {
                 var editControl = new nsGmx.EditObjectControl(walrusCollection.getLayerName(), null, {drawingObject: newObj, fields: [
                         {name: 'sceneid', value: imageProps.sceneid, constant: true},
@@ -803,11 +808,57 @@ var RelativeImagesWidget = function(map, container, imageCollection, walrusColle
             }
             else
             {
-                permalinkController.getPermalink(function(permalinkId)
+                var container = $('<div/>');
+                
+                if (!isLogin)
                 {
-                    var url = "http://" + window.location.host + window.location.pathname + "?permalink=" + permalinkId;
-                    console.log(url);
+                    container
+                        .append($('<div/>').text('Ваш e-mail:'))
+                        .append($('<input/>', {id: 'walrusFeedbackEmail', 'class': 'walrus-feedback-input inputStyle'}));
+                }
+                
+                var sendButton = $('<button/>').text('Отослать').addClass('walrus-button').click(function()
+                {
+                    permalinkController.getPermalink(function(permalinkId)
+                    {
+                        var permalinkURL = "http://" + window.location.host + window.location.pathname + "?permalink=" + permalinkId;
+                        
+                        var email = isLogin ? nsGmx.AuthManager.getLogin() : $('#walrusFeedbackEmail', container).val();
+                        
+                        $.ajax({
+                            url: feedbackHost + 'DBWebProxy.ashx', 
+                            data: {
+                                type: 'AddWalrus',
+                                Permalink: permalinkURL,
+                                Email: email,
+                                Comment: $('#walrusFeedbackComment', container).val()
+                            },
+                            cache: true,
+                            dataType: 'jsonp',
+                            jsonp: 'CallbackName'
+                        }).done(function(response)
+                        {
+                            parseResponse(response);
+                            
+                            $(feedbackDialog).dialog('close');
+                            removeDialog(feedbackDialog);
+                        })
+                    })
                 })
+                
+                container
+                    .append($('<div/>').text('Комментарий:'))
+                    .append($('<input/>', {id: 'walrusFeedbackComment', 'class': 'walrus-feedback-input inputStyle'}))
+                    .append($('<div/>').append(sendButton).css('text-align', 'center'));
+                
+                var feedbackDialog = showDialog('Добавить моржа', container[0], {
+                    width: 400, 
+                    height: isLogin ? 120 : 170,
+                    closeFunc: function()
+                    {
+                        newObj.remove();
+                    }
+                });
             }
         })
             
