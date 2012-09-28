@@ -1404,7 +1404,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					var data:Dynamic = cast(attr.data);
 					node.setStyle(new Style(data.regularStyle), (data.hoveredStyle != null) ? new Style(data.hoveredStyle) : null);
 					if (Std.is(node.content, VectorLayerFilter)) {
-						cast(node.content, VectorLayerFilter).chkClusters();
+						cast(node.content, VectorLayerFilter).saveOriginalStyle();
 						node.parent.repaintObjects();			// отрисовка обьектов addObject родителя
 					} else {
 						node.repaintObjects();			// отрисовка обьектов addObject

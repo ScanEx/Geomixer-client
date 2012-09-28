@@ -99,12 +99,13 @@ class VectorLayerFilter extends MapContent
 		Main.needRefreshMap = true;
 	}
 
-	// Проверка кластеризации на фильтре - сохранение стилей фильтра до кластеризации
-	public function chkClusters(?attr:Dynamic)
+	// Cохранение стилей фильтра до кластеризации
+	public function saveOriginalStyle()
 	{
-		regularStyleOrig = mapNode.regularStyle;
-		hoverStyleOrig = mapNode.hoveredStyle;
-		if(attr != null) runClusters(attr);
+		if(clusterAttr != null) {
+			regularStyleOrig = mapNode.regularStyle;
+			hoverStyleOrig = mapNode.hoveredStyle;
+		}
 	}
 
 	// Инициализация кластеризации на фильтре
@@ -154,7 +155,9 @@ class VectorLayerFilter extends MapContent
 		if(!evTarget.hasEventListener(APIEvent.CUSTOM_EVENT))
 			evTarget.addEventListener( APIEvent.CUSTOM_EVENT, chkMapMove );		
 
-		chkClusters(attr);
+		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
+		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
+		runClusters(attr);
 		return true;
 	}
 
@@ -246,10 +249,10 @@ class VectorLayerFilter extends MapContent
 			var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
 			if (!clusterAttr._zoomDisabledHash.exists(currentZ)) {
 				curStyle = clusterAttr.regularStyle;
-				if (curStyle != null && curStyle.marker != null && curStyle.marker.imageUrl != null && curStyle.marker.markerWidth == 0) {
-					Main.needRefreshMap = true;
-					return;			
-				}
+				//if (curStyle != null && curStyle.marker != null && curStyle.marker.imageUrl != null && curStyle.marker.markerWidth == 0) {
+					//Main.needRefreshMap = true;
+					//return;			
+				//}
 				//curStyle = regularStyleOrig;
 			}
 		}
