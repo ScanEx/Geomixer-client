@@ -1852,7 +1852,6 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			var boundsType = (oBounds && oBounds.minX < -179.999 && oBounds.maxX > 179.999 ? true : false);
 			image.setTiles(function(i, j, z) 
 			{
-				var posX = gmxAPI.currPosition.latlng.x;
 				if (boundsType && i < 0) i = -i;
 				if (path.indexOf("{") >= 0){
                     return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z).replace(new RegExp("{key}", "gi"), encodeURIComponent(window.KOSMOSNIMKI_SESSION_KEY));
@@ -2580,7 +2579,7 @@ FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4
 	var attr = {};
 	if (tx1) {
 		attr = {
-			'x1': gmxAPI.merc_x(tx1), 'y1': gmxAPI.merc_y(ty1), 'x2': gmxAPI.merc_x(tx2), 'y2': gmxAPI.merc_y(ty2), 'x3': gmxAPI.merc_x(tx3), 'y3': gmxAPI.merc_y(ty3), 'x4': gmxAPI.merc_x(tx4), 'y4': gmxAPI.merc_y(ty4)
+			'x1': tx1, 'y1': ty1, 'x2': tx2, 'y2': ty2, 'x3': tx3, 'y3': ty3, 'x4': tx4, 'y4': ty4
 			,'tx1': x1, 'ty1': y1, 'tx2': x2, 'ty2': y2, 'tx3': x3, 'ty3': y3, 'tx4': x4, 'ty4': y4
 		};
 	}
@@ -2588,7 +2587,7 @@ FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4
 	{
 		this.setPolygon([[x1, y1], [x2, y2], [x3, y3], [x4, y4], [x1, y1]]);
 		attr = {
-			'x1': gmxAPI.merc_x(x1), 'y1': gmxAPI.merc_y(y1), 'x2': gmxAPI.merc_x(x2), 'y2': gmxAPI.merc_y(y2), 'x3': gmxAPI.merc_x(x3), 'y3': gmxAPI.merc_y(y3), 'x4': gmxAPI.merc_x(x4), 'y4': gmxAPI.merc_y(y4)
+			'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'x3': x3, 'y3': y3, 'x4': x4, 'y4': y4
 		};
 	}
 	attr['url'] = url;
@@ -3119,7 +3118,10 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					} catch(e) {
 						gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'event': e, 'alert': 'Ошибка в callback:\n'+e});
 					}
-					if(map.needMove) map.moveTo(map.needMove['x'], map.needMove['y'], map.needMove['z']);
+					if(map.needMove) {
+						gmxAPI.currPosition = null;
+						map.moveTo(map.needMove['x'], map.needMove['y'], map.needMove['z']);
+					}
 				});
 			},
 			function()

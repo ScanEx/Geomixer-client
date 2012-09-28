@@ -355,10 +355,6 @@
 			gmxAPI.flashDiv.cmdFromJS('setTileCaching', { 'objectId':hash.obj.objectId, 'flag':hash['attr']['flag'] } );
 		}
 		,
-		'setImageExtent':	function(hash)	{
-			gmxAPI.flashDiv.cmdFromJS('setImageExtent', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
-		}
-		,
 		'clearBackgroundImage':	function(hash)	{
 			gmxAPI.flashDiv.cmdFromJS('clearBackgroundImage', { 'objectId':hash.obj.objectId } );
 		}
@@ -424,11 +420,18 @@
 			gmxAPI.flashDiv.cmdFromJS('observeVectorLayer', { 'objectId':hash.obj.objectId, 'layerId':attr['layerId'], 'func':attr['func'] } );
 		}
 		,
+		'setImageExtent':	function(hash)	{
+			gmxAPI.flashDiv.cmdFromJS('setImageExtent', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
+		}
+		,
 		'setImage':	function(hash)	{
 			var attr = hash['attr'];
 			gmxAPI.flashDiv.cmdFromJS('setImage', { 'objectId':hash.obj.objectId, 'url':attr['url'],
-			'x1':attr['x1'], 'y1':attr['y1'], 'x2':attr['x2'], 'y2':attr['y2'], 'x3':attr['x3'], 'y3':attr['y3'], 'x4':attr['x4'], 'y4':attr['y4'],
-			'tx1':attr['tx1'], 'ty1':attr['ty1'], 'tx2':attr['tx2'], 'ty2':attr['ty2'], 'tx3':attr['tx3'], 'ty3':attr['ty3'], 'tx4':attr['tx4'], 'ty4':attr['ty4']
+				'x1': gmxAPI.merc_x(attr['x1']), 'y1': gmxAPI.merc_y(attr['y1']),
+				'x2': gmxAPI.merc_x(attr['x2']), 'y2': gmxAPI.merc_y(attr['y2']),
+				'x3': gmxAPI.merc_x(attr['x3']), 'y3': gmxAPI.merc_y(attr['y3']),
+				'x4': gmxAPI.merc_x(attr['x4']), 'y4': gmxAPI.merc_y(attr['y4']),
+				'tx1':attr['tx1'], 'ty1':attr['ty1'], 'tx2':attr['tx2'], 'ty2':attr['ty2'], 'tx3':attr['tx3'], 'ty3':attr['ty3'], 'tx4':attr['tx4'], 'ty4':attr['ty4']
 			} );
 		}
 		,
@@ -541,7 +544,7 @@
 		var flashDomTest = typeof(gmxAPI.flashDiv);
 		ret = (cmd in commands ? commands[cmd].call(commands, hash) : {});
 /*
-console.log(cmd + ' : ' + ret);
+console.log(cmd + ' : ' , hash);
 if(!window._debugTimes) window._debugTimes = { 'jsToFlash': { 'timeSum':0, 'callCount':0, 'callFunc':{} } };
 var delta = (new Date()).getTime() - startTime;
 window._debugTimes.jsToFlash.timeSum += delta;

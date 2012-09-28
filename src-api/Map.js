@@ -670,7 +670,8 @@
 		// onMoveBegin	- перед onMove
 		// onMoveEnd	- после onMove
 
-		updatePosition();
+		//updatePosition();
+		setCurrPosition();
 
 		map.setBackgroundColor = function(color)
 		{
