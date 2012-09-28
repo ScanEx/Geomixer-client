@@ -662,6 +662,10 @@
 		parentObj.layers[layerName] = obj;
 		if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
 			parentObj.layers[layer.properties.title] = obj;
+
+		obj.addListener('onChangeVisible', function(flag) {				// Изменилась видимость слоя
+			gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'from':obj.objectId});	// Проверка map Listeners на hideBalloons
+		}, -10);
 			
 		obj.addListener('BeforeLayerRemove', function(layerName) {				// Удаляется слой
 			gmxAPI._listeners.dispatchEvent('AfterLayerRemove', obj, obj.properties.name);	// Удален слой

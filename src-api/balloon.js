@@ -313,13 +313,14 @@
 		}
 		this.removeHoverBalloons = removeHoverBalloons;
 		
-		function hideHoverBalloons(flag)
+		function hideHoverBalloons(flag, attr)
 		{
 			var showFlag = false;
 			for (var key in fixedHoverBalloons)
 			{
 				var balloon = fixedHoverBalloons[key];
 				if(balloon.objType != 'cluster') {
+					if(attr && attr.from && balloon.pID != attr.from) continue;
 					balloon.setVisible(false);
 					showFlag = true;
 				}
@@ -381,6 +382,7 @@
 					}
 				}
 				var balloon = addBalloon();
+				balloon.pID = o.parent.objectId;
 				balloon.fixedId = id;
 				if(keyPress && keyPress['objType']) balloon.objType = keyPress['objType'];
 
@@ -912,7 +914,7 @@ event.stopImmediatePropagation();
 			if(!gmxAPI.map || gmxAPI.map.balloonClassObject) return;
 			gmxAPI.map.balloonClassObject = new BalloonClass();
 			gmxAPI.map.addListener('zoomBy', function()	{ gmxAPI.map.balloonClassObject.hideHoverBalloons(true); });
-			gmxAPI.map.addListener('hideBalloons', function() { gmxAPI.map.balloonClassObject.hideHoverBalloons(); });
+			gmxAPI.map.addListener('hideBalloons', function(attr) { gmxAPI.map.balloonClassObject.hideHoverBalloons(null, attr); });
 			gmxAPI.map.addListener('onMoveEnd', function() { gmxAPI.map.balloonClassObject.showHoverBalloons(); });
 
 			gmxAPI.map.addListener('clickBalloonFix', function(o) { gmxAPI.map.balloonClassObject.clickBalloonFix(o); });
