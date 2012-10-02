@@ -377,8 +377,8 @@ WikiFilter.prototype = {
 
 //Необходимо для того, чтобы дополнительные скрипты tiny_mce загружались
 window.tinyMCEPreInit = {
-	base: getAPIHostRoot() + '/api/plugins/tiny_mce', 
-	suffix : '', 
+	base: getAPIHostRoot() + '/api/plugins/tiny_mce',
+	suffix : '',
 	query : ''
 };      
 var _wikiFileBrowser = null;
@@ -396,16 +396,14 @@ var InitEditor = function(target) {
 		window.WikiFileBrowser_open = function(field_name, url, type, win){
 			_wikiFileBrowser = new fileBrowser();
 			
-			sendCrossDomainJSONRequest(getAPIHostRoot() + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + sFolder, function(response){
+			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + sFolder, function(response){
 				if (!parseResponse(response))
 					return;
 				
-				_wikiFileBrowser.currentDir = sFolder;
-				
 				var oDialog = _wikiFileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'gif', 'bmp'], function(path){ 
 					var relativePath = path.slice(sFolder.length - path.length + 1);
-					win.document.getElementById(field_name).value = getAPIHostRoot() + "GetImage.ashx?usr=" + nsGmx.AuthManager.getNickname() + "&img=" + relativePath;  
-				}, { restrictDir: sFolder});
+					win.document.getElementById(field_name).value = serverBase + "GetImage.ashx?usr=" + nsGmx.AuthManager.getNickname() + "&img=" + relativePath;  
+				}, { restrictDir: sFolder, startDir: sFolder });
 				
 			});
 		}
