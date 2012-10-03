@@ -285,7 +285,7 @@ var showWidget = function()
     });
     
     var geoeyeManager = new VectorSceneManager({
-        layerName: 'D01BF71C87CB40AEB46FDA4DE686791F',
+        layerName: '076EFE8A3D66461BBEC1234B006DE272',
         tilePath: '',
         propertiesToTags: propertiesToTagsGeoEye,
         layerSearchQuery: function(sid)
