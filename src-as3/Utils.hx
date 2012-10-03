@@ -543,7 +543,6 @@ class Utils
 			if (ph.arr.length == 1) {
 				var propOrig = first.properties;
 				for (key in propOrig.keys()) prop.set(key, propOrig.get(key));
-				pt.propHiden.set('_paintStyle', vectorLayerFilter.regularStyleOrig);
 			}
 			else
 			{
@@ -552,7 +551,6 @@ class Utils
 			}
 
 			if(first.propTemporal != null) pt.propTemporal = first.propTemporal;
-//trace('sssssssss ' + pt.propTemporal);
 			pt.properties = prop;
 			centersGeometry.addMember(pt);
 		}
@@ -599,11 +597,11 @@ class Utils
 				if (arr.length == 1) {
 					var propOrig = geom.members[arr[0]].properties;
 					for(key in propOrig.keys()) prop.set(key, propOrig.get(key));
-					//pt.propHiden.set('_paintStyle', vectorLayerFilter.regularStyleOrig);
-					pt.propHiden.set('_vectorLayerFilter', vectorLayerFilter);
+					//pt.propHiden.set('_paintStyle', vectorLayerFilter.mapNode.regularStyle);
 				}
 				else
 				{
+					pt.propHiden.set('_paintStyle', attr.regularStyle);
 					prop.set(identityField, 'cl_' + getNextId());
 					setProperties(prop, arr.length);
 				}

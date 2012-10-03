@@ -257,7 +257,7 @@ class Main
 					stopFluidMove();
 					isMoving = false;
 					//mapWindow.rootNode.callHandlersRecursively("onMoveEnd");
-					//dispatchEventPosition();
+					dispatchEventPosition();
 					needOnMoveEnd = true;
 					Main.needRefreshMap = true;
 					mapWindow.setCacheBitmapVisible(false);
@@ -1307,6 +1307,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					onMoveBegin();
 					Main.bumpFrameRate();
 					setCurrentPosition(attr.x, attr.y, Math.round(attr.z));
+					dispatchEventPosition();
 					//needOnMoveEnd = true;
 				case 'zoomBy':
 					onMoveBegin();
@@ -1374,12 +1375,14 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					maxY = attr.y2;
 					onMoveBegin();
 					setCurrentPosition(currentX, currentY, currentZ);
+					dispatchEventPosition();
 					//needOnMoveEnd = true;
 				case 'setMinMaxZoom':
 					minZ = attr.z1;
 					maxZ = attr.z2;
 					onMoveBegin();
 					setCurrentPosition(currentX, currentY, currentZ);
+					dispatchEventPosition();
 					//needOnMoveEnd = true;
 				case 'addMapWindow':
 					var lastCurrentZ:Float = -100, lastComputedZ:Float = 0;
@@ -1404,7 +1407,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					var data:Dynamic = cast(attr.data);
 					node.setStyle(new Style(data.regularStyle), (data.hoveredStyle != null) ? new Style(data.hoveredStyle) : null);
 					if (Std.is(node.content, VectorLayerFilter)) {
-						cast(node.content, VectorLayerFilter).saveOriginalStyle();
+						cast(node.content, VectorLayerFilter).needRefreshClusters();
 						node.parent.repaintObjects();			// отрисовка обьектов addObject родителя
 					} else {
 						node.repaintObjects();			// отрисовка обьектов addObject

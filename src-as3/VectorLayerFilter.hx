@@ -16,8 +16,6 @@ class VectorLayerFilter extends MapContent
 	public var ids:Hash<Bool>;
 
 	public var clusterAttr:Dynamic;
-	public var regularStyleOrig:Style;
-	public var hoverStyleOrig:Style;
 	public var paintersHash:Hash<VectorTilePainter>;	// Хэш отрисовщиков тайлов данного фильтра
 	var curChkData:Dynamic;								// Текущие данные для проверки обновлений
 	var evTarget:Stage;									// Обьект глобальных событий
@@ -27,6 +25,7 @@ class VectorLayerFilter extends MapContent
 		criterion = criterion_;
 		flush();
 		evTarget = flash.Lib.current.stage;
+		evTarget.addEventListener( APIEvent.CUSTOM_EVENT, chkMapMove );
 	}
 
 	public override function createContentSprite()
@@ -45,8 +44,6 @@ class VectorLayerFilter extends MapContent
 		ids = new Hash<Bool>();
 		if (layer != null)
 			createLoader();
-		regularStyleOrig = null;
-		hoverStyleOrig = null;
 		delClusters();
 		curChkData = {};
 	}
@@ -95,17 +92,8 @@ class VectorLayerFilter extends MapContent
 	public override function delClusters():Dynamic
 	{
 		clusterAttr = null;
-		if(regularStyleOrig != null) mapNode.setStyle(regularStyleOrig, hoverStyleOrig);
+		for (painter in painters) painter.needRfresh();
 		Main.needRefreshMap = true;
-	}
-
-	// Cохранение стилей фильтра до кластеризации
-	public function saveOriginalStyle()
-	{
-		if(clusterAttr != null) {
-			regularStyleOrig = mapNode.regularStyle;
-			hoverStyleOrig = mapNode.hoveredStyle;
-		}
 	}
 
 	// Инициализация кластеризации на фильтре
@@ -118,13 +106,14 @@ class VectorLayerFilter extends MapContent
 			curChkData.iterationCount = clusterAttr.iterationCount;
 			curChkData.radius = clusterAttr.radius;
 		}
-		
-		var regularStyle = null;
+
+		// инициализация стилей
 		if (clusterAttr.RenderStyle != null) {
 			clusterAttr.regularStyle = new Style(clusterAttr.RenderStyle);
+			clusterAttr.regularStyle.load(function() { Main.needRefreshMap = true; });
+			clusterAttr.needRefresh = true;
 		}
-		var hoverStyle = null;
-		if (clusterAttr.HoverStyle != null) clusterAttr.hoverStyle = new Style(clusterAttr.HoverStyle);
+		if (clusterAttr.HoverStyle != null) { clusterAttr.hoverStyle = new Style(clusterAttr.HoverStyle); clusterAttr.hoverStyle.load(function(){}); }
 
 		clusterAttr._zoomDisabledHash = new Hash<Bool>();
 		if (clusterAttr.zoomDisabled != null) {
@@ -135,30 +124,35 @@ class VectorLayerFilter extends MapContent
 		}
 		
 		Main.needRefreshMap = true;
-		mapNode.setStyle(clusterAttr.regularStyle, clusterAttr.hoverStyle);
 	}
 
 	// Проверка движения карты
 	private function chkMapMove(attr)
 	{
-		var pos:Dynamic = attr.data;
 		if(clusterAttr != null) {
-			if (curChkData.currentX != pos.currentX || curChkData.currentY != pos.currentY || curChkData.currentZ != pos.currentZ) {
-				clusterAttr.needRefresh = true;
-			}
+			clusterAttr.needRefresh = true;
 		}
 	}
 
 	// Установить кластеризацию на фильтре
 	public override function setClusters(attr:Dynamic):Dynamic
 	{
-		if(!evTarget.hasEventListener(APIEvent.CUSTOM_EVENT))
-			evTarget.addEventListener( APIEvent.CUSTOM_EVENT, chkMapMove );		
-
-		if(regularStyleOrig == null) regularStyleOrig = mapNode.regularStyle;
-		if(hoverStyleOrig == null) hoverStyleOrig = mapNode.hoveredStyle;
 		runClusters(attr);
+		needRefreshClusters();
 		return true;
+	}
+
+	// обновить кластеры
+	public function needRefreshClusters()
+	{
+		if (clusterAttr != null) {
+			clusterAttr.needRefresh = true;
+			for (painter in painters)
+				painter.clustersGeometry = null;
+
+			Main.needRefreshMap = true;
+			mapNode.noteSomethingHasChanged();
+		}
 	}
 
 	function getTileMultiGeometry(tile:VectorTile):MultiGeometry
@@ -244,18 +238,6 @@ class VectorLayerFilter extends MapContent
 		var e1 = mapNode.window.visibleExtent;
 		var cx1 = (e1.minx + e1.maxx) / 2;
 		var curStyle = mapNode.getRegularStyle();
-
-		if(clusterAttr != null) {
-			var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
-			if (!clusterAttr._zoomDisabledHash.exists(currentZ)) {
-				curStyle = clusterAttr.regularStyle;
-				//if (curStyle != null && curStyle.marker != null && curStyle.marker.imageUrl != null && curStyle.marker.markerWidth == 0) {
-					//Main.needRefreshMap = true;
-					//return;			
-				//}
-				//curStyle = regularStyleOrig;
-			}
-		}
 
 		for (painter in painters)
 		{

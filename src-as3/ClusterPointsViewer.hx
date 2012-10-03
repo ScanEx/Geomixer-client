@@ -32,7 +32,7 @@ class ClusterPointsViewer extends MapContent
 	{
 		contSprite = mapNode.vectorSprite;
 		bgSprite = Utils.addSprite(contSprite);
-		mapNode.setStyle(vlFilter.regularStyleOrig, vlFilter.hoverStyleOrig);
+		mapNode.setStyle(vlFilter.mapNode.regularStyle, vlFilter.mapNode.hoveredStyle);
 		return Utils.addSprite(contSprite);
 	}
 

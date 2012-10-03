@@ -36,14 +36,16 @@ class MapNode
 		nodeHaveRaster = false;
 		allNodes.set(id, this);
 		window = window_;
+		var st:String = (spName != null ? spName + '_' : '');
 		rasterSprite = rasterSprite_;
 		rasterSprite.visible = false;		// по умолчанию растровый контейнер невидим
-//rasterSprite.mouseEnabled = rasterSprite.mouseChildren = false;
-		vectorSprite = vectorSprite_;
-		var st:String = (spName != null ? spName + '_' : '');
 		rasterSprite.name = st + 'node_r_' + id;
+//rasterSprite.mouseEnabled = rasterSprite.mouseChildren = false;
+
+		vectorSprite = vectorSprite_;
 		vectorSprite.name = st + 'node_v_' + id;
 		vectorSprite.cacheAsBitmap = true;		// Баг SWF при представлении векторов в растр
+
 		regularStyle = null;
 		hoveredStyle = null;
 		hidden = false;
@@ -290,13 +292,6 @@ handlerNodes.remove(id);
 		var hoverStyleOrig:Style = null;
 
 		if (oldContent != null) {
-			if (Std.is(oldContent, VectorLayerFilter))
-			{
-				var vlf:VectorLayerFilter = cast(oldContent, VectorLayerFilter);
-				regularStyleOrig = vlf.regularStyleOrig;
-				hoverStyleOrig = vlf.hoverStyleOrig;
-			}
-
 			oldContent.contentSprite.parent.removeChild(oldContent.contentSprite);
 			if (parent != null && parent.filters.exists(id))
 			{
@@ -311,9 +306,6 @@ handlerNodes.remove(id);
 			if (parent != null && Std.is(content, VectorLayerFilter))
 			{
 				parent.filters.set(id, this);
-				var vlf:VectorLayerFilter = cast(content, VectorLayerFilter);
-				if(regularStyleOrig != null) vlf.regularStyleOrig = regularStyleOrig;
-				if(hoverStyleOrig != null) vlf.hoverStyleOrig = hoverStyleOrig;
 				setHaveRasterRecursively();
 				parent.repaintObjects();
 			}

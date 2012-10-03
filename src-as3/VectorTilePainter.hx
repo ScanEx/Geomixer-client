@@ -52,6 +52,11 @@ class VectorTilePainter
 		}
 	}
 
+	public function needRfresh()
+	{
+		oldZ = -1;
+	}
+
 	public function repaint(style:Style, ?clearCache:Bool)
 	{
 		var curZ:Float = mapWindow.getCurrentZ();
@@ -68,6 +73,7 @@ class VectorTilePainter
 			if (tileIntersect && !tileOverlap) oldStyleID = 0;
 			if (tileIntersect) {
 				if (vectorLayerFilter.clusterAttr.needRefresh || clustersGeometry == null) {
+					oldZ = -1;
 					clustersGeometry = Utils.getClusters(vectorLayerFilter, tileGeometry, tile, currentZ);
 				}
 				painter.geometry = clustersGeometry;
