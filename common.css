@@ -1216,3 +1216,29 @@ div.layersScroll
 {
     background-color: #FFCCCC;
 }
+
+.collabsible-icon
+{
+    width: 9px;
+    height: 9px;
+    float: left;
+    margin: 2px 5px;
+    cursor: pointer;
+}
+
+.collabsible-icon-hidden
+{
+    background: url(http://kosmosnimki.ru/img/expand.gif);
+}
+
+.collabsible-icon-shown
+{
+    background: url(http://kosmosnimki.ru/img/collapse.gif);
+}
+
+.collabsible-title
+{
+    margin: 5px 0px;
+    font-weight: bold;
+    cursor: pointer;
+}

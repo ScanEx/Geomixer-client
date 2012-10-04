@@ -294,6 +294,58 @@ nsGmx.Controls = {
             
             showDialog(_params.title, _div([table], [['attr','id','drawingBorderDialog' + name],['dir','className','drawingObjectsCanvas'],['css','width','220px']]), 250, 180, false, false)
         }
+    },
+    /**
+     Создаёт виджет для управления видимостью (скрытия/показа) других элементов
+     Сам виджет представляет из себя изменяющуюся иконку с текстом заголовка рядом с ней
+     @class
+     @param {String} title - текст заголовка
+     @param {DOMElement} titleElem - элемент для размещения самого виджета
+     @param {DOMElement or Array[DOMElement]} managedElems - элементы, видимостью которых будем
+     @param {Bool} isCollapsed - начальное состояние виджета
+    */
+    CollapsibleWidget: function(title, titleElem, managedElems, isCollapsed)
+    {
+        //var contentTr = _tr([_td([layerTagsParent], [['dir', 'colSpan', '2']])]);
+        var collapseTagIcon = $('<div/>').addClass('collabsible-icon');
+        var _isCollapsed = !!isCollapsed;
+        
+        managedElems = managedElems || [];
+        if (!$.isArray(managedElems))
+            managedElems = [managedElems];
+            
+        var updateElems = function()
+        {
+            for (var iE = 0; iE < managedElems.length; iE++)
+            $(managedElems[iE]).toggle(!_isCollapsed);
+        }
+        
+        var updateView = function()
+        {
+            collapseTagIcon
+                .toggleClass('collabsible-icon-hidden', _isCollapsed)
+                .toggleClass('collabsible-icon-shown', !_isCollapsed);
+            updateElems();
+        }
+        
+        updateView();
+        
+        $(titleElem).empty().append(
+            collapseTagIcon, 
+            $('<div/>').addClass('collabsible-title').text(title)
+        ).click(function()
+        {
+            _isCollapsed = !_isCollapsed;
+            updateView();
+        })
+        
+        this.addManagedElements = function(elems)
+        {
+            managedElems = managedElems.concat(elems);
+            updateElems();
+        }
+        
+        this.isCollapsed = function() { return _isCollapsed; };
     }
 }
 
