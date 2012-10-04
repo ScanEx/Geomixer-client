@@ -567,26 +567,27 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	});
     
     var borderDescr = _span();
+    
+    var count = 0;
+    var props = {};
     if (elem.MetaProperties)
     {
-        var props = {};
-        var count = 0;
         for (key in elem.MetaProperties)
         {
             var tagtype = elem.MetaProperties[key].Type;
             props[key] = nsGmx.Utils.convertFromServer(tagtype, elem.MetaProperties[key].Value);
             count++;
         }
-        
-        if (count)
+    }
+    
+    if (count || elem.Legend)
+    {
+        _(borderDescr, [_t('i')], [['css','fontWeight','bold'],['css','fontStyle','italic'],['css','margin','0px 5px'],['css','cursor','pointer']]);
+        borderDescr.onclick = function()
         {
-            _(borderDescr, [_t('i')], [['css','fontWeight','bold'],['css','fontStyle','italic'],['css','margin','0px 5px'],['css','cursor','pointer']]);
-            borderDescr.onclick = function()
-            {
-                _this.showLayerInfo({properties:elem}, {properties: props});
-            }
+            _this.showLayerInfo({properties:elem}, {properties: props});
         }
-    }    
+    }
 		
 	if (elem.type == "Vector")
 	{
