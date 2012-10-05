@@ -389,7 +389,7 @@ var tinyMCELoaded = false;
  @param {string} target id объекта для преобразования в tiny_mce editor
  */
 var InitEditor = function(target) {
-	var sFolder = nsGmx.AuthManager.getUserFolder() + '\\images\\';
+	var sFolder = nsGmx.AuthManager.getUserFolder() + 'images\\';
 
 	if (!window.WikiFileBrowser_open){
 
@@ -401,7 +401,7 @@ var InitEditor = function(target) {
 					return;
 				
 				var oDialog = _wikiFileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'gif', 'bmp'], function(path){ 
-					var relativePath = path.slice(sFolder.length - path.length + 1);
+					var relativePath = path.slice(sFolder.length - path.length);
 					win.document.getElementById(field_name).value = serverBase + "GetImage.ashx?usr=" + nsGmx.AuthManager.getNickname() + "&img=" + relativePath;  
 				}, { restrictDir: sFolder, startDir: sFolder });
 				
