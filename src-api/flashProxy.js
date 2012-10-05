@@ -270,9 +270,11 @@
 		}
 		,
 		'addObject':	function(hash)	{							// добавить обьект
-			var attr = hash['attr'];
+			var attr = gmxAPI.clone(hash['attr']);
 			var geo = gmxAPI.merc_geometry(attr['geometry']) || null;
-			return gmxAPI.flashDiv.cmdFromJS('addObject', { 'objectId':hash.obj.objectId, 'geometry':geo, 'properties':attr['properties'] } );
+			var ph = { 'objectId':hash.obj.objectId, 'geometry':geo, 'properties':attr['properties'] };
+			if(attr['propHiden']) ph['propHiden'] = attr['propHiden'];
+			return gmxAPI.flashDiv.cmdFromJS('addObject', ph );
 		}
 		,
 		'addObjects':	function(hash)	{							// добавить обьекты
@@ -342,9 +344,10 @@
 		}
 		,
 		'setBackgroundTiles':	function(hash)	{
-			var attr = hash['attr'];
-			if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
-			gmxAPI.flashDiv.cmdFromJS('setBackgroundTiles', { 'objectId':hash.obj.objectId, 'minZoomView':attr['minZoomView'], 'maxZoomView':attr['maxZoomView'], 'minZoom':attr['minZoom'], 'maxZoom':attr['maxZoom'], 'func':attr['func'], 'projectionCode':attr['projectionCode'] } );
+			var attr = gmxAPI.clone(hash['attr']);
+			if(hash['attr'].func) attr.func = gmxAPI.uniqueGlobalName(hash['attr'].func);
+			attr.objectId = hash.obj.objectId;
+			gmxAPI.flashDiv.cmdFromJS('setBackgroundTiles', attr );
 		}
 		,
 		'setDisplacement':	function(hash)	{
@@ -415,9 +418,10 @@
 		}
 		,
 		'observeVectorLayer':	function(hash)	{
-			var attr = hash['attr'];
-			if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
-			gmxAPI.flashDiv.cmdFromJS('observeVectorLayer', { 'objectId':hash.obj.objectId, 'layerId':attr['layerId'], 'func':attr['func'] } );
+			var attr = gmxAPI.clone(hash['attr']);
+			if(hash['attr'].func) attr.func = gmxAPI.uniqueGlobalName(hash['attr'].func);
+			attr.objectId = hash.obj.objectId;
+			gmxAPI.flashDiv.cmdFromJS('observeVectorLayer', attr );
 		}
 		,
 		'setImageExtent':	function(hash)	{

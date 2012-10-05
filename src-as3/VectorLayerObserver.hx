@@ -32,7 +32,7 @@ class VectorLayerObserver extends MapContent
 
 	public override function repaint()
 	{
-		//if(Main.isDraggingNow) return;
+		if(Main.mousePressed) return;
 		var criterion:Hash<String>->Bool = layer.mapNode.propHiden.get('_FilterVisibility');
 //		try {
 			var filters = new Array<VectorLayerFilter>();

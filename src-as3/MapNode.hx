@@ -378,7 +378,7 @@ handlerNodes.remove(id);
 
 	public function repaintRecursively(somethingHasChangedAbove:Bool)
 	{
-		if (Main.mousePressed && !Main.draggingDisabled && !nodeHaveRaster) return;
+		if (Main.mousePressed && !Main.draggingDisabled && (!nodeHaveRaster || propHiden.get('notRedrawOnDrag'))) return;
 		var z = window.getCurrentZ();
 		var isVisible = !hidden && (z >= minZ) && (z <= maxZ);
 		if(nodeHaveRaster && rasterSprite.visible != isVisible) rasterSprite.visible = isVisible;

@@ -153,11 +153,21 @@ window.gmxAPI = {
 	},
 	swfWarning: function(attr)
 	{
-		if(typeof(attr) == 'object' && attr.eventType === 'chkLayerVersion') {		// сигнал о необходимости проверки версии слоя
-			var chkLayer = gmxAPI.mapNodes[attr.layerID] || false;
-			if(chkLayer && gmxAPI._layersVersion) {
-				gmxAPI._layersVersion.chkLayerVersion(chkLayer);
-			}
+		if(typeof(attr) == 'object') {				// отложенные команды от отрисовщика
+			if(attr.length > 0) {					// массив команд
+				for (var i = 0; i < attr.length; i++) {
+					var ph = attr[i];
+					if(!ph.func || !window[ph.func]) continue;
+					if(ph.eventType === 'observeVectorLayer') {
+						window[ph.func](ph.geometry, ph.properties, ph.flag);
+					}
+				}
+			} else if(attr.eventType === 'chkLayerVersion') {		// сигнал о необходимости проверки версии слоя
+				var chkLayer = gmxAPI.mapNodes[attr.layerID] || false;
+				if(chkLayer && gmxAPI._layersVersion) {
+					gmxAPI._layersVersion.chkLayerVersion(chkLayer);
+				}
+			}	
 		} else {
 			gmxAPI._debugWarnings.push(attr);
 		}
@@ -1843,15 +1853,16 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		}, -5);
 	}
 
-	var enableTiledQuicklooks = function(callback, minZoom, maxZoom)
+	var enableTiledQuicklooks = function(callback, minZoom, maxZoom, tileSenderPrefix)
 	{
+		var IsRasterCatalog = this.properties.IsRasterCatalog;
+		var identityField = this.properties.identityField;
 		this.enableTiledQuicklooksEx(function(o, image)
 		{
 			var path = callback(o);
 			var oBounds = gmxAPI.getBounds(o.geometry.coordinates);
 			var boundsType = (oBounds && oBounds.minX < -179.999 && oBounds.maxX > 179.999 ? true : false);
-			image.setTiles(function(i, j, z) 
-			{
+			var func = function(i, j, z) {
 				if (boundsType && i < 0) i = -i;
 				if (path.indexOf("{") >= 0){
                     return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z).replace(new RegExp("{key}", "gi"), encodeURIComponent(window.KOSMOSNIMKI_SESSION_KEY));
@@ -1859,7 +1870,22 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 				else{
 					return path + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
 				}
-			});
+			};
+			if(tileSenderPrefix) {
+				var ph = {
+					'func': func
+					,'projectionCode': 0
+					,'minZoom': minZoom
+					,'maxZoom': maxZoom
+					,'tileSenderPrefix': tileSenderPrefix + (IsRasterCatalog ? '&idr=' + o.properties[identityField] : '')
+					,'boundsType': boundsType
+					,'quicklooks': true
+				};
+				gmxAPI._cmdProxy('setBackgroundTiles', {'obj': image, 'attr':ph });
+			} else 
+			{
+				image.setTiles(func);
+			}
 		}, minZoom, maxZoom);
 	}
 
@@ -1893,7 +1919,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			var ret = false;
 			if (flag && !images[id])
 			{
-				var image = tilesParent.addObject(o.geometry, o.properties);
+				var image = tilesParent.addObject(o.geometry, o.properties, {'notRedrawOnDrag':true});
 				callback(o, image);
 				images[id] = image;
 				propsArray.push(o.properties);
@@ -2438,8 +2464,8 @@ FlashMapObject.prototype.addObjectsFromSWF = function(url) {
 FlashMapObject.prototype.addObjects = function(data, format) {
 	return gmxAPI._cmdProxy('addObjects', {'obj': this, 'attr':{'arr': data, 'format': format}}); // Отправить команду в SWF
 }
-FlashMapObject.prototype.addObject = function(geometry, props) {
-	var objID = gmxAPI._cmdProxy('addObject', { 'obj': this, 'attr':{ 'geometry':geometry, 'properties':props }});
+FlashMapObject.prototype.addObject = function(geometry, props, propHiden) {
+	var objID = gmxAPI._cmdProxy('addObject', { 'obj': this, 'attr':{ 'geometry':geometry, 'properties':props, 'propHiden':propHiden }});
 	if(!objID) objID = false;
 	var pObj = new FlashMapObject(objID, props, this);	// обычный MapObject
 	// пополнение mapNodes

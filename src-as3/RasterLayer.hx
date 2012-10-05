@@ -1,6 +1,8 @@
 import flash.display.DisplayObjectContainer;
 import flash.display.Sprite;
 import flash.geom.Matrix;
+import flash.utils.Timer;
+import flash.events.TimerEvent;
 
 class RasterLayer extends MaskedContent
 {
@@ -17,6 +19,7 @@ class RasterLayer extends MaskedContent
 
 	var maxZoomView:Int;
 	var minZoomView:Int;
+	var timer:Timer;
 
 	public function new(tileFunction_:Int->Int->Int->String, minZoom_:Int, maxZoom_:Int, ?minZoomView_:Int, ?maxZoomView_:Int)
 	{
@@ -34,6 +37,9 @@ class RasterLayer extends MaskedContent
 		myDx = function(x:Float):Float { return 0; };
 		myDy = function(y:Float):Float { return 0; };
 		isRaster = true;
+		timer = new Timer(500);
+		timer.addEventListener("timer", clearTiles);
+		timer.start();
 	}
 
 	public function setDisplacement(dx_:Float->Float, dy_:Float->Float)
@@ -43,9 +49,31 @@ class RasterLayer extends MaskedContent
 		repaint();
 	}
 
+	public function clearTiles(?ev:Dynamic)
+	{
+		if(RasterTile.tilesCurrentlyLoading > 0) return;
+		
+		var window = mapNode.window;
+		var z:Int = Std.int(window.getCurrentZ());
+		for (id in tiles.keys())
+		{
+			var tile:RasterTile = tiles.get(id);
+			if (
+				((maxZoomView > 0 && z > maxZoomView) || (minZoomView > 0 && z < minZoomView)) ||	// Если установлен minZoomView maxZoomView
+				(tile.isOverlay ? tile.z != z : tile.z > z) ||
+				(!tile.loaded && (tile.isReplacement ? tile.z > z : tile.z != z))
+				)
+			{
+				tile.remove();
+				tiles.remove(id);
+			}
+		}
+	}
+
 	public override function repaint()
 	{
 		if (Main.isFluidZoom) return;		// В режиме zoom ничего не делаем
+		//timer.reset(); timer.start();
 		super.repaint();
 
 		var window = mapNode.window;
@@ -74,20 +102,8 @@ class RasterLayer extends MaskedContent
 
 		if(contentSprite.x != dx) contentSprite.x = dx;
 		if(contentSprite.y != dy) contentSprite.y = dy;
-
-		for (id in tiles.keys())
-		{
-			var tile:RasterTile = tiles.get(id);
-			if (
-				((maxZoomView > 0 && z > maxZoomView) || (minZoomView > 0 && z < minZoomView)) ||	// Если установлен minZoomView maxZoomView
-				(tile.isOverlay ? tile.z != z : tile.z > z) ||
-				(!tile.loaded && (tile.isReplacement ? tile.z > z : tile.z != z))
-				)
-			{
-				tile.remove();
-				tiles.remove(id);
-			}
-		}
+		
+		//clearTiles(z);
 
 		var bx1 = extent.minx, bx2 = extent.maxx;
 

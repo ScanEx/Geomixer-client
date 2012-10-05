@@ -10,7 +10,8 @@ import flash.events.TimerEvent;
 
 class RasterTile
 {
-	static var tilesCurrentlyLoading:Int = 0;
+	static var maxTilesLoading:Int = 128;
+	public static var tilesCurrentlyLoading:Int = 0;
 	static var loadQueue:Array<RasterTile> = new Array<RasterTile>();
 	static var timer:Timer = null;
 
@@ -24,7 +25,7 @@ class RasterTile
 
 	static function loadNext(?e:Event)
 	{
-		while (tilesCurrentlyLoading < 128 && loadQueue.length > 0)
+		while (tilesCurrentlyLoading < maxTilesLoading && loadQueue.length > 0)
 		{
 			loadQueue.pop().load();
 		}
@@ -45,6 +46,7 @@ class RasterTile
 	var contents:DisplayObject;
 	var updateAlphaListener:Dynamic->Void;
 	var alpha:Float;
+	var curLoader:flash.display.Loader;
 
 	public function new(layer_:RasterLayer, i_:Int, j_:Int, z_:Int, isReplacement_:Bool, isRetrying_:Bool)
 	{		
@@ -80,7 +82,7 @@ class RasterTile
 				var zz:Int = Math.round(z);
 				var url:String = layer.tileFunction(ii, j, zz);
 				tilesCurrentlyLoading += 1;
-				Utils.loadCacheImage(
+				curLoader = Utils.loadCacheImage(
 					url, 
 					function(contents:Dynamic) { return me.onLoad(contents); },
 					function() { me.onError(); }
@@ -92,6 +94,7 @@ class RasterTile
 			}
 		}
 		else {
+			if(tilesCurrentlyLoading < 1) layer.clearTiles();
 			//tilesCurrentlyLoading -= 1;
 			//loadDone();
 		}
@@ -108,6 +111,7 @@ class RasterTile
 			layer.contentSprite.removeChild(contents);
 			layer.tilesPerZoomLevel[z] -= 1;
 		}
+		//if (curLoader != null) { curLoader.unload(); curLoader.close(); curLoader = null; }
 	}
 
 	function onLoad(obj_:Dynamic)
@@ -116,6 +120,7 @@ class RasterTile
 		if (!removed)
 		{
 			contents = cast(obj_.loader);
+			curLoader = null;
 
 			var index = 0;
 			for (i in 0...z)
@@ -140,6 +145,7 @@ class RasterTile
 			//Main.needRefreshMap = true;		// Нельзя перерисовывать все
 		}
 		if(!timer.running) timer.start();
+		if(tilesCurrentlyLoading < 1) layer.clearTiles();
 	}
 
 	function onError()
@@ -163,6 +169,7 @@ class RasterTile
 			}
 		}
 		if(!timer.running) timer.start();
+		if(tilesCurrentlyLoading < 1) layer.clearTiles();
 	}
 
 	function updateAlpha()

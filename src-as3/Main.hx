@@ -448,6 +448,7 @@ class Main
 			nodeFrom = null;
 			clickedNode = null;
 			setCurrentPosition(currentX, currentY, currentZ);
+			Main.bumpFrameRate();
 		});
 		var cursor:Sprite = Utils.addSprite(root);
 		cursor.name = 'cursor';
@@ -582,20 +583,20 @@ class Main
 				nextFrameCallbacks = new Array<Void->Void>();
 			}
 			if(!Main.isFluidZoom) {
+				if (viewportHasMoved)
+				{
+					if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 40;
+					viewportHasMoved = false;
+					Main.needRefreshMap = true;
+					wasMoving = isMoving;
+				}
 
-				if (!Main.draggingDisabled && (viewportHasMoved || Main.needRefreshMap))
+				if (!Main.draggingDisabled && Main.needRefreshMap)
 				{
 					Main.refreshMap();
 					Main.needRefreshMap = false;
 				} else if(Main.draggingDisabled) {
 					mapWindow.rootNode.repaintRecursively(false);
-				}
-
-				if (viewportHasMoved)
-				{
-					if(needCallMoveHandler == 0) needCallMoveHandler = curTimerNew + 40;
-					viewportHasMoved = false;
-					wasMoving = isMoving;
 				}
 /*			
 			else if (!isMoving)
@@ -619,19 +620,20 @@ class Main
 				}
 			}
 
-			if (!Main.mousePressed && (curTimer - Main.lastFrameBumpTime) > 2000)
-			//if ((curTimer - Main.lastFrameBumpTime) > 2000)
+			if (!Main.mousePressed)
 			{
-				//mapWindow.cacheRepaintNeeded = true;
-				mapWindow.repaintCacheBitmap();
-				if (stage.frameRate != 2)
-					stage.frameRate = 2;
-
 				if(Main.messBuffToJS.length > 0) {
 					Main.cmdToJS('gmxAPI.swfWarning', Main.messBuffToJS);
 					Main.messBuffToJS = [];
 				}
+				if ((curTimerNew - Main.lastFrameBumpTime) > 2000)
+				{
+					mapWindow.repaintCacheBitmap();
+					if (stage.frameRate != 2)
+						stage.frameRate = 2;
+				}
 			}
+
 //bTime = flash.Lib.getTimer() - bTime;
 //var st:String = ' : ' + Main.draggingDisabled + ' время: ' + bTime / 1000 + ' сек.' + mapWindow.cacheBitmap.visible;
 //if(bTime > 10) trace('vvvvvvvvvvvvv ' + st);
@@ -909,18 +911,21 @@ class Main
 			return ret;
 		}
 		
-		function addObject(parentId:String, ?geometry:Dynamic, ?properties:Dynamic):String
+		function addObject(attr:Dynamic):String
 		{
-			var nodeParent:MapNode = getNode(parentId);
+			var nodeParent:MapNode = getNode(attr.objectId);
 			if (nodeParent == null) return '';
 			var node:MapNode = nodeParent.addChild();
-			node.properties = properties;
-			node.propHash = propertiesToHashString(properties);
-			if (geometry != null) {
-				var geom = Utils.parseGeometry(geometry);
+			node.properties = attr.properties;
+			node.propHash = propertiesToHashString(attr.properties);
+			if (attr.geometry != null) {
+				var geom = Utils.parseGeometry(attr.geometry);
 				geom.properties = node.propHash;
 				node.setContent(new VectorObject(geom));
 				Main.needRefreshMap = true;
+			}
+			if (attr.propHiden != null) {
+				node.setAPIProperties(attr.propHiden);
 			}
 			return node.id;
 		}
@@ -930,7 +935,8 @@ class Main
 			var ret = new Array<String>();
 			for (i in 0...Std.int(_data.length))
 			{
-				var tId:String = addObject((_data[i].parentId ? _data[i].parentId : parentId), _data[i].geometry, _data[i].properties);
+				_data[i].objectId = (_data[i].parentId ? _data[i].parentId : parentId);
+				var tId:String = addObject(_data[i]);
 				if (_data[i].setStyle) {
 					getNode(tId).setStyle(new Style(_data[i].setStyle.regularStyle), (_data[i].setStyle.hoveredStyle != null) ? new Style(_data[i].setStyle.hoveredStyle) : null);
 				}
@@ -956,7 +962,8 @@ class Main
 var bTime = flash.Lib.getTimer();
 					for (i in 0...Std.int(arr.length))
 					{
-						var tId:String = addObject(parentId, arr[i].geometry, arr[i].properties);
+						arr[i].objectId = parentId;
+						var tId:String = addObject(arr[i]);
 					}
 bTime = flash.Lib.getTimer() - bTime;
 var st:String = 'Загрузка файла ' + url + ' обьектов: ' + arr.length + ' время: ' + bTime/1000 + ' сек.';
@@ -1010,20 +1017,43 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			return false;
 		}
 
-		function setBackgroundTiles(id:String, func:String, minZoom:Int, maxZoom:Int, ?minZoomView:Int, ?maxZoomView:Int, ?projectionCode:Int)
+		function setBackgroundTiles(attr:Dynamic)
 		{ 
-			var node = getNode(id);
+			var tileSenderPrefix:String = (attr.tileSenderPrefix != null ? attr.tileSenderPrefix : '');
+			var bounds = attr.bounds;
+			var boundsType:Bool = attr.boundsType;
+			var node = getNode(attr.objectId);
 			var newContent = new RasterLayer(
 				function(i:Int, j:Int, z:Int)
 				{
-					var out:String = Main.cmdToJS(func, i, j, z);
+					var out:String = '';
+					if (tileSenderPrefix != '')
+					{
+						if (bounds != null)
+						{
+							var tileSize = Utils.getScale(z)*256;
+							var minx = i*tileSize;
+							var maxx = minx + tileSize;
+							if (maxx < bounds.minX) {
+								i += Math.floor(Math.pow(2, z));
+							}
+							else if (minx > bounds.maxX) {
+								i -= Math.floor(Math.pow(2, z));
+							}
+						}
+						if (boundsType && i < 0) i = -i;
+						out = tileSenderPrefix + "&z=" + z + "&x=" + i + "&y=" + j;
+						
+					} else {
+						out = Main.cmdToJS(attr.func, i, j, z);
+					}
 					return out;
 				}
-			, minZoom, maxZoom, minZoomView, maxZoomView);
+			, attr.minZoom, attr.maxZoom, attr.minZoomView, attr.maxZoomView);
 			if ((node.content != null) && Std.is(node.content, VectorObject))
 				newContent.setMask(cast(node.content, VectorObject).geometry);
 			node.setContent(newContent);
-			if (projectionCode == 1)
+			if (attr.projectionCode == 1)
 			{
 				newContent.setDisplacement(
 					function(x:Float) { return 0.0; },
@@ -1083,10 +1113,10 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			}
 		}
 
-		function observeVectorLayer(id:String, layerId:String, func:String)
+		function observeVectorLayer(attr)
 		{
-			var layer = cast(getNode(layerId).content, VectorLayer);
-			getNode(id).setContent(new VectorLayerObserver(
+			var layer = cast(getNode(attr.layerId).content, VectorLayer);
+			getNode(attr.objectId).setContent(new VectorLayerObserver(
 				layer,
 				function(id:String, flag:Bool)
 				{
@@ -1106,8 +1136,17 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 						geoExp = geom.export();
 						prop = exportProperties(geom.properties);
 					}
-//trace('-------- observeVectorLayer ------ ' + id + ' : ' +  flash.Lib.getTimer() );
-					Main.cmdToJS(func, geoExp, prop, flag);
+					//Main.cmdToJS(attr.func, geoExp, prop, flag);
+
+					var out:Dynamic = {};
+					out.eventType = 'observeVectorLayer';
+					out.layerID = attr.layerId;
+					out.func = attr.func;
+					out.geometry = geoExp;
+					out.properties = prop;
+					out.flag = flag;
+					Main.messBuffToJS.push( out );
+					Main.lastFrameBumpTime = Date.now().getTime() - 1900;
 				}
 			));
 		}
@@ -1448,7 +1487,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					var node:MapNode = getNode(attr.objectId);
 					node.removeHandler(attr.eventName);
 				case 'addObject':
-					out = addObject(attr.objectId, attr.geometry, attr.properties);
+					out = addObject(attr);
 				case 'addObjects':
 					out = addObjects(attr);
 				case 'addObjectsFromSWF':
@@ -1500,7 +1539,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 				case 'setLabel':
 					setLabel(attr.objectId, attr.label);
 				case 'setBackgroundTiles':
-					setBackgroundTiles(attr.objectId, attr.func, attr.minZoom, attr.maxZoom, attr.minZoomView, attr.maxZoomView, attr.projectionCode);
+					setBackgroundTiles(attr);
 				case 'setDisplacement':
 					cast(getNode(attr.objectId).content, RasterLayer).setDisplacement(
 						function(x:Float):Float { return attr.dx; },
@@ -1551,7 +1590,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 						out = layer.getStat();
 					}
 				case 'observeVectorLayer':
-					observeVectorLayer(attr.objectId, attr.layerId, attr.func);
+					observeVectorLayer(attr);
 				case 'setImage':
 					setImage(attr.objectId, attr.url,
 						attr.x1, attr.y1, attr.x2, attr.y2, attr.x3, attr.y3, attr.x4, attr.y4,

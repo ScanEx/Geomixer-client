@@ -170,14 +170,14 @@ class Utils
 	}
 
 	// Загрузить Image если возможно закешировать BitmapData + определение isOverlay
-	public static function loadCacheImage(url:String, onLoad:Dynamic->Void, ?onError:Void->Void, ?zxy:String, ?flagCache:Bool)
+	public static function loadCacheImage(url:String, onLoad:Dynamic->Void, ?onError:Void->Void, ?zxy:String, ?flagCache:Bool):Loader
 	{
 		if (flagCache && displayObjectCache.exists(url)) {
 			var imgData:Dynamic = displayObjectCache.get(url);
 			imgData.loader = new Bitmap(imgData.bmp);
 			onLoad(imgData);
 			imgData.loader = null;
-			return;
+			return null;
 		}
 		var loader = new Loader();
 		var callOnError = function()
@@ -241,6 +241,7 @@ class Utils
 			timer.stop();
 			callOnError();
 		}
+		return loader;
 	}
 
 /*

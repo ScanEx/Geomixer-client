@@ -439,7 +439,15 @@
 				} });
 			}
 			if (isRaster) {
-				obj.setBackgroundTiles(tileFunction, 0, layer.properties['MinZoom'], layer.properties['MaxZoom']);
+				var ph = {
+					'func':tileFunction
+					,'projectionCode':0
+					,'minZoom': layer.properties['MinZoom']
+					,'maxZoom': layer.properties['MaxZoom']
+					,'tileSenderPrefix': tileSenderPrefix
+					,'bounds': bounds
+				};
+				gmxAPI._cmdProxy('setBackgroundTiles', {'obj': obj, 'attr':ph });
 			} else
 			{
 				obj.getFeatures = function()
@@ -505,18 +513,27 @@
 					return _obj;
 				}
 
-				if (layer.properties.Quicklook) {
-					obj.enableQuicklooks(function(o)
-					{
-						obj.bringToTop();
-						return gmxAPI.applyTemplate(layer.properties.Quicklook, o.properties);
-					});
-				}
-				if (layer.properties.TiledQuicklook) {
+				if (layer.properties.IsRasterCatalog) {
+					//if(!layer.properties.TiledQuicklookMinZoom) layer.properties.TiledQuicklookMinZoom = 9;
 					obj.enableTiledQuicklooks(function(o)
 					{
-						return gmxAPI.applyTemplate(layer.properties.TiledQuicklook, o.properties);
-					}, layer.properties.TiledQuicklookMinZoom);
+						var qURL = tileSenderPrefix + '&x={x}&y={y}&z={z}&idr=' + o.properties[layer.properties.identityField];
+						return qURL;
+					}, layer.properties.TiledQuicklookMinZoom, layer.properties.TiledQuicklookMaxZoom, tileSenderPrefix);
+				} else {
+					if (layer.properties.Quicklook) {
+						obj.enableQuicklooks(function(o)
+						{
+							obj.bringToTop();
+							return gmxAPI.applyTemplate(layer.properties.Quicklook, o.properties);
+						});
+					}
+					if (layer.properties.TiledQuicklook) {
+						obj.enableTiledQuicklooks(function(o)
+						{
+							return gmxAPI.applyTemplate(layer.properties.TiledQuicklook, o.properties);
+						}, layer.properties.TiledQuicklookMinZoom);
+					}
 				}
 			}
 
