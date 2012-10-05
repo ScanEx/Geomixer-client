@@ -290,7 +290,7 @@ var showWidget = function()
         propertiesToTags: propertiesToTagsGeoEye,
         layerSearchQuery: function(sid)
         {
-            return {query: '@Title="' + sid +'_merc.tiles"'}
+            return {PropQuery: '("sceneid"="' + sid + '")'}
         },
         vectorSearchQuery: function(sid)
         {
