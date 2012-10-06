@@ -383,6 +383,7 @@
 				obj.isMiniMap = true;			// Все добавляемые к миникарте ноды имеют этот признак
 			}
 			obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
+			obj.tileSenderPrefix = tileSenderPrefix;	// Префикс запросов за тайлами
 			
 			gmxAPI._listeners.dispatchEvent('onLayerCreated', obj, {'obj': obj });
 		
@@ -434,7 +435,8 @@
 				gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId,
 					'func': function(geom, props, flag)
 					{
-						onChange(new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj), flag);
+						var mObj = (gmxAPI.proxyType === 'leaflet' ? geom : new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj));
+						onChange(mObj, flag);
 					}
 				} });
 			}
