@@ -374,7 +374,7 @@
 		var createThisLayer = function()
 		{
 			var pObj = (isOverlay ? parentObj.overlays : parentObj.layersParent);
-			var obj_ = pObj.addObject(obj.geometry, obj.properties);
+			var obj_ = pObj.addObject(obj.geometry, obj.properties, obj.propHiden);
 			obj_['backgroundColor'] = obj['backgroundColor'];
 			obj_['stateListeners'] = obj['stateListeners'];
 			if(obj['_temporalTiles']) obj_['_temporalTiles'] = obj['_temporalTiles'];
@@ -382,7 +382,7 @@
 			if(pObj.isMiniMap) {
 				obj.isMiniMap = true;			// Все добавляемые к миникарте ноды имеют этот признак
 			}
-			obj.addObject = function(geometry, props) { return FlashMapObject.prototype.addObject.call(obj, geometry, props); }
+			obj.addObject = function(geometry, props, propHiden) { return FlashMapObject.prototype.addObject.call(obj, geometry, props, propHiden); }
 			obj.tileSenderPrefix = tileSenderPrefix;	// Префикс запросов за тайлами
 			
 			gmxAPI._listeners.dispatchEvent('onLayerCreated', obj, {'obj': obj });
@@ -596,10 +596,10 @@
 					return null;
 				}
 			}
-			obj.addObject = function(geometry, props)
+			obj.addObject = function(geometry, props, propHiden)
 			{
 				obj.setVisible(true);
-				var newObj = FlashMapObject.prototype.addObject.call(obj, geometry, props);
+				var newObj = FlashMapObject.prototype.addObject.call(obj, geometry, props, propHiden);
 				FlashMapObject.prototype.setVisible.call(obj, false, true);		// без Dispatch события
 				//obj.setVisible(false);
 				return newObj;

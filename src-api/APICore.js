@@ -2477,6 +2477,7 @@ FlashMapObject.prototype.addObject = function(geometry, props, propHiden) {
 			pObj.isMiniMap = true;			// Все добавляемые к миникарте ноды имеют этот признак
 		}
 	}
+	if(propHiden) pObj.propHiden = propHiden;
 	pObj.isVisible = true;
 	return pObj;
 }
