@@ -1511,6 +1511,10 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 					if(!ph['geometry']['type']) ph['geometry']['type'] = typeGeo;
 					//geo = utils.parseGeometry(gmxAPI.from_merc_geometry(ph['geometry']), true);
 					geo = utils.fromTileGeometry(ph['geometry'], node['tiles'][tileID]);
+					if(!geo) {
+						gmxAPI._debugWarnings.push({'tileID': tileID, 'badObject': ph['geometry']});
+						continue;
+					}
 					geo['propHiden'] = propHiden;
 					geo['id'] = id;
 					geo['properties'] = prop;
