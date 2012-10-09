@@ -28,7 +28,7 @@ var PluginsManager = function()
     var _pluginsWithName = {};
 	var _callbacks = [];
 	var _initDone = false;
-	var _modulePlugins = {}; //тут временно хранятся модули пока загружается их тело
+	var _loadingPluginsInfo = {}; //тут временно хранятся модули пока загружается их тело
 	
 	//загружаем инфу о модулях и сами модули при необходимости из window.gmxPlugins
 	if (typeof window.gmxPlugins !== 'undefined')
@@ -60,12 +60,16 @@ var PluginsManager = function()
 			else
 			{
                 var moduleName = curPlugin.module;
-				if ( typeof curPlugin.file !== 'undefined' )
-					gmxCore.loadModule(moduleName, curPlugin.file);
+                
+                if (!(moduleName in _loadingPluginsInfo))
+                {
+                    if ( typeof curPlugin.file !== 'undefined' )
+                        gmxCore.loadModule(moduleName, curPlugin.file);
 				
-                _modulePlugins[moduleName] = curPlugin;
-				
-				modules.push(moduleName);
+                    modules.push(moduleName);
+                
+                    _loadingPluginsInfo[moduleName] = curPlugin;
+                }
 			}
 		}
 		
@@ -76,15 +80,15 @@ var PluginsManager = function()
                 var pluginBody = gmxCore.getModule(modules[m]);
 				var plugin = {
                     body:      pluginBody, 
-                    params:    _modulePlugins[modules[m]].params, 
-                    name:      _modulePlugins[modules[m]].pluginName || pluginBody.pluginName,
-                    mapPlugin: _modulePlugins[modules[m]].mapPlugin,
-                    isPublic:  _modulePlugins[modules[m]].isPublic || false,
-                    _inUse:    !_modulePlugins[modules[m]].mapPlugin
+                    params:    _loadingPluginsInfo[modules[m]].params, 
+                    name:      _loadingPluginsInfo[modules[m]].pluginName || pluginBody.pluginName,
+                    mapPlugin: _loadingPluginsInfo[modules[m]].mapPlugin,
+                    isPublic:  _loadingPluginsInfo[modules[m]].isPublic || false,
+                    _inUse:    !_loadingPluginsInfo[modules[m]].mapPlugin
                 };
                 
-                if ( typeof _modulePlugins[modules[m]].pluginName !== 'undefined' )
-                    _pluginsWithName[_modulePlugins[modules[m]].pluginName] = plugin;
+                if ( typeof _loadingPluginsInfo[modules[m]].pluginName !== 'undefined' )
+                    _pluginsWithName[_loadingPluginsInfo[modules[m]].pluginName] = plugin;
                 
 				_plugins.push( plugin );
 			}
