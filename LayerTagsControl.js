@@ -1,5 +1,11 @@
 ﻿(function()
 {
+    /**
+    Хранит информацию о тегах: типы и описание
+    @namespace nsGmx
+    @class
+    @param {Object} initTagsInfo - описание тегов вида tagName: {Type: , Description: }
+    */
     var TagMetaInfo = function(initTagsInfo)
     {
         var tags = initTagsInfo || {};
@@ -40,6 +46,7 @@
     (function()
     {
         var metaInfo = null;
+        /** Загружает данные о доступных тегах с сервера*/
         TagMetaInfo.loadFromServer = function(callback)
         {
             if (metaInfo)
@@ -61,6 +68,11 @@
         }
     })();
     
+    /**
+        Набор тегов слоя
+        @namespace nsGmx
+        @class
+    */
     var LayerTags = function(tagMetaInfo, initTags)
     {
         var uniqueID = 1;
@@ -110,8 +122,6 @@
             if ( !(id in tags) ) return false;
             if ( tags[id].tag !== tag || tags[id].value !== value )
             {
-                //if (!tagMetaInfo.isTag(tag)) return false;
-                
                 tags[id] = {tag: tag, value: value};
                 $(this).change();
             }
@@ -144,7 +154,6 @@
         {
             tag = tag || '';
             value = value || '';
-            //if (tag !== '' && !tagMetaInfo.isTag(tag)) return;
             var newId = 'id' + (++uniqueID);
             tags[newId] = { tag: tag || '', value: value || ''};
             $(this).change();
@@ -155,11 +164,6 @@
         {
             return tagId in tags;
         }
-        
-        // this.getTypes = function()
-        // {
-            // return types;
-        // }
         
         this.isEmptyTag = function(tagId)
         {
@@ -194,13 +198,22 @@
             this.addNewTag(tag, initTags[tag].Value);
     }
 
+    /**
+        Контрол для задания набора тегов (например, для слоя)
+        @namespace nsGmx
+        @class
+    */
     var LayerTagSearchControl = function(layerTags, container, params)
     {
-        var _params = $.extend( {inputWidth: 130}, params )
+        var _params = $.extend({
+            inputWidth: 130,
+            tagHeader: _gtxt('Параметр'),
+            valueHeader: _gtxt('Значение')
+        }, params )
         var mainTable = $('<table/>', {'class': 'layertags-table'}).appendTo(container);
         mainTable.append($('<tr/>')
-            .append($('<th/>').text(_gtxt('Параметр')))
-            .append($('<th/>').text(_gtxt('Значение')))
+            .append($('<th/>').text(_params.tagHeader))
+            .append($('<th/>').text(_params.valueHeader))
             .append($('<th/>'))
         );
         
@@ -325,6 +338,7 @@
                 .append($('<td/>').append(tagInput))
                 .append($('<td/>').append(valueInput))
                 .append($('<td/>', {'class': 'layertags-delete'}).append(deleteButton));
+                
             mainTable.append(tr);
             
             rows[tagId] = {id: tagId, tr: tr, tag: tagInput, value: valueInput, type: type};

@@ -3135,29 +3135,28 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
         }
         
         
-        //Каталог растров
-        var updateRCControls = function()
-        {
-            $('#RDCollapsableHeader', parent).toggle(RCCheckbox[0].checked);
-            $('#RCMaskForRasterTitle, #RCMaskForRasterPath', parent).toggle(RCCheckbox[0].checked && !RDCollapsableWidget.isCollapsed());
-        }
+        // //Каталог растров
+        // var updateRCControls = function()
+        // {
+            // $('#RDCollapsableHeader', parent).toggle(RCCheckbox[0].checked);
+            // $('#RCMaskForRasterTitle, #RCMaskForRasterPath', parent).toggle(RCCheckbox[0].checked && !RDCollapsableWidget.isCollapsed());
+        // }
         
-        var RCCheckbox = $('<input/>', {type: 'checkbox', id: 'RCCreate-checkbox'})
-            .css('margin-left', '3px')
-            .change(updateRCControls);
-        var rasterCatalogDiv = $('<div/>').append(RCCheckbox);
+        // var RCCheckbox = $('<input/>', {type: 'checkbox', id: 'RCCreate-checkbox'})
+            // .css('margin-left', '3px')
+            // .change(updateRCControls);
+        var rasterCatalogDiv = $('<div/>');//.append(RCCheckbox);
+        shownProperties.push({name: "Каталог растров", elem: rasterCatalogDiv[0], iddom: 'RCCreate-container'});
         
-        shownProperties.push({name: "Каталог растров", elem: rasterCatalogDiv[0]});
+        // var RCPropertiesGroup = _div();
+        // var RDCollapsableWidget = new nsGmx.Controls.CollapsibleWidget('Автоматическое создание слоёв', $('<div/>').appendTo(RCPropertiesGroup), [], true);
+        // shownProperties.push({tr:_tr([_td([RCPropertiesGroup], [['attr', 'colSpan', 2], ['attr', 'id', 'RDCollapsableHeader']])])});
         
-        var RCPropertiesGroup = _div();
-        var RDCollapsableWidget = new nsGmx.Controls.CollapsibleWidget('Автоматическое создание слоёв', $('<div/>').appendTo(RCPropertiesGroup), [], true);
-        shownProperties.push({tr:_tr([_td([RCPropertiesGroup], [['attr', 'colSpan', 2], ['attr', 'id', 'RDCollapsableHeader']])])});
+        // var RCMaskForRasterTitle = $('<input/>').addClass('inputStyle').css('width', '220px').val(properties.RCMaskForRasterTitle || '');
+        // var RCMaskForRasterPath = $('<input/>').addClass('inputStyle').css('width', '220px').val(properties.RCMaskForRasterPath || '');
         
-        var RCMaskForRasterTitle = $('<input/>').addClass('inputStyle').css('width', '220px').val(properties.RCMaskForRasterTitle || '');
-        var RCMaskForRasterPath = $('<input/>').addClass('inputStyle').css('width', '220px').val(properties.RCMaskForRasterPath || '');
-        
-        shownProperties.push({name: 'Шаблон имени', elem: RCMaskForRasterTitle[0], iddom: 'RCMaskForRasterTitle'});
-        shownProperties.push({name: 'Шаблон тайлов', elem: RCMaskForRasterPath[0], iddom: 'RCMaskForRasterPath'});
+        // shownProperties.push({name: 'Шаблон имени', elem: RCMaskForRasterTitle[0], iddom: 'RCMaskForRasterTitle'});
+        // shownProperties.push({name: 'Шаблон тайлов', elem: RCMaskForRasterPath[0], iddom: 'RCMaskForRasterPath'});
 	}
 	else
 	{
@@ -3370,13 +3369,23 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
     //Обновим отображение каталога растров после создания виджета
     if (type === "Vector")
     {
+        var rcProperties;
         if (div && div.gmxProperties.content.properties.IsRasterCatalog)
         {
-            RCCheckbox.attr('checked', 'checked');
-            updateRCControls();
+            rcProperties = {
+                IsRasterCatalog: true,
+                TiledQuicklookMaxZoom: div.gmxProperties.content.properties.TiledQuicklookMaxZoom,
+                TiledQuicklookMinZoom: div.gmxProperties.content.properties.TiledQuicklookMinZoom,
+                RCMaskForRasterPath:  properties.RCMaskForRasterPath,
+                RCMaskForRasterTitle: properties.RCMaskForRasterTitle,
+                ColumnTagLinks: properties.ColumnTagLinks
+            }
+            // RCCheckbox.attr('checked', 'checked');
+            // updateRCControls();
         }
-        RDCollapsableWidget.addManagedElements([$('#RCMaskForRasterTitle', parent), $('#RCMaskForRasterPath', parent)]);
-        updateRCControls();
+        var rasterCatalogControl = new nsGmx.LayerRasterCatalogControl(rasterCatalogDiv, rcProperties);
+        // RDCollapsableWidget.addManagedElements([$('#RCMaskForRasterTitle', parent), $('#RCMaskForRasterPath', parent)]);
+        // updateRCControls();
     }
 	
 	// смотрим, а не выполняются ли для этого слоя задачи
@@ -3451,11 +3460,17 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                     tableCSParam = selectedSource == 1 ? '&TableCS=' + encodeURIComponent(TableCSSelect.find(':selected').val()) : '',
                     RCParams = '';
                     
-                if (RCCheckbox[0].checked)
+                var rcProps = rasterCatalogControl.getRCProperties();
+                if (rcProps.IsRasterCatalog)
                 {
                     RCParams = '&IsRasterCatalog=true';
-                    if ( RCMaskForRasterPath.val() ) RCParams += '&RCMaskForRasterPath=' + encodeURIComponent(RCMaskForRasterPath.val());
-                    if ( RCMaskForRasterTitle.val() ) RCParams += '&RCMaskForRasterTitle=' + encodeURIComponent(RCMaskForRasterTitle.val());
+                    if ( rcProps.RCMaskForRasterPath ) RCParams += '&RCMaskForRasterPath=' + encodeURIComponent(rcProps.RCMaskForRasterPath);
+                    if ( rcProps.RCMaskForRasterTitle ) RCParams += '&RCMaskForRasterTitle=' + encodeURIComponent(rcProps.RCMaskForRasterTitle);
+                    if ( rcProps.ColumnTagLinks ) RCParams += '&ColumnTagLinks=' + encodeURIComponent(JSON.stringify(rcProps.ColumnTagLinks));
+                }
+                else
+                {
+                    RCParams = '&IsRasterCatalog=false';
                 }
 				
 				var temporalLayerParams = selectedSource == 1 ? temporalLayerParamsTable : temporalLayerParamsManual;

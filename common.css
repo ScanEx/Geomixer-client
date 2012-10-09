@@ -1242,3 +1242,44 @@ div.layersScroll
     font-weight: bold;
     cursor: pointer;
 }
+
+.RCCreate-params td
+{
+    border: none;
+}
+
+.RCCreate-params 
+{
+    margin: 10px 0px 0px 3px;
+}
+
+.RCCreate-zoom-input
+{
+    width: 30px;
+}
+
+.RCCreate-tagContainer
+{
+    margin-top: 10px;
+}
+
+.RCCreate-checkbox
+{
+    margin-left: 3px;
+}
+
+.RCCreate-advanced-link
+{
+    float: right;
+    margin-right: 3px;
+}
+
+.RCCreate-header
+{
+    margin-top: 9px;
+}
+
+#RCCreate-container > td
+{
+    vertical-align: top;
+}
