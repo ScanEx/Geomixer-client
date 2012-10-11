@@ -537,6 +537,10 @@
 		'getPatternIcon':	function(hash)	{
 			return gmxAPI.flashDiv.cmdFromJS('getPatternIcon', { 'data':hash['attr'] } );
 		}
+		,
+		'addItems':	function(hash)	{
+			return gmxAPI.flashDiv.cmdFromJS('addItems', { 'objectId':hash.obj.objectId, 'data':hash['attr'] } );
+		}
 	};
 
 	// Передача команды в SWF

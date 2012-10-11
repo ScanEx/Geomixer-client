@@ -8,8 +8,8 @@
 		for (var i = 0; i < prop.styles.length; i++)
 		{
 			var style = prop.styles[i];
-			minZoom = Math.min(style.MinZoom, minZoom);
-			maxZoom = Math.max(style.MaxZoom, maxZoom);
+			minZoom = Math.min(style.MinZoom || 1, minZoom);
+			maxZoom = Math.max(style.MaxZoom || 21, maxZoom);
 		}
 		return {'minZoom': minZoom, 'maxZoom': maxZoom};
 	}
@@ -87,13 +87,13 @@
 		}
 		var out = {
 			'name': name,
-			'BalloonEnable': style.BalloonEnable,
-			'DisableBalloonOnClick': style.DisableBalloonOnClick,
-			'DisableBalloonOnMouseMove': style.DisableBalloonOnMouseMove,
+			'BalloonEnable': style.BalloonEnable || true,
+			'DisableBalloonOnClick': style.DisableBalloonOnClick || false,
+			'DisableBalloonOnMouseMove': style.DisableBalloonOnMouseMove || true,
 			'regularStyle': regularStyle,
 			'hoveredStyle': hoveredStyle,
-			'MinZoom': style.MinZoom,
-			'MaxZoom': style.MaxZoom,
+			'MinZoom': style.MinZoom || 1,
+			'MaxZoom': style.MaxZoom || 21,
 			'style': style,
 			'sql': sql
 		};
@@ -216,14 +216,29 @@
 		
 		if (isVisible === undefined)
 			isVisible = true;
-		if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
-		var isRaster = (layer.properties.type == "Raster");
-		//var t = layer.properties.name || layer.properties.image;
-		var layerName = layer.properties.name || layer.properties.image;
+		
 		var obj = new gmxAPI._FMO(false, {}, parentObj);					// MapObject слоя
+
+		if(!layer) layer = {};
+		if(!layer.properties) layer.properties = {};
+		if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
+		if(!layer.geometry) {
+			layer.mercGeometry = {
+				'type': "POLYGON"
+				,'coordinates': [[
+					[-20037500, 5337528]
+					,[-20037500, 16812349.31]
+					,[20037500, 16812349.31]
+					,[20037500, 5337528]
+					,[-20037500, 5337528]
+				]]
+			};
+			layer.geometry = gmxAPI.from_merc_geometry(layer.mercGeometry); 
+		}
+		var isRaster = (layer.properties.type == "Raster");
+		var layerName = layer.properties.name || layer.properties.image || gmxAPI.newFlashMapId();
 		obj.geometry = layer.geometry;
 		obj.properties = layer.properties;
-//		var me = this;
 		var isOverlay = false;
 		var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID","");
 		if(typeof(overlayLayerID) == 'string') {
@@ -242,6 +257,18 @@
 		obj.filters = [];
 		if (!isRaster)
 		{
+			if(!layer.properties.styles) {		// стиль-фильтр по умолчанию
+				layer.properties.styles = [
+					{
+						'BalloonEnable': true
+						,'DisableBalloonOnClick': false
+						,'DisableBalloonOnMouseMove': false
+						,'MinZoom': 1
+						,'MaxZoom': 21
+						,'RenderStyle': {'outline': {'color': 255,'thickness': 1}}
+					}
+				];
+			}
 			// Добавление начальных фильтров
 			for (var i = 0; i < layer.properties.styles.length; i++)
 			{
@@ -250,12 +277,16 @@
 				addFilter(obj, attr);
 			}
 			obj.addFilter = function(attr) { return addFilter(obj, attr); };
+			obj.addItems = function(attr) {		// добавление обьектов векторного слоя
+				return gmxAPI._cmdProxy('addItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
+			};
 		}
 
-		var baseAddress = "http://" + layer.properties.hostName + "/";
-		//var sessionKey = (layer.properties.hostName.indexOf("maps.kosmosnimki.ru") != -1 || window.KOSMOSNIMKI_SESSION_KEY) ? window.KOSMOSNIMKI_SESSION_KEY : false;
-		var sessionKey = isRequiredAPIKey( layer.properties.hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
-		var sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[layer.properties.mapName] : false);
+		var hostName = layer.properties.hostName || "maps.kosmosnimki.ru";
+		var mapName = layer.properties.mapName || "client_side_layer";
+		var baseAddress = "http://" + hostName + "/";
+		var sessionKey = isRequiredAPIKey( hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
+		var sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[mapName] : false);
 		var isInvalid = (sessionKey == "INVALID");
 
 		var chkCenterX = function(arr)
@@ -319,7 +350,7 @@
 
 		var tileSenderPrefix = baseAddress + 
 			"TileSender.ashx?ModeKey=tile" + 
-			"&MapName=" + layer.properties.mapName + 
+			"&MapName=" + mapName + 
 			"&LayerName=" + layerName + 
 			(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
 			(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
@@ -345,12 +376,12 @@
 				"&y=" + j;
 		}
 
-		var isTemporal = layer.properties.Temporal;	// признак мультивременного слоя
+		var isTemporal = layer.properties.Temporal || false;	// признак мультивременного слоя
 		if(isTemporal && '_TemporalTiles' in gmxAPI) {
 			obj._temporalTiles = new gmxAPI._TemporalTiles(obj);
 		}
 
-		var isLayerVers = obj.properties.tilesVers || obj.properties.TemporalVers;
+		var isLayerVers = obj.properties.tilesVers || obj.properties.TemporalVers || false;
 		if(gmxAPI._layersVersion && isLayerVers) {		// Установлен модуль версий слоев + есть версии тайлов слоя
 			gmxAPI._layersVersion.chkVersion(obj);
 			obj.chkLayerVersion = function(callback) {
@@ -488,6 +519,7 @@
 				if(obj._temporalTiles) {	// Для мультивременных слоёв
 					obj._temporalTiles.setVectorTiles();
 				} else {
+					if(!layer.properties.tiles) layer.properties.tiles = [];
 					obj.setVectorTiles(tileFunction, layer.properties.identityField, layer.properties.tiles);
 				}
 
@@ -679,6 +711,7 @@
 //		var myIdx = parentObj.layers.length;
 		parentObj.layers.push(obj);
 		parentObj.layers[layerName] = obj;
+		if (!layer.properties.title) layer.properties.title = 'layer from client ' + layerName;
 		if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
 			parentObj.layers[layer.properties.title] = obj;
 
@@ -713,6 +746,7 @@
 	gmxAPI.extendFMO('addLayer', function(layer, isVisible) {
 		var obj = addLayer(this, layer, isVisible);
 		gmxAPI._listeners.dispatchEvent('onAddExternalLayer', gmxAPI.map, obj);	// Добавлен внешний слой
+		return obj;
 	} );
 
 })();
