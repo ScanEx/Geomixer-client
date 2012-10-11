@@ -5,53 +5,84 @@
         var splitLine = function(line)
         {
             if (!line) return [];
-            return $.map(line.match(/"[^"]*"/g), function(str) { return str.split('"')[1]; });
+            var headersWithQuotes = line.match(/"[^"]*"/g);
+            return headersWithQuotes ? $.map(headersWithQuotes, function(str) { return str.split('"')[1]; }) : line.split(',');
         }
         
-        var convertCoordinates = function(row)
+        var convertCoordinates = function(row, type)
         {
+            var geometry;
             if (row.length < 6) return;
-            var parsedLat = row[4].match(/^(\d+).(\d+\.?\d*) (N|S)/);
-            var parsedLng = row[5].match(/^(\d+).(\d+\.?\d*) (E|W)/);
             
-            if (!parsedLat || !parsedLng)
+            if (type === 'operative')
             {
-                console.log(row);
-                return;
+                var parsedLat = row[4].match(/^(\d+).(\d+\.?\d*) (N|S)/);
+                var parsedLng = row[5].match(/^(\d+).(\d+\.?\d*) (E|W)/);
+                
+                if (!parsedLat || !parsedLng)
+                {
+                    console && console.log(row);
+                    return;
+                }
+                
+                var lat = parseFloat(parsedLat[1]) + parseFloat(parsedLat[2])/60.0;
+                var lon = parseFloat(parsedLng[1]) + parseFloat(parsedLng[2])/60.0;
+                
+                if (parsedLat[3] == 'S') lat = -lat;
+                if (parsedLng[3] == 'W') lon = -lon;
+                
+                row[4] = lat;
+                row[5] = lon;
+                
+                geometry = {type: 'POINT', coordinates: [row[5], row[4]]}
+            }
+            else
+            {
+                row[28] = parseFloat(row[28]);
+                row[29] = parseFloat(row[29]);
+                
+                if (!row[28] ||!row[29])
+                {
+                    console && console.log(row);
+                    return;
+                }
+                
+                geometry = {type: 'POINT', coordinates: [row[28], row[29]]}
             }
             
-            var lat = parseFloat(parsedLat[1]) + parseFloat(parsedLat[2])/60.0;
-            var lon = parseFloat(parsedLng[1]) + parseFloat(parsedLng[2])/60.0;
-            
-            if (parsedLat[3] == 'S') lat = -lat;
-            if (parsedLng[3] == 'W') lon = -lon;
-            
-            row[4] = lat;
-            row[5] = lon;
-            
-            return row;
+            return {geometry: geometry, properties: row};
         }
         
         var lines = csvtext.split('\n');
         
         var headers = splitLine(lines.shift());
+        var type = headers[4] === 'Latitude' ? 'operative' : 'archive';
         
         var data = [];
-        $.each(lines, function(i, row){ data.push(convertCoordinates(splitLine(row))) });
+        $.each(lines, function(i, row){data.push(convertCoordinates(splitLine(row), type)) });
         
-        var columnsString = "&FieldsCount=" + headers.length;
-        for (var k = 0; k < headers.length; k++) {
-            columnsString += "&fieldName" + k + "=" + encodeURIComponent(headers[k]) + "&fieldType" + k + "=string";
-        }
+        // var columnsString = "&FieldsCount=" + headers.length;
+        // for (var k = 0; k < headers.length; k++) {
+            // columnsString += "&fieldName" + k + "=" + encodeURIComponent(headers[k]) + "&fieldType" + k + "=string";
+        // }
         
         var mapProperties = _layersTree.treeModel.getMapProperties();
-        sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func" + 
-            "&Title=" + encodeURIComponent(name) + 
-            "&Copyright=" + 
-            "&Description=" + 
-            "&MapName=" + encodeURIComponent(mapProperties.name) + 
-            columnsString +
-            "&geometrytype=POINT",
+        
+        var requestParams = {
+            WrapStyle: 'window',
+            Title: name,
+            MapName: mapProperties.name,
+            geometrytype: 'POINT',
+            FieldsCount: headers.length
+        }
+        
+        for (var k = 0; k < headers.length; k++) {
+            requestParams["fieldName" + k] = headers[k];
+            requestParams["fieldType" + k] = 'string';
+        }
+        
+        sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", 
+            requestParams,
             function(response)
             {
                 if (!parseResponse(response))
@@ -80,12 +111,12 @@
                     var properties = {};
                     
                     for (var iH = 0; iH < headers.length; iH++)
-                        properties[headers[iH]] = data[iR][iH];
+                        properties[headers[iH]] = data[iR].properties[iH];
                     
                     objs.push({
                         action: 'insert',
                         properties: properties,
-                        geometry: gmxAPI.merc_geometry({type: 'POINT', coordinates: [data[iR][5], data[iR][4]]})
+                        geometry: gmxAPI.merc_geometry(data[iR].geometry)
                     });
                 }
                 
@@ -122,7 +153,6 @@
             {
                 $.each(e.originalEvent.dataTransfer.files, function(index, file)
                 {
-                    //console.log(file);
                     var reader = new FileReader();
                     reader.onload = function(evt) {
                         createAISLayer(map, file.name.substring(0, file.name.length - 4), evt.target.result);
@@ -130,27 +160,17 @@
                     reader.readAsText(file);
                 })
                 
-                //console.log(e);
                 return false;
             })
             
             var menu = new leftMenu();
             menu.createWorkCanvas("aisdnd", function(){});
             _(menu.workCanvas, [canvas[0]], [['css', 'height', '300px'], ['css', 'width', '100%']]);
-            
-            //showDialog('Test DnD', canvas[0], {width: 300, height: 300});
         }
     };
     
     gmxCore.addModule('AISImportPlugin', publicInterface, 
 	{
         require: ['utilities']
-        /*init: function(module, path)
-		{
-            return gmxCore.loadScriptWithCheck([{
-                check: function(){ return jQuery.fn.filedrop; },
-                script: path + 'jquery.filedrop.js'
-            }]);
-        }*/
 	});
 })();
