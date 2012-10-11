@@ -232,8 +232,8 @@ var propertiesToTagsIkonos = function(properties)
         sceneid:    properties.Name,
         platform:   'IKONOS',
         resolution: 1.0,
-        acdate:     dateLocal.valueOf()/1000 - timeOffset,
-        actime:     parseTimeRes[1]*3600 + parseTimeRes[2]*60 + parseTimeRes[3]*1
+        acqdate:     dateLocal.valueOf()/1000 - timeOffset,
+        acqtime:     parseTimeRes[1]*3600 + parseTimeRes[2]*60 + parseTimeRes[3]*1
     }
     
     var meta = {};

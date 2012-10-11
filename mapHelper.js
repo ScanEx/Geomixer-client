@@ -3275,8 +3275,8 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
             if (title.value == '' )
             {
                 var platform = layerTags.getTagByName('platform');
-                var dateTag  = layerTags.getTagByName('acdate');
-                var timeTag  = layerTags.getTagByName('actime');
+                var dateTag  = layerTags.getTagByName('acqdate');
+                var timeTag  = layerTags.getTagByName('acqtime');
                 
                 if (typeof platform !== 'undefined' && typeof dateTag !== 'undefined' && typeof timeTag !== 'undefined')
                 {

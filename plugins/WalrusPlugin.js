@@ -435,7 +435,7 @@ var AddImageControl = function(map, layerName)
                 fields: [
                     {name: 'LayerName', value: layerInfo.properties.name,  constant: true},
                     {name: 'title',     value: layerInfo.properties.title, constant: true},
-                    {name: 'acdate',    value: metaProps.acdate.Value,     constant: true},
+                    {name: 'acdate',    value: metaProps.acqdate.Value,    constant: true},
                     {name: 'platform',  value: metaProps.platform.Value,   constant: true},
                     {name: 'sceneid',   value: metaProps.sceneid.Value,    constant: true},
                     {name: 'views',     value: 0, constant: true},
