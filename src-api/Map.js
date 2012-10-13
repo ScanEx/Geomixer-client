@@ -135,12 +135,9 @@
 		map.resumeDragging = function() { gmxAPI._cmdProxy('resumeDragging', { }); }
 		map.setCursorVisible = function(flag) { gmxAPI._cmdProxy('setCursorVisible', { 'attr': {'flag':flag} }); }
 		map.getPosition = function() { return gmxAPI._cmdProxy('getPosition', { }); }
-		map.getX = function() { return gmxAPI._cmdProxy('getX', {}); }
-		map.getY = function() { return gmxAPI._cmdProxy('getY', {}); }
-		map.getZ = function() {
-			var zz = (gmxAPI.currPosition ? gmxAPI.currPosition.z : gmxAPI._cmdProxy('getZ', {}));
-			return zz;
-		}
+		map.getX = function() { return (map.needMove ? map.needMove['x'] : gmxAPI._cmdProxy('getX', {})); }
+		map.getY = function() { return (map.needMove ? map.needMove['y'] : gmxAPI._cmdProxy('getY', {})); }
+		map.getZ = function() { return (map.needMove ? map.needMove['z'] : (gmxAPI.currPosition ? gmxAPI.currPosition.z : gmxAPI._cmdProxy('getZ', {}))); }
 		map.getMouseX = function() { return gmxAPI._cmdProxy('getMouseX', {}); }
 		map.getMouseY = function() { return gmxAPI._cmdProxy('getMouseY', {}); }
 		map.isKeyDown = function(code) { return gmxAPI._cmdProxy('isKeyDown', {'attr':{'code':code} }); }
@@ -594,16 +591,17 @@
 
 		var sunscreen = map.addObject();
 		gmxAPI._sunscreen = sunscreen;
-		sunscreen.setStyle({ fill: { color: 0xffffff, opacity: 1 } });
-		sunscreen.setRectangle(-180, -85, 180, 85);
-		sunscreen.setVisible(false);
-		sunscreen.addListener("onResize", function()
-		{
-			gmxAPI._updatePosition();
-			gmxAPI._listeners.dispatchEvent('onResizeMap', map);
-		});
 
 		if(gmxAPI.proxyType === 'flash') {
+			sunscreen.setStyle({ fill: { color: 0xffffff, opacity: 1 } });
+			sunscreen.setRectangle(-180, -85, 180, 85);
+			sunscreen.setVisible(false);
+			sunscreen.addListener("onResize", function()
+			{
+				gmxAPI._updatePosition();
+				gmxAPI._listeners.dispatchEvent('onResizeMap', map);
+			});
+		
 			if('_miniMapInit' in gmxAPI) {
 				gmxAPI._miniMapInit(gmxAPI._div);
 			}

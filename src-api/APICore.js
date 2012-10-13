@@ -2910,25 +2910,26 @@ function createFlashMapInternal(div, layers, callback)
 		}
 
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
-		
-		var needToStopDragging = false;
-		gmxAPI.flashDiv.onmouseout = function(ev) 
-		{
-			var event = gmxAPI.compatEvent(ev);
-			if(!event || (propsBalloon && propsBalloon.leg == event.relatedTarget)) return;
-			if (!needToStopDragging) {
-				gmxAPI.map.setCursorVisible(false);
-				needToStopDragging = true;
+		if (gmxAPI.proxyType === 'flash') {			// Это flash версия
+			var needToStopDragging = false;
+			gmxAPI.flashDiv.onmouseout = function(ev) 
+			{
+				var event = gmxAPI.compatEvent(ev);
+				if(!event || (propsBalloon && propsBalloon.leg == event.relatedTarget)) return;
+				if (!needToStopDragging) {
+					gmxAPI.map.setCursorVisible(false);
+					needToStopDragging = true;
+				}
 			}
-		}
-		gmxAPI.flashDiv.onmouseover = function(ev)
-		{
-			var event = gmxAPI.compatEvent(ev);
-			if(!event || (propsBalloon && propsBalloon.leg == event.relatedTarget)) return;
-			if (needToStopDragging) {
-				gmxAPI.map.stopDragging();
-				gmxAPI.map.setCursorVisible(true);
-				needToStopDragging = false;
+			gmxAPI.flashDiv.onmouseover = function(ev)
+			{
+				var event = gmxAPI.compatEvent(ev);
+				if(!event || (propsBalloon && propsBalloon.leg == event.relatedTarget)) return;
+				if (needToStopDragging) {
+					gmxAPI.map.stopDragging();
+					gmxAPI.map.setCursorVisible(true);
+					needToStopDragging = false;
+				}
 			}
 		}
 	}

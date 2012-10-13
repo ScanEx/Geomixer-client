@@ -1,5 +1,9 @@
-/* required styles */
+.my-div-icon {
+	color: white;
+	font-weight: bold;
+}
 
+/* required styles */
 .leaflet-map-pane,
 .leaflet-tile,
 .leaflet-marker-icon,
