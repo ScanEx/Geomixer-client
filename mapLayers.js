@@ -1839,7 +1839,7 @@ queryMapLayers.prototype.rasterLayersSlider = function(parent)
 
 queryMapLayers.prototype.currentMapRights = function()
 {
-    var mapProperties = _layersTree.treeModel.getMapProperties();
+    var mapProperties = _layersTree.treeModel && _layersTree.treeModel.getMapProperties();
 	return mapProperties ? mapProperties.Access : "none";
 }
 
