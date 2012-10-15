@@ -3146,7 +3146,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
             // .css('margin-left', '3px')
             // .change(updateRCControls);
         var rasterCatalogDiv = $('<div/>');//.append(RCCheckbox);
-        shownProperties.push({name: "Каталог растров", elem: rasterCatalogDiv[0], iddom: 'RCCreate-container'});
+        shownProperties.push({name: _gtxt("Каталог растров"), elem: rasterCatalogDiv[0], iddom: 'RCCreate-container'});
         
         // var RCPropertiesGroup = _div();
         // var RDCollapsableWidget = new nsGmx.Controls.CollapsibleWidget('Автоматическое создание слоёв', $('<div/>').appendTo(RCPropertiesGroup), [], true);
@@ -3374,8 +3374,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
         {
             rcProperties = {
                 IsRasterCatalog: true,
-                TiledQuicklookMaxZoom: div.gmxProperties.content.properties.TiledQuicklookMaxZoom,
-                TiledQuicklookMinZoom: div.gmxProperties.content.properties.TiledQuicklookMinZoom,
+                RCMinZoomForRasters: properties.RCMinZoomForRasters,
                 RCMaskForRasterPath:  properties.RCMaskForRasterPath,
                 RCMaskForRasterTitle: properties.RCMaskForRasterTitle,
                 ColumnTagLinks: properties.ColumnTagLinks
@@ -3464,6 +3463,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                 if (rcProps.IsRasterCatalog)
                 {
                     RCParams = '&IsRasterCatalog=true';
+                    if ( rcProps.RCMinZoomForRasters ) RCParams += '&RCMinZoomForRasters=' + encodeURIComponent(rcProps.RCMinZoomForRasters);
                     if ( rcProps.RCMaskForRasterPath ) RCParams += '&RCMaskForRasterPath=' + encodeURIComponent(rcProps.RCMaskForRasterPath);
                     if ( rcProps.RCMaskForRasterTitle ) RCParams += '&RCMaskForRasterTitle=' + encodeURIComponent(rcProps.RCMaskForRasterTitle);
                     if ( rcProps.ColumnTagLinks ) RCParams += '&ColumnTagLinks=' + encodeURIComponent(JSON.stringify(rcProps.ColumnTagLinks));

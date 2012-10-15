@@ -4,17 +4,34 @@
     @namespace nsGmx
     @class
     */
+    _translationsHash.addtext("rus", {
+        "LayerRCControl.minZoom"         : "Мин. зум",
+        "LayerRCControl.titleTemplate"   : "Шаблон имени",
+        "LayerRCControl.pathTemplate"    : "Шаблон тайлов",
+        "LayerRCControl.advancedLink"    : "Дополнительные параметры",
+        "LayerRCControl.layerTagTitle"   : "Параметр слоя",
+        "LayerRCControl.attributeTitle"  : "Атрибут объекта"
+    });
+    
+    _translationsHash.addtext("eng", {
+        "LayerRCControl.minZoom"         : "Min zoom",
+        "LayerRCControl.titleTemplate"   : "Title template",
+        "LayerRCControl.pathTemplate"    : "Path template",
+        "LayerRCControl.advancedLink"    : "Advanced parameters",
+        "LayerRCControl.layerTagTitle"   : "Layer parameter",
+        "LayerRCControl.attributeTitle"  : "Object Attribute"
+    });
+
     nsGmx.LayerRasterCatalogControl = function(container, rcProperties, params)
     {
         rcProperties = rcProperties || {};
-        var advancedMode = !!(/*rcProperties.TiledQuicklookMaxZoom ||*/ rcProperties.RCMaskForRasterPath || rcProperties.RCMaskForRasterTitle || rcProperties.ColumnTagLinks);
+        var advancedMode = !!(rcProperties.RCMaskForRasterPath || rcProperties.RCMaskForRasterTitle || rcProperties.ColumnTagLinks);
         
         this.getRCProperties = function()
         {
             var properties = {
                 IsRasterCatalog: RCCheckbox[0].checked,
-                //TiledQuicklookMaxZoom: maxZoomInput.val(),
-                TiledQuicklookMinZoom: minZoomInput.val(),
+                RCMinZoomForRasters: minZoomInput.val(),
                 RCMaskForRasterTitle: titleInput.val(),
                 RCMaskForRasterPath: pathInput.val()
             }
@@ -38,7 +55,7 @@
         
         var RCCheckbox = $('<input/>', {type: 'checkbox', 'class': 'RCCreate-checkbox'}).change(updateVisibility);
 
-        var advancedParamsLink = $(makeLinkButton('Дополнительные параметры')).addClass('RCCreate-advanced-link').click(function()
+        var advancedParamsLink = $(makeLinkButton(_gtxt('LayerRCControl.advancedLink'))).addClass('RCCreate-advanced-link').click(function()
         {
             advancedMode = !advancedMode;
             updateVisibility();
@@ -48,24 +65,20 @@
         
         RCCheckbox[0].checked = rcProperties.IsRasterCatalog;
         
-        var minZoomInput = $('<input/>', {'class': 'inputStyle RCCreate-zoom-input'}).val(rcProperties.TiledQuicklookMinZoom || '');
-        //var maxZoomInput = $('<input/>', {'class': 'inputStyle RCCreate-zoom-input'}).val(rcProperties.TiledQuicklookMaxZoom || '');
+        var minZoomInput = $('<input/>', {'class': 'inputStyle RCCreate-zoom-input'}).val(rcProperties.RCMinZoomForRasters || '');
         var titleInput = $('<input/>', {'class': 'inputStyle'}).val(rcProperties.RCMaskForRasterTitle || '');
         var pathInput = $('<input/>', {'class': 'inputStyle'}).val(rcProperties.RCMaskForRasterPath || '');
         
         var RCParamsTable = 
             $('<table/>', {'class': 'RCCreate-params'})
                 .append($('<tr/>')
-                    .append($('<td/>').text('Мин. зум').css('padding-right', '6px'))
+                    .append($('<td/>').text(_gtxt('LayerRCControl.minZoom')).css('padding-right', '6px'))
                     .append($('<td/>').append(minZoomInput)))
-                // .append($('<tr/>', {'class': 'RCCreate-advanced'})
-                    // .append($('<td/>').text('Мax. зум'))
-                    // .append($('<td/>').append(maxZoomInput)))
                 .append($('<tr/>', {'class': 'RCCreate-advanced'})
-                    .append($('<td/>').text('Шаблон имени'))
+                    .append($('<td/>').text(_gtxt('LayerRCControl.titleTemplate')))
                     .append($('<td/>').append(titleInput)))
                 .append($('<tr/>', {'class': 'RCCreate-advanced'})
-                    .append($('<td/>').text('Шаблон тайлов'))
+                    .append($('<td/>').text(_gtxt('LayerRCControl.pathTemplate')))
                     .append($('<td/>').append(pathInput)))
                 .appendTo(container);
         
@@ -92,7 +105,12 @@
             layerTags = new nsGmx.LayerTags(fakeTagManager, initTags);
             
             var tagContainer = $('<div/>', {'class': 'RCCreate-tagContainer RCCreate-advanced'}).addClass().appendTo(container);
-            var tagsControl = new nsGmx.LayerTagSearchControl(layerTags, tagContainer, {inputWidth: 100, tagHeader: 'Параметр слоя', valueHeader: 'Атрибут объекта'});
+            var tagsControl = new nsGmx.LayerTagSearchControl(layerTags, tagContainer, {
+                inputWidth: 100, 
+                tagHeader: _gtxt('LayerRCControl.layerTagTitle'), 
+                valueHeader: _gtxt('LayerRCControl.attributeTitle')
+            });
+            
             updateVisibility();
         })
     }

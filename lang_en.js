@@ -137,6 +137,7 @@ _translationsHash.hash["eng"] = {
 	"Файл" : "File",
 	"Таблица" : "Table",
 	"Каталог с тайлами" : "Tile catalogue",
+    "Каталог растров" : "Raster catalogue",
 	"Y (широта)" : "Y (latitude)",
 	"X (долгота)" : "X (longitude)",
 	"Каталог" : "Catalogue",
