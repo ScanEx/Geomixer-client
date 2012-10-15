@@ -1,3 +1,40 @@
+// drawManager - менеджер отрисовки
+(function()
+{
+	var nextId = 0;							// следующий ID mapNode
+	var items = [];							// массив ID нод очереди отрисовки
+	var itemsHash = {};						// Хэш нод требующих отрисовки
+
+	var drawManager = {						// менеджер отрисовки
+		'add': function(id)	{					// добавить ноду для отрисовки
+			var node = mapNodes[id];
+			if(!node || !node.repaint) return false;
+			if(!itemsHash[id]) {
+				itemsHash[id] = items.length;
+				items.push(id);
+			}
+			return 	items.length;
+		}
+		,'remove': function(id)	{				// удалить ноду
+			if(itemsHash[id]) {
+				var num = itemsHash[id];
+				if(num == 0) items.shift();
+				else {
+					var arr = items.slice(0, num - 1);
+					arr = arr.concat(items.slice(num));
+					items = arr;
+				}
+				return true;
+			}
+			return false;
+		}
+	};
+
+	//расширяем namespace
+	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
+	gmxAPI._leaflet['drawManager'] = drawManager;	// менеджер отрисовки
+})();
+
 //Поддержка leaflet
 (function()
 {
@@ -741,6 +778,7 @@
 */
 				else {
 					//if(node['geometry'] && !node['leaflet']) node['leaflet'] = utils.drawGeometry(node['geometry']);
+if(!chkVisibilityObject(id)) return;
 					if(node['parentId']) {
 						if(mapNodes[node['parentId']]) pNode = mapNodes[node['parentId']]['group'];
 						pNode.addLayer(node['group']);

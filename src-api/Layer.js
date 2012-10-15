@@ -548,12 +548,12 @@
 				}
 
 				if (layer.properties.IsRasterCatalog) {
-					//if(!layer.properties.TiledQuicklookMinZoom) layer.properties.TiledQuicklookMinZoom = 9;
+					var RCMinZoomForRasters = layer.properties.RCMinZoomForRasters || 1;
 					obj.enableTiledQuicklooks(function(o)
 					{
 						var qURL = tileSenderPrefix + '&x={x}&y={y}&z={z}&idr=' + o.properties[layer.properties.identityField];
 						return qURL;
-					}, layer.properties.TiledQuicklookMinZoom, layer.properties.TiledQuicklookMaxZoom, tileSenderPrefix);
+					}, RCMinZoomForRasters, layer.properties.TiledQuicklookMaxZoom, tileSenderPrefix);
 				} else {
 					if (layer.properties.Quicklook) {
 						obj.enableQuicklooks(function(o)
