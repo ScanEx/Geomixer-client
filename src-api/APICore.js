@@ -78,13 +78,9 @@ window.gmxAPI = {
 		return (window.KOSMOSNIMKI_LANGUAGE == "English") ? eng : rus;
 	}
 	,
-	newElement: function(tagName, props, style, setBorder)
+	setStyleHTML: function(elem, style, setBorder)
 	{
-		var elem = document.createElement(tagName);
-		if (props)
-		{
-			for (var key in props) elem[key] = props[key];
-		}
+		if(!elem) return false;
 		if(setBorder) {
 			elem.style.border = 0;
 			elem.style.margin = 0;
@@ -99,6 +95,17 @@ window.gmxAPI = {
 				if (key == "opacity") elem.style.filter = "alpha(opacity=" + Math.round(value*100) + ")";
 			}
 		}
+		return true;
+	}
+	,
+	newElement: function(tagName, props, style, setBorder)
+	{
+		var elem = document.createElement(tagName);
+		if (props)
+		{
+			for (var key in props) elem[key] = props[key];
+		}
+		gmxAPI.setStyleHTML(elem, style, setBorder);
 		return elem;
 	},
 	newStyledDiv: function(style)
@@ -1320,7 +1327,7 @@ window.gmxAPI = {
 		{
 			var src = scripts1[i].getAttribute("src");
 			var u = gmxAPI.parseUri(src);
-			if(u && u.file == 'api.js') {
+			if(u && /\bapi[\d\w]*\.js\b/.exec(src)) {
 				return u;
 			}
 		}
@@ -1336,7 +1343,7 @@ window.gmxAPI = {
 	getAPIFolderRoot: memoize(function()
 	{
 		var u = gmxAPI.getAPIUri();
-		return (u.source ? u.source.substring(0, u.source.indexOf('api.js')) : '');
+		return (u.source ? u.source.substring(0, u.source.indexOf(u.file)) : '');
 	})
 	,
 	getAPIHost: memoize(function()

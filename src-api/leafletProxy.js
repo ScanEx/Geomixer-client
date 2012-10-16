@@ -5,15 +5,27 @@
 	var items = [];							// массив ID нод очереди отрисовки
 	var itemsHash = {};						// Хэш нод требующих отрисовки
 
+	var repaintItems = function()	{			// отрисовка ноды
+		if(items.length < 1) return false;
+		var id = items.shift();
+		delete itemsHash[id];
+		var node = gmxAPI._leaflet['mapNodes'][id];
+		if(!node) return false;
+		gmxAPI._leaflet['utils'].repaintNode(node, true);
+		setTimeout(repaintItems, 0);
+		return true;
+	}
+	
 	var drawManager = {						// менеджер отрисовки
 		'add': function(id)	{					// добавить ноду для отрисовки
-			var node = mapNodes[id];
-			if(!node || !node.repaint) return false;
+			var node = gmxAPI._leaflet['mapNodes'][id];
+			if(!node) return false;
 			if(!itemsHash[id]) {
 				itemsHash[id] = items.length;
 				items.push(id);
 			}
-			return 	items.length;
+			setTimeout(repaintItems, 0);
+			return items.length;
 		}
 		,'remove': function(id)	{				// удалить ноду
 			if(itemsHash[id]) {
@@ -24,15 +36,20 @@
 					arr = arr.concat(items.slice(num));
 					items = arr;
 				}
+				delete itemsHash[id];
 				return true;
 			}
 			return false;
+		}
+		,'repaint': function()	{				// отрисовка нод
+			repaintItems();
 		}
 	};
 
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
 	gmxAPI._leaflet['drawManager'] = drawManager;	// менеджер отрисовки
+gmxAPI._leaflet['test'] = {'itemsHash': itemsHash, 'items': items};	// test
 })();
 
 //Поддержка leaflet
@@ -86,7 +103,7 @@
 				if(flag) pt['image'] = imagesSize[url]['image'];
 				return;
 			}
-			//console.log(' getImageSize: ' + url + ' : ');
+//console.log(' getImageSize: ' + url + ' : ');
 			
 			var _img = L.DomUtil.create('img', 'leaflet-image-layer');
 			_img.style.visibility = 'hidden';
@@ -108,6 +125,19 @@
 			};
 			if(!st) return null;
 			
+			pt['label'] = false;
+			if('label' in st) {											//	Есть стиль label
+				pt['label'] = {};
+				var ph = st['label'];
+				if('color' in ph) pt['label']['color'] = ph['color'];
+				if('haloColor' in ph) pt['label']['haloColor'] = ph['haloColor'];
+				if('size' in ph) pt['label']['size'] = ph['size'];
+				if('spacing' in ph) pt['label']['spacing'] = ph['spacing'];
+				if('align' in ph) pt['label']['align'] = ph['align'];
+				if('dx' in ph) pt['label']['dx'] = ph['dx'];
+				if('dy' in ph) pt['label']['dy'] = ph['dy'];
+				if('field' in ph) pt['label']['field'] = ph['field'];
+			}
 			pt['marker'] = false;
 			if('marker' in st && 'image' in st['marker']) {				//	Есть стиль marker
 				pt['marker'] = true;
@@ -214,6 +244,9 @@
 				} else if(node.geometry && node.geometry.type) {
 					node.geometry.id = node.id;
 					if(regularStyle['iconUrl'] && !regularStyle['imageWidth']) {		// нарисовать после загрузки onIconLoaded
+						gmxAPI._leaflet['drawManager'].add(node.id);			// добавим в менеджер отрисовки
+						return;
+/*						
 						function setIcon(url) {
 							if(url === regularStyle['iconUrl']) {
 								node.leaflet = utils.drawNode(node, regularStyle);
@@ -221,12 +254,15 @@
 								var group = (pNode ? pNode.group : LMap);
 								group.addLayer(node['leaflet']);
 								node['leaflet']._isVisible = true;
+								if(node['leaflet']) setVisible({'obj': node, 'attr': true});
 							}
 						}
 						if(!imagesSize[regularStyle['iconUrl']]) gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onIconLoaded', 'func': function() { setIcon(regularStyle['iconUrl']); }});
 						else setIcon(regularStyle['iconUrl']);
+*/
 					} else {
 						node.leaflet = utils.drawNode(node, regularStyle);
+						if(node['leaflet']) setVisible({'obj': node, 'attr': true});
 					}
 				}
 			}
@@ -257,7 +293,7 @@
 				var opt = {
 					iconUrl: style['iconUrl']
 					//,shadowUrl: null
-					,iconAnchor: new L.Point(0, 0)
+					,iconAnchor: new L.Point(6, 0)
 				};
 				if(style['scale']) {
 					var zn = utils.chkPropsInString(style['scale'], prop);
@@ -265,6 +301,10 @@
 					var hh = style['imageHeight'] * zn;
 					opt['iconSize'] = new L.Point(ww, hh);
 					opt['iconAnchor'] = new L.Point(ww/2, hh/2);
+				}
+				if(style['label']) {
+					var tt =1;
+					//setLabel(res, ph['setLabel']);
 				}
 				
 				//
@@ -599,10 +639,19 @@
 	// setLabel для mapObject
 	function setLabel(id, attr)	{
 		var node = mapNodes[id];
-		if(!node) return false;
-		var myIcon = L.divIcon({'className': 'my-div-icon', 'html': attr});
+		if(!node || !node.regularStyle || !node.regularStyle.label) return false;
+		//var myIcon = L.divIcon({'className': 'my-div-icon', 'html': attr});
+		var labelStyle = node.regularStyle.label;
+		var divStyle = {'width': 'auto', 'height': 'auto'};
+		if(labelStyle['color']) divStyle['color'] = utils.dec2hex(labelStyle['color']);
+		if(labelStyle['haloColor']) divStyle['backgroundColor'] = utils.dec2rgba(labelStyle['haloColor'], 0.3);
+		//if(labelStyle['haloColor']) divStyle['backgroundColor'] = 'rgba(255, 255, 255, 0.3)';
+		
+		var opt = {'className': 'my-div-icon', 'html': attr, 'divStyle': divStyle };
+		//if(labelStyle['size']) opt['iconSize'] = new L.Point(labelStyle['size'], labelStyle['size']);
+		var myIcon = L.gmxIcon(opt);
 		var pp = node.geometry.coordinates;
-		var marker = L.marker([pp[1], pp[0]], {'icon': myIcon, 'title': 'ggfg'});		
+		var marker = L.marker([pp[1], pp[0]], {'icon': myIcon, 'zIndexOffset': 1, 'title': ''});		
 		marker.addTo(node['group']);		
 	}
 	// setStyle для mapObject
@@ -615,8 +664,9 @@
 			var pNode = mapNodes[node['parentId']];
 			pNode.setStyleFilter(id);
 		} else {
-			utils.repaintNode(node, true);
-			setVisible({'obj': node, 'attr': true});
+			gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
+			//utils.repaintNode(node, true);
+			//setVisible({'obj': node, 'attr': true});
 		}
 	}
 
@@ -693,10 +743,12 @@
 		}
 		mapNodes[id] = pt;
 		if(pt['geometry']['type']) {
-			utils.repaintNode(pt, true);
+			gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
+			//utils.repaintNode(pt, true);
 			if(pt['leaflet']) {
 				//pt['leaflet']['options']['resID'] = id;
 				setHandlerObject(id);							// добавить Handler для mapObject
+				
 /*				
 				pt['leaflet'].on('click', function(e) {		// Проверка click слоя
 					var resID = e.target.options['resID'];
@@ -709,13 +761,13 @@
 						//pNode['handlers']['onClick'].call(this, gmxAPI.mapNodes[rNode['parentId']]);
 					}
 				});
-*/			
 				if(ph['_notVisible']) {
 					pt['leaflet']._isVisible = false;
 				} else {
 					pNode.group.addLayer(pt['leaflet']);
 					pt['leaflet']._isVisible = true;
 				}
+*/			
 			}
 		}
 		pt['zIndex'] = utils.getLastIndex(pNode);
@@ -890,9 +942,10 @@ if(!chkVisibilityObject(id)) return;
 				var geo = utils.parseGeometry(ph.attr);
 				node['geometry'] = geo;
 				if(node['geometry']['type']) {
-					utils.repaintNode(node, true);
+					gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
+					//utils.repaintNode(node, true);
 					if(node['leaflet']) setHandlerObject(id);
-					setVisible({'obj': node, 'attr': true});
+					//setVisible({'obj': node, 'attr': true});
 /*					
 					if(node['leaflet']) {
 						var pNode = mapNodes[node['parentId']];
@@ -979,6 +1032,11 @@ if(!chkVisibilityObject(id)) return;
 			if(flag) LMap.options.zoomAnimation = false;
 			LMap.setView(pos, ph.attr['z']);
 			if(flag) LMap.options.zoomAnimation = true;
+		}
+		,
+		'setLabel':	function(ph)	{				// Установка стилей обьекта
+			var id = ph.obj.objectId;
+			setLabel(id, ph['attr']['label']);
 		}
 		,
 		'setStyle':	function(ph)	{				// Установка стилей обьекта
@@ -1817,6 +1875,9 @@ node.repaintCount = 0;
 						}
 						if(filter && filter.styleRecalc) styleToGeo(geom, filter);
 					}
+if(geom['properties']['Magnitude']) {
+tt = 1;
+}
 					if(!geom.curStyle || !node.chkTemporalFilter(geom)) continue;
 /*
 					if(node['temporal'] && propHiden) {
@@ -2200,6 +2261,9 @@ node.repaintCount = 0;
 			var py1 = y - point.y * mInPixel - out['sy'];		py1 = (0.5 + py1) << 0;
 			
 			//size *= 2;
+			if(style['label']) {
+				var tt = 1;
+			}
 			
 			if(style['marker']) {
 				if(style['image']) {
@@ -2674,10 +2738,11 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					,'e': e
 				};
 				gmxAPI._leaflet['clickAttr'] = attr;
-				
-				var layerID = attr['_layer'].options['id'];
-				var mapNode = mapNodes[layerID];
-				if(mapNode['eventsCheck']) mapNode['eventsCheck']('onClick', attr);
+				if(attr['_layer']) {
+					var layerID = attr['_layer'].options['id'];
+					var mapNode = mapNodes[layerID];
+					if(mapNode['eventsCheck']) mapNode['eventsCheck']('onClick', attr);
+				}
 			});
 			LMap.on('zoomend', function(e) {
 				gmxAPI._listeners.dispatchEvent('onZoomend', null, {});
@@ -2973,6 +3038,54 @@ ctx.fillText(drawTileID, 10, 128);
 					if(!node['loaderFlag']) repaint(0);
 				}
 			});
+
+			L.GMXIcon = L.Icon.extend({
+				options: {
+					iconSize: new L.Point(12, 12), // also can be set through CSS
+					/*
+					iconAnchor: (Point)
+					popupAnchor: (Point)
+					html: (String)
+					bgPos: (Point)
+					,divStyle: {}
+					*/
+					className: 'leaflet-canvas-icon'
+				},
+
+				createIcon: function () {
+					var	options = this.options;
+					var div = document.createElement('div');
+					this.options.div = div;
+
+					if (options.html) {
+						div.innerHTML = options.html;
+					}
+
+					if (options.bgPos) {
+						div.style.backgroundPosition =
+								(-options.bgPos.x) + 'px ' + (-options.bgPos.y) + 'px';
+					}
+
+					this._setIconStyles(div, 'icon');
+					if (options.divStyle) {
+						gmxAPI.setStyleHTML(div, options.divStyle, true);
+					}
+					return div;
+				},
+				createShadow: function () {
+					return null;
+				}
+				,
+				setStyle: function (style, setBorder) {
+					if (this.options.div) {
+						gmxAPI.setStyleHTML(this.options.div, style, setBorder);
+						this.options.divStyle = style;
+					}
+				}
+			});
+			L.gmxIcon = function (options) {
+				return new L.GMXIcon(options);
+			};
 
 			L.CanvasIcon = L.Icon.extend({
 				options: {
