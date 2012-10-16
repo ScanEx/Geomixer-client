@@ -2033,7 +2033,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(task, title)
 		_mapHelper.updateUnloadEvent(true);
     })
 	
-	var update = function(taskInfo)
+	var update = function(event, taskInfo)
 	{
 		var taskDiv;
 		
@@ -2061,7 +2061,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(task, title)
     $(task).bind('update', update);
     
     if (task.getCurrentStatus() === 'processing')
-        update(task.getCurrentResult());
+        update(null, task.getCurrentResult());
 }
 
 queryMapLayers.prototype.asyncUpdateLayer = function(task, properties, needRetiling)
@@ -2117,7 +2117,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(task, properties, needRetil
             return;
         })
     	
-    var update = function(taskInfo)
+    var update = function(event, taskInfo)
 	{
 		var taskDiv;
 		
@@ -2144,7 +2144,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(task, properties, needRetil
     $(task).bind('update', update);
     
     if (task.getCurrentStatus() === 'processing')
-        update(task.getCurrentResult());
+        update(null, task.getCurrentResult());
 }
 
 queryMapLayers.prototype.removeLayer = function(name)

@@ -42,7 +42,7 @@ var AsyncTask = function(serverResponse)
         else
         {
             status = 'processing';
-            $(_this).triggerHandler('update', taskInfo);
+            $(_this).triggerHandler('update', [taskInfo]);
         }
     }
     
