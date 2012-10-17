@@ -705,6 +705,15 @@ div.unit .unitInfo
 	background: url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
 }
 
+.fileCanvas-folder-icon
+{
+	background: url("img/folder.png");
+    margin: 2px 3px -3px 0px;
+    width: 13px;
+    height: 13px;
+    float: left;
+}
+
 .fileBrowser-pathWidget
 {
     margin: 2px 0px

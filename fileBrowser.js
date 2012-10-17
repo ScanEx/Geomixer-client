@@ -107,8 +107,6 @@ var fileBrowser = function()
 
 	this.returnMask = ['noname'];
 	
-	this.driveRE = new RegExp("^[a-z]:\\" + this.slash + "$", "i");
-	
 	this._discs = null;
      
     this._params = null;
@@ -435,7 +433,7 @@ fileBrowser.prototype.pathWidget = function()
         var newElem = $('<span/>', {'class': 'fileBrowser-pathElem'}).text(text + _this.slash)
         .click(function()
         {
-            _this.getFiles(/^[a-z]:$/i.test(path) ? path  + _this.slash : path);
+            _this.getFiles(path[path.legnth - 1] === _this.slash ? path : path  + _this.slash);
         })
         .hover(function(){highlightPath(elemIndex)}, function(){highlightPath(-1)});
         
@@ -500,7 +498,7 @@ fileBrowser.prototype.findContent = function(value)
 
 fileBrowser.prototype.reloadFiles = function()
 {
-	removeChilds(this.fileCanvas)
+    removeChilds(this.fileCanvas);
 	
 	_(this.fileCanvas, [_div([this.pathWidget(), _br(), _t(_gtxt("Фильтр")), this.quickSearch()], [['dir','className','currentDir'],['css','color','#153069'],['css','fontSize','12px']])]);
 	
@@ -651,7 +649,7 @@ fileBrowser.prototype.drawFolders = function(arr)
 		
 		var tr = _tr([
             tdReturn, 
-            _td([_img(null, [['attr','src','img/folder.png'],['css','margin','0px 3px -3px 0px']]), this.createFolderActions(folders[i].Name)]), 
+            _td([_div(null, [['dir','className','fileCanvas-folder-icon']]), this.createFolderActions(folders[i].Name)]), 
             _td(), 
             _td([_t(_gtxt("Папка"))],[['css','textAlign','center'],['dir','className','invisible']]), 
             _td([_t(this.formatDate(folders[i].Date))],[['css','textAlign','center'],['dir','className','invisible']])
