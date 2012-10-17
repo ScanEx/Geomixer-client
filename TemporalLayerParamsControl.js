@@ -45,6 +45,9 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
         .append(
             $("<label></label>", {'for': 'timeLayer'}).text(_gtxt("Временнóй слой"))
         );
+        
+    if (paramsModel.getTemporal())
+        temporalCheckbox[0].checked = true;
     
     var temporalPeriods = [1, 4, 16, 64, 256, 1024, 4096];
     

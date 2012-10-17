@@ -3062,6 +3062,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
         ]);
         var temporalLayerParentTable = _div(null, [['dir', 'className', 'TemporalLayer']]);
         var temporalLayerParamsTable = new nsGmx.TemporalLayerParams();
+        temporalLayerParamsTable.setTemporal(div && div.gmxProperties.content.properties.Temporal);
         var temporalLayerViewTable = new nsGmx.TemporalLayerParamsControl(temporalLayerParentTable, temporalLayerParamsTable, []);
         
         var TableCSParent = _div();
@@ -3077,6 +3078,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
         var sourceTable = _div([tablePath, tableLink, TableCSParent, temporalLayerParentTable, tableColumnsParent], [['dir', 'id', 'tableSource' + properties.name]])
         
         var temporalLayerParamsManual = new nsGmx.TemporalLayerParams();
+        temporalLayerParamsTable.setTemporal(div && div.gmxProperties.content.properties.Temporal);
         var temporalLayerParentManual = _div(null, [['dir', 'className', 'TemporalLayer']]);
         var temporalLayerViewManual = new nsGmx.TemporalLayerParamsControl(temporalLayerParentManual, temporalLayerParamsManual, []);
         var sourceManual = _div([attrContainer, temporalLayerParentManual], [['dir', 'id', 'manualSource' + properties.name]])
