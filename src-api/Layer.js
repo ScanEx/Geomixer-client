@@ -124,6 +124,7 @@
 
 		gmxAPI._listeners.dispatchEvent('initFilter', gmxAPI.map, {'filter': filter} );	// Проверка map Listeners на reSetStyles - для балунов
 		prnt.filters[num] = filter;
+		gmxAPI.mapNodes[filter.objectId] = filter;
 		return filter;
 	}
 
