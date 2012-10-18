@@ -3,6 +3,20 @@
 	font-weight: bold;
 }
 
+.leaflet-canvas-icon {
+}
+
+.leaflet-marker-icon {
+	/*bottom: 0px;*/
+	-moz-text-shadow: 1px 1px 1px #FFFFFF;
+	-webkit-text-shadow: 1px 1px 1px #FFFFFF;
+	text-shadow: 1px 1px 1px #FFFFFF;
+	/* For IE 8 */
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=1, Direction=135, Color='#FFFFFF')";
+	/* For IE 5.5 - 7 */
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=1, Direction=135, Color='#FFFFFF'); 
+}
+
 /* required styles */
 .leaflet-map-pane,
 .leaflet-tile,
