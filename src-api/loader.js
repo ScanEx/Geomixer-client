@@ -25,7 +25,7 @@
     }
 
     function LABjsLoaded() {
-        var filesToLoad = [/*#buildinclude<api_files.txt>*/];
+        var filesToLoad = [/*#buildinclude<%%api_files%%>*/];
         
         var LABInstance = $LAB;
 
