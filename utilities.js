@@ -534,13 +534,24 @@ function sendJSONRequest(url, callback)
 	});
 }
 
+nsGmx.Utils.uniqueGlobalName = (function()
+{
+    var freeid = 0;
+    return function(thing)
+    {
+        var id = 'gmx_unique_' + freeid++;
+        window[id] = thing;
+        return id;
+    }
+})();
+
 function sendCrossDomainJSONRequest(url, callback, callbackParamName)
 {
 	callbackParamName = callbackParamName || 'CallbackName';
     
     var script = document.createElement("script");
 	script.setAttribute("charset", "UTF-8");
-	var callbackName = gmxAPI.uniqueGlobalName(function(obj)
+	var callbackName = nsGmx.Utils.uniqueGlobalName(function(obj)
 	{
 		callback && callback(obj);
 		window[callbackName] = false;
@@ -750,7 +761,7 @@ function loadFunc(iframe, callback)
 function createPostIframe(id, callback)
 {
 	var userAgent = navigator.userAgent.toLowerCase(),
-		callbackName = gmxAPI.uniqueGlobalName(function()
+		callbackName = nsGmx.Utils.uniqueGlobalName(function()
 		{
 			loadFunc(iframe, callback);
 		}),

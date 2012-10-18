@@ -375,12 +375,6 @@ WikiFilter.prototype = {
 	}
 }
 
-//Необходимо для того, чтобы дополнительные скрипты tiny_mce загружались
-window.tinyMCEPreInit = {
-	base: getAPIHostRoot() + '/api/plugins/tiny_mce',
-	suffix : '',
-	query : ''
-};      
 var _wikiFileBrowser = null;
 
 var tinyMCELoaded = false;
@@ -841,6 +835,13 @@ var publicInterface = {
 gmxCore.addModule("wiki", publicInterface, {init: function(module, path)
     {
         pluginPath = path;
+        
+        //Необходимо для того, чтобы дополнительные скрипты tiny_mce загружались
+        window.tinyMCEPreInit = {
+            base: path + 'tiny_mce',
+            suffix : '',
+            query : ''
+        };
     }
 });
 

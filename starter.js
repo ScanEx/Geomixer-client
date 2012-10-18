@@ -202,163 +202,154 @@ function createHeader()
 	_($$('flash'), [loading]);
 }
 
+var parseURLParams = function()
+{
+    var q = window.location.search,
+        kvp = (q.length > 1) ? q.substring(1).split("&") : [];
+
+    for (var i = 0; i < kvp.length; i++)
+    {
+        kvp[i] = kvp[i].split("=");
+    }
+    
+    var params = {},
+        givenMapName = false;
+        
+    for (var j=0; j < kvp.length; j++)
+    {
+        if (kvp[j].length == 1)
+        {
+            if (!givenMapName)
+                givenMapName = kvp[j][0];
+        }
+        else
+            params[kvp[j][0]] = kvp[j][1];
+    }
+    
+    return {params: params, givenMapName: givenMapName};
+}
+
 $(document).ready(function()
 {
-	var sessionLang = readCookie("language");
-	if (sessionLang)
-		window.language = sessionLang;
-	else
-		window.language = (typeof defaultLang != 'undefined') ? defaultLang : "rus";
-	
+    window.language = readCookie("language") || window.defaultLang || "rus";
 	if (window.language == "eng")
 		window.KOSMOSNIMKI_LANGUAGE = "English";
 	
-	window.shownTitle =  typeof pageTitle !== 'undefined' && pageTitle ? pageTitle : _gtxt('ScanEx Web Geomixer - просмотр карты');
+	window.shownTitle =  window.pageTitle || _gtxt('ScanEx Web Geomixer - просмотр карты');
 	document.title = window.shownTitle;
-	
-	createHeader();
-	
-	var upload = document.createElement("script");
-	upload.setAttribute("charset", "windows-1251");
-	upload.setAttribute("src", (window.mapHostName ? ("http://" + window.mapHostName + "/api/uploader.js") : parseUri(window.location.href).directory + "uploader.js"));
-	document.getElementsByTagName("head").item(0).appendChild(upload);
     
-    var params = [];
-    if (window.apiKey) params.push("key=" + window.apiKey);
-    if (window.gmxDropBrowserCache) params.push(Math.random());
-    var paramsString = "";
-    for (var p = 0; p < params.length; p++)
-        paramsString += (paramsString.length ? "&" : "?") + params[p];
+    window.serverBase = _serverBase;
     
-	var script = document.createElement("script");
-	script.setAttribute("charset", "windows-1251");
-	script.setAttribute(
-		"src", 
-		(window.mapHostName ? ("http://" + window.mapHostName + "/api/api.js") : parseUri(window.location.href).directory + "api.js") + paramsString
-	);
-	var interval = setInterval(function()
-	{
-		if (window.gmxAPI && window.gmxAPI.APILoaded)
-		{
-			clearInterval(interval);
-			parseReferences();
-		}
-	}, 200);
-	document.getElementsByTagName("head").item(0).appendChild(script);
-});
-
-function parseReferences()
-{
+    var parsedURL = parseURLParams();
+    
     nsGmx.pluginsManager = new (gmxCore.getModule('PluginsManager').PluginsManager)();
-    nsGmx.pluginsManager.addCallback( function()
+    nsGmx.pluginsManager.addCallback(function()
     {
         nsGmx.pluginsManager.beforeMap();
-        
-        window.documentHref = window.location.href.split("?")[0];
-        
-        var q = window.location.search,
-            kvp = (q.length > 1) ? q.substring(1).split("&") : [];
-        
-        for (var i = 0; i < kvp.length; i++)
+        createHeader();
+    
+        nsGmx.AuthManager.checkUserInfo(function()
         {
-            kvp[i] = kvp[i].split("=");
-        }
-
-        var params = {},
-            givenMapName = false;
-        
-        for (var j=0; j < kvp.length; j++)
-        {
-            if (kvp[j].length == 1)
+            var apiParams = [];
+            if (window.apiKey) apiParams.push("key=" + window.apiKey);
+            if (window.gmxDropBrowserCache) apiParams.push(Math.random());
+            var paramsString = "";
+            for (var p = 0; p < apiParams.length; p++)
+                paramsString += (paramsString.length ? "&" : "?") + apiParams[p];
+                
+            var apiFilename = parsedURL.params['apifile'] || (window.gmxUseLeaflet ? 'apil.js' : 'api.js');
+            
+            var script = document.createElement("script");
+            script.setAttribute("charset", "windows-1251");
+            script.setAttribute("src", _mapHostName + apiFilename + paramsString);
+            
+            var interval = setInterval(function()
             {
-                if (!givenMapName)
-                    givenMapName = kvp[j][0];
-            }
-            else
-                params[kvp[j][0]] = kvp[j][1];
-        }
-        
-        if (params["permalink"])
-        {
-            eraseCookie("TinyReference");
-            createCookie("TinyReference", params["permalink"]);
+                if (window.gmxAPI && window.gmxAPI.APILoaded)
+                {
+                    clearInterval(interval);
+                    parseReferences(parsedURL.params, parsedURL.givenMapName);
+                }
+            }, 200);
             
-            window.location.replace(documentHref + (givenMapName ? ("?" + givenMapName) : ""));
-            return;
-        }
-        
-        var defaultState = { isFullScreen: params["fullscreen"] == "true" || params["fullscreen"] == "false" ? params["fullscreen"] : "false" };
-        
-        if ("x" in params && "y" in params && "z" in params &&
-            !isNaN(Number(params.x)) && !isNaN(Number(params.y)) && !isNaN(Number(params.z)))
-            defaultState.position = {x: Number(params.x), y: Number(params.y), z: Number(params.z)}
-        
-        if ("mx" in params && "my" in params &&
-            !isNaN(Number(params.mx)) && !isNaN(Number(params.my)))
-            defaultState.marker = {mx: Number(params.mx), my: Number(params.my), mt: "mt" in params ? params.mt : false}
-        
-        if ("mode" in params)
-            defaultState.mode = params.mode;
-        
-        window.defaultMapID = typeof window.defaultMapID !== 'undefined' ? window.defaultMapID : 'DefaultMap';
-        
-        var mapName = window.defaultMapID && !givenMapName ? window.defaultMapID : givenMapName;
-        
-        window.globalMapName = mapName;
-        
-        if (!window.globalMapName)
+            document.getElementsByTagName("head").item(0).appendChild(script);
+        }, function()
         {
-            // нужно прописать дефолтную карту в конфиге
-            alert(_gtxt("$$phrase$$_1"))
-            
-            return;
-        }
-        else
-            checkUserInfo(defaultState);
+            //TODO: обработка ошибок
+        })
     })
+});
+
+function parseReferences(params, givenMapName)
+{
+    window.documentHref = window.location.href.split("?")[0];
+    
+    if (params["permalink"])
+    {
+        eraseCookie("TinyReference");
+        createCookie("TinyReference", params["permalink"]);
+        
+        window.location.replace(documentHref + (givenMapName ? ("?" + givenMapName) : ""));
+        return;
+    }
+    
+    var defaultState = { isFullScreen: params["fullscreen"] == "true" || params["fullscreen"] == "false" ? params["fullscreen"] : "false" };
+    
+    if ("x" in params && "y" in params && "z" in params &&
+        !isNaN(Number(params.x)) && !isNaN(Number(params.y)) && !isNaN(Number(params.z)))
+        defaultState.position = {x: Number(params.x), y: Number(params.y), z: Number(params.z)}
+    
+    if ("mx" in params && "my" in params &&
+        !isNaN(Number(params.mx)) && !isNaN(Number(params.my)))
+        defaultState.marker = {mx: Number(params.mx), my: Number(params.my), mt: "mt" in params ? params.mt : false}
+    
+    if ("mode" in params)
+        defaultState.mode = params.mode;
+    
+    window.defaultMapID = typeof window.defaultMapID !== 'undefined' ? window.defaultMapID : 'DefaultMap';
+    
+    var mapName = window.defaultMapID && !givenMapName ? window.defaultMapID : givenMapName;
+    
+    window.globalMapName = mapName;
+    
+    if (!window.globalMapName)
+    {
+        // нужно прописать дефолтную карту в конфиге
+        alert(_gtxt("$$phrase$$_1"))
+        
+        return;
+    }
+    else
+        checkUserInfo(defaultState);
 }
 
 function checkUserInfo(defaultState)
 {
-	var docUri = parseUri(window.location.href);
-	
-	if ( !window.serverBase )
-		window.serverBase = "http://" + getAPIHost() + "/";	
-		
-	window.documentBase = "http://" + docUri.host + docUri.directory;
+    var tinyRef = readCookie("TinyReference");
     
-    nsGmx.AuthManager.checkUserInfo(function()
+    if (tinyRef)
     {
-        var tinyRef = readCookie("TinyReference");
-		
-		if (tinyRef)
-		{
-			eraseCookie("TinyReference");
-			_mapHelper.restoreTinyReference(tinyRef, function(obj)
-			{
-                window.globalMapName = obj.mapName;
-				loadMap(obj);
-			}, function()
-			{
-				loadMap(defaultState); //если пермалинк какой-то не такой, просто открываем дефолтное состояние
-			});
-			
-			var tempPermalink = readCookie("TempPermalink");
-			
-			if (tempPermalink && tempPermalink == tinyRef)
-			{
-				sendCrossDomainJSONRequest(serverBase + "TinyReference/Delete.ashx?id=" + tempPermalink, function(response){});
-				
-				//eraseCookie("TinyReference");
-				eraseCookie("TempPermalink");
-			}
-		}
-		else
-			loadMap(defaultState);
-    }, function()
-    {
-        //TODO: обработка ошибок
-    })
+        eraseCookie("TinyReference");
+        _mapHelper.restoreTinyReference(tinyRef, function(obj)
+        {
+            window.globalMapName = obj.mapName;
+            loadMap(obj);
+        }, function()
+        {
+            loadMap(defaultState); //если пермалинк какой-то не такой, просто открываем дефолтное состояние
+        });
+        
+        var tempPermalink = readCookie("TempPermalink");
+        
+        if (tempPermalink && tempPermalink == tinyRef)
+        {
+            sendCrossDomainJSONRequest(serverBase + "TinyReference/Delete.ashx?id=" + tempPermalink, function(response){});
+            
+            eraseCookie("TempPermalink");
+        }
+    }
+    else
+        loadMap(defaultState);
 }
 
 nsGmx.widgets.commonCalendar = {
@@ -527,14 +518,11 @@ function loadMap(state)
         }
     }
 	
-	var mapCallback = function(map, data)
+    var success = createFlashMap($$("flash"), window.serverBase, globalMapName, function(map, data)
 	{
 		globalFlashMap = map;
 
         nsGmx.pluginsManager.beforeViewer();
-        
-        //var data = getLayers();
-        
         
         if (!data)
         {
@@ -789,9 +777,7 @@ function loadMap(state)
         $(_queryExternalMaps).bind('map_loaded', filterTemporalLayers);
         
         nsGmx.pluginsManager.afterViewer();
-	}
-
-	var success = createFlashMap($$("flash"), window.serverBase, globalMapName, mapCallback);
+	})
 	
 	if (!success)
 		$$("noflash").style.display = "block";

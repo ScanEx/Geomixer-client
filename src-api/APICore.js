@@ -1327,7 +1327,7 @@ window.gmxAPI = {
 		{
 			var src = scripts1[i].getAttribute("src");
 			var u = gmxAPI.parseUri(src);
-			if(u && /\bapi[\d\w]*\.js\b/.exec(src)) {
+			if(u && /\bapi\w*\.js\b/.exec(src)) {
 				return u;
 			}
 		}

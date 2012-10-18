@@ -1,23 +1,24 @@
 (function (global, oDOC, handler) {
 
-	var getScriptURL = function(scriptName)
+	var getScriptURLRegexp = function(scriptNameRegexp)
 	{
 		var scripts1 = document.getElementsByTagName("script");
 		for (var i = 0; i < scripts1.length; i++)
 		{
 			var src = scripts1[i].getAttribute("src");
-			if (src && (src.indexOf(scriptName) != -1))
-				return src;
+            var fileName = src && src.match(scriptNameRegexp)
+			if (fileName)
+				return [src, fileName];
 		}
 		return false;
 	}
-	var getScriptBase = function(scriptName)
+	var getScriptBase = function(scriptNameRegexp)
 	{
-		var url = getScriptURL(scriptName);
-		return url.substring(0, url.indexOf(scriptName));
+		var url = getScriptURLRegexp(scriptNameRegexp);
+		return url[0].substring(0, url[0].indexOf(url[1]));
 	}
     
-    var apiHost = getScriptBase("api.js");
+    var apiHost = getScriptBase(/\bapi\w*\.js\b/);
 
     var waitArgs = null;
     window.createFlashMap = function() {
