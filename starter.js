@@ -44,7 +44,18 @@ parseUri.options = {
 if (!window.mapHostName && window.gmxJSHost)
     window.mapHostName = /http:\/\/(.*)\/api\//.exec(window.gmxJSHost)[1];
     
-var _mapHostName = window.mapHostName ? "http://" + window.mapHostName + "/api/" : parseUri(window.location.href).directory;
+var _mapHostName; //откуда грузить API
+
+if (window.mapHostName)
+{
+    _mapHostName = "http://" + window.mapHostName + "/api/";
+}
+else
+{
+     var curUri = parseUri(window.location.href);
+     _mapHostName = "http://" + curUri.host + curUri.directory;
+}
+
 
 var _serverBase = window.serverBase || /(.*)\/[^\/]*\//.exec(_mapHostName)[1] + '/';
 
@@ -257,7 +268,15 @@ $(document).ready(function()
             for (var p = 0; p < apiParams.length; p++)
                 paramsString += (paramsString.length ? "&" : "?") + apiParams[p];
                 
-            var apiFilename = parsedURL.params['apifile'] || (window.gmxUseLeaflet ? 'apil.js' : 'api.js');
+            var apiFilename;
+            if (parsedURL.params['apifile'])
+            {
+                apiFilename = parsedURL.params['apifile'] + '.js'
+            }
+            else
+            {
+                apiFilename = window.gmxUseLeaflet ? 'apil.js' : 'api.js'
+            }
             
             var script = document.createElement("script");
             script.setAttribute("charset", "windows-1251");
