@@ -257,7 +257,7 @@
 			gmxAPI.baseLayersTools = baseLayersTools;
 			gmxAPI.map.addListener('baseLayerSelected', function(ph)
 				{
-					baseLayersTools.seActiveTool(ph);
+					baseLayersTools.setActiveTool(ph);
 				}
 			);
 

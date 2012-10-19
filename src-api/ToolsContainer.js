@@ -77,7 +77,7 @@
 		var tBody = gmxAPI.newElement("tbody", {}, {});
 		toolsContainer.appendChild(tBody);
 
-		var seActiveTool = function(toolName)
+		var setActiveTool = function(toolName)
 		{
 			for (var id in toolHash) {
 				var tool = toolHash[id];
@@ -88,7 +88,7 @@
 			activeToolName = toolName;
 			this.repaint();			
 		}
-		this.seActiveTool = seActiveTool;
+		this.setActiveTool = setActiveTool;
 		
 		var selectTool = function(toolName)
 		{
