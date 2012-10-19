@@ -310,6 +310,7 @@
 	}
 	
     gmxCore.addModule('WeatherPlugin', {
+        pluginName: 'Weather',
         weather: weather,
         isWindVisible: function()
         {

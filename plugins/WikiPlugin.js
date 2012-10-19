@@ -827,6 +827,7 @@ var addMenuItems = function(){
 }
  
 var publicInterface = {
+    pluginName: 'Wiki',
 	beforeViewer: beforeViewer,
 	afterViewer: afterViewer,
 	addMenuItems: addMenuItems

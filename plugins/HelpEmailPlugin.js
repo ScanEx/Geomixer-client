@@ -11,6 +11,7 @@ _translationsHash.addtext("eng", {
  */
  
 var publicInterface = {
+    pluginName: 'HelpEmail',
 	afterViewer: function(params)
 	{
 		var _params = $.extend({EMail: "help@kosmosnimki.ru", Message: {rus: "Что-то не работает - напишите нам в техническую поддержку!", eng: "Something works wrong? Write an e-mail to our support!"}}, params);

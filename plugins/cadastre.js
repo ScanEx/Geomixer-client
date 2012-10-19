@@ -149,6 +149,7 @@ var afterViewer = function(params){
 }
 
 var publicInterface = {
+    pluginName: 'Cadastre',
 	Cadastre: Cadastre,
 	afterViewer: afterViewer,
 	addMenuItems: addMenuItems
