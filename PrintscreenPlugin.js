@@ -125,6 +125,7 @@ var addMenuItems = function(upMenu){
 }
  
 var publicInterface = {
+    pluginName: 'PrintscreenPlugin',
 	beforeViewer: beforeViewer,
 	afterViewer: afterViewer,
 	addMenuItems: addMenuItems
