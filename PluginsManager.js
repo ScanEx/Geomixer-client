@@ -52,8 +52,8 @@ var PluginsManager = function()
                     _inUse:    !curPlugin.mapPlugin
                 };
 				
-                if (typeof curPlugin.pluginName !== 'undefined' )
-                    _pluginsWithName[ curPlugin.pluginName ] = plugin;
+                if (plugin.name)
+                    _pluginsWithName[ plugin.name ] = plugin;
                     
 				_plugins.push( plugin );
 			}
@@ -87,8 +87,8 @@ var PluginsManager = function()
                     _inUse:    !_loadingPluginsInfo[modules[m]].mapPlugin
                 };
                 
-                if ( typeof _loadingPluginsInfo[modules[m]].pluginName !== 'undefined' )
-                    _pluginsWithName[_loadingPluginsInfo[modules[m]].pluginName] = plugin;
+                if ( plugin.name )
+                    _pluginsWithName[plugin.name] = plugin;
                 
 				_plugins.push( plugin );
 			}
