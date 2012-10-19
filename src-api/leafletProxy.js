@@ -680,7 +680,7 @@ gmxAPI._leaflet['test'] = {'itemsHash': itemsHash, 'items': items};	// test
 	// setStyle для mapObject
 	function setStyle(id, attr)	{
 		var node = mapNodes[id];
-		if(!node) return false;
+		if(!node || !attr) return false;
 		if(attr.hoveredStyle) node.hoveredStyle = utils.parseStyle(attr.hoveredStyle);
 		if(attr.regularStyle) node.regularStyle = utils.parseStyle(attr.regularStyle);
 		if(node['type'] === 'filter') {			// Удаление фильтра векторного слоя

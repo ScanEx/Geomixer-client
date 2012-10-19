@@ -2193,6 +2193,11 @@ var alertedAboutAPIKey = false;
 
 function loadMapJSON(hostName, mapName, callback, onError)
 {
+	if(typeof(callback) !== 'function') {
+		gmxAPI.addDebugWarnings({'hostName': hostName, 'mapName': mapName, 'alert': 'loadMapJSON: bad callback function'});
+		if(typeof(onError) === 'function') onError();
+		return false;
+	}
 	//if(window.apikeyRequestHost) hostName = window.apikeyRequestHost;
 	if (hostName.indexOf("http://") == 0)
 		hostName = hostName.slice(7);
@@ -2202,7 +2207,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 	//относительный путь в загружаемой карте
 	if (hostName.charAt(0) == '/')
 		hostName = getAPIHost() + hostName;
-	
+
 	var configFlag = false;
 	if (!gmxAPI.getScriptURL("config.js")) {
 		gmxAPI.loadVariableFromScript(
