@@ -1,5 +1,9 @@
 ﻿var globalFlashMap;
 
+/**
+    Основное пространство имён ГеоМиксера
+    @namespace
+*/
 var nsGmx = nsGmx || {};
 nsGmx.widgets = nsGmx.widgets || {};
 

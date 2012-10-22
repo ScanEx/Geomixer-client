@@ -3,8 +3,7 @@
 $.getCSS((window.gmxJSHost || "") + "plugins/cadastre.css");
 
 /** 
-* @name Cadastre
-* @namespace Загружает кадастровые данные
+* @namespace Cadastre
 * @description Загружает кадастровые данные
 */
 (function($){

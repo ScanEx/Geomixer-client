@@ -1,6 +1,5 @@
-/** 
-* @name DrawingObjects
-* @namespace SDK для редактирования объектов на карте
+/**
+* @namespace DrawingObjects
 * @description SDK для редактирования объектов на карте
 */
 (function($){

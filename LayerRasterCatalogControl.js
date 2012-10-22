@@ -1,9 +1,4 @@
 ﻿!function($){
-    /**
-    Контрол для задания параметров каталогов растров
-    @namespace nsGmx
-    @class
-    */
     _translationsHash.addtext("rus", {
         "LayerRCControl.minZoom"         : "Мин. зум",
         "LayerRCControl.titleTemplate"   : "Шаблон имени",
@@ -22,6 +17,11 @@
         "LayerRCControl.attributeTitle"  : "Object Attribute"
     });
 
+    /**
+    Контрол для задания параметров каталогов растров
+    @memberOf nsGmx
+    @class
+    */
     nsGmx.LayerRasterCatalogControl = function(container, rcProperties, params)
     {
         rcProperties = rcProperties || {};

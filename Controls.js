@@ -1,5 +1,6 @@
 ﻿/**
-    @namespace Разнообразные вспомогательные контролы (базовые элементы GUI)
+    @namespace nsGmx.Controls
+    @description Разнообразные вспомогательные контролы (базовые элементы GUI)
 */
 nsGmx.Controls = {
 

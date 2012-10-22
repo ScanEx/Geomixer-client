@@ -2,8 +2,7 @@
 //						стили: jquery, jquery-ui, search.css, treeview.css, buttons.css
 
 /** 
-* @name Search
-* @namespace Содержит необходимое для поиска
+* @namespace Search
 * @description Содержит необходимое для поиска
 */
 (function($){
@@ -43,7 +42,7 @@ var Functions = {
 	 @param oFoundObject найденный объект
 	 @param sObjectsSeparator разделитель между дочерним элементом и родителем в строке пути
 	 @param bParentAfter признак того, что родительский элемент идет после дочернего
-	 @param sObjNameField название свойства, из которого брать наименование*/	
+	 @param sObjNameField название свойства, из которого брать наименование*/
 	GetPath: function(/**object*/ oFoundObject,/** string */ sObjectsSeparator, /** bool */ bParentAfter, /** string */ sObjNameField){
 		if (sObjNameField == null) sObjNameField = "ObjName";
 		if (oFoundObject == null) return "";

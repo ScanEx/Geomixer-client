@@ -8,8 +8,8 @@ var userObjects = function()
     var _collectors = {};
     
     /**
-	 @method
      Устанавливает данные, которые потом могут быть использованы поставщиками данных
+	 @method
     */
     this.setData = function(data)
     {
@@ -17,8 +17,8 @@ var userObjects = function()
     }
     
     /**
-	 @method
      Возвращает собранные данные
+	 @method
     */
     this.getData = function()
     {
@@ -26,8 +26,8 @@ var userObjects = function()
     }
     
 	/**
-	 @method
 	 Собирает данные со всех сборщиков данных. Собранные данные доступны через метод getData
+	 @method
 	*/
     this.collect = function()
     {
@@ -42,8 +42,8 @@ var userObjects = function()
     }
     
     /**
-	 @method
 	 Вызывает метод load() у всех поставщиков данных, для которых есть данные.
+	 @method
 	*/
     this.load = function()
     {
@@ -53,8 +53,8 @@ var userObjects = function()
     }
     
     /**
-	 @method
 	 Добавляет новый сборщик данных. Если в момент добавления есть какие-нибудь данные для загрузчика, они будут ему сразу же переданы
+	 @method
      @param collectorId {String} - уникальный идентификатор сборщика данных
      @param collector {Object} - сборщик данных. Должен иметь следующие методы:<br/>
          collect()->Object - возвращает собранные данные. Если данных нет, нужно вернуть null

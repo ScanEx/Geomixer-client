@@ -1,7 +1,6 @@
 ﻿(function(){
 
 /** Менеджер плагинов. Загружает плагины из конфигурационного файла
- @memberOf PluginsManager
  @class PluginsManager
   Загрузка плагинов происходит из массива window.gmxPlugins. 
   Каждый элемент этого массива - объект со следующими свойствами: <br/>
@@ -119,8 +118,8 @@ var PluginsManager = function()
 	//interface
 	
 	/**
-	 @method
 	 Вызывет callback когда будут загружены все плагины
+	 @method
 	*/
 	this.addCallback = function( callback )
 	{
@@ -131,27 +130,27 @@ var PluginsManager = function()
 	}
     
 	/**
-	 @method
 	 Вызывает beforeMap() у всех плагинов
+	 @method
 	*/
 	this.beforeMap = _genIterativeFunction('beforeMap');
 	
 	/**
-	 @method
 	 Вызывает beforeViewer() у всех плагинов
+	 @method
 	*/
 	this.beforeViewer = _genIterativeFunction('beforeViewer');
 	
 	/**
-	 @method
 	 Вызывает afterViewer() у всех плагинов
+	 @method
 	*/
 	this.afterViewer = _genIterativeFunction('afterViewer');
 	
 	/**
-	 @method
 	 Добавляет пункты меню всех плагинов к меню upMenu
      Устарело! Используйте непосредственное добавление элемента к меню из afterViewer()
+	 @method
 	*/
 	this.addMenuItems = function( upMenu )
 	{
@@ -165,8 +164,8 @@ var PluginsManager = function()
 	};
     
     /**
-	 @method
 	 Вызывает callback(plugin) для каждого плагина
+	 @method
 	*/
     this.forEachPlugin = function(callback)
     {
@@ -176,8 +175,8 @@ var PluginsManager = function()
     }
     
     /**
-	 @method
 	 Задаёт, нужно ли в дальнейшем использовать данный плагин
+	 @method
 	*/    
     this.setUsePlugin = function(pluginName, isInUse)
     {
@@ -191,8 +190,8 @@ var PluginsManager = function()
     }
     
     /**
-	 @method
 	 Проверка публичности плагина (можно ли его показывать в различных списках с перечислением подключенных плагинов)
+	 @method
 	*/
     this.isPublic = function(pluginName)
     {

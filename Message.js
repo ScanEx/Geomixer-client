@@ -1,6 +1,5 @@
 ﻿/** 
-* @name Message
-* @namespace SDK для сообщений на карте
+* @namespace Message
 * @description SDK для сообщений на карте
 */
 (function($){

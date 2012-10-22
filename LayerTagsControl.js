@@ -2,7 +2,7 @@
 {
     /**
     Хранит информацию о тегах: типы и описание
-    @namespace nsGmx
+    @memberOf nsGmx
     @class
     @param {Object} initTagsInfo - описание тегов вида tagName: {Type: , Description: }
     */
@@ -70,7 +70,7 @@
     
     /**
         Набор тегов слоя
-        @namespace nsGmx
+        @memberOf nsGmx
         @class
     */
     var LayerTags = function(tagMetaInfo, initTags)
@@ -200,7 +200,7 @@
 
     /**
         Контрол для задания набора тегов (например, для слоя)
-        @namespace nsGmx
+        @memberOf nsGmx
         @class
     */
     var LayerTagSearchControl = function(layerTags, container, params)
