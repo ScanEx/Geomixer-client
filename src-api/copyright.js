@@ -99,6 +99,7 @@
 		map.updateCopyright = function()
 		{
 			var currPos = gmxAPI.currPosition || map.getPosition();
+			if(!currPos['latlng']) return;
 			var x = currPos['latlng']['x'];
 			var y = currPos['latlng']['y'];
 			var texts = {};

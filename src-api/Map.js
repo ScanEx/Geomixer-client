@@ -343,6 +343,7 @@
 				this.setVisible(false);
 			}
 */
+			this.isBaseLayer = true;
 			if(gmxAPI.baseLayersTools)
 				gmxAPI.baseLayersTools.chkBaseLayerTool(name, attr);
 		});
