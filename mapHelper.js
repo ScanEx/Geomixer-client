@@ -3476,7 +3476,7 @@ mapHelper.prototype._createLayerEditorPropertiesWithTags = function(div, type, p
                 }
 				
 				var temporalLayerParams = selectedSource == 1 ? temporalLayerParamsTable : temporalLayerParamsManual;
-				if ( temporalLayerParams.getTemporal() )
+				if ( !div && temporalLayerParams.getTemporal() )
 					temporalParams = '&TemporalLayer=true&TemporalColumnName=' + encodeURIComponent(temporalLayerParams.getColumnName()) + '&TemporalPeriods=' + encodeURIComponent(temporalLayerParams.getPeriodString());
 				
 				if (colXElem.length && colYElem.length)
