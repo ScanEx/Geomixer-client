@@ -1,25 +1,57 @@
 ﻿(function(){
 
+/**
+  @name IGeomixerPlugin
+  @desc Интерфейс плагинов ГеоМиксера
+  @class
+  @abstract
+  @property {String} pluginName Имя плагина для списка плагинов
+*/
+
+/**
+  @memberOf IGeomixerPlugin
+  @method
+  @name beforeMap
+  @desc Вызывется сразу после загрузки всех модулей ядра вьюера (до инициализации карты, проверки пользователя и т.п.)
+  @param {Object} params Параметры плагина
+*/
+
+/**
+  @memberOf IGeomixerPlugin
+  @method
+  @name beforeViewer
+  @desc вызовется до начала инициализации ГеоМиксера, но сразу после инициализации карты
+  @param {Object} params Параметры плагина
+  @param {gmxAPI.Map} map Основная карта
+*/
+
+/**
+  @memberOf IGeomixerPlugin
+  @method
+  @name afterViewer
+  @desc вызовется после окончания инициализации ГеоМиксера
+  @param {Object} params Параметры плагина
+  @param {gmxAPI.Map} map Основная карта
+*/
+
 /** Менеджер плагинов. Загружает плагины из конфигурационного файла
- @class PluginsManager
-  Загрузка плагинов происходит из массива window.gmxPlugins. 
-  Каждый элемент этого массива - объект со следующими свойствами: <br/>
-    * module (имя модуля) <br/>
-	* file (из какого файла подгружать модуль, может отсутствовать). Только если указано module <br/>
-    * plugin (сам плагин). Если указано, плагин подгружается в явном виде, иначе используется module (и file)<br/>
-	* params - объект параметров, будет передаваться в методы модуля
-    * pluginName - имя плагина. Должно быть по возможности уникальным
-    * mapPlugin {bool, default: true} - является ли плагин плагином карт. Если является, то не будет грузиться по умолчанию.
-    * isPublic {bool, default: false} - нужно ли показывать плагин в списках плагинов (для некоторых плагинов хочется иметь возможность подключать их к картам, но не показывать всем пользователям)
-  Если очередной элемент массива просто строка (например, "name"), то это эквивалентно {module: "name", file: "plugins/name.js"}
-  Каждый плагин хранится в отдельном модуле (через свойство module) или подгружается в явном виде (через свойство plugin). В модуле могут быть определены следующие методы и свойства:<br/>
-  * pluginName {string} - имя плагина. Используется если в описании плагина в config.js не указано имя<br/>
-  * beforeMap {function(params)} - вызовется сразу после загрузки всех модулей ядра вьюера (до инициализации карты, проверки пользователя и т.п.)<br/>
-  * beforeViewer {function(params, map)} - вызовется до начала инициализации вьюера (сразу после инициализации карты)<br/>
-  * afterViewer{function(params, map)} - вызовется после инициализации вьюера<br/>
-  * addMenuItems - должен вернуть вектор из пунктов меню, которые плагин хочет добавить.
-                   Формат каждого элемента вектора: item - описание меню (см Menu.addElem()), parentID: id меню родителя (1 или 2 уровня)
-                   Устарело! Используйте непосредственное добавление элемента к меню из afterViewer()
+*
+* Загрузка плагинов происходит из массива window.gmxPlugins. 
+*
+* Каждый элемент этого массива - объект со следующими свойствами:
+*
+*   * module (имя модуля)
+*   * file (из какого файла подгружать модуль, может отсутствовать). Только если указано module
+*   * plugin (сам плагин). Если указано, плагин подгружается в явном виде, иначе используется module (и file)
+*   * params - объект параметров, будет передаваться в методы модуля
+*   * pluginName - имя плагина. Должно быть уникальным. Заменяет IGeomixerPlugin.pluginName. Не рекомендуется использовать без особых причин
+*   * mapPlugin {bool, default: true} - является ли плагин плагином карт. Если является, то не будет грузиться по умолчанию.
+*   * isPublic {bool, default: false} - нужно ли показывать плагин в списках плагинов (для некоторых плагинов хочется иметь возможность подключать их к картам, но не показывать всем пользователям)
+*
+* Если очередной элемент массива просто строка (например, "name"), то это эквивалентно {module: "name", file: "plugins/name.js"}
+*
+* Каждый плагин хранится в отдельном модуле (через свойство module) или подгружается в явном виде (через свойство plugin). Модуль должен реализовывать интерфейс IGeomixerPlugin.
+*  @class PluginsManager
 */
 var PluginsManager = function()
 {
@@ -119,7 +151,10 @@ var PluginsManager = function()
 	
 	/**
 	 Вызывет callback когда будут загружены все плагины
-	 @method
+	 @memberOf PluginsManager
+     @name addCallback
+     @method
+     @param {Function} callback Ф-ция, которую нужно будет вызвать
 	*/
 	this.addCallback = function( callback )
 	{
@@ -131,18 +166,24 @@ var PluginsManager = function()
     
 	/**
 	 Вызывает beforeMap() у всех плагинов
-	 @method
+	 @memberOf PluginsManager
+     @name beforeMap
+     @method
 	*/
 	this.beforeMap = _genIterativeFunction('beforeMap');
 	
 	/**
 	 Вызывает beforeViewer() у всех плагинов
+     @memberOf PluginsManager
+     @name beforeViewer
 	 @method
 	*/
 	this.beforeViewer = _genIterativeFunction('beforeViewer');
 	
 	/**
 	 Вызывает afterViewer() у всех плагинов
+     @memberOf PluginsManager
+     @name afterViewer
 	 @method
 	*/
 	this.afterViewer = _genIterativeFunction('afterViewer');
@@ -151,6 +192,7 @@ var PluginsManager = function()
 	 Добавляет пункты меню всех плагинов к меню upMenu
      Устарело! Используйте непосредственное добавление элемента к меню из afterViewer()
 	 @method
+     @ignore
 	*/
 	this.addMenuItems = function( upMenu )
 	{
@@ -165,7 +207,10 @@ var PluginsManager = function()
     
     /**
 	 Вызывает callback(plugin) для каждого плагина
+     @memberOf PluginsManager
+     @name forEachPlugin
 	 @method
+     @param {Function} callback Ф-ция для итерирования. Первый аргумент ф-ции - модуль плагина.
 	*/
     this.forEachPlugin = function(callback)
     {
@@ -176,14 +221,26 @@ var PluginsManager = function()
     
     /**
 	 Задаёт, нужно ли в дальнейшем использовать данный плагин
+     @memberOf PluginsManager
+     @name setUsePlugin
 	 @method
-	*/    
+     @param {String} pluginName Имя плагина
+     @param {Bool} isInUse Использовать ли его для карты
+	*/
     this.setUsePlugin = function(pluginName, isInUse)
     {
         if (pluginName in _pluginsWithName)
             _pluginsWithName[pluginName]._inUse = isInUse;
     }
     
+    /**
+	 Получить плагин по имени
+     @memberOf PluginsManager
+     @name getPluginByName
+	 @method
+     @param {String} pluginName Имя плагина
+     @returns {IGeomixerPlugin} Модуль плагина, ничего не возвращает, если плагина нет
+	*/
     this.getPluginByName = function(pluginName)
     {
         return _pluginsWithName[pluginName];
@@ -191,7 +248,11 @@ var PluginsManager = function()
     
     /**
 	 Проверка публичности плагина (можно ли его показывать в различных списках с перечислением подключенных плагинов)
+     @memberOf PluginsManager
+     @name isPublic
 	 @method
+     @param {String} pluginName Имя плагина
+     @returns {Bool} Является ли плагин публичным
 	*/
     this.isPublic = function(pluginName)
     {
