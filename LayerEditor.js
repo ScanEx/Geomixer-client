@@ -64,9 +64,12 @@ var selectColumns = function(parent, params)
 
 var createLayerEditorProperties = function(div, type, parent, properties, treeView, params)
 {
-    var _createLayerEditorPropertiesWithTags = function(div, type, parent, properties, tagsInfo, params)
+    nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
     {
+        if (!tagsInfo) return;
+        
         var _params = $.extend({addToMap: true, doneCallback: null}, params);
+        var divProperties = div ? div.gmxProperties.content.properties : {};
         var getFileExt = function(path)
         {
             return String(path).substr(String(path).lastIndexOf('.') + 1, path.length);
@@ -74,7 +77,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
         
         var _this = this;
 
-        var title = _input(null,[['attr','fieldName','title'],['attr','value',div ? (div.gmxProperties.content.properties.title ? div.gmxProperties.content.properties.title : '') :  (typeof properties.Title != 'undefined' ? properties.Title : '')],['dir','className','inputStyle'],['css','width','220px']])
+        var title = _input(null,[['attr','fieldName','title'],['attr','value',div ? (divProperties.title || '') : (properties.Title || '')],['dir','className','inputStyle'],['css','width','220px']])
         title.onkeyup = function()
         {
             if (div)
@@ -85,44 +88,44 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 
                 _(span, [_t(title.value)]);
 
-                div.gmxProperties.content.properties.title = title.value;
+                divProperties.title = title.value;
                 
-                treeView.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+                treeView.findTreeElem(div).elem.content.properties = divProperties;
             }
             
             return true;
         }
         
-        var copyright = _input(null,[['attr','fieldName','copyright'],['attr','value',div ? (div.gmxProperties.content.properties.Copyright ? div.gmxProperties.content.properties.Copyright : '') : (typeof properties.Copyright != 'undefined' ? properties.Copyright : '')],['dir','className','inputStyle'],['css','width','220px']])
+        var copyright = _input(null,[['attr','fieldName','copyright'],['attr','value',div ? (divProperties.Copyright || '') : (properties.Copyright || '')],['dir','className','inputStyle'],['css','width','220px']])
         copyright.onkeyup = function()
         {
             if (div)
             {
-                globalFlashMap.layers[div.gmxProperties.content.properties.name].setCopyright(copyright.value);
+                globalFlashMap.layers[divProperties.name].setCopyright(copyright.value);
                 
-                div.gmxProperties.content.properties.Copyright = copyright.value;
+                divProperties.Copyright = copyright.value;
                 
-                treeView.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+                treeView.findTreeElem(div).elem.content.properties = divProperties;
             }
             
             return true;
         }
         
-        var legend = _input(null,[['attr','fieldName','Legend'],['attr','value',div ? (div.gmxProperties.content.properties.Legend ? div.gmxProperties.content.properties.Legend : '') : (typeof properties.Legend != 'undefined' ? properties.Legend : '')],['dir','className','inputStyle'],['css','width','220px']])
+        var legend = _input(null,[['attr','fieldName','Legend'],['attr','value',div ? (divProperties.Legend || '') : (properties.Legend || '')],['dir','className','inputStyle'],['css','width','220px']])
         legend.onkeyup = function()
         {
             if (div)
             {
-                div.gmxProperties.content.properties.Legend = legend.value;
+                divProperties.Legend = legend.value;
                 
-                treeView.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+                treeView.findTreeElem(div).elem.content.properties = divProperties;
             }
             
             return true;
         }
         
         var descr = _textarea(null,[['attr','fieldName','description'],['dir','className','inputStyle'],['css','width','220px'],['css','height','50px']]);
-        descr.value = div ? (div.gmxProperties.content.properties.description ? div.gmxProperties.content.properties.description : '') : (properties.Description != null ? properties.Description : '');
+        descr.value = div ? (divProperties.description || '') : (properties.Description || '');
         
         descr.onkeyup = function()
         {
@@ -134,9 +137,9 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 
                 span.innerHTML = descr.value;
 
-                div.gmxProperties.content.properties.description = descr.value;
+                divProperties.description = descr.value;
                 
-                treeView.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+                treeView.findTreeElem(div).elem.content.properties = divProperties;
             }
             
             return true;
@@ -182,8 +185,6 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             var shapePath = _input(null,[['attr','fieldName','ShapePath.Path'],['attr','value',!properties.ShapePath ? properties.GeometryTable.TableName : properties.ShapePath.Path],['dir','className','inputStyle'],['css','width', '200px']]),
                 shapeFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
                 tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
-                // trPath = _tr([_td([_t(_gtxt("Файл")), shapeFileLink, _br(), _t(_gtxt("Таблица")), tableLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
-                              // _td([shapePath, columnsParent, encodingParent])]),
                 tilePath = _div([_t(typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')],[['css','marginLeft','3px'],['css','width','220px'],['css','whiteSpace','nowrap'],['css','overflowX','hidden']]),
                 trTiles = _tr([_td([_t(_gtxt("Каталог с тайлами"))],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
                               _td([tilePath])]),
@@ -281,7 +282,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                         
             // shownProperties.push({tr:trTimeLayer});
             
-            var boxSearch = _checkbox(div ? (div.gmxProperties.content.properties.AllowSearch ? div.gmxProperties.content.properties.AllowSearch : false) : (typeof properties.AllowSearch != 'undefined' ? properties.AllowSearch : false), 'checkbox');
+            var boxSearch = _checkbox(div ? (divProperties.AllowSearch || false) : ( properties.AllowSearch || false ), 'checkbox');
             boxSearch.setAttribute('fieldName', 'AllowSearch');
 
             boxSearch.className = 'box';
@@ -294,9 +295,9 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             {
                 if (div)
                 {
-                    div.gmxProperties.content.properties.AllowSearch = this.checked;
+                    divProperties.AllowSearch = this.checked;
                     
-                    treeView.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+                    treeView.findTreeElem(div).elem.content.properties = divProperties;
                 }
                 
                 return true;
@@ -507,9 +508,17 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 ['dir','className','inputStyle'],
                 ['css','width', '200px']
             ]);
+            
+            var initTemporalParams = {isTemporal : !!div && divProperties.Temporal};
+            if (initTemporalParams.isTemporal)
+            {
+                initTemporalParams.minPeriod = divProperties.TemporalPeriods[0];
+                initTemporalParams.maxPeriod = divProperties.TemporalPeriods[divProperties.TemporalPeriods.length-1];
+                initTemporalParams.columnName = divProperties.TemporalColumnName;
+            }
+            
             var temporalLayerParentTable = _div(null, [['dir', 'className', 'TemporalLayer']]);
-            var temporalLayerParamsTable = new nsGmx.TemporalLayerParams();
-            temporalLayerParamsTable.setTemporal(div && div.gmxProperties.content.properties.Temporal);
+            var temporalLayerParamsTable = new nsGmx.TemporalLayerParams(initTemporalParams);
             var temporalLayerViewTable = new nsGmx.TemporalLayerParamsControl(temporalLayerParentTable, temporalLayerParamsTable, []);
             
             var TableCSParent = _div();
@@ -524,8 +533,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             
             var sourceTable = _div([tablePath, tableLink, TableCSParent, temporalLayerParentTable, tableColumnsParent], [['dir', 'id', 'tableSource' + properties.name]])
             
-            var temporalLayerParamsManual = new nsGmx.TemporalLayerParams();
-            temporalLayerParamsTable.setTemporal(div && div.gmxProperties.content.properties.Temporal);
+            var temporalLayerParamsManual = new nsGmx.TemporalLayerParams(initTemporalParams);
             var temporalLayerParentManual = _div(null, [['dir', 'className', 'TemporalLayer']]);
             var temporalLayerViewManual = new nsGmx.TemporalLayerParamsControl(temporalLayerParentManual, temporalLayerParamsManual, []);
             var sourceManual = _div([attrContainer, temporalLayerParentManual], [['dir', 'id', 'manualSource' + properties.name]])
@@ -545,8 +553,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             
             var sourceTr;
             if (!div)
-            {            
-                // _(sourceTab2[0], sourceContainers);
+            {
                 _(sourceTab, sourceContainers);
                 selectedSource = 0;
                 $(sourceTab).tabs({
@@ -557,8 +564,6 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                     }
                 });
                 _(sourceTab2[0], [sourceTab]);
-                // sourceTr = _tr([_td([sourceTab], [['dir', 'id', 'layerSource'], ['dir', 'colSpan', 2]])]);
-                // shownProperties.push({tr: sourceTr});
             }
             else
             {
@@ -787,7 +792,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
         if (type === "Vector")
         {
             var rcProperties;
-            if (div && div.gmxProperties.content.properties.IsRasterCatalog)
+            if (div && divProperties.IsRasterCatalog)
             {
                 rcProperties = {
                     IsRasterCatalog: true,
@@ -796,12 +801,8 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                     RCMaskForRasterTitle: properties.RCMaskForRasterTitle,
                     ColumnTagLinks: properties.ColumnTagLinks
                 }
-                // RCCheckbox.attr('checked', 'checked');
-                // updateRCControls();
             }
             var rasterCatalogControl = new nsGmx.LayerRasterCatalogControl(rasterCatalogDiv, rcProperties);
-            // RDCollapsableWidget.addManagedElements([$('#RCMaskForRasterTitle', parent), $('#RCMaskForRasterPath', parent)]);
-            // updateRCControls();
         }
         
         // смотрим, а не выполняются ли для этого слоя задачи
@@ -809,7 +810,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
         if (div)
         {
             for (var id in _mapHelper.asyncTasks)
-                if (_mapHelper.asyncTasks[id] == div.gmxProperties.content.properties.name)
+                if (_mapHelper.asyncTasks[id] == divProperties.name)
                 {
                     haveTask = true;
                     
@@ -891,15 +892,18 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                     }
                     
                     var temporalLayerParams = selectedSource == 1 ? temporalLayerParamsTable : temporalLayerParamsManual;
-                    if ( !div && temporalLayerParams.getTemporal() )
+                    
+                    if ( temporalLayerParams.getTemporal() )
                         temporalParams = '&TemporalLayer=true&TemporalColumnName=' + encodeURIComponent(temporalLayerParams.getColumnName()) + '&TemporalPeriods=' + encodeURIComponent(temporalLayerParams.getPeriodString());
+                    else
+                        temporalParams = '&TemporalLayer=false';
                     
                     if (colXElem.length && colYElem.length)
                         cols = '&ColY=' + encodeURIComponent(colYElem[0].value) + '&ColX=' + encodeURIComponent(colXElem[0].value);
                     
                     if (div)
                     {
-                        updateParams = '&VectorLayerID=' + div.gmxProperties.content.properties.LayerID;
+                        updateParams = '&VectorLayerID=' + divProperties.LayerID;
                     }
                     
                     if (isCustomAttributes)
@@ -926,20 +930,23 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                                 if (!parseResponse(response))
                                         return;
                                 
-                                var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
-                                var gmxProperties = {type: 'layer', content: response.Result};
-                                gmxProperties.content.properties.mapName = mapProperties.name;
-                                gmxProperties.content.properties.hostName = mapProperties.hostName;
-                                gmxProperties.content.properties.visible = true;
+                                if (_params.addToMap)
+                                {
+                                    var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
+                                    var gmxProperties = {type: 'layer', content: response.Result};
+                                    gmxProperties.content.properties.mapName = mapProperties.name;
+                                    gmxProperties.content.properties.hostName = mapProperties.hostName;
+                                    gmxProperties.content.properties.visible = true;
+                                    
+                                    gmxProperties.content.properties.styles = [{
+                                        MinZoom: gmxProperties.content.properties.MinZoom, 
+                                        MaxZoom:21, 
+                                        RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
+                                    }];
                                 
-                                gmxProperties.content.properties.styles = [{
-                                    MinZoom: gmxProperties.content.properties.MinZoom, 
-                                    MaxZoom:21, 
-                                    RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
-                                }];
-                                
-                                _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
-                                
+                                    _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+                                }
+                                    
                                 //реализует интерфейс AsyncTask
                                 //TODO: test me!
                                 var taskResult = {Result: response.Result, Completed: true};
@@ -968,7 +975,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                                     return;
                             
                                 
-                                var task = nsGmx.asyncTaskManager.addTask(response.Result, div ? div.gmxProperties.content.properties.name : null);
+                                var task = nsGmx.asyncTaskManager.addTask(response.Result, div ? divProperties.name : null);
                                 
                                 
                                 if (div)
@@ -1005,7 +1012,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                     
                     if (div)
                     {
-                        params["RasterLayerID"] = div.gmxProperties.content.properties.LayerID;
+                        params["RasterLayerID"] = divProperties.LayerID;
                         
                         var oldShapePath = properties.ShapePath.Path,
                             oldTilePath = properties.TilePath.Path,
@@ -1027,7 +1034,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                             if (!parseResponse(response))
                                 return;
                         
-                            var task = nsGmx.asyncTaskManager.addTask(response.Result, div ? div.gmxProperties.content.properties.name : null);
+                            var task = nsGmx.asyncTaskManager.addTask(response.Result, div ? divProperties.name : null);
                             
                             if (div)
                             {
@@ -1049,12 +1056,6 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
         
         if (!div)
             title.focus();
-    }
-    
-    nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
-    {
-        if (tagsInfo)
-            _createLayerEditorPropertiesWithTags(div, type, parent, properties, tagsInfo, params);
     })
 }
 

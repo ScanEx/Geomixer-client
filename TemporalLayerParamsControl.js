@@ -1,12 +1,20 @@
 (function(){
 
-nsGmx.TemporalLayerParams = function()
+/** Параметры мультивременного слоя, связанные со временем
+  @param {Object} [initParams] Начальные параметры
+  @param {Integer} [initParams.minPeriod=1] Минимальный период создания тайлов
+  @param {Integer} [initParams.maxPeriod=1] Максимальный период создания тайлов
+  @param {Integer} [initParams.columnName=null]  Название мультивременной колонки
+  @param {Integer} [initParams.isTemporal=false] Является ли слой мультивременным
+*/
+nsGmx.TemporalLayerParams = function(initParams)
 {
+    initParams = initParams || {};
     var PERIOD_STEP = 4;
-    var _minPeriod = 1;
-    var _maxPeriod = 1;
-    var _columnName = null;
-    var _isTemporal = false;
+    var _minPeriod = initParams.minPeriod || 1;
+    var _maxPeriod = initParams.maxPeriod || 1;
+    var _columnName = initParams.columnName || null;
+    var _isTemporal = initParams.isTemporal || false;
     
     this.setPeriods = function(minPeriod, maxPeriod) { _minPeriod = minPeriod; _maxPeriod = maxPeriod; }
     this.setColumnName = function(name) { _columnName = name; }
@@ -24,7 +32,6 @@ nsGmx.TemporalLayerParams = function()
     }
     this.setTemporal = function(isTemporal) { _isTemporal = isTemporal; }
     this.getTemporal = function() { return _isTemporal; }
-    
 };
 
 nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
@@ -37,7 +44,7 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
         propertiesTable.css('display', this.checked ? '' : 'none');
     });
     
-    if (_columns.length ==0)
+    if (_columns.length == 0)
         temporalCheckbox.attr('disabled', 'disabled');
     
     $(parentDiv)
