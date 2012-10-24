@@ -498,7 +498,7 @@ var AddImageControl = function(map, layerName)
         var initNewLayerCanvas = function()
         {
             $(newLayerCanvas).empty();
-            _mapHelper.createLayerEditorProperties(false, 'Raster', newLayerCanvas, properties, 
+            nsGmx.createLayerEditorProperties(false, 'Raster', newLayerCanvas, properties, 
                 {
                     addToMap: false, 
                     doneCallback: function(task)

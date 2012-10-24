@@ -1045,7 +1045,7 @@ var FireSpotClusterProvider = (function(){
 	{
 		var _params = $.extend({
 			host: 'http://sender.kosmosnimki.ru/',
-			requestType: 'GetClustersPointsBBoxV2',
+			requestType: 'GetGlobalClustersPointsBBoxV2',
 			onlyPoints: false, 
 			onlyClusters: false, 
 			description: "firesWidget.FireSpotClusters.Description"

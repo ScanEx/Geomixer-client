@@ -291,7 +291,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 			div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + context.elem.LayerID + "']")[0];
 		else
 			div = $(_queryMapLayers.buildedTree).find("div[MultiLayerID='" + context.elem.MultiLayerID + "']")[0];
-		_mapHelper.createLayerEditor(div, 0, div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+		_mapHelper.createLayerEditor(div, context.tree, 0, div.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 	}
 }, 'Layer');
 
@@ -424,7 +424,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 		
 		_mapHelper.updateMapStyles(newStyles, context.elem.name);
 		
-		_mapHelper.updateTreeStyles(newStyles, div, true);
+		_mapHelper.updateTreeStyles(newStyles, div, context.tree, true);
 	}
 }, 'Layer');
 

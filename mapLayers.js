@@ -591,7 +591,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 		
 	if (elem.type == "Vector")
 	{
-		var icon = this.mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag}),
+		var icon = _mapHelper.createStylesEditorIcon(elem.styles, elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag}),
 			multiStyleParent = _div(null,[['attr','multiStyle',true]]),
             iconSpan = _span([icon]);
         
@@ -601,7 +601,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
             {
                 if (globalFlashMap.layers[elem.name].filters.length == 1)
                 {
-                    var newIcon = _this.mapHelper.createStylesEditorIcon([{MinZoom:1, MaxZoom: 21, RenderStyle: style.regularStyle}], elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag});
+                    var newIcon = _mapHelper.createStylesEditorIcon([{MinZoom:1, MaxZoom: 21, RenderStyle: style.regularStyle}], elem.GeometryType ? elem.GeometryType.toLowerCase() : 'polygon', {addTitle: !layerManagerFlag});
                     $(iconSpan).empty().append(newIcon);
                 }
             });
@@ -609,7 +609,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
             
         $(iconSpan).attr('styleType', $(icon).attr('styleType'));
 		
-		this.mapHelper.createMultiStyle(elem, multiStyleParent, true, layerManagerFlag);
+		_mapHelper.createMultiStyle(elem, this, multiStyleParent, true, layerManagerFlag);
 		
 		if (!layerManagerFlag)
 		{
@@ -618,7 +618,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			iconSpan.onclick = function()
 			{
-				_this.mapHelper.createLayerEditor(this.parentNode, 1,  iconSpan.parentNode.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+				_mapHelper.createLayerEditor(this.parentNode, _this, 1, iconSpan.parentNode.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 			}
 			
 		}
@@ -820,7 +820,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 						},
 						minLayerZoom = 20;
 					
-					_this.mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child)
+					_mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child)
 					{
 						if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) )
 						{
@@ -1067,7 +1067,7 @@ layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibili
 		// Делаем видимость всех потомков узла дерева такой же, как видимость этого слоя. 
 		if (forceChildVisibility)
 		{
-			this.mapHelper.findTreeElems(treeElem, function(child, visflag, list, index)
+			_mapHelper.findTreeElems(treeElem, function(child, visflag, list, index)
 			{
 				if (!visflag || (list && index != 0))
 				{
@@ -1194,7 +1194,7 @@ layersTree.prototype.updateChildLayersMapVisibility = function(div)
 {
 	var treeParent = div.getAttribute('MapID') ? this.treeModel.getRawTree() : this.findTreeElem(div).elem
 	
-	this.mapHelper.findChilds(treeParent, function(child, visible)
+	_mapHelper.findChilds(treeParent, function(child, visible)
 	{
 		if (globalFlashMap.layers[child.content.properties.name])
 			globalFlashMap.layers[child.content.properties.name].setVisible(visible);
@@ -1434,7 +1434,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 				layerProperties = {type:'layer', content: response.Result};
 				
 				if (layerProperties.content.properties.type == 'Vector')
-					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MaxZoom, MaxZoom:21, RenderStyle:_this.mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
+					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
 				else if (layerProperties.content.properties.type != 'Vector' && !layerProperties.content.properties.MultiLayerID)
 					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:21}];
 				
@@ -1733,7 +1733,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 				{
 					div = div[0];
 					
-					_mapHelper.updateTreeStyles(newStyles, div, true);
+					_mapHelper.updateTreeStyles(newStyles, div, _layersTree, true);
 				}
 			}
 		}
