@@ -171,6 +171,7 @@
 			'addObjects': arr 
 		};
 		gmxAPI._cmdProxy('setEditObjects', { 'obj': obj, 'attr':out });
+		if(arr.length) gmxAPI.addDebugWarnings({'func': 'chkProcessing', 'warning': 'Processing length: ' + arr.length, 'layer': prop.title});
 		return out;
 	}
 	
