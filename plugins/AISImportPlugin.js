@@ -1,12 +1,54 @@
 ﻿(function()
 {
-    var createAISLayer = function(map, name, csvtext)
+    var addDataToLayer = function(layerName, data, headers)
+    {
+        //add data
+        var objs = [];
+        for (var iR = 0; iR < data.length; iR++) {
+        
+            if (typeof data[iR] === 'undefined') continue;
+            
+            var properties = {};
+            
+            for (var iH = 0; iH < headers.length; iH++)
+                properties[headers[iH]] = data[iR].properties[iH];
+            
+            objs.push({
+                action: 'insert',
+                properties: properties,
+                geometry: gmxAPI.merc_geometry(data[iR].geometry)
+            });
+        }
+        
+        var objects = JSON.stringify(objs);
+        sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
+            {
+                WrapStyle: 'window', 
+                LayerName: layerName, 
+                objects: objects
+            }, function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                    
+                map.layers[layerName].chkLayerVersion();
+            }
+        );
+    }
+    
+    var parseData = function(csvtext)
     {
         var splitLine = function(line)
         {
             if (!line) return [];
             var headersWithQuotes = line.match(/"[^"]*"/g);
             return headersWithQuotes ? $.map(headersWithQuotes, function(str) { return str.split('"')[1]; }) : line.split(',');
+        }
+        
+        var parseDateTime = function(dateStr)
+        {
+            var pt = dateStr.match(/^(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})$/);
+            return pt ? Date.UTC(pt[1], pt[2]-1, pt[3], pt[4], pt[5], pt[6])/1000 : null;
         }
         
         var convertCoordinates = function(row, type)
@@ -41,6 +83,8 @@
                 row[28] = parseFloat(row[28]);
                 row[29] = parseFloat(row[29]);
                 
+                row[3] = parseDateTime(row[3]);
+                
                 if (!row[28] ||!row[29])
                 {
                     console && console.log(row);
@@ -61,11 +105,17 @@
         var data = [];
         $.each(lines, function(i, row){data.push(convertCoordinates(splitLine(row), type)) });
         
-        // var columnsString = "&FieldsCount=" + headers.length;
-        // for (var k = 0; k < headers.length; k++) {
-            // columnsString += "&fieldName" + k + "=" + encodeURIComponent(headers[k]) + "&fieldType" + k + "=string";
-        // }
-        
+        return {
+            data: data,
+            headers: headers,
+            type: type
+        }
+    }
+    
+    var createAISLayer = function(map, name, csvtext, createTemporal)
+    {
+        var pd = parseData(csvtext);
+
         var mapProperties = _layersTree.treeModel.getMapProperties();
         
         var requestParams = {
@@ -73,12 +123,23 @@
             Title: name,
             MapName: mapProperties.name,
             geometrytype: 'POINT',
-            FieldsCount: headers.length
+            FieldsCount: pd.headers.length
         }
         
-        for (var k = 0; k < headers.length; k++) {
-            requestParams["fieldName" + k] = headers[k];
+        for (var k = 0; k < pd.headers.length; k++) {
+            requestParams["fieldName" + k] = pd.headers[k];
             requestParams["fieldType" + k] = 'string';
+        }
+        
+        if (pd.type === 'archive')
+        {
+            requestParams['fieldType3'] = 'datetime';
+            if (createTemporal)
+            {
+                requestParams.TemporalLayer = 'true';
+                requestParams.TemporalColumnName = requestParams['fieldName3'];
+                requestParams.TemporalPeriods = '1,4,16,64';
+            }
         }
         
         sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", 
@@ -102,39 +163,25 @@
                 
                 _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
                 
-                //add data
-                var objs = [];
-                for (var iR = 0; iR < data.length; iR++) {
-                
-                    if (typeof data[iR] === 'undefined') continue;
-                    
-                    var properties = {};
-                    
-                    for (var iH = 0; iH < headers.length; iH++)
-                        properties[headers[iH]] = data[iR].properties[iH];
-                    
-                    objs.push({
-                        action: 'insert',
-                        properties: properties,
-                        geometry: gmxAPI.merc_geometry(data[iR].geometry)
-                    });
-                }
-                
-                var objects = JSON.stringify(objs);
-                sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
-                    {
-                        WrapStyle: 'window', 
-                        LayerName: gmxProperties.content.properties.name, 
-                        objects: objects
-                    }, function(response)
-                    {
-                        if (!parseResponse(response))
-                            return;
-                            
-                        map.layers[gmxProperties.content.properties.name].chkLayerVersion();
-                    }
-                );
-            })
+                addDataToLayer(gmxProperties.content.properties.name, pd.data, pd.headers);
+            }
+        )
+    }
+    
+    var addToAISLayer = function(csvtext)
+    {
+        var active = $(_queryMapLayers.buildedTree).find(".active");
+        
+        if (!active.length)
+        {
+            alert('Сделайте активным слой с AIS данными!');
+            return;
+        }
+        
+        var pd = parseData(csvtext);
+        var layerName = active[0].parentNode.gmxProperties.content.properties.name;
+        
+        addDataToLayer(layerName, pd.data, pd.headers);
     }
     
     var publicInterface = {
@@ -143,19 +190,23 @@
             if (_queryMapLayers.currentMapRights() !== "edit")
                 return;
                 
-            var canvas = $('<div/>').css({height: '100%', 'text-align': 'center', 'padding-top': '30%', 'font-size': '30px'}).text('Перетащите сюда AIS файлы');
-            canvas.bind('dragover', function()
+            var canvas = $('<div/>');
+            var dropZone = $('<div/>').css({'text-align': 'center', 'padding-top': '30%', 'font-size': '30px', height: '100px'}).text('Перетащите сюда AIS файлы').appendTo(canvas);
+            dropZone.bind('dragover', function()
             {
                 return false;
             });
             
-            canvas.bind('drop', function(e)
+            dropZone.bind('drop', function(e)
             {
                 $.each(e.originalEvent.dataTransfer.files, function(index, file)
                 {
                     var reader = new FileReader();
                     reader.onload = function(evt) {
-                        createAISLayer(map, file.name.substring(0, file.name.length - 4), evt.target.result);
+                        if (chkAddToLayer[0].checked)
+                            addToAISLayer(evt.target.result)
+                        else
+                            createAISLayer(map, file.name.substring(0, file.name.length - 4), evt.target.result, chkTemporal[0].checked);
                     };
                     reader.readAsText(file);
                 })
@@ -163,9 +214,21 @@
                 return false;
             })
             
+            var chkTemporal = $('<input/>', {type: 'checkbox', id: 'aisimport-temporal'}).css('margin', '3px').appendTo(canvas);
+            var chkAddToLayer = $('<input/>', {type: 'checkbox', id: 'aisimport-addtolayer'}).css('margin', '3px').appendTo(canvas);
+            
+            canvas.append(
+                $('<div/>')
+                    .append(chkTemporal)
+                    .append($('<label/>', {'for': 'aisimport-temporal'}).text('Мультивременной слой')),
+                $('<div/>')
+                    .append(chkAddToLayer)
+                    .append($('<label/>', {'for': 'aisimport-addtolayer'}).text('Добавить в активный слой'))
+            )
+            
             var menu = new leftMenu();
             menu.createWorkCanvas("aisdnd", function(){});
-            _(menu.workCanvas, [canvas[0]], [['css', 'height', '300px'], ['css', 'width', '100%']]);
+            _(menu.workCanvas, [canvas[0]], [['css', 'width', '100%']]);
         }
     };
     
