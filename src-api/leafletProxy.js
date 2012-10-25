@@ -981,7 +981,8 @@
 					if(!flag) return;
 					if(node['leaflet']._isVisible) return;
 					if(node['type'] === 'RasterLayer') {
-						node['leaflet']._isVisible = true, LMap.addLayer(node['leaflet']);
+						node['leaflet']._isVisible = true;
+						LMap.addLayer(node['leaflet']);
 						utils.bringToDepth(node, node['zIndex']);
 					}
 					else
@@ -1008,7 +1009,10 @@
 				{
 					if(node['leaflet']._isVisible === false) return;
 					if(node['type'] === 'RasterLayer') {
-						node['leaflet']._isVisible = false, LMap.removeLayer(node['leaflet']);
+						if(node['leaflet']) {
+							if(node['leaflet']._isVisible) LMap.removeLayer(node['leaflet']);
+							node['leaflet']._isVisible = false;
+						}
 					}
 					else {
 						if(node['parentId']) {
@@ -1207,10 +1211,10 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		'moveTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
 			if(ph.attr['z'] > LMap.getMaxZoom() || ph.attr['z'] < LMap.getMinZoom()) return;
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
-			var flag = LMap.options.zoomAnimation && ('zoomAnimation' in ph && !ph['zoomAnimation']);
-			if(flag) LMap.options.zoomAnimation = false;
+			//var flag = LMap.options.zoomAnimation && ('zoomAnimation' in ph && !ph['zoomAnimation']);
+			//if(flag) LMap.options.zoomAnimation = false;
 			LMap.setView(pos, ph.attr['z']);
-			if(flag) LMap.options.zoomAnimation = true;
+			//if(flag) LMap.options.zoomAnimation = true;
 		}
 		,
 		'setLabel':	function(ph)	{				// Установка содержимого label
