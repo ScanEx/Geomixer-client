@@ -222,7 +222,8 @@
 		}
 		,
 		'setExtent':	function(hash)	{								//установить Extent в SWF
-			return gmxAPI.flashDiv.cmdFromJS('setExtent', hash['attr']);
+			var attr = {'x1':gmxAPI.merc_x(hash['attr']['x1']), 'x2':gmxAPI.merc_x(hash['attr']['x2']), 'y1':gmxAPI.merc_y(hash['attr']['y1']), 'y2':gmxAPI.merc_y(hash['attr']['y2']) };
+			return gmxAPI.flashDiv.cmdFromJS('setExtent', attr);
 		}
 		,
 		'setMinMaxZoom':	function(hash)	{							//установить Zoom ограничения

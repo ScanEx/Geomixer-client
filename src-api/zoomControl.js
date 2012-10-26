@@ -110,7 +110,7 @@
 			addZoomItem(i);
 		}
 
-		var minZoom, maxZoom;
+		var minZoom = 1, maxZoom;
 		gmxAPI.map.zoomControl = {
 			isVisible: true,
 			isMinimized: false,
@@ -119,6 +119,17 @@
 				gmxAPI.setVisible(zoomParent, flag);
 				this.isVisible = flag;
 				if('_timeBarPosition' in gmxAPI) gmxAPI._timeBarPosition();
+			},
+			setZoom: function(z)
+			{
+				var newZoomObj = zoomArr[Math.round(z) - minZoom];
+				if (newZoomObj != zoomObj)
+				{
+					if (zoomObj)
+						zoomObj.src = apiBase + "img/zoom_raw.png";
+					zoomObj = newZoomObj;
+					zoomObj.src = apiBase + "img/zoom_active.png";
+				}
 			},
 			repaint: function()
 			{
@@ -159,19 +170,12 @@
 				this.repaint();
 			}
 		}
+		gmxAPI.map.zoomControl.setZoom(4);
 
 		// Добавление прослушивателей событий
 		gmxAPI.map.addListener('positionChanged', function(ph)
 			{
-				var z = ph.currZ;
-				var newZoomObj = zoomArr[Math.round(z) - minZoom];
-				if (newZoomObj != zoomObj)
-				{
-					if (zoomObj)
-						zoomObj.src = apiBase + "img/zoom_raw.png";
-					zoomObj = newZoomObj;
-					zoomObj.src = apiBase + "img/zoom_active.png";
-				}
+				gmxAPI.map.zoomControl.setZoom(ph.currZ);
 			}
 		);
 	}
@@ -180,7 +184,7 @@
 
 })();
 
-
+/*
 //Поддержка timeBar
 (function()
 {
@@ -480,3 +484,4 @@
 
 	gmxAPI._timeBarInit = timeBarInit;
 })();
+*/

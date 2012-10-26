@@ -764,11 +764,26 @@
 		'getMapPosition': function()	{			// Получить позицию карты
 			var pos = LMap.getCenter();
 			var size = LMap.getSize();
+			var vbounds = LMap.getBounds();
+			var nw = vbounds.getNorthWest();
+			var se = vbounds.getSouthEast();
 			return {
 				'z': LMap.getZoom()
+				,'stageHeight': size['y']
 				,'x': gmxAPI.merc_x(pos['lng'])
 				,'y': gmxAPI.merc_y(pos['lat'])
-				,'stageHeight': size['y']
+				,'latlng': {
+					'x': pos['lng']
+					,'y': pos['lat']
+					,'mouseX': utils.getMouseX()
+					,'mouseY': utils.getMouseY()
+					,'extent': {
+						'minX': nw['lng']
+						,'minY': nw['lat']
+						,'maxX': se['lng']
+						,'maxY': se['lat']
+					}
+				}
 			};
 		}
 	};
@@ -1092,9 +1107,20 @@
 			setVisibleRecursive(node, flag);
 		}
 	}
+	// Получить данные векторного слоя по bounds геометрии - todo
+	function getFeatures(ph) {
+			var layer = ph.obj;
+			var id = layer.objectId;
+			var node = mapNodes[id];
+			if(!node) return;						// Нода не определена
+			var geom = ph.attr.geom;				// геометрия для определения bounds
+			var callback = ph.attr.func;			// callback ответа
+	}
 	//gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': chkVisibilityObjects});
 	// Команды в leaflet
 	var commands = {				// Тип команды
+		'getFeatures': getFeatures							// получить данные векторного слоя по bounds геометрии
+		,
 		'setVisibilityFilter': setVisibilityFilter			// добавить фильтр видимости
 		,
 		'setBackgroundTiles': setBackgroundTiles			// добавить растровый тайловый слой
@@ -1134,7 +1160,9 @@
 		'bringToTop': function(ph)	{						// установка zIndex - вверх
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			var zIndex = utils.getLastIndex(node.parent);
+			var zIndex = 1;
+			if(node['type'] === 'VectorLayer') zIndex = gmxAPI.map.layers.length;
+			else zIndex = utils.getLastIndex(node.parent);
 			node['zIndex'] = zIndex;
 			utils.bringToDepth(node, zIndex);
 /*
@@ -1187,9 +1215,24 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			return setVisible(ph);
 		}
 		,
+		'setExtent':	function(ph)	{		//Задать географический extent - за пределы которого нельзя выйти. - todo
+			/*
+			var attr = ph.attr;
+			var southWest = new L.LatLng(attr.y2, attr.x2),
+				northEast = new L.LatLng(attr.y1, attr.x1),
+				bounds = new L.LatLngBounds(southWest, northEast);			
+			var tt = bounds;
+			LMap.fitBounds(bounds);
+			*/
+		}
+		,
 		'setMinMaxZoom':	function(ph)	{				// установка minZoom maxZoom карты
 			LMap.options.minZoom = ph.attr.z1;
 			LMap.options.maxZoom = ph.attr.z2;
+			var currZ = LMap.getZoom();
+			if(currZ > LMap.getMaxZoom()) currZ = LMap.getMaxZoom();
+			if(currZ < LMap.getMinZoom()) currZ = LMap.getMinZoom();
+			LMap.setView(LMap.getCenter(), currZ);
 		}
 		,
 		'zoomBy':	function(ph)	{				// установка Zoom карты
@@ -1215,6 +1258,12 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			//if(flag) LMap.options.zoomAnimation = false;
 			LMap.setView(pos, ph.attr['z']);
 			//if(flag) LMap.options.zoomAnimation = true;
+		}
+		,
+		'slideTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
+			if(ph.attr['z'] > LMap.getMaxZoom() || ph.attr['z'] < LMap.getMinZoom()) return;
+			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
+			LMap.setView(pos, ph.attr['z']);
 		}
 		,
 		'setLabel':	function(ph)	{				// Установка содержимого label
@@ -1297,7 +1346,10 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			return geo;
 		}
 		,
-		'getPosition': utils.getMapPosition											// получить текущее положение map
+		'getPosition': function()	{						// получить текущее положение map
+			var res = utils.getMapPosition();
+			return res;
+		}
 		,'getX':	function()	{ var pos = LMap.getCenter(); return pos['lng']; }	// получить X карты
 		,'getY':	function()	{ var pos = LMap.getCenter(); return pos['lat']; }	// получить Y карты
 		,'getZ':	function()	{ return LMap.getZoom(); }							// получить Zoom карты
@@ -2171,7 +2223,7 @@ tt = 1;
 								attr.tile.style.cursor = 'pointer';
 							}
 						}
-						if(geom.curStyle.label) setLabel(geom);
+						if(geom.type === 'Point' && geom.curStyle.label) setLabel(geom);
 					}
 				}
 				return res;
@@ -2947,7 +2999,7 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 
 			var pos = new L.LatLng(50, 35);
 			//var pos = new L.LatLng(50.499276, 35.760498);
-			LMap.setView(pos, 3);
+			LMap.setView(pos, 4);
 //console.log('waitMe ' , pos);
 		//LMap.on('moveend', function(e) { gmxAPI._updatePosition(e); });
 			LMap.on('move', function(e) {
@@ -2959,9 +3011,9 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				var attr = {
 					'currPosition': {
 						'z': LMap.getZoom()
+						,'stageHeight': size['y']
 						,'x': gmxAPI.merc_x(pos['lng'])
 						,'y': gmxAPI.merc_y(pos['lat'])
-						,'stageHeight': size['y']
 						,'mouseX': gmxAPI.merc_x(utils.getMouseX())
 						,'mouseY': gmxAPI.merc_y(utils.getMouseY())
 						,'extent': {
@@ -2969,6 +3021,18 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 							'minY': gmxAPI.merc_y(nw['lat']),
 							'maxX': gmxAPI.merc_x(se['lng']),
 							'maxY': gmxAPI.merc_y(se['lat'])
+						}
+						,'latlng': {
+							'x': pos['lng']
+							,'y': pos['lat']
+							,'mouseX': utils.getMouseX()
+							,'mouseY': utils.getMouseY()
+							,'extent': {
+								'minX': nw['lng']
+								,'minY': nw['lat']
+								,'maxX': se['lng']
+								,'maxY': se['lat']
+							}
 						}
 					}
 				};

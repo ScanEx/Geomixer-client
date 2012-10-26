@@ -30,7 +30,8 @@
 		map.moveTo = function(x, y, z) {
 			var pos = {'x':x, 'y':y, 'z':z};
 			//setCurrPosition(null, {'currPosition': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':z}});
-			map.needMove = null; gmxAPI._cmdProxy('moveTo', { 'attr': pos });
+			map.needMove = null;
+			gmxAPI._cmdProxy('moveTo', { 'attr': pos });
 		}
 		map.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':x, 'y':y, 'z':z} }); }
 		map.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }
@@ -141,7 +142,7 @@
 		map.getMouseX = function() { return gmxAPI._cmdProxy('getMouseX', {}); }
 		map.getMouseY = function() { return gmxAPI._cmdProxy('getMouseY', {}); }
 		map.isKeyDown = function(code) { return gmxAPI._cmdProxy('isKeyDown', {'attr':{'code':code} }); }
-		map.setExtent = function(x1, x2, y1, y2) { return gmxAPI._cmdProxy('setExtent', {'attr':{'x1':gmxAPI.merc_x(x1), 'x2':gmxAPI.merc_x(x2), 'y1':gmxAPI.merc_y(y1), 'y2':gmxAPI.merc_y(y2)} }); }
+		map.setExtent = function(x1, x2, y1, y2) { return gmxAPI._cmdProxy('setExtent', {'attr':{'x1':x1, 'x2':x2, 'y1':y1, 'y2':y2} }); }
 		map.addMapWindow = function(callback) {
 			var oID = gmxAPI._cmdProxy('addMapWindow', { 'attr': {'callbackName':function(z) { return callback(z); }} });
 			return new gmxAPI._FMO(oID, {}, null);		// MapObject миникарты
@@ -626,10 +627,10 @@
 			if(currPos['extent']) {
 				if(currPos['extent']['minx'] != 0 || currPos['extent']['maxx'] != 0) {
 					currPos['latlng']['extent'] = {
-						minX: gmxAPI.from_merc_x(currPos['extent']['minx']),
-						minY: gmxAPI.from_merc_y(currPos['extent']['miny']),
-						maxX: gmxAPI.from_merc_x(currPos['extent']['maxx']),
-						maxY: gmxAPI.from_merc_y(currPos['extent']['maxy'])
+						minX: gmxAPI.from_merc_x(currPos['extent']['minX'] || currPos['extent']['minx']),
+						minY: gmxAPI.from_merc_y(currPos['extent']['minY'] || currPos['extent']['miny']),
+						maxX: gmxAPI.from_merc_x(currPos['extent']['maxX'] || currPos['extent']['maxx']),
+						maxY: gmxAPI.from_merc_y(currPos['extent']['maxY'] || currPos['extent']['maxy'])
 					};
 				}
 			}
