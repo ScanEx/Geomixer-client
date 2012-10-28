@@ -1085,8 +1085,8 @@
 		var node = mapNodes[id];
 		node['_sqlVisibility'] = ph.attr['sql'].replace(/[\[\]]/g, '"');
 		node['_sqlFuncVisibility'] = gmxAPI.Parsers.parseSQL(node['_sqlVisibility']);
-		//node['_FilterVisibility'] = sql;
-		setVisibilityFilterRecursive(node, node['_sqlFuncVisibility']);
+		if(node['type'] === 'VectorLayer') node.waitRedraw();
+		else setVisibilityFilterRecursive(node, node['_sqlFuncVisibility']);
 	}
 	// Проверка видимости mapObject
 	function chkVisibilityObject(id) {
@@ -1140,19 +1140,10 @@
 			if(ph.attr) {
 				var geo = utils.parseGeometry(ph.attr);
 				node['geometry'] = geo;
+				if(node['type'] === 'RasterLayer') node['chkGeometry']();
 				if(node['geometry']['type']) {
 					gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
-					//utils.repaintNode(node, true);
 					if(node['leaflet']) setHandlerObject(id);
-					//setVisible({'obj': node, 'attr': true});
-/*					
-					if(node['leaflet']) {
-						var pNode = mapNodes[node['parentId']];
-						var group = (pNode ? pNode.group : LMap);
-						group.addLayer(node['leaflet']);
-						node['leaflet']._isVisible = true;
-					}
-*/					
 				}
 			}
 		}
@@ -1583,6 +1574,22 @@ ctx.fillRect(0, 0, imageObj.width, imageObj.height);
 		node['zIndex'] = utils.getIndexLayer(id);
 
 		var attr = prpLayerAttr(layer, node);
+		//node['geom'] = utils.getIndexLayer(id); setgeo
+		
+		node['chkGeometry'] = function() {			// подготовка границ растрового слоя
+			var pt = prpGeom(node['geometry']);
+			if(pt['geom']) attr['geom'] = pt['geom'];					// Массив Point границ слоя
+			if(pt['bounds']) attr['bounds'] = pt['bounds'];				// Bounds слоя
+			if(waitRedraw) {
+				myLayer.options.attr = attr;
+				waitRedraw();
+				//var currZ = LMap.getZoom();
+				//var centr = LMap.getCenter();
+				//LMap.setView(centr, currZ + 1);
+				//LMap.setView(centr, currZ - 1);
+			}
+		};
+		if(node['geometry']) node['chkGeometry']();
 
 gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
 //gmxAPI._tools['baseLayers'].removeTool('OSM');	// OSM пока не добавляем
@@ -1613,6 +1620,8 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 			,'nodeID': id
 			//isBaseLayer
 			
+			//,'updateWhenIdle': false
+			//,'reuseTiles': true
 			//,'continuousWorld': true
 			//,'detectRetina': true
 			//,'tms': true
@@ -1647,9 +1656,6 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 			}
 		}
 		node['leaflet'] = myLayer;
-		myLayer._isVisible = (layer.isVisible ? true : false);
-		if(myLayer._isVisible) 
-			LMap.addLayer(myLayer);
 
 		var redrawTimer = null;										// Таймер
 		var waitRedraw = function()	{								// Требуется перерисовка с задержкой
@@ -1666,7 +1672,47 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 			}, 10);
 		}
 		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': waitRedraw });
+		myLayer._isVisible = (layer.isVisible ? true : false);
+		if(myLayer._isVisible) 
+			LMap.addLayer(myLayer);
 
+		return out;
+	}
+
+	// Подготовка атрибута границ слоя
+	function prpGeom(geom) {
+		var out = {};
+		var type = geom.type;
+		out['type'] = type;
+		var arr = null;
+		if(geom.coordinates) {						// Формируем MULTIPOLYGON
+			if(type == 'POLYGON' || type == 'Polygon') {
+				arr = [geom.coordinates];
+			} else if(type == 'MULTIPOLYGON' || type == 'MultiPolygon') {
+				arr = geom.coordinates;
+			}
+			if(arr) {
+				var	bounds = new L.Bounds();
+				var pointsArr = [];
+				for (var i = 0; i < arr.length; i++)
+				{
+					for (var j = 0; j < arr[i].length; j++)
+					{
+						var pArr = [];
+						var pol = arr[i][j];
+						for (var j1 = 0; j1 < pol.length; j1++)
+						{
+							var p = (typeof(pol[j1]) === 'object' ? new L.Point( pol[j1][0], pol[j1][1] ) : new L.Point( pol[j1++], pol[j1] ));
+							pArr.push(p);
+							bounds.extend(p);
+						}
+						pointsArr.push(pArr);
+					}
+				}
+				out['geom'] = pointsArr;						// Массив Point границ слоя
+				out['bounds'] = bounds;							// Bounds слоя
+			}
+		}
 		return out;
 	}
 
@@ -1695,40 +1741,9 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 				}
 			}
 			if(layer.geometry) {
-				var geom = layer.geometry;
-				if(geom) {
-					var type = geom.type;
-					out['type'] = type;
-					var arr = null;
-					if(geom.coordinates) {						// Формируем MULTIPOLYGON
-						if(type == 'POLYGON') {
-							arr = [geom.coordinates];
-						} else if(type == 'MULTIPOLYGON') {
-							arr = geom.coordinates;
-						}
-						if(arr) {
-							var	bounds = new L.Bounds();
-							var pointsArr = [];
-							for (var i = 0; i < arr.length; i++)
-							{
-								for (var j = 0; j < arr[i].length; j++)
-								{
-									var pArr = [];
-									var pol = arr[i][j];
-									for (var j1 = 0; j1 < pol.length; j1++)
-									{
-										var p = new L.Point( pol[j1][0], pol[j1][1] );
-										pArr.push(p);
-										bounds.extend(p);
-									}
-									pointsArr.push(pArr);
-								}
-							}
-							out['geom'] = pointsArr;						// Массив Point границ слоя
-							out['bounds'] = bounds;							// Bounds слоя
-						}
-					}
-				}
+				var pt = prpGeom(layer.geometry);
+				if(pt['geom']) out['geom'] = pt['geom'];					// Массив Point границ слоя
+				if(pt['bounds']) out['bounds'] = pt['bounds'];				// Bounds слоя
 			}
 		}
 		return out;
@@ -2288,6 +2303,7 @@ tt = 1;
 				}
 			}
 		}
+		node.waitRedraw = waitRedraw;				// перерисовать слой
 
 		node.refreshFilter = function(fid)	{		// обновить фильтр
 			var filterNode = mapNodes[fid];
@@ -3177,7 +3193,6 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					if(!this._isVisible || !tile._layer.options.tileFunc) return;			// Слой невидим или нет tileFunc
 //if(tilePoint.x > 1) return; 
 //console.log('ttt: ' + tilePoint.x); 
-					//if(!zoom) zoom = LMap.getZoom();
 					if(!zoom) zoom = LMap.getZoom();
 					var pz = Math.pow(2, zoom);
 					var tx = tilePoint.x;
@@ -3210,31 +3225,6 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					{
 						flagAll = true;
 					}
-//flagAll = true;
-/*
-					var ctx = tile.getContext('2d');
-					if(!flagAll) {
-						if(attr.bounds && !bounds.intersects(attr.bounds))	{	// Тайл не пересекает границы слоя
-							return;
-						}
-						var geom = attr['geom'];
-						drawCanvasPolygon( ctx, tileX, tileY, geom, zoom, bounds );
-					}
-					var imageObj = new Image();
-					imageObj.onload = function(){
-						var pattern = ctx.createPattern(imageObj, "no-repeat");
-//ctx.save();
-						ctx.fillStyle = pattern;
-						if(flagAll) ctx.fillRect(0, 0, 256, 256);
-						ctx.fill();
-					};
-					//var src = utils.getTileUrl(tile._layer, tilePoint, zoom);
-					var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom + tile._layer.options.zoomOffset);
-
-//console.log('ttt1: ' , tilePoint, bounds, attr.bounds, src); 
-					imageObj.src = src;
-//requestAnimFrame();
-*/
 					var item = {
 						'src': tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom + tile._layer.options.zoomOffset)
 						,'bounds': bounds
