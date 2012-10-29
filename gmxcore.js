@@ -194,7 +194,7 @@ var gmxCore = function()
 		
         /** Установить дефольный путь к модулям. Используется если указан локальный файл модуля.
         * @memberOf gmxCore
-        * @param {String} Дефолтный путь у модулям.
+        * @param {String} defaultHost Дефолтный путь у модулям.
         */
 		setDefaultModulesHost: function( defaultHost )
 		{
@@ -247,11 +247,12 @@ var gmxCore = function()
         
         /** Загружает скрипт после предвариетельной проверки условий.
         *
-        *   @memberOf gmxCore
-        *   @param {Array} filesInfo Массив объектов со следующими свойствами:
-        *   - check: function() -> Bool. Если возвращает true, ни js ни css не будет загружены
-        *   - script: String. Не обязательно. Скрипт для загрузки, если провалится проверка
-        *   - css: String. Не обязательно. CSS файл для загрузки, если провалится проверка
+        * @memberOf gmxCore
+        * @param {Array} filesInfo Массив объектов со следующими свойствами:
+        *
+        *   * check: function() -> Bool. Если возвращает true, ни js ни css не будет загружены
+        *   * script: String. Не обязательно. Скрипт для загрузки, если провалится проверка
+        *   * css: String. Не обязательно. CSS файл для загрузки, если провалится проверка
         *   @returns jQuery Deferred, который будет разрешён когда все скрипты выполнятся (окончание загрузки css не отслеживается)
         */
         loadScriptWithCheck: function(filesInfo)
