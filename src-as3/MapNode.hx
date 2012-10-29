@@ -239,6 +239,10 @@ handlerNodes.remove(id);
 				me.hoveredStyle = hoveredStyle_;
 				me.updateHandCursor();
 				me.noteSomethingHasChanged();
+				if (Std.is(me.content, VectorObject)) {
+					me.content.repaint();
+					me.repaintObjects();
+				}
 			}
 		}
 		var finishRegular = function()

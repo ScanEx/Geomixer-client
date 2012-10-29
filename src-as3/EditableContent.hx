@@ -53,6 +53,7 @@ class EditableContent extends MapContent
 		Main.clickingDisabled = true;
 		var listener1 = function(event:Event)
 		{
+			if (me.mapNode.window.cacheBitmap.visible) return;
 			var len = me.coordinates.length;
 			if (len > 0)
 			{
