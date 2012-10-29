@@ -2,6 +2,7 @@
 
 var modulePath = "";
 
+//TODO: вынести переключалку страниц в отдельный модуль
 var appendTranslations = function()
 {
     _translationsHash.addtext("rus", {
