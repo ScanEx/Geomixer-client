@@ -1,3 +1,18 @@
+/** 
+  @class
+  @virtual
+  @name IMenuElem
+  @desc Описание пункта верхнего меню ГеоМиксера
+  @property {String} id Уникальный идентификатор элемента меню
+  @property {String} title Tекст, который будет показываться пользователю
+  @property {Function} func Ф-ция, которую нужно вызвать при клике
+  @property {IMenuElem []} childs Массив элементов подменю
+*/
+
+/**
+    Верхнее меню ГеоМиксера. Может содержать до 3 уровней вложенности элементов.
+    @class
+*/
 var UpMenu = function()
 {
     
@@ -14,12 +29,11 @@ var UpMenu = function()
     this.defaultHash = 'layers';
 };
 
-/**
-    Добавляет к меню новый элемент верхнего уровня
-    @param elem {Object} элемент меню со слудующими свойствами <br/>
-        id - уникальный идентификатор элемента меню
-        title - текст, который будет показываться пользователю
-        
+/** Добавляет к меню новый элемент верхнего уровня
+*
+* Если меню уже было нарисовано, вызов этой ф-ции приведёт к перерисовке
+*
+*    @param {IMenuElem} elem Элемент меню
 */
 UpMenu.prototype.addItem = function(elem)
 {
@@ -48,6 +62,13 @@ UpMenu.prototype.addItem = function(elem)
         this.draw();
 }
 
+/** Добавляет к меню новый элемент верхнего уровня.
+*
+* Если меню уже было нарисовано, вызов этой ф-ции приведёт к перерисовке
+*
+*    @param {IMenuElem} newElem Вставляемый элемент меню
+*    @param {String} parentID ID элемента меню, к которому добавляется новый элемент
+*/
 UpMenu.prototype.addChildItem = function(newElem, parentID)
 {
     var _this = this;
@@ -88,16 +109,17 @@ UpMenu.prototype.addChildItem = function(newElem, parentID)
 	}
 }
 
-//UpMenu.prototype = new Menu();
-
-UpMenu.prototype.setParent = function(elem)
+/** Задаёт родителя в DOM дереве для меню
+* @param {DOMElement} parent Родительский элемент в DOM дереве
+*/
+UpMenu.prototype.setParent = function(parent)
 {
-	this.parent = elem;
+	this.parent = parent;
 	
-	if (elem)
+	if (parent)
     {
-		removeChilds(elem);
-        _(elem, [_span()]);
+		removeChilds(parent);
+        _(parent, [_span()]);
     }
 	
 	this.disabledTabs = {};
@@ -113,7 +135,8 @@ UpMenu.prototype.hidemenu = function(elem)
 {
 	elem.style.visibility = 'hidden';
 }
-// Основная функция  - рисует меню по заданной структуре
+/** Основная функция  - рисует меню по заданной структуре
+*/
 UpMenu.prototype.draw = function()
 {
 	var ul = _ul();
@@ -448,6 +471,8 @@ UpMenu.prototype.showNavigatePath = function(path)
 	return tds;
 }
 
+/** Показывает все ранее скрытые элементы меню
+*/
 UpMenu.prototype.enableMenus = function()
 {
 	for (var name in this.disabledTabs)
@@ -457,7 +482,9 @@ UpMenu.prototype.enableMenus = function()
 		delete this.disabledTabs[name];
 	}
 }
-
+/** Скрывает заданные элементы меню
+* @param {String[]} arr Массив ID элементов меню, которые нужно скрыть
+*/
 UpMenu.prototype.disableMenus = function(arr)
 {
 	for (var i = 0; i < arr.length; i++)
@@ -482,15 +509,6 @@ UpMenu.prototype.checkView = function()
 		
 		this.disableMenus(['mapSave', 'mapSaveAs', 'layersVector', 'layersRaster', 'layersMultiRaster']);
 	}
-	// else
-	// {
-		// var openFlag = _menuUp.disabledTabs[_tab_hash.recentHash];
-		
-		// this.enableMenus();
-
-		// if (openFlag)
-			// _tab_hash.openTab();
-	// }
 	
 	if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
 	{
@@ -521,13 +539,8 @@ UpMenu.prototype.go = function(reloadAfterLoginFlag)
 	
 	this.addLoginCanvas();
 	
-	if (!window.location.hash)
+	if (window.location.hash)
 	{
-	}
-	else
-	{
-//		window.location.hash = ''
-		
 		this.currUnsel = function(){};
 	}
 	
