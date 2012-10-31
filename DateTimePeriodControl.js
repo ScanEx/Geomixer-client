@@ -226,8 +226,8 @@ var Calendar = function(name, params)
 	 */
 	this.loadState = function( data )
 	{
-		$(this.dateBegin).datepicker("setDate", new Date(data.dateBegin));
-		$(this.dateEnd).datepicker("setDate", new Date(data.dateEnd));
+		$(this.dateBegin).datepicker("setDate", this._toUTC(new Date(data.dateBegin)));
+		$(this.dateEnd).datepicker("setDate", this._toUTC(new Date(data.dateEnd)));
 		this.lazyDate.value = data.lazyDate;
 		this.yearBox.checked = data.year;
 		this._visModeController.setMode(data.vismode);
