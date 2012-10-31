@@ -1750,7 +1750,7 @@ var FireControl = function(map)
 	
 	this._currentVisibility = true;
 	
-	this._timeShift = null;
+	this._timeShift = null; //фиксированный сдвиг по времени (например, из пермалинка)
 	
 	this._map = map;
 	
@@ -1795,8 +1795,9 @@ FireControl.prototype.saveState = function()
 		bbox: this.searchBboxController.saveState() 
 	}
 	
-	if (this._timeShift)
-		$.extend(true, resData, {timeShift: this._timeShift});
+    var ts = this.getCurrentTimeShift();
+	if (ts)
+		$.extend(true, resData, {timeShift: this._timeShift || ts});
 	
 	return resData;
 }
@@ -1815,7 +1816,10 @@ FireControl.prototype.loadState = function( data )
 		}
 		
 	if (data.timeShift)
+    {
 		this._timeShift = $.extend({}, data.timeShift);
+        this._updateCalendarTime(this._timeShift);
+    }
 			
 	this.searchBboxController.loadState(data.bbox);
 }
@@ -1909,17 +1913,8 @@ FireControl.prototype.findBbox = function()
 	this.searchBboxController.findBbox();
 }
 
-FireControl.prototype._addTimeShift = function(date)
-{
-	if (!this._timeShift) return;
-	
-	date.setHours(this._timeShift.hours);
-	date.setMinutes(this._timeShift.minutes);
-	date.setSeconds(this._timeShift.seconds);
-}
-
 /** Возвращает bbox, по которому запрашиваются данные.
-* @method 
+* @method
 */
 FireControl.prototype.getBbox = function()
 {
@@ -1932,17 +1927,10 @@ FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
 	
 	// //в упрощённом режиме будем запрашивать за последние 24 часа, а не за календартный день
 	if (this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE)
-	{	
-		// this._addTimeShift(dateBegin);
-		// this._addTimeShift(dateEnd);
-		
+	{			
 		dateBegin.setTime(dateBegin.getTime() - 24*60*60*1000);
 	}
-	// else
-	// {
-		// dateEnd.setTime(dateEnd.getTime() + 24*60*60*1000); //увеличиваем верхнюю границу на сутки
-	// }
-		
+	
 	var curExtent = this.getBbox();
 	
 	var isDatesChanged = !this.dateFiresBegin || !this.dateFiresEnd || dateBegin.getTime() != this.dateFiresBegin.getTime() || dateEnd.getTime() != this.dateFiresEnd.getTime();
@@ -1999,6 +1987,58 @@ FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
 			}
 		}
 	}
+}
+
+FireControl.prototype._updateCalendarTime = function(timeShift)
+{
+    if (timeShift)
+    {
+        if (timeShift.hours == 23)
+        {
+            this._calendar.setTimeBegin( timeShift.hours, 23, 59 );
+            this._calendar.setTimeEnd( timeShift.hours, 23, 59 );
+        }
+        else
+        {
+            this._calendar.setTimeBegin( timeShift.hours+1, 0, 0 );
+            this._calendar.setTimeEnd( timeShift.hours+1, 0, 0 );
+        }
+    }
+    else
+    {
+        //если выбран сегодняшний день, показываем время не 23:59, а до текущего часа
+        var maxDayString = $.datepicker.formatDate('yy.mm.dd', this._calendar.getDateMax());
+        var curDayString = $.datepicker.formatDate('yy.mm.dd', this._calendar.getDateEnd());
+        
+        this._calendar.setTimeBegin( 0, 0, 0 );
+        var curHour = (new Date()).getUTCHours();
+        
+        if (maxDayString != curDayString || curHour === 23)
+        {
+            this._calendar.setTimeEnd( 23, 59, 59 );
+        }
+        else
+        {
+            this._calendar.setTimeEnd( curHour+1, 0, 0 );
+        }
+    }
+}
+
+
+
+FireControl.prototype.getCurrentTimeShift = function()
+{
+    if ( this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE )
+    {
+        var now = new Date();
+        return {
+            hours: now.getUTCHours(), 
+            minutes: now.getUTCMinutes(), 
+            seconds: now.getUTCSeconds()
+        };
+    }
+    
+    return null;
 }
 
 FireControl.prototype.add = function(parent, firesOptions, calendar)
@@ -2123,25 +2163,6 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	
 	$(button).text(_gtxt('firesWidget.AdvancedSearchButton'));
 	
-	// $(this._calendar).change( function()
-	// {
-		// _this.update();
-		// updateTimeInfo();
-	// });
-	
-	
-	// $(button)
-		// .append($("<img>").attr({src: globalOptions.resourceHost + "img/select_tool_a.png"}))
-		// .append($("<span>").text(_gtxt('firesWidget.AdvancedSearchButton')));
-		
-	// $(button).append($("<table>").
-				// append($("<tbody>").
-					// append($("<tr>").
-						// append($("<td>").
-							// append($("<img>").attr({src: globalOptions.resourceHost + "img/select_tool_a.png"}))).
-						// append($("<td>").
-							// append($("<span>").text(_gtxt('firesWidget.AdvancedSearchButton')))))));
-	
 	$(this.searchBboxController).change(function()
 	{
 		if (_this.searchBboxController.getBbox().isWholeWorld() && _this._visModeController.getMode() ===  _this._visModeController.ADVANCED_MODE)
@@ -2159,54 +2180,14 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 		}
 		_this.update();
 	};
-	
+    	
 	var updateTimeInfo = function()
 	{
-		if ( _this._visModeController.getMode() ===  _this._visModeController.SIMPLE_MODE )
-		{
-			var now = new Date();
-			_this._timeShift = {
-				hours: now.getUTCHours(), 
-				minutes: now.getUTCMinutes(), 
-				seconds: now.getUTCSeconds()
-			};
-			
-			if (_this._timeShift.hours == 23)
-			{
-				_this._calendar.setTimeBegin( _this._timeShift.hours, 23, 59 );
-				_this._calendar.setTimeEnd( _this._timeShift.hours, 23, 59 );
-			}
-			else
-			{
-				_this._calendar.setTimeBegin( _this._timeShift.hours+1, 0, 0 );
-				_this._calendar.setTimeEnd( _this._timeShift.hours+1, 0, 0 );
-			}			
-		}
-		else
-		{
-			_this._timeShift = null;
-			
-			//если выбран сегодняшний день, показываем время не 23:59, а до текущего часа
-			var maxDayString = $.datepicker.formatDate('yy.mm.dd', _this._calendar.getDateMax());
-			var curDayString = $.datepicker.formatDate('yy.mm.dd', _this._calendar.getDateEnd());
-			
-			_this._calendar.setTimeBegin( 0, 0, 0 );
-			var curHour = (new Date()).getUTCHours();
-			
-			if (maxDayString != curDayString || curHour === 23)
-			{
-				_this._calendar.setTimeEnd( 23, 59, 59 );
-			}
-			else
-			{
-				_this._calendar.setTimeEnd( curHour+1, 0, 0 );
-			}
-		}
+        _this._updateCalendarTime( _this._timeShift || _this.getCurrentTimeShift() );
 	}
 	
 	updateTimeInfo();
     
-	// $(this._visModeController).bind('change', function()
 	$(this._calendar).bind('change', function()
 	{
 		if ( _this._visModeController.getMode() ===  _this._visModeController.SIMPLE_MODE )
@@ -2227,9 +2208,6 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 				//пользователь нажал на поиск, а рамки у нас нет -> добавим рамку по размеру окна.
 				restrictByVisibleExtent(true);
 			}
-
-			
-			//$(button).css({display: ''});
 		}
 		updateTimeInfo();
 		_this.update();
