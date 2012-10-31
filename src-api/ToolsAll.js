@@ -262,6 +262,8 @@
 			);
 
 			this.baseLayersTools = baseLayersTools;
+			gmxAPI.map.baseLayersTools = baseLayersTools;
+			gmxAPI.map.standartTools = standartTools;
 		}
 	}
     gmxAPI._ToolsAll = ToolsAll;

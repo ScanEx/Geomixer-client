@@ -1953,7 +1953,8 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		{
 			if('obj' in o)  o = o.obj;
 			var idt = 'id_' + o.flip();
-			var curZ = gmxAPI.currPosition['z'];
+			var currPos = gmxAPI.currPosition || map.getPosition();
+			var curZ = currPos['z'];
 			if(images[idt] && curZ >= minZoom && curZ <= maxZoom) images[idt].bringToTop();		// только для zoom со снимками
 			return false;
 		}, -5);
@@ -2415,7 +2416,8 @@ FlashMapObject.prototype.getVisibleStyle = function() { return gmxAPI._cmdProxy(
 FlashMapObject.prototype.getVisibility = function() {
 	var val = true;
 	if('isVisible' in this) {
-		var curZ = gmxAPI.currPosition['z'];
+		var currPos = gmxAPI.currPosition || map.getPosition();
+		var curZ = currPos['z'];
 		if (this.minZoom && this.minZoom > curZ) val = false;
 		else if(this.maxZoom && this.maxZoom < curZ) val = false;
 		else val = this.isVisible;
