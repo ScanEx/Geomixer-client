@@ -155,6 +155,11 @@
 		//		'leaflet': ссылка на leaflet обьект
 		//		'zIndex': текущий zIndex ноды
 	};
+	var regProps = [			// массив регулярных выражений атрибутов обьекта  свойств 
+		/\[([^\]]+)\]/i,
+		/\"([^\"]+)\"/i,
+		/\b([^\b]+)\b/i
+	];
 	
 	var utils = {							// Утилиты leafletProxy
 		'chkBoundsVisible': function(b)	{					// проверить видимость Bounds с учетом сдвигов по X
@@ -176,7 +181,12 @@
 				var child = gmxAPI.map.layers[i];
 				if(!child.isVisible) continue;
 				var mapNode = mapNodes[child.objectId];
-				if(mapNode['eventsCheck'] && mapNode['eventsCheck']('onClick', attr)) return;
+				if(mapNode['eventsCheck']) {
+					if(mapNode['eventsCheck']('onClick', attr)) return;
+				}
+			}
+			if(attr['node'] && attr['hNode']) {
+				attr['hNode']['handlers'][attr['evName']](attr['node']['id'], attr['node'].geometry.properties, {'ev':attr['ev']});
 			}
 		}
 		,
@@ -327,6 +337,23 @@
 		}
 */
 		,
+		'isPropsInString': function(st)	{				// парсинг значений свойств в строке
+			if(typeof(st) === 'string') {
+				for(var i in regProps) {
+					var matches = regProps[i].exec(st);
+					if(matches && matches.length > 0) return true;
+				}
+			}
+			return false;
+		}
+		,
+		'isPropsInStyle': function(style)	{				// парсинг значений свойств в строке
+			for(var key in style) {
+				if(utils.isPropsInString(style[key])) return true;
+			}
+			return false;
+		}
+		,
 		'chkPropsInString': function(str, prop, type)	{				// парсинг значений свойств в строке
 			var zn = str;
 			if(typeof(zn) === 'string') {
@@ -334,8 +361,6 @@
 				var zn1 = zn.replace(/\'([^\']+)\'/g, '');
 				var reg = /\b([^\b]+?)\b/gm;
 				var arr = zn.match(reg);
-//var path = /.*?img\/slider\/b\/([^>]*)(\.png|\.gif|\.jpg).*?(?:<\/li>)/gm;
-//oldStr.replace(path, '<td><p><img src="img/slider/b/$1$2"><i></i></p></td>');
 				var reg = /\[([^\]]+)\]/i;
 				if(type == 1) reg = /\"([^\"]+)\"/i;
 				else if(type == 2) reg = /\b([^\b]+)\b/i;
@@ -350,20 +375,23 @@
 			return zn
 		}
 		,
-		'evalStyle': function(style, node)	{								// парсинг стиля
+		'evalStyle': function(style, node)	{								// парсинг стиля лефлета
 			var out = {};
-			//var prop = gmxAPI.clone(node.properties || node.geometry.properties);
-			var prop = node.properties || node.geometry.properties;
+			var prop = (node ? node.properties || node.geometry.properties : null);
 			//if(node.propHiden) for(var key in node.propHiden) prop['_'+key] = node.propHiden[key];
 			for(var key in style) {
 				var zn = style[key];
 				if(key === 'fillColor' || key === 'color') {
-					zn = (style['colorFunction'] ? style.colorFunction(prop) : utils.chkPropsInString(style[key], prop));
+					if(prop) {
+						if(key + 'Function' in style) zn = style[key + 'Function'](prop);
+						else if(utils.isPropsInString(zn)) zn = utils.chkPropsInString(style[key], prop);
+						//if(prop && utils.isPropsInString(zn)) zn = (style['colorFunction'] ? style.colorFunction(prop) : utils.chkPropsInString(style[key], prop));
+					}
 					out[key + '_rgba'] = utils.dec2rgba(zn, 1);
 					zn = utils.dec2hex(zn);
 					if(zn.substr(0,1) != '#') zn = '#' + zn;
 				} else if(key === 'fillOpacity' || key === 'opacity') {
-					zn = utils.chkPropsInString(style[key], prop);
+					if(prop && utils.isPropsInString(zn)) zn = utils.chkPropsInString(style[key], prop);
 					zn = zn / 100;
 				}
 				out[key] = zn;
@@ -820,8 +848,17 @@
 	function setStyle(id, attr)	{
 		var node = mapNodes[id];
 		if(!node || !attr) return false;
-		if(attr.hoveredStyle) node.hoveredStyle = utils.parseStyle(attr.hoveredStyle, id);
-		if(attr.regularStyle) node.regularStyle = utils.parseStyle(attr.regularStyle, id);
+		if(attr.hoveredStyle) {
+			node.hoveredStyle = utils.parseStyle(attr.hoveredStyle, id);
+			node.hoveredStyleIsAttr = utils.isPropsInStyle(node.hoveredStyle);
+			if(!node.hoveredStyleIsAttr) node.hoveredStyle = utils.evalStyle(node.hoveredStyle)
+		}
+		if(attr.regularStyle) {
+			node.regularStyle = utils.parseStyle(attr.regularStyle, id);
+			node.regularStyleIsAttr = utils.isPropsInStyle(node.regularStyle);
+			if(!node.regularStyleIsAttr) node.regularStyle = utils.evalStyle(node.regularStyle)
+		}
+		
 		if(node['type'] === 'filter') {			// Установка стиля фильтра векторного слоя
 			var pNode = mapNodes[node['parentId']];
 			pNode.setStyleFilter(id);
@@ -866,8 +903,8 @@
 			if(!hNode) return false;
 			if(evName === 'onClick') {
 				var func = function(e) {		// Проверка click
-					//if(gmxAPI._leaflet['skipClick']) return;
-					hNode['handlers'][evName](id, node.geometry.properties, {'ev':e});
+					gmxAPI._leaflet['utils'].chkGlobalClick({'ev':e,'latlng': e.latlng, 'evName':evName, 'node':node, 'hNode':hNode});	// события векторного обьекта
+					//hNode['handlers'][evName](id, node.geometry.properties, {'ev':e});
 				};
 				node['leaflet'].on('click', func);
 				if(node['marker']) {
@@ -899,6 +936,7 @@
 			,'children': []
 			,'id': id
 			,'parentId': ph.obj['objectId']
+			//,'eventsCheck': 
 			//setZoomBounds
 		};
 		//if(ph.attr['hidenAttr']) pt['hidenAttr'] = ph.attr['hidenAttr'];
@@ -1855,6 +1893,7 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 		}
 		node['eventsCheck'] = function(evName, attr) {			// проверка событий векторного слоя
 			if(!attr) attr = gmxAPI._leaflet['clickAttr'];
+			if(!attr.latlng) return false;
 			//var ev = attr.e;
 			//var tilePoint = ev.originalEvent.originalTarget._tilePoint;
 			var latlng = attr.latlng;
@@ -1960,20 +1999,12 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 		}
 		//myLayer._isVisible = (layer.isVisible ? true : false);
 
-		function styleToGeo(geo, filter)	{			// Стиль обьекта Получить фильтры для обьекта
-			var style = (filter ? utils.evalStyle(filter.regularStyle, geo)
-				: {													// стиль Canvas по умолчанию
-					'stroke': {
-						'weight': 1
-						,'opacity': 1
-						,'color_rgba': 'rgba(0, 0, 255, 1)'
-					}
-					,'fill': {
-						'fillOpacity': 1
-						,'fillColor_rgba': 'rgba(0, 0, 255, 1)'
-					}
-				}
-			);
+		function styleToGeo(geo, filter)	{			// Стиль обьекта векторного слоя
+			//var style = (filter ? utils.evalStyle(filter.regularStyle, geo)
+			if(!filter) return;
+			
+			var style = filter.regularStyle;
+			if(filter.regularStyleIsAttr) style = utils.evalStyle(filter.regularStyle, geo);
 			
 			var size = style['size'] || 5;
 			
@@ -2106,7 +2137,7 @@ node.repaintCount = 0;
 			var setCanvasStyle = function(ctx, style)	{							// указать стиль Canvas
 				if(style['stroke']) {
 					attr['ctx'].lineWidth = style['weight'] || 1;
-					var opacity = style['opacity'] || 1;
+					var opacity = ('opacity' in style ? style['opacity'] : 1);
 					var strokeStyle = style['color_rgba'] || 'rgba(0, 0, 255, 1)';
 					strokeStyle = strokeStyle.replace(/1\)/, opacity + ')');
 					attr['ctx'].strokeStyle = strokeStyle;
@@ -2180,9 +2211,6 @@ node.repaintCount = 0;
 					//if(!filter || filter.isVisible === false || !utils.chkZoomObject(filter.id, zoom)) continue;		// если нет фильтра или он невидим пропускаем
 					if(!filter || filter.isVisible === false) continue;		// если нет фильтра или он невидим пропускаем
 
-if(geom['properties']['Magnitude']) {
-tt = 1;
-}
 					if(!geom.curStyle || !node.chkTemporalFilter(geom)) continue;
 /*
 					if(node['temporal'] && propHiden) {
@@ -2213,7 +2241,7 @@ tt = 1;
 						if(node['tileRasterFunc'] && zoom >= node['quicklookZoomBounds']['minZ'] && zoom <= node['quicklookZoomBounds']['maxZ']) {
 							//if(attr.bounds.intersects(geom.bounds)) {			// обьект пересекает границы тайла - загружаем растры
 								var rUrl = node['tileRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], attr['zoom'], geom);
-								
+								// todo tileRasterFunc разный формат на http://localhost/Kosmosnimki/index.html
 								var setImage = function(attr, geo) {
 									var me = attr;
 									var item = {
@@ -3027,33 +3055,34 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				var vbounds = LMap.getBounds();
 				var nw = vbounds.getNorthWest();
 				var se = vbounds.getSouthEast();
+				var ext = {
+					'minX': nw['lng']
+					,'minY': se['lat']
+					,'maxX': se['lng']
+					,'maxY': nw['lat']
+				};
 				var attr = {
 					'currPosition': {
 						'z': LMap.getZoom()
 						,'stageHeight': size['y']
 						,'x': gmxAPI.merc_x(pos['lng'])
 						,'y': gmxAPI.merc_y(pos['lat'])
-						,'mouseX': gmxAPI.merc_x(utils.getMouseX())
-						,'mouseY': gmxAPI.merc_y(utils.getMouseY())
-						,'extent': {
-							'minX': gmxAPI.merc_x(nw['lng']),
-							'minY': gmxAPI.merc_y(nw['lat']),
-							'maxX': gmxAPI.merc_x(se['lng']),
-							'maxY': gmxAPI.merc_y(se['lat'])
-						}
 						,'latlng': {
 							'x': pos['lng']
 							,'y': pos['lat']
 							,'mouseX': utils.getMouseX()
 							,'mouseY': utils.getMouseY()
-							,'extent': {
-								'minX': nw['lng']
-								,'minY': nw['lat']
-								,'maxX': se['lng']
-								,'maxY': se['lat']
-							}
+							,'extent': ext
 						}
 					}
+				};
+				attr['currPosition']['mouseX'] = gmxAPI.merc_x(attr['currPosition']['latlng']['mouseX']);
+				attr['currPosition']['mouseY'] = gmxAPI.merc_x(attr['currPosition']['latlng']['mouseY']);
+				attr['currPosition']['extent'] = {
+					'minX': gmxAPI.merc_x(ext['minX']),
+					'minY': gmxAPI.merc_y(ext['minY']),
+					'maxX': gmxAPI.merc_x(ext['maxX']),
+					'maxY': gmxAPI.merc_y(ext['maxY'])
 				};
 				gmxAPI._updatePosition(e, attr);
 			});
@@ -3721,10 +3750,30 @@ gmxAPI._tcnt = 0;
 
 		if(!minZoom) minZoom = 1;
 		if(!maxZoom) maxZoom = 18;
+return;
+/*
+		var images = {};	// mapObject по обьектам векторного слоя
+
+		var tilesParent = node.addObject(null, null, {'subType': 'tilesParent'});
+		tilesParent.setZoomBounds(minZoom, maxZoom);
+		node.tilesParent = tilesParent;
+		tilesParent.clearItems  = function()
+		{
+			for(id in images) {
+				images[id].remove();
+			}
+			images = {};
+		}
+		var func = function(i, j, z, geom)
+		{
+			var image = tilesParent.addObject(geom, geom.properties);
+			var path = callback(image);
+			var tt = 1;
+		};
 		
-		node.setTiledQuicklooks(callback, minZoom, maxZoom);
+		node.setTiledQuicklooks(func, minZoom, maxZoom);
 		return;
-/*		
+*/		
 		var images = {};
 		if (this.tilesParent)
 			this.tilesParent.remove();
@@ -3732,7 +3781,6 @@ gmxAPI._tcnt = 0;
 		this.tilesParent = tilesParent;
 		//gmxAPI._cmdProxy('setAPIProperties', { 'obj': this, 'attr':{'addHiddenFill':true} });	// при отсутствии style.fill дополнить невидимым заполнением - ломает старые проекты
 
-		tilesParent.setZoomBounds(minZoom, maxZoom);
 		var propsArray = [];
 		tilesParent.clearItems  = function()
 		{
@@ -3744,6 +3792,16 @@ gmxAPI._tcnt = 0;
 		}
 			
 		tilesParent.setZoomBounds(minZoom, maxZoom);
+		var func = function(i, j, z, geom)
+		{
+			var image = tilesParent.addObject(geom, geom.properties);
+			var path = callback(geom, image);
+			var tt = 1;
+		};
+		
+		node.setTiledQuicklooks(func, minZoom, maxZoom);
+		
+/*		
 		tilesParent.observeVectorLayer(this, function(o, flag)
 		{
 			var identityField = gmxAPI.getIdentityField(tilesParent);
