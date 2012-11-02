@@ -1,0 +1,69 @@
+<html>
+<head>
+<script src="http://maps.kosmosnimki.ru/api/api.js?key=56AAB7DB8B06FE39BDB3FDCA7276302B" charset="windows-1251"></script> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>GeoMixer API - примеры использования</title>
+
+</head>
+
+<body>
+<div id="map_container" style="width: 800px; height: 650px; float: left;"></div> <!--задаем контейнер, в который загружается карта -->
+<div style="">
+	<button id="button">Получать видмость обьектов векторного слоя</button>
+	<br/>
+	<textarea id="res" style="width: 500px; height: 200px;"></textarea>
+</div>
+
+<script> 
+	createFlashMap(document.getElementById("map_container"), "maps.kosmosnimki.ru", "7VKHM", function(map)
+	{
+		map.moveTo(17.427919, 53.354861, 7);
+
+		var myLayer = map.layers["АЗС"];
+		var observerLayer = myLayer.addObject();
+
+		//document.getElementById("button").onclick = function()
+		{
+			var redrawTimer = null;										// Таймер
+			var cnt = 1;
+			var addItems = [];
+			var delItems = [];
+			var waitMe = function()
+			{
+				var out = '\n Добавлено ' + addItems.length;
+				out += ' удалено ' + delItems.length;
+				out += ' номер вызова ' + cnt;
+				
+				var old = document.getElementById("res").innerHTML;
+				document.getElementById("res").innerHTML = out + old;
+				out = '';
+				cnt++;
+				addItems = [];
+				delItems = [];
+			}
+			var callback = function(hash, flag)
+			{
+				if(flag) addItems.push(hash);
+				else delItems.push(hash);
+				if(redrawTimer) clearTimeout(redrawTimer);
+				redrawTimer = setTimeout(waitMe, 0);
+				
+			}
+			observerLayer.observeVectorLayer(myLayer, callback);
+		}
+		myLayer.setVisible(true);
+	});
+	/*
+				//var old = document.getElementById("res").innerHTML;
+				var geom = hash.geometry;	 			// геометрия обьекта
+				var prop = hash.properties;	 			// properties обьекта
+				var layer = hash.layer;	 				// Векторный слой которому принадлежит полученный обьект
+				out += '\n' + (flag ? '' : ' не ') + ' виден';
+				out += ' ogc_fid: ' + prop['ogc_fid'];
+				//st += ' из слоя ' layer.properties['title'];
+				//document.getElementById("res").innerHTML = out + old;
+	*/
+</script> 
+
+</body>
+</html>
