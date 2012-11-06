@@ -1972,7 +1972,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 
 	//расширяем FlashMapObject
 	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
-			gmxAPI.extendFMO('observeVectorLayer', function(obj, onChange, asArray, notCheckVisibilityFilter) { obj.addObserver(this, onChange, asArray, notCheckVisibilityFilter); } );
+			gmxAPI.extendFMO('observeVectorLayer', function(obj, onChange, attr) { obj.addObserver(this, onChange, attr); } );
 			gmxAPI.extendFMO('enableTiledQuicklooksEx', enableTiledQuicklooksEx);
 			gmxAPI.extendFMO('enableTiledQuicklooks', enableTiledQuicklooks);
 			gmxAPI.extendFMO('enableQuicklooks', enableQuicklooks);

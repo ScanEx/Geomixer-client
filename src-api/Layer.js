@@ -462,15 +462,18 @@
 				}
 				
 			}
-			obj.addObserver = function(o, onChange, asArray, notCheckVisibilityFilter)
+			obj.addObserver = function(o, onChange, attr)
 			{
+				var ignoreVisibilityFilter = false;
+				var asArray = false;
 				if(typeof(o) == 'function') { // вызов без доп. mapObject
-					notCheckVisibilityFilter = asArray;
-					asArray = onChange;
+					attr = onChange;
 					onChange = o;
 					o = obj.addObject();
 				}
-				gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'asArray':asArray, 'notCheckVisibilityFilter':notCheckVisibilityFilter,
+				if(attr && attr['asArray'])	asArray = true;		// callback ожидает массив
+				if(attr && attr['ignoreVisibilityFilter']) ignoreVisibilityFilter = true;	// не учитывать фильтр видимости
+				gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'asArray':asArray, 'notCheckVisibilityFilter':ignoreVisibilityFilter,
 					'func': function(arr)
 					{
 						var out = [];
