@@ -263,7 +263,7 @@ class VectorLayerFilter extends MapContent
 
 	public override function hasLabels()
 	{
-		var style = (mapNode != null ? mapNode.getRegularStyle() : null);
+		var style = (mapNode != null ? (clusterAttr != null ? clusterAttr.regularStyle : mapNode.getRegularStyle()) : null);
 		return ((style != null) && (style.label != null));
 	}
 
@@ -272,7 +272,7 @@ class VectorLayerFilter extends MapContent
 		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
 		if (hasLabels())
 		{
-			var style = mapNode.getRegularStyle();
+			var style = (clusterAttr != null ? clusterAttr.regularStyle : mapNode.getRegularStyle());
 			var window = mapNode.window;
 			var idsAlreadyPainted = new Hash<Bool>();
 			var e1 = window.visibleExtent;

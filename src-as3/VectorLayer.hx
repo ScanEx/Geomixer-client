@@ -451,6 +451,8 @@ class VectorLayer extends MapContent
 							hoverGeom = fromTileGeometry(hoverGeom);
 						}
 					}
+				} else {
+					if (newCurrentFilter.clusterAttr.hoverStyle != null) hoverStyle = newCurrentFilter.clusterAttr.hoverStyle;
 				}
 				lastGeometry = hoverGeom;
 			}
