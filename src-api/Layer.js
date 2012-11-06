@@ -473,7 +473,7 @@
 				}
 				if(attr && attr['asArray'])	asArray = true;		// callback ожидает массив
 				if(attr && attr['ignoreVisibilityFilter']) ignoreVisibilityFilter = true;	// не учитывать фильтр видимости
-				gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'asArray':asArray, 'notCheckVisibilityFilter':ignoreVisibilityFilter,
+				gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'asArray':asArray, 'ignoreVisibilityFilter':ignoreVisibilityFilter,
 					'func': function(arr)
 					{
 						var out = [];
@@ -481,9 +481,9 @@
 							var item = arr[i];
 							var mObj = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(item.geometry), item.properties, obj);
 							if(asArray) {
-								out.push({'isView':item.isView, 'item':mObj})
+								out.push({'onExtent':item.onExtent, 'item':mObj})
 							} else {
-								onChange(mObj, item.isView);
+								onChange(mObj, item.onExtent);
 							}
 						}
 						if(out.length) {

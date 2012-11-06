@@ -1124,7 +1124,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					for (i in 0...Std.int(ph.length)) {
 						var it:Dynamic = ph[i];
 						var id:String = it.id;
-						var isView:Bool = it.isView;
+						var onExtent:Bool = it.onExtent;
 						var geom = layer.geometries.get(id);
 						var geoExp:Dynamic = null;
 						var prop:Dynamic = null;
@@ -1144,7 +1144,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 						var item:Dynamic = {};
 						item.geometry = geoExp;
 						item.properties = prop;
-						item.isView = it.isView;
+						item.onExtent = it.onExtent;
 						//item.eventType = 'observeVectorLayer';
 						item.layerID = attr.layerId;
 						item.func = attr.func;
@@ -1152,7 +1152,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					}
 					Main.cmdToJS(attr.func, out);
 				},
-				attr.notCheckVisibilityFilter
+				attr.ignoreVisibilityFilter
 			));
 		}
 
