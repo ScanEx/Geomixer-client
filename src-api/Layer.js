@@ -462,13 +462,30 @@
 				}
 				
 			}
-			obj.addObserver = function(o, onChange)
+			obj.addObserver = function(o, onChange, asArray, notCheckVisibilityFilter)
 			{
-				gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId,
-					'func': function(geom, props, flag)
+				if(typeof(o) == 'function') { // вызов без доп. mapObject
+					notCheckVisibilityFilter = asArray;
+					asArray = onChange;
+					onChange = o;
+					o = obj.addObject();
+				}
+				gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'asArray':asArray, 'notCheckVisibilityFilter':notCheckVisibilityFilter,
+					'func': function(arr)
 					{
-						var mObj = (gmxAPI.proxyType === 'leaflet' ? geom : new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(geom), props, obj));
-						onChange(mObj, flag);
+						var out = [];
+						for (var i = 0; i < arr.length; i++) {
+							var item = arr[i];
+							var mObj = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(item.geometry), item.properties, obj);
+							if(asArray) {
+								out.push({'isView':item.isView, 'item':mObj})
+							} else {
+								onChange(mObj, item.isView);
+							}
+						}
+						if(out.length) {
+							onChange(out);
+						}
 					}
 				} });
 			}

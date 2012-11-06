@@ -45,10 +45,8 @@
 		if(curCount > maxCount) { setTimeout(function() { nextLoad(); }, 1); return; }
 		if(items.length < 1) return false;
 		var item = items.shift();
-		if(item.bounds && !gmxAPI._leaflet['zoomstart']) {						// удаление устаревших запросов по bounds
+		if(item.bounds && !item.shiftY && !gmxAPI._leaflet['zoomstart']) {			// удаление устаревших запросов по bounds
 			if(!gmxAPI._leaflet['utils'].chkBoundsVisible(item.bounds)) {
-				//console.log(item);
-				//delete itemsCache[item.src];
 				curCount--; item.isError = true; callCacheItems(item); return;
 			}
 		}
@@ -173,6 +171,13 @@
 			tb = new L.Bounds(new L.Point(b.min.x - 360, b.min.y), new L.Point(b.max.x - 360, b.max.y));
 			if(vb.intersects(tb)) return true;
 			return false;
+		}
+		,
+		'getOSMShift': function()	{				// Получение сдвига OSM
+			var pos = LMap.getCenter();
+			var point = LMap.project(pos);
+			var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng), LMap.getZoom());
+			return point.y - p1.y;
 		}
 		,
 		'chkGlobalClick': function(attr)	{					// проверка Click на перекрытых нодах
@@ -376,7 +381,7 @@
 		}
 		,
 		'evalStyle': function(style, node)	{								// парсинг стиля лефлета
-			var out = {};
+			var out = { 'ready': true };
 			var prop = (node ? node.properties || node.geometry.properties : null);
 			//if(node.propHiden) for(var key in node.propHiden) prop['_'+key] = node.propHiden[key];
 			for(var key in style) {
@@ -457,14 +462,6 @@
 			}
 		}
 		,
-		'getScaleY': function()	{					// получить scale по Y
-			var out = null;
-			var pos = LMap.getCenter();
-			var pix = LMap.project(pos);
-			var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng), LMap.getZoom());
-			//shifty
-		}
-		,
 		'drawPoint': function(node, style)	{			// отрисовка POINT геометрии
 			var out = null;
 			var styleType = (style['iconUrl'] ? 'marker' : 'rectangle');
@@ -516,32 +513,20 @@
 					opacity: 1,
 					weight: 2
 				});
-				
 			}
 			return out;
 		}
 		,
 		'drawPolygon': function(node, style)	{			// отрисовка Polygon геометрии
-
 			var geojsonFeature = {
 				"type": "Feature",
 				"properties": node.properties,
 				"geometry": node.geometry
 			};
 			var out = L.geoJson(geojsonFeature, {
-				style: utils.evalStyle(style, node)
+				style: ('ready' in style ? style : utils.evalStyle(style, node))
 			});
-			
-/*			
-			var geo = node.geometry;
-			var featureparse = function(e) {
-				if('setStyle' in e.layer) {
-					var st = utils.evalStyle(style, node);
-					e.layer.setStyle(st);
-				}
-			};
-			out = utils.drawGeometry(geo, featureparse);
-*/			return out;
+			return out;
 		}
 		,
 		'drawMultiPolygon': function(node, style)	{			// отрисовка Polygon геометрии
@@ -552,7 +537,7 @@
 				"geometry": node.geometry
 			};
 			var out = L.geoJson(geojsonFeature, {
-				style: utils.evalStyle(style, node)
+				style: ('ready' in style ? style : utils.evalStyle(style, node))
 			});
 			return out;
 		}
@@ -1024,10 +1009,11 @@
 			var pGroup = (pNode ? pNode['group'] : LMap);
 			if(node['type'] === 'filter') {							// нода filter
 				if(pNode) pNode.refreshFilter(id);
-			} else if(!node['leaflet'] && node['children'].length > 0) {	// нет leaflet проверить потомков
-				for (var i = 0; i < node['children'].length; i++) {
-					setVisibleRecursive(mapNodes[node['children'][i]], ph.attr);
-				}
+				return;
+//			} else if(!node['leaflet'] && node['children'].length > 0) {	// нет leaflet проверить потомков
+//				for (var i = 0; i < node['children'].length; i++) {
+//					setVisibleRecursive(mapNodes[node['children'][i]], ph.attr);
+//				}
 			} else if(node['leaflet']) {							// нода имеет вид в leaflet
 				if(ph.attr) {
 					var flag = chkVisibilityObject(id);
@@ -1057,6 +1043,9 @@
 	gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
 
 	*/
+//					for (var i = 0; i < node['children'].length; i++) {
+//						setVisibleRecursive(mapNodes[node['children'][i]], ph.attr);
+//					}
 				}
 				else
 				{
@@ -1074,6 +1063,11 @@
 						}
 						node['leaflet']._isVisible = false;
 						if(pGroup['_layers'][node['leaflet']['_leaflet_id']]) pGroup.removeLayer(node['leaflet']);
+						
+//						for (var i = 0; i < node['children'].length; i++) {
+//							setVisibleRecursive(mapNodes[node['children'][i]], false);
+//						}
+						
 /*					
 					for (var i = 0; i < node['children'].length; i++) {
 						var pNode = mapNodes[node['children'][i]];
@@ -1084,6 +1078,9 @@
 */					
 					}
 				}
+			}
+			for (var i = 0; i < node['children'].length; i++) {
+				setVisibleRecursive(mapNodes[node['children'][i]], ph.attr);
 			}
 		}
 	}
@@ -1426,8 +1423,8 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var layerId = ph.attr.layerId;
 			var nodeLayer = mapNodes[layerId];
 			if(!nodeLayer) return;
-			nodeLayer['observerNode'] = node;
-			node['observeVectorLayer'] = ph.attr.func;
+			nodeLayer.setObserver(ph);
+			//node['observeVectorLayer'] = ph.attr.func;
 			return true;
 		}
 		,
@@ -1605,14 +1602,27 @@ ctx.fillRect(0, 0, imageObj.width, imageObj.height);
 		var layer = ph.obj;
 		var id = layer.objectId;
 		var node = mapNodes[id];
+gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
 		if(!node) return;						// Нода не определена
 		node['type'] = 'RasterLayer';
 		var inpAttr = ph.attr;
 		node['subType'] = ('subType' in inpAttr ? inpAttr['subType'] : (inpAttr['projectionCode'] === 1 ? 'OSM' : ''));
 		node['zIndex'] = utils.getIndexLayer(id);
-
-		var attr = prpLayerAttr(layer, node);
-		//node['geom'] = utils.getIndexLayer(id); setgeo
+		var attr = {};
+		if(node.propHiden) {
+			if(node.propHiden.geom) {
+				attr['geom'] = node.propHiden['geom'];					// Геометрия от обьекта векторного слоя
+				attr['bounds'] = attr['geom']['bounds'];				// Bounds слоя
+			}
+		}
+		var pNode = mapNodes[node.parentId];					// Нода родителя
+		if(pNode && pNode.propHiden && pNode.propHiden.subType === 'tilesParent') {
+			attr['minZoom'] = pNode.minZ || 1;
+			attr['maxZoom'] = pNode.maxZ || 30;
+										// pNode.parentId нода векторного слоя по обьекту которого создан растровый слой 
+		} else {
+			attr = prpLayerAttr(layer, node);
+		}
 		
 		node['chkGeometry'] = function() {			// подготовка границ растрового слоя
 			var pt = prpGeom(node['geometry']);
@@ -1621,21 +1631,9 @@ ctx.fillRect(0, 0, imageObj.width, imageObj.height);
 			if(waitRedraw) {
 				myLayer.options.attr = attr;
 				waitRedraw();
-				//var currZ = LMap.getZoom();
-				//var centr = LMap.getCenter();
-				//LMap.setView(centr, currZ + 1);
-				//LMap.setView(centr, currZ - 1);
 			}
 		};
 		if(node['geometry']) node['chkGeometry']();
-
-gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
-//gmxAPI._tools['baseLayers'].removeTool('OSM');	// OSM пока не добавляем
-//if(!layer.properties) {
-//return;
-//}
-//if(layer.properties.title != "Spot5_Volgograd") return out;
-//if(layer.properties.title != "карта Украины") return out;
 
 		var initCallback = function(obj) {			// инициализация leaflet слоя
 			if(obj._container) {
@@ -1670,30 +1668,26 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 		};
 		var myLayer = new L.TileLayer.ScanExCanvas(option);
 		if(node['subType'] === 'OSM') {
-			myLayer.getTileUrl = function(tilePoint, zoom) {
+			var getTileUrl = function(x, y, zoom) {
 				if(!zoom) zoom = LMap.getZoom();
 				var pz = Math.pow(2, zoom);
-				var tx = tilePoint.x;
+				var tx = x;
 				if(tx < 0) tx += pz;
 				var scanexTilePoint = {
 					'x': (tx % pz - pz/2) % pz
-					,'y': -tilePoint.y - 1 + pz/2
+					,'y': -y - 1 + pz/2
 				};
 				return inpAttr['func'](scanexTilePoint.x, scanexTilePoint.y, zoom);
 			}
+			//myLayer.options.tileFunc = getTileUrl;
+			//myLayer.options.continuousWorld = true;
 		
-			var chkShift = function() {					// Проверка сдвига слоя
-				var pos = LMap.getCenter();
-				var point = LMap.project(pos);
-				var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng), LMap.getZoom());
-				myLayer.options.shiftY = point.y - p1.y;
-			};
-			LMap.on('zoomend', chkShift);
-			LMap.on('moveend', chkShift);
 			node['shiftY'] = function() {
-				chkShift();
-				gmxAPI.position(myLayer._container, 0, myLayer.options.shiftY);
+				myLayer.options.shiftY = utils.getOSMShift();
+				if(myLayer._container) gmxAPI.position(myLayer._container, 0, myLayer.options.shiftY);
 			}
+			LMap.on('zoomend', node['shiftY']);
+			LMap.on('move', node['shiftY']);
 		}
 		node['leaflet'] = myLayer;
 
@@ -1797,6 +1791,8 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 		var id = layer.objectId;
 		var node = mapNodes[id];
 		if(!node) return;						// Нода не определена
+		var gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
+
 		node['type'] = 'VectorLayer';
 		node['minZ'] = 1;
 		node['maxZ'] = 21;
@@ -1836,6 +1832,122 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 		if(layer.properties['IsRasterCatalog']) {
 			node['rasterCatalogTilePrefix'] = layer['tileSenderPrefix'];
 		}
+
+		//node['shiftY'] = 0;						// Сдвиг для ОСМ вкладок
+		node['setObserver'] = function (pt) {				// Установка получателя видимых обьектов векторного слоя
+			node['observerNode'] = pt.obj.objectId;
+			var notCheckVisibilityFilter = pt.attr.notCheckVisibilityFilter || false;		// отменить контроль фильтра видимости
+			var callback = pt.attr.func;
+		
+			var observerTiles = {};
+			var observerObj = {};
+			node['chkObserver'] = function () {				// проверка изменений видимости обьектов векторного слоя
+				var currPosition = gmxAPI.currPosition;
+				if(!currPosition || !currPosition.extent) return;
+				var ext = currPosition.extent;
+				var out = [];
+				var tiles = node['tiles'];
+				for (var key in tiles)
+				{
+					var tb = tiles[key];
+					var tvFlag = (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.x > ext.maxY);
+					if(tvFlag) {								// Тайл за границами видимости
+						if(!observerTiles[key]) continue;
+						delete observerTiles[key];
+					} else {
+						observerTiles[key] = true;
+					}
+					var items = node['tilesGeometry'][key];
+					if(items && items.length > 0) {
+						for (var i = 0; i < items.length; i++)
+						{
+							var item = items[i];
+							if(node['temporal'] && !node.chkTemporalFilter(item)) continue;														// не прошел по мультивременному фильтру
+							if(!item['propHiden'] || !item['propHiden']['toFilters'] || item['propHiden']['toFilters'].length == 0) continue;	// обьект не виден по стилевым фильтрам
+							
+							if(!notCheckVisibilityFilter && node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](item['properties'])) continue; 	// если фильтр видимости на слое не отменен
+							
+							var id = item.id;
+							var vFlag = (item.bounds.max.x < ext.minX || item.bounds.min.x > ext.maxX || item.bounds.max.y < ext.minY || item.bounds.min.x > ext.maxY);
+							var ph = {'layerID': node.id, 'properties': item.properties };
+							if(vFlag) {					// Тайл за границами видимости
+								if(observerObj[id]) {
+									ph.isView = false;
+									ph.geometry = item.exportGeo();
+									out.push(ph);
+									delete observerObj[id];
+								}
+							} else {
+								if(!observerObj[id]) {
+									ph.isView = true;
+									ph.geometry = item.exportGeo();
+									out.push(ph);
+									observerObj[id] = item;
+								}
+							}
+						}
+					}
+				}
+				if(out.length) {
+					callback(out);
+				}
+			}
+			gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onMoveEnd', 'obj': gmxAPI.map, 'func': node['chkObserver']});
+		};
+
+		node.chkLoadTiles = function()	{		// Проверка необходимости загрузки тайлов
+			if(gmxNode['isVisible'] === false) return;								// Слой не видим
+			var currPosition = gmxAPI.currPosition;
+			if(!currPosition || !currPosition.extent) return;
+			var ext = currPosition.extent;
+			var tiles = node['tiles'];
+			for (var tileKey in tiles)
+			{
+				if(node['tilesGeometry'][tileKey] || node['badTiles'][tileKey] || node['tilesLoadProgress'][tileKey]) continue;
+//console.log(tileKey, gmxNode);
+				var tb = tiles[tileKey];
+				var tvFlag = (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.x > ext.maxY);
+				if(tvFlag) continue;								// Тайл за границами видимости
+				var arr = tileKey.split('_');
+				var srcArr = option.tileFunc(arr[1], arr[2], arr[0]);
+				if(typeof(srcArr) === 'string') srcArr = [srcArr];
+
+				var counts = srcArr.length;
+				var needParse = [];
+				(function(tileID) {						// подгрузка векторных тайлов
+					for (var i = 0; i < srcArr.length; i++)
+					{
+						var src = srcArr[i] + '&r=t';
+						node['loaderFlag'] = true;
+						node['tilesLoadProgress'][tileID] = true;
+						gmxAPI.sendCrossDomainJSONRequest(src, function(response)
+						{
+							delete node['tilesLoadProgress'][tileID];
+							counts--;
+							if(typeof(response) != 'object' || response['Status'] != 'ok') {
+								gmxAPI.addDebugWarnings({'url': src, 'Error': 'bad response'});
+								node['badTiles'][tileID] = true;
+								//return;
+							}
+							if(response['Result'] && response['Result'].length)	needParse = needParse.concat(response['Result']);
+							if(counts < 1) {
+								gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode, 'attr':{'data':{'tileID':tileID, 'data':needParse}}});		// tile загружен
+								needParse = [];
+								node['loaderFlag'] = false;
+								for (var i in node['tilesLoadProgress'])
+								{
+									node['loaderFlag'] = true;
+									break;
+								}
+								if(!node['loaderFlag']) node['leaflet'].redraw();		// перезапросить drawTile слоя
+							}
+						});
+					}
+				})(tileKey);
+			}
+		};
+		// todo сделать загрузку векторных тайлов без layer.redraw() лефлета
+		//gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onMoveEnd', 'obj': gmxAPI.map, 'func': node.chkLoadTiles});
 
 		node['chkTemporalFilter'] = function (item) {				// проверка мультивременного фильтра
 			if(node['temporal'] && item['propHiden']) {
@@ -1967,7 +2079,7 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 //canvas.dragging {cursor: crosshair;}
 				utils.bringToDepth(node, node['zIndex']);
 				
-				LMap.fire('moveend');
+				//LMap.fire('moveend');
 			}
 		};
 
@@ -2122,8 +2234,13 @@ var tt =1;
 		}
 		
 node.repaintCount = 0;
+		var observerTimer = null;										// Таймер
 		node.repaintTile = function(attr)	{							// перерисовать векторный тайл слоя
 			var out = false;
+			if(node['observerNode']) {
+				if(observerTimer) clearTimeout(observerTimer);
+				observerTimer = setTimeout(node['chkObserver'], 0);
+			}
 
 			var zoom = attr['zoom'];
 			if(zoom != gmxAPI._leaflet['lastZoom']) {
@@ -2209,9 +2326,14 @@ node.repaintCount = 0;
 						if(filter && (filter.styleRecalc || !geo.curStyle)) styleToGeo(geom, filter);
 					}
 					//if(!filter || filter.isVisible === false || !utils.chkZoomObject(filter.id, zoom)) continue;		// если нет фильтра или он невидим пропускаем
-					if(!filter || filter.isVisible === false) continue;		// если нет фильтра или он невидим пропускаем
+					if(!filter || filter.isVisible === false) {		// если нет фильтра или он невидим пропускаем
+						continue;
+					}
 
-					if(!geom.curStyle || !node.chkTemporalFilter(geom)) continue;
+					if(!geom.curStyle || !node.chkTemporalFilter(geom)) {	// не прошел по мультивременному фильтру
+						continue;
+					}
+					
 /*
 					if(node['temporal'] && propHiden) {
 						if(node['temporal']['ut1'] > propHiden['unixTimeStamp'] || node['temporal']['ut2'] < propHiden['unixTimeStamp']) {
@@ -2220,12 +2342,16 @@ node.repaintCount = 0;
 					}
 */
 					if(geom.type === 'Point' || geom.type === 'Polyline' || geom.type === 'MultiPolyline' || geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
+						var notIntersects = false;
 						if(geom['intersects']) {
-							if(!geom['intersects'](attr.bounds)) continue;	// если geom имеет свой метод intersects
+							if(!geom['intersects'](attr.bounds)) notIntersects = true;	// если geom имеет свой метод intersects
 						}
-						else if(!attr.bounds.intersects(geom.bounds)) continue;					// обьект не пересекает границы тайла
-						if(flipDraw[geom['id']] && flag) {
-							res.push(geom);
+						else if(!attr.bounds.intersects(geom.bounds)) notIntersects = true;					// обьект не пересекает границы тайла
+						//if(flipDraw[geom['id']] && flag) {
+							//res.push(geom);
+							//continue;
+						//}
+						if(notIntersects) {				// обьект не пересекает границы тайла
 							continue;
 						}
 						//var filters = propHiden['toFilters'];
@@ -2280,12 +2406,12 @@ node.repaintCount = 0;
 			{
 				var tb = node['tiles'][key];
 				if(!tb) continue;
-				if( tb.min.x - tb.delta > attr.bounds.max.x
+				if( tb.min.x - tb.delta > attr.bounds.max.x				// Тайл не пересекает границы
 					|| tb.max.x + tb.delta < attr.bounds.min.x
 					|| tb.min.y - tb.delta > attr.bounds.max.y
 					|| tb.max.y + tb.delta < attr.bounds.min.y
 				) {
-					continue;				// Тайл не пересекает границы
+					continue;
 				}
 /*				
 				if(!tb.intersects(attr.bounds)) {
@@ -2306,8 +2432,9 @@ node.repaintCount = 0;
 			}
 			arr = arr.concat(arr1);
 			drawGeoArr(arr);
+			attr.tile._layer.tileDrawn(attr.tile);
 /**/
-//node.repaintCount++;
+//node.repaintCount++; //shifty
 //console.log(node.repaintCount + ' Count: ' + cnt + ' tile: ' + attr.drawTileID + ' ccc: ' , attr.scanexTilePoint);
 			return out;
 		}
@@ -2339,7 +2466,7 @@ node.repaintCount = 0;
 		node.refreshFilter = function(fid)	{		// обновить фильтр
 			var filterNode = mapNodes[fid];
 			if(!filterNode) return;						// Нода не была создана через addObject
-			var gmxNode = gmxAPI.mapNodes[fid];
+			//var gmxNode = gmxAPI.mapNodes[fid];
 			filterNode.styleRecalc = true;
 			waitRedraw();
 			//myLayer.redraw();
@@ -2503,7 +2630,6 @@ node.repaintCount = 0;
 //console.log(' startLoadTiles: ' + attr + ' : ');
 			return true;
 		}
-
 		
 		// Обработчик события - onTileLoaded
 		gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onTileLoaded', 'obj': gmxAPI.mapNodes[id], 'func': function(ph) {
@@ -2571,6 +2697,12 @@ node.repaintCount = 0;
 		out['bounds'] = bounds;
 		out['sx'] = out['sy'] = 5;
 		
+		// Экспорт точки в АПИ
+		out['exportGeo'] = function (chkPoint) {
+			var res = {'type': 'POINT'};
+			res['coordinates'] = p;
+			return res;
+		}
 		// Проверка совпадения с другой точкой
 		out['contains'] = function (chkPoint) {
 			var deltax = out.sx / gmxAPI._leaflet['mInPixel'];
@@ -2669,6 +2801,11 @@ node.repaintCount = 0;
 			cnt++;
 		}
 		out['bounds'] = bounds;
+		// Экспорт в АПИ
+		out['exportGeo'] = function (chkPoint) {
+			var res = {};
+			return res;
+		}
 
 		// Отрисовка геометрии LineGeometry
 		var paintStroke = function (attr) {
@@ -2742,6 +2879,11 @@ node.repaintCount = 0;
 				addMember(item);
 			}
 		}
+		// Экспорт в АПИ
+		out['exportGeo'] = function (chkPoint) {
+			var res = {};
+			return res;
+		}
 		
 		out['addMembers'] = addMembers;
 		out['addMember'] = addMember;
@@ -2776,6 +2918,7 @@ node.repaintCount = 0;
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
 	gmxAPI._leaflet['PolygonGeometry'] = function(geo_, tileBounds_) {				// класс PolygonGeometry
+if(!tileBounds_) return;
 		var out = gmxAPI._leaflet['Geometry']();
 		out['type'] = 'Polygon';
 		var tileBounds = tileBounds_;					// границы тайла в котором пришел обьект
@@ -2807,6 +2950,12 @@ node.repaintCount = 0;
 		}
 		out['coordinates'] = coords;
 		out['bounds'] = bounds;
+		// Экспорт в АПИ
+		out['exportGeo'] = function (chkPoint) {
+			var res = {'type': 'POLYGON'};
+			res['coordinates'] = geo_['coordinates'];
+			return res;
+		}
 
 		var bMinX = gmxAPI.from_merc_x(bounds.min.x);
 		var bMaxX = gmxAPI.from_merc_x(bounds.max.x);
@@ -2923,7 +3072,7 @@ node.repaintCount = 0;
 		}
 		// Отрисовка полигона
 		out['paint'] = function(attr) {
-			paintFill(attr, true);
+			if(attr.style.fill) paintFill(attr, true);
 			var res = paintStroke(attr);
 			//attr.ctx.stroke();
 			return res;
@@ -3048,7 +3197,9 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 			//var pos = new L.LatLng(50.499276, 35.760498);
 			LMap.setView(pos, 4);
 //console.log('waitMe ' , pos);
-		//LMap.on('moveend', function(e) { gmxAPI._updatePosition(e); });
+			LMap.on('moveend', function(e) {
+				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {});
+			});
 			LMap.on('move', function(e) {
 				var pos = LMap.getCenter();
 				var size = LMap.getSize();
@@ -3121,28 +3272,29 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 			LMap.on('zoomend', function(e) {
 				gmxAPI._leaflet['zoomstart'] = false;
 				gmxAPI._listeners.dispatchEvent('onZoomend', null, {});
-				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {});
+//				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {});
 			});
 
 			// Обработчик события - mapInit
 			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': onMapInit});
 
-			function drawCanvasPolygon( ctx, x, y, geom, zoom, bounds ) {
+			function drawCanvasPolygon( ctx, x, y, geom, zoom, bounds, shiftY) {
 				if(!geom) return;
 				ctx.save();
 				//ctx.translate(x, y);
 				ctx.beginPath();
+				if(!shiftY) shiftY = 0;
 				
 				for (var i = 0; i < geom.length; i++)
 				{
 					var pt = geom[i];
-					var pArr = L.PolyUtil.clipPolygon(pt, bounds);
+					var pArr = (shiftY == 0 ? L.PolyUtil.clipPolygon(pt, bounds) : pt);
 					for (var j = 0; j < pArr.length; j++)
 					{
 						var p = new L.LatLng(pArr[j].y, pArr[j].x);
 						var pp = LMap.project(p, zoom);
-						var px = pp.x - x;		px = (0.5 + px) << 0;
-						var py = pp.y - y;		py = (0.5 + py) << 0;
+						var px = pp.x - x;				px = (0.5 + px) << 0;
+						var py = pp.y - y - shiftY;		py = (0.5 + py) << 0;
 						if(j == 0) ctx.moveTo(px, py);
 						ctx.lineTo(px, py);
 					}
@@ -3200,14 +3352,15 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					if (zoom > this.options.maxZoom || zoom < this.options.minZoom) {
 						return;
 					}
-
 					var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
+bounds.min.y -= shiftY;
+bounds.max.y -= shiftY;
 					var nwTilePoint = new L.Point(
 							Math.floor(bounds.min.x / tileSize),
-							Math.floor((bounds.min.y - shiftY) / tileSize)),
+							Math.floor(bounds.min.y / tileSize)),
 						seTilePoint = new L.Point(
 							Math.floor(bounds.max.x / tileSize),
-							Math.floor((bounds.max.y - shiftY) / tileSize)),
+							Math.floor(bounds.max.y / tileSize)),
 						tileBounds = new L.Bounds(nwTilePoint, seTilePoint);
 
 					this._addTilesFromCenterOut(tileBounds);
@@ -3277,9 +3430,21 @@ visibleext
 						,'zoom': zoom
 						,'x': scanexTilePoint.x
 						,'y': scanexTilePoint.y
+						,'shiftY': (tile._layer.options.shiftY ? tile._layer.options.shiftY : 0)	// Сдвиг для OSM
 						,'callback': function(imageObj){
 							var ctx = tile.getContext('2d');
-/*						
+							if(!flagAll) {
+								if(attr.bounds && !bounds.intersects(attr.bounds))	{	// Тайл не пересекает границы слоя
+									return;
+								}
+								drawCanvasPolygon( ctx, tileX, tileY, attr['geom'], zoom, bounds, tile._layer.options.shiftY);
+							}
+							
+							var pattern = ctx.createPattern(imageObj, "no-repeat");
+							ctx.fillStyle = pattern;
+							if(flagAll) ctx.fillRect(0, 0, 256, 256);
+							ctx.fill();
+/*
 var drawTileID = zoom + '_' + scanexTilePoint.x + '_' + scanexTilePoint.y;
 drawTileID += ' : ' + zoom + '_' + tilePoint.x + '_' + tilePoint.y;
 ctx.restore();
@@ -3287,17 +3452,6 @@ ctx.strokeRect(2, 2, 253, 253);
 ctx.font = '24px "Tahoma"';
 ctx.fillText(drawTileID, 10, 128);
 */
-							if(!flagAll) {
-								if(attr.bounds && !bounds.intersects(attr.bounds))	{	// Тайл не пересекает границы слоя
-									return;
-								}
-								drawCanvasPolygon( ctx, tileX, tileY, attr['geom'], zoom, bounds );
-							}
-							
-							var pattern = ctx.createPattern(imageObj, "no-repeat");
-							ctx.fillStyle = pattern;
-							if(flagAll) ctx.fillRect(0, 0, 256, 256);
-							ctx.fill();
 							me.tileDrawn(tile);
 							
 						}
@@ -3383,7 +3537,13 @@ ctx.fillText(drawTileID, 10, 128);
 						var gmxNode = gmxAPI.mapNodes[opt['id']];
 						gmxAPI._listeners.dispatchEvent('onLayerStartTileRepaint', gmxNode, {'obj':gmxNode, 'attr':attr});
 					}
-
+					node['chkLoadTiles']();
+/*
+					if('chkLoadTiles' in node) node['chkLoadTiles']();
+					else {
+						var tt = 1;
+					}
+					
 					var repaintFlag = true;
 					var tiles = node['tiles'];
 					for (var key in tiles)
@@ -3441,6 +3601,7 @@ ctx.fillText(drawTileID, 10, 128);
 							}
 						//}
 					}
+*/					
 					if(!node['loaderFlag']) repaint(0);
 				}
 			});
@@ -3747,16 +3908,17 @@ gmxAPI._tcnt = 0;
 	var enableTiledQuicklooksEx = function(callback, minZoom, maxZoom)
 	{
 		var node = gmxAPI._leaflet['mapNodes'][this.objectId];
+		var gmxNode = gmxAPI['mapNodes'][this.objectId];
 
 		if(!minZoom) minZoom = 1;
 		if(!maxZoom) maxZoom = 18;
-return;
-/*
+		
 		var images = {};	// mapObject по обьектам векторного слоя
+		var propsArray = [];
 
-		var tilesParent = node.addObject(null, null, {'subType': 'tilesParent'});
+		var tilesParent = gmxNode.addObject(null, null, {'subType': 'tilesParent'});
 		tilesParent.setZoomBounds(minZoom, maxZoom);
-		node.tilesParent = tilesParent;
+		gmxNode.tilesParent = tilesParent;
 		tilesParent.clearItems  = function()
 		{
 			for(id in images) {
@@ -3764,16 +3926,48 @@ return;
 			}
 			images = {};
 		}
+/*		
 		var func = function(i, j, z, geom)
 		{
-			var image = tilesParent.addObject(geom, geom.properties);
-			var path = callback(image);
+			var image = tilesParent.addObject(null, geom.properties, {'geom': geom});
+			var path = callback(geom, image);
 			var tt = 1;
 		};
 		
 		node.setTiledQuicklooks(func, minZoom, maxZoom);
-		return;
 */		
+		tilesParent.observeVectorLayer(this, function(o, flag)
+		{
+			var identityField = gmxAPI.getIdentityField(tilesParent);
+			var id = 'id_' + o.properties[identityField];
+			var ret = false;
+			if (flag && !images[id])
+			{
+				var image = tilesParent.addObject(o.geometry, o.properties);
+				callback(o, image);
+				images[id] = image;
+				propsArray.push(o.properties);
+				ret = true;
+			}
+			else if (!flag && images[id])
+			{
+				images[id].remove();
+				delete images[id];
+				for (var i = 0; i < propsArray.length; i++)
+				{
+					if (propsArray[i][identityField] == o.properties[identityField])
+					{
+						propsArray.splice(i, 1);
+						break;
+					}
+				}
+				ret = true;
+			}
+			return ret;
+		});
+		
+		return;
+/*		
 		var images = {};
 		if (this.tilesParent)
 			this.tilesParent.remove();
@@ -3801,7 +3995,7 @@ return;
 		
 		node.setTiledQuicklooks(func, minZoom, maxZoom);
 		
-/*		
+		
 		tilesParent.observeVectorLayer(this, function(o, flag)
 		{
 			var identityField = gmxAPI.getIdentityField(tilesParent);
@@ -3854,7 +4048,7 @@ return;
 
 	//расширяем FlashMapObject
 	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
-			gmxAPI.extendFMO('observeVectorLayer', function(obj, onChange) { obj.addObserver(this, onChange); } );
+			gmxAPI.extendFMO('observeVectorLayer', function(obj, onChange, asArray, notCheckVisibilityFilter) { obj.addObserver(this, onChange, asArray, notCheckVisibilityFilter); } );
 			gmxAPI.extendFMO('enableTiledQuicklooksEx', enableTiledQuicklooksEx);
 			gmxAPI.extendFMO('enableTiledQuicklooks', enableTiledQuicklooks);
 			gmxAPI.extendFMO('enableQuicklooks', enableQuicklooks);

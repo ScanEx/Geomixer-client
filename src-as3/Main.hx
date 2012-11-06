@@ -1118,36 +1118,41 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			var layer = cast(getNode(attr.layerId).content, VectorLayer);
 			getNode(attr.objectId).setContent(new VectorLayerObserver(
 				layer,
-				function(id:String, flag:Bool)
+				function(ph:Array<Dynamic>)
 				{
-					var geom = layer.geometries.get(id);
-					var geoExp:Dynamic = null;
-					var prop:Dynamic = null;
-					if(geom == null) {
-						var pNode:MapNode = getNode(id);
-						if (pNode.content != null && Std.is(pNode.content, VectorObject)) {
-							var vObj:VectorObject = cast(pNode.content, VectorObject);
-							geoExp = vObj.geometry.export();
-							prop = exportProperties(pNode.propHash);
+					var out:Array<Dynamic> = new Array<Dynamic>();
+					for (i in 0...Std.int(ph.length)) {
+						var it:Dynamic = ph[i];
+						var id:String = it.id;
+						var isView:Bool = it.isView;
+						var geom = layer.geometries.get(id);
+						var geoExp:Dynamic = null;
+						var prop:Dynamic = null;
+						if(geom == null) {
+							var pNode:MapNode = getNode(id);
+							if (pNode.content != null && Std.is(pNode.content, VectorObject)) {
+								var vObj:VectorObject = cast(pNode.content, VectorObject);
+								geoExp = vObj.geometry.export();
+								prop = exportProperties(pNode.propHash);
+							}
 						}
+						else
+						{
+							geoExp = geom.export();
+							prop = exportProperties(geom.properties);
+						}
+						var item:Dynamic = {};
+						item.geometry = geoExp;
+						item.properties = prop;
+						item.isView = it.isView;
+						//item.eventType = 'observeVectorLayer';
+						item.layerID = attr.layerId;
+						item.func = attr.func;
+						out.push(item);
 					}
-					else
-					{
-						geoExp = geom.export();
-						prop = exportProperties(geom.properties);
-					}
-					//Main.cmdToJS(attr.func, geoExp, prop, flag);
-
-					var out:Dynamic = {};
-					out.eventType = 'observeVectorLayer';
-					out.layerID = attr.layerId;
-					out.func = attr.func;
-					out.geometry = geoExp;
-					out.properties = prop;
-					out.flag = flag;
-					Main.messBuffToJS.push( out );
-					Main.lastFrameBumpTime = Date.now().getTime() - 1900;
-				}
+					Main.cmdToJS(attr.func, out);
+				},
+				attr.notCheckVisibilityFilter
 			));
 		}
 
