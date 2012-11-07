@@ -168,6 +168,7 @@
 					// Добавление прослушивателей событий
 					obj.addListener('onChangeVisible', function(flag)
 						{
+							if(flag) updateFunc();
 							obj.setHandler("onMove", flag ? updateFunc : null);
 						}
 					);
