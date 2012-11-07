@@ -53,47 +53,61 @@ class VectorLayerObserver extends MapContent
 			var extent = mapNode.window.visibleExtent;
 			for (tile in layer.tiles)
 			{
-				if ((tile.ids != null) && tile.extent.overlaps(extent))
+				if (tile.ids != null)
 				{
-					for (id in tile.ids)
+					if (tile.extent.overlaps(extent))
 					{
-						var geom:Geometry = layer.geometries.get(id);
-						var isIn = false;
-						if (criterion == null || criterion(geom.properties)) {		// Проверка на setVisibilityFilter
-							for (filter in filters)
-							{
-								if (filter.ids.exists(id)) {
-									if (layer.temporalCriterion == null || layer.temporalCriterion(geom.propTemporal)) {
-										if (geom != null && geom.extent.overlaps(extent))
-										{
-											isIn = true;
-											break;
+						for (id in tile.ids)
+						{
+							var geom:Geometry = layer.geometries.get(id);
+							var isIn = false;
+							if (criterion == null || criterion(geom.properties)) {		// Проверка на setVisibilityFilter
+								for (filter in filters)
+								{
+									if (filter.ids.exists(id)) {
+										if (layer.temporalCriterion == null || layer.temporalCriterion(geom.propTemporal)) {
+											if (geom != null && geom.extent.overlaps(extent))
+											{
+												isIn = true;
+												break;
+											}
 										}
 									}
 								}
 							}
+							if (isIn && !ids.exists(id))
+							{
+								ids.set(id, true);
+								var it:Dynamic = { };
+								it.id = id;
+								it.onExtent = true;
+								out.push(it);
+							}
+							else if (!isIn && ids.exists(id))
+							{
+								ids.remove(id);
+								var it:Dynamic = { };
+								it.id = id;
+								it.onExtent = false;
+								out.push(it);
+							}
 						}
-						if (isIn && !ids.exists(id))
+					} else {
+						for (id in tile.ids)
 						{
-							ids.set(id, true);
-							var it:Dynamic = { };
-							it.id = id;
-							it.onExtent = true;
-							out.push(it);
-						}
-						else if (!isIn && ids.exists(id))
-						{
-							ids.remove(id);
-							var it:Dynamic = { };
-							it.id = id;
-							it.onExtent = false;
-							out.push(it);
+							if (ids.exists(id))
+							{
+								ids.remove(id);
+								var it:Dynamic = { };
+								it.id = id;
+								it.onExtent = false;
+								out.push(it);
+							}
 						}
 					}
 				}
 			}
 			if(out.length > 0) onChange(out);
-
 //		} catch (e:Error) { /*trace(e);*/ }
 	}
 }
