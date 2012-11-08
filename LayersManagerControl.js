@@ -16,24 +16,23 @@ var LayersListProvider = function(filtersProvider)
         var filterStrings = [];
         
         if (filtersProvider.getTitle() !== '')
-            filterStrings.push("@Title>\"" + filtersProvider.getTitle() + "\"");
+            filterStrings.push("([Title] containsIC '" + filtersProvider.getTitle() + "' or [Name] = '" + filtersProvider.getTitle() + "')");
         
         if (filtersProvider.getOwner() !== '')
-            filterStrings.push("@Owner=\"" + filtersProvider.getOwner() + "\"");
+            filterStrings.push("[OwnerNickname] containsIC '" + filtersProvider.getOwner() + "'");
         
         var type = filtersProvider.getType();
         if (type)
-            filterStrings.push("@Type=\"" + type + "\"");
+        {
+            // var layerTypesIDs = {raster: 0, vector: 1, multilayer: 3};
+            filterStrings.push("[LayerType]=LayerTypeCode('" + type + "')");
+        }
             
         var dateBegin = filtersProvider.getDateBegin();
         var dateEnd = filtersProvider.getDateEnd();
         
-        if (dateBegin || dateEnd)
-        {
-            dateBegin = dateBegin ? dateBegin.valueOf()/1000 : "";
-            dateEnd = dateEnd ? ((dateEnd.valueOf()/1000) + 23*3600 + 59*60 + 59): ""; //До конца суток: 23:59:59
-            filterStrings.push("@Date=\"" + dateBegin + '~' + dateEnd + "\"");
-        }
+        dateBegin && filterStrings.push("[DateCreate] >= '" + $.datepicker.formatDate('yy.mm.dd', dateBegin) + "'");
+        dateEnd   && filterStrings.push("[DateCreate] < '"  + $.datepicker.formatDate('yy.mm.dd', new Date(dateEnd.valueOf() + 24*3600*1000)) + "'"); //день включительно
         
         var layerTags = filtersProvider.getTags();
         
@@ -42,7 +41,12 @@ var LayersListProvider = function(filtersProvider)
             layerTags.each(function(id, tag, value)
             {
                 if (tag)
-                    filterStrings.push('"' + tag + '">"' + value + '"');
+                {
+                    if (value !== '')
+                        filterStrings.push("[" + tag + "] containsIC '" + value + "'");
+                    else
+                        filterStrings.push("PropertyExist('" + tag + "')");
+                }
             });
         }
         
@@ -52,7 +56,7 @@ var LayersListProvider = function(filtersProvider)
     this.getCount = function(callback)
     {
         var query = getQueryText();
-        sendCrossDomainJSONRequest(serverBase + 'Layer/Search.ashx?count=true' + query, function(response)
+        sendCrossDomainJSONRequest(serverBase + 'Layer/Search2.ashx?count=true' + query, function(response)
         {
             if (!parseResponse(response))
             {
@@ -66,14 +70,13 @@ var LayersListProvider = function(filtersProvider)
     this.getItems = function(page, pageSize, sortParam, sortDec, callback)
     {
         var sortParams = {};
-        sortParams[_gtxt("Тип")] = "Type";
-        sortParams[_gtxt("Имя")] = "Title";
-        sortParams[_gtxt("Дата создания")] = "Date";
-        sortParams[_gtxt("Владелец")] = "Owner";
+        sortParams[_gtxt("Имя")] = "title";
+        sortParams[_gtxt("Дата создания")] = "datecreate";
+        sortParams[_gtxt("Владелец")] = "ownernickname";
         
         var query = getQueryText();
         
-        sendCrossDomainJSONRequest(serverBase + 'Layer/Search.ashx?page=' + page + '&pageSize=' + pageSize + "&orderby=" + sortParams[sortParam] + " " + (sortDec ? "DESC" : "ASC") + query, function(response)
+        sendCrossDomainJSONRequest(serverBase + 'Layer/Search2.ashx?page=' + page + '&pageSize=' + pageSize + "&orderby=" + sortParams[sortParam] + " " + (sortDec ? "desc" : "") + query, function(response)
         {
             if (!parseResponse(response))
             {
@@ -81,7 +84,7 @@ var LayersListProvider = function(filtersProvider)
                 return;
             }
             
-            callback(response.Result.Layers);
+            callback(response.Result.layers);
         })
     }
 }
@@ -95,6 +98,8 @@ var drawLayers = function(layer, params)
 	newLayerProperties.properties.mapName = mapProperties.name;
 	newLayerProperties.properties.hostName = mapProperties.hostName;
 	newLayerProperties.properties.visible = false;
+    
+    // newLayerProperties.properties.type = newLayerProperties.properties.type === 1 ? 'Vector' : 'Raster';
 	
 	if (newLayerProperties.properties.type == 'Vector')
 		newLayerProperties.properties.styles = [{MinZoom:newLayerProperties.properties.MinZoom, MaxZoom:20, RenderStyle:_mapHelper.defaultStyles[newLayerProperties.properties.GeometryType]}]
@@ -196,14 +201,14 @@ var drawLayers = function(layer, params)
 	return tr;
 }
 
-/** 
-Внутри контейнера помещает табличку со списком слоёв и контролами для фильтрации
- @param {HTMLNode} parentDiv Куда помещать контрол
- @param {String} name Уникальное имя этого инстанса
- @param {object} params Параметры отображения списка: <br/>
-  * fixType {String} Какой тип слоёв показывать. 'vector', 'raster', 'multilayer' или ''. Если '', то добавится контрол с выбором типа слоя<br/>
-  * enableDragging <br/>
-  * onclick {function({ elem: , scrollTable: })}
+/** Внутри контейнера помещает табличку со списком слоёв и контролами для фильтрации
+* @param {HTMLNode} parentDiv Куда помещать контрол
+* @param {String} name Уникальное имя этого инстанса
+* @param {object} params Параметры отображения списка:
+*
+*  * fixType {String} Какой тип слоёв показывать. 'vector', 'raster', 'multilayer' или ''. Если '', то добавится контрол с выбором типа слоя
+*  * enableDragging
+*  * onclick {function({ elem: , scrollTable: })}
 */
 var LayerManagerControl = function( parentDiv, name, params )
 {
