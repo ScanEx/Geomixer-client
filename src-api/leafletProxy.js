@@ -1850,7 +1850,7 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 				for (var key in tiles)
 				{
 					var tb = tiles[key];
-					var tvFlag = (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.x > ext.maxY);
+					var tvFlag = (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.y > ext.maxY);
 					if(tvFlag) {								// Тайл за границами видимости
 						if(!observerTiles[key]) continue;
 						delete observerTiles[key];
@@ -1868,18 +1868,18 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 							if(!notCheckVisibilityFilter && node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](item['properties'])) continue; 	// если фильтр видимости на слое не отменен
 							
 							var id = item.id;
-							var vFlag = (item.bounds.max.x < ext.minX || item.bounds.min.x > ext.maxX || item.bounds.max.y < ext.minY || item.bounds.min.x > ext.maxY);
+							var vFlag = (item.bounds.max.x < ext.minX || item.bounds.min.x > ext.maxX || item.bounds.max.y < ext.minY || item.bounds.min.y > ext.maxY);
 							var ph = {'layerID': node.id, 'properties': item.properties };
-							if(vFlag) {					// Тайл за границами видимости
+							if(vFlag) {					// Обьект за границами видимости
 								if(observerObj[id]) {
-									ph.isView = false;
+									ph.onExtent = false;
 									ph.geometry = item.exportGeo();
 									out.push(ph);
 									delete observerObj[id];
 								}
 							} else {
 								if(!observerObj[id]) {
-									ph.isView = true;
+									ph.onExtent = true;
 									ph.geometry = item.exportGeo();
 									out.push(ph);
 									observerObj[id] = item;
