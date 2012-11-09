@@ -1795,10 +1795,10 @@ queryMapLayers.prototype.rasterLayersSlider = function(parent)
 				var active = $(parent).find(".active");
 				
 				// слой
-				if (active[0] && active[0].parentNode.getAttribute("LayerID") && active[0].parentNode.gmxProperties.content.properties.type != "Vector")
+				if (active[0] && (active[0].parentNode.getAttribute("LayerID") || active[0].parentNode.getAttribute("MultiLayerID")) && active[0].parentNode.gmxProperties.content.properties.type != "Vector")
 				{
 					globalFlashMap.layers[active[0].parentNode.gmxProperties.content.properties.name].setStyle(templateStyle);
-					
+
 					return;
 				}
 				// слой из списка
