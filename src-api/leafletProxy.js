@@ -446,10 +446,15 @@
 						gmxAPI._leaflet['drawManager'].add(node.id);			// добавим в менеджер отрисовки
 						return;
 					} else {
-						node.leaflet = utils.drawNode(node, regularStyle);
-						setNodeHandlers(node.id);
-						//node['leaflet']._isVisible = false;
-						if(node['leaflet']) setVisible({'obj': node, 'attr': true});
+						if(node['refreshMe']) { 
+							node['refreshMe']();
+							return;
+						} else {
+							node.leaflet = utils.drawNode(node, regularStyle);
+							setNodeHandlers(node.id);
+							//node['leaflet']._isVisible = false;
+							if(node['leaflet']) setVisible({'obj': node, 'attr': true});
+						}
 					}
 				}
 			}
@@ -561,16 +566,28 @@
 			return null;
 		}
 		,
+		'chkPolygon': function(geo)	{			// перевод геометрии Scanex->leaflet
+			if(geo.type === 'Polygon') {
+				for (var i = 0; i < geo['coordinates'].length; i++)
+				{
+					var coords = geo['coordinates'][i];
+					var len = coords.length - 1;
+					if(coords[0][0] != coords[len][0] || coords[0][1] != coords[len][1]) coords.push(coords[0]);
+				}
+				var len = geo['coordinates'].length;
+				//if(geo['coordinates'][len - 1] 
+			}
+		}
+		,
 		'parseGeometry': function(geo, boundsFlag)	{			// перевод геометрии Scanex->leaflet
-			var pt = {};
-			var type = geo.type;
-			pt['coordinates'] = geo['coordinates'];
+			var pt = gmxAPI.transformGeometry(geo, function(it){return it;}, function(it){return it;});
+			var type = pt.type;
 			if(boundsFlag) {
 				//var bounds = new L.LatLngBounds(p1, p2);
 			}
 			if(type) pt['type'] = type;
 			if(type === 'MULTIPOLYGON') 			pt['type'] = 'MultiPolygon';
-			else if(type === 'POLYGON')				pt['type'] = 'Polygon';
+			else if(type === 'POLYGON')				{ pt['type'] = 'Polygon'; utils.chkPolygon(pt); }
 			else if(type === 'MultiPoint')			pt['type'] = 'MultiPoint';
 			else if(type === 'POINT')				pt['type'] = 'Point';
 			else if(type === 'MULTILINESTRING')		pt['type'] = 'MultiPolyline';
@@ -1468,95 +1485,261 @@ if(!(cmd in commands)
 		return ret;
 	}
 
-			
+	var ProjectiveMath = {
+		'invertMatrix': function(mat) {
+			var ret = [];
+			for (var i=0; i<3; i++)
+			{
+				ret[i] = [];
+				for (var j=0; j<3; j++)
+				{
+					var i1 = (i+1)%3;
+					var j1 = (j+1)%3;
+					var i2 = (i+2)%3;
+					var j2 = (j+2)%3;
+					ret[i][j] = mat[j1][i1]*mat[j2][i2] - mat[j2][i1]*mat[j1][i2];
+				}
+			}
+			var det = 1/(mat[0][0]*ret[0][0] + mat[1][0]*ret[0][1] + mat[2][0]*ret[0][2]);
+			for (var i=0; i<3; i++)
+				for (var j=0; j<3; j++)
+					ret[i][j] *= det;
+			return ret;
+		}
+		,
+		'applyLine': function(line, x, y) {
+			return line[0]*x + line[1]*y + line[2];
+		}
+		,
+		'getX': function(mat, x, y) {
+			return this.applyLine(mat[0], x, y)/this.applyLine(mat[2], x, y);
+		}
+		,
+		'getY': function(mat, x, y) {
+			return this.applyLine(mat[1], x, y)/this.applyLine(mat[2], x, y);
+		}
+		,
+		'multiplyMatrices': function(m1, m2) {
+			var m = [];
+			for (var i=0; i<3; i++)
+			{
+				m[i] = [];
+				for (var j=0; j<3; j++)
+				{
+					m[i][j] = 0;
+					for (var k=0; k<3; k++)
+						m[i][j] += m1[i][k]*m2[k][j];
+				}
+			}
+			return m;
+		}
+		,
+		'buildOneWayMatrix': function(x1, y1, x2, y2, x3, y3, x4, y4) {
+			var directThreePoints = [
+				[x2 - x1, x4 - x1, x1], 
+				[y2 - y1, y4 - y1, y1],
+				[0.0, 0.0, 1.0]
+			];
+			var inverseThreePoints = this.invertMatrix(directThreePoints);
+			var tx = this.getX(inverseThreePoints, x3, y3);
+			var ty = this.getY(inverseThreePoints, x3, y3);
+			var a = tx/(tx + ty - 1.0);
+			var b = ty/(tx + ty - 1.0);
+			return this.multiplyMatrices(directThreePoints, [
+				[a, 0.0, 0.0], 
+				[0.0, b, 0.0], 
+				[a - 1.0, b - 1.0, 1.0]
+			]);
+		}
+		,
+		'buildMatrix': function(x1, y1, x2, y2, x3, y3, x4, y4, x1_, y1_, x2_, y2_, x3_, y3_, x4_, y4_) {
+			return this.multiplyMatrices(
+				this.buildOneWayMatrix(x1_, y1_, x2_, y2_, x3_, y3_, x4_, y4_),
+				this.invertMatrix(this.buildOneWayMatrix(x1, y1, x2, y2, x3, y3, x4, y4))
+			);
+		}
+	}
+
 	// 
 	function setImage(node, ph)	{
 		var attr = ph.attr;
-		var bounds = new L.Bounds();
-		var pixGeo = [];
-		for(var i=1; i<5; i++) {
-			var x = attr['x'+i];
-			var y = attr['y'+i];
-			var point = new L.LatLng(y, x);
-			var pix = LMap.project(point);
-			pixGeo.push(pix);
-			bounds.extend(new L.Point(x, y));
+
+		var zoomPrev = LMap.getZoom();
+		var minPoint = null;
+		var getPixelPoints = function(ph) {
+			var LatLngToPixel = function(y, x) {
+				var point = new L.LatLng(y, x);
+				return LMap.project(point);
+			}
+			var out = {};
+			minPoint = LatLngToPixel(ph['y1'], ph['x1']); out['x1'] = 0; out['y1'] = 0;
+			var pix = LatLngToPixel(ph['y2'], ph['x2']); out['x2'] = pix.x - minPoint.x; out['y2'] = pix.y - minPoint.y;
+			pix = LatLngToPixel(ph['y3'], ph['x3']); out['x3'] = pix.x - minPoint.x; out['y3'] = pix.y - minPoint.y;
+			pix = LatLngToPixel(ph['y4'], ph['x4']); out['x4'] = pix.x - minPoint.x; out['y4'] = pix.y - minPoint.y;
+
+			out.ww = out['x2'];
+			out.hh = out['y3'];
+			return out;
 		}
 
-		var point = new L.LatLng(bounds.min.y, bounds.min.x);
-		var minPoint = LMap.project(point);
-		point = new L.LatLng(bounds.max.y, bounds.max.x);
-		var maxPoint = LMap.project(point);
-		var w = maxPoint.x - minPoint.x;
-		var h = minPoint.y - maxPoint.y;
-		var ctx = null;
-
+		//node['refreshMe'] = function(imageObj, canvas) {
 		var repaint = function(imageObj, canvas) {
-			canvas.width = imageObj.width;
-			canvas.height = imageObj.height;
-			ctx = canvas.getContext('2d');
-			var curZ = gmxAPI.currPosition['z'];
-//var scale = gmxAPI.getScale(8 - curZ);
-var scale = 256/gmxAPI.getScale(curZ);
-var tileSize = Math.pow(2, 8 - curZ) * 156543.033928041;
+			var w = imageObj.width;
+			var h = imageObj.height;
+			var ph = getPixelPoints(attr);
+
+			canvas.width = ph.ww;
+			canvas.height = ph.hh;
+			var rx = w/ph.ww;
+			var ry = h/ph.hh;
+			var ctx = canvas.getContext('2d');
+			ctx.setTransform(rx, 0, 0, ry, 0, 0);
+/*var zoom = LMap.getZoom();
+var scale = 256/gmxAPI.getScale(zoom);
+var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
+var zn = 1/(Math.pow(2, -zoom) * 156543.033928041);
 
 var mInPixel = 256/tileSize;
+// pixel
+//var scale = LMap.options.crs.scale(zoom);
+//scale = 28;
+//ctx.setTransform(scale, 0, 0, scale, 0, 0);
+//ctx.save();
+var tt = ctx.mozCurrentTransform;
+var tt = ctx.mozCurrentTransformInverse;
+var tt = ctx.mozCurrentTransformInverse;
 
-var pos = LMap.getCenter();
-var pix = utils.y_ex(pos.lat);
-var sc = Math.abs(Math.cos(pos.lat));
-scale *= 0.888;
- 
-var tt = gmxAPI.from_merc_y(pix);
-var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng), LMap.getZoom());
-
-			//ctx.setTransform(imageObj.width * scale, 0, 0, imageObj.height * scale, 0, 0);			
-			//ctx.setTransform(scale, 0, 0, scale, 0, 0);
-			ctx.transform(scale, 0, 0, scale, 0, 0);
-			var scaleY = ctx.mozCurrentTransformInverse[0];
-			//ctx.transform(1/scaleY, 0, 0, 1/scaleY, 0, 0);
-
-			var pattern = ctx.createPattern(imageObj, "no-repeat");
-			ctx.fillStyle = pattern;
-ctx.fillRect(0, 0, imageObj.width, imageObj.height);
-			//ctx.scale(1/scaleY, 1/scaleY);
-			//if(flagAll) ctx.fillRect(0, 0, 256, 256);
-			//ctx.fill();
-//scale = 256/tileSize;
-//scale = 1; shifty
-
-			var strokeStyle = 'rgba(0, 0, 255, 1)';
-			//ctx.fillStyle = strokeStyle;
-			//ctx.strokeStyle = strokeStyle;
-			ctx.beginPath();
-			
-			for(var i=0; i<pixGeo.length; i++) {
-				var point = pixGeo[i];
-				var px1 = point.x - minPoint.x; //px1 = (0.5 + px1) << 0;
-				var py1 = minPoint.y - point.y;	//py1 = (0.5 + py1) << 0;
-				
-				if(i == 0) {
-					ctx.moveTo(px1, py1);
-				}
-				else
-				{
-					ctx.lineTo(px1, py1);
+//ctx.setTransform(1/rx, 0, 0, 1/ry, 0, 0);
+//ctx.setTransform(6, 0, 0, 6, -380, 0);
+*/			
+			if(ph != null) {
+				if(ph.sx != null) {
+					ph.x4 = ph.x1;
+					ph.x2 = ph.x3 = ph.x1 + w * ph.sx;
+					ph.y2 = ph.y1;
+					ph.y3 = ph.y4 = ph.y1 + h * ph.sy;
 				}
 			}
-			ctx.closePath();
+			//if (!me.controlPointsSet)
+			{
+				ph.tx1 = 0.0;
+				ph.ty1 = 0.0;
+				ph.tx2 = w;
+				ph.ty2 = 0.0;
+				ph.tx3 = w;
+				ph.ty3 = h;
+				ph.tx4 = 0.0;
+				ph.ty4 = h;
+			}
 
-/**/
-//clip
-//		ctx.strokeRect(2, 2, 253, 253);
-//			ctx.fillRect(50,50,100,50);
-			//ctx.stroke();
-			ctx.fill();
-			
+			var matrix = ProjectiveMath.buildMatrix(
+				ph.tx1, ph.ty1, ph.tx2, ph.ty2, ph.tx3, ph.ty3, ph.tx4, ph.ty4, 
+				ph.x1, ph.y1, ph.x2, ph.y2, ph.x3, ph.y3, ph.x4, ph.y4
+			);
+
+			var drawTriangle = function(tx1, ty1, tx2, ty2, tx3, ty3)
+			{
+				var x1 = ProjectiveMath.getX(matrix, tx1, ty1);
+				var y1 = ProjectiveMath.getY(matrix, tx1, ty1);
+				var x2 = ProjectiveMath.getX(matrix, tx2, ty2);
+				var y2 = ProjectiveMath.getY(matrix, tx2, ty2);
+				var x3 = ProjectiveMath.getX(matrix, tx3, ty3);
+				var y3 = ProjectiveMath.getY(matrix, tx3, ty3);
+				
+				ctx.save();
+				var inv = ProjectiveMath.invertMatrix([
+					[tx2 - tx1, ty2 - ty1, 0],
+					[tx3 - tx1, ty3 - ty1, 0],
+					[tx1,  ty1,  1]
+				  ]);
+				ctx.transform(inv[0][0], inv[0][1], inv[1][0], inv[1][1], inv[2][0], inv[2][1]);
+				ctx.transform(x2 - x1, y2 - y1, x3 - x1, y3 - y1, x1, y1);
+				ctx.drawImage(
+					imageObj,
+					tx1, ty1, tx2 - tx1, ty3 - ty1,
+					x1, y2, x2 - x1, y3 - y1
+				);
+				ctx.beginPath();
+				ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x1, y1);
+				ctx.closePath();
+					//ctx.clip();
+				ctx.restore();
+			}
+			//console.log(rx, ry);			
+			var n = 1;
+			for (var i=0; i<n; i++)
+			{
+				for (var j=0; j<n; j++)
+				{
+					var tx1 = w*i*1.0/n;
+					var ty1 = h*j*1.0/n;
+					var tx2 = w*(i + 1)*1.0/n;
+					var ty2 = h*(j + 1)*1.0/n;
+					drawTriangle(tx1, ty1, tx2, ty1, tx1, ty2);
+					drawTriangle(tx2, ty2, tx2, ty1, tx1, ty2);
+				}
+			}
+
+			// clip по геометрии ноды
+			var geo = node.geometry;
+			var paintPolygon = function (ph) {
+				var LatLngToPixel = function(y, x) {
+					var point = new L.LatLng(y, x);
+					return LMap.project(point);
+				}
+				var coords = ph['coordinates'];
+				var ctx = ph['ctx'];
+				
+				var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+				var ptxCont = document.createElement("canvas");
+				ptxCont.width = canvas.width;
+				ptxCont.height = canvas.height;
+				var ptx = ptxCont.getContext('2d');
+				ptx.putImageData(imageData, 0, 0);
+
+				var arr = [];
+				for (var i = 0; i < coords.length; i++)
+				{
+					var pArr = coords[i];
+					for (var j = 0; j < pArr.length; j++)
+					{
+						var pix = LatLngToPixel(pArr[j][1], pArr[j][0]);
+						var px1 = pix.x - minPoint.x; 		px1 = (0.5 + px1) << 0;
+						var py1 = pix.y - minPoint.y;		py1 = (0.5 + py1) << 0;
+						arr.push({'x': px1, 'y': py1});
+					}
+				}
+
+				ctx.setTransform(1, 0, 0, 1, 0, 0);
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				var pattern = ctx.createPattern(ptxCont, "no-repeat");
+				ctx.fillStyle = pattern;
+				
+				ctx.beginPath();
+				for (var i = 0; i < arr.length; i++)
+				{
+					if(i == 0)
+						ctx.moveTo(arr[i]['x'], arr[i]['y']);
+					else
+						ctx.lineTo(arr[i]['x'], arr[i]['y']);
+				}
+				ctx.closePath();
+				ctx.fill();
+			}
+			paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx});
+			zoomPrev = LMap.getZoom();
 		}
 
-		var drawMe = function(canvas) {
-			var imageObj = new Image();
+		var imageObj = null;
+		var canvas = null;
+		var drawMe = function(canvas_) {
+			canvas = canvas_;
+			imageObj = new Image();
 			imageObj.onload = function() {
+				node['refreshMe'] = function() {
+					repaint(imageObj, canvas);
+				}
 				repaint(imageObj, canvas);
 			};
 			var src = attr['url'];
@@ -1567,9 +1750,44 @@ ctx.fillRect(0, 0, imageObj.width, imageObj.height);
 			className: 'my-canvas-icon'
 			,'node': node
 			,'drawMe': drawMe
+			//,iconAnchor: new L.Point(12, 12) // also can be set through CSS
 		});
 		
-		L.marker([attr.y1, attr.x1], {icon: canvasIcon}).addTo(LMap);
+		L.marker([attr['y1'], attr['x1']], {icon: canvasIcon}).addTo(LMap);
+		LMap.on('zoomend', function(e) {
+			repaint(imageObj, canvas);
+		});
+/*		
+		var zoomTimer = null;
+		LMap.on('zoomanim', function(e) {
+				var zoom = LMap.getZoom();
+			if(zoomTimer) clearTimeout(zoomTimer);
+			zoomTimer = setTimeout(function()
+			{
+				var zoom = LMap.getZoom();
+				zoomTimer = null;
+				var ctx = canvas.getContext('2d');
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+			}, 10);
+		});
+		LMap.on('viewreset', function(e) {
+			var zoom = LMap.getZoom();
+			var _zoom = e.target._zoom;
+			var scale = LMap.getZoomScale(zoomPrev);
+			var ctx = canvas.getContext('2d');
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+			//ctx.setTransform(1/scale, 0, 0, 1/scale, 0, 0);
+			var _zoom = e.target._zoom;
+			return;
+			var ph = getPixelPoints(attr);
+			var w = imageObj.width;
+			var h = imageObj.height;
+			var rx = w/ph.ww;
+			var ry = h/ph.hh;
+			var ctx = canvas.getContext('2d');
+			ctx.transform(rx, 0, 0, ry, 0, 0);
+		});
+*/		
 	}
 	
 	// 
@@ -3657,6 +3875,7 @@ ctx.fillText(drawTileID, 10, 128);
 			L.CanvasIcon = L.Icon.extend({
 				options: {
 					iconSize: new L.Point(12, 12), // also can be set through CSS
+					//iconAnchor: new L.Point(12, 12), // also can be set through CSS
 					/*
 					iconAnchor: (Point)
 					popupAnchor: (Point)
