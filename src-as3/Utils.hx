@@ -201,16 +201,19 @@ class Utils
 			imgData.loader = loader;
 
 			var flag:Bool = event.target.parentAllowsChild;
-			if(flag) {
-				var size = 32;
-				var bmp = new BitmapData(size, size, true, 0);
-				bmp.draw(loader);
-				var hist = bmp.histogram();
-				if (hist[3][255] != 1024) imgData.isOverlay = true;		// по гистограмме определяем тайлы где в верхнем левом углу 32х32 все alpha = 0xFF
-				bmp.dispose();
+			if (flag) {
+				try {
+					var size = 32;
+					var bmp = new BitmapData(size, size, true, 0);
+					bmp.draw(loader);
+					var hist = bmp.histogram();
+					if (hist[3][255] != 1024) imgData.isOverlay = true;		// по гистограмме определяем тайлы где в верхнем левом углу 32х32 все alpha = 0xFF
+					bmp.dispose();
+				} catch (e:Error) {
+				}
 			
 				if(flagCache) {
-					bmp = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
+					var bmp = new BitmapData(Std.int(loader.width), Std.int(loader.height), true, 0);
 					bmp.draw(loader);
 					imgData.bmp = bmp;
 					imgData.loader = new Bitmap(bmp);
