@@ -27,7 +27,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
     var commonLayersListDiv = _div(null, [['css', 'height', '100%'], ['css', 'width', '100%']]);
     var selectedLayersDiv = _div(null, [['css', 'height', '100%'], ['css', 'margin', '10px 10px 0px 0px']]);
     
-    var selectedLayersTable = new scrollTable();
+    var selectedLayersTable = new scrollTable({height: div ? 255 : 280});
     
     var suggestLayersControl = new nsGmx.LayerManagerControl(commonLayersListDiv, 'multilayers', {
         fixType: 'raster', 
@@ -307,6 +307,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
     
     shownProperties.push({name: _gtxt("Имя"), field: 'Title', elem: title});
     shownProperties.push({name: _gtxt("Описание"), field: 'Description', elem: descr});
+    div && shownProperties.push({name: _gtxt("ID"), field: 'Name'});
     shownProperties.push({tr: borderTr});
     
     var trs = _mapHelper.createPropertiesTable(shownProperties, elemProperties, {leftWidth: 70});
