@@ -1,7 +1,7 @@
 ﻿(function($){
 
 var publicInterface = {
-    pluginName: 'Подложка 2GIS',
+    pluginName: 'API 2GIS',
     afterViewer: function(params, map)
     {
         var gis = map.addObject();
