@@ -415,8 +415,8 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
     {
         this.tableParent = _div([
                                 _div([_table([this.tableHeader])],[['dir','className','tableHeader']]),
-                                _div([_table([this.tableBody])],[['dir','className','tableBody'],['css', 'height', this._params.height], ['css','width', params.baseWidth ? params.baseWidth + 20 + 'px' : "100%"]])
-                            ],[['attr','id',name + 'TableParent'],['dir','className','scrollTable'], ['css', 'height', this._params.height], ['css','width', params.baseWidth ? params.baseWidth + 'px' : "100%"]])
+                                _div([_table([this.tableBody])],[['dir','className','tableBody'],['css', 'height', this._params.height ? (this._params.height - 20) + 'px' : ''], ['css','width', params.baseWidth ? params.baseWidth + 20 + 'px' : "100%"]])
+                            ],[['attr','id',name + 'TableParent'],['dir','className','scrollTable'], ['css', 'height', this._params.height ? this._params.height + 'px' : ''], ['css','width', params.baseWidth ? params.baseWidth + 'px' : "100%"]])
     }
 	
 	_(params.parent, [this.tableParent])

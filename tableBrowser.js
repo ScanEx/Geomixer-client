@@ -97,7 +97,7 @@ tableBrowser.prototype.loadInfoHandler = function(tables)
     tableProvider.setOriginalItems(this.tables);
     tableProvider.setSortFunctions(sortFuncs);
     
-    var tableTable = new scrollTable({limit:5000, pagesCount: 5, height: '220px', showFooter: false});
+    var tableTable = new scrollTable({limit:5000, pagesCount: 5, height: 220, showFooter: false});
     tableTable.setDataProvider(tableProvider);
     
     var tableParent = _div(null, [['dir', 'id', 'tableBrowserDialog']]);
