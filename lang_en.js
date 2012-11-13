@@ -138,6 +138,8 @@ _translationsHash.hash["eng"] = {
 	"Таблица" : "Table",
 	"Каталог с тайлами" : "Tile catalogue",
     "Каталог растров" : "Raster catalogue",
+    "Данные с датой": "Data with time",
+    "Источник": "Source",
 	"Y (широта)" : "Y (latitude)",
 	"X (долгота)" : "X (longitude)",
 	"Каталог" : "Catalogue",

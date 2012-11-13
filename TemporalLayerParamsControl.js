@@ -34,6 +34,11 @@ nsGmx.TemporalLayerParams = function(initParams)
     this.getTemporal = function() { return _isTemporal; }
 };
 
+/** Создаёт виджет для задания мультивременных параметров слоя
+* @param {HTMLNode} parentDiv контейнер для размещения виджета
+* @param {nsGmx.TemporalLayerParams} paramsModel начальные параметры
+* @param {String[]} columns массив имён колонок, из которых можно выбрать врменнУю
+*/
 nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
 {
     var temporalCheckbox = $("<input></input>", {'class': 'box', type: 'checkbox', id: 'timeLayer'});
@@ -48,10 +53,10 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
         temporalCheckbox.attr('disabled', 'disabled');
     
     $(parentDiv)
-        .append(temporalCheckbox)
-        .append(
-            $("<label></label>", {'for': 'timeLayer'}).text(_gtxt("Временнóй слой"))
-        );
+        .append(temporalCheckbox);
+        // .append(
+            // $("<label></label>", {'for': 'timeLayer'}).text(_gtxt("Временнóй слой"))
+        // );
         
     if (paramsModel.getTemporal())
         temporalCheckbox[0].checked = true;
@@ -93,16 +98,16 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
 		selectDateColumn.empty();
 		for (var i = 0; i < _columns.length; i++)
 		{
-			var option = $("<option></option>").text(_columns[i].Name);
+			var option = $("<option></option>").text(_columns[i]);
 			selectDateColumn.append(option);
-			if (curColumn == _columns[i].Name)
+			if (curColumn == _columns[i])
 				foundOption = option;
 		}
 		
 		if (foundOption)
 			foundOption.attr('selected', 'selected');
 		else if (_columns.length)
-			paramsModel.setColumnName(_columns[0].Name);
+			paramsModel.setColumnName(_columns[0]);
 			
 		selectDateColumn.change(function()
 		{
@@ -130,6 +135,10 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
     var propertiesTable = $('<table></table>').append(tr0).append(tr1).append(tr2).appendTo(parentDiv);
     propertiesTable.css('display', 'none');
 	
+    /**
+        Обновляет список доступных для выбора колонок даты
+        @param {String[]} columns массив имён колонок
+    */
 	this.updateColumns = function(columns)
 	{
 		_columns = columns;

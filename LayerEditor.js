@@ -62,6 +62,42 @@ var selectColumns = function(parent, params)
 	}
 }
 
+//Возвращает список колонок источника слоя для выбора геометрии
+//Если есть хотя бы одна колонка с геометрией, вернёт [], иначе - все колонки типа Integer || Float || String, которые не являются ни Identity ни Primary (терминология серверного скрипта)
+var getSourceColumns = function(name)
+{
+    var deferred = $.Deferred();
+    sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetSourceColumns.ashx?SourceName=" + encodeURIComponent(name), function(response)
+    {
+        if (!parseResponse(response))
+        {
+            deferred.reject();
+            return;
+        }
+        
+        var geomCount = 0; //кол-во колонок с типом Геометрия
+        var coordFields = []; //колонки, которые могут быть использованы для выбора координат
+        var dateFields = []; //колонки, которые могут быть использованы для выбора временнОго параметра
+        var fields = response.Result;
+        for (var f = 0; f < fields.length; f++)
+        {
+            var type = fields[f].ColumnSimpleType;
+            if ( type === 'Geometry')
+                geomCount++;
+                
+            if ((type === 'String' || type === 'Integer' || type === 'Float') && !fields[f].IsIdentity && !fields[f].IsPrimary)
+                coordFields.push(fields[f].Name);
+                
+            if (type === 'Date' || type === 'DateTime')
+                dateFields.push(fields[f].Name);
+        }
+        
+        deferred.resolve(geomCount == 0, coordFields, dateFields);
+    })
+    
+    return deferred.promise();
+}
+
 var createLayerEditorProperties = function(div, type, parent, properties, treeView, params)
 {
     nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
@@ -223,11 +259,16 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                         title.value = fileName;
                     }
                     
-                    if (valueInArray(['xls', 'xlsx', 'xlsm'], ext))
-                        selectColumns(xlsColumnsParent, {url: serverBase + "VectorLayer/GetExcelColumns.ashx?WrapStyle=func&ExcelFile=" + encodeURIComponent(path) })
-                    else
-                        removeChilds(xlsColumnsParent);
-                        
+                    getSourceColumns(path).done(function(needToSelectGeometry, geomColums, dateColumns)
+                    {
+                        if (needToSelectGeometry)
+                            selectColumns(xlsColumnsParent, {fields: geomColums});
+                        else
+                            removeChilds(xlsColumnsParent);
+                            
+                        temporalLayerView.updateColumns(dateColumns);
+                    })
+                    
                     $(encodingParent).empty();
                     if (ext === 'shp')
                     {
@@ -245,15 +286,14 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                     if (title.value == '')
                         title.value = name;
                     
-                    selectColumns(tableColumnsParent, {url: serverBase + "VectorLayer/GetTableCoordinateColumns.ashx?WrapStyle=func&TableName=" + encodeURIComponent(name)})
-                    
-                    sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetTableColumns.ashx?ColumnTypes=date,datetime&SourceName=" + encodeURIComponent(name), function(response)
+                    getSourceColumns(name).done(function(needToSelectGeometry, geomColums, dateColumns)
                     {
-                        if (!parseResponse(response)) return;
-                        var columns = response.Result;
-                        
-                        temporalLayerViewTable.updateColumns(columns);
-                    });
+                        if (needToSelectGeometry)
+                            selectColumns(tableColumnsParent, {fields: geomColums});
+                        else
+                            removeChilds(tableColumnsParent);
+                        temporalLayerView.updateColumns(dateColumns);
+                    })
                 })
             }
 
@@ -465,11 +505,9 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 _div([attrViewParent], [['css', 'margin', '3px']])
             ], [['css', 'marginLeft', '3px']]);
             
-            //var createLayerFields = _tr([_td([boxManualAttributes, _span([_t(_gtxt("Задать атрибуты вручную"))]), attrContainer], [['attr', 'colSpan', 2]])]);
             attrView.init(attrViewParent, attrModel);
-        
-            //shownProperties.push({tr: createLayerFields});
             
+            //источник данных
             var sourceCheckbox = $('<form/>')
                 .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxFileSource', checked: 'checked'}).data('containerIdx', 0))
                 .append($('<label/>', {'for': 'chxFileSource'}).text(_gtxt('Файл'))).append('<br/>')
@@ -499,9 +537,16 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 _li([_a([_t(_gtxt('Вручную'))],[['attr','href','#manualSource' + properties.name]])])
             ], [['css', 'display', 'none']])]);
             
+            //Источник: файл
             var sourceFile = _div(null, [['dir', 'id', 'fileSource' + properties.name]])
+            
+            // var temporalLayerParentFile = _div(null, [['dir', 'className', 'TemporalLayer']]);
+            // var temporalLayerParamsFile = new nsGmx.TemporalLayerParams(initTemporalParams);
+            // var temporalLayerViewFile = new nsGmx.TemporalLayerParamsControl(temporalLayerParentFile, temporalLayerParamsFile, []);
+            
             _(sourceFile, [shapePath, shapeFileLink, encodingParent, xlsColumnsParent]);
             
+            //Источник: таблица
             var tablePath = _input(null,[
                 ['attr','fieldName','GeometryTable.TableName'],
                 ['attr','value',properties.GeometryTable ? properties.GeometryTable.TableName : ''],
@@ -509,17 +554,9 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 ['css','width', '200px']
             ]);
             
-            var initTemporalParams = {isTemporal : !!div && divProperties.Temporal};
-            if (initTemporalParams.isTemporal)
-            {
-                initTemporalParams.minPeriod = divProperties.TemporalPeriods[0];
-                initTemporalParams.maxPeriod = divProperties.TemporalPeriods[divProperties.TemporalPeriods.length-1];
-                initTemporalParams.columnName = divProperties.TemporalColumnName;
-            }
-            
-            var temporalLayerParentTable = _div(null, [['dir', 'className', 'TemporalLayer']]);
-            var temporalLayerParamsTable = new nsGmx.TemporalLayerParams(initTemporalParams);
-            var temporalLayerViewTable = new nsGmx.TemporalLayerParamsControl(temporalLayerParentTable, temporalLayerParamsTable, []);
+            // var temporalLayerParentTable = _div(null, [['dir', 'className', 'TemporalLayer']]);
+            // var temporalLayerParamsTable = new nsGmx.TemporalLayerParams(initTemporalParams);
+            // var temporalLayerViewTable = new nsGmx.TemporalLayerParamsControl(temporalLayerParentTable, temporalLayerParamsTable, []);
             
             var TableCSParent = _div();
             var TableCSSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '165px')
@@ -531,12 +568,13 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 
             $(TableCSParent).append($('<span/>').text(_gtxt('Проекция')).css('margin', '3px')).append(TableCSSelect);
             
-            var sourceTable = _div([tablePath, tableLink, TableCSParent, temporalLayerParentTable, tableColumnsParent], [['dir', 'id', 'tableSource' + properties.name]])
+            var sourceTable = _div([tablePath, tableLink, TableCSParent, tableColumnsParent], [['dir', 'id', 'tableSource' + properties.name]])
             
-            var temporalLayerParamsManual = new nsGmx.TemporalLayerParams(initTemporalParams);
-            var temporalLayerParentManual = _div(null, [['dir', 'className', 'TemporalLayer']]);
-            var temporalLayerViewManual = new nsGmx.TemporalLayerParamsControl(temporalLayerParentManual, temporalLayerParamsManual, []);
-            var sourceManual = _div([attrContainer, temporalLayerParentManual], [['dir', 'id', 'manualSource' + properties.name]])
+            //Источник: вручную
+            // var temporalLayerParentManual = _div(null, [['dir', 'className', 'TemporalLayer']]);
+            // var temporalLayerParamsManual = new nsGmx.TemporalLayerParams(initTemporalParams);
+            // var temporalLayerViewManual = new nsGmx.TemporalLayerParamsControl(temporalLayerParentManual, temporalLayerParamsManual, []);
+            var sourceManual = _div([attrContainer], [['dir', 'id', 'manualSource' + properties.name]])
             $(attrModel).change(function()
             {
                 var count = attrModel.getCount();
@@ -544,9 +582,9 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 for (var k = 0; k < count; k++){
                     var attr = attrModel.getAttribute(k);
                     if (attr.type.server == 'date' || attr.type.server == 'datetime')
-                        columns.push({Name: attrModel.getAttribute(k).name});
+                        columns.push(attrModel.getAttribute(k).name);
                 }
-                temporalLayerViewManual.updateColumns(columns);
+                temporalLayerView.updateColumns(columns);
             });
             
             var sourceContainers = [sourceFile, sourceTable, sourceManual];
@@ -567,12 +605,12 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             }
             else
             {
-                if (properties.ShapePath && properties.ShapePath.Path) //из файла
+                if (properties.SourceType === 'file') //из файла
                 {
                     selectedSource = 0;
                     shownProperties.push({name: _gtxt("Файл"), elem: sourceFile});
                 }
-                else if (properties.GeometryTable && properties.GeometryTable.TableName)
+                else if (properties.SourceType === 'table')
                 {
                     selectedSource = 1;
                     shownProperties.push({name: _gtxt("Таблица"), elem: sourceTable});
@@ -580,9 +618,25 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 else
                 {
                     selectedSource = 2;
+                    shownProperties.push({name: _gtxt("Источник"), elem: _span([_t(_gtxt("Вручную"))], [['css', 'padding-left', '3px'], ['css', 'font-size', '12px']])});
                 }
             }
+            
+            //мультивременной слой
+            var initTemporalParams = {isTemporal : !!div && divProperties.Temporal};
+            if (initTemporalParams.isTemporal)
+            {
+                initTemporalParams.minPeriod = divProperties.TemporalPeriods[0];
+                initTemporalParams.maxPeriod = divProperties.TemporalPeriods[divProperties.TemporalPeriods.length-1];
+                initTemporalParams.columnName = divProperties.TemporalColumnName;
+            }
+            
+            var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
+            var temporalLayerParams = new nsGmx.TemporalLayerParams(initTemporalParams);
+            var temporalLayerView = new nsGmx.TemporalLayerParamsControl(temporalLayerParent, temporalLayerParams, []);
+            shownProperties.push({name: _gtxt("Данные с датой"), elem: temporalLayerParent});
 
+            //каталог растров
             var rasterCatalogDiv = $('<div/>');
             shownProperties.push({name: _gtxt("Каталог растров"), elem: rasterCatalogDiv[0], iddom: 'RCCreate-container'});
         }
@@ -891,7 +945,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                         RCParams = '&IsRasterCatalog=false';
                     }
                     
-                    var temporalLayerParams = selectedSource == 1 ? temporalLayerParamsTable : temporalLayerParamsManual;
+                    //var temporalLayerParams = selectedSource == 1 ? temporalLayerParamsTable : temporalLayerParamsManual;
                     
                     if ( temporalLayerParams.getTemporal() )
                         temporalParams = '&TemporalLayer=true&TemporalColumnName=' + encodeURIComponent(temporalLayerParams.getColumnName()) + '&TemporalPeriods=' + encodeURIComponent(temporalLayerParams.getPeriodString());

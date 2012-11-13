@@ -2598,68 +2598,6 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 	}
 }
 
-/** Виджет для выбора полей для X и Y координат из списка полей
-* @function
-* @param parent {DOMElement} - контейнер для размещения виджета
-* @param params {object} - параметры ф-ции (должны быть либо url, либо fields):
-*   - url {string}- запросить список полей у сервера. В ответе - вектор из имён полей
-*   - fields {array of string}- явный список полей
-*   - defaultX {string} - дефолтное значение поля X (не обязятелен)
-*   - defaultY {string} - дефолтное значение поля Y (не обязятелен)
-*/
-/*mapHelper.prototype.selectColumns = function(parent, params)
-{
-	var doCreate = function(fields)
-	{
-		removeChilds(parent);
-	
-		if (fields && fields.length > 0)
-        {
-			var selectLat = nsGmx.Utils._select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
-				selectLon = nsGmx.Utils._select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
-
-			for (var i = 0; i < fields.length; i++)
-			{
-				var opt = _option([_t(fields[i])], [['attr','value',fields[i]]]);
-		
-				_(selectLat, [opt.cloneNode(true)]);
-				_(selectLon, [opt.cloneNode(true)]);
-            }
-	
-			_(parent, [_table([_tbody([_tr([_td([_span([_t(_gtxt("Y (широта)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLat], [['css','width','150px'],['css','border','none']])]),
-										_tr([_td([_span([_t(_gtxt("X (долгота)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), _td([selectLon], [['css','width','150px'],['css','border','none']])])])])])
-	
-			if (params.defaultX)
-				selectLon = switchSelect(selectLon, params.defaultX);
-	
-			if (params.defaultY)
-				selectLat = switchSelect(selectLat, params.defaultY);
-		}
-	}
-	
-	if (params.url)
-	{
-	var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]);
-	
-	removeChilds(parent);
-	_(parent, [loading])
-	
-	sendCrossDomainJSONRequest(params.url, function(response)
-	{
-		removeChilds(parent);
-	
-		if (!parseResponse(response))
-			return;
-		
-			doCreate( response.Result );
-		});
-	}
-	else
-		{
-		doCreate( params.fields );
-	}
-}*/
-
 mapHelper.prototype.createNewLayer = function(type)
 {
 	if ($$('new' + type + 'Layer'))
