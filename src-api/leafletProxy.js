@@ -45,7 +45,8 @@
 		if(curCount > maxCount) { setTimeout(function() { nextLoad(); }, 1); return; }
 		if(items.length < 1) return false;
 		var item = items.shift();
-		if(item.bounds && !item.shiftY && !gmxAPI._leaflet['zoomstart']) {			// удаление устаревших запросов по bounds
+		//if(item.bounds && !item.shiftY && !gmxAPI._leaflet['zoomstart']) {			// удаление устаревших запросов по bounds
+		if(item.bounds && !item.shiftY) {			// удаление устаревших запросов по bounds
 			if(!gmxAPI._leaflet['utils'].chkBoundsVisible(item.bounds)) {
 				curCount--; item.isError = true; callCacheItems(item); return;
 			}
@@ -180,18 +181,23 @@
 			return point.y - p1.y;
 		}
 		,
-		'chkGlobalClick': function(attr)	{					// проверка Click на перекрытых нодах
+		'chkGlobalEvent': function(attr)	{					// проверка Click на перекрытых нодах
+			if(!attr || !attr['evName']) return;
+			var evName = attr['evName'];
 			for (var i = 0; i < gmxAPI.map.layers.length; i++)
 			{
 				var child = gmxAPI.map.layers[i];
 				if(!child.isVisible) continue;
 				var mapNode = mapNodes[child.objectId];
 				if(mapNode['eventsCheck']) {
-					if(mapNode['eventsCheck']('onClick', attr)) return;
+					if(mapNode['eventsCheck'](evName, attr)) return;
 				}
 			}
 			if(attr['node'] && attr['hNode']) {
-				attr['hNode']['handlers'][attr['evName']](attr['node']['id'], attr['node'].geometry.properties, {'ev':attr['ev']});
+				if(attr['hNode']['handlers'][evName](attr['node']['id'], attr['node'].geometry.properties, {'ev':attr['ev']})) return true;
+			}
+			if(gmxAPI.map['stateListeners'][evName]) {
+				if(gmxAPI._listeners.dispatchEvent(evName, gmxAPI.map, {'attr':attr})) return true;
 			}
 		}
 		,
@@ -478,6 +484,7 @@
 					iconUrl: style['iconUrl']
 					//,clickable: false
 					//,shadowUrl: null
+					,'from': node.id
 					,iconAnchor: new L.Point(0, 0)
 				};
 				if(!style['scale']) style['scale'] = 1;
@@ -491,14 +498,17 @@
 					if(style['dy']) opt['iconAnchor'].y -= style['dy'];
 				}
 				
-					//opt['iconAnchor'] = new L.Point(ww/2, hh/2);
-				//}
-				
-				//
 				var nIcon = L.Icon.extend({
 					'options': opt
 				});
-				out = new L.Marker(new L.LatLng(pos[1], pos[0]), { icon: new nIcon() });
+				var optMarker = {
+					icon: new nIcon()
+					,'from': node.id
+				};
+				if(node['subType'] === 'drawing') {
+					optMarker['draggable'] = true;
+				}
+				out = new L.Marker(new L.LatLng(pos[1], pos[0]), optMarker);
 				if(style['label'] && node['label']) {
 					setLabel(node.id, opt['iconAnchor']);
 				}
@@ -512,11 +522,58 @@
 				var p2 = LMap.unproject(new L.Point(pix['x'] + size/2, pix['y'] - size/2));
 				
 				var bounds = new L.LatLngBounds(p1, p2);
-				out = new L.RectangleMarker(bounds, {
+				
+				var opt = {
+					'from': node.id
+					,iconAnchor: new L.Point(0, 0)
+					,fillColor: "#ff7800"
+					,color: "#000000"
+					,opacity: 1
+					,weight: 2
+					,bounds: bounds
+					,'className': 'my-div-icon'
+				};
+				var nIcon = L.RectangleIcon.extend({
+					'options': opt
+				});
+				var optMarker = {
+					icon: new nIcon()
+					,'from': node.id
+				};
+				if(node['subType'] === 'drawing') {
+					optMarker['draggable'] = true;
+				}
+				out = new L.Marker(new L.LatLng(pos[1], pos[0]), optMarker);
+/*				
+				var optMarker = {
 					fillColor: "#ff7800",
 					color: "#000000",
 					opacity: 1,
 					weight: 2
+				};
+				if(node['subType'] === 'drawing') {
+					//optMarker['editable'] = true;
+					optMarker['draggable'] = true;
+				}
+
+				out = new L.RectangleMarker(bounds, optMarker);
+				out = new L.RectangleIcon(bounds, optMarker);
+				//out = new L.RectangleMarker(bounds, optMarker);
+*/
+			}
+			if(out && node['subType'] === 'drawing') {
+				out.on('drag', function(e) {		// Drag на drawing обьекте
+					var gmxNode = gmxAPI.mapNodes[node.id];		// Нода gmxAPI
+					var ph = {
+						'obj':gmxNode
+						,'attr': {
+							'id': e.target.options.from
+							,'x': e.target._latlng.lng
+							,'y': e.target._latlng.lat
+							,'e': e
+						}
+					};
+					gmxAPI._listeners.dispatchEvent('onDrag', gmxNode, ph);		// tile загружен
 				});
 			}
 			return out;
@@ -574,17 +631,36 @@
 					var len = coords.length - 1;
 					if(coords[0][0] != coords[len][0] || coords[0][1] != coords[len][1]) coords.push(coords[0]);
 				}
-				var len = geo['coordinates'].length;
-				//if(geo['coordinates'][len - 1] 
 			}
+		}
+		,
+		'fromLeafletTypeGeo': function(type)	{			// перевод геометрии type leaflet->Scanex
+			if(type === 'MultiPolygon') 			type = 'MULTIPOLYGON';
+			else if(type === 'Polygon')				type = 'POLYGON';
+			else if(type === 'Point')				type = 'POINT';
+			else if(type === 'MultiPolyline')		type = 'MULTILINESTRING';
+			else if(type === 'Polyline')			type = 'LINESTRING';
+			return type;
+		}
+		,
+		'fromScanexTypeGeo': function(type)	{			// перевод геометрии type Scanex->leaflet
+			if(type === 'MULTIPOLYGON') 			type = 'MultiPolygon';
+			else if(type === 'POLYGON')				type = 'Polygon';
+			else if(type === 'MultiPoint')			type = 'MultiPoint';
+			else if(type === 'POINT')				type = 'Point';
+			else if(type === 'MULTILINESTRING')		type = 'MultiPolyline';
+			else if(type === 'LINESTRING')			type = 'Polyline';
+			else if(type === 'GeometryCollection')	type = 'GeometryCollection';
+			return type;
 		}
 		,
 		'parseGeometry': function(geo, boundsFlag)	{			// перевод геометрии Scanex->leaflet
 			var pt = gmxAPI.transformGeometry(geo, function(it){return it;}, function(it){return it;});
-			var type = pt.type;
 			if(boundsFlag) {
 				//var bounds = new L.LatLngBounds(p1, p2);
 			}
+			pt.type = utils.fromScanexTypeGeo(pt.type);
+			/*
 			if(type) pt['type'] = type;
 			if(type === 'MULTIPOLYGON') 			pt['type'] = 'MultiPolygon';
 			else if(type === 'POLYGON')				{ pt['type'] = 'Polygon'; utils.chkPolygon(pt); }
@@ -595,7 +671,35 @@
 			else if(type === 'GeometryCollection')	pt['type'] = 'GeometryCollection';
 			//var geojson = new L.GeoJSON();
 			//geojson.addGeoJSON(pt);
+			*/
 			return pt;
+		}
+		,
+		transformPolygon: function(geom)				// получить Scanex Polygon
+		{
+			var out = {
+				'type': 'POLYGON'
+			}
+			var coords = [];
+			for (var i = 0; i < geom['coordinates'].length; i++)
+			{
+				var coords1 = [];
+				for (var j = 0; j < geom['coordinates'][i].length; j++)
+				{
+					var point = geom['coordinates'][i][j];
+					//coords1.push([point.x, point.y]);
+					coords1.push([gmxAPI.from_merc_x(point.x), gmxAPI.from_merc_y(point.y)]);
+				}
+				coords.push(coords1);
+			}
+			out['coordinates'] = coords;
+			return out;
+		}
+		,
+		transformGeometry: function(geom)			// трансформация геометрии leaflet->Scanex
+		{
+			if(!geom) return geom;
+			if(geom.type === 'Polygon')	return utils.transformPolygon(geom);
 		}
 		,
 		fromTileGeometry: function(geom, tileBounds)				// преобразование геометрий из тайлов
@@ -843,8 +947,8 @@
 		var pp = node.geometry.coordinates;
 
 		optm['icon'] = myIcon;
-		node.marker = L.marker([pp[1], pp[0]], optm);		
-		node.marker.addTo(node['group']);		
+		node['marker'] = L.marker([pp[1], pp[0]], optm);		
+		node['marker'].addTo(node['group']);		
 	}
 	// setStyle для mapObject
 	function setStyle(id, attr)	{
@@ -881,7 +985,13 @@
 
 	// добавить Handlers для leaflet нод
 	function setNodeHandlers(id)	{
-		setHandlerObject(id, 'onClick');
+		var node = mapNodes[id];
+		if(!node || !node['handlers']) return false;
+		for(var evName in node['handlers']) {
+			setHandlerObject(id, evName);
+		}
+		
+		//setHandlerObject(id, 'onClick');
 /*		
 		var node = mapNodes[id];
 		if(!node) return false;
@@ -895,6 +1005,10 @@
 */		
 	}
 
+	var scanexEventNames = {
+		'onClick': 'click'
+		,'onMouseDown': 'mousedown'
+	};
 	// добавить Handler для mapObject
 	function setHandlerObject(id, evName)	{
 		var node = mapNodes[id];
@@ -903,14 +1017,24 @@
 			node['leaflet']['options']['resID'] = id;
 			var hNode = getNodeHandler(id, evName);
 			if(!hNode) return false;
+			/*
 			if(evName === 'onClick') {
 				var func = function(e) {		// Проверка click
-					gmxAPI._leaflet['utils'].chkGlobalClick({'ev':e,'latlng': e.latlng, 'evName':evName, 'node':node, 'hNode':hNode});	// события векторного обьекта
-					//hNode['handlers'][evName](id, node.geometry.properties, {'ev':e});
+					gmxAPI._leaflet['utils'].chkGlobalEvent({'ev':e,'latlng': e.latlng, 'evName':evName, 'node':node, 'hNode':hNode});	// события векторного обьекта
 				};
 				node['leaflet'].on('click', func);
 				if(node['marker']) {
 					node['marker'].on('click', func);
+				}
+			}
+			*/
+			var func = function(e) {		// Проверка onMouseDown
+				gmxAPI._leaflet['utils'].chkGlobalEvent({'ev':e,'latlng': e.latlng, 'evName':evName, 'node':node, 'hNode':hNode});	// события векторного обьекта
+			};
+			if(scanexEventNames[evName]) {
+				node['leaflet'].on(scanexEventNames[evName], func);
+				if(node['marker']) {
+					node['marker'].on(scanexEventNames[evName], func);
 				}
 			}
 		}
@@ -939,7 +1063,7 @@
 			,'id': id
 			,'parentId': ph.obj['objectId']
 			//,'eventsCheck': 
-			//setZoomBounds
+			//subType
 		};
 		//if(ph.attr['hidenAttr']) pt['hidenAttr'] = ph.attr['hidenAttr'];
 
@@ -961,6 +1085,8 @@
 			if(ph.attr['properties']) geo['properties'] = ph.attr['properties'];
 			pt['geometry'] = geo;
 			pt['propHiden'] = ph.attr['propHiden'] || {};
+			if(pt['propHiden']['subType']) pt['subType'] = pt['propHiden']['subType'];
+
 		}
 		mapNodes[id] = pt;
 		if(pt['geometry']['type']) {
@@ -1183,6 +1309,28 @@
 		}
 		,
 		'addObject': addObject								// добавить mapObject
+		,
+		'startDrawing': function(ph)	{					// Режим рисования
+			LMap.dragging.disable();
+			return true;
+		}
+		,
+		'stopDrawing': function(ph)	{						// Отмена режима рисования
+			LMap.dragging.enable();
+			return true;
+		}
+		,
+		'isKeyDown': function(ph)	{						// Проверка нажатых клавиш
+			var flag = false;
+			if(ph.attr && ph.attr.code) {
+				var code = ph.attr.code;
+				var clickAttr = gmxAPI._leaflet['clickAttr'];
+				if(clickAttr) {
+					if(code === 16 && clickAttr['shiftKey']) flag = true;
+				}
+			}
+			return flag;
+		}
 		,
 		'setGeometry': function(ph)	{						// установка geometry
 			var layer = ph.obj;
@@ -1468,6 +1616,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		if(!LMap) LMap = gmxAPI._leaflet['LMap'];				// Внешняя ссылка на карту
 		
 		var ret = {};
+		if(!hash) hash = {};
 		var obj = hash['obj'] || null;	// Целевой обьект команды
 		var attr = hash['attr'] || '';
 /*		
@@ -1820,7 +1969,7 @@ var tt = ctx.mozCurrentTransformInverse;
 		var layer = ph.obj;
 		var id = layer.objectId;
 		var node = mapNodes[id];
-gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
+//gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
 		if(!node) return;						// Нода не определена
 		node['type'] = 'RasterLayer';
 		var inpAttr = ph.attr;
@@ -2271,10 +2420,11 @@ gmxAPI._tools['standart'].setVisible(false);	// Пока не работает m
 				var filter = gmxAPI.mapNodes[fID];
 				if(!filter) return;						// не найден фильтр
 				//gmxAPI._listeners.dispatchEvent(evName, filter, {'obj':filter, 'attr':{}});
-				mapNodes[fID]['handlers'][evName].call(filter, item.id, prop, {'onClick': true});
+				//var geom = {'type': utils.fromLeafletTypeGeo(item.type), 'coordinates': item.coordinates};
+				var geom = utils.transformGeometry(item);
+				mapNodes[fID]['handlers'][evName].call(filter, item.id, prop, {'onClick': true, 'geom': geom});
 				//gmxAPI._leaflet['skipClick'] = true;
 				//setTimeout(function() { gmxAPI._leaflet['skipClick'] = false; }, 100);
-				
 				//node['handlers'][evName].call(filter, item.id, prop, {'onClick': true});
 				return true;
 			}
@@ -3130,9 +3280,7 @@ node.repaintCount = 0;
 		if ((p1[1] < ext.min.y && p2[1] < ext.min.y) || (p1[1] > ext.max.y && p2[1] > ext.max.y)) return true;
 		 return false;
 	}
-	var chkOnOut = function(p1, ext) {				// точка за границей
-		return (p1.lng < ext.minx || p1.lng > ext.maxx || p1.lat < ext.miny || p1.lat > ext.maxy);
-	}
+
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
 	gmxAPI._leaflet['PolygonGeometry'] = function(geo_, tileBounds_) {				// класс PolygonGeometry
@@ -3394,6 +3542,12 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 			LMap = new L.Map(leafLetCont_,
 				{
 					zoomControl: false
+					,boxZoom: false
+					
+					//,inertia: false
+					//,fadeAnimation: false
+					//,markerZoomAnimation: true
+					//,dragging: false
 					//,worldCopyJump: false
 					//,zoomAnimation: false
 					//,trackResize: true
@@ -3455,12 +3609,8 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				};
 				gmxAPI._updatePosition(e, attr);
 			});
-			LMap.on('mousemove', function(e) {
-				gmxAPI._leaflet['mousePos'] = e.latlng;
-			});
 
 			LMap.on('click', function(e) {		// Проверка click слоя
-			//LMap.on('mousedown', function(e) {		// Проверка click слоя
 				var attr = {
 					'_layer': e.originalEvent.originalTarget['_layer']
 					,'tID': e.originalEvent.originalTarget['id']
@@ -3472,6 +3622,7 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					,'shiftKey': e.originalEvent.shiftKey
 					,'metaKey': e.originalEvent.metaKey
 					,'e': e
+					,'evName': 'onClick'
 				};
 				gmxAPI._leaflet['clickAttr'] = attr;
 				/*if(attr['_layer']) {
@@ -3479,8 +3630,37 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					var mapNode = mapNodes[layerID];
 					if(mapNode['eventsCheck']) mapNode['eventsCheck']('onClick', attr);
 				} else {*/
-					gmxAPI._leaflet['utils'].chkGlobalClick(attr);
+					gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 				//}
+			});
+			
+			LMap.on('mousedown', function(e) {
+				gmxAPI._leaflet['mousedown'] = true;
+				var attr = {
+					'_layer': e.originalEvent.originalTarget['_layer']
+					,'tID': e.originalEvent.originalTarget['id']
+					,'tilePoint': e.originalEvent.originalTarget['_tilePoint']
+					,'latlng': e.latlng
+					,'buttons': e.originalEvent.buttons
+					,'ctrlKey': e.originalEvent.ctrlKey
+					,'altKey': e.originalEvent.altKey
+					,'shiftKey': e.originalEvent.shiftKey
+					,'metaKey': e.originalEvent.metaKey
+					,'e': e
+					,'evName': 'onMouseDown'
+				};
+				gmxAPI._leaflet['mousedownAttr'] = attr;
+				gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
+				//gmxAPI._listeners.dispatchEvent('onMouseDown', null, {});
+			});
+			LMap.on('mousemove', function(e) {
+				gmxAPI._leaflet['mousePos'] = e.latlng;
+				if(e.originalEvent.buttons) {
+					gmxAPI._listeners.dispatchEvent('onMouseMove', gmxAPI.map, {'attr':{'latlng':e.latlng}});
+				}
+			});
+			LMap.on('mouseup', function(e) {
+				gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, {'attr':{'latlng':e.latlng}});
 			});
 			
 			LMap.on('zoomstart', function(e) {
@@ -3490,7 +3670,6 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 			LMap.on('zoomend', function(e) {
 				gmxAPI._leaflet['zoomstart'] = false;
 				gmxAPI._listeners.dispatchEvent('onZoomend', null, {});
-//				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {});
 			});
 
 			// Обработчик события - mapInit
@@ -3756,70 +3935,6 @@ ctx.fillText(drawTileID, 10, 128);
 						gmxAPI._listeners.dispatchEvent('onLayerStartTileRepaint', gmxNode, {'obj':gmxNode, 'attr':attr});
 					}
 					node['chkLoadTiles']();
-/*
-					if('chkLoadTiles' in node) node['chkLoadTiles']();
-					else {
-						var tt = 1;
-					}
-					
-					var repaintFlag = true;
-					var tiles = node['tiles'];
-					for (var key in tiles)
-					{
-						//if(!node['dataTiles'][st]) {
-							var pt = tiles[key];
-//console.log(drawTileID + ' : __________' + key , bounds, pt);
-							if(bounds.intersects(pt))	{			// Тайл пересекает границы - необходимо загрузить
-								var arr = key.split('_');
-								var tx = Number(arr[1]);
-								var ty = Number(arr[2]);
-								var tz = Number(arr[0]);
-								var sst = tz + '_' + tx + '_' + ty;
-								//if(!node['dataTiles'][sst] && !node['badTiles'][sst] && !node['tilesLoadProgress'][sst]) {
-								if(!node['tilesGeometry'][sst] && !node['badTiles'][sst] && !node['tilesLoadProgress'][sst]) {
-									var srcArr = utils.getTileUrlVector(tile._layer, {'x':tx, 'y':ty}, tz);
-									if(typeof(srcArr) === 'string') srcArr = [srcArr];
-
-									var counts = srcArr.length;
-									var needParse = [];
-									(function(tileID) {						// подгрузка векторных тайлов
-										for (var i = 0; i < srcArr.length; i++)
-										{
-											var src = srcArr[i] + '&r=t';
-											node['loaderFlag'] = true;
-											node['tilesLoadProgress'][tileID] = true;
-											repaintFlag = false;
-											gmxAPI.sendCrossDomainJSONRequest(src, function(response)
-											{
-												delete node['tilesLoadProgress'][tileID];
-												counts--;
-												if(typeof(response) != 'object' || response['Status'] != 'ok') {
-													gmxAPI.addDebugWarnings({'url': src, 'Error': 'bad response'});
-													node['badTiles'][tileID] = true;
-													//return;
-												}
-												if(response['Result'] && response['Result'].length)	needParse = needParse.concat(response['Result']);
-												if(counts < 1) {
-													var gmxNode = gmxAPI.mapNodes[opt['id']];
-													gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode, 'attr':{'data':{'tileID':tileID, 'data':needParse}}});		// tile загружен
-													//console.log(tileID + ' : __________' + src);
-													needParse = [];
-													node['loaderFlag'] = false;
-													for (var t in node['tilesLoadProgress'])
-													{
-														node['loaderFlag'] = true;
-														break;
-													}
-													if(!node['loaderFlag']) node['leaflet'].redraw();		// перезапросить drawTile слоя
-												}
-											});
-										}
-									})(sst);
-								}
-							}
-						//}
-					}
-*/					
 					if(!node['loaderFlag']) repaint(0);
 				}
 			});
@@ -3876,12 +3991,6 @@ ctx.fillText(drawTileID, 10, 128);
 				options: {
 					iconSize: new L.Point(12, 12), // also can be set through CSS
 					//iconAnchor: new L.Point(12, 12), // also can be set through CSS
-					/*
-					iconAnchor: (Point)
-					popupAnchor: (Point)
-					html: (String)
-					bgPos: (Point)
-					*/
 					className: 'leaflet-canvas-icon'
 				},
 
@@ -3899,6 +4008,26 @@ ctx.fillText(drawTileID, 10, 128);
 			});
 			L.canvasIcon = function (options) {
 				return new L.CanvasIcon(options);
+			};
+			
+			L.RectangleIcon = L.Icon.extend({
+				options: {
+					iconSize: new L.Point(12, 12), // also can be set through CSS
+					//iconAnchor: new L.Point(12, 12), // also can be set through CSS
+					className: 'leaflet-canvas-icon'
+				},
+				createIcon: function () {
+					var options = this.options;
+					var res = L.rectangle(options.bounds, options)
+					return res;
+				},
+
+				createShadow: function () {
+					return null;
+				}
+			});
+			L.rectangleIcon = function (options) {
+				return new L.RectangleIcon(options);
 			};
 			
 			L.RectangleMarker = L.Rectangle.extend({
@@ -4030,7 +4159,7 @@ gmxAPI._tcnt = 0;
 					var d3 = 100000000;
 					var d4 = 100000000;
 					var x1, y1, x2, y2, x3, y3, x4, y4;
-					var geom = o.obj.getGeometry();
+					var geom = o.attr.geom;
 					var coord = geom.coordinates;
 					gmxAPI.forEachPoint(coord, function(p)
 					{

@@ -191,9 +191,9 @@
 		if (!parentObj.overlays)
 		{
 			parentObj.overlays = parentObj.addObject();
-			parentObj.addObject = function(geom, props)
+			parentObj.addObject = function(geom, props, propHiden)
 			{
-				var ret = FlashMapObject.prototype.addObject.call(parentObj, geom, props);
+				var ret = FlashMapObject.prototype.addObject.call(parentObj, geom, props, propHiden);
 				parentObj.overlays.bringToTop();
 				return ret;
 			}

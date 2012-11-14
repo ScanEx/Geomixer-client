@@ -580,7 +580,7 @@
 				},
 				updatePropsBalloon: function(text)
 				{
-					updateVisible(text ? true : false);
+					updateVisible((text && !buttons ? true : false));
 					chkBalloonText(text, balloonText);
 					reposition();
 				},
@@ -660,8 +660,11 @@
 		gmxAPI.contDivPos = null;
 		var eventXprev = 0; 
 		var eventYprev = 0;
-		var onmousemove = function(event)
+		var buttons = false;
+		var onmousemove = function(ev)
 		{
+			var event = gmxAPI.compatEvent(ev);
+			buttons = event.buttons;
 			var eventX = gmxAPI.eventX(event); 
 			var eventY = gmxAPI.eventY(event);
 			if(eventX == eventXprev && eventY == eventYprev) return;
@@ -773,7 +776,7 @@ event.stopImmediatePropagation();
 					
 					// Смещение Балуна к центру
 					var deltaX = 0;
-					if(!balloon.isDraging) {
+					if(!balloon.isDraging && gmxAPI.proxyType === 'flash') {
 						var pos = gmxAPI.chkPointCenterX(this.geoX);
 						var centrGEO = gmxAPI.from_merc_x(mapX);
 						

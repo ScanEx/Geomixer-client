@@ -270,7 +270,14 @@
 				line: tr,
 				setVisible: function(flag) {
 					this.isVisible = flag;
-					gmxAPI.setVisible(tr, flag);
+					var st = 'visible';
+					if(flag) {
+						tr.style.display = '';
+						tr.style.visibility = 'visible';
+					} else {
+						tr.style.display = 'none';
+						tr.style.visibility = 'hidden';
+					}
 				},
 				setToolImage: function(a1, a2) {},
 				repaint: function()	{

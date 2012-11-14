@@ -743,8 +743,15 @@
 			{
 				if (downCallback) {
 					var currPosition = map.getPosition();
-					var mouseX = gmxAPI.from_merc_x(currPosition['mouseX']);
-					var mouseY = gmxAPI.from_merc_y(currPosition['mouseY']);
+					var mouseX = null;
+					var mouseY = null;
+					if(currPosition['latlng'] && 'mouseX' in currPosition['latlng']) {
+						mouseX = currPosition['latlng']['mouseX'];
+						mouseY = currPosition['latlng']['mouseY'];
+					} else {
+						mouseX = gmxAPI.from_merc_x(currPosition['mouseX']);
+						mouseY = gmxAPI.from_merc_y(currPosition['mouseY']);
+					}
 					downCallback(mouseX, mouseY, o);
 				}
 				gmxAPI._startDrag(object, dragCallback, upCallback);
