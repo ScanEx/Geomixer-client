@@ -117,23 +117,11 @@ var createRC = function(results)
                 continue;
             
             objs.push({
-                action: 'insert',
                 properties: {GM_LayerName: results[sid].layerProperties.name}
             });
         }
         
-        sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
-            {
-                WrapStyle: 'window', 
-                LayerName: gmxProperties.content.properties.name, 
-                objects: JSON.stringify(objs)
-            },
-            function(addResponse)
-            {
-                if (!parseResponse(addResponse))
-                    return;
-            }
-        );
+        _mapHelper.modifyObjectLayer(gmxProperties.content.properties.name, objs);
     })
 }
 

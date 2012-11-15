@@ -3310,8 +3310,54 @@ mapHelper.prototype.findTreeElems = function(treeElem, callback, flag, list)
 	}
 }
 
-var _mapHelper = new mapHelper();
+/**
+ *  Модифицирует объекты внутри векторного слоя, отправляя изменения на сервер и информируя об этом API
+ * 
+ * @param {String} layerName Имя слоя
+ * @param {Object[]} objs Массив описания объектов. Каждое описание представляет из себя объект:
+ * 
+ *  * id {String} ID объекта слоя, над которым производятся изменения (только для модификации и удаления)
+ *  * geometry Описание геометрии (вставка и изменение)
+ *  * properties Свойства объекта (вставка и изменение)
+ *  * action {'delete'|'insert'|'update'} Производимое действие. Если не указано, то вычисляется следующим образом:
+ *    * Если не указан id, то вставка
+ *    * Если указан id, то модифицируем
+ *    * Для удаления объекта нужно явно прописать параметр
+*/
+mapHelper.prototype.modifyObjectLayer = function(layerName, objs)
+{
+    var def = $.Deferred();
+    
+    $.each(objs, function(i, obj)
+    {
+        obj.action = obj.action || (obj.id ? 'update' : 'insert');
+    })
+    
+    sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", 
+        {
+            WrapStyle: 'window', 
+            LayerName: layerName, 
+            objects: JSON.stringify(objs)
+        },
+        function(addResponse)
+        {
+            if (!parseResponse(addResponse))
+            {
+                def.reject();
+                return;
+            }
+            
+            globalFlashMap.layers[layerName].chkLayerVersion(function()
+            {
+                def.resolve();
+            });
+        }
+    )
+    
+    return def.promise();
+}
 
+var _mapHelper = new mapHelper();
 
 mapHelp.mapHelp.load = function()
 {

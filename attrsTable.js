@@ -280,15 +280,10 @@ attrsTable.prototype.drawDialog = function(info)
             remove.onclick = function()
             {
                 var id = elem.values[elem.fields[_this._identityField].index];
-                var objects = JSON.stringify([{action: 'delete', id: id}]);
-                sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", {WrapStyle: 'window', LayerName: _this.layerName, objects: objects}, function(response)
+                _mapHelper.modifyObjectLayer(_this.layerName, [{action: 'delete', id: id}]).done(function()
                 {
-                    if (!parseResponse(response))
-                        return;
-                    
                     removeDialog(jDialog);
-                    globalFlashMap.layers[_this.layerName].chkLayerVersion();
-                });
+                })
             };
             
             var jDialog = showDialog(_gtxt("Удалить объект?"), _div([remove],[['css','textAlign','center']]), 150, 60);

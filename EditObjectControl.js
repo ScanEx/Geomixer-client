@@ -119,15 +119,11 @@ var EditObjectControl = function(layerName, objectId, params)
         
         removeButton.onclick = function()
         {
-            var objects = JSON.stringify([{action: 'delete', id: objectId}]);
-            sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", {WrapStyle: 'window', LayerName: layerName, objects: objects}, function(response)
+            _mapHelper.modifyObjectLayer(layerName, [{action: 'delete', id: objectId}]).done(function()
             {
-                if (!parseResponse(response))
-                    return;
-                
                 removeDialog(dialogDiv);
-                layer.chkLayerVersion(closeFunc);
-            });
+                closeFunc();
+            })
         }
         
         removeButton.style.marginLeft = '10px';
@@ -153,7 +149,7 @@ var EditObjectControl = function(layerName, objectId, params)
             
             if (anyErrors) return;
             
-            var obj = { action: isNew ? 'insert' : 'update', properties: properties };
+            var obj = { properties: properties };
             
             var selectedDrawingObject = geometryInfoRow ? geometryInfoRow.getDrawingObject() : null;
             
@@ -180,18 +176,13 @@ var EditObjectControl = function(layerName, objectId, params)
                 if (selectedDrawingObject)
                     obj.geometry = gmxAPI.merc_geometry(selectedDrawingObject.getGeometry());
             }
-                
-            var objects = JSON.stringify([obj]);
             
-            sendCrossDomainPostRequest(serverBase + "VectorLayer/ModifyVectorObjects.ashx", {WrapStyle: 'window', LayerName: layerName, objects: objects}, function(response)
+            _mapHelper.modifyObjectLayer(layerName, [obj]).done(function()
             {
-                if (!parseResponse(response))
-                    return;
-
                 $(_this).trigger('modify');
                 removeDialog(dialogDiv);
-                layer.chkLayerVersion(closeFunc);
-            });
+                closeFunc();
+            })
         }
     
         var resizeFunc = function(event, ui)
