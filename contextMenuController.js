@@ -377,6 +377,21 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Layer');
 
 nsGmx.ContextMenuController.addContextMenuElem({
+	title: function() { return _gtxt("Добавить снимки"); },
+	isVisible: function(context)
+	{
+		return !context.layerManagerFlag &&
+               _queryMapLayers.layerRights(context.elem.name) == 'edit' && 
+               context.elem.type == "Vector" &&
+               context.elem.IsRasterCatalog;
+	},
+	clickCallback: function(context)
+	{
+        new nsGmx.RCAddLayerControl(globalFlashMap, context.elem.name);
+	}
+}, 'Layer');
+
+nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Копировать стиль"); },
 	isVisible: function(context)
 	{

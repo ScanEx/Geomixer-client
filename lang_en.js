@@ -557,5 +557,6 @@ _translationsHash.hash["eng"] = {
     "Меркатор (EPSG:3395)": "Mercator (EPSG:3395)",
     "Из файла": "From file",
     "Мультиполигон": "Multipolygon",
-    "Администрирование": "Administration"
+    "Администрирование": "Administration",
+    "Добавить снимки": "Add images"
 };

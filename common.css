@@ -1292,3 +1292,9 @@ div.layersScroll
 {
     vertical-align: top;
 }
+
+.RCAdd-info-container
+{
+    color: green;
+    font-size: 12px;
+}
