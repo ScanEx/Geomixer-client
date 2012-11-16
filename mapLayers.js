@@ -189,6 +189,8 @@ var layersTree = function( renderParams )
 	this.mapStyles = {};
 	
 	this.groupLoadingFuncs = [];
+    
+    this._treeCanvas = null; //контейнер отрисованного дерева слоёв
 }
 
 // layerManagerFlag == 0 для дерева слева
@@ -197,11 +199,11 @@ var layersTree = function( renderParams )
 
 layersTree.prototype.drawTree = function(tree, layerManagerFlag)
 {
-	var canvas = _ul([this.getChildsList(tree, false, layerManagerFlag, true)], [['dir','className','filetree']]);
+	this._treeCanvas = _ul([this.getChildsList(tree, false, layerManagerFlag, true)], [['dir','className','filetree']]);
     this.treeModel = new nsGmx.LayersTree(tree);
     this._mapTree = tree; //используйте this.treeModel для доступа к исходному дереву
 
-	return canvas;
+	return this._treeCanvas;
 }
 
 layersTree.prototype.getChildsList = function(elem, parentParams, layerManagerFlag, parentVisibility)
@@ -430,9 +432,15 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 
 layersTree.prototype.setActive = function(span)
 {
-	$(_queryMapLayers.treeCanvas).find(".active").removeClass("active");
+	$(this._treeCanvas).find(".active").removeClass("active");
 	
 	$(span.parentNode).addClass("active");
+}
+
+layersTree.prototype.getActive = function()
+{
+    var activeDiv = $(this._treeCanvas).find(".active");
+    return activeDiv[0] ? activeDiv[0].parentNode : null;
 }
 
 layersTree.prototype.setListActive = function(span)
@@ -754,7 +762,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 	var box,
 		_this = this;
 	
-	if (!layerManagerFlag)
+	if (this._renderParams.showVisibilityCheckbox)
 	{
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 		
@@ -780,8 +788,8 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 	
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer'],['attr','dragg',true]]);
 	
-	if (!layerManagerFlag)
-	{
+	// if (!layerManagerFlag)
+	// {
 		var timer = null,
 			clickFunc = function()
 			{
@@ -863,7 +871,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
         }
 		
 		disableSelection(span);
-	}
+	// }
 	
 	var spanParent = _div([span],[['attr','titleDiv',true],['css','display',($.browser.msie) ? 'inline' : 'inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
 	
@@ -885,9 +893,10 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 				tree: _this
 		}
 		});
-		
-		return [box, spanParent];
-	}
+    }
+    
+    if (this._renderParams.showVisibilityCheckbox)
+        return [box, spanParent];
 	else
 		return [spanParent];
 }
@@ -900,26 +909,29 @@ layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerMa
 	if ($.browser.msie)
 		spanParent.style.zIndex = 1;
 	
-	if (layerManagerFlag)
+	if (!this._renderParams.allowActive)
 		return [spanParent];
 
 	span.onclick = function()
 	{
-		if (_this._renderParams.allowActive)
-            _this.setActive(this);
+        _this.setActive(this);
 	}
 	
-	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Map', function()
-	{
-		return _queryMapLayers.currentMapRights() == "edit";
-	}, 
-	function() 
-	{
-		return {
-			div: spanParent.parentNode,
-			tree: _this
-	}
-	});
+    if (!layerManagerFlag)
+    {
+        nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Map', function()
+            {
+                return _queryMapLayers.currentMapRights() == "edit";
+            }, 
+            function() 
+            {
+                return {
+                    div: spanParent.parentNode,
+                    tree: _this
+                }
+            }
+        );
+    }
 
 	return [spanParent];
 }
@@ -949,7 +961,7 @@ layersTree.prototype.removeGroup = function(div)
 				// удаляем все слои
 				$(childsUl).find("div[LayerID],div[MultiLayerID]").each(function()
 				{
-					_queryMapLayers.removeLayer(this.gmxProperties.content.properties.name)
+					_queryMapLayers.removeLayer(this.gmxProperties.content.properties.name);
 				})
 			}
 		}
