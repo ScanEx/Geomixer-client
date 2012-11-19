@@ -2800,6 +2800,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 				
 				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties, {doneCallback: function()
                 {
+                    $(divDialog).dialog('close');
                     removeDialog(divDialog);
                 }});
 				
@@ -2873,6 +2874,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 
 			this.createLoadingLayerEditorProperties(div, divProperties, null, {doneCallback: function()
                 {
+                    $(divDialog).dialog('close');
                     removeDialog(divDialog);
                 }}
             );
