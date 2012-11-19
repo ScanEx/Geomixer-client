@@ -3681,11 +3681,9 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				gmxAPI._updatePosition(e, attr);
 			});
 			var parseEvent = function(e) {		// Парсинг события мыши
-				return {
-					'_layer': e.originalEvent.originalTarget['_layer']
-					,'tID': e.originalEvent.originalTarget['id']
-					,'tilePoint': e.originalEvent.originalTarget['_tilePoint']
-					,'latlng': e.latlng
+				var target = e.originalEvent.originalTarget || e.originalEvent.target;
+				var out = {
+					'latlng': e.latlng
 					,'buttons': e.originalEvent.buttons
 					,'ctrlKey': e.originalEvent.ctrlKey
 					,'altKey': e.originalEvent.altKey
@@ -3693,6 +3691,13 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					,'metaKey': e.originalEvent.metaKey
 					,'e': e
 				};
+				if(target) {
+					out['_layer'] = target['_layer']
+					out['tID'] = target['tID']
+					out['tilePoint'] = target['tilePoint']
+					out['_layer'] = target['_layer']
+				}
+				return out;
 				
 			}
 
