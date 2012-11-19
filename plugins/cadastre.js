@@ -93,6 +93,21 @@ var Cadastre = function(oContainer, sCadastreHost, oMap, oMapDiv){
 	oDivisionLayer = this._mapObject.addObject();
 	
 	var iListenerID = -1;
+	this.enableLayer = function(layerName){
+		if(layerName == 'Division'){
+			cbDivision.checked = true;
+		}else if(layerName == 'Cost'){
+			rbCostLayer.checked = true;
+		}else if(layerName == 'CostByArea'){
+			rbCostByAreaLayer.checked = true;
+		}else if(layerName == 'UseType'){
+			rbUseType.checked = true;
+		}else if(layerName == 'Category'){
+			rbCategory.checked = true;
+		} 
+		fnRefreshMap();
+	}
+	
 	/** Загружает слой */
 	this.load = function(){
 		oDivisionLayer.setVisible(cbDivision.checked);
@@ -132,6 +147,7 @@ var loadCadastre = function(){
 		oCadastre = new Cadastre( oCadastreLeftMenu.workCanvas, sCadastreHost, globalFlashMap, document.getElementById("flash"));
 	}
 	oCadastre.load();
+	return oCadastre;
 }
 
 var addMenuItems = function(upMenu){
@@ -150,6 +166,7 @@ var afterViewer = function(params){
 var publicInterface = {
     pluginName: 'Cadastre',
 	Cadastre: Cadastre,
+	LoadCadastre: loadCadastre,
 	afterViewer: afterViewer,
 	addMenuItems: addMenuItems
 }
