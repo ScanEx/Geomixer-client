@@ -8,6 +8,7 @@
 	var pointSize = pSize / 2;
 	var lineWidth = 3;
 	var mouseOverFlag = false;
+	var mousePressed = false;
 
 	var getDownType = function(ph, coords, oBounds)
 	{
@@ -99,9 +100,17 @@
 			fillArr.push([x, y]);
 		}
 		if(attr['lastPoint']) {
-			var point = LMap.project(new L.LatLng(attr['lastPoint']['y'], attr['lastPoint']['x']));
+		
+			//var containerPoint = attr['lastPoint']['dop']['containerPoint'];
+			var px = attr['lastPoint']['x'];
+			//if(px > 180) px -= 360;
+			//var point = LMap.latLngToContainerPoint(new L.LatLng(attr['lastPoint']['y'], px));
+			var point = LMap.project(new L.LatLng(attr['lastPoint']['y'], px));
 			var x = point.x - p1.x;
 			var y = point.y - p1.y;
+//console.log('wwwww ', x, y, p1.x, vp1.x, containerPoint.x);
+			//var x = containerPoint['x'] + vp1.x - p1.x;
+			//var y = containerPoint['y'] + vp1.y - p1.y;
 			ctx.lineTo(x + pointSize, y + pointSize);
 		}
 		ctx.stroke();
@@ -526,7 +535,7 @@
 				}
 				balloon.outerDiv.onmousemove = function(event)
 				{
-					if (!event.buttons) isDragged = false;
+					if (!mousePressed) isDragged = false;
 					if (isDragged)
 					{
 						var eventPoint = getEventPoint(event);
@@ -630,6 +639,7 @@
 		
 		var mouseUp = function(ph)
 		{
+			mousePressed = false;
 			if(onMouseUpID) gmxAPI.map.removeListener('onMouseUp', onMouseUpID);
 			onMouseUpID = null;
 			gmxAPI._cmdProxy('stopDrawing');
@@ -646,10 +656,12 @@
 		
 		var itemMouseDown = function(ph)
 		{
+			mousePressed = true;
 			if(ph.attr) ph = ph.attr;
 			var x = ph.latlng.lng;
 			var y = ph.latlng.lat;
 			var downType = getDownType(ph, coords, oBounds);
+//console.log('itemMouseDown:  ', downType['cnt'], downType['type']);
 			if('type' in downType) {
 				editIndex = downType['cnt'];
 				if(downType['type'] === 'node') {
@@ -706,7 +718,7 @@
 		// Проверка пользовательских Listeners POLYGON
 		var chkEvent = function(eType, out)
 		{
-			if(gmxAPI.map.drawing.enabledHoverBalloon) {
+			if(!mousePressed && gmxAPI.map.drawing.enabledHoverBalloon) {
 				var st = (out ? out : false);
 				propsBalloon.updatePropsBalloon(st);
 			}
@@ -750,8 +762,8 @@
 		{
 			if(editIndex != -1) {
 				lastPoint = null;
-				if(ph.attr.buttons) {
-				}
+				//if(ph.attr.buttons) { }
+//console.log('mouseMove:  ', editIndex, ph);
 				coords[editIndex] = [ph.attr.latlng.lng, ph.attr.latlng.lat];
 				if(editType === 'POLYGON') {
 					if(editIndex == 0) coords[coords.length - 1] = coords[editIndex];
@@ -760,6 +772,7 @@
 				oBounds = gmxAPI.getBounds(coords);
 			} else {
 				lastPoint = {'x': ph.attr.latlng.lng, 'y': ph.attr.latlng.lat};
+				//lastPoint = {'x': ph.attr.latlng.lng, 'y': ph.attr.latlng.lat, 'dop': ph.attr};
 			}
 			repaint();
 		}
@@ -789,23 +802,25 @@
 			if(!mouseOverFlag) return false;
 			var downType = getDownType(ph, coords, oBounds);
 			var flag = ('type' in downType ? true : false);
-			//console.log('chkMouse:  ', obj.objectId, flag);
+			//console.log('chkMouse:  ', obj.objectId, flag, ph);
 			if(flag) {
 				gmxAPI._cmdProxy('startDrawing');
 				if(!itemMouseDownID) itemMouseDownID = obj.addListener('onMouseDown', itemMouseDown);
 				var title = '';
-				var ii = downType['cnt'];
-				if(downType['type'] === 'node') {
-					if(editType === 'LINESTRING') {
-						title = gmxAPI.prettifyDistance(gmxAPI.geoLength({ type: "LINESTRING", coordinates: [coords.slice(0,ii+1)] }));
-					} else if(editType === 'POLYGON') {
-						title = getGeometryTitle({ type: "POLYGON", coordinates: [coords] });
+				if(!mousePressed) {
+					var ii = downType['cnt'];
+					if(downType['type'] === 'node') {
+						if(editType === 'LINESTRING') {
+							title = gmxAPI.prettifyDistance(gmxAPI.geoLength({ type: "LINESTRING", coordinates: [coords.slice(0,ii+1)] }));
+						} else if(editType === 'POLYGON') {
+							title = getGeometryTitle({ type: "POLYGON", coordinates: [coords] });
+						}
+					} else if(downType['type'] === 'edge') {
+						if(ii == 0 && editType === 'LINESTRING') return false;
+						var p1 = coords[ii];
+						var p2 = coords[(ii == 0 ? coords.length - 1 : ii - 1)];
+						title = getGeometryTitle({ type: "LINESTRING", coordinates: [[[p1[0], p1[1]], [p2[0], p2[1]]]] });
 					}
-				} else if(downType['type'] === 'edge') {
-					if(ii == 0 && editType === 'LINESTRING') return false;
-					var p1 = coords[ii];
-					var p2 = coords[(ii == 0 ? coords.length - 1 : ii - 1)];
-					title = getGeometryTitle({ type: "LINESTRING", coordinates: [[[p1[0], p1[1]], [p2[0], p2[1]]]] });
 				}
 				chkEvent('onMouseOver', title);
 				needMouseOver = false;
@@ -846,8 +861,15 @@
 				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 			}
 			if (coords.length) {
-				var tp = coords[coords.length - 1];
-				if (Math.abs(tp[0] - x) < 0.001 && Math.abs(tp[1] - y) < 0.001) {
+				var point = LMap.project(ph.attr.latlng);
+				var pointBegin = LMap.project(new L.LatLng(coords[0][1], coords[0][0]));
+				var flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) <pointSize);
+				if(!flag) {
+					var tp = coords[coords.length - 1];
+					pointBegin = LMap.project(new L.LatLng(tp[1], tp[0]));
+					flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) <pointSize);
+				}
+				if (flag) {
 					gmxAPI.map.removeListener('onMouseMove', onMouseMoveID); onMouseMoveID = null;
 					gmxAPI.map.removeListener('onClick', addItemListenerID); addItemListenerID = null;
 					gmxAPI._cmdProxy('stopDrawing');
@@ -940,6 +962,7 @@
 		var pointSize = pSize / 2;
 		var pCanvas = null;
 		var needInitNodeEvents = true;
+		
 		var chkNodeEvents = function()
 		{
 			if(node['leaflet']) {
@@ -979,6 +1002,7 @@
 		}
 		var itemMouseDown = function(ph)
 		{
+			mousePressed = true;
 			coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
 			oBounds = gmxAPI.getBounds(coords);
 			var downType = getDownType(ph.attr, coords, oBounds);
@@ -1069,7 +1093,7 @@
 		
 		var mouseMove = function(ph)
 		{
-			if (!ph.attr.buttons) {
+			if (!mousePressed) {
 				mouseUp(ph);
 				return true;
 			}
@@ -1088,6 +1112,7 @@
 		
 		var mouseUp = function(ph)
 		{
+			mousePressed = false;
 			gmxAPI.map.removeListener('onMouseUp', onMouseUpID);
 			onMouseUpID = null;
 			gmxAPI._cmdProxy('stopDrawing');
@@ -1139,7 +1164,7 @@
 
 		var repaint = function()
 		{
-			console.log('repaint:  ', domObj);
+			//console.log('repaint:  ', domObj);
 			if(domObj) {
 				var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
 				domObj.update(geom, text);
@@ -1186,7 +1211,8 @@
 			var downType = getDownType(ph, coords, oBounds);
 			var flag = ('type' in downType ? true : false);
 			if(flag) {
-				chkEvent('onMouseOver', getBalloonText(downType));
+				var txt = (mousePressed ? '' : getBalloonText(downType));
+				chkEvent('onMouseOver', txt);
 				needMouseOver = false;
 				pCanvas.style.cursor = 'pointer';
 			} else {
@@ -1207,6 +1233,7 @@
 		} else {
 			addItemListenerID = gmxAPI.map.addListener('onMouseDown', function(ph)
 			{
+				mousePressed = true;
 				x1 = ph.attr.latlng.lng;
 				y1 = ph.attr.latlng.lat;
 				gmxAPI._cmdProxy('startDrawing');
@@ -1378,7 +1405,7 @@
 		chkMouseHover: function(attr, fName)
 		{
 			if(!fName) fName = 'chkMouse';
-			if(!attr['buttons'] || attr['evName'] == 'onMouseDown') {
+			if(!mousePressed || attr['evName'] == 'onMouseDown') {
 				for (var id in objects) {
 					var cObj = objects[id];
 					if(fName in cObj && cObj[fName].call(cObj, attr)) return true;

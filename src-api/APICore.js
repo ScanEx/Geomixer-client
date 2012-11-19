@@ -2559,7 +2559,7 @@ FlashMapObject.prototype.setCircle = function(x, y, r)
 		];
 	}
 
-	var n = 100;            //кол-во точек
+	var n = 360;            //кол-во точек
 	var a = Math.PI*x/180;  //долгота центра окружности в радианах
 	var b = Math.PI*y/180;  //широта центра окружности в радианах
 

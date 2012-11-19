@@ -188,6 +188,7 @@
 		}
 		,
 		'chkGlobalEvent': function(attr)	{					// проверка Click на перекрытых нодах
+//console.log('chkGlobalEvent', attr);
 			if(!attr || !attr['evName']) return;
 			var evName = attr['evName'];
 			for (var i = 0; i < gmxAPI.map.layers.length; i++)
@@ -3684,7 +3685,8 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				var target = e.originalEvent.originalTarget || e.originalEvent.target;
 				var out = {
 					'latlng': e.latlng
-					,'buttons': e.originalEvent.buttons
+					//,'containerPoint': e.containerPoint
+					,'buttons': e.originalEvent.buttons || e.originalEvent.button
 					,'ctrlKey': e.originalEvent.ctrlKey
 					,'altKey': e.originalEvent.altKey
 					,'shiftKey': e.originalEvent.shiftKey
@@ -3693,10 +3695,10 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				};
 				if(target) {
 					out['_layer'] = target['_layer']
-					out['tID'] = target['tID']
+					out['tID'] = target['id']
 					out['tilePoint'] = target['tilePoint']
-					out['_layer'] = target['_layer']
 				}
+//console.log(e.containerPoint);
 				return out;
 				
 			}
@@ -3719,6 +3721,7 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				var attr = parseEvent(e);
 				attr['evName'] = 'onMouseDown';
 				gmxAPI._leaflet['mousedownAttr'] = attr;
+//console.log('mousedown', attr);
 				gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 				//gmxAPI._listeners.dispatchEvent('onMouseDown', null, {});
 			});
@@ -3732,7 +3735,13 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				gmxAPI._leaflet['utils'].chkMouseHover(attr)
 			});
 			LMap.on('mouseup', function(e) {
+				//var attr = parseEvent(e);
+				//attr['evName'] = 'onMouseUp';
+
 				gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, {'attr':{'latlng':e.latlng}});
+				//gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, {'attr':attr});
+				//gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, {'attr':{'latlng':e.latlng}});
+//console.log('dddddddddd ', e.containerPoint);
 			});
 			
 			LMap.on('zoomstart', function(e) {
