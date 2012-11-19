@@ -33,22 +33,22 @@ var Cadastre = function(oContainer, sCadastreHost, oMap, oMapDiv){
 			oDivisionLayer.setImageExtent({url:sUrl, extent: oExtend, noCache: true});
 		}
 		if (rbCostLayer.checked){
-			var sUrl = sCadastreHost + "/Zones/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A1%2C5" + sQuery;
+			var sUrl = sCadastreHost + "/Thematic/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A1%2C5" + sQuery;
 			oCostLayer.setImageExtent({url:sUrl, extent: oExtend, noCache: true});
 			oLegend.innerHTML = sCostLegend; 
 		} 
 		if (rbCostByAreaLayer.checked){
-			var sUrl = sCadastreHost + "/Zones/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A0%2C6" + sQuery;
+			var sUrl = sCadastreHost + "/Thematic/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A0%2C6" + sQuery;
 			oCostByAreaLayer.setImageExtent({url:sUrl, extent: oExtend, noCache: true});
 			oLegend.innerHTML = sCostByAreaLegend; 
 		}
 		if (rbUseType.checked){
-			var sUrl = sCadastreHost + "/Zones/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A2" + sQuery;
+			var sUrl = sCadastreHost + "/Thematic/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A2" + sQuery;
 			oUseTypeLayer.setImageExtent({url:sUrl, extent: oExtend, noCache: true});
 			oLegend.innerHTML = sUseTypeLegend;
 		}
 		if (rbCategory.checked){
-			var sUrl = sCadastreHost + "/Zones/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A3%2C4" + sQuery;
+			var sUrl = sCadastreHost + "/Thematic/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A3%2C4" + sQuery;
 			oCategoryLayer.setImageExtent({url:sUrl, extent: oExtend, noCache: true});
 			oLegend.innerHTML = sCategoryLegend; 
 		}
