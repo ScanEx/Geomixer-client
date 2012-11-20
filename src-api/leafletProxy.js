@@ -3615,13 +3615,14 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				{
 					zoomControl: false
 					,boxZoom: false
+					,doubleClickZoom: false
 					
 					//,inertia: false
 					//,fadeAnimation: false
 					//,markerZoomAnimation: true
 					//,dragging: false
 					//,worldCopyJump: false
-					,zoomAnimation: false
+					//,zoomAnimation: false
 					//,trackResize: true
 					,crs: L.CRS.EPSG3395
 					//,'crs': L.CRS.EPSG3857 // L.CRS.EPSG4326 // L.CRS.EPSG3395 L.CRS.EPSG3857
