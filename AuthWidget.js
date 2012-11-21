@@ -87,7 +87,12 @@ var nsGmx = nsGmx || {};
             
             span.onclick = function()
             {
-                _this.showLoginDialog( loginCallback );
+				if(useAccountsAuth){
+					_this.showOAuthDialog( loginCallback );
+				}
+				else{
+					_this.showLoginDialog( loginCallback );
+				}
             }
             
             _(_container, [_div([span], [['attr','id','log'],['dir','className','log']])]);
@@ -150,6 +155,17 @@ var nsGmx = nsGmx || {};
         $(_authManager).change(_update);
         _update();
             
+		this.showOAuthDialog = function( ){
+			window.processAuthentication = function(status){
+				if(status == '?OK' && loginCallback) loginCallback();
+			}
+			var features, w = 400, h = 150, l, t;
+			var top = (screen.height - h)/2, left = (screen.width - w)/2;
+			features = 'location=0,menubar=0,resizable=0,scrollbars=0,status=0,toolbar=0,width='+w+',height='+h+',left='+left+',top='+top ;
+			var redirect_uri = serverBase + 'oAuth/oAuthCallback.ashx?callback=' + escape(gmxAPI.getAPIHostRoot() + 'api/oAuthCallback.html')
+			var url = serverBase + 'oAuth/LoginDialog.ashx?redirect_uri=' + escape(redirect_uri)
+			window.open(url, '_blank', features);
+		}
         //Показывает диалог с вводом логина/пароля, посылает запрос на сервер.
         this.showLoginDialog = function()
         {
