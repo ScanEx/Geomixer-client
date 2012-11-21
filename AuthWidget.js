@@ -87,7 +87,7 @@ var nsGmx = nsGmx || {};
             
             span.onclick = function()
             {
-				if(useAccountsAuth){
+				if(window.useAccountsAuth){
 					_this.showOAuthDialog( loginCallback );
 				}
 				else{
