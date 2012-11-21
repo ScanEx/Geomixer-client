@@ -2143,6 +2143,7 @@ var tt = ctx.mozCurrentTransformInverse;
 				redrawTimer = null;
 				myLayer.redraw();
 			}, 10);
+			return false;
 		}
 		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': waitRedraw });
 		myLayer._isVisible = (layer.isVisible ? true : false);
@@ -2275,7 +2276,7 @@ var tt = ctx.mozCurrentTransformInverse;
 		//node['shiftY'] = 0;						// Сдвиг для ОСМ вкладок
 		node['setObserver'] = function (pt) {				// Установка получателя видимых обьектов векторного слоя
 			node['observerNode'] = pt.obj.objectId;
-			var notCheckVisibilityFilter = pt.attr.notCheckVisibilityFilter || false;		// отменить контроль фильтра видимости
+			var ignoreVisibilityFilter = pt.attr.ignoreVisibilityFilter || false;		// отменить контроль фильтра видимости
 			var callback = pt.attr.func;
 		
 			var observerTiles = {};
@@ -2304,7 +2305,7 @@ var tt = ctx.mozCurrentTransformInverse;
 							if(node['temporal'] && !node.chkTemporalFilter(item)) continue;														// не прошел по мультивременному фильтру
 							if(!item['propHiden'] || !item['propHiden']['toFilters'] || item['propHiden']['toFilters'].length == 0) continue;	// обьект не виден по стилевым фильтрам
 							
-							if(!notCheckVisibilityFilter && node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](item['properties'])) continue; 	// если фильтр видимости на слое не отменен
+							if(!ignoreVisibilityFilter && node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](item['properties'])) continue; 	// если фильтр видимости на слое не отменен
 							
 							var id = item.id;
 							var vFlag = (item.bounds.max.x < ext.minX || item.bounds.min.x > ext.maxX || item.bounds.max.y < ext.minY || item.bounds.min.y > ext.maxY);
@@ -2336,14 +2337,17 @@ var tt = ctx.mozCurrentTransformInverse;
 
 		node.chkLoadTiles = function()	{		// Проверка необходимости загрузки тайлов
 			if(gmxNode['isVisible'] === false) return;								// Слой не видим
+			var currZ = LMap.getZoom();
+			if(currZ < node['minZ'] || currZ > node['maxZ']) return;				// Неподходящий zoom
+			
 			var currPosition = gmxAPI.currPosition;
 			if(!currPosition || !currPosition.extent) return;
 			var ext = currPosition.extent;
 			var tiles = node['tiles'];
+//console.log(tileKey, gmxNode);
 			for (var tileKey in tiles)
 			{
 				if(node['tilesGeometry'][tileKey] || node['badTiles'][tileKey] || node['tilesLoadProgress'][tileKey]) continue;
-//console.log(tileKey, gmxNode);
 				var tb = tiles[tileKey];
 				var tvFlag = (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.x > ext.maxY);
 				if(tvFlag) continue;								// Тайл за границами видимости
@@ -2524,17 +2528,21 @@ var tt = ctx.mozCurrentTransformInverse;
 		};
 
 		var attr = prpLayerAttr(layer, node);
+		node['minZ'] = inpAttr['minZoom'] || attr['minZoom'] || 1;
+		node['maxZ'] = inpAttr['maxZoom'] || attr['maxZoom'] || 21
+		
 		var identityField = attr['identityField'] || 'ogc_fid';
 		var typeGeo = attr['typeGeo'] || 'Polygon';
 		var TemporalColumnName = attr['TemporalColumnName'] || '';
 		var option = {
-			'minZoom': inpAttr['minZoom'] || attr['minZoom'] || 1
-			,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom'] || 21
+			'minZoom': node['minZ']
+			,'maxZoom': node['maxZ']
 			,'id': id
 			,'identityField': identityField
 			,'initCallback': initCallback
 			,'async': true
 		};
+//console.log('sssssss ' , id, option['minZoom'], ' : ' , option['maxZoom']);
 //utils.bringToDepth(node, node['zIndex']);
 		if(node['parentId']) option['parentId'] = node['parentId'];
 		
@@ -2891,6 +2899,7 @@ node.repaintCount = 0;
 				redrawTimer = null;
 				myLayer.redraw();
 			}, 10);
+			return false;
 		}
 		var reCheckFilters = function()	{								// переустановка обьектов по фильтрам
 			for (var tileID in node['tilesGeometry'])						// Перебрать все загруженные тайлы
@@ -2902,7 +2911,15 @@ node.repaintCount = 0;
 			}
 		}
 		node.waitRedraw = waitRedraw;				// перерисовать слой
-
+		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function(fid) {
+				if(!node.isVisible || myLayer._isVisible) return false;
+				var currZ = LMap.getZoom();
+				if(currZ < node['minZ'] || currZ > node['maxZ']) return false;		// Неподходящий zoom
+				setVisible({'obj': node, 'attr': true});
+				waitRedraw();
+			}
+		});
+		
 		node.refreshFilter = function(fid)	{		// обновить фильтр
 			var filterNode = mapNodes[fid];
 			if(!filterNode) return;						// Нода не была создана через addObject
@@ -3708,6 +3725,9 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				var attr = parseEvent(e);
 				attr['evName'] = 'onClick';
 				gmxAPI._leaflet['clickAttr'] = attr;
+				
+				//if(gmxAPI._leaflet['utils'].chkMouseHover(attr, 'onClick')) return;
+				
 				/*if(attr['_layer']) {
 					var layerID = attr['_layer'].options['id'];
 					var mapNode = mapNodes[layerID];
@@ -3995,7 +4015,6 @@ ctx.fillText(drawTileID, 10, 128);
 					tile.id = drawTileID;
 					
 					var bounds = utils.getTileBoundsMerc(scanexTilePoint, zoom);
-//console.log(drawTileID + ' drawTile: ' + ' ccc: ' , bounds);
 					
 					var opt = this.options;
 					//if(opt.attr.bounds && !bounds.intersects(opt.attr.bounds))	{	// Тайл не пересекает границы слоя
@@ -4349,6 +4368,8 @@ gmxAPI._tcnt = 0;
 		var propsArray = [];
 
 		var tilesParent = gmxNode.addObject(null, null, {'subType': 'tilesParent'});
+		node['minZ'] = minZoom;
+		node['maxZ'] = maxZoom;
 		tilesParent.setZoomBounds(minZoom, maxZoom);
 		gmxNode.tilesParent = tilesParent;
 		tilesParent.clearItems  = function()
@@ -4480,7 +4501,7 @@ gmxAPI._tcnt = 0;
 
 	//расширяем FlashMapObject
 	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
-			gmxAPI.extendFMO('observeVectorLayer', function(obj, onChange, asArray, notCheckVisibilityFilter) { obj.addObserver(this, onChange, asArray, notCheckVisibilityFilter); } );
+			gmxAPI.extendFMO('observeVectorLayer', function(obj, onChange, asArray, ignoreVisibilityFilter) { obj.addObserver(this, onChange, asArray, ignoreVisibilityFilter); } );
 			gmxAPI.extendFMO('enableTiledQuicklooksEx', enableTiledQuicklooksEx);
 			gmxAPI.extendFMO('enableTiledQuicklooks', enableTiledQuicklooks);
 			gmxAPI.extendFMO('enableQuicklooks', enableQuicklooks);
