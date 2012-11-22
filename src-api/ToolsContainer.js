@@ -25,6 +25,7 @@
 		var toolNames = [];
 		var toolHash = {};
 		var activeToolName = '';
+		var my = this;
 
 		var notSticky = (attr['notSticky'] ? attr['notSticky'] : 0);
 		var contType = (attr['contType'] ? attr['contType'] : 0);
@@ -85,7 +86,7 @@
 					tool.isActive = (id == toolName ? true : false);
 				}
 			}
-			activeToolName = toolName;
+			my.activeToolName = activeToolName = toolName;
 			this.repaint();			
 		}
 		this.setActiveTool = setActiveTool;
@@ -264,6 +265,7 @@
 
 			toolHash[tn] = {
 				key: tn,
+				backgroundColor: attr['backgroundColor'],
 				isActive: false,
 				isVisible: true,
 				control: control,
@@ -285,12 +287,12 @@
 					},
 				onClick: function()	{
 					this.isActive = true;
-					activeToolName = tn;
+					my.activeToolName = activeToolName = tn;
 					return attr['onClick'].call();
 					},
 				onCancel: function()	{
 					this.isActive = false;
-					activeToolName = '';
+					my.activeToolName = activeToolName = '';
 					attr['onCancel'].call();
 					},
 				select: function() { selectTool(tn); }

@@ -3698,6 +3698,7 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					'maxY': gmxAPI.merc_y(ext['maxY'])
 				};
 				gmxAPI._updatePosition(e, attr);
+				setCenterPoint();
 			});
 			var parseEvent = function(e) {		// Парсинг события мыши
 				var target = e.originalEvent.originalTarget || e.originalEvent.target;
@@ -3738,6 +3739,9 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 			});
 			
 			LMap.on('mousedown', function(e) {
+				var standartTools = gmxAPI.map.standartTools;
+				if(standartTools && standartTools['activeToolName'] != 'move') return;
+			
 				gmxAPI._leaflet['mousedown'] = true;
 				var attr = parseEvent(e);
 				attr['evName'] = 'onMouseDown';
@@ -4182,19 +4186,27 @@ ctx.fillText(drawTileID, 10, 128);
 			
 			initFunc(mapDivID, 'leaflet');
 			
-			var krestik = gmxAPI.newStyledDiv({	position: "absolute", top: '0px', left: '0px', opacity: 0.5	});
-			krestik.innerHTML = '<svg viewBox="0 0 20 20" height="20" width="20" style=""><g><path d="M10 0L10 20" stroke-width="1" stroke-opacity="0.8" stroke="black"></path></g><g><path d="M0 10L20 10" stroke-width="1" stroke-opacity="0.8" stroke="black"></path></g></svg>';
-			document.getElementById(mapDivID).parentNode.appendChild(krestik);
+			var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", top: '-10px', left: '-10px', opacity: 0.5	});
+			var div = document.getElementById(mapDivID);
+			div.parentNode.appendChild(centerControlDIV);
 			var setCenterPoint = function ()
 			{
 					var vBounds = LMap.getPixelBounds();
 					var y = (vBounds.max.y - vBounds.min.y)/2;
 					var x = (vBounds.max.x - vBounds.min.x)/2;
-					krestik.style.top = y + 'px';
-					krestik.style.left = x + 'px';
+					centerControlDIV.style.top = (y - 10) + 'px';
+					centerControlDIV.style.left = (x - 10) + 'px';
 			};
-			L.DomEvent.addListener(window, 'resize', setCenterPoint);
-			setCenterPoint();
+			var setControlDIVInnerHTML = function (attr)
+			{
+				var baseLayersTools = gmxAPI.map.baseLayersTools;
+				var currTool = baseLayersTools.getToolByName(attr);
+				var color = (currTool.backgroundColor === 1 ? 'white' : 'black');
+				centerControlDIV.innerHTML = '<svg viewBox="0 0 20 20" height="20" width="20" style=""><g><path d="M10 0L10 20" stroke-width="1" stroke-opacity="0.8" stroke="' + color + '"></path></g><g><path d="M0 10L20 10" stroke-width="1" stroke-opacity="0.8" stroke="' + color + '"></path></g></svg>';
+				return false;
+			};
+			setControlDIVInnerHTML();
+			gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
 		}
 	}
 
