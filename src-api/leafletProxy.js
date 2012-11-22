@@ -4191,7 +4191,7 @@ ctx.fillText(drawTileID, 10, 128);
 			
 			initFunc(mapDivID, 'leaflet');
 			
-			var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", top: '-10px', left: '-10px', opacity: 0.5	});
+			var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", top: '-6px', left: '-6px', opacity: 0.8 });
 			var div = document.getElementById(mapDivID);
 			div.parentNode.appendChild(centerControlDIV);
 			var setCenterPoint = function ()
@@ -4199,18 +4199,18 @@ ctx.fillText(drawTileID, 10, 128);
 					var vBounds = LMap.getPixelBounds();
 					var y = (vBounds.max.y - vBounds.min.y)/2;
 					var x = (vBounds.max.x - vBounds.min.x)/2;
-					centerControlDIV.style.top = (y - 10) + 'px';
-					centerControlDIV.style.left = (x - 10) + 'px';
+					centerControlDIV.style.top = (y - 6) + 'px';
+					centerControlDIV.style.left = (x - 6) + 'px';
 			};
-			var setControlDIVInnerHTML = function (attr)
+			var setControlDIVInnerHTML = function ()
 			{
 				var baseLayersTools = gmxAPI.map.baseLayersTools;
-				var currTool = baseLayersTools.getToolByName(attr);
-				var color = (currTool.backgroundColor === 1 ? 'white' : 'black');
-				centerControlDIV.innerHTML = '<svg viewBox="0 0 20 20" height="20" width="20" style=""><g><path d="M10 0L10 20" stroke-width="1" stroke-opacity="0.8" stroke="' + color + '"></path></g><g><path d="M0 10L20 10" stroke-width="1" stroke-opacity="0.8" stroke="' + color + '"></path></g></svg>';
+				var currTool = baseLayersTools.getToolByName(baseLayersTools.activeToolName);
+				var color = (currTool.backgroundColor === 1 ? 'white' : '#216b9c');
+				centerControlDIV.innerHTML = '<svg viewBox="0 0 12 12" height="12" width="12" style=""><g><path d="M6 0L6 12" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g><g><path d="M0 6L12 6" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g></svg>';
 				return false;
 			};
-			setControlDIVInnerHTML();
+			setTimeout(setControlDIVInnerHTML, 1);
 			gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
 		}
 	}
