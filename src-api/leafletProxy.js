@@ -191,13 +191,16 @@
 //console.log('chkGlobalEvent', attr);
 			if(!attr || !attr['evName']) return;
 			var evName = attr['evName'];
-			for (var i = 0; i < gmxAPI.map.layers.length; i++)
-			{
-				var child = gmxAPI.map.layers[i];
-				if(!child.isVisible) continue;
-				var mapNode = mapNodes[child.objectId];
-				if(mapNode['eventsCheck']) {
-					if(mapNode['eventsCheck'](evName, attr)) return;
+			var standartTools = gmxAPI.map.standartTools;
+			if(!gmxAPI._leaflet['curDragState'] && standartTools && standartTools['activeToolName'] === 'move') {	// проверяем векторные слои только в режиме перемещения и не рисуя
+				for (var i = 0; i < gmxAPI.map.layers.length; i++)
+				{
+					var child = gmxAPI.map.layers[i];
+					if(!child.isVisible) continue;
+					var mapNode = mapNodes[child.objectId];
+					if(mapNode['eventsCheck']) {
+						if(mapNode['eventsCheck'](evName, attr)) return;
+					}
 				}
 			}
 			if(attr['tID']) {
@@ -1375,11 +1378,13 @@
 		'addObject': addObject								// добавить mapObject
 		,
 		'startDrawing': function(ph)	{					// Режим рисования
+			gmxAPI._leaflet['curDragState'] = true;
 			LMap.dragging.disable();
 			return true;
 		}
 		,
 		'stopDrawing': function(ph)	{						// Отмена режима рисования
+			gmxAPI._leaflet['curDragState'] = false;
 			LMap.dragging.enable();
 			return true;
 		}
@@ -4258,6 +4263,7 @@ ctx.fillText(drawTileID, 10, 128);
 gmxAPI._tcnt = 0;
 	gmxAPI._leaflet['lastZoom'] = -1;				// zoom нарисованный
 	gmxAPI._leaflet['mInPixel'] = 0;				// текущее кол.метров в 1px
+	gmxAPI._leaflet['curDragState'] = false;		// текущий режим dragging карты
 })();
 
 
