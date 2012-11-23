@@ -136,10 +136,16 @@ var gmxCore = function()
         * @param { String } moduleName Имя модуля для загрузки
         * @param { String } [moduleSource] Имя файла, откуда загружать модуль. Если не указан, будет сформирован в виде (defaultHost + moduleName + '.js')
         * @param { Function } callback Ф-ция, которая будет вызвана после загрузки и инициализации. В ф-цию первым параметром передаётся тело модуля
+        * @return { jQuery.Deferred } Отложенный объект, который будет resolve при загрузке модуля
         */
         loadModule: function(moduleName, moduleSource, callback)
         {
-            callback && this.addModulesCallback([moduleName], callback);
+            var def = $.Deferred();
+            this.addModulesCallback([moduleName], function(module)
+            {
+                callback && callback(module);
+                def.resolve(module);
+            });
             
             if ( ! (moduleName in _modules) )
             {
@@ -165,6 +171,8 @@ var gmxCore = function()
                 newScript.charset = "utf-8";
                 headElem.appendChild(newScript);
             }
+            
+            return def;
         },
         
         /** Добавить callback, который будет вызван после загрузки моделей
