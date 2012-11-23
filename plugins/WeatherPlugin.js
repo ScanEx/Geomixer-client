@@ -172,7 +172,7 @@
 		  
 			var elem = windParent.addObject();
 		  
-			var angle = city.Forecast[0].WindDirection * 45,
+			var angle = 180 + city.Forecast[0].WindDirection * 45,
 				wind = Math.floor((city.Forecast[0].WindMax + city.Forecast[0].WindMin) / 2),
 				scale,
 				color;
