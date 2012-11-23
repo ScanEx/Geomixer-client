@@ -1,0 +1,25 @@
+﻿.timeline-container
+{
+    width: 500px;
+    height: 85px;
+    position: absolute;
+    top: 135px;
+    left: 482px;
+    background-color: rgba(1, 106, 138, 0.498039);
+}
+
+.timeline-container div.timeline-axis-text-major,
+.timeline-container div.timeline-axis-text
+{
+    color: white;
+}
+
+.timeline-container div.timeline-frame
+{
+    border: none;
+}
+
+.timeline-container  div.timeline-event-line
+{
+    border-color: yellow;
+}
