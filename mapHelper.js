@@ -3349,10 +3349,17 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs)
                 return;
             }
             
-            globalFlashMap.layers[layerName].chkLayerVersion(function()
+            var mapLayer = globalFlashMap.layers[layerName];
+            if (mapLayer) {
+                mapLayer.chkLayerVersion(function()
+                {
+                    def.resolve();
+                });
+            }
+            else
             {
                 def.resolve();
-            });
+            }
         }
     )
     
