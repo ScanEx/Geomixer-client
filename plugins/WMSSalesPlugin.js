@@ -54,21 +54,36 @@ var findImagesBySceneIDs = function(sceneIDs, chunkSize)
     return deferred.promise();
 }
 
-var createRC = function(results)
+//перевод типов метаданных в тип атрибутов
+var typesDictonary = {
+    'String': 'string',
+    'Number': 'float',
+    'Date': 'date',
+    'DateTime': 'datetime',
+    'Time': 'time'
+};
+
+var createRC = function(results, params)
 {
+    var def = $.Deferred();
+    var _params = $.extend({
+        title: 'wms_sales_rc', 
+        addToMap: true
+    }, params);
+    
     //атрибуты каталога растров - объединение всех метаданных слоёв
-    var tagTypes = {}
+    var tagTypes = {};
     $.each(results, function(id, props) {
         $.each(props.layerProperties.MetaProperties, function(tagId, tagInfo) {
-            tagTypes[tagId] = tagInfo.Type;
+            tagTypes[tagId] = typesDictonary[tagInfo.Type];
         })
     })
     
     var mapProperties = _layersTree.treeModel.getMapProperties();
     
-    var params = {
+    var requestParams = {
         WrapStyle: 'window',
-        Title: 'wms_sales_rc',
+        Title: _params.title,
         MapName: mapProperties.name,
         geometrytype: 'POLYGON',
         
@@ -76,38 +91,31 @@ var createRC = function(results)
         RCMinZoomForRasters: 10
     }
     
+    if (_params.userBorder)
+        requestParams.UserBorder = _params.userBorder;
+    
     var fieldIdx = 0;
     var ColumnTagLinks = {}
     $.each(tagTypes, function(id, type)
     {
         ColumnTagLinks[id] = id; //названия атрибутов будут совпадать с названиями тегов слоёв
-        params['fieldName' + fieldIdx] = id;
-        params['fieldType' + fieldIdx] = type;
+        requestParams['fieldName' + fieldIdx] = id;
+        requestParams['fieldType' + fieldIdx] = type;
         fieldIdx++;
     })
     
-    params.FieldsCount = fieldIdx;
-    params.ColumnTagLinks = JSON.stringify(ColumnTagLinks);
+    requestParams.FieldsCount = fieldIdx;
+    requestParams.ColumnTagLinks = JSON.stringify(ColumnTagLinks);
     
-    sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", params, function(response)
+    sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", requestParams, function(response)
     {
         if (!parseResponse(response))
             return;
             
+        var newLayer = response.Result;
+            
         //добавляем в дерево слоёв
         var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
-        var gmxProperties = {type: 'layer', content: response.Result};
-        gmxProperties.content.properties.mapName = mapProperties.name;
-        gmxProperties.content.properties.hostName = mapProperties.hostName;
-        gmxProperties.content.properties.visible = true;
-        
-        gmxProperties.content.properties.styles = [{
-            MinZoom: gmxProperties.content.properties.MinZoom, 
-            MaxZoom:21, 
-            RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
-        }];
-        
-        _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
         
         //добавляем соответствующие объекты
         var objs = [];
@@ -121,8 +129,29 @@ var createRC = function(results)
             });
         }
         
-        _mapHelper.modifyObjectLayer(gmxProperties.content.properties.name, objs);
+        _mapHelper.modifyObjectLayer(newLayer.properties.name, objs).done(function()
+        {
+            if (_params.addToMap)
+            {
+                var gmxProperties = {type: 'layer', content: newLayer};
+                gmxProperties.content.properties.mapName = mapProperties.name;
+                gmxProperties.content.properties.hostName = mapProperties.hostName;
+                gmxProperties.content.properties.visible = true;
+                
+                gmxProperties.content.properties.styles = [{
+                    MinZoom: gmxProperties.content.properties.MinZoom, 
+                    MaxZoom:21, 
+                    RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
+                }];
+                
+                _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+            }
+            
+            def.resolve(newLayer);
+        })
     })
+    
+    return def.promise();
 }
 
 var showWidget = function()
@@ -188,6 +217,7 @@ var showWidget = function()
 }
 
 var publicInterface = {
+    createRC: createRC,
 	afterViewer: function(params)
     {
         if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
