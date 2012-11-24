@@ -470,35 +470,42 @@
 				}
 				
 			}
+			obj._observerOnChange = null;
 			obj.addObserver = function(o, onChange, attr)
 			{
-				var ignoreVisibilityFilter = false;
-				var asArray = false;
 				if(typeof(o) == 'function') { // вызов без доп. mapObject
 					attr = onChange;
 					onChange = o;
 					o = obj.addObject();
 				}
-				if(attr && attr['asArray'])	asArray = true;		// callback ожидает массив
-				if(attr && attr['ignoreVisibilityFilter']) ignoreVisibilityFilter = true;	// не учитывать фильтр видимости
-				gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':{'layerId':obj.objectId, 'asArray':asArray, 'ignoreVisibilityFilter':ignoreVisibilityFilter,
-					'func': function(arr)
-					{
-						var out = [];
-						for (var i = 0; i < arr.length; i++) {
-							var item = arr[i];
-							var mObj = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(item.geometry), item.properties, obj);
-							if(asArray) {
-								out.push({'onExtent':item.onExtent, 'item':mObj})
-							} else {
-								onChange(mObj, item.onExtent);
-							}
-						}
-						if(out.length) {
-							onChange(out);
-						}
+				var fAttr = {
+					'layerId': obj.objectId
+					,'asArray': true
+					,'ignoreVisibilityFilter': (attr && attr['ignoreVisibilityFilter'] ? true : false)
+				};
+				var outCallBacks = function(arr) {
+					var out = [];
+				}
+				var func = function(arr) {
+					var out = [];
+					for (var i = 0; i < arr.length; i++) {
+						var item = arr[i];
+						var mObj = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(item.geometry), item.properties, obj);
+						var ph = {'onExtent':item.onExtent, 'item':mObj, 'isVisibleFilter':item['isVisibleFilter']};
+						out.push(ph)
 					}
-				} });
+					for (var j = 0; j < obj._observerOnChange.length; j++) {
+						var ph = obj._observerOnChange[j];
+						if(out.length) ph[0](out);
+					}
+				}
+				fAttr['func'] = func;
+				
+				if(!obj._observerOnChange) {
+					gmxAPI._cmdProxy('observeVectorLayer', { 'obj': o, 'attr':fAttr});
+					obj._observerOnChange = [];
+				}
+				obj._observerOnChange.push([onChange, fAttr['ignoreVisibilityFilter']]);
 			}
 			if (isRaster) {
 				var ph = {

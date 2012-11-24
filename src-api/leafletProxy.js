@@ -1499,7 +1499,8 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var currZ = LMap.getZoom() - ph.attr.dz;
 			if(currZ > LMap.getMaxZoom() || currZ < LMap.getMinZoom()) return;
 			var pos = LMap.getCenter();
-			if (ph.attr.useMouse && gmxAPI._leaflet['mousePos'])
+			//if (ph.attr.useMouse && gmxAPI._leaflet['mousePos'])
+			if (gmxAPI._leaflet['mousePos'])
 			{
 				var k = Math.pow(2, LMap.getZoom() - currZ);
 				
@@ -1512,12 +1513,10 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		}
 		,
 		'moveTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
-			if(ph.attr['z'] > LMap.getMaxZoom() || ph.attr['z'] < LMap.getMinZoom()) return;
+			var zoom = ph.attr['z'] || LMap.getZoom();
+			if(zoom > LMap.getMaxZoom() || zoom < LMap.getMinZoom()) return;
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
-			//var flag = LMap.options.zoomAnimation && ('zoomAnimation' in ph && !ph['zoomAnimation']);
-			//if(flag) LMap.options.zoomAnimation = false;
-			LMap.setView(pos, ph.attr['z']);
-			//if(flag) LMap.options.zoomAnimation = true;
+			LMap.setView(pos, zoom);
 		}
 		,
 		'slideTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
@@ -1790,6 +1789,11 @@ if(!(cmd in commands)
 	function setImage(node, ph)	{
 		var attr = ph.attr;
 
+		var LatLngToPixel = function(y, x) {
+			var point = new L.LatLng(y, x);
+			return LMap.project(point);
+		}
+		
 		var zoomPrev = LMap.getZoom();
 		var minPoint = null;
 		var getPixelPoints = function(ph) {
@@ -1803,8 +1807,8 @@ if(!(cmd in commands)
 			pix = LatLngToPixel(ph['y3'], ph['x3']); out['x3'] = pix.x - minPoint.x; out['y3'] = pix.y - minPoint.y;
 			pix = LatLngToPixel(ph['y4'], ph['x4']); out['x4'] = pix.x - minPoint.x; out['y4'] = pix.y - minPoint.y;
 
-			out.ww = out['x2'];
-			out.hh = out['y3'];
+			out.ww = Math.round(out['x2']);
+			out.hh = Math.round(out['y3']);
 			return out;
 		}
 
@@ -1837,93 +1841,10 @@ var tt = ctx.mozCurrentTransformInverse;
 
 //ctx.setTransform(1/rx, 0, 0, 1/ry, 0, 0);
 //ctx.setTransform(6, 0, 0, 6, -380, 0);
-*/			
-			if(ph != null) {
-				if(ph.sx != null) {
-					ph.x4 = ph.x1;
-					ph.x2 = ph.x3 = ph.x1 + w * ph.sx;
-					ph.y2 = ph.y1;
-					ph.y3 = ph.y4 = ph.y1 + h * ph.sy;
-				}
-			}
-			//if (!me.controlPointsSet)
-			{
-				ph.tx1 = 0.0;
-				ph.ty1 = 0.0;
-				ph.tx2 = w;
-				ph.ty2 = 0.0;
-				ph.tx3 = w;
-				ph.ty3 = h;
-				ph.tx4 = 0.0;
-				ph.ty4 = h;
-			}
-
-			var matrix = ProjectiveMath.buildMatrix(
-				ph.tx1, ph.ty1, ph.tx2, ph.ty2, ph.tx3, ph.ty3, ph.tx4, ph.ty4, 
-				ph.x1, ph.y1, ph.x2, ph.y2, ph.x3, ph.y3, ph.x4, ph.y4
-			);
-
-			var drawTriangle = function(tx1, ty1, tx2, ty2, tx3, ty3)
-			{
-				var x1 = ProjectiveMath.getX(matrix, tx1, ty1);
-				var y1 = ProjectiveMath.getY(matrix, tx1, ty1);
-				var x2 = ProjectiveMath.getX(matrix, tx2, ty2);
-				var y2 = ProjectiveMath.getY(matrix, tx2, ty2);
-				var x3 = ProjectiveMath.getX(matrix, tx3, ty3);
-				var y3 = ProjectiveMath.getY(matrix, tx3, ty3);
-				
-				ctx.save();
-				var inv = ProjectiveMath.invertMatrix([
-					[tx2 - tx1, ty2 - ty1, 0],
-					[tx3 - tx1, ty3 - ty1, 0],
-					[tx1,  ty1,  1]
-				  ]);
-				ctx.transform(inv[0][0], inv[0][1], inv[1][0], inv[1][1], inv[2][0], inv[2][1]);
-				ctx.transform(x2 - x1, y2 - y1, x3 - x1, y3 - y1, x1, y1);
-				ctx.drawImage(
-					imageObj,
-					tx1, ty1, tx2 - tx1, ty3 - ty1,
-					x1, y2, x2 - x1, y3 - y1
-				);
-				ctx.beginPath();
-				ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x1, y1);
-				ctx.closePath();
-					//ctx.clip();
-				ctx.restore();
-			}
-			//console.log(rx, ry);			
-			var n = 1;
-			for (var i=0; i<n; i++)
-			{
-				for (var j=0; j<n; j++)
-				{
-					var tx1 = w*i*1.0/n;
-					var ty1 = h*j*1.0/n;
-					var tx2 = w*(i + 1)*1.0/n;
-					var ty2 = h*(j + 1)*1.0/n;
-					drawTriangle(tx1, ty1, tx2, ty1, tx1, ty2);
-					drawTriangle(tx2, ty2, tx2, ty1, tx1, ty2);
-				}
-			}
-
-			// clip по геометрии ноды
-			var geo = node.geometry;
-			var paintPolygon = function (ph) {
-				var LatLngToPixel = function(y, x) {
-					var point = new L.LatLng(y, x);
-					return LMap.project(point);
-				}
+*/
+			var paintPolygon = function (ph, content) {
 				var coords = ph['coordinates'];
 				var ctx = ph['ctx'];
-				
-				var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-				var ptxCont = document.createElement("canvas");
-				ptxCont.width = canvas.width;
-				ptxCont.height = canvas.height;
-				var ptx = ptxCont.getContext('2d');
-				ptx.putImageData(imageData, 0, 0);
-
 				var arr = [];
 				for (var i = 0; i < coords.length; i++)
 				{
@@ -1937,9 +1858,10 @@ var tt = ctx.mozCurrentTransformInverse;
 					}
 				}
 
+				var ctx = canvas.getContext('2d');
 				ctx.setTransform(1, 0, 0, 1, 0, 0);
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
-				var pattern = ctx.createPattern(ptxCont, "no-repeat");
+				var pattern = ctx.createPattern(content, "no-repeat");
 				ctx.fillStyle = pattern;
 				
 				ctx.beginPath();
@@ -1953,7 +1875,136 @@ var tt = ctx.mozCurrentTransformInverse;
 				ctx.closePath();
 				ctx.fill();
 			}
-			paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx});
+		
+			if(rx === 1 && ry === 1) {
+				paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ph['ctx']}, imageObj);
+			} else {
+				if(ph != null) {
+					if(ph.sx != null) {
+						ph.x4 = ph.x1;
+						ph.x2 = ph.x3 = ph.x1 + w * ph.sx;
+						ph.y2 = ph.y1;
+						ph.y3 = ph.y4 = ph.y1 + h * ph.sy;
+					}
+				}
+				//if (!me.controlPointsSet)
+				{
+					ph.tx1 = 0.0;
+					ph.ty1 = 0.0;
+					ph.tx2 = w;
+					ph.ty2 = 0.0;
+					ph.tx3 = w;
+					ph.ty3 = h;
+					ph.tx4 = 0.0;
+					ph.ty4 = h;
+				}
+
+				var matrix = ProjectiveMath.buildMatrix(
+					ph.tx1, ph.ty1, ph.tx2, ph.ty2, ph.tx3, ph.ty3, ph.tx4, ph.ty4, 
+					ph.x1, ph.y1, ph.x2, ph.y2, ph.x3, ph.y3, ph.x4, ph.y4
+				);
+
+				var drawTriangle = function(tx1, ty1, tx2, ty2, tx3, ty3)
+				{
+					var x1 = ProjectiveMath.getX(matrix, tx1, ty1);
+					var y1 = ProjectiveMath.getY(matrix, tx1, ty1);
+					var x2 = ProjectiveMath.getX(matrix, tx2, ty2);
+					var y2 = ProjectiveMath.getY(matrix, tx2, ty2);
+					var x3 = ProjectiveMath.getX(matrix, tx3, ty3);
+					var y3 = ProjectiveMath.getY(matrix, tx3, ty3);
+					
+					ctx.save();
+					var inv = ProjectiveMath.invertMatrix([
+						[tx2 - tx1, ty2 - ty1, 0],
+						[tx3 - tx1, ty3 - ty1, 0],
+						[tx1,  ty1,  1]
+					  ]);
+					ctx.transform(inv[0][0], inv[0][1], inv[1][0], inv[1][1], inv[2][0], inv[2][1]);
+					ctx.transform(x2 - x1, y2 - y1, x3 - x1, y3 - y1, x1, y1);
+					ctx.drawImage(
+						imageObj,
+						tx1, ty1, tx2 - tx1, ty3 - ty1,
+						x1, y2, x2 - x1, y3 - y1
+					);
+					ctx.beginPath();
+					ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x1, y1);
+					ctx.closePath();
+						//ctx.clip();
+					ctx.restore();
+				}
+				//console.log(rx, ry);			
+				var n = 1;
+				for (var i=0; i<n; i++)
+				{
+					for (var j=0; j<n; j++)
+					{
+						var tx1 = w*i*1.0/n;
+						var ty1 = h*j*1.0/n;
+						var tx2 = w*(i + 1)*1.0/n;
+						var ty2 = h*(j + 1)*1.0/n;
+						drawTriangle(tx1, ty1, tx2, ty1, tx1, ty2);
+						drawTriangle(tx2, ty2, tx2, ty1, tx1, ty2);
+					}
+				}
+
+				// clip по геометрии ноды
+				var geo = node.geometry;
+				/*
+				var paintPolygon = function (ph) {
+					var LatLngToPixel = function(y, x) {
+						var point = new L.LatLng(y, x);
+						return LMap.project(point);
+					}
+					var coords = ph['coordinates'];
+					var ctx = ph['ctx'];
+					
+					var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+					var ptxCont = document.createElement("canvas");
+					ptxCont.width = canvas.width;
+					ptxCont.height = canvas.height;
+					var ptx = ptxCont.getContext('2d');
+					ptx.putImageData(imageData, 0, 0);
+
+					var arr = [];
+					for (var i = 0; i < coords.length; i++)
+					{
+						var pArr = coords[i];
+						for (var j = 0; j < pArr.length; j++)
+						{
+							var pix = LatLngToPixel(pArr[j][1], pArr[j][0]);
+							var px1 = pix.x - minPoint.x; 		px1 = (0.5 + px1) << 0;
+							var py1 = pix.y - minPoint.y;		py1 = (0.5 + py1) << 0;
+							arr.push({'x': px1, 'y': py1});
+						}
+					}
+
+					ctx.setTransform(1, 0, 0, 1, 0, 0);
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					var pattern = ctx.createPattern(ptxCont, "no-repeat");
+					ctx.fillStyle = pattern;
+					
+					ctx.beginPath();
+					for (var i = 0; i < arr.length; i++)
+					{
+						if(i == 0)
+							ctx.moveTo(arr[i]['x'], arr[i]['y']);
+						else
+							ctx.lineTo(arr[i]['x'], arr[i]['y']);
+					}
+					ctx.closePath();
+					ctx.fill();
+				}
+				//paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx});
+				*/
+				var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+				var ptxCont = document.createElement("canvas");
+				ptxCont.width = canvas.width;
+				ptxCont.height = canvas.height;
+				ptxCont.getContext('2d').putImageData(imageData, 0, 0);
+				paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx}, ptxCont);
+			}
 			zoomPrev = LMap.getZoom();
 		}
 
@@ -1969,6 +2020,7 @@ var tt = ctx.mozCurrentTransformInverse;
 				repaint(imageObj, canvas);
 			};
 			var src = attr['url'];
+			//var src = '1.jpg';
 			imageObj.src = src;
 		}
 		
@@ -2327,7 +2379,9 @@ var tt = ctx.mozCurrentTransformInverse;
 									ph.onExtent = true;
 									ph.geometry = item.exportGeo();
 									out.push(ph);
-									observerObj[id] = item;
+									var tilesKeys = {};
+									tilesKeys[key] = true;
+									observerObj[id] = { 'tiles': tilesKeys , 'item': item };
 								}
 							}
 						}
@@ -2653,13 +2707,15 @@ var tt = ctx.mozCurrentTransformInverse;
 					geo['properties'] = prop;
 					node['tilesGeometry'][tileID].push(geo);
 				}
-				/*
 				if(node['objectsData'][id]) {		// Обьект уже имеется - нужна склейка геометрий
 					var pt = node['objectsData'][id];
 					//geo = utils.unionGeometry(null, geo, pt['geometry']);
-var tt =1;
+//var tt =1;
 					//removeNode(rnode);
+				} else {
+					node['objectsData'][id] = geo;
 				}
+				/*
 				*/
 				propHiden['toFilters'] = chkObjectFilters(geo);
 			}
@@ -3343,7 +3399,8 @@ node.repaintCount = 0;
 		}
 		// Экспорт в АПИ
 		out['exportGeo'] = function (chkPoint) {
-			var res = {};
+			var res = {'type': 'MULTILINESTRING'};
+			res['coordinates'] = geo['coordinates'];
 			return res;
 		}
 		
@@ -3578,6 +3635,11 @@ if(!tileBounds_) return;
 				addMember(item);
 			}
 		}
+		out['exportGeo'] = function (chkPoint) {
+			var res = {'type': 'MULTIPOLYGON'};
+			res['coordinates'] = geo['coordinates'];
+			return res;
+		}
 		
 		out['addMembers'] = addMembers;
 		out['addMember'] = addMember;
@@ -3668,6 +3730,10 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {});
 			});
 			LMap.on('move', function(e) {
+				var zoom = LMap.getZoom();
+				if(!zoom) {
+					return;
+				}
 				var pos = LMap.getCenter();
 				var size = LMap.getSize();
 				var vbounds = LMap.getBounds();
@@ -3681,7 +3747,7 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				};
 				var attr = {
 					'currPosition': {
-						'z': LMap.getZoom()
+						'z': zoom
 						,'stageHeight': size['y']
 						,'x': gmxAPI.merc_x(pos['lng'])
 						,'y': gmxAPI.merc_y(pos['lat'])
@@ -4328,7 +4394,7 @@ gmxAPI._tcnt = 0;
 
 					var q = o.obj.addObject(null, o.obj.properties);
 					shownQuicklooks[id] = q;
-					q.setStyle({ fill: { opacity: 100 } });
+					q.setStyle({ fill: { opacity: 10 } });
 					q.setImage(url, x1, y1, x2, y2, x3, y3, x4, y4);
 				}
 				else
@@ -4360,32 +4426,6 @@ gmxAPI._tcnt = 0;
 
 		node.setTiledQuicklooks(func, minZoom, maxZoom, tileSenderPrefix);
 		return;
-/*			
-		
-		var pp = tileSenderPrefix;
-					//node['subType'] = 
-						//var qURL = tileSenderPrefix + '&x={x}&y={y}&z={z}&idr=' + o.properties[layer.properties.identityField];
-
-		this.enableTiledQuicklooksEx(function(o)
-		{
-			var path = callback(o);
-			var bMinX = gmxAPI.from_merc_x(o.bounds.min.x);
-			var bMaxX = gmxAPI.from_merc_x(o.bounds.max.x);
-			var boundsType = (bMinX < -179.999 && bMaxX > 179.999 ? true : false);
-			var boundsType = (bMinX < -179.999 && bMaxX > 179.999 ? true : false);
-			image.setTiles(function(i, j, z) 
-			{
-				//var posX = gmxAPI.currPosition.latlng.x;
-				if (boundsType && i < 0) i = -i;
-				if (path.indexOf("{") >= 0){
-                    return path.replace(new RegExp("{x}", "gi"), i).replace(new RegExp("{y}", "gi"), j).replace(new RegExp("{z}", "gi"), z).replace(new RegExp("{key}", "gi"), encodeURIComponent(window.KOSMOSNIMKI_SESSION_KEY));
-				}
-				else{
-					return path + z + "/" + i + "/" + z + "_" + i + "_" + j + ".jpg";
-				}
-			});
-		}, minZoom, maxZoom);
-*/
 	}
 
 	var enableTiledQuicklooksEx = function(callback, minZoom, maxZoom)

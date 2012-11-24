@@ -238,6 +238,7 @@ class VectorLayerFilter extends MapContent
 		var e1 = mapNode.window.visibleExtent;
 		var cx1 = (e1.minx + e1.maxx) / 2;
 		var curStyle = mapNode.getRegularStyle();
+		//trace('filter ' + painters.length + mapNode.parent.id + ' : ' + flash.Lib.getTimer());		
 
 		for (painter in painters)
 		{
@@ -258,6 +259,9 @@ class VectorLayerFilter extends MapContent
 		}
 		if(clusterAttr != null) {
 			clusterAttr.needRefresh = false;
+		}
+		if(layer.vectorLayerObserver != null) {
+			layer.vectorLayerObserver.setNeedRefresh();
 		}
 	}
 

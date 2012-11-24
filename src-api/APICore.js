@@ -1905,7 +1905,6 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		var tilesParent = this.addObject();
 		this.tilesParent = tilesParent;
 		//gmxAPI._cmdProxy('setAPIProperties', { 'obj': this, 'attr':{'addHiddenFill':true} });	// при отсутствии style.fill дополнить невидимым заполнением - ломает старые проекты
-
 		tilesParent.setZoomBounds(minZoom, maxZoom);
 		var propsArray = [];
 		tilesParent.clearItems  = function()
@@ -1918,34 +1917,36 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		}
 			
 		tilesParent.setZoomBounds(minZoom, maxZoom);
-		tilesParent.observeVectorLayer(this, function(o, flag)
+		tilesParent.observeVectorLayer(this, function(arr)
 		{
 			var identityField = gmxAPI.getIdentityField(tilesParent);
-			var id = 'id_' + o.properties[identityField];
-			var ret = false;
-			if (flag && !images[id])
+			for (var j = 0; j < arr.length; j++)
 			{
-				var image = tilesParent.addObject(o.geometry, o.properties, {'notRedrawOnDrag':true});
-				callback(o, image);
-				images[id] = image;
-				propsArray.push(o.properties);
-				ret = true;
-			}
-			else if (!flag && images[id])
-			{
-				images[id].remove();
-				delete images[id];
-				for (var i = 0; i < propsArray.length; i++)
+				var o = arr[j].item;
+				var flag = (!arr[j].isVisibleFilter ? arr[j].onExtent : false);
+				var id = 'id_' + o.properties[identityField];
+				if (flag && !images[id])
 				{
-					if (propsArray[i][identityField] == o.properties[identityField])
+					var image = tilesParent.addObject(o.geometry, o.properties, {'notRedrawOnDrag':true});
+					callback(o, image);
+					images[id] = image;
+					propsArray.push(o.properties);
+				}
+				else if (!flag && images[id])
+				{
+					images[id].remove();
+					delete images[id];
+					for (var i = 0; i < propsArray.length; i++)
 					{
-						propsArray.splice(i, 1);
-						break;
+						if (propsArray[i][identityField] == o.properties[identityField])
+						{
+							propsArray.splice(i, 1);
+							break;
+						}
 					}
 				}
-				ret = true;
 			}
-			return ret;
+			return true;
 		});
 
 		this.addListener('onClick', function(o)

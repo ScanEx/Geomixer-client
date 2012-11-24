@@ -391,17 +391,27 @@ handlerNodes.remove(id);
 		if (isVisible)
 		{
 			var somethingHasChanged_ = somethingHasChanged || somethingHasChangedAbove;
-			
 			if ((content != null) && somethingHasChanged_) {
 				content.repaint();
 				//window.onUpdated = true;			
 				//if(Main.draggingDisabled) parent.repaintObjects();			// отрисовка обьектов addObject родителя
+				if (Std.is(content, VectorLayer)) {
+					var layer:VectorLayer = cast(content, VectorLayer);
+					if(layer.vectorLayerObserver != null) layer.vectorLayerObserver.setNeedRefresh();
+				}
 			}
 			for (i in 0...Std.int(children.length)) {	// отрисовка слоев в обратном порядке
 				var child = children[children.length - 1 - i];
 				child.repaintRecursively(somethingHasChanged_);
 			}
 			somethingHasChanged = false;
+		} else {
+			if (content != null) {
+				if (Std.is(content, VectorLayerObserver)) {
+					cast(content, VectorLayerObserver).setNeedRefresh();
+					cast(content, VectorLayerObserver).repaint();
+				}
+			}
 		}
 	}
 

@@ -45,6 +45,9 @@ class VectorTile
 		}
 		ids = tmp;
 		geometries = geoms;
+		if(layer.vectorLayerObserver != null) {
+			layer.vectorLayerObserver.setNeedRefresh();
+		}
 	}
 
 	public function load(onLoad:Void->Void)

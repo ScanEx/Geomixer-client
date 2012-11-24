@@ -106,6 +106,9 @@ class VectorLayer extends MapContent
 			}
 		}
 		tiles = newTiles;
+		if(vectorLayerObserver != null) {
+			vectorLayerObserver.setNeedRefresh();
+		}
 	}
 
 	// Если имеются обьекты находящиеся в режиме редактирования - очистим их
@@ -161,6 +164,9 @@ class VectorLayer extends MapContent
 
 	public function parseObject(obj:Dynamic, ?tileExtent:Extent):Dynamic
 	{
+		if(vectorLayerObserver != null) {
+			vectorLayerObserver.setNeedRefresh();
+		}
 		var properties = new Hash<String>();
 		var props_:Array<String> = obj.properties;
 		for (i in 0...Std.int(props_.length/2))

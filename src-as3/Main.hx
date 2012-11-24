@@ -34,6 +34,7 @@ class Main
 	public static var refreshMap:Void->Void;			// Принудительный Refresh карты
 	public static var chkStatus:Void->Dynamic;			// Текущие статусы карты
 	public static var needRefreshMap:Bool = false;		// Флаг необходимости обновления карты
+	public static var waitingRefreshMap:Bool = false;		// Флаг необходимости обновления карты с задержкой
 	
 	static var flashUrlKey:String = '';					// Ключ сессии SWF
 	public static var useFlashLSO:Bool = false;			// Использовать SharedObject
@@ -628,6 +629,8 @@ class Main
 				}
 				if ((curTimerNew - Main.lastFrameBumpTime) > 2000)
 				{
+					if (Main.waitingRefreshMap) Main.needRefreshMap = true;
+					Main.waitingRefreshMap = false;
 					mapWindow.repaintCacheBitmap();
 					if (stage.frameRate != 2)
 						stage.frameRate = 2;
@@ -1009,6 +1012,10 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 			{
 				node.noteSomethingHasChanged();
 				node.propHiden.set('_FilterVisibility', func);
+				if (node.content != null && Std.is(node.content, VectorLayer)) {
+					var layer:VectorLayer = cast(node.content, VectorLayer);
+					if(layer.vectorLayerObserver != null) layer.vectorLayerObserver.setNeedRefresh();
+				}
 				Main.needRefreshMap = true;		// Для обновления карты
 				Main.bumpFrameRate();
 				return true;
@@ -1123,6 +1130,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					var out:Array<Dynamic> = new Array<Dynamic>();
 					for (i in 0...Std.int(ph.length)) {
 						var it:Dynamic = ph[i];
+						var tileKey:String = it.tileKey;
 						var id:String = it.id;
 						var onExtent:Bool = it.onExtent;
 						var geom = layer.geometries.get(id);
@@ -1145,6 +1153,9 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 						item.geometry = geoExp;
 						item.properties = prop;
 						item.onExtent = it.onExtent;
+						item.isVisibleFilter = it.isVisibleFilter;
+						item.status = it.status;
+						item.tileKeys = it.tileKeys;
 						//item.eventType = 'observeVectorLayer';
 						item.layerID = attr.layerId;
 						item.func = attr.func;
@@ -1458,6 +1469,7 @@ var st:String = 'Загрузка файла ' + url + ' обьектов: ' + a
 					}
 					Main.dispatchMouseLeave();
 					Main.needRefreshMap = true;
+					//Main.waitingRefreshMap = true;
 				case 'getStyle':
 					var node = getNode(attr.objectId);
 					if(node != null) out = cast(node.getStyle(attr.removeDefaults));
