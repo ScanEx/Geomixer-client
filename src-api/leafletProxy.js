@@ -1686,7 +1686,17 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node || !node.addItems) return false;
-			node.addItems(ph.attr.data);
+			var arr = [];
+			for (var i=0; i<ph.attr.data.length; i++)	// Подготовка массива обьектов
+			{
+				var item = ph.attr.data[i];
+				arr.push({
+					'id': item['id']
+					,'properties': item['properties']
+					,'geometry': gmxAPI.merc_geometry(item['geometry'])
+				});
+			}
+			node.addItems(arr);
 			return true;
 		}
 		,
@@ -2481,9 +2491,8 @@ var tt = ctx.mozCurrentTransformInverse;
 			}
 			return true;
 		}
-		var getItemsFromTile = function(tID, mPoint) {			// получить обьекты из тайла
+		var getItemsFromTile = function(items, mPoint) {			// получить обьекты из тайла
 			var arr = [];
-			var items = node['tilesGeometry'][tID];
 			if(items && items.length > 0) {
 				for (var i = 0; i < items.length; i++)
 				{
@@ -2530,12 +2539,16 @@ var tt = ctx.mozCurrentTransformInverse;
 			var arr = [];
 			if(!node['observerNode']) {
 				var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
+				arr = getItemsFromTile(node['addedItems'], mPoint);
 				for (var tileID in node['tiles'])
 				{
 					var tileBound = node['tiles'][tileID];
 					if(tileBound.contains(mPoint)) {
-						var items = getItemsFromTile(tileID, mPoint);
-						if(items.length) arr = arr.concat(items);
+						var iarr = node['tilesGeometry'][tileID];
+						if(iarr && iarr.length > 0) {
+							var items = getItemsFromTile(iarr, mPoint);
+							if(items.length) arr = arr.concat(items);
+						}
 					}
 				}
 			}
@@ -2995,7 +3008,7 @@ var tt = ctx.mozCurrentTransformInverse;
 		node.waitRedraw = waitRedraw;				// перерисовать слой
 		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function(fid) {
 				//if(!node.isVisible || myLayer._isVisible) return false;
-				if(node.isVisible === false) return false;
+				if(!node.isVisible) return false;
 				var flag = myLayer._isVisible;
 				var currZ = LMap.getZoom();
 				flag = (currZ < node['minZ'] || currZ > node['maxZ'] ? false : true);		// Неподходящий zoom
