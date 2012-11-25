@@ -282,13 +282,9 @@
 			obj.addItems = function(attr) {		// добавление обьектов векторного слоя
 				return gmxAPI._cmdProxy('addItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
 			};
-/*			
-			obj.addLook = function(arr)
-			{ 
-				obj.propHiden._addLook = arr;			// массив ID обьектов векторного слоя с включенным квиклуком
+			obj.removeItems = function(attr) {		// удаление обьектов векторного слоя 
+				return gmxAPI._cmdProxy('removeItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
 			};
-			obj.addLook({'136291': true, '135629': true});
-*/
 		}
 
 		var hostName = layer.properties.hostName || "maps.kosmosnimki.ru";

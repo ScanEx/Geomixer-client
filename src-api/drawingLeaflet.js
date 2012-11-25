@@ -273,7 +273,7 @@
 				delete objects[myId];
 			},
 			triggerInternal: function( callbackName ){ callHandler(callbackName); },
-			getGeometry: function() { return this.geometry; },
+			getGeometry: function() { return gmxAPI.clone(this.geometry); },
 			getLength: function() { return gmxAPI.geoLength(this.geometry); },
 			getArea: function() { return gmxAPI.geoArea(this.geometry); },
 			getCenter: function() { return gmxAPI.geoCenter(this.geometry); },
@@ -840,14 +840,12 @@
 		}
 		var repaint = function()
 		{
-//console.log('repaint:  ', domObj);
 			drawMe();
 			if(domObj) {
 				var type = editType;
 				var geom = { 'type': type, 'coordinates': (editType === 'LINESTRING' ? coords : [coords]) };
 				domObj.update(geom, text);
 			}
-//console.log('repaint1:  ', domObj);
 			return false;
 		}
 		var zoomListenerID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': repaint });

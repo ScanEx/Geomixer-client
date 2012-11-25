@@ -155,23 +155,28 @@
 	// Обработка списка редактируемых обьектов слоя	//addobjects
 	function chkProcessing(obj, prop)
 	{
+		var flagEditItems = false;
 		var removeIDS = {};
 		if (prop.Processing.Deleted && prop.Processing.Deleted.length > 0) {		// список удаляемых обьектов слоя
 			for (var i = 0; i < prop.Processing.Deleted.length; i++) {			// добавляемые обьекты также необходимо удалить из тайлов
 				removeIDS[prop.Processing.Deleted[i]] = true;
+				flagEditItems = true;
 			}
 		}
 		var arr = getAddObjects(prop.Processing);		// addobjects
 		for (var i = 0; i < arr.length; i++) {			// добавляемые обьекты также необходимо удалить из тайлов
 			var pt = arr[i];
 			removeIDS[pt['id']] = true;
+			flagEditItems = true;
 		}
 		var out = {
 			'removeIDS': removeIDS, 
 			'addObjects': arr 
 		};
-		gmxAPI._cmdProxy('setEditObjects', { 'obj': obj, 'attr':out });
-		if(arr.length) gmxAPI.addDebugWarnings({'func': 'chkProcessing', 'warning': 'Processing length: ' + arr.length, 'layer': prop.title});
+		if(flagEditItems) {
+			gmxAPI._cmdProxy('setEditObjects', { 'obj': obj, 'attr':out });
+			gmxAPI.addDebugWarnings({'func': 'chkProcessing', 'warning': 'Processing length: ' + arr.length, 'layer': prop.title});
+		}
 		return out;
 	}
 	
