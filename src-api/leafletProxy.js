@@ -2626,9 +2626,12 @@ var tt = ctx.mozCurrentTransformInverse;
 		node['leaflet'] = myLayer;
 		
 		
-		if(layer.isVisible) {
+		if(layer.properties['visible']) {
+		//if(layer.isVisible) {
 			setVisible({'obj': node, 'attr': true});
-			//LMap.addLayer(node['leaflet']);
+			node.isVisible = true;
+		} else {
+			node.isVisible = false;
 		}
 		//myLayer._isVisible = (layer.isVisible ? true : false);
 
@@ -4197,6 +4200,7 @@ ctx.fillText(drawTileID, 10, 128);
 			L.CanvasIcon = L.Icon.extend({
 				options: {
 					iconSize: new L.Point(12, 12), // also can be set through CSS
+					//shadowSize: new L.Point(1, 1),
 					//iconAnchor: new L.Point(12, 12), // also can be set through CSS
 					className: 'leaflet-canvas-icon'
 				},
