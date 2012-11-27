@@ -54,7 +54,15 @@ class VectorLayerObserver extends MapContent
 	{
 		if (Main.mousePressed || !chkObserver) return;
 		var z = mapNode.window.getCurrentZ();
-		var isVisible = (z >= mapNode.minZ) && (z <= mapNode.maxZ);
+		var isObserveByLayerZooms:Bool = layer.mapNode.propHiden.get('observeByLayerZooms');
+		var minZ:Int = mapNode.minZ;
+		var maxZ:Int = mapNode.maxZ;
+		if (isObserveByLayerZooms) {
+			minZ = layer.mapNode.minZ;
+			maxZ = layer.mapNode.maxZ;
+		}
+		
+		var isVisible = (z >= minZ && z <= maxZ);
 		var outItems:Hash<Dynamic> = new Hash<Dynamic>();	// Удаляемые обьекты тайлов
 		if (!isVisible) {
 			for (id in ids.keys()) {

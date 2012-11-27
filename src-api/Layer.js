@@ -469,10 +469,12 @@
 			obj._observerOnChange = null;
 			obj.addObserver = function(o, onChange, attr)
 			{
+				var observeByLayerZooms = false;
 				if(typeof(o) == 'function') { // вызов без доп. mapObject
 					attr = onChange;
 					onChange = o;
 					o = obj.addObject();
+					observeByLayerZooms = true;
 				}
 				var fAttr = {
 					'layerId': obj.objectId
@@ -502,6 +504,9 @@
 					obj._observerOnChange = [];
 				}
 				obj._observerOnChange.push([onChange, fAttr['ignoreVisibilityFilter']]);
+				if(observeByLayerZooms) {
+					gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} });	// есть новый подписчик события изменения видимости обьектов векторного слоя
+				}
 			}
 			if (isRaster) {
 				var ph = {

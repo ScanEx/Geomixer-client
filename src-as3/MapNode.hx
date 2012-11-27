@@ -97,6 +97,15 @@ handlerNodes.remove(id);
 	{
 		for (key in Reflect.fields(attr)) {
 			propHiden.set(key, cast(Reflect.field(attr, key)));
+			if (key == 'observeByLayerZooms') {
+				if (Std.is(content, VectorLayer)) {
+					var vl:VectorLayer = cast(content, VectorLayer);
+					if (vl.vectorLayerObserver != null) {
+						vl.vectorLayerObserver.setNeedRefresh();
+						vl.vectorLayerObserver.repaint();
+					}
+				}
+			}
 		}
 		return true;
 	}
