@@ -1058,10 +1058,14 @@
 	function setNodeHandlers(id)	{
 		var node = mapNodes[id];
 		if(!node || !node['handlers']) return false;
+		for(var evName in scanexEventNames) {
+			setHandlerObject(id, evName);
+		}
+/*		
 		for(var evName in node['handlers']) {
 			setHandlerObject(id, evName);
 		}
-		
+*/		
 		//setHandlerObject(id, 'onClick');
 /*		
 		var node = mapNodes[id];
@@ -1079,6 +1083,8 @@
 	var scanexEventNames = {
 		'onClick': 'click'
 		,'onMouseDown': 'mousedown'
+		//,'onMouseOver': 'mouseover'
+		//,'onMouseOut': 'mouseout'
 	};
 	// добавить Handler для mapObject
 	function setHandlerObject(id, evName)	{
@@ -1943,6 +1949,10 @@ var tt = ctx.mozCurrentTransformInverse;
 					var y2 = ProjectiveMath.getY(matrix, tx2, ty2);
 					var x3 = ProjectiveMath.getX(matrix, tx3, ty3);
 					var y3 = ProjectiveMath.getY(matrix, tx3, ty3);
+					var sw = Math.floor(x2 - x1);
+					var sh = Math.floor(y3 - y1);
+					var tw = Math.floor(tx2 - tx1);
+					var th = Math.floor(ty3 - ty1);
 					
 					ctx.save();
 					var inv = ProjectiveMath.invertMatrix([
@@ -1951,83 +1961,41 @@ var tt = ctx.mozCurrentTransformInverse;
 						[tx1,  ty1,  1]
 					  ]);
 					ctx.transform(inv[0][0], inv[0][1], inv[1][0], inv[1][1], inv[2][0], inv[2][1]);
-					ctx.transform(x2 - x1, y2 - y1, x3 - x1, y3 - y1, x1, y1);
+					ctx.transform(sw, y2 - y1, x3 - x1, sh, x1, y1);
 					ctx.drawImage(
 						imageObj,
-						tx1, ty1, tx2 - tx1, ty3 - ty1,
-						x1, y2, x2 - x1, y3 - y1
+						tx1, ty1, tw, th,
+						x1, y2, sw, sh
 					);
 					ctx.beginPath();
-					ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x1, y1);
+					ctx.moveTo(x1, y1);
+					ctx.lineTo(x2, y2);
+					ctx.lineTo(x3, y3);
+					ctx.lineTo(x1, y1);
 					ctx.closePath();
 						//ctx.clip();
 					ctx.restore();
 				}
-				//console.log(rx, ry);			
 				var n = 1;
-				for (var i=0; i<n; i++)
-				{
-					for (var j=0; j<n; j++)
+				try {
+					for (var i=0; i<n; i++)
 					{
-						var tx1 = w*i*1.0/n;
-						var ty1 = h*j*1.0/n;
-						var tx2 = w*(i + 1)*1.0/n;
-						var ty2 = h*(j + 1)*1.0/n;
-						drawTriangle(tx1, ty1, tx2, ty1, tx1, ty2);
-						drawTriangle(tx2, ty2, tx2, ty1, tx1, ty2);
+						for (var j=0; j<n; j++)
+						{
+							var tx1 = w*i*1.0/n;
+							var ty1 = h*j*1.0/n;
+							var tx2 = w*(i + 1)*1.0/n;
+							var ty2 = h*(j + 1)*1.0/n;
+							drawTriangle(tx1, ty1, tx2, ty1, tx1, ty2);
+							drawTriangle(tx2, ty2, tx2, ty1, tx1, ty2);
+						}
 					}
+				} catch(e) {
+					gmxAPI.addDebugWarnings({'func': 'drawTriangle', 'event': e, 'alert': e});
 				}
 
 				// clip по геометрии ноды
 				var geo = node.geometry;
-				/*
-				var paintPolygon = function (ph) {
-					var LatLngToPixel = function(y, x) {
-						var point = new L.LatLng(y, x);
-						return LMap.project(point);
-					}
-					var coords = ph['coordinates'];
-					var ctx = ph['ctx'];
-					
-					var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-					var ptxCont = document.createElement("canvas");
-					ptxCont.width = canvas.width;
-					ptxCont.height = canvas.height;
-					var ptx = ptxCont.getContext('2d');
-					ptx.putImageData(imageData, 0, 0);
-
-					var arr = [];
-					for (var i = 0; i < coords.length; i++)
-					{
-						var pArr = coords[i];
-						for (var j = 0; j < pArr.length; j++)
-						{
-							var pix = LatLngToPixel(pArr[j][1], pArr[j][0]);
-							var px1 = pix.x - minPoint.x; 		px1 = (0.5 + px1) << 0;
-							var py1 = pix.y - minPoint.y;		py1 = (0.5 + py1) << 0;
-							arr.push({'x': px1, 'y': py1});
-						}
-					}
-
-					ctx.setTransform(1, 0, 0, 1, 0, 0);
-					ctx.clearRect(0, 0, canvas.width, canvas.height);
-					var pattern = ctx.createPattern(ptxCont, "no-repeat");
-					ctx.fillStyle = pattern;
-					
-					ctx.beginPath();
-					for (var i = 0; i < arr.length; i++)
-					{
-						if(i == 0)
-							ctx.moveTo(arr[i]['x'], arr[i]['y']);
-						else
-							ctx.lineTo(arr[i]['x'], arr[i]['y']);
-					}
-					ctx.closePath();
-					ctx.fill();
-				}
-				//paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx});
-				*/
 				var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
 				var ptxCont = document.createElement("canvas");
@@ -2044,6 +2012,7 @@ var tt = ctx.mozCurrentTransformInverse;
 		var drawMe = function(canvas_) {
 			canvas = canvas_;
 			imageObj = new Image();
+			imageObj.crossOrigin = 'anonymous';
 			imageObj.onload = function() {
 				node['refreshMe'] = function() {
 					repaint(imageObj, canvas);
@@ -3848,7 +3817,7 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				gmxAPI._leaflet['mousePressed'] = true;
 				timeDown = new Date().getTime();
 				var standartTools = gmxAPI.map.standartTools;
-				if(standartTools && standartTools['activeToolName'] != 'move') return;
+				if(standartTools && standartTools['activeToolName'] != 'move' && standartTools['activeToolName'] != 'FRAME') return;
 			
 				gmxAPI._leaflet['mousedown'] = true;
 				var attr = parseEvent(e);
