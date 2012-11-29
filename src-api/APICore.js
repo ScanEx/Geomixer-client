@@ -2361,7 +2361,7 @@ function createFlashMap(div, arg1, arg2, arg3)
 			mapName = arg1;
 			callback = arg2;
 		}
-
+		//hostName = 'maps.kosmosnimki.ru';
 		var uri = gmxAPI.parseUri(hostName);
 		if(uri.host) gmxAPI.serverBase = uri.host;						// HostName основной карты переопределен
 		loadMapJSON(hostName, mapName, function(layers)
@@ -2626,7 +2626,7 @@ FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4
 	}
 	else
 	{
-		this.setPolygon([[x1, y1], [x2, y2], [x3, y3], [x4, y4], [x1, y1]]);
+		if(gmxAPI.proxyType === 'flash') this.setPolygon([[x1, y1], [x2, y2], [x3, y3], [x4, y4], [x1, y1]]);
 		attr = {
 			'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'x3': x3, 'y3': y3, 'x4': x4, 'y4': y4
 		};

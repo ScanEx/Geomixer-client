@@ -489,8 +489,8 @@
 					for (var i = 0; i < arr.length; i++) {
 						var item = arr[i];
 						var mObj = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(item.geometry), item.properties, obj);
-						var ph = {'onExtent':item.onExtent, 'item':mObj, 'isVisibleFilter':item['isVisibleFilter']};
-						out.push(ph)
+						var ph = {'onExtent':item.onExtent, 'item':mObj, 'isVisibleFilter':item['isVisibleFilter'], 'status':item['status']};
+						out.push(ph);
 					}
 					for (var j = 0; j < obj._observerOnChange.length; j++) {
 						var ph = obj._observerOnChange[j];

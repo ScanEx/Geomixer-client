@@ -471,7 +471,9 @@
 				if(node['type'] == 'filter') {				// отрисовка фильтра
 					//utils.drawFilter(node);
 					//node.leaflet = utils.drawNode(node, regularStyle);
-					pNode.refreshFilter(node.id);		
+					pNode.refreshFilter(node.id);
+				} else if(node['isSetImage']) {
+					if('refreshMe' in node) node['refreshMe']();				// свой отрисовщик
 				} else if(node.geometry && node.geometry.type) {
 					utils.removeLeafletNode(node);
 
@@ -1825,6 +1827,7 @@ if(!(cmd in commands)
 	// 
 	function setImage(node, ph)	{
 		var attr = ph.attr;
+		node['isSetImage'] = true;
 
 		var LatLngToPixel = function(y, x) {
 			var point = new L.LatLng(y, x);
@@ -1850,66 +1853,84 @@ if(!(cmd in commands)
 		}
 
 		//node['refreshMe'] = function(imageObj, canvas) {
+		var posLatLng = new L.LatLng(attr['y1'], attr['x1']);
 		var repaint = function(imageObj, canvas) {
 			var w = imageObj.width;
 			var h = imageObj.height;
 			var ph = getPixelPoints(attr);
+			var ww = ph.ww;
+			var hh = ph.hh;
+			posLatLng = new L.LatLng(attr['y1'], attr['x1']);
+			var p1 = LMap.project(posLatLng);
 
-			canvas.width = ph.ww;
-			canvas.height = ph.hh;
+			var point = LMap.project(new L.LatLng(0, -180));
+			var p180 = LMap.project(new L.LatLng(0, 180));
+			var worldSize = p180.x - point.x;
+
+			var vBounds = LMap.getBounds();
+			var vpNorthWest = vBounds.getNorthWest();
+			var vpSouthEast = vBounds.getSouthEast();
+			var vp1 = LMap.project(vpNorthWest);
+			var vp2 = LMap.project(vpSouthEast);
+			var wView = vp2.x - vp1.x;
+			var hView = vp2.y - vp1.y;
+
+			var dx = 0;
+			
+			//var iconPoint = p11;
+			//iconPoint.lng += dx;
+			var deltaX = 0;
+			var deltaY = 0;
 			var rx = w/ph.ww;
 			var ry = h/ph.hh;
+
+			if(wView + 100 < ww || hView + 100 < hh) {
+				ww = wView;
+				hh = hView;
+				deltaX = p1.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
+				deltaY = p1.y - vp1.y;
+				posLatLng = vpNorthWest;
+			}
+			attr['reposition']();
+
+			canvas.width = ww;
+			canvas.height = hh;
 			var ctx = canvas.getContext('2d');
-			ctx.setTransform(rx, 0, 0, ry, 0, 0);
-/*var zoom = LMap.getZoom();
-var scale = 256/gmxAPI.getScale(zoom);
-var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
-var zn = 1/(Math.pow(2, -zoom) * 156543.033928041);
 
-var mInPixel = 256/tileSize;
-// pixel
-//var scale = LMap.options.crs.scale(zoom);
-//scale = 28;
-//ctx.setTransform(scale, 0, 0, scale, 0, 0);
-//ctx.save();
-var tt = ctx.mozCurrentTransform;
-var tt = ctx.mozCurrentTransformInverse;
-var tt = ctx.mozCurrentTransformInverse;
-
-//ctx.setTransform(1/rx, 0, 0, 1/ry, 0, 0);
-//ctx.setTransform(6, 0, 0, 6, -380, 0);
-*/
 			var paintPolygon = function (ph, content) {
-				var coords = ph['coordinates'];
 				var ctx = ph['ctx'];
 				var arr = [];
-				for (var i = 0; i < coords.length; i++)
-				{
-					var pArr = coords[i];
-					for (var j = 0; j < pArr.length; j++)
+				var coords = ph['coordinates'];
+				if(coords) {
+					for (var i = 0; i < coords.length; i++)
 					{
-						var pix = LatLngToPixel(pArr[j][1], pArr[j][0]);
-						var px1 = pix.x - minPoint.x; 		px1 = (0.5 + px1) << 0;
-						var py1 = pix.y - minPoint.y;		py1 = (0.5 + py1) << 0;
-						arr.push({'x': px1, 'y': py1});
+						var pArr = coords[i];
+						for (var j = 0; j < pArr.length; j++)
+						{
+							var pix = LatLngToPixel(pArr[j][1], pArr[j][0]);
+							var px1 = pix.x - minPoint.x; 		px1 = (0.5 + px1) << 0;
+							var py1 = pix.y - minPoint.y;		py1 = (0.5 + py1) << 0;
+							arr.push({'x': px1, 'y': py1});
+						}
 					}
 				}
 
 				var ctx = canvas.getContext('2d');
-				ctx.setTransform(1, 0, 0, 1, 0, 0);
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.setTransform(1, 0, 0, 1, 0, 0);
 				var pattern = ctx.createPattern(content, "no-repeat");
 				ctx.fillStyle = pattern;
-				
-				ctx.beginPath();
-				for (var i = 0; i < arr.length; i++)
-				{
-					if(i == 0)
-						ctx.moveTo(arr[i]['x'], arr[i]['y']);
-					else
-						ctx.lineTo(arr[i]['x'], arr[i]['y']);
+				if(arr.length) {
+					ctx.beginPath();
+					for (var i = 0; i < arr.length; i++)
+					{
+						if(i == 0)	ctx.moveTo(arr[i]['x'] + deltaX, arr[i]['y'] + deltaY);
+						else		ctx.lineTo(arr[i]['x'] + deltaX, arr[i]['y'] + deltaY);
+					}
+					ctx.closePath();
+				} else {
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
 				}
-				ctx.closePath();
 				ctx.fill();
 			}
 		
@@ -1940,6 +1961,12 @@ var tt = ctx.mozCurrentTransformInverse;
 					ph.tx1, ph.ty1, ph.tx2, ph.ty2, ph.tx3, ph.ty3, ph.tx4, ph.ty4, 
 					ph.x1, ph.y1, ph.x2, ph.y2, ph.x3, ph.y3, ph.x4, ph.y4
 				);
+				
+				var container = document.createElement("canvas");
+				container.width = canvas.width;
+				container.height = canvas.height;
+				var ptx = container.getContext('2d');
+				ptx.setTransform(rx, 0, 0, ry, deltaX, deltaY);
 
 				var drawTriangle = function(tx1, ty1, tx2, ty2, tx3, ty3)
 				{
@@ -1954,28 +1981,29 @@ var tt = ctx.mozCurrentTransformInverse;
 					var tw = Math.floor(tx2 - tx1);
 					var th = Math.floor(ty3 - ty1);
 					
-					ctx.save();
+					ptx.save();
 					var inv = ProjectiveMath.invertMatrix([
 						[tx2 - tx1, ty2 - ty1, 0],
 						[tx3 - tx1, ty3 - ty1, 0],
 						[tx1,  ty1,  1]
 					  ]);
-					ctx.transform(inv[0][0], inv[0][1], inv[1][0], inv[1][1], inv[2][0], inv[2][1]);
-					ctx.transform(sw, y2 - y1, x3 - x1, sh, x1, y1);
-					ctx.drawImage(
+					ptx.transform(inv[0][0], inv[0][1], inv[1][0], inv[1][1], inv[2][0], inv[2][1]);
+					ptx.transform(sw, y2 - y1, x3 - x1, sh, x1, y1);
+					ptx.drawImage(
 						imageObj,
 						tx1, ty1, tw, th,
 						x1, y2, sw, sh
 					);
-					ctx.beginPath();
-					ctx.moveTo(x1, y1);
-					ctx.lineTo(x2, y2);
-					ctx.lineTo(x3, y3);
-					ctx.lineTo(x1, y1);
-					ctx.closePath();
-						//ctx.clip();
-					ctx.restore();
+					ptx.beginPath();
+					ptx.moveTo(x1, y1);
+					ptx.lineTo(x2, y2);
+					ptx.lineTo(x3, y3);
+					ptx.lineTo(x1, y1);
+					ptx.closePath();
+					ptx.clip();
+					ptx.restore();
 				}
+				
 				var n = 1;
 				try {
 					for (var i=0; i<n; i++)
@@ -1991,18 +2019,10 @@ var tt = ctx.mozCurrentTransformInverse;
 						}
 					}
 				} catch(e) {
-					gmxAPI.addDebugWarnings({'func': 'drawTriangle', 'event': e, 'alert': e});
+					gmxAPI.addDebugWarnings({'func': 'drawTriangle', 'event': e});
 				}
 
-				// clip по геометрии ноды
-				var geo = node.geometry;
-				var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-				var ptxCont = document.createElement("canvas");
-				ptxCont.width = canvas.width;
-				ptxCont.height = canvas.height;
-				ptxCont.getContext('2d').putImageData(imageData, 0, 0);
-				paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx}, ptxCont);
+				paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx}, container);
 			}
 			zoomPrev = LMap.getZoom();
 		}
@@ -2031,14 +2051,26 @@ var tt = ctx.mozCurrentTransformInverse;
 			//,iconAnchor: new L.Point(12, 12) // also can be set through CSS
 		});
 		
-		L.marker([attr['y1'], attr['x1']], {icon: canvasIcon}).addTo(LMap);
-		LMap.on('zoomend', function(e) {
+		//L.marker([attr['y1'], attr['x1']], {icon: canvasIcon}).addTo(LMap);
+		attr['reposition'] = function() {
+			if(node['leaflet']) node['leaflet'].setLatLng(posLatLng);
+		}
+		var marker = L.marker(posLatLng, {icon: canvasIcon});
+		node['leaflet'] = marker;
+		node['group'].addLayer(marker);
+		setVisible({'obj': node, 'attr': true});
+
+		var redrawMe = function(e) {
 			repaint(imageObj, canvas);
-		});
-/*		
+		}
+		//LMap.on('zoomend', function(e) { repaint(imageObj, canvas); });
+		//gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': redrawMe });
+		gmxAPI.map.addListener('positionChanged', redrawMe, 11);
+		
 		var zoomTimer = null;
 		LMap.on('zoomanim', function(e) {
-				var zoom = LMap.getZoom();
+			var zoom = LMap.getZoom();
+//console.log('bbbbbbbbb ' , ' : '+  zoom); 
 			if(zoomTimer) clearTimeout(zoomTimer);
 			zoomTimer = setTimeout(function()
 			{
@@ -2048,9 +2080,25 @@ var tt = ctx.mozCurrentTransformInverse;
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 			}, 10);
 		});
+/*		
+		LMap.on('zoomstart', function(e) {
+			var zoom = LMap.getZoom();
+			zoomTimer = setTimeout(function()
+			{
+				var _zoom = e.target._animateToZoom;
+				var scale = L.CRS.scale(zoom) / L.CRS.scale(_zoom);
+				//var scale = LMap.getZoomScale(_zoom);
+				var ctx = canvas.getContext('2d');
+				ctx.setTransform(1/scale, 0, 0, 1/scale, 0, 0);
+console.log('bbbbb333bbbb ' ,  scale +' : ',  zoom +' : ' ,  _zoom +' : ',  e); 
+				zoomTimer = null;
+			}, 0);
+		});
+		
 		LMap.on('viewreset', function(e) {
 			var zoom = LMap.getZoom();
 			var _zoom = e.target._zoom;
+console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom); 
 			var scale = LMap.getZoomScale(zoomPrev);
 			var ctx = canvas.getContext('2d');
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2709,14 +2757,16 @@ var tt = ctx.mozCurrentTransformInverse;
 				var pid = data[index];
 				if(node['addedItems'][pid]) delete node['addedItems'][pid];
 				var pt = node['objectsData'][pid];
-				var fromTiles = pt.propHiden['fromTiles'];
-				for(var tileID in fromTiles) {
-					var arr = (tileID == 'addItem' ? node['addedItems'] : node['tilesGeometry'][tileID]);	// Обьекты тайла
-					if(arr && arr.length) {
-						for (var i = 0; i < arr.length; i++) {
-							if(arr[i].id == pid) {
-								(tileID == 'addItem' ? node['addedItems'] : node['tilesGeometry'][tileID]).splice(i, 1);	// Обьекты тайла
-								break;
+				if(pt) {
+					var fromTiles = pt.propHiden['fromTiles'];
+					for(var tileID in fromTiles) {
+						var arr = (tileID == 'addItem' ? node['addedItems'] : node['tilesGeometry'][tileID]);	// Обьекты тайла
+						if(arr && arr.length) {
+							for (var i = 0; i < arr.length; i++) {
+								if(arr[i].id == pid) {
+									(tileID == 'addItem' ? node['addedItems'] : node['tilesGeometry'][tileID]).splice(i, 1);	// Обьекты тайла
+									break;
+								}
 							}
 						}
 					}
