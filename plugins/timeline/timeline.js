@@ -122,7 +122,7 @@ links.Timeline = function(container) {
     this.renderedItems = [];  // Items currently rendered in the DOM
     this.clusterGenerator = new links.Timeline.ClusterGenerator(this);
     this.currentClusters = [];
-    this.selection = undefined; // stores index and item which is currently selected
+    this.selection = []; // stores indexes and items which is currently selected
 
     this.listeners = {}; // event listener callbacks
 
@@ -322,9 +322,9 @@ links.Timeline.mapColumnIds = function (dataTable) {
     // loop over the columns, and map the column id's to the column indexes
     for (var col = 0; col < colMax; col++) {
         var id = dataTable.getColumnId(col) || dataTable.getColumnLabel(col);
+        cols[id] = col;
         if (id == 'start' || id == 'end' || id == 'content' ||
                 id == 'group' || id == 'className' || id == 'editable') {
-            cols[id] = col;
             allUndefined = false;
         }
     }
@@ -346,7 +346,7 @@ links.Timeline.mapColumnIds = function (dataTable) {
  */
 links.Timeline.prototype.setData = function(data) {
     // unselect any previously selected item
-    this.unselectItem();
+    this.unselectItems();
 
     if (!data) {
         data = [];
@@ -418,7 +418,8 @@ links.Timeline.prototype.getData = function  () {
  *                          {String} group
  */
 links.Timeline.prototype.updateData = function  (index, values) {
-    var data = this.data;
+    var data = this.data,
+        prop;
 
     if (google && google.visualization &&
         data instanceof google.visualization.DataTable) {
@@ -431,27 +432,21 @@ links.Timeline.prototype.updateData = function  (index, values) {
         // map the column id's by name
         var cols = links.Timeline.mapColumnIds(data);
 
-        if (values.start) {
-            data.setValue(index, cols.start, values.start);
-        }
-        if (values.end) {
-            data.setValue(index, cols.end, values.end);
-        }
-        if (values.content) {
-            data.setValue(index, cols.content, values.content);
-        }
-
-        if (values.group && cols.group != undefined) {
-            // TODO: append a column when needed?
-            data.setValue(index, cols.group, values.group);
-        }
-        if (values.className && cols.className != undefined) {
-            // TODO: append a column when needed?
-            data.setValue(index, cols.className, values.className);
-        }
-        if (values.editable && cols.editable != undefined) {
-            // TODO: append a column when needed?
-            data.setValue(index, cols.editable, values.editable);
+        // merge all fields from the provided data into the current data
+        for (prop in values) {
+            if (values.hasOwnProperty(prop)) {
+                var col = cols[prop];
+                if (col == undefined) {
+                    // create new column
+                    var value = values[prop];
+                    var valueType = 'string';
+                    if (typeof(value) == 'number')       valueType = 'number';
+                    else if (typeof(value) == 'boolean') valueType = 'boolean';
+                    else if (value instanceof Date)      valueType = 'datetime';
+                    col = data.addColumn(valueType, prop);
+                }
+                data.setValue(index, col, values[prop]);
+            }
         }
     }
     else if (links.Timeline.isArray(data)) {
@@ -462,23 +457,11 @@ links.Timeline.prototype.updateData = function  (index, values) {
             data[index] = row;
         }
 
-        if (values.start) {
-            row.start = values.start;
-        }
-        if (values.end) {
-            row.end = values.end;
-        }
-        if (values.content) {
-            row.content = values.content;
-        }
-        if (values.group) {
-            row.group = values.group;
-        }
-        if (values.className) {
-            row.className = values.className;
-        }
-        if (values.editable != undefined) {
-            row.editable = values.editable;
+        // merge all fields from the provided data into the current data
+        for (prop in values) {
+            if (values.hasOwnProperty(prop)) {
+                row[prop] = values[prop];
+            }
         }
     }
     else {
@@ -2052,8 +2035,8 @@ links.Timeline.prototype.repaintDeleteButton = function () {
         dom.items.deleteButton = deleteButton;
     }
 
-    var index = this.selection ? this.selection.index : -1,
-        item = this.selection ? this.items[index] : undefined;
+    var index = this.selection.length ? this.selection[0].index : -1,
+        item = this.selection.length ? this.items[index] : undefined;
     if (item && item.rendered && this.isEditable(item)) {
         var right = item.getRight(this),
             top = item.top;
@@ -2105,8 +2088,8 @@ links.Timeline.prototype.repaintDragAreas = function () {
     }
 
     // reposition left and right drag area
-    var index = this.selection ? this.selection.index : -1,
-        item = this.selection ? this.items[index] : undefined;
+    var index = this.selection.length ? this.selection[0].index : -1,
+        item = this.selection.length ? this.items[index] : undefined;
     if (item && item.rendered && this.isEditable(item) &&
             (item instanceof links.Timeline.ItemRange)) {
         var left = this.timeToScreen(item.start),
@@ -2196,7 +2179,7 @@ links.Timeline.prototype.repaintNavigation = function () {
                     'group': group
                 });
                 var index = (timeline.items.length - 1);
-                timeline.selectItem(index);
+                timeline.selectItems([index]);
 
                 timeline.applyAdd = true;
 
@@ -2605,7 +2588,7 @@ links.Timeline.prototype.onMouseDown = function(event) {
     params.itemDragRight = (params.target === dragRight);
 
     if (params.itemDragLeft || params.itemDragRight) {
-        params.itemIndex = this.selection ? this.selection.index : undefined;
+        params.itemIndex = this.selection.length ? this.selection[0].index : undefined;
     }
     else {
         params.itemIndex = this.getItemIndex(params.target);
@@ -2636,7 +2619,7 @@ links.Timeline.prototype.onMouseDown = function(event) {
             'group': this.getGroupName(group)
         });
         params.itemIndex = (this.items.length - 1);
-        this.selectItem(params.itemIndex);
+        this.selectItems([params.itemIndex]);
         params.itemDragRight = true;
     }
 
@@ -2931,20 +2914,32 @@ links.Timeline.prototype.onMouseUp = function (event) {
 
             if (params.target === this.dom.items.deleteButton) {
                 // delete item
-                if (this.selection) {
-                    this.confirmDeleteItem(this.selection.index);
+                if (this.selection.length) {
+                    this.confirmDeleteItem(this.selection[0].index);
                 }
             }
             else if (options.selectable) {
                 // select/unselect item
                 if (params.itemIndex !== undefined) {
                     if (!this.isSelected(params.itemIndex)) {
-                        this.selectItem(params.itemIndex);
+                        if (event.ctrlKey)
+                        {
+                            var curSelection = this.getSelection();
+                            var selectionIndexes = [];
+                            for (var i = 0; i < curSelection.length; i++)
+                                selectionIndexes.push(curSelection[i].row);
+                            selectionIndexes.push(params.itemIndex);
+                            this.selectItems(selectionIndexes);
+                        }
+                        else
+                        {
+                            this.selectItems([params.itemIndex]);
+                        }
                         this.trigger('select');
                     }
                 }
                 else {
-                    this.unselectItem();
+                    this.unselectItems();
                     this.trigger('select');
                 }
             }
@@ -3011,7 +3006,7 @@ links.Timeline.prototype.onDblClick = function (event) {
                 'group': this.getGroupName(group)
             });
             params.itemIndex = (this.items.length - 1);
-            this.selectItem(params.itemIndex);
+            this.selectItems([params.itemIndex]);
 
             this.applyAdd = true;
 
@@ -3276,7 +3271,7 @@ links.Timeline.prototype.confirmDeleteItem = function(index) {
 
     // select the event to be deleted
     if (!this.isSelected(index)) {
-        this.selectItem(index);
+        this.selectItems([index]);
     }
 
     // fire a delete event trigger. 
@@ -3301,7 +3296,7 @@ links.Timeline.prototype.deleteItem = function(index, preventRender) {
         throw "Cannot delete row, index out of range";
     }
 
-    this.unselectItem();
+    this.unselectItems();
 
     // actually delete the item and remove it from the DOM
     var item = this.items.splice(index, 1)[0];
@@ -3331,7 +3326,7 @@ links.Timeline.prototype.deleteItem = function(index, preventRender) {
  * Delete all items
  */
 links.Timeline.prototype.deleteAllItems = function() {
-    this.unselectItem();
+    this.unselectItems();
 
     // delete the loaded items
     this.clearItems();
@@ -3410,7 +3405,6 @@ links.Timeline.Item = function (data, options) {
         this.className = data.className;
         this.editable = data.editable;
         this.group = data.group;
-        this.userdata = data.userdata;
 
         if (this.start) {
             if (this.end) {
@@ -4288,9 +4282,6 @@ links.Timeline.prototype.getItem = function (index) {
     if (item.group) {
         properties.group = this.getGroupName(item.group);
     }
-    if (item.userdata) {
-        properties.userdata = item.userdata;
-    }
 
     return properties;
 };
@@ -4355,7 +4346,6 @@ links.Timeline.prototype.createItem = function(itemData) {
         content: itemData.content,
         className: itemData.className,
         editable: itemData.editable,
-        userdata: itemData.userdata,
         group: this.getGroup(itemData.group)
     };
     // TODO: optimize this, when creating an item, all data is copied twice...
@@ -4520,35 +4510,64 @@ links.Timeline.prototype.cancelAdd = function () {
  * @return {boolean}         true if selection is succesfully set, else false.
  */
 links.Timeline.prototype.setSelection = function(selection) {
-    if (selection != undefined && selection.length > 0) {
-        if (selection[0].row != undefined) {
-            var index = selection[0].row;
-            if (this.items[index]) {
-                var item = this.items[index];
-                this.selectItem(index);
-
-                // move the visible chart range to the selected event.
-                var start = item.start;
-                var end = item.end;
-                var middle;
-                if (end != undefined) {
-                    middle = new Date((end.valueOf() + start.valueOf()) / 2);
-                } else {
-                    middle = new Date(start);
-                }
-                var diff = (this.end.valueOf() - this.start.valueOf()),
-                    newStart = new Date(middle.valueOf() - diff/2),
-                    newEnd = new Date(middle.valueOf() + diff/2);
-
-                this.setVisibleChartRange(newStart, newEnd);
-
-                return true;
+    if (selection.length > 0) {
+        
+        var minDate = Infinity,
+            maxDate = -Infinity, 
+            i, 
+            indexes = [];
+        
+        for (i = 0; i < selection.length; i++) {
+            var curIndex = selection[i].row;
+            
+            if (curIndex !== undefined) {
+                var item = this.items[curIndex];
+                var curEnd = (item.end || item.start).valueOf();
+                var curStart = item.start.valueOf();
+                
+                minDate = Math.min(minDate, curStart);
+                maxDate = Math.max(maxDate, curEnd);
+                
+                indexes.push(curIndex);
             }
         }
+        
+        this.selectItems(indexes);
+        
+        var middle   = new Date((maxDate + minDate)/2),
+            diff     = (this.end.valueOf() - this.start.valueOf()),
+            newStart = new Date(middle.valueOf() - diff/2),
+            newEnd   = new Date(middle.valueOf() + diff/2);
+            
+        this.setVisibleChartRange(newStart, newEnd);
+        
+        // if (selection[0].row != undefined) {
+            // var index = selection[0].row;
+            // if (this.items[index]) {
+                // var item = this.items[index];
+
+                // // move the visible chart range to the selected event.
+                // var start = item.start;
+                // var end = item.end;
+                // var middle;
+                // if (end != undefined) {
+                    // middle = new Date((end.valueOf() + start.valueOf()) / 2);
+                // } else {
+                    // middle = new Date(start);
+                // }
+                // var diff = (this.end.valueOf() - this.start.valueOf()),
+                    // newStart = new Date(middle.valueOf() - diff/2),
+                    // newEnd = new Date(middle.valueOf() + diff/2);
+
+                // this.setVisibleChartRange(newStart, newEnd);
+
+                // return true;
+            // }
+        // }
     }
     else {
         // unselect current selection
-        this.unselectItem();
+        this.unselectItems();
     }
     return false;
 };
@@ -4561,38 +4580,42 @@ links.Timeline.prototype.setSelection = function(selection) {
  */
 links.Timeline.prototype.getSelection = function() {
     var sel = [];
-    if (this.selection) {
-        sel.push({"row": this.selection.index});
-    }
+    for (var i = 0; i < this.selection.length; i++)
+        sel.push({row: this.selection[i].index});
+
     return sel;
 };
 
 
 /**
- * Select an item by its index
- * @param {Number} index
+ * Select items by their indexes
+ * @param {Number[]} indexes
  */
-links.Timeline.prototype.selectItem = function(index) {
-    this.unselectItem();
+links.Timeline.prototype.selectItems = function(indexes) {
+    this.unselectItems();
 
-    this.selection = undefined;
+    this.selection = [];
+    
+    for (var i = 0; i < indexes.length; i++)
+    {
+        var curIndex = indexes[i];
+        if (this.items[curIndex] !== undefined) {
+            var item = this.items[curIndex],
+                domItem = item.dom;
 
-    if (this.items[index] !== undefined) {
-        var item = this.items[index],
-            domItem = item.dom;
+            this.selection.push({
+                'index': curIndex,
+                'item': domItem
+            });
 
-        this.selection = {
-            'index': index,
-            'item': domItem
-        };
-
-        // TODO: move adjusting the domItem to the item itself
-        if (this.isEditable(item)) {
-            domItem.style.cursor = 'move';
+            // TODO: move adjusting the domItem to the item itself
+            if (this.isEditable(item)) {
+                domItem.style.cursor = 'move';
+            }
+            item.select();
+            this.repaintDeleteButton();
+            this.repaintDragAreas();
         }
-        item.select();
-        this.repaintDeleteButton();
-        this.repaintDragAreas();
     }
 };
 
@@ -4602,26 +4625,33 @@ links.Timeline.prototype.selectItem = function(index) {
  * @return {boolean} true if row is selected, else false
  */
 links.Timeline.prototype.isSelected = function (index) {
-    return (this.selection && this.selection.index === index);
+    
+    for (var i = 0; i < this.selection.length; i++) {
+        if (this.selection[i].index === index) {
+            return true;
+        }
+    }
+    
+    return false;
 };
 
 /**
- * Unselect the currently selected event (if any)
+ * Unselect the currently selected events (if any)
  */
-links.Timeline.prototype.unselectItem = function() {
-    if (this.selection) {
-        var item = this.items[this.selection.index];
+links.Timeline.prototype.unselectItems = function() {
+    for (var i = 0; i < this.selection.length; i++) {
+        var item = this.items[this.selection[i].index];
 
         if (item && item.dom) {
             var domItem = item.dom;
             domItem.style.cursor = '';
             item.unselect();
         }
-
-        this.selection = undefined;
-        this.repaintDeleteButton();
-        this.repaintDragAreas();
     }
+    
+    this.selection = [];
+    this.repaintDeleteButton();
+    this.repaintDragAreas();
 };
 
 
