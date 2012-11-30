@@ -1040,9 +1040,8 @@
 			var pNode = mapNodes[node['parentId']];
 			pNode.setStyleFilter(id);
 		} else {
-			gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
-			//utils.repaintNode(node, true);
-			//setVisible({'obj': node, 'attr': true});
+			if(node.leaflet && node.leaflet.setStyle) node.leaflet.setStyle(node.regularStyle);
+			else gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
 		}
 	}
 
@@ -1061,30 +1060,13 @@
 		for(var evName in scanexEventNames) {
 			setHandlerObject(id, evName);
 		}
-/*		
-		for(var evName in node['handlers']) {
-			setHandlerObject(id, evName);
-		}
-*/		
-		//setHandlerObject(id, 'onClick');
-/*		
-		var node = mapNodes[id];
-		if(!node) return false;
-		if(node['leaflet']) {
-			node['leaflet']['options']['resID'] = id;
-			var pNode = mapNodes[node['parentId']];
-			for(var evName in node['handlers']) {
-				setHandlerObject(id);
-			}
-		}
-*/		
 	}
 
 	var scanexEventNames = {
 		'onClick': 'click'
 		,'onMouseDown': 'mousedown'
-		//,'onMouseOver': 'mouseover'
-		//,'onMouseOut': 'mouseout'
+		,'onMouseOver': 'mouseover'
+		,'onMouseOut': 'mouseout'
 	};
 	// добавить Handler для mapObject
 	function setHandlerObject(id, evName)	{
@@ -1094,18 +1076,7 @@
 			node['leaflet']['options']['resID'] = id;
 			var hNode = getNodeHandler(id, evName);
 			if(!hNode) return false;
-			/*
-			if(evName === 'onClick') {
-				var func = function(e) {		// Проверка click
-					gmxAPI._leaflet['utils'].chkGlobalEvent({'ev':e,'latlng': e.latlng, 'evName':evName, 'node':node, 'hNode':hNode});	// события векторного обьекта
-				};
-				node['leaflet'].on('click', func);
-				if(node['marker']) {
-					node['marker'].on('click', func);
-				}
-			}
-			*/
-			var func = function(e) {		// Проверка onMouseDown
+			var func = function(e) {
 				gmxAPI._leaflet['utils'].chkGlobalEvent({'ev':e,'latlng': e.latlng, 'evName':evName, 'node':node, 'hNode':hNode});	// события векторного обьекта
 			};
 			if(scanexEventNames[evName]) {
@@ -1308,7 +1279,7 @@
 
 	// Рекурсивное изменение видимости
 	function setVisibleRecursive(pNode, flag) {
-		//var pNode = mapNodes[id];
+		if(!pNode) return;
 		if(pNode['leaflet']) {
 			setVisible({'obj': pNode, 'attr': flag});
 		} else {
@@ -1731,16 +1702,6 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		if(!hash) hash = {};
 		var obj = hash['obj'] || null;	// Целевой обьект команды
 		var attr = hash['attr'] || '';
-/*		
-if(!(cmd in commands)
-	&& cmd != 'setCursorVisible'
-	&& cmd != 'stopDragging'
-	&& cmd != 'setClusters'
-	) {
-	// cmd"" cmd"" getVisibility	setDateInterval		
-	var tt = 1;
-}
-*/
 		ret = (cmd in commands ? commands[cmd].call(commands, hash) : {});
 //console.log(cmd + ' : ' , hash , ' : ' , ret);
 		return ret;
