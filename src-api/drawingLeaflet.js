@@ -10,7 +10,14 @@
 	var mouseOverFlag = false;
 	var mousePressed = false;
 
-	var getDownType = function(ph, coords, oBounds)
+	var getLongLatLng = function(lat, lng)
+	{
+		var point = new L.LatLng(lat, lng);
+		if(lng > 180) point.lng = lng;
+		else if(lng < -180) point.lng = lng;
+		return point;
+	}
+	var getDownType = function(ph, coords)
 	{
 		var out = {};
 		var dBounds = new L.Bounds();
@@ -19,172 +26,142 @@
 			var pArr = coords[i];
 			dBounds.extend(new L.Point(pArr[0],  pArr[1]));
 		}
-
-		var point = LMap.project(new L.LatLng(0, -180));
-		var p180 = LMap.project(new L.LatLng(0, 180));
-		var worldSize = p180.x - point.x;
-		var dx = 0;
-		var center = LMap.getCenter();		
-		var centerObj = (dBounds.max.x + dBounds.min.x)/2;
-		var delta = Math.abs(centerObj - center.lng);
-		var delta1 = Math.abs(centerObj - center.lng + 360);
-		var delta2 = Math.abs(centerObj - center.lng - 360);
-		if(delta1 < delta) dx = worldSize;
-		if(delta2 < delta && delta2 < delta1) dx = -worldSize;
-		
-		var point = new L.LatLng(ph.latlng.lat, ph.latlng.lng);
-		
+		var dx = getDeltaX(dBounds);
+		var point = getLongLatLng(ph.latlng.lat, ph.latlng.lng);
 		var p1 = LMap.project(point);
-		p1.x -= dx;
-		if(ph.latlng.lng > 180) p1.x += worldSize;
-		else if(ph.latlng.lng < -180) p1.x -= worldSize;
 		var len = coords.length;
 		for (var i = 0; i < len; i++)
 		{
 			var pArr = coords[i];
-			var x = pArr[0];
-			var point = LMap.project(new L.LatLng(pArr[1], x));
-			//point.x += dx;
-			if(pArr[0] > 180) point.x += worldSize;
-			else if(pArr[0] < -180) point.x -= worldSize;
-			if(Math.abs(p1.x - point.x) < pointSize && Math.abs(p1.y - point.y) < pointSize) {
+			var pBounds = getBoundsPoint(pArr[0] + dx, pArr[1]);
+//console.log('olkk ', pBounds.contains(ph.latlng), ph.latlng);
+			if(pBounds.contains(point)) {
 				out = {'type': 'node', 'cnt':i};
 				break;
 			} else {
+				var x = pArr[0] + dx;
+				var p2 = LMap.project(getLongLatLng(pArr[1], x));
 				var jj = i + 1;
 				if(jj >= len) jj = 0;
-				var x = coords[jj][0];
-				var point1 = LMap.project(new L.LatLng(coords[jj][1], x));
-				//point1.x += dx;
-				if(x > 180) point1.x += worldSize;
-				else if(x < -180) point1.x -= worldSize;
-				var x1 = point.x - p1.x; 		var y1 = point.y - p1.y;
+				var x = coords[jj][0] + dx;
+				var point1 = LMap.project(getLongLatLng(coords[jj][1], x));
+				var x1 = p2.x - p1.x; 			var y1 = p2.y - p1.y;
 				var x2 = point1.x - p1.x;		var y2 = point1.y - p1.y;
-				var dist = L.LineUtil.pointToSegmentDistance(p1, point, point1);
-//console.log('pppppppp11 ', dist, ':', x1, x2, ':', point.x, point1.x);
+				var dist = L.LineUtil.pointToSegmentDistance(p1, p2, point1);
 				if (dist < lineWidth)
 				{
 					out = {'type': 'edge', 'cnt':jj};
-//console.log('olkk ', out, x, point1.x, dist);
 				}
 			}
 		}
 		return out;
 	}
 
-	var drawCanvas = function(attr)
+	var getBoundsPoint = function(x, y)
 	{
-		var pCanvas = attr['canvas'];
-		if(!pCanvas || !attr['oBounds']) return;
+		var point = new L.LatLng(y, x);
+		point.lng = x;
+		point.lat = y;
+		var pix = LMap.project(point);
+		var p1 = LMap.unproject(new L.Point(pix['x'] - pointSize, pix['y'] + pointSize));
+		var p2 = LMap.unproject(new L.Point(pix['x'] + pointSize, pix['y'] - pointSize));
+		return bounds = new L.LatLngBounds(p1, p2);
+	}
+	var addPoint = function(x, y)
+	{
+		var bounds = getBoundsPoint(x, y);
+		return new L.rectangle(bounds, stylePoint)
+	}
+
+	var getDeltaX = function(bounds)
+	{
+		var dx = 0;
+		var centerObj = (bounds.max.x + bounds.min.x)/2;
+		var latlng = new L.LatLng(0, centerObj);
+		if(centerObj > 180) latlng.lng = centerObj;
+		//else if(centerObj < -180) latlng.lng -= 180;
+		var pixelCenterObj = LMap.project(latlng);
 		
+		var point = LMap.project(new L.LatLng(0, -180));
+		var p180 = LMap.project(new L.LatLng(0, 180));
+		var worldSize = p180.x - point.x;
+		
+		var pixelBounds = LMap.getPixelBounds();
+		var centerViewport = (pixelBounds.max.x + pixelBounds.min.x)/2;
+		
+		var dist = pixelCenterObj.x - centerViewport;
+		var delta = Math.abs(dist);
+		var delta1 = Math.abs(dist + worldSize);
+		var delta2 = Math.abs(dist - worldSize);
+		if(delta1 < delta) dx = 360;
+		if(delta2 < delta && delta2 < delta1) dx = -360;
+		return dx;
+	}
+
+	var tmpPoint = null;
+	var styleStroke = {color: "#0000ff", weight: lineWidth , opacity: 1};
+	var stylePoint = {color: "#0000ff", fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1};
+	var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
+	var drawSVG = function(attr)
+	{
 		var dBounds = new L.Bounds();
 		for (var i = 0; i < attr['coords'].length; i++)
 		{
 			var pArr = attr['coords'][i];
 			dBounds.extend(new L.Point(pArr[0],  pArr[1]));
 		}
-		
-		var point = LMap.project(new L.LatLng(0, -180));
-		var p180 = LMap.project(new L.LatLng(0, 180));
-		var worldSize = p180.x - point.x;
+		var dx = getDeltaX(dBounds);
 
-		var dx = 0;
-		var center = LMap.getCenter();		
-		var centerObj = (dBounds.max.x + dBounds.min.x)/2;
-		var delta = Math.abs(centerObj - center.lng);
-		var delta1 = Math.abs(centerObj - center.lng + 360);
-		var delta2 = Math.abs(centerObj - center.lng - 360);
-		if(delta1 < delta) dx = 360;
-		if(delta2 < delta && delta2 < delta1) dx = -360;
-		
-		if(attr['lastPoint']) dBounds.extend(new L.Point(attr['lastPoint']['x'],  attr['lastPoint']['y']));
-
-		var point = new L.LatLng(dBounds.max.y, dBounds.min.x);
-		var p1 = LMap.project(point);
-		var p11 = LMap.unproject(new L.Point(p1.x - pSize, p1.y - pSize));
-		point = new L.LatLng(dBounds.min.y, dBounds.max.x);
-		var p2 = LMap.project(point);
-		//if(point.lng > 180) p2.x -= worldSize;
-		var bounds = new L.Bounds(p1, p2);
-		var w = bounds.max.x - bounds.min.x;
-		//if(dBounds.max.x > 180) w -= worldSize/2;
-//console.log('zzzzzzz ', w, worldSize, Math.floor(bounds.max.x), Math.floor(bounds.min.x), Math.floor(dBounds.max.x), Math.floor(dBounds.min.x));
-//console.log('zzzzzzz ', dx, attr['coords']);
-		
-		var h = bounds.max.y - bounds.min.y;
-		var vBounds = LMap.getBounds();
-		var vpNorthWest = vBounds.getNorthWest();
-		var vpSouthEast = vBounds.getSouthEast();
-		var vp1 = LMap.project(vpNorthWest);
-		var vp2 = LMap.project(vpSouthEast);
-
-		var ww = w;
-		var hh = h;
-		var deltaX = pointSize - 1;
-		var deltaY = pointSize;
-		
-		var iconPoint = p11;
-		iconPoint.lng += dx;
-		
-		if(vp2.x - vp1.x + 100 < w || vp2.y - vp1.y + 100 < h) {
-			ww = vp2.x - vp1.x;
-			hh = vp2.y - vp1.y;
-			iconPoint = vpNorthWest;
-			deltaX = p1.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0)) - pointSize + 1;
-			deltaY = p1.y - vp1.y - pointSize;
+		var layerGroup = attr['layerGroup'];
+		var layerItems = attr['layerItems'];
+		if(layerItems.length == 0) {
+			layerItems.push(new L.Polyline([], stylePolygon));
+			//layerItems.push(new L.Polygon([], styleStroke));
+			layerGroup.addLayer(layerItems[0]);
+			var mousedown = function(e) { attr['mousedown'](e, this); };
+			layerItems[0].on('mousedown', mousedown , {'num':0, 'type':'edge'});
 		}
-
-		if(attr['node']['leaflet']) attr['node']['leaflet'].setLatLng(iconPoint);
-
-		pCanvas.width = ww + pSize + 2*lineWidth;
-		pCanvas.height = hh + pSize + 2*lineWidth;
-		pCanvas.style.cursor = '';
-//if(shiftWorld) deltaX -= shiftWorld;
-
-		var ctx = pCanvas.getContext('2d');
-		ctx.translate(deltaX, deltaY);
-		//ctx.translate(shiftWorld, 0);
-		ctx.strokeStyle = (attr['strokeStyle'] && attr['strokeStyle']['color'] ? attr['strokeStyle']['color'] : 'rgba(0, 0, 255, 1)');
-		ctx.fillStyle = (attr['fillStyle'] && attr['fillStyle']['color'] ? attr['fillStyle']['color'] : 'rgba(255, 255, 255, 0.8)');
-		ctx.lineWidth = lineWidth;
-		var fillArr = [];
+		var latLngs = [];
 		for (var i = 0; i < attr['coords'].length; i++)
 		{
 			var pArr = attr['coords'][i];
-			var point = LMap.project(new L.LatLng(pArr[1], pArr[0]));
-			var x = point.x - p1.x;
-			if(pArr[0] > 180) x += worldSize;
-			//else if(pArr[0] < -180) x -= worldSize;
-			var y = point.y - p1.y;
-			if(i == 0)
-				ctx.moveTo(x + pointSize, y + pointSize);
-			else
-				ctx.lineTo(x + pointSize, y + pointSize);
-			fillArr.push([x, y]);
+			var latLng = new L.LatLng(pArr[1], pArr[0] + dx);
+			latLng.lng = pArr[0] + dx;
+			latLng.lat = pArr[1];
+			latLngs.push(latLng);
 		}
 		if(attr['lastPoint']) {
-			var px = attr['lastPoint']['x'];
-			var point = LMap.project(new L.LatLng(attr['lastPoint']['y'], px));
-			var x = point.x - p1.x;
-			if(px > 180) x += worldSize;
-			//else if(px < -180) x -= worldSize;
-			var y = point.y - p1.y;
-			ctx.lineTo(x + pointSize, y + pointSize);
+			var latLng = new L.LatLng(attr['lastPoint']['y'], attr['lastPoint']['x'] + dx);
+			latLng.lng = attr['lastPoint']['x'] + dx;
+			latLng.lat = attr['lastPoint']['y'];
+			latLngs.push(latLng);
 		}
-		ctx.stroke();
-		for (var i = 0; i < fillArr.length; i++)
+		layerItems[0].setLatLngs(latLngs);
+
+		for (var i = 0; i < attr['coords'].length; i++)
 		{
-			var pArr = fillArr[i];
-			ctx.fillRect(pArr[0], pArr[1], pSize, pSize);
-			ctx.strokeRect(pArr[0], pArr[1], pSize, pSize);
+			var num = i + 1;
+			var pArr = attr['coords'][i];
+			if(!layerItems[num]) {
+				layerItems.push(addPoint(pArr[0],  pArr[1])); layerGroup.addLayer(layerItems[num]);
+				var mousedown = function(e) { attr['mousedown'](e, this); };
+				layerItems[num].on('mousedown', mousedown , {'dx':dx, 'num':i, 'type':'node'});
+			}
+			layerItems[num].setBounds(getBoundsPoint(pArr[0] + dx,  pArr[1]));
 		}
-		if(attr['editType'] === 'POLYGON') {
-			ctx.fillStyle = (attr['fillStylePolygon'] && attr['fillStylePolygon']['color'] ? attr['fillStylePolygon']['color'] : 'rgba(255, 255, 255, 0.2)');
-			if(attr['lastPoint']) ctx.fill();
+		if(attr['lastPoint']) {
+			if(!tmpPoint) {
+				tmpPoint = addPoint(attr['lastPoint']['x'] + dx,  attr['lastPoint']['y'])
+				tmpPoint.on('click', function(e) { attr['clickMe']({'attr':e}); });
+				tmpPoint.addTo(LMap);
+			}
+			tmpPoint.setBounds(getBoundsPoint(attr['lastPoint']['x'] + dx,  attr['lastPoint']['y']));
+		} else if(tmpPoint) {
+			LMap.removeLayer(tmpPoint);
+			tmpPoint = null;
 		}
-		//ctx.translate(-shiftWorld, 0);
 	}
-	
+
 	function getGeometryTitle(geom)
 	{
 		var geomType = geom['type'];
@@ -712,34 +689,6 @@
 			chkEvent(eventType);
 			return true;
 		};
-		
-		var itemMouseDown = function(ph)
-		{
-			mousePressed = true;
-			if(ph.attr) ph = ph.attr;
-			var x = ph.latlng.lng;
-			var y = ph.latlng.lat;
-			if(x < -180) x += 360;
-			var downType = getDownType(ph, coords, oBounds);
-//console.log('itemMouseDown:  ', downType['cnt'], downType['type']);
-			if('type' in downType) {
-				editIndex = downType['cnt'];
-				if(downType['type'] === 'node') {
-					if(coords[editIndex][0] > 0 && x < 0) x += 360;
-					coords[editIndex] = [x, y];
-				} else if(downType['type'] === 'edge') {
-					if(editIndex == 0 && editType === 'LINESTRING') return false;
-					coords.splice(editIndex, 0, [x, y]);
-				}
-				gmxAPI._cmdProxy('startDrawing');
-				repaint();
-				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
-				onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
-				if(propsBalloon) propsBalloon.updatePropsBalloon(false);
-				return true;
-			}
-			return false;
-		};
 		var getItemDownType = function(ph)
 		{
 			var downType = getDownType(ph, coords, oBounds);
@@ -758,18 +707,32 @@
 		{ 
 			return {'x': oBounds.minX - pointSize, 'y': oBounds.maxY - pointSize};
 		}
-
-		var drawMe = function(canvas)
+		
+		var layerGroup = null;
+		var layerItems = [];
+		var drawMe = function()
 		{ 
-			if(canvas) {
-				pCanvas = canvas;
-				pCanvas.setAttribute('id', obj.objectId + '_drawing');
-			}	
-			if(!pCanvas || !oBounds) return;
+			if(!node.leaflet) return;
+			//coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
+			if(!layerGroup) {
+				layerGroup = node.leaflet;
+				//layerGroup.on('mouseover', function(e) { mouseOverFlag = true; });
+				//layerGroup.on('mouseout', function(e) { mouseOverFlag = false; });
+			}
 			if(needInitNodeEvents) chkNodeEvents();
-			drawAttr['canvas'] = pCanvas, drawAttr['lastPoint'] = lastPoint, drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
+			drawAttr['mousedown'] = function(e, attr)
+			{
+				if(lastPoint) addDrawingItem(e);		// Добавление точки
+				else itemMouseDown(e);					// Изменение точки
+			};
+			drawAttr['layerGroup'] = layerGroup;
+			drawAttr['layerItems'] = layerItems;
+			drawAttr['lastPoint'] = lastPoint
+			drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
 			drawAttr['node'] = node;
-			drawCanvas(drawAttr);
+			drawAttr['clickMe'] = addDrawingItem;
+			
+			drawSVG(drawAttr);
 		}
 
 		var obj = gmxAPI.map.addObject(null, null, {'subType': 'drawingFrame', 'getPos': getPos, 'drawMe': drawMe});
@@ -815,117 +778,26 @@
 			if(onMouseMoveID) gmxAPI.map.removeListener('onMouseMove', onMouseMoveID); onMouseMoveID = null;
 			if(onMouseUpID) gmxAPI.map.removeListener('onMouseUp', onMouseUpID); onMouseUpID = null;
 			if(addItemListenerID) gmxAPI.map.removeListener('onClick', addItemListenerID); addItemListenerID = null;
-			if(itemMouseDownID) obj.removeListener('onMouseDown', itemMouseDownID); itemMouseDownID = null;
+			//if(itemMouseDownID) obj.removeListener('onMouseDown', itemMouseDownID); itemMouseDownID = null;
 			obj.stopDrawing();
 		}
-		
-		var mouseMove = function(ph)
-		{
-			var x = ph.attr.latlng.lng;
-			if(x < -180) x += 360;
-			if(editIndex != -1) {
-				lastPoint = null;
-				if(coords[editIndex][0] > 0 && x < 0) x += 360;
-				coords[editIndex] = [x, ph.attr.latlng.lat];
-				if(editType === 'POLYGON') {
-					if(editIndex == 0) coords[coords.length - 1] = coords[editIndex];
-					else if(editIndex == coords.length - 1) coords[0] = coords[editIndex];
-				}
-				oBounds = gmxAPI.getBounds(coords);
-			} else {
-				lastPoint = {'x': x, 'y': ph.attr.latlng.lat};
-				//lastPoint = {'x': ph.attr.latlng.lng, 'y': ph.attr.latlng.lat, 'dop': ph.attr};
-			}
-			repaint();
-		}
-		var repaint = function()
-		{
-			drawMe();
-			if(domObj) {
-				var type = editType;
-				var geom = { 'type': type, 'coordinates': (editType === 'LINESTRING' ? coords : [coords]) };
-				domObj.update(geom, text);
-			}
-			return false;
-		}
-		var zoomListenerID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': repaint });
-		var positionChangedID = gmxAPI.map.addListener('positionChanged', repaint);
-		ret.remove = function()
-		{
-			chkEvent('onRemove');
-			obj.remove();
-			domObj.removeInternal();
-			if(zoomListenerID) gmxAPI._listeners.removeListener(null, 'onZoomend', zoomListenerID); zoomListenerID = null;
-			if(positionChangedID) gmxAPI.map.removeListener('positionChanged', positionChangedID); positionChangedID = null;
-		}
-		var needMouseOver = true;
-		var itemMouseDownID = null;
-		ret.chkMouse = function(ph)
-		{
-			if(!mouseOverFlag) return false;
-			var downType = getDownType(ph, coords, oBounds);
-			var flag = ('type' in downType ? true : false);
-			//console.log('chkMouse:  ', obj.objectId, flag, ph);
-			if(flag) {
-				gmxAPI._cmdProxy('startDrawing');
-				if(!itemMouseDownID) itemMouseDownID = obj.addListener('onMouseDown', itemMouseDown);
-				var title = '';
-				if(!mousePressed) {
-					var ii = downType['cnt'];
-					if(downType['type'] === 'node') {
-						if(editType === 'LINESTRING') {
-							title = gmxAPI.prettifyDistance(gmxAPI.geoLength({ type: "LINESTRING", coordinates: [coords.slice(0,ii+1)] }));
-						} else if(editType === 'POLYGON') {
-							title = getGeometryTitle({ type: "POLYGON", coordinates: [coords] });
-						}
-					} else if(downType['type'] === 'edge') {
-						if(ii == 0 && editType === 'LINESTRING') return false;
-						var p1 = coords[ii];
-						var p2 = coords[(ii == 0 ? coords.length - 1 : ii - 1)];
-						title = getGeometryTitle({ type: "LINESTRING", coordinates: [[[p1[0], p1[1]], [p2[0], p2[1]]]] });
-					}
-				}
-				chkEvent('onMouseOver', title);
-				needMouseOver = false;
-				if(pCanvas) pCanvas.style.cursor = 'pointer';
-			} else {
-				gmxAPI._cmdProxy('stopDrawing');
-				if(itemMouseDownID) obj.removeListener('onMouseDown', itemMouseDownID); itemMouseDownID = null;
-				if(propsBalloon) propsBalloon.updatePropsBalloon(false);
-				if(!needMouseOver) {
-					chkEvent('onMouseOut'); 
-					needMouseOver = true;
-					if(pCanvas) pCanvas.style.cursor = '';
-				}
-			}
-			return flag;
-		}
-		var createDrawingItem = function()
-		{
-			domObj = createDOMObject(ret, props);
-			domObj.objectId = obj.objectId;
-			domObj['stateListeners'] = obj['stateListeners'];
-			node = mapNodes[obj.objectId];
-			eventType = 'onAdd';
-			obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
-			if(editType === 'LINESTRING') obj.setLine([[0, 0], [0, 0]]);
-			else obj.setRectangle(0, 0, 0, 0);
-			repaint();
-		}
 	
+		// Добавление точки
 		var addDrawingItem = function(ph)
 		{
-			var x = ph.attr.latlng.lng;
+			if(ph.attr) ph = ph.attr;
+			var latlng = ph.latlng;
+			var x = latlng.lng;
 			if(x < -180) x += 360;
-			var y = ph.attr.latlng.lat;
+			var y = latlng.lat;
 			eventType = 'onEdit';
-			if (!coords) {
+			if (!coords) {				// Если нет coords создаем
 				coords = [];
 				createDrawingItem();
 				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 			}
 			if (coords.length) {
-				var point = LMap.project(ph.attr.latlng);
+				var point = LMap.project(latlng);
 				var pointBegin = LMap.project(new L.LatLng(coords[0][1], coords[0][0]));
 				var flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) <pointSize);
 				if(!flag) {
@@ -955,6 +827,131 @@
 			chkEvent(eventType);
 			return true;
 		};
+		
+		// Изменение точки
+		var itemMouseDown = function(ph)
+		{
+			mousePressed = true;
+			if(ph.attr) ph = ph.attr;
+			var x = ph.latlng.lng;
+			var y = ph.latlng.lat;
+			if(x < -180) x += 360;
+			var downType = getDownType(ph, coords, oBounds);
+//console.log('itemMouseDown:  ', downType['cnt'], downType['type']);
+			if('type' in downType) {
+				editIndex = downType['cnt'];
+				if(downType['type'] === 'node') {
+					if(coords[editIndex][0] > 0 && x < 0) x += 360;
+					coords[editIndex] = [x, y];
+				} else if(downType['type'] === 'edge') {
+					if(editIndex == 0 && editType === 'LINESTRING') return false;
+					coords.splice(editIndex, 0, [x, y]);
+				}
+				gmxAPI._cmdProxy('startDrawing');
+				repaint();
+				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
+				onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
+				if(propsBalloon) propsBalloon.updatePropsBalloon(false);
+				return true;
+			}
+			return false;
+		};
+		
+		var mouseMove = function(ph)
+		{
+			if(ph.attr) ph = ph.attr;
+			var latlng = ph.latlng;
+			var x = latlng.lng;
+			if(x < -180) x += 360;
+			if(editIndex != -1) {
+				lastPoint = null;
+				if(coords[editIndex][0] > 0 && x < 0) x += 360;
+				coords[editIndex] = [x, latlng.lat];
+				if(editType === 'POLYGON') {
+					if(editIndex == 0) coords[coords.length - 1] = coords[editIndex];
+					else if(editIndex == coords.length - 1) coords[0] = coords[editIndex];
+				}
+				oBounds = gmxAPI.getBounds(coords);
+			} else {
+				lastPoint = {'x': x, 'y': latlng.lat};
+			}
+			repaint();
+		}
+		var repaint = function()
+		{
+			drawMe();
+			if(domObj) {
+				var type = editType;
+				var geom = { 'type': type, 'coordinates': (editType === 'LINESTRING' ? coords : [coords]) };
+				domObj.update(geom, text);
+			}
+			return false;
+		}
+		var zoomListenerID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': repaint });
+		var positionChangedID = gmxAPI.map.addListener('positionChanged', repaint);
+		ret.remove = function()
+		{
+			chkEvent('onRemove');
+			obj.remove();
+			domObj.removeInternal();
+			if(zoomListenerID) gmxAPI._listeners.removeListener(null, 'onZoomend', zoomListenerID); zoomListenerID = null;
+			if(positionChangedID) gmxAPI.map.removeListener('positionChanged', positionChangedID); positionChangedID = null;
+		}
+		var needMouseOver = true;
+		//var itemMouseDownID = null;
+		ret.chkMouse = function(ph)
+		{
+			if(!mouseOverFlag) return false;
+			var downType = getDownType(ph, coords, oBounds);
+			var flag = ('type' in downType ? true : false);
+			//console.log('chkMouse:  ', obj.objectId, flag, ph);
+			if(flag) {
+				//gmxAPI._cmdProxy('startDrawing');
+				//if(!itemMouseDownID) itemMouseDownID = obj.addListener('onMouseDown', itemMouseDown);
+				var title = '';
+				if(!mousePressed) {
+					var ii = downType['cnt'];
+					if(downType['type'] === 'node') {
+						if(editType === 'LINESTRING') {
+							title = gmxAPI.prettifyDistance(gmxAPI.geoLength({ type: "LINESTRING", coordinates: [coords.slice(0,ii+1)] }));
+						} else if(editType === 'POLYGON') {
+							title = getGeometryTitle({ type: "POLYGON", coordinates: [coords] });
+						}
+					} else if(downType['type'] === 'edge') {
+						if(ii == 0 && editType === 'LINESTRING') return false;
+						var p1 = coords[ii];
+						var p2 = coords[(ii == 0 ? coords.length - 1 : ii - 1)];
+						title = getGeometryTitle({ type: "LINESTRING", coordinates: [[[p1[0], p1[1]], [p2[0], p2[1]]]] });
+					}
+				}
+				chkEvent('onMouseOver', title);
+				needMouseOver = false;
+				if(pCanvas) pCanvas.style.cursor = 'pointer';
+			} else {
+				//gmxAPI._cmdProxy('stopDrawing');
+				//if(itemMouseDownID) obj.removeListener('onMouseDown', itemMouseDownID); itemMouseDownID = null;
+				if(propsBalloon) propsBalloon.updatePropsBalloon(false);
+				if(!needMouseOver) {
+					chkEvent('onMouseOut'); 
+					needMouseOver = true;
+					if(pCanvas) pCanvas.style.cursor = '';
+				}
+			}
+			return flag;
+		}
+		var createDrawingItem = function()
+		{
+			domObj = createDOMObject(ret, props);
+			domObj.objectId = obj.objectId;
+			domObj['stateListeners'] = obj['stateListeners'];
+			node = mapNodes[obj.objectId];
+			eventType = 'onAdd';
+			obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
+			if(editType === 'LINESTRING') obj.setLine([[0, 0], [0, 0]]);
+			else obj.setRectangle(0, 0, 0, 0);
+			repaint();
+		}
+		
 		if (coords)
 		{
 			if(coords.length == 1) coords = coords[0];
@@ -963,6 +960,7 @@
 			oBounds = gmxAPI.getBounds(coords);
 			createDrawingItem();
 			mouseOverFlag = true;
+			setTimeout(repaint, 0);
 		} else {
 			addItemListenerID = gmxAPI.map.addListener('onClick', addDrawingItem);
 		}
@@ -1035,19 +1033,25 @@
 			}
 		}
 
-		var drawMe = function(canvas)
+		var layerGroup = null;
+		var layerItems = [];
+		var isMouseOver = false;
+		
+		var drawMe = function()
 		{ 
-			if(canvas) {
-				pCanvas = canvas;
-				pCanvas.setAttribute('id', obj.objectId + '_drawing');
-			}	
+			if(!node.leaflet) return;
 			coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
-			oBounds = gmxAPI.getBounds(coords);
-			if(!pCanvas || !oBounds) return;
+			if(!layerGroup) {
+				layerGroup = node.leaflet;
+				//layerGroup.on('mouseover', function(e) { isMouseOver = true; });
+			}
 			if(needInitNodeEvents) chkNodeEvents();
-			drawAttr['canvas'] = pCanvas; drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
+			drawAttr['mousedown'] = itemMouseDown;
+			drawAttr['layerGroup'] = layerGroup;
+			drawAttr['layerItems'] = layerItems;
+			drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
 			drawAttr['node'] = node;
-			drawCanvas(drawAttr);
+			drawSVG(drawAttr);
 		}
 		
 		var getPos = function() { return {'x': x1, 'y': y1}; }
@@ -1064,14 +1068,13 @@
 			var downType = getDownType(ph, [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]], oBounds);
 			return ('type' in downType ? downType : null);
 		}
-		var itemMouseDown = function(ph)
+		var itemMouseDown = function(e, attr)
 		{
-			mousePressed = true;
+			if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 			coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
-			oBounds = gmxAPI.getBounds(coords);
-			var downType = getDownType(ph.attr, coords, oBounds);
+			var downType = getDownType(e, coords);
 			if('type' in downType) {
-				if(propsBalloon) propsBalloon.updatePropsBalloon(false);
+				mousePressed = true;
 				gmxAPI._cmdProxy('startDrawing');
 				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 				onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
@@ -1092,10 +1095,6 @@
 			} else {
 				return false;
 			}
-			if(propsBalloon) propsBalloon.updatePropsBalloon(false);
-			gmxAPI._cmdProxy('startDrawing');
-			onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
-			onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
 			return true;
 		};
 		
@@ -1147,6 +1146,7 @@
 			domObj.objectId = obj.objectId;
 			domObj['stateListeners'] = obj['stateListeners'];
 			node = mapNodes[obj.objectId];
+
 			eventType = 'onAdd';
 			obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 			obj.setRectangle(0, 0, 0, 0);
@@ -1189,7 +1189,6 @@
 			gmxAPI._setToolHandler("onMouseDown", null);
 			if(toolsContainer) toolsContainer.selectTool("move");
 			if(domObj) domObj.triggerInternal("onMouseUp");
-			//eventType = 'onFinish';
 			chkEvent('onFinish');
 			return true;
 		};
@@ -1269,20 +1268,24 @@
 		
 		var needMouseOver = true;
 		ret.chkMouse = function(ph)
-		{ 
+		{
 			coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
 			oBounds = gmxAPI.getBounds(coords);
+			//console.log('chkMouse:  ', isMouseOver, ph.latlng);
 			var downType = getDownType(ph, coords, oBounds);
 			var flag = ('type' in downType ? true : false);
 			if(flag) {
+				//if(isMouseOver) {
 				var txt = (mousePressed ? '' : getBalloonText(downType));
 				chkEvent('onMouseOver', txt);
+				//}
 				needMouseOver = false;
-				pCanvas.style.cursor = 'pointer';
+				//pCanvas.style.cursor = 'pointer';
 			} else {
 				if(!needMouseOver) {
 					chkEvent('onMouseOut'); needMouseOver = true;
-					pCanvas.style.cursor = '';
+					//isMouseOver = false;
+					//pCanvas.style.cursor = '';
 				}
 			}	
 			return flag;
@@ -1293,7 +1296,9 @@
 			oBounds = gmxAPI.getBounds(coords);
 			x1 = oBounds.minX; y1 = oBounds.maxY;	x2 = oBounds.maxX; y2 = oBounds.minY;
 			createDrawingItem();
-			mouseOverFlag = true;
+			mouseUp();
+			setTimeout(repaint, 0);
+			//mouseOverFlag = true;
 		} else {
 			addItemListenerID = gmxAPI.map.addListener('onMouseDown', function(ph)
 			{
@@ -1463,6 +1468,8 @@
 					return cObj;
 				}
 			}
+
+/**/
 			return null;
 		}
 		,
@@ -1475,6 +1482,8 @@
 					if(fName in cObj && cObj[fName].call(cObj, attr)) return true;
 				}
 			}
+/*
+*/
 			return false;
 		}
 	}

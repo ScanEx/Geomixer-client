@@ -207,14 +207,12 @@
 				var gmxNode = null;
 				if(attr['tID'].indexOf('_drawing') > 0) {
 					gmxNode = gmxAPI.map.drawing.getHoverItem(attr);
-//console.log('chkGlobalEvent: ', evName, attr['tID'], gmxNode);
 				}
 				if(gmxNode && gmxNode['stateListeners'][evName]) {
-//console.log('chkGlobalEvent11: ', evName, gmxNode['stateListeners'][evName].length);
 					if(gmxAPI._listeners.dispatchEvent(evName, gmxNode, {'attr':attr})) return true;
 				}
 			}
-			if(attr['node'] && attr['hNode']) {
+			if(attr['node'] && attr['hNode'] && attr['hNode']['handlers'][evName]) {
 				if(attr['hNode']['handlers'][evName](attr['node']['id'], attr['node'].geometry.properties, {'ev':attr['ev']})) return true;
 			}
 			if(gmxAPI.map['stateListeners'][evName]) {
@@ -488,7 +486,7 @@
 						return;
 					} else {
 						if(node['subType'] === 'drawingFrame') {
-							node.leaflet = utils.addCanvasIcon(node, regularStyle);
+							node.leaflet = new L.FeatureGroup([]);
 							if(node['leaflet']) {
 								setVisible({'obj': node, 'attr': true});
 							}
@@ -1170,7 +1168,7 @@
 		}
 		mapNodes[id] = pt;
 		if(pt['geometry']['type']) {
-			gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
+			gmxAPI._leaflet['drawManager'].add(id);				// добавим в менеджер отрисовки
 			if(pt['leaflet']) {
 				setHandlerObject(id);							// добавить Handler для mapObject
 			}
@@ -1512,8 +1510,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var currZ = LMap.getZoom() - ph.attr.dz;
 			if(currZ > LMap.getMaxZoom() || currZ < LMap.getMinZoom()) return;
 			var pos = LMap.getCenter();
-			//if (ph.attr.useMouse && gmxAPI._leaflet['mousePos'])
-			if (gmxAPI._leaflet['mousePos'])
+			if (ph.attr.useMouse && gmxAPI._leaflet['mousePos'])
 			{
 				var k = Math.pow(2, LMap.getZoom() - currZ);
 				
@@ -3727,14 +3724,15 @@ if(!tileBounds_) return;
 {
 	// Обработчик события - mapInit
 	function onMapInit(ph) {
-/*	
-		// Обработчик события - baseLayerSelected
-		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'baseLayerSelected', 'obj': gmxAPI.map, 'func': function(ph) {
-				var nodeLayer = ph;
-console.log(' baseLayerSelected: ' + ph + ' : ');
-			}
-		});
-*/		
+		var mapID = ph['objectId'];
+		mapNodes[mapID] = {
+			'type': 'map'
+			,'handlers': {}
+			,'children': []
+			,'id': mapID
+			,'group': LMap
+			,'parentId': false
+		};
 	}
 	
 	var utils = null;							// Утилиты leafletProxy
@@ -3760,12 +3758,12 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 					zoomControl: false
 					,boxZoom: false
 					,doubleClickZoom: false
+					//,worldCopyJump: false
 					
 					//,inertia: false
 					//,fadeAnimation: false
 					//,markerZoomAnimation: true
 					//,dragging: false
-					//,worldCopyJump: false
 					//,zoomAnimation: false
 					//,trackResize: true
 					,crs: L.CRS.EPSG3395
@@ -3830,6 +3828,11 @@ console.log(' baseLayerSelected: ' + ph + ' : ');
 				};
 				gmxAPI._updatePosition(e, attr);
 				if(setCenterPoint) setCenterPoint();
+				if(gmxAPI.map.handlers['onMove']) {
+					var mapID = gmxAPI.map['objectId'];
+					var node = mapNodes[mapID];
+					if(node['handlers']['onMove']) node['handlers']['onMove'](mapID, gmxAPI.map.properties, attr);
+				}
 			});
 			var parseEvent = function(e) {		// Парсинг события мыши
 				var target = e.originalEvent.originalTarget || e.originalEvent.target;
