@@ -1,15 +1,17 @@
 ﻿.timeline-container
 {
     width: 500px;
-    height: 85px;
+    height: 105px;
     position: absolute;
     top: 135px;
     left: 482px;
     background-color: rgba(1, 106, 138, 0.498039);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A);
 }
 
 .timeline-container div.timeline-axis-text-major,
-.timeline-container div.timeline-axis-text
+.timeline-container div.timeline-axis-text,
+.timeline-container .timeline-controls
 {
     color: white;
 }
@@ -22,4 +24,9 @@
 .timeline-container  div.timeline-event-line
 {
     border-color: yellow;
+}
+
+.timeline-container  div.timeline-event-selected
+{
+    border-color: magenta;
 }
