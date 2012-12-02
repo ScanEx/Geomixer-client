@@ -1626,6 +1626,14 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			return true;
 		}
 		,
+		'setClusters':	function(ph)	{
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node || !node.setClusters) return false;
+			node.setClusters(ph.attr);
+			return true;
+		}
+		,
 		'setEditObjects':	function(ph)	{							// Установка редактируемых обьектов слоя
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
@@ -2256,8 +2264,10 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		node['loaderFlag'] = false;
 		node['badTiles'] = {};
 		node['tilesGeometry'] = {};				// Геометрии загруженных тайлов по z_x_y
-		node['addedItems'] = {};				// Геометрии обьектов добавленных в векторный слой
+		node['addedItems'] = []					// Геометрии обьектов добавленных в векторный слой
 		node['objectsData'] = {};				// Обьекты из тайлов по identityField
+		node['clustersData'] = null;			// Данные кластеризации
+
 		node['deletedObjects'] = {};
 		node['editedObjects'] = {};
 		node['mousePos'] = {};					// позиция мыши в тайле
@@ -2654,7 +2664,6 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			for (var index in data)
 			{
 				var pid = data[index];
-				if(node['addedItems'][pid]) delete node['addedItems'][pid];
 				var pt = node['objectsData'][pid];
 				if(pt) {
 					var fromTiles = pt.propHiden['fromTiles'];
@@ -2671,6 +2680,13 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 					}
 				}
 			}
+			var arr = [];
+			for (var i = 0; i < node['addedItems'].length; i++)
+			{
+				var item = node['addedItems'][i]; 
+				if(!data[item['id']]) arr.push(item);
+			}
+			node['addedItems'] = arr; 
 			waitRedraw();
 		}
 
@@ -2729,11 +2745,11 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			}
 
 			var zoom = attr['zoom'];
-			if(zoom != gmxAPI._leaflet['lastZoom']) {
+			//if(zoom != gmxAPI._leaflet['lastZoom']) {
 				gmxAPI._leaflet['lastZoom'] = zoom;
 				var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
 				gmxAPI._leaflet['mInPixel'] = 256/tileSize;
-			}
+			//}
 			var cnt = 0;
 			attr['node'] = node;
 
@@ -3006,8 +3022,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			{
 				if(node['filters'][i] === eID) node.refreshFilter(eID);
 			}
-			}
-		});
+		}});
 /*		
 		node.chkFilters = function(fid)	{		// обновить стиль фильтра
 			for (var i = 0; i < node['filters'].length; i++)
@@ -3030,6 +3045,32 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			node['filters'] = arr;
 			//reCheckFilters();
 		}
+		
+		node.setClusters = function(ph)	{			// Добавить кластеризацию к векторному слою
+			var out = {};
+			gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onIconLoaded', 'func': function(eID) {	// проверка загрузки иконок
+				if(eID.indexOf('_clusters')) {
+					if(eID == node.id + '_regularStyle_clusters') {
+						out.regularStyle['ready'] = true;
+					} else if(eID == node.id + '_hoveredStyle_clusters') {
+						out.hoveredStyle['ready'] = true;
+					}
+				}
+				//console.log(' onIconLoaded: ' + eID + ' : '); 
+			}});
+			if(ph.RenderStyle) {
+				out.regularStyle = utils.parseStyle(ph.RenderStyle, node.id + '_regularStyle_clusters');
+				out.regularStyleIsAttr = utils.isPropsInStyle(out.regularStyle);
+				if(!out.regularStyleIsAttr) out.regularStyle = utils.evalStyle(out.regularStyle)
+			}
+			if(ph.HoverStyle) {
+				out.hoveredStyle = utils.parseStyle(ph.HoverStyle, node.id + '_hoveredStyle_clusters');
+				out.hoveredStyleIsAttr = utils.isPropsInStyle(out.hoveredStyle);
+				if(!out.hoveredStyleIsAttr) out.hoveredStyle = utils.evalStyle(out.hoveredStyle)
+			}
+			node['clustersData'] = out;
+		}
+
 		node.addFilter = function(fid)	{			// Добавить фильтр к векторному слою
 			var flag = true;
 			for (var i = 0; i < node['filters'].length; i++)
@@ -3041,6 +3082,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			}
 			if(flag) node['filters'].push(fid);
 			node.refreshFilter(fid);
+			mapNodes[fid]['setClusters'] = node.setClusters;
 		}
 
 		function removeNode(key)	{				// Удалить ноду
@@ -3709,6 +3751,7 @@ if(!tileBounds_) return;
 					zoomControl: false
 					,boxZoom: false
 					,doubleClickZoom: false
+					,attributionControl: false
 					//,worldCopyJump: false
 					
 					//,inertia: false
