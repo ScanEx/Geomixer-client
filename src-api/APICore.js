@@ -1948,7 +1948,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			}
 			return true;
 		});
-
+		var me = this;
 		this.addListener('onClick', function(o)
 		{
 			if('obj' in o)  o = o.obj;
@@ -1956,7 +1956,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
 			var curZ = currPos['z'];
 			if(images[idt] && curZ >= minZoom && curZ <= maxZoom) images[idt].bringToTop();		// только для zoom со снимками
-			gmxAPI._listeners.dispatchEvent('onFlip', this, images[idt]);
+			gmxAPI._listeners.dispatchEvent('onFlip', me, images[idt]);
 			return false;
 		}, -5);
 
