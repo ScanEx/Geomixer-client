@@ -18,9 +18,10 @@
 			(arr.length > 0 ? arr[0] : 1)
 			);
 
-		var baseAddress = "http://" + prop.hostName + "/";
+		var hostName = prop.hostName || 'maps.kosmosnimki.ru';
+		var baseAddress = "http://" + hostName + "/";
 		var layerName = prop.name || prop.image;
-		var sessionKey = isRequiredAPIKey( prop.hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
+		var sessionKey = isRequiredAPIKey( hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
 		var sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[prop.mapName] : false);
 		var prefix = baseAddress + 
 				"TileSender.ashx?ModeKey=tile" + 
@@ -87,6 +88,7 @@
 			var ph = {};
 			var arr = [];
 			if(!vers) vers = [];
+			if(!data) data = [];
 			for (var nm=0; nm<data.length; nm++)
 			{
 				arr = data[nm];

@@ -187,9 +187,9 @@
 		}
 		,
 		'chkGlobalEvent': function(attr)	{					// проверка Click на перекрытых нодах
-//console.log('chkGlobalEvent', attr);
 			if(!attr || !attr['evName']) return;
 			var evName = attr['evName'];
+			//console.log('chkGlobalEvent', evName);
 			var standartTools = gmxAPI.map.standartTools;
 			if(!gmxAPI._leaflet['curDragState'] && standartTools && standartTools['activeToolName'] === 'move') {	// проверяем векторные слои только в режиме перемещения и не рисуя
 				var from = gmxAPI.map.layers.length - 1;
@@ -560,71 +560,13 @@
 				var p2 = LMap.unproject(new L.Point(pix['x'] + size/2, pix['y'] - size/2));
 				
 				var bounds = new L.LatLngBounds(p1, p2);
-/*				
-				if(node['subType'] === 'drawingFrame') {
-					var drawMe = function(canvas_) {
-						var canvas = canvas_;
-						var canvas = canvas_;
-					}
-					var pp = (node.propHiden && node.propHiden['drawMe'] ? node.propHiden['drawMe'] : drawMe);
-			//if(node.propHiden) {
-				//if(node.propHiden['subType'] == 'tilesParent') {	//ограничение по zoom квиклуков
-					
-					var canvasIcon = L.canvasIcon({
-						className: 'my-canvas-icon'
-						,'node': node
-						,'drawMe': drawMe
-						//,iconAnchor: new L.Point(12, 12) // also can be set through CSS
-					});
-					out = L.marker([pos[1], pos[0]], {icon: canvasIcon});
-				} else 
-*/
-				{
-					out = new L.RectangleMarker(bounds, {
-						fillColor: "#ff7800",
-						color: "#000000",
-						opacity: 1,
-						weight: 2
-					});
-	/*				
-					
-					var opt = {
-						'from': node.id
-						,iconAnchor: new L.Point(0, 0)
-						,fillColor: "#ff7800"
-						,color: "#000000"
-						,opacity: 1
-						,weight: 2
-						,bounds: bounds
-						,'className': 'my-div-icon'
-					};
-					var nIcon = L.RectangleIcon.extend({
-						'options': opt
-					});
-					var optMarker = {
-						icon: new nIcon()
-						,'from': node.id
-					};
-					if(node['subType'] === 'drawing') {
-						optMarker['draggable'] = true;
-					}
-					out = new L.Marker(new L.LatLng(pos[1], pos[0]), optMarker);
-					var optMarker = {
-						fillColor: "#ff7800",
-						color: "#000000",
-						opacity: 1,
-						weight: 2
-					};
-					if(node['subType'] === 'drawing') {
-						//optMarker['editable'] = true;
-						optMarker['draggable'] = true;
-					}
 
-					out = new L.RectangleMarker(bounds, optMarker);
-					out = new L.RectangleIcon(bounds, optMarker);
-					//out = new L.RectangleMarker(bounds, optMarker);
-	*/
-				}
+				out = new L.RectangleMarker(bounds, {
+					fillColor: "#ff7800",
+					color: "#000000",
+					opacity: 1,
+					weight: 2
+				});
 			}
 			if(out && node['subType'] === 'drawing') {
 				out.on('drag', function(e) {		// Drag на drawing обьекте
@@ -2009,14 +1951,14 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			//,iconAnchor: new L.Point(12, 12) // also can be set through CSS
 		});
 		
-		//L.marker([attr['y1'], attr['x1']], {icon: canvasIcon}).addTo(LMap);
 		attr['reposition'] = function() {
 			if(node['leaflet']) node['leaflet'].setLatLng(posLatLng);
 		}
-		var marker = L.marker(posLatLng, {icon: canvasIcon});
+		var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});
 		node['leaflet'] = marker;
 		node['group'].addLayer(marker);
 		setVisible({'obj': node, 'attr': true});
+		setNodeHandlers(node.id);
 
 		var redrawMe = function(e) {
 			repaint(imageObj, canvas);
@@ -2638,6 +2580,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		function chkObjectFilters(geo)	{				// Получить фильтры для обьекта
 			var zoom = LMap.getZoom();
 			var toFilters = [];
+			delete geo.curStyle;
 			for(var j=0; j<node.filters.length; j++) {
 				var filterID = node.filters[j];
 				var filter = mapNodes[node.filters[j]];
@@ -2796,6 +2739,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 
 			var setLabel = function(item)	{							// установка label
 				if(node['labels'][item.id]) return;
+				if(!item.curStyle || !item.curStyle.label) return;
 				var regularStyle = item.curStyle;
 				var labelStyle = regularStyle.label;
 				var divStyle = {'width': 'auto', 'height': 'auto'};
@@ -2860,14 +2804,14 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 					var filters = propHiden['toFilters'];
 					var lastZoom = propHiden['lastZoom'];
 					var filter = (filters && filters.length ? mapNodes[filters[0]] : null);
-					if(gmxAPI._leaflet['lastZoom'] != lastZoom) {
+					//if(gmxAPI._leaflet['lastZoom'] != lastZoom) {
 						filters = propHiden['toFilters'] = chkObjectFilters(geom);
-						propHiden['lastZoom'] = gmxAPI._leaflet['lastZoom'];
+						propHiden['lastZoom'] = zoom;
 						if(filters && filters.length) {
 							filter = mapNodes[filters[0]];
-							if(filter) styleToGeo(geom, filter);
+							if(filter && !geom.curStyle) styleToGeo(geom, filter);
 						}
-					}
+					//}
 					//if(!filter || filter.isVisible === false || !utils.chkZoomObject(filter.id, zoom)) continue;		// если нет фильтра или он невидим пропускаем
 					if(!filter || filter.isVisible === false || !geom.curStyle) {		// если нет фильтра или он невидим пропускаем
 						continue;
@@ -2915,7 +2859,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 						};
 					}
 					res.push(geom['id']);
-					if(geom.type === 'Point' && geom.curStyle.label) setLabel(geom);
+					if(geom.type === 'Point' && geom.curStyle && geom.curStyle.label) setLabel(geom);
 				}
 				return res;
 			}
@@ -3017,6 +2961,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			{
 				redrawTimer = null;
 				myLayer.redraw();
+				gmxAPI._leaflet['lastZoom'] = LMap.getZoom();
 			}, 10);
 			return false;
 		}
@@ -3025,8 +2970,11 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			{
 				var arr = node['tilesGeometry'][tileID];
 				for (var i = 0; i < arr.length; i++) {
-					chkObjectFilters(arr[i]);
+					arr[i].propHiden['toFilters'] = chkObjectFilters(arr[i]);
 				}
+			}
+			for (var i = 0; i < node['addedItems'].length; i++) {
+				node['addedItems'][i].propHiden['toFilters'] = chkObjectFilters(node['addedItems'][i]);
 			}
 		}
 		node.waitRedraw = waitRedraw;				// перерисовать слой
@@ -3047,7 +2995,9 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			var filterNode = mapNodes[fid];
 			if(!filterNode) return;						// Нода не была создана через addObject
 			//filterNode.styleRecalc = true;
+			reCheckFilters();
 			waitRedraw();
+			gmxAPI._leaflet['lastZoom'] = -1;
 			return true;
 		}
 		// image загружен

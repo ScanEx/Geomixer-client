@@ -196,6 +196,7 @@
 		,'chkVersion': function (layer) {		// Обработка списка редактируемых обьектов слоя
 			if(!layer || !('Processing' in layer.properties)) return;
 			layer.addListener('onLayer', function(ph) {
+				if(!layer.properties.tilesVers && !layer.properties.TemporalVers) return false;
 				gmxAPI._layersVersion.chkVersionLayers(layer.parent, layer);
 				ph['_Processing'] = chkProcessing(ph, ph.properties);			// слой инициализирован во Flash
 			});

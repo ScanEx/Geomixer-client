@@ -2157,6 +2157,7 @@ gmxAPI.sendCrossDomainJSONRequest = sendCrossDomainJSONRequest;
 
 function isRequiredAPIKey( hostName )
 {
+	if(!hostName) hostName = '';
 	if ( hostName.indexOf("maps.kosmosnimki.ru") != -1 ) 
 		return true;
 		
