@@ -3874,7 +3874,12 @@ if(!tileBounds_) return;
 				//gmxAPI._listeners.dispatchEvent('onMouseDown', null, {});
 			};
 			LMap.on('mousedown', setMouseDown);
-			LMap.on('touchstart', setMouseDown);
+			var setTouchStart = function(e) {
+				gmxAPI._leaflet['mousePressed'] = true;
+				timeDown = new Date().getTime();
+				alert(timeDown);
+			};
+			LMap.on('touchstart', setTouchStart);
 			
 			LMap.on('mousemove', function(e) {
 				if(gmxAPI._leaflet['mousedown']) timeDown -= 900;
