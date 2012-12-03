@@ -3860,7 +3860,7 @@ if(!tileBounds_) return;
 				gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 			});
 			
-			LMap.on('mousedown', function(e) {
+			var setMouseDown = function(e) {
 				gmxAPI._leaflet['mousePressed'] = true;
 				timeDown = new Date().getTime();
 				var standartTools = gmxAPI.map.standartTools;
@@ -3872,7 +3872,10 @@ if(!tileBounds_) return;
 				gmxAPI._leaflet['mousedownAttr'] = attr;
 				gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 				//gmxAPI._listeners.dispatchEvent('onMouseDown', null, {});
-			});
+			};
+			LMap.on('mousedown', setMouseDown);
+			LMap.on('touchstart', setMouseDown);
+			
 			LMap.on('mousemove', function(e) {
 				if(gmxAPI._leaflet['mousedown']) timeDown -= 900;
 				gmxAPI._leaflet['mousePos'] = e.latlng;
@@ -4033,6 +4036,8 @@ visibleext
 					
 					var attr = this.options.attr;
 					var flagAll = false;
+flagAll = true;
+					
 					if(!attr.bounds ||
 						(attr.bounds.min.x < -179
 						&& attr.bounds.min.y < -85

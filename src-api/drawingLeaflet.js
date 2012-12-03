@@ -121,6 +121,7 @@
 			var mousedown = function(e) { attr['mousedown'](e, this); };
 			layerItems[0].on('mousedown', mousedown , {'num':0, 'type':'edge'});
 		}
+		layerItems[0].bringToFront();
 		var latLngs = [];
 		for (var i = 0; i < attr['coords'].length; i++)
 		{
@@ -148,6 +149,7 @@
 				layerItems[num].on('mousedown', mousedown , {'dx':dx, 'num':i, 'type':'node'});
 			}
 			layerItems[num].setBounds(getBoundsPoint(pArr[0] + dx,  pArr[1]));
+			layerItems[num].bringToFront();
 		}
 		if(attr['lastPoint']) {
 			if(!tmpPoint) {
