@@ -1197,7 +1197,6 @@
 						}
 						node['leaflet']._isVisible = false;
 						if(pGroup['_layers'][node['leaflet']['_leaflet_id']]) pGroup.removeLayer(node['leaflet']);
-						
 //						for (var i = 0; i < node['children'].length; i++) {
 //							setVisibleRecursive(mapNodes[node['children'][i]], false);
 //						}
@@ -1654,11 +1653,9 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		if(!hash) hash = {};
 		var obj = hash['obj'] || null;	// Целевой обьект команды
 		var attr = hash['attr'] || '';
-try {
+//try {
 		ret = (cmd in commands ? commands[cmd].call(commands, hash) : {});
-} catch(e) {
-	gmxAPI.addDebugWarnings({'func': 'drawTriangle', 'event': e, 'alert': e});
-}
+//} catch(e) { gmxAPI.addDebugWarnings({'func': 'drawTriangle', 'event': e, 'alert': e}); }
 //console.log(cmd + ' : ' , hash , ' : ' , ret);
 		return ret;
 	}
@@ -1968,7 +1965,8 @@ try {
 		attr['reposition'] = function() {
 			if(node['leaflet']) node['leaflet'].setLatLng(posLatLng);
 		}
-		var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});
+		var marker = L.marker(posLatLng, {icon: canvasIcon});
+		//var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});
 		node['leaflet'] = marker;
 		node['group'].addLayer(marker);
 		setVisible({'obj': node, 'attr': true});
@@ -1980,6 +1978,8 @@ try {
 		//LMap.on('zoomend', function(e) { repaint(imageObj, canvas); });
 		//gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': redrawMe });
 		gmxAPI.map.addListener('positionChanged', redrawMe, 11);
+
+		LMap.on('click', function(e) {});	// Для Click на растре
 		
 		var zoomTimer = null;
 		LMap.on('zoomanim', function(e) {
@@ -2760,41 +2760,48 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			attr['node'] = node;
 
 			var setLabel = function(item)	{							// установка label
-				if(node['labels'][item.id]) return;
-				if(!item.curStyle || !item.curStyle.label) return;
-				var regularStyle = item.curStyle;
-				var labelStyle = regularStyle.label;
-				var divStyle = {'width': 'auto', 'height': 'auto'};
-				if(labelStyle['color']) divStyle['color'] = utils.dec2hex(labelStyle['color']);
-				if(labelStyle['haloColor']) divStyle['backgroundColor'] = utils.dec2rgba(labelStyle['haloColor'], 0.3);
-				//if(labelStyle['haloColor']) divStyle['backgroundColor'] = 'rgba(255, 255, 255, 0.3)';
-				
-				var opt = {'className': 'my-div-icon', 'html': node['label'], 'divStyle': divStyle };
-				if(labelStyle['field']) opt['html'] = item.properties[labelStyle['field']];
-				//opt['html'] = '<nobr>'+opt['html']+'</nobr>';
-				
-				var optm = {'zIndexOffset': 1, 'title': ''}; // , clickable: false
-				if(labelStyle['size']) opt['iconSize'] = new L.Point(labelStyle['size'], labelStyle['size']);
-
-				var iconAnchor = new L.Point(0, 0);
-				if(labelStyle['align'] === 'center') {
-					opt['iconAnchor'] = new L.Point(Math.floor(iconAnchor.x/2), Math.floor(iconAnchor.y/2));
+				if(node['labels'][item.id]) {
+					if(!node['labels'][item.id]._isVisible) {
+						node['labels'][item.id].addTo(node['group']);
+						node['labels'][item.id]._isVisible = true;
+					}
 				} else {
-					divStyle['bottom'] = 0;
-					opt['iconAnchor'] = new L.Point(-Math.floor(iconAnchor.x/2) - 6, Math.floor(iconAnchor.y/2));
-				}
-				
-				var myIcon = L.gmxIcon(opt);
-				var pp = item.coordinates;
+					if(!item.curStyle || !item.curStyle.label) return;
+					var regularStyle = item.curStyle;
+					var labelStyle = regularStyle.label;
+					var divStyle = {'width': 'auto', 'height': 'auto'};
+					if(labelStyle['color']) divStyle['color'] = utils.dec2hex(labelStyle['color']);
+					if(labelStyle['haloColor']) divStyle['backgroundColor'] = utils.dec2rgba(labelStyle['haloColor'], 0.3);
+					//if(labelStyle['haloColor']) divStyle['backgroundColor'] = 'rgba(255, 255, 255, 0.3)';
+					
+					var opt = {'className': 'my-div-icon', 'html': node['label'], 'divStyle': divStyle };
+					if(labelStyle['field']) opt['html'] = item.properties[labelStyle['field']];
+					//opt['html'] = '<nobr>'+opt['html']+'</nobr>';
+					
+					var optm = {'zIndexOffset': 1, 'title': ''}; // , clickable: false
+					if(labelStyle['size']) opt['iconSize'] = new L.Point(labelStyle['size'], labelStyle['size']);
 
-				optm['icon'] = myIcon;
-				var marker = L.marker([gmxAPI.from_merc_y(pp.y), gmxAPI.from_merc_x(pp.x)], optm);		
-				marker.addTo(node['group']);
-				node['labels'][item.id] = marker;
-				
+					var iconAnchor = new L.Point(0, 0);
+					if(labelStyle['align'] === 'center') {
+						opt['iconAnchor'] = new L.Point(Math.floor(iconAnchor.x/2), Math.floor(iconAnchor.y/2));
+					} else {
+						divStyle['bottom'] = 0;
+						opt['iconAnchor'] = new L.Point(-Math.floor(iconAnchor.x/2) - 6, Math.floor(iconAnchor.y/2));
+					}
+					
+					var myIcon = L.gmxIcon(opt);
+					var pp = item.coordinates;
+
+					optm['icon'] = myIcon;
+					var marker = L.marker([gmxAPI.from_merc_y(pp.y), gmxAPI.from_merc_x(pp.x)], optm);		
+					marker.addTo(node['group']);
+					marker._isVisible = true;
+					node['labels'][item.id] = marker;
+				}
 			}
 			
 			var rasterNums = 0;
+			var hideIDS = {};
 			var drawGeoArr = function(arr, flag)	{							// указать стиль Canvas
 				var flipDraw = {};
 				for (var i = 0; i < node['flipIDS'].length; i++) {
@@ -2802,10 +2809,10 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				}
 
 				var res = [];
-
 				for (var i1 = 0; i1 < arr.length; i1++)
 				{
 					var geom = arr[i1];
+					hideIDS[geom['id']] = true;
 					if(flag && flipDraw[geom['id']]) continue; 	// Нарисовать поверх
 					if(geom.type !== 'Point' && geom.type !== 'Polygon' && geom.type !== 'MultiPolygon' && geom.type !== 'Polyline' && geom.type !== 'MultiPolyline') continue;
 					var notIntersects = false;
@@ -2872,13 +2879,18 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 						}
 						putRasterLayer(attr, geom);
 						rasterNums++;
+						delete hideIDS[geom['id']];
 					} else {
+						delete hideIDS[geom['id']];
 						var pr = geom['paint'](attr);
 						if(!node['tilesRedrawImages'][drawTileID]) node['tilesRedrawImages'][drawTileID] = {};
 						node['tilesRedrawImages'][drawTileID][geom['id']] = {
 							'geom': geom
 							,'attr': attr
 						};
+						//if(node['labels'][geom['id']]) {
+							//node['labels'][geom['id']].addTo(node['group']);
+						//}
 					}
 					res.push(geom['id']);
 					if(geom.type === 'Point' && geom.curStyle && geom.curStyle.label) setLabel(geom);
@@ -2931,6 +2943,16 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				//delete node['tilesRedrawImages'][tileID];
 				return true;
 			}
+			/*
+			for (var key in hideIDS)						// Перебрать все загруженные тайлы
+			{
+				var tt = 1;
+				if(node['labels'][key]) {
+					node['group'].removeLayer(node['labels'][key]);
+				}
+			}
+			*/
+			hideIDS = {};
 			return out;
 		}
 		var objectToCanvas = function(pt)	{								// отрисовка растров векторного тайла
@@ -2981,7 +3003,14 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			if(redrawTimer) clearTimeout(redrawTimer);
 			redrawTimer = setTimeout(function()
 			{
+				if(!node.isVisible) return;
 				redrawTimer = null;
+				for (var key in node['labels'])						// Перебрать все установленные labels
+				{
+					node['group'].removeLayer(node['labels'][key]);
+					node['labels'][key]._isVisible = false;
+				}
+				
 				myLayer.redraw();
 				gmxAPI._leaflet['lastZoom'] = LMap.getZoom();
 			}, 10);
@@ -4101,6 +4130,8 @@ ctx.restore();
 ctx.strokeRect(2, 2, 253, 253);
 ctx.font = '24px "Tahoma"';
 ctx.fillText(drawTileID, 10, 128);
+var testWidth = ctx.measureText(drawTileID).width;
+console.log('testWidth ', testWidth);
 */
 							me.tileDrawn(tile);
 							
