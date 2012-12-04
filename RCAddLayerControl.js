@@ -1,4 +1,6 @@
-﻿nsGmx.RCAddLayerControl = function(map, layerName)
+﻿// Контрол для добавления в каталог растров новых слоёв. 
+// Позволяет выбирать из существующих на сервере слоёв, слоёв внутри карты и создавать новый слой
+nsGmx.RCAddLayerControl = function(map, layerName)
 {
     var infoContainer = $('<div/>');
     var InfoControl = function(container)
