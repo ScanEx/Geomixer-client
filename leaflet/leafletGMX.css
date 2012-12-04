@@ -1,0 +1,20 @@
+.leaflet-tile {
+}
+
+.leaflet-canvas-icon {
+}
+
+.my-div-icon {
+	color: white;
+	font-weight: bold;
+}
+
+.leaflet-marker-icon {
+	-moz-text-shadow: 1px 1px 1px #FFFFFF;
+	-webkit-text-shadow: 1px 1px 1px #FFFFFF;
+	text-shadow: 1px 1px 1px #FFFFFF;
+	/* For IE 8 */
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=1, Direction=135, Color='#FFFFFF')";
+	/* For IE 5.5 - 7 */
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=1, Direction=135, Color='#FFFFFF'); 
+}

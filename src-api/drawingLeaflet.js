@@ -1302,7 +1302,7 @@
 			setTimeout(repaint, 0);
 			//mouseOverFlag = true;
 		} else {
-			addItemListenerID = gmxAPI.map.addListener('onMouseDown', function(ph)
+			var setMouseDown = function(ph)
 			{
 				mousePressed = true;
 				x1 = ph.attr.latlng.lng;
@@ -1313,7 +1313,9 @@
 				addItemListenerID = null;
 				//console.log('onMouseDown: onMouseMoveID ', x1, y1, x2, y2);
 				return true;
-			});
+			};
+			addItemListenerID = gmxAPI.map.addListener('onMouseDown', setMouseDown);
+			
 			onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
 		}
 		return ret;

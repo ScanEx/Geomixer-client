@@ -1304,12 +1304,14 @@
 		'startDrawing': function(ph)	{					// Режим рисования
 			gmxAPI._leaflet['curDragState'] = true;
 			LMap.dragging.disable();
+			LMap.touchZoom.addHooks();
 			return true;
 		}
 		,
 		'stopDrawing': function(ph)	{						// Отмена режима рисования
 			gmxAPI._leaflet['curDragState'] = false;
 			LMap.dragging.enable();
+			LMap.touchZoom.removeHooks();
 			return true;
 		}
 		,
@@ -3877,9 +3879,21 @@ if(!tileBounds_) return;
 			var setTouchStart = function(e) {
 				gmxAPI._leaflet['mousePressed'] = true;
 				timeDown = new Date().getTime();
-				alert(timeDown);
+var out = {
+	'_width': e.target.width
+	,'_height': e.target.height
+	//,'pwidth': e.target.parentNode.width
+	//,'pheight': e.target.parentNode.height
+	//,'originalEvent': e
+};
+
+//var st = e.target.style['-webkit-transform'];
+var st = '';
+for (var key in e.target.style) { st += key + ': ' + e.target.style[key]; }
+//alert(st);
+//alert(JSON.stringify(out));
 			};
-			LMap.on('touchstart', setTouchStart);
+			//L.DomEvent.on(LMap._container, 'touchstart', setTouchStart, this);
 			
 			LMap.on('mousemove', function(e) {
 				if(gmxAPI._leaflet['mousedown']) timeDown -= 900;
@@ -4041,7 +4055,6 @@ visibleext
 					
 					var attr = this.options.attr;
 					var flagAll = false;
-flagAll = true;
 					
 					if(!attr.bounds ||
 						(attr.bounds.min.x < -179
@@ -4057,7 +4070,7 @@ flagAll = true;
 							return;
 						}
 					}
-
+tile.style.webkitTransform += ' scale3d(1.002, 1.002, 1)';
 					var item = {
 						'src': tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom + tile._layer.options.zoomOffset)
 						,'bounds': bounds
@@ -4073,7 +4086,6 @@ flagAll = true;
 								}
 								drawCanvasPolygon( ctx, tileX, tileY, attr['geom'], zoom, bounds, tile._layer.options.shiftY);
 							}
-							
 							var pattern = ctx.createPattern(imageObj, "no-repeat");
 							ctx.fillStyle = pattern;
 							if(flagAll) ctx.fillRect(0, 0, 256, 256);
