@@ -92,7 +92,7 @@ var createRC = function(results, params)
     }
     
     if (_params.userBorder)
-        requestParams.UserBorder = _params.userBorder;
+        requestParams.UserBorder = JSON.stringify(_params.userBorder);
     
     var fieldIdx = 0;
     var ColumnTagLinks = {}
