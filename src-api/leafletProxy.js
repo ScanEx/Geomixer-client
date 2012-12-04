@@ -1654,7 +1654,11 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		if(!hash) hash = {};
 		var obj = hash['obj'] || null;	// Целевой обьект команды
 		var attr = hash['attr'] || '';
+try {
 		ret = (cmd in commands ? commands[cmd].call(commands, hash) : {});
+} catch(e) {
+	gmxAPI.addDebugWarnings({'func': 'drawTriangle', 'event': e, 'alert': e});
+}
 //console.log(cmd + ' : ' , hash , ' : ' , ret);
 		return ret;
 	}
@@ -4361,19 +4365,35 @@ ctx.fillText(drawTileID, 10, 128);
 		initFunc = loadCallback;
 		var apiHost = gmxAPI.getAPIFolderRoot();
 
-		var script = document.createElement("script");
-		script.setAttribute("charset", "windows-1251");
-		//window.L_PREFER_CANVAS = true;		// полигоны в отдельном canvas слое
-		script.setAttribute("src", apiHost + "leaflet/leaflet.js");
-		document.getElementsByTagName("head").item(0).appendChild(script);
-		//script.setAttribute("onLoad", onload );
-		
 		var css = document.createElement("link");
 		css.setAttribute("type", "text/css");
 		css.setAttribute("rel", "stylesheet");
 		css.setAttribute("media", "screen");
 		css.setAttribute("href", apiHost + "leaflet/leaflet.css");
 		document.getElementsByTagName("head").item(0).appendChild(css);
+		
+		css = document.createElement("link");
+		css.setAttribute("type", "text/css");
+		css.setAttribute("rel", "stylesheet");
+		css.setAttribute("media", "screen");
+		css.setAttribute("href", apiHost + "leaflet/leafletGMX.css");
+		document.getElementsByTagName("head").item(0).appendChild(css);
+		
+		if(gmxAPI.isIE) {
+			css = document.createElement("link");
+			css.setAttribute("type", "text/css");
+			css.setAttribute("rel", "stylesheet");
+			css.setAttribute("media", "screen");
+			css.setAttribute("href", apiHost + "leaflet/leaflet.ie.css");
+			document.getElementsByTagName("head").item(0).appendChild(css);
+		}
+
+		var script = document.createElement("script");
+		script.setAttribute("charset", "windows-1251");
+		//window.L_PREFER_CANVAS = true;		// полигоны в отдельном canvas слое
+		script.setAttribute("src", apiHost + "leaflet/leaflet.js");
+		document.getElementsByTagName("head").item(0).appendChild(script);
+		//script.setAttribute("onLoad", onload );
 
 		leafLetCont_ = gmxAPI.newElement(
 			"div",
