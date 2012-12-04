@@ -579,7 +579,7 @@ var ModisImagesProvider = function( params )
                     // modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
                     //modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
                     modisLayers[layerName].setVisibilityFilter("IsDay = 'True'");
-                    
+/*                    
                     modisLayers[layerName].enableTiledQuicklooks(function(o)
                     {
                         return TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
@@ -587,7 +587,7 @@ var ModisImagesProvider = function( params )
                             return o.properties[arguments[1]];
                         });
                     }, 3, 10);
-                    
+  */                  
                     curDef.resolve();
 
                 })
