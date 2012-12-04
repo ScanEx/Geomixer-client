@@ -246,7 +246,7 @@ var parseURLParams = function()
 
 $(document).ready(function()
 {
-    window.language = readCookie("language") || window.defaultLang || "rus";
+    window.language = window.defaultLang || readCookie("language") || "rus";
 	if (window.language == "eng")
 		window.KOSMOSNIMKI_LANGUAGE = "English";
 	
@@ -747,8 +747,9 @@ function loadMap(state)
         _iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
         _iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
         
-        if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages ) 
-            _translationsHash.showLanguages();		
+        //если в конфигурационном файле указан defaultLang, то пользователю всё равно не удастся сменить язык
+        if ( !window.defaultLang && (typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages) ) 
+            _translationsHash.showLanguages();
                         
         if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
         {
