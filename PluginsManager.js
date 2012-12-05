@@ -1,5 +1,58 @@
 ﻿(function(){
 
+//внутреннее представление плагина
+var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isPublic)
+{
+    var usageState = mapPlugin ? 'unknown' : 'used'; //used, notused, unknown
+    var _this = this; 
+    
+    var doLoad = function()
+    {
+        if (_this.body || _this.isLoading)
+            return;
+            
+        _this.isLoading = true;
+        gmxCore.loadModule(moduleName, file).done(function()
+        {
+            _this.body = gmxCore.getModule(moduleName);
+            _this.isLoading = false;
+            _this.pluginName = _this.pluginName || _this.body.pluginName;
+            _this.def.resolve();
+        });
+    }
+    
+    this.body = body;
+    this.params = params;
+    this.def = $.Deferred();
+    this.isLoading = false;
+    this.mapPlugin = mapPlugin || (body && body.pluginName);
+    this.pluginName = pluginName || (this.body && this.body.pluginName);
+    
+    if (this.body)
+        this.def.resolve();
+        
+    //мы не будем пока загружать плагин только если он не глобальный и имеет имя
+    if (!mapPlugin || !pluginName) {
+        doLoad();
+    }
+    
+    this.setUsage = function(usage)
+    {
+        usageState = usage;
+        if (usageState === 'used') {
+            doLoad();
+        }
+        else {
+            this.def.resolve();
+        }
+    }
+    
+    this.isUsed = function()
+    {
+        return usageState === 'used';
+    }
+}
+
 /**
   @name IGeomixerPlugin
   @desc Интерфейс плагинов ГеоМиксера
@@ -57,84 +110,46 @@ var PluginsManager = function()
 {
 	var _plugins = [];
     var _pluginsWithName = {};
-	var _callbacks = [];
-	var _initDone = false;
-	var _loadingPluginsInfo = {}; //тут временно хранятся модули пока загружается их тело
 	
 	//загружаем инфу о модулях и сами модули при необходимости из window.gmxPlugins
 	if (typeof window.gmxPlugins !== 'undefined')
 	{
 		var modules = [];
-		for (var p = 0; p < window.gmxPlugins.length; p++)
+        
+        $.each(window.gmxPlugins, function(i, info)
 		{
-            var curPlugin = window.gmxPlugins[p];
+            if (typeof info === 'string')
+                info = { module: info, file: 'plugins/' + info + '.js' };
             
-            if (typeof curPlugin === 'string')
-                curPlugin = { module: curPlugin, file: 'plugins/' + curPlugin + '.js' };
+            var plugin = new Plugin(
+                info.module, 
+                info.file,
+                info.plugin,
+                info.params,
+                info.pluginName,
+                info.mapPlugin,
+                info.isPublic || false
+            );
             
-			if ('plugin' in curPlugin)
-			{
-				var plugin = { 
-                    body:      curPlugin.plugin, 
-                    params:    curPlugin.params,
-                    name:      curPlugin.pluginName || curPlugin.plugin.pluginName,
-                    mapPlugin: curPlugin.mapPlugin,
-                    isPublic:  curPlugin.isPublic || false,
-                    _inUse:    !curPlugin.mapPlugin
-                };
-				
-                if (plugin.name)
-                    _pluginsWithName[ plugin.name ] = plugin;
-                    
-				_plugins.push( plugin );
-			}
-			else
-			{
-                var moduleName = curPlugin.module;
-                
-                if (!(moduleName in _loadingPluginsInfo))
+            _plugins.push(plugin);
+            
+            if (plugin.pluginName) {
+                _pluginsWithName[ plugin.pluginName ] = plugin;
+            }
+            else
+            {
+                plugin.def.done(function()
                 {
-                    if ( typeof curPlugin.file !== 'undefined' )
-                        gmxCore.loadModule(moduleName, curPlugin.file);
-				
-                    modules.push(moduleName);
-                
-                    _loadingPluginsInfo[moduleName] = curPlugin;
-                }
-			}
-		}
-		
-		gmxCore.addModulesCallback(modules, function()
-		{
-			for (var m = 0; m < modules.length; m++)
-			{
-                var pluginBody = gmxCore.getModule(modules[m]);
-				var plugin = {
-                    body:      pluginBody, 
-                    params:    _loadingPluginsInfo[modules[m]].params, 
-                    name:      _loadingPluginsInfo[modules[m]].pluginName || pluginBody.pluginName,
-                    mapPlugin: _loadingPluginsInfo[modules[m]].mapPlugin,
-                    isPublic:  _loadingPluginsInfo[modules[m]].isPublic || false,
-                    _inUse:    !_loadingPluginsInfo[modules[m]].mapPlugin
-                };
-                
-                if ( plugin.name )
-                    _pluginsWithName[plugin.name] = plugin;
-                
-				_plugins.push( plugin );
-			}
-				
-			_initDone = true;
-			
-			for ( var f = 0; f < _callbacks.length; f++ )
-				_callbacks[f]();
-				
-			_callbacks = [];
-		});
+                    if (plugin.pluginName) {
+                        _pluginsWithName[ plugin.pluginName ] = plugin;
+                    }
+                })
+            }
+		})
 	}
 	else
 	{
-		_initDone = true;
+		// _initDone = true;
 	}
     
     var _genIterativeFunction = function(funcName)
@@ -142,27 +157,27 @@ var PluginsManager = function()
         return function(map)
         {
             for (var p = 0; p < _plugins.length; p++)
-                if ( _plugins[p]._inUse && typeof _plugins[p].body[funcName] !== 'undefined')
+                if ( _plugins[p].isUsed() && typeof _plugins[p].body[funcName] !== 'undefined')
                     _plugins[p].body[funcName]( _plugins[p].params, map || window.globalFlashMap );
         }
     }
-		
-	//interface
-	
-	/**
-	 Вызывет callback когда будут загружены все плагины
+    
+	//public interface
+    
+    /**
+	 Вызывет callback когда будут загружены все плагины, загружаемые в данный момент
 	 @memberOf PluginsManager
-     @name addCallback
+     @name done
      @method
      @param {Function} callback Ф-ция, которую нужно будет вызвать
 	*/
-	this.addCallback = function( callback )
-	{
-		if (!_initDone)
-			_callbacks.push(callback);
-		else
-			callback();
-	}
+    this.done = function(f)
+    {
+        var deferreds = [];
+        $.each(_plugins, function(i, plugin){ plugin.isLoading && deferreds.push(plugin.def); });
+        
+        $.when.apply($, deferreds).done(f);
+    }
     
 	/**
 	 Вызывает beforeMap() у всех плагинов
@@ -197,7 +212,7 @@ var PluginsManager = function()
 	this.addMenuItems = function( upMenu )
 	{
 		for (var p = 0; p < _plugins.length; p++)
-			if ( _plugins[p]._inUse && typeof _plugins[p].body.addMenuItems != 'undefined')
+			if ( _plugins[p].isUsed() && typeof _plugins[p].body.addMenuItems != 'undefined')
 			{
 				var menuItems = _plugins[p].body.addMenuItems();
 				for (var i = 0; i < menuItems.length; i++)
@@ -214,7 +229,7 @@ var PluginsManager = function()
 	*/
     this.forEachPlugin = function(callback)
     {
-        if (!_initDone) return;
+        //if (!_initDone) return;
         for (var p = 0; p < _plugins.length; p++)
             callback(_plugins[p]);
     }
@@ -230,7 +245,7 @@ var PluginsManager = function()
     this.setUsePlugin = function(pluginName, isInUse)
     {
         if (pluginName in _pluginsWithName)
-            _pluginsWithName[pluginName]._inUse = isInUse;
+            _pluginsWithName[pluginName].setUsage(isInUse ? 'used' : 'notused');
     }
     
     /**

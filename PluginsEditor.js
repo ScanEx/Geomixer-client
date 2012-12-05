@@ -66,9 +66,9 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
     
     nsGmx.pluginsManager.forEachPlugin(function(plugin)
     {
-        if ( typeof plugin.name !== 'undefined' && plugin.mapPlugin && (plugin.isPublic || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) )
+        if ( typeof plugin.pluginName !== 'undefined' && plugin.mapPlugin && (plugin.isPublic || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) )
         {
-            _allPlugins.push(plugin.name);
+            _allPlugins.push(plugin.pluginName);
         }
     })
     
