@@ -43,13 +43,34 @@ var userObjects = function()
     
     /**
 	 Вызывает метод load() у всех поставщиков данных, для которых есть данные.
+     После вызова метода данные для данного загрузчика будут удалены (чтобы предотвратить множественную загрузку)
 	 @method
 	*/
-    this.load = function()
+    this.load = function(dataCollectorNames)
     {
-        for (var id in _collectors)
-            if (id in _data && 'load' in _collectors[id])
-                _collectors[id].load(_data[id]);
+        var collectors = {};
+        
+        if (dataCollectorNames)
+        {
+            if (typeof dataCollectorNames === 'string')
+                dataCollectorNames = [dataCollectorNames];
+
+            for (var dc = 0; dc < dataCollectorNames.length; dc++)
+            {
+                var name = dataCollectorNames[dc];
+                if (name in _collectors)
+                    collectors[name] = _collectors[name];
+            }
+        }
+        else
+            collectors = _collectors;
+        
+        for (var id in collectors)
+            if (id in _data && 'load' in collectors[id])
+            {
+                collectors[id].load(_data[id]);
+                delete _data[id];
+            }
     }
     
     /**
@@ -63,8 +84,11 @@ var userObjects = function()
     this.addDataCollector = function( collectorId, collector )
     {
         _collectors[collectorId] = collector;
-        if (collectorId in _data)
-            collector.load()
+        if (collectorId in _data && 'load' in collector)
+        {
+            collector.load(_data[collectorId])
+            delete _data[collectorId];
+        }
     }
 }
 
