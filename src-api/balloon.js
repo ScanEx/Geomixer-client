@@ -671,12 +671,19 @@
 			if(eventX == eventXprev && eventY == eventYprev) return;
 			eventXprev = eventX; 
 			eventYprev = eventY;
+/*			
 			if(!gmxAPI.contDivPos) {
+			
 				gmxAPI.contDivPos = {
 					'x': gmxAPI.getOffsetLeft(div),
 					'y': gmxAPI.getOffsetTop(div)
 				};
 			}
+*/
+			gmxAPI.contDivPos = {
+				'x': div.offsetLeft,
+				'y': div.offsetTop
+			};
 			var px = eventX - gmxAPI.contDivPos['x']; 
 			var py = eventY - gmxAPI.contDivPos['y'];
 			propsBalloon.setScreenPosition(px, py);
@@ -707,9 +714,15 @@ event.stopImmediatePropagation();
 		
 		gmxAPI.map.addListener('onResizeMap', function()
 			{
+/*			
 				gmxAPI.contDivPos = {
 					'x': gmxAPI.getOffsetLeft(div),
 					'y': gmxAPI.getOffsetTop(div)
+				};
+*/
+				gmxAPI.contDivPos = {
+					'x': div.offsetLeft,
+					'y': div.offsetTop
 				};
 				positionBalloons();
 			}

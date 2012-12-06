@@ -431,7 +431,7 @@
 			var minLayerZoom = 20;
 			forEachLayer(layers, function(layer, isVisible) 
 			{
-				map.addLayer(layer, isVisible);
+				map.addLayer(layer, (layer.properties.visible ? true : isVisible));
 				if('LayerVersion' in layer.properties && gmxAPI._layersVersion) {
 					gmxAPI._layersVersion.chkVersionLayers(layers, layer);
 				}

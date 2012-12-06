@@ -459,6 +459,8 @@
 				if(balloon) balloon.setPoint(xx, yy, false);
 				obj.setPoint(xx, yy);
 				isDragged = false;
+				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
+				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
 			}
 			
 			gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': upCallback });
@@ -750,7 +752,6 @@
 			}
 			gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
 			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
-			//console.log('chkEvent:  ', eType, lastPoint);
 		}
 
 		ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;

@@ -1745,39 +1745,56 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			return LMap.project(point);
 		}
 		
-		var zoomPrev = LMap.getZoom();
-		var minPoint = null;
+		var	bounds = new L.Bounds();
+		bounds.extend(new L.Point(attr['x1'], attr['y1']));
+		bounds.extend(new L.Point(attr['x2'], attr['y2']));
+		bounds.extend(new L.Point(attr['x3'], attr['y3']));
+		bounds.extend(new L.Point(attr['x4'], attr['y4']));
+		//var minPoint = LatLngToPixel(bounds.max.y, bounds.min.x);
+		var minPoint = LatLngToPixel(attr['y1'], attr['x1']);
+		var minP = null;
+		
+		//var zoomPrev = LMap.getZoom();
 		var getPixelPoints = function(ph) {
-			var LatLngToPixel = function(y, x) {
-				var point = new L.LatLng(y, x);
-				return LMap.project(point);
-			}
 			var out = {};
-			minPoint = LatLngToPixel(ph['y1'], ph['x1']); out['x1'] = 0; out['y1'] = 0;
-			var pix = LatLngToPixel(ph['y2'], ph['x2']); out['x2'] = pix.x - minPoint.x; out['y2'] = pix.y - minPoint.y;
-			pix = LatLngToPixel(ph['y3'], ph['x3']); out['x3'] = pix.x - minPoint.x; out['y3'] = pix.y - minPoint.y;
-			pix = LatLngToPixel(ph['y4'], ph['x4']); out['x4'] = pix.x - minPoint.x; out['y4'] = pix.y - minPoint.y;
+			var pix = LatLngToPixel(ph['y1'], ph['x1']); out['x1'] = Math.floor(pix.x); out['y1'] = Math.floor(pix.y);
+			pix = LatLngToPixel(ph['y2'], ph['x2']); out['x2'] = Math.floor(pix.x); out['y2'] = Math.floor(pix.y);
+			pix = LatLngToPixel(ph['y3'], ph['x3']); out['x3'] = Math.floor(pix.x); out['y3'] = Math.floor(pix.y);
+			pix = LatLngToPixel(ph['y4'], ph['x4']); out['x4'] = Math.floor(pix.x); out['y4'] = Math.floor(pix.y);
 
-			out.ww = Math.round(out['x2']);
-			out.hh = Math.round(out['y3']);
+			var	boundsP = new L.Bounds();
+			boundsP.extend(new L.Point(out['x1'], out['y1']));
+			boundsP.extend(new L.Point(out['x2'], out['y2']));
+			boundsP.extend(new L.Point(out['x3'], out['y3']));
+			boundsP.extend(new L.Point(out['x4'], out['y4']));
+			minP = boundsP.min;
+			
+			out['x1'] -= boundsP.min.x; out['y1'] -= boundsP.min.y;
+			out['x2'] -= boundsP.min.x; out['y2'] -= boundsP.min.y;
+			out['x3'] -= boundsP.min.x; out['y3'] -= boundsP.min.y;
+			out['x4'] -= boundsP.min.x; out['y4'] -= boundsP.min.y;
+
+			//out.ww = Math.round(out['x2'] - out['x4']);
+			//out.hh = Math.round(out['y4'] - out['y2']);
+			out.ww = Math.round(boundsP.max.x - boundsP.min.x);
+			out.hh = Math.round(boundsP.max.y - boundsP.min.y);
 			return out;
 		}
 
 		//node['refreshMe'] = function(imageObj, canvas) {
 		var posLatLng = new L.LatLng(attr['y1'], attr['x1']);
 		var repaint = function(imageObj, canvas) {
+			posLatLng = new L.LatLng(attr['y1'], attr['x1']);
 			var w = imageObj.width;
 			var h = imageObj.height;
 			var ph = getPixelPoints(attr);
 			var ww = ph.ww;
 			var hh = ph.hh;
-			posLatLng = new L.LatLng(attr['y1'], attr['x1']);
-			var p1 = LMap.project(posLatLng);
 
 			var point = LMap.project(new L.LatLng(0, -180));
 			var p180 = LMap.project(new L.LatLng(0, 180));
 			var worldSize = p180.x - point.x;
-
+			
 			var vBounds = LMap.getBounds();
 			var vpNorthWest = vBounds.getNorthWest();
 			var vpSouthEast = vBounds.getSouthEast();
@@ -1785,33 +1802,40 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var vp2 = LMap.project(vpSouthEast);
 			var wView = vp2.x - vp1.x;
 			var hView = vp2.y - vp1.y;
-
-			var dx = 0;
 			
-			//var iconPoint = p11;
-			//iconPoint.lng += dx;
+			var dx = 0;
 			var deltaX = 0;
 			var deltaY = 0;
-			var rx = w/ph.ww;
-			var ry = h/ph.hh;
-
 			if(wView + 100 < ww || hView + 100 < hh) {
+				deltaX = minPoint.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
+				deltaY = minPoint.y - vp1.y;
+				posLatLng = vpNorthWest;
 				ww = wView;
 				hh = hView;
-				deltaX = p1.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
-				deltaY = p1.y - vp1.y;
-				posLatLng = vpNorthWest;
 			}
 			attr['reposition']();
-
+			var rx = w/ph.ww;
+			var ry = h/ph.hh;
+			
+			var points = [[ph['x1'], ph['y1']], [ph['x2'], ph['y2']], [ph['x4'], ph['y4']], [ph['x3'], ph['y3']]];
+			var data = gmxAPI._leaflet['ProjectiveImage']({
+				'imageObj': imageObj
+				,'points': points
+				,'wView': wView
+				,'hView': hView
+				,'deltaX': deltaX
+				,'deltaY': deltaY
+			});
+			
+			var ctx = canvas.getContext('2d');
 			canvas.width = ww;
 			canvas.height = hh;
-			var ctx = canvas.getContext('2d');
 
 			var paintPolygon = function (ph, content) {
 				var ctx = ph['ctx'];
 				var arr = [];
 				var coords = ph['coordinates'];
+				minPoint = LatLngToPixel(attr['y1'], attr['x1']);
 				if(coords) {
 					for (var i = 0; i < coords.length; i++)
 					{
@@ -1844,98 +1868,8 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 				}
 				ctx.fill();
 			}
-		
-			if(rx === 1 && ry === 1) {
-				paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ph['ctx']}, imageObj);
-			} else {
-				if(ph != null) {
-					if(ph.sx != null) {
-						ph.x4 = ph.x1;
-						ph.x2 = ph.x3 = ph.x1 + w * ph.sx;
-						ph.y2 = ph.y1;
-						ph.y3 = ph.y4 = ph.y1 + h * ph.sy;
-					}
-				}
-				//if (!me.controlPointsSet)
-				{
-					ph.tx1 = 0.0;
-					ph.ty1 = 0.0;
-					ph.tx2 = w;
-					ph.ty2 = 0.0;
-					ph.tx3 = w;
-					ph.ty3 = h;
-					ph.tx4 = 0.0;
-					ph.ty4 = h;
-				}
-
-				var matrix = ProjectiveMath.buildMatrix(
-					ph.tx1, ph.ty1, ph.tx2, ph.ty2, ph.tx3, ph.ty3, ph.tx4, ph.ty4, 
-					ph.x1, ph.y1, ph.x2, ph.y2, ph.x3, ph.y3, ph.x4, ph.y4
-				);
-				
-				var container = document.createElement("canvas");
-				container.width = canvas.width;
-				container.height = canvas.height;
-				var ptx = container.getContext('2d');
-				ptx.setTransform(rx, 0, 0, ry, deltaX, deltaY);
-
-				var drawTriangle = function(tx1, ty1, tx2, ty2, tx3, ty3)
-				{
-					var x1 = ProjectiveMath.getX(matrix, tx1, ty1);
-					var y1 = ProjectiveMath.getY(matrix, tx1, ty1);
-					var x2 = ProjectiveMath.getX(matrix, tx2, ty2);
-					var y2 = ProjectiveMath.getY(matrix, tx2, ty2);
-					var x3 = ProjectiveMath.getX(matrix, tx3, ty3);
-					var y3 = ProjectiveMath.getY(matrix, tx3, ty3);
-					var sw = Math.floor(x2 - x1);
-					var sh = Math.floor(y3 - y1);
-					var tw = Math.floor(tx2 - tx1);
-					var th = Math.floor(ty3 - ty1);
-					
-					ptx.save();
-					var inv = ProjectiveMath.invertMatrix([
-						[tx2 - tx1, ty2 - ty1, 0],
-						[tx3 - tx1, ty3 - ty1, 0],
-						[tx1,  ty1,  1]
-					  ]);
-					ptx.transform(inv[0][0], inv[0][1], inv[1][0], inv[1][1], inv[2][0], inv[2][1]);
-					ptx.transform(sw, y2 - y1, x3 - x1, sh, x1, y1);
-					ptx.drawImage(
-						imageObj,
-						tx1, ty1, tw, th,
-						x1, y2, sw, sh
-					);
-					ptx.beginPath();
-					ptx.moveTo(x1, y1);
-					ptx.lineTo(x2, y2);
-					ptx.lineTo(x3, y3);
-					ptx.lineTo(x1, y1);
-					ptx.closePath();
-					ptx.clip();
-					ptx.restore();
-				}
-				
-				var n = 1;
-				try {
-					for (var i=0; i<n; i++)
-					{
-						for (var j=0; j<n; j++)
-						{
-							var tx1 = w*i*1.0/n;
-							var ty1 = h*j*1.0/n;
-							var tx2 = w*(i + 1)*1.0/n;
-							var ty2 = h*(j + 1)*1.0/n;
-							drawTriangle(tx1, ty1, tx2, ty1, tx1, ty2);
-							drawTriangle(tx2, ty2, tx2, ty1, tx1, ty2);
-						}
-					}
-				} catch(e) {
-					gmxAPI.addDebugWarnings({'func': 'drawTriangle', 'event': e});
-				}
-
-				paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx}, container);
-			}
-			zoomPrev = LMap.getZoom();
+			paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx}, data['canvas']);
+			//zoomPrev = LMap.getZoom();
 		}
 
 		var imageObj = null;
@@ -1975,7 +1909,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		var redrawMe = function(e) {
 			repaint(imageObj, canvas);
 		}
-		//LMap.on('zoomend', function(e) { repaint(imageObj, canvas); });
+		LMap.on('zoomend', redrawMe);
 		//gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': redrawMe });
 		gmxAPI.map.addListener('positionChanged', redrawMe, 11);
 
@@ -1984,7 +1918,6 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		var zoomTimer = null;
 		LMap.on('zoomanim', function(e) {
 			var zoom = LMap.getZoom();
-//console.log('bbbbbbbbb ' , ' : '+  zoom); 
 			if(zoomTimer) clearTimeout(zoomTimer);
 			zoomTimer = setTimeout(function()
 			{
@@ -2159,6 +2092,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			
 			redrawTimer = setTimeout(function()
 			{
+				if(!node.isVisible) return;
 				redrawTimer = null;
 				myLayer.redraw();
 			}, 10);
@@ -3813,6 +3747,11 @@ if(!tileBounds_) return;
 			//var pos = new L.LatLng(50.499276, 35.760498);
 			LMap.setView(pos, 4);
 //console.log('waitMe ' , pos);
+
+			LMap.on('mouseover', function(e) {
+				//console.log('moveend ' , gmxAPI.contDivPos);
+				//gmxAPI.contDivPos = null;
+			});
 			LMap.on('moveend', function(e) {
 				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {});
 			});
