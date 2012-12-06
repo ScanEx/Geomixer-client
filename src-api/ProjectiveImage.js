@@ -330,10 +330,10 @@
 		var w = attr.imageObj.width;
 		var h = attr.imageObj.height;
 
-		var ww = ptr[0] - ptl[0];
-		if(ww < ptr[0] - pbl[0]) ww = ptr[0] - pbl[0];
-		var hh = pbr[1] - ptr[1];
-		if(hh < pbr[1] - ptl[1]) hh = pbr[1] - ptl[1];
+		var ww = Math.abs(ptr[0] - ptl[0]);
+		if(ww < Math.abs(ptr[0] - pbl[0])) ww = Math.abs(ptr[0] - pbl[0]);
+		var hh = Math.abs(pbr[1] - ptr[1]);
+		if(hh < Math.abs(pbr[1] - ptl[1])) hh = Math.abs(pbr[1] - ptl[1]);
 		if(attr.wView < ww || attr.hView < hh) {
 			ww = attr.wView;
 			hh = attr.hView;
