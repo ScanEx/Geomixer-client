@@ -1,3 +1,4 @@
+!function(){
 var translationsHash = function()
 {
 	this.hash = {};
@@ -8,6 +9,58 @@ var translationsHash = function()
 }
 
 translationsHash.DEFAULT_LANGUAGE = "rus";
+
+//Для запоминания выбора языка пользователем используются куки. 
+//Запоминается выбор для каждого pathname, а не только для домена целиком
+//Формат куки: pathname1=lang1&pathname2=lang2&...
+var _parseLanguageCookie = function()
+{
+    var text = readCookie("language");
+    
+    if (!text) 
+        return {};
+    
+    var items = text.split('&');
+
+    //поддержка старого формата кук (просто названия взыка для всех pathname)
+    if (items % 2) items = [];
+    
+    var langs = {};
+    for (var i = 0; i < items.length; i++)
+    {
+        var elems = items[i].split('=');
+        langs[decodeURIComponent(elems[0])] = decodeURIComponent(elems[1]);
+    }
+    
+    return langs;
+}
+
+var _saveLanguageCookie = function(langs)
+{
+    var cookies = [];
+    
+    for (var h in langs)
+    {
+        cookies.push(encodeURIComponent(h) + '=' + encodeURIComponent(langs[h]));
+    }
+    
+    eraseCookie("language");
+    createCookie("language", cookies.join('&'));
+}
+
+translationsHash.updateLanguageCookies = function(lang)
+{
+    var langs = _parseLanguageCookie();
+    
+    langs[window.location.pathname] = lang;
+    
+    _saveLanguageCookie(langs);
+}
+
+translationsHash.getLanguageFromCookies = function()
+{
+    return _parseLanguageCookie()[window.location.pathname];
+}
 
 translationsHash.prototype.addtext = function(lang, newHash)
 {
@@ -26,9 +79,6 @@ translationsHash.prototype.addtext = function(lang, newHash)
 
 translationsHash.prototype.showLanguages = function()
 {
-//	if (objLength(this.hash) < 2)
-//		return;
-	
 	var langCanvas = _div(null, [['dir','className','floatRight'],['css','margin',' 7px 10px 0px 0px']])
 	
 	for (var lang in this.hash)
@@ -43,8 +93,7 @@ translationsHash.prototype.showLanguages = function()
 			(function(lang){
 				button.onclick = function()
 				{
-					eraseCookie("language");
-					createCookie("language", lang);
+					translationsHash.updateLanguageCookies(lang);
 					
 					window.location.reload();
 				}
@@ -107,10 +156,14 @@ function _gtxt()
 	return _translationsHash.gettext.apply(_translationsHash, arguments)	
 }
 
-if (typeof gmxCore !== 'undefined')
+window.gmxCore && gmxCore.addModule('translations', 
 {
-    gmxCore.addModule('translations', 
-    {
-        _translationsHash: _translationsHash
-    })
-}
+    _translationsHash: _translationsHash
+})
+
+//Явно добавляем объекты в глобальную видимость
+window._gtxt = _gtxt;
+window._translationsHash = _translationsHash;
+window.translationsHash = translationsHash;
+
+}();

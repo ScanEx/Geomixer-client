@@ -246,7 +246,7 @@ var parseURLParams = function()
 
 $(document).ready(function()
 {
-    window.language = window.defaultLang || readCookie("language") || "rus";
+    window.language = translationsHash.getLanguageFromCookies() || window.defaultLang || "rus";
 	if (window.language == "eng")
 		window.KOSMOSNIMKI_LANGUAGE = "English";
 	
@@ -521,9 +521,7 @@ function loadMap(state)
 	if (state.language)
 	{
 		window.language = state.language;
-		
-		eraseCookie("language");
-		createCookie("language", window.language);
+		translationsHash.updateLanguageCookies(window.language);
 	}
 	
 	window.onresize = resizeAll;
@@ -750,10 +748,9 @@ function loadMap(state)
             _iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
             _iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
             
-            //если в конфигурационном файле указан defaultLang, то пользователю всё равно не удастся сменить язык
-            if ( !window.defaultLang && (typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages) ) 
+            if ( typeof window.gmxViewerUI == 'undefined' ||  !window.gmxViewerUI.hideLanguages )
                 _translationsHash.showLanguages();
-                            
+            
             if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN))
             {
                 $('#headerLinks').append(_a([_t(_gtxt('Администрирование'))], [['dir', 'href', serverBase + 'Administration/SettingsAdmin.aspx'], ['attr','target','_blank'], ['css', 'marginTop', '7px'], ['css', 'fontWeight', 'bold']]));
