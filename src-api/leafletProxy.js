@@ -1744,30 +1744,46 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var point = new L.LatLng(y, x);
 			return LMap.project(point);
 		}
+		var arr = [
+			new L.Point(attr['x1'], attr['y1'])
+			,new L.Point(attr['x2'], attr['y2'])
+			,new L.Point(attr['x3'], attr['y3'])
+			,new L.Point(attr['x4'], attr['y4'])
+		];
+		arr.sort(function (a, b) { 
+			return (a.y == b.y ? 0 : (a.y > b.y ? -1 : 1)); 
+		});
+		var ptl = arr[0];
+		var ptr = arr[1];
+		if(arr[0].x > arr[1].x) ptl = arr[1], ptr = arr[0];
+		var pbl = arr[2];
+		var pbr = arr[3];
+		if(arr[2].x > arr[3].x) pbl = arr[3], pbr = arr[2];
 		
 		var	bounds = new L.Bounds();
-		bounds.extend(new L.Point(attr['x1'], attr['y1']));
-		bounds.extend(new L.Point(attr['x2'], attr['y2']));
-		bounds.extend(new L.Point(attr['x3'], attr['y3']));
-		bounds.extend(new L.Point(attr['x4'], attr['y4']));
+		bounds.extend(ptl);
+		bounds.extend(ptr);
+		bounds.extend(pbl);
+		bounds.extend(pbr);
 		//var minPoint = LatLngToPixel(bounds.max.y, bounds.min.x);
-		var minPoint = LatLngToPixel(attr['y1'], attr['x1']);
-		var minP = null;
+		//var minPoint = LatLngToPixel(ptl.y, ptl.x);
+		//var minP = null;
 		
 		//var zoomPrev = LMap.getZoom();
 		var getPixelPoints = function(ph) {
 			var out = {};
-			var pix = LatLngToPixel(ph['y1'], ph['x1']); out['x1'] = Math.floor(pix.x); out['y1'] = Math.floor(pix.y);
-			pix = LatLngToPixel(ph['y2'], ph['x2']); out['x2'] = Math.floor(pix.x); out['y2'] = Math.floor(pix.y);
-			pix = LatLngToPixel(ph['y3'], ph['x3']); out['x3'] = Math.floor(pix.x); out['y3'] = Math.floor(pix.y);
-			pix = LatLngToPixel(ph['y4'], ph['x4']); out['x4'] = Math.floor(pix.x); out['y4'] = Math.floor(pix.y);
+			var pix = LatLngToPixel(ptl.y, ptl.x); out['x1'] = Math.floor(pix.x); out['y1'] = Math.floor(pix.y);
+			pix = LatLngToPixel(ptr.y, ptr.x); out['x2'] = Math.floor(pix.x); out['y2'] = Math.floor(pix.y);
+			pix = LatLngToPixel(pbr.y, pbr.x); out['x3'] = Math.floor(pix.x); out['y3'] = Math.floor(pix.y);
+			pix = LatLngToPixel(pbl.y, pbl.x); out['x4'] = Math.floor(pix.x); out['y4'] = Math.floor(pix.y);
 
 			var	boundsP = new L.Bounds();
 			boundsP.extend(new L.Point(out['x1'], out['y1']));
 			boundsP.extend(new L.Point(out['x2'], out['y2']));
 			boundsP.extend(new L.Point(out['x3'], out['y3']));
 			boundsP.extend(new L.Point(out['x4'], out['y4']));
-			minP = boundsP.min;
+			//minP = boundsP.min;
+			out['boundsP'] = boundsP;
 			
 			out['x1'] -= boundsP.min.x; out['y1'] -= boundsP.min.y;
 			out['x2'] -= boundsP.min.x; out['y2'] -= boundsP.min.y;
@@ -1782,9 +1798,9 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		}
 
 		//node['refreshMe'] = function(imageObj, canvas) {
-		var posLatLng = new L.LatLng(attr['y1'], attr['x1']);
+		var posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 		var repaint = function(imageObj, canvas) {
-			posLatLng = new L.LatLng(attr['y1'], attr['x1']);
+			posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 			var w = imageObj.width;
 			var h = imageObj.height;
 			var ph = getPixelPoints(attr);
@@ -1807,8 +1823,8 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var deltaX = 0;
 			var deltaY = 0;
 			if(wView + 100 < ww || hView + 100 < hh) {
-				deltaX = minPoint.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
-				deltaY = minPoint.y - vp1.y;
+				deltaX = ph['boundsP'].min.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
+				deltaY = ph['boundsP'].min.y - vp1.y;
 				posLatLng = vpNorthWest;
 				ww = wView;
 				hh = hView;
@@ -1835,7 +1851,8 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 				var ctx = ph['ctx'];
 				var arr = [];
 				var coords = ph['coordinates'];
-				minPoint = LatLngToPixel(attr['y1'], attr['x1']);
+				//minPoint = LatLngToPixel(attr['y1'], attr['x1']);
+				var minPoint = ph['boundsP'].min;
 				if(coords) {
 					for (var i = 0; i < coords.length; i++)
 					{
@@ -1868,7 +1885,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 				}
 				ctx.fill();
 			}
-			paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx}, data['canvas']);
+			paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx, 'boundsP': ph['boundsP']}, data['canvas']);
 			//zoomPrev = LMap.getZoom();
 		}
 

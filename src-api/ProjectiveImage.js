@@ -312,7 +312,6 @@
 			Math.min(u4 - u1 + padu, 1) * iw,
 			Math.min(v4 - v1 + padv, 1) * ih,
 			dx, dy,
-			//dx - attr['deltaX'], dy - attr['deltaY'],
 			1 + padx, 1 + pady
 		);
 		ctx.restore();
@@ -321,23 +320,25 @@
 	var ProjectiveImage = function (attr) {
 		var transform = getProjectiveTransform(attr.points);
 		// Begin subdivision process.
+
 		var ptl = transform.transformProjectiveVector([0, 0, 1]);
 		var ptr = transform.transformProjectiveVector([1, 0, 1]);
 		var pbl = transform.transformProjectiveVector([0, 1, 1]);
 		var pbr = transform.transformProjectiveVector([1, 1, 1]);
-
-		var canvas = document.createElement("canvas");
-		var w = attr.imageObj.width;
-		var h = attr.imageObj.height;
-
-		var ww = Math.abs(ptr[0] - ptl[0]);
-		//if(ww < Math.abs(ptr[0] - pbl[0])) ww = Math.abs(ptr[0] - pbl[0]);
-		var hh = Math.abs(pbr[1] - ptr[1]);
-		if(hh < Math.abs(pbr[1] - ptl[1])) hh = Math.abs(pbr[1] - ptl[1]);
+		var	boundsP = new L.Bounds();
+		boundsP.extend(new L.Point(ptl[0], ptl[1]));
+		boundsP.extend(new L.Point(ptr[0], ptr[1]));
+		boundsP.extend(new L.Point(pbr[0], pbr[1]));
+		boundsP.extend(new L.Point(pbl[0], pbl[1]));
+		var ww = boundsP.max.x - boundsP.min.x;
+		var hh = boundsP.max.y - boundsP.min.y;
 		if(attr.wView < ww || attr.hView < hh) {
 			ww = attr.wView;
 			hh = attr.hView;
 		}
+		var canvas = document.createElement("canvas");
+		var w = attr.imageObj.width;
+		var h = attr.imageObj.height;
 		attr['canvas'] = canvas;
 		attr['ctx'] = canvas.getContext('2d');
 		attr['ctx'].setTransform(1, 0, 0, 1, 0, 0);
