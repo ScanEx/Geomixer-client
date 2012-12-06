@@ -331,7 +331,9 @@
 		var h = attr.imageObj.height;
 
 		var ww = ptr[0] - ptl[0];
+		if(ww < ptr[0] - pbl[0]) ww = ptr[0] - pbl[0];
 		var hh = pbr[1] - ptr[1];
+		if(hh < pbr[1] - ptl[1]) hh = pbr[1] - ptl[1];
 		if(attr.wView < ww || attr.hView < hh) {
 			ww = attr.wView;
 			hh = attr.hView;
