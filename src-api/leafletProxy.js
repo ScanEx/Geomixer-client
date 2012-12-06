@@ -1822,7 +1822,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var dx = 0;
 			var deltaX = 0;
 			var deltaY = 0;
-			if(wView + 100 < ww || hView + 100 < hh) {
+			if(wView < ww || hView < hh) {
 				deltaX = ph['boundsP'].min.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
 				deltaY = ph['boundsP'].min.y - vp1.y;
 				posLatLng = vpNorthWest;
