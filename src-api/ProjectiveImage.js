@@ -1,4 +1,4 @@
-﻿// ProjectiveImage - projective transform that maps [0,1]x[0,1] onto the given set of points.
+// ProjectiveImage - projective transform that maps [0,1]x[0,1] onto the given set of points.
 (function()
 {
 	var Matrix = function (w, h, values) {
