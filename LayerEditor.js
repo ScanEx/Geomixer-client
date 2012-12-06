@@ -132,6 +132,18 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             return true;
         }
         
+        var nameObjectInput = _input(null,[['attr','fieldName','NameObject'],['attr','value',div ? (divProperties.NameObject || '') : (properties.NameObject || '')],['dir','className','inputStyle'],['css','width','220px']])
+        nameObjectInput.onkeyup = function()
+        {
+            if (div)
+            {
+                divProperties.NameObject = nameObjectInput.value;
+                treeView.findTreeElem(div).elem.content.properties = divProperties;
+            }
+            
+            return true;
+        }
+        
         var copyright = _input(null,[['attr','fieldName','copyright'],['attr','value',div ? (divProperties.Copyright || '') : (properties.Copyright || '')],['dir','className','inputStyle'],['css','width','220px']])
         copyright.onkeyup = function()
         {
@@ -196,14 +208,12 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
         
         var encodingParent = _div();
         var layerTagsParent = _div(null, [['dir', 'className', 'layertags-container']]);
-        //var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
         
         var collapsableTagsParent = _div();
         new nsGmx.Controls.CollapsibleWidget(_gtxt('Метаданные'), $('<div/>').appendTo(collapsableTagsParent), layerTagsParent, type === "Vector");
         
         $(layerTagsParent).appendTo(collapsableTagsParent);
         
-        //event: change
         var encodingWidget = new nsGmx.ShpEncodingWidget();
         
         var convertedTagValues = {};
@@ -215,6 +225,8 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
         
         var layerTags = new nsGmx.LayerTags(tagsInfo, convertedTagValues);
         var layerTagsControl = new nsGmx.LayerTagSearchControl(layerTags, layerTagsParent);
+        
+        var advancedCollapsable;
         
         if (type == "Vector")
         {
@@ -634,11 +646,19 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
             var temporalLayerParams = new nsGmx.TemporalLayerParams(initTemporalParams);
             var temporalLayerView = new nsGmx.TemporalLayerParamsControl(temporalLayerParent, temporalLayerParams, []);
-            shownProperties.push({name: _gtxt("Данные с датой"), elem: temporalLayerParent});
+            
+            var collapsableAdvancedParent = _div();
+            shownProperties.push({tr:_tr([_td([collapsableAdvancedParent], [['attr', 'colSpan', 2]])])});
+            
+            shownProperties.push({name: _gtxt("Данные с датой"), elem: temporalLayerParent, trclass: 'layer-advanved-options'});
 
             //каталог растров
             var rasterCatalogDiv = $('<div/>');
-            shownProperties.push({name: _gtxt("Каталог растров"), elem: rasterCatalogDiv[0], iddom: 'RCCreate-container'});
+            shownProperties.push({name: _gtxt("Каталог растров"), elem: rasterCatalogDiv[0], trid: 'RCCreate-container', trclass: 'layer-advanved-options'});
+            
+            shownProperties.push({name: _gtxt("Шаблон названий объектов"), elem: nameObjectInput, trclass: 'layer-advanved-options'});
+            
+            advancedCollapsable = new nsGmx.Controls.CollapsibleWidget(_gtxt("Дополнительно"), $('<div/>').appendTo(collapsableAdvancedParent), [], true);
         }
         else
         {
@@ -834,10 +854,16 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             shownProperties.push({tr:trShape});
         }
         
+        
         shownProperties.push({tr:_tr([_td([collapsableTagsParent], [['attr', 'colSpan', 2]])])});
             
         var trs = _mapHelper.createPropertiesTable(shownProperties, properties, {leftWidth: 70});
         _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
+        
+        if (advancedCollapsable)
+        {
+            advancedCollapsable.addManagedElements($('.layer-advanved-options', parent));
+        }
         
         // в IE инициализировать чекбоксы можно только после их добавления в DOM-дерево
         $('input#chxFileSource').attr('checked', 'checked');
@@ -929,9 +955,11 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                         layerTitle = title.value,
                         temporalParams = '',
                         tableCSParam = selectedSource == 1 ? '&TableCS=' + encodeURIComponent(TableCSSelect.find(':selected').val()) : '',
-                        RCParams = '';
-                        
+                        RCParams = '',
+                        nameObjectParams = '&NameObject=' + encodeURIComponent(nameObjectInput.value);
+
                     var rcProps = rasterCatalogControl.getRCProperties();
+                    
                     if (rcProps.IsRasterCatalog)
                     {
                         RCParams = '&IsRasterCatalog=true';
@@ -960,7 +988,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                         updateParams = '&VectorLayerID=' + divProperties.LayerID;
                     }
                     
-                    if (isCustomAttributes)
+                    if (!div && isCustomAttributes)
                     {
                         var count = attrModel.getCount();
                         var columnsString = "&FieldsCount=" + count;
@@ -978,7 +1006,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                             cols + columnsString + temporalParams +
                             "&geometrytype=" + geomType +
                             metadataString +
-                            RCParams, 
+                            RCParams + nameObjectParams, 
                             function(response)
                             {
                                 if (!parseResponse(response))
@@ -1022,7 +1050,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                             "&Description=" + encodeURIComponent(descr.value) + 
                             "&GeometryDataSource=" + encodeURIComponent(geometryDataSource) + 
                             "&MapName=" + encodeURIComponent(mapProperties.name) + 
-                            cols + updateParams + encoding + temporalParams + metadataString + tableCSParam + RCParams, 
+                            cols + updateParams + encoding + temporalParams + metadataString + tableCSParam + RCParams + nameObjectParams, 
                             function(response)
                             {
                                 if (!parseResponse(response))

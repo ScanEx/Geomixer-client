@@ -140,6 +140,8 @@ _translationsHash.hash["eng"] = {
     "Каталог растров" : "Raster catalogue",
     "Данные с датой": "Data with time",
     "Источник": "Source",
+    "Дополнительно": "Advanced options",
+    "Шаблон названий объектов": "Objects title template",
 	"Y (широта)" : "Y (latitude)",
 	"X (долгота)" : "X (longitude)",
 	"Каталог" : "Catalogue",
