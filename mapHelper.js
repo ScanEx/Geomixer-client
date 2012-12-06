@@ -2633,7 +2633,8 @@ mapHelper.prototype.createNewLayer = function(type)
 //   * name - названия свойства, которое будет писаться в левой колонке
 //   * elem - если есть, то в правую колонку помещается этот элемент
 //   * field - если нет "elem", в правый столбец подставляется layerProperties[field]
-//   * iddom - id для DOM элемента. Не применяется, если прямо указано tr
+//   * trid - id для DOM элементов. Не применяется, если прямо указано tr
+//   * trclass - class для DOM элементов. Не применяется, если прямо указано tr
 // - layerProperties - просто хеш строк для подстановки в правую колонку
 // - style:
 //   * leftWidth - ширина левой колонки в пикселях
@@ -2657,8 +2658,11 @@ mapHelper.prototype.createPropertiesTable = function(shownProperties, layerPrope
 		
 		var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width', _styles.leftWidth + 'px'],['css','paddingLeft','5px'],['css','fontSize','12px']]), td]);
 		
-        if (shownProperties[i].iddom)
-            _(tr, [], [['attr', 'id', shownProperties[i].iddom]]);
+        if (shownProperties[i].trid)
+            _(tr, [], [['attr', 'id', shownProperties[i].trid]]);
+            
+        if (shownProperties[i].trclass)
+            _(tr, [], [['dir', 'className', shownProperties[i].trclass]]);
         
 		trs.push(tr);
 	}
