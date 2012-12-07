@@ -430,6 +430,7 @@
 		}
 		,
 		'getNodeProp': function(node, type, recursion)	{					// получить свойство ноды - рекурсивно
+			if(!node) return null;
 			if(type in node) return node[type];
 			if(recursion) return (node.parentId in mapNodes ? utils.getNodeProp(mapNodes[node.parentId], type, recursion) : null);
 		}
@@ -462,6 +463,9 @@
 		}
 		,
 		'repaintNode': function(node, recursion, type)	{					// перерисовать ноду - рекурсивно
+			if(!node) {
+				return null;
+			}
 			if(!type) type = 'regularStyle';
 			var regularStyle = utils.getNodeProp(node, type, true);
 			if(regularStyle) {				// Стиль определен
@@ -3747,13 +3751,13 @@ if(!tileBounds_) return;
 					,boxZoom: false
 					,doubleClickZoom: false
 					,attributionControl: false
+					,zoomAnimation: (gmxAPI.isChrome ? false : true)
 					//,worldCopyJump: false
 					
 					//,inertia: false
 					//,fadeAnimation: false
 					//,markerZoomAnimation: true
 					//,dragging: false
-					//,zoomAnimation: false
 					//,trackResize: true
 					,crs: L.CRS.EPSG3395
 					//,'crs': L.CRS.EPSG3857 // L.CRS.EPSG4326 // L.CRS.EPSG3395 L.CRS.EPSG3857

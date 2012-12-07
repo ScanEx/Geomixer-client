@@ -383,6 +383,7 @@
 				}
 				var balloon = addBalloon();
 				balloon.pID = o.parent.objectId;
+				balloon.obj = o;
 				balloon.fixedId = id;
 				if(keyPress && keyPress['objType']) balloon.objType = keyPress['objType'];
 
@@ -844,14 +845,15 @@ event.stopImmediatePropagation();
 			balloon.remove = function()
 			{
 				if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
-				var i = 0;
-				while ((i < balloons.length) && (balloons[i] != this))
-					i += 1;
-				if (i < balloons.length)
-				{
-					balloons.splice(i, 1);
-					div.removeChild(this.outerDiv);
+				for(var i=0; i<balloons.length; i++) {
+					if(balloons[i] == balloon) {
+						balloons.splice(i, 1);
+						break;
+					}
 				}
+				div.removeChild(this.outerDiv);
+				var gmxNode = gmxAPI.mapNodes[balloon.pID];		// Нода gmxAPI
+				gmxAPI._listeners.dispatchEvent('onBalloonRemove', gmxNode, {'obj': balloon.obj});		// balloon удален
 			}
 			balloon.getX = function() { return this.geoX; }
 			balloon.getY = function() { return this.geoY; }
@@ -883,6 +885,7 @@ event.stopImmediatePropagation();
 			
 			if ( balloonParams.Balloon )
 			{
+				filter['_balloonTemplate'] = balloonParams.Balloon;
 				enableHoverBalloon(filter, function(o)
 					{
 						var text = gmxAPI.applyTemplate(balloonParams.Balloon, o.properties);
