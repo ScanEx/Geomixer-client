@@ -2312,6 +2312,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 					}
 				}
 				if(out.length) {
+					//callback(gmxAPI.clone(out));
 					callback(out);
 				}
 			}
@@ -2390,6 +2391,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				{
 					var item = items[i];
 					if(!item.propHiden['toFilters'] || !item.propHiden['toFilters'].length) continue;		// обьект не попал в фильтр
+					if(node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](item['properties'])) continue; 	// если фильтр видимости на слое не отменен
 					if(node.chkTemporalFilter(item)) {
 						if((item['contains'] && item['contains'](mPoint))
 							|| item.bounds.contains(mPoint)) arr.push(item);
@@ -2426,7 +2428,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		}
 		var getItemsByPoint = function(latlng) {			// проверка событий векторного слоя
 			var arr = [];
-			if(!node['observerNode']) {
+			//if(!node['observerNode']) {
 				var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
 				arr = getItemsFromTile(node['addedItems'], mPoint);
 				for (var tileID in node['tiles'])
@@ -2440,7 +2442,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 						}
 					}
 				}
-			}
+			//}
 			return arr;
 		}
 		gmxAPI.map.addListener('onMouseMove', function(ph) {
@@ -2453,7 +2455,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		
 		var prevPoint = null;
 		node['eventsCheck'] = function(evName, attr) {			// проверка событий векторного слоя
-			if(node['observerNode']) return false;
+			//if(node['observerNode']) return false;
 			if(!attr) attr = gmxAPI._leaflet['clickAttr'];
 			if(!attr.latlng) return false;
 			var latlng = attr.latlng;
@@ -2468,13 +2470,14 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				}
 				if(!node['flipIDS'].length) return false;
 				var item = node['seFlip']();
+				//console.log('flipIDS' , item.id);
 				if(!item || attr.ctrlKey) return true;
 
 				var prop = item.properties;
 				if(!item.propHiden['toFilters'] || !item.propHiden['toFilters'].length) return;		// обьект не попал в фильтр
 				var fID = item.propHiden['toFilters'][0];
 				var filter = gmxAPI.mapNodes[fID];
-				if(!filter) return;						// не найден фильтр
+				if(!filter || !mapNodes[fID]['handlers'][evName]) return;						// не найден фильтр
 				var geom = utils.transformGeometry(item);
 				mapNodes[fID]['handlers'][evName].call(filter, item.id, prop, {'onClick': true, 'geom': geom});
 				return true;
