@@ -1929,7 +1929,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		setNodeHandlers(node.id);
 
 		var redrawMe = function(e) {
-			repaint(imageObj, canvas);
+			if(imageObj && canvas) repaint(imageObj, canvas);
 		}
 		LMap.on('zoomend', redrawMe);
 		//gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': redrawMe });
