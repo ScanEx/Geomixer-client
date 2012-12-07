@@ -1922,10 +1922,6 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		}
 		var marker = L.marker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane'});
 		//var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});
-		setTimeout(function()
-			{
-				marker.setZIndexOffset(-1000);
-			}, 10);
 			
 		node['leaflet'] = marker;
 		node['group'].addLayer(marker);
@@ -1951,6 +1947,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 				zoomTimer = null;
 				var ctx = canvas.getContext('2d');
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				marker.setZIndexOffset(-1000);
 			}, 10);
 		});
 /*		
