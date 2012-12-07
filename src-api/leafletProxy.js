@@ -1750,15 +1750,15 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			,new L.Point(attr['x3'], attr['y3'])
 			,new L.Point(attr['x4'], attr['y4'])
 		];
-		arr.sort(function (a, b) { 
-			return (a.y == b.y ? 0 : (a.y > b.y ? -1 : 1)); 
-		});
+		//arr.sort(function (a, b) { 
+		//	return (a.y == b.y ? 0 : (a.y > b.y ? -1 : 1)); 
+		//});
 		var ptl = arr[0];
 		var ptr = arr[1];
-		if(arr[0].x > arr[1].x) ptl = arr[1], ptr = arr[0];
-		var pbl = arr[2];
-		var pbr = arr[3];
-		if(arr[2].x > arr[3].x) pbl = arr[3], pbr = arr[2];
+		//if(arr[0].x > arr[1].x) ptl = arr[1], ptr = arr[0];
+		var pbl = arr[3];
+		var pbr = arr[2];
+		//if(arr[2].x > arr[3].x) pbl = arr[3], pbr = arr[2];
 		
 		var	bounds = new L.Bounds();
 		bounds.extend(ptl);
