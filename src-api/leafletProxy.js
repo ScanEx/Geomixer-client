@@ -569,7 +569,8 @@
 				});
 			}
 			if(out && node['subType'] === 'drawing') {
-				out.on('drag', function(e) {		// Drag на drawing обьекте
+				var chkDrag = function(e) {		// Drag на drawing обьекте
+					var eType = e.type;
 					var gmxNode = gmxAPI.mapNodes[node.id];		// Нода gmxAPI
 					var ph = {
 						'obj':gmxNode
@@ -580,8 +581,11 @@
 							,'e': e
 						}
 					};
-					gmxAPI._listeners.dispatchEvent('onDrag', gmxNode, ph);		// tile загружен
-				});
+					gmxAPI._listeners.dispatchEvent(eType, gmxNode, ph);		// tile загружен
+				};
+				out.on('drag', chkDrag);		// Drag на drawing обьекте
+				//out.on('dragstart', chkDrag);
+				out.on('dragend', chkDrag);
 			}
 			return out;
 		}
@@ -1916,8 +1920,9 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		attr['reposition'] = function() {
 			if(node['leaflet']) node['leaflet'].setLatLng(posLatLng);
 		}
-		var marker = L.marker(posLatLng, {icon: canvasIcon});
+		var marker = L.marker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane'});
 		//var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});
+		marker.setZIndexOffset(-1000);
 		node['leaflet'] = marker;
 		node['group'].addLayer(marker);
 		setVisible({'obj': node, 'attr': true});

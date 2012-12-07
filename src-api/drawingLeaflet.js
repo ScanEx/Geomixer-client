@@ -291,6 +291,19 @@
 			toolsContainer.currentlyDrawnObject = ret;
 		}
 
+		// Проверка пользовательских Listeners POLYGON
+		var chkEvent = function(eType, out)
+		{
+			//if(!mousePressed && gmxAPI.map.drawing.enabledHoverBalloon) {
+			//	var st = (out ? out : false);
+			//	propsBalloon.updatePropsBalloon(st);
+			//}
+			var flag = gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
+			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
+			//console.log('chkEvent:  ', eType, flag);
+			return flag;
+		}
+
 		ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
 		ret.stopDrawing = function()
 		{
@@ -316,7 +329,7 @@
 		{
 			if (obj)
 			{
-				gmxAPI._listeners.dispatchEvent('onRemove', domObj, domObj);
+				chkEvent('onRemove');
 				obj.remove();
 				if(balloon) balloon.remove();
 				domObj.removeInternal();
@@ -394,7 +407,7 @@
 			obj.setHandlers({
 				"onClick": function()
 				{
-					if(domObj.stateListeners['onClick'] && gmxAPI._listeners.dispatchEvent('onClick', domObj, domObj)) return;	// если установлен пользовательский onClick возвращающий true выходим
+					if(domObj.stateListeners['onClick'] && chkEvent('onClick')) return;	// если установлен пользовательский onClick возвращающий true выходим
 					if (clickTimeout)
 					{
 						clearTimeout(clickTimeout);
@@ -421,14 +434,14 @@
 				,"onMouseOver": function()
 				{
 					if(!isDragged && needMouseOver) {
-						gmxAPI._listeners.dispatchEvent('onMouseOver', domObj, domObj);
+						chkEvent('onMouseOver');
 						needMouseOver = false;
 					}
 				}
 				,"onMouseOut": function()
 				{
 					if(!isDragged && !needMouseOver) {
-						gmxAPI._listeners.dispatchEvent('onMouseOut', domObj, domObj);
+						chkEvent('onMouseOut');
 						needMouseOver = true;
 					}
 				}
@@ -441,9 +454,7 @@
 				//gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'type':'POINT', 'isDraging': isDragged} });
 				if(balloon) balloon.setPoint(xx, yy, isDragged);
 				updateDOM();
-				
-				//position(x + startDx, y + startDy);
-				gmxAPI._listeners.dispatchEvent('onEdit', domObj, domObj);
+				chkEvent('onEdit');
 			}
 			var downCallback = function(x, y)
 			{
@@ -459,13 +470,16 @@
 				if(balloon) balloon.setPoint(xx, yy, false);
 				obj.setPoint(xx, yy);
 				isDragged = false;
-				gmxAPI._listeners.dispatchEvent('onFinish', domObj, domObj);
-				gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
+				chkEvent('onFinish');
 			}
 			
 			gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': upCallback });
 			//obj.enableDragging(dragCallback, downCallback, upCallback);
-			obj.addListener('onDrag', function(ev)
+			obj.addListener('dragend', function(ev)
+			{
+				chkEvent('onFinish');
+			});
+			obj.addListener('drag', function(ev)
 			{
 				var attr = ev.attr;
 				dragCallback(attr.x, attr.y);
@@ -592,10 +606,10 @@
 				balloon.setVisible(balloonVisible);
 				updateText();
 			}
-			gmxAPI._listeners.dispatchEvent('onAdd', domObj, domObj);
+			chkEvent('onAdd');
 
 			ret.setVisible(ret.isVisible);
-			gmxAPI._listeners.dispatchEvent('onFinish', gmxAPI.map.drawing, domObj);
+			chkEvent('onFinish');
 		}
 
 		var addItemListenerID = null;
@@ -743,7 +757,7 @@
 		node = mapNodes[obj.objectId];
 		obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
 
-		// Проверка пользовательских Listeners POLYGON
+		// Проверка пользовательских Listeners
 		var chkEvent = function(eType, out)
 		{
 			if(!mousePressed && gmxAPI.map.drawing.enabledHoverBalloon) {
@@ -802,11 +816,13 @@
 			if (coords.length) {
 				var point = LMap.project(latlng);
 				var pointBegin = LMap.project(new L.LatLng(coords[0][1], coords[0][0]));
-				var flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) <pointSize);
+				var flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) < pointSize);
+				if (flag && editType === 'LINESTRING') editType = 'POLYGON';
+
 				if(!flag) {
 					var tp = coords[coords.length - 1];
 					pointBegin = LMap.project(new L.LatLng(tp[1], tp[0]));
-					flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) <pointSize);
+					flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) < pointSize);
 				}
 				if (flag) {
 					gmxAPI.map.removeListener('onMouseMove', onMouseMoveID); onMouseMoveID = null;

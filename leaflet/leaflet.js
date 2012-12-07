@@ -3077,8 +3077,9 @@ L.Marker = L.Class.extend({
 		}
 
 		var panes = this._map._panes;
-
-		panes.markerPane.appendChild(this._icon);
+		var toPaneName = options.toPaneName || 'markerPane';
+		panes[toPaneName].appendChild(this._icon);
+		//panes.markerPane.appendChild(this._icon);
 
 		if (this._shadow) {
 			panes.shadowPane.appendChild(this._shadow);
@@ -3094,7 +3095,8 @@ L.Marker = L.Class.extend({
 			    .off(this._icon, 'mouseout', this._resetZIndex);
 		}
 
-		panes.markerPane.removeChild(this._icon);
+		//panes.markerPane.removeChild(this._icon);
+		this._icon.parentNode.removeChild(this._icon);
 
 		if (this._shadow) {
 			panes.shadowPane.removeChild(this._shadow);
