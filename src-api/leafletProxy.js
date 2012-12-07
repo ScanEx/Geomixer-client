@@ -1922,7 +1922,11 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		}
 		var marker = L.marker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane'});
 		//var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});
-		marker.setZIndexOffset(-1000);
+		setTimeout(function()
+			{
+				marker.setZIndexOffset(-1000);
+			}, 10);
+			
 		node['leaflet'] = marker;
 		node['group'].addLayer(marker);
 		setVisible({'obj': node, 'attr': true});
