@@ -1455,6 +1455,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			if(zoom > LMap.getMaxZoom() || zoom < LMap.getMinZoom()) return;
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
 			LMap.setView(pos, zoom);
+			setTimeout(function() { LMap._onResize(); }, 50);
 		}
 		,
 		'slideTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
@@ -3711,10 +3712,10 @@ if(!tileBounds_) return;
 			//var pos = new L.LatLng(50.499276, 35.760498);
 			LMap.setView(pos, 4);
 //console.log('waitMe ' , pos);
-			L.DomEvent.addListener(window.document, 'click', function (e) {
+/*			L.DomEvent.addListener(window.document, 'mousedown', function (e) {
 				LMap._onResize();
 			});
-/*			LMap.on('mouseover', function(e) {
+			LMap.on('mouseover', function(e) {
 				//LMap._onResize();
 				//console.log('moveend ' , gmxAPI.contDivPos);
 				//gmxAPI.contDivPos = null;
