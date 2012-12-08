@@ -1913,47 +1913,49 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			//var src = '1.jpg';
 			imageObj.src = src;
 		}
-		
-		var canvasIcon = L.canvasIcon({
-			className: 'my-canvas-icon'
-			,'node': node
-			,'drawMe': drawMe
-			//,iconAnchor: new L.Point(12, 12) // also can be set through CSS
-		});
-		
+			
 		attr['reposition'] = function() {
 			if(node['leaflet']) node['leaflet'].setLatLng(posLatLng);
 		}
-		var marker = L.marker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane', 'zIndexOffset': -1000});
-		//var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});
-		//marker.setZIndexOffset(-1000);
-			
-		node['leaflet'] = marker;
-		node['group'].addLayer(marker);
-		setVisible({'obj': node, 'attr': true});
-		setNodeHandlers(node.id);
 
 		var redrawMe = function(e) {
 			if(imageObj && canvas) repaint(imageObj, canvas);
 		}
-		LMap.on('zoomend', redrawMe);
-		//gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': redrawMe });
-		gmxAPI.map.addListener('positionChanged', redrawMe, 11);
-
-		LMap.on('click', function(e) {});	// Для Click на растре
 		
-		var zoomTimer = null;
-		LMap.on('zoomanim', function(e) {
-			var zoom = LMap.getZoom();
-			if(zoomTimer) clearTimeout(zoomTimer);
-			zoomTimer = setTimeout(function()
-			{
+		if(!node['leaflet']) {
+			var canvasIcon = L.canvasIcon({
+				className: 'my-canvas-icon'
+				,'node': node
+				,'drawMe': drawMe
+				//,iconAnchor: new L.Point(12, 12) // also can be set through CSS
+			});
+			var marker = L.marker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane', 'zIndexOffset': -1000});
+			//var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});
+			//marker.setZIndexOffset(-1000);
+				
+			node['leaflet'] = marker;
+			node['group'].addLayer(marker);
+			setVisible({'obj': node, 'attr': true});
+			setNodeHandlers(node.id);
+
+			LMap.on('zoomend', redrawMe);
+			//gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': redrawMe });
+			gmxAPI.map.addListener('positionChanged', redrawMe, 11);
+
+			LMap.on('click', function(e) {});	// Для Click на растре
+			
+			var zoomTimer = null;
+			LMap.on('zoomanim', function(e) {
 				var zoom = LMap.getZoom();
-				zoomTimer = null;
-				var ctx = canvas.getContext('2d');
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
-			}, 10);
-		});
+				if(zoomTimer) clearTimeout(zoomTimer);
+				zoomTimer = setTimeout(function()
+				{
+					var zoom = LMap.getZoom();
+					zoomTimer = null;
+					var ctx = canvas.getContext('2d');
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+				}, 10);
+			});
 /*		
 		LMap.on('zoomstart', function(e) {
 			var zoom = LMap.getZoom();
@@ -1988,6 +1990,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			ctx.transform(rx, 0, 0, ry, 0, 0);
 		});
 */		
+		}
 	}
 	
 	// 
@@ -3748,10 +3751,10 @@ if(!tileBounds_) return;
 			LMap = new L.Map(leafLetCont_,
 				{
 					zoomControl: false
-					,boxZoom: false
 					,doubleClickZoom: false
 					,attributionControl: false
-					,zoomAnimation: (gmxAPI.isChrome ? false : true)
+					//,boxZoom: false
+					//,zoomAnimation: (gmxAPI.isChrome ? false : true)
 					//,worldCopyJump: false
 					
 					//,inertia: false
