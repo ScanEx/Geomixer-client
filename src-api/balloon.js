@@ -675,12 +675,12 @@
 			var px = eventX; 
 			var py = eventY;
 			if(gmxAPI.proxyType == 'flash') {
-				if(!gmxAPI.contDivPos) {
+				//if(!gmxAPI.contDivPos) {
 					gmxAPI.contDivPos = {
 						'x': gmxAPI.getOffsetLeft(div),
 						'y': gmxAPI.getOffsetTop(div)
 					};
-				}
+				//}
 				px -= gmxAPI.contDivPos['x']; 
 				py -= gmxAPI.contDivPos['y'];
 			} else {
