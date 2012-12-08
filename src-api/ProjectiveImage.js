@@ -336,19 +336,24 @@
 			ww = attr.wView;
 			hh = attr.hView;
 		}
-		var canvas = document.createElement("canvas");
-		var w = attr.imageObj.width;
-		var h = attr.imageObj.height;
-		attr['canvas'] = canvas;
-		attr['ctx'] = canvas.getContext('2d');
-		attr['ctx'].setTransform(1, 0, 0, 1, 0, 0);
-		attr['transform'] = transform;
-		canvas.width = ww;
-		canvas.height = hh;
-		if(!attr['patchSize']) attr['patchSize'] = 4;
-		if(!attr['limit']) attr['limit'] = 5;
+		try {
+			var canvas = document.createElement("canvas");
+			var w = attr.imageObj.width;
+			var h = attr.imageObj.height;
+			attr['canvas'] = canvas;
+			attr['ctx'] = canvas.getContext('2d');
+			attr['ctx'].setTransform(1, 0, 0, 1, 0, 0);
+			attr['transform'] = transform;
+			canvas.width = ww;
+			canvas.height = hh;
+			if(!attr['patchSize']) attr['patchSize'] = 4;
+			if(!attr['limit']) attr['limit'] = 5;
 
-		divide( 0, 0, 1, 1, ptl, ptr, pbl, pbr, attr );
+			divide( 0, 0, 1, 1, ptl, ptr, pbl, pbr, attr );
+		} catch(e) {
+			gmxAPI.addDebugWarnings({'func': 'ProjectiveImage', 'event': e});
+			canvas = null;
+		}
 		return {
 			'canvas': canvas
 			,'ptl': ptl

@@ -672,21 +672,38 @@
 			if(eventX == eventXprev && eventY == eventYprev) return;
 			eventXprev = eventX; 
 			eventYprev = eventY;
-			if(!gmxAPI.contDivPos) {
-			
-				gmxAPI.contDivPos = {
-					'x': gmxAPI.getOffsetLeft(div),
-					'y': gmxAPI.getOffsetTop(div)
-				};
+			var px = eventX; 
+			var py = eventY;
+			if(gmxAPI.proxyType == 'flash') {
+				if(!gmxAPI.contDivPos) {
+					gmxAPI.contDivPos = {
+						'x': gmxAPI.getOffsetLeft(div),
+						'y': gmxAPI.getOffsetTop(div)
+					};
+				}
+				px -= gmxAPI.contDivPos['x']; 
+				py -= gmxAPI.contDivPos['y'];
+			} else {
+				if(gmxAPI.isChrome) {
+					gmxAPI.contDivPos = {
+						'x': div.offsetLeft,
+						'y': div.offsetTop
+					};
+					px = event.layerX; 
+					py = event.layerY;
+				} else {
+					gmxAPI.contDivPos = {
+						'x': gmxAPI.getOffsetLeft(div),
+						'y': gmxAPI.getOffsetTop(div)
+					};
+					px -= gmxAPI.contDivPos['x']; 
+					py -= gmxAPI.contDivPos['y'];
+				}
+				
+//console.log('contDivPos: ' , px, py);
 			}
 /*
-			gmxAPI.contDivPos = {
-				'x': div.offsetLeft,
-				'y': div.offsetTop
-			};
 */
-			var px = eventX - gmxAPI.contDivPos['x']; 
-			var py = eventY - gmxAPI.contDivPos['y'];
 			propsBalloon.setScreenPosition(px, py);
 /*
 			if(gmxAPI.proxyType == 'flash') {
@@ -805,8 +822,10 @@ event.stopImmediatePropagation();
 						deltaX = gmxAPI.merc_x(deltaX) / sc;
 					}
 
-					var x = div.clientWidth/2 - (mapX - gmxAPI.merc_x(this.geoX))/sc + deltaX;
-					var y = div.clientHeight/2 + (mapY - gmxAPI.merc_y(this.geoY))/sc;
+					var px = (mapX - gmxAPI.merc_x(this.geoX))/sc;
+					var py = (mapY - gmxAPI.merc_y(this.geoY))/sc;
+					var x = div.clientWidth/2 - px + deltaX;
+					var y = div.clientHeight/2 + py;
 					if(this.fixedDeltaFlag) {
 						x += balloon.fixedDeltaX;
 						y -= balloon.fixedDeltaY;
@@ -816,7 +835,6 @@ event.stopImmediatePropagation();
 						if (x < 0 || x > div.clientWidth) flag = false;
 					}
 
-					//if ((x >= 0) && (x <= div.clientWidth) && (y >= 0) && (y <= div.clientHeight))
 					if (flag)
 					{
 						this.setScreenPosition(x, y);
