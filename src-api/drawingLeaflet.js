@@ -67,11 +67,6 @@
 		var p2 = LMap.unproject(new L.Point(pix['x'] + pointSize, pix['y'] - pointSize));
 		return bounds = new L.LatLngBounds(p1, p2);
 	}
-	var addPoint = function(x, y)
-	{
-		var bounds = getBoundsPoint(x, y);
-		return new L.rectangle(bounds, stylePoint)
-	}
 
 	var getDeltaX = function(bounds)
 	{
@@ -102,6 +97,11 @@
 	var styleStroke = {color: "#0000ff", weight: lineWidth , opacity: 1};
 	var stylePoint = {color: "#0000ff", fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1};
 	var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
+	var addPoint = function(x, y, style)
+	{
+		var bounds = getBoundsPoint(x, y);
+		return new L.rectangle(bounds, style || stylePoint)
+	}
 	var drawSVG = function(attr)
 	{
 		var dBounds = new L.Bounds();
@@ -115,7 +115,7 @@
 		var layerGroup = attr['layerGroup'];
 		var layerItems = attr['layerItems'];
 		if(layerItems.length == 0) {
-			layerItems.push(new L.Polyline([], stylePolygon));
+			layerItems.push(new L.Polyline([], attr['stylePolygon'] || stylePolygon));
 			//layerItems.push(new L.Polygon([], styleStroke));
 			layerGroup.addLayer(layerItems[0]);
 			var mousedown = function(e) { attr['mousedown'](e, this); };
@@ -144,7 +144,7 @@
 			var num = i + 1;
 			var pArr = attr['coords'][i];
 			if(!layerItems[num]) {
-				layerItems.push(addPoint(pArr[0],  pArr[1])); layerGroup.addLayer(layerItems[num]);
+				layerItems.push(addPoint(pArr[0],  pArr[1], attr['stylePoint'])); layerGroup.addLayer(layerItems[num]);
 				var mousedown = function(e) { attr['mousedown'](e, this); };
 				layerItems[num].on('mousedown', mousedown , {'dx':dx, 'num':i, 'type':'node'});
 			}
@@ -153,7 +153,7 @@
 		}
 		if(attr['lastPoint']) {
 			if(!tmpPoint) {
-				tmpPoint = addPoint(attr['lastPoint']['x'] + dx,  attr['lastPoint']['y'])
+				tmpPoint = addPoint(attr['lastPoint']['x'] + dx,  attr['lastPoint']['y'], attr['stylePoint'])
 				tmpPoint.on('click', function(e) { attr['clickMe']({'attr':e}); });
 				tmpPoint.addTo(LMap);
 			}
@@ -1282,6 +1282,24 @@
 		ret.setStyle = function(regularStyle, hoveredStyle) {
 			obj.setStyle(regularStyle, hoveredStyle);
 			drawAttr['regularStyle'] = gmxAPI._leaflet['utils'].parseStyle(regularStyle, obj.objectId);
+			if(drawAttr['regularStyle']) {
+				//var opacity = ('opacity' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['opacity']/100 : 1);
+				var opacity = 1;
+				var color = ('color' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['color'] : 0xff);
+				drawAttr['strokeStyle']['color'] = gmxAPI._leaflet['utils'].dec2rgba(color, opacity);
+				var weight = ('weight' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['weight'] : lineWidth);
+				drawAttr['stylePolygon'] = {
+					'color': gmxAPI._leaflet['utils'].dec2rgba(color, opacity)
+					,'weight': weight
+					,'opacity': opacity
+					
+				};
+				drawAttr['stylePoint'] = gmxAPI.clone(stylePoint);
+				//var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
+				//var stylePoint = {color: "#0000ff", fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1};
+				drawAttr['stylePoint']['color'] = drawAttr['stylePolygon']['color'];
+				drawAttr['stylePoint']['weight'] = drawAttr['stylePolygon']['weight'];
+			}
 			drawAttr['hoveredStyle'] = gmxAPI._leaflet['utils'].parseStyle(hoveredStyle, obj.objectId);
 		}
 		
