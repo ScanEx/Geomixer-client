@@ -1546,7 +1546,16 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		'getGeometry':	function(ph)	{		// 
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(!node) return null;						// Нода не была создана через addObject
+			if(!node) {						// Нода не была создана через addObject
+				if(ph.obj.parent && mapNodes[ph.obj.parent.objectId]) {
+					node = mapNodes[ph.obj.parent.objectId];
+					if(node && node['type'] == 'filter') {
+						node = mapNodes[node.parentId];
+						if(node && 'getItemGeometry' in node) return node.getItemGeometry(id);
+					}
+				}
+				return null;
+			}
 			//if(!node || !'resIDLast' in node) return null;						// Нода не была создана через addObject
 			//var rnode = mapNodes[node['resIDLast']];
 
@@ -2067,7 +2076,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			
 			redrawTimer = setTimeout(function()
 			{
-				if(!node.isVisible) return;
+				if(!node.isVisible || !myLayer._isVisible) return;
 				redrawTimer = null;
 				myLayer.redraw();
 			}, 10);
@@ -2205,6 +2214,14 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		
 		if(layer.properties['IsRasterCatalog']) {
 			node['rasterCatalogTilePrefix'] = layer['tileSenderPrefix'];
+		}
+
+		node['getItemGeometry'] = function (itemId) {				// Получить geometry обьекта векторного слоя
+			var item = node['objectsData'][itemId];
+			var geom = null;
+			if('exportGeo' in item) geom = item.exportGeo();
+			if(geom) geom = gmxAPI.from_merc_geometry(geom);
+			return geom;
 		}
 
 		//node['shiftY'] = 0;						// Сдвиг для ОСМ вкладок
@@ -2489,21 +2506,21 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			if(style['label']) {
 				var ptx = gmxAPI._leaflet['labelCanvas'].getContext('2d');
 				ptx.clearRect(0, 0, 512, 512);
-				var size = style['label']['size'] || 12;
+				var sizeLabel = style['label']['size'] || 12;
 				var color = style['label']['color'] || 0;
 				var txt = style['label']['value'] || '';
 				var field = style['label']['field'];
 				if(field) {
 					txt = geo.properties[field] || '';
 				}
-				style['label']['fontStyle'] = size + 'px "Tahoma"';
+				style['label']['fontStyle'] = sizeLabel + 'px "Tahoma"';
 				ptx.font = style['label']['fontStyle'];
 				style['label']['fillStyle'] = gmxAPI._leaflet['utils'].dec2rgba(color, 1);
 				ptx.fillStyle = style['label']['fillStyle'];
 				ptx.fillText(txt, 0, 0);
-				style['label']['extent'] = new L.Point(ptx.measureText(txt).width, size);
+				style['label']['extent'] = new L.Point(ptx.measureText(txt).width, sizeLabel);
 				geo['sxLabelLeft'] = geo['sxLabelRight'] = style['label']['extent'].x;
-				geo['syLabelBottom'] = geo['syLabelTop'] = size;
+				geo['syLabelBottom'] = geo['syLabelTop'] = sizeLabel;
 			}
 			
 			if(style['marker']) {
@@ -3404,13 +3421,15 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				if(field) {
 					txt = this.properties[field] || '';
 				}
+				var lx = px1 + 2*out['sx'] + 2;
+				var ly = py1 + 2*out['sy'];
 				//ctx.font = "italic bold 16px Arial";
 				//ctx.textAlign = "center";
 				//var isPath = ctx.isPointInPath(50,50); // return true
 				//ctx.textBaseline = "Top";
 				ctx.font = size + 'px "Tahoma"';
 				ctx.fillStyle = gmxAPI._leaflet['utils'].dec2rgba(color, 1);
-				ctx.fillText(txt, px1, py1);
+				ctx.fillText(txt, lx, ly);
 /*				
 				var pLabel = new L.Point(px1 + 12, py1 + 12);
 				var boundsLabel = new L.Bounds();
