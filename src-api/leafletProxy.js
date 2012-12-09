@@ -550,6 +550,7 @@
 				var ww = Math.floor(style['imageWidth'] * zn);
 				var hh = Math.floor(style['imageHeight'] * zn);
 				opt['iconSize'] = new L.Point(ww, hh);
+				style['iconSize'] = opt['iconSize'];
 				if(style['center']) opt['iconAnchor'] = new L.Point(ww/2, hh/2);
 				else {
 					if(style['dx']) opt['iconAnchor'].x -= style['dx'];
@@ -965,6 +966,10 @@
 		var regularStyle = node.regularStyle;
 		var labelStyle = regularStyle.label;
 		var divStyle = {'width': 'auto', 'height': 'auto'};
+		if('iconSize' in regularStyle) {
+			divStyle = {'width': regularStyle.iconSize['x'], 'height': regularStyle.iconSize['y']};
+		}
+		
 		if(labelStyle['color']) divStyle['color'] = utils.dec2hex(labelStyle['color']);
 		if(labelStyle['haloColor']) divStyle['backgroundColor'] = utils.dec2rgba(labelStyle['haloColor'], 0.3);
 		//if(labelStyle['haloColor']) divStyle['backgroundColor'] = 'rgba(255, 255, 255, 0.3)';
@@ -973,11 +978,15 @@
 		var optm = {'zIndexOffset': 1, 'title': ''}; // , clickable: false
 		if(labelStyle['size']) opt['iconSize'] = new L.Point(labelStyle['size'], labelStyle['size']);
 		//scale
+		var posX = iconAnchor.x;
+		var posY = iconAnchor.y;
 		if(labelStyle['align'] === 'center') {
-			opt['iconAnchor'] = new L.Point(Math.floor(iconAnchor.x/2), Math.floor(iconAnchor.y/2));
+			divStyle['textAlign'] = 'center';
+			if('iconSize' in regularStyle) posY = regularStyle.iconSize['y']/4;
+			opt['iconAnchor'] = new L.Point(Math.floor(posX), Math.floor(posY));
 		} else {
 			divStyle['bottom'] = 0;
-			opt['iconAnchor'] = new L.Point(-Math.floor(iconAnchor.x/2) - 6, Math.floor(iconAnchor.y/2));
+			opt['iconAnchor'] = new L.Point(-Math.floor(posX/2) - 6, Math.floor(posY/2));
 		}
 		
 		var myIcon = L.gmxIcon(opt);
@@ -2508,14 +2517,17 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				ptx.clearRect(0, 0, 512, 512);
 				var sizeLabel = style['label']['size'] || 12;
 				var color = style['label']['color'] || 0;
+				var haloColor = style['label']['haloColor'] || 0;
 				var txt = style['label']['value'] || '';
 				var field = style['label']['field'];
 				if(field) {
 					txt = geo.properties[field] || '';
 				}
-				style['label']['fontStyle'] = sizeLabel + 'px "Tahoma"';
+				style['label']['fontStyle'] = sizeLabel + 'px "Arial"';
 				ptx.font = style['label']['fontStyle'];
 				style['label']['fillStyle'] = gmxAPI._leaflet['utils'].dec2rgba(color, 1);
+				style['label']['strokeColor'] = gmxAPI._leaflet['utils'].dec2rgba(haloColor, 1);
+				
 				ptx.fillStyle = style['label']['fillStyle'];
 				ptx.fillText(txt, 0, 0);
 				style['label']['extent'] = new L.Point(ptx.measureText(txt).width, sizeLabel);
@@ -3415,7 +3427,8 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			}
 			if(style['label']) {
 				var size = style['label']['size'] || 12;
-				var color = style['label']['color'] || 0;
+				var fillStyle = style['label']['fillStyle'];
+				var strokeColor = style['label']['strokeColor'];
 				var txt = style['label']['value'] || '';
 				var field = style['label']['field'];
 				if(field) {
@@ -3428,8 +3441,11 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				//var isPath = ctx.isPointInPath(50,50); // return true
 				//ctx.textBaseline = "Top";
 				ctx.font = size + 'px "Tahoma"';
-				ctx.fillStyle = gmxAPI._leaflet['utils'].dec2rgba(color, 1);
+				ctx.strokeStyle = strokeColor || gmxAPI._leaflet['utils'].dec2rgba(0, 1);
+				ctx.strokeText(txt, lx, ly);
+				ctx.fillStyle = fillStyle || gmxAPI._leaflet['utils'].dec2rgba(0, 1);
 				ctx.fillText(txt, lx, ly);
+				
 /*				
 				var pLabel = new L.Point(px1 + 12, py1 + 12);
 				var boundsLabel = new L.Bounds();
