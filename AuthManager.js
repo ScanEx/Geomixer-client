@@ -56,7 +56,25 @@ var nsGmx = nsGmx || {};
     {
         var _userInfo = null;
         var _this = this;
-        
+        var _token = null;
+		var _tokenExpires = null;
+		
+		this.getToken = function(){
+			return _token;
+		}
+		
+		this.setToken = function(value){
+			_token = value;
+		}
+		
+		this.getExpires = function(){
+			return _tokenExpires;
+		}
+		
+		this.setExpires = function(value){
+			_tokenExpires = value;
+		}
+		
         this.getLogin = function()
         {
             if (!_userInfo) return null;
