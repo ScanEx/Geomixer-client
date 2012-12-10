@@ -16,7 +16,7 @@
 		map.rasters = map;
 		map.tiledQuicklooks = map;
 		map.vectors = map;
-		map.needMove = null;
+		map.needMove = {'x':35, 'y':50, 'z':4};
 		map.needSetMode = null;
 
 		// Методы присущие только Map
@@ -29,9 +29,12 @@
 		map.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
 		map.moveTo = function(x, y, z) {
 			var pos = {'x':x, 'y':y, 'z':z};
-			//setCurrPosition(null, {'currPosition': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':z}});
-			map.needMove = null;
-			gmxAPI._cmdProxy('moveTo', { 'attr': pos });
+			if(map.needMove) map.needMove = pos;
+			else {
+				//setCurrPosition(null, {'currPosition': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':z}});
+				//map.needMove = null;
+				gmxAPI._cmdProxy('moveTo', { 'attr': pos });
+			}
 		}
 		map.slideTo = function(x, y, z) { gmxAPI._cmdProxy('slideTo', { 'attr': {'x':x, 'y':y, 'z':z} }); }
 		map.freeze = function() { gmxAPI._cmdProxy('freeze', {}); }

@@ -3164,7 +3164,11 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					}
 					if(map.needMove) {
 						gmxAPI.currPosition = null;
-						map.moveTo(map.needMove['x'], map.needMove['y'], map.needMove['z']);
+						var x = map.needMove['x'];
+						var y = map.needMove['y'];
+						var z = map.needMove['z'];
+						map.needMove = null;
+						map.moveTo(x, y, z);
 					}
 				});
 			},

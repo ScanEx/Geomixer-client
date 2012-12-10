@@ -166,7 +166,16 @@
 		/\b([^\b]+)\b/i
 	];
 	
+	var moveToTimer = null;
 	var utils = {							// Утилиты leafletProxy
+		'runMoveTo': function(attr)	{				//позиционирует карту по координатам
+			if(moveToTimer) clearTimeout(moveToTimer);
+			moveToTimer = setTimeout(function() {
+				var pos = new L.LatLng(attr['y'], attr['x']);
+				LMap.setView(pos, attr['z']);
+			}, 50);
+		}
+		,
 		'getPixelMap': function()	{				// Получение текущий размер карты в pixels
 			var vBounds = LMap.getBounds();
 			var vpNorthWest = vBounds.getNorthWest();
@@ -1445,42 +1454,64 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		}
 		,
 		'setMinMaxZoom':	function(ph)	{				// установка minZoom maxZoom карты
+return;
+console.log('setMinMaxZoom ', ph, gmxAPI.map.needMove);
+			if(LMap.options.minZoom == ph.attr.z1 && LMap.options.maxZoom == ph.attr.z2) return;
 			LMap.options.minZoom = ph.attr.z1;
 			LMap.options.maxZoom = ph.attr.z2;
-			var currZ = LMap.getZoom();
+			var currZ = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
+console.log('setMinMaxZoom1 ', currZ, gmxAPI.map.needMove);
 			if(currZ > LMap.getMaxZoom()) currZ = LMap.getMaxZoom();
-			if(currZ < LMap.getMinZoom()) currZ = LMap.getMinZoom();
-			LMap.setView(LMap.getCenter(), currZ);
+			else if(currZ < LMap.getMinZoom()) currZ = LMap.getMinZoom();
+			else return;
+			//LMap.setView(LMap.getCenter(), currZ);
+			var centr = LMap.getCenter();
+			var px = centr.lng;
+			var py = centr.lat;
+			if(gmxAPI.map.needMove) {
+				px = gmxAPI.map.needMove.x;
+				py = gmxAPI.map.needMove.y;
+			}
+			utils.runMoveTo({'x': px, 'y': py, 'z': currZ})
 		}
 		,
 		'zoomBy':	function(ph)	{				// установка Zoom карты
-			var currZ = LMap.getZoom() - ph.attr.dz;
+			var currZ = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
+			currZ -= ph.attr.dz;
 			if(currZ > LMap.getMaxZoom() || currZ < LMap.getMinZoom()) return;
 			var pos = LMap.getCenter();
+			if(gmxAPI.map.needMove) {
+				pos.lng = gmxAPI.map.needMove.x;
+				pos.lat = gmxAPI.map.needMove.y;
+			}
 			if (ph.attr.useMouse && gmxAPI._leaflet['mousePos'])
 			{
-				var k = Math.pow(2, LMap.getZoom() - currZ);
+				var z = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
+				var k = Math.pow(2, z - currZ);
 				
 				var lat = utils.getMouseY();
 				var lng = utils.getMouseX();
 				pos.lat = lat + k*(pos.lat - lat);
 				pos.lng = lng + k*(pos.lng - lng);
 			}
-			LMap.setView(pos, currZ);
+			utils.runMoveTo({'x': pos.lng, 'y': pos.lat, 'z': currZ})
+			//LMap.setView(pos, currZ);
 		}
 		,
 		'moveTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
-			var zoom = ph.attr['z'] || LMap.getZoom();
+			var zoom = ph.attr['z'] || (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
 			if(zoom > LMap.getMaxZoom() || zoom < LMap.getMinZoom()) return;
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
-			LMap.setView(pos, zoom);
+			//LMap.setView(pos, zoom);
+			utils.runMoveTo({'x': pos.lng, 'y': pos.lat, 'z': zoom})
 			setTimeout(function() { LMap._onResize(); }, 50);
 		}
 		,
 		'slideTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
 			if(ph.attr['z'] > LMap.getMaxZoom() || ph.attr['z'] < LMap.getMinZoom()) return;
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
-			LMap.setView(pos, ph.attr['z']);
+			//LMap.setView(pos, ph.attr['z']);
+			utils.runMoveTo({'x': pos.lng, 'y': pos.lat, 'z': ph.attr['z']})
 		}
 		,
 		'setLabel':	function(ph)	{				// Установка содержимого label
@@ -2881,6 +2912,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			if(node['addedItems'].length) {
 				needDraw = needDraw.concat(drawGeoArr(node['addedItems'], true));
 			}
+//console.log('bbbbbbbbbbb ', node['flipIDS']);
 
 			var arr = [];
 			for (var i = 0; i < node['flipIDS'].length; i++) {
@@ -2888,6 +2920,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				arr.push(node['objectsData'][id]);
 			}
 			needDraw = needDraw.concat(drawGeoArr(arr));
+
 			attr.tile._layer.tileDrawn(attr.tile);
 
 			var drawRasters = function(tileID)	{						// отрисовка растров векторного тайла
@@ -3875,7 +3908,9 @@ if(!tileBounds_) return;
 
 			LMap = new L.Map(leafLetCont_,
 				{
-					zoomControl: false
+				    center: [50, 35]
+					,zoom: 3
+					,zoomControl: false
 					,doubleClickZoom: false
 					,attributionControl: false
 					//,trackResize: true
@@ -3901,9 +3936,9 @@ if(!tileBounds_) return;
 			gmxAPI._leaflet['ptx'] = ptx;
 */
 
-			var pos = new L.LatLng(50, 35);
+			//var pos = new L.LatLng(50, 35);
 			//var pos = new L.LatLng(50.499276, 35.760498);
-			LMap.setView(pos, 4);
+			//LMap.setView(pos, 4);
 //console.log('waitMe ' , pos);
 			L.DomEvent.addListener(window.document, 'click', function (e) {
 				setTimeout(function() { LMap._onResize(); }, 50);
