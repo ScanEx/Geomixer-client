@@ -55,7 +55,8 @@
 		_mapHelper.createPermalink(function(id){
 			var permalinkUrl = "http://" + window.location.host + window.location.pathname + "?permalink=" + id;
 			var EMail = nsGmx.AuthManager.isAccounts() ? escape(nsGmx.AuthManager.getLogin()) : escape("sales@scanex.ru");
-			Url = "http://search.kosmosnimki.ru/CreateOrder.ashx?TinyReference=" + escape(permalinkUrl) + "&Surname=" + escape(nsGmx.AuthManager.getNickname()) + "&Name=" + escape(nsGmx.AuthManager.getFullname()) + "&Organization=TilesOrder&Email=" + EMail +"&Phone=TilesOrder&Comment=" + escape(oCommentInput.value) + "&ReceiveWay=WMS";
+			var callbackUrl = "http://search.kosmosnimki.ru/CreateOrder.ashx?TinyReference=" + escape(permalinkUrl) + "&Comment=" + escape(oCommentInput.value) + "&ReceiveWay=WMS";
+			var url = "http://search.kosmosnimki.ru/LoginDialog.ashx?redirect_uri=" + encode(callbackUrl);
 			location.replace(Url);
 		});
 		
