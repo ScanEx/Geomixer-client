@@ -122,7 +122,7 @@ links.Timeline = function(container) {
     this.renderedItems = [];  // Items currently rendered in the DOM
     this.clusterGenerator = new links.Timeline.ClusterGenerator(this);
     this.currentClusters = [];
-    this.selection = []; // stores indexes and items which is currently selected
+    this.selection = []; // stores indexes and items that are currently selected
 
     this.listeners = {}; // event listener callbacks
 
@@ -3295,8 +3295,18 @@ links.Timeline.prototype.deleteItem = function(index, preventRender) {
     if (index >= this.items.length) {
         throw "Cannot delete row, index out of range";
     }
-
-    this.unselectItems();
+    
+    var newSelection = [];
+    
+    for (var i = 0; i < this.selection.length; i++) {
+        var curIndex = this.selection[i].index;
+        if (curIndex !== index) {
+            if (curIndex > index) {
+                curIndex--;
+            }
+            newSelection.push({row: curIndex});
+        }
+    }
 
     // actually delete the item and remove it from the DOM
     var item = this.items.splice(index, 1)[0];
@@ -3314,6 +3324,10 @@ links.Timeline.prototype.deleteItem = function(index, preventRender) {
         else {
             throw "Cannot delete row from data, unknown data type";
         }
+    }
+    
+    if (this.selection.length > 0) {
+        this.setSelection(newSelection, true);
     }
 
     if (!preventRender) {
@@ -4506,10 +4520,11 @@ links.Timeline.prototype.cancelAdd = function () {
  * event is placed in the middle.
  * For example selection = [{row: 5}];
  * @param {Array} selection   An array with a column row, containing the row
- *                           number (the id) of the event to be selected.
+ *                            number (the id) of the event to be selected.
+ * @param {boolean} holdPosition  Do not adjust timeline position to fit selection to screen
  * @return {boolean}         true if selection is succesfully set, else false.
  */
-links.Timeline.prototype.setSelection = function(selection) {
+links.Timeline.prototype.setSelection = function(selection, holdPosition) {
     if (selection.length > 0) {
         
         var minDate = Infinity,
@@ -4534,36 +4549,14 @@ links.Timeline.prototype.setSelection = function(selection) {
         
         this.selectItems(indexes);
         
-        var middle   = new Date((maxDate + minDate)/2),
-            diff     = (this.end.valueOf() - this.start.valueOf()),
-            newStart = new Date(middle.valueOf() - diff/2),
-            newEnd   = new Date(middle.valueOf() + diff/2);
-            
-        this.setVisibleChartRange(newStart, newEnd);
-        
-        // if (selection[0].row != undefined) {
-            // var index = selection[0].row;
-            // if (this.items[index]) {
-                // var item = this.items[index];
-
-                // // move the visible chart range to the selected event.
-                // var start = item.start;
-                // var end = item.end;
-                // var middle;
-                // if (end != undefined) {
-                    // middle = new Date((end.valueOf() + start.valueOf()) / 2);
-                // } else {
-                    // middle = new Date(start);
-                // }
-                // var diff = (this.end.valueOf() - this.start.valueOf()),
-                    // newStart = new Date(middle.valueOf() - diff/2),
-                    // newEnd = new Date(middle.valueOf() + diff/2);
-
-                // this.setVisibleChartRange(newStart, newEnd);
-
-                // return true;
-            // }
-        // }
+        if (!holdPosition) {
+            var middle   = new Date((maxDate + minDate)/2),
+                diff     = (this.end.valueOf() - this.start.valueOf()),
+                newStart = new Date(middle.valueOf() - diff/2),
+                newEnd   = new Date(middle.valueOf() + diff/2);
+                
+            this.setVisibleChartRange(newStart, newEnd);
+        }
     }
     else {
         // unselect current selection
