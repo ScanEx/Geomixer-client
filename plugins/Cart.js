@@ -55,9 +55,9 @@
 		_mapHelper.createPermalink(function(id){
 			var permalinkUrl = "http://" + window.location.host + window.location.pathname + "?permalink=" + id;
 			var EMail = nsGmx.AuthManager.isAccounts() ? escape(nsGmx.AuthManager.getLogin()) : escape("sales@scanex.ru");
-			var callbackUrl = "http://search.kosmosnimki.ru/CreateOrder.ashx?TinyReference=" + escape(permalinkUrl) + "&Comment=" + escape(oCommentInput.value) + "&ReceiveWay=WMS";
-			var url = "http://search.kosmosnimki.ru/LoginDialog.ashx?redirect_uri=" + encode(callbackUrl);
-			location.replace(Url);
+			var callbackUrl = "http://search.kosmosnimki.ru/CreateOrder.ashx?TinyReference=" + encodeURIComponent(permalinkUrl) + "&Comment=" + escape(oCommentInput.value) + "&ReceiveWay=WMS";
+			var url = "http://search.kosmosnimki.ru/LoginDialog.ashx?redirect_uri=" + encodeURIComponent(callbackUrl);
+			location.replace(url);
 		});
 		
 	}
