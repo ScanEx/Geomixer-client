@@ -187,15 +187,15 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		}
 		,
 		'runMoveTo': function(attr)	{				//позиционирует карту по координатам
+			/*
 			var pos = new L.LatLng(attr['y'], attr['x']);
 			LMap.setView(pos, attr['z']);
-			/*
+			*/
 			if(moveToTimer) clearTimeout(moveToTimer);
 			moveToTimer = setTimeout(function() {
 				var pos = new L.LatLng(attr['y'], attr['x']);
 				LMap.setView(pos, attr['z']);
 			}, 50);
-			*/
 		}
 		,
 		'getPixelMap': function()	{				// Получение текущий размер карты в pixels
@@ -1476,16 +1476,16 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		}
 		,
 		'setMinMaxZoom':	function(ph)	{				// установка minZoom maxZoom карты
-return;
-console.log('setMinMaxZoom ', ph, gmxAPI.map.needMove);
+//return;
+//console.log('setMinMaxZoom ', ph, gmxAPI.map.needMove);
 			if(LMap.options.minZoom == ph.attr.z1 && LMap.options.maxZoom == ph.attr.z2) return;
 			LMap.options.minZoom = ph.attr.z1;
 			LMap.options.maxZoom = ph.attr.z2;
 			var currZ = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
-console.log('setMinMaxZoom1 ', currZ, gmxAPI.map.needMove);
+//console.log('setMinMaxZoom1 ', currZ, gmxAPI.map.needMove);
 			if(currZ > LMap.getMaxZoom()) currZ = LMap.getMaxZoom();
 			else if(currZ < LMap.getMinZoom()) currZ = LMap.getMinZoom();
-			else return;
+			//else return;
 			//LMap.setView(LMap.getCenter(), currZ);
 			var centr = LMap.getCenter();
 			var px = centr.lng;
@@ -4562,6 +4562,14 @@ ctx.fillText(drawTileID, 10, 128);
 			setTimeout(setControlDIVInnerHTML, 1);
 			setTimeout(setCenterPoint, 1);
 			gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
+			if(gmxAPI.map.needMove) {
+				var px = gmxAPI.map.needMove.x;
+				var py = gmxAPI.map.needMove.y;
+				var z = gmxAPI.map.needMove.z;
+				utils.runMoveTo({'x': px, 'y': py, 'z': z});
+				gmxAPI.map.needMove = null;
+			}
+			
 		}
 	}
 
