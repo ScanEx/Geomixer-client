@@ -30,10 +30,13 @@
 		map.repaint = function() { gmxAPI._cmdProxy('repaint', {}); }
 		map.moveTo = function(x, y, z) {
 			var pos = {'x':x, 'y':y, 'z':z};
-			if(map.needMove) map.needMove = pos;
+			if(gmxAPI.proxyType == 'leaflet' && map.needMove) {
+				if(!pos.z) pos.z =  map.needMove.z || map.getZ();
+				map.needMove = pos;
+			}
 			else {
 				//setCurrPosition(null, {'currPosition': {'x':gmxAPI.merc_x(x), 'y':gmxAPI.merc_y(y), 'z':z}});
-				//map.needMove = null;
+				map.needMove = null;
 				gmxAPI._cmdProxy('moveTo', { 'attr': pos });
 			}
 		}
