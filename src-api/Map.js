@@ -17,7 +17,7 @@
 		map.tiledQuicklooks = map;
 		map.vectors = map;
 		map.needMove = {'x':35, 'y':50, 'z':4};
-		map.needSetMode = null;
+		map.needSetMode = 'Map';
 
 		// Методы присущие только Map
 		map.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
@@ -365,18 +365,20 @@
 		
 		map.setBaseLayer = function(name)
 		{
-			unSetBaseLayer();
-			currentBaseLayerName = name;
-			map.needSetMode = null;
-			var newBaseLayers = baseLayers[currentBaseLayerName];
-			if (newBaseLayers) {
-				for (var i = 0; i < newBaseLayers.length; i++) {
-					newBaseLayers[i].setVisible(true);
+			if(map.needSetMode) map.needSetMode = name;
+			else {
+				unSetBaseLayer();
+				currentBaseLayerName = name;
+				var newBaseLayers = baseLayers[currentBaseLayerName];
+				if (newBaseLayers) {
+					for (var i = 0; i < newBaseLayers.length; i++) {
+						newBaseLayers[i].setVisible(true);
+					}
+					var backgroundColor = (newBaseLayers.length && newBaseLayers[0].backgroundColor ? newBaseLayers[0].backgroundColor : 0xffffff);
+					map.setBackgroundColor(backgroundColor);
 				}
-				var backgroundColor = (newBaseLayers.length && newBaseLayers[0].backgroundColor ? newBaseLayers[0].backgroundColor : 0xffffff);
-				map.setBackgroundColor(backgroundColor);
+				gmxAPI._listeners.dispatchEvent('baseLayerSelected', map, currentBaseLayerName);
 			}
-			gmxAPI._listeners.dispatchEvent('baseLayerSelected', map, currentBaseLayerName);
 		}
 
 		map.setMode = function(mode) 

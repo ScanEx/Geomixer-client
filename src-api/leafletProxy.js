@@ -38,6 +38,7 @@
 				callCacheItems(item);
 			//}
 		}
+		//imageObj.crossOrigin = 'anonymous';
 		imageObj.onload = function() { chkLoadedImage(); } ;
 		imageObj.onerror = function() { curCount--; item.isError = true; callCacheItems(item); } ;
 		curCount++;
@@ -168,12 +169,33 @@
 	
 	var moveToTimer = null;
 	var utils = {							// Утилиты leafletProxy
+		'getMapImage': function(attr)	{			//получить PNG карты
+			var pos = utils.getPixelMap();
+			var canvas = document.createElement('canvas');
+			canvas.width = pos.x;
+			canvas.height = pos.y;
+			var ctx = canvas.getContext('2d');
+			var divOut = gmxAPI._div;
+			//var divOut = document.getElementById("random_2");
+			
+			ctx.drawImage(divOut, 0, 0);
+ctx.strokeRect(2, 2, 253, 253);
+ctx.font = '24px "Tahoma"';
+ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
+			
+			return canvas.toDataURL();
+		}
+		,
 		'runMoveTo': function(attr)	{				//позиционирует карту по координатам
+			var pos = new L.LatLng(attr['y'], attr['x']);
+			LMap.setView(pos, attr['z']);
+			/*
 			if(moveToTimer) clearTimeout(moveToTimer);
 			moveToTimer = setTimeout(function() {
 				var pos = new L.LatLng(attr['y'], attr['x']);
 				LMap.setView(pos, attr['z']);
 			}, 50);
+			*/
 		}
 		,
 		'getPixelMap': function()	{				// Получение текущий размер карты в pixels
@@ -1632,6 +1654,17 @@ console.log('setMinMaxZoom1 ', currZ, gmxAPI.map.needMove);
 			return id;
 		}
 		,
+		'getZoomBounds':	function(ph)	{		// Установка границ по zoom
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return;
+			var out = {
+				'MinZoom': node['minZ']
+				,'MaxZoom': node['maxZ']
+			}
+			return out;
+		}
+		,
 		'setZoomBounds':	function(ph)	{		// Установка границ по zoom
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
@@ -1649,7 +1682,10 @@ console.log('setMinMaxZoom1 ', currZ, gmxAPI.map.needMove);
 							gmxAPI._leaflet['drawManager'].add(id);
 						}
 					});
+				} else if('onZoomend' in node) {					// есть проверка по Zoom
+					node.onZoomend();
 				}
+
 			}
 			
 			return true;
@@ -1715,6 +1751,17 @@ console.log('setMinMaxZoom1 ', currZ, gmxAPI.map.needMove);
 			if(!node || !node.setEditObjects) return false;
 			node.setEditObjects(ph.attr);
 			return true;
+		}
+		,
+		'sendPNG':	function(hash)	{									// Сохранение изображения карты на сервер
+			var miniMapFlag = gmxAPI.miniMapAvailable;
+			var attr = hash['attr'];
+			var flag = (attr.miniMapSetVisible ? true : false);
+			if(miniMapFlag != flag) gmxAPI.map.miniMap.setVisible(flag);
+			if(attr.func) attr.func = gmxAPI.uniqueGlobalName(attr.func);
+			var ret = {'base64': utils.getMapImage(attr)};
+			if(miniMapFlag) gmxAPI.map.miniMap.setVisible(miniMapFlag);
+			return ret;
 		}
 	}
 
@@ -3106,18 +3153,22 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			}
 		}
 		node.waitRedraw = waitRedraw;				// перерисовать слой
-		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function(fid) {
-				//if(!node.isVisible || myLayer._isVisible) return false;
-				if(!node.isVisible) return false;
-				var flag = myLayer._isVisible;
-				var currZ = LMap.getZoom();
-				flag = (currZ < node['minZ'] || currZ > node['maxZ'] ? false : true);		// Неподходящий zoom
-				if(flag != myLayer._isVisible) {
-					setVisible({'obj': node, 'attr': flag});
-					waitRedraw();
-				}
+
+		node.onZoomend = function()	{				// Проверка видимости по Zoom
+			if(!node.isVisible) return false;
+			var flag = myLayer._isVisible;
+			if(myLayer.options.minZoom != node['minZ'] || myLayer.options.maxZoom != node['maxZ']) {
+				myLayer.options.minZoom = node['minZ'];
+				myLayer.options.maxZoom = node['maxZ'];
 			}
-		});
+			var currZ = LMap.getZoom();
+			flag = (currZ < node['minZ'] || currZ > node['maxZ'] ? false : true);		// Неподходящий zoom
+			if(flag != myLayer._isVisible) {
+				setVisible({'obj': node, 'attr': flag});
+				waitRedraw();
+			}
+		}
+		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': node.onZoomend});
 		
 		node.refreshFilter = function(fid)	{		// обновить фильтр
 			var filterNode = mapNodes[fid];
@@ -3908,8 +3959,8 @@ if(!tileBounds_) return;
 
 			LMap = new L.Map(leafLetCont_,
 				{
-				    center: [50, 35]
-					,zoom: 3
+				    center: [55.7574, 37.5952]
+					,zoom: 5
 					,zoomControl: false
 					,doubleClickZoom: false
 					,attributionControl: false

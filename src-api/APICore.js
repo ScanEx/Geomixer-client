@@ -3121,7 +3121,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.addLayers(layers);
 						map.properties = layers.properties;
 					}
-					if(map.needSetMode) map.setMode(map.needSetMode);
+					//if(map.needSetMode) map.setMode(map.needSetMode);
 
 					// копирайты
 					var setCopyright = function(o, z1, z2, text)
@@ -3170,6 +3170,12 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.needMove = null;
 						map.moveTo(x, y, z);
 					}
+					if(map.needSetMode) {
+						var needSetMode = map.needSetMode;
+						map.needSetMode = null;
+						map.setMode(needSetMode);
+					}
+					
 				});
 			},
 			function()
