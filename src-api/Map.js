@@ -17,7 +17,8 @@
 		map.tiledQuicklooks = map;
 		map.vectors = map;
 		map.needMove = {'x':35, 'y':50, 'z':4};
-		map.needSetMode = 'Map';
+		//map.needSetMode = 'Map';
+		map.needSetMode = null;
 
 		// Методы присущие только Map
 		map.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
@@ -365,8 +366,8 @@
 		
 		map.setBaseLayer = function(name)
 		{
-			if(map.needSetMode) map.needSetMode = name;
-			else {
+			//if(map.needSetMode) map.needSetMode = name;
+			//else {
 				unSetBaseLayer();
 				currentBaseLayerName = name;
 				var newBaseLayers = baseLayers[currentBaseLayerName];
@@ -378,7 +379,7 @@
 					map.setBackgroundColor(backgroundColor);
 				}
 				gmxAPI._listeners.dispatchEvent('baseLayerSelected', map, currentBaseLayerName);
-			}
+			//}
 		}
 
 		map.setMode = function(mode) 
