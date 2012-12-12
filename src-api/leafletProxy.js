@@ -2706,10 +2706,11 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			return outArr;
 		}
 
-		node['removeItems'] = function(data) {		// удаление обьектов векторного слоя 
+		var removeItems = function(data) {		// удаление обьектов векторного слоя 
 			for (var index in data)
 			{
 				var pid = data[index];
+				if(typeof(pid) === "object") pid = pid['id'];
 				var pt = node['objectsData'][pid];
 				if(pt) {
 					var fromTiles = pt.propHiden['fromTiles'];
@@ -2724,8 +2725,10 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 							}
 						}
 					}
+					delete node['objectsData'][pid];
 				}
 			}
+			/*
 			var arr = [];
 			for (var i = 0; i < node['addedItems'].length; i++)
 			{
@@ -2733,11 +2736,16 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				if(!data[item['id']]) arr.push(item);
 			}
 			node['addedItems'] = arr; 
-			waitRedraw();
+			*/
 		}
 
+		node['removeItems'] = function(data) {		// удаление обьектов векторного слоя 
+			removeItems(data)
+			waitRedraw();
+		}
 		node['addItems'] = function(data) {			// добавление обьектов векторного слоя
-			node['addedItems'] = objectsToFilters(data, 'addItem');
+			removeItems(data)
+			node['addedItems'] = node['addedItems'].concat(objectsToFilters(data, 'addItem'));
 			waitRedraw();
 			return true;
 		}
@@ -3966,6 +3974,7 @@ if(!tileBounds_) return;
 					,attributionControl: false
 					//,trackResize: true
 					//,boxZoom: false
+					//,zoomAnimation: false
 					//,zoomAnimation: (gmxAPI.isChrome ? false : true)
 					//,worldCopyJump: false
 					
