@@ -1737,14 +1737,15 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			return true;
 		}
 		,
-		'setAPIProperties':	function(hash)	{
+		'setAPIProperties':	function(ph)	{
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return false;
 			if(!node['propHiden']) node['propHiden'] = {};
-			for(var key in hash['attr']) {
-				node['propHiden'][key] = hash['attr'][key];
+			for(var key in ph['attr']) {
+				node['propHiden'][key] = ph['attr'][key];
 			}
+			if(node['type'] === 'VectorLayer') node.waitRedraw();
 			return true;
 		}
 		,
