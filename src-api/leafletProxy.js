@@ -1737,6 +1737,17 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			return true;
 		}
 		,
+		'setAPIProperties':	function(hash)	{
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return false;
+			if(!node['propHiden']) node['propHiden'] = {};
+			for(var key in hash['attr']) {
+				node['propHiden'][key] = hash['attr'][key];
+			}
+			return true;
+		}
+		,
 		'setClusters':	function(ph)	{
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
@@ -2268,6 +2279,8 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		node['parseTimer'] = 0;
 		node['filters'] = [];
 		//node['dataTiles'] = {};
+		
+		node['propHiden'] = {};					// Свойства внутренние
 		node['tilesRedrawTimers'] = {};			// Таймеры отрисовки тайлов
 		node['tilesRedrawImages'] = {};			// Отложенные отрисовки растров по тайлам
 		node['tilesLoaded'] = {};
@@ -2288,6 +2301,12 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			'minZ': 1
 			,'maxZ': 21
 		};
+		
+		node['propHiden']['GM_LayerOnClick'] = false;		// Показывать растры в КР только по Click	// setAPIProperties
+		
+		if(layer.properties['GM_LayerOnClick']) {
+			node['propHiden']['GM_LayerOnClick'] = layer.properties['GM_LayerOnClick'];
+		}
 		node['tileRasterFunc'] = null;			// tileFunc для квиклуков
 		
 		node['flipIDS'] = [];					// Массив обьектов flip сортировки
@@ -2528,8 +2547,14 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				if(!node['flipIDS'].length) return false;
 				var item = node['seFlip']();
 				//console.log('flipIDS' , item.id);
-				if(!item || attr.ctrlKey) return true;
+				
+				if(!item) return true;
+				if('GM_LayerOnClick' in node['propHiden'] && node['propHiden']['GM_LayerOnClick']) {
+					item.propHiden['GM_LayerOnClick'] = !item.propHiden['GM_LayerOnClick'];
+					waitRedraw();
+				}
 
+				if(attr.ctrlKey) return true;
 				var prop = item.properties;
 				if(!item.propHiden['toFilters'] || !item.propHiden['toFilters'].length) return;		// обьект не попал в фильтр
 				var fID = item.propHiden['toFilters'][0];
@@ -2857,7 +2882,14 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 					setCanvasStyle(attr['ctx'], style);
 					attr['style'] = style;
 
-					if(node['tileRasterFunc'] && zoom >= node['quicklookZoomBounds']['minZ'] && zoom <= node['quicklookZoomBounds']['maxZ']) {
+					var showRaster = ('GM_LayerOnClick' in node['propHiden'] && node['propHiden']['GM_LayerOnClick']
+						&& !propHiden['GM_LayerOnClick']
+						? false
+						: true);
+					//var showRaster = ('GM_LayerOnClick' in propHiden && propHiden['GM_LayerOnClick'] || geom['properties']['GM_LayerOnClick'] ? false : true);
+					if(showRaster) showRaster = (node['tileRasterFunc'] && zoom >= node['quicklookZoomBounds']['minZ'] && zoom <= node['quicklookZoomBounds']['maxZ']);
+
+					if(showRaster) {
 						var rUrl = node['tileRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], attr['zoom'], geom);
 						var putRasterLayer = function(attr, geo) {
 							var me = attr;
