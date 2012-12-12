@@ -2339,6 +2339,28 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		
 			var observerTiles = {};
 			var observerObj = {};
+			node['chkRemovedTiles'] = function(dKey) {		// проверка при удалении тайлов
+				var out = [];
+				var items = node['tilesGeometry'][dKey];
+				if(items && items.length > 0) {
+					for (var i = 0; i < items.length; i++)
+					{
+						var item = items[i];
+						var id = item['id'];
+						if(observerObj[id]) {
+							var ph = {'layerID': node.id, 'properties': item.properties };
+							ph.onExtent = false;
+							ph.geometry = item.exportGeo();
+							out.push(ph);
+							delete observerObj[id];
+						}
+					}
+				}
+				delete observerTiles[dKey];
+				if(out.length) {
+					callback(out);
+				}
+			}
 			node['chkObserver'] = function () {				// проверка изменений видимости обьектов векторного слоя
 				var currPosition = gmxAPI.currPosition;
 				if(!currPosition || !currPosition.extent) return;
@@ -2410,7 +2432,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			{
 				if(node['tilesGeometry'][tileKey] || node['badTiles'][tileKey] || node['tilesLoadProgress'][tileKey]) continue;
 				var tb = tiles[tileKey];
-				var tvFlag = (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.x > ext.maxY);
+				var tvFlag = (tb.max.x < ext.minX || tb.min.x > ext.maxX || tb.max.y < ext.minY || tb.min.y > ext.maxY);
 				if(tvFlag) continue;								// Тайл за границами видимости
 				var arr = tileKey.split('_');
 				var srcArr = option.tileFunc(arr[1], arr[2], arr[0]);
@@ -3302,6 +3324,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		}
 
 		node.removeTile = function(key)	{			// Удалить тайл
+			if('chkRemovedTiles' in node) node['chkRemovedTiles'](key);
 /*			
 			var pt = node['tilesGeometry'][key];
 			
