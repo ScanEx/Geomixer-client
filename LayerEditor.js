@@ -749,6 +749,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                     
                     if (title.value == '')
                     {
+                        path = path.substring(0, path.length - 1); //убираем слеш на конце
                         var indexSlash = String(path).lastIndexOf('\\'),
                             fileName = String(path).substring(indexSlash + 1, path.length);
                         

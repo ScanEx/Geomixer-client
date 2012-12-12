@@ -28,6 +28,9 @@ var TimelineControl = function(map)
     var bindedLayers = [];
     var items = {};
     var timeline;
+    var filters = [];
+    
+    var mapCenter = {x: map.getX(), y: map.getY()};
     
     var options = {
         "style": "line",
@@ -151,6 +154,119 @@ var TimelineControl = function(map)
         updateSelection();
     }
     
+    var filterByScreenCenter = function(obj)
+    {
+        var intersects = false;
+        var c = obj.geometry.coordinates;
+        if (obj.geometry.type == "POLYGON")
+        {
+            intersects = isPointInPoly(c[0], mapCenter);
+        }
+        else
+        {
+            for (var r = 0; r < c.length; r++)
+                intersects = intersects || isPointInPoly(c[r][0], mapCenter);
+        }
+        
+        return intersects;
+    }
+    filters.push(filterByScreenCenter);
+    
+    var updateTimelineItems = function(layerName)
+    {
+        var layer = map.layers[layerName];
+        var temporalColumn = layer.properties.TemporalColumnName;
+        var identityField = layer.properties.identityField;
+        
+        var elemsToAdd = [];
+        mapCenter = {x: map.getX(), y: map.getY()};
+        for (var curLayer in items)
+        {
+            for (var i in items[curLayer])
+            {
+                var obj = items[curLayer][i].obj;
+                
+                var showItem = true;
+                $.each(filters, function(item, filterFunc) {
+                    showItem = showItem && filterFunc(obj);
+                })
+                
+                if (!items[curLayer][i].timelineItem && showItem)
+                {
+                    var type = layer.properties.attrTypes[$.inArray(temporalColumn, layer.properties.attributes)],
+                        date = fromTilesToDate(type, obj.properties[temporalColumn]),
+                        content;
+                    
+                    if (layer.properties.NameObject)
+                    {
+                        content = gmxAPI.applyTemplate(layer.properties.NameObject, obj.properties) + ' (' + obj.properties[temporalColumn] + ')';
+                    }
+                    else
+                    {
+                        content = obj.properties[temporalColumn];
+                    }
+                    
+                    elemsToAdd.push({
+                        start: date, 
+                        content: content,
+                        userdata: {objID: obj.properties[identityField], layerName: curLayer}
+                    });
+                }
+                else if (items[curLayer][i].timelineItem && !showItem)
+                {
+                    for (var index = 0; index < timeline.items.length; index++)
+                    {
+                        var itemData = timeline.getData()[index].userdata;
+                        if (itemData.objID === i && itemData.layerName === curLayer)
+                        {
+                            timeline.deleteItem(index, true);
+                            delete items[curLayer][i].timelineItem;
+                        }
+                    }
+                }
+            }
+        }
+        
+        timeline.addItems(elemsToAdd);
+        for (var i = 0; i < elemsToAdd.length; i++)
+            items[layerName][elemsToAdd[i].userdata.objID].timelineItem = timeline.items[timeline.items.length-elemsToAdd.length + i];
+    }
+    
+    //public interface
+    this.addFilter = function(filterFunc)
+    {
+        filters.push(filterFunc);
+        $.each(bindedLayers, function(i, layerName) { updateTimelineItems(layerName); });
+    }
+    
+    this.eachItem = function(layerName, callback)
+    {
+        items[layerName] && $.each(items[layerName], callback);
+    }
+    
+    this.update = function()
+    {
+        $.each(bindedLayers, function(i, layerName) { updateTimelineItems(layerName); });
+    }
+    
+    //@param {Array} selection Массив объектов вида {layerName: , id: }
+    this.setSelection = function(selection)
+    {
+        var timelineSelection = [];
+        $.each(timeline.getData(), function(timelineIndex, timelineItem) {
+            var userdata = timelineItem.userdata;
+            var founded = false;
+            $.each(selection, function(i, item) {
+                founded = founded || (item.layerName === userdata.layerName && item.id === userdata.objID);
+            })
+            
+            founded && timelineSelection.push({row: timelineIndex});
+        })
+        
+        timeline.setSelection(timelineSelection);
+        updateSelection();
+    }
+    
     this.bindLayer = function(layerName)
     {
         createTimelineLazy();
@@ -159,80 +275,17 @@ var TimelineControl = function(map)
         nsGmx.widgets.commonCalendar.get().unbindLayer(layerName);
         
         var layer = map.layers[layerName];
+        var identityField = layer.properties.identityField;
+        
         if (!layer.properties.Temporal) return;
         
         layer.setDateInterval(new Date(2000, 1, 1), new Date())
-        layer.setVisibilityFilter('"' + layer.properties.identityField + '"=-1');
+        layer.setVisibilityFilter('"' + identityField + '"=-1');
         
-        var temporalColumn = layer.properties.TemporalColumnName;
-        var identityField = layer.properties.identityField;
         
-        var updateTimelineItems = function()
-        {
-            var count = 0;
-            var elemsToAdd = [];
-            var pt = {x: map.getX(), y: map.getY()};
-            for (var curLayer in items)
-            {
-                for (var i in items[curLayer])
-                {
-                    count++;
-                    var obj = items[curLayer][i].obj;
-                    
-                    var intersects = false;
-                    var c = obj.geometry.coordinates;
-                    if (obj.geometry.type == "POLYGON")
-                    {
-                        intersects = isPointInPoly(c[0], pt);
-                    }
-                    else
-                    {
-                        for (var r = 0; r < c.length; r++)
-                            intersects = intersects || isPointInPoly(c[r][0], pt);
-                    }
-                    
-                    if (!items[curLayer][i].timelineItem && intersects)
-                    {
-                        var type = layer.properties.attrTypes[$.inArray(temporalColumn, layer.properties.attributes)],
-                            date = fromTilesToDate(type, obj.properties[temporalColumn]),
-                            content;
-                        
-                        if (layer.properties.NameObject)
-                        {
-                            content = gmxAPI.applyTemplate(layer.properties.NameObject, obj.properties) + ' (' + obj.properties[temporalColumn] + ')';
-                        }
-                        else
-                        {
-                            content = obj.properties[temporalColumn];
-                        }
-                        
-                        elemsToAdd.push({
-                            start: date, 
-                            content: content,
-                            userdata: {objID: obj.properties[identityField], layerName: curLayer}
-                        });
-                    }
-                    else if (items[curLayer][i].timelineItem && !intersects)
-                    {
-                        for (var index = 0; index < timeline.items.length; index++)
-                        {
-                            var itemData = timeline.getData()[index].userdata;
-                            if (itemData.objID === i && itemData.layerName === curLayer)
-                            {
-                                timeline.deleteItem(index, true);
-                                delete items[curLayer][i].timelineItem;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            timeline.addItems(elemsToAdd);
-            for (var i = 0; i < elemsToAdd.length; i++)
-                items[layerName][elemsToAdd[i].userdata.objID].timelineItem = timeline.items[timeline.items.length-elemsToAdd.length + i];
-        }
-        
-        map.addListener('positionChanged', updateTimelineItems)
+        map.addListener('positionChanged', function() {
+            updateTimelineItems(layerName);
+        })
         
         layer.addObserver(function(objs)
         {
@@ -256,7 +309,7 @@ var TimelineControl = function(map)
                 }
             }
             
-            updateTimelineItems();
+            updateTimelineItems(layerName);
         }, {asArray: true, ignoreVisibilityFilter: true})
     }
 }
@@ -282,6 +335,7 @@ var publicInterface = {
             }
         }, 'Layer');
     }
+    //, fromTilesToDate: fromTilesToDate
 }
 
 gmxCore.addModule("TimelineRCPlugin", publicInterface, {
