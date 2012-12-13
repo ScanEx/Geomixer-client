@@ -135,7 +135,13 @@
 			var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
 			if(TimeTemporal) dt2str += ' ' + gmxAPI.pad2(dt2.getHours()) + ":" + gmxAPI.pad2(dt2.getMinutes()) + ":" + gmxAPI.pad2(dt2.getSeconds());
 			var curFilter = "\""+columnName+"\" >= '"+dt1str+"' AND \""+columnName+"\" <= '"+dt2str+"'";
-			return {'dt1': dt1, 'dt2': dt2, 'ut1': parseInt(dt1.getTime()/1000), 'ut2': parseInt(dt2.getTime()/1000), 'curFilter': curFilter};
+			return {
+				'dt1': dt1
+				,'dt2': dt2
+				,'ut1': Math.floor(dt1.getTime() / 1000  - dt1.getTimezoneOffset()*60)
+				,'ut2': Math.floor(dt2.getTime() / 1000  - dt2.getTimezoneOffset()*60)
+				,'curFilter': curFilter
+			};
 		}
 
 		var getDateIntervalTiles = function(dt1, dt2, tdata) {			// Расчет вариантов от begDate до endDate
@@ -159,7 +165,7 @@
 				
 				var dHash = tdata['deltaHash'][daysDelta] || {};
 				for (var dz in dHash) {
-					if(dz < zn || dz > zn1) continue;
+					if(dz < zn || dz >= zn1) continue;
 					var arr = dHash[dz] || [];
 					for (var i=0; i<arr.length; i++)
 					{
