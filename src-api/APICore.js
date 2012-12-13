@@ -3170,14 +3170,13 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.needMove = null;
 						map.moveTo(x, y, z);
 					}
-					/*
 					if(map.needSetMode) {
 						var needSetMode = map.needSetMode;
 						map.needSetMode = null;
 						map.setMode(needSetMode);
 					}
+					/*
 					*/
-					
 				});
 			},
 			function()
