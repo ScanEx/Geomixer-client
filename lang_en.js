@@ -549,6 +549,7 @@ _translationsHash.hash["eng"] = {
 	"Предыдущий слой": "Previous layer",
     "Геометрия не сохранена. Эта возможность будет реализована в будущих версиях Геомиксера.": "Geometry is not saved. This feature will be implemented in future Geomixer versions",
     "WMS доступ": "WMS access",
+    "WMS ссылка": "WMS link",
     "Слой '[value0]' уже есть в карте": "Layer '[value0]' already exists in this map",
     "Группа '[value0]' уже есть в карте": "Group '[value0]' already exists in this map",
     "Плагины": "Plugins",

@@ -315,6 +315,7 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 		//	showBalloons = _checkbox(elemProperties.ShowPropertiesBalloons, 'checkbox'),
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
+            WMSLink = _a([_t(_gtxt('WMS ссылка'))], [['attr', 'href', serverBase + 'TileService.ashx?service=wms&map=' + elemProperties.name]]),
             WMSAccess = _checkbox(elemProperties.WMSAccess, 'checkbox'),
 		//	searchVectors = _checkbox(elemProperties.CanSearchVector, 'checkbox'),
 			defLat = _input(null,[['attr','value',elemProperties.DefaultLat != null && elemProperties.DefaultLat != 0 ? elemProperties.DefaultLat : ''],['dir','className','inputStyle'],['css','width','62px']]),
@@ -362,6 +363,8 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 			div.gmxProperties.properties.WMSAccess = this.checked;
 			
 			rawTree.properties = div.gmxProperties.properties;
+            
+            $(WMSLink).toggle(this.checked);
 		}
 		
 		defLat.onkeyup = function()
@@ -487,29 +490,28 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 		{
 			useAPI.style.margin = "0px 4px 0px 3px";
 			useOSM.style.margin = "0px 4px 0px 3px";
-		//	searchVectors.style.margin = "0px 4px 0px 3px";
-		//	showBalloons.style.margin = "0px 4px 0px 3px";
             WMSAccess.style.margin = "0px 4px 0px 3px";
 		}
+        
+        WMSAccess.style.verticalAlign = "middle";
+        $(WMSLink).toggle(elemProperties.WMSAccess);
 		
 		var shownCommonProperties = [
 										{name: _gtxt("Имя"), field: 'title', elem: title},
 										{name: _gtxt("ID"), field: 'name'},
 										{name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright}
 									]
-									//{name: _gtxt("Вид вложенных элементов"), elem: _div([boxSwitch, radioSwitch])},
 									.concat(visibilityPropertiesView)
 									.concat(
 										[{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
 										{name: _gtxt("Использовать OpenStreetMap"), elem: useOSM},
 										{name: _gtxt("Ссылка (permalink)"), elem: defPermalink},
-									//	{name: _gtxt("Показывать всплывающие подсказки"), elem: showBalloons},
 										{name: _gtxt("Масштабирование в миникарте"), elem: zoomDelta}]
 									),
-			shownPolicyProperties = [/*{name: _gtxt("Разрешить поиск в векторных слоях"), elem: searchVectors},*/
+			shownPolicyProperties = [
 										{name: _gtxt("Разрешить скачивание"), elem: _table([_tbody([_tr([_td([_t(_gtxt('Векторных слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadVectors])]),
 																					 				_tr([_td([_t(_gtxt('Растровых слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadRasters])])])])},
-                                        {name: _gtxt("WMS доступ"), elem: WMSAccess}
+                                        {name: _gtxt("WMS доступ"), elem: _div([WMSAccess, WMSLink])}
                                     ],
 			shownViewProperties = [{name: _gtxt("Начальная позиция"), elem: _table([_tbody([_tr([_td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']]), _br(), defLat],[['css','width','70px']]),
 																					   _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']]), _br(), defLong],[['css','width','70px']]),
