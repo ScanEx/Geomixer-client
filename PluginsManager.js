@@ -27,6 +27,7 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
     this.isLoading = false;
     this.mapPlugin = mapPlugin || (body && body.pluginName);
     this.pluginName = pluginName || (this.body && this.body.pluginName);
+    this.isPublic = isPublic;
     
     if (this.body)
         this.def.resolve();
