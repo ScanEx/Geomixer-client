@@ -541,6 +541,8 @@ _translationsHash.hash["eng"] = {
 	"Колонка даты": "Date column",
 	"Минимальный период": "Min. period (days)",
 	"Максимальный период": "Max. period (days)",
+    "Отсутствует временной атрибут": "Missing date attribute",
+    "Период 1 день": "Period 1 day",
 	"По границе экрана": "Screen border",
 	"По центру экрана": "Screen center",
 	"Пересечение": "Intersection",

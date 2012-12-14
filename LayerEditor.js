@@ -62,8 +62,28 @@ var selectColumns = function(parent, params)
 	}
 }
 
-//Возвращает список колонок источника слоя для выбора геометрии
-//Если есть хотя бы одна колонка с геометрией, вернёт [], иначе - все колонки типа Integer || Float || String, которые не являются ни Identity ни Primary (терминология серверного скрипта)
+var parseColumns = function(fields)
+{
+    var geomCount = 0; //кол-во колонок с типом Геометрия
+    var coordFields = []; //колонки, которые могут быть использованы для выбора координат
+    var dateFields = []; //колонки, которые могут быть использованы для выбора временнОго параметра
+        
+    for (var f = 0; f < fields.length; f++)
+    {
+        var type = fields[f].ColumnSimpleType;
+        if ( type === 'Geometry')
+            geomCount++;
+            
+        if ((type === 'String' || type === 'Integer' || type === 'Float') && !fields[f].IsIdentity && !fields[f].IsPrimary)
+            coordFields.push(fields[f].Name);
+            
+        if (type === 'Date' || type === 'DateTime')
+            dateFields.push(fields[f].Name);
+    }
+    
+    return { geomCount: geomCount, coordFields: coordFields, dateFields: dateFields };
+}
+
 var getSourceColumns = function(name)
 {
     var deferred = $.Deferred();
@@ -75,24 +95,9 @@ var getSourceColumns = function(name)
             return;
         }
         
-        var geomCount = 0; //кол-во колонок с типом Геометрия
-        var coordFields = []; //колонки, которые могут быть использованы для выбора координат
-        var dateFields = []; //колонки, которые могут быть использованы для выбора временнОго параметра
-        var fields = response.Result;
-        for (var f = 0; f < fields.length; f++)
-        {
-            var type = fields[f].ColumnSimpleType;
-            if ( type === 'Geometry')
-                geomCount++;
-                
-            if ((type === 'String' || type === 'Integer' || type === 'Float') && !fields[f].IsIdentity && !fields[f].IsPrimary)
-                coordFields.push(fields[f].Name);
-                
-            if (type === 'Date' || type === 'DateTime')
-                dateFields.push(fields[f].Name);
-        }
+        var parsedColumns = parseColumns(response.Result);
         
-        deferred.resolve(geomCount == 0, coordFields, dateFields);
+        deferred.resolve(parsedColumns.geomCount == 0, parsedColumns.coordFields, parsedColumns.dateFields);
     })
     
     return deferred.promise();
@@ -230,12 +235,12 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
         
         if (type == "Vector")
         {
-            var shapePath = _input(null,[['attr','fieldName','ShapePath.Path'],['attr','value',!properties.ShapePath ? properties.GeometryTable.TableName : properties.ShapePath.Path],['dir','className','inputStyle'],['css','width', '200px']]),
+            var shapePath = _input(null,[['attr','fieldName','ShapePath.Path'],['attr','value',properties.ShapePath ? properties.ShapePath.Path : ''],['dir','className','inputStyle'],['css','width', '200px']]),
                 shapeFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
                 tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
-                tilePath = _div([_t(typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')],[['css','marginLeft','3px'],['css','width','220px'],['css','whiteSpace','nowrap'],['css','overflowX','hidden']]),
-                trTiles = _tr([_td([_t(_gtxt("Каталог с тайлами"))],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
-                              _td([tilePath])]),
+                // tilePath = _div([_t(typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')],[['css','marginLeft','3px'],['css','width','220px'],['css','whiteSpace','nowrap'],['css','overflowX','hidden']]),
+                // trTiles = _tr([_td([_t(_gtxt("Каталог с тайлами"))],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
+                              // _td([tilePath])]),
                 tableColumnsParent = _div(),
                 xlsColumnsParent = _div();
             
@@ -246,13 +251,13 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 encodingWidget.drawWidget(encodingParent, properties.EncodeSource);
             }
             
-            _title(tilePath, typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')
+            // _title(tilePath, typeof properties.TilePath.Path != null ? properties.TilePath.Path : '')
             
             if (properties.ShapePath && properties.ShapePath.Path != null && properties.ShapePath.Path != '' && !properties.ShapePath.Exists)
                 $(shapePath).addClass('error');
 
-            if (properties.TilePath.Path != null && properties.TilePath.Path != '' && !properties.TilePath.Exists)
-                tilePath.style.color = 'red';
+            // if (properties.TilePath.Path != null && properties.TilePath.Path != '' && !properties.TilePath.Exists)
+                // tilePath.style.color = 'red';
             
             shapeFileLink.onclick = function()
             {
@@ -317,22 +322,15 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                     
             // слой создан по таблице или excel файлу
             // и есть какие-нибудь данные
-            if ((!properties.ShapePath || valueInArray(['xls', 'xlsx', 'xlsm'], ext)) && (properties.GeometryTable.XCol || properties.GeometryTable.YCol) &&
-                properties.GeometryTable.Columns.length)
+            if (properties.GeometryXCol && properties.GeometryYCol)
             {
-                selectColumns(properties.ShapePath ? xlsColumnsParent : tableColumnsParent, {
-                    fields: properties.GeometryTable.Columns,
-                    defaultX: properties.GeometryTable.XCol,
-                    defaultY: properties.GeometryTable.YCol
+                var parsedColumns = parseColumns(properties.SourceColumns);
+                selectColumns(SourceType == 'file' ? xlsColumnsParent : tableColumnsParent, {
+                    fields: parsedColumns.dateFields,
+                    defaultX: properties.GeometryXCol,
+                    defaultY: properties.GeometryYCol
                 });
             }
-            
-            //shownProperties.push({tr:trPath});
-            
-            if (div)
-                shownProperties.push({tr:trTiles});
-                        
-            // shownProperties.push({tr:trTimeLayer});
             
             var boxSearch = _checkbox(div ? (divProperties.AllowSearch || false) : ( properties.AllowSearch || false ), 'checkbox');
             boxSearch.setAttribute('fieldName', 'AllowSearch');
@@ -552,23 +550,15 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             //Источник: файл
             var sourceFile = _div(null, [['dir', 'id', 'fileSource' + properties.name]])
             
-            // var temporalLayerParentFile = _div(null, [['dir', 'className', 'TemporalLayer']]);
-            // var temporalLayerParamsFile = new nsGmx.TemporalLayerParams(initTemporalParams);
-            // var temporalLayerViewFile = new nsGmx.TemporalLayerParamsControl(temporalLayerParentFile, temporalLayerParamsFile, []);
-            
             _(sourceFile, [shapePath, shapeFileLink, encodingParent, xlsColumnsParent]);
             
             //Источник: таблица
             var tablePath = _input(null,[
-                ['attr','fieldName','GeometryTable.TableName'],
-                ['attr','value',properties.GeometryTable ? properties.GeometryTable.TableName : ''],
+                ['attr','fieldName','TableName'],
+                ['attr','value',properties.TableName || ''],
                 ['dir','className','inputStyle'],
                 ['css','width', '200px']
             ]);
-            
-            // var temporalLayerParentTable = _div(null, [['dir', 'className', 'TemporalLayer']]);
-            // var temporalLayerParamsTable = new nsGmx.TemporalLayerParams(initTemporalParams);
-            // var temporalLayerViewTable = new nsGmx.TemporalLayerParamsControl(temporalLayerParentTable, temporalLayerParamsTable, []);
             
             var TableCSParent = _div();
             var TableCSSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '165px')
@@ -583,9 +573,6 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             var sourceTable = _div([tablePath, tableLink, TableCSParent, tableColumnsParent], [['dir', 'id', 'tableSource' + properties.name]])
             
             //Источник: вручную
-            // var temporalLayerParentManual = _div(null, [['dir', 'className', 'TemporalLayer']]);
-            // var temporalLayerParamsManual = new nsGmx.TemporalLayerParams(initTemporalParams);
-            // var temporalLayerViewManual = new nsGmx.TemporalLayerParamsControl(temporalLayerParentManual, temporalLayerParamsManual, []);
             var sourceManual = _div([attrContainer], [['dir', 'id', 'manualSource' + properties.name]])
             $(attrModel).change(function()
             {
@@ -646,6 +633,12 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
             var temporalLayerParams = new nsGmx.TemporalLayerParams(initTemporalParams);
             var temporalLayerView = new nsGmx.TemporalLayerParamsControl(temporalLayerParent, temporalLayerParams, []);
+            
+            if (div)
+            {
+                var parsedColumns = parseColumns(properties.SourceColumns);
+                temporalLayerView.updateColumns(parsedColumns.dateFields);
+            }
             
             var collapsableAdvancedParent = _div();
             shownProperties.push({tr:_tr([_td([collapsableAdvancedParent], [['attr', 'colSpan', 2]])])});
@@ -918,7 +911,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                 else if (selectedSource == 0)
                     checkFields.push('ShapePath.Path');
                 else if (selectedSource == 1)
-                    checkFields.push('GeometryTable.TableName');
+                    checkFields.push('TableName');
                     
                 for (var i = 0; i < checkFields.length; i++)
                 {
@@ -974,9 +967,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                         RCParams = '&IsRasterCatalog=false';
                     }
                     
-                    //var temporalLayerParams = selectedSource == 1 ? temporalLayerParamsTable : temporalLayerParamsManual;
-                    
-                    if ( temporalLayerParams.getTemporal() )
+                    if ( temporalLayerParams.getTemporal() && temporalLayerParams.getColumnName() )
                         temporalParams = '&TemporalLayer=true&TemporalColumnName=' + encodeURIComponent(temporalLayerParams.getColumnName()) + '&TemporalPeriods=' + encodeURIComponent(temporalLayerParams.getPeriodString());
                     else
                         temporalParams = '&TemporalLayer=false';
@@ -1044,12 +1035,15 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                     }
                     else
                     {
-                        var geometryDataSource = selectedSource == 0 ? shapePath.value : tablePath.value;
+                        var geometryDataSource = "";
+                        if (selectedSource < 2)
+                            geometryDataSource = "&GeometryDataSource=" + encodeURIComponent(selectedSource == 0 ? shapePath.value : tablePath.value);
+                        
                         sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (div ? "Update.ashx" : "Insert.ashx") + "?WrapStyle=func" + 
                             "&Title=" + encodeURIComponent(title.value) + 
                             "&Copyright=" + encodeURIComponent(copyright.value) + 
                             "&Description=" + encodeURIComponent(descr.value) + 
-                            "&GeometryDataSource=" + encodeURIComponent(geometryDataSource) + 
+                            geometryDataSource + 
                             "&MapName=" + encodeURIComponent(mapProperties.name) + 
                             cols + updateParams + encoding + temporalParams + metadataString + tableCSParam + RCParams + nameObjectParams, 
                             function(response)

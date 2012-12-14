@@ -889,7 +889,7 @@ skype_pnh_container
 .TemporalLayer td
 {
 	border: none;
-	padding-left: 2px;
+	padding: 3px 0px 0px 0px;
 }
 
 .TemporalLayer label
@@ -905,6 +905,23 @@ skype_pnh_container
 .TemporalLayer .ErrorPeriod
 {
 	background-color: #FFABAB;
+}
+
+.temporal-properties-single
+{
+    float: right;
+    margin-right: 41px;
+}
+
+.temporal-control-noattr
+{
+    font-weight: bold;
+    color: red;
+}
+
+.temporal-properties-single *
+{
+    vertical-align: middle;
 }
 
 .searchCanvas .PeriodCalendar
