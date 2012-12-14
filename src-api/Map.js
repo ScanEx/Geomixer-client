@@ -369,7 +369,7 @@
 		
 		map.setBaseLayer = function(name)
 		{
-			//map.needSetMode = null;
+			map.needSetMode = name;
 			//if(map.needSetMode) map.needSetMode = name;
 			//else {
 				unSetBaseLayer();
