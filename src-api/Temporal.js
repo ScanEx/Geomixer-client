@@ -165,7 +165,7 @@
 				
 				var dHash = tdata['deltaHash'][daysDelta] || {};
 				for (var dz in dHash) {
-					if(dz < zn || dz >= zn1) continue;
+					if(dz < zn || dz > zn1) continue;
 					var arr = dHash[dz] || [];
 					for (var i=0; i<arr.length; i++)
 					{
