@@ -554,7 +554,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
     disableSelection(span);
 	// }
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display',($.browser.msie) ? 'inline' : 'inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display',($.browser.msie) ? 'inline' : 'inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		spanDescr = _span(null,[['dir','className','layerDescription']]);
 		
 	spanDescr.innerHTML = elem.description ? elem.description : '';
@@ -873,7 +873,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 		disableSelection(span);
 	// }
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display',($.browser.msie) ? 'inline' : 'inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display',($.browser.msie) ? 'inline' : 'inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
 	
 	if ($.browser.msie)
 		spanParent.style.zIndex = 1;
@@ -903,7 +903,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerManagerFlag)
 {
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer']]),
-		spanParent = _div([span],[['css','display',($.browser.msie) ? 'inline' : 'inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
+		spanParent = _div([span],[['css','display',($.browser.msie) ? 'inline' : 'inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		_this = this;
 
 	if ($.browser.msie)
