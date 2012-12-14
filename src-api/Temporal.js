@@ -138,8 +138,10 @@
 			return {
 				'dt1': dt1
 				,'dt2': dt2
-				,'ut1': Math.floor(dt1.getTime() / 1000  - dt1.getTimezoneOffset()*60)
-				,'ut2': Math.floor(dt2.getTime() / 1000  - dt2.getTimezoneOffset()*60)
+				//,'ut1': Math.floor(dt1.getTime() / 1000  - dt1.getTimezoneOffset()*60)
+				//,'ut2': Math.floor(dt2.getTime() / 1000  - dt2.getTimezoneOffset()*60)
+				,'ut1': Math.floor(dt1.getTime() / 1000)
+				,'ut2': Math.floor(dt2.getTime() / 1000)
 				,'curFilter': curFilter
 			};
 		}
