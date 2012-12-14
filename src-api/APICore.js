@@ -3121,7 +3121,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.addLayers(layers);
 						map.properties = layers.properties;
 					}
-					//if(map.needSetMode) map.setMode(map.needSetMode);
+					if(gmxAPI.proxyType === 'flash' && map.needSetMode) map.setMode(map.needSetMode);
 
 					// копирайты
 					var setCopyright = function(o, z1, z2, text)
