@@ -315,7 +315,7 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 		//	showBalloons = _checkbox(elemProperties.ShowPropertiesBalloons, 'checkbox'),
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
-            WMSLink = _a([_t(_gtxt('WMS ссылка'))], [['attr', 'href', serverBase + 'TileService.ashx?service=wms&map=' + elemProperties.name]]),
+            WMSLink = _a([_t(_gtxt('ссылка'))], [['attr', 'href', serverBase + 'TileService.ashx?map=' + elemProperties.name]]),
             WMSAccess = _checkbox(elemProperties.WMSAccess, 'checkbox'),
 		//	searchVectors = _checkbox(elemProperties.CanSearchVector, 'checkbox'),
 			defLat = _input(null,[['attr','value',elemProperties.DefaultLat != null && elemProperties.DefaultLat != 0 ? elemProperties.DefaultLat : ''],['dir','className','inputStyle'],['css','width','62px']]),
