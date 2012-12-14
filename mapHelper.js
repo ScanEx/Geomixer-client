@@ -3221,7 +3221,7 @@ mapHelper.prototype.print = function()
 				var drawnObjects = [],
 					layersVisibility = {};
 				
-				_mapHelper.forEachMyLayer(function(layer)
+				_layersTree.treeModel.forEachLayer(function(layer)
 				{
 					layersVisibility[layer.properties.name] = layer.isVisible;
 				});
