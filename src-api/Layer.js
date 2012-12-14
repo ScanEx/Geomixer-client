@@ -186,11 +186,11 @@
 			parentObj.layers = [];
 		
 		if (!parentObj.layersParent) {
-			parentObj.layersParent = parentObj.addObject();
+			parentObj.layersParent = parentObj.addObject(null, null, {'layersParent': true});
 		}
 		if (!parentObj.overlays)
 		{
-			parentObj.overlays = parentObj.addObject();
+			parentObj.overlays = parentObj.addObject(null, null, {'overlaysParent': true});
 			parentObj.addObject = function(geom, props, propHiden)
 			{
 				var ret = FlashMapObject.prototype.addObject.call(parentObj, geom, props, propHiden);

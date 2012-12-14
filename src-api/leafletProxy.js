@@ -186,6 +186,31 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			return canvas.toDataURL();
 		}
 		,
+		'isPointInPolygon': function(chkPoint, poly)	{			// Проверка точки на принадлежность полигону
+			var isIn = false;
+			var p1 = poly[0];
+			for (var i = 1; i < poly.length; i++)
+			{
+				var p2 = poly[i];
+				if (chkPoint.x > Math.min(p1.x, p2.x)) 
+				{
+					if (chkPoint.x <= Math.max(p1.x, p2.x)) 
+					{
+						if (chkPoint.y <= Math.max(p1.y, p2.y)) 
+						{
+							if (p1.x != p2.x) 
+							{
+								var xinters = (chkPoint.x - p1.x)*(p2.y - p1.y)/(p2.x - p1.x) + p1.y;
+								if (p1.y == p2.y || chkPoint.y <= xinters) isIn = !isIn;
+							}
+						}
+					}
+				}
+				p1 = p2;
+			}
+			return isIn;
+		}
+		,
 		'getMapPosition': function()	{			// Получить позицию карты
 			var zoom = LMap.getZoom();
 			if(!zoom) {
@@ -926,7 +951,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			//obj['zIndex'] = zIndex;
 			if(!obj['leaflet']) return;
 			var lObj = obj['leaflet'];
-			lObj.options.zIndex = zIndex;
+			zIndex += obj['zIndexOffset'] ;
 			if(lObj._container && lObj._container.style.zIndex != zIndex) lObj._container.style.zIndex = zIndex;
 		}
 		,
@@ -1130,6 +1155,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			,'handlers': {}
 			,'children': []
 			,'id': id
+			,'zIndexOffset': 0
 			,'parentId': ph.obj['objectId']
 			//,'eventsCheck': 
 			//subType
@@ -1156,6 +1182,9 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			pt['propHiden'] = ph.attr['propHiden'] || {};
 			if(pt['propHiden']['subType']) pt['subType'] = pt['propHiden']['subType'];
 			if(pt['propHiden']['refreshMe']) pt['refreshMe'] = pt['propHiden']['refreshMe'];
+			if(pt['propHiden']['layersParent']) pt['zIndexOffset'] = 0;
+			if(pt['propHiden']['overlaysParent']) pt['zIndexOffset'] = 1000;
+			
 // 
 		}
 		mapNodes[id] = pt;
@@ -1462,9 +1491,9 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var id = ph.obj.objectId;
 			var zIndex = ph.attr.zIndex;
 			var node = mapNodes[id];
-			node['zIndex'] = zIndex;
 			if(node) {
-				utils.bringToDepth(node, zIndex);
+				node['zIndex'] = zIndex;
+				utils.bringToDepth(node, zIndex + node['zIndexOffset']);
 			}
 		}
 		,
@@ -2094,9 +2123,9 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 //gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
 		if(!node) return;						// Нода не определена
 		node['type'] = 'RasterLayer';
+		node['isOverlay'] = false;
 		var inpAttr = ph.attr;
 		node['subType'] = ('subType' in inpAttr ? inpAttr['subType'] : (inpAttr['projectionCode'] === 1 ? 'OSM' : ''));
-		if(!'zIndex' in node) node['zIndex'] = utils.getIndexLayer(id);
 		var attr = {};
 		if(node.propHiden) {
 			if(node.propHiden.geom) {
@@ -2104,6 +2133,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				attr['bounds'] = attr['geom']['bounds'];				// Bounds слоя
 			}
 		}
+		node['zIndexOffset'] = 0;									// Сдвиг zIndex
 		var pNode = mapNodes[node.parentId];					// Нода родителя
 		if(pNode && pNode.propHiden && pNode.propHiden.subType === 'tilesParent') {
 			attr['minZoom'] = pNode.minZ || 1;
@@ -2111,8 +2141,16 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 										// pNode.parentId нода векторного слоя по обьекту которого создан растровый слой 
 		} else {
 			attr = prpLayerAttr(layer, node);
+			if(pNode && pNode.zIndexOffset) {
+				node['zIndexOffset'] = pNode.zIndexOffset;
+			}
 		}
-		
+		if(attr['isOverlay']) {
+			node['isOverlay'] = true;
+		}
+		if(!'zIndex' in node) node['zIndex'] = utils.getIndexLayer(id);
+		node['zIndex'] += node['zIndexOffset'];
+
 		node['chkGeometry'] = function() {			// подготовка границ растрового слоя
 			var pt = prpGeom(node['geometry']);
 			if(pt['geom']) attr['geom'] = pt['geom'];					// Массив Point границ слоя
@@ -2128,7 +2166,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			if(obj._container) {
 				if(obj._container.id != id) obj._container.id = id;
 				if(obj._container.style.position != 'absolute') obj._container.style.position = 'absolute';
-				if(!'zIndex' in node) node['zIndex'] = utils.getIndexLayer(id);
+				if(!'zIndex' in node) node['zIndex'] = utils.getIndexLayer(id) + node['zIndexOffset'];
 				utils.bringToDepth(node, node['zIndex']);
 				if(node['shiftY']) node['shiftY']();
 			}
@@ -2138,7 +2176,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		var option = {
 			'minZoom': inpAttr['minZoom'] || attr['minZoom'] || 1
 			,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom'] || 21
-			,'zIndex': utils.getIndexLayer(id)
+			,'zIndex': node['zIndex']
 			,'initCallback': initCallback
 			,'tileFunc': inpAttr['func']
 			,'attr': attr
@@ -2250,6 +2288,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				if(node['type'] == 'RasterLayer') {			// растровый слой
 					out['minZoom'] = (prop.MinZoom ? prop.MinZoom : 1);
 					out['maxZoom'] = (prop.MaxZoom ? prop.MaxZoom : 20);
+					if(prop.type == 'Overlay') out['isOverlay'] = true;
 				}
 				else if(node['type'] == 'VectorLayer') {	// векторный слой
 					out['identityField'] = (prop.identityField ? prop.identityField : 'ogc_fid');
@@ -2516,8 +2555,10 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 					if(!item.propHiden['toFilters'] || !item.propHiden['toFilters'].length) continue;		// обьект не попал в фильтр
 					if(node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](item['properties'])) continue; 	// если фильтр видимости на слое не отменен
 					if(node.chkTemporalFilter(item)) {
-						if((item['contains'] && item['contains'](mPoint))
-							|| item.bounds.contains(mPoint)) arr.push(item);
+						if('contains' in item) {
+							if(item['contains'](mPoint)) arr.push(item);
+						}
+						else if(item.bounds.contains(mPoint)) arr.push(item);
 					}
 				}
 			}
@@ -3896,6 +3937,16 @@ if(!tileBounds_) return;
 			//attr.ctx.stroke();
 			return res;
 		}
+		// Проверка принадлежности точки полигону
+		out['contains'] = function (chkPoint) {
+			if(bounds.contains(chkPoint)) {
+				for (var i = 0; i < coords.length; i++)
+				{
+					if(gmxAPI._leaflet['utils'].isPointInPolygon(chkPoint, coords[i])) return true;
+				}
+			}
+			return false;
+		}
 		return out;
 	};
 })();
@@ -3958,6 +4009,16 @@ if(!tileBounds_) return;
 			}
 			return cnt;		// количество отрисованных точек в геометрии
 		}
+		
+		// Проверка принадлежности точки MultiPolygonGeometry
+		out['contains'] = function (chkPoint) {
+			for (var i = 0; i < members.length; i++)
+			{
+				if(members[i]['contains'](chkPoint)) return true;
+			}
+			return false;
+		}
+		
 		return out;
 	};
 })();
@@ -4033,14 +4094,28 @@ if(!tileBounds_) return;
 			//var pos = new L.LatLng(50.499276, 35.760498);
 			//LMap.setView(pos, 4);
 //console.log('waitMe ' , pos);
+			var checkMapResize = true;
 			gmxAPI._leaflet['mapOnResize'] = function (e) {
+				//checkMapResize = true;
+				/*
 				setTimeout(function() {
 					//LMap.fire('transitionend');
 					//LMap.fire('mousedown');
 					//LMap.fire('focus');
 					LMap._onResize();
-				}, 50);
+				}, 50);*/
 			};
+			var chkMapResize = function() {
+				// anima
+				//if(checkMapResize) {
+					//LMap.fire('transitionend');
+					//LMap.fire('mousedown');
+					//LMap.fire('focus');
+					LMap._onResize();
+					checkMapResize = false;
+				//}
+			};
+			setInterval(chkMapResize, 5000);
 			L.DomEvent.addListener(window.document, 'click', gmxAPI._leaflet['mapOnResize']);
 			LMap.on('moveend', function(e) {
 				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {});
@@ -4125,14 +4200,17 @@ for (var key in e.target.style) { st += key + ': ' + e.target.style[key]; }
 			};
 			//L.DomEvent.on(LMap._container, 'touchstart', setTouchStart, this);
 			
+			var onMouseMoveTimer = null;
 			LMap.on('mousemove', function(e) {
 				if(gmxAPI._leaflet['mousedown']) timeDown -= 900;
 				gmxAPI._leaflet['mousePos'] = e.latlng;
 				var attr = parseEvent(e);
 				attr['evName'] = 'onMouseMove';
-				//if(e.originalEvent.buttons) {
+				if(onMouseMoveTimer) clearTimeout(onMouseMoveTimer);
+				onMouseMoveTimer = setTimeout(function() {
 					gmxAPI._listeners.dispatchEvent('onMouseMove', gmxAPI.map, {'attr':attr});
-				//}
+					onMouseMoveTimer = null;
+				}, 50);
 				gmxAPI._leaflet['utils'].chkMouseHover(attr)
 			});
 			LMap.on('mouseup', function(e) {

@@ -663,6 +663,7 @@
 		var eventXprev = 0; 
 		var eventYprev = 0;
 		var buttons = false;
+		var mouseMoveTimer = null;
 		var onmousemove = function(ev)
 		{
 			var event = gmxAPI.compatEvent(ev);
@@ -720,7 +721,16 @@ event.stopImmediatePropagation();
 */
 		}
 
-		gmxAPI._div.onmousemove = onmousemove;
+		gmxAPI._div.onmousemove = function(ev)
+		{
+			if(mouseMoveTimer) clearTimeout(mouseMoveTimer);
+			mouseMoveTimer = setTimeout(function() {
+				onmousemove(ev);
+				mouseMoveTimer = null;
+			}, 10);
+		};
+		
+		//gmxAPI._div.onmousemove = onmousemove;
 		//new gmxAPI.GlobalHandlerMode("mousemove", onmousemove).set();
 		
 		gmxAPI.map.addListener('positionChanged', function(ph)
