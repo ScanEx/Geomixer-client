@@ -1462,6 +1462,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			else zIndex = utils.getLastIndex(node.parent);
 			node['zIndex'] = zIndex;
 			utils.bringToDepth(node, zIndex);
+			if(node['leaflet']) node['leaflet'].bringToFront();
 /*
 			for (key in ph.obj.childsID) {
 				var node = mapNodes[key];
@@ -1481,6 +1482,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			node['zIndex'] = 0;
 //console.log('bringToBottom ' , id, 0); 
 			utils.bringToDepth(node, 0);
+			if(node['leaflet']) node['leaflet'].bringToBack();
 /*			
 			for (key in obj.childsID) {
 				node = mapNodes[key];
@@ -2057,7 +2059,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			//gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': redrawMe });
 			gmxAPI.map.addListener('positionChanged', redrawMe, 11);
 
-			LMap.on('click', function(e) {});	// Для Click на растре
+			//LMap.on('click', function(e) {});	// Для Click на растре
 			
 			var zoomTimer = null;
 			LMap.on('zoomanim', function(e) {
