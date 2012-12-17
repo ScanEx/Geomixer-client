@@ -127,7 +127,7 @@ queryKML.prototype.load = function()
                 var randomFilename = String(Math.random()).slice(2) + '.kml';
                 sendCrossDomainPostRequest(serverBase + "FileBrowser/Upload.ashx", {WrapStyle: "window", ParentDir: shareKMLFolder, name: randomFilename}, function(response)
                 {
-                    var kmlURL = serverBase + "GetFile.ashx?login=" + encodeURIComponent(nsGmx.AuthManager.getLogin()) + "&file=" + encodeURIComponent("kml\\" + randomFilename);
+                    var kmlURL = serverBase + "GetFile.ashx?nickname=" + encodeURIComponent(nsGmx.AuthManager.getNickname()) + "&file=" + encodeURIComponent("kml\\" + randomFilename);
                     sendCrossDomainJSONRequest(serverBase + 'ApiSave.ashx?get=' + encodeURIComponent(kmlURL), function(response)
                     {
                         if (!parseResponse(response))
