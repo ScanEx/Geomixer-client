@@ -2,7 +2,7 @@
 
 var publicInterface = {
     pluginName: 'API 2GIS',
-    afterViewer: function(params, map)
+    beforeViewer: function(params, map)
     {
         var gis = map.addObject();
         gis.setVisible(false);
