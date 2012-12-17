@@ -156,14 +156,14 @@ function _gtxt()
 	return _translationsHash.gettext.apply(_translationsHash, arguments)	
 }
 
-window.gmxCore && gmxCore.addModule('translations', 
-{
-    _translationsHash: _translationsHash
-})
-
 //Явно добавляем объекты в глобальную видимость
 window._gtxt = _gtxt;
 window._translationsHash = _translationsHash;
 window.translationsHash = translationsHash;
+
+window.gmxCore && gmxCore.addModule('translations', 
+{
+    _translationsHash: _translationsHash
+})
 
 }();
