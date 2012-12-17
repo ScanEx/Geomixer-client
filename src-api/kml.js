@@ -145,7 +145,7 @@
 		{
 			var width = parseInt(this.value(linestyles[0].getElementsByTagName("width")[0]));
 			
-			if (width < 1) 
+			if (width < 1 || isNaN(width)) 
 				width = 5;
 			
 			var color = this.value(linestyles[0].getElementsByTagName("color")[0]),
