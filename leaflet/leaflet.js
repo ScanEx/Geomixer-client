@@ -6735,6 +6735,7 @@ L.Handler.MarkerDrag = L.Handler.extend({
 	},
 
 	_onDrag: function (e) {
+		if(!this._marker._map) return;
 		var marker = this._marker,
 		    shadow = marker._shadow,
 		    iconPos = L.DomUtil.getPosition(marker._icon),

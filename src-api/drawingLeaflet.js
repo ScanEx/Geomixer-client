@@ -212,6 +212,7 @@
 	var endDrawing = function() {			// Вызывается при выходе из режима редактирования
 		chkDrawingObjects();
 		currentDOMObject = null;
+		gmxAPI._drawing['activeState'] = false;
 	};
 
 	var createDOMObject = function(ret, properties)
@@ -478,11 +479,13 @@
 			obj.addListener('dragend', function(ev)
 			{
 				chkEvent('onFinish');
+				gmxAPI._drawing['activeState'] = false;
 			});
 			obj.addListener('drag', function(ev)
 			{
 				var attr = ev.attr;
 				dragCallback(attr.x, attr.y);
+				gmxAPI._drawing['activeState'] = true;
 			});
 
 			//var balloonVisible = false;
@@ -699,6 +702,7 @@
 			gmxAPI._cmdProxy('stopDrawing');
 			if(onMouseMoveID) gmxAPI.map.removeListener('onMouseMove', onMouseMoveID);
 			onMouseMoveID = null;
+			gmxAPI._drawing['activeState'] = false;
 			
 			isDraging = false;
 			if(propsBalloon) propsBalloon.updatePropsBalloon(false);
@@ -811,6 +815,7 @@
 			if (!coords) {				// Если нет coords создаем
 				coords = [];
 				createDrawingItem();
+				gmxAPI._drawing['activeState'] = true;
 				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 			}
 			if (coords.length) {
@@ -837,6 +842,7 @@
 					eventType = 'onFinish';
 					chkEvent(eventType);
 					mouseOverFlag = true;
+					gmxAPI._drawing['activeState'] = false;
 					return true;
 				}
 			}
@@ -868,6 +874,7 @@
 				}
 				gmxAPI._cmdProxy('startDrawing');
 				repaint();
+				gmxAPI._drawing['activeState'] = true;
 				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 				onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
 				if(propsBalloon) propsBalloon.updatePropsBalloon(false);
@@ -1095,6 +1102,7 @@
 			if('type' in downType) {
 				mousePressed = true;
 				gmxAPI._cmdProxy('startDrawing');
+				gmxAPI._drawing['activeState'] = true;
 				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 				onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
 				if(downType['type'] == 'edge') {
@@ -1202,6 +1210,7 @@
 			if(onMouseMoveID) gmxAPI.map.removeListener('onMouseMove', onMouseMoveID);
 			//console.log('onMouseUp: onMouseMoveID ', x1, y1, x2, y2);
 			onMouseMoveID = null;
+			gmxAPI._drawing['activeState'] = false;
 			
 			isDraging = false;
 			if(propsBalloon) propsBalloon.updatePropsBalloon(false);
@@ -1343,6 +1352,7 @@
 				x1 = ph.attr.latlng.lng;
 				y1 = ph.attr.latlng.lat;
 				gmxAPI._cmdProxy('startDrawing');
+				gmxAPI._drawing['activeState'] = true;
 				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 				gmxAPI.map.removeListener('onMouseDown', addItemListenerID);
 				addItemListenerID = null;
@@ -1360,6 +1370,7 @@
 	var zoomActive = false;
 	drawFunctions.zoom = function()
 	{
+		gmxAPI._drawing['activeState'] = false;
 		var x1, y1, x2, y2;
 		var rect;
 		var toolsContainer = null;
@@ -1403,6 +1414,7 @@
 	var drawing = {
 		handlers: { onAdd: [], onEdit: [], onRemove: [] },
 		mouseState: 'up',
+		activeState: false,
 		endDrawing: endDrawing,
 		stateListeners: {},
 		addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },

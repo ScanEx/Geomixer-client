@@ -3167,7 +3167,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						var x = map.needMove['x'];
 						var y = map.needMove['y'];
 						var z = map.needMove['z'];
-						map.needMove = null;
+						if(gmxAPI.proxyType === 'flash') map.needMove = null;
 						map.moveTo(x, y, z);
 					}
 					if(map.needSetMode) {
