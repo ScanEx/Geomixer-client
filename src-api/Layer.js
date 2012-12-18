@@ -285,6 +285,10 @@
 			obj.removeItems = function(attr) {		// удаление обьектов векторного слоя 
 				return gmxAPI._cmdProxy('removeItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
 			};
+			obj.setSortItems = function(attr) {		// установка даление обьектов векторного слоя 
+				return gmxAPI._cmdProxy('setSortItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
+			};
+			
 		}
 
 		var hostName = layer.properties.hostName || "maps.kosmosnimki.ru";

@@ -659,7 +659,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		,
 		'drawPoint': function(node, style)	{			// отрисовка POINT геометрии
 			var out = null;
-			var styleType = (style['iconUrl'] ? 'marker' : 'rectangle');
+			var styleType = (style['iconUrl'] ? 'marker' : (style['stroke'] || style['fill'] ? 'rectangle' : ''));
 			var geo = node.geometry;
 			var pos = geo.coordinates;
 			var prop = geo.properties;
@@ -1082,9 +1082,9 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		var optm = {'zIndexOffset': 1, 'title': ''}; // , clickable: false
 		if(labelStyle['size']) opt['iconSize'] = new L.Point(labelStyle['size'], labelStyle['size']);
 		//scale
-		var posX = iconAnchor.x;
-		var posY = iconAnchor.y;
 		var labelExtent = utils.getLabelSize(node['label'], labelStyle);
+		var posX = iconAnchor.x;
+		var posY = iconAnchor.y + labelExtent.y/2 + 4;
 		if(labelStyle['align'] === 'center') {
 			divStyle['textAlign'] = 'center';
 			if('iconSize' in regularStyle) posY = regularStyle.iconSize['y']/4;
@@ -1094,7 +1094,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			opt['iconAnchor'] = new L.Point(Math.floor(posX - 6), Math.floor(posY));
 		} else if(labelStyle['align'] === 'right') {
 			//divStyle['bottom'] = 0;
-			opt['iconAnchor'] = new L.Point(Math.floor(posX + labelExtent.x), Math.floor(posY));
+			opt['iconAnchor'] = new L.Point(Math.floor(posX + labelExtent.x + 4), Math.floor(posY));
 		} else {
 			//divStyle['bottom'] = 0;
 			opt['iconAnchor'] = new L.Point(-Math.floor(posX/2) - 6, Math.floor(posY/2));
@@ -3136,7 +3136,7 @@ console.log('rrrrrrrr', myLayer);
 						(
 							(zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'])
 							&&
-							(node['propHiden']['rasterView'] && !propHiden['rasterView'])
+							(node['propHiden']['rasterView'] != '' || !propHiden['rasterView'])
 						)
 						? false
 						: true
