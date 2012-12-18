@@ -9,7 +9,9 @@
 
 _translationsHash.addtext("rus", {
 	"Текущее местоположение отображается только для России и Украины": "Текущее местоположение отображается только для России и Украины",
-    "Следующие [value0] страниц" : "Следующие [value0] страниц",
+	"Следующие [value0] страниц": "Следующие [value0] страниц",
+	"Следующие [value0] страницы": "Следующие [value0] страницы",
+	"Следующая [value0] страница": "Следующая [value0] страница",
     "Предыдущие [value0] страниц" : "Предыдущие [value0] страниц",
     "Первая страница" : "Первая страница",
     "Последняя страница" : "Последняя страница"
@@ -17,7 +19,9 @@ _translationsHash.addtext("rus", {
 
 _translationsHash.addtext("eng", {
 	"Текущее местоположение отображается только для России и Украины": "Current location is shown only for Russia and Ukraine",
-    "Следующие [value0] страниц" : "Next [value0] pages",
+	"Следующие [value0] страниц": "Next [value0] pages",
+	"Следующие [value0] страницы": "Next [value0] pages",
+	"Следующая [value0] страница": "Next [value0] pages",
     "Предыдущие [value0] страниц" : "Previous [value0] pages",
     "Первая страница" : "First page",
     "Последняя страница" : "Last page"
@@ -632,6 +636,114 @@ var ResultList = function(oInitContainer, ImagesHost){
 			this.parentNode.style.background = 'none';
 		})
 	}
+
+
+    /**Создается переключатель страниц    
+    @param results - набор результатов
+    @param onclick - обработчик нажатия переключателя страниц
+    @returns {void}*/
+    this.CreatePager = function (results, onclick) {
+
+        function makeNavigButton(pager, img, imga, id, title) {
+            var b = makeImageButton(sImagesHost + img, sImagesHost + imga);
+            b.style.marginBottom = '-7px';
+            $(b).attr('id', id)
+            _title(b, title);
+            _(pager, [b]);
+            return b;
+        }
+
+        containerList = Container;
+        $('#respager').remove();
+        //var pager = _div([_t('всего: ' + results[0].ResultsCount)], [["attr", "id", "respager"]]);
+        var pager = _div([_t('')], [["attr", "id", "respager"]]);
+        _(containerList, [pager]);
+
+        var pcount = Math.ceil(results[0].ResultsCount / iLimit);
+        if (pcount > 1) {
+            var first = makeNavigButton(pager, '/first.png', '/first_a.png', 'firstpage', _gtxt('Первая страница'));
+            $(first).bind('click', function () {
+                fnShowPage(0);
+            });
+            var prev = makeNavigButton(pager, '/prev.png', '/prev_a.png', 'prevpages', _gtxt('Предыдущие [value0] страниц', iPagesCount));
+            $(prev).bind('click', function () {
+                fnShowPage(parseInt($('#page1').text()) - iPagesCount - 1);
+            });
+            $(first).hide();
+            $(prev).hide();
+
+            for (var i = 0; i < iPagesCount && i < pcount; ++i) {
+                var pagelink = makeLinkButton(i + 1);
+                $(pagelink).attr('id', 'page' + (i + 1));
+                if (i == 0){
+                    $(pagelink).attr('class', 'page')
+                    attachEffects(pagelink, '');
+                }
+                $(pagelink).bind('click', onclick);
+                _(pager, [pagelink, _t(' ')]);
+            }
+
+            var remains = pcount % iPagesCount;
+            var nextPages = pcount/iPagesCount<2 ? remains : iPagesCount
+            var nextButTitle = 'Следующие [value0] страниц';
+            if (nextPages % 10 == 1 && nextPages != 11)
+                nextButTitle = 'Следующие [value0] страница';
+            if (1 < nextPages % 10 && nextPages % 10 < 5 && (nextPages<10 || nextPages > 20))
+                nextButTitle = 'Следующие [value0] страницы';
+            var next = makeNavigButton(pager, '/next.png', '/next_a.png', 'nextpages', _gtxt(nextButTitle, nextPages));
+            $(next).bind('click', function () {
+                fnShowPage(parseInt($('#page' + iPagesCount).text()));
+            });      
+            var last = makeNavigButton(pager, '/last.png', '/last_a.png', 'lastpage', _gtxt('Последняя страница')); 
+            $(last).bind('click', function () {
+                var lastindex = (remains == 0 ? iPagesCount : remains)
+                fnShowPage(pcount - lastindex, $('#page' + lastindex));
+            });
+
+            if (iPagesCount >= pcount) {
+                $(next).hide();
+                $(last).hide();
+            }
+        }
+
+        var fnShowPage = function (n, active) {
+            //alert(n + "\n" + pcount);
+            for (var i = 0; i < iPagesCount; ++i) {//pcount
+                if (i + n < pcount) {
+                    $('#page' + (i + 1)).text(i + n + 1);
+                    $('#page' + (i + 1)).show();
+                }
+                else
+                    $('#page' + (i + 1)).hide();
+            }
+
+            if (n < iPagesCount) {
+                $('#prevpages').hide(); $('#firstpage').hide();
+            }
+            else {
+                $('#prevpages').show(); $('#firstpage').show();
+            }
+
+            if (n + iPagesCount < pcount) {
+                $('#nextpages').show(); $('#lastpage').show();
+                var rest = pcount - n - iPagesCount;
+                var nextPages = rest < iPagesCount ? rest : iPagesCount
+                var nextButTitle = 'Следующие [value0] страниц';
+                if (nextPages % 10 == 1 && nextPages != 11)
+                    nextButTitle = 'Следующая [value0] страница';
+                if (1 < nextPages % 10 && nextPages % 10 < 5 && (nextPages < 10 || nextPages > 20))
+                    nextButTitle = 'Следующие [value0] страницы';
+                $('#nextpages').attr('title', _gtxt(nextButTitle, nextPages));
+            }
+            else {
+                $('#nextpages').hide(); $('#lastpage').hide();
+            }
+
+            if (active == null) active = $('#prevpages~span')[0];
+            $(active).trigger('click');
+        }
+    }
+    /*----------------------------------------------------------*/
 	
 	/**Возвращает список объектов, которые отображаются на текущей странице во всех разделах*/
 	this.GetDisplayedObjects = function(){return arrDisplayedObjects; };
@@ -878,6 +990,15 @@ var ResultListMap = function(lstResult, oRenderer){
 		lstResult.ShowResult(sTotalListName, arrTotalList);
 	}
 
+
+    /**Создается переключатель страниц
+    @param results - набор результатов
+    @param onclick - обработчик нажатия переключателя страниц
+    @returns {void}*/
+    this.CreatePager = function (results, onclick) {
+        lstResult.CreatePager(results, onclick);
+    }
+
 	/**Показывает режим загрузки
 	@returns {void}*/
 	this.ShowLoading = function(){
@@ -925,6 +1046,8 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		<i>Limit</i> - максимальное число найденных объектов
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
 		<i>RequestType<i> - Тип запроса к серверу
+        <i>PageNum<i> - Показать страницу
+        <i>ShowTotal<i> - Сообщить сколько найдено всего записей
 	@returns {void}*/
 	var fnSearch = function(params)	{
 		var callback = params.callback;
@@ -935,6 +1058,9 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		if (params.ID != null) sQueryString += "&ID=" + escape(params.ID.toString());
 		if (params.IsStrongSearch != null) sQueryString += "&IsStrongSearch=" + escape(params.IsStrongSearch ? "1" : "0");
 		if (params.WithoutGeometry != null) sQueryString += "&WithoutGeometry=" + escape(params.WithoutGeometry ? "1" : "0");
+		if (params.PageNum != null) sQueryString += "&PageNum=" + params.PageNum;
+		if (params.ShowTotal != null) sQueryString += "&ShowTotal=" + params.ShowTotal;
+		//if (params.UseOSM != null) sQueryString += "&UseOSM=" + params.UseOSM;
 		//if (sFormatName != null) sQueryString += "&Format=" + escape(sFormatName);
 		sendCrossDomainJSONRequest(sServerBase + "SearchObject/SearchAddress.ashx?" + sQueryString, function(response){
 			if (response.Status == 'ok') {callback(response.Result);}
@@ -949,9 +1075,12 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		<i>IsStrongSearch</i> - признак того, что искать только целые слова </br>
 		<i>Limit</i> - максимальное число найденных объектов
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
+		<i>RequestType<i> - Тип запроса к серверу
+        <i>PageNum<i> - Показать страницу
 	@returns {void}*/
 	this.SearchByString = function(params){
-		fnSearch({callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry, RequestType: "SearchObject"});
+	    fnSearch({ callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry, RequestType: "SearchObject", 
+        PageNum: params.PageNum, ShowTotal: params.ShowTotal/*, UseOSM: params.UseOSM*/ });
 	};
 	
 	/**Получает информацию об объекте
@@ -1112,7 +1241,9 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	@param callback = function(arrResult) {...} - вызывается когда подсказка готова
 	@returns {void}*/
 	this.AutoCompleteData = function (SearchString, callback){
-		_this.SearchByString({SearchString: SearchString, IsStrongSearch: 0, Limit:10, WithoutGeometry: WithoutGeometry, callback: function(arrResultDataSources){
+	    _this.SearchByString({ SearchString: SearchString, IsStrongSearch: 0, Limit: 10, WithoutGeometry: WithoutGeometry, 
+        /*UseOSM: $('#osm') != null && $('#osm').attr('checked') ? 1 : 0, */ 
+        callback: function(arrResultDataSources){
 			var arrResult = [];
 			var sSearchRegExp = new RegExp("("+SearchString.replace(/[^\wа-яА-Я]+/, "|")+")", "i");
 			for(var iDS=0; iDS<arrResultDataSources.length; iDS++){
@@ -1216,10 +1347,13 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		<i>IsStrongSearch</i> - признак того, что искать только целые слова </br>
 		<i>Limit</i> - максимальное число найденных объектов
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
+		<i>RequestType<i> - Тип запроса к серверу
+        <i>PageNum<i> - Показать страницу
 	@returns {void}*/
 	this.SearchByString = function(params){
-		oSearchDataProvider.SearchByString({SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit:params.Limit, WithoutGeometry: params.WithoutGeometry || WithoutGeometry,
-											callback: function(response) {
+	    oSearchDataProvider.SearchByString({ SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry || WithoutGeometry,
+            PageNum: params.PageNum, ShowTotal: params.ShowTotal/*, UseOSM: params.UseOSM*/, 
+			callback: function(response) {
 				for(var i=0; i<response.length; i++)	response[i].CanDownloadVectors = false;
 				if (params.layersSearchFlag){
 					var arrLayerSearchResult = oSearchDataProvider.LayerSearch(params.SearchString, null, function(arrLayerSearchResult){
@@ -1379,8 +1513,39 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 				fnAfterSearch();
 			})){
 				lstResult.ShowLoading();
-				oLogic.SearchByString({SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, callback: function(response) {
-					lstResult.ShowResult(SearchString, response);
+				//oLogic.SearchByString({SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, callback: function(response) {
+				//    lstResult.ShowResult(SearchString, response);
+                oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: 10, PageNum: 0, ShowTotal: 1/*, UseOSM: $('#osm').attr('checked') ? 1 : 0*/,
+                callback: function (response) {
+                    //var elapsedQuery = (new Date() - StartMoment);
+                    lstResult.ShowResult(SearchString, response);                   
+                    lstResult.CreatePager(response, function (e) {
+                        var evt = e || window.event,
+			            active = evt.srcElement || evt.target
+
+                        //StartMoment = new Date();
+                        oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, Limit: 10, PageNum: parseInt($(this).text()) - 1, ShowTotal: 0, UseOSM: $('#osm').attr('checked') ? 1 : 0, layersSearchFlag: layersSearchFlag,
+                            callback: function (response) {
+                                //var elapsed = (new Date() - StartMoment)
+                                lstResult.ShowResult(SearchString, response);
+
+                                $('#prevpages~span:visible').attr('class', 'buttonLink');
+                                for (var i=0; i<$('#prevpages~span:visible').length; ++i) attachEffects($('#prevpages~span:visible')[i], 'buttonLinkHover');
+                                $(active).attr('class', 'page');
+                                attachEffects(active, ''); // active.onmouseover = active.onmouseout = null
+
+                                //$('#elapsedtimer').remove();
+                                //var elapsedtimer = _div([_t('время: ' + elapsed + ' мс / ' + (new Date() - StartMoment) + ' мс')], [["attr", "id", "elapsedtimer"]]);
+                                //_(ContainerList, [elapsedtimer]);
+                            }
+                        });
+                    });
+
+                    //var elapsedShow = (new Date() - StartMoment);
+                    //$('#elapsedtimer').remove();
+                    //var elapsedtimer = _div([_t('время: ' + elapsedQuery + ' мс / ' + elapsedShow + ' мс')], [["attr", "id", "elapsedtimer"]]);
+                    //_(ContainerList, [elapsedtimer]);
+                   
 					fnAfterSearch();
 				}});
 			}
