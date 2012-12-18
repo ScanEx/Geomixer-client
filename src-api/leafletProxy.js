@@ -188,6 +188,27 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			return canvas.toDataURL();
 		}
 		,
+		'getLabelSize': function(txt, style)	{			// Получить размер Label
+			var out = new L.Point(0, 0);
+			if(style) {
+				var ptx = gmxAPI._leaflet['labelCanvas'].getContext('2d');
+				ptx.clearRect(0, 0, 512, 512);
+				var sizeLabel = style['size'] || 12;
+				var color = style['color'] || 0;
+				var haloColor = style['haloColor'] || 0;
+				style['fontStyle'] = sizeLabel + 'px "Arial"';
+				ptx.font = style['fontStyle'];
+				style['fillStyle'] = gmxAPI._leaflet['utils'].dec2rgba(color, 1);
+				style['strokeColor'] = gmxAPI._leaflet['utils'].dec2rgba(haloColor, 1);
+				
+				ptx.fillStyle = style['fillStyle'];
+				ptx.fillText(txt, 0, 0);
+				out.x = ptx.measureText(txt).width;
+				out.y = sizeLabel;
+			}
+			return out;
+		}
+		,
 		'isPointInPolygon': function(chkPoint, poly)	{			// Проверка точки на принадлежность полигону
 			var isIn = false;
 			var p1 = poly[0];
@@ -440,6 +461,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					pt['iconUrl'] = ph['image'];
 					utils.getImageSize(pt, true, id);
 				}
+				
+				if('angle' in ph) pt['rotate'] = ph['angle'];
 				if('center' in ph) pt['center'] = ph['center'];
 				if('dx' in ph) pt['dx'] = ph['dx'];
 				if('dy' in ph) pt['dy'] = ph['dy'];
@@ -618,7 +641,9 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 							node.leaflet = utils.drawNode(node, regularStyle);
 							setNodeHandlers(node.id);
 							//node['leaflet']._isVisible = false;
-							if(node['leaflet']) setVisible({'obj': node, 'attr': true});
+							if(node['leaflet']) {
+								setVisible({'obj': node, 'attr': true});
+							}
 						}
 					}
 				}
@@ -657,6 +682,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					if(style['dx']) opt['iconAnchor'].x -= style['dx'];
 					if(style['dy']) opt['iconAnchor'].y -= style['dy'];
 				}
+				if(style['rotate']) opt['rotate'] = style['rotate'];
 				
 				var nIcon = L.Icon.extend({
 					'options': opt
@@ -1038,14 +1064,17 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 	function setLabel(id, iconAnchor)	{
 		var node = mapNodes[id];
 		if(!node || !node.regularStyle || !node.regularStyle.label || !('label' in node)) return false;
+		if(!iconAnchor) {
+			iconAnchor = new L.Point(0, 0);
+		}
 		var regularStyle = node.regularStyle;
 		var labelStyle = regularStyle.label;
-		var divStyle = {'width': 'auto', 'height': 'auto'};
+		var divStyle = {'width': 'auto', 'height': 'auto', 'wordBreak': 'keep-all'};
 		if('iconSize' in regularStyle) {
 			divStyle = {'width': regularStyle.iconSize['x'], 'height': regularStyle.iconSize['y']};
 		}
 		
-		if(labelStyle['color']) divStyle['color'] = utils.dec2hex(labelStyle['color']);
+		if(labelStyle['color']) divStyle['color'] = '#' + utils.dec2hex(labelStyle['color']);
 		if(labelStyle['haloColor']) divStyle['backgroundColor'] = utils.dec2rgba(labelStyle['haloColor'], 0.3);
 		//if(labelStyle['haloColor']) divStyle['backgroundColor'] = 'rgba(255, 255, 255, 0.3)';
 		
@@ -1055,21 +1084,31 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		//scale
 		var posX = iconAnchor.x;
 		var posY = iconAnchor.y;
+		var labelExtent = utils.getLabelSize(node['label'], labelStyle);
 		if(labelStyle['align'] === 'center') {
 			divStyle['textAlign'] = 'center';
 			if('iconSize' in regularStyle) posY = regularStyle.iconSize['y']/4;
-			opt['iconAnchor'] = new L.Point(Math.floor(posX), Math.floor(posY));
+			opt['iconAnchor'] = new L.Point(Math.floor(posX + labelExtent.x/2), Math.floor(posY));
+		} else if(labelStyle['align'] === 'left') {
+			//divStyle['bottom'] = 0;
+			opt['iconAnchor'] = new L.Point(Math.floor(posX - 6), Math.floor(posY));
+		} else if(labelStyle['align'] === 'right') {
+			//divStyle['bottom'] = 0;
+			opt['iconAnchor'] = new L.Point(Math.floor(posX + labelExtent.x), Math.floor(posY));
 		} else {
-			divStyle['bottom'] = 0;
+			//divStyle['bottom'] = 0;
 			opt['iconAnchor'] = new L.Point(-Math.floor(posX/2) - 6, Math.floor(posY/2));
 		}
-		
+		if(node['marker']) {
+			node['group'].removeLayer(node['marker']);
+		}
+
 		var myIcon = L.gmxIcon(opt);
 		var pp = node.geometry.coordinates;
 
 		optm['icon'] = myIcon;
 		node['marker'] = L.marker([pp[1], pp[0]], optm);		
-		node['marker'].addTo(node['group']);		
+		node['marker'].addTo(node['group']);
 	}
 	// setStyle для mapObject
 	function setStyle(id, attr)	{
@@ -1280,6 +1319,9 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 						}
 						node['leaflet']._isVisible = true;
 						pGroup.addLayer(node['leaflet']);
+						if(node['regularStyle'] && node['regularStyle']['rotate'] && node['leaflet']._icon) {
+							node['leaflet']._icon.style.transform += ' rotate('+node['regularStyle']['rotate']+'deg)';
+						}
 					}
 	/*
 					else if(node['type'] === 'VectorLayer') {
@@ -1462,7 +1504,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			else zIndex = utils.getLastIndex(node.parent);
 			node['zIndex'] = zIndex;
 			utils.bringToDepth(node, zIndex);
-			if(node['leaflet']) node['leaflet'].bringToFront();
+			if(node['leaflet'] && 'bringToFront' in node['leaflet'] && !gmxAPI.map.needMove) node['leaflet'].bringToFront();
 /*
 			for (key in ph.obj.childsID) {
 				var node = mapNodes[key];
@@ -1482,7 +1524,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			node['zIndex'] = 0;
 //console.log('bringToBottom ' , id, 0); 
 			utils.bringToDepth(node, 0);
-			if(node['leaflet']) node['leaflet'].bringToBack();
+			if(node['leaflet'] && 'bringToBack' in node['leaflet'] && !gmxAPI.map.needMove) node['leaflet'].bringToBack();
 /*			
 			for (key in obj.childsID) {
 				node = mapNodes[key];
@@ -1589,9 +1631,10 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 		,
 		'setLabel':	function(ph)	{				// Установка содержимого label
 			var id = ph.obj.objectId;
-			mapNodes[id]['label'] = ph['attr']['label'];
+			var node = mapNodes[id];
+			node['label'] = ph['attr']['label'];
 			gmxAPI._leaflet['drawManager'].add(id);
-			//setLabel(id, ph['attr']['label']);
+			if(node['type'] === 'mapObject') setLabel(id);
 		}
 		,
 		'setStyle':	function(ph)	{				// Установка стилей обьекта
@@ -4377,21 +4420,41 @@ if(!tileBounds_) return;
 			var setTouchStart = function(e) {
 				gmxAPI._leaflet['mousePressed'] = true;
 				timeDown = new Date().getTime();
-var out = {
-	'_width': e.target.width
-	,'_height': e.target.height
-	//,'pwidth': e.target.parentNode.width
-	//,'pheight': e.target.parentNode.height
-	//,'originalEvent': e
-};
+
+				var parseTouchEvent = function(e) {		// Парсинг события мыши
+					var target = e.target;
+					var out = {
+						'latlng': e.latlng
+						,'containerPoint': e.containerPoint
+						,'buttons': e.buttons || e.button
+						,'ctrlKey': e.ctrlKey
+						,'altKey': e.altKey
+						,'shiftKey': e.shiftKey
+						,'metaKey': e.metaKey
+						,'e': e
+					};
+					if(target) {
+						out['_layer'] = target['_layer'];
+						out['latlng'] = target['_layer']._map.mouseEventToLatLng(e);
+						out['tID'] = target['id'];
+						out['tilePoint'] = target['tilePoint'];
+					}
+	//console.log(e.containerPoint);
+					return out;
+				}
+				var attr = parseTouchEvent(e);
+				attr['evName'] = 'onClick';
+				gmxAPI._leaflet['clickAttr'] = attr;
+				gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 
 //var st = e.target.style['-webkit-transform'];
-var st = '';
-for (var key in e.target.style) { st += key + ': ' + e.target.style[key]; }
+//var st = '';
+//for (var key in attr['_layer']._map) { if(typeof(attr['_layer']._map[key]) == 'function') st += "\n " + key + ': '; }
+//for (var key in e.target.style) { st += key + ': ' + e.target.style[key]; }
 //alert(st);
 //alert(JSON.stringify(out));
 			};
-			//L.DomEvent.on(LMap._container, 'touchstart', setTouchStart, this);
+			//if(L.Browser.touch) L.DomEvent.on(LMap._container, 'touchstart', setTouchStart, this);
 			
 			var onMouseMoveTimer = null;
 			LMap.on('mousemove', function(e) {
@@ -4565,7 +4628,7 @@ bounds.max.y -= shiftY;
 							return;
 						}
 					}
-tile.style.webkitTransform += ' scale3d(1.002, 1.002, 1)';
+					if(L.Browser.touch) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
 					//var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom + tile._layer.options.zoomOffset);
 					var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom);
 					var me = this;
