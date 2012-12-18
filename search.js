@@ -1062,6 +1062,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		<i>RequestType<i> - Тип запроса к серверу
         <i>PageNum<i> - Показать страницу
         <i>ShowTotal<i> - Сообщить сколько найдено всего записей
+        <i>UseOSM<i> - Искать в базе OSM
 	@returns {void}*/
 	var fnSearch = function(params)	{
 		var callback = params.callback;
@@ -1074,7 +1075,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		if (params.WithoutGeometry != null) sQueryString += "&WithoutGeometry=" + escape(params.WithoutGeometry ? "1" : "0");
 		if (params.PageNum != null) sQueryString += "&PageNum=" + params.PageNum;
 		if (params.ShowTotal != null) sQueryString += "&ShowTotal=" + params.ShowTotal;
-		//if (params.UseOSM != null) sQueryString += "&UseOSM=" + params.UseOSM;
+		if (params.UseOSM != null) sQueryString += "&UseOSM=" + params.UseOSM;
 		//if (sFormatName != null) sQueryString += "&Format=" + escape(sFormatName);
 		sendCrossDomainJSONRequest(sServerBase + "SearchObject/SearchAddress.ashx?" + sQueryString, function(response){
 			if (response.Status == 'ok') {callback(response.Result);}
@@ -1091,10 +1092,12 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
 		<i>RequestType<i> - Тип запроса к серверу
         <i>PageNum<i> - Показать страницу
+        <i>ShowTotal<i> - Сообщить сколько найдено всего записей
+        <i>UseOSM<i> - Искать в базе OSM
 	@returns {void}*/
 	this.SearchByString = function(params){
 	    fnSearch({ callback: params.callback, SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry, RequestType: "SearchObject", 
-        PageNum: params.PageNum, ShowTotal: params.ShowTotal/*, UseOSM: params.UseOSM*/ });
+        PageNum: params.PageNum, ShowTotal: params.ShowTotal, UseOSM: params.UseOSM });
 	};
 	
 	/**Получает информацию об объекте
@@ -1255,8 +1258,8 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	@param callback = function(arrResult) {...} - вызывается когда подсказка готова
 	@returns {void}*/
 	this.AutoCompleteData = function (SearchString, callback){
-	    _this.SearchByString({ SearchString: SearchString, IsStrongSearch: 0, Limit: 10, WithoutGeometry: WithoutGeometry, 
-        /*UseOSM: $('#osm') != null && $('#osm').attr('checked') ? 1 : 0, */ 
+	    _this.SearchByString({ SearchString: SearchString, IsStrongSearch: 0, Limit: 10, WithoutGeometry: WithoutGeometry,
+	        UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, 
         callback: function(arrResultDataSources){
 			var arrResult = [];
 			var sSearchRegExp = new RegExp("("+SearchString.replace(/[^\wа-яА-Я]+/, "|")+")", "i");
@@ -1363,10 +1366,12 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
 		<i>RequestType<i> - Тип запроса к серверу
         <i>PageNum<i> - Показать страницу
+        <i>ShowTotal<i> - Сообщить сколько найдено всего записей
+        <i>UseOSM<i> - Искать в базе OSM
 	@returns {void}*/
 	this.SearchByString = function(params){
 	    oSearchDataProvider.SearchByString({ SearchString: params.SearchString, IsStrongSearch: params.IsStrongSearch, Limit: params.Limit, WithoutGeometry: params.WithoutGeometry || WithoutGeometry,
-            PageNum: params.PageNum, ShowTotal: params.ShowTotal/*, UseOSM: params.UseOSM*/, 
+            PageNum: params.PageNum, ShowTotal: params.ShowTotal, UseOSM: params.UseOSM, 
 			callback: function(response) {
 				for(var i=0; i<response.length; i++)	response[i].CanDownloadVectors = false;
 				if (params.layersSearchFlag){
@@ -1529,7 +1534,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 				lstResult.ShowLoading();
 				//oLogic.SearchByString({SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, callback: function(response) {
 				//    lstResult.ShowResult(SearchString, response);
-                oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: 10, PageNum: 0, ShowTotal: 1/*, UseOSM: $('#osm').attr('checked') ? 1 : 0*/,
+				oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: 10, PageNum: 0, ShowTotal: 1, UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0,
                 callback: function (response) {
                     //var elapsedQuery = (new Date() - StartMoment);
                     lstResult.ShowResult(SearchString, response);                   
@@ -1538,7 +1543,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 			            active = evt.srcElement || evt.target
 
                         //StartMoment = new Date();
-                        oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, Limit: 10, PageNum: parseInt($(this).text()) - 1, ShowTotal: 0, UseOSM: $('#osm').attr('checked') ? 1 : 0, layersSearchFlag: layersSearchFlag,
+                        oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, Limit: 10, PageNum: parseInt($(this).text()) - 1, ShowTotal: 0, UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, layersSearchFlag: layersSearchFlag,
                             callback: function (response) {
                                 //var elapsed = (new Date() - StartMoment)
                                 lstResult.ShowResult(SearchString, response);
