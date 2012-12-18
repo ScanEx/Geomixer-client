@@ -1532,39 +1532,22 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 				fnAfterSearch();
 			})){
 				lstResult.ShowLoading();
-				//oLogic.SearchByString({SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, callback: function(response) {
-				//    lstResult.ShowResult(SearchString, response);
 				oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: 10, PageNum: 0, ShowTotal: 1, UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0,
                 callback: function (response) {
-                    //var elapsedQuery = (new Date() - StartMoment);
                     lstResult.ShowResult(SearchString, response);                   
                     lstResult.CreatePager(response, function (e) {
                         var evt = e || window.event,
 			            active = evt.srcElement || evt.target
-
-                        //StartMoment = new Date();
                         oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, Limit: 10, PageNum: parseInt($(this).text()) - 1, ShowTotal: 0, UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, layersSearchFlag: layersSearchFlag,
                             callback: function (response) {
-                                //var elapsed = (new Date() - StartMoment)
                                 lstResult.ShowResult(SearchString, response);
-
                                 $('#prevpages~span:visible').attr('class', 'buttonLink');
                                 for (var i=0; i<$('#prevpages~span:visible').length; ++i) attachEffects($('#prevpages~span:visible')[i], 'buttonLinkHover');
                                 $(active).attr('class', 'page');
-                                attachEffects(active, ''); // active.onmouseover = active.onmouseout = null
-
-                                //$('#elapsedtimer').remove();
-                                //var elapsedtimer = _div([_t('время: ' + elapsed + ' мс / ' + (new Date() - StartMoment) + ' мс')], [["attr", "id", "elapsedtimer"]]);
-                                //_(ContainerList, [elapsedtimer]);
+                                attachEffects(active, '');
                             }
                         });
                     });
-
-                    //var elapsedShow = (new Date() - StartMoment);
-                    //$('#elapsedtimer').remove();
-                    //var elapsedtimer = _div([_t('время: ' + elapsedQuery + ' мс / ' + elapsedShow + ' мс')], [["attr", "id", "elapsedtimer"]]);
-                    //_(ContainerList, [elapsedtimer]);
-                   
 					fnAfterSearch();
 				}});
 			}
