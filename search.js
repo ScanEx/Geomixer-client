@@ -439,6 +439,20 @@ var ResultList = function(oInitContainer, ImagesHost){
 			var elemTD = _td();
 			_(elemTR, [_td([_t((i+1).toString() + ".")], [['dir', 'className','searchElemPosition']]), elemTD]);
 			drawObject(arrObjects[i], elemTD);
+
+			// загрузка SHP Файла
+			if (typeof (gmxGeoCodeShpDownload) != "undefined" && gmxGeoCodeShpDownload && arrObjects[i].Geometry != null &&
+                    (arrObjects[i].Geometry.type == "POINT" || arrObjects[i].Geometry.type == "LINESTRING" || arrObjects[i].Geometry.type == "POLYGON")) {
+			    var shpFileLink = _span([_t(".shp")], [['dir', 'className', 'searchElem'], ['attr', 'title', 'скачать SHP-файл'], ['attr', 'number', i]]);
+			    shpFileLink.onclick = function () {
+			        var obj = arrObjects[$(this).attr('number')];
+			        var objsToDowload = [obj];
+			        $(_this).triggerHandler('onDownloadSHP', [obj.ObjCode, objsToDowload]);
+			    };
+			    _(elemTD, [_t(" ")]);
+			    _(elemTD, [shpFileLink]);
+			}
+
 			_(tbody, [elemTR]);
 		}
 		_(divChilds, [_table([tbody])]);
@@ -1476,7 +1490,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 			if (!objectsByType[type])
 				objectsByType[type] = [];
 
-			objectsByType[type].push({ geometry: arrObjectsToDownload[i].Geometry, properties: {} });
+			objectsByType[type].push({ geometry: arrObjectsToDownload[i].Geometry, properties: { title: ''+arrObjectsToDownload[i].Path } });
 		}
 
 		downloadVectorForm.childNodes[0].value = filename;
