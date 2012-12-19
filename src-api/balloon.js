@@ -687,6 +687,7 @@
 		var onmousemove = function(ev)
 		{
 			var event = gmxAPI.compatEvent(ev);
+			if(!event) return;
 			buttons = event.buttons;
 			var eventX = gmxAPI.eventX(event); 
 			var eventY = gmxAPI.eventY(event);

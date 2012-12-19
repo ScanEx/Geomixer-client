@@ -1964,6 +1964,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 
 		var posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 		var repaint = function(imageObj, canvas) {
+			if(node['imageURL'] != imageObj.src) return;
 			posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 			var w = imageObj.width;
 			var h = imageObj.height;
@@ -1998,16 +1999,17 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var ry = h/ph.hh;
 			
 			var points = [[ph['x1'], ph['y1']], [ph['x2'], ph['y2']], [ph['x4'], ph['y4']], [ph['x3'], ph['y3']]];
-			
-			var data = gmxAPI._leaflet['ProjectiveImage']({
-				'imageObj': imageObj
-				,'points': points
-				,'wView': wView
-				,'hView': hView
-				,'deltaX': deltaX
-				,'deltaY': deltaY
-			});
-			/* var data = { 'canvas': imageObj	};*/			
+			var data = { 'canvas': imageObj	};
+			if(rx != 1 || ry != 1) {
+				data = gmxAPI._leaflet['ProjectiveImage']({
+					'imageObj': imageObj
+					,'points': points
+					,'wView': wView
+					,'hView': hView
+					,'deltaX': deltaX
+					,'deltaY': deltaY
+				});
+			}
 			var ctx = canvas.getContext('2d');
 			canvas.width = ww;
 			canvas.height = hh;
