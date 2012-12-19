@@ -4386,11 +4386,13 @@ if(!tileBounds_) return;
 					,'e': e
 				};
 				if(target) {
-					out['_layer'] = target['_layer']
-					out['tID'] = target['id']
-					out['tilePoint'] = target['tilePoint']
+					try {
+						out['tID'] = target['id']
+						out['_layer'] = target['_layer']
+						out['tilePoint'] = target['tilePoint']
+					} catch(ev) {
+					}
 				}
-//console.log(e.containerPoint);
 				return out;
 				
 			}
