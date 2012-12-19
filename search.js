@@ -673,7 +673,7 @@ var ResultList = function(oInitContainer, ImagesHost){
         var pager = _div([_t('')], [["attr", "id", "respager"]]);
         _(containerList, [pager]);
 
-        var pcount = Math.ceil(results[0].ResultsCount / iLimit);
+        var pcount = Math.ceil(results[0].SearchResult[0].OneOf / iLimit);
         if (pcount > 1) {
             var first = makeNavigButton(pager, '/first.png', '/first_a.png', 'firstpage', _gtxt('Первая страница'));
             $(first).bind('click', function () {
