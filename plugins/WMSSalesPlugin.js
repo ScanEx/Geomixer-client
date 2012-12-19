@@ -5,14 +5,18 @@ var g_tagMetaInfo = null;
 _translationsHash.addtext("rus", {
 	"wmsSalesPlugin.menuTitle" : "Генерация слоёв по сценам",
 	"wmsSalesPlugin.sceneList" : "Список сцен:",
-	"wmsSalesPlugin.generate" : "Генерить слои",
-	"wmsSalesPlugin.check" : "Проверить слои"
+	"wmsSalesPlugin.generate"  : "Создать каталог",
+	"wmsSalesPlugin.check"     : "Проверить сцены",
+	"wmsSalesPlugin.name"      : "Имя каталога",
+	"wmsSalesPlugin.boundary"  : "Граница для WMS"
 });
 _translationsHash.addtext("eng", {
 	"wmsSalesPlugin.menuTitle" : "Generate layers using scenes",
 	"wmsSalesPlugin.sceneList" : "Scenes:",
-	"wmsSalesPlugin.generate" : "Generate layers",
-    "wmsSalesPlugin.check" : "Check layers"
+	"wmsSalesPlugin.generate"  : "Generate catalog",
+    "wmsSalesPlugin.check"     : "Check scenes",
+    "wmsSalesPlugin.name"      : "Catalog name",
+    "wmsSalesPlugin.boundary"  : "Boundary for WMS"
 });
 
 var findImagesBySceneIDs = function(sceneIDs, chunkSize)
@@ -68,7 +72,8 @@ var createRC = function(results, params)
     var def = $.Deferred();
     var _params = $.extend({
         title: 'wms_sales_rc', 
-        addToMap: true
+        addToMap: true,
+        userBorder: null
     }, params);
     
     //атрибуты каталога растров - объединение всех метаданных слоёв
@@ -175,8 +180,22 @@ var showWidget = function()
                     layerScenes.push(results[sid].layerProperties);
             }
             
-            //nsGmx.createMultiLayerEditorNew(_layersTree, {layers: layerScenes});
-            createRC(results);
+            var rcParams = {};
+            if (layerNameInput.val())
+                rcParams.title = layerNameInput.val();
+            
+            if (boundaryInput.val())
+            {
+                nsGmx.Utils.parseShpFile(boundaryForm).done(function(objs)
+                {
+                    rcParams.userBorder = merc_geometry(nsGmx.Utils.joinPolygons(objs));
+                    createRC(results, rcParams);
+                })
+            }
+            else
+            {
+                createRC(results, rcParams);
+            }
             
             if (missingScenesIDs.length > 0)
             {
@@ -208,10 +227,30 @@ var showWidget = function()
         });
     });
     
-    canvas
-        .append($("<div/>").text(_gtxt("wmsSalesPlugin.sceneList"))).append(scenesList)
-        .append(generateButton)
-        .append(checkButton);
+    var layerNameInput = $('<input/>', {'class': 'wmsSales-name-input'});
+
+    var boundaryInput = $('<input/>', {type: 'file', name: 'file'});
+    
+    var boundaryForm = _form([boundaryInput[0]], [['attr', 'method', 'POST'], ['attr', 'encoding', 'multipart/form-data'], ['attr', 'enctype', 'multipart/form-data'], ['attr', 'id', 'upload_shapefile_form']]);
+    
+    var rcParamsTable = $('<table/>', {'class': 'wmsSales-rcProperties'}).append(
+        $('<tr/>').append(
+            $('<td/>').text(_gtxt('wmsSalesPlugin.name')),
+            $('<td/>').append(layerNameInput)
+        ),
+        $('<tr/>').append(
+            $('<td/>').text(_gtxt('wmsSalesPlugin.boundary')),
+            $('<td/>').append(boundaryForm)
+        )
+    )
+    
+    canvas.append(
+        $("<div/>").text(_gtxt("wmsSalesPlugin.sceneList")),
+        scenesList,
+        checkButton,
+        rcParamsTable,
+        generateButton
+    );
         
     showDialog(_gtxt('wmsSalesPlugin.menuTitle'), canvas[0], 400, 400);
 }

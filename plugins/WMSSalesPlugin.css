@@ -23,7 +23,23 @@
     margin-bottom: 10px;
 }
 
-/*.wmsSales-genbutton
+.wmsSales-genbutton
 {
-    margin-top: 10px;
-}*/
+    padding: 3px;
+    margin: 2px 0px;
+}
+
+.wmsSales-name-input
+{
+    width: 200px;
+}
+
+.wmsSales-rcProperties td
+{
+    padding: 2px;
+}
+
+.wmsSales-rcProperties
+{
+    margin-top: 20px;
+}
