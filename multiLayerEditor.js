@@ -154,55 +154,33 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
 		if (this.value === "") 
             return;
             
-        sendCrossDomainPostRequest(serverBase + "ShapeLoader.ashx", {WrapStyle: "window"}, function(response)
+        nsGmx.Utils.parseShpFile(postForm).done(function(objs)
+        {
+            if (objs.length == 0)
             {
-                var errorMessages = {
-                        "CommonUtil.FileTooBigException" : _gtxt("loadShape.Errors.FileTooBigException"),
-                        "CommonUtil.ErrorUploadExeption" : _gtxt("loadShape.Errors.ErrorUploadExeption"),
-                        "CommonUtil.NoGeometryFile"      : _gtxt("loadShape.Errors.NoGeometryFile"),
-                        "CommonUtil.ErrorUploadNoDependentFiles": _gtxt("loadShape.Errors.ErrorUploadNoDependentFiles")
-                };
-                
-                if (parseResponse(response, errorMessages))
-                {
-                    var obj = response.Result;
-                    
-                    if (obj.length == 0)
-                    {
-                        showErrorMessage(_gtxt("Загруженный shp-файл пуст"), true);
-                        return;
-                    }
-                    
-                    var polygonObjects = [];
-                    for (var i = 0; i < obj.length; i++)
-                    {
-                        if (obj[i].geometry.type == 'POLYGON')
-                        {
-                            polygonObjects.push(obj[i].geometry.coordinates);
-                        }
-                        else if (obj[i].geometry.type == 'MULTIPOLYGON')
-                        {
-                            for (var iC = 0; iC < obj[i].geometry.coordinates.length; iC++)
-                                polygonObjects.push(obj[i].geometry.coordinates[iC]);
-                        }
-                    }
-                    
-                    if (polygonObjects.length > 1)
-                        bindMultipolygon({type: "MULTIPOLYGON", coordinates: polygonObjects})
-                    else if (polygonObjects.length == 1)
-                    {
-                        isCreatedDrawing = true;
-                        bindPolygon(globalFlashMap.drawing.addObject({type: "POLYGON", coordinates: polygonObjects[0]}))
-                    }
-                    else
-                    {
-                        //TODO: ошибка
-                    }
-                    
-                    $(borderContainer).show();
-                    $(shpContainer).hide();
-                }
-            }, postForm);
+                showErrorMessage(_gtxt("Загруженный shp-файл пуст"), true);
+                return;
+            }
+            
+            var joinedPolygon = nsGmx.Utils.joinPolygons(objs);
+            
+            if (!joinedPolygon)
+            {
+                //TODO: ошибка
+            }
+            else if (joinedPolygon.type === "MULTIPOLYGON")
+            {
+                bindMultipolygon(joinedPolygon)
+            }
+            else if (joinedPolygon.type === "POLYGON")
+            {
+                isCreatedDrawing = true;
+                bindPolygon(globalFlashMap.drawing.addObject(joinedPolygon))
+            }
+            
+            $(borderContainer).show();
+            $(shpContainer).hide();
+        })
 	}
 	
 	//задаём одновременно и enctype и encoding для корректной работы в IE

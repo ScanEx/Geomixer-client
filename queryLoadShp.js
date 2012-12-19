@@ -1,18 +1,10 @@
 ﻿
 _translationsHash.addtext("rus", {
-							"loadShape.Errors.FileTooBigException" : "Файл слишком большой. Ограничение на размер файла 1000 Кб.",
-							"loadShape.Errors.ErrorUploadExeption" : "Произошла ошибка при попытке загрузить файл.",
-							"loadShape.Errors.NoGeometryFile"      : "Загруженный файл не содержит геометрических данных.",
-							"loadShape.Errors.ErrorUploadNoDependentFiles" : "Не найдено необходимых зависимых файлов. Запакуйте все файлы в ZIP архив и повторите загрузку.",
-							"loadShape.inputTitle"                 : "Добавить shp-файл (в zip)"
+							"loadShape.inputTitle": "Добавить shp-файл (в zip)"
 						 });
 						 
 _translationsHash.addtext("eng", {
-							"loadShape.Errors.FileTooBigException" : "Too big file. File size limit is 1000 Kb.",
-							"loadShape.Errors.ErrorUploadExeption" : "Error during file uploading.",
-							"loadShape.Errors.NoGeometryFile"      : "There are no geometry in uploaded file.",
-							"loadShape.Errors.ErrorUploadNoDependentFiles" : "Not found the necessary dependent files. Add all files in a ZIP archive and upload it again.",
-							"loadShape.inputTitle"                 : "Add shp-file (zipped)"
+							"loadShape.inputTitle": "Add shp-file (zipped)"
 						 });
 
 var drawingObjects = 
@@ -67,39 +59,32 @@ queryLoadShp.prototype.upload = function()
 	show(this.progress);
 	
 	var _this = this;
-		
-	sendCrossDomainPostRequest(serverBase + "ShapeLoader.ashx", {WrapStyle: "window"}, function(response)
-	{
-		var errorMessages = {
-				"CommonUtil.FileTooBigException" : _gtxt("loadShape.Errors.FileTooBigException"),
-				"CommonUtil.ErrorUploadExeption" : _gtxt("loadShape.Errors.ErrorUploadExeption"),
-				"CommonUtil.NoGeometryFile"      : _gtxt("loadShape.Errors.NoGeometryFile"),
-				"CommonUtil.ErrorUploadNoDependentFiles": _gtxt("loadShape.Errors.ErrorUploadNoDependentFiles")
-		};
-		
-		if (parseResponse(response, errorMessages))
-		{
-			var obj = response.Result;
-			
-			if (obj.length == 0)
+    
+    var regenerateGUI = function() {
+        _this.inputControl.removeChild(_this.postForm);
+        _this._regenerateControl();
+    }
+    
+    //TODO: update jQuery and use always()
+    nsGmx.Utils.parseShpFile(this.postForm)
+        .then(function(objs){
+            if (objs.length == 0)
 			{
 				showErrorMessage(_gtxt("Загруженный shp-файл пуст"), true);
 				return;
 			}
 			
 			var b = getBounds();
-			for (var i = 0; i < obj.length; i++)
+			for (var i = 0; i < objs.length; i++)
 			{
-				var o = obj[i];
+				var o = objs[i];
 				globalFlashMap.drawing.addObject(o.geometry, o.properties);
 				b.update(o.geometry.coordinates);
 			}
 			globalFlashMap.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
-		}
-		
-        _this.inputControl.removeChild(_this.postForm);
-		_this._regenerateControl();
-	}, this.postForm);
+            regenerateGUI();
+            
+        }, regenerateGUI);
 }
 
 var _queryLoadShp = new queryLoadShp();

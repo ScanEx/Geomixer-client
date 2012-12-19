@@ -1292,8 +1292,87 @@ $.extend(nsGmx.Utils, {
         }
         
         return value;        
+    },
+    
+    //загружает пользовательский shp файл, выбранный в форме shpFileForm (name=file).
+    //Проверяет на ошибки, выводит предупреждения и ошибки в виде стандартный диалогов.
+    //Возвращает jQuery Deferred (аргумент ф-ции - массив объектов из shp файла)
+    parseShpFile: (function() //приватные данные
+    {
+        var translationsAdded = false;
+        var addTranslationsLazy = function()
+        {
+            if (translationsAdded) return;
+            _translationsHash.addtext("rus", {
+                                "loadShape.Errors.FileTooBigException" : "Файл слишком большой. Ограничение на размер файла 1000 Кб.",
+                                "loadShape.Errors.ErrorUploadExeption" : "Произошла ошибка при попытке загрузить файл.",
+                                "loadShape.Errors.NoGeometryFile"      : "Загруженный файл не содержит геометрических данных.",
+                                "loadShape.Errors.ErrorUploadNoDependentFiles" : "Не найдено необходимых зависимых файлов. Запакуйте все файлы в ZIP архив и повторите загрузку."
+                             });
+                             
+            _translationsHash.addtext("eng", {
+                                "loadShape.Errors.FileTooBigException" : "Too big file. File size limit is 1000 Kb.",
+                                "loadShape.Errors.ErrorUploadExeption" : "Error during file uploading.",
+                                "loadShape.Errors.NoGeometryFile"      : "There are no geometry in uploaded file.",
+                                "loadShape.Errors.ErrorUploadNoDependentFiles" : "Not found the necessary dependent files. Add all files in a ZIP archive and upload it again."
+                             });
+                             
+            translationsAdded = true;
+        }
+                         
+        //непосредственно ф-ция
+        return function(shpFileForm) {
+            var def = $.Deferred();
+            addTranslationsLazy();
+            
+            sendCrossDomainPostRequest(serverBase + "ShapeLoader.ashx", {WrapStyle: "window"}, function(response)
+            {
+                var errorMessages = {
+                        "CommonUtil.FileTooBigException" : _gtxt("loadShape.Errors.FileTooBigException"),
+                        "CommonUtil.ErrorUploadExeption" : _gtxt("loadShape.Errors.ErrorUploadExeption"),
+                        "CommonUtil.NoGeometryFile"      : _gtxt("loadShape.Errors.NoGeometryFile"),
+                        "CommonUtil.ErrorUploadNoDependentFiles": _gtxt("loadShape.Errors.ErrorUploadNoDependentFiles")
+                };
+                
+                if (parseResponse(response, errorMessages))
+                    def.resolve(response.Result);
+                else
+                    def.reject(response);
+            }, shpFileForm)
+            
+            return def.promise();
+        }
+        
+    })(),
+    
+    //Объединяет массив полигонов/мультиполигонов в новый полигон/мультиполигон
+    joinPolygons: function(objs)
+    {
+        var polygonObjects = [];
+        for (var i = 0; i < objs.length; i++)
+        {
+            var geom = objs[i].geometry;
+            if (geom.type == 'POLYGON')
+            {
+                polygonObjects.push(geom.coordinates);
+            }
+            else if (objs[i].geometry.type == 'MULTIPOLYGON')
+            {
+                for (var iC = 0; iC < geom.coordinates.length; iC++)
+                    polygonObjects.push(geom.coordinates[iC]);
+            }
+        }
+        
+        if (polygonObjects.length > 1)
+            return {type: "MULTIPOLYGON", coordinates: polygonObjects}
+        else if (polygonObjects.length == 1)
+        {
+            isCreatedDrawing = true;
+            return {type: "POLYGON", coordinates: polygonObjects[0]}
+        }
+        else
+            return null;
     }
 });
 
-if (typeof gmxCore !== 'undefined')
-    gmxCore.addModule('utilities', nsGmx.Utils);
+window.gmxCore && window.gmxCore.addModule('utilities', nsGmx.Utils);
