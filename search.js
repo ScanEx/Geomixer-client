@@ -1117,6 +1117,15 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 	this.SearchLocation = function(params){
 		fnSearch({callback: params.callback, Geometry: params.Geometry, WithoutGeometry: true, RequestType: "Location"});
 	}
+
+    /**Осуществляет поиск ближайшего объекта к центру указанной области 
+    @param {object} params Параметры: </br>
+    <i>callback</i> = function(arrResultDataSources) - вызывается после получения ответа от сервера </br>
+    <i>Geometry</i> - искать только объекты, пересекающие данную геометрию </br>
+    @returns {void}*/
+    this.SearchNearest = function (params) {
+        fnSearch({ callback: params.callback, Geometry: params.Geometry, WithoutGeometry: true, RequestType: "Nearest" });
+    }
 	
 	/**Осуществляет поиск по произвольным параметрам
 	@param {object} params Параметры: </br>
@@ -1403,6 +1412,15 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	this.SearchLocation = function(params){
 		oSearchDataProvider.SearchLocation({callback: params.callback, Geometry: params.Geometry});
 	}
+
+    /**Осуществляет поиск ближайшего объекта к центру указанной области
+    @param {object} params Параметры: </br>
+    <i>callback</i> = function(arrResultDataSources) - вызывается после получения ответа от сервера </br>
+    <i>Geometry</i> - область </br>
+    @returns {void}*/
+    this.SearchNearest = function (params) {
+        oSearchDataProvider.SearchNearest({ callback: params.callback, Geometry: params.Geometry });
+    }
 	
 	/**Осуществляет поиск по произвольным параметрам
 	@param {object} params Параметры: </br>
@@ -1455,7 +1473,7 @@ var SearchControlGet = function (params){
 		layersSearchFlag: params.layersSearchFlag,
 		AutoCompleteSource: fnAutoCompleteSource
 	});
-	var oLocationTitleRenderer = new LocationTitleRenderer(params.Map, oLogic.SearchLocation);
+    var oLocationTitleRenderer = new LocationTitleRenderer(params.Map, typeof (gmxGeoCodeShowNearest) != "undefined" && gmxGeoCodeShowNearest ? oLogic.SearchNearest:oLogic.SearchLocation);
 	SearchControl.apply(this, [btnSearch, lstResult, oLogic, oLocationTitleRenderer]);
 }
 SearchControlGet.prototype = SearchControl;
