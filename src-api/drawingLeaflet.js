@@ -711,6 +711,8 @@
 			chkEvent(eventType);
 			return true;
 		};
+		//LMap.on('mouseout', mouseUp);
+
 		var getItemDownType = function(ph)
 		{
 			var downType = getDownType(ph, coords, oBounds);
@@ -816,7 +818,7 @@
 				coords = [];
 				createDrawingItem();
 				gmxAPI._drawing['activeState'] = true;
-				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
+				if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 			}
 			if (coords.length) {
 				var point = LMap.project(latlng);
@@ -875,8 +877,8 @@
 				gmxAPI._cmdProxy('startDrawing');
 				repaint();
 				gmxAPI._drawing['activeState'] = true;
-				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
-				onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
+				if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
+				if(!onMouseUpID) onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
 				if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 				return true;
 			}
@@ -1103,8 +1105,8 @@
 				mousePressed = true;
 				gmxAPI._cmdProxy('startDrawing');
 				gmxAPI._drawing['activeState'] = true;
-				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
-				onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
+				if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
+				if(!onMouseUpID) onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
 				if(downType['type'] == 'edge') {
 					var cnt = downType['cnt'];
 					if(cnt == 4) itemDownType = 'Left';

@@ -2104,22 +2104,26 @@ L.TileLayer = L.Class.extend({
 	},
 
 	bringToFront: function () {
-		var pane = this._map._panes.tilePane;
+		if(this._map) {
+			var pane = this._map._panes.tilePane;
 
-		if (this._container) {
-			pane.appendChild(this._container);
-			this._setAutoZIndex(pane, Math.max);
+			if (this._container) {
+				pane.appendChild(this._container);
+				this._setAutoZIndex(pane, Math.max);
+			}
 		}
 
 		return this;
 	},
 
 	bringToBack: function () {
-		var pane = this._map._panes.tilePane;
+		if(this._map) {
+			var pane = this._map._panes.tilePane;
 
-		if (this._container) {
-			pane.insertBefore(this._container, pane.firstChild);
-			this._setAutoZIndex(pane, Math.min);
+			if (this._container) {
+				pane.insertBefore(this._container, pane.firstChild);
+				this._setAutoZIndex(pane, Math.min);
+			}
 		}
 
 		return this;

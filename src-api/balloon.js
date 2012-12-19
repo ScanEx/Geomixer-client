@@ -426,7 +426,7 @@
 		this.clickBalloonFix = clickBalloonFix;
 
 		// Создание DIV и позиционирование балуна
-		function createBalloon()
+		function createBalloon(outerFlag)
 		{
 			var tlw = 14;
 			var tlh = 14;
@@ -456,8 +456,13 @@
 				//whiteSpace: "nowrap",
 				zIndex: 1000
 			});
-			balloon.className = 'gmx_balloon leaflet-zoom-animated';
-			div.appendChild(balloon);
+			if(outerFlag || gmxAPI.proxyType !== 'leaflet') {
+				balloon.className = 'gmx_balloon';
+				div.appendChild(balloon);
+			} else {
+				balloon.className = 'gmx_balloon leaflet-pan-anim leaflet-zoom-animated';
+				gmxAPI._leaflet.LMap['_mapPane'].appendChild(balloon);
+			}
 
 			var css = {
 				'table': 'margin: 2px; border-collapse: collapse; font-size: 11px; font-family: sans-serif;',
@@ -529,14 +534,29 @@
 				var hh = balloon.clientHeight;
 
 				var screenWidth = div.clientWidth;
+				var yy = div.clientHeight - y + 20;
+
+				if(balloon.parentNode != div) {
+					var p1 = gmxAPI._leaflet['utils'].getPixelMap();
+					screenWidth = p1.x;
+					var p2 = LMap.project(new L.LatLng(ret.geoY, ret.geoX), LMap.getZoom());
+					var pixelOrigin = LMap.getPixelOrigin();
+					x = p2.x - pixelOrigin.x;
+					y = p2.y - pixelOrigin.y;
+					yy = y - balloon.clientHeight - 20;
+				}				
+				
 				var xx = (x + ww < screenWidth) ? x : (ww < screenWidth) ? (screenWidth - ww) : 0;
 				xx = Math.max(xx, x - ww + legWidth + brw);
 				var dx = x - xx;
 				if(legX != dx) leg.style.left = dx + "px";
 				legX = dx;
 				xx += 2;
-				var yy = div.clientHeight - y + 20;
-				if(bposX != xx || bposY != yy) gmxAPI.bottomPosition(balloon, xx, yy);
+
+				if(bposX != xx || bposY != yy) {
+					if(balloon.parentNode != div) gmxAPI.position(balloon, xx, yy);
+					else gmxAPI.bottomPosition(balloon, xx, yy);
+				}
 				bposX = xx;
 				bposY = yy;
 			}
@@ -594,7 +614,7 @@
 			return ret;
 		}
 
-		var propsBalloon = createBalloon();		// Balloon для mouseOver
+		var propsBalloon = createBalloon(true);		// Balloon для mouseOver
 		this.propsBalloon = propsBalloon;
 		propsBalloon.setVisible(false);
 		propsBalloon.outerDiv.style.zIndex = 10000;
@@ -879,7 +899,8 @@ event.stopImmediatePropagation();
 						break;
 					}
 				}
-				div.removeChild(this.outerDiv);
+				this.outerDiv.parentNode.removeChild(this.outerDiv);
+				//div.removeChild(this.outerDiv);
 				var gmxNode = gmxAPI.mapNodes[balloon.pID];		// Нода gmxAPI
 				gmxAPI._listeners.dispatchEvent('onBalloonRemove', gmxNode, {'obj': balloon.obj});		// balloon удален
 			}

@@ -4308,6 +4308,7 @@ if(!tileBounds_) return;
 					//,worldCopyJump: false
 					
 					//,inertia: false
+					//,keyboard: false
 					//,fadeAnimation: false
 					//,markerZoomAnimation: true
 					//,dragging: false
@@ -4361,7 +4362,6 @@ if(!tileBounds_) return;
 				var attr = {
 					'currPosition': currPosition
 				};
-	
 				gmxAPI._updatePosition(e, attr);
 				if(setCenterPoint) setCenterPoint();
 				if(gmxAPI.map.handlers['onMove']) {
@@ -4455,7 +4455,12 @@ if(!tileBounds_) return;
 //alert(JSON.stringify(out));
 			};
 			//if(L.Browser.touch) L.DomEvent.on(LMap._container, 'touchstart', setTouchStart, this);
-			
+/*
+			L.DomEvent.on(LMap._container, 'step', function(e) {
+console.log('Transition', e);
+var tt = 1;
+			}, this);
+*/
 			var onMouseMoveTimer = null;
 			LMap.on('mousemove', function(e) {
 				//console.log('onmousemove', gmxAPI._drawing['activeState']);
@@ -5004,6 +5009,7 @@ ctx.fillText(drawTileID, 10, 128);
 			}
 		);
 		intervalID = setInterval(waitMe, 50);
+		//gmxAPI._leaflet['LMapContainer'] = leafLetCont_;				// Контейнер лефлет карты
 
 		return leafLetCont_;
 	}
