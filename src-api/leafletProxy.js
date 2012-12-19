@@ -1289,6 +1289,9 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		var id = ph.obj.objectId || ph.obj.id;
 		var node = mapNodes[id];
 		if(node) {							// нода имеется
+			if(node['type'] === 'map') {							// нода map ничего не делаем
+				return;
+			}
 			//node.isVisible = ph.attr;
 			var pNode = mapNodes[node['parentId']] || null;
 			var pGroup = (pNode ? pNode['group'] : LMap);
@@ -1838,7 +1841,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(node && 'setSortItems' in node) {
-				node.setSortItems(ph.attr.func);
+				node.setSortItems(ph.attr.data);
 				return true;
 			}
 			return false;
@@ -1964,7 +1967,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 
 		var posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 		var repaint = function(imageObj, canvas) {
-			if(node['imageURL'] != imageObj.src) return;
+			if(imageObj.src.indexOf(node['imageURL']) == -1) return;
 			posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 			var w = imageObj.width;
 			var h = imageObj.height;
@@ -2456,13 +2459,10 @@ console.log('rrrrrrrr', myLayer);
 		if(layer.properties['IsRasterCatalog']) {
 			node['rasterCatalogTilePrefix'] = layer['tileSenderPrefix'];
 		}
-/*		
-		node['sortItems'] = function(a, b) {
-			return a.properties['DATE'] < b.properties['DATE'];
-		}
-*/
+
 		node['setSortItems'] = function(func) {
 			node['sortItems'] = func;
+			waitRedraw();
 		}
 		node['getItemGeometry'] = function (itemId) {				// Получить geometry обьекта векторного слоя
 			var item = node['objectsData'][itemId];
@@ -5017,20 +5017,24 @@ ctx.fillText(drawTileID, 10, 128);
 	}
 	
 	//расширяем namespace
+	var canvas = document.createElement('canvas');
+	canvas.width = canvas.height = 512;
+	if('getContext' in canvas) {
+		gmxAPI._leaflet['labelCanvas'] = canvas;		// для расчета размеров label
+		gmxAPI._addProxyObject = addLeafLetObject;		// Добавить в DOM
+	} else {
+		gmxAPI._addProxyObject = function() { return ''; };		// Нет поддержки canvas
+	}
+	
     //gmxAPI._cmdProxy = leafletCMD;				// посылка команд отрисовщику
-    gmxAPI._addProxyObject = addLeafLetObject;	// Добавить в DOM
 	gmxAPI.proxyType = 'leaflet';
     gmxAPI.APILoaded = true;					// Флаг возможности использования gmxAPI сторонними модулями
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
 	//gmxAPI._leaflet['LMap'] = LMap;				// leafLet карта
-gmxAPI._tcnt = 0;
 	gmxAPI._leaflet['lastZoom'] = -1;				// zoom нарисованный
 	gmxAPI._leaflet['mInPixel'] = 0;				// текущее кол.метров в 1px
 	gmxAPI._leaflet['curDragState'] = false;		// текущий режим dragging карты
 	gmxAPI._leaflet['mousePressed'] = false;		// признак нажатой мыши
-	var canvas = document.createElement('canvas');
-	canvas.width = canvas.height = 512;
-	gmxAPI._leaflet['labelCanvas'] = canvas;		// для расчета размеров label
 })();
 
 
