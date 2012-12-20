@@ -690,11 +690,13 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				var optMarker = {
 					icon: new nIcon()
 					,'from': node.id
+					,'rotate': opt['rotate']
 				};
 				if(node['subType'] === 'drawing') {
 					optMarker['draggable'] = true;
 				}
-				out = new L.Marker(new L.LatLng(pos[1], pos[0]), optMarker);
+				
+				out = new L.GMXMarker(new L.LatLng(pos[1], pos[0]), optMarker);
 				if(style['label'] && node['label']) {
 					setLabel(node.id, opt['iconAnchor']);
 				}
@@ -1298,10 +1300,6 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(node['type'] === 'filter') {							// нода filter
 				if(pNode) pNode.refreshFilter(id);
 				return;
-//			} else if(!node['leaflet'] && node['children'].length > 0) {	// нет leaflet проверить потомков
-//				for (var i = 0; i < node['children'].length; i++) {
-//					setVisibleRecursive(mapNodes[node['children'][i]], ph.attr);
-//				}
 			} else if(node['leaflet']) {							// нода имеет вид в leaflet
 				if(ph.attr) {
 					var flag = chkVisibilityObject(id);
@@ -1314,29 +1312,12 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					}
 					else
 					{
-						//if(node['geometry'] && !node['leaflet']) node['leaflet'] = utils.drawGeometry(node['geometry']);
-	//if(!chkVisibilityObject(id)) return;
 						if(node['parentId']) {
-							//if(mapNodes[node['parentId']]) pNode = mapNodes[node['parentId']]['group'];
 							pGroup.addLayer(node['group']);
 						}
 						node['leaflet']._isVisible = true;
 						pGroup.addLayer(node['leaflet']);
-						if(node['regularStyle'] && node['regularStyle']['rotate'] && node['leaflet']._icon) {
-							node['leaflet']._icon.style[L.DomUtil.TRANSFORM] += ' rotate('+node['regularStyle']['rotate']+'deg)';
-						}
 					}
-	/*
-					else if(node['type'] === 'VectorLayer') {
-						utils.repaintNode(node, true);
-					}
-					else if(node['type'] === 'mapObject') {
-	gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
-
-	*/
-//					for (var i = 0; i < node['children'].length; i++) {
-//						setVisibleRecursive(mapNodes[node['children'][i]], ph.attr);
-//					}
 				}
 				else
 				{
@@ -1349,23 +1330,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					}
 					else {
 						if(node['parentId']) {
-							//if(mapNodes[node['parentId']]) pNode = mapNodes[node['parentId']]['group'];
 							pGroup.removeLayer(node['group']);
 						}
 						node['leaflet']._isVisible = false;
 						if(pGroup['_layers'][node['leaflet']['_leaflet_id']]) pGroup.removeLayer(node['leaflet']);
-//						for (var i = 0; i < node['children'].length; i++) {
-//							setVisibleRecursive(mapNodes[node['children'][i]], false);
-//						}
-						
-/*					
-					for (var i = 0; i < node['children'].length; i++) {
-						var pNode = mapNodes[node['children'][i]];
-						if(pNode) {
-							pNode['leaflet']._isVisible = false, pNode.removeLayer(pNode['leaflet']);
-						}
-					}
-*/					
 					}
 				}
 			}
@@ -4926,6 +4894,20 @@ ctx.fillText(drawTileID, 10, 128);
 				}
 			});
 
+			L.GMXMarker = L.Marker.extend({
+				update: function () {
+					if (!this._icon) { return; }
+
+					var pos = this._map.latLngToLayerPoint(this._latlng).round();
+					this._setPos(pos);
+					var options = this.options;
+					if(options['rotate']) {
+						this._icon.style[L.DomUtil.TRANSFORM] += ' rotate('+options['rotate']+'deg)';
+					}
+				}
+			});
+			
+			
 			initFunc(mapDivID, 'leaflet');
 			
 			var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", top: '-6px', left: '-6px', opacity: 0.8 });
