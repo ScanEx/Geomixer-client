@@ -601,6 +601,14 @@
 						return false;
 					}
 				}
+				var showFlag = false;
+				gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomstart', 'func': function(attr) {
+					showFlag = balloon.isVisible;
+					balloon.setVisible(false);
+				}});
+				gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function(attr) {
+					balloon.setVisible(showFlag);
+				}});
 			}
 			domObj = createDOMObject(ret);
 			domObj.objectId = obj.objectId;

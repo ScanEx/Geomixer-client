@@ -1323,7 +1323,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 						node['leaflet']._isVisible = true;
 						pGroup.addLayer(node['leaflet']);
 						if(node['regularStyle'] && node['regularStyle']['rotate'] && node['leaflet']._icon) {
-							node['leaflet']._icon.style.transform += ' rotate('+node['regularStyle']['rotate']+'deg)';
+							node['leaflet']._icon.style[L.DomUtil.TRANSFORM] += ' rotate('+node['regularStyle']['rotate']+'deg)';
 						}
 					}
 	/*
@@ -4492,10 +4492,12 @@ var tt = 1;
 			LMap.on('zoomstart', function(e) {
 				gmxAPI._leaflet['zoomstart'] = true;
 				gmxAPI._listeners.dispatchEvent('onZoomstart', null, {});
+				gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Проверка map Listeners на hideBalloons
 			});
 			LMap.on('zoomend', function(e) {
 				gmxAPI._leaflet['zoomstart'] = false;
 				gmxAPI._listeners.dispatchEvent('onZoomend', null, {});
+				gmxAPI._listeners.dispatchEvent('showBalloons', gmxAPI.map, {});	// Проверка map Listeners на showBalloons
 			});
 
 			// Обработчик события - mapInit
