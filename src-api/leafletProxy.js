@@ -1300,28 +1300,32 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(node['type'] === 'filter') {							// нода filter
 				if(pNode) pNode.refreshFilter(id);
 				return;
-			} else if(node['leaflet']) {							// нода имеет вид в leaflet
+			} else {							// нода имеет вид в leaflet
 				if(ph.attr) {
 					var flag = chkVisibilityObject(id);
 					if(!flag) return;
-					if(node['leaflet']._isVisible) return;
+					if(node['leaflet'] && node['leaflet']._isVisible) return;
 					if(node['type'] === 'RasterLayer') {
-						node['leaflet']._isVisible = true;
-						LMap.addLayer(node['leaflet']);
-						utils.bringToDepth(node, node['zIndex']);
+						if(node['leaflet']) {
+							node['leaflet']._isVisible = true;
+							LMap.addLayer(node['leaflet']);
+							utils.bringToDepth(node, node['zIndex']);
+						}
 					}
 					else
 					{
 						if(node['parentId']) {
 							pGroup.addLayer(node['group']);
 						}
-						node['leaflet']._isVisible = true;
-						pGroup.addLayer(node['leaflet']);
+						if(node['leaflet']) {
+							node['leaflet']._isVisible = true;
+							pGroup.addLayer(node['leaflet']);
+						}
 					}
 				}
 				else
 				{
-					if(node['leaflet']._isVisible === false) return;
+					if(node['leaflet'] && node['leaflet']._isVisible === false) return;
 					if(node['type'] === 'RasterLayer') {
 						if(node['leaflet']) {
 							if(node['leaflet']._isVisible) LMap.removeLayer(node['leaflet']);
@@ -1332,8 +1336,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 						if(node['parentId']) {
 							pGroup.removeLayer(node['group']);
 						}
-						node['leaflet']._isVisible = false;
-						if(pGroup['_layers'][node['leaflet']['_leaflet_id']]) pGroup.removeLayer(node['leaflet']);
+						if(node['leaflet']) {
+							node['leaflet']._isVisible = false;
+							if(pGroup['_layers'][node['leaflet']['_leaflet_id']]) pGroup.removeLayer(node['leaflet']);
+						}
 					}
 				}
 			}
