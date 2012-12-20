@@ -593,7 +593,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
         _(borderDescr, [_t('i')], [['css','fontWeight','bold'],['css','fontStyle','italic'],['css','margin','0px 5px'],['css','cursor','pointer']]);
         borderDescr.onclick = function()
         {
-            _this.showLayerInfo({properties:elem}, {properties: props});
+            nsGmx.Controls.showLayerInfo({properties:elem}, {properties: props});
         }
     }
 		
@@ -650,111 +650,6 @@ layersTree.prototype.downloadVectorLayer = function(name, mapHostName)
     var layer = globalFlashMap.layers[name];
     window.location.href = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + 
 			"?t=" + layer.properties.name;
-}
-
-//Показывает аттрибутивную информацию объекта в виде таблички в отдельном диалоге
-layersTree.prototype.showLayerInfo = function(layer, obj)
-{
-	var trs = [];
-    var typeSpans = {};
-	for (var key in obj.properties)
-    {
-        var content = _div(),
-            contentText = String(obj.properties[key]);
-        
-        if (contentText.indexOf("http://") == 0 || contentText.indexOf("www.") == 0)
-            contentText = "<a href=\"" + contentText + "\" target=\"_blank\">" + contentText + "</a>";
-        
-        content.innerHTML = contentText;
-        
-        var typeSpan = _span([_t(key)]);
-        
-        typeSpans[key] = typeSpan;
-        
-        trs.push(_tr([_td([typeSpan], [['css','width','30%']]), _td([content], [['css','width','70%']])]));
-    }
-	
-	var title = _span(null, [['dir','className','title'], ['css','cursor','default']]),
-		summary = _span(null, [['dir','className','summary']]),
-		div;
-	
-	if ($$('layerPropertiesInfo'))
-	{
-		div = $$('layerPropertiesInfo');
-		
-		if (!trs.length && !(layer.properties.type == "Raster" && layer.properties.Legend))
-		{
-			$(div.parentNode).dialog('close');
-			
-			return;
-		}
-		
-		removeChilds(div);
-		
-		_(div, [_table([_tbody(trs)], [['dir','className','vectorInfoParams']])]);
-		
-		if (layer.properties.type == "Raster" && layer.properties.Legend)
-		{
-			var legend = _div();
-			
-			legend.innerHTML = layer.properties.Legend;
-			
-			_(div, [legend])
-		}
-		
-		var dialogTitle = div.parentNode.parentNode.firstChild.firstChild;
-
-		removeChilds(dialogTitle);
-
-		_(dialogTitle, [_t(_gtxt("Слой [value0]", layer.properties.title))]);
-		
-		$(div.parentNode).dialog('open');
-	}
-	else
-	{
-		if (!trs.length && !(layer.properties.type == "Raster" && layer.properties.Legend))
-			return;
-		
-		div = _div([_table([_tbody(trs)], [['dir','className','vectorInfoParams']])], [['attr','id','layerPropertiesInfo']]);
-
-		if (layer.properties.type == "Raster" && layer.properties.Legend)
-		{
-			var legend = _div();
-			
-			legend.innerHTML = layer.properties.Legend;
-			
-			_(div, [legend])
-		}
-		
-		showDialog(_gtxt("Слой [value0]", layer.properties.title), div, 360, 200, false, false, null, function(){return true})
-	}
-	
-	setTimeout(function()
-	{
-		var titleHeight = $$('layerPropertiesInfo').parentNode.parentNode.firstChild.offsetHeight;
-
-        var dialogDiv = $$('layerPropertiesInfo').parentNode;
-		$(dialogDiv).dialog('option', 'height', titleHeight + 6 + div.offsetHeight);
-		$(dialogDiv).dialog('option', 'minHeight', titleHeight + 6 + div.offsetHeight);
-		
-		dialogDiv.style.height = div.offsetHeight + 'px';
-		dialogDiv.style.minHeight = div.offsetHeight + 'px';
-        
-        if ($.browser.msie)
-        {
-            dialogDiv.parentNode.style.height = div.offsetHeight + 'px';
-            dialogDiv.parentNode.style.minHeight = div.offsetHeight + 'px';
-        }
-	}, 100)
-    
-    nsGmx.TagMetaInfo.loadFromServer(function(tagInfo)
-    {
-        for (var key in typeSpans)
-        {
-            if (tagInfo.isTag(key))
-                $(typeSpans[key]).attr('title', tagInfo.getTagDescription(key));
-        }
-    });
 }
 
 layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)
