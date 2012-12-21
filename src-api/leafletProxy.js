@@ -2227,8 +2227,11 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				,'attr': attr
 				,'nodeID': id
 				,'async': true
+				//,'updateWhenIdle': true
+				,'unloadInvisibleTiles': true
+				,'countInvisibleTiles': (L.Browser.mobile ? 0 : 2)
+				//,'reuseTiles': true
 				//isBaseLayer
-				//,'updateWhenIdle': false
 				//,'reuseTiles': true
 				//,'continuousWorld': true
 				//,'detectRetina': true
@@ -2763,6 +2766,8 @@ console.log('rrrrrrrr', myLayer);
 			,'identityField': identityField
 			,'initCallback': initCallback
 			,'async': true
+			//,'updateWhenIdle': true
+			,'unloadInvisibleTiles': true
 		};
 
 		if(node['parentId']) option['parentId'] = node['parentId'];
@@ -4553,8 +4558,9 @@ var tt = 1;
 						return;
 					}
 					var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
-bounds.min.y -= shiftY;
-bounds.max.y -= shiftY;
+					bounds.min.y -= shiftY;
+					bounds.max.y -= shiftY;
+
 					var nwTilePoint = new L.Point(
 							Math.floor(bounds.min.x / tileSize),
 							Math.floor(bounds.min.y / tileSize)),
@@ -4563,6 +4569,9 @@ bounds.max.y -= shiftY;
 							Math.floor(bounds.max.y / tileSize)),
 						tileBounds = new L.Bounds(nwTilePoint, seTilePoint);
 
+					var countInvisibleTiles = this.options.countInvisibleTiles;
+					tileBounds.min.x -= countInvisibleTiles; tileBounds.max.x += countInvisibleTiles;
+					tileBounds.min.y -= countInvisibleTiles; tileBounds.max.y += countInvisibleTiles;
 					this._addTilesFromCenterOut(tileBounds);
 
 					if (this.options.unloadInvisibleTiles || this.options.reuseTiles) {
@@ -4638,7 +4647,7 @@ bounds.max.y -= shiftY;
 						};
 						
 						var item = {
-							'src': src + '&tm=' + Math.random()
+							'src': src	// + '&tm=' + Math.random()
 							,'bounds': bounds
 							,'zoom': zoom
 							,'x': scanexTilePoint.x
