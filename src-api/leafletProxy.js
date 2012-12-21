@@ -4275,7 +4275,7 @@ if(!tileBounds_) return;
 				gmxAPI._cmdProxy = gmxAPI._leaflet['cmdProxy'];			// Установка прокси для leaflet
 			}
 
-			LMap = new L.Map(leafLetCont_,
+			window.LMap = new L.Map(leafLetCont_,
 				{
 				    center: [55.7574, 37.5952]
 					,zoom: 5

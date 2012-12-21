@@ -370,9 +370,8 @@ L.Mixin.Events.fire = L.Mixin.Events.fireEvent;
 
 	    mobile = typeof orientation !== undefined + '',
 	    msTouch = (window.navigator && window.navigator.msPointerEnabled && window.navigator.msMaxTouchPoints),
-	    retina = (('devicePixelRatio' in window && window.devicePixelRatio > 1) ||
-	              ('matchMedia' in window && window.matchMedia("") && window.matchMedia("(min-resolution:144dpi)").matches)),
-
+		retina = (window['devicePixelRatio'] > 1 ||
+					(typeof(window['matchMedia']) == 'function' ? window.matchMedia("(min-resolution:144dpi)").matches : false)),
 	    doc = document.documentElement,
 	    ie3d = ie && ('transition' in doc.style),
 	    webkit3d = ('WebKitCSSMatrix' in window) && ('m11' in new window.WebKitCSSMatrix()),

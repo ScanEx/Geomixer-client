@@ -43,7 +43,7 @@
 		var style = { "display": 'block', 'marginLeft': '4px', 'padding': '4px 0' };
 
 		// Установка backgroundColor c alpha
-		if(gmxAPI.isIE) {
+		if(gmxAPI.isIE && document['documentMode'] < 10) {
 			style['filter'] = "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A)";
 			style['styleFloat'] = 'left';
 		}
