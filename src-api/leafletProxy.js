@@ -1679,7 +1679,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			setHandlerObject(id, attr.eventName);
 		}
 		,
-		'getGeometry':	function(ph)	{		// 
+		'getGeometry':	function(ph)	{			//	Получить геометрию обьекта
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) {						// Нода не была создана через addObject
@@ -1705,6 +1705,11 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			else if(type === 'LineString')			geo['type'] = 'LINESTRING';
 			else if(type === 'GeometryCollection')	geo['type'] = 'GeometryCollection';
 			return geo;
+		}
+		,
+		'getGeometryType':	function(ph)	{		// Получить тип геометрии
+			var geo = commands.getGeometry(ph);
+			return (!geo ? null : geo.type);
 		}
 		,
 		'getPosition': function()	{						// получить текущее положение map
@@ -1873,6 +1878,7 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 //try {
 		ret = (cmd in commands ? commands[cmd].call(commands, hash) : {});
 //} catch(e) { gmxAPI.addDebugWarnings({'func': 'drawTriangle', 'event': e, 'alert': e}); }
+if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'hash': hash});
 //console.log(cmd + ' : ' , hash , ' : ' , ret);
 		return ret;
 	}

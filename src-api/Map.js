@@ -807,60 +807,60 @@
 			return true;
 		}
 
-		var onWheel = function(e)
-		{
-			if (!e)
-				e = window.event;
-
-			var inMap = false;
-			var elem = gmxAPI.compatTarget(e);
-			while(elem != null) 
+		if(gmxAPI.proxyType === 'flash') {
+			var onWheel = function(e)
 			{
-				if (elem == gmxAPI._div)
+				if (!e)
+					e = window.event;
+
+				var inMap = false;
+				var elem = gmxAPI.compatTarget(e);
+				while(elem != null) 
 				{
-							inMap = true;
-							break;
+					if (elem == gmxAPI._div)
+					{
+								inMap = true;
+								break;
+					}
+					elem = elem.parentNode;
 				}
-				elem = elem.parentNode;
+		
+				if (!inMap)
+					return;
+
+				var delta = 0;
+				if (e.wheelDelta) 
+					delta = e.wheelDelta/120; 
+				else if (e.detail) 
+					delta = -e.detail/3;
+
+				if (delta)
+					gmxAPI.map.zoomBy(delta > 0 ? 1 : -1, true);
+
+				if (e.preventDefault)
+				{
+					e.stopPropagation();
+					e.preventDefault();
+				}
+				else 
+				{
+					e.returnValue = false;
+					e.cancelBubble = true;
+				}
 			}
-	
-			if (!inMap)
-				return;
 
-			var delta = 0;
-			if (e.wheelDelta) 
-				delta = e.wheelDelta/120; 
-			else if (e.detail) 
-				delta = -e.detail/3;
-
-			if (delta)
-				gmxAPI.map.zoomBy(delta > 0 ? 1 : -1, true);
-
-			if (e.preventDefault)
+			var addHandler = function(div, eventName, handler)
 			{
-				e.stopPropagation();
-				e.preventDefault();
+				if (div.attachEvent) 
+					div.attachEvent("on" + eventName, handler); 
+				if (div.addEventListener) 
+					div.addEventListener(eventName, handler, false);
 			}
-			else 
-			{
-				e.returnValue = false;
-				e.cancelBubble = true;
-			}
-		}
 
-		var addHandler = function(div, eventName, handler)
-		{
-			if (div.attachEvent) 
-				div.attachEvent("on" + eventName, handler); 
-			if (div.addEventListener) 
-				div.addEventListener(eventName, handler, false);
+			addHandler(window, "mousewheel", onWheel);
+			addHandler(document, "mousewheel", onWheel);
+			if (window.addEventListener) window.addEventListener('DOMMouseScroll', onWheel, false);
 		}
-
-		addHandler(window, "mousewheel", onWheel);
-		addHandler(document, "mousewheel", onWheel);
-		if (window.addEventListener)
-			window.addEventListener('DOMMouseScroll', onWheel, false);
-			
 		map.ToolsContainer = gmxAPI._ToolsContainer;
 		return map;
 	}
