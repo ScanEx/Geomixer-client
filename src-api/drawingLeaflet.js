@@ -1138,39 +1138,39 @@
 		var updatePos = function(x, y)
 		{
 			if(itemDownType === 'BottomRight') {
-				if(y2 > y1) y1 = y, itemDownType = 'TopRight';
-				x2 = x, y2 = y;
-				if(x1 > x2) itemDownType = 'BottomLeft';
-			}
-			else if(itemDownType === 'TopLeft') {
-				if(y2 > y1) y2 = y, itemDownType = 'BottomLeft';
-				x1 = x, y1 = y;
-				if(x1 > x2) itemDownType = 'TopRight';
-			}
-			else if(itemDownType === 'BottomLeft') {
-				if(y2 > y1) y1 = y, itemDownType = 'TopLeft';
-				x1 = x, y2 = y;
-				if(x1 > x2) itemDownType = 'BottomRight';
+				if(y2 > y1) 		y = y1, y1 = y2, y2 = y, itemDownType = 'TopRight';
+				else if(x1 > x2)	x = x1, x1 = x2, x2 = x, itemDownType = 'BottomLeft';
+				else	x2 = x, y2 = y;
 			}
 			else if(itemDownType === 'TopRight') {
-				if(y2 > y1) y2 = y, itemDownType = 'BottomRight';
-				x2 = x, y1 = y;
-				if(x1 > x2) itemDownType = 'TopLeft';
+				if(y2 > y1) 		y = y1, y1 = y2, y2 = y, itemDownType = 'BottomRight';
+				else if(x1 > x2) 	x = x1, x1 = x2, x2 = x, itemDownType = 'TopLeft';
+				else	x2 = x, y1 = y;
+			}
+			else if(itemDownType === 'TopLeft') {
+				if(y2 > y1) 		y = y1, y1 = y2, y2 = y, itemDownType = 'BottomLeft';
+				else if(x1 > x2)	x = x1, x1 = x2, x2 = x, itemDownType = 'TopRight';
+				else	x1 = x, y1 = y;
+			}
+			else if(itemDownType === 'BottomLeft') {
+				if(y2 > y1)			y = y1, y1 = y2, y2 = y, itemDownType = 'TopLeft';
+				else if(x1 > x2)	x = x1, x1 = x2, x2 = x, itemDownType = 'BottomRight';
+				else	x1 = x, y2 = y;
 			}
 			else if(itemDownType === 'Top') {
-				if(y2 > y1) y2 = y, itemDownType = 'Bottom';
+				if(y2 > y1)			y = y1, y1 = y2, y2 = y, itemDownType = 'Bottom';
 				else	y1 = y;
 			}
 			else if(itemDownType === 'Bottom') {
-				if(y2 > y1) y1 = y, itemDownType = 'Top';
+				if(y2 > y1)			y = y1, y1 = y2, y2 = y, itemDownType = 'Top';
 				else	y2 = y;
 			}
 			else if(itemDownType === 'Right') {
-				if(x1 > x2) x1 = x, itemDownType = 'Left';
+				if(x1 > x2)			x = x1, x1 = x2, x2 = x, itemDownType = 'Left';
 				else	x2 = x;
 			}
 			else if(itemDownType === 'Left') {
-				if(x1 > x2) x2 = x, itemDownType = 'Right';
+				if(x1 > x2)			x = x1, x1 = x2, x2 = x, itemDownType = 'Right';
 				else	x1 = x;
 			}
 		};
