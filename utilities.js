@@ -1216,25 +1216,30 @@ $.extend(nsGmx.Utils, {
     
     convertFromServer: function(type, value)
     {
-        if (value === null) return "null";
+        //if (value === null) return "null";
         
         var lowerCaseType = type.toLowerCase();
         
         if (lowerCaseType == 'string')
         {
-            return value;
+            
+            return value !== null ? value : ''; //все null интерпретируем как пустые строки!
         }
         else if (lowerCaseType == 'integer' || lowerCaseType == 'float' || lowerCaseType == 'number')
         {
-            return String(value);
+            return value !== null ? String(value) : '';
         }
         else if (lowerCaseType == 'date')
         {
+            if (value === null) return '';
+            
             var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
             return $.datepicker.formatDate('dd.mm.yy', new Date(value*1000 + timeOffset));
         }
         else if (lowerCaseType == 'time')
         {
+            if (value === null) return '';
+            
             var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
             var tempInput = $('<input/>').timepicker({timeOnly: true, timeFormat: "hh:mm:ss"});
             $(tempInput).timepicker('setTime', new Date(value*1000 + timeOffset));
@@ -1242,6 +1247,8 @@ $.extend(nsGmx.Utils, {
         }
         else if (lowerCaseType == 'datetime')
         {
+            if (value === null) return '';
+            
             var timeOffset = (new Date(value*1000)).getTimezoneOffset()*60*1000;
             var tempInput = $('<input/>').datetimepicker({timeOnly: false, timeFormat: "hh:mm:ss"});
             $(tempInput).datetimepicker('setDate', new Date(value*1000 + timeOffset));
@@ -1252,8 +1259,6 @@ $.extend(nsGmx.Utils, {
     },
     convertToServer: function(type, value)
     {
-        if (value === null) return null;
-        
         var lowerCaseType = type.toLowerCase();
         
         if (lowerCaseType == 'string')
