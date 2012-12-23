@@ -2577,7 +2577,8 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 						if(observerObj[id]) {
 							var ph = {'layerID': node.id, 'properties': item.properties };
 							ph.onExtent = false;
-							ph.geometry = item.exportGeo();
+							ph.geometry = node['getItemGeometry'](id);
+							//ph.geometry = item.exportGeo();
 							out.push(ph);
 							delete observerObj[id];
 						}
@@ -2620,14 +2621,16 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 							if(vFlag) {					// Обьект за границами видимости
 								if(observerObj[id]) {
 									ph.onExtent = false;
-									ph.geometry = item.exportGeo();
+									ph.geometry = node['getItemGeometry'](id);
+									//ph.geometry = item.exportGeo();
 									out.push(ph);
 									delete observerObj[id];
 								}
 							} else {
 								if(!observerObj[id]) {
 									ph.onExtent = true;
-									ph.geometry = item.exportGeo();
+									//ph.geometry = item.exportGeo();
+									ph.geometry = node['getItemGeometry'](id);
 									out.push(ph);
 									var tilesKeys = {};
 									tilesKeys[key] = true;
