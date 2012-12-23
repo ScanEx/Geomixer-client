@@ -2326,6 +2326,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			}, 10);
 			return false;
 		}
+		node['waitRedraw'] = waitRedraw;
 		if(layer.visible) node.isVisible = true;
 
 		waitRedraw();
@@ -4753,6 +4754,7 @@ var tt = 1;
 					//}
 					if(gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {				// Слой невидим или нет tileFunc
 						this.tileDrawn(tile);
+						if(gmxAPI.map.needMove) node.waitRedraw();
 						return;
 					}
 					//console.log('drawTile ', zoom, LMap.getZoom(), gmxAPI.map.needMove);
