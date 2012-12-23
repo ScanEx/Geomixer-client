@@ -4490,7 +4490,7 @@ if(!tileBounds_) return;
 				}, 50);*/
 			};
 			var chkMapResize = function() {
-				if(gmxAPI.map.needMove || gmxAPI._drawing['activeState'] || gmxAPI._leaflet['curDragState']) return;	// При рисовании не проверяем Resize
+				if(gmxAPI._drawing['activeState'] || gmxAPI._leaflet['curDragState']) return;	// При рисовании не проверяем Resize
 				// anima
 				//if(checkMapResize) {
 					//LMap.fire('transitionend');
@@ -4498,6 +4498,7 @@ if(!tileBounds_) return;
 					//LMap.fire('focus');
 					LMap._onResize();
 					checkMapResize = false;
+					gmxAPI.map.needMove = null;
 				//}
 			};
 			setInterval(chkMapResize, 5000);
