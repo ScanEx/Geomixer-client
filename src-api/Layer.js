@@ -546,6 +546,10 @@
 						gmxAPI.map.getFeatures(str, geometry, callback, [obj.properties.name]);		// Поиск через JSONP запрос
 					}
 				}
+				obj.getFeaturesByCenter = function(func)
+				{
+					gmxAPI._cmdProxy('getFeatures', { 'obj': obj, 'attr':{'center':true, 'func': func} });
+				}
 
 				obj.getFeatureById = function(fid, func)
 				{
