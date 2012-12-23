@@ -4752,7 +4752,7 @@ var tt = 1;
 				drawTile: function (tile, tilePoint, zoom) {
 					var node = mapNodes[tile._layer.options.nodeID];
 					if(!zoom) zoom = LMap.getZoom();
-					if(LMap['_animateToZoom'] && LMap['_animateToZoom'] != zoom) || gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {	// Слой невидим или нет tileFunc или идет зуум
+					if((LMap['_animateToZoom'] && LMap['_animateToZoom'] != zoom) || gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {	// Слой невидим или нет tileFunc или идет зуум
 						this.tileDrawn(tile);
 						if(gmxAPI.map.needMove) node.waitRedraw();
 						return;
