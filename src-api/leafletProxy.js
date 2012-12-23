@@ -188,6 +188,75 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			return canvas.toDataURL();
 		}
 		,
+		'prpLayerBounds': function(geom)	{			// Подготовка атрибута границ слоя
+			var out = {};
+			var type = geom.type;
+			out['type'] = type;
+			var arr = null;
+			if(geom.coordinates) {						// Формируем MULTIPOLYGON
+				if(type == 'POLYGON' || type == 'Polygon') {
+					arr = [geom.coordinates];
+				} else if(type == 'MULTIPOLYGON' || type == 'MultiPolygon') {
+					arr = geom.coordinates;
+				}
+				if(arr) {
+					var	bounds = new L.Bounds();
+					var pointsArr = [];
+					for (var i = 0; i < arr.length; i++)
+					{
+						for (var j = 0; j < arr[i].length; j++)
+						{
+							var pArr = [];
+							var pol = arr[i][j];
+							for (var j1 = 0; j1 < pol.length; j1++)
+							{
+								var p = (typeof(pol[j1]) === 'object' ? new L.Point( pol[j1][0], pol[j1][1] ) : new L.Point( pol[j1++], pol[j1] ));
+								pArr.push(p);
+								bounds.extend(p);
+							}
+							pointsArr.push(pArr);
+						}
+					}
+					out['geom'] = pointsArr;						// Массив Point границ слоя
+					out['bounds'] = bounds;							// Bounds слоя
+				}
+			}
+			return out;
+		}
+		,
+		'prpLayerAttr': function(layer, node)	{				// Подготовка атрибутов слоя
+			var out = {};
+			if(layer) {
+				if(layer.properties) {
+					var prop = layer.properties;
+					if(node['type'] == 'RasterLayer') {			// растровый слой
+						out['minZoom'] = (prop.MinZoom ? prop.MinZoom : 1);
+						out['maxZoom'] = (prop.MaxZoom ? prop.MaxZoom : 20);
+						if(prop.type == 'Overlay') out['isOverlay'] = true;
+					}
+					else if(node['type'] == 'VectorLayer') {	// векторный слой
+						out['identityField'] = (prop.identityField ? prop.identityField : 'ogc_fid');
+						out['typeGeo'] = (prop.GeometryType ? prop.GeometryType : 'Polygon');
+						out['TemporalColumnName'] = (prop.TemporalColumnName ? prop.TemporalColumnName : '');
+						out['minZoom'] = 22;
+						out['maxZoom'] = 1;
+						for (var i = 0; i < prop.styles.length; i++)
+						{
+							var style = prop.styles[i];
+							out['minZoom'] = Math.min(out['minZoom'], style['MinZoom']);
+							out['maxZoom'] = Math.max(out['maxZoom'], style['MaxZoom']);
+						}
+					}
+				}
+				if(layer.geometry) {
+					var pt = utils.prpLayerBounds(layer.geometry);
+					if(pt['geom']) out['geom'] = pt['geom'];					// Массив Point границ слоя
+					if(pt['bounds']) out['bounds'] = pt['bounds'];				// Bounds слоя
+				}
+			}
+			return out;
+		}
+		,
 		'getLabelSize': function(txt, style)	{			// Получить размер Label
 			var out = new L.Point(0, 0);
 			if(style) {
@@ -309,9 +378,9 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(moveToTimer) clearTimeout(moveToTimer);
 			moveToTimer = setTimeout(function() {
 				var pos = new L.LatLng(attr['y'], attr['x']);
-				gmxAPI.map.needMove = null;
-				//console.log('runMoveTo ', attr['z'], pos);
+				//gmxAPI.currZ = attr['z'];
 				LMap.setView(pos, attr['z']);
+				gmxAPI.map.needMove = null;
 			}, 50);
 		}
 		,
@@ -2212,6 +2281,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		var node = mapNodes[id];
 //gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
 		if(!node) return;						// Нода не определена
+		var gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
 		node['type'] = 'RasterLayer';
 		node['isOverlay'] = false;
 		var inpAttr = ph.attr;
@@ -2230,7 +2300,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			attr['maxZoom'] = pNode.maxZ || 30;
 										// pNode.parentId нода векторного слоя по обьекту которого создан растровый слой 
 		} else {
-			attr = prpLayerAttr(layer, node);
+			attr = utils.prpLayerAttr(layer, node);
 			if(pNode && pNode.zIndexOffset) {
 				node['zIndexOffset'] = pNode.zIndexOffset;
 			}
@@ -2242,7 +2312,8 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		node['zIndex'] += node['zIndexOffset'];
 
 		node['chkGeometry'] = function() {			// подготовка границ растрового слоя
-			var pt = prpGeom(node['geometry']);
+			var pt = utils.prpLayerBounds(node['geometry']);
+			//var pt = prpGeom(node['geometry']);
 			if(pt['geom']) attr['geom'] = pt['geom'];					// Массив Point границ слоя
 			if(pt['bounds']) attr['bounds'] = pt['bounds'];				// Bounds слоя
 			if(waitRedraw) {
@@ -2276,6 +2347,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 				//,'updateWhenIdle': true
 				,'unloadInvisibleTiles': true
 				,'countInvisibleTiles': (L.Browser.mobile ? 0 : 1)
+				//,'countInvisibleTiles': 0
 				//,'reuseTiles': true
 				//isBaseLayer
 				//,'reuseTiles': true
@@ -2327,83 +2399,11 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			return false;
 		}
 		node['waitRedraw'] = waitRedraw;
-		if(layer.visible) node.isVisible = true;
+		if(layer.properties && layer.properties.visible != false) node.isVisible = true;
 
 		waitRedraw();
 		return out;
 	}
-
-	// Подготовка атрибута границ слоя
-	function prpGeom(geom) {
-		var out = {};
-		var type = geom.type;
-		out['type'] = type;
-		var arr = null;
-		if(geom.coordinates) {						// Формируем MULTIPOLYGON
-			if(type == 'POLYGON' || type == 'Polygon') {
-				arr = [geom.coordinates];
-			} else if(type == 'MULTIPOLYGON' || type == 'MultiPolygon') {
-				arr = geom.coordinates;
-			}
-			if(arr) {
-				var	bounds = new L.Bounds();
-				var pointsArr = [];
-				for (var i = 0; i < arr.length; i++)
-				{
-					for (var j = 0; j < arr[i].length; j++)
-					{
-						var pArr = [];
-						var pol = arr[i][j];
-						for (var j1 = 0; j1 < pol.length; j1++)
-						{
-							var p = (typeof(pol[j1]) === 'object' ? new L.Point( pol[j1][0], pol[j1][1] ) : new L.Point( pol[j1++], pol[j1] ));
-							pArr.push(p);
-							bounds.extend(p);
-						}
-						pointsArr.push(pArr);
-					}
-				}
-				out['geom'] = pointsArr;						// Массив Point границ слоя
-				out['bounds'] = bounds;							// Bounds слоя
-			}
-		}
-		return out;
-	}
-
-	// Подготовка атрибутов слоя
-	function prpLayerAttr(layer, node) {
-		var out = {};
-		if(layer) {
-			if(layer.properties) {
-				var prop = layer.properties;
-				if(node['type'] == 'RasterLayer') {			// растровый слой
-					out['minZoom'] = (prop.MinZoom ? prop.MinZoom : 1);
-					out['maxZoom'] = (prop.MaxZoom ? prop.MaxZoom : 20);
-					if(prop.type == 'Overlay') out['isOverlay'] = true;
-				}
-				else if(node['type'] == 'VectorLayer') {	// векторный слой
-					out['identityField'] = (prop.identityField ? prop.identityField : 'ogc_fid');
-					out['typeGeo'] = (prop.GeometryType ? prop.GeometryType : 'Polygon');
-					out['TemporalColumnName'] = (prop.TemporalColumnName ? prop.TemporalColumnName : '');
-					out['minZoom'] = 22;
-					out['maxZoom'] = 1;
-					for (var i = 0; i < prop.styles.length; i++)
-					{
-						var style = prop.styles[i];
-						out['minZoom'] = Math.min(out['minZoom'], style['MinZoom']);
-						out['maxZoom'] = Math.max(out['maxZoom'], style['MaxZoom']);
-					}
-				}
-			}
-			if(layer.geometry) {
-				var pt = prpGeom(layer.geometry);
-				if(pt['geom']) out['geom'] = pt['geom'];					// Массив Point границ слоя
-				if(pt['bounds']) out['bounds'] = pt['bounds'];				// Bounds слоя
-			}
-		}
-		return out;
-	}
-
 
 	// Добавить векторный слой
 	function setVectorTiles(ph)	{
@@ -2908,7 +2908,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			}
 		};
 
-		var attr = prpLayerAttr(layer, node);
+		var attr = utils.prpLayerAttr(layer, node);
 		node['minZ'] = inpAttr['minZoom'] || attr['minZoom'] || 1;
 		node['maxZ'] = inpAttr['maxZoom'] || attr['maxZoom'] || 21
 		
@@ -4487,7 +4487,7 @@ if(!tileBounds_) return;
 				}, 50);*/
 			};
 			var chkMapResize = function() {
-				if(gmxAPI._drawing['activeState'] || gmxAPI._leaflet['curDragState']) return;	// При рисовании не проверяем Resize
+				if(gmxAPI.map.needMove || gmxAPI._drawing['activeState'] || gmxAPI._leaflet['curDragState']) return;	// При рисовании не проверяем Resize
 				// anima
 				//if(checkMapResize) {
 					//LMap.fire('transitionend');
@@ -4713,12 +4713,13 @@ var tt = 1;
 				_update: function (e) {
 					if (!this._map) return;
 					if (this._map._panTransition && this._map._panTransition._inProgress) { return; }
+					var node = mapNodes[this.options.nodeID];
 
 					var bounds   = this._map.getPixelBounds(),
 						zoom     = this._map.getZoom(),
 						tileSize = this.options.tileSize;
 
-					if (zoom > this.options.maxZoom || zoom < this.options.minZoom) {
+					if (node && zoom > node.maxZ || zoom < node.minZ) {
 						return;
 					}
 					var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
@@ -4745,20 +4746,15 @@ var tt = 1;
 				}
 				,
 				drawTile: function (tile, tilePoint, zoom) {
-					// override with rendering code
-					//console.log('vvvvvvvvv ', ' : ', zoom, ' : ', tilePoint.x, ' : ', tilePoint.y);
-
 					var node = mapNodes[tile._layer.options.nodeID];
-					//if(node.geometry.properties.title == 'OSM_embed') {
-						//var test = 1;
-					//}
-					if(gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {				// Слой невидим или нет tileFunc
+					if(!zoom) zoom = LMap.getZoom();
+					if(LMap['_animateToZoom'] != zoom || gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {	// Слой невидим или нет tileFunc или идет зуум
 						this.tileDrawn(tile);
 						if(gmxAPI.map.needMove) node.waitRedraw();
 						return;
 					}
-					//console.log('drawTile ', zoom, LMap.getZoom(), gmxAPI.map.needMove);
-					if(!zoom) zoom = LMap.getZoom();
+					//console.log('drawTile ', LMap._animateToZoom, ' : ', zoom, ' : ', gmxAPI.currZ);
+				
 					var pz = Math.pow(2, zoom);
 					var tx = tilePoint.x;
 					if(tx < 0) tx += pz;
