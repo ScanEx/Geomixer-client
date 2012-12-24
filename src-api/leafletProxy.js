@@ -4788,6 +4788,7 @@ var tt = 1;
 							return;
 						}
 					}
+					
 					if(L.Browser.touch) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
 					//var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom + tile._layer.options.zoomOffset);
 					var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom);
@@ -5126,6 +5127,9 @@ ctx.fillText(drawTileID, 10, 128);
 			}
 			
 		}
+if(L.Browser.touch) gmxAPI.map.standartTools.remove();
+//gmxAPI.map.standartTools.setVisible(false);
+	
 	}
 
 	// Добавить leaflet.js в DOM
@@ -5190,7 +5194,22 @@ ctx.fillText(drawTileID, 10, 128);
 		gmxAPI._leaflet['labelCanvas'] = canvas;		// для расчета размеров label
 		gmxAPI._addProxyObject = addLeafLetObject;		// Добавить в DOM
 	} else {
-		gmxAPI._addProxyObject = function() { return ''; };		// Нет поддержки canvas
+		var str = '<br>Ваш браузер не поддерживает Canvas. Обновите версию браузера или установите новый. Рекомендуемые браузеры: ';
+		var href = 'http://windows.microsoft.com/ru-RU/internet-explorer/download-ie';
+		str += '<a href="'+href+'" target="_blank">IE9-10</a>';
+		href = 'http://www.google.com/chrome'; str += ', <a href="'+href+'" target="_blank">Chrome</a>';
+		href = 'http://www.opera.com/browser/'; str += ', <a href="'+href+'" target="_blank">Opera 12.x</a>';
+		href = 'http://www.mozilla.org/en-US/'; str += ', <a href="'+href+'" target="_blank">Mozilla Firefox</a>';
+		href = 'http://support.apple.com/kb/DL1531'; str += ', <a href="'+href+'" target="_blank">Safari</a>';
+		href = 'http://browser.yandex.ru'; str += ', <a href="'+href+'" target="_blank">Yandex</a>';
+		var res = gmxAPI.newElement(
+			"div",
+			{
+				id: 'warning'
+				,innerHTML: str
+			});
+		
+		gmxAPI._addProxyObject = function() { return res; };		// Нет поддержки canvas
 	}
 	
     //gmxAPI._cmdProxy = leafletCMD;				// посылка команд отрисовщику
