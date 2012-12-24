@@ -4047,7 +4047,8 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		out['bounds'] = bounds;
 		// Экспорт в АПИ
 		out['exportGeo'] = function (chkPoint) {
-			var res = {};
+			var res = {'type': 'LINESTRING'};
+			res['coordinates'] = geo_['coordinates'];
 			return res;
 		}
 
@@ -5127,8 +5128,8 @@ ctx.fillText(drawTileID, 10, 128);
 			}
 			
 		}
-if(L.Browser.touch) gmxAPI.map.standartTools.remove();
-//gmxAPI.map.standartTools.setVisible(false);
+		if(gmxAPI.map.standartTools && L.Browser.touch) gmxAPI.map.standartTools.remove();
+		//gmxAPI.map.standartTools.setVisible(false);
 	
 	}
 

@@ -2651,7 +2651,7 @@ FlashMapObject.prototype.getGeometrySummary = function()
 		}
 		else if (geomType.indexOf("LINESTRING") != -1) {
 			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Длина:", "Length:") + "</b> ";
-			out += gmxAPI.prettifyDistance(this.getLength());
+			out += gmxAPI.prettifyDistance(this.getLength(geom));
 		}
 		else if (geomType.indexOf("POLYGON") != -1) {
 			out = "<b>" + gmxAPI.KOSMOSNIMKI_LOCALIZED("Площадь:", "Area:") + "</b> ";
