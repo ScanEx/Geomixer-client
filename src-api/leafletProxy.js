@@ -4724,7 +4724,8 @@ var tt = 1;
 						zoom     = this._map.getZoom(),
 						tileSize = this.options.tileSize;
 
-					if (node && zoom > node.maxZ || zoom < node.minZ) {
+					if (!node || zoom > node.maxZ || zoom < node.minZ) {
+						this.tileDrawn(tile);
 						return;
 					}
 					var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
