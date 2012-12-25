@@ -1219,7 +1219,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		if(node['type'] === 'filter') {			// Установка стиля фильтра векторного слоя
 			var pNode = mapNodes[node['parentId']];
 			pNode.setStyleFilter(id);
-		} else {
+		} else if(node['subType'] !== 'drawingFrame') {
 			if(node.leaflet && node.leaflet.setStyle) node.leaflet.setStyle(node.regularStyle);
 			else gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
 		}
@@ -4790,7 +4790,8 @@ var tt = 1;
 						}
 					}
 					
-					if(L.Browser.touch) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
+					//if(L.Browser.touch) 
+					tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
 					//var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom + tile._layer.options.zoomOffset);
 					var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom);
 					var me = this;

@@ -10,6 +10,30 @@
 	var mouseOverFlag = false;
 	var mousePressed = false;
 
+	var chkStyle = function(drawAttr, regularStyle, hoveredStyle) {
+		if(drawAttr['regularStyle']) {
+			//var opacity = ('opacity' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['opacity']/100 : 1);
+			var opacity = ('opacity' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['opacity']/100 : 1);
+			//var opacity = 1;
+			var color = ('color' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['color'] : 0xff);
+			drawAttr['strokeStyle']['color'] = gmxAPI._leaflet['utils'].dec2rgba(color, opacity);
+			var weight = ('weight' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['weight'] : lineWidth);
+			drawAttr['stylePolygon'] = {
+				'color': gmxAPI._leaflet['utils'].dec2rgba(color, opacity)
+				,'weight': weight
+				,'opacity': opacity
+				
+			};
+			drawAttr['stylePoint'] = gmxAPI.clone(stylePoint);
+			//var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
+			//var stylePoint = {color: "#0000ff", fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1};
+			drawAttr['stylePoint']['color'] = drawAttr['stylePolygon']['color'];
+			drawAttr['stylePoint']['weight'] = drawAttr['stylePolygon']['weight'];
+			drawAttr['stylePoint']['fillOpacity'] = 
+			drawAttr['stylePoint']['opacity'] = drawAttr['stylePolygon']['opacity'];
+		}
+	}
+	
 	var getLongLatLng = function(lat, lng)
 	{
 		var point = new L.LatLng(lat, lng);
@@ -122,6 +146,9 @@
 			layerItems[0].on('mousedown', mousedown , {'num':0, 'type':'edge'});
 		}
 		layerItems[0].bringToFront();
+		/*
+		if(attr['editType'] == 'LINESTRING' && layerItems[0].options.fill) {
+		}*/
 		var latLngs = [];
 		for (var i = 0; i < attr['coords'].length; i++)
 		{
@@ -147,6 +174,8 @@
 				layerItems.push(addPoint(pArr[0],  pArr[1], attr['stylePoint'])); layerGroup.addLayer(layerItems[num]);
 				var mousedown = function(e) { attr['mousedown'](e, this); };
 				layerItems[num].on('mousedown', mousedown , {'dx':dx, 'num':i, 'type':'node'});
+				var dblclick = function(e) { attr['dblclick'](e, this); };
+				layerItems[num].on('dblclick', dblclick , {'dx':dx, 'num':i, 'type':'node'});
 			}
 			layerItems[num].setBounds(getBoundsPoint(pArr[0] + dx,  pArr[1]));
 			layerItems[num].bringToFront();
@@ -756,7 +785,30 @@
 			{
 				if(lastPoint) addDrawingItem(e);		// Добавление точки
 				else itemMouseDown(e);					// Изменение точки
+				//console.log('mousedown:  ', e);
+
 			};
+			drawAttr['dblclick'] = function(e, attr)		// Удаление точки
+			{
+/*
+				var layer = e['layer'];
+				for (var i = 0; i < drawAttr['layerItems'].length; i++)
+				{
+					if(layer == drawAttr['layerItems'][i]) {
+						drawAttr['coords'].splice(i - 1, 1);
+						drawAttr['layerGroup'].removeLayer(layer);
+						//layerItems.splice(num, 1);
+						drawAttr['layerItems'].splice(i, 1);
+						drawSVG(drawAttr);
+						break;
+					}
+				}
+				var num = attr['num'];
+console.log('dblclick:  ', num, layerItems.length);
+*/
+			};
+			
+			
 			drawAttr['layerGroup'] = layerGroup;
 			drawAttr['layerItems'] = layerItems;
 			drawAttr['lastPoint'] = lastPoint
@@ -800,6 +852,8 @@
 			obj.setStyle(regularStyle, hoveredStyle);
 			drawAttr['regularStyle'] = gmxAPI._leaflet['utils'].parseStyle(regularStyle, obj.objectId);
 			drawAttr['hoveredStyle'] = gmxAPI._leaflet['utils'].parseStyle(hoveredStyle, obj.objectId);
+			chkStyle(drawAttr, regularStyle, hoveredStyle);
+			layerGroup.setStyle(drawAttr['stylePoint']);
 		}
 		ret.getVisibleStyle = function() { return obj.getVisibleStyle(); };
 		ret.getStyle = function(removeDefaults) {
@@ -1301,25 +1355,9 @@
 		ret.setStyle = function(regularStyle, hoveredStyle) {
 			obj.setStyle(regularStyle, hoveredStyle);
 			drawAttr['regularStyle'] = gmxAPI._leaflet['utils'].parseStyle(regularStyle, obj.objectId);
-			if(drawAttr['regularStyle']) {
-				//var opacity = ('opacity' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['opacity']/100 : 1);
-				var opacity = 1;
-				var color = ('color' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['color'] : 0xff);
-				drawAttr['strokeStyle']['color'] = gmxAPI._leaflet['utils'].dec2rgba(color, opacity);
-				var weight = ('weight' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['weight'] : lineWidth);
-				drawAttr['stylePolygon'] = {
-					'color': gmxAPI._leaflet['utils'].dec2rgba(color, opacity)
-					,'weight': weight
-					,'opacity': opacity
-					
-				};
-				drawAttr['stylePoint'] = gmxAPI.clone(stylePoint);
-				//var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
-				//var stylePoint = {color: "#0000ff", fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1};
-				drawAttr['stylePoint']['color'] = drawAttr['stylePolygon']['color'];
-				drawAttr['stylePoint']['weight'] = drawAttr['stylePolygon']['weight'];
-			}
 			drawAttr['hoveredStyle'] = gmxAPI._leaflet['utils'].parseStyle(hoveredStyle, obj.objectId);
+			chkStyle(drawAttr, regularStyle, hoveredStyle);
+			layerGroup.setStyle(drawAttr['stylePoint']);
 		}
 		
 		var needMouseOver = true;
