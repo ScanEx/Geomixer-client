@@ -4448,7 +4448,7 @@ if(!tileBounds_) return;
 				    center: [55.7574, 37.5952]
 					,zoom: 5
 					,zoomControl: false
-					,doubleClickZoom: false
+					//,doubleClickZoom: false
 					,attributionControl: false
 					//,trackResize: true
 					//,boxZoom: false

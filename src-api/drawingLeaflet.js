@@ -58,7 +58,6 @@
 		{
 			var pArr = coords[i];
 			var pBounds = getBoundsPoint(pArr[0] + dx, pArr[1]);
-//console.log('olkk ', pBounds.contains(ph.latlng), ph.latlng);
 			if(pBounds.contains(point)) {
 				out = {'type': 'node', 'cnt':i};
 				break;
@@ -727,7 +726,7 @@
 		var lastPoint = null;
 		var needInitNodeEvents = false;
 		var editIndex = -1;
-		var lastDownTime = 0;
+		var finishTime = 0;
 		
 		mouseOverFlag = false;
 		
@@ -790,22 +789,32 @@
 			};
 			drawAttr['dblclick'] = function(e, attr)		// Удаление точки
 			{
-/*
+				if(new Date().getTime() - finishTime < 500) return;
 				var layer = e['layer'];
-				for (var i = 0; i < drawAttr['layerItems'].length; i++)
+				for (var i = 1; i < drawAttr['layerItems'].length; i++)
 				{
 					if(layer == drawAttr['layerItems'][i]) {
-						drawAttr['coords'].splice(i - 1, 1);
+						if(editType === 'POLYGON' && i == drawAttr['layerItems'].length - 1) {
+							i = 1;
+							layer = drawAttr['layerItems'][i];
+							if(coords.length > 1 && editType === 'POLYGON') {
+								var lastNum = coords.length - 1;
+								coords[lastNum][0] = coords[1][0];
+								coords[lastNum][1] = coords[1][1];
+							}
+						}
+						coords.splice(i - 1, 1);
+						drawAttr['coords'] = coords;
 						drawAttr['layerGroup'].removeLayer(layer);
-						//layerItems.splice(num, 1);
 						drawAttr['layerItems'].splice(i, 1);
-						drawSVG(drawAttr);
+						if(drawAttr['layerItems'].length == 1) {
+							domObj.remove();
+						} else {
+							drawSVG(drawAttr);
+						}
 						break;
 					}
 				}
-				var num = attr['num'];
-console.log('dblclick:  ', num, layerItems.length);
-*/
 			};
 			
 			
@@ -907,6 +916,7 @@ console.log('dblclick:  ', num, layerItems.length);
 					chkEvent(eventType);
 					mouseOverFlag = true;
 					gmxAPI._drawing['activeState'] = false;
+					finishTime = new Date().getTime();
 					return true;
 				}
 			}
