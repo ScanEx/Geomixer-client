@@ -173,8 +173,10 @@
 				layerItems.push(addPoint(pArr[0],  pArr[1], attr['stylePoint'])); layerGroup.addLayer(layerItems[num]);
 				var mousedown = function(e) { attr['mousedown'](e, this); };
 				layerItems[num].on('mousedown', mousedown , {'dx':dx, 'num':i, 'type':'node'});
-				var dblclick = function(e) { attr['dblclick'](e, this); };
-				layerItems[num].on('dblclick', dblclick , {'dx':dx, 'num':i, 'type':'node'});
+				if(attr['dblclick']) {
+					var dblclick = function(e) { attr['dblclick'](e, this); };
+					layerItems[num].on('dblclick', dblclick , {'dx':dx, 'num':i, 'type':'node'});
+				}
 			}
 			layerItems[num].setBounds(getBoundsPoint(pArr[0] + dx,  pArr[1]));
 			layerItems[num].bringToFront();
