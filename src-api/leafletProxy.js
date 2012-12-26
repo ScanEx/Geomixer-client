@@ -4553,7 +4553,7 @@ if(!tileBounds_) return;
 			}
 
 			var timeDown = 0;
-			LMap.on('click', function(e) {		// Проверка click слоя
+			LMap.on('click', function(e) {		// Проверка click карты
 				var timeClick = new Date().getTime() - timeDown;
 				if(timeClick > 1000) return;
 				var attr = parseEvent(e);
@@ -4561,6 +4561,11 @@ if(!tileBounds_) return;
 				gmxAPI._leaflet['clickAttr'] = attr;
 				gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 			});
+			/*
+			LMap.on('dblclick', function(e) {		// Проверка dblclick карты
+				e.stopPropagation();
+			});
+			*/
 			
 			var setMouseDown = function(e) {
 				gmxAPI._leaflet['mousePressed'] = true;

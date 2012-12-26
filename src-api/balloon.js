@@ -512,7 +512,7 @@
 			};
 			if(document.doctype) {
 				//if(gmxAPI.isChrome || gmxAPI.isSafari || gmxAPI.isIE) 
-				imgStyle["bottom"] = "-19px";
+				if(!window.opera) imgStyle["bottom"] = "-19px";
 			} else if(gmxAPI.isIE && document.documentMode >= 8) imgStyle["bottom"] = "-19px";
 			var leg = gmxAPI.newElement("img",
 				{
