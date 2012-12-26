@@ -1369,7 +1369,7 @@
 			drawAttr['regularStyle'] = gmxAPI._leaflet['utils'].parseStyle(regularStyle, obj.objectId);
 			drawAttr['hoveredStyle'] = gmxAPI._leaflet['utils'].parseStyle(hoveredStyle, obj.objectId);
 			chkStyle(drawAttr, regularStyle, hoveredStyle);
-			layerGroup.setStyle(drawAttr['stylePoint']);
+			if(layerGroup) layerGroup.setStyle(drawAttr['stylePoint']);
 		}
 		
 		var needMouseOver = true;

@@ -433,7 +433,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					if(!child.isVisible) continue;
 					var mapNode = mapNodes[child.objectId];
 					if(mapNode['eventsCheck']) {
-						if(mapNode['eventsCheck'](evName, attr)) return;
+						if(mapNode['eventsCheck'](evName, attr)) return true;
 					}
 				}
 			}
@@ -4450,12 +4450,37 @@ if(!tileBounds_) return;
 				gmxAPI._cmdProxy = gmxAPI._leaflet['cmdProxy'];			// Установка прокси для leaflet
 			}
 
+			/*
+			 * L.Handler.DoubleClickZoom is used internally by L.Map to add double-click zooming.
+			 */
+
+			L.Map.mergeOptions({
+				doubleClickZoomGMX: true
+			});
+
+			L.Map.DoubleClickZoomGMX = L.Handler.extend({
+				addHooks: function () {
+					this._map.on('dblclick', this._onDoubleClick);
+				},
+
+				removeHooks: function () {
+					this._map.off('dblclick', this._onDoubleClick);
+				},
+
+				_onDoubleClick: function (e) {
+					if(clickDone) return;
+					this.setView(e.latlng, this._zoom + 1);
+				}
+			});
+
+			L.Map.addInitHook('addHandler', 'doubleClickZoomGMX', L.Map.DoubleClickZoomGMX);
 			window.LMap = new L.Map(leafLetCont_,
 				{
 				    center: [55.7574, 37.5952]
 					,zoom: 5
 					,zoomControl: false
-					//,doubleClickZoom: false
+					,doubleClickZoom: false
+					,doubleClickZoomGMX: true
 					,attributionControl: false
 					//,trackResize: true
 					//,boxZoom: false
@@ -4552,6 +4577,7 @@ if(!tileBounds_) return;
 				
 			}
 
+			var clickDone = false;
 			var timeDown = 0;
 			LMap.on('click', function(e) {		// Проверка click карты
 				var timeClick = new Date().getTime() - timeDown;
@@ -4559,7 +4585,7 @@ if(!tileBounds_) return;
 				var attr = parseEvent(e);
 				attr['evName'] = 'onClick';
 				gmxAPI._leaflet['clickAttr'] = attr;
-				gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
+				clickDone = gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 			});
 			/*
 			LMap.on('dblclick', function(e) {		// Проверка dblclick карты
