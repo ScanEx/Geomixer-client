@@ -252,6 +252,14 @@ scrollTable.prototype._updatePageData = function(callback)
     {
         _this._currValsCount = count;
         
+        //вообще-то при обновлении данных мы не изменяем текущей страницы
+        //однако если данных стало слишком мало, то текущую страницу сохранить нельзя,
+        //и мы переключимся на первую
+        if (_this.reportStart >= _this._currValsCount)
+        {
+            _this.start = _this.reportStart = 0;
+        }
+        
         _this._dataProvider.getItems(
             _this.reportStart / _this.limit,
             _this.limit,
@@ -426,8 +434,8 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
 	
 	
 	this.drawFunc = params.drawFunc;
-	this.start = 0;
-	this.reportStart = 0;
+	this.start = 0;         //Первый номер страницы, показываемый на экране (это не текущая страница!)
+	this.reportStart = 0;   //Первый номер элемента на текущей странице
 	
 	this.currentSortType = null;
 	// сортировка по умолчанию	
