@@ -377,9 +377,12 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		'runMoveTo': function(attr)	{				//позиционирует карту по координатам
 			if(moveToTimer) clearTimeout(moveToTimer);
 			moveToTimer = setTimeout(function() {
-				var pos = new L.LatLng(attr['y'], attr['x']);
-				//gmxAPI.currZ = attr['z'];
-				LMap.setView(pos, attr['z']);
+				if(!attr && !gmxAPI.map.needMove) return;
+				var px = (attr ? attr['x'] : (gmxAPI.map.needMove ? gmxAPI.map.needMove.x : 0));
+				var py = (attr ? attr['y'] : (gmxAPI.map.needMove ? gmxAPI.map.needMove.y : 0));
+				var z = (attr ? attr['z'] : (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : 1));
+				var pos = new L.LatLng(py, px);
+				LMap.setView(pos, z);
 				gmxAPI.map.needMove = null;
 			}, 50);
 		}
@@ -5244,12 +5247,9 @@ ctx.fillText(drawTileID, 10, 128);
 			setTimeout(setCenterPoint, 1);
 			gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
 			if(gmxAPI.map.needMove) {
-				moveToTimer = setTimeout(function() {
-					var px = gmxAPI.map.needMove.x;
-					var py = gmxAPI.map.needMove.y;
-					var z = gmxAPI.map.needMove.z;
-					utils.runMoveTo({'x': px, 'y': py, 'z': z});
-				}, 150);
+				setTimeout(function() {
+					utils.runMoveTo();
+				}, 500);
 			}
 			if(gmxAPI.map.needSetMode) {
 				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
