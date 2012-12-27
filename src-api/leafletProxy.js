@@ -2213,10 +2213,12 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				if(zoomTimer) clearTimeout(zoomTimer);
 				zoomTimer = setTimeout(function()
 				{
-					var zoom = LMap.getZoom();
-					zoomTimer = null;
-					var ctx = canvas.getContext('2d');
-					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					if(canvas) {
+						var zoom = LMap.getZoom();
+						zoomTimer = null;
+						var ctx = canvas.getContext('2d');
+						ctx.clearRect(0, 0, canvas.width, canvas.height);
+					}
 				}, 10);
 			});
 /*		
