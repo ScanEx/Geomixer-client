@@ -1206,7 +1206,7 @@ window.gmxAPI = {
 		// 55°44'35" N, 37°36'56" E
 		// 4187347, 7472103
 
-		if (text.match(/[йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮqrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM_]/))
+		if (text.match(/[йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮqrtyuiopadfghjklzxcvbmQRTYUIOPADFGHJKLZXCVBM_:]/))
 			return false;
 		if (text.indexOf(" ") != -1)
 			text = text.replace(/,/g, ".");

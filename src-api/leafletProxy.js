@@ -2081,12 +2081,14 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var dx = 0;
 			var deltaX = 0;
 			var deltaY = 0;
+			node['isLargeImage'] = false;
 			if(wView < ww || hView < hh) {
 				deltaX = ph['boundsP'].min.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
 				deltaY = ph['boundsP'].min.y - vp1.y;
 				posLatLng = vpNorthWest;
 				ww = wView;
 				hh = hView;
+				node['isLargeImage'] = true;
 			}
 			attr['reposition']();
 			var rx = w/ph.ww;
@@ -2196,7 +2198,9 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 
 			LMap.on('zoomend', redrawMe);
 			//gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': redrawMe });
-			gmxAPI.map.addListener('positionChanged', redrawMe, 11);
+			gmxAPI.map.addListener('positionChanged', function(e) {
+				if(node['isLargeImage']) redrawMe();
+			}, 11);
 
 			//LMap.on('click', function(e) {});	// Для Click на растре
 			
@@ -4044,6 +4048,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		var bounds = null;
 		var coords = [];
 		var cnt = 0;
+		var lineHeight = 2;
 		for (var i = 0; i < geo_['coordinates'].length; i++)
 		{
 			var p = geo_['coordinates'][i];
@@ -4090,6 +4095,7 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		// Отрисовка LineGeometry
 		out['paint'] = function(attr) {
 			var res = paintStroke(attr);
+			if(attr.style) lineHeight = attr.style.weight;
 			return res;
 		}
 
@@ -4097,6 +4103,9 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 		out['contains'] = function (chkPoint) {
 			if(bounds.contains(chkPoint)) {
 				var mInPixel = gmxAPI._leaflet['mInPixel'];
+				var chkLineHeight = lineHeight / mInPixel;
+				chkLineHeight *= chkLineHeight;
+				
 				var distance = 1000000;
 				var p1 = coords[0];
 				for (var i = 1; i < coords.length; i++)
@@ -4114,11 +4123,11 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 					{
 						var t2 = -x1*dy + y1*dx;
 						distance = Math.min(distance, t2*t2/d);
-						if(distance * mInPixel < 5) return true;
+						if(distance < chkLineHeight) return true;
 					}
 					else {
 						distance = Math.min(distance, Math.min(x1*x1 + y1*y1, x2*x2 + y2*y2));
-						if(distance * mInPixel < 5) return true;
+						if(distance < chkLineHeight) return true;
 					}
 				}
 			}
@@ -4883,10 +4892,11 @@ _addTile: function (tilePoint, container) {
 				}
 				,
 				drawTile: function (tile, tilePoint, zoom) {
+					//tile.width = tile.height = 0;
+				
 					var node = mapNodes[tile._layer.options.nodeID];
 					if(!zoom) zoom = LMap.getZoom();
 					if((LMap['_animateToZoom'] && LMap['_animateToZoom'] != zoom) || gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {	// Слой невидим или нет tileFunc или идет зуум
-						//this.tileDrawn(tile);
 						if(gmxAPI.map.needMove) node.waitRedraw();
 						return;
 					}
@@ -4937,6 +4947,7 @@ _addTile: function (tilePoint, container) {
 						var tileY = 256 * tilePoint.y;
 						
 						var setPattern = function(imageObj) {
+							//pTile.width = pTile.height = 256;
 							var ctx = pTile.getContext('2d');
 							if(!flagAll) {
 								if(pAttr.bounds && !bounds.intersects(pAttr.bounds))	{	// Тайл не пересекает границы слоя
@@ -4967,7 +4978,7 @@ _addTile: function (tilePoint, container) {
 								//}
 							}
 							,'onerror': function(){
-								//me.tileDrawn(tile);
+								//me.tileDrawn(pTile);
 								// заготовка для подзагрузки тайлов с нижних zoom
 								/*
 								if (this.zoom > 1) {
