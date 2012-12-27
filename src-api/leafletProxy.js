@@ -1632,6 +1632,8 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			if(currZ > LMap.getMaxZoom()) currZ = LMap.getMaxZoom();
 			else if(currZ < LMap.getMinZoom()) currZ = LMap.getMinZoom();
 			else return;
+return;
+			
 			//LMap.setView(LMap.getCenter(), currZ);
 			var centr = LMap.getCenter();
 			var px = centr.lng;
@@ -4084,10 +4086,43 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			return true;		// отрисована геометрия
 
 		}
-		// Отрисовка полигона
+
+		// Отрисовка LineGeometry
 		out['paint'] = function(attr) {
 			var res = paintStroke(attr);
 			return res;
+		}
+
+		// Проверка принадлежности точки LineGeometry
+		out['contains'] = function (chkPoint) {
+			if(bounds.contains(chkPoint)) {
+				var mInPixel = gmxAPI._leaflet['mInPixel'];
+				var distance = 1000000;
+				var p1 = coords[0];
+				for (var i = 1; i < coords.length; i++)
+				{
+					var p2 = coords[i];
+					var x1 = p1.x - chkPoint.x;
+					var y1 = p1.y - chkPoint.y;
+					var x2 = p2.x - chkPoint.x;
+					var y2 = p2.y - chkPoint.y;
+					var dx = x2 - x1;
+					var dy = y2 - y1;
+					var d = dx*dx + dy*dy;
+					var t1 = -(x1*dx + y1*dy);
+					if ((d > 0) && (t1 >= 0) && (t1 <= d))
+					{
+						var t2 = -x1*dy + y1*dx;
+						distance = Math.min(distance, t2*t2/d);
+						if(distance * mInPixel < 5) return true;
+					}
+					else {
+						distance = Math.min(distance, Math.min(x1*x1 + y1*y1, x2*x2 + y2*y2));
+						if(distance * mInPixel < 5) return true;
+					}
+				}
+			}
+			return false;
 		}
 		
 		return out;
@@ -4153,6 +4188,16 @@ console.log('bbbbbbbbbbvcxccc ' , _zoom +' : '+  zoom);
 			}
 			return cnt;		// количество отрисованных точек в геометрии
 		}
+		
+		// Проверка принадлежности точки MultiPolyline
+		out['contains'] = function (chkPoint) {
+			for (var i = 0; i < members.length; i++)
+			{
+				if(members[i]['contains'](chkPoint)) return true;
+			}
+			return false;
+		}
+		
 		return out;
 	};
 })();
@@ -4587,11 +4632,6 @@ if(!tileBounds_) return;
 				gmxAPI._leaflet['clickAttr'] = attr;
 				clickDone = gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 			});
-			/*
-			LMap.on('dblclick', function(e) {		// Проверка dblclick карты
-				e.stopPropagation();
-			});
-			*/
 			
 			var setMouseDown = function(e) {
 				gmxAPI._leaflet['mousePressed'] = true;
@@ -5193,11 +5233,12 @@ ctx.fillText(drawTileID, 10, 128);
 			setTimeout(setCenterPoint, 1);
 			gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
 			if(gmxAPI.map.needMove) {
-				var px = gmxAPI.map.needMove.x;
-				var py = gmxAPI.map.needMove.y;
-				var z = gmxAPI.map.needMove.z;
-				utils.runMoveTo({'x': px, 'y': py, 'z': z});
-				//gmxAPI.map.needMove = null;
+				moveToTimer = setTimeout(function() {
+					var px = gmxAPI.map.needMove.x;
+					var py = gmxAPI.map.needMove.y;
+					var z = gmxAPI.map.needMove.z;
+					utils.runMoveTo({'x': px, 'y': py, 'z': z});
+				}, 50);
 			}
 			if(gmxAPI.map.needSetMode) {
 				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
