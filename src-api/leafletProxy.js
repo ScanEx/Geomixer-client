@@ -5249,7 +5249,7 @@ ctx.fillText(drawTileID, 10, 128);
 					var py = gmxAPI.map.needMove.y;
 					var z = gmxAPI.map.needMove.z;
 					utils.runMoveTo({'x': px, 'y': py, 'z': z});
-				}, 50);
+				}, 150);
 			}
 			if(gmxAPI.map.needSetMode) {
 				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
