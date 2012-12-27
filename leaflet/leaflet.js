@@ -2512,8 +2512,6 @@ L.TileLayer = L.Class.extend({
 				url: this.src
 			});
 		}
-		this._tileComplete = true;		// добавлен признак готовность тайла к отображению
-
 		layer._tileLoaded();
 	},
 
@@ -2669,6 +2667,7 @@ L.TileLayer.Canvas = L.TileLayer.extend({
 	},
 
 	tileDrawn: function (tile) {
+		tile._tileComplete = true;					// добавлен признак готовность тайла к отображению
 		this._tileOnLoad.call(tile);
 	}
 });
@@ -7976,21 +7975,17 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 		this._stopLoadingImages(newTileBg);
 	},
 
-	_getLoadedTilesPercentage: function (container) {		// Переработано с учетом Group и Canvas
+	_getLoadedTilesPercentage: function (container) {		// Переработано с учетом Canvas
 		if(!container) return 0;
 		var len = 0, count = 0;
-		for (var j = 0; j < container.childNodes.length; j++) {
-			var cont = container.childNodes[j];
-		
-			var arr = ['img', 'canvas'];
-			for (var key in arr) {
-				var tiles = cont.getElementsByTagName(arr[key]);
-				if(tiles.length > 0) {
-					len += tiles.length;
-					for (var i = 0; i < tiles.length; i++) {
-						if (tiles[i]._tileComplete) {	// _tileComplete - добавлен признак
-							count++;
-						}
+		var arr = ['img', 'canvas'];
+		for (var key in arr) {
+			var tiles = container.getElementsByTagName(arr[key]);
+			if(tiles.length > 0) {
+				len += tiles.length;
+				for (var i = 0; i < tiles.length; i++) {
+					if (tiles[i]._tileComplete) {			// _tileComplete - добавлен признак в tileDrawn
+						count++;
 					}
 				}
 			}
