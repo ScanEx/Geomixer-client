@@ -1271,15 +1271,22 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		}
 	}
 	// Удалить mapObject
-	function removeNode(key)	{				// Удалить ноду
-		var rnode = mapNodes[key];
-		if(!rnode) return;
+	function removeNode(key)	{				// Удалить ноду	children
+		var node = mapNodes[key];
+		if(!node) return;
 		var pGroup = LMap;
-		if(rnode['parentId'] && mapNodes[rnode['parentId']]) {
-			pGroup = mapNodes[rnode['parentId']]['group'];
-			pGroup.removeLayer(rnode['group']);
+		if(node['parentId'] && mapNodes[node['parentId']]) {
+			var pNode = mapNodes[node['parentId']];
+			pGroup = pNode['group'];
+			pGroup.removeLayer(node['group']);
+			for (var i = 0; i < pNode['children'].length; i++) {
+				if(pNode['children'][i] == node.id) {
+					pNode['children'].splice(i, 1);
+					break;
+				}
+			}
 		}
-		if(rnode['leaflet']) pGroup.removeLayer(rnode['leaflet']);
+		if(node['leaflet']) pGroup.removeLayer(node['leaflet']);
 		delete mapNodes[key];
 	}
 	
@@ -1562,16 +1569,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			else zIndex = utils.getLastIndex(node.parent);
 			node['zIndex'] = zIndex;
 			utils.bringToDepth(node, zIndex);
-			if(node['leaflet'] && 'bringToFront' in node['leaflet'] && !gmxAPI.map.needMove) node['leaflet'].bringToFront();
-/*
-			for (key in ph.obj.childsID) {
-				var node = mapNodes[key];
-				if(node['type'] === 'RasterLayer') continue;
-console.log('bringToTop ' , id, zIndex, node['type']); 
-				node['zIndex'] = zIndex;
-				utils.bringToDepth(node, zIndex);
+			if(!gmxAPI.map.needMove) {
+				if('bringToFront' in node) node.bringToFront();
+				else if(node['leaflet'] && 'bringToFront' in node['leaflet']) node['leaflet'].bringToFront();
 			}
-*/			
 			return zIndex;
 		}
 		,
@@ -1580,16 +1581,15 @@ console.log('bringToTop ' , id, zIndex, node['type']);
 			var id = obj.objectId;
 			var node = mapNodes[id];
 			node['zIndex'] = 0;
-//console.log('bringToBottom ' , id, 0); 
 			utils.bringToDepth(node, 0);
-			if(node['leaflet'] && 'bringToBack' in node['leaflet'] && !gmxAPI.map.needMove) node['leaflet'].bringToBack();
-/*			
-			for (key in obj.childsID) {
-				node = mapNodes[key];
-				node['zIndex'] = 0;
-				utils.bringToDepth(node, 0);
+			if(!gmxAPI.map.needMove) {
+				if('bringToBack' in node) node.bringToBack();
+				else if(node['leaflet'] && 'bringToBack' in node['leaflet']) node['leaflet'].bringToBack();
+/*				for (var i = 0; i < node['children'].length; i++) {
+					var cNode = mapNodes[node['children'][i]];
+					if('bringToDepth' in cNode) cNode.bringToDepth(0);
+				}*/
 			}
-*/
 			return 0;
 		}
 		,
@@ -2190,7 +2190,9 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				,'drawMe': drawMe
 				//,iconAnchor: new L.Point(12, 12) // also can be set through CSS
 			});
-			var marker = L.marker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane', 'zIndexOffset': -1000});
+			var marker =  new L.GMXMarker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane', 'zIndexOffset': -1000});
+			
+			//var marker = L.marker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane', 'zIndexOffset': -1000});
 			//var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});
 			//marker.setZIndexOffset(-1000);
 				
@@ -2221,7 +2223,18 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					}
 				}, 10);
 			});
-/*		
+/*			
+			node['bringToDepth'] = function(depth) {	// riseOffset
+				node['leaflet'].options.riseOffset = depth;
+				if('_bringToFront' in node['leaflet']) node['leaflet']._bringToFront();
+				node['zIndex'] = depth;
+				var zIndex = depth - 1000;
+				if(canvas && canvas.style.zIndex != zIndex) {
+					canvas.style.zIndex = zIndex;
+				}
+			};
+			
+		
 		LMap.on('zoomstart', function(e) {
 			var zoom = LMap.getZoom();
 			zoomTimer = setTimeout(function()
@@ -5221,6 +5234,17 @@ ctx.fillText(drawTileID, 10, 128);
 						this._icon.style[L.DomUtil.TRANSFORM] += ' rotate('+options['rotate']+'deg)';
 					}
 				}
+				,
+				_setPos: function (pos) {
+					L.DomUtil.setPosition(this._icon, pos);
+
+					if (this._shadow) {
+						L.DomUtil.setPosition(this._shadow, pos);
+					}
+					//this._zIndex = pos.y + this.options.zIndexOffset;
+					//this._resetZIndex();
+				}
+
 			});
 			
 			
