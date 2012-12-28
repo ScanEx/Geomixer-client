@@ -21,12 +21,20 @@ var LayersListProvider = function(filtersProvider)
         if (filtersProvider.getOwner() !== '')
             filterStrings.push("[OwnerNickname] containsIC '" + filtersProvider.getOwner() + "'");
         
-        var type = filtersProvider.getType();
-        if (type)
-        {
-            // var layerTypesIDs = {raster: 0, vector: 1, multilayer: 3};
-            filterStrings.push("[LayerType]=LayerTypeCode('" + type + "')");
-        }
+        var types = filtersProvider.getTypes();
+        var typeFilters = $.map(types, function(type) {
+            if (type === 'catalog')
+            {
+                return "([LayerType]=LayerTypeCode('vector') AND [IsRasterCatalog]=true)"
+            }
+            else if (type)
+            {
+                return "[LayerType]=LayerTypeCode('" + type + "')";
+            }
+        })
+        
+        if (typeFilters.length > 0) 
+            filterStrings.push('(' + typeFilters.join(' OR ') + ')');
             
         var dateBegin = filtersProvider.getDateBegin();
         var dateEnd = filtersProvider.getDateEnd();
@@ -206,13 +214,17 @@ var drawLayers = function(layer, params)
 * @param {String} name Уникальное имя этого инстанса
 * @param {object} params Параметры отображения списка:
 *
-*  * fixType {String} Какой тип слоёв показывать. 'vector', 'raster', 'multilayer' или ''. Если '', то добавится контрол с выбором типа слоя
+*  * fixType {String | Vector} Какой тип слоёв показывать. 'vector', 'raster', 'multilayer', 'catalog' или ''. Если '', то добавится контрол с выбором типа слоя. Вектор 
 *  * enableDragging
 *  * onclick {function({ elem: , scrollTable: })}
 */
 var LayerManagerControl = function( parentDiv, name, params )
 {
-	var _params = $.extend({fixType: ''}, params);
+	var _params = $.extend({fixType: []}, params);
+    
+    if (typeof _params.fixType === 'string')
+        _params.fixType = [_params.fixType];
+        
 	var canvas = _div(null, [['attr','id','layersList']]),
 		searchCanvas = _div(null, [['dir','className','searchCanvas']]),
 		_this = this;
@@ -223,7 +235,8 @@ var LayerManagerControl = function( parentDiv, name, params )
 	var typeSel = nsGmx.Utils._select([_option([_t(_gtxt("Любой"))], [['attr','value','']]),
 					   _option([_t(_gtxt("Векторный"))], [['attr','value','vector']]),
 					   _option([_t(_gtxt("Растровый"))], [['attr','value','raster']]),
-					   _option([_t(_gtxt("Мультислой"))], [['attr','value','multilayer']])], [['dir','className','selectStyle'], ['css','width','100px']]);
+					   _option([_t(_gtxt("Мультислой"))], [['attr','value','multilayer']]),
+					   _option([_t(_gtxt("Каталог растров"))], [['attr','value','catalog']])], [['dir','className','selectStyle'], ['css','width','100px']]);
                        
     var calendar = new nsGmx.Calendar();
     calendar.init('layerManager', {
@@ -239,9 +252,11 @@ var LayerManagerControl = function( parentDiv, name, params )
 										   _tr([_td([_span([_t(_gtxt("Владелец"))],[['css','fontSize','12px']])]),_td([layerOwner])]),
                                            _tr([_td([_span([_t(_gtxt("Период"))],[['css','fontSize','12px']])]),_td([calendar.canvas])]),
 										   _tr([_td([_span([_t(_gtxt("Тип"))],[['css','fontSize','12px']])]), _td([typeSel])])])])], [['css','marginBottom','10px']])]);
-										   
-	if (_params.fixType !== '')
-		$("tr:last", searchCanvas).hide();
+								
+    $.each(_params.fixType, function(i, type) {
+        if (type !== '')
+            $("tr:last", searchCanvas).hide();
+    });
 	
 	var tableParent = _div();
     
@@ -249,9 +264,10 @@ var LayerManagerControl = function( parentDiv, name, params )
     sortColumns[_gtxt('Имя')] = true;
     sortColumns[_gtxt('Владелец')] = true;
     sortColumns[_gtxt('Дата создания')] = true;
-    
-    if (_params.fixType === '')
-        sortColumns[_gtxt('Тип')] = true;
+
+    // Временно сервер не поддерживает сортировку по типу
+    // if (_params.fixType.length > 1 || _params.fixType[0] === '')
+        // sortColumns[_gtxt('Тип')] = true;
 	
     var tagsParent = _div(null, [['css', 'height', '100px'], ['css', 'overflow', 'auto']]);
     
@@ -288,7 +304,7 @@ var LayerManagerControl = function( parentDiv, name, params )
             getDateBegin: function() { return calendar.getDateBegin(); },
             getDateEnd:   function() { return calendar.getDateEnd(); },
             getTags:      function() { return _layerTags; },
-            getType:      function() { return _params.fixType ? _params.fixType : $("option:selected", typeSel).val(); }
+            getTypes:     function() { return _params.fixType.length > 0 ? _params.fixType : [$("option:selected", typeSel).val()]; }
         }
         
         return pi;

@@ -31,7 +31,7 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
     var selectedLayersTable = new scrollTable({height: div ? 255 : 280});
     
     var suggestLayersControl = new nsGmx.LayerManagerControl(commonLayersListDiv, 'multilayers', {
-        fixType: 'raster', 
+        fixType: ['raster', 'catalog'], 
         enableDragging: false,
         onclick: function(context)
         {
