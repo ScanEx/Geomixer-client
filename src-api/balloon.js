@@ -539,8 +539,8 @@
 				if(balloon.parentNode != div) {
 					var p1 = gmxAPI._leaflet['utils'].getPixelMap();
 					screenWidth = p1.x;
-					var p2 = LMap.project(new L.LatLng(ret.geoY, ret.geoX), LMap.getZoom());
-					var pixelOrigin = LMap.getPixelOrigin();
+					var p2 = gmxAPI._leaflet['LMap'].project(new L.LatLng(ret.geoY, ret.geoX), gmxAPI._leaflet['LMap'].getZoom());
+					var pixelOrigin = gmxAPI._leaflet['LMap'].getPixelOrigin();
 					x = p2.x - pixelOrigin.x;
 					y = p2.y - pixelOrigin.y;
 					yy = y - balloon.clientHeight - 20;

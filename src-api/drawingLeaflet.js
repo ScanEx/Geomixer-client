@@ -52,7 +52,7 @@
 		}
 		var dx = getDeltaX(dBounds);
 		var point = getLongLatLng(ph.latlng.lat, ph.latlng.lng);
-		var p1 = LMap.project(point);
+		var p1 = gmxAPI._leaflet['LMap'].project(point);
 		var len = coords.length;
 		for (var i = 0; i < len; i++)
 		{
@@ -63,11 +63,11 @@
 				break;
 			} else {
 				var x = pArr[0] + dx;
-				var p2 = LMap.project(getLongLatLng(pArr[1], x));
+				var p2 = gmxAPI._leaflet['LMap'].project(getLongLatLng(pArr[1], x));
 				var jj = i + 1;
 				if(jj >= len) jj = 0;
 				var x = coords[jj][0] + dx;
-				var point1 = LMap.project(getLongLatLng(coords[jj][1], x));
+				var point1 = gmxAPI._leaflet['LMap'].project(getLongLatLng(coords[jj][1], x));
 				var x1 = p2.x - p1.x; 			var y1 = p2.y - p1.y;
 				var x2 = point1.x - p1.x;		var y2 = point1.y - p1.y;
 				var dist = L.LineUtil.pointToSegmentDistance(p1, p2, point1);
@@ -85,9 +85,9 @@
 		var point = new L.LatLng(y, x);
 		point.lng = x;
 		point.lat = y;
-		var pix = LMap.project(point);
-		var p1 = LMap.unproject(new L.Point(pix['x'] - pointSize, pix['y'] + pointSize));
-		var p2 = LMap.unproject(new L.Point(pix['x'] + pointSize, pix['y'] - pointSize));
+		var pix = gmxAPI._leaflet['LMap'].project(point);
+		var p1 = gmxAPI._leaflet['LMap'].unproject(new L.Point(pix['x'] - pointSize, pix['y'] + pointSize));
+		var p2 = gmxAPI._leaflet['LMap'].unproject(new L.Point(pix['x'] + pointSize, pix['y'] - pointSize));
 		return bounds = new L.LatLngBounds(p1, p2);
 	}
 
@@ -98,13 +98,13 @@
 		var latlng = new L.LatLng(0, centerObj);
 		if(centerObj > 180) latlng.lng = centerObj;
 		//else if(centerObj < -180) latlng.lng -= 180;
-		var pixelCenterObj = LMap.project(latlng);
+		var pixelCenterObj = gmxAPI._leaflet['LMap'].project(latlng);
 		
-		var point = LMap.project(new L.LatLng(0, -180));
-		var p180 = LMap.project(new L.LatLng(0, 180));
+		var point = gmxAPI._leaflet['LMap'].project(new L.LatLng(0, -180));
+		var p180 = gmxAPI._leaflet['LMap'].project(new L.LatLng(0, 180));
 		var worldSize = p180.x - point.x;
 		
-		var pixelBounds = LMap.getPixelBounds();
+		var pixelBounds = gmxAPI._leaflet['LMap'].getPixelBounds();
 		var centerViewport = (pixelBounds.max.x + pixelBounds.min.x)/2;
 		
 		var dist = pixelCenterObj.x - centerViewport;
@@ -185,11 +185,11 @@
 			if(!tmpPoint) {
 				tmpPoint = addPoint(attr['lastPoint']['x'] + dx,  attr['lastPoint']['y'], attr['stylePoint'])
 				tmpPoint.on('click', function(e) { attr['clickMe']({'attr':e}); });
-				tmpPoint.addTo(LMap);
+				tmpPoint.addTo(gmxAPI._leaflet['LMap']);
 			}
 			tmpPoint.setBounds(getBoundsPoint(attr['lastPoint']['x'] + dx,  attr['lastPoint']['y']));
 		} else if(tmpPoint) {
-			LMap.removeLayer(tmpPoint);
+			gmxAPI._leaflet['LMap'].removeLayer(tmpPoint);
 			tmpPoint = null;
 		}
 	}
@@ -894,14 +894,14 @@
 				if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 			}
 			if (coords.length) {
-				var point = LMap.project(latlng);
-				var pointBegin = LMap.project(new L.LatLng(coords[0][1], coords[0][0]));
+				var point = gmxAPI._leaflet['LMap'].project(latlng);
+				var pointBegin = gmxAPI._leaflet['LMap'].project(new L.LatLng(coords[0][1], coords[0][0]));
 				var flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) < pointSize);
 				if (flag && editType === 'LINESTRING') editType = 'POLYGON';
 
 				if(!flag) {
 					var tp = coords[coords.length - 1];
-					pointBegin = LMap.project(new L.LatLng(tp[1], tp[0]));
+					pointBegin = gmxAPI._leaflet['LMap'].project(new L.LatLng(tp[1], tp[0]));
 					flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) < pointSize);
 				}
 				if (flag) {
