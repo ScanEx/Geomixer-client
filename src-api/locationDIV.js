@@ -120,10 +120,9 @@
 		}
 
 		var changeCoords = gmxAPI.newElement(
-			"img", 
+			"div", 
 			{ 
 				className: "gmx_changeCoords",
-				src: apiBase + "img/coord_reload.png",
 				title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Сменить формат координат", "Toggle coordinates format"),
 				onclick: function()
 				{
@@ -133,6 +132,9 @@
 			},
 			{
 				position: "absolute",
+				backgroundImage: 'url("'+apiBase + 'img/coord_reload.png")',
+				width: '19px',
+				height: '19px',
 				right: coordinatesAttr['x1'],
 				bottom: coordinatesAttr['y'],
 				cursor: "pointer"
@@ -233,7 +235,7 @@
 			scaleBar.style.border = "1px solid " + color;
 			scaleBar.style.fontSize = "11px";
 			scaleBar.style.color = color;
-			changeCoords.src = url;
+			changeCoords.style.backgroundImage = 'url("'+url+'")';
 		}
 
 	}

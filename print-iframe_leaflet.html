@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" href="http://maps.kosmosnimki.ru/api/leaflet/leaflet.css"/>
+<title>ScanEx Web Geomixer - печать карты</title>
+<style>
+* 
+{
+	color:#000000;
+	font-family:sans-serif;
+	font-size:11px;
+	margin:0;
+	padding:0;
+}
+body
+{
+	background-color:#FAFAFE;
+	padding: 0; 
+	border: 0; 
+	margin: 0; 
+	overflow: hidden;
+}
+input.btn
+{
+	cursor: pointer;
+	font-size: 12px;
+	color: #000000;
+}
+
+
+</style>
+<style type="text/css" media="print">
+input
+{
+   display: none;
+}
+
+.gmx_balloon_leg {
+	bottom: -27px !important;
+}
+</style>
+
+<script>
+	var gmxAPI = null;
+	var mapParent = null;
+	var comment = null;
+	var transformStyle = null;
+	var regTranslate = /translate3*d*\(([+-]*\d+)px, ([+-]*\d+)px/;
+	
+	function getWindowWidth()
+	{
+		return (!gmxAPI.isIE) ? window.innerWidth : document.body.clientWidth;
+	}
+
+	function getWindowHeight()
+	{
+		return (!gmxAPI.isIE) ? window.innerHeight : document.body.clientHeight;
+	}
+	function resize()
+	{
+		mapParent.style.width = getWindowWidth() - 40 + 'px';
+		mapParent.style.height = getWindowHeight() - 70 - comment.offsetHeight + 'px';
+	}
+	function toggleComment()
+	{
+		if (comment.style.display == 'none')
+		{
+			comment.style.display = '';
+			comment.value = 'Скрыть комментарий';
+		}
+		else
+		{
+			comment.style.display = 'none';
+			comment.value = 'Показать комментарий';
+		}
+		resize();
+	}
+	
+	function printMap()
+	{
+		window.print();
+	}
+	
+	function translateToPosition(node)
+	{
+		var arr = node.style[transformStyle].match(regTranslate);
+		if(arr && arr.length == 3) {
+			node.style.transform = '';
+			node.style.position = 'absolute';
+			node.style.left = arr[1]+'px';
+			node.style.top = arr[2]+'px';
+		}
+	}
+	
+	function callOpener()
+	{
+		var opener = window.dialogArguments || window.opener;
+		if(!gmxAPI) gmxAPI = opener.gmxAPI;
+		if(!comment) comment = document.getElementById("comment");
+		if(!mapParent) mapParent = document.getElementById("mapParent");
+		if(!transformStyle) transformStyle = opener.L.DomUtil.TRANSFORM;
+		mapParent.style.height = gmxAPI.currPosition.stageHeight+'px';
+		var toOut = mapParent.firstChild;
+		var LMap = gmxAPI._leaflet['LMap'];
+
+		// Установка сдвига карты
+		var node = LMap._mapPane;
+		var arr = node.style[transformStyle].match(regTranslate);
+		if(arr && arr.length == 3) {
+			toOut.style.position = 'relative';
+			toOut.style.left = arr[1]+'px';
+			toOut.style.top = arr[2]+'px';
+		}
+		
+		// Копирование _mapPane
+		for(var i=0; i<node.childNodes.length; i++) {
+			var nodeOrig1 = node.childNodes[i];
+			var node1 = node.childNodes[i].cloneNode(true);
+			toOut.appendChild(node1);
+			for(var j=0; j<node1.childNodes.length; j++) {
+				var nodeOrig2 = nodeOrig1.childNodes[j];
+				var node2 = node1.childNodes[j];
+				translateToPosition(node2);
+				for(var k=0; k<node2.childNodes.length; k++) {
+					var nodeOrig3 = nodeOrig2.childNodes[k];
+					var node3 = node2.childNodes[k];
+					translateToPosition(node3);
+					if(node3.tagName === 'CANVAS') {
+						var ctx = node3.getContext('2d');
+						var pattern = ctx.createPattern(nodeOrig3, "no-repeat");
+						ctx.fillStyle = pattern;
+						ctx.fillRect(0, 0, 256, 256);
+						ctx.fill();
+					}
+				}
+			}
+		}
+		window.onresize = resize;
+		resize();
+	}
+</script>
+</head>
+<body onload="callOpener()">
+	<div id="mapParent" style="margin:20px 20px 10px 20px ;display:block; overflow:hidden; position:relative;"><div></div></div>
+	<div id="comment" style="margin:0px 20px;display:block;padding:5px 0px;"><textarea style="width:100%;height:90px;border:1px solid #999999;"></textarea></div>
+	<div style="height:30px;">
+		<input class="btn" type="submit" value="Печать" onclick="printMap()" style="margin-left:20px;padding:0px 5px;"></input>
+		<input id="toggler" class="btn" type="submit" value="Скрыть комментарий" onclick="toggleComment()" style="margin-left:20px;padding:0px 5px;"></input>
+	</div>
+</body>
+</html>

@@ -516,6 +516,7 @@
 			} else if(gmxAPI.isIE && document.documentMode >= 8) imgStyle["bottom"] = "-19px";
 			var leg = gmxAPI.newElement("img",
 				{
+					className: 'gmx_balloon_leg',
 					src: apiBase + "img/tooltip-leg.png"
 				},
 				imgStyle
