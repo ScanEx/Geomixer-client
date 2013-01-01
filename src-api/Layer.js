@@ -636,6 +636,7 @@
 					obj.setCopyright(layer.properties.Copyright);
 				}
 			}
+			if(obj_['tilesParent']) obj['tilesParent'] = obj_['tilesParent'];
 		}
 
 		obj.isVisible = isVisible;

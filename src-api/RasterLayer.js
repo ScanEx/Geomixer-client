@@ -159,6 +159,220 @@
 		LMap = gmxAPI._leaflet['LMap'];
 		utils = gmxAPI._leaflet['utils'];
 		mapNodes = gmxAPI._leaflet['mapNodes'];
+		
+		function drawCanvasPolygon( ctx, x, y, geom, zoom, bounds, shiftY) {
+			if(!geom) return;
+			ctx.save();
+			//ctx.translate(x, y);
+			ctx.beginPath();
+			if(!shiftY) shiftY = 0;
+			
+			for (var i = 0; i < geom.length; i++)
+			{
+				var pt = geom[i];
+				var pArr = (shiftY == 0 ? L.PolyUtil.clipPolygon(pt, bounds) : pt);
+				for (var j = 0; j < pArr.length; j++)
+				{
+					var p = new L.LatLng(pArr[j].y, pArr[j].x);
+					var pp = LMap.project(p, zoom);
+					var px = pp.x - x;				px = (0.5 + px) << 0;
+					var py = pp.y - y - shiftY;		py = (0.5 + py) << 0;
+					if(j == 0) ctx.moveTo(px, py);
+					ctx.lineTo(px, py);
+				}
+				pArr = null;
+				ctx.closePath();
+			}
+			ctx.restore();
+		}
+
+		// Растровый слой с маской
+		L.TileLayer.ScanExCanvas = L.TileLayer.Canvas.extend(
+		{
+			_initContainer: function () {
+				var tilePane = this._map._panes.tilePane,
+					first = tilePane.firstChild;
+
+				if (!this._container || tilePane.empty) {
+					this._container = L.DomUtil.create('div', 'leaflet-layer');
+
+					if (this._insertAtTheBottom && first) {
+						tilePane.insertBefore(this._container, first);
+					} else {
+						tilePane.appendChild(this._container);
+					}
+
+					if (this.options.opacity < 1) {
+						this._updateOpacity();
+					}
+					if('initCallback' in this.options) this.options.initCallback(this);
+				}
+			}
+			,
+			_createTileProto: function () {
+				var proto = this._canvasProto = L.DomUtil.create('canvas', 'leaflet-tile');
+				proto.width = proto.height = this.options.tileSize;
+				var img = this._tileImg = L.DomUtil.create('img', 'leaflet-tile');
+				img.style.width = img.style.height = this.options.tileSize + 'px';
+				img.galleryimg = 'no';
+			},
+			_createTile: function (imgFlag) {
+				var tile = (imgFlag ? this._tileImg.cloneNode(false) : this._canvasProto.cloneNode(false));
+				tile.onselectstart = tile.onmousemove = L.Util.falseFn;
+				return tile;
+			},
+			_getTile: function (imgFlag) {
+				if (this.options.reuseTiles && this._unusedTiles.length > 0) {
+					var tile = this._unusedTiles.pop();
+					this._resetTile(tile);
+					return tile;
+				}
+				return this._createTile(imgFlag);
+			},
+			_addTile: function (tilePoint, container) {
+				var tilePos = this._getTilePos(tilePoint);
+
+				var attr = this.options.attr;
+				var imgFlag = (!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85));
+				var tile = this._getTile(imgFlag);
+
+				L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
+
+				this._tiles[tilePoint.x + ':' + tilePoint.y] = tile;
+
+				this._loadTile(tile, tilePoint);
+
+				if (tile.parentNode !== this._container) {
+					container.appendChild(tile);
+				}
+			},
+			_update: function (e) {
+				if (!this._map) return;
+				if (this._map._panTransition && this._map._panTransition._inProgress) { return; }
+				var node = mapNodes[this.options.nodeID];
+
+				var bounds   = this._map.getPixelBounds(),
+					zoom     = this._map.getZoom(),
+					tileSize = this.options.tileSize;
+
+				if (!node || zoom > node.maxZ || zoom < node.minZ) {
+					return;
+				}
+				var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
+				bounds.min.y -= shiftY;
+				bounds.max.y -= shiftY;
+
+				var nwTilePoint = new L.Point(
+						Math.floor(bounds.min.x / tileSize),
+						Math.floor(bounds.min.y / tileSize)),
+					seTilePoint = new L.Point(
+						Math.floor(bounds.max.x / tileSize),
+						Math.floor(bounds.max.y / tileSize)),
+					tileBounds = new L.Bounds(nwTilePoint, seTilePoint);
+
+				var countInvisibleTiles = this.options.countInvisibleTiles;
+				tileBounds.min.x -= countInvisibleTiles; tileBounds.max.x += countInvisibleTiles;
+				tileBounds.min.y -= countInvisibleTiles; tileBounds.max.y += countInvisibleTiles;
+				this._addTilesFromCenterOut(tileBounds);
+
+				if (this.options.unloadInvisibleTiles || this.options.reuseTiles) {
+					this._removeOtherTiles(tileBounds);
+				}
+				//utils.bringToDepth(node, node['zIndex']);
+			}
+			,
+			drawTile: function (tile, tilePoint, zoom) {
+				var node = mapNodes[tile._layer.options.nodeID];
+				if(!zoom) zoom = LMap.getZoom();
+				if((LMap['_animateToZoom'] && LMap['_animateToZoom'] != zoom) || gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {	// Слой невидим или нет tileFunc или идет зуум
+					if(gmxAPI.map.needMove) node.waitRedraw();
+					return;
+				}
+				//console.log('drawTile ', LMap._animateToZoom, ' : ', zoom, ' : ', gmxAPI.currZ);
+			
+				var pz = Math.pow(2, zoom);
+				var tx = tilePoint.x;
+				if(tx < 0) tx += pz;
+				var scanexTilePoint = {
+					'x': (tx % pz - pz/2) % pz
+					,'y': -tilePoint.y - 1 + pz/2
+				};
+
+				var bounds = utils.getTileBounds(tilePoint, zoom);
+				var tileX = 256 * tilePoint.x;								// позиция тайла в stage
+				var tileY = 256 * tilePoint.y;
+				
+				var layer = this;
+				var attr = this.options.attr;
+				var flagAll = false;
+				//var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom + tile._layer.options.zoomOffset);
+				var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom);
+
+				//if(attr.bounds.contains(bounds)) {
+				if(!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85)) {
+					flagAll = true;
+				} else {
+					//if(!utils.chkBoundsVisible(bounds)) return;
+					if(!attr.bounds.intersects(bounds)) {			// Тайл не пересекает границы слоя
+						this.tileDrawn(tile);
+						return;
+					}
+				}
+				//if(L.Browser.touch) 
+				tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
+				if(flagAll) {
+					tile.style.display = 'none';
+					tile.onload = function() { tile.style.display = 'block'; tile._layer.tileDrawn(tile); };
+					tile.src = src;
+					
+				} else {
+					var me = this;
+					(function() {
+						var pAttr = attr;
+						var pTile = tile;
+						var tileX = 256 * tilePoint.x;								// позиция тайла в stage
+						var tileY = 256 * tilePoint.y;
+						
+						var setPattern = function(imageObj) {
+							//pTile.width = pTile.height = 256;
+							var ctx = pTile.getContext('2d');
+							if(!flagAll) {
+								if(pAttr.bounds && !bounds.intersects(pAttr.bounds))	{	// Тайл не пересекает границы слоя
+									return;
+								}
+								drawCanvasPolygon( ctx, tileX, tileY, pAttr['geom'], zoom, bounds, pTile._layer.options.shiftY);
+							}
+							var pattern = ctx.createPattern(imageObj, "no-repeat");
+							ctx.fillStyle = pattern;
+							if(flagAll) ctx.fillRect(0, 0, 256, 256);
+							ctx.fill();
+						};
+						
+						var item = {
+							'src': src	// + '&tm=' + Math.random()
+							,'bounds': bounds
+							,'zoom': zoom
+							,'x': scanexTilePoint.x
+							,'y': scanexTilePoint.y
+							,'shiftY': (pTile._layer.options.shiftY ? pTile._layer.options.shiftY : 0)	// Сдвиг для OSM
+							,'callback': function(imageObj) {
+								setTimeout(function() {
+									setPattern(imageObj);
+									me.tileDrawn(pTile);
+								} , 50); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
+							}
+							,'onerror': function(){
+								//me.tileDrawn(pTile);
+							}
+						};
+						//if(flagAll) item['img'] = tile;
+						var gmxNode = gmxAPI.mapNodes[pTile._layer.options.nodeID];
+						if(gmxNode && gmxNode.isBaseLayer) gmxAPI._leaflet['imageLoader'].unshift(item);	// базовые подложки вне очереди
+						else gmxAPI._leaflet['imageLoader'].push(item);
+					})();
+				}
+			}
+		});
 	}
 		
 	//расширяем namespace

@@ -39,7 +39,6 @@
 		node['objectsData'] = {};				// Обьекты из тайлов по identityField
 		node['clustersData'] = null;			// Данные кластеризации
 
-		node['deletedObjects'] = {};
 		node['editedObjects'] = {};
 		node['mousePos'] = {};					// позиция мыши в тайле
 //		node['tilesDrawing'] = {};				// список отрисованных тайлов в текущем Frame
@@ -684,6 +683,7 @@
 			{
 				var pid = data[index];
 				if(typeof(pid) === "object") pid = pid['id'];
+				else if(pid === true) pid = index;
 				var pt = node['objectsData'][pid];
 				if(pt) {
 					var fromTiles = pt.propHiden['fromTiles'];
@@ -1061,6 +1061,16 @@
 */			
 			return out;
 		}
+		node['chkTilesParentStyle'] = function() {							// перерисовка при изменении fillOpacity - rasterView
+			node.redrawFlips();
+		};
+		var chkGlobalAlpha = function(ctx) {								// проверка стиля заполнения обьектов векторного слоя - rasterView
+			var tilesParent = gmxNode['tilesParent'];
+			if(!tilesParent) return;
+			var tpNode = mapNodes[tilesParent.objectId];
+			if(!tpNode || !tpNode.regularStyle || !tpNode.regularStyle.fill) return;
+			ctx.globalAlpha = tpNode.regularStyle.fillOpacity;
+		};
 
 		var objectToCanvas = function(pt, flagClear)	{								// отрисовка растров векторного тайла
 //console.log('objectToCanvas ', flagClear, pt);
@@ -1071,6 +1081,7 @@
 			attr.ctx.restore();
 			if(pt.imageObj) {
 				attr.ctx.save();
+				chkGlobalAlpha(attr.ctx);
 				var pattern = attr.ctx.createPattern(pt.imageObj, "no-repeat");
 				attr.ctx.fillStyle = pattern;
 				pt.geom['paintFill'](attr);
@@ -1386,14 +1397,10 @@
 			if (attr.processing) {						// Для обычных слоев
 				node.removeEditedObjects();
 				if (attr.processing.removeIDS) {
-					//node['removeItems'](attr.processing.removeIDS);
-					for(var key in attr.processing.removeIDS) {
-						//removeNode(key);
-						node['deletedObjects'][key] = true;
-					}
+					removeItems(attr.processing.removeIDS);
 				}
 				if (attr.processing.addObjects) {
-					var out = objectsToFilters(attr.processing.addObjects);
+					node['addedItems'] = node['addedItems'].concat(objectsToFilters(attr.processing.addObjects, 'addItem'));
 				}
 				
 			}

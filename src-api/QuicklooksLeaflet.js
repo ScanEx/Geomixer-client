@@ -75,7 +75,9 @@
 
 	var enableTiledQuicklooks = function(callback, minZoom, maxZoom, tileSenderPrefix)
 	{
-		var node = gmxAPI._leaflet['mapNodes'][this.objectId];
+		var id = this.objectId || this.id;
+		var node = gmxAPI._leaflet['mapNodes'][id];
+		var gmxNode = gmxAPI['mapNodes'][id];
 		
 		var func = function(i, j, z, geom)
 		{
@@ -90,6 +92,10 @@
 		};
 
 		node.setTiledQuicklooks(func, minZoom, maxZoom, tileSenderPrefix);
+		gmxNode.tilesParent = gmxNode.addObject(null, null, {'subType': 'tilesParent'});
+		gmxNode.tilesParent.clearItems  = function()
+		{
+		}
 		return;
 	}
 
