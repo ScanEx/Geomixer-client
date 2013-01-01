@@ -1077,7 +1077,9 @@
 			var attr = pt['attr'];
 			attr.ctx.save();
 			if(flagClear) attr.ctx.clearRect(0, 0, 256, 256);
-			setCanvasStyle(attr['ctx'], pt.geom.curStyle);
+			if(!pt.geom.curStyle) return;
+			attr.style = pt.geom.curStyle;
+			setCanvasStyle(attr['ctx'], attr.style);
 			attr.ctx.restore();
 			if(pt.imageObj) {
 				attr.ctx.save();
