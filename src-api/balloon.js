@@ -533,6 +533,7 @@
 				if(!wasVisible) return;
 				var ww = balloon.clientWidth;
 				var hh = balloon.clientHeight;
+				balloon.style.visibility = (ww == 0 || hh ==0 ? 'hidden' : 'visible'); 
 
 				var screenWidth = div.clientWidth;
 				var yy = div.clientHeight - y + 20;
@@ -704,27 +705,23 @@
 						'y': gmxAPI.getOffsetTop(div)
 					};
 				//}
-				px -= gmxAPI.contDivPos['x']; 
-				py -= gmxAPI.contDivPos['y'];
 			} else {
 				if(gmxAPI.isChrome) {
 					gmxAPI.contDivPos = {
 						'x': div.offsetLeft,
 						'y': div.offsetTop
 					};
-					px = event.layerX; 
-					py = event.layerY;
+					//px -= event.layerX; 
+					//py -= event.layerY;
 				} else {
 					gmxAPI.contDivPos = {
 						'x': gmxAPI.getOffsetLeft(div),
 						'y': gmxAPI.getOffsetTop(div)
 					};
-					px -= gmxAPI.contDivPos['x']; 
-					py -= gmxAPI.contDivPos['y'];
 				}
-				
-//console.log('contDivPos: ' , px, py);
 			}
+			px -= gmxAPI.contDivPos['x']; 
+			py -= gmxAPI.contDivPos['y'];
 /*
 */
 			propsBalloon.setScreenPosition(px, py);

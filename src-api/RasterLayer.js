@@ -136,7 +136,6 @@
 			if(redrawTimer) clearTimeout(redrawTimer);
 			redrawTimer = setTimeout(function()
 			{
-				//console.log('bbbbbbb', node.id, node['leaflet'], LMap.getZoom(), gmxAPI.map.needMove);
 				chkVisible();
 				//if(node.isVisible && node['leaflet']._isVisible != chkVisibilityObject(id)) {
 				//	setVisible({'obj': node, 'attr': !node['leaflet']._isVisible});
@@ -235,6 +234,7 @@
 				var attr = this.options.attr;
 				var imgFlag = (!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85));
 				var tile = this._getTile(imgFlag);
+				tile.style.pointerEvents = 'none';
 
 				L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
 
@@ -247,8 +247,13 @@
 				}
 			},
 			_update: function (e) {
-				if (!this._map) return;
-				if (this._map._panTransition && this._map._panTransition._inProgress) { return; }
+//console.log('_update', this._map);
+				if (!this._map) {
+					var node = mapNodes[this.options.nodeID];
+					node.waitRedraw();
+					return;
+				}
+				//if (this._map._panTransition && this._map._panTransition._inProgress) { return; }
 				var node = mapNodes[this.options.nodeID];
 
 				var bounds   = this._map.getPixelBounds(),
@@ -284,7 +289,8 @@
 			drawTile: function (tile, tilePoint, zoom) {
 				var node = mapNodes[tile._layer.options.nodeID];
 				if(!zoom) zoom = LMap.getZoom();
-				if((LMap['_animateToZoom'] && LMap['_animateToZoom'] != zoom) || gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {	// Слой невидим или нет tileFunc или идет зуум
+				//if((LMap['_animateToZoom'] && LMap['_animateToZoom'] != zoom) || gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {	// Слой невидим или нет tileFunc или идет зуум
+				if(gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {	// Слой невидим или нет tileFunc или идет зуум
 					if(gmxAPI.map.needMove) node.waitRedraw();
 					return;
 				}

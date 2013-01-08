@@ -721,7 +721,7 @@
 		var addItemListenerID = null;
 		var onMouseMoveID = null;
 		var onMouseUpID = null;
-		var pCanvas = null;
+		//var pCanvas = null;
 		var pSize = 8;
 		var lineWidth = 3;
 		var pointSize = pSize / 2;
@@ -772,6 +772,7 @@
 		
 		var layerGroup = null;
 		var layerItems = [];
+		var svgContainer = null;
 		var drawMe = function()
 		{ 
 			if(!node.leaflet) return;
@@ -826,6 +827,10 @@
 			drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
 			drawAttr['node'] = node;
 			drawAttr['clickMe'] = addDrawingItem;
+			
+			if(!svgContainer && layerItems.length) {
+				svgContainer = layerItems[0]['_container'].parentNode;
+			}
 			
 			drawSVG(drawAttr);
 		}
@@ -994,6 +999,9 @@
 		ret.remove = function()
 		{
 			chkEvent('onRemove');
+//			if(svgContainer) {
+//				if(svgContainer.parentNode) svgContainer.parentNode.removeChild(svgContainer);
+//			}
 			obj.remove();
 			domObj.removeInternal();
 			if(zoomListenerID) gmxAPI._listeners.removeListener(null, 'onZoomend', zoomListenerID); zoomListenerID = null;
@@ -1025,10 +1033,11 @@
 						var p2 = coords[(ii == 0 ? coords.length - 1 : ii - 1)];
 						title = getGeometryTitle({ type: "LINESTRING", coordinates: [[[p1[0], p1[1]], [p2[0], p2[1]]]] });
 					}
+					if(svgContainer) svgContainer.style.pointerEvents = 'visibleStroke';
 				}
 				chkEvent('onMouseOver', title);
 				needMouseOver = false;
-				if(pCanvas) pCanvas.style.cursor = 'pointer';
+				//if(pCanvas) pCanvas.style.cursor = 'pointer';
 			} else {
 				//gmxAPI._cmdProxy('stopDrawing');
 				//if(itemMouseDownID) obj.removeListener('onMouseDown', itemMouseDownID); itemMouseDownID = null;
@@ -1036,7 +1045,8 @@
 				if(!needMouseOver) {
 					chkEvent('onMouseOut'); 
 					needMouseOver = true;
-					if(pCanvas) pCanvas.style.cursor = '';
+					if(svgContainer) svgContainer.style.pointerEvents = 'none';
+					//if(pCanvas) pCanvas.style.cursor = '';
 				}
 			}
 			return flag;
@@ -1137,6 +1147,7 @@
 
 		var layerGroup = null;
 		var layerItems = [];
+		var svgContainer = null;
 		var isMouseOver = false;
 		
 		var drawMe = function()
@@ -1154,6 +1165,9 @@
 			drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
 			drawAttr['node'] = node;
 			drawSVG(drawAttr);
+			if(!svgContainer && layerItems.length) {
+				svgContainer = layerItems[0]['_container'].parentNode;
+			}
 		}
 		
 		var getPos = function() { return {'x': x1, 'y': y1}; }
@@ -1386,12 +1400,14 @@
 				chkEvent('onMouseOver', txt);
 				//}
 				needMouseOver = false;
+				if(svgContainer) svgContainer.style.pointerEvents = 'visibleStroke';
 				//pCanvas.style.cursor = 'pointer';
 			} else {
 				if(!needMouseOver) {
 					chkEvent('onMouseOut'); needMouseOver = true;
 					//isMouseOver = false;
 					//pCanvas.style.cursor = '';
+					if(svgContainer) svgContainer.style.pointerEvents = 'none';
 				}
 			}	
 			return flag;

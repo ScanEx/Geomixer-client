@@ -2582,6 +2582,7 @@ FlashMapObject.prototype.setOSMTiles = function( keepGeometry)
 		//return "http://b.tile.openstreetmap.org/" + z + "/" + i + "/" + j + ".png";
 		var letter = ["a", "b", "c", "d"][((i + j)%4 + 4)%4];
 		return "http://" + letter + ".tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
+		//return "http://" + letter + ".tile.osm.kosmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/" + z + "/" + i + "/" + j + ".png";
 	}
 
 	var urlOSM = "http://{s}.tile.osmosnimki.ru/kosmo" + gmxAPI.KOSMOSNIMKI_LOCALIZED("", "-en") + "/{z}/{x}/{y}.png";
