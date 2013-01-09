@@ -1111,7 +1111,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			var pNode = mapNodes[node['parentId']];
 			pNode.chkTilesParentStyle();
 		} else if(node['subType'] !== 'drawingFrame') {
-			if(node.isVisible) {
+			if(node.isVisible != false) {
 				if(node.leaflet && node.leaflet.setStyle) node.leaflet.setStyle(node.regularStyle);
 				else gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
 			}
@@ -1160,6 +1160,9 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				}
 			}
 			node['isHandlers'] = true;
+			if('_map' in node['leaflet'] && '_pathRoot' in node['leaflet']['_map']) {
+				node['leaflet']['_map']['_pathRoot'].style.pointerEvents = '';
+			}
 			return true;
 		}
 	}
