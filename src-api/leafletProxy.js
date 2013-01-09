@@ -1130,6 +1130,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 	function setNodeHandlers(id)	{
 		var node = mapNodes[id];
 		if(!node || !node['handlers']) return false;
+		node['isHandlers'] = false;
 		for(var evName in scanexEventNames) {
 			setHandlerObject(id, evName);
 		}
@@ -1158,6 +1159,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					node['marker'].on(scanexEventNames[evName], func);
 				}
 			}
+			node['isHandlers'] = true;
+			return true;
 		}
 	}
 	// Удалить mapObject
@@ -1311,6 +1314,11 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 						if(node['leaflet']) {
 							node['leaflet']._isVisible = true;
 							pGroup.addLayer(node['leaflet']);
+							if(!node['isHandlers']) {
+								if('_map' in node['leaflet'] && '_pathRoot' in node['leaflet']['_map']) {
+									node['leaflet']['_map']['_pathRoot'].style.pointerEvents = 'none';
+								}
+							}
 						}
 					}
 				}

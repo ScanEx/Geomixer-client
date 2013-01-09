@@ -120,7 +120,7 @@
 			
 			//первым всегда будет располагаться копирайт СканЭкс. 
 			//Если реализовать возможность задавать порядок отображения копирайтов, можно тоже самое сделать более культурно...
-			var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2012 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>";
+			var text = "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2013 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>";
 			
 			for (var key in texts)
 			{
