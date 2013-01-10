@@ -2253,9 +2253,22 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				if(node['isLargeImage']) redrawMe();
 			}, 11);
 			
-			var zoomTimer = null;
+			/*
 			LMap.on('zoomanim', function(e) {
 				attr['reposition']();
+			});
+			*/
+			var zoomTimer = null;
+			LMap.on('zoomanim', function(e) {
+				var zoom = LMap.getZoom();
+				if(zoomTimer) clearTimeout(zoomTimer);
+				zoomTimer = setTimeout(function()
+				{
+					var zoom = LMap.getZoom();
+					zoomTimer = null;
+					var ctx = canvas.getContext('2d');
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+				}, 10);
 			});
 		} else {
 			if(attr['url'] != node['imageURL']) drawMe(node['imageCanvas']);

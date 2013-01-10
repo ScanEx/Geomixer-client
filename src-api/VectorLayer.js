@@ -1289,7 +1289,7 @@
 			for (var i = 0; i < filters.length; i++) {
 				var fId = filters[i];
 				var mapNodeFilter = mapNodes[fId];
-				if(mapNodeFilter.isVisible) return true;
+				if(mapNodeFilter.isVisible != false) return true;
 			}
 			return false;
 		}
