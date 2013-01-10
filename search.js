@@ -1273,7 +1273,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	@param callback = function(arrResult) {...} - вызывается когда подсказка готова
 	@returns {void}*/
 	this.AutoCompleteData = function (SearchString, callback){
-	    _this.SearchByString({ SearchString: SearchString, IsStrongSearch: 0, Limit: 10, WithoutGeometry: WithoutGeometry,
+	    _this.SearchByString({ SearchString: SearchString, IsStrongSearch: 0, Limit: 10, WithoutGeometry: 1,
 	        UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, 
         callback: function(arrResultDataSources){
 			var arrResult = [];
