@@ -492,7 +492,8 @@
 					var out = [];
 					for (var i = 0; i < arr.length; i++) {
 						var item = arr[i];
-						var mObj = new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(item.geometry), item.properties, obj);
+						var geo = (gmxAPI.proxyType === 'leaflet' ? item.geometry : gmxAPI.from_merc_geometry(item.geometry));
+						var mObj = new gmxAPI._FlashMapFeature(geo, item.properties, obj);
 						var ph = {'onExtent':item.onExtent, 'item':mObj, 'isVisibleFilter':item['isVisibleFilter'], 'status':item['status']};
 						out.push(ph);
 					}

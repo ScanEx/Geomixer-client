@@ -1399,12 +1399,148 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			setVisibleRecursive(node, flag);
 		}
 	}
-	//gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': chkVisibilityObjects});
+	
+	var grid = {
+		'isVisible': false							// видимость grid
+		,
+		'lealfetObj': null							// lealfet обьект
+		,
+		'gridSteps': [0.001, 0.002, 0.0025, 0.005, 0.01, 0.02, 0.025, 0.05, 0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 30, 60, 120, 180]
+		,
+		'setGridVisible': function(flag) {			// Установка видимости grid
+			if(flag) {
+				grid.redrawGrid();
+			} else {
+				if(grid.positionChangedListenerID) gmxAPI.map.removeListener('positionChanged', grid.positionChangedListenerID); grid.positionChangedListenerID = null;
+				if(grid.baseLayerListenerID) gmxAPI.map.removeListener('baseLayerSelected', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
+				if(grid.zoomListenerID) gmxAPI._listeners.removeListener(null, 'onZoomend', grid.zoomListenerID); grid.zoomListenerID = null;
+				LMap.removeLayer(grid.lealfetObj);
+				grid.lealfetObj = null;
+			}
+		}
+		,
+		'getGridVisibility': function() {			// Получить видимость grid
+			var zoom = LMap.getZoom();
+			return false;
+		}
+		,
+		'redrawGrid': function() {					// перерисовать grid
+			var zoom = LMap.getZoom();
+			var gridStep = grid.getGridStep();
+			
+			return false;
+		}
+		,
+		'getGridStep': function() {					// получить шаг сетки
+			var zoom = LMap.getZoom();
+			var vBounds = LMap.getBounds();
+			var vpNorthWest = vBounds.getNorthWest();
+			var vpSouthEast = vBounds.getSouthEast();
+
+			var w = LMap._size.x;
+			var h = LMap._size.y;
+
+			var x1 = vpNorthWest.lng;
+			var x2 = vpSouthEast.lng;
+			var y1 = vpSouthEast.lat;
+			var y2 = vpNorthWest.lat;
+			var xStep = 0;
+			var yStep = 0;
+			for (var i = 0; i < grid['gridSteps'].length; i++) {
+				var step = grid['gridSteps'][i];
+				if (xStep == 0 && (x2 - x1)/step < w/80) xStep = step;
+				if (yStep == 0 && (y2 - y1)/step < h/80) yStep = step;
+				if (xStep > 0 && yStep > 0) break;
+			}
+
+/*			
+			var labels = [];
+var pointMsk = map.addObjects();
+
+{ "type":"POINT", "coordinates":[37.441640, 55.634230] }
+
+{ 'marker': {
+
+				image: "http://maps.kosmosnimki.ru/api/img/marker_flag.png",
+
+				dx: -2,
+
+				dy: -20
+
+			},
+
+			label: { size: 12, color: 0xff00ff, haloColor: 0xffffff }
+
+		});
+
+		pointMsk.setLabel("Москва");
+*/
+			//var steps = new L.Point(xStep, yStep);
+			//var labelStyle = new Style({ label: { size: 10, color: color, align: "center" } });
+			//var leftX = Merc.x(xStep*(Math.ceil(x1/xStep + 0.6) - 0.5));
+			//var topY = Merc.y(yStep*(Math.floor(y2/yStep - 0.6) + 0.5));
+			
+			var baseLayersTools = gmxAPI.map.baseLayersTools;
+			var currTool = baseLayersTools.getToolByName(baseLayersTools.activeToolName);
+			var color = (currTool.backgroundColor === 1 ? 'white' : 'black');
+			var haloColor = (color === 'black' ? 'white' : 'black');
+
+			var divStyle = {'width': 'auto', 'height': 'auto', 'color': color, 'haloColor': haloColor, 'wordBreak': 'keep-all'};
+			var opt = {'className': 'my-div-icon', 'html': '0', 'divStyle': divStyle };
+			var optm = {'zIndexOffset': 1, 'title': ''}; // , clickable: false
+/*				
+			var myIcon = L.gmxIcon(opt);
+			optm['icon'] = L.gmxIcon(opt);
+			var marker = L.marker([37.441640, 55.634230], optm);		
+			LMap.addLayer(marker);
+*/			
+			var latlngArr = [];
+			for (var i = Math.floor(x1/xStep); i < Math.ceil(x2/xStep); i++) {
+				var x = i * xStep;
+				var p1 = new L.LatLng(y1, x);
+				var p2 = new L.LatLng(y2, x);
+				latlngArr.push([p1, p2]);
+				//if (x >= leftX) mapNode.window.paintLabel("" + formatFloat(i*xStep) + "°", new PointGeometry(x, topY), labelStyle);
+			}
+			for (var i = Math.floor(y1/yStep); i < Math.ceil(y2/yStep); i++) {
+				var y = i * yStep;
+				var p1 = new L.LatLng(y, x1);
+				var p2 = new L.LatLng(y, x2);
+				latlngArr.push([p1, p2]);
+				//if (y <= topY) mapNode.window.paintLabel("" + formatFloat(i*yStep) + "°", new PointGeometry(leftX, y), labelStyle);
+			}
+			if(!grid.lealfetObj) {
+				grid.lealfetObj = new L.MultiPolyline(latlngArr);
+				LMap.addLayer(grid.lealfetObj);
+				if(!grid.positionChangedListenerID) grid.positionChangedListenerID = gmxAPI.map.addListener('positionChanged', grid.redrawGrid, -10);
+				if(!grid.baseLayerListenerID) grid.baseLayerListenerID = gmxAPI.map.addListener('baseLayerSelected', grid.redrawGrid, -10);
+				if(!grid.zoomListenerID) grid.zoomListenerID = gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': grid.redrawGrid});
+			}
+			grid.lealfetObj.setLatLngs(latlngArr);
+			grid.lealfetObj.setStyle({'stroke': true, 'weight': 1, 'color': color});
+			
+//console.log('getGridStep ', xStep, yStep, y1, y2, w, h);
+
+			return false;
+		}
+	};
+	//LMap.on('moveend', grid.redrawGrid);
+	
+	//gmxAPI._listeners.addListener({'level': -10, 'eventName': 'positionCh', 'func': grid.redrawGrid});
+
 	// Команды в leaflet
 	var commands = {				// Тип команды
 		'setVisibilityFilter': setVisibilityFilter			// добавить фильтр видимости
 		,
 		'setBackgroundTiles': gmxAPI._leaflet['setBackgroundTiles']			// добавить растровый тайловый слой
+		,
+		'setGridVisible':	function(hash)	{							// Изменить видимость сетки
+			return grid.setGridVisible(hash['attr']);
+		}
+		,
+		'getGridVisibility':	function(hash)	{						// получить видимость сетки
+			return grid.getGridVisibility();
+		}
 		,
 		'addObjects':	function(attr)	{					// Добавление набора статических объектов на карту
 			var out = addObjects(attr.obj['objectId'], attr['attr']);
@@ -2062,6 +2198,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		var canvas = node['imageCanvas'] || null;
 		var drawMe = function(canvas_) {
 			canvas = canvas_;
+			//canvas.style.zIndex = -1;
+			
 			imageObj = new Image();
 			imageObj.crossOrigin = 'anonymous';		// для crossdomain прав
 			imageObj.onload = function() {
@@ -2096,7 +2234,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				,'drawMe': drawMe
 				//,iconAnchor: new L.Point(12, 12) // also can be set through CSS
 			});
-			var marker =  new L.GMXMarker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane', 'zIndexOffset': -1000});
+			var marker =  new L.GMXMarker(posLatLng, {icon: canvasIcon, 'toPaneName': 'shadowPane', 'zIndexOffset': -1000});
 			
 			//var marker = L.marker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane', 'zIndexOffset': -1000});
 			//var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});

@@ -1,6 +1,9 @@
 .leaflet-tile {
 		position: absolute;
 }
+.leaflet-shadow-pane {
+    z-index: 3 !important;
+}
 .leaflet-overlay-pane {
 }
 .leaflet-canvas-icon {

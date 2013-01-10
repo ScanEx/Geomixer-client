@@ -3215,6 +3215,7 @@ mapHelper.prototype.createAPIMapDialog = function()
 
 mapHelper.prototype.print = function()
 {
+		var printPage = 'print-iframe' + (gmxAPI.proxyType == 'leaflet' ? '_leaflet' : '');
 		//var printMap = this.createAPIMap(false),
 		var loadFunc = uniqueGlobalName(function()
 			{
@@ -3263,7 +3264,7 @@ mapHelper.prototype.print = function()
 				
 				return mapState;
 			}),
-			printDoc = window.open("print-iframe.html?" + loadFunc, "_blank", "width=" + String(640) + ",height=" + String(getWindowHeight()) + ",resizable=yes,scrollbars=yes");
+			printDoc = window.open(printPage + ".html?" + loadFunc, "_blank", "width=" + String(640) + ",height=" + String(getWindowHeight()) + ",resizable=yes,scrollbars=yes");
 		
 		printDoc.document.close();
 		
