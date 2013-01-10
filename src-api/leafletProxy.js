@@ -1322,7 +1322,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 							pGroup.addLayer(node['leaflet']);
 							if(!node['isHandlers']) {
 								if('_map' in node['leaflet'] && '_pathRoot' in node['leaflet']['_map']) {
-									node['leaflet']['_map']['_pathRoot'].style.pointerEvents = 'none';
+									//node['leaflet']['_map']['_pathRoot'].style.pointerEvents = 'none';
 								}
 							}
 						}

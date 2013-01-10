@@ -1033,7 +1033,7 @@
 						var p2 = coords[(ii == 0 ? coords.length - 1 : ii - 1)];
 						title = getGeometryTitle({ type: "LINESTRING", coordinates: [[[p1[0], p1[1]], [p2[0], p2[1]]]] });
 					}
-					if(svgContainer) svgContainer.style.pointerEvents = 'visibleStroke';
+					//if(svgContainer) svgContainer.style.pointerEvents = 'visibleStroke';
 				}
 				chkEvent('onMouseOver', title);
 				needMouseOver = false;
@@ -1045,7 +1045,7 @@
 				if(!needMouseOver) {
 					chkEvent('onMouseOut'); 
 					needMouseOver = true;
-					if(svgContainer) svgContainer.style.pointerEvents = 'none';
+					//if(svgContainer) svgContainer.style.pointerEvents = 'none';
 					//if(pCanvas) pCanvas.style.cursor = '';
 				}
 			}
@@ -1400,14 +1400,14 @@
 				chkEvent('onMouseOver', txt);
 				//}
 				needMouseOver = false;
-				if(svgContainer) svgContainer.style.pointerEvents = 'visibleStroke';
+				//if(svgContainer) svgContainer.style.pointerEvents = 'visibleStroke';
 				//pCanvas.style.cursor = 'pointer';
 			} else {
 				if(!needMouseOver) {
 					chkEvent('onMouseOut'); needMouseOver = true;
 					//isMouseOver = false;
 					//pCanvas.style.cursor = '';
-					if(svgContainer) svgContainer.style.pointerEvents = 'none';
+					//if(svgContainer) svgContainer.style.pointerEvents = 'none';
 				}
 			}	
 			return flag;

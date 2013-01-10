@@ -1284,6 +1284,15 @@
 			return null;
 		}
 		*/
+		function chkItemFiltersVisible(geo)	{				// Проверить видимость фильтров для обьекта
+			var filters = geo.propHiden.toFilters;
+			for (var i = 0; i < filters.length; i++) {
+				var fId = filters[i];
+				var mapNodeFilter = mapNodes[fId];
+				if(mapNodeFilter.isVisible) return true;
+			}
+			return false;
+		}
 
 		node.redrawTile = function(tileID, zoom)	{				// перерисовка 1 тайла
 			var arr = tilesRedrawImages.getTileItems(zoom, tileID);
@@ -1296,6 +1305,7 @@
 			var item = null;
 			for (var i = 0; i < arr.length; i++) {
 				item = arr[i];
+				if(!chkItemFiltersVisible(item.geom)) continue;
 				var itemId = item.geom.id;
 				if(borders && borders[itemId]) {
 					continue;
