@@ -1111,6 +1111,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		} else if(node['subType'] === 'tilesParent') {		// стиль заполнения обьектов векторного слоя
 			var pNode = mapNodes[node['parentId']];
 			pNode.chkTilesParentStyle();
+		} else if(node['type'] == 'RasterLayer') {
+			node.setStyle(attr);
 		} else if(node['subType'] !== 'drawingFrame') {
 			if(node.isVisible != false) {
 				if(node.leaflet && node.leaflet.setStyle) node.leaflet.setStyle(node.regularStyle);

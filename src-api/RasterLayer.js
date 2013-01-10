@@ -131,6 +131,14 @@
 		}
 		createLayer();
 
+		node['setStyle'] = function() {
+			var newOpacity = node.regularStyle.fillOpacity;
+			if(newOpacity != myLayer.options.opacity) {			// Изменить opacity растрового слоя
+				myLayer.options.opacity = newOpacity;
+				myLayer.setOpacity(newOpacity);
+			}
+		}
+		
 		var redrawTimer = null;										// Таймер
 		var waitRedraw = function()	{								// Требуется перерисовка с задержкой
 			if(redrawTimer) clearTimeout(redrawTimer);
