@@ -11,6 +11,7 @@ _translationsHash.addtext("rus", {
 	"Текущее местоположение отображается только для России и Украины": "Текущее местоположение отображается только для России и Украины",
 	"Следующие [value0] страниц": "Следующие [value0] страниц",
 	"Следующие [value0] страницы": "Следующие [value0] страницы",
+	"Следующая страница": "Следующая страница",
 	"Следующая [value0] страница": "Следующая [value0] страница",
     "Предыдущие [value0] страниц" : "Предыдущие [value0] страниц",
     "Первая страница" : "Первая страница",
@@ -21,6 +22,7 @@ _translationsHash.addtext("eng", {
 	"Текущее местоположение отображается только для России и Украины": "Current location is shown only for Russia and Ukraine",
 	"Следующие [value0] страниц": "Next [value0] pages",
 	"Следующие [value0] страницы": "Next [value0] pages",
+	"Следующая страница": "Next page",
 	"Следующая [value0] страница": "Next [value0] pages",
     "Предыдущие [value0] страниц" : "Previous [value0] pages",
     "Первая страница" : "First page",
@@ -700,8 +702,10 @@ var ResultList = function(oInitContainer, ImagesHost){
             var remains = pcount % iPagesCount;
             var nextPages = pcount/iPagesCount<2 ? remains : iPagesCount
             var nextButTitle = 'Следующие [value0] страниц';
-            if (nextPages % 10 == 1 && nextPages != 11)
-                nextButTitle = 'Следующие [value0] страница';
+            if (nextPages == 1)
+                nextButTitle = 'Следующая страница';
+            if (nextPages % 10 == 1 && nextPages != 1 && nextPages != 11)
+                nextButTitle = 'Следующая [value0] страница';
             if (1 < nextPages % 10 && nextPages % 10 < 5 && (nextPages<10 || nextPages > 20))
                 nextButTitle = 'Следующие [value0] страницы';
             var next = makeNavigButton(pager, '/next.png', '/next_a.png', 'nextpages', _gtxt(nextButTitle, nextPages));
@@ -743,7 +747,9 @@ var ResultList = function(oInitContainer, ImagesHost){
                 var rest = pcount - n - iPagesCount;
                 var nextPages = rest < iPagesCount ? rest : iPagesCount
                 var nextButTitle = 'Следующие [value0] страниц';
-                if (nextPages % 10 == 1 && nextPages != 11)
+                if (nextPages == 1)
+                    nextButTitle = 'Следующая страница';
+                if (nextPages % 10 == 1 && nextPages != 1 && nextPages != 11)
                     nextButTitle = 'Следующая [value0] страница';
                 if (1 < nextPages % 10 && nextPages % 10 < 5 && (nextPages < 10 || nextPages > 20))
                     nextButTitle = 'Следующие [value0] страницы';
