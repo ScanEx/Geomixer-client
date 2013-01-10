@@ -1189,8 +1189,9 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 							{
 								for (var iServer = 0; iServer < searchReq.Result.length; iServer++)
 								{
+                                    var limitSearchResults = typeof(LayerSearchLimit)!="undefined" ? LayerSearchLimit : 100;
 									var req = searchReq.Result[iServer];
-									for (var j = 0; j < req.SearchResult.length; j++)
+									for (var j = 0; j<limitSearchResults && j < req.SearchResult.length; j++)
 									{
 										var arrDisplayProperties = {};
 										if (!arrDisplayFields) {
