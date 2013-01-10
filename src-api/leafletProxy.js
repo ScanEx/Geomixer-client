@@ -331,6 +331,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		,
 		'chkVisibilityByZoom': function(id)	{				// проверка видимости обьекта - по minZ maxZ
 			var node = mapNodes[id];
+			if(!node || node['type'] === 'map') return true;
 			var pNode = mapNodes[node['parentId']];
 			var zoom = LMap.getZoom();
 			var flag = ((node['minZ'] && zoom < node['minZ']) || (node['maxZ'] && zoom > node['maxZ']) ? false 

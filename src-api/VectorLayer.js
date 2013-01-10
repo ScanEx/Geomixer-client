@@ -40,6 +40,7 @@
 		node['objectsData'] = {};				// Обьекты из тайлов по identityField
 		node['clustersData'] = null;			// Данные кластеризации
 
+		node['zIndexOffset'] = 1000;
 		node['editedObjects'] = {};
 		node['mousePos'] = {};					// позиция мыши в тайле
 //		node['tilesDrawing'] = {};				// список отрисованных тайлов в текущем Frame
