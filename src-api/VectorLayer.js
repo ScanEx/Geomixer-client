@@ -530,16 +530,20 @@
 			if(!attr) attr = gmxAPI._leaflet['clickAttr'];
 			if(!attr.latlng) return false;
 			var latlng = attr.latlng;
-			//var arr = getItemsByPoint(latlng);
-			var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
-			var arr = tilesRedrawImages.getItemsByPoint(attr.tID, mPoint);
+			var arr = null;
+			if(attr.tID) {
+				var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
+				arr = tilesRedrawImages.getItemsByPoint(attr.tID, mPoint);
+			} else {
+				arr = getItemsByPoint(latlng);
+			}
 		
 			if(evName === 'onClick' && arr && arr.length) {
 				var needCheck = (!prevPoint || !attr.containerPoint || attr.containerPoint.x != prevPoint.x || attr.containerPoint.y != prevPoint.y);
 				prevPoint = attr.containerPoint;
 				if(needCheck) {
 					node['flipIDS'] = [];
-					for (var i = 0; i < arr.length; i++) node['flipIDS'].push(arr[i].geom.id);
+					for (var i = 0; i < arr.length; i++) node['flipIDS'].push(arr[i].id || arr[i].geom.id);
 				}
 				if(!node['flipIDS'].length) return false;
 				var vid = node['flipIDS'][0];
@@ -568,7 +572,7 @@
 				} else {
 					itemPropHiden = item.geom.propHiden;
 				}
-				if(oper === 'setFlip') {
+				if(oper === 'setFlip' && attr.tID) {
 					var hItem = getTopFromArrItem(arr);
 					if(hItem) hoverItem(hItem);
 				}
@@ -609,7 +613,7 @@
 			,'id': id
 			,'identityField': identityField
 			,'initCallback': initCallback
-			//,'async': true
+			,'async': true
 			//,'reuseTiles': true
 			,'updateWhenIdle': true
 			,'unloadInvisibleTiles': true

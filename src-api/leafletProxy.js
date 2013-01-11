@@ -1917,8 +1917,8 @@ return;
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;
-			node['minZ'] = ph.attr['minZ'];
-			node['maxZ'] = ph.attr['maxZ'];
+			node['minZ'] = ph.attr['minZ'] || 1;
+			node['maxZ'] = ph.attr['maxZ'] || 21;
 			if(node.propHiden) {
 				if(node.propHiden['subType'] == 'tilesParent') {	//ограничение по zoom квиклуков
 					var pnode = mapNodes[node.parentId];
