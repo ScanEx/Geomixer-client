@@ -298,6 +298,19 @@ window.gmxAPI = {
 		return event || window.event;
 	}
 	,
+	stopEvent: function(ev)
+	{
+		var event = gmxAPI.compatEvent(ev);
+		if(!event) return false;
+		
+		if (event.stopPropagation) event.stopPropagation();
+		else if (event.preventDefault) event.preventDefault(); 
+		event.cancelBubble = true;
+		event.cancel = true;
+		event.returnValue = false;
+		return true;
+	}
+	,
 	compatTarget: function(event)
 	{
 		if (!event) event = window.event;

@@ -799,7 +799,7 @@ event.stopImmediatePropagation();
 				{
 					src: apiBase + "img/close.png",
 					title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Закрыть", "Close"),
-					onclick: function() 
+					onclick: function(ev) 
 					{ 
 						if(balloon.notDelFlag) {
 							balloon.setVisible(false);
@@ -809,6 +809,7 @@ event.stopImmediatePropagation();
 							balloon.remove();
 							balloon.isVisible = false;
 						}
+						gmxAPI.stopEvent(ev);
 					},
 					onmouseover: function()
 					{
