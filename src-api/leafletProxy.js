@@ -559,18 +559,16 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		}
 		,
 		'removeLeafletNode': function(node)	{								// Удалить Leaflet ноду - рекурсивно
-			if(node['leaflet']) {
-				var pNode = mapNodes[node['parentId']];
-				var pGroup = (pNode ? pNode['group'] : LMap);
-				if(node['marker'] && node['group']) {
+			if(!node['parentId']) return;
+			var pNode = mapNodes[node['parentId']];
+			var pGroup = (pNode ? pNode['group'] : LMap);
+			if(node['group']) {
+				if(node['marker']) {
 					if(node['group']['_layers'][node['marker']['_leaflet_id']]) node['group'].removeLayer(node['marker']);
 				}
-				if(node['parentId']) {
-					pGroup.removeLayer(node['group']);
-				}
-				if(pGroup['_layers'][node['leaflet']['_leaflet_id']]) pGroup.removeLayer(node['leaflet']);
-				//if(node['marker'] && pGroup['_layers'][node['marker']['_leaflet_id']]) {
+				pGroup.removeLayer(node['group']);
 			}
+			if(node['leaflet'] && pGroup['_layers'][node['leaflet']['_leaflet_id']]) pGroup.removeLayer(node['leaflet']);
 		}
 		,
 		'addCanvasIcon': function(node, regularStyle)	{				// создать Canvas иконку 
@@ -1169,8 +1167,31 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			return true;
 		}
 	}
+	function removeNodeRecursive(key, parentFlag)	{		// Удалить ноду	- рекурсивно
+		var node = mapNodes[key];
+		if(!node) return;
+		for (var i = 0; i < node['children'].length; i++) {
+			removeNodeRecursive(node['children'][i], true);
+		}
+		if(!parentFlag) {
+			var pGroup = LMap;
+			if(node['parentId'] && mapNodes[node['parentId']]) {
+				var pNode = mapNodes[node['parentId']];
+				for (var i = 0; i < pNode['children'].length; i++) {
+					if(pNode['children'][i] == node.id) {
+						pNode['children'].splice(i, 1);
+						break;
+					}
+				}
+			}
+		}
+		utils.removeLeafletNode(node);
+		delete mapNodes[key];
+	}
 	// Удалить mapObject
 	function removeNode(key)	{				// Удалить ноду	children
+		removeNodeRecursive(key);
+/*
 		var node = mapNodes[key];
 		if(!node) return;
 		var pGroup = LMap;
@@ -1189,6 +1210,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			pGroup.removeLayer(node['leaflet']);
 		}
 		delete mapNodes[key];
+*/
 	}
 	
 	// добавить mapObject
