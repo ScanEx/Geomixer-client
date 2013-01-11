@@ -1189,7 +1189,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 							{
 								for (var iServer = 0; iServer < searchReq.Result.length; iServer++)
 								{
-                                    var limitSearchResults = typeof(LayerSearchLimit)!="undefined" ? LayerSearchLimit : 100;
+                                    var limitSearchResults = typeof(LayerSearchLimit)=="number" ? LayerSearchLimit : 100;
 									var req = searchReq.Result[iServer];
 									for (var j = 0; j<limitSearchResults && j < req.SearchResult.length; j++)
 									{
@@ -1254,7 +1254,8 @@ SearchLogicGet.prototype = SearchLogic;
  @param {bool} WithoutGeometry - по умолчанию не передавать геометрию в результатах поиска
 */
 var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
-	var oSearchDataProvider = oInitSearchDataProvider;
+    var oSearchDataProvider = oInitSearchDataProvider;
+    var iLimitAutoComplete = typeof (AutoCompleteLimit) == "number" ? AutoCompleteLimit : 10; //Максимальное количество результатов
 	var _this = this;
 	if(oSearchDataProvider == null) throw "Error in SearchLogic: oSearchDataProvider is not supplied";
 			
@@ -1274,7 +1275,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	@param callback = function(arrResult) {...} - вызывается когда подсказка готова
 	@returns {void}*/
 	this.AutoCompleteData = function (SearchString, callback){
-	    _this.SearchByString({ SearchString: SearchString, IsStrongSearch: 0, Limit: 10, WithoutGeometry: 1,
+	    _this.SearchByString({ SearchString: SearchString, IsStrongSearch: 0, Limit: iLimitAutoComplete, WithoutGeometry: 1,
 	        UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, 
         callback: function(arrResultDataSources){
 			var arrResult = [];
@@ -1500,6 +1501,8 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	var lstResult = oInitResultListMap;
 	/**Строка ввода поискового запроса*/
 	var btnSearch = oInitInput;
+    /**Максимальное количество результатов на странице*/
+	var iLimit = typeof (GeocodePageResults) == "number" ? GeocodePageResults : 10; 
 	
 	var oLocationTitleRenderer = oInitLocationTitleRenderer;
 	
@@ -1557,13 +1560,13 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 				fnAfterSearch();
 			})){
 				lstResult.ShowLoading();
-				oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: 10, PageNum: 0, ShowTotal: 1, UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0,
+				oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, layersSearchFlag: layersSearchFlag, Limit: iLimit, PageNum: 0, ShowTotal: 1, UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0,
                 callback: function (response) {
                     lstResult.ShowResult(SearchString, response);                   
                     lstResult.CreatePager(response, function (e) {
                         var evt = e || window.event,
 			            active = evt.srcElement || evt.target
-                        oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, Limit: 10, PageNum: parseInt($(this).text()) - 1, ShowTotal: 0, UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, layersSearchFlag: layersSearchFlag,
+                        oLogic.SearchByString({ SearchString: SearchString, IsStrongSearch: true, Limit: iLimit, PageNum: parseInt($(this).text()) - 1, ShowTotal: 0, UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, layersSearchFlag: layersSearchFlag,
                             callback: function (response) {
                                 lstResult.ShowResult(SearchString, response);
                                 $('#prevpages~span:visible').attr('class', 'buttonLink');
