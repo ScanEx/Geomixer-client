@@ -1073,7 +1073,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 	var fnSearch = function(params)	{
 		var callback = params.callback;
 		var sQueryString = "RequestType=" + escape(params.RequestType);
-		if (params.SearchString != null) sQueryString += "&SearchString=" + escape(params.SearchString);
+		if (params.SearchString != null) sQueryString += "&SearchString=" + encodeURIComponent(params.SearchString); 
 		if (params.Geometry != null) sQueryString += "&GeometryJSON=" + escape(JSON.stringify(params.Geometry));
 		if (params.Limit != null) sQueryString += "&Limit=" + escape(params.Limit.toString());
 		if (params.ID != null) sQueryString += "&ID=" + escape(params.ID.toString());
