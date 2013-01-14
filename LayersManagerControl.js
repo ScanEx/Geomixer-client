@@ -215,12 +215,13 @@ var drawLayers = function(layer, params)
 * @param {object} params Параметры отображения списка:
 *
 *  * fixType {String | Vector} Какой тип слоёв показывать. 'vector', 'raster', 'multilayer', 'catalog' или ''. Если '', то добавится контрол с выбором типа слоя. Вектор 
-*  * enableDragging
+*  * enableDragging {Boolean}
+*  * height {Integer} высота всего виджета. Если не указана, то будет применяться дефолтная высота (~460px)
 *  * onclick {function({ elem: , scrollTable: })}
 */
 var LayerManagerControl = function( parentDiv, name, params )
 {
-	var _params = $.extend({fixType: []}, params);
+	var _params = $.extend({fixType: [], height: ''}, params);
     
     if (typeof _params.fixType === 'string')
         _params.fixType = [_params.fixType];
@@ -318,7 +319,7 @@ var LayerManagerControl = function( parentDiv, name, params )
     });
     
     var layersListProvider = new LayersListProvider(LayersFilterParams);
-    var layersTable = new scrollTable();
+    var layersTable = new scrollTable({height: _params.height ? _params.height - 130 : ''});
     layersTable.setDataProvider(layersListProvider);
     
 	layersTable.createTable(tableParent, name, 0, 

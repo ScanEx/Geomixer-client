@@ -2,6 +2,8 @@
 // Позволяет выбирать из существующих на сервере слоёв, слоёв внутри карты и создавать новый слой
 nsGmx.RCAddLayerControl = function(map, layerName)
 {
+    var currRCName = '';
+    var currAttrControl = null;
     var infoContainer = $('<div/>');
     var InfoControl = function(container)
     {
@@ -32,15 +34,17 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     var id = map.layers[layerName].properties.name;
     
     var existLayerCanvas = $('<div/>', {id: 'existlayer' + id});
-    var newLayerCanvas   = $('<div/>', {id: 'newlayer' + id});
     var mapLayerCanvas   = $('<div/>', {id: 'maplayer' + id});
+    var RCLayerCanvas    = $('<div/>', {id: 'rclayer' + id});
+    var newLayerCanvas   = $('<div/>', {id: 'newlayer' + id});
     
-    var tabMenu = _div([_ul([_li([_a([_t("Существующие слои")],[['attr','href','#existlayer' + id]])]),
-                             _li([_a([_t("Слои из карты")],[['attr','href','#maplayer' + id]])]),
-                             _li([_a([_t("Новый слой")],[['attr','href','#newlayer' + id]])])
+    var tabMenu = _div([_ul([_li([_a([_t(_gtxt("Существующие слои"))],[['attr','href','#existlayer' + id]])]),
+                             _li([_a([_t(_gtxt("Слои из карты"))],[['attr','href','#maplayer' + id]])]),
+                             _li([_a([_t(_gtxt("Слои из КР"))],[['attr','href','#rclayer' + id]])]),
+                             _li([_a([_t(_gtxt("Новый слой"))],[['attr','href','#newlayer' + id]])])
                             ])]);
         
-    $(tabMenu).append(existLayerCanvas, newLayerCanvas, mapLayerCanvas);
+    $(tabMenu).append(existLayerCanvas, newLayerCanvas, RCLayerCanvas, mapLayerCanvas);
     var dialogCanvas = $('<div/>').append(tabMenu, infoContainer);
     
     var suggestLayersControl = new nsGmx.LayerManagerControl(existLayerCanvas, 'addimage', {
@@ -53,6 +57,38 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                     {
                         infoControl.doneProcess('Добавлен слой' + ' "' + clickContext.elem.title + '"');
                     })
+            }
+        });
+        
+    var RCLayerLayerCanvas = $('<div/>').appendTo(RCLayerCanvas);
+    var RCLayerObjectCanvas = $('<div/>').appendTo(RCLayerCanvas).css({
+        'border-top-width': '1px', 
+        'border-top-style': 'solid',
+        'border-top-color': '#216B9C'
+    });
+    
+    var sizeProvider = function() {
+        return {
+            width: dialogCanvas[0].parentNode.parentNode.offsetWidth,
+            height: dialogCanvas[0].parentNode.offsetHeight - RCLayerLayerCanvas[0].offsetHeight
+        }
+    }
+    
+    var RCLayersControl = new nsGmx.LayerManagerControl(RCLayerLayerCanvas, 'addrclayer', {
+            fixType: 'catalog',
+            enableDragging: false,
+            height: 300,
+            onclick: function(clickContext) {
+                currRCName = clickContext.elem.name;
+                currAttrControl = window._attrsTableHash.create(currRCName, RCLayerObjectCanvas[0], sizeProvider, {
+                    hideActions: true,
+                    onClick: function(elem) {
+                        var idfield = currAttrControl.getLayerInfo().identityField;
+                        var objid = elem.values[elem.fields[idfield].index];
+                        
+                        _mapHelper.modifyObjectLayer(layerName, [{source: {rc: currRCName, rcobj: objid}}]);
+                    }
+                });
             }
         });
         
@@ -114,5 +150,12 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     
     $(tabMenu).tabs();
     
-    showDialog('Выбирите снимок', dialogCanvas[0], {width: 550, height: 550});
+    showDialog('Выбирите снимок', dialogCanvas[0], {
+        width: 550, 
+        height: 550, 
+        resizeFunc: function() {
+            currAttrControl && currAttrControl.resizeFunc();
+            //currRCName && window._attrsTableHash.resize(currRCName);
+        }
+    });
 }

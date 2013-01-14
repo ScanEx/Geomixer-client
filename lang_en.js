@@ -561,5 +561,9 @@ _translationsHash.hash["eng"] = {
     "Из файла": "From file",
     "Мультиполигон": "Multipolygon",
     "Администрирование": "Administration",
-    "Добавить снимки": "Add images"
+    "Добавить снимки": "Add rasters",
+    "Существующие слои": "Existing layers",
+    "Слои из карты": "Layers from map",
+    "Слои из КР": "Layers from RC",
+    "Новый слой": "New layer"
 };
