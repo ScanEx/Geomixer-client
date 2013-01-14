@@ -122,66 +122,90 @@ ServerDataProvider.convertValuesToHash = function(objParameters)
 var attrsTable = function(layerName, layerTitle)
 {
 	this.layerName = layerName;
-	this.layerId = globalFlashMap.layers[layerName].properties.LayerID;
-	this.layerTitle = layerTitle;
+	//this.layerId = globalFlashMap.layers[layerName].properties.LayerID;
+	this.layerTitle = layerTitle || '';
 	
 	this.filterData = null;
 	
 	this.textarea = null;
 	this.activeColumns = null;
 	
-	this._identityField = globalFlashMap.layers[layerName].properties.identityField;
+	//this._identityField = globalFlashMap.layers[layerName].properties.identityField;
 	
 	this.resizeFunc = function(){};
     
     this._listenerId = null;
+    
+    this._isLayerOnMap = !!globalFlashMap.layers[this.layerName];
 }
 
-attrsTable.prototype.getInfo = function()
+attrsTable.prototype.getLayerInfo = function()
+{
+    return this.layerInfo;
+}
+
+attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
 {
     var _this = this;
     
-	if ($$('attrsTableDialog' + this.layerName))
+	if (!origCanvas && $$('attrsTableDialog' + this.layerName))
 		return;
+        
+    origCanvas && $(origCanvas).empty();
 	
-	var canvas = _div(null,[['attr','id','attrsTableDialog' + this.layerName]])
+	var canvas = origCanvas || _div(null,[['attr','id','attrsTableDialog' + this.layerName]])
 		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		_this = this;
 	
 	_(canvas, [loading])
 
-	showDialog(_gtxt("Таблица атрибутов слоя [value0]", this.layerTitle), canvas, 
-        {
-            width: 800, 
-            height: 500, 
-            resizeFunc: function()
-            {
-                _this.resizeFunc.apply(_this,arguments)
-            },
-            closeFunc: function()
-            {
-                if (_this._listenerId !== null)
-                    globalFlashMap.layers[_this.layerName].removeListener( 'onChangeLayerVersion', _this._listenerId );
-            },
-            setMinSize: false
+    if (!origCanvas)
+    {
+        outerSizeProvider = function() {
+            return {
+                width: canvas.parentNode.parentNode.offsetWidth,
+                height: canvas.parentNode.offsetHeight
+            }
         }
-    )
+        
+        showDialog(_gtxt("Таблица атрибутов слоя [value0]", this.layerTitle), canvas, 
+            {
+                width: 800, 
+                height: 500, 
+                resizeFunc: function()
+                {
+                    _this.resizeFunc.apply(_this,arguments)
+                },
+                closeFunc: function()
+                {
+                    if ( _this._listenerId !== null && _this._isLayerOnMap )
+                        globalFlashMap.layers[_this.layerName].removeListener( 'onChangeLayerVersion', _this._listenerId );
+                },
+                setMinSize: false
+            }
+        )
+    }
 	
-	sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&LayerID=" + this.layerId, function(response)
+	//sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&LayerID=" + this.layerId, function(response)
+	sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + this.layerName, function(response)
 	{
 		if (!parseResponse(response))
 			return;
 		
 		loading.removeNode(true);
 		
-		_this.drawDialog(response.Result);
+        _this.layerInfo = response.Result.properties;
+        
+		// _this.drawDialog(response.Result.properties, $$('attrsTableDialog' + response.Result.properties.name));
+		_this.drawDialog(response.Result.properties, canvas, outerSizeProvider, params);
 	})
 }
 
-attrsTable.prototype.drawDialog = function(info)
+attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, params)
 {
-	var canvas = $$('attrsTableDialog' + info.Name),
-		paramsWidth = 300,
+    var _params = $.extend({hideActions: false, onClick: null}, params);
+        
+	var paramsWidth = 300,
 		tdParams = _td(null,[['css','width',paramsWidth + 'px'],['attr','vAlign','top']]),
 		tdTable = _td(null, [['attr','vAlign','top']]),
 		columnsList = _div(null, [['css','overflowY','auto'],['css','width',paramsWidth - 21 + 'px']]),
@@ -203,7 +227,7 @@ attrsTable.prototype.drawDialog = function(info)
     
 	paramsButton.onclick = function()
 	{
-		oldCanvasWidth = canvas.parentNode.parentNode.offsetWidth;
+		oldCanvasWidth = outerSizeProvider().width;
 		
 		if (tdParams.style.display == 'none')
 		{
@@ -238,13 +262,16 @@ attrsTable.prototype.drawDialog = function(info)
 	}
 	
 	addObjectButton.style.marginLeft = '20px';
+    
+    if (_params.hideActions)
+        $(addObjectButton).hide();
 	
 	tdParams.style.display = 'none';
 	
-	var name = 'attrsTable' + info.Name;
+	var name = 'attrsTable' + info.name;
                         
-	var attrNames = [this._identityField].concat(globalFlashMap.layers[info.Name].properties.attributes);
-    var fielsWidth = [""];
+	var attrNames = [info.identityField].concat(info.attributes);
+    var fielsWidth = _params.hideActions ? [] : [""];
     var attrNamesHash = {};
     for (var f = 0; f < attrNames.length; f++)
     {
@@ -270,7 +297,7 @@ attrsTable.prototype.drawDialog = function(info)
 
         editButton.onclick = function()
         {
-            var id = elem.values[elem.fields[_this._identityField].index];
+            var id = elem.values[elem.fields[info.identityField].index];
             new nsGmx.EditObjectControl(_this.layerName, id);
         }
         
@@ -279,7 +306,7 @@ attrsTable.prototype.drawDialog = function(info)
             var remove = makeButton(_gtxt("Удалить"));
             remove.onclick = function()
             {
-                var id = elem.values[elem.fields[_this._identityField].index];
+                var id = elem.values[elem.fields[info.identityField].index];
                 _mapHelper.modifyObjectLayer(_this.layerName, [{action: 'delete', id: id}]).done(function()
                 {
                     removeDialog(jDialog);
@@ -291,20 +318,24 @@ attrsTable.prototype.drawDialog = function(info)
         
         showButton.onclick = function()
         {
-            globalFlashMap.layers[_this.layerName].getFeatureById(elem.values[0], function(result)
+            if (_this._isLayerOnMap)
             {
-                globalFlashMap.layers[_this.layerName].setVisible(true);
-                
-                var bounds = getBounds(result.geometry.coordinates);
-                globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-            }); 
+                globalFlashMap.layers[_this.layerName].getFeatureById(elem.values[0], function(result)
+                {
+                    globalFlashMap.layers[_this.layerName].setVisible(true);
+                    
+                    var bounds = getBounds(result.geometry.coordinates);
+                    globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+                });
+            }
         }
         
         _title(deleteButton, _gtxt("Удалить"))
         _title(editButton, _gtxt("Редактировать"))
         _title(showButton, _gtxt("Показать"))
         
-        tds.push(tdControl);
+        if (!_params.hideActions)
+            tds.push(tdControl);
         
         for (var j = 0; j < activeHeaders.length; ++j)
         {
@@ -334,6 +365,14 @@ attrsTable.prototype.drawDialog = function(info)
         if (curIndex % 2 != 0)
             tr.className = 'odd';
         
+        if (_params.onClick) {
+            tr.onclick = function()
+            {
+                _params.onClick(elem);
+            }
+            tr.style.cursor = 'pointer';
+        }
+        
         return tr;
     }
     
@@ -341,15 +380,21 @@ attrsTable.prototype.drawDialog = function(info)
     
     updateSearchString();
     
+    var tableFields = _params.hideActions ? attrNames : [""].concat(attrNames);
+    
     this.table2.setDataProvider(this._serverDataProvider);
-    this.table2.createTable(this.divTable2, 'attrs', 0, [""].concat(attrNames), fielsWidth, drawTableItem2, attrNamesHash, true);
+    this.table2.createTable(this.divTable2, 'attrs', 0, tableFields, fielsWidth, drawTableItem2, attrNamesHash, true);
 	
 	_(canvas, [_div([paramsButton, addObjectButton],[['css','margin','10px 0px 10px 1px']])])
 	_(canvas, [_table([_tbody([_tr([tdParams, tdTable2])])],['css','width','100%'])])
 	
-	
-	var attrsSuggest = _mapHelper.createSuggestCanvas(attrNames, this.textarea, "\"suggest\"", function(){}, info.Attributes, true),
-		valuesSuggest = _mapHelper.createSuggestCanvas(attrNames, this.textarea, "\"suggest\"", function(){}, info.Attributes),
+    var attrHash = {};
+    for (var a = 0; a < attrNames.length; a++) 
+        attrHash[attrNames[a]] = [];
+        
+    var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer( attrHash, info.LayerID );
+	var attrsSuggest = _mapHelper.createSuggestCanvas(attrNames, this.textarea, "\"suggest\"", function(){}, attrProvider, true),
+		valuesSuggest = _mapHelper.createSuggestCanvas(attrNames, this.textarea, "\"suggest\"", function(){}, attrProvider),
 		opsSuggest = _mapHelper.createSuggestCanvas(['=','>','<','>=','<=','<>','AND','OR','NOT','IN','LIKE','()'], this.textarea, " suggest ", function(){});
 		
 	opsSuggest.style.width = '80px';
@@ -467,9 +512,10 @@ attrsTable.prototype.drawDialog = function(info)
 	cleanButton.style.marginRight = '3px';
 	_(tdParams, [_div([cleanButton, searchButton],[['css','textAlign','right'],['css','margin','5px 0px 0px 0px'],['css','width',paramsWidth + 'px']])])
 	
-	var resizeFunc = function(event, ui)
+	var resizeFunc = function()
 	{
-		var dialogWidth = oldCanvasWidth ? oldCanvasWidth : canvas.parentNode.parentNode.offsetWidth;
+        
+		var dialogWidth = oldCanvasWidth || outerSizeProvider().width;
 		
 		oldCanvasWidth = false;
 		
@@ -477,8 +523,11 @@ attrsTable.prototype.drawDialog = function(info)
 		tdTable2.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
 		_this.divTable2.style.width = dialogWidth - tdParams.offsetWidth - 21 - 10 + 'px';
 		
-		_this.divTable2.style.height = canvas.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 25 - 10 - 30 + 'px';
+        var dialogHeight = outerSizeProvider().height;
+		_this.divTable2.style.height = dialogHeight - canvas.firstChild.offsetHeight - 25 - 10 - 30 + 'px';
 		columnsList.style.height = _this.divTable2.offsetHeight - tdParams.firstChild.offsetHeight - tdParams.childNodes[1].offsetHeight - 25 + 'px';
+        
+        _this.table2.updateHeight(parseInt(_this.divTable2.style.height));
 	}
 	
 	this.resizeFunc = resizeFunc;
@@ -487,29 +536,14 @@ attrsTable.prototype.drawDialog = function(info)
 	
 	this.columnsNames = columnsNames;
     
-	this._listenerId = globalFlashMap.layers[this.layerName].addListener('onChangeLayerVersion', 
-        function() {
-            _this._serverDataProvider.serverChanged();
-        }
-    );
-}
-
-attrsTable.prototype.showLoading = function()
-{
-	//this.tableParent.style.display = 'none';
-	//this.tableLimit.parentNode.parentNode.parentNode.parentNode.style.display = 'none';
-	
-	//var loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px'],['attr','loading',true]]);
-	
-	//_(this.tableParent.parentNode, [loading])
-}
-
-attrsTable.prototype.hideLoading = function()
-{
-	// this.tableParent.style.display = '';
-	// this.tableLimit.parentNode.parentNode.parentNode.parentNode.style.display = '';
-	
-	// $(this.tableParent.parentNode).children("[loading]").remove();
+    if (this._isLayerOnMap)
+    {
+        this._listenerId = globalFlashMap.layers[this.layerName].addListener('onChangeLayerVersion', 
+            function() {
+                _this._serverDataProvider.serverChanged();
+            }
+        );
+    }
 }
 
 var attrsTableHash = function()
@@ -517,22 +551,28 @@ var attrsTableHash = function()
 	this.hash = {};
 }
 
-attrsTableHash.prototype.create = function(name)
+attrsTableHash.prototype.create = function(name, canvas, outerSizeProvider, params)
 {
 	if (name in this.hash)
 	{
-		this.hash[name].getInfo();
+		this.hash[name].getInfo(canvas, outerSizeProvider, params);
 	}
 	else
 	{
-		var properties = globalFlashMap.layers[name].properties,
-			newAttrsTable = new attrsTable(properties.name, properties.title);
-		
-		newAttrsTable.getInfo();
+        var title = globalFlashMap.layers[name] ? globalFlashMap.layers[name].properties.title : '';
+        var newAttrsTable = new attrsTable(name, title);
+		newAttrsTable.getInfo(canvas, outerSizeProvider, params);
 		
 		this.hash[name] = newAttrsTable;
 	}
+    
+    return this.hash[name];
 }
+
+// attrsTableHash.prototype.resize = function(name)
+// {
+    // this.hash[name] && this.hash[name].resizeFunc();
+// }
 
 scrollTable.AttributesServerDataProvider = ServerDataProvider;
 
