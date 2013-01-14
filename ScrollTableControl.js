@@ -417,7 +417,7 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
     if (this._isWidthScroll)
     {
         this.tableParent = _div([_table([this.tableHeader, this.tableBody], [['css', 'width', '100%']])],
-                                [['attr','id',name + 'TableParent'],['dir','className','scrollTable'],['css','width',baseWidth ? baseWidth + 'px' : "100%"], ['css', 'height', this._params.height], ['css', 'overflow', 'auto']]);
+                                [['attr','id',name + 'TableParent'],['dir','className','scrollTable'],['css','width', baseWidth ? baseWidth + 'px' : "100%"], ['css', 'height', this._params.height], ['css', 'overflow', 'auto']]);
     }
     else
     {
@@ -460,6 +460,19 @@ scrollTable.prototype.createTable = function(parent, name, baseWidth, fields, fi
         _this._drawTable();
     });
     this._drawTable();
+}
+
+scrollTable.prototype.updateHeight = function( height )
+{
+    if (this._isWidthScroll)
+    {
+        this.tableParent.style.height = (height - 40) + 'px';
+    }
+    else
+    {
+        this.tableParent.firstChild.style.height = (height - 20) + 'px';
+        this.tableParent.style.height = this._params.height + 'px';
+    }
 }
 
 scrollTable.prototype._drawTable = function()
