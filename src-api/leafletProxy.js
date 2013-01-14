@@ -1161,7 +1161,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				}
 			}
 			node['isHandlers'] = true;
-			if('_map' in node['leaflet'] && '_pathRoot' in node['leaflet']['_map']) {
+			if(node['leaflet']['_map'] && '_pathRoot' in node['leaflet']['_map']) {
 				node['leaflet']['_map']['_pathRoot'].style.pointerEvents = '';
 			}
 			return true;
