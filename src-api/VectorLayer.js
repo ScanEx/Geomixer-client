@@ -340,7 +340,12 @@
 			}
 			return true;
 		}
-
+/*
+		node['osmRasterFunc'] = function(x, y, z) {			// Получение URL для OSM растров
+            var size = Math.pow(2, z - 1);
+            return "http://tile2.maps.2gis.com/tiles?x="  + (x+ size) + "&y=" + (size - y - 1) + "&z=" + z + "&v=4";
+		}
+*/		
 		node['setTiledQuicklooks'] = function(callback, minZoom, maxZoom, tileSenderPrefix) {			// установка тайловых квиклуков
 			if(callback) node['tileRasterFunc'] = callback;
 			if(minZoom) node['quicklookZoomBounds']['minZ'] = minZoom;
@@ -1068,7 +1073,17 @@
 						? false
 						: true
 					);
-					var rUrl = (node['tileRasterFunc'] ? node['tileRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], attr['zoom'], objData) : '');
+						
+					//var rUrl = (node['tileRasterFunc'] ? node['tileRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], attr['zoom'], objData) : '');
+					var rUrl = '';
+					if(node['tileRasterFunc']) rUrl = node['tileRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], attr['zoom'], objData);
+/*
+if(objData['properties']['GM_LayerName']) {
+	rUrl = (node['tileRasterFunc'] ? node['tileRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], attr['zoom'], objData) : '');
+} else {
+	rUrl = (node['osmRasterFunc'] ? node['osmRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], attr['zoom'], objData) : '');
+}
+*/
 					var rItem = {
 						'geom': geom
 						,'attr': attr

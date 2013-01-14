@@ -706,19 +706,19 @@
 					};
 				//}
 			} else {
-				if(gmxAPI.isChrome) {
+				/*if(gmxAPI.isChrome) {
 					gmxAPI.contDivPos = {
 						'x': div.offsetLeft,
 						'y': div.offsetTop
 					};
 					//px -= event.layerX; 
 					//py -= event.layerY;
-				} else {
+				} else {*/
 					gmxAPI.contDivPos = {
 						'x': gmxAPI.getOffsetLeft(div),
 						'y': gmxAPI.getOffsetTop(div)
 					};
-				}
+				//}
 			}
 			px -= gmxAPI.contDivPos['x']; 
 			py -= gmxAPI.contDivPos['y'];
