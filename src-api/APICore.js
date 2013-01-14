@@ -1644,7 +1644,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			if(typeof(a) === 'object') pObj.properties = (a.length > 0 ? gmxAPI.propertiesFromArray(a) : a);
 			var flag = false;
 			if(obj.handlers[eventName]) flag = handler(pObj, attr);
-			if(!flag) gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });
+			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });
 			return flag;
 		};
 

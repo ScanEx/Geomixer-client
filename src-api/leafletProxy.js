@@ -1626,7 +1626,7 @@ var pointMsk = map.addObjects();
 			utils.bringToDepth(node, zIndex);
 			if(!gmxAPI.map.needMove) {
 				if('bringToFront' in node) node.bringToFront();
-				else if(node['leaflet'] && 'bringToFront' in node['leaflet']) node['leaflet'].bringToFront();
+				else if(node['leaflet'] && node['leaflet']._isVisible && 'bringToFront' in node['leaflet']) node['leaflet'].bringToFront();
 			}
 			return zIndex;
 		}
@@ -1639,7 +1639,7 @@ var pointMsk = map.addObjects();
 			utils.bringToDepth(node, 0);
 			if(!gmxAPI.map.needMove) {
 				if('bringToBack' in node) node.bringToBack();
-				else if(node['leaflet'] && 'bringToBack' in node['leaflet']) node['leaflet'].bringToBack();
+				else if(node['leaflet'] && node['leaflet']._isVisible && 'bringToBack' in node['leaflet']) node['leaflet'].bringToBack();
 /*				for (var i = 0; i < node['children'].length; i++) {
 					var cNode = mapNodes[node['children'][i]];
 					if('bringToDepth' in cNode) cNode.bringToDepth(0);
@@ -1686,7 +1686,7 @@ var pointMsk = map.addObjects();
 			LMap.options.minZoom = ph.attr.z1;
 			LMap.options.maxZoom = ph.attr.z2;
 			var currZ = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
-//console.log('setMinMaxZoom1 ', currZ, gmxAPI.map.needMove);
+//console.log('setMinMaxZoom1 ', currZ, LMap.options.minZoom, LMap.options.maxZoom, gmxAPI.map.needMove);
 			if(currZ > LMap.getMaxZoom()) currZ = LMap.getMaxZoom();
 			else if(currZ < LMap.getMinZoom()) currZ = LMap.getMinZoom();
 			else return;

@@ -572,7 +572,7 @@
 					if(oper === 'rasterView') {
 						itemPropHiden['rasterView'] = !itemPropHiden['rasterView'];
 						chkNeedImage(item);
-						return true;
+						if(node['propHiden']['stopFlag']) return true;
 					}
 				} else {
 					itemPropHiden = item.geom.propHiden;
@@ -583,11 +583,12 @@
 				}
 				
 				if(!isCluster) {
+					var geom = node['getItemGeometry'](item.id);
+					if(evName in node['handlers'] && node['handlers'][evName].call(gmxNode, item.id, item.properties, {'onClick': true, 'geom': geom})) return;						// Есть не найден фильтр
 					if(!itemPropHiden['toFilters'] || !itemPropHiden['toFilters'].length) return;		// обьект не попал в фильтр
 					var fID = itemPropHiden['toFilters'][0];
 					var filter = gmxAPI.mapNodes[fID];
 					if(!filter || !mapNodes[fID]['handlers'][evName]) return;						// не найден фильтр
-					var geom = node['getItemGeometry'](item.id);
 					mapNodes[fID]['handlers'][evName].call(filter, item.id, item.properties, {'onClick': true, 'geom': geom});
 				} else {
 					node['handlers'][evName].call(gmxNode, item.id, item.geom.properties, {'onClick': true, 'objType': 'cluster', 'geom': item.geom});
@@ -1017,6 +1018,7 @@
 			var cnt = 0;
 			attr['node'] = node;
 			var rasterNums = 0;
+			var geoNums = 0;
 			//var hideIDS = {};
 			var drawGeoArr = function(arr, flag)	{							// Отрисовка массива геометрий
 				var res = [];
@@ -1090,6 +1092,7 @@ if(objData['properties']['GM_LayerName']) {
 						,'src': rUrl
 					};
 					tilesRedrawImages.addItem(zoom, drawTileID, rItem);
+					geoNums++;
 					
 					if(showRaster) {
 						//rItem['drawFunc'] = function() {drawRasters(drawTileID);};
@@ -1105,6 +1108,7 @@ if(objData['properties']['GM_LayerName']) {
 									ptItem['imageObj'] = imageObj;
 									if(rasterNums === 0) {
 										drawRasters(tileID);
+//attr['tile']._layer.tileDrawn(attr['tile']);
 									}
 								}
 								,'onerror': function(){
@@ -1116,6 +1120,7 @@ if(objData['properties']['GM_LayerName']) {
 							gmxAPI._leaflet['imageLoader'].push(item);
 						})();
 					} else {
+						geoNums--;
 						setCanvasStyle(attr['ctx'], style);
 						//style['label']['extent'] = new L.Point(size, ctx.measureText(txt).width);
 						var boundsLabel = geom['paint'](attr);
@@ -1127,6 +1132,9 @@ if(objData['properties']['GM_LayerName']) {
 					}
 					res.push(geom['id']);
 				}
+//if(rasterNums === 0) attr['tile']._layer.tileDrawn(attr['tile']);
+//console.log('bbbbbbbbbbb ', rasterNums, geoNums);
+				
 				return res;
 			}
 
@@ -1253,7 +1261,8 @@ if(objData['properties']['GM_LayerName']) {
 				testLabelCanvas.width = testLabelCanvas.height = 0;
 				testLabelCanvas = null;
 			}
-*/			
+*/
+			//attr['tile']._layer.tileDrawn(attr['tile']);
 			return out;
 		}
 		node['chkTilesParentStyle'] = function() {							// перерисовка при изменении fillOpacity - rasterView
