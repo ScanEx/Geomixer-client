@@ -88,7 +88,8 @@ var nsGmx = nsGmx || {};
             span.onclick = function()
             {
 				if(window.useAccountsAuth){
-					_this.showOAuthDialog( loginCallback );
+					var redirect_uri = gmxAPI.getAPIHostRoot() + 'api/oAuthCallback.html';
+					nsGmx.Utils.login(redirect_uri, serverBase, loginCallback);
 				}
 				else{
 					_this.showLoginDialog( loginCallback );
@@ -155,23 +156,6 @@ var nsGmx = nsGmx || {};
         $(_authManager).change(_update);
         _update();
             
-		this.showOAuthDialog = function( ){
-			window.processAuthentication = function(status){
-				var parseResult = parseUri(status);
-				if(parseResult.queryKey["token"]) 
-				{
-					loginCallback&&loginCallback();
-				}
-				else alert(decodeURI(status));
-			}
-			var features, w = 600, h = 350, l, t;
-			var top = (screen.height - h)/2, left = (screen.width - w)/2;
-			features = 'location=0,menubar=0,resizable=0,status=0,toolbar=0,width='+w+',height='+h+',left='+left+',top='+top ;
-			//var redirect_uri = serverBase + 'oAuth/oAuthCallback.ashx?callback=' + escape(gmxAPI.getAPIHostRoot() + 'api/oAuthCallback.html')
-			var redirect_uri = gmxAPI.getAPIHostRoot() + 'api/oAuthCallback.html';
-			var url = serverBase + 'oAuth/LoginDialog.ashx?redirect_uri=' + escape(redirect_uri);
-			window.open(url, '_blank', features);
-		}
         //Показывает диалог с вводом логина/пароля, посылает запрос на сервер.
         this.showLoginDialog = function()
         {

@@ -1298,6 +1298,22 @@ $.extend(nsGmx.Utils, {
         
         return value;        
     },
+	
+	
+	login: function(redirect_uri, serverBase, callback){
+		window.gmxGetServerBase = function(){ 
+			return serverBase 
+		}
+		window.gmxProcessAuthentication = function(userInfo){
+			userInfo && callback && callback(userInfo);
+		}
+		var features, w = 600, h = 350, l, t;
+		var top = (screen.height - h)/2, left = (screen.width - w)/2;
+		features = 'location=0,menubar=0,resizable=0,status=0,toolbar=0,width='+w+',height='+h+',left='+left+',top='+top ;
+
+		var url = serverBase + 'oAuth/LoginDialog.ashx?redirect_uri=' + escape(redirect_uri);
+		window.open(url, '_blank', features);
+    },
     
     //загружает пользовательский shp файл, выбранный в форме shpFileForm (name=file).
     //Проверяет на ошибки, выводит предупреждения и ошибки в виде стандартный диалогов.

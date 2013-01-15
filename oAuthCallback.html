@@ -1,8 +1,32 @@
 ﻿<html>
+<script src="LAB.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script>
-window.opener['processAuthentication'](window.location.search);
-//window.location.hash.substr(1, window.location.hash.length)]
-//window.callback()
-window.close();
+var callServer = function(){
+	$.ajax({
+		url: window.opener['gmxGetServerBase']() + 'oAuth/oAuthCallback.ashx' + window.location.search, 
+		dataType: "jsonp",
+		jsonp: 'CallbackName',
+		success: function(response){
+				var result = false;
+				if(response.Status == 'error'){
+					document.getElementById('resultText').innerHTML = response.ErrorInfo.ErrorMessage;
+				}
+				else{
+					result = response.Result;
+				}
+				window.opener['gmxProcessAuthentication'](result);
+				if(result) window.close();
+			}
+		});
+}
+$.getScript( "config.js?" + Math.random(), function(){
+	$.getScript( (typeof gmxJSHost === 'undefined' ? "" : gmxJSHost) + "utilities.js" + ( typeof gmxDropBrowserCache !== 'undefined' ? "?" + Math.random() : "") , function(){
+		callServer();
+	});
+});
 </script>
+<body>
+<div id="resultText"/>
+</body>
 </html>

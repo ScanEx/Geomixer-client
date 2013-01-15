@@ -171,26 +171,7 @@ var nsGmx = nsGmx || {};
                     return;
                 }
             }
-        
-            if (window.mapsSite && window.gmxAuthServer)
-            {
-                sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Login?action=gettoken", function(response)
-                {
-                    if (response.Status === 'OK')
-                    {
-                        isTokenUsed = true;
-                        sendCrossDomainJSONRequest(serverBase + 'login.ashx?token=' + response.Result.Id, _processResponse);
-                    }
-                    else
-                    {
-                        sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
-                    }
-                }, 'callback');
-            }
-            else
-            {
-                sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
-            }
+            sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
             
         }
         
