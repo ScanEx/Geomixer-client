@@ -2208,6 +2208,7 @@ var FlashMapObject = function(objectId_, properties_, parent_)
 			properties_[key] = "";
 	this.properties = properties_;
 	this.parent = parent_;
+	this.isRemoved = false;
 	this.flashId = flashId;
 	this._attr = {};			// Дополнительные атрибуты
 	this.stateListeners = {};	// Пользовательские события
@@ -2320,6 +2321,7 @@ FlashMapObject.prototype.addObject = function(geometry, props, propHiden) {
 
 FlashMapObject.prototype.remove = function()
 {
+	if(this.isRemoved) return false;									// Обьект уже был удален
 	if(this.copyright && 'removeCopyrightedObject' in gmxAPI.map)
 		gmxAPI.map.removeCopyrightedObject(this);
 		
@@ -2339,6 +2341,7 @@ FlashMapObject.prototype.remove = function()
 			gmxAPI._listeners.dispatchEvent('BeforeLayerRemove', this, this.properties.name);	// Удаляется слой
 		}
 	}
+	this.isRemoved = true;
 }
 FlashMapObject.prototype.setGeometry = function(geometry) {
 	gmxAPI._cmdProxy('setGeometry', { 'obj': this, 'attr':geometry });

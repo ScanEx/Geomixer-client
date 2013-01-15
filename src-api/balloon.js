@@ -782,6 +782,7 @@ event.stopImmediatePropagation();
 			balloon.geoX = 0;
 			balloon.geoY = 0;
 			balloon.isDraging = false;
+			balloon.isRemoved = false;
 			
 			var oldSetVisible = balloon.setVisible;
 			balloon.div.onmouseover = function()
@@ -892,6 +893,7 @@ event.stopImmediatePropagation();
 			}
 			balloon.remove = function()
 			{
+				if(balloon.isRemoved) return false;
 				if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
 				for(var i=0; i<balloons.length; i++) {
 					if(balloons[i] == balloon) {
@@ -899,10 +901,11 @@ event.stopImmediatePropagation();
 						break;
 					}
 				}
-				this.outerDiv.parentNode.removeChild(this.outerDiv);
+				if(this.outerDiv.parentNode) this.outerDiv.parentNode.removeChild(this.outerDiv);
 				//div.removeChild(this.outerDiv);
 				var gmxNode = gmxAPI.mapNodes[balloon.pID];		// Нода gmxAPI
 				gmxAPI._listeners.dispatchEvent('onBalloonRemove', gmxNode, {'obj': balloon.obj});		// balloon удален
+				balloon.isRemoved = true;
 			}
 			balloon.getX = function() { return this.geoX; }
 			balloon.getY = function() { return this.geoY; }
