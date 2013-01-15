@@ -2015,6 +2015,24 @@ return;
 			return true;
 		}
 		,
+		'getChildren':	function(ph)	{								// Получить потомков обьекта
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			var out = [];
+			for (var i = 0; i < node.children.length; i++)
+			{
+				var itemId = node.children[i];
+				var item = mapNodes[itemId];
+				if(item) {
+					out.push({
+						id: item.id,
+						properties: item.geometry.properties
+					});
+				}
+			}
+			return out;
+		}
+		,
 		'setEditObjects':	function(ph)	{							// Установка редактируемых обьектов слоя
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
@@ -3075,9 +3093,10 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					LMap._onResize();
 				}, 50);*/
 			};
+			var prevSize = null;
 			var chkMapResize = function() {
 				if(gmxAPI._drawing['activeState'] || gmxAPI._leaflet['curDragState']) return;	// При рисовании не проверяем Resize
-				// anima
+				if(prevSize && LMap._size && prevSize.x == LMap._size.x && prevSize.y == LMap._size.y) return;
 				//if(checkMapResize) {
 					//LMap.fire('transitionend');
 					//LMap.fire('mousedown');
@@ -3086,10 +3105,13 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					checkMapResize = false;
 					gmxAPI.map.needMove = null;
 				//}
+				//console.log("test2");
 			};
 			setInterval(chkMapResize, 5000);
 			L.DomEvent.addListener(window.document, 'click', gmxAPI._leaflet['mapOnResize']);
 			LMap.on('moveend', function(e) {
+				//console.log("test1");
+				if(LMap._size) prevSize = {'x': LMap._size.x, 'y': LMap._size.y};
 				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {});
 			});
 			LMap.on('move', function(e) {

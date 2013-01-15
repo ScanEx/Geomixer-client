@@ -2267,7 +2267,9 @@ FlashMapObject.prototype.getChildren = function()
 	for (var i = 0; i < arr.length; i++) {
 		var id = arr[i].id;
 		var pObj = (gmxAPI.mapNodes[id] ? gmxAPI.mapNodes[id] : new FlashMapObject(id, {}, this));		// если MapObject отсутствует создаем
-		pObj.properties = gmxAPI.propertiesFromArray(arr[i].properties);
+		//pObj.properties = gmxAPI.propertiesFromArray(arr[i].properties);
+		var a = arr[i].properties;
+		if(typeof(a) === 'object') pObj.properties = (a.length > 0 ? gmxAPI.propertiesFromArray(a) : a);
 		ret.push(pObj);
 	}
 	return ret;
