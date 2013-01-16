@@ -696,7 +696,7 @@
 		map.setBackgroundColor(0x000001);
 //			map.miniMap.setBackgroundColor(0xffffff);
 
-		map.defaultHostName = layers.properties.hostName || '';
+		map.defaultHostName = (layers && layers.properties ? layers.properties.hostName : '');
 		map.addLayers(layers, false, true);
 		
 		if(!map.needSetMode && haveOSM) {								// если нигде не устанавливалась текущая подложка и есть OSM

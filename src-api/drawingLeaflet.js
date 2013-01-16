@@ -1067,7 +1067,9 @@
 		if (coords)
 		{
 			if(coords.length == 1) coords = coords[0];
-			//if(editType !== 'LINESTRING') coords = coords[0];
+			if(editType === 'POLYGON') {
+				if(coords.length && coords[0].length != 2) coords = coords[0];
+			}
 			lastPoint = null;
 			oBounds = gmxAPI.getBounds(coords);
 			createDrawingItem();
