@@ -788,7 +788,8 @@
 		var layerItems = [];
 		var svgContainer = null;
 		var drawMe = function()
-		{ 
+		{
+//console.log('drawMe:  ', gmxAPI.currPosition);	// repaint vbounds
 			if(!node.leaflet) return;
 			//coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
 			if(!layerGroup) {
@@ -1163,6 +1164,11 @@
 					mouseOverFlag = true;
 				});
 				layerGroup.on('mouseout', function(e) {
+					if(propsBalloon) propsBalloon.updatePropsBalloon(false);
+					if(!needMouseOver) {
+						chkEvent('onMouseOut'); 
+						needMouseOver = true;
+					}
 					mouseOverFlag = false;
 				});
 			}
@@ -1412,6 +1418,7 @@
 		var needMouseOver = true;
 		ret.chkMouse = function(ph)
 		{
+			if(!mouseOverFlag) return false;
 			coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
 			oBounds = gmxAPI.getBounds(coords);
 			//console.log('chkMouse:  ', isMouseOver, ph.latlng);

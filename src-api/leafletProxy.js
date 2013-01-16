@@ -2138,20 +2138,15 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 
 		var posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 		var repaint = function(imageObj, canvas, zoom) {
-			var vBounds = LMap.getBounds();
-			var vpNorthWest = vBounds.getNorthWest();
-			var vpSouthEast = vBounds.getSouthEast();
-/*			
-			var visBounds = new L.Bounds();
-			visBounds.extend(new L.Point(vpNorthWest['lng'], vpNorthWest['lat']));
-			visBounds.extend(new L.Point(vpSouthEast['lng'], vpSouthEast['lat']));
-			if(!visBounds.intersects(bounds)) {
+			var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
+			if(!isOnScene) {
 				node['group'].removeLayer(marker);
+				if(canvas) canvas.width = canvas.height = 0;
 				return;
 			} else {
 				if(!marker._map) node['group'].addLayer(marker);
 			}
-*/
+
 			if(imageObj.src.indexOf(node['imageURL']) == -1) return;
 			if(!zoom) zoom = LMap.getZoom();
 			posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
@@ -2165,6 +2160,10 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var p180 = LMap.project(new L.LatLng(0, 180), zoom);
 			var worldSize = p180.x - point.x;
 			
+			var vBounds = LMap.getBounds();
+			var vpNorthWest = vBounds.getNorthWest();
+			var vpSouthEast = vBounds.getSouthEast();
+
 			var vp1 = LMap.project(vpNorthWest, zoom);
 			var vp2 = LMap.project(vpSouthEast, zoom);
 			var wView = vp2.x - vp1.x;
@@ -2245,6 +2244,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			}
 			paintPolygon({'coordinates': node.geometry.coordinates, 'boundsP': ph['boundsP']}, data['canvas']);
 			attr['reposition']();
+			data = null;
 			//paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx, 'boundsP': ph['boundsP']}, data['canvas']);
 			//zoomPrev = LMap.getZoom();
 		}
