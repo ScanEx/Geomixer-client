@@ -127,6 +127,7 @@
 	}
 	var drawSVG = function(attr)
 	{
+		//console.log('drawSVG:  ', attr['coords'].length);
 		var dBounds = new L.Bounds();
 		for (var i = 0; i < attr['coords'].length; i++)
 		{
@@ -726,7 +727,7 @@
 		var lineWidth = 3;
 		var pointSize = pSize / 2;
 		var lastPoint = null;
-		var needInitNodeEvents = false;
+		var needInitNodeEvents = true;
 		var editIndex = -1;
 		var finishTime = 0;
 		
@@ -763,6 +764,19 @@
 		{
 			if(node['leaflet']) {
 				needInitNodeEvents = false;
+				layerGroup.on('mouseover', function(e) {
+//console.log('mouseover1:  ', obj.objectId, mouseOverFlag);
+					mouseOverFlag = true;
+					});
+				layerGroup.on('mouseout', function(e) {
+//console.log('mouseout1:  ', obj.objectId, mouseOverFlag);
+					if(propsBalloon) propsBalloon.updatePropsBalloon(false);
+					if(!needMouseOver) {
+						chkEvent('onMouseOut'); 
+						needMouseOver = true;
+					}
+					mouseOverFlag = false;
+					});
 			}
 		}
 		var getPos = function()
@@ -995,7 +1009,7 @@
 			return false;
 		}
 		var zoomListenerID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': repaint });
-		var positionChangedID = gmxAPI.map.addListener('positionChanged', repaint);
+//		var positionChangedID = gmxAPI.map.addListener('positionChanged', repaint);
 		ret.remove = function()
 		{
 			chkEvent('onRemove');
@@ -1005,13 +1019,14 @@
 			obj.remove();
 			domObj.removeInternal();
 			if(zoomListenerID) gmxAPI._listeners.removeListener(null, 'onZoomend', zoomListenerID); zoomListenerID = null;
-			if(positionChangedID) gmxAPI.map.removeListener('positionChanged', positionChangedID); positionChangedID = null;
+//			if(positionChangedID) gmxAPI.map.removeListener('positionChanged', positionChangedID); positionChangedID = null;
 		}
 		var needMouseOver = true;
 		//var itemMouseDownID = null;
 		ret.chkMouse = function(ph)
 		{
 			if(!mouseOverFlag) return false;
+//console.log('chkMouse:  ', obj.objectId, mouseOverFlag);
 			var downType = getDownType(ph, coords, oBounds);
 			var flag = ('type' in downType ? true : false);
 			//console.log('chkMouse:  ', obj.objectId, flag, ph);
@@ -1073,7 +1088,7 @@
 			lastPoint = null;
 			oBounds = gmxAPI.getBounds(coords);
 			createDrawingItem();
-			mouseOverFlag = true;
+			//mouseOverFlag = true;
 			setTimeout(repaint, 0);
 		} else {
 			addItemListenerID = gmxAPI.map.addListener('onClick', addDrawingItem);
@@ -1144,6 +1159,12 @@
 			if(node['leaflet']) {
 				needInitNodeEvents = false;
 				//obj.addListener('onMouseDown', itemMouseDown);
+				layerGroup.on('mouseover', function(e) {
+					mouseOverFlag = true;
+				});
+				layerGroup.on('mouseout', function(e) {
+					mouseOverFlag = false;
+				});
 			}
 		}
 
@@ -1604,6 +1625,7 @@
 		,
 		chkMouseHover: function(attr, fName)
 		{
+			if(!mouseOverFlag) return;
 			if(!fName) fName = 'chkMouse';
 			if(!mousePressed || attr['evName'] == 'onMouseDown') {
 				for (var id in objects) {

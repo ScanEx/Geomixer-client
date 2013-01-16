@@ -688,6 +688,7 @@
 		var mouseMoveTimer = null;
 		var onmousemove = function(ev)
 		{
+			//if(!propsBalloon.isVisible()) return;
 			var event = gmxAPI.compatEvent(ev);
 			if(!event) return;
 			buttons = event.buttons;
@@ -742,11 +743,14 @@ event.stopImmediatePropagation();
 
 		gmxAPI._div.onmousemove = function(ev)
 		{
+			onmousemove(ev);
+/*
 			if(mouseMoveTimer) clearTimeout(mouseMoveTimer);
 			mouseMoveTimer = setTimeout(function() {
 				onmousemove(ev);
 				mouseMoveTimer = null;
 			}, 0);
+*/
 		};
 		
 		//gmxAPI._div.onmousemove = onmousemove;

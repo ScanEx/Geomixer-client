@@ -2103,6 +2103,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		bounds.extend(ptr);
 		bounds.extend(pbl);
 		bounds.extend(pbr);
+
 		//var minPoint = LatLngToPixel(bounds.max.y, bounds.min.x);
 		//var minPoint = LatLngToPixel(ptl.y, ptl.x);
 		//var minP = null;
@@ -2137,6 +2138,20 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 
 		var posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 		var repaint = function(imageObj, canvas, zoom) {
+			var vBounds = LMap.getBounds();
+			var vpNorthWest = vBounds.getNorthWest();
+			var vpSouthEast = vBounds.getSouthEast();
+/*			
+			var visBounds = new L.Bounds();
+			visBounds.extend(new L.Point(vpNorthWest['lng'], vpNorthWest['lat']));
+			visBounds.extend(new L.Point(vpSouthEast['lng'], vpSouthEast['lat']));
+			if(!visBounds.intersects(bounds)) {
+				node['group'].removeLayer(marker);
+				return;
+			} else {
+				if(!marker._map) node['group'].addLayer(marker);
+			}
+*/
 			if(imageObj.src.indexOf(node['imageURL']) == -1) return;
 			if(!zoom) zoom = LMap.getZoom();
 			posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
@@ -2150,9 +2165,6 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var p180 = LMap.project(new L.LatLng(0, 180), zoom);
 			var worldSize = p180.x - point.x;
 			
-			var vBounds = LMap.getBounds();
-			var vpNorthWest = vBounds.getNorthWest();
-			var vpSouthEast = vBounds.getSouthEast();
 			var vp1 = LMap.project(vpNorthWest, zoom);
 			var vp2 = LMap.project(vpSouthEast, zoom);
 			var wView = vp2.x - vp1.x;
@@ -3149,12 +3161,11 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					,'e': e
 				};
 				if(target) {
-					try {
+					//try {
 						out['tID'] = target['id']
 						out['_layer'] = target['_layer']
 						out['tilePoint'] = target['tilePoint']
-					} catch(ev) {
-					}
+					//} catch(ev) { }
 				}
 				return out;
 				
@@ -3231,7 +3242,7 @@ var tt = 1;
 */
 			var onMouseMoveTimer = null;
 			LMap.on('mousemove', function(e) {
-				//console.log('onmousemove', gmxAPI._drawing['activeState']);
+//console.log('mousemove', gmxAPI._leaflet['mousePressed'], timeDown);
 				if(gmxAPI._leaflet['mousedown']) timeDown -= 900;
 				gmxAPI._leaflet['mousePos'] = e.latlng;
 				var attr = parseEvent(e);
@@ -3245,7 +3256,7 @@ var tt = 1;
 						onMouseMoveTimer = null;
 					}, 40);
 				}
-				gmxAPI._leaflet['utils'].chkMouseHover(attr)
+				if(!gmxAPI._leaflet['mousePressed']) gmxAPI._leaflet['utils'].chkMouseHover(attr)
 			});
 			LMap.on('mouseup', function(e) {
 				gmxAPI._leaflet['mousePressed'] = false;
@@ -3466,7 +3477,10 @@ var tt = 1;
 				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
 				gmxAPI.map.needSetMode = null;
 			}
-			if(gmxAPI.map.standartTools && L.Browser.touch) gmxAPI.map.standartTools.remove();
+			if(L.Browser.mobile) gmxAPI.isMobile = true;
+			if(gmxAPI.map.standartTools && gmxAPI.isMobile) {
+				gmxAPI.map.standartTools.remove();
+			}
 			//gmxAPI.map.standartTools.setVisible(false);
 		}
 	}
