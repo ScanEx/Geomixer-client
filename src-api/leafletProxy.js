@@ -3036,6 +3036,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			 * L.Handler.DoubleClickZoom is used internally by L.Map to add double-click zooming.
 			 */
 
+			gmxAPI.isMobile = (L.Browser.mobile ? true : false);
+
 			L.Map.mergeOptions({
 				doubleClickZoomGMX: true
 			});
@@ -3477,7 +3479,6 @@ var tt = 1;
 				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
 				gmxAPI.map.needSetMode = null;
 			}
-			if(L.Browser.mobile) gmxAPI.isMobile = true;
 			if(gmxAPI.map.standartTools && gmxAPI.isMobile) {
 				gmxAPI.map.standartTools.remove();
 			}
