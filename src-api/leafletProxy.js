@@ -2140,11 +2140,11 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		var repaint = function(imageObj, canvas, zoom) {
 			var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
 			if(!isOnScene) {
-				node['group'].removeLayer(marker);
+				node['group'].removeLayer(node['leaflet']);
 				if(canvas) canvas.width = canvas.height = 0;
 				return;
 			} else {
-				if(!marker._map) node['group'].addLayer(marker);
+				if(!node['leaflet']._map) node['group'].addLayer(node['leaflet']);
 			}
 
 			if(imageObj.src.indexOf(node['imageURL']) == -1) return;
