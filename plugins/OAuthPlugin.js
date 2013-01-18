@@ -19,7 +19,7 @@ gmxCore.addModule('OAuthPlugin', {
                 //var scope = encodeURIComponent('https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email');
                 //window.location = 'https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=' + clientID + '&redirect_uri=' + redirectURI + '&scope=' + scope;
 				var redirect_uri = gmxAPI.getAPIHostRoot() + 'api/oAuthCallback.html';
-				nsGmx.Utils.login(redirect_uri, serverBase, function(){
+				nsGmx.Utils.login(redirect_uri, serverBase + 'oAuth/', function(){
 					window.location.replace(window.location.href.split("?")[0] + "?permalink=" + parmalinkID + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
 				}
 				, 'Google');

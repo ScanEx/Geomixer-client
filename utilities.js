@@ -1315,7 +1315,7 @@ $.extend(nsGmx.Utils, {
 			handlerName += oAuthServer;
 			h = 400;
 		}
-		var url = serverBase + 'oAuth/' + handlerName + '.ashx?redirect_uri=' + escape(redirectUri);
+		var url = serverBase + handlerName + '.ashx?redirect_uri=' + escape(redirectUri);
 		
 		var top = (screen.height - h)/2, left = (screen.width - w)/2;
 		features = 'location=0,menubar=0,resizable=0,status=0,toolbar=0,width='+w+',height='+h+',left='+left+',top='+top ;
