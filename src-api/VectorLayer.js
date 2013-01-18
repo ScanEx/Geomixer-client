@@ -584,7 +584,10 @@
 				
 				if(!isCluster) {
 					var geom = node['getItemGeometry'](item.id);
-					if(evName in node['handlers'] && node['handlers'][evName].call(gmxNode, item.id, item.properties, {'onClick': true, 'geom': geom})) return;						// Есть не найден фильтр
+					if(evName in node['handlers']) {						// Есть handlers на слое
+						var res = node['handlers'][evName].call(gmxNode, item.id, item.properties, {'onClick': true, 'geom': geom});
+						if(res) return res;
+					}
 					if(!itemPropHiden['toFilters'] || !itemPropHiden['toFilters'].length) return;		// обьект не попал в фильтр
 					var fID = itemPropHiden['toFilters'][0];
 					var filter = gmxAPI.mapNodes[fID];
