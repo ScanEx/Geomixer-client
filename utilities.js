@@ -1300,18 +1300,26 @@ $.extend(nsGmx.Utils, {
     },
 	
 	
-	login: function(redirect_uri, serverBase, callback){
+	login: function(redirect_uri, serverBase, callback, authServer){
+		var oAuthServer = authServer || 'MyKosmosnimki';
 		window.gmxGetServerBase = function(){ 
 			return serverBase 
 		}
+		var redirectUri = redirect_uri + (redirect_uri.indexOf('?')>0 ? '&' : '?') + 'authServer=' + oAuthServer;
 		window.gmxProcessAuthentication = function(userInfo){
 			userInfo && callback && callback(userInfo);
 		}
 		var features, w = 600, h = 350, l, t;
+		var handlerName = 'LoginDialog';
+		if (oAuthServer != 'MyKosmosnimki') {
+			handlerName += oAuthServer;
+			h = 400;
+		}
+		var url = serverBase + 'oAuth/' + handlerName + '.ashx?redirect_uri=' + escape(redirectUri);
+		
 		var top = (screen.height - h)/2, left = (screen.width - w)/2;
 		features = 'location=0,menubar=0,resizable=0,status=0,toolbar=0,width='+w+',height='+h+',left='+left+',top='+top ;
-
-		var url = serverBase + 'oAuth/LoginDialog.ashx?redirect_uri=' + escape(redirect_uri);
+		
 		window.open(url, '_blank', features);
     },
     

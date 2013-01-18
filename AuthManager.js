@@ -146,7 +146,7 @@ var nsGmx = nsGmx || {};
                 }
                 else
                 {
-                    //юзер с accounts, там не зарегистрирован, но локально авторизован - надо разлогинеть локально
+                    /*//юзер с accounts, там не зарегистрирован, но локально авторизован - надо разлогинеть локально
                     if (!isTokenUsed && response.Result.IsAccounts)
                     {
                         sendCrossDomainJSONRequest(serverBase + "Logout.ashx?WrapStyle=func&WithoutRedirection=1");
@@ -157,7 +157,8 @@ var nsGmx = nsGmx || {};
                     else
                     {
                         _this.setUserInfo(response.Result);
-                    }
+                    }*/
+					_this.setUserInfo(response.Result);
                 }
                 
                 resOk && callback && callback();
