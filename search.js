@@ -781,7 +781,8 @@ var ResultList = function(oInitContainer, ImagesHost){
 	/** Показывает режим загрузки
 	@returns {void}*/
 	this.ShowLoading = function(){
-		removeChilds(oResultCanvas);
+	    $('#respager').remove();
+        removeChilds(oResultCanvas);
 		_(oResultCanvas, [oLoading]);
 	}
 	
@@ -1592,7 +1593,8 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	
 	/**Осуществляет выбор объекта из подсказки*/
 	var fnSelect = function(event, oAutoCompleteItem){
-		if (fnBeforeSearch != null) fnBeforeSearch();
+	    if (fnBeforeSearch != null) fnBeforeSearch(); 
+        $('#respager').remove();
 		lstResult.ShowResult(oAutoCompleteItem.label, [{ name: "Выбрано", SearchResult: [oAutoCompleteItem.GeoObject] }]);
 		if (fnAfterSearch != null) fnAfterSearch();
 	}
