@@ -923,6 +923,7 @@
 		// Изменение точки
 		var itemMouseDown = function(ph)
 		{
+			if(!drawing.isEditable) return;
 			downTime = new Date().getTime();
 			mousePressed = true;
 			if(ph.attr) ph = ph.attr;
@@ -930,7 +931,7 @@
 			var y = ph.latlng.lat;
 			if(x < -180) x += 360;
 			var downType = getDownType(ph, coords, oBounds);
-//console.log('itemMouseDown:  ', downType['cnt'], downType['type']);
+			//console.log('itemMouseDown:  ', ph.latlng.lng, x);
 			if('type' in downType) {
 				editIndex = downType['cnt'];
 				if(downType['type'] === 'node') {
@@ -957,9 +958,10 @@
 			var latlng = ph.latlng;
 			var x = latlng.lng;
 			if(x < -180) x += 360;
+			//console.log('mouseMove:  ', latlng.lng, x, editIndex);
 			if(editIndex != -1) {
 				lastPoint = null;
-				if(coords[editIndex][0] > 0 && x < 0) x += 360;
+				//if(coords[editIndex][0] > 0 && x < 0) x += 360;
 				coords[editIndex] = [x, latlng.lat];
 				if(editType === 'POLYGON') {
 					if(editIndex == 0) coords[coords.length - 1] = coords[editIndex];
@@ -1484,8 +1486,10 @@
 		handlers: { onAdd: [], onEdit: [], onRemove: [] },
 		mouseState: 'up',
 		activeState: false,
+		isEditable: true,
 		endDrawing: endDrawing,
 		stateListeners: {},
+		setEditable: function(flag) { drawing.isEditable = flag; },
 		addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },
 		removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); },
 		enabledHoverBalloon: true,
