@@ -27,6 +27,7 @@
 			drawAttr['stylePoint'] = gmxAPI.clone(stylePoint);
 			//var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
 			//var stylePoint = {color: "#0000ff", fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1};
+			drawAttr['stylePoint']['pointSize'] = pointSize;
 			drawAttr['stylePoint']['color'] = drawAttr['stylePolygon']['color'];
 			drawAttr['stylePoint']['weight'] = drawAttr['stylePolygon']['weight'];
 			drawAttr['stylePoint']['fillOpacity'] = 
@@ -118,13 +119,9 @@
 
 	var tmpPoint = null;
 	var styleStroke = {color: "#0000ff", weight: lineWidth , opacity: 1};
-	var stylePoint = {color: "#0000ff", fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1};
+	var stylePoint = {color: "#0000ff", fill: true, fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1, 'pointSize': pointSize, skipLastPoint: true, skipSimplifyPoint: false, clickable: false};
 	var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
-	var addPoint = function(x, y, style)
-	{
-		var bounds = getBoundsPoint(x, y);
-		return new L.rectangle(bounds, style || stylePoint)
-	}
+
 	var drawSVG = function(attr)
 	{
 		//console.log('drawSVG:  ', attr['coords'].length);
@@ -140,59 +137,46 @@
 		var layerItems = attr['layerItems'];
 		if(layerItems.length == 0) {
 			layerItems.push(new L.Polyline([], attr['stylePolygon'] || stylePolygon));
-			//layerItems.push(new L.Polygon([], styleStroke));
-			layerGroup.addLayer(layerItems[0]);
+			var pstyle = attr['stylePoint'] || stylePoint;
+			pstyle['skipLastPoint'] = (attr['editType'] !== 'LINESTRING');
+			layerItems.push(new L.GMXPointsMarkers([], pstyle));
+			
 			var mousedown = function(e) { attr['mousedown'](e, this); };
 			layerItems[0].on('mousedown', mousedown , {'num':0, 'type':'edge'});
+			if(attr['dblclick']) {
+				var dblclick = function(e) { attr['dblclick'](e, this); };
+				layerItems[0].on('dblclick', dblclick , {'dx':dx, 'num':0, 'type':'edge'});
+			}
+			
+			layerGroup.addLayer(layerItems[1]);
+			layerGroup.addLayer(layerItems[0]);
+			
+			layerItems[1]._container.style.pointerEvents = 'none';
+			layerItems[1].bringToFront();
 		}
-		layerItems[0].bringToFront();
+		if(layerItems[1].options.skipSimplifyPoint == mousePressed) {
+			layerItems[1].options.skipSimplifyPoint = !mousePressed;
+//console.log('drawSVG:  ', layerItems[1].options.skipSimplifyPoint);
+		}
+		
 		/*
 		if(attr['editType'] == 'LINESTRING' && layerItems[0].options.fill) {
 		}*/
 		var latLngs = [];
+		var len = attr['coords'].length - 1;
+		var latLngsPoints = [];
 		for (var i = 0; i < attr['coords'].length; i++)
 		{
 			var pArr = attr['coords'][i];
 			var latLng = new L.LatLng(pArr[1], pArr[0] + dx);
-			latLng.lng = pArr[0] + dx;
-			latLng.lat = pArr[1];
 			latLngs.push(latLng);
 		}
 		if(attr['lastPoint']) {
 			var latLng = new L.LatLng(attr['lastPoint']['y'], attr['lastPoint']['x'] + dx);
-			latLng.lng = attr['lastPoint']['x'] + dx;
-			latLng.lat = attr['lastPoint']['y'];
 			latLngs.push(latLng);
 		}
 		layerItems[0].setLatLngs(latLngs);
-
-		for (var i = 0; i < attr['coords'].length; i++)
-		{
-			var num = i + 1;
-			var pArr = attr['coords'][i];
-			if(!layerItems[num]) {
-				layerItems.push(addPoint(pArr[0],  pArr[1], attr['stylePoint'])); layerGroup.addLayer(layerItems[num]);
-				var mousedown = function(e) { attr['mousedown'](e, this); };
-				layerItems[num].on('mousedown', mousedown , {'dx':dx, 'num':i, 'type':'node'});
-				if(attr['dblclick']) {
-					var dblclick = function(e) { attr['dblclick'](e, this); };
-					layerItems[num].on('dblclick', dblclick , {'dx':dx, 'num':i, 'type':'node'});
-				}
-			}
-			layerItems[num].setBounds(getBoundsPoint(pArr[0] + dx,  pArr[1]));
-			layerItems[num].bringToFront();
-		}
-		if(attr['lastPoint']) {
-			if(!tmpPoint) {
-				tmpPoint = addPoint(attr['lastPoint']['x'] + dx,  attr['lastPoint']['y'], attr['stylePoint'])
-				tmpPoint.on('click', function(e) { attr['clickMe']({'attr':e}); });
-				tmpPoint.addTo(gmxAPI._leaflet['LMap']);
-			}
-			tmpPoint.setBounds(getBoundsPoint(attr['lastPoint']['x'] + dx,  attr['lastPoint']['y']));
-		} else if(tmpPoint) {
-			gmxAPI._leaflet['LMap'].removeLayer(tmpPoint);
-			tmpPoint = null;
-		}
+		layerItems[1].setLatLngs(latLngs);
 	}
 
 	function getGeometryTitle(geom)
@@ -730,6 +714,7 @@
 		var needInitNodeEvents = true;
 		var editIndex = -1;
 		var finishTime = 0;
+		var downTime = 0;
 		
 		mouseOverFlag = false;
 		
@@ -748,6 +733,7 @@
 			if(toolsContainer) toolsContainer.selectTool("move");
 			eventType = 'onEdit';
 			chkEvent(eventType);
+			drawMe();
 			return true;
 		};
 		//LMap.on('mouseout', mouseUp);
@@ -765,18 +751,21 @@
 			if(node['leaflet']) {
 				needInitNodeEvents = false;
 				layerGroup.on('mouseover', function(e) {
-//console.log('mouseover1:  ', obj.objectId, mouseOverFlag);
 					mouseOverFlag = true;
-					});
+				});
 				layerGroup.on('mouseout', function(e) {
-//console.log('mouseout1:  ', obj.objectId, mouseOverFlag);
 					if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 					if(!needMouseOver) {
 						chkEvent('onMouseOut'); 
 						needMouseOver = true;
 					}
 					mouseOverFlag = false;
-					});
+				});
+				layerGroup.on('click', function(e) {
+					if(new Date().getTime() - downTime > 500) return;
+					gmxAPI._listeners.dispatchEvent('onClick', domObj, domObj);
+					gmxAPI._listeners.dispatchEvent('onClick', gmxAPI.map.drawing, domObj);
+				});
 			}
 		}
 		var getPos = function()
@@ -786,7 +775,6 @@
 		
 		var layerGroup = null;
 		var layerItems = [];
-		var svgContainer = null;
 		var drawMe = function()
 		{
 //console.log('drawMe:  ', gmxAPI.currPosition);	// repaint vbounds
@@ -794,8 +782,6 @@
 			//coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
 			if(!layerGroup) {
 				layerGroup = node.leaflet;
-				//layerGroup.on('mouseover', function(e) { mouseOverFlag = true; });
-				//layerGroup.on('mouseout', function(e) { mouseOverFlag = false; });
 			}
 			if(needInitNodeEvents) chkNodeEvents();
 			drawAttr['mousedown'] = function(e, attr)
@@ -808,30 +794,19 @@
 			drawAttr['dblclick'] = function(e, attr)		// Удаление точки
 			{
 				if(new Date().getTime() - finishTime < 500) return;
-				var layer = e['layer'];
-				for (var i = 1; i < drawAttr['layerItems'].length; i++)
-				{
-					if(layer == drawAttr['layerItems'][i]) {
-						if(editType === 'POLYGON' && i == drawAttr['layerItems'].length - 1) {
-							i = 1;
-							layer = drawAttr['layerItems'][i];
-							if(coords.length > 1 && editType === 'POLYGON') {
-								var lastNum = coords.length - 1;
-								coords[lastNum][0] = coords[1][0];
-								coords[lastNum][1] = coords[1][1];
-							}
-						}
-						coords.splice(i - 1, 1);
-						drawAttr['coords'] = coords;
-						drawAttr['layerGroup'].removeLayer(layer);
-						drawAttr['layerItems'].splice(i, 1);
-						if(drawAttr['layerItems'].length == 1) {
-							domObj.remove();
-						} else {
-							drawSVG(drawAttr);
-						}
-						break;
-					}
+				var downType = getDownType(e, coords, oBounds);
+				if(downType.type !== 'node') return;
+				var len = coords.length - 1;
+				if(downType.cnt == 0 && len > 0 && editType === 'POLYGON') {
+					coords[len][0] = coords[1][0];
+					coords[len][1] = coords[1][1];
+				}
+				coords.splice(downType.cnt, 1);
+				drawAttr['coords'] = coords;
+				if(len == -1) {
+					domObj.remove();
+				} else {
+					drawSVG(drawAttr);
 				}
 			};
 			
@@ -842,10 +817,6 @@
 			drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
 			drawAttr['node'] = node;
 			drawAttr['clickMe'] = addDrawingItem;
-			
-			if(!svgContainer && layerItems.length) {
-				svgContainer = layerItems[0]['_container'].parentNode;
-			}
 			
 			drawSVG(drawAttr);
 		}
@@ -952,6 +923,7 @@
 		// Изменение точки
 		var itemMouseDown = function(ph)
 		{
+			downTime = new Date().getTime();
 			mousePressed = true;
 			if(ph.attr) ph = ph.attr;
 			var x = ph.latlng.lng;
@@ -1014,9 +986,6 @@
 		ret.remove = function()
 		{
 			chkEvent('onRemove');
-//			if(svgContainer) {
-//				if(svgContainer.parentNode) svgContainer.parentNode.removeChild(svgContainer);
-//			}
 			obj.remove();
 			domObj.removeInternal();
 			if(zoomListenerID) gmxAPI._listeners.removeListener(null, 'onZoomend', zoomListenerID); zoomListenerID = null;
@@ -1049,11 +1018,9 @@
 						var p2 = coords[(ii == 0 ? coords.length - 1 : ii - 1)];
 						title = getGeometryTitle({ type: "LINESTRING", coordinates: [[[p1[0], p1[1]], [p2[0], p2[1]]]] });
 					}
-					//if(svgContainer) svgContainer.style.pointerEvents = 'visibleStroke';
 				}
 				chkEvent('onMouseOver', title);
 				needMouseOver = false;
-				//if(pCanvas) pCanvas.style.cursor = 'pointer';
 			} else {
 				//gmxAPI._cmdProxy('stopDrawing');
 				//if(itemMouseDownID) obj.removeListener('onMouseDown', itemMouseDownID); itemMouseDownID = null;
@@ -1061,8 +1028,6 @@
 				if(!needMouseOver) {
 					chkEvent('onMouseOut'); 
 					needMouseOver = true;
-					//if(svgContainer) svgContainer.style.pointerEvents = 'none';
-					//if(pCanvas) pCanvas.style.cursor = '';
 				}
 			}
 			return flag;
@@ -1171,12 +1136,16 @@
 					}
 					mouseOverFlag = false;
 				});
+				layerGroup.on('click', function(e) {
+					if(new Date().getTime() - downTime > 500) return;
+					gmxAPI._listeners.dispatchEvent('onClick', domObj, domObj);
+					gmxAPI._listeners.dispatchEvent('onClick', gmxAPI.map.drawing, domObj);
+				});
 			}
 		}
 
 		var layerGroup = null;
 		var layerItems = [];
-		var svgContainer = null;
 		var isMouseOver = false;
 		
 		var drawMe = function()
@@ -1194,9 +1163,6 @@
 			drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
 			drawAttr['node'] = node;
 			drawSVG(drawAttr);
-			if(!svgContainer && layerItems.length) {
-				svgContainer = layerItems[0]['_container'].parentNode;
-			}
 		}
 		
 		var getPos = function() { return {'x': x1, 'y': y1}; }
@@ -1207,6 +1173,7 @@
 		var addItemListenerID = null;
 		var onMouseMoveID = null;
 		var onMouseUpID = null;
+		var downTime = 0;
 
 		var getItemDownType = function(ph)
 		{
@@ -1215,6 +1182,7 @@
 		}
 		var itemMouseDown = function(e, attr)
 		{
+			downTime = new Date().getTime();
 			if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 			coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
 			var downType = getDownType(e, coords);
@@ -1430,14 +1398,9 @@
 				chkEvent('onMouseOver', txt);
 				//}
 				needMouseOver = false;
-				//if(svgContainer) svgContainer.style.pointerEvents = 'visibleStroke';
-				//pCanvas.style.cursor = 'pointer';
 			} else {
 				if(!needMouseOver) {
 					chkEvent('onMouseOut'); needMouseOver = true;
-					//isMouseOver = false;
-					//pCanvas.style.cursor = '';
-					//if(svgContainer) svgContainer.style.pointerEvents = 'none';
 				}
 			}	
 			return flag;
@@ -1625,8 +1588,6 @@
 					return cObj;
 				}
 			}
-
-/**/
 			return null;
 		}
 		,
@@ -1640,8 +1601,6 @@
 					if(fName in cObj && cObj[fName].call(cObj, attr)) return true;
 				}
 			}
-/*
-*/
 			return false;
 		}
 	}

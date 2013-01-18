@@ -3443,7 +3443,36 @@ var tt = 1;
 				}
 
 			});
-			
+
+			L.GMXPointsMarkers = L.Polyline.extend({
+				_getPathPartStr: function (points) {
+					var round = L.Path.VML;
+					var pointSize = this.options.pointSize || 5;
+
+					for (var j = 0, len2 = points.length - (this.options.skipLastPoint ? 1 : 0), str = '', p; j < len2; j++) {
+						p = points[j];
+						if (round) {
+							p._round();
+						}
+						str += 'M' + (p.x - pointSize) + ' ' + (p.y - pointSize);
+						str += 'L' + (p.x + pointSize) + ' ' + (p.y - pointSize);
+						str += 'L' + (p.x + pointSize) + ' ' + (p.y + pointSize);
+						str += 'L' + (p.x - pointSize) + ' ' + (p.y + pointSize);
+						str += 'L' + (p.x - pointSize) + ' ' + (p.y - pointSize);
+						//str += (j ? 'L' : 'M') + p.x + ' ' + p.y;
+					}
+					return str;
+				}
+				,
+				_updatePath: function () {
+					if (!this._map) { return; }
+
+					this._clipPoints();
+					if(!this.options.skipSimplifyPoint) this._simplifyPoints();
+
+					L.Path.prototype._updatePath.call(this);
+				}
+			});
 			
 			initFunc(mapDivID, 'leaflet');
 			

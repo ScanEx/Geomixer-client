@@ -424,12 +424,11 @@
 			return arr;
 		}
 		gmxAPI.map.addListener('onMouseMove', function(ph) {
-			if(gmxAPI._drawing['activeState'] || !node['leaflet'] || node['leaflet']._isVisible == false || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['curDragState']) return false;
+			if(!node.isVisible || gmxAPI._drawing['activeState'] || !node['leaflet'] || node['leaflet']._isVisible == false || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['curDragState']) return false;
 //console.log('onMouseMove ' , ph);
 			var latlng = ph.attr['latlng'];
 			var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
-			//var arr = getItemsByPoint(latlng);
-			var arr = tilesRedrawImages.getItemsByPoint(ph.attr.tID, mPoint);
+			var arr = (ph.attr.tID ? tilesRedrawImages.getItemsByPoint(ph.attr.tID, mPoint) : getItemsByPoint(latlng));
 //return;
 			if(arr && arr.length) {
 				var item = getTopFromArrItem(arr);
@@ -445,6 +444,9 @@
 		}, -11);
 		var hoverItem = function(item) {				// Отрисовка hoveredStyle для item
 			if(!item) return;
+			if(!item.geom) {
+				item = {'id': item.id, 'geom': item};
+			}
 			var itemId = item.geom.id;
 			var propHiden = item.geom.propHiden;
 //console.log('hoverItem ' , item);
