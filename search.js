@@ -859,18 +859,23 @@ var ResultRenderer = function(oInitMap, sInitImagesHost, bInitAutoCenter){
 	/**Центрует карту по переданному объекту*/
 	var CenterObject = function(oFoundObject){
 		if (!oFoundObject) return;
-		var iZoom = (oFoundObject.TypeName != "дом жилой" ) ? oMap.getZ() : 15;
-		if (oFoundObject.MinLon != null && oFoundObject.MaxLon != null && oFoundObject.MinLat != null && oFoundObject.MaxLat != null){
-			oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
-		}
-		else if (oFoundObject.Geometry!=null && oFoundObject.Geometry.type != 'POINT'){
-			var oExtent = getBounds(oFoundObject.Geometry.coordinates);
-			oMap.zoomToExtent(oExtent.minX, oExtent.minY, oExtent.maxX, oExtent.maxY);
-		}
+		var iZoom = oFoundObject.TypeName == "г." ? 9 : 15;
+        if (oFoundObject.Geometry == null) {
+		    if (oFoundObject.MinLon != null && oFoundObject.MaxLon != null && oFoundObject.MinLat != null && oFoundObject.MaxLat != null
+                && oFoundObject.MaxLon - oFoundObject.MinLon < 1e-9 && oFoundObject.MaxLat - oFoundObject.MinLat < 1e-9)
+			    oMap.moveTo(oFoundObject.CntrLon, oFoundObject.CntrLat, iZoom);
+		    else
+			    oMap.zoomToExtent(oFoundObject.MinLon, oFoundObject.MinLat, oFoundObject.MaxLon, oFoundObject.MaxLat);
+        }
 		else
 		{
-			var dCntrLon = oFoundObject.CntrLon || oFoundObject.Geometry.coordinates[0], dCntrLat = oFoundObject.CntrLat || oFoundObject.Geometry.coordinates[1];
-			oMap.moveTo(dCntrLon, dCntrLat, iZoom);
+           if (oFoundObject.Geometry.type == 'POINT') {
+			    oMap.moveTo(oFoundObject.Geometry.coordinates[0], oFoundObject.Geometry.coordinates[1], iZoom);
+		    }
+		    else {
+			    var oExtent = getBounds(oFoundObject.Geometry.coordinates);
+			    oMap.zoomToExtent(oExtent.minX, oExtent.minY, oExtent.maxX, oExtent.maxY);
+            }
 		}
 	};
 	
