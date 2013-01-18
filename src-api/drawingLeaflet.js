@@ -119,7 +119,7 @@
 
 	var tmpPoint = null;
 	var styleStroke = {color: "#0000ff", weight: lineWidth , opacity: 1};
-	var stylePoint = {color: "#0000ff", fill: true, fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1, 'pointSize': pointSize, skipLastPoint: true, skipSimplifyPoint: false, clickable: false};
+	var stylePoint = {color: "#0000ff", fill: true, fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1, 'pointSize': pointSize, skipLastPoint: true, skipSimplifyPoint: true, clickable: false};
 	var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
 
 	var drawSVG = function(attr)
@@ -154,10 +154,8 @@
 			layerItems[1]._container.style.pointerEvents = 'none';
 			layerItems[1].bringToFront();
 		}
-		if(layerItems[1].options.skipSimplifyPoint == mousePressed) {
-			layerItems[1].options.skipSimplifyPoint = !mousePressed;
-//console.log('drawSVG:  ', layerItems[1].options.skipSimplifyPoint);
-		}
+		
+		//if(layerItems[1].options.skipSimplifyPoint == mousePressed) { layerItems[1].options.skipSimplifyPoint = !mousePressed; }
 		
 		/*
 		if(attr['editType'] == 'LINESTRING' && layerItems[0].options.fill) {
