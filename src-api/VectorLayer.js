@@ -466,17 +466,15 @@
 			}
 			if(hoveredStyle) {
 				if(!node['hoverItem'] || node['hoverItem'].geom.id != itemId) {
+					var tilesNeed = {};
+					if(node['hoverItem']) {
+						tilesNeed = gmxAPI.clone(node['hoverItem'].geom.propHiden['drawInTiles']);
+					}
 					node['hoverItem'] = item;
 					item.geom.curStyle = hoveredStyle;
+					for (var tileID in propHiden['drawInTiles']) tilesNeed[tileID] = true;
 
-					redrawTilesHash(propHiden['drawInTiles']);
-/*					var zoom = LMap.getZoom();
-					for (var tileID in propHiden['drawInTiles'])
-					{
-						node.redrawTile(tileID, zoom);
-					}*/
-					//var tileBound = node['tiles'][tileID];
-					
+					redrawTilesHash(tilesNeed);
 					item.geom.curStyle = regularStyle;
 					gmxAPI._div.style.cursor = 'pointer';
 				}

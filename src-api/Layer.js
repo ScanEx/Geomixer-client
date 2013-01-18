@@ -25,6 +25,7 @@
 			regularStyle = style.RenderStyle;
 		else
 		{
+			// стиль по умолчанию
 			if (style.PointSize)
 				regularStyle.marker = { size: parseInt(style.PointSize) };
 			if (style.Icon)
@@ -60,11 +61,14 @@
 		if (regularStyle.marker)
 			regularStyle.marker.center = true;
 
-		var hoveredStyle = JSON.parse(JSON.stringify(regularStyle));
-		if (hoveredStyle.marker && hoveredStyle.marker.size)
-			hoveredStyle.marker.size += 1;
-		if (hoveredStyle.outline)
-			hoveredStyle.outline.thickness += 1;
+		//var hoveredStyle = JSON.parse(JSON.stringify(regularStyle));
+		var hoveredStyle = null;
+		if (typeof style.HoverStyle != 'undefined') hoveredStyle = style.HoverStyle;
+		else {
+			hoveredStyle = JSON.parse(JSON.stringify(regularStyle));
+			if (hoveredStyle.marker && hoveredStyle.marker.size) hoveredStyle.marker.size += 1;
+			if (hoveredStyle.outline) hoveredStyle.outline.thickness += 1;
+		}
 
 		// Получение sql строки фильтра
 		var name = '';
@@ -85,11 +89,12 @@
 			}
 			if (style.Filter.Name) name = style.Filter.Name;	// имя фильтра - для map.layers в виде хэша
 		}
+		var DisableBalloonOnMouseMove = ('DisableBalloonOnMouseMove' in style ? style.DisableBalloonOnMouseMove : true);
 		var out = {
 			'name': name,
 			'BalloonEnable': style.BalloonEnable || true,
 			'DisableBalloonOnClick': style.DisableBalloonOnClick || false,
-			'DisableBalloonOnMouseMove': style.DisableBalloonOnMouseMove || true,
+			'DisableBalloonOnMouseMove': DisableBalloonOnMouseMove,
 			'regularStyle': regularStyle,
 			'hoveredStyle': hoveredStyle,
 			'MinZoom': style.MinZoom || 1,
