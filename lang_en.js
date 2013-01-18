@@ -567,5 +567,13 @@ _translationsHash.hash["eng"] = {
     "Существующие слои": "Existing layers",
     "Слои из карты": "Layers from map",
     "Слои из КР": "Layers from RC",
-    "Новый слой": "New layer"
+    "Новый слой": "New layer",
+    "С экрана": "Select on map",
+    "Добавлен растр": "Raster is added",
+    "Добавлены растры": "Rasters are added",
+    "Выбранный объект не имеет растра": "Selected object has no raster",
+    "Этот растр уже был выбран": "This raster is already selected",
+    "Каталог Растров": "Raster Catalog",
+    "Растр": "Raster",
+    "Добавить выбранные растры": "Add selected rasters"
 };

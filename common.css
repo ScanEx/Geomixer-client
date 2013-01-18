@@ -1315,3 +1315,19 @@ div.layersScroll
     color: green;
     font-size: 12px;
 }
+
+.RCAdd-warning-container
+{
+    color: orange;
+    font-size: 12px;
+}
+
+.RCAdd-vis-td
+{
+    text-align: center;
+}
+
+.RCAdd-vis-remove > img
+{
+    margin: 3px;
+}
