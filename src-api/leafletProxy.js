@@ -644,6 +644,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					//,shadowUrl: null
 					,'from': node.id
 					,iconAnchor: new L.Point(0, 0)
+					//,'zIndexOffset': -1000
 				};
 				if(!style['scale']) style['scale'] = 1;
 				var zn = utils.chkPropsInString(style['scale'], prop);
@@ -665,6 +666,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					icon: new nIcon()
 					,'from': node.id
 					,'rotate': opt['rotate']
+					,'toPaneName': 'overlayPane'
 				};
 				if(node['subType'] === 'drawing') {
 					optMarker['draggable'] = true;
