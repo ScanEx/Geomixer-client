@@ -65,7 +65,7 @@
 		node['flipNum'] = 0;					// Порядковый номер flip
 		
 		//node['labels'] = {};					// Хэш label слоя
-		node['labelsBounds'] = [];				// Массив отрисованных label
+		//node['labelsBounds'] = [];				// Массив отрисованных label
 
 		var inpAttr = ph.attr;
 		node['subType'] = (inpAttr['filesHash'] ? 'Temporal' : '');
@@ -1006,7 +1006,7 @@
 			if(clearFlag) attr.ctx.clearRect(0, 0, 255, 255);
 			//delete needRedrawTiles[drawTileID];
 //console.log('repaintTile ' , drawTileID , clearFlag);
-			
+		
 			var out = false;
 			if(node['observerNode']) {
 				if(observerTimer) clearTimeout(observerTimer);
@@ -1020,6 +1020,7 @@
 
 			var cnt = 0;
 			attr['node'] = node;
+			attr['labelBounds'] = [];	// отрисованные labels в тайле
 			var rasterNums = 0;
 			var geoNums = 0;
 			//var hideIDS = {};
@@ -1125,18 +1126,12 @@ if(objData['properties']['GM_LayerName']) {
 					} else {
 						geoNums--;
 						setCanvasStyle(attr['ctx'], style);
-						//style['label']['extent'] = new L.Point(size, ctx.measureText(txt).width);
-						var boundsLabel = geom['paint'](attr);
+						geom['paint'](attr);
 						if(propHiden['subType'] == 'cluster') chkBorderTiles(geom, attr);
-						//if(boundsLabel) node['labelsBounds'].push(boundsLabel);
-						//if(node['labels'][geom['id']]) {
-							//node['labels'][geom['id']].addTo(node['group']);
-						//}
 					}
 					res.push(geom['id']);
 				}
 //if(rasterNums === 0) attr['tile']._layer.tileDrawn(attr['tile']);
-//console.log('bbbbbbbbbbb ', rasterNums, geoNums);
 				
 				return res;
 			}
@@ -1190,84 +1185,10 @@ if(objData['properties']['GM_LayerName']) {
 			}
 			drawGeoArr(arr);
 
-			//attr.tile._layer.tileDrawn(attr.tile);
-/*			
-			var arr = [];
-//console.log('bbbbbbbbbbb ', node['labelsBounds'].length);
-			if(node['labelsBounds'].length) {
-				var vBounds = LMap.getBounds();
-				var vpNorthWest = vBounds.getNorthWest();
-				var vpSouthEast = vBounds.getSouthEast();
-				var vp1 = LMap.project(vpNorthWest);
-				var vp2 = LMap.project(vpSouthEast);
-				
-				var pixelBounds = LMap.getPixelBounds();
-			
-				var tilePos = attr['tile']['_leaflet_pos'];
-				var dx = tilePos.x - vp1.x;
-				var dy = tilePos.y - vp1.y;
-				var dx = tilePos.x;
-				var dy = tilePos.y;
-				
-				var testLabelCanvas = document.createElement('canvas');
-				testLabelCanvas.width = vp2.x - vp1.x;
-				testLabelCanvas.height = vp2.y - vp1.y;
-				var ptx = testLabelCanvas.getContext('2d');
-				ptx.fillStyle = "#ffffff";
-				//ptx.beginPath();
-				//ptx.clearRect(0, 0, pixelMap.x, pixelMap.y);
-				for (var i = node['labelsBounds'].length; i > 0; i--)
-				{
-					var pt = node['labelsBounds'][i - 1];
-					var flag = true;
-					var b = pt.boundsLabel;
-					//ptx.save();
-					//ptx.closePath();
-					var imageData = ptx.getImageData(dx + b.min.x, dy + b.min.y, 1,1);
-					if(imageData.data[0] > 0) {
-						continue;
-					}
-					imageData = ptx.getImageData(dx + b.min.x, dy + b.max.y, 1,1);
-					if(imageData.data[0] > 0) {
-						continue;
-					}
-					imageData = ptx.getImageData(dx + b.max.x, dy + b.max.y, 1,1);
-					if(imageData.data[0] > 0) {
-						continue;
-					}
-					imageData = ptx.getImageData(dx + b.max.x, dy + b.min.y, 1,1);
-					if(imageData.data[0] > 0) {
-						continue;
-					}
-					//ptx.restore();
-//					for (var j = 0; j < arr.length; j++)
-//					{
-//						if(pt.boundsLabel.intersects(arr[j])) {				// проверка пересечения мультиполигона с отображаемым тайлом
-//							flag = false;
-//							break;
-//						}
-//					}
-					//if(flag) {
-						//ptx.fillRect(dx + pt.boundsLabel.min.x, dy + pt.boundsLabel.min.y, pt.boundsLabel.max.x - pt.boundsLabel.min.x, pt.boundsLabel.max.y - pt.boundsLabel.min.y);
-						ptx.fillRect(0, 0, testLabelCanvas.width, testLabelCanvas.height);
-						ptx.fill();
-						//arr.push(pt.boundsLabel);
-						//ctx.font = "italic bold 16px Arial";
-						//ctx.textAlign = "center";
-						//var isPath = ctx.isPointInPath(50,50); // return true
-						//ctx.textBaseline = "Top";
-						pt.ctx.font = pt.font;
-						pt.ctx.fillStyle = pt.fillStyle;
-						pt.ctx.fillText(pt.fillText, pt.x, pt.y);
-					//}
-				}
-				testLabelCanvas.width = testLabelCanvas.height = 0;
-				testLabelCanvas = null;
-			}
-*/
 			//attr['tile']._layer.tileDrawn(attr['tile']);
 			return out;
 		}
+		node['labelBounds'] = {'add': {}, 'skip': {}};			// Добавленные и пропущенные labels обьектов слоя
 		node['chkTilesParentStyle'] = function() {							// перерисовка при изменении fillOpacity - rasterView
 			node.redrawFlips();
 		};
@@ -1286,7 +1207,10 @@ if(objData['properties']['GM_LayerName']) {
 //return;			
 			var attr = pt['attr'];
 			attr.ctx.save();
-			if(flagClear) attr.ctx.clearRect(0, 0, 256, 256);
+			if(flagClear) {
+				attr.ctx.clearRect(0, 0, 256, 256);
+				attr['labelBounds'] = [];
+			}
 			if(!pt.geom.curStyle) return;
 			attr.style = pt.geom.curStyle;
 			setCanvasStyle(attr['ctx'], attr.style);
@@ -1439,7 +1363,7 @@ if(objData['properties']['GM_LayerName']) {
 				//console.log('waitRedraw ', node.isVisible, myLayer._isVisible);
 				if(!node.isVisible || !myLayer._isVisible) return;
 				redrawTimer = null;
-				node['labelsBounds'] = [];
+				//node['labelsBounds'] = [];
 				myLayer.redraw();
 				gmxAPI._leaflet['lastZoom'] = LMap.getZoom();
 				gmxAPI._leaflet['mapOnResize']();
@@ -1485,6 +1409,7 @@ console.log('waitChkBorderTiles ', cnt);*/
 				myLayer.options.minZoom = node['minZ'];
 				myLayer.options.maxZoom = node['maxZ'];
 			}
+			node['labelBounds'] = {'add': {}, 'skip': {}};
 			var currZ = LMap.getZoom();
 			for (var z in node['tilesRedrawImages']) {
 				if(z != currZ) delete node['tilesRedrawImages'][z];

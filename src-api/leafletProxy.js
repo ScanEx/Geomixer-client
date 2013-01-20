@@ -135,7 +135,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				ptx.fillStyle = style['fillStyle'];
 				ptx.fillText(txt, 0, 0);
 				out.x = ptx.measureText(txt).width;
-				out.y = sizeLabel;
+				out.y = sizeLabel + 2;
 			}
 			return out;
 		}
@@ -344,15 +344,6 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(!node) return true;
 			if(node.isVisible === false) return false;
 			return utils.chkVisibleObject(node['parentId']);
-		}
-		,
-		'chkZoomObject': function(id, zoom)	{				// проверка видимости обьекта - по zoom
-			var node = mapNodes[id];
-			var pNode = mapNodes[node['parentId']];
-			if(!zoom) zoom = LMap.getZoom();
-			var flag = ((node['minZ'] && zoom < node['minZ']) || (node['maxZ'] && zoom > node['maxZ']) ? false 
-				: (pNode ? utils.chkZoomObject(pNode.id, zoom) : true));
-			return flag;
 		}
 		,
 		'getTileBoundsMerc': function(point, zoom)	{			// определение границ тайла
@@ -602,7 +593,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				} else if(node.geometry && node.geometry.type) {
 					utils.removeLeafletNode(node);
 
-					if(!utils.chkVisibleObject(node.id) || !utils.chkZoomObject(node.id, LMap.getZoom())) {		// если обьект невидим пропускаем
+					if(!utils.chkVisibleObject(node.id) || !utils.chkVisibilityByZoom(node.id)) {		// если обьект невидим пропускаем
 						utils.setVisibleNode({'obj': node, 'attr': false});
 						return;
 					}
@@ -736,10 +727,9 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		}
 		,
 		'drawMultiPolygon': function(node, style)	{			// отрисовка Polygon геометрии
-
 			var geojsonFeature = {
 				"type": "Feature",
-				"properties": node.properties,
+				"properties": node.properties || {},
 				"geometry": node.geometry
 			};
 			var out = L.geoJson(geojsonFeature, {
@@ -1042,6 +1032,29 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 	function setLabel(id, iconAnchor)	{
 		var node = mapNodes[id];
 		if(!node || !node.regularStyle || !node.regularStyle.label || !('label' in node)) return false;
+		var regularStyle = node.regularStyle;
+		var labelStyle = regularStyle.label;
+
+		if(node['marker']) {
+			node['group'].removeLayer(node['marker']);
+		}
+
+		var pp = node.geometry.coordinates;
+		var options = {
+			'textMarkers': [node['label']]
+			,'align': labelStyle['align']
+			,'color': '#' + utils.dec2hex(labelStyle['color'])
+		};
+
+		var p1 = new L.LatLng(pp[1], pp[0]);
+		node['marker'] = new L.GMXLabels([p1, p1], options);		
+		node['marker'].setStyle({'stroke': true, 'weight': 1, 'color': options['color']});
+		node['marker'].addTo(node['group']);
+	}
+/*	// setLabel для mapObject 
+	function setLabel(id, iconAnchor)	{
+		var node = mapNodes[id];
+		if(!node || !node.regularStyle || !node.regularStyle.label || !('label' in node)) return false;
 		if(!iconAnchor) {
 			iconAnchor = new L.Point(0, 0);
 		}
@@ -1087,7 +1100,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		optm['icon'] = myIcon;
 		node['marker'] = L.marker([pp[1], pp[0]], optm);		
 		node['marker'].addTo(node['group']);
-	}
+	}*/
 	// setStyle для mapObject
 	function setStyle(id, attr)	{
 		var node = mapNodes[id];
@@ -1665,7 +1678,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			LMap.options.minZoom = ph.attr.z1;
 			LMap.options.maxZoom = ph.attr.z2;
 			var currZ = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
-//console.log('setMinMaxZoom1 ', currZ, LMap.options.minZoom, LMap.options.maxZoom, gmxAPI.map.needMove);
+//console.log('setMinMaxZoom1 ', ph);
 			if(currZ > LMap.getMaxZoom()) currZ = LMap.getMaxZoom();
 			else if(currZ < LMap.getMinZoom()) currZ = LMap.getMinZoom();
 			else return;
@@ -1898,21 +1911,23 @@ return;
 			if(!node) return;
 			node['minZ'] = ph.attr['minZ'] || 1;
 			node['maxZ'] = ph.attr['maxZ'] || 21;
-			if(node.propHiden) {
-				if(node.propHiden['subType'] == 'tilesParent') {	//ограничение по zoom квиклуков
-					var pnode = mapNodes[node.parentId];
-					if(pnode) {
-						if(pnode['setZoomBoundsQuicklook']) pnode['setZoomBoundsQuicklook'](node['minZ'], node['maxZ']);
-					}
-				} else if(node['type'] == 'mapObject') {			//ограничение по zoom mapObject
-					gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function() {
-							gmxAPI._leaflet['drawManager'].add(id);
-						}
-					});
-				} else if('onZoomend' in node) {					// есть проверка по Zoom
-					node.onZoomend();
+			if(node.propHiden && node.propHiden['subType'] == 'tilesParent') {			//ограничение по zoom квиклуков
+				var pnode = mapNodes[node.parentId];
+				if(pnode) {
+					if(pnode['setZoomBoundsQuicklook']) pnode['setZoomBoundsQuicklook'](node['minZ'], node['maxZ']);
 				}
-
+			} else if(node['type'] == 'mapObject') {			//ограничение по zoom mapObject
+				gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function() {
+						gmxAPI._leaflet['drawManager'].add(id);
+						
+						if(utils.chkVisibleObject(node.id) && utils.chkVisibilityByZoom(node.id)) {
+							utils.setVisibleNode({'obj': node, 'attr': true});
+						}
+						return false;
+					}
+				});
+			} else if('onZoomend' in node) {					// есть проверка по Zoom
+				node.onZoomend();
 			}
 			
 			return true;
@@ -2375,6 +2390,22 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			return x * x + y * y;
 		}
 
+		var chkLabelBounds = function(labelBounds, ph)	{							// проверка пересечений labels
+			var p = new L.Point(ph['lx'], ph['ly']);
+			var b = new L.Bounds(p);
+			b.extend(p);
+			p = new L.Point(ph['lx'] + ph.labelExtent['x'], ph['ly'] + ph.labelExtent['y']);
+			b.extend(p);
+			for (var i = 0; i < labelBounds.length; i++)
+			{
+				if(b.intersects(labelBounds[i])) {					// проверка пересечения уже нарисованных в тайле labels
+					return false;
+				}
+			}
+			labelBounds.push(b);
+			return true;
+		}
+
 		// Отрисовка точки
 		out['paint'] = function (attr) {
 			if(!attr) return;
@@ -2451,20 +2482,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 							,'lableFont': size + 'px "Tahoma"'
 							,'lableStrokeStyle': gmxAPI._leaflet['utils'].dec2rgba(haloColor, 1)
 							,'lableFillStyle': gmxAPI._leaflet['utils'].dec2rgba(fillStyle, 1)
+							,'id': out['id']
 						};
-						/*
-						var ptxCont = document.createElement("canvas");
-						ptxCont.width = _labelAttr['labelExtent'].x;
-						ptxCont.height = _labelAttr['labelExtent'].y;
-						var ptx = ptxCont.getContext('2d');
-						ptx.font = _labelAttr['lableFont'];
-						ptx.strokeStyle = _labelAttr['lableStrokeStyle'];
-						ptx.strokeText(txt, 0, 0);
-						ptx.fillStyle = _labelAttr['lableFillStyle'];
-						ptx.fillText(txt, 0, 0);
-						_labelAttr['labelImg'] = new Image();
-						_labelAttr['labelImg'].src = ptxCont.toDataURL();
-						*/
 						out['_cache']['_labelAttr'] = _labelAttr;
 					}
 
@@ -2478,6 +2497,15 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					}
 					lx = (0.5 + lx) << 0;
 					ly = (0.5 + ly) << 0;
+					_labelAttr['lx'] = lx + attr['tile']['_leaflet_pos'].x;
+					_labelAttr['ly'] = ly + attr['tile']['_leaflet_pos'].y;
+
+					var skips = attr['node']['labelBounds']['skip'];
+					var adds = attr['node']['labelBounds']['add'];
+					var addFlag = (adds[out['id']] || (!skips[out['id']] && chkLabelBounds(attr['labelBounds'], _labelAttr)));
+					if(addFlag) {
+						attr['node']['labelBounds']['add'][out['id']] = true;
+//console.log('bbbbbbbbbbb ', boundsLabel, geom['_cache']['_labelAttr']);
 
 					
 //ctx.drawImage(_labelAttr['labelImg'], 0, 0, 55, 55);
@@ -2486,11 +2514,16 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					//ctx.textAlign = "center";
 					//var isPath = ctx.isPointInPath(50,50); // return true
 					//ctx.textBaseline = "Top";
-					ctx.font = _labelAttr['lableFont'];
-					ctx.strokeStyle = _labelAttr['lableStrokeStyle'];
-					ctx.strokeText(txt, lx, ly);
-					ctx.fillStyle = _labelAttr['lableFillStyle'];
-					ctx.fillText(txt, lx, ly);
+						ctx.globalCompositeOperation = "source-over";
+						ctx.font = _labelAttr['lableFont'];
+						ctx.strokeStyle = _labelAttr['lableStrokeStyle'];
+						ctx.strokeText(txt, lx, ly);
+						ctx.fillStyle = _labelAttr['lableFillStyle'];
+						ctx.fillText(txt, lx, ly);
+						ctx.globalCompositeOperation = "destination-over";
+					} else {
+						attr['node']['labelBounds']['skip'][out['id']] = true;
+					}
 				}
 			}
 		}
@@ -3490,6 +3523,53 @@ var tt = 1;
 								text.setAttribute("text-anchor", "middle");
 								dy = 20;
 							}
+							text.setAttribute('x', p.x + dx);
+							text.setAttribute('y', p.y + dy);
+							this._containerText.appendChild(text);
+						}
+					}
+					return str;
+				}
+				,
+				_updatePath: function () {
+					if (!this._map) { return; }
+					this._clipPoints();
+					L.Path.prototype._updatePath.call(this);
+				}
+			});
+
+			L.GMXLabels = L.Polyline.extend({
+				_getPathPartStr: function (points) {
+					var round = L.Path.VML;
+					//if(this.options.textMarkers) {
+						if(this._containerText) this._container.removeChild(this._containerText);
+						this._containerText = this._createElement('g');
+						//this._containerText.setAttribute("stroke", this._path.getAttribute("stroke"));
+						//this._containerText.setAttribute("style", this._path.getAttribute("style"));
+						this._containerText.setAttribute("stroke", this._path.getAttribute("stroke"));
+						this._containerText.setAttribute("stroke-width", 0);
+
+						//this._containerText.setAttribute("fill", "yellow");
+						this._containerText.setAttribute("opacity", 1);
+						this._container.appendChild(this._containerText);
+						//var textMarkers = this.options.textMarkers || [];
+						
+					//}
+
+					for (var j = 0, len2 = points.length, str = '', p, p1; j < len2; j++) {
+						p = points[j];
+						if(this.options.textMarkers && this.options.textMarkers[j]) {
+							var text = this._createElement('text');
+							text.textContent = this.options.textMarkers[j];
+							if(this.options['align'] === 'center') {
+								text.setAttribute("text-anchor", "middle");
+							} else if(this.options['align'] === 'left') {
+								text.setAttribute("text-anchor", "left");
+							} else if(this.options['right'] === 'right') {
+								text.setAttribute("text-anchor", "right");
+							}
+							var dx = -1;
+							var dy = 3;
 							text.setAttribute('x', p.x + dx);
 							text.setAttribute('y', p.y + dy);
 							this._containerText.appendChild(text);
