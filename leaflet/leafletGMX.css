@@ -1,3 +1,10 @@
+.leaflet-overlay-pane svg {
+	pointer-events: none;
+	z-index: 1000;
+}
+.leaflet-overlay-pane svg g {
+	pointer-events: all;
+}
 .leaflet-tile {
 		position: absolute;
 }

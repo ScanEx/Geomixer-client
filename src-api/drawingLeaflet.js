@@ -136,11 +136,11 @@
 		var layerGroup = attr['layerGroup'];
 		var layerItems = attr['layerItems'];
 		if(layerItems.length == 0) {
-			layerItems.push(new L.Polyline([], attr['stylePolygon'] || stylePolygon));
+			var tstyle = attr['stylePolygon'] || stylePolygon;
+			layerItems.push(new L.Polyline([], tstyle));
 			var pstyle = attr['stylePoint'] || stylePoint;
 			pstyle['skipLastPoint'] = (attr['editType'] !== 'LINESTRING');
 			layerItems.push(new L.GMXPointsMarkers([], pstyle));
-			
 			var mousedown = function(e) { attr['mousedown'](e, this); };
 			layerItems[0].on('mousedown', mousedown , {'num':0, 'type':'edge'});
 			if(attr['dblclick']) {
@@ -148,11 +148,15 @@
 				layerItems[0].on('dblclick', dblclick , {'dx':dx, 'num':0, 'type':'edge'});
 			}
 			
-			layerGroup.addLayer(layerItems[1]);
 			layerGroup.addLayer(layerItems[0]);
+			layerGroup.addLayer(layerItems[1]);
 			
+			layerItems[0]._container.style.pointerEvents = 'visiblestroke';
 			layerItems[1]._container.style.pointerEvents = 'none';
-			layerItems[1].bringToFront();
+			layerItems[0]._container.style.zIndex = 10000;
+			layerItems[1]._container.style.zIndex = 10001;
+			//layerItems[0].bringToFront();
+			//layerItems[1].bringToFront();
 		}
 		
 		//if(layerItems[1].options.skipSimplifyPoint == mousePressed) { layerItems[1].options.skipSimplifyPoint = !mousePressed; }

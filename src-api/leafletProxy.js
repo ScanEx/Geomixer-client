@@ -3553,6 +3553,7 @@ var tt = 1;
 						//this._containerText.setAttribute("style", this._path.getAttribute("style"));
 						this._containerText.setAttribute("stroke", this._path.getAttribute("stroke"));
 						this._containerText.setAttribute("stroke-width", 0);
+						if(this.options.color) this._containerText.setAttribute("fill", this.options.color);
 
 						//this._containerText.setAttribute("fill", "yellow");
 						this._containerText.setAttribute("opacity", 1);
@@ -3566,6 +3567,7 @@ var tt = 1;
 						if(this.options.textMarkers && this.options.textMarkers[j]) {
 							var text = this._createElement('text');
 							text.textContent = this.options.textMarkers[j];
+							text.setAttribute("class", "leaflet-clickable");
 							if(this.options['align'] === 'center') {
 								text.setAttribute("text-anchor", "middle");
 							} else if(this.options['align'] === 'left') {
