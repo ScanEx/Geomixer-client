@@ -50,7 +50,7 @@
         {
             $('.RCCreate-advanced', container).toggle(advancedMode);
             $('.RCCreate-advanced-link, .RCCreate-params', container).toggle(RCCheckbox[0].checked);
-            $('.RCCreate-tagContainer').toggle(advancedMode && RCCheckbox[0].checked);
+            $('.RCCreate-tagContainer', container).toggle(advancedMode && RCCheckbox[0].checked);
         }
         
         var RCCheckbox = $('<input/>', {type: 'checkbox', 'class': 'RCCreate-checkbox'}).change(updateVisibility);

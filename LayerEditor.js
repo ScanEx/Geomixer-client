@@ -860,7 +860,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
         }
         
         // в IE инициализировать чекбоксы можно только после их добавления в DOM-дерево
-        $('input#chxFileSource').attr('checked', 'checked');
+        $('input#chxFileSource', sourceCheckbox).attr('checked', 'checked');
         
         //Обновим отображение каталога растров после создания виджета
         if (type === "Vector")
