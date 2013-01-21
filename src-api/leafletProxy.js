@@ -2135,6 +2135,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		var posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 		var repaint = function(imageObj, canvas, zoom) {
 			var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
+			node['isOnScene'] = isOnScene;
 			if(!isOnScene) {
 				node['group'].removeLayer(node['leaflet']);
 				if(canvas) canvas.width = canvas.height = 0;
@@ -2297,9 +2298,11 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			setNodeHandlers(node.id);
 
 			LMap.on('zoomend', redrawMe);
-			gmxAPI.map.addListener('positionChanged', function(e) {
-				if(node['isLargeImage']) redrawMe();
-			}, 11);
+			LMap.on('moveend', function(e) {
+				var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
+				if(node['isOnScene'] == isOnScene && !node['isLargeImage']) return;
+				redrawMe();
+			});
 			
 			/*
 			LMap.on('zoomanim', function(e) {
