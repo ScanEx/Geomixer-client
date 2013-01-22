@@ -1621,6 +1621,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(!gmxAPI.map.needMove) {
 				if('bringToFront' in node) node.bringToFront();
 				else if(node['leaflet'] && node['leaflet']._isVisible && 'bringToFront' in node['leaflet']) node['leaflet'].bringToFront();
+				gmxAPI.map.drawing.chkZindex(id);
 			}
 			return zIndex;
 		}
@@ -1634,6 +1635,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(!gmxAPI.map.needMove) {
 				if('bringToBack' in node) node.bringToBack();
 				else if(node['leaflet'] && node['leaflet']._isVisible && 'bringToBack' in node['leaflet']) node['leaflet'].bringToBack();
+				gmxAPI.map.drawing.chkZindex(id);
 /*				for (var i = 0; i < node['children'].length; i++) {
 					var cNode = mapNodes[node['children'][i]];
 					if('bringToDepth' in cNode) cNode.bringToDepth(0);

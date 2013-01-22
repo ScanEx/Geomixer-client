@@ -155,8 +155,8 @@
 			layerItems[1]._container.style.pointerEvents = 'none';
 			layerItems[0]._container.style.zIndex = 10000;
 			layerItems[1]._container.style.zIndex = 10001;
-			//layerItems[0].bringToFront();
-			//layerItems[1].bringToFront();
+			layerItems[0].bringToFront();
+			layerItems[1].bringToFront();
 		}
 		
 		//if(layerItems[1].options.skipSimplifyPoint == mousePressed) { layerItems[1].options.skipSimplifyPoint = !mousePressed; }
@@ -268,6 +268,10 @@
 			{
 				callHandler("onRemove");
 				delete objects[myId];
+			},
+			reDraw: function()
+			{
+				if('reDraw' in ret) ret.reDraw();
 			},
 			triggerInternal: function( callbackName ){ callHandler(callbackName); },
 			getGeometry: function() { return gmxAPI.clone(this.geometry); },
@@ -987,6 +991,10 @@
 		}
 		var zoomListenerID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': repaint });
 //		var positionChangedID = gmxAPI.map.addListener('positionChanged', repaint);
+		ret.reDraw = function()
+		{
+			drawMe();
+		}
 		ret.remove = function()
 		{
 			chkEvent('onRemove');
@@ -1355,6 +1363,10 @@
 		}
 		var zoomListenerID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': repaint });
 		var positionChangedID = gmxAPI.map.addListener('positionChanged', repaint);
+		ret.reDraw = function()
+		{
+			drawMe();
+		}
 		ret.remove = function()
 		{
 			//eventType = 'onRemove';
@@ -1608,6 +1620,14 @@
 				}
 			}
 			return false;
+		}
+		,
+		chkZindex: function(pid)
+		{
+			for (var id in objects) {
+				var cObj = objects[id];
+				if('reDraw' in cObj) cObj.reDraw();
+			}
 		}
 	}
 
