@@ -1260,6 +1260,7 @@ if(objData['properties']['GM_LayerName']) {
 			var item = null;
 			for (var i = 0; i < arr.length; i++) {
 				item = arr[i];
+				if(node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](item.geom['properties'])) continue; // если фильтр видимости на слое
 				if(!chkItemFiltersVisible(item.geom)) continue;
 				var itemId = item.geom.id;
 				if(borders && borders[itemId]) {
