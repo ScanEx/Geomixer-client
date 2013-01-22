@@ -30,6 +30,18 @@ window.PI = 3.14159265358979; //устарело - обратная совмес
 window.gmxAPI = {
     APILoaded: false							// Флаг возможности использования gmxAPI сторонними модулями
 	,
+    initParams: null							// Параметры заданные при создании карты 
+	,
+	'createMap': function(div, ph)
+	{
+		var hostName = ph['hostName'] || getAPIHost();
+		var mapName = ph['mapName'] || 'DefaultMap';
+		var callback = ph['callback'] || function(){};
+		gmxAPI.initParams = ph;
+		createFlashMap(div, hostName, mapName, callback);
+		return true;
+	}
+	,
 	'parseSQL': function(sql)	{							// парсинг SQL строки
 		var zn = sql;
 		if(typeof(zn) === 'string') {
@@ -2161,10 +2173,9 @@ function loadMapJSON(hostName, mapName, callback, onError)
 	else
 		finish();
 }
-
 function createFlashMap(div, arg1, arg2, arg3)
 {
-	if (!arg2 && !arg3)
+	if (!arg2 && !arg3 && typeof(arg1) === 'function')
 		createKosmosnimkiMapInternal(div, false, arg1);
 	else
 	{
@@ -2195,8 +2206,8 @@ function createFlashMap(div, arg1, arg2, arg3)
 	return true;
 }
 
-var createKosmosnimkiMap = createFlashMap;
-var makeFlashMap = createFlashMap;
+//var createKosmosnimkiMap = createFlashMap;
+//var makeFlashMap = createFlashMap;
 
 (function(){
 var flashId = gmxAPI.newFlashMapId();

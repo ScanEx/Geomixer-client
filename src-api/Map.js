@@ -470,35 +470,43 @@
 					miniOSM.setAsBaseLayer("OSM");
 				}
 			}
-			if (layers.properties.DefaultLat && layers.properties.DefaultLong && layers.properties.DefaultZoom) {
-				var pos = {
-					'x': parseFloat(layers.properties.DefaultLong),
-					'y': parseFloat(layers.properties.DefaultLat),
-					'z': parseInt(layers.properties.DefaultZoom)
-				};
-				map.needMove = pos;
-				setCurrPosition(null, {'currPosition': {
-					'x': gmxAPI.merc_x(pos['x']),
-					'y': gmxAPI.merc_y(pos['y']),
-					'z': pos['z']
-				}});
-			} else if(!notMoveFlag)
-			{
-				var z = map.getBestZ(b.minX, b.minY, b.maxX, b.maxY);
-				if (minLayerZoom != 20)
-					z = Math.max(z, minLayerZoom);
-				if(z > 0)  {
+
+			if(gmxAPI.initParams && gmxAPI.initParams['center']) {			// есть переопределение центра карты
+				if('x' in gmxAPI.initParams['center']) map.needMove['x'] = gmxAPI.initParams['center']['x'];
+				if('y' in gmxAPI.initParams['center']) map.needMove['y'] = gmxAPI.initParams['center']['y'];
+				if('z' in gmxAPI.initParams['center']) map.needMove['z'] = gmxAPI.initParams['center']['z'];
+				//delete gmxAPI.initParams['center'];
+			} else {
+				if (layers.properties.DefaultLat && layers.properties.DefaultLong && layers.properties.DefaultZoom) {
 					var pos = {
-						'x': (gmxAPI.merc_x(b.minX) + gmxAPI.merc_x(b.maxX))/2,
-						'y': (gmxAPI.merc_y(b.minY) + gmxAPI.merc_y(b.maxY))/2,
-						'z': z
+						'x': parseFloat(layers.properties.DefaultLong),
+						'y': parseFloat(layers.properties.DefaultLat),
+						'z': parseInt(layers.properties.DefaultZoom)
 					};
-					map.needMove = {
-						'x': gmxAPI.from_merc_x(pos['x']),
-						'y': gmxAPI.from_merc_y(pos['y']),
-						'z': z
-					};
-					setCurrPosition(null, {'currPosition': pos});
+					map.needMove = pos;
+					setCurrPosition(null, {'currPosition': {
+						'x': gmxAPI.merc_x(pos['x']),
+						'y': gmxAPI.merc_y(pos['y']),
+						'z': pos['z']
+					}});
+				} else if(!notMoveFlag)
+				{
+					var z = map.getBestZ(b.minX, b.minY, b.maxX, b.maxY);
+					if (minLayerZoom != 20)
+						z = Math.max(z, minLayerZoom);
+					if(z > 0)  {
+						var pos = {
+							'x': (gmxAPI.merc_x(b.minX) + gmxAPI.merc_x(b.maxX))/2,
+							'y': (gmxAPI.merc_y(b.minY) + gmxAPI.merc_y(b.maxY))/2,
+							'z': z
+						};
+						map.needMove = {
+							'x': gmxAPI.from_merc_x(pos['x']),
+							'y': gmxAPI.from_merc_y(pos['y']),
+							'z': z
+						};
+						setCurrPosition(null, {'currPosition': pos});
+					}
 				}
 			}
 			if (layers.properties.ViewUrl && !window.suppressDefaultPermalink)
