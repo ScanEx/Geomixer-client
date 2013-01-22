@@ -282,7 +282,7 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Свойства"); },
 	isVisible: function(context)
 	{
-		return !context.layerManagerFlag && _queryMapLayers.currentMapRights() === "edit";
+		return !context.layerManagerFlag && (_queryMapLayers.currentMapRights() === "edit" || _queryMapLayers.layerRights(context.elem.name) == 'edit');
 	},
 	clickCallback: function(context)
 	{
