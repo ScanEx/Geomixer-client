@@ -122,12 +122,16 @@ var gmxCore = function()
                         _this.loadCSS(path + cssFiles[iF]);
 				}
                 
-                _modules[moduleName] = moduleObj;
                 
-                if (initDeferred)
-                    initDeferred.done(invokeCallbacks);
-                else
+                if (initDeferred) {
+                    initDeferred.done(function() {
+                        _modules[moduleName] = moduleObj;
+                        invokeCallbacks();
+                    });
+                } else {
+                    _modules[moduleName] = moduleObj;
                     invokeCallbacks();
+                }
             });
         },
         
