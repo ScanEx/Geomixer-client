@@ -1700,6 +1700,10 @@ return;
 		}
 		,
 		'zoomBy':	function(ph)	{				// установка Zoom карты
+			var toz = Math.abs(ph.attr.dz);
+			if(ph.attr.dz > 0) LMap.zoomOut(toz);
+			else LMap.zoomIn(toz);
+/*
 			var currZ = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
 			currZ -= ph.attr.dz;
 			if(currZ > LMap.getMaxZoom() || currZ < LMap.getMinZoom()) return;
@@ -1720,6 +1724,7 @@ return;
 			}
 			utils.runMoveTo({'x': pos.lng, 'y': pos.lat, 'z': currZ})
 			//LMap.setView(pos, currZ);
+*/
 		}
 		,
 		'moveTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб

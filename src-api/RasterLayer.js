@@ -332,8 +332,8 @@
 						return;
 					}
 				}
-				//if(L.Browser.touch) 
-				tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
+				if(gmxAPI.isMobile) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
+				//		ctx.webkitImageSmoothingEnabled = false;
 				if(flagAll) {
 					tile.style.display = 'none';
 					tile.onload = function() { tile.style.display = 'block'; tile._layer.tileDrawn(tile); };
