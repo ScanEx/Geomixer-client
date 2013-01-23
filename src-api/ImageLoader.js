@@ -40,7 +40,7 @@
 				callCacheItems(item);
 			//}
 		}
-		//imageObj.crossOrigin = 'anonymous';
+		if(item['crossOrigin']) imageObj.crossOrigin = item['crossOrigin'];
 		imageObj.onload = function() {
 			chkLoadedImage();
 			//setTimeout(function() { chkLoadedImage(); } , 25); //IE9 bug - black tiles appear randomly if call setPattern() without timeout

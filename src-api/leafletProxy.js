@@ -1957,6 +1957,15 @@ return;
 			return true;
 		}
 		,
+		'setImageExtent':	function(ph)	{			// Установка изображения без трансформации
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return;
+			ph['setImageExtent'] = true;
+			setImage(node, ph);
+			return true;
+		}
+		,
 		'addItems':	function(ph)	{
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
@@ -2080,6 +2089,17 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var point = new L.LatLng(y, x);
 			return LMap.project(point);
 		}
+		if(ph['setImageExtent']) {
+			node['setImageExtent'] = true;
+			attr['x1'] = attr.extent['minX'];
+			attr['y1'] = attr.extent['maxY'];
+			attr['x2'] = attr.extent['minX'];
+			attr['y2'] = attr.extent['minY'];
+			attr['x3'] = attr.extent['maxX'];
+			attr['y3'] = attr.extent['minY'];
+			attr['x4'] = attr.extent['minX'];
+			attr['y4'] = attr.extent['maxY'];
+		}
 		var arr = [
 			new L.Point(attr['x1'], attr['y1'])
 			,new L.Point(attr['x2'], attr['y2'])
@@ -2139,15 +2159,19 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
 			node['isOnScene'] = isOnScene;
 			if(!isOnScene) {
-				node['group'].removeLayer(node['leaflet']);
 				if(canvas) {
 					canvas.width = canvas.height = 0;
-					node['imageCanvas'] = null;
+					//node['imageCanvas'] = null;
 				}
+				node['group'].removeLayer(node['leaflet']);
 				return;
 			} else {
-				if(!node['leaflet']._map) node['group'].addLayer(node['leaflet']);
+				if(!node['leaflet']._map) {
+					node['group'].addLayer(node['leaflet']);
+					return;
+				}
 			}
+			if(!canvas) return;
 
 			if(imageObj.src.indexOf(node['imageURL']) == -1) return;
 			if(!zoom) zoom = LMap.getZoom();
@@ -2155,49 +2179,50 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var w = imageObj.width;
 			var h = imageObj.height;
 			var ph = getPixelPoints(attr);
+			var data = { 'canvas': imageObj	};
 			var ww = ph.ww;
 			var hh = ph.hh;
+			if(!node['setImageExtent']) {
+				var point = LMap.project(new L.LatLng(0, -180), zoom);
+				var p180 = LMap.project(new L.LatLng(0, 180), zoom);
+				var worldSize = p180.x - point.x;
+				
+				var vBounds = LMap.getBounds();
+				var vpNorthWest = vBounds.getNorthWest();
+				var vpSouthEast = vBounds.getSouthEast();
 
-			var point = LMap.project(new L.LatLng(0, -180), zoom);
-			var p180 = LMap.project(new L.LatLng(0, 180), zoom);
-			var worldSize = p180.x - point.x;
-			
-			var vBounds = LMap.getBounds();
-			var vpNorthWest = vBounds.getNorthWest();
-			var vpSouthEast = vBounds.getSouthEast();
-
-			var vp1 = LMap.project(vpNorthWest, zoom);
-			var vp2 = LMap.project(vpSouthEast, zoom);
-			var wView = vp2.x - vp1.x;
-			var hView = vp2.y - vp1.y;
-			
-			var dx = 0;
-			var deltaX = 0;
-			var deltaY = 0;
-			node['isLargeImage'] = false;
-			if(wView < ww || hView < hh) {
-				deltaX = ph['boundsP'].min.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
-				deltaY = ph['boundsP'].min.y - vp1.y;
-				posLatLng = vpNorthWest;
-				ww = wView;
-				hh = hView;
-				node['isLargeImage'] = true;
-			}
-			//attr['reposition']();
-			var rx = w/ph.ww;
-			var ry = h/ph.hh;
-			
-			var points = [[ph['x1'], ph['y1']], [ph['x2'], ph['y2']], [ph['x4'], ph['y4']], [ph['x3'], ph['y3']]];
-			var data = { 'canvas': imageObj	};
-			if(rx != 1 || ry != 1) {
-				data = gmxAPI._leaflet['ProjectiveImage']({
-					'imageObj': imageObj
-					,'points': points
-					,'wView': wView
-					,'hView': hView
-					,'deltaX': deltaX
-					,'deltaY': deltaY
-				});
+				var vp1 = LMap.project(vpNorthWest, zoom);
+				var vp2 = LMap.project(vpSouthEast, zoom);
+				var wView = vp2.x - vp1.x;
+				var hView = vp2.y - vp1.y;
+				
+				var dx = 0;
+				var deltaX = 0;
+				var deltaY = 0;
+				node['isLargeImage'] = false;
+				if(wView < ww || hView < hh) {
+					deltaX = ph['boundsP'].min.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
+					deltaY = ph['boundsP'].min.y - vp1.y;
+					posLatLng = vpNorthWest;
+					ww = wView;
+					hh = hView;
+					node['isLargeImage'] = true;
+				}
+				//attr['reposition']();
+				var rx = w/ph.ww;
+				var ry = h/ph.hh;
+				
+				var points = [[ph['x1'], ph['y1']], [ph['x2'], ph['y2']], [ph['x4'], ph['y4']], [ph['x3'], ph['y3']]];
+				if(rx != 1 || ry != 1) {
+					data = gmxAPI._leaflet['ProjectiveImage']({
+						'imageObj': imageObj
+						,'points': points
+						,'wView': wView
+						,'hView': hView
+						,'deltaX': deltaX
+						,'deltaY': deltaY
+					});
+				}
 			}
 
 			var paintPolygon = function (ph, content) {
@@ -2259,19 +2284,34 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 
 		var redrawMe = function(e) {
 			if(!imageObj) {
+				var src = attr['url'];
+				//var src = '1.jpg';
+				node['imageURL'] = src.replace(/\.\.\//g, '');
+				var ph = {
+					'src': src
+					,'crossOrigin': 'anonymous'
+					,'callback': function(img) {
+						imageObj = img;
+						node['refreshMe'] = function() {
+							if(canvas) repaint(imageObj, canvas);
+						}
+						node['refreshMe']();
+					}
+					,'onerror': function(){
+					}
+				};
+				gmxAPI._leaflet['imageLoader'].push(ph);
+/*			
 				imageObj = new Image();
 				imageObj.crossOrigin = 'anonymous';		// для crossdomain прав
 				imageObj.onload = function() {
 					node['refreshMe'] = function() {
-						repaint(imageObj, canvas);
-				//attr['reposition']();
+						if(canvas) repaint(imageObj, canvas);
 					}
 					node['refreshMe']();
 				};
-				var src = attr['url'];
-				//var src = '1.jpg';
-				node['imageURL'] = src.replace(/\.\.\//g, '');
 				imageObj.src = src;
+*/
 			}
 			if(node['refreshMe'] && imageObj && canvas) {
 				repaint(imageObj, canvas);
@@ -2315,10 +2355,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				if(zoomTimer) clearTimeout(zoomTimer);
 				zoomTimer = setTimeout(function()
 				{
-					var zoom = LMap.getZoom();
 					zoomTimer = null;
-					var ctx = canvas.getContext('2d');
-					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					if(canvas) canvas.width = canvas.height = 0;
 				}, 10);
 			});
 		} else {
