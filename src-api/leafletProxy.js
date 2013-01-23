@@ -2140,7 +2140,10 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			node['isOnScene'] = isOnScene;
 			if(!isOnScene) {
 				node['group'].removeLayer(node['leaflet']);
-				if(canvas) canvas.width = canvas.height = 0;
+				if(canvas) {
+					canvas.width = canvas.height = 0;
+					node['imageCanvas'] = null;
+				}
 				return;
 			} else {
 				if(!node['leaflet']._map) node['group'].addLayer(node['leaflet']);
@@ -2196,16 +2199,11 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					,'deltaY': deltaY
 				});
 			}
-//			var ctx = canvas.getContext('2d');
-//			canvas.width = ww;
-//			canvas.height = hh;
 
 			var paintPolygon = function (ph, content) {
 				if(!content) return;
-//				var ctx = ph['ctx'];
 				var arr = [];
 				var coords = ph['coordinates'];
-				//minPoint = LatLngToPixel(attr['y1'], attr['x1']);
 				var minPoint = ph['boundsP'].min;
 				if(coords) {
 					for (var i = 0; i < coords.length; i++)
@@ -2244,30 +2242,15 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			paintPolygon({'coordinates': node.geometry.coordinates, 'boundsP': ph['boundsP']}, data['canvas']);
 			attr['reposition']();
 			data = null;
-			//paintPolygon({'coordinates': node.geometry.coordinates, 'ctx': ctx, 'boundsP': ph['boundsP']}, data['canvas']);
-			//zoomPrev = LMap.getZoom();
+			imageObj = null;
 		}
 
 		var imageObj = null;
 		var canvas = node['imageCanvas'] || null;
 		var drawMe = function(canvas_) {
 			canvas = canvas_;
-			//canvas.style.zIndex = -1;
-			
-			imageObj = new Image();
-			imageObj.crossOrigin = 'anonymous';		// для crossdomain прав
-			imageObj.onload = function() {
-				node['refreshMe'] = function() {
-					repaint(imageObj, canvas);
-			//attr['reposition']();
-				}
-				node['refreshMe']();
-			};
-			var src = attr['url'];
-			//var src = '1.jpg';
-			node['imageURL'] = src.replace(/\.\.\//g, '');
 			node['imageCanvas'] = canvas;
-			imageObj.src = src;
+			redrawMe();
 		}
 
 		attr['reposition'] = function() {
@@ -2275,7 +2258,22 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		}
 
 		var redrawMe = function(e) {
-			if(imageObj && canvas) {
+			if(!imageObj) {
+				imageObj = new Image();
+				imageObj.crossOrigin = 'anonymous';		// для crossdomain прав
+				imageObj.onload = function() {
+					node['refreshMe'] = function() {
+						repaint(imageObj, canvas);
+				//attr['reposition']();
+					}
+					node['refreshMe']();
+				};
+				var src = attr['url'];
+				//var src = '1.jpg';
+				node['imageURL'] = src.replace(/\.\.\//g, '');
+				imageObj.src = src;
+			}
+			if(node['refreshMe'] && imageObj && canvas) {
 				repaint(imageObj, canvas);
 			//attr['reposition']();
 			}

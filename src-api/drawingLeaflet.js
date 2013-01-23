@@ -155,9 +155,8 @@
 			layerItems[1]._container.style.pointerEvents = 'none';
 			layerItems[0]._container.style.zIndex = 10000;
 			layerItems[1]._container.style.zIndex = 10001;
-			layerItems[0].bringToFront();
-			layerItems[1].bringToFront();
 		}
+		layerGroup.bringToFront();
 		
 		//if(layerItems[1].options.skipSimplifyPoint == mousePressed) { layerItems[1].options.skipSimplifyPoint = !mousePressed; }
 		
@@ -269,9 +268,9 @@
 				callHandler("onRemove");
 				delete objects[myId];
 			},
-			reDraw: function()
+			chkZindex: function()
 			{
-				if('reDraw' in ret) ret.reDraw();
+				if('chkZindex' in ret) ret.chkZindex();
 			},
 			triggerInternal: function( callbackName ){ callHandler(callbackName); },
 			getGeometry: function() { return gmxAPI.clone(this.geometry); },
@@ -991,9 +990,10 @@
 		}
 		var zoomListenerID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': repaint });
 //		var positionChangedID = gmxAPI.map.addListener('positionChanged', repaint);
-		ret.reDraw = function()
+
+		ret.chkZindex = function()
 		{
-			drawMe();
+			if(layerGroup) layerGroup.bringToFront();
 		}
 		ret.remove = function()
 		{
@@ -1363,9 +1363,9 @@
 		}
 		var zoomListenerID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': repaint });
 		var positionChangedID = gmxAPI.map.addListener('positionChanged', repaint);
-		ret.reDraw = function()
+		ret.chkZindex = function()
 		{
-			drawMe();
+			if(layerGroup) layerGroup.bringToFront();
 		}
 		ret.remove = function()
 		{
@@ -1496,6 +1496,7 @@
 	{
 	}
 
+	var chkZindexTimer = null
 	var drawing = {
 		handlers: { onAdd: [], onEdit: [], onRemove: [] },
 		mouseState: 'up',
@@ -1624,10 +1625,15 @@
 		,
 		chkZindex: function(pid)
 		{
-			for (var id in objects) {
-				var cObj = objects[id];
-				if('reDraw' in cObj) cObj.reDraw();
-			}
+			if(chkZindexTimer) clearTimeout(chkZindexTimer);
+			chkZindexTimer = setTimeout(function()
+			{
+				chkZindexTimer = null;
+				for (var id in objects) {
+					var cObj = objects[id];
+					if('chkZindex' in cObj) cObj.chkZindex();
+				}
+			}, 10);
 		}
 	}
 
