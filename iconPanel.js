@@ -29,10 +29,7 @@
 		
 		var div = _div([_table([_tbody([this.parent])],[['dir','className','iconsParent']])],[['css','padding','0px 10px']]);
 		
-		if ($.browser.msie)
-			div.style.width = '100%';
-		else
-			parentCanvas.style.height = '34px';
+        parentCanvas.style.height = '34px';
 		
 		_(parentCanvas, [div]);
 	}

@@ -109,7 +109,6 @@ span.searchElem:hover, span.searchElemParent:hover
 {
 	background: transparent url(img/searchCenter.png) repeat scroll 0 0;
 	border: none;
-	padding: 2px 0 0 0;
 	color: #999999;
 	height: 22px;
 	width: 100%

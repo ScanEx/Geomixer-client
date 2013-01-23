@@ -59,14 +59,6 @@ var GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox, sho
 	var showCheckbox = _checkbox(_model.isVisibilityControl(), 'checkbox');
 	var isExpanded = _checkbox(_model.isExpanded(), 'checkbox');
 	
-	if (!$.browser.msie)
-	{
-		boxSwitch.style.margin = "0px 4px 0px 3px";
-		radioSwitch.style.margin = "0px 4px 0px 3px";
-		showCheckbox.style.margin = "0px 4px 0px 3px";
-		isExpanded.style.margin = "0px 4px 0px 3px";
-	}
-	
 	showCheckbox.onclick = function()
 	{
 		_model.setVisibilityControl( this.checked );
@@ -484,13 +476,6 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 			}
 			
 			return true;
-		}
-		
-		if (!$.browser.msie)
-		{
-			useAPI.style.margin = "0px 4px 0px 3px";
-			useOSM.style.margin = "0px 4px 0px 3px";
-            WMSAccess.style.margin = "0px 4px 0px 3px";
 		}
         
         WMSAccess.style.verticalAlign = "middle";

@@ -352,10 +352,10 @@ fileBrowser.prototype.createUpload = function()
 		div = _div(null, [['css','height','30px'],['css','marginTop','10px']]),
 		_this = this;
 	
-	var formFile = ($.browser.msie) ? document.createElement('<form enctype="multipart/form-data" method="post" action="' + serverBase + 'FileBrowser/Upload.ashx?WrapStyle=window" target="fileBrowserUpload_iframe">') : _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'FileBrowser/Upload.ashx?WrapStyle=window'],['attr','target','fileBrowserUpload_iframe']]);
+	var formFile = _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'FileBrowser/Upload.ashx?WrapStyle=window'],['attr','target','fileBrowserUpload_iframe']]);
 	_(formFile, [uploadPath]);
 
-	var attach = ($.browser.msie) ? document.createElement('<input type="file" name="rawdata" width="200px">') : _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','200px']]);
+	var attach = _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','200px']]);
 	_(formFile, [attach]);
 	
 	uploadFileButton.onclick = function()
@@ -739,11 +739,8 @@ fileBrowser.prototype.drawFiles = function(arr)
 fileBrowser.prototype.createFolderActions = function(name)
 {
 	var span = _span([_t(name)],[['css','fontSize','12px']]),
-		spanParent = _div([span],[['css','display',($.browser.msie) ? 'inline' : 'inline-block'],['css','position','relative']]),
+		spanParent = _div([span],[['css','display', 'inline-block'],['css','position','relative']]),
 		_this = this;
-
-	if ($.browser.msie)
-		spanParent.style.zIndex = 1;
 	
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFolder', 
 		function()
@@ -763,12 +760,9 @@ fileBrowser.prototype.createFolderActions = function(name)
 fileBrowser.prototype.createFileActions = function(name, ext)
 {
 	var span = _span([_t(name)],[['css','fontSize','12px']]),
-		spanParent = _div([span],[['css','display',($.browser.msie) ? 'inline' : 'inline-block'],['css','position','relative']]),
+		spanParent = _div([span],[['css','display','inline-block'],['css','position','relative']]),
 		_this = this;
 
-	if ($.browser.msie)
-		spanParent.style.zIndex = 1;
-	
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'FileBrowserFile', 
 		function()
 		{

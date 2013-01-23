@@ -23,13 +23,6 @@ var CreateDrawingStylesEditorIcon = function(style, type)
 {
 	var icon = nsGmx.Controls.createGeometryIcon(style, type);
 	
-	if ($.browser.msie)
-	{
-		icon.style.width = '9px';
-		icon.style.height = '13px';
-		icon.style.margin = '0px 3px -3px 1px';
-	}
-	
 	_title(icon, _gtxt("Редактировать стиль"));
 	
 	return icon;
@@ -260,12 +253,6 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
             icon = CreateDrawingStylesEditorIcon(regularDrawingStyle, _drawingObject.geometry.type.toLowerCase());
             CreateDrawingStylesEditor(_drawingObject, regularDrawingStyle, icon);
         }
-            
-        if ($.browser.msie)
-        {
-            icon.style.marginLeft = '2px';
-            icon.style.marginRight = '9px';
-        }
     }
     else
         icon = _span();
@@ -277,7 +264,6 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         remove = makeImageButton(gmxAPI.getAPIHostRoot() + 'api/img/closemin.png',gmxAPI.getAPIHostRoot() + 'api/img/close_orange.png')
         remove.setAttribute('title', _gtxt('Удалить'));
         remove.className = 'removeGeometry';
-		if ($.browser.msie) remove.style.right = '20px';
         remove.onclick = function(){
             $(_this).triggerHandler('onRemove', [_drawingObject]);
         }

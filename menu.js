@@ -234,9 +234,6 @@ UpMenu.prototype.makeLevel2 = function(elem)
 {
 	var div = _div([_t(elem.title)],[['dir','className','header2']]);
 	
-	if ($.browser.msie)
-		div.style.height = '100%';
-
 	// Меню на этом уровне
 	var names = [];
 	
@@ -250,19 +247,13 @@ UpMenu.prototype.makeLevel2 = function(elem)
 			ul2 = _ul();
 		ul2.className = 'header3';
 		ul2.id = elem.id;
-		
-		if ($.browser.msie)
-			ul2.style.marginTop = '-26px';
 
 		for (var i = 0; i < elem.childs.length; i++)
 		{
 			// Формируем сслыку для перехода на этот элемент меню
 			var div2 = _div([_t(elem.childs[i].title)],[['dir','className','header3'],['css','cursor','pointer']]),
 				li = _li([div2],[['dir','className','header3']]);
-			
-			if ($.browser.msie)
-				div2.style.height = '100%';
-			
+
 			li.setAttribute('hash', elem.childs[i].id);
 			
 			if (elem.childs[i].disabled)

@@ -336,10 +336,8 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             boxSearch.setAttribute('fieldName', 'AllowSearch');
 
             boxSearch.className = 'box';
-            if ($.browser.msie)
-                boxSearch.style.margin = '-3px -2px 0px -1px';
-            else
-                boxSearch.style.marginLeft = '3px';
+
+            boxSearch.style.marginLeft = '3px';
 
             boxSearch.onclick = function()
             {

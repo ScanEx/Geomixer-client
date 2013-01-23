@@ -396,20 +396,14 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 	
 	disableSelection(span);
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display',($.browser.msie) ? 'inline' : 'inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
-
-	if ($.browser.msie)
-		spanParent.style.zIndex = 1;
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
 
 	if (_queryMapLayers.activeListLayer == elem.name)
 		$(spanParent).addClass("active");	
 
 	box = _checkbox(globalFlashMap.layers[elem.name].isVisible, 'checkbox');
-	
 	box.className = 'box';
-	if ($.browser.msie)
-		box.style.margin = '-3px -2px 0px -2px';
-	
+    
 	box.onclick = function()
 	{
 		globalFlashMap.layers[elem.name].setVisible(this.checked);

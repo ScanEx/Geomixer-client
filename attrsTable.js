@@ -491,8 +491,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		_title(columnName, columnsNames[i])
 		
 		box.className = 'box';
-		if ($.browser.msie)
-			box.style.margin = '-3px -2px 0px -2px';
 		
 		(function(columnsName)
 		{

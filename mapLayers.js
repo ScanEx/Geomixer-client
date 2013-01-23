@@ -483,8 +483,6 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 		
 		box.className = 'box';
-		if ($.browser.msie)
-			box.style.margin = '-3px -2px 0px -2px';
 		
 		box.setAttribute('box','layer');
 		
@@ -554,14 +552,11 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
     disableSelection(span);
 	// }
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display',($.browser.msie) ? 'inline' : 'inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		spanDescr = _span(null,[['dir','className','layerDescription']]);
 		
 	spanDescr.innerHTML = elem.description ? elem.description : '';
 
-	if ($.browser.msie)
-		spanParent.style.zIndex = 1;
-		
 	if (layerManagerFlag == 1)
 		return [_img(null, [['attr','src', (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png')],['css','marginLeft','3px']]), spanParent, spanDescr];
 	
@@ -662,9 +657,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
 		
 		box.className = 'box';
-		if ($.browser.msie)
-			box.style.margin = '-3px -2px 0px -2px';
-		
+
 		box.setAttribute('box','group');
 		
 		box.onclick = function()
@@ -768,10 +761,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 		disableSelection(span);
 	// }
 	
-	var spanParent = _div([span],[['attr','titleDiv',true],['css','display',($.browser.msie) ? 'inline' : 'inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
-	
-	if ($.browser.msie)
-		spanParent.style.zIndex = 1;
+	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
 	
 	if (!layerManagerFlag)
 	{
@@ -798,11 +788,8 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 layersTree.prototype.drawHeaderGroupLayer = function(elem, parentParams, layerManagerFlag)
 {
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer']]),
-		spanParent = _div([span],[['css','display',($.browser.msie) ? 'inline' : 'inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
+		spanParent = _div([span],[['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]),
 		_this = this;
-
-	if ($.browser.msie)
-		spanParent.style.zIndex = 1;
 	
 	if (!this._renderParams.allowActive)
 		return [spanParent];
@@ -838,9 +825,6 @@ layersTree.prototype.removeGroup = function(div)
 		span = _span([_t(_gtxt("Включая вложенные слои"))]),
 		pos = nsGmx.Utils.getDialogPos(div, true, 90),
 		_this = this;
-	
-	if (!$.browser.msie)
-		span.style.marginLeft = '5px';
 	
 	remove.style.marginTop = '10px';
 
@@ -1446,9 +1430,7 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 		newBox = _checkbox(box.checked, 'checkbox', (parentParams.content) ? parentParams.content.properties.GroupID : parentParams.properties.MapID)
 	
 	newBox.className = 'box';
-	if ($.browser.msie)
-		newBox.style.margin = '-3px -2px 0px -2px';
-	
+
 	if (box.getAttribute('box') == 'group')
 		newBox.setAttribute('box', 'group');
 	

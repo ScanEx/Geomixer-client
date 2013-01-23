@@ -333,10 +333,7 @@ Calendar.prototype.init = function( name, params )
 	this.yearBox = _checkbox(false, 'checkbox');
 
 	this.yearBox.className = 'box';
-	if ($.browser.msie)
-		this.yearBox.style.margin = '-3px -2px 0px -1px';
-	else
-		this.yearBox.style.marginLeft = '3px'
+    this.yearBox.style.marginLeft = '3px'
 	
 	_title(this.yearBox, _gtxt("calendarWidget.EveryYear"));
 	

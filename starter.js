@@ -502,7 +502,7 @@ function addMapName(container, name)
         
         _(container, [_table([_tbody([_tr(
             [_td([_t(_gtxt("Карта"))], [['css','color','#153069'],['css','fontSize','12px'],['css','paddingTop','2px'],['css','fontFamily','tahoma'], ['css','height','30px']]),
-                      _td([_div(null,[['dir','className','markerRight']])],[['attr','vAlign','top'],['css','paddingTop',($.browser.msie ? '8px' : '10px')]]),
+                      _td([_div(null,[['dir','className','markerRight']])],[['attr','vAlign','top'],['css','paddingTop','10px']]),
                        td]
                        )])])]);
     }

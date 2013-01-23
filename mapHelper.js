@@ -1034,8 +1034,6 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 		_this = this;
 	
 	boxClick.className = 'box';
-	if ($.browser.msie)
-		boxClick.style.margin = '-3px -2px 0px -2px';
 	
 	boxClick.onclick = function()
 	{
@@ -1043,8 +1041,6 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 	}
 	
 	boxMove.className = 'box';
-	if ($.browser.msie)
-		boxMove.style.margin = '-3px -2px 0px -2px';
 	
 	boxMove.onclick = function()
 	{
@@ -1240,16 +1236,8 @@ mapHelper.prototype.createLoadingFilter = function(parentObject, parentStyle, ge
 		_this.swapFilters(elemCanvas.parentNode, firstNum, this.parentNode.parentNode.parentNode.parentNode.parentNode);
 	}
 	
-	if ($.browser.msie)
-	{
-		moveUp.style.margin = '0px 1px 0px 2px';
-		moveDown.style.margin = '0px 1px 0px 2px';
-	}
-	else
-	{
-		moveUp.style.margin = '0px 1px -3px 2px';
-		moveDown.style.margin = '0px 1px -3px 2px';
-	}
+    moveUp.style.margin = '0px 1px -3px 2px';
+    moveDown.style.margin = '0px 1px -3px 2px';
 	
 	moveUp.setAttribute('filterMoveButton','up');
 	moveDown.setAttribute('filterMoveButton','down');
@@ -1286,10 +1274,7 @@ mapHelper.prototype.createLoadingFilter = function(parentObject, parentStyle, ge
 	remove.style.width = '16px';
 	remove.style.height = '16px';
 	
-	if ($.browser.msie)
-		remove.style.margin = '0px 1px 0px 2px';
-	else
-		remove.style.margin = '0px 1px -3px 2px';
+    remove.style.margin = '0px 1px -3px 2px';
 		
 	_title(remove, _gtxt("Удалить фильтр"))
 	
@@ -2315,7 +2300,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 		this.checked = true;
 	}
 	
-	iconTitleTds.push(_td([iconToggle],[['css','width','20px'],['css','height','24px'],['attr','vAlign','top'],['css','paddingTop',$.browser.msie ? '2px' : '5px']]));
+	iconTitleTds.push(_td([iconToggle],[['css','width','20px'],['css','height','24px'],['attr','vAlign','top'],['css','paddingTop','5px']]));
 	iconTitleTds.push(_td([_t(_gtxt("Маркер URL"))],[['css','width','70px'],['attr','vAlign','top'],['css','paddingTop','5px']]));
 
     var inputUrl = new mapHelper.ImageInputControl((typeof templateStyle.marker != 'undefined' && templateStyle.marker.image) ? templateStyle.marker.image : '');
@@ -2525,25 +2510,11 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 				dummyStyle.fill = {color: parentStyle.marker.color, opacity: 100};
 				
 				icon = nsGmx.Controls.createGeometryIcon(dummyStyle, type);
-			
-				if ($.browser.msie)
-				{
-					icon.style.width = '9px';
-					icon.style.height = '13px';
-					icon.style.margin = '0px 3px -3px 1px';
-				}
 			}
 		}
 		else
 		{
 			icon = nsGmx.Controls.createGeometryIcon(parentStyle, type);
-			
-			if ($.browser.msie)
-			{
-				icon.style.width = '9px';
-				icon.style.height = '13px';
-				icon.style.margin = '0px 3px -3px 1px';
-			}
 		}
 	}
 	
@@ -2609,7 +2580,7 @@ mapHelper.prototype.createNewLayer = function(type)
     if (type !== 'Multi')
     {
 		var properties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
-        var dialogDiv = showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 325, height, false, false);
+        var dialogDiv = showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 340, height, false, false);
         nsGmx.createLayerEditorProperties(false, type, parent, properties, _layersTree,
             {
                 doneCallback: function() 
@@ -2828,7 +2799,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 				})
 				
 				if (selected == 1 && openedStyleIndex > 0)
-					tabMenu.parentNode.scrollTop = ($.browser.msie ? 54 : 58) + openedStyleIndex * ($.browser.msie ? 34 : 32);
+					tabMenu.parentNode.scrollTop = 58 + openedStyleIndex * 32;
 			};
 		
 		if (!this.attrValues[mapName])

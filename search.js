@@ -127,8 +127,6 @@ var SearchInput = function (oInitContainer, params) {
 	var dtLastSearch = new Date();
 	/**Текстовое поле для ввода поискового запроса*/
 	var searchField = _input(null, [['dir', 'className', 'searchCenter']]);
-    if ($.browser.msie)
-		searchField.style.paddingTop = '4px';
 	var sDefaultValue;
 	
 	var divSearchBegin, tdSearchBegin;

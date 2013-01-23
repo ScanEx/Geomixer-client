@@ -22,7 +22,7 @@ nsGmx.Controls = {
 	
 	/** */
 	createGeometryIcon: function(parentStyle, type){
-		var icon = _div(null, [['css','display',($.browser.msie) ? 'inline' : 'inline-block'],['dir','className','colorIcon'],['attr','styleType','color'],['css','backgroundColor','#FFFFFF']]);
+		var icon = _div(null, [['css','display','inline-block'],['dir','className','colorIcon'],['attr','styleType','color'],['css','backgroundColor','#FFFFFF']]);
 		
 		if (type.indexOf('linestring') < 0)
 		{
@@ -38,36 +38,17 @@ nsGmx.Controls = {
                     fillOpacity = (parentStyle.fill && typeof parentStyle.fill.opacity != 'undefined') ? parentStyle.fill.opacity : 100,
                     borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
                 
-                if ($.browser.msie)
-                {
-                    fill.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + fillOpacity + ")";
-                    border.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + borderOpacity + ")";
-                    
-                    border.style.width = '9px';
-                    border.style.height = '13px';
-                }
-                else
-                {
-                    fill.style.opacity = fillOpacity / 100;
-                    border.style.opacity = borderOpacity / 100;
-                }
+
+                fill.style.opacity = fillOpacity / 100;
+                border.style.opacity = borderOpacity / 100;
                 
                 if (type.indexOf('point') > -1)
                 {
-                    if ($.browser.msie)
-                    {
-                        border.style.height = '7px';
-                        fill.style.height = '5px';
-                        border.style.width = '7px';
-                        fill.style.width = '5px';
-                    }
-                    else
-                    {
-                        border.style.height = '5px';
-                        fill.style.height = '5px';
-                        border.style.width = '5px';
-                        fill.style.width = '5px';
-                    }
+                    
+                    border.style.height = '5px';
+                    fill.style.height = '5px';
+                    border.style.width = '5px';
+                    fill.style.width = '5px';
                     
                     border.style.top = '3px';
                     fill.style.top = '4px';
@@ -83,20 +64,11 @@ nsGmx.Controls = {
 			var border = _div(null, [['dir','className','borderIcon'],['attr','styleType','color'],['css','borderColor',(parentStyle.outline && typeof parentStyle.outline.color != 'undefined') ? nsGmx.Utils.convertColor(parentStyle.outline.color) : "#0000FF"]]),
 				borderOpacity = (parentStyle.outline && typeof parentStyle.outline.opacity != 'undefined') ? parentStyle.outline.opacity : 100;
 
-			if ($.browser.msie)
-			{
-				border.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + borderOpacity + ")";
-				
-				border.style.width = '5px';
-				border.style.height = '13px';
-			}
-			else
-			{
-				border.style.opacity = borderOpacity / 100;
-				
-				border.style.width = '4px';
-				border.style.height = '13px';
-			}
+			
+            border.style.opacity = borderOpacity / 100;
+            
+            border.style.width = '4px';
+            border.style.height = '13px';
 			
 			border.style.borderTop = 'none';
 			border.style.borderBottom = 'none';
@@ -133,14 +105,6 @@ nsGmx.Controls = {
 		
 		divSlider.firstChild.style.zIndex = 1;
 		
-		if ($.browser.msie)
-		{
-			divSlider.firstChild.style.fontSize = '5px';
-			divSlider.firstChild.style.width = '12px';
-			divSlider.firstChild.style.height = '14px';
-			divSlider.firstChild.style.marginTop = '-2px';
-		}
-		
 		divSlider.style.width = '100px';
 		divSlider.style.border = 'none';
 		divSlider.style.backgroundImage = 'url(' + gmxAPI.getAPIFolderRoot() + 'img/slider.png)';
@@ -149,11 +113,8 @@ nsGmx.Controls = {
 		divSlider.firstChild.style.width = '12px';
 		divSlider.firstChild.style.height = '14px';
 		divSlider.firstChild.style.marginLeft = '-6px';
-		
-		if ($.browser.msie)
-			divSlider.firstChild.style.top = '-1px';
-		else
-			divSlider.firstChild.style.top = '-3px';
+
+        divSlider.firstChild.style.top = '-3px';
 
 		divSlider.firstChild.style.background = 'transparent url(' + gmxAPI.getAPIFolderRoot() + 'img/sliderIcon.png) no-repeat';
 		
@@ -437,11 +398,11 @@ nsGmx.Controls = {
             dialogDiv.style.height = div.offsetHeight + 'px';
             dialogDiv.style.minHeight = div.offsetHeight + 'px';
             
-            if ($.browser.msie)
-            {
-                dialogDiv.parentNode.style.height = div.offsetHeight + 'px';
-                dialogDiv.parentNode.style.minHeight = div.offsetHeight + 'px';
-            }
+            // if ($.browser.msie)
+            // {
+                // dialogDiv.parentNode.style.height = div.offsetHeight + 'px';
+                // dialogDiv.parentNode.style.minHeight = div.offsetHeight + 'px';
+            // }
         }, 100)
         
         nsGmx.TagMetaInfo.loadFromServer(function(tagInfo)

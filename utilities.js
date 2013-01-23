@@ -379,8 +379,8 @@ function showDialog(title, content, width, height, posX, posY, resizeFunc, close
             canvas.style.height = canvas.parentNode.clientHeight - canvas.parentNode.firstChild.clientHeight - 6 + 'px';
             
             // баги ие
-            if (jQuery.browser.msie)
-                canvas.parentNode.style.width = canvas.parentNode.firstChild.offsetWidth + 'px';
+            // if (jQuery.browser.msie)
+                // canvas.parentNode.style.width = canvas.parentNode.firstChild.offsetWidth + 'px';
             
             params.resizeFunc && params.resizeFunc();
         },
@@ -442,41 +442,11 @@ function showErrorMessage(message, removeFlag, title)
 
 function _checkbox(flag, type, name)
 {
-	var box;
-    
-    var initBoxNormal = function()
-    {
-        box = _input(null, [['attr','type',type]]);
-		box.checked = flag;
+	var box = _input(null, [['attr','type',type]]);
+    box.checked = flag;
 		
-		if (name)
-			box.setAttribute('name', name);
-    }
-    
-	if (jQuery.browser.msie)
-	{
-		var nameTag = "";
-		
-		if (name)
-			nameTag = " name=\"" + name + "\"";
-		
-		// костыль для ие
-        
-        try {
-            if (flag)
-                box = window.document.createElement("<input type=\"" + type + "\" checked=\"true\"" + nameTag + "></input>");
-            else
-                box = window.document.createElement("<input type=\"" + type + "\"" + nameTag + "></input>");
-        } 
-        catch(e)
-        { //в ie9 создавать через createElement() не получится, но уже можно воспользоваться стандартными методами
-            initBoxNormal();
-        }
-	}
-	else
-	{
-		initBoxNormal();
-	}
+    if (name)
+        box.setAttribute('name', name);
 	
 	return box;
 }
@@ -731,12 +701,7 @@ function loadFunc(iframe, callback)
 	if (iframe.loaded)
 	{
 		var data = decodeURIComponent(win.name.replace(/\n/g,'\n\\'));
-		if (jQuery.browser.mozilla)
-		{
-			iframe.removeNode(true);
-		}
-		else
-			iframe.removeNode(true);
+        iframe.removeNode(true);
 		
 		var parsedData;
 		try
