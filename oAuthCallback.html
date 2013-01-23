@@ -1,30 +1,22 @@
 ﻿<html>
-<script src="LAB.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script>
-var callServer = function(){
-	$.ajax({
-		url: window.opener['gmxGetServerBase']() + 'oAuthCallback.ashx' + window.location.search, 
-		dataType: "jsonp",
-		jsonp: 'CallbackName',
-		success: function(response){
-				var result = false;
-				if(response.Status == 'error'){
-					document.getElementById('resultText').innerHTML = response.ErrorInfo.ErrorMessage;
-				}
-				else{
-					result = response.Result;
-				}
-				window.opener['gmxProcessAuthentication'](result);
-				if(result) window.close();
+$.ajax({
+	url: window.opener['gmxGetServerBase']() + 'oAuthCallback.ashx' + window.location.search, 
+	dataType: "jsonp",
+	jsonp: 'CallbackName',
+	success: function(response){
+			var result = false;
+			if(response.Status == 'error'){
+				document.getElementById('resultText').innerHTML = response.ErrorInfo.ErrorMessage;
 			}
-		});
-}
-$.getScript( "config.js?" + Math.random(), function(){
-	$.getScript( (typeof gmxJSHost === 'undefined' ? "" : gmxJSHost) + "utilities.js" + ( typeof gmxDropBrowserCache !== 'undefined' ? "?" + Math.random() : "") , function(){
-		callServer();
+			else{
+				result = response.Result;
+			}
+			window.opener['gmxProcessAuthentication'](result);
+			if(result) window.close();
+		}
 	});
-});
 </script>
 <body>
 <div id="resultText"/>
