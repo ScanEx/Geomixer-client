@@ -606,7 +606,7 @@ var ModisImagesProvider = function( params )
         addModisLayers(function(layers)
         {
             for (var iL in layers)
-                layers[iL].setDateInterval(dateBegin, dateEnd);
+                layers[iL].setDateInterval(new Date(dateEnd.valueOf() - 24*3600*1000), dateEnd);
                 
             onSucceess({modisLayers: layers});
         })
