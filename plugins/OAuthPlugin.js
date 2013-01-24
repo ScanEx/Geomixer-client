@@ -8,7 +8,7 @@ gmxCore.addModule('OAuthPlugin', {
         var container = nsGmx.widgets.authWidget.getContainer();
         var googleIcon = $('<img/>', {src: path + 'img/oauth/google.png'}).css({float: 'right', margin: '8px 2px 0px 0px' }).click(function()
         {
-           nsGmx.Utils.getMapStateAsPermalink(function(parmalinkID)
+           _mapHelper.getMapStateAsPermalink(function(parmalinkID)
             {
                 createCookie("TempPermalink", parmalinkID);
                 createCookie("TinyReference", parmalinkID);

@@ -244,7 +244,7 @@ var parseURLParams = function()
     return {params: params, givenMapName: givenMapName};
 }
 
-$(document).ready(function()
+$(function()
 {
     window.language = translationsHash.getLanguageFromCookies() || window.defaultLang || "rus";
 	if (window.language == "eng")
@@ -256,6 +256,42 @@ $(document).ready(function()
     window.serverBase = _serverBase;
     
     var parsedURL = parseURLParams();
+    
+    //при каждой ошибке от сервера будем показывать диалог с ошибкой и стектрейсом.
+    addParseResponseHook('error', function(response, customErrorDescriptions) {
+        if (typeof customErrorDescriptions !== 'undefined' && response.ErrorInfo.ExceptionType in customErrorDescriptions)
+        {
+            var canvas = _div([_t(customErrorDescriptions[response.ErrorInfo.ExceptionType])], [['dir', 'className', 'CustomErrorText']]);
+            showDialog(_gtxt("Ошибка!"), canvas, 220, 100);
+        }
+        else
+        {
+            var canvas = _div([_div([_t([String(response.ErrorInfo.ErrorMessage)])],[['css','color','red']])]),
+                textarea = false,
+                resize = function()
+                {
+                    if (textarea)
+                        textarea.style.height = textarea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 6 + 'px';
+                }
+            
+            if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
+            {
+                textarea = _textarea(null,[['dir','className','inputStyle error'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]);
+                
+                textarea.value = response.ErrorInfo.StackTrace;
+                _(canvas, [textarea]);
+            }
+            
+            showDialog(_gtxt("Ошибка сервера"), canvas, 220, 170, false, false, resize)
+            
+            if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
+                resize();
+                
+            canvas.parentNode.style.overflow = 'hidden';	
+            
+            return false;
+        }
+    })
     
     nsGmx.pluginsManager = new (gmxCore.getModule('PluginsManager').PluginsManager)();
     
@@ -514,6 +550,36 @@ function addMapName(container, name)
     }
 }
 
+window.resizeAll = function()
+{
+	var top = 0,
+		bottom = 0,
+		right = 0,
+		left = Number(layersShown) * 360 + Number(layerManagerShown * 300);
+	
+	$$("flash").style.left = left + 'px';
+	$$("flash").style.top = top + 'px';
+	$$("flash").style.width = getWindowWidth() - left - right + 'px';
+	$$("flash").style.height = getWindowHeight() - top - 35 - 60 * Number(layersShown) - bottom + 'px';
+	
+	if (layersShown)
+	{
+		show($$("leftMenu"));
+		
+		jQuery("#header").find("[hidable]").css("display",'');
+		$$('header').style.height = '95px';
+		
+		$$("leftContent").style.height = getWindowHeight() - top - bottom - leftContentHeightDecrease - 95 + 'px';
+	}
+	else
+	{
+		hide($$("leftMenu"))
+
+		jQuery("#header").find("[hidable]").css("display",'none')
+		$$('header').style.height = '35px';
+	}
+}
+
 function loadMap(state)
 {
 	layersShown = (state.isFullScreen == "false");
@@ -537,7 +603,7 @@ function loadMap(state)
             if (reloadAfterLoginFlag)
                 window.location.reload();
             else
-                reloadMap();
+                _mapHelper.reloadMap();
         }
     }
 	
@@ -558,6 +624,20 @@ function loadMap(state)
         {
             nsGmx.pluginsManager.beforeViewer();
             
+            //для каждого ответа сервера об отсутствии авторизации (Status == 'auth') сообщаем об этом пользователю или предлагаем залогиниться
+            addParseResponseHook('auth', function() {
+                if ( nsGmx.AuthManager.isLogin() )
+                {
+                    showErrorMessage(_gtxt("Недостаточно прав для совершения операции"), true);
+                }
+                else
+                {
+                    nsGmx.widgets.authWidget.showLoginDialog();
+                }
+                
+                return false;
+            });
+                
             if (!data)
             {
                 _menuUp.defaultHash = 'usage';
@@ -786,13 +866,20 @@ function loadMap(state)
                 map.drawing.addObject({ type: "POINT", coordinates: [state.marker.mx, state.marker.my] }, { text: state.marker.mt });
             
             _menuUp.checkView();
-            removeUserActions();
+            
+            _queryMapLayers.removeUserActions();
+            _iconPanel.updateVisibility();
             
             nsGmx.widgets.authWidget = new nsGmx.AuthWidget(_menuUp.loginContainer, nsGmx.AuthManager, defaultLoginCallback());
             
             if (nsGmx.AuthManager.isLogin())
-            {					
-                addUserActions();
+            {
+                _queryMapLayers.addUserActions();
+                
+                if ( !nsGmx.AuthManager.isAccounts() )
+                {
+                    _iconPanel.updateVisibility();
+                }
             }
             
             fnInitControls();

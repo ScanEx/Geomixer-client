@@ -640,53 +640,6 @@ var layersShown = true,
 	layerManagerShown = false,
 	leftContentHeightDecrease = 0; //насколько уменьшать высоту левой панели (для плагинов)
 
-function resizeAll()
-{
-	var top = 0,
-		bottom = 0,
-		right = 0,
-		left = Number(layersShown) * 360 + Number(layerManagerShown * 300);
-	
-	$$("flash").style.left = left + 'px';
-	$$("flash").style.top = top + 'px';
-	$$("flash").style.width = getWindowWidth() - left - right + 'px';
-	$$("flash").style.height = getWindowHeight() - top - 35 - 60 * Number(layersShown) - bottom + 'px';
-	
-	if (layersShown)
-	{
-		show($$("leftMenu"));
-		
-		jQuery("#header").find("[hidable]").css("display",'');
-		$$('header').style.height = '95px';
-		
-		$$("leftContent").style.height = getWindowHeight() - top - bottom - leftContentHeightDecrease - 95 + 'px';
-	}
-	else
-	{
-		hide($$("leftMenu"))
-
-		jQuery("#header").find("[hidable]").css("display",'none')
-		$$('header').style.height = '35px';
-	}
-}
-
-// function getLayerBounds(c, layer)
-// {
-	// var ret = getBounds(c);
-	// ret.centerX = from_merc_x((merc_x(ret.minX) + merc_x(ret.maxX))/2);
-	// ret.centerY = from_merc_y((merc_y(ret.minY) + merc_y(ret.maxY))/2);
-	// ret.getScreenZ = function()
-	// {
-		// var z = globalFlashMap.getBestZ(ret.minX, ret.minY, ret.maxX, ret.maxY);
-		// if (layer && layer.properties.styles && layer.properties.styles[0])
-			// z = Math.max(z, layer.properties.styles[0].MinZoom);
-		
-		// return z;
-	// }
-	
-	// return ret;
-// }
-
 function loadFunc(iframe, callback)
 {
 	var win = iframe.contentWindow;
@@ -829,93 +782,38 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
     }
 }
 
-function reloadMap()
-{
-    nsGmx.Utils.getMapStateAsPermalink(function(parmalinkID)
-    {
-        createCookie("TempPermalink", parmalinkID);
-        window.location.replace(window.location.href.split("?")[0] + "?permalink=" + parmalinkID + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
-    })
-}
+(function() {
 
-/** Обрабатывает результат выполнения серверного скрипта.
-* В зависимости от результата может ничего не сделать, показать приглашение на ввод пароля или показать ошибку сервера
-* @function
-* 
-* @param response {object} - JSON, вернувшийся с сервера
-* @param customErrorDescriptions {object} - хэш "тип ошибки" -> "кастомное сообщение пользователям". 
-* Если ошибка имеет тип, не перечисленный в этом хэше, будет показан тип ошибки и callstack.
-*/
-function parseResponse(response, customErrorDescriptions)
-{
-	if (response.Status == 'ok')
-		return true
-	else if (response.Status == 'auth')
-	{
-		if ( nsGmx.AuthManager.isAccounts() )
-		{
-			showErrorMessage(_gtxt("Недостаточно прав для совершения операции"), true)
-		}
-		else
-		{
-			nsGmx.widgets.authWidget.showLoginDialog();
-		}
-		
-		return false;
-	}
-	else if (response.Status == 'error')
-	{
-		if (typeof customErrorDescriptions !== 'undefined' && response.ErrorInfo.ExceptionType in customErrorDescriptions)
-		{
-			var canvas = _div([_t(customErrorDescriptions[response.ErrorInfo.ExceptionType])], [['dir', 'className', 'CustomErrorText']]);
-			showDialog(_gtxt("Ошибка!"), canvas, 220, 100);
-		}
-		else
-		{
-			var canvas = _div([_div([_t([String(response.ErrorInfo.ErrorMessage)])],[['css','color','red']])]),
-				textarea = false,
-				resize = function()
-				{
-					if (textarea)
-						textarea.style.height = textarea.parentNode.parentNode.offsetHeight - canvas.firstChild.offsetHeight - 6 + 'px';
-				}
-			
-			if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
-			{
-				textarea = _textarea(null,[['dir','className','inputStyle error'],['css','width','100%'],['css','padding','0px'],['css','margin','0px'],['css','border','none']]);
-				
-				textarea.value = response.ErrorInfo.StackTrace;
-				_(canvas, [textarea]);
-			}
-			
-			showDialog(_gtxt("Ошибка сервера"), canvas, 220, 170, false, false, resize)
-			
-			if (typeof response.ErrorInfo.ExceptionType != 'undefined' && response.ErrorInfo.ExceptionType != '' && response.ErrorInfo.StackTrace != null)
-				resize();
-				
-			canvas.parentNode.style.overflow = 'hidden';	
-			
-			return false;
-		}
-	}
-}
-
-function addUserActions()
-{
-    _queryMapLayers.addUserActions();
+    var hooks = {};
     
-	if ( !nsGmx.AuthManager.isAccounts() )
-	{
-        _iconPanel.updateVisibility();
-	}
-}
+    /** Добавляет "хук", который будет вызван при ответе сервера соответвующего типа
+    * @param type {object} - тип хука (соответствует полю "Status" ответа сервера)
+    * @param hookFunction {function(response, customErrorDescriptions)} - собственно хук
+    */
+    window.addParseResponseHook = function(type, hookFunction) {
+        hooks[type] = hooks[type] || [];
+        hooks[type].push(hookFunction);
+    }
 
-function removeUserActions()
-{
-	_queryMapLayers.removeUserActions();
-	
-    _iconPanel.updateVisibility();
-}
+    /** Обрабатывает результат выполнения серверного скрипта.
+    * Для выполнения действий вызывает "хуки" соответствующиего типа, добавленные через addParseResponseHook()
+    * @function
+    * 
+    * @param response {object} - JSON, вернувшийся с сервера
+    * @param customErrorDescriptions {object} - хэш "тип ошибки" -> "кастомное сообщение пользователям".
+    * @return true, если статус ответа "ok", иначе false
+    */
+    window.parseResponse = function(response, customErrorDescriptions)
+    {
+        if (response.Status in hooks) {
+            for (var h = 0; h < hooks[response.Status].length; h++)
+                hooks[response.Status][h](response, customErrorDescriptions);
+        }
+        
+        return response.Status == 'ok';
+    }
+
+})();
 
 function _title(elem, title)
 {
@@ -1145,29 +1043,6 @@ $.extend(nsGmx.Utils, {
 			mapObject.setStyle(templateStyle, hoverStyle);
 		}
 	},
-    getMapStateAsPermalink: function(callback)
-    {
-        // сохраняем состояние карты
-        var mapState = _mapHelper.getMapState();
-        
-        // туда же сохраним созданные объекты
-        _userObjects.collect();
-        mapState.userObjects = JSON.stringify(_userObjects.getData());
-        
-        sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx",
-        {
-            WrapStyle: 'window',
-            content: JSON.stringify(mapState)
-        }, 
-        function(response)
-        {
-            if (!parseResponse(response))
-                return;
-            
-            callback(response.Result);
-        })
-    },
-    
     // Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
     // Форматы сервера:
     // * datetime - unix timestamp

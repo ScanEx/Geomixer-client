@@ -164,6 +164,38 @@ mapHelper.prototype.customParamsManager = (function()
 	}
 })();
 
+mapHelper.prototype.getMapStateAsPermalink = function(callback)
+{
+    // сохраняем состояние карты
+    var mapState = _mapHelper.getMapState();
+    
+    // туда же сохраним созданные объекты
+    _userObjects.collect();
+    mapState.userObjects = JSON.stringify(_userObjects.getData());
+    
+    sendCrossDomainPostRequest(serverBase + "TinyReference/Create.ashx",
+    {
+        WrapStyle: 'window',
+        content: JSON.stringify(mapState)
+    }, 
+    function(response)
+    {
+        if (!parseResponse(response))
+            return;
+        
+        callback(response.Result);
+    })
+}
+
+mapHelper.prototype.reloadMap = function()
+{
+    _mapHelper.getMapStateAsPermalink(function(permalinkID)
+    {
+        createCookie("TempPermalink", permalinkID);
+        window.location.replace(window.location.href.split("?")[0] + "?permalink=" + permalinkID + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
+    })
+}
+
 mapHelper.prototype.updateUnloadEvent = function(flag)
 {
 	if (typeof flag != 'undefined')
