@@ -2206,8 +2206,8 @@ function createFlashMap(div, arg1, arg2, arg3)
 	return true;
 }
 
-//var createKosmosnimkiMap = createFlashMap;
-//var makeFlashMap = createFlashMap;
+window.createKosmosnimkiMap = createFlashMap;
+window.makeFlashMap = createFlashMap;
 
 (function(){
 var flashId = gmxAPI.newFlashMapId();
