@@ -2088,7 +2088,6 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 	// 
 	function setImage(node, ph)	{
 		var attr = ph.attr;
-		node['isSetImage'] = true;
 
 		var LatLngToPixel = function(y, x) {
 			var point = new L.LatLng(y, x);
@@ -2325,7 +2324,11 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			}
 		}
 		
-		if(!node['leaflet']) {
+		if(!node['isSetImage']) {
+			if(node['leaflet']) {
+				var pnode = mapNodes[node.parentId];
+				pnode['group'].removeLayer(node['leaflet']);
+			}
 			var canvasIcon = L.canvasIcon({
 				className: 'my-canvas-icon'
 				,'node': node
@@ -2365,6 +2368,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					if(canvas) canvas.width = canvas.height = 0;
 				}, 10);
 			});
+			node['isSetImage'] = true;
 		} else {
 			if(attr['url'] != node['imageURL']) drawMe(node['imageCanvas']);
 		}
