@@ -586,16 +586,16 @@
 				if(!isCluster) {
 					var geom = node['getItemGeometry'](item.id);
 					if(evName in node['handlers']) {						// Есть handlers на слое
-						var res = node['handlers'][evName].call(gmxNode, item.id, item.properties, {'onClick': true, 'geom': geom});
+						var res = node['handlers'][evName].call(gmxNode, item.id, item.properties, {'onClick': true, 'geom': geom, 'latlng': latlng});
 						if(res) return res;
 					}
 					if(!itemPropHiden['toFilters'] || !itemPropHiden['toFilters'].length) return;		// обьект не попал в фильтр
 					var fID = itemPropHiden['toFilters'][0];
 					var filter = gmxAPI.mapNodes[fID];
 					if(!filter || !mapNodes[fID]['handlers'][evName]) return;						// не найден фильтр
-					mapNodes[fID]['handlers'][evName].call(filter, item.id, item.properties, {'onClick': true, 'geom': geom});
+					mapNodes[fID]['handlers'][evName].call(filter, item.id, item.properties, {'onClick': true, 'geom': geom, 'latlng': latlng});
 				} else {
-					node['handlers'][evName].call(gmxNode, item.id, item.geom.properties, {'onClick': true, 'objType': 'cluster', 'geom': item.geom});
+					node['handlers'][evName].call(gmxNode, item.id, item.geom.properties, {'onClick': true, 'objType': 'cluster', 'geom': item.geom, 'latlng': latlng});
 				}
 				
 				return true;

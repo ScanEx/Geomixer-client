@@ -2179,7 +2179,10 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 
 			if(imageObj.src.indexOf(node['imageURL']) == -1) return;
 			if(!zoom) zoom = LMap.getZoom();
+			if(gmxAPI._leaflet['waitSetImage'] > 5) { waitRedraw(); return; }
+			gmxAPI._leaflet['waitSetImage']++;
 			posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
+			
 			var w = imageObj.width;
 			var h = imageObj.height;
 			var ph = getPixelPoints(attr);
@@ -2273,6 +2276,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			attr['reposition']();
 			data = null;
 			imageObj = null;
+			--gmxAPI._leaflet['waitSetImage'];
 		}
 
 		var imageObj = null;
@@ -3768,6 +3772,7 @@ var tt = 1;
 	//gmxAPI._leaflet['LMap'] = LMap;				// leafLet карта
 	gmxAPI._leaflet['lastZoom'] = -1;				// zoom нарисованный
 	gmxAPI._leaflet['mInPixel'] = 0;				// текущее кол.метров в 1px
+	gmxAPI._leaflet['waitSetImage'] = 0;			// текущее число загружаемых SetImage
 	gmxAPI._leaflet['curDragState'] = false;		// текущий режим dragging карты
 	gmxAPI._leaflet['mousePressed'] = false;		// признак нажатой мыши
 })();
