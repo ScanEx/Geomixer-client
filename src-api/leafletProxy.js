@@ -1958,7 +1958,7 @@ return;
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;
-			setImage(node, ph);
+			setTimeout(function() { setImage(node, ph); }, 2);
 			return true;
 		}
 		,
@@ -1967,7 +1967,7 @@ return;
 			var node = mapNodes[id];
 			if(!node) return;
 			ph['setImageExtent'] = true;
-			setImage(node, ph);
+			setTimeout(function() { setImage(node, ph); }, 2);
 			return true;
 		}
 		,
@@ -2256,6 +2256,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				ctx.setTransform(1, 0, 0, 1, 0, 0);
 				var pattern = ctx.createPattern(content, "no-repeat");
 				ctx.fillStyle = pattern;
+				if(node['regularStyle'] && node['regularStyle']['fill']) ctx.globalAlpha = node['regularStyle']['fillOpacity'] || 1;					
 				if(arr.length) {
 					ctx.beginPath();
 					for (var i = 0; i < arr.length; i++)

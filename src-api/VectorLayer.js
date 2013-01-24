@@ -469,6 +469,7 @@
 					var tilesNeed = {};
 					if(node['hoverItem']) {
 						tilesNeed = gmxAPI.clone(node['hoverItem'].geom.propHiden['drawInTiles']);
+						if(!tilesNeed) tilesNeed = {};
 					}
 					node['hoverItem'] = item;
 					item.geom.curStyle = hoveredStyle;
