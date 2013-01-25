@@ -214,7 +214,22 @@ var DrawingObjectCollection = function(oInitMap) {
      editStyle - нужна ли возможность редактировать стили
 */
 var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, options) {
-    var _options = $.extend({allowDelete: true, editStyle: true}, options);
+    var defaultClickFunction = function(obj) {
+        var coords = obj.geometry.coordinates;
+		if (obj.geometry.type == "POINT") {
+            _map.moveTo(coords[0], coords[1], Math.max(14, _map.getZ()));
+        } else {
+            var bounds = getBounds(coords);
+            _map.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+        }
+    }
+    
+    var _options = $.extend({
+        allowDelete: true, 
+        editStyle: true, 
+        click: defaultClickFunction
+    }, options);
+    
 	var _drawingObject = drawingObject;
 	var _this = this;
 	var _map = oInitMap;
@@ -223,17 +238,10 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	var _title = _span(null, [['dir','className','drawingObjectsItemTitle']]);
 	var _text = _span(null, [['dir','className','text']]);
 	var _summary = _span(null, [['dir','className','summary']]);
-    	
-	_text.onclick = _title.onclick = function()
-	{
-		var bounds = getBounds(_drawingObject.geometry.coordinates),
-			curZ = _map.getZ();
-		
-		_map.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-		
-		if (_drawingObject.geometry.type == "POINT")
-			_map.moveTo(_map.getX(), _map.getY(), Math.max(14, curZ));
-	}
+    
+	_text.onclick = _title.onclick = function() {
+        _options.click(_drawingObject);
+    }
 	
 	var regularDrawingStyle = {
 			marker: {size: 3},
@@ -354,8 +362,12 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
  @param oInitMap Карта
  @param {documentElement} oInitContainer Объект, в котором находится контрол (div) 
  @param {DrawingObjectCollection} oInitDrawingObjectCollection Коллекция пользовательских объектов
+ @param {object} options Дополнительные параметры
+       * все доп. параметры DrawingObjectInfoRow
+       * showButtons {bool} показывать ли кнопки под списком
 */
-var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCollection){
+var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCollection, options){
+    var _options = $.extend({showButtons: true}, options);
 	var _this = this;
 	var _rows = [];
 	var _containers = [];
@@ -370,11 +382,11 @@ var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCol
 	var add = function(drawingObject){
 		var _divRow = _div();
 		_(_divList, [_divRow]);
-		var _row = new DrawingObjectInfoRow(_map, _divRow, drawingObject);
+		var _row = new DrawingObjectInfoRow(_map, _divRow, drawingObject, options);
 		_containers.push(_divRow);
 		_rows.push(_row);
 		$(_row).bind('onRemove', function(){ drawingObject.remove(); } );
-		if (_collection.Count() == 1) show(_divButtons);
+		if (_collection.Count() == 1 && _options.showButtons) show(_divButtons);
 	}
 	
 	/** При удалении объекта из списка
@@ -410,7 +422,7 @@ var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCol
 	_(_divButtons, [_div([delAll])]);
 	_( oInitContainer, [_divList, _divButtons]);
 
-	if (_collection.Count() == 0) hide(_divButtons);
+	if (_collection.Count() == 0 || !_options.showButtons) hide(_divButtons);
 	
 	for (var i=0; i<_collection.Count(); i++){ add(_collection.Item(i));}
 }
