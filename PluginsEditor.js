@@ -66,9 +66,9 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
     
     nsGmx.pluginsManager.forEachPlugin(function(plugin)
     {
-        if ( typeof plugin.pluginName !== 'undefined' && plugin.mapPlugin && (plugin.isPublic || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) )
+        if ( plugin.pluginName && plugin.mapPlugin && (plugin.isPublic || nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) )
         {
-            _allPlugins.push(plugin.pluginName);
+            _allPlugins.push({name: plugin.pluginName, isPublic: plugin.isPublic});
         }
     })
     
@@ -81,8 +81,12 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
         });
         
         for (var p = 0; p < _allPlugins.length; p++)
-            if (!mapPlugins.isExist(_allPlugins[p]))
-                pluginSelect.append($('<option/>').text(_allPlugins[p]));
+            if (!mapPlugins.isExist(_allPlugins[p].name)) {
+                var pluginOption = $('<option/>').text(_allPlugins[p].name);
+                if (!_allPlugins[p].isPublic)
+                    pluginOption.addClass('pluginEditor-hiddenPluginOption');
+                pluginSelect.append(pluginOption);
+            }
                 
         var pluginInput = $('<input/>', {'class': 'inputStyle pluginEditor-pluginInput'}).bind('focus', function()
         {
@@ -132,6 +136,18 @@ var MapPluginsWidget = function(container, mapPlugins)
     {
         container.empty();
         container.append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text(_gtxt('pluginsEditor.selectedTitle')));
+        
+        if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
+            nsGmx.pluginsManager.forEachPlugin(function(plugin)
+            {
+                if ( plugin.pluginName && !plugin.mapPlugin && !mapPlugins.isExist(plugin.pluginName) )
+                {
+                    var divRow = $('<div/>', {'class': 'pluginEditor-widgetElemCommon'})
+                        .append($('<span/>').text(plugin.pluginName))
+                        .appendTo(container);
+                }
+            })
+        }
         
         mapPlugins.each(function(name)
         {

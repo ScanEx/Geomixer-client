@@ -592,7 +592,7 @@ var createMapEditor = function(div)
 		};
 	
 	var canvas = createGroupEditorProperties(div, true, _layersTree);
-	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 340, 330, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 345, 330, pos.left, pos.top, null, closeFunc);
 	_mapEditorsHash[elemProperties.MapID] = true;
 	
 	$(canvas).tabs({selected: 0});

@@ -1086,7 +1086,7 @@ div.layersScroll
 
 .pluginEditor-pluginInput
 {
-    width: 100%;
+    width: 144px;
     margin: 2px 0px;
 }
 
@@ -1134,7 +1134,22 @@ div.layersScroll
     padding: 2px 0px
 }
 
-.pluginEditor-widgetElem:hover
+.pluginEditor-widgetElemCommon
+{
+    padding: 2px 0px;
+}
+
+.pluginEditor-widgetElemCommon > span
+{
+    color: gray;
+}
+
+.pluginEditor-widgetElem > span, .pluginEditor-widgetElemCommon > span
+{
+    cursor: default;
+}
+
+.pluginEditor-widgetElem:hover, .pluginEditor-widgetElemCommon:hover
 {
     background-color: #eeeeee;
 }
@@ -1142,6 +1157,11 @@ div.layersScroll
 .pluginEditor-addButton
 {
     width: 100%
+}
+
+.pluginEditor-hiddenPluginOption
+{
+    color: gray;
 }
 
 .uiw-inactive
