@@ -27,6 +27,7 @@
 			drawAttr['stylePoint'] = gmxAPI.clone(stylePoint);
 			//var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
 			//var stylePoint = {color: "#0000ff", fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1};
+			//drawAttr['stylePoint']['pointSize'] = pointSize + weight - lineWidth;
 			drawAttr['stylePoint']['pointSize'] = pointSize;
 			drawAttr['stylePoint']['color'] = drawAttr['stylePolygon']['color'];
 			drawAttr['stylePoint']['weight'] = drawAttr['stylePolygon']['weight'];
@@ -141,20 +142,39 @@
 			var pstyle = attr['stylePoint'] || stylePoint;
 			pstyle['skipLastPoint'] = (attr['editType'] !== 'LINESTRING');
 			layerItems.push(new L.GMXPointsMarkers([], pstyle));
-			var mousedown = function(e) { attr['mousedown'](e, this); };
-			layerItems[0].on('mousedown', mousedown , {'num':0, 'type':'edge'});
-			if(attr['dblclick']) {
-				var dblclick = function(e) { attr['dblclick'](e, this); };
-				layerItems[0].on('dblclick', dblclick , {'dx':dx, 'num':0, 'type':'edge'});
-			}
-			
+
 			layerGroup.addLayer(layerItems[0]);
 			layerGroup.addLayer(layerItems[1]);
+
+			layerItems[0]._container.style.pointerEvents = 'painted';
+			layerItems[1]._container.style.pointerEvents = 'painted';
+
+			layerItems[0].on('mousedown', function(e) {
+				attr['mousedown'](e, {'num':0, 'type':'edge'});
+				}
+			, this);
 			
-			layerItems[0]._container.style.pointerEvents = 'visiblestroke';
-			layerItems[1]._container.style.pointerEvents = 'none';
-			layerItems[0]._container.style.zIndex = 10000;
-			layerItems[1]._container.style.zIndex = 10001;
+			L.DomEvent.on(layerItems[1]._container, 'mouseover', function(e) {
+				e.latlng = gmxAPI._leaflet['LMap'].mouseEventToLatLng(e);
+				layerGroup.fire('mouseover', e);
+			}, this);
+
+			L.DomEvent.on(layerItems[1]._container, 'mouseout', function(e) {
+				e.latlng = gmxAPI._leaflet['LMap'].mouseEventToLatLng(e);
+				layerGroup.fire('mouseout', e);
+			}, this);
+
+			var lastClick = 0;
+			layerItems[1]._container.onmousedown = function(e) {
+				e.latlng = gmxAPI._leaflet['LMap'].mouseEventToLatLng(e);
+				var pDown = new Date().getTime();
+				if(attr['dblclick'] && pDown - lastClick < 500) {
+					attr['dblclick'](e, this);
+				} else {
+					attr['mousedown'](e, {'num':0, 'type':'node'});
+				}
+				lastClick = pDown;
+			};
 		}
 		layerGroup.bringToFront();
 		
@@ -793,8 +813,6 @@
 			{
 				if(lastPoint) addDrawingItem(e);		// Добавление точки
 				else itemMouseDown(e);					// Изменение точки
-				//console.log('mousedown:  ', e);
-
 			};
 			drawAttr['dblclick'] = function(e, attr)		// Удаление точки
 			{
@@ -802,15 +820,20 @@
 				var downType = getDownType(e, coords, oBounds);
 				if(downType.type !== 'node') return;
 				var len = coords.length - 1;
-				if(downType.cnt == 0 && len > 0 && editType === 'POLYGON') {
-					coords[len][0] = coords[1][0];
-					coords[len][1] = coords[1][1];
+				if(editType === 'POLYGON') {
+					if(downType.cnt == 0 && len > 0) {
+						coords[len][0] = coords[1][0];
+						coords[len][1] = coords[1][1];
+					}
+					if(len == 2) len = 0;
+				} else if(editType === 'LINESTRING') {
+					if(len == 1) len = 0;
 				}
-				coords.splice(downType.cnt, 1);
-				drawAttr['coords'] = coords;
-				if(len == -1) {
+				if(len == 0) {
 					domObj.remove();
 				} else {
+					coords.splice(downType.cnt, 1);
+					drawAttr['coords'] = coords;
 					drawSVG(drawAttr);
 				}
 			};
@@ -860,7 +883,10 @@
 			drawAttr['regularStyle'] = gmxAPI._leaflet['utils'].parseStyle(regularStyle, obj.objectId);
 			drawAttr['hoveredStyle'] = gmxAPI._leaflet['utils'].parseStyle(hoveredStyle, obj.objectId);
 			chkStyle(drawAttr, regularStyle, hoveredStyle);
-			if(layerGroup) layerGroup.setStyle(drawAttr['stylePoint']);
+			if(layerGroup) {
+				layerGroup.setStyle(drawAttr['stylePolygon']);
+				layerItems[1].setStyle(drawAttr['stylePoint']);
+			}
 		}
 		ret.getVisibleStyle = function() { return obj.getVisibleStyle(); };
 		ret.getStyle = function(removeDefaults) {
@@ -943,7 +969,7 @@
 					if(coords[editIndex][0] > 0 && x < 0) x += 360;
 					coords[editIndex] = [x, y];
 				} else if(downType['type'] === 'edge') {
-					if(editIndex == 0 && editType === 'LINESTRING') return false;
+					if(editIndex == 0 && editType === 'LINESTRING') editIndex++;
 					coords.splice(editIndex, 0, [x, y]);
 				}
 				gmxAPI._cmdProxy('startDrawing');
@@ -1396,7 +1422,10 @@
 			drawAttr['regularStyle'] = gmxAPI._leaflet['utils'].parseStyle(regularStyle, obj.objectId);
 			drawAttr['hoveredStyle'] = gmxAPI._leaflet['utils'].parseStyle(hoveredStyle, obj.objectId);
 			chkStyle(drawAttr, regularStyle, hoveredStyle);
-			if(layerGroup) layerGroup.setStyle(drawAttr['stylePoint']);
+			if(layerGroup) {
+				layerGroup.setStyle(drawAttr['stylePolygon']);
+				layerItems[1].setStyle(drawAttr['stylePoint']);
+			}
 		}
 		
 		var needMouseOver = true;
