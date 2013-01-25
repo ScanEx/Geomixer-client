@@ -138,7 +138,7 @@ fileBrowser.prototype.createBrowser = function(title, mask, closeFunc, params)
 	}
 	
 	var canvas = _div(null, [['attr','id','fileBrowserDialog']]);
-	
+    
 	var oDialog = showDialog(title, canvas, 800, 400, false, false, this.resize);
 	
 	this.returnMask = mask;
@@ -189,6 +189,7 @@ fileBrowser.prototype.loadInfo = function()
 }
 fileBrowser.prototype.loadInfoHandler = function()
 {
+    var _this = this;
 	if (!this._path.isInited())
 	{
         this._path.set(_layersTree.treeModel.getMapProperties().LayersDir || nsGmx.AuthManager.getUserFolder());
@@ -199,6 +200,50 @@ fileBrowser.prototype.loadInfoHandler = function()
 	this.fileUpload = _div(null, [['dir','className','fileUpload']]);
 	this.fileHeader = _div(null, [['css','height','24px']]);
 	this.fileCanvas = _div(null, [['dir','className','fileCanvas']]);
+    
+    $(this.parentCanvas).bind('dragover', function()
+    {
+        return false;
+    });
+    
+    $(this.parentCanvas).bind('drop', function(e)
+    {
+        if (!window.FormData) return false;
+        
+        var formData = new FormData();
+        formData.append('rawdata', e.originalEvent.dataTransfer.files[0]);
+        formData.append('ParentDir', _this._path.get());
+        
+        $(_this.progressBar).progressbar('option', 'value', 0);
+        $(_this.progressBar).show();
+        
+        var xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", function(e) {
+            //console.log(e);
+            _this.progressBar && $(_this.progressBar).progressbar('option', 'value', e.loaded / e.total * 100);
+        }, false);
+        xhr.open('POST', serverBase + 'FileBrowser/Upload.ashx');
+        xhr.withCredentials = true;
+        xhr.onload = function () {
+            $(_this.progressBar).hide();
+            if (xhr.status === 200) {
+                response = JSON.parse(xhr.responseText.substr(1, xhr.responseText.length-2));
+                
+                if (!parseResponse(response))
+                    return;
+                    
+                var indexSlash = String(response.Result).lastIndexOf(_this.slash),
+                    fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
+                
+                _this.shownPath = fileName;
+                
+                _this.getFiles();
+            }
+        };
+        
+        xhr.send(formData);
+        return false;
+    })
 	
 	_(this.parentCanvas, [this.fileHeader, this.fileCanvas, this.fileUpload]);
 	
@@ -380,8 +425,13 @@ fileBrowser.prototype.createUpload = function()
 	}
 	
 	_(div, [_table([_tbody([_tr([_td([formFile]), _td([uploadFileButton])])])])]);
+    
+    var progressBar = $('<div/>').css({'float': 'right', width: 400, height: '1em', 'margin': '6px 2px'}).progressbar({value: 100});
+    progressBar.hide();
+    
+    this.progressBar = progressBar[0];
 	
-	_(this.fileUpload, [div]);
+	_(this.fileUpload, [this.progressBar, div]);
 }
 
 fileBrowser.prototype.getFiles = function(path)
