@@ -217,31 +217,35 @@
 			}
 			,
 			_createTileProto: function () {
-				var proto = this._canvasProto = L.DomUtil.create('canvas', 'leaflet-tile');
-				proto.width = proto.height = this.options.tileSize;
-				var img = this._tileImg = L.DomUtil.create('img', 'leaflet-tile');
-				img.style.width = img.style.height = this.options.tileSize + 'px';
-				img.galleryimg = 'no';
+				var attr = this.options.attr;
+				var imgFlag = (!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85));
+				if(imgFlag) {
+					var img = this._canvasProto = L.DomUtil.create('img', 'leaflet-tile');
+					img.style.width = img.style.height = this.options.tileSize + 'px';
+					img.galleryimg = 'no';
+				} else {
+					var proto = this._canvasProto = L.DomUtil.create('canvas', 'leaflet-tile');
+					proto.width = proto.height = this.options.tileSize;
+				}
 			},
-			_createTile: function (imgFlag) {
-				var tile = (imgFlag ? this._tileImg.cloneNode(false) : this._canvasProto.cloneNode(false));
+			_createTile: function () {
+				var tile = this._canvasProto.cloneNode(false);
 				tile.onselectstart = tile.onmousemove = L.Util.falseFn;
 				return tile;
 			},
-			_getTile: function (imgFlag) {
+			_getTile: function () {
 				if (this.options.reuseTiles && this._unusedTiles.length > 0) {
 					var tile = this._unusedTiles.pop();
 					this._resetTile(tile);
 					return tile;
 				}
-				return this._createTile(imgFlag);
+				return this._createTile();
 			},
 			_addTile: function (tilePoint, container) {
 				var tilePos = this._getTilePos(tilePoint);
 
 				var attr = this.options.attr;
-				var imgFlag = (!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85));
-				var tile = this._getTile(imgFlag);
+				var tile = this._getTile();
 				tile.style.pointerEvents = 'none';
 
 				L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
@@ -311,6 +315,8 @@
 					'x': (tx % pz - pz/2) % pz
 					,'y': -tilePoint.y - 1 + pz/2
 				};
+				var drawTileID = zoom + '_' + scanexTilePoint.x + '_' + scanexTilePoint.y;
+				tile.id = drawTileID;
 
 				var bounds = utils.getTileBounds(tilePoint, zoom);
 				var tileX = 256 * tilePoint.x;								// позиция тайла в stage

@@ -583,7 +583,12 @@
 					if(hItem) hoverItem(hItem);
 				}
 				
-				var eventPos = {'x': latlng.lng, 'y': latlng.lat };
+				var eventPos = {
+					'latlng': { 'x': latlng.lng, 'y': latlng.lat }
+					,'pixelInTile': attr.pixelInTile
+					,'tID': attr.tID
+				};
+				
 				if(!isCluster) {
 					var geom = node['getItemGeometry'](item.id);
 					if(evName in node['handlers']) {						// Есть handlers на слое

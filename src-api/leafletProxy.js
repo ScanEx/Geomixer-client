@@ -359,17 +359,23 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			return bounds;
 		}
 		,
-		'getTileBoundsMerc1': function(point, zoom)	{			// определение границ тайла
+		'getTileListByBounds': function(bounds, zoom)	{		// получить список тайлов по extent на определенном zoom
+			var res = [];
+			var southWest = bounds._southWest,
+				northEast = bounds._northEast;
 			var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
-			var minx = point.x * tileSize;
-			var miny = point.y * tileSize;
-			var p = new L.Point(minx, miny);
-			var bounds = new L.Bounds(p);
-			bounds.extend(p);
-			var maxx = minx + tileSize;
-			var maxy = miny + tileSize;
-			bounds.extend(new L.Point(maxx, maxy));
-			return bounds;
+			var minx = Math.floor(gmxAPI.merc_x(southWest.lat)/tileSize);
+			var miny = Math.floor(gmxAPI.merc_y(southWest.lng)/tileSize);
+			var maxx = Math.ceil(gmxAPI.merc_x(northEast.lat)/tileSize);
+			var maxy = Math.ceil(gmxAPI.merc_y(northEast.lng)/tileSize);
+			for (var x = minx; x < maxx; x++)
+			{
+				for (var y = miny; y < maxy; y++)
+				{
+					res.push({'x': x, 'y': y, 'z': zoom});
+				}
+			}
+			return res;
 		}
 		,
 		'getImageSize': function(pt, flag, id)	{				// определение размеров image
@@ -3231,11 +3237,17 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					,'metaKey': e.originalEvent.metaKey
 					,'e': e
 				};
-				if(target) {
+				if(target && e.containerPoint) {
 					//try {
-						out['tID'] = target['id']
-						out['_layer'] = target['_layer']
-						out['tilePoint'] = target['tilePoint']
+						out['tID'] = target['id'];
+						out['_layer'] = target['_layer'];
+						out['tilePoint'] = target['tilePoint'];
+						if(target['_leaflet_pos']) {
+							out['pixelInTile'] = {
+								'x': e.containerPoint.x - target['_leaflet_pos'].x
+								,'y': e.containerPoint.y - target['_leaflet_pos'].y
+							};
+						}
 					//} catch(ev) { }
 				}
 				return out;
