@@ -77,6 +77,14 @@ var LayersListProvider = function(filtersProvider)
     
     this.getItems = function(page, pageSize, sortParam, sortDec, callback)
     {
+        this.getCountAndItems(page, pageSize, sortParam, sortDec, function(count, items)
+        {
+            callback(items);
+        })
+    }
+    
+    this.getCountAndItems = function(page, pageSize, sortParam, sortDec, callback)
+    {
         var sortParams = {};
         sortParams[_gtxt("Имя")] = "title";
         sortParams[_gtxt("Дата создания")] = "datecreate";
@@ -92,7 +100,7 @@ var LayersListProvider = function(filtersProvider)
                 return;
             }
             
-            callback(response.Result.layers);
+            callback(response.Result.count, response.Result.layers);
         })
     }
 }

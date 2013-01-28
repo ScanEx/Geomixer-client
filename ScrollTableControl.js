@@ -40,6 +40,7 @@ var scrollTable = function( params )
 	
 	this.drawFunc = null;
     
+    this._requestID = 0;
     this._pageVals = [];
     this._currValsCount = 0;
     
@@ -248,30 +249,80 @@ scrollTable.prototype._drawPages = function(end)
 scrollTable.prototype._updatePageData = function(callback)
 {
     var _this = this;
-    this._dataProvider.getCount(function(count)
+    
+    if (this._dataProvider.getCountAndItems)
     {
-        _this._currValsCount = count;
-        
-        //вообще-то при обновлении данных мы не изменяем текущей страницы
-        //однако если данных стало слишком мало, то текущую страницу сохранить нельзя,
-        //и мы переключимся на первую
-        if (_this.reportStart >= _this._currValsCount)
-        {
-            _this.start = _this.reportStart = 0;
-        }
-        
-        _this._dataProvider.getItems(
+        var requestID = this._requestID++;
+        _this._dataProvider.getCountAndItems(
             _this.reportStart / _this.limit,
             _this.limit,
             _this.currentSortType, 
             _this.currentSortIndex[_this.currentSortType] == 0, 
-            function(values)
+            function(count, values)
             {
-                _this._pageVals = values;
-                callback();
+                if (requestID !== _this._requestID - 1)
+                    return;
+                    
+                _this._currValsCount = count;
+                
+                
+                //если данных стало слишком мало, мы встанем на первую страницу и перезапросим данные ещё раз
+                if (_this.reportStart > _this._currValsCount)
+                {
+                    requestID = _this._requestID++;
+                    
+                    _this.start = _this.reportStart = 0; //на первую страницу
+                    
+                    _this._dataProvider.getCountAndItems(
+                        _this.reportStart / _this.limit,
+                        _this.limit,
+                        _this.currentSortType, 
+                        _this.currentSortIndex[_this.currentSortType] == 0, 
+                        function(count, values)
+                        {
+                            if (requestID !== _this._requestID - 1)
+                                return;
+                        
+                            _this._pageVals = values;
+                            callback();
+                        }
+                    )
+                }
+                else
+                {
+                    _this._pageVals = values;
+                    callback();
+                }
             }
         )
-    });
+    }
+    else
+    {
+        this._dataProvider.getCount(function(count)
+        {
+            _this._currValsCount = count;
+            
+            //вообще-то при обновлении данных мы не изменяем текущей страницы
+            //однако если данных стало слишком мало, то текущую страницу сохранить нельзя,
+            //и мы переключимся на первую
+            if (_this.reportStart >= _this._currValsCount)
+            {
+                _this.start = _this.reportStart = 0;
+            }
+            
+            _this._dataProvider.getItems(
+                _this.reportStart / _this.limit,
+                _this.limit,
+                _this.currentSortType, 
+                _this.currentSortIndex[_this.currentSortType] == 0, 
+                function(values)
+                {
+                    _this._pageVals = values;
+                    callback();
+                }
+            )
+        });
+    }
 }
 
 scrollTable.prototype._drawPagesRow = function()
