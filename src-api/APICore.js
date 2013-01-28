@@ -1576,8 +1576,8 @@ window.gmxAPI = {
 				,'y':	Math.floor(gmxAPI.merc_y(y)/tileSize)
 				,'z':	z
 				,'posInTile': {
-					'x': 256 * ((gmxAPI.merc_x(x) % tileSize) / tileSize)
-					,'y': 256 * ( 1 - (gmxAPI.merc_y(y) % tileSize) / tileSize)
+					'x': Math.round(256 * ((gmxAPI.merc_x(x) % tileSize) / tileSize))
+					,'y': Math.round(256 * ( 1 - (gmxAPI.merc_y(y) % tileSize) / tileSize))
 				}
 			};
 			return tile;						// получить атрибуты тайла по POINT
