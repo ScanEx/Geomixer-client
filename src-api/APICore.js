@@ -1572,9 +1572,13 @@ window.gmxAPI = {
 			var x = attr.x;
 			var y = attr.y;
 			var tile = {
-				'x':	Math.floor(x/xSize)
+				'x':	Math.floor(gmxAPI.merc_x(x)/tileSize)
 				,'y':	Math.floor(gmxAPI.merc_y(y)/tileSize)
 				,'z':	z
+				,'posInTile': {
+					'x': 256 * ((gmxAPI.merc_x(x) % tileSize) / tileSize)
+					,'y': 256 * ( 1 - (gmxAPI.merc_y(y) % tileSize) / tileSize)
+				}
 			};
 			return tile;						// получить атрибуты тайла по POINT
 		}

@@ -1828,8 +1828,8 @@ return;
 			if(!node) {						// Нода не была создана через addObject
 				if(ph.obj.parent && mapNodes[ph.obj.parent.objectId]) {
 					node = mapNodes[ph.obj.parent.objectId];
-					if(node && node['type'] == 'filter') {
-						node = mapNodes[node.parentId];
+					if(node) {
+						if(node['type'] == 'filter') node = mapNodes[node.parentId];
 						if(node && 'getItemGeometry' in node) return node.getItemGeometry(id);
 					}
 				}

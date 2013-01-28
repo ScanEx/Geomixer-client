@@ -465,7 +465,7 @@
 			}
 
 			var css = {
-				'table': 'margin: 2px; border-collapse: collapse; font-size: 11px; font-family: sans-serif;',
+				'table': 'background-color: transparent; width: auto; margin: 2px; border-collapse: collapse; font-size: 11px; font-family: sans-serif;',
 				'bg_top_left': 'background-color: transparent; width: 13px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: 2px 9px; background-image: url(\''+apiBase+'img/tooltip-top-left.png\'); background-repeat: no-repeat;',
 				'bg_top': 'background-color: transparent; height: 18px; border: 0px none; padding: 0px; background-position: center 9px; background-image: url(\''+apiBase+'img/tooltip-top.png\'); background-repeat: repeat-x;',
 				'bg_top_right': 'background-color: transparent; width: 18px; height: 18px; border: 0px none; padding: 1px; display: block; background-position: -5px 9px; background-image: url(\''+apiBase+'img/tooltip-top-right.png\'); background-repeat: no-repeat;',
