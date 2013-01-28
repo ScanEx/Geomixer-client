@@ -2297,7 +2297,17 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			if(node['leaflet']) node['leaflet'].setLatLng(posLatLng);
 		}
 
+		var redrawTimer = null;
+		var waitRedraw = function()	{						// Требуется перерисовка с задержкой
+			if(redrawTimer) clearTimeout(redrawTimer);
+			redrawTimer = setTimeout(function()
+			{
+				redrawMe();
+			}, 10);
+		}
+		
 		var redrawMe = function(e) {
+			if(zoomProgress) return;
 			if(!imageObj) {
 				var src = attr['url'];
 				//var src = '1.jpg';
@@ -2356,11 +2366,12 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			utils.setVisibleNode({'obj': node, 'attr': true});
 			setNodeHandlers(node.id);
 
-			LMap.on('zoomend', redrawMe);
+			LMap.on('zoomend', function(e) {zoomProgress = false; waitRedraw();});
 			LMap.on('moveend', function(e) {
 				var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
+//console.log(' moveend: ' + isOnScene + ' : ' + node['isOnScene'] + ' : ');
 				if(node['isOnScene'] == isOnScene && !node['isLargeImage']) return;
-				redrawMe();
+				waitRedraw();
 			});
 			
 			/*
@@ -2368,15 +2379,10 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				attr['reposition']();
 			});
 			*/
-			var zoomTimer = null;
-			LMap.on('zoomanim', function(e) {
-				var zoom = LMap.getZoom();
-				if(zoomTimer) clearTimeout(zoomTimer);
-				zoomTimer = setTimeout(function()
-				{
-					zoomTimer = null;
-					if(canvas) canvas.width = canvas.height = 0;
-				}, 10);
+			var zoomProgress = null;
+			LMap.on('zoomstart', function(e) {
+				zoomProgress = true;
+				if(canvas) canvas.width = canvas.height = 0;
 			});
 			node['isSetImage'] = true;
 		} else {
