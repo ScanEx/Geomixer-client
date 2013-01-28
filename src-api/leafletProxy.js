@@ -3207,7 +3207,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			LMap.on('moveend', function(e) {
 				//console.log("test1");
 				if(LMap._size) prevSize = {'x': LMap._size.x, 'y': LMap._size.y};
-				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {});
+				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {'obj': gmxAPI.map, 'attr': gmxAPI.currPosition });
 			});
 			LMap.on('move', function(e) {
 				var currPosition = utils.getMapPosition();

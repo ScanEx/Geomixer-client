@@ -3195,7 +3195,7 @@ L.Marker = L.Class.extend({
 			    .off(this._icon, 'mouseout', this._resetZIndex);
 		}
 
-		this._icon.parentNode.removeChild(this._icon);					// Added by OriginalSin
+		if(this._icon && this._icon.parentNode) this._icon.parentNode.removeChild(this._icon);	// Added by OriginalSin
 		//panes.markerPane.removeChild(this._icon);
 
 		if (this._shadow) {

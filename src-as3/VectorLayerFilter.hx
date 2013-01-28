@@ -344,6 +344,7 @@ class VectorLayerFilter extends MapContent
 		});
 		var roll_out = function(event:Event)
 		{
+			if(event.currentTarget != me.contentSprite) return;	// потеря фокуса не этого спрайта
 			if (Main.mousePressed || Main.isDrawing || Main.draggingDisabled) return;		// В режиме рисования ничего не делаем
 			if (me.layer.currentFilter != null)
 			{
