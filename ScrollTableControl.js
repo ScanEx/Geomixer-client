@@ -257,7 +257,7 @@ scrollTable.prototype._updatePageData = function(callback)
             _this.reportStart / _this.limit,
             _this.limit,
             _this.currentSortType, 
-            _this.currentSortIndex[_this.currentSortType] == 0, 
+            _this.currentSortIndex[_this.currentSortType] == 1, 
             function(count, values)
             {
                 if (requestID !== _this._requestID - 1)
@@ -277,7 +277,7 @@ scrollTable.prototype._updatePageData = function(callback)
                         _this.reportStart / _this.limit,
                         _this.limit,
                         _this.currentSortType, 
-                        _this.currentSortIndex[_this.currentSortType] == 0, 
+                        _this.currentSortIndex[_this.currentSortType] == 1, 
                         function(count, values)
                         {
                             if (requestID !== _this._requestID - 1)
@@ -314,7 +314,7 @@ scrollTable.prototype._updatePageData = function(callback)
                 _this.reportStart / _this.limit,
                 _this.limit,
                 _this.currentSortType, 
-                _this.currentSortIndex[_this.currentSortType] == 0, 
+                _this.currentSortIndex[_this.currentSortType] == 1, 
                 function(values)
                 {
                     _this._pageVals = values;
@@ -564,10 +564,10 @@ scrollTable.prototype.setSortParams = function(sortType, sortDirection)
     $(this).triggerHandler('sortChange');
 }
 
-//false - по убыванию, true - по возрастанию
+//false - по возрастанию, dec - по убыванию
 scrollTable.prototype.getSortDirection = function()
 {
-    return this.currentSortIndex[this.currentSortType] == 0
+    return this.currentSortIndex[this.currentSortType] == 1
 }
 
 //Не будет перезапрашивать данные у провайдера - просто перерисует текущую страницу
@@ -579,7 +579,10 @@ scrollTable.prototype.repaint = function()
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-    
+
+/** Провайдер данных для scrollTable. 
+* Хранит статический массив данных, умеет их фильтровать и упорядочивать.
+*/
 scrollTable.StaticDataProvider = function( originalData )
 {
     var _vals = originalData || []; //исходный список элементов
@@ -612,19 +615,20 @@ scrollTable.StaticDataProvider = function( originalData )
         $(_this).change();
     }
     
-    //
+    /** синхронный вариант getCount() */
     this.getCountDirect = function()
     {
         _filter();
         return _filteredVals.length;
     }
     
+    /** синхронный вариант getItems() */
     this.getItemsDirect = function(page, pageSize, sortParam, sortDec)
     {
         var nMin = page*pageSize;
         var nMax = nMin + pageSize;
         _filter();
-        var sortDirIndex = sortDec ? 0 : 1;
+        var sortDirIndex = sortDec ? 1 : 0;
         var sortedVals;
 
         if (_sortFunctions[sortParam])
@@ -653,18 +657,22 @@ scrollTable.StaticDataProvider = function( originalData )
         callback(this.getItemsDirect(page, pageSize, sortParam, sortDec, callback));
     }
     
-    //задание/получение исходных данных
+    /** задание исходных данных */
     this.setOriginalItems = function(items)
     {
         _vals = items;
         _update();
     }
     
+    /** получение исходных данных */
     this.getOriginalItems = function()
     {
         return _vals;
     }
     
+    /** Фильтруем исходные данные
+    * @param {function(val)->bool} filterFunction ф-ция для фильтрации. На вход принимает элемент массива данных, возвращает false, если элемент отфильтровывается, иначе true
+    */
     this.filterOriginalItems = function(filterFunction)
     {
         var newOrigData = [];
@@ -676,6 +684,7 @@ scrollTable.StaticDataProvider = function( originalData )
         _update();
     }
     
+    /** Добавляем новый элемент в исходные данные */
     this.addOriginalItem = function(item)
     {
         _vals.push(item);
@@ -702,11 +711,19 @@ scrollTable.StaticDataProvider = function( originalData )
         _update();
     }
     
+    /** Добавить ф-цию фильтрации исходных данных
+        @param {String} fieldName Имя фильтра
+        @param {function} predicate Ф-ция фильтрации: predicate(name, value, items)->filteredItems
+    */
     this.addFilter = function(fieldName, predicate)
     {
         _predicate[fieldName] = predicate;
     }
     
+    /** Установить значение для фильтра
+        @param {String} fieldName Имя фильтра
+        @param {String} value Значение для фильтрации
+    */
     this.setFilterValue = function(fieldName, value)
     {
         _filterVals[fieldName] = value;
