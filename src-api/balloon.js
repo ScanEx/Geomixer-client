@@ -643,6 +643,7 @@
 */
 		div.onmouseout = function(ev)		// скрыть балун по наведению если мышь ушла
 		{
+			if(gmxAPI.proxyType === 'leaflet') return;
 			if(propsBalloon.isVisible()) {
 				var event = gmxAPI.compatEvent(ev);
 				var tg = gmxAPI.compatTarget(event);

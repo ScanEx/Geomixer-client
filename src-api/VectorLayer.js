@@ -423,25 +423,56 @@
 			//}
 			return arr;
 		}
-		gmxAPI.map.addListener('onMouseMove', function(ph) {
+
+		node['mouseMoveCheck'] = function(evName, ph) {			// проверка событий векторного слоя
+		//gmxAPI.map.addListener('onMouseMove', function(ph) {
 			if(!node.isVisible || gmxAPI._drawing['activeState'] || !node['leaflet'] || node['leaflet']._isVisible == false || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['curDragState']) return false;
-//console.log('onMouseMove ' , ph);
+//console.log('onMouseMove ' , node.id);
 			var latlng = ph.attr['latlng'];
 			var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
 			var arr = (ph.attr.tID ? tilesRedrawImages.getItemsByPoint(ph.attr.tID, mPoint) : getItemsByPoint(latlng));
-//return;
 			if(arr && arr.length) {
 				var item = getTopFromArrItem(arr);
-				if(!item) return;
-				hoverItem(item);
+				if(item) {
+					hoverItem(item);
+					return true;
+				}
 			} else {
 				if(node['hoverItem']) {
 					redrawTilesHash(node['hoverItem'].geom.propHiden['drawInTiles']);
 					gmxAPI._div.style.cursor = '';
+					callHandler('onMouseOut', node['hoverItem'].geom, gmxNode);
+					var filter = getItemFilter(node['hoverItem']);
+					if(filter) callHandler('onMouseOut', node['hoverItem'].geom, filter);
 				}
 				node['hoverItem'] = null;
+				return false;
 			}
-		}, -11);
+		//}, -11);
+		};
+		var callHandler = function(evName, geom, gNode, attr) {				// Вызов Handler для item
+			var res = false;
+			var rNode = mapNodes[gNode.objectId || gNode.id];
+			if(rNode && rNode['handlers'][evName]) {			// Есть handlers на слое
+				if(!attr) attr = {};
+				attr['geom'] = node['getItemGeometry'](geom.id);
+				attr[evName] = true;
+				res = rNode['handlers'][evName].call(gNode, geom.id, geom.properties, attr);
+				//gmxAPI._listeners.dispatchEvent(evName, gNode, {'obj':gNode, 'attr':attr});
+			}
+			return res;
+		}
+		var getItemFilter = function(item) {			// Получить фильтр в который попал обьект
+			var filter = null;
+			if(item && item.geom && item.geom.propHiden) {
+				var propHiden = item.geom.propHiden;
+				if(propHiden['subType'] != 'cluster') {
+					var filters = propHiden['toFilters'];
+					filter = (filters && filters.length ? mapNodes[filters[0]] : null);
+				}
+			}
+			return filter;
+		}
 		var hoverItem = function(item) {				// Отрисовка hoveredStyle для item
 			if(!item) return;
 			if(!item.geom) {
@@ -449,13 +480,12 @@
 			}
 			var itemId = item.geom.id;
 			var propHiden = item.geom.propHiden;
-//console.log('hoverItem ' , item);
 			
 			var hoveredStyle = null;
 			var regularStyle = null;
+			var filter = null;
 			if(propHiden['subType'] != 'cluster') {
-				var filters = propHiden['toFilters'];
-				var filter = (filters && filters.length ? mapNodes[filters[0]] : null);
+				filter = getItemFilter(item);
 				if(filter) {
 					hoveredStyle = (filter.hoveredStyle ? filter.hoveredStyle : null);
 					regularStyle = (filter.regularStyle ? filter.regularStyle : null);
@@ -478,6 +508,8 @@
 					redrawTilesHash(tilesNeed);
 					item.geom.curStyle = regularStyle;
 					gmxAPI._div.style.cursor = 'pointer';
+					if(callHandler('onMouseOver', item.geom, gmxNode)) return true;
+					if(filter && callHandler('onMouseOver', item.geom, filter)) return true;
 				}
 				return true;
 			}
@@ -592,16 +624,19 @@
 				if(!isCluster) {
 					var geom = node['getItemGeometry'](item.id);
 					if(evName in node['handlers']) {						// Есть handlers на слое
-						var res = node['handlers'][evName].call(gmxNode, item.id, item.properties, {'onClick': true, 'geom': geom, 'eventPos': eventPos});
+						var res = callHandler('onClick', item, gmxNode, {'eventPos': eventPos});
+						//var res = node['handlers'][evName].call(gmxNode, item.id, item.properties, {'onClick': true, 'geom': geom, 'eventPos': eventPos});
 						if(res) return res;
 					}
 					if(!itemPropHiden['toFilters'] || !itemPropHiden['toFilters'].length) return;		// обьект не попал в фильтр
 					var fID = itemPropHiden['toFilters'][0];
 					var filter = gmxAPI.mapNodes[fID];
 					if(!filter || !mapNodes[fID]['handlers'][evName]) return;						// не найден фильтр
-					mapNodes[fID]['handlers'][evName].call(filter, item.id, item.properties, {'onClick': true, 'geom': geom, 'eventPos': eventPos});
+					if(callHandler('onClick', item, filter, {'eventPos': eventPos})) return true;
+					//mapNodes[fID]['handlers'][evName].call(filter, item.id, item.properties, {'onClick': true, 'geom': geom, 'eventPos': eventPos});
 				} else {
-					node['handlers'][evName].call(gmxNode, item.id, item.geom.properties, {'onClick': true, 'objType': 'cluster', 'geom': item.geom, 'eventPos': eventPos});
+					if(callHandler('onClick', item, gmxNode, {'objType': 'cluster', 'eventPos': eventPos})) return true;
+					//node['handlers'][evName].call(gmxNode, item.id, item.geom.properties, {'onClick': true, 'objType': 'cluster', 'geom': item.geom, 'eventPos': eventPos});
 				}
 				
 				return true;

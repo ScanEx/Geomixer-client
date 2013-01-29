@@ -1363,11 +1363,13 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 						if(node['leaflet']) {
 							node['leaflet']._isVisible = true;
 							pGroup.addLayer(node['leaflet']);
+/*
 							if(!node['isHandlers']) {
 								if('_map' in node['leaflet'] && '_pathRoot' in node['leaflet']['_map']) {
 									//node['leaflet']['_map']['_pathRoot'].style.pointerEvents = 'none';
 								}
 							}
+*/
 						}
 					}
 				}
@@ -1586,6 +1588,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			LMap.dragging.enable();
 			LMap.touchZoom.removeHooks();
 			return true;
+		}
+		,
+		'isDragging': function()	{						// Текущий режим Drag
+			return gmxAPI._leaflet['curDragState'];
 		}
 		,
 		'isKeyDown': function(ph)	{						// Проверка нажатых клавиш
@@ -3262,13 +3268,22 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 
 			var clickDone = false;
 			var timeDown = 0;
-			LMap.on('click', function(e) {		// Проверка click карты
+			var chkClick = function(e) {		// Проверка click карты
 				var timeClick = new Date().getTime() - timeDown;
 				if(timeClick > 1000) return;
 				var attr = parseEvent(e);
 				attr['evName'] = 'onClick';
 				gmxAPI._leaflet['clickAttr'] = attr;
 				clickDone = gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
+			};
+			LMap.on('click', chkClick);
+			LMap.on('mouseup', function(e) {
+				var curTimeDown = new Date().getTime();
+				var timeClick = curTimeDown - timeDown;
+				if(timeClick < 200) { chkClick(e); timeDown = 0; }
+				gmxAPI._leaflet['mousePressed'] = false;
+				gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, {'attr':{'latlng':e.latlng}});
+				//setTimeout(function() { skipClick = false;	}, 10);
 			});
 			
 			var setMouseDown = function(e) {
@@ -3341,16 +3356,21 @@ var tt = 1;
 				} else {
 					if(onMouseMoveTimer) clearTimeout(onMouseMoveTimer);
 					onMouseMoveTimer = setTimeout(function() {
-						gmxAPI._listeners.dispatchEvent('onMouseMove', gmxAPI.map, {'attr':attr});
 						onMouseMoveTimer = null;
-					}, 40);
+						var from = gmxAPI.map.layers.length - 1;
+						for (var i = from; i >= 0; i--)
+						{
+							var child = gmxAPI.map.layers[i];
+							if(!child.isVisible) continue;
+							var mapNode = mapNodes[child.objectId];
+							if(mapNode['mouseMoveCheck']) {
+								if(mapNode['mouseMoveCheck']('onMouseMove', {'attr':attr})) return true;
+							}
+						}
+						gmxAPI._listeners.dispatchEvent('onMouseMove', gmxAPI.map, {'attr':attr});
+					}, 10);
 				}
 				if(!gmxAPI._leaflet['mousePressed']) gmxAPI._leaflet['utils'].chkMouseHover(attr)
-			});
-			LMap.on('mouseup', function(e) {
-				gmxAPI._leaflet['mousePressed'] = false;
-				gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, {'attr':{'latlng':e.latlng}});
-				setTimeout(function() { skipClick = false;	}, 10);
 			});
 			
 			LMap.on('zoomstart', function(e) {
