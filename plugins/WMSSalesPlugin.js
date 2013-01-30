@@ -79,9 +79,11 @@ var createRC = function(results, params)
     //атрибуты каталога растров - объединение всех метаданных слоёв
     var tagTypes = {};
     $.each(results, function(id, props) {
-        $.each(props.layerProperties.MetaProperties, function(tagId, tagInfo) {
-            tagTypes[tagId] = typesDictonary[tagInfo.Type];
-        })
+        if (props.layerProperties) {
+            $.each(props.layerProperties.MetaProperties, function(tagId, tagInfo) {
+                tagTypes[tagId] = typesDictonary[tagInfo.Type];
+            })
+        }
     })
     
     var mapProperties = _layersTree.treeModel.getMapProperties();
