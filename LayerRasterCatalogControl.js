@@ -33,14 +33,13 @@
                 IsRasterCatalog: RCCheckbox[0].checked,
                 RCMinZoomForRasters: minZoomInput.val(),
                 RCMaskForRasterTitle: titleInput.val(),
-                RCMaskForRasterPath: pathInput.val()
+                RCMaskForRasterPath: pathInput.val(),
+                ColumnTagLinks: {}
             }
             
             if (layerTags)
             {
-                var columnTagLinks = {};
-                layerTags.eachValid(function(id, tag, value) { columnTagLinks[value] = tag;});
-                properties.ColumnTagLinks = columnTagLinks;
+                layerTags.eachValid(function(id, tag, value) { properties.ColumnTagLinks[value] = tag;});
             }
             
             return properties;

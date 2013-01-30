@@ -955,10 +955,10 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
                     if (rcProps.IsRasterCatalog)
                     {
                         RCParams = '&IsRasterCatalog=true';
-                        if ( rcProps.RCMinZoomForRasters ) RCParams += '&RCMinZoomForRasters=' + encodeURIComponent(rcProps.RCMinZoomForRasters);
-                        if ( rcProps.RCMaskForRasterPath ) RCParams += '&RCMaskForRasterPath=' + encodeURIComponent(rcProps.RCMaskForRasterPath);
-                        if ( rcProps.RCMaskForRasterTitle ) RCParams += '&RCMaskForRasterTitle=' + encodeURIComponent(rcProps.RCMaskForRasterTitle);
-                        if ( rcProps.ColumnTagLinks ) RCParams += '&ColumnTagLinks=' + encodeURIComponent(JSON.stringify(rcProps.ColumnTagLinks));
+                        RCParams += '&RCMinZoomForRasters=' + encodeURIComponent(rcProps.RCMinZoomForRasters);
+                        RCParams += '&RCMaskForRasterPath=' + encodeURIComponent(rcProps.RCMaskForRasterPath);
+                        RCParams += '&RCMaskForRasterTitle=' + encodeURIComponent(rcProps.RCMaskForRasterTitle);
+                        RCParams += '&ColumnTagLinks=' + encodeURIComponent(JSON.stringify(rcProps.ColumnTagLinks));
                     }
                     else
                     {
