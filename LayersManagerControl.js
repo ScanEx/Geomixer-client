@@ -287,11 +287,29 @@ var LayerManagerControl = function( parentDiv, name, params )
     
     var LayersFilterParams = (function()
     {
-        layerName.onkeyup = layerOwner.onkeyup = typeSel.onchange = function()
+        var prevLayerName, prevLayerOwner;
+        
+        layerName.oninput = layerName.onkeyup = function()
+        {
+            if (this.value !== prevLayerName) {
+                prevLayerName = this.value;
+                $(pi).change();
+            }
+        }
+        
+        layerOwner.oninput = layerOwner.onkeyup = function()
+        {
+            if (this.value !== prevLayerOwner) {
+                prevLayerOwner = this.value;
+                $(pi).change();
+            }
+        }
+        
+        typeSel.onchange = function()
         {
             $(pi).change();
         }
-        
+            
         $(calendar).change(function()
         {
             $(pi).change();
