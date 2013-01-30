@@ -352,6 +352,7 @@ class VectorLayer extends MapContent
 		if (Main.isDrawing) return;		// В режиме рисования ничего не делаем
 		var currentZ:Int = Std.int(mapNode.window.getCurrentZ());
 		var distance:Float = Geometry.MAX_DISTANCE;
+		var distanceMin:Float = Geometry.MAX_DISTANCE;
 		var x = contentSprite.mouseX;
 		var y = contentSprite.mouseY;
 		var w = Utils.worldWidth;
@@ -423,8 +424,14 @@ class VectorLayer extends MapContent
 						newCurrentFilter = filter;
 						distance = d;
 						if (distance <= distZero) {
-							zeroDistanceIds.push(hoverGeom);
-							zeroDistanceFilters.push(filter);
+							if (distance < distanceMin) {
+								distanceMin = distance;
+								zeroDistanceIds.unshift(hoverGeom);
+								zeroDistanceFilters.unshift(filter);
+							} else {
+								zeroDistanceIds.push(hoverGeom);
+								zeroDistanceFilters.push(filter);
+							}
 						}
 					}
 				}
