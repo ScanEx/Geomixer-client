@@ -3280,7 +3280,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			LMap.on('mouseup', function(e) {
 				var curTimeDown = new Date().getTime();
 				var timeClick = curTimeDown - timeDown;
-				if(timeClick < 200) { chkClick(e); timeDown = 0; }
+				if(!gmxAPI._drawing['activeState'] && timeClick < 200) { chkClick(e); timeDown = 0; }
 				gmxAPI._leaflet['mousePressed'] = false;
 				gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, {'attr':{'latlng':e.latlng}});
 				//setTimeout(function() { skipClick = false;	}, 10);

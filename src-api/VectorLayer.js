@@ -508,8 +508,8 @@
 					redrawTilesHash(tilesNeed);
 					item.geom.curStyle = regularStyle;
 					gmxAPI._div.style.cursor = 'pointer';
-					if(callHandler('onMouseOver', item.geom, gmxNode)) return true;
-					if(filter && callHandler('onMouseOver', item.geom, filter)) return true;
+					//if(callHandler('onMouseOver', item.geom, gmxNode)) return true;
+					//if(filter && callHandler('onMouseOver', item.geom, filter)) return true;
 				}
 				return true;
 			}
@@ -1457,6 +1457,7 @@ console.log('waitChkBorderTiles ', cnt);*/
 			for (var z in node['tilesRedrawImages']) {
 				if(z != currZ) delete node['tilesRedrawImages'][z];
 			}
+
 			flag = (currZ < node['minZ'] || currZ > node['maxZ'] ? false : true);		// Неподходящий zoom
 			if(flag != myLayer._isVisible) {
 				utils.setVisibleNode({'obj': node, 'attr': flag});
