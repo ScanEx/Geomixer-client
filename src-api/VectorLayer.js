@@ -890,9 +890,10 @@
 
 		var setCanvasStyle = function(ctx, style)	{							// указать стиль Canvas
 			if(style) {
-				if(style['stroke'] && style['weight'] > 0) {
-					ctx.lineWidth = style['weight'];
-					var opacity = ('opacity' in style ? style['opacity'] : 1);
+				//if(style['stroke'] && style['weight'] > 0) {
+				if(style['stroke']) {
+					ctx.lineWidth = style['weight'] || 0;
+					var opacity = ('opacity' in style ? style['opacity'] : 0);
 					var strokeStyle = style['color_rgba'] || 'rgba(0, 0, 255, 1)';
 					strokeStyle = strokeStyle.replace(/1\)/, opacity + ')');
 					ctx.strokeStyle = strokeStyle;
