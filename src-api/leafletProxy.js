@@ -38,6 +38,12 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			return canvas.toDataURL();*/
 		}
 		,
+		'chkClassName': function(node, className, stopNode)	{			//проверить есть заданный className по ветке родителей до ноды
+			if(node == stopNode) return false;
+			if(node.className && node.className.indexOf(className) != -1) return true;
+			if(node.parentNode) return utils.chkClassName(node.parentNode, className, stopNode);
+		}
+		,
 		'getScaleImage': function(img, sx, sy)	{			//получить img отскалированный в Canvas
 			var canvas = document.createElement('canvas');
 			canvas.width = img.width;
@@ -3271,6 +3277,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var chkClick = function(e) {		// Проверка click карты
 				var timeClick = new Date().getTime() - timeDown;
 				if(timeClick > 1000) return;
+				if(utils.chkClassName(e.originalEvent.originalTarget, 'gmx_balloon', LMap._container)) return;	// click на балуне
 				var attr = parseEvent(e);
 				attr['evName'] = 'onClick';
 				gmxAPI._leaflet['clickAttr'] = attr;
@@ -3357,6 +3364,7 @@ var tt = 1;
 					if(onMouseMoveTimer) clearTimeout(onMouseMoveTimer);
 					onMouseMoveTimer = setTimeout(function() {
 						onMouseMoveTimer = null;
+						if(utils.chkClassName(e.originalEvent.originalTarget, 'gmx_balloon', LMap._container)) return;	// click на балуне
 						var from = gmxAPI.map.layers.length - 1;
 						for (var i = from; i >= 0; i--)
 						{
