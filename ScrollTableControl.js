@@ -20,7 +20,13 @@ var appendTranslations = function()
     });
 }
 
-//Таблица с разбиением данных по страницам. Сильно кастомизируемый виджет. Поддерживает различные провайдеры данных и рендереры.
+/**
+    Таблица с разбиением данных по страницам. Сильно кастомизируемый виджет. Поддерживает различные провайдеры данных и рендереры.
+    
+    События:
+    * redraw (перерисовали данные)
+    * sortChange (изменились параметры сортировки)
+*/
 var scrollTable = function( params )
 {
     this._params = $.extend(
@@ -208,6 +214,8 @@ scrollTable.prototype._drawRows = function()
 		_(this.tableCount, [_t((this.reportStart + 1) + '-' + (Math.min(this.reportStart + this.limit, this._currValsCount))), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(" + this._currValsCount + ")")]);
 	else
 		_(this.tableCount, [_t("0-0"), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(0)")]);
+        
+    $(this).triggerHandler('redraw');
 }
 
 scrollTable.prototype._drawPages = function(end)
