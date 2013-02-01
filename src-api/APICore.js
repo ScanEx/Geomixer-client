@@ -1569,15 +1569,15 @@ window.gmxAPI = {
 			}
 			return res;
 		} else {
-			var x = attr.x;
-			var y = attr.y;
+			var x = gmxAPI.merc_x(attr.x);
+			var y = gmxAPI.merc_y(attr.y);
 			var tile = {
-				'x':	Math.floor(gmxAPI.merc_x(x)/tileSize)
-				,'y':	Math.floor(gmxAPI.merc_y(y)/tileSize)
+				'x':	Math.floor(x/tileSize)
+				,'y':	Math.floor(y/tileSize)
 				,'z':	z
 				,'posInTile': {
-					'x': Math.round(256 * ((gmxAPI.merc_x(x) % tileSize) / tileSize))
-					,'y': Math.round(256 * ( 1 - (gmxAPI.merc_y(y) % tileSize) / tileSize))
+					'x': Math.round(256 * ((x % tileSize) / tileSize))
+					,'y': Math.round(256 * ( 1 - (y % tileSize) / tileSize))
 				}
 			};
 			return tile;						// получить атрибуты тайла по POINT
@@ -1588,7 +1588,7 @@ window.gmxAPI = {
 		return gmxAPI.chkTileList({'x':	x, 'y': y, 'z': z});
 	}
 	,
-	'getTileListByGeometry': function(geom, zoom)	{		// получить список тайлов по Geometry на определенном zoom
+	'getTileListByGeometry': function(geom, zoom)	{		// получить список тайлов по Geometry для zoom
 		var bounds = gmxAPI.getBounds(geom.coordinates);
 		return gmxAPI.getTileListByBounds(bounds, zoom);
 	}

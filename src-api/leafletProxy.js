@@ -39,7 +39,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		}
 		,
 		'chkClassName': function(node, className, stopNode)	{			//проверить есть заданный className по ветке родителей до ноды
-			if(node == stopNode) return false;
+			if(!node || node == stopNode) return false;
 			if(node.className && node.className.indexOf(className) != -1) return true;
 			if(node.parentNode) return utils.chkClassName(node.parentNode, className, stopNode);
 		}
