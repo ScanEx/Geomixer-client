@@ -40,7 +40,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		,
 		'chkClassName': function(node, className, stopNode)	{			//проверить есть заданный className по ветке родителей до ноды
 			if(!node || node == stopNode) return false;
-			if(node.className && node.className.indexOf(className) != -1) return true;
+			if(typeof(node['className']) == 'string' && node['className'].indexOf(className) != -1) return true;
 			if(node.parentNode) return utils.chkClassName(node.parentNode, className, stopNode);
 		}
 		,
@@ -466,7 +466,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					pt['stroke'] = true;
 					var ph = st['outline'];
 					if('color' in ph) pt['color'] = ph['color'];
-					if('opacity' in ph) pt['opacity'] = ph['opacity'];
+					pt['opacity'] = ('opacity' in ph ? ph['opacity'] : 100);
 					if('thickness' in ph) pt['weight'] = ph['thickness'];
 					if('marker' in st && 'size' in st['marker']) pt['size'] = st['marker']['size'];
 					//if('dashes' in ph) pt['opacity'] = ph['dashes'];
