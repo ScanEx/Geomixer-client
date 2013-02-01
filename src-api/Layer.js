@@ -605,6 +605,9 @@
 						var qURL = tileSenderPrefix + '&x={x}&y={y}&z={z}&idr=' + o.properties[layer.properties.identityField];
 						return qURL;
 					}, RCMinZoomForRasters, layer.properties.TiledQuicklookMaxZoom, tileSenderPrefix);
+					obj.getRCTileUrl = function(x, y, z, pid) {
+						return tileSenderPrefix + '&x='+x+'&y='+y+'&z='+z+'&idr=' + pid;
+					}
 				} else {
 					if (layer.properties.Quicklook) {
 						obj.enableQuicklooks(function(o)

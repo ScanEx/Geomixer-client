@@ -612,20 +612,33 @@
 		var sunscreen = map.addObject();
 		gmxAPI._sunscreen = sunscreen;
 
+		var checkMapSize = function()
+		{
+			gmxAPI._updatePosition();
+			gmxAPI._listeners.dispatchEvent('onResizeMap', map);
+		};
 		if(gmxAPI.proxyType === 'flash') {
 			sunscreen.setStyle({ fill: { color: 0xffffff, opacity: 1 } });
 			sunscreen.setRectangle(-180, -85, 180, 85);
 			sunscreen.setVisible(false);
 			sunscreen.addListener("onResize", function()
 			{
-				gmxAPI._updatePosition();
-				gmxAPI._listeners.dispatchEvent('onResizeMap', map);
+				checkMapSize();
+				//gmxAPI._updatePosition();
+				//gmxAPI._listeners.dispatchEvent('onResizeMap', map);
 			});
 		
 			if('_miniMapInit' in gmxAPI) {
 				gmxAPI._miniMapInit(gmxAPI._div);
 			}
+			
+		} else if(gmxAPI.proxyType === 'leaflet') {
+			checkMapSize = function()
+			{
+				return gmxAPI._cmdProxy('checkMapSize');
+			}
 		}
+		map.checkMapSize = checkMapSize;
 
 		var setCurrPosition = function(ev, attr)
 		{

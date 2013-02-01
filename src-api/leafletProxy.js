@@ -1717,6 +1717,14 @@ return;
 			utils.runMoveTo({'x': px, 'y': py, 'z': currZ})
 		}
 		,
+		'checkMapSize':	function()	{				// Проверка изменения размеров карты
+			if(LMap) {
+				LMap._onResize();
+				return true;
+			}
+			return false;
+		}
+		,
 		'zoomBy':	function(ph)	{				// установка Zoom карты
 			var toz = Math.abs(ph.attr.dz);
 			if(ph.attr.dz > 0) LMap.zoomOut(toz);
