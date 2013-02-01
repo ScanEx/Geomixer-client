@@ -1153,7 +1153,7 @@ if(objData['properties']['GM_LayerName']) {
 								,'zoom': zoom
 								,'callback': function(imageObj) {
 									rasterNums--;
-									ptItem['imageObj'] = imageObj;
+									ptItem['imageObj'] = (node['imageProcessingHook'] ? node['imageProcessingHook'](imageObj) : imageObj);
 									if(rasterNums === 0) {
 										drawRasters(tileID);
 //attr['tile']._layer.tileDrawn(attr['tile']);
@@ -1165,6 +1165,7 @@ if(objData['properties']['GM_LayerName']) {
 									if(rasterNums === 0) drawRasters(tileID);
 								}
 							};
+							//if(node['imageProcessingHook']) item['crossOrigin'] = 'anonymous';
 							gmxAPI._leaflet['imageLoader'].push(item);
 						})();
 					} else {
@@ -1374,7 +1375,8 @@ if(objData['properties']['GM_LayerName']) {
 								'src': pt['src']
 								,'callback': function(imageObj) {
 									rasterNums--;
-									ptItem['imageObj'] = imageObj;
+									ptItem['imageObj'] = (node['imageProcessingHook'] ? node['imageProcessingHook'](imageObj) : imageObj);
+									//ptItem['imageObj'] = imageObj;
 									if(rasterNums === 0) waitRedrawFlips(0);
 								}
 								,'onerror': function(){
@@ -1384,6 +1386,7 @@ if(objData['properties']['GM_LayerName']) {
 								}
 							};
 							rasterNums++;
+							//if(node['imageProcessingHook']) item['crossOrigin'] = 'anonymous';
 							gmxAPI._leaflet['imageLoader'].push(ph);
 						})();
 					} else {

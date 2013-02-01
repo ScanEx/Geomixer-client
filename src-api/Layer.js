@@ -607,7 +607,11 @@
 					}, RCMinZoomForRasters, layer.properties.TiledQuicklookMaxZoom, tileSenderPrefix);
 					obj.getRCTileUrl = function(x, y, z, pid) {
 						return tileSenderPrefix + '&x='+x+'&y='+y+'&z='+z+'&idr=' + pid;
-					}
+					};
+					obj.addImageProcessingHook = function(func) {
+						return gmxAPI._cmdProxy('addImageProcessingHook', { 'obj': obj, 'attr':{'func':func} });
+					};
+					
 				} else {
 					if (layer.properties.Quicklook) {
 						obj.enableQuicklooks(function(o)

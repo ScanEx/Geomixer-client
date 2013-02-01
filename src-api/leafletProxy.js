@@ -1725,6 +1725,13 @@ return;
 			return false;
 		}
 		,
+		'addImageProcessingHook':	function(ph)	{		// Установка предобработчика растрового тайла
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return false;
+			node['imageProcessingHook'] = ph['attr']['func'];
+		}
+		,
 		'zoomBy':	function(ph)	{				// установка Zoom карты
 			var toz = Math.abs(ph.attr.dz);
 			if(ph.attr.dz > 0) LMap.zoomOut(toz);
