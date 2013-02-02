@@ -7,6 +7,8 @@
 	var items = [];							// массив текущих запросов
 	var itemsHash = {};						// Хэш по image.src
 	var itemsCache = {};					// Кэш загруженных image по image.src
+	var emptyImageUrl = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+	var falseFn = function () {	return false; };
 
 	var callCacheItems = function(item)	{		// загрузка image
 		if(itemsCache[item.src]) {
@@ -31,6 +33,7 @@
 	}
 	var setImage = function(item)	{		// загрузка image
 		var imageObj = item['img'] || new Image();
+		//var cancelTimerID = null;
 		var chkLoadedImage = function() {
 			//if (!imageObj.complete) {
 				//setTimeout(function() { chkLoadedImage(); }, 1);
@@ -43,14 +46,44 @@
 		if(item['crossOrigin']) imageObj.crossOrigin = item['crossOrigin'];
 		imageObj.onload = function() {
 			chkLoadedImage();
+			//gmxAPI._leaflet['LMap'].off('zoomstart');
+			//if(cancelTimerID) clearTimeout(cancelTimerID);
 			//setTimeout(function() { chkLoadedImage(); } , 25); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
 		};
 		imageObj.onerror = function() { curCount--; item.isError = true;
-			//setTimeout(function() { chkLoadedImage(); } , 25);
 			callCacheItems(item);
-			} ;
+/*
+			//setTimeout(function() { chkLoadedImage(); } , 25);
+			//gmxAPI._leaflet['LMap'].off('zoomstart');
+			imageObj.onload = falseFn;
+			imageObj.onerror = falseFn;
+			imageObj.src = emptyImageUrl;
+			if(cancelTimerID) clearTimeout(cancelTimerID);
+*/
+		};
 		curCount++;
 		imageObj.src = item.src;
+/*
+		item['cancelItem'] = function() {
+			if(!imageObj.complete) {
+				imageObj.onload = falseFn;
+				//imageObj.onerror();
+				curCount--;
+				item.isError = true;
+				callCacheItems(item);
+				imageObj.onerror = falseFn;
+				imageObj.src = emptyImageUrl;
+console.log('onerror: ',  curCount,  items.length);
+			}
+			if(cancelTimerID) clearTimeout(cancelTimerID);
+			chkTimer();
+		};
+		gmxAPI._leaflet['LMap'].on('zoomstart', function(e) {
+			item['cancelItem']();
+			gmxAPI._leaflet['LMap'].off('zoomstart');
+		});
+		//cancelTimerID = setTimeout(item['cancelItem'], 6000);
+*/						
 	}
 		
 	var nextLoad = function()	{		// загрузка image

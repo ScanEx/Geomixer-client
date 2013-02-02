@@ -120,6 +120,13 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					var pt = utils.prpLayerBounds(layer.geometry);
 					if(pt['geom']) out['geom'] = pt['geom'];					// Массив Point границ слоя
 					if(pt['bounds']) out['bounds'] = pt['bounds'];				// Bounds слоя
+					if(layer.mercGeometry) {
+						var pt = utils.prpLayerBounds(layer.mercGeometry);
+						if(pt['geom']) {
+							out['mercGeom'] = pt['geom'];				// Массив Point границ слоя в merc
+							//out['mercGeom'] = [L.LineUtil.simplify(pt['geom'][0], 120)];
+						}
+					}
 				}
 			}
 			return out;
@@ -3368,6 +3375,7 @@ var tt = 1;
 */
 			var onMouseMoveTimer = null;
 			LMap.on('mousemove', function(e) {
+//return;
 //console.log('mousemove', gmxAPI._leaflet['mousePressed'], timeDown);
 				if(gmxAPI._leaflet['mousedown']) timeDown -= 900;
 				gmxAPI._leaflet['mousePos'] = e.latlng;

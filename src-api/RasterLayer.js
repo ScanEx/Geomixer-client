@@ -12,7 +12,6 @@
 		var layer = ph.obj;
 		var id = layer.objectId;
 		var node = mapNodes[id];
-//gmxAPI._tools['standart'].setVisible(false);	// Пока не работает map.drawing
 		if(!node) return;						// Нода не определена
 		var gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
 		node['type'] = 'RasterLayer';
@@ -166,31 +165,24 @@
 		LMap = gmxAPI._leaflet['LMap'];
 		utils = gmxAPI._leaflet['utils'];
 		mapNodes = gmxAPI._leaflet['mapNodes'];
-		
-		function drawCanvasPolygon( ctx, x, y, geom, zoom, bounds, shiftY) {
-			if(!geom) return;
-			ctx.save();
-			//ctx.translate(x, y);
+
+		function drawCanvasPolygon( ctx, x, y, pArr, tileSize, shiftY) {
+			if(!pArr) return;
+			//ctx.save();
 			ctx.beginPath();
 			if(!shiftY) shiftY = 0;
-			
-			for (var i = 0; i < geom.length; i++)
+			for (var j = 0; j < pArr.length; j++)
 			{
-				var pt = geom[i];
-				var pArr = (shiftY == 0 ? L.PolyUtil.clipPolygon(pt, bounds) : pt);
-				for (var j = 0; j < pArr.length; j++)
-				{
-					var p = new L.LatLng(pArr[j].y, pArr[j].x);
-					var pp = LMap.project(p, zoom);
-					var px = pp.x - x;				px = (0.5 + px) << 0;
-					var py = pp.y - y - shiftY;		py = (0.5 + py) << 0;
-					if(j == 0) ctx.moveTo(px, py);
-					ctx.lineTo(px, py);
-				}
-				pArr = null;
-				ctx.closePath();
+				var xx = (pArr[j].x / tileSize - x);
+				var yy = (pArr[j].y / tileSize - y);
+				var px = 256 * xx;						px = (0.5 + px) << 0;
+				var py = 256 * (1 - yy) - shiftY;		py = (0.5 + py) << 0;
+				if(j == 0) ctx.moveTo(px, py);
+				else ctx.lineTo(px, py);
 			}
-			ctx.restore();
+			pArr = null;
+			ctx.closePath();
+			//ctx.restore();
 		}
 
 		// Растровый слой с маской
@@ -225,7 +217,7 @@
 					img.galleryimg = 'no';
 				} else {
 					var proto = this._canvasProto = L.DomUtil.create('canvas', 'leaflet-tile');
-					proto.width = proto.height = this.options.tileSize;
+					proto.width = proto.height = 0;
 				}
 			},
 			_createTile: function () {
@@ -318,78 +310,76 @@
 				var drawTileID = zoom + '_' + scanexTilePoint.x + '_' + scanexTilePoint.y;
 				tile.id = drawTileID;
 
-				var bounds = utils.getTileBounds(tilePoint, zoom);
-				var tileX = 256 * tilePoint.x;								// позиция тайла в stage
-				var tileY = 256 * tilePoint.y;
-				
 				var layer = this;
 				var attr = this.options.attr;
+				var ctx = null;
 				var flagAll = false;
-				//var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom + tile._layer.options.zoomOffset);
-				var src = tile._layer.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom);
+				var flagAllCanvas = false;
+				var src = this.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom);
 
-				//if(attr.bounds.contains(bounds)) {
 				if(!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85)) {
 					flagAll = true;
 				} else {
-					//if(!utils.chkBoundsVisible(bounds)) return;
+					var bounds = utils.getTileBounds(tilePoint, zoom);
 					if(!attr.bounds.intersects(bounds)) {			// Тайл не пересекает границы слоя
 						this.tileDrawn(tile);
 						return;
+					}
+					var tileSize = 256 * 156543.033928041/pz;
+					var p1 = new L.Point(tileSize * scanexTilePoint.x, tileSize * scanexTilePoint.y);
+					var p2 = new L.Point(tileSize + p1.x, tileSize + p1.y);
+					var boundsMerc = new L.Bounds(p1, p2);
+					var mercGeometry = attr.mercGeom[0];
+					var pArr = L.PolyUtil.clipPolygon(mercGeometry, boundsMerc);
+					if(pArr.length == 0) {
+						this.tileDrawn(tile);
+						return;
+					} else if(pArr.length == 4) {
+						var b = new L.Bounds(pArr);
+						if(b.min.x == boundsMerc.min.x && b.min.y == boundsMerc.min.y && b.max.x == boundsMerc.max.x && b.max.y == boundsMerc.max.y) {
+							flagAllCanvas = true;
+						}
+					}
+					pArr.push(pArr[0]);
+				
+					tile.width = tile.height = this.options.tileSize;
+					ctx = tile.getContext('2d');
+					if(!flagAllCanvas) {
+						drawCanvasPolygon( ctx, scanexTilePoint.x, scanexTilePoint.y, pArr, tileSize, layer.options.shiftY);
 					}
 				}
 				if(gmxAPI.isMobile) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
 				//		ctx.webkitImageSmoothingEnabled = false;
 				if(flagAll) {
+					//tile._layer.tileDrawn(tile); return;				
 					tile.style.display = 'none';
 					tile.onload = function() { tile.style.display = 'block'; tile._layer.tileDrawn(tile); };
 					tile.src = src;
-					
 				} else {
 					var me = this;
-					(function() {
-						var pAttr = attr;
+					//(function() {
 						var pTile = tile;
-						var tileX = 256 * tilePoint.x;								// позиция тайла в stage
-						var tileY = 256 * tilePoint.y;
-						
-						var setPattern = function(imageObj) {
-							//pTile.width = pTile.height = 256;
-							var ctx = pTile.getContext('2d');
-							if(!flagAll) {
-								if(pAttr.bounds && !bounds.intersects(pAttr.bounds))	{	// Тайл не пересекает границы слоя
-									return;
-								}
-								drawCanvasPolygon( ctx, tileX, tileY, pAttr['geom'], zoom, bounds, pTile._layer.options.shiftY);
-							}
-							var pattern = ctx.createPattern(imageObj, "no-repeat");
-							ctx.fillStyle = pattern;
-							if(flagAll) ctx.fillRect(0, 0, 256, 256);
-							ctx.fill();
-						};
-						
 						var item = {
-							'src': src	// + '&tm=' + Math.random()
-							,'bounds': bounds
-							,'zoom': zoom
-							,'x': scanexTilePoint.x
-							,'y': scanexTilePoint.y
-							,'shiftY': (pTile._layer.options.shiftY ? pTile._layer.options.shiftY : 0)	// Сдвиг для OSM
+							'src': src
+							,'shiftY': (me.options.shiftY ? me.options.shiftY : 0)	// Сдвиг для OSM
 							,'callback': function(imageObj) {
-								setTimeout(function() {
-									setPattern(imageObj);
+								//setTimeout(function() {
+									var pattern = ctx.createPattern(imageObj, "no-repeat");
+									ctx.fillStyle = pattern;
+									if(flagAllCanvas) ctx.fillRect(0, 0, 256, 256);
+									ctx.fill();
+									imageObj = null;
 									me.tileDrawn(pTile);
-								} , 50); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
+								//} , 1); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
 							}
 							,'onerror': function(){
 								//me.tileDrawn(pTile);
 							}
 						};
-						//if(flagAll) item['img'] = tile;
-						var gmxNode = gmxAPI.mapNodes[pTile._layer.options.nodeID];
+						var gmxNode = gmxAPI.mapNodes[me.options.nodeID];
 						if(gmxNode && gmxNode.isBaseLayer) gmxAPI._leaflet['imageLoader'].unshift(item);	// базовые подложки вне очереди
 						else gmxAPI._leaflet['imageLoader'].push(item);
-					})();
+					//})();
 				}
 			}
 		});

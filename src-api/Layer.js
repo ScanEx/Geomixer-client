@@ -652,6 +652,7 @@
 			if(obj_['tilesParent']) obj['tilesParent'] = obj_['tilesParent'];
 		}
 
+		obj.mercGeometry = layer.mercGeometry;
 		obj.isVisible = isVisible;
 		if (isVisible || gmxAPI.proxyType === 'leaflet') {			// В leaflet версии deferredMethod не нужны
 			createThisLayer();
