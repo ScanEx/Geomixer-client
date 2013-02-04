@@ -19,6 +19,10 @@
 		var inpAttr = ph.attr;
 		node['subType'] = ('subType' in inpAttr ? inpAttr['subType'] : (inpAttr['projectionCode'] === 1 ? 'OSM' : ''));
 		var attr = {};
+		if(!layer.mercGeometry && layer['geometry']) {						// Нет geometry в меркаторе
+			layer.mercGeometry = gmxAPI.merc_geometry(layer['geometry']);
+		}
+		
 		if(node.propHiden) {
 			if(node.propHiden.geom) {
 				attr['geom'] = node.propHiden['geom'];					// Геометрия от обьекта векторного слоя
@@ -48,6 +52,13 @@
 			//var pt = prpGeom(node['geometry']);
 			if(pt['geom']) attr['geom'] = pt['geom'];					// Массив Point границ слоя
 			if(pt['bounds']) attr['bounds'] = pt['bounds'];				// Bounds слоя
+			if(!attr['mercGeom']) {						// Нет geometry в меркаторе
+				layer.mercGeometry = gmxAPI.merc_geometry(node['geometry']);
+				var pt = utils.prpLayerBounds(layer.mercGeometry);
+				if(pt['geom']) {
+					attr['mercGeom'] = pt['geom'];				// Массив Point границ слоя в merc
+				}
+			}
 			if(waitRedraw) {
 				myLayer.options.attr = attr;
 				waitRedraw();
