@@ -2699,7 +2699,8 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 					divProperties = _div(null,[['attr','id','properties' + id]]),
 					divStyles = _div(null,[['attr','id','styles' + id]]),
 					divQuicklook,
-					tabMenu;
+					tabMenu,
+                    moreTabs = [{title: _gtxt("Стили"), name: 'styles', container: divStyles}];
 				
 				if (elemProperties.GeometryType == 'polygon' &&
 					elemProperties.description &&
@@ -2707,21 +2708,9 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 				{
 					divQuicklook = _div(null,[['attr','id','quicklook' + id]]);
 					
-					tabMenu = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#properties' + id]])]),
-										 _li([_a([_t(_gtxt("Стили"))],[['attr','href','#styles' + id]])]),
-										 _li([_a([_t(_gtxt("Накладываемое изображение"))],[['attr','href','#quicklook' + id]])])])]);
-					
-					_(tabMenu, [divProperties, divStyles, divQuicklook]);
-					
 					_(divQuicklook, [_this.createQuicklookCanvas(elemProperties, elemProperties.attributes)]);
 					_(divQuicklook, [_this.createTiledQuicklookCanvas(elemProperties, elemProperties.attributes)]);
-				}
-				else
-				{
-					tabMenu = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#properties' + id]])]),
-										 _li([_a([_t(_gtxt("Стили"))],[['attr','href','#styles' + id]])])])]);
-					
-					_(tabMenu, [divProperties, divStyles]);
+                    moreTabs.push({title: _gtxt("Накладываемое изображение"), name: 'quicklook', container: divQuicklook});
 				}
 				
 				var parentIcon = $(div).children("[styleType]")[0],
@@ -2805,25 +2794,30 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 						return false;
 					};
 				
-				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties, {doneCallback: function()
-                {
-                    $(divDialog).dialog('close');
-                    removeDialog(divDialog);
-                }});
+				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties, {
+                    doneCallback: function()
+                    {
+                        $(divDialog).dialog('close');
+                        removeDialog(divDialog);
+                    },
+                    moreTabs: moreTabs,
+                    selected: selected,
+                    createdCallback: function(tabMenu) {
+                        _this.layerEditorsHash[elemProperties.name] = tabMenu;
+                    }
+                });
 				
-				var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 350, 470, pos.left, pos.top, null, function()
+				var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), divProperties, 350, 470, pos.left, pos.top, null, function()
                 {
                     closeFunc();
                     delete _this.layerEditorsHash[elemProperties.name];
                 });
                 
-				_this.layerEditorsHash[elemProperties.name] = tabMenu;
-				
 				// при сохранении карты сбросим все временные стили в json карты
-				tabMenu.closeFunc = closeFunc;
-				tabMenu.updateFunc = updateFunc;
+				divProperties.closeFunc = closeFunc;
+				divProperties.updateFunc = updateFunc;
 				
-				$(tabMenu).tabs({selected: selected});
+				$(divProperties).tabs({selected: selected});
 				
 				$(filtersCanvas).find("[filterTable]").each(function()
 				{
@@ -2831,7 +2825,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 				})
 				
 				if (selected == 1 && openedStyleIndex > 0)
-					tabMenu.parentNode.scrollTop = 58 + openedStyleIndex * 32;
+					divProperties.parentNode.scrollTop = 58 + openedStyleIndex * 32;
 			};
 		
 		if (!this.attrValues[mapName])
@@ -2857,13 +2851,8 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			this.layerEditorsHash[elemProperties.name] = true;
 			
 			var id = 'layertabs' + elemProperties.name,
-				tabMenu = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#properties' + id]])]),
-									 _li([_a([_t(_gtxt("Стили"))],[['attr','href','#styles' + id]])])])]),
 				divProperties = _div(null,[['attr','id','properties' + id]]),
 				divStyles = _div(null,[['attr','id','styles' + id]]);
-			
-			_(tabMenu, [divProperties, divStyles]);
-			
             
 			var parentObject = globalFlashMap.layers[elemProperties.name],
 				parentStyle = elemProperties.styles[0];
@@ -2879,12 +2868,15 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 
 			_(divStyles, [_ul([liMinZoom, liMaxZoom])]);
 
-			this.createLoadingLayerEditorProperties(div, divProperties, null, {doneCallback: function()
+			this.createLoadingLayerEditorProperties(div, divProperties, null, {
+                doneCallback: function()
                 {
                     $(divDialog).dialog('close');
                     removeDialog(divDialog);
-                }}
-            );
+                },
+                moreTabs: [{title: _gtxt("Стили"), name: 'styles', container: divStyles}]
+                
+            });
 			
 			var pos = nsGmx.Utils.getDialogPos(div, true, 330),
 				closeFunc = function()
@@ -2904,9 +2896,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 					return false;
 				};
 			
-			var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), tabMenu, 330, 410, pos.left, pos.top, null, closeFunc);
-			
-			$(tabMenu).tabs({selected: 0});
+			var divDialog = showDialog(_gtxt('Слой [value0]', elemProperties.title), divProperties, 330, 410, pos.left, pos.top, null, closeFunc);
 		}
 		else
 		{
@@ -3030,7 +3020,7 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 			{
 				iconSpan.onclick = function()
 				{
-					_mapHelper.createLayerEditor(multiStyleParent.parentNode, treeView, 1, i);
+					_mapHelper.createLayerEditor(multiStyleParent.parentNode, treeView, 4, i);
 				}
 			})(i);
 		}

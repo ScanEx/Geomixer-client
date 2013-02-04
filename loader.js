@@ -58,12 +58,15 @@ $LAB.
 	script(_getFileName("colorpicker/js/eye.js")).wait().
 	script(_getFileName("colorpicker/js/utils.js")).wait(function(){
 	
-loadJS(function()
-{
-    gmxCore.setDefaultModulesHost(gmxJSHost);
-    nsGmx.initGeoMixer();
-});
+        nsGmx._ = _.noConflict(); //пересекается с utilities :(
+        
+        loadJS(function()
+        {
+            gmxCore.setDefaultModulesHost(gmxJSHost);
+            nsGmx.initGeoMixer();
+        });
 
-}); //$LAB
+    }
+); //$LAB
 
 })();
