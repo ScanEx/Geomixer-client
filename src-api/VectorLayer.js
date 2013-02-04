@@ -578,9 +578,10 @@
 				var isCluster = (item.geom && item.geom.propHiden['subType'] == 'cluster' ? true : false);
 				var itemPropHiden = null;
 				if(!isCluster) {
-					if(attr.shiftKey && node['propHiden']['rasterView'] === 'onShiftClick') oper = 'rasterView';
-					else if(attr.ctrlKey && node['propHiden']['rasterView'] === 'onCtrlClick') oper = 'rasterView';
-					else if(node['propHiden']['rasterView'] === 'onClick') oper = 'rasterView';
+					var operView = false;
+					if(attr.shiftKey && node['propHiden']['rasterView'] === 'onShiftClick') operView = true;
+					else if(attr.ctrlKey && node['propHiden']['rasterView'] === 'onCtrlClick') operView = true;
+					else if(node['propHiden']['rasterView'] === 'onClick') operView = true;
 					
 					vid = node['flipIDS'][node['flipIDS'].length - 1];
 					item = (oper === 'setFlip' ? node['setFlip']() : node['objectsData'][vid]);
@@ -590,9 +591,18 @@
 
 					//console.log('flipIDS' , item.id);
 					chkFlip(item.id);
-					if(oper === 'rasterView') {
+					if(operView) {
 						itemPropHiden['rasterView'] = !itemPropHiden['rasterView'];
+						if(node['propHiden']['showOnlyTop']) {
+							for (var i = 0; i < arr.length; i++) {
+								if(arr[i].geom.id != item.id) {
+									arr[i].geom.propHiden['rasterView'] = false;
+									chkNeedImage(arr[i].geom);
+								}
+							}
+						}
 						chkNeedImage(item);
+						
 						if(node['propHiden']['stopFlag']) return true;
 					}
 				} else {
