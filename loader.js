@@ -50,6 +50,9 @@ $LAB.
 	script(_getFileName("jquery/jquery-ui-timepicker-addon.js")).wait().
 	script(_getFileName("jquery/ui.timepicker-ru.js")).wait().
 	script(_getFileName("jquery/jquery.treeview.js")).wait().
+    
+	script(_getFileName("jquery/underscore-min.js")).wait().
+	script(_getFileName("jquery/backbone-min.js")).wait().
 	
 	script(_getFileName("colorpicker/js/colorpicker.js")).wait().
 	script(_getFileName("colorpicker/js/eye.js")).wait().
