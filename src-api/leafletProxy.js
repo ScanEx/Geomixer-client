@@ -1900,6 +1900,18 @@ return;
 			return (!geo ? null : geo.type);
 		}
 		,
+		'getLength': function(ph)	{			//	Получить площадь обьекта
+			var geo = commands.getGeometry(ph);
+			var len = gmxAPI.geoLength(geo);
+			return (!len ? null : len);
+		}
+		,
+		'getArea':	function(ph)	{			//	Получить площадь обьекта
+			var geo = commands.getGeometry(ph);
+			var area = gmxAPI.geoArea(geo);
+			return (!area ? null : area);
+		}
+		,
 		'getFeatureById':	function(ph)	{
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
