@@ -1370,12 +1370,15 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					}
 					else
 					{
+						var isOnScene = ('isOnScene' in node ? node['isOnScene'] : true);
 						if(node['parentId']) {
-							pGroup.addLayer(node['group']);
+							if(isOnScene) pGroup.addLayer(node['group']);
 						}
+						
 						if(node['leaflet']) {
 							node['leaflet']._isVisible = true;
-							pGroup.addLayer(node['leaflet']);
+							if(isOnScene) pGroup.addLayer(node['leaflet']);
+							//pGroup.addLayer(node['leaflet']);
 /*
 							if(!node['isHandlers']) {
 								if('_map' in node['leaflet'] && '_pathRoot' in node['leaflet']['_map']) {
@@ -2178,6 +2181,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		bounds.extend(pbl);
 		bounds.extend(pbr);
 
+		var pNode = mapNodes[node['parentId']] || null;
+		var pGroup = (pNode ? pNode['group'] : LMap);
 		//var minPoint = LatLngToPixel(bounds.max.y, bounds.min.x);
 		//var minPoint = LatLngToPixel(ptl.y, ptl.x);
 		//var minP = null;
@@ -2214,16 +2219,17 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		var repaint = function(imageObj, canvas, zoom) {
 			var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
 			node['isOnScene'] = isOnScene;
+			if(node.isVisible == false) return;
 			if(!isOnScene) {
 				if(canvas) {
 					canvas.width = canvas.height = 0;
 					//node['imageCanvas'] = null;
 				}
-				node['group'].removeLayer(node['leaflet']);
+				pGroup.removeLayer(node['leaflet']);
 				return;
 			} else {
 				if(!node['leaflet']._map) {
-					node['group'].addLayer(node['leaflet']);
+					pGroup.addLayer(node['leaflet']);
 					return;
 				}
 			}

@@ -1168,7 +1168,7 @@ if(objData['properties']['GM_LayerName']) {
 									if(rasterNums === 0) drawRasters(tileID);
 								}
 							};
-							//if(node['imageProcessingHook']) item['crossOrigin'] = 'anonymous';
+							if(node['imageProcessingHook']) item['crossOrigin'] = 'anonymous';
 							gmxAPI._leaflet['imageLoader'].push(item);
 						})();
 					} else {
@@ -1396,7 +1396,7 @@ if(objData['properties']['GM_LayerName']) {
 								}
 							};
 							rasterNums++;
-							//if(node['imageProcessingHook']) item['crossOrigin'] = 'anonymous';
+							if(node['imageProcessingHook']) item['crossOrigin'] = 'anonymous';
 							gmxAPI._leaflet['imageLoader'].push(ph);
 						})();
 					} else {
