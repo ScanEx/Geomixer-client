@@ -1127,13 +1127,13 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		var node = mapNodes[id];
 		if(!node || !attr) return false;
 		if(attr.hoveredStyle) {
-			node._hoveredStyle = attr.hoveredStyle;
+			node._hoveredStyle = gmxAPI.clone(attr.hoveredStyle);
 			node.hoveredStyle = utils.parseStyle(attr.hoveredStyle, id);
 			node.hoveredStyleIsAttr = utils.isPropsInStyle(node.hoveredStyle);
 			if(!node.hoveredStyleIsAttr) node.hoveredStyle = utils.evalStyle(node.hoveredStyle)
 		}
 		if(attr.regularStyle) {
-			node._regularStyle = attr.regularStyle;
+			node._regularStyle = gmxAPI.clone(attr.regularStyle);
 			node.regularStyle = utils.parseStyle(attr.regularStyle, id);
 			node.regularStyleIsAttr = utils.isPropsInStyle(node.regularStyle);
 			if(!node.regularStyleIsAttr) node.regularStyle = utils.evalStyle(node.regularStyle)
