@@ -1052,7 +1052,7 @@
 			delete node['tilesRedrawTimers'][drawTileID];
 			if(clearFlag) attr.ctx.clearRect(0, 0, 255, 255);
 			//delete needRedrawTiles[drawTileID];
-//console.log('repaintTile ' , drawTileID , clearFlag);
+//console.log('repaintTile ' , drawTileID , attr.bounds);
 			var out = false;
 			if(node['observerNode']) {
 				if(observerTimer) clearTimeout(observerTimer);
@@ -1151,12 +1151,17 @@ if(objData['properties']['GM_LayerName']) {
 						(function() {
 							var tileID = drawTileID;
 							var ptItem = rItem;
+							var ogc_fid = geom.id;
 							var item = {
 								'src': rUrl
 								,'zoom': zoom
 								,'callback': function(imageObj) {
 									rasterNums--;
-									ptItem['imageObj'] = (node['imageProcessingHook'] ? node['imageProcessingHook'](imageObj) : imageObj);
+									var pt = {'idr': ogc_fid, 'callback': function(content) {
+										ptItem['imageObj'] = content;
+										if(rasterNums === 0) drawRasters(tileID);
+									}};
+									ptItem['imageObj'] = (node['imageProcessingHook'] ? node['imageProcessingHook'](imageObj, pt) : imageObj);
 									if(rasterNums === 0) {
 										drawRasters(tileID);
 //attr['tile']._layer.tileDrawn(attr['tile']);
@@ -1385,7 +1390,11 @@ if(objData['properties']['GM_LayerName']) {
 								'src': pt['src']
 								,'callback': function(imageObj) {
 									rasterNums--;
-									ptItem['imageObj'] = (node['imageProcessingHook'] ? node['imageProcessingHook'](imageObj) : imageObj);
+									var pt = {'idr': ogc_fid, 'callback': function(content) {
+										ptItem['imageObj'] = content;
+										if(rasterNums === 0) waitRedrawFlips(0);
+									}};
+									ptItem['imageObj'] = (node['imageProcessingHook'] ? node['imageProcessingHook'](imageObj, pt) : imageObj);
 									//ptItem['imageObj'] = imageObj;
 									if(rasterNums === 0) waitRedrawFlips(0);
 								}
