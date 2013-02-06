@@ -1127,11 +1127,13 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		var node = mapNodes[id];
 		if(!node || !attr) return false;
 		if(attr.hoveredStyle) {
+			node._hoveredStyle = attr.hoveredStyle;
 			node.hoveredStyle = utils.parseStyle(attr.hoveredStyle, id);
 			node.hoveredStyleIsAttr = utils.isPropsInStyle(node.hoveredStyle);
 			if(!node.hoveredStyleIsAttr) node.hoveredStyle = utils.evalStyle(node.hoveredStyle)
 		}
 		if(attr.regularStyle) {
+			node._regularStyle = attr.regularStyle;
 			node.regularStyle = utils.parseStyle(attr.regularStyle, id);
 			node.regularStyleIsAttr = utils.isPropsInStyle(node.regularStyle);
 			if(!node.regularStyleIsAttr) node.regularStyle = utils.evalStyle(node.regularStyle)
@@ -1794,6 +1796,16 @@ return;
 			if(node['type'] === 'mapObject') setLabel(id);
 		}
 		,
+		'getStyle':	function(ph)	{				// Установка стилей обьекта
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return;						// Нода не была создана через addObject
+			var out = {	};
+			if(node._regularStyle) out.regular = node._regularStyle;
+			if(node._hoveredStyle) out.hovered = node._hoveredStyle;
+			return out;
+		}
+		,
 		'setStyle':	function(ph)	{				// Установка стилей обьекта
 			var id = ph.obj.objectId;
 			setStyle(id, ph.attr);
@@ -2225,13 +2237,13 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					canvas.width = canvas.height = 0;
 					//node['imageCanvas'] = null;
 				}
-				pGroup.removeLayer(node['leaflet']);
+				//pGroup.removeLayer(node['leaflet']);
 				return;
-			} else {
+			/*} else {
 				if(!node['leaflet']._map) {
 					pGroup.addLayer(node['leaflet']);
 					return;
-				}
+				}*/
 			}
 			if(!canvas) return;
 
@@ -2398,8 +2410,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		
 		if(!node['isSetImage']) {
 			if(node['leaflet']) {
-				var pnode = mapNodes[node.parentId];
-				pnode['group'].removeLayer(node['leaflet']);
+				pGroup.removeLayer(node['leaflet']);
 			}
 			var canvasIcon = L.canvasIcon({
 				className: 'my-canvas-icon'
@@ -2414,8 +2425,9 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			//marker.setZIndexOffset(-1000);
 				
 			node['leaflet'] = marker;
-			node['group'].addLayer(marker);
-			utils.setVisibleNode({'obj': node, 'attr': true});
+			pGroup.addLayer(marker);
+			if(pNode) utils.setVisibleNode({'obj': pNode, 'attr': true});
+			//utils.setVisibleNode({'obj': node, 'attr': true});
 			setNodeHandlers(node.id);
 
 			LMap.on('zoomend', function(e) {zoomProgress = false; waitRedraw();});
@@ -2897,7 +2909,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		var tileBounds = tileBounds_;					// границы тайла в котором пришел обьект
 		var lastZoom = null;
 		var bounds = null;
-		var hideLines = [];										// индексы точек лежащих на границе тайла
+		var hideLines = [];								// индексы точек лежащих на границе тайла
 		var cnt = 0;
 		var coords = [];
 		for (var i = 0; i < geo_['coordinates'].length; i++)
@@ -2939,13 +2951,18 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		
 		// проверка необходимости отрисовки геометрии
 		var chkNeedDraw = function (attr) {
-			if(!bounds.intersects(attr['bounds'])) return false;				// проверка пересечения полигона с отображаемым тайлом
+			//if(!bounds.intersects(attr['bounds'])) return false;				// проверка пересечения полигона с отображаемым тайлом
+			var shiftX = getShiftX(attr['bounds']);
+			if(shiftX === null) return false;
 			var node = attr['node'];
-			return node.chkTemporalFilter(out);
+			if(!node.chkTemporalFilter(out)) return false;
+			return shiftX;
 		}
 		// Отрисовка заполнения полигона
 		var paintFill = function (attr, fillFlag) {
-			if(!attr || !chkNeedDraw(attr)) return false;				// проверка необходимости отрисовки
+			if(!attr) return false;
+			var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
+			if(shiftX === false) return false
 			var ctx = attr['ctx'];
 			var x = attr['x'];
 			var y = 256 + attr['y'];
@@ -2976,9 +2993,10 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		}
 		// Отрисовка геометрии полигона
 		var paintStroke = function (attr) {
-			if(!attr) return;
-			if(!chkNeedDraw(attr)) return false;				// проверка необходимости отрисовки
-			
+			if(!attr) return false;
+			var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
+			if(shiftX === false) return false
+
 			var ctx = attr['ctx'];
 			var x = attr['x'];
 			var y = 256 + attr['y'];
@@ -3034,6 +3052,59 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			}
 			return false;
 		}
+		// Проверка пересечения с bounds
+		var getShiftX = function (chkBounds) {
+			if(bounds.intersects(chkBounds)) return 0;
+			else
+			{
+				var ww = 2 * gmxAPI.worldWidthMerc;
+				var sbounds = new L.Bounds(new L.Point(bounds.min.x - ww, bounds.min.y), new L.Point(bounds.max.x - ww, bounds.max.y));
+				if(chkBounds.intersects(sbounds)) return -ww;
+				//sbounds.min.x = bounds.min.x + ww;
+				//sbounds.max.x = bounds.max.x + ww;
+				sbounds = new L.Bounds(new L.Point(bounds.min.x -2*ww, bounds.min.y), new L.Point(bounds.max.x -2*ww, bounds.max.y));
+				if(chkBounds.intersects(sbounds)) return -2*ww;
+				sbounds = new L.Bounds(new L.Point(bounds.min.x + ww, bounds.min.y), new L.Point(bounds.max.x + ww, bounds.max.y));
+				if(chkBounds.intersects(sbounds)) return ww;
+				sbounds = new L.Bounds(new L.Point(bounds.min.x +2*ww, bounds.min.y), new L.Point(bounds.max.x +2*ww, bounds.max.y));
+				if(chkBounds.intersects(sbounds)) return 2*ww;
+			}
+			return null;
+		}
+		// Проверка пересечения с bounds
+		out['intersects'] = function (chkBounds) {
+			var pt = getShiftX(chkBounds);
+//console.log('paintStroke ', pt, chkBounds);
+			return (pt === null ? false : true);
+/*			
+			else
+			{
+				var ww = 2 * gmxAPI.worldWidthMerc;
+				var sbounds = new L.Bounds(new L.Point(bounds.min.x - ww, bounds.min.y), new L.Point(bounds.max.x - ww, bounds.max.y));
+				if(sbounds.intersects(chkBounds)) flag = true;
+				else {
+				sbounds.min.x = bounds.min.x + ww;
+				sbounds.max.x = bounds.max.x + ww;
+				if(sbounds.intersects(chkBounds)) flag = true;
+				}
+			}
+console.log('chkBounds ', flag, bounds, chkBounds);
+			return flag;
+
+			if(bounds.intersects(chkBounds)) return true;
+			else
+			{
+				var ww = 2 * gmxAPI.worldWidthMerc;
+				var sbounds = new L.Bounds(new L.Point(bounds.min.x - ww, bounds.min.y), new L.Point(bounds.max.x - ww, bounds.max.y));
+				if(sbounds.intersects(chkBounds)) return true;
+				sbounds.min.x = bounds.min.x + ww;
+				sbounds.max.x = bounds.max.x + ww;
+				if(sbounds.intersects(chkBounds)) return true;
+			}
+			return false;
+*/
+		}
+		
 		// Квадрат растояния до точки
 		out['distance2'] = function (chkPoint) {
 			return 0;
