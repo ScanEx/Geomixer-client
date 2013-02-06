@@ -140,66 +140,6 @@ nsGmx.Controls = {
 		return input;
 	},
 	
-	/** Создаёт элемент ввода типа данных, зависящих от параметров
-	@param fieldInfo Информация о поле
-	@param fieldValue Значение поля*/
-	createInputRow: function(fieldInfo, fieldValue){
-		var input = null;
-		if (fieldInfo.TypeID == 1){ //Decimal
-			input = _input(null, [['css', 'width', '100%']]);
-			if (fieldValue.DecimalValue != null){
-				input.value = fieldValue.DecimalValue;
-			}
-			input.onchange = function(){
-				if (/^-?\d*\.?\d*$/.test(input.value)){
-					fieldValue.DecimalValue = input.value;
-				}
-				else {
-					input.value = fieldValue.DecimalValue;
-				}
-			}
-		}
-		else if(fieldInfo.TypeID == 2){ //Date
-			input = _input(null, [['css', 'width', '100%']]);
-			$(input).datepicker({
-				onSelect: function(dateText, inst){
-					fieldValue.DecimalValue = $(input).datepicker("getDate").valueOf();
-				},
-				showAnim: 'fadeIn',
-				changeMonth: true,
-				changeYear: true
-			});
-			if (fieldValue.DecimalValue) $(input).datepicker("setDate", new Date(fieldValue.DecimalValue));
-		}
-		else if(fieldInfo.TypeID == 3) { //String
-			input = _textarea(null, [['css', 'width', '100%']]);
-			if (fieldValue.StringValue != null){
-				input.value = fieldValue.StringValue;
-			}
-			input.onchange = function(){
-				fieldValue.StringValue = input.value;
-			}
-		}
-		return input;
-	},
-	
-	/** Создаёт форму ввода с настраиваемым набором полей 
-	@param fieldInfoList Хэш информации о типе полей
-	@param fieldValues Хэш значений */
-	createInputForm: function(fieldInfoList, fieldValues){
-		var container = _div(null, [['dir','className','message-input-form']]);
-		var tbody = _tbody(null, [['css', 'width', '100%']]);
-		_(container, [_table([tbody], [['css', 'width', '100%']])]);
-		for (var iFieldIndex=0; iFieldIndex<fieldInfoList.length; iFieldIndex++){
-			var oFieldInfo = fieldInfoList[iFieldIndex];
-			if (!fieldValues[oFieldInfo.MessageAttributeID]) fieldValues[oFieldInfo.MessageAttributeID] = {};
-			var td = _td([_t(oFieldInfo.Name), _br()]);
-			_(tbody, [_tr([td])]);
-			_(td, [this.createInputRow(oFieldInfo, fieldValues[oFieldInfo.MessageAttributeID])]);
-		}
-		
-		return container;
-	},
     chooseDrawingBorderDialog: function(name, callback, params)
     {
         var _params = $.extend({
