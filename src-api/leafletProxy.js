@@ -770,9 +770,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(type === 'Point') 					return utils.drawPoint(node, style);
 			else if(type === 'Polygon')				return utils.drawPolygon(node, style);
 			else if(type === 'Polyline')			return utils.drawPolygon({'geometry': {'type': 'LineString', 'coordinates': geo.coordinates}, 'properties': prop}, style);
-			else if(type === 'MultiPolygon')		{
-				return utils.drawMultiPolygon(node, style);
-			}
+			else if(type === 'MultiPolyline')		return utils.drawPolygon({'geometry': {'type': 'MultiLineString', 'coordinates': geo.coordinates}, 'properties': prop}, style);
+			else if(type === 'MultiPolygon')		return utils.drawMultiPolygon(node, style);
 			else if(type === 'MultiPoint')			pt['type'] = 'MultiPoint';
 			else if(type === 'POINT')				pt['type'] = 'Point';
 			else if(type === 'MULTILINESTRING')		pt['type'] = 'MultiLineString';
