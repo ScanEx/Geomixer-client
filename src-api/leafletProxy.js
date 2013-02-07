@@ -538,10 +538,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			return zn
 		}
 		,
-		'evalStyle': function(style, node)	{								// парсинг стиля лефлета
+		'evalStyle': function(style, prop)	{								// парсинг стиля лефлета
 			var out = { 'ready': true };
-			var prop = (node ? node.properties || node.geometry.properties : null);
-			//if(node.propHiden) for(var key in node.propHiden) prop['_'+key] = node.propHiden[key];
 			for(var key in style) {
 				var zn = style[key];
 				if(key === 'fillColor' || key === 'color') {
@@ -736,25 +734,27 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		}
 		,
 		'drawPolygon': function(node, style)	{			// отрисовка Polygon геометрии
+			var prop = node.properties || {};
 			var geojsonFeature = {
 				"type": "Feature",
-				"properties": node.properties,
+				"properties": prop,
 				"geometry": node.geometry
 			};
 			var out = L.geoJson(geojsonFeature, {
-				style: ('ready' in style ? style : utils.evalStyle(style, node))
+				style: ('ready' in style ? style : utils.evalStyle(style, prop))
 			});
 			return out;
 		}
 		,
 		'drawMultiPolygon': function(node, style)	{			// отрисовка Polygon геометрии
+			var prop = node.properties || {};
 			var geojsonFeature = {
 				"type": "Feature",
-				"properties": node.properties || {},
+				"properties": prop,
 				"geometry": node.geometry
 			};
 			var out = L.geoJson(geojsonFeature, {
-				style: ('ready' in style ? style : utils.evalStyle(style, node))
+				style: ('ready' in style ? style : utils.evalStyle(style, prop))
 			});
 			return out;
 		}
@@ -763,10 +763,13 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(!node.geometry || !node.geometry.type) return null;
 			var geo = node.geometry;
 			var type = geo.type;
+			var prop = geo.properties;
+			var geom = {'type': type, 'coordinates': geo.coordinates};
 			var pt = {};
 			//if(type === 'MULTIPOLYGON') 			pt['type'] = 'MultiPolygon';
 			if(type === 'Point') 					return utils.drawPoint(node, style);
 			else if(type === 'Polygon')				return utils.drawPolygon(node, style);
+			else if(type === 'Polyline')			return utils.drawPolygon({'geometry': {'type': 'LineString', 'coordinates': geo.coordinates}, 'properties': prop}, style);
 			else if(type === 'MultiPolygon')		{
 				return utils.drawMultiPolygon(node, style);
 			}
@@ -1434,8 +1437,9 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 
 	// Рекурсивное изменение видимости
 	function setVisibilityFilterRecursive(pNode, sqlFunc) {
-		if(pNode['leaflet'] && pNode.geometry && pNode.geometry['properties']) {
-			var flag = sqlFunc(pNode.geometry['properties']);
+		var prop = ('getPropItem' in pNode ? pNode.getPropItem(pNode) : (pNode.geometry && pNode.geometry['properties'] ? pNode.geometry['properties'] : null));
+		if(pNode['leaflet'] && prop) {
+			var flag = sqlFunc(prop);
 			utils.setVisibleNode({'obj': pNode, 'attr': flag});
 		} else {
 			for (var i = 0; i < pNode['children'].length; i++) {
@@ -2103,9 +2107,10 @@ return;
 				var itemId = node.children[i];
 				var item = mapNodes[itemId];
 				if(item) {
+					var prop = ('getPropItem' in item ? item.getPropItem(item) : (item.geometry && item.geometry['properties'] ? item.geometry['properties'] : null));
 					out.push({
 						id: item.id,
-						properties: item.geometry.properties
+						properties: prop
 					});
 				}
 			}
@@ -2546,6 +2551,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var zoom = attr['zoom'];
 			var vbounds = attr['bounds'];
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
+			var node = attr['node'];
+			var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
 
 			if(!out['_cache']) out['_cache'] = {};
 			//var ctx = gmxAPI._leaflet['ptx'];
@@ -2557,7 +2564,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var scale = style['scale'] || 1;
 			if('_scale' in out['_cache']) scale = out['_cache']['_scale'];
 			else {
-				if(typeof(scale) == 'string') scale = gmxAPI._leaflet['utils'].chkPropsInString(scale, out['properties']);
+				if(typeof(scale) == 'string') scale = gmxAPI._leaflet['utils'].chkPropsInString(scale, prop);
 				if(scale < style['minScale']) scale = style['minScale'];
 				else if(scale > style['maxScale']) scale = style['maxScale'];
 				out['_cache']['_scale'] = scale;
@@ -2599,7 +2606,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 
 			if(style['label']) {
 				var labelStyle = style['label'];
-				var txt = (labelStyle['field'] ? this.properties[labelStyle['field']] : labelStyle['value']) || '';
+				var txt = (labelStyle['field'] ? prop[labelStyle['field']] : labelStyle['value']) || '';
 				if(txt) {
 					var lx = px1 + out['sx']/2;
 					var ly = py1 + out['sy']/2 + 2;

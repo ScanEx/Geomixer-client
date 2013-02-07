@@ -74,6 +74,7 @@
 				: {}
 				));
 		}
+		node['getPropItem'] = getPropItem;
 
 		var inpAttr = ph.attr;
 		node['subType'] = (inpAttr['filesHash'] ? 'Temporal' : '');
@@ -172,7 +173,7 @@
 			node['observerNode'] = pt.obj.objectId;
 			var ignoreVisibilityFilter = pt.attr.ignoreVisibilityFilter || false;		// отменить контроль фильтра видимости
 			var callback = pt.attr.func;
-		
+
 			var observerTiles = {};
 			var observerObj = {};
 			node['chkRemovedTiles'] = function(dKey) {		// проверка при удалении тайлов
@@ -690,7 +691,8 @@
 			if(!filter) return;
 			
 			var style = filter.regularStyle;
-			if(filter.regularStyleIsAttr) style = utils.evalStyle(filter.regularStyle, geo);
+			var prop = getPropItem(geo);
+			if(filter.regularStyleIsAttr) style = utils.evalStyle(filter.regularStyle, prop);
 			
 			var size = style['size'] || 5;
 
@@ -703,7 +705,7 @@
 				var txt = style['label']['value'] || '';
 				var field = style['label']['field'];
 				if(field) {
-					txt = getPropItem(geo)[field] || '';
+					txt = prop[field] || '';
 				}
 				style['label']['fontStyle'] = sizeLabel + 'px "Arial"';
 				ptx.font = style['label']['fontStyle'];
