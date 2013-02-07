@@ -156,7 +156,7 @@
                 gmxProperties.content.properties.visible = true;
                 
                 gmxProperties.content.properties.styles = [{
-                    MinZoom: gmxProperties.content.properties.MinZoom, 
+                    MinZoom: gmxProperties.content.properties.VtMaxZoom, 
                     MaxZoom:21, 
                     RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
                 }];

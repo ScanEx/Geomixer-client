@@ -118,7 +118,7 @@ var drawLayers = function(layer, params)
     // newLayerProperties.properties.type = newLayerProperties.properties.type === 1 ? 'Vector' : 'Raster';
 	
 	if (newLayerProperties.properties.type == 'Vector')
-		newLayerProperties.properties.styles = [{MinZoom:newLayerProperties.properties.MinZoom, MaxZoom:20, RenderStyle:_mapHelper.defaultStyles[newLayerProperties.properties.GeometryType]}]
+		newLayerProperties.properties.styles = [{MinZoom:newLayerProperties.properties.VtMaxZoom, MaxZoom:20, RenderStyle:_mapHelper.defaultStyles[newLayerProperties.properties.GeometryType]}]
 	else if (newLayerProperties.properties.type != 'Vector' && !newLayerProperties.properties.MultiLayerID)
 		newLayerProperties.properties.styles = [{MinZoom:newLayerProperties.properties.MinZoom, MaxZoom:20}];
 	
