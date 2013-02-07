@@ -1325,7 +1325,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 				layerProperties = {type:'layer', content: response.Result};
 				
 				if (layerProperties.content.properties.type == 'Vector')
-					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
+					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.VtMaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[layerProperties.content.properties.GeometryType]}]
 				else if (layerProperties.content.properties.type != 'Vector' && !layerProperties.content.properties.MultiLayerID)
 					layerProperties.content.properties.styles = [{MinZoom:layerProperties.content.properties.MinZoom, MaxZoom:21}];
 				
@@ -1888,7 +1888,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(task, title)
 		if (!newLayerProperties.styles)
 		{
 			if (newLayerProperties.type == 'Vector')
-				newLayerProperties.styles = [{MinZoom:newLayerProperties.MaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[newLayerProperties.GeometryType]}]
+				newLayerProperties.styles = [{MinZoom:newLayerProperties.VtMaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[newLayerProperties.GeometryType]}]
 			else if (newLayerProperties.type != 'Vector' && !newLayerProperties.MultiLayerID)
 				newLayerProperties.styles = [{MinZoom:newLayerProperties.MinZoom, MaxZoom:21}];
 		}
