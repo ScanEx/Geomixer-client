@@ -19,16 +19,21 @@ _translationsHash.addtext("eng", {
     "wmsSalesPlugin.boundary"  : "Boundary for WMS"
 });
 
-var findImagesBySceneIDs = function(sceneIDs, chunkSize)
+var findImagesBySceneIDs = function(sceneIDs)
 {
-    chunkSize = chunkSize || 1;
     var deferreds = [];
     
     var results = {};
     var deferred = $.Deferred();
     
-    var query = $.map(sceneIDs, function(id) {return "[sceneid]='" + id + "'"}).join(' OR ');
-    $.each(sceneIDs, function(index, id) {results[id] = {status: 'missing'}});
+    var query = $.map(sceneIDs, function(id) {
+        var id = id.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+        if (id === '') return;
+        results[id] = {status: 'missing'};
+        return "[sceneid]='" + id + "'"
+    }).join(' OR ');
+    
+    //$.each(sceneIDs, function(index, id) {results[id] = {status: 'missing'}});
     
     var params = {
         query: query, 
@@ -146,7 +151,7 @@ var createRC = function(results, params)
                 gmxProperties.content.properties.visible = true;
                 
                 gmxProperties.content.properties.styles = [{
-                    MinZoom: gmxProperties.content.properties.MinZoom, 
+                    MinZoom: gmxProperties.content.properties.ViMaxZoom, 
                     MaxZoom:21, 
                     RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
                 }];
