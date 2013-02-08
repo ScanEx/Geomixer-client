@@ -80,6 +80,7 @@
 		node['subType'] = (inpAttr['filesHash'] ? 'Temporal' : '');
 		
 		if(layer.properties['IsRasterCatalog']) {
+			node['IsRasterCatalog'] = true;
 			node['rasterCatalogTilePrefix'] = layer['tileSenderPrefix'];
 		}
 
@@ -267,7 +268,7 @@
 			var currPosition = gmxAPI.currPosition;
 			if(!currPosition || !currPosition.extent) return;
 			var ext = currPosition.extent;
-			node['loadTilesByExtent'](ext, true);
+			return node['loadTilesByExtent'](ext, true);
 		};
 
 		node['loadTilesByExtent'] = function(ext, flagDraw)	{		// Загрузка векторных тайлов по extent
@@ -281,6 +282,7 @@
 				if(tvFlag) continue;								// Тайл за границами видимости
 				if(node['tilesLoadProgress'][tileKey]) continue;
 
+				node['loaderFlag'] = false;
 				(function() {
 					var tID = tileKey;
 					var arr = tID.split('_');
@@ -316,7 +318,7 @@
 					node['tilesLoadProgress'][tID] = true;
 				})();
 			}
-			if(!node['loaderFlag']) gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode} );		// все тайлы загружены
+			return node['loaderFlag'];
 		};
 		// todo сделать загрузку векторных тайлов без layer.redraw() лефлета
 		//gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onMoveEnd', 'obj': gmxAPI.map, 'func': node.chkLoadTiles});
@@ -666,7 +668,7 @@
 			,'initCallback': initCallback
 			,'async': true
 			//,'reuseTiles': true
-			,'updateWhenIdle': true
+			//,'updateWhenIdle': true
 			,'unloadInvisibleTiles': true
 		};
 
@@ -1176,7 +1178,7 @@ if(objData['properties']['GM_LayerName']) {
 								}
 							};
 							if(node['imageProcessingHook']) item['crossOrigin'] = 'anonymous';
-							gmxAPI._leaflet['imageLoader'].push(item);
+							gmxAPI._leaflet['imageLoader'].unshift(item);
 						})();
 					} else {
 						geoNums--;
@@ -1408,7 +1410,7 @@ if(objData['properties']['GM_LayerName']) {
 							};
 							rasterNums++;
 							if(node['imageProcessingHook']) item['crossOrigin'] = 'anonymous';
-							gmxAPI._leaflet['imageLoader'].push(ph);
+							gmxAPI._leaflet['imageLoader'].unshift(ph);
 						})();
 					} else {
 						tilesRedrawImages.removeImage(itemId);
@@ -2029,7 +2031,7 @@ ctx.fillText(drawTileID, 10, 128);
 					gmxAPI._listeners.dispatchEvent('onLayerStartTileRepaint', gmxNode, {'obj':gmxNode, 'attr':attr});
 				}
 				node['chkLoadTiles']();
-				if(!node['loaderFlag']) repaint();
+				repaint();
 			}
 		});
 		
