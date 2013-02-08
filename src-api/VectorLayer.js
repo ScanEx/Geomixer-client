@@ -75,6 +75,14 @@
 				));
 		}
 		node['getPropItem'] = getPropItem;
+		// Проверка фильтра видимости
+		var chkSqlFuncVisibility = function(item)	{
+			if(node['_sqlFuncVisibility']) {
+				var prop = getPropItem(item);
+				if(!node['_sqlFuncVisibility'](prop) && !node['_sqlFuncVisibility'](item.propHiden)) return false;
+			}
+			return true;
+		}
 
 		var inpAttr = ph.attr;
 		node['subType'] = (inpAttr['filesHash'] ? 'Temporal' : '');
@@ -237,7 +245,8 @@
 							if(!item['propHiden'] || !item['propHiden']['toFilters'] || item['propHiden']['toFilters'].length == 0) continue;	// обьект не виден по стилевым фильтрам
 							
 							var prop = getPropItem(item);
-							if(!ignoreVisibilityFilter && node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](prop)) continue; 	// если фильтр видимости на слое не отменен
+							//if(!ignoreVisibilityFilter && node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](prop)) continue; 	// если фильтр видимости на слое не отменен
+							if(!ignoreVisibilityFilter && !chkSqlFuncVisibility(item)) continue; 	// если фильтр видимости на слое не отменен
 							
 							var id = item.id;
 							var vFlag = (item.bounds.max.x < ext.minX || item.bounds.min.x > ext.maxX || item.bounds.max.y < ext.minY || item.bounds.min.y > ext.maxY);
@@ -310,7 +319,7 @@
 							delete node['tilesLoadProgress'][tID];
 							gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode, 'attr':{'data':{'tileID':tID, 'data':data}}});		// tile загружен
 							data = null;
-							if(flagDraw) {
+							//if(flagDraw) {
 								node['loaderFlag'] = false;
 								for (var pkey in node['tilesLoadProgress'])
 								{
@@ -318,7 +327,7 @@
 									break;
 								}
 								if(!node['loaderFlag']) waitRedraw();		// перезапросить drawTile слоя
-							}
+							//}
 						}
 						,'onerror': function(err){						// ошибка при загрузке тайла
 							delete node['tilesLoadProgress'][tID];
@@ -397,7 +406,9 @@
 					var item = items[i];
 					var pid = '_' + item.id;
 					if(!item.propHiden['toFilters'] || !item.propHiden['toFilters'].length) continue;		// обьект не попал в фильтр
-					if(node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](getPropItem(item))) continue; 	// если фильтр видимости на слое не отменен
+					//if(node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](getPropItem(item))) continue; 	// если фильтр видимости на слое не отменен
+					if(!chkSqlFuncVisibility(item)) continue; 	// если фильтр видимости на слое не отменен
+					
 					if(node.chkTemporalFilter(item)) {
 						if('contains' in item) {
 							if(item['contains'](mPoint)) arr.push(item), arr[pid] = true;
@@ -1108,7 +1119,9 @@
 							continue;
 						}
 
-						if(node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](objData['properties'])) continue; // если фильтр видимости на слое
+						//if(node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](objData['properties'])) continue; // если фильтр видимости на слое
+						if(!chkSqlFuncVisibility(objData)) continue; // если фильтр видимости на слое
+						
 						if(!node.chkTemporalFilter(geom)) {	// не прошел по мультивременному фильтру
 							continue;
 						}
@@ -1334,7 +1347,9 @@ if(objData['properties']['GM_LayerName']) {
 			var item = null;
 			for (var i = 0; i < arr.length; i++) {
 				item = arr[i];
-				if(node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](getPropItem(item.geom))) continue; // если фильтр видимости на слое
+				//if(node['_sqlFuncVisibility'] && !node['_sqlFuncVisibility'](getPropItem(item.geom))) continue; // если фильтр видимости на слое
+				if(!chkSqlFuncVisibility(item.geom)) continue; // если фильтр видимости на слое
+
 				if(!chkItemFiltersVisible(item.geom)) continue;
 				var itemId = item.geom.id;
 				if(borders && borders[itemId]) {
