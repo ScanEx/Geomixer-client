@@ -515,7 +515,16 @@
 			}
 			
 			gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': upCallback });
-			//obj.enableDragging(dragCallback, downCallback, upCallback);
+			obj.enableDragging(function(x, y, o)
+			{
+				dragCallback(x, y);
+				gmxAPI._drawing['activeState'] = true;
+			}, function(ev){}, function(ev)
+			{
+				chkEvent('onFinish');
+				gmxAPI._drawing['activeState'] = false;
+			});
+			/*
 			obj.addListener('dragend', function(ev)
 			{
 				chkEvent('onFinish');
@@ -527,7 +536,7 @@
 				dragCallback(attr.x, attr.y);
 				gmxAPI._drawing['activeState'] = true;
 			});
-
+*/
 			//var balloonVisible = false;
 			if(balloon) {	// Это все касается балуна для маркера
 				var htmlDiv = document.createElement("div");

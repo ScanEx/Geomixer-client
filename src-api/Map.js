@@ -793,6 +793,18 @@
 				object.setHandler("onMouseDown", mouseDownHandler);
 			}
 		});
+		if(gmxAPI.proxyType === 'leaflet') {
+			gmxAPI.extendFMO('enableDragging', function(dragCallback, downCallback, upCallback)
+			{
+				var object = this;
+				var attr = { 'drag': dragCallback, 'dragstart':downCallback, 'dragend':upCallback };
+				gmxAPI._cmdProxy('enableDragging', { 'obj': object, 'attr':attr });
+			});
+			gmxAPI.extendFMO('disableDragging', function(dragCallback, downCallback, upCallback)
+			{
+				gmxAPI._cmdProxy('disableDragging', { 'obj': object });
+			});
+		}
 
 		window.kosmosnimkiBeginZoom = function() 
 		{

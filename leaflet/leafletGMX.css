@@ -1,6 +1,6 @@
 .leaflet-overlay-pane svg {
 	pointer-events: none;
-	z-index: 1000;
+/*	z-index: 1000;*/
 }
 .leaflet-overlay-pane svg g {
 	pointer-events: all;
