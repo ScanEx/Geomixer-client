@@ -3459,17 +3459,7 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 			
 			});
 			var parseEvent = function(e) {		// Парсинг события мыши
-				if(!e.originalEvent) return null;
-/*				
-				var flag = false;
-				try {
-					flag = utils.chkClassName(e.originalEvent.originalTarget, 'gmx_balloon', LMap._container);	// click на балуне
-				} catch(e) {
-					return null;
-				}
-				if(flag) return null;
-*/				
-				//if(utils.chkClassName(e.originalEvent.originalTarget, 'gmx_balloon', LMap._container)) return null;	// click на балуне
+				if(!e.originalEvent || gmxAPI._mouseOnBalloon) return null;
 				var target = e.originalEvent.originalTarget || e.originalEvent.target;
 				var out = {
 					'latlng': e.latlng
@@ -3585,6 +3575,7 @@ var tt = 1;
 			LMap.on('mousemove', function(e) {
 //return;
 //console.log('mousemove', gmxAPI._leaflet['mousePressed'], timeDown);
+				if(gmxAPI._mouseOnBalloon) return null;
 				if(gmxAPI._leaflet['mousedown']) timeDown -= 900;
 				gmxAPI._leaflet['mousePos'] = e.latlng;
 				var attr = parseEvent(e);
@@ -3596,7 +3587,7 @@ var tt = 1;
 					if(onMouseMoveTimer) clearTimeout(onMouseMoveTimer);
 					onMouseMoveTimer = setTimeout(function() {
 						onMouseMoveTimer = null;
-						if(utils.chkClassName(e.originalEvent.originalTarget, 'gmx_balloon', LMap._container)) return;	// click на балуне
+						//if(gmxAPI._mouseOnBalloon) return null;
 						var from = gmxAPI.map.layers.length - 1;
 						for (var i = from; i >= 0; i--)
 						{

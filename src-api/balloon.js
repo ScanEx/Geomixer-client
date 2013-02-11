@@ -790,15 +790,17 @@ event.stopImmediatePropagation();
 			balloon.isRemoved = false;
 			
 			var oldSetVisible = balloon.setVisible;
-			balloon.div.onmouseover = function()
+			balloon.outerDiv.onmouseover = function()
 			{
 				balloon.isHovered = true;
 				positionBalloons();
+				gmxAPI._mouseOnBalloon = true;
 			}
-			balloon.div.onmouseout = function()
+			balloon.outerDiv.onmouseout = function()
 			{
 				balloon.isHovered = false;
 				positionBalloons();
+				gmxAPI._mouseOnBalloon = false;
 			}
 			balloon.outerDiv.appendChild(gmxAPI.newElement(
 				"img",

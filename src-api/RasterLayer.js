@@ -182,14 +182,17 @@
 			//ctx.save();
 			ctx.beginPath();
 			if(!shiftY) shiftY = 0;
-			for (var j = 0; j < pArr.length; j++)
-			{
-				var xx = (pArr[j].x / tileSize - x);
-				var yy = (pArr[j].y / tileSize - y);
-				var px = 256 * xx;						px = (0.5 + px) << 0;
-				var py = 256 * (1 - yy) - shiftY;		py = (0.5 + py) << 0;
-				if(j == 0) ctx.moveTo(px, py);
-				else ctx.lineTo(px, py);
+			for(var i=0; i<pArr.length; i++) {	// Итерации K-means
+				var tarr = pArr[i];
+				for (var j = 0; j < tarr.length; j++)
+				{
+					var xx = (tarr[j].x / tileSize - x);
+					var yy = (tarr[j].y / tileSize - y);
+					var px = 256 * xx;						px = (0.5 + px) << 0;
+					var py = 256 * (1 - yy) - shiftY;		py = (0.5 + py) << 0;
+					if(j == 0) ctx.moveTo(px, py);
+					else ctx.lineTo(px, py);
+				}
 			}
 			pArr = null;
 			ctx.closePath();
@@ -351,12 +354,22 @@
 							flagAllCanvas = true;
 						}
 					}
-					pArr.push(pArr[0]);
 				
 					tile.width = tile.height = this.options.tileSize;
 					ctx = tile.getContext('2d');
 					if(!flagAllCanvas) {
-						drawCanvasPolygon( ctx, scanexTilePoint.x, scanexTilePoint.y, pArr, tileSize, layer.options.shiftY);
+						pArr.push(pArr[0]);
+						var pResArr = [pArr];
+						if(attr.mercGeom.length > 1) {
+							for(var i=1; i<attr.mercGeom.length; i++) {	// Итерации K-means
+								var p1 = L.PolyUtil.clipPolygon(attr.mercGeom[i], boundsMerc);
+								if(p1.length) {
+									p1.push(p1[0]);
+									pResArr.push(p1);
+								}
+							}
+						}
+						drawCanvasPolygon( ctx, scanexTilePoint.x, scanexTilePoint.y, pResArr, tileSize, layer.options.shiftY);
 					}
 				}
 				if(gmxAPI.isMobile) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
