@@ -310,6 +310,7 @@
 				fixedHoverBalloons[key].remove();
 				delete fixedHoverBalloons[key];
 			}
+			gmxAPI._mouseOnBalloon = false;
 		}
 		this.removeHoverBalloons = removeHoverBalloons;
 		
@@ -330,6 +331,7 @@
 					delete fixedHoverBalloons[key];
 				}
 			}
+			gmxAPI._mouseOnBalloon = false;
 /*
 			if(flag && showFlag) {
 				var timeoutShowHoverBalloons = setTimeout(function()
@@ -818,6 +820,7 @@ event.stopImmediatePropagation();
 							balloon.isVisible = false;
 						}
 						gmxAPI.stopEvent(ev);
+						gmxAPI._mouseOnBalloon = false;
 					},
 					onmouseover: function()
 					{
@@ -890,6 +893,7 @@ event.stopImmediatePropagation();
 			{
 				balloon.isVisible = flag;
 				this.reposition();
+				if(!flag) gmxAPI._mouseOnBalloon = false;
 			}
 			balloon.setPoint = function(x_, y_, isDraging_)
 			{
@@ -900,6 +904,7 @@ event.stopImmediatePropagation();
 			}
 			balloon.remove = function()
 			{
+				gmxAPI._mouseOnBalloon = false;
 				if(balloon.isRemoved) return false;
 				if(balloon.fixedId) delete fixedHoverBalloons[balloon.fixedId];
 				for(var i=0; i<balloons.length; i++) {
