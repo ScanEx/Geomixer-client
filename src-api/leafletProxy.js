@@ -2334,7 +2334,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		var repaint = function(imageObj, canvas, zoom) {
 			var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
 			node['isOnScene'] = isOnScene;
-			if(node.isVisible == false) return;
+			if(node.isVisible == false || !isOnScene) return;
+/*
 			if(!isOnScene) {
 				if(canvas) {
 					canvas.width = canvas.height = 0;
@@ -2342,12 +2343,13 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				}
 				//pGroup.removeLayer(node['leaflet']);
 				return;
-			/*} else {
+			} else {
 				if(!node['leaflet']._map) {
 					pGroup.addLayer(node['leaflet']);
 					return;
-				}*/
+				}
 			}
+*/
 			if(!canvas) return;
 
 			if(imageObj.src.indexOf(node['imageURL']) == -1) return;
@@ -2537,7 +2539,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			LMap.on('moveend', function(e) {
 				var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
 //console.log(' moveend: ' + isOnScene + ' : ' + node['isOnScene'] + ' : ');
-				if(node['isOnScene'] == isOnScene && !node['isLargeImage']) return;
+				if(!node['isLargeImage']) return;
 				waitRedraw();
 			});
 			
