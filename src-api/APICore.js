@@ -1470,13 +1470,17 @@ window.gmxAPI = {
 		{
 			if (!done)
 			{
-				if ( this.readyState === 'loaded' || this.readyState === 'complete' )
+				if (script.readyState === 'loaded' || this.readyState === 'complete' )
 				{
-					clearInterval(intervalError);
-					if ( window[name] !== undefined )
-						callback(window[name]);
-					else if (onError) onError();
-					done = true;
+					var ready = function() {
+						clearInterval(intervalError);
+						if ( window[name] !== undefined )
+							callback(window[name]);
+						else if (onError) onError();
+						done = true;
+					};
+					if(gmxAPI.isIE) setTimeout(ready, 100);
+					else 	ready();
 				}
 			}
 		}
