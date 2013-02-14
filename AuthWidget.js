@@ -89,7 +89,9 @@ var nsGmx = nsGmx || {};
             {
 				if(window.useAccountsAuth){
 					var redirect_uri = gmxAPI.getAPIHostRoot() + 'api/oAuthCallback.html';
-					nsGmx.Utils.login(redirect_uri, serverBase + 'oAuth/', loginCallback);
+					nsGmx.Utils.login(redirect_uri, serverBase + 'oAuth/', function(userInfo){
+						if(userInfo)loginCallback(userInfo);
+					});
 				}
 				else{
 					_this.showLoginDialog( loginCallback );

@@ -136,9 +136,18 @@ var nsGmx = nsGmx || {};
                     
                 if (response.Result == null || !resOk)
                 {
-                    // юзер не авторизован
-                    _this.setUserInfo({Login: false});
-                    
+					
+					if (window.useAccountsAuth){
+						var redirect_uri = /*gmxAPI.getAPIHostRoot() + */'http://localhost/api/oAuthCallback.html';
+						nsGmx.Utils.login(redirect_uri, serverBase + 'oAuth/', function(userInfo){
+							_this.setUserInfo( userInfo || {Login: false});
+							resOk && callback && callback();
+						}, 'MyKosmosnimki', false);
+					}else{
+						// юзер не авторизован
+						_this.setUserInfo({Login: false});
+						resOk && callback && callback();
+					}
                     if (isTokenUsed)
                     {
                         //TODO: обработать ошибку
@@ -159,9 +168,9 @@ var nsGmx = nsGmx || {};
                         _this.setUserInfo(response.Result);
                     }*/
 					_this.setUserInfo(response.Result);
+					resOk && callback && callback();
                 }
                 
-                resOk && callback && callback();
             }
             
             for (var iProvider = 0; iProvider < checkProviders.length; iProvider++)
@@ -216,7 +225,7 @@ var nsGmx = nsGmx || {};
                 if (!parseResponse(response))
                     return;
                     
-                if (_this.isAccounts() && window.gmxAuthServer)
+                if (window.gmxAuthServer)
                 {
                     sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Logout", function(response)
                     {

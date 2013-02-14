@@ -7,8 +7,12 @@ $.ajax({
 	jsonp: 'CallbackName',
 	success: function(response){
 			var result = false;
-			if(response.Status == 'error'){
+			if(response.Status == 'error' && response.ErrorInfo.ErrorMessage != 'access_denied'){
 				document.getElementById('resultText').innerHTML = response.ErrorInfo.ErrorMessage;
+			}
+			else if(response.Status == 'error' && response.ErrorInfo.ErrorMessage == 'access_denied'){
+				window.opener['gmxProcessAuthentication'](result);
+				window.close();
 			}
 			else{
 				result = response.Result;
