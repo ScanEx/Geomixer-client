@@ -316,6 +316,7 @@
 		
 		function hideHoverBalloons(flag, attr)
 		{
+			if(propsBalloon.isVisible()) propsBalloon.setVisible(false);
 			var showFlag = false;
 			for (var key in fixedHoverBalloons)
 			{

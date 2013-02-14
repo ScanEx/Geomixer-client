@@ -63,7 +63,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				node['leaflet'].options['dragging'] = true;
 				node['leaflet'].update();
 			} else {
-				node['leaflet'].on('mousedown', function(e) {		// dragstart на обьекте
+				node['leaflet'].on('mouseover', function(e) { LMap.dragging.disable(); gmxAPI._leaflet['activeObject'] = node.id; });
+				node['leaflet'].on('mouseout', function(e) { LMap.dragging.enable(); gmxAPI._leaflet['activeObject'] = null; });
+			
+				node['dragMe'] = function(e) {		// dragstart на обьекте
 					chkDrag('dragstart', e);
 					gmxAPI._leaflet['curDragState'] = true;
 					LMap.dragging.disable();
@@ -77,7 +80,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 						gmxAPI._leaflet['curDragState'] = false;
 						LMap.dragging.enable();
 					});
-				});
+				};
+				node['leaflet'].on('mousedown', node['dragMe']);		// dragstart на обьекте
 			}
 		}
 		,
@@ -1252,7 +1256,6 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				gmxAPI._leaflet['activeObject'] = (evName == 'onMouseOut' ? null : id);
 				hNode['handlers'][evName](node['id'], node.geometry.properties, {'ev':e});
 			};
-			
 			if(scanexEventNames[evName]) {
 				node['leaflet'].on(scanexEventNames[evName], func);
 				if(node['marker']) {
@@ -1634,6 +1637,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		'setVisibilityFilter': setVisibilityFilter			// добавить фильтр видимости
 		,
 		'setBackgroundTiles': gmxAPI._leaflet['setBackgroundTiles']			// добавить растровый тайловый слой
+		,
+		'addContextMenuItem': gmxAPI._leaflet['contextMenu']['addMenuItem']			// Добавить Item ContextMenu
 		,
 		'setGridVisible':	function(hash)	{							// Изменить видимость сетки
 			return grid.setGridVisible(hash['attr']);
@@ -2537,8 +2542,9 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 
 			LMap.on('zoomend', function(e) {zoomProgress = false; waitRedraw();});
 			LMap.on('moveend', function(e) {
-				var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
+				//var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
 //console.log(' moveend: ' + isOnScene + ' : ' + node['isOnScene'] + ' : ');
+				//if(node['isOnScene'] == isOnScene && !node['isLargeImage']) return;
 				if(!node['isLargeImage']) return;
 				waitRedraw();
 			});
@@ -3513,14 +3519,21 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 				gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, {'attr':{'latlng':e.latlng}});
 				//setTimeout(function() { skipClick = false;	}, 10);
 			});
-			
 			var setMouseDown = function(e) {
+				//console.log('setMouseDown ', gmxAPI._leaflet['activeObject']);
 				gmxAPI._leaflet['mousePressed'] = true;
 				timeDown = new Date().getTime();
 				var standartTools = gmxAPI.map.standartTools;
 				if(standartTools && standartTools['activeToolName'] != 'move' && standartTools['activeToolName'] != 'FRAME') return;
 			
 				gmxAPI._leaflet['mousedown'] = true;
+				if(gmxAPI._leaflet['activeObject']) {
+					var node = mapNodes[gmxAPI._leaflet['activeObject']];
+					if(node && node['dragMe']) {
+						node['dragMe'](e);
+						return;
+					}
+				}
 				var attr = parseEvent(e);
 				if(!attr) return;				// пропускаем
 				attr['evName'] = 'onMouseDown';
@@ -3551,7 +3564,7 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 						out['tID'] = target['id'];
 						out['tilePoint'] = target['tilePoint'];
 					}
-	//console.log(e.containerPoint);
+//console.log(e.containerPoint);
 					return out;
 				}
 				var attr = parseTouchEvent(e);
@@ -3615,6 +3628,10 @@ var tt = 1;
 				gmxAPI._leaflet['zoomstart'] = false;
 				gmxAPI._listeners.dispatchEvent('onZoomend', null, {});
 				gmxAPI._listeners.dispatchEvent('showBalloons', gmxAPI.map, {});	// Проверка map Listeners на showBalloons
+			});
+			LMap.on('contextmenu', function(e) {
+				var attr = parseEvent(e);
+				gmxAPI._leaflet['contextMenu']['showMenu']({'obj':gmxAPI.map, 'attr': attr});	// Показать меню
 			});
 
 			// Обработчик события - mapInit
@@ -4050,6 +4067,7 @@ var tt = 1;
 	gmxAPI._leaflet['waitSetImage'] = 0;			// текущее число загружаемых SetImage
 	gmxAPI._leaflet['curDragState'] = false;		// текущий режим dragging карты
 	gmxAPI._leaflet['mousePressed'] = false;		// признак нажатой мыши
+	gmxAPI._leaflet['activeObject'] = null;			// Нода последнего mouseOver
 })();
 
 

@@ -320,7 +320,11 @@
 				'text': text,
 				'func': function(x, y)
 					{
-						callback(gmxAPI.from_merc_x(x), gmxAPI.from_merc_y(y));
+						if(gmxAPI.proxyType === 'flash') {
+							x = gmxAPI.from_merc_x(x);
+							y = gmxAPI.from_merc_y(y);
+						}
+						callback(x, y);
 					}
 				}
 			});
