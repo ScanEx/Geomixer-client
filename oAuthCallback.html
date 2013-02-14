@@ -1,8 +1,9 @@
 ﻿<html>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script>
+geomixerWindow = window.opener || window.parent;
 $.ajax({
-	url: window.opener['gmxGetServerBase']() + 'oAuthCallback.ashx' + window.location.search, 
+	url: geomixerWindow['gmxGetServerBase']() + 'oAuthCallback.ashx' + window.location.search, 
 	dataType: "jsonp",
 	jsonp: 'CallbackName',
 	success: function(response){
@@ -11,13 +12,13 @@ $.ajax({
 				document.getElementById('resultText').innerHTML = response.ErrorInfo.ErrorMessage;
 			}
 			else if(response.Status == 'error' && response.ErrorInfo.ErrorMessage == 'access_denied'){
-				window.opener['gmxProcessAuthentication'](result);
+				geomixerWindow['gmxProcessAuthentication'](result);
 				window.close();
 			}
 			else{
 				result = response.Result;
 			}
-			window.opener['gmxProcessAuthentication'](result);
+			geomixerWindow['gmxProcessAuthentication'](result);
 			if(result) window.close();
 		}
 	});

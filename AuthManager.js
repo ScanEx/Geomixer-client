@@ -142,7 +142,7 @@ var nsGmx = nsGmx || {};
 						nsGmx.Utils.login(redirect_uri, serverBase + 'oAuth/', function(userInfo){
 							_this.setUserInfo( userInfo || {Login: false});
 							resOk && callback && callback();
-						}, 'MyKosmosnimki', false);
+						}, 'MyKosmosnimki', true);
 					}else{
 						// юзер не авторизован
 						_this.setUserInfo({Login: false});

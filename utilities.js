@@ -1163,7 +1163,10 @@ $.extend(nsGmx.Utils, {
 			
 			window.open(url, '_blank', features);
 		}else{
-			$('<iframe />').attr('src', url).appendTo('body');
+			$('<iframe />', {
+				 'src': url
+				,'style': 'display: none;'
+			}).appendTo('body');
 		}
     },
     
