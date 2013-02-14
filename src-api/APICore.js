@@ -2019,7 +2019,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 ////
 var flashMapAlreadyLoading = false;
 
-function sendCrossDomainJSONRequest(url, callback, callbackParamName)
+function sendCrossDomainJSONRequest(url, callback, callbackParamName, callbackError)
 {
     callbackParamName = callbackParamName || 'CallbackName';
     
@@ -2035,6 +2035,9 @@ function sendCrossDomainJSONRequest(url, callback, callbackParamName)
     var sepSym = url.indexOf('?') == -1 ? '?' : '&';
     
 	script.setAttribute("src", url + sepSym + callbackParamName + "=" + callbackName + "&" + Math.random());
+	if(callbackError) script.onerror = function(e) {
+		callbackError(e);
+	};
 	document.getElementsByTagName("head").item(0).appendChild(script);
 }
 gmxAPI.sendCrossDomainJSONRequest = sendCrossDomainJSONRequest;
@@ -2175,8 +2178,11 @@ function loadMapJSON(hostName, mapName, callback, onError)
 			{
 				if (response.Result.Status)
 					window.KOSMOSNIMKI_SESSION_KEY = response.Result.Key;
-				else
-					alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("Указан неверный API-ключ!", "Incorrect API key specified!"));
+				else {
+					var txt = gmxAPI.KOSMOSNIMKI_LOCALIZED("Указан неверный API-ключ!", "Incorrect API key specified!");
+					gmxAPI.addDebugWarnings({'func': 'useAPIKey', 'handler': 'processResponse', 'alert': txt});
+					//alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("Указан неверный API-ключ!", "Incorrect API key specified!"));
+				}
 				finish();
 			}
 			if (APIKeyResponseCache[key])
@@ -2193,6 +2199,15 @@ function loadMapJSON(hostName, mapName, callback, onError)
 						APIKeyResponseCache[key] = response;
 						processResponse(response);
 					}
+					,null
+					,function(ev)
+					{
+						var txt = gmxAPI.KOSMOSNIMKI_LOCALIZED("Сбой при получении API-ключа!", "Error in API key request!");
+						gmxAPI.addDebugWarnings({'func': 'useAPIKey', 'handler': 'sendCrossDomainJSONRequest', 'alert': txt});
+						//alertAboutAPIKey(gmxAPI.KOSMOSNIMKI_LOCALIZED("Указан неверный API-ключ!", "Incorrect API key specified!"));
+						finish();
+					}
+					
 				);
 			}
 		}

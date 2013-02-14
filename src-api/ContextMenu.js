@@ -18,15 +18,6 @@
 		var attr = ph.attr || {};
 		var latlng = attr.latlng;
 		if(!latlng) return false;
-		if(!lastLatLng) {					// При первом обращении загрузим стили
-			var css = document.createElement("link");
-			css.setAttribute("type", "text/css");
-			css.setAttribute("rel", "stylesheet");
-			css.setAttribute("media", "screen");
-			var apiHost = gmxAPI.getAPIFolderRoot();
-			css.setAttribute("href", apiHost + "leaflet/jquery.contextMenu.css");
-			document.getElementsByTagName("head").item(0).appendChild(css);
-		}
 		lastLatLng = latlng;
 		if(marker) LMap.removeLayer(marker);
 		marker = createMenu(id, lastLatLng);
@@ -85,6 +76,15 @@
 		LMap = gmxAPI._leaflet['LMap'];
 		utils = gmxAPI._leaflet['utils'];
 		mapNodes = gmxAPI._leaflet['mapNodes'];
+		setTimeout(function() {
+			var css = document.createElement("link");
+			css.setAttribute("type", "text/css");
+			css.setAttribute("rel", "stylesheet");
+			css.setAttribute("media", "screen");
+			var apiHost = gmxAPI.getAPIFolderRoot();
+			css.setAttribute("href", apiHost + "leaflet/jquery.contextMenu.css");
+			document.getElementsByTagName("head").item(0).appendChild(css);
+		}, 1000);
 	}
 		
 	//расширяем namespace
