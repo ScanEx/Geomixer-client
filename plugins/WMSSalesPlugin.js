@@ -1,4 +1,4 @@
-﻿(function ($, map){
+﻿(function ($){
 
 var g_tagMetaInfo = null;
 
@@ -19,8 +19,12 @@ _translationsHash.addtext("eng", {
     "wmsSalesPlugin.boundary"  : "Boundary for WMS"
 });
 
-var findImagesBySceneIDs = function(sceneIDs)
+var findImagesBySceneIDs = function(sceneIDs, params)
 {
+    var _params = $.extend({
+        serverBase: window.serverBase || ''
+    }, params);
+    
     var deferreds = [];
     
     var results = {};
@@ -42,7 +46,7 @@ var findImagesBySceneIDs = function(sceneIDs)
         SendMetadata: true
     }
     
-    sendCrossDomainPostRequest(serverBase + 'Layer/Search2.ashx', params, function(response)
+    sendCrossDomainPostRequest(_params.serverBase + 'Layer/Search2.ashx', params, function(response)
     {
         //console.log(response);
         if (!parseResponse(response))
@@ -78,7 +82,8 @@ var createRC = function(results, params)
     var _params = $.extend({
         title: 'wms_sales_rc', 
         addToMap: true,
-        userBorder: null
+        userBorder: null,
+        serverBase: window.serverBase || ''
     }, params);
     
     //атрибуты каталога растров - объединение всех метаданных слоёв
@@ -119,7 +124,7 @@ var createRC = function(results, params)
     requestParams.FieldsCount = fieldIdx;
     requestParams.ColumnTagLinks = JSON.stringify(ColumnTagLinks);
     
-    sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", requestParams, function(response)
+    sendCrossDomainPostRequest(_params.serverBase + "VectorLayer/CreateVectorLayer.ashx", requestParams, function(response)
     {
         if (!parseResponse(response))
             return;
@@ -264,6 +269,7 @@ var showWidget = function()
 
 var publicInterface = {
     createRC: createRC,
+    findImagesBySceneIDs: findImagesBySceneIDs,
 	afterViewer: function(params)
     {
         if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
