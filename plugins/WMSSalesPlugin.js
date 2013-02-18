@@ -22,7 +22,8 @@ _translationsHash.addtext("eng", {
 var findImagesBySceneIDs = function(sceneIDs, params)
 {
     var _params = $.extend({
-        serverBase: window.serverBase || ''
+        serverBase: window.serverBase || '',
+        searchParams: {}
     }, params);
     
     var deferreds = [];
@@ -39,12 +40,12 @@ var findImagesBySceneIDs = function(sceneIDs, params)
     
     //$.each(sceneIDs, function(index, id) {results[id] = {status: 'missing'}});
     
-    var params = {
+    var params = $.extend(_params.searchParams, {
         query: query, 
         WrapStyle: 'window', 
         pageSize: 10*sceneIDs.length,
         SendMetadata: true
-    }
+    });
     
     sendCrossDomainPostRequest(_params.serverBase + 'Layer/Search2.ashx', params, function(response)
     {
