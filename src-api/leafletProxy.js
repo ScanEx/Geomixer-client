@@ -215,6 +215,22 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				? false : true);
 		}
 		,
+		'chkPointInPolyLine': function(chkPoint, lineHeight, coords) {	// Проверка точки(с учетом размеров) на принадлежность линии
+			var mInPixel = gmxAPI._leaflet['mInPixel'];
+			var chkLineHeight = lineHeight / mInPixel;
+			chkLineHeight *= chkLineHeight;
+			
+			var p1 = coords[0];
+			for (var i = 1; i < coords.length; i++)
+			{
+				var p2 = coords[i];
+				var sqDist = L.LineUtil._sqClosestPointOnSegment(chkPoint, p1, p2, true);
+				if(sqDist < chkLineHeight) return true;
+				p1 = p2;
+			}
+			return false;
+		}
+		,
 		'isPointInPolygon': function(chkPoint, poly)	{			// Проверка точки на принадлежность полигону
 			var isIn = false;
 			var p1 = poly[0];
@@ -532,6 +548,12 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					
 				}
 			}
+			if('rotate' in pt && typeof(pt['rotate']) === 'string') {
+				pt['rotateFunction'] = gmxAPI.Parsers.parseExpression(pt['rotate']);
+			}
+			if('scale' in pt && typeof(pt['scale']) === 'string') {
+				pt['scaleFunction'] = gmxAPI.Parsers.parseExpression(pt['scale']);
+			}
 			if('color' in pt && typeof(pt['color']) === 'string') {
 				pt['colorFunction'] = gmxAPI.Parsers.parseExpression(pt['color']);
 			}
@@ -594,17 +616,14 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			var out = { 'ready': true };
 			for(var key in style) {
 				var zn = style[key];
+				if(key + 'Function' in style && style[key + 'Function']) zn = style[key + 'Function'](prop);
 				if(key === 'fillColor' || key === 'color') {
-					if(prop) {
-						if(key + 'Function' in style) zn = style[key + 'Function'](prop);
-						else if(utils.isPropsInString(zn)) zn = utils.chkPropsInString(style[key], prop);
-						//if(prop && utils.isPropsInString(zn)) zn = (style['colorFunction'] ? style.colorFunction(prop) : utils.chkPropsInString(style[key], prop));
-					}
 					out[key + '_rgba'] = utils.dec2rgba(zn, 1);
 					zn = utils.dec2hex(zn);
 					if(zn.substr(0,1) != '#') zn = '#' + zn;
+				} else if(key === 'scale') {
+					if(typeof(zn) === 'string') zn = 1;
 				} else if(key === 'fillOpacity' || key === 'opacity') {
-					if(prop && utils.isPropsInString(zn)) zn = utils.chkPropsInString(style[key], prop);
 					zn = zn / 100;
 				}
 				out[key] = zn;
@@ -717,7 +736,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					//,'zIndexOffset': -1000
 				};
 				if(!style['scale']) style['scale'] = 1;
-				var zn = utils.chkPropsInString(style['scale'], prop);
+				//var zn = utils.chkPropsInString(style['scale'], prop);
+				var zn = style['scale'];
 				var ww = Math.floor(style['imageWidth'] * zn);
 				var hh = Math.floor(style['imageHeight'] * zn);
 				opt['iconSize'] = new L.Point(ww, hh);
@@ -2077,6 +2097,14 @@ return;
 			return id;
 		}
 		,
+		'addFlip':	function(ph)	{				// Добавить обьект к массиву Flips обьектов
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node || !ph.attr.fid) return false;
+			if(node.addFlip) return node.addFlip(ph.attr.fid);
+			return false;
+		}
+		,
 		'getZoomBounds':	function(ph)	{		// Установка границ по zoom
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
@@ -2890,16 +2918,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				return gmxAPI._leaflet['utils'].chkPointWithDelta(bounds1, chkPoint, out);
 			}
 			if(bounds.contains(chkPoint)) {
-				var chkLineHeight = lineHeight / mInPixel;
-				chkLineHeight *= chkLineHeight;
-				
-				var p1 = coords[0];
-				for (var i = 1; i < coords.length; i++)
-				{
-					var p2 = coords[i];
-					var sqDist = L.LineUtil._sqClosestPointOnSegment(chkPoint, p1, p2, true);
-					if(sqDist < chkLineHeight) return true;
-				}
+				if(gmxAPI._leaflet['utils'].chkPointInPolyLine(chkPoint, lineHeight, coords)) return true;
 			}
 			return false;
 		}
@@ -3158,9 +3177,15 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		// Проверка принадлежности точки полигону
 		out['contains'] = function (chkPoint) {
 			if(bounds.contains(chkPoint)) {
+				var fill = 	(out.curStyle ? out.curStyle.fill : false);
 				for (var i = 0; i < coords.length; i++)
 				{
-					if(gmxAPI._leaflet['utils'].isPointInPolygon(chkPoint, coords[i])) return true;
+					if(fill) {
+						if(gmxAPI._leaflet['utils'].isPointInPolygon(chkPoint, coords[i])) return true;
+					} else {
+						var weight = (out.curStyle ? out.curStyle.weight : 1);
+						if(gmxAPI._leaflet['utils'].chkPointInPolyLine(chkPoint, weight, coords[i])) return true;
+					}
 				}
 			}
 			return false;
@@ -3424,6 +3449,7 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 					LMap._onResize();
 				}, 50);*/
 			};
+			/*
 			var prevSize = null;
 			var chkMapResize = function() {
 				if(gmxAPI._drawing['activeState'] || gmxAPI._leaflet['curDragState']) return;	// При рисовании не проверяем Resize
@@ -3440,6 +3466,7 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 			};
 			setInterval(chkMapResize, 5000);
 			L.DomEvent.addListener(window.document, 'click', gmxAPI._leaflet['mapOnResize']);
+			*/
 			LMap.on('moveend', function(e) {
 				//console.log("test1");
 				if(LMap._size) prevSize = {'x': LMap._size.x, 'y': LMap._size.y};

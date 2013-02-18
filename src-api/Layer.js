@@ -290,10 +290,12 @@
 			obj.removeItems = function(attr) {		// удаление обьектов векторного слоя 
 				return gmxAPI._cmdProxy('removeItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
 			};
-			obj.setSortItems = function(attr) {		// установка даление обьектов векторного слоя 
+			obj.setSortItems = function(attr) {		// установка сортировки обьектов векторного слоя 
 				return gmxAPI._cmdProxy('setSortItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
 			};
-			
+			obj.addFlip = function(fid) {			// Добавить обьект к массиву Flips обьектов
+				return gmxAPI._cmdProxy('addFlip', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'fid': fid} });
+			};
 		}
 
 		var hostName = layer.properties.hostName || "maps.kosmosnimki.ru";
