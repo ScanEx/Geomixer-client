@@ -1165,8 +1165,8 @@ $.extend(nsGmx.Utils, {
 		}else{
 			$('<iframe />', {
 				 'src': url
-				,'style': 'display: none;'
-			}).appendTo('body');
+				,'style': 'display: block !important; position: absolute; left: -99999px;' 
+			}).appendTo('body'); //стиль такой кривой иначе будет бага в FF
 		}
     },
     
