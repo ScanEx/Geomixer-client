@@ -103,6 +103,7 @@
 		}
 		node['getItemGeometry'] = function (itemId) {				// Получить geometry обьекта векторного слоя
 			var item = node['objectsData'][itemId];
+			if(!item) return null;
 			var geom = null;
 			for(var tileID in item.propHiden['fromTiles']) {
 				var arr = (tileID == 'addItem' ? node['addedItems'] : node['tilesGeometry'][tileID]);	// Обьекты тайла

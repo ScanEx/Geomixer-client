@@ -196,6 +196,7 @@
 			var latLng = new L.LatLng(attr['lastPoint']['y'], attr['lastPoint']['x'] + dx);
 			latLngs.push(latLng);
 		}
+		layerItems[1].options['skipLastPoint'] = (attr['editType'] !== 'LINESTRING');
 		layerItems[0].setLatLngs(latLngs);
 		layerItems[1].setLatLngs(latLngs);
 	}
@@ -928,7 +929,7 @@
 				var point = gmxAPI._leaflet['LMap'].project(latlng);
 				var pointBegin = gmxAPI._leaflet['LMap'].project(new L.LatLng(coords[0][1], coords[0][0]));
 				var flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) < pointSize);
-				if (flag && editType === 'LINESTRING') editType = 'POLYGON';
+				if (flag && editType === 'LINESTRING') editType = drawAttr['editType'] = 'POLYGON';
 
 				if(!flag) {
 					var tp = coords[coords.length - 1];
