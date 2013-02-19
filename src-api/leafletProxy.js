@@ -524,7 +524,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					gmxAPI.addDebugWarnings({'url': url, 'func': 'getImageSize', 'Error': 'image not found'});
 				}
 			};
-			if(pt['color'] != utils.DEFAULT_REPLACEMENT_COLOR) ph['crossOrigin'] = 'anonymous';
+			if('color' in pt && pt['color'] != utils.DEFAULT_REPLACEMENT_COLOR) ph['crossOrigin'] = 'anonymous';
 			gmxAPI._leaflet['imageLoader'].unshift(ph);
 		}
 		,'getMouseX':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lng : 0); }			// Позиция мыши X
