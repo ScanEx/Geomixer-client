@@ -518,11 +518,12 @@
 						if(!tilesNeed) tilesNeed = {};
 					}
 					node['hoverItem'] = item;
-					item.geom.curStyle = hoveredStyle;
+					//item.geom.curStyle = hoveredStyle;
+					item.geom.curStyle = utils.evalStyle(hoveredStyle, item.geom.properties);
 					for (var tileID in propHiden['drawInTiles']) tilesNeed[tileID] = true;
 
 					redrawTilesHash(tilesNeed);
-					item.geom.curStyle = regularStyle;
+					item.geom.curStyle = utils.evalStyle(regularStyle, item.geom.properties);
 					gmxAPI._div.style.cursor = 'pointer';
 					//if(callHandler('onMouseOver', item.geom, gmxNode)) return true;
 					//if(filter && callHandler('onMouseOver', item.geom, filter)) return true;
@@ -838,6 +839,7 @@
 					,'properties': prop
 					,'propHiden': propHiden
 				};
+				geo['properties'] = objData['properties'];
 				if(node['objectsData'][id]) {		// Обьект уже имеется - нужна??? склейка геометрий
 					var pt = node['objectsData'][id];
 					if(objData['type'].indexOf('MULTI') == -1) objData['type'] = 'MULTI' + objData['type'];

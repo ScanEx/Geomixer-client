@@ -21,6 +21,48 @@
 	
 	var moveToTimer = null;
 	var utils = {							// Утилиты leafletProxy
+		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
+		,
+		'replaceColorAndRotate': function(img, style) {		// заменить цвет пикселов в иконке + rotate - результат canvas
+			var canvas = document.createElement('canvas');
+			canvas.width = style.imageWidth;
+			canvas.height = style.imageHeight;
+			var ptx = canvas.getContext('2d');
+			ptx.clearRect(0, 0, style.imageWidth, style.imageHeight);
+			var tx = ty = 0;
+			if(style['rotate']) {
+				tx = -style.imageWidth/2;
+				ty = -style.imageHeight/2;
+				ptx.translate(-tx, -ty);
+				ptx.rotate(Math.PI  * style['rotate']/180);
+			}
+			ptx.drawImage(img, tx, ty);
+			if('color' in style) {
+				var color = style.color;
+				if(typeof(style.color) == 'string') color = parseInt('0x' + style.color.replace(/#/, ''));
+				if (color != gmxAPI._leaflet['utils'].DEFAULT_REPLACEMENT_COLOR) {
+					var r = (color >> 16) & 255;
+					var g = (color >> 8) & 255;
+					var b = color & 255;
+
+					var imageData = ptx.getImageData(0, 0, style.imageWidth, style.imageHeight);
+					for (var i = 0; i < imageData.data.length; i+=4)
+					{
+						if (imageData.data[i] == 0xff
+							&& imageData.data[i+1] == 0
+							&& imageData.data[i+2] == 0xff
+							) {
+							imageData.data[i] = r;
+							imageData.data[i+1] = g;
+							imageData.data[i+2] = b;
+						}
+					}
+					ptx.putImageData(imageData, 0, 0);
+				}
+			}
+			return canvas;
+		}
+		,
 		'getMapImage': function(attr)	{			//получить PNG карты
 			/*var pos = utils.getPixelMap();
 			var canvas = document.createElement('canvas');
@@ -467,25 +509,23 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				if(flag) pt['image'] = imagesSize[url]['image'];
 				return;
 			}
-//console.log(' getImageSize: ' + url + ' : ');
-			
-			var _img = L.DomUtil.create('img', 'leaflet-image-layer');
-			_img.style.visibility = 'hidden';
-			function getSize(ev) {
-				pt['imageWidth'] = ev.target.width;
-				pt['imageHeight'] = ev.target.height;
-				if(flag) pt['image'] = _img;
-				imagesSize[url] = pt;
-				gmxAPI._listeners.dispatchEvent('onIconLoaded', null, id);		// image загружен
-			}
-			function error(ev) {
-				pt['imageWidth'] = 1;
-				pt['imageHeight'] = 0;
-				gmxAPI.addDebugWarnings({'url': url, 'func': 'getImageSize', 'Error': 'image not found'});
-			}
-			L.DomEvent.addListener(_img, 'load', getSize, this);
-			L.DomEvent.addListener(_img, 'error', error, this);
-			_img.src = url;
+			var ph = {
+				'src': url
+				,'callback': function(img) {
+					pt['imageWidth'] = img.width;
+					pt['imageHeight'] = img.height;
+					if(flag) pt['image'] = img;
+					imagesSize[url] = pt;
+					gmxAPI._listeners.dispatchEvent('onIconLoaded', null, id);		// image загружен
+				}
+				,'onerror': function(){
+					pt['imageWidth'] = 1;
+					pt['imageHeight'] = 0;
+					gmxAPI.addDebugWarnings({'url': url, 'func': 'getImageSize', 'Error': 'image not found'});
+				}
+			};
+			if(pt['color'] != utils.DEFAULT_REPLACEMENT_COLOR) ph['crossOrigin'] = 'anonymous';
+			gmxAPI._leaflet['imageLoader'].unshift(ph);
 		}
 		,'getMouseX':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lng : 0); }			// Позиция мыши X
 		,'getMouseY':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lat : 0);	}		// Позиция мыши Y
@@ -2716,13 +2756,12 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				py1 += out['sy']/2;
 			}
 			
-			//size *= 2;
-			
 			if(style['marker']) {
 				if(style['image']) {
-					ctx.drawImage(style['image'], px1, py1, out['sx'], out['sy']);
+					var canv = style['image'];
+					if(style['rotate'] || 'color' in style) canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style);
+					ctx.drawImage(canv, px1, py1, out['sx'], out['sy']);
 				}
-				
 			} else {
 				if(style['stroke'] && style['weight'] > 0) {
 					ctx.beginPath();
