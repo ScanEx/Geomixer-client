@@ -50,17 +50,23 @@ $LAB.
 	script(_getFileName("jquery/jquery-ui-timepicker-addon.js")).wait().
 	script(_getFileName("jquery/ui.timepicker-ru.js")).wait().
 	script(_getFileName("jquery/jquery.treeview.js")).wait().
+    
+	script(_getFileName("jquery/underscore-min.js")).wait().
+	script(_getFileName("jquery/backbone-min.js")).wait().
 	
 	script(_getFileName("colorpicker/js/colorpicker.js")).wait().
 	script(_getFileName("colorpicker/js/eye.js")).wait().
 	script(_getFileName("colorpicker/js/utils.js")).wait(function(){
 	
-loadJS(function()
-{
-    gmxCore.setDefaultModulesHost(gmxJSHost);
-    nsGmx.initGeoMixer();
-});
+        nsGmx._ = _.noConflict(); //пересекается с utilities :(
+        
+        loadJS(function()
+        {
+            gmxCore.setDefaultModulesHost(gmxJSHost);
+            nsGmx.initGeoMixer();
+        });
 
-}); //$LAB
+    }
+); //$LAB
 
 })();

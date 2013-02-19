@@ -16,6 +16,19 @@
         "LayerRCControl.layerTagTitle"   : "Layer parameter",
         "LayerRCControl.attributeTitle"  : "Object Attribute"
     });
+    
+    nsGmx.LayerRCProperties = Backbone.Model.extend({
+        defaults: {
+            IsRasterCatalog: false,
+            RCMinZoomForRasters: 0,
+            RCMaskForRasterTitle: '',
+            RCMaskForRasterPath: '',
+            ColumnTagLinks: {}
+        },
+        isAnyLinks: function() {
+            return nsGmx._.size(this.attributes.ColumnTagLinks) > 0;
+        }
+    });
 
     /**
     Контрол для задания параметров каталогов растров
@@ -24,35 +37,21 @@
     */
     nsGmx.LayerRasterCatalogControl = function(container, rcProperties, params)
     {
-        rcProperties = rcProperties || {};
-        var advancedMode = !!(rcProperties.RCMaskForRasterPath || rcProperties.RCMaskForRasterTitle || rcProperties.ColumnTagLinks);
-        
-        this.getRCProperties = function()
-        {
-            var properties = {
-                IsRasterCatalog: RCCheckbox[0].checked,
-                RCMinZoomForRasters: minZoomInput.val(),
-                RCMaskForRasterTitle: titleInput.val(),
-                RCMaskForRasterPath: pathInput.val(),
-                ColumnTagLinks: {}
-            }
-            
-            if (layerTags)
-            {
-                layerTags.eachValid(function(id, tag, value) { properties.ColumnTagLinks[value] = tag;});
-            }
-            
-            return properties;
-        }
+        var advancedMode = !!(rcProperties.get('RCMaskForRasterPath') || rcProperties.get('RCMaskForRasterTitle') || rcProperties.isAnyLinks());
         
         var updateVisibility = function()
         {
+            var isRasterCatalog = rcProperties.get('IsRasterCatalog');
             $('.RCCreate-advanced', container).toggle(advancedMode);
-            $('.RCCreate-advanced-link, .RCCreate-params', container).toggle(RCCheckbox[0].checked);
-            $('.RCCreate-tagContainer', container).toggle(advancedMode && RCCheckbox[0].checked);
+            $('.RCCreate-advanced-link, .RCCreate-params', container).toggle(isRasterCatalog);
+            $('.RCCreate-tagContainer', container).toggle(advancedMode && isRasterCatalog);
         }
         
-        var RCCheckbox = $('<input/>', {type: 'checkbox', 'class': 'RCCreate-checkbox'}).change(updateVisibility);
+        rcProperties.on('change:IsRasterCatalog', updateVisibility);
+        
+        var RCCheckbox = $('<input/>', {type: 'checkbox', 'class': 'RCCreate-checkbox'}).change(function() {
+            rcProperties.set( 'IsRasterCatalog', RCCheckbox[0].checked );
+        });
 
         var advancedParamsLink = $(makeLinkButton(_gtxt('LayerRCControl.advancedLink'))).addClass('RCCreate-advanced-link').click(function()
         {
@@ -62,11 +61,11 @@
         
         var RCHeader = $('<div/>', {'class': 'RCCreate-header'}).append(advancedParamsLink, RCCheckbox).appendTo(container);
         
-        RCCheckbox[0].checked = rcProperties.IsRasterCatalog;
+        RCCheckbox[0].checked = rcProperties.get('IsRasterCatalog');
         
-        var minZoomInput = $('<input/>', {'class': 'inputStyle RCCreate-zoom-input'}).val(rcProperties.RCMinZoomForRasters || '');
-        var titleInput = $('<input/>', {'class': 'inputStyle'}).val(rcProperties.RCMaskForRasterTitle || '');
-        var pathInput = $('<input/>', {'class': 'inputStyle'}).val(rcProperties.RCMaskForRasterPath || '');
+        var minZoomInput = $('<input/>', {'class': 'inputStyle RCCreate-zoom-input'}).val(rcProperties.get('RCMinZoomForRasters') || '');
+        var titleInput = $('<input/>', {'class': 'inputStyle'}).val(rcProperties.get('RCMaskForRasterTitle') || '');
+        var pathInput = $('<input/>', {'class': 'inputStyle'}).val(rcProperties.get('RCMaskForRasterPath') || '');
         
         var RCParamsTable = 
             $('<table/>', {'class': 'RCCreate-params'})
@@ -95,11 +94,10 @@
             
             var initTags = {};
             
-            if ( rcProperties.ColumnTagLinks )
-            {
-                for (var iP in rcProperties.ColumnTagLinks)
-                    initTags[rcProperties.ColumnTagLinks[iP]] = {Value: iP};
-            }
+            var columnTagLinks = rcProperties.get('ColumnTagLinks');
+            
+            for (var iP in columnTagLinks)
+                initTags[columnTagLinks[iP]] = {Value: iP};
             
             layerTags = new nsGmx.LayerTags(fakeTagManager, initTags);
             
@@ -109,6 +107,12 @@
                 tagHeader: _gtxt('LayerRCControl.layerTagTitle'), 
                 valueHeader: _gtxt('LayerRCControl.attributeTitle')
             });
+            
+            $(layerTags).change(function() {
+                var columnTagLinks = {};
+                layerTags.eachValid(function(id, tag, value) { columnTagLinks[value] = tag;});
+                rcProperties.set('ColumnTagLinks', columnTagLinks);
+            })
             
             updateVisibility();
         })

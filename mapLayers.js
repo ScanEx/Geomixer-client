@@ -621,7 +621,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			iconSpan.onclick = function()
 			{
-				_mapHelper.createLayerEditor(this.parentNode, _this, 1, iconSpan.parentNode.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+				_mapHelper.createLayerEditor(this.parentNode, _this, 4, iconSpan.parentNode.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 			}
 			
 		}
@@ -2134,7 +2134,7 @@ queryMapLayers.prototype.createMap = function(name)
         $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
         
         for (var name in _mapHelper.layerEditorsHash)
-            _mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].updateFunc();
+            _mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].updateFunc && _mapHelper.layerEditorsHash[name].updateFunc();
         
         var saveTree = {};
         
