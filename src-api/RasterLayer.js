@@ -179,10 +179,10 @@
 
 		function drawCanvasPolygon( ctx, x, y, pArr, tileSize, shiftY) {
 			if(!pArr) return;
-			//ctx.save();
+			//ctx.strokeStyle = 'rgba(0, 0, 255, 1)';
 			ctx.beginPath();
 			if(!shiftY) shiftY = 0;
-			for(var i=0; i<pArr.length; i++) {	// Итерации K-means
+			for(var i=0; i<pArr.length; i++) {
 				var tarr = pArr[i];
 				for (var j = 0; j < tarr.length; j++)
 				{
@@ -196,7 +196,7 @@
 			}
 			pArr = null;
 			ctx.closePath();
-			//ctx.restore();
+			//ctx.stroke();
 		}
 
 		// Растровый слой с маской
@@ -334,27 +334,32 @@
 				if(!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85)) {
 					flagAll = true;
 				} else {
-					var bounds = utils.getTileBounds(tilePoint, zoom);
-					if(!attr.bounds.intersects(bounds)) {			// Тайл не пересекает границы слоя
-						this.tileDrawn(tile);
-						return;
-					}
 					var tileSize = 256 * 156543.033928041/pz;
-					var p1 = new L.Point(tileSize * scanexTilePoint.x, tileSize * scanexTilePoint.y);
-					var p2 = new L.Point(tileSize + p1.x, tileSize + p1.y);
-					var boundsMerc = new L.Bounds(p1, p2);
-					var mercGeometry = attr.mercGeom[0];
-					var pArr = L.PolyUtil.clipPolygon(mercGeometry, boundsMerc);
-					if(pArr.length == 0) {
-						this.tileDrawn(tile);
-						return;
-					} else if(pArr.length == 4) {
-						var b = new L.Bounds(pArr);
-						if(b.min.x == boundsMerc.min.x && b.min.y == boundsMerc.min.y && b.max.x == boundsMerc.max.x && b.max.y == boundsMerc.max.y) {
-							flagAllCanvas = true;
+					if(this.options.shiftY == 0) {
+						var bounds = utils.getTileBounds(tilePoint, zoom);
+						if(!attr.bounds.intersects(bounds)) {			// Тайл не пересекает границы слоя
+							this.tileDrawn(tile);
+							return;
 						}
+						var p1 = new L.Point(tileSize * scanexTilePoint.x, tileSize * scanexTilePoint.y);
+						var p2 = new L.Point(tileSize + p1.x, tileSize + p1.y);
+						var boundsMerc = new L.Bounds(p1, p2);
+						var mercGeometry = attr.mercGeom[0];
+						var pArr = L.PolyUtil.clipPolygon(mercGeometry, boundsMerc);
+						if(pArr.length == 0) {
+							this.tileDrawn(tile);
+							return;
+						} else if(pArr.length == 4) {
+							var b = new L.Bounds(pArr);
+							if(b.min.x == boundsMerc.min.x && b.min.y == boundsMerc.min.y && b.max.x == boundsMerc.max.x && b.max.y == boundsMerc.max.y) {
+								flagAllCanvas = true;
+							}
+						}
+						pArr.push(pArr[0]);
+					} else {
+						pArr = attr.mercGeom[0];
 					}
-				
+
 					tile.width = tile.height = this.options.tileSize;
 					ctx = tile.getContext('2d');
 					if(!flagAllCanvas) {
