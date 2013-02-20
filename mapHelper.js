@@ -3348,7 +3348,7 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs)
                 return;
             }
             
-            var mapLayer = globalFlashMap.layers[layerName];
+            var mapLayer = window.globalFlashMap && window.globalFlashMap.layers[layerName];
             if (mapLayer) {
                 mapLayer.chkLayerVersion(function()
                 {
