@@ -293,7 +293,7 @@
 			obj.setSortItems = function(attr) {		// установка сортировки обьектов векторного слоя 
 				return gmxAPI._cmdProxy('setSortItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
 			};
-			obj.addFlip = function(fid) {			// Добавить обьект к массиву Flips обьектов
+			obj.bringToTopItem = function(fid) {	// Добавить обьект к массиву Flips обьектов
 				return gmxAPI._cmdProxy('addFlip', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'fid': fid} });
 			};
 		}

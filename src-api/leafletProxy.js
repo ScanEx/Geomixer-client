@@ -653,21 +653,24 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		}
 		,
 		'evalStyle': function(style, prop)	{								// парсинг стиля лефлета
-			var out = { 'ready': true };
+			var out = { };
 			for(var key in style) {
 				var zn = style[key];
 				if(key + 'Function' in style && style[key + 'Function']) zn = style[key + 'Function'](prop);
-				if(key === 'fillColor' || key === 'color') {
-					out[key + '_rgba'] = utils.dec2rgba(zn, 1);
-					zn = utils.dec2hex(zn);
-					if(zn.substr(0,1) != '#') zn = '#' + zn;
-				} else if(key === 'scale') {
-					if(typeof(zn) === 'string') zn = 1;
-				} else if(key === 'fillOpacity' || key === 'opacity') {
-					zn = zn / 100;
+				if(!style['ready']) {
+					if(key === 'fillColor' || key === 'color') {
+						out[key + '_rgba'] = utils.dec2rgba(zn, 1);
+						zn = utils.dec2hex(zn);
+						if(zn.substr(0,1) != '#') zn = '#' + zn;
+					} else if(key === 'scale') {
+						if(typeof(zn) === 'string') zn = 1;
+					} else if(key === 'fillOpacity' || key === 'opacity') {
+						if(zn > 1) zn = zn / 100;
+					}
 				}
 				out[key] = zn;
 			}
+			out['ready'] = true;
 			return out;
 		}
 		,
@@ -1571,7 +1574,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		var node = mapNodes[id];
 		node['_sqlVisibility'] = ph.attr['sql'].replace(/[\[\]]/g, '"');
 		node['_sqlFuncVisibility'] = gmxAPI.Parsers.parseSQL(node['_sqlVisibility']);
-		if(node['type'] === 'VectorLayer') node.waitRedraw();
+		if(node['type'] === 'VectorLayer') node.setVisibilityFilter();
 		else setVisibilityFilterRecursive(node, node['_sqlFuncVisibility']);
 	}
 	
