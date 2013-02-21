@@ -30,7 +30,7 @@ var TimelineControl = function(map)
     var timeline;
     var filters = [];
     
-    var mapCenter = {x: map.getX(), y: map.getY()};
+    var mapCenter = null;
     
     var options = {
         "style": "line",
@@ -317,10 +317,14 @@ var TimelineControl = function(map)
 var publicInterface = {
     pluginName: 'Timeline Rasters',
     beforeViewer: function(params, map) {
+        if (!map) return;
+        
         nsGmx.timelineControl = new TimelineControl(map);
     },
 	afterViewer: function(params, map)
     {
+        if (!map) return;
+        
         nsGmx.ContextMenuController.addContextMenuElem({
             title: function() { return "Добавить к таймлайну"; },
             isVisible: function(context)
