@@ -223,7 +223,7 @@ CoverControl.prototype.fixLayers = function()
 			
 			icon.onclick = function()
 			{
-				_mapHelper.createLayerEditor(this.parentNode, _layersTree, 1, -1);
+				_mapHelper.createLayerEditor(this.parentNode, _layersTree, 'styles', -1);
 			}
 			
 			$(div[0]).children("[styleType='multi']").replaceWith(icon);

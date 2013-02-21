@@ -621,7 +621,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			iconSpan.onclick = function()
 			{
-				_mapHelper.createLayerEditor(this.parentNode, _this, 4, iconSpan.parentNode.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+				_mapHelper.createLayerEditor(this.parentNode, _this, 'styles', iconSpan.parentNode.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
 			}
 			
 		}

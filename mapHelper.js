@@ -2682,9 +2682,10 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 	{
 		if (typeof this.layerEditorsHash[elemProperties.name] != 'undefined')
 		{
-			if (this.layerEditorsHash[elemProperties.name] != false &&
-				$(this.layerEditorsHash[elemProperties.name]).tabs('option', 'selected') != selected)
-				$(this.layerEditorsHash[elemProperties.name]).tabs('option', 'selected', selected);
+			if (this.layerEditorsHash[elemProperties.name] != false) {
+                this.layerEditorsHash[elemProperties.name].selectTab(selected);
+				//$(this.layerEditorsHash[elemProperties.name]).tabs('option', 'selected', selected);
+            }
 			
 			return;
 		}
@@ -2802,8 +2803,8 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                     },
                     moreTabs: moreTabs,
                     selected: selected,
-                    createdCallback: function(tabMenu) {
-                        _this.layerEditorsHash[elemProperties.name] = tabMenu;
+                    createdCallback: function(layerEditor) {
+                        _this.layerEditorsHash[elemProperties.name] = layerEditor;
                     }
                 });
 				
@@ -2817,14 +2818,14 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 				divProperties.closeFunc = closeFunc;
 				divProperties.updateFunc = updateFunc;
 				
-				$(divProperties).tabs({selected: selected});
+				//$(divProperties).tabs({selected: selected});
 				
 				$(filtersCanvas).find("[filterTable]").each(function()
 				{
 					this.setFilter();
 				})
 				
-				if (selected == 1 && openedStyleIndex > 0)
+				if (selected == 'styles' && openedStyleIndex > 0)
 					divProperties.parentNode.scrollTop = 58 + openedStyleIndex * 32;
 			};
 		
@@ -2843,7 +2844,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 	}
 	else
 	{
-		if (elemProperties.LayerID)
+		if (elemProperties.name)
 		{
 			if (this.layerEditorsHash[elemProperties.name])
 				return;
@@ -3020,7 +3021,7 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 			{
 				iconSpan.onclick = function()
 				{
-					_mapHelper.createLayerEditor(multiStyleParent.parentNode, treeView, 4, i);
+					_mapHelper.createLayerEditor(multiStyleParent.parentNode, treeView, 'styles', i);
 				}
 			})(i);
 		}

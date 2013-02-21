@@ -245,7 +245,7 @@ var ManualAttrView = function()
         }
         
     this.init = function(parent, model)
-        {
+    {
         _parent = parent;
         _model = model;
         $(_model).bind('newAttribute', function(idx)
@@ -264,7 +264,7 @@ var ManualAttrView = function()
         });
         
         redraw();
-            }
+    }
 };
 
 var LayerProperties = Backbone.Model.extend({
@@ -370,7 +370,7 @@ var createPageMain = function(parent, layerProperties) {
     descr.onkeyup = function() {
         layerProperties.set('Description', this.value);
         return true;
-            }
+    }
             
     descr.value = layerProperties.get('Description');
     
@@ -382,8 +382,8 @@ var createPageMain = function(parent, layerProperties) {
     boxSearch.onclick = function()
     {
         layerProperties.set('AllowSearch', this.checked);
-            return true;
-        }
+        return true;
+    }
         
         var shownProperties = [];
             
@@ -391,7 +391,7 @@ var createPageMain = function(parent, layerProperties) {
         shownProperties.push({name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright});
         
     if (layerProperties.get('Name')) {
-            shownProperties.push({name: _gtxt("ID"), field: 'Name'});
+        shownProperties.push({name: _gtxt("ID"), field: 'Name'});
         shownProperties.push({name: _gtxt("Разрешить поиск"), elem: boxSearch});
     }
                                 
@@ -399,348 +399,349 @@ var createPageMain = function(parent, layerProperties) {
         
     if (layerProperties.get('Type') != "Vector")
             shownProperties.push({name: _gtxt("Легенда"), field: 'Legend', elem: legend});
+            
+    if (layerProperties.get('Type') === "Vector")
+        shownProperties = shownProperties.concat(createPageVectorSource(layerProperties));
+    else
+        shownProperties = shownProperties.concat(createPageRasterSource(layerProperties));
         
     var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
     _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
 }
 
-var createPageVectorSource = function(parent, layerProperties) {
+var createPageVectorSource = function(layerProperties) {
     var shownProperties = [];
     var layerName = layerProperties.get('Name');
+    
+    /*------------ Источник: файл ------------*/
+    var shapePath = layerProperties.get('ShapePath');
+    
+    var shapePathInput = _input(null,[['attr','fieldName','ShapePath.Path'],['attr','value', shapePath.Path || ''],['dir','className','inputStyle'],['css','width', '200px']]),
+        shapeFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
+        encodingParent = _div(),
+        xlsColumnsParent = _div();
+    
+    shapePathInput.onkeyup = shapePathInput.onchange = function() {
+        layerProperties.set('ShapePath', {Path: this.value});
+    }
+    
+    var fileSourceColumns = layerProperties.get('SourceType') === 'file' ? layerProperties.get('SourceColumns') : [];
+    var fileSelectedColumns = layerProperties.get('SourceType') === 'file' ? layerProperties.get('SelectedColumns') : new ColumnsModel();
+    var fileColumnsWidget = new SelectColumnsWidget(xlsColumnsParent, fileSelectedColumns, fileSourceColumns);
+    
+    shapeFileLink.style.marginLeft = '3px';
+    
+    var encodingWidget = new nsGmx.ShpEncodingWidget();
+    shapePathInput.oldValue = shapePathInput.value;
         
-    if (layerProperties.get('Type') === 'Vector') {
+    $(encodingWidget).change(function() {
+        layerProperties.set('EncodeSource', encodingWidget.getServerEncoding());
+    })
         
-        /*------------ Источник: файл ------------*/
-        var shapePath = layerProperties.get('ShapePath');
-        
-        var shapePathInput = _input(null,[['attr','fieldName','ShapePath.Path'],['attr','value', shapePath.Path || ''],['dir','className','inputStyle'],['css','width', '200px']]),
-            shapeFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
-            encodingParent = _div(),
-            xlsColumnsParent = _div();
-        
-        shapePathInput.onkeyup = shapePathInput.onchange = function() {
-            layerProperties.set('ShapePath', {Path: this.value});
+    if (getFileExt(shapePathInput.value) === 'shp') {
+        encodingWidget.drawWidget(encodingParent, layerProperties.get('EncodeSource'));
         }
         
-        var fileSourceColumns = layerProperties.get('SourceType') === 'file' ? layerProperties.get('SourceColumns') : [];
-        var fileSelectedColumns = layerProperties.get('SourceType') === 'file' ? layerProperties.get('SelectedColumns') : new ColumnsModel();
-        var fileColumnsWidget = new SelectColumnsWidget(xlsColumnsParent, fileSelectedColumns, fileSourceColumns);
+    if (shapePath && shapePath.Path != null && shapePath.Path != '' && !shapePath.Exists) {
+        $(shapePathInput).addClass('error');
+    }
         
-        shapeFileLink.style.marginLeft = '3px';
-        
-        var encodingWidget = new nsGmx.ShpEncodingWidget();
-        shapePathInput.oldValue = shapePathInput.value;
+    //TODO: использовать события модели
+    shapeFileLink.onclick = function()
+    {
+        _fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml'], function(path)
+        {
+            shapePathInput.value = path;
+            layerProperties.set('ShapePath', {Path: path});
             
-        $(encodingWidget).change(function() {
-            layerProperties.set('EncodeSource', encodingWidget.getServerEncoding());
-        })
+            var index = String(path).lastIndexOf('.'),
+                ext = String(path).substr(index + 1, path.length);
             
-        if (getFileExt(shapePathInput.value) === 'shp') {
-            encodingWidget.drawWidget(encodingParent, layerProperties.get('EncodeSource'));
-            }
-            
-        if (shapePath && shapePath.Path != null && shapePath.Path != '' && !shapePath.Exists) {
-            $(shapePathInput).addClass('error');
-        }
-            
-        //TODO: использовать события модели
-            shapeFileLink.onclick = function()
+            if (layerProperties.get('Title') == '')
             {
-                _fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml'], function(path)
-                {
-                shapePathInput.value = path;
-                layerProperties.set('ShapePath', {Path: path});
-                    
-                    var index = String(path).lastIndexOf('.'),
-                        ext = String(path).substr(index + 1, path.length);
-                    
-                if (layerProperties.get('Title') == '')
-                    {
-                        var indexSlash = String(path).lastIndexOf('\\'),
-                            fileName = String(path).substring(indexSlash + 1, index);
-                        
-                    layerProperties.set('Title', fileName);
-                    }
-                    
-                getSourceColumns(path, true).done(function(sourceColumns)
-                    {
-                    layerProperties.set('SourceColumns', sourceColumns);
-                    fileSourceColumns = sourceColumns;
-                    })
-                    
-                    $(encodingParent).empty();
-                    if (ext === 'shp')
-                    {
-                        encodingWidget.drawWidget(encodingParent);
-                    }
-                })
+                var indexSlash = String(path).lastIndexOf('\\'),
+                    fileName = String(path).substring(indexSlash + 1, index);
+                
+                layerProperties.set('Title', fileName);
             }
-            
-        var sourceFile = _div(null, [['dir', 'id', 'fileSource' + layerName]]);
-        _(sourceFile, [shapePathInput, shapeFileLink, encodingParent, xlsColumnsParent]);
-        
-        /*------------ Источник: таблица ------------*/
-        var tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
-            tableColumnsParent = _div();
-            
-        var tableSourceColumns   = layerProperties.get('SourceType') === 'table' ? layerProperties.get('SourceColumns') : [];
-        var tableSelectedColumns = layerProperties.get('SourceType') === 'table' ? layerProperties.get('SelectedColumns') : new ColumnsModel();
-        var tableColumnsWidget = new SelectColumnsWidget(tableColumnsParent, tableSelectedColumns, tableSourceColumns);
-            
-        var tablePathInput = _input(null,[
-            ['attr','fieldName','TableName'],
-            ['attr','value', layerProperties.get('TableName') || ''],
-            ['dir','className','inputStyle'],
-            ['css','width', '200px']
-        ]);
-        
-        tablePathInput.onkeyup = tablePathInput.onchange = function() {
-            layerProperties.set('TableName', this.value);
-        }
-            
-            tableLink.onclick = function()
+                
+            getSourceColumns(path, true).done(function(sourceColumns)
             {
-                _tableBrowser.createBrowser(function(name)
-                {
-                tablePathInput.value = name;
-                layerProperties.set('TableName', name);
-                    
-                if (layerProperties.get('Title') == '') {
-                    layerProperties.set('Title', name);
-                }
-                    
-                getSourceColumns(name, true).done(function(sourceColumns)
-                    {
-                    layerProperties.set('SourceColumns', sourceColumns);
-                    tableSourceColumns = sourceColumns;
-                    })
-                })
-            }
-
-            tableLink.style.marginLeft = '3px';
-
-         var TableCSParent = _div();
-            var TableCSSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '165px')
-                .append($('<option>').val('EPSG:4326').text(_gtxt('Широта/Долгота (EPSG:4326)')))
-                .append($('<option>').val('EPSG:3395').text(_gtxt('Меркатор (EPSG:3395)')))
-                .change(function() {
-                    layerProperties.set('TableCS', $(this).find(':selected').val());
-                })
-                    
-            if (layerProperties.get('TableCS')) {
-                TableCSSelect.find('[value="' + layerProperties.get('TableCS') +'"]').attr('selected', 'selected');
-                }
-                
-            $(TableCSParent).append($('<span/>').text(_gtxt('Проекция')).css('margin', '3px')).append(TableCSSelect);
-            
-        var sourceTable = _div([tablePathInput, tableLink, TableCSParent, tableColumnsParent], [['dir', 'id', 'tableSource' + layerName]])
-            
-        /*------------ Источник: вручную ------------*/
-            var addAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
-        var attrModel = new ManualAttrModel();
-            addAttribute.onclick = function()
-            {
-            attrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
-            }
-            
-        var geometryTypes = [
-            { title: _gtxt('многоугольники'), type: 'POLYGON'    },
-            { title: _gtxt('линии'),          type: 'LINESTRING' },
-            { title: _gtxt('точки'),          type: 'POINT'      }
-        ];
-            
-        var geometryTypeSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '110px');
-        for (var g = 0; g < geometryTypes.length; g++)
-            $('<option/>').text(geometryTypes[g].title).val(geometryTypes[g].type).appendTo(geometryTypeSelect);
-                
-        if (layerProperties.get('GeometryType')) {
-            geometryTypeSelect.find($("[value='" + layerProperties.get('GeometryType').toUpperCase() + "']").attr("selected", "selected"));
-        } else {
-            layerProperties.set('GeometryType', $('option', geometryTypeSelect)[0].value);
-                }
-                
-        geometryTypeSelect.change(function() {
-            layerProperties.set('GeometryType', $('option:selected', this).val());
-        })
-                    
-        var attrViewParent = _div();
-        var attrContainer = _div([
-            _div([
-                _div([_span([_t('Геометрия: ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]), geometryTypeSelect[0]]),
-                addAttribute
-            ]),
-            _div([attrViewParent], [['css', 'margin', '3px']])
-        ], [['css', 'marginLeft', '3px']]);
-                    
-        //заполняем поля по атрибутам объекта
-        //TODO: вынести в модель?
-        if ( layerProperties.get('SourceType') === 'manual' ) {
-            var attrs = layerProperties.get('Attributes');
-            var attrTypes = layerProperties.get('AttrTypes');
-            nsGmx._.each(attrs, function(elem, index) {
-                var serverType = attrTypes[index];
-                var attrModelType = nsGmx._.find(ManualAttrModel.TYPES, function(elem) {return elem.server === serverType});
-                attrModel.addAttribute(attrModelType, elem);
+                layerProperties.set('SourceColumns', sourceColumns);
+                fileSourceColumns = sourceColumns;
             })
+                
+            $(encodingParent).empty();
+            if (ext === 'shp')
+            {
+                encodingWidget.drawWidget(encodingParent);
+            }
+        })
+    }
+        
+    var sourceFile = _div(null, [['dir', 'id', 'fileSource' + layerName]]);
+    _(sourceFile, [shapePathInput, shapeFileLink, encodingParent, xlsColumnsParent]);
+    
+    /*------------ Источник: таблица ------------*/
+    var tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
+        tableColumnsParent = _div();
+        
+    var tableSourceColumns   = layerProperties.get('SourceType') === 'table' ? layerProperties.get('SourceColumns') : [];
+    var tableSelectedColumns = layerProperties.get('SourceType') === 'table' ? layerProperties.get('SelectedColumns') : new ColumnsModel();
+    var tableColumnsWidget = new SelectColumnsWidget(tableColumnsParent, tableSelectedColumns, tableSourceColumns);
+        
+    var tablePathInput = _input(null,[
+        ['attr','fieldName','TableName'],
+        ['attr','value', layerProperties.get('TableName') || ''],
+        ['dir','className','inputStyle'],
+        ['css','width', '200px']
+    ]);
+    
+    tablePathInput.onkeyup = tablePathInput.onchange = function() {
+        layerProperties.set('TableName', this.value);
+    }
+        
+    tableLink.onclick = function()
+    {
+        _tableBrowser.createBrowser(function(name)
+        {
+        tablePathInput.value = name;
+        layerProperties.set('TableName', name);
+            
+        if (layerProperties.get('Title') == '') {
+            layerProperties.set('Title', name);
         }
-                        
-        var attrView = new ManualAttrView();
-        attrView.init(attrViewParent, attrModel);
-                        
-        layerProperties.set('UserAttr', attrModel);
-                        
-        var sourceManual = _div([attrContainer], [['dir', 'id', 'manualSource' + layerName]]);
-                        
-        function capitaliseFirstLetter(string)
-                        {
-            return string.charAt(0).toUpperCase() + string.slice(1);
-        }
-                            
-        var updateColumnsByManual = function() {
-            var sourceColumns = [];
-            attrModel.each(function(attr) {
-                sourceColumns.push({ Name: attr.name, ColumnSimpleType: capitaliseFirstLetter(attr.type.server), IsPrimary: false, IsIdentity: false, IsComputed: false });
-            })
-                        
+            
+        getSourceColumns(name, true).done(function(sourceColumns)
+            {
             layerProperties.set('SourceColumns', sourceColumns);
-                        }
-                        
-        $(attrModel).change(updateColumnsByManual);
-                        
-        if (layerProperties.get('SourceType') === 'manual') {
-            updateColumnsByManual();
-                    }
-                    
-        /*------------ Общее ------------*/
-        layerProperties.on({
-            'change:SourceColumns': function() {
-                //var parsedColumns = parseColumns(layerProperties.get('SourceColumns'));
-                var sourceColumns = layerProperties.get('SourceColumns');
-                tableColumnsWidget.updateColumns(sourceColumns);
-                fileColumnsWidget.updateColumns(sourceColumns);
-                }
+            tableSourceColumns = sourceColumns;
+            })
         })
-                        
-        /*------------ Переключалка источника слоя ------------*/
-        var sourceContainers = [sourceFile, sourceTable, sourceManual];
-                        
-            var sourceCheckbox = $('<form/>')
-                .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxFileSource', checked: 'checked'}).data('containerIdx', 0))
-                .append($('<label/>', {'for': 'chxFileSource'}).text(_gtxt('Файл'))).append('<br/>')
-                .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxTableSource'}).data('containerIdx', 1))
-                .append($('<label/>', {'for': 'chxTableSource'}).text(_gtxt('Таблица'))).append('<br/>')
-                .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxManualSource'}).data('containerIdx', 2))
-                .append($('<label/>', {'for': 'chxManualSource'}).text(_gtxt('Вручную')));
-                
-            $(sourceCheckbox).find('input, label').css({verticalAlign: 'middle'});
-            $(sourceCheckbox).find('label').css({marginLeft: 2});
-                
-            var sourceTab2 = $('<div/>');
-            var sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), _td([sourceTab2[0]])]);
-            
-            sourceCheckbox.find('input').click(function()
-            {
-                var activeIdx = $(this).data('containerIdx');
-                $(sourceTab).tabs('select', activeIdx);
-            });
-            
-        var activeCheckboxID = {'file': 'chxFileSource', 'table': 'chxTableSource', 'manual': 'chxManualSource'}[layerProperties.get('SourceType')];
-        $('#' + activeCheckboxID, sourceCheckbox).attr('checked', 'checked');
-        
-            var sourceTab = _div([_ul([
-            _li([_a([_t(_gtxt('Файл'))],   [['attr','href','#fileSource' + layerName]])]),
-            _li([_a([_t(_gtxt('Таблица'))],[['attr','href','#tableSource' + layerName]])]),
-            _li([_a([_t(_gtxt('Вручную'))],[['attr','href','#manualSource' + layerName]])])
-            ], [['css', 'display', 'none']])]);
+    }
 
-        var selectedSource = {'file': 0, 'table': 1, 'manual': 2}[layerProperties.get('SourceType')];
-        _(sourceTab, sourceContainers);
-            
-                $(sourceTab).tabs({
-                    selected: selectedSource,
-                    select: function(event, ui)
-                    {
-                        selectedSource = ui.index;
+    tableLink.style.marginLeft = '3px';
+
+     var TableCSParent = _div();
+        var TableCSSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '165px')
+            .append($('<option>').val('EPSG:4326').text(_gtxt('Широта/Долгота (EPSG:4326)')))
+            .append($('<option>').val('EPSG:3395').text(_gtxt('Меркатор (EPSG:3395)')))
+            .change(function() {
+                layerProperties.set('TableCS', $(this).find(':selected').val());
+            })
                 
-                if (selectedSource == 0) {
-                    layerProperties.set('SourceColumns', fileSourceColumns);
-                    layerProperties.set('SourceType', 'file');
-                    layerProperties.set('SelectedColumns', fileSelectedColumns);
-                } else if (selectedSource == 1) {
-                    layerProperties.set('SourceColumns', tableSourceColumns);
-                    layerProperties.set('SourceType', 'table');
-                    layerProperties.set('SelectedColumns', tableSelectedColumns);
-                } else if (selectedSource == 2) {
-                    updateColumnsByManual();
-                    layerProperties.set('SourceType', 'manual');
-                    }
-            }
-                });
+        if (layerProperties.get('TableCS')) {
+            TableCSSelect.find('[value="' + layerProperties.get('TableCS') +'"]').attr('selected', 'selected');
+        }
+            
+        $(TableCSParent).append($('<span/>').text(_gtxt('Проекция')).css('margin', '3px')).append(TableCSSelect);
         
-                _(sourceTab2[0], [sourceTab]);
+    var sourceTable = _div([tablePathInput, tableLink, TableCSParent, tableColumnsParent], [['dir', 'id', 'tableSource' + layerName]])
+        
+    /*------------ Источник: вручную ------------*/
+        var addAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
+    var attrModel = new ManualAttrModel();
+        addAttribute.onclick = function()
+        {
+        attrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
+        }
+        
+    var geometryTypes = [
+        { title: _gtxt('многоугольники'), type: 'POLYGON'    },
+        { title: _gtxt('линии'),          type: 'LINESTRING' },
+        { title: _gtxt('точки'),          type: 'POINT'      }
+    ];
+        
+    var geometryTypeSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '110px');
+    for (var g = 0; g < geometryTypes.length; g++)
+        $('<option/>').text(geometryTypes[g].title).val(geometryTypes[g].type).appendTo(geometryTypeSelect);
             
-        shownProperties.push({tr: sourceTr2});
+    if (layerProperties.get('GeometryType')) {
+        geometryTypeSelect.find($("[value='" + layerProperties.get('GeometryType').toUpperCase() + "']").attr("selected", "selected"));
     } else {
+        layerProperties.set('GeometryType', $('option', geometryTypeSelect)[0].value);
+            }
             
-    }    
-            
-    var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
-    _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
+    geometryTypeSelect.change(function() {
+        layerProperties.set('GeometryType', $('option:selected', this).val());
+    })
+                
+    var attrViewParent = _div();
+    var attrContainer = _div([
+        _div([
+            _div([_span([_t('Геометрия: ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]), geometryTypeSelect[0]]),
+            addAttribute
+        ]),
+        _div([attrViewParent], [['css', 'margin', '3px']])
+    ], [['css', 'marginLeft', '3px']]);
+                
+    //заполняем поля по атрибутам объекта
+    //TODO: вынести в модель?
+    if ( layerProperties.get('SourceType') === 'manual' ) {
+        var attrs = layerProperties.get('Attributes');
+        var attrTypes = layerProperties.get('AttrTypes');
+        nsGmx._.each(attrs, function(elem, index) {
+            var serverType = attrTypes[index];
+            var attrModelType = nsGmx._.find(ManualAttrModel.TYPES, function(elem) {return elem.server === serverType});
+            attrModel.addAttribute(attrModelType, elem);
+        })
+    }
+                    
+    var attrView = new ManualAttrView();
+    attrView.init(attrViewParent, attrModel);
+                    
+    layerProperties.set('UserAttr', attrModel);
+                    
+    var sourceManual = _div([attrContainer], [['dir', 'id', 'manualSource' + layerName]]);
+                    
+    function capitaliseFirstLetter(string)
+    {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+                        
+    var updateColumnsByManual = function() {
+        var sourceColumns = [];
+        attrModel.each(function(attr) {
+            sourceColumns.push({ Name: attr.name, ColumnSimpleType: capitaliseFirstLetter(attr.type.server), IsPrimary: false, IsIdentity: false, IsComputed: false });
+        })
+                    
+        layerProperties.set('SourceColumns', sourceColumns);
+    }
+                    
+    $(attrModel).change(updateColumnsByManual);
+                    
+    if (layerProperties.get('SourceType') === 'manual') {
+        updateColumnsByManual();
+    }
+                
+    /*------------ Общее ------------*/
+    layerProperties.on({
+        'change:SourceColumns': function() {
+            //var parsedColumns = parseColumns(layerProperties.get('SourceColumns'));
+            var sourceColumns = layerProperties.get('SourceColumns');
+            tableColumnsWidget.updateColumns(sourceColumns);
+            fileColumnsWidget.updateColumns(sourceColumns);
+        }
+    })
+                    
+    /*------------ Переключалка источника слоя ------------*/
+    var sourceContainers = [sourceFile, sourceTable, sourceManual];
+                    
+    var sourceCheckbox = $('<form/>')
+        .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxFileSource', checked: 'checked'}).data('containerIdx', 0))
+        .append($('<label/>', {'for': 'chxFileSource'}).text(_gtxt('Файл'))).append('<br/>')
+        .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxTableSource'}).data('containerIdx', 1))
+        .append($('<label/>', {'for': 'chxTableSource'}).text(_gtxt('Таблица'))).append('<br/>')
+        .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxManualSource'}).data('containerIdx', 2))
+        .append($('<label/>', {'for': 'chxManualSource'}).text(_gtxt('Вручную')));
+        
+    $(sourceCheckbox).find('input, label').css({verticalAlign: 'middle'});
+    $(sourceCheckbox).find('label').css({marginLeft: 2});
+        
+    var sourceTab2 = $('<div/>');
+    var sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), _td([sourceTab2[0]])]);
+    
+    sourceCheckbox.find('input').click(function()
+    {
+        var activeIdx = $(this).data('containerIdx');
+        $(sourceTab).tabs('select', activeIdx);
+    });
+        
+    var activeCheckboxID = {'file': 'chxFileSource', 'table': 'chxTableSource', 'manual': 'chxManualSource'}[layerProperties.get('SourceType')];
+    $('#' + activeCheckboxID, sourceCheckbox).attr('checked', 'checked');
+    
+    var sourceTab = _div([_ul([
+        _li([_a([_t(_gtxt('Файл'))],   [['attr','href','#fileSource' + layerName]])]),
+        _li([_a([_t(_gtxt('Таблица'))],[['attr','href','#tableSource' + layerName]])]),
+        _li([_a([_t(_gtxt('Вручную'))],[['attr','href','#manualSource' + layerName]])])
+    ], [['css', 'display', 'none']])]);
+
+    var selectedSource = {'file': 0, 'table': 1, 'manual': 2}[layerProperties.get('SourceType')];
+    _(sourceTab, sourceContainers);
+        
+    $(sourceTab).tabs({
+        selected: selectedSource,
+        select: function(event, ui)
+        {
+            selectedSource = ui.index;
+    
+            if (selectedSource == 0) {
+                layerProperties.set('SourceColumns', fileSourceColumns);
+                layerProperties.set('SourceType', 'file');
+                layerProperties.set('SelectedColumns', fileSelectedColumns);
+            } else if (selectedSource == 1) {
+                layerProperties.set('SourceColumns', tableSourceColumns);
+                layerProperties.set('SourceType', 'table');
+                layerProperties.set('SelectedColumns', tableSelectedColumns);
+            } else if (selectedSource == 2) {
+                updateColumnsByManual();
+                layerProperties.set('SourceType', 'manual');
+            }
+        }
+    });
+    
+    _(sourceTab2[0], [sourceTab]);
+        
+    shownProperties.push({tr: sourceTr2});
+
+    return shownProperties;
+    // var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
+    // _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
 }
 
-var createPageRasterSource = function(parent, layerProperties) {
+var createPageRasterSource = function(layerProperties) {
     var shapePath = layerProperties.get('ShapePath');
     var tilePath = layerProperties.get('TilePath');
     var name = layerProperties.get('Name');
 
     var shapePathInput = _input(null,[['attr','fieldName','ShapePath.Path'],['attr','value',shapePath.Path || ''], ['dir','className','inputStyle'],['css','width','220px']]),
         tilePathInput = _input(null,[['attr','fieldName','TilePath.Path'],['attr','value',tilePath.Path || ''], ['dir','className','inputStyle'],['css','width','220px']]),
-                tileCatalogLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
-                tileFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
-                shapeLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
-                drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
+        tileCatalogLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
+        tileFileLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
+        shapeLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
+        drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
         drawingBorderDescr = _span(null, [['attr','id','drawingBorderDescr' + name],['css','color','#215570'],['css','marginLeft','3px']]),
-                removeBorder = makeImageButton('img/closemin.png','img/close_orange.png'),
-                divBorder = _div([drawingBorderDescr, removeBorder]),
-                trPath = _tr([_td([_t(_gtxt("Каталог")), tileCatalogLink, _br(), _t(_gtxt("Файл")), tileFileLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
+        removeBorder = makeImageButton('img/closemin.png','img/close_orange.png'),
+        divBorder = _div([drawingBorderDescr, removeBorder]),
+        trPath = _tr([_td([_t(_gtxt("Каталог")), tileCatalogLink, _br(), _t(_gtxt("Файл")), tileFileLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
                       _td([tilePathInput])]),
-                trShape = _tr([_td([_t(_gtxt("Граница")), shapeLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
-                        _td([shapePathInput, divBorder])]),
-                shapeVisible = function(flag)
-                {
-                    if (flag)
-                    {
-                shapePathInput.style.display = '';
-                        divBorder.style.display = 'none';
-                    }
-                    else
-                    {
-                shapePathInput.style.display = 'none';
-                        divBorder.style.display = '';
-                    }
-                };
-            
-            divBorder.style.cssText = "height:22px; padding-top:3px;";
-            
-            removeBorder.style.cssText = "height:16px;padding:0;width:16px;cursor:pointer;margin:-1px 0px -3px 5px;";
-            
-            _title(removeBorder, _gtxt("Удалить"));
-            
-            removeBorder.onclick = function()
+        trShape = _tr([_td([_t(_gtxt("Граница")), shapeLink],[['css','paddingLeft','5px'],['css','fontSize','12px']]),
+                       _td([shapePathInput, divBorder])]),
+        shapeVisible = function(flag)
+        {
+            if (flag)
             {
-                shapeVisible(true);
-        _mapHelper.drawingBorders.removeRoute(name, true);
+                shapePathInput.style.display = '';
+                divBorder.style.display = 'none';
             }
+            else
+            {
+                shapePathInput.style.display = 'none';
+                divBorder.style.display = '';
+            }
+        };
+            
+    divBorder.style.cssText = "height:22px; padding-top:3px;";
+    
+    removeBorder.style.cssText = "height:16px;padding:0;width:16px;cursor:pointer;margin:-1px 0px -3px 5px;";
+    
+    _title(removeBorder, _gtxt("Удалить"));
+        
+    removeBorder.onclick = function()
+    {
+        shapeVisible(true);
+        _mapHelper.drawingBorders.removeRoute(name, true);
+    }
             
     if (name)
-            {
-                _(trShape.firstChild, [_br(), _t(_gtxt("Контур")), drawingBorderLink]);
+    {
+        _(trShape.firstChild, [_br(), _t(_gtxt("Контур")), drawingBorderLink]);
 
         if (shapePath.Path)
-                    shapeVisible(true);	
-                else
-                {
-                    shapeVisible(false);
+            shapeVisible(true);	
+        else
+        {
+            shapeVisible(false);
                     
             var geometry = layerProperties.get('Geometry');
                     // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
@@ -754,15 +755,16 @@ var createPageRasterSource = function(parent, layerProperties) {
                     
             var drawingBorder = globalFlashMap.drawing.addObject(from_merc_geometry(geometry));
                 
-                    drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
+            drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
                     
             _mapHelper.drawingBorders.set(name, drawingBorder);
                     
             _mapHelper.drawingBorders.updateBorder(name, drawingBorderDescr);
-                }
-            }
-            else
-                shapeVisible(true);	
+        }
+    }
+    else {
+        shapeVisible(true);	
+    }
             
     if (shapePath && shapePath.Path != null && shapePath.Path != '' && !shapePath.Exists)
         $(shapePathInput).addClass('error');
@@ -770,126 +772,128 @@ var createPageRasterSource = function(parent, layerProperties) {
     if (tilePath.Path != null && tilePath.Path != '' && !tilePath.Exists)
         $(tilePathInput).addClass('error');
             
-            tileCatalogLink.onclick = function()
-            {
-                _fileBrowser.createBrowser(_gtxt("Каталог"), [], function(path)
-                {
+    tileCatalogLink.onclick = function()
+    {
+        _fileBrowser.createBrowser(_gtxt("Каталог"), [], function(path)
+        {
             tilePathInput.value = path;
             layerProperties.set('TilePath', {Path: path});
-                    
-            if (!layerProperties.get('Title'))
-                    {
-                        path = path.substring(0, path.length - 1); //убираем слеш на конце
-                        var indexSlash = String(path).lastIndexOf('\\'),
-                            fileName = String(path).substring(indexSlash + 1, path.length);
-                        
-                layerProperties.set('Title', fileName);
-                    }
-                })
-            }
             
-            var appendMetadata = function(data)
+            if (!layerProperties.get('Title'))
             {
-        var layerTags = layerProperties.get('MetaPropertiesEditing');
-                if (!data) return;
+                path = path.substring(0, path.length - 1); //убираем слеш на конце
+                var indexSlash = String(path).lastIndexOf('\\'),
+                    fileName = String(path).substring(indexSlash + 1, path.length);
                 
-                var convertedTagValues = {};
-                for (var mp in data)
-                {
-                    var tagtype = data[mp].Type;
-                    layerTags.addNewTag(mp, nsGmx.Utils.convertFromServer(tagtype, data[mp].Value), tagtype);
-                }
+                layerProperties.set('Title', fileName);
+            }
+        })
+    }
+            
+    var appendMetadata = function(data)
+    {
+        var layerTags = layerProperties.get('MetaPropertiesEditing');
+        if (!data) return;
+        
+        var convertedTagValues = {};
+        for (var mp in data)
+        {
+            var tagtype = data[mp].Type;
+            layerTags.addNewTag(mp, nsGmx.Utils.convertFromServer(tagtype, data[mp].Value), tagtype);
+        }
                 
         if (!layerProperties.get('Title'))
-                {
-                    var platform = layerTags.getTagByName('platform');
-                    var dateTag  = layerTags.getTagByName('acqdate');
-                    var timeTag  = layerTags.getTagByName('acqtime');
-                    
-                    if (typeof platform !== 'undefined' && typeof dateTag !== 'undefined' && typeof timeTag !== 'undefined')
-                    {
-                        var timeOffset = (new Date()).getTimezoneOffset()*60*1000;
-                        
-                        var dateInt = nsGmx.Utils.convertToServer('Date', dateTag.value);
-                        var timeInt = nsGmx.Utils.convertToServer('Time', timeTag.value);
-                        
-                        var date = new Date( (dateInt+timeInt)*1000 + timeOffset );
-                        
-                        var dateString = $.datepicker.formatDate('yy.mm.dd', date);
-                        var timeString = $.datepicker.formatTime('hh:mm', {hour: date.getHours(), minute: date.getMinutes()});
-                        
-                layerProperties.set('Title', platform.value + '_' + dateString + '_' + timeString + '_UTC');
-                    }
-                }
-            }
+        {
+            var platform = layerTags.getTagByName('platform');
+            var dateTag  = layerTags.getTagByName('acqdate');
+            var timeTag  = layerTags.getTagByName('acqtime');
             
-            tileFileLink.onclick = function()
+            if (typeof platform !== 'undefined' && typeof dateTag !== 'undefined' && typeof timeTag !== 'undefined')
             {
-                _fileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'tiles', 'cpyr'], function(path)
-                {
+                var timeOffset = (new Date()).getTimezoneOffset()*60*1000;
+                
+                var dateInt = nsGmx.Utils.convertToServer('Date', dateTag.value);
+                var timeInt = nsGmx.Utils.convertToServer('Time', timeTag.value);
+                
+                var date = new Date( (dateInt+timeInt)*1000 + timeOffset );
+                
+                var dateString = $.datepicker.formatDate('yy.mm.dd', date);
+                var timeString = $.datepicker.formatTime('hh:mm', {hour: date.getHours(), minute: date.getMinutes()});
+                
+                layerProperties.set('Title', platform.value + '_' + dateString + '_' + timeString + '_UTC');
+            }
+        }
+    }
+            
+    tileFileLink.onclick = function()
+    {
+        _fileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'tiles', 'cpyr'], function(path)
+        {
             tilePathInput.value = path;
             layerProperties.set('TilePath', {Path: path});
-                    
-                    sendCrossDomainJSONRequest(serverBase + 'Layer/GetMetadata.ashx?basepath=' + encodeURIComponent(path), function(response)
-                    {
-                        if (!parseResponse(response))
-                            return;
-                            
-                        appendMetadata(response.Result.MetaProperties);
-                        
-                if (!layerProperties.get('Title'))
-                        {
-                            var indexExt = String(path).lastIndexOf('.');
-                            var indexSlash = String(path).lastIndexOf('\\'),
-                                fileName = String(path).substring(indexSlash + 1, indexExt);
-                            
-                    layerProperties.set('Title', fileName);
-                        }
-                    })
-                })
-            }
             
-            shapeLink.onclick = function()
+            sendCrossDomainJSONRequest(serverBase + 'Layer/GetMetadata.ashx?basepath=' + encodeURIComponent(path), function(response)
             {
-                _fileBrowser.createBrowser(_gtxt("Граница"), ['mif','tab','shp'], function(path)
+                if (!parseResponse(response))
+                    return;
+                    
+                appendMetadata(response.Result.MetaProperties);
+                
+                if (!layerProperties.get('Title'))
                 {
+                    var indexExt = String(path).lastIndexOf('.');
+                    var indexSlash = String(path).lastIndexOf('\\'),
+                        fileName = String(path).substring(indexSlash + 1, indexExt);
+                    
+                    layerProperties.set('Title', fileName);
+                }
+            })
+        })
+    }
+            
+    shapeLink.onclick = function()
+    {
+        _fileBrowser.createBrowser(_gtxt("Граница"), ['mif','tab','shp'], function(path)
+        {
             shapePathInput.value = path;
             layerProperties.set('ShapePath', {Path: path});
-                    
-                    shapeVisible(true);
-                    
-                    sendCrossDomainJSONRequest(serverBase + 'Layer/GetMetadata.ashx?geometryfile=' + encodeURIComponent(path), function(response)
-                    {
-                        if (!parseResponse(response))
-                            return;
-                            
-                        appendMetadata(response.Result.MetaProperties);
-                    })
-                })
-            }
             
-            drawingBorderLink.onclick = function()
+            shapeVisible(true);
+            
+            sendCrossDomainJSONRequest(serverBase + 'Layer/GetMetadata.ashx?geometryfile=' + encodeURIComponent(path), function(response)
             {
+                if (!parseResponse(response))
+                    return;
+                    
+                appendMetadata(response.Result.MetaProperties);
+            })
+        })
+    }
+            
+    drawingBorderLink.onclick = function()
+    {
         nsGmx.Controls.chooseDrawingBorderDialog( name, function(polygon)
-                {
+        {
             _mapHelper.drawingBorders.set(name, polygon);
             _mapHelper.drawingBorders.updateBorder(name);
-                    shapeVisible(false);
-                    
-                }, {geomType: 'POLYGON', errorMessage: _gtxt("$$phrase$$_17")} );
-            }
+            shapeVisible(false);
             
-            tileCatalogLink.style.marginLeft = '3px';
-            tileFileLink.style.marginLeft = '3px';
-            shapeLink.style.marginLeft = '3px';
-            drawingBorderLink.style.marginLeft = '3px';
+        }, {geomType: 'POLYGON', errorMessage: _gtxt("$$phrase$$_17")} );
+    }
+            
+    tileCatalogLink.style.marginLeft = '3px';
+    tileFileLink.style.marginLeft = '3px';
+    shapeLink.style.marginLeft = '3px';
+    drawingBorderLink.style.marginLeft = '3px';
 
-    var shownProperties = [];
-            shownProperties.push({tr:trPath});
-            shownProperties.push({tr:trShape});
+    var shownProperties = [
+        {tr:trPath},
+        {tr:trShape}
+    ];
     
-    var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
-    _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
+    return shownProperties;
+    // var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
+    // _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
 }
 
 var createPageMetadata = function(parent, layerProperties) {
@@ -967,7 +971,7 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     var origLayerProperties = layerProperties.clone();
                     
     var mainContainer = _div();
-    var sourceContainer = _div();
+    // var sourceContainer = _div();
     var metadataContainer = _div();
     var advancedContainer = _div();
     
@@ -975,14 +979,14 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     createPageMetadata(metadataContainer, layerProperties);
     
     if (type === 'Vector') {
-        createPageVectorSource(sourceContainer, layerProperties);
+        //createPageVectorSource(sourceContainer, layerProperties);
         createPageAdvanced(advancedContainer, layerProperties);
-    } else {
-        createPageRasterSource(sourceContainer, layerProperties);
-                }
+    // } else {
+        //createPageRasterSource(sourceContainer, layerProperties);
+    }
     
     tabs.push({title: 'Общие', name: 'main', container: mainContainer});
-    tabs.push({title: 'Источник', name: 'source', container: sourceContainer});
+    // tabs.push({title: 'Источник', name: 'source', container: sourceContainer});
     tabs.push({title: 'Метаданные', name: 'metadata', container: metadataContainer});
     
     if (type === 'Vector') {
@@ -1244,6 +1248,27 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     }
 }
 
+/**
+ Создаёт диалог редактирования свойств слоя с вкладками (tabs) и кнопкой "Сохранить" под ними
+ @namespace nsGmx
+ @param {DOMElement} div Элемент дерева слоёв, соответствующий редактируемому слою
+ @param {String} type тип слоя ("Vector" или "Raster")
+ @param {DOMElement} parent контейнер, в которым нужно разместить диалог
+ @param {layersTree} treeView Представление дерева слоёв
+ @param {Object} [params] Дополнительные параметры
+ @param {Object[]} [params.moreTabs] Массив дополнительных вкладок со следующими полями:
+ 
+   * {String} title Что будет написано но вкладке
+   * {String} name Уникальный идентификатор вкладки
+   * {DOMElement} container Контент вкладки
+ 
+ @param {String} [params.selected] Идентификатор вкладки, которую нужно сделать активной
+ @param {Function(controller)} [params.createdCallback] Ф-ция, которая будет вызвана после того, как диалог будет создан. 
+        В ф-цию передаётся объект со следующими свойствами: 
+        
+   * {Function(tabName)} selectTab Активизировать вкладку с идентификатором tabName
+   
+*/
 var createLayerEditorProperties = function(div, type, parent, properties, treeView, params)
 {
     var layerEditor = new nsGmx.LayerEditor(div, type, properties, treeView, params);
@@ -1265,7 +1290,26 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
     
     $(parent).empty().append(tabMenu, saveMenuCanvas);
     
-    $(tabMenu).tabs({selected: params.selected || 0});
+    var getTabIndex = function(tabName) {
+        for (var i = 0; i < tabs.length; i++)
+            if (tabs[i].name === tabName)
+                return i;
+        return -1;
+    }
+    
+    var selectIndex = getTabIndex(params.selected);
+    $(tabMenu).tabs({selected: selectIndex > -1 ? selectIndex : 0});
+    
+    params.createdCallback && params.createdCallback({
+        selectTab: function(tabName) {
+            var selectedTab = $(tabMenu).tabs('option', 'selected');
+            $.each(tabs, function(i, tab) {
+                if (tab.name === tabName && i !== selectedTab) {
+                    $(tabMenu).tabs("select", i);
+                }
+            })
+        }
+    })
     
     return;
     
