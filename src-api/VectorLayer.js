@@ -2102,25 +2102,8 @@
 		L.TileLayer.VectorTiles = L.TileLayer.Canvas.extend(
 		{
 			_initContainer: function () {
-				var tilePane = this._map._panes.tilePane,
-					first = tilePane.firstChild;
-
-				if (!this._container || tilePane.empty) {
-					if(this._container) this._container.style.visibility = 'hidden';
-				
-					this._container = L.DomUtil.create('div', 'leaflet-layer');
-
-					if (this._insertAtTheBottom && first) {
-						tilePane.insertBefore(this._container, first);
-					} else {
-						tilePane.appendChild(this._container);
-					}
-
-					if (this.options.opacity < 1) {
-						this._updateOpacity();
-					}
-					if('initCallback' in this.options) this.options.initCallback(this);
-				}
+				L.TileLayer.Canvas.prototype._initContainer.call(this);
+				if('initCallback' in this.options) this.options.initCallback(this);
 			},
 			drawTile: function (tile, tilePoint, zoom) {
 				// override with rendering code
@@ -2166,15 +2149,6 @@ ctx.fillText(drawTileID, 10, 128);
 				if(!node['chkLoadTiles'](attr)) {;
 					if(node.repaintTile) node.repaintTile(attr, true);
 				}
-/*
-				var repaint = function() {
-					var attr = {'tile': tile, 'ctx': ctx, 'x': 256 * scanexTilePoint.x, 'y': 256 * scanexTilePoint.y, 'zoom': zoom, 'bounds': bounds, 'drawTileID': drawTileID, 'scanexTilePoint': scanexTilePoint};
-					var gmxNode = gmxAPI.mapNodes[opt['id']];
-					gmxAPI._listeners.dispatchEvent('onLayerStartTileRepaint', gmxNode, {'obj':gmxNode, 'attr':attr});
-				}
-				node['chkLoadTiles']();
-				repaint();
-*/
 			}
 		});
 		
