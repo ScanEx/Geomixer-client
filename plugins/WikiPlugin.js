@@ -17,6 +17,7 @@ _translationsHash.addtext("rus", {
 	"Для подложки" : "Для подложки",
 	"Создать сообщение" : "Создать сообщение",
 	"Статья Wiki" : "Статья Wiki",
+	"Иконка" : "Иконка",
 	"Заголовок" : "Заголовок",
 	"Сообщение уже редактируется": "Сообщение уже редактируется",
 	"Щелкните по слою в дереве слоёв, чтобы выбрать его": "Щелкните по слою в дереве слоёв, чтобы выбрать его",
@@ -36,6 +37,7 @@ _translationsHash.addtext("eng", {
 	"Для подложки" : "For basemap",
 	"Создать сообщение" : "Create message",
 	"Статья Wiki" : "Wiki page",
+	"Иконка" : "Icon",
 	"Заголовок" : "Title",
 	"Сообщение уже редактируется": "Message editor is already open",
 	"Щелкните по слою в дереве слоёв, чтобы выбрать его": "Click layer to choose it",
@@ -127,6 +129,7 @@ WikiService.prototype = {
 				, LayerName: pageInfo.LayerName
 				, Geometry: JSON.stringify(pageInfo.Geometry)
 				, AuthorNickname: pageInfo.AuthorNickname
+				, IconUrl: pageInfo.IconUrl
 				, IsDeleted: pageInfo.IsDeleted
 		};
 			
@@ -463,7 +466,9 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	this._layerChooseFlag = false;
 	this._geometryChooseFlag = false;
 	this._geometryRowContainer = _div();
-	this._geometryTable = _table([_tbody([_tr([_td([_t(_gtxt("Объект для привязки: "))]), _td([this._geometryRowContainer]), _td([makeHelpButton(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))])])])]);
+	
+	this._txtIconUrl = _input(null, [['dir', 'className', 'wiki-editor-txttitle']]);
+	this._geometryTable = _table([_tbody([_tr([_td([_t(_gtxt("Объект для привязки: "))]), _td([this._geometryRowContainer]), _td([makeHelpButton(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))], [['css', 'width', '100%']]), _td([_t(_gtxt("Иконка"))]), _td([this._txtIconUrl])])])], [['css','white-space', 'nowrap']]);
 	this._drawingObjectInfoRow = null;
 	//this._divGeometry = _div([_t(_gtxt("Для привязки сообщения к карте нужно добавить новый объект: точку или многоугольник"))],[['dir', 'className', 'wiki-editor-helptext']]);
 	this._txtLayer = _input(null, [['attr', 'readonly', 'true'], ['dir', 'className', 'wiki-editor-txtlayer']]);
@@ -472,8 +477,9 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	this._btnLayerClear.onclick = function(){ this.setLayer(null) }.bind(this);
 	this._hlpLayer = makeHelpButton(_gtxt("Щелкните по слою в дереве слоёв, чтобы выбрать его"));
 	this._txtTitle = _input(null, [['dir', 'className', 'wiki-editor-txttitle']]);
-	this._fieldsTable = _table([_tbody([_tr([_td([_t(_gtxt("Слой"))]), _td([this._txtLayer]), _td([this._btnLayerClear]), _td([this._hlpLayer], [['css', 'width', '100%']]), _td([_t(_gtxt("Заголовок"))]), _td([this._txtTitle]), _td()])])], [['dir', 'className', 'wiki-editor-tblfields']]);
+	this._fieldsTable = _table([_tbody([_tr([_td([_t(_gtxt("Слой"))]), _td([this._txtLayer]), _td([this._btnLayerClear]), _td([this._hlpLayer], [['css', 'width', '100%']]), _td([_t(_gtxt("Заголовок"))]), _td([this._txtTitle])])])], [['dir', 'className', 'wiki-editor-tblfields']]);
 	this._txtContent = _textarea(null, [['attr', 'id', 'message_content'], ['css', 'width', '100%'], ['css', 'height', '100%']]);
+	if (pageInfo.IconUrl) this._txtIconUrl.value = pageInfo.IconUrl;		
 	if (pageInfo.LayerName) this._txtLayer.value = this._wikiPlugin._map.layers[pageInfo.LayerName].properties.title;
 	if (pageInfo.Title) this._txtTitle.value = pageInfo.Title;		
 	if (pageInfo.Content) this._txtContent.value = pageInfo.Content;
@@ -505,6 +511,7 @@ WikiEditor.prototype = {
 	/** Обрабатывает события нажатия на кнопку "Сохранить"*/
 	updatePage: function(){
 		this._pageInfo.Title = this._txtTitle.value;
+		this._pageInfo.IconUrl = this._txtIconUrl.value;
 		tinyMCE.get('message_content').save();
 		this._pageInfo.Content = this._txtContent.value;
 		if (this._drawing) {
