@@ -453,6 +453,11 @@ function _checkbox(flag, type, name)
 
 function insertAtCursor(myField, myValue, sel) 
 {
+    if (myField.id && window.tinyMCE && tinyMCE.get(myField.id)) {
+        tinyMCE.execInstanceCommand(myField.id, "mceInsertContent", false, myValue);
+        return;
+    }
+    
 	if (document.selection)
 	{
 		if (typeof sel != 'undefined')

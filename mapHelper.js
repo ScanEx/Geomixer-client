@@ -1026,12 +1026,20 @@ mapHelper.prototype.createFilterEditor = function(filterParam, attrs, elemCanvas
 //identityField - будем исключать из списка аттрибутов, показываемых в балуне, так как это внутренняя техническая информация
 mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityField)
 {
-	var _this = this;
-	var balloonText = _textarea(null, [['dir','className','inputStyle'],['css','overflow','auto'],['css','width','251px'],['css','height','80px']]),
+	var _this = this,
+        layerName = elemCanvas.parentNode.gmxProperties.content.properties.name,
+        textareaID = 'ballooneditor' + layerName,
+        balloonText = _textarea(null, [
+            ['dir','className','inputStyle balloonEditor'],
+            ['css','overflow','auto'],
+            ['css','width','251px'],
+            ['css','height','80px'],
+            ['dir','id', textareaID]
+        ]),
 		setBalloon = function()
 		{
 			var filterNum = getOwnChildNumber(balloonText.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode),
-				filter = globalFlashMap.layers[elemCanvas.parentNode.gmxProperties.content.properties.name].filters[filterNum];
+				filter = globalFlashMap.layers[layerName].filters[filterNum];
 			globalFlashMap.balloonClassObject.setBalloonFromParams(filter, div.getBalloonState());
 			// if (box.checked)
 			// {
@@ -1064,7 +1072,18 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 		boxMove = _checkbox(!balloonParams.DisableBalloonOnMouseMove && balloonParams.BalloonEnable, 'checkbox'),
 		br = $.browser.msie ? "\n\r" : "\n",
 		_this = this;
-	
+        
+        
+    gmxCore.loadModule('TinyMCELoader', function() {
+        tinyMCE.onAddEditor.add(function(mgr,ed) {
+            if (ed.id === textareaID) {
+                ed.onKeyUp.add(setBalloon);
+                ed.onChange.add(setBalloon);
+            }
+        });
+    })
+    
+    
 	boxClick.className = 'box';
 	
 	boxClick.onclick = function()
@@ -1081,12 +1100,12 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 	
 	balloonText.value = (balloonParams.Balloon) ? balloonParams.Balloon : defaultBalloonText();
 	
-	balloonText.onkeyup = function()
-	{
-		setBalloon();
+	// balloonText.onkeyup = function()
+	// {
+		// setBalloon();
 		
-		return true;
-	}
+		// return true;
+	// }
 	
 	var atrsSuggest = this.createSuggestCanvas(attrs ? attrs : [], balloonText, '[suggest]', setBalloon);
 	
@@ -1115,7 +1134,8 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 	
 	div.getBalloon = function()
 	{
-		return balloonText.value == defaultBalloonText() ? '' : balloonText.value;
+        var value = tinyMCE && tinyMCE.get(textareaID) ? tinyMCE.get(textareaID).getContent() : balloonText.value;
+        return value == defaultBalloonText() ? '' : value;
 	};
 	
 	div.getBalloonEnable = function()
@@ -1141,8 +1161,9 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 			DisableBalloonOnMouseMove: !boxMove.checked
 		}
 		
-		if (balloonText.value !== defaultBalloonText())
-			state.Balloon = balloonText.value;
+        var value = tinyMCE && tinyMCE.get(textareaID) ? tinyMCE.get(textareaID).getContent() : balloonText.value;
+		if (value !== defaultBalloonText())
+			state.Balloon = value;
 		
 		return state;
 	}
@@ -1570,7 +1591,7 @@ mapHelper.prototype.createFilter = function(parentObject, parentStyle, geometryT
 	
 	if (treeviewFlag)
 		$(ulParent).treeview();
-	
+        
 	// styles
 	
     var isWindLayer = typeof elemCanvas.parentNode.gmxProperties != 'undefined' &&
@@ -2790,11 +2811,18 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 						
 						removeChilds(multiStyleParent);
 						
-						_this.createMultiStyle(elemProperties, treeView, multiStyleParent)
+						_this.createMultiStyle(elemProperties, treeView, multiStyleParent);
+                        
+                        gmxCore.loadModule('TinyMCELoader', function() {
+                            $('.balloonEditor', divDialog).each(function() {
+                                tinyMCE.execCommand("mceRemoveControl", true, $(this).attr('id'));
+                            })
+                        })
 						
 						return false;
 					};
 				
+                var createdDef = $.Deferred();
 				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties, {
                     doneCallback: function()
                     {
@@ -2805,6 +2833,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                     selected: selected,
                     createdCallback: function(layerEditor) {
                         _this.layerEditorsHash[elemProperties.name] = layerEditor;
+                        createdDef.resolve();
                     }
                 });
 				
@@ -2812,6 +2841,14 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                 {
                     closeFunc();
                     delete _this.layerEditorsHash[elemProperties.name];
+                });
+                
+                gmxCore.loadModule('TinyMCELoader', function() {
+                    createdDef.done(function() {
+                        $('.balloonEditor', divDialog).each(function() {
+                            tinyMCE.execCommand("mceAddControl", true, $(this).attr('id'));
+                        })
+                    });
                 });
                 
 				// при сохранении карты сбросим все временные стили в json карты
