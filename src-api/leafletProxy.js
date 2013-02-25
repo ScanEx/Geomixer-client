@@ -231,7 +231,12 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(style) {
 				var ptx = gmxAPI._leaflet['labelCanvas'].getContext('2d');
 				ptx.clearRect(0, 0, 512, 512);
+				ptx.font = style['font'];
+				ptx.fillStyle = style['fillStyle'];
+				ptx.fillText(txt, 0, 0);
+				
 				var sizeLabel = style['size'] || 12;
+	/*			
 				var color = style['color'] || 0;
 				var haloColor = style['haloColor'] || 0;
 				style['fontStyle'] = sizeLabel + 'px "Arial"';
@@ -240,7 +245,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				style['strokeColor'] = gmxAPI._leaflet['utils'].dec2rgba(haloColor, 1);
 				
 				ptx.fillStyle = style['fillStyle'];
-				ptx.fillText(txt, 0, 0);
+				ptx.fillText(txt, 0, 0);*/
 				out.x = ptx.measureText(txt).width;
 				out.y = sizeLabel + 2;
 			}
@@ -744,11 +749,11 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 							return;
 						} else {
 							node.leaflet = utils.drawNode(node, regularStyle);
-							setNodeHandlers(node.id);
 							//node['leaflet']._isVisible = false;
 							if(node['leaflet']) {
 								utils.setVisibleNode({'obj': node, 'attr': true});
 								if(node['dragging']) utils.startDrag(node);
+								setNodeHandlers(node.id);
 							}
 						}
 					}
@@ -806,9 +811,6 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				}
 				
 				out = new L.GMXMarker(new L.LatLng(pos[1], pos[0]), optMarker);
-				if(style['label'] && node['label']) {
-					setLabel(node.id, opt['iconAnchor']);
-				}
 			} if(styleType === 'rectangle') {					// стиль rectangle
 				// create an orange rectangle from a LatLngBounds
 				var size = 5;
@@ -827,6 +829,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					weight: 2
 				});
 			}
+			if(style['label'] && node['label']) {
+				setLabel(node.id, null);
+			}
+			
 			if(out && node['subType'] === 'drawing') {
 				var chkDrag = function(e) {		// Drag на drawing обьекте
 					var eType = e.type;
@@ -1170,12 +1176,17 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 	// setLabel для mapObject
 	function setLabel(id, iconAnchor)	{
 		var node = mapNodes[id];
-		if(!node || !node.regularStyle || !node.regularStyle.label || !('label' in node)) return false;
-		var regularStyle = node.regularStyle;
+		if(!node) return false;
+		gmxAPI._leaflet['LabelsManager'].add(id);			// добавим в менеджер отрисовки
+/*
+		var regularStyle = utils.getNodeProp(node, 'regularStyle', true);
+		if(!regularStyle || !regularStyle.label || !('label' in node)) return false;
+		//var regularStyle = node.regularStyle;
 		var labelStyle = regularStyle.label;
+		var pNode = mapNodes[node['parentId']];
 
-		if(node['marker']) {
-			node['group'].removeLayer(node['marker']);
+		if(node['leaflet']) {
+			pNode['group'].removeLayer(node['leaflet']);
 		}
 
 		var pp = node.geometry.coordinates;
@@ -1186,9 +1197,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		};
 
 		var p1 = new L.LatLng(pp[1], pp[0]);
-		node['marker'] = new L.GMXLabels([p1, p1], options);		
-		node['marker'].setStyle({'stroke': true, 'weight': 1, 'color': options['color']});
-		node['marker'].addTo(node['group']);
+		node['leaflet'] = new L.GMXLabels([p1, p1], options);		
+		node['leaflet'].setStyle({'stroke': true, 'weight': 1, 'color': options['color']});
+		node['leaflet'].addTo(pNode['group']);
+*/
 	}
 /*	// setLabel для mapObject 
 	function setLabel(id, iconAnchor)	{
@@ -1304,7 +1316,6 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		if(!node) return false;
 		if(node['leaflet']) {
 			node['leaflet']['options']['resID'] = id;
-			node['leaflet']['options']['_isHandlers'] = false;
 			var hNode = getNodeHandler(id, evName);
 			if(hNode && hNode['type'] == 'map') return false;
 			if(!hNode) {
@@ -1326,9 +1337,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				}
 			}
 			node['isHandlers'] = node['leaflet']['options']['_isHandlers'] = true;
-			if(node['leaflet']['_map'] && '_pathRoot' in node['leaflet']['_map']) {
-				node['leaflet']['_map']['_pathRoot'].style.pointerEvents = '';
-			}
+			
+			if('update' in node['leaflet']) node['leaflet'].update();
 			return true;
 		}
 	}
@@ -1546,9 +1556,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		} else {
 			for (var i = 0; i < pNode['children'].length; i++) {
 				var key = pNode['children'][i];
-				var gmxNode = mapNodes[key];
-				setVisibleRecursive(gmxNode, flag);
 				var node = mapNodes[key];
+				setVisibleRecursive(node, flag);
 			}
 		}
 	}
@@ -1863,6 +1872,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			var node = mapNodes[id];
 			if(!node) return false;
 			node.isVisible = ph.attr;
+			gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, ph.attr);
 			return utils.setVisibleNode(ph);
 		}
 		,
@@ -2784,6 +2794,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				var labelStyle = style['label'];
 				var txt = (labelStyle['field'] ? prop[labelStyle['field']] : labelStyle['value']) || '';
 				if(txt) {
+					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr);	// добавим label от векторного слоя
+/*					
 					var lx = px1 + out['sx']/2;
 					var ly = py1 + out['sy']/2 + 2;
 
@@ -2840,6 +2852,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					} else {
 						attr['node']['labelBounds']['skip'][out['id']] = true;
 					}
+*/
 				}
 			}
 		}
@@ -3982,10 +3995,13 @@ var tt = 1;
 							text.setAttribute("class", "leaflet-clickable");
 							var dx = -1;
 							var dy = 3;
-							if(this.options['align'] === 'center') {
+							var align = this.options['align'] || 'right';
+							if(align === 'center') {
 								text.setAttribute("text-anchor", "middle");
-							} else if(this.options['align'] === 'left') {
+							} else if(align === 'left') {
 								text.setAttribute("text-anchor", "left");
+							} else if(align === 'right') {
+								text.setAttribute("text-anchor", "right");
 							} else { //if(this.options['right'] === 'right') {
 								text.setAttribute("text-anchor", "right");
 								dx = 10;

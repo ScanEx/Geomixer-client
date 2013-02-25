@@ -1801,6 +1801,9 @@
 			utils.removeLeafletNode(node);
 			node['leaflet'] = null;
 		}
+		gmxNode.addListener('onChangeVisible', function(flag) {				// Изменилась видимость слоя
+			gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, flag);
+		}, -10);
 		
 		node.setClusters = function(ph)	{			// Добавить кластеризацию к векторному слою
 			var out = {

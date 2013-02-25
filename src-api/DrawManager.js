@@ -2,6 +2,7 @@
 (function()
 {
 	var nextId = 0;							// следующий ID mapNode
+	var timer = null;						// таймер
 	var items = [];							// массив ID нод очереди отрисовки
 	var itemsHash = {};						// Хэш нод требующих отрисовки
 
@@ -12,8 +13,12 @@
 		var node = gmxAPI._leaflet['mapNodes'][id];
 		if(!node) return false;
 		gmxAPI._leaflet['utils'].repaintNode(node, true);
-		setTimeout(repaintItems, 0);
+		//setTimeout(repaintItems, 10);
 		return true;
+	}
+	
+	var chkTimer = function() {				// установка таймера
+		if(!timer) timer = setInterval(repaintItems, 1);
 	}
 	
 	var drawManager = {						// менеджер отрисовки
@@ -24,7 +29,8 @@
 				itemsHash[id] = items.length;
 				items.push(id);
 			}
-			setTimeout(repaintItems, 0);
+			chkTimer();
+			//setTimeout(repaintItems, 10);
 			return items.length;
 		}
 		,'remove': function(id)	{				// удалить ноду
