@@ -539,37 +539,69 @@ var createPageVectorSource = function(layerProperties) {
     var sourceTable = _div([tablePathInput, tableLink, TableCSParent, tableColumnsParent], [['dir', 'id', 'tableSource' + layerName]])
         
     /*------------ Источник: вручную ------------*/
-        var addAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
+    var addAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
     var attrModel = new ManualAttrModel();
         addAttribute.onclick = function()
         {
-        attrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
+            attrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
         }
         
     var geometryTypes = [
-        { title: _gtxt('многоугольники'), type: 'POLYGON'    },
-        { title: _gtxt('линии'),          type: 'LINESTRING' },
-        { title: _gtxt('точки'),          type: 'POINT'      }
+        {title: _gtxt('многоугольники'), type: 'polygon'   , className: 'manual-polygon'},
+        {title: _gtxt('линии'),          type: 'linestring', className: 'manual-linestring'},
+        {title: _gtxt('точки'),          type: 'point'     , className: 'manual-point'}
     ];
+    
+    var RadioButtonsWidget = function(container, buttons, activeType) {
+        var _this = this;
+        var _activeType = activeType || buttons[0].type;
+        $(container).empty().addClass('manual-type-widget');
         
-    var geometryTypeSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '110px');
-    for (var g = 0; g < geometryTypes.length; g++)
-        $('<option/>').text(geometryTypes[g].title).val(geometryTypes[g].type).appendTo(geometryTypeSelect);
+        for (var b = 0; b < buttons.length; b++) {
+            $('<div/>')
+                .addClass(buttons[b].className)
+                .toggleClass('manual-active-type', _activeType === buttons[b].type)
+                .attr('title', buttons[b].title)
+                .appendTo(container)
+                .data('type', buttons[b].type);
+        }
+        
+        $('div', container).click(function() {
+            $(this).siblings().removeClass('manual-active-type');
+            $(this).addClass('manual-active-type');
+            _activeType = $(this).data('type');
+            $(_this).change();
+        })
+        
+        this.getActiveType = function() {
+            return _activeType;
+        }
+    }
+        
+    // var geometryTypeSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '110px');
+    // for (var g = 0; g < geometryTypes.length; g++)
+        // $('<option/>').text(geometryTypes[g].title).val(geometryTypes[g].type).appendTo(geometryTypeSelect);
             
-    if (layerProperties.get('GeometryType')) {
-        geometryTypeSelect.find($("[value='" + layerProperties.get('GeometryType').toUpperCase() + "']").attr("selected", "selected"));
-    } else {
-        layerProperties.set('GeometryType', $('option', geometryTypeSelect)[0].value);
-            }
+    // if (layerProperties.get('GeometryType')) {
+        // geometryTypeSelect.find($("[value='" + layerProperties.get('GeometryType').toUpperCase() + "']").attr("selected", "selected"));
+    // } else {
+        // layerProperties.set('GeometryType', $('option', geometryTypeSelect)[0].value);
+            // }
             
-    geometryTypeSelect.change(function() {
-        layerProperties.set('GeometryType', $('option:selected', this).val());
+    // geometryTypeSelect.change(function() {
+        // layerProperties.set('GeometryType', $('option:selected', this).val());
+    // })
+    
+    var geometryTypeContainer = $('<div/>').css({'display': 'inline-block', 'vertical-align': 'middle'});
+    var geometryTypeWidget = new RadioButtonsWidget(geometryTypeContainer, geometryTypes, layerProperties.get('GeometryType'));
+    $(geometryTypeWidget).change(function() {
+        layerProperties.set('GeometryType', geometryTypeWidget.getActiveType());
     })
                 
     var attrViewParent = _div();
     var attrContainer = _div([
         _div([
-            _div([_span([_t('Геометрия: ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]), geometryTypeSelect[0]]),
+            _div([_span([_t(_gtxt('Геометрия') + ': ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]), geometryTypeContainer[0]]),
             addAttribute
         ]),
         _div([attrViewParent], [['css', 'margin', '3px']])

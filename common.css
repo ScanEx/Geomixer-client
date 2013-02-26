@@ -1351,3 +1351,43 @@ div.layersScroll
 {
     margin: 3px;
 }
+
+.manual-type-widget div
+{
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    margin: 0px 2px;
+    cursor: pointer;
+    background-image: url(img/manual_types.png)
+}
+
+.manual-polygon
+{
+    background-position: -96px 0px;
+}
+
+.manual-polygon.manual-active-type
+{
+    background-position: -120px 0px;
+}
+
+.manual-linestring
+{
+    background-position: -48px 0px;
+}
+
+.manual-linestring.manual-active-type
+{
+    background-position: -72px 0px;
+}
+
+.manual-point
+{
+    background-position: -0px 0px;
+}
+
+.manual-point.manual-active-type
+{
+    background-position: -24px 0px;
+}
