@@ -30,11 +30,11 @@
 			var ptx = canvas.getContext('2d');
 			ptx.clearRect(0, 0, style.imageWidth, style.imageHeight);
 			var tx = ty = 0;
-			if(style['rotate']) {
+			if(style['rotateRes']) {
 				tx = -style.imageWidth/2;
 				ty = -style.imageHeight/2;
 				ptx.translate(-tx, -ty);
-				ptx.rotate(Math.PI  * style['rotate']/180);
+				ptx.rotate(Math.PI  * style['rotateRes']/180);
 			}
 			ptx.drawImage(img, tx, ty);
 			if('color' in style) {
@@ -563,12 +563,12 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				if('scale' in ph) pt['scale'] = ph['scale'];
 				if('minScale' in ph) pt['minScale'] = ph['minScale'];
 				if('maxScale' in ph) pt['maxScale'] = ph['maxScale'];
+				if('angle' in ph) pt['rotate'] = ph['angle'];
 				if('image' in ph) {
 					pt['iconUrl'] = ph['image'];
 					utils.getImageSize(pt, true, id);
 				}
 				
-				if('angle' in ph) pt['rotate'] = ph['angle'];
 				if('center' in ph) pt['center'] = ph['center'];
 				if('dx' in ph) pt['dx'] = ph['dx'];
 				if('dy' in ph) pt['dy'] = ph['dy'];
@@ -661,7 +661,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			var out = { };
 			for(var key in style) {
 				var zn = style[key];
-				if(key + 'Function' in style && style[key + 'Function']) zn = style[key + 'Function'](prop);
+				if(key + 'Function' in style && typeof(zn) === 'string') {
+					zn = (style[key + 'Function'] ? style[key + 'Function'](prop) : 1);
+				}
+				//if(key + 'Function' in style && style[key + 'Function']) zn = style[key + 'Function'](prop);
 				if(!style['ready']) {
 					if(key === 'fillColor' || key === 'color') {
 						out[key + '_rgba'] = utils.dec2rgba(zn, 1);
@@ -795,7 +798,12 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					if(style['dx']) opt['iconAnchor'].x -= style['dx'];
 					if(style['dy']) opt['iconAnchor'].y -= style['dy'];
 				}
-				if(style['rotate']) opt['rotate'] = style['rotate'];
+				if(style['rotate']) {
+					opt['rotate'] = style['rotate'];
+					if(typeof(opt['rotate']) == 'string') {
+						opt['rotate'] = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
+					}
+				}
 				
 				var nIcon = L.Icon.extend({
 					'options': opt
@@ -2751,7 +2759,10 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var scale = style['scale'] || 1;
 			if('_scale' in out['_cache']) scale = out['_cache']['_scale'];
 			else {
-				if(typeof(scale) == 'string') scale = gmxAPI._leaflet['utils'].chkPropsInString(scale, prop);
+				//if(typeof(scale) == 'string' && style['scaleFunction']) scale = gmxAPI._leaflet['utils'].chkPropsInString(scale, prop);
+				if(typeof(scale) == 'string') {
+					scale = (style['scaleFunction'] ? style['scaleFunction'](prop) : 1);
+				}
 				if(scale < style['minScale']) scale = style['minScale'];
 				else if(scale > style['maxScale']) scale = style['maxScale'];
 				out['_cache']['_scale'] = scale;
@@ -2772,7 +2783,12 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			if(style['marker']) {
 				if(style['image']) {
 					var canv = style['image'];
-					if(style['rotate'] || 'color' in style) canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style);
+					var rotateRes = style['rotate'] || 0;
+					if(rotateRes && typeof(rotateRes) == 'string') {
+						rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
+					}
+					style['rotateRes'] = rotateRes;
+					if(style['rotateRes'] || 'color' in style) canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style);
 					ctx.drawImage(canv, px1, py1, out['sx'], out['sy']);
 				}
 			} else {
@@ -2795,64 +2811,6 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				var txt = (labelStyle['field'] ? prop[labelStyle['field']] : labelStyle['value']) || '';
 				if(txt) {
 					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr);	// добавим label от векторного слоя
-/*					
-					var lx = px1 + out['sx']/2;
-					var ly = py1 + out['sy']/2 + 2;
-
-					var _labelAttr = out['_cache']['_labelAttr'];
-					if(!_labelAttr) {
-						var size = labelStyle['size'] || 12;
-						var fillStyle = labelStyle['color'] || 0;
-						//var strokeColor = style['label']['strokeColor'] || style['label']['color'] || 0;
-						var haloColor = labelStyle['haloColor'] || labelStyle['haloColor'] || 0;
-						_labelAttr = {
-							'labelExtent': gmxAPI._leaflet['utils'].getLabelSize(txt, style['label'])
-							,'lableFont': size + 'px "Tahoma"'
-							,'lableStrokeStyle': gmxAPI._leaflet['utils'].dec2rgba(haloColor, 1)
-							,'lableFillStyle': gmxAPI._leaflet['utils'].dec2rgba(fillStyle, 1)
-							,'id': out['id']
-						};
-						out['_cache']['_labelAttr'] = _labelAttr;
-					}
-
-					var textAlign = labelStyle['align'];
-					if(textAlign === 'center') {
-						lx -= _labelAttr['labelExtent'].x/2;
-					} else if(textAlign === 'left') {
-						lx -= _labelAttr['labelExtent'].x + 6;
-					} else {
-						lx += out['sx']/2;
-					}
-					lx = (0.5 + lx) << 0;
-					ly = (0.5 + ly) << 0;
-					_labelAttr['lx'] = lx + attr['tile']['_leaflet_pos'].x;
-					_labelAttr['ly'] = ly + attr['tile']['_leaflet_pos'].y;
-
-					var skips = attr['node']['labelBounds']['skip'];
-					var adds = attr['node']['labelBounds']['add'];
-					var addFlag = (adds[out['id']] || (!skips[out['id']] && chkLabelBounds(attr['labelBounds'], _labelAttr)));
-					if(addFlag) {
-						attr['node']['labelBounds']['add'][out['id']] = true;
-//console.log('bbbbbbbbbbb ', boundsLabel, geom['_cache']['_labelAttr']);
-
-					
-//ctx.drawImage(_labelAttr['labelImg'], 0, 0, 55, 55);
-//return;
-					//ctx.font = "italic bold 16px Arial";
-					//ctx.textAlign = "center";
-					//var isPath = ctx.isPointInPath(50,50); // return true
-					//ctx.textBaseline = "Top";
-						ctx.globalCompositeOperation = "source-over";
-						ctx.font = _labelAttr['lableFont'];
-						ctx.strokeStyle = _labelAttr['lableStrokeStyle'];
-						ctx.strokeText(txt, lx, ly);
-						ctx.fillStyle = _labelAttr['lableFillStyle'];
-						ctx.fillText(txt, lx, ly);
-						ctx.globalCompositeOperation = "destination-over";
-					} else {
-						attr['node']['labelBounds']['skip'][out['id']] = true;
-					}
-*/
 				}
 			}
 		}
@@ -3214,6 +3172,18 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			}
 			//ctx.closePath();
 			ctx.stroke();
+
+			var style = attr['style'];
+			if(style['label']) {
+				var node = attr['node'];
+				var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
+				var labelStyle = style['label'];
+				var txt = (labelStyle['field'] ? prop[labelStyle['field']] : labelStyle['value']) || '';
+				if(txt) {
+					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr);	// добавим label от векторного слоя
+				}
+			}
+			
 			return true;		// отрисована геометрия
 		}
 		// Отрисовка геометрии полигона
@@ -3362,6 +3332,17 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 					cnt += members[i].paint(attr);
 				}
 			}
+			var style = attr['style'];
+			if(style['label']) {
+				var node = attr['node'];
+				var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
+				var labelStyle = style['label'];
+				var txt = (labelStyle['field'] ? prop[labelStyle['field']] : labelStyle['value']) || '';
+				if(txt) {
+					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr);	// добавим label от векторного слоя
+				}
+			}
+
 			return cnt;		// количество отрисованных точек в геометрии
 		}
 		// Отрисовка заполнения
@@ -3672,7 +3653,12 @@ var tt = 1;
 			LMap.on('mousemove', function(e) {
 //return;
 //console.log('mousemove', gmxAPI._leaflet['mousePressed'], timeDown);
-				if(gmxAPI._mouseOnBalloon) return null;
+				if(gmxAPI._mouseOnBalloon) {
+					if(LMap.scrollWheelZoom.enabled()) LMap.scrollWheelZoom.disable();
+					return null;
+				} else {
+					if(!LMap.scrollWheelZoom.enabled()) LMap.scrollWheelZoom.enable();
+				}
 				if(gmxAPI._leaflet['mousedown']) timeDown -= 900;
 				gmxAPI._leaflet['mousePos'] = e.latlng;
 				var attr = parseEvent(e);

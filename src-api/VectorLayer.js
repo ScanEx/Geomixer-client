@@ -499,6 +499,7 @@
 					
 				if(propHiden['subType'] != 'cluster') {
 					var filters = propHiden['toFilters'];
+					if(filters.length == 0) filters = chkObjectFilters(item);
 					filter = (filters && filters.length ? mapNodes[filters[0]] : null);
 				}
 			}
@@ -511,7 +512,7 @@
 			}
 			var itemId = item.geom.id;
 			var propHiden = item.geom.propHiden;
-			
+			var zoom = LMap.getZoom();
 			var hoveredStyle = null;
 			var regularStyle = null;
 			var filter = null;
@@ -529,14 +530,17 @@
 				if(!node['hoverItem'] || node['hoverItem'].geom.id != itemId) {
 					var tilesNeed = {};
 					if(node['hoverItem']) {
-						tilesNeed = gmxAPI.clone(node['hoverItem'].geom.propHiden['drawInTiles']);
+						tilesNeed = gmxAPI.clone(node['hoverItem'].geom.propHiden['drawInTiles'][zoom]);
 						if(!tilesNeed) tilesNeed = {};
 					}
 					node['hoverItem'] = item;
 					//item.geom.curStyle = hoveredStyle;
 					item.geom.curStyle = utils.evalStyle(hoveredStyle, item.geom.properties);
-					for (var tileID in propHiden['drawInTiles']) tilesNeed[tileID] = true;
-
+					
+					var drawInTiles = propHiden['drawInTiles'];
+					if(drawInTiles && drawInTiles[zoom]) {
+						for (var tileID in drawInTiles[zoom]) tilesNeed[tileID] = true;
+					}
 					redrawTilesHash(tilesNeed);
 					item.geom.curStyle = utils.evalStyle(regularStyle, item.geom.properties);
 					gmxAPI._div.style.cursor = 'pointer';
@@ -859,15 +863,16 @@
 				};
 				geo['propHiden'] = objData['propHiden'];
 				geo['properties'] = objData['properties'];
-				if(node['objectsData'][id] && objData['type'] != 'POINT') {		// Обьект уже имеется - нужна??? склейка геометрий
+				propHiden['toFilters'] = chkObjectFilters(geo);
+
+				if(node['objectsData'][id]) {		// Обьект уже имеется - нужна??? склейка геометрий
 					var pt = node['objectsData'][id];
-					if(objData['type'].indexOf('MULTI') == -1) objData['type'] = 'MULTI' + objData['type'];
+					if(objData['type'] != 'POINT' && objData['type'].indexOf('MULTI') == -1) objData['type'] = 'MULTI' + objData['type'];
 					for(var key in pt.propHiden['fromTiles']) {
 						objData['propHiden']['fromTiles'][key] = pt.propHiden['fromTiles'][key];
 					}
 				}
 				node['objectsData'][id] = objData;
-				propHiden['toFilters'] = chkObjectFilters(geo);
 			}
 			arr = [];
 			return outArr;
@@ -1622,6 +1627,8 @@
 			if(flag != myLayer._isVisible) {
 				utils.setVisibleNode({'obj': node, 'attr': flag});
 				waitRedraw();
+				if(!flag) gmxAPI._leaflet['LabelsManager'].onChangeVisible(node.id, flag);
+
 			}
 		}
 		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': node.onZoomend});

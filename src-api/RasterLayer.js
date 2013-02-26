@@ -98,10 +98,10 @@
 				,'attr': attr
 				,'nodeID': id
 				,'async': true
-				//,'updateWhenIdle': true
 				,'unloadInvisibleTiles': true
-				//,'countInvisibleTiles': (L.Browser.mobile ? 0 : 1)
-				,'countInvisibleTiles': 0
+				,'countInvisibleTiles': (L.Browser.mobile ? 0 : 1)
+				//,'countInvisibleTiles': 0
+				//,'updateWhenIdle': true
 				//,'reuseTiles': true
 				//isBaseLayer
 				//,'reuseTiles': true
@@ -214,8 +214,8 @@
 				var imgFlag = (!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85));
 				if(imgFlag) {
 					var img = this._canvasProto = L.DomUtil.create('img', 'leaflet-tile');
-					img.style.width = img.style.height = this.options.tileSize + 'px';
-					img.galleryimg = 'no';
+					//img.style.width = img.style.height = this.options.tileSize + 'px';
+					//img.galleryimg = 'no';
 				} else {
 					var proto = this._canvasProto = L.DomUtil.create('canvas', 'leaflet-tile');
 					proto.width = proto.height = 0;
@@ -334,8 +334,11 @@
 				//		ctx.webkitImageSmoothingEnabled = false;
 				var src = this.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom);
 				if(flagAll) {
-					tile.style.display = 'none';
-					tile.onload = function() { tile.style.display = 'block'; tile._layer.tileDrawn(tile); };
+					//tile.style.display = 'none';
+					tile.onload = function() {
+						//tile.style.display = 'block';
+						tile._layer.tileDrawn(tile);
+					};
 					tile.onerror = function() { node['failedTiles'][drawTileID] = true; };
 					tile.src = src;
 				} else {

@@ -51,11 +51,18 @@
 	}
 	var prepareItem = function(txt, geom, attr) {			// подготовка Label от векторного слоя
 		var style = prepareStyle(attr['style']);
+		var bounds = new L.Bounds();
+		bounds.extend(new L.Point(geom['bounds'].min.x, geom['bounds'].min.y));
+		bounds.extend(new L.Point(geom['bounds'].max.x, geom['bounds'].max.y));
+		var x = (bounds.max.x + bounds.min.x) /2;
+		var y = (bounds.max.y + bounds.min.y) /2;
+		
 		var out = {
 			'txt': txt
-			,'point': geom['coordinates']
-			,'sx': geom['sx']
-			,'sy': geom['sy']
+			,'point': new L.Point(x, y)
+			,'bounds': bounds
+			,'sx': geom['sx'] || 0
+			,'sy': geom['sy'] || 0
 			,'extent': gmxAPI._leaflet['utils'].getLabelSize(txt, style)
 			,'style': style
 			,'isVisible': true
@@ -93,11 +100,12 @@
 			var align = item['style']['align'];
 			var dx = item['sx']/2 + 1;
 			var dy = item['sy']/2 - 1 - contPoint.y;
+			if(!align) align = 'center';
 			
 			if(align == 'right') {
 				dx -= (item.extent.x + item['style']['size']);
 			} else if(align == 'center') {
-				dx -= item.extent.x;
+				dx -= item.extent.x/2;
 				dy += item.extent.y/2;
 			}
 
@@ -178,7 +186,15 @@
 			if(!utils) init();
 			var node = attr['node'];
 			var id = node['id'] + '_' + geom.id;
-			itemsHash[id] = prepareItem(txt, geom, attr);
+			var item = prepareItem(txt, geom, attr);
+			if(itemsHash[id]) {
+				var bounds = new L.Bounds();
+				item.bounds.extend(itemsHash[id]['bounds'].min);
+				item.bounds.extend(itemsHash[id]['bounds'].max);
+				item.point.x = (item.bounds.max.x + item.bounds.min.x)/2;
+				item.point.y = (item.bounds.max.y + item.bounds.min.y)/2;
+			}
+			itemsHash[id] = item;
 			repaintItems();
 		}
 		,'remove': function(id)	{				// удалить ноду

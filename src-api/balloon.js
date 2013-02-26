@@ -385,6 +385,7 @@
 					}
 				}
 				var balloon = addBalloon();
+				balloon.setVisible(false);
 				balloon.pID = o.parent.objectId;
 				balloon.obj = o;
 				balloon.fixedId = id;
@@ -411,12 +412,12 @@
 					balloon.fixedDeltaFlag = true;
 				}
 
+				balloon.setVisible(true);
 				balloon.setPoint(mx, my);
 				chkBalloonText(text, balloon.div);
 
 				balloon.resize();
 				fixedHoverBalloons[id] = balloon;
-				balloon.setVisible(true);
 			}
 			else
 			{
