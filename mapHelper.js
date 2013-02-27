@@ -1053,7 +1053,7 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 		},
 		defaultBalloonText = function()
 		{
-			var sortAttrs = attrs.sort(),
+			var sortAttrs = attrs.slice(0).sort(),
 				text = "";
 			
 			for (var i = 0; i < sortAttrs.length; ++i)
