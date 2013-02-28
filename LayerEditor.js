@@ -929,7 +929,9 @@ var LayerEditor = function(div, type, properties, treeView, params) {
         callback();
     }
         
-    var layerProperties = new nsGmx.LayerProperties(type, divProperties, properties);
+    var layerProperties = new nsGmx.LayerProperties();
+    layerProperties.initFromViewer(type, divProperties, properties);
+    
     var origLayerProperties = layerProperties.clone();
                     
     var mainContainer = _div();
@@ -1006,10 +1008,12 @@ var LayerEditor = function(div, type, properties, treeView, params) {
         var name = layerProperties.get('Name'),
             curBorder = _mapHelper.drawingBorders.get(name),
             oldDrawing = origLayerProperties.get('Geometry'),
+            type = layerProperties.get('Type'),
             needRetiling = false;
         
         // если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
-        if (layerProperties.get('ShapePath').Path != origLayerProperties.get('ShapePath').Path ||
+        if (layerProperties.get('Type') === 'Vector' ||
+            layerProperties.get('ShapePath').Path != origLayerProperties.get('ShapePath').Path ||
             layerProperties.get('TilePath').Path != origLayerProperties.get('TilePath').Path ||
             oldDrawing && typeof curBorder != 'undefined' && JSON.stringify(curBorder.getGeometry()) != JSON.stringify(from_merc_geometry(oldDrawing)) ||
             !oldDrawing && typeof curBorder != 'undefined' ||
@@ -1017,61 +1021,46 @@ var LayerEditor = function(div, type, properties, treeView, params) {
         {
             needRetiling = true;
         }
+        
         layerProperties.save(needRetiling, function(response) {
             var mapProperties = _layersTree.treeModel.getMapProperties(),
                 layerTitle = layerProperties.get('Title');
                 
-            if (layerProperties.get('Type') === 'Vector') {
-                if (!name && layerProperties.get('SourceType') === 'manual') {
-                    if (_params.addToMap)
-                        {
-                            var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
-                            var gmxProperties = {type: 'layer', content: response.Result};
-                            gmxProperties.content.properties.mapName = mapProperties.name;
-                            gmxProperties.content.properties.hostName = mapProperties.hostName;
-                            gmxProperties.content.properties.visible = true;
-                            
-                            gmxProperties.content.properties.styles = [{
-                                MinZoom: gmxProperties.content.properties.VtMaxZoom,
-                                MaxZoom:21, 
-                                RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
-                            }];
-                        
-                            _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
-                        }
-                            
-                        //реализует интерфейс AsyncTask
-                        //TODO: test me!
-                        var taskResult = {Result: response.Result, Completed: true};
-                        var task = {
-                            deferred: $.when(taskResult),
-                            getCurrentStatus: function(){return 'completed'; },
-                            getCurrentResult: function(){return taskResult; }
-                        }
-                        _params.doneCallback && _params.doneCallback(task, response.Result.properties.title);
-                } else {
-                    var task = nsGmx.asyncTaskManager.addTask(response.Result, name || null);
-                            
-                    if (name)
-                    {
-                        _queryMapLayers.asyncUpdateLayer(task, properties, true);
-                    }
-                    else 
-                    {
-                        if (_params.addToMap)
-                            _queryMapLayers.asyncCreateLayer(task, layerTitle);
-                    }
+            if ( type === 'Vector' && !name && layerProperties.get('SourceType') === 'manual') {
+                if (_params.addToMap)
+                {
+                    var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
+                    var gmxProperties = {type: 'layer', content: response.Result};
+                    gmxProperties.content.properties.mapName = mapProperties.name;
+                    gmxProperties.content.properties.hostName = mapProperties.hostName;
+                    gmxProperties.content.properties.visible = true;
                     
-                    _params.doneCallback && _params.doneCallback(task, layerTitle);
+                    gmxProperties.content.properties.styles = [{
+                        MinZoom: gmxProperties.content.properties.VtMaxZoom,
+                        MaxZoom:21, 
+                        RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
+                    }];
+                
+                    _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
                 }
+                    
+                //реализует интерфейс AsyncTask
+                //TODO: test me!
+                var taskResult = {Result: response.Result, Completed: true};
+                var task = {
+                    deferred: $.when(taskResult),
+                    getCurrentStatus: function(){return 'completed'; },
+                    getCurrentResult: function(){return taskResult; }
+                }
+                _params.doneCallback && _params.doneCallback(task, layerTitle);
             } else {
                 var task = nsGmx.asyncTaskManager.addTask(response.Result, name || null);
-                
+                        
                 if (name)
                 {
                     _queryMapLayers.asyncUpdateLayer(task, properties, needRetiling);
                 }
-                else
+                else 
                 {
                     if (_params.addToMap)
                         _queryMapLayers.asyncCreateLayer(task, layerTitle);

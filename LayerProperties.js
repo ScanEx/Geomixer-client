@@ -7,12 +7,14 @@ var ColumnsModel = Backbone.Model.extend({
     }
 });
 
+// Расширенный набор свойства слоя. 
+// Используется для редактирования свойств. Умеет сохранять себя на сервере
 var LayerProperties = Backbone.Model.extend({
-    initialize: function(type, divProperties, layerProperties) {
-        if (!divProperties && !layerProperties) {
-            this.attributes = nsGmx._.clone(type);
-            return;
-        }
+    initialize: function(attrs) {
+        this.attributes = nsGmx._.clone(attrs || {});
+    },
+    
+    initFromViewer: function(type, divProperties, layerProperties) {
             
         this.set({
             Type:           type,
@@ -72,11 +74,20 @@ var LayerProperties = Backbone.Model.extend({
         }
     },
     save: function(geometryChanged, callback) {
-        //var _params = $.extend({addToMap: true, doneCallback: null}, params);
-        var layerProperties = this;
-        var mapProperties = _layersTree.treeModel.getMapProperties();
+        var attrs = this.attributes,
+            name = attrs.Name,
+            mapProperties = _layersTree.treeModel.getMapProperties();
+        
+        var reqParams = {
+            WrapStyle: "window",
+            Title: attrs.Title,
+            Description: attrs.Description,
+            Copyright: attrs.Copyright,
+            MapName: mapProperties.name
+        };
+        
         var metaProperties = {};
-        var layerTags = layerProperties.get('MetaPropertiesEditing');
+        var layerTags = attrs.MetaPropertiesEditing;
             layerTags.eachValid(function(id, tag, value)
             {
                 var type = layerTags.getTagMetaInfo().getTagType(tag);
@@ -85,69 +96,48 @@ var LayerProperties = Backbone.Model.extend({
                     metaProperties[tag] = {Value: value, Type: type};
             })
             
-        var metadataString = '&MetaProperties=' + encodeURIComponent(JSON.stringify(metaProperties));
+        reqParams.MetaProperties = JSON.stringify(metaProperties);
                 
-        if (layerProperties.get('Type') === 'Vector') {
-            var cols = '',
-                updateParams = '',
-                encoding = layerProperties.get('EncodeSource') ? '&EncodeSource=' + encodeURIComponent(layerProperties.get('EncodeSource')) : '',
-                layerTitle = layerProperties.get('Title'),
-                        temporalParams = '',
-                tableCSParam = layerProperties.get('SourceType') === 'table' ? '&TableCS=' + encodeURIComponent(layerProperties.get('TableCS')) : '',
-                        RCParams = '',
-                nameObjectParams = layerProperties.get('NameObject') ? '&NameObject=' + encodeURIComponent(layerProperties.get('NameObject')) : '';
-                    
-            rcProps = layerProperties.get('RC');
-                        
-            if (rcProps.get('IsRasterCatalog'))
-            {
-                RCParams = '&IsRasterCatalog=true';
-                RCParams += '&RCMinZoomForRasters=' + encodeURIComponent(rcProps.get('RCMinZoomForRasters'));
-                RCParams += '&RCMaskForRasterPath=' + encodeURIComponent(rcProps.get('RCMaskForRasterPath'));
-                RCParams += '&RCMaskForRasterTitle=' + encodeURIComponent(rcProps.get('RCMaskForRasterTitle'));
-                RCParams += '&ColumnTagLinks=' + encodeURIComponent(JSON.stringify(rcProps.get('ColumnTagLinks')));
-            }
-            else
-            {
-                RCParams = '&IsRasterCatalog=false';
-            }
-                    
-            var tempProperties = layerProperties.get('Temporal');
-            if ( tempProperties.get('isTemporal') && tempProperties.get('columnName') ) {
-                temporalParams = '&TemporalLayer=true'
-                      + '&TemporalColumnName=' + encodeURIComponent(tempProperties.get('columnName'))
-                      + '&TemporalPeriods=' + encodeURIComponent(tempProperties.getPeriodString());
-            } else {
-                temporalParams = '&TemporalLayer=false';
-            }
-                    
-            var selectedColumns = layerProperties.get('SelectedColumns');
-            if (selectedColumns.get('XCol') && selectedColumns.get('YCol')) {
-                cols = '&ColY=' + encodeURIComponent(selectedColumns.get('YCol')) 
-                     + '&ColX=' + encodeURIComponent(selectedColumns.get('XCol'));
-            }
-                    
-            if (layerProperties.get('LayerID'))
-            {
-                updateParams = '&VectorLayerID=' + layerProperties.get('LayerID');
-            }
-                    
-            if (!layerProperties.get('Name') && layerProperties.get('SourceType') === 'manual')
-            {
-                var sourceColumns = layerProperties.get('SourceColumns');
-                columnsString = "&Columns=" + encodeURIComponent(JSON.stringify(sourceColumns));
+        if (attrs.Type === 'Vector') {
+            if (attrs.EncodeSource) reqParams.EncodeSource = attrs.EncodeSource;
+            if (attrs.NameObject) reqParams.NameObject = attrs.NameObject;
+            if (attrs.SourceType === 'table') reqParams.TableCS = attrs.TableCS;
 
-                var geomType = layerProperties.get('GeometryType');
+            var rcProps = attrs.RC;
+            reqParams.IsRasterCatalog = rcProps.get('IsRasterCatalog');
+            if (reqParams.IsRasterCatalog)
+            {
+                reqParams.RCMinZoomForRasters = rcProps.get('RCMinZoomForRasters');
+                reqParams.RCMaskForRasterPath = rcProps.get('RCMaskForRasterPath');
+                reqParams.RCMaskForRasterTitle = rcProps.get('RCMaskForRasterTitle');
+                reqParams.ColumnTagLinks = JSON.stringify(rcProps.get('ColumnTagLinks'));
+            }
+            
+            var tempProperties = attrs.Temporal;
+            
+            reqParams.TemporalLayer = tempProperties.get('isTemporal') && tempProperties.get('columnName');
+            
+            if ( reqParams.TemporalLayer ) {
+                reqParams.TemporalColumnName = tempProperties.get('columnName');
+                reqParams.TemporalPeriods = tempProperties.getPeriodString();
+            }
+                    
+            var selectedColumns = attrs.SelectedColumns;
+            if (selectedColumns.get('XCol') && selectedColumns.get('YCol')) {
+                reqParams.ColX = selectedColumns.get('XCol');
+                reqParams.ColY = selectedColumns.get('YCol');
+            }
+                    
+            if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
+                    
+            if (!name && attrs.SourceType === 'manual')
+            {
+                if (attrs.UserBorder) reqParams.UserBorder = attrs.UserBorder;
+                reqParams.Columns = JSON.stringify(attrs.SourceColumns);
+
+                reqParams.geometrytype = attrs.GeometryType;
                         
-                sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func" + 
-                    "&Title=" + encodeURIComponent(layerProperties.get('Title')) + 
-                    "&Copyright=" + encodeURIComponent(layerProperties.get('Copyright')) + 
-                    "&Description=" + encodeURIComponent(layerProperties.get('Description')) + 
-                    "&MapName=" + encodeURIComponent(mapProperties.name) + 
-                    columnsString + temporalParams +
-                    "&geometrytype=" + geomType +
-                    metadataString +
-                    RCParams + nameObjectParams, 
+                sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams,
                     function(response)
                     {
                         if (!parseResponse(response))
@@ -159,16 +149,9 @@ var LayerProperties = Backbone.Model.extend({
             }
             else
             {
-                var dataSource = layerProperties.get('SourceType') === 'file' ? layerProperties.get('ShapePath').Path :  layerProperties.get('TableName');
-                var geometryDataSource = "&GeometryDataSource=" + encodeURIComponent(dataSource);
+                reqParams.GeometryDataSource = attrs.SourceType === 'file' ? attrs.ShapePath : attrs.TableName;
                         
-                sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (layerProperties.get('Name') ? "Update.ashx" : "Insert.ashx") + "?WrapStyle=func" + 
-                    "&Title=" + encodeURIComponent(layerProperties.get('Title')) + 
-                    "&Copyright=" + encodeURIComponent(layerProperties.get('Copyright')) + 
-                    "&Description=" + encodeURIComponent(layerProperties.get('Description')) + 
-                    geometryDataSource + 
-                    "&MapName=" + encodeURIComponent(mapProperties.name) + 
-                    cols + updateParams + encoding + temporalParams + metadataString + tableCSParam + RCParams + nameObjectParams, 
+                sendCrossDomainPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams,
                     function(response)
                     {
                         if (!parseResponse(response))
@@ -179,32 +162,21 @@ var LayerProperties = Backbone.Model.extend({
                 )
             }
         } else {
-            var name = layerProperties.get('Name');
             var curBorder = _mapHelper.drawingBorders.get(name);
-            var params = {
-                    WrapStyle: "window",
-                    Title: layerProperties.get('Title'),
-                    Copyright: layerProperties.get('Copyright'),
-                    Legend: layerProperties.get('Legend'),
-                    Description: layerProperties.get('Description'),
-                    TilePath: layerProperties.get('TilePath').Path,
-                    BorderFile:     typeof curBorder == 'undefined' ? (layerProperties.get('ShapePath').Path || '') : '',
-                    BorderGeometry: typeof curBorder == 'undefined' ? '' : JSON.stringify(merc_geometry(curBorder.geometry)),
-                    MapName: mapProperties.name,
-                    MetaProperties: JSON.stringify(metaProperties)
-                },
-                needRetiling = false
             
-            if (name)
-            {
-                params["RasterLayerID"] = layerProperties.get('LayerID');
-                
-                
+            reqParams.Legend = attrs.Legend;
+            reqParams.TilePath = attrs.TilePath.Path;
+            reqParams.GeometryChanged = geometryChanged;
+            
+            if (typeof curBorder === 'undefined') {
+                reqParams.BorderFile = attrs.ShapePath.Path || '';
+            } else {
+                reqParams.BorderGeometry = JSON.stringify(merc_geometry(curBorder.geometry));
             }
             
-            params["GeometryChanged"] = geometryChanged;
+            if (attrs.LayerID) reqParams.RasterLayerID = attrs.LayerID;
             
-            sendCrossDomainPostRequest(serverBase + "RasterLayer/" + (name ? "Update.ashx" : "Insert.ashx"), params, function(response)
+            sendCrossDomainPostRequest(serverBase + "RasterLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams, function(response)
                 {
                     if (!parseResponse(response))
                         return;
