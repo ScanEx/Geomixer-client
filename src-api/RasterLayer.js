@@ -289,13 +289,13 @@
 					flagAll = true;
 				} else {
 					var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
+					tileSize = 256 * 156543.033928041/pz;
 					if(shiftY == 0) {
 						var bounds = utils.getTileBounds(tilePoint, zoom);
 						if(!attr.bounds.intersects(bounds)) {			// Тайл не пересекает границы слоя
 							this.tileDrawn(tile);
 							return;
 						}
-						tileSize = 256 * 156543.033928041/pz;
 						var p1 = new L.Point(tileSize * scanexTilePoint.x, tileSize * scanexTilePoint.y);
 						var p2 = new L.Point(tileSize + p1.x, tileSize + p1.y);
 						var boundsMerc = new L.Bounds(p1, p2);
