@@ -597,6 +597,8 @@ var createPageVectorSource = function(layerProperties) {
     $(geometryTypeWidget).change(function() {
         layerProperties.set('GeometryType', geometryTypeWidget.getActiveType());
     })
+    
+    layerProperties.set('GeometryType', geometryTypeWidget.getActiveType());
                 
     var attrViewParent = _div();
     var attrContainer = _div([
@@ -1126,65 +1128,62 @@ var LayerEditor = function(div, type, properties, treeView, params) {
             }
                     
             if (layerProperties.get('LayerID'))
-                    {
+            {
                 updateParams = '&VectorLayerID=' + layerProperties.get('LayerID');
-                    }
+            }
                     
             if (!layerProperties.get('Name') && layerProperties.get('SourceType') === 'manual')
-                    {
+            {
                 var sourceColumns = layerProperties.get('SourceColumns');
-                var columnsString = "&FieldsCount=" + sourceColumns.length;
-                for (var k = 0; k < sourceColumns.length; k++) {
-                    columnsString += "&fieldName" + k + "=" + encodeURIComponent(sourceColumns[k].Name) + "&fieldType" + k + "=" + sourceColumns[k].ColumnSimpleType.toLowerCase();
-                        }
+                columnsString = "&Columns=" + encodeURIComponent(JSON.stringify(sourceColumns));
 
                 var geomType = layerProperties.get('GeometryType');
                         
-                        sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func" + 
+                sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func" + 
                     "&Title=" + encodeURIComponent(layerProperties.get('Title')) + 
                     "&Copyright=" + encodeURIComponent(layerProperties.get('Copyright')) + 
                     "&Description=" + encodeURIComponent(layerProperties.get('Description')) + 
-                            "&MapName=" + encodeURIComponent(mapProperties.name) + 
+                    "&MapName=" + encodeURIComponent(mapProperties.name) + 
                     columnsString + temporalParams +
-                            "&geometrytype=" + geomType +
-                            metadataString +
-                            RCParams + nameObjectParams, 
-                            function(response)
-                            {
-                                if (!parseResponse(response))
-                                        return;
-                                
-                                if (_params.addToMap)
-                                {
-                                    var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
-                                    var gmxProperties = {type: 'layer', content: response.Result};
-                                    gmxProperties.content.properties.mapName = mapProperties.name;
-                                    gmxProperties.content.properties.hostName = mapProperties.hostName;
-                                    gmxProperties.content.properties.visible = true;
-                                    
-                                    gmxProperties.content.properties.styles = [{
-                                        MinZoom: gmxProperties.content.properties.VtMaxZoom,
-                                        MaxZoom:21, 
-                                        RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
-                                    }];
-                                
-                                    _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
-                                }
-                                    
-                                //реализует интерфейс AsyncTask
-                                //TODO: test me!
-                                var taskResult = {Result: response.Result, Completed: true};
-                                var task = {
-                                    deferred: $.when(taskResult),
-                                    getCurrentStatus: function(){return 'completed'; },
-                                    getCurrentResult: function(){return taskResult; }
-                                }
-                                _params.doneCallback && _params.doneCallback(task, response.Result.properties.title);
-                            }
-                        );
-                    }
-                    else
+                    "&geometrytype=" + geomType +
+                    metadataString +
+                    RCParams + nameObjectParams, 
+                    function(response)
                     {
+                        if (!parseResponse(response))
+                            return;
+                        
+                        if (_params.addToMap)
+                        {
+                            var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
+                            var gmxProperties = {type: 'layer', content: response.Result};
+                            gmxProperties.content.properties.mapName = mapProperties.name;
+                            gmxProperties.content.properties.hostName = mapProperties.hostName;
+                            gmxProperties.content.properties.visible = true;
+                            
+                            gmxProperties.content.properties.styles = [{
+                                MinZoom: gmxProperties.content.properties.VtMaxZoom,
+                                MaxZoom:21, 
+                                RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
+                            }];
+                        
+                            _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+                        }
+                            
+                        //реализует интерфейс AsyncTask
+                        //TODO: test me!
+                        var taskResult = {Result: response.Result, Completed: true};
+                        var task = {
+                            deferred: $.when(taskResult),
+                            getCurrentStatus: function(){return 'completed'; },
+                            getCurrentResult: function(){return taskResult; }
+                        }
+                        _params.doneCallback && _params.doneCallback(task, response.Result.properties.title);
+                    }
+                );
+            }
+            else
+            {
                 var dataSource = layerProperties.get('SourceType') === 'file' ? layerProperties.get('ShapePath').Path :  layerProperties.get('TableName');
                 var geometryDataSource = "&GeometryDataSource=" + encodeURIComponent(dataSource);
                         

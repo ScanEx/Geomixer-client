@@ -1,4 +1,5 @@
-﻿(function ($){
+﻿//Плагин для генерации КР по наборам sceneid снимков. Использует поиск по всем растровым слоям.
+(function ($){
 
 var g_tagMetaInfo = null;
 
@@ -38,8 +39,6 @@ var findImagesBySceneIDs = function(sceneIDs, params)
         return "[sceneid]='" + id + "'"
     }).join(' OR ');
     
-    //$.each(sceneIDs, function(index, id) {results[id] = {status: 'missing'}});
-    
     var params = $.extend(_params.searchParams, {
         query: query, 
         WrapStyle: 'window', 
@@ -49,7 +48,6 @@ var findImagesBySceneIDs = function(sceneIDs, params)
     
     sendCrossDomainPostRequest(_params.serverBase + 'Layer/Search2.ashx', params, function(response)
     {
-        //console.log(response);
         if (!parseResponse(response))
         {
             deferred.reject();
@@ -114,15 +112,24 @@ var createRC = function(results, params)
     
     var fieldIdx = 0;
     var ColumnTagLinks = {}
+    
+    var sourceColumns = [];
+    
     $.each(tagTypes, function(id, type)
     {
         ColumnTagLinks[id] = id; //названия атрибутов будут совпадать с названиями тегов слоёв
-        requestParams['fieldName' + fieldIdx] = id;
-        requestParams['fieldType' + fieldIdx] = type;
-        fieldIdx++;
+        sourceColumns.push({
+            Name: id, 
+            ColumnSimpleType: type,
+            IsPrimary: false, 
+            IsIdentity: false, 
+            IsComputed: false
+        });
     })
     
-    requestParams.FieldsCount = fieldIdx;
+    requestParams.Columns = JSON.stringify(sourceColumns);
+    
+    
     requestParams.ColumnTagLinks = JSON.stringify(ColumnTagLinks);
     
     sendCrossDomainPostRequest(_params.serverBase + "VectorLayer/CreateVectorLayer.ashx", requestParams, function(response)

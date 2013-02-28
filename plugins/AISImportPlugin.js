@@ -1,6 +1,8 @@
-﻿(function()
+﻿//Плагин для импорта csv файлов из системы AIS в Геомиксер. 
+//Просто перетаскиваешь файл на левую панель - получается слой в дереве слоёв со всеми точками судов
+(function()
 {
-    var addDataToLayer = function(layerName, data, headers)
+    var addDataToLayer = function(map, layerName, data, headers)
     {
         //add data
         var objs = [];
@@ -122,25 +124,33 @@
             WrapStyle: 'window',
             Title: name,
             MapName: mapProperties.name,
-            geometrytype: 'POINT',
-            FieldsCount: pd.headers.length
+            geometrytype: 'POINT'
         }
         
+        var sourceColumns = [];
+        
         for (var k = 0; k < pd.headers.length; k++) {
-            requestParams["fieldName" + k] = pd.headers[k];
-            requestParams["fieldType" + k] = 'string';
+            sourceColumns.push({
+                Name: pd.headers[k], 
+                ColumnSimpleType: 'String',
+                IsPrimary: false, 
+                IsIdentity: false, 
+                IsComputed: false
+            });
         }
         
         if (pd.type === 'archive')
         {
-            requestParams['fieldType3'] = 'datetime';
+            sourceColumns[3].ColumnSimpleType = 'DateTime'
             if (createTemporal)
             {
                 requestParams.TemporalLayer = 'true';
-                requestParams.TemporalColumnName = requestParams['fieldName3'];
+                requestParams.TemporalColumnName = sourceColumns[3].Name;
                 requestParams.TemporalPeriods = '1,4,16,64';
             }
         }
+        
+        requestParams.Columns = JSON.stringify(sourceColumns);
         
         sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", 
             requestParams,
@@ -163,7 +173,7 @@
                 
                 _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
                 
-                addDataToLayer(gmxProperties.content.properties.name, pd.data, pd.headers);
+                addDataToLayer(map, gmxProperties.content.properties.name, pd.data, pd.headers);
             }
         )
     }
@@ -181,7 +191,7 @@
         var pd = parseData(csvtext);
         var layerName = active[0].parentNode.gmxProperties.content.properties.name;
         
-        addDataToLayer(layerName, pd.data, pd.headers);
+        addDataToLayer(map, layerName, pd.data, pd.headers);
     }
     
     var publicInterface = {
