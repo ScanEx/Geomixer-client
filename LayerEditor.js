@@ -1,13 +1,6 @@
 ﻿//Создание интерфейса редактирования свойств слоя
 !function($){
 
-var ColumnsModel = Backbone.Model.extend({
-    defaults: {
-        XCol: null,
-        YCol: null
-    }
-});
-
 /** Виджет для выбора полей для X и Y координат из списка полей
 * @function
 * @param parent {DOMElement} - контейнер для размещения виджета
@@ -267,72 +260,6 @@ var ManualAttrView = function()
     }
 };
 
-var LayerProperties = Backbone.Model.extend({
-    initialize: function(type, divProperties, layerProperties) {
-        if (!divProperties && !layerProperties) {
-            this.attributes = nsGmx._.clone(type);
-            return;
-        }
-            
-        this.set({
-            Type:           type,
-            Title:          divProperties ? (divProperties.title || '') : (layerProperties.Title || ''),
-            Copyright:      divProperties ? (divProperties.Copyright || '') : (layerProperties.Copyright || ''),
-            Legend:         divProperties ? (divProperties.Legend || '') : (layerProperties.Legend || ''),
-            Description:    divProperties ? (divProperties.description || '') : (layerProperties.Description || ''),
-            NameObject:     divProperties ? (divProperties.NameObject || '') : (layerProperties.NameObject || ''),
-            AllowSearch:    divProperties ? (divProperties.AllowSearch || false) : (layerProperties.AllowSearch || false),
-            GeometryType:   divProperties.GeometryType,
-            LayerID:        divProperties.LayerID,
-            MetaProperties: layerProperties.MetaProperties || {},
-            ShapePath:      layerProperties.ShapePath || {},
-            TilePath:       layerProperties.TilePath || {},
-            Name:           layerProperties.name,
-            EncodeSource:   layerProperties.EncodeSource,
-            SourceColumns:  layerProperties.SourceColumns,
-            TableName:      layerProperties.TableName,
-            TableCS:        layerProperties.TableCS,
-            SourceType:     layerProperties.SourceType || 'file',
-            Geometry:       layerProperties.Geometry,
-            
-            Attributes:     divProperties.attributes,
-            AttrTypes:      divProperties.attrTypes,
-            
-            UserAttr:              null,
-            MetaPropertiesEditing: null
-        })
-        
-        this.set('RC', new nsGmx.LayerRCProperties({
-            IsRasterCatalog:      divProperties.IsRasterCatalog,
-            RCMinZoomForRasters:  layerProperties.RCMinZoomForRasters,
-            RCMaskForRasterTitle: layerProperties.RCMaskForRasterTitle,
-            RCMaskForRasterPath:  layerProperties.RCMaskForRasterPath,
-            ColumnTagLinks:       layerProperties.ColumnTagLinks
-        }));
-        
-        var tempPeriods = divProperties.TemporalPeriods;
-        this.set('Temporal', new nsGmx.TemporalLayerParams({
-            isTemporal: !!divProperties.Temporal,
-            minPeriod: tempPeriods && tempPeriods[0],
-            maxPeriod: tempPeriods && tempPeriods[tempPeriods.length-1],
-            columnName: divProperties.TemporalColumnName
-        }));
-        
-        this.set('SelectedColumns', new ColumnsModel({
-            XCol: layerProperties.GeometryXCol,
-            YCol: layerProperties.GeometryYCol
-        }));
-        
-        if (type !== 'Vector') {
-            this.set("Legend", divProperties ? (divProperties.Legend || '') : (layerProperties.Legend || ''));
-        }
-        
-        if (layerProperties.Name) {
-            this.set("Name", layerProperties.Name);
-        }
-    }
-})
-
 var createPageMain = function(parent, layerProperties) {
 
     var title = _input(null,[['attr','fieldName','title'],['attr','value',layerProperties.get('Title')],['dir','className','inputStyle'],['css','width','220px']]);
@@ -410,6 +337,7 @@ var createPageMain = function(parent, layerProperties) {
 }
 
 var createPageVectorSource = function(layerProperties) {
+    var ColumnsModel = new gmxCore.getModule('LayerProperties').ColumnsModel;
     var shownProperties = [];
     var layerName = layerProperties.get('Name');
     
@@ -991,17 +919,17 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     
     this.getTabs = function() {
         return tabs;
-                }
+    }
     
     this.getSaveButton = function() {
         return saveButton;
-            }
+    }
     
     this.done = function(callback) {
         callback();
-        }
+    }
         
-    var layerProperties = new LayerProperties(type, divProperties, properties);
+    var layerProperties = new nsGmx.LayerProperties(type, divProperties, properties);
     var origLayerProperties = layerProperties.clone();
                     
     var mainContainer = _div();
@@ -1014,9 +942,9 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     
     if (type === 'Vector') {
         //createPageVectorSource(sourceContainer, layerProperties);
-        createPageAdvanced(advancedContainer, layerProperties);
-    // } else {
-        //createPageRasterSource(sourceContainer, layerProperties);
+            createPageAdvanced(advancedContainer, layerProperties);
+        // } else {
+            //createPageRasterSource(sourceContainer, layerProperties);
     }
     
     tabs.push({title: 'Общие', name: 'main', container: mainContainer});
@@ -1025,9 +953,9 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     
     if (type === 'Vector') {
         tabs.push({title: 'Дополнительно', name: 'advanced', container: advancedContainer});
-        }
+    }
         
-            var saveButton = makeLinkButton(div ? _gtxt("Изменить") : _gtxt("Создать"));
+    var saveButton = makeLinkButton(div ? _gtxt("Изменить") : _gtxt("Создать"));
             
     if (div) {
         layerProperties.on({
@@ -1075,85 +1003,27 @@ var LayerEditor = function(div, type, properties, treeView, params) {
                 }
                 
     saveButton.onclick = function() {
-        var mapProperties = _layersTree.treeModel.getMapProperties();
-                var metaProperties = {};
-        var layerTags = layerProperties.get('MetaPropertiesEditing');
-                layerTags.eachValid(function(id, tag, value)
-                {
-                    var type = layerTags.getTagMetaInfo().getTagType(tag);
-                    var value = nsGmx.Utils.convertToServer(type, value);
-                    if (value !== null)
-                        metaProperties[tag] = {Value: value, Type: type};
-                })
+        var name = layerProperties.get('Name'),
+            curBorder = _mapHelper.drawingBorders.get(name),
+            oldDrawing = origLayerProperties.get('Geometry'),
+            needRetiling = false;
+        
+        // если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
+        if (layerProperties.get('ShapePath').Path != origLayerProperties.get('ShapePath').Path ||
+            layerProperties.get('TilePath').Path != origLayerProperties.get('TilePath').Path ||
+            oldDrawing && typeof curBorder != 'undefined' && JSON.stringify(curBorder.getGeometry()) != JSON.stringify(from_merc_geometry(oldDrawing)) ||
+            !oldDrawing && typeof curBorder != 'undefined' ||
+            oldDrawing && typeof curBorder == 'undefined')
+        {
+            needRetiling = true;
+        }
+        layerProperties.save(needRetiling, function(response) {
+            var mapProperties = _layersTree.treeModel.getMapProperties(),
+                layerTitle = layerProperties.get('Title');
                 
-                var metadataString = '&MetaProperties=' + encodeURIComponent(JSON.stringify(metaProperties));
-                
-        if (layerProperties.get('Type') === 'Vector') {
-                    var cols = '',
-                        updateParams = '',
-                encoding = layerProperties.get('EncodeSource') ? '&EncodeSource=' + encodeURIComponent(layerProperties.get('EncodeSource')) : '',
-                layerTitle = layerProperties.get('Title'),
-                        temporalParams = '',
-                tableCSParam = layerProperties.get('SourceType') === 'table' ? '&TableCS=' + encodeURIComponent(layerProperties.get('TableCS')) : '',
-                        RCParams = '',
-                nameObjectParams = layerProperties.get('NameObject') ? '&NameObject=' + encodeURIComponent(layerProperties.get('NameObject')) : '';
-                    
-            rcProps = layerProperties.get('RC');
-                        
-            if (rcProps.get('IsRasterCatalog'))
-                    {
-                        RCParams = '&IsRasterCatalog=true';
-                RCParams += '&RCMinZoomForRasters=' + encodeURIComponent(rcProps.get('RCMinZoomForRasters'));
-                RCParams += '&RCMaskForRasterPath=' + encodeURIComponent(rcProps.get('RCMaskForRasterPath'));
-                RCParams += '&RCMaskForRasterTitle=' + encodeURIComponent(rcProps.get('RCMaskForRasterTitle'));
-                RCParams += '&ColumnTagLinks=' + encodeURIComponent(JSON.stringify(rcProps.get('ColumnTagLinks')));
-                    }
-                    else
-                    {
-                        RCParams = '&IsRasterCatalog=false';
-                    }
-                    
-            var tempProperties = layerProperties.get('Temporal');
-            if ( tempProperties.get('isTemporal') && tempProperties.get('columnName') )
-                temporalParams = '&TemporalLayer=true'
-                      + '&TemporalColumnName=' + encodeURIComponent(tempProperties.get('columnName'))
-                      + '&TemporalPeriods=' + encodeURIComponent(tempProperties.getPeriodString());
-                    else
-                        temporalParams = '&TemporalLayer=false';
-                    
-            var selectedColumns = layerProperties.get('SelectedColumns');
-            if (selectedColumns.get('XCol') && selectedColumns.get('YCol')) {
-                cols = '&ColY=' + encodeURIComponent(selectedColumns.get('YCol')) 
-                     + '&ColX=' + encodeURIComponent(selectedColumns.get('XCol'));
-            }
-                    
-            if (layerProperties.get('LayerID'))
-            {
-                updateParams = '&VectorLayerID=' + layerProperties.get('LayerID');
-            }
-                    
-            if (!layerProperties.get('Name') && layerProperties.get('SourceType') === 'manual')
-            {
-                var sourceColumns = layerProperties.get('SourceColumns');
-                columnsString = "&Columns=" + encodeURIComponent(JSON.stringify(sourceColumns));
-
-                var geomType = layerProperties.get('GeometryType');
-                        
-                sendCrossDomainJSONRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx?WrapStyle=func" + 
-                    "&Title=" + encodeURIComponent(layerProperties.get('Title')) + 
-                    "&Copyright=" + encodeURIComponent(layerProperties.get('Copyright')) + 
-                    "&Description=" + encodeURIComponent(layerProperties.get('Description')) + 
-                    "&MapName=" + encodeURIComponent(mapProperties.name) + 
-                    columnsString + temporalParams +
-                    "&geometrytype=" + geomType +
-                    metadataString +
-                    RCParams + nameObjectParams, 
-                    function(response)
-                    {
-                        if (!parseResponse(response))
-                            return;
-                        
-                        if (_params.addToMap)
+            if (layerProperties.get('Type') === 'Vector') {
+                if (!name && layerProperties.get('SourceType') === 'manual') {
+                    if (_params.addToMap)
                         {
                             var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
                             var gmxProperties = {type: 'layer', content: response.Result};
@@ -1179,103 +1049,37 @@ var LayerEditor = function(div, type, properties, treeView, params) {
                             getCurrentResult: function(){return taskResult; }
                         }
                         _params.doneCallback && _params.doneCallback(task, response.Result.properties.title);
-                    }
-                );
-            }
-            else
-            {
-                var dataSource = layerProperties.get('SourceType') === 'file' ? layerProperties.get('ShapePath').Path :  layerProperties.get('TableName');
-                var geometryDataSource = "&GeometryDataSource=" + encodeURIComponent(dataSource);
-                        
-                sendCrossDomainJSONRequest(serverBase + "VectorLayer/" + (layerProperties.get('Name') ? "Update.ashx" : "Insert.ashx") + "?WrapStyle=func" + 
-                    "&Title=" + encodeURIComponent(layerProperties.get('Title')) + 
-                    "&Copyright=" + encodeURIComponent(layerProperties.get('Copyright')) + 
-                    "&Description=" + encodeURIComponent(layerProperties.get('Description')) + 
-                            geometryDataSource + 
-                            "&MapName=" + encodeURIComponent(mapProperties.name) + 
-                            cols + updateParams + encoding + temporalParams + metadataString + tableCSParam + RCParams + nameObjectParams, 
-                            function(response)
-                            {
-                                if (!parseResponse(response))
-                                    return;
-                            
-                                
-                        var task = nsGmx.asyncTaskManager.addTask(response.Result, layerProperties.get('Name') || null);
-                                
-                                
-                        if (layerProperties.get('Name'))
-                                {
-                                    _queryMapLayers.asyncUpdateLayer(task, properties, true);
-                                }
-                                else 
-                                {
-                                    if (_params.addToMap)
-                                        _queryMapLayers.asyncCreateLayer(task, layerTitle);
-                                }
-                                
-                                _params.doneCallback && _params.doneCallback(task, layerTitle);
-                            }
-                        )
-                    }
-        } else {
-            var name = layerProperties.get('Name');
-            var params = {
-                    WrapStyle: "window",
-                    Title: layerProperties.get('Title'),
-                    Copyright: layerProperties.get('Copyright'),
-                    Legend: layerProperties.get('Legend'),
-                    Description: layerProperties.get('Description'),
-                    TilePath: layerProperties.get('TilePath').Path,
-                    BorderFile: typeof _mapHelper.drawingBorders.get(name) == 'undefined' ? (layerProperties.get('ShapePath').Path || '') : '',
-                    BorderGeometry: typeof _mapHelper.drawingBorders.get(name) == 'undefined' ? '' : JSON.stringify(merc_geometry(_mapHelper.drawingBorders.get(name).geometry)),
-                    MapName: mapProperties.name,
-                    MetaProperties: JSON.stringify(metaProperties)
-                },
-                needRetiling = false,
-                layerTitle = layerProperties.get('Title');
-            
-            if (name)
-            {
-                params["RasterLayerID"] = layerProperties.get('LayerID');
-                
-                // var oldShapePath = properties.ShapePath.Path,
-                    // oldTilePath = properties.TilePath.Path,
-                var oldDrawing = origLayerProperties.get('Geometry');
-                
-                // если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
-                if (layerProperties.get('ShapePath').Path != origLayerProperties.get('ShapePath').Path ||
-                    layerProperties.get('TilePath').Path != origLayerProperties.get('TilePath').Path ||
-                    oldDrawing && typeof _mapHelper.drawingBorders.get(name) != 'undefined' 
-                        && JSON.stringify(_mapHelper.drawingBorders.get(name).getGeometry()) != JSON.stringify(from_merc_geometry(oldDrawing)) ||
-                    !oldDrawing && typeof _mapHelper.drawingBorders.get(name) != 'undefined' ||
-                    oldDrawing && typeof _mapHelper.drawingBorders.get(name) == 'undefined') {
-                    
-                    needRetiling = true;
-                }
-            }
-            
-            params["GeometryChanged"] = needRetiling;
-            
-            sendCrossDomainPostRequest(serverBase + "RasterLayer/" + (name ? "Update.ashx" : "Insert.ashx"), params, function(response)
-                {
-                    if (!parseResponse(response))
-                        return;
-                
+                } else {
                     var task = nsGmx.asyncTaskManager.addTask(response.Result, name || null);
-                    
+                            
                     if (name)
                     {
-                        _queryMapLayers.asyncUpdateLayer(task, properties, needRetiling);
+                        _queryMapLayers.asyncUpdateLayer(task, properties, true);
                     }
-                else
-                {
+                    else 
+                    {
                         if (_params.addToMap)
                             _queryMapLayers.asyncCreateLayer(task, layerTitle);
                     }
                     
                     _params.doneCallback && _params.doneCallback(task, layerTitle);
-                })
-        }
+                }
+            } else {
+                var task = nsGmx.asyncTaskManager.addTask(response.Result, name || null);
+                
+                if (name)
+                {
+                    _queryMapLayers.asyncUpdateLayer(task, properties, needRetiling);
+                }
+                else
+                {
+                    if (_params.addToMap)
+                        _queryMapLayers.asyncCreateLayer(task, layerTitle);
+                }
+                
+                _params.doneCallback && _params.doneCallback(task, layerTitle);
+            }
+        });
     }
 }
 
@@ -1343,151 +1147,16 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
     })
     
     return;
-    
-    //--------------------------
-    //--------------------------
-    //--------------------------
-                    
-    nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
-    {
-        var advancedCollapsable;
-        
-        shownProperties.push({tr:_tr([_td([collapsableTagsParent], [['attr', 'colSpan', 2]])])});
-            
-        var trs = _mapHelper.createPropertiesTable(shownProperties, properties, {leftWidth: 70});
-        _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
-        
-        if (advancedCollapsable)
-        {
-            advancedCollapsable.addManagedElements($('.layer-advanved-options', parent));
-        }
-        
-        // в IE инициализировать чекбоксы можно только после их добавления в DOM-дерево
-        $('input#chxFileSource', sourceCheckbox).attr('checked', 'checked');
-        
-        // смотрим, а не выполняются ли для этого слоя задачи
-        var haveTask = false;
-        if (div)
-        {
-            for (var id in _mapHelper.asyncTasks)
-                if (_mapHelper.asyncTasks[id] == divProperties.name)
-                {
-                    haveTask = true;
-                    
-                    break;		
-                }
-        }
-        
-        if (!haveTask)
-        {
-            var saveButton = makeLinkButton(div ? _gtxt("Изменить") : _gtxt("Создать"));
-            
-            saveButton.style.marginLeft = '10px';
-            
-            saveButton.onclick = function()
-            {
-                var mapProperties = _layersTree.treeModel.getMapProperties();
-                var isCustomAttributes = type === "Vector" && selectedSource === 2;
-                var errorFlag = false,
-                    checkFields = (type == "Vector" ? ['title', 'date'] : ['title', 'date']);
-                    
-                if (!isCustomAttributes)
-                if (type !== "Vector")
-                    checkFields.push('TilePath.Path');
-                else if (selectedSource == 0)
-                    checkFields.push('ShapePath.Path');
-                else if (selectedSource == 1)
-                    checkFields.push('TableName');
-                    
-                for (var i = 0; i < checkFields.length; i++)
-                {
-                    var inputField = $(parent).find("[fieldName='" + checkFields[i] + "']");
-                    
-                    if (inputField.length && inputField[0].value == '')
-                    {
-                        errorFlag = true;
-                        inputError(inputField[0], 2000);
-                    }
-                }
-                
-                if (errorFlag)
-                    return;
-                
-                if (type == "Vector")
-                {
-                    
-                }
-                else
-                {
-                    var params = {
-                            WrapStyle: "window",
-                            Title: title.value,
-                            Copyright: copyright.value,
-                            Legend: legend.value,
-                            Description: descr.value,
-                            TilePath: $(parent).find("[fieldName='TilePath.Path']")[0].value,
-                            BorderFile: typeof _mapHelper.drawingBorders.get(properties.Name) == 'undefined' ? $(parent).find("[fieldName='ShapePath.Path']")[0].value : '',
-                            BorderGeometry: typeof _mapHelper.drawingBorders.get(properties.Name) == 'undefined' ? '' : JSON.stringify(merc_geometry(_mapHelper.drawingBorders.get(properties.Name).geometry)),
-                            MapName: mapProperties.name,
-                            MetaProperties: JSON.stringify(metaProperties)
-                        },
-                        needRetiling = false,
-                        layerTitle = title.value;
-                    
-                    if (div)
-                    {
-                        params["RasterLayerID"] = divProperties.LayerID;
-                        
-                        var oldShapePath = properties.ShapePath.Path,
-                            oldTilePath = properties.TilePath.Path,
-                            oldDrawing = properties.ShapePath.Geometry;
-                        
-                        // если изменились поля с геометрией, то нужно тайлить заново и перегрузить слой в карте
-                        if ($(parent).find("[fieldName='ShapePath.Path']")[0].value != oldShapePath ||
-                            $(parent).find("[fieldName='TilePath.Path']")[0].value != oldTilePath ||
-                            oldDrawing && typeof _mapHelper.drawingBorders.get(properties.Name) != 'undefined' && JSON.stringify(_mapHelper.drawingBorders.get(properties.Name)) != JSON.stringify(oldDrawing) ||
-                            !oldDrawing && typeof _mapHelper.drawingBorders.get(properties.Name) != 'undefined' ||
-                            oldDrawing && typeof _mapHelper.drawingBorders.get(properties.Name) == 'undefined')
-                            needRetiling = true;
-                    }
-                    
-                    params["GeometryChanged"] = needRetiling;
-                    
-                    sendCrossDomainPostRequest(serverBase + "RasterLayer/" + (!div ? "Insert.ashx" : "Update.ashx"), params, function(response)
-                        {
-                            if (!parseResponse(response))
-                                return;
-                        
-                            var task = nsGmx.asyncTaskManager.addTask(response.Result, div ? divProperties.name : null);
-                            
-                            if (div)
-                            {
-                                _queryMapLayers.asyncUpdateLayer(task, properties, needRetiling);
-                            }
-                            else
-                            {
-                                if (_params.addToMap)
-                                    _queryMapLayers.asyncCreateLayer(task, layerTitle);
-                            }
-                            
-                            _params.doneCallback && _params.doneCallback(task, layerTitle);
-                        })
-                }
-            }
-            
-            _(parent, [_div([saveButton], [['css','paddingTop','10px']])])
-        }
-        
-        if (!div)
-            title.focus();
-    })
 }
 
 nsGmx.LayerEditor = LayerEditor;
 
 gmxCore.addModule('LayerEditor', {
-    createLayerEditorProperties: createLayerEditorProperties,
-    LayerEditor: LayerEditor
-})
+        createLayerEditorProperties: createLayerEditorProperties,
+        LayerEditor: LayerEditor
+    }, {
+        require: ['LayerProperties']
+    }
+)
     
 }(jQuery)
