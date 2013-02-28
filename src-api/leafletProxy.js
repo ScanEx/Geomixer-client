@@ -96,18 +96,16 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				};
 				gmxAPI._listeners.dispatchEvent(eType, gmxNode, ph);
 			};
+			// todo drag без лефлета
 			if(node['leaflet'].dragging) {
-				node['leaflet'].on('dragstart', function(e){chkDrag('dragstart', e);});	// dragstart на обьекте
+				node['leaflet'].on('dragstart', function(e){node['onDrag'] = true; chkDrag('dragstart', e);});	// dragstart на обьекте
 				node['leaflet'].on('drag', function(e){chkDrag('drag', e);});			// Drag на обьекте
-				node['leaflet'].on('dragend', function(e){chkDrag('dragend', e);});		// dragend на обьекте
+				node['leaflet'].on('dragend', function(e){node['onDrag'] = false; chkDrag('dragend', e);});		// dragend на обьекте
 				node['leaflet'].dragging.enable();
 				node['leaflet'].options['_isHandlers'] = true;
 				node['leaflet'].options['dragging'] = true;
 				node['leaflet'].update();
 			} else {
-				node['leaflet'].on('mouseover', function(e) { LMap.dragging.disable(); gmxAPI._leaflet['activeObject'] = node.id; });
-				node['leaflet'].on('mouseout', function(e) { LMap.dragging.enable(); gmxAPI._leaflet['activeObject'] = null; });
-			
 				node['dragMe'] = function(e) {		// dragstart на обьекте
 					chkDrag('dragstart', e);
 					gmxAPI._leaflet['curDragState'] = true;
@@ -124,6 +122,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					});
 				};
 				node['leaflet'].on('mousedown', node['dragMe']);		// dragstart на обьекте
+				node['leaflet'].on('mouseover', function(e) { LMap.dragging.disable(); gmxAPI._leaflet['activeObject'] = node.id; });
+				node['leaflet'].on('mouseout', function(e) { LMap.dragging.enable(); gmxAPI._leaflet['activeObject'] = null; });
 			}
 		}
 		,
@@ -755,7 +755,12 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 							//node['leaflet']._isVisible = false;
 							if(node['leaflet']) {
 								utils.setVisibleNode({'obj': node, 'attr': true});
-								if(node['dragging']) utils.startDrag(node);
+								if(node['dragging']) {	// todo drag без лефлета
+									//if(node['geometry']&& node['geometry']['type'] == 'Point') {
+										//node['leaflet']['options']['_isHandlers'] = true;
+									//}
+									utils.startDrag(node);
+								}
 								setNodeHandlers(node.id);
 							}
 						}
@@ -942,24 +947,11 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		}
 		,
 		'parseGeometry': function(geo, boundsFlag)	{			// перевод геометрии Scanex->leaflet
-			var pt = gmxAPI.transformGeometry(geo, function(it){return it;}, function(it){return it;});
-			if(boundsFlag) {
-				//var bounds = new L.LatLngBounds(p1, p2);
+			if(geo['type'] === 'LINESTRING' && geo['coordinates'].length === 2) {
+				geo['coordinates'] = [geo['coordinates']];
 			}
-			if(geo['type'] === 'LINESTRING') geo['coordinates'] = [geo['coordinates']];
+			var pt = gmxAPI.transformGeometry(geo, function(it){return it;}, function(it){return it;});
 			pt.type = utils.fromScanexTypeGeo(pt.type);
-			/*
-			if(type) pt['type'] = type;
-			if(type === 'MULTIPOLYGON') 			pt['type'] = 'MultiPolygon';
-			else if(type === 'POLYGON')				{ pt['type'] = 'Polygon'; utils.chkPolygon(pt); }
-			else if(type === 'MultiPoint')			pt['type'] = 'MultiPoint';
-			else if(type === 'POINT')				pt['type'] = 'Point';
-			else if(type === 'MULTILINESTRING')		pt['type'] = 'MultiPolyline';
-			else if(type === 'LINESTRING')			pt['type'] = 'Polyline';
-			else if(type === 'GeometryCollection')	pt['type'] = 'GeometryCollection';
-			//var geojson = new L.GeoJSON();
-			//geojson.addGeoJSON(pt);
-			*/
 			return pt;
 		}
 		,
@@ -1821,6 +1813,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				node['geometry'] = geo;
 				if(node['type'] === 'RasterLayer') node['chkGeometry']();
 				if(node['geometry']['type']) {
+					if(node['onDrag'] && node['leaflet'] && node['leaflet'].dragging) {
+						// dragging лефлетовский
+						return;
+					}
 					gmxAPI._leaflet['drawManager'].add(id);			// добавим в менеджер отрисовки
 					if(node['leaflet']) setHandlerObject(id);
 				}
@@ -3164,14 +3160,17 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 					var p1 = pArr[j];
 					var px1 = p1.x * mInPixel - x; 		px1 = (0.5 + px1) << 0;
 					var py1 = y - p1.y * mInPixel;		py1 = (0.5 + py1) << 0;
-					if(lineIsOnEdge || j == 0)
+					if(lineIsOnEdge || j == 0) {
 						ctx.moveTo(px1, py1);
-					else
+					}
+					else {
 						ctx.lineTo(px1, py1);
+					}
 				}
 			}
 			//ctx.closePath();
 			ctx.stroke();
+			//if(attr.style.fill) ctx.fill();
 
 			var style = attr['style'];
 			if(style['label']) {
@@ -3356,7 +3355,7 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 			}
 			return cnt;		// количество отрисованных точек в геометрии
 		}
-		
+
 		// Проверка принадлежности точки MultiPolygonGeometry
 		out['contains'] = function (chkPoint) {
 			for (var i = 0; i < members.length; i++)

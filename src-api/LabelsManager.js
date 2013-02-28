@@ -21,7 +21,7 @@
 		var haloColor = style['label']['haloColor'] || 0;
 		var out = {
 			'size': size
-			,'align': style['label']['align'] || 'center'
+			,'align': style['label']['align'] || 'left'
 			,'font': size + 'px "Arial"'
 			,'strokeStyle': gmxAPI._leaflet['utils'].dec2rgba(haloColor, 1)
 			,'fillStyle': gmxAPI._leaflet['utils'].dec2rgba(fillStyle, 1)
@@ -100,12 +100,12 @@
 			var align = item['style']['align'];
 			var dx = item['sx']/2 + 1;
 			var dy = item['sy']/2 - 1 - contPoint.y;
-			if(!align) align = 'center';
+			//if(!align) align = 'center';
 			
 			if(align == 'right') {
 				dx -= (item.extent.x + item['style']['size']);
 			} else if(align == 'center') {
-				dx -= item.extent.x/2;
+				dx = -item.extent.x/2;
 				dy += item.extent.y/2;
 			}
 

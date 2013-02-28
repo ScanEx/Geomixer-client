@@ -530,8 +530,11 @@
 				if(!node['hoverItem'] || node['hoverItem'].geom.id != itemId) {
 					var tilesNeed = {};
 					if(node['hoverItem']) {
-						tilesNeed = gmxAPI.clone(node['hoverItem'].geom.propHiden['drawInTiles'][zoom]);
-						if(!tilesNeed) tilesNeed = {};
+						var drawInTiles = node['hoverItem'].geom.propHiden['drawInTiles'];
+						if(drawInTiles && drawInTiles[zoom]) {
+							tilesNeed = gmxAPI.clone(drawInTiles[zoom]);
+							//if(!tilesNeed) tilesNeed = {};
+						}
 					}
 					node['hoverItem'] = item;
 					//item.geom.curStyle = hoveredStyle;
