@@ -1319,6 +1319,13 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			}
 
 			var func = function(e) {
+				if(node.hoveredStyle) {
+					if(evName == 'onMouseOver') {
+						node['leaflet'].setStyle(node.hoveredStyle);
+					} else if(evName == 'onMouseOut') {
+						node['leaflet'].setStyle(node.regularStyle);
+					}
+				}
 				gmxAPI._leaflet['activeObject'] = (evName == 'onMouseOut' ? null : id);
 				hNode['handlers'][evName](node['id'], node.geometry.properties, {'ev':e});
 			};
@@ -1467,11 +1474,15 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			//if(ph['setStyle']) tmp['setStyle'] = ph['setStyle'];
 			//if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
 			var aObj = new gmxAPI._FMO(id, prop, gmxAPI.mapNodes[parentId]);	// обычный MapObject
+			aObj.isVisible = true;
 			out.push(aObj);
 			// пополнение mapNodes
 			var currID = (aObj.objectId ? aObj.objectId : gmxAPI.newFlashMapId() + '_gen1');
 			gmxAPI.mapNodes[currID] = aObj;
 			if(aObj.parent) aObj.parent.childsID[currID] = true; 
+			if(ph['enableHoverBalloon']) {
+				aObj.enableHoverBalloon(ph['enableHoverBalloon']);
+			}
 		}
 		return out;
 	}
@@ -1991,6 +2002,7 @@ return;
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;						// Нода не была создана через addObject
+			gmxAPI._leaflet['LabelsManager'].remove(id);
 			if('remove' in node) {							// Имеется свой remove
 				node.remove(id);
 				removeNode(id);
