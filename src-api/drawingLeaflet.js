@@ -61,7 +61,7 @@
 			var pArr = coords[i];
 			var pBounds = getBoundsPoint(pArr[0] + dx, pArr[1]);
 			if(pBounds.contains(point)) {
-				out = {'type': 'node', 'cnt':i};
+				out = {'type': 'node', 'num':i};
 				break;
 			} else {
 				var x = pArr[0] + dx;
@@ -75,7 +75,7 @@
 				var dist = L.LineUtil.pointToSegmentDistance(p1, p2, point1);
 				if (dist < lineWidth)
 				{
-					out = {'type': 'edge', 'cnt':jj};
+					out = {'type': 'edge', 'num':jj};
 				}
 			}
 		}
@@ -120,7 +120,7 @@
 
 	var tmpPoint = null;
 	var styleStroke = {color: "#0000ff", weight: lineWidth , opacity: 1};
-	var stylePoint = {color: "#0000ff", fill: true, fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1, 'pointSize': pointSize, skipLastPoint: true, skipSimplifyPoint: true, clickable: false};
+	var stylePoint = {color: "#0000ff", fill: true, fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1, 'pointSize': pointSize, skipLastPoint: true, skipSimplifyPoint: true, clickable: true};
 	var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
 
 	var drawSVG = function(attr)
@@ -149,32 +149,21 @@
 			layerItems[0]._container.style.pointerEvents = 'painted';
 			layerItems[1]._container.style.pointerEvents = 'painted';
 
-			layerItems[0].on('mousedown', function(e) {
-				attr['mousedown'](e, {'num':0, 'type':'edge'});
-				}
-			, this);
-			
-			L.DomEvent.on(layerItems[1]._container, 'mouseover', function(e) {
-				e.latlng = gmxAPI._leaflet['LMap'].mouseEventToLatLng(e);
-				layerGroup.fire('mouseover', e);
-			}, this);
-
-			L.DomEvent.on(layerItems[1]._container, 'mouseout', function(e) {
-				e.latlng = gmxAPI._leaflet['LMap'].mouseEventToLatLng(e);
-				layerGroup.fire('mouseout', e);
-			}, this);
-
 			var lastClick = 0;
-			layerItems[1]._container.onmousedown = function(e) {
-				e.latlng = gmxAPI._leaflet['LMap'].mouseEventToLatLng(e);
-				var pDown = new Date().getTime();
-				if(attr['dblclick'] && pDown - lastClick < 500) {
+			layerItems[0].on('mousedown', function(e) {
+				var downType = getDownType(e, attr['coords'], dBounds);
+				var ph = downType || {'num':0, 'type':'edge'};
+				attr['mousedown'](e, ph);
+			}, this);
+
+			layerItems[1].on('mousedown', function(e) {
+				attr['mousedown'](e, {'num':0, 'type':'node'});
+			}, this);
+			layerItems[1].on('dblclick', function(e) {
+				if(attr['dblclick']) {
 					attr['dblclick'](e, this);
-				} else {
-					attr['mousedown'](e, {'num':0, 'type':'node'});
 				}
-				lastClick = pDown;
-			};
+			}, this);
 		}
 		layerGroup.bringToFront();
 		
@@ -831,7 +820,7 @@
 				if(downType.type !== 'node') return;
 				var len = coords.length - 1;
 				if(editType === 'POLYGON') {
-					if(downType.cnt == 0 && len > 0) {
+					if(downType.num == 0 && len > 0) {
 						coords[len][0] = coords[1][0];
 						coords[len][1] = coords[1][1];
 					}
@@ -842,7 +831,7 @@
 				if(len == 0) {
 					domObj.remove();
 				} else {
-					coords.splice(downType.cnt, 1);
+					coords.splice(downType.num, 1);
 					drawAttr['coords'] = coords;
 					drawSVG(drawAttr);
 				}
@@ -974,7 +963,7 @@
 			var downType = getDownType(ph, coords, oBounds);
 			//console.log('itemMouseDown:  ', ph.latlng.lng, x);
 			if('type' in downType) {
-				editIndex = downType['cnt'];
+				editIndex = downType['num'];
 				if(downType['type'] === 'node') {
 					if(coords[editIndex][0] > 0 && x < 0) x += 360;
 					coords[editIndex] = [x, y];
@@ -1053,7 +1042,7 @@
 				//if(!itemMouseDownID) itemMouseDownID = obj.addListener('onMouseDown', itemMouseDown);
 				var title = '';
 				if(!mousePressed) {
-					var ii = downType['cnt'];
+					var ii = downType['num'];
 					if(downType['type'] === 'node') {
 						if(editType === 'LINESTRING') {
 							title = gmxAPI.prettifyDistance(gmxAPI.geoLength({ type: "LINESTRING", coordinates: [coords.slice(0,ii+1)] }));
@@ -1210,6 +1199,11 @@
 			drawAttr['layerItems'] = layerItems;
 			drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
 			drawAttr['node'] = node;
+			drawAttr['dblclick'] = function(e, attr)		// Удаление обьекта
+			{
+				ret.remove();
+			};
+			
 			drawSVG(drawAttr);
 		}
 		
@@ -1240,14 +1234,13 @@
 				gmxAPI._drawing['activeState'] = true;
 				if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 				if(!onMouseUpID) onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
+				var cnt = downType['num'];
 				if(downType['type'] == 'edge') {
-					var cnt = downType['cnt'];
 					if(cnt == 4) itemDownType = 'Left';
 					else if(cnt == 2) itemDownType = 'Right';
 					else if(cnt == 1) itemDownType = 'Top';
 					else if(cnt == 3) itemDownType = 'Bottom';
 				} else {
-					var cnt = downType['cnt'];
 					if(cnt == 0) itemDownType = 'TopLeft';
 					else if(cnt == 2) itemDownType = 'BottomRight';
 					else if(cnt == 1) itemDownType = 'TopRight';
@@ -1376,7 +1369,7 @@
 				if(gmxAPI.map.drawing.enabledHoverBalloon) {
 					var geom = { type: "POLYGON", coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] };
 					if(downType['type'] == 'edge') {
-						var cnt = downType['cnt'];
+						var cnt = downType['num'];
 						if(cnt == 4) geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x1, y2]]] };		// Left
 						else if(cnt == 2) geom = { type: "LINESTRING", coordinates: [[[x2, y1], [x2, y2]]] };	// Right
 						else if(cnt == 1) geom = { type: "LINESTRING", coordinates: [[[x1, y1], [x2, y1]]] };	// Top

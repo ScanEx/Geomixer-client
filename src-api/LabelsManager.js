@@ -41,7 +41,7 @@
 			'txt': txt
 			,'point': point
 			,'sx': 12
-			,'sy': 0
+			,'sy': 6
 			,'extent': gmxAPI._leaflet['utils'].getLabelSize(txt, style)
 			,'style': style
 			,'isVisible': true
@@ -105,7 +105,7 @@
 			if(align == 'right') {
 				dx -= (item.extent.x + item['style']['size']);
 			} else if(align == 'center') {
-				dx = -item.extent.x/2;
+				dx = -item.extent.x/2 + 1;
 				dy += item.extent.y/2;
 			}
 

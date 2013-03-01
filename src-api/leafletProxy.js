@@ -825,22 +825,14 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				
 				out = new L.GMXMarker(new L.LatLng(pos[1], pos[0]), optMarker);
 			} if(styleType === 'rectangle') {					// стиль rectangle
-				// create an orange rectangle from a LatLngBounds
-				var size = 5;
-				//var bounds = new L.LatLngBounds(new L.LatLng(pos[1] + size/2, pos[0] - size/2), new L.LatLng(pos[1] - size/2, pos[0] + size/2));
+				// create rectangle from a LatLngBounds
+				var size = style['size'] || 0;
 				var point = new L.LatLng(pos[1], pos[0]);
-				var pix = LMap.project(point);
-				var p1 = LMap.unproject(new L.Point(pix['x'] - size/2, pix['y'] + size/2));
-				var p2 = LMap.unproject(new L.Point(pix['x'] + size/2, pix['y'] - size/2));
-				
-				var bounds = new L.LatLngBounds(p1, p2);
-
-				out = new L.RectangleMarker(bounds, {
-					fillColor: "#ff7800",
-					color: "#000000",
-					opacity: 1,
-					weight: 2
-				});
+				style['skipSimplifyPoint'] = true;
+				style['skipLastPoint'] = true;
+				style['pointSize'] = size;
+				style['shiftWeight'] = true;
+				out = new L.GMXPointsMarkers([point, point], style);
 			}
 			if(style['label'] && node['label']) {
 				setLabel(node.id, null);
@@ -3873,19 +3865,21 @@ var tt = 1;
 				_getPathPartStr: function (points) {
 					var round = L.Path.VML;
 					var pointSize = this.options.pointSize || 5;
+					var weight = (this.options.shiftWeight ? this.options.weight || 1 : 0);
 
 					for (var j = 0, len2 = points.length - (this.options.skipLastPoint ? 1 : 0), str = '', p; j < len2; j++) {
 						p = points[j];
 						if (round) {
 							p._round();
 						}
-						str += 'M' + (p.x - pointSize) + ' ' + (p.y - pointSize);
-						str += 'L' + (p.x + pointSize) + ' ' + (p.y - pointSize);
-						str += 'L' + (p.x + pointSize) + ' ' + (p.y + pointSize);
-						str += 'L' + (p.x - pointSize) + ' ' + (p.y + pointSize);
-						str += 'L' + (p.x - pointSize) + ' ' + (p.y - pointSize);
-						//str += (j ? 'L' : 'M') + p.x + ' ' + p.y;
-					}
+						var px = p.x - 0;
+						var px1 = px - pointSize;
+						var px2 = px + pointSize;
+						var py = p.y + weight;
+						var py1 = py - pointSize;
+						var py2 = py + pointSize;
+						str += 'M' + px1 + ' ' + py1 + 'L' + px2 + ' ' + py1 + 'L' + px2 + ' ' + py2 + 'L' + px1 + ' ' + py2 + 'L' + px1 + ' ' + py1;
+						}
 					return str;
 				}
 				,

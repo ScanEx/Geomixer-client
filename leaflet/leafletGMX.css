@@ -1,3 +1,7 @@
+.leaflet-tile-container {
+	pointer-events: none;
+}
+
 .leaflet-overlay-pane svg {
 	pointer-events: none;
 /*	z-index: 1000;*/
