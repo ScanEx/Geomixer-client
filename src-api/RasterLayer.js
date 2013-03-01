@@ -18,9 +18,25 @@
 		node['isOverlay'] = false;
 		node['failedTiles'] = {};				// Hash тайлов 404
 
+		node.isVisible = gmxNode.isVisible; 
+
 		var inpAttr = ph.attr;
 		node['subType'] = ('subType' in inpAttr ? inpAttr['subType'] : (inpAttr['projectionCode'] === 1 ? 'OSM' : ''));
 		var attr = {};
+		if(!layer['geometry']) {						// Нет geometry
+			layer.mercGeometry = {
+				'type': "POLYGON"
+				,'coordinates': [[
+					[-20037500, -21133310]
+					,[-20037500, 21133310]
+					,[20037500, 21133310]
+					,[20037500, -21133310]
+					,[-20037500, -21133310]
+				]]
+			};
+			layer.geometry = gmxAPI.from_merc_geometry(layer.mercGeometry); 
+		}
+
 		if(!layer.mercGeometry && layer['geometry']) {						// Нет geometry в меркаторе
 			layer.mercGeometry = gmxAPI.merc_geometry(layer['geometry']);
 		}
@@ -66,7 +82,7 @@
 				waitRedraw();
 			}
 		};
-		if(node['geometry']) node['chkGeometry']();
+		if(node['geometry']['coordinates']) node['chkGeometry']();
 
 		var initCallback = function(obj) {			// инициализация leaflet слоя
 			if(obj._container) {
@@ -169,6 +185,7 @@
 		}
 		node['waitRedraw'] = waitRedraw;
 		if(layer.properties && layer.properties.visible != false) node.isVisible = true;
+		//chkVisible();
 
 		waitRedraw();
 		return out;
