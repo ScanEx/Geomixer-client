@@ -8149,7 +8149,7 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 
 	_animateZoomIfClose: function (center, zoom) {
 
-		if (this._animatingZoom) { return true; }
+//		if (this._animatingZoom) { return true; }	// OriginalSin
 
 		// offset is the pixel coords of the zoom origin relative to the current center
 		var scale = this.getZoomScale(zoom),
@@ -8262,7 +8262,7 @@ L.TileLayer.include({
 
 	_clearBgBuffer: function () {
 		var map = this._map;
-
+		if(!map) return;	// OriginalSin
 		if (!map._animatingZoom && !map.touchZoom._zooming) {
 			this._bgBuffer.innerHTML = '';
 			this._bgBuffer.style[L.DomUtil.TRANSFORM] = '';
