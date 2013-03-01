@@ -97,19 +97,6 @@ var createRC = function(results, params)
     
     var mapProperties = _layersTree.treeModel.getMapProperties();
     
-    var requestParams = {
-        WrapStyle: 'window',
-        Title: _params.title,
-        MapName: mapProperties.name,
-        geometrytype: 'POLYGON',
-        
-        IsRasterCatalog: true,
-        RCMinZoomForRasters: 10
-    }
-    
-    if (_params.userBorder)
-        requestParams.UserBorder = JSON.stringify(_params.userBorder);
-    
     var fieldIdx = 0;
     var ColumnTagLinks = {}
     
@@ -127,22 +114,47 @@ var createRC = function(results, params)
         });
     })
     
-    requestParams.Columns = JSON.stringify(sourceColumns);
+    var layerProperties = new nsGmx.LayerProperties({
+        Type: 'Vector',
+        Title: _params.title,
+        GeometryType: 'POLYGON',
+        SourceColumns: sourceColumns,
+        SourceType: 'manual',
+        RC: new nsGmx.LayerRCProperties({
+            IsRasterCatalog: true,
+            RCMinZoomForRasters:  10,
+            ColumnTagLinks: ColumnTagLinks
+        })
+    });
     
+    if (_params.userBorder) {
+        layerProperties.set('UserBorder', _params.userBorder);
+    }
     
-    requestParams.ColumnTagLinks = JSON.stringify(ColumnTagLinks);
+    layerProperties.save(false, function(response) {
     
-    sendCrossDomainPostRequest(_params.serverBase + "VectorLayer/CreateVectorLayer.ashx", requestParams, function(response)
-    {
-        if (!parseResponse(response))
-            return;
-            
         var newLayer = response.Result;
             
-        //добавляем в дерево слоёв
-        var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
+        //Добавляем на карту перед добавлением объектов, 
+        //чтобы обновление объектов на экране далее происходило автоматически.
+        if (_params.addToMap)
+        {
+            var gmxProperties = {type: 'layer', content: newLayer};
+            gmxProperties.content.properties.mapName = mapProperties.name;
+            gmxProperties.content.properties.hostName = mapProperties.hostName;
+            gmxProperties.content.properties.visible = true;
+            
+            gmxProperties.content.properties.styles = [{
+                MinZoom: gmxProperties.content.properties.VtMaxZoom, 
+                MaxZoom:21, 
+                RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
+            }];
+            
+            var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
+            _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+        }
         
-        //добавляем соответствующие объекты
+        //добавляем объекты в новый КР
         var objs = [];
         for (var sid in results)
         {
@@ -156,22 +168,6 @@ var createRC = function(results, params)
         
         _mapHelper.modifyObjectLayer(newLayer.properties.name, objs).done(function()
         {
-            if (_params.addToMap)
-            {
-                var gmxProperties = {type: 'layer', content: newLayer};
-                gmxProperties.content.properties.mapName = mapProperties.name;
-                gmxProperties.content.properties.hostName = mapProperties.hostName;
-                gmxProperties.content.properties.visible = true;
-                
-                gmxProperties.content.properties.styles = [{
-                    MinZoom: gmxProperties.content.properties.VtMaxZoom, 
-                    MaxZoom:21, 
-                    RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
-                }];
-                
-                _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
-            }
-            
             def.resolve(newLayer);
         })
     })
@@ -298,6 +294,9 @@ var publicInterface = {
     }
 }
 
-gmxCore.addModule("WMSSalesPlugin", publicInterface, { css:"WMSSalesPlugin.css" });
+gmxCore.addModule("WMSSalesPlugin", publicInterface, {
+    css:"WMSSalesPlugin.css",
+    require: ["LayerProperties"]
+});
 
 })(jQuery)

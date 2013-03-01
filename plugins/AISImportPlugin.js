@@ -117,15 +117,6 @@
     var createAISLayer = function(map, name, csvtext, createTemporal)
     {
         var pd = parseData(csvtext);
-
-        var mapProperties = _layersTree.treeModel.getMapProperties();
-        
-        var requestParams = {
-            WrapStyle: 'window',
-            Title: name,
-            MapName: mapProperties.name,
-            geometrytype: 'POINT'
-        }
         
         var sourceColumns = [];
         
@@ -139,43 +130,52 @@
             });
         }
         
+        var temporalParams;
         if (pd.type === 'archive')
         {
             sourceColumns[3].ColumnSimpleType = 'DateTime'
             if (createTemporal)
             {
-                requestParams.TemporalLayer = 'true';
-                requestParams.TemporalColumnName = sourceColumns[3].Name;
-                requestParams.TemporalPeriods = '1,4,16,64';
+                temporalParams = new nsGmx.TemporalLayerParams({
+                    isTemporal: true,
+                    minPeriod: 1,
+                    maxPeriod: 64,
+                    columnName: divProperties.TemporalColumnName
+                })
             }
         }
         
-        requestParams.Columns = JSON.stringify(sourceColumns);
+        var layerProperties = new nsGmx.LayerProperties({
+            Type: 'Vector',
+            Title: name,
+            GeometryType: 'POLYGON',
+            SourceColumns: sourceColumns,
+            SourceType: 'manual',
+            Temporal: temporalParams
+        })
         
-        sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", 
-            requestParams,
-            function(response)
-            {
-                if (!parseResponse(response))
-                    return;
-                    
-                var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
-                var gmxProperties = {type: 'layer', content: response.Result};
-                gmxProperties.content.properties.mapName = mapProperties.name;
-                gmxProperties.content.properties.hostName = mapProperties.hostName;
-                gmxProperties.content.properties.visible = true;
+        layerProperties.save(false, function(response) {
+            if (!parseResponse(response))
+                return;
                 
-                gmxProperties.content.properties.styles = [{
-                    MinZoom: gmxProperties.content.properties.VtMaxZoom, 
-                    MaxZoom:21, 
-                    RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
-                }];
+            var mapProperties = _layersTree.treeModel.getMapProperties();
                 
-                _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
-                
-                addDataToLayer(map, gmxProperties.content.properties.name, pd.data, pd.headers);
-            }
-        )
+            var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
+            var gmxProperties = {type: 'layer', content: response.Result};
+            gmxProperties.content.properties.mapName = mapProperties.name;
+            gmxProperties.content.properties.hostName = mapProperties.hostName;
+            gmxProperties.content.properties.visible = true;
+            
+            gmxProperties.content.properties.styles = [{
+                MinZoom: gmxProperties.content.properties.VtMaxZoom, 
+                MaxZoom:21, 
+                RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
+            }];
+            
+            _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
+            
+            addDataToLayer(map, gmxProperties.content.properties.name, pd.data, pd.headers);
+        })
     }
     
     var addToAISLayer = function(csvtext)
@@ -244,6 +244,6 @@
     
     gmxCore.addModule('AISImportPlugin', publicInterface, 
 	{
-        require: ['utilities']
+        require: ['utilities', 'LayerProperties']
 	});
 })();
