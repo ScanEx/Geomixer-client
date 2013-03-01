@@ -756,10 +756,12 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
 	for (var paramName in params)
 	{
 		var input = document.createElement("input");
+        
+        var value = typeof params[paramName] !== 'undefined' ? params[paramName] : '';
 		
 		input.setAttribute('type', 'hidden');
 		input.setAttribute('name', paramName);
-		input.setAttribute('value', params[paramName]);
+		input.setAttribute('value', value);
 		
 		hiddenParamsDiv.appendChild(input)
 	}
