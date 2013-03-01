@@ -88,6 +88,7 @@ var LayerProperties = Backbone.Model.extend({
         
         var metaProperties = {};
         var layerTags = attrs.MetaPropertiesEditing;
+        if (layerTags) {
             layerTags.eachValid(function(id, tag, value)
             {
                 var type = layerTags.getTagMetaInfo().getTagType(tag);
@@ -95,6 +96,7 @@ var LayerProperties = Backbone.Model.extend({
                 if (value !== null)
                     metaProperties[tag] = {Value: value, Type: type};
             })
+        }
             
         reqParams.MetaProperties = JSON.stringify(metaProperties);
                 
@@ -104,7 +106,7 @@ var LayerProperties = Backbone.Model.extend({
             if (attrs.SourceType === 'table') reqParams.TableCS = attrs.TableCS;
 
             var rcProps = attrs.RC;
-            reqParams.IsRasterCatalog = rcProps.get('IsRasterCatalog');
+            reqParams.IsRasterCatalog = !!(rcProps && rcProps.get('IsRasterCatalog'));
             if (reqParams.IsRasterCatalog)
             {
                 reqParams.RCMinZoomForRasters = rcProps.get('RCMinZoomForRasters');
@@ -115,7 +117,7 @@ var LayerProperties = Backbone.Model.extend({
             
             var tempProperties = attrs.Temporal;
             
-            reqParams.TemporalLayer = tempProperties.get('isTemporal') && tempProperties.get('columnName');
+            reqParams.TemporalLayer = !!(tempProperties && tempProperties.get('isTemporal') && tempProperties.get('columnName'));
             
             if ( reqParams.TemporalLayer ) {
                 reqParams.TemporalColumnName = tempProperties.get('columnName');
@@ -123,7 +125,7 @@ var LayerProperties = Backbone.Model.extend({
             }
                     
             var selectedColumns = attrs.SelectedColumns;
-            if (selectedColumns.get('XCol') && selectedColumns.get('YCol')) {
+            if (selectedColumns && selectedColumns.get('XCol') && selectedColumns.get('YCol')) {
                 reqParams.ColX = selectedColumns.get('XCol');
                 reqParams.ColY = selectedColumns.get('YCol');
             }
@@ -132,7 +134,7 @@ var LayerProperties = Backbone.Model.extend({
                     
             if (!name && attrs.SourceType === 'manual')
             {
-                if (attrs.UserBorder) reqParams.UserBorder = attrs.UserBorder;
+                if (attrs.UserBorder) reqParams.UserBorder = JSON.stringify(attrs.UserBorder);
                 reqParams.Columns = JSON.stringify(attrs.SourceColumns);
 
                 reqParams.geometrytype = attrs.GeometryType;
