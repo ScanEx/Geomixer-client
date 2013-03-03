@@ -8148,8 +8148,9 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
 	},
 
 	_animateZoomIfClose: function (center, zoom) {
+		if(this._tileLayersNum < 1) return;	// OriginalSin
 
-//		if (this._animatingZoom) { return true; }	// OriginalSin
+		if (this._animatingZoom) { return true; }
 
 		// offset is the pixel coords of the zoom origin relative to the current center
 		var scale = this.getZoomScale(zoom),
@@ -8303,7 +8304,7 @@ L.TileLayer.include({
 		var arr = ['img', 'canvas'];
 		for (var key in arr) {
 			var tiles = container.getElementsByTagName(arr[key]);
-			if(tiles.length > 0) {
+			if(tiles && tiles.length > 0) {
 				len += tiles.length;
 				for (var i = 0; i < tiles.length; i++) {
 					if (tiles[i]._tileComplete) {

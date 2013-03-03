@@ -2740,7 +2740,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		}
 
 		// Отрисовка точки
-		out['paint'] = function (attr) {
+		out['paint'] = function (attr, ctx) {
 			if(!attr) return;
 			//if(!bounds.intersects(attr['bounds'])) return;				// проверка пересечения полигона с отображаемым тайлом
 			var zoom = attr['zoom'];
@@ -2753,7 +2753,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			//var ctx = gmxAPI._leaflet['ptx'];
 			//ctx.clearRect(0, 0, 256, 256);
 			
-			var ctx = attr['ctx'];
+			//var ctx = attr['ctx'];
 			var style = attr['style'];
 			//var size = style['size'] || 4;
 			var scale = style['scale'] || 1;
@@ -2853,12 +2853,12 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		}
 
 		// Отрисовка геометрии LineGeometry
-		var paintStroke = function (attr) {
+		var paintStroke = function (attr, ctx) {
 //console.log(bounds , ' paintStroke: ' , attr.bounds);
 			//if(!chkNeedDraw(attr)) return false;				// проверка необходимости отрисовки
 //console.log(' ok: ' , attr.bounds);
 			
-			var ctx = attr['ctx'];
+			//var ctx = attr['ctx'];
 			var x = attr['x'];
 			var y = 256 + attr['y'];
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
@@ -2893,11 +2893,11 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		}
 
 		// Отрисовка LineGeometry
-		out['paint'] = function(attr) {
+		out['paint'] = function(attr, ctx) {
 			if(!attr) return;
 			if(attr.style['marker']) {
 				if(attr.style['image']) {
-					var ctx = attr['ctx'];
+					//var ctx = attr['ctx'];
 					var point = getPoint();
 					var x = attr['x'];
 					var y = 256 + attr['y'];
@@ -2911,7 +2911,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				}
 			} else {
 				out['sx'] = out['sy'] = 0;
-				paintStroke(attr);
+				paintStroke(attr, ctx);
 			}
 			if(attr.style) lineHeight = attr.style.weight;
 			return true;
@@ -2998,13 +2998,13 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		out['addMember'] = addMember;
 		out['bounds'] = bounds;
 		out['cnt'] = cnt;
-		out['paint'] = function (attr) {
+		out['paint'] = function (attr, ctx) {
 			if(!attr) return;
 			var cnt = 0;
 			if(bounds.intersects(attr['bounds'])) {				// проверка пересечения мультиполигона с отображаемым тайлом
 				for (var i = 0; i < members.length; i++)
 				{
-					if(!members[i].paint(attr)) break;
+					if(!members[i].paint(attr, ctx)) break;
 				}
 			}
 			return cnt;		// количество отрисованных точек в геометрии
@@ -3104,11 +3104,11 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			return shiftX;
 		}
 		// Отрисовка заполнения полигона
-		var paintFill = function (attr, fillFlag) {
+		var paintFill = function (attr, ctx, fillFlag) {
 			if(!attr) return false;
 			var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
 			if(shiftX === false) return false
-			var ctx = attr['ctx'];
+			//var ctx = attr['ctx'];
 			var x = attr['x'];
 			var y = 256 + attr['y'];
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
@@ -3133,16 +3133,16 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			if(fillFlag) ctx.fill();
 		}
 		// Отрисовка заполнения полигона
-		out['paintFill'] = function (attr) {
-			paintFill(attr);
+		out['paintFill'] = function (attr, ctx, fillFlag) {
+			paintFill(attr, ctx, fillFlag);
 		}
 		// Отрисовка геометрии полигона
-		var paintStroke = function (attr) {
+		var paintStroke = function (attr, ctx) {
 			if(!attr) return false;
 			var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
 			if(shiftX === false) return false
 
-			var ctx = attr['ctx'];
+			//var ctx = attr['ctx'];
 			var x = attr['x'];
 			var y = 256 + attr['y'];
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
@@ -3190,15 +3190,15 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			return true;		// отрисована геометрия
 		}
 		// Отрисовка геометрии полигона
-		out['paintStroke'] = function (attr) {
+		out['paintStroke'] = function (attr, ctx) {
 			if(!attr) return;
-			paintStroke(attr);
+			paintStroke(attr, ctx);
 		}
 		// Отрисовка полигона
-		out['paint'] = function(attr) {
+		out['paint'] = function(attr, ctx) {
 			if(!attr || !attr.style) return;
-			if(attr.style.fill) paintFill(attr, true);
-			var res = paintStroke(attr);
+			if(attr.style.fill) paintFill(attr, ctx, true);
+			var res = paintStroke(attr, ctx);
 			//attr.ctx.stroke();
 			return res;
 		}
@@ -3337,12 +3337,12 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 		out['bounds'] = bounds;
 		//out['members'] = members;
 		out['cnt'] = cnt;
-		out['paint'] = function (attr) {
+		out['paint'] = function (attr, ctx) {
 			var cnt = 0;
 			if(bounds.intersects(attr['bounds'])) {				// проверка пересечения мультиполигона с отображаемым тайлом
 				for (var i = 0; i < members.length; i++)
 				{
-					cnt += members[i].paint(attr);
+					cnt += members[i].paint(attr, ctx);
 				}
 			}
 			var style = attr['style'];
@@ -3359,12 +3359,12 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 			return cnt;		// количество отрисованных точек в геометрии
 		}
 		// Отрисовка заполнения
-		out['paintFill'] = function (attr) {
+		out['paintFill'] = function (attr, ctx) {
 			var cnt = 0;
 			if(bounds.intersects(attr['bounds'])) {				// проверка пересечения мультиполигона с отображаемым тайлом
 				for (var i = 0; i < members.length; i++)
 				{
-					cnt += members[i].paintFill(attr);
+					cnt += members[i].paintFill(attr, ctx, false);
 				}
 			}
 			return cnt;		// количество отрисованных точек в геометрии
