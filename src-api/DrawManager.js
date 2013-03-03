@@ -7,7 +7,10 @@
 	var itemsHash = {};						// Хэш нод требующих отрисовки
 
 	var repaintItems = function()	{			// отрисовка ноды
-		if(items.length < 1) return false;
+		if(items.length < 1) {
+			if(timer) clearInterval(timer);
+			return false;
+		}
 		var id = items.shift();
 		delete itemsHash[id];
 		var node = gmxAPI._leaflet['mapNodes'][id];

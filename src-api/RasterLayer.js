@@ -18,7 +18,7 @@
 		node['isOverlay'] = false;
 		node['failedTiles'] = {};				// Hash тайлов 404
 
-		node.isVisible = gmxNode.isVisible; 
+		//node.isVisible = gmxNode.isVisible; 
 
 		var inpAttr = ph.attr;
 		node['subType'] = ('subType' in inpAttr ? inpAttr['subType'] : (inpAttr['projectionCode'] === 1 ? 'OSM' : ''));

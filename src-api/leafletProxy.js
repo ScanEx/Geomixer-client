@@ -3220,7 +3220,17 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		}
 		// Проверка пересечения с bounds
 		var getShiftX = function (chkBounds) {
-			if(bounds.intersects(chkBounds)) return 0;
+			var yFlag = (chkBounds.max.y >= bounds.min.y && chkBounds.min.y <= bounds.max.y);
+			if(!yFlag) return null;
+			var ww = 2 * gmxAPI.worldWidthMerc;
+		    if(chkBounds.max.x >= bounds.min.x && chkBounds.min.x <= bounds.max.x) return 0;
+		    else if(chkBounds.max.x >= bounds.min.x + ww && chkBounds.min.x <= bounds.max.x + ww) return ww;
+		    else if(chkBounds.max.x >= bounds.min.x - ww && chkBounds.min.x <= bounds.max.x - ww) return -ww;
+			ww *= 2;
+		    if(chkBounds.max.x >= bounds.min.x + ww && chkBounds.min.x <= bounds.max.x + ww) return ww;
+		    else if(chkBounds.max.x >= bounds.min.x - ww && chkBounds.min.x <= bounds.max.x - ww) return -ww;
+			return null;
+/*			if(bounds.intersects(chkBounds)) return 0;
 			else
 			{
 				var ww = 2 * gmxAPI.worldWidthMerc;
@@ -3235,7 +3245,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				sbounds = new L.Bounds(new L.Point(bounds.min.x +2*ww, bounds.min.y), new L.Point(bounds.max.x +2*ww, bounds.max.y));
 				if(chkBounds.intersects(sbounds)) return 2*ww;
 			}
-			return null;
+			return null;*/
 		}
 		// Проверка пересечения с bounds
 		out['intersects'] = function (chkBounds) {
@@ -3547,7 +3557,7 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 				};
 				if(target && e.containerPoint) {
 					try {
-						out['tID'] = target['id'];
+						//out['tID'] = target['id'];
 						out['_layer'] = target['_layer'];
 						out['tilePoint'] = target['tilePoint'];
 						if(target['_leaflet_pos']) {
@@ -3691,6 +3701,9 @@ var tt = 1;
 			});
 			
 			LMap.on('zoomstart', function(e) {
+//var ww = 2 * gmxAPI.worldWidthMerc;
+//var vBounds = LMap.getBounds();
+//console.log('zoomstart', vBounds);	// getshift
 				gmxAPI._leaflet['zoomstart'] = true;
 				gmxAPI._listeners.dispatchEvent('onZoomstart', null, {});
 				gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Проверка map Listeners на hideBalloons
