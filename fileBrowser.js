@@ -8,6 +8,23 @@ var fileBrowser = function()
 	
 	this._homeDir = '';
     
+    this._status = {
+        _state: false,
+        start: function() {
+            this._state = true;
+            var me = this;
+            setTimeout(function() {
+                if (me._state) {
+                    $(_this.statusContainer).show();
+                }
+            }, 100);
+        },
+        stop: function() {
+            $(_this.statusContainer).hide();
+            this._state = false;
+        }
+    }
+    
     this._path = (function()
     {
         var path;
@@ -323,8 +340,10 @@ fileBrowser.prototype.createHeader = function()
 		newFolderButton = makeButton(_gtxt("Создать")),
 		createFolder = function()
 		{
+            context.fileBrowser._status.start();
 			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(_this._path.get() + newFolderName.value), function(response)
 			{
+                context.fileBrowser._status.stop();
 				if (!parseResponse(response))
 					return;
 				
@@ -441,9 +460,12 @@ fileBrowser.prototype.getFiles = function(path)
     
     if (this._isRestrictedPath(path)) 
         return;
-	
+
+    this._status.start();
 	sendCrossDomainJSONRequest(serverBase + "FileBrowser/GetDirectoryContent.ashx?WrapStyle=func&root=" + encodeURIComponent(path),  function(response)
 	{
+        _this._status.stop();
+        
 		if (!parseResponse(response))
 			return;
 		
@@ -549,8 +571,10 @@ fileBrowser.prototype.findContent = function(value)
 fileBrowser.prototype.reloadFiles = function()
 {
     removeChilds(this.fileCanvas);
+    
+    this.statusContainer = _div(null, [['dir', 'className', 'fileBrowser-progress'], ['css', 'display', 'none']]);
 	
-	_(this.fileCanvas, [_div([this.pathWidget(), _br(), _t(_gtxt("Фильтр")), this.quickSearch()], [['dir','className','currentDir'],['css','color','#153069'],['css','fontSize','12px']])]);
+	_(this.fileCanvas, [_div([this.pathWidget(), _br(), _t(_gtxt("Фильтр")), this.quickSearch(), this.statusContainer], [['dir','className','currentDir'],['css','color','#153069'],['css','fontSize','12px']])]);
 	
 	_(this.fileCanvas, [this.draw(this.currentFiles)]);
 	
@@ -856,8 +880,11 @@ var zipUnzipActionFactory = function(isZip)
 		title:  function() { return isZip ? _gtxt("Упаковать") : _gtxt("Извлечь"); },
 		clickCallback: function(context)
 		{
+            context.fileBrowser._status.start();
 			sendCrossDomainJSONRequest(serverBase + (context.enableUnzip ? 'FileBrowser/Unzip.ashx' : 'FileBrowser/Zip.ashx') + '?WrapStyle=func&FullName=' + encodeURIComponent(context.fullPath), function(response)
 			{
+                context.fileBrowser._status.stop();
+                
 				if (!parseResponse(response))
 					return;
 				
@@ -894,8 +921,10 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Удалить"); },
 	clickCallback: function(context)
 	{
+        context.fileBrowser._status.start();
 		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/Delete.ashx?WrapStyle=func&FullName=' + encodeURIComponent(context.fullPath), function(response)
 		{
+            context.fileBrowser._status.stop();
 			if (!parseResponse(response))
 				return;
 			
@@ -908,8 +937,10 @@ nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Очистить"); },
 	clickCallback: function(context)
 	{
+        context.fileBrowser._status.start();
 		sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CleanFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(context.fullPath), function(response)
 		{
+            context.fileBrowser._status.stop();
 			if (!parseResponse(response))
 				return;
 			

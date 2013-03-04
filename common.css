@@ -729,6 +729,16 @@ div.unit .unitInfo
     background-color: #b7e7eb;
 }
 
+.fileBrowser-progress
+{
+    background: url(img/progress.gif);
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0px 0px 3px 3px;
+}
+
 .vectorInfoParams
 {
 	width: 100%;
