@@ -1559,16 +1559,15 @@ window.gmxAPI = {
 		if(attr.bounds) {
 			var bounds = attr.bounds;
 			var minx = Math.floor(bounds.minX/xSize);
-			var maxx = Math.floor(bounds.maxX/xSize);
-			var miny = gmxAPI.merc_y(bounds.minY);
-			var maxy = gmxAPI.merc_y(bounds.maxY);
+			var maxx = Math.ceil(bounds.maxX/xSize);
+			var miny = Math.floor(gmxAPI.merc_y(bounds.minY)/tileSize);
+			var maxy = Math.ceil(gmxAPI.merc_y(bounds.maxY)/tileSize);
 			var res = [];
-			for (var j = miny; j < maxy; j+=tileSize)
+			for (var j = miny; j <= maxy; j++)
 			{
-				var yy = Math.floor(j/tileSize);
-				for (var i = minx; i < maxx; i++)
+				for (var i = minx; i <= maxx; i++)
 				{
-					res.push({'x': i, 'y': yy, 'z': z});
+					res.push({'x': i, 'y': j, 'z': z});
 				}
 			}
 			return res;
