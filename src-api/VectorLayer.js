@@ -1578,6 +1578,7 @@
 			}, 10);
 			return false;
 		}
+		node.waitRedraw = waitRedraw;
 		
 		var redrawFlipsTimer = null;								// Таймер
 		var waitRedrawFlips = function(zd)	{						// Требуется перерисовка уже отрисованных тайлов с задержкой
@@ -2126,12 +2127,15 @@
 			,
 			drawTile: function (tile, tilePoint, zoom) {
 				// override with rendering code
-				if(gmxAPI.map.needMove) return true;			// При отложенных перемещениях не загружаем тайлы
 				var me = this;
 				me.tileDrawn(tile);
 				var opt = this.options;
 				var node = mapNodes[opt['id']];
 				if(!node) return;								// Слой пропал
+				if(gmxAPI.map.needMove) {
+					if(node.waitRedraw) node.waitRedraw();
+					return true;			// При отложенных перемещениях не загружаем тайлы
+				}
 				if(!zoom) zoom = LMap.getZoom();
 				var pz = Math.pow(2, zoom);
 				var tx = tilePoint.x;
