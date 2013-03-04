@@ -359,7 +359,7 @@ scrollTable.prototype._updatePageData = function(callback)
                 _this.currentSortIndex[_this.currentSortType] == 1, 
                 function(values)
                 {
-                    this._status.stop();
+                    _this._status.stop();
                     _this._pageVals = values;
                     callback();
                 }
