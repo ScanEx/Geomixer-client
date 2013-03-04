@@ -296,11 +296,14 @@
 			return node['loaderFlag'];
 		};
 
+		node['needClearTile'] = {};		// тайлы требующие обнуления
 		node.chkLoadTile = function(attr)	{							// Проверка необходимости загрузки тайлов
 			if(gmxNode['isVisible'] === false) return true;								// Слой не видим
 			var currZ = LMap.getZoom();
 			if(currZ < node['minZ'] || currZ > node['maxZ'])  return true;				// Неподходящий zoom
 			
+			var drawTileID = attr['drawTileID'];
+			node['needClearTile'][drawTileID] = true;
 			//var currPosition = gmxAPI.currPosition;
 			//if(!currPosition || !currPosition.extent)  return true;
 			//var ext = currPosition.extent;
@@ -315,11 +318,13 @@
 
 		node['loadTilesByExtent'] = function(ext, attr)	{		// Загрузка векторных тайлов по extent
 			var flag = false;
+			var drawTileID = attr['drawTileID'];
+//console.log('loadTilesByExtent ' , drawTileID, node['loaderDrawFlags']);
+
 			var tiles = node['tiles'];
 			for (var tileKey in tiles)
 			{
 				if(node['tilesGeometry'][tileKey] || node['badTiles'][tileKey]) continue;
-				if(node['tilesLoadProgress'][tileKey]) continue;
 
 				var tb = tiles[tileKey];
 				if(ext) {
@@ -328,43 +333,48 @@
 				} else if(attr) {
 					if(!attr['bounds'].intersects(tb)) continue;		// Тайл не пересекает drawTileID
 				}
-				(function(pattr) {
+
+				if(!node['loaderDrawFlags'][tileKey]) node['loaderDrawFlags'][tileKey] = [];
+				node['loaderDrawFlags'][tileKey].push(attr);
+				if(node['tilesLoadProgress'][tileKey]) continue;
+				(function(pattr, tkey) {
 					var drawMe = null;
 					if(pattr) {
-						var drawTileID = pattr['drawTileID'];
-						if(!node['loaderDrawFlags'][drawTileID]) node['loaderDrawFlags'][drawTileID] = 0;
-						node['loaderDrawFlags'][drawTileID]++;
 						drawMe = function() {
-							node['loaderDrawFlags'][drawTileID]--;
-							if(node['loaderDrawFlags'][drawTileID] == 0) {
-								delete node['loaderDrawFlags'][drawTileID];
-								node.repaintTile(pattr, true);
+							var arr = node['loaderDrawFlags'][tkey];
+							for(var i=0; i<arr.length; i++) {
+								var dattr = arr[i];
+								var dtID = dattr['drawTileID'];
+								node.repaintTile(dattr, node['needClearTile'][dtID]);
+								delete node['needClearTile'][dtID];
 							}
+							delete node['loaderDrawFlags'][tkey];
 						}
 					}
-					var tID = tileKey;
-					var arr = tID.split('_');
+					var arr = tkey.split('_');
 					var srcArr = option.tileFunc(arr[1], arr[2], arr[0]);
 					if(typeof(srcArr) === 'string') srcArr = [srcArr];
 					node['loaderFlag'] = true;
 					var item = {
 						'srcArr': srcArr
 						,'callback': function(data) {
-							delete node['tilesLoadProgress'][tID];
-							gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode, 'attr':{'data':{'tileID':tID, 'data':data}}});		// tile загружен
+							delete node['tilesLoadProgress'][tkey];
+							gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode, 'attr':{'data':{'tileID':tkey, 'data':data}}});		// tile загружен
 							data = null;
 							if(drawMe) drawMe();
+							//if(drawMe) waitRedraw();
 						}
 						,'onerror': function(err){						// ошибка при загрузке тайла
-							delete node['tilesLoadProgress'][tID];
-							node['badTiles'][tID] = true;
+							delete node['tilesLoadProgress'][tkey];
+							node['badTiles'][tkey] = true;
 							gmxAPI.addDebugWarnings(err);
 							if(drawMe) drawMe();
+							//if(drawMe) waitRedraw();
 						}
 					};
 					gmxAPI._leaflet['vectorTileLoader'].push(item);
-					node['tilesLoadProgress'][tID] = true;
-				})(attr);
+					node['tilesLoadProgress'][tkey] = true;
+				})(attr, tileKey);
 				flag = true;
 			}
 			return flag;
@@ -2127,8 +2137,6 @@
 			,
 			drawTile: function (tile, tilePoint, zoom) {
 				// override with rendering code
-				var me = this;
-				me.tileDrawn(tile);
 				var opt = this.options;
 				var node = mapNodes[opt['id']];
 				if(!node) return;								// Слой пропал
@@ -2136,6 +2144,8 @@
 					if(node.waitRedraw) node.waitRedraw();
 					return true;			// При отложенных перемещениях не загружаем тайлы
 				}
+				var me = this;
+				me.tileDrawn(tile);
 				if(!zoom) zoom = LMap.getZoom();
 				var pz = Math.pow(2, zoom);
 				var tx = tilePoint.x;

@@ -23,16 +23,17 @@
 	var utils = {							// Утилиты leafletProxy
 		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
 		,
-		'replaceColorAndRotate': function(img, style) {		// заменить цвет пикселов в иконке + rotate - результат canvas
+		'replaceColorAndRotate': function(img, style, size) {		// заменить цвет пикселов в иконке + rotate - результат canvas
 			var canvas = document.createElement('canvas');
-			canvas.width = style.imageWidth;
-			canvas.height = style.imageHeight;
+			//var size = Math.max(style.imageWidth, style.imageHeight);
+			canvas.width = size;
+			canvas.height = size;
 			var ptx = canvas.getContext('2d');
-			ptx.clearRect(0, 0, style.imageWidth, style.imageHeight);
+			ptx.clearRect(0, 0, size, size);
 			var tx = ty = 0;
 			if(style['rotateRes']) {
-				tx = -style.imageWidth/2;
-				ty = -style.imageHeight/2;
+				tx = -size/2;
+				ty = -size/2;
 				ptx.translate(-tx, -ty);
 				ptx.rotate(Math.PI  * style['rotateRes']/180);
 			}
@@ -45,7 +46,7 @@
 					var g = (color >> 8) & 255;
 					var b = color & 255;
 
-					var imageData = ptx.getImageData(0, 0, style.imageWidth, style.imageHeight);
+					var imageData = ptx.getImageData(0, 0, size, size);
 					for (var i = 0; i < imageData.data.length; i+=4)
 					{
 						if (imageData.data[i] == 0xff
@@ -2788,8 +2789,13 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 						rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
 					}
 					style['rotateRes'] = rotateRes;
-					if(style['rotateRes'] || 'color' in style) canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style);
-					ctx.drawImage(canv, px1, py1, out['sx'], out['sy']);
+					if(style['rotateRes'] || 'color' in style) {
+						var size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
+						out['sx'] = out['sy'] = scale * size;
+						canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style, size);
+					}
+					//ctx.drawImage(canv, px1, py1, out['sx'], out['sy']);
+					ctx.drawImage(canv, px1, py1);
 				}
 			} else {
 				if(style['stroke'] && style['weight'] > 0) {
