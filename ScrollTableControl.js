@@ -147,6 +147,26 @@ var scrollTable = function( params )
 		
 		return button;
 	}
+    
+    var _this = this;
+    this._status = {
+        _state: false,
+        start: function() {
+            this._state = true;
+            var me = this;
+            setTimeout(function() {
+                if (me._state) {
+                    $(_this.statusContainer).siblings().hide();
+                    $(_this.statusContainer).show();
+                }
+            }, 100);
+        },
+        stop: function() {
+            $(_this.statusContainer).siblings().show();
+            $(_this.statusContainer).hide();
+            this._state = false;
+        }
+    }
 	
 	this.limitSel = nsGmx.Utils._select([_option([_t("10")], [['attr','value',10]]),
 							 _option([_t("20")], [['attr','value',20]]),
@@ -208,12 +228,20 @@ scrollTable.prototype._drawRows = function()
 	if (this._pageVals.length == 0)
 		_(this.tableBody, [_tr(null,[['css','height','1px'],['attr','empty', true]])])
 	
-	removeChilds(this.tableCount)
+	removeChilds(this.tableCount);
+    
+    this.statusContainer = _div(null, [['dir', 'className', 'fileBrowser-progress'], ['css', 'display', 'none']]);
 	
-	if (this._currValsCount)
-		_(this.tableCount, [_t((this.reportStart + 1) + '-' + (Math.min(this.reportStart + this.limit, this._currValsCount))), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(" + this._currValsCount + ")")]);
-	else
-		_(this.tableCount, [_t("0-0"), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(0)")]);
+	if (this._currValsCount) {
+		_(this.tableCount, [_span([
+            _t((this.reportStart + 1) + '-' + (Math.min(this.reportStart + this.limit, this._currValsCount))),
+            _span([_t(' ')],[['css','margin','0px 3px']]),
+            _t("(" + this._currValsCount + ")")
+        ]), this.statusContainer]);
+    }
+	else {
+		_(this.tableCount, [_span([_t("0-0"), _span([_t(' ')],[['css','margin','0px 3px']]), _t("(0)")]), this.statusContainer]);
+    }
         
     $(this).triggerHandler('redraw');
 }
@@ -261,6 +289,7 @@ scrollTable.prototype._updatePageData = function(callback)
     if (this._dataProvider.getCountAndItems)
     {
         var requestID = this._requestID++;
+        this._status.start();
         _this._dataProvider.getCountAndItems(
             _this.reportStart / _this.limit,
             _this.limit,
@@ -268,8 +297,10 @@ scrollTable.prototype._updatePageData = function(callback)
             _this.currentSortIndex[_this.currentSortType] == 1, 
             function(count, values)
             {
-                if (requestID !== _this._requestID - 1)
+                if (requestID !== _this._requestID - 1) {
+                    _this._status.stop();
                     return;
+                }
                     
                 _this._currValsCount = count;
                 
@@ -288,6 +319,7 @@ scrollTable.prototype._updatePageData = function(callback)
                         _this.currentSortIndex[_this.currentSortType] == 1, 
                         function(count, values)
                         {
+                            _this._status.stop();
                             if (requestID !== _this._requestID - 1)
                                 return;
                         
@@ -298,6 +330,7 @@ scrollTable.prototype._updatePageData = function(callback)
                 }
                 else
                 {
+                    _this._status.stop();
                     _this._pageVals = values;
                     callback();
                 }
@@ -306,6 +339,7 @@ scrollTable.prototype._updatePageData = function(callback)
     }
     else
     {
+        this._status.start();
         this._dataProvider.getCount(function(count)
         {
             _this._currValsCount = count;
@@ -325,6 +359,7 @@ scrollTable.prototype._updatePageData = function(callback)
                 _this.currentSortIndex[_this.currentSortType] == 1, 
                 function(values)
                 {
+                    this._status.stop();
                     _this._pageVals = values;
                     callback();
                 }
