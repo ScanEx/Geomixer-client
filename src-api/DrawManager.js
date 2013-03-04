@@ -2,13 +2,14 @@
 (function()
 {
 	var nextId = 0;							// следующий ID mapNode
-	var timer = null;						// таймер
+	var timerID = null;						// таймер
 	var items = [];							// массив ID нод очереди отрисовки
 	var itemsHash = {};						// Хэш нод требующих отрисовки
 
 	var repaintItems = function()	{			// отрисовка ноды
 		if(items.length < 1) {
-			if(timer) clearInterval(timer);
+			if(timerID) clearInterval(timerID);
+			timerID = null;
 			return false;
 		}
 		var id = items.shift();
@@ -21,7 +22,7 @@
 	}
 	
 	var chkTimer = function() {				// установка таймера
-		if(!timer) timer = setInterval(repaintItems, 1);
+		if(!timerID) timerID = setInterval(repaintItems, 10);
 	}
 	
 	var drawManager = {						// менеджер отрисовки
