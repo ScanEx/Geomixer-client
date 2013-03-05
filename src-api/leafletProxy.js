@@ -2678,7 +2678,7 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			'type': 'unknown'
 			,'geoID': gmxAPI.newFlashMapId()
 			,'bounds': null
-			,'curStyle': null
+			//,'curStyle': null
 		};
 		return out;
 	};
@@ -3211,13 +3211,14 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 		// Проверка принадлежности точки полигону
 		out['contains'] = function (chkPoint) {
 			if(bounds.contains(chkPoint)) {
-				var fill = 	(out.curStyle ? out.curStyle.fill : false);
+				var curStyle = out.propHiden.curStyle;
+				var fill = 	(curStyle ? curStyle.fill : false);
 				for (var i = 0; i < coords.length; i++)
 				{
 					if(fill) {
 						if(gmxAPI._leaflet['utils'].isPointInPolygon(chkPoint, coords[i])) return true;
 					} else {
-						var weight = (out.curStyle ? out.curStyle.weight : 1);
+						var weight = (curStyle ? curStyle.weight : 1);
 						if(gmxAPI._leaflet['utils'].chkPointInPolyLine(chkPoint, weight, coords[i])) return true;
 					}
 				}
