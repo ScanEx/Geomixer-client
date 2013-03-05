@@ -1320,7 +1320,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			}
 
 			var func = function(e) {
-				if(node.hoveredStyle) {
+				if(node.hoveredStyle && 'setStyle' in node['leaflet']) {
 					if(evName == 'onMouseOver') {
 						node['leaflet'].setStyle(node.hoveredStyle);
 					} else if(evName == 'onMouseOut') {

@@ -318,8 +318,6 @@
 
 		node['loadTilesByExtent'] = function(ext, attr)	{		// Загрузка векторных тайлов по extent
 			var flag = false;
-			var drawTileID = attr['drawTileID'];
-//console.log('loadTilesByExtent ' , drawTileID, node['loaderDrawFlags']);
 
 			var tiles = node['tiles'];
 			for (var tileKey in tiles)
@@ -332,10 +330,10 @@
 					if(tvFlag) continue;								// Тайл за границами видимости
 				} else if(attr) {
 					if(!attr['bounds'].intersects(tb)) continue;		// Тайл не пересекает drawTileID
+					if(!node['loaderDrawFlags'][tileKey]) node['loaderDrawFlags'][tileKey] = [];
+					node['loaderDrawFlags'][tileKey].push(attr);
 				}
 
-				if(!node['loaderDrawFlags'][tileKey]) node['loaderDrawFlags'][tileKey] = [];
-				node['loaderDrawFlags'][tileKey].push(attr);
 				if(node['tilesLoadProgress'][tileKey]) continue;
 				(function(pattr, tkey) {
 					var drawMe = null;
@@ -746,7 +744,14 @@
 			//,'updateWhenIdle': true
 			,'unloadInvisibleTiles': true
 		};
-
+/*
+		if(attr['bounds']) {
+if(!attr['bounds'].min) {
+var tt = 1;
+}
+			//option['bounds'] = attr['bounds'];
+		}
+*/
 		if(node['parentId']) option['parentId'] = node['parentId'];
 		
 		node['tiles'] = getTilesBounds(inpAttr.dataTiles);
