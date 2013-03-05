@@ -609,6 +609,42 @@ function loadMap(state)
 	
     var success = createFlashMap($$("flash"), window.serverBase, globalMapName, function(map, data)
 	{
+        $('#flash').bind('dragover', function()
+        {
+            return false;
+        });
+        
+        $('#flash').bind('drop', function(e)
+        {
+            var b = getBounds();
+            var defs = [];
+            $.each(e.originalEvent.dataTransfer.files, function(i, file) {
+                var def = $.Deferred();
+                var parseDef = nsGmx.Utils.parseShpFile(file);
+                defs.push(def);
+                parseDef.then(
+                    function(objs) {
+                        for (var i = 0; i < objs.length; i++) {
+                            b.update(objs[i].geometry.coordinates);
+                            map.drawing.addObject(objs[i].geometry, objs[i].properties);
+                        }
+                        def.resolve();
+                    },
+                    function() {
+                        def.resolve();
+                    }
+                );
+            })
+            
+            $.when.apply($, defs).done(function() {
+                if ( b.minX < b.maxX && b.minY < b.maxY ) {
+                    globalFlashMap.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
+                }
+            })
+            
+            return false;
+        })
+        
 		globalFlashMap = map;
         var userObjects = state.userObjects || (data && data.properties.UserData);
         

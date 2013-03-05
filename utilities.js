@@ -1177,9 +1177,12 @@ $.extend(nsGmx.Utils, {
 		}
     },
     
-    //загружает пользовательский shp файл, выбранный в форме shpFileForm (name=file).
-    //Проверяет на ошибки, выводит предупреждения и ошибки в виде стандартный диалогов.
-    //Возвращает jQuery Deferred (аргумент ф-ции - массив объектов из shp файла)
+    /** Загружает пользовательский shp файл.
+    * Проверяет на ошибки, выводит предупреждения и ошибки в виде стандартный диалогов.
+    * 
+    * #param {File | Form} shpSource Либо форма с полем file, в которой пользователь выбрал файл, либо HTML5 File.
+    * @return Возвращает jQuery Deferred (аргумент ф-ции - массив объектов из shp файла)
+    */
     parseShpFile: (function() //приватные данные
     {
         var translationsAdded = false;
@@ -1206,22 +1209,49 @@ $.extend(nsGmx.Utils, {
         //непосредственно ф-ция
         return function(shpFileForm) {
             var def = $.Deferred();
+            
             addTranslationsLazy();
             
-            sendCrossDomainPostRequest(serverBase + "ShapeLoader.ashx", {WrapStyle: "window"}, function(response)
-            {
-                var errorMessages = {
-                        "CommonUtil.FileTooBigException" : _gtxt("loadShape.Errors.FileTooBigException"),
-                        "CommonUtil.ErrorUploadExeption" : _gtxt("loadShape.Errors.ErrorUploadExeption"),
-                        "CommonUtil.NoGeometryFile"      : _gtxt("loadShape.Errors.NoGeometryFile"),
-                        "CommonUtil.ErrorUploadNoDependentFiles": _gtxt("loadShape.Errors.ErrorUploadNoDependentFiles")
+            var errorMessages = {
+                "CommonUtil.FileTooBigException" : _gtxt("loadShape.Errors.FileTooBigException"),
+                "CommonUtil.ErrorUploadExeption" : _gtxt("loadShape.Errors.ErrorUploadExeption"),
+                "CommonUtil.NoGeometryFile"      : _gtxt("loadShape.Errors.NoGeometryFile"),
+                "CommonUtil.ErrorUploadNoDependentFiles": _gtxt("loadShape.Errors.ErrorUploadNoDependentFiles")
+            };
+            
+            if (shpFileForm instanceof File) {
+                if (!window.FormData) {
+                    def.reject();
+                    return false;
+                }
+                
+                var formData = new FormData();
+                formData.append('file', shpFileForm);
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', serverBase + 'ShapeLoader.ashx');
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        response = JSON.parse(xhr.responseText.substr(1, xhr.responseText.length-2));
+                        
+                        if (!parseResponse(response, errorMessages)) {
+                            def.reject();
+                        } else {
+                            def.resolve(response.Result);
+                        }
+                        //console.log(response.Result);
+                    }
                 };
                 
-                if (parseResponse(response, errorMessages))
-                    def.resolve(response.Result);
-                else
-                    def.reject(response);
-            }, shpFileForm)
+                xhr.send(formData);
+            } else {
+                sendCrossDomainPostRequest(serverBase + "ShapeLoader.ashx", {WrapStyle: "window"}, function(response)
+                {
+                    if (parseResponse(response, errorMessages))
+                        def.resolve(response.Result);
+                    else
+                        def.reject(response);
+                }, shpFileForm)
+            }
             
             return def.promise();
         }
