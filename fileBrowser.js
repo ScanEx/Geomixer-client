@@ -227,9 +227,13 @@ fileBrowser.prototype.loadInfoHandler = function()
     {
         if (!window.FormData) return false;
         
+        var files = e.originalEvent.dataTransfer.files;
         var formData = new FormData();
-        formData.append('rawdata', e.originalEvent.dataTransfer.files[0]);
+        for (var f = 0; f < files.length; f++) {
+            formData.append('rawdata', files[f]);
+        }
         formData.append('ParentDir', _this._path.get());
+        formData.append('WrapStyle', 'None');
         
         $(_this.progressBar).progressbar('option', 'value', 0);
         $(_this.progressBar).show();
@@ -244,15 +248,17 @@ fileBrowser.prototype.loadInfoHandler = function()
         xhr.onload = function () {
             $(_this.progressBar).hide();
             if (xhr.status === 200) {
-                response = JSON.parse(xhr.responseText.substr(1, xhr.responseText.length-2));
+                response = JSON.parse(xhr.responseText);
                 
                 if (!parseResponse(response))
                     return;
                     
-                var indexSlash = String(response.Result).lastIndexOf(_this.slash),
-                    fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
-                
-                _this.shownPath = fileName;
+                if (typeof response.Result == 'string') {
+                    var indexSlash = String(response.Result).lastIndexOf(_this.slash),
+                        fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
+                    
+                    _this.shownPath = fileName;
+                }
                 
                 _this.getFiles();
             }
