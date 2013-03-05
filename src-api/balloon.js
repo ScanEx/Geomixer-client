@@ -460,13 +460,13 @@
 				//whiteSpace: "nowrap",
 				zIndex: 1000
 			});
-			if(outerFlag || gmxAPI.proxyType !== 'leaflet') {
+			//if(outerFlag || gmxAPI.proxyType !== 'leaflet') {
 				balloon.className = 'gmx_balloon';
 				div.appendChild(balloon);
-			} else {
-				balloon.className = 'gmx_balloon leaflet-pan-anim leaflet-zoom-animated';
-				gmxAPI._leaflet.LMap['_mapPane'].appendChild(balloon);
-			}
+			//} else {
+			//	balloon.className = 'gmx_balloon leaflet-pan-anim leaflet-zoom-animated';
+			//	gmxAPI._leaflet.LMap['_mapPane'].appendChild(balloon);
+			//}
 
 			var css = {
 				'table': 'background-color: transparent; width: auto; margin: 2px; border-collapse: collapse; font-size: 11px; font-family: sans-serif;',
@@ -799,6 +799,10 @@ event.stopImmediatePropagation();
 				balloon.isHovered = true;
 				positionBalloons();
 				gmxAPI._mouseOnBalloon = true;
+				if(propsBalloon.isVisible()) {
+					propsBalloon.setVisible(false);
+					//gmxAPI._listeners.dispatchEvent('hideHoverBalloon', gmxAPI.map, {});
+				}
 			}
 			balloon.outerDiv.onmouseout = function()
 			{
