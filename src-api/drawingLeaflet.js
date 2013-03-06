@@ -742,7 +742,7 @@
 		
 		mouseOverFlag = false;
 		
-		var mouseUp = function(ph)
+		var mouseUp = function()
 		{
 			mousePressed = false;
 			if(onMouseUpID) gmxAPI.map.removeListener('onMouseUp', onMouseUpID);
@@ -815,7 +815,7 @@
 			};
 			drawAttr['dblclick'] = function(e, attr)		// Удаление точки
 			{
-				if(new Date().getTime() - finishTime < 500) return;
+				if(mouseDownTimerID) clearTimeout(mouseDownTimerID);
 				var downType = getDownType(e, coords, oBounds);
 				if(downType.type !== 'node') return;
 				var len = coords.length - 1;
@@ -836,8 +836,6 @@
 					drawSVG(drawAttr);
 				}
 			};
-			
-			
 			drawAttr['layerGroup'] = layerGroup;
 			drawAttr['layerItems'] = layerItems;
 			drawAttr['lastPoint'] = lastPoint
@@ -951,11 +949,10 @@
 		};
 		
 		// Изменение точки
-		var itemMouseDown = function(ph)
+		var setEditItem = function(ph)
 		{
 			if(!drawing.isEditable) return;
 			downTime = new Date().getTime();
-			mousePressed = true;
 			if(ph.attr) ph = ph.attr;
 			var x = ph.latlng.lng;
 			var y = ph.latlng.lat;
@@ -971,16 +968,26 @@
 					if(editIndex == 0 && editType === 'LINESTRING') editIndex++;
 					coords.splice(editIndex, 0, [x, y]);
 				}
-				gmxAPI._cmdProxy('startDrawing');
+				mousePressed = true;
 				repaint();
+				gmxAPI._cmdProxy('startDrawing');
 				gmxAPI._drawing['activeState'] = true;
 				if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
-				if(!onMouseUpID) onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
 				if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 				return true;
 			}
 			return false;
 		};
+		var mouseDownTimerID = null;
+		var itemMouseDown = function(ph)
+		{
+			if(mousePressed) {
+				mouseUp();
+				return;
+			}
+			if(mouseDownTimerID) clearTimeout(mouseDownTimerID);
+			mouseDownTimerID = setTimeout(function() { setEditItem(ph);	}, 400);
+		}
 		
 		var mouseMove = function(ph)
 		{
@@ -988,10 +995,9 @@
 			var latlng = ph.latlng;
 			var x = latlng.lng;
 			if(x < -180) x += 360;
-			//console.log('mouseMove:  ', latlng.lng, x, editIndex);
 			if(editIndex != -1) {
+				if(!onMouseUpID) onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
 				lastPoint = null;
-				//if(coords[editIndex][0] > 0 && x < 0) x += 360;
 				coords[editIndex] = [x, latlng.lat];
 				if(editType === 'POLYGON') {
 					if(editIndex == 0) coords[coords.length - 1] = coords[editIndex];
