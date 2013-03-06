@@ -346,10 +346,10 @@ fileBrowser.prototype.createHeader = function()
 		newFolderButton = makeButton(_gtxt("Создать")),
 		createFolder = function()
 		{
-            context.fileBrowser._status.start();
+            _this._status.start();
 			sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(_this._path.get() + newFolderName.value), function(response)
 			{
-                context.fileBrowser._status.stop();
+                _this._status.stop();
 				if (!parseResponse(response))
 					return;
 				
