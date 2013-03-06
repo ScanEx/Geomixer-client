@@ -383,7 +383,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				var py = (attr ? attr['y'] : (gmxAPI.map.needMove ? gmxAPI.map.needMove.y : 0));
 				var z = (attr ? attr['z'] : (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : 1));
 				var pos = new L.LatLng(py, px);
-				LMap.setView(pos, z);
+				LMap.setView(pos, z, (gmxAPI.map.needMove ? true : false));
 				gmxAPI.map.needMove = null;
 			}, 50);
 		}
@@ -3706,7 +3706,7 @@ var tt = 1;
 				}
 				if(!gmxAPI._leaflet['mousePressed']) gmxAPI._leaflet['utils'].chkMouseHover(attr)
 			});
-			
+
 			LMap.on('zoomstart', function(e) {
 //var ww = 2 * gmxAPI.worldWidthMerc;
 //var vBounds = LMap.getBounds();
