@@ -504,15 +504,15 @@
 			}
 			node['hoverItem'] = null;
 		}
+		gmxAPI.map.addListener('hideHoverBalloon', mouseOut);
 
 		node['mouseMoveCheck'] = function(evName, ph) {			// проверка событий векторного слоя
-		//gmxAPI.map.addListener('onMouseMove', function(ph) {
-			if(!node.isVisible || gmxAPI._drawing['activeState'] || !node['leaflet'] || node['leaflet']._isVisible == false || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['curDragState']) return false;
+			if(!node.isVisible || gmxAPI._drawing['activeState'] || !node['leaflet'] || node['leaflet']._isVisible == false || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['curDragState'] || gmxAPI._mouseOnBalloon) return false;
 			var latlng = ph.attr['latlng'];
 			var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
 			var arr = getItemsByPoint(latlng);
 			
-//console.log('onMouseMove ' , node.id, arr);
+			//console.log('onMouseMove ' , node.id, gmxAPI._mouseOnBalloon);
 			if(arr && arr.length) {
 				var item = getTopFromArrItem(arr);
 				if(item) {
@@ -521,20 +521,8 @@
 				}
 			} else {
 				mouseOut();
-				/*
-				if(node['hoverItem']) {
-					var zoom = LMap.getZoom();
-					var drawInTiles = node['hoverItem'].geom.propHiden['drawInTiles'];
-					if(drawInTiles && drawInTiles[zoom]) redrawTilesHash(drawInTiles[zoom]);
-					gmxAPI._div.style.cursor = '';
-					callHandler('onMouseOut', node['hoverItem'].geom, gmxNode);
-					var filter = getItemFilter(node['hoverItem']);
-					if(filter) callHandler('onMouseOut', node['hoverItem'].geom, filter);
-				}
-				node['hoverItem'] = null;*/
 				return false;
 			}
-		//}, -11);
 		};
 
 		var callHandler = function(evName, geom, gNode, attr) {				// Вызов Handler для item

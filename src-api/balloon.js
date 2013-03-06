@@ -794,14 +794,14 @@ event.stopImmediatePropagation();
 			balloon.isRemoved = false;
 			
 			var oldSetVisible = balloon.setVisible;
-			balloon.outerDiv.onmouseover = function()
+			balloon.outerDiv.onmouseover = function(ev)
 			{
 				balloon.isHovered = true;
 				positionBalloons();
 				gmxAPI._mouseOnBalloon = true;
 				if(propsBalloon.isVisible()) {
 					propsBalloon.setVisible(false);
-					//gmxAPI._listeners.dispatchEvent('hideHoverBalloon', gmxAPI.map, {});
+					gmxAPI._listeners.dispatchEvent('hideHoverBalloon', gmxAPI.map, {});
 				}
 			}
 			balloon.outerDiv.onmouseout = function()
@@ -899,7 +899,7 @@ event.stopImmediatePropagation();
 			{
 				balloon.isVisible = flag;
 				this.reposition();
-				if(!flag) gmxAPI._mouseOnBalloon = false;
+				if(!flag) setTimeout(function() { gmxAPI._mouseOnBalloon = false; }, 20);
 			}
 			balloon.setPoint = function(x_, y_, isDraging_)
 			{
