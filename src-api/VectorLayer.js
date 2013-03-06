@@ -512,7 +512,6 @@
 			var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
 			var arr = getItemsByPoint(latlng);
 			
-			//console.log('onMouseMove ' , node.id, gmxAPI._mouseOnBalloon);
 			if(arr && arr.length) {
 				var item = getTopFromArrItem(arr);
 				if(item) {
@@ -782,13 +781,14 @@ var tt = 1;
 		option['tileFunc'] = inpAttr['tileFunction'];
 		var myLayer = new L.TileLayer.VectorTiles(option);
 		node['leaflet'] = myLayer;
-		
-		
+
 		if(layer.properties['visible']) {
 			setTimeout(function()
 				{
-					utils.setVisibleNode({'obj': node, 'attr': true});
-					node.isVisible = true;
+					if(node.isVisible != false) {
+						utils.setVisibleNode({'obj': node, 'attr': true});
+						node.isVisible = true;
+					}
 				}, 50);
 		} else {
 			node.isVisible = false;
