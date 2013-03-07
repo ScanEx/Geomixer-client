@@ -13,7 +13,7 @@
 		var id = layer.objectId;
 		var node = mapNodes[id];
 		if(!node) return;						// Нода не определена
-		var gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
+		//var gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
 		node['type'] = 'RasterLayer';
 		node['isOverlay'] = false;
 		node['failedTiles'] = {};				// Hash тайлов 404
@@ -91,6 +91,12 @@
 				if(!'zIndex' in node) node['zIndex'] = utils.getIndexLayer(id) + node['zIndexOffset'];
 				utils.bringToDepth(node, node['zIndex']);
 				if(node['shiftY']) node['shiftY']();
+				if(!gmxAPI.mapNodes[id].isBaseLayer && attr['bounds']) {
+					obj.options['bounds'] = new L.LatLngBounds([new L.LatLng(attr['bounds'].min.y, attr['bounds'].min.x), new L.LatLng(attr['bounds'].max.y, attr['bounds'].max.x)]);
+				}
+				else {
+					delete obj.options['bounds'];
+				}
 			}
 		};
 			
@@ -115,8 +121,8 @@
 				,'nodeID': id
 				,'async': true
 				,'unloadInvisibleTiles': true
-				,'countInvisibleTiles': (L.Browser.mobile ? 0 : 1)
-				//,'countInvisibleTiles': 0
+				//,'countInvisibleTiles': (L.Browser.mobile ? 0 : 1)
+				,'countInvisibleTiles': 0
 				//,'updateWhenIdle': true
 				//,'reuseTiles': true
 				//isBaseLayer
@@ -127,6 +133,10 @@
 				//,'noWrap': true
 				//,'subdomains': []
 			};
+			if(!gmxAPI.mapNodes[id].isBaseLayer && attr['bounds']) {
+				option['bounds'] = new L.LatLngBounds([new L.LatLng(attr['bounds'].min.y, attr['bounds'].min.x), new L.LatLng(attr['bounds'].max.y, attr['bounds'].max.x)]);
+			}
+
 			myLayer = new L.TileLayer.ScanExCanvas(option);
 			if(node['subType'] === 'OSM') {
 				var getTileUrl = function(x, y, zoom) {
@@ -245,16 +255,23 @@
 					node.waitRedraw();
 					return;
 				}
-				//if (this._map._panTransition && this._map._panTransition._inProgress) { return; }
-				var node = mapNodes[this.options.nodeID];
 
-				var bounds   = this._map.getPixelBounds(),
-					zoom     = this._map.getZoom(),
-					tileSize = this.options.tileSize;
-
-				if (!node || zoom > node.maxZ || zoom < node.minZ) {
+				var zoom = this._map.getZoom();
+				if (zoom > this.options.maxZoom || zoom < this.options.minZoom) {
 					return;
 				}
+				var bounds   = this._map.getPixelBounds(),
+					tileSize = this.options.tileSize;
+
+				if (this.options.bounds) {
+					var nw = this._map.project(this.options.bounds.getNorthWest());
+					var se = this._map.project(this.options.bounds.getSouthEast());
+					if(bounds.min.x < nw.x) bounds.min.x = nw.x;
+					if(bounds.min.y < nw.y) bounds.min.y = nw.y;
+					if(bounds.max.x > se.x) bounds.max.x = se.x;
+					if(bounds.max.y > se.y) bounds.max.y = se.y;
+				}
+
 				var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
 				bounds.min.y -= shiftY;
 				bounds.max.y -= shiftY;
@@ -293,7 +310,11 @@
 					,'y': -tilePoint.y - 1 + pz/2
 				};
 				var drawTileID = zoom + '_' + scanexTilePoint.x + '_' + scanexTilePoint.y;
-				if(node['failedTiles'][drawTileID]) return;		// второй раз 404 тайл не запрашиваем
+				tile.id = 't' + drawTileID;
+				if(node['failedTiles'][drawTileID]) {
+					if(this.options.bounds) this.tileDrawn(tile);
+					return;		// второй раз 404 тайл не запрашиваем
+				}
 				var tileSize = 0;
 				var layer = this;
 				var attr = this.options.attr;
@@ -380,6 +401,8 @@
 							}
 							,'onerror': function(){
 								node['failedTiles'][tID] = true;
+								pTile.id = tID + '_bad';
+								//layer.tileDrawn(pTile);
 							}
 						};
 						var gmxNode = gmxAPI.mapNodes[layer.options.nodeID];
