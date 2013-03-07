@@ -799,10 +799,15 @@
 		
 		var layerGroup = null;
 		var layerItems = [];
+		var drawTimerID = null;
 		var drawMe = function()
 		{
 //console.log('drawMe:  ', gmxAPI.currPosition);	// repaint vbounds
-			if(!node.leaflet) return;
+			if(!node.leaflet) {
+				if(drawTimerID) clearTimeout(drawTimerID);
+				drawTimerID = setTimeout(drawMe, 200);
+				return;
+			}
 			//coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
 			if(!layerGroup) {
 				layerGroup = node.leaflet;
