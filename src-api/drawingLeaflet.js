@@ -1098,7 +1098,7 @@
 			oBounds = gmxAPI.getBounds(coords);
 			createDrawingItem();
 			//mouseOverFlag = true;
-			setTimeout(repaint, 0);
+			setTimeout(repaint, 10);
 		} else {
 			addItemListenerID = gmxAPI.map.addListener('onClick', addDrawingItem);
 		}

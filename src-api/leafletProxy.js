@@ -379,11 +379,12 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(moveToTimer) clearTimeout(moveToTimer);
 			moveToTimer = setTimeout(function() {
 				if(!attr && !gmxAPI.map.needMove) return;
-				var px = (attr ? attr['x'] : (gmxAPI.map.needMove ? gmxAPI.map.needMove.x : 0));
-				var py = (attr ? attr['y'] : (gmxAPI.map.needMove ? gmxAPI.map.needMove.y : 0));
-				var z = (attr ? attr['z'] : (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : 1));
+				var flagInit = (gmxAPI.map.needMove ? true : false);
+				var px = (attr ? attr['x'] : (flagInit ? gmxAPI.map.needMove.x : 0));
+				var py = (attr ? attr['y'] : (flagInit ? gmxAPI.map.needMove.y : 0));
+				var z = (attr ? attr['z'] : (flagInit ? gmxAPI.map.needMove.z : 1));
 				var pos = new L.LatLng(py, px);
-				LMap.setView(pos, z, (gmxAPI.map.needMove ? true : false));
+				LMap.setView(pos, z, flagInit);
 				gmxAPI.map.needMove = null;
 			}, 50);
 		}
