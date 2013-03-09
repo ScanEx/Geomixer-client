@@ -96,14 +96,13 @@
 					attr['tilesVers'] = layer.properties['tilesVers'];
 				}
 			}
+			versionLayers[mapHost][mapName][layerName] = { 'LayerVersion': layer.properties.LayerVersion, 'tilesHash': pt['hash'], 'count': pt['count'] };
+			layer.geometry = gmxAPI.from_merc_geometry(ph.geometry);	// Обновить геометрию слоя
+			gmxAPI._listeners.dispatchEvent('onChangeLayerVersion', layer, layer.properties['LayerVersion'] );			// Listeners на слое - произошло изменение LayerVersion
 			// обновить список тайлов слоя
 			if(attr['add'] || attr['del'] || attr['dtiles']) {
 				gmxAPI._cmdProxy('startLoadTiles', { 'obj': layer, 'attr':attr });
 			}
-			versionLayers[mapHost][mapName][layerName] = { 'LayerVersion': layer.properties.LayerVersion, 'tilesHash': pt['hash'], 'count': pt['count'] };
-
-			layer.geometry = gmxAPI.from_merc_geometry(ph.geometry);	// Обновить геометрию слоя
-			gmxAPI._listeners.dispatchEvent('onChangeLayerVersion', layer, layer.properties['LayerVersion'] );			// Listeners на слое - произошло изменение LayerVersion
 		}
 		return arr;
 	}
@@ -174,6 +173,13 @@
 			'addObjects': arr 
 		};
 		if(flagEditItems) {
+			/*if (prop.Processing.Updated && prop.Processing.Updated.length > 0) {		// список удаляемых обьектов слоя
+				var updated = {};
+				for (var i = 0; i < prop.Processing.Updated.length; i++) {			// добавляемые обьекты также необходимо удалить из тайлов
+					updated[prop.Processing.Updated[i].id] = true;
+				}
+				out['inUpdate'] = updated;
+			}*/
 			gmxAPI._cmdProxy('setEditObjects', { 'obj': obj, 'attr':out });
 			gmxAPI.addDebugWarnings({'func': 'chkProcessing', 'warning': 'Processing length: ' + arr.length, 'layer': prop.title});
 		}

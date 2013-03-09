@@ -1471,7 +1471,7 @@
 			x1 = oBounds.minX; y1 = oBounds.maxY;	x2 = oBounds.maxX; y2 = oBounds.minY;
 			createDrawingItem();
 			mouseUp();
-			setTimeout(repaint, 0);
+			setTimeout(repaint, 10);
 			//mouseOverFlag = true;
 		} else {
 			var setMouseDown = function(ph)
