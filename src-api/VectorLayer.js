@@ -39,6 +39,7 @@
 		node['tilesGeometry'] = {};				// Геометрии загруженных тайлов по z_x_y
 		node['addedItems'] = []					// Геометрии обьектов добавленных в векторный слой
 		node['objectsData'] = {};				// Обьекты из тайлов по identityField
+		//node['clustersFlag'] = false;			// Признак кластеризации на слое
 		node['clustersData'] = null;			// Данные кластеризации
 
 		node['zIndexOffset'] = 1000;
@@ -475,7 +476,7 @@
 			}
 			return arr;
 		}
-		var getItemsByPoint = function(latlng) {			// проверка событий векторного слоя
+		var getItemsByPoint = function(latlng) {			// получить обьекты по пересечению с точкой
 			var arr = [];
 			var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
 			arr = getItemsFromTile(node['addedItems'], mPoint);
@@ -495,6 +496,7 @@
 
 		var mouseOut = function() {			// событие mouseOut
 			if(node['hoverItem']) {
+				gmxAPI._leaflet['LabelsManager'].remove(node.id, node['hoverItem'].geom.id);
 				var zoom = LMap.getZoom();
 				var drawInTiles = node['hoverItem'].geom.propHiden['drawInTiles'];
 				if(drawInTiles && drawInTiles[zoom]) redrawTilesHash(drawInTiles[zoom]);
@@ -511,7 +513,10 @@
 			if(!node.isVisible || gmxAPI._drawing['activeState'] || !node['leaflet'] || node['leaflet']._isVisible == false || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['curDragState'] || gmxAPI._mouseOnBalloon) return false;
 			var latlng = ph.attr['latlng'];
 			var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
-			var arr = getItemsByPoint(latlng);
+			var zoom = LMap.getZoom();
+			var tNums = gmxAPI.getTileFromPoint(latlng['lng'], latlng['lat'], zoom);
+			var tID = tNums.z + '_' + tNums.x + '_' + tNums.y;
+			var arr = tilesRedrawImages.getItemsByPoint(tID, mPoint);
 			
 			if(arr && arr.length) {
 				var item = getTopFromArrItem(arr);
@@ -542,11 +547,9 @@
 			if(item) {
 				var propHiden = item.propHiden;
 				if(!propHiden && item.geom && item.geom.propHiden) propHiden = item.geom.propHiden;
-				if(propHiden['subType'] != 'cluster') {
-					var filters = propHiden['toFilters'];
-					if(filters.length == 0) filters = chkObjectFilters(item);
-					filter = (filters && filters.length ? mapNodes[filters[0]] : null);
-				}
+				var filters = propHiden['toFilters'];
+				if(filters.length == 0) filters = chkObjectFilters(item);
+				filter = (filters && filters.length ? mapNodes[filters[0]] : null);
 			}
 			return filter;
 		}
@@ -560,9 +563,8 @@
 			var zoom = LMap.getZoom();
 			var hoveredStyle = null;
 			var regularStyle = null;
-			var filter = null;
+			var filter = getItemFilter(item.geom);
 			if(propHiden['subType'] != 'cluster') {
-				filter = getItemFilter(item);
 				if(filter) {
 					hoveredStyle = (filter.hoveredStyle ? filter.hoveredStyle : null);
 					regularStyle = (filter.regularStyle ? filter.regularStyle : null);
@@ -589,6 +591,7 @@
 					}
 					redrawTilesHash(tilesNeed);
 					item.geom.propHiden.curStyle = utils.evalStyle(regularStyle, item.geom.properties);
+					item.geom['_cache'] = null;
 					
 					gmxAPI._div.style.cursor = 'pointer';
 					if(callHandler('onMouseOver', item.geom, gmxNode)) return true;
@@ -649,22 +652,21 @@
 		
 		var prevPoint = null;
 		node['eventsCheck'] = function(evName, attr) {			// проверка событий векторного слоя
-			if(gmxAPI._drawing['activeState'] || !node['leaflet'] || !node['leaflet']._isVisible || gmxAPI._leaflet['curDragState']) return false;
+			if(evName !== 'onClick' || gmxAPI._drawing['activeState'] || !node['leaflet'] || !node['leaflet']._isVisible || gmxAPI._leaflet['curDragState']) return false;
 			//console.log('eventsCheck ' , evName, node.id, gmxAPI._leaflet['curDragState']);
 
 			//if(node['observerNode']) return false;
 			if(!attr) attr = gmxAPI._leaflet['clickAttr'];
 			if(!attr.latlng) return false;
 			var latlng = attr.latlng;
+			var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
 			var arr = null;
-			if(attr.tID) {
-				var mPoint = new L.Point(gmxAPI.merc_x(latlng['lng']), gmxAPI.merc_y(latlng['lat']));
-				arr = tilesRedrawImages.getItemsByPoint(attr.tID, mPoint);
-			} else {
-				arr = getItemsByPoint(latlng);
-			}
+			var zoom = LMap.getZoom();
+			var tNums = gmxAPI.getTileFromPoint(latlng['lng'], latlng['lat'], zoom);
+			var tID = tNums.z + '_' + tNums.x + '_' + tNums.y;
+			var arr = tilesRedrawImages.getItemsByPoint(tID, mPoint);
 		
-			if(evName === 'onClick' && arr && arr.length) {
+			if(arr && arr.length) {
 				var needCheck = (!prevPoint || !attr.containerPoint || attr.containerPoint.x != prevPoint.x || attr.containerPoint.y != prevPoint.y);
 				prevPoint = attr.containerPoint;
 				if(needCheck) {
@@ -708,7 +710,7 @@
 				} else {
 					itemPropHiden = item.geom.propHiden;
 				}
-				if(oper === 'setFlip' && attr.tID) {
+				if(oper === 'setFlip') {
 					var hItem = getTopFromArrItem(arr);
 					if(hItem) hoverItem(hItem);
 				}
@@ -716,7 +718,7 @@
 				var eventPos = {
 					'latlng': { 'x': latlng.lng, 'y': latlng.lat }
 					,'pixelInTile': attr.pixelInTile
-					,'tID': attr.tID
+					,'tID': tID
 				};
 				
 				if(!isCluster) {
@@ -731,11 +733,12 @@
 						var res = callHandler('onClick', item, gmxNode, {'eventPos': eventPos});
 						if(res) return res;
 					}
-					//mapNodes[fID]['handlers'][evName].call(filter, item.id, item.properties, {'onClick': true, 'geom': geom, 'eventPos': eventPos});
 				} else {
-					if(callHandler('onClick', item, gmxNode, {'objType': 'cluster', 'eventPos': eventPos})) return true;
+					if(callHandler('onClick', item.geom, gmxNode, {'objType': 'cluster', 'eventPos': eventPos})) return true;
+					var fID = itemPropHiden['toFilters'][0];
+					var filter = gmxAPI.mapNodes[fID];
+					if(filter && callHandler('onClick', item.geom, filter, {'eventPos': eventPos})) return true;
 				}
-				
 				return true;
 			}
 		}
@@ -758,6 +761,7 @@
 		node['minZ'] = inpAttr['minZoom'] || attr['minZoom'] || 1;
 		node['maxZ'] = inpAttr['maxZoom'] || attr['maxZoom'] || 21
 		var identityField = attr['identityField'] || 'ogc_fid';
+		node['identityField'] = identityField;
 		var typeGeo = attr['typeGeo'] || 'Polygon';
 		var TemporalColumnName = attr['TemporalColumnName'] || '';
 		var option = {
@@ -1093,37 +1097,13 @@
 		}
 		
 		var tilesRedrawImages = {						// Управление отрисовкой растров векторного тайла
-/*
-			'addItem': function(zoom, tileID, item)	{				// Добавить обьект
-				if(!node['tilesRedrawImages'][zoom]) node['tilesRedrawImages'][zoom] = {};
-				if(!node['tilesRedrawImages'][zoom][tileID]) node['tilesRedrawImages'][zoom][tileID] = [];
-				var arr = []
-				for (var i = 0; i < node['tilesRedrawImages'][zoom][tileID].length; i++)
-				{
-					var it = node['tilesRedrawImages'][zoom][tileID][i];
-					if(it.geom.id != item.geom.id || it.geom.propHiden.tileID != item.geom.propHiden.tileID) arr.push(it);
-				}
-				arr.push(item);
-				node['tilesRedrawImages'][zoom][tileID] = arr;
-			}
-			,
-			'getItem': function(iID)	{				// Получить обьект
-				var zoom = LMap.getZoom();
-				for (var tileID in node['tilesRedrawImages'][zoom]) {
-					for (var i = 0; i < node['tilesRedrawImages'][zoom][tileID].length; i++)
-					{
-						var it = node['tilesRedrawImages'][zoom][tileID][i];
-						if(it.geom.id == iID) return it;
-					}
-				}
-				return null;
-			}
-			,
-*/			
 			'getItemsByPoint': function(tID, mPoint)	{				// Получить обьекты под мышкой
 				var zoom = LMap.getZoom();
-				if(!node['tilesRedrawImages'][zoom] || !node['tilesRedrawImages'][zoom][tID]) return null;
+				if(!node['tilesRedrawImages'][zoom] || !node['tilesRedrawImages'][zoom][tID]) return [];
 				var minDist = Number.MAX_VALUE;
+				var mInPixel = gmxAPI._leaflet['mInPixel'];
+				mInPixel *= mInPixel;
+
 				var arr = [];
 				for (var i = 0; i < node['tilesRedrawImages'][zoom][tID].length; i++)
 				{
@@ -1136,6 +1116,7 @@
 					
 					if('distance2' in item.geom) {
 						dist = item.geom['distance2'](mPoint);
+						if(dist * mInPixel > item.geom['sx']*item.geom['sy']) continue;
 					}
 					if(dist < minDist) { arr.unshift(item); minDist = dist; }
 					else arr.push(item);
@@ -1443,7 +1424,8 @@
 			//var needDraw = [];
 			var arr = getObjectsByTile(attr, clearFlag);
 			if(node['clustersData']) {						// Получить кластеры
-				arr = getTileClusterArray(arr, attr);
+				arr = node['clustersData'].getTileClusterArray(arr, attr);
+				gmxAPI._leaflet['LabelsManager'].remove(node.id);	// Переформировать Labels
 				removeFromBorderTiles(drawTileID);
 				waitRedrawFlips();							// требуется отложенная перерисовка
 			}
@@ -1738,7 +1720,7 @@
 			}
 			if(flag) node['filters'].push(fid);
 			node.refreshFilter(fid);
-			mapNodes[fid]['setClusters'] = node.setClusters;
+			//mapNodes[fid]['setClusters'] = node.setClusters;
 		}
 
 		node.removeTile = function(key)	{			// Удалить тайл
@@ -1854,256 +1836,7 @@
 			utils.removeLeafletNode(node);
 			node['leaflet'] = null;
 		}
-		
-		node.setClusters = function(ph)	{			// Добавить кластеризацию к векторному слою
-			var out = {
-				'input': ph
-			};
-			if(ph.iterationCount) out['iterationCount'] = ph.iterationCount;	// количество итераций K-means
-			if(ph.radius) out['radius'] = ph.radius;							// радиус кластеризации в пикселах
-			
-			gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onIconLoaded', 'func': function(eID) {	// проверка загрузки иконок
-				if(eID.indexOf('_clusters')) {
-					if(eID == node.id + '_regularStyle_clusters') {
-						out.regularStyle['ready'] = true;
-					} else if(eID == node.id + '_hoveredStyle_clusters') {
-						out.hoveredStyle['ready'] = true;
-					}
-				}
-				//console.log(' onIconLoaded: ' + eID + ' : '); 
-			}});
-			if(ph.RenderStyle) {
-				out.regularStyle = utils.parseStyle(ph.RenderStyle, node.id + '_regularStyle_clusters');
-				out.regularStyleIsAttr = utils.isPropsInStyle(out.regularStyle);
-				if(!out.regularStyleIsAttr) out.regularStyle = utils.evalStyle(out.regularStyle)
-				if(ph.HoverStyle && ph.RenderStyle.label && !ph.HoverStyle.label) ph.HoverStyle.label = ph.RenderStyle.label;
-			}
-			if(ph.HoverStyle) {
-				out.hoveredStyle = utils.parseStyle(ph.HoverStyle, node.id + '_hoveredStyle_clusters');
-				out.hoveredStyleIsAttr = utils.isPropsInStyle(out.hoveredStyle);
-				if(!out.hoveredStyleIsAttr) out.hoveredStyle = utils.evalStyle(out.hoveredStyle)
-			}
-			node['clustersData'] = out;
-			gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Проверка map Listeners на hideBalloons
-		}
-
-		var getTileClusterArray = function(iarr, tileAttr)	{			// Получить кластеры тайла
-			var attr = node['clustersData'];
-			var iterCount = (attr.iterationCount != null ? attr.iterationCount : 1);	// количество итераций K-means
-			var radius = (attr.radius != null ? attr.radius : 20);						// радиус кластеризации в пикселах
-			var input = attr['input'] || {};
-			var newProperties = input['newProperties'] || {'Количество': '[objectInCluster]'};	// properties кластеров
-
-			var mInPixel = gmxAPI._leaflet['mInPixel'];
-			//var radMercator = radius * scale;			// размер радиуса кластеризации в метрах меркатора
-			var x = tileAttr['x'];
-			var y = 256 + tileAttr['y'];
-			//var flag = identityField; 
-			var grpHash = {};
-			var arr = [];
-			var cnt = 0;
-			for(var i=0; i<iarr.length; i++) {
-				var item = iarr[i];
-				if (item.type.indexOf('Point') == -1) continue;
-				var p = item.coordinates;
-//				if(!tileAttr.bounds.contains(p)) continue;
-				var px1 = p.x * mInPixel - x;
-				var py1 = y - p.y * mInPixel;
-
-				var dx = Math.floor(px1 / radius);		// Координаты квадранта разбивки тайла
-				if(dx < 0) continue;
-				var dy = Math.floor(py1 / radius);
-				if(dy < 0) continue;
-				var key = dx + '_' + dy;
-				var ph = grpHash[key] || {};
-				var parr = ph['arr'] || [];
-				parr.push(cnt);
-				cnt++;
-				arr.push(item);
-				ph.arr = parr;
-				grpHash[key] = ph;
-			}
-/*			
-			function setProperties(prop_:Hash<String>, len_:Int):Void
-			{
-				var regObjectInCluster = ~/\[objectInCluster\]/g;
-				for (i in 0...Std.int(propFields[0].length)) {
-					var key:String = propFields[0][i];
-					var valStr:String = propFields[1][i];
-					valStr = regObjectInCluster.replace(valStr, cast(len_));
-					prop_.set(key, valStr);
-				}
-			}
-*/			
-			function getCenterGeometry(parr)
-			{
-				if (parr.length < 1) return null;
-				var xx = 0; var yy = 0;
-				var lastID = null;
-				var members = [];
-				for(var i=0; i<parr.length; i++) {
-					var index = parr[i];
-					var item = arr[index];
-					if (parr.length == 1) return item;
-					lastID = item.id;
-					var p = item.coordinates;
-					xx += p.x;
-					yy += p.y;
-					members.push(item);
-				}
-				xx /= parr.length;
-				yy /= parr.length;
-
-				var rPoint = new L.Point(xx, yy)
-				var bounds = new L.Bounds();
-				bounds.extend(rPoint);
-				
-				var res = {
-					'id': lastID
-					,'type': 'Point'
-					,'bounds': bounds
-					,'coordinates': rPoint
-					,'properties': {
-					}
-					,'propHiden': {
-						'subType': 'cluster'
-						,'_members': members
-					}
-				};
-				return res;
-			}
-
-			// find the nearest group
-			function findGroup(point) {
-				var min = Number.MAX_VALUE; //10000000000000;
-				var group = -1;
-				for(var i=0; i<centersGeometry.length; i++) {
-					var item = centersGeometry[i];
-					var center = item.coordinates;
-					var x = point.x - center.x,
-						y = point.y - center.y;
-					var d = x * x + y * y;
-					if(d < min){
-						min = d;
-						group = i;
-					}
-				}
-				return group;
-			}
-			
-			
-			var centersGeometry = [];
-			var objIndexes =  [];
-			// преобразование grpHash в массив центроидов и MultiGeometry
-			var clusterNum =  0;
-			for (var key in grpHash)
-			{
-				var ph = grpHash[key];
-				if (ph == null || ph.arr.length < 1) continue;
-				objIndexes.push(ph.arr);
-				var pt = getCenterGeometry(ph.arr);
-				var prop = {};
-				var first = arr[ph.arr[0]];
-				if (ph.arr.length == 1) {
-					prop = gmxAPI.clone(getPropItem(first));
-				}
-				else
-				{
-					clusterNum++;
-					pt['id'] = 'cl_' + clusterNum;
-					prop[identityField] = pt['id'];
-					prop['d'] = 'cl_' + clusterNum;
-					//setProperties(prop, ph.arr.length);
-				}
-
-				if(first.propTemporal != null) pt.propTemporal = first.propTemporal;
-				pt.properties = prop;
-				centersGeometry.push(pt);
-			}
-
-			// Итерация K-means
-			function kmeansGroups()
-			{
-				var newObjIndexes =  [];
-				for(var i=0; i<arr.length; i++) {
-				//for (i in 0...Std.int(geom.members.length))				{
-					var item = arr[i];
-					//if (!Std.is(geom.members[i], PointGeometry)) continue;
-					//var member:PointGeometry = cast(geom.members[i], PointGeometry);
-					var point = item.coordinates;
-
-					var group = findGroup(point);
-					
-					if (!newObjIndexes[group]) newObjIndexes[group] = [];
-					newObjIndexes[group].push(i);
-				}
-				centersGeometry = [];
-				objIndexes =  [];
-
-				var clusterNum =  0;
-				for(var i=0; i<newObjIndexes.length; i++) {
-				//for (arr in newObjIndexes)				{
-					var parr = newObjIndexes[i];
-					if (!parr || parr.length == 0) continue;
-					var pt = getCenterGeometry(parr);
-					var prop = {};
-					if (parr.length == 1) {
-						prop = gmxAPI.clone(getPropItem(arr[parr[0]]));
-						//var propOrig = geom.members[parr[0]].properties;
-						//for(key in propOrig.keys()) prop.set(key, propOrig.get(key));
-						//pt.propHiden.set('_paintStyle', vectorLayerFilter.mapNode.regularStyle);
-					}
-					else
-					{
-						clusterNum++;
-						pt['id'] = 'cl_' + clusterNum;
-						pt['subType'] = 'cluster';
-						pt.curStyle = attr.regularStyle;
-						//pt.propHiden['_paintStyle'] = attr.regularStyle;
-						prop[identityField] = pt['id'];
-						//prop['dgg'] = 'cl_' + clusterNum;
-					}
-					pt.properties = prop;
-					if(arr[parr[0]].propTemporal != null) pt.propTemporal = arr[parr[0]].propTemporal;
-					
-					centersGeometry.push(pt);
-					objIndexes.push(parr);
-				}
-			}
-			
-			for(var i=0; i<iterCount; i++) {	// Итерации K-means
-				kmeansGroups();
-			}
-			
-			var regObjectInCluster = /\[objectInCluster\]/g;
-			var res = [];
-			for(var i=0; i<centersGeometry.length; i++) {	// Подготовка геометрий
- 				var item = centersGeometry[i];
- 				if(item['subType'] === 'cluster') {
-					var p = item.coordinates;
-					var geo = gmxAPI._leaflet['PointGeometry']({'coordinates': [p.x, p.y]});
-					geo.id = item.id + '_' + tileAttr['drawTileID'];
-					geo.curStyle = item.curStyle;
-					geo.properties = item.properties;
-					for (var key in newProperties)
-					{
-						var zn = newProperties[key];
-						if(zn.match(regObjectInCluster)) zn = zn.replace(regObjectInCluster, item.propHiden._members.length);
-						geo.properties[key] = zn;
-					}
-
-					geo.propHiden = item.propHiden;
-					geo.propHiden['tileID'] = tileAttr['drawTileID'];
-					geo.propHiden['fromTiles'] = {};
-					
-					res.push(geo);
-				} else {
-					res.push(item);
-				}
-			}
-			return res;
-		}
-		
+	
 		// Обработчик события - onTileLoaded
 		gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onTileLoaded', 'obj': gmxAPI.mapNodes[id], 'func': function(ph) {
 				var nodeLayer = mapNodes[id];
@@ -2116,9 +1849,7 @@
 		// Обработчик события - onLayerStartTileRepaint
 		gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onLayerStartTileRepaint', 'obj': gmxAPI.mapNodes[id], 'func': function(ph) {
 				var nodeLayer = mapNodes[id];
-				//nodeLayer.repaintTile(ph.attr, true);
 				nodeLayer.waitRedrawTile(ph.attr);
-				//console.log(' onLayerStartTileRepaint: ' ,ph.attr, ' : ');
 			}
 		});
 		var gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
@@ -2126,9 +1857,11 @@
 			gmxNode.removeListener('onLayer', onLayerEventID);
 			gmxNode = obj;
 			gmxNode.addListener('onChangeVisible', function(flag) {				// Изменилась видимость слоя
+				if(flag) waitRedraw();
 				gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, flag);
 			}, -10);
 			gmxNode.addListener('onChangeLayerVersion', refreshBounds);
+			node.setClusters = gmxAPI._leaflet['ClustersLeaflet'].setClusters;
 		});
 	}
 	

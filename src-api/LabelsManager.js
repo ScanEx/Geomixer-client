@@ -106,7 +106,7 @@
 				dx -= (item.extent.x + item['style']['size']);
 			} else if(align == 'center') {
 				dx = -item.extent.x/2 + 1;
-				dy += item.extent.y/2;
+				dy = item.extent.y/2;
 			}
 
 			var lx = (item.point.x - mx) * mInPixel + dx - 1; 		lx = (0.5 + lx) << 0;
@@ -129,8 +129,12 @@
 				});
 				ctx.font = item['style']['font'];
 				ctx.strokeStyle = item['style']['strokeStyle'];
-				ctx.strokeText(item['txt'], lx, ly);
 				ctx.fillStyle = item['style']['fillStyle'];
+				ctx.shadowColor = item['style']['strokeStyle'];
+				ctx.shadowBlur = 4;
+				//ctx.shadowOffsetX = 0;
+				//ctx.shadowOffsetY = 0;
+				ctx.strokeText(item['txt'], lx, ly);
 				ctx.fillText(item['txt'], lx, ly);
 			}
 		}
@@ -197,14 +201,19 @@
 			itemsHash[id] = item;
 			repaintItems();
 		}
-		,'remove': function(id)	{				// удалить ноду
+		,'remove': function(id, vid)	{				// удалить ноду
 			if(itemsHash[id]) delete itemsHash[id];
 			else {
 				var node = gmxAPI._leaflet['mapNodes'][id];
 				if(!node || node.type != 'VectorLayer') return false;
 				var st = id + '_';
+				if(vid) st += vid;
 				for(var pid in itemsHash) {
-					if(pid.indexOf(st) != -1) delete itemsHash[pid];
+					if(vid) {
+						if(pid == st) { delete itemsHash[pid]; break; }
+					} else {
+						if(pid.indexOf(st) != -1) delete itemsHash[pid];
+					}
 				}
 			}
 			repaintItems();
@@ -217,7 +226,7 @@
 				setVisibleRecursive(id, flag);
 			} else {
 				if(!flag) {
-					this.remove(id);
+					LabelsManager.remove(id);
 					return;
 				}
 			}

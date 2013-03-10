@@ -208,6 +208,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 							var style = prop.styles[i];
 							out['minZoom'] = Math.min(out['minZoom'], style['MinZoom']);
 							out['maxZoom'] = Math.max(out['maxZoom'], style['MaxZoom']);
+							//if(style['clusters']) out['clustersFlag'] = true;	// Признак кластеризации на слое
 						}
 					}
 				}
@@ -2284,12 +2285,24 @@ return;
 			return true;
 		}
 		,
-		'setClusters':	function(ph)	{
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			if(!node || !node.setClusters) return false;
-			node.setClusters(ph.attr);
-			return true;
+		'setClusters':	function(ph) {
+			setTimeout(function()
+			{
+				var id = ph.obj.objectId;
+				var node = mapNodes[id];
+				if(!node) return false;
+				if(node['type'] == 'filter') {					// для фильтра id
+					var pGmxNode = ph.obj.parent;
+					var pid = pGmxNode.objectId;
+					node = mapNodes[pid];
+					node.setClusters(ph.attr, id);
+					return true;
+				} else if(node['type'] == 'VectorLayer') {	// для всех фильтров
+					node.setClusters(ph.attr, id);
+					return true;
+				}
+				return false;
+			}, 0);
 		}
 		,
 		'getChildren':	function(ph)	{								// Получить потомков обьекта
@@ -2752,12 +2765,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
 
 			if(!out['_cache']) out['_cache'] = {};
-			//var ctx = gmxAPI._leaflet['ptx'];
-			//ctx.clearRect(0, 0, 256, 256);
-			
-			//var ctx = attr['ctx'];
 			var style = attr['style'];
-			//var size = style['size'] || 4;
+			var size = style['size'] || 4;
 			var scale = style['scale'] || 1;
 			if('_scale' in out['_cache']) scale = out['_cache']['_scale'];
 			else {
@@ -2770,8 +2779,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 				out['_cache']['_scale'] = scale;
 			}
 			
-			if(style['imageWidth']) out['sx'] = scale * style['imageWidth'];
-			if(style['imageHeight']) out['sy'] = scale * style['imageHeight'];
+			out['sx'] = scale * (style['imageWidth'] ? style['imageWidth'] : size);
+			out['sy'] = scale * (style['imageHeight'] ? style['imageHeight'] : size);
 
 			var x = attr['x'];
 			var y = 256 + attr['y'];
@@ -2795,8 +2804,8 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 						out['sx'] = out['sy'] = scale * size;
 						canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style, size);
 					}
-					//ctx.drawImage(canv, px1, py1, out['sx'], out['sy']);
-					ctx.drawImage(canv, px1, py1);
+					ctx.drawImage(canv, px1, py1, out['sx'], out['sy']);
+					//ctx.drawImage(canv, px1, py1);
 				}
 			} else {
 				if(style['stroke'] && style['weight'] > 0) {
