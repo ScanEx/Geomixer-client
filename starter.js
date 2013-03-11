@@ -561,6 +561,8 @@ window.resizeAll = function()
 	$$("flash").style.top = top + 'px';
 	$$("flash").style.width = getWindowWidth() - left - right + 'px';
 	$$("flash").style.height = getWindowHeight() - top - 35 - 60 * Number(layersShown) - bottom + 'px';
+    
+    window.globalFlashMap && window.globalFlashMap.checkMapSize();
 	
 	if (layersShown)
 	{
