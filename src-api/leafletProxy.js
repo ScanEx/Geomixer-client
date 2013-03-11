@@ -2023,13 +2023,14 @@ return;
 		'setFilter':	function(ph)	{			// Установка фильтра
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(!node) return;						// Нода не была создана через addObject
+			if(!node) return null;						// Нода не была создана через addObject
 			node['type'] = 'filter';
 			node['sql'] = ph.attr['sql'];
 			node['sqlFunction'] = gmxAPI.Parsers.parseSQL(ph.attr['sql']);
 
 			var pNode = mapNodes[node['parentId']];
 			pNode.addFilter(id);
+			return node['sqlFunction'];
 		}
 		,
 		'startLoadTiles':	function(ph)	{		// Перезагрузка тайлов векторного слоя
