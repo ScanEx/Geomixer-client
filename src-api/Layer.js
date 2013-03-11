@@ -372,8 +372,8 @@
 			(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
 
 		var tileFunction = function(i, j, z)
-		{ 
-			if (bounds)
+		{
+			if (isRaster && bounds)
 			{
 				var tileSize = gmxAPI.getScale(z)*256;
 				var minx = i*tileSize;

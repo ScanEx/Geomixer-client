@@ -1870,9 +1870,10 @@
 		var hash = {};
 		for (var i = 0; i < arr.length; i+=3)
 		{
-			var st = arr[i+2] + '_' + arr[i] + '_' + arr[i+1];
-			var pz = Math.round(Math.pow(2, Math.floor(arr[i+2]) - 1));
-			var bounds = utils.getTileBounds({'x':Math.floor(arr[i]) + pz, 'y':pz - 1 - Math.floor(arr[i+1])}, Math.floor(arr[i+2]));
+			var x = Number(arr[i]) , y = Number(arr[i+1]) , z = Number(arr[i+2]);
+			var st = z + '_' + x + '_' + y;
+			var pz = Math.round(Math.pow(2, z - 1));
+			var bounds = utils.getTileBounds({'x':x + pz, 'y':pz - 1 - y}, z);
 			bounds.min.x = gmxAPI.merc_x(bounds.min.x);
 			bounds.max.x = gmxAPI.merc_x(bounds.max.x);
 			bounds.min.y = gmxAPI.merc_y(bounds.min.y);
@@ -1913,42 +1914,6 @@
 					if(tile.id == id) return tile;
 				}
 				return null;
-			}
-			,
-			_update: function (e) {
-				if (!this._map) {
-					return;
-				}
-
-				var zoom = this._map.getZoom();
-				if (zoom > this.options.maxZoom || zoom < this.options.minZoom) {
-					return;
-				}
-				var bounds   = this._map.getPixelBounds(),
-					tileSize = this.options.tileSize;
-
-				if (this.options.bounds) {
-					var nw = this._map.project(this.options.bounds.getNorthWest());
-					var se = this._map.project(this.options.bounds.getSouthEast());
-					if(bounds.min.x < nw.x) bounds.min.x = nw.x;
-					if(bounds.min.y < nw.y) bounds.min.y = nw.y;
-					if(bounds.max.x > se.x) bounds.max.x = se.x;
-					if(bounds.max.y > se.y) bounds.max.y = se.y;
-				}
-
-				var nwTilePoint = new L.Point(
-						Math.floor(bounds.min.x / tileSize),
-						Math.floor(bounds.min.y / tileSize)),
-					seTilePoint = new L.Point(
-						Math.floor(bounds.max.x / tileSize),
-						Math.floor(bounds.max.y / tileSize)),
-					tileBounds = new L.Bounds(nwTilePoint, seTilePoint);
-
-				this._addTilesFromCenterOut(tileBounds);
-
-				if (this.options.unloadInvisibleTiles || this.options.reuseTiles) {
-					this._removeOtherTiles(tileBounds);
-				}
 			}
 			,
 			drawTile: function (tile, tilePoint, zoom) {
