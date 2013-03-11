@@ -2203,8 +2203,10 @@ return;
 				});
 			} else if('onZoomend' in node) {					// есть проверка по Zoom
 				node.onZoomend();
+			} else if(node['type'] == 'filter') {			//ограничение по zoom mapObject
+				var pnode = mapNodes[node.parentId];
+				if(pnode && 'chkZoomBoundsFilters' in pnode) pnode.chkZoomBoundsFilters();
 			}
-			
 			return true;
 		}
 		,

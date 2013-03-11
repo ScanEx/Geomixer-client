@@ -1638,6 +1638,20 @@
 			}
 		}
 
+		node.chkZoomBoundsFilters = function()	{	// Проверка видимости по Zoom фильтров
+			var minZ = node.minZ;
+			var maxZ = node.maxZ;
+			for(var j=0; j<node.filters.length; j++) {
+				var filter = mapNodes[node.filters[j]];
+				if(maxZ < filter.maxZ) maxZ = filter.maxZ;
+				if(minZ > filter.minZ) minZ = filter.minZ;
+			}
+			if(maxZ != node.maxZ) node.maxZ = maxZ;
+			if(minZ != node.minZ) node.minZ = minZ;
+			myLayer._isVisible = false;
+			node.onZoomend();
+		}
+
 		node.onZoomend = function()	{				// Проверка видимости по Zoom
 			if(!node.isVisible) return false;
 			var flag = myLayer._isVisible;
