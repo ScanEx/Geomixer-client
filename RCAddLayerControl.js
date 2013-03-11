@@ -96,7 +96,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     var existLayerCanvas = $('<div/>', {id: 'existlayer' + id});
     var mapLayerCanvas   = $('<div/>', {id: 'maplayer' + id});
     var RCLayerCanvas    = $('<div/>', {id: 'rclayer' + id});
-    var newLayerCanvas   = $('<div/>', {id: 'newlayer' + id});
+    var newLayerCanvas   = $('<div/>', {id: 'newlayer' + id}).css('height', '480px');
     var visLayerCanvas   = $('<div/>', {id: 'vislayer' + id});
     
     var tabMenu = _div([_ul([_li([_a([_t(_gtxt("Существующие слои"))],[['attr','href','#existlayer' + id]])]),

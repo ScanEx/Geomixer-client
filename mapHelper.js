@@ -2627,7 +2627,7 @@ mapHelper.prototype.createNewLayer = function(type)
 	if ($$('new' + type + 'Layer'))
 		return;
 
-	var parent = _div(null, [['attr','id','new' + type + 'Layer']]),
+	var parent = _div(null, [['attr','id','new' + type + 'Layer'], ['css', 'height', '100%']]),
 		height = (type == 'Vector') ? 340 : 360;
 
     if (type !== 'Multi')
@@ -2718,11 +2718,12 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			createTabs = function(layerProperties)
 			{
 				var id = 'layertabs' + elemProperties.name,
-					divProperties = _div(null,[['attr','id','properties' + id]]),
-					divStyles = _div(null,[['attr','id','styles' + id]]),
+					divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
+					divStyles = _div(null,[['css', 'height', '100%'], ['css', 'overflowY', 'auto']]),
 					divQuicklook,
 					tabMenu,
-                    moreTabs = [{title: _gtxt("Стили"), name: 'styles', container: divStyles}];
+                    divStylesExternal = _div([divStyles], [['attr','id','styles' + id], ['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]),
+                    moreTabs = [{title: _gtxt("Стили"), name: 'styles', container: divStylesExternal}];
 				
 				if (elemProperties.GeometryType == 'polygon' &&
 					elemProperties.description &&
@@ -2889,8 +2890,8 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			this.layerEditorsHash[elemProperties.name] = true;
 			
 			var id = 'layertabs' + elemProperties.name,
-				divProperties = _div(null,[['attr','id','properties' + id]]),
-				divStyles = _div(null,[['attr','id','styles' + id]]);
+				divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
+				divStyles = _div(null,[['attr','id','styles' + id], ['css', 'height', '100%'], ['css', 'overflowY', 'auto']]);
             
 			var parentObject = globalFlashMap.layers[elemProperties.name],
 				parentStyle = elemProperties.styles[0];

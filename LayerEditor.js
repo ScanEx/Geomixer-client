@@ -333,7 +333,7 @@ var createPageMain = function(parent, layerProperties) {
         shownProperties = shownProperties.concat(createPageRasterSource(layerProperties));
         
     var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
-    _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
+    _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])], [['css', 'height', '100%'], ['css', 'overflowY', 'auto']])]);
 }
 
 var createPageVectorSource = function(layerProperties) {
@@ -872,7 +872,10 @@ var createPageMetadata = function(parent, layerProperties) {
         var layerTags = new nsGmx.LayerTags(tagsInfo, convertedTagValues);
         layerProperties.set('MetaPropertiesEditing', layerTags);
         
-        var layerTagsControl = new nsGmx.LayerTagSearchControl(layerTags, parent);
+        var innerParent = _div(null, [['css', 'height', '100%'], ['css', 'overflowY', 'auto']]);
+        _(parent, [innerParent]);
+        
+        var layerTagsControl = new nsGmx.LayerTagSearchControl(layerTags, innerParent);
     })
 }
 
@@ -909,7 +912,7 @@ var createPageAdvanced = function(parent, layerProperties) {
     shownProperties.push({name: _gtxt("Каталог растров"), elem: rasterCatalogDiv[0], trid: 'RCCreate-container', trclass: 'layer-advanved-options'});
     
     var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
-    _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
+    _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])], [['css', 'height', '100%'], ['css', 'overflowY', 'auto']])]);
 }
 
 var LayerEditor = function(div, type, properties, treeView, params) {
@@ -934,10 +937,10 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     
     var origLayerProperties = layerProperties.clone();
                     
-    var mainContainer = _div();
+    var mainContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
     // var sourceContainer = _div();
-    var metadataContainer = _div();
-    var advancedContainer = _div();
+    var metadataContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
+    var advancedContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
     
     createPageMain(mainContainer, layerProperties);
     createPageMetadata(metadataContainer, layerProperties);
@@ -1112,7 +1115,13 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
     
     var saveMenuCanvas = _div([layerEditor.getSaveButton()]);
     
-    $(parent).empty().append(tabMenu, saveMenuCanvas);
+    // $(parent).css('height', '100%');
+    
+    // $(parent).empty().append(tabMenu, saveMenuCanvas);
+    $(parent).empty().append(_table([
+        _tr([_td([tabMenu])], [['css', 'height', '100%'], ['css', 'verticalAlign', 'top']]),
+        _tr([_td([saveMenuCanvas])])
+    ], [['css', 'height', '100%'], ['css', 'width', '100%'], ['css', 'position', 'relative']]));
     
     var getTabIndex = function(tabName) {
         for (var i = 0; i < tabs.length; i++)
@@ -1134,8 +1143,6 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
             })
         }
     })
-    
-    return;
 }
 
 nsGmx.LayerEditor = LayerEditor;
