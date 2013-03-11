@@ -1628,10 +1628,12 @@
 			{
 				var arr = node['tilesGeometry'][tileID];
 				for (var i = 0; i < arr.length; i++) {
+					delete arr[i].propHiden['curStyle'];
 					arr[i].propHiden['toFilters'] = chkObjectFilters(arr[i]);
 				}
 			}
 			for (var i = 0; i < node['addedItems'].length; i++) {
+				delete node['addedItems'][i].propHiden['curStyle'];
 				node['addedItems'][i].propHiden['toFilters'] = chkObjectFilters(node['addedItems'][i]);
 			}
 		}

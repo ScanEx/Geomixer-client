@@ -3219,9 +3219,9 @@ if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'h
 			return res;
 		}
 		// Проверка принадлежности точки полигону
-		out['contains'] = function (chkPoint) {
+		out['contains'] = function (chkPoint, curStyle) {
 			if(bounds.contains(chkPoint)) {
-				var curStyle = out.propHiden.curStyle;
+				if(!curStyle) curStyle = out.propHiden.curStyle;
 				var fill = 	(curStyle ? curStyle.fill : false);
 				for (var i = 0; i < coords.length; i++)
 				{
@@ -3389,9 +3389,10 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 
 		// Проверка принадлежности точки MultiPolygonGeometry
 		out['contains'] = function (chkPoint) {
+			var curStyle = out.propHiden.curStyle;
 			for (var i = 0; i < members.length; i++)
 			{
-				if(members[i]['contains'](chkPoint)) return true;
+				if(members[i]['contains'](chkPoint, curStyle)) return true;
 			}
 			return false;
 		}
