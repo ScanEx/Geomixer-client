@@ -447,7 +447,7 @@ var AddImageControl = function(map, layerName)
     var doAddLayer = function(newLayer)
     {
         var newLayerName = newLayer.name;
-        var testQuery = 'LayerName="' + newLayerName + '"'
+        var testQuery = '[LayerName]=\'' + newLayerName + '\'';
         sendCrossDomainJSONRequest(getServerBase() + "VectorLayer/Search.ashx?WrapStyle=func&count=true" + "&layer=" + layerName + "&query=" + encodeURIComponent(testQuery), function(response)
         {
             if (!parseResponse(response))

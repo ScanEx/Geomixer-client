@@ -307,7 +307,7 @@ var EditObjectControl = function(layerName, objectId, params)
             _(canvas, [loading])
             
             //получаем геометрию объекта
-            sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + layerName + "&page=0&pagesize=1&orderby=" + identityField + "&geometry=true&query='" + identityField + "'=" + objectId, function(response)
+            sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + layerName + "&page=0&pagesize=1&orderby=" + identityField + "&geometry=true&query=[" + identityField + "]=" + objectId, function(response)
             {
                 if (!parseResponse(response))
                     return;
