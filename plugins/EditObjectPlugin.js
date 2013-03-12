@@ -86,7 +86,7 @@ var publicInterface = {
                         var listenerId = layer.addListener('onClick', function(attr)
                         {
                             var obj = attr.obj;
-                            var layer = obj.parent;
+                            var layer = attr.attr.layer;
                             var id = obj.properties[layer.properties.identityField];
                             new nsGmx.EditObjectControl(layer.properties.name, id);
                             return true;	// Отключить дальнейшую обработку события
