@@ -17,6 +17,10 @@
 		map.tiledQuicklooks = map;
 		map.vectors = map;
 		map.needMove = {'x':35, 'y':50, 'z':4};
+		if('DefaultLong' in layers.properties) map.needMove.x = parseFloat(layers.properties.DefaultLong);
+		if('DefaultLat' in layers.properties) map.needMove.y = parseFloat(layers.properties.DefaultLat);
+		if('DefaultZoom' in layers.properties) map.needMove.z = parseFloat(layers.properties.DefaultZoom);
+		
 		//map.needSetMode = 'Map';
 		map.needSetMode = null;
 
@@ -303,7 +307,6 @@
 			gmxAPI._addZoomControl(gmxAPI._allToolsDIV);
 			map.setMinMaxZoom(1, 17);
 		}
-		if('_timeBarInit' in gmxAPI) gmxAPI._timeBarInit(gmxAPI._allToolsDIV);
 
 		if (gmxAPI._drawing) {
 			map.drawing = gmxAPI._drawing;
@@ -723,6 +726,8 @@
 
 		map.defaultHostName = (layers && layers.properties ? layers.properties.hostName : '');
 		map.addLayers(layers, false, true);
+		
+		if(!layers.properties.UseKosmosnimkiAPI) map.moveTo(map.needMove.x, map.needMove.y, map.needMove.z);
 		
 		if(!map.needSetMode && haveOSM) {								// если нигде не устанавливалась текущая подложка и есть OSM
 			map.setMode('OSM');

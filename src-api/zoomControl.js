@@ -170,8 +170,8 @@
 				this.repaint();
 			}
 		}
-		gmxAPI.map.zoomControl.setZoom(4);
-
+		var cz = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : 4);
+		gmxAPI.map.zoomControl.setZoom(cz);
 		// Добавление прослушивателей событий
 		gmxAPI.map.addListener('positionChanged', function(ph)
 			{

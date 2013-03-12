@@ -2023,7 +2023,7 @@ return;
 		'setFilter':	function(ph)	{			// Установка фильтра
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(!node) return null;						// Нода не была создана через addObject
+			if(!node) return null;					// Нода не была создана через addObject
 			node['type'] = 'filter';
 			node['sql'] = ph.attr['sql'];
 			node['sqlFunction'] = gmxAPI.Parsers.parseSQL(ph.attr['sql']);
@@ -2204,7 +2204,7 @@ return;
 				});
 			} else if('onZoomend' in node) {					// есть проверка по Zoom
 				node.onZoomend();
-			} else if(node['type'] == 'filter') {			//ограничение по zoom mapObject
+			} else if(node['type'] == 'filter') {				//ограничение по zoom
 				var pnode = mapNodes[node.parentId];
 				if(pnode && 'chkZoomBoundsFilters' in pnode) pnode.chkZoomBoundsFilters();
 			}

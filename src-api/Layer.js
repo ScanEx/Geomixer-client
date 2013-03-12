@@ -806,6 +806,7 @@
 
 	//расширяем FlashMapObject
 	gmxAPI.extendFMO('addLayer', function(layer, isVisible) {
+		//if(Math.abs(layer.geometry.coordinates[0][0][0]) > 180) layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
 		var obj = addLayer(this, layer, isVisible);
 		gmxAPI._listeners.dispatchEvent('onAddExternalLayer', gmxAPI.map, obj);	// Добавлен внешний слой
 		return obj;
