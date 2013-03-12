@@ -546,6 +546,7 @@ var ModisImagesProvider = function( params )
                         return;
                     
                     var layerProperties = {type:'layer', content: response.Result};
+                    layerProperties.content.geometry = gmxAPI.from_merc_geometry(layerProperties.content.geometry);
                     
                     layerProperties.content.properties.styles = [
                         {
