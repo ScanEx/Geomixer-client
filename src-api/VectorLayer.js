@@ -727,17 +727,17 @@
 					var fID = itemPropHiden['toFilters'][0];
 					var filter = gmxAPI.mapNodes[fID];
 					if(filter && mapNodes[fID]['handlers'][evName]) {						// не найден фильтр
-						callHandler('onClick', item, filter, {'eventPos': eventPos});
+						callHandler('onClick', item, filter, {'eventPos': eventPos, 'layer': gmxNode});
 						return true;
 					} else if(evName in node['handlers']) {						// Есть handlers на слое
-						var res = callHandler('onClick', item, gmxNode, {'eventPos': eventPos});
+						var res = callHandler('onClick', item, gmxNode, {'eventPos': eventPos, 'layer': gmxNode});
 						if(res) return res;
 					}
 				} else {
-					if(callHandler('onClick', item.geom, gmxNode, {'objType': 'cluster', 'eventPos': eventPos})) return true;
+					if(callHandler('onClick', item.geom, gmxNode, {'objType': 'cluster', 'eventPos': eventPos, 'layer': gmxNode})) return true;
 					var fID = itemPropHiden['toFilters'][0];
 					var filter = gmxAPI.mapNodes[fID];
-					if(filter && callHandler('onClick', item.geom, filter, {'eventPos': eventPos})) return true;
+					if(filter && callHandler('onClick', item.geom, filter, {'eventPos': eventPos, 'layer': gmxNode})) return true;
 				}
 				return true;
 			}
