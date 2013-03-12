@@ -104,7 +104,7 @@
 		};
 
 		var zoomArr = [];
-		var zoomObj = false;
+		var zoomObj = null;
 		for (var i = 0; i < 20; i++)
 		{
 			addZoomItem(i);
