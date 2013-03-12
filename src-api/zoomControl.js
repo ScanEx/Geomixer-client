@@ -125,10 +125,9 @@
 				var newZoomObj = zoomArr[Math.round(z) - minZoom];
 				if (newZoomObj != zoomObj)
 				{
-					if (zoomObj)
-						zoomObj.src = apiBase + "img/zoom_raw.png";
+					if (zoomObj) zoomObj.src = apiBase + "img/zoom_raw.png";
 					zoomObj = newZoomObj;
-					zoomObj.src = apiBase + "img/zoom_active.png";
+					if (zoomObj) zoomObj.src = apiBase + "img/zoom_active.png";
 				}
 			},
 			repaint: function()
