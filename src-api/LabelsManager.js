@@ -167,7 +167,7 @@
 			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomstart', 'func': onZoomstart});
 		}
 	}
-	var setVisibleRecursive = function(id, flag) {				// установка таймера
+	var setVisibleRecursive = function(id, flag) {			// установка видимости рекурсивно
 		if(itemsHash[id]) itemsHash[id].isVisible = flag;
 		else {
 			var node = gmxAPI._leaflet['mapNodes'][id];
@@ -177,7 +177,14 @@
 			}
 		}
 	}
-	
+	var removeRecursive = function(node) {					// удаление от mapObject рекурсивно
+		if(itemsHash[node.id]) delete itemsHash[node.id];
+		for (var i = 0; i < node['children'].length; i++) {
+			var child = gmxAPI._leaflet['mapNodes'][node['children'][i]];
+			if(child) removeRecursive(child);
+		}
+	}
+
 	var LabelsManager = {						// менеджер отрисовки
 		'add': function(id)	{					// добавить Label для отрисовки
 			var node = gmxAPI._leaflet['mapNodes'][id];
@@ -205,22 +212,25 @@
 			if(itemsHash[id]) delete itemsHash[id];
 			else {
 				var node = gmxAPI._leaflet['mapNodes'][id];
-				if(!node || node.type != 'VectorLayer') return false;
-				var st = id + '_';
-				if(vid) st += vid;
-				for(var pid in itemsHash) {
-					if(vid) {
-						if(pid == st) { delete itemsHash[pid]; break; }
-					} else {
-						if(pid.indexOf(st) != -1) delete itemsHash[pid];
+				if(!node) return false;
+				if(node.type === 'VectorLayer') {
+					var st = id + '_';
+					if(vid) st += vid;
+					for(var pid in itemsHash) {
+						if(vid) {
+							if(pid == st) { delete itemsHash[pid]; break; }
+						} else {
+							if(pid.indexOf(st) != -1) delete itemsHash[pid];
+						}
 					}
+				} else if(node.type === 'mapObject') {
+					removeRecursive(node);
 				}
 			}
 			repaintItems();
 			return true;
 		}
 		,'onChangeVisible': function(id, flag)	{		// изменение видимости ноды
-//console.log('onChangeVisible' , id, flag);
 			var node = gmxAPI._leaflet['mapNodes'][id];
 			if(node['type'] == 'mapObject') {
 				setVisibleRecursive(id, flag);
