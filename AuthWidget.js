@@ -87,16 +87,7 @@ var nsGmx = nsGmx || {};
             
             span.onclick = function()
             {
-				if(window.useAccountsAuth){
-					var path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
-					var redirect_uri = 'http://' + window.location.host + path + '/oAuthCallback.html';
-					nsGmx.Utils.login(redirect_uri, serverBase + 'oAuth/', function(userInfo){
-						if(userInfo)loginCallback(userInfo);
-					});
-				}
-				else{
-					_this.showLoginDialog( loginCallback );
-				}
+                _this.showLoginDialog( loginCallback );
             }
             
             _(_container, [_div([span], [['attr','id','log'],['dir','className','log']])]);
@@ -111,7 +102,7 @@ var nsGmx = nsGmx || {};
                 _authManager.logout(function()
                 {
                     if (typeof globalFlashMap !== 'undefined')
-                        _mapHelper.reloadMap();
+                        reloadMap();
                     else
                         window.location.replace(window.location.href.split("?")[0] + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
                 });
@@ -143,9 +134,7 @@ var nsGmx = nsGmx || {};
         
         var _update = function()
         {
-            if ( window.gmxViewerUI && window.gmxViewerUI.hideLogin )
-                return;
-                
+            if ( typeof window.gmxViewerUI != 'undefined' &&  window.gmxViewerUI.hideLogin ) return;
             $(_container).empty();
             
             if (_authManager.isLogin())

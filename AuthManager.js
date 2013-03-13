@@ -56,25 +56,7 @@ var nsGmx = nsGmx || {};
     {
         var _userInfo = null;
         var _this = this;
-        var _token = null;
-		var _tokenExpires = null;
-		
-		this.getToken = function(){
-			return _token;
-		}
-		
-		this.setToken = function(value){
-			_token = value;
-		}
-		
-		this.getExpires = function(){
-			return _tokenExpires;
-		}
-		
-		this.setExpires = function(value){
-			_tokenExpires = value;
-		}
-		
+        
         this.getLogin = function()
         {
             if (!_userInfo) return null;
@@ -136,19 +118,9 @@ var nsGmx = nsGmx || {};
                     
                 if (response.Result == null || !resOk)
                 {
-					
-					if (window.useAccountsAuth){
-						var path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
-						var redirect_uri = 'http://' + window.location.host + path + '/oAuthCallback.html';
-						nsGmx.Utils.login(redirect_uri, serverBase + 'oAuth/', function(userInfo){
-							_this.setUserInfo( userInfo || {Login: false});
-							resOk && callback && callback();
-						}, 'MyKosmosnimki', true);
-					}else{
-						// юзер не авторизован
-						_this.setUserInfo({Login: false});
-						resOk && callback && callback();
-					}
+                    // юзер не авторизован
+                    _this.setUserInfo({Login: false});
+                    
                     if (isTokenUsed)
                     {
                         //TODO: обработать ошибку
@@ -156,7 +128,7 @@ var nsGmx = nsGmx || {};
                 }
                 else
                 {
-                    /*//юзер с accounts, там не зарегистрирован, но локально авторизован - надо разлогинеть локально
+                    //юзер с accounts, там не зарегистрирован, но локально авторизован - надо разлогинеть локально
                     if (!isTokenUsed && response.Result.IsAccounts)
                     {
                         sendCrossDomainJSONRequest(serverBase + "Logout.ashx?WrapStyle=func&WithoutRedirection=1");
@@ -167,11 +139,10 @@ var nsGmx = nsGmx || {};
                     else
                     {
                         _this.setUserInfo(response.Result);
-                    }*/
-					_this.setUserInfo(response.Result);
-					resOk && callback && callback();
+                    }
                 }
                 
+                resOk && callback && callback();
             }
             
             for (var iProvider = 0; iProvider < checkProviders.length; iProvider++)
@@ -182,13 +153,32 @@ var nsGmx = nsGmx || {};
                     return;
                 }
             }
-            sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
+        
+            if (window.mapsSite && window.gmxAuthServer)
+            {
+                sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Login?action=gettoken", function(response)
+                {
+                    if (response.Status === 'OK')
+                    {
+                        isTokenUsed = true;
+                        sendCrossDomainJSONRequest(serverBase + 'login.ashx?token=' + response.Result.Id, _processResponse);
+                    }
+                    else
+                    {
+                        sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
+                    }
+                }, 'callback');
+            }
+            else
+            {
+                sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
+            }
             
         }
         
         this.login = function(login, password, callback, errorCallback)
         {
-            sendCrossDomainJSONRequest(serverBase + "Login.ashx?WrapStyle=func&login=" + encodeURIComponent(login) + "&pass=" + encodeURIComponent(password), function(response)
+            sendCrossDomainJSONRequest(serverBase + "Login.ashx?WrapStyle=func&login=" + login + "&pass=" + password, function(response)
             {
                 if (response.Status == 'ok' && response.Result)
                 {
@@ -226,7 +216,7 @@ var nsGmx = nsGmx || {};
                 if (!parseResponse(response))
                     return;
                     
-                if (window.gmxAuthServer)
+                if (_this.isAccounts() && window.gmxAuthServer)
                 {
                     sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Logout", function(response)
                     {
@@ -245,7 +235,7 @@ var nsGmx = nsGmx || {};
         
         this.changePassword = function(oldPass, newPass, callback, errorCallback)
         {
-            sendCrossDomainJSONRequest(serverBase + "ChangePassword.ashx?WrapStyle=func&old=" + encodeURIComponent(oldPass) + "&new=" + encodeURIComponent(newPass), function(response)
+            sendCrossDomainJSONRequest(serverBase + "ChangePassword.ashx?WrapStyle=func&old=" + oldPass + "&new=" + newPass, function(response)
             {
                 if (response.Status == 'ok' && response.Result)
                     callback && callback();
