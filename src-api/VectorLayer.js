@@ -1405,7 +1405,10 @@
 								pItem['imageObj'] = img;
 								rasterNums--;
 								//if(rasterNums === 0) drawRasters(drawTileID);
-								if(rasterNums === 0) waitRedrawFlips(10);
+								if(rasterNums === 0) {
+									waitRedrawFlips(10);
+									myLayer.tileDrawn(tile);
+								}
 							});
 						})(rItem, geom['id']);
 					} else {
@@ -1431,7 +1434,7 @@
 			}
 			drawGeoArr(arr);
 			arr = null;
-			//attr['tile']._layer.tileDrawn(attr['tile']);
+			if(rasterNums === 0) myLayer.tileDrawn(tile);
 			return out;
 		}
 		node['labelBounds'] = {'add': {}, 'skip': {}};			// Добавленные и пропущенные labels обьектов слоя
@@ -1942,7 +1945,7 @@
 					return true;			// При отложенных перемещениях не загружаем тайлы
 				}
 				var me = this;
-				me.tileDrawn(tile);
+				//me.tileDrawn(tile);
 				if(!zoom) zoom = LMap.getZoom();
 				var pz = Math.pow(2, zoom);
 				var tx = tilePoint.x;

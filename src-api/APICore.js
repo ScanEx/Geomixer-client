@@ -828,9 +828,9 @@ window.gmxAPI = {
 	,
 	prettifyDistance: function(length)
 	{
-		if (length < 1000)
+		if (length < 2000)
 			return Math.round(length) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" м", " m");
-		if (length < 100000)
+		if (length < 200000)
 			return (Math.round(length/10)/100) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
 		return Math.round(length/1000) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
 	}
@@ -839,8 +839,12 @@ window.gmxAPI = {
 	{
 		if (area < 100000)
 			return Math.round(area) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. м", " sq. m");
-		if (area < 100000000)
+		if (area < 3000000)
+			return ("" + (Math.round(area/1000)/1000)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
+		if (area < 30000000)
 			return ("" + (Math.round(area/10000)/100)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
+		if (area < 300000000)
+			return ("" + (Math.round(area/100000)/10)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
 		return (Math.round(area/1000000)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq. km");
 	}
 	,
