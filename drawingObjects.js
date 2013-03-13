@@ -469,8 +469,16 @@ var DrawingObjectGeomixer = function() {
 	
 	var downloadVector = makeLinkButton(_gtxt("Скачать shp-файл"));
 	downloadVector.onclick = function(){ 
-		downloadMarkers(); 
+		//downloadMarkers();
+        downloadNameContainer.toggle();
 	}
+    
+    var downloadNameInput = $('<input/>', {title: _gtxt("Введите имя файла для скачивания")}).val('markers').addClass('inputStyle');
+    var downloadNameButton = $('<input/>', {type: 'button'}).val(_gtxt('Скачать')).click(function() {
+        downloadMarkers(downloadNameInput.val());
+        downloadNameContainer.hide();
+    });
+    var downloadNameContainer = $('<div/>').append(downloadNameInput, downloadNameButton).hide();
 	
 	var downloadRaster = makeLinkButton(_gtxt("Скачать фрагмент растра"));
 	downloadRaster.onclick = function(){
@@ -498,14 +506,16 @@ var DrawingObjectGeomixer = function() {
         });
         
         var oDrawingObjectList = new DrawingObjectList(oMap, oListDiv, oCollection);
-		_(oDrawingObjectList.GetDivButtons(), [_div([downloadVector]), _div([downloadRaster])]);
+		_(oDrawingObjectList.GetDivButtons(), [_div([downloadVector]), downloadNameContainer[0], _div([downloadRaster])]);
 		checkDownloadRaster();
 	}
 	
 	/** Скачивает shp файл*/
-	var downloadMarkers = function(){		
+	var downloadMarkers = function(fileName){
 		var objectsByType = {},
 			markerIdx = 1;
+            
+        fileName = fileName || 'markers';
 		
 		for (var i=0; i<oCollection.Count(); i++){
 			var ret = oCollection.Item(i);
@@ -523,6 +533,7 @@ var DrawingObjectGeomixer = function() {
 		}
 		        
         sendCrossDomainPostRequest(serverBase + "Shapefile.ashx", {
+            name:     fileName,
             points:   objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]) : '',
             lines:    objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]) : '',
             polygons: objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]) : ''
