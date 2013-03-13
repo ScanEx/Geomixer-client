@@ -577,6 +577,12 @@ var ModisImagesProvider = function( params )
                     
                     _params.map.addLayer(layerProperties.content, true);
                     modisLayers[layerName] = _params.map.layers[layerName];
+                    
+                    //Бага во flash версии - каталоги растров являются растровыми слоями и попадают под подложку
+                    //TODO: убрать проверку после того, как откажемся от flash
+                    if(gmxAPI.proxyType !== 'flash') {
+                        modisLayers[layerName].bringToBottom();
+                    }
                     // modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
                     //modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
                     modisLayers[layerName].setVisibilityFilter("IsDay = 'True'");
