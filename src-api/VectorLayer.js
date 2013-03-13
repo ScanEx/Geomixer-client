@@ -1314,7 +1314,7 @@
 		}
 		
 		var observerTimer = null;										// Таймер
-		node.repaintTile = function(attr, clearFlag)	{							// перерисовать векторный тайл слоя
+		node.repaintTile = function(attr, clearFlag)	{				// перерисовать векторный тайл слоя
 			var drawTileID = attr['drawTileID'];
 			delete node['tilesRedrawTimers'][drawTileID];
 			//var ctx = attr.ctx;
@@ -1674,7 +1674,8 @@
 				}
 			}
 
-			flag = (currZ < node['minZ'] || currZ > node['maxZ'] ? false : true);		// Неподходящий zoom
+			flag = (utils.chkVisibilityByZoom(node.id) && (node['bounds'] ? utils.chkBoundsVisible(node['bounds']) : true));
+			//flag = (currZ < node['minZ'] || currZ > node['maxZ'] ? false : true);		// Неподходящий zoom
 			if(flag != myLayer._isVisible) {
 				utils.setVisibleNode({'obj': node, 'attr': flag});
 				waitRedraw();

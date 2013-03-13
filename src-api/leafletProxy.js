@@ -1533,7 +1533,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					if(node['leaflet'] && node['leaflet']._isVisible === false) return;
 					if(node['type'] === 'RasterLayer') {
 						if(node['leaflet']) {
-							if(node['leaflet']._isVisible) LMap.removeLayer(node['leaflet']);
+							//if(node['leaflet']._isVisible) 
+							LMap.removeLayer(node['leaflet']);
 							node['leaflet']._isVisible = false;
 						}
 					}

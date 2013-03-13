@@ -104,7 +104,7 @@
 			if(node.isVisible) {
 				var onViewFlag = (utils.chkVisibilityByZoom(id) && utils.chkBoundsVisible(attr['bounds']));
 				if(node['leaflet']._isVisible != onViewFlag) {
-					utils.setVisibleNode({'obj': node, 'attr': !node['leaflet']._isVisible});
+					utils.setVisibleNode({'obj': node, 'attr': onViewFlag});
 				}
 			}
 		}
