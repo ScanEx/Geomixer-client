@@ -435,11 +435,11 @@ var createPageVectorSource = function(layerProperties) {
         {
         tablePathInput.value = name;
         layerProperties.set('TableName', name);
-            
+
         if (layerProperties.get('Title') == '') {
             layerProperties.set('Title', name);
         }
-            
+
         getSourceColumns(name, true).done(function(sourceColumns)
             {
             layerProperties.set('SourceColumns', sourceColumns);
@@ -450,20 +450,20 @@ var createPageVectorSource = function(layerProperties) {
 
     tableLink.style.marginLeft = '3px';
 
-     var TableCSParent = _div();
-        var TableCSSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '165px')
-            .append($('<option>').val('EPSG:4326').text(_gtxt('Широта/Долгота (EPSG:4326)')))
-            .append($('<option>').val('EPSG:3395').text(_gtxt('Меркатор (EPSG:3395)')))
-            .change(function() {
-                layerProperties.set('TableCS', $(this).find(':selected').val());
-            })
-                
-        if (layerProperties.get('TableCS')) {
-            TableCSSelect.find('[value="' + layerProperties.get('TableCS') +'"]').attr('selected', 'selected');
-        }
-            
-        $(TableCSParent).append($('<span/>').text(_gtxt('Проекция')).css('margin', '3px')).append(TableCSSelect);
-        
+    var TableCSParent = _div();
+    var TableCSSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '165px')
+        .append($('<option>').val('EPSG:4326').text(_gtxt('Широта/Долгота (EPSG:4326)')))
+        .append($('<option>').val('EPSG:3395').text(_gtxt('Меркатор (EPSG:3395)')))
+        .change(function() {
+            layerProperties.set('TableCS', $(this).find(':selected').val());
+        })
+
+    if (layerProperties.get('TableCS')) {
+        TableCSSelect.find('[value="' + layerProperties.get('TableCS') +'"]').attr('selected', 'selected');
+    }
+
+    $(TableCSParent).append($('<span/>').text(_gtxt('Проекция')).css('margin', '3px')).append(TableCSSelect);
+
     var sourceTable = _div([tablePathInput, tableLink, TableCSParent, tableColumnsParent], [['dir', 'id', 'tableSource' + layerName]])
         
     /*------------ Источник: вручную ------------*/
@@ -505,20 +505,6 @@ var createPageVectorSource = function(layerProperties) {
             return _activeType;
         }
     }
-        
-    // var geometryTypeSelect = $('<select/>', {'class': 'selectStyle'}).css('width', '110px');
-    // for (var g = 0; g < geometryTypes.length; g++)
-        // $('<option/>').text(geometryTypes[g].title).val(geometryTypes[g].type).appendTo(geometryTypeSelect);
-            
-    // if (layerProperties.get('GeometryType')) {
-        // geometryTypeSelect.find($("[value='" + layerProperties.get('GeometryType').toUpperCase() + "']").attr("selected", "selected"));
-    // } else {
-        // layerProperties.set('GeometryType', $('option', geometryTypeSelect)[0].value);
-            // }
-            
-    // geometryTypeSelect.change(function() {
-        // layerProperties.set('GeometryType', $('option:selected', this).val());
-    // })
     
     var geometryTypeContainer = $('<div/>').css({'display': 'inline-block', 'vertical-align': 'middle'});
     var geometryTypeWidget = new RadioButtonsWidget(geometryTypeContainer, geometryTypes, layerProperties.get('GeometryType'));
@@ -635,6 +621,7 @@ var createPageVectorSource = function(layerProperties) {
                 layerProperties.set('SourceColumns', tableSourceColumns);
                 layerProperties.set('SourceType', 'table');
                 layerProperties.set('SelectedColumns', tableSelectedColumns);
+                layerProperties.set('TableCS', TableCSSelect.find(':selected').val());
             } else if (selectedSource == 2) {
                 updateColumnsByManual();
                 layerProperties.set('SourceType', 'manual');
