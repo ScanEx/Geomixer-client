@@ -441,9 +441,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 		'chkGlobalEvent': function(attr)	{					// проверка Click на перекрытых нодах
 			if(!attr || !attr['evName']) return;
 			var evName = attr['evName'];
-//console.log('chkGlobalEvent', evName, gmxAPI._drawing['activeState']);
-			if(!gmxAPI._drawing['activeState']) {
-			//var standartTools = gmxAPI.map.standartTools;
+
+			//if(!gmxAPI._drawing['activeState']) {
+			var standartTools = gmxAPI.map.standartTools;
+			if(standartTools && standartTools.activeToolName == 'move') {
 			//if(!gmxAPI._leaflet['curDragState'] && standartTools && standartTools['activeToolName'] === 'move') {	// проверяем векторные слои только в режиме перемещения и не рисуя
 				var from = gmxAPI.map.layers.length - 1;
 				for (var i = from; i >= 0; i--)
@@ -761,7 +762,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 
 					node.geometry.id = node.id;
 					if(regularStyle['iconUrl'] && !regularStyle['imageWidth']) {		// нарисовать после загрузки onIconLoaded
-						gmxAPI._leaflet['drawManager'].add(node.id);			// добавим в менеджер отрисовки
+						gmxAPI._leaflet['drawManager'].add(node.id);					// добавим в менеджер отрисовки
 						return;
 					} else {
 						if(node['subType'] === 'drawingFrame') {

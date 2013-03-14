@@ -10,19 +10,25 @@
 		if(items.length < 1) {
 			if(timerID) clearInterval(timerID);
 			timerID = null;
+			nextId = 0;
 			return false;
 		}
-		var id = items.shift();
-		delete itemsHash[id];
-		var node = gmxAPI._leaflet['mapNodes'][id];
-		if(!node) return false;
-		gmxAPI._leaflet['utils'].repaintNode(node, true);
+		var len = (items.length < 100 ? items.length : 100);	// по 100 обьектов за раз
+		for (var i = 0; i < len; i++)
+		{
+			var id = items.shift();
+			delete itemsHash[id];
+			var node = gmxAPI._leaflet['mapNodes'][id];
+			if(!node) return false;
+			gmxAPI._leaflet['utils'].repaintNode(node, true);
+		}
 		//setTimeout(repaintItems, 10);
+		//repaintItems();
 		return true;
 	}
 	
 	var chkTimer = function() {				// установка таймера
-		if(!timerID) timerID = setInterval(repaintItems, 10);
+		if(!timerID) timerID = setInterval(repaintItems, 20);
 	}
 	
 	var drawManager = {						// менеджер отрисовки
