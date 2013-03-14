@@ -1195,10 +1195,16 @@
 		var layerGroup = null;
 		var layerItems = [];
 		var isMouseOver = false;
+		var drawTimerID = null;
 		
 		var drawMe = function()
 		{ 
-			if(!node.leaflet) return;
+			if(!node.leaflet) {
+				if(drawTimerID) clearTimeout(drawTimerID);
+				drawTimerID = setTimeout(drawMe, 200);
+				return;
+			}
+			//if(!node.leaflet) return;
 			coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
 			if(!layerGroup) {
 				layerGroup = node.leaflet;
@@ -1439,6 +1445,8 @@
 			if(layerGroup) {
 				layerGroup.setStyle(drawAttr['stylePolygon']);
 				layerItems[1].setStyle(drawAttr['stylePoint']);
+			} else {
+				drawMe();
 			}
 		}
 		

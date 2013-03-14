@@ -23,6 +23,19 @@
 	var utils = {							// Утилиты leafletProxy
 		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
 		,
+		'chkMapObjectsView': function() {		// Проверка zoomBounds на mapObjects
+			var zoom = LMap.getZoom();
+			for (var id in mapNodes) {
+				var node = mapNodes[id];
+				if(node['type'] !== 'mapObject' || (!node['minZ'] && !node['maxZ'])) continue;
+				//var flag = (utils.chkVisibleObject(node.id) && utils.chkVisibilityByZoom(node.id) ? true : false);
+				var flag = (utils.chkVisibilityByZoom(node.id) ? true : false);
+				if(!node['leaflet']) gmxAPI._leaflet['drawManager'].add(id);
+				utils.setVisibleNode({'obj': node, 'attr': flag});
+				gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, flag);
+			}
+		}
+		,
 		'replaceColorAndRotate': function(img, style, size) {		// заменить цвет пикселов в иконке + rotate - результат canvas
 			var canvas = document.createElement('canvas');
 			//var size = Math.max(style.imageWidth, style.imageHeight);
@@ -532,7 +545,9 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					gmxAPI.addDebugWarnings({'url': url, 'func': 'getImageSize', 'Error': 'image not found'});
 				}
 			};
-			if('color' in pt && pt['color'] != utils.DEFAULT_REPLACEMENT_COLOR) ph['crossOrigin'] = 'anonymous';
+			if(('color' in pt && pt['color'] != utils.DEFAULT_REPLACEMENT_COLOR)
+				|| 'rotate' in pt
+			) ph['crossOrigin'] = 'anonymous';
 			gmxAPI._leaflet['imageLoader'].unshift(ph);
 		}
 		,'getMouseX':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lng : 0); }			// Позиция мыши X
@@ -569,7 +584,11 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				if('angle' in ph) pt['rotate'] = ph['angle'];
 				if('image' in ph) {
 					pt['iconUrl'] = ph['image'];
-					utils.getImageSize(pt, true, id);
+					try {
+						utils.getImageSize(pt, true, id);
+					} catch(ev) {
+						gmxAPI.addDebugWarnings({'url': pt['iconUrl'], 'func': 'getImageSize', 'Error': 'image error'});
+					}
 				}
 				
 				if('center' in ph) pt['center'] = ph['center'];
@@ -947,6 +966,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			}
 			var pt = gmxAPI.transformGeometry(geo, function(it){return it;}, function(it){return it;});
 			pt.type = utils.fromScanexTypeGeo(pt.type);
+			var b = gmxAPI.getBounds(geo.coordinates);
+			pt.bounds = new L.Bounds(new L.Point(b.minX, b.minY), new L.Point(b.maxX, b.maxY));
 			return pt;
 		}
 		,
@@ -1506,6 +1527,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			} else {							// нода имеет вид в leaflet
 				if(ph.attr) {
 					var flag = utils.chkVisibilityByZoom(id);
+					//if(flag && node['geometry'] && node['geometry']['bounds']) flag = utils.chkBoundsVisible(node['geometry']['bounds']);
+
 					if(!flag) return;
 					if(node['leaflet'] && node['leaflet']._isVisible) return;
 					if(node['type'] === 'RasterLayer') {
@@ -1530,7 +1553,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				}
 				else
 				{
-					if(node['leaflet'] && node['leaflet']._isVisible === false) return;
+					//if(node['leaflet'] && node['leaflet']._isVisible === false) return;
 					if(node['type'] === 'RasterLayer') {
 						if(node['leaflet']) {
 							//if(node['leaflet']._isVisible) 
@@ -1603,7 +1626,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			setVisibleRecursive(node, flag);
 		}
 	}
-	
+
 	var grid = {
 		'isVisible': false							// видимость grid
 		,
@@ -2194,7 +2217,7 @@ return;
 					if(pnode['setZoomBoundsQuicklook']) pnode['setZoomBoundsQuicklook'](node['minZ'], node['maxZ']);
 				}
 			} else if(node['type'] == 'mapObject') {			//ограничение по zoom mapObject
-				gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function() {
+				/*gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function() {
 						gmxAPI._leaflet['drawManager'].add(id);
 						
 						if(utils.chkVisibleObject(node.id) && utils.chkVisibilityByZoom(node.id)) {
@@ -2202,7 +2225,7 @@ return;
 						}
 						return false;
 					}
-				});
+				});*/
 			} else if('onZoomend' in node) {					// есть проверка по Zoom
 				node.onZoomend();
 			} else if(node['type'] == 'filter') {				//ограничение по zoom
@@ -3542,6 +3565,7 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 				//console.log("test1");
 				if(LMap._size) prevSize = {'x': LMap._size.x, 'y': LMap._size.y};
 				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {'obj': gmxAPI.map, 'attr': gmxAPI.currPosition });
+				//gmxAPI._leaflet['utils'].chkMapObjectsView();
 			});
 			LMap.on('move', function(e) {
 				var currPosition = utils.getMapPosition();
@@ -3734,6 +3758,7 @@ var tt = 1;
 				gmxAPI._leaflet['zoomstart'] = false;
 				gmxAPI._listeners.dispatchEvent('onZoomend', null, {});
 				gmxAPI._listeners.dispatchEvent('showBalloons', gmxAPI.map, {});	// Проверка map Listeners на showBalloons
+				gmxAPI._leaflet['utils'].chkMapObjectsView();
 			});
 			LMap.on('contextmenu', function(e) {
 				var attr = parseEvent(e);

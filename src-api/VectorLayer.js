@@ -504,8 +504,8 @@
 				callHandler('onMouseOut', node['hoverItem'].geom, gmxNode);
 				var filter = getItemFilter(node['hoverItem']);
 				if(filter) callHandler('onMouseOut', node['hoverItem'].geom, filter);
-			}
 			node['hoverItem'] = null;
+			}
 		}
 		gmxAPI.map.addListener('hideHoverBalloon', mouseOut);
 
