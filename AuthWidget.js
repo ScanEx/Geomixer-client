@@ -102,7 +102,7 @@ var nsGmx = nsGmx || {};
                 _authManager.logout(function()
                 {
                     if (typeof globalFlashMap !== 'undefined')
-                        reloadMap();
+                        mapHelper.reloadMap();
                     else
                         window.location.replace(window.location.href.split("?")[0] + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
                 });
@@ -134,7 +134,9 @@ var nsGmx = nsGmx || {};
         
         var _update = function()
         {
-            if ( typeof window.gmxViewerUI != 'undefined' &&  window.gmxViewerUI.hideLogin ) return;
+            if ( window.gmxViewerUI && window.gmxViewerUI.hideLogin )
+                return;
+                
             $(_container).empty();
             
             if (_authManager.isLogin())

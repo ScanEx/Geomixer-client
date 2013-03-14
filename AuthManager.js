@@ -178,7 +178,7 @@ var nsGmx = nsGmx || {};
         
         this.login = function(login, password, callback, errorCallback)
         {
-            sendCrossDomainJSONRequest(serverBase + "Login.ashx?WrapStyle=func&login=" + login + "&pass=" + password, function(response)
+            sendCrossDomainJSONRequest(serverBase + "Login.ashx?WrapStyle=func&login=" + encodeURIComponent(login) + "&pass=" + encodeURIComponent(password), function(response)
             {
                 if (response.Status == 'ok' && response.Result)
                 {
@@ -235,7 +235,7 @@ var nsGmx = nsGmx || {};
         
         this.changePassword = function(oldPass, newPass, callback, errorCallback)
         {
-            sendCrossDomainJSONRequest(serverBase + "ChangePassword.ashx?WrapStyle=func&old=" + oldPass + "&new=" + newPass, function(response)
+            sendCrossDomainJSONRequest(serverBase + "ChangePassword.ashx?WrapStyle=func&old=" + encodeURIComponent(oldPass) + "&new=" + encodeURIComponent(newPass), function(response)
             {
                 if (response.Status == 'ok' && response.Result)
                     callback && callback();
