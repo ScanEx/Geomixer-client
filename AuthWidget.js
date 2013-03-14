@@ -102,7 +102,7 @@ var nsGmx = nsGmx || {};
                 _authManager.logout(function()
                 {
                     if (typeof globalFlashMap !== 'undefined')
-                        mapHelper.reloadMap();
+                        _mapHelper.reloadMap();
                     else
                         window.location.replace(window.location.href.split("?")[0] + (defaultMapID == globalMapName ? "" : ("&" + globalMapName)));
                 });
