@@ -1794,6 +1794,7 @@
 		node['inUpdate'] = {}		// Обьекты векторного слоя находяшииеся в режиме редактирования
 		node['startLoadTiles'] = function(attr)	{		// Перезагрузка тайлов векторного слоя
 			var redrawFlag = false;
+			gmxAPI._leaflet['LabelsManager'].remove(node.id);
 			tilesRedrawImages.clear();
 			if (!attr.notClear) {
 				for(var key in node['tilesGeometry']) {
