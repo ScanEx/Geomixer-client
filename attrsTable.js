@@ -318,16 +318,33 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         
         showButton.onclick = function()
         {
-            if (_this._isLayerOnMap)
-            {
-                globalFlashMap.layers[_this.layerName].getFeatureById(elem.values[0], function(result)
-                {
-                    globalFlashMap.layers[_this.layerName].setVisible(true);
+            sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + _this.layerName + "&page=0&pagesize=1&geometry=true&query=[" + info.identityField + "]=" + elem.values[0], function(response) {
+                if (!parseResponse(response))
+                    return;
                     
-                    var bounds = getBounds(result.geometry.coordinates);
-                    globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-                });
-            }
+                var columnNames = response.Result.fields;
+                var row = response.Result.values[0];
+                for (var i = 0; i < row.length; ++i)
+                {
+                    if (columnNames[i] === 'geomixergeojson')
+                    {
+                        var geom = from_merc_geometry(row[i]);
+                        var bounds = getBounds(geom.coordinates);
+                        globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+                    }
+                }
+            })
+            
+            // if (_this._isLayerOnMap)
+            // {
+                // globalFlashMap.layers[_this.layerName].getFeatureById(elem.values[0], function(result)
+                // {
+                    // globalFlashMap.layers[_this.layerName].setVisible(true);
+                    
+                    // var bounds = getBounds(result.geometry.coordinates);
+                    // globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+                // });
+            // }
         }
         
         _title(deleteButton, _gtxt("Удалить"))
