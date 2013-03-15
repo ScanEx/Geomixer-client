@@ -151,7 +151,9 @@ var LayerProperties = Backbone.Model.extend({
             }
             else
             {
-                reqParams.GeometryDataSource = attrs.SourceType === 'file' ? attrs.ShapePath.Path : attrs.TableName;
+                if (attrs.SourceType !== 'manual') {
+                    reqParams.GeometryDataSource = attrs.SourceType === 'file' ? attrs.ShapePath.Path : attrs.TableName;
+                }
                         
                 sendCrossDomainPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams,
                     function(response)

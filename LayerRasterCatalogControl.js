@@ -63,9 +63,17 @@
         
         RCCheckbox[0].checked = rcProperties.get('IsRasterCatalog');
         
-        var minZoomInput = $('<input/>', {'class': 'inputStyle RCCreate-zoom-input'}).val(rcProperties.get('RCMinZoomForRasters') || '');
-        var titleInput = $('<input/>', {'class': 'inputStyle'}).val(rcProperties.get('RCMaskForRasterTitle') || '');
-        var pathInput = $('<input/>', {'class': 'inputStyle'}).val(rcProperties.get('RCMaskForRasterPath') || '');
+        var minZoomInput = $('<input/>', {'class': 'inputStyle RCCreate-zoom-input'}).val(rcProperties.get('RCMinZoomForRasters') || '').bind('keyup change', function() {
+            rcProperties.set('RCMinZoomForRasters', parseInt(this.value));
+        });
+        
+        var titleInput = $('<input/>', {'class': 'inputStyle'}).val(rcProperties.get('RCMaskForRasterTitle') || '').bind('keyup change', function() {
+            rcProperties.set('RCMaskForRasterTitle', this.value);
+        });
+        
+        var pathInput = $('<input/>', {'class': 'inputStyle'}).val(rcProperties.get('RCMaskForRasterPath') || '').bind('keyup change', function() {
+            rcProperties.set('RCMaskForRasterPath', this.value);
+        });
         
         var RCParamsTable = 
             $('<table/>', {'class': 'RCCreate-params'})
