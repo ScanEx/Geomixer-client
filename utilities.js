@@ -706,6 +706,50 @@ function createPostIframe(id, callback)
 	return iframe;
 }
 
+!function() {
+    var requests = {};
+    var lastRequestId = 0;
+    
+    var processMessage = function(e) {
+        var dataStr = decodeURIComponent(e.data.replace(/\n/g,'\n\\'));
+        var dataObj = JSON.parse(dataStr);
+        var request = requests[dataObj.CallbackName];
+        
+        delete request[dataObj.CallbackName];
+        delete dataObj.CallbackName;
+        
+        request.iframe.removeNode(true);
+        request.callback && request.callback(dataObj);
+    }
+    
+    //совместимость с IE8
+    if (window.addEventListener) {
+        window.addEventListener('message', processMessage);
+    } else {
+        window.attachEvent('onmessage', processMessage);
+    }
+    
+    function createPostIframe2(id, callback, url)
+    {
+        var uniqueId = 'id'+(lastRequestId++);
+        
+        iframe = document.createElement("iframe");
+        iframe.style.display = 'none';
+        iframe.setAttribute('id', id);
+        iframe.setAttribute('name', id);
+        iframe.src = 'javascript:true';
+        iframe.callbackName = uniqueId;
+        //iframe.onload = window[callbackName];
+        
+        requests[uniqueId] = {callback: callback, iframe: iframe};
+
+        return iframe;
+    }
+    
+    window.createPostIframe2 = createPostIframe2;
+
+}();
+
 /** Посылает кроссдоменный POST запрос
 * @function
 * 
@@ -721,8 +765,7 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
 		rnd = String(Math.random()),
 		id = '$$iframe_' + url + rnd;
 
-	var userAgent = navigator.userAgent.toLowerCase(),
-		iframe = createPostIframe(id, callback),
+	var iframe = createPostIframe2(id, callback, url),
         originalFormAction;
 		
 	if (baseForm)
@@ -752,6 +795,11 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
     
     var hiddenParamsDiv = document.createElement("div");
     hiddenParamsDiv.style.display = 'none';
+    
+    if (params.WrapStyle === 'window') {
+        params.WrapStyle = 'message';
+        params.CallbackName = iframe.callbackName;
+    }
 	
 	for (var paramName in params)
 	{
