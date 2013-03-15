@@ -351,8 +351,8 @@
 				gmxAPI._sunscreen.setVisible(false);
 				gmxAPI._setToolHandler("onClick", null);
 				gmxAPI._setToolHandler("onMouseDown", null);
-				gmxAPI.map.clearCursor();
 			*/
+				//gmxAPI.map.clearCursor();
 			}
 		}
 
@@ -668,7 +668,7 @@
 			gmxAPI._sunscreen.bringToTop();
 			gmxAPI._sunscreen.setVisible(true);
 			var apiBase = gmxAPI.getAPIFolderRoot();
-			gmxAPI.map.setCursor(apiBase + "img/flag_blau1.png", -6, -36);
+			//gmxAPI.map.setCursor(apiBase + "img/flag_blau1.png", -6, -36);
 
 			//gmxAPI._setToolHandler("onClick", function() 
 			addItemListenerID = gmxAPI.map.addListener('onClick', function()

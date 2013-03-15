@@ -1711,6 +1711,8 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		{
 			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// если MapObject отсутствует создаем
 			if(typeof(a) === 'object') pObj.properties = (a.length > 0 ? gmxAPI.propertiesFromArray(a) : a);
+			if('filters' in pObj) attr['layer'] = pObj;
+			else if(pObj.parent && 'filters' in pObj.parent) attr['layer'] = pObj.parent;
 			var flag = false;
 			if(obj.handlers[eventName]) flag = handler(pObj, attr);
 			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });

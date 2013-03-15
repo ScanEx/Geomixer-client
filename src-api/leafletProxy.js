@@ -18,7 +18,12 @@
 		/\"([^\"]+)\"/i,
 		/\b([^\b]+)\b/i
 	];
-	
+	var skipToolNames = {					// Хэш наименований tools при которых не проверяем события векторных слоев
+		'POINT': true
+		,'LINESTRING': true
+		,'POLYGON': true
+		,'FRAME': true
+	}
 	var moveToTimer = null;
 	var utils = {							// Утилиты leafletProxy
 		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
@@ -442,10 +447,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(!attr || !attr['evName']) return;
 			var evName = attr['evName'];
 
-			//if(!gmxAPI._drawing['activeState']) {
 			var standartTools = gmxAPI.map.standartTools;
-			if(standartTools && standartTools.activeToolName == 'move') {
-			//if(!gmxAPI._leaflet['curDragState'] && standartTools && standartTools['activeToolName'] === 'move') {	// проверяем векторные слои только в режиме перемещения и не рисуя
+			if(standartTools && !skipToolNames[standartTools.activeToolName]) {
 				var from = gmxAPI.map.layers.length - 1;
 				for (var i = from; i >= 0; i--)
 				{
@@ -469,6 +472,13 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(attr['node'] && attr['hNode'] && attr['hNode']['handlers'][evName]) {
 				if(attr['hNode']['handlers'][evName](attr['node']['id'], attr['node'].geometry.properties, {'ev':attr['ev']})) return true;
 			}
+
+			var mapID = gmxAPI.map['objectId'];
+			var node = mapNodes[mapID];
+			if(node['handlers'][evName]) {
+				if(node['handlers'][evName](mapID, gmxAPI.map.properties, attr)) return true;
+			}
+
 			if(gmxAPI.map['stateListeners'][evName]) {
 				if(gmxAPI._listeners.dispatchEvent(evName, gmxAPI.map, {'attr':attr})) return true;
 			}
@@ -2166,6 +2176,24 @@ return;
 			}
 		}
 		,
+		'setCursor': function(ph)	{						// изменить курсор
+			var attr = ph['attr'];
+			if(attr['url']) {
+				var st = "url('"+attr['url']+"')";
+				var dx = String('dx' in attr ? -attr['dx'] : 0);
+				var dy = String('dy' in attr ? -attr['dy'] : 0);
+				st += ' ' + dx + ' ' + dy;
+				st += ', auto';
+				var dom = document.getElementsByTagName("body")[0];
+				dom.style.cursor = st;
+			}
+		}
+		,
+		'clearCursor': function()	{						// убрать url курсор
+			var dom = document.getElementsByTagName("body")[0];
+			dom.style.cursor = '';
+		}
+		,
 		'getPosition': function()	{						// получить текущее положение map
 			var res = utils.getMapPosition();
 			return res;
@@ -2384,10 +2412,8 @@ return;
 		if(!hash) hash = {};
 		var obj = hash['obj'] || null;	// Целевой обьект команды
 		var attr = hash['attr'] || '';
-//try {
 		ret = (cmd in commands ? commands[cmd].call(commands, hash) : {});
-//} catch(e) { gmxAPI.addDebugWarnings({'func': 'drawTriangle', 'event': e, 'alert': e}); }
-if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'hash': hash});
+		if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'hash': hash});
 //console.log(cmd + ' : ' , hash , ' : ' , ret);
 		return ret;
 	}

@@ -146,7 +146,7 @@
 		map.isDragging = function() { return gmxAPI._cmdProxy('isDragging', { }); }
 		map.resumeDragging = function() { gmxAPI._cmdProxy('resumeDragging', { }); }
 		map.setCursorVisible = function(flag) { gmxAPI._cmdProxy('setCursorVisible', { 'attr': {'flag':flag} }); }
-		map.getPosition = function() { return gmxAPI._cmdProxy('getPosition', { }); }
+		map.getPosition = function() { gmxAPI.currPosition = gmxAPI._cmdProxy('getPosition', { }); return gmxAPI.currPosition; }
 		map.getX = function() { return (map.needMove ? map.needMove['x'] : gmxAPI._cmdProxy('getX', {})); }
 		map.getY = function() { return (map.needMove ? map.needMove['y'] : gmxAPI._cmdProxy('getY', {})); }
 		map.getZ = function() { return (map.needMove ? map.needMove['z'] : (gmxAPI.currPosition ? gmxAPI.currPosition.z : gmxAPI._cmdProxy('getZ', {}))); }
