@@ -137,24 +137,9 @@
 			}
 
 			if(node['subType'] === 'OSM') {
-				var getTileUrl = function(x, y, zoom) {
-					if(!zoom) zoom = LMap.getZoom();
-					var pz = Math.pow(2, zoom);
-					var tx = x;
-					if(tx < 0) tx += pz;
-					var scanexTilePoint = {
-						'x': (tx % pz - pz/2) % pz
-						,'y': -y - 1 + pz/2
-					};
-					return inpAttr['func'](scanexTilePoint.x, scanexTilePoint.y, zoom);
-				}
-			
 				node['shiftY'] = function() {
 					myLayer.options.shiftY = utils.getOSMShift();
-					//if(myLayer._tileContainer) gmxAPI.position(myLayer._tileContainer, 0, myLayer.options.shiftY);
 				}
-				//LMap.on('zoomend', node['shiftY']);
-				//LMap.on('move', node['shiftY']);
 				myLayer = new L.TileLayer.OSMcanvas(option);
 			} else {
 				myLayer = new L.TileLayer.ScanExCanvas(option);
@@ -257,11 +242,17 @@
 			var flagAll = false;
 			var flagAllCanvas = false;
 			var pResArr = null;				// точки границ растрового слоя
+			var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
+			if(shiftY !== 0) {
+				// сдвиг для OSM
+				var tilePos = tile._leaflet_pos;
+				tilePos.y += shiftY;
+				L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
+			}
 
 			if(!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85)) {
 				flagAll = true;
 			} else {
-				var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
 				tileSize = 256 * 156543.033928041/pz;
 				if(shiftY == 0) {
 					var bounds = utils.getTileBounds(tilePoint, zoom);
@@ -286,10 +277,6 @@
 					pArr.push(pArr[0]);
 				} else {
 					pArr = attr.mercGeom[0];
-					// сдвиг для OSM
-					var tilePos = tile._leaflet_pos;
-					tilePos.y += shiftY;
-					L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
 				}
 
 				if(!flagAllCanvas) {
