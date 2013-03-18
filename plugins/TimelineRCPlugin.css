@@ -2,9 +2,11 @@
 {
     width: 500px;
     height: 105px;
-    position: absolute;
-    top: 135px;
-    left: 482px;
+    /*position: absolute;
+    top: 5px;
+    right: 5px;*/
+    float: left;
+    margin-left: 4px;
     background-color: rgba(1, 106, 138, 0.498039);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A);
 }
@@ -29,4 +31,20 @@
 .timeline-container  div.timeline-event-selected
 {
     border-color: magenta;
+}
+
+.timeline-container  .timeline-controls > *
+{
+    vertical-align: middle;
+}
+
+.timeline-container  .timeline-controls label
+{
+    color: white;
+    margin-left: 3px;
+}
+
+.timeline-container  .timeline-controls input
+{
+    margin-bottom: 4px;
 }

@@ -549,6 +549,8 @@ _translationsHash.hash["eng"] = {
 	"Пролистывать слои": "Scroll layers",
 	"Следующий слой": "Next layer",
 	"Предыдущий слой": "Previous layer",
+    "Показывать только пересекающиеся с центром экрана": "Show intersected with map center",
+    "Только под перекрестием": "Only under crosshair",
     "Геометрия не сохранена. Эта возможность будет реализована в будущих версиях Геомиксера.": "Geometry is not saved. This feature will be implemented in future Geomixer versions",
     "WMS доступ": "WMS/WFS access",
     "ссылка": "link",

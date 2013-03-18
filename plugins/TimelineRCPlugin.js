@@ -31,11 +31,12 @@ var TimelineControl = function(map)
     var filters = [];
     
     var mapCenter = null;
+    var mapExtent = null;
     
     var options = {
         "style": "line",
         "start": new Date(2010, 0, 1),
-        "end": new Date(2013, 0, 1),
+        "end": new Date(2013, 5, 1),
         width: "100%",
         height: "85px",
         style: "line"
@@ -51,10 +52,17 @@ var TimelineControl = function(map)
         return c;
     }
     
+    var updateItems = function() {
+        $.each(bindedLayers, function(i, layerName) { updateLayerItems(layerName); });
+    }
+    
+    var filterCenter = null;
+    
     var createTimelineLazy = function()
     {
         if (timeline) return;
-        container.appendTo($('body'));
+        //container.appendTo($('.flashMap'));
+        gmxAPI._allToolsDIV.appendChild(container[0]);
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
         timeline.draw([], options);
@@ -78,7 +86,18 @@ var TimelineControl = function(map)
         }
         $(nextDiv).addClass('timeline-controls');
         
-        var controlsContainer = $('<div/>').append(prevDiv, nextDiv).appendTo(container);
+        filterCenter = $('<input/>', {type: 'checkbox', checked: true, id: 'timeline-filter-center', title: _gtxt('Показывать только пересекающиеся с центром экрана')})
+        
+        filterCenter.change(function() {
+            filters[0] = this.checked ? filterByScreenCenter : filterByScreenBounds;
+            updateItems();
+        });
+        
+        var controlsContainer = $('<div/>').addClass('timeline-controls').append(
+            prevDiv, nextDiv,
+            filterCenter,
+            $('<label/>', {'for': 'timeline-filter-center', title: _gtxt('Показывать только пересекающиеся с центром экрана')}).text(_gtxt('Только под перекрестием'))
+        ).appendTo(container);
     }
     
     var findNextByTime = function(itemIndex, step)
@@ -154,10 +173,12 @@ var TimelineControl = function(map)
         updateSelection();
     }
     
-    var filterByScreenCenter = function(obj)
+    var filterByScreenCenter = function(item)
     {
-        var intersects = false;
-        var c = obj.geometry.coordinates;
+        var obj = item.obj,
+            c = obj.geometry.coordinates,
+            intersects = false;
+            
         if (obj.geometry.type == "POLYGON")
         {
             intersects = isPointInPoly(c[0], mapCenter);
@@ -170,9 +191,16 @@ var TimelineControl = function(map)
         
         return intersects;
     }
-    filters.push(filterByScreenCenter);
     
-    var updateTimelineItems = function(layerName)
+    var filterByScreenBounds = function(obj)
+    {
+        return gmxAPI.boundsIntersect(obj.bounds, mapExtent);
+    }
+    
+    filters.push(filterByScreenCenter);
+    // filters.push(filterByScreenBounds);
+    
+    var updateLayerItems = function(layerName)
     {
         var layer = map.layers[layerName];
         var temporalColumn = layer.properties.TemporalColumnName;
@@ -180,15 +208,17 @@ var TimelineControl = function(map)
         
         var elemsToAdd = [];
         mapCenter = {x: map.getX(), y: map.getY()};
+        mapExtent = map.getVisibleExtent();
         for (var curLayer in items)
         {
             for (var i in items[curLayer])
             {
-                var obj = items[curLayer][i].obj;
+                var item = items[curLayer][i],
+                    obj = item.obj;
                 
                 var showItem = true;
-                $.each(filters, function(item, filterFunc) {
-                    showItem = showItem && filterFunc(obj);
+                $.each(filters, function(i, filterFunc) {
+                    showItem = showItem && filterFunc(item);
                 })
                 
                 if (!items[curLayer][i].timelineItem && showItem)
@@ -236,7 +266,7 @@ var TimelineControl = function(map)
     this.addFilter = function(filterFunc)
     {
         filters.push(filterFunc);
-        $.each(bindedLayers, function(i, layerName) { updateTimelineItems(layerName); });
+        updateItems();
     }
     
     this.eachItem = function(layerName, callback)
@@ -246,7 +276,7 @@ var TimelineControl = function(map)
     
     this.update = function()
     {
-        $.each(bindedLayers, function(i, layerName) { updateTimelineItems(layerName); });
+        updateItems();
     }
     
     //@param {Array} selection Массив объектов вида {layerName: , id: }
@@ -284,7 +314,7 @@ var TimelineControl = function(map)
         
         
         map.addListener('positionChanged', function() {
-            updateTimelineItems(layerName);
+            updateLayerItems(layerName);
         })
         
         layer.addObserver(function(objs)
@@ -297,6 +327,7 @@ var TimelineControl = function(map)
                 {
                     items[layerName][id] = items[layerName][id] || {};
                     items[layerName][id].obj = obj;
+                    items[layerName][id].bounds = gmxAPI.getBounds(obj.geometry.coordinates);
                 }
                 else
                 {
@@ -309,8 +340,24 @@ var TimelineControl = function(map)
                 }
             }
             
-            updateTimelineItems(layerName);
+            updateLayerItems(layerName);
         }, {asArray: true, ignoreVisibilityFilter: true})
+    }
+    
+    this.setVisibleRange = function(start, end) {
+        timeline.setVisibleChartRange(start, end);
+    }
+    
+    this.filterByCenter = function(flag) {
+        if (filterCenter) {
+            if (flag)
+                filterCenter.attr('checked', true);
+            else
+                filterCenter.removeAttr('checked');
+        }
+        
+        filters[0] = flag ? filterByScreenCenter : filterByScreenBounds;
+        updateItems();
     }
 }
 
