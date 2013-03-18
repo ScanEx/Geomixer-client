@@ -479,7 +479,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				if(node['handlers'][evName](mapID, gmxAPI.map.properties, attr)) return true;
 			}
 
-			if(gmxAPI.map['stateListeners'][evName]) {
+			if(gmxAPI.map['stateListeners'][evName] && gmxAPI.map['stateListeners'][evName].length) {
 				if(gmxAPI._listeners.dispatchEvent(evName, gmxAPI.map, {'attr':attr})) return true;
 			}
 		}
