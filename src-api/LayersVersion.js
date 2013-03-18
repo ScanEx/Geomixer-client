@@ -46,8 +46,9 @@
 		if(intervalID) clearInterval(intervalID);		
 		intervalID = setInterval(chkVersion, msek);
 	}
-	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
+	var mapInitID = gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
 		setVersionCheck(chkVersionTimeOut);
+		gmxAPI._listeners.removeListener(null, 'mapInit', mapInitID);
 		}
 	});
 
@@ -201,12 +202,14 @@
 		}
 		,'chkVersion': function (layer) {		// Обработка списка редактируемых обьектов слоя
 			if(!layer || !('Processing' in layer.properties)) return;
-			layer.addListener('onLayer', function(ph) {
+			var onLayerID = layer.addListener('onLayer', function(ph) {
+				layer.removeListener('onLayer', onLayerID);
 				if(!layer.properties.tilesVers && !layer.properties.TemporalVers) return false;
 				gmxAPI._layersVersion.chkVersionLayers(layer.parent, layer);
 				ph['_Processing'] = chkProcessing(ph, ph.properties);			// слой инициализирован во Flash
 			});
-			layer.addListener('BeforeLayerRemove', function(layerName) {				// Удаляется слой
+			var BeforeLayerRemoveID = layer.addListener('BeforeLayerRemove', function(layerName) {				// Удаляется слой
+				layer.removeListener('BeforeLayerRemove', BeforeLayerRemoveID);
 				if(layer.properties.name != layerName) return false;
 				var mapHost = layer.properties.hostName;
 				if(!versionLayers[mapHost]) return false;

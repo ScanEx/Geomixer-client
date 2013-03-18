@@ -151,7 +151,7 @@
 			
 				node['shiftY'] = function() {
 					myLayer.options.shiftY = utils.getOSMShift();
-					if(myLayer._container) gmxAPI.position(myLayer._container, 0, myLayer.options.shiftY);
+					//if(myLayer._tileContainer) gmxAPI.position(myLayer._tileContainer, 0, myLayer.options.shiftY);
 				}
 				//LMap.on('zoomend', node['shiftY']);
 				//LMap.on('move', node['shiftY']);
@@ -163,7 +163,7 @@
 			var chkPosition = function() {
 				//node['waitRedraw']();
 				chkVisible();
-				if(node['subType'] === 'OSM') node['shiftY']();	
+				//if(node['subType'] === 'OSM') node['shiftY']();	
 			}
 			LMap.on('move', chkPosition);
 			LMap.on('zoomend', chkPosition);
@@ -286,6 +286,10 @@
 					pArr.push(pArr[0]);
 				} else {
 					pArr = attr.mercGeom[0];
+					// сдвиг для OSM
+					var tilePos = tile._leaflet_pos;
+					tilePos.y += shiftY;
+					L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
 				}
 
 				if(!flagAllCanvas) {
@@ -357,6 +361,7 @@
 			if (zoom > this.options.maxZoom || zoom < this.options.minZoom) {
 				return;
 			}
+			if('initCallback' in this.options) this.options.initCallback(this);
 			var bounds   = this._map.getPixelBounds(),
 				tileSize = this.options.tileSize;
 
@@ -373,7 +378,6 @@
 				tileBounds = new L.Bounds(nwTilePoint, seTilePoint);
 
 			this._addTilesFromCenterOut(tileBounds);
-
 			var countInvisibleTiles = this.options.countInvisibleTiles;
 			tileBounds.min.x -= countInvisibleTiles; tileBounds.max.x += countInvisibleTiles;
 			tileBounds.min.y -= countInvisibleTiles; tileBounds.max.y += countInvisibleTiles;
@@ -388,7 +392,7 @@
 		{
 			_initContainer: function () {
 				L.TileLayer.Canvas.prototype._initContainer.call(this);
-				if('initCallback' in this.options) this.options.initCallback(this);
+				//if('initCallback' in this.options) this.options.initCallback(this);
 			}
 			,
 			_createTileProto: function () {

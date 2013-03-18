@@ -16,10 +16,11 @@
 		map.rasters = map;
 		map.tiledQuicklooks = map;
 		map.vectors = map;
-		map.needMove = {'x':35, 'y':50, 'z':4};
-		if('DefaultLong' in layers.properties) map.needMove.x = parseFloat(layers.properties.DefaultLong);
-		if('DefaultLat' in layers.properties) map.needMove.y = parseFloat(layers.properties.DefaultLat);
-		if('DefaultZoom' in layers.properties) map.needMove.z = parseFloat(layers.properties.DefaultZoom);
+		map.needMove = {
+			'x':	parseFloat(layers.properties.DefaultLong) || 35
+			,'y':	parseFloat(layers.properties.DefaultLat) || 50
+			,'z':	parseFloat(layers.properties.DefaultZoom) || 4
+		};
 		
 		//map.needSetMode = 'Map';
 		map.needSetMode = null;
@@ -729,7 +730,7 @@
 		
 		if(!layers.properties.UseKosmosnimkiAPI) map.moveTo(map.needMove.x, map.needMove.y, map.needMove.z);
 		
-		if(!map.needSetMode && haveOSM) {								// если нигде не устанавливалась текущая подложка и есть OSM
+		if(!map.needSetMode && haveOSM) {			// если нигде не устанавливалась текущая подложка и есть OSM
 			map.setMode('OSM');
 		}
 

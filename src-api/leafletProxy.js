@@ -1459,9 +1459,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(pt['propHiden']['subType']) pt['subType'] = pt['propHiden']['subType'];
 			if(pt['propHiden']['refreshMe']) pt['refreshMe'] = pt['propHiden']['refreshMe'];
 			if(pt['propHiden']['layersParent']) pt['zIndexOffset'] = 0;
-			if(pt['propHiden']['overlaysParent']) pt['zIndexOffset'] = 1000;
-			
-// 
+			if(pt['propHiden']['overlaysParent']) pt['zIndexOffset'] = 2000;
 		}
 		mapNodes[id] = pt;
 		if(pt['geometry']['type']) {
@@ -1503,11 +1501,22 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(ph['setLabel']) {
 				mapNodes[id]['label'] = ph['setLabel'];
 			}
+			if(ph['setZoomBounds']) {	// формат {'minZ':1, 'maxZ':21}
+				tmp['attr'] = ph['setZoomBounds'];
+				commands.setZoomBounds(tmp);
+			}
+			if(ph['setFilter']) {
+				tmp['attr'] = {'sql':ph['setFilter']};
+				commands.setFilter(tmp);
+			}
+			if(ph['setHandlers']) {
+				for(var key in ph['setHandlers']) {
+					var item = ph['setHandlers'][key];
+					commands.setHandler(item);
+				}
+			}
 			setStyle(id, ph['setStyle']);
-			//setLabel(res, ph['setLabel']);
 
-			//if(ph['setStyle']) tmp['setStyle'] = ph['setStyle'];
-			//if(ph['setLabel']) tmp['setLabel'] = ph['setLabel'];
 			var aObj = new gmxAPI._FMO(id, prop, gmxAPI.mapNodes[parentId]);	// обычный MapObject
 			aObj.isVisible = true;
 			out.push(aObj);
@@ -2847,16 +2856,22 @@ return;
 			
 			if(style['marker']) {
 				if(style['image']) {
-					var canv = style['image'];
-					var rotateRes = style['rotate'] || 0;
-					if(rotateRes && typeof(rotateRes) == 'string') {
-						rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
-					}
-					style['rotateRes'] = rotateRes;
-					if(style['rotateRes'] || 'color' in style) {
-						var size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-						out['sx'] = out['sy'] = scale * size;
-						canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style, size);
+					var canv = out['_cache']['canv'];
+					var size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
+					out['sx'] = out['sy'] = scale * size;
+					if(!canv) {
+						canv = style['image'];
+						var rotateRes = style['rotate'] || 0;
+						if(rotateRes && typeof(rotateRes) == 'string') {
+							rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
+						}
+						style['rotateRes'] = rotateRes;
+						if(style['rotateRes'] || 'color' in style) {
+							//var size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
+							//out['sx'] = out['sy'] = scale * size;
+							canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style, size);
+							out['_cache']['canv'] = canv;
+						}
 					}
 					ctx.drawImage(canv, px1, py1, out['sx'], out['sy']);
 					//ctx.drawImage(canv, px1, py1);
@@ -4231,6 +4246,9 @@ var tt = 1;
 	gmxAPI._leaflet['curDragState'] = false;		// текущий режим dragging карты
 	gmxAPI._leaflet['mousePressed'] = false;		// признак нажатой мыши
 	gmxAPI._leaflet['activeObject'] = null;			// Нода последнего mouseOver
+	//if('Worker' in window) {
+		//gmxAPI._leaflet['worker'] = new Worker('src-api/taskWorker.js');
+	//}
 })();
 
 

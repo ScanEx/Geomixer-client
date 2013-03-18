@@ -1861,9 +1861,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	};
 	
 	var ret = {
-		'Init': function () {
-			InitHandlersFunc();
-		}
+		'Init': InitHandlersFunc
 	};
 	
 	//расширяем namespace
@@ -2822,16 +2820,15 @@ function createFlashMapInternal(div, layers, callback)
 		flashDiv.style.MozUserSelect = "none";
 
 		var map = gmxAPI._addNewMap(rootObjectId, layers, callback);
-		if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
-			gmxAPI.map.miniMap.setVisible(true);
-		}
-
 		if (callback) {
 			try {
 				callback(gmxAPI.map, layers);		// Вызов createFlashMapInternal
 			} catch(e) {
 				gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
 			}
+		}
+		if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
+			gmxAPI.map.miniMap.setVisible(true);
 		}
 
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);

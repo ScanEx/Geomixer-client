@@ -42,13 +42,15 @@
 
 		// Добавление прослушивателей событий
 		var me = this;
+		var evID = null;
 		var chkFilter = function(data)
 		{
+			if(evID) parent.parent.removeListener('onLayer', evID);
 			var filter = me._parent;
 			if(!filter['clusters'] || !filter['clusters']['attr']) return;	// Кластеризация не устанавливалась
 			filter.setClusters(filter['clusters']['attr']);
 		}
-		parent.parent.addListener('onLayer', chkFilter); // Отложенная установка кластеризации
+		evID = parent.parent.addListener('onLayer', chkFilter); // Отложенная установка кластеризации
 
 	};
 	Clusters.prototype = {

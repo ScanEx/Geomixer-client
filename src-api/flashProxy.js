@@ -574,7 +574,8 @@ window._debugTimes.jsToFlash.callFunc[cmd]['callCount'] += 1;
 		if (deconcept.SWFObjectUtil.getPlayerVersion().major < 10) 
 			return '';	
 
-		var url = apiBase + "api.swf?" + Math.random()
+		//var url = apiBase + "api.swf?" + Math.random()
+		var url = apiBase + "api.swf";
 		var o = new deconcept.SWFObject(url, flashId, ww, hh, v, bg);
 		o.addParam('allowScriptAccess', 'always');
 		o.addParam('wmode', 'opaque');
