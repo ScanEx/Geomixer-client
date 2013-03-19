@@ -49,16 +49,16 @@ var SelectColumnsWidget = function(parent, columns, sourceColumns)
             ])])]);
 	
 	
-            if (colums.get('XCol')) {
-                selectLon = switchSelect(selectLon, colums.get('XCol'));
+            if (columns.get('XCol')) {
+                selectLon = switchSelect(selectLon, columns.get('XCol'));
             }
 	
-            if (colums.get('YCol')) {
-                selectLat = switchSelect(selectLat, colums.get('YCol'));
+            if (columns.get('YCol')) {
+                selectLat = switchSelect(selectLat, columns.get('YCol'));
 		}
 	
         } else {
-        removeChilds(parent);
+            removeChilds(parent);
         }
     }
         
