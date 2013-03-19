@@ -108,8 +108,10 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					'obj':gmxNode
 					,'attr': {
 						'id': e.target.options.from
-						,'x': latlng.lng
-						,'y': latlng.lat
+						,'x': utils.getMouseX()
+						,'y': utils.getMouseY()
+						//,'x': latlng.lng	// координаты обьекта
+						//,'y': latlng.lat
 						,'e': e
 					}
 				};
@@ -117,8 +119,13 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			};
 			// todo drag без лефлета
 			if(node['leaflet'].dragging) {
-				node['leaflet'].on('dragstart', function(e){node['onDrag'] = true; chkDrag('dragstart', e);});	// dragstart на обьекте
-				node['leaflet'].on('drag', function(e){chkDrag('drag', e);});			// Drag на обьекте
+				node['leaflet'].on('dragstart', function(e){
+					node['onDrag'] = true;
+					chkDrag('dragstart', e);
+				});	// dragstart на обьекте
+				node['leaflet'].on('drag', function(e){
+					chkDrag('drag', e);
+				});			// Drag на обьекте
 				node['leaflet'].on('dragend', function(e){node['onDrag'] = false; chkDrag('dragend', e);});		// dragend на обьекте
 				node['leaflet'].dragging.enable();
 				node['leaflet'].options['_isHandlers'] = true;
@@ -3288,10 +3295,10 @@ return;
 			return res;
 		}
 		// Проверка принадлежности точки полигону
-		out['contains'] = function (chkPoint, curStyle) {
+		out['contains'] = function (chkPoint, curStyle, fillPattern) {
 			if(bounds.contains(chkPoint)) {
 				if(!curStyle) curStyle = out.propHiden.curStyle;
-				var fill = 	(curStyle ? curStyle.fill : false);
+				var fill = (fillPattern ? true : (curStyle ? curStyle.fill : false));
 				for (var i = 0; i < coords.length; i++)
 				{
 					if(fill) {

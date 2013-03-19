@@ -655,7 +655,24 @@
 			gmxAPI._listeners.dispatchEvent('onFlip', gmxNode, mObj);
 			return item;
 		}
+
+		var getHandler = function(fid, evName) {			// Получить gmx обьект на котором установлен Handler
+			var out = null;
+			var item = node['objectsData'][fid];
+			if(!item) return out;
+			var itemPropHiden = item.propHiden;
+			if(!itemPropHiden['toFilters'] || !itemPropHiden['toFilters'].length) return out;		// обьект не попал в фильтр
+			var fID = itemPropHiden['toFilters'][0];
+			var filter = gmxAPI.mapNodes[fID];
+			if(filter && mapNodes[fID]['handlers'][evName]) {						// не найден фильтр
+				out = filter;
+			} else if(evName in node['handlers']) {						// Есть handlers на слое
+				out = gmxNode;
+			}
+			return out;
+		}
 		
+		var prevID = 0;
 		var prevPoint = null;
 		node['eventsCheck'] = function(evName, attr) {			// проверка событий векторного слоя
 			if(evName !== 'onClick' || gmxAPI._drawing['activeState'] || !node['leaflet'] || !node['leaflet']._isVisible || gmxAPI._leaflet['curDragState']) return false;
@@ -678,6 +695,7 @@
 				if(needCheck) {
 					node['flipIDS'] = [];
 					for (var i = 0; i < arr.length; i++) node['flipIDS'].push(arr[i].id || arr[i].geom.id);
+					//prevID = 0;
 				}
 				if(!node['flipIDS'].length) return false;
 				var vid = node['flipIDS'][0];
@@ -685,6 +703,7 @@
 				var oper = 'setFlip';
 				var isCluster = (item.geom && item.geom.propHiden['subType'] == 'cluster' ? true : false);
 				var itemPropHiden = null;
+				var handlerObj = null;
 				if(!isCluster) {
 					var operView = false;
 					if(attr.shiftKey && node['propHiden']['rasterView'] === 'onShiftClick') operView = true;
@@ -692,9 +711,15 @@
 					else if(node['propHiden']['rasterView'] === 'onClick') operView = true;
 					
 					vid = node['flipIDS'][node['flipIDS'].length - 1];
-					item = (oper === 'setFlip' ? node['setFlip']() : node['objectsData'][vid]);
+					handlerObj = getHandler(vid, evName);
+					item = node['objectsData'][vid];
+					if(oper === 'setFlip') {
+						item = node['setFlip']();
+						if(!handlerObj && item.id === prevID) item = node['setFlip']();
+					}
 					if(!item) return true;
 					vid = item.id;
+					prevID = vid;
 					itemPropHiden = item.propHiden;
 
 					//console.log('flipIDS' , item.id);
@@ -728,6 +753,11 @@
 				};
 				
 				if(!isCluster) {
+					if(handlerObj) {
+						callHandler('onClick', item, handlerObj, {'eventPos': eventPos, 'layer': gmxNode});
+						return true;
+					}
+					/*
 					var geom = node['getItemGeometry'](item.id);
 					if(!itemPropHiden['toFilters'] || !itemPropHiden['toFilters'].length) return;		// обьект не попал в фильтр
 					var fID = itemPropHiden['toFilters'][0];
@@ -738,7 +768,7 @@
 					} else if(evName in node['handlers']) {						// Есть handlers на слое
 						var res = callHandler('onClick', item, gmxNode, {'eventPos': eventPos, 'layer': gmxNode});
 						if(res) return res;
-					}
+					}*/
 				} else {
 					if(callHandler('onClick', item.geom, gmxNode, {'objType': 'cluster', 'eventPos': eventPos, 'layer': gmxNode})) return true;
 					var fID = itemPropHiden['toFilters'][0];
@@ -1116,7 +1146,7 @@
 					var item = node['tilesRedrawImages'][zoom][tID][i];
 					var dist = minDist;
 					if('contains' in item.geom) {
-						if(!item.geom['contains'](mPoint)) continue;
+						if(!item.geom['contains'](mPoint, null, item.src)) continue;
 					}
 					else if(!item.geom.bounds.contains(mPoint)) continue;
 					
