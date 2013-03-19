@@ -1041,15 +1041,6 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 			var filterNum = getOwnChildNumber(balloonText.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode),
 				filter = globalFlashMap.layers[layerName].filters[filterNum];
 			globalFlashMap.balloonClassObject.setBalloonFromParams(filter, div.getBalloonState());
-			// if (box.checked)
-			// {
-				// if (balloonText.value != '')
-					// _this.setBalloon(filter, balloonText.value);
-				// else
-					// filter.enableHoverBalloon();
-			// }
-			// else
-				// filter.disableHoverBalloon();
 		},
 		defaultBalloonText = function()
 		{
@@ -1079,6 +1070,10 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
             if (ed.id === textareaID) {
                 ed.onKeyUp.add(setBalloon);
                 ed.onChange.add(setBalloon);
+                ed.onClick.add(function() {
+                    $(atrsSuggest).fadeOut(300);
+                });
+                
             }
         });
     })
@@ -1100,28 +1095,14 @@ mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCan
 	
 	balloonText.value = (balloonParams.Balloon) ? balloonParams.Balloon : defaultBalloonText();
 	
-	// balloonText.onkeyup = function()
-	// {
-		// setBalloon();
-		
-		// return true;
-	// }
-	
 	var atrsSuggest = this.createSuggestCanvas(attrs ? attrs : [], balloonText, '[suggest]', setBalloon);
-	
-	balloonText.onfocus = function()
-	{
-		atrsSuggest.style.display = 'none';
-		
-		return true;
-	}
 	
 	var divAttr = _div([_t(_gtxt("Атрибут >")), atrsSuggest], [['dir','className','attrsHelperCanvas']]);
 	
 	divAttr.onclick = function()
 	{
 		if (atrsSuggest.style.display == 'none')
-			$(atrsSuggest).fadeIn(500);
+			$(atrsSuggest).fadeIn(300);
 		
 		return true;
 	}
@@ -2585,41 +2566,30 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 		loading = _div([_img(null, [['attr','src','img/progress.gif'],['css','marginRight','10px']]), _t(_gtxt('загрузка...'))], [['css','margin','3px 0px 3px 20px']]),
 		layerRights = _queryMapLayers.layerRights(elemProperties.name)
 		_this = this;
-	
-	// if (!layerRights)
-	// {
-		// _(parent, [_div([_t(_gtxt("Авторизуйтесь для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']])]);
-	// }
-	// else if (layerRights != "edit")
-	// {
-		// _(parent, [_div([_t(_gtxt("Недостаточно прав для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']])]);
-	// }
-	// else
-	// {
-		if (elemProperties.type == "Vector")
-		{
-			nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, layerProperties, _layersTree, params);
-			
-			return;
-		}
-		else
-		{
-			if (elemProperties.LayerID)
-			{
-				_(parent, [loading]);
-			
-				sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&LayerID=" + elemProperties.LayerID, function(response)
-				{
-					if (!parseResponse(response))
-						return;
-					
-					loading.removeNode(true);
-					
-					nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, response.Result, _layersTree, params)
-				})
-			}
-		}
-	//}
+
+    if (elemProperties.type == "Vector")
+    {
+        nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, layerProperties, _layersTree, params);
+        
+        return;
+    }
+    else
+    {
+        if (elemProperties.LayerID)
+        {
+            _(parent, [loading]);
+        
+            sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&LayerID=" + elemProperties.LayerID, function(response)
+            {
+                if (!parseResponse(response))
+                    return;
+                
+                loading.removeNode(true);
+                
+                nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, response.Result, _layersTree, params)
+            })
+        }
+    }
 }
 
 mapHelper.prototype.createNewLayer = function(type)
@@ -2875,7 +2845,14 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			if (!parseResponse(response))
 				return;
 			
-			_this.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer(response.Result.Attributes, elemProperties.LayerID);
+            var columns = response.Result.SourceColumns;
+            var attributesHash = {};
+            
+            for (var i = 0; i < columns.length; i++) {
+                attributesHash[columns[i].Name] =  [];
+            }
+            
+			_this.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer(attributesHash, elemProperties.LayerID);
 			
 			createTabs(response.Result);
 		})
