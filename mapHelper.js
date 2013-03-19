@@ -2586,16 +2586,16 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 		layerRights = _queryMapLayers.layerRights(elemProperties.name)
 		_this = this;
 	
-	if (!layerRights)
-	{
-		_(parent, [_div([_t(_gtxt("Авторизуйтесь для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']])]);
-	}
-	else if (layerRights != "edit")
-	{
-		_(parent, [_div([_t(_gtxt("Недостаточно прав для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']])]);
-	}
-	else
-	{
+	// if (!layerRights)
+	// {
+		// _(parent, [_div([_t(_gtxt("Авторизуйтесь для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']])]);
+	// }
+	// else if (layerRights != "edit")
+	// {
+		// _(parent, [_div([_t(_gtxt("Недостаточно прав для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']])]);
+	// }
+	// else
+	// {
 		if (elemProperties.type == "Vector")
 		{
 			nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, layerProperties, _layersTree, params);
@@ -2619,7 +2619,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 				})
 			}
 		}
-	}
+	//}
 }
 
 mapHelper.prototype.createNewLayer = function(type)

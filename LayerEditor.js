@@ -919,35 +919,53 @@ var LayerEditor = function(div, type, properties, treeView, params) {
         callback();
     }
         
-    var layerProperties = new nsGmx.LayerProperties();
-    layerProperties.initFromViewer(type, divProperties, properties);
-    
-    var origLayerProperties = layerProperties.clone();
-                    
-    var mainContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
-    // var sourceContainer = _div();
+    var mainContainer     = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
     var metadataContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
     var advancedContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
     
-    createPageMain(mainContainer, layerProperties);
-    createPageMetadata(metadataContainer, layerProperties);
-    
-    if (type === 'Vector') {
-        //createPageVectorSource(sourceContainer, layerProperties);
-            createPageAdvanced(advancedContainer, layerProperties);
-        // } else {
-            //createPageRasterSource(sourceContainer, layerProperties);
-    }
-    
     tabs.push({title: 'Общие', name: 'main', container: mainContainer});
-    // tabs.push({title: 'Источник', name: 'source', container: sourceContainer});
     tabs.push({title: 'Метаданные', name: 'metadata', container: metadataContainer});
     
     if (type === 'Vector') {
         tabs.push({title: 'Дополнительно', name: 'advanced', container: advancedContainer});
     }
+    
+    var saveButton = null;
+    
+    if (div) {
+        var layerRights = _queryMapLayers.layerRights(divProperties.name);
+        var securityDiv = null;
         
-    var saveButton = makeLinkButton(div ? _gtxt("Изменить") : _gtxt("Создать"));
+        if (!layerRights)
+        {
+            securityDiv = _div([_t(_gtxt("Авторизуйтесь для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
+        }
+        else if (layerRights != "edit")
+        {
+            securityDiv = _div([_t(_gtxt("Недостаточно прав для редактирования настроек слоя"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
+        }
+        
+        if (securityDiv) {
+            $([mainContainer, metadataContainer, advancedContainer]).append(securityDiv);
+            saveButton = _div(null, [['css', 'height', '1px']]);
+            return;
+        }
+    }
+    
+    saveButton = makeLinkButton(div ? _gtxt("Изменить") : _gtxt("Создать"));
+    
+    var layerProperties = new nsGmx.LayerProperties();
+    layerProperties.initFromViewer(type, divProperties, properties);
+    
+    var origLayerProperties = layerProperties.clone();
+    
+    createPageMain(mainContainer, layerProperties);
+    createPageMetadata(metadataContainer, layerProperties);
+    
+    if (type === 'Vector') {
+        createPageAdvanced(advancedContainer, layerProperties);
+    }
+    
             
     if (div) {
         layerProperties.on({
