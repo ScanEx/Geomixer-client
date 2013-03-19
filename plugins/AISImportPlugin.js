@@ -148,7 +148,7 @@
         var layerProperties = new nsGmx.LayerProperties({
             Type: 'Vector',
             Title: name,
-            GeometryType: 'POLYGON',
+            GeometryType: 'POINT',
             SourceColumns: sourceColumns,
             SourceType: 'manual',
             Temporal: temporalParams
