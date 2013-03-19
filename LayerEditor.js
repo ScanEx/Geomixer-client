@@ -9,7 +9,7 @@
 *   - defaultX {string} - дефолтное значение поля X (не обязятелен)
 *   - defaultY {string} - дефолтное значение поля Y (не обязятелен)
 */
-var SelectColumnsWidget = function(parent, colums, sourceColumns)
+var SelectColumnsWidget = function(parent, columns, sourceColumns)
 {
     //var fields = params.fields;
     var updateWidget = function() {
@@ -22,11 +22,11 @@ var SelectColumnsWidget = function(parent, colums, sourceColumns)
 				selectLon = nsGmx.Utils._select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
                 
             selectLat.onchange = function() {
-                colums.set('YCol', this.value);
+                columns.set('YCol', this.value);
             }
             
             selectLon.onchange = function() {
-                colums.set('XCol', this.value);
+                columns.set('XCol', this.value);
             }
 
 			for (var i = 0; i < fields.length; i++)
@@ -65,7 +65,7 @@ var SelectColumnsWidget = function(parent, colums, sourceColumns)
     updateWidget();
         
     this.updateColumns = function(newFields) {
-        fields = newFields;
+        sourceColumns = newFields;
         updateWidget();
     }
 }
@@ -433,17 +433,17 @@ var createPageVectorSource = function(layerProperties) {
     {
         _tableBrowser.createBrowser(function(name)
         {
-        tablePathInput.value = name;
-        layerProperties.set('TableName', name);
+            tablePathInput.value = name;
+            layerProperties.set('TableName', name);
 
-        if (layerProperties.get('Title') == '') {
-            layerProperties.set('Title', name);
-        }
+            if (layerProperties.get('Title') == '') {
+                layerProperties.set('Title', name);
+            }
 
-        getSourceColumns(name, true).done(function(sourceColumns)
+            getSourceColumns(name, true).done(function(sourceColumns)
             {
-            layerProperties.set('SourceColumns', sourceColumns);
-            tableSourceColumns = sourceColumns;
+                layerProperties.set('SourceColumns', sourceColumns);
+                tableSourceColumns = sourceColumns;
             })
         })
     }
