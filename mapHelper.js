@@ -2804,6 +2804,9 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                     selected: selected,
                     createdCallback: function(layerEditor) {
                         _this.layerEditorsHash[elemProperties.name] = layerEditor;
+                        _this.layerEditorsHash[elemProperties.name].closeFunc = closeFunc;
+                        _this.layerEditorsHash[elemProperties.name].updateFunc = updateFunc;
+                        
                         createdDef.resolve();
                     }
                 });
@@ -2845,7 +2848,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			if (!parseResponse(response))
 				return;
 			
-            var columns = response.Result.SourceColumns;
+            var columns = response.Result.Columns;
             var attributesHash = {};
             
             for (var i = 0; i < columns.length; i++) {
