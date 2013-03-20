@@ -14,11 +14,11 @@ var timeOffset = (new Date()).getTimezoneOffset()*60*1000;
 var timeRadius = 3*3600*1000;
 
 var afterViewer = function(params){
-    var _calendar = nsGmx.widgets.commonCalendar;
+    var _calendar = nsGmx.widgets.commonCalendar.get();
     if (_calendar)
     {
-        nsGmx.widgets.commonCalendar.setShowTime(true);
-        nsGmx.widgets.commonCalendar.setTimeBegin(0, 0, 0);
+        _calendar.setShowTime(true);
+        _calendar.setTimeBegin(0, 0, 0);
     }
     
     nsGmx.ContextMenuController.addContextMenuElem({
@@ -37,10 +37,10 @@ var afterViewer = function(params){
             var re = context.elem.title.match(datetimeRegexp);
             var dateLocal = new Date(parseInt(re[3], 10), parseInt(re[2], 10)-1, parseInt(re[1], 10), parseInt(re[4], 10), parseInt(re[5], 10), parseInt(re[6], 10), 0);
             var date = new Date(dateLocal.valueOf() - timeOffset);
-			nsGmx.widgets.commonCalendar.setDateBegin(new Date(date.valueOf() - timeRadius));
-			nsGmx.widgets.commonCalendar.setDateEnd(new Date(date.valueOf() + timeRadius));
+			_calendar.setDateBegin(new Date(date.valueOf() - timeRadius));
+			_calendar.setDateEnd(new Date(date.valueOf() + timeRadius));
             
-            var calendarModeController = nsGmx.widgets.commonCalendar.getModeController();
+            var calendarModeController = _calendar.getModeController();
             calendarModeController.setMode( calendarModeController.ADVANCED_MODE );
 		}
 	}, ['Layer']);
