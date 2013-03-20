@@ -594,7 +594,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 				pt['marker'] = true;
 				var ph = st['marker'];
 				if('color' in ph) pt['color'] = ph['color'];
-				if('opacity' in ph) pt['opacity'] = ph['opacity'];
+				pt['opacity'] = ('opacity' in ph ? ph['opacity'] : 100);
 				if('size' in ph) pt['size'] = ph['size'];
 				if('scale' in ph) pt['scale'] = ph['scale'];
 				if('minScale' in ph) pt['minScale'] = ph['minScale'];
@@ -619,7 +619,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					pt['fill'] = true;
 					var ph = st['fill'];
 					if('color' in ph) pt['fillColor'] = ph['color'];
-					if('opacity' in ph) pt['fillOpacity'] = ph['opacity'];
+					pt['fillOpacity'] = ('opacity' in ph ? ph['opacity'] : 100);
 				}
 				pt['stroke'] = false;
 				if('outline' in st) {				//	Есть стиль контура
