@@ -2582,6 +2582,8 @@ return;
 						,'hView': hView
 						,'deltaX': deltaX
 						,'deltaY': deltaY
+						,'patchSize': 1
+						,'limit': 2
 					});
 				}
 			}

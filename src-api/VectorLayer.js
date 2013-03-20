@@ -1706,10 +1706,11 @@
 				if(z != currZ) delete node['tilesRedrawImages'][z];
 			}
 			for (var ogc_fid in node['objectsData']) {
-				var item = node['objectsData'][ogc_fid]['propHiden']['drawInTiles'];
-				for (var z in item) {
-					if(z != currZ) delete item[z];
+				var item = node['objectsData'][ogc_fid];
+				for (var z in item['propHiden']['drawInTiles']) {
+					if(z != currZ) delete item['propHiden']['drawInTiles'][z];
 				}
+				item.propHiden['toFilters'] = chkObjectFilters(item);
 			}
 
 			flag = (utils.chkVisibilityByZoom(node.id) && (node['bounds'] ? utils.chkBoundsVisible(node['bounds']) : true));
