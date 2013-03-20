@@ -111,8 +111,8 @@
 		var propsArray = [];
 
 		var tilesParent = gmxNode.addObject(null, null, {'subType': 'tilesParent'});
-		node['minZ'] = minZoom;
-		node['maxZ'] = maxZoom;
+		//node['minZ'] = minZoom;
+		//node['maxZ'] = maxZoom;
 		tilesParent.setZoomBounds(minZoom, maxZoom);
 		gmxNode.tilesParent = tilesParent;
 		tilesParent.clearItems  = function()
