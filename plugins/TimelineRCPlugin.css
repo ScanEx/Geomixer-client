@@ -48,3 +48,8 @@
 {
     margin-bottom: 4px;
 }
+
+.timeline-container #timeline-only-selected
+{
+    margin-left: 10px;
+}

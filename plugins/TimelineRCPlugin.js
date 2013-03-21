@@ -1,24 +1,20 @@
 ﻿//Плагин для добавления таймлайна для просмотра данных мультивременных слоёв.
 (function ($){
 
-var fromTilesToDate = function(type, value)
-{
-    var localDateValue;
-    if (type === 'datetime')
-    {
-        localDateValue = $.datepicker.parseDateTime('yy.mm.dd', 'hh:mm:ss', value);
-    }
-    else
-    {
-        localDateValue = $.datepicker.parseDate('yy.mm.dd', value);
-    }
-    
-    if (localDateValue === null) return null;
-        
-    var localValue = localDateValue.valueOf();
-    var timeOffset = (new Date(localValue)).getTimezoneOffset()*60*1000;
-    return new Date(localValue - timeOffset);
-}
+_translationsHash.addtext("eng", {
+    "Показывать только пересекающиеся с центром экрана": "Show intersected with map center",
+    "Показывать на карте только выбранные снимки": "Show on map only selected items",
+    "Только выбранные": "Selected only",
+    "По центру": "Under crosshair",
+    "Добавить к таймлайну": "Add to timeline"
+});
+_translationsHash.addtext("rus", {
+    "Показывать только пересекающиеся с центром экрана": "Показывать только пересекающиеся с центром экрана",
+    "Показывать на карте только выбранные снимки": "Показывать на карте только выбранные снимки",
+    "Только выбранные": "Только выбранные",
+    "По центру": "По центру",
+    "Добавить к таймлайну": "Добавить к таймлайну"
+});
 
 var TimelineControl = function(map)
 {
@@ -30,8 +26,19 @@ var TimelineControl = function(map)
     var timeline;
     var filters = [];
     
+    var isOnlySelected = false;
+    var isFilterCenter = true;
+    
     var mapCenter = null;
     var mapExtent = null;
+    
+    var dateFunction = function(layer, obj) {
+    
+        var temporalColumn = layer.properties.TemporalColumnName,
+            type = layer.properties.attrTypes[$.inArray(temporalColumn, layer.properties.attributes)];
+        
+        return _this._fromTilesToDate(type, obj.properties[temporalColumn]);
+    }
     
     var options = {
         "style": "line",
@@ -57,17 +64,30 @@ var TimelineControl = function(map)
     }
     
     var filterCenter = null;
+    var onlySelected = null;
     
     var createTimelineLazy = function()
     {
         if (timeline) return;
-        //container.appendTo($('.flashMap'));
         gmxAPI._allToolsDIV.appendChild(container[0]);
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
         timeline.draw([], options);
         
         links.events.addListener(timeline, 'select', updateSelection);
+        
+        links.Timeline.addEventListener(timeline.dom.content, "dblclick", function(elem) {
+            if (timeline.eventParams.itemIndex !== undefined) {
+                var userdata = timeline.getData()[timeline.eventParams.itemIndex].userdata;
+                var layerName = userdata.layerName;
+                var objID = userdata.objID;
+                
+                var geom = items[layerName][objID].obj.geometry;
+                var b = gmxAPI.getBounds(geom.coordinates);
+                
+                map.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
+            }
+        });
         
         var prevDiv = makeImageButton("img/prev.png", "img/prev_a.png");
         _title(prevDiv, _gtxt("Предыдущий слой"));
@@ -86,17 +106,33 @@ var TimelineControl = function(map)
         }
         $(nextDiv).addClass('timeline-controls');
         
-        filterCenter = $('<input/>', {type: 'checkbox', checked: true, id: 'timeline-filter-center', title: _gtxt('Показывать только пересекающиеся с центром экрана')})
+        filterCenter = $('<input/>', {type: 'checkbox', id: 'timeline-filter-center', title: _gtxt('Показывать только пересекающиеся с центром экрана')})
+        if (isFilterCenter) {
+            filterCenter.attr('checked', true);
+        }
         
         filterCenter.change(function() {
+            isFilterCenter = this.checked;
             filters[0] = this.checked ? filterByScreenCenter : filterByScreenBounds;
             updateItems();
         });
         
+        onlySelected = $('<input/>', {type: 'checkbox', id: 'timeline-only-selected', title: _gtxt('Показывать на карте только выбранные снимки')});
+        if (isOnlySelected) {
+            onlySelected.attr('checked', true);
+        }
+        
+        onlySelected.change(function() {
+            isOnlySelected = this.checked;
+            updateSelection();
+        })
+        
         var controlsContainer = $('<div/>').addClass('timeline-controls').append(
             prevDiv, nextDiv,
             filterCenter,
-            $('<label/>', {'for': 'timeline-filter-center', title: _gtxt('Показывать только пересекающиеся с центром экрана')}).text(_gtxt('Только под перекрестием'))
+            $('<label/>', {'for': 'timeline-filter-center', title: _gtxt('Показывать только пересекающиеся с центром экрана')}).text(_gtxt('По центру')),
+            onlySelected,
+            $('<label/>', {'for': 'timeline-only-selected', title: _gtxt('Показывать на карте только выбранные снимки')}).text(_gtxt('Только выбранные'))
         ).appendTo(container);
     }
     
@@ -139,6 +175,12 @@ var TimelineControl = function(map)
         $.each(bindedLayers, function(i, layerName)
         {
             var layer = map.layers[layerName];
+            
+            if (!isOnlySelected) {
+                layer.setVisibilityFilter();
+                return;
+            }
+            
             if (layerName in selectedIds)
             {
                 var queryItems = $.map(selectedIds[layerName], function(objid)
@@ -223,13 +265,14 @@ var TimelineControl = function(map)
                 
                 if (!items[curLayer][i].timelineItem && showItem)
                 {
-                    var type = layer.properties.attrTypes[$.inArray(temporalColumn, layer.properties.attributes)],
-                        date = fromTilesToDate(type, obj.properties[temporalColumn]),
+                    // var type = layer.properties.attrTypes[$.inArray(temporalColumn, layer.properties.attributes)],
+                        // date = fromTilesToDate(type, obj.properties[temporalColumn]),
+                    var date = dateFunction(layer, obj),
                         content;
                     
                     if (layer.properties.NameObject)
                     {
-                        content = gmxAPI.applyTemplate(layer.properties.NameObject, obj.properties) + ' (' + obj.properties[temporalColumn] + ')';
+                        content = gmxAPI.applyTemplate(layer.properties.NameObject, obj.properties);
                     }
                     else
                     {
@@ -258,8 +301,44 @@ var TimelineControl = function(map)
         }
         
         timeline.addItems(elemsToAdd);
-        for (var i = 0; i < elemsToAdd.length; i++)
-            items[layerName][elemsToAdd[i].userdata.objID].timelineItem = timeline.items[timeline.items.length-elemsToAdd.length + i];
+        $.each(elemsToAdd, function(i, elem) {
+            items[layerName][elem.userdata.objID].timelineItem = timeline.items[timeline.items.length-elemsToAdd.length + i];
+            $(items[layerName][elem.userdata.objID].timelineItem).bind({
+                mouseover: function() {
+                    var geom = items[layerName][elem.userdata.objID].obj.geometry;
+                    var hoverObj = map.addObject(geom);
+                    hoverObj.setStyle({fill: {color: 0xff0000, opacity: 30}});
+                    items[layerName][elem.userdata.objID].hoverObj = hoverObj;
+                },
+                mouseout: function() {
+                    items[layerName][elem.userdata.objID].hoverObj.remove();
+                }
+            })
+        });
+    }
+    
+    this._fromTilesToDate = function(type, value)
+    {
+        var localDateValue;
+        if (type === 'datetime')
+        {
+            localDateValue = $.datepicker.parseDateTime('yy.mm.dd', 'hh:mm:ss', value);
+        }
+        else
+        {
+            localDateValue = $.datepicker.parseDate('yy.mm.dd', value);
+        }
+        
+        if (localDateValue === null) return null;
+            
+        var localValue = localDateValue.valueOf();
+        
+        //TODO: научить таймлайн работать с UTC временем, и передавать в него корректные UTC даты
+        //Сейчас даты парсятся с локальным смещением
+        
+        //var timeOffset = (new Date(localValue)).getTimezoneOffset()*60*1000;
+        var timeOffset = 0;
+        return new Date(localValue - timeOffset);
     }
     
     //public interface
@@ -310,7 +389,8 @@ var TimelineControl = function(map)
         if (!layer.properties.Temporal) return;
         
         layer.setDateInterval(new Date(2000, 1, 1), new Date())
-        layer.setVisibilityFilter('"' + identityField + '"=-1');
+        //layer.setVisibilityFilter('"' + identityField + '"=-1');
+        updateSelection();
         
         
         map.addListener('positionChanged', function() {
@@ -349,6 +429,7 @@ var TimelineControl = function(map)
     }
     
     this.filterByCenter = function(flag) {
+        isFilterCenter = flag;
         if (filterCenter) {
             if (flag)
                 filterCenter.attr('checked', true);
@@ -359,6 +440,10 @@ var TimelineControl = function(map)
         filters[0] = flag ? filterByScreenCenter : filterByScreenBounds;
         updateItems();
     }
+    
+    this.setDateFunction = function(newDateFunction) {
+        dateFunction = newDateFunction;
+    };
 }
 
 var publicInterface = {
@@ -373,7 +458,7 @@ var publicInterface = {
         if (!map) return;
         
         nsGmx.ContextMenuController.addContextMenuElem({
-            title: function() { return "Добавить к таймлайну"; },
+            title: function() { return _gtxt("Добавить к таймлайну"); },
             isVisible: function(context)
             {
                 return !context.layerManagerFlag && 

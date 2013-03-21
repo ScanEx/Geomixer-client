@@ -59,6 +59,8 @@ links.Timeline.ItemLine.prototype.createDOM = function () {
 
     divLine.onmouseover = function(event)
     {
+        window.jQuery && jQuery(_this).trigger('mouseover');
+        
         event = event || window.event;
         // console.log(event);
         
@@ -74,6 +76,8 @@ links.Timeline.ItemLine.prototype.createDOM = function () {
 
     divLine.onmouseout = function()
     {
+        window.jQuery && jQuery(_this).trigger('mouseout');
+        
         this.tip.style.display = 'none';
     }
 
@@ -166,10 +170,6 @@ links.Timeline.ItemLine.prototype.updatePosition = function (timeline) {
             axisTop = timeline.size.axis.top,
             axisHeight = timeline.size.axis.height
 
-        // dom.style.top = this.top + "px";
-        // dom.style.left = (left - this.width/2) + "px";
-
-        // var line = dom.line;
         dom.style.left = (left - this.lineWidth/2) + "px";
         dom.style.top = "0px";
         dom.style.height = axisTop + "px";
