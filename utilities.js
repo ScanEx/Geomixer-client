@@ -798,6 +798,9 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
     
     if (params.WrapStyle === 'window') {
         params.WrapStyle = 'message';
+    }
+    
+    if (params.WrapStyle === 'message') {
         params.CallbackName = iframe.callbackName;
     }
 	
