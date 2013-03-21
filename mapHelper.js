@@ -2862,7 +2862,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 	}
 	else
 	{
-		if (elemProperties.name)
+		if (elemProperties.LayerID)
 		{
 			if (this.layerEditorsHash[elemProperties.name])
 				return;
