@@ -1715,8 +1715,8 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			else if(pObj.parent && 'filters' in pObj.parent) attr['layer'] = pObj.parent;
 			if(!attr.latlng && 'mouseX' in attr) {
 				attr.latlng = {
-					'x': gmxAPI.from_merc_x(attr.mouseX)
-					,'y': gmxAPI.from_merc_y(attr.mouseY)
+					'lng': gmxAPI.from_merc_x(attr.mouseX)
+					,'lat': gmxAPI.from_merc_y(attr.mouseY)
 				};
 			}
 			
