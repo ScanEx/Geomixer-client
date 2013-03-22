@@ -67,7 +67,9 @@ var getInputElement = function(type)
 }
 
 //Контрол, который показывает диалог редактирования существующего или добавления нового объекта в слой.
-//События: modify - когда изменили/добавили объект
+//События: 
+// * modify - когда изменили/добавили объект
+// * close - закрыли диалог редактирования
 //Параметры:
 // * layerName {string} - ID слоя
 // * objectId {int} - ID объекта. Если новый объект, то null
@@ -204,6 +206,8 @@ var EditObjectControl = function(layerName, objectId, params)
             
             EditObjectControlsManager.remove(layerName, objectId);
             layer.setVisibilityFilter();
+            
+            $(_this).trigger('close');
         }
         
         var drawAttrList = function(drawingObject, fields)
