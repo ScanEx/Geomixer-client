@@ -8,6 +8,7 @@
     });
 
     var publicInterface = {
+        pluginName: 'Birds',
         afterViewer: function(params, map) {
             var layerName = params.layerName;
             var path = gmxCore.getModulePath('BirdsPlugin');
