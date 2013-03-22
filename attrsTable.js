@@ -318,7 +318,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         
         showButton.onclick = function()
         {
-            sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + _this.layerName + "&page=0&pagesize=1&geometry=true&query=[" + info.identityField + "]=" + elem.values[0], function(response) {
+            var id = elem.values[elem.fields[info.identityField].index];
+            sendCrossDomainJSONRequest(serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + _this.layerName + "&page=0&pagesize=1&geometry=true&query=[" + info.identityField + "]=" + id, function(response) {
                 if (!parseResponse(response))
                     return;
                     
