@@ -728,7 +728,9 @@ class Main
 
 			node.setHandler(eventName, (callbackName == null) ? null : function(node2:MapNode, ?nodeFrom_:MapNode, ?data_:Dynamic)
 			{
-//trace('ssss22sss ' + eventName + ' : ' + callbackName + ' : ' + id + ' : ' + flash.Lib.getTimer());
+				eventAttr.mouseX = mapWindow.innerSprite.mouseX;
+				eventAttr.mouseY = mapWindow.innerSprite.mouseY;
+
 				var props:Dynamic;
 				if (data_ != null)
 				{

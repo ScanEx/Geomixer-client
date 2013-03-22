@@ -1713,6 +1713,13 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 			if(typeof(a) === 'object') pObj.properties = (a.length > 0 ? gmxAPI.propertiesFromArray(a) : a);
 			if('filters' in pObj) attr['layer'] = pObj;
 			else if(pObj.parent && 'filters' in pObj.parent) attr['layer'] = pObj.parent;
+			if(!attr.latlng && 'mouseX' in attr) {
+				attr.latlng = {
+					'x': gmxAPI.from_merc_x(attr.mouseX)
+					,'y': gmxAPI.from_merc_y(attr.mouseY)
+				};
+			}
+			
 			var flag = false;
 			if(obj.handlers[eventName]) flag = handler(pObj, attr);
 			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });
