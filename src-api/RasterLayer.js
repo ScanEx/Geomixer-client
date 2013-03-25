@@ -97,6 +97,7 @@
 				else {
 					delete obj.options['bounds'];
 				}
+				//setTimeout(function () {obj.removeEmptyTiles();}, 1000);
 			}
 		};
 			
@@ -229,6 +230,7 @@
 				'x': (tx % pz - pz/2) % pz
 				,'y': -tilePoint.y - 1 + pz/2
 			};
+			var tileKey = tilePoint.x + ':' + tilePoint.y;
 			var drawTileID = zoom + '_' + scanexTilePoint.x + '_' + scanexTilePoint.y;
 			tile.id = 't' + drawTileID;
 			if(node['failedTiles'][drawTileID]) {
@@ -258,6 +260,8 @@
 					var bounds = utils.getTileBounds(tilePoint, zoom);
 					if(!attr.bounds.intersects(bounds)) {			// Тайл не пересекает границы слоя
 						this.tileDrawn(tile);
+						//tile._needRemove = true;
+						//this._removeTile(tileKey);
 						return;
 					}
 					var p1 = new L.Point(tileSize * scanexTilePoint.x, tileSize * scanexTilePoint.y);
@@ -267,6 +271,7 @@
 					var pArr = L.PolyUtil.clipPolygon(mercGeometry, boundsMerc);
 					if(pArr.length == 0) {
 						this.tileDrawn(tile);
+						//tile._needRemove = true;
 						return;
 					} else if(pArr.length == 4) {
 						var b = new L.Bounds(pArr);
@@ -303,7 +308,10 @@
 					//tile.style.display = 'block';
 					layer.tileDrawn(tile);
 				};
-				tile.onerror = function() { node['failedTiles'][drawTileID] = true; };
+				tile.onerror = function() {
+					node['failedTiles'][drawTileID] = true;
+					//tile._needRemove = true;
+				};
 				tile.src = src;
 			} else {
 				var me = this;
@@ -327,6 +335,7 @@
 						}
 						,'onerror': function(){
 							node['failedTiles'][tID] = true;
+							//pTile._needRemove = true;
 							pTile.id = tID + '_bad';
 							//layer.tileDrawn(pTile);
 						}
@@ -394,8 +403,43 @@
 					proto.width = proto.height = 0;
 				}
 			}
+			/*,
+			removeEmptyTiles: function () {
+				for(var key in this._tiles) {
+					var tile = this._tiles[key];
+console.log('____ ', key, tile._needRemove);
+					if (tile._needRemove) {
+						this._removeTile(key);
+					}
+				}
+			}*/
 			,'_update': update
 			,'drawTile': drawTile
+			,
+			_clearBgBuffer: function () {
+				if(!this._map) return;	// OriginalSin
+				L.TileLayer.Canvas.prototype._clearBgBuffer.call(this);
+			}
+			,
+			_getLoadedTilesPercentage: function (container) {
+				// Added by OriginalSin
+				if(!container) return 0;
+				var len = 0, count = 0;
+				var arr = ['img', 'canvas'];
+				for (var key in arr) {
+					var tiles = container.getElementsByTagName(arr[key]);
+					if(tiles && tiles.length > 0) {
+						len += tiles.length;
+						for (var i = 0; i < tiles.length; i++) {
+							if (tiles[i]._tileComplete) {
+								count++;
+							}
+						}
+					}
+				}
+				if(len < 1) return 0;
+				return count / len;	
+			}
 		});
 
 		// Растровый для OSM

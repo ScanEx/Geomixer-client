@@ -1,7 +1,7 @@
 // imageLoader - менеджер загрузки image
 (function()
 {
-	var maxCount = 48;						// макс.кол. запросов
+	var maxCount = 32;						// макс.кол. запросов
 	var curCount = 0;						// номер текущего запроса
 	var timer = null;						// таймер
 	var items = [];							// массив текущих запросов
@@ -10,6 +10,46 @@
 	var emptyImageUrl = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 	var falseFn = function () {	return false; };
 
+	var parseSVG = function(item, str)	{		// парсинг SVG файла
+		var out = {};
+		var xml = gmxAPI.parseXML(str);
+		
+		var svg = xml.getElementsByTagName("svg");
+		out['width'] = parseFloat(svg[0].getAttribute("width"));
+		out['height'] = parseFloat(svg[0].getAttribute("height"));
+		
+		var polygons = svg[0].getElementsByTagName("polygon");
+		var poly = [];
+		for (var i = 0; i < polygons.length; i++)
+		{
+			var pt = {};
+			var it = polygons[i];
+			var hexString = it.getAttribute("fill"); hexString = hexString.replace(/^#/, '');
+			pt['fill'] = parseInt(hexString, 16);
+			pt['fill_rgba'] = gmxAPI._leaflet['utils'].dec2rgba(pt['fill'], 1);
+			
+			pt['stroke-width'] = parseFloat(it.getAttribute("stroke-width"));
+			var points = it.getAttribute("points");
+			if(points) {
+				var arr = [];
+				var pp = points.split(' ');
+				for (var j = 0; j < pp.length; j++)
+				{
+					var t = pp[j];
+					var xy = t.split(',');
+					arr.push({'x': parseFloat(xy[0]), 'y': parseFloat(xy[1])});
+				}
+				if(arr.length) arr.push(arr[0]);
+			}
+			pt['points'] = arr;
+			poly.push(pt);
+		}
+		out['polygons'] = poly;
+		
+//console.log('vvvvv ', item['src'], out);
+		return out;
+	}
+	
 	var callCacheItems = function(item)	{		// загрузка image
 		if(itemsCache[item.src]) {
 			var arr = itemsCache[item.src];
@@ -21,18 +61,33 @@
 					if(it.onerror) it.onerror(null);
 				} else if(first.imageObj) {
 					if(it.callback) it.callback(first.imageObj);
+				} else if(first.svgPattern) {
+					if(it.callback) it.callback(first.svgPattern, true);
 				}
 			}
 			//itemsCache[item.src] = [first];
 			delete itemsCache[item.src];
-		} else {
-			//item.onerror(null);
-			//console.log('callCacheItems ', item);
 		}
 		nextLoad();
 	}
 	var setImage = function(item)	{		// загрузка image
-		var imageObj = item['img'] || new Image();
+		if(item['src'].match(/\.svg$/)) {
+			gmxAPI.sendCrossDomainJSONRequest(item['src'], function(response)
+			{
+				if(typeof(response) != 'object' || response['Status'] != 'ok') {
+					curCount--; item.isError = true;
+					callCacheItems(item);
+				} else {
+					curCount--;
+					item.svgPattern = parseSVG(item, response['Result']);
+					callCacheItems(item);
+				}
+			});
+			return;
+		}
+
+		var imageObj = new Image();
+		item['loaderObj'] = imageObj;
 		//var cancelTimerID = null;
 		var chkLoadedImage = function() {
 			//if (!imageObj.complete) {
@@ -40,66 +95,32 @@
 			//} else {
 				curCount--;
 				item.imageObj = imageObj;
+				delete item['loaderObj'];
 				callCacheItems(item);
 			//}
 		}
 		if(item['crossOrigin']) imageObj.crossOrigin = item['crossOrigin'];
 		imageObj.onload = function() {
 			chkLoadedImage();
-			//gmxAPI._leaflet['LMap'].off('zoomstart');
-			//if(cancelTimerID) clearTimeout(cancelTimerID);
 			//setTimeout(function() { chkLoadedImage(); } , 25); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
 		};
-		imageObj.onerror = function() { curCount--; item.isError = true;
+		imageObj.onerror = function() {
+			curCount--;
+			item.isError = true;
 			callCacheItems(item);
-/*
-			//setTimeout(function() { chkLoadedImage(); } , 25);
-			//gmxAPI._leaflet['LMap'].off('zoomstart');
-			imageObj.onload = falseFn;
-			imageObj.onerror = falseFn;
-			imageObj.src = emptyImageUrl;
-			if(cancelTimerID) clearTimeout(cancelTimerID);
-*/
 		};
 		curCount++;
 		imageObj.src = item.src;
-/*
-		item['cancelItem'] = function() {
-			if(!imageObj.complete) {
-				imageObj.onload = falseFn;
-				//imageObj.onerror();
-				curCount--;
-				item.isError = true;
-				callCacheItems(item);
-				imageObj.onerror = falseFn;
-				imageObj.src = emptyImageUrl;
-console.log('onerror: ',  curCount,  items.length);
-			}
-			if(cancelTimerID) clearTimeout(cancelTimerID);
-			chkTimer();
-		};
-		gmxAPI._leaflet['LMap'].on('zoomstart', function(e) {
-			item['cancelItem']();
-			gmxAPI._leaflet['LMap'].off('zoomstart');
-		});
-		//cancelTimerID = setTimeout(item['cancelItem'], 6000);
-*/						
 	}
 		
 	var nextLoad = function()	{		// загрузка image
 		if(curCount > maxCount) return;
-		if(items.length < 1) return false;
+		if(items.length < 1) {
+			curCount = 0;
+			return false;
+		}
 		var item = items.shift();
-		//if(item.bounds && !item.shiftY && !gmxAPI._leaflet['zoomstart']) {			// удаление устаревших запросов по bounds
-/*		if(item.bounds && !item.shiftY) {			// удаление устаревших запросов по bounds
-			if(!gmxAPI._leaflet['utils'].chkBoundsVisible(item.bounds)) {
-				curCount--; item.isError = true;
-				callCacheItems(item);
-				//item.onerror(null);
-				return;
-			}
-		}*/
-		
+
 		if(itemsCache[item.src]) {
 			var pitem = itemsCache[item.src][0];
 			if(pitem.isError) {
@@ -114,9 +135,36 @@ console.log('onerror: ',  curCount,  items.length);
 			setImage(item);
 		}
 	}
+
+	var removeItemsByZoom = function(zoom)	{			// остановить и удалить из очереди запросы по zoom
+		if (!L.Browser.android) {
+			for (var key in itemsCache)
+			{
+				var q = itemsCache[key][0];
+				if('zoom' in q && q['zoom'] != zoom && q['loaderObj']) {
+					q['loaderObj'].src = emptyImageUrl;
+				}
+			}
+		}
+		var arr = [];
+		for (var i = 0; i < items.length; i++)
+		{
+			var q = items[i];
+			if(q['zoom'] == zoom) arr.push(q);
+		}
+		items = arr;
+		return items.length;
+	}
 	
 	var chkTimer = function() {				// установка таймера
-		if(!timer) timer = setInterval(nextLoad, 50);
+		if(!timer) {
+			timer = setInterval(nextLoad, 50);
+			//gmxAPI._leaflet['LMap'].on('zoomstart', function(e) {
+			gmxAPI._leaflet['LMap'].on('zoomend', function(e) {
+				var zoom = gmxAPI._leaflet['LMap'].getZoom();
+				removeItemsByZoom(zoom);
+			});
+		}
 	}
 	
 	var imageLoader = {						// менеджер загрузки image
@@ -128,6 +176,9 @@ console.log('onerror: ',  curCount,  items.length);
 		,'unshift': function(item)	{				// добавить запрос в начало очереди
 			items.unshift(item);
 			chkTimer();
+			return items.length;
+		}
+		,'getCounts': function()	{				// получить размер очереди
 			return items.length;
 		}
 	};

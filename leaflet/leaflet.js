@@ -471,6 +471,7 @@ L.Mixin.Events.fire = L.Mixin.Events.fireEvent;
 	    ua = navigator.userAgent.toLowerCase(),
 	    webkit = ua.indexOf('webkit') !== -1,
 	    chrome = ua.indexOf('chrome') !== -1,
+	    phantomjs = ua.indexOf('phantom') !== -1,
 	    android = ua.indexOf('android') !== -1,
 	    android23 = ua.search('android [23]') !== -1,
 
@@ -486,7 +487,7 @@ L.Mixin.Events.fire = L.Mixin.Events.fireEvent;
 	    webkit3d = ('WebKitCSSMatrix' in window) && ('m11' in new window.WebKitCSSMatrix()),
 	    gecko3d = 'MozPerspective' in doc.style,
 	    opera3d = 'OTransition' in doc.style,
-	    any3d = !window.L_DISABLE_3D && (ie3d || webkit3d || gecko3d || opera3d);
+	    any3d = !window.L_DISABLE_3D && (ie3d || webkit3d || gecko3d || opera3d) && !phantomjs;
 
 
 	var touch = !window.L_NO_TOUCH && (function () {
@@ -951,7 +952,12 @@ L.DomUtil = {
 			    filterName = 'DXImageTransform.Microsoft.Alpha';
 
 			// filters collection throws an error if we try to retrieve a filter that doesn't exist
-			try { filter = el.filters.item(filterName); } catch (e) {}
+			try {
+				filter = el.filters.item(filterName);
+			} catch (e) {
+				//Don't set opacity to 1 if we haven't already set an opacity, it isn't needed and breaks transparent pngs.
+				if (value === 1) { return; }
+			}
 
 			value = Math.round(value * 100);
 
@@ -2941,7 +2947,6 @@ L.TileLayer.Canvas = L.TileLayer.extend({
 	},
 
 	tileDrawn: function (tile) {
-		tile._tileComplete = true;					// Added by OriginalSin
 		this._tileOnLoad.call(tile);
 	}
 });
@@ -3385,9 +3390,7 @@ L.Marker = L.Class.extend({
 
 		var panes = this._map._panes;
 
-		var toPaneName = options.toPaneName || 'markerPane';			// Added by OriginalSin
-		panes[toPaneName].appendChild(this._icon);
-		//panes.markerPane.appendChild(this._icon);
+		panes.markerPane.appendChild(this._icon);
 
 		if (this._shadow) {
 			panes.shadowPane.appendChild(this._shadow);
@@ -3403,8 +3406,7 @@ L.Marker = L.Class.extend({
 			    .off(this._icon, 'mouseout', this._resetZIndex);
 		}
 
-		if(this._icon && this._icon.parentNode) this._icon.parentNode.removeChild(this._icon);	// Added by OriginalSin
-		//panes.markerPane.removeChild(this._icon);
+		panes.markerPane.removeChild(this._icon);
 
 		if (this._shadow) {
 			panes.shadowPane.removeChild(this._shadow);
@@ -5578,7 +5580,7 @@ L.CircleMarker = L.Circle.extend({
 	projectLatlngs: function () {
 		this._point = this._map.latLngToLayerPoint(this._latlng);
 	},
-	
+
 	_updateStyle : function () {
 		L.Circle.prototype._updateStyle.call(this);
 		this.setRadius(this.options.radius);
@@ -7164,7 +7166,7 @@ L.Handler.MarkerDrag = L.Handler.extend({
 		    .off('dragstart', this._onDragStart)
 		    .off('drag', this._onDrag)
 		    .off('dragend', this._onDragEnd);
-		    
+
 		this._draggable.disable();
 	},
 
@@ -7983,9 +7985,9 @@ L.Map.include({
 		if (canBeAnimated) {
 
 			// try animating pan or zoom
-			var animated = zoomChanged && this.options.zoomAnimation ?
-		            this._animateZoomIfClose && this._animateZoomIfClose(center, zoom) :
-		            this._animatePanIfClose(center);
+			var animated = zoomChanged ?
+				this.options.zoomAnimation && this._animateZoomIfClose && this._animateZoomIfClose(center, zoom) :
+				this._animatePanIfClose(center);
 
 			if (animated) {
 				// prevent resize handler call, the view will refresh after animation anyway
@@ -8263,7 +8265,7 @@ L.TileLayer.include({
 
 	_clearBgBuffer: function () {
 		var map = this._map;
-		if(!map) return;	// OriginalSin
+
 		if (!map._animatingZoom && !map.touchZoom._zooming) {
 			this._bgBuffer.innerHTML = '';
 			this._bgBuffer.style[L.DomUtil.TRANSFORM] = '';
@@ -8298,24 +8300,6 @@ L.TileLayer.include({
 	},
 
 	_getLoadedTilesPercentage: function (container) {
-		// Added by OriginalSin
-		if(!container) return 0;
-		var len = 0, count = 0;
-		var arr = ['img', 'canvas'];
-		for (var key in arr) {
-			var tiles = container.getElementsByTagName(arr[key]);
-			if(tiles && tiles.length > 0) {
-				len += tiles.length;
-				for (var i = 0; i < tiles.length; i++) {
-					if (tiles[i]._tileComplete) {
-						count++;
-					}
-				}
-			}
-		}
-		if(len < 1) return 0;
-		return count / len;	
-/*	
 		var tiles = container.getElementsByTagName('img'),
 		    i, len, count = 0;
 
@@ -8324,7 +8308,7 @@ L.TileLayer.include({
 				count++;
 			}
 		}
-		return count / len;*/
+		return count / len;
 	},
 
 	// stops loading all tiles in the background layer

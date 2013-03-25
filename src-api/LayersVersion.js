@@ -32,7 +32,7 @@
 			var arr = [];
 			for(var mapName in versionLayers[host]) {
 				for(var layerName in versionLayers[host][mapName]) {
-					if(layersArr[layerName].isVisible) arr.push('{ "Name":"'+ layerName +'","Version":' + layersArr[layerName]['properties']['LayerVersion'] +' }');
+					if(layersArr[layerName] && layersArr[layerName].isVisible) arr.push('{ "Name":"'+ layerName +'","Version":' + layersArr[layerName]['properties']['LayerVersion'] +' }');
 				}
 			}
 			if(arr.length > 0) {

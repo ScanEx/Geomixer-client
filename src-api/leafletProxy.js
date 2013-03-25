@@ -41,21 +41,43 @@
 			}
 		}
 		,
+		'rotatePoints': function(arr, angle, scale, center) {			// rotate - массива точек
+			var out = [];
+			angle *= Math.PI / 180.0
+			var sin = Math.sin(angle);
+			var cos = Math.cos(angle);
+			for (var i = 0; i < arr.length; i++)
+			{
+				var x = scale * arr[i].x - center.x;
+				var y = scale * arr[i].y - center.y;
+				out.push({
+					'x': cos * x - sin * y + center.x
+					,'y': sin * x + cos * y + center.y
+				});
+			}
+			return out;
+		}
+		,
 		'replaceColorAndRotate': function(img, style, size) {		// заменить цвет пикселов в иконке + rotate - результат canvas
 			var canvas = document.createElement('canvas');
-			//var size = Math.max(style.imageWidth, style.imageHeight);
-			canvas.width = size;
-			canvas.height = size;
+			var ww = style.imageWidth;
+			var hh = style.imageHeight;
+			if(style['rotateRes']) {
+				ww = size;
+				hh = ww;
+			}
+			canvas.width = ww;
+			canvas.height = hh;
 			var ptx = canvas.getContext('2d');
-			ptx.clearRect(0, 0, size, size);
+			ptx.clearRect(0, 0, ww , hh);
 			var tx = ty = 0;
 			if(style['rotateRes']) {
-				tx = -size/2;
-				ty = -size/2;
-				ptx.translate(-tx, -ty);
+				tx = ww/2;
+				ty = hh/2;
+				ptx.translate(tx, ty);
 				ptx.rotate(Math.PI  * style['rotateRes']/180);
 			}
-			ptx.drawImage(img, tx, ty);
+			ptx.drawImage(img, -tx, -ty);
 			if('color' in style) {
 				var color = style.color;
 				if(typeof(style.color) == 'string') color = parseInt('0x' + style.color.replace(/#/, ''));
@@ -63,8 +85,9 @@
 					var r = (color >> 16) & 255;
 					var g = (color >> 8) & 255;
 					var b = color & 255;
+					var flag = false;
 
-					var imageData = ptx.getImageData(0, 0, size, size);
+					var imageData = ptx.getImageData(0, 0, ww, hh);
 					for (var i = 0; i < imageData.data.length; i+=4)
 					{
 						if (imageData.data[i] == 0xff
@@ -74,29 +97,16 @@
 							imageData.data[i] = r;
 							imageData.data[i+1] = g;
 							imageData.data[i+2] = b;
+							flag = true;
 						}
 					}
-					ptx.putImageData(imageData, 0, 0);
+					if(flag) ptx.putImageData(imageData, 0, 0);
 				}
 			}
 			return canvas;
 		}
 		,
 		'getMapImage': function(attr)	{			//получить PNG карты
-			/*var pos = utils.getPixelMap();
-			var canvas = document.createElement('canvas');
-			canvas.width = pos.x;
-			canvas.height = pos.y;
-			var ctx = canvas.getContext('2d');
-			var divOut = gmxAPI._div;
-			//var divOut = document.getElementById("random_2");
-			
-			ctx.drawImage(divOut, 0, 0);
-ctx.strokeRect(2, 2, 253, 253);
-ctx.font = '24px "Tahoma"';
-ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
-			
-			return canvas.toDataURL();*/
 		}
 		,
 		'startDrag': function(node)	{			// Начать Drag
@@ -141,8 +151,8 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 					});
 					LMap.on('mouseup', function(e) {			// dragend на обьекте
 						chkDrag('dragend', e);
-						LMap.off('mousemove');
-						LMap.off('mouseup');
+						//LMap.off('mousemove');	// ??????? в роутинге
+						//LMap.off('mouseup');
 						gmxAPI._leaflet['curDragState'] = false;
 						LMap.dragging.enable();
 					});
@@ -548,10 +558,14 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			}
 			var ph = {
 				'src': url
-				,'callback': function(img) {
-					pt['imageWidth'] = img.width;
-					pt['imageHeight'] = img.height;
-					if(flag) pt['image'] = img;
+				,'callback': function(it, svgFlag) {
+					pt['imageWidth'] = it.width;
+					pt['imageHeight'] = it.height;
+					if(svgFlag) {
+						pt['polygons'] = it.polygons;
+					} else {
+						if(flag) pt['image'] = it;
+					}
 					imagesSize[url] = pt;
 					gmxAPI._listeners.dispatchEvent('onIconLoaded', null, id);		// image загружен
 				}
@@ -1464,7 +1478,7 @@ ctx.fillText('Приветики ! апапп ghhgh', 10, 128);
 			if(pt['propHiden']['subType']) pt['subType'] = pt['propHiden']['subType'];
 			if(pt['propHiden']['refreshMe']) pt['refreshMe'] = pt['propHiden']['refreshMe'];
 			if(pt['propHiden']['layersParent']) pt['zIndexOffset'] = 0;
-			if(pt['propHiden']['overlaysParent']) pt['zIndexOffset'] = 2000;
+			if(pt['propHiden']['overlaysParent']) pt['zIndexOffset'] = 50000;
 		}
 		mapNodes[id] = pt;
 		if(pt['geometry']['type']) {
@@ -2829,7 +2843,7 @@ return;
 			if(!attr) return;
 			//if(!bounds.intersects(attr['bounds'])) return;				// проверка пересечения полигона с отображаемым тайлом
 			var zoom = attr['zoom'];
-			var vbounds = attr['bounds'];
+			//var vbounds = attr['bounds'];
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
 			var node = attr['node'];
 			var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
@@ -2864,8 +2878,7 @@ return;
 			if(style['marker']) {
 				if(style['image']) {
 					var canv = out['_cache']['canv'];
-					var size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-					out['sx'] = out['sy'] = scale * size;
+					//var size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
 					if(!canv) {
 						canv = style['image'];
 						var rotateRes = style['rotate'] || 0;
@@ -2874,14 +2887,47 @@ return;
 						}
 						style['rotateRes'] = rotateRes;
 						if(style['rotateRes'] || 'color' in style) {
-							//var size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-							//out['sx'] = out['sy'] = scale * size;
+							if(style['rotateRes']) {
+								size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
+								out['sx'] = out['sy'] = scale * size;
+							}
 							canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style, size);
 							out['_cache']['canv'] = canv;
 						}
+					} else {
+						out['sx'] = scale * canv.width;
+						out['sy'] = scale * canv.height;
 					}
 					ctx.drawImage(canv, px1, py1, out['sx'], out['sy']);
 					//ctx.drawImage(canv, px1, py1);
+				} else if(style['polygons']) {
+					var rotateRes = style['rotate'] || 0;
+					if(rotateRes && typeof(rotateRes) == 'string') {
+						rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
+					}
+					style['rotateRes'] = rotateRes || 0;
+				
+					for (var i = 0; i < style['polygons'].length; i++)
+					{
+						var p = style['polygons'][i];
+						ctx.save();
+						ctx.lineWidth = p['stroke-width'] || 0;
+						ctx.fillStyle = p['fill_rgba'] || 'rgba(0, 0, 255, 1)';
+						
+						ctx.beginPath();
+						var arr = gmxAPI._leaflet['utils'].rotatePoints(p['points'], style['rotateRes'], scale, {'x': out['sx']/2, 'y': out['sy']/2})
+						for (var j = 0; j < arr.length; j++)
+						{
+							var t = arr[j];
+							if(j == 0)
+								ctx.moveTo(px1 + t['x'], py1 + t['y']);
+							else
+								ctx.lineTo(px1 + t['x'], py1 + t['y']);
+						}
+						//ctx.stroke();
+						ctx.fill();
+						ctx.restore();
+					}
 				}
 			} else {
 				if(style['stroke'] && style['weight'] > 0) {
@@ -3568,48 +3614,7 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 				}
 			);
 			gmxAPI._leaflet['LMap'] = LMap;			// Внешняя ссылка на карту
-			
-/*		
-			var ptxCont = document.createElement("canvas");
-			ptxCont.width = ptxCont.height = 256;
-			var ptx = ptxCont.getContext('2d');
-			gmxAPI._leaflet['ptxCont'] = ptxCont;
-			gmxAPI._leaflet['ptx'] = ptx;
-*/
 
-			//var pos = new L.LatLng(50, 35);
-			//var pos = new L.LatLng(50.499276, 35.760498);
-			//LMap.setView(pos, 4);
-//console.log('waitMe ' , pos);
-			var checkMapResize = true;
-			gmxAPI._leaflet['mapOnResize'] = function (e) {
-				//checkMapResize = true;
-				/*
-				setTimeout(function() {
-					//LMap.fire('transitionend');
-					//LMap.fire('mousedown');
-					//LMap.fire('focus');
-					LMap._onResize();
-				}, 50);*/
-			};
-			/*
-			var prevSize = null;
-			var chkMapResize = function() {
-				if(gmxAPI._drawing['activeState'] || gmxAPI._leaflet['curDragState']) return;	// При рисовании не проверяем Resize
-				if(prevSize && LMap._size && prevSize.x == LMap._size.x && prevSize.y == LMap._size.y) return;
-				//if(checkMapResize) {
-					//LMap.fire('transitionend');
-					//LMap.fire('mousedown');
-					//LMap.fire('focus');
-					LMap._onResize();
-					checkMapResize = false;
-					gmxAPI.map.needMove = null;
-				//}
-				//console.log("test2");
-			};
-			setInterval(chkMapResize, 5000);
-			L.DomEvent.addListener(window.document, 'click', gmxAPI._leaflet['mapOnResize']);
-			*/
 			LMap.on('moveend', function(e) {
 				//console.log("test1");
 				if(LMap._size) prevSize = {'x': LMap._size.x, 'y': LMap._size.y};
@@ -3956,18 +3961,88 @@ var tt = 1;
 					];
 				}
 			});
+			L.Marker.extend({
+				_initIcon: function () {
+					var options = this.options,
+						map = this._map,
+						animation = (map.options.zoomAnimation && map.options.markerZoomAnimation),
+						classToAdd = animation ? 'leaflet-zoom-animated' : 'leaflet-zoom-hide',
+						needOpacityUpdate = false;
+
+					if (!this._icon) {
+						this._icon = options.icon.createIcon();
+
+						if (options.title) {
+							this._icon.title = options.title;
+						}
+
+						this._initInteraction();
+						needOpacityUpdate = (this.options.opacity < 1);
+
+						L.DomUtil.addClass(this._icon, classToAdd);
+
+						if (options.riseOnHover) {
+							L.DomEvent
+								.on(this._icon, 'mouseover', this._bringToFront, this)
+								.on(this._icon, 'mouseout', this._resetZIndex, this);
+						}
+					}
+
+					if (!this._shadow) {
+						this._shadow = options.icon.createShadow();
+
+						if (this._shadow) {
+							L.DomUtil.addClass(this._shadow, classToAdd);
+							needOpacityUpdate = (this.options.opacity < 1);
+						}
+					}
+
+					if (needOpacityUpdate) {
+						this._updateOpacity();
+					}
+
+					var panes = this._map._panes;
+
+					var toPaneName = options.toPaneName || 'markerPane';			// Added by OriginalSin
+					panes[toPaneName].appendChild(this._icon);
+					//panes.markerPane.appendChild(this._icon);
+
+					if (this._shadow) {
+						panes.shadowPane.appendChild(this._shadow);
+					}
+				}
+				,
+				_removeIcon: function () {
+					var panes = this._map._panes;
+
+					if (this.options.riseOnHover) {
+						L.DomEvent
+							.off(this._icon, 'mouseover', this._bringToFront)
+							.off(this._icon, 'mouseout', this._resetZIndex);
+					}
+
+					if(this._icon && this._icon.parentNode) this._icon.parentNode.removeChild(this._icon);	// Added by OriginalSin
+					//panes.markerPane.removeChild(this._icon);
+
+					if (this._shadow) {
+						panes.shadowPane.removeChild(this._shadow);
+					}
+
+					this._icon = this._shadow = null;
+				}
+			});
 
 			L.GMXMarker = L.Marker.extend({
 				update: function () {
-					if (!this._icon) { return; }
-
-					var pos = this._map.latLngToLayerPoint(this._latlng).round();
-					this._setPos(pos);
-					var options = this.options;
-					if(options['rotate']) {
-						this._icon.style[L.DomUtil.TRANSFORM] += ' rotate('+options['rotate']+'deg)';
+					L.Marker.prototype.update.call(this);
+					if (this._icon) {
+						var options = this.options;
+						if(options['rotate']) {
+							this._icon.style[L.DomUtil.TRANSFORM] += ' rotate('+options['rotate']+'deg)';
+						}
+						this._icon.style.pointerEvents = (options['_isHandlers'] ? '' : 'none');
 					}
-					this._icon.style.pointerEvents = (options['_isHandlers'] ? '' : 'none');
+					return this;
 				}
 				,
 				_setPos: function (pos) {

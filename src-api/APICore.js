@@ -1719,7 +1719,6 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 					,'lat': gmxAPI.from_merc_y(attr.mouseY)
 				};
 			}
-			
 			var flag = false;
 			if(obj.handlers[eventName]) flag = handler(pObj, attr);
 			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eventName, obj, {'obj': pObj, 'attr': attr });
