@@ -147,7 +147,7 @@
 			}
 			node['leaflet'] = myLayer;
 			var chkPosition = function() {
-				//node['waitRedraw']();
+				node['waitRedraw']();
 				chkVisible();
 				//if(node['subType'] === 'OSM') node['shiftY']();	
 			}
