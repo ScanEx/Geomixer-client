@@ -96,7 +96,7 @@ var EditObjectControl = function(layerName, objectId, params)
     var drawingBorderDialog = null;
     var identityField = layer.properties.identityField;
     
-    layer.setVisibilityFilter('"' + identityField + '"<>' + objectId);
+    //layer.setVisibilityFilter('"' + identityField + '"<>' + objectId);
     
     var geometryInfoRow = null;
     var bindDrawingObject = function(obj)
@@ -205,7 +205,7 @@ var EditObjectControl = function(layerName, objectId, params)
                 removeDialog(drawingBorderDialog);
             
             EditObjectControlsManager.remove(layerName, objectId);
-            layer.setVisibilityFilter();
+            //layer.setVisibilityFilter();
             
             $(_this).trigger('close');
         }
@@ -330,6 +330,16 @@ var EditObjectControl = function(layerName, objectId, params)
                     if (columnNames[i] === 'geomixergeojson')
                     {
                         var geom = from_merc_geometry(geometryRow[i]);
+                        
+                        // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
+                        geom.coordinates[0][0][0] += 0.00001;
+                        geom.coordinates[0][0][1] += 0.00001;
+                                
+                        // чтобы если бы последняя точка совпадала с первой, то это бы ни на что не повлияло
+                        var pointCount = geom.coordinates[0].length;
+                        geom.coordinates[0][pointCount-1][0] += 0.00001;
+                        geom.coordinates[0][pointCount-1][1] += 0.00001;
+                        
                         drawingObject = globalFlashMap.drawing.addObject(geom);
                     }
                     else
