@@ -1028,12 +1028,20 @@
 
 		node['removeItems'] = function(data) {		// удаление обьектов векторного слоя 
 			removeItems(data)
-			waitRedraw();
+			upDateLayer();
+			//node.redrawFlips(true);
+			//waitRedraw();
 		}
 		node['addItems'] = function(data) {			// добавление обьектов векторного слоя
 			removeItems(data)
 			node['addedItems'] = node['addedItems'].concat(objectsToFilters(data, 'addItem'));
-			waitRedraw();
+			clearDrawDone();
+			removeTiles();
+			upDateLayer();
+
+			//node.redrawFlips(true);
+			//node['tilesRedrawImages'] = {};
+			//waitRedraw();
 			return true;
 		}
 		node['setEditObjects'] = function(attr) {	// Установка редактируемых обьектов векторного слоя
@@ -1570,9 +1578,9 @@
 				node.redrawTile(tileID, zoom, redrawFlag);
 			}
 		}
-		node.redrawFlips = function(from)	{						// перерисовка (растров) обьектов под мышкой
+		node.redrawFlips = function(redrawFlag)	{						// перерисовка (растров) обьектов под мышкой
 			var zoom = LMap.getZoom();
-			redrawTilesHash(node['tilesRedrawImages'][zoom]);
+			redrawTilesHash(node['tilesRedrawImages'][zoom], redrawFlag);
 			return true;
 		}
 
@@ -1653,6 +1661,15 @@
 			return false;
 		}
 
+		var removeTiles = function(zd)	{						// удалить тайлы которые уже на сцене
+			if(myLayer) {
+				for (var key in myLayer._tiles) {
+					var tile = myLayer._tiles[key];
+					tile._needRemove = true;
+				}
+				myLayer.removeEmptyTiles();
+			}
+		}
 		
 		var redrawFlipsTimer = null;								// Таймер
 		var waitRedrawFlips = function(zd)	{						// Требуется перерисовка уже отрисованных тайлов с задержкой
@@ -1660,9 +1677,19 @@
 			if(arguments.length == 0) zd = 100;
 			redrawFlipsTimer = setTimeout(function()
 			{
-				node.redrawFlips(zd);
+				node.redrawFlips();
 			}, zd);
 			return false;
+		}
+		
+		var clearDrawDone = function()	{								// переустановка обьектов по фильтрам
+			var zoom = LMap.getZoom();
+			if(node['tilesRedrawImages'][zoom]) {
+				for (var tID in node['tilesRedrawImages'][zoom])
+				{
+					delete node['tilesRedrawImages'][zoom][tID]['drawDone'];
+				}
+			}
 		}
 		
 		var reCheckFilters = function()	{								// переустановка обьектов по фильтрам
@@ -1678,13 +1705,7 @@
 				delete node['addedItems'][i].propHiden['curStyle'];
 				node['addedItems'][i].propHiden['toFilters'] = chkObjectFilters(node['addedItems'][i]);
 			}
-			var zoom = LMap.getZoom();
-			if(node['tilesRedrawImages'][zoom]) {
-				for (var tID in node['tilesRedrawImages'][zoom])
-				{
-					delete node['tilesRedrawImages'][zoom][tID]['drawDone'];
-				}
-			}
+			clearDrawDone();
 		}
 
 		node.chkZoomBoundsFilters = function()	{	// Проверка видимости по Zoom фильтров

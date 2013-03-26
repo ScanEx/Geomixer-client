@@ -164,7 +164,9 @@
 					gmxAPI._leaflet['curDragState'] = true;
 					LMap.dragging.disable();
 					LMap.on('mousemove', function(e) {		// drag на обьекте
-						chkDrag('drag', e);
+						if(gmxAPI._leaflet['curDragState']) {
+							chkDrag('drag', e);
+						}
 					});
 					LMap.on('mouseup', function(e) {			// dragend на обьекте
 						chkDrag('dragend', e);
