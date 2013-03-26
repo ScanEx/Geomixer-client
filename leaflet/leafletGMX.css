@@ -7,7 +7,7 @@
 /*	z-index: 1000;*/
 }
 .leaflet-overlay-pane svg g {
-	pointer-events: all;
+	pointer-events: auto;
 }
 .leaflet-tile {
 		position: absolute;
