@@ -70,19 +70,26 @@
 		}
 		nextLoad();
 	}
+	
 	var setImage = function(item)	{		// загрузка image
 		if(item['src'].match(/\.svg$/)) {
-			gmxAPI.sendCrossDomainJSONRequest(item['src'], function(response)
-			{
-				if(typeof(response) != 'object' || response['Status'] != 'ok') {
-					curCount--; item.isError = true;
-					callCacheItems(item);
-				} else {
-					curCount--;
-					item.svgPattern = parseSVG(item, response['Result']);
-					callCacheItems(item);
-				}
-			});
+			var xmlhttp = gmxAPI._leaflet['utils'].getXmlHttp();
+			xmlhttp.open('GET', item['src'], false);
+			xmlhttp.send(null);
+			if(xmlhttp.status == 200) {
+				item.svgPattern = parseSVG(item, xmlhttp.responseText);
+				callCacheItems(item);
+			}
+			/*
+			xmlhttp.open('GET', item['src'], true);
+			xmlhttp.onreadystatechange = function() {
+			  if (xmlhttp.readyState == 4) {
+				 if(xmlhttp.status == 200) {
+				   alert(xmlhttp.responseText);
+					 }
+			  }
+			};*/
+			
 			return;
 		}
 

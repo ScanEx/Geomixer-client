@@ -28,6 +28,23 @@
 	var utils = {							// Утилиты leafletProxy
 		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
 		,
+		'getXmlHttp': function() {			// Получить XMLHttpRequest
+		  var xmlhttp;
+		  try {
+			xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+		  } catch (e) {
+			try {
+			  xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+			} catch (E) {
+			  xmlhttp = false;
+			}
+		  }
+		  if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+			xmlhttp = new XMLHttpRequest();
+		  }
+		  return xmlhttp;
+		}
+		,
 		'chkMapObjectsView': function() {		// Проверка zoomBounds на mapObjects
 			var zoom = LMap.getZoom();
 			for (var id in mapNodes) {
