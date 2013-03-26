@@ -16,6 +16,7 @@
     z-index: 3 !important;
 }
 .leaflet-overlay-pane {
+	z-index: 1000;
 }
 .leaflet-canvas-icon {
 }

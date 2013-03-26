@@ -1910,6 +1910,8 @@
 			if(node.leaflet) {	// Обновление лефлет слоя
 				//refreshBounds();
 				//waitRedraw();
+				clearDrawDone();
+				removeTiles();
 				upDateLayer();
 			}
 			return true;
