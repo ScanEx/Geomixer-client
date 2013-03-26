@@ -8,6 +8,7 @@ _translationsHash.addtext("eng", {
     "По центру": "Under crosshair",
     "Добавить к таймлайну": "Add to timeline"
 });
+
 _translationsHash.addtext("rus", {
     "Показывать только пересекающиеся с центром экрана": "Показывать только пересекающиеся с центром экрана",
     "Показывать на карте только выбранные снимки": "Показывать на карте только выбранные снимки",
@@ -16,28 +17,156 @@ _translationsHash.addtext("rus", {
     "Добавить к таймлайну": "Добавить к таймлайну"
 });
 
-var TimelineControl = function(map)
+var fromTilesToDate = function(type, value)
 {
-    var _this = this;
-    var container = $('<div/>', {'class': 'timeline-container'});
+    var localDateValue;
+    if (type === 'datetime')
+    {
+        localDateValue = $.datepicker.parseDateTime('yy.mm.dd', 'hh:mm:ss', value);
+    }
+    else
+    {
+        localDateValue = $.datepicker.parseDate('yy.mm.dd', value);
+    }
     
-    var bindedLayers = [];
-    var items = {};
-    var timeline;
-    var filters = [];
+    if (localDateValue === null) return null;
+        
+    var localValue = localDateValue.valueOf();
     
-    var isOnlySelected = false;
-    var isFilterCenter = true;
+    //TODO: научить таймлайн работать с UTC временем, и передавать в него корректные UTC даты
+    //Сейчас даты парсятся с локальным смещением
     
-    var mapCenter = null;
-    var mapExtent = null;
+    //var timeOffset = (new Date(localValue)).getTimezoneOffset()*60*1000;
+    var timeOffset = 0;
+    return new Date(localValue - timeOffset);
+}
+
+var fromDateToTiles = function(type, date)
+{
+    var timeOffset = 0; //TODO: научить таймлайн работать с UTC временем
+    var dateString = $.datepicker.formatDate('yy.mm.dd', date)
+    if (type === 'datetime')
+    {
+        dateString += nsGmx.Utils.stringDateTime(date.valueOf());
+    }
     
-    var dateFunction = function(layer, obj) {
+    return dateString;
+}
+
+var TimelineData = Backbone.Model.extend({
+    defaults: {
+        allItems: false,
+        items: {},              //{layerName1: {id1 : {...}, ...}, layerName2:...}
+        userFilters: [],        //function({obj, bounds}, mapCenter, mapExtent) -> bool
+        range: {
+            start: null,        //Date
+            end: null           //Date
+        },
+        selection: [],          //{layerName1: [id1, id2, ...], layerName2:...}
+        layers: [],             //[{name: ..., dateFunction: ...}, ...]
+        timelineMode: 'center', //center, screen, none
+        mapMode: 'none'         //selected, range, none
+    },
+    
+    _defaultDateFunction: function(layer, obj) {
     
         var temporalColumn = layer.properties.TemporalColumnName,
             type = layer.properties.attrTypes[$.inArray(temporalColumn, layer.properties.attributes)];
         
-        return _this._fromTilesToDate(type, obj.properties[temporalColumn]);
+        return fromTilesToDate(type, obj.properties[temporalColumn]);
+    },
+    
+    bindLayer: function(layerName, options) {
+        var newLayerInfo = {
+            name: layerName, 
+            dateFunction: (options && options.dateFunction) || this._defaultDateFunction
+        }
+        this.trigger('preBindLayer', newLayerInfo);
+        
+        var layers = this.attributes.layers.slice(0);
+        layers.push(newLayerInfo);
+        
+        this.set('layers', layers);
+        this.trigger('bindLayer', layerName);
+    }
+})
+
+var MapController = function(data, map) {
+    var updateFunctions = {
+        none: function(layers) {
+            $.each(layers || data.get('layers'), function(i, layerInfo) {
+                map.layers[layerInfo.name].setVisibilityFilter();
+            })
+        },
+        
+        selected: function(layers) {
+            $.each(layers || data.get('layers'), function(i, layerInfo) {
+                var layerName = layerInfo.name;
+                var layer = map.layers[layerName];
+                var identityField = layer.properties.identityField;
+                var selection = data.get('selection');
+                if (layerName in selection)
+                {
+                    var queryItems = $.map(selection[layerName], function(objid) {
+                        return '"' + identityField + '"=' + objid;
+                    })
+                    
+                    layer.setVisibilityFilter(queryItems.join(' OR '));
+                }
+                else
+                {
+                    layer.setVisibilityFilter('"' + identityField + '"=-1');
+                }
+            })
+        },
+        
+        range: function(layers) {
+            var range = data.get('range');
+            $.each(layers || data.get('layers'), function(i, layerInfo) {
+                var layer = map.layers[layerInfo.name],
+                    temporalColumn = layer.properties.TemporalColumnName,
+                    type = layer.properties.attrTypes[$.inArray(temporalColumn, layer.properties.attributes)];
+
+                var startStr = fromDateToTiles(type, range.start);
+                var endStr = fromDateToTiles(type, range.end);
+
+                var filterStr = '"' + temporalColumn + '" <= \'' + endStr + '\' AND "' + temporalColumn + '" > \'' + startStr + '\'';
+                layer.setVisibilityFilter(filterStr);
+            })
+        }
+    }
+
+    data.on('change:range', function() {
+        if (data.get('mapMode') === 'range') {
+            updateFunctions['range']();
+        }
+    })
+
+    data.on('change:selection', function() {
+        if (data.get('mapMode') === 'selected') {
+            updateFunctions['selected']();
+        }
+    })
+    
+    data.on('change:mapMode', function() {
+        updateFunctions[data.get('mapMode')]();
+    })
+    
+    //вклчючим фильтрацию для этого снимка до того, как он будет добавлен в список слоёв таймлайна
+    data.on('preBindLayer', function(layerInfo) {
+        updateFunctions[data.get('mapMode')]([layerInfo]);
+    })
+}
+
+var TimelineController = function(data, map) {
+    function isPointInPoly(poly, pt){
+        var l = poly.length;
+        poly[0][0] == poly[l-1][0] && poly[0][1] == poly[l-1][1] && l--;
+        for(var c = false, i = -1, j = l - 1; ++i < l; j = i)
+            ((poly[i][1] <= pt.y && pt.y < poly[j][1]) || (poly[j][1] <= pt.y && pt.y < poly[i][1]))
+            && (pt.x < (poly[j][0] - poly[i][0]) * (pt.y - poly[i][1]) / (poly[j][1] - poly[i][1]) + poly[i][0])
+            && (c = !c);
+        return c;
     }
     
     var options = {
@@ -49,23 +178,174 @@ var TimelineControl = function(map)
         style: "line"
     };
     
-    function isPointInPoly(poly, pt){
-        var l = poly.length;
-        poly[0][0] == poly[l-1][0] && poly[0][1] == poly[l-1][1] && l--;
-        for(var c = false, i = -1, j = l - 1; ++i < l; j = i)
-            ((poly[i][1] <= pt.y && pt.y < poly[j][1]) || (poly[j][1] <= pt.y && pt.y < poly[i][1]))
-            && (pt.x < (poly[j][0] - poly[i][0]) * (pt.y - poly[i][1]) / (poly[j][1] - poly[i][1]) + poly[i][0])
-            && (c = !c);
-        return c;
+    var timeline = null;
+    var countSpan = null;
+    var container = $('<div/>', {'class': 'timeline-container'});
+    
+    var modeFilters = {
+        'none': function() {return true; },
+        'center': function(item, mapCenter, mapExtent)
+        {
+            var obj = item.obj,
+                c = obj.geometry.coordinates,
+                intersects = false;
+                
+            if (obj.geometry.type == "POLYGON")
+            {
+                intersects = isPointInPoly(c[0], mapCenter);
+            }
+            else
+            {
+                for (var r = 0; r < c.length; r++)
+                    intersects = intersects || isPointInPoly(c[r][0], mapCenter);
+            }
+            
+            return intersects;
+        },
+        'screen': function(item, mapCenter, mapExtent)
+        {
+            return gmxAPI.boundsIntersect(item.bounds, mapExtent);
+        }
     }
+    
+    var updateLayerItems = function(layerName, layerDateFunction)
+    {
+        var layer = map.layers[layerName];
+        var temporalColumn = layer.properties.TemporalColumnName;
+        var identityField = layer.properties.identityField;
+        
+        var elemsToAdd = [];
+        var mapCenter = {x: map.getX(), y: map.getY()};
+        var mapExtent = map.getVisibleExtent();
+        var items = data.get('items');
+        var filters = data.get('userFilters').slice(0);
+        
+        filters.unshift(modeFilters[data.get('timelineMode')]);
+
+        for (var i in items[layerName])
+        {
+            var item = items[layerName][i],
+                obj = item.obj;
+            
+            var showItem = true;
+            $.each(filters, function(i, filterFunc) {
+                showItem = showItem && filterFunc(item, mapCenter, mapExtent);
+            })
+            
+            if (!items[layerName][i].timelineItem && showItem)
+            {
+                var date = layerDateFunction(layer, obj),
+                    content;
+                
+                if (layer.properties.NameObject)
+                {
+                    content = gmxAPI.applyTemplate(layer.properties.NameObject, obj.properties);
+                }
+                else
+                {
+                    content = obj.properties[temporalColumn];
+                }
+                
+                elemsToAdd.push({
+                    start: date,
+                    content: content,
+                    userdata: {objID: obj.properties[identityField], layerName: layerName}
+                });
+            }
+            else if (items[layerName][i].timelineItem && !showItem)
+            {
+                for (var index = 0; index < timeline.items.length; index++)
+                {
+                    var itemData = timeline.getData()[index].userdata;
+                    if (itemData.objID === i && itemData.layerName === layerName)
+                    {
+                        timeline.deleteItem(index, true);
+                        delete items[layerName][i].timelineItem;
+                    }
+                }
+            }
+        }
+        
+        timeline.addItems(elemsToAdd);
+        $.each(elemsToAdd, function(i, elem) {
+            items[layerName][elem.userdata.objID].timelineItem = timeline.items[timeline.items.length-elemsToAdd.length + i];
+        });
+    }
+    
+    var updateCount = function() {
+        var count = 0;
+        var range = timeline.getVisibleChartRange();
+        
+        $.each(timeline.getData(), function(i, item) {
+            item.start >= range.start && item.start <= range.end && count++;
+        })
+        
+        countSpan && countSpan.text('(' + count + ')');
+    }
+    
+    var updateCalendarRange;
     
     var updateItems = function() {
-        $.each(bindedLayers, function(i, layerName) { updateLayerItems(layerName); });
+        $.each(data.get('layers'), function(i, layerInfo) {
+            updateLayerItems(layerInfo.name, layerInfo.dateFunction);
+        });
+        updateCount();
     }
     
-    var filterCenter = null;
-    var onlySelected = null;
+    var fireSelectionEvent = function() {
+        var selectedItems = [];
+        var items = data.get('items');
+        
+        var selectedIds = {};
+                        
+        $.each(timeline.getSelection(), function(i, selection)
+        {
+            var userdata = timeline.getData()[selection.row].userdata;
+            var layerName = userdata.layerName;
+            selectedIds[layerName] = selectedIds[layerName] || [];
+            selectedIds[layerName].push(userdata.objID);
+        })
+        
+        data.set('selection', selectedIds);
+    }
     
+    var findNextByTime = function(itemIndex, step)
+    {
+        var sortedItems = $.map(timeline.items, function(item, i)
+        {
+            return {index: i, date: item.start.valueOf()};
+        }).sort(function(a, b)
+        {
+            return a.date - b.date || a.index - b.index;
+        });
+        
+        var res = null;
+        $.each(sortedItems, function(i, item) 
+        { 
+            if (item.index === itemIndex)
+                res = sortedItems[i + step] ? sortedItems[i + step].index : null;
+        })
+        
+        return res;
+    }
+    
+    var activateNextItem = function(step)
+    {
+        var curSelection = timeline.getSelection();
+        if (curSelection.length > 0)
+        {
+            var newIndex = findNextByTime(curSelection[0].row, step);
+            
+            if (newIndex !== null)
+            {
+                curSelection[0].row = newIndex;
+                timeline.setSelection(curSelection);
+            }
+        }
+        
+        fireSelectionEvent();
+    }
+        
     var createTimelineLazy = function()
     {
         if (timeline) return;
@@ -74,15 +354,13 @@ var TimelineControl = function(map)
         timeline.addItemType('line', links.Timeline.ItemLine);
         timeline.draw([], options);
         
-        links.events.addListener(timeline, 'select', updateSelection);
+        links.events.addListener(timeline, 'select', fireSelectionEvent);
         
         links.Timeline.addEventListener(timeline.dom.content, "dblclick", function(elem) {
             if (timeline.eventParams.itemIndex !== undefined) {
+                var items = data.get('items');
                 var userdata = timeline.getData()[timeline.eventParams.itemIndex].userdata;
-                var layerName = userdata.layerName;
-                var objID = userdata.objID;
-                
-                var geom = items[layerName][objID].obj.geometry;
+                var geom = items[userdata.layerName][userdata.objID].obj.geometry;
                 var b = gmxAPI.getBounds(geom.coordinates);
                 
                 map.zoomToExtent(b.minX, b.minY, b.maxX, b.maxY);
@@ -106,299 +384,131 @@ var TimelineControl = function(map)
         }
         $(nextDiv).addClass('timeline-controls');
         
-        filterCenter = $('<input/>', {type: 'checkbox', id: 'timeline-filter-center', title: _gtxt('Показывать только пересекающиеся с центром экрана')})
-        if (isFilterCenter) {
-            filterCenter.attr('checked', true);
-        }
-        
-        filterCenter.change(function() {
-            isFilterCenter = this.checked;
-            filters[0] = this.checked ? filterByScreenCenter : filterByScreenBounds;
-            updateItems();
-        });
-        
-        onlySelected = $('<input/>', {type: 'checkbox', id: 'timeline-only-selected', title: _gtxt('Показывать на карте только выбранные снимки')});
-        if (isOnlySelected) {
-            onlySelected.attr('checked', true);
-        }
-        
-        onlySelected.change(function() {
-            isOnlySelected = this.checked;
-            updateSelection();
+        var timelineModeSelect = $('<select/>').addClass('selectStyle')
+                .append($('<option/>').val('none').text('все'))
+                .append($('<option/>').val('screen').text('на экране'))
+                .append($('<option/>').val('center').text('над центром'));
+                
+        timelineModeSelect.change(function() {
+            data.set('timelineMode', $(':selected', this).val());
         })
         
+        var updateTimelineModeSelect = function() {
+            var mode = data.get('timelineMode');
+            $('option', timelineModeSelect).each(function(i, option) {
+                this.value === mode ? $(this).attr('selected', true) : $(this).removeAttr('selected');
+            })
+        }
+        
+        data.on('change:timelineMode', updateTimelineModeSelect);
+        updateTimelineModeSelect();
+                
+        var mapModeSelect = $('<select/>').addClass('selectStyle')
+                .append($('<option/>').val('selected').text('выделенные'))
+                .append($('<option/>').val('range').text('по датам'))
+                .append($('<option/>').val('none').text('все'));
+                
+        var updateMapModeSelect = function() {
+            var mode = data.get('mapMode');
+            $('option', mapModeSelect).each(function(i, option) {
+                this.value === mode ? $(this).attr('selected', true) : $(this).removeAttr('selected');
+            })
+        }
+        
+        data.on('change:mapMode', updateMapModeSelect);
+        updateMapModeSelect();
+        
+        mapModeSelect.change(function() {
+            data.set('mapMode', $(':selected', this).val());
+        })
+        
+        var calendarContainer = $('<div/>', {'class': 'timeline-calendar'});
+        var calendarControl = new nsGmx.Calendar('timelineCalendar', {minimized: false, showSwitcher: false, container: calendarContainer});
+        
+        updateCalendarRange = function() {
+            var range = timeline.getVisibleChartRange();
+            calendarControl.setDateBegin(range.start, true);
+            calendarControl.setDateEnd(range.end, true);
+            data.set('range', range);
+            updateCount();
+        };  
+
+        links.events.addListener(timeline, 'rangechanged', updateCalendarRange);
+        updateCalendarRange();
+        
+        $(calendarControl).change(function() {
+            timeline.setVisibleChartRange(calendarControl.getDateBegin(), calendarControl.getDateEnd());
+            data.set('range', {start: calendarControl.getDateBegin(), end: calendarControl.getDateEnd()})
+        })
+                
+        countSpan = $('<span/>', {'class': 'count-container'});
+        
         var controlsContainer = $('<div/>').addClass('timeline-controls').append(
+            $('<div/>').append(
+                $('<span>Показывать объекты: на таймлайне</span>'), timelineModeSelect, countSpan,
+                $('<span>на карте</span>').css('margin-left', '10px'), mapModeSelect
+            ),
             prevDiv, nextDiv,
-            filterCenter,
-            $('<label/>', {'for': 'timeline-filter-center', title: _gtxt('Показывать только пересекающиеся с центром экрана')}).text(_gtxt('По центру')),
-            onlySelected,
-            $('<label/>', {'for': 'timeline-only-selected', title: _gtxt('Показывать на карте только выбранные снимки')}).text(_gtxt('Только выбранные'))
+            calendarContainer
         ).appendTo(container);
     }
     
-    var findNextByTime = function(itemIndex, step)
-    {
-        var sortedItems = $.map(timeline.items, function(item, i)
-        {
-            return {index: i, date: item.start.valueOf()};
-        }).sort(function(a, b)
-        {
-            return a.date === b.date ? a.index - b.index : a.date - b.date
-        });
-        
-        var res = null;
-        $.each(sortedItems, function(i, item) 
-        { 
-            if (item.index === itemIndex)
-                res = sortedItems[i + step] ? sortedItems[i + step].index : null;
-        })
-        
-        return res;
-    }
+    data.on('change:userFilters change:items', updateItems);
     
+    map.addListener('positionChanged', updateItems);
     
-    var updateSelection = function()
-    {
-        var selectedIds = {};
-        var selectedItems = [];
-        
-        $.each(timeline.getSelection(), function(i, selection)
-        {
-            var userdata = timeline.getData()[selection.row].userdata;
-            var layerName = userdata.layerName;
-            selectedIds[layerName] = selectedIds[layerName] || [];
-            selectedIds[layerName].push(userdata.objID);
-            
-            selectedItems.push(items[layerName][userdata.objID].obj);
-        })
-        
-        $.each(bindedLayers, function(i, layerName)
-        {
-            var layer = map.layers[layerName];
-            
-            if (!isOnlySelected) {
-                layer.setVisibilityFilter();
-                return;
-            }
-            
-            if (layerName in selectedIds)
-            {
-                var queryItems = $.map(selectedIds[layerName], function(objid)
-                {
-                    return '"' + layer.properties.identityField + '"=' + objid;
-                })
+    data.on('change:timelineMode', function() {
+        if (data.get('timelineMode') === 'none' && !data.get('allItems')) {
+            var defs = [];
+            $.each(data.get('layers'), function(i, layerInfo) {
+                var def = $.Deferred();
+                defs.push(def);
+                var layerName = layerInfo.name;
+                var layer = map.layers[layerName];
+                var identityField = layer.properties.identityField;
+                var items = data.get('items');
                 
-                layer.setVisibilityFilter(queryItems.join(' OR '));
-            }
-            else
-            {
-                layer.setVisibilityFilter('"' + layer.properties.identityField + '"=-1');
-            }
-        })
-        
-        $(_this).trigger('select', {selection: selectedItems});
-    };
-    
-    var activateNextItem = function(step)
-    {
-        var curSelection = timeline.getSelection();
-        if (curSelection.length > 0)
-        {
-            var newIndex = findNextByTime(curSelection[0].row, step);
+                layer.getFeatures(function(features) {
+                    for (var i = 0; i < features.length; i++)
+                    {
+                        var obj = features[i];
+                        var id = obj.properties[identityField];
+                        items[layerName][id] = items[layerName][id] || {};
+                        items[layerName][id].obj = obj;
+                        items[layerName][id].bounds = gmxAPI.getBounds(obj.geometry.coordinates);
+                    }
+                    def.resolve();
+                })
+            })
             
-            if (newIndex !== null)
-            {
-                curSelection[0].row = newIndex;
-                timeline.setSelection(curSelection);
-            }
+            $.when.apply($, defs).done(function() {
+                data.set('allItems', true);
+                data.trigger('change change:items');
+            })
+        } else {
+            updateItems();
         }
-        updateSelection();
-    }
+    });
     
-    var filterByScreenCenter = function(item)
-    {
-        var obj = item.obj,
-            c = obj.geometry.coordinates,
-            intersects = false;
-            
-        if (obj.geometry.type == "POLYGON")
-        {
-            intersects = isPointInPoly(c[0], mapCenter);
-        }
-        else
-        {
-            for (var r = 0; r < c.length; r++)
-                intersects = intersects || isPointInPoly(c[r][0], mapCenter);
-        }
-        
-        return intersects;
-    }
-    
-    var filterByScreenBounds = function(obj)
-    {
-        return gmxAPI.boundsIntersect(obj.bounds, mapExtent);
-    }
-    
-    filters.push(filterByScreenCenter);
-    // filters.push(filterByScreenBounds);
-    
-    var updateLayerItems = function(layerName)
-    {
+    data.on('bindLayer', function(layerName) {
         var layer = map.layers[layerName];
-        var temporalColumn = layer.properties.TemporalColumnName;
         var identityField = layer.properties.identityField;
         
-        var elemsToAdd = [];
-        mapCenter = {x: map.getX(), y: map.getY()};
-        mapExtent = map.getVisibleExtent();
-        for (var curLayer in items)
-        {
-            for (var i in items[curLayer])
-            {
-                var item = items[curLayer][i],
-                    obj = item.obj;
-                
-                var showItem = true;
-                $.each(filters, function(i, filterFunc) {
-                    showItem = showItem && filterFunc(item);
-                })
-                
-                if (!items[curLayer][i].timelineItem && showItem)
-                {
-                    // var type = layer.properties.attrTypes[$.inArray(temporalColumn, layer.properties.attributes)],
-                        // date = fromTilesToDate(type, obj.properties[temporalColumn]),
-                    var date = dateFunction(layer, obj),
-                        content;
-                    
-                    if (layer.properties.NameObject)
-                    {
-                        content = gmxAPI.applyTemplate(layer.properties.NameObject, obj.properties);
-                    }
-                    else
-                    {
-                        content = obj.properties[temporalColumn];
-                    }
-                    
-                    elemsToAdd.push({
-                        start: date, 
-                        content: content,
-                        userdata: {objID: obj.properties[identityField], layerName: curLayer}
-                    });
-                }
-                else if (items[curLayer][i].timelineItem && !showItem)
-                {
-                    for (var index = 0; index < timeline.items.length; index++)
-                    {
-                        var itemData = timeline.getData()[index].userdata;
-                        if (itemData.objID === i && itemData.layerName === curLayer)
-                        {
-                            timeline.deleteItem(index, true);
-                            delete items[curLayer][i].timelineItem;
-                        }
-                    }
-                }
-            }
-        }
-        
-        timeline.addItems(elemsToAdd);
-        $.each(elemsToAdd, function(i, elem) {
-            items[layerName][elem.userdata.objID].timelineItem = timeline.items[timeline.items.length-elemsToAdd.length + i];
-            $(items[layerName][elem.userdata.objID].timelineItem).bind({
-                mouseover: function() {
-                    var geom = items[layerName][elem.userdata.objID].obj.geometry;
-                    var hoverObj = map.addObject(geom);
-                    hoverObj.setStyle({fill: {color: 0xff0000, opacity: 30}});
-                    items[layerName][elem.userdata.objID].hoverObj = hoverObj;
-                },
-                mouseout: function() {
-                    items[layerName][elem.userdata.objID].hoverObj.remove();
-                }
-            })
-        });
-    }
-    
-    this._fromTilesToDate = function(type, value)
-    {
-        var localDateValue;
-        if (type === 'datetime')
-        {
-            localDateValue = $.datepicker.parseDateTime('yy.mm.dd', 'hh:mm:ss', value);
-        }
-        else
-        {
-            localDateValue = $.datepicker.parseDate('yy.mm.dd', value);
-        }
-        
-        if (localDateValue === null) return null;
-            
-        var localValue = localDateValue.valueOf();
-        
-        //TODO: научить таймлайн работать с UTC временем, и передавать в него корректные UTC даты
-        //Сейчас даты парсятся с локальным смещением
-        
-        //var timeOffset = (new Date(localValue)).getTimezoneOffset()*60*1000;
-        var timeOffset = 0;
-        return new Date(localValue - timeOffset);
-    }
-    
-    //public interface
-    this.addFilter = function(filterFunc)
-    {
-        filters.push(filterFunc);
-        updateItems();
-    }
-    
-    this.eachItem = function(layerName, callback)
-    {
-        items[layerName] && $.each(items[layerName], callback);
-    }
-    
-    this.update = function()
-    {
-        updateItems();
-    }
-    
-    //@param {Array} selection Массив объектов вида {layerName: , id: }
-    this.setSelection = function(selection)
-    {
-        var timelineSelection = [];
-        $.each(timeline.getData(), function(timelineIndex, timelineItem) {
-            var userdata = timelineItem.userdata;
-            var founded = false;
-            $.each(selection, function(i, item) {
-                founded = founded || (item.layerName === userdata.layerName && item.id === userdata.objID);
-            })
-            
-            founded && timelineSelection.push({row: timelineIndex});
-        })
-        
-        timeline.setSelection(timelineSelection);
-        updateSelection();
-    }
-    
-    this.bindLayer = function(layerName)
-    {
         createTimelineLazy();
-        bindedLayers.push(layerName);
-        items[layerName] = items[layerName] || {};
+        
         nsGmx.widgets.commonCalendar.get().unbindLayer(layerName);
-        
-        var layer = map.layers[layerName];
-        var identityField = layer.properties.identityField;
-        
-        if (!layer.properties.Temporal) return;
-        
-        layer.setDateInterval(new Date(2000, 1, 1), new Date())
-        //layer.setVisibilityFilter('"' + identityField + '"=-1');
-        updateSelection();
-        
-        
-        map.addListener('positionChanged', function() {
-            updateLayerItems(layerName);
-        })
+        layer.setDateInterval(new Date(2000, 1, 1), new Date());
         
         layer.addObserver(function(objs)
         {
+            //если мы загрузили все объекты, то нас не особо волнует, попали они на экран или нет...
+            if (data.get('allItems')) {
+                return;
+            }
+            
+            var items = data.get('items');
+            items[layerName] = items[layerName] || {};
+            
             for (var i = 0; i < objs.length; i++)
             {
                 var obj = objs[i].item;
@@ -420,31 +530,45 @@ var TimelineControl = function(map)
                 }
             }
             
-            updateLayerItems(layerName);
+            data.trigger('change change:items');
+            
         }, {asArray: true, ignoreVisibilityFilter: true})
+    })
+    
+    data.on('change:range', function(){
+        var currRange = timeline.getVisibleChartRange();
+        var newRange = data.get('range');
+        
+        if (currRange.start.valueOf() !== newRange.start.valueOf() || currRange.end.valueOf() !== newRange.end.valueOf() ) {
+            timeline.setVisibleChartRange(newRange.start, newRange.end);
+            updateCalendarRange && updateCalendarRange();
+        }
+    })
+}
+
+var TimelineControl = function(map) {
+    var data = new TimelineData();
+    var mapController = new MapController(data, map);
+    var timelineController = new TimelineController(data, map);
+    
+    this.bindLayer = function(layerName, options) {
+        data.bindLayer(layerName, options);
     }
+    
+    this.setTimelineMode = function(newMode) {
+        data.set('timelineMode', newMode);
+    }
+    
+    this.setMapMode = function(newMode) {
+        data.set('mapMode', newMode);
+    }
+    
+    this._fromTilesToDate = fromTilesToDate;
     
     this.setVisibleRange = function(start, end) {
-        timeline.setVisibleChartRange(start, end);
+        data.set('range', {start: start, end: end});
     }
-    
-    this.filterByCenter = function(flag) {
-        isFilterCenter = flag;
-        if (filterCenter) {
-            if (flag)
-                filterCenter.attr('checked', true);
-            else
-                filterCenter.removeAttr('checked');
-        }
-        
-        filters[0] = flag ? filterByScreenCenter : filterByScreenBounds;
-        updateItems();
-    }
-    
-    this.setDateFunction = function(newDateFunction) {
-        dateFunction = newDateFunction;
-    };
-}
+};
 
 var publicInterface = {
     pluginName: 'Timeline Rasters',
@@ -472,7 +596,6 @@ var publicInterface = {
             }
         }, 'Layer');
     }
-    //, fromTilesToDate: fromTilesToDate
 }
 
 gmxCore.addModule("TimelineRCPlugin", publicInterface, {

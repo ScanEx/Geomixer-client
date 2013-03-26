@@ -1,10 +1,7 @@
 ﻿.timeline-container
 {
     width: 500px;
-    height: 105px;
-    /*position: absolute;
-    top: 5px;
-    right: 5px;*/
+    height: 135px;
     float: left;
     margin-left: 4px;
     background-color: rgba(1, 106, 138, 0.498039);
@@ -38,7 +35,12 @@
     vertical-align: middle;
 }
 
-.timeline-container  .timeline-controls label
+.timeline-container  .timeline-controls > img
+{
+    margin-top: -6px;
+}
+
+.timeline-container  .timeline-controls label, .timeline-container  .timeline-controls span
 {
     color: white;
     margin-left: 3px;
@@ -52,4 +54,16 @@
 .timeline-container #timeline-only-selected
 {
     margin-left: 10px;
+}
+
+.timeline-container .timeline-calendar
+{
+    line-height: 10px;
+    margin-top: -10px;
+    display: inline-block;
+}
+
+.timeline-container span.count-container
+{
+    margin-left: 0px;
 }
