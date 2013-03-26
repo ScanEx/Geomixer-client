@@ -273,6 +273,7 @@ var TimelineController = function(data, map) {
     }
     
     var updateCount = function() {
+        if (!timeline) return;
         var count = 0;
         var range = timeline.getVisibleChartRange();
         
@@ -426,6 +427,7 @@ var TimelineController = function(data, map) {
         var calendarControl = new nsGmx.Calendar('timelineCalendar', {minimized: false, showSwitcher: false, container: calendarContainer});
         
         updateCalendarRange = function() {
+            if (!timeline) return;
             var range = timeline.getVisibleChartRange();
             calendarControl.setDateBegin(range.start, true);
             calendarControl.setDateEnd(range.end, true);
@@ -536,6 +538,7 @@ var TimelineController = function(data, map) {
     })
     
     data.on('change:range', function(){
+        if (!timeline) return;
         var currRange = timeline.getVisibleChartRange();
         var newRange = data.get('range');
         
