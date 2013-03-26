@@ -142,7 +142,7 @@ var Calendar = function(name, params)
 	/**
 	 * @function
 	 */	    
-    this.setDateBegin = function(date)
+    this.setDateBegin = function(date, keepSilence)
     {
         if (date)
         {
@@ -152,24 +152,24 @@ var Calendar = function(name, params)
         }
         $(this.dateBegin).datepicker("setDate", this._toUTC(date));
         _updateInfo();
-        $(this).change();
+        keepSilence || $(this).change();
     }
     
 	/**
 	 * @function
 	 */	    
-    this.setDateEnd = function(date)
+    this.setDateEnd = function(date, keepSilence)
     {
         if (date)
         {
             _this._timeEnd.hours = date.getUTCHours();
-            _this._timeEnd.minutes = date.getMinutes();
-            _this._timeEnd.seconds = date.getSeconds();
+            _this._timeEnd.minutes = date.getUTCMinutes();
+            _this._timeEnd.seconds = date.getUTCSeconds();
         }
         
         $(this.dateEnd).datepicker("setDate", this._toUTC(date));
         _updateInfo();
-        $(this).change();
+        keepSilence || $(this).change();
     }
 	
 	/**
@@ -185,17 +185,21 @@ var Calendar = function(name, params)
     this.setDateMin = function(dateMin)
     {
         this.dateMin = dateMin;
-        $([this.dateBegin, this.dateEnd]).datepicker('option', 'minDate', this._toUTC(dateMin));
+        $([this.dateBegin, this.dateEnd]).datepicker('option', 'minDate', dateMin ? this._toUTC(dateMin) : null);
     }
     
     this.setDateMax = function(dateMax)
     {
         this.dateMax = dateMax;
-        var utcDate = this._toUTC(dateMax);
-        utcDate.setHours(23);
-        utcDate.setMinutes(59);
-        utcDate.setSeconds(59);
-        $([this.dateBegin, this.dateEnd]).datepicker('option', 'maxDate', utcDate);
+        if (dateMax) {
+            var utcDate = this._toUTC(dateMax);
+            utcDate.setHours(23);
+            utcDate.setMinutes(59);
+            utcDate.setSeconds(59);
+            $([this.dateBegin, this.dateEnd]).datepicker('option', 'maxDate', utcDate);
+        } else {
+            $([this.dateBegin, this.dateEnd]).datepicker('option', 'maxDate', null);
+        }
     }
     
     /**
@@ -288,13 +292,13 @@ var Calendar = function(name, params)
  * @function
  * @param {String} name Имя календаря
  * @param {Object} params Параметры календаря: <br/>
- * dateMin, dateMax - {Date} граничные даты для календарей <br/>
+ * dateMin, dateMax - {Date} граничные даты для календарей, null - без ограничений<br/>
  * dateFormat - {String} формат даты <br/>
  * resourceHost - {String} откуда берём иконки <br/>
  * minimized - {bool} показывать ли минимизированный или развёрнутый виджет в начале<br/>
  * showSwitcher - {bool} показывать ли иконку для разворачивания/сворачивания периода<br/>
  * dateBegin, dateEnd - {Date} текущие даты для календарей <br/>
- * showTime - {bool} показывать ли время (default: true)
+ * showTime - {bool} показывать ли время (default: false)
  * container - {string} куда добавлять календарик
  */
 Calendar.prototype.init = function( name, params )
@@ -309,9 +313,11 @@ Calendar.prototype.init = function( name, params )
 		resourceHost: resourceHost,
 		minimized: true,
 		showSwitcher: true,
-        showTime: true,
-        dateMax: new Date(),
-        dateMin: this._fromUTC(new Date(1900, 0, 1)),
+        showTime: false,
+        // dateMax: new Date(),
+        // dateMin: this._fromUTC(new Date(1900, 0, 1)),
+        dateMax: null,
+        dateMin: null,
         dateFormat: 'dd.mm.yy'
 	}, params)
 	
@@ -342,9 +348,12 @@ Calendar.prototype.init = function( name, params )
 	
 	this.dateMin = this._params.dateMin;
 	this.dateMax = this._params.dateMax;
-	this.dateMax.setHours(23);
-	this.dateMax.setMinutes(59);
-	this.dateMax.setSeconds(59);
+    
+    if (this.dateMax) {
+        this.dateMax.setHours(23);
+        this.dateMax.setMinutes(59);
+        this.dateMax.setSeconds(59);
+    };
 	
 	$([this.dateBegin, this.dateEnd]).datepicker(
 	{
@@ -356,10 +365,10 @@ Calendar.prototype.init = function( name, params )
 		showAnim: 'fadeIn',
 		changeMonth: true,
 		changeYear: true,
-		minDate: this._toUTC(this.dateMin),
-		maxDate: this._toUTC(this.dateMax),
+		minDate: this.dateMin ? this._toUTC(this.dateMin) : null,
+		maxDate: this.dateMax ? this._toUTC(this.dateMax) : null,
 		dateFormat: this._params.dateFormat,
-		defaultDate: this._toUTC(this.dateMax)
+		defaultDate: this._toUTC(this.dateMax || new Date())
 	});
 	
 	if (!this._params.showYear) {
@@ -407,10 +416,10 @@ Calendar.prototype.init = function( name, params )
 		$(this.moreIcon).hide();
 	}
 	
-	var emptyieinput = _input(null,[['css','width','1px'],['css','border','none'],['css','height','1px']]);
-		//tdYear = this.params.showYear ? _td([this.calendar.lazyDate, _br(), this.calendar.yearBox, _span([_t(_gtxt("calendarWidget.EveryYear"))],[['css','margin','0px 5px']])],[['attr','colSpan',2]]) : _td([this.calendar.lazyDate, this.calendar.yearBox],[['attr','colSpan',2]]);
+	//var emptyieinput = _input(null,[['css','width','1px'],['css','border','none'],['css','height','1px']]);
+	//tdYear = this.params.showYear ? _td([this.calendar.lazyDate, _br(), this.calendar.yearBox, _span([_t(_gtxt("calendarWidget.EveryYear"))],[['css','margin','0px 5px']])],[['attr','colSpan',2]]) : _td([this.calendar.lazyDate, this.calendar.yearBox],[['attr','colSpan',2]]);
 	
-	this.canvas = _div([_span([emptyieinput,
+	this.canvas = _div([_span([//emptyieinput,
 					_table([_tbody([_tr([_td([this.first]),_td([this.dateBegin]),_td([this.dateEnd], [['dir', 'className', 'onlyMaxVersion']]),_td([this.last]) , _td([this.moreIcon])]),
 									_tr([_td(), _td(null, [['attr', 'id', 'dateBeginInfo']]),_td(null, [['attr', 'id', 'dateEndInfo'], ['dir', 'className', 'onlyMaxVersion']]),_td()])/*,
 									_tr([_td(null, [['attr','colSpan',4],['css','height','5px']])], [['dir', 'className', 'onlyMaxVersion']])*/ /*,
@@ -419,7 +428,7 @@ Calendar.prototype.init = function( name, params )
 					],
 				[['attr','id',this._name], ['dir','className','PeriodCalendar']]);
 				
-	emptyieinput.blur();
+	//emptyieinput.blur();
 	
 	$(this._visModeController).change(function()
 	{
@@ -593,7 +602,7 @@ Calendar.prototype.firstClickFunc = function()
 		newDateBegin = new Date(begin.getFullYear() - 1, begin.getMonth(), begin.getDate());
 		newDateEnd = new Date(end.getFullYear() - 1, end.getMonth(), end.getDate());
 		
-		if (newDateBegin < this.dateMin)
+		if (this.dateMin && newDateBegin < this.dateMin)
 			return;
 		
 		$(this.dateBegin).datepicker("setDate", newDateBegin);
@@ -608,7 +617,7 @@ Calendar.prototype.firstClickFunc = function()
 			newDateBegin = new Date(begin.valueOf() - 1000*60*60*24);
 			newDateEnd = new Date(begin.valueOf() - 1000*60*60*24 - period);
 			
-			if (newDateBegin < this.dateMin)
+			if (this.dateMin && newDateBegin < this.dateMin)
 				return;
 			
 			$(this.dateEnd).datepicker("setDate", newDateBegin);
@@ -619,7 +628,7 @@ Calendar.prototype.firstClickFunc = function()
 			newDateEnd = new Date(begin.valueOf() - 1000*60*60*24);
 			newDateBegin = this.getBeginByEnd(newDateEnd);
 			
-			if (newDateBegin < this.dateMin)
+			if (this.dateMin && newDateBegin < this.dateMin)
 			{
 				return;
 			}
@@ -653,7 +662,7 @@ Calendar.prototype.lastClickFunc = function()
 		newDateBegin = new Date(begin.getFullYear() + 1, begin.getMonth(), begin.getDate());
 		newDateEnd = new Date(end.getFullYear() + 1, end.getMonth(), end.getDate());
 		
-		if (newDateEnd > this.dateMax)
+		if (this.dateMax && newDateEnd > this.dateMax)
 			return;
 		
 		$(this.dateBegin).datepicker("setDate", newDateBegin);
@@ -668,7 +677,7 @@ Calendar.prototype.lastClickFunc = function()
 			newDateBegin = new Date(end.valueOf() + 1000*60*60*24);
 			newDateEnd = new Date(end.valueOf() + 1000*60*60*24 + period);
 			
-			if (newDateEnd > this.dateMax)
+			if (this.dateMax && newDateEnd > this.dateMax)
 				return;
 			
 			$(this.dateBegin).datepicker("setDate", newDateBegin);
@@ -679,7 +688,7 @@ Calendar.prototype.lastClickFunc = function()
 			newDateBegin = new Date(end.valueOf() + 1000*60*60*24);
 			newDateEnd = this.getEndByBegin(newDateBegin);
 			
-			if (newDateEnd > this.dateMax)
+			if (this.dateMax && newDateEnd > this.dateMax)
 			{
 				return;
 			}
