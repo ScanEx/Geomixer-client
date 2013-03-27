@@ -1750,7 +1750,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	// Обработка пользовательских Listeners на obj
 	function dispatchEvent(eventName, obj, attr)
 	{
-		var out = true;
+		var out = false;
 		var arr = getArr(eventName, obj);
 		for (var i=0; i<arr.length; i++)	// Вызываем по убыванию 'level'
 		{

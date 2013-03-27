@@ -892,6 +892,7 @@
 				};
 				if(node['subType'] === 'drawing') {
 					optMarker['draggable'] = true;
+					//optMarker['zIndexOffset'] = 10000;
 				}
 				
 				out = new L.GMXMarker(new L.LatLng(pos[1], pos[0]), optMarker);
@@ -3696,10 +3697,11 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 			var clickDone = false;
 			var timeDown = 0;
 			var chkClick = function(e) {		// Проверка click карты
+				if(gmxAPI._leaflet['contextMenu']['isActive']) return;	// мышка над пунктом contextMenu
 				var timeClick = new Date().getTime() - timeDown;
 				if(timeClick > 1000) return;
 				var attr = parseEvent(e);
-				if(!attr) return;				// пропускаем
+				if(!attr || attr['buttons']) return;					// пропускаем при контекстном меню
 				//if(utils.chkClassName(e.originalEvent.originalTarget, 'gmx_balloon', LMap._container)) return;	// click на балуне
 				attr['evName'] = 'onClick';
 				gmxAPI._leaflet['clickAttr'] = attr;
@@ -3980,6 +3982,7 @@ var tt = 1;
 					];
 				}
 			});
+			/*
 			L.Marker.extend({
 				_initIcon: function () {
 					var options = this.options,
@@ -4050,8 +4053,78 @@ var tt = 1;
 					this._icon = this._shadow = null;
 				}
 			});
+			*/
 
 			L.GMXMarker = L.Marker.extend({
+				_initIcon: function () {
+					var options = this.options,
+						map = this._map,
+						animation = (map.options.zoomAnimation && map.options.markerZoomAnimation),
+						classToAdd = animation ? 'leaflet-zoom-animated' : 'leaflet-zoom-hide',
+						needOpacityUpdate = false;
+
+					if (!this._icon) {
+						this._icon = options.icon.createIcon();
+
+						if (options.title) {
+							this._icon.title = options.title;
+						}
+
+						this._initInteraction();
+						needOpacityUpdate = (this.options.opacity < 1);
+
+						L.DomUtil.addClass(this._icon, classToAdd);
+
+						if (options.riseOnHover) {
+							L.DomEvent
+								.on(this._icon, 'mouseover', this._bringToFront, this)
+								.on(this._icon, 'mouseout', this._resetZIndex, this);
+						}
+					}
+
+					if (!this._shadow) {
+						this._shadow = options.icon.createShadow();
+
+						if (this._shadow) {
+							L.DomUtil.addClass(this._shadow, classToAdd);
+							needOpacityUpdate = (this.options.opacity < 1);
+						}
+					}
+
+					if (needOpacityUpdate) {
+						this._updateOpacity();
+					}
+
+					var panes = this._map._panes;
+
+					var toPaneName = options.toPaneName || 'markerPane';			// Added by OriginalSin
+					panes[toPaneName].appendChild(this._icon);
+					//panes.markerPane.appendChild(this._icon);
+
+					if (this._shadow) {
+						panes.shadowPane.appendChild(this._shadow);
+					}
+				}
+				,
+				_removeIcon: function () {
+					var panes = this._map._panes;
+
+					if (this.options.riseOnHover) {
+						L.DomEvent
+							.off(this._icon, 'mouseover', this._bringToFront)
+							.off(this._icon, 'mouseout', this._resetZIndex);
+					}
+
+					if(this._icon && this._icon.parentNode) this._icon.parentNode.removeChild(this._icon);	// Added by OriginalSin
+					//panes.markerPane.removeChild(this._icon);
+
+					if (this._shadow) {
+						panes.shadowPane.removeChild(this._shadow);
+					}
+
+					this._icon = this._shadow = null;
+				}
+				,
 				update: function () {
 					L.Marker.prototype.update.call(this);
 					if (this._icon) {

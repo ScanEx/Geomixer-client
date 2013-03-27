@@ -33,7 +33,10 @@
 		if(!marker || !menuItems[currMenuID]) return false;
 		var items = menuItems[currMenuID]['items'];
 		if(nm >= items.length) return false;
-		if(items[nm].func) items[nm].func(lastLatLng['lng'], lastLatLng['lat']);
+		if(items[nm].func) {
+			items[nm].func(lastLatLng['lng'], lastLatLng['lat']);
+			return true;
+		}
 	}
 	function createMenu(id, latlng)	{
 		if(!menuItems[id]) return false;
@@ -42,7 +45,7 @@
 		var items = menuItems[id]['items'];
 		for(var i=0; i<items.length; i++) {	// Итерации K-means
 			var item = items[i];
-			out += '<li class="context-menu-item" onClick="gmxAPI._leaflet.contextMenu.itemClick('+i+'); return false;" onmouseOver="this.className = \'context-menu-item hover\';" onmouseOut="this.className = \'context-menu-item\';">';
+			out += '<li class="context-menu-item" onClick="gmxAPI._leaflet.contextMenu.itemClick('+i+'); return false;" onmouseOver="gmxAPI._leaflet.contextMenu.onmouseOver(this);" onmouseOut="gmxAPI._leaflet.contextMenu.onmouseOut(this);">';
 			out += '<span>'+item['txt']+'</span>';
 			out += '</li>';
 		}
@@ -86,12 +89,24 @@
 			document.getElementsByTagName("head").item(0).appendChild(css);
 		}, 1000);
 	}
-		
+	// onmouseOver на Item меню
+	var onmouseOver = function(hNode)	{
+		hNode.className = 'context-menu-item hover';
+		gmxAPI._leaflet['contextMenu']['isActive'] = true;
+	}
+	// onmouseOut на Item меню
+	var onmouseOut = function(hNode)	{
+		hNode.className = 'context-menu-item';
+		gmxAPI._leaflet['contextMenu']['isActive'] = false;
+	}
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
 	gmxAPI._leaflet['contextMenu'] = {				// ContextMenu
-		'addMenuItem': addMenuItem						// Добавить Item ContextMenu
-		,'showMenu': showMenu							// Добавить Item ContextMenu
-		,'itemClick': itemClick							// Выбор пункта меню
+		'addMenuItem': addMenuItem					// Добавить Item ContextMenu
+		,'showMenu': showMenu						// Добавить Item ContextMenu
+		,'itemClick': itemClick						// Выбор пункта меню
+		,'onmouseOver': onmouseOver					// mouseOver пункта меню
+		,'onmouseOut': onmouseOut					// mouseOut пункта меню
+		,'isActive': false							// мышка над пунктом меню
 	}
 })();
