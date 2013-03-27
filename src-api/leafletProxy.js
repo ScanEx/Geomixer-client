@@ -3618,7 +3618,7 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 					,doubleClickZoom: false
 					,doubleClickZoomGMX: true
 					,attributionControl: false
-					//,trackResize: true
+					,trackResize: true
 					//,boxZoom: false
 					//,zoomAnimation: false
 					//,zoomAnimation: (gmxAPI.isChrome ? false : true)

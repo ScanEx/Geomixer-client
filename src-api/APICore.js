@@ -329,6 +329,20 @@ window.gmxAPI = {
 		return (event.srcElement != null) ? event.srcElement : event.target;
 	}
 	,
+	isInNode: function(prntNode, node)
+	{
+		var i = 0;
+		var chkNode = node;
+		while (i < 1000 && chkNode)
+		{
+			if(chkNode.tagName === 'HTML') return false;
+			if(chkNode === prntNode) return true;
+			i++;
+			chkNode = chkNode.parentNode;
+		}
+		return false;
+	}
+	,
 	eventX: function(event)
 	{
 		var theLeft = (document.documentElement && document.documentElement.scrollLeft ?

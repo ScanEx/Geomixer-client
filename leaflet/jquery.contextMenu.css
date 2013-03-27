@@ -12,6 +12,10 @@
  *
  */
 
+.context-menu-root {
+	margin-left: -10px!important;
+	margin-top: -10px!important;
+}
 .context-menu-list {
     margin:0; 
     padding:0;

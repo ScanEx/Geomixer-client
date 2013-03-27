@@ -9,7 +9,13 @@
 	var lastLatLng = null;					// Текущее положение
 
 	// Показать меню
-	function showMenu(ph)	{
+	function hideMenu() {
+		if(marker) LMap.removeLayer(marker);
+		marker = null
+	}
+	
+	// Показать меню
+	function showMenu(ph) {
 		if(!LMap) init();
 		var gmxNode = ph.obj || gmxAPI.map;
 		var id = gmxNode.objectId;
@@ -22,11 +28,6 @@
 		if(marker) LMap.removeLayer(marker);
 		marker = createMenu(id, lastLatLng);
 		marker.addTo(LMap);
-		LMap.on('click', function(e) {
-			if(marker) LMap.removeLayer(marker);
-			marker = null
-		});
-		//console.log('showMenu', id, ph);
 	}
 	// Click на Item меню
 	var itemClick = function(nm)	{
@@ -35,12 +36,11 @@
 		if(nm >= items.length) return false;
 		if(items[nm].func) {
 			items[nm].func(lastLatLng['lng'], lastLatLng['lat']);
-			return true;
+			hideMenu();
 		}
 	}
 	function createMenu(id, latlng)	{
 		if(!menuItems[id]) return false;
-		var div = gmxAPI.newElement("div", {}, {}, true);
 		var out = '<ul class="context-menu-list context-menu-root">';
 		var items = menuItems[id]['items'];
 		for(var i=0; i<items.length; i++) {	// Итерации K-means
@@ -56,7 +56,7 @@
 			iconSize: new L.Point(0, 0),
 			className: ''
 		})
-		return L.marker(latlng, {icon: myIcon});
+		return L.marker(latlng, {icon: myIcon, clickable: false});
 	}
 	// Добавить в меню Item
 	function addMenuItem(ph)	{
@@ -88,6 +88,13 @@
 			css.setAttribute("href", apiHost + "leaflet/jquery.contextMenu.css");
 			document.getElementsByTagName("head").item(0).appendChild(css);
 		}, 1000);
+		LMap.on('mousemove', function(e) {
+			if(!marker) return;
+			var target = gmxAPI.compatTarget(e.originalEvent);
+			if(!gmxAPI.isInNode(marker._icon, target)) {
+				hideMenu();
+			}
+		});
 	}
 	// onmouseOver на Item меню
 	var onmouseOver = function(hNode)	{
