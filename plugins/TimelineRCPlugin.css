@@ -2,8 +2,9 @@
 {
     width: 500px;
     height: 135px;
-    float: left;
-    margin-left: 4px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
     background-color: rgba(1, 106, 138, 0.498039);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A);
 }

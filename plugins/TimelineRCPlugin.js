@@ -63,7 +63,7 @@ var TimelineData = Backbone.Model.extend({
             end: null           //Date
         },
         selection: [],          //{layerName1: [id1, id2, ...], layerName2:...}
-        layers: [],             //[{name: ..., dateFunction: ...}, ...]
+        layers: [],             //[{name: ..., dateFunction: ..., filterFunction: ...}, ...]
         timelineMode: 'center', //center, screen, none
         mapMode: 'none'         //selected, range, none
     },
@@ -76,10 +76,21 @@ var TimelineData = Backbone.Model.extend({
         return fromTilesToDate(type, obj.properties[temporalColumn]);
     },
     
+    _defaultFilterFunction: function(layer, startDate, endDate) {
+        var temporalColumn = layer.properties.TemporalColumnName,
+            type = layer.properties.attrTypes[$.inArray(temporalColumn, layer.properties.attributes)],
+            startStr = fromDateToTiles(type, startDate),
+            endStr = fromDateToTiles(type, endDate),
+            filterStr = '"' + temporalColumn + '" <= \'' + endStr + '\' AND "' + temporalColumn + '" >= \'' + startStr + '\'';
+            
+        layer.setVisibilityFilter(filterStr);
+    },
+    
     bindLayer: function(layerName, options) {
         var newLayerInfo = {
             name: layerName, 
-            dateFunction: (options && options.dateFunction) || this._defaultDateFunction
+            dateFunction: (options && options.dateFunction) || this._defaultDateFunction,
+            filterFunction: (options && options.filterFunction) || this._defaultFilterFunction
         }
         this.trigger('preBindLayer', newLayerInfo);
         
@@ -123,15 +134,7 @@ var MapController = function(data, map) {
         range: function(layers) {
             var range = data.get('range');
             $.each(layers || data.get('layers'), function(i, layerInfo) {
-                var layer = map.layers[layerInfo.name],
-                    temporalColumn = layer.properties.TemporalColumnName,
-                    type = layer.properties.attrTypes[$.inArray(temporalColumn, layer.properties.attributes)];
-
-                var startStr = fromDateToTiles(type, range.start);
-                var endStr = fromDateToTiles(type, range.end);
-
-                var filterStr = '"' + temporalColumn + '" <= \'' + endStr + '\' AND "' + temporalColumn + '" > \'' + startStr + '\'';
-                layer.setVisibilityFilter(filterStr);
+                layerInfo.filterFunction(map.layers[layerInfo.name], range.start, range.end);
             })
         }
     }
@@ -208,8 +211,9 @@ var TimelineController = function(data, map) {
         }
     }
     
-    var updateLayerItems = function(layerName, layerDateFunction)
+    var updateLayerItems = function(layerInfo)
     {
+        var layerName = layerInfo.name;
         var layer = map.layers[layerName];
         var temporalColumn = layer.properties.TemporalColumnName;
         var identityField = layer.properties.identityField;
@@ -234,7 +238,7 @@ var TimelineController = function(data, map) {
             
             if (!items[layerName][i].timelineItem && showItem)
             {
-                var date = layerDateFunction(layer, obj),
+                var date = layerInfo.dateFunction(layer, obj),
                     content;
                 
                 if (layer.properties.NameObject)
@@ -288,7 +292,7 @@ var TimelineController = function(data, map) {
     
     var updateItems = function() {
         $.each(data.get('layers'), function(i, layerInfo) {
-            updateLayerItems(layerInfo.name, layerInfo.dateFunction);
+            updateLayerItems(layerInfo);
         });
         updateCount();
     }
@@ -350,7 +354,9 @@ var TimelineController = function(data, map) {
     var createTimelineLazy = function()
     {
         if (timeline) return;
-        gmxAPI._allToolsDIV.appendChild(container[0]);
+        //gmxAPI._allToolsDIV.appendChild(container[0]);
+        $('#flash').append(container[0]);
+        map.miniMap && map.miniMap.setVisible(false);
         timeline = new links.Timeline(container[0]);
         timeline.addItemType('line', links.Timeline.ItemLine);
         timeline.draw([], options);
@@ -551,6 +557,8 @@ var TimelineController = function(data, map) {
 
 var TimelineControl = function(map) {
     var data = new TimelineData();
+    this.data = data;
+    
     var mapController = new MapController(data, map);
     var timelineController = new TimelineController(data, map);
     
@@ -566,11 +574,11 @@ var TimelineControl = function(map) {
         data.set('mapMode', newMode);
     }
     
-    this._fromTilesToDate = fromTilesToDate;
-    
     this.setVisibleRange = function(start, end) {
         data.set('range', {start: start, end: end});
     }
+    
+    this._fromTilesToDate = fromTilesToDate;
 };
 
 var publicInterface = {
