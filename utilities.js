@@ -948,6 +948,16 @@ function stringDate(msec)
 	return (excDate < 10 ? '0' + excDate : excDate) + '.' + (excMonth < 10 ? '0' + excMonth : excMonth) + '.' + excYear;
 }
 
+function stringTime(msec)
+{
+	var date = new Date(msec);
+		excHour = date.getHours(),
+		excMin = date.getMinutes(),
+		excSec = date.getSeconds();
+	
+	return (excHour < 10 ? '0' + excHour : excHour) + ':' + (excMin < 10 ? '0' + excMin : excMin) + ':' + (excSec < 10 ? '0' + excSec : excSec);
+}
+
 function stringDateTime(msec)
 {
 	var date = new Date(msec);
@@ -955,7 +965,7 @@ function stringDateTime(msec)
 		excMin = date.getMinutes(),
 		excSec = date.getSeconds();
 	
-	return stringDate(msec) + ' ' +  (excHour < 10 ? '0' + excHour : excHour) + ':' + (excMin < 10 ? '0' + excMin : excMin) + ':' + (excSec < 10 ? '0' + excSec : excSec);
+	return stringDate(msec) + ' ' + stringTime(msec);
 }
 
 /**
