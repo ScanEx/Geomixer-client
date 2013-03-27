@@ -450,6 +450,10 @@ nsGmx.widgets.commonCalendar = {
             var table = $(_queryMapLayers.workCanvas).children("table");
             $(table).after(calendarDiv);
         }
+    },
+    hide: function()
+    {
+        this._isAppended && $(this.get().canvas).hide();
     }
 }
 
@@ -465,13 +469,14 @@ nsGmx.widgets.getCommonCalendar = function()
 function filterTemporalLayers()
 {
     var isAnyTemporalLayer = false;
-    for (var i = 0; i < globalFlashMap.layers.length; i++)
-        if (globalFlashMap.layers[i].properties.Temporal)
+    for (var i = 0; i < globalFlashMap.layers.length; i++) {
+        var props = globalFlashMap.layers[i].properties;
+        if (props.Temporal && !(props.name in filterTemporalLayers.unbindedTemporalLayers))
         {
-            // temporalLayers[globalFlashMap.layers[i].properties.name] = globalFlashMap.layers[i];
             isAnyTemporalLayer = true;
         }
-        
+    }
+    
     if (isAnyTemporalLayer)
     {
         var calendar = nsGmx.widgets.commonCalendar.get();
@@ -512,6 +517,10 @@ function filterTemporalLayers()
         
         $(calendar).change(updateTemporalLayers);
         updateTemporalLayers();
+    }
+    else
+    {
+        nsGmx.widgets.commonCalendar.hide();
     }
     
     //расширяем стандартный календарик вьюера
