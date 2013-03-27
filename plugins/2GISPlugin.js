@@ -4,6 +4,7 @@ var publicInterface = {
     pluginName: 'API 2GIS',
     beforeViewer: function(params, map)
     {
+        if (!map) return;
         var gis = map.addObject();
         gis.setVisible(false);
         gis.setTiles(function(x, y, z) 
