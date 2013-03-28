@@ -1107,7 +1107,8 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
     
     var id = 'layertabs' + (div ? div.gmxProperties.content.properties.name : '');
     
-    var tabs = layerEditor.getTabs().concat(params.moreTabs || []);
+    var originalTabs = layerEditor.getTabs();
+    var tabs = originalTabs.concat(params.moreTabs || []);
     
     var lis = [], containers = [];
     for (var t = 0; t < tabs.length; t++) {
@@ -1125,7 +1126,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
     // $(parent).empty().append(tabMenu, saveMenuCanvas);
     $(parent).empty().append(_table([
         _tr([_td([tabMenu])], [['css', 'height', '100%'], ['css', 'verticalAlign', 'top']]),
-        _tr([_td([saveMenuCanvas])])
+        _tr([_td([_div(null, [['css', 'height', '1px']]), saveMenuCanvas])])
     ], [['css', 'height', '100%'], ['css', 'width', '100%'], ['css', 'position', 'relative']]));
     
     var getTabIndex = function(tabName) {
@@ -1136,7 +1137,14 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
     }
     
     var selectIndex = getTabIndex(params.selected);
-    $(tabMenu).tabs({selected: selectIndex > -1 ? selectIndex : 0});
+    $(tabMenu).tabs({
+        selected: selectIndex > -1 ? selectIndex : 0,
+        select: function(event, ui) {
+            $(saveMenuCanvas).toggle(ui.index < originalTabs.length);
+        }
+    });
+    
+    $(saveMenuCanvas).toggle(selectIndex < originalTabs.length);
     
     params.createdCallback && params.createdCallback({
         selectTab: function(tabName) {
