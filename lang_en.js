@@ -578,5 +578,7 @@ _translationsHash.hash["eng"] = {
     "Этот растр уже был выбран": "This raster is already selected",
     "Каталог Растров": "Raster Catalog",
     "Растр": "Raster",
-    "Добавить выбранные растры": "Add selected rasters"
+    "Добавить выбранные растры": "Add selected rasters",
+    "EditObject.menuTitle" : "Add object",
+    "EditObject.drawingMenuTitle" : "Add object to active layer"
 };
