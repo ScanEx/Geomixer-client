@@ -898,7 +898,7 @@ var createPageAdvanced = function(parent, layerProperties) {
     
     shownProperties.push({name: _gtxt("Каталог растров"), elem: rasterCatalogDiv[0], trid: 'RCCreate-container', trclass: 'layer-advanved-options'});
     
-    var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
+    var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70, leftcolumnclass: 'layer-advanced-title'});
     _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])], [['css', 'height', '100%'], ['css', 'overflowY', 'auto']])]);
 }
 

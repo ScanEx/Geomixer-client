@@ -904,7 +904,7 @@ skype_pnh_container
 
 .TemporalLayer label
 {
-	padding-left: 3px;
+	padding-right: 3px;
 }
 
 .TemporalLayer select
@@ -930,6 +930,17 @@ skype_pnh_container
 }
 
 .temporal-properties-single *
+{
+    vertical-align: middle;
+}
+
+.temporal-type
+{
+    float: right;
+    margin-right: 3px;
+}
+
+.temporal-type > *
 {
     vertical-align: middle;
 }
@@ -1400,4 +1411,10 @@ div.layersScroll
 .manual-point.manual-active-type
 {
     background-position: -24px 0px;
+}
+
+.layer-advanced-title
+{
+    padding: 3px 0px;
+    vertical-align: top;
 }

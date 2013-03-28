@@ -76,12 +76,12 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
     // if (_columns.length == 0)
         // temporalCheckbox.attr('disabled', 'disabled');
     
-    var addOptions = function(select)
-    {
-        var temporalPeriods = [1, 4, 16, 64, 256, 1024, 4096];
-        for (var k = 0; k < temporalPeriods.length; k++)
-            select.append($("<option></option>", {periodIndex: k}).text(temporalPeriods[k]));
-    }
+    // var addOptions = function(select)
+    // {
+        // var temporalPeriods = [1, 4, 16, 64, 256, 1024, 4096];
+        // for (var k = 0; k < temporalPeriods.length; k++)
+            // select.append($("<option></option>", {periodIndex: k}).text(temporalPeriods[k]));
+    // }
         
     // var selectMinPeriod = $("<select></select>", {'class': 'selectStyle'});
     // addOptions(selectMinPeriod);
@@ -116,13 +116,27 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
             paramsModel.set({minPeriod: 1, maxPeriod: 256});
     });
     
-    var singleDateLayerContainer =
-        $('<div/>', {'class': 'temporal-control temporal-properties-single'}).append(
-            singleDateLayerCheckbox,
-            $('<label/>', {'for': 'temporal-properties-single'}).text(_gtxt('Период 1 день'))
-        )
+    // var singleDateLayerContainer =
+        // $('<div/>', {'class': 'temporal-control temporal-properties-single'}).append(
+            // singleDateLayerCheckbox,
+            // $('<label/>', {'for': 'temporal-properties-single'}).text(_gtxt('Период 1 день'))
+        // )
     
-    singleDateLayerContainer.appendTo(parentDiv);
+    //singleDateLayerContainer.appendTo(parentDiv);
+    
+    var singleDateLayerContainer =
+        $('<div class="temporal-type temporal-control">' + 
+            //'<span>Показывать на карте данные за</span><br>' + 
+            '<input name = "temporal-type" type="radio" id="temporal-input-single"> <label for="temporal-input-single">' + _gtxt('1 день') + '</label>' +
+            '<input name = "temporal-type" type="radio" id="temporal-input-any"> <label for="temporal-input-any">' + _gtxt('произвольный период') + '</label>' +
+        '</div>').appendTo(parentDiv);
+        
+    $('#temporal-input-single', singleDateLayerContainer).change(function()
+    {
+        paramsModel.set({minPeriod: 1, maxPeriod: (this.checked ? 1 : 256) });
+    });
+
+    $('input, label', singleDateLayerContainer).attr('title', _gtxt('Показывать на карте данные за'));
     
     $(parentDiv)
         .append(temporalCheckbox);
@@ -163,20 +177,15 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
         $('<td></td>').text(_gtxt('Колонка даты')),
         $('<td></td>').append(selectDateColumn)
     ).toggle(columns.length > 1);
-    
-    // var tr1 = $('<tr></tr>')
-                // .append($('<td></td>').text(_gtxt('Минимальный период')))
-                // .append($('<td></td>').append(selectMinPeriod));
-                
-    // var tr2 = $('<tr></tr>')
-                // .append($('<td></td>').text(_gtxt('Максимальный период')))
-                // .append($('<td></td>').append(selectMaxPeriod));
-    
+        
     var propertiesTable = $('<table/>', {'class': 'temporal-control'}).append(noColumnNotification, trColumn).appendTo(parentDiv);
-    //propertiesTable.css('display', 'none');
     $('.temporal-control', parentDiv).toggle(paramsModel.get('isTemporal'));
     
-    singleDateLayerCheckbox[0].checked = paramsModel.get('minPeriod') === paramsModel.get('maxPeriod');
+    if (paramsModel.get('minPeriod') === paramsModel.get('maxPeriod')) {
+        $('#temporal-input-single', singleDateLayerContainer)[0].checked = true;
+    } else {
+        $('#temporal-input-any', singleDateLayerContainer)[0].checked = true;
+    }
 	
     /**
         Обновляет список доступных для выбора колонок даты
@@ -187,18 +196,6 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
         noColumnNotification.toggle(!columns.length);
         trColumn.toggle(columns.length > 1);
 		_columns = columns;
-        
-		// if (_columns.length == 0)
-		// {
-			// temporalCheckbox.attr('disabled', 'disabled');
-			// temporalCheckbox[0].checked = false;
-			// $(temporalCheckbox).change();
-		// }
-		// else
-		// {
-			// temporalCheckbox.removeAttr('disabled');
-		// }
-
 		updateColumnsSelect();
 	}
 }
