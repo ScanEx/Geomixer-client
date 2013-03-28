@@ -3530,11 +3530,11 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 		}
 
 		// Проверка принадлежности точки MultiPolygonGeometry
-		out['contains'] = function (chkPoint) {
-			var curStyle = out.propHiden.curStyle;
+		out['contains'] = function (chkPoint, curStyle, fillPattern) {
+			if(!curStyle) curStyle = out.propHiden.curStyle;
 			for (var i = 0; i < members.length; i++)
 			{
-				if(members[i]['contains'](chkPoint, curStyle)) return true;
+				if(members[i]['contains'](chkPoint, curStyle, fillPattern)) return true;
 			}
 			return false;
 		}

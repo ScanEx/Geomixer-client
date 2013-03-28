@@ -55,8 +55,8 @@
 			html: out,
 			iconSize: new L.Point(0, 0),
 			className: ''
-		})
-		return L.marker(latlng, {icon: myIcon, clickable: false});
+		});
+		return new L.GMXMarker(latlng, {icon: myIcon, 'toPaneName': 'overlayPane', clickable: false, _isHandlers: true});
 	}
 	// Добавить в меню Item
 	function addMenuItem(ph)	{

@@ -597,7 +597,7 @@
 						}
 						delete node['hoverItem'].geom['_cache'];
 					}
-					item.geom['_cache'];
+					//delete item.geom['_cache'];
 					node['hoverItem'] = item;
 					item.geom.propHiden.curStyle = utils.evalStyle(hoveredStyle, item.geom.properties);
 					
@@ -685,8 +685,12 @@
 		var prevID = 0;
 		var prevPoint = null;
 		node['eventsCheck'] = function(evName, attr) {			// проверка событий векторного слоя
-			if(evName !== 'onClick' || gmxAPI._drawing['activeState'] || !node['leaflet'] || !node['leaflet']._isVisible || gmxAPI._leaflet['curDragState']) return false;
-			//console.log('eventsCheck ' , evName, node.id, gmxAPI._leaflet['curDragState']);
+			if(evName !== 'onClick'
+				|| gmxAPI._drawing['activeState']
+				|| !node['leaflet']	|| !node['leaflet']._isVisible
+				|| gmxAPI._leaflet['curDragState']) return false;
+
+			//console.log('eventsCheck ' , evName, node.id, gmxAPI._leaflet['curDragState'], gmxAPI._drawing.tools['move'].isActive);
 
 			//if(node['observerNode']) return false;
 			if(!attr) attr = gmxAPI._leaflet['clickAttr'];
@@ -700,6 +704,7 @@
 			var arr = tilesRedrawImages.getItemsByPoint(tID, mPoint);
 		
 			if(arr && arr.length) {
+				var toolsActive = (gmxAPI._drawing && !gmxAPI._drawing.tools['move'].isActive ? true : false);	// установлен режим рисования (не move)
 				var needCheck = (!prevPoint || !attr.containerPoint || attr.containerPoint.x != prevPoint.x || attr.containerPoint.y != prevPoint.y);
 				prevPoint = attr.containerPoint;
 				if(needCheck) {
@@ -723,7 +728,9 @@
 					vid = node['flipIDS'][node['flipIDS'].length - 1];
 					handlerObj = getHandler(vid, evName);
 					item = node['objectsData'][vid];
-					if(oper === 'setFlip') {
+					if(toolsActive) {	// если не move режим то без setFlip
+						mouseOut();
+					} else if(oper === 'setFlip') {
 						item = node['setFlip']();
 						if(!handlerObj && item.id === prevID) item = node['setFlip']();
 					}
