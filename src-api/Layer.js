@@ -296,6 +296,12 @@
 			obj.bringToTopItem = function(fid) {	// Добавить обьект к массиву Flips обьектов
 				return gmxAPI._cmdProxy('addFlip', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'fid': fid} });
 			};
+			obj.disableFlip = function() {			// Отменить ротацию обьектов слоя
+				return gmxAPI._cmdProxy('disableFlip', { 'obj': obj, 'attr':{'layerId':obj.objectId} });
+			};
+			obj.enableFlip = function() {			// Установить ротацию обьектов слоя
+				return gmxAPI._cmdProxy('enableFlip', { 'obj': obj, 'attr':{'layerId':obj.objectId} });
+			};
 		}
 
 		var hostName = layer.properties.hostName || "maps.kosmosnimki.ru";

@@ -2271,6 +2271,22 @@ return;
 			return false;
 		}
 		,
+		'enableFlip':	function(ph)	{			// Установить ротацию обьектов слоя
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return false;
+			node['flipEnabled'] = true;
+			return true;
+		}
+		,
+		'disableFlip':	function(ph)	{			// Отменить ротацию обьектов слоя
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return false;
+			node['flipEnabled'] = false;
+			return true;
+		}
+		,
 		'getZoomBounds':	function(ph)	{		// Установка границ по zoom
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];

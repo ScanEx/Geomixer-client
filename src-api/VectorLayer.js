@@ -18,6 +18,7 @@
 		node['type'] = 'VectorLayer';
 		node['minZ'] = 1;
 		node['maxZ'] = 21;
+		node['flipEnabled'] = true;				// По умолчанию ротация обьектов слоя установлена
 
 		//node['observeVectorLayer'] = null;
 		node['observerNode'] = null;
@@ -704,7 +705,7 @@
 			var arr = tilesRedrawImages.getItemsByPoint(tID, mPoint);
 		
 			if(arr && arr.length) {
-				var toolsActive = (gmxAPI._drawing && !gmxAPI._drawing.tools['move'].isActive ? true : false);	// установлен режим рисования (не move)
+				//var toolsActive = (gmxAPI._drawing && !gmxAPI._drawing.tools['move'].isActive ? true : false);	// установлен режим рисования (не move)
 				var needCheck = (!prevPoint || !attr.containerPoint || attr.containerPoint.x != prevPoint.x || attr.containerPoint.y != prevPoint.y);
 				prevPoint = attr.containerPoint;
 				if(needCheck) {
@@ -728,9 +729,7 @@
 					vid = node['flipIDS'][node['flipIDS'].length - 1];
 					handlerObj = getHandler(vid, evName);
 					item = node['objectsData'][vid];
-					if(toolsActive) {	// если не move режим то без setFlip
-						mouseOut();
-					} else if(oper === 'setFlip') {
+					if(node['flipEnabled'] && oper === 'setFlip') {
 						item = node['setFlip']();
 						if(!handlerObj && item.id === prevID) item = node['setFlip']();
 					}
@@ -758,7 +757,7 @@
 				} else {
 					itemPropHiden = item.geom.propHiden;
 				}
-				if(oper === 'setFlip') {
+				if(node['flipEnabled'] && oper === 'setFlip') {
 					var hItem = getTopFromArrItem(arr);
 					if(hItem) hoverItem(hItem);
 				}

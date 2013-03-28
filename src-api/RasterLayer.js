@@ -140,6 +140,8 @@
 			if(node['subType'] === 'OSM') {
 				node['shiftY'] = function() {
 					myLayer.options.shiftY = utils.getOSMShift();
+					if(myLayer._tileContainer) gmxAPI.position(myLayer._tileContainer, 0, myLayer.options.shiftY);
+					//if(myLayer._bgBuffer) gmxAPI.position(myLayer._bgBuffer, 0, myLayer.options.shiftY);
 				}
 				myLayer = new L.TileLayer.OSMcanvas(option);
 			} else {
@@ -147,9 +149,9 @@
 			}
 			node['leaflet'] = myLayer;
 			var chkPosition = function() {
+				//if(node['subType'] === 'OSM') node['shiftY']();	
 				node['waitRedraw']();
 				chkVisible();
-				//if(node['subType'] === 'OSM') node['shiftY']();	
 			}
 			LMap.on('move', chkPosition);
 			LMap.on('zoomend', chkPosition);
@@ -245,13 +247,16 @@
 			var flagAllCanvas = false;
 			var pResArr = null;				// точки границ растрового слоя
 			var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
+			/*
 			if(shiftY !== 0) {
 				// сдвиг для OSM
-				var tilePos = tile._leaflet_pos;
-				tilePos.y += shiftY;
-				L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
+				//var tilePos = tile._leaflet_pos.clone();
+				//tilePos.y += shiftY;
+//console.log('ssss ', shiftY, tilePos);
+				//L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
+				//L.DomUtil.setPosition(tile, tilePos, false);
 			}
-
+			*/
 			if(!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85)) {
 				flagAll = true;
 			} else {
@@ -303,9 +308,8 @@
 			//		ctx.webkitImageSmoothingEnabled = false;
 			var src = this.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom);
 			if(flagAll) {
-				//tile.style.display = 'none';
 				tile.onload = function() {
-					//tile.style.display = 'block';
+					tile.id = drawTileID;
 					layer.tileDrawn(tile);
 				};
 				tile.onerror = function() {
@@ -381,6 +385,11 @@
 			if (this.options.unloadInvisibleTiles || this.options.reuseTiles) {
 				this._removeOtherTiles(tileBounds);
 			}
+			/*
+			if(shiftY) {
+				gmxAPI.position(this._tileContainer, 0, shiftY);
+				gmxAPI.position(this._bgBuffer, 0, shiftY);
+			}*/
 		}
 
 		// Растровый слой с маской
@@ -439,6 +448,12 @@ console.log('____ ', key, tile._needRemove);
 				}
 				if(len < 1) return 0;
 				return count / len;	
+			}
+			,
+			tileDrawn: function (tile, cnt) {				// cnt = количество отрисованных обьектов в тайле
+				this._tileOnLoad.call(tile);
+				tile._tileComplete = true;					// Added by OriginalSin
+				tile._needRemove = (cnt > 0 ? false : true);
 			}
 		});
 
