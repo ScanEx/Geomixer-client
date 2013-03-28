@@ -3,3 +3,7 @@
     vertical-align: bottom;
     cursor: pointer;
 }
+
+.birds-add-mode * {
+    cursor: crosshair
+}

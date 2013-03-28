@@ -12,6 +12,11 @@
         afterViewer: function(params, map) {
             var layerName = params.layerName;
             var path = gmxCore.getModulePath('BirdsPlugin');
+            
+            if (!map || !(layerName in map.layers)) {
+                return;
+            }
+            
             var layerID = map.layers[layerName].properties.LayerID;
             var node = $("div[LayerID='" + layerID + "']", _queryMapLayers.buildedTree);
             var addIcon = $('<img/>', {
@@ -24,6 +29,7 @@
                     return;
                 }
                 
+                $('#flash').addClass('birds-add-mode');
                 var mapListenerId = map.addListener('onClick', function(event) {
                     var latlng = event.attr.latlng;
                     var drawingObject = map.drawing.addObject({type: "POINT", coordinates: [latlng.lng, latlng.lat]});
@@ -33,6 +39,7 @@
                     });
                     
                     $(editControl).bind('close', function() {
+                        $('#flash').removeClass('birds-add-mode');
                         map.removeListener('onClick', mapListenerId);
                     })
                 })
