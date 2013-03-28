@@ -923,11 +923,11 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     var metadataContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
     var advancedContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
     
-    tabs.push({title: 'Общие', name: 'main', container: mainContainer});
-    tabs.push({title: 'Метаданные', name: 'metadata', container: metadataContainer});
+    tabs.push({title: _gtxt('Общие'), name: 'main', container: mainContainer});
+    tabs.push({title: _gtxt('Метаданные'), name: 'metadata', container: metadataContainer});
     
     if (type === 'Vector') {
-        tabs.push({title: 'Дополнительно', name: 'advanced', container: advancedContainer});
+        tabs.push({title: _gtxt('Дополнительно'), name: 'advanced', container: advancedContainer});
     }
     
     var saveButton = null;
