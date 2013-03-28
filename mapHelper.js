@@ -2632,6 +2632,8 @@ mapHelper.prototype.createNewLayer = function(type)
 // - layerProperties - просто хеш строк для подстановки в правую колонку
 // - style:
 //   * leftWidth - ширина левой колонки в пикселях
+//   * leftcolumnclass - class для td элементов первого столбца. Не применяется, если прямо указано tr
+//   * rightcolumnclass - class для td элементов второго столбца. Не применяется, если прямо указано tr
 mapHelper.prototype.createPropertiesTable = function(shownProperties, layerProperties, style)
 {
 	var _styles = $.extend({leftWidth: 100}, style);
@@ -2649,8 +2651,16 @@ mapHelper.prototype.createPropertiesTable = function(shownProperties, layerPrope
 			td = _td([shownProperties[i].elem]);
 		else
 			td = _td([_t(layerProperties[shownProperties[i].field] != null ? layerProperties[shownProperties[i].field] : '')],[['css','padding','0px 3px']]);
-		
-		var tr = _tr([_td([_t(shownProperties[i].name)],[['css','width', _styles.leftWidth + 'px'],['css','paddingLeft','5px'],['css','fontSize','12px']]), td]);
+            
+        var tdTitle = _td([_t(shownProperties[i].name)],[['css','width', _styles.leftWidth + 'px'],['css','paddingLeft','5px'],['css','fontSize','12px']]);
+        
+		var tr = _tr([tdTitle, td]);
+        
+        if (_styles.leftcolumnclass)
+            _(tdTitle, [], [['dir', 'className', _styles.leftcolumnclass]]);
+            
+        if (_styles.rightcolumnclass)
+            _(td, [], [['dir', 'className', _styles.rightcolumnclass]]);
 		
         if (shownProperties[i].trid)
             _(tr, [], [['attr', 'id', shownProperties[i].trid]]);
