@@ -165,18 +165,18 @@ div.user span
 {
 	height: 35px;
 	padding-top: 1px;
-	background: url(img/grad.png) repeat-x scroll 0px -125px;
+	background: url(../img/grad.png) repeat-x scroll 0px -125px;
 }
 .iconPanel
 {
 	height: 35px;
 	padding-top: 1px;
-	background: url(img/grad.png) repeat-x scroll 0px -125px;
+	background: url(../img/grad.png) repeat-x scroll 0px -125px;
 /*	border-left: 1px solid #EDF4F6;/*#216b9c #6eb8ce*/
 }
 .logo
 {
-	background: transparent url(img/geomixer_transpar.png) center no-repeat;
+	background: transparent url(../img/geomixer_transpar.png) center no-repeat;
 	height: 60px;
 	width: 360px;
 }
@@ -237,7 +237,7 @@ textarea.error
 div.leftTitle
 {
 	height: 25px;
-/*	background: url(img/grad.png) repeat-x scroll 0px -126px;*/
+/*	background: url(../img/grad.png) repeat-x scroll 0px -126px;*/
 	background-color: #539abc;
 	width: 360px;
 	display: inline-block;
@@ -353,13 +353,6 @@ div.leftTitle
 	position: relative;
 }
 
-.imgCanvas
-{
-	width: 2912px;
-	height: 1896px;
-	background-image: url(landsat.jpg)
-}
-
 .imgBoundingPoint
 {
 	width: 21px;
@@ -417,7 +410,7 @@ div.swap
 div.swap-droppableHover
 {
 	height: 5px;
-	background: url(img/swap.gif) no-repeat;
+	background: url(../img/swap.gif) no-repeat;
 }
 
 /* gps */
@@ -702,12 +695,12 @@ div.unit .unitInfo
 }
 .fileCanvas thead td
 {
-	background: url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
+	background: url(../img/gradHeader.png) repeat-x scroll 0 -30px transparent;
 }
 
 .fileCanvas-folder-icon
 {
-	background: url("img/folder.png");
+	background: url(../img/folder.png);
     margin: 2px 3px -3px 0px;
     width: 13px;
     height: 13px;
@@ -731,7 +724,7 @@ div.unit .unitInfo
 
 .fileBrowser-progress
 {
-    background: url(img/progress.gif);
+    background: url(../img/progress.gif);
     width: 16px;
     height: 16px;
     display: inline-block;
@@ -830,7 +823,7 @@ skype_pnh_container
 }
 .attrsTableBody #attrsTableParent th
 {
-	background:url("img/gradHeader.png") repeat-x scroll 0 -30px transparent;
+	background:url(../img/gradHeader.png) repeat-x scroll 0 -30px transparent;
 	height:20px;
 	text-align:center;
 	padding: 1px 5px 2px 5px;
@@ -1380,7 +1373,7 @@ div.layersScroll
     display: inline-block;
     margin: 0px 2px;
     cursor: pointer;
-    background-image: url(img/manual_types.png)
+    background-image: url(../img/manual_types.png)
 }
 
 .manual-polygon

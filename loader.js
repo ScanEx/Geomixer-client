@@ -3,6 +3,8 @@ nsGmx.GeomixerFramework = true;
 
 (function(){
 
+var tt = new Date();
+
 var gmxJSHost = window.gmxJSHost || "";
 
 window.nsGmx = {};
@@ -15,10 +17,8 @@ var _getFileName = function( localName )
 }
 
 //последовательно загружает все файлы js и вызывает после этого callback
-var loadJS = function(callback)
+var loadJS = function(fileList, callback)
 {
-    var fileList = [/*#buildinclude<load_js.txt>*/];
-    
     var LABInstance = $LAB;
 		
     if (fileList.length)
@@ -32,41 +32,26 @@ var loadJS = function(callback)
         callback();
 }
 
-$LAB.
-	script(_getFileName("jquery/jquery-1.5.1.min.js")).wait().
-	script(_getFileName("jquery/jquery.getCSS.js")).wait(function()
-	{
-		$.getCSS(_getFileName("common.css"));
-		$.getCSS(_getFileName("jquery/jquery-ui-1.7.2.custom.css"));
-		$.getCSS(_getFileName("jquery/jquery-ui-timepicker-addon.css"));
-		$.getCSS(_getFileName("colorpicker/css/colorpicker.css"));
-		$.getCSS(_getFileName("menu.css"));
-		$.getCSS(_getFileName("buttons.css"));
-		$.getCSS(_getFileName("treeview.css"));
-		$.getCSS(_getFileName("search.css"));
-	}).
-	script(_getFileName("jquery/jquery-ui-1.8.18.custom.min.js")).wait().
-	script(_getFileName("jquery/ui.datepicker-ru.js")).wait().
-	script(_getFileName("jquery/jquery-ui-timepicker-addon.js")).wait().
-	script(_getFileName("jquery/ui.timepicker-ru.js")).wait().
-	script(_getFileName("jquery/jquery.treeview.js")).wait().
-    
-	script(_getFileName("jquery/underscore-min.js")).wait().
-	script(_getFileName("jquery/backbone-min.js")).wait().
-	
-	script(_getFileName("colorpicker/js/colorpicker.js")).wait().
-	script(_getFileName("colorpicker/js/eye.js")).wait().
-	script(_getFileName("colorpicker/js/utils.js")).wait(function(){
-	
-        nsGmx._ = _.noConflict(); //пересекается с utilities :(
-        
-        loadJS(function()
-        {
-            gmxCore.setDefaultModulesHost(gmxJSHost);
-            nsGmx.initGeoMixer();
-        });
+var gmxFilesList = [/*#buildinclude<load_js.txt>*/];
+var thirdpartyList = [/*#buildinclude<load_thirdparty.txt>*/];
 
+loadJS(thirdpartyList, function() {
+    var cssToLoad = [/*#buildinclude<load_css.txt>*/];
+    
+    for (var f = 0; f < cssToLoad.length; f++) {
+        $.getCSS(_getFileName(cssToLoad[f]));
     }
-); //$LAB
+
+    nsGmx._ = _.noConflict(); //пересекается с utilities :(
+    
+    loadJS(gmxFilesList, function()
+    {
+        gmxCore.setDefaultModulesHost(gmxJSHost);
+        
+        console.log('script loading', new Date() - tt);
+        
+        nsGmx.initGeoMixer();
+    });
+})
 
 })();
