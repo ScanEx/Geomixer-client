@@ -611,8 +611,8 @@
 					delete item.geom['_cache'];
 					
 					gmxAPI._div.style.cursor = 'pointer';
-					if(callHandler('onMouseOver', item.geom, gmxNode)) return true;
 					if(filter && callHandler('onMouseOver', item.geom, filter)) return true;
+					if(callHandler('onMouseOver', item.geom, gmxNode)) return true;
 				}
 				return true;
 			}
@@ -647,6 +647,7 @@
 		
 		node['addFlip'] = function(fid) {			// добавить обьект flip сортировки
 			chkFlip(fid);
+			node.redrawFlips(true);
 			return node['flipedIDS'].length;
 		}
 		
@@ -703,7 +704,6 @@
 			var tNums = gmxAPI.getTileFromPoint(latlng['lng'], latlng['lat'], zoom);
 			var tID = tNums.z + '_' + tNums.x + '_' + tNums.y;
 			var arr = tilesRedrawImages.getItemsByPoint(tID, mPoint);
-		
 			if(arr && arr.length) {
 				//var toolsActive = (gmxAPI._drawing && !gmxAPI._drawing.tools['move'].isActive ? true : false);	// установлен режим рисования (не move)
 				var needCheck = (!prevPoint || !attr.containerPoint || attr.containerPoint.x != prevPoint.x || attr.containerPoint.y != prevPoint.y);
@@ -739,7 +739,7 @@
 					itemPropHiden = item.propHiden;
 
 					//console.log('flipIDS' , item.id);
-					chkFlip(item.id);
+					if(node['flipEnabled']) chkFlip(item.id);
 					if(operView) {
 						itemPropHiden['rasterView'] = !itemPropHiden['rasterView'];
 						if(node['propHiden']['showOnlyTop']) {
@@ -1530,7 +1530,7 @@
 				var itemId = item.geom.id;
 				if(borders && borders[itemId]) {
 					continue;
-				} if(node['flipHash'][itemId]) {
+				} else if(node['flipHash'][itemId]) {
 					if(!out[itemId]) out[itemId] = [];
 					out[itemId].push(item);
 				} else {
