@@ -23,24 +23,32 @@
 		,'LINESTRING': true
 		,'POLYGON': true
 		,'FRAME': true
-	}
+	};
+	var patternDefaults = {					// настройки для pattern стилей
+		'min_width': 1
+		,'max_width': 1000
+		,'min_step': 0
+		,'max_step': 1000
+	};
+
 	var moveToTimer = null;
 	var utils = {							// Утилиты leafletProxy
 		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
 		,
 		'getXmlHttp': function() {			// Получить XMLHttpRequest
 		  var xmlhttp;
-		  try {
-			xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
-		  } catch (e) {
-			try {
-			  xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-			} catch (E) {
-			  xmlhttp = false;
-			}
-		  }
-		  if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+		  if (typeof XMLHttpRequest != 'undefined') {
 			xmlhttp = new XMLHttpRequest();
+		  } else {
+			  try {
+				xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+			  } catch (e) {
+				try {
+				  xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+				} catch (E) {
+				  xmlhttp = false;
+				}
+			  }
 		  }
 		  return xmlhttp;
 		}
@@ -73,6 +81,107 @@
 				});
 			}
 			return out;
+		}
+		, 
+		'getPatternIcon': function(item, style) {			// получить bitmap стиля pattern
+			if(!style['pattern']) return null;
+			var pattern = style['pattern'];
+			var prop = (item ? item['properties'] : {});
+
+			var step = (pattern.step > 0 ? pattern.step : 0);		// шаг между линиями
+			if (pattern.patternStepFunction != null && prop != null) {
+				step = pattern.patternStepFunction(prop);
+			}
+			if (step > patternDefaults['max_step']) step = patternDefaults['max_step'];
+			else if (step < patternDefaults['min_step']) step = patternDefaults['min_step'];
+			
+			var size = (pattern.width > 0 ? pattern.width : 8);		// толщина линий
+			if (pattern.patternWidthFunction != null && prop != null) {
+				size = pattern.patternWidthFunction(prop);
+			}
+			if (size > patternDefaults['max_width']) size = patternDefaults['max_width'];
+			else if (size < patternDefaults['min_width']) size = patternDefaults['min_width'];
+
+			var op = style['fillOpacity'];
+			if (style['opacityFunction'] != null && prop != null) {
+				op = style['opacityFunction'](prop) / 100;
+			}
+			
+			var arr = (pattern.colors != null ? pattern.colors : []);
+			var count = arr.length;
+			var resColors = []
+			var rgb = [0xff0000, 0x00ff00, 0x0000ff];
+			for (var i = 0; i < arr.length; i++) {
+				var col = (pattern['patternColorsFunction'][i] != null ? (prop != null ? pattern['patternColorsFunction'][i](prop): rgb[i%3]) : arr[i]);
+				resColors.push(col);
+			}
+
+			var delta = size + step;
+			var allSize = delta * count;
+			var center = 0,	radius = 0,	rad = 0; 
+
+			var hh = allSize;				// высота битмапа
+			var ww = allSize;				// ширина битмапа
+			var type = pattern.style; 
+			var flagRotate = false; 
+			if (type == 'diagonal1' || type == 'diagonal2' || type == 'cross' || type == 'cross1') {
+				flagRotate = true;
+			} else if (type == 'circle') {
+				ww = hh = 2 * delta;
+				center = Math.floor(ww / 2);	// центр круга
+				radius = Math.floor(size / 2);	// радиус
+				rad = 2 * Math.PI / count;		// угол в рад.
+			}
+			if (ww * hh > patternDefaults['max_width']) {
+				//gmxAPI.addDebugWarnings({'func': 'getPatternIcon', 'Error': 'MAX_PATTERN_SIZE', 'alert': 'Bitmap from pattern is too big'});
+				//return null;
+			}
+
+			var canvas = document.createElement('canvas');
+			canvas.width = ww; canvas.height = hh;
+			var ptx = canvas.getContext('2d');
+			ptx.clearRect(0, 0, canvas.width , canvas.height);
+			if (type === 'diagonal2' || type === 'vertical') {
+				ptx.translate(ww, 0);
+				ptx.rotate(Math.PI/2);
+			}
+
+			for (var i = 0; i < count; i++) {
+				ptx.beginPath();
+				var col = resColors[i];
+				var fillStyle = gmxAPI._leaflet['utils'].dec2rgba(col, 1);
+				fillStyle = fillStyle.replace(/1\)/, op + ')');
+				ptx.fillStyle = fillStyle;
+
+				if (flagRotate) {
+					var x1 = i * delta; var xx1 = x1 + size;
+					ptx.moveTo(x1, 0); ptx.lineTo(xx1, 0); ptx.lineTo(0, xx1); ptx.lineTo(0, x1); ptx.lineTo(x1, 0);
+
+					x1 += allSize; xx1 = x1 + size;
+					ptx.moveTo(x1, 0); ptx.lineTo(xx1, 0); ptx.lineTo(0, xx1); ptx.lineTo(0, x1); ptx.lineTo(x1, 0);
+					if (type === 'cross' || type === 'cross1') {
+						x1 = i * delta; xx1 = x1 + size;
+						ptx.moveTo(ww, x1); ptx.lineTo(ww, xx1); ptx.lineTo(ww - xx1, 0); ptx.lineTo(ww - x1, 0); ptx.lineTo(ww, x1);
+
+						x1 += allSize; xx1 = x1 + size;
+						ptx.moveTo(ww, x1); ptx.lineTo(ww, xx1); ptx.lineTo(ww - xx1, 0); ptx.lineTo(ww - x1, 0); ptx.lineTo(ww, x1);
+					}
+				} else if (type == 'circle') {
+					ptx.arc(center, center, size, i*rad, (i+1)*rad);
+					ptx.lineTo(center, center);
+				} else {
+					ptx.fillRect(0, i * delta, ww, size);
+				}
+				ptx.closePath();
+				ptx.fill();
+			}
+			var imgData = ptx.getImageData(0, 0, ww, hh);
+			var canvas1 = document.createElement('canvas');
+			canvas1.width = ww
+			canvas1.height = hh;
+			var ptx1 = canvas1.getContext('2d');
+			ptx1.drawImage(canvas, 0, 0, ww, hh);
+			return canvas1;
 		}
 		,
 		'replaceColorAndRotate': function(img, style, size) {		// заменить цвет пикселов в иконке + rotate - результат canvas
@@ -651,6 +760,25 @@
 					var ph = st['fill'];
 					if('color' in ph) pt['fillColor'] = ph['color'];
 					pt['fillOpacity'] = ('opacity' in ph ? ph['opacity'] : 100);
+					if('pattern' in ph) {
+						var pattern = ph['pattern'];
+						pt['pattern'] = pattern;
+						if('step' in pattern && typeof(pattern['step']) === 'string') {
+							pattern['patternStepFunction'] = gmxAPI.Parsers.parseExpression(pattern['step']);
+						}
+						if('width' in pattern && typeof(pattern['width']) === 'string') {
+							pattern['patternWidthFunction'] = gmxAPI.Parsers.parseExpression(pattern['width']);
+						}
+						if('colors' in pattern) {
+							var arr = [];
+							for (var i = 0; i < pattern.colors.length; i++)
+							{
+								var rt = pattern.colors[i];
+								arr.push(typeof(rt) === 'string' ? gmxAPI.Parsers.parseExpression(rt) : null);
+							}
+							pattern['patternColorsFunction'] = arr;
+						}
+					}
 				}
 				pt['stroke'] = false;
 				if('outline' in st) {				//	Есть стиль контура
@@ -1796,6 +1924,21 @@
 	// Команды в leaflet
 	var commands = {				// Тип команды
 		'setVisibilityFilter': setVisibilityFilter			// добавить фильтр видимости
+		,
+		'getPatternIcon':	function(hash)	{				// получить иконку pattern
+			var style = utils.parseStyle(hash['attr']['style']);
+			var canv = utils.getPatternIcon(null, style);
+			if(canv) {
+				var size = hash['attr']['size'];
+				var canvas1 = document.createElement('canvas');
+				canvas1.width = canvas1.height = size;
+				var ptx1 = canvas1.getContext('2d');
+				ptx1.drawImage(canv, 0, 0, size, size);
+				canv = canvas1.toDataURL();
+				canv = canv.replace(/^data:image\/png;base64,/, '');
+			}
+			return canv;
+		}
 		,
 		'setBackgroundTiles': gmxAPI._leaflet['setBackgroundTiles']			// добавить растровый тайловый слой
 		,
@@ -3287,6 +3430,12 @@ return;
 			var y = 256 + attr['y'];
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
 			ctx.beginPath();
+			if(attr['style'] && attr['style']['pattern']) {
+				var canvasPattern = gmxAPI._leaflet['utils'].getPatternIcon(out, attr['style']);
+				var pattern = ctx.createPattern(canvasPattern, "repeat");
+				ctx.fillStyle = pattern;
+			}
+
 			//console.log('nnn ' ,  ' : ' , coords);
 			for (var i = 0; i < coords.length; i++)
 			{

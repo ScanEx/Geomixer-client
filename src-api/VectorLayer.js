@@ -136,6 +136,10 @@
 			node['rasterCatalogTilePrefix'] = layer['tileSenderPrefix'];
 		}
 
+		node['sortItems'] = function(a, b) {
+			return a.properties[identityField] > b.properties[identityField];		
+		}
+
 		node['setSortItems'] = function(func) {
 			node['sortItems'] = func;
 			waitRedraw();
@@ -1609,18 +1613,18 @@
 							getRaster(pItem, pid, function(img) {
 								pItem['imageObj'] = img;
 								rasterNums--;
-								if(rasterNums === 0) node.waitRedrawFlips(100);
+								if(rasterNums === 0) node.waitRedrawFlips(100, true);
 								//drawRasters(drawTileID);
 							});
 						})(pt, itemId);
 					} else {
 						tilesRedrawImages.removeImage(itemId);
-						waitRedrawFlips(0);
+						node.waitRedrawFlips(100, true);
 					}
 				}
 			}
 			if(rasterNums === 0) {
-				waitRedrawFlips(0);
+				node.waitRedrawFlips(100, true);
 			}
 		}
 		node.parseVectorTile = function(data, tileID, dAttr)	{		// парсинг векторного тайла
@@ -1678,12 +1682,12 @@
 		}
 		
 		var redrawFlipsTimer = null;								// Таймер
-		var waitRedrawFlips = function(zd)	{						// Требуется перерисовка уже отрисованных тайлов с задержкой
+		var waitRedrawFlips = function(zd, redrawFlag)	{			// Требуется перерисовка уже отрисованных тайлов с задержкой
 			if(redrawFlipsTimer) clearTimeout(redrawFlipsTimer);
 			if(arguments.length == 0) zd = 100;
 			redrawFlipsTimer = setTimeout(function()
 			{
-				node.redrawFlips();
+				node.redrawFlips(redrawFlag);
 			}, zd);
 			return false;
 		}
@@ -1939,6 +1943,8 @@
 			node['listenerIDS'][key] = {'obj': gmxNode, 'evID': gmxNode.addListener(key, function(flag) {				// Изменилась видимость слоя
 				if(flag) {
 					waitRedraw();
+				} else {
+					gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Проверка map Listeners на hideBalloons
 				}
 				gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, flag);
 			}, -10)};

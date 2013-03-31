@@ -12,11 +12,12 @@
 		var currentData = {};		// список тайлов для текущего daysDelta
 		var ZeroDateString = prop.ZeroDate || '01.01.2008';	// нулевая дата
 		var arr = ZeroDateString.split('.');
-		var ZeroDate = new Date(					// Начальная дата
+		var zn = new Date(					// Начальная дата
 			(arr.length > 2 ? arr[2] : 2008),
 			(arr.length > 1 ? arr[1] - 1 : 0),
 			(arr.length > 0 ? arr[0] : 1)
 			);
+		var ZeroDate = new Date(zn.getTime()  - zn.getTimezoneOffset()*60000);	// UTC начальная дата шкалы
 
 		var hostName = prop.hostName || 'maps.kosmosnimki.ru';
 		var baseAddress = "http://" + hostName + "/";
@@ -130,19 +131,11 @@
 		{
 			var dt1 = DateBegin;		// начало периода
 			var dt2 = DateEnd;			// конец периода
-			var dt1str = dt1.getFullYear() + "." + gmxAPI.pad2(dt1.getMonth() + 1) + "." + gmxAPI.pad2(dt1.getDate());
-			if(TimeTemporal) dt1str += ' ' + gmxAPI.pad2(dt1.getHours()) + ":" + gmxAPI.pad2(dt1.getMinutes()) + ":" + gmxAPI.pad2(dt1.getSeconds());
-			var dt2str = dt2.getFullYear() + "." + gmxAPI.pad2(dt2.getMonth() + 1) + "." + gmxAPI.pad2(dt2.getDate());
-			if(TimeTemporal) dt2str += ' ' + gmxAPI.pad2(dt2.getHours()) + ":" + gmxAPI.pad2(dt2.getMinutes()) + ":" + gmxAPI.pad2(dt2.getSeconds());
-			var curFilter = "\""+columnName+"\" >= '"+dt1str+"' AND \""+columnName+"\" <= '"+dt2str+"'";
 			return {
 				'dt1': dt1
 				,'dt2': dt2
-				//,'ut1': Math.floor(dt1.getTime() / 1000  - dt1.getTimezoneOffset()*60)
-				//,'ut2': Math.floor(dt2.getTime() / 1000  - dt2.getTimezoneOffset()*60)
 				,'ut1': Math.floor(dt1.getTime() / 1000)
 				,'ut2': Math.floor(dt2.getTime() / 1000)
-				,'curFilter': curFilter
 			};
 		}
 
@@ -212,7 +205,6 @@
 			minFiles = ph['files'].length;
 
 			var hash = prpTemporalFilter(dt1, dt2, TemporalColumnName);
-			var curTemporalFilter = hash['curFilter'];
 			
 			var tileDateFunction = function(i, j, z)
 			{ 
@@ -238,7 +230,6 @@
 					,'ut2': hash['ut2']
 					,'dt1': dt1
 					,'dt2': dt2
-					,'curTemporalFilter': hash['curFilter']
 					,'tileDateFunction': tileDateFunction
 					,'TilesVersionHash': ph['TilesVersionHash']
 				};
@@ -247,7 +238,9 @@
 		}
 
 		var ddt1 = new Date(); ddt1.setHours(0, 0, 0, 0);		// начало текущих суток
+		ddt1 = new Date(ddt1.getTime() - ddt1.getTimezoneOffset()*60000);	// UTC начальная дата
 		var ddt2 = new Date(); ddt2.setHours(23, 59, 59, 999);	// конец текущих суток
+		ddt2 = new Date(ddt2.getTime() - ddt2.getTimezoneOffset()*60000);	// UTC
 		temporalData['currentData'] = getDateIntervalTiles(ddt1, ddt2, temporalData);	// По умолчанию за текущие сутки
 
 		// 
@@ -318,8 +311,7 @@
 				'tileDateFunction': tileDateFunction,
 				'dtiles': (currentData['dtiles'] ? currentData['dtiles'] : []),
 				'temporal': {
-					'temporalFilter': (currentData['curTemporalFilter'] ? currentData['curTemporalFilter'] : '')
-					,'TemporalColumnName': TemporalColumnName
+					'TemporalColumnName': TemporalColumnName
 					,'ut1': currentData['ut1']
 					,'ut2': currentData['ut2']
 				}
