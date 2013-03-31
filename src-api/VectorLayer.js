@@ -112,6 +112,7 @@
 		}
 		node['setVisibilityFilter'] = function() {
 			reCheckFilters();
+			/*
 			if(myLayer) {
 				for (var key in myLayer._tiles) {	// тайлы которые уже на сцене
 					var tile = myLayer._tiles[key];
@@ -120,12 +121,8 @@
 				myLayer.removeEmptyTiles();
 			}
 			upDateLayer();
-			
-			//node.redrawFlips();
-			//chkLoadRasters();
-			//waitRedrawFlips(100);
-			//waitRedraw();
-			//waitRedrawFlips(100);
+			*/
+			waitRedrawFlips(100, true);
 		}
 
 		var inpAttr = ph.attr;
@@ -422,6 +419,12 @@
 			}
 			return flag;
 		};
+
+		var getTilesByVisibleExtent = function() {			// Получить тайлы векторного слоя по видимому extent
+			var currPos = gmxAPI.currPosition || map.getPosition();
+			var ext = {	minX: -Number.MAX_VALUE, minY: -Number.MAX_VALUE, maxX: Number.MAX_VALUE, maxY: Number.MAX_VALUE };
+			node['loadTilesByExtent'](ext);
+		}
 
 		node['chkTemporalFilter'] = function (item) {				// проверка мультивременного фильтра
 			if(node['temporal'] && item['propHiden']) {
@@ -1573,6 +1576,7 @@
 					}
 				}
 			}
+			if(flagClear) ctx.clearRect(0, 0, 256, 256);
 			out = null;
 			arr = null;
 			borders = null;
@@ -1922,6 +1926,7 @@
 				//waitRedraw();
 				clearDrawDone();
 				removeTiles();
+//getTilesByVisibleExtent();
 				upDateLayer();
 			}
 			return true;
