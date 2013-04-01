@@ -665,11 +665,13 @@ function initEditUI() {
                 var layer = globalFlashMap.layers[iL];
                 if (isEditableLayer(layer))
                 {
+                    layer.disableFlip();
                     var listenerId = layer.addListener('onClick', function(attr)
                     {
                         var obj = attr.obj;
                         var layer = attr.attr.layer;
                         var id = obj.properties[layer.properties.identityField];
+                        layer.bringToTopItem(id);
                         new nsGmx.EditObjectControl(layer.properties.name, id);
                         return true;	// Отключить дальнейшую обработку события
                     });
@@ -682,7 +684,10 @@ function initEditUI() {
             for (var i = 0; i < listeners.length; i++) {
                 var pt = listeners[i];
                 var layer = globalFlashMap.layers[pt['layerName']];
-                layer && layer.removeListener('onClick', pt['listenerId']);
+                if (layer) {
+                    layer.removeListener('onClick', pt['listenerId']);
+                    layer.enableFlip();
+                }
             }
             listeners = [];
         }
