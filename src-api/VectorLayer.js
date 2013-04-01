@@ -112,7 +112,6 @@
 		}
 		node['setVisibilityFilter'] = function() {
 			reCheckFilters();
-			/*
 			if(myLayer) {
 				for (var key in myLayer._tiles) {	// тайлы которые уже на сцене
 					var tile = myLayer._tiles[key];
@@ -121,8 +120,12 @@
 				myLayer.removeEmptyTiles();
 			}
 			upDateLayer();
+			/*
+			
+			//waitRedrawFlips(100, true);
+			//waitRedraw();
+			upDateLayer();
 			*/
-			waitRedrawFlips(100, true);
 		}
 
 		var inpAttr = ph.attr;
@@ -1339,6 +1342,30 @@
 
 					var objData = node['objectsData'][geom['id']] || geom;
 					var propHiden = objData['propHiden'];
+					var rItem = {
+						'geom': geom
+						,'attr': attr
+					};
+
+					var showRaster = (
+						!node['tileRasterFunc']
+						||
+						(
+							(zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'])
+							&&
+							(node['propHiden']['rasterView'] == '' || !propHiden['rasterView'])
+						)
+						? false
+						: true
+					);
+						
+					var rUrl = '';
+					if(node['tileRasterFunc']) rUrl = node['tileRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], zoom, objData);
+
+					rItem['src'] = rUrl;
+					rItem['showRaster'] = showRaster;
+					ritemsArr.push(rItem);
+					
 					if(propHiden['subType'] != 'cluster') {						// для кластеров без проверки
 						var notIntersects = false;
 						if(geom['intersects']) {						// если geom имеет свой метод intersects
@@ -1352,12 +1379,13 @@
 						}
 
 						if(!chkSqlFuncVisibility(objData)) {	 // если фильтр видимости на слое
+							//ritemsArr.push(rItem);
 							//if(!propHiden['drawInTiles']) propHiden['drawInTiles'] = {};
 							//if(!propHiden['drawInTiles'][zoom]) propHiden['drawInTiles'][zoom] = {};
 							//propHiden['drawInTiles'][zoom][drawTileID] = true;
 							continue;
 						}
-						
+
 						if(!node.chkTemporalFilter(geom)) {	// не прошел по мультивременному фильтру
 							continue;
 						}
@@ -1379,7 +1407,7 @@
 					if(!propHiden['drawInTiles'][zoom]) propHiden['drawInTiles'][zoom] = {};
 					propHiden['drawInTiles'][zoom][drawTileID] = true;
 					cnt++;
-
+/*
 					var showRaster = (
 						!node['tileRasterFunc']
 						||
@@ -1395,23 +1423,25 @@
 					var rUrl = '';
 					if(node['tileRasterFunc']) rUrl = node['tileRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], zoom, objData);
 
+					rItem['src'] = rUrl;
+					rItem['showRaster'] = showRaster;
+					ritemsArr.push(rItem);
 					var rItem = {
 						'geom': geom
 						,'attr': attr
 						,'src': rUrl
 						,'showRaster': showRaster
-					};
-					ritemsArr.push(rItem);
+					};*/
 					
 					if(showRaster) {
 						rasterNums++;
 						(function(pItem, pid) {
 							getRaster(pItem, pid, function(img) {
 								rasterNums--;
-								if(!node['tilesRedrawImages'][zoom]) return;
+								if(node['tilesRedrawImages'][zoom]) node['tilesRedrawImages'][zoom][drawTileID]['rasterNums']--;
 								pItem['imageObj'] = img;
 								//if(rasterNums === 0) drawRasters(drawTileID);
-								node['tilesRedrawImages'][zoom][drawTileID]['rasterNums']--;
+								//node['tilesRedrawImages'][zoom][drawTileID]['rasterNums'] = rasterNums;
 								if(rasterNums === 0) {
 									var zd = 50 * gmxAPI._leaflet['imageLoader'].getCounts();
 									waitRedrawFlips(zd);
@@ -2158,6 +2188,7 @@
 
 				gmxAPI._leaflet['lastZoom'] = zoom;
 				gmxAPI._leaflet['mInPixel'] = pz/156543.033928041;
+//console.log('drawTile ', drawTileID);
 				
 /*
 				var ctx = tile.getContext('2d');
