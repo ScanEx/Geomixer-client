@@ -435,8 +435,15 @@ var TimelineController = function(data, map) {
         updateCalendarRange = function() {
             if (!timeline) return;
             var range = timeline.getVisibleChartRange();
-            calendarControl.setDateBegin(range.start, true);
-            calendarControl.setDateEnd(range.end, true);
+            
+            //TODO: не использовать UTC даты в таймлайне (нужна поддержка отображения UTC).
+            var trueStart = nsGmx.Calendar.fromUTC(range.start);
+            var trueEnd = nsGmx.Calendar.fromUTC(range.end);
+            
+            trueStart.setUTCHours(0, 0, 0, 0);
+            trueEnd.setUTCHours(23, 59, 59, 0);
+            calendarControl.setDateBegin(trueStart, true);
+            calendarControl.setDateEnd(trueEnd, true);
             data.set('range', range);
             updateCount();
         };  
@@ -445,7 +452,7 @@ var TimelineController = function(data, map) {
         updateCalendarRange();
         
         $(calendarControl).change(function() {
-            timeline.setVisibleChartRange(calendarControl.getDateBegin(), calendarControl.getDateEnd());
+            // timeline.setVisibleChartRange(calendarControl.getDateBegin(), calendarControl.getDateEnd());
             data.set('range', {start: calendarControl.getDateBegin(), end: calendarControl.getDateEnd()})
         })
                 
@@ -549,7 +556,7 @@ var TimelineController = function(data, map) {
         var newRange = data.get('range');
         
         if (currRange.start.valueOf() !== newRange.start.valueOf() || currRange.end.valueOf() !== newRange.end.valueOf() ) {
-            timeline.setVisibleChartRange(newRange.start, newRange.end);
+            timeline.setVisibleChartRange(nsGmx.Calendar.toUTC(newRange.start), nsGmx.Calendar.toUTC(newRange.end));
             updateCalendarRange && updateCalendarRange();
         }
     })
