@@ -91,20 +91,6 @@ var Calendar = function(name, params)
 		$('#dateEndInfo'  , _this.canvas).text( getStr( _this._timeEnd ) + " (UTC)").attr('title', _gtxt('calendarWidget.UTC'));
 	}
     
-    this._fromUTC = function(date)
-    {
-        if (!date) return null;
-        var timeOffset = date.getTimezoneOffset()*60*1000;
-        return new Date(date.valueOf() - timeOffset);
-    }
-    
-    this._toUTC = function(date)
-    {
-        if (!date) return null;
-        var timeOffset = date.getTimezoneOffset()*60*1000;
-        return new Date(date.valueOf() + timeOffset);
-    }
-	
 	//public interface
 	
 	/**
@@ -112,7 +98,7 @@ var Calendar = function(name, params)
 	 */
 	this.getDateBegin = function()
 	{
-		var date = this._fromUTC($(this.dateBegin).datepicker("getDate"));
+		var date = Calendar.fromUTC($(this.dateBegin).datepicker("getDate"));
         
         if (date)
         {
@@ -129,7 +115,7 @@ var Calendar = function(name, params)
 	this.getDateEnd = function() 
 	{
 		// return $(this.dateEnd).datepicker("getDate"); 
-		var date = this._fromUTC($(this.dateEnd).datepicker("getDate"));
+		var date = Calendar.fromUTC($(this.dateEnd).datepicker("getDate"));
         if (date)
         {
             date.setUTCHours(_this._timeEnd.hours);
@@ -150,7 +136,7 @@ var Calendar = function(name, params)
             _this._timeBegin.minutes = date.getUTCMinutes();
             _this._timeBegin.seconds = date.getUTCSeconds();
         }
-        $(this.dateBegin).datepicker("setDate", this._toUTC(date));
+        $(this.dateBegin).datepicker("setDate", Calendar.toUTC(date));
         _updateInfo();
         keepSilence || $(this).change();
     }
@@ -167,7 +153,7 @@ var Calendar = function(name, params)
             _this._timeEnd.seconds = date.getUTCSeconds();
         }
         
-        $(this.dateEnd).datepicker("setDate", this._toUTC(date));
+        $(this.dateEnd).datepicker("setDate", Calendar.toUTC(date));
         _updateInfo();
         keepSilence || $(this).change();
     }
@@ -185,14 +171,14 @@ var Calendar = function(name, params)
     this.setDateMin = function(dateMin)
     {
         this.dateMin = dateMin;
-        $([this.dateBegin, this.dateEnd]).datepicker('option', 'minDate', dateMin ? this._toUTC(dateMin) : null);
+        $([this.dateBegin, this.dateEnd]).datepicker('option', 'minDate', dateMin ? Calendar.toUTC(dateMin) : null);
     }
     
     this.setDateMax = function(dateMax)
     {
         this.dateMax = dateMax;
         if (dateMax) {
-            var utcDate = this._toUTC(dateMax);
+            var utcDate = Calendar.toUTC(dateMax);
             utcDate.setHours(23);
             utcDate.setMinutes(59);
             utcDate.setSeconds(59);
@@ -230,8 +216,8 @@ var Calendar = function(name, params)
 	 */
 	this.loadState = function( data )
 	{
-		$(this.dateBegin).datepicker("setDate", this._toUTC(new Date(data.dateBegin)));
-		$(this.dateEnd).datepicker("setDate", this._toUTC(new Date(data.dateEnd)));
+		$(this.dateBegin).datepicker("setDate", Calendar.toUTC(new Date(data.dateBegin)));
+		$(this.dateEnd).datepicker("setDate", Calendar.toUTC(new Date(data.dateEnd)));
 		this.lazyDate.value = data.lazyDate;
 		this.yearBox.checked = data.year;
 		this._visModeController.setMode(data.vismode);
@@ -287,6 +273,20 @@ var Calendar = function(name, params)
         this.init(name, params);
 }
 
+Calendar.fromUTC = function(date)
+{
+    if (!date) return null;
+    var timeOffset = date.getTimezoneOffset()*60*1000;
+    return new Date(date.valueOf() - timeOffset);
+}
+
+Calendar.toUTC = function(date)
+{
+    if (!date) return null;
+    var timeOffset = date.getTimezoneOffset()*60*1000;
+    return new Date(date.valueOf() + timeOffset);
+}
+
 /**
  * Инициализирует календарь.
  * @function
@@ -315,7 +315,7 @@ Calendar.prototype.init = function( name, params )
 		showSwitcher: true,
         showTime: false,
         // dateMax: new Date(),
-        // dateMin: this._fromUTC(new Date(1900, 0, 1)),
+        // dateMin: Calendar.fromUTC(new Date(1900, 0, 1)),
         dateMax: null,
         dateMin: null,
         dateFormat: 'dd.mm.yy'
@@ -365,10 +365,10 @@ Calendar.prototype.init = function( name, params )
 		showAnim: 'fadeIn',
 		changeMonth: true,
 		changeYear: true,
-		minDate: this.dateMin ? this._toUTC(this.dateMin) : null,
-		maxDate: this.dateMax ? this._toUTC(this.dateMax) : null,
+		minDate: this.dateMin ? Calendar.toUTC(this.dateMin) : null,
+		maxDate: this.dateMax ? Calendar.toUTC(this.dateMax) : null,
 		dateFormat: this._params.dateFormat,
-		defaultDate: this._toUTC(this.dateMax || new Date())
+		defaultDate: Calendar.toUTC(this.dateMax || new Date())
 	});
 	
 	if (!this._params.showYear) {
