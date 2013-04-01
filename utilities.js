@@ -707,13 +707,56 @@ function createPostIframe(id, callback)
 }
 
 !function() {
+
+    //скопирована из API для обеспечения независимости от него
+    function parseUri(str)
+    {
+        var	o   = parseUri.options,
+            m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+            uri = {},
+            i   = 14;
+
+        while (i--) uri[o.key[i]] = m[i] || "";
+
+        uri[o.q.name] = {};
+        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+            if ($1) uri[o.q.name][$1] = $2;
+        });
+
+        uri.hostOnly = uri.host;
+        uri.host = uri.authority; // HACK
+
+        return uri;
+    };
+
+    parseUri.options = {
+        strictMode: false,
+        key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+        q:   {
+            name:   "queryKey",
+            parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+        },
+        parser: {
+            strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+            loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+        }
+    };
+
     var requests = {};
     var lastRequestId = 0;
     
     var processMessage = function(e) {
+        if (!(e.origin in requests)) {
+            return;
+        }
+        
         var dataStr = decodeURIComponent(e.data.replace(/\n/g,'\n\\'));
-        var dataObj = JSON.parse(dataStr);
-        var request = requests[dataObj.CallbackName];
+        try {
+            var dataObj = JSON.parse(dataStr);
+        } catch (e) {
+            request.callback && request.callback({Status:"error", ErrorInfo: {ErrorMessage: "JSON.parse exeption", ExceptionType: "JSON.parse", StackTrace: dataStr}});
+        }
+        var request = requests[e.origin][dataObj.CallbackName];
         
         delete request[dataObj.CallbackName];
         delete dataObj.CallbackName;
@@ -741,7 +784,11 @@ function createPostIframe(id, callback)
         iframe.callbackName = uniqueId;
         //iframe.onload = window[callbackName];
         
-        requests[uniqueId] = {callback: callback, iframe: iframe};
+        var parsedURL = parseUri(url);
+        var origin = parsedURL.protocol + '://' + parsedURL.host;
+        
+        requests[origin] = requests[origin] || {};
+        requests[origin][uniqueId] = {callback: callback, iframe: iframe};
 
         return iframe;
     }
