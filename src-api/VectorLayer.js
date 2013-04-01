@@ -1647,18 +1647,18 @@
 							getRaster(pItem, pid, function(img) {
 								pItem['imageObj'] = img;
 								rasterNums--;
-								if(rasterNums === 0) node.waitRedrawFlips(100, true);
+								if(rasterNums === 0) waitRedrawFlips(100, true);
 								//drawRasters(drawTileID);
 							});
 						})(pt, itemId);
 					} else {
 						tilesRedrawImages.removeImage(itemId);
-						node.waitRedrawFlips(100, true);
+						waitRedrawFlips(100, true);
 					}
 				}
 			}
 			if(rasterNums === 0) {
-				node.waitRedrawFlips(100, true);
+				waitRedrawFlips(100, true);
 			}
 		}
 		node.parseVectorTile = function(data, tileID, dAttr)	{		// парсинг векторного тайла
