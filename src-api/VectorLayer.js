@@ -1342,11 +1342,11 @@
 
 					var objData = node['objectsData'][geom['id']] || geom;
 					var propHiden = objData['propHiden'];
+/*
 					var rItem = {
 						'geom': geom
 						,'attr': attr
 					};
-
 					var showRaster = (
 						!node['tileRasterFunc']
 						||
@@ -1365,7 +1365,7 @@
 					rItem['src'] = rUrl;
 					rItem['showRaster'] = showRaster;
 					ritemsArr.push(rItem);
-					
+*/					
 					if(propHiden['subType'] != 'cluster') {						// для кластеров без проверки
 						var notIntersects = false;
 						if(geom['intersects']) {						// если geom имеет свой метод intersects
@@ -1407,7 +1407,7 @@
 					if(!propHiden['drawInTiles'][zoom]) propHiden['drawInTiles'][zoom] = {};
 					propHiden['drawInTiles'][zoom][drawTileID] = true;
 					cnt++;
-/*
+
 					var showRaster = (
 						!node['tileRasterFunc']
 						||
@@ -1423,15 +1423,15 @@
 					var rUrl = '';
 					if(node['tileRasterFunc']) rUrl = node['tileRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], zoom, objData);
 
-					rItem['src'] = rUrl;
-					rItem['showRaster'] = showRaster;
-					ritemsArr.push(rItem);
 					var rItem = {
 						'geom': geom
 						,'attr': attr
 						,'src': rUrl
 						,'showRaster': showRaster
-					};*/
+					};
+					//rItem['src'] = rUrl;
+					//rItem['showRaster'] = showRaster;
+					ritemsArr.push(rItem);
 					
 					if(showRaster) {
 						rasterNums++;
