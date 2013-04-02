@@ -2113,14 +2113,11 @@
 		}
 		,
 		'setExtent':	function(ph)	{		//Задать географический extent - за пределы которого нельзя выйти. - todo
-			/*
 			var attr = ph.attr;
 			var southWest = new L.LatLng(attr.y2, attr.x2),
 				northEast = new L.LatLng(attr.y1, attr.x1),
 				bounds = new L.LatLngBounds(southWest, northEast);			
-			var tt = bounds;
-			LMap.fitBounds(bounds);
-			*/
+			LMap.setMaxBounds(bounds);
 		}
 		,
 		'setMinMaxZoom':	function(ph)	{				// установка minZoom maxZoom карты
@@ -2128,13 +2125,10 @@
 			LMap.options.minZoom = ph.attr.z1;
 			LMap.options.maxZoom = ph.attr.z2;
 			var currZ = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
-//console.log('setMinMaxZoom1 ', ph);
 			if(currZ > LMap.getMaxZoom()) currZ = LMap.getMaxZoom();
 			else if(currZ < LMap.getMinZoom()) currZ = LMap.getMinZoom();
-			else return;
-return;
+			gmxAPI.map.zoomControl.setZoom(currZ);
 			
-			//LMap.setView(LMap.getCenter(), currZ);
 			var centr = LMap.getCenter();
 			var px = centr.lng;
 			var py = centr.lat;
@@ -4349,20 +4343,15 @@ var tt = 1;
 			L.GMXgrid = L.Polyline.extend({
 				_getPathPartStr: function (points) {
 					var round = L.Path.VML;
-					//if(this.options.textMarkers) {
-						if(this._containerText) this._container.removeChild(this._containerText);
-						this._containerText = this._createElement('g');
-						//this._containerText.setAttribute("stroke", this._path.getAttribute("stroke"));
-						//this._containerText.setAttribute("style", this._path.getAttribute("style"));
-						this._containerText.setAttribute("stroke", this._path.getAttribute("stroke"));
-						this._containerText.setAttribute("stroke-width", 0);
+					if(this._containerText) this._container.removeChild(this._containerText);
+					this._containerText = this._createElement('g');
+					this._containerText.setAttribute("stroke-width", 0);
 
-						//this._containerText.setAttribute("fill", "yellow");
-						this._containerText.setAttribute("opacity", 1);
-						this._container.appendChild(this._containerText);
-						//var textMarkers = this.options.textMarkers || [];
-						
-					//}
+					var color = this._path.getAttribute("stroke");
+					this._containerText.setAttribute("stroke", color);
+					this._containerText.setAttribute("fill", color);
+					this._containerText.setAttribute("opacity", 1);
+					this._container.appendChild(this._containerText);
 
 					for (var j = 0, len2 = points.length, str = '', p, p1; j < len2; j+=2) {
 						p = points[j];
