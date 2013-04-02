@@ -1724,7 +1724,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		var func = function(subObjectId, a, attr)
 		{
 			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// если MapObject отсутствует создаем
-			if(typeof(a) === 'object') pObj.properties = (a.length > 0 ? gmxAPI.propertiesFromArray(a) : a);
+			if(typeof(a) === 'object') pObj.properties = ('sort' in a ? gmxAPI.propertiesFromArray(a) : a);
 			if('filters' in pObj) attr['layer'] = pObj;
 			else if(pObj.parent && 'filters' in pObj.parent) attr['layer'] = pObj.parent;
 			if(!attr.latlng && 'mouseX' in attr) {
@@ -2373,7 +2373,7 @@ FlashMapObject.prototype.getChildren = function()
 		var pObj = (gmxAPI.mapNodes[id] ? gmxAPI.mapNodes[id] : new FlashMapObject(id, {}, this));		// если MapObject отсутствует создаем
 		//pObj.properties = gmxAPI.propertiesFromArray(arr[i].properties);
 		var a = arr[i].properties;
-		if(typeof(a) === 'object') pObj.properties = (a.length > 0 ? gmxAPI.propertiesFromArray(a) : a);
+		if(typeof(a) === 'object') pObj.properties = ('sort' in a ? gmxAPI.propertiesFromArray(a) : a);
 		ret.push(pObj);
 	}
 	return ret;

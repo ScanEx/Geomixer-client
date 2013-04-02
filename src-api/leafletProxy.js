@@ -2114,13 +2114,18 @@
 		,
 		'setExtent':	function(ph)	{		//Задать географический extent - за пределы которого нельзя выйти. - todo
 			var attr = ph.attr;
-			var southWest = new L.LatLng(attr.y2, attr.x2),
-				northEast = new L.LatLng(attr.y1, attr.x1),
-				bounds = new L.LatLngBounds(southWest, northEast);			
-			LMap.setMaxBounds(bounds);
+			if(!attr) {
+				LMap.options.maxBounds = null;
+			} else {
+				var southWest = new L.LatLng(attr.y2, attr.x2),
+					northEast = new L.LatLng(attr.y1, attr.x1),
+					bounds = new L.LatLngBounds(southWest, northEast);			
+				LMap.setMaxBounds(bounds);		// После установки надо сбрасывать
+			}
 		}
 		,
 		'setMinMaxZoom':	function(ph)	{				// установка minZoom maxZoom карты
+			//return;
 			if(LMap.options.minZoom == ph.attr.z1 && LMap.options.maxZoom == ph.attr.z2) return;
 			LMap.options.minZoom = ph.attr.z1;
 			LMap.options.maxZoom = ph.attr.z2;
@@ -2258,7 +2263,7 @@
 			var node = mapNodes[id];
 			if(!node || !'startLoadTiles' in node) return;						// Нода не была создана через addObject
 			node.startLoadTiles(ph.attr);
-			node.temporal = ph.attr;
+			//node.temporal = ph.attr;
 			//var attr = ph.attr; toFilters
 		}
 		,

@@ -74,12 +74,17 @@
 		gmxAPI._div.appendChild(toolPlaqueBackground);
 		gmxAPI._div.appendChild(toolPlaqueControl);
 
+		gmxAPI.map.isToolsMinimized = function()
+		{
+			return toolsMinimized;
+		}
 		gmxAPI.map.minimizeTools = function()
 		{
 			toolsMinimized = true;
 			toolPlaqueControl.src = apiBase + "img/tools_off.png";
 			toolPlaqueControl.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать инструменты", "Show tools");
 			gmxAPI.setVisible(toolsAllCont, false);
+			gmxAPI._listeners.dispatchEvent('onToolsMinimized', gmxAPI.map, toolsMinimized);
 		}
 		gmxAPI.map.maximizeTools = function()
 		{
@@ -87,6 +92,7 @@
 			toolPlaqueControl.src = apiBase + "img/tools_on.png";
 			toolPlaqueControl.title = gmxAPI.KOSMOSNIMKI_LOCALIZED("Скрыть инструменты", "Hide tools");
 			gmxAPI.setVisible(toolsAllCont, true);
+			gmxAPI._listeners.dispatchEvent('onToolsMinimized', gmxAPI.map, toolsMinimized);
 		}
 		gmxAPI.map.maximizeTools();
 

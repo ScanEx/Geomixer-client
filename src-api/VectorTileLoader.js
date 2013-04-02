@@ -5,7 +5,7 @@
 	var curCount = 0;						// номер текущего запроса
 	var timer = null;						// таймер
 	var items = [];							// массив текущих запросов
-	//var itemsHash = {};						// Хэш по tID
+	var itemsHash = {};						// Хэш отправленных запросов
 	//var falseFn = function () {	return false; };
 
 	var loadTile = function(item)	{		// загрузка тайла
@@ -23,13 +23,21 @@
 		for (var i = 0; i < len; i++)		// подгрузка векторных тайлов
 		{
 			var src = srcArr[i] + '&r=t';
-			
+			itemsHash[src] = item;
 			(function() {						
 				var psrc = src;
 				gmxAPI.sendCrossDomainJSONRequest(psrc, function(response)
 				{
 					//delete node['tilesLoadProgress'][psrc];
 					counts--;
+					if(itemsHash[psrc]) {
+						if(itemsHash[psrc]['skip']) {
+							delete itemsHash[psrc];
+							return;
+						}
+						delete itemsHash[psrc];
+					}
+
 					if(typeof(response) != 'object' || response['Status'] != 'ok') {
 						onerror({'url': psrc, 'Error': 'bad vector tile response'})
 						//return;
@@ -67,6 +75,19 @@
 		,'unshift': function(item)	{				// добавить запрос в начало очереди
 			items.unshift(item);
 			chkTimer();
+			return items.length;
+		}
+		,'clearLayer': function(id)	{				// Удалить все запросы по слою id
+			for (var key in itemsHash) {
+				var item = itemsHash[key];
+				if(item['layer'] == id) itemsHash[key]['skip'] = true;
+			}
+			var arr = [];
+			for(var i=0; i<items.length; i++) {
+				var item = items[i];
+				if(item['layer'] != id) arr.push(item);
+			}
+			items = arr;
 			return items.length;
 		}
 	};

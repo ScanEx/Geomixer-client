@@ -401,6 +401,7 @@
 					node['loaderFlag'] = true;
 					var item = {
 						'srcArr': srcArr
+						,'layer': node.id
 						,'callback': function(data) {
 							delete node['tilesLoadProgress'][tkey];
 							gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode, 'attr':{'data':{'tileID':tkey, 'data':data}}});		// tile загружен
@@ -1479,10 +1480,11 @@
 			return out;
 		}
 		node['labelBounds'] = {'add': {}, 'skip': {}};			// Добавленные и пропущенные labels обьектов слоя
-		node['chkTilesParentStyle'] = function() {							// перерисовка при изменении fillOpacity - rasterView
+		node['chkTilesParentStyle'] = function() {				// перерисовка при изменении fillOpacity - rasterView
+			reCheckFilters();
 			node.redrawFlips();
 		};
-		var chkGlobalAlpha = function(ctx) {								// проверка fillOpacity стиля заполнения обьектов векторного слоя - rasterView
+		var chkGlobalAlpha = function(ctx) {					// проверка fillOpacity стиля заполнения обьектов векторного слоя - rasterView
 			var tilesParent = gmxNode['tilesParent'];
 			if(!tilesParent) return;
 			var tpNode = mapNodes[tilesParent.objectId];
@@ -1845,6 +1847,7 @@
 			}
 			if(flag) node['filters'].push(fid);
 			node.refreshFilter(fid);
+			if(node.isVisible) upDateLayer(20);
 			//mapNodes[fid]['setClusters'] = node.setClusters;
 		}
 
@@ -1901,6 +1904,10 @@
 			var redrawFlag = false;
 			gmxAPI._leaflet['LabelsManager'].remove(node.id);
 			tilesRedrawImages.clear();
+			gmxAPI._leaflet['vectorTileLoader'].clearLayer(node.id);
+
+			node['tilesLoadProgress'] = {};
+			node['loaderDrawFlags'] = {};
 			if (!attr.notClear) {
 				for(var key in node['tilesGeometry']) {
 					node.removeTile(key);	// Полная перезагрузка тайлов

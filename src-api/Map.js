@@ -553,12 +553,14 @@
 			}
 			if (layers.properties.MinViewX)
 			{
-				map.setExtent(
-					layers.properties.MinViewX,
-					layers.properties.MaxViewX,
-					layers.properties.MinViewY,
-					layers.properties.MaxViewY
-				);
+				if(gmxAPI.proxyType === 'flash') {
+					map.setExtent(
+						layers.properties.MinViewX,
+						layers.properties.MaxViewX,
+						layers.properties.MinViewY,
+						layers.properties.MaxViewY
+					);
+				}
 			}
 			if (gmxAPI.maxRasterZoom > 17)
 				map.setMinMaxZoom(1, gmxAPI.maxRasterZoom);

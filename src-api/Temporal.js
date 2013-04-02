@@ -270,6 +270,7 @@
 			var ddt2 = hash['dt2'];
 			var data = getDateIntervalTiles(ddt1, ddt2, tdata);
 			tdata['currentData'] = data;
+			//mapObj._temporalTiles.temporalData['currentData'] = data;
 			if(!mapObj.isVisible) return;
 
 			var attr = {
