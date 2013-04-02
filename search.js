@@ -1271,6 +1271,11 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	var fnGetLabel = function(oFoundObject, sObjNameField, sObjNameFieldParent){
 		var sLabel = Functions.GetFullName(oFoundObject.TypeName, oFoundObject[sObjNameField]);
 		if (oFoundObject.Parent != null) sLabel += ", " + Functions.GetPath(oFoundObject.Parent, ", ", true, sObjNameFieldParent);
+		if (oFoundObject.Parent == null && oFoundObject.Path != null) {
+		    sLabel = "";
+		    for (var i = oFoundObject.Path.length-1; i >=0; --i)
+		        sLabel += (i<oFoundObject.Path.length-1?", ":"") + Functions.GetFullName(oFoundObject.Path[i][0], oFoundObject.Path[i][1])
+        }
 		return sLabel;
 	}
 	
@@ -1283,7 +1288,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	        UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, 
         callback: function(arrResultDataSources){
 			var arrResult = [];
-			var sSearchRegExp = new RegExp("("+SearchString.replace(/[^\wа-яА-Я]+/, "|")+")", "i");
+			var sSearchRegExp = new RegExp("("+SearchString.replace(/^\s|\s$/, "").replace(/[^\wа-яА-Я]+/g, "|")+")", "i");
 			for(var iDS=0; iDS<arrResultDataSources.length; iDS++){
 				for(var iFoundObject=0; iFoundObject<arrResultDataSources[iDS].SearchResult.length; iFoundObject++){
 					var oFoundObject = arrResultDataSources[iDS].SearchResult[iFoundObject];
@@ -1591,9 +1596,13 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	
 	/**Осуществляет выбор объекта из подсказки*/
 	var fnSelect = function(event, oAutoCompleteItem){
-	    if (fnBeforeSearch != null) fnBeforeSearch(); 
-        $('#respager').remove();
-		lstResult.ShowResult(oAutoCompleteItem.label, [{ name: "Выбрано", SearchResult: [oAutoCompleteItem.GeoObject] }]);
+	    if (fnBeforeSearch != null) fnBeforeSearch();
+	    $('#respager').remove();
+	    oLogic.SearchID({ID: oAutoCompleteItem.GeoObject.ObjCode, RequestType: "ID",
+                            callback: function (response) {
+                                lstResult.ShowResult(oAutoCompleteItem.label, [{ name: "Выбрано", SearchResult: response[0].SearchResult}]);
+                        }
+                        });
 		if (fnAfterSearch != null) fnAfterSearch();
 	}
 
