@@ -2251,7 +2251,7 @@
 			if(!node) return null;					// Нода не была создана через addObject
 			node['type'] = 'filter';
 			node['sql'] = ph.attr['sql'];
-			node['sqlFunction'] = gmxAPI.Parsers.parseSQL(ph.attr['sql']);
+			node['sqlFunction'] = (node['sql'] ? gmxAPI.Parsers.parseSQL(ph.attr['sql']) : null);
 
 			var pNode = mapNodes[node['parentId']];
 			pNode.addFilter(id);
