@@ -785,7 +785,7 @@ function createPostIframe(id, callback)
         //iframe.onload = window[callbackName];
         
         var parsedURL = parseUri(url);
-        var origin = parsedURL.protocol + '://' + parsedURL.host;
+        var origin = (parsedURL.protocol ? (parsedURL.protocol + ':') : window.location.protocol) + '//' + (parsedURL.host || window.location.host);
         
         requests[origin] = requests[origin] || {};
         requests[origin][uniqueId] = {callback: callback, iframe: iframe};
