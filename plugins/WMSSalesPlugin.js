@@ -274,6 +274,8 @@ var showWidget = function()
 var publicInterface = {
     createRC: createRC,
     findImagesBySceneIDs: findImagesBySceneIDs,
+
+    pluginName: 'Express RC Creator',
 	afterViewer: function(params)
     {
         if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
