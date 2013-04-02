@@ -7,11 +7,6 @@
 // var useCatalog = true;
 // var gmxAPIdebugLevel = 0;	// Уровень отладки (по умолчанию =0 - без сбора отладочной информации, >9 - alert при ошибках)
 
-//var gmxFlashLSO = {		// Использование локального SharedObject - сохранение векторных тайлов в куках Flash
-//	multiSession: false,	// Использовать между сессиями
-//	compress: false		// Использовать сжатие zlib
-//}
-
 //var mapsSite = true;
 //var apikeySendHosts = false;
 //var apikeyRequestHost = false;
@@ -34,10 +29,15 @@
 // }
 
 // var gmxJSHost = 'http://maps.kosmosnimki.ru/api/';
-// var gmxPlugins = 
-// {
-	// TestPlugin: {file: 'TestPlugin.js', module: 'TestPlugin'}
-// };
+
+var gmxPlugins = 
+[
+    {pluginName: 'PrintscreenPlugin', file: 'PrintscreenPlugin.js',                 module: 'PrintscreenPlugin', mapPlugin: true, isPublic: true},
+    {pluginName: 'Weather',           file: 'plugins/WeatherPlugin.js',             module: 'WeatherPlugin',     mapPlugin: true, isPublic: true},
+    {pluginName: '3DDemo',            file: 'plugins/3DPlugin.js',                  module: '3DPlugin',          mapPlugin: true, isPublic: true},
+    {pluginName: 'API 2GIS',          file: 'plugins/2GISPlugin.js',                module: '2GISPlugin',        mapPlugin: true, isPublic: true},
+    {pluginName: 'HelpEmail',         file: 'plugins/HelpEmailPlugin.js',           module: 'HelpEmailPlugin',   mapPlugin: true, isPublic: true}
+];
 
 // var gmxDropBrowserCache = true;
 // var gmxGeoCodeShpDownload = true;
