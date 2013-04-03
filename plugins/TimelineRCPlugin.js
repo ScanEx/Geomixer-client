@@ -560,6 +560,10 @@ var TimelineController = function(data, map) {
             updateCalendarRange && updateCalendarRange();
         }
     })
+    
+    this.toggle = function(isVisible) {
+        container.toggle(isVisible);
+    }
 }
 
 var TimelineControl = function(map) {
@@ -586,6 +590,10 @@ var TimelineControl = function(map) {
     }
     
     this._fromTilesToDate = fromTilesToDate;
+    
+    this.toggleVisibility = function(isVisible) {
+        timelineController.toggle(isVisible);
+    }
 };
 
 var publicInterface = {
@@ -598,6 +606,12 @@ var publicInterface = {
 	afterViewer: function(params, map)
     {
         if (!map) return;
+        
+        map.addListener('onToolsMinimized', function(isMinimised) {
+            nsGmx.timelineControl.toggleVisibility(!isMinimised);
+        })
+        
+        nsGmx.timelineControl.toggleVisibility(!map.isToolsMinimized());
         
         nsGmx.ContextMenuController.addContextMenuElem({
             title: function() { return _gtxt("Добавить к таймлайну"); },
