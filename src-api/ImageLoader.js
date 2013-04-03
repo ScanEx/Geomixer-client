@@ -157,7 +157,7 @@
 		for (var i = 0; i < items.length; i++)
 		{
 			var q = items[i];
-			if(q['zoom'] == zoom) arr.push(q);
+			if(!q['zoom'] || q['zoom'] == zoom) arr.push(q);
 		}
 		items = arr;
 		return items.length;
