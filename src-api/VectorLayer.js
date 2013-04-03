@@ -1439,11 +1439,13 @@
 						(function(pItem, pid) {
 							getRaster(pItem, pid, function(img) {
 								rasterNums--;
-								if(node['tilesRedrawImages'][zoom]) node['tilesRedrawImages'][zoom][drawTileID]['rasterNums']--;
 								pItem['imageObj'] = img;
+								if(!node['tilesRedrawImages'][zoom]) return;
 								//if(rasterNums === 0) drawRasters(drawTileID);
 								//node['tilesRedrawImages'][zoom][drawTileID]['rasterNums'] = rasterNums;
+//console.log(' showRaster: ' + drawTileID + ' : ' + rasterNums + ' : ' + node['tilesRedrawImages'][zoom][drawTileID]['rasterNums']);
 								if(rasterNums === 0) {
+									node['tilesRedrawImages'][zoom][drawTileID]['rasterNums'] = 0;
 									var zd = 50 * gmxAPI._leaflet['imageLoader'].getCounts();
 									waitRedrawFlips(zd);
 									myLayer.tileDrawn(tile, cnt);
@@ -1836,7 +1838,7 @@
 			//reCheckFilters();
 		}
 
-		node.addFilter = function(fid)	{			// Добавить фильтр к векторному слою
+		node.setFilter = function(fid)	{			// Добавить фильтр к векторному слою
 			var flag = true;
 			for (var i = 0; i < node['filters'].length; i++)
 			{
@@ -1846,8 +1848,16 @@
 				}
 			}
 			if(flag) node['filters'].push(fid);
-			node.refreshFilter(fid);
-			if(node.isVisible) upDateLayer(20);
+			//node.refreshFilter(fid);
+			reCheckFilters();
+
+			if(node.isVisible) {
+				//tilesRedrawImages.clear();
+				
+				clearDrawDone();
+				removeTiles();
+				upDateLayer(20);
+			}
 			//mapNodes[fid]['setClusters'] = node.setClusters;
 		}
 
@@ -2090,7 +2100,6 @@
 			}
 			,
 			_update: function () {
-
 				if (!this._map) { return; }
 
 				var bounds = this._map.getPixelBounds(),

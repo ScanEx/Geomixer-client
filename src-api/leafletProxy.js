@@ -2254,7 +2254,9 @@
 			node['sqlFunction'] = (node['sql'] ? gmxAPI.Parsers.parseSQL(ph.attr['sql']) : null);
 
 			var pNode = mapNodes[node['parentId']];
-			pNode.addFilter(id);
+			//pNode.addFilter(id);
+			pNode.setFilter(id);
+			
 			return node['sqlFunction'];
 		}
 		,
