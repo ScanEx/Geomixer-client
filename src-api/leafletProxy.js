@@ -539,8 +539,9 @@
 			return currPosition;
 		}
 		,
-		'runMoveTo': function(attr)	{				//позиционирует карту по координатам
+		'runMoveTo': function(attr, zd)	{				//позиционирует карту по координатам
 			if(moveToTimer) clearTimeout(moveToTimer);
+			if(!zd) zd = 200;
 			moveToTimer = setTimeout(function() {
 				if(!attr && !gmxAPI.map.needMove) return;
 				var flagInit = (gmxAPI.map.needMove ? true : false);
@@ -550,7 +551,7 @@
 				var pos = new L.LatLng(py, px);
 				LMap.setView(pos, z, flagInit);
 				gmxAPI.map.needMove = null;
-			}, 50);
+			}, zd);
 		}
 		,
 		'getPixelMap': function()	{				// Получение текущий размер карты в pixels
@@ -4476,7 +4477,7 @@ var tt = 1;
 			gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
 			if(gmxAPI.map.needMove) {
 				setTimeout(function() {
-					utils.runMoveTo();
+					if(gmxAPI.map.needMove) utils.runMoveTo();
 				}, 500);
 			}
 			if(gmxAPI.map.needSetMode) {
