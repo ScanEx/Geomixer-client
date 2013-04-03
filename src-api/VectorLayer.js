@@ -1801,6 +1801,7 @@
 				//waitRedraw();
 				if(!flag) gmxAPI._leaflet['LabelsManager'].onChangeVisible(node.id, flag);
 			}
+			waitRedrawFlips(0);
 		}
 		
 		node.refreshFilter = function(fid)	{		// обновить фильтр
