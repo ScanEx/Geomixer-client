@@ -4476,9 +4476,7 @@ var tt = 1;
 			setTimeout(setCenterPoint, 1);
 			gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
 			if(gmxAPI.map.needMove) {
-				setTimeout(function() {
-					if(gmxAPI.map.needMove) utils.runMoveTo();
-				}, 500);
+				utils.runMoveTo();
 			}
 			if(gmxAPI.map.needSetMode) {
 				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
