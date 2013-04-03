@@ -1782,6 +1782,7 @@
 			for (var z in node['tilesRedrawImages']) {
 				if(z != currZ) delete node['tilesRedrawImages'][z];
 			}
+/*
 			for (var ogc_fid in node['objectsData']) {
 				var item = node['objectsData'][ogc_fid];
 				for (var z in item['propHiden']['drawInTiles']) {
@@ -1789,14 +1790,16 @@
 				}
 				item.propHiden['toFilters'] = chkObjectFilters(item);
 			}
+*/
+			reCheckFilters();
 
 			flag = (utils.chkVisibilityByZoom(node.id) && (node['bounds'] ? utils.chkBoundsVisible(node['bounds']) : true));
 			//flag = (currZ < node['minZ'] || currZ > node['maxZ'] ? false : true);		// Неподходящий zoom
 			if(flag != myLayer._isVisible) {
 				utils.setVisibleNode({'obj': node, 'attr': flag});
-				waitRedraw();
+				upDateLayer(20);
+				//waitRedraw();
 				if(!flag) gmxAPI._leaflet['LabelsManager'].onChangeVisible(node.id, flag);
-
 			}
 		}
 		

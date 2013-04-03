@@ -42,6 +42,10 @@ window.gmxAPI = {
 		return true;
 	}
 	,
+	'getSQLFunction':	function(sql)	{					// Получить функцию по SQL выражению
+		return (gmxAPI.Parsers ? gmxAPI.Parsers.parseSQL(sql) : null);
+	}
+	,
 	'parseSQL': function(sql)	{							// парсинг SQL строки
 		var zn = sql;
 		if(typeof(zn) === 'string') {

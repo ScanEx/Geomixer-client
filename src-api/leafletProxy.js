@@ -2257,7 +2257,7 @@
 			//pNode.addFilter(id);
 			pNode.setFilter(id);
 			
-			return node['sqlFunction'];
+			return (!node['sql'] || node['sqlFunction'] ? true : false);
 		}
 		,
 		'startLoadTiles':	function(ph)	{		// Перезагрузка тайлов векторного слоя
