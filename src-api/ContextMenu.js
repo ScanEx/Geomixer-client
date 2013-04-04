@@ -12,6 +12,7 @@
 	function hideMenu() {
 		if(marker) LMap.removeLayer(marker);
 		marker = null
+		gmxAPI._leaflet['contextMenu']['isActive'] = false;
 	}
 	
 	// Показать меню

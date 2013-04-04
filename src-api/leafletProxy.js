@@ -272,6 +272,7 @@
 					chkDrag('dragstart', e);
 					gmxAPI._leaflet['curDragState'] = true;
 					LMap.dragging.disable();
+					L.DomEvent.stop(e.originalEvent);
 					LMap.on('mousemove', function(e) {		// drag на обьекте
 						if(gmxAPI._leaflet['curDragState']) {
 							chkDrag('drag', e);
