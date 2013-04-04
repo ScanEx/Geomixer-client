@@ -121,10 +121,13 @@
 	var tmpPoint = null;
 	var styleStroke = {color: "#0000ff", weight: lineWidth , opacity: 1};
 	var stylePoint = {color: "#0000ff", fill: true, fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1, 'pointSize': pointSize, skipLastPoint: true, skipSimplifyPoint: true, clickable: true};
-	var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
+	var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5, clickable: true};
 
 	var drawSVG = function(attr)
 	{
+		var layerGroup = attr['layerGroup'];
+		if(!layerGroup._map) return;
+		var layerItems = attr['layerItems'];
 		//console.log('drawSVG:  ', attr['coords'].length);
 		var dBounds = new L.Bounds();
 		for (var i = 0; i < attr['coords'].length; i++)
@@ -132,10 +135,9 @@
 			var pArr = attr['coords'][i];
 			dBounds.extend(new L.Point(pArr[0],  pArr[1]));
 		}
+
 		var dx = getDeltaX(dBounds);
 
-		var layerGroup = attr['layerGroup'];
-		var layerItems = attr['layerItems'];
 		if(layerItems.length == 0) {
 			var tstyle = attr['stylePolygon'] || stylePolygon;
 			layerItems.push(new L.Polyline([], tstyle));
@@ -149,20 +151,29 @@
 			layerItems[0]._container.style.pointerEvents = 'painted';
 			layerItems[1]._container.style.pointerEvents = 'painted';
 
-			var lastClick = 0;
 			layerItems[0].on('mousedown', function(e) {
 				var downType = getDownType(e, attr['coords'], dBounds);
 				var ph = downType || {'num':0, 'type':'edge'};
 				attr['mousedown'](e, ph);
+				L.DomEvent.stop(e.originalEvent);
+				gmxAPI._leaflet['mousePressed'] = true;
 			}, this);
 
+			var downArr = [];
 			layerItems[1].on('mousedown', function(e) {
-				attr['mousedown'](e, {'num':0, 'type':'node'});
-			}, this);
-			layerItems[1].on('dblclick', function(e) {
-				if(attr['dblclick']) {
-					attr['dblclick'](e, this);
+				downArr.push(new Date().getTime());
+				if(downArr.length > 2) {	// имитация dblclick
+					downArr.shift();
+					var delta = downArr[1] - downArr[0];
+					if(delta < 400 && attr['dblclick']) {
+						attr['dblclick'](e, this);
+						if(attr['mouseUp']) attr['mouseUp']();
+						return;
+					}
 				}
+				attr['mousedown'](e, {'num':0, 'type':'node'});
+				L.DomEvent.stop(e.originalEvent);
+				gmxAPI._leaflet['mousePressed'] = true;
 			}, this);
 		}
 		layerGroup.bringToFront();
@@ -847,7 +858,8 @@
 			drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
 			drawAttr['node'] = node;
 			drawAttr['clickMe'] = addDrawingItem;
-			
+			drawAttr['mouseUp'] = mouseUp;
+
 			drawSVG(drawAttr);
 		}
 
@@ -990,8 +1002,9 @@
 				mouseUp();
 				return;
 			}
-			if(mouseDownTimerID) clearTimeout(mouseDownTimerID);
-			mouseDownTimerID = setTimeout(function() { setEditItem(ph);	}, 400);
+			//if(mouseDownTimerID) clearTimeout(mouseDownTimerID);
+			//mouseDownTimerID = setTimeout(function() { setEditItem(ph);	}, 10);
+			setEditItem(ph);
 		}
 		
 		var mouseMove = function(ph)
@@ -1001,6 +1014,7 @@
 			var x = latlng.lng;
 			if(x < -180) x += 360;
 			if(editIndex != -1) {
+				if(!gmxAPI._leaflet['mousePressed']) { return; }
 				if(!onMouseUpID) onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
 				lastPoint = null;
 				coords[editIndex] = [x, latlng.lat];

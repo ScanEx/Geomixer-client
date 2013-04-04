@@ -18,6 +18,9 @@
 .leaflet-overlay-pane {
 	z-index: 1000;
 }
+.leaflet-popup-pane {
+	z-index: 2000;
+}
 .leaflet-canvas-icon {
 }
 
