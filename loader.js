@@ -3,8 +3,6 @@ nsGmx.GeomixerFramework = true;
 
 (function(){
 
-var tt = new Date();
-
 var gmxJSHost = window.gmxJSHost || "";
 
 window.nsGmx = {};
@@ -47,8 +45,6 @@ loadJS(thirdpartyList, function() {
     loadJS(gmxFilesList, function()
     {
         gmxCore.setDefaultModulesHost(gmxJSHost);
-        
-        console.log('script loading', new Date() - tt);
         
         nsGmx.initGeoMixer();
     });
