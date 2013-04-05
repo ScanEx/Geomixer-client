@@ -55,7 +55,7 @@ var fromDateToTiles = function(type, date)
 
 var TimelineData = Backbone.Model.extend({
     defaults: {
-        allItems: false,
+        allItems: false,        //все ли данные уже загружены
         items: {},              //{layerName1: {id1 : {...}, ...}, layerName2:...}
         userFilters: [],        //function({obj, bounds}, mapCenter, mapExtent) -> bool
         range: {
@@ -99,6 +99,11 @@ var TimelineData = Backbone.Model.extend({
         
         this.set('layers', layers);
         this.trigger('bindLayer', layerName);
+    },
+    
+    addFilter: function(filterFunc) {
+        this.attributes.userFilters.push(filterFunc);
+        this.trigger('change change:userFilters');
     }
 })
 
@@ -593,6 +598,14 @@ var TimelineControl = function(map) {
     
     this.toggleVisibility = function(isVisible) {
         timelineController.toggle(isVisible);
+    }
+    
+    this.addFilter = function(filterFunc) {
+        data.addFilter(filterFunc);
+    }
+    
+    this.updateFilters = function() {
+        data.trigger('change:userFilters');
     }
 };
 
