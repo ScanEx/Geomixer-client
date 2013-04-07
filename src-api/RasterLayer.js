@@ -17,12 +17,14 @@
 		node['type'] = 'RasterLayer';
 		node['isOverlay'] = false;
 		node['failedTiles'] = {};				// Hash тайлов 404
+		node['zIndexOffset'] = 0;				// Сдвиг zIndex
 
 		//node.isVisible = gmxNode.isVisible; 
 
 		var inpAttr = ph.attr;
 		node['subType'] = ('subType' in inpAttr ? inpAttr['subType'] : (inpAttr['projectionCode'] === 1 ? 'OSM' : ''));
 		var attr = {};
+		if(!layer['geometry'] && node['geometry']) layer['geometry'] = node['geometry'];
 		if(!layer['geometry']) {						// Нет geometry
 			layer.mercGeometry = {
 				'type': "POLYGON"
@@ -46,8 +48,8 @@
 				attr['geom'] = node.propHiden['geom'];					// Геометрия от обьекта векторного слоя
 				attr['bounds'] = attr['geom']['bounds'];				// Bounds слоя
 			}
+			if(node.propHiden.zIndexOffset) node['zIndexOffset'] = node.propHiden['zIndexOffset'];
 		}
-		node['zIndexOffset'] = 0;									// Сдвиг zIndex
 		var pNode = mapNodes[node.parentId];					// Нода родителя
 		if(pNode && pNode.propHiden && pNode.propHiden.subType === 'tilesParent') {
 			attr['minZoom'] = pNode.minZ || 1;

@@ -26,6 +26,7 @@
 			,'strokeStyle': gmxAPI._leaflet['utils'].dec2rgba(haloColor, 1)
 			,'fillStyle': gmxAPI._leaflet['utils'].dec2rgba(fillStyle, 1)
 		};
+		if(style['iconSize']) out['iconSize'] = style['iconSize'];
 		return out;
 	}
 	var prepareObject = function(node)	{				// подготовка Label от addObject
@@ -47,6 +48,10 @@
 			,'isVisible': true
 			,'node': node
 		};
+		if(style['iconSize']) {
+			out['sx'] = style['iconSize'].x;
+			out['sy'] = style['iconSize'].y;
+		}
 		return out;
 	}
 	var prepareItem = function(txt, geom, attr) {			// подготовка Label от векторного слоя
@@ -107,6 +112,10 @@
 			} else if(align == 'center') {
 				dx = -item.extent.x/2 + 1;
 				dy = item.extent.y/2;
+				if(item['style']['iconSize']) {
+					//dx += item['style']['iconSize'].x/2 + 1;
+					//dy += item['style']['iconSize'].y/2;
+				}
 			}
 
 			var lx = (item.point.x - mx) * mInPixel + dx - 1; 		lx = (0.5 + lx) << 0;

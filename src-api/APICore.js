@@ -1573,6 +1573,17 @@ window.gmxAPI = {
 		};
     }
 	,
+	'getTilePosZoomDelta': function(tilePoint, zoomFrom, zoomTo) {		// получить смещение тайла на меньшем zoom
+		var dz = Math.pow(2, zoomFrom - zoomTo);
+		var size = 256 / dz;
+		return {
+			'size': size
+			,'zDelta': dz
+			,'x': size * (tilePoint.x % dz)
+			,'y': size * (dz - 1 - tilePoint.y % dz)
+		};
+    }
+	,
 	'chkTileList': function(attr)	{		// получить список тайлов по bounds на определенном zoom
 		var z = attr.z;
 		var pz = Math.pow(2, -z);

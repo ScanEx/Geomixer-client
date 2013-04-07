@@ -404,6 +404,12 @@
 		{
 			return currentBaseLayerName;
 		}
+
+		map.isModeSelected = function(name)
+		{
+			var test = (gmxAPI.baseLayersTools ? gmxAPI.baseLayersTools.getAlias(name) : name);
+			return (test == currentBaseLayerName ? true : false);
+		}
 		map.getCurrentBaseLayerName = map.getBaseLayer;
 		map.getMode = map.getBaseLayer;
 
@@ -808,13 +814,12 @@
 		if(gmxAPI.proxyType === 'leaflet') {
 			gmxAPI.extendFMO('enableDragging', function(dragCallback, downCallback, upCallback)
 			{
-				var object = this;
 				var attr = { 'drag': dragCallback, 'dragstart':downCallback, 'dragend':upCallback };
-				gmxAPI._cmdProxy('enableDragging', { 'obj': object, 'attr':attr });
+				gmxAPI._cmdProxy('enableDragging', { 'obj': this, 'attr':attr });
 			});
-			gmxAPI.extendFMO('disableDragging', function(dragCallback, downCallback, upCallback)
+			gmxAPI.extendFMO('disableDragging', function()
 			{
-				gmxAPI._cmdProxy('disableDragging', { 'obj': object });
+				gmxAPI._cmdProxy('disableDragging', { 'obj': this });
 			});
 		}
 
