@@ -656,7 +656,7 @@
 				var tid = node['flipedIDS'][i];
 				if(tid in ph) return arr[ph[tid]];
 			}
-			return arr[0];
+			return arr[arr.length - 1];
 		}
 
 		var chkFlip = function(fid) {				// убираем дубли flip
@@ -1129,8 +1129,10 @@
 					if(style['weight'] == 0) opacity = 0; // если 0 ширина линии скрываем через opacity
 					var strokeStyle = style['color_rgba'] || 'rgba(0, 0, 255, 1)';
 					strokeStyle = strokeStyle.replace(/1\)/, opacity + ')');
-					ctx.strokeStyle = strokeStyle;
+				} else {
+					strokeStyle = 'rgba(0, 0, 255, 0)';
 				}
+				ctx.strokeStyle = strokeStyle;
 				
 				if(style['fill']) {
 					var fillOpacity = style['fillOpacity'] || 0;
