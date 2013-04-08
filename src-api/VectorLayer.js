@@ -424,14 +424,14 @@
 							gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode, 'attr':{'data':{'tileID':tkey, 'data':data}}});		// tile загружен
 							data = null;
 							if(drawMe) drawMe();
-							//if(drawMe) waitRedraw();
+							else waitRedraw();
 						}
 						,'onerror': function(err){						// ошибка при загрузке тайла
 							delete node['tilesLoadProgress'][tkey];
 							node['badTiles'][tkey] = true;
 							gmxAPI.addDebugWarnings(err);
 							if(drawMe) drawMe();
-							//if(drawMe) waitRedraw();
+							else waitRedraw();
 						}
 					};
 					gmxAPI._leaflet['vectorTileLoader'].push(item);

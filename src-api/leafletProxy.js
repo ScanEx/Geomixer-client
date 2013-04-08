@@ -3907,7 +3907,7 @@ console.log('chkBounds ', flag, bounds, chkBounds);
 				var timeClick = new Date().getTime() - timeDown;
 				if(timeClick > 1000) return;
 				var attr = parseEvent(e);
-				if(!attr || attr['buttons']) return;					// пропускаем при контекстном меню
+				if(!attr) return;					// пропускаем при контекстном меню
 				//if(utils.chkClassName(e.originalEvent.originalTarget, 'gmx_balloon', LMap._container)) return;	// click на балуне
 				attr['evName'] = 'onClick';
 				gmxAPI._leaflet['clickAttr'] = attr;
