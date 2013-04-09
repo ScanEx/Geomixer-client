@@ -154,7 +154,7 @@
         var imagesLayerName = '7FAD43F636AC4A0E8A39327F54CE68D6';
         map.layers[imagesLayerName].setStyle({fill: {opacity: 0}});
         
-        
+        nsGmx.timelineControl.setMapMode('selected');
         nsGmx.timelineControl.bindLayer(imagesLayerName);
         
         var infoContainer = $('<div/>').appendTo(canvas);
