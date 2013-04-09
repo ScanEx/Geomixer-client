@@ -424,14 +424,14 @@
 							gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode, 'attr':{'data':{'tileID':tkey, 'data':data}}});		// tile загружен
 							data = null;
 							if(drawMe) drawMe();
-							else waitRedraw();
+							else waitRedraw(100);
 						}
 						,'onerror': function(err){						// ошибка при загрузке тайла
 							delete node['tilesLoadProgress'][tkey];
 							node['badTiles'][tkey] = true;
 							gmxAPI.addDebugWarnings(err);
 							if(drawMe) drawMe();
-							else waitRedraw();
+							else waitRedraw(100);
 						}
 					};
 					gmxAPI._leaflet['vectorTileLoader'].push(item);
@@ -1143,19 +1143,7 @@
 			}
 			ctx.save();
 		}
-/*		
-		var reloadTiles = function(ph) {			// перерисовка тайлов
-			var zoom = LMap.getZoom();
-			for (var z in node['tilesRedrawAttr']) {
-				if(z != zoom) delete node['tilesRedrawAttr'][z];
-				else {
-					for (var tileID in ph) {
-						if(node['tilesRedrawAttr'][z][tileID]) node.repaintTile(node['tilesRedrawAttr'][z][tileID], true);
-					}
-				}
-			}
-		}
-*/		
+		
 		var needRedrawTiles = {};										// Список дорисовки обьектов по соседним тайлам
 
 		var removeFromBorderTiles = function(drawTileID) {			// Чистка обьектов соседних тайлов
@@ -1512,7 +1500,7 @@
 						})(rItem, geom['id']);
 					} else {
 						setCanvasStyle(ctx, style);
-						geom['paint'](attr, ctx);
+						geom['paint'](attr, style, ctx);
 						//if(propHiden['subType'] == 'cluster') chkBorderTiles(geom, attr);
 						if(geom.type === 'Point') chkBorderTiles(geom, attr);
 					}
@@ -1571,30 +1559,27 @@
 					//pt.geom.curStyle = (filter.regularStyle ? filter.regularStyle : null);
 				}
 			}			
-			//if(!pt.geom.curStyle) return;
 			if(!pt.geom.propHiden.curStyle) return;
 			
-			//attr.style = pt.geom.curStyle;
-			attr.style = pt.geom.propHiden.curStyle;
-//attr.style.rasterOpacity = 0;
-			setCanvasStyle(ctx, attr.style);
+			var itemStyle = pt.geom.propHiden.curStyle;
+			setCanvasStyle(ctx, itemStyle);
 			ctx.restore();
 			if(pt.imageObj) {
 				ctx.save();
-				if('rasterOpacity' in attr.style) {					// для растров в КР
-					ctx.globalAlpha = attr.style.rasterOpacity;
+				if('rasterOpacity' in itemStyle) {					// для растров в КР
+					ctx.globalAlpha = itemStyle.rasterOpacity;
 				} else {
 					chkGlobalAlpha(ctx);
 				}
 				var pattern = ctx.createPattern(pt.imageObj, "no-repeat");
 				ctx.fillStyle = pattern;
 				//ctx.fillRect(0, 0, 256, 256);
-				pt.geom['paintFill'](attr, ctx, false);
+				pt.geom['paintFill'](attr, itemStyle, ctx, false);
 				ctx.fill();
 				ctx.clip();
 				ctx.restore();
 			}
-			pt.geom['paint'](attr, ctx);
+			pt.geom['paint'](attr, itemStyle, ctx);
 		}
 
 		function chkItemFiltersVisible(geo)	{				// Проверить видимость фильтров для обьекта
@@ -1902,7 +1887,7 @@
 			//reCheckFilters();
 		}
 
-		var redrawAllTilesTimer = null;								// Таймер
+		//var redrawAllTilesTimer = null;								// Таймер
 		node.setFilter = function(fid)	{			// Добавить фильтр к векторному слою
 			var flag = true;
 			for (var i = 0; i < node['filters'].length; i++)
@@ -1917,10 +1902,10 @@
 			reCheckFilters();
 
 			if(node.isVisible) {
-				//tilesRedrawImages.clear();
-				if(redrawAllTilesTimer) clearTimeout(redrawAllTilesTimer);
-				//redrawAllTilesTimer = setTimeout(redrawAllTiles, 50);
 				redrawAllTiles();
+				//tilesRedrawImages.clear();
+				//if(redrawAllTilesTimer) clearTimeout(redrawAllTilesTimer);
+				//redrawAllTilesTimer = setTimeout(redrawAllTiles, 50);
 				//clearDrawDone();
 				//removeTiles();
 				//upDateLayer(20);
@@ -1990,6 +1975,7 @@
 					node.removeTile(key);	// Полная перезагрузка тайлов
 				}
 				node['addedItems'] = [];
+				node['objectsData'] = {};
 				redrawFlag = true;
 			}
 			
