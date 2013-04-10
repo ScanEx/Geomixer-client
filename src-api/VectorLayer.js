@@ -1524,7 +1524,7 @@
 			drawGeoArr(arr);
 			arr = null;
 			if(rasterNums === 0) myLayer.tileDrawn(tile, cnt);
-			chkBorders();
+			chkBorders(200);
 			return out;
 		}
 		node['labelBounds'] = {'add': {}, 'skip': {}};			// Добавленные и пропущенные labels обьектов слоя
@@ -1786,6 +1786,7 @@
 		}
 		
 		var reCheckFilters = function()	{								// переустановка обьектов по фильтрам
+			needRedrawTiles = {};			
 			for (var tileID in node['tilesGeometry'])						// Перебрать все загруженные тайлы
 			{
 				var arr = node['tilesGeometry'][tileID];
