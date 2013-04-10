@@ -377,21 +377,22 @@ mapHelper.prototype.getMapState = function()
 	
 	this.findTreeElems(_layersTree.treeModel.getRawTree(), function(elem)
 	{
+        var props = elem.content.properties;
 		if (elem.type == 'group')
 		{
-			var groupId = elem.content.properties.GroupID;
+			var groupId = props.GroupID;
 
-			if (!$("div[GroupID='" + groupId + "']").length)
+			if (!$("div[GroupID='" + groupId + "']").length && !props.changedByViewer)
 				return;
 			
-			condition.visible[groupId] = elem.content.properties.visible;
-			condition.expanded[groupId] = elem.content.properties.expanded;
+			condition.visible[groupId] = props.visible;
+			condition.expanded[groupId] = props.expanded;
 		}
 		else
 		{
-			if (elem.content.properties.LayerID && !$("div[LayerID='" + elem.content.properties.LayerID + "']").length)
+			if (props.LayerID && !$("div[LayerID='" + props.LayerID + "']").length && !props.changedByViewer)
 				return;
-			else if (elem.content.properties.MultiLayerID && !$("div[MultiLayerID='" + elem.content.properties.MultiLayerID + "']").length)
+			else if (props.MultiLayerID && !$("div[MultiLayerID='" + props.MultiLayerID + "']").length && !props.changedByViewer)
 				return;
 			
 			condition.visible[elem.content.properties.name] = elem.content.properties.visible;

@@ -678,87 +678,87 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 	
 	// if (!layerManagerFlag)
 	// {
-		var timer = null,
-			clickFunc = function()
-			{
-                if (_this._renderParams.allowActive)
-                    _this.setActive(span);
-				
-                if (_this._renderParams.showVisibilityCheckbox)
-                {
-                    var box = span.parentNode.parentNode.firstChild;
-                    
-                    box.checked = true;
-                    
-                    if (!box.isDummyCheckbox)
-                    {
-                        var parentParams = _this.getParentParams(span.parentNode.parentNode.parentNode);
-                        _this.visibilityFunc(box, true, parentParams.list);
-                    }
-                        
-                    var clickDiv = $(span.parentNode.parentNode.parentNode).children("div.hitarea");
-                        
-                    if (clickDiv.length)
-                        $(clickDiv[0]).trigger("click");
-                }
-			},
-			dbclickFunc = function()
-			{
-				var childsUl = _abstractTree.getChildsUl(span.parentNode.parentNode.parentNode);
-				
-				if (childsUl)
-				{
-					var bounds = {
-							minX: 100000000, 
-							minY: 100000000, 
-							maxX: -100000000, 
-							maxY: -100000000
-						},
-						minLayerZoom = 20;
-					
-					_mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child)
-					{
-						if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) )
-						{
-							var layer = globalFlashMap.layers[child.content.properties.name],
-								layerBounds = layer.getLayerBounds();
-						
-							bounds.minX = Math.min(layerBounds.minX, bounds.minX);
-							bounds.minY = Math.min(layerBounds.minY, bounds.minY);
-							bounds.maxX = Math.max(layerBounds.maxX, bounds.maxX);
-							bounds.maxY = Math.max(layerBounds.maxY, bounds.maxY);
-							
-							minLayerZoom = Math.min(minLayerZoom, _this.getMinLayerZoom(layer));
-						}
-					});
-					
-					_this.layerZoomToExtent(bounds, minLayerZoom);
-				}
-			};
-		
-		span.onclick = function()
-		{
-			if (timer)
-				clearTimeout(timer);
-			
-			timer = setTimeout(clickFunc, 200)
-		}
-		
-        if (this._renderParams.allowDblClick)
+    var timer = null,
+        clickFunc = function()
         {
-            span.ondblclick = function()
+            if (_this._renderParams.allowActive)
+                _this.setActive(span);
+            
+            if (_this._renderParams.showVisibilityCheckbox)
             {
-                if (timer)
-                    clearTimeout(timer);
+                var box = span.parentNode.parentNode.firstChild;
                 
-                timer = null;
+                box.checked = true;
                 
-                clickFunc();
-                dbclickFunc();
+                if (!box.isDummyCheckbox)
+                {
+                    var parentParams = _this.getParentParams(span.parentNode.parentNode.parentNode);
+                    _this.visibilityFunc(box, true, parentParams.list);
+                }
+                    
+                var clickDiv = $(span.parentNode.parentNode.parentNode).children("div.hitarea");
+                    
+                if (clickDiv.length)
+                    $(clickDiv[0]).trigger("click");
             }
+        },
+        dbclickFunc = function()
+        {
+            var childsUl = _abstractTree.getChildsUl(span.parentNode.parentNode.parentNode);
+            
+            if (childsUl)
+            {
+                var bounds = {
+                        minX: 100000000, 
+                        minY: 100000000, 
+                        maxX: -100000000, 
+                        maxY: -100000000
+                    },
+                    minLayerZoom = 20;
+                
+                _mapHelper.findChilds(_this.findTreeElem(span.parentNode.parentNode).elem, function(child)
+                {
+                    if (child.type == 'layer' && (child.content.properties.LayerID || child.content.properties.MultiLayerID) )
+                    {
+                        var layer = globalFlashMap.layers[child.content.properties.name],
+                            layerBounds = layer.getLayerBounds();
+                    
+                        bounds.minX = Math.min(layerBounds.minX, bounds.minX);
+                        bounds.minY = Math.min(layerBounds.minY, bounds.minY);
+                        bounds.maxX = Math.max(layerBounds.maxX, bounds.maxX);
+                        bounds.maxY = Math.max(layerBounds.maxY, bounds.maxY);
+                        
+                        minLayerZoom = Math.min(minLayerZoom, _this.getMinLayerZoom(layer));
+                    }
+                });
+                
+                _this.layerZoomToExtent(bounds, minLayerZoom);
+            }
+        };
+    
+    span.onclick = function()
+    {
+        if (timer)
+            clearTimeout(timer);
+        
+        timer = setTimeout(clickFunc, 200)
+    }
+    
+    if (this._renderParams.allowDblClick)
+    {
+        span.ondblclick = function()
+        {
+            if (timer)
+                clearTimeout(timer);
+            
+            timer = null;
+            
+            clickFunc();
+            dbclickFunc();
         }
-		
-		disableSelection(span);
+    }
+    
+    disableSelection(span);
 	// }
 	
 	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
@@ -947,6 +947,7 @@ layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibili
 	var treeElem = this.findTreeElem(checkbox.parentNode).elem;
 	var _this = this;
 	treeElem.content.properties.visible = flag;
+    treeElem.content.properties.changedByViewer = true;
 	
 	if (checkbox.parentNode.getAttribute('GroupID'))
 	{
@@ -960,30 +961,19 @@ layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibili
 		{
 			_mapHelper.findTreeElems(treeElem, function(child, visflag, list, index)
 			{
-				if (!visflag || (list && index != 0))
-				{
-					child.content.properties.visible = false;
-					
-					var elem = _this.findTreeBox(child);
-					
-					if (elem)
-					{
-						elem.firstChild.checked = false;
-						_this.setVisibility(elem.firstChild, false);
-					}
-				}
-				else
-				{
-					child.content.properties.visible = true;
-					
-					var elem = _this.findTreeBox(child);
-					
-					if (elem)
-					{
-						elem.firstChild.checked = true;
-						_this.setVisibility(elem.firstChild, true);
-					}
-				}
+                var props = child.content.properties;
+                var visible = visflag && !(list && index != 0);
+                
+                props.visible = visible;
+                props.changedByViewer = true;
+                
+                var elem = _this.findTreeBox(child);
+                
+                if (elem)
+                {
+                    elem.firstChild.checked = visible;
+                    _this.setVisibility(elem.firstChild, visible);
+                }
 			}, flag, parentParams.list);
 		}
 	
@@ -1006,13 +996,17 @@ layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibili
 
 layersTree.prototype.layerVisible = function(box, flag)
 {
-	var layerName = box.parentNode.gmxProperties.content.properties.name;
+    var props = box.parentNode.gmxProperties.content.properties,
+        layer = globalFlashMap.layers[props.name];
 	
-	if (globalFlashMap.layers[layerName])
-		globalFlashMap.layers[layerName].setVisible(flag);
+	if (layer)
+        layer.setVisible(flag);
 	
-	if (globalFlashMap.layers[layerName].miniLayer)
-		globalFlashMap.layers[layerName].miniLayer.setVisible(flag);
+	if (layer.miniLayer)
+		layer.miniLayer.setVisible(flag);
+    
+    //props.visible = flag;
+    props.changedByViewer = true;
 }
 
 layersTree.prototype.getLayerVisibility = function(box)
@@ -1087,11 +1081,16 @@ layersTree.prototype.updateChildLayersMapVisibility = function(div)
 	
 	_mapHelper.findChilds(treeParent, function(child, visible)
 	{
-		if (globalFlashMap.layers[child.content.properties.name])
-			globalFlashMap.layers[child.content.properties.name].setVisible(visible);
+        var layer = globalFlashMap.layers[child.content.properties.name];
+		if (layer)
+			layer.setVisible(visible);
 		
-		if (globalFlashMap.layers[child.content.properties.name].miniLayer)
-			globalFlashMap.layers[child.content.properties.name].miniLayer.setVisible(visible);
+		if (layer.miniLayer)
+			layer.miniLayer.setVisible(visible);
+            
+        //child.content.properties.visible = visible;
+        child.content.properties.changedByViewer = true;
+            
 	},  div.getAttribute('MapID') ? true : this.getLayerVisibility(div.firstChild))
 	
 	var ulChilds = _abstractTree.getChildsUl(div.parentNode);
@@ -1383,6 +1382,9 @@ layersTree.prototype.addLayersToMap = function(elem)
 			globalFlashMap.addLayer(layer, visibility);
 			
 			globalFlashMap.layers[name].setVisible(visibility);
+            
+            layer.properties.changedByViewer = true;
+            //layer.properties.visible = visibility;
 			//globalFlashMap.layers[name].bounds = getLayerBounds( elem.content.geometry.coordinates[0], globalFlashMap.layers[name]);
 		}
 		else
@@ -1470,11 +1472,16 @@ layersTree.prototype.updateMapLayersVisibility = function(li)
 	
 	$(li).find("div[LayerID],div[MultiLayerID]").each(function()
 	{
-		if (this.gmxProperties.content.properties.visible &&
-			_this.getLayerVisibility(this.firstChild))
-			globalFlashMap.layers[this.gmxProperties.content.properties.name].setVisible(true);
-		else
-			globalFlashMap.layers[this.gmxProperties.content.properties.name].setVisible(false);
+        var props = this.gmxProperties.content.properties;
+		if (props.visible && _this.getLayerVisibility(this.firstChild)) {
+			globalFlashMap.layers[props.name].setVisible(true);
+            //props.visible = true;
+        } else {
+			globalFlashMap.layers[props.name].setVisible(false);
+            //props.visible = false;
+        }
+            
+        props.changedByViewer = true;
 	})
 }
 
@@ -1614,6 +1621,9 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 					_mapHelper.updateMapStyles(newStyles, elem.content.properties.name, elem.content.properties);
 					
 					globalFlashMap.layers[elem.content.properties.name].setVisible(visibleFlag);
+                    
+                    //elem.content.properties.visible = visibleFlag;
+                    elem.content.properties.changedByViewer = true;
 				}
 				else
 					_mapHelper.updateMapStyles(newStyles, elem.content.properties.name, elem.content.properties);
