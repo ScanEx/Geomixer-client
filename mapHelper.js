@@ -1024,12 +1024,14 @@ mapHelper.prototype.createFilterEditor = function(filterParam, attrs, elemCanvas
 		return this.createFilterEditorInner(filter, attrs, elemCanvas);
 }
 
+mapHelper.prototype._balloonEditorId = 0;
+
 //identityField - будем исключать из списка аттрибутов, показываемых в балуне, так как это внутренняя техническая информация
 mapHelper.prototype.createBalloonEditor = function(balloonParams, attrs, elemCanvas, identityField)
 {
 	var _this = this,
         layerName = elemCanvas.parentNode.gmxProperties.content.properties.name,
-        textareaID = 'ballooneditor' + layerName,
+        textareaID = 'ballooneditor' + layerName + (this._balloonEditorId++),
         balloonText = _textarea(null, [
             ['dir','className','inputStyle balloonEditor'],
             ['css','overflow','auto'],
@@ -1346,6 +1348,17 @@ mapHelper.prototype.swapFilters = function(div, firstNum, filterCanvas)
 	this.updateFilterMoveButtons(filterCanvas.childNodes[firstNum + 1]);
 }
 
+mapHelper.prototype.updateTinyMCE = function(container) {
+    gmxCore.loadModule('TinyMCELoader', function() {
+        $('.balloonEditor', container).each(function() {
+            var id = $(this).attr('id');
+            if (!tinyMCE.get(id)) {
+                tinyMCE.execCommand("mceAddControl", true, id);
+            }
+        })
+    });
+}
+
 mapHelper.prototype.attachLoadingFilterEvent = function(filterCanvas, parentObject, parentStyle, geometryType, attrs, elemCanvas)
 {
 	var _this = this;
@@ -1359,6 +1372,8 @@ mapHelper.prototype.attachLoadingFilterEvent = function(filterCanvas, parentObje
 			ulFilterParams.loaded = true;
 			
 			_this.createFilter(parentObject, parentStyle, geometryType, attrs, elemCanvas, ulFilterParams, true);
+            
+            _mapHelper.updateTinyMCE(filterCanvas);
 		}
 	})
 }
@@ -2828,13 +2843,9 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                     delete _this.layerEditorsHash[elemProperties.name];
                 });
                 
-                gmxCore.loadModule('TinyMCELoader', function() {
-                    createdDef.done(function() {
-                        $('.balloonEditor', divDialog).each(function() {
-                            tinyMCE.execCommand("mceAddControl", true, $(this).attr('id'));
-                        })
-                    });
-                });
+                createdDef.done(function(){
+                    _mapHelper.updateTinyMCE(divProperties);
+                })
                 
 				// при сохранении карты сбросим все временные стили в json карты
 				divProperties.closeFunc = closeFunc;
