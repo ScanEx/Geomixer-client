@@ -167,7 +167,10 @@ var nsGmx = nsGmx || {};
                     {
                         sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
                     }
-                }, 'callback');
+                }, 'callback', 
+                function() { //если нет доступа к серверу авторизации, пробуем авторизоваться локально
+                    sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
+                });
             }
             else
             {
