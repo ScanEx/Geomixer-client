@@ -1,20 +1,34 @@
 ﻿//Плагин для добавления таймлайна для просмотра данных мультивременных слоёв.
 (function ($){
 
-_translationsHash.addtext("eng", {
-    "Показывать только пересекающиеся с центром экрана": "Show intersected with map center",
-    "Показывать на карте только выбранные снимки": "Show on map only selected items",
-    "Только выбранные": "Selected only",
-    "По центру": "Under crosshair",
-    "Добавить к таймлайну": "Add to timeline"
+_translationsHash.addtext("rus", {
+    "timeline.modesTextTitle": "Показывать объекты",
+    "timeline.modesTextTimeline": "на таймлайне",
+    "timeline.modesTextMap": "на карте",
+    "timeline.contextMemuTitle": "Добавить к таймлайну",
+    
+    "timeline.mapMode.none": "все",
+    "timeline.mapMode.screen": "на экране",
+    "timeline.mapMode.center": "над центром",
+    
+    "timeline.timelineMode.none": "все",
+    "timeline.timelineMode.range": "по датам",
+    "timeline.timelineMode.selected": "выделенные"
 });
 
-_translationsHash.addtext("rus", {
-    "Показывать только пересекающиеся с центром экрана": "Показывать только пересекающиеся с центром экрана",
-    "Показывать на карте только выбранные снимки": "Показывать на карте только выбранные снимки",
-    "Только выбранные": "Только выбранные",
-    "По центру": "По центру",
-    "Добавить к таймлайну": "Добавить к таймлайну"
+_translationsHash.addtext("eng", {
+    "timeline.modesTextTitle": "Show objects",
+    "timeline.modesTextTimeline": "at timeline",
+    "timeline.modesTextMap": "on map",
+    "timeline.contextMemuTitle": "Add to timeline",
+    
+    "timeline.mapMode.none": "all",
+    "timeline.mapMode.screen": "at screen",
+    "timeline.mapMode.center": "at center",
+    
+    "timeline.timelineMode.none": "all",
+    "timeline.timelineMode.range": "by dates",
+    "timeline.timelineMode.selected": "selected"
 });
 
 var fromTilesToDate = function(type, value)
@@ -230,6 +244,26 @@ var TimelineController = function(data, map) {
         var filters = data.get('userFilters').slice(0);
         
         filters.unshift(modeFilters[data.get('timelineMode')]);
+        
+        if (!layer.getVisibility()) {
+            var index = 0;
+            while (index < timeline.items.length) {
+                var itemData = timeline.getData()[index].userdata;
+                if (itemData.layerName === layerName) {
+                    timeline.deleteItem(index, true);
+                } else {
+                    index++;
+                }
+            }
+            
+            for (var id in items[layerName]) {
+                delete items[layerName][id].timelineItem;
+            }
+            
+            timeline.render();
+            
+            return;
+        }
 
         for (var i in items[layerName])
         {
@@ -270,6 +304,7 @@ var TimelineController = function(data, map) {
                     {
                         timeline.deleteItem(index, true);
                         delete items[layerName][i].timelineItem;
+                        break;
                     }
                 }
             }
@@ -396,10 +431,19 @@ var TimelineController = function(data, map) {
         }
         $(nextDiv).addClass('timeline-controls');
         
+        // container.keypress(function(event) {
+            // console.log(event);
+            // if (event.keyCode === 37) { //влево
+                // activateNextItem(-1);
+            // } else if (event.keyCode === 39) { //вправо
+                // activateNextItem(1);
+            // }
+        // })
+        
         var timelineModeSelect = $('<select/>').addClass('selectStyle')
-                .append($('<option/>').val('none').text('все'))
-                .append($('<option/>').val('screen').text('на экране'))
-                .append($('<option/>').val('center').text('над центром'));
+                .append($('<option/>').val('none').text(_gtxt('timeline.mapMode.none')))
+                .append($('<option/>').val('screen').text(_gtxt('timeline.mapMode.screen')))
+                .append($('<option/>').val('center').text(_gtxt('timeline.mapMode.center')));
                 
         timelineModeSelect.change(function() {
             data.set('timelineMode', $(':selected', this).val());
@@ -416,9 +460,9 @@ var TimelineController = function(data, map) {
         updateTimelineModeSelect();
                 
         var mapModeSelect = $('<select/>').addClass('selectStyle')
-                .append($('<option/>').val('selected').text('выделенные'))
-                .append($('<option/>').val('range').text('по датам'))
-                .append($('<option/>').val('none').text('все'));
+                .append($('<option/>').val('selected').text(_gtxt('timeline.timelineMode.selected')))
+                .append($('<option/>').val('range').text(_gtxt('timeline.timelineMode.range')))
+                .append($('<option/>').val('none').text(_gtxt('timeline.timelineMode.none')));
                 
         var updateMapModeSelect = function() {
             var mode = data.get('mapMode');
@@ -465,12 +509,37 @@ var TimelineController = function(data, map) {
         
         var controlsContainer = $('<div/>').addClass('timeline-controls').append(
             $('<div/>').append(
-                $('<span>Показывать объекты: на таймлайне</span>'), timelineModeSelect, countSpan,
-                $('<span>на карте</span>').css('margin-left', '10px'), mapModeSelect
+                $('<span/>').text(_gtxt('timeline.modesTextTitle') + ': ' +_gtxt('timeline.modesTextTimeline')), timelineModeSelect, countSpan,
+                $('<span></span>').text(_gtxt('timeline.modesTextMap')).css('margin-left', '10px'), mapModeSelect
             ),
             prevDiv, nextDiv,
             calendarContainer
         ).appendTo(container);
+        
+        _mapHelper.customParamsManager.addProvider({
+            name: 'Timeline',
+            loadState: function(state) 
+            {
+                data.set({
+                    range: {
+                        start: new Date(state.dateStart),
+                        end:   new Date(state.dateEnd)
+                    },
+                    timelineMode: state.timelineMode,
+                    mapMode:      state.mapMode
+                })
+            },
+            saveState: function() 
+            {
+                var range = data.get('range');
+                return {
+                    dateStart:    range.start.valueOf(),
+                    dateEnd:      range.end.valueOf(),
+                    timelineMode: data.get('timelineMode'),
+                    mapMode:      data.get('mapMode')
+                }
+            }
+        });
     }
     
     data.on('change:userFilters change:items', updateItems);
@@ -553,6 +622,8 @@ var TimelineController = function(data, map) {
             data.trigger('change change:items');
             
         }, {asArray: true, ignoreVisibilityFilter: true})
+        
+        layer.addListener('onChangeVisible', updateItems);
     })
     
     data.on('change:range', function(){
@@ -627,7 +698,7 @@ var publicInterface = {
         nsGmx.timelineControl.toggleVisibility(!map.isToolsMinimized());
         
         nsGmx.ContextMenuController.addContextMenuElem({
-            title: function() { return _gtxt("Добавить к таймлайну"); },
+            title: function() { return _gtxt("timeline.contextMemuTitle"); },
             isVisible: function(context)
             {
                 return !context.layerManagerFlag && 
