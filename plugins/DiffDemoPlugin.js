@@ -189,6 +189,27 @@
         }
         
         this.bindDiffEvents();
+        
+        $('#flash').bind('keydown', function(event) {
+        
+            if (event.keyCode !== 32) {
+                return;
+            }
+            
+            for (var k = 0; k < g_diffLayerNames.length; k++) {
+                map.layers[g_diffLayerNames[k]].setVisible(false);
+            }
+        })
+        
+        $('#flash').bind('keyup', function(event) {
+            if (event.keyCode !== 32) {
+                return;
+            }
+            
+            for (var k = 0; k < g_diffLayerNames.length; k++) {
+                map.layers[g_diffLayerNames[k]].setVisible(true);
+            }
+        })
     }
     
     gmxCore.addModule('DiffDemoPlugin', {
