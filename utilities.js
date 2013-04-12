@@ -520,7 +520,7 @@ nsGmx.Utils.uniqueGlobalName = (function()
     }
 })();
 
-function sendCrossDomainJSONRequest(url, callback, callbackParamName)
+function sendCrossDomainJSONRequest(url, callback, callbackParamName, errorCallback)
 {
 	callbackParamName = callbackParamName || 'CallbackName';
     
@@ -534,6 +534,10 @@ function sendCrossDomainJSONRequest(url, callback, callbackParamName)
 	});
     
     var sepSym = url.indexOf('?') == -1 ? '?' : '&';
+    
+    if (errorCallback) {
+        script.onerror = errorCallback;
+    }
     
 	script.setAttribute("src", url + sepSym + callbackParamName + "=" + callbackName + "&" + Math.random());
 	document.getElementsByTagName("head").item(0).appendChild(script);
