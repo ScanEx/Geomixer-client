@@ -1,6 +1,6 @@
 ﻿!function($){
 
-var ColumnsModel = Backbone.Model.extend({
+var LatLngColumnsModel = Backbone.Model.extend({
     defaults: {
         XCol: null,
         YCol: null
@@ -32,6 +32,7 @@ var LayerProperties = Backbone.Model.extend({
             Name:           layerProperties.name,
             EncodeSource:   layerProperties.EncodeSource,
             SourceColumns:  layerProperties.SourceColumns,
+            Columns:        layerProperties.Columns,
             TableName:      layerProperties.TableName,
             TableCS:        layerProperties.TableCS,
             SourceType:     layerProperties.SourceType || 'file',
@@ -40,7 +41,6 @@ var LayerProperties = Backbone.Model.extend({
             Attributes:     divProperties.attributes,
             AttrTypes:      divProperties.attrTypes,
             
-            UserAttr:              null,
             MetaPropertiesEditing: null
         })
         
@@ -61,7 +61,7 @@ var LayerProperties = Backbone.Model.extend({
             columnName: divProperties.TemporalColumnName
         }));
         
-        this.set('SelectedColumns', new ColumnsModel({
+        this.set('GeometryColumnsLatLng', new LatLngColumnsModel({
             XCol: layerProperties.GeometryXCol,
             YCol: layerProperties.GeometryYCol
         }));
@@ -126,18 +126,20 @@ var LayerProperties = Backbone.Model.extend({
                 reqParams.maxShownPeriod = tempProperties.get('maxShownPeriod');
             }
 
-            var selectedColumns = attrs.SelectedColumns;
-            if (selectedColumns && selectedColumns.get('XCol') && selectedColumns.get('YCol')) {
-                reqParams.ColX = selectedColumns.get('XCol');
-                reqParams.ColY = selectedColumns.get('YCol');
+            var geomColumns = attrs.GeometryColumnsLatLng;
+            if (geomColumns && geomColumns.get('XCol') && geomColumns.get('YCol')) {
+                reqParams.ColX = geomColumns.get('XCol');
+                reqParams.ColY = geomColumns.get('YCol');
             }
-                    
+            
+            if (attrs.Columns) reqParams.Columns = JSON.stringify(attrs.Columns);
             if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
-                    
+            
             if (!name && attrs.SourceType === 'manual')
             {
-                if (attrs.UserBorder) reqParams.UserBorder = JSON.stringify(attrs.UserBorder);
-                reqParams.Columns = JSON.stringify(attrs.SourceColumns);
+                if (attrs.UserBorder) {
+                    reqParams.UserBorder = JSON.stringify(attrs.UserBorder);
+                }
 
                 reqParams.geometrytype = attrs.GeometryType;
                         
@@ -149,7 +151,7 @@ var LayerProperties = Backbone.Model.extend({
                         
                         callback && callback(response);
                     }
-                );
+                )
             }
             else
             {
@@ -197,7 +199,7 @@ var LayerProperties = Backbone.Model.extend({
 nsGmx.LayerProperties = LayerProperties;
 gmxCore.addModule('LayerProperties', {
     LayerProperties: LayerProperties,
-    ColumnsModel: ColumnsModel
+    LatLngColumnsModel: LatLngColumnsModel
 })
 
 }();

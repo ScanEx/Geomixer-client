@@ -9,14 +9,14 @@
 *   - defaultX {string} - дефолтное значение поля X (не обязятелен)
 *   - defaultY {string} - дефолтное значение поля Y (не обязятелен)
 */
-var SelectColumnsWidget = function(parent, columns, sourceColumns)
+var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
 {
     //var fields = params.fields;
     var updateWidget = function() {
         var parsedColumns = parseColumns(sourceColumns);
 	
-        if (!parsedColumns.geomCount && parsedColumns.coordFields.length) {
-            var fields = parsedColumns.coordFields;
+        if (!parsedColumns.geomCount && parsedColumns.coordColumns.length) {
+            var fields = parsedColumns.coordColumns;
             
 			var selectLat = nsGmx.Utils._select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
 				selectLon = nsGmx.Utils._select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
@@ -70,28 +70,28 @@ var SelectColumnsWidget = function(parent, columns, sourceColumns)
     }
 }
 
-var parseColumns = function(fields)
+var parseColumns = function(columns)
 {
     var geomCount = 0; //кол-во колонок с типом Геометрия
-    var coordFields = []; //колонки, которые могут быть использованы для выбора координат
-    var dateFields = []; //колонки, которые могут быть использованы для выбора временнОго параметра
+    var coordColumns = []; //колонки, которые могут быть использованы для выбора координат
+    var dateColumns = []; //колонки, которые могут быть использованы для выбора временнОго параметра
         
-    fields = fields || [];
+    columns = columns || [];
         
-    for (var f = 0; f < fields.length; f++)
+    for (var f = 0; f < columns.length; f++)
     {
-        var type = fields[f].ColumnSimpleType.toLowerCase();
+        var type = columns[f].ColumnSimpleType.toLowerCase();
         if ( type === 'geometry')
             geomCount++;
             
-        if ((type === 'string' || type === 'integer' || type === 'float') && !fields[f].IsIdentity && !fields[f].IsPrimary)
-            coordFields.push(fields[f].Name);
+        if ((type === 'string' || type === 'integer' || type === 'float') && !columns[f].IsIdentity && !columns[f].IsPrimary)
+            coordColumns.push(columns[f].Name);
             
         if (type === 'date' || type === 'datetime')
-            dateFields.push(fields[f].Name);
+            dateColumns.push(columns[f].Name);
     }
     
-    return { geomCount: geomCount, coordFields: coordFields, dateFields: dateFields };
+    return { geomCount: geomCount, coordColumns: coordColumns, dateColumns: dateColumns };
 }
 
 var getSourceColumns = function(name, doNotParse)
@@ -108,8 +108,8 @@ var getSourceColumns = function(name, doNotParse)
         if (doNotParse) {
             deferred.resolve(response.Result);
         } else {
-        var parsedColumns = parseColumns(response.Result);
-        deferred.resolve(parsedColumns.geomCount == 0, parsedColumns.coordFields, parsedColumns.dateFields);
+            var parsedColumns = parseColumns(response.Result);
+            deferred.resolve(parsedColumns.geomCount == 0, parsedColumns.coordColumns, parsedColumns.dateColumns);
         }
     })
     
@@ -121,13 +121,25 @@ var getFileExt = function(path)
     return String(path).substr(String(path).lastIndexOf('.') + 1, path.length);
 }
 
+function capitaliseFirstLetter(string)
+{
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 //events: newAttribute, delAttribute, updateAttribute, change
 var ManualAttrModel = function() {
     var _attributes = [];
     
     this.addAttribute = function(type, name)
     {
-        _attributes.push({type: type, name: name});
+        _attributes.push({
+            type: type, 
+            name: name,
+            IsPrimary: false,
+            IsIdentity: false,
+            IsComputed: false
+        });
+        
         $(this).triggerHandler('newAttribute');
         $(this).triggerHandler('change');
     };
@@ -156,9 +168,48 @@ var ManualAttrModel = function() {
             
     this.getAttribute = function(idx){ return _attributes[idx]; };
     this.getCount = function(){ return _attributes.length; };
-    this.each = function(callback) { 
-        for (var k = 0; k < _attributes.length; k++)
-            callback(_attributes[k], k);
+    this.each = function(callback, addInternalColumns) { 
+        for (var k = 0; k < _attributes.length; k++) {
+            var column = _attributes[k];
+            var isInternal = column.IsPrimary || column.IsIdentity || column.IsComputed || column.type.server === 'geometry';
+            if (!isInternal || addInternalColumns) {
+                callback(column, k);
+            }
+        }
+    }
+    
+    this.initFromServerFormat = function(serverColumns) {
+        _attributes = [];
+        $.each(serverColumns || [], function(i, column) {
+            //if (!column.IsPrimary && !column.IsIdentity && !column.IsComputed && column.ColumnSimpleType !== 'geometry') {
+            var type = nsGmx._.find(ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType});
+            _attributes.push({
+                type: type || {server: column.ColumnSimpleType}, 
+                name: column.Name,
+                oldName: column.Name,
+                IsPrimary: column.IsPrimary,
+                IsIdentity: column.IsIdentity,
+                IsComputed: column.IsComputed
+            });
+            //}
+        })
+        $(this).triggerHandler('newAttribute');
+        $(this).triggerHandler('change');
+    }
+    
+    this.toServerFormat = function() {
+        var res = [];
+        $.each(_attributes, function(i, attr) {
+            res.push({ 
+                Name: attr.name,
+                OldName: attr.oldName,
+                ColumnSimpleType: capitaliseFirstLetter(attr.type.server), 
+                IsPrimary: attr.IsPrimary, 
+                IsIdentity: attr.IsIdentity, 
+                IsComputed: attr.IsComputed});
+        })
+        
+        return res;
     }
 };
 
@@ -182,10 +233,11 @@ var ManualAttrView = function()
     var createTypeSelector = function()
     {
         var s = nsGmx.Utils._select(null, [['css', 'width', '83px'], ['dir', 'className', 'selectStyle']]);
-        for (var type in ManualAttrModel.TYPES)
+        for (var type in ManualAttrModel.TYPES) {
             $(s).append(_option([_t(ManualAttrModel.TYPES[type].user)], [['dir', 'attrType', ManualAttrModel.TYPES[type]], ['attr', 'id', ManualAttrModel.TYPES[type].server]]));
+        }
         return s;
-            }
+    }
             
     var redraw = function()
     {
@@ -194,9 +246,10 @@ var ManualAttrView = function()
         $(_parent).empty();
         _trs = [];
         
-        for (var i = 0; i < _model.getCount(); i++)
-        {
-            var attr = _model.getAttribute(i);
+        //for (var i = 0; i < _model.getCount(); i++)
+        //{
+        _model.each(function(attr, i) {
+            //var attr = _model.getAttribute(i);
             
             var typeSelector = createTypeSelector();
             typeSelector.attrIdx = i;
@@ -213,7 +266,7 @@ var ManualAttrView = function()
             $(nameSelector).attr({attrIdx: i}).val(attr.name);
             
             $(nameSelector).bind('keyup', function()
-        {
+            {
                 var idx = $(this).attr('attrIdx');
                 var name = $(this).val();
                 
@@ -230,12 +283,12 @@ var ManualAttrView = function()
             var moveIcon = _img(null, [['attr', 'src', "img/moveIcon.gif"], ['dir', 'className', 'moveIcon'], ['css', 'cursor', 'move'], ['css', 'width', '13px']]);
                 
             _trs.push(_tr([_td([nameSelector]), _td([typeSelector]), _td([deleteIcon]), _td([moveIcon])]));
-            }
+        })
             
         var tbody = _tbody(_trs);
         $(tbody).sortable({axis: 'y', handle: '.moveIcon'});
         $(_parent).append(_table([tbody], [['dir', 'className', 'customAttributes']]));
-        }
+    }
         
     this.init = function(parent, model)
     {
@@ -337,7 +390,7 @@ var createPageMain = function(parent, layerProperties) {
 }
 
 var createPageVectorSource = function(layerProperties) {
-    var ColumnsModel = new gmxCore.getModule('LayerProperties').ColumnsModel;
+    var LatLngColumnsModel = new gmxCore.getModule('LayerProperties').LatLngColumnsModel;
     var shownProperties = [];
     var layerName = layerProperties.get('Name');
     var sourceType = layerProperties.get('SourceType');
@@ -355,8 +408,8 @@ var createPageVectorSource = function(layerProperties) {
     }
     
     var fileSourceColumns = sourceType === 'file' ? layerProperties.get('SourceColumns') : [];
-    var fileSelectedColumns = sourceType === 'file' ? layerProperties.get('SelectedColumns') : new ColumnsModel();
-    var fileColumnsWidget = new SelectColumnsWidget(xlsColumnsParent, fileSelectedColumns, fileSourceColumns);
+    var fileSelectedColumns = sourceType === 'file' ? layerProperties.get('GeometryColumnsLatLng') : new LatLngColumnsModel();
+    var fileColumnsWidget = new SelectLatLngColumnsWidget(xlsColumnsParent, fileSelectedColumns, fileSourceColumns);
     
     shapeFileLink.style.marginLeft = '3px';
     
@@ -407,17 +460,36 @@ var createPageVectorSource = function(layerProperties) {
             }
         })
     }
-        
+    
+    var fileColumnsContainer = _div();
+    var fileAttrModel = new ManualAttrModel();
+    if ( layerProperties.get('SourceType') === 'file' ) {
+        fileAttrModel.initFromServerFormat(layerProperties.get('Columns'));
+    }
+    
+    var fileAttrView = new ManualAttrView();
+    fileAttrView.init(fileColumnsContainer, fileAttrModel);
+    
+    var fileAddAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
+    fileAddAttribute.onclick = function()
+    {
+        fileAttrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
+    }
+    
+    $(fileAttrModel).change(function() {
+        layerProperties.set('Columns', fileAttrModel.toServerFormat());
+    });
+    
     var sourceFile = _div(null, [['dir', 'id', 'fileSource' + layerName]]);
-    _(sourceFile, [shapePathInput, shapeFileLink, encodingParent, xlsColumnsParent]);
+    _(sourceFile, [shapePathInput, shapeFileLink, encodingParent, xlsColumnsParent, fileAddAttribute, fileColumnsContainer]);
     
     /*------------ Источник: таблица ------------*/
     var tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
         tableColumnsParent = _div();
         
     var tableSourceColumns   = sourceType === 'table' ? layerProperties.get('SourceColumns') : [];
-    var tableSelectedColumns = sourceType === 'table' ? layerProperties.get('SelectedColumns') : new ColumnsModel();
-    var tableColumnsWidget = new SelectColumnsWidget(tableColumnsParent, tableSelectedColumns, tableSourceColumns);
+    var tableSelectedColumns = sourceType === 'table' ? layerProperties.get('GeometryColumnsLatLng') : new LatLngColumnsModel();
+    var tableColumnsWidget = new SelectLatLngColumnsWidget(tableColumnsParent, tableSelectedColumns, tableSourceColumns);
         
     var tablePathInput = _input(null,[
         ['attr','fieldName','TableName'],
@@ -468,8 +540,9 @@ var createPageVectorSource = function(layerProperties) {
     var sourceTable = _div([tablePathInput, tableLink, TableCSParent, tableColumnsParent], [['dir', 'id', 'tableSource' + layerName]])
         
     /*------------ Источник: вручную ------------*/
-    var addAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
     var attrModel = new ManualAttrModel();
+    
+    var addAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
     addAttribute.onclick = function()
     {
         attrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
@@ -524,36 +597,18 @@ var createPageVectorSource = function(layerProperties) {
         _div([attrViewParent], [['css', 'margin', '3px']])
     ], [['css', 'marginLeft', '3px']]);
                 
-    //заполняем поля по атрибутам объекта
-    //TODO: вынести в модель?
     if ( sourceType === 'manual' ) {
-        var attrs = layerProperties.get('Attributes');
-        var attrTypes = layerProperties.get('AttrTypes');
-        nsGmx._.each(attrs, function(elem, index) {
-            var serverType = attrTypes[index];
-            var attrModelType = nsGmx._.find(ManualAttrModel.TYPES, function(elem) {return elem.server === serverType});
-            attrModel.addAttribute(attrModelType, elem);
-        })
+        attrModel.initFromServerFormat(layerProperties.get('Columns'));
     }
                     
     var attrView = new ManualAttrView();
     attrView.init(attrViewParent, attrModel);
                     
-    layerProperties.set('UserAttr', attrModel);
-                    
     var sourceManual = _div([attrContainer], [['dir', 'id', 'manualSource' + layerName]]);
                     
-    function capitaliseFirstLetter(string)
-    {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    }
-                        
     var updateColumnsByManual = function() {
-        var sourceColumns = [];
-        attrModel.each(function(attr) {
-            sourceColumns.push({ Name: attr.name, ColumnSimpleType: capitaliseFirstLetter(attr.type.server), IsPrimary: false, IsIdentity: false, IsComputed: false });
-        })
-                    
+        var sourceColumns = attrModel.toServerFormat();
+        layerProperties.set('Columns', sourceColumns);
         layerProperties.set('SourceColumns', sourceColumns);
     }
                     
@@ -614,11 +669,11 @@ var createPageVectorSource = function(layerProperties) {
             if (selectedSource == 0) {
                 layerProperties.set('SourceColumns', fileSourceColumns);
                 layerProperties.set('SourceType', 'file');
-                layerProperties.set('SelectedColumns', fileSelectedColumns);
+                layerProperties.set('GeometryColumnsLatLng', fileSelectedColumns);
             } else if (selectedSource == 1) {
                 layerProperties.set('SourceColumns', tableSourceColumns);
                 layerProperties.set('SourceType', 'table');
-                layerProperties.set('SelectedColumns', tableSelectedColumns);
+                layerProperties.set('GeometryColumnsLatLng', tableSelectedColumns);
                 layerProperties.set('TableCS', TableCSSelect.find(':selected').val());
             } else if (selectedSource == 2) {
                 updateColumnsByManual();
@@ -628,7 +683,7 @@ var createPageVectorSource = function(layerProperties) {
     });
     
     var sourceTr2;
-    
+        
     if (!layerName) {
         sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), _td([_div([sourceTab])])]);
     } else {
@@ -902,8 +957,8 @@ var createPageAdvanced = function(parent, layerProperties) {
         
     var updateTemporalColumns = function() {
         var parsedColumns = parseColumns(layerProperties.get('SourceColumns'));
-        temporalLayerView.updateColumns(parsedColumns.dateFields);
-    }
+        temporalLayerView.updateColumns(parsedColumns.dateColumns);
+        }
         
     layerProperties.on('change:SourceColumns', updateTemporalColumns);
     updateTemporalColumns();
