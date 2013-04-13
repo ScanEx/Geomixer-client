@@ -57,9 +57,11 @@
 		node['propHiden']['rasterView'] = '';		// Показывать растры в КР только по Click	// setAPIProperties
 		//gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'rasterView': 'onCtrlClick'} });
 		
+		if(!layer['properties']) layer['properties'] = {};
 		if(layer.properties['rasterView']) {
 			node['propHiden']['rasterView'] = layer.properties['rasterView'];
 		}
+		layer.properties['visible'] = ('visible' in layer.properties ? layer.properties['visible'] : true);
 		node['tileRasterFunc'] = null;			// tileFunc для квиклуков
 		
 		node['flipIDS'] = [];					// Массив обьектов flip сортировки

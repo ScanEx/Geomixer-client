@@ -62,7 +62,7 @@
 				var flag = (utils.chkVisibilityByZoom(node.id) ? true : false);
 				if(!node['leaflet']) gmxAPI._leaflet['drawManager'].add(id);
 				utils.setVisibleNode({'obj': node, 'attr': flag});
-				gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, flag);
+				gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, (!utils.chkVisibleObject(node.id) ? false : flag));
 			}
 		}
 		,
@@ -671,7 +671,7 @@
 		,
 		'chkVisibleObject': function(id)	{				// проверка видимости обьекта - по isVisible
 			var node = mapNodes[id];
-			if(!node) return true;
+			if(!node || node['type'] === 'map') return true;
 			if(node.isVisible === false) return false;
 			return utils.chkVisibleObject(node['parentId']);
 		}
