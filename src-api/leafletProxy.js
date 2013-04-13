@@ -3587,14 +3587,16 @@
 		var getShiftX = function (chkBounds) {
 			var yFlag = (chkBounds.max.y >= bounds.min.y && chkBounds.min.y <= bounds.max.y);
 			if(!yFlag) return null;
-			var ww = 2 * gmxAPI.worldWidthMerc;
+		    if(chkBounds.max.x >= bounds.min.x && chkBounds.min.x <= bounds.max.x) return 0;
+			return null;
+			/*var ww = 2 * gmxAPI.worldWidthMerc;
 		    if(chkBounds.max.x >= bounds.min.x && chkBounds.min.x <= bounds.max.x) return 0;
 		    else if(chkBounds.max.x >= bounds.min.x + ww && chkBounds.min.x <= bounds.max.x + ww) return ww;
 		    else if(chkBounds.max.x >= bounds.min.x - ww && chkBounds.min.x <= bounds.max.x - ww) return -ww;
 			ww *= 2;
 		    if(chkBounds.max.x >= bounds.min.x + ww && chkBounds.min.x <= bounds.max.x + ww) return ww;
 		    else if(chkBounds.max.x >= bounds.min.x - ww && chkBounds.min.x <= bounds.max.x - ww) return -ww;
-			return null;
+			return null;*/
 		}
 		// Проверка пересечения с bounds
 		out['intersects'] = function (chkBounds) {

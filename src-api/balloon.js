@@ -398,7 +398,9 @@
 				var mx = map.getMouseX();
 				var my = map.getMouseY();
 				
-				mx = gmxAPI.chkPointCenterX(mx);
+				if(gmxAPI.proxyType == 'flash') {
+					mx = gmxAPI.chkPointCenterX(mx);
+				}
 
 				if(o.getGeometryType() == 'POINT') {
 					var gObj = o.getGeometry();

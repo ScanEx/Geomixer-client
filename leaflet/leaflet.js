@@ -8252,10 +8252,9 @@ L.TileLayer.include({
 		var front = this._tileContainer,
 		    bg = this._bgBuffer;
 
-		front.style.visibility = '';
-		front.style.zIndex = 2;
-
-		bg.style.zIndex = 1;
+		if(front.style.visibility) front.style.visibility = '';		// Added by OriginalSin
+		if(front.style.zIndex != 2) front.style.zIndex = 2;
+		if(bg.style.zIndex != 1) bg.style.zIndex = 1;
 
 		// force reflow
 		L.Util.falseFn(bg.offsetWidth);

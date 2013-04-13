@@ -1579,7 +1579,7 @@ window.gmxAPI = {
 		return {
 			'size': size
 			,'zDelta': dz
-			,'x': size * (tilePoint.x % dz)
+			,'x': Math.abs(size * (tilePoint.x % dz))
 			,'y': size * (dz - 1 - tilePoint.y % dz)
 		};
     }
