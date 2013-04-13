@@ -3168,7 +3168,7 @@
 				var labelStyle = style['label'];
 				var txt = (labelStyle['field'] ? prop[labelStyle['field']] : labelStyle['value']) || '';
 				if(txt) {
-					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr);	// добавим label от векторного слоя
+					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr, style);	// добавим label от векторного слоя
 				}
 			}
 		}
@@ -3547,7 +3547,7 @@
 				var labelStyle = style['label'];
 				var txt = (labelStyle['field'] ? prop[labelStyle['field']] : labelStyle['value']) || '';
 				if(txt) {
-					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr);	// добавим label от векторного слоя
+					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr, style);	// добавим label от векторного слоя
 				}
 			}
 			
@@ -3675,7 +3675,7 @@
 				var labelStyle = style['label'];
 				var txt = (labelStyle['field'] ? prop[labelStyle['field']] : labelStyle['value']) || '';
 				if(txt) {
-					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr);	// добавим label от векторного слоя
+					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr, style);	// добавим label от векторного слоя
 				}
 			}
 
