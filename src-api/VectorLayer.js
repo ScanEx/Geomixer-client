@@ -1419,7 +1419,7 @@ ctx.fillText(drawTileID, 10, 128);
 			var drawTileID = attr['drawTileID'];
 			//delete node['tilesRedrawTimers'][drawTileID];
 			var tile = null;
-
+/*
 			if(node['tilesRedrawImages'][zoom]					// тайл уже готов к отрисовке
 				&& node['tilesRedrawImages'][zoom][tKey]
 				&& node['tilesRedrawImages'][zoom][tKey]['drawDone']
@@ -1428,7 +1428,7 @@ ctx.fillText(drawTileID, 10, 128);
 				node.redrawTile(tKey, zoom, true);
 				return;
 			}
-
+*/
 			var out = false;
 			if(node['observerNode']) {
 				if(observerTimer) clearTimeout(observerTimer);
