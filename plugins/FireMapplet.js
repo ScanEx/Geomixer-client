@@ -1571,7 +1571,7 @@ var FireBurntRenderer3 = function( params )
     var clusterGeomLayer = params.map.addLayer({properties: {
         name: 'fireClustersGeomLayer',
         styles: [{
-            MinZoom:8,
+            MinZoom:1,
             MaxZoom:21
         }]
     }});
@@ -1639,8 +1639,8 @@ var FireBurntRenderer3 = function( params )
                 else
                     delete cluster.spots[hotspotId];
                     
-                cluster.lat += mult * coords[1];
-                cluster.lng += mult * coords[0];
+                cluster.lat += mult * coords[0];
+                cluster.lng += mult * coords[1];
                 cluster.count += mult;
                 clustersToRepaint[clusterId] = true;
             }
@@ -1686,7 +1686,7 @@ var FireBurntRenderer3 = function( params )
                     //console.log('adding new items');
                     
                 } else {
-                
+                    //console.log('remove', k);
                     clusterLayer.removeItems([k]);
                     clusterGeomLayer.removeItems([k]);
                     delete clusters[k];
