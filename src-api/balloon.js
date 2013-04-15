@@ -536,7 +536,7 @@
 			var bposY = 0;
 			var reposition = function()	
 			{
-				if(!wasVisible) return;
+				//if(!wasVisible) return;
 				var ww = balloon.clientWidth;
 				var hh = balloon.clientHeight;
 				balloon.style.visibility = (ww == 0 || hh ==0 ? 'hidden' : 'visible'); 
@@ -572,8 +572,9 @@
 			var updateVisible = function(flag)	
 			{
 				gmxAPI.setVisible(balloon, flag);
-				if (flag && !wasVisible)
+				if (flag && !wasVisible) {
 					ret.resize();
+				}
 				wasVisible = flag;
 			}
 			var isVisible = function()	

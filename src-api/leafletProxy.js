@@ -1564,7 +1564,7 @@
 					}
 				}
 				gmxAPI._leaflet['activeObject'] = (evName == 'onMouseOut' ? null : id);
-				hNode['handlers'][evName](node['id'], node.geometry.properties, {'ev':e});
+				if(hNode['handlers'][evName]) hNode['handlers'][evName](node['id'], node.geometry.properties, {'ev':e});
 			};
 			if(scanexEventNames[evName]) {
 				node['leaflet'].on(scanexEventNames[evName], func);
