@@ -355,7 +355,7 @@
 		};
 
 		node.chkLoadTile = function(tilePoint, zoom)	{							// Проверка необходимости загрузки тайлов
-			if(gmxNode['isVisible'] === false) return true;								// Слой не видим
+			if(node['isVisible'] === false) return true;								// Слой не видим
 			var currZ = LMap.getZoom();
 			if(currZ < node['minZ'] || currZ > node['maxZ'])  return true;				// Неподходящий zoom
 			
