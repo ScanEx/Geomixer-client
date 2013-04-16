@@ -107,8 +107,8 @@
         st += "&layers=" + props.name +
             "&version=1.1.1" + 
             "&srs=" + props.srs + 
-            "&format=" + format + 
-            "&transparent=" + transparentParam + 
+            //"&format=" + format + 
+            //"&transparent=" + transparentParam + 
             "&styles=" + 
             "&width=" + w + 
             "&height=" + h + 
@@ -117,7 +117,9 @@
                  "," + (isMerc ? gmxAPI.merc_x(maxx) : maxx) + 
                  "," + (isMerc ? gmxAPI.merc_y(maxy) : maxy)
         ;
-        
+        if (url.indexOf('format=') == -1) st += "&format=" + format;
+        if (url.indexOf('transparent=') == -1) st += "&transparent=" + transparentParam;
+       
         return {url: st, bounds: {minX: minx, maxX: maxx, minY: miny, maxY: maxy}};
     }
     

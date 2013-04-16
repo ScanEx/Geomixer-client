@@ -54,8 +54,8 @@
 		}
 		return out;
 	}
-	var prepareItem = function(txt, geom, attr) {			// подготовка Label от векторного слоя
-		var style = prepareStyle(attr['style']);
+	var prepareItem = function(txt, geom, inpStyle) {			// подготовка Label от векторного слоя
+		var style = prepareStyle(inpStyle);
 		var bounds = new L.Bounds();
 		bounds.extend(new L.Point(geom['bounds'].min.x, geom['bounds'].min.y));
 		bounds.extend(new L.Point(geom['bounds'].max.x, geom['bounds'].max.y));
@@ -202,11 +202,11 @@
 			itemsHash[id] = prepareObject(node);
 			repaintItems();
 		}
-		,'addItem': function(txt, geom, attr)	{	// добавить Label от векторного слоя
+		,'addItem': function(txt, geom, attr, style)	{	// добавить Label от векторного слоя
 			if(!utils) init();
 			var node = attr['node'];
 			var id = node['id'] + '_' + geom.id;
-			var item = prepareItem(txt, geom, attr);
+			var item = prepareItem(txt, geom, style);
 			if(itemsHash[id]) {
 				var bounds = new L.Bounds();
 				item.bounds.extend(itemsHash[id]['bounds'].min);

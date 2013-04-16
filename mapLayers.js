@@ -1694,17 +1694,18 @@ queryMapLayers.prototype.rasterLayersSlider = function(parent)
 				var active = $(parent).find(".active");
 				
 				// слой
-				if (active[0] && (active[0].parentNode.getAttribute("LayerID") || active[0].parentNode.getAttribute("MultiLayerID")) && active[0].parentNode.gmxProperties.content.properties.type != "Vector")
+				if (active[0] && (active[0].parentNode.getAttribute("LayerID") || active[0].parentNode.getAttribute("MultiLayerID")))
 				{
-					globalFlashMap.layers[active[0].parentNode.gmxProperties.content.properties.name].setStyle(templateStyle);
+                    var props = active[0].parentNode.gmxProperties.content.properties,
+                        isVector = props.type === "Vector",
+                        layer = globalFlashMap.layers[props.name];
+                    
+                    if (isVector && layer.tilesParent) {
+                        layer.tilesParent.setStyle(templateStyle);
+                    } else {
+                        layer.setStyle(templateStyle);
+                    }
 
-					return;
-				}
-				// слой из списка
-				else if (active[0] && (active[0].firstChild.type == "Raster" || active[0].firstChild.type == "Overlay"))
-				{
-					globalFlashMap.layers[active[0].firstChild.layerName].setStyle(templateStyle);
-					
 					return;
 				}
 				
@@ -1721,6 +1722,7 @@ queryMapLayers.prototype.rasterLayersSlider = function(parent)
 					{
 						if (layer.shownQuicklooks)
 							layer.shownQuicklooks.setStyle(templateStyle);
+                            
 						if (layer.tilesParent)
 							layer.tilesParent.setStyle(templateStyle);
 					}
