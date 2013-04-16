@@ -1551,9 +1551,10 @@ var FireBurntRenderer3 = function( params )
 {
     buildModisPixelDimensionsTable();
     
-    var clusters = {};
+    var clusters = {},
+        map = params.map;
     
-    var clusterLayer = params.map.addLayer({properties: {
+    var clusterLayer = map.addLayer({properties: {
         name: 'fireClustersLayer',
         styles: [{ 
             MinZoom:1,
@@ -1568,10 +1569,10 @@ var FireBurntRenderer3 = function( params )
         }]
     }});
     
-    var clusterGeomLayer = params.map.addLayer({properties: {
+    var clusterGeomLayer = map.addLayer({properties: {
         name: 'fireClustersGeomLayer',
         styles: [{
-            MinZoom:1,
+            MinZoom:8,
             MaxZoom:21
         }]
     }});
@@ -1592,19 +1593,19 @@ var FireBurntRenderer3 = function( params )
     params.mapName = 'NDFYK';
     _lazyLoadFireLayers(params).done(function()
     {
-        var layer = params.map.layers[params.pointLayerName];
+        var layer = map.layers[params.pointLayerName];
         var minZoom = layer.getZoomBounds().MinZoom;
         
-        var isLayerVisible = params.map.getZ() >= minZoom;
+        var isLayerVisible = map.getZ() >= minZoom;
         if (!isLayerVisible)
             layer.setVisibilityFilter('ogc_fid=-1');
             
         layer.setZoomBounds(1, 21);
         $.each(layer.filters, function(i, filter) { filter.setZoomBounds(1, 21); });
         
-        params.map.addListener('positionChanged', function()
+        map.addListener('positionChanged', function()
         {
-            var isNowVisible = params.map.getZ() >= minZoom;
+            var isNowVisible = map.getZ() >= minZoom;
             if (isNowVisible && !isLayerVisible)
                 layer.setVisibilityFilter();
             else if (!isNowVisible && isLayerVisible)
@@ -1635,18 +1636,21 @@ var FireBurntRenderer3 = function( params )
                 var coords = objects[k].item.geometry.coordinates;
                 
                 if (objects[k].onExtent)
-                    cluster.spots[hotspotId] = [coords[1], coords[0], 600]; //TODO: выбрать правильный номер sample
+                    cluster.spots[hotspotId] = [coords[0], coords[1], 600]; //TODO: выбрать правильный номер sample
                 else
                     delete cluster.spots[hotspotId];
                     
-                cluster.lat += mult * coords[0];
-                cluster.lng += mult * coords[1];
+                cluster.lat += mult * coords[1];
+                cluster.lng += mult * coords[0];
                 cluster.count += mult;
                 clustersToRepaint[clusterId] = true;
             }
             
             // console.log(clustersToRepaint);
             
+            var clustersToAdd = [],
+                geometriesToAdd = [],
+                itemIDsToRemove = [];
             for (var k in clustersToRepaint)
             {
                 var count = clusters[k].count;
@@ -1659,16 +1663,16 @@ var FireBurntRenderer3 = function( params )
                     var multiPolygon = _hq.getPixelMultiPolygon(points);
                     var tmpPolygon = _hq.MultiPolygonUnion(multiPolygon);
                     
-                    var newGeomItem = {
+                    geometriesToAdd.push({
                         id: k,
                         properties: {},
                         geometry: {
                             type: 'MULTIPOLYGON',
                             coordinates: tmpPolygon
                         }
-                    }
+                    })
                     
-                    var newItem = {
+                    clustersToAdd.push({
                         id: k, 
                         properties: {
                             scale: String(Math.sqrt(count)/5)
@@ -1677,22 +1681,20 @@ var FireBurntRenderer3 = function( params )
                             type: 'POINT',
                             coordinates: [clusters[k].lng / count, clusters[k].lat / count]
                         }
-                    }
-                    
-                    clusterGeomLayer.addItems([newGeomItem]);
-                    // console.log('geometry', JSON.stringify(newGeomItem));
-                    clusterLayer.addItems([newItem]);
-                    
-                    //console.log('adding new items');
-                    
+                    })                    
                 } else {
-                    //console.log('remove', k);
-                    clusterLayer.removeItems([k]);
-                    clusterGeomLayer.removeItems([k]);
+                    itemIDsToRemove.push(k);
                     delete clusters[k];
                     
                 }
             }
+            
+            clusterGeomLayer.addItems(geometriesToAdd);
+            clusterLayer.addItems(clustersToAdd);
+            clusterGeomLayer.removeItems(itemIDsToRemove);
+            clusterLayer.removeItems(itemIDsToRemove);
+            
+            
         }, {ignoreVisibilityFilter: true});
     })
     
@@ -1700,9 +1702,9 @@ var FireBurntRenderer3 = function( params )
 	{
         _lazyLoadFireLayers(params).done(function()
         {
-            if (params.pointLayerName in params.map.layers)
+            if (params.pointLayerName in map.layers)
             {
-                params.map.layers[params.pointLayerName].setDateInterval(data.dateBegin, data.dateEnd);
+                map.layers[params.pointLayerName].setDateInterval(data.dateBegin, data.dateEnd);
                 //console.log(data);
             }
         })
