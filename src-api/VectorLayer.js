@@ -137,8 +137,12 @@
 			return zIndexMax;
 		}
 		node['setVisibilityFilter'] = function() {
+			//var currZ = LMap.getZoom();
+			//delete node['tilesRedrawImages'][currZ];
+			
 			reCheckFilters();
-			redrawAllTiles();
+			//upDateLayer();
+			node.redrawTilesList(40);
 		}
 
 		var inpAttr = ph.attr;
@@ -447,8 +451,8 @@ ctx.fillText(drawTileID, 10, 128);
 						,'layer': node.id
 						,'callback': function(data) {
 							delete node['tilesLoadProgress'][tkey];
-							//gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode, 'attr':{'data':{'tileID':tkey, 'data':data}}});		// tile загружен
-							node.parseVectorTile(data, tkey, data['dAttr']);
+							gmxAPI._listeners.dispatchEvent('onTileLoaded', gmxNode, {'obj':gmxNode, 'attr':{'data':{'tileID':tkey, 'data':data}}});		// tile загружен
+							//node.parseVectorTile(data, tkey, data['dAttr']);
 							data = null;
 							//if(drawMe) drawMe();
 							//else redrawAllTiles(100);
@@ -1808,19 +1812,50 @@ ctx.fillText(drawTileID, 10, 128);
 			upDateLayerTimer = setTimeout(function()
 			{
 				myLayer._update();
+				node.redrawTilesList();
 			}, zd);
 			return true;
+		}
+		var redrawTilesListTimer = null;								// Таймер
+		node.redrawTilesList = function(zd)	{						// пересоздание тайлов слоя с задержкой
+			if(redrawTilesListTimer) clearTimeout(redrawTilesListTimer);
+			if(arguments.length == 0) zd = 0;
+			redrawTilesListTimer = setTimeout(function()
+			{
+				for(var key in node['tilesKeys']) {
+					var tKey = node['tilesKeys'][key];
+					var tarr = node['tilesKeys'][key].split(':');
+					var tilePoint = new L.Point(tarr[0], tarr[1]);
+					var tarr1 = key.split('_');
+					var scanexTilePoint = {'x':tarr1[1], 'y':tarr1[2]};
+					var zoom = tarr1[0];
+					var bounds = utils.getTileBoundsMerc(scanexTilePoint, zoom);
+					var attr = {
+						'node': node
+						,'x': 256 * scanexTilePoint.x
+						,'y': 256 * scanexTilePoint.y
+						,'zoom': zoom
+						,'bounds': bounds
+						,'drawTileID': key
+						,'scanexTilePoint': scanexTilePoint
+						,'tilePoint': tilePoint
+						,'tKey': tKey
+					};
+					node.repaintTile(attr, true);
+				}
+			}, zd);
+			return false;
 		}
 		var redrawAllTilesTimer = null;								// Таймер
 		var redrawAllTiles = function(zd)	{						// пересоздание тайлов слоя с задержкой
 			if(redrawAllTilesTimer) clearTimeout(redrawAllTilesTimer);
 			if(arguments.length == 0) zd = 0;
 			redrawAllTilesTimer = setTimeout(function()
-			{
+			{/*
 				for(var key in myLayer._tiles) {
 					var tile = myLayer._tiles[key];
 					myLayer.drawTile(tile, tile._tilePoint);
-				}
+				}*/
 				upDateLayer();
 			}, zd);
 			return false;
