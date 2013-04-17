@@ -300,6 +300,14 @@
 				balloon.setVisible(true);
 			}
 			positionBalloons();
+			for (var key in userBalloons)
+			{
+				var balloon = userBalloons[key];
+				if(balloon._needShow) {
+					balloon.setVisible(true);
+					delete balloon._needShow;
+				}
+			}
 		}
 		this.showHoverBalloons = showHoverBalloons;
 		
@@ -333,6 +341,16 @@
 				}
 			}
 			gmxAPI._mouseOnBalloon = false;
+			
+			for (var key in userBalloons)
+			{
+				var balloon = userBalloons[key];
+				if(balloon.isVisible) {
+					balloon.setVisible(false);
+					balloon._needShow = true;
+				}
+			}
+			
 /*
 			if(flag && showFlag) {
 				var timeoutShowHoverBalloons = setTimeout(function()
@@ -1002,6 +1020,7 @@ event.stopImmediatePropagation();
 		this.applyBalloonDefaultStyle = applyBalloonDefaultStyle;
 	}
 
+	var userBalloons = {};
 	// Добавление прослушивателей событий
 	gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': function(map) {
 			if(!gmxAPI.map || gmxAPI.map.balloonClassObject) return;
@@ -1019,7 +1038,13 @@ event.stopImmediatePropagation();
 			);
 			
 			//расширяем FlashMapObject
-			gmxAPI.extendFMO('addBalloon', function() { return map.balloonClassObject.addBalloon(); });
+			gmxAPI.extendFMO('addBalloon', function() {
+				var balloon = map.balloonClassObject.addBalloon();
+				var id = gmxAPI.newFlashMapId();
+				balloon.fixedId = id;
+				userBalloons[id] = balloon;
+				return balloon;
+			});
 			gmxAPI.extendFMO('enableHoverBalloon', function(callback, attr) { map.balloonClassObject.enableHoverBalloon(this, callback, attr); });
 			gmxAPI.extendFMO('disableHoverBalloon', function() { map.balloonClassObject.disableHoverBalloon(this); });
 		}
