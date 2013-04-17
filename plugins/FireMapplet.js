@@ -1278,7 +1278,7 @@ var _lazyLoadFireLayers = (function()
     return function(params)
     {
         var _params = $.extend({
-            pointLayerName: 'A78AC25E0D924258B5AF40048C21F7E7',
+            hotspotLayerName: 'A78AC25E0D924258B5AF40048C21F7E7',
             mapName: '3PORS', 
             host: 'maps.kosmosnimki.ru'
         }, params);
@@ -1292,7 +1292,7 @@ var _lazyLoadFireLayers = (function()
                 
             _params.map.loadMap(_params.host, _params.mapName, function(data)
             {
-                var layer = _params.map.layers[_params.pointLayerName];
+                var layer = _params.map.layers[_params.hotspotLayerName];
                 
                 if (typeof _params.minZoom !== 'undefined')
                 {
@@ -1310,7 +1310,7 @@ var _lazyLoadFireLayers = (function()
 var FireSpotRendererLayer = function( params )
 {
     var _params = $.extend({
-        pointLayerName: 'A78AC25E0D924258B5AF40048C21F7E7', 
+        hotspotLayerName: 'A78AC25E0D924258B5AF40048C21F7E7', 
         mapName: '3PORS', 
         host: 'maps.kosmosnimki.ru'}, params);
     
@@ -1322,17 +1322,17 @@ var FireSpotRendererLayer = function( params )
         curPeriod = {dateBegin: data.dateBegin, dateEnd: data.dateEnd};
         _lazyLoadFireLayers(_params).done(function()
         {
-            if (_params.pointLayerName in _params.map.layers)
+            if (_params.hotspotLayerName in _params.map.layers)
             {
-                _params.map.layers[_params.pointLayerName].setDateInterval(data.dateBegin, data.dateEnd);
+                _params.map.layers[_params.hotspotLayerName].setDateInterval(data.dateBegin, data.dateEnd);
             }
         })
         
         //loadFireLayers();
         
-        // if (_params.pointLayerName in _params.map.layers)
+        // if (_params.hotspotLayerName in _params.map.layers)
         // {
-            // _params.map.layers[_params.pointLayerName].setDateInterval(data.dateBegin, data.dateEnd);
+            // _params.map.layers[_params.hotspotLayerName].setDateInterval(data.dateBegin, data.dateEnd);
         // }
     }
     
@@ -1342,9 +1342,9 @@ var FireSpotRendererLayer = function( params )
         //loadFireLayers();
         _lazyLoadFireLayers(_params).done(function()
         {
-            if (_params.pointLayerName in _params.map.layers)
+            if (_params.hotspotLayerName in _params.map.layers)
             {
-                //_params.map.layers[_params.pointLayerName].setVisible(flag);
+                //_params.map.layers[_params.hotspotLayerName].setVisible(flag);
             }
         })
 	}
@@ -1589,19 +1589,24 @@ var FireBurntRenderer3 = function( params )
     clusterLayer.setVisible(true);
     
     
-    params.pointLayerName = 'C13B4D9706F7491EBC6DC70DFFA988C0';
+    params.hotspotLayerName = 'C13B4D9706F7491EBC6DC70DFFA988C0';
     params.mapName = 'NDFYK';
     _lazyLoadFireLayers(params).done(function()
     {
-        var layer = map.layers[params.pointLayerName];
+        var layer = map.layers[params.hotspotLayerName];
         var minZoom = layer.getZoomBounds().MinZoom;
         
         var isLayerVisible = map.getZ() >= minZoom;
         if (!isLayerVisible)
             layer.setVisibilityFilter('ogc_fid=-1');
             
-        layer.setZoomBounds(1, 21);
-        $.each(layer.filters, function(i, filter) { filter.setZoomBounds(1, 21); });
+        var dialyClustersLayer = map.layers['3E88643A8AC94AFAB4FD44941220B1CE'];
+        dialyClustersLayer.setVisibilityFilter('ogc_fid=-1');
+        dialyClustersLayer.setZoomBounds(1, 21);
+        dialyClustersLayer.setVisible(true);
+            
+        // layer.setZoomBounds(1, 21);
+        // $.each(layer.filters, function(i, filter) { filter.setZoomBounds(1, 21); });
         
         map.addListener('positionChanged', function()
         {
@@ -1613,99 +1618,98 @@ var FireBurntRenderer3 = function( params )
             isLayerVisible = isNowVisible;
         })
         
-        layer.addObserver(function(objects)
-        {
-            var clustersToRepaint = {};
-            for (var k = 0; k < objects.length; k++)
-            {
-                var props = objects[k].item.properties;
-                var mult = objects[k].onExtent ? 1 : -1;
-                if (!props.ClusterID)
-                    continue;
-                    
-                var clusterId = '_' + props.ClusterID;
-                var hotspotId = '_' + props.SpotID;
-                
-                clusters[clusterId] = clusters[clusterId] || {spots: {}, lat: 0, lng: 0, count: 0};
-                var cluster = clusters[clusterId];
-                
-                //два раза одну и ту же точку не добавляем
-                if (hotspotId in cluster.spots && objects[k].onExtent)
-                    continue;
-                
-                var coords = objects[k].item.geometry.coordinates;
-                
-                if (objects[k].onExtent)
-                    cluster.spots[hotspotId] = [coords[0], coords[1], 600]; //TODO: выбрать правильный номер sample
-                else
-                    delete cluster.spots[hotspotId];
-                    
-                cluster.lat += mult * coords[1];
-                cluster.lng += mult * coords[0];
-                cluster.count += mult;
-                clustersToRepaint[clusterId] = true;
-            }
-            
-            // console.log(clustersToRepaint);
-            
-            var clustersToAdd = [],
-                geometriesToAdd = [],
-                itemIDsToRemove = [];
-            for (var k in clustersToRepaint)
-            {
-                var count = clusters[k].count;
-                if (count)
+        var updateClustersByObject = function(layer, estimeteGeometry, clusterAttr, hotspotAttr, countAttr) {
+            return function( objects ) {
+                var clustersToRepaint = {};
+                for (var k = 0; k < objects.length; k++)
                 {
-                    var points = [];
-                    for (var p in clusters[k].spots)
-                        points.push(clusters[k].spots[p]);
+                    var props = objects[k].item.properties;
+                    var mult = objects[k].onExtent ? 1 : -1;
+                    var count = (countAttr ? props[countAttr] : 1) * mult;
+                    
+                    if (!props[clusterAttr])
+                        continue;
                         
-                    var multiPolygon = _hq.getPixelMultiPolygon(points);
-                    var tmpPolygon = _hq.MultiPolygonUnion(multiPolygon);
+                    var clusterId = '_' + props[clusterAttr];
+                    var hotspotId = '_' + props[hotspotAttr];
                     
-                    geometriesToAdd.push({
-                        id: k,
-                        properties: {},
-                        geometry: {
-                            type: 'MULTIPOLYGON',
-                            coordinates: tmpPolygon
-                        }
-                    })
+                    clusters[clusterId] = clusters[clusterId] || {spots: {}, lat: 0, lng: 0, count: 0};
+                    var cluster = clusters[clusterId];
                     
-                    clustersToAdd.push({
-                        id: k, 
-                        properties: {
-                            scale: String(Math.sqrt(count)/5)
-                        },
-                        geometry: {
-                            type: 'POINT',
-                            coordinates: [clusters[k].lng / count, clusters[k].lat / count]
-                        }
-                    })                    
-                } else {
-                    itemIDsToRemove.push(k);
-                    delete clusters[k];
+                    //два раза одну и ту же точку не добавляем
+                    if (hotspotId in cluster.spots && objects[k].onExtent)
+                        continue;
                     
+                    var coords = objects[k].item.geometry.coordinates;
+                    
+                    if (objects[k].onExtent)
+                        cluster.spots[hotspotId] = [coords[0], coords[1], 600]; //TODO: выбрать правильный номер sample
+                    else
+                        delete cluster.spots[hotspotId];
+                        
+                    cluster.lat += count * coords[1];
+                    cluster.lng += count * coords[0];
+                    cluster.count += count;
+                    clustersToRepaint[clusterId] = true;
                 }
+                
+                var clustersToAdd = []
+                itemIDsToRemove = [];
+                for (var k in clustersToRepaint)
+                {
+                    var count = clusters[k].count;
+                    if (count)
+                    {
+                        var newItem = {
+                            id: k,
+                            properties: {
+                                scale: String(Math.sqrt(count)/5)
+                            }
+                        };
+                        
+                        if (estimeteGeometry) {
+                            var points = [];
+                            for (var p in clusters[k].spots)
+                                points.push(clusters[k].spots[p]);
+                                
+                            var multiPolygon = _hq.getPixelMultiPolygon(points);
+                            var tmpPolygon = _hq.MultiPolygonUnion(multiPolygon);
+                            
+                            newItem.geometry = {
+                                type: 'MULTIPOLYGON',
+                                coordinates: tmpPolygon
+                            }
+                        } else {
+                            newItem.geometry = {
+                                type: 'POINT',
+                                coordinates: [clusters[k].lng / count, clusters[k].lat / count]
+                            }
+                        }
+                        
+                        clustersToAdd.push(newItem);               
+                    } else {
+                        itemIDsToRemove.push(k);
+                        delete clusters[k];
+                        
+                    }
+                }
+                
+                layer.addItems(clustersToAdd);
+                layer.removeItems(itemIDsToRemove);
             }
-            
-            clusterGeomLayer.addItems(geometriesToAdd);
-            clusterLayer.addItems(clustersToAdd);
-            clusterGeomLayer.removeItems(itemIDsToRemove);
-            clusterLayer.removeItems(itemIDsToRemove);
-            
-            
-        }, {ignoreVisibilityFilter: true});
+        }
+        
+        dialyClustersLayer.addObserver(updateClustersByObject(clusterLayer, false, 'ParentClusterId', 'ClusterId', 'HotSpotCount'), {ignoreVisibilityFilter: true});
+        layer.addObserver(updateClustersByObject(clusterGeomLayer, true, 'ClusterID', 'SpotID', null), {ignoreVisibilityFilter: true});
     })
     
     this.bindData = function(data)
 	{
         _lazyLoadFireLayers(params).done(function()
         {
-            if (params.pointLayerName in map.layers)
+            if (params.hotspotLayerName in map.layers)
             {
-                map.layers[params.pointLayerName].setDateInterval(data.dateBegin, data.dateEnd);
-                //console.log(data);
+                map.layers[params.hotspotLayerName].setDateInterval(data.dateBegin, data.dateEnd);
             }
         })
     }
