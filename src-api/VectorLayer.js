@@ -108,11 +108,17 @@
 
 		// Проверка фильтра видимости
 		var chkSqlFuncVisibility = function(item)	{
-			if(node['_sqlFuncVisibility']) {
-				var prop = getPropItem(item);
-				if(!node['_sqlFuncVisibility'](prop) && !node['_sqlFuncVisibility'](item.propHiden)) return false;
+			var flag = true;
+			if('_isSQLVisibility' in item.propHiden) {
+				flag = item.propHiden['_isSQLVisibility'];
+			} else {
+				if(node['_sqlFuncVisibility']) {
+					var prop = getPropItem(item);
+					if(!node['_sqlFuncVisibility'](prop) && !node['_sqlFuncVisibility'](item.propHiden)) flag = false;
+				}
+				item.propHiden['_isSQLVisibility'] = flag;
 			}
-			return true;
+			return flag;
 		}
 
 		node['getMinzIndex'] = function() {
@@ -372,7 +378,7 @@
 
 			gmxAPI._leaflet['lastZoom'] = zoom;
 			gmxAPI._leaflet['mInPixel'] = pz/156543.033928041;
-//console.log('drawTile ', drawTileID);
+//console.log('chkLoadTile ', zoom, currZ, node.id, drawTileID);
 				
 /*
 				var ctx = tile.getContext('2d');
@@ -1031,6 +1037,7 @@ ctx.fillText(drawTileID, 10, 128);
 			var toFilters = [];
 			delete geo.curStyle;
 			delete geo['_cache'];
+
 			for(var j=0; j<node.filters.length; j++) {
 				var filterID = node.filters[j];
 				var filter = mapNodes[node.filters[j]];
@@ -1056,6 +1063,7 @@ ctx.fillText(drawTileID, 10, 128);
 				};
 				chkBorderTiles(geo, tile.x, tile.y);
 			}
+			geo.propHiden['_isFilters'] = (toFilters.length ? true : false);
 			return toFilters;
 		}
 
@@ -1454,6 +1462,11 @@ ctx.fillText(drawTileID, 10, 128);
 				for (var i1 = 0; i1 < node['tilesGeometry'][key].length; i1++)
 				{
 					var geom = node['tilesGeometry'][key][i1];
+					if(!geom.propHiden['_isFilters']) continue;		// если нет фильтра пропускаем
+					
+					if(!chkSqlFuncVisibility(geom)) {	 // если фильтр видимости на слое
+						continue;
+					}
 					if(geom.type !== 'Point' && geom.type !== 'Polygon' && geom.type !== 'MultiPolygon' && geom.type !== 'Polyline' && geom.type !== 'MultiPolyline') continue;
 					
 					if(!isInTile(geom, attr)) continue;	// обьект не пересекает границы тайла
@@ -1470,7 +1483,7 @@ ctx.fillText(drawTileID, 10, 128);
 				arr = arr.sort(node['sortItems']);
 			}
 			arr = arr.concat(arrTop);
-			//arr = arr.reverse();
+//console.log(' getObjectsByTile: ' , node.id, drawTileID , ' : ', arr.length);
 			return arr;
 		}
 		
@@ -1967,11 +1980,15 @@ ctx.fillText(drawTileID, 10, 128);
 				for (var i = 0; i < arr.length; i++) {
 					var geom = arr[i];
 					delete geom.propHiden['curStyle'];
+					delete geom.propHiden['_isSQLVisibility'];
+					delete geom.propHiden['_isFilters'];
 					geom.propHiden['toFilters'] = chkObjectFilters(geom, tileSize);
 				}
 			}
 			for (var i = 0; i < node['addedItems'].length; i++) {
 				delete node['addedItems'][i].propHiden['curStyle'];
+				delete node['addedItems'][i].propHiden['_isSQLVisibility'];
+				delete node['addedItems'][i].propHiden['_isFilters'];
 				node['addedItems'][i].propHiden['toFilters'] = chkObjectFilters(node['addedItems'][i], tileSize);
 			}
 			clearDrawDone();
