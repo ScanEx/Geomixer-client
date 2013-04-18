@@ -99,9 +99,16 @@ var EditObjectControl = function(layerName, objectId, params)
     //layer.setVisibilityFilter('"' + identityField + '"<>' + objectId);
     
     var geometryInfoRow = null;
+    var geometryMapObject = null;
     var bindDrawingObject = function(obj)
     {
         geometryInfoRow && geometryInfoRow.RemoveRow();
+        if (geometryMapObject) {
+            geometryMapObject.remove();
+            geometryMapObject = null;
+            geometryInfoContainer.empty();
+        }
+        
         var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
         geometryInfoRow = new InfoRow(
             globalFlashMap, 
@@ -114,10 +121,33 @@ var EditObjectControl = function(layerName, objectId, params)
     var createDialog = function()
     {
         var canvas = _div(),
-		createButton = makeLinkButton(isNew ? _gtxt("Создать") : _gtxt("Изменить")),
-        removeButton = makeLinkButton(_gtxt("Удалить")),
-		trs = [],
-		tdGeometry = _td();
+            createButton = makeLinkButton(isNew ? _gtxt("Создать") : _gtxt("Изменить")),
+            removeButton = makeLinkButton(_gtxt("Удалить")),
+            trs = [],
+            tdGeometry = _td();
+            
+        $(canvas).bind('dragover', function() {
+            return false;
+        });
+        
+        $(canvas).bind('drop', function(e) {
+            var files = e.originalEvent.dataTransfer.files;
+            nsGmx.Utils.parseShpFile(files[0]).done(function(objs) {
+                var geom = nsGmx.Utils.joinPolygons(objs);
+                
+                if (geom.type === 'POLYGON') {
+                    bindDrawingObject(globalFlashMap.drawing.addObject(geom));
+                } else {
+                    geometryInfoRow && geometryInfoRow.RemoveRow();
+                    $(geometryInfoContainer).empty().append($('<span/>').css('margin', '3px').text(_gtxt("Мультиполигон")));
+                    
+                    geometryMapObject = globalFlashMap.addObject(geom);
+                    geometryMapObject.setStyle({outline: {color: 0x0000ff, thickness: 2}});
+                }
+                
+            });
+            return false;
+        });
         
         removeButton.onclick = function()
         {
@@ -153,9 +183,16 @@ var EditObjectControl = function(layerName, objectId, params)
             
             var obj = { properties: properties };
             
-            var selectedDrawingObject = geometryInfoRow ? geometryInfoRow.getDrawingObject() : null;
             
-            if (!selectedDrawingObject)
+            var selectedGeom = null;
+            
+            if (geometryInfoRow) {
+                selectedGeom = geometryInfoRow.getDrawingObject().getGeometry();
+            } else if (geometryMapObject) {
+                selectedGeom = geometryMapObject.getGeometry();
+            }
+            
+            if (!selectedGeom)
             {
                 showErrorMessage("Геометрия для объекта не задана", true, "Геометрия для объекта не задана");
                 return;
@@ -164,19 +201,16 @@ var EditObjectControl = function(layerName, objectId, params)
             if (!isNew)
             {
                 obj.id = objectId;
-                if (selectedDrawingObject)
-                {
-                    var curGeomString = JSON.stringify(selectedDrawingObject.getGeometry());
-                    var origGeomString = JSON.stringify(originalGeometry);
-                    
-                    if (origGeomString !== curGeomString)
-                        obj.geometry = gmxAPI.merc_geometry(selectedDrawingObject.getGeometry());
-                }
+
+                var curGeomString = JSON.stringify(selectedGeom);
+                var origGeomString = JSON.stringify(originalGeometry);
+                
+                if (origGeomString !== curGeomString)
+                    obj.geometry = gmxAPI.merc_geometry(selectedGeom);
             }
             else
             {
-                if (selectedDrawingObject)
-                    obj.geometry = gmxAPI.merc_geometry(selectedDrawingObject.getGeometry());
+                obj.geometry = gmxAPI.merc_geometry(selectedGeom);
             }
             
             _mapHelper.modifyObjectLayer(layerName, [obj]).done(function()
@@ -198,6 +232,7 @@ var EditObjectControl = function(layerName, objectId, params)
         var closeFunc = function()
         {
             geometryInfoRow && geometryInfoRow.getDrawingObject() && geometryInfoRow.getDrawingObject().remove();
+            geometryMapObject && geometryMapObject.remove();
                 
             originalGeometry = null;
             
