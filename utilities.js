@@ -1292,8 +1292,9 @@ $.extend(nsGmx.Utils, {
     /** Загружает пользовательский shp файл.
     * Проверяет на ошибки, выводит предупреждения и ошибки в виде стандартный диалогов.
     * 
-    * #param {File | Form} shpSource Либо форма с полем file, в которой пользователь выбрал файл, либо HTML5 File.
-    * @return Возвращает jQuery Deferred (аргумент ф-ции - массив объектов из shp файла)
+    * @memberof nsGmx.Utils 
+    * @param {File | Form} shpSource Либо форма с полем file, в которой пользователь выбрал файл, либо HTML5 File.
+    * @return Возвращает jQuery Promise (аргумент ф-ции - массив объектов из shp файла)
     */
     parseShpFile: (function() //приватные данные
     {
@@ -1370,7 +1371,9 @@ $.extend(nsGmx.Utils, {
         
     })(),
     
-    //Объединяет массив полигонов/мультиполигонов в новый полигон/мультиполигон
+    /** Объединяет массив полигонов/мультиполигонов в новый полигон/мультиполигон
+    * @memberof nsGmx.Utils
+    */
     joinPolygons: function(objs)
     {
         var polygonObjects = [];
