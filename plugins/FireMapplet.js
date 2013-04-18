@@ -1551,8 +1551,7 @@ var FireBurntRenderer3 = function( params )
 {
     buildModisPixelDimensionsTable();
     
-    var clusters = {},
-        map = params.map;
+    var map = params.map;
     
     var clusterLayer = map.addLayer({properties: {
         name: 'fireClustersLayer',
@@ -1605,8 +1604,8 @@ var FireBurntRenderer3 = function( params )
         dialyClustersLayer.setZoomBounds(1, 21);
         dialyClustersLayer.setVisible(true);
             
-        // layer.setZoomBounds(1, 21);
-        // $.each(layer.filters, function(i, filter) { filter.setZoomBounds(1, 21); });
+        layer.setZoomBounds(8, 21);
+        $.each(layer.filters, function(i, filter) { filter.setZoomBounds(8, 21); });
         
         map.addListener('positionChanged', function()
         {
@@ -1618,7 +1617,20 @@ var FireBurntRenderer3 = function( params )
             isLayerVisible = isNowVisible;
         })
         
-        var updateClustersByObject = function(layer, estimeteGeometry, clusterAttr, hotspotAttr, countAttr) {
+        var parseServerDateTime = function(dateStr) {
+            var p = dateStr.match(/^(\d\d\d\d).(\d\d).(\d\d)(.(\d\d).(\d\d).(\d\d))?$/); //YYYY.MM.DD HH.MM.SS или без вреемни: YYYY.MM.DD
+            if (!p) return null;
+            var localDate = new Date(
+                parseInt(p[1]), parseInt(p[2]-1), parseInt(p[3]),  //дата
+                parseInt(p[5] || 0), parseInt(p[6] || 0), parseInt(p[7] || 0) //время
+            );
+            
+            var timeOffset = localDate.getTimezoneOffset()*60*1000;
+            return localDate - timeOffset;
+        }
+        
+        var updateClustersByObject = function(layer, estimeteGeometry, clusterAttr, hotspotAttr, countAttr, dateAttr) {
+            var clusters = {};
             return function( objects ) {
                 var clustersToRepaint = {};
                 for (var k = 0; k < objects.length; k++)
@@ -1633,7 +1645,16 @@ var FireBurntRenderer3 = function( params )
                     var clusterId = '_' + props[clusterAttr];
                     var hotspotId = '_' + props[hotspotAttr];
                     
-                    clusters[clusterId] = clusters[clusterId] || {spots: {}, lat: 0, lng: 0, count: 0};
+                    if (!clusters[clusterId]) {
+                        clusters[clusterId] = {
+                            spots: {},
+                            lat: 0, 
+                            lng: 0, 
+                            count: 0,
+                            startDate: Number.POSITIVE_INFINITY,
+                            endDate: Number.NEGATIVE_INFINITY
+                        };
+                    }
                     var cluster = clusters[clusterId];
                     
                     //два раза одну и ту же точку не добавляем
@@ -1647,9 +1668,14 @@ var FireBurntRenderer3 = function( params )
                     else
                         delete cluster.spots[hotspotId];
                         
+                    var hotspotDate = parseServerDateTime(props[dateAttr]);
+                    
                     cluster.lat += count * coords[1];
                     cluster.lng += count * coords[0];
                     cluster.count += count;
+                    cluster.startDate = Math.min(cluster.startDate, hotspotDate);
+                    cluster.endDate   = Math.max(cluster.endDate,   hotspotDate);
+                    
                     clustersToRepaint[clusterId] = true;
                 }
                 
@@ -1663,7 +1689,10 @@ var FireBurntRenderer3 = function( params )
                         var newItem = {
                             id: k,
                             properties: {
-                                scale: String(Math.sqrt(count)/5)
+                                scale: String(Math.sqrt(count)/5),
+                                count: count,
+                                startDate: $.datepicker.formatDate('dd.mm.yy', new Date(cluster.startDate)),
+                                endDate: $.datepicker.formatDate('dd.mm.yy', new Date(cluster.endDate))
                             }
                         };
                         
@@ -1699,8 +1728,8 @@ var FireBurntRenderer3 = function( params )
             }
         }
         
-        dialyClustersLayer.addObserver(updateClustersByObject(clusterLayer, false, 'ParentClusterId', 'ClusterId', 'HotSpotCount'), {ignoreVisibilityFilter: true});
-        layer.addObserver(updateClustersByObject(clusterGeomLayer, true, 'ClusterID', 'SpotID', null), {ignoreVisibilityFilter: true});
+        dialyClustersLayer.addObserver(updateClustersByObject(clusterLayer, false, 'ParentClusterId', 'ClusterId', 'HotSpotCount', 'ClusterDate'), {ignoreVisibilityFilter: true});
+        layer.addObserver(updateClustersByObject(clusterGeomLayer, true, 'ClusterID', 'SpotID', null, 'Timestamp'), {ignoreVisibilityFilter: true});
     })
     
     this.bindData = function(data)
