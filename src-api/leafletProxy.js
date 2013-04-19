@@ -3276,12 +3276,17 @@
 		}
 		// Квадрат растояния до точки
 		out['distance2'] = function (chkPoint) {
+			if(out['sx']) {
+				var point = getPoint();
+				var x = point.x - chkPoint.x,
+					y = point.y - chkPoint.y;
+				return x * x + y * y;
+			}
 			return 0;
 		}
 
 		// Проверка принадлежности точки LineGeometry
 		out['contains'] = function (chkPoint) {
-			var mInPixel = gmxAPI._leaflet['mInPixel'];
 			if(out['sx']) {
 				var point = getPoint();
 				var bounds1 = new L.Bounds();
@@ -3452,6 +3457,14 @@
 		out['cnt'] = cnt;
 		out['propHiden'] = {};					// служебные свойства
 		
+		// Получить точку маркера геометрии полигона
+		var getPoint = function () {
+			var point = {
+				'x': (bounds.min.x + bounds.max.x)/2,
+				'y': (bounds.min.y + bounds.max.y)/2
+			};
+			return point;
+		}
 		// проверка необходимости отрисовки геометрии
 		var chkNeedDraw = function (attr) {
 			//if(!bounds.intersects(attr['bounds'])) return false;				// проверка пересечения полигона с отображаемым тайлом
@@ -3561,13 +3574,33 @@
 		// Отрисовка полигона
 		out['paint'] = function(attr, style, ctx) {
 			if(!attr || !style) return;
-			if(style.fill) paintFill(attr, style, ctx, true);
-			var res = paintStroke(attr, style, ctx);
-			//attr.ctx.stroke();
-			return res;
+			if(style && style['marker']) {
+				if(style['image']) {
+					var point = getPoint();
+					var x = attr['x'];
+					var y = 256 + attr['y'];
+					var mInPixel = gmxAPI._leaflet['mInPixel'];
+					if(style['imageWidth']) out['sx'] = style['imageWidth']/2;
+					if(style['imageHeight']) out['sy'] = style['imageHeight']/2;
+					var px1 = point.x * mInPixel - x - out['sx']; 		px1 = (0.5 + px1) << 0;
+					var py1 = y - point.y * mInPixel - out['sy'];		py1 = (0.5 + py1) << 0;
+					ctx.drawImage(style['image'], px1, py1);
+					return false;
+				}
+			} else {
+				if(style.fill) paintFill(attr, style, ctx, true);
+				var res = paintStroke(attr, style, ctx);
+				return res;
+			}
 		}
 		// Проверка принадлежности точки полигону
 		out['contains'] = function (chkPoint, curStyle, fillPattern) {
+			if(out['sx']) {
+				var point = getPoint();
+				var bounds1 = new L.Bounds();
+				bounds1.extend(new L.Point(point.x, point.y));
+				return gmxAPI._leaflet['utils'].chkPointWithDelta(bounds1, chkPoint, out);
+			}
 			if(bounds.contains(chkPoint)) {
 				if(!curStyle) curStyle = out.propHiden.curStyle;
 				var fill = (fillPattern ? true : (curStyle ? curStyle.fill : false));
@@ -3589,24 +3622,27 @@
 			if(!yFlag) return null;
 		    if(chkBounds.max.x >= bounds.min.x && chkBounds.min.x <= bounds.max.x) return 0;
 			return null;
-			/*var ww = 2 * gmxAPI.worldWidthMerc;
-		    if(chkBounds.max.x >= bounds.min.x && chkBounds.min.x <= bounds.max.x) return 0;
-		    else if(chkBounds.max.x >= bounds.min.x + ww && chkBounds.min.x <= bounds.max.x + ww) return ww;
-		    else if(chkBounds.max.x >= bounds.min.x - ww && chkBounds.min.x <= bounds.max.x - ww) return -ww;
-			ww *= 2;
-		    if(chkBounds.max.x >= bounds.min.x + ww && chkBounds.min.x <= bounds.max.x + ww) return ww;
-		    else if(chkBounds.max.x >= bounds.min.x - ww && chkBounds.min.x <= bounds.max.x - ww) return -ww;
-			return null;*/
 		}
 		// Проверка пересечения с bounds
 		out['intersects'] = function (chkBounds) {
-			var pt = getShiftX(chkBounds);
-//console.log('paintStroke ', pt, chkBounds);
-			return (pt === null ? false : true);
+			var flag = false;
+			if(out['sx']) {
+				flag = gmxAPI._leaflet['utils'].chkPointWithDelta(chkBounds, getPoint(), out);
+			} else {
+				var pt = getShiftX(chkBounds);
+				flag = (pt === null ? false : true);
+			}
+			return flag;
 		}
 		
 		// Квадрат растояния до точки
 		out['distance2'] = function (chkPoint) {
+			if(out['sx']) {
+				var point = getPoint();
+				var x = point.x - chkPoint.x,
+					y = point.y - chkPoint.y;
+				return x * x + y * y;
+			}
 			return 0;
 		}
 		return out;
