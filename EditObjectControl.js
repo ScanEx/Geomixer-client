@@ -66,21 +66,26 @@ var getInputElement = function(type)
     return input;
 }
 
-//Контрол, который показывает диалог редактирования существующего или добавления нового объекта в слой.
-//События: 
-// * modify - когда изменили/добавили объект
-// * close - закрыли диалог редактирования
-//Параметры:
-// * layerName {string} - ID слоя
-// * objectId {int} - ID объекта. Если новый объект, то null
-// * params
-//    * drawingObject {DrawingObject} - пользовательский объект для задании геометрии или null, если геометрия не задана
-//    * fields {Array} - массив со значениями атрибутов. Должен содержать только атрибуты, которые есть в слое. Каждый элемент массива может содержать:
-//       * name {String} - имя атрибута (обязательно)
-//       * value {String|int} - значение атрибута в формате сервера (может отсутствовать)
-//       * constant {bool} - можно ли редактировать атрибут (по умолчанию - можно)
+/** Контрол, который показывает диалог редактирования существующего или добавления нового объекта в слой.
+* 
+* @memberOf nsGmx
+* @param {string} layerName ID слоя
+* @param {int} objectId ID объекта (null для нового объекта)
+* @param {Object} params Дополнительные параметры контрола
+* @param {gmxAPI.drawingObject} params.drawingObject Пользовательский объект для задании геометрии или null, если геометрия не задана
+* @param {Object[]} params.fields массив со значениями атрибутов. Должен содержать только атрибуты, которые есть в слое. Каждый элемент массива может содержать:
+*  * name {String} - имя атрибута (обязательно)
+*  * value {String|int} - значение атрибута в формате сервера (может отсутствовать)
+*  * constant {bool} - можно ли редактировать атрибут (по умолчанию - можно)
+*/
 var EditObjectControl = function(layerName, objectId, params)
 {
+    /** Изменение/добавление объекта
+     * @event EditObjectControl#modify
+     */
+     /** Закрытие диалога редактирования
+     * @event EditObjectControl#close
+     */
     var _params = $.extend({drawingObject: null, fields: []}, params);
     var _this = this;
     var isNew = objectId == null;
@@ -102,11 +107,15 @@ var EditObjectControl = function(layerName, objectId, params)
     var geometryMapObject = null;
     var bindDrawingObject = function(obj)
     {
+        if (!originalGeometry) {
+            originalGeometry = $.extend(true, {}, obj.getGeometry());
+        }
+        
         geometryInfoRow && geometryInfoRow.RemoveRow();
         if (geometryMapObject) {
             geometryMapObject.remove();
             geometryMapObject = null;
-            geometryInfoContainer.empty();
+            $(geometryInfoContainer).empty();
         }
         
         var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
@@ -116,6 +125,35 @@ var EditObjectControl = function(layerName, objectId, params)
             obj, 
             { editStyle: false, allowDelete: false }
         );
+    }
+    
+    var bindGeometry = function(geom) {
+        
+        if (geom.type === 'POLYGON') {
+            // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
+            geom.coordinates[0][0][0] += 0.00001;
+            geom.coordinates[0][0][1] += 0.00001;
+                    
+            // чтобы если бы последняя точка совпадала с первой, то это бы ни на что не повлияло
+            var pointCount = geom.coordinates[0].length;
+            geom.coordinates[0][pointCount-1][0] += 0.00001;
+            geom.coordinates[0][pointCount-1][1] += 0.00001;
+        }
+        
+        if (geom.type == "POINT" || geom.type == "LINESTRING" || geom.type == "POLYGON") {
+            bindDrawingObject(globalFlashMap.drawing.addObject(geom));
+        } else {
+            if (!originalGeometry) {
+                originalGeometry = $.extend(true, {}, geom);
+            }
+            
+            geometryInfoRow && geometryInfoRow.RemoveRow();
+            geometryInfoRow = null;
+            $(geometryInfoContainer).empty().append($('<span/>').css('margin', '3px').text(_gtxt("Мультиполигон")));
+            
+            geometryMapObject = globalFlashMap.addObject(geom);
+            geometryMapObject.setStyle({outline: {color: 0x0000ff, thickness: 2}});
+        }
     }
     
     var createDialog = function()
@@ -133,18 +171,7 @@ var EditObjectControl = function(layerName, objectId, params)
         $(canvas).bind('drop', function(e) {
             var files = e.originalEvent.dataTransfer.files;
             nsGmx.Utils.parseShpFile(files[0]).done(function(objs) {
-                var geom = nsGmx.Utils.joinPolygons(objs);
-                
-                if (geom.type === 'POLYGON') {
-                    bindDrawingObject(globalFlashMap.drawing.addObject(geom));
-                } else {
-                    geometryInfoRow && geometryInfoRow.RemoveRow();
-                    $(geometryInfoContainer).empty().append($('<span/>').css('margin', '3px').text(_gtxt("Мультиполигон")));
-                    
-                    geometryMapObject = globalFlashMap.addObject(geom);
-                    geometryMapObject.setStyle({outline: {color: 0x0000ff, thickness: 2}});
-                }
-                
+                bindGeometry(nsGmx.Utils.joinPolygons(objs));
             });
             return false;
         });
@@ -186,7 +213,7 @@ var EditObjectControl = function(layerName, objectId, params)
             
             var selectedGeom = null;
             
-            if (geometryInfoRow) {
+            if (geometryInfoRow && geometryInfoRow.getDrawingObject()) {
                 selectedGeom = geometryInfoRow.getDrawingObject().getGeometry();
             } else if (geometryMapObject) {
                 selectedGeom = geometryMapObject.getGeometry();
@@ -245,7 +272,8 @@ var EditObjectControl = function(layerName, objectId, params)
             $(_this).trigger('close');
         }
         
-        var drawAttrList = function(drawingObject, fields)
+        //либо drawingObject либо geometry
+        var drawAttrList = function(fields)
         {
             var trs = [];
             
@@ -262,28 +290,7 @@ var EditObjectControl = function(layerName, objectId, params)
             }
             drawingBorderLink.style.margin = '0px 5px 0px 3px';
             
-            var td = _td();
-            if (drawingObject)
-            {
-                var geom = drawingObject.getGeometry();
-                if (geom.type == "POINT" || geom.type == "LINESTRING" || geom.type == "POLYGON")
-                {
-                    bindDrawingObject(drawingObject);
-                    originalGeometry = geometryInfoRow.getDrawingObject().getGeometry();
-                    
-                    _(td, [geometryInfoContainer]);
-                }
-                else
-                {
-                    var info = _span([_t(geom.type)], [['css','marginLeft','3px'],['css','fontSize','12px']]);
-                    _title(info, JSON.stringify(geom.coordinates));
-                    _(td, [info]);
-                }
-            }
-            else
-            {
-                _(td, [geometryInfoContainer]);
-            }
+            var td = _td([geometryInfoContainer]);
             
             trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), td]))
             
@@ -364,20 +371,7 @@ var EditObjectControl = function(layerName, objectId, params)
                 {
                     if (columnNames[i] === 'geomixergeojson')
                     {
-                        var geom = from_merc_geometry(geometryRow[i]);
-
-                        if (geom.type === 'POLYGON') {
-                            // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
-                            geom.coordinates[0][0][0] += 0.00001;
-                            geom.coordinates[0][0][1] += 0.00001;
-                                    
-                            // чтобы если бы последняя точка совпадала с первой, то это бы ни на что не повлияло
-                            var pointCount = geom.coordinates[0].length;
-                            geom.coordinates[0][pointCount-1][0] += 0.00001;
-                            geom.coordinates[0][pointCount-1][1] += 0.00001;
-                        }
-                        
-                        drawingObject = globalFlashMap.drawing.addObject(geom);
+                        bindGeometry(from_merc_geometry(geometryRow[i]));
                     }
                     else
                     {
@@ -397,7 +391,7 @@ var EditObjectControl = function(layerName, objectId, params)
                 
                 extendFields(fields, _params.fields);
                 
-                var trs = drawAttrList(drawingObject, fields);
+                var trs = drawAttrList(fields);
                 
                 _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
                 
@@ -417,7 +411,11 @@ var EditObjectControl = function(layerName, objectId, params)
             
             extendFields(fields, _params.fields);
             
-            var trs = drawAttrList(_params.drawingObject, fields);
+            if (_params.drawingObject) {
+                bindDrawingObject(_params.drawingObject);
+            }
+            
+            var trs = drawAttrList(fields);
             
             _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
             
