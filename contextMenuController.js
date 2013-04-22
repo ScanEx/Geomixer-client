@@ -194,6 +194,7 @@ nsGmx.ContextMenuController = (function()
 	
 		/**
 		 * Добавляет новый пункт меню
+         * @memberOf nsGmx.ContextMenuController
 		 * @function
 		 * @param {nsGmx.ContextMenuController.IContextMenuElem} menuItem Элемент контекстного меню
 		 * @param {String || Array} menuType Тип меню (например: "Layer", "Map", "Group"). Если массив, то данный элемент применяется в нескольких типах меню
@@ -213,6 +214,7 @@ nsGmx.ContextMenuController = (function()
 		/**
 		 * Добавляет к DOM элементу контекстное меню
 		 * @function
+         * @memberOf nsGmx.ContextMenuController
 		 * @param {DOMElement} elem Целевой DOM-элемент
 		 * @param {string} type Тип меню
 		 * @param {Function, checkFunc()->Bool} checkFunc Проверка, показывать ли сейчас меню. Если ф-ция возвращает false, меню не показывается

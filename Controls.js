@@ -1,6 +1,5 @@
-﻿/**
+﻿/** Разнообразные вспомогательные контролы (базовые элементы GUI)
     @namespace nsGmx.Controls
-    @description Разнообразные вспомогательные контролы (базовые элементы GUI)
 */
 nsGmx.Controls = {
 
@@ -20,7 +19,8 @@ nsGmx.Controls = {
 		return colorPicker;
 	},
 	
-	/** */
+	/** Создаёт иконку по описанию стиля слоя и типа геометрии
+    */
 	createGeometryIcon: function(parentStyle, type){
 		var icon = _div(null, [['css','display','inline-block'],['dir','className','colorIcon'],['attr','styleType','color'],['css','backgroundColor','#FFFFFF']]);
 		
@@ -85,7 +85,8 @@ nsGmx.Controls = {
 		return icon;
 	},
 	
-	/** */
+	/** Создаёт контрол "слайдер".
+    */
 	createSlider: function(opacity, changeFunc)	{
 		var divSlider = _div(null, [['css','width','86px'],['css','height','8px'],['css','border','1px solid #cdcdcd']]);
 		
@@ -133,7 +134,6 @@ nsGmx.Controls = {
 		return divSlider;
 	},
 
-	/** */
 	createInput: function(value, changeFunc){
 		var input = _input(null, [['dir','className','inputStyle'],['css','width','30px'],['attr','value',value]]);
 		input.onkeyup = changeFunc;
@@ -195,7 +195,7 @@ nsGmx.Controls = {
      @class
      @param {String} title - текст заголовка
      @param {DOMElement} titleElem - элемент для размещения самого виджета
-     @param {DOMElement or Array[DOMElement]} managedElems - элементы, видимостью которых будем
+     @param {DOMElement|Array[]} managedElems - элементы, видимостью которых будем
      @param {Bool} isCollapsed - начальное состояние виджета
     */
     CollapsibleWidget: function(title, titleElem, managedElems, isCollapsed)
@@ -242,7 +242,7 @@ nsGmx.Controls = {
         this.isCollapsed = function() { return _isCollapsed; };
     },
     
-    //Показывает аттрибутивную информацию объекта в виде таблички в отдельном диалоге
+    /** Показывает аттрибутивную информацию объекта в виде таблички в отдельном диалоге */
     showLayerInfo: function(layer, obj)
     {
         var trs = [];

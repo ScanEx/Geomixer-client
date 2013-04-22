@@ -31,13 +31,16 @@ _translationsHash.addtext("eng", {
 
 
 /** Вспомогательные функции
- @memberOf Search*/
+ @namespace Functions
+ @memberOf Search 
+*/
 var Functions = {
 
 	/** Возвращает полное наименование объекта, состоящее из типа и наименования
 	 @static
 	 @param sType Наименование типа объекта 
-	 @param sName Наименование объекта*/
+	 @param sName Наименование объекта
+    */
 	GetFullName: function(/** string */sType, /** string */sName){
 		var sFullName = "";
 		
@@ -52,12 +55,14 @@ var Functions = {
 	},
 
 	/** Возвращает полный путь к объекту
-	 @static
-	 @param oFoundObject найденный объект
-	 @param sObjectsSeparator разделитель между дочерним элементом и родителем в строке пути
-	 @param bParentAfter признак того, что родительский элемент идет после дочернего
-	 @param sObjNameField название свойства, из которого брать наименование*/
-	GetPath: function(/**object*/ oFoundObject,/** string */ sObjectsSeparator, /** bool */ bParentAfter, /** string */ sObjNameField){
+    * @memberOf Search.Functions
+    * 
+	* @param oFoundObject найденный объект
+	* @param sObjectsSeparator разделитель между дочерним элементом и родителем в строке пути
+	* @param bParentAfter признак того, что родительский элемент идет после дочернего
+	* @param sObjNameField название свойства, из которого брать наименование
+    */
+	GetPath: function(/*object*/ oFoundObject,/* string */ sObjectsSeparator, /* bool */ bParentAfter, /* string */ sObjNameField){
 		if (sObjNameField == null) sObjNameField = "ObjName";
 		if (oFoundObject == null) return "";
 		var oParentObj = oFoundObject.Parent;
@@ -1467,16 +1472,19 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 }
 
 /** Возвращает контрол, содержащий все все компоненты поиска и обеспечивающий их взаимодействие между собой
-@memberof Search
-@param {object} params Параметры: </br>
-		<i>ServerBase</i> - Адрес сервера, на котором установлен поисковый модуль Geomixer'а </br>
-		<i>ImagesHost</i> - строка пути к картинкам </br>
-		<i>ContainerInput</i> - Объект, в котором находится контрол поискового поля (div) </br>
-		<i>layersSearchFlag</i> - Признак видимости кнопки поиска по векторным слоям </br>
-		<i>ContainerList</i> - Объект, в котором находится контрол результатов поиска в виде списка(div) </br>
-		<i>Map</i> - карта, на которой будут рисоваться объекты </br>
-		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
- @returns {Search.SearchControl} */
+* @memberof Search
+* @param {object} params Параметры:
+* 
+*  * ServerBase - Адрес сервера, на котором установлен поисковый модуль Geomixer'а
+*  * ImagesHost - строка пути к картинкам
+*  * ContainerInput - Объект, в котором находится контрол поискового поля (div)
+*  * layersSearchFlag - Признак видимости кнопки поиска по векторным слоям
+*  * ContainerList - Объект, в котором находится контрол результатов поиска в виде списка(div)
+*  * Map - карта, на которой будут рисоваться объекты
+*  * WithoutGeometry - не передавать геометрию в результатах поиска
+*
+* @returns {Search.SearchControl}
+*/
 var SearchControlGet = function (params){
 	var oLogic = new SearchLogicGet(params.ServerBase, params.Map, params.WithoutGeometry);
 	var fnAutoCompleteSource = function (request, response) {
