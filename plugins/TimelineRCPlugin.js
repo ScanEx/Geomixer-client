@@ -265,6 +265,7 @@ var TimelineController = function(data, map) {
             return;
         }
 
+        var deletedCount = 0;
         for (var i in items[layerName])
         {
             var item = items[layerName][i],
@@ -277,6 +278,7 @@ var TimelineController = function(data, map) {
             
             if (!items[layerName][i].timelineItem && showItem)
             {
+                // console.log('adding');
                 var date = layerInfo.dateFunction(layer, obj),
                     content;
                 
@@ -297,6 +299,7 @@ var TimelineController = function(data, map) {
             }
             else if (items[layerName][i].timelineItem && !showItem)
             {
+                // console.log('removing');
                 for (var index = 0; index < timeline.items.length; index++)
                 {
                     var itemData = timeline.getData()[index].userdata;
@@ -304,16 +307,21 @@ var TimelineController = function(data, map) {
                     {
                         timeline.deleteItem(index, true);
                         delete items[layerName][i].timelineItem;
+                        deletedCount++;
                         break;
                     }
                 }
             }
         }
         
-        timeline.addItems(elemsToAdd);
-        $.each(elemsToAdd, function(i, elem) {
-            items[layerName][elem.userdata.objID].timelineItem = timeline.items[timeline.items.length-elemsToAdd.length + i];
-        });
+        if (elemsToAdd.length) {
+            timeline.addItems(elemsToAdd);
+            $.each(elemsToAdd, function(i, elem) {
+                items[layerName][elem.userdata.objID].timelineItem = timeline.items[timeline.items.length-elemsToAdd.length + i];
+            });
+        } else if (deletedCount > 0) {
+            timeline.render();
+        }
     }
     
     var updateCount = function() {
@@ -590,6 +598,7 @@ var TimelineController = function(data, map) {
         
         layer.addObserver(function(objs)
         {
+            // console.log(objs);
             //если мы загрузили все объекты, то нас не особо волнует, попали они на экран или нет...
             if (data.get('allItems')) {
                 return;

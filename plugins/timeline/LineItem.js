@@ -1,5 +1,6 @@
 links.Timeline.ItemLine = function (data, options) {
     links.Timeline.Item.call(this, data, options);
+    this.lastLeftPosition = null;
 };
 
 links.Timeline.ItemLine.prototype = new links.Timeline.Item();
@@ -62,16 +63,12 @@ links.Timeline.ItemLine.prototype.createDOM = function () {
         window.jQuery && jQuery(_this).trigger('mouseover');
         
         event = event || window.event;
-        // console.log(event);
         
         var offsetY = typeof event.offsetY !== 'undefined' ? event.offsetY : event.layerY;
-        
         
         this.tip.style.top = (offsetY - 25) + 'px';
         this.tip.style.left = (_this.dom.offsetLeft + 3) + 'px';
         this.tip.style.display = '';
-        //console.log(_this.dom.offsetLeft);
-        //console.log(this.tip.style.left);
     }
 
     divLine.onmouseout = function()
@@ -125,6 +122,7 @@ links.Timeline.ItemLine.prototype.hideDOM = function () {
             parent.removeChild(dom);
             parent.removeChild(dom.tip);
             this.rendered = false;
+            this.lastLeftPosition = null;
         }
     }
 };
@@ -165,8 +163,15 @@ links.Timeline.ItemLine.prototype.updateDOM = function () {
 links.Timeline.ItemLine.prototype.updatePosition = function (timeline) {
     var dom = this.dom;
     if (dom) {
-        var left = timeline.timeToScreen(this.start),
-            axisOnTop = timeline.options.axisOnTop,
+        var left = timeline.timeToScreen(this.start);
+        
+        if (this.lastLeftPosition !== null && this.lastLeftPosition === left) {
+            return;
+        }
+        
+        this.lastLeftPosition = left;
+        
+        var axisOnTop = timeline.options.axisOnTop,
             axisTop = timeline.size.axis.top,
             axisHeight = timeline.size.axis.height
 
@@ -201,7 +206,10 @@ links.Timeline.ItemLine.prototype.isVisible = function (start, end) {
  */
 links.Timeline.ItemLine.prototype.setPosition = function (left, right) {
     var dom = this.dom;
-    dom.style.left = (left - this.lineWidth / 2) + "px";
+    if (this.lastLeftPosition === null || this.lastLeftPosition !== left) {
+        this.lastLeftPosition = left;
+        dom.style.left = (left - this.lineWidth / 2) + "px";
+    }
 };
 
 /**
