@@ -343,6 +343,7 @@
 
 		//расширяем FlashMapObject
 		gmxAPI.extendFMO('setDateInterval', function(dt1, dt2) {
+//console.log('setDateInterval : ' , dt1 , ' : ' , dt2);
 			if(!this._temporalTiles) return false;
 			var tdata = this._temporalTiles.temporalData;
 			this._temporalTiles.setDateInterval(dt1, dt2, tdata);

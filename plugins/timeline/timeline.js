@@ -720,7 +720,7 @@ links.Timeline.prototype.render = function(options) {
     this.recalcConversion();
     this.clusterItems();
     this.filterItems();
-    this.stackItems(animate);
+    // this.stackItems(animate); //TODO: only for lineItems
 
     this.recalcItems();
 /* TODO: use or cleanup
@@ -1621,7 +1621,7 @@ links.Timeline.prototype.repaintItems = function() {
     frame.style.height = "0px";
 
     // Take frame offline (for faster manipulation of the DOM)
-    dom.content.removeChild(frame);
+    // dom.content.removeChild(frame);
 
     // process the render queue with changes
     var queue = this.renderQueue;
@@ -1669,7 +1669,7 @@ links.Timeline.prototype.repaintItems = function() {
     this.repaintDragAreas();
 
     // put frame online again
-    dom.content.appendChild(frame);
+    // dom.content.appendChild(frame);
 
     if (newImageUrls.length) {
         // retrieve all image sources from the items, and set a callback once

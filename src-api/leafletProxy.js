@@ -1407,95 +1407,24 @@
 		var node = mapNodes[id];
 		if(!node) return false;
 		gmxAPI._leaflet['LabelsManager'].add(id);			// добавим в менеджер отрисовки
-/*
-		var regularStyle = utils.getNodeProp(node, 'regularStyle', true);
-		if(!regularStyle || !regularStyle.label || !('label' in node)) return false;
-		//var regularStyle = node.regularStyle;
-		var labelStyle = regularStyle.label;
-		var pNode = mapNodes[node['parentId']];
-
-		if(node['leaflet']) {
-			pNode['group'].removeLayer(node['leaflet']);
-		}
-
-		var pp = node.geometry.coordinates;
-		var options = {
-			'textMarkers': [node['label']]
-			,'align': labelStyle['align']
-			,'color': '#' + utils.dec2hex(labelStyle['color'])
-		};
-
-		var p1 = new L.LatLng(pp[1], pp[0]);
-		node['leaflet'] = new L.GMXLabels([p1, p1], options);		
-		node['leaflet'].setStyle({'stroke': true, 'weight': 1, 'color': options['color']});
-		node['leaflet'].addTo(pNode['group']);
-*/
 	}
-/*	// setLabel для mapObject 
-	function setLabel(id, iconAnchor)	{
-		var node = mapNodes[id];
-		if(!node || !node.regularStyle || !node.regularStyle.label || !('label' in node)) return false;
-		if(!iconAnchor) {
-			iconAnchor = new L.Point(0, 0);
-		}
-		var regularStyle = node.regularStyle;
-		var labelStyle = regularStyle.label;
-		var divStyle = {'width': 'auto', 'height': 'auto', 'wordBreak': 'keep-all'};
-		if('iconSize' in regularStyle) {
-			divStyle = {'width': regularStyle.iconSize['x'], 'height': regularStyle.iconSize['y']};
-		}
-		
-		if(labelStyle['color']) divStyle['color'] = '#' + utils.dec2hex(labelStyle['color']);
-		if(labelStyle['haloColor']) divStyle['backgroundColor'] = utils.dec2rgba(labelStyle['haloColor'], 0.3);
-		//if(labelStyle['haloColor']) divStyle['backgroundColor'] = 'rgba(255, 255, 255, 0.3)';
-		
-		var opt = {'className': 'my-div-icon', 'html': node['label'], 'divStyle': divStyle };
-		var optm = {'zIndexOffset': 1, 'title': ''}; // , clickable: false
-		if(labelStyle['size']) opt['iconSize'] = new L.Point(labelStyle['size'], labelStyle['size']);
-		//scale
-		var labelExtent = utils.getLabelSize(node['label'], labelStyle);
-		var posX = iconAnchor.x;
-		var posY = iconAnchor.y + labelExtent.y/2 + 4;
-		if(labelStyle['align'] === 'center') {
-			divStyle['textAlign'] = 'center';
-			if('iconSize' in regularStyle) posY = regularStyle.iconSize['y']/4;
-			opt['iconAnchor'] = new L.Point(Math.floor(posX + labelExtent.x/2), Math.floor(posY));
-		} else if(labelStyle['align'] === 'left') {
-			//divStyle['bottom'] = 0;
-			opt['iconAnchor'] = new L.Point(Math.floor(posX - 6), Math.floor(posY));
-		} else if(labelStyle['align'] === 'right') {
-			//divStyle['bottom'] = 0;
-			opt['iconAnchor'] = new L.Point(Math.floor(posX + labelExtent.x + 4), Math.floor(posY));
-		} else {
-			//divStyle['bottom'] = 0;
-			opt['iconAnchor'] = new L.Point(-Math.floor(posX/2) - 6, Math.floor(posY/2));
-		}
-		if(node['marker']) {
-			node['group'].removeLayer(node['marker']);
-		}
 
-		var myIcon = L.gmxIcon(opt);
-		var pp = node.geometry.coordinates;
-
-		optm['icon'] = myIcon;
-		node['marker'] = L.marker([pp[1], pp[0]], optm);		
-		node['marker'].addTo(node['group']);
-	}*/
 	// setStyle для mapObject
 	function setStyle(id, attr)	{
 		var node = mapNodes[id];
 		if(!node || !attr) return false;
-		if(attr.hoveredStyle) {
-			node._hoveredStyle = gmxAPI.clone(attr.hoveredStyle);
-			node.hoveredStyle = utils.parseStyle(attr.hoveredStyle, id);
-			node.hoveredStyleIsAttr = utils.isPropsInStyle(node.hoveredStyle);
-			if(!node.hoveredStyleIsAttr) node.hoveredStyle = utils.evalStyle(node.hoveredStyle)
-		}
 		if(attr.regularStyle) {
 			node._regularStyle = gmxAPI.clone(attr.regularStyle);
 			node.regularStyle = utils.parseStyle(attr.regularStyle, id);
 			node.regularStyleIsAttr = utils.isPropsInStyle(node.regularStyle);
 			if(!node.regularStyleIsAttr) node.regularStyle = utils.evalStyle(node.regularStyle)
+			if(!attr.hoveredStyle) attr.hoveredStyle = gmxAPI.clone(attr.regularStyle);
+		}
+		if(attr.hoveredStyle) {
+			node._hoveredStyle = gmxAPI.clone(attr.hoveredStyle);
+			node.hoveredStyle = utils.parseStyle(attr.hoveredStyle, id);
+			node.hoveredStyleIsAttr = utils.isPropsInStyle(node.hoveredStyle);
+			if(!node.hoveredStyleIsAttr) node.hoveredStyle = utils.evalStyle(node.hoveredStyle)
 		}
 		
 		if(node['type'] === 'filter') {					// Установка стиля фильтра векторного слоя
@@ -3276,12 +3205,17 @@
 		}
 		// Квадрат растояния до точки
 		out['distance2'] = function (chkPoint) {
+			if(out['sx']) {
+				var point = getPoint();
+				var x = point.x - chkPoint.x,
+					y = point.y - chkPoint.y;
+				return x * x + y * y;
+			}
 			return 0;
 		}
 
 		// Проверка принадлежности точки LineGeometry
 		out['contains'] = function (chkPoint) {
-			var mInPixel = gmxAPI._leaflet['mInPixel'];
 			if(out['sx']) {
 				var point = getPoint();
 				var bounds1 = new L.Bounds();
@@ -3452,6 +3386,14 @@
 		out['cnt'] = cnt;
 		out['propHiden'] = {};					// служебные свойства
 		
+		// Получить точку маркера геометрии полигона
+		var getPoint = function () {
+			var point = {
+				'x': (bounds.min.x + bounds.max.x)/2,
+				'y': (bounds.min.y + bounds.max.y)/2
+			};
+			return point;
+		}
 		// проверка необходимости отрисовки геометрии
 		var chkNeedDraw = function (attr) {
 			//if(!bounds.intersects(attr['bounds'])) return false;				// проверка пересечения полигона с отображаемым тайлом
@@ -3470,31 +3412,43 @@
 			var x = attr['x'];
 			var y = 256 + attr['y'];
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
-			ctx.beginPath();
-			if(style && style['pattern']) {
-				var canvasPattern = style['pattern']['_res'] || gmxAPI._leaflet['utils'].getPatternIcon(out, style);
-				var pattern = ctx.createPattern(canvasPattern, "repeat");
-				ctx.fillStyle = pattern;
-			}
-
-			//console.log('nnn ' ,  ' : ' , coords);
-			for (var i = 0; i < coords.length; i++)
-			{
-				var pArr = coords[i];
-				//var pArr = L.PolyUtil.clipPolygon(coords[i], attr['bounds']);
-				for (var j = 0; j < pArr.length; j++)
-				{
-					var p1 = pArr[j];
-					var px1 = p1.x * mInPixel - x; 		px1 = (0.5 + px1) << 0;
-					var py1 = y - p1.y * mInPixel;		py1 = (0.5 + py1) << 0;
-					if(j == 0)
-						ctx.moveTo(px1, py1);
-					else
-						ctx.lineTo(px1, py1);
+			if(style && style['marker']) {
+				if(style['image']) {
+					var point = getPoint();
+					if(style['imageWidth']) out['sx'] = style['imageWidth']/2;
+					if(style['imageHeight']) out['sy'] = style['imageHeight']/2;
+					var px1 = point.x * mInPixel - x - out['sx']; 		px1 = (0.5 + px1) << 0;
+					var py1 = y - point.y * mInPixel - out['sy'];		py1 = (0.5 + py1) << 0;
+					ctx.drawImage(style['image'], px1, py1);
+					return false;
 				}
+			} else {
+				ctx.beginPath();
+				if(style && style['pattern']) {
+					var canvasPattern = style['pattern']['_res'] || gmxAPI._leaflet['utils'].getPatternIcon(out, style);
+					var pattern = ctx.createPattern(canvasPattern, "repeat");
+					ctx.fillStyle = pattern;
+				}
+
+				//console.log('nnn ' ,  ' : ' , coords);
+				for (var i = 0; i < coords.length; i++)
+				{
+					var pArr = coords[i];
+					//var pArr = L.PolyUtil.clipPolygon(coords[i], attr['bounds']);
+					for (var j = 0; j < pArr.length; j++)
+					{
+						var p1 = pArr[j];
+						var px1 = p1.x * mInPixel - x; 		px1 = (0.5 + px1) << 0;
+						var py1 = y - p1.y * mInPixel;		py1 = (0.5 + py1) << 0;
+						if(j == 0)
+							ctx.moveTo(px1, py1);
+						else
+							ctx.lineTo(px1, py1);
+					}
+				}
+				ctx.closePath();
+				if(fillFlag) ctx.fill();
 			}
-			ctx.closePath();
-			if(fillFlag) ctx.fill();
 		}
 		// Отрисовка заполнения полигона
 		out['paintFill'] = function (attr, style, ctx, fillFlag) {
@@ -3561,15 +3515,36 @@
 		// Отрисовка полигона
 		out['paint'] = function(attr, style, ctx) {
 			if(!attr || !style) return;
-			if(style.fill) paintFill(attr, style, ctx, true);
-			var res = paintStroke(attr, style, ctx);
-			//attr.ctx.stroke();
-			return res;
+			if(style && style['marker']) {
+				if(style['image']) {
+					var point = getPoint();
+					var x = attr['x'];
+					var y = 256 + attr['y'];
+					var mInPixel = gmxAPI._leaflet['mInPixel'];
+					if(style['imageWidth']) out['sx'] = style['imageWidth']/2;
+					if(style['imageHeight']) out['sy'] = style['imageHeight']/2;
+					var px1 = point.x * mInPixel - x - out['sx']; 		px1 = (0.5 + px1) << 0;
+					var py1 = y - point.y * mInPixel - out['sy'];		py1 = (0.5 + py1) << 0;
+					ctx.drawImage(style['image'], px1, py1);
+					return false;
+				}
+			} else {
+				out['sx'] = out['sy'] = 0;
+				if(style.fill) paintFill(attr, style, ctx, true);
+				var res = paintStroke(attr, style, ctx);
+				return res;
+			}
 		}
 		// Проверка принадлежности точки полигону
 		out['contains'] = function (chkPoint, curStyle, fillPattern) {
+			if(!curStyle) curStyle = out.propHiden.curStyle;
+			if(curStyle && curStyle['marker']) {
+				var point = getPoint();
+				var bounds1 = new L.Bounds();
+				bounds1.extend(new L.Point(point.x, point.y));
+				return gmxAPI._leaflet['utils'].chkPointWithDelta(bounds1, chkPoint, out);
+			}
 			if(bounds.contains(chkPoint)) {
-				if(!curStyle) curStyle = out.propHiden.curStyle;
 				var fill = (fillPattern ? true : (curStyle ? curStyle.fill : false));
 				for (var i = 0; i < coords.length; i++)
 				{
@@ -3589,24 +3564,27 @@
 			if(!yFlag) return null;
 		    if(chkBounds.max.x >= bounds.min.x && chkBounds.min.x <= bounds.max.x) return 0;
 			return null;
-			/*var ww = 2 * gmxAPI.worldWidthMerc;
-		    if(chkBounds.max.x >= bounds.min.x && chkBounds.min.x <= bounds.max.x) return 0;
-		    else if(chkBounds.max.x >= bounds.min.x + ww && chkBounds.min.x <= bounds.max.x + ww) return ww;
-		    else if(chkBounds.max.x >= bounds.min.x - ww && chkBounds.min.x <= bounds.max.x - ww) return -ww;
-			ww *= 2;
-		    if(chkBounds.max.x >= bounds.min.x + ww && chkBounds.min.x <= bounds.max.x + ww) return ww;
-		    else if(chkBounds.max.x >= bounds.min.x - ww && chkBounds.min.x <= bounds.max.x - ww) return -ww;
-			return null;*/
 		}
 		// Проверка пересечения с bounds
 		out['intersects'] = function (chkBounds) {
-			var pt = getShiftX(chkBounds);
-//console.log('paintStroke ', pt, chkBounds);
-			return (pt === null ? false : true);
+			var flag = false;
+			if(out['sx']) {
+				flag = gmxAPI._leaflet['utils'].chkPointWithDelta(chkBounds, getPoint(), out);
+			} else {
+				var pt = getShiftX(chkBounds);
+				flag = (pt === null ? false : true);
+			}
+			return flag;
 		}
 		
 		// Квадрат растояния до точки
 		out['distance2'] = function (chkPoint) {
+			if(out['sx']) {
+				var point = getPoint();
+				var x = point.x - chkPoint.x,
+					y = point.y - chkPoint.y;
+				return x * x + y * y;
+			}
 			return 0;
 		}
 		return out;

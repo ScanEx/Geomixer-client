@@ -520,6 +520,14 @@ nsGmx.Utils.uniqueGlobalName = (function()
     }
 })();
 
+/** Посылает кросс-доменный GET запрос к серверу с использованием транспорта JSONP.
+ * 
+ * @memberOf nsGmx.Utils
+ * @param {String} url URL сервера.
+ * @param {Function} callback Ф-ция, которая будет вызвана при получении от сервера результата.
+ * @param {String} [callbackParamName=CallbackName] Имя параметра для задания имени ф-ции ответа.
+ * @param {Function} [errorCallback] Ф-ция, которая будет вызвана в случае ошибки запроса к серверу
+ */
 function sendCrossDomainJSONRequest(url, callback, callbackParamName, errorCallback)
 {
 	callbackParamName = callbackParamName || 'CallbackName';
@@ -802,12 +810,12 @@ function createPostIframe(id, callback)
 }();
 
 /** Посылает кроссдоменный POST запрос
-* @function
-* 
-* @param url {string} - URL запроса
-* @param params {object} - хэш параметров-запросов
-* @param callback {function} - callback, который вызывается при приходе ответа с сервера. Единственный параметр ф-ции - собственно данные
-* @param baseForm {DOMElement} - базовая форма запроса. Используется, когда нужно отправить на сервер файл. 
+*
+* @memberOf nsGmx.Utils
+* @param {String} url URL запроса
+* @param {Object} params Хэш параметров-запросов
+* @param {Function} [callback] Callback, который вызывается при приходе ответа с сервера. Единственный параметр ф-ции - собственно данные
+* @param {DOMElement} [baseForm] базовая форма запроса. Используется, когда нужно отправить на сервер файл. 
 *                                В функции эта форма будет модифицироваться, но после отправления запроса будет приведена к исходному виду.
 */
 function sendCrossDomainPostRequest(url, params, callback, baseForm)
@@ -1019,10 +1027,10 @@ function stringDateTime(msec)
 	return stringDate(msec) + ' ' + stringTime(msec);
 }
 
-/**
-    Подсвечивает красным input, убирает подсветку через некоторое время
-    @param input {Array or HTMLDOMElement} целевой input-элемент или массив таких элементов
-    @param delay {integer} время подсвечивания ошибки в миллисекундах
+/** Подсвечивает красным input, убирает подсветку через некоторое время
+*
+* @param {HTMLDOMElement|Array<HTMLDOMElement>} input - целевой input-элемент или массив таких элементов
+* @param {integer} delay - время подсвечивания ошибки в миллисекундах
 */
 function inputError(input, delay)
 {
@@ -1088,6 +1096,7 @@ $.extend(nsGmx.Utils, {
     /**
         Преобразует цвет, заданный в виде числа (0xaabbcc) в строку вида #aabbcc
         @function
+        @memberOf nsGmx.Utils
     */
     convertColor: function(intColor)
     {
@@ -1110,7 +1119,9 @@ $.extend(nsGmx.Utils, {
         return '#' + r + g + b;
     },
 	
-	/** Возвращает позицию окна такую, чтобы окно не мешало текущему элементу*/
+	/** Возвращает позицию окна такую, чтобы окно не мешало текущему элементу
+        @memberOf nsGmx.Utils
+    */
 	getDialogPos: function(div, offsetFlag, height)
 	{
 		var pos = getOffsetRect(div),
@@ -1134,6 +1145,7 @@ $.extend(nsGmx.Utils, {
 	},
 	
 	/** Устанавливает обычный стиль и генерит похожий стиль при наведении мышки 
+    @memberOf nsGmx.Utils
 	@param mapObject {MapObject} Объект на карте
 	@param templateStyle {Style} Стиль, похожий на который надо установить*/
 	setMapObjectStyle: function(mapObject, templateStyle)
@@ -1162,17 +1174,23 @@ $.extend(nsGmx.Utils, {
 			mapObject.setStyle(templateStyle, hoverStyle);
 		}
 	},
-    // Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
-    // Форматы сервера:
-    // * datetime - unix timestamp
-    // * date - unix timestamp, кратный 24*3600 секунд
-    // * time - кол-во секунд с полуночи
-    // Форматы клиента:
-    // * все числа превращаются в строки
-    // * дата - строка в формате dd.mm.yy
-    // * время - строка в формате hh:mm:ss
-    // * дата-время - dd.mm.yy hh:mm:ss
-    
+    /** Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
+    *
+    * Форматы сервера:
+    *
+    *  * datetime - unix timestamp
+    *  * date - unix timestamp, кратный 24*3600 секунд
+    *  * time - кол-во секунд с полуночи
+    *
+    * Форматы клиента:
+    * 
+    *  * все числа превращаются в строки
+    *  * дата - строка в формате dd.mm.yy
+    *  * время - строка в формате hh:mm:ss
+    *  * дата-время - dd.mm.yy hh:mm:ss
+    *
+    * @memberOf nsGmx.Utils
+    */
     convertFromServer: function(type, value)
     {
         //if (value === null) return "null";
@@ -1216,6 +1234,11 @@ $.extend(nsGmx.Utils, {
         
         return value;
     },
+    
+    /** Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
+    * Описание форматов см. в {@link nsGmx.Utils.convertFromServer}
+    * @memberOf nsGmx.Utils
+    */
     convertToServer: function(type, value)
     {
         var lowerCaseType = type.toLowerCase();
@@ -1292,8 +1315,9 @@ $.extend(nsGmx.Utils, {
     /** Загружает пользовательский shp файл.
     * Проверяет на ошибки, выводит предупреждения и ошибки в виде стандартный диалогов.
     * 
-    * #param {File | Form} shpSource Либо форма с полем file, в которой пользователь выбрал файл, либо HTML5 File.
-    * @return Возвращает jQuery Deferred (аргумент ф-ции - массив объектов из shp файла)
+    * @memberof nsGmx.Utils 
+    * @param {File|Form} shpSource Либо форма с полем file, в которой пользователь выбрал файл, либо HTML5 File.
+    * @return Возвращает jQuery Promise (аргумент ф-ции - массив объектов из shp файла)
     */
     parseShpFile: (function() //приватные данные
     {
@@ -1370,7 +1394,9 @@ $.extend(nsGmx.Utils, {
         
     })(),
     
-    //Объединяет массив полигонов/мультиполигонов в новый полигон/мультиполигон
+    /** Объединяет массив полигонов/мультиполигонов в новый полигон/мультиполигон
+    * @memberof nsGmx.Utils
+    */
     joinPolygons: function(objs)
     {
         var polygonObjects = [];
