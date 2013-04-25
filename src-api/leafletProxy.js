@@ -212,7 +212,7 @@
 				tx = style.imageWidth/2;
 				ty = style.imageHeight/2;
 				ptx.translate(ww/2, hh/2);
-				ptx.rotate(Math.PI * 45 / 180);
+				ptx.rotate(Math.PI * style['rotateRes']/180);
 			}
 			ptx.drawImage(img, -tx, -ty);
 			if('color' in style) {
