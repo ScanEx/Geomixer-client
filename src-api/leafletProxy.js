@@ -206,12 +206,13 @@
 			canvas.height = hh;
 			var ptx = canvas.getContext('2d');
 			ptx.clearRect(0, 0, ww , hh);
+			//ptx.fillRect(0, 0, ww , hh);
 			var tx = ty = 0;
 			if(style['rotateRes']) {
-				tx = ww/2;
-				ty = hh/2;
-				ptx.translate(tx, ty);
-				ptx.rotate(Math.PI  * style['rotateRes']/180);
+				tx = style.imageWidth/2;
+				ty = style.imageHeight/2;
+				ptx.translate(ww/2, hh/2);
+				ptx.rotate(Math.PI * 45 / 180);
 			}
 			ptx.drawImage(img, -tx, -ty);
 			if('color' in style) {
@@ -3038,7 +3039,8 @@
 						if(style['rotateRes'] || 'color' in style) {
 							if(style['rotateRes']) {
 								size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-								out['sx'] = out['sy'] = scale * size;
+								//size = Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight);
+								out['sx'] = out['sy'] = Math.ceil(scale * size);
 							}
 							canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style, size);
 							out['_cache']['canv'] = canv;
