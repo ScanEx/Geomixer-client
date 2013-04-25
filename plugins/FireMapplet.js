@@ -8,7 +8,7 @@ var initTranslations = function()
                                 "searchBbox.CancelSearchInArea" : "Отменить поиск по области",
                                 "firesWidget.FireSpots.Description" : "Очаги пожаров",
                                 "firesWidget.Burnt.Description" : "Границы гарей",
-                                "firesWidget.DialyCoverage.Description" : "Космоснимки",
+                                "firesWidget.DailyCoverage.Description" : "Космоснимки",
                                 "firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
                                 "firesWidget.FireCombinedDescription" : "Пожары",
                                 "firesWidget.ExtendedView" : "Расширенный поиск",
@@ -20,7 +20,7 @@ var initTranslations = function()
                                 "searchBbox.CancelSearchInArea" : "Cancel search in area",
                                 "firesWidget.FireSpots.Description" : "Fire spots",
                                 "firesWidget.Burnt.Description" : "Fire areas",
-                                "firesWidget.DialyCoverage.Description" : "Satellite images",
+                                "firesWidget.DailyCoverage.Description" : "Satellite images",
                                 "firesWidget.tooManyDataWarning" : "Too much data - downsize search area!",
                                 "firesWidget.FireCombinedDescription" : "Fires",
                                 "firesWidget.ExtendedView" : "Extended search",
@@ -607,7 +607,7 @@ var ModisImagesProvider = function( params )
        
     }
 	
-	this.getDescription = function() { return _gtxt("firesWidget.DialyCoverage.Description"); }
+	this.getDescription = function() { return _gtxt("firesWidget.DailyCoverage.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
         addModisLayers(function(layers)
@@ -622,8 +622,6 @@ var ModisImagesProvider = function( params )
 
 var _createHoverFunction = function(params, balloonProps)
 {
-	var addGeometrySummary = typeof params.addGeometrySummary !== 'undefined' ? params.addGeometrySummary : true;
-	
 	return function(o)
 	{
 		var p = balloonProps[o.objectId];
@@ -634,7 +632,7 @@ var _createHoverFunction = function(params, balloonProps)
 		for ( var i in p )
 			res += "<b>" + i + ":</b> " + p[i] + "<br />";
 		
-		if (addGeometrySummary)
+		if (typeof params.addGeometrySummary === 'undefined' || params.addGeometrySummary)
 			res += o.getGeometrySummary();
 		
 		return res + (typeof params.endTitle !== 'undefined' ? "<br/>" + params.endTitle : "");
@@ -1277,7 +1275,7 @@ var _lazyLoadFireLayers = (function()
     
     return function(params)
     {
-        var _params = $.extend({
+        var _params = $.extend(true, {
             hotspotLayerName: 'A78AC25E0D924258B5AF40048C21F7E7',
             mapName: '3PORS', 
             host: 'maps.kosmosnimki.ru'
@@ -1539,7 +1537,7 @@ var FireBurntRenderer2 = function( params )
 
 var FireBurntProvider3 = function( params )
 {
-    this.getDescription = function() { return "Test observer"; }
+    this.getDescription = function() { return params.title || "Пожары v2"; }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
     {
         onSucceess({dateBegin: dateBegin, dateEnd: dateEnd});
@@ -1549,30 +1547,55 @@ var FireBurntProvider3 = function( params )
 //рисует кластеры на основе данных о хотспотах векторного слоя
 var FireBurntRenderer3 = function( params )
 {
+    var _params = $.extend(true, {
+        minGeomZoom: 8,
+        minHotspotZoom: 10,
+        hotspotLayerName: 'C13B4D9706F7491EBC6DC70DFFA988C0',
+        dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE',
+        mapName: 'NDFYK'
+    }, params);
+    
     buildModisPixelDimensionsTable();
     
     var map = params.map;
     
     var clusterLayer = map.addLayer({properties: {
-        name: 'fireClustersLayer',
-        styles: [{ 
+        name: 'fireClustersLayer' + _params.hotspotLayerName,
+        styles: [{
+            Balloon:
+                "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" + 
+                "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
+                "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+                "<div>[SUMMARY]</div>" + 
+                "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
             MinZoom:1,
-            MaxZoom:7,
+            MaxZoom:_params.minGeomZoom - 1,
             RenderStyle: {
                 marker: {
                     image: serverBase + 'images/' + 'fire_sample.png',  //TODO: передать хост явно
                     center: true,
                     scale: '[scale]'
+                },
+                label: {
+                    size: 12,
+                    color: 0xffffff,
+                    field: 'label',
+                    align: 'center'
                 }
             }
         }]
     }});
-    
+        
     var clusterGeomLayer = map.addLayer({properties: {
-        name: 'fireClustersGeomLayer',
+        name: 'fireClustersGeomLayer' + _params.hotspotLayerName,
         styles: [{
-            MinZoom:8,
-            MaxZoom:21
+            Balloon:
+                "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" + 
+                "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
+                "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+                "<div>[SUMMARY]</div>",
+            MinZoom: _params.minGeomZoom,
+            MaxZoom: 21
         }]
     }});
     
@@ -1586,30 +1609,28 @@ var FireBurntRenderer3 = function( params )
     
     clusterGeomLayer.setVisible(true);
     clusterLayer.setVisible(true);
-    
-    
-    params.hotspotLayerName = 'C13B4D9706F7491EBC6DC70DFFA988C0';
-    params.mapName = 'NDFYK';
-    _lazyLoadFireLayers(params).done(function()
+
+    _lazyLoadFireLayers({map: map, mapName: _params.mapName}).done(function()
     {
-        var layer = map.layers[params.hotspotLayerName];
-        var minZoom = layer.getZoomBounds().MinZoom;
+        var layer = map.layers[_params.hotspotLayerName];
+        //var minZoom = layer.getZoomBounds().MinZoom;
         
-        var isLayerVisible = map.getZ() >= minZoom;
+        var isLayerVisible = map.getZ() >= _params.minHotspotZoom;
         if (!isLayerVisible)
             layer.setVisibilityFilter('ogc_fid=-1');
             
-        var dialyClustersLayer = map.layers['3E88643A8AC94AFAB4FD44941220B1CE'];
-        dialyClustersLayer.setVisibilityFilter('ogc_fid=-1');
-        dialyClustersLayer.setZoomBounds(1, 21);
-        dialyClustersLayer.setVisible(true);
+        var dailyClustersLayer = map.layers[_params.dailyLayerName];
+        dailyClustersLayer.setVisibilityFilter('ogc_fid=-1');
+        dailyClustersLayer.setZoomBounds(1, _params.minGeomZoom-1);
+        dailyClustersLayer.setVisible(true);
             
-        layer.setZoomBounds(8, 21);
-        $.each(layer.filters, function(i, filter) { filter.setZoomBounds(8, 21); });
+        layer.setZoomBounds(_params.minGeomZoom, 21);
+        $.each(layer.filters, function(i, filter) { filter.setZoomBounds(_params.minGeomZoom, 21); });
+        layer.setVisible(true);
         
         map.addListener('positionChanged', function()
         {
-            var isNowVisible = map.getZ() >= minZoom;
+            var isNowVisible = map.getZ() >= _params.minHotspotZoom;
             if (isNowVisible && !isLayerVisible)
                 layer.setVisibilityFilter();
             else if (!isNowVisible && isLayerVisible)
@@ -1664,7 +1685,7 @@ var FireBurntRenderer3 = function( params )
                     var coords = objects[k].item.geometry.coordinates;
                     
                     if (objects[k].onExtent)
-                        cluster.spots[hotspotId] = [coords[0], coords[1], 600]; //TODO: выбрать правильный номер sample
+                        cluster.spots[hotspotId] = [coords[0], coords[1], 250]; //TODO: выбрать правильный номер sample
                     else
                         delete cluster.spots[hotspotId];
                         
@@ -1686,13 +1707,17 @@ var FireBurntRenderer3 = function( params )
                     var count = clusters[k].count;
                     if (count)
                     {
+                        var strStartDate = $.datepicker.formatDate('dd.mm.yy', new Date(cluster.startDate));
+                        var strEndDate = $.datepicker.formatDate('dd.mm.yy', new Date(cluster.endDate));
                         var newItem = {
                             id: k,
                             properties: {
                                 scale: String(Math.sqrt(count)/5),
                                 count: count,
-                                startDate: $.datepicker.formatDate('dd.mm.yy', new Date(cluster.startDate)),
-                                endDate: $.datepicker.formatDate('dd.mm.yy', new Date(cluster.endDate))
+                                label: count >= 10 ? count : null,
+                                startDate: strStartDate,
+                                endDate: strEndDate,
+                                dateRange: cluster.startDate === cluster.endDate ? strEndDate : strStartDate + '-' + strEndDate
                             }
                         };
                         
@@ -1728,17 +1753,17 @@ var FireBurntRenderer3 = function( params )
             }
         }
         
-        dialyClustersLayer.addObserver(updateClustersByObject(clusterLayer, false, 'ParentClusterId', 'ClusterId', 'HotSpotCount', 'ClusterDate'), {ignoreVisibilityFilter: true});
+        dailyClustersLayer.addObserver(updateClustersByObject(clusterLayer, false, 'ParentClusterId', 'ClusterId', 'HotSpotCount', 'ClusterDate'), {ignoreVisibilityFilter: true});
         layer.addObserver(updateClustersByObject(clusterGeomLayer, true, 'ClusterID', 'SpotID', null, 'Timestamp'), {ignoreVisibilityFilter: true});
     })
     
     this.bindData = function(data)
 	{
-        _lazyLoadFireLayers(params).done(function()
+        _lazyLoadFireLayers(_params).done(function()
         {
-            if (params.hotspotLayerName in map.layers)
+            if (_params.hotspotLayerName in map.layers)
             {
-                map.layers[params.hotspotLayerName].setDateInterval(data.dateBegin, data.dateEnd);
+                map.layers[_params.hotspotLayerName].setDateInterval(data.dateBegin, data.dateEnd);
             }
         })
     }
@@ -1901,7 +1926,7 @@ var FireControl = function(map)
 	this.statusModel = new AggregateStatus();
 	this.processingModel = new AggregateStatus();
 	
-	this.searchBboxController = new SearchBboxControl(map);
+	//this.searchBboxController = new SearchBboxControl(map);
 	
 	this._currentVisibility = true;
 	
@@ -1946,8 +1971,7 @@ FireControl.prototype.saveState = function()
 		dc.push({name: this.dataControllers[k].name, visible: this.dataControllers[k].visible});
 	
 	var resData = {
-		dataContrololersState: dc, 
-		bbox: this.searchBboxController.saveState() 
+		dataContrololersState: dc
 	}
 	
     var ts = this.getCurrentTimeShift();
@@ -1975,8 +1999,6 @@ FireControl.prototype.loadState = function( data )
 		this._timeShift = $.extend({}, data.timeShift);
         this._updateCalendarTime(this._timeShift);
     }
-			
-	this.searchBboxController.loadState(data.bbox);
 }
 
 //вызывает callback когда календарик проинициализирован
@@ -2065,7 +2087,7 @@ FireControl.prototype._updateCheckboxList = function()
 
 FireControl.prototype.findBbox = function()
 {
-	this.searchBboxController.findBbox();
+	//this.searchBboxController.findBbox();
 }
 
 /** Возвращает bbox, по которому запрашиваются данные.
@@ -2073,7 +2095,8 @@ FireControl.prototype.findBbox = function()
 */
 FireControl.prototype.getBbox = function()
 {
-	return this._initExtent.getIntersection(this.searchBboxController.getBbox());
+	//return this._initExtent.getIntersection(this.searchBboxController.getBbox());
+    return new BoundsExt( BoundsExt.WHOLE_WORLD );
 }
 
 //предполагаем, что dateBegin, dateEnd не нулевые
@@ -2245,21 +2268,38 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
             requestType:  this._firesOptions.wholeClusterRequestType
         });
 		
-		this.addDataProvider( "firedots",
-							  new CombinedProvider( "firesWidget.FireCombinedDescription", [spotProvider, wholeClusterProvider] ),
-							  new CombinedFiresRenderer( this._firesOptions ), 
-							  { isVisible: this._firesOptions.firesInit } );
+		// this.addDataProvider( "firedots",
+							  // new CombinedProvider( "firesWidget.FireCombinedDescription", [spotProvider, wholeClusterProvider] ),
+							  // new CombinedFiresRenderer( this._firesOptions ), 
+							  // { isVisible: this._firesOptions.firesInit } );
     }
     
-    this.addDataProvider( "firedots_layer",
-                          new FireBurntProvider3( {host: this._firesOptions.firesHost} ),
-                          new FireBurntRenderer3( {map: this._map} ),
-                          { isVisible: true } );
+    this.addDataProvider(
+        "firedots_layer_scanex",
+        new FireBurntProvider3( {host: this._firesOptions.firesHost, title: "Пожары FIRMS"} ),
+        new FireBurntRenderer3( {
+            map: this._map,
+            hotspotLayerName: 'C13B4D9706F7491EBC6DC70DFFA988C0',
+            dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE'
+        }),
+        { isVisible: true } 
+    );
+    
+    this.addDataProvider(
+        "firedots_layer_global",
+        new FireBurntProvider3( {host: this._firesOptions.firesHost, title: "Пожары ScanEx"} ),
+        new FireBurntRenderer3( {
+            map: this._map,
+            hotspotLayerName: '254C50EFB0C94B3885DBA0C6C89B4C88',
+            dailyLayerName: '0F203142F063462DB0961D4F60BDC14E'
+        }),
+        { isVisible: true } 
+    );
 	
     this._calendar = calendar;
 	this._visModeController = calendar.getModeController();
     
-	this.searchBboxController.init();
+	//this.searchBboxController.init();
 	
 	//var processImg = _img(null, [['attr','src', globalOptions.resourceHost + 'img/progress.gif'],['css','marginLeft','10px'], ['css', 'display', 'none']]);
 	var processImg = _img(null, [['attr','src', this._firesOptions.resourceHost + 'img/loader.gif']]);
@@ -2273,72 +2313,72 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	var trs = [];
 	var _this = this;
 	
-	var restrictByVisibleExtent = function( keepSilence )
-	{
-		var deltaX = 400;
-		var deltaY = 150;
-		var flashDiv = document.getElementById(_this._map.flashId);
-		var mapExtent = _this._map.getVisibleExtent();
-		var x = merc_x(_this._map.getX());
-		var y = merc_y(_this._map.getY());
-		var scale = getScale(_this._map.getZ());
-		var w2 = scale*(flashDiv.clientWidth-deltaX)/2;
-		var h2 = scale*(flashDiv.clientHeight-deltaY)/2;
-		var mapExtent = {
-			minX: from_merc_x(x - w2),
-			minY: from_merc_y(y - h2),
-			maxX: from_merc_x(x + w2),
-			maxY: from_merc_y(y + h2)
-		};
+	// var restrictByVisibleExtent = function( keepSilence )
+	// {
+		// var deltaX = 400;
+		// var deltaY = 150;
+		// var flashDiv = document.getElementById(_this._map.flashId);
+		// var mapExtent = _this._map.getVisibleExtent();
+		// var x = merc_x(_this._map.getX());
+		// var y = merc_y(_this._map.getY());
+		// var scale = getScale(_this._map.getZ());
+		// var w2 = scale*(flashDiv.clientWidth-deltaX)/2;
+		// var h2 = scale*(flashDiv.clientHeight-deltaY)/2;
+		// var mapExtent = {
+			// minX: from_merc_x(x - w2),
+			// minY: from_merc_y(y - h2),
+			// maxX: from_merc_x(x + w2),
+			// maxY: from_merc_y(y + h2)
+		// };
 				
-		var geometry = {type: "POLYGON", coordinates: 
-			[[[mapExtent.minX, mapExtent.minY],
-			  [mapExtent.minX, mapExtent.maxY],
-			  [mapExtent.maxX, mapExtent.maxY],
-			  [mapExtent.maxX, mapExtent.minY],
-			  [mapExtent.minX, mapExtent.minY]]]};
+		// var geometry = {type: "POLYGON", coordinates: 
+			// [[[mapExtent.minX, mapExtent.minY],
+			  // [mapExtent.minX, mapExtent.maxY],
+			  // [mapExtent.maxX, mapExtent.maxY],
+			  // [mapExtent.maxX, mapExtent.minY],
+			  // [mapExtent.minX, mapExtent.minY]]]};
 		
-		var outlineColor = 0xff0000;
-		var fillColor = 0xffffff;
-		var regularDrawingStyle = {
-			marker: { size: 3 },
-			outline: { color: outlineColor, thickness: 3, opacity: 80 },
-			fill: { color: fillColor }
-		};
-		var hoveredDrawingStyle = { 
-			marker: { size: 4 },
-			outline: { color: outlineColor, thickness: 4 },
-			fill: { color: fillColor }
-		};
+		// var outlineColor = 0xff0000;
+		// var fillColor = 0xffffff;
+		// var regularDrawingStyle = {
+			// marker: { size: 3 },
+			// outline: { color: outlineColor, thickness: 3, opacity: 80 },
+			// fill: { color: fillColor }
+		// };
+		// var hoveredDrawingStyle = { 
+			// marker: { size: 4 },
+			// outline: { color: outlineColor, thickness: 4 },
+			// fill: { color: fillColor }
+		// };
 		
-		var curDrawing = _this.searchBboxController.getDrawing();
+		// var curDrawing = _this.searchBboxController.getDrawing();
 		
-		_this.searchBboxController.bindNewDrawing(geometry, {}, {regular: regularDrawingStyle, hovered: hoveredDrawingStyle}, keepSilence);
+		// _this.searchBboxController.bindNewDrawing(geometry, {}, {regular: regularDrawingStyle, hovered: hoveredDrawingStyle}, keepSilence);
 		
-		if (curDrawing)
-			curDrawing.remove();
-	}
+		// if (curDrawing)
+			// curDrawing.remove();
+	// }
     
 	var button = $("<button>").attr('className', 'findFiresButton')[0];
 	
 	$(button).text(_gtxt('firesWidget.AdvancedSearchButton'));
 	
-	$(this.searchBboxController).change(function()
-	{
-		if (_this.searchBboxController.getBbox().isWholeWorld() && _this._visModeController.getMode() ===  _this._visModeController.ADVANCED_MODE)
-			restrictByVisibleExtent(true);
+	// $(this.searchBboxController).change(function()
+	// {
+		// if (_this.searchBboxController.getBbox().isWholeWorld() && _this._visModeController.getMode() ===  _this._visModeController.ADVANCED_MODE)
+			// restrictByVisibleExtent(true);
 			
-		_this.update();
-	})
+		// _this.update();
+	// })
 	
 	button.onclick = function()
 	{
-		if ( _this.searchBboxController.getBbox().isWholeWorld() )
-		{
-			//пользователь нажал на поиск, а рамки у нас нет -> добавим рамку по размеру окна.
-			restrictByVisibleExtent(true);
-		}
-		_this.update();
+		// if ( _this.searchBboxController.getBbox().isWholeWorld() )
+		// {
+			// //пользователь нажал на поиск, а рамки у нас нет -> добавим рамку по размеру окна.
+			// restrictByVisibleExtent(true);
+		// }
+		// _this.update();
 	};
     	
 	var updateTimeInfo = function()
@@ -2353,21 +2393,21 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 		if ( _this._visModeController.getMode() ===  _this._visModeController.SIMPLE_MODE )
 		{
 			$(button).css({display: 'none'});
-			var curDrawing = _this.searchBboxController.getDrawing();
+			//var curDrawing = _this.searchBboxController.getDrawing();
 			
-			if (curDrawing)
-			{
-				_this.searchBboxController.removeBbox( true );
-				curDrawing.remove();
-			}
+			// if (curDrawing)
+			// {
+				// _this.searchBboxController.removeBbox( true );
+				// curDrawing.remove();
+			// }
 		}
 		else 
 		{
-			if ( _this.searchBboxController.getBbox().isWholeWorld() )
-			{
-				//пользователь нажал на поиск, а рамки у нас нет -> добавим рамку по размеру окна.
-				restrictByVisibleExtent(true);
-			}
+			// if ( _this.searchBboxController.getBbox().isWholeWorld() )
+			// {
+				// //пользователь нажал на поиск, а рамки у нас нет -> добавим рамку по размеру окна.
+				// restrictByVisibleExtent(true);
+			// }
 		}
 		updateTimeInfo();
 		_this.update();
