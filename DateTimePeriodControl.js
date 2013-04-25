@@ -264,10 +264,13 @@ var Calendar = function(name, params)
 			$(this).triggerHandler('change');
 	}
 	
-	this.getModeController = function()
-	{
+	this.getModeController = function() {
 		return this._visModeController;
 	}
+    
+    this.setSwitcherVisibility = function(isVisible) {
+        this.moreIcon && $(this.moreIcon).toggle(isVisible);
+    }
     
     if (typeof name !== 'undefined')
         this.init(name, params);
