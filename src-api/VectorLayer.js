@@ -1034,7 +1034,7 @@ if(!tarr) {
 				var propHiden = geom.propHiden;
 				//if(!propHiden && item.geom && item.geom.propHiden) propHiden = item.geom.propHiden;
 				var filters = propHiden['toFilters'];
-				if(filters.length == 0) filters = chkObjectFilters(item.geom);
+				if(filters.length == 0) filters = chkObjectFilters(geom);
 				filter = (filters && filters.length ? mapNodes[filters[0]] : null);
 			}
 			return filter;
@@ -1043,6 +1043,7 @@ if(!tarr) {
 		function chkObjectFilters(geo, tileSize)	{				// Получить фильтры для обьекта
 			var zoom = LMap.getZoom();
 			var toFilters = [];
+
 			delete geo.curStyle;
 			delete geo['_cache'];
 
@@ -2109,8 +2110,8 @@ if(!tarr) {
 			reCheckFilters();
 
 			if(node.isVisible) {
-				//waitRedrawFlips(100, true);
-				redrawAllTiles();
+				node.redrawTilesList();
+				//redrawAllTiles();
 				//tilesRedrawImages.clear();
 				//if(redrawAllTilesTimer) clearTimeout(redrawAllTilesTimer);
 				//redrawAllTilesTimer = setTimeout(redrawAllTiles, 50);
