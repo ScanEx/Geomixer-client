@@ -1702,6 +1702,7 @@ var FireBurntRenderer3 = function( params )
                 
                 var clustersToAdd = []
                 itemIDsToRemove = [];
+                
                 for (var k in clustersToRepaint)
                 {
                     var count = clusters[k].count;
@@ -2185,8 +2186,8 @@ FireControl.prototype._updateCalendarTime = function(timeShift)
     else
     {
         //если выбран сегодняшний день, показываем время не 23:59, а до текущего часа
-        var maxDayString = $.datepicker.formatDate('yy.mm.dd', this._calendar.getDateMax());
-        var curDayString = $.datepicker.formatDate('yy.mm.dd', this._calendar.getDateEnd());
+        var maxDayString = $.datepicker.formatDate('yy.mm.dd', nsGmx.Calendar.toUTC(this._calendar.getDateMax()));
+        var curDayString = $.datepicker.formatDate('yy.mm.dd', nsGmx.Calendar.toUTC(this._calendar.getDateEnd()));
         
         this._calendar.setTimeBegin( 0, 0, 0 );
         var curHour = (new Date()).getUTCHours();
@@ -2275,17 +2276,6 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
     }
     
     this.addDataProvider(
-        "firedots_layer_scanex",
-        new FireBurntProvider3( {host: this._firesOptions.firesHost, title: "Пожары FIRMS"} ),
-        new FireBurntRenderer3( {
-            map: this._map,
-            hotspotLayerName: 'C13B4D9706F7491EBC6DC70DFFA988C0',
-            dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE'
-        }),
-        { isVisible: true } 
-    );
-    
-    this.addDataProvider(
         "firedots_layer_global",
         new FireBurntProvider3( {host: this._firesOptions.firesHost, title: "Пожары ScanEx"} ),
         new FireBurntRenderer3( {
@@ -2295,7 +2285,18 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
         }),
         { isVisible: true } 
     );
-	
+    
+    this.addDataProvider(
+        "firedots_layer_scanex",
+        new FireBurntProvider3( {host: this._firesOptions.firesHost, title: "Пожары FIRMS"} ),
+        new FireBurntRenderer3( {
+            map: this._map,
+            hotspotLayerName: 'C13B4D9706F7491EBC6DC70DFFA988C0',
+            dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE'
+        }),
+        { isVisible: true } 
+    );
+
     this._calendar = calendar;
 	this._visModeController = calendar.getModeController();
     
@@ -2312,75 +2313,11 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	
 	var trs = [];
 	var _this = this;
-	
-	// var restrictByVisibleExtent = function( keepSilence )
-	// {
-		// var deltaX = 400;
-		// var deltaY = 150;
-		// var flashDiv = document.getElementById(_this._map.flashId);
-		// var mapExtent = _this._map.getVisibleExtent();
-		// var x = merc_x(_this._map.getX());
-		// var y = merc_y(_this._map.getY());
-		// var scale = getScale(_this._map.getZ());
-		// var w2 = scale*(flashDiv.clientWidth-deltaX)/2;
-		// var h2 = scale*(flashDiv.clientHeight-deltaY)/2;
-		// var mapExtent = {
-			// minX: from_merc_x(x - w2),
-			// minY: from_merc_y(y - h2),
-			// maxX: from_merc_x(x + w2),
-			// maxY: from_merc_y(y + h2)
-		// };
-				
-		// var geometry = {type: "POLYGON", coordinates: 
-			// [[[mapExtent.minX, mapExtent.minY],
-			  // [mapExtent.minX, mapExtent.maxY],
-			  // [mapExtent.maxX, mapExtent.maxY],
-			  // [mapExtent.maxX, mapExtent.minY],
-			  // [mapExtent.minX, mapExtent.minY]]]};
-		
-		// var outlineColor = 0xff0000;
-		// var fillColor = 0xffffff;
-		// var regularDrawingStyle = {
-			// marker: { size: 3 },
-			// outline: { color: outlineColor, thickness: 3, opacity: 80 },
-			// fill: { color: fillColor }
-		// };
-		// var hoveredDrawingStyle = { 
-			// marker: { size: 4 },
-			// outline: { color: outlineColor, thickness: 4 },
-			// fill: { color: fillColor }
-		// };
-		
-		// var curDrawing = _this.searchBboxController.getDrawing();
-		
-		// _this.searchBboxController.bindNewDrawing(geometry, {}, {regular: regularDrawingStyle, hovered: hoveredDrawingStyle}, keepSilence);
-		
-		// if (curDrawing)
-			// curDrawing.remove();
-	// }
     
 	var button = $("<button>").attr('className', 'findFiresButton')[0];
 	
 	$(button).text(_gtxt('firesWidget.AdvancedSearchButton'));
 	
-	// $(this.searchBboxController).change(function()
-	// {
-		// if (_this.searchBboxController.getBbox().isWholeWorld() && _this._visModeController.getMode() ===  _this._visModeController.ADVANCED_MODE)
-			// restrictByVisibleExtent(true);
-			
-		// _this.update();
-	// })
-	
-	button.onclick = function()
-	{
-		// if ( _this.searchBboxController.getBbox().isWholeWorld() )
-		// {
-			// //пользователь нажал на поиск, а рамки у нас нет -> добавим рамку по размеру окна.
-			// restrictByVisibleExtent(true);
-		// }
-		// _this.update();
-	};
-    	
 	var updateTimeInfo = function()
 	{
         _this._updateCalendarTime( _this._timeShift || _this.getCurrentTimeShift() );
@@ -2393,22 +2330,9 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 		if ( _this._visModeController.getMode() ===  _this._visModeController.SIMPLE_MODE )
 		{
 			$(button).css({display: 'none'});
-			//var curDrawing = _this.searchBboxController.getDrawing();
-			
-			// if (curDrawing)
-			// {
-				// _this.searchBboxController.removeBbox( true );
-				// curDrawing.remove();
-			// }
+
 		}
-		else 
-		{
-			// if ( _this.searchBboxController.getBbox().isWholeWorld() )
-			// {
-				// //пользователь нажал на поиск, а рамки у нас нет -> добавим рамку по размеру окна.
-				// restrictByVisibleExtent(true);
-			// }
-		}
+		
 		updateTimeInfo();
 		_this.update();
 	});
@@ -2433,11 +2357,13 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	
 	$(this._parentDiv).append(_table([_tbody(trs)],[['css','marginLeft','0px'], ['attr', 'id', 'fireMappletInfo']]));
 	//$(this._parentDiv).append(_div(null, [['dir', 'id', 'datesInfo']]));
-	
+    
+    this._visModeController.setMode(this._visModeController.ADVANCED_MODE);
+    this._calendar.setSwitcherVisibility(false);
+    
 	this.update();
-	
+    
 	this._initDeferred.resolve();
-	
 }
 
 FireControl.prototype.update = function()
