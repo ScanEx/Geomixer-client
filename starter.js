@@ -317,7 +317,11 @@ $(function()
             }
             else
             {
-                apiFilename = window.gmxUseLeaflet ? 'apil.js' : 'api.js'
+                if (typeof window.gmxUseLeaflet !== 'undefined') {
+                    apiFilename = window.gmxUseLeaflet ? 'apil.js' : 'apif.js';
+                } else {
+                    apiFilename = 'api.js';
+                }
             }
             
             var script = document.createElement("script");
