@@ -407,6 +407,7 @@
 				if(!balloon) return;
 				text = newText;
 				input.value = newText;
+				balloon.updatePropsBalloon(newText);
 				updateText();
 			}
 
@@ -888,7 +889,8 @@
 
 		ret.setText = function(newText)
 		{
-			text = newText;
+			text = props.text = newText;
+			this.properties.text = text;
 			//callOnChange();
 		}
 
@@ -984,6 +986,7 @@
 				} else if(downType['type'] === 'edge') {
 					if(editIndex == 0 && editType === 'LINESTRING') editIndex++;
 					coords.splice(editIndex, 0, [x, y]);
+					if(!onMouseUpID) onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
 				}
 				mousePressed = true;
 				repaint();
