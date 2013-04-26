@@ -7,6 +7,16 @@
 */
 (function($){
 
+$('#flash').droppable({
+    drop: function(event, ui) {
+        //console.log(ui.draggable[0].geometry);
+        var obj = ui.draggable[0].gmxDrawingObject;
+        var text = Functions.GetFullName(obj.TypeName, obj.ObjName);
+        globalFlashMap.drawing.addObject(obj.Geometry, {text: text});
+        //console.log('drop', event, ui);
+    }
+})
+
 _translationsHash.addtext("rus", {
 	"Текущее местоположение отображается только для России и Украины": "Текущее местоположение отображается только для России и Украины",
 	"Следующие [value0] страниц": "Следующие [value0] страниц",
@@ -441,22 +451,33 @@ var ResultList = function(oInitContainer, ImagesHost){
 		var tbody = _tbody();
 		for (var i = 0; i < arrObjects.length; i++) {
 			var elemTR = _tr(null, [['dir', 'className', 'SearchResultRow']]);
-			var elemTD = _td();
+			var elemTD = _td(null, [['dir', 'className', 'SearchResultText']]);
 			_(elemTR, [_td([_t((i+1).toString() + ".")], [['dir', 'className','searchElemPosition']]), elemTD]);
 			drawObject(arrObjects[i], elemTD);
 
 			// загрузка SHP Файла
-			if (typeof (gmxGeoCodeShpDownload) != "undefined" && gmxGeoCodeShpDownload && arrObjects[i].Geometry != null &&
+			if (window.gmxGeoCodeShpDownload && arrObjects[i].Geometry != null &&
                     (arrObjects[i].Geometry.type == "POINT" || arrObjects[i].Geometry.type == "LINESTRING" || arrObjects[i].Geometry.type == "POLYGON")) {
 			    var shpFileLink = _span([_t(".shp")], [['dir', 'className', 'searchElem'], ['attr', 'title', 'скачать SHP-файл'], ['attr', 'number', i]]);
+                
 			    shpFileLink.onclick = function () {
 			        var obj = arrObjects[$(this).attr('number')];
-			        var objsToDowload = [obj];
-			        $(_this).triggerHandler('onDownloadSHP', [obj.ObjCode, objsToDowload]);
+			        var objsToDownload = [obj];
+			        $(_this).triggerHandler('onDownloadSHP', [obj.ObjCode, objsToDownload]);
 			    };
 			    _(elemTD, [_t(" ")]);
 			    _(elemTD, [shpFileLink]);
 			}
+            
+            elemTD.gmxDrawingObject = arrObjects[i];
+            console.log(arrObjects[i]);
+                
+            $(elemTD).draggable({
+                scroll: false, 
+                appendTo: document.body,
+                helper: 'clone',
+                distance: 10
+            });
 
 			_(tbody, [elemTR]);
 		}
