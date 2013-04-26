@@ -734,6 +734,10 @@ function loadMap(state)
         
         $('#flash').bind('drop', function(e)
         {
+            if (!e.originalEvent.dataTransfer) {
+                return;
+            }
+            
             var b = getBounds();
             var defs = [];
             $.each(e.originalEvent.dataTransfer.files, function(i, file) {
