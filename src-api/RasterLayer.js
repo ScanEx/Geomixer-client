@@ -126,6 +126,7 @@
 
 		var myLayer = null;
 		var createLayer = function() {			// инициализация leaflet слоя
+			if(!gmxAPI.mapNodes[id].isVisible) node.isVisible = false;
 			var option = {
 				'minZoom': inpAttr['minZoom'] || attr['minZoom'] || 1
 				,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom'] || 21
