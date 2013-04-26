@@ -24,7 +24,7 @@
 		var inpAttr = ph.attr;
 		node['subType'] = ('subType' in inpAttr ? inpAttr['subType'] : (inpAttr['projectionCode'] === 1 ? 'OSM' : ''));
 		var attr = {};
-		if(!layer['geometry'] && node['geometry']) layer['geometry'] = node['geometry'];
+		if(!layer['geometry'] && node['geometry'] && node['geometry']['type']) layer['geometry'] = node['geometry'];
 		if(!layer['geometry']) {						// Нет geometry
 			layer.mercGeometry = {
 				'type': "POLYGON"
@@ -104,11 +104,23 @@
 		};
 			
 		var chkVisible = function() {
-			if(node.isVisible) {
+			if(node.isVisible != false) {
 				var onViewFlag = (utils.chkVisibilityByZoom(id) && utils.chkBoundsVisible(attr['bounds']));
 				if(node['leaflet']._isVisible != onViewFlag) {
 					utils.setVisibleNode({'obj': node, 'attr': onViewFlag});
 				}
+			}
+		}
+
+		node['remove'] = function() {				// Удалить растровый слой
+			if(myLayer) LMap.removeLayer(myLayer);
+		}
+
+		node['setStyle'] = function() {
+			var newOpacity = node.regularStyle.fillOpacity;
+			if(newOpacity != myLayer.options.opacity) {			// Изменить opacity растрового слоя
+				myLayer.options.opacity = newOpacity;
+				myLayer.setOpacity(newOpacity);
 			}
 		}
 
@@ -155,19 +167,7 @@
 			}
 			LMap.on('move', chkPosition);
 			LMap.on('zoomend', chkPosition);
-		}
-		createLayer();
-
-		node['remove'] = function() {				// Удалить растровый слой
-			if(myLayer) LMap.removeLayer(myLayer);
-		}
-
-		node['setStyle'] = function() {
-			var newOpacity = node.regularStyle.fillOpacity;
-			if(newOpacity != myLayer.options.opacity) {			// Изменить opacity растрового слоя
-				myLayer.options.opacity = newOpacity;
-				myLayer.setOpacity(newOpacity);
-			}
+			node['waitRedraw']();
 		}
 
 		var redrawTimer = null;										// Таймер
@@ -178,15 +178,34 @@
 				chkVisible();
 				if(!node.isVisible || !node['leaflet']._isVisible) return;
 				redrawTimer = null;
-				node['leaflet'].redraw();
+				myLayer._update();
+				//node['leaflet'].redraw();
 			}, 10);
 			return false;
 		}
 		node['waitRedraw'] = waitRedraw;
-		if(layer.properties && layer.properties.visible != false) node.isVisible = true;
-		//chkVisible();
+		//if(layer.properties && layer.properties.visible != false) node.isVisible = true;
+		node.isVisible = (layer.properties && 'visible' in layer.properties ? layer.properties.visible : true);
 
-		waitRedraw();
+		var createLayerTimer = null;										// Таймер
+		var waitCreateLayer = function()	{								// Требуется перерисовка слоя с задержкой
+			if(createLayerTimer) clearTimeout(createLayerTimer);
+			createLayerTimer = setTimeout(function()
+			{
+				createLayerTimer = null;
+				if(gmxAPI.map.needMove) {
+					waitCreateLayer();
+					return;
+				}
+				createLayer();
+			}, 200);
+		}
+		if(gmxAPI.map.needMove) {
+			waitCreateLayer();
+		} else {
+			createLayer();
+		}
+		
 		return out;
 	}
 	// инициализация
@@ -224,11 +243,6 @@
 		var drawTile = function (tile, tilePoint, zoom) {
 			var node = mapNodes[tile._layer.options.nodeID];
 			if(!zoom) zoom = LMap.getZoom();
-			if(gmxAPI.map.needMove || !this._isVisible || !tile._layer.options.tileFunc) {	// Слой невидим или нет tileFunc или идет зуум
-				if(gmxAPI.map.needMove) node.waitRedraw();
-				return;
-			}
-		
 			var pz = Math.pow(2, zoom);
 			var tx = tilePoint.x;
 			if(tx < 0) tx += pz;
