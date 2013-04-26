@@ -109,9 +109,15 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 		_(outlineParent, outlineTitleTds.concat(_td([_div([_table([_tbody([_tr(outlineTds)])])],[['attr','fade',true]])])));
 		
 		var text = _input(null, [['attr','value', parentObject.properties.text ? parentObject.properties.text : ""],['dir','className','inputStyle'],['css','width','180px']]);
-		text.onkeyup = function()
+		text.onkeyup = function(evt)
 		{
-			parentObject.properties.text = this.value;
+            if (getkey(evt) == 13) 
+            {
+                $(jQueryDialog).dialog('destroy');
+                return;
+            }
+            
+            parentObject.setText(this.value);
 			
 			$(parentObject).triggerHandler('onEdit', [parentObject]);
 			
@@ -121,7 +127,7 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
 		_(canvas, [_table([_tbody([_tr([_td([_t(_gtxt("Описание"))], [['css','width','70px']]), _td([text])])])]), _br(), _table([_tbody([outlineParent])])])
 		
 		var pos = nsGmx.Utils.getDialogPos(elemCanvas, false, 80);
-		showDialog(_gtxt('Редактирование стилей объекта'), canvas, 280, 110, pos.left, pos.top, false, closeFunc)
+		var jQueryDialog = showDialog(_gtxt('Редактирование стилей объекта'), canvas, 280, 110, pos.left, pos.top, false, closeFunc)
 	}
 	
 	elemCanvas.getStyle = function()
@@ -236,7 +242,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	
 	var _canvas = _div(null, [['dir','className','drawingObjectsItemCanvas']]);
 	var _title = _span(null, [['dir','className','drawingObjectsItemTitle']]);
-	var _text = _span(null, [['dir','className','text']]);
+	var _text = _span(null, [['dir','className', 'drawingObjectsItemTitle']]);
 	var _summary = _span(null, [['dir','className','summary']]);
     
 	_text.onclick = _title.onclick = function() {
