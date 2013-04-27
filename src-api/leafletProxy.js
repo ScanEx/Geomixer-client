@@ -2813,7 +2813,14 @@
 				}
 			}
 			if(node.isHandlers) {
-				var mask = utils.drawPolygon({'geometry': {'type': 'Polygon', 'coordinates': node.geometry.coordinates}}, {'stroke':false, 'fill':true, 'fillOpacity':0});
+				var coords = node.geometry.coordinates || [[
+					[attr['x1'],attr['y1']]
+					,[attr['x2'],attr['y2']]
+					,[attr['x3'],attr['y3']]
+					,[attr['x4'],attr['y4']]
+					,[attr['x1'],attr['y1']]
+					]];
+				var mask = utils.drawPolygon({'geometry': {'type': 'Polygon', 'coordinates': coords}}, {'stroke':false, 'fill':true, 'fillOpacity':0});
 				node['mask'] = mask;
 				for(var evName in node.handlers) {
 					var ev = scanexEventNames[evName];
