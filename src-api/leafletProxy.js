@@ -2817,7 +2817,7 @@
 					}
 				}
 			}
-			if(node.isHandlers) {
+			if(node.isHandlers && node.handlers['onClick']) {
 				if(!node.geometry.coordinates) node.geometry = utils.parseGeometry({'type': 'Polygon', 'coordinates': [[
 					[attr['x1'],attr['y1']]
 					,[attr['x2'],attr['y2']]
