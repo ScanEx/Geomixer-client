@@ -128,8 +128,10 @@
 		var createLayer = function() {			// инициализация leaflet слоя
 			if(!gmxAPI.mapNodes[id].isVisible) node.isVisible = false;
 			var option = {
-				'minZoom': inpAttr['minZoom'] || attr['minZoom'] || 1
-				,'maxZoom': inpAttr['maxZoom'] || attr['maxZoom'] || 21
+				'minZoom': 1
+				,'maxZoom': 23
+				,'minZ': inpAttr['minZoom'] || attr['minZoom'] || 1
+				,'maxZ': inpAttr['maxZoom'] || attr['maxZoom'] || 21
 				,'zIndex': node['zIndex']
 				,'initCallback': initCallback
 				,'tileFunc': inpAttr['func']
@@ -374,7 +376,7 @@
 			}
 
 			var zoom = this._map.getZoom();
-			if (zoom > this.options.maxZoom || zoom < this.options.minZoom) {
+			if (zoom > this.options.maxZ || zoom < this.options.minZ) {
 				return;
 			}
 			if('initCallback' in this.options) this.options.initCallback(this);
