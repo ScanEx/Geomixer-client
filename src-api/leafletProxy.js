@@ -824,8 +824,7 @@
 					pt['opacity'] = ('opacity' in ph ? ph['opacity'] : 100);
 					if('thickness' in ph) pt['weight'] = ph['thickness'];
 					if('marker' in st && 'size' in st['marker']) pt['size'] = st['marker']['size'];
-					//if('dashes' in ph) pt['opacity'] = ph['dashes'];
-					
+					if('dashes' in ph) pt['dashArray'] = ph['dashes'];
 				}
 			}
 			if('rotate' in pt && typeof(pt['rotate']) === 'string') {
@@ -1106,9 +1105,10 @@
 				"properties": prop,
 				"geometry": node.geometry
 			};
-			var out = L.geoJson(geojsonFeature, {
+			var opt = {
 				style: ('ready' in style ? style : utils.evalStyle(style, prop))
-			});
+			};
+			var out = L.geoJson(geojsonFeature, opt);
 			return out;
 		}
 		,
@@ -4044,6 +4044,11 @@ var tt = 1;
 */
 			var onMouseMoveTimer = null;
 			LMap.on('mousemove', function(e) {
+				if(LMap._pathRoot && !gmxAPI.isIE) {
+					if(!LMap._pathRoot.style.pointerEvents) {
+						LMap._pathRoot.style.pointerEvents = 'none';
+					}
+				}
 //return;
 //console.log('mousemove', gmxAPI._leaflet['mousePressed'], timeDown);
 				if(gmxAPI._mouseOnBalloon) {
