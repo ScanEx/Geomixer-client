@@ -1702,8 +1702,8 @@
 						if(node['leaflet']) {
 							node['leaflet']._isVisible = true;
 							if(isOnScene) pGroup.addLayer(node['leaflet']);
-						} else {
-							gmxAPI._leaflet['drawManager'].add(id);				// добавим в менеджер отрисовки
+						//} else {
+							//gmxAPI._leaflet['drawManager'].add(id);				// добавим в менеджер отрисовки
 						}
 					}
 				}
@@ -2806,7 +2806,7 @@
 			data = null;
 			imageObj = null;
 			--gmxAPI._leaflet['waitSetImage'];
-			if(node['mask']) {
+			/*if(node['mask']) {
 				pGroup.removeLayer(node['mask']);
 				if(node.isHandlers) {
 					for(var evName in node.handlers) {
@@ -2838,7 +2838,7 @@
 					}
 				//}
 				pGroup.addLayer(mask);
-			}
+			}*/
 		}
 
 		var imageObj = null;
