@@ -1702,8 +1702,8 @@
 						if(node['leaflet']) {
 							node['leaflet']._isVisible = true;
 							if(isOnScene) pGroup.addLayer(node['leaflet']);
-						//} else {
-							//gmxAPI._leaflet['drawManager'].add(id);				// добавим в менеджер отрисовки
+						} else if(node.geometry['type']) {
+							gmxAPI._leaflet['drawManager'].add(id);				// добавим в менеджер отрисовки
 						}
 					}
 				}
