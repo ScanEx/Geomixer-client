@@ -2769,13 +2769,17 @@
 				if(coords) {
 					for (var i = 0; i < coords.length; i++)
 					{
-						var pArr = coords[i];
-						for (var j = 0; j < pArr.length; j++)
+						var coords1 = coords[i];
+						for (var i1 = 0; i1 < coords1.length; i1++)
 						{
-							var pix = LatLngToPixel(pArr[j][1], pArr[j][0]);
-							var px1 = pix.x - minPoint.x; 		px1 = (0.5 + px1) << 0;
-							var py1 = pix.y - minPoint.y;		py1 = (0.5 + py1) << 0;
-							arr.push({'x': px1, 'y': py1});
+							var pArr = coords1[i1];
+							for (var j = 0; j < pArr.length; j++)
+							{
+								var pix = LatLngToPixel(pArr[j][1], pArr[j][0]);
+								var px1 = pix.x - minPoint.x; 		px1 = (0.5 + px1) << 0;
+								var py1 = pix.y - minPoint.y;		py1 = (0.5 + py1) << 0;
+								arr.push({'x': px1, 'y': py1});
+							}
 						}
 					}
 				}
@@ -2801,7 +2805,10 @@
 				}
 				ctx.fill();
 			}
-			paintPolygon({'coordinates': node.geometry.coordinates, 'boundsP': ph['boundsP']}, data['canvas']);
+			var multiArr = node.geometry.coordinates;
+			if(node.geometry['type'] == 'Polygon') multiArr = [multiArr];
+			
+			paintPolygon({'coordinates': multiArr, 'boundsP': ph['boundsP']}, data['canvas']);
 			attr['reposition']();
 			data = null;
 			imageObj = null;
