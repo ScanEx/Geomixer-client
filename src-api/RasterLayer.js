@@ -332,7 +332,7 @@
 						return;
 					}
 				} else {
-					pResArr = gmxAPI.clone(attr.mercGeom[0]);
+					pResArr = attr.mercGeom;
 				}
 
 				var me = this;
