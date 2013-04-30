@@ -907,7 +907,7 @@
 					} else if(key === 'scale') {
 						if(typeof(zn) === 'string') zn = 1;
 					} else if(key === 'fillOpacity' || key === 'opacity') {
-						if(zn > 1) zn = zn / 100;
+						if(zn >= 0) zn = zn / 100;
 					}
 				}
 				out[key] = zn;
