@@ -255,18 +255,26 @@
 			};
 			var tileKey = tilePoint.x + ':' + tilePoint.y;
 			var drawTileID = zoom + '_' + scanexTilePoint.x + '_' + scanexTilePoint.y;
-			tile.id = 't' + drawTileID;
+			var me = this;
+			var deleteTile = function () {
+				setTimeout(function() {
+					me.tileDrawn(tile);
+					me._removeTile(tileKey);
+				}, 0);
+			}
 			if(node['failedTiles'][drawTileID]) {
-				if(this.options.bounds) this.tileDrawn(tile);
+				if(this.options.bounds) {
+					deleteTile();
+				}
 				return;		// второй раз 404 тайл не запрашиваем
 			}
+			tile.id = 't' + drawTileID;
 			var tileSize = 0;
 			var layer = this;
 			var attr = this.options.attr;
 			var ctx = null;
 			var flagAll = false;
 			var flagAllCanvas = false;
-			var pResArr = null;				// точки границ растрового слоя
 			var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
 			if(shiftY !== 0) {
 				// сдвиг для OSM
@@ -277,49 +285,6 @@
 
 			if(!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85)) {
 				flagAll = true;
-			} else {
-				tileSize = 256 * 156543.033928041/pz;
-				if(shiftY == 0) {
-					var bounds = utils.getTileBounds(tilePoint, zoom);
-					if(!attr.bounds.intersects(bounds)) {			// Тайл не пересекает границы слоя
-						this.tileDrawn(tile);
-						//tile._needRemove = true;
-						//this._removeTile(tileKey);
-						return;
-					}
-					var p1 = new L.Point(tileSize * scanexTilePoint.x, tileSize * scanexTilePoint.y);
-					var p2 = new L.Point(tileSize + p1.x, tileSize + p1.y);
-					var boundsMerc = new L.Bounds(p1, p2);
-					var mercGeometry = attr.mercGeom[0];
-					var pArr = L.PolyUtil.clipPolygon(mercGeometry, boundsMerc);
-					if(pArr.length == 0) {
-						this.tileDrawn(tile);
-						//tile._needRemove = true;
-						return;
-					} else if(pArr.length == 4) {
-						var b = new L.Bounds(pArr);
-						if(b.min.x == boundsMerc.min.x && b.min.y == boundsMerc.min.y && b.max.x == boundsMerc.max.x && b.max.y == boundsMerc.max.y) {
-							flagAllCanvas = true;
-						}
-					}
-					pArr.push(pArr[0]);
-				} else {
-					pArr = gmxAPI.clone(attr.mercGeom[0]);
-				}
-
-				if(!flagAllCanvas) {
-					pArr.push(pArr[0]);
-					pResArr = [pArr];
-					if(attr.mercGeom.length > 1) {
-						for(var i=1; i<attr.mercGeom.length; i++) {
-							var p1 = L.PolyUtil.clipPolygon(attr.mercGeom[i], boundsMerc);
-							if(p1.length) {
-								p1.push(p1[0]);
-								pResArr.push(p1);
-							}
-						}
-					}
-				}
 			}
 			if(gmxAPI.isMobile) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
 			//		ctx.webkitImageSmoothingEnabled = false;
@@ -335,6 +300,41 @@
 				};
 				tile.src = src;
 			} else {
+				var pResArr = null;				// точки границ растрового слоя
+				tileSize = 256 * 156543.033928041/pz;
+				//var pArr = [];
+				if(shiftY == 0) {
+					var bounds = utils.getTileBounds(tilePoint, zoom);
+					if(!attr.bounds.intersects(bounds)) {			// Тайл не пересекает границы слоя
+						deleteTile();
+						return;
+					}
+					var p1 = new L.Point(tileSize * scanexTilePoint.x, tileSize * scanexTilePoint.y);
+					var p2 = new L.Point(tileSize + p1.x, tileSize + p1.y);
+					var boundsMerc = new L.Bounds(p1, p2);
+					var drawType = 0;
+					for(var i=0; i<attr.mercGeom.length; i++) {
+						var p1 = L.PolyUtil.clipPolygon(attr.mercGeom[i], boundsMerc);
+						if(p1.length == 4) {			//	нет пересечений
+							var b = new L.Bounds(p1);
+							if(b.min.x == boundsMerc.min.x && b.min.y == boundsMerc.min.y && b.max.x == boundsMerc.max.x && b.max.y == boundsMerc.max.y) {
+								flagAllCanvas = true;	//	тайл полностью внутри геометрии
+								break;
+							}
+						} else if(p1.length > 4) {		//	есть пересечения
+							p1.push(p1[0]);
+							if(!pResArr) pResArr = [];
+							pResArr.push(p1);
+						}					
+					}
+					if(!flagAllCanvas && !pResArr) {	//	рисовать нечего
+						deleteTile();
+						return;
+					}
+				} else {
+					pResArr = gmxAPI.clone(attr.mercGeom[0]);
+				}
+
 				var me = this;
 				(function(points, sTilePoint, pTile) {
 					var tID = drawTileID;
@@ -357,9 +357,7 @@
 						}
 						,'onerror': function(){
 							node['failedTiles'][tID] = true;
-							//pTile._needRemove = true;
 							pTile.id = tID + '_bad';
-							//layer.tileDrawn(pTile);
 						}
 					};
 					var gmxNode = gmxAPI.mapNodes[layer.options.nodeID];
@@ -425,16 +423,6 @@
 					proto.width = proto.height = 0;
 				}
 			}
-			/*,
-			removeEmptyTiles: function () {
-				for(var key in this._tiles) {
-					var tile = this._tiles[key];
-console.log('____ ', key, tile._needRemove);
-					if (tile._needRemove) {
-						this._removeTile(key);
-					}
-				}
-			}*/
 			,'_update': update
 			,'drawTile': drawTile
 			,
