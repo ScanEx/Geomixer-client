@@ -20,6 +20,8 @@
 		node['maxZ'] = 21;
 		node['flipEnabled'] = true;				// По умолчанию ротация обьектов слоя установлена
 
+		node['tilesVers'] = {};
+		node['tiles'] = {};
 		//node['observeVectorLayer'] = null;
 		node['observerNode'] = null;
 		
@@ -456,7 +458,10 @@ if(!tarr) {
 					}
 					var arr = stID.split('_');
 					var srcArr = option.tileFunc(Number(arr[1]), Number(arr[2]), Number(arr[0]));
-					if(typeof(srcArr) === 'string') srcArr = [srcArr];
+					if(typeof(srcArr) === 'string') {
+						if(stID in node['tilesVers']) srcArr += '&v=' + node['tilesVers'][stID];
+						srcArr = [srcArr];
+					}
 					node['loaderFlag'] = true;
 					var item = {
 						'srcArr': srcArr
@@ -920,8 +925,39 @@ if(!tarr) {
 		//}
 
 		if(node['parentId']) option['parentId'] = node['parentId'];
-		
-		node['tiles'] = getTilesBounds(inpAttr.dataTiles);
+	
+		// получить bounds списка тайлов слоя
+		node.getTilesBounds = function(arr, vers) {
+			//var hash = {};
+			var cnt = 0;
+			for (var i = 0; i < arr.length; i+=3)
+			{
+				var x = Number(arr[i]) , y = Number(arr[i+1]) , z = Number(arr[i+2]);
+				var st = z + '_' + x + '_' + y;
+				var pz = Math.round(Math.pow(2, z - 1));
+				var bounds = utils.getTileBounds({'x':x + pz, 'y':pz - 1 - y}, z);
+				bounds.min.x = gmxAPI.merc_x(bounds.min.x);
+				bounds.max.x = gmxAPI.merc_x(bounds.max.x);
+				bounds.min.y = gmxAPI.merc_y(bounds.min.y);
+				bounds.max.y = gmxAPI.merc_y(bounds.max.y);
+				var d = (bounds.max.x - bounds.min.x)/10000;
+				bounds.min.x += d;
+				bounds.max.x -= d;
+				bounds.min.y += d;
+				bounds.max.y -= d;
+				bounds.delta = 2*d;
+				node['tiles'][st] = bounds;
+			
+				if(vers) {
+					node['tilesVers'][st] = vers[cnt];
+					cnt++;
+				}
+			}
+			//return hash;
+		}
+
+		var vers = (node['subType'] === 'Temporal' ? null : layer.properties.tilesVers);
+		node.getTilesBounds(inpAttr.dataTiles, vers);
 		option['attr'] = attr;
 		option['tileFunc'] = inpAttr['tileFunction'];
 		
@@ -2007,7 +2043,7 @@ if(!tarr) {
 
 		var reloadTilesListTimer = null;							// Таймер
 		node.reloadTilesList = function(zd)	{						// перезагрузка тайлов слоя с задержкой
-			if(myLayer._isVisible == false) return;
+			if(!myLayer || myLayer._isVisible == false) return;
 			if(reloadTilesListTimer) clearTimeout(reloadTilesListTimer);
 			if(arguments.length == 0) zd = 0;
 			reloadTilesListTimer = setTimeout(function()
@@ -2289,27 +2325,30 @@ if(!tarr) {
 					for(var key in attr.del) node.removeTile(key);	// удаление тайлов
 				}
 				if (attr.add) {
+					var vers = [];
 					var arr = [];
 					for (var i = 0; i < attr.add.length; i++)
 					{
 						var pt = attr.add[i];
 						arr.push(pt[0], pt[1], pt[2]);
+						vers.push(pt[3]);
 					}
-					node['tiles'] = getTilesBounds(arr);
+					node.getTilesBounds(arr, vers);
 					arr = [];
+					vers = [];
 					redrawFlag = true;
 				}
 			}
 
 			if('dtiles' in attr) {		// Для мультивременных слоев
-				var pt = getTilesBounds(attr['dtiles']);
-				for(var key in pt) {
+				node.getTilesBounds(attr['dtiles']);
+				/*for(var key in pt) {
 					//node.removeTile(key);
 					if(!node['tiles'][key]) {
 						node['tiles'][key] = pt[key];
 						redrawFlag = true;
 					}
-				}
+				}*/
 				node.temporal = attr;
 			}
 			if(node.leaflet) {	// Обновление лефлет слоя
@@ -2420,30 +2459,7 @@ if(!tarr) {
 			delete node['listenerIDS'];
 		}
 	}
-	
-	// получить bounds списка тайлов слоя
-	function getTilesBounds(arr)	{
-		var hash = {};
-		for (var i = 0; i < arr.length; i+=3)
-		{
-			var x = Number(arr[i]) , y = Number(arr[i+1]) , z = Number(arr[i+2]);
-			var st = z + '_' + x + '_' + y;
-			var pz = Math.round(Math.pow(2, z - 1));
-			var bounds = utils.getTileBounds({'x':x + pz, 'y':pz - 1 - y}, z);
-			bounds.min.x = gmxAPI.merc_x(bounds.min.x);
-			bounds.max.x = gmxAPI.merc_x(bounds.max.x);
-			bounds.min.y = gmxAPI.merc_y(bounds.min.y);
-			bounds.max.y = gmxAPI.merc_y(bounds.max.y);
-			var d = (bounds.max.x - bounds.min.x)/10000;
-			bounds.min.x += d;
-			bounds.max.x -= d;
-			bounds.min.y += d;
-			bounds.max.y -= d;
-			bounds.delta = 2*d;
-			hash[st] = bounds;
-		}
-		return hash;
-	}
+
 	// инициализация
 	function init(arr)	{
 		LMap = gmxAPI._leaflet['LMap'];
