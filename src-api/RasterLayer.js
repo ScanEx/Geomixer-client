@@ -303,6 +303,8 @@
 				var pResArr = null;				// точки границ растрового слоя
 				tileSize = 256 * 156543.033928041/pz;
 				//var pArr = [];
+				pResArr = attr.mercGeom;
+/*
 				if(shiftY == 0) {
 					var bounds = utils.getTileBounds(tilePoint, zoom);
 					if(!attr.bounds.intersects(bounds)) {			// Тайл не пересекает границы слоя
@@ -334,7 +336,7 @@
 				} else {
 					pResArr = attr.mercGeom;
 				}
-
+*/
 				var me = this;
 				(function(points, sTilePoint, pTile) {
 					var tID = drawTileID;
@@ -352,7 +354,7 @@
 								else ctx.fillRect(0, 0, 256, 256);
 								ctx.fill();
 								imageObj = null;
-								layer.tileDrawn(pTile);
+								layer.tileDrawn(pTile, 1);
 							//} , 1); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
 						}
 						,'onerror': function(){
