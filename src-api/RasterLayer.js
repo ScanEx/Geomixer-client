@@ -230,10 +230,10 @@
 					var yy = (tarr[j].y / tileSize - y);
 					var px = 256 * xx;						px = (0.5 + px) << 0;
 					var py = 256 * (1 - yy) - shiftY;		py = (0.5 + py) << 0;
-					if(px < -1000) px = -1000;
+					/*if(px < -1000) px = -1000;
 					else if(px > 1000) px = 1000;
 					if(py < -1000) py = -1000;
-					else if(py > 1000) py = 1000;
+					else if(py > 1000) py = 1000;*/
 					if(j == 0) ctx.moveTo(px, py);
 					else ctx.lineTo(px, py);
 				}
