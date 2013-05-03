@@ -247,19 +247,19 @@
 		}
 		,
 		'startDrag': function(node)	{			// Начать Drag
-			if(!node) return false;
+			if(!node || !node['dragging']) return false;
 			var layer = node['leaflet'];
 			if(!layer && node['type'] != 'map') return false;
 			var chkDrag = function(eType, e) {
 				if(!node['dragging']) return;
 				var gmxNode = gmxAPI.mapNodes[node.id];		// Нода gmxAPI
-				var latlng = e.latlng || e.target._latlng || {};
+				var latlng = node['leaflet']._latlng || e.latlng;
 				var ph = {
 					'obj':gmxNode
 					,'attr': {
 						'id': e.target.options.from
-						,'x': utils.getMouseX()
-						,'y': utils.getMouseY()
+						,'x': latlng.lng
+						,'y': latlng.lat
 						,'e': e
 					}
 				};
@@ -280,9 +280,9 @@
 					//if(!node['dragging']) return;
 					node['onDrag'] = false;
 					chkDrag('dragend', e);
-					layer.off('drag');
-					layer.off('dragstart');
-					layer.off('dragend');
+					//layer.off('drag');
+					//layer.off('dragstart');
+					//layer.off('dragend');
 				});
 				layer.dragging.enable();
 				layer.options['_isHandlers'] = true;
@@ -291,35 +291,30 @@
 			}
 			else
 			{
-				commands.freeze();			
+				layer.on('mouseover', function(e) {
+					commands.freeze();
+				});
+				layer.on('mouseout', function(e) {
+					if(!gmxAPI._leaflet['mousePressed']) commands.unfreeze();
+				});
 				node['dragMe'] = function(e) {		// dragstart на обьекте
-
-					if(!node['dragging']) return;
 					chkDrag('dragstart', e);
-					gmxAPI._leaflet['curDragState'] = true;
-					L.DomEvent.stop(e.originalEvent);
+					commands.freeze();
+					//L.DomEvent.stop(e.originalEvent);
 					if(!node['_dragInitOn']) {
 						LMap.on('mousemove', function(e) {		// drag на обьекте
-							if(!node['dragging']) return;
 							if(gmxAPI._leaflet['curDragState']) {
 								chkDrag('drag', e);
 							}
 						});
 						LMap.on('mouseup', function(e) {			// dragend на обьекте
-							if(!node['dragging']) return;
-							chkDrag('dragend', e);
-							//LMap.off('mousemove');	// ??????? в роутинге
-							//LMap.off('mouseup');
 							commands.unfreeze();
-							//gmxAPI._leaflet['curDragState'] = false;
-							//LMap.dragging.enable();
+							chkDrag('dragend', e);
+							node['_dragInitOn'] = false;
 						});
 					}
 					node['_dragInitOn'] = true;		// drag инициализирован
 				};
-				//if(node['dragging']) (layer || LMap).on('mousedown', node['dragMe']);		// dragstart на обьекте
-				//layer.on('mouseover', function(e) { LMap.dragging.disable(); gmxAPI._leaflet['activeObject'] = node.id; });
-				//layer.on('mouseout', function(e) { LMap.dragging.enable(); gmxAPI._leaflet['activeObject'] = null; });
 			}
 		}
 		,
@@ -1406,6 +1401,19 @@
 			}
 			return bounds;
 		}
+		,
+		'freeze': function()	{					// Режим рисования
+			gmxAPI._leaflet['curDragState'] = true;
+			LMap.dragging.disable();
+			LMap.touchZoom.addHooks();
+			return true;
+		}
+		,'unfreeze': function()	{						// Отмена режима рисования
+			gmxAPI._leaflet['curDragState'] = false;
+			LMap.dragging.enable();
+			LMap.touchZoom.removeHooks();
+			return true;
+		}
 	};
 	// setLabel для mapObject
 	function setLabel(id, iconAnchor)	{
@@ -1933,16 +1941,12 @@
 		'addObject': addObject								// добавить mapObject
 		,
 		'freeze': function()	{					// Режим рисования
-			gmxAPI._leaflet['curDragState'] = true;
-			LMap.dragging.disable();
-			LMap.touchZoom.addHooks();
+			utils.freeze();
 			return true;
 		}
 		,
 		'unfreeze': function()	{						// Отмена режима рисования
-			gmxAPI._leaflet['curDragState'] = false;
-			LMap.dragging.enable();
-			LMap.touchZoom.removeHooks();
+			utils.unfreeze();
 			return true;
 		}
 		,
@@ -1965,17 +1969,18 @@
 				utils.startDrag(node);
 				node['dragendListenerID'] = gmxNode.addListener('dragend', function(ev) // dragend на обьекте
 				{
-					ph.attr['dragend'](gmxNode);
+					var attr = ev.attr;
+					ph.attr['dragend'](gmxNode, attr);
 				});
 				node['dragListenerID'] = gmxNode.addListener('drag', function(ev)		// Drag на обьекте
 				{
 					var attr = ev.attr;
-					ph.attr['drag'](attr.x, attr.y, gmxNode);
+					ph.attr['drag'](attr.x, attr.y, gmxNode, attr);
 				});
 				node['dragstartListenerID'] = gmxNode.addListener('dragstart', function(ev)	// dragstart на обьекте
 				{
 					var attr = ev.attr;
-					ph.attr['dragstart'](attr.x, attr.y, gmxNode);
+					ph.attr['dragstart'](attr.x, attr.y, gmxNode, attr);
 				});
 			}
 		}
@@ -3974,6 +3979,7 @@
 			};
 			LMap.on('click', chkClick);
 			LMap.on('mouseup', function(e) {
+				gmxAPI._leaflet['utils'].unfreeze();
 				var curTimeDown = new Date().getTime();
 				var timeClick = curTimeDown - timeDown;
 				if(!gmxAPI._drawing['activeState'] && timeClick < 200) { chkClick(e); timeDown = 0; }
@@ -4089,7 +4095,9 @@ var tt = 1;
 						gmxAPI._listeners.dispatchEvent('onMouseMove', gmxAPI.map, {'attr':attr});
 					}, 10);
 				}
-				if(!gmxAPI._leaflet['mousePressed']) gmxAPI._leaflet['utils'].chkMouseHover(attr)
+				if(!gmxAPI._leaflet['mousePressed']) {
+					gmxAPI._leaflet['utils'].chkMouseHover(attr)
+				}
 			});
 
 			LMap.on('zoomstart', function(e) {
