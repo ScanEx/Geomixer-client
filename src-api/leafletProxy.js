@@ -761,7 +761,12 @@
 				if('field' in ph) pt['label']['field'] = ph['field'];
 			}
 			pt['marker'] = false;
-			if('marker' in st && 'image' in st['marker']) {				//	Есть стиль marker
+			if('marker' in st) {				//	Есть стиль marker
+				if('marker' in st && 'size' in st['marker']) pt['size'] = st['marker']['size'];
+				if('marker' in st && 'circle' in st['marker']) pt['circle'] = st['marker']['circle'];
+				if('marker' in st && 'center' in st['marker']) pt['center'] = st['marker']['center'];
+			}
+			if('marker' in st && 'image' in st['marker']) {				//	Есть image у стиля marker
 				pt['marker'] = true;
 				var ph = st['marker'];
 				if('color' in ph) pt['color'] = ph['color'];
@@ -809,6 +814,64 @@
 							}
 							pattern['patternColorsFunction'] = arr;
 						}
+					} else if('radialGradient' in ph) {
+						pt['radialGradient'] = ph['radialGradient'];
+						//	x1,y1,r1 — координаты центра и радиус первой окружности;
+						//	x2,y2,r2 — координаты центра и радиус второй окружности.
+						//	addColorStop - стоп цвета объекта градиента [[position, color]...]
+						//		position — положение цвета в градиенте. Значение должно быть в диапазоне 0.0 (начало) до 1.0 (конец);
+						//		color — код цвета или формула.
+						//		opacity — прозрачность
+						var arr = ['r1', 'x1', 'y1', 'r2', 'x2', 'y2'];
+						for (var i = 0; i < arr.length; i++)
+						{
+							var it = arr[i];
+							pt['radialGradient'][it] = (it in ph['radialGradient'] ? ph['radialGradient'][it] : 10);
+							if(typeof(pt['radialGradient'][it]) === 'string') {
+								pt['radialGradient'][it+'Function'] = gmxAPI.Parsers.parseExpression(pt['radialGradient'][it]);
+							}
+						}
+						
+						pt['radialGradient']['addColorStop'] = ph['radialGradient']['addColorStop'] || [[0, 0xFF0000], [1, 0xFFFFFF]];
+						pt['radialGradient']['addColorStopFunctions'] = [];
+						for (var i = 0; i < pt['radialGradient']['addColorStop'].length; i++)
+						{
+							var arr = pt['radialGradient']['addColorStop'][i];
+							pt['radialGradient']['addColorStopFunctions'].push([
+								(typeof(arr[0]) === 'string' ? gmxAPI.Parsers.parseExpression(arr[0]) : null)
+								,(typeof(arr[1]) === 'string' ? gmxAPI.Parsers.parseExpression(arr[1]) : null)
+								,(typeof(arr[2]) === 'string' ? gmxAPI.Parsers.parseExpression(arr[2]) : null)
+							]);
+						}
+					} else if('linearGradient' in ph) {
+						pt['linearGradient'] = ph['linearGradient'];
+						//	x1,y1 — координаты начальной точки
+						//	x2,y2 — координаты конечной точки
+						//	addColorStop - стоп цвета объекта градиента [[position, color]...]
+						//		position — положение цвета в градиенте. Значение должно быть в диапазоне 0.0 (начало) до 1.0 (конец);
+						//		color — код цвета или формула.
+						//		opacity — прозрачность
+						var arr = ['x1', 'y1', 'x2', 'y2'];
+						for (var i = 0; i < arr.length; i++)
+						{
+							var it = arr[i];
+							pt['linearGradient'][it] = (it in ph['linearGradient'] ? ph['linearGradient'][it] : 0);
+							if(typeof(pt['linearGradient'][it]) === 'string') {
+								pt['linearGradient'][it+'Function'] = gmxAPI.Parsers.parseExpression(pt['linearGradient'][it]);
+							}
+						}
+						
+						pt['linearGradient']['addColorStop'] = ph['linearGradient']['addColorStop'] || [[0, 0xFF0000], [1, 0xFFFFFF]];
+						pt['linearGradient']['addColorStopFunctions'] = [];
+						for (var i = 0; i < pt['linearGradient']['addColorStop'].length; i++)
+						{
+							var arr = pt['linearGradient']['addColorStop'][i];
+							pt['linearGradient']['addColorStopFunctions'].push([
+								(typeof(arr[0]) === 'string' ? gmxAPI.Parsers.parseExpression(arr[0]) : null)
+								,(typeof(arr[1]) === 'string' ? gmxAPI.Parsers.parseExpression(arr[1]) : null)
+								,(typeof(arr[2]) === 'string' ? gmxAPI.Parsers.parseExpression(arr[2]) : null)
+							]);
+						}
 					}
 				}
 				pt['stroke'] = false;
@@ -818,7 +881,6 @@
 					if('color' in ph) pt['color'] = ph['color'];
 					pt['opacity'] = ('opacity' in ph ? ph['opacity'] : 100);
 					if('thickness' in ph) pt['weight'] = ph['thickness'];
-					if('marker' in st && 'size' in st['marker']) pt['size'] = st['marker']['size'];
 					if('dashes' in ph) pt['dashArray'] = ph['dashes'];
 				}
 			}
@@ -3138,13 +3200,48 @@
 			} else {
 				if(style['stroke'] && style['weight'] > 0) {
 					ctx.beginPath();
-					ctx.strokeRect(px1, py1, 2*out['sx'], 2*out['sy']);
+					if(style['circle']) {
+						ctx.arc(px1 + out['sx']/2,py1 + out['sy']/2, size/2, 0, 2*Math.PI);
+					} else {
+						ctx.strokeRect(px1, py1, 2*out['sx'], 2*out['sy']);
+					}
 					ctx.stroke();
 					//sx = sy = size;
 				}
 				if(style['fill']) {
 					ctx.beginPath();
-					ctx.fillRect(px1, py1, 2*out['sx'], 2*out['sy']);
+					if(style['radialGradient']) {
+						var rgr = style['radialGradient'];
+						var r1 = (rgr['r1Function'] ? rgr['r1Function'](prop) : rgr['r1']);
+						var r2 = (rgr['r2Function'] ? rgr['r2Function'](prop) : rgr['r2']);
+						var x1 = (rgr['x1Function'] ? rgr['x1Function'](prop) : rgr['x1']);
+						var y1 = (rgr['y1Function'] ? rgr['y1Function'](prop) : rgr['y1']);
+						var x2 = (rgr['x2Function'] ? rgr['x2Function'](prop) : rgr['x2']);
+						var y2 = (rgr['y2Function'] ? rgr['y2Function'](prop) : rgr['y2']);
+						size = 2 * scale * Math.max(r1, r2);
+						out['sx'] = out['sy'] = size;
+						var radgrad = ctx.createRadialGradient(px1+x1,py1+y1,r1, px1+x2, py1+y2,r2);  
+						for (var i = 0; i < style['radialGradient']['addColorStop'].length; i++)
+						{
+							var arr = style['radialGradient']['addColorStop'][i];
+							var arrFunc = style['radialGradient']['addColorStopFunctions'][i];
+							var p0 = (arrFunc[0] ? arrFunc[0](prop) : arr[0]);
+							var p2 = (arr.length < 3 ? 100 : (arrFunc[2] ? arrFunc[2](prop) : arr[2]));
+							var p1 = gmxAPI._leaflet['utils'].dec2rgba(arrFunc[1] ? arrFunc[1](prop) : arr[1], p2/100);
+							radgrad.addColorStop(p0, p1);
+						}
+						ctx.fillStyle = radgrad;
+						
+						ctx.arc(px1,py1, size, 0, 2*Math.PI);
+						//ctx.fillRect(px1,py1, 2*size, 2*size);
+						//ctx.fillRect(0, 0, 256, 256);
+					} else {
+						if(style['circle']) {
+							ctx.arc(px1 + out['sx']/2,py1 + out['sy']/2, size/2, 0, 2*Math.PI);
+						} else {
+							ctx.fillRect(px1, py1, 2*out['sx'], 2*out['sy']);
+						}
+					}
 					ctx.fill();
 					//sx = sy = size;
 				}
@@ -3498,10 +3595,30 @@
 				}
 			} else {*/
 				ctx.beginPath();
-				if(style && style['pattern']) {
-					var canvasPattern = style['pattern']['_res'] || gmxAPI._leaflet['utils'].getPatternIcon(out, style);
-					var pattern = ctx.createPattern(canvasPattern, "repeat");
-					ctx.fillStyle = pattern;
+				if(style) {
+					if(style['pattern']) {
+						var canvasPattern = style['pattern']['_res'] || gmxAPI._leaflet['utils'].getPatternIcon(out, style);
+						var pattern = ctx.createPattern(canvasPattern, "repeat");
+						ctx.fillStyle = pattern;
+					} else if(style['linearGradient']) {
+						var rgr = style['linearGradient'];
+						var x1 = (rgr['x1Function'] ? rgr['x1Function'](prop) : rgr['x1']);
+						var y1 = (rgr['y1Function'] ? rgr['y1Function'](prop) : rgr['y1']);
+						var x2 = (rgr['x2Function'] ? rgr['x2Function'](prop) : rgr['x2']);
+						var y2 = (rgr['y2Function'] ? rgr['y2Function'](prop) : rgr['y2']);
+						var lineargrad = ctx.createLinearGradient(x1,y1, x2, y2);  
+						for (var i = 0; i < style['linearGradient']['addColorStop'].length; i++)
+						{
+							var arr = style['linearGradient']['addColorStop'][i];
+							var arrFunc = style['linearGradient']['addColorStopFunctions'][i];
+							var p0 = (arrFunc[0] ? arrFunc[0](prop) : arr[0]);
+							var p2 = (arr.length < 3 ? 100 : (arrFunc[2] ? arrFunc[2](prop) : arr[2]));
+							var p1 = gmxAPI._leaflet['utils'].dec2rgba(arrFunc[1] ? arrFunc[1](prop) : arr[1], p2/100);
+							lineargrad.addColorStop(p0, p1);
+						}
+						ctx.fillStyle = lineargrad; 
+						//ctx.fillRect(0, 0, 255, 255);
+					}
 				}
 
 				//console.log('nnn ' ,  ' : ' , coords);
