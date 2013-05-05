@@ -142,19 +142,19 @@
 			var tstyle = attr['stylePolygon'] || stylePolygon;
 			layerItems.push(new L.Polyline([], tstyle));
 			var pstyle = attr['stylePoint'] || stylePoint;
-			pstyle['skipLastPoint'] = (attr['editType'] !== 'LINESTRING');
+			//pstyle['skipLastPoint'] = (attr['editType'] !== 'LINESTRING');
 			layerItems.push(new L.GMXPointsMarkers([], pstyle));
 
 			layerGroup.addLayer(layerItems[0]);
 			layerGroup.addLayer(layerItems[1]);
 
-			layerItems[0]._container.style.pointerEvents = 'painted';
 			layerItems[1]._container.style.pointerEvents = 'painted';
+			layerItems[0]._container.style.pointerEvents = (attr['editType'] !== 'FRAME' ? 'none':'painted');
 
 			layerItems[0].on('mousedown', function(e) {
 				var downType = getDownType(e, attr['coords'], dBounds);
-				var ph = downType || {'num':0, 'type':'edge'};
-				attr['mousedown'](e, ph);
+				downType['id'] = attr['node'].id;
+				attr['mousedown'](e, downType);
 				L.DomEvent.stop(e.originalEvent);
 				gmxAPI._leaflet['mousePressed'] = true;
 			}, this);
@@ -171,7 +171,7 @@
 						return;
 					}
 				}
-				attr['mousedown'](e, {'num':0, 'type':'node'});
+				attr['mousedown'](e, {'num':0, 'type':'node', 'id':attr['node'].id});
 				L.DomEvent.stop(e.originalEvent);
 				gmxAPI._leaflet['mousePressed'] = true;
 			}, this);
@@ -196,7 +196,7 @@
 			var latLng = new L.LatLng(attr['lastPoint']['y'], attr['lastPoint']['x'] + dx);
 			latLngs.push(latLng);
 		}
-		layerItems[1].options['skipLastPoint'] = (attr['editType'] !== 'LINESTRING');
+		//layerItems[1].options['skipLastPoint'] = (attr['editType'] !== 'LINESTRING');
 		layerItems[0].setLatLngs(latLngs);
 		layerItems[1].setLatLngs(latLngs);
 	}
@@ -823,6 +823,7 @@
 			if(needInitNodeEvents) chkNodeEvents();
 			drawAttr['mousedown'] = function(e, attr)
 			{
+				if(currentDOMObject && currentDOMObject.objectId != attr['id']) return;
 				if(lastPoint) addDrawingItem(e);		// Добавление точки
 				else itemMouseDown(e);					// Изменение точки
 			};
@@ -939,12 +940,18 @@
 					flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) < pointSize);
 				}
 				if (flag) {
+					if(!layerItems[0]) return;
 					gmxAPI.map.removeListener('onMouseMove', onMouseMoveID); onMouseMoveID = null;
 					gmxAPI.map.removeListener('onClick', addItemListenerID); addItemListenerID = null;
 					gmxAPI._cmdProxy('stopDrawing');
 					if(editType === 'POLYGON') coords.push([coords[0][0], coords[0][1]]);
 					oBounds = gmxAPI.getBounds(coords);
 					lastPoint = null;
+					layerItems[0]._container.style.pointerEvents = 'visibleStroke';	// после onFinish без drag карты
+					if(editType === 'LINESTRING') {
+						layerItems[1].options['skipLastPoint'] = false;
+						//drawMe();
+					}
 					repaint();
 					
 					if(toolsContainer) toolsContainer.selectTool("move");
@@ -1254,6 +1261,7 @@
 		}
 		var itemMouseDown = function(e, attr)
 		{
+			if(currentDOMObject && currentDOMObject.objectId != attr['id']) return;
 			downTime = new Date().getTime();
 			if(propsBalloon) propsBalloon.updatePropsBalloon(false);
 			coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
