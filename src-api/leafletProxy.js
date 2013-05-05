@@ -35,6 +35,19 @@
 	var utils = {							// Утилиты leafletProxy
 		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
 		,
+		'chkZoomCurrent': function(zoom)	{		// Вычисление размеров тайла по zoom
+			if(!zoom) zoom = LMap.getZoom();
+			var pz = Math.pow(2, zoom);
+			var mInPixel =  pz/156543.033928041;
+			gmxAPI._leaflet['mInPixel'] = mInPixel;
+			gmxAPI._leaflet['zoomCurrent'] = {
+				'pz': pz
+				,'tileSize': 256 / mInPixel
+				,'mInPixel': mInPixel
+				,'gmxTileBounds': {}
+			};
+		}
+		,
 		'getXmlHttp': function() {			// Получить XMLHttpRequest
 		  var xmlhttp;
 		  if (typeof XMLHttpRequest != 'undefined') {
@@ -676,7 +689,14 @@
 		}
 		,
 		'getTileBoundsMerc': function(point, zoom)	{			// определение границ тайла
-			var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
+			if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
+			var drawTileID = zoom + '_' + point.x + '_' + point.y;
+			//var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
+			if(gmxAPI._leaflet['zoomCurrent']['gmxTileBounds'][drawTileID]) {
+				return gmxAPI._leaflet['zoomCurrent']['gmxTileBounds'][drawTileID];
+			}
+			
+			var tileSize = gmxAPI._leaflet['zoomCurrent']['tileSize'];
 			var minx = point.x * tileSize;
 			var miny = point.y * tileSize;
 			var p = new L.Point(minx, miny);
@@ -685,6 +705,7 @@
 			var maxx = minx + tileSize;
 			var maxy = miny + tileSize;
 			bounds.extend(new L.Point(maxx, maxy));
+			gmxAPI._leaflet['zoomCurrent']['gmxTileBounds'][drawTileID] = bounds;
 			return bounds;
 		}
 		,
@@ -958,6 +979,7 @@
 				//if(key + 'Function' in style && style[key + 'Function']) zn = style[key + 'Function'](prop);
 				if(!style['ready']) {
 					if(key === 'fillColor' || key === 'color') {
+						out[key + '_dec'] = zn;
 						out[key + '_rgba'] = utils.dec2rgba(zn, 1);
 						zn = utils.dec2hex(zn);
 						if(zn.substr(0,1) != '#') zn = '#' + zn;
@@ -4218,9 +4240,7 @@ var tt = 1;
 			});
 
 			LMap.on('zoomstart', function(e) {
-//var ww = 2 * gmxAPI.worldWidthMerc;
-//var vBounds = LMap.getBounds();
-//console.log('zoomstart', vBounds);	// getshift
+				gmxAPI._leaflet['zoomCurrent'] = null;
 				gmxAPI._leaflet['zoomstart'] = true;
 				gmxAPI._listeners.dispatchEvent('onZoomstart', null, {});
 				gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Проверка map Listeners на hideBalloons
@@ -4803,6 +4823,7 @@ var tt = 1;
     gmxAPI.APILoaded = true;					// Флаг возможности использования gmxAPI сторонними модулями
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
 	//gmxAPI._leaflet['LMap'] = LMap;				// leafLet карта
+	gmxAPI._leaflet['zoomCurrent'] = null;			// параметры от текущего zoom
 	gmxAPI._leaflet['lastZoom'] = -1;				// zoom нарисованный
 	gmxAPI._leaflet['mInPixel'] = 0;				// текущее кол.метров в 1px
 	gmxAPI._leaflet['waitSetImage'] = 0;			// текущее число загружаемых SetImage

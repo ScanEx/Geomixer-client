@@ -367,45 +367,12 @@
 			if(node['isVisible'] === false) return true;								// Слой не видим
 			var currZ = LMap.getZoom();
 			if(currZ < node['minZ'] || currZ > node['maxZ'])  return true;				// Неподходящий zoom
-			
+
 			if(!zoom) zoom = currZ;
-			var pz = Math.pow(2, zoom);
-			var tx = tilePoint.x;
-			if(tx < 0) tx += pz;
-			var scanexTilePoint = {
-				'x': (tx % pz - pz/2) % pz
-				,'y': -tilePoint.y - 1 + pz/2
-			};
-			var drawTileID = zoom + '_' + scanexTilePoint.x + '_' + scanexTilePoint.y;
-			var bounds = utils.getTileBoundsMerc(scanexTilePoint, zoom);
 
-			gmxAPI._leaflet['lastZoom'] = zoom;
-			gmxAPI._leaflet['mInPixel'] = pz/156543.033928041;
-//console.log('chkLoadTile ', zoom, currZ, node.id, drawTileID);
-				
-/*
-				var ctx = tile.getContext('2d');
-				//ctx.clearRect(0, 0, 256, 256);
-//console.log('drawTile ', drawTileID);
-
-ctx.strokeRect(2, 2, 253, 253);
-ctx.font = '24px "Tahoma"';
-ctx.fillText(drawTileID, 10, 128);
-*/
-			var attr = {
-				'node': node
-				,'x': 256 * scanexTilePoint.x
-				,'y': 256 * scanexTilePoint.y
-				,'zoom': zoom
-				,'bounds': bounds
-				,'drawTileID': drawTileID
-				,'scanexTilePoint': scanexTilePoint
-				,'tilePoint': tilePoint
-				,'tKey': tilePoint.x + ':' + tilePoint.y
-			};
-
+			var attr = getTileAttr(tilePoint, zoom);
 			var flag = node['loadTilesByExtent'](null, attr);
-			if(!flag && node.repaintTile) {
+			if(!flag) {
 				node.repaintTile(tilePoint, true);
 			}
 			return flag;
@@ -438,10 +405,10 @@ ctx.fillText(drawTileID, 10, 128);
 					if(drawFlag) {
 						drawMe = function() {
 							var tarr = node['loaderDrawFlags'][stID];
-if(!tarr) {
+/*if(!tarr) {
 	node.reloadTilesList(200);
 	return;
-}
+}*/
 							var queueFlags = {};
 							for (var i = 0; i < tarr.length; i++)
 							{
@@ -1017,20 +984,45 @@ if(!tarr) {
 			delete geo['_cache'];
 			geo.curStyle = style;
 		}
-		var chkBorderTiles = function(geom, x, y) {					// Проверка соседних тайлов
-			var zoom = LMap.getZoom();
+		var chkBorderTiles = function(geom, tile) {					// Проверка соседних тайлов
+			var zoom = tile['zoom'];
 			var propHiden = geom.propHiden;
 			if(!propHiden['drawInTiles']) propHiden['drawInTiles'] = {};
 			if(!propHiden['drawInTiles'][zoom]) propHiden['drawInTiles'][zoom] = {};
+			var x = tile['x'];
+			var y = tile['y'];
 			var gmxTileID = zoom + '_' + x + '_' + y;
 			propHiden['drawInTiles'][zoom][gmxTileID] = true;
-			/*var tKeys = node['tilesKeys'][gmxTileID];
-			for(var tKey in tKeys) {
-				if(!needRedrawTiles[tKey]) needRedrawTiles[tKey] = {};
-				needRedrawTiles[tKey][geom.id] = geom;
-			}*/
 			
-			var parr = [
+//console.log('objectsData ' , tile['posInTile']);
+			var parr = [];
+			var posInTile = tile['posInTile'];
+			var xd = (tile['posInTile']['x'] + tile['size'] > 256 ? 1
+				: (tile['posInTile']['x'] - tile['size'] < 0 ? -1 : 0)
+				);
+			var yd = (tile['posInTile']['y'] + tile['size'] > 256 ? 1
+				: (tile['posInTile']['y'] - tile['size'] < 0 ? -1 : 0)
+				);
+			if(xd === 1) {
+				parr.push({ 'x': x+1 ,'y': y });
+				if(yd === 1) {
+					parr.push({ 'x': x+1 ,'y': y+1 });
+				} else if(yd === -1) {
+					parr.push({ 'x': x+1 ,'y': y-1 });
+				}
+			} else if(xd === -1) {
+				parr.push({ 'x': x-1 ,'y': y });
+				if(yd === 1) {
+					parr.push({ 'x': x-1 ,'y': y+1 });
+				} else if(yd === -1) {
+					parr.push({ 'x': x-1 ,'y': y-1 });
+				}
+			} else if(yd === 1) {
+				parr.push({ 'x': x ,'y': y+1 });
+			} else if(yd === -1) {
+				parr.push({ 'x': x ,'y': y-1 });
+			}
+			/*var parr = [
 				{ 'x': x-1 ,'y': y }
 				,{ 'x': x+1 ,'y': y }
 				,{ 'x': x ,'y': y-1 }
@@ -1039,7 +1031,8 @@ if(!tarr) {
 				,{ 'x': x-1 ,'y': y-1 }
 				,{ 'x': x-1 ,'y': y+1 }
 				,{ 'x': x+1 ,'y': y-1 }
-			];
+			];*/
+
 			for (var j = 0; j < parr.length; j++)
 			{
 				var rp = parr[j];
@@ -1052,20 +1045,10 @@ if(!tarr) {
 				if(needCheck) {
 					var rbounds = utils.getTileBoundsMerc(rp, zoom);
 					if(gmxAPI._leaflet['utils'].chkPointWithDelta(rbounds, geom.getPoint(), geom)) {
-					//if(geom['intersects'](rbounds)) {
 						propHiden['drawInTiles'][zoom][gmxTileID] = true;
 						node.redrawTilesList(200);
 					}
 				}
-/*				var tKeys = node['tilesKeys'][gmxTileID];
-				for(var tKey in tKeys) {
-					if(!needRedrawTiles[tKey]) needRedrawTiles[tKey] = {};
-					if(propHiden['drawInTiles'][zoom][gmxTileID]) {
-						needRedrawTiles[tKey][geom.id] = geom;
-					} else {
-						delete needRedrawTiles[tKey][geom.id];
-					}
-				}*/
 			}
 		}
 
@@ -1130,16 +1113,20 @@ if(!tarr) {
 			}
 			if(tileSize && isViewPoint) {
 				var coord = geo['getPoint']();
+				var xx = coord.x/tileSize;
+				var yy = coord.y/tileSize;
 				var tile = {
-					'x':	Math.floor(coord.x/tileSize)
-					,'y':	Math.floor(coord.y/tileSize)
+					'x':	Math.floor(xx)
+					,'y':	Math.floor(yy)
 					,'z':	zoom
+					,'size': size
 					,'posInTile': {
-						'x': Math.round(256 * ((coord.x % tileSize) / tileSize))
-						,'y': Math.round(256 * ( 1 - (coord.y % tileSize) / tileSize))
+						'x': (xx < 0 ? 256 : 0) + 256 * (coord.x % tileSize) / tileSize
+						,'y': (yy < 0 ? 256 : 0) + 256 * (coord.y % tileSize) / tileSize
 					}
 				};
-				chkBorderTiles(geo, tile.x, tile.y);
+				chkBorderTiles(geo, tile);
+				//chkBorderTiles(geo, tile.x, tile.y);
 			}
 			geo.propHiden['toFilters'] = toFilters;
 			geo.propHiden['_isFilters'] = (toFilters.length ? true : false);
@@ -1293,30 +1280,6 @@ if(!tarr) {
 				}
 			}
 			return true;
-		}
-
-		var setCanvasStyle = function(ctx, style)	{							// указать стиль Canvas
-			if(style) {
-				//if(style['stroke'] && style['weight'] > 0) {
-				if(style['stroke']) {
-					var opacity = ('opacity' in style ? style['opacity'] : 0);
-					ctx.lineWidth = style['weight'] || 0;
-					if(style['weight'] == 0) opacity = 0; // если 0 ширина линии скрываем через opacity
-					var strokeStyle = style['color_rgba'] || 'rgba(0, 0, 255, 1)';
-					strokeStyle = strokeStyle.replace(/1\)/, opacity + ')');
-				} else {
-					strokeStyle = 'rgba(0, 0, 255, 0)';
-				}
-				ctx.strokeStyle = strokeStyle;
-				
-				if(style['fill']) {
-					var fillOpacity = style['fillOpacity'] || 0;
-					var fillStyle = style['fillColor_rgba'] || 'rgba(0, 0, 255, 1)';
-					fillStyle = fillStyle.replace(/1\)/, fillOpacity + ')');
-					ctx.fillStyle = fillStyle;
-				}
-			}
-			ctx.save();
 		}
 		
 /*		var needRedrawTiles = {};										// Список дорисовки обьектов по соседним тайлам
@@ -1554,8 +1517,9 @@ if(!tarr) {
 			var arr = [];
 			var arrTop = [];
 			var zoom = attr['zoom'];
-			attr['tileSize'] = Math.pow(2, 8 - zoom) * 156543.033928041;
-			gmxAPI._leaflet['mInPixel'] = Math.pow(2, zoom)/156543.033928041;
+			if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
+			attr['tileSize'] = gmxAPI._leaflet['zoomCurrent']['tileSize'];
+
 			var drawTileID = attr['drawTileID'];
 			var tKey = attr['tKey'];
 			for (var key in node['tilesGeometry'])						// Перебрать все загруженные тайлы
@@ -1611,14 +1575,16 @@ if(!tarr) {
 			var tKey = tilePoint.x + ':' + tilePoint.y;
 			
 			if(!zoom) zoom = LMap.getZoom();
-			var pz = Math.pow(2, zoom);
-			var tx = tilePoint.x;
-			if(tx < 0) tx += pz;
+			if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
+			var zoomCurrent = gmxAPI._leaflet['zoomCurrent'];
+			var pz = zoomCurrent['pz'];
+			var tx = tilePoint.x % pz + (tilePoint.x < 0 ? pz : 0);
+			var ty = tilePoint.y % pz + (tilePoint.y < 0 ? pz : 0);
 			var scanexTilePoint = {
-				'x': (tx % pz - pz/2) % pz
-				,'y': -tilePoint.y - 1 + pz/2
+				'x': tx % pz - pz/2
+				,'y': pz/2 - 1 - ty % pz
 			};
-			gmxAPI._leaflet['mInPixel'] = pz/156543.033928041;
+
 			var drawTileID = zoom + '_' + scanexTilePoint.x + '_' + scanexTilePoint.y;
 			var bounds = utils.getTileBoundsMerc(scanexTilePoint, zoom);
 			var attr = {
@@ -1631,7 +1597,7 @@ if(!tarr) {
 				,'scanexTilePoint': scanexTilePoint
 				,'tilePoint': tilePoint
 				,'tKey': tilePoint.x + ':' + tilePoint.y
-				,'tileSize': Math.pow(2, 8 - zoom) * 156543.033928041
+				,'tileSize': zoomCurrent['tileSize']
 			};
 			return attr;
 		}
@@ -1736,10 +1702,10 @@ if(!tarr) {
 					} else {
 						if(!tile) {
 							tile = node['leaflet'].getCanvasTile(tilePoint);
-							//tile.id = drawTileID;
-							ctx = tile.getContext('2d');
+							tile.id = drawTileID;
+							//ctx = tile.getContext('2d');
 						}
-						objectToCanvas(rItem, ctx, clearFlag);
+						objectToCanvas(rItem, tile, clearFlag);
 						clearFlag = false;
 						if(geom.type === 'Point') {
 							node.upDateLayer(200);
@@ -1787,13 +1753,44 @@ if(!tarr) {
 			return true;
 		};
 
+		var setCanvasStyle = function(tile, ctx, style)	{							// указать стиль Canvas
+			if(style) {
+				//if(style['stroke'] && style['weight'] > 0) {
+				var strokeStyle = '';
+				if(style['stroke']) {
+					var lineWidth = style['weight'] || 0;
+					if(ctx.lineWidth != lineWidth) ctx.lineWidth = lineWidth;
+					var opacity = ('opacity' in style ? style['opacity'] : 0);
+					if(style['weight'] == 0) opacity = 0; // если 0 ширина линии скрываем через opacity
+					//strokeStyle = style['color_rgba'] || 'rgba(0, 0, 255, 1)';
+					//strokeStyle = strokeStyle.replace(/1\)/, opacity + ')');
+					strokeStyle = utils.dec2rgba(style['color_dec'] || 255, opacity);
+				} else {
+					strokeStyle = 'rgba(0, 0, 255, 0)';
+				}
+				if(tile._strokeStyle != strokeStyle) ctx.strokeStyle = strokeStyle;
+				tile._strokeStyle = strokeStyle;
+				
+				if(style['fill']) {
+					var fillOpacity = style['fillOpacity'] || 0;
+					//var fillStyle = style['fillColor_rgba'] || 'rgba(0, 0, 255, 1)';
+					//fillStyle = fillStyle.replace(/1\)/, fillOpacity + ')');
+					var fillStyle = utils.dec2rgba(style['fillColor_dec'] || 255, fillOpacity);
+					if(tile._fillStyle != fillStyle) ctx.fillStyle = fillStyle;
+					tile._fillStyle = fillStyle;
+				}
+			}
+			//ctx.save();
+		}
+
 		node.countInCanvas = 0;					// колич.отрисованных обьектов в тайлах
 		// отрисовка векторного обьекта тайла
-		var objectToCanvas = function(pt, ctx, flagClear) {
+		var objectToCanvas = function(pt, tile, flagClear) {
+			var ctx = tile.getContext('2d');
 			var attr = pt['attr'];
 			var geom = pt['geom'];
 			var imageObj = pt['imageObj'];
-			ctx.save();
+			//ctx.save();
 			if(flagClear) {
 				ctx.clearRect(0, 0, 256, 256);
 				attr['labelBounds'] = [];
@@ -1808,8 +1805,8 @@ if(!tarr) {
 			if(!geom.propHiden.curStyle) return;
 			
 			var itemStyle = geom.propHiden.curStyle;
-			setCanvasStyle(ctx, itemStyle);
-			ctx.restore();
+			setCanvasStyle(tile, ctx, itemStyle);
+			//ctx.restore();
 			if(imageObj) {
 				ctx.save();
 				if('rasterOpacity' in itemStyle) {					// для растров в КР
@@ -1870,12 +1867,12 @@ if(!tarr) {
 					if(!out[itemId]) out[itemId] = [];
 					out[itemId].push(item);
 				} else {
-					if(!ctx) {
+					if(!tile) {
 						tile = node['leaflet'].getCanvasTile(thash.tilePoint);
-						ctx = tile.getContext('2d');
+						//ctx = tile.getContext('2d');
 					}
 
-					objectToCanvas(item, ctx, flagClear);
+					objectToCanvas(item, tile, flagClear);
 					flagClear = false;
 				}
 
@@ -1911,17 +1908,17 @@ if(!tarr) {
 			for (var i = 0; i < node['flipedIDS'].length; i++) {	// перерисовка fliped обьектов
 				var id = node['flipedIDS'][i];
 				if(out[id]) {
-					if(!ctx) {
+					if(!tile) {
 						tile = node['leaflet'].getCanvasTile(thash.tilePoint);
-						ctx = tile.getContext('2d');
+						//ctx = tile.getContext('2d');
 					}
 					for (var j = 0; j < out[id].length; j++) {
-						objectToCanvas(out[id][j], ctx, flagClear);
+						objectToCanvas(out[id][j], tile, flagClear);
 						flagClear = false;
 					}
 				}
 			}
-			if(ctx && flagClear) ctx.clearRect(0, 0, 256, 256);
+			if(tile && flagClear) tile.getContext('2d').clearRect(0, 0, 256, 256);
 			out = null;
 			arr = null;
 			//borders = null;
@@ -2523,11 +2520,11 @@ if(!tarr) {
 			,
 			_getGMXtileNum: function (tilePoint, zoom) {
 				var pz = Math.pow(2, zoom);
-				var tx = tilePoint.x;
-				if(tx < 0) tx += pz;
+				var tx = tilePoint.x % pz + (tilePoint.x < 0 ? pz : 0);
+				var ty = tilePoint.y % pz + (tilePoint.y < 0 ? pz : 0);
 				var gmxTilePoint = {
-					'x': (tx % pz - pz/2) % pz
-					,'y': -tilePoint.y - 1 + pz/2
+					'x': tx % pz - pz/2
+					,'y': pz/2 - 1 - ty % pz
 				};
 				return zoom + '_' + gmxTilePoint.x + '_' + gmxTilePoint.y;
 			}
@@ -2577,11 +2574,11 @@ if(!tarr) {
 
 				this._tilesToLoad += tilesToLoad;
 
+				this._tileContainer.appendChild(fragment);
+
 				for (i = 0; i < tilesToLoad; i++) {
 					this._addTile(queue[i], fragment);
 				}
-
-				this._tileContainer.appendChild(fragment);
 			}
 			,
 			getCanvasTile: function (tilePoint) {
@@ -2592,15 +2589,16 @@ if(!tarr) {
 				if (!this._map) {
 					//console.log('getCanvasTile: ', this.id);
 				}
-				var tilePos = this._getTilePos(tilePoint);
 				var tile = this._getTile();
 				tile.id = tKey;
 				tile._layer = this;
 				tile._tilePoint = tilePoint;
-				L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
 
 				this._tiles[tKey] = tile;
 				this._tileContainer.appendChild(tile);
+
+				var tilePos = this._getTilePos(tilePoint);
+				L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
 
 				return this._tiles[tKey];
 			}
