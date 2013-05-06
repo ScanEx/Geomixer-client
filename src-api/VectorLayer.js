@@ -366,7 +366,8 @@
 		node.chkLoadTile = function(tilePoint, zoom)	{							// Проверка необходимости загрузки тайлов
 			if(node['isVisible'] === false) return true;								// Слой не видим
 			if(gmxAPI._leaflet['zoomstart']) {
-				node.upDateLayer(200);
+				myLayer._markTile(tilePoint, 1);
+				node.reloadTilesList(100);
 				return true;
 			}
 			var currZ = LMap.getZoom();
