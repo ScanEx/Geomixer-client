@@ -4258,6 +4258,7 @@ var tt = 1;
 			});
 			LMap.on('zoomend', function(e) {
 				gmxAPI._leaflet['zoomstart'] = false;
+				gmxAPI._leaflet['utils'].chkZoomCurrent();
 				gmxAPI._listeners.dispatchEvent('onZoomend', null, {});
 				gmxAPI._listeners.dispatchEvent('showBalloons', gmxAPI.map, {});	// Проверка map Listeners на showBalloons
 				gmxAPI._leaflet['utils'].chkMapObjectsView();

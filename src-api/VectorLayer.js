@@ -365,6 +365,10 @@
 
 		node.chkLoadTile = function(tilePoint, zoom)	{							// Проверка необходимости загрузки тайлов
 			if(node['isVisible'] === false) return true;								// Слой не видим
+			if(gmxAPI._leaflet['zoomstart']) {
+				node.upDateLayer(200);
+				return true;
+			}
 			var currZ = LMap.getZoom();
 			if(currZ < node['minZ'] || currZ > node['maxZ'])  return true;				// Неподходящий zoom
 
@@ -2176,8 +2180,8 @@
 				if(z != currZ) delete node['tilesRedrawImages'][z];
 			}
 			
-			var tileSize = Math.pow(2, 8 - currZ) * 156543.033928041;
-			reCheckFilters(tileSize);
+			//var tileSize = Math.pow(2, 8 - currZ) * 156543.033928041;
+			reCheckFilters(gmxAPI._leaflet['zoomCurrent']['tileSize']);
 
 			flag = (utils.chkVisibilityByZoom(node.id) && (node['bounds'] ? utils.chkBoundsVisible(node['bounds']) : true));
 			//flag = (currZ < node['minZ'] || currZ > node['maxZ'] ? false : true);		// Неподходящий zoom
