@@ -830,17 +830,21 @@
 					,'pixelInTile': attr.pixelInTile
 					,'tID': gmxTileID
 				};
+				var gmxAttr = attr;
+				gmxAttr['layer'] = gmxNode;
+				gmxAttr['eventPos'] = eventPos;
 				
 				if(!isCluster) {
 					if(handlerObj) {
-						callHandler('onClick', item, handlerObj, {'eventPos': eventPos, 'layer': gmxNode});
+						callHandler('onClick', item, handlerObj, gmxAttr);
 						return true;
 					}
 				} else {
-					if(callHandler('onClick', item.geom, gmxNode, {'objType': 'cluster', 'eventPos': eventPos, 'layer': gmxNode})) return true;
+					gmxAttr['objType'] = 'cluster';
+					if(callHandler('onClick', item.geom, gmxNode, gmxAttr)) return true;
 					var fID = itemPropHiden['toFilters'][0];
 					var filter = gmxAPI.mapNodes[fID];
-					if(filter && callHandler('onClick', item.geom, filter, {'eventPos': eventPos, 'layer': gmxNode})) return true;
+					if(filter && callHandler('onClick', item.geom, filter, gmxAttr)) return true;
 				}
 				return true;
 			}
