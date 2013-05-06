@@ -128,7 +128,7 @@
 					text += " ";
 				text += key.split("<a").join("<a target='_blank' style='color: inherit;'");
 			}
-			if(gmxAPI.proxyType == 'leaflet') text += " <a target='_blank' style='color: inherit;' href='http://leaflet.cloudmade.com'>&copy; Leaflet</a>";
+			if(gmxAPI.proxyType == 'leaflet') text += " <a target='_blank' style='color: inherit;' href='http://leafletjs.com'>&copy; Leaflet</a>";
 
 			copyright.innerHTML = text;
 			if(copyrightAlign) {

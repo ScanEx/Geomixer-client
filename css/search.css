@@ -59,6 +59,13 @@ span.searchElem:hover, span.searchElemParent:hover
 	vertical-align: top;
 	white-Space: normal;
 	font-size: 11px;
+
+}
+
+.SearchResultText.ui-draggable-dragging
+{
+    width: 360px;
+    background-color: #edf4f6;
 }
 
 .searchBeginTD

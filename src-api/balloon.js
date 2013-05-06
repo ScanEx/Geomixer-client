@@ -425,11 +425,11 @@
 					var x = gObj.coordinates[0];
 					var y = gObj.coordinates[1];
 
-					balloon.fixedDeltaX =  (gmxAPI.merc_x(mx) -  gmxAPI.merc_x(x))/scale;
-					balloon.fixedDeltaY =  (gmxAPI.merc_y(my) -  gmxAPI.merc_y(y))/scale;
+					//balloon.fixedDeltaX =  (gmxAPI.merc_x(mx) -  gmxAPI.merc_x(x))/scale;
+					//balloon.fixedDeltaY =  (gmxAPI.merc_y(my) -  gmxAPI.merc_y(y))/scale;
 					mx = x;
 					my = y;
-					balloon.fixedDeltaFlag = true;
+					//balloon.fixedDeltaFlag = true;
 				}
 
 				balloon.setVisible(true);
@@ -531,6 +531,7 @@
 			
 			var imgStyle =	{
 				position: "absolute",
+				pointerEvents: "none",
 				bottom: "-21px",
 				right: "15px"
 			};
@@ -562,16 +563,6 @@
 				var screenWidth = div.clientWidth;
 				var yy = div.clientHeight - y + 20;
 
-				if(balloon.parentNode != div) {
-					var p1 = gmxAPI._leaflet['utils'].getPixelMap();
-					screenWidth = p1.x;
-					var p2 = gmxAPI._leaflet['LMap'].project(new L.LatLng(ret.geoY, ret.geoX), gmxAPI._leaflet['LMap'].getZoom());
-					var pixelOrigin = gmxAPI._leaflet['LMap'].getPixelOrigin();
-					x = p2.x - pixelOrigin.x;
-					y = p2.y - pixelOrigin.y;
-					yy = y - balloon.clientHeight - 20;
-				}				
-				
 				var xx = (x + ww < screenWidth) ? x : (ww < screenWidth) ? (screenWidth - ww) : 0;
 				xx = Math.max(xx, x - ww + legWidth + brw);
 				var dx = x - xx;
@@ -890,14 +881,15 @@ event.stopImmediatePropagation();
 						deltaX = gmxAPI.merc_x(deltaX) / sc;
 					}
 
-					var px = (mapX - gmxAPI.merc_x(this.geoX))/sc;
-					var py = (mapY - gmxAPI.merc_y(this.geoY))/sc;
+					var px = (mapX - gmxAPI.merc_x(balloon.geoX))/sc;
+					var py = (mapY - gmxAPI.merc_y(balloon.geoY))/sc;
 					var x = div.clientWidth/2 - px + deltaX;
 					var y = div.clientHeight/2 + py;
-					if(this.fixedDeltaFlag) {
+
+					/*if(balloon.fixedDeltaFlag) {
 						x += balloon.fixedDeltaX;
 						y -= balloon.fixedDeltaY;
-					}
+					}*/
 					var flag = (y < 0 || y > div.clientHeight ? false : true);
 					if (flag) {
 						if (x < 0 || x > div.clientWidth) flag = false;

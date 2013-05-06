@@ -7,6 +7,16 @@
 */
 (function($){
 
+$('#flash').droppable({
+    drop: function(event, ui) {
+        //console.log(ui.draggable[0].geometry);
+        var obj = ui.draggable[0].gmxDrawingObject;
+        var text = Functions.GetFullName(obj.TypeName, obj.ObjName);
+        globalFlashMap.drawing.addObject(obj.Geometry, {text: text});
+        //console.log('drop', event, ui);
+    }
+})
+
 _translationsHash.addtext("rus", {
 	"Текущее местоположение отображается только для России и Украины": "Текущее местоположение отображается только для России и Украины",
 	"Следующие [value0] страниц": "Следующие [value0] страниц",
@@ -441,22 +451,33 @@ var ResultList = function(oInitContainer, ImagesHost){
 		var tbody = _tbody();
 		for (var i = 0; i < arrObjects.length; i++) {
 			var elemTR = _tr(null, [['dir', 'className', 'SearchResultRow']]);
-			var elemTD = _td();
+			var elemTD = _td(null, [['dir', 'className', 'SearchResultText']]);
 			_(elemTR, [_td([_t((i+1).toString() + ".")], [['dir', 'className','searchElemPosition']]), elemTD]);
 			drawObject(arrObjects[i], elemTD);
 
 			// загрузка SHP Файла
-			if (typeof (gmxGeoCodeShpDownload) != "undefined" && gmxGeoCodeShpDownload && arrObjects[i].Geometry != null &&
+			if (window.gmxGeoCodeShpDownload && arrObjects[i].Geometry != null &&
                     (arrObjects[i].Geometry.type == "POINT" || arrObjects[i].Geometry.type == "LINESTRING" || arrObjects[i].Geometry.type == "POLYGON")) {
 			    var shpFileLink = _span([_t(".shp")], [['dir', 'className', 'searchElem'], ['attr', 'title', 'скачать SHP-файл'], ['attr', 'number', i]]);
+                
 			    shpFileLink.onclick = function () {
 			        var obj = arrObjects[$(this).attr('number')];
-			        var objsToDowload = [obj];
-			        $(_this).triggerHandler('onDownloadSHP', [obj.ObjCode, objsToDowload]);
+			        var objsToDownload = [obj];
+			        $(_this).triggerHandler('onDownloadSHP', [obj.ObjCode, objsToDownload]);
 			    };
 			    _(elemTD, [_t(" ")]);
 			    _(elemTD, [shpFileLink]);
 			}
+            
+            elemTD.gmxDrawingObject = arrObjects[i];
+            console.log(arrObjects[i]);
+                
+            $(elemTD).draggable({
+                scroll: false, 
+                appendTo: document.body,
+                helper: 'clone',
+                distance: 10
+            });
 
 			_(tbody, [elemTR]);
 		}
@@ -1086,6 +1107,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		if (params.Geometry != null) sQueryString += "&GeometryJSON=" + escape(JSON.stringify(params.Geometry));
 		if (params.Limit != null) sQueryString += "&Limit=" + escape(params.Limit.toString());
 		if (params.ID != null) sQueryString += "&ID=" + escape(params.ID.toString());
+		if (params.TypeCode != null) sQueryString += "&TypeCode=" + escape(params.TypeCode.toString());
 		if (params.IsStrongSearch != null) sQueryString += "&IsStrongSearch=" + escape(params.IsStrongSearch ? "1" : "0");
 		if (params.WithoutGeometry != null) sQueryString += "&WithoutGeometry=" + escape(params.WithoutGeometry ? "1" : "0");
 		if (params.PageNum != null) sQueryString += "&PageNum=" + params.PageNum;
@@ -1121,7 +1143,7 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		fnSearch({callback: params.callback, ID: params.ID, RequestType: "ID"});
+		fnSearch({callback: params.callback, ID: params.ID, RequestType: "ID", TypeCode: params.TypeCode});
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -1423,7 +1445,7 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 		<i>ID</i> - идентификатор объекта </br>
 	@returns {void}*/
 	this.SearchID = function(params){
-		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID});
+		oSearchDataProvider.SearchID({callback: params.callback, ID: params.ID, TypeCode: params.TypeCode});
 	}
 	
 	/**Осуществляет поиск текущего местонахождения
@@ -1606,7 +1628,7 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	var fnSelect = function(event, oAutoCompleteItem){
 	    if (fnBeforeSearch != null) fnBeforeSearch();
 	    $('#respager').remove();
-	    oLogic.SearchID({ID: oAutoCompleteItem.GeoObject.ObjCode, RequestType: "ID",
+	    oLogic.SearchID({ID: oAutoCompleteItem.GeoObject.ObjCode, RequestType: "ID", TypeCode: oAutoCompleteItem.GeoObject.TypeCode,
                             callback: function (response) {
                                 lstResult.ShowResult(oAutoCompleteItem.label, [{ name: "Выбрано", SearchResult: response[0].SearchResult}]);
                         }

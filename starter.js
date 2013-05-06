@@ -317,7 +317,11 @@ $(function()
             }
             else
             {
-                apiFilename = window.gmxUseLeaflet ? 'apil.js' : 'api.js'
+                if (typeof window.gmxUseLeaflet !== 'undefined') {
+                    apiFilename = window.gmxUseLeaflet ? 'apil.js' : 'apif.js';
+                } else {
+                    apiFilename = 'api.js';
+                }
             }
             
             var script = document.createElement("script");
@@ -730,6 +734,10 @@ function loadMap(state)
         
         $('#flash').bind('drop', function(e)
         {
+            if (!e.originalEvent.dataTransfer) {
+                return;
+            }
+            
             var b = getBounds();
             var defs = [];
             $.each(e.originalEvent.dataTransfer.files, function(i, file) {

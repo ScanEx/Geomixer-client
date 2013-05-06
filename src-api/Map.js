@@ -122,19 +122,19 @@
 		}
 		map.zoomToExtent = function(minx, miny, maxx, maxy)
 		{
-			map.moveTo(
-				gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
-				gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
-				map.getBestZ(minx, miny, maxx, maxy)
-			);
+			var x = gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
+				y = gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2);
+			var z = map.getBestZ(minx, miny, maxx, maxy);
+			var maxZ = map.zoomControl.getMaxZoom();
+			map.moveTo(x, y, (z > maxZ ? maxZ : z));
 		}
 		map.slideToExtent = function(minx, miny, maxx, maxy)
 		{
-			map.slideTo(
-				gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
-				gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2),
-				map.getBestZ(minx, miny, maxx, maxy)
-			);
+			var x = gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
+				y = gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2);
+			var z = map.getBestZ(minx, miny, maxx, maxy);
+			var maxZ = map.zoomControl.getMaxZoom();
+			map.slideTo(x, y, (z > maxZ ? maxZ : z));
 		}
 		
 		var tmp = [			// Для обратной совместимости - методы ранее были в MapObject
@@ -294,6 +294,7 @@
 			if(gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setMinMaxZoom(z1, z2);
 			return gmxAPI._cmdProxy('setMinMaxZoom', {'attr':{'z1':z1, 'z2':z2} });
 		}
+		map.setZoomBounds = map.setMinMaxZoom;
 
 		map.grid = {
 			setVisible: function(flag) { gmxAPI._cmdProxy('setGridVisible', { 'attr': flag }) },
