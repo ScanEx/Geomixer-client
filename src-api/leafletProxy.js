@@ -3609,8 +3609,8 @@
 		// Отрисовка заполнения полигона
 		var paintFill = function (attr, style, ctx, fillFlag) {
 			if(!attr) return false;
-			var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
-			if(shiftX === false) return false
+			//var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
+			//if(shiftX === false) return false
 			//var ctx = attr['ctx'];
 			var x = attr['x'];
 			var y = 256 + attr['y'];
@@ -3656,17 +3656,21 @@
 				//console.log('nnn ' ,  ' : ' , coords);
 				for (var i = 0; i < coords.length; i++)
 				{
-					var pArr = coords[i];
+					//var pArr = coords[i];
+					var lastX = null, lastY = null;
 					//var pArr = L.PolyUtil.clipPolygon(coords[i], attr['bounds']);
-					for (var j = 0; j < pArr.length; j++)
+					for (var j = 0; j < coords[i].length; j++)
 					{
-						var p1 = pArr[j];
+						var p1 = coords[i][j];
 						var px1 = p1.x * mInPixel - x; 		px1 = (0.5 + px1) << 0;
 						var py1 = y - p1.y * mInPixel;		py1 = (0.5 + py1) << 0;
-						if(j == 0)
-							ctx.moveTo(px1, py1);
-						else
-							ctx.lineTo(px1, py1);
+						if(lastX !== px1 || lastY !== py1) {
+							if(j == 0)
+								ctx.moveTo(px1, py1);
+							else
+								ctx.lineTo(px1, py1);
+							lastX = px1, lastY = py1;
+						}
 					}
 				}
 				ctx.closePath();
@@ -3680,8 +3684,8 @@
 		// Отрисовка геометрии полигона
 		var paintStroke = function (attr, style, ctx) {
 			if(!attr) return false;
-			var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
-			if(shiftX === false) return false
+			//var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
+			//if(shiftX === false) return false
 
 			//var ctx = attr['ctx'];
 			var x = attr['x'];
@@ -3693,23 +3697,27 @@
 			{
 				var hArr = hideLines[i];
 				var cntHide = 0;
-				var pArr = coords[i];
+				//var pArr = coords[i];
 				//var pArr = L.PolyUtil.clipPolygon(coords[i], attr['bounds']);
-				for (var j = 0; j < pArr.length; j++)
+				var lastX = null, lastY = null;
+				for (var j = 0; j < coords[i].length; j++)
 				{
 					var lineIsOnEdge = false;
 					if(j == hArr[cntHide]) {
 						lineIsOnEdge = true;
 						cntHide++;
 					}
-					var p1 = pArr[j];
+					var p1 = coords[i][j];
 					var px1 = p1.x * mInPixel - x; 		px1 = (0.5 + px1) << 0;
 					var py1 = y - p1.y * mInPixel;		py1 = (0.5 + py1) << 0;
-					if(lineIsOnEdge || j == 0) {
-						ctx.moveTo(px1, py1);
-					}
-					else {
-						ctx.lineTo(px1, py1);
+					if(lastX !== px1 || lastY !== py1) {
+						if(lineIsOnEdge || j == 0) {
+							ctx.moveTo(px1, py1);
+						}
+						else {
+							ctx.lineTo(px1, py1);
+						}
+						lastX = px1, lastY = py1;
 					}
 				}
 			}
