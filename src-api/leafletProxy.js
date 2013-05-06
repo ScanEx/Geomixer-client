@@ -35,6 +35,14 @@
 	var utils = {							// Утилиты leafletProxy
 		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
 		,
+		'chkKeys': function(out, ev)	{		// Проверка нажатия спец.символов
+			if(ev.buttons || ev.button) out['buttons'] = ev.buttons || ev.button;
+			if(ev.ctrlKey)	out['ctrlKey'] = ev.ctrlKey;
+			if(ev.altKey)	out['altKey'] = ev.altKey;
+			if(ev.shiftKey)	out['shiftKey'] = ev.shiftKey;
+			if(ev.metaKey)	out['metaKey'] = ev.metaKey;
+		}
+		,
 		'chkZoomCurrent': function(zoom)	{		// Вычисление размеров тайла по zoom
 			if(!zoom) zoom = LMap.getZoom();
 			var pz = Math.pow(2, zoom);
@@ -1589,8 +1597,10 @@
 						node['leaflet'].setStyle(node.regularStyle);
 					}
 				}
+				var out = {'ev':e};
+				utils.chkKeys(out, e.originalEvent);
 				gmxAPI._leaflet['activeObject'] = (evName == 'onMouseOut' ? null : id);
-				if(hNode['handlers'][evName]) hNode['handlers'][evName](node['id'], node.geometry.properties, {'ev':e});
+				if(hNode['handlers'][evName]) hNode['handlers'][evName](node['id'], node.geometry.properties, out);
 			};
 			if(scanexEventNames[evName]) {
 				node['leaflet'].on(scanexEventNames[evName], func);
@@ -4077,13 +4087,14 @@
 				var out = {
 					'latlng': e.latlng
 					,'containerPoint': e.containerPoint
-					,'buttons': e.originalEvent.buttons || e.originalEvent.button
-					,'ctrlKey': e.originalEvent.ctrlKey
-					,'altKey': e.originalEvent.altKey
-					,'shiftKey': e.originalEvent.shiftKey
-					,'metaKey': e.originalEvent.metaKey
+					//,'buttons': e.originalEvent.buttons || e.originalEvent.button
+					//,'ctrlKey': e.originalEvent.ctrlKey
+					//,'altKey': e.originalEvent.altKey
+					//,'shiftKey': e.originalEvent.shiftKey
+					//,'metaKey': e.originalEvent.metaKey
 					,'e': e
 				};
+				utils.chkKeys(out, e.originalEvent);
 				if(target && e.containerPoint) {
 					try {
 						//out['tID'] = target['id'];
