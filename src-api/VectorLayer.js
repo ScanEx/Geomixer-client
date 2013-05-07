@@ -1613,6 +1613,7 @@
 		
 		var observerTimer = null;										// Таймер
 		node.repaintTile = function(tilePoint, clearFlag)	{				// перерисовать векторный тайл слоя
+			if(!myLayer._map) return;
 			var zoom = LMap.getZoom();
 			var attr = getTileAttr(tilePoint, zoom);
 			var tKey = attr['tKey'];
