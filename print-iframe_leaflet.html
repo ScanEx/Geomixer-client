@@ -84,6 +84,9 @@ input
 	var toOut = null;
 	var fromNode = null;
 	var mapPane = null;
+	var balloons = null;
+	var balloonsParent = null;
+
 	function callClose()
 	{
 		if(fromNode) fromNode.appendChild(mapPane);
@@ -95,17 +98,29 @@ input
 		if(!gmxAPI) gmxAPI = opener.gmxAPI;
 		if(!comment) comment = document.getElementById("comment");
 		if(!toggler) toggler = document.getElementById("toggler");
-		
 		if(!mapParent) mapParent = document.getElementById("mapParent");
+
+		window.onresize = resize;
+		resize();
+		
 		toOut = mapParent.firstChild;
 		var LMap = gmxAPI._leaflet['LMap'];
 
 		fromNode = LMap._mapPane.parentNode;
 		mapPane = LMap._mapPane;
 		toOut.appendChild(mapPane);
-
-		window.onresize = resize;
-		resize();
+		
+		balloons = opener.document.getElementsByClassName('gmx_balloon');
+		var balloonsTo = null;
+		for(var i=0; i<balloons.length; i++) {
+			var balloon = balloons[i];
+			if(!balloonsParent) {
+				balloonsParent = balloon.parentNode;
+				balloonsTo = toOut.appendChild(balloonsParent.cloneNode(false));
+				balloonsTo.style.left = '0px';
+			}
+			balloonsTo.appendChild(balloon.cloneNode(true));
+		}
 	}
 </script>
 </head>
