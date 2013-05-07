@@ -4,28 +4,54 @@
 var initTranslations = function()
 {
     _translationsHash.addtext("rus", {
-                                "searchBbox.SearchInArea" : "Искать в области",
-                                "searchBbox.CancelSearchInArea" : "Отменить поиск по области",
-                                "firesWidget.FireSpots.Description" : "Очаги пожаров",
-                                "firesWidget.Burnt.Description" : "Границы гарей",
-                                "firesWidget.DailyCoverage.Description" : "Космоснимки",
-                                "firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
-                                "firesWidget.FireCombinedDescription" : "Пожары",
-                                "firesWidget.ExtendedView" : "Расширенный поиск",
-                                "firesWidget.AdvancedSearchButton" : "Искать по области"
-                             });
+        "searchBbox.SearchInArea" : "Искать в области",
+        "searchBbox.CancelSearchInArea" : "Отменить поиск по области",
+        "firesWidget.FireSpots.Description" : "Очаги пожаров",
+        "firesWidget.Burnt.Description" : "Границы гарей",
+        "firesWidget.DailyCoverage.Description" : "Космоснимки (MODIS)",
+        "firesWidget.tooManyDataWarning" : "Слишком много данных - сократите область поиска!",
+        "firesWidget.FireCombinedDescription" : "Пожары",
+        "firesWidget.ExtendedView" : "Расширенный поиск",
+        "firesWidget.AdvancedSearchButton" : "Искать по области",
+        "firesWidget.TitleFiresScanEx" : "Пожары ScanEx",
+        "firesWidget.TitleFiresFIRMS" : "Пожары FIRMS",
+        "firesWidget.LayerClusterBalloon" :
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" + 
+            "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
+            "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+            "<div>[SUMMARY]</div>" + 
+            "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
+        "firesWidget.LayerGeometryBalloon" :
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" + 
+            "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
+            "<b>Время наблюдения:</b> [dateRange]<br/>" + 
+            "<div>[SUMMARY]</div>"
+    });
                              
     _translationsHash.addtext("eng", {
-                                "searchBbox.SearchInArea" : "Search in area",
-                                "searchBbox.CancelSearchInArea" : "Cancel search in area",
-                                "firesWidget.FireSpots.Description" : "Fire spots",
-                                "firesWidget.Burnt.Description" : "Fire areas",
-                                "firesWidget.DailyCoverage.Description" : "Satellite images",
-                                "firesWidget.tooManyDataWarning" : "Too much data - downsize search area!",
-                                "firesWidget.FireCombinedDescription" : "Fires",
-                                "firesWidget.ExtendedView" : "Extended search",
-                                "firesWidget.AdvancedSearchButton" : "Search inside area"
-                             });
+        "searchBbox.SearchInArea" : "Search in area",
+        "searchBbox.CancelSearchInArea" : "Cancel search in area",
+        "firesWidget.FireSpots.Description" : "Fire spots",
+        "firesWidget.Burnt.Description" : "Fire areas",
+        "firesWidget.DailyCoverage.Description" : "Satellite images (MODIS)",
+        "firesWidget.tooManyDataWarning" : "Too much data - downsize search area!",
+        "firesWidget.FireCombinedDescription" : "Fires",
+        "firesWidget.ExtendedView" : "Extended search",
+        "firesWidget.AdvancedSearchButton" : "Search inside area",
+        "firesWidget.TitleFiresScanEx" : "Fires from ScanEx",
+        "firesWidget.TitleFiresFIRMS" : "Fires from FIRMS",
+        "firesWidget.LayerClusterBalloon" : 
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire</b></div>" + 
+            "<b>Number of hotspots:</b> [count]<br/>" + 
+            "<b>Observation period:</b> [dateRange]<br/>" + 
+            "<div>[SUMMARY]</div>" + 
+            "<div style='margin-top: 5px;'><i>Zoom-in to see the outline</i></div>",
+        "firesWidget.LayerGeometryBalloon" :
+            "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire outline</b></div>" + 
+            "<b>Number of hotspots:</b> [count]<br/>" + 
+            "<b>Observation period:</b> [dateRange]<br/>" + 
+            "<div>[SUMMARY]</div>"
+    });
 }
 						 
 						 
@@ -1549,9 +1575,11 @@ var FireBurntRenderer3 = function( params )
 {
     var _params = $.extend(true, {
         minGeomZoom: 8,
-        minHotspotZoom: 10,
+        minHotspotZoom: 11,
         hotspotLayerName: 'C13B4D9706F7491EBC6DC70DFFA988C0',
         dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE',
+        hotspotTimeAttr: 'Timestamp',
+        hotspotIDAttr: 'SpotID',
         mapName: 'NDFYK'
     }, params);
     
@@ -1562,20 +1590,26 @@ var FireBurntRenderer3 = function( params )
     var clusterLayer = map.addLayer({properties: {
         name: 'fireClustersLayer' + _params.hotspotLayerName,
         styles: [{
-            Balloon:
-                "<div style='margin-bottom: 5px;'><b style='color: red;'>Пожар</b></div>" + 
-                "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
-                "<b>Время наблюдения:</b> [dateRange]<br/>" + 
-                "<div>[SUMMARY]</div>" + 
-                "<div style='margin-top: 5px;'><i>Приблизьте карту, чтобы увидеть контур</i></div>",
+            Balloon: _gtxt('firesWidget.LayerClusterBalloon'),
             MinZoom:1,
             MaxZoom:_params.minGeomZoom - 1,
             RenderStyle: {
                 marker: {
                     image: serverBase + 'images/' + 'fire_sample.png',  //TODO: передать хост явно
-                    center: true,
+                    // center: true
                     scale: '[scale]'
                 },
+                // fill: {
+                    // radialGradient: {
+                        // r1: 0,
+                        // r2: '[scale]',
+                        // // r2: 10,
+                        // addColorStop: [
+                            // [0, 0xff0000, 100],
+                            // [1, 0xff0000, 0]
+                        // ]
+                    // }
+                // },
                 label: {
                     size: 12,
                     color: 0xffffff,
@@ -1589,11 +1623,7 @@ var FireBurntRenderer3 = function( params )
     var clusterGeomLayer = map.addLayer({properties: {
         name: 'fireClustersGeomLayer' + _params.hotspotLayerName,
         styles: [{
-            Balloon:
-                "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" + 
-                "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
-                "<b>Время наблюдения:</b> [dateRange]<br/>" + 
-                "<div>[SUMMARY]</div>",
+            Balloon: _gtxt('firesWidget.LayerGeometryBalloon'),
             MinZoom: _params.minGeomZoom,
             MaxZoom: 21
         }]
@@ -1714,6 +1744,7 @@ var FireBurntRenderer3 = function( params )
                             id: k,
                             properties: {
                                 scale: String(Math.sqrt(count)/5),
+                                // scale: Math.floor(Math.sqrt(count)*4),
                                 count: count,
                                 label: count >= 10 ? count : null,
                                 startDate: strStartDate,
@@ -1755,7 +1786,13 @@ var FireBurntRenderer3 = function( params )
         }
         
         dailyClustersLayer.addObserver(updateClustersByObject(clusterLayer, false, 'ParentClusterId', 'ClusterId', 'HotSpotCount', 'ClusterDate'), {ignoreVisibilityFilter: true});
-        layer.addObserver(updateClustersByObject(clusterGeomLayer, true, 'ClusterID', 'SpotID', null, 'Timestamp'), {ignoreVisibilityFilter: true});
+        layer.addObserver(updateClustersByObject(clusterGeomLayer, true, 'ClusterID', _params.hotspotIDAttr, null, _params.hotspotTimeAttr), {ignoreVisibilityFilter: true});
+        // dailyClustersLayer.addObserver(function(objs) {
+            // console.log('dialy', objs[0].item.properties);
+        // }, {ignoreVisibilityFilter: true});
+        // layer.addObserver(function(objs) {
+            // console.log('hotspots', objs[0].item.properties);
+        // }, {ignoreVisibilityFilter: true});
     })
     
     this.bindData = function(data)
@@ -2277,22 +2314,26 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
     
     this.addDataProvider(
         "firedots_layer_global",
-        new FireBurntProvider3( {host: this._firesOptions.firesHost, title: "Пожары ScanEx"} ),
+        new FireBurntProvider3( {host: this._firesOptions.firesHost, title: _gtxt("firesWidget.TitleFiresScanEx")} ),
         new FireBurntRenderer3( {
             map: this._map,
             hotspotLayerName: '254C50EFB0C94B3885DBA0C6C89B4C88',
-            dailyLayerName: '0F203142F063462DB0961D4F60BDC14E'
+            dailyLayerName: '0F203142F063462DB0961D4F60BDC14E',
+            hotspotTimeAttr: 'ImgDateTime',
+            hotspotIDAttr: 'HotSpotID'
         }),
         { isVisible: true } 
     );
     
     this.addDataProvider(
         "firedots_layer_scanex",
-        new FireBurntProvider3( {host: this._firesOptions.firesHost, title: "Пожары FIRMS"} ),
+        new FireBurntProvider3( {host: this._firesOptions.firesHost, title: _gtxt("firesWidget.TitleFiresFIRMS")} ),
         new FireBurntRenderer3( {
             map: this._map,
             hotspotLayerName: 'C13B4D9706F7491EBC6DC70DFFA988C0',
-            dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE'
+            dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE',
+            hotspotTimeAttr: 'Timestamp',
+            hotspotIDAttr: 'SpotID'
         }),
         { isVisible: true } 
     );
