@@ -2504,6 +2504,7 @@
 					tileSize = this.options.tileSize;
 
 				if (zoom > this.options.maxZ || zoom < this.options.minZ) {
+					this._clearBgBuffer();
 					return;
 				}
 
