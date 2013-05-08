@@ -172,9 +172,6 @@
 			LMap.on('zoomend', chkPosition);
 			node['waitRedraw']();
 		}
-		node.onZoomend = function()	{				// Проверка видимости по Zoom
-			chkVisible();
-		}
 
 		var redrawTimer = null;										// Таймер
 		var waitRedraw = function()	{								// Требуется перерисовка с задержкой
