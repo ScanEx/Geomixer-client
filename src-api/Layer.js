@@ -115,7 +115,7 @@
 		filter.objectId = obj_.objectId;
 
 		var attr = filter._attr;
-		filter.setFilter(attr['sql']);
+		filter.setFilter(attr['sql'] || '');
 
 		filter.getPatternIcon = function(size)
 		{
@@ -145,10 +145,11 @@
 	// * sql: строка фильтра
 	var addFilter = function(prnt, attr)
 	{
+		if(!attr) attr = {};
 		var filter = new gmxAPI._FMO(false, {}, prnt);	// MapObject для фильтра
 		var num = prnt.filters.length;					// Номер фильтра в массиве фильтров
 		var lastFilter = (num > 0 ? prnt.filters[num - 1] : null);	// Последний существующий фильтр
-		if(!attr) {
+		if(!attr && lastFilter) {
 			attr = gmxAPI.clone(lastFilter['_attr']);
 		}
 		if(!attr['MinZoom']) attr['MinZoom'] = 1;

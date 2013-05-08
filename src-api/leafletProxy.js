@@ -698,6 +698,7 @@
 		,
 		'getTileBoundsMerc': function(point, zoom)	{			// определение границ тайла
 			if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
+			if(!zoom) zoom = LMap.getZoom();
 			var drawTileID = zoom + '_' + point.x + '_' + point.y;
 			//var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
 			if(gmxAPI._leaflet['zoomCurrent']['gmxTileBounds'][drawTileID]) {
@@ -3534,9 +3535,9 @@
 (function()
 {
 	var chkOnEdge = function(p1, p2, ext) {				// отрезок на границе
-		if ((p1[0] < ext.min.x && p2[0] < ext.min.x) || (p1[0] > ext.max.x && p2[0] > ext.max.x)) return true;
-		if ((p1[1] < ext.min.y && p2[1] < ext.min.y) || (p1[1] > ext.max.y && p2[1] > ext.max.y)) return true;
-		 return false;
+		if ((p1[0] < ext.minX && p2[0] < ext.minX) || (p1[0] > ext.maxX && p2[0] > ext.maxX)) return true;
+		if ((p1[1] < ext.minY && p2[1] < ext.minY) || (p1[1] > ext.maxY && p2[1] > ext.maxY)) return true;
+		return false;
 	}
 
 	//расширяем namespace
@@ -3551,6 +3552,13 @@
 		var hideLines = [];								// индексы точек лежащих на границе тайла
 		var cnt = 0;
 		var coords = [];
+		var d = (tileBounds.max.x - tileBounds.min.x)/10000;
+		var tbDelta = {									// границы тайла для определения onEdge отрезков
+			'minX': tileBounds.min.x + d
+			,'maxX': tileBounds.max.x - d
+			,'minY': tileBounds.min.y + d
+			,'maxY': tileBounds.max.y - d
+		};
 		for (var i = 0; i < geo_['coordinates'].length; i++)
 		{
 			var hideLines1 = [];
@@ -3562,7 +3570,7 @@
 				var point = new L.Point(p[0], p[1]);
 				if(!bounds) bounds = new L.Bounds(point);
 				bounds.extend(point);
-				if(prev && chkOnEdge(p, prev, tileBounds)) {
+				if(prev && chkOnEdge(p, prev, tbDelta)) {
 					hideLines1.push(cnt);
 				}
 				prev = p;
@@ -3609,8 +3617,8 @@
 		// Отрисовка заполнения полигона
 		var paintFill = function (attr, style, ctx, fillFlag) {
 			if(!attr) return false;
-			var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
-			if(shiftX === false) return false
+			//var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
+			//if(shiftX === false) return false
 			//var ctx = attr['ctx'];
 			var x = attr['x'];
 			var y = 256 + attr['y'];
@@ -3656,17 +3664,21 @@
 				//console.log('nnn ' ,  ' : ' , coords);
 				for (var i = 0; i < coords.length; i++)
 				{
-					var pArr = coords[i];
+					//var pArr = coords[i];
+					var lastX = null, lastY = null;
 					//var pArr = L.PolyUtil.clipPolygon(coords[i], attr['bounds']);
-					for (var j = 0; j < pArr.length; j++)
+					for (var j = 0; j < coords[i].length; j++)
 					{
-						var p1 = pArr[j];
+						var p1 = coords[i][j];
 						var px1 = p1.x * mInPixel - x; 		px1 = (0.5 + px1) << 0;
 						var py1 = y - p1.y * mInPixel;		py1 = (0.5 + py1) << 0;
-						if(j == 0)
-							ctx.moveTo(px1, py1);
-						else
-							ctx.lineTo(px1, py1);
+						if(lastX !== px1 || lastY !== py1) {
+							if(j == 0)
+								ctx.moveTo(px1, py1);
+							else
+								ctx.lineTo(px1, py1);
+							lastX = px1, lastY = py1;
+						}
 					}
 				}
 				ctx.closePath();
@@ -3680,8 +3692,8 @@
 		// Отрисовка геометрии полигона
 		var paintStroke = function (attr, style, ctx) {
 			if(!attr) return false;
-			var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
-			if(shiftX === false) return false
+			//var shiftX = chkNeedDraw(attr);				// проверка необходимости отрисовки
+			//if(shiftX === false) return false
 
 			//var ctx = attr['ctx'];
 			var x = attr['x'];
@@ -3693,23 +3705,27 @@
 			{
 				var hArr = hideLines[i];
 				var cntHide = 0;
-				var pArr = coords[i];
+				//var pArr = coords[i];
 				//var pArr = L.PolyUtil.clipPolygon(coords[i], attr['bounds']);
-				for (var j = 0; j < pArr.length; j++)
+				var lastX = null, lastY = null;
+				for (var j = 0; j < coords[i].length; j++)
 				{
 					var lineIsOnEdge = false;
 					if(j == hArr[cntHide]) {
 						lineIsOnEdge = true;
 						cntHide++;
 					}
-					var p1 = pArr[j];
+					var p1 = coords[i][j];
 					var px1 = p1.x * mInPixel - x; 		px1 = (0.5 + px1) << 0;
 					var py1 = y - p1.y * mInPixel;		py1 = (0.5 + py1) << 0;
-					if(lineIsOnEdge || j == 0) {
-						ctx.moveTo(px1, py1);
-					}
-					else {
-						ctx.lineTo(px1, py1);
+					if(lastX !== px1 || lastY !== py1) {
+						if(lineIsOnEdge || j == 0) {
+							ctx.moveTo(px1, py1);
+						}
+						else {
+							ctx.lineTo(px1, py1);
+						}
+						lastX = px1, lastY = py1;
 					}
 				}
 			}
@@ -4258,6 +4274,7 @@ var tt = 1;
 			});
 			LMap.on('zoomend', function(e) {
 				gmxAPI._leaflet['zoomstart'] = false;
+				gmxAPI._leaflet['utils'].chkZoomCurrent();
 				gmxAPI._listeners.dispatchEvent('onZoomend', null, {});
 				gmxAPI._listeners.dispatchEvent('showBalloons', gmxAPI.map, {});	// Проверка map Listeners на showBalloons
 				gmxAPI._leaflet['utils'].chkMapObjectsView();

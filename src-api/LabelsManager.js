@@ -13,7 +13,7 @@
 
 	var repaintItems = function()	{			// отложенная перерисовка
 		if(timer) clearTimeout(timer);
-		timer = setTimeout(repaint, 50);
+		timer = setTimeout(repaint, 200);
 	}
 	var prepareStyle = function(style)	{		// подготовка стиля
 		var size = style['label']['size'] || 12;
@@ -77,9 +77,9 @@
 	}
 	
 	var repaint = function() {				// перерисовка
-		if(!canvas) return false;
+		if(!canvas || gmxAPI._leaflet['zoomstart']) return false;
 		var zoom = LMap.getZoom();
-		gmxAPI._leaflet['mInPixel'] = Math.pow(2, zoom)/156543.033928041;
+		//gmxAPI._leaflet['mInPixel'] = Math.pow(2, zoom)/156543.033928041;
 		var mInPixel = gmxAPI._leaflet['mInPixel'];
 
 		var vBounds = LMap.getBounds();
@@ -107,34 +107,36 @@
 			var dy = item['sy']/2 - 1 - contPoint.y;
 			//if(!align) align = 'center';
 			
-			if(align == 'right') {
+			if(align === 'right') {
 				dx -= (item.extent.x + item['style']['size']);
-			} else if(align == 'center') {
+			} else if(align === 'center') {
 				dx = -item.extent.x/2 + 1;
 				dy = item.extent.y/2;
-				if(item['style']['iconSize']) {
+				//if(item['style']['iconSize']) {
 					//dx += item['style']['iconSize'].x/2 + 1;
 					//dy += item['style']['iconSize'].y/2;
-				}
+				//}
 			}
 
 			var lx = (item.point.x - mx) * mInPixel + dx - 1; 		lx = (0.5 + lx) << 0;
 			var ly = (my - item.point.y) * mInPixel + dy - 1;		ly = (0.5 + ly) << 0;
 			var flag = true;			// проверка пересечения уже нарисованных labels
+			var lxx = lx + item.extent.x;
+			var lyy = ly + item.extent.y;
 			for (var i = 0; i < labelBounds.length; i++)
 			{
 				var prev = labelBounds[i];
 				if(lx > prev.max.x) continue;
-				if(lx + item.extent.x < prev.min.x) continue;
+				if(lxx < prev.min.x) continue;
 				if(ly > prev.max.y) continue;
-				if(ly + item.extent.y < prev.min.y) continue;
+				if(lyy < prev.min.y) continue;
 				flag = false;
 				break;
 			}
 			if(flag) {
 				labelBounds.push({
 					'min':{'x': lx, 'y': ly}
-					,'max':{'x': lx + item.extent.x, 'y': ly + item.extent.y}
+					,'max':{'x': lxx, 'y': lyy}
 				});
 				ctx.font = item['style']['font'];
 				ctx.strokeStyle = item['style']['strokeStyle'];
@@ -147,7 +149,6 @@
 				ctx.fillText(item['txt'], lx, ly);
 			}
 		}
-//console.log('repaint' , wView, hView);
 	}
 	var drawMe = function(pt) {				// установка таймера
 		canvas = pt;
@@ -167,8 +168,8 @@
 			marker =  new L.GMXMarker([0,0], {icon: canvasIcon, 'toPaneName': 'popupPane', 'zIndexOffset': -1000});
 				
 			LMap.addLayer(marker);
-			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': repaint});
-			gmxAPI.map.addListener('onMoveEnd', repaint);
+			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': repaintItems});
+			gmxAPI.map.addListener('onMoveEnd', repaintItems);
 			var onZoomstart = function() {				// скрыть при onZoomstart
 				if(!canvas) return false;
 				canvas.width = canvas.height = 0;
