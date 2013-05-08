@@ -114,7 +114,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
             enableDragging: false,
             onclick: function(clickContext) {
                 infoControl.startProcess();
-                _mapHelper.modifyObjectLayer(layerName, [{properties: {GM_LayerName: clickContext.elem.name}}])
+                _mapHelper.modifyObjectLayer(layerName, [{source: {layerName: clickContext.elem.name}}])
                     .done(function()
                     {
                         infoControl.doneProcess(_gtxt('Добавлен растр') + ' "' + clickContext.elem.title + '"');
@@ -163,7 +163,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                 infoControl.startProcess();
                 task.deferred.done(function(taskInfo)
                 {
-                    _mapHelper.modifyObjectLayer(layerName, [{properties: {GM_LayerName: taskInfo.Result.properties.name}}])
+                    _mapHelper.modifyObjectLayer(layerName, [{source: {layerName: taskInfo.Result.properties.name}}])
                         .done(function()
                         {
                             infoControl.doneProcess(_gtxt('Добавлен растр') + ' "' + taskInfo.Result.properties.title + '"');
@@ -209,7 +209,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
         {
             var props = this.gmxProperties.content.properties;
             if (props.type === 'Raster' && props.LayerID)
-                objectsToAdd.push({properties: {GM_LayerName: props.name}});
+                objectsToAdd.push({source: {layerName: props.name}});
         })
         
         if (objectsToAdd.length > 0)
@@ -250,7 +250,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                             var layer = obj.parent;
                             var id = obj.properties[layer.properties.identityField];
                             
-                            if (!obj.properties['GM_LayerName']) {
+                            if (!obj.properties['GMX_RasterLayerID']) {
                                 infoControl.warning(_gtxt('Выбранный объект не имеет растра'));
                                 return true;
                             }
