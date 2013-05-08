@@ -1249,8 +1249,9 @@
 		node['removeItems'] = function(data) {		// удаление обьектов векторного слоя 
 //console.log('removeItems ', node.id, data);
 			removeItems(data)
+			node.redrawTilesList(100)
 			//upDateLayer();
-			node.reloadTilesList(20);
+			//node.reloadTilesList(20);
 			//node.redrawTilesList();
 			//node.redrawFlips(true);
 			//waitRedraw();
@@ -1259,8 +1260,9 @@
 //console.log('addItems ', node.id, data);
 			removeItems(data)
 			node['addedItems'] = node['addedItems'].concat(objectsToFilters(data, 'addItem'));
-			clearDrawDone();
-			node.reloadTilesList(20);
+			node.redrawTilesList(100)
+			//clearDrawDone();
+			//node.reloadTilesList(20);
 			//node.redrawTilesList();
 			//removeTiles();
 			//upDateLayer();
