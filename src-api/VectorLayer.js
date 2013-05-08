@@ -366,7 +366,7 @@
 		node.chkLoadTile = function(tilePoint, zoom)	{							// Проверка необходимости загрузки тайлов
 			if(node['isVisible'] === false) return true;								// Слой не видим
 			if(gmxAPI._leaflet['zoomstart']) {
-				myLayer._markTile(tilePoint, 1);
+				//myLayer._markTile(tilePoint, 1);
 				node.reloadTilesList(100);
 				return true;
 			}
@@ -2155,8 +2155,10 @@
 		}
 
 		node.chkZoomBoundsFilters = function()	{	// Проверка видимости по Zoom фильтров
-			var minZ = node.minZ;
-			var maxZ = node.maxZ;
+			//var minZ = node.minZ;
+			//var maxZ = node.maxZ;
+			var minZ = 100;
+			var maxZ = 1;
 			for(var j=0; j<node.filters.length; j++) {
 				var filter = mapNodes[node.filters[j]];
 				if(maxZ < filter.maxZ) maxZ = filter.maxZ;
@@ -2165,7 +2167,7 @@
 			if(maxZ != node.maxZ) node.maxZ = maxZ;
 			if(minZ != node.minZ) node.minZ = minZ;
 			if(myLayer) {
-				myLayer._isVisible = false;
+				//myLayer._isVisible = false;
 				node.onZoomend();
 			}
 		}
