@@ -1787,21 +1787,18 @@ var FireBurntRenderer3 = function( params )
         
         dailyClustersLayer.addObserver(updateClustersByObject(clusterLayer, false, 'ParentClusterId', 'ClusterId', 'HotSpotCount', 'ClusterDate'), {ignoreVisibilityFilter: true});
         layer.addObserver(updateClustersByObject(clusterGeomLayer, true, 'ClusterID', _params.hotspotIDAttr, null, _params.hotspotTimeAttr), {ignoreVisibilityFilter: true});
-        // dailyClustersLayer.addObserver(function(objs) {
-            // console.log('dialy', objs[0].item.properties);
-        // }, {ignoreVisibilityFilter: true});
-        // layer.addObserver(function(objs) {
-            // console.log('hotspots', objs[0].item.properties);
-        // }, {ignoreVisibilityFilter: true});
     })
     
     this.bindData = function(data)
 	{
         _lazyLoadFireLayers(_params).done(function()
         {
-            if (_params.hotspotLayerName in map.layers)
-            {
+            if (_params.hotspotLayerName in map.layers) {
                 map.layers[_params.hotspotLayerName].setDateInterval(data.dateBegin, data.dateEnd);
+            }
+            
+            if (_params.dailyLayerName in map.layers) {
+                map.layers[_params.dailyLayerName].setDateInterval(data.dateBegin, data.dateEnd);
             }
         })
     }
@@ -1810,6 +1807,7 @@ var FireBurntRenderer3 = function( params )
     {
         clusterLayer.setVisible(flag);
         clusterGeomLayer.setVisible(flag);
+        map.layers[_params.hotspotLayerName] && map.layers[_params.hotspotLayerName].setVisible(flag);
     }
 }
 
@@ -2259,7 +2257,7 @@ FireControl.prototype.getCurrentTimeShift = function()
 
 FireControl.prototype.add = function(parent, firesOptions, calendar)
 {
-    var resourceHost = typeof gmxCore !== 'undefined' ? gmxCore.getModulePath('FireMapplet') + '../' || '' : '';
+    var resourceHost = typeof gmxCore !== 'undefined' ? gmxCore.getModulePath('FireMapplet') + '../' : '';
 	this._firesOptions = $.extend( {resourceHost: resourceHost, map: this._map}, FireControl.DEFAULT_OPTIONS, firesOptions );
 	
 	this._initExtent = new BoundsExt( firesOptions.initExtent ? firesOptions.initExtent : BoundsExt.WHOLE_WORLD );
@@ -2361,7 +2359,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	
 	var updateTimeInfo = function()
 	{
-        _this._updateCalendarTime( _this._timeShift || _this.getCurrentTimeShift() );
+        _this._updateCalendarTime( false /*_this._timeShift || _this.getCurrentTimeShift()*/ );
 	}
 	
 	updateTimeInfo();
@@ -2399,8 +2397,8 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	$(this._parentDiv).append(_table([_tbody(trs)],[['css','marginLeft','0px'], ['attr', 'id', 'fireMappletInfo']]));
 	//$(this._parentDiv).append(_div(null, [['dir', 'id', 'datesInfo']]));
     
-    this._visModeController.setMode(this._visModeController.ADVANCED_MODE);
-    this._calendar.setSwitcherVisibility(false);
+    //this._visModeController.setMode(this._visModeController.ADVANCED_MODE);
+    //this._calendar.setSwitcherVisibility(false);
     
 	this.update();
     
