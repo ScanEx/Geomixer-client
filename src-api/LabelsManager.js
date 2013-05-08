@@ -77,7 +77,7 @@
 	}
 	
 	var repaint = function() {				// перерисовка
-		if(!canvas) return false;
+		if(!canvas || gmxAPI._leaflet['zoomstart']) return false;
 		var zoom = LMap.getZoom();
 		//gmxAPI._leaflet['mInPixel'] = Math.pow(2, zoom)/156543.033928041;
 		var mInPixel = gmxAPI._leaflet['mInPixel'];

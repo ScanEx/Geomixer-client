@@ -698,6 +698,7 @@
 		,
 		'getTileBoundsMerc': function(point, zoom)	{			// определение границ тайла
 			if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
+			if(!zoom) zoom = LMap.getZoom();
 			var drawTileID = zoom + '_' + point.x + '_' + point.y;
 			//var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
 			if(gmxAPI._leaflet['zoomCurrent']['gmxTileBounds'][drawTileID]) {
@@ -3534,9 +3535,9 @@
 (function()
 {
 	var chkOnEdge = function(p1, p2, ext) {				// отрезок на границе
-		if ((p1[0] < ext.min.x && p2[0] < ext.min.x) || (p1[0] > ext.max.x && p2[0] > ext.max.x)) return true;
-		if ((p1[1] < ext.min.y && p2[1] < ext.min.y) || (p1[1] > ext.max.y && p2[1] > ext.max.y)) return true;
-		 return false;
+		if ((p1[0] < ext.minX && p2[0] < ext.minX) || (p1[0] > ext.maxX && p2[0] > ext.maxX)) return true;
+		if ((p1[1] < ext.minY && p2[1] < ext.minY) || (p1[1] > ext.maxY && p2[1] > ext.maxY)) return true;
+		return false;
 	}
 
 	//расширяем namespace
@@ -3551,6 +3552,13 @@
 		var hideLines = [];								// индексы точек лежащих на границе тайла
 		var cnt = 0;
 		var coords = [];
+		var d = (tileBounds.max.x - tileBounds.min.x)/10000;
+		var tbDelta = {									// границы тайла для определения onEdge отрезков
+			'minX': tileBounds.min.x + d
+			,'maxX': tileBounds.max.x - d
+			,'minY': tileBounds.min.y + d
+			,'maxY': tileBounds.max.y - d
+		};
 		for (var i = 0; i < geo_['coordinates'].length; i++)
 		{
 			var hideLines1 = [];
@@ -3562,7 +3570,7 @@
 				var point = new L.Point(p[0], p[1]);
 				if(!bounds) bounds = new L.Bounds(point);
 				bounds.extend(point);
-				if(prev && chkOnEdge(p, prev, tileBounds)) {
+				if(prev && chkOnEdge(p, prev, tbDelta)) {
 					hideLines1.push(cnt);
 				}
 				prev = p;
