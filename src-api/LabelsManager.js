@@ -62,13 +62,20 @@
 		var x = (bounds.max.x + bounds.min.x) /2;
 		var y = (bounds.max.y + bounds.min.y) /2;
 		
+		var extentLabel = null;
+		if(geom['_cache'] && geom['_cache']['extentLabel']) {
+			extentLabel = geom['_cache']['extentLabel'];
+		} else {
+			extentLabel = gmxAPI._leaflet['utils'].getLabelSize(txt, style);
+			if(geom['_cache']) geom['_cache']['extentLabel'] = extentLabel;
+		}
 		var out = {
 			'txt': txt
 			,'point': new L.Point(x, y)
 			,'bounds': bounds
 			,'sx': geom['sx'] || 0
 			,'sy': geom['sy'] || 0
-			,'extent': gmxAPI._leaflet['utils'].getLabelSize(txt, style)
+			,'extent': extentLabel
 			,'style': style
 			,'isVisible': true
 		};
@@ -77,7 +84,8 @@
 	}
 	
 	var repaint = function() {				// перерисовка
-		if(!canvas || gmxAPI._leaflet['zoomstart']) return false;
+		if(!canvas || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['zoomstart']) return false;
+		if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
 		var zoom = LMap.getZoom();
 		//gmxAPI._leaflet['mInPixel'] = Math.pow(2, zoom)/156543.033928041;
 		var mInPixel = gmxAPI._leaflet['mInPixel'];
@@ -87,6 +95,14 @@
 		var mx = gmxAPI.merc_x(vpNorthWest.lng);
 		var my = gmxAPI.merc_y(vpNorthWest.lat);
 		var vpSouthEast = vBounds.getSouthEast();
+		var vBoundsMerc = new L.Bounds();
+		if(vpSouthEast.lng - vpNorthWest.lng > 360) {
+			vBoundsMerc.extend(new L.Point(-gmxAPI.worldWidthMerc, gmxAPI.worldWidthMerc));
+			vBoundsMerc.extend(new L.Point(gmxAPI.worldWidthMerc, -gmxAPI.worldWidthMerc));
+		} else {
+			vBoundsMerc.extend(new L.Point(gmxAPI.merc_x(vpNorthWest.lng), gmxAPI.merc_y(vpNorthWest.lat)));
+			vBoundsMerc.extend(new L.Point(gmxAPI.merc_x(vpSouthEast.lng), gmxAPI.merc_y(vpSouthEast.lat)));
+		}
 
 		var contPoint = LMap.latLngToContainerPoint(vpNorthWest);
 
@@ -102,11 +118,11 @@
 		for(var id in itemsHash) {
 			var item = itemsHash[id];
 			if(!item['isVisible']) continue;
+			if(!item['bounds'].intersects(vBoundsMerc)) continue;		// обьект за пределами видимости
 			var align = item['style']['align'];
 			var dx = item['sx']/2 + 1;
 			var dy = item['sy']/2 - 1 - contPoint.y;
 			//if(!align) align = 'center';
-			
 			if(align === 'right') {
 				dx -= (item.extent.x + item['style']['size']);
 			} else if(align === 'center') {
@@ -138,17 +154,18 @@
 					'min':{'x': lx, 'y': ly}
 					,'max':{'x': lxx, 'y': lyy}
 				});
-				ctx.font = item['style']['font'];
-				ctx.strokeStyle = item['style']['strokeStyle'];
-				ctx.fillStyle = item['style']['fillStyle'];
-				ctx.shadowColor = item['style']['strokeStyle'];
-				ctx.shadowBlur = 4;
+				if(ctx.font != item['style']['font']) ctx.font = item['style']['font'];
+				if(ctx.strokeStyle != item['style']['strokeStyle']) ctx.strokeStyle = item['style']['strokeStyle'];
+				if(ctx.fillStyle != item['style']['fillStyle']) ctx.fillStyle = item['style']['fillStyle'];
+				if(ctx.shadowColor != item['style']['strokeStyle']) ctx.shadowColor = item['style']['strokeStyle'];
+				if(ctx.shadowBlur != 4) ctx.shadowBlur = 4;
 				//ctx.shadowOffsetX = 0;
 				//ctx.shadowOffsetY = 0;
 				ctx.strokeText(item['txt'], lx, ly);
 				ctx.fillText(item['txt'], lx, ly);
 			}
 		}
+		labelBounds = null;
 	}
 	var drawMe = function(pt) {				// установка таймера
 		canvas = pt;

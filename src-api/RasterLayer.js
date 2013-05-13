@@ -106,7 +106,8 @@
 		var chkVisible = function() {
 			if(node.isVisible != false) {
 				var onViewFlag = (utils.chkVisibilityByZoom(id) && utils.chkBoundsVisible(attr['bounds']));
-				if(node['leaflet']._isVisible != onViewFlag) {
+				var onScene = (node['leaflet'] && node['leaflet']._map ? true : false);
+				if(onScene != onViewFlag) {
 					utils.setVisibleNode({'obj': node, 'attr': onViewFlag});
 				}
 			}
@@ -172,6 +173,10 @@
 			LMap.on('zoomend', chkPosition);
 			node['waitRedraw']();
 		}
+		node.onZoomend = function()	{				// Проверка видимости по Zoom
+//console.log('_onZoomend: ', node.id);
+			chkVisible();
+		}
 
 		var redrawTimer = null;										// Таймер
 		var waitRedraw = function()	{								// Требуется перерисовка с задержкой
@@ -179,7 +184,7 @@
 			redrawTimer = setTimeout(function()
 			{
 				chkVisible();
-				if(!node.isVisible || !node['leaflet']._isVisible) return;
+				if(!node.isVisible || !node['leaflet'] || !node['leaflet']._map) return;
 				redrawTimer = null;
 				myLayer._update();
 				//node['leaflet'].redraw();

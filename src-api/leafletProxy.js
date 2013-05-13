@@ -43,6 +43,32 @@
 			if(ev.metaKey)	out['metaKey'] = ev.metaKey;
 		}
 		,
+		'getCurrentBounds': function(zoom)	{		// Вычисление размеров тайла по zoom
+			if(!zoom) zoom = LMap.getZoom();
+			var vBounds = LMap.getBounds();
+			var vpNorthWest = vBounds.getNorthWest();
+			var vpSouthEast = vBounds.getSouthEast();
+			var vp1 = LMap.project(vpNorthWest, zoom);
+			var vp2 = LMap.project(vpSouthEast, zoom);
+			var vPixelBounds = new L.Bounds();
+			vPixelBounds.extend(vp1);
+			vPixelBounds.extend(vp2);
+			var vBoundsMerc = new L.Bounds();
+			if(vpSouthEast.lng - vpNorthWest.lng > 360) {
+				vBoundsMerc.extend(new L.Point(-gmxAPI.worldWidthMerc, gmxAPI.worldWidthMerc));
+				vBoundsMerc.extend(new L.Point(gmxAPI.worldWidthMerc, -gmxAPI.worldWidthMerc));
+			} else {
+				vBoundsMerc.extend(new L.Point(gmxAPI.merc_x(vpNorthWest.lng), gmxAPI.merc_y(vpNorthWest.lat)));
+				vBoundsMerc.extend(new L.Point(gmxAPI.merc_x(vpSouthEast.lng), gmxAPI.merc_y(vpSouthEast.lat)));
+			}
+			
+			return {
+				'vPixelBounds': vPixelBounds
+				,'vBounds': vBounds
+				,'vBoundsMerc': vBoundsMerc
+			};
+		}
+		,
 		'chkZoomCurrent': function(zoom)	{		// Вычисление размеров тайла по zoom
 			if(!zoom) zoom = LMap.getZoom();
 			var pz = Math.pow(2, zoom);
@@ -856,7 +882,7 @@
 						for (var i = 0; i < arr.length; i++)
 						{
 							var it = arr[i];
-							pt['radialGradient'][it] = (it in ph['radialGradient'] ? ph['radialGradient'][it] : 10);
+							pt['radialGradient'][it] = (it in ph['radialGradient'] ? ph['radialGradient'][it] : 0);
 							if(typeof(pt['radialGradient'][it]) === 'string') {
 								pt['radialGradient'][it+'Function'] = gmxAPI.Parsers.parseExpression(pt['radialGradient'][it]);
 							}
@@ -973,7 +999,7 @@
 					zn = zn.replace(matches[0], prop[matches[1]]);
 					matches = reg.exec(zn);
 				}
-				zn = eval(zn);
+				if(type !== 3) zn = eval(zn);
 			}
 			return zn
 		}
@@ -1787,10 +1813,11 @@
 					//if(flag && node['geometry'] && node['geometry']['bounds']) flag = utils.chkBoundsVisible(node['geometry']['bounds']);
 
 					if(!flag) return;
-					if(node['leaflet'] && node['leaflet']._isVisible) return;
+					if(node['leaflet'] && node['leaflet']._map) return;
+					//if(node['leaflet'] && node['leaflet']._isVisible) return;
 					if(node['type'] === 'RasterLayer') {
 						if(node['leaflet']) {
-							node['leaflet']._isVisible = true;
+							//node['leaflet']._isVisible = true;
 							LMap.addLayer(node['leaflet']);
 							utils.bringToDepth(node, node['zIndex']);
 						}
@@ -1803,7 +1830,7 @@
 						}
 						
 						if(node['leaflet']) {
-							node['leaflet']._isVisible = true;
+							//node['leaflet']._isVisible = true;
 							if(isOnScene) pGroup.addLayer(node['leaflet']);
 						} else if(node.geometry['type']) {
 							gmxAPI._leaflet['drawManager'].add(id);				// добавим в менеджер отрисовки
@@ -1817,7 +1844,7 @@
 						if(node['leaflet']) {
 							//if(node['leaflet']._isVisible) 
 							LMap.removeLayer(node['leaflet']);
-							node['leaflet']._isVisible = false;
+							//node['leaflet']._isVisible = false;
 						}
 					}
 					else {
@@ -1825,7 +1852,7 @@
 							pGroup.removeLayer(node['group']);
 						}
 						if(node['leaflet']) {
-							node['leaflet']._isVisible = false;
+							//node['leaflet']._isVisible = false;
 							if(pGroup['_layers'][node['leaflet']['_leaflet_id']]) pGroup.removeLayer(node['leaflet']);
 						}
 						if(node['mask']) {
@@ -2141,7 +2168,7 @@
 			utils.bringToDepth(node, zIndex);
 			if(!gmxAPI.map.needMove) {
 				if('bringToFront' in node) node.bringToFront();
-				else if(node['leaflet'] && node['leaflet']._isVisible && 'bringToFront' in node['leaflet']) node['leaflet'].bringToFront();
+				else if(node['leaflet'] && node['leaflet']._map && 'bringToFront' in node['leaflet']) node['leaflet'].bringToFront();
 				gmxAPI.map.drawing.chkZindex(id);
 			}
 			return zIndex;
@@ -2155,7 +2182,7 @@
 			utils.bringToDepth(node, node['zIndex']);
 			if(!gmxAPI.map.needMove && node['type'] !== 'VectorLayer') {
 				if('bringToBack' in node) node.bringToBack();
-				else if(node['leaflet'] && node['leaflet']._isVisible && 'bringToBack' in node['leaflet']) node['leaflet'].bringToBack();
+				else if(node['leaflet'] && node['leaflet']._map && 'bringToBack' in node['leaflet']) node['leaflet'].bringToBack();
 				gmxAPI.map.drawing.chkZindex(id);
 			}
 			return 0;
@@ -2710,53 +2737,45 @@
 	// 
 	function setImage(node, ph)	{
 		var attr = ph.attr;
+		node['setImageExtent'] = (ph['setImageExtent'] ? true : false);
 
 		var LatLngToPixel = function(y, x) {
 			var point = new L.LatLng(y, x);
 			return LMap.project(point);
 		}
-		if(ph['setImageExtent']) {
-			node['setImageExtent'] = true;
-			attr['x1'] = attr.extent['minX'];
-			attr['y1'] = attr.extent['maxY'];
-			attr['x2'] = attr.extent['minX'];
-			attr['y2'] = attr.extent['minY'];
-			attr['x3'] = attr.extent['maxX'];
-			attr['y3'] = attr.extent['minY'];
-			attr['x4'] = attr.extent['minX'];
-			attr['y4'] = attr.extent['maxY'];
-		}
-		var arr = [
-			new L.Point(attr['x1'], attr['y1'])
-			,new L.Point(attr['x2'], attr['y2'])
-			,new L.Point(attr['x3'], attr['y3'])
-			,new L.Point(attr['x4'], attr['y4'])
-		];
-		//arr.sort(function (a, b) { 
-		//	return (a.y == b.y ? 0 : (a.y > b.y ? -1 : 1)); 
-		//});
-		var ptl = arr[0];
-		var ptr = arr[1];
-		//if(arr[0].x > arr[1].x) ptl = arr[1], ptr = arr[0];
-		var pbl = arr[3];
-		var pbr = arr[2];
-		//if(arr[2].x > arr[3].x) pbl = arr[3], pbr = arr[2];
-		
-		var	bounds = new L.Bounds();
-		bounds.extend(ptl);
-		bounds.extend(ptr);
-		bounds.extend(pbl);
-		bounds.extend(pbr);
 
+		var	bounds = null;
+		var posLatLng = null;
+		
 		var pNode = mapNodes[node['parentId']] || null;
 		var pGroup = (pNode ? pNode['group'] : LMap);
-		//var minPoint = LatLngToPixel(bounds.max.y, bounds.min.x);
-		//var minPoint = LatLngToPixel(ptl.y, ptl.x);
-		//var minP = null;
-		
-		//var zoomPrev = LMap.getZoom();
-		var getPixelPoints = function(ph) {
+
+		var getPixelPoints = function(ph, w, h) {
 			var out = {};
+			if('extent' in attr) {
+				attr['x1'] = attr.extent['minX'];
+				attr['y1'] = attr.extent['maxY'];
+				attr['x2'] = attr.extent['minX'];
+				attr['y2'] = attr.extent['minY'];
+				attr['x3'] = attr.extent['maxX'];
+				attr['y3'] = attr.extent['minY'];
+				attr['x4'] = attr.extent['minX'];
+				attr['y4'] = attr.extent['maxY'];
+				if('sx' in attr) {
+					attr['x4'] = attr['x1'];
+					attr['x2'] = attr['x3'] = attr['x1'] + w * attr['sx'];
+					attr['y2'] = attr['y1'];
+					attr['y3'] = attr['y4'] = attr['y1'] + h * attr['sy'];
+				}
+			}
+			var ptl = new L.Point(attr['x1'], attr['y1']);
+			var ptr = new L.Point(attr['x2'], attr['y2']);
+			var pbl = new L.Point(attr['x4'], attr['y4']);
+			var pbr = new L.Point(attr['x3'], attr['y3']);
+			
+			bounds = new L.Bounds();
+			bounds.extend(ptl); bounds.extend(ptr); bounds.extend(pbl); bounds.extend(pbr);
+			
 			var pix = LatLngToPixel(ptl.y, ptl.x); out['x1'] = Math.floor(pix.x); out['y1'] = Math.floor(pix.y);
 			pix = LatLngToPixel(ptr.y, ptr.x); out['x2'] = Math.floor(pix.x); out['y2'] = Math.floor(pix.y);
 			pix = LatLngToPixel(pbr.y, pbr.x); out['x3'] = Math.floor(pix.x); out['y3'] = Math.floor(pix.y);
@@ -2775,48 +2794,32 @@
 			out['x3'] -= boundsP.min.x; out['y3'] -= boundsP.min.y;
 			out['x4'] -= boundsP.min.x; out['y4'] -= boundsP.min.y;
 
-			//out.ww = Math.round(out['x2'] - out['x4']);
-			//out.hh = Math.round(out['y4'] - out['y2']);
 			out.ww = Math.round(boundsP.max.x - boundsP.min.x);
 			out.hh = Math.round(boundsP.max.y - boundsP.min.y);
 			return out;
 		}
 
-		var posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 		var repaint = function(imageObj, canvas, zoom) {
-			var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
-			node['isOnScene'] = isOnScene;
-			if(node.isVisible == false || !isOnScene) return;
-/*
-			if(!isOnScene) {
-				if(canvas) {
-					canvas.width = canvas.height = 0;
-					//node['imageCanvas'] = null;
-				}
-				//pGroup.removeLayer(node['leaflet']);
-				return;
-			} else {
-				if(!node['leaflet']._map) {
-					pGroup.addLayer(node['leaflet']);
-					return;
-				}
-			}
-*/
+			if(node.isVisible == false) return;
+			var w = imageObj.width;
+			var h = imageObj.height;
+			var ph = getPixelPoints(attr, w, h);
+
 			if(!canvas) return;
+			var isOnScene = (bounds ? gmxAPI._leaflet['utils'].chkBoundsVisible(bounds) : false);
+			node['isOnScene'] = isOnScene;
+			if(!isOnScene) return;
 
 			if(imageObj.src.indexOf(node['imageURL']) == -1) return;
 			if(!zoom) zoom = LMap.getZoom();
 			if(gmxAPI._leaflet['waitSetImage'] > 5) { waitRedraw(); return; }
 			gmxAPI._leaflet['waitSetImage']++;
+
 			posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
-			
-			var w = imageObj.width;
-			var h = imageObj.height;
-			var ph = getPixelPoints(attr);
 			var data = { 'canvas': imageObj	};
 			var ww = ph.ww;
 			var hh = ph.hh;
-			if(!node['setImageExtent']) {
+			//if(!node['setImageExtent']) {
 				var point = LMap.project(new L.LatLng(0, -180), zoom);
 				var p180 = LMap.project(new L.LatLng(0, 180), zoom);
 				var worldSize = p180.x - point.x;
@@ -2859,7 +2862,7 @@
 						,'limit': 2
 					});
 				}
-			}
+			//}
 
 			var paintPolygon = function (ph, content) {
 				if(!content) return;
@@ -2913,39 +2916,6 @@
 			data = null;
 			imageObj = null;
 			--gmxAPI._leaflet['waitSetImage'];
-			/*if(node['mask']) {
-				pGroup.removeLayer(node['mask']);
-				if(node.isHandlers) {
-					for(var evName in node.handlers) {
-						var ev = scanexEventNames[evName];
-						if(ev) {
-							if(node['mask'].hasEventListeners(ev)) node['mask'].off(ev);
-						}
-					}
-				}
-			}
-			if(node.isHandlers && node.handlers['onClick']) {
-				if(!node.geometry.coordinates) node.geometry = utils.parseGeometry({'type': 'Polygon', 'coordinates': [[
-					[attr['x1'],attr['y1']]
-					,[attr['x2'],attr['y2']]
-					,[attr['x3'],attr['y3']]
-					,[attr['x4'],attr['y4']]
-					,[attr['x1'],attr['y1']]
-					]]});
-	
-				var mask = utils.drawPolygon({'geometry': {'type': 'Polygon', 'coordinates': node.geometry.coordinates}}, {'stroke':false, 'fill':true, 'fillOpacity':0});
-				node['mask'] = mask;
-				//for(var evName in node.handlers) {
-					var evName = 'onClick';
-					var ev = scanexEventNames[evName];
-					if(ev) {
-						node['mask'].on(ev, function(e) {
-							if(node['handlers'][evName]) node['handlers'][evName](node['id'], node.geometry.properties, {'ev':e});
-						});
-					}
-				//}
-				pGroup.addLayer(mask);
-			}*/
 		}
 
 		var imageObj = null;
@@ -2968,9 +2938,9 @@
 				redrawMe();
 			}, 10);
 		}
-		
+
 		var redrawMe = function(e) {
-			if(zoomProgress) return;
+			if(gmxAPI._leaflet['zoomstart']) return;
 			if(!imageObj) {
 				var src = attr['url'];
 				//var src = '1.jpg';
@@ -2989,25 +2959,13 @@
 					}
 				};
 				gmxAPI._leaflet['imageLoader'].push(ph);
-/*			
-				imageObj = new Image();
-				imageObj.crossOrigin = 'anonymous';		// для crossdomain прав
-				imageObj.onload = function() {
-					node['refreshMe'] = function() {
-						if(canvas) repaint(imageObj, canvas);
-					}
-					node['refreshMe']();
-				};
-				imageObj.src = src;
-*/
 			}
 			if(node['refreshMe'] && imageObj && canvas) {
 				repaint(imageObj, canvas);
-			//attr['reposition']();
 			}
 		}
 		
-		if(!node['isSetImage']) {
+		var createIcon = function() {
 			if(node['leaflet']) {
 				pGroup.removeLayer(node['leaflet']);
 			}
@@ -3017,38 +2975,28 @@
 				,'drawMe': drawMe
 				//,iconAnchor: new L.Point(12, 12) // also can be set through CSS
 			});
-			var marker =  new L.GMXMarker(posLatLng, {icon: canvasIcon, 'toPaneName': 'shadowPane', 'zIndexOffset': -1000});
-			
-			//var marker = L.marker(posLatLng, {icon: canvasIcon, 'toPaneName': 'overlayPane', 'zIndexOffset': -1000});
-			//var marker = L.marker(posLatLng, {icon: canvasIcon, clickable: false});
-			//marker.setZIndexOffset(-1000);
+			var vBounds = LMap.getBounds();
+			var vpNorthWest = vBounds.getNorthWest();
+			var marker =  new L.GMXMarker(vpNorthWest, {icon: canvasIcon, 'toPaneName': 'shadowPane', 'zIndexOffset': -1000});
 				
 			node['leaflet'] = marker;
 			pGroup.addLayer(marker);
 			if(pNode) utils.setVisibleNode({'obj': pNode, 'attr': true});
-			//utils.setVisibleNode({'obj': node, 'attr': true});
 			setNodeHandlers(node.id);
 
-			LMap.on('zoomend', function(e) {zoomProgress = false; waitRedraw();});
+			LMap.on('zoomend', function(e) { waitRedraw();});
 			LMap.on('moveend', function(e) {
-				//var isOnScene = gmxAPI._leaflet['utils'].chkBoundsVisible(bounds);
-//console.log(' moveend: ' + isOnScene + ' : ' + node['isOnScene'] + ' : ');
-				//if(node['isOnScene'] == isOnScene && !node['isLargeImage']) return;
 				if(!node['isLargeImage']) return;
 				waitRedraw();
 			});
 			
-			/*
-			LMap.on('zoomanim', function(e) {
-				attr['reposition']();
-			});
-			*/
-			var zoomProgress = null;
 			LMap.on('zoomstart', function(e) {
-				zoomProgress = true;
 				if(canvas) canvas.width = canvas.height = 0;
 			});
 			node['isSetImage'] = true;
+		}
+		if(!node['isSetImage']) {
+			createIcon();
 		} else {
 			if(attr['url'] != node['imageURL']) drawMe(node['imageCanvas']);
 		}

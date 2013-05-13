@@ -12,9 +12,7 @@
 
 	var chkStyle = function(drawAttr, regularStyle, hoveredStyle) {
 		if(drawAttr['regularStyle']) {
-			//var opacity = ('opacity' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['opacity']/100 : 1);
 			var opacity = ('opacity' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['opacity']/100 : 1);
-			//var opacity = 1;
 			var color = ('color' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['color'] : 0xff);
 			drawAttr['strokeStyle']['color'] = gmxAPI._leaflet['utils'].dec2rgba(color, opacity);
 			var weight = ('weight' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['weight'] : lineWidth);
@@ -25,9 +23,6 @@
 				
 			};
 			drawAttr['stylePoint'] = gmxAPI.clone(stylePoint);
-			//var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
-			//var stylePoint = {color: "#0000ff", fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1};
-			//drawAttr['stylePoint']['pointSize'] = pointSize + weight - lineWidth;
 			drawAttr['stylePoint']['pointSize'] = pointSize;
 			drawAttr['stylePoint']['color'] = drawAttr['stylePolygon']['color'];
 			drawAttr['stylePoint']['weight'] = drawAttr['stylePolygon']['weight'];
@@ -144,12 +139,15 @@
 			var pstyle = attr['stylePoint'] || stylePoint;
 			//pstyle['skipLastPoint'] = (attr['editType'] !== 'LINESTRING');
 			layerItems.push(new L.GMXPointsMarkers([], pstyle));
+			if(attr['setEditEnd']) {
+				layerItems[1].options['skipLastPoint'] = false;
+			}
 
 			layerGroup.addLayer(layerItems[0]);
 			layerGroup.addLayer(layerItems[1]);
 
 			layerItems[1]._container.style.pointerEvents = 'painted';
-			layerItems[0]._container.style.pointerEvents = (attr['editType'] !== 'FRAME' ? 'none':'painted');
+			layerItems[0]._container.style.pointerEvents = (!attr['isExternal'] && attr['editType'] !== 'FRAME' ? 'none':'painted');
 
 			layerItems[0].on('mousedown', function(e) {
 				var downType = getDownType(e, attr['coords'], dBounds);
@@ -238,6 +236,7 @@
 	};
 	
 	var objects = {};
+	var multiObjects = {};
 	var drawFunctions = {};
 
 	var chkDrawingObjects = function() {
@@ -252,7 +251,7 @@
 		gmxAPI._drawing['activeState'] = false;
 	};
 
-	var createDOMObject = function(ret, properties)
+	var createDOMObject = function(ret, properties, propHiden)
 	{
 		var myId = gmxAPI.newFlashMapId();
 		var myContents;
@@ -267,6 +266,7 @@
 		var addHandlerCalled = false;
 		objects[myId] = {
 			properties: properties || {},
+			propHiden: propHiden || {},
 			setText: ret.setText,
 			setVisible: function(flag)
 			{
@@ -313,7 +313,7 @@
 		return objects[myId];
 	}
 
-	drawFunctions.POINT = function(coords, props)
+	drawFunctions.POINT = function(coords, props, propHiden)
 	{
 		if (!props)
 			props = {};
@@ -657,7 +657,7 @@
 					balloon.setVisible(showFlag);
 				}});
 			}
-			domObj = createDOMObject(ret);
+			domObj = createDOMObject(ret, null, propHiden);
 			domObj.objectId = obj.objectId;
 			position(xx, yy);
 			if(balloon) {
@@ -698,7 +698,7 @@
 		return ret;
 	}
 
-	var editObject = function(coords, props, editType)
+	var editObject = function(coords, props, editType, propHiden)
 	{
 		if (!props)
 			props = {};
@@ -823,7 +823,7 @@
 			if(needInitNodeEvents) chkNodeEvents();
 			drawAttr['mousedown'] = function(e, attr)
 			{
-				if(currentDOMObject && currentDOMObject.objectId != attr['id']) return;
+				//if(currentDOMObject && currentDOMObject.objectId != attr['id']) return;
 				if(lastPoint) addDrawingItem(e);		// Добавление точки
 				else itemMouseDown(e);					// Изменение точки
 			};
@@ -857,7 +857,6 @@
 			drawAttr['node'] = node;
 			drawAttr['clickMe'] = addDrawingItem;
 			drawAttr['mouseUp'] = mouseUp;
-
 			drawSVG(drawAttr);
 		}
 
@@ -1102,7 +1101,7 @@
 		}
 		var createDrawingItem = function()
 		{
-			domObj = createDOMObject(ret, props);
+			domObj = createDOMObject(ret, props, propHiden);
 			domObj.objectId = obj.objectId;
 			domObj['stateListeners'] = obj['stateListeners'];
 			node = mapNodes[obj.objectId];
@@ -1118,7 +1117,10 @@
 			if(coords.length == 1) coords = coords[0];
 			if(editType === 'POLYGON') {
 				if(coords.length && coords[0].length != 2) coords = coords[0];
+			} else if(editType === 'LINESTRING') {
+				drawAttr['setEditEnd'] = true;
 			}
+			drawAttr['isExternal'] = true;
 			lastPoint = null;
 			oBounds = gmxAPI.getBounds(coords);
 			createDrawingItem();
@@ -1130,16 +1132,16 @@
 
 		return ret;
 	}
-	drawFunctions.LINESTRING = function(coords, props)
+	drawFunctions.LINESTRING = function(coords, props, propHiden)
 	{
-		return editObject(coords, props, 'LINESTRING')
+		return editObject(coords, props, 'LINESTRING', propHiden)
 	}
-	drawFunctions.POLYGON = function(coords, props)
+	drawFunctions.POLYGON = function(coords, props, propHiden)
 	{
 		if (gmxAPI.isRectangle(coords)) return drawFunctions.FRAME(coords, props);
-		return editObject(coords, props, 'POLYGON')
+		return editObject(coords, props, 'POLYGON', propHiden)
 	}
-	drawFunctions.FRAME = function(coords, props)
+	drawFunctions.FRAME = function(coords, props, propHiden)
 	{
 		if (!props)
 			props = {};
@@ -1335,7 +1337,7 @@
 		{
 			obj = gmxAPI.map.addObject(null, null, {'subType': 'drawingFrame', 'getPos': getPos, 'drawMe': drawMe});
 			obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
-			domObj = createDOMObject(ret, props);
+			domObj = createDOMObject(ret, props, propHiden);
 			domObj.objectId = obj.objectId;
 			domObj['stateListeners'] = obj['stateListeners'];
 			node = mapNodes[obj.objectId];
@@ -1591,22 +1593,83 @@
 			}
 		,				
 		//props опционально
-		addObject: function(geom, props)
+		addObject: function(geom, props, propHiden)
 		{
+			if(!propHiden) propHiden = {};
+			if(!props) props = {};
 			if (geom.type.indexOf("MULTI") != -1)
 			{
+				if(!propHiden) propHiden = {};
+				propHiden['multiFlag'] = true;
+				var myId = gmxAPI.newFlashMapId();
+				var fObj = {
+					'geometry': geom
+					,'properties': props
+					,'propHiden':propHiden
+					,'members': []
+					,'forEachObject': function(callback) {
+						if(!callback) return;
+						for (var i = 0; i < this.members.length; i++) callback(this.members[i].domObj);
+					}
+					,'setStyle': function(regularStyle, hoveredStyle) {
+						this.forEachObject(function(context) { context.setStyle(regularStyle, hoveredStyle); });
+					}
+					,'remove': function() {
+						this.forEachObject(function(context) { context.remove(); });
+						delete multiObjects[myId];
+					}
+					,'setVisible': function(flag) {
+						this.forEachObject(function(context) { context.setVisible(flag); });
+					}
+					,'getStyle': function(flag) {
+						return (this.members.length ? this.members[0].domObj.getStyle(flag) : null);
+					}
+					,'getGeometry': function() {
+						var coords = [];
+						this.forEachObject(function(context) { coords.push(context.getGeometry().coordinates); });
+						this.geometry.coordinates = coords;
+						return gmxAPI.clone(this.geometry);
+					}
+					,'getArea': function() {
+						var res = 0;
+						this.forEachObject(function(context) { res += context.getArea(); });
+						return res;
+					}
+					,'getLength': function() {
+						var res = 0;
+						this.forEachObject(function(context) { res += context.getLength(); });
+						return res;
+					}
+					,'getCenter': function() {
+						var centers = [];
+						this.forEachObject(function(context) {
+							centers.push(context.getCenter());
+						});
+						var res = null;
+						if(centers.length) {
+							res = [0, 0];
+							for (var i = 0; i < centers.length; i++) {
+								res[0] += centers[i][0];
+								res[1] += centers[i][1];
+							}
+							res[0] /= centers.length;
+							res[1] /= centers.length;
+						}
+						return res;
+					}
+				};
+				multiObjects[myId] = fObj;
+				var type = geom.type.replace("MULTI", "");
 				for (var i = 0; i < geom.coordinates.length; i++)
-					this.addObject(
-						{ 
-							type: geom.type.replace("MULTI", ""),
-							coordinates: geom.coordinates[i]
-						},
-						props
-					);
+				{
+					var o = drawFunctions[type](geom.coordinates[i], props, propHiden);
+					fObj['members'].push(o);
+				}
+				return fObj;
 			}
 			else
 			{
-				var o = drawFunctions[geom.type](geom.coordinates, props);
+				var o = drawFunctions[geom.type](geom.coordinates, props, propHiden);
 				//gmxAPI._tools['standart'].selectTool("move");
 				return o.domObj;
 			}
@@ -1632,6 +1695,10 @@
 			if(!callback) return;
 			for (var id in objects) {
 				var cObj = objects[id];
+				if(cObj.geometry && !cObj.propHiden['multiFlag']) callback(cObj);
+			}
+			for (var id in multiObjects) {
+				var cObj = multiObjects[id];
 				if(cObj.geometry) callback(cObj);
 			}
 		}
