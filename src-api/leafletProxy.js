@@ -1920,9 +1920,16 @@
 	var grid = {
 		'isVisible': false							// видимость grid
 		,
+		'isOneDegree': false						// признак сетки через 1 градус
+		,
 		'lealfetObj': null							// lealfet обьект
 		,
 		'gridSteps': [0.001, 0.002, 0.0025, 0.005, 0.01, 0.02, 0.025, 0.05, 0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 30, 60, 120, 180]
+		,
+		'setOneDegree': function (flag)
+		{
+			this.isOneDegree = flag;
+		}
 		,
 		'formatFloat': function (f)
 		{
@@ -1971,11 +1978,15 @@
 			var y2 = vpNorthWest.lat;
 			var xStep = 0;
 			var yStep = 0;
-			for (var i = 0; i < grid['gridSteps'].length; i++) {
-				var step = grid['gridSteps'][i];
-				if (xStep == 0 && (x2 - x1)/step < w/80) xStep = step;
-				if (yStep == 0 && (y2 - y1)/step < h/80) yStep = step;
-				if (xStep > 0 && yStep > 0) break;
+			if(this.isOneDegree) {
+				xStep = yStep = 1;
+			} else {
+				for (var i = 0; i < grid['gridSteps'].length; i++) {
+					var step = grid['gridSteps'][i];
+					if (xStep == 0 && (x2 - x1)/step < w/80) xStep = step;
+					if (yStep == 0 && (y2 - y1)/step < h/80) yStep = step;
+					if (xStep > 0 && yStep > 0) break;
+				}
 			}
 			
 			var baseLayersTools = gmxAPI.map.baseLayersTools;
@@ -1989,22 +2000,25 @@
 		
 			var latlngArr = [];
 			var textMarkers = [];
-			for (var i = Math.floor(x1/xStep); i < Math.ceil(x2/xStep); i++) {
+			
+			for (var i = Math.floor(x1/xStep), len1 = Math.ceil(x2/xStep); i < len1; i++) {
 				var x = i * xStep;
 				var p1 = new L.LatLng(y1, x);
 				var p2 = new L.LatLng(y2, x);
 				latlngArr.push(p2, p1);
+				if(this.isOneDegree && zoom < 6) continue;
 				textMarkers.push(grid.formatFloat(x) + "°", '');
 			}
-			for (var i = Math.floor(y1/yStep); i < Math.ceil(y2/yStep); i++) {
+			for (var i = Math.floor(y1/yStep), len1 = Math.ceil(y2/yStep); i < len1; i++) {
 				var y = i * yStep;
 				var p1 = new L.LatLng(y, x1);
 				var p2 = new L.LatLng(y, x2);
 				latlngArr.push(p1, p2);
+				if(this.isOneDegree && zoom < 6) continue;
 				textMarkers.push(grid.formatFloat(y) + "°", '');
 			}
+
 			if(!grid.lealfetObj) {
-				//grid.lealfetObj = new L.MultiPolyline(latlngArr);
 				grid.lealfetObj = new L.GMXgrid(latlngArr, {noClip: true, clickable: false});
 				LMap.addLayer(grid.lealfetObj);
 				if(!grid.positionChangedListenerID) grid.positionChangedListenerID = gmxAPI.map.addListener('positionChanged', grid.redrawGrid, -10);
@@ -2014,15 +2028,9 @@
 			grid.lealfetObj.setStyle({'stroke': true, 'weight': 1, 'color': color});
 			grid.lealfetObj.options['textMarkers'] = textMarkers;
 			grid.lealfetObj.setLatLngs(latlngArr);
-			
-//console.log('getGridStep ', xStep, yStep, y1, y2, w, h);
-
 			return false;
 		}
 	};
-	//LMap.on('moveend', grid.redrawGrid);
-	
-	//gmxAPI._listeners.addListener({'level': -10, 'eventName': 'positionCh', 'func': grid.redrawGrid});
 
 	// Команды в leaflet
 	var commands = {				// Тип команды
@@ -2049,6 +2057,10 @@
 		,
 		'setGridVisible':	function(hash)	{							// Изменить видимость сетки
 			return grid.setGridVisible(hash['attr']);
+		}
+		,
+		'setOneDegree':	function(hash)	{								// Установить шаги grid
+			return grid.setOneDegree(hash['attr']);
 		}
 		,
 		'getGridVisibility':	function(hash)	{						// получить видимость сетки
@@ -2763,9 +2775,9 @@
 				attr['y4'] = attr.extent['maxY'];
 				if('sx' in attr) {
 					attr['x4'] = attr['x1'];
-					attr['x2'] = attr['x3'] = attr['x1'] + w * attr['sx'];
+					attr['x2'] = attr['x3'] = Number(attr['x1']) + w * attr['sx'];
 					attr['y2'] = attr['y1'];
-					attr['y3'] = attr['y4'] = attr['y1'] + h * attr['sy'];
+					attr['y3'] = attr['y4'] = Number(attr['y1']) + h * attr['sy'];
 				}
 			}
 			var ptl = new L.Point(attr['x1'], attr['y1']);

@@ -972,7 +972,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 		option['tileFunc'] = inpAttr['tileFunction'];
 		
 		var myLayer = null;
-
+/*
 		function styleToGeo(geo, filter)	{			// Стиль обьекта векторного слоя
 			//var style = (filter ? utils.evalStyle(filter.regularStyle, geo)
 			if(!filter) return;
@@ -1027,7 +1027,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			delete geo['_cache'];
 			geo.curStyle = style;
 		}
-/*
+
 		var chkBorderTiles = function(geom, tile) {					// Проверка соседних тайлов
 			var zoom = tile['zoom'];
 			var propHiden = geom.propHiden;
@@ -1122,8 +1122,9 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				var flag = (filter && filter.sqlFunction ? filter.sqlFunction(prop) : true);
 				if(flag) {
 					toFilters.push(filterID);
-					curStyle = (filter.regularStyle ? filter.regularStyle : null);
-					if(curStyle) {
+					//curStyle = (filter.regularStyle ? filter.regularStyle : null);
+					if(filter.regularStyle) {
+						curStyle = (filter.regularStyleIsAttr ? utils.evalStyle(filter.regularStyle, prop) : filter.regularStyle);
 						//if(curStyle.size) size = curStyle.size + 2 * curStyle.weight;
 						var scale = curStyle['scale'] || 1;
 						if(curStyle.marker) {
