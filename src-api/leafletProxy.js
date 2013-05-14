@@ -4386,78 +4386,6 @@ var tt = 1;
 					];
 				}
 			});
-			/*
-			L.Marker.extend({
-				_initIcon: function () {
-					var options = this.options,
-						map = this._map,
-						animation = (map.options.zoomAnimation && map.options.markerZoomAnimation),
-						classToAdd = animation ? 'leaflet-zoom-animated' : 'leaflet-zoom-hide',
-						needOpacityUpdate = false;
-
-					if (!this._icon) {
-						this._icon = options.icon.createIcon();
-
-						if (options.title) {
-							this._icon.title = options.title;
-						}
-
-						this._initInteraction();
-						needOpacityUpdate = (this.options.opacity < 1);
-
-						L.DomUtil.addClass(this._icon, classToAdd);
-
-						if (options.riseOnHover) {
-							L.DomEvent
-								.on(this._icon, 'mouseover', this._bringToFront, this)
-								.on(this._icon, 'mouseout', this._resetZIndex, this);
-						}
-					}
-
-					if (!this._shadow) {
-						this._shadow = options.icon.createShadow();
-
-						if (this._shadow) {
-							L.DomUtil.addClass(this._shadow, classToAdd);
-							needOpacityUpdate = (this.options.opacity < 1);
-						}
-					}
-
-					if (needOpacityUpdate) {
-						this._updateOpacity();
-					}
-
-					var panes = this._map._panes;
-
-					var toPaneName = options.toPaneName || 'markerPane';			// Added by OriginalSin
-					panes[toPaneName].appendChild(this._icon);
-					//panes.markerPane.appendChild(this._icon);
-
-					if (this._shadow) {
-						panes.shadowPane.appendChild(this._shadow);
-					}
-				}
-				,
-				_removeIcon: function () {
-					var panes = this._map._panes;
-
-					if (this.options.riseOnHover) {
-						L.DomEvent
-							.off(this._icon, 'mouseover', this._bringToFront)
-							.off(this._icon, 'mouseout', this._resetZIndex);
-					}
-
-					if(this._icon && this._icon.parentNode) this._icon.parentNode.removeChild(this._icon);	// Added by OriginalSin
-					//panes.markerPane.removeChild(this._icon);
-
-					if (this._shadow) {
-						panes.shadowPane.removeChild(this._shadow);
-					}
-
-					this._icon = this._shadow = null;
-				}
-			});
-			*/
 
 			L.GMXMarker = L.Marker.extend({
 				_initIcon: function () {
@@ -4635,30 +4563,24 @@ var tt = 1;
 			L.GMXLabels = L.Polyline.extend({
 				_getPathPartStr: function (points) {
 					var round = L.Path.VML;
-					//if(this.options.textMarkers) {
-						if(this._containerText) this._container.removeChild(this._containerText);
-						this._containerText = this._createElement('g');
-						//this._containerText.setAttribute("stroke", this._path.getAttribute("stroke"));
-						//this._containerText.setAttribute("style", this._path.getAttribute("style"));
-						this._containerText.setAttribute("stroke", this._path.getAttribute("stroke"));
-						this._containerText.setAttribute("stroke-width", 0);
-						if(this.options.color) this._containerText.setAttribute("fill", this.options.color);
+					if(this._containerText) this._container.removeChild(this._containerText);
+					this._containerText = this._createElement('g');
+					this._containerText.setAttribute("stroke", this._path.getAttribute("stroke"));
+					this._containerText.setAttribute("stroke-width", 0);
+					if(this.options.color) this._containerText.setAttribute("fill", this.options.color);
 
-						//this._containerText.setAttribute("fill", "yellow");
-						var opacity = this.options.opacity;
-						this._containerText.setAttribute("opacity", opacity);
-						this._container.appendChild(this._containerText);
-						//var textMarkers = this.options.textMarkers || [];
-						this._containerText.style.pointerEvents = 'none';
-						this._container.style.pointerEvents = 'none';
-					//}
+					var opacity = this.options.opacity;
+					this._containerText.setAttribute("opacity", opacity);
+					this._container.appendChild(this._containerText);
+					this._containerText.style.pointerEvents = 'none';
+					this._container.style.pointerEvents = 'none';
 
 					for (var j = 0, len2 = points.length, str = '', p, p1; j < len2; j++) {
 						p = points[j];
 						if(this.options.textMarkers && this.options.textMarkers[j]) {
 							var text = this._createElement('text');
 							text.textContent = this.options.textMarkers[j];
-							text.setAttribute("class", "leaflet-clickable");
+							//text.setAttribute("class", "leaflet-clickable");
 							var dx = -1;
 							var dy = 3;
 							var align = this.options['align'] || 'right';
@@ -4822,6 +4744,3 @@ var tt = 1;
 		//gmxAPI._leaflet['worker'] = new Worker('src-api/taskWorker.js');
 	//}
 })();
-
-
-

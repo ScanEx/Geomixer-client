@@ -182,7 +182,7 @@
 				className: 'my-canvas-icon'
 				,'drawMe': drawMe
 			});
-			marker =  new L.GMXMarker([0,0], {icon: canvasIcon, 'toPaneName': 'popupPane', 'zIndexOffset': -1000});
+			marker =  new L.GMXMarker([0,0], {icon: canvasIcon, 'toPaneName': 'popupPane', 'clickable': false, 'draggable': false, 'zIndexOffset': -1000});
 				
 			LMap.addLayer(marker);
 			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': repaintItems});
