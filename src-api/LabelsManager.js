@@ -118,7 +118,7 @@
 		for(var id in itemsHash) {
 			var item = itemsHash[id];
 			if(!item['isVisible']) continue;
-			if(!item['bounds'].intersects(vBoundsMerc)) continue;		// обьект за пределами видимости
+			if(item['bounds'] && !item['bounds'].intersects(vBoundsMerc)) continue;		// обьект за пределами видимости
 			var align = item['style']['align'];
 			var dx = item['sx']/2 + 1;
 			var dy = item['sy']/2 - 1 - contPoint.y;

@@ -909,7 +909,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 		var typeGeo = attr['typeGeo'] || 'polygon';
 		if(attr['typeGeo'] === 'polygon') {
 			node['sortItems'] = function(a, b) {
-				return a.properties[identityField] > b.properties[identityField];		
+				return Number(a.properties[identityField]) - Number(b.properties[identityField]);
 			}
 		}
 		
@@ -1212,8 +1212,10 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					}
 					geo['id'] = id;
 					outArr.push(geo);
-					node['bounds'].extend(new L.Point(gmxAPI.from_merc_x(geo.bounds.min.x), gmxAPI.from_merc_y(geo.bounds.min.y)));
-					node['bounds'].extend(new L.Point(gmxAPI.from_merc_x(geo.bounds.max.x), gmxAPI.from_merc_y(geo.bounds.max.y)));
+					if(tileID === 'addItem') {
+						node['bounds'].extend(new L.Point(gmxAPI.from_merc_x(geo.bounds.min.x), gmxAPI.from_merc_y(geo.bounds.min.y)));
+						node['bounds'].extend(new L.Point(gmxAPI.from_merc_x(geo.bounds.max.x), gmxAPI.from_merc_y(geo.bounds.max.y)));
+					}
 				}
 				var objData = {
 					'id': id
