@@ -672,8 +672,9 @@
 
 			var standartTools = gmxAPI.map.standartTools;
 			if(standartTools && !skipToolNames[standartTools.activeToolName]) {
-				var from = gmxAPI.map.layers.length - 1;
-				for (var i = from; i >= 0; i--)
+				//var from = gmxAPI.map.layers.length - 1;
+				//for (var i = from; i >= 0; i--)
+				for (var i = 0, to = gmxAPI.map.layers.length; i < to; i++)
 				{
 					var child = gmxAPI.map.layers[i];
 					if(!child.isVisible) continue;
