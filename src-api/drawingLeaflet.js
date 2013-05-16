@@ -236,7 +236,7 @@
 	};
 	
 	var objects = {};
-	var multiObjects = {};
+	//var multiObjects = {};
 	var drawFunctions = {};
 
 	var chkDrawingObjects = function() {
@@ -273,6 +273,13 @@
 				ret.setVisible(flag);
 				this.properties.isVisible = flag;
 			},
+/*			updateCoordinates: function(coords)
+			{
+				if(coords.type) coords = coords.coordinates;	// Если это geometry берем только координаты
+				if(!coords) return;				// Если нет coords ничего не делаем
+				ret.updateCoordinates(coords);
+			},
+*/
 			update: function(geometry, text)
 			{
 				if(!geometry) return;				// Если нет geometry ничего не делаем
@@ -342,7 +349,12 @@
 			//}
 			var flag = gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
 			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
+/*			
+			var eObj = (domObj.propHiden['multiObj'] ? domObj.propHiden['multiObj'] : domObj);
+			var flag = gmxAPI._listeners.dispatchEvent(eType, eObj, eObj);
+			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, eObj);
 			//console.log('chkEvent:  ', eType, flag);
+*/
 			return flag;
 		}
 
@@ -433,6 +445,11 @@
 				if(balloon) balloon.setPoint(xx, yy, isDragged);
 				updateDOM();
 			}
+/*			ret.updateCoordinates = function(newCoords)
+			{
+				position(newCoords[0], newCoords[1]);
+			}
+*/
 			var apiBase = gmxAPI.getAPIFolderRoot();
 
 			obj.setStyle(
@@ -797,6 +814,10 @@
 					if(new Date().getTime() - downTime > 500) return;
 					gmxAPI._listeners.dispatchEvent('onClick', domObj, domObj);
 					gmxAPI._listeners.dispatchEvent('onClick', gmxAPI.map.drawing, domObj);
+/*					var eObj = (domObj.propHiden['multiObj'] ? domObj.propHiden['multiObj'] : domObj);
+					gmxAPI._listeners.dispatchEvent('onClick', eObj, eObj);
+					gmxAPI._listeners.dispatchEvent('onClick', gmxAPI.map.drawing, eObj);
+*/
 				});
 			}
 		}
@@ -873,6 +894,10 @@
 			}
 			gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
 			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
+/*			var eObj = (domObj.propHiden['multiObj'] ? domObj.propHiden['multiObj'] : domObj);
+			gmxAPI._listeners.dispatchEvent(eType, eObj, eObj);
+			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, eObj);
+*/
 		}
 
 		ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
@@ -889,7 +914,13 @@
 			this.properties.text = text;
 			//callOnChange();
 		}
-
+/*		ret.updateCoordinates = function(newCoords)
+		{
+			coords = newCoords;
+			if(coords.length == 1) coords = coords[0];	// todo нужно дырки обрабатывать
+			drawMe();
+		}
+*/
 		ret.setStyle = function(regularStyle, hoveredStyle) {
 			obj.setStyle(regularStyle, hoveredStyle);
 			drawAttr['regularStyle'] = gmxAPI._leaflet['utils'].parseStyle(regularStyle, obj.objectId);
@@ -956,7 +987,7 @@
 					if(toolsContainer) toolsContainer.selectTool("move");
 					eventType = 'onFinish';
 					chkEvent(eventType);
-					mouseOverFlag = true;
+//					mouseOverFlag = true;
 					gmxAPI._drawing['activeState'] = false;
 					finishTime = new Date().getTime();
 					return true;
@@ -1062,6 +1093,7 @@
 		//var itemMouseDownID = null;
 		ret.chkMouse = function(ph)
 		{
+//console.log('chkMouse:  ', obj.objectId, mouseOverFlag);
 			if(!mouseOverFlag) return false;
 //console.log('chkMouse:  ', obj.objectId, mouseOverFlag);
 			var downType = getDownType(ph, coords, oBounds);
@@ -1495,6 +1527,14 @@
 			}	
 			return flag;
 		}
+/*		ret.updateCoordinates = function(newCoords)
+		{
+			coords = newCoords;
+			oBounds = gmxAPI.getBounds(coords);
+			x1 = oBounds.minX; y1 = oBounds.maxY;	x2 = oBounds.maxX; y2 = oBounds.minY;
+			repaint(10);
+		}
+*/
 		gmxAPI._cmdProxy('startDrawing');
 		if (coords)
 		{
@@ -1601,9 +1641,19 @@
 			{
 				if(!propHiden) propHiden = {};
 				propHiden['multiFlag'] = true;
+				for (var i = 0; i < geom.coordinates.length; i++)
+					this.addObject(
+						{ 
+							type: geom.type.replace("MULTI", ""),
+							coordinates: geom.coordinates[i]
+						},
+						props
+					);
+/*				
 				var myId = gmxAPI.newFlashMapId();
 				var fObj = {
 					'geometry': geom
+					,'objectId': myId
 					,'properties': props
 					,'propHiden':propHiden
 					,'members': []
@@ -1629,6 +1679,26 @@
 						this.forEachObject(function(context) { coords.push(context.getGeometry().coordinates); });
 						this.geometry.coordinates = coords;
 						return gmxAPI.clone(this.geometry);
+					}
+					,'updateCoordinates': function(newCoords) {
+						if(newCoords.type) newCoords = newCoords.coordinates;	// Если это geometry берем только координаты
+						var type = geom.type.replace("MULTI", "");
+						this.geometry.coordinates = newCoords;
+						var oldLen = fObj['members'].length;
+						for (var i = newCoords.length; i < oldLen; i++)
+						{
+							fObj['members'][i].remove();
+							fObj['members'].pop();
+						}
+						for (var i = 0; i < newCoords.length; i++)
+						{
+							if(i >= this['members'].length) {
+								var o = drawFunctions[type](newCoords[i][0], props, propHiden);		// нужна обработка дырок в polygon обьекте
+								fObj['members'].push(o);
+							} else {
+								fObj['members'][i].updateCoordinates(newCoords[i][0]);
+							}
+						}
 					}
 					,'getArea': function() {
 						var res = 0;
@@ -1657,8 +1727,16 @@
 						}
 						return res;
 					}
+					,stateListeners: {}
+					,addListener: function(eventName, func) {
+						return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func});
+					}
+					,removeListener: function(eventName, id) {
+						return gmxAPI._listeners.removeListener(this, eventName, id);
+					}
 				};
 				multiObjects[myId] = fObj;
+				propHiden['multiObj'] = fObj;
 				var type = geom.type.replace("MULTI", "");
 				for (var i = 0; i < geom.coordinates.length; i++)
 				{
@@ -1666,6 +1744,7 @@
 					fObj['members'].push(o);
 				}
 				return fObj;
+				*/
 			}
 			else
 			{
@@ -1695,12 +1774,17 @@
 			if(!callback) return;
 			for (var id in objects) {
 				var cObj = objects[id];
+				if(cObj.geometry) callback(cObj);
+			}
+/*			
+			for (var id in objects) {
+				var cObj = objects[id];
 				if(cObj.geometry && !cObj.propHiden['multiFlag']) callback(cObj);
 			}
 			for (var id in multiObjects) {
 				var cObj = multiObjects[id];
 				if(cObj.geometry) callback(cObj);
-			}
+			}*/
 		}
 		,
 		tools: { 
@@ -1751,6 +1835,7 @@
 		,
 		chkMouseHover: function(attr, fName)
 		{
+//console.log('chkMouseHover:  ', fName, mouseOverFlag);
 			if(!mouseOverFlag) return;
 			if(!fName) fName = 'chkMouse';
 			if(!mousePressed || attr['evName'] == 'onMouseDown') {

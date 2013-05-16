@@ -1950,11 +1950,11 @@
 				LMap.removeLayer(grid.lealfetObj);
 				grid.lealfetObj = null;
 			}
+			grid.isVisible = (grid.lealfetObj ? true : false);
 		}
 		,
 		'getGridVisibility': function() {			// Получить видимость grid
-			var zoom = LMap.getZoom();
-			return false;
+			return grid.isVisible;
 		}
 		,
 		'redrawGrid': function() {					// перерисовать grid
