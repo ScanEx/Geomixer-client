@@ -884,7 +884,7 @@ var createPageAdvanced = function(parent, layerProperties) {
     var updateTemporalColumns = function() {
         var parsedColumns = parseColumns(layerProperties.get('SourceColumns'));
         temporalLayerView.updateColumns(parsedColumns.dateFields);
-        }
+    }
         
     layerProperties.on('change:SourceColumns', updateTemporalColumns);
     updateTemporalColumns();

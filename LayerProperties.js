@@ -57,6 +57,7 @@ var LayerProperties = Backbone.Model.extend({
             isTemporal: !!divProperties.Temporal,
             minPeriod: tempPeriods && tempPeriods[0],
             maxPeriod: tempPeriods && tempPeriods[tempPeriods.length-1],
+            maxShownPeriod: divProperties.maxShownPeriod || 0,
             columnName: divProperties.TemporalColumnName
         }));
         
@@ -122,8 +123,9 @@ var LayerProperties = Backbone.Model.extend({
             if ( reqParams.TemporalLayer ) {
                 reqParams.TemporalColumnName = tempProperties.get('columnName');
                 reqParams.TemporalPeriods = tempProperties.getPeriodString();
+                reqParams.maxShownPeriod = tempProperties.get('maxShownPeriod');
             }
-                    
+
             var selectedColumns = attrs.SelectedColumns;
             if (selectedColumns && selectedColumns.get('XCol') && selectedColumns.get('YCol')) {
                 reqParams.ColX = selectedColumns.get('XCol');

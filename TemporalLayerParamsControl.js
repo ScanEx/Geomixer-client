@@ -1,5 +1,19 @@
 (function(){
 
+_translationsHash.addtext("rus", {
+    "Макс. период на экране": "На экране не более",
+    "Тайлы с": "Тайлы с",
+    "Тайлы до": "Тайлы до",
+    "дней": "дней"
+});
+
+_translationsHash.addtext("eng", {
+    "Макс. период на экране": "Max period to show",
+    "Тайлы с": "Tiles from",
+    "Тайлы до": "Tiles till",
+    "дней": "days"
+});
+
 /** Параметры мультивременного слоя, связанные со временем
   @param {Object} [initParams] Начальные параметры
   @param {Integer} [initParams.minPeriod=1] Минимальный период создания тайлов
@@ -10,6 +24,7 @@
 nsGmx.TemporalLayerParams = Backbone.Model.extend({
     defaults: {
         isTemporal: false,
+        maxShowPeriod: 0,
         minPeriod: 1,
         maxPeriod: 256,
         columnName: null
@@ -29,35 +44,6 @@ nsGmx.TemporalLayerParams = Backbone.Model.extend({
     }
 }, {PERIOD_STEP: 4});
 
-// nsGmx.TemporalLayerParams = function(initParams)
-// {
-    // initParams = initParams || {};
-    // var PERIOD_STEP = 4;
-    // var _minPeriod = initParams.minPeriod || 1;
-    // var _maxPeriod = initParams.maxPeriod || 256;
-    // var _columnName = initParams.columnName || null;
-    // var _isTemporal = initParams.isTemporal || false;
-    
-    // this.setPeriods = function(minPeriod, maxPeriod) { _minPeriod = minPeriod; _maxPeriod = maxPeriod; }
-    // this.setColumnName = function(name) { _columnName = name; }
-    // this.getColumnName = function() { return _columnName; }
-    // this.getMinPeriod = function() { return _minPeriod; }
-    // this.getMaxPeriod = function() { return _maxPeriod; }
-    // this.getPeriodString = function()
-    // {
-        // var curPeriod = _minPeriod;
-        // var periods = [];
-        // while ( curPeriod <= _maxPeriod )
-        // {
-            // periods.push(curPeriod);
-            // curPeriod *= PERIOD_STEP;
-        // }
-        // return periods.join(',');
-    // }
-    // this.setTemporal = function(isTemporal) { _isTemporal = isTemporal; }
-    // this.getTemporal = function() { return _isTemporal; }
-// };
-
 /** Создаёт виджет для задания мультивременных параметров слоя
 * @param {HTMLNode} parentDiv контейнер для размещения виджета
 * @param {nsGmx.TemporalLayerParams} paramsModel начальные параметры
@@ -65,89 +51,45 @@ nsGmx.TemporalLayerParams = Backbone.Model.extend({
 */
 nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
 {
-    var temporalCheckbox = $("<input></input>", {type: 'checkbox', id: 'timeLayer'});
-	var _columns = columns;
-    temporalCheckbox.change(function()
-    {
-        paramsModel.set('isTemporal', this.checked);
-        $('.temporal-control', parentDiv).toggle(this.checked);
-    });
-    
-    // if (_columns.length == 0)
-        // temporalCheckbox.attr('disabled', 'disabled');
-    
-    // var addOptions = function(select)
-    // {
-        // var temporalPeriods = [1, 4, 16, 64, 256, 1024, 4096];
-        // for (var k = 0; k < temporalPeriods.length; k++)
-            // select.append($("<option></option>", {periodIndex: k}).text(temporalPeriods[k]));
-    // }
+    var optionsHtml = nsGmx._.map([1, 4, 16, 64, 256, 1024], function(a) {return '<option name="'+ a + '">' + a + '</option>'}).join('');
+    var html = 
+        '<input id="isTemporalCheckbox" type="checkbox"></input>' + 
+        '<span class="buttonLink RCCreate-advanced-link"><%= _gtxt("LayerRCControl.advancedLink") %></span>' +
+        '<table><tbody>' + 
+            '<tr>' +
+                '<td><%= _gtxt("Макс. период на экране") %></td>' + 
+                '<td><input id="maxShownPeriod" class="inputStyle temporal-maxshow"></input> <span><%= _gtxt("дней") %></span> </td>' + 
+            '</tr>' + 
+            '<tr class="temporal-columns">' +
+                '<td><%= _gtxt("Колонка даты") %></td>' + 
+                '<td><select id="columnSelect" class="selectStyle"></select></td>' + 
+            '</tr>' + 
+            '<tr class="temporal-advanced">' +
+                '<td><%= _gtxt("Тайлы с") %></td>' + 
+                '<td><select id="minPeriod" class="selectStyle"><%= optionsHtml %></select></td>' + 
+            '</tr>' + 
+            '<tr class="temporal-advanced">' +
+                '<td><%= _gtxt("Тайлы до") %></td>' + 
+                '<td><select id="maxPeriod" class="selectStyle"><%= optionsHtml %></select></td>' + 
+            '</tr>' + 
+        '</tbody></table>' + 
+        '<div class="temporal-control-noattr"> <%= _gtxt("Отсутствует временной атрибут") %> </div>';
         
-    // var selectMinPeriod = $("<select></select>", {'class': 'selectStyle'});
-    // addOptions(selectMinPeriod);
-    // var selectMaxPeriod = selectMinPeriod.clone();
+    $(parentDiv).html(nsGmx._.template(html)({optionsHtml: optionsHtml}));
     
-    // $([selectMinPeriod[0], selectMaxPeriod[0]]).change(function()
-    // {
-        // var minPeriod = parseInt($("option:selected", selectMinPeriod).attr('periodIndex'));
-        // var maxPeriod = parseInt($("option:selected", selectMaxPeriod).attr('periodIndex'));
-        // if (minPeriod > maxPeriod)
-        // {
-            // $([selectMinPeriod[0], selectMaxPeriod[0]]).addClass('ErrorPeriod');
-        // }
-        // else
-        // {
-            // $([selectMinPeriod[0], selectMaxPeriod[0]]).removeClass('ErrorPeriod');
-            // paramsModel.setPeriods(temporalPeriods[minPeriod], temporalPeriods[maxPeriod]);
-        // }
-    // });
+    var updateVisibility = function() {
+        var isTemporal = paramsModel.get('isTemporal');
+        $(parentDiv).children(':not(#isTemporalCheckbox)').toggle(isTemporal);
+        if (isTemporal) {
+            $('.temporal-advanced', parentDiv).toggle(isAdvancedMode);
+            $('.temporal-columns', parentDiv).toggle(_columns.length > 1);
+            $('.temporal-control-noattr', parentDiv).toggle(_columns.length === 0);
+        }
+    }
     
-    var noColumnNotification = $('<tr/>').append($('<td/>').attr('colspan', 2).append(
-        $('<div/>', {'class': 'temporal-control-noattr'})
-            .text(_gtxt('Отсутствует временной атрибут'))
-            .toggle(!columns.length)
-    ))
-    
-    var singleDateLayerCheckbox = $('<input/>', {type: 'checkbox', id: 'temporal-properties-single'}).change(function()
-    {
-        if (this.checked)
-            paramsModel.set({minPeriod: 1, maxPeriod: 1});
-        else
-            paramsModel.set({minPeriod: 1, maxPeriod: 256});
-    });
-    
-    // var singleDateLayerContainer =
-        // $('<div/>', {'class': 'temporal-control temporal-properties-single'}).append(
-            // singleDateLayerCheckbox,
-            // $('<label/>', {'for': 'temporal-properties-single'}).text(_gtxt('Период 1 день'))
-        // )
-    
-    //singleDateLayerContainer.appendTo(parentDiv);
-    
-    var singleDateLayerContainer =
-        $('<div class="temporal-type temporal-control">' + 
-            //'<span>Показывать на карте данные за</span><br>' + 
-            '<input name = "temporal-type" type="radio" id="temporal-input-single"> <label for="temporal-input-single">' + _gtxt('1 день') + '</label>' +
-            '<input name = "temporal-type" type="radio" id="temporal-input-any"> <label for="temporal-input-any">' + _gtxt('произвольный период') + '</label>' +
-        '</div>').appendTo(parentDiv);
-        
-    $('#temporal-input-single', singleDateLayerContainer).change(function()
-    {
-        paramsModel.set({minPeriod: 1, maxPeriod: (this.checked ? 1 : 256) });
-    });
-
-    $('input, label', singleDateLayerContainer).attr('title', _gtxt('Показывать на карте данные за'));
-    
-    $(parentDiv)
-        .append(temporalCheckbox);
-        
-    if (paramsModel.get('isTemporal'))
-        temporalCheckbox[0].checked = true;
-    
-    var selectDateColumn = $("<select></select>", {'class': 'selectStyle'});
-	
-	var updateColumnsSelect = function()
+    var updateColumnsSelect = function()
 	{
+        var selectDateColumn = $('#columnSelect', parentDiv);
 		var curColumn = paramsModel.get('columnName');
 		var foundOption = null;
 		
@@ -164,28 +106,51 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
 			foundOption.attr('selected', 'selected');
 		else if (_columns.length)
 			paramsModel.set('columnName', _columns[0]);
-			
-		selectDateColumn.change(function()
-		{
-			paramsModel.set('columnName', $("option:selected", this).val());
-		});
 	}
-	
-	updateColumnsSelect();
-        
-    var trColumn = $('<tr></tr>').append(
-        $('<td></td>').text(_gtxt('Колонка даты')),
-        $('<td></td>').append(selectDateColumn)
-    ).toggle(columns.length > 1);
-        
-    var propertiesTable = $('<table/>', {'class': 'temporal-control'}).append(noColumnNotification, trColumn).appendTo(parentDiv);
-    $('.temporal-control', parentDiv).toggle(paramsModel.get('isTemporal'));
+
+    var isAdvancedMode = 
+            paramsModel.get('minPeriod') !== paramsModel.defaults.minPeriod ||
+            paramsModel.get('maxPeriod') !== paramsModel.defaults.maxPeriod;
+    var _columns = columns;
+            
+    updateVisibility();
+            
+    $('.RCCreate-advanced-link', parentDiv).click(function() {
+        isAdvancedMode = !isAdvancedMode;
+        updateVisibility();
+    })
     
-    if (paramsModel.get('minPeriod') === paramsModel.get('maxPeriod')) {
-        $('#temporal-input-single', singleDateLayerContainer)[0].checked = true;
-    } else {
-        $('#temporal-input-any', singleDateLayerContainer)[0].checked = true;
+    if (paramsModel.get('isTemporal')) {
+        $('#isTemporalCheckbox', parentDiv).attr('checked', 'checked');
     }
+    $('#isTemporalCheckbox', parentDiv).change(function()
+    {
+        paramsModel.set('isTemporal', this.checked);
+        updateVisibility();
+    });
+    
+    updateColumnsSelect();
+    $('#columnSelect', parentDiv).change(function()
+    {
+        paramsModel.set('columnName', $("option:selected", this).val());
+    });
+    
+    $('#minPeriod>option[name='+ paramsModel.get('minPeriod') +']', parentDiv).attr('selected', 'selected');
+    $('#minPeriod', parentDiv).change(function()
+    {
+        paramsModel.set('minPeriod', $("option:selected", this).val());
+    });
+    
+    $('#maxPeriod>option[name='+ paramsModel.get('maxPeriod') +']', parentDiv).attr('selected', 'selected');
+    $('#maxPeriod', parentDiv).change(function()
+    {
+        paramsModel.set('maxPeriod', $("option:selected", this).val());
+    });
+    
+    $('#maxShownPeriod', parentDiv).val(paramsModel.get('maxShownPeriod') || '').bind('keyup', function()
+    {
+        paramsModel.set('maxShownPeriod', this.value || 0.0);
+    });
 	
     /**
         Обновляет список доступных для выбора колонок даты
@@ -193,10 +158,9 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
     */
 	this.updateColumns = function(columns)
 	{
-        noColumnNotification.toggle(!columns.length);
-        trColumn.toggle(columns.length > 1);
 		_columns = columns;
 		updateColumnsSelect();
+        updateVisibility();
 	}
 }
 

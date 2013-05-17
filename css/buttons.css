@@ -56,6 +56,12 @@ button:hover, .buttons a:hover
 	font-size: 12px;
 	color: #293D6B;
 }
+
+.buttonLink:hover
+{
+	color: #fc830b;
+}
+
 span.buttonLinkHover
 {
 	color: #fc830b;

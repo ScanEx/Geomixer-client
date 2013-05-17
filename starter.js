@@ -488,14 +488,12 @@ function filterTemporalLayers()
         
         var updateOneLayer = function(layer, dateBegin, dateEnd)
         {
-            //если для слоя задан только один временной период, считаем, что он "однолистный" - 
-            //не имеет смысл показывать данные за несколько периодов (например, погода, ветер)
-            //поэтому задаём период не больше периода слоя
-            if (layer.properties.TemporalPeriods && layer.properties.TemporalPeriods.length == 1)
+            if (layer.properties.maxShownPeriod)
             {
-                var layerPeriod = layer.properties.TemporalPeriods[0]*24*3600*1000 - 1000;
-                var newDateBegin = layerPeriod < dateEnd.valueOf() - dateBegin.valueOf() ? new Date(dateEnd.valueOf() - layerPeriod) : dateBegin;
-                
+                //var layerPeriod = layer.properties.TemporalPeriods[0]*24*3600*1000 - 1000;
+                //var newDateBegin = layerPeriod < dateEnd.valueOf() - dateBegin.valueOf() ? new Date(dateEnd.valueOf() - layerPeriod) : dateBegin;
+                var msecPeriod = layer.properties.maxShownPeriod*24*3600*1000;
+                var newDateBegin = new Date( Math.max(dateBegin.valueOf(), dateEnd.valueOf() - msecPeriod));
                 layer.setDateInterval(newDateBegin, dateEnd);
             }
             else
