@@ -2205,7 +2205,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 			$(resObject).change();
 		};
 	
-	if (geometryType != "point")
+	if (geometryType != "point" && gmxAPI.proxyType !== 'leaflet')
 	{
 		var dashTrs = []
 		for (var i = 1; i <= 7; i+=3)
