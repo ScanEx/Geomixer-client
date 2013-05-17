@@ -647,7 +647,8 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				if(!attr) attr = {};
 				attr['geom'] = node['getItemGeometry'](geom.id);
 				attr[evName] = true;
-				res = rNode['handlers'][evName].call(gNode, geom.id, getPropItem(geom), attr);
+				var prop = getPropItem(geom);
+				res = rNode['handlers'][evName].call(gNode, geom.id, prop, attr);
 			}
 			return res;
 		}
@@ -882,6 +883,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					if(callHandler('onClick', item.geom, gmxNode, gmxAttr)) return true;
 					var fID = itemPropHiden['toFilters'][0];
 					var filter = gmxAPI.mapNodes[fID];
+					gmxAttr['textFunc'] = filter.clusters.getTextFunc();
 					if(filter && callHandler('onClick', item.geom, filter, gmxAttr)) return true;
 				}
 				return true;

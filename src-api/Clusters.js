@@ -57,6 +57,25 @@
 		'_chkToFlash':	function() {
 			if(this._attr.visible && this._parent) gmxAPI._cmdProxy('setClusters', { 'obj': this._parent, 'attr': this._attr });
 		},
+		'getTextFunc':	function() {
+			var me = this;
+			return function(o)
+			{
+				var text = "";
+				var nProp = me.getProperties();
+				var props = o.properties;
+				for (var key in nProp)
+				{
+					var value = "" + props[key];
+					if (value.indexOf("http://") == 0)
+						value = "<a href='" + value + "'>" + value + "</a>";
+					else if (value.indexOf("www.") == 0)
+						value = "<a href='http://" + value + "'>" + value + "</a>";
+					text += "<b>" + key + ":</b> " + value + "<br />";
+				}
+				return text;
+			}
+		},
 		'setProperties':function(prop) { var out = {}; for(key in prop) out[key] = prop[key]; this._attr.newProperties = out; this._chkToFlash(); },
 		'getProperties':function() { var out = {}; for(key in this._attr.newProperties) out[key] = this._attr.newProperties[key]; return out; },
 		'setStyle':		function(style, hoverStyle) { this._attr.RenderStyle = style; this._attr.HoverStyle = (hoverStyle ? hoverStyle : style); this._chkToFlash(); },
