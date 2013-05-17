@@ -340,6 +340,7 @@ var createPageVectorSource = function(layerProperties) {
     var ColumnsModel = new gmxCore.getModule('LayerProperties').ColumnsModel;
     var shownProperties = [];
     var layerName = layerProperties.get('Name');
+    var sourceType = layerProperties.get('SourceType');
     
     /*------------ Источник: файл ------------*/
     var shapePath = layerProperties.get('ShapePath');
@@ -353,8 +354,8 @@ var createPageVectorSource = function(layerProperties) {
         layerProperties.set('ShapePath', {Path: this.value});
     }
     
-    var fileSourceColumns = layerProperties.get('SourceType') === 'file' ? layerProperties.get('SourceColumns') : [];
-    var fileSelectedColumns = layerProperties.get('SourceType') === 'file' ? layerProperties.get('SelectedColumns') : new ColumnsModel();
+    var fileSourceColumns = sourceType === 'file' ? layerProperties.get('SourceColumns') : [];
+    var fileSelectedColumns = sourceType === 'file' ? layerProperties.get('SelectedColumns') : new ColumnsModel();
     var fileColumnsWidget = new SelectColumnsWidget(xlsColumnsParent, fileSelectedColumns, fileSourceColumns);
     
     shapeFileLink.style.marginLeft = '3px';
@@ -414,8 +415,8 @@ var createPageVectorSource = function(layerProperties) {
     var tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
         tableColumnsParent = _div();
         
-    var tableSourceColumns   = layerProperties.get('SourceType') === 'table' ? layerProperties.get('SourceColumns') : [];
-    var tableSelectedColumns = layerProperties.get('SourceType') === 'table' ? layerProperties.get('SelectedColumns') : new ColumnsModel();
+    var tableSourceColumns   = sourceType === 'table' ? layerProperties.get('SourceColumns') : [];
+    var tableSelectedColumns = sourceType === 'table' ? layerProperties.get('SelectedColumns') : new ColumnsModel();
     var tableColumnsWidget = new SelectColumnsWidget(tableColumnsParent, tableSelectedColumns, tableSourceColumns);
         
     var tablePathInput = _input(null,[
@@ -469,10 +470,10 @@ var createPageVectorSource = function(layerProperties) {
     /*------------ Источник: вручную ------------*/
     var addAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
     var attrModel = new ManualAttrModel();
-        addAttribute.onclick = function()
-        {
-            attrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
-        }
+    addAttribute.onclick = function()
+    {
+        attrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
+    }
         
     var geometryTypes = [
         {title: _gtxt('многоугольники'), type: 'polygon'   , className: 'manual-polygon'},
@@ -525,7 +526,7 @@ var createPageVectorSource = function(layerProperties) {
                 
     //заполняем поля по атрибутам объекта
     //TODO: вынести в модель?
-    if ( layerProperties.get('SourceType') === 'manual' ) {
+    if ( sourceType === 'manual' ) {
         var attrs = layerProperties.get('Attributes');
         var attrTypes = layerProperties.get('AttrTypes');
         nsGmx._.each(attrs, function(elem, index) {
@@ -558,7 +559,7 @@ var createPageVectorSource = function(layerProperties) {
                     
     $(attrModel).change(updateColumnsByManual);
                     
-    if (layerProperties.get('SourceType') === 'manual') {
+    if (sourceType === 'manual') {
         updateColumnsByManual();
     }
                 
@@ -583,19 +584,16 @@ var createPageVectorSource = function(layerProperties) {
         .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxManualSource'}).data('containerIdx', 2))
         .append($('<label/>', {'for': 'chxManualSource'}).text(_gtxt('Вручную')));
         
-    $(sourceCheckbox).find('input, label').css({verticalAlign: 'middle'});
-    $(sourceCheckbox).find('label').css({marginLeft: 2});
-        
-    var sourceTab2 = $('<div/>');
-    var sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), _td([sourceTab2[0]])]);
-    
+    sourceCheckbox.find('input, label').css({verticalAlign: 'middle'});
+    sourceCheckbox.find('label').css({marginLeft: 2});
     sourceCheckbox.find('input').click(function()
     {
         var activeIdx = $(this).data('containerIdx');
         $(sourceTab).tabs('select', activeIdx);
     });
         
-    var activeCheckboxID = {'file': 'chxFileSource', 'table': 'chxTableSource', 'manual': 'chxManualSource'}[layerProperties.get('SourceType')];
+            
+    var activeCheckboxID = {'file': 'chxFileSource', 'table': 'chxTableSource', 'manual': 'chxManualSource'}[sourceType];
     $('#' + activeCheckboxID, sourceCheckbox).attr('checked', 'checked');
     
     var sourceTab = _div([_ul([
@@ -604,7 +602,7 @@ var createPageVectorSource = function(layerProperties) {
         _li([_a([_t(_gtxt('Вручную'))],[['attr','href','#manualSource' + layerName]])])
     ], [['css', 'display', 'none']])]);
 
-    var selectedSource = {'file': 0, 'table': 1, 'manual': 2}[layerProperties.get('SourceType')];
+    var selectedSource = {'file': 0, 'table': 1, 'manual': 2}[sourceType];
     _(sourceTab, sourceContainers);
         
     $(sourceTab).tabs({
@@ -629,8 +627,19 @@ var createPageVectorSource = function(layerProperties) {
         }
     });
     
-    _(sourceTab2[0], [sourceTab]);
-        
+    var sourceTr2;
+    
+    if (!layerName) {
+        sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), _td([_div([sourceTab])])]);
+    } else {
+        var sourceTitle = {'file': _gtxt('Файл'), 'table': _gtxt('Таблица'), 'manual': _gtxt('Вручную')}[sourceType];
+        var sourceControls = {'file': sourceFile, 'table': sourceTable, 'manual': _div()}[sourceType];
+        sourceTr2 = _tr([
+            _td([_t(_gtxt("Источник") + ': ' + sourceTitle)], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), 
+            _td([sourceControls])
+        ]);
+    }
+    
     shownProperties.push({tr: sourceTr2});
 
     return shownProperties;
