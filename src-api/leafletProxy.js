@@ -670,15 +670,24 @@
 
 			var standartTools = gmxAPI.map.standartTools;
 			if(standartTools && !skipToolNames[standartTools.activeToolName]) {
-				//var from = gmxAPI.map.layers.length - 1;
-				//for (var i = from; i >= 0; i--)
-				for (var i = 0, to = gmxAPI.map.layers.length; i < to; i++)
+				var from = gmxAPI.map.layers.length - 1;
+				var arr = [];
+				for (var i = from; i >= 0; i--)
 				{
 					var child = gmxAPI.map.layers[i];
 					if(!child.isVisible) continue;
 					var mapNode = mapNodes[child.objectId];
 					if(mapNode['eventsCheck']) {
-						if(mapNode['eventsCheck'](evName, attr)) return true;
+						arr.push({'zIndex': mapNode['zIndex'], 'id': child.objectId});
+					}
+				}
+				arr = arr.sort(function(a, b) { return b['zIndex'] - a['zIndex']; });
+				for (var i = 0, to = arr.length; i < to; i++)
+				{
+					var it = arr[i];
+					var mapNode = mapNodes[it['id']];
+					if(mapNode['eventsCheck'](evName, attr)) {
+						return true;
 					}
 				}
 			}
