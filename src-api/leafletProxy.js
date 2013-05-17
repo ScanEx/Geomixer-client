@@ -236,9 +236,7 @@
 			canvas1.height = hh;
 			var ptx1 = canvas1.getContext('2d');
 			ptx1.drawImage(canvas, 0, 0, ww, hh);
-			if(notFunc)	style['pattern']['_res'] = canvas1;
-			else delete style['pattern']['_res'];
-			return canvas1;
+			return { 'notFunc': notFunc, 'canvas': canvas1 };
 		}
 		,
 		'replaceColorAndRotate': function(img, style, size) {		// заменить цвет пикселов в иконке + rotate - результат canvas
@@ -855,6 +853,7 @@
 					pt['fillOpacity'] = ('opacity' in ph ? ph['opacity'] : 100);
 					if('pattern' in ph) {
 						var pattern = ph['pattern'];
+						delete pattern['_res'];
 						pt['pattern'] = pattern;
 						if('step' in pattern && typeof(pattern['step']) === 'string') {
 							pattern['patternStepFunction'] = gmxAPI.Parsers.parseExpression(pattern['step']);
@@ -2039,7 +2038,8 @@
 		,
 		'getPatternIcon':	function(hash)	{				// получить иконку pattern
 			var style = utils.parseStyle(hash['attr']['style']);
-			var canv = utils.getPatternIcon(null, style);
+			var pt = utils.getPatternIcon(null, style);
+			var canv = (pt ? pt['canvas'] : null);
 			if(canv) {
 				var size = hash['attr']['size'];
 				var canvas1 = document.createElement('canvas');
@@ -3598,9 +3598,15 @@
 				ctx.beginPath();
 				if(style) {
 					if(style['pattern']) {
-						var canvasPattern = style['pattern']['_res'] || gmxAPI._leaflet['utils'].getPatternIcon(out, style);
-						var pattern = ctx.createPattern(canvasPattern, "repeat");
-						ctx.fillStyle = pattern;
+						var canvasPattern = attr['canvasPattern'] || null;
+						if(!canvasPattern) {
+							var pt = gmxAPI._leaflet['utils'].getPatternIcon(out, style);
+							canvasPattern = (pt ? pt['canvas'] : null);
+						}
+						if(canvasPattern) {
+							var pattern = ctx.createPattern(canvasPattern, "repeat");
+							ctx.fillStyle = pattern;
+						}
 					} else if(style['linearGradient']) {
 						var rgr = style['linearGradient'];
 						var x1 = (rgr['x1Function'] ? rgr['x1Function'](prop) : rgr['x1']);
