@@ -673,7 +673,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				regularStyle = node['clustersData']['regularStyle'];
 			}
 			if(hoveredStyle) {	// todo - изменить drawInTiles с учетом Z
-				//if(!node['hoverItem'] || node['hoverItem'].geom.id != itemId) {
+				if(!node['hoverItem'] || node['hoverItem'].geom.id != itemId) {
 					var tilesNeed = {};
 					if(node['hoverItem']) {
 						var drawInTiles = node['hoverItem'].geom.propHiden['drawInTiles'];
@@ -697,7 +697,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					gmxAPI._div.style.cursor = 'pointer';
 					if(filter && callHandler('onMouseOver', item.geom, filter)) return true;
 					if(callHandler('onMouseOver', item.geom, gmxNode)) return true;
-				//}
+				}
 				return true;
 			}
 		}
@@ -861,6 +861,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				}
 				if(node['flipEnabled'] && oper === 'setFlip') {
 					var hItem = getTopFromArrItem(arr);
+					delete node['hoverItem'];
 					if(hItem) hoverItem(hItem);
 				}
 				
