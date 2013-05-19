@@ -316,7 +316,7 @@
 						for (var i = 0; i < items.length; i++)
 						{
 							var item = items[i];
-							if(node['temporal'] && !node.chkTemporalFilter(item)) continue;														// не прошел по мультивременному фильтру
+							if(TemporalColumnName && !node.chkTemporalFilter(item)) continue;														// не прошел по мультивременному фильтру
 							if(!item['propHiden'] || !item['propHiden']['toFilters'] || item['propHiden']['toFilters'].length == 0) continue;	// обьект не виден по стилевым фильтрам
 							
 							var prop = getPropItem(item);
@@ -492,8 +492,8 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 		}
 
 		node['chkTemporalFilter'] = function (item) {				// проверка мультивременного фильтра
-			if(node['temporal'] && item['propHiden']) {
-				if(node['temporal']['ut1'] > item['propHiden']['unixTimeStamp'] || node['temporal']['ut2'] < item['propHiden']['unixTimeStamp']) {
+			if(TemporalColumnName && item['propHiden']) {
+				if(!node['temporal'] || node['temporal']['ut1'] > item['propHiden']['unixTimeStamp'] || node['temporal']['ut2'] < item['propHiden']['unixTimeStamp']) {
 					return false;
 				}
 			}
