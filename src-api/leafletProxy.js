@@ -3110,6 +3110,67 @@
 			return true;
 		}
 
+		// Проверка размера точки по стилю
+		out['chkSize'] = function (node, style) {
+			var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
+
+			var size = style['size'] || 4;
+			var scale = style['scale'] || 1;
+			if(!out['_cache']) out['_cache'] = {};
+			if('_scale' in out['_cache']) scale = out['_cache']['_scale'];
+			else {
+				if(typeof(scale) == 'string') {
+					scale = (style['scaleFunction'] ? style['scaleFunction'](prop) : 1);
+				}
+				if(scale < style['minScale']) scale = style['minScale'];
+				else if(scale > style['maxScale']) scale = style['maxScale'];
+				out['_cache']['_scale'] = scale;
+			}
+			out['sx'] = scale * (style['imageWidth'] ? style['imageWidth'] : size);
+			out['sy'] = scale * (style['imageHeight'] ? style['imageHeight'] : size);
+
+			if(style['marker']) {
+				if(style['image']) {
+					var canv = out['_cache']['canv'];
+					if(!canv) {
+						canv = style['image'];
+						var rotateRes = style['rotate'] || 0;
+						if(rotateRes && typeof(rotateRes) == 'string') {
+							rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
+						}
+						style['rotateRes'] = rotateRes;
+						if(style['rotateRes'] || 'color' in style) {
+							if(style['rotateRes']) {
+								size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
+								out['sx'] = out['sy'] = Math.ceil(scale * size);
+							}
+							canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style, size);
+							out['_cache']['canv'] = canv;
+						}
+					} else {
+						out['sx'] = scale * canv.width;
+						out['sy'] = scale * canv.height;
+					}
+				} else if(style['polygons']) {
+					var rotateRes = style['rotate'] || 0;
+					if(rotateRes && typeof(rotateRes) == 'string') {
+						rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
+					}
+					style['rotateRes'] = rotateRes || 0;
+				}
+			} else {
+				if(style['fill']) {
+					if(style['radialGradient']) {
+						var rgr = style['radialGradient'];
+						var r1 = (rgr['r1Function'] ? rgr['r1Function'](prop) : rgr['r1']);
+						var r2 = (rgr['r2Function'] ? rgr['r2Function'](prop) : rgr['r2']);
+						size = 2 * scale * Math.max(r1, r2);
+						out['sx'] = out['sy'] = size;
+					}
+				}
+			}
+		}
+
 		// Отрисовка точки
 		out['paint'] = function (attr, style, ctx) {
 			if(!attr || !style) return;

@@ -1145,6 +1145,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 						else if('maxScale' in curStyle && scale > curStyle['maxScale']) scale = curStyle['maxScale'];
 						//size *= scale;
 						geo.propHiden.curStyle = curStyle;
+						if('chkSize' in geo) geo['chkSize'](node, curStyle);
 					}
 					break;						// Один обьект в один фильтр 
 				}
