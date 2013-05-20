@@ -669,8 +669,9 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					regularStyle = (filter.regularStyle ? filter.regularStyle : null);
 				}
 			} else {
-				hoveredStyle = node['clustersData']['hoveredStyle'];
+				//hoveredStyle = node['clustersData']['hoveredStyle'];
 				regularStyle = node['clustersData']['regularStyle'];
+				hoveredStyle = regularStyle;
 			}
 			if(hoveredStyle) {	// todo - изменить drawInTiles с учетом Z
 				if(!node['hoverItem'] || node['hoverItem'].geom.id != itemId) {
@@ -1858,7 +1859,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				arr = node['clustersData'].getTileClusterArray(arr, attr);
 				gmxAPI._leaflet['LabelsManager'].remove(node.id);	// Переформировать Labels
 				//removeFromBorderTiles(tKey);
-				node.waitRedrawFlips();							// требуется отложенная перерисовка
+				node.waitRedrawFlips(100);							// требуется отложенная перерисовка
 			}
 			drawGeoArr(arr);
 			arr = null;
