@@ -162,7 +162,7 @@ var createRC = function(results, params)
                 continue;
             
             objs.push({
-                properties: {GM_LayerName: results[sid].layerProperties.name}
+                source: {layerName: results[sid].layerProperties.name}
             });
         }
         
