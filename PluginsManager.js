@@ -115,7 +115,7 @@ var PluginsManager = function()
     var joinedPluginInfo = {};
     
     //сначала загружаем инфу о плагинах из переменной nsGmx._defaultPlugins - плагины по умолчанию
-    $.each(nsGmx._defaultPlugins, function(i, info) {
+    nsGmx._defaultPlugins && $.each(nsGmx._defaultPlugins, function(i, info) {
         if (typeof info === 'string') {
             info = { module: info, file: 'plugins/' + info + '.js' };
         }
@@ -123,7 +123,7 @@ var PluginsManager = function()
     })
     
     //сначала дополняем её инфой из window.gmxPlugins с возможностью перезаписать
-    $.each(window.gmxPlugins, function(i, info) {
+    window.gmxPlugins && $.each(window.gmxPlugins, function(i, info) {
         if (typeof info === 'string') {
             info = { module: info, file: 'plugins/' + info + '.js' };
         }
