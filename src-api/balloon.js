@@ -629,6 +629,10 @@
 				{
 					if(propsBalloon.delayHide) updateVisible(false);
 				}
+				,
+				stateListeners: {},
+				addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },
+				removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
 			};
 			return ret;
 		}
@@ -840,6 +844,7 @@ event.stopImmediatePropagation();
 						}
 						gmxAPI.stopEvent(ev);
 						gmxAPI._mouseOnBalloon = false;
+						gmxAPI._listeners.dispatchEvent('onClose', balloon, false);
 					},
 					onmouseover: function()
 					{
