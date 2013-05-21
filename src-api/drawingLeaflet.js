@@ -12,9 +12,7 @@
 
 	var chkStyle = function(drawAttr, regularStyle, hoveredStyle) {
 		if(drawAttr['regularStyle']) {
-			//var opacity = ('opacity' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['opacity']/100 : 1);
 			var opacity = ('opacity' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['opacity']/100 : 1);
-			//var opacity = 1;
 			var color = ('color' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['color'] : 0xff);
 			drawAttr['strokeStyle']['color'] = gmxAPI._leaflet['utils'].dec2rgba(color, opacity);
 			var weight = ('weight' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['weight'] : lineWidth);
@@ -25,9 +23,6 @@
 				
 			};
 			drawAttr['stylePoint'] = gmxAPI.clone(stylePoint);
-			//var stylePolygon = {color: "#0000ff", fillColor: "#ff0000", weight: lineWidth, opacity: 1, fillOpacity: 0.5};
-			//var stylePoint = {color: "#0000ff", fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1};
-			//drawAttr['stylePoint']['pointSize'] = pointSize + weight - lineWidth;
 			drawAttr['stylePoint']['pointSize'] = pointSize;
 			drawAttr['stylePoint']['color'] = drawAttr['stylePolygon']['color'];
 			drawAttr['stylePoint']['weight'] = drawAttr['stylePolygon']['weight'];
@@ -144,12 +139,15 @@
 			var pstyle = attr['stylePoint'] || stylePoint;
 			//pstyle['skipLastPoint'] = (attr['editType'] !== 'LINESTRING');
 			layerItems.push(new L.GMXPointsMarkers([], pstyle));
+			if(attr['setEditEnd']) {
+				layerItems[1].options['skipLastPoint'] = false;
+			}
 
 			layerGroup.addLayer(layerItems[0]);
 			layerGroup.addLayer(layerItems[1]);
 
 			layerItems[1]._container.style.pointerEvents = 'painted';
-			layerItems[0]._container.style.pointerEvents = (attr['editType'] !== 'FRAME' ? 'none':'painted');
+			layerItems[0]._container.style.pointerEvents = (!attr['isExternal'] && attr['editType'] !== 'FRAME' ? 'none':'painted');
 
 			layerItems[0].on('mousedown', function(e) {
 				var downType = getDownType(e, attr['coords'], dBounds);
@@ -238,6 +236,7 @@
 	};
 	
 	var objects = {};
+	//var multiObjects = {};
 	var drawFunctions = {};
 
 	var chkDrawingObjects = function() {
@@ -252,7 +251,7 @@
 		gmxAPI._drawing['activeState'] = false;
 	};
 
-	var createDOMObject = function(ret, properties)
+	var createDOMObject = function(ret, properties, propHiden)
 	{
 		var myId = gmxAPI.newFlashMapId();
 		var myContents;
@@ -267,12 +266,20 @@
 		var addHandlerCalled = false;
 		objects[myId] = {
 			properties: properties || {},
+			propHiden: propHiden || {},
 			setText: ret.setText,
 			setVisible: function(flag)
 			{
 				ret.setVisible(flag);
 				this.properties.isVisible = flag;
 			},
+/*			updateCoordinates: function(coords)
+			{
+				if(coords.type) coords = coords.coordinates;	// Если это geometry берем только координаты
+				if(!coords) return;				// Если нет coords ничего не делаем
+				ret.updateCoordinates(coords);
+			},
+*/
 			update: function(geometry, text)
 			{
 				if(!geometry) return;				// Если нет geometry ничего не делаем
@@ -313,7 +320,7 @@
 		return objects[myId];
 	}
 
-	drawFunctions.POINT = function(coords, props)
+	drawFunctions.POINT = function(coords, props, propHiden)
 	{
 		if (!props)
 			props = {};
@@ -342,7 +349,12 @@
 			//}
 			var flag = gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
 			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
+/*			
+			var eObj = (domObj.propHiden['multiObj'] ? domObj.propHiden['multiObj'] : domObj);
+			var flag = gmxAPI._listeners.dispatchEvent(eType, eObj, eObj);
+			if(!flag) flag = gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, eObj);
 			//console.log('chkEvent:  ', eType, flag);
+*/
 			return flag;
 		}
 
@@ -433,6 +445,11 @@
 				if(balloon) balloon.setPoint(xx, yy, isDragged);
 				updateDOM();
 			}
+/*			ret.updateCoordinates = function(newCoords)
+			{
+				position(newCoords[0], newCoords[1]);
+			}
+*/
 			var apiBase = gmxAPI.getAPIFolderRoot();
 
 			obj.setStyle(
@@ -657,7 +674,7 @@
 					balloon.setVisible(showFlag);
 				}});
 			}
-			domObj = createDOMObject(ret);
+			domObj = createDOMObject(ret, null, propHiden);
 			domObj.objectId = obj.objectId;
 			position(xx, yy);
 			if(balloon) {
@@ -698,7 +715,7 @@
 		return ret;
 	}
 
-	var editObject = function(coords, props, editType)
+	var editObject = function(coords, props, editType, propHiden)
 	{
 		if (!props)
 			props = {};
@@ -797,6 +814,10 @@
 					if(new Date().getTime() - downTime > 500) return;
 					gmxAPI._listeners.dispatchEvent('onClick', domObj, domObj);
 					gmxAPI._listeners.dispatchEvent('onClick', gmxAPI.map.drawing, domObj);
+/*					var eObj = (domObj.propHiden['multiObj'] ? domObj.propHiden['multiObj'] : domObj);
+					gmxAPI._listeners.dispatchEvent('onClick', eObj, eObj);
+					gmxAPI._listeners.dispatchEvent('onClick', gmxAPI.map.drawing, eObj);
+*/
 				});
 			}
 		}
@@ -823,7 +844,7 @@
 			if(needInitNodeEvents) chkNodeEvents();
 			drawAttr['mousedown'] = function(e, attr)
 			{
-				if(currentDOMObject && currentDOMObject.objectId != attr['id']) return;
+				//if(currentDOMObject && currentDOMObject.objectId != attr['id']) return;
 				if(lastPoint) addDrawingItem(e);		// Добавление точки
 				else itemMouseDown(e);					// Изменение точки
 			};
@@ -857,7 +878,6 @@
 			drawAttr['node'] = node;
 			drawAttr['clickMe'] = addDrawingItem;
 			drawAttr['mouseUp'] = mouseUp;
-
 			drawSVG(drawAttr);
 		}
 
@@ -874,6 +894,10 @@
 			}
 			gmxAPI._listeners.dispatchEvent(eType, domObj, domObj);
 			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, domObj);
+/*			var eObj = (domObj.propHiden['multiObj'] ? domObj.propHiden['multiObj'] : domObj);
+			gmxAPI._listeners.dispatchEvent(eType, eObj, eObj);
+			gmxAPI._listeners.dispatchEvent(eType, gmxAPI.map.drawing, eObj);
+*/
 		}
 
 		ret.isVisible = (props.isVisible == undefined) ? true : props.isVisible;
@@ -890,7 +914,13 @@
 			this.properties.text = text;
 			//callOnChange();
 		}
-
+/*		ret.updateCoordinates = function(newCoords)
+		{
+			coords = newCoords;
+			if(coords.length == 1) coords = coords[0];	// todo нужно дырки обрабатывать
+			drawMe();
+		}
+*/
 		ret.setStyle = function(regularStyle, hoveredStyle) {
 			obj.setStyle(regularStyle, hoveredStyle);
 			drawAttr['regularStyle'] = gmxAPI._leaflet['utils'].parseStyle(regularStyle, obj.objectId);
@@ -957,7 +987,7 @@
 					if(toolsContainer) toolsContainer.selectTool("move");
 					eventType = 'onFinish';
 					chkEvent(eventType);
-					mouseOverFlag = true;
+//					mouseOverFlag = true;
 					gmxAPI._drawing['activeState'] = false;
 					finishTime = new Date().getTime();
 					return true;
@@ -1063,6 +1093,7 @@
 		//var itemMouseDownID = null;
 		ret.chkMouse = function(ph)
 		{
+//console.log('chkMouse:  ', obj.objectId, mouseOverFlag);
 			if(!mouseOverFlag) return false;
 //console.log('chkMouse:  ', obj.objectId, mouseOverFlag);
 			var downType = getDownType(ph, coords, oBounds);
@@ -1102,7 +1133,7 @@
 		}
 		var createDrawingItem = function()
 		{
-			domObj = createDOMObject(ret, props);
+			domObj = createDOMObject(ret, props, propHiden);
 			domObj.objectId = obj.objectId;
 			domObj['stateListeners'] = obj['stateListeners'];
 			node = mapNodes[obj.objectId];
@@ -1118,7 +1149,10 @@
 			if(coords.length == 1) coords = coords[0];
 			if(editType === 'POLYGON') {
 				if(coords.length && coords[0].length != 2) coords = coords[0];
+			} else if(editType === 'LINESTRING') {
+				drawAttr['setEditEnd'] = true;
 			}
+			drawAttr['isExternal'] = true;
 			lastPoint = null;
 			oBounds = gmxAPI.getBounds(coords);
 			createDrawingItem();
@@ -1130,16 +1164,16 @@
 
 		return ret;
 	}
-	drawFunctions.LINESTRING = function(coords, props)
+	drawFunctions.LINESTRING = function(coords, props, propHiden)
 	{
-		return editObject(coords, props, 'LINESTRING')
+		return editObject(coords, props, 'LINESTRING', propHiden)
 	}
-	drawFunctions.POLYGON = function(coords, props)
+	drawFunctions.POLYGON = function(coords, props, propHiden)
 	{
 		if (gmxAPI.isRectangle(coords)) return drawFunctions.FRAME(coords, props);
-		return editObject(coords, props, 'POLYGON')
+		return editObject(coords, props, 'POLYGON', propHiden)
 	}
-	drawFunctions.FRAME = function(coords, props)
+	drawFunctions.FRAME = function(coords, props, propHiden)
 	{
 		if (!props)
 			props = {};
@@ -1335,7 +1369,7 @@
 		{
 			obj = gmxAPI.map.addObject(null, null, {'subType': 'drawingFrame', 'getPos': getPos, 'drawMe': drawMe});
 			obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
-			domObj = createDOMObject(ret, props);
+			domObj = createDOMObject(ret, props, propHiden);
 			domObj.objectId = obj.objectId;
 			domObj['stateListeners'] = obj['stateListeners'];
 			node = mapNodes[obj.objectId];
@@ -1493,6 +1527,14 @@
 			}	
 			return flag;
 		}
+/*		ret.updateCoordinates = function(newCoords)
+		{
+			coords = newCoords;
+			oBounds = gmxAPI.getBounds(coords);
+			x1 = oBounds.minX; y1 = oBounds.maxY;	x2 = oBounds.maxX; y2 = oBounds.minY;
+			repaint(10);
+		}
+*/
 		gmxAPI._cmdProxy('startDrawing');
 		if (coords)
 		{
@@ -1591,10 +1633,14 @@
 			}
 		,				
 		//props опционально
-		addObject: function(geom, props)
+		addObject: function(geom, props, propHiden)
 		{
+			if(!propHiden) propHiden = {};
+			if(!props) props = {};
 			if (geom.type.indexOf("MULTI") != -1)
 			{
+				if(!propHiden) propHiden = {};
+				propHiden['multiFlag'] = true;
 				for (var i = 0; i < geom.coordinates.length; i++)
 					this.addObject(
 						{ 
@@ -1603,10 +1649,106 @@
 						},
 						props
 					);
+/*				
+				var myId = gmxAPI.newFlashMapId();
+				var fObj = {
+					'geometry': geom
+					,'objectId': myId
+					,'properties': props
+					,'propHiden':propHiden
+					,'members': []
+					,'forEachObject': function(callback) {
+						if(!callback) return;
+						for (var i = 0; i < this.members.length; i++) callback(this.members[i].domObj);
+					}
+					,'setStyle': function(regularStyle, hoveredStyle) {
+						this.forEachObject(function(context) { context.setStyle(regularStyle, hoveredStyle); });
+					}
+					,'remove': function() {
+						this.forEachObject(function(context) { context.remove(); });
+						delete multiObjects[myId];
+					}
+					,'setVisible': function(flag) {
+						this.forEachObject(function(context) { context.setVisible(flag); });
+					}
+					,'getStyle': function(flag) {
+						return (this.members.length ? this.members[0].domObj.getStyle(flag) : null);
+					}
+					,'getGeometry': function() {
+						var coords = [];
+						this.forEachObject(function(context) { coords.push(context.getGeometry().coordinates); });
+						this.geometry.coordinates = coords;
+						return gmxAPI.clone(this.geometry);
+					}
+					,'updateCoordinates': function(newCoords) {
+						if(newCoords.type) newCoords = newCoords.coordinates;	// Если это geometry берем только координаты
+						var type = geom.type.replace("MULTI", "");
+						this.geometry.coordinates = newCoords;
+						var oldLen = fObj['members'].length;
+						for (var i = newCoords.length; i < oldLen; i++)
+						{
+							fObj['members'][i].remove();
+							fObj['members'].pop();
+						}
+						for (var i = 0; i < newCoords.length; i++)
+						{
+							if(i >= this['members'].length) {
+								var o = drawFunctions[type](newCoords[i][0], props, propHiden);		// нужна обработка дырок в polygon обьекте
+								fObj['members'].push(o);
+							} else {
+								fObj['members'][i].updateCoordinates(newCoords[i][0]);
+							}
+						}
+					}
+					,'getArea': function() {
+						var res = 0;
+						this.forEachObject(function(context) { res += context.getArea(); });
+						return res;
+					}
+					,'getLength': function() {
+						var res = 0;
+						this.forEachObject(function(context) { res += context.getLength(); });
+						return res;
+					}
+					,'getCenter': function() {
+						var centers = [];
+						this.forEachObject(function(context) {
+							centers.push(context.getCenter());
+						});
+						var res = null;
+						if(centers.length) {
+							res = [0, 0];
+							for (var i = 0; i < centers.length; i++) {
+								res[0] += centers[i][0];
+								res[1] += centers[i][1];
+							}
+							res[0] /= centers.length;
+							res[1] /= centers.length;
+						}
+						return res;
+					}
+					,stateListeners: {}
+					,addListener: function(eventName, func) {
+						return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func});
+					}
+					,removeListener: function(eventName, id) {
+						return gmxAPI._listeners.removeListener(this, eventName, id);
+					}
+				};
+				multiObjects[myId] = fObj;
+				propHiden['multiObj'] = fObj;
+				var type = geom.type.replace("MULTI", "");
+				for (var i = 0; i < geom.coordinates.length; i++)
+				{
+					var o = drawFunctions[type](geom.coordinates[i], props, propHiden);
+					fObj['members'].push(o);
+				}
+				return fObj;
+				*/
 			}
 			else
 			{
-				var o = drawFunctions[geom.type](geom.coordinates, props);
+				var o = drawFunctions[geom.type](geom.coordinates, props, propHiden);
 				//gmxAPI._tools['standart'].selectTool("move");
 				return o.domObj;
 			}
@@ -1634,6 +1776,15 @@
 				var cObj = objects[id];
 				if(cObj.geometry) callback(cObj);
 			}
+/*			
+			for (var id in objects) {
+				var cObj = objects[id];
+				if(cObj.geometry && !cObj.propHiden['multiFlag']) callback(cObj);
+			}
+			for (var id in multiObjects) {
+				var cObj = multiObjects[id];
+				if(cObj.geometry) callback(cObj);
+			}*/
 		}
 		,
 		tools: { 
@@ -1684,6 +1835,7 @@
 		,
 		chkMouseHover: function(attr, fName)
 		{
+//console.log('chkMouseHover:  ', fName, mouseOverFlag);
 			if(!mouseOverFlag) return;
 			if(!fName) fName = 'chkMouse';
 			if(!mousePressed || attr['evName'] == 'onMouseDown') {

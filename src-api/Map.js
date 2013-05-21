@@ -297,8 +297,9 @@
 		map.setZoomBounds = map.setMinMaxZoom;
 
 		map.grid = {
-			setVisible: function(flag) { gmxAPI._cmdProxy('setGridVisible', { 'attr': flag }) },
-			getVisibility: function() { return gmxAPI._cmdProxy('getGridVisibility', {}) }
+			setVisible: function(flag) { gmxAPI._cmdProxy('setGridVisible', { 'attr': flag }) }
+			,getVisibility: function() { return gmxAPI._cmdProxy('getGridVisibility', {}) }
+			,setOneDegree: function(flag) { gmxAPI._cmdProxy('setOneDegree', { 'attr': flag }) }
 		};
 
 		//Begin: tools

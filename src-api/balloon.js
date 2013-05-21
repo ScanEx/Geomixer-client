@@ -259,7 +259,8 @@
 						return false;
 					}
 					if(!keyPress) keyPress = {};
-					keyPress['textFunc'] = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
+					if(keyPress['objType'] === 'cluster' && 'clusters' in o) keyPress['textFunc'] = o.clusters.getTextFunc();
+					if(!keyPress['textFunc']) keyPress['textFunc'] = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
 					return clickBalloonFix(o, keyPress);
 				}
 			};

@@ -938,6 +938,11 @@ skype_pnh_container
     vertical-align: middle;
 }
 
+.temporal-maxshow
+{
+    width: 50px;
+}
+
 .searchCanvas .PeriodCalendar
 {
 	margin: 0px;

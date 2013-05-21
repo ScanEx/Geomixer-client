@@ -6,10 +6,17 @@
 	{
 		var flag = true;
 
-		if (this.shownQuicklooks)
-			for (var url in this.shownQuicklooks)
-				this.shownQuicklooks[url].remove();
 		var shownQuicklooks = {};
+		var removeQuicklooks = function()
+		{
+			for (var id in shownQuicklooks) {
+				shownQuicklooks[id].remove();
+				delete shownQuicklooks[id];
+			}
+		}
+		if (this.shownQuicklooks) removeQuicklooks();
+
+		this.removeQuicklooks = removeQuicklooks;
 		this.shownQuicklooks = shownQuicklooks;
 
 		this.addListener('onClick', function(o)

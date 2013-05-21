@@ -2205,7 +2205,7 @@ mapHelper.prototype.createStyleEditor = function(parent, templateStyle, geometry
 			$(resObject).change();
 		};
 	
-	if (geometryType != "point")
+	if (geometryType != "point" && gmxAPI.proxyType !== 'leaflet')
 	{
 		var dashTrs = []
 		for (var i = 1; i <= 7; i+=3)
@@ -3075,7 +3075,7 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 	_(multiStyleParent, [_ul([_li([_div([_t(_gtxt("Стили слоя"))]), ulFilters])])]);
 	
 	if (typeof treeviewFlag == 'undefined')
-		$(multiStyleParent.firstChild).treeview();
+        $(multiStyleParent.firstChild).treeview();
 }
 
 mapHelper.prototype.updateStyles = function(filterCanvas)

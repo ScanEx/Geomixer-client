@@ -11,9 +11,12 @@ $('#flash').droppable({
     drop: function(event, ui) {
         //console.log(ui.draggable[0].geometry);
         var obj = ui.draggable[0].gmxDrawingObject;
-        var text = Functions.GetFullName(obj.TypeName, obj.ObjName);
-        globalFlashMap.drawing.addObject(obj.Geometry, {text: text});
-        //console.log('drop', event, ui);
+        
+        if (obj) {
+            var text = Functions.GetFullName(obj.TypeName, obj.ObjName);
+            globalFlashMap.drawing.addObject(obj.Geometry, {text: text});
+        }
+        
     }
 })
 

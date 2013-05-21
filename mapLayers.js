@@ -402,13 +402,6 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
             });
         }
 		
-		var multiStyleParent = $(childs).children('[multiStyle]');
-		
-		if (multiStyleParent.length)
-			$(multiStyleParent[0]).treeview();	
-	//	if ($(childs[childs.length - 1]).hasClass('hiddenTree')) // несколько стилей
-	//		$(childs[childs.length - 1]).treeview();
-		
 		div.gmxProperties = elem;
 		div.gmxProperties.content.properties = elemProperties;
 	}
@@ -1992,6 +1985,8 @@ queryMapLayers.prototype.asyncUpdateLayer = function(task, properties, needRetil
                 var newLayer = globalFlashMap.layers[newLayerProperties.name],
                     parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
                     li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
+                    
+                    $(li).find(['[multiStyle]']).treeview();
                 
                     $(layerDiv.parentNode).replaceWith(li);
                     

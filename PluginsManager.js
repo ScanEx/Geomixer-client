@@ -112,46 +112,53 @@ var PluginsManager = function()
 	var _plugins = [];
     var _pluginsWithName = {};
 	
-	//загружаем инфу о модулях и сами модули при необходимости из window.gmxPlugins
-	if (typeof window.gmxPlugins !== 'undefined')
-	{
-		var modules = [];
+    var joinedPluginInfo = {};
+    
+    //сначала загружаем инфу о плагинах из переменной nsGmx._defaultPlugins - плагины по умолчанию
+    nsGmx._defaultPlugins && $.each(nsGmx._defaultPlugins, function(i, info) {
+        if (typeof info === 'string') {
+            info = { module: info, file: 'plugins/' + info + '.js' };
+        }
+        joinedPluginInfo[info.module] = info;
+    })
+    
+    //сначала дополняем её инфой из window.gmxPlugins с возможностью перезаписать
+    window.gmxPlugins && $.each(window.gmxPlugins, function(i, info) {
+        if (typeof info === 'string') {
+            info = { module: info, file: 'plugins/' + info + '.js' };
+        }
+        joinedPluginInfo[info.module] = $.extend(true, joinedPluginInfo[info.module], info);
+    })
+    
+    $.each(joinedPluginInfo, function(key, info) {
+        if (typeof info === 'string')
+            info = { module: info, file: 'plugins/' + info + '.js' };
         
-        $.each(window.gmxPlugins, function(i, info)
-		{
-            if (typeof info === 'string')
-                info = { module: info, file: 'plugins/' + info + '.js' };
-            
-            var plugin = new Plugin(
-                info.module, 
-                info.file,
-                info.plugin,
-                info.params,
-                info.pluginName,
-                info.mapPlugin,
-                info.isPublic || false
-            );
-            
-            _plugins.push(plugin);
-            
-            if (plugin.pluginName) {
-                _pluginsWithName[ plugin.pluginName ] = plugin;
-            }
-            else
+        var plugin = new Plugin(
+            info.module, 
+            info.file,
+            info.plugin,
+            info.params,
+            info.pluginName,
+            info.mapPlugin,
+            info.isPublic || false
+        );
+        
+        _plugins.push(plugin);
+        
+        if (plugin.pluginName) {
+            _pluginsWithName[ plugin.pluginName ] = plugin;
+        }
+        else
+        {
+            plugin.def.done(function()
             {
-                plugin.def.done(function()
-                {
-                    if (plugin.pluginName) {
-                        _pluginsWithName[ plugin.pluginName ] = plugin;
-                    }
-                })
-            }
-		})
-	}
-	else
-	{
-		// _initDone = true;
-	}
+                if (plugin.pluginName) {
+                    _pluginsWithName[ plugin.pluginName ] = plugin;
+                }
+            })
+        }
+    })
     
     var _genIterativeFunction = function(funcName)
     {

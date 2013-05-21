@@ -165,10 +165,10 @@
             var res = {};
             nsGmx.timelineControl.eachItem(imagesLayerName, function(objID, item)
             {
-                if (item.obj.properties.GM_LayerName === mainImage)
+                if (item.obj.properties.GMX_RasterLayerID === mainImage)
                     res.mainProps = item.obj.properties;
                     
-                if (item.obj.properties.GM_LayerName === refImage)
+                if (item.obj.properties.GMX_RasterLayerID === refImage)
                     res.refProps = item.obj.properties;
             })
             
