@@ -25,7 +25,10 @@ var initTranslations = function()
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Контур пожара</b></div>" + 
             "<b>Кол-во точек пожаров:</b> [count]<br/>" + 
             "<b>Время наблюдения:</b> [dateRange]<br/>" + 
-            "<div>[SUMMARY]</div>"
+            "<div>[SUMMARY]</div>",
+        "firesWidget.timeTitlePrefix" : "За ",
+        "firesWidget.timeTitleLastPrefix" : "За последние ",
+        "firesWidget.timeTitlePostfix" : "ч (UTC)"
     });
                              
     _translationsHash.addtext("eng", {
@@ -50,7 +53,10 @@ var initTranslations = function()
             "<div style='margin-bottom: 5px;'><b style='color: red;'>Fire outline</b></div>" + 
             "<b>Number of hotspots:</b> [count]<br/>" + 
             "<b>Observation period:</b> [dateRange]<br/>" + 
-            "<div>[SUMMARY]</div>"
+            "<div>[SUMMARY]</div>",
+        "firesWidget.timeTitlePrefix" : "For ",
+        "firesWidget.timeTitleLastPrefix" : "For last ",
+        "firesWidget.timeTitlePostfix" : "h (UTC)"
     });
 }
 						 
@@ -1596,17 +1602,17 @@ var FireBurntRenderer3 = function( params )
             RenderStyle: {
                 marker: {
                     image: serverBase + 'images/' + 'fire_sample.png',  //TODO: передать хост явно
-                    // center: true
                     scale: '[scale]'
                 },
                 // fill: {
                     // radialGradient: {
                         // r1: 0,
-                        // r2: '[scale]',
+                        // r2: '[scale]*20',
                         // // r2: 10,
                         // addColorStop: [
-                            // [0, 0xff0000, 100],
-                            // [1, 0xff0000, 0]
+                            // [0, 0xffff00, 50],
+                            // [0.99, 0xff0000, 50],
+                            // [1, 0xff3300, 0]
                         // ]
                     // }
                 // },
@@ -1744,7 +1750,7 @@ var FireBurntRenderer3 = function( params )
                             id: k,
                             properties: {
                                 scale: String(Math.sqrt(count)/5),
-                                // scale: Math.floor(Math.sqrt(count)*4),
+                                // scale: Math.floor(Math.sqrt(count)*3),
                                 count: count,
                                 label: count >= 10 ? count : null,
                                 startDate: strStartDate,
@@ -2137,13 +2143,21 @@ FireControl.prototype.getBbox = function()
 
 //предполагаем, что dateBegin, dateEnd не нулевые
 FireControl.prototype.loadForDates = function(dateBegin, dateEnd)
-{
-	
-	// //в упрощённом режиме будем запрашивать за последние 24 часа, а не за календартный день
-	if (this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE)
-	{			
-		dateBegin.setTime(dateBegin.getTime() - 24*60*60*1000);
-	}
+{    
+    //если по каким-то причинам выбран период меньше 12 часов (например, в начале суток по UTC), то включаем в выдачу ещё и данные за предыдущие сутки.
+    if (dateEnd - dateBegin < 12*3600*1000) {
+        dateBegin = new Date(dateBegin.valueOf() - 24*60*60*1000);
+    }
+    
+    if ( this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE ) {
+        var hours = Math.ceil((dateEnd - dateBegin)/3600000);
+        var hoursStr = hours > 24 ? "24+" + (hours-24) : hours;
+        var prefix = hours === 24 ? _gtxt("firesWidget.timeTitlePrefix") : _gtxt("firesWidget.timeTitleLastPrefix");
+        this._infoDiv.html(prefix + hoursStr + _gtxt("firesWidget.timeTitlePostfix"));
+    } else {
+        this._infoDiv.empty();
+    }
+    
 	
 	var curExtent = this.getBbox();
 	
@@ -2338,6 +2352,8 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 
     this._calendar = calendar;
 	this._visModeController = calendar.getModeController();
+    
+    this._infoDiv = $('<div/>').css('margin-left', '25px').insertAfter(calendar.canvas);
     
 	//this.searchBboxController.init();
 	
