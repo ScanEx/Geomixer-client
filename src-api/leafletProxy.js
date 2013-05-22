@@ -1136,10 +1136,15 @@
 		'drawPoint': function(node, style)	{			// отрисовка POINT геометрии
 			var out = null;
 			var styleType = (style['iconUrl'] ? 'marker' : (style['stroke'] || style['fill'] ? 'rectangle' : ''));
+			if(style['circle']) styleType = 'circle';
 			var geo = node.geometry;
 			var pos = geo.coordinates;
 			var prop = geo.properties;
-			if(styleType === 'marker') {						// стиль маркер
+			if(styleType === 'circle') {							// стиль окружность
+				if('size' in style) style['radius'] = style['size'];
+				if(!('weight' in style)) style['weight'] = 0;
+				out = new L.CircleMarker(new L.LatLng(pos[1], pos[0]), style);
+			} else if(styleType === 'marker') {						// стиль маркер
 				var opt = {
 					iconUrl: style['iconUrl']
 					//,clickable: false
@@ -1185,7 +1190,7 @@
 				}
 				
 				out = new L.GMXMarker(new L.LatLng(pos[1], pos[0]), optMarker);
-			} if(styleType === 'rectangle') {					// стиль rectangle
+			} else if(styleType === 'rectangle') {					// стиль rectangle
 				// create rectangle from a LatLngBounds
 				var size = style['size'] || 0;
 				var point = new L.LatLng(pos[1], pos[0]);
@@ -1802,7 +1807,7 @@
 		}
 		return out;
 	}
-	// Рекурсивное изменение видимости
+	// Изменение видимости
 	function setVisibleNode(ph) {
 		var id = ph.obj.objectId || ph.obj.id;
 		var node = mapNodes[id];
@@ -2368,6 +2373,20 @@
 		}
 		,
 		'setVectorTiles': gmxAPI._leaflet['setVectorTiles']			// Установка векторный тайловый слой
+		,
+		'setWatcher':	function(ph)	{			// Установка подглядывателя обьекта под Hover обьектом
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return null;
+			if('setWatcher' in node) node['setWatcher'](ph.attr);
+		}
+		,
+		'removeWatcher': function(ph)	{				// Удалить подглядыватель
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return null;
+			if('removeWatcher' in node) node['removeWatcher']();
+		}
 		,
 		'setFilter':	function(ph)	{			// Установка фильтра
 			var id = ph.obj.objectId;
@@ -3284,7 +3303,10 @@
 						var y2 = (rgr['y2Function'] ? rgr['y2Function'](prop) : rgr['y2']);
 						size = 2 * scale * Math.max(r1, r2);
 						out['sx'] = out['sy'] = size;
-						var radgrad = ctx.createRadialGradient(px1+x1,py1+y1,r1, px1+x2, py1+y2,r2);  
+						px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
+						py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
+
+						var radgrad = ctx.createRadialGradient(px1+x1, py1+y1, r1, px1+x2, py1+y2,r2);  
 						for (var i = 0; i < style['radialGradient']['addColorStop'].length; i++)
 						{
 							var arr = style['radialGradient']['addColorStop'][i];
@@ -3295,8 +3317,8 @@
 							radgrad.addColorStop(p0, p1);
 						}
 						ctx.fillStyle = radgrad;
-						
-						ctx.arc(px1,py1, size, 0, 2*Math.PI);
+
+						ctx.arc(px1, py1, size/2, 0, 2*Math.PI);
 						//ctx.fillRect(px1,py1, 2*size, 2*size);
 						//ctx.fillRect(0, 0, 256, 256);
 					} else {
@@ -4278,6 +4300,7 @@ var tt = 1;
 				var attr = parseEvent(e);
 				if(!attr) return;				// пропускаем
 				attr['evName'] = 'onMouseMove';
+				gmxAPI._leaflet['mouseMoveAttr'] = attr;
 				if(gmxAPI._drawing['activeState']) {
 					gmxAPI._listeners.dispatchEvent('onMouseMove', gmxAPI.map, {'attr':attr});
 				} else {
@@ -4816,6 +4839,7 @@ var tt = 1;
 	gmxAPI._leaflet['waitSetImage'] = 0;			// текущее число загружаемых SetImage
 	gmxAPI._leaflet['curDragState'] = false;		// текущий режим dragging карты
 	gmxAPI._leaflet['mousePressed'] = false;		// признак нажатой мыши
+	gmxAPI._leaflet['mouseMoveAttr'] = null;		// атрибуты mouseOver
 	gmxAPI._leaflet['activeObject'] = null;			// Нода последнего mouseOver
 	//if('Worker' in window) {
 		//gmxAPI._leaflet['worker'] = new Worker('src-api/taskWorker.js');

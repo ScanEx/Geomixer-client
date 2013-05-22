@@ -303,6 +303,12 @@
 			obj.enableFlip = function() {			// Установить ротацию обьектов слоя
 				return gmxAPI._cmdProxy('enableFlip', { 'obj': obj, 'attr':{'layerId':obj.objectId} });
 			};
+			obj.setWatcher = function(attr) {		// Установка подглядывателя обьекта под Hover обьектом
+				return gmxAPI._cmdProxy('setWatcher', { 'obj': obj, 'attr':attr });
+			};
+			obj.removeWatcher = function() {		// Удалить подглядыватель
+				return gmxAPI._cmdProxy('removeWatcher', { 'obj': obj });
+			};
 		}
 
 		var hostName = layer.properties.hostName || "maps.kosmosnimki.ru";
