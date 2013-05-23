@@ -3183,7 +3183,7 @@
 						var rgr = style['radialGradient'];
 						var r1 = (rgr['r1Function'] ? rgr['r1Function'](prop) : rgr['r1']);
 						var r2 = (rgr['r2Function'] ? rgr['r2Function'](prop) : rgr['r2']);
-						size = 2 * scale * Math.max(r1, r2);
+						size = scale * Math.max(r1, r2);
 						out['sx'] = out['sy'] = size;
 					}
 				}
@@ -3301,7 +3301,7 @@
 						var y1 = (rgr['y1Function'] ? rgr['y1Function'](prop) : rgr['y1']);
 						var x2 = (rgr['x2Function'] ? rgr['x2Function'](prop) : rgr['x2']);
 						var y2 = (rgr['y2Function'] ? rgr['y2Function'](prop) : rgr['y2']);
-						size = 2 * scale * Math.max(r1, r2);
+						size = scale * Math.max(r1, r2);
 						out['sx'] = out['sy'] = size;
 						px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
 						py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
@@ -3318,7 +3318,7 @@
 						}
 						ctx.fillStyle = radgrad;
 
-						ctx.arc(px1, py1, size/2, 0, 2*Math.PI);
+						ctx.arc(px1, py1, size, 0, 2*Math.PI);
 						//ctx.fillRect(px1,py1, 2*size, 2*size);
 						//ctx.fillRect(0, 0, 256, 256);
 					} else {
