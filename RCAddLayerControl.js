@@ -239,18 +239,17 @@ nsGmx.RCAddLayerControl = function(map, layerName)
         select: function(event, ui) {
             if (ui.index === 4) {
                 listeners = [];
-                for (var iL = 0; iL < globalFlashMap.layers.length; iL++)
+                for (var iL = 0; iL < globalFlashMap.layers.length; iL++) (function(layer) 
                 {
-                    var layer = globalFlashMap.layers[iL];
                     if (layer.properties.type === 'Vector' && layer.properties.IsRasterCatalog)
                     {
                         var listenerId = layer.addListener('onClick', function(attr)
                         {
                             var obj = attr.obj;
-                            var layer = obj.parent;
+                            //var layer = obj.parent;
                             var id = obj.properties[layer.properties.identityField];
                             
-                            if (!obj.properties['GMX_RasterLayerID']) {
+                            if (!obj.properties['GMX_RasterCatalogID']) {
                                 infoControl.warning(_gtxt('Выбранный объект не имеет растра'));
                                 return true;
                             }
@@ -265,7 +264,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                         });
                         listeners.push({layerName: layer.properties.name, listenerId: listenerId});
                     }
-                }
+                })(globalFlashMap.layers[iL]);
             } else {
                 clearListeners();
             }
