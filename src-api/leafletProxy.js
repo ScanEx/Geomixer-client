@@ -829,6 +829,7 @@
 				if('marker' in st && 'size' in st['marker']) pt['size'] = st['marker']['size'];
 				if('marker' in st && 'circle' in st['marker']) pt['circle'] = st['marker']['circle'];
 				if('marker' in st && 'center' in st['marker']) pt['center'] = st['marker']['center'];
+				if('marker' in st && 'scale' in st['marker']) pt['scale'] = st['marker']['scale'];
 			}
 			if('marker' in st && 'image' in st['marker']) {				//	Есть image у стиля marker
 				pt['marker'] = true;
@@ -3185,6 +3186,8 @@
 						var r2 = (rgr['r2Function'] ? rgr['r2Function'](prop) : rgr['r2']);
 						size = scale * Math.max(r1, r2);
 						out['sx'] = out['sy'] = size;
+					} else if(style['circle']) {
+						out['sx'] = out['sy'] = size;
 					}
 				}
 			}
@@ -3284,7 +3287,7 @@
 				if(style['stroke'] && style['weight'] > 0) {
 					ctx.beginPath();
 					if(style['circle']) {
-						ctx.arc(px1 + out['sx']/2,py1 + out['sy']/2, size/2, 0, 2*Math.PI);
+						ctx.arc(px1, py1, size, 0, 2*Math.PI);
 					} else {
 						ctx.strokeRect(px1, py1, 2*out['sx'], 2*out['sy']);
 					}
@@ -3318,12 +3321,12 @@
 						}
 						ctx.fillStyle = radgrad;
 
-						ctx.arc(px1, py1, size, 0, 2*Math.PI);
-						//ctx.fillRect(px1,py1, 2*size, 2*size);
-						//ctx.fillRect(0, 0, 256, 256);
+						ctx.arc(px1, py1, scale * size, 0, 2*Math.PI);
 					} else {
 						if(style['circle']) {
-							ctx.arc(px1 + out['sx']/2,py1 + out['sy']/2, size/2, 0, 2*Math.PI);
+							px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
+							py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
+							ctx.arc(px1, py1, scale * size, 0, 2*Math.PI);
 						} else {
 							ctx.fillRect(px1, py1, 2*out['sx'], 2*out['sy']);
 						}
