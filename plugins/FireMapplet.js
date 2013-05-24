@@ -2246,8 +2246,6 @@ FireControl.prototype._updateCalendarTime = function(timeShift)
     }
 }
 
-
-
 FireControl.prototype.getCurrentTimeShift = function()
 {
     if ( this._visModeController.getMode() ===  this._visModeController.SIMPLE_MODE )
@@ -2292,62 +2290,47 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 							new FireBurntRenderer(),
 							{ isVisible: this._firesOptions.burntInit } );
 						  
-	if ( this._firesOptions.images ) 
+	if ( this._firesOptions.images ) {
 		this.addDataProvider( "images",
 							  new ModisImagesProvider( {host: this._firesOptions.modisHost, map: this._map} ),
 							  new ModisImagesRenderer( {depth: this._firesOptions.modisDepth } ),
 							  { isVisible: this._firesOptions.imagesInit, isUseBbox: false } );
+    }
 							  
-	if ( this._firesOptions.fires )
-	{
-		var spotProvider = new FireSpotClusterProvider({
-            host:          this._firesOptions.host || 'http://sender.kosmosnimki.ru/v3/',
-            description:   "firesWidget.FireCombinedDescription",
-            requestType:   this._firesOptions.requestType,
-            minPower:      this._firesOptions.minPower,
-            minConfidence: this._firesOptions.minConfidence
-        });
-		var wholeClusterProvider = new FireClusterSimpleProvider({
-            host: this._firesOptions.wholeClustersHost,
-            requestType:  this._firesOptions.wholeClusterRequestType
-        });
-		
-		// this.addDataProvider( "firedots",
-							  // new CombinedProvider( "firesWidget.FireCombinedDescription", [spotProvider, wholeClusterProvider] ),
-							  // new CombinedFiresRenderer( this._firesOptions ), 
-							  // { isVisible: this._firesOptions.firesInit } );
+    if (this._firesOptions.fires) {
+        this.addDataProvider(
+            "firedots_layer_global", //название должно быть firedots_layer_scanex - оставлено из-за обратной совместимости
+            new FireBurntProvider3( {host: this._firesOptions.firesHost, title: _gtxt("firesWidget.TitleFiresScanEx")} ),
+            new FireBurntRenderer3( {
+                map: this._map,
+                hotspotLayerName: '254C50EFB0C94B3885DBA0C6C89B4C88',
+                dailyLayerName: '0F203142F063462DB0961D4F60BDC14E',
+                hotspotTimeAttr: 'ImgDateTime',
+                hotspotIDAttr: 'HotSpotID'
+            }),
+            { isVisible: !!this._firesOptions.firesInit }
+        );
     }
     
-    this.addDataProvider(
-        "firedots_layer_global",
-        new FireBurntProvider3( {host: this._firesOptions.firesHost, title: _gtxt("firesWidget.TitleFiresScanEx")} ),
-        new FireBurntRenderer3( {
-            map: this._map,
-            hotspotLayerName: '254C50EFB0C94B3885DBA0C6C89B4C88',
-            dailyLayerName: '0F203142F063462DB0961D4F60BDC14E',
-            hotspotTimeAttr: 'ImgDateTime',
-            hotspotIDAttr: 'HotSpotID'
-        }),
-        { isVisible: true } 
-    );
-    
-    this.addDataProvider(
-        "firedots_layer_scanex",
-        new FireBurntProvider3( {host: this._firesOptions.firesHost, title: _gtxt("firesWidget.TitleFiresFIRMS")} ),
-        new FireBurntRenderer3( {
-            map: this._map,
-            hotspotLayerName: 'C13B4D9706F7491EBC6DC70DFFA988C0',
-            dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE',
-            hotspotTimeAttr: 'Timestamp',
-            hotspotIDAttr: 'SpotID'
-        }),
-        { isVisible: true } 
-    );
+    if (this._firesOptions.firesGlobal) {
+        this.addDataProvider(
+            "firedots_layer_scanex", //название должно быть firedots_layer_global - оставлено из-за обратной совместимости
+            new FireBurntProvider3( {host: this._firesOptions.firesHost, title: _gtxt("firesWidget.TitleFiresFIRMS")} ),
+            new FireBurntRenderer3( {
+                map: this._map,
+                hotspotLayerName: 'C13B4D9706F7491EBC6DC70DFFA988C0',
+                dailyLayerName: '3E88643A8AC94AFAB4FD44941220B1CE',
+                hotspotTimeAttr: 'Timestamp',
+                hotspotIDAttr: 'SpotID'
+            }),
+            { isVisible: !!this._firesOptions.firesGlobalInit }
+        );
+    }
 
     this._calendar = calendar;
 	this._visModeController = calendar.getModeController();
     
-    this._infoDiv = $('<div/>').css('margin-left', '25px').insertAfter(calendar.canvas);
+    this._infoDiv = $('<div/>', {'class': 'fireMappletHours'}).insertAfter(calendar.canvas);
     
 	//this.searchBboxController.init();
 	
@@ -2472,7 +2455,7 @@ var FireControl2 = function(map, params)
 					dateMin: new Date(2009, 05, 29),
 					dateMax: new Date(),
                     dateFormat: "dd.mm.yy",
-                    showTime: true
+                    showTime: false
 				});
                 $(params.container).append(params.calendar.canvas);
             }
@@ -2490,6 +2473,12 @@ var FireControl2 = function(map, params)
         {
             fireOptions.fires = parsedData.fires.show;
             fireOptions.firesInit = parsedData.fires.init;
+        }
+        
+        if ('firesGlobal' in parsedData)
+        {
+            fireOptions.firesGlobal = parsedData.firesGlobal.show;
+            fireOptions.firesGlobalInit = parsedData.firesGlobal.init;
         }
         
         if ('burnt' in parsedData)
