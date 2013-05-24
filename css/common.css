@@ -1416,3 +1416,12 @@ div.layersScroll
     padding: 3px 0px;
     vertical-align: top;
 }
+.defaultMapLangContainer > input
+{
+    vertical-align: middle;
+}
+
+.defaultMapLangContainer > label
+{
+    margin-right: 5px;
+}
