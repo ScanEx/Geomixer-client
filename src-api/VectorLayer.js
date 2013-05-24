@@ -652,6 +652,18 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			}
 			return res;
 		}
+		node['watcherActive'] = false;
+		node['watcherKey'] = '';						// Спец.клавиша включения подглядывателя
+		node['watcherRadius'] = 40;						// Спец.клавиша включения подглядывателя
+		node['setWatcher'] = function(ph) {				// Установка подглядывателя обьекта под Hover обьектом
+			if(!ph) ph = {};
+			node['watcherKey'] = ph['key'] || 'ctrlKey';
+			node['watcherRadius'] = ph['radius'] || 40;
+		}
+		node['removeWatcher'] = function() {			// Удалить подглядыватель
+			node['watcherKey'] = '';
+		}
+
 		var hoverItem = function(item) {				// Отрисовка hoveredStyle для item
 			if(!item) return;
 			if(!item.geom) {
@@ -674,7 +686,14 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				hoveredStyle = regularStyle;
 			}
 			if(hoveredStyle) {	// todo - изменить drawInTiles с учетом Z
-				if(!node['hoverItem'] || node['hoverItem'].geom.id != itemId) {
+				var isWatcher = (gmxAPI._leaflet['mouseMoveAttr'] && node['watcherKey'] && gmxAPI._leaflet['mouseMoveAttr'][node['watcherKey']]);
+				var flagRedraw = (
+					(!node['hoverItem'] || node['hoverItem'].geom.id != itemId) ?
+					true :
+					isWatcher || node['watcherActive']
+					);
+				node['watcherActive'] = isWatcher;
+				if(flagRedraw) {
 					var tilesNeed = {};
 					if(node['hoverItem']) {
 						var drawInTiles = node['hoverItem'].geom.propHiden['drawInTiles'];
@@ -976,120 +995,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 		option['tileFunc'] = inpAttr['tileFunction'];
 		
 		var myLayer = null;
-/*
-		function styleToGeo(geo, filter)	{			// Стиль обьекта векторного слоя
-			//var style = (filter ? utils.evalStyle(filter.regularStyle, geo)
-			if(!filter) return;
-			
-			var style = filter.regularStyle;
-			var prop = getPropItem(geo);
-			if(filter.regularStyleIsAttr) style = utils.evalStyle(filter.regularStyle, prop);
-			
-			var size = style['size'] || 5;
 
-			if(style['label']) {
-				var ptx = gmxAPI._leaflet['labelCanvas'].getContext('2d');
-				ptx.clearRect(0, 0, 512, 512);
-				var sizeLabel = style['label']['size'] || 12;
-				var color = style['label']['color'] || 0;
-				var haloColor = style['label']['haloColor'] || 0;
-				var txt = style['label']['value'] || '';
-				var field = style['label']['field'];
-				if(field) {
-					txt = prop[field] || '';
-				}
-				style['label']['fontStyle'] = sizeLabel + 'px "Arial"';
-				ptx.font = style['label']['fontStyle'];
-				style['label']['fillStyle'] = gmxAPI._leaflet['utils'].dec2rgba(color, 1);
-				style['label']['strokeColor'] = gmxAPI._leaflet['utils'].dec2rgba(haloColor, 1);
-				
-				ptx.fillStyle = style['label']['fillStyle'];
-				ptx.fillText(txt, 0, 0);
-				style['label']['extent'] = new L.Point(ptx.measureText(txt).width, sizeLabel);
-				geo['sxLabelLeft'] = geo['sxLabelRight'] = style['label']['extent'].x;
-				geo['syLabelBottom'] = geo['syLabelTop'] = sizeLabel;
-			}
-			
-			if(style['marker']) {
-				if(style['image']) {
-					if(style['imageWidth']) geo.sx = style['imageWidth']/2;
-					if(style['imageHeight']) geo.sy = style['imageHeight']/2;
-				} else {
-					return;
-				}
-				
-				//if(filter) filter.styleRecalc = (style['image'] ? false : true);
-			} else {
-				if(style['stroke']) {
-					geo.sx = geo.sy = size;
-				}
-				if(style['fill']) {
-					geo.sx = geo.sy = size;
-				}
-			}
-			
-			delete geo['_cache'];
-			geo.curStyle = style;
-		}
-
-		var chkBorderTiles = function(geom, tile) {					// Проверка соседних тайлов
-			var zoom = tile['zoom'];
-			var propHiden = geom.propHiden;
-			if(!propHiden['drawInTiles']) propHiden['drawInTiles'] = {};
-			if(!propHiden['drawInTiles'][zoom]) propHiden['drawInTiles'][zoom] = {};
-			var x = tile['x'];
-			var y = tile['y'];
-			var gmxTileID = zoom + '_' + x + '_' + y;
-			propHiden['drawInTiles'][zoom][gmxTileID] = true;
-			
-//console.log('objectsData ' , tile['posInTile']);
-			var parr = [];
-			var posInTile = tile['posInTile'];
-			var xd = (tile['posInTile']['x'] + tile['size'] > 256 ? 1
-				: (tile['posInTile']['x'] - tile['size'] < 0 ? -1 : 0)
-				);
-			var yd = (tile['posInTile']['y'] + tile['size'] > 256 ? 1
-				: (tile['posInTile']['y'] - tile['size'] < 0 ? -1 : 0)
-				);
-			if(xd === 1) {
-				parr.push({ 'x': x+1 ,'y': y });
-				if(yd === 1) {
-					parr.push({ 'x': x+1 ,'y': y+1 });
-				} else if(yd === -1) {
-					parr.push({ 'x': x+1 ,'y': y-1 });
-				}
-			} else if(xd === -1) {
-				parr.push({ 'x': x-1 ,'y': y });
-				if(yd === 1) {
-					parr.push({ 'x': x-1 ,'y': y+1 });
-				} else if(yd === -1) {
-					parr.push({ 'x': x-1 ,'y': y-1 });
-				}
-			} else if(yd === 1) {
-				parr.push({ 'x': x ,'y': y+1 });
-			} else if(yd === -1) {
-				parr.push({ 'x': x ,'y': y-1 });
-			}
-
-			for (var j = 0; j < parr.length; j++)
-			{
-				var rp = parr[j];
-				var gmxTileID = zoom + '_' + rp.x + '_' + rp.y;
-				
-				var needCheck = true;
-				if(gmxTileID in propHiden['drawInTiles'][zoom]) {
-					needCheck = false;
-				}
-				if(needCheck) {
-					var rbounds = utils.getTileBoundsMerc(rp, zoom);
-					if(gmxAPI._leaflet['utils'].chkPointWithDelta(rbounds, geom.getPoint(), geom)) {
-						propHiden['drawInTiles'][zoom][gmxTileID] = true;
-						node.redrawTilesList(200);
-					}
-				}
-			}
-		}
-*/
 		var getItemFilter = function(item) {			// Получить фильтр в который попал обьект
 			var filter = null;
 			if(item) {
@@ -1942,12 +1848,34 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			//ctx.restore();
 			if(imageObj) {
 				ctx.save();
+				var pImage = imageObj;
+				var isWatcher = (node['watcherKey']
+					&& node['hoverItem']
+					&& node['hoverItem'].geom.id == geom.id
+					//&& node['watcherActive'] ? true : false);
+					&& gmxAPI._leaflet['mouseMoveAttr']
+					&& gmxAPI._leaflet['mouseMoveAttr'][node['watcherKey']] ? true : false);
+				if(isWatcher) {
+					pImage = document.createElement('canvas');
+					pImage.width = imageObj.width; pImage.height = imageObj.height;
+					var ptx = pImage.getContext('2d');
+							
+					var mousePos = tile._layer._map.latLngToLayerPoint(gmxAPI._leaflet['mousePos']);
+					var cx = mousePos.x - tile._leaflet_pos.x;
+					var cy = mousePos.y - tile._leaflet_pos.y;
+
+					ptx.drawImage(imageObj, 0, 0);
+					ptx.globalCompositeOperation = 'destination-out';
+					ptx.beginPath();
+					ptx.arc(cx, cy, node['watcherRadius'], 0, 2 * Math.PI, false);
+					ptx.fill();
+				}
 				if('rasterOpacity' in itemStyle) {					// для растров в КР
 					ctx.globalAlpha = itemStyle.rasterOpacity;
 				} else {
 					chkGlobalAlpha(ctx);
 				}
-				var pattern = ctx.createPattern(imageObj, "no-repeat");
+				var pattern = ctx.createPattern(pImage, "no-repeat");
 				ctx.fillStyle = pattern;
 				//ctx.fillRect(0, 0, 256, 256);
 				geom['paintFill'](attr, itemStyle, ctx, false);
@@ -2012,34 +1940,6 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				}
 
 			}
-/*			if(borders) {											// перерисовка пограничных обьектов
-				var arr1 = thash['drawTileID'].split('_');
-				var tp = {
-					'x': parseFloat(arr1[1])
-					,'y': parseFloat(arr1[2])
-				};
-
-				var attr = {
-					'zoom': zoom
-					,'drawTileID': thash['drawTileID']
-					,'tKey': tKey
-					,'tilePoint': thash.tilePoint
-					,'node': node
-					,'x': 256 * tp.x
-					,'y': 256 * tp.y
-					,'bounds': utils.getTileBoundsMerc(tp, zoom)
-				};
-				if(!ctx) {
-					tile = node['leaflet'].getCanvasTile(thash.tilePoint);
-					ctx = tile.getContext('2d');
-				}
-				for (var key in borders)
-				{
-					if(!node.chkTemporalFilter(borders[key])) continue;
-					objectToCanvas({ 'geom': borders[key], 'attr': attr	}, ctx, flagClear);
-					flagClear = false;
-				}
-			}*/
 			for (var i = 0; i < node['flipedIDS'].length; i++) {	// перерисовка fliped обьектов
 				var id = node['flipedIDS'][i];
 				if(out[id]) {
@@ -2056,7 +1956,6 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			if(tile && flagClear) tile.getContext('2d').clearRect(0, 0, 256, 256);
 			out = null;
 			arr = null;
-			//borders = null;
 			if(tile) tile._needRemove = flagClear;
 			thash['drawDone'] = true;
 			return true;
