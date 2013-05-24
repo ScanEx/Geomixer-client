@@ -1600,22 +1600,16 @@ var FireBurntRenderer3 = function( params )
             MinZoom:1,
             MaxZoom:_params.minGeomZoom - 1,
             RenderStyle: {
-                marker: {
-                    image: serverBase + 'images/' + 'fire_sample.png',  //TODO: передать хост явно
-                    scale: '[scale]'
+                fill: {
+                    radialGradient: {
+                        r1: 0,
+                        r2: '[scale]*20',
+                        addColorStop: [
+                            [0, 0xffff00, 50],
+                            [1, 0xff0000, 50]
+                        ]
+                    }
                 },
-                // fill: {
-                    // radialGradient: {
-                        // r1: 0,
-                        // r2: '[scale]*20',
-                        // // r2: 10,
-                        // addColorStop: [
-                            // [0, 0xffff00, 50],
-                            // [0.99, 0xff0000, 50],
-                            // [1, 0xff3300, 0]
-                        // ]
-                    // }
-                // },
                 label: {
                     size: 12,
                     color: 0xffffff,
