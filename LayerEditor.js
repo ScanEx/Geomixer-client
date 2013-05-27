@@ -684,16 +684,16 @@ var createPageVectorSource = function(layerProperties) {
     
     var sourceTr2;
         
-    if (!layerName) {
-        sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), _td([_div([sourceTab])])]);
-    } else {
-        var sourceTitle = {'file': _gtxt('Файл'), 'table': _gtxt('Таблица'), 'manual': _gtxt('Вручную')}[sourceType];
-        var sourceControls = {'file': sourceFile, 'table': sourceTable, 'manual': _div()}[sourceType];
-        sourceTr2 = _tr([
-            _td([_t(_gtxt("Источник") + ': ' + sourceTitle)], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), 
-            _td([sourceControls])
-        ]);
-    }
+    // if (!layerName) {
+    sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), _td([_div([sourceTab])])]);
+    // } else {
+        // var sourceTitle = {'file': _gtxt('Файл'), 'table': _gtxt('Таблица'), 'manual': _gtxt('Вручную')}[sourceType];
+        // var sourceControls = {'file': sourceFile, 'table': sourceTable, 'manual': _div()}[sourceType];
+        // sourceTr2 = _tr([
+            // _td([_t(_gtxt("Источник") + ': ' + sourceTitle)], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), 
+            // _td([sourceControls])
+        // ]);
+    // }
     
     shownProperties.push({tr: sourceTr2});
 
