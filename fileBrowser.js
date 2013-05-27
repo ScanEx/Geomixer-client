@@ -28,15 +28,25 @@ var fileBrowser = function()
     this._path = (function()
     {
         var path;
+        var alternativePath;
         return {
-            set: function(newPath)
+            set: function(newPath, newAlternativePath)
             {
                 path = newPath + (newPath.charAt(newPath.length-1) === _this.slash ? '' : _this.slash);
+                if (newAlternativePath) {
+                    alternativePath = newAlternativePath + (newAlternativePath.charAt(newAlternativePath.length-1) === _this.slash ? '' : _this.slash);
+                } else {
+                    alternativePath = undefined;
+                }
                 $(this).change();
             },
             get: function()
             {
                 return path;
+            },
+            getAlternative: function()
+            {
+                return alternativePath;
             },
             isRoot: function()
             {
@@ -209,7 +219,12 @@ fileBrowser.prototype.loadInfoHandler = function()
     var _this = this;
 	if (!this._path.isInited())
 	{
-        this._path.set(_layersTree.treeModel.getMapProperties().LayersDir || nsGmx.AuthManager.getUserFolder());
+        var mapFolder = _layersTree.treeModel.getMapProperties().LayersDir;
+        if (mapFolder) {
+            this._path.set(_layersTree.treeModel.getMapProperties().LayersDir, nsGmx.AuthManager.getUserFolder());
+        } else {
+            this._path.set(nsGmx.AuthManager.getUserFolder());
+        }
 	}
 	
 	this.currentSortFunc = this.sortFuncs['name'][0];
@@ -462,20 +477,31 @@ fileBrowser.prototype.createUpload = function()
 fileBrowser.prototype.getFiles = function(path)
 {
 	var path = (typeof path != 'undefined') ? path : this._path.get();
+    var alternativePath = this._path.getAlternative();
 	var _this = this;
     
     if (this._isRestrictedPath(path)) 
         return;
-
-    this._status.start();
-	sendCrossDomainJSONRequest(serverBase + "FileBrowser/GetDirectoryContent.ashx?WrapStyle=func&root=" + encodeURIComponent(path),  function(response)
-	{
+        
+    var doProcessResponce = function(response) {
         _this._status.stop();
         
 		if (!parseResponse(response))
 			return;
 		
-		_this.getFilesHandler(response.Result, path)
+		_this.getFilesHandler(response.Result, path);
+    }
+
+    this._status.start();
+	sendCrossDomainJSONRequest(serverBase + "FileBrowser/GetDirectoryContent.ashx?WrapStyle=func&root=" + encodeURIComponent(path), function(response)
+	{
+        if (response.Status !== 'ok' && alternativePath) {
+            path = alternativePath;
+            _this._path.set(alternativePath);
+            sendCrossDomainJSONRequest(serverBase + "FileBrowser/GetDirectoryContent.ashx?WrapStyle=func&root=" + encodeURIComponent(alternativePath), doProcessResponce);
+        } else {
+            doProcessResponce(response);
+        }
 	})
 }
 
