@@ -336,7 +336,7 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 			rawTree.properties = div.gmxProperties.properties;
 		}
         
-        $('input[value=' + elemProperties.DefaultLanguage + ']', defLang).attr('enable', 'enable');
+        $('input[value=' + elemProperties.DefaultLanguage + ']', defLang).attr('checked', 'checked');
         $('input', defLang).change(function()
 		{
 			div.gmxProperties.properties.DefaultLanguage = this.value;
@@ -503,7 +503,7 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 									.concat(
 										[{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
 										{name: _gtxt("Использовать OpenStreetMap"), elem: useOSM},
-										{name: "Язык по умолчанию", elem: defLang},
+										{name: _gtxt("Язык по умолчанию"), elem: defLang},
 										{name: _gtxt("Ссылка (permalink)"), elem: defPermalink},
 										{name: _gtxt("Масштабирование в миникарте"), elem: zoomDelta}]
 									),
