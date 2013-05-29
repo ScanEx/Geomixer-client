@@ -235,8 +235,7 @@
 			scaleBar.style.color = color;
 			changeCoords.style.backgroundImage = 'url("'+url+'")';
 			if(flag) {
-				gmxAPI.map.getPosition();
-				checkPositionChanged();
+				setTimeout(checkPositionChanged, 200);
 			}
 		}
 

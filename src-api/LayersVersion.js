@@ -16,9 +16,9 @@
 				{
 					if(response && response['Result'] && response['Result'].length > 0) {
 						// Обработка запроса изменения версий слоев
-						if(callback) callback(response);
 						CheckVersionResponse({'host': host, 'mapName': mapName, 'arr': response['Result']});
 					}
+					if(callback) callback(response);
 				}
 			);
 		}
