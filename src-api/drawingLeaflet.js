@@ -1569,13 +1569,21 @@
 	var zoomActive = false;
 	drawFunctions.zoom = function()
 	{
-		gmxAPI._drawing['activeState'] = false;
-		var x1, y1, x2, y2;
-		var rect;
+		gmxAPI._drawing['activeState'] = true;
+		gmxAPI._drawing['BoxZoom'] = true;
 		var toolsContainer = null;
 		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
 			toolsContainer = gmxAPI._tools['standart'];
 		}
+		gmxAPI._drawing['setMove'] = function() {
+			gmxAPI._drawing['activeState'] = false;
+			gmxAPI._drawing['BoxZoom'] = false;
+			if(toolsContainer) toolsContainer.selectTool("move");
+		}
+/*
+		return;
+		var x1, y1, x2, y2;
+		var rect;
 
 		zoomActive = true;
 		var onClick = function(attr) {
@@ -1596,11 +1604,14 @@
 			gmxAPI.map.addListener('onClick', onClick);
 			activeListener = true;
 		}
+*/		
 		var ret = {
 			stopDrawing: function()
 			{
-				gmxAPI._setToolHandler("onMouseDown", null);
-				zoomActive = false;
+				//gmxAPI._setToolHandler("onMouseDown", null);
+				//zoomActive = false;
+				gmxAPI._drawing['activeState'] = false;
+				gmxAPI._drawing['BoxZoom'] = false;
 			}
 		}
 		return ret;
@@ -1608,6 +1619,7 @@
 
 	drawFunctions["move"] = function()
 	{
+		//gmxAPI._drawing['BoxZoom'] = false;
 	}
 
 	var chkZindexTimer = null

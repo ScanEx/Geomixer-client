@@ -194,10 +194,18 @@
 		var checkPositionChanged = function() {
 			var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
 			var z = Math.round(currPos['z']);
+			var x = (currPos['latlng'] ? currPos['latlng']['x'] : 0);
+			var y = (currPos['latlng'] ? currPos['latlng']['y'] : 0);
+			if(gmxAPI.map.needMove) {
+				z = gmxAPI.map.needMove['z'];
+				x = gmxAPI.map.needMove['x'];
+				y = gmxAPI.map.needMove['y'];
+			}
+
 			if (oldZ != z)
 			{
 				oldZ = z;
-				var metersPerPixel = getLocalScale(currPos['latlng']['x'], currPos['latlng']['y'])*gmxAPI.getScale(z);
+				var metersPerPixel = getLocalScale(x, y)*gmxAPI.getScale(z);
 				for (var i = 0; i < 30; i++)
 				{
 					var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
@@ -235,7 +243,7 @@
 			scaleBar.style.color = color;
 			changeCoords.style.backgroundImage = 'url("'+url+'")';
 			if(flag) {
-				setTimeout(checkPositionChanged, 200);
+				checkPositionChanged();
 			}
 		}
 

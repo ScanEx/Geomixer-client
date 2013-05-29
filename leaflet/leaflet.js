@@ -6102,7 +6102,8 @@ L.Draggable = L.Class.extend({
 	},
 
 	_onDown: function (e) {
-		if (e.shiftKey ||
+		//if (e.shiftKey ||
+		if (gmxAPI._drawing['BoxZoom'] ||
 		    ((e.which !== 1) && (e.button !== 1) && !e.touches)) { return; }
 
 		L.DomEvent.preventDefault(e);
@@ -6918,7 +6919,8 @@ L.Map.BoxZoom = L.Handler.extend({
 	},
 
 	_onMouseDown: function (e) {
-		if (!e.shiftKey || ((e.which !== 1) && (e.button !== 1))) { return false; }
+		//if (!e.shiftKey || ((e.which !== 1) && (e.button !== 1))) { return false; }
+		if (!gmxAPI._drawing['BoxZoom'] || ((e.which !== 1) && (e.button !== 1))) { return false; }
 
 		L.DomUtil.disableTextSelection();
 
@@ -6958,6 +6960,7 @@ L.Map.BoxZoom = L.Handler.extend({
 	},
 
 	_finish: function () {
+		gmxAPI._drawing.setMove();
 		this._pane.removeChild(this._box);
 		this._container.style.cursor = '';
 
