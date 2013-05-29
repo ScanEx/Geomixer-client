@@ -476,6 +476,14 @@ var createPageVectorSource = function(layerProperties) {
         fileAttrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
     }
     
+    var hideFileColumns = function() {
+        $(fileColumnsContainer).hide();
+        $(fileAddAttribute).hide();
+    }
+    
+    layerName || hideFileColumns();
+    layerProperties.on('change:ShapePath', hideFileColumns);
+    
     $(fileAttrModel).change(function() {
         layerProperties.set('Columns', fileAttrModel.toServerFormat());
     });
