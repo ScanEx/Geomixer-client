@@ -226,7 +226,7 @@
 		gmxAPI.map.addListener('positionChanged', checkPositionChanged);
 		gmxAPI.map.addListener('onResizeMap', checkPositionChanged);
 
-		gmxAPI._setCoordinatesColor = function(color, url)
+		gmxAPI._setCoordinatesColor = function(color, url, flag)
 		{
 			coordinates.style.fontSize = "14px";
 			coordinates.style.color = color;
@@ -234,6 +234,10 @@
 			scaleBar.style.fontSize = "11px";
 			scaleBar.style.color = color;
 			changeCoords.style.backgroundImage = 'url("'+url+'")';
+			if(flag) {
+				gmxAPI.map.getPosition();
+				checkPositionChanged();
+			}
 		}
 
 	}

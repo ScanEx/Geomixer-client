@@ -728,11 +728,12 @@
 			gmxAPI._cmdProxy('setBackgroundColor', { 'obj': map, 'attr':color });
 			var isWhite = (0xff & (color >> 16)) > 80;
 			var htmlColor = isWhite ? "black" : "white";
-			if(gmxAPI._setCoordinatesColor) gmxAPI._setCoordinatesColor(htmlColor, gmxAPI.getAPIFolderRoot() + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png"));
+			if(gmxAPI._setCoordinatesColor) gmxAPI._setCoordinatesColor(htmlColor, gmxAPI.getAPIFolderRoot() + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png"), true);
 			if(gmxAPI._setCopyrightColor) gmxAPI._setCopyrightColor(htmlColor);
 		}
-		
-		map.setBackgroundColor(0x000001);
+
+		map.setBackgroundColor(gmxAPI.proxyType === 'leaflet' ? 0xffffff : 0x000001);
+		//map.setBackgroundColor(0x000001);
 //			map.miniMap.setBackgroundColor(0xffffff);
 
 		map.defaultHostName = (layers && layers.properties ? layers.properties.hostName : '');

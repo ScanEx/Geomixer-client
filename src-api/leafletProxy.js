@@ -35,6 +35,41 @@
 	var utils = {							// Утилиты leafletProxy
 		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
 		,
+		'prepareLabelStyle': function(style) {		// подготовка Label стиля
+			var size = style['label']['size'] || 12;
+			var fillStyle = style['label']['color'] || 0;
+			var haloColor = style['label']['haloColor'] || 0;
+			var out = {
+				'size': size
+				,'align': style['label']['align'] || 'left'
+				,'font': size + 'px "Arial"'
+				,'strokeStyle': gmxAPI._leaflet['utils'].dec2rgba(haloColor, 1)
+				,'fillStyle': gmxAPI._leaflet['utils'].dec2rgba(fillStyle, 1)
+			};
+			if(style['iconSize']) out['iconSize'] = style['iconSize'];
+			return out;
+		}
+		,
+		'chkIdle': function(flag)	{			// Проверка закончены или нет все команды отрисовки карты
+			var out = false;
+			var cnt = gmxAPI._leaflet['imageLoader'].getCounts();	// колич.выполняющихся запросов загрузки img
+			if(cnt <= 0) {
+				out = true;
+				for (var i = 0, to = gmxAPI.map.layers.length; i < to; i++)
+				{
+					var child = gmxAPI.map.layers[i];
+					if(!child.isVisible) continue;
+					var mapNode = mapNodes[child.objectId];
+					if(mapNode['lastDrawTime']) {	// слой находится в процессе отрисовки
+						out = false;
+						break;
+					}
+				}
+				if(flag && out) gmxAPI._listeners.dispatchEvent('mapDrawDone', gmxAPI.map, out);	// map отрисована
+			}
+			return out;
+		}
+		,
 		'chkKeys': function(out, ev)	{		// Проверка нажатия спец.символов
 			if(ev.buttons || ev.button) out['buttons'] = ev.buttons || ev.button;
 			if(ev.ctrlKey)	out['ctrlKey'] = ev.ctrlKey;
