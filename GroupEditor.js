@@ -531,6 +531,33 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
                 _mapHelper.mapPlugins.push(p);
             });
         });
+        
+        tabMenu.updateFunc = function() {
+            var props = div.gmxProperties.properties;
+            props.UseKosmosnimkiAPI = useAPI.checked;
+            props.UseOpenStreetMap = useOSM.checked;
+            props.CanDownloadVectors = downloadVectors.checked;
+            props.CanDownloadRasters = downloadRasters.checked;
+            props.WMSAccess = WMSAccess.checked;
+            
+            props.DefaultLat = isNaN(Number(defLat.value)) ? null : Number(defLat.value);
+            props.DefaultLong = isNaN(Number(defLong.value)) ? null : Number(defLong.value);
+            
+            props.ViewUrl = defPermalink.checked;
+            
+            props.DefaultZoom = isNaN(Number(defZoom.value)) ? null : Number(defZoom.value);
+            props.MiniMapZoomDelta = isNaN(Number(zoomDelta.value)) ? null : Number(zoomDelta.value);
+            
+            props.onLoad = onLoad.value;
+            props.Copyright = copyright.value;
+            
+            props.MinViewX = isNaN(Number(minViewX.value)) ? null : Number(minViewX.value);
+            props.MinViewY = isNaN(Number(minViewY.value)) ? null : Number(minViewY.value);
+            props.MaxViewX = isNaN(Number(maxViewX.value)) ? null : Number(maxViewX.value);
+            props.MaxViewY = isNaN(Number(maxViewY.value)) ? null : Number(maxViewY.value);
+            
+            rawTree.properties = props;
+        }
 		
 		return tabMenu;
 	}
@@ -569,7 +596,7 @@ var createGroupEditor = function(div)
 	canvas.parentNode.style.width = canvas.clientWidth + 'px';
 }
 
-var _mapEditorsHash = {};
+window._mapEditorsHash = {};
 
 
 /** Создаёт диалог редактирование свойств группы. Есть проверка на создание дублирующих диалогов
@@ -587,13 +614,15 @@ var createMapEditor = function(div)
 		closeFunc = function()
 		{
 			delete _mapEditorsHash[elemProperties.MapID];
-			
+			canvas.updateFunc();
 			return false;
 		};
 	
 	var canvas = createGroupEditorProperties(div, true, _layersTree);
 	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 345, 330, pos.left, pos.top, null, closeFunc);
-	_mapEditorsHash[elemProperties.MapID] = true;
+	_mapEditorsHash[elemProperties.MapID] = {
+        update: canvas.updateFunc
+    };
 	
 	$(canvas).tabs({selected: 0});
 	

@@ -2137,11 +2137,15 @@ queryMapLayers.prototype.createMap = function(name)
 
     var saveMapInternal = function(scriptName, mapTitle, callback)
     {
+        var mapID = String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID);
+        
         _userObjects.collect();
         $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
         
         for (var name in _mapHelper.layerEditorsHash)
             _mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].updateFunc && _mapHelper.layerEditorsHash[name].updateFunc();
+            
+        _mapEditorsHash[mapID] && _mapEditorsHash[mapID].update();
         
         var saveTree = {};
         
@@ -2160,7 +2164,7 @@ queryMapLayers.prototype.createMap = function(name)
         
         var params = {
                 WrapStyle: 'window',
-                MapID: String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID), 
+                MapID: mapID, 
 
                 MapJson: JSON.stringify(saveTree)
             }
