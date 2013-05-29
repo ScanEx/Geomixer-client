@@ -2145,7 +2145,7 @@ queryMapLayers.prototype.createMap = function(name)
         for (var name in _mapHelper.layerEditorsHash)
             _mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].updateFunc && _mapHelper.layerEditorsHash[name].updateFunc();
             
-        _mapEditorsHash[mapID] && _mapEditorsHash[mapID].update();
+        window._mapEditorsHash && _mapEditorsHash[mapID] && _mapEditorsHash[mapID].update();
         
         var saveTree = {};
         
