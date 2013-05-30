@@ -434,7 +434,7 @@
 			,'drawTile': drawTile
 			,
 			_clearBgBuffer: function () {
-				if(!this._map) return;	// OriginalSin
+				if(!this._map || !this._bgBuffer) return;	// OriginalSin
 				L.TileLayer.Canvas.prototype._clearBgBuffer.call(this);
 			}
 			,
