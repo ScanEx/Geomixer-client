@@ -631,6 +631,7 @@ function removeCadastreInfoTool(){
 var publicInterface = {
 	pluginName: 'Cadastre',
 	Cadastre: cadastre,
+	loadCadastre: loadCadastre,
 	afterViewer: function(params){
 		if (params && params.cadastreHost) {
 			cadastreServer = params.cadastreServer;
