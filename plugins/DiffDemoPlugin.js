@@ -153,6 +153,9 @@
         
         var imagesLayerName = '7FAD43F636AC4A0E8A39327F54CE68D6';
         map.layers[imagesLayerName].setStyle({fill: {opacity: 0}});
+        map.layers[imagesLayerName].setSortItems(function(a, b) {
+            return a.properties.acqdate > b.properties.acqdate ? 1 : -1;
+        })
         
         nsGmx.timelineControl.setMapMode('selected');
         nsGmx.timelineControl.bindLayer(imagesLayerName);
