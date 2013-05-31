@@ -446,6 +446,7 @@
 				delete fixedHoverBalloons[id];
 			}
 			propsBalloon.updatePropsBalloon(false);
+			if(propsBalloon.delayShow) { clearTimeout(propsBalloon.delayShow); propsBalloon.delayShow = false; }
 			return true;
 		}
 		this.clickBalloonFix = clickBalloonFix;
