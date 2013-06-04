@@ -5,31 +5,32 @@
 _translationsHash.addtext("rus", {
                         "pluginsEditor.selectedTitle" : "Плагины карты",
                         "pluginsEditor.availableTitle" : "Доступные плагины",
-                        "pluginsEditor.add" : "Добавить плагин"
+                        "pluginsEditor.add" : "Добавить плагин",
+                        "pluginsEditor.paramsTitle" : "Параметры плагина"
                      });
                      
 _translationsHash.addtext("eng", {
                         "pluginsEditor.selectedTitle" : "Map plugins",
                         "pluginsEditor.availableTitle" : "Available plugins",
-                        "pluginsEditor.add" : "Add plugin"
+                        "pluginsEditor.add" : "Add plugin",
+                        "pluginsEditor.paramsTitle" : "Parameter of plugin"
                      });
 
-var MapPlugins = function( plugins )
+// plugins - массив с именами и параметрами плагина. Каждый элемент: {name: <имя>, params: <хеш параметров>}.
+// Сохращённый вариант описания - "<имя>" соответствует {name: <имя>, params: {}}
+var MapPlugins = function()
 {
-    var _plugins = plugins || [];
+    var _plugins = [];
     var _pluginsByName = {};
     
-    for (var iP = 0; iP < _plugins.length; iP++)
-        _pluginsByName[plugins[iP]] = true;
-    
-    this.addPlugin = function(pluginName)
+    this.addPlugin = function(pluginName, pluginParams)
     {
         if (pluginName in _pluginsByName)
             return false;
         
-        _pluginsByName[pluginName] = true;
+        _pluginsByName[pluginName] = pluginParams || {};
         
-        _plugins.push(pluginName);
+        _plugins.push({name: pluginName, params: _pluginsByName[pluginName]});
         $(this).change();
         
         return true;
@@ -37,15 +38,16 @@ var MapPlugins = function( plugins )
     
     this.each = function(callback)
     {
-        for (var p = 0; p < _plugins.length; p++)
-            callback(_plugins[p]);
+        for (var p = 0; p < _plugins.length; p++) {
+            callback(_plugins[p].name, _plugins[p].params);
+        }
     }
     
     this.remove = function(pluginName)
     {
         delete _pluginsByName[pluginName];
         for (var p = 0; p < _plugins.length; p++)
-            if (_plugins[p] === pluginName)
+            if (_plugins[p].name === pluginName)
             {
                 _plugins.splice(p, 1);
                 $(this).change();
@@ -56,6 +58,48 @@ var MapPlugins = function( plugins )
     this.isExist = function(pluginName)
     {
         return pluginName in _pluginsByName;
+    }
+    
+    this.getPluginParams = function(pluginName) {
+        return _pluginsByName[pluginName];
+    }
+    
+    this.setPluginParams = function(pluginName, pluginParams) {
+        if (_pluginsByName[pluginName]) {
+            _pluginsByName[pluginName] = pluginParams;
+            for (var p = 0; p < _plugins.length; p++)
+                if (_plugins[p].name === pluginName)
+                {
+                    _plugins[p].params = pluginParams;
+                    $(this).change();
+                    return;
+                }
+        }
+    }
+    
+    //обновляем используемость и параметры плагинов
+    this.updateGeomixerPlugins = function() {
+        for (var p = 0; p < _plugins.length; p++) {
+            nsGmx.pluginsManager.setUsePlugin(_plugins[p].name, true);
+            nsGmx.pluginsManager.updateParams(_plugins[p].name, _plugins[p].params);
+        }
+    }
+    
+    this.load = function(data) {
+        _plugins = $.map(data, function(plugin) {
+            return typeof plugin === 'string' ? {name: plugin, params: {}} : plugin;
+        });
+        
+        _pluginsByName = {};
+        
+        for (var iP = 0; iP < _plugins.length; iP++) {
+            _pluginsByName[_plugins[iP].name] = _plugins[iP].params;
+        }
+        
+    }
+    
+    this.save = function() {
+        return $.extend(true, [], _plugins);
     }
 }
 
@@ -130,6 +174,41 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
     update();
 }
 
+var MapPluginParamsWidget = function(mapPlugins, pluginName) {
+
+    var FakeTagMetaInfo = function()
+    {
+        this.isTag = function(tag) { return true; }
+        this.getTagType = function(tag) { return 'String'; }
+        this.getTagDescription = function(tag) { return ''; }
+        this.getTagArray = function() { return []; }
+        this.getTagArrayExt = function() { return []; }
+    };
+    var fakeTagMetaInfo = new FakeTagMetaInfo();
+    
+    var pluginParams =  mapPlugins.getPluginParams(pluginName);
+    var tagInitInfo = {};
+    
+    for (var tagName in pluginParams) {
+        tagInitInfo[tagName] = {Value: pluginParams[tagName]};
+    }
+    
+    var layerTags = new nsGmx.LayerTags(fakeTagMetaInfo, tagInitInfo);
+    
+    var container = $('<div/>');
+    
+    var pluginValues = new nsGmx.LayerTagSearchControl(layerTags, container);
+    showDialog(_gtxt('pluginsEditor.paramsTitle') + " " + pluginName, container[0], {width: 300, height: 200, closeFunc: function() {
+        var newParams = {};
+        layerTags.eachValid(function(tagid, tag, value) {
+            newParams[tag] = newParams[tag] || [];
+            newParams[tag].push(value);
+        })
+        
+        mapPlugins.setPluginParams(pluginName, newParams);
+    }});
+}
+
 var MapPluginsWidget = function(container, mapPlugins)
 {
     var update = function()
@@ -153,12 +232,20 @@ var MapPluginsWidget = function(container, mapPlugins)
         {
             var divRow = $('<div/>', {'class': 'pluginEditor-widgetElem'});
             var remove = makeImageButton("img/close.png", "img/close_orange.png");
+            var editButton = makeImageButton("img/edit.png", "img/edit.png");
             $(remove).addClass('pluginEditor-remove');
+            $(editButton).addClass('pluginEditor-edit');
+            
             remove.onclick = function()
             {
                 mapPlugins.remove(name);
             }
-            divRow.append(remove).append($('<span/>').text(name));
+            editButton.onclick = function()
+            {
+                new MapPluginParamsWidget(mapPlugins, name);
+            }
+            
+            divRow.append(remove, editButton, $('<span/>').text(name));
             
             container.append(divRow);
         });
@@ -168,9 +255,9 @@ var MapPluginsWidget = function(container, mapPlugins)
     update();
 }
 
-var createPluginsEditor = function(container, pluginsInfo)
+var createPluginsEditor = function(container, mapPlugins)
 {
-    var mapPlugins = new MapPlugins( pluginsInfo );
+    //var mapPlugins = _mapHelper.mapPlugins;
         
     var widgetContainer = $('<div/>', {'class': 'pluginEditor-widgetContainer'});
     var allPluginsContainer = $('<div/>', {'class': 'pluginEditor-allContainer'});
@@ -192,27 +279,40 @@ gmxCore.addModule('PluginsEditor', {
 })
 
 nsGmx.createPluginsEditor = createPluginsEditor;
+_mapHelper.mapPlugins = new MapPlugins();
 
+//Cтарая версия информации о плагинах карты. Поддерживается для обратной совместимости (например, загрузка доп. карт)
+//Формат: {String[]} массив имён плагинов
 _userObjects.addDataCollector('mapPlugins', {
+    load: function(data)
+    {
+        if (data) {
+            _mapHelper.mapPlugins.load(data);
+            _mapHelper.mapPlugins.updateGeomixerPlugins();
+        }
+    },
+    collect: function() {
+        var res = [];
+        _mapHelper.mapPlugins.each(function(pluginName) {
+            res.push(pluginName);
+        })
+        
+        return res;
+    }
+})
+
+//Вторая версия информации о плагинах карты.
+//Формат: [{name: pluginName1, params: {param: value, ...}}, ...]
+_userObjects.addDataCollector('mapPlugins_v2', {
     collect: function()
     {
-        if (_mapHelper.mapPlugins)
-            return _mapHelper.mapPlugins;
-        else
-            return null;
+        return _mapHelper.mapPlugins.save();
     },
     load: function(data)
     {
-        if (data)
-        {
-            _mapHelper.mapPlugins = data;
-            
-            for (var p = 0; p < data.length; p++)
-                nsGmx.pluginsManager.setUsePlugin(data[p], true);
-        }
-        else
-        {
-            _mapHelper.mapPlugins = [];
+        if (data) {
+            _mapHelper.mapPlugins.load(data);
+            _mapHelper.mapPlugins.updateGeomixerPlugins();
         }
     }
 })

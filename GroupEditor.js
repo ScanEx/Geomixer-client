@@ -523,14 +523,14 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 		_(divOnload, [onLoad])
         
         var mapPlugins = nsGmx.createPluginsEditor(divPlugins, _mapHelper.mapPlugins);
-        $(mapPlugins).change(function()
-        {
-            _mapHelper.mapPlugins = [];
-            mapPlugins.each(function(p)
-            {
-                _mapHelper.mapPlugins.push(p);
-            });
-        });
+        // $(mapPlugins).change(function()
+        // {
+            // _mapHelper.mapPlugins = [];
+            // mapPlugins.each(function(p)
+            // {
+                // _mapHelper.mapPlugins.push(p);
+            // });
+        // });
         
         tabMenu.updateFunc = function() {
             var props = div.gmxProperties.properties;

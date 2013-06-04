@@ -22,8 +22,8 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
     }
     
     this.body = body;
-    this.params = params;
-    this.def = $.Deferred();
+    this.params = params || {};
+    this.def = $.Deferred(); //будет resolve когда плагин загрузится
     this.isLoading = false;
     this.mapPlugin = mapPlugin || (body && body.pluginName);
     this.pluginName = pluginName || (this.body && this.body.pluginName);
@@ -51,6 +51,10 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
     this.isUsed = function()
     {
         return usageState === 'used';
+    }
+    
+    this.updateParams = function (newParams) {
+        $.extend(true, _this.params, newParams);
     }
 }
 
@@ -122,7 +126,7 @@ var PluginsManager = function()
         joinedPluginInfo[info.module] = info;
     })
     
-    //сначала дополняем её инфой из window.gmxPlugins с возможностью перезаписать
+    //дополняем её инфой из window.gmxPlugins с возможностью перезаписать
     window.gmxPlugins && $.each(window.gmxPlugins, function(i, info) {
         if (typeof info === 'string') {
             info = { module: info, file: 'plugins/' + info + '.js' };
@@ -280,6 +284,18 @@ var PluginsManager = function()
     this.isPublic = function(pluginName)
     {
         return _pluginsWithName[pluginName] && _pluginsWithName[pluginName].isPublic;
+    }
+    
+    /**
+	 Обновление параметров плагина
+     @memberOf PluginsManager
+     @name updateParams
+	 @method
+     @param {String} pluginName Имя плагина
+     @param {Object} newParams Новые параметры плагина. Параметры с совпадающими именами будут перезатёрты
+	*/
+    this.updateParams = function(pluginName, newParams) {
+        _pluginsWithName[pluginName] && _pluginsWithName[pluginName].updateParams(newParams);
     }
 }
 
