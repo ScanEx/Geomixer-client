@@ -72,6 +72,8 @@
         Набор тегов слоя
         @memberOf nsGmx
         @class
+        @param {nsGmx.TagMetaInfo} tagMetaInfo описание типов тегов
+        @param {Object} initTags теги для инициализации. Формат: {tag: {Value: value, ...}} value может быть массивом
     */
     var LayerTags = function(tagMetaInfo, initTags)
     {
@@ -194,8 +196,16 @@
                     return tags[tagId];
         }
         
-        for (var tag in initTags)
-            this.addNewTag(tag, initTags[tag].Value);
+        for (var tag in initTags) {
+            var values = initTags[tag].Value;
+            if (!$.isArray(values)) {
+                values = [values];
+            }
+            
+            for (var i = 0; i < values.length; i++) {
+                this.addNewTag(tag, values[i]);
+            }
+        }
     }
 
     /**
