@@ -1524,6 +1524,8 @@ var queryMapLayers = function()
 	this.builded = false;
 	
 	this.buttonsCanvas = _div();
+    
+    this.loadDeferred = $.Deferred();
 }
 
 queryMapLayers.prototype = new leftMenu();
@@ -1673,6 +1675,7 @@ queryMapLayers.prototype.load = function(data)
 		this.builded = true;
         
         $(this).triggerHandler('load');
+        this.loadDeferred.resolve();
 	}
 }
 
