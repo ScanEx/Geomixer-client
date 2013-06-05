@@ -2498,8 +2498,7 @@ var FireControl2 = function(map, params)
         //в Геомиксере будем добавлять непосредственно перед деревом слоёв
         if ('_queryMapLayers' in window)
         {
-            $(_queryMapLayers).bind('load', function()
-            {
+            var doInit = function() {
                 //если не указан календарик, то мы будем использовать общий. 
                 //Однако в этом случае мы хотим, чтобы календарик был под списком провайдеров
                 //Поэтому покажем календарик заранее
@@ -2513,7 +2512,13 @@ var FireControl2 = function(map, params)
                 params.container = div;
                 
                 doCreate();
-            });
+            }
+            
+            if (_queryMapLayers.loadDeferred) {
+                _queryMapLayers.loadDeferred.done(doInit);
+            } else {
+                $(_queryMapLayers).bind('load', doInit); //в случае использования со старыми версиями
+            }
         }
         else
             return; //ошибка
@@ -2527,6 +2532,10 @@ var FireControl2 = function(map, params)
 }
 
 var publicInterface = {
+    pluginName: 'Fire plugin',
+    afterViewer: function(params, map) {
+        new FireControl2(map, {data: params.data[0]});
+    },
     IDataProvider: IDataProvider,
     
     //провайдеры данных
