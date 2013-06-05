@@ -333,7 +333,7 @@
 			var chkDrag = function(eType, e) {
 				if(!node['dragging']) return;
 				var gmxNode = gmxAPI.mapNodes[node.id];		// Нода gmxAPI
-				var latlng = node['leaflet']._latlng || e.latlng;
+				var latlng = (layer && layer._latlng ? layer._latlng : e.latlng || gmxAPI._leaflet['mousePos']);
 				var ph = {
 					'obj':gmxNode
 					,'attr': {
@@ -371,6 +371,7 @@
 			}
 			else
 			{
+				if(!layer) layer = LMap;
 				layer.on('mouseover', function(e) {
 					commands.freeze();
 				});
