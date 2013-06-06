@@ -2659,6 +2659,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 
 				var tilePos = this._getTilePos(tilePoint);
 				L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
+				this._markTile(tilePoint, 1);
 
 				return this._tiles[tKey];
 			}
