@@ -1557,10 +1557,18 @@ var SearchControl = function(oInitInput, oInitResultListMap, oInitLogic, oInitLo
 	
 	/**Осуществляет загрузку SHP-файла*/
 	var fnDownloadSHP = function(event, filename, arrObjectsToDownload){
+        var geomNormalizationTable = {
+            "POINT": "POINT",
+            "MULTIPOINT": "POINT",
+            "LINESTRING": "LINESTRING",
+            "MULTILINESTRING": "LINESTRING",
+            "POLYGON": "POLYGON",
+            "MULTIPOLYGON": "POLYGON"
+        }
 		var objectsByType = {};
 
 		for (var i = 0; i < arrObjectsToDownload.length; i++) {
-			var type = arrObjectsToDownload[i].Geometry.type;
+			var type = geomNormalizationTable[arrObjectsToDownload[i].Geometry.type];
 
 			if (!objectsByType[type])
 				objectsByType[type] = [];
