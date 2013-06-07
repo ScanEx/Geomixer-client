@@ -1422,3 +1422,14 @@ div.layersScroll
     padding: 3px 0px;
     vertical-align: top;
 }
+
+#warningContainer
+{
+    padding: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    background: orange;
+    border-radius: 10px;
+    margin-top: 3px;
+    float: left;
+}

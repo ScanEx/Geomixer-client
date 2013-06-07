@@ -34,7 +34,11 @@
             
             _(container, [_a(elems,[['attr','href', items[i].href],['attr','target','_blank']])]);
         }
+        
+        addHeaderLinks.def.resolve();
     }
+    
+    addHeaderLinks.def = $.Deferred();
     
     nsGmx.addHeaderLinks = addHeaderLinks;
 })()

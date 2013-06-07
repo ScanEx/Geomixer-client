@@ -257,6 +257,17 @@ $(function()
     
     var parsedURL = parseURLParams();
     
+    addParseResponseHook('*', function(response, customErrorDescriptions) {
+        if (response.Warning) {
+            nsGmx.addHeaderLinks.def.done(function() { //из-за вёрстки должны добавить только после добавления ссылок в шапку
+                if (!$('#headerLinks > #warningContainer').length) {
+                    $('<div id="warningContainer"/>').appendTo($('#headerLinks'));
+                }
+                $('#headerLinks > #warningContainer').text(response.Warning);
+            })
+        }
+    })
+    
     //при каждой ошибке от сервера будем показывать диалог с ошибкой и стектрейсом.
     addParseResponseHook('error', function(response, customErrorDescriptions) {
         if (typeof customErrorDescriptions !== 'undefined' && response.ErrorInfo.ExceptionType in customErrorDescriptions)
