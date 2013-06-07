@@ -2534,7 +2534,11 @@ var FireControl2 = function(map, params)
 var publicInterface = {
     pluginName: 'Fire plugin',
     afterViewer: function(params, map) {
-        new FireControl2(map, {data: params.data[0]});
+        var data = params && params.data;
+        if (data && $.isArray(data)) {
+            data = data[0];
+        }
+        new FireControl2(map, {data: data});
     },
     IDataProvider: IDataProvider,
     
