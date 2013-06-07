@@ -15,8 +15,10 @@
             if ( typeof window.gmxViewerUI != 'undefined' && typeof window.gmxViewerUI.headerLinks != 'undefined' )
                 isHeaderLinks = window.gmxViewerUI.headerLinks;
 
-        if (!isHeaderLinks) 
+        if (!isHeaderLinks) {
+            addHeaderLinks.def.resolve();
             return;
+        }
 
         var items = (window.gmxViewerUI && window.gmxViewerUI.headerLinkItems) || 
             [
