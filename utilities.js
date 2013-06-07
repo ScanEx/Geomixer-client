@@ -904,7 +904,7 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
     var hooks = {};
     
     /** Добавляет "хук", который будет вызван при ответе сервера соответвующего типа
-    * @param type {object} - тип хука (соответствует полю "Status" ответа сервера)
+    * @param type {object} - тип хука (соответствует полю "Status" ответа сервера) или '*' - добавить к любому ответу
     * @param hookFunction {function(response, customErrorDescriptions)} - собственно хук
     */
     window.addParseResponseHook = function(type, hookFunction) {
@@ -922,10 +922,9 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
     */
     window.parseResponse = function(response, customErrorDescriptions)
     {
-        if (response.Status in hooks) {
-            for (var h = 0; h < hooks[response.Status].length; h++)
-                hooks[response.Status][h](response, customErrorDescriptions);
-        }
+        var responseHooks = (hooks[response.Status] || []).concat(hooks['*'] || []);
+        for (var h = 0; h < responseHooks.length; h++)
+            responseHooks[h](response, customErrorDescriptions);
         
         return response.Status == 'ok';
     }
