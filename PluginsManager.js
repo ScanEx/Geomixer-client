@@ -166,11 +166,20 @@ var PluginsManager = function()
     
     var _genIterativeFunction = function(funcName)
     {
+        //вместо массива из одного элемента передаём сам элемент
+        var normalizeParams = function(params) {
+            var res = {};
+            for (var p in params) {
+                res[p] = params[p].length === 1 ? params[p][0] : params[p];
+            }
+            
+            return res;
+        }
         return function(map)
         {
             for (var p = 0; p < _plugins.length; p++)
                 if ( _plugins[p].isUsed() && typeof _plugins[p].body[funcName] !== 'undefined')
-                    _plugins[p].body[funcName]( _plugins[p].params, map || window.globalFlashMap );
+                    _plugins[p].body[funcName]( normalizeParams(_plugins[p].params), map || window.globalFlashMap );
         }
     }
     
