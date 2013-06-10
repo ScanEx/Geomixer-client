@@ -2,18 +2,6 @@
 
 var extendJQuery;
 extendJQuery = function() {
-	if (typeof $ !== 'undefined') {
-		$.getCSS = $.getCSS || function(url) {
-			if (document.createStyleSheet) {
-				document.createStyleSheet(url);
-			} else {
-				$("head").append("<link rel='stylesheet' type='text/css' href='" + url + "'>");
-			}
-		}
-	} else {
-		setTimeout(extendJQuery, 100);
-	}
-
 	$('input.inputStyle').each(function(){
 		$(this)
 		.data('default', $(this).val())
@@ -373,7 +361,6 @@ var checkCadastre;
 var cadastreMenu = new leftMenu();
 
 var unloadCadastre = function(){
-	//removeCadastreInfoTool();
 	if(checkCadastre != null) checkCadastre.unloadCadastre();
 }
 
@@ -389,11 +376,6 @@ var loadCadastre = function(){
 
 	extendJQuery();
 	return checkCadastre;
-}
-
-var addMenuItems = function(upMenu){
-	return [{item: {id:'cadastre', title:_gtxt('Кадастровые данные'),onsel:loadCadastre, onunsel:unloadCadastre},
-			parentID: 'loadServerData'}];
 }
 
 function addCadastreInfoTool(){
@@ -639,37 +621,27 @@ function addCadastreInfoTool(){
 
 };
 
-function removeCadastreInfoTool(){
-	gmxAPI.map.drawing.removeTool("cadastreInfo");
-	//TODO: Удалить кадастровую идентификацию из панели иструментов
-};
-
 var publicInterface = {
 	pluginName: 'Cadastre',
 	Cadastre: cadastre,
 	loadCadastre: loadCadastre,
 	afterViewer: function(params){
-		if (params && params.cadastreHost) {
-			cadastreServer = params.cadastreServer;
-		}else{
-			cadastreServer = "http://maps.rosreestr.ru/arcgis/rest/services/";
-		}
-		
-		if(params && params.cadastreProxy){
-			cadastreServer = params.cadastreProxy + cadastreServer;
-		}
-	},
-	/*beforeViewer:function(){	
-	},*/
-	addMenuItems: addMenuItems
+        params = params || {};
+        cadastreServer = params.cadastreProxy || '';
+        cadastreServer += params.cadastreServer || "http://maps.rosreestr.ru/arcgis/rest/services/";
+        
+        _menuUp.addChildItem({
+            id:'cadastre', 
+            title:_gtxt('Кадастровые данные'),
+            onsel:loadCadastre, 
+            onunsel:unloadCadastre
+        }, 'loadServerData');
+        
+	}
 };
 
-window.gmxCore && window.gmxCore.addModule('cadastre', publicInterface,{
-		init: function(module, path){
-			$.getCSS(path + '/cadastre.css');
-			//$LAB.script("./plugins/constants.js").wait();
-			//gmxCore.loadScript(path + "constants.js?");
-		}
+window.gmxCore && window.gmxCore.addModule('cadastre', publicInterface, {
+    css: "cadastre.css"
 });
 
 })();
