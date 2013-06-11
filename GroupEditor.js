@@ -304,6 +304,10 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 	{
 		var useAPI = _checkbox(elemProperties.UseKosmosnimkiAPI, 'checkbox'),
 			useOSM = _checkbox(elemProperties.UseOpenStreetMap, 'checkbox'),
+			defLang = $('<span class="defaultMapLangContainer">' + 
+                            '<input type="radio" id="defRus" name="defLang" value="rus"></input><label for="defRus">rus</label>' + 
+                            '<input type="radio" id="defEng" name="defLang" value="eng"></input><label for="defEng">eng</label>' + 
+                        '</span>')[0],
 		//	showBalloons = _checkbox(elemProperties.ShowPropertiesBalloons, 'checkbox'),
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
@@ -331,6 +335,15 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 			
 			rawTree.properties = div.gmxProperties.properties;
 		}
+        
+        $('input[value=' + elemProperties.DefaultLanguage + ']', defLang).attr('checked', 'checked');
+        $('input', defLang).change(function()
+		{
+			div.gmxProperties.properties.DefaultLanguage = this.value;
+			rawTree.properties = div.gmxProperties.properties;
+            console.log(div.gmxProperties.properties.DefaultLanguage);
+		})
+        
 		useOSM.onclick = function()
 		{
 			div.gmxProperties.properties.UseOpenStreetMap = this.checked;
@@ -490,6 +503,7 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 									.concat(
 										[{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
 										{name: _gtxt("Использовать OpenStreetMap"), elem: useOSM},
+										{name: _gtxt("Язык по умолчанию"), elem: defLang},
 										{name: _gtxt("Ссылка (permalink)"), elem: defPermalink},
 										{name: _gtxt("Масштабирование в миникарте"), elem: zoomDelta}]
 									),
@@ -619,7 +633,7 @@ var createMapEditor = function(div)
 		};
 	
 	var canvas = createGroupEditorProperties(div, true, _layersTree);
-	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 345, 330, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 345, 340, pos.left, pos.top, null, closeFunc);
 	_mapEditorsHash[elemProperties.MapID] = {
         update: canvas.updateFunc
     };

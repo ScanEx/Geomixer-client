@@ -246,8 +246,9 @@ var parseURLParams = function()
 
 $(function()
 {
-    window.language = translationsHash.getLanguageFromCookies() || window.defaultLang || "rus";
-	if (window.language == "eng")
+    var languageFromSettings = translationsHash.getLanguageFromCookies() || window.defaultLang;
+    window.language = languageFromSettings || "rus"
+	if (languageFromSettings == "eng")
 		window.KOSMOSNIMKI_LANGUAGE = "English";
 	
 	window.shownTitle =  window.pageTitle || _gtxt('ScanEx Web Geomixer - просмотр карты');
@@ -317,9 +318,7 @@ $(function()
             var apiParams = [];
             if (window.apiKey) apiParams.push("key=" + window.apiKey);
             if (window.gmxDropBrowserCache) apiParams.push(Math.random());
-            var paramsString = "";
-            for (var p = 0; p < apiParams.length; p++)
-                paramsString += (paramsString.length ? "&" : "?") + apiParams[p];
+            var paramsString = apiParams.join('&');
                 
             var apiFilename;
             if (parsedURL.params['apifile'])
@@ -337,7 +336,7 @@ $(function()
             
             var script = document.createElement("script");
             script.setAttribute("charset", "windows-1251");
-            script.setAttribute("src", _mapHostName + apiFilename + paramsString);
+            script.setAttribute("src", _mapHostName + apiFilename + '?' + paramsString);
             
             var interval = setInterval(function()
             {
@@ -736,6 +735,11 @@ function loadMap(state)
 	
     var success = createFlashMap($$("flash"), window.serverBase, globalMapName, function(map, data)
 	{
+        //если информации о языке нет ни в куках ни в config.js, то используем данные о языке из карты
+        if (!translationsHash.getLanguageFromCookies() && !window.defaultLang && data) {
+            window.language = data.properties.DefaultLanguage;
+        }
+        
         $('#flash').bind('dragover', function()
         {
             return false;

@@ -149,6 +149,7 @@ _translationsHash.hash["eng"] = {
 	"Вид вложенных элементов" : "Form of attached elements",
 	"Использовать KosmosnimkiAPI" : "Use KosmosnimkiAPI",
 	"Использовать OpenStreetMap" : "Use OpenStreetMap",
+	"Язык по умолчанию" : "Default language",
 	"Разрешить поиск в векторных слоях" : "Allow search vector layers",
 	"Начальная позиция" : "Start position",
 	"Широта" : "Latitude",

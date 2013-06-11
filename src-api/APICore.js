@@ -2304,8 +2304,10 @@ function createFlashMap(div, arg1, arg2, arg3)
 		if(uri.host) gmxAPI.serverBase = uri.host;						// HostName основной карты переопределен
 		loadMapJSON(hostName, mapName, function(layers)
 		{
-			if (layers != null)
+			if (layers != null) {
+                window.KOSMOSNIMKI_LANGUAGE = window.KOSMOSNIMKI_LANGUAGE || {'eng': 'English', 'rus': 'Russian'}[layers.properties.DefaultLanguage];
 				(layers.properties.UseKosmosnimkiAPI ? createKosmosnimkiMapInternal : createFlashMapInternal)(div, layers, callback);
+            }
 			else
 				callback(null);
 		});
