@@ -550,104 +550,29 @@ var FireBurntProvider = function( params )
 var ModisImagesProvider = function( params )
 {
     var _params = $.extend({host: "http://maps.kosmosnimki.ru/", map: window.globalFlashMap}, params)
-    var layersNamesToLoad = ['EB271FC4D2AD425A9BAA78ADEA041AB9', '533FCC7439DA4A2EB97A2BE77887A462'],
-        //leftToLoad = layersNamesToLoad.length,
-        modisLayers = {},
-        overallDeferred = null;
-        
-	var addModisLayers = function(callback)
-    {
-        if (overallDeferred)
-        {
-            overallDeferred.done(function()
-            {
-                callback(modisLayers);
-            });
-            return;
-        }
-        
-        var deferreds = [];
-        for (var iL = 0; iL < layersNamesToLoad.length; iL++)
-            (function(layerName)
-            {
-                var curDef = new $.Deferred();
-                deferreds.push(curDef);
-                sendCrossDomainJSONRequest(_params.host + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + layerName, function(response)
-                {
-                    if (!parseResponse(response))
-                        return;
-                    
-                    var layerProperties = {type:'layer', content: response.Result};
-                    layerProperties.content.geometry = gmxAPI.from_merc_geometry(layerProperties.content.geometry);
-                    
-                    layerProperties.content.properties.styles = [
-                        {
-                            "Name":"контура",
-                            "MinZoom":1,
-                            "MaxZoom":2,
-                            "BalloonEnable":true,
-                            "DisableBalloonOnClick":false,
-                            "DisableBalloonOnMouseMove":true,
-                            "RenderStyle":{"outline":{"color":255,"thickness":1},"fill":{"color":16777215,"opacity":0}}
-                        },
-                        {
-                            "Name":"изображения",
-                            "MinZoom":3,
-                            "MaxZoom":10,
-                            "BalloonEnable":true,
-                            "DisableBalloonOnClick":false,
-                            "DisableBalloonOnMouseMove":true,
-                            "RenderStyle":{}
-                        }
-                    ]
-                    
-                    var TiledQuicklook = _params.host + 'TileSenderSimple.ashx?TilePath=OperativeMODIS[TILES]/';
-                    
-                    layerProperties.content.properties.mapName = _params.map.properties.name;
-                    layerProperties.content.properties.hostName = _params.host.substring(7, _params.host.length-1);
-                    layerProperties.content.properties.visible = true;
-                    
-                    _params.map.addLayer(layerProperties.content, true);
-                    modisLayers[layerName] = _params.map.layers[layerName];
-                    
-                    //Бага во flash версии - каталоги растров являются растровыми слоями и попадают под подложку
-                    //TODO: убрать проверку после того, как откажемся от flash
-                    if(gmxAPI.proxyType !== 'flash') {
-                        modisLayers[layerName].bringToBottom();
-                    }
-                    // modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
-                    //modisLayers[layerName].filters[1].setFilter("`IsDay` = 'True'");
-                    modisLayers[layerName].setVisibilityFilter("IsDay = 'True'");
-/*                    
-                    modisLayers[layerName].enableTiledQuicklooks(function(o)
-                    {
-                        return TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
-                        {
-                            return o.properties[arguments[1]];
-                        });
-                    }, 3, 10);
-  */                  
-                    curDef.resolve();
-
-                })
-            })( layersNamesToLoad[iL] );
-        
-        overallDeferred = $.when.apply($, deferreds).done(function()
-        {
-            callback(modisLayers);
-        });
-       
-    }
+    var layersNamesToLoad = ['EB271FC4D2AD425A9BAA78ADEA041AB9', '533FCC7439DA4A2EB97A2BE77887A462']; //слои, в которых хранятся снимки Terra и Aqua
+    var initDone = false;
 	
 	this.getDescription = function() { return _gtxt("firesWidget.DailyCoverage.Description"); }
 	this.getData = function( dateBegin, dateEnd, bbox, onSucceess, onError )
 	{
-        addModisLayers(function(layers)
-        {
-            for (var iL in layers)
-                layers[iL].setDateInterval(new Date(dateEnd.valueOf() - 24*3600*1000), dateEnd);
-                
-            onSucceess({modisLayers: layers});
+        var map = _params.map;
+        _lazyLoadFireLayers(_params).done(function() {
+            if (!initDone) {
+                for (var iL = 0; iL < layersNamesToLoad.length; iL++) {
+                    map.layers[layersNamesToLoad[iL]].bringToBottom();
+                    map.layers[layersNamesToLoad[iL]].setVisibilityFilter("IsDay = 'True'");
+                }
+                initDone = true;
+            }
+            var modisLayers = [];
+            for (var iL = 0; iL < layersNamesToLoad.length; iL++) {
+                var layer = map.layers[layersNamesToLoad[iL]];
+                layer.setDateInterval(new Date(dateEnd.valueOf() - 24*3600*1000), dateEnd);
+                modisLayers.push(layer);
+            }
+            
+            onSucceess({modisLayers: modisLayers});
         })
 	}
 }
