@@ -344,6 +344,7 @@ mapHelper.prototype.restoreTinyReference = function(id, callbackSuccess, errorCa
 					obj.drawnObjects[i].color = obj.drawnObjects[i].color || '0000ff';
 				}
 		}
+        obj.originalReference = id;
 		callbackSuccess(obj);
 	});
 }

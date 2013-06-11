@@ -832,6 +832,8 @@ function loadMap(state)
                 window.onresize = resizeAll;
                 resizeAll();
                 
+                state.originalReference && createCookie("TinyReference", state.originalReference);
+                
                 nsGmx.widgets.authWidget.showLoginDialog();
                 
                 return;
