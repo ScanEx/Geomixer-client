@@ -79,8 +79,7 @@ nsGmx.mapLayersList = {
 
 var oSearchLeftMenu = new leftMenu();
 				
-gmxCore.loadModule("search", _getFileName("search.js"));
-gmxCore.addModulesCallback(["search"], function(){
+gmxCore.loadModule("search", _getFileName("search.js"), function(){
 	var oSearchModule = gmxCore.getModule("search");
 	window.oSearchControl = new oSearchModule.SearchGeomixer();
 });

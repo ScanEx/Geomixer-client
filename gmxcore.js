@@ -81,6 +81,16 @@ var gmxCore = function()
     
     var cssLoader = null;
     
+    var withCachePostfix = function(filename) {
+        if (window.gmxDropBrowserCache) {
+            filename += '?' + Math.random();
+        } else if (nsGmx.buildGUID){
+            filename += '?' + nsGmx.buildGUID;
+        }
+        
+        return filename;
+    }
+    
     //public methods
     return {
     
@@ -119,7 +129,7 @@ var gmxCore = function()
                     var path = _modulePathes[moduleName] || window.gmxJSHost || "";
                     
                     for (var iF = 0; iF < cssFiles.length; iF++)
-                        _this.loadCSS(path + cssFiles[iF]);
+                        _this.loadCSS(withCachePostfix(path + cssFiles[iF]));
 				}
                 
                 
@@ -175,8 +185,10 @@ var gmxCore = function()
                 if ( typeof _modulePathes[moduleName] === 'undefined' )
                     _modulePathes[moduleName] = pathRegexp.test(path) ? path.match(pathRegexp)[1] + "/" : "";
 				
+                var pathPostfix = "";
+                
                 newScript.type = 'text/javascript';
-                newScript.src = path + (window.gmxDropBrowserCache ? "?" + Math.random() : "");
+                newScript.src = withCachePostfix(path);
                 newScript.charset = "utf-8";
                 headElem.appendChild(newScript);
             }

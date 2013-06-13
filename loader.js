@@ -5,13 +5,22 @@ nsGmx.GeomixerFramework = true;
 
 var gmxJSHost = window.gmxJSHost || "";
 
+
 window.nsGmx = {};
 window.nsGmx.GeomixerFramework = true;
 
 //подставляет к локальному имени файла хост (window.gmxJSHost) и, опционально, рандомное поле для сброса кэша (window.gmxDropBrowserCache)
 var _getFileName = function( localName )
 {
-	return gmxJSHost + localName + ( window.gmxDropBrowserCache ? "?" + Math.random() : "");
+    var filename = gmxJSHost + localName;
+    
+    if (window.gmxDropBrowserCache) {
+        filename += '?' + Math.random();
+    } else if (nsGmx.buildGUID){
+        filename += '?' + nsGmx.buildGUID;
+    }
+    
+	return filename;
 }
 
 //последовательно загружает все файлы js и вызывает после этого callback
@@ -30,6 +39,7 @@ var loadJS = function(fileList, callback)
         callback();
 }
 
+nsGmx.buildGUID = [/*#buildinclude<__buildGUID__>*/][0];
 var gmxFilesList = [/*#buildinclude<load_js.txt>*/];
 var thirdpartyList = [/*#buildinclude<load_thirdparty.txt>*/];
 
