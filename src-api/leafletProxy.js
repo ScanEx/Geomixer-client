@@ -52,6 +52,10 @@
 		,
 		'chkIdle': function(flag)	{			// Проверка закончены или нет все команды отрисовки карты
 			var out = false;
+			for (var id in gmxAPI._leaflet['renderingObjects']) {
+				return out;
+			}
+			
 			if(gmxAPI._leaflet['lastDrawTime']) return out;
 			var cnt = gmxAPI._leaflet['imageLoader'].getCounts();	// колич.выполняющихся запросов загрузки img
 			if(cnt <= 0) {
@@ -4959,4 +4963,18 @@ var tt = 1;
 	gmxAPI._leaflet['mousePressed'] = false;		// признак нажатой мыши
 	gmxAPI._leaflet['mouseMoveAttr'] = null;		// атрибуты mouseOver
 	gmxAPI._leaflet['activeObject'] = null;			// Нода последнего mouseOver
+
+	gmxAPI._leaflet['renderingObjects'] = {};		// Список объектов находящихся в Rendering режиме
+	gmxAPI._leaflet['onRenderingStart'] = function(lObj)
+	{
+		if(!lObj || !lObj.layer) return false;
+		var id = lObj.layer._leaflet_id;
+		gmxAPI._leaflet['renderingObjects'][id] = true;
+	};
+	gmxAPI._leaflet['onRenderingEnd'] = function(lObj)
+	{
+		if(!lObj || !lObj.layer) return false;
+		var id = lObj.layer._leaflet_id;
+		delete gmxAPI._leaflet['renderingObjects'][id];
+	};
 })();

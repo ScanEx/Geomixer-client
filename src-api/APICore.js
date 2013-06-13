@@ -68,21 +68,24 @@ window.gmxAPI = {
 		return zn
 	}
 	,
-	clone: function (o)
+	clone: function (o, level)
 	{
-		if(!o || typeof(o) !== 'object')  {
-			return o;
+		if(!level) level = 0;
+		var type = typeof(o);
+		if(!o || type !== 'object')  {
+			return (type === 'function' ? 'function' : o);
 		}
 		var c = 'function' === typeof(o.pop) ? [] : {};
 		var p, v;
 		for(p in o) {
 			if(o.hasOwnProperty(p)) {
 				v = o[p];
-				if(v && 'object' === typeof v) {
-					c[p] = gmxAPI.clone(v);
+				var type = typeof(v);
+				if(v && type === 'object') {
+					c[p] = (level < 100 ? gmxAPI.clone(v, level + 1) : 'object');
 				}
 				else {
-					c[p] = v;
+					c[p] = (type === 'function' ? 'function' : v);
 				}
 			}
 		}

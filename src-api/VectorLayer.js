@@ -2316,7 +2316,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				fnode.regularStyle = utils.parseStyle(fnode._regularStyle, fnode.id);
 				fnode.regularStyleIsAttr = utils.isPropsInStyle(fnode.regularStyle);
 				if(!fnode.regularStyleIsAttr) fnode.regularStyle = utils.evalStyle(fnode.regularStyle)
-				if(!fnode._hoveredStyle) fnode._hoveredStyle = gmxAPI.clone(fnode.regularStyle);
+				if(!fnode._hoveredStyle) fnode._hoveredStyle = gmxAPI.clone(fnode._regularStyle);
 			}
 			if(fnode._hoveredStyle) {
 				fnode.hoveredStyle = utils.parseStyle(fnode._hoveredStyle, id);
