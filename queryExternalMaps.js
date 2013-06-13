@@ -161,9 +161,8 @@ queryExternalMaps.prototype.loadMap = function(hostName, mapName, callback)
 				
 				if (!globalFlashMap.layers[name])
 				{
-					globalFlashMap.addLayer(layer, isVisible);
-					globalFlashMap.layers[name].setVisible(isVisible);
-					
+					globalFlashMap.addLayer(layer, isVisible, true);
+					//globalFlashMap.layers[name].setVisible(isVisible);
 					globalFlashMap.layers[name].external = true;
 				}
 			});

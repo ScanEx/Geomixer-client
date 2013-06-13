@@ -1372,13 +1372,8 @@ layersTree.prototype.addLayersToMap = function(elem)
 		{
 			var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
 			
-			globalFlashMap.addLayer(layer, visibility);
-			
-			globalFlashMap.layers[name].setVisible(visibility);
-            
+			globalFlashMap.addLayer(layer, visibility, true);
             layer.properties.changedByViewer = true;
-            //layer.properties.visible = visibility;
-			//globalFlashMap.layers[name].bounds = getLayerBounds( elem.content.geometry.coordinates[0], globalFlashMap.layers[name]);
 		}
 		else
 		{
