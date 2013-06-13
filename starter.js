@@ -316,7 +316,11 @@ $(function()
         {
             var apiParams = [];
             if (window.apiKey) apiParams.push("key=" + window.apiKey);
-            if (window.gmxDropBrowserCache) apiParams.push(Math.random());
+            if (window.gmxDropBrowserCache) {
+                apiParams.push(Math.random());
+            } else if (nsGmx.buildGUID) {
+                apiParams.push(nsGmx.buildGUID);
+            }
             var paramsString = apiParams.join('&');
                 
             var apiFilename;
