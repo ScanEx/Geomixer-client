@@ -453,15 +453,16 @@
 		//var miniMapZoomDelta = -4;
 		map.addLayers = function(layers, notMoveFlag, notVisible)
 		{
-			var b = gmxAPI.getBounds();
+			var mapBounds = gmxAPI.getBounds();
 			var minLayerZoom = 20;
 			forEachLayer(layers, function(layer, isVisible) 
 			{
-				map.addLayer(layer, (layer.properties.visible ? true : isVisible));
+				var visible = (layer.properties.visible ? true : isVisible);
+				map.addLayer(layer, visible, true);
 				if('LayerVersion' in layer.properties && gmxAPI._layersVersion) {
 					gmxAPI._layersVersion.chkVersionLayers(layers, layer);
 				}
-				b.update(layer.geometry.coordinates);
+				if(visible && layer.mercGeometry) mapBounds.update(layer.mercGeometry.coordinates);
 				var arr = layer.properties.styles || [];
 				for (var i = 0; i < arr.length; i++) {
 					var mm = arr[i].MinZoom;
@@ -505,15 +506,15 @@
 						'y': gmxAPI.merc_y(pos['y']),
 						'z': pos['z']
 					}});
-				} else if(!notMoveFlag)
+				} else if(!notMoveFlag && mapBounds)
 				{
-					var z = map.getBestZ(b.minX, b.minY, b.maxX, b.maxY);
+					var z = map.getBestZ(gmxAPI.from_merc_x(mapBounds.minX), gmxAPI.from_merc_y(mapBounds.minY), gmxAPI.from_merc_x(mapBounds.maxX), gmxAPI.from_merc_y(mapBounds.maxY));
 					if (minLayerZoom != 20)
 						z = Math.max(z, minLayerZoom);
 					if(z > 0)  {
 						var pos = {
-							'x': (gmxAPI.merc_x(b.minX) + gmxAPI.merc_x(b.maxX))/2,
-							'y': (gmxAPI.merc_y(b.minY) + gmxAPI.merc_y(b.maxY))/2,
+							'x': (mapBounds.minX + mapBounds.maxX)/2,
+							'y': (mapBounds.minY + mapBounds.maxY)/2,
 							'z': z
 						};
 						map.needMove = {
@@ -586,6 +587,12 @@
 					gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': e+'\n---------------------------------'+'\n' + layers.properties.OnLoad});
 				}
 			}
+		}
+
+		map.getCenter = function(mgeo)
+		{
+			if(!mgeo) mgeo = map.getScreenGeometry();
+			return gmxAPI.geoCenter(mgeo);
 		}
 
 		map.getScreenGeometry = function()
@@ -731,7 +738,7 @@
 			if(gmxAPI._setCoordinatesColor) gmxAPI._setCoordinatesColor(htmlColor, gmxAPI.getAPIFolderRoot() + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png"), true);
 			if(gmxAPI._setCopyrightColor) gmxAPI._setCopyrightColor(htmlColor);
 		}
-
+		
 		map.setBackgroundColor(gmxAPI.proxyType === 'leaflet' ? 0xffffff : 0x000001);
 		//map.setBackgroundColor(0x000001);
 //			map.miniMap.setBackgroundColor(0xffffff);

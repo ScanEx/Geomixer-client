@@ -35,6 +35,7 @@
 		'add': function(id)	{					// добавить ноду для отрисовки
 			var node = gmxAPI._leaflet['mapNodes'][id];
 			if(!node) return false;
+			if(itemsHash[id]) drawManager.remove(id);
 			if(!itemsHash[id]) {
 				itemsHash[id] = items.length;
 				items.push(id);

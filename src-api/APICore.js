@@ -2186,8 +2186,10 @@ function loadMapJSON(hostName, mapName, callback, onError)
 						{ 
 							layer.properties.mapName = layers.properties.name;
 							layer.properties.hostName = hostName;
-							layer.mercGeometry = gmxAPI.clone(layer.geometry);
-							layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
+							layer.mercGeometry = layer.geometry;
+							//delete layer.geometry;
+							//layer.mercGeometry = gmxAPI.clone(layer.geometry);
+							//layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
 						});
 					}
 					callback(layers);
@@ -2342,7 +2344,7 @@ gmxAPI._FMO = FlashMapObject;
 
 // Для MapObject
 FlashMapObject.prototype.bringToTop = function() { return gmxAPI._cmdProxy('bringToTop', { 'obj': this }); }
-FlashMapObject.prototype.bringToBottom = function() { gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
+FlashMapObject.prototype.bringToBottom = function() { return gmxAPI._cmdProxy('bringToBottom', { 'obj': this }); }
 FlashMapObject.prototype.bringToDepth = function(n) { return gmxAPI._cmdProxy('bringToDepth', { 'obj': this, 'attr':{'zIndex':n} }); }
 FlashMapObject.prototype.setDepth = FlashMapObject.prototype.bringToDepth;
 FlashMapObject.prototype.startDrawing = function(type) { gmxAPI._cmdProxy('startDrawing', { 'obj': this, 'attr':{'type':type} }); }
@@ -3045,11 +3047,11 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					if('miniMap' in map) {
 						//map.miniMap.setVisible(true);
 						for (var m = 0; m < mapLayers.length; m++)
-							map.miniMap.addLayer(mapLayers[m]);
+							map.miniMap.addLayer(mapLayers[m], null, true);
 						
 						if (osmEmbed)
 						{
-							map.miniMap.addLayer(osmEmbed);
+							map.miniMap.addLayer(osmEmbed, null, true);
 							setOSMEmbed(map.miniMap.layers[osmEmbed.properties.name]);
 						}
 					}
@@ -3061,7 +3063,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					if (layers)
 					{
 						map.defaultHostName = layers.properties.hostName;
-						map.addLayers(layers);
+						map.addLayers(layers, false);
 						map.properties = layers.properties;
 					}
 					if(gmxAPI.proxyType === 'flash' && map.needSetMode) map.setMode(map.needSetMode);

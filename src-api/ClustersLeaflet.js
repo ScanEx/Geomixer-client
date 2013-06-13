@@ -12,74 +12,66 @@
 	}
 
 	var ClustersLeaflet = {
-		'getTileClusterArray': function(iarr, tileAttr)	{			// Получить кластеры тайла
-			var attr = this;
-			var node = this.node;
+		'reRun': function(obj)	{			// Получить кластеры слоя
+			var attr = obj;
+			var node = attr.node;
+			var mInPixel = gmxAPI._leaflet['mInPixel'];
 			var identityField = node['identityField'];
 			var iterCount = (attr.iterationCount != null ? attr.iterationCount : 1);	// количество итераций K-means
 			var radius = (attr.radius != null ? attr.radius : 20);						// радиус кластеризации в пикселах
-			var input = attr['input'] || {};
-			var newProperties = input['newProperties'] || {'Количество': '[objectInCluster]'};	// properties кластеров
+			var radiusMerc = radius / mInPixel;											// радиус кластеризации в Меркаторе
 
-			var mInPixel = gmxAPI._leaflet['mInPixel'];
-			//var radMercator = radius * scale;			// размер радиуса кластеризации в метрах меркатора
-			var x = tileAttr['x'];
-			var y = 256 + tileAttr['y'];
-			//var flag = identityField; 
 			var grpHash = {};
-			var arr = [];
 			var cnt = 0;
-			for(var i=0; i<iarr.length; i++) {
-				var item = iarr[i];
-				if (item.type.indexOf('Point') == -1) continue;
-				var p = item.coordinates;
-//				if(!tileAttr.bounds.contains(p)) continue;
-				var px1 = p.x * mInPixel - x;
-				var py1 = y - p.y * mInPixel;
+			var arr = [];
+			var getItems = function(inp) {			// Перебрать все обьекты из массива
+				for (var i = 0, len = inp.length; i < len; i++)
+				{
+					var geom = inp[i];
+					if(geom.type !== 'Point') continue;
+					if(!geom.propHiden['_isFilters']) continue;				// если нет фильтра пропускаем
+					if(!node['chkSqlFuncVisibility'](geom)) continue;		// если фильтр видимости на слое
 
-				var dx = Math.floor(px1 / radius);		// Координаты квадранта разбивки тайла
-				if(dx < 0) continue;
-				var dy = Math.floor(py1 / radius);
-				if(dy < 0) continue;
-				var key = dx + '_' + dy;
-				var ph = grpHash[key] || {};
-				var parr = ph['arr'] || [];
-				parr.push(cnt);
-				cnt++;
-				arr.push(item);
-				ph.arr = parr;
-				grpHash[key] = ph;
-			}
-/*			
-			function setProperties(prop_:Hash<String>, len_:Int):Void
-			{
-				var regObjectInCluster = ~/\[objectInCluster\]/g;
-				for (i in 0...Std.int(propFields[0].length)) {
-					var key:String = propFields[0][i];
-					var valStr:String = propFields[1][i];
-					valStr = regObjectInCluster.replace(valStr, cast(len_));
-					prop_.set(key, valStr);
+					var p = geom.coordinates;
+					var px1 = p.x;
+					var py1 = p.y;
+
+					var dx = Math.floor(px1 / radiusMerc);		// Координаты квадранта разбивки тайла
+					var dy = Math.floor(py1 / radiusMerc);
+					var key = dx + '_' + dy;
+					var ph = grpHash[key] || {'arr':[]};
+					var parr = ph['arr'];
+					ph['arr'].push(geom);
+					grpHash[key] = ph;
+					arr.push(geom);
 				}
 			}
-*/			
+			for (var key in node['tilesGeometry'])						// Перебрать все загруженные тайлы
+			{
+				getItems(node['tilesGeometry'][key]);
+			}
+			if(node['addedItems'].length) {								// Перебрать все добавленные на клиенте обьекты
+				getItems(node['addedItems']);
+			}
+			
 			function getCenterGeometry(parr)
 			{
 				if (parr.length < 1) return null;
 				var xx = 0; var yy = 0;
 				var lastID = null;
 				var members = [];
-				for(var i=0; i<parr.length; i++) {
-					var index = parr[i];
-					var item = arr[index];
-					if (parr.length == 1) return item;
+				var len = parr.length;
+				for(var i=0; i<len; i++) {
+					var item = parr[i];
+					if (len == 1) return item;
 					lastID = item.id;
 					var p = item.coordinates;
 					xx += p.x;
 					yy += p.y;
 					members.push(item);
 				}
-				xx /= parr.length;
-				yy /= parr.length;
+				xx /= len;
+				yy /= len;
 
 				var rPoint = new L.Point(xx, yy)
 				var bounds = new L.Bounds();
@@ -99,7 +91,6 @@
 				};
 				return res;
 			}
-
 			// find the nearest group
 			function findGroup(point) {
 				var min = Number.MAX_VALUE; //10000000000000;
@@ -130,7 +121,7 @@
 				objIndexes.push(ph.arr);
 				var pt = getCenterGeometry(ph.arr);
 				var prop = {};
-				var first = arr[ph.arr[0]];
+				var first = ph.arr[0];
 				if (ph.arr.length == 1) {
 					prop = gmxAPI.clone(node.getPropItem(first));
 				}
@@ -142,8 +133,6 @@
 					pt.propHiden.curStyle = attr.regularStyle;
 					pt.propHiden.toFilters = node.filters;
 					prop[identityField] = pt['id'];
-					//prop['d'] = 'cl_' + clusterNum;
-					//setProperties(prop, ph.arr.length);
 				}
 
 				if(first.propTemporal != null) pt.propTemporal = first.propTemporal;
@@ -156,32 +145,23 @@
 			{
 				var newObjIndexes =  [];
 				for(var i=0; i<arr.length; i++) {
-				//for (i in 0...Std.int(geom.members.length))				{
 					var item = arr[i];
-					//if (!Std.is(geom.members[i], PointGeometry)) continue;
-					//var member:PointGeometry = cast(geom.members[i], PointGeometry);
 					var point = item.coordinates;
-
 					var group = findGroup(point);
-					
 					if (!newObjIndexes[group]) newObjIndexes[group] = [];
-					newObjIndexes[group].push(i);
+					newObjIndexes[group].push(item);
 				}
 				centersGeometry = [];
 				objIndexes =  [];
 
 				var clusterNum =  0;
 				for(var i=0; i<newObjIndexes.length; i++) {
-				//for (arr in newObjIndexes)				{
 					var parr = newObjIndexes[i];
 					if (!parr || parr.length == 0) continue;
 					var pt = getCenterGeometry(parr);
 					var prop = {};
 					if (parr.length == 1) {
-						prop = gmxAPI.clone(node.getPropItem(arr[parr[0]]));
-						//var propOrig = geom.members[parr[0]].properties;
-						//for(key in propOrig.keys()) prop.set(key, propOrig.get(key));
-						//pt.propHiden.set('_paintStyle', vectorLayerFilter.mapNode.regularStyle);
+						prop = gmxAPI.clone(node.getPropItem(parr[0]));
 					}
 					else
 					{
@@ -190,31 +170,49 @@
 						pt['subType'] = 'cluster';
 						pt.propHiden.curStyle = attr.regularStyle;
 						pt.propHiden.toFilters = node.filters;
-						//pt.propHiden['_paintStyle'] = attr.regularStyle;
 						prop[identityField] = pt['id'];
-						//prop['dgg'] = 'cl_' + clusterNum;
 					}
 					pt.properties = prop;
-					if(arr[parr[0]].propTemporal != null) pt.propTemporal = arr[parr[0]].propTemporal;
+					if(parr[0].propTemporal != null) pt.propTemporal = parr[0].propTemporal;
 					
 					centersGeometry.push(pt);
 					objIndexes.push(parr);
 				}
 			}
-			
+
 			for(var i=0; i<iterCount; i++) {	// Итерации K-means
 				kmeansGroups();
 			}
-			
+
+			attr['centersGeometry'] = centersGeometry;
+		}
+		,'getTileClusterArray': function(iarr, tileAttr)	{			// Получить кластеры тайла
+			if(!this.centersGeometry) ClustersLeaflet.reRun(this);
+			return ClustersLeaflet.getTileClusters(this, iarr, tileAttr);
+		}
+		,'getTileClusters': function(obj, iarr, tileAttr)	{		// Получить кластеры тайла
+			var attr = obj;
+			var node = obj.node;
+			var input = attr['input'] || {};
+
 			var regObjectInCluster = /\[objectInCluster\]/g;
+			var newProperties = input['newProperties'] || {'Количество': '[objectInCluster]'};	// properties кластеров
+
+			var x = tileAttr['x'];
+			var y = 256 + tileAttr['y'];
+			var tileSize = tileAttr['tileSize'];
+			var tbounds = tileAttr['bounds'];
+			var tminx = tbounds.min.x - tileSize, tminy = tbounds.min.y - tileSize,
+				tmaxx = tbounds.max.x + tileSize, tmaxy = tbounds.max.y + tileSize;
+
 			var res = [];
-			for(var i=0; i<centersGeometry.length; i++) {	// Подготовка геометрий
- 				var item = centersGeometry[i];
- 				if(item['subType'] === 'cluster') {
-					var p = item.coordinates;
+			for(var i=0; i<attr['centersGeometry'].length; i++) {	// Подготовка геометрий
+ 				var item = attr['centersGeometry'][i];
+				var p = item.coordinates;
+				if(p.x < tminx || p.x > tmaxx || p.y < tminy || p.y > tmaxy) continue;
+				if(item['subType'] === 'cluster') {
 					var geo = gmxAPI._leaflet['PointGeometry']({'coordinates': [p.x, p.y]});
 					geo.id = item.id + '_' + tileAttr['drawTileID'];
-					geo.curStyle = item.curStyle;
 					geo.properties = item.properties;
 					for (var key in newProperties)
 					{
@@ -226,6 +224,20 @@
 					geo.propHiden = item.propHiden;
 					geo.propHiden['tileID'] = tileAttr['drawTileID'];
 					geo.propHiden['fromTiles'] = {};
+
+					if(!item['_cache'] || !item['_cache']['extentLabel']) {
+						var style = item.propHiden.curStyle;
+						if(style && style['label']) {
+							var labelStyle = style['label'];
+							var txt = (labelStyle['field'] ? item.properties[labelStyle['field']] : labelStyle['value']) || '';
+							if(txt) {
+								var runStyle = gmxAPI._leaflet['utils'].prepareLabelStyle(style);
+								if(!item['_cache']) item['_cache'] = {};
+								item['_cache']['extentLabel'] = gmxAPI._leaflet['utils'].getLabelSize(txt, runStyle);
+							}
+						}
+					}
+					if(item['_cache']) geo['_cache'] = item['_cache'];
 					
 					res.push(geo);
 				} else {
@@ -245,9 +257,12 @@
 			var gmxNode = gmxAPI.mapNodes[layerID];				// mapNode слоя
 			var out = {
 				'input': ph
+				,'centersGeometry': null
 				,'node': node
 				,'getTileClusterArray': ClustersLeaflet.getTileClusterArray
-				,'getItemsByPoint': ClustersLeaflet.getItemsByPoint
+				,'clear': function() {
+					this.centersGeometry = null;
+				}
 			};
 			if(ph.iterationCount) out['iterationCount'] = ph.iterationCount;	// количество итераций K-means
 			if(ph.radius) out['radius'] = ph.radius;							// радиус кластеризации в пикселах
@@ -260,7 +275,6 @@
 						out.hoveredStyle['ready'] = true;
 					}
 				}
-				//console.log(' onIconLoaded: ' + eID + ' : '); 
 			}});
 			if(ph.RenderStyle) {
 				out.regularStyle = utils.parseStyle(ph.RenderStyle, layerID + '_regularStyle_clusters');
@@ -275,6 +289,7 @@
 			}
 			gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Проверка map Listeners на hideBalloons
 			this.clustersData = out;
+			node.waitRedraw();
 			return out;
 		}
 	};

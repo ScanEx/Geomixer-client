@@ -185,7 +185,7 @@
 	}
 
 	// Добавление слоя
-	var addLayer = function(parentObj, layer, isVisible)
+	var addLayer = function(parentObj, layer, isVisible, isMerc)
 	{
 		var FlashMapObject = gmxAPI._FMO;
 		if (!parentObj.layers)
@@ -226,10 +226,14 @@
 		
 		var obj = new gmxAPI._FMO(false, {}, parentObj);					// MapObject слоя
 
+		var zIndex = parentObj.layers.length;
 		if(!layer) layer = {};
 		if(!layer.properties) layer.properties = {};
 		if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
-		if(!layer.geometry) {
+		if(layer.geometry && !layer.mercGeometry) {
+			layer.mercGeometry = gmxAPI.merc_geometry(layer.geometry); 
+		}
+		if(!layer.mercGeometry) {
 			layer.mercGeometry = {
 				'type': "POLYGON"
 				,'coordinates': [[
@@ -246,7 +250,7 @@
 		var layerName = layer.properties.name || layer.properties.image || gmxAPI.newFlashMapId();
 		obj.geometry = layer.geometry;
 		obj.properties = layer.properties;
-		obj.propHiden = {};
+		obj.propHiden = { 'isLayer': true, 'isMerc': isMerc };
 		var isOverlay = false;
 		var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID","");
 		if(typeof(overlayLayerID) == 'string') {
@@ -335,47 +339,34 @@
 			}
 		}
 
-		var bounds = false;
-		var boundsLatLon = false;
-		obj.getLayerBounds = function() {			// Получение bounds для внешних плагинов
-			var out = false;
-			if(obj.bounds) out = obj.bounds;
-			else {
-				out = {
+		var bounds = false;				// в меркаторе
+		var boundsLatLgn = false;
+		var initBounds = function(geom) {	// geom в меркаторе
+			if (geom) {
+				bounds = gmxAPI.getBounds(geom.coordinates);
+				obj.bounds = boundsLatLgn = {
 					minX: gmxAPI.from_merc_x(bounds['minX']),
 					minY: gmxAPI.from_merc_y(bounds['minY']),
 					maxX: gmxAPI.from_merc_x(bounds['maxX']),
 					maxY: gmxAPI.from_merc_y(bounds['maxY'])
 				};
 			}
-			return out;
-		}
-		var chkBounds = function(geom) {
-			if (geom) {
-/*
-				if(geom.type == "POLYGON") {		// Проверка сдвига границ слоя
-					var arr = geom.coordinates[0];
-					chkCenterX(arr);
-				}
-*/
-				obj.bounds = boundsLatLon = gmxAPI.getBounds(geom.coordinates);
-				if(layer.mercGeometry) {
-					bounds = gmxAPI.getBounds(layer.mercGeometry.coordinates);
-				} else 
-				{
-					bounds = {
-						minX: gmxAPI.merc_x(obj.bounds['minX']),
-						minY: gmxAPI.merc_y(obj.bounds['minY']),
-						maxX: gmxAPI.merc_x(obj.bounds['maxX']),
-						maxY: gmxAPI.merc_y(obj.bounds['maxY'])
-					};
-				}
-			}
 		};
-		chkBounds(layer.geometry);
+		var getBoundsMerc = function() {
+			if (!bounds) initBounds(obj.mercGeometry);
+			return bounds;
+		};
+		var getBoundsLatLng = function() {
+			if (!bounds) initBounds(obj.mercGeometry);
+			return boundsLatLgn;
+		};
 		obj.addListener('onChangeLayerVersion', function() {
-			chkBounds(obj.geometry);
+			initBounds(obj.mercGeometry);
 		});
+		obj.getLayerBounds = function() {			// Получение boundsLatLgn для внешних плагинов
+			if (!boundsLatLgn) initBounds(obj.mercGeometry);
+			return boundsLatLgn;
+		}
 
 		var tileSenderPrefix = baseAddress + 
 			"TileSender.ashx?ModeKey=tile" + 
@@ -386,8 +377,9 @@
 
 		var tileFunction = function(i, j, z)
 		{
-			if (isRaster && bounds)
+			if (isRaster)
 			{
+				if (!bounds) initBounds(obj.mercGeometry);
 				var tileSize = gmxAPI.getScale(z)*256;
 				var minx = i*tileSize;
 				var maxx = minx + tileSize;
@@ -427,6 +419,7 @@
 			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
 			'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
 			'setHandler', 'setVisibilityFilter', //'remove', 'addListener', 'removeListener',
+			'setClusters',
 			'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
 		];
 		// не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
@@ -441,6 +434,18 @@
 			obj.objectId = obj_.objectId;
 			if(pObj.isMiniMap) {
 				obj.isMiniMap = true;			// Все добавляемые к миникарте ноды имеют этот признак
+			}
+			obj_.getLayerBoundsLatLgn = function() {			// Получение boundsLatLgn
+				if (!boundsLatLgn) initBounds(obj.mercGeometry);
+				return boundsLatLgn;
+			}
+			obj_.getLayerBoundsMerc = function() {				// Получение bounds в меркаторе
+				if (!bounds) initBounds(obj.mercGeometry);
+				return bounds;
+			}
+			obj_.getLayerBounds = function() {			// Получение boundsLatLgn для внешних плагинов
+				if (!boundsLatLgn) initBounds(obj.mercGeometry);
+				return boundsLatLgn;
 			}
 			obj.addObject = function(geometry, props, propHiden) { return FlashMapObject.prototype.addObject.call(obj, geometry, props, propHiden); }
 			obj.tileSenderPrefix = tileSenderPrefix;	// Префикс запросов за тайлами
@@ -648,10 +653,12 @@
 			{
 				var filter = obj.filters[i];
 				filter.setStyle(filter['_attr']['regularStyle'], filter['_attr']['hoveredStyle']);
+				if(filter['_attr']['clusters']) filter.setClusters(filter['_attr']['clusters']);
 				delete filter["setVisible"];
 				delete filter["setStyle"];
 				delete filter["setFilter"];
 				delete filter["enableHoverBalloon"];
+				delete filter["setClusters"];
 				filter["setZoomBounds"] = FlashMapObject.prototype.setZoomBounds;
 			}
 
@@ -669,10 +676,11 @@
 
 		obj.mercGeometry = layer.mercGeometry;
 		obj.isVisible = isVisible;
-		if (isVisible || gmxAPI.proxyType === 'leaflet') {			// В leaflet версии deferredMethod не нужны
+		//if (isVisible || gmxAPI.proxyType === 'leaflet') {			// В leaflet версии deferredMethod не нужны
+		if (isVisible) {
 			createThisLayer();
-			var zIndexCur = getIndexLayer(obj.objectId);
-			obj.bringToDepth(zIndexCur);
+			//var zIndexCur = getIndexLayer(obj.objectId);
+			obj.bringToDepth(zIndex);
 			gmxAPI._listeners.dispatchEvent('onLayer', obj, obj);	// Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
 		}
 		else
@@ -687,8 +695,8 @@
 					for (var i = 0; i < deferred.length; i++) {
 						deferred[i]();
 					}
-					var zIndexCur = getIndexLayer(obj.objectId);
-					obj.bringToDepth(zIndexCur);
+					//var zIndexCur = getIndexLayer(obj.objectId);
+					obj.bringToDepth(zIndex);
 					gmxAPI._listeners.dispatchEvent('onLayer', obj, obj);	// Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
 				}
 			}
@@ -777,6 +785,14 @@
 							obj.filters[i].enableHoverBalloon(callback, attr);
 							});
 					}
+					obj.filters[i].setClusters = function(attr)
+					{
+						obj.filters[i]._clustersAttr = attr;
+						deferred.push(function() {
+							obj.filters[i].setClusters(attr);
+						});
+					}
+					
 				})(i);
 			}
 		}
@@ -818,9 +834,9 @@
 	}
 
 	//расширяем FlashMapObject
-	gmxAPI.extendFMO('addLayer', function(layer, isVisible) {
-		//if(Math.abs(layer.geometry.coordinates[0][0][0]) > 180) layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
-		var obj = addLayer(this, layer, isVisible);
+	gmxAPI.extendFMO('addLayer', function(layer, isVisible, isMerc) {
+		if(layer && layer.geometry && !isMerc) layer.geometry = gmxAPI.merc_geometry(layer.geometry);
+		var obj = addLayer(this, layer, isVisible, isMerc);
 		gmxAPI._listeners.dispatchEvent('onAddExternalLayer', gmxAPI.map, obj);	// Добавлен внешний слой
 		return obj;
 	} );

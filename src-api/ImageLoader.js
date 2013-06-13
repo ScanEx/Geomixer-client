@@ -100,7 +100,7 @@
 			//if (!imageObj.complete) {
 				//setTimeout(function() { chkLoadedImage(); }, 1);
 			//} else {
-				curCount--;
+				//curCount--;
 				item.imageObj = imageObj;
 				delete item['loaderObj'];
 				callCacheItems(item);
@@ -108,6 +108,7 @@
 		}
 		if(item['crossOrigin']) imageObj.crossOrigin = item['crossOrigin'];
 		imageObj.onload = function() {
+			curCount--;
 			chkLoadedImage();
 			//setTimeout(function() { chkLoadedImage(); } , 25); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
 		};
@@ -185,8 +186,9 @@
 			chkTimer();
 			return items.length;
 		}
-		,'getCounts': function()	{				// получить размер очереди
-			return items.length;
+		,'getCounts': function()	{				// получить размер очереди + колич.выполняющихся запросов
+//console.log('getCounts' , curCount, items.length); 
+			return items.length + (curCount > 0 ? curCount : 0);
 		}
 	};
 

@@ -93,7 +93,7 @@
 			for (var nm=0; nm<data.length; nm++)
 			{
 				arr = data[nm];
-				if(!gmxAPI.isArray(arr) || arr.length < 5) {
+				if(!arr || !arr.length || arr.length < 5) {
 					gmxAPI.addDebugWarnings({'func': 'prpTemporalTiles', 'layer': prop.title, 'alert': 'Error in TemporalTiles array - line: '+nm+''});
 					continue;
 				}
