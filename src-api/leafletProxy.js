@@ -887,7 +887,7 @@
 				
 			} else {
 				pt['fill'] = false;
-				if('fill' in st) {					//	Есть стиль заполнения
+				if(typeof(st['fill']) === 'object') {					//	Есть стиль заполнения
 					pt['fill'] = true;
 					var ph = st['fill'];
 					if('color' in ph) pt['fillColor'] = ph['color'];
@@ -911,7 +911,7 @@
 							}
 							pattern['patternColorsFunction'] = arr;
 						}
-					} else if('radialGradient' in ph) {
+					} else if(typeof(ph['radialGradient']) === 'object') {
 						pt['radialGradient'] = ph['radialGradient'];
 						//	x1,y1,r1 — координаты центра и радиус первой окружности;
 						//	x2,y2,r2 — координаты центра и радиус второй окружности.
@@ -940,7 +940,7 @@
 								,(typeof(arr[2]) === 'string' ? gmxAPI.Parsers.parseExpression(arr[2]) : null)
 							]);
 						}
-					} else if('linearGradient' in ph) {
+					} else if(typeof(ph['linearGradient']) === 'object') {
 						pt['linearGradient'] = ph['linearGradient'];
 						//	x1,y1 — координаты начальной точки
 						//	x2,y2 — координаты конечной точки
@@ -972,7 +972,7 @@
 					}
 				}
 				pt['stroke'] = false;
-				if('outline' in st) {				//	Есть стиль контура
+				if(typeof(st['outline']) === 'object') {				//	Есть стиль контура
 					pt['stroke'] = true;
 					var ph = st['outline'];
 					if('color' in ph) pt['color'] = ph['color'];
