@@ -816,6 +816,8 @@ var createPageRasterSource = function(layerProperties) {
             shapePathInput.value = path;
             layerProperties.set('ShapePath', {Path: path});
             
+            _mapHelper.drawingBorders.removeRoute(name, true);
+            
             shapeVisible(true);
             
             sendCrossDomainJSONRequest(serverBase + 'Layer/GetMetadata.ashx?geometryfile=' + encodeURIComponent(path), function(response)
