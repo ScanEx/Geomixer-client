@@ -841,7 +841,7 @@
 			if(!st) return null;
 			
 			pt['label'] = false;
-			if('label' in st) {											//	Есть стиль label
+			if(typeof(st['label']) === 'object') {											//	Есть стиль label
 				pt['label'] = {};
 				var ph = st['label'];
 				if('color' in ph) pt['label']['color'] = ph['color'];
@@ -854,13 +854,15 @@
 				if('field' in ph) pt['label']['field'] = ph['field'];
 			}
 			pt['marker'] = false;
-			if('marker' in st) {				//	Есть стиль marker
-				if('marker' in st && 'size' in st['marker']) pt['size'] = st['marker']['size'];
-				if('marker' in st && 'circle' in st['marker']) pt['circle'] = st['marker']['circle'];
-				if('marker' in st && 'center' in st['marker']) pt['center'] = st['marker']['center'];
-				if('marker' in st && 'scale' in st['marker']) pt['scale'] = st['marker']['scale'];
+			var isMarker = (typeof(st['marker']) === 'object' ? true : false);
+			
+			if(isMarker) {				//	Есть стиль marker
+				if('size' in st['marker']) pt['size'] = st['marker']['size'];
+				if('circle' in st['marker']) pt['circle'] = st['marker']['circle'];
+				if('center' in st['marker']) pt['center'] = st['marker']['center'];
+				if('scale' in st['marker']) pt['scale'] = st['marker']['scale'];
 			}
-			if('marker' in st && 'image' in st['marker']) {				//	Есть image у стиля marker
+			if(isMarker && 'image' in st['marker']) {				//	Есть image у стиля marker
 				pt['marker'] = true;
 				var ph = st['marker'];
 				if('color' in ph) pt['color'] = ph['color'];
