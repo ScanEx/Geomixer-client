@@ -1579,9 +1579,9 @@ var FireBurntRenderer3 = function( params )
         dailyClustersLayer.setZoomBounds(1, _params.minGeomZoom-1);
         dailyClustersLayer.setVisible(true);
             
+        layer.setVisible(true);
         layer.setZoomBounds(_params.minGeomZoom, 21);
         $.each(layer.filters, function(i, filter) { filter.setZoomBounds(_params.minGeomZoom, 21); });
-        layer.setVisible(true);
         
         map.addListener('positionChanged', function()
         {
@@ -1733,6 +1733,7 @@ var FireBurntRenderer3 = function( params )
         clusterLayer.setVisible(flag);
         clusterGeomLayer.setVisible(flag);
         map.layers[_params.hotspotLayerName] && map.layers[_params.hotspotLayerName].setVisible(flag);
+        map.layers[_params.dailyLayerName] && map.layers[_params.dailyLayerName].setVisible(flag);
     }
 }
 
