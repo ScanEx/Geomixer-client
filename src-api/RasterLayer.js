@@ -126,14 +126,18 @@
 		node.isVisible = (layer.properties && 'visible' in layer.properties ? layer.properties.visible : true);
 
 		var chkInitListeners = function()	{								// Требуется перерисовка с задержкой
+			var func = function(flag) {	// Изменилась видимость слоя
+				if(flag) {
+					if('nodeInit' in node) node['nodeInit']();
+					chkVisible();
+				}
+			};
 			var key = 'onChangeVisible';
 			if(!node['listenerIDS'][key]) {
-				node['listenerIDS'][key] = {'obj': gmxNode, 'evID': gmxNode.addListener(key, function(flag) {	// Изменилась видимость слоя
-					if(flag) {
-						if('nodeInit' in node) node['nodeInit']();
-						chkVisible();
-					}
-				}, -10)};
+				node['listenerIDS'][key] = {'obj': gmxNode, 'evID': gmxNode.addListener(key, func, -10)};
+			}
+			if(node.isVisible) {
+				func(node.isVisible);
 			}
 		}
 		node['nodeInit'] =	function() {

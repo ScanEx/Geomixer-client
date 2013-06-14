@@ -231,7 +231,8 @@
 		if(!layer.properties) layer.properties = {};
 		if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
 		
-		if(gmxAPI.proxyType === 'flash' && isMerc && layer.mercGeometry) {
+		//if(gmxAPI.proxyType === 'flash' && isMerc && layer.mercGeometry) {
+		if(isMerc && layer.mercGeometry) {
 			layer.geometry = gmxAPI.from_merc_geometry(layer.mercGeometry); 
 		}
 		
