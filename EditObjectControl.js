@@ -272,6 +272,8 @@ var EditObjectControl = function(layerName, objectId, params)
             $(_this).trigger('close');
         }
         
+        var firstInput = null;
+        
         //либо drawingObject либо geometry
         var drawAttrList = function(fields)
         {
@@ -314,6 +316,8 @@ var EditObjectControl = function(layerName, objectId, params)
                     var input = getInputElement(fields[iF].type);
                     input.rowName = fields[iF].name;
                     input.rowType = fields[iF].type;
+                    
+                    firstInput = firstInput || input;
                     
                     if ('value' in fields[iF])
                         input.value = nsGmx.Utils.convertFromServer(fields[iF].type, fields[iF].value);
@@ -397,6 +401,8 @@ var EditObjectControl = function(layerName, objectId, params)
                 
                 _(canvas, [_div([createButton, removeButton],[['css','margin','10px 0px'],['css','height','20px']])]);
                 
+                firstInput && firstInput.focus();
+                
                 resizeFunc();
             })
         }
@@ -420,6 +426,8 @@ var EditObjectControl = function(layerName, objectId, params)
             _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
             
             _(canvas, [_div([createButton],[['css','margin','10px 0px'],['css','height','20px']])]);
+            
+            firstInput && firstInput.focus();
             
             resizeFunc();
         }
