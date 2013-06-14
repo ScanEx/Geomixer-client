@@ -4976,5 +4976,6 @@ var tt = 1;
 		if(!lObj || !lObj.layer) return false;
 		var id = lObj.layer._leaflet_id;
 		delete gmxAPI._leaflet['renderingObjects'][id];
+		gmxAPI._leaflet['utils'].chkIdle(true);					// Проверка отрисовки карты
 	};
 })();
