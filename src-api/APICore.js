@@ -3049,9 +3049,9 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 
 					if('miniMap' in map) {
 						//map.miniMap.setVisible(true);
-						for (var m = 0; m < mapLayers.length; m++)
-							map.miniMap.addLayer(mapLayers[m], null, true);
-						
+						for (var m = 0; m < mapLayers.length; m++) {
+							map.miniMap.addLayer(mapLayers[m], true, true);
+						}
 						if (osmEmbed)
 						{
 							map.miniMap.addLayer(osmEmbed, null, true);

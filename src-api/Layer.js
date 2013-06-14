@@ -230,6 +230,11 @@
 		if(!layer) layer = {};
 		if(!layer.properties) layer.properties = {};
 		if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
+		
+		if(gmxAPI.proxyType === 'flash' && isMerc && layer.mercGeometry) {
+			layer.geometry = gmxAPI.from_merc_geometry(layer.mercGeometry); 
+		}
+		
 		if(layer.geometry && !layer.mercGeometry) {
 			layer.mercGeometry = gmxAPI.merc_geometry(layer.geometry); 
 		}
@@ -246,9 +251,12 @@
 			};
 			layer.geometry = gmxAPI.from_merc_geometry(layer.mercGeometry); 
 		}
+		
 		var isRaster = (layer.properties.type == "Raster");
 		var layerName = layer.properties.name || layer.properties.image || gmxAPI.newFlashMapId();
 		obj.geometry = layer.geometry;
+		obj.mercGeometry = layer.mercGeometry;
+
 		obj.properties = layer.properties;
 		obj.propHiden = { 'isLayer': true, 'isMerc': isMerc };
 		var isOverlay = false;
@@ -675,6 +683,7 @@
 		}
 
 		obj.mercGeometry = layer.mercGeometry;
+		if(gmxAPI.proxyType === 'flash') initBounds(obj.mercGeometry);
 		obj.isVisible = isVisible;
 		//if (isVisible || gmxAPI.proxyType === 'leaflet') {			// В leaflet версии deferredMethod не нужны
 		if (isVisible) {
