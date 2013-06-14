@@ -111,7 +111,7 @@
 	var initFilter = function(prnt, num)
 	{
 		var filter = prnt.filters[num];
-		var obj_ = prnt.addObject();
+		var obj_ = prnt.addObject(null, null, {'nodeType': 'filter'});
 		filter.objectId = obj_.objectId;
 
 		var attr = filter._attr;
@@ -763,6 +763,9 @@
 				{
 					obj.filters[i].setZoomBounds = function(minZoom, maxZoom)
 					{
+						if(!obj.filters[i]['_attr']) obj.filters[i]['_attr'] = {};
+						obj.filters[i]['_attr']['MinZoom'] = minZoom;
+						obj.filters[i]['_attr']['MaxZoom'] = maxZoom;
 						deferred.push(function() {
 							obj.filters[i].setZoomBounds(minZoom, maxZoom);
 							});

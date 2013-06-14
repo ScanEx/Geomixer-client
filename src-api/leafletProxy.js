@@ -1773,6 +1773,7 @@
 		
 		if(ph.attr) {
 			pt['propHiden'] = ph.attr['propHiden'] || {};
+			if(pt['propHiden']['nodeType']) pt['type'] = pt['propHiden']['nodeType'];
 			var geo = {};
 			if(ph.attr['geometry']) {
 				if(pt['propHiden']['isLayer']) {
@@ -2669,13 +2670,19 @@
 			if(!node) return;
 			node['minZ'] = ph.attr['minZ'] || 1;
 			node['maxZ'] = ph.attr['maxZ'] || 21;
+			var pnode = mapNodes[node.parentId];
 			if(node.propHiden && node.propHiden['subType'] == 'tilesParent') {			//ограничение по zoom квиклуков
-				var pnode = mapNodes[node.parentId];
 				if(pnode) {
 					if(pnode['setZoomBoundsQuicklook']) pnode['setZoomBoundsQuicklook'](node['minZ'], node['maxZ']);
 				}
 			} else if(node['type'] == 'map') {			//ограничение по zoom map
 				commands.setMinMaxZoom({'attr':{'z1':node['minZ'], 'z2':node['maxZ']}})
+			} else if('onZoomend' in node) {					// есть проверка по Zoom
+				node.onZoomend();
+			} else if(pnode && pnode['type'] == 'VectorLayer') {	// изменения для одного из фильтров
+				if('chkZoomBoundsFilters' in pnode) {
+					pnode.chkZoomBoundsFilters();
+				}
 			} else if(node['type'] == 'mapObject') {			//ограничение по zoom mapObject
 				/*gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': function() {
 						gmxAPI._leaflet['drawManager'].add(id);
@@ -2686,11 +2693,6 @@
 						return false;
 					}
 				});*/
-			} else if('onZoomend' in node) {					// есть проверка по Zoom
-				node.onZoomend();
-			} else if(node['type'] == 'filter') {				//ограничение по zoom
-				var pnode = mapNodes[node.parentId];
-				if(pnode && 'chkZoomBoundsFilters' in pnode) pnode.chkZoomBoundsFilters();
 			}
 			return true;
 		}
