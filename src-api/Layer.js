@@ -696,6 +696,7 @@
 		else
 		{
 			var deferred = [];
+			obj.bringToDepth(zIndex);
 			obj.setVisible = function(flag)
 			{
 				if (flag)
@@ -706,7 +707,6 @@
 						deferred[i]();
 					}
 					//var zIndexCur = getIndexLayer(obj.objectId);
-					obj.bringToDepth(zIndex);
 					gmxAPI._listeners.dispatchEvent('onLayer', obj, obj);	// Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
 				}
 			}
