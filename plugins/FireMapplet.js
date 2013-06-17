@@ -1562,8 +1562,8 @@ var FireBurntRenderer3 = function( params )
         fill:    { color: 0xff0000, opacity: 45 }
     })
     
-    clusterGeomLayer.setVisible(true);
-    clusterLayer.setVisible(true);
+    clusterGeomLayer.setVisible(false);
+    clusterLayer.setVisible(false);
 
     _lazyLoadFireLayers({map: map, mapName: _params.mapName}).done(function()
     {
@@ -2006,6 +2006,15 @@ FireControl.prototype.addDataProvider = function( name, dataProvider, dataRender
 FireControl.prototype.getRenderer = function( name )
 {
 	return (name in this.dataControllers) ? this.dataControllers[name].renderer : null;
+}
+
+//callback(name, provider, renderer, isVisible)
+FireControl.prototype.forEachController = function( callback )
+{
+    for (var k in this.dataControllers) {
+        var ctrl = this.dataControllers[k];
+        callback(k, ctrl.provider, ctrl.renderer, ctrl.visible);
+    }
 }
 
 FireControl.prototype._doFiltering = function(date)
