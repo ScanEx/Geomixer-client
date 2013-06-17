@@ -4971,13 +4971,21 @@ var tt = 1;
 	{
 		if(!lObj || !lObj.layer) return false;
 		var id = lObj.layer._leaflet_id;
-		gmxAPI._leaflet['renderingObjects'][id] = true;
+		gmxAPI._leaflet['renderingObjects'][id] = gmxAPI._leaflet['renderingObjects'][id] || 0;
+        gmxAPI._leaflet['renderingObjects'][id] += 1;
 	};
 	gmxAPI._leaflet['onRenderingEnd'] = function(lObj)
 	{
 		if(!lObj || !lObj.layer) return false;
 		var id = lObj.layer._leaflet_id;
-		delete gmxAPI._leaflet['renderingObjects'][id];
+        
+        if (id in gmxAPI._leaflet['renderingObjects']) {
+            gmxAPI._leaflet['renderingObjects'][id] -= 1;
+            if (gmxAPI._leaflet['renderingObjects'][id] === 0) {
+                delete gmxAPI._leaflet['renderingObjects'][id];
+            }
+        }
+        
 		gmxAPI._leaflet['utils'].chkIdle(true);					// Проверка отрисовки карты
 	};
 })();
