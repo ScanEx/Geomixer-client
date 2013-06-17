@@ -408,6 +408,7 @@
 				balloon.pID = o.parent.objectId;
 				balloon.obj = o;
 				balloon.fixedId = id;
+				o.balloon = balloon;
 				if(keyPress && keyPress['objType']) balloon.objType = keyPress['objType'];
 
 				//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
