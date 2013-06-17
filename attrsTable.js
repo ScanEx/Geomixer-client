@@ -413,7 +413,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     var attrProvider = new nsGmx.LazyAttributeValuesProviderFromServer( attrHash, info.LayerID );
 	var attrsSuggest = _mapHelper.createSuggestCanvas(attrNames, this.textarea, "\"suggest\"", function(){}, attrProvider, true),
 		valuesSuggest = _mapHelper.createSuggestCanvas(attrNames, this.textarea, "\"suggest\"", function(){}, attrProvider),
-		opsSuggest = _mapHelper.createSuggestCanvas(['=','>','<','>=','<=','<>','AND','OR','NOT','IN','LIKE','()'], this.textarea, " suggest ", function(){});
+		opsSuggest = _mapHelper.createSuggestCanvas(['=','>','<','>=','<=','<>','AND','OR','NOT','CONTAINS','()'], this.textarea, " suggest ", function(){});
 		
 	opsSuggest.style.width = '80px';
 	$(opsSuggest).children().css('width','60px');
