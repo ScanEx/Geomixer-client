@@ -84,7 +84,7 @@ var gmxCore = function()
     var withCachePostfix = function(filename) {
         if (window.gmxDropBrowserCache) {
             filename += '?' + Math.random();
-        } else if (nsGmx.buildGUID){
+        } else if (window.nsGmx && nsGmx.buildGUID){
             filename += '?' + nsGmx.buildGUID;
         }
         
