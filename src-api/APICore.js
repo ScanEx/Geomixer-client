@@ -32,6 +32,8 @@ window.gmxAPI = {
 	,
     initParams: null							// Параметры заданные при создании карты 
 	,
+    buildGUID: [/*#buildinclude<__buildGUID__>*/][0]		// GUID текущей сборки
+	,
 	'createMap': function(div, ph)
 	{
 		var hostName = ph['hostName'] || getAPIHost();

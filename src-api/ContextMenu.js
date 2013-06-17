@@ -86,7 +86,7 @@
 			css.setAttribute("rel", "stylesheet");
 			css.setAttribute("media", "screen");
 			var apiHost = gmxAPI.getAPIFolderRoot();
-			css.setAttribute("href", apiHost + "leaflet/jquery.contextMenu.css");
+			css.setAttribute("href", apiHost + "leaflet/jquery.contextMenu.css?" + gmxAPI.buildGUID);
 			document.getElementsByTagName("head").item(0).appendChild(css);
 		}, 1000);
 		LMap.on('mousemove', function(e) {

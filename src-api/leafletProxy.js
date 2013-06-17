@@ -4875,21 +4875,21 @@ var tt = 1;
 
 		var script = document.createElement("script");
 		script.setAttribute("charset", "windows-1251");
-		script.setAttribute("src", apiHost + "leaflet/leaflet.js");
+		script.setAttribute("src", apiHost + "leaflet/leaflet.js?" + gmxAPI.buildGUID);
 		document.getElementsByTagName("head").item(0).appendChild(script);
 
 		var css = document.createElement("link");
 		css.setAttribute("type", "text/css");
 		css.setAttribute("rel", "stylesheet");
 		css.setAttribute("media", "screen");
-		css.setAttribute("href", apiHost + "leaflet/leaflet.css");
+		css.setAttribute("href", apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID);
 		document.getElementsByTagName("head").item(0).appendChild(css);
 		
 		css = document.createElement("link");
 		css.setAttribute("type", "text/css");
 		css.setAttribute("rel", "stylesheet");
 		css.setAttribute("media", "screen");
-		css.setAttribute("href", apiHost + "leaflet/leafletGMX.css");
+		css.setAttribute("href", apiHost + "leaflet/leafletGMX.css?" + gmxAPI.buildGUID);
 		document.getElementsByTagName("head").item(0).appendChild(css);
 		
 		if(gmxAPI.isIE) {
@@ -4897,7 +4897,7 @@ var tt = 1;
 			css.setAttribute("type", "text/css");
 			css.setAttribute("rel", "stylesheet");
 			css.setAttribute("media", "screen");
-			css.setAttribute("href", apiHost + "leaflet/leaflet.ie.css");
+			css.setAttribute("href", apiHost + "leaflet/leaflet.ie.css?" + gmxAPI.buildGUID);
 			document.getElementsByTagName("head").item(0).appendChild(css);
 		}
 	}
