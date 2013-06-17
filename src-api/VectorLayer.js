@@ -1824,7 +1824,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					if(style['weight'] == 0) opacity = 0; // если 0 ширина линии скрываем через opacity
 					//strokeStyle = style['color_rgba'] || 'rgba(0, 0, 255, 1)';
 					//strokeStyle = strokeStyle.replace(/1\)/, opacity + ')');
-					strokeStyle = utils.dec2rgba(style['color_dec'] || 255, opacity);
+					strokeStyle = utils.dec2rgba(style['color_dec'], opacity);
 				} else {
 					strokeStyle = 'rgba(0, 0, 255, 0)';
 				}
@@ -1835,7 +1835,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					var fillOpacity = style['fillOpacity'] || 0;
 					//var fillStyle = style['fillColor_rgba'] || 'rgba(0, 0, 255, 1)';
 					//fillStyle = fillStyle.replace(/1\)/, fillOpacity + ')');
-					var fillStyle = utils.dec2rgba(style['fillColor_dec'] || 255, fillOpacity);
+					var fillStyle = utils.dec2rgba(style['fillColor_dec'], fillOpacity);
 					if(tile._fillStyle != fillStyle) ctx.fillStyle = fillStyle;
 					tile._fillStyle = fillStyle;
 				}
