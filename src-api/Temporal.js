@@ -236,6 +236,7 @@
 
 			return out;
 		}
+		this.getDateIntervalTiles = getDateIntervalTiles;
 
 		var ddt1 = new Date(); ddt1.setHours(0, 0, 0, 0);		// начало текущих суток
 		ddt1 = new Date(ddt1.getTime() - ddt1.getTimezoneOffset()*60000);	// UTC начальная дата
@@ -352,7 +353,13 @@
 				delete tdata.currentData['endDate'];
 			}
 			gmxAPI._listeners.dispatchEvent('onChangeDateInterval', this, {'ut1':dt1, 'ut2':dt2});	// Изменился календарик
-		} );
+		});
+
+		gmxAPI.extendFMO('getTileCounts', function(dt1, dt2) {
+			if(!this._temporalTiles) return 0;
+			var tdata = this._temporalTiles.getDateIntervalTiles(dt1, dt2, this._temporalTiles.temporalData);
+			return tdata['files'].length;
+		});
 		
 		// Добавление прослушивателей событий
 		mapObj.addListener('onChangeVisible', function(flag)
