@@ -684,6 +684,14 @@ var createPageRasterSource = function(layerProperties) {
     removeBorder.style.cssText = "height:16px;padding:0;width:16px;cursor:pointer;margin:-1px 0px -3px 5px;";
     
     _title(removeBorder, _gtxt("Удалить"));
+    
+    tilePathInput.onchange = tilePathInput.oninput = function() {
+        layerProperties.set('TilePath', {Path: this.value});
+    }
+    
+    shapePathInput.onchange = shapePathInput.oninput = function() {
+        layerProperties.set('ShapePath', {Path: this.value});
+    }
         
     removeBorder.onclick = function()
     {
