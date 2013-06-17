@@ -1624,7 +1624,8 @@
 			var pNode = mapNodes[node['parentId']];
 			pNode.chkTilesParentStyle();
 		} else if(node['type'] == 'RasterLayer') {
-			node.setStyle(attr);
+			chkStyle();
+			node.setStyle();
 		} else if(node['subType'] !== 'drawingFrame') {
 			chkStyle();
 			if(node.isVisible != false) {
