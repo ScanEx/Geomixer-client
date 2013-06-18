@@ -356,9 +356,15 @@
 		});
 
 		gmxAPI.extendFMO('getTileCounts', function(dt1, dt2) {
-			if(!this._temporalTiles) return 0;
-			var tdata = this._temporalTiles.getDateIntervalTiles(dt1, dt2, this._temporalTiles.temporalData);
-			return tdata['files'].length;
+			if(this.properties.type !== 'Vector') return 0;
+			var tdata = this.properties.tiles;
+			var thash = null;
+			if(this._temporalTiles) {
+				var pt = this._temporalTiles.getDateIntervalTiles(dt1, dt2, this._temporalTiles.temporalData);
+				tdata = pt['dtiles'];
+				thash = pt['tiles'];
+			}
+			return gmxAPI.filterVisibleTiles(tdata, thash);
 		});
 		
 		// Добавление прослушивателей событий
