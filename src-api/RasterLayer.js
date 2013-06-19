@@ -85,6 +85,7 @@
 					};
 				} else {
 					ext = gmxAPI.getBounds(geo.coordinates);
+					attr['mercGeom'] = gmxAPI.merc_geometry(geo);
 				}
 			}
 			
