@@ -696,7 +696,7 @@
 		else
 		{
 			var deferred = [];
-			obj.bringToDepth(zIndex);
+			if (gmxAPI.proxyType === 'leaflet') obj.bringToDepth(zIndex);
 			obj.setVisible = function(flag)
 			{
 				if (flag)
