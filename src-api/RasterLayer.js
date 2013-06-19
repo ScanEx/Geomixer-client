@@ -26,7 +26,16 @@
 		node['subType'] = ('subType' in inpAttr ? inpAttr['subType'] : (inpAttr['projectionCode'] === 1 ? 'OSM' : ''));
 		var attr = {};
 
-		attr['mercGeom'] = layer.mercGeometry || null;				// граница слоя в merc
+		attr['mercGeom'] = layer.mercGeometry || {				// граница слоя в merc
+			'type': "POLYGON"
+			,'coordinates': [[
+				[-20037500, -21133310]
+				,[-20037500, 21133310]
+				,[20037500, 21133310]
+				,[20037500, -21133310]
+				,[-20037500, -21133310]
+			]]
+		};
 		
 		if(node.propHiden) {
 			if(node.propHiden.geom) {
@@ -61,7 +70,24 @@
 
 		node['getLayerBounds'] = function() {				// Проверка границ растрового слоя
 			if(!gmxNode || !attr['mercGeom']) return;
-			var ext = gmxNode.getLayerBounds();
+			var ext = null;
+			if('getLayerBounds' in gmxNode) ext = gmxNode.getLayerBounds();
+			else {
+				var geo = gmxNode.getGeometry();
+				if(!geo || !geo.type) {
+					geo = attr['mercGeom'];
+					var boundsMerc = gmxAPI.getBounds(geo.coordinates);
+					ext = {
+						minX: gmxAPI.from_merc_x(boundsMerc['minX']),
+						minY: gmxAPI.from_merc_y(boundsMerc['minY']),
+						maxX: gmxAPI.from_merc_x(boundsMerc['maxX']),
+						maxY: gmxAPI.from_merc_y(boundsMerc['maxY'])
+					};
+				} else {
+					ext = gmxAPI.getBounds(geo.coordinates);
+				}
+			}
+			
 			var	bounds = new L.Bounds();
 			bounds.extend(new L.Point(ext.minX, ext.minY ));
 			bounds.extend(new L.Point(ext.maxX, ext.maxY ));
@@ -228,6 +254,7 @@
 			gmxNode = obj;
 			chkInitListeners();
 		});
+		if(node.isVisible) chkInitListeners();
 		
 		return out;
 	}
@@ -256,7 +283,7 @@
 			}
 			for(var i=0; i<lgeo.coordinates.length; i++) {
 				var tarr = lgeo.coordinates[i];
-				if(lgeo.type === 'MultiPolygon') {
+				if(lgeo.type === 'MULTIPOLYGON') {
 					for (var j = 0, len1 = lgeo.coordinates[i].length; j < len1; j++) {
 						drawPolygon(lgeo.coordinates[i][j]);
 					}
@@ -340,6 +367,7 @@
 								ctx = pTile.getContext('2d');
 								var pattern = ctx.createPattern(imageObj, "no-repeat");
 								ctx.fillStyle = pattern;
+								if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
 								if(pResArr) drawCanvasPolygon( ctx, sTilePoint.x, sTilePoint.y, pResArr, layer.options.shiftY);
 								else ctx.fillRect(0, 0, 256, 256);
 								ctx.fill();
