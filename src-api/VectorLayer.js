@@ -1513,7 +1513,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					} else if(node['quicklook']) {
 						imageObj = prepareQuicklookImage(rItem, imageObj);
 					}
-					var pt = {'idr': ogc_fid, 'callback': function(content) {
+					var pt = {'idr': ogc_fid, 'properties': objData['properties'], 'callback': function(content) {
 						rItem['imageObj'] = content;
 						callback(rItem['imageObj']);
 					}};
