@@ -1118,6 +1118,10 @@ layersTree.prototype.updateTreeVisibility = function(box)
 layersTree.prototype.dummyNode = function(node)
 {
 	var text = node.innerHTML;
+    
+    if (text.length > 40) {
+        text = text.substring(0, 37) + '...';
+    }
 	
 	return div = _div([_t(text)],[['dir','className','dragableDummy']]);
 }
