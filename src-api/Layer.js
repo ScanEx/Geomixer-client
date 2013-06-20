@@ -428,7 +428,7 @@
 			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
 			'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
 			'setHandler', 'setVisibilityFilter', //'remove', 'addListener', 'removeListener',
-			'setClusters',
+			'setClusters', 'addImageProcessingHook',
 			'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
 		];
 		// не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
