@@ -50,7 +50,7 @@
 			return out;
 		}
 		,
-		'chkIdle': function(flag)	{			// Проверка закончены или нет все команды отрисовки карты
+		'chkIdle': function(flag, from)	{			// Проверка закончены или нет все команды отрисовки карты
 			var out = false;
 			if(gmxAPI._leaflet['moveInProgress']) return out;
 			for (var id in gmxAPI._leaflet['renderingObjects']) {
@@ -71,6 +71,7 @@
 						break;
 					}
 				}
+				//out = {'out':out, 'from':from};
 				if(flag && out) gmxAPI._listeners.dispatchEvent('mapDrawDone', gmxAPI.map, out);	// map отрисована
 			}
 			return out;
@@ -1888,6 +1889,7 @@
 					if(node['leaflet'] && node['leaflet']._map) return;
 					//if(node['leaflet'] && node['leaflet']._isVisible) return;
 					if(node['type'] === 'RasterLayer') {
+						gmxAPI._leaflet['renderingObjects'][node.id] = 1;					
 						if(node['leaflet']) {
 							//node['leaflet']._isVisible = true;
 							LMap.addLayer(node['leaflet']);
@@ -1915,6 +1917,7 @@
 				{
 					//if(node['leaflet'] && node['leaflet']._isVisible === false) return;
 					if(node['type'] === 'RasterLayer') {
+						delete gmxAPI._leaflet['renderingObjects'][node.id];
 						if(node['leaflet']) {
 							//if(node['leaflet']._isVisible) 
 							LMap.removeLayer(node['leaflet']);
@@ -1999,7 +2002,7 @@
 		if(arguments.length == 0) zd = 100;
 		chkIdleTimer = setTimeout(function()
 		{
-			utils.chkIdle(true);					// Проверка отрисовки карты
+			utils.chkIdle(true, 'waitChkIdle');					// Проверка отрисовки карты
 		}, zd);
 		return false;
 	}
@@ -2869,7 +2872,7 @@
 		var attr = hash['attr'] || '';
 		ret = (cmd in commands ? commands[cmd].call(commands, hash) : {});
 		if(!commands[cmd]) gmxAPI.addDebugWarnings({'func': 'leafletCMD', 'cmd': cmd, 'hash': hash});
-		waitChkIdle();
+		//waitChkIdle();
 //console.log(cmd + ' : ' , hash , ' : ' , ret);
 		return ret;
 	}
@@ -4248,7 +4251,7 @@
 				//if(LMap._size) prevSize = {'x': LMap._size.x, 'y': LMap._size.y};
 				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {'obj': gmxAPI.map, 'attr': gmxAPI.currPosition });
 				//gmxAPI._leaflet['utils'].chkMapObjectsView();
-				utils.chkIdle(true);					// Проверка отрисовки карты
+				utils.chkIdle(true, 'moveend');					// Проверка отрисовки карты
 			});
 			LMap.on('move', function(e) {
 				var currPosition = utils.getMapPosition();
@@ -4975,17 +4978,17 @@ var tt = 1;
 	gmxAPI._leaflet['activeObject'] = null;			// Нода последнего mouseOver
 
 	gmxAPI._leaflet['renderingObjects'] = {};		// Список объектов находящихся в Rendering режиме
-	gmxAPI._leaflet['onRenderingStart'] = function(lObj)
+	gmxAPI._leaflet['onRenderingStart'] = function(id)
 	{
-		if(!lObj || !lObj.layer) return false;
-		var id = lObj.layer._leaflet_id;
+		//if(!lObj || !lObj.layer) return false;
+		//var id = lObj.layer._leaflet_id;
 		gmxAPI._leaflet['renderingObjects'][id] = gmxAPI._leaflet['renderingObjects'][id] || 0;
         gmxAPI._leaflet['renderingObjects'][id] += 1;
 	};
-	gmxAPI._leaflet['onRenderingEnd'] = function(lObj)
+	gmxAPI._leaflet['onRenderingEnd'] = function(id)
 	{
-		if(!lObj || !lObj.layer) return false;
-		var id = lObj.layer._leaflet_id;
+		//if(!lObj || !lObj.layer) return false;
+		//var id = lObj.layer._leaflet_id;
         
         if (id in gmxAPI._leaflet['renderingObjects']) {
             gmxAPI._leaflet['renderingObjects'][id] -= 1;
@@ -4994,6 +4997,6 @@ var tt = 1;
             }
         }
         
-		gmxAPI._leaflet['utils'].chkIdle(true);					// Проверка отрисовки карты
+		gmxAPI._leaflet['utils'].chkIdle(true, 'onRenderingEnd: ' + id);					// Проверка отрисовки карты
 	};
 })();

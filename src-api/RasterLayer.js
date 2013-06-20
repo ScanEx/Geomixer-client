@@ -342,14 +342,18 @@
 			if(gmxAPI.isMobile) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
 			//		ctx.webkitImageSmoothingEnabled = false;
 			var src = this.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom);
+			var lid = layer._leaflet_id;
 			if(flagAll) {
 				tile.onload = function() {
 					tile.id = drawTileID;
 					layer.tileDrawn(tile);
+					gmxAPI._leaflet['onRenderingEnd'](lid);
+					//utils.chkIdle(true, 'RasterLayer img');					// Проверка отрисовки карты
 				};
 				tile.onerror = function() {
 					node['failedTiles'][drawTileID] = true;
 				};
+				gmxAPI._leaflet['onRenderingStart'](lid);
 				tile.src = src;
 			} else {
 				var pResArr = null;				// точки границ растрового слоя
@@ -374,6 +378,8 @@
 								ctx.fill();
 								imageObj = null;
 								layer.tileDrawn(pTile, 1);
+								gmxAPI._leaflet['onRenderingEnd'](lid);
+								//utils.chkIdle(true, 'RasterLayer canvas');					// Проверка отрисовки карты
 							//} , 1); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
 						}
 						,'onerror': function(){
@@ -381,6 +387,7 @@
 							pTile.id = tID + '_bad';
 						}
 					};
+					gmxAPI._leaflet['onRenderingStart'](lid);
 					var gmxNode = gmxAPI.mapNodes[layer.options.nodeID];
 					if(gmxNode && gmxNode.isBaseLayer) gmxAPI._leaflet['imageLoader'].unshift(item);	// базовые подложки вне очереди
 					else gmxAPI._leaflet['imageLoader'].push(item);
@@ -430,6 +437,7 @@
 			_initContainer: function () {
 				L.TileLayer.Canvas.prototype._initContainer.call(this);
 				//if('initCallback' in this.options) this.options.initCallback(this);
+				delete gmxAPI._leaflet['renderingObjects'][this.options.nodeID];
 			}
 			,
 			_createTileProto: function () {
