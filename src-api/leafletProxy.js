@@ -52,6 +52,7 @@
 		,
 		'chkIdle': function(flag)	{			// Проверка закончены или нет все команды отрисовки карты
 			var out = false;
+			if(gmxAPI._leaflet['moveInProgress']) return out;
 			for (var id in gmxAPI._leaflet['renderingObjects']) {
 				return out;
 			}
@@ -807,7 +808,10 @@
 			if(imagesSize[url]) {
 				pt['imageWidth'] = imagesSize[url]['imageWidth'];
 				pt['imageHeight'] = imagesSize[url]['imageHeight'];
-				if(flag) pt['image'] = imagesSize[url]['image'];
+				if(flag) {
+					pt['image'] = imagesSize[url]['image'];
+					if(imagesSize[url]['polygons']) pt['polygons'] = imagesSize[url]['polygons'];
+				}
 				return;
 			}
 			var ph = {
@@ -4235,7 +4239,11 @@
 				if(propsBalloon) propsBalloon.setVisible(false);
 				gmxAPI._leaflet['isMouseOut'] = true;			// мышь покинула карту
 			});
+			LMap.on('movestart', function(e) {					// старт анимации
+				gmxAPI._leaflet['moveInProgress'] = true;
+			});
 			LMap.on('moveend', function(e) {
+				gmxAPI._leaflet['moveInProgress'] = false;
 				if(gmxAPI.map.needMove) return;
 				//if(LMap._size) prevSize = {'x': LMap._size.x, 'y': LMap._size.y};
 				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {'obj': gmxAPI.map, 'attr': gmxAPI.currPosition });
@@ -4396,7 +4404,6 @@ var tt = 1;
 					}
 				}
 //return;
-//console.log('mousemove', gmxAPI._leaflet['mousePressed'], timeDown);
 				if(gmxAPI._mouseOnBalloon) {
 					if(LMap.scrollWheelZoom.enabled()) LMap.scrollWheelZoom.disable();
 					return null;
