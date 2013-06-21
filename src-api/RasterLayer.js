@@ -206,6 +206,7 @@
 					,'unloadInvisibleTiles': true
 					,'countInvisibleTiles': (L.Browser.mobile ? 0 : 2)
 				};
+				if(gmxNode.isBaseLayer) node['zIndexOffset'] = -100000;
 				if(!gmxNode.isBaseLayer && attr['bounds']) {
 					option['bounds'] = new L.LatLngBounds([new L.LatLng(attr['bounds'].min.y, attr['bounds'].min.x), new L.LatLng(attr['bounds'].max.y, attr['bounds'].max.x)]);
 				} else {
