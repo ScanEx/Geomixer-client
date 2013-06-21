@@ -109,7 +109,7 @@ var nsGmx = nsGmx || {};
         
         this.checkUserInfo = function(callback, errorCallback)
         {
-            var isTokenUsed = false;
+            //var isTokenUsed = false;
             var _processResponse = function( response )
             {
                 var resOk = parseResponse(response);
@@ -120,30 +120,15 @@ var nsGmx = nsGmx || {};
                 {
                     // юзер не авторизован
                     _this.setUserInfo({Login: false});
-                    
-                    if (isTokenUsed)
-                    {
-                        //TODO: обработать ошибку
-                    }
                 }
                 else
                 {
-                    //юзер с accounts, там не зарегистрирован, но локально авторизован - надо разлогинеть локально
-                    if (!isTokenUsed && response.Result.IsAccounts)
-                    {
-                        sendCrossDomainJSONRequest(serverBase + "Logout.ashx?WrapStyle=func&WithoutRedirection=1");
-                        
-                        // юзер не авторизован
-                        _this.setUserInfo({Login: false});
-                    }
-                    else
-                    {
-                        _this.setUserInfo(response.Result);
-                    }
+                    _this.setUserInfo(response.Result);
                 }
                 
                 resOk && callback && callback();
             }
+            
             
             for (var iProvider = 0; iProvider < checkProviders.length; iProvider++)
             {
@@ -153,30 +138,17 @@ var nsGmx = nsGmx || {};
                     return;
                 }
             }
-        
-            if (window.mapsSite && window.gmxAuthServer)
-            {
-                sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Login?action=gettoken", function(response)
-                {
-                    if (response.Status === 'OK')
-                    {
-                        isTokenUsed = true;
-                        sendCrossDomainJSONRequest(serverBase + 'login.ashx?token=' + response.Result.Id, _processResponse);
-                    }
-                    else
-                    {
-                        sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
-                    }
-                }, 'callback', 
-                function() { //если нет доступа к серверу авторизации, пробуем авторизоваться локально
-                    sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
-                });
-            }
-            else
-            {
-                sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', _processResponse);
-            }
             
+            sendCrossDomainJSONRequest(serverBase + 'User/GetUserInfo.ashx?WrapStyle=func', function(response) {
+                if (response.Status === 'ok' && !response.Result && window.mapsSite && window.gmxAuthServer) {
+                    var callbackPath = location.href.match(/(.*)\//)[0] + 'oAuthCallback.html';
+                    nsGmx.Utils.login(callbackPath, serverBase + 'oAuth/', function(userInfo) {
+                        _processResponse({Status: 'ok', Result: userInfo || null});
+                    }, null, true);
+                } else {
+                    _processResponse(response);
+                }
+            })
         }
         
         this.login = function(login, password, callback, errorCallback)
@@ -185,21 +157,8 @@ var nsGmx = nsGmx || {};
             {
                 if (response.Status == 'ok' && response.Result)
                 {
-                    if (response.Result.IsAccounts)
-                    {
-                        //авторизуемся на центральном сервере авторизации
-                        sendCrossDomainJSONRequest(window.gmxAuthServer + "Handler/Login?login=" + encodeURIComponent(login) + "&password=" + encodeURIComponent(password), function()
-                        {
-                            //TODO: check result
-                            _this.setUserInfo(response.Result);
-                            callback && callback();
-                        }, 'callback');
-                    }
-                    else
-                    {
-                        _this.setUserInfo(response.Result);
-                        callback && callback();
-                    }
+                    _this.setUserInfo(response.Result);
+                    callback && callback();
                 }
                 else
                 {
