@@ -550,7 +550,7 @@ var FireBurntProvider = function( params )
 var ModisImagesProvider = function( params )
 {
     var _params = $.extend({host: "http://maps.kosmosnimki.ru/", map: window.globalFlashMap}, params)
-    var layersNamesToLoad = ['EB271FC4D2AD425A9BAA78ADEA041AB9', '533FCC7439DA4A2EB97A2BE77887A462']; //слои, в которых хранятся снимки Terra и Aqua
+    var layersNamesToLoad = ['E0BA0AB1FEA9413C9E5A116B4E9E0363']; //слои, в которых хранятся снимки Terra и Aqua
     var initDone = false;
 	
 	this.getDescription = function() { return _gtxt("firesWidget.DailyCoverage.Description"); }
