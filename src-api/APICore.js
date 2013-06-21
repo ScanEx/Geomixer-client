@@ -2358,6 +2358,7 @@ var flashId = gmxAPI.newFlashMapId();
 var FlashMapObject = function(objectId_, properties_, parent_)
 {
 	this.objectId = objectId_;
+	if (!properties_) properties_ = {};
 	for (var key in properties_)
 		if (properties_[key] == "null")
 			properties_[key] = "";

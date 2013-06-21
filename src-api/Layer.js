@@ -439,6 +439,7 @@
 			var obj_ = pObj.addObject(obj.geometry, obj.properties, obj.propHiden);
 			obj_['backgroundColor'] = obj['backgroundColor'];
 			obj_['stateListeners'] = obj['stateListeners'];
+			if(obj['isBaseLayer']) obj_['isBaseLayer'] = obj['isBaseLayer'];
 			if(obj['_temporalTiles']) obj_['_temporalTiles'] = obj['_temporalTiles'];
 			obj.objectId = obj_.objectId;
 			if(pObj.isMiniMap) {

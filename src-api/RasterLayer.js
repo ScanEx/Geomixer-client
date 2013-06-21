@@ -115,6 +115,7 @@
 				
 				if(notOnScene != notViewFlag) {
 					utils.setVisibleNode({'obj': node, 'attr': !notViewFlag});
+					if(notViewFlag)	delete gmxAPI._leaflet['renderingObjects'][node.id];
 				}
 			}
 		}
@@ -201,6 +202,7 @@
 					,'initCallback': initCallback
 					,'tileFunc': inpAttr['func']
 					,'attr': attr
+					,'_needLoadTile': 0
 					,'nodeID': id
 					,'async': true
 					,'unloadInvisibleTiles': true
@@ -310,12 +312,20 @@
 			};
 			var tileKey = tilePoint.x + ':' + tilePoint.y;
 			var drawTileID = zoom + '_' + scanexTilePoint.x + '_' + scanexTilePoint.y;
-			var me = this;
+			var layer = this;
+			var chkDrawn = function() {
+				if(layer.options._needLoadTile < 1) {
+					delete gmxAPI._leaflet['renderingObjects'][layer.options.nodeID];
+					utils.waitChkIdle(0, 'RasterLayer ' + layer._animating);					// Проверка отрисовки карты
+				}
+			}
 			var deleteTile = function () {
-				setTimeout(function() {
-					me.tileDrawn(tile);
-					me._removeTile(tileKey);
-				}, 0);
+				if('_resetLoad' in tile) tile._resetLoad();
+				tile.onload = L.Util.falseFn;
+				tile.onerror = L.Util.falseFn;
+				tile.src = L.Util.emptyImageUrl;
+				layer._removeTile(tileKey);
+				chkDrawn();
 			}
 			if(node['failedTiles'][drawTileID]) {
 				if(this.options.bounds) {
@@ -324,7 +334,6 @@
 				return;		// второй раз 404 тайл не запрашиваем
 			}
 			tile.id = 't' + drawTileID;
-			var layer = this;
 			var attr = this.options.attr;
 			var ctx = null;
 			var flagAll = false;
@@ -343,18 +352,20 @@
 			if(gmxAPI.isMobile) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
 			//		ctx.webkitImageSmoothingEnabled = false;
 			var src = this.options.tileFunc(scanexTilePoint.x, scanexTilePoint.y, zoom);
-			var lid = layer._leaflet_id;
+			gmxAPI._leaflet['renderingObjects'][this.options.nodeID] = 1;
+			layer.options._needLoadTile++;
 			if(flagAll) {
 				tile.onload = function() {
 					tile.id = drawTileID;
 					layer.tileDrawn(tile);
-					gmxAPI._leaflet['onRenderingEnd'](lid);
-					//utils.chkIdle(true, 'RasterLayer img');					// Проверка отрисовки карты
+					layer.options._needLoadTile--;
+					chkDrawn();
 				};
 				tile.onerror = function() {
 					node['failedTiles'][drawTileID] = true;
+					layer.options._needLoadTile--;
+					chkDrawn();
 				};
-				gmxAPI._leaflet['onRenderingStart'](lid);
 				tile.src = src;
 			} else {
 				var pResArr = null;				// точки границ растрового слоя
@@ -367,28 +378,31 @@
 						'src': src
 						,'zoom': zoom
 						,'callback': function(imageObj) {
-							//setTimeout(function() {
-								pTile.id = tID;
-								pTile.width = pTile.height = layer.options.tileSize;
-								ctx = pTile.getContext('2d');
-								var pattern = ctx.createPattern(imageObj, "no-repeat");
-								ctx.fillStyle = pattern;
-								if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
-								if(pResArr) drawCanvasPolygon( ctx, sTilePoint.x, sTilePoint.y, pResArr, layer.options.shiftY);
-								else ctx.fillRect(0, 0, 256, 256);
-								ctx.fill();
-								imageObj = null;
-								layer.tileDrawn(pTile, 1);
-								gmxAPI._leaflet['onRenderingEnd'](lid);
-								//utils.chkIdle(true, 'RasterLayer canvas');					// Проверка отрисовки карты
-							//} , 1); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
+							pTile.id = tID;
+							pTile.width = pTile.height = layer.options.tileSize;
+							ctx = pTile.getContext('2d');
+							var pattern = ctx.createPattern(imageObj, "no-repeat");
+							ctx.fillStyle = pattern;
+							if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
+							if(pResArr) drawCanvasPolygon( ctx, sTilePoint.x, sTilePoint.y, pResArr, layer.options.shiftY);
+							else ctx.fillRect(0, 0, 256, 256);
+							ctx.fill();
+							imageObj = null;
+							layer.tileDrawn(pTile, 1);
+							layer.options._needLoadTile--;
+							chkDrawn();
 						}
 						,'onerror': function(){
 							node['failedTiles'][tID] = true;
 							pTile.id = tID + '_bad';
+							layer.options._needLoadTile--;
+							chkDrawn();
 						}
 					};
-					gmxAPI._leaflet['onRenderingStart'](lid);
+					pTile._resetLoad = function() {
+						item.callback = L.Util.falseFn;
+						item.onerror = L.Util.falseFn;
+					};
 					var gmxNode = gmxAPI.mapNodes[layer.options.nodeID];
 					if(gmxNode && gmxNode.isBaseLayer) gmxAPI._leaflet['imageLoader'].unshift(item);	// базовые подложки вне очереди
 					else gmxAPI._leaflet['imageLoader'].push(item);
@@ -404,6 +418,7 @@
 
 			var zoom = this._map.getZoom();
 			if (zoom > this.options.maxZ || zoom < this.options.minZ) {
+				delete gmxAPI._leaflet['renderingObjects'][this.options.nodeID];
 				return;
 			}
 			if('initCallback' in this.options) this.options.initCallback(this);
@@ -430,6 +445,7 @@
 			if (this.options.unloadInvisibleTiles || this.options.reuseTiles) {
 				this._removeOtherTiles(tileBounds);
 			}
+			if(this.options._needLoadTile < 1) delete gmxAPI._leaflet['renderingObjects'][this.options.nodeID];
 		}
 
 		// Растровый слой с маской
@@ -437,8 +453,6 @@
 		{
 			_initContainer: function () {
 				L.TileLayer.Canvas.prototype._initContainer.call(this);
-				//if('initCallback' in this.options) this.options.initCallback(this);
-				delete gmxAPI._leaflet['renderingObjects'][this.options.nodeID];
 			}
 			,
 			_createTileProto: function () {
@@ -489,6 +503,57 @@
 				this._tileOnLoad.call(tile);
 				tile._tileComplete = true;					// Added by OriginalSin
 				tile._needRemove = (cnt > 0 ? false : true);
+			}
+			,
+			_reset: function (e) {
+				var tiles = this._tiles;
+
+				for (var key in tiles) {
+					var tile = tiles[key];
+					if('_resetLoad' in tile) tile._resetLoad();
+					tile.onload = L.Util.falseFn;
+					tile.onerror = L.Util.falseFn;
+					this.fire('tileunload', {tile: tile});
+				}
+
+				this._tiles = {};
+				this._tilesToLoad = 0;
+				this.options._needLoadTile = 0;
+				if (this.options.reuseTiles) {
+					this._unusedTiles = [];
+				}
+
+				this._tileContainer.innerHTML = "";
+
+				if (this._animated && e && e.hard) {
+					this._clearBgBuffer();
+				}
+
+				this._initContainer();
+			}
+			,
+			_removeTile: function (key) {
+				var tile = this._tiles[key];
+
+				this.fire("tileunload", {tile: tile, url: tile.src});
+
+				if (this.options.reuseTiles) {
+					L.DomUtil.removeClass(tile, 'leaflet-tile-loaded');
+					this._unusedTiles.push(tile);
+
+				} else if (tile.parentNode === this._tileContainer) {
+					this._tileContainer.removeChild(tile);
+				}
+
+				// for https://github.com/CloudMade/Leaflet/issues/137
+				if (!L.Browser.android) {
+					if('_resetLoad' in tile) tile._resetLoad();
+					tile.onload = L.Util.falseFn;
+					tile.onerror = L.Util.falseFn;
+					tile.src = L.Util.emptyImageUrl;
+				}
+
+				delete this._tiles[key];
 			}
 		});
 

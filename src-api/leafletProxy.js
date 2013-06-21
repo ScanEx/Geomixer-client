@@ -72,7 +72,9 @@
 					}
 				}
 				//out = {'out':out, 'from':from};
-				if(flag && out) gmxAPI._listeners.dispatchEvent('mapDrawDone', gmxAPI.map, out);	// map отрисована
+				if(flag && out) {
+					gmxAPI._listeners.dispatchEvent('mapDrawDone', gmxAPI.map, out);	// map отрисована
+				}
 			}
 			return out;
 		}
@@ -1997,15 +1999,16 @@
 
 	// Проверка отрисовки карты с задержкой
 	var chkIdleTimer = null;								// Таймер
-	function waitChkIdle(zd) {
+	function waitChkIdle(zd, st) {
 		if(chkIdleTimer) clearTimeout(chkIdleTimer);
 		if(arguments.length == 0) zd = 100;
 		chkIdleTimer = setTimeout(function()
 		{
-			utils.chkIdle(true, 'waitChkIdle');					// Проверка отрисовки карты
+			utils.chkIdle(true, st || 'waitChkIdle');					// Проверка отрисовки карты
 		}, zd);
 		return false;
 	}
+	utils['waitChkIdle'] = waitChkIdle;
 
 	var grid = {
 		'isVisible': false							// видимость grid
@@ -2248,7 +2251,7 @@
 			if(!node) return;						// Нода не определена
 			if(ph.attr) {
 				var geo = utils.parseGeometry(ph.attr);
-				if(!geo.properties) geo.properties = (node['geometry'].properties ? node['geometry'].properties : {});
+				if(!geo.properties) geo.properties = (node['geometry'].properties ? node['geometry'].properties : (layer.properties ? layer.properties : {}));
 				node['geometry'] = geo;
 				if(node['type'] === 'RasterLayer') node['setGeometry']();
 				if(node['geometry']['type']) {
@@ -4221,14 +4224,14 @@
 					,doubleClickZoomGMX: true
 					,attributionControl: false
 					,trackResize: true
-					//,boxZoom: false
 					//,zoomAnimation: false
+					//,fadeAnimation: false
+					//,boxZoom: false
 					//,zoomAnimation: (gmxAPI.isChrome ? false : true)
 					//,worldCopyJump: false
 					
 					//,inertia: false
 					//,keyboard: false
-					//,fadeAnimation: false
 					//,markerZoomAnimation: true
 					//,dragging: false
 					,crs: L.CRS.EPSG3395
@@ -4251,7 +4254,7 @@
 				//if(LMap._size) prevSize = {'x': LMap._size.x, 'y': LMap._size.y};
 				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {'obj': gmxAPI.map, 'attr': gmxAPI.currPosition });
 				//gmxAPI._leaflet['utils'].chkMapObjectsView();
-				utils.chkIdle(true, 'moveend');					// Проверка отрисовки карты
+				utils.waitChkIdle(500, 'moveend');					// Проверка отрисовки карты
 			});
 			LMap.on('move', function(e) {
 				var currPosition = utils.getMapPosition();
@@ -4985,7 +4988,7 @@ var tt = 1;
 		gmxAPI._leaflet['renderingObjects'][id] = gmxAPI._leaflet['renderingObjects'][id] || 0;
         gmxAPI._leaflet['renderingObjects'][id] += 1;
 	};
-	gmxAPI._leaflet['onRenderingEnd'] = function(id)
+	gmxAPI._leaflet['onRenderingEnd'] = function(id, flag)
 	{
 		//if(!lObj || !lObj.layer) return false;
 		//var id = lObj.layer._leaflet_id;
@@ -4997,6 +5000,6 @@ var tt = 1;
             }
         }
         
-		gmxAPI._leaflet['utils'].chkIdle(true, 'onRenderingEnd: ' + id);					// Проверка отрисовки карты
+		if(!flag) gmxAPI._leaflet['utils'].chkIdle(true, 'onRenderingEnd: ' + id);					// Проверка отрисовки карты
 	};
 })();
