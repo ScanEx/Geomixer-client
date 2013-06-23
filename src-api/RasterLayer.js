@@ -258,7 +258,7 @@
 			gmxNode = obj;
 			chkInitListeners();
 		});
-		if(node.isVisible) chkInitListeners();
+		if(node.isVisible && gmxNode && gmxNode.isVisible) chkInitListeners();
 		
 		return out;
 	}
