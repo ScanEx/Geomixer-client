@@ -1592,9 +1592,9 @@ window.gmxAPI = {
 	'filterVisibleTiles': function(arr, tiles, z) {				// отфильтровать список тайлов по видимому extent
 		var count = 0;
 		var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
-		if(currPos['latlng'] && currPos['latlng']['extent']) {
+		if(currPos['latlng']) {
 			if(!z) z = currPos['z'];
-			var bounds = currPos['latlng']['extent'];
+			var bounds = gmxAPI.map.getVisibleExtent();
 			var pz = Math.pow(2, -z);
 			var tileSize = 256 * pz * 156543.033928041;
 			var xSize = 360 * pz;
@@ -1608,7 +1608,7 @@ window.gmxAPI = {
 				var tx = Number(arr[i]), ty = Number(arr[i+1]), tz = Number(arr[i+2]);
 				var dz = Math.pow(2, z - tz);
 				var tx1 = Number(tx*dz), ty1 = Number(ty*dz);
-				if(tx1 < minx || tx1 > maxx || ty1 < miny || ty1 > maxy) {
+				if((tx1 + dz) < minx || tx1 > maxx || (ty1 + dz) < miny || ty1 > maxy) {
 					continue;
 				}
 				count += (tiles ? tiles[tz][tx][ty].length : 1);

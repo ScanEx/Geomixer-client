@@ -529,10 +529,10 @@
 		'chkPointWithDelta': function(chkBounds, point, attr)	{			// Проверка точки(с учетом размеров) на принадлежность Bounds
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
 			return (
-				point.x < (chkBounds.min.x - (attr.sx + (attr.sxLabelLeft || 0))/mInPixel)
-				|| point.x > (chkBounds.max.x + (attr.sx + (attr.sxLabelRight || 0))/mInPixel)
-				|| point.y < (chkBounds.min.y - (attr.sy + (attr.syLabelBottom || 0))/mInPixel)
-				|| point.y > (chkBounds.max.y + (attr.sy + (attr.syLabelTop || 0))/mInPixel)
+				(chkBounds.min.x - point.x)*mInPixel > attr.sx + (attr.sxLabelLeft || 0)
+				|| (point.x - chkBounds.max.x)*mInPixel > attr.sx + (attr.sxLabelRight || 0)
+				|| (chkBounds.min.y - point.y)*mInPixel > attr.sy + (attr.syLabelBottom || 0)
+				|| (point.y - chkBounds.max.y)*mInPixel > attr.sy + (attr.syLabelTop || 0)
 				? false : true);
 		}
 		,
@@ -828,6 +828,7 @@
 						if(flag) pt['image'] = it;
 					}
 					imagesSize[url] = pt;
+					if(pt['waitStyle']) pt['waitStyle'](id);
 					gmxAPI._listeners.dispatchEvent('onIconLoaded', null, id);		// image загружен
 				}
 				,'onerror': function(){
@@ -846,7 +847,7 @@
 		,'getMouseX':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lng : 0); }			// Позиция мыши X
 		,'getMouseY':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lat : 0);	}		// Позиция мыши Y
 		,
-		'parseStyle': function(st, id)	{			// перевод Style Scanex->leaflet
+		'parseStyle': function(st, id, callback)	{			// перевод Style Scanex->leaflet
 			var pt =  {
 			};
 			if(!st) return null;
@@ -886,6 +887,7 @@
 				if('image' in ph) {
 					pt['iconUrl'] = ph['image'];
 					try {
+						pt['waitStyle'] = callback;
 						utils.getImageSize(pt, true, id);
 					} catch(ev) {
 						gmxAPI.addDebugWarnings({'url': pt['iconUrl'], 'func': 'getImageSize', 'Error': 'image error'});
@@ -3194,6 +3196,7 @@
 		out['coordinates'] = point;
 		out['bounds'] = bounds;
 		out['sx'] = out['sy'] = 4;
+		out['dx'] = out['dy'] = 0;		// смещение по стилю
 		out['sxLabelLeft'] = out['sxLabelRight'] = out['syLabelTop'] = out['syLabelBottom'] = 0;
 		
 		out['getPoint'] = function () { return point; };
@@ -3250,8 +3253,11 @@
 				else if(scale > style['maxScale']) scale = style['maxScale'];
 				out['_cache']['_scale'] = scale;
 			}
-			out['sx'] = scale * (style['imageWidth'] ? style['imageWidth'] : size);
-			out['sy'] = scale * (style['imageHeight'] ? style['imageHeight'] : size);
+			out['sx'] = scale * (style['imageWidth'] ? style['imageWidth']/2 : size);
+			out['sy'] = scale * (style['imageHeight'] ? style['imageHeight']/2 : size);
+			if(style['dx']) out['dx'] = style['dx'];
+			if(style['dy']) out['dy'] = style['dy'];
+			out['weight'] = style['weight'] || 0;
 
 			if(style['marker']) {
 				if(style['image']) {
@@ -3266,19 +3272,21 @@
 						if(style['rotateRes'] || 'color' in style) {
 							if(style['rotateRes']) {
 								size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-								out['sx'] = out['sy'] = Math.ceil(scale * size);
+								out['sx'] = out['sy'] = Math.ceil(scale * size/2);
+								out['isCircle'] = true;
 							}
 							canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style, size);
-							out['_cache']['canv'] = canv;
 						}
+						out['_cache']['canv'] = canv;
 					} else {
-						out['sx'] = scale * canv.width;
-						out['sy'] = scale * canv.height;
+						out['sx'] = scale * canv.width/2;
+						out['sy'] = scale * canv.height/2;
 					}
 				} else if(style['polygons']) {
 					var rotateRes = style['rotate'] || 0;
 					if(rotateRes && typeof(rotateRes) == 'string') {
 						rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
+						if(rotateRes) out['isCircle'] = true;
 					}
 					style['rotateRes'] = rotateRes || 0;
 				}
@@ -3290,81 +3298,51 @@
 						var r2 = (rgr['r2Function'] ? rgr['r2Function'](prop) : rgr['r2']);
 						size = scale * Math.max(r1, r2);
 						out['sx'] = out['sy'] = size;
+						out['isCircle'] = true;
 					} else if(style['circle']) {
 						out['sx'] = out['sy'] = size;
+						out['isCircle'] = true;
 					}
 				}
 			}
+			out['_cache']['chkSize'] = true;
 		}
 
 		// Отрисовка точки
 		out['paint'] = function (attr, style, ctx) {
 			if(!attr || !style) return;
-			//if(!bounds.intersects(attr['bounds'])) return;				// проверка пересечения полигона с отображаемым тайлом
 			var zoom = attr['zoom'];
-			//var vbounds = attr['bounds'];
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
 			var node = attr['node'];
-			var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
 
 			if(!out['_cache']) out['_cache'] = {};
-			//var style = attr['style'];
-			var size = style['size'] || 4;
-			var scale = style['scale'] || 1;
-			if('_scale' in out['_cache']) scale = out['_cache']['_scale'];
-			else {
-				//if(typeof(scale) == 'string' && style['scaleFunction']) scale = gmxAPI._leaflet['utils'].chkPropsInString(scale, prop);
-				if(typeof(scale) == 'string') {
-					scale = (style['scaleFunction'] ? style['scaleFunction'](prop) : 1);
-				}
-				if(scale < style['minScale']) scale = style['minScale'];
-				else if(scale > style['maxScale']) scale = style['maxScale'];
-				out['_cache']['_scale'] = scale;
-			}
-			
-			out['sx'] = scale * (style['imageWidth'] ? style['imageWidth'] : size);
-			out['sy'] = scale * (style['imageHeight'] ? style['imageHeight'] : size);
+			if(!out['_cache']['chkSize']) out['chkSize'](node, style);
+			var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
 
 			var x = attr['x'];
 			var y = 256 + attr['y'];
 			var px1 = point.x * mInPixel - x - out['sx'] - 1; 		px1 = (0.5 + px1) << 0;
 			var py1 = y - point.y * mInPixel - out['sy'] - 1;		py1 = (0.5 + py1) << 0;
-			if(style['center']) {
-				px1 += out['sx']/2;
-				py1 += out['sy']/2;
+			if(style['dx']) px1 += out['dx'];
+			if(style['dy']) py1 += out['dy'];
+			if('center' in style && !style['center']) {
+				px1 += out['sx'];
+				py1 += out['sy'];
 			}
-			
+
 			if(style['marker']) {
 				if(style['image']) {
 					var canv = out['_cache']['canv'];
-					//var size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-					if(!canv) {
-						canv = style['image'];
-						var rotateRes = style['rotate'] || 0;
-						if(rotateRes && typeof(rotateRes) == 'string') {
-							rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
-						}
-						style['rotateRes'] = rotateRes;
-						if(style['rotateRes'] || 'color' in style) {
-							if(style['rotateRes']) {
-								size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-								out['sx'] = out['sy'] = Math.ceil(scale * size);
-							}
-							canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style, size);
-							out['_cache']['canv'] = canv;
-						}
-					} else {
-						out['sx'] = scale * canv.width;
-						out['sy'] = scale * canv.height;
-					}
-					ctx.drawImage(canv, px1, py1, out['sx'], out['sy']);
+					if('opacity' in style) ctx.globalAlpha = style['opacity'];
+					ctx.drawImage(canv, px1, py1, 2*out['sx'], 2*out['sy']);
+					if('opacity' in style) ctx.globalAlpha = 1;
 				} else if(style['polygons']) {
 					var rotateRes = style['rotate'] || 0;
 					if(rotateRes && typeof(rotateRes) == 'string') {
 						rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
 					}
 					style['rotateRes'] = rotateRes || 0;
-				
+
 					for (var i = 0; i < style['polygons'].length; i++)
 					{
 						var p = style['polygons'][i];
@@ -3373,7 +3351,7 @@
 						ctx.fillStyle = p['fill_rgba'] || 'rgba(0, 0, 255, 1)';
 						
 						ctx.beginPath();
-						var arr = gmxAPI._leaflet['utils'].rotatePoints(p['points'], style['rotateRes'], scale, {'x': out['sx']/2, 'y': out['sy']/2})
+						var arr = gmxAPI._leaflet['utils'].rotatePoints(p['points'], style['rotateRes'], out['_cache']['_scale'], {'x': out['sx'], 'y': out['sy']});
 						for (var j = 0; j < arr.length; j++)
 						{
 							var t = arr[j];
@@ -3382,7 +3360,6 @@
 							else
 								ctx.lineTo(px1 + t['x'], py1 + t['y']);
 						}
-						//ctx.stroke();
 						ctx.fill();
 						ctx.restore();
 					}
@@ -3391,7 +3368,7 @@
 				if(style['stroke'] && style['weight'] > 0) {
 					ctx.beginPath();
 					if(style['circle']) {
-						ctx.arc(px1, py1, size, 0, 2*Math.PI);
+						ctx.arc(px1, py1, out['sx'], 0, 2*Math.PI);
 					} else {
 						ctx.strokeRect(px1, py1, 2*out['sx'], 2*out['sy']);
 					}
@@ -3408,8 +3385,8 @@
 						var y1 = (rgr['y1Function'] ? rgr['y1Function'](prop) : rgr['y1']);
 						var x2 = (rgr['x2Function'] ? rgr['x2Function'](prop) : rgr['x2']);
 						var y2 = (rgr['y2Function'] ? rgr['y2Function'](prop) : rgr['y2']);
-						size = scale * Math.max(r1, r2);
-						out['sx'] = out['sy'] = size;
+						//size = scale * Math.max(r1, r2);
+						//out['sx'] = out['sy'] = size;
 						px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
 						py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
 
@@ -3425,12 +3402,12 @@
 						}
 						ctx.fillStyle = radgrad;
 
-						ctx.arc(px1, py1, scale * size, 0, 2*Math.PI);
+						ctx.arc(px1, py1, out['sx'], 0, 2*Math.PI);
 					} else {
 						if(style['circle']) {
 							px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
 							py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
-							ctx.arc(px1, py1, scale * size, 0, 2*Math.PI);
+							ctx.arc(px1, py1, out['sx'], 0, 2*Math.PI);
 						} else {
 							ctx.fillRect(px1, py1, 2*out['sx'], 2*out['sy']);
 						}
