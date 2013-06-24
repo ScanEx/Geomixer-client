@@ -1578,7 +1578,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					if(!isInTile(geom, attr)) continue;	// обьект не пересекает границы тайла
 					if(!geom.propHiden['_isFilters']) chkObjectFilters(geom, attr['tileSize']);
 
-					if(!chkSqlFuncVisibility(geom)) continue;	// если фильтр видимости на слое
+					//if(!chkSqlFuncVisibility(geom)) continue;	// если фильтр видимости на слое
 					if(!node.chkTemporalFilter(geom)) continue;	// не прошел по мультивременному фильтру
 
 					if(geom.type !== 'Point' && geom.type !== 'Polygon' && geom.type !== 'MultiPolygon' && geom.type !== 'Polyline' && geom.type !== 'MultiPolyline') continue;
@@ -1682,6 +1682,12 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					if(!propHiden['drawInTiles']) propHiden['drawInTiles'] = {};
 					if(!propHiden['drawInTiles'][zoom]) propHiden['drawInTiles'][zoom] = {};
 
+					if(propHiden['subType'] != 'cluster') {						// для кластеров без проверки
+						if(!chkSqlFuncVisibility(objData)) {	 // если фильтр видимости на слое
+							continue;
+						}
+					}
+					
 					propHiden['drawInTiles'][zoom][drawTileID] = true;
 					var style = geom.propHiden.curStyle || null;
 					attr['style'] = style;
