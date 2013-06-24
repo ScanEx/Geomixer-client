@@ -10,40 +10,60 @@
     var publicInterface = {
         pluginName: 'Birds',
         afterViewer: function(params, map) {
-            var layerName = params.layerName;
             var path = gmxCore.getModulePath('BirdsPlugin');
+            var _params = $.extend({
+                regularImage: 'img/birds/add-24.ico',
+                activeImage: 'img/birds/add-24.ico',
+                layerName: null
+            }, params);
             
-            if (!map || !(layerName in map.layers)) {
+            var layerName = _params.layerName;
+            
+            if ( !map) {
                 return;
             }
             
-            var layerID = map.layers[layerName].properties.LayerID;
-            var node = $("div[LayerID='" + layerID + "']", _queryMapLayers.buildedTree);
-            var addIcon = $('<img/>', {
-                'class': 'birds-addbutton', 
-                src: path + 'img/birds/add-24.ico',
-                title: _gtxt('birdsPlugin.iconTitle')
-            }).click(function() {
-                if (_queryMapLayers.layerRights(layerName) !== 'edit') {
-                    nsGmx.widgets.authWidget.showLoginDialog();
-                    return;
-                }
+            var mapListenerId = null;
+            var toolContainer = new map.ToolsContainer('addObject');
+            var tool = toolContainer.addTool('addObject', {
+                hint: _gtxt('birdsPlugin.iconTitle'),
+                regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,
+                activeImageUrl:  _params.activeImage.search(/^https?:\/\//) !== -1 ? _params.activeImage : path + _params.activeImage,
+                onClick: function() {
                 
-                $('#flash').addClass('birds-add-mode');
-                var mapListenerId = map.addListener('onClick', function(event) {
-                    var latlng = event.attr.latlng;
-                    var drawingObject = map.drawing.addObject({type: "POINT", coordinates: [latlng.lng, latlng.lat]});
+                    var activeLayer = layerName;
+                    var active = $(_queryMapLayers.treeCanvas).find(".active");
                     
-                    var editControl = new nsGmx.EditObjectControl(layerName, null, {
-                        drawingObject: drawingObject
-                    });
+                    if (!activeLayer && active[0] && active[0].parentNode.getAttribute("LayerID") &&
+                        active[0].parentNode.gmxProperties.content.properties.type === "Vector")
+                    {
+                        activeLayer = active[0].parentNode.gmxProperties.content.properties.name;
+                    }
+            
+                    if (_queryMapLayers.layerRights(activeLayer) !== 'edit') {
+                        nsGmx.widgets.authWidget.showLoginDialog();
+                        return;
+                    }
                     
-                    $(editControl).bind('close', function() {
-                        $('#flash').removeClass('birds-add-mode');
-                        map.removeListener('onClick', mapListenerId);
+                    if (!activeLayer) {
+                        return;
+                    }
+                    
+                    $('#flash').addClass('birds-add-mode');
+                    mapListenerId = map.addListener('onClick', function(event) {
+                        var latlng = event.attr.latlng;
+                        var drawingObject = map.drawing.addObject({type: "POINT", coordinates: [latlng.lng, latlng.lat]});
+                        
+                        var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
+                            drawingObject: drawingObject
+                        });
                     })
-                })
-            }).insertBefore($('.layerDescription', node));
+                },
+                onCancel: function(){
+                    $('#flash').removeClass('birds-add-mode');
+                    mapListenerId && map.removeListener('onClick', mapListenerId);
+                }
+            })
         }
     };
     
