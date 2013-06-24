@@ -1,19 +1,19 @@
 ﻿(function() {
 
     _translationsHash.addtext("rus", {
-        "birdsPlugin.iconTitle" : "Добавить новый объект"
+        "add2MapPlugin.iconTitle" : "Добавить новый объект"
     });
     _translationsHash.addtext("eng", {
-        "birdsPlugin.iconTitle" : "Add new object"
+        "add2MapPlugin.iconTitle" : "Add new object"
     });
 
     var publicInterface = {
-        pluginName: 'Birds',
+        pluginName: 'Add2Map',
         afterViewer: function(params, map) {
-            var path = gmxCore.getModulePath('BirdsPlugin');
+            var path = gmxCore.getModulePath('Add2MapPlugin');
             var _params = $.extend({
-                regularImage: 'img/birds/add-24.ico',
-                activeImage: 'img/birds/add-24.ico',
+                regularImage: 'img/add2map/add-24.ico',
+                activeImage: 'img/add2map/add-24.ico',
                 layerName: null
             }, params);
             
@@ -26,7 +26,7 @@
             var mapListenerId = null;
             var toolContainer = new map.ToolsContainer('addObject');
             var tool = toolContainer.addTool('addObject', {
-                hint: _gtxt('birdsPlugin.iconTitle'),
+                hint: _gtxt('add2MapPlugin.iconTitle'),
                 regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,
                 activeImageUrl:  _params.activeImage.search(/^https?:\/\//) !== -1 ? _params.activeImage : path + _params.activeImage,
                 onClick: function() {
@@ -39,18 +39,23 @@
                     {
                         activeLayer = active[0].parentNode.gmxProperties.content.properties.name;
                     }
+                    
+                    if (!activeLayer) {
+                        return;
+                    }
             
                     if (_queryMapLayers.layerRights(activeLayer) !== 'edit') {
                         nsGmx.widgets.authWidget.showLoginDialog();
                         return;
                     }
                     
-                    if (!activeLayer) {
-                        return;
-                    }
-                    
-                    $('#flash').addClass('birds-add-mode');
+                    $('#flash').addClass('add2map-mode');
                     mapListenerId = map.addListener('onClick', function(event) {
+                    
+                        $('#flash').removeClass('add2map-mode');
+                        map.removeListener('onClick', mapListenerId);
+                        tool.onCancel();
+                    
                         var latlng = event.attr.latlng;
                         var drawingObject = map.drawing.addObject({type: "POINT", coordinates: [latlng.lng, latlng.lat]});
                         
@@ -60,12 +65,10 @@
                     })
                 },
                 onCancel: function(){
-                    $('#flash').removeClass('birds-add-mode');
-                    mapListenerId && map.removeListener('onClick', mapListenerId);
                 }
             })
         }
     };
     
-    gmxCore.addModule('BirdsPlugin', publicInterface, {css: 'BirdsPlugin.css'});
+    gmxCore.addModule('Add2MapPlugin', publicInterface, {css: 'Add2MapPlugin.css'});
 })();
