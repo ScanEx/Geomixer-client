@@ -3134,7 +3134,7 @@
 
 			LMap.on('zoomend', function(e) { waitRedraw();});
 			LMap.on('moveend', function(e) {
-				if(!node['isLargeImage']) return;
+				//if(!node['isLargeImage']) return;
 				waitRedraw();
 			});
 			
