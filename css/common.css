@@ -1441,3 +1441,7 @@ div.layersScroll
     margin-top: 3px;
     float: left;
 }
+
+.maps-manager-active {
+    background-color: #eeeeee;
+}

@@ -5,6 +5,7 @@
 nsGmx.MapsManagerControl = function()
 {
     var _this = this;
+    this._activeIndex = 0;
     sendCrossDomainJSONRequest(serverBase + "Map/GetMaps.ashx?WrapStyle=func", function(response)
     {
         if (!parseResponse(response))
@@ -37,32 +38,67 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 		sortFuncs = {};
 			
 	var sign = function(n1, n2) { return n1 < n2 ? -1 : (n1 > n2 ? 1 : 0) };
-	var sortFuncFactory = function(toNumFunc)
-	{
+	var sortFuncFactory = function(f1, f2) {
 		return [
-			function(_a,_b){ return sign(toNumFunc(_a), toNumFunc(_b)); },
-			function(_a,_b){ return sign(toNumFunc(_b), toNumFunc(_a)); }
+			function(_a,_b){ return sign(f1(_a), f1(_b)) || sign(f2(_a), f2(_b)); },
+			function(_b,_a){ return sign(f1(_a), f1(_b)) || sign(f2(_a), f2(_b)); }
 		]
 	}
 	
-	sortFuncs[_gtxt('Имя')]                 = sortFuncFactory(function(_a){ return String(_a.Title).toLowerCase(); });
-	sortFuncs[_gtxt('Владелец')]            = sortFuncFactory(function(_a){ return String(_a.Owner).toLowerCase(); });
-	sortFuncs[_gtxt('Последнее изменение')] = sortFuncFactory(function(_a){ return _a.LastModificationDateTime });
+    var idFunc = function(_a){ return _a.Name; };
+    var titleFunc = function(_a){ return String(_a.Title).toLowerCase(); };
+    var ownerFunc = function(_a){ return String(_a.Owner).toLowerCase(); };
+    var dateFunc  = function(_a){ return _a.LastModificationDateTime; };
+    
+	sortFuncs[_gtxt('Имя')]                 = sortFuncFactory(titleFunc, idFunc);
+	sortFuncs[_gtxt('Владелец')]            = sortFuncFactory(ownerFunc, idFunc);
+	sortFuncs[_gtxt('Последнее изменение')] = sortFuncFactory(dateFunc, idFunc);
+    
+    $(_mapsTable).bind('beforeRedraw', function() {
+        //_this._activeIndex = 0;
+    })
 	
-	_mapsTable.createTable(tableParent, name, 410, ["", "", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '5%', '55%', '15%', '15%', '5%'], function(map)
-        {
-            return _this._drawMaps.call(this, map, _this);
-        }, sortFuncs);
+	_mapsTable.createTable(tableParent, name, 410, ["", "", _gtxt("Имя"), _gtxt("Владелец"), _gtxt("Последнее изменение"), ""], ['5%', '5%', '55%', '15%', '15%', '5%'], function(map, i)
+    {
+        return _this._drawMaps.call(this, map, i, _this);
+    }, sortFuncs);
+    
     _mapsTable.getDataProvider().setSortFunctions(sortFuncs);
 	
 	var inputPredicate = function(value, fieldName, fieldValue)
-		{
-			if (!value[fieldName])
-				return false;
-		
-			return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
-		};
+    {
+        if (!value[fieldName])
+            return false;
+    
+        return String(value[fieldName]).toLowerCase().indexOf(fieldValue.toLowerCase()) > -1;
+    };
 	
+    $(mapNameInput).bind('keydown', function(event) {
+        //console.log(event);
+        var numItems = _mapsTable.getVisibleItems().length;
+        
+        if (event.keyCode === 13) {
+            var firstItem = _mapsTable.getVisibleItems()[_this._activeIndex];
+            firstItem && window.location.replace(window.location.href.split(/\?|#/)[0] + "?" + firstItem.Name);
+        }
+        
+        if (event.keyCode === 38) {
+            _this._activeIndex = Math.max(0, Math.min(_this._activeIndex - 1, numItems - 1));
+            $(_mapsTable.getDataProvider()).change();
+            event.preventDefault();
+            // event.stopImmediatePropagation();
+            // return true;
+        }
+        
+        if (event.keyCode === 40) {
+            _this._activeIndex = Math.max(0, Math.min(_this._activeIndex + 1, numItems - 1));
+            $(_mapsTable.getDataProvider()).change();
+            event.preventDefault();
+            // event.stopImmediatePropagation();
+            // return true;
+        }
+    })
+    
 	_mapsTable.getDataProvider().attachFilterEvents(mapNameInput, 'Title', function(fieldName, fieldValue, vals)
 	{
 		if (fieldValue == "")
@@ -123,7 +159,7 @@ nsGmx.MapsManagerControl.prototype._drawMapsDialog = function(mapsList)
 	mapNameInput.focus();
 }
 
-nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapsManager)
+nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapIndex, mapsManager)
 {
 	var name = makeLinkButton(map.Title),
 		load = makeImageButton("img/choose.png", "img/choose_a.png"),
@@ -201,6 +237,10 @@ nsGmx.MapsManagerControl.prototype._drawMaps = function(map, mapsManager)
 		tr.childNodes[i].style.width = this._fields[i].width;
 	
 	attachEffects(tr, 'hover')
+    
+    if (mapsManager._activeIndex === mapIndex) {
+        $(tr).addClass('maps-manager-active');
+    }
 	
 	return tr;
 }
