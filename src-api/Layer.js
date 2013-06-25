@@ -697,7 +697,6 @@
 		else
 		{
 			var deferred = [];
-			if (gmxAPI.proxyType === 'leaflet') obj.bringToDepth(zIndex);
 			obj.setVisible = function(flag)
 			{
 				if (flag)
@@ -737,6 +736,7 @@
 					deferred.push(function() { obj[name].call(obj, p1, p2, p3, p4); });
 				}
 			})(deferredMethodNames[i]);
+			if (gmxAPI.proxyType === 'leaflet') obj.bringToDepth(zIndex);
 			if (!isRaster)
 			{
 /*

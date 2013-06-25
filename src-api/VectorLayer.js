@@ -146,7 +146,7 @@
 			var pNode = mapNodes[node.parentId];
 			for (var i = 0; i < pNode.children.length; i++) {
 				var tNode = mapNodes[pNode.children[i]];
-				if(tNode && tNode.zIndex < zIndexMax) zIndexMax = tNode.zIndex;
+				if(tNode && tNode.zIndex > zIndexMax) zIndexMax = tNode.zIndex;
 			}
 			zIndexMax++;
 			return zIndexMax;
