@@ -488,6 +488,11 @@ window.gmxAPI = {
 		return ((b1.minX < b2.maxX) && (b1.minY < b2.maxY) && (b2.minX < b1.maxX) && (b2.minY < b1.maxY));
 	}
 	,
+	extIntersect: function(ext1, ext2)
+	{
+		return (ext1.maxX < ext2.minX || ext1.minX > ext2.maxX || ext1.maxY < ext2.minY || ext1.minY > ext2.maxY ? false : true);
+	}
+	,
 	isRectangle: function(coords)
 	{
 		return (coords && coords[0] && coords[0].length == 5
@@ -2405,7 +2410,7 @@ FlashMapObject.prototype.getVisibility = function() {
 	return val;
 }
 FlashMapObject.prototype.setVisible = function(flag, notDispatch) {
-	gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag });
+	gmxAPI._cmdProxy('setVisible', { 'obj': this, 'attr': flag, 'notView': notDispatch });
 	var val = (flag ? true : false);
 	if (val && 'backgroundColor' in this && this != gmxAPI.map.miniMap)
 		gmxAPI.map.setBackgroundColor(this.backgroundColor);

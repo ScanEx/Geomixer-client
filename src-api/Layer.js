@@ -752,7 +752,7 @@
 					obj.setVisible(true);
 					obj.getFeatures(arg1, arg2, arg3);
 					FlashMapObject.prototype.setVisible.call(obj, false, true);		// без Dispatch события
-					//obj.setVisible(false);
+					obj.setVisible(false);
 				}
 				obj.getFeatureById = function(arg1, arg2, arg3)
 				{							

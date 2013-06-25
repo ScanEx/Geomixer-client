@@ -2324,6 +2324,7 @@
 			var node = mapNodes[id];
 			if(!node) return false;
 			node.isVisible = ph.attr;
+			node.notView = ph.notView || false;
 			gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, ph.attr);
 			return utils.setVisibleNode(ph);
 		}
