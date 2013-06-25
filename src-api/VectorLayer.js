@@ -2126,6 +2126,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			node['lastDrawTime'] = 1;		// старт отрисовки
 			node.isIdle(-1);		// обнуление проверок окончания отрисовки
 			if(node['tilesNeedRepaint'].length) {
+				checkWaitStyle();
 				if(!node['waitStyle'] && !gmxAPI._leaflet['moveInProgress']) {
 					var drawTileID = node['tilesNeedRepaint'].shift();
 					delete node['tilesNeedRepaint'][drawTileID];
@@ -2184,6 +2185,21 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			}
 		}
 		
+		var checkWaitStyle = function()	{							// проверка ожидания обработки стилей по фильтрам
+			for(var j=0; j<node.filters.length; j++) {
+				var filter = mapNodes[node.filters[j]];
+				if(!filter.regularStyle || filter.regularStyle['waitStyle']) {
+					node['waitStyle'] = true;
+					return;
+				}
+				if(filter.hoveredStyle && filter.hoveredStyle['waitStyle']) {
+					node['waitStyle'] = true;
+					return;
+				}
+			}
+			node['waitStyle'] = false;
+		}
+		
 		var reCheckFilters = function(tileSize)	{							// переустановка обьектов по фильтрам
 			if(!gmxNode.isVisible) return;
 			//needRedrawTiles = {};
@@ -2219,18 +2235,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				//node['addedItems'][i].propHiden['toFilters'] = chkObjectFilters(node['addedItems'][i], tileSize);
 			}
 			clearDrawDone();
-			for(var j=0; j<node.filters.length; j++) {
-				var filter = mapNodes[node.filters[j]];
-				if(!filter.regularStyle || filter.regularStyle['waitStyle']) {
-					node['waitStyle'] = true;
-					return;
-				}
-				if(filter.hoveredStyle && filter.hoveredStyle['waitStyle']) {
-					node['waitStyle'] = true;
-					return;
-				}
-			}
-			node['waitStyle'] = false;
+			checkWaitStyle();
 			node.redrawTilesList();
 		}
 
@@ -2323,7 +2328,6 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 		var chkStyleFilter = function(fnode) {
 			if(fnode._regularStyle) {
 				fnode.regularStyle = utils.parseStyle(fnode._regularStyle, fnode.id, function() {
-					delete fnode.regularStyle['waitStyle'];
 					node.checkFilters(20);
 				});
 				fnode.regularStyleIsAttr = utils.isPropsInStyle(fnode.regularStyle);
@@ -2332,7 +2336,6 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			}
 			if(fnode._hoveredStyle) {
 				fnode.hoveredStyle = utils.parseStyle(fnode._hoveredStyle, fnode.id, function() {
-					delete fnode.hoveredStyle['waitStyle'];
 					node.checkFilters(20);
 				});
 				fnode.hoveredStyleIsAttr = utils.isPropsInStyle(fnode.hoveredStyle);

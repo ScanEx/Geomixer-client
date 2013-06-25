@@ -815,6 +815,10 @@
 					pt['image'] = imagesSize[url]['image'];
 					if(imagesSize[url]['polygons']) pt['polygons'] = imagesSize[url]['polygons'];
 				}
+				if(pt['waitStyle']) {
+					pt['waitStyle'](id);
+				}
+				delete pt['waitStyle'];
 				return;
 			}
 			var ph = {
@@ -828,7 +832,10 @@
 						if(flag) pt['image'] = it;
 					}
 					imagesSize[url] = pt;
-					if(pt['waitStyle']) pt['waitStyle'](id);
+					if(pt['waitStyle']) {
+						pt['waitStyle'](id);
+					}
+					delete pt['waitStyle'];
 					gmxAPI._listeners.dispatchEvent('onIconLoaded', null, id);		// image загружен
 				}
 				,'onerror': function(){
@@ -890,7 +897,7 @@
 						pt['waitStyle'] = callback;
 						utils.getImageSize(pt, true, id);
 					} catch(ev) {
-						gmxAPI.addDebugWarnings({'url': pt['iconUrl'], 'func': 'getImageSize', 'Error': 'image error'});
+						gmxAPI.addDebugWarnings({'url': pt['iconUrl'], 'func': 'getImageSize', 'alert': 'getImageSize error ' + pt['iconUrl']});
 					}
 				}
 				
