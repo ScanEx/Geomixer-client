@@ -27,128 +27,73 @@ nsGmx.ContextMenuController = (function()
 	// * suggestTimeout {float} - задержка в мс перед показом меню в Opera
 	var _context = function(elem, menuFunc, checkFunc, suggestTimeout)
 	{
-		if (jQuery.browser.opera)
-		{
-			elem.onmouseover = function()
-			{
-                if ($('#contextMenuCanvas', elem).length > 0) return;
-				if (typeof checkFunc !== 'undefined' && !checkFunc())
-					return;
-				
-				this.timer = setTimeout(function()
-				{
-					elem.timer = null;
-					
-                    var menu = menuFunc();
-                    if (!menu) return;
-                    var contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']]);
-                    _(elem, [contextMenu]);
-					
-					elem.style.backgroundColor = '#DAEAF3';
-					contextMenu.style.left = "0px";
-                    
-					jQuery(contextMenu).fadeIn(500);
-					
-				}, suggestTimeout)
-			}
-			
-			elem.onmouseout = function(e)
-			{
-				if (typeof checkFunc !== 'undefined' && !checkFunc())
-					return;
-				
-				if (this.timer)
-					clearTimeout(this.timer);
-
-				var evt = e || window.event,
-					target = evt.srcElement || evt.target,
-					relTarget = evt.relatedTarget || evt.toElement;
-				
-				while (relTarget)
-				{
-					if (relTarget == elem)
-						return;
-					relTarget = relTarget.parentNode;
-				}
-				
-				elem.style.backgroundColor = '';
-
-                $("#contextMenuCanvas", elem).fadeOut(500, function()
+        var menu = null;
+        elem.oncontextmenu = function(e)
+        {
+            if (typeof checkFunc != 'undefined' && !checkFunc())
+                return false;
+                
+            if (menu && menu.parentNode) 
+                menu.parentNode.removeChild(menu);
+                
+            menu = menuFunc();
+            if (!menu) return false;
+            
+            var contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']])
+            
+            var evt = e || window.event;
+            
+            hidden(contextMenu);
+            _(document.body, [contextMenu])
+            
+            // определение координат курсора для ie
+            if (evt.pageX == null && evt.clientX != null )
+            {
+                var html = document.documentElement
+                var body = document.body
+                
+                evt.pageX = evt.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
+                evt.pageY = evt.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
+            }
+            
+            if (evt.pageX + contextMenu.clientWidth < getWindowWidth())
+                contextMenu.style.left = evt.pageX - 5 + 'px';
+            else
+                contextMenu.style.left = evt.pageX - contextMenu.clientWidth + 5 + 'px';
+            
+            if (evt.pageY + contextMenu.clientHeight < getWindowHeight())
+                contextMenu.style.top = evt.pageY - 5 + 'px';
+            else
+                contextMenu.style.top = evt.pageY - contextMenu.clientHeight + 5 + 'px';
+            
+            visible(contextMenu)
+            
+            var menuArea = contextMenu.getBoundingClientRect();
+            
+            contextMenu.onmouseout = function(e)
+            {
+                var evt = e || window.event;
+                
+                // определение координат курсора для ie
+                if (evt.pageX == null && evt.clientX != null )
                 {
-                    $("#contextMenuCanvas", elem).remove();
-                });
-			}
-		}
-		else
-		{
-            var menu = null;
-			elem.oncontextmenu = function(e)
-			{
-				if (typeof checkFunc != 'undefined' && !checkFunc())
-					return false;
+                    var html = document.documentElement
+                    var body = document.body
                     
-                if (menu && menu.parentNode) 
-                    menu.parentNode.removeChild(menu);
-					
-				menu = menuFunc();
-				if (!menu) return false;
-				
-				var contextMenu = _div([menu],[['dir','className','contextMenu'], ['attr','id','contextMenuCanvas']])
-				
-				var evt = e || window.event;
-				
-				hidden(contextMenu);
-				_(document.body, [contextMenu])
-				
-				// определение координат курсора для ie
-				if (evt.pageX == null && evt.clientX != null )
-				{
-					var html = document.documentElement
-					var body = document.body
-					
-					evt.pageX = evt.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
-					evt.pageY = evt.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
-				}
-				
-				if (evt.pageX + contextMenu.clientWidth < getWindowWidth())
-					contextMenu.style.left = evt.pageX - 5 + 'px';
-				else
-					contextMenu.style.left = evt.pageX - contextMenu.clientWidth + 5 + 'px';
-				
-				if (evt.pageY + contextMenu.clientHeight < getWindowHeight())
-					contextMenu.style.top = evt.pageY - 5 + 'px';
-				else
-					contextMenu.style.top = evt.pageY - contextMenu.clientHeight + 5 + 'px';
-				
-				visible(contextMenu)
-				
-				var menuArea = contextMenu.getBoundingClientRect();
-				
-				contextMenu.onmouseout = function(e)
-				{
-					var evt = e || window.event;
-					
-					// определение координат курсора для ie
-					if (evt.pageX == null && evt.clientX != null )
-					{
-						var html = document.documentElement
-						var body = document.body
-						
-						evt.pageX = evt.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
-						evt.pageY = evt.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
-					}
-					
-					if (evt.pageX <= menuArea.left || evt.pageX >= menuArea.right ||
-						evt.clientY <= menuArea.top || evt.clientY >= menuArea.bottom)
-                    {
-                        menu = null;
-						contextMenu.removeNode(true);
-                    }
-				}
-				
-				return false;
-			}
-		}
+                    evt.pageX = evt.clientX + (html && html.scrollLeft || body && body.scrollLeft || 0) - (html.clientLeft || 0)
+                    evt.pageY = evt.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
+                }
+                
+                if (evt.pageX <= menuArea.left || evt.pageX >= menuArea.right ||
+                    evt.clientY <= menuArea.top || evt.clientY >= menuArea.bottom)
+                {
+                    menu = null;
+                    contextMenu.removeNode(true);
+                }
+            }
+            
+            return false;
+        }
 	}	
 	
 	var _contextClose = function()
