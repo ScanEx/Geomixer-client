@@ -24,7 +24,8 @@ var appendTranslations = function()
     Таблица с разбиением данных по страницам. Сильно кастомизируемый виджет. Поддерживает различные провайдеры данных и рендереры.
     
     События:
-    * redraw (перерисовали данные)
+    * beforeRedraw (перед перерисовкой данных)
+    * redraw (после перерисовки данных)
     * sortChange (изменились параметры сортировки)
 */
 var scrollTable = function( params )
@@ -215,6 +216,8 @@ scrollTable.prototype._getActiveFields = function()
 scrollTable.prototype._drawRows = function()
 {
 	var trs = [];
+    
+    $(this).triggerHandler('beforeRedraw');
 
 	removeChilds(this.tableBody);
     
@@ -594,6 +597,11 @@ scrollTable.prototype.getSortType = function()
     return this.currentSortType;
 }
 
+scrollTable.prototype.getVisibleItems = function()
+{
+    return this._pageVals;
+}
+
 scrollTable.prototype.setSortParams = function(sortType, sortDirection)
 {
     this.currentSortType = sortType;
@@ -741,14 +749,14 @@ scrollTable.StaticDataProvider = function( originalData )
         
         _predicate[fieldName] = predicate;
 
-        inputField.onkeyup = function()
+        $(inputField).bind('keyup', function()
         {
             if (_filterVals[fieldName] !== this.value)
             {
                 _filterVals[fieldName] = this.value;
                 _update();
             }
-        }
+        })
         
         _filterVals[fieldName] = inputField.value;
         _update();
