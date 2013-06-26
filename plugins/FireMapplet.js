@@ -560,7 +560,8 @@ var ModisImagesProvider = function( params )
         _lazyLoadFireLayers(_params).done(function() {
             if (!initDone) {
                 for (var iL = 0; iL < layersNamesToLoad.length; iL++) {
-                    map.layers[layersNamesToLoad[iL]].bringToBottom();
+                    map.layers[layersNamesToLoad[iL]].setDepth(-3000);
+                    // map.layers[layersNamesToLoad[iL]].bringToBottom();
                     map.layers[layersNamesToLoad[iL]].setVisibilityFilter("IsDay = 'True'");
                 }
                 initDone = true;
@@ -1544,6 +1545,7 @@ var FireBurntRenderer3 = function( params )
             }
         }]
     }});
+    clusterLayer.setDepth(-2000);
         
     var clusterGeomLayer = map.addLayer({properties: {
         name: 'fireClustersGeomLayer' + _params.hotspotLayerName,
@@ -1553,6 +1555,7 @@ var FireBurntRenderer3 = function( params )
             MaxZoom: 21
         }]
     }});
+    clusterGeomLayer.setDepth(-2000);
     
     clusterGeomLayer.filters[0].setStyle({
         outline: { color: 0xff0000, thickness: 2 }, 
@@ -1581,6 +1584,7 @@ var FireBurntRenderer3 = function( params )
             
         layer.setVisible(true);
         layer.setZoomBounds(_params.minGeomZoom, 21);
+        layer.setDepth(-1000);
         $.each(layer.filters, function(i, filter) { filter.setZoomBounds(_params.minGeomZoom, 21); });
         
         map.addListener('positionChanged', function()
