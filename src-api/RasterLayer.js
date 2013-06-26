@@ -54,9 +54,6 @@
 				node['zIndexOffset'] = pNode.zIndexOffset;
 			}
 		}
-		if(attr['isOverlay']) {
-			node['isOverlay'] = true;
-		}
 		if(!'zIndex' in node) node['zIndex'] = utils.getIndexLayer(id);
 		node['zIndex'] += node['zIndexOffset'];
 
@@ -208,7 +205,11 @@
 					,'unloadInvisibleTiles': true
 					,'countInvisibleTiles': (L.Browser.mobile ? 0 : 2)
 				};
-				if(gmxNode.isBaseLayer) node['zIndexOffset'] = -100000;
+				if(gmxNode.properties.type === 'Overlay') {
+					node['isOverlay'] = true;
+				} else {
+					if(gmxNode.isBaseLayer) node['zIndexOffset'] = -100000;
+				}
 				if(!gmxNode.isBaseLayer && attr['bounds']) {
 					option['bounds'] = new L.LatLngBounds([new L.LatLng(attr['bounds'].min.y, attr['bounds'].min.x), new L.LatLng(attr['bounds'].max.y, attr['bounds'].max.x)]);
 				} else {
