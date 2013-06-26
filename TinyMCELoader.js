@@ -7,6 +7,7 @@ gmxCore.addModule('TinyMCELoader', {}, {
                 theme : "advanced",
                 plugins: 'fullscreen',
                 language: 'ru',
+                convert_urls: false,
                 theme_advanced_buttons1: 'bold,italic,underline,|,justifyleft,justifycenter,justifyright,|,link,unlink,fullscreen,code',
                 theme_advanced_buttons2: '',
                 theme_advanced_buttons3: '',
