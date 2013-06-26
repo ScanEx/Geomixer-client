@@ -424,7 +424,7 @@
 			'getDepth', 'getZoomBounds', 'getVisibility', 'getStyle', 'getIntermediateLength',
 			'getCurrentEdgeLength', 'getLength', 'getArea', 'getGeometryType', 'getStat', 'flip',
 			'setZoomBounds', 'setBackgroundTiles', 'startLoadTiles', 'setVectorTiles', 'setTiles', 'setTileCaching',
-			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'bringToBottom',
+			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'setDepth', 'bringToBottom',
 			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
 			'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
 			'setHandler', 'setVisibilityFilter', //'remove', 'addListener', 'removeListener',
