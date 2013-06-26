@@ -1305,6 +1305,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					{
 						var item = thash['arr'][i];
 						var propHiden = item.geom['propHiden'];
+						if(!propHiden['_isFilters']) continue;
 						var drawInTiles = propHiden['drawInTiles'][zoom];
 						var flag = false;
 						for (var key in drawInTiles)

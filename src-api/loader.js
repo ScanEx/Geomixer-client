@@ -21,7 +21,7 @@
     var apiHost = getScriptBase(/\bapi\w*\.js\b/);
 
     var waitArgs = null;
-    window.createFlashMap = function() {
+    window.createKosmosnimkiMap = window.createFlashMap = function() {
         waitArgs = [].slice.call(arguments);
     }
 
