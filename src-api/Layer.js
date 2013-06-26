@@ -697,12 +697,12 @@
 		else
 		{
 			var deferred = [];
-			obj.setVisible = function(flag)
+			obj.setVisible = function(flag, notDispatch)
 			{
 				if (flag)
 				{
 					createThisLayer();
-					if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag, true);		// без Dispatch события
+					if(obj.objectId) FlashMapObject.prototype.setVisible.call(obj, flag, notDispatch);		// без Dispatch события
 					for (var i = 0; i < deferred.length; i++) {
 						deferred[i]();
 					}
@@ -749,7 +749,7 @@
 */
 				obj.getFeatures = function(arg1, arg2, arg3)
 				{							
-					obj.setVisible(true);
+					obj.setVisible(true, true);
 					obj.getFeatures(arg1, arg2, arg3);
 					FlashMapObject.prototype.setVisible.call(obj, false, true);		// без Dispatch события
 					obj.setVisible(false);
