@@ -569,7 +569,7 @@
 						if (typeof arg == 'function')
 							callback = arg;
 						else if (typeof arg == 'string')
-							str = arg;
+							str = arg || ' ';
 						else if (typeof arg == 'object')
 							geometry = arg;
 					}
@@ -579,6 +579,7 @@
 					}
 					else
 					{
+						if (str === ' ') str = '';
 						gmxAPI.map.getFeatures(str, geometry, callback, [obj.properties.name]);		// Поиск через JSONP запрос
 					}
 				}
@@ -752,7 +753,7 @@
 					obj.setVisible(true, true);
 					obj.getFeatures(arg1, arg2, arg3);
 					FlashMapObject.prototype.setVisible.call(obj, false, true);		// без Dispatch события
-					obj.setVisible(false);
+					//obj.setVisible(false);
 				}
 				obj.getFeatureById = function(arg1, arg2, arg3)
 				{							

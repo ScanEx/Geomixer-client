@@ -21,11 +21,15 @@
 			,'y':	parseFloat(layers.properties.DefaultLat) || 50
 			,'z':	parseFloat(layers.properties.DefaultZoom) || 4
 		};
+		map.DistanceUnit = map.properties['DistanceUnit'] || 'auto';
+		map.SquareUnit = map.properties['SquareUnit'] || 'ha';
 		
 		//map.needSetMode = 'Map';
 		map.needSetMode = null;
 
 		// Методы присущие только Map
+		map.setDistanceUnit = function(attr) { map.DistanceUnit = attr; return true; }
+		map.setSquareUnit = function(attr) { map.SquareUnit = attr; return true; }
 		map.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
 		map.savePNG = function(fileName) { gmxAPI._cmdProxy('savePNG', { 'attr': fileName }); }
 		map.trace = function(val) { gmxAPI._cmdProxy('trace', { 'attr': val }); }
@@ -207,7 +211,7 @@
 
 		map.getFeatures = function()
 		{
-			var callback, geometry, str;
+			var callback, geometry, str = null;
 			for (var i = 0; i < 3; i++)
 			{
 				var arg = arguments[i];
@@ -234,17 +238,58 @@
 				callback([]);
 				return;
 			}
-			if (!geometry)
-				geometry = { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89, -180, -89]] };
-			var url = "http://" + map.layers[layerNames[0]].properties.hostName + "/SearchObject/SearchVector.ashx" + 
-				"?LayerNames=" + layerNames.join(",") + 
-				"&MapName=" + map.layers[layerNames[0]].properties.mapName +
-				(str ? ("&SearchString=" + escape(str)) : "") +
-				(geometry ? ("&border=" + JSON.stringify(gmxAPI.merc_geometry(geometry))) : "");
-			sendCrossDomainJSONRequest(
-				url,
-				function(searchReq)
-				{
+
+			//var searchScript = "/SearchObject/SearchVector.ashx";
+			var searchScript = "/VectorLayer/Search.ashx";
+			var url = "http://" + map.layers[layerNames[0]].properties.hostName + searchScript;
+
+			var attr, func;
+			if(searchScript === "/VectorLayer/Search.ashx") {
+				attr = {
+					'WrapStyle': 'window'
+					,'page': 0
+					,'pagesize': 100000
+					,'geometry': true
+					,'layer': layerNames.join(",")
+					,'query': (str != null ? str : '')
+				};
+				
+				func = function(searchReq) {
+					var ret = [];
+					if (searchReq.Status == 'ok')
+					{
+						var fields = searchReq.Result.fields;
+						var arr = searchReq.Result.values;
+						for (var i = 0, len = arr.length; i < len; i++)
+						{
+							var req = arr[i];
+							var item = {};
+							var prop = {};
+							for (var j = 0, len1 = req.length; j < len1; j++)
+							{
+								var fname = fields[j];
+								var it = req[j];
+								if (fname === 'geomixergeojson') {
+									item.geometry = gmxAPI.from_merc_geometry(it);
+								} else {
+									prop[fname] = it;
+								}
+							}
+							item.properties = prop;
+							ret.push(new gmxAPI._FlashMapFeature( 
+								item.geometry,
+								item.properties,
+								map.layers[layerNames]
+							));
+						}
+					}						
+					callback(ret);
+				};
+				if (geometry) {
+					attr['border'] = JSON.stringify(gmxAPI.merc_geometry(geometry));
+				}
+			} else if(searchScript === "/SearchObject/SearchVector.ashx") {
+				func = function(searchReq) {
 					var ret = [];
 					if (searchReq.Status == 'ok')
 					{
@@ -265,8 +310,18 @@
 						}
 					}						
 					callback(ret);
+				};
+				attr = {
+					'WrapStyle': 'window'
+					,'MapName': map.layers[layerNames[0]].properties.mapName
+					,'LayerNames': layerNames.join(",")
+					,'SearchString': (str != null ? encodeURIComponent(str) : '')
+				};
+				if (geometry) {
+					attr['Border'] = JSON.stringify(gmxAPI.merc_geometry(geometry));
 				}
-			);
+			}
+			gmxAPI.sendCrossDomainPostRequest(url, attr, func);
 		}
 
 		map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : gmxAPI.getAPIHostRoot();

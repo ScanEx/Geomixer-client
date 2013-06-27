@@ -856,7 +856,11 @@ window.gmxAPI = {
 	,
 	prettifyDistance: function(length)
 	{
-		if (length < 2000)
+		var type = gmxAPI.map.DistanceUnit
+		if (type === 'km')
+			return (Math.round(length)/1000) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
+
+		if (length < 2000 || type === 'm')
 			return Math.round(length) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" м", " m");
 		if (length < 200000)
 			return (Math.round(length/10)/100) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" км", " km");
@@ -865,7 +869,14 @@ window.gmxAPI = {
 	,
 	prettifyArea: function(area)
 	{
-		if (area < 100000)
+		var type = gmxAPI.map.SquareUnit
+
+		if (type === 'km2')
+			return ("" + (Math.round(area/100)/10000)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
+		if (type === 'ha')
+			return ("" + (Math.round(area/1000)/100)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" га", " ha");
+
+		if (area < 100000 || type === 'm2')
 			return Math.round(area) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. м", " sq. m");
 		if (area < 3000000)
 			return ("" + (Math.round(area/1000)/1000)).replace(".", ",") + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");

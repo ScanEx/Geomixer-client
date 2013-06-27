@@ -2532,6 +2532,10 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 		});
 		node.needInit = true;
 		function nodeInit()	{
+			if(node['notView']) {											// Слой не видим но временно включен АПИ
+				delete node['notView'];
+				return;
+			}
 			node.needInit = false;
 			node.checkFilters(0);
 			// Обработчик события - onTileLoaded
@@ -2570,7 +2574,7 @@ console.log('ssssss ', eID, filter);
 			node['listenerIDS'][key] = {'evID': gmxAPI.map.addListener(key, mouseOut), 'obj': gmxAPI.map};
 			
 			var createLayerTimer = null;										// Таймер
-			var createLayer = function()	{								// Требуется перерисовка слоя с задержкой
+			var createLayer = function() {										// Создание leaflet слоя
 				myLayer = new L.TileLayer.VectorTiles(option);
 				node['leaflet'] = myLayer;
 				node.chkZoomBoundsFilters();
@@ -2585,10 +2589,6 @@ console.log('ssssss ', eID, filter);
 			}
 			var waitCreateLayer = function()	{								// Требуется перерисовка слоя с задержкой
 				if(createLayerTimer) clearTimeout(createLayerTimer);
-				if(node['notView']) {											// Слой не видим но временно включен АПИ
-					delete node['notView'];
-					return;
-				}
 				createLayerTimer = setTimeout(function()
 				{
 					createLayerTimer = null;
