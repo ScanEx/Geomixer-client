@@ -22,7 +22,7 @@
 			,'z':	parseFloat(layers.properties.DefaultZoom) || 4
 		};
 		map.DistanceUnit = map.properties['DistanceUnit'] || 'auto';
-		map.SquareUnit = map.properties['SquareUnit'] || 'ha';
+		map.SquareUnit = map.properties['SquareUnit'] || 'auto';
 		
 		//map.needSetMode = 'Map';
 		map.needSetMode = null;
