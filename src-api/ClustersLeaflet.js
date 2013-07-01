@@ -29,6 +29,7 @@
 				{
 					var geom = inp[i];
 					if(geom.type !== 'Point') continue;
+					if(!geom.propHiden['_isFilters']) node['chkObjectFilters'](geom);
 					if(!geom.propHiden['_isFilters']) continue;				// если нет фильтра пропускаем
 					if(!node['chkSqlFuncVisibility'](geom)) continue;		// если фильтр видимости на слое
 

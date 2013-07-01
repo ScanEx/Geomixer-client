@@ -176,7 +176,7 @@
 					if(!'zIndex' in node) node['zIndex'] = utils.getIndexLayer(id) + node['zIndexOffset'];
 					utils.bringToDepth(node, node['zIndex']);
 					if(node['shiftY']) node['shiftY']();
-					if(!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85)) {
+					if(!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -84 && attr.bounds.max.x > 179 && attr.bounds.max.y > 84)) {
 						delete obj.options['bounds'];
 						obj.options.continuousWorld = true;
 					}

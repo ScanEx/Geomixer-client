@@ -693,7 +693,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			var gmxTileID = tNums.z + '_' + tNums.x + '_' + tNums.y;
 			var mPoint = new L.Point(gmxAPI.merc_x(x), gmxAPI.merc_y(latlng['lat']));
 			var arr = tilesRedrawImages.getHoverItemsByPoint(gmxTileID, mPoint);
-			
+
 			if(arr && arr.length) {
 				var item = getTopFromArrItem(arr);
 				if(item) {
@@ -1069,11 +1069,12 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				var propHiden = geom.propHiden;
 				//if(!propHiden && item.geom && item.geom.propHiden) propHiden = item.geom.propHiden;
 				var filters = propHiden['toFilters'];
-				if(filters.length == 0) filters = chkObjectFilters(geom);
+				if(!filters || filters.length == 0) filters = chkObjectFilters(geom);
 				filter = (filters && filters.length ? mapNodes[filters[0]] : null);
 			}
 			return filter;
 		}
+		//node.getItemFilter = getItemFilter;
 		
 		function chkObjectFilters(geo, tileSize)	{				// Получить фильтры для обьекта
 			var zoom = LMap.getZoom();
@@ -1144,6 +1145,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			geo.propHiden['_isFilters'] = (toFilters.length ? true : false);
 			return toFilters;
 		}
+		node.chkObjectFilters = chkObjectFilters;
 
 		function objectsToFilters(arr, tileID)	{				// Разложить массив обьектов по фильтрам
 			var outArr = [];
@@ -1305,7 +1307,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					{
 						var item = thash['arr'][i];
 						var propHiden = item.geom['propHiden'];
-						if(!propHiden['_isFilters']) continue;
+						if(propHiden['subType'] != 'cluster' && !propHiden['_isFilters']) continue;
 						var drawInTiles = propHiden['drawInTiles'][zoom];
 						var flag = false;
 						for (var key in drawInTiles)
