@@ -230,14 +230,15 @@
 		if(!layer) layer = {};
 		if(!layer.properties) layer.properties = {};
 		if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
-		
-		//if(gmxAPI.proxyType === 'flash' && isMerc && layer.mercGeometry) {
-		if(isMerc && layer.mercGeometry) {
-			layer.geometry = gmxAPI.from_merc_geometry(layer.mercGeometry); 
-		}
-		
-		if(layer.geometry && !layer.mercGeometry) {
-			layer.mercGeometry = gmxAPI.merc_geometry(layer.geometry); 
+
+		if(isMerc) {
+			if(layer.geometry) {
+				if(!layer.mercGeometry) layer.mercGeometry = layer.geometry; 
+				//if(gmxAPI.proxyType !== 'flash') 
+				layer.geometry = gmxAPI.from_merc_geometry(layer.mercGeometry);
+			}
+		} else {
+			if(layer.geometry && !layer.mercGeometry) layer.mercGeometry = gmxAPI.merc_geometry(layer.geometry); 
 		}
 		if(!layer.mercGeometry) {
 			layer.mercGeometry = {

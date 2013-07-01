@@ -30,6 +30,8 @@
 		// Методы присущие только Map
 		map.setDistanceUnit = function(attr) { map.DistanceUnit = attr; return true; }
 		map.setSquareUnit = function(attr) { map.SquareUnit = attr; return true; }
+		map.getDistanceUnit = function() { return map.DistanceUnit; }
+		map.getSquareUnit = function() { return map.SquareUnit; }
 		map.sendPNG = function(attr) { var ret = gmxAPI._cmdProxy('sendPNG', { 'attr': attr }); return ret; }
 		map.savePNG = function(fileName) { gmxAPI._cmdProxy('savePNG', { 'attr': fileName }); }
 		map.trace = function(val) { gmxAPI._cmdProxy('trace', { 'attr': val }); }
