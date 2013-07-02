@@ -1615,9 +1615,8 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				for (var i1 = 0; i1 < parr.length; i1++)
 				{
 					var geom = parr[i1];
-					//if(!geom.propHiden['_isFilters']) continue;		// если нет фильтра пропускаем
 					if(!isInTile(geom, attr)) continue;	// обьект не пересекает границы тайла
-					if(!geom.propHiden['_isFilters']) chkObjectFilters(geom, attr['tileSize']);
+					if(!('_isFilters' in geom.propHiden)) chkObjectFilters(geom, attr['tileSize']);
 					if(!geom.propHiden['_isFilters']) continue;		// если нет фильтра пропускаем
 
 					//if(!chkSqlFuncVisibility(geom)) continue;	// если фильтр видимости на слое
@@ -1815,8 +1814,8 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 		}
 		node['labelBounds'] = {'add': {}, 'skip': {}};			// Добавленные и пропущенные labels обьектов слоя
 		node['chkTilesParentStyle'] = function() {				// перерисовка при изменении fillOpacity - rasterView
-			reCheckFilters();
-			node.redrawFlips();
+			//reCheckFilters();
+			node.redrawFlips(true);
 		};
 		var chkGlobalAlpha = function(ctx) {					// проверка fillOpacity стиля заполнения обьектов векторного слоя - rasterView
 			var tilesParent = gmxNode['tilesParent'];
@@ -1923,6 +1922,8 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 		}
 
 		function chkItemFiltersVisible(geo)	{				// Проверить видимость фильтров для обьекта
+			if(!('_isFilters' in geo.propHiden)) chkObjectFilters(geo);
+			if(!geo.propHiden['_isFilters']) return false;
 			var filters = geo.propHiden.toFilters;
 			for (var i = 0; i < filters.length; i++) {
 				var fId = filters[i];
@@ -2256,7 +2257,6 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					delete geom.propHiden['_imgQuicklook'];
 					
 					delete geom.propHiden['toFilters'];
-					delete geom.propHiden['_isFilters'];
 					delete geom.propHiden['drawInTiles'];
 					delete geom['_cache'];
 					delete geom['curStyle'];
@@ -2270,7 +2270,6 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				delete node['addedItems'][i].propHiden['_imgQuicklook'];
 				
 				delete node['addedItems'][i].propHiden['toFilters'];
-				delete node['addedItems'][i].propHiden['_isFilters'];
 				delete node['addedItems'][i].propHiden['drawInTiles'];
 				delete node['addedItems'][i]['_cache'];
 				delete node['addedItems'][i]['curStyle'];

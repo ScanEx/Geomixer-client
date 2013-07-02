@@ -1637,6 +1637,7 @@
 			var pNode = mapNodes[node['parentId']];
 			pNode.setStyleFilter(id, attr);
 		} else if(node['subType'] === 'tilesParent') {		// стиль заполнения обьектов векторного слоя
+			chkStyle();
 			var pNode = mapNodes[node['parentId']];
 			pNode.chkTilesParentStyle();
 		} else if(node['type'] == 'RasterLayer') {
