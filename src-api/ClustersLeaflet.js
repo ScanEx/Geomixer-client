@@ -247,6 +247,9 @@
 			}
 			return res;
 		}
+		,'viewClusterItem': function(item)	{			// Показать содержимое кластера
+			//console.log('setClustersLayer ', item);
+		}
 		,'setClusters': function(ph, id)	{			// Добавить кластеризацию к векторному слою
 			//console.log('setClustersLayer ', id , ph);
 			if(!mapNodes) init()						// инициализация
@@ -264,6 +267,17 @@
 				,'clear': function() {
 					this.centersGeometry = null;
 				}
+				,'clusterView': function(item) {
+					var clusterView = out['input']['clusterView'];
+					var propHiden = item.geom.propHiden;
+					
+					if(propHiden['_members'].length < clusterView['maxMembers']) {
+						//ClustersLeaflet.viewClusterItem(item);
+						//return true;
+					}
+					return false;
+				}
+
 			};
 			if(ph.iterationCount) out['iterationCount'] = ph.iterationCount;	// количество итераций K-means
 			if(ph.radius) out['radius'] = ph.radius;							// радиус кластеризации в пикселах

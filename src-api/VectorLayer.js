@@ -967,6 +967,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					}
 				} else {
 					gmxAttr['objType'] = 'cluster';
+					if(node['clustersData']['clusterView'](item)) return true;
 					if(callHandler('onClick', item.geom, gmxNode, gmxAttr)) return true;
 					var fID = itemPropHiden['toFilters'][0];
 					var filter = gmxAPI.mapNodes[fID];
@@ -1617,6 +1618,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					//if(!geom.propHiden['_isFilters']) continue;		// если нет фильтра пропускаем
 					if(!isInTile(geom, attr)) continue;	// обьект не пересекает границы тайла
 					if(!geom.propHiden['_isFilters']) chkObjectFilters(geom, attr['tileSize']);
+					if(!geom.propHiden['_isFilters']) continue;		// если нет фильтра пропускаем
 
 					//if(!chkSqlFuncVisibility(geom)) continue;	// если фильтр видимости на слое
 					if(!node.chkTemporalFilter(geom)) continue;	// не прошел по мультивременному фильтру
