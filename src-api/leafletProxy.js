@@ -4210,8 +4210,8 @@
 					,doubleClickZoomGMX: true
 					,attributionControl: false
 					,trackResize: true
+					,fadeAnimation: (window.isPhantom ? false : true)		// отключение fadeAnimation при запуске тестов
 					//,zoomAnimation: false
-					//,fadeAnimation: false
 					//,boxZoom: false
 					//,zoomAnimation: (gmxAPI.isChrome ? false : true)
 					//,worldCopyJump: false
