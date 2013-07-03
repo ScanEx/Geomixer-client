@@ -709,9 +709,10 @@
 				return true;
 			});
 		}
-		else
+		else {
 			done(coords[0], coords[1]);
-
+			endDrawing();
+		}
 		return ret;
 	}
 
@@ -1158,6 +1159,7 @@
 			createDrawingItem();
 			//mouseOverFlag = true;
 			setTimeout(repaint, 10);
+			endDrawing();
 		} else {
 			addItemListenerID = gmxAPI.map.addListener('onClick', addDrawingItem);
 		}
@@ -1535,7 +1537,6 @@
 			repaint(10);
 		}
 */
-		gmxAPI._cmdProxy('startDrawing');
 		if (coords)
 		{
 			oBounds = gmxAPI.getBounds(coords);
@@ -1543,8 +1544,9 @@
 			createDrawingItem();
 			mouseUp();
 			setTimeout(repaint, 10);
-			//mouseOverFlag = true;
+			endDrawing();
 		} else {
+			gmxAPI._cmdProxy('startDrawing');
 			var setMouseDown = function(ph)
 			{
 				mousePressed = true;
@@ -1647,6 +1649,7 @@
 		//props опционально
 		addObject: function(geom, props, propHiden)
 		{
+			//console.log('ddddd : ' , propHiden , ' : ' , geom);
 			if(!propHiden) propHiden = {};
 			if(!props) props = {};
 			if (geom.type.indexOf("MULTI") != -1)
