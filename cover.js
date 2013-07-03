@@ -1012,18 +1012,7 @@ var LayerFiltersControl = function()
 			if (elem.content.properties.name in layers)
 			{
 				var isShowLayer = _filterFunc( layers[elem.content.properties.name], dateBegin, dateEnd );
-				elem.content.properties.visible = isShowLayer;
-				
-				if (_map.layers[elem.content.properties.name])
-					_map.layers[elem.content.properties.name].setVisible(isShowLayer && parentVisible);
-		
-				var childBoxList = $(domTreeRoot).find("div[LayerID='" + elem.content.properties.LayerID + "']");
-				if (childBoxList.length > 0)
-				{
-					var checkbox = childBoxList[0].firstChild;
-					checkbox.checked = isShowLayer;
-					layersTree.updateTreeVisibility(checkbox);
-				}
+                layersTree.setNodeVisible(elem, isShowLayer);
 			}
 		}, true);
 	}

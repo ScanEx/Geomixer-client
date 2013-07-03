@@ -267,12 +267,12 @@ nsGmx.MapsManagerControl.prototype._loadMapJSON = function(host, name, parent)
 {
 	loadMapJSON(host, name, function(layers)
 	{
-		var previewMapHelper = new mapHelper();
+		//var previewMapHelper = new mapHelper();
         var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: false, allowDblClick: false});
 		
 		//previewMapHelper.mapTree = layers;
-        previewMapHelper._treeView = previewLayersTree;
-		previewLayersTree.mapHelper = previewMapHelper;
+        //previewMapHelper._treeView = previewLayersTree;
+		//previewLayersTree.mapHelper = previewMapHelper;
         
         var ul = previewLayersTree.drawTree(layers, 2);
 		

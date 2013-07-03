@@ -11,11 +11,11 @@ nsGmx.LayersTree = function( tree )
         for (var i = 0; i < childs.length; i++)
         {
             if (childs[i].content.properties[attrName] == name)
-                return {elem:childs[i], parents: [elem].concat(parents), index: i};
+                return {elem:childs[i], parents: [elem].concat(parents || []), index: i};
             
             if (typeof childs[i].content.children != 'undefined')
             {
-                var res = _findElem(childs[i], attrName, name, [elem].concat(parents));
+                var res = _findElem(childs[i], attrName, name, [elem].concat(parents || []));
                 
                 if (res)
                     return res;
@@ -38,7 +38,7 @@ nsGmx.LayersTree = function( tree )
     
     this.findElem = function(attrName, name)
     {
-        return _findElem(_tree, attrName, name, [_tree]);
+        return _findElem(_tree, attrName, name);
     }
     
     this.findElemByGmxProperties = function(gmxProperties)

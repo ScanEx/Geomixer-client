@@ -16,7 +16,7 @@ var mapHelp =
 var mapHelper = function()
 {
 	this.builded = false;
-    this._treeView = false;
+    //this._treeView = false;
 	
 	this.defaultStyles = 
 	{
@@ -391,12 +391,15 @@ mapHelper.prototype.getMapState = function()
 		}
 		else
 		{
-			if (props.LayerID && !$("div[LayerID='" + props.LayerID + "']").length && !props.changedByViewer)
-				return;
-			else if (props.MultiLayerID && !$("div[MultiLayerID='" + props.MultiLayerID + "']").length && !props.changedByViewer)
-				return;
+            if (props.changedByViewer) {
+                condition.visible[props.name] = props.visible;
+            }
+			// if (props.LayerID && !$("div[LayerID='" + props.LayerID + "']").length && !props.changedByViewer)
+				// return;
+			// else if (props.MultiLayerID && !$("div[MultiLayerID='" + props.MultiLayerID + "']").length && !props.changedByViewer)
+				// return;
 			
-			condition.visible[elem.content.properties.name] = elem.content.properties.visible;
+			//condition.visible[elem.content.properties.name] = elem.content.properties.visible;
 		}
 	})
 	
@@ -467,8 +470,10 @@ mapHelper.prototype.createFilterHeader = function(filtersCanvas, elem, elemCanva
 	var addButton =  makeLinkButton(_gtxt('Добавить стиль'));
 	addButton.onclick = function()
 	{
-		if (!_layersTree.getLayerVisibility(elemCanvas.parentNode.firstChild))
-			_layersTree.setVisibility(elemCanvas.parentNode.firstChild, true);
+		if (!_layersTree.getLayerVisibility(elemCanvas.parentNode.firstChild)) {
+			//_layersTree.setVisibility(elemCanvas.parentNode.firstChild, true);
+            _layersTree.setNodeVisible(elemCanvas.parentNode.gmxProperties, true);
+        }
 		
 		var lastStyle = elemCanvas.parentNode.gmxProperties.content.properties.styles[elemCanvas.parentNode.gmxProperties.content.properties.styles.length - 1],
 			newStyle = {},
@@ -3316,6 +3321,7 @@ mapHelper.prototype.print = function()
 		return false;
 }
 
+//вызывает callback для всех слоёв поддерева treeElem. Параметры: callback(layerInfo, visibilityFlag)
 mapHelper.prototype.findChilds = function(treeElem, callback, flag)
 {
 	var childsArr = treeElem.content ? treeElem.content.children : treeElem.children;

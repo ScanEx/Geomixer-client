@@ -189,7 +189,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     $(addVisLayersButton).appendTo(visLayerCanvas);
     
     var previewLayersTree = new layersTree({showVisibilityCheckbox: false, allowActive: true, allowDblClick: false});
-    previewLayersTree.mapHelper = _mapHelper;
+    //previewLayersTree.mapHelper = _mapHelper;
     
     var treeContainer = $('<div/>').css({'overflow-y': 'scroll', 'height': 400, 'margin-bottom': 10});
     
@@ -237,7 +237,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     
     $(tabMenu).tabs({
         select: function(event, ui) {
-            if (ui.index === 4) {
+            if (ui.index === 4) { //выбираем на карте - добавляем ко всем растрам listeners
                 listeners = [];
                 for (var iL = 0; iL < globalFlashMap.layers.length; iL++) (function(layer) 
                 {

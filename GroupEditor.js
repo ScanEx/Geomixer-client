@@ -204,13 +204,13 @@ var addSubGroup = function(div, layersTree)
 	var dialogDiv = showDialog(_gtxt("Введите имя группы"), parentDiv, 270, 210, pos.left, pos.top);
 }
 
-var createGroupEditorProperties = function(div, isMap, layersTree)
+var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 {
 	var elemProperties = (isMap) ? div.gmxProperties.properties : div.gmxProperties.content.properties,
 		trs = [],
 		_this = this;
         
-    var rawTree = layersTree.treeModel.getRawTree();
+    var rawTree = mainLayersTree.treeModel.getRawTree();
 
 	var title = _input(null,[['attr','value',typeof elemProperties.title != 'undefined' ? elemProperties.title : ''],['dir','className','inputStyle'],['css','width','206px']])
 	
@@ -225,12 +225,15 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 		elemProperties.list = visibilityProperties.isChildRadio();
 		elemProperties.ShowCheckbox = visibilityProperties.isVisibilityControl();
 		elemProperties.expanded = elemProperties.initExpand = visibilityProperties.isExpanded();
+        
+        _layersTree.updateNodeVisibility(mainLayersTree.findTreeElem(div).elem, null);
 		
 		var curBox = div.firstChild;
 		if (!elemProperties.ShowCheckbox)
 		{
 			curBox.checked = true;
-			_layersTree.visibilityFunc(curBox, true, false, false);
+			//_layersTree.visibilityFunc(curBox, true, false, false);
+            //_layersTree.updateNodeVisibility(this.findTreeElem(curBox.parentNode).elem, null);
 			
 			curBox.style.display = 'none';
 			curBox.isDummyCheckbox = true;
@@ -244,7 +247,7 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 		if (isMap) {
 			rawTree.properties = div.gmxProperties.properties;
 		} else {
-			layersTree.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+			mainLayersTree.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 		}
 		
 		var ul = _abstractTree.getChildsUl(div.parentNode),
@@ -253,13 +256,7 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 		$(ul).children('li').each(function()
 		{
 			var box = _layersTree.updateListType(this, true);
-			
-			if (box.checked && !box.isDummyCheckbox)
-				checkbox = box; // последний включенный чекбокс
 		})
-		
-		if (checkbox && _layersTree.getLayerVisibility(checkbox))
-			_layersTree.visibilityFunc(checkbox, true, div.gmxProperties.content ? div.gmxProperties.content.properties.list : div.gmxProperties.properties.list);		
 	});
 	
 	title.onkeyup = function()
@@ -289,7 +286,7 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 		{
 			div.gmxProperties.content.properties.title = title.value;
 			
-			layersTree.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
+			mainLayersTree.findTreeElem(div).elem.content.properties = div.gmxProperties.content.properties;
 		}
 		
 		return true;
@@ -493,7 +490,7 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
         
         WMSAccess.style.verticalAlign = "middle";
         $(WMSLink).toggle(elemProperties.WMSAccess);
-		
+        
 		var shownCommonProperties = [
 										{name: _gtxt("Имя"), field: 'title', elem: title},
 										{name: _gtxt("ID"), field: 'name'},
@@ -516,20 +513,22 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 																					   _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']]), _br(), defLong],[['css','width','70px']]),
 																					   _td([_span([_t(_gtxt('Зум'))],[['css','marginLeft','3px']]), _br(), defZoom],[['css','width','68px']])])])])},
 								{name: _gtxt("Граница"), elem:_table([_tbody([_tr([_td(null, [['css','width','70px']]), _td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']])],[['css','width','70px']]), _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']])],[['css','width','68px']])]), _tr([_td([_span([_t(_gtxt('Мин'))],[['css','marginLeft','3px']])]), _td([minViewY]), _td([minViewX])]), _tr([_td([_span([_t(_gtxt('Макс'))],[['css','marginLeft','3px']])]), _td([maxViewY]), _td([maxViewX])])])])}];
-		
+                                
 		var id = 'mapProperties' + String(Math.random()).substring(2, 12),
 			tabMenu = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#common' + id]])]),
 								 _li([_a([_t(_gtxt("Доступ"))],[['attr','href','#policy' + id]])]),
+								 //_li([_a([_t("Поиск")],[['attr','href','#search' + id]])]),
 								 _li([_a([_t(_gtxt("Окно карты"))],[['attr','href','#view' + id]])]),
 								 _li([_a([_t(_gtxt("Загрузка"))],[['attr','href','#onload' + id]])]),
 								 _li([_a([_t(_gtxt("Плагины"))],[['attr','href','#plugins' + id]])])])]),
 			divCommon = _div(null,[['attr','id','common' + id],['css','width','320px']]),
-			divPolicy = _div(null,[['attr','id','policy' + id],['css','width','320px']]);
-			divView = _div(null,[['attr','id','view' + id],['css','width','320px']]);
-			divOnload = _div(null,[['attr','id','onload' + id],['css','width','320px']]);
+			divPolicy = _div(null,[['attr','id','policy' + id],['css','width','320px']]),
+			divSearch = _div(null,[['attr','id','search' + id],['css','width','100%'], ['css','overflowY','scroll'], ['css','overflowX','hidden'], ['css','height','275px']]),
+			divView = _div(null,[['attr','id','view' + id],['css','width','320px']]),
+			divOnload = _div(null,[['attr','id','onload' + id],['css','width','320px']]),
 			divPlugins = _div(null,[['attr','id','plugins' + id],['css','width','320px']]);
 		
-		_(tabMenu, [divCommon, divPolicy, divView, divOnload, divPlugins]);
+		_(tabMenu, [divCommon, divPolicy/*, divSearch*/, divView, divOnload, divPlugins]);
 		
 		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
@@ -537,14 +536,10 @@ var createGroupEditorProperties = function(div, isMap, layersTree)
 		_(divOnload, [onLoad])
         
         var mapPlugins = nsGmx.createPluginsEditor(divPlugins, _mapHelper.mapPlugins);
-        // $(mapPlugins).change(function()
-        // {
-            // _mapHelper.mapPlugins = [];
-            // mapPlugins.each(function(p)
-            // {
-                // _mapHelper.mapPlugins.push(p);
-            // });
-        // });
+        
+        var mapLayersTree = new layersTree({showVisibilityCheckbox: true, allowActive: false, allowDblClick: false});
+        var mapLayersDOM = mapLayersTree.drawTree(rawTree, 2);
+		$(mapLayersDOM).treeview().appendTo(divSearch);
         
         tabMenu.updateFunc = function() {
             var props = div.gmxProperties.properties;
@@ -633,7 +628,7 @@ var createMapEditor = function(div)
 		};
 	
 	var canvas = createGroupEditorProperties(div, true, _layersTree);
-	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 345, 340, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 360, 340, pos.left, pos.top, null, closeFunc);
 	_mapEditorsHash[elemProperties.MapID] = {
         update: canvas.updateFunc
     };

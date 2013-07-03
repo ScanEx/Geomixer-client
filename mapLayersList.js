@@ -351,9 +351,6 @@ queryMapLayersList.prototype.drawExtendLayers = function(mapLayer)
 		box,
 		clickFunc = function()
 		{
-			//_layersTree.setListActive(span);
-			//_queryMapLayers.activeListLayer = elem.name;
-			
 			globalFlashMap.layers[elem.name].setVisible(true);
 			
 			box.checked = true;
@@ -533,8 +530,6 @@ mapLayersList.mapLayersList.load = function()
 	{
 		if (_queryMapLayersList.mapEvent)
 			_queryMapLayersList.detachMapChangeEvent();
-		
-		_layersTree.updateChildLayersMapVisibility($(_queryMapLayers.buildedTree.firstChild).children("[MapID]")[0])
 	});
 	
 	if (!alreadyLoaded)

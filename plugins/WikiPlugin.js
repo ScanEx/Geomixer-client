@@ -706,16 +706,18 @@ WikiPlugin.prototype = {
 	_attachTreeEvents: function() {
         var that = this;
                 
-        var oldLayerVisible = layersTree.prototype.layerVisible;
-		//обработчик события выбора слоя в дереве слоев
-        layersTree.prototype.layerVisible = function(box, flag) {
-            (oldLayerVisible.bind(this))(box, flag);
-            var layerInfo = box.parentNode.gmxProperties.content.properties;
+        $(_layersTree).bind('layerVisibilityChange', function(event, elem) {
+            var layerInfo = elem.content.properties;
             if(that._wikiObjects) that._wikiObjects.setLayerVisible(layerInfo.name, layerInfo.visible);
-			if(that._wikiEditor) that._wikiEditor.setLayer(layerInfo.name);
-
-			that._filter.filter();
-        }
+            that._filter.filter();
+        })
+        
+        $(_layersTree).bind('activeNodeChange', function(event, div) {
+            if (that._wikiEditor && div.gmxProperties.type === 'layer') {
+                var layerInfo = div.gmxProperties.content.properties;
+                that._wikiEditor.setLayer(layerInfo.name);
+            }
+        })
     },
     
 	/** Добавляет кнопку "Отобразить/скрыть все сообщения на карте" */

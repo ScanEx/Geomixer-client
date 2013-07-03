@@ -61,8 +61,7 @@ AbstractTree.prototype.addNode = function(node, newNodeCanvas)
 		
 		if ($(node).hasClass("last"))
 		{
-			$(div).addClass('lastCollapsable-hitarea');
-			$(div).addClass('collapsable-hitarea');
+			$(div).addClass('lastCollapsable-hitarea collapsable-hitarea');
 			$(node).addClass('lastCollapsable');
 		}
 		else
@@ -167,6 +166,11 @@ var _abstractTree = new AbstractTree();
 //  * showVisibilityCheckbox {Bool} - показывать или нет checkbox видимости
 //  * allowActive {Bool} - возможен ли в дереве активный элемент
 //  * allowDblClick {Bool} - переходить ли по двойному клику к видимому экстенту слоя/группы
+//
+//события:
+//  * layerVisibilityChange - при изменении видимости слоя (параметр - элемент дерева с изменившимся слоем)
+//  * addTreeElem - добавили новый элемент дерева (параметр - новый элемент)
+//  * activeNodeChange - изменили активную ноду дерева (парамер - div активной ноды)
 var layersTree = function( renderParams )
 {
     this._renderParams = $.extend({
@@ -395,9 +399,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
                 var box = div.firstChild;
                 if (attr != box.checked)
                 {
-                    box.checked = attr;
-                    var parentParams = _this.getParentParams(div.parentNode);
-                    _this.visibilityFunc(box, box.checked, parentParams.list);
+                    _this.setNodeVisible(_this.findTreeElem(div).elem, box.checked);
                 }
             });
         }
@@ -426,21 +428,14 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 layersTree.prototype.setActive = function(span)
 {
 	$(this._treeCanvas).find(".active").removeClass("active");
-	
 	$(span.parentNode).addClass("active");
+    $(this).triggerHandler("activeNodeChange", [span.parentNode.parentNode]);
 }
 
 layersTree.prototype.getActive = function()
 {
     var activeDiv = $(this._treeCanvas).find(".active");
     return activeDiv[0] ? activeDiv[0].parentNode : null;
-}
-
-layersTree.prototype.setListActive = function(span)
-{
-	$(_queryMapLayers.listCanvas).find(".active").removeClass("active");
-	
-	$(span.parentNode).addClass("active");
 }
 
 layersTree.prototype.getMinLayerZoom = function(layer)
@@ -470,7 +465,6 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	var box, 
 		_this = this;
 	
-	//if (!layerManagerFlag)
 	if (this._renderParams.showVisibilityCheckbox)
 	{
 		box = _checkbox(elem.visible, parentParams.list ? 'radio' : 'checkbox', parentParams.GroupID || parentParams.MapID);
@@ -481,16 +475,12 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 		
 		box.onclick = function()
 		{
-			var parentParams = _this.getParentParams(this.parentNode.parentNode);
-			
-			_this.visibilityFunc(this, this.checked, parentParams.list);
+            _this.setNodeVisible(_this.findTreeElem(this.parentNode).elem, this.checked);
 		}
 	}
 	
 	var span = _span([_t(elem.title)], [['dir','className','layer'],['attr','dragg',true]]);
 	
-	// if (!layerManagerFlag)
-	// {
     var timer = null,
         clickFunc = function()
         {
@@ -499,13 +489,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
             
             if (_this._renderParams.showVisibilityCheckbox)
             {
-                var box = span.parentNode.parentNode.firstChild;
-                
-                box.checked = true;
-                
-                var parentParams = _this.getParentParams(span.parentNode.parentNode.parentNode);
-                
-                _this.visibilityFunc(box, true, parentParams.list);
+                _this.setNodeVisible(_this.findTreeElem(span.parentNode.parentNode).elem, true);
             }
         },
         dbclickFunc = function()
@@ -553,8 +537,9 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	if (layerManagerFlag == 1)
 		return [_img(null, [['attr','src', (elem.type == "Vector") ? 'img/vector.png' : (typeof elem.MultiLayerID != 'undefined' ? 'img/multi.png' : 'img/rastr.png')],['css','marginLeft','3px']]), spanParent, spanDescr];
 	
-	if (this._renderParams.showVisibilityCheckbox && !globalFlashMap.layers[elem.name].isVisible)
-		$(spanParent).addClass("invisible")
+	if (this._renderParams.showVisibilityCheckbox && !elem.visible) {
+		$(spanParent).addClass("invisible");
+    }
 	
 	nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Layer', function(){return true;}, {
 		layerManagerFlag: layerManagerFlag,
@@ -655,9 +640,7 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 		
 		box.onclick = function()
 		{
-			var parentParams = _this.getParentParams(this.parentNode.parentNode);
-			
-			_this.visibilityFunc(this, this.checked, parentParams.list);
+            _this.setNodeVisible(_this.findTreeElem(this.parentNode).elem, this.checked);
 		}
 		
 		if (typeof elem.ShowCheckbox !== 'undefined' && !elem.ShowCheckbox)
@@ -669,8 +652,6 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 	
 	var span = _span([_t(elem.title)], [['dir','className','groupLayer'],['attr','dragg',true]]);
 	
-	// if (!layerManagerFlag)
-	// {
     var timer = null,
         clickFunc = function()
         {
@@ -679,18 +660,9 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
             
             if (_this._renderParams.showVisibilityCheckbox)
             {
-                var box = span.parentNode.parentNode.firstChild;
-                
-                box.checked = true;
-                
-                if (!box.isDummyCheckbox)
-                {
-                    var parentParams = _this.getParentParams(span.parentNode.parentNode.parentNode);
-                    _this.visibilityFunc(box, true, parentParams.list);
-                }
-                    
+                _this.setNodeVisible(_this.findTreeElem(span.parentNode.parentNode).elem, true);
+
                 var clickDiv = $(span.parentNode.parentNode.parentNode).children("div.hitarea");
-                    
                 if (clickDiv.length)
                     $(clickDiv[0]).trigger("click");
             }
@@ -752,7 +724,6 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
     }
     
     disableSelection(span);
-	// }
 	
 	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
 	
@@ -903,103 +874,20 @@ layersTree.prototype.disableRadioGroups = function(box)
 	}
 }
 
-layersTree.prototype.visibilityFunc = function(box, flag, listFlag, forceChildVisibility)
+//по элементу дерева слоёв ищет соответствующий элемент в DOM представлении
+layersTree.prototype.findUITreeElem = function(elem)
 {
-	//if (box.isDummyCheckbox) return;
+	var props = elem.content.properties,
+        searchStr;
 	
-	if (listFlag)
-		this.disableRadioGroups(box);
-	
-	this.setVisibility(box, flag, forceChildVisibility);
-}
-
-layersTree.prototype.findTreeBox = function(child)
-{
-	var searchStr;
-	
-	if (child.content.properties.LayerID)
-		searchStr = "div[LayerID='" + child.content.properties.LayerID + "']";
-	else if (child.content.properties.MultiLayerID)
-		searchStr = "div[MultiLayerID='" + child.content.properties.MultiLayerID + "']";
+	if (props.LayerID)
+		searchStr = "div[LayerID='" + props.LayerID + "']";
+	else if (props.MultiLayerID)
+		searchStr = "div[MultiLayerID='" + props.MultiLayerID + "']";
 	else
-		searchStr = "div[GroupID='" + child.content.properties.GroupID + "']";
+		searchStr = "div[GroupID='" + props.GroupID + "']";
 	
-	var elem = $(searchStr);
-	
-	if (elem.length)
-		return elem[0];
-	else
-		return false;
-}
-
-layersTree.prototype.setVisibility = function(checkbox, flag, forceChildVisibility)
-{
-	if (typeof forceChildVisibility === 'undefined') 
-		forceChildVisibility = true;
-		
-	var treeElem = this.findTreeElem(checkbox.parentNode).elem;
-	var _this = this;
-	treeElem.content.properties.visible = flag;
-    treeElem.content.properties.changedByViewer = true;
-	
-	if (checkbox.parentNode.getAttribute('GroupID'))
-	{
-		if (flag)
-			this.setLayerVisibility(checkbox);
-	
-		var parentParams = this.getParentParams(checkbox.parentNode.parentNode);
-
-		// Делаем видимость всех потомков узла дерева такой же, как видимость этого слоя. 
-		if (forceChildVisibility)
-		{
-			_mapHelper.findTreeElems(treeElem, function(child, visflag, list, index)
-			{
-                var props = child.content.properties;
-                var visible = visflag && !(list && index != 0);
-                
-                props.visible = visible;
-                props.changedByViewer = true;
-                
-                var elem = _this.findTreeBox(child);
-                
-                if (elem)
-                {
-                    elem.firstChild.checked = visible;
-                    _this.setVisibility(elem.firstChild, visible);
-                }
-			}, flag, parentParams.list);
-		}
-	
-		this.updateChildLayersMapVisibility(checkbox.parentNode)
-	}
-	else
-	{
-		if (!flag)
-			this.layerVisible(checkbox, false);
-		else
-		{
-			this.setLayerVisibility(checkbox);
-			
-			this.layerVisible(checkbox, true); 
-		}
-	}
-	
-	this.updateTreeVisibility(checkbox);
-}
-
-layersTree.prototype.layerVisible = function(box, flag)
-{
-    var props = box.parentNode.gmxProperties.content.properties,
-        layer = globalFlashMap.layers[props.name];
-	
-	if (layer)
-        layer.setVisible(flag);
-	
-	if (layer.miniLayer)
-		layer.miniLayer.setVisible(flag);
-    
-    //props.visible = flag;
-    props.changedByViewer = true;
+    return $(searchStr)[0];
 }
 
 layersTree.prototype.getLayerVisibility = function(box)
@@ -1025,94 +913,90 @@ layersTree.prototype.getLayerVisibility = function(box)
 	return true;
 }
 
-// включает все выключенные элементы выше указанного элемента
-layersTree.prototype.setLayerVisibility = function(checkbox)
-{
-	var el = checkbox.parentNode.parentNode.parentNode,
-		disabledBoxs = [];
-	
-	// находим все выключенные группы
-	while (!el.root)
-	{
-		if (el.childNodes[1] && el.childNodes[1].getAttribute('GroupID') != null)
-		{
-			if (!el.childNodes[1].firstChild.checked)
-			{
-				el.childNodes[1].firstChild.checked = true;
-				
-				this.findTreeElem(el.childNodes[1]).elem.content.properties.visible = true;
-				
-				$(el.childNodes[1].childNodes[1]).removeClass("invisible")
-				
-				var listFlag;
-				if ($(el.parentNode.parentNode).children("div[GroupID]")[0])
-					listFlag = $(el.parentNode.parentNode).children("div[GroupID]")[0].gmxProperties.content.properties.list;
-				else
-					listFlag = $(el.parentNode.parentNode).children("div[MapID]")[0].gmxProperties.properties.list;
-				
-				if (listFlag)
-					this.disableRadioGroups(el.childNodes[1].firstChild);
-				
-				disabledBoxs.push(el.childNodes[1].firstChild);
-			}
-		}
-					
-		el = el.parentNode;
-	}
-	
-	if (!disabledBoxs.length)
-		return;
-	
-	// включаем все слои под верхней выключенной группой
-	this.updateChildLayersMapVisibility(disabledBoxs[disabledBoxs.length - 1].parentNode);
+//Методы управления видимостью слоёв в дереве
+
+//Устанавливает галочку в checkbox и нужный стиль DOM ноде дерева в зависимости от видимости
+//ничего не трогает вне ноды и в самом дереве
+layersTree.prototype.updateVisibilityUI = function(elem) {
+    var div = this.findUITreeElem(elem);
+    if (div) {
+        var isVisible = elem.content.properties.visible;
+        $(div).children("[titleDiv], [multiStyle]").toggleClass("invisible", !isVisible);
+        div.firstChild.checked = isVisible;
+    }
 }
 
-// приводит в соответствие видимость слоев на карте вложенным слоям указанного элемента дерева
-layersTree.prototype.updateChildLayersMapVisibility = function(div)
-{
-	var treeParent = div.getAttribute('MapID') ? this.treeModel.getRawTree() : this.findTreeElem(div).elem
-	
-	_mapHelper.findChilds(treeParent, function(child, visible)
-	{
-        var layer = globalFlashMap.layers[child.content.properties.name];
-		if (layer)
-			layer.setVisible(visible);
-		
-		if (layer.miniLayer)
-			layer.miniLayer.setVisible(visible);
-            
-        //child.content.properties.visible = visible;
-        child.content.properties.changedByViewer = true;
-            
-	},  div.getAttribute('MapID') ? true : this.getLayerVisibility(div.firstChild))
-	
-	var ulChilds = _abstractTree.getChildsUl(div.parentNode);
-
-	if (ulChilds)
-	{
-		var _this = this;
-		
-		$(ulChilds).find("input[box]").each(function()
-		{
-			_this.updateTreeVisibility(this);
-		})
-	}
+//проходится по всему поддереву elem и устанавливает видимость isVisible всем узлам включая elem (учитывая ограничения на radio buttons)
+layersTree.prototype.setSubtreeVisibility = function(elem, isVisible) {
+    var props = elem.content.properties;
+    if (props.visible != isVisible) {
+        props.visible = isVisible;
+        props.changedByViewer = true;
+        this.updateVisibilityUI(elem);
+        
+        if (elem.type === 'layer' && props.name in globalFlashMap.layers) {
+            globalFlashMap.layers[props.name].setVisible(isVisible);
+            $(this).triggerHandler('layerVisibilityChange', [elem]);
+        }
+        
+        if (elem.content.children) {
+            for (var c = 0; c < elem.content.children.length; c++) {
+                var vis = isVisible && (!props.list || c == 0); //когда делаем видимой группу-список, виден только первый элемент группы
+                this.setSubtreeVisibility(elem.content.children[c], vis);
+            }
+        }
+    }
 }
 
-layersTree.prototype.updateTreeVisibility = function(box)
-{
-	// ie8 не поддерживает opacity в css. wtf
-	
-	if (this.getLayerVisibility(box))
-	{
-		$(box.parentNode).children("[titleDiv]").removeClass("invisible");
-		$(box.parentNode).children("[multiStyle]").removeClass("invisible");
-	}
-	else
-	{
-		$(box.parentNode).children("[titleDiv]").addClass("invisible");
-		$(box.parentNode).children("[multiStyle]").addClass("invisible");
-	}
+//Устанавливает видимость elem и всех родительских элементов elem в зависимости от видимости их прямых потомков. elem должен быть группой. 
+//При этом разруливаются конфликты с несколькими видимыми узлами в radio-группах.
+//triggerSubnode - один их прямых потомков elem, состояние которого должно остаться неизменным (важно для разруливания конфликтов в radio-групп)
+//parents - массив всех родителей, опционально
+layersTree.prototype.updateNodeVisibility = function(elem, triggerSubnode, parents) {
+    var props = elem.content.properties,
+        isList = props.list,
+        children = elem.content.children,
+        triggerNodeVisible = triggerSubnode ? triggerSubnode.content.properties.visible : false,
+        visibleNode = triggerNodeVisible ? triggerSubnode : null;
+    
+    var isVisible = false;
+    for (var c = 0; c < children.length; c++) {
+        var child = children[c];
+        var childVisible = child.content.properties.visible;
+        isVisible = isVisible || childVisible;
+        
+        if (childVisible && !visibleNode) {
+            visibleNode = child;
+        }
+        
+        if (isList && childVisible && child !== visibleNode) {
+            this.setSubtreeVisibility(child, false);
+        }
+    }
+    
+    if (isVisible !== props.visible) {
+        props.visible = isVisible;
+        props.changedByViewer = true;
+        this.updateVisibilityUI(elem);
+        
+        if (!parents) {
+            parents = this.treeModel.findElemByGmxProperties(elem).parents;
+            parents.pop(); //последний элемент - карта; нас не интересует
+        }
+        var parent = parents.shift();
+        parent && this.updateNodeVisibility(parent, elem, parents);
+    }
+}
+
+// Задать видимость ноды elem в состояние isVisible. 
+// При этом будут сделаны все нужные изменения видимости как выше, так и ниже по дереву относительно этой ноды.
+layersTree.prototype.setNodeVisible = function(elem, isVisible) {
+    //устанавливаем видимость поддерева, которое начинается с этого элемента
+    this.setSubtreeVisibility(elem, isVisible);
+    
+    //идём вверх по дереву до корня и меняем видимость родителей
+    var parentElem = this.treeModel.findElemByGmxProperties(elem).parents[0];
+    parentElem && parentElem.content && this.updateNodeVisibility(parentElem, elem);
 }
 
 layersTree.prototype.dummyNode = function(node)
@@ -1129,7 +1013,9 @@ layersTree.prototype.dummyNode = function(node)
 layersTree.prototype.moveHandler = function(spanSource, divDestination)
 {
 	var node = divDestination.parentNode,
-		parentTree = spanSource.parentNode.parentNode.parentNode.parentNode;
+        divSource = spanSource.parentNode.parentNode.parentNode,
+		parentTree = divSource.parentNode,
+        parentElem = this.findTreeElem($(divSource).children("div[GroupID],div[LayerID],div[MultiLayerID]")[0]).parents[0];
 
 	this.removeTreeElem(spanSource.parentNode.parentNode);
 	this.addTreeElem(divDestination, 0, spanSource.parentNode.parentNode.gmxProperties);
@@ -1139,31 +1025,36 @@ layersTree.prototype.moveHandler = function(spanSource, divDestination)
 	
 	if (childsUl)
 	{
-		_abstractTree.addNode(node, spanSource.parentNode.parentNode.parentNode);
+		_abstractTree.addNode(node, divSource);
 		
-		this.updateListType(spanSource.parentNode.parentNode.parentNode);
+		this.updateListType(divSource);
 		
 		if (!childsUl.loaded)
-			spanSource.parentNode.parentNode.parentNode.removeNode(true)
+			divSource.removeNode(true)
 	}
 	else
 	{
-		_abstractTree.addNode(node, spanSource.parentNode.parentNode.parentNode);
+		_abstractTree.addNode(node, divSource);
 
-		this.updateListType(spanSource.parentNode.parentNode.parentNode);
+		this.updateListType(divSource);
 	}
+    
+    parentElem && parentElem.content && this.updateNodeVisibility(parentElem);
 	
 	// удалим старый узел
 	_abstractTree.delNode(node, parentTree, parentTree.parentNode);
 	
 	_mapHelper.updateUnloadEvent(true);
 }
+
 layersTree.prototype.swapHandler = function(spanSource, divDestination)
 {
 	var node = divDestination.parentNode,
-		parentTree = spanSource.parentNode.parentNode.parentNode.parentNode;
+        divSource = spanSource.parentNode.parentNode.parentNode,
+		parentTree = divSource.parentNode,
+        parentElem = this.findTreeElem($(divSource).children("div[GroupID],div[LayerID],div[MultiLayerID]")[0]).parents[0];
 	
-	if (node == spanSource.parentNode.parentNode.parentNode)
+	if (node == divSource)
 		return;
 	
 	this.removeTreeElem(spanSource.parentNode.parentNode);
@@ -1174,10 +1065,12 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 	
 	this.addTreeElem(divParent, index + 1, spanSource.parentNode.parentNode.gmxProperties);
 
-	_abstractTree.swapNode(node, spanSource.parentNode.parentNode.parentNode);
+	_abstractTree.swapNode(node, divSource);
 	
-	this.updateListType(spanSource.parentNode.parentNode.parentNode);
-	
+	this.updateListType(divSource);
+    
+    parentElem && parentElem.content && this.updateNodeVisibility(parentElem);
+    
 	// удалим старый узел
 	_abstractTree.delNode(node, parentTree, parentTree.parentNode);
 	
@@ -1288,20 +1181,12 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 
 				var childsUl = _abstractTree.getChildsUl(node);
 				
-				if (childsUl)
+                _abstractTree.addNode(node, li);
+                _this.updateListType(li, true);
+                    
+				if (childsUl && !childsUl.loaded)
 				{
-					_abstractTree.addNode(node, li);
-					
-					_this.updateListType(li, true);
-					
-					if (!childsUl.loaded)
-						li.removeNode(true)
-				}
-				else
-				{
-					_abstractTree.addNode(node, li);
-					
-					_this.updateListType(li, true);
+                    li.removeNode(true)
 				}
 			}
 			
@@ -1415,13 +1300,12 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 		listFlag = parentParams.properties.list;
 	
 	var box = $(li).children("div[MapID],div[GroupID],div[LayerID],div[MultiLayerID]")[0].firstChild,
-		newBox,
+		newBox = _checkbox(
+            box.checked,
+            listFlag ? 'radio' : 'checkbox',
+            parentParams.content ? parentParams.content.properties.GroupID : parentParams.properties.MapID
+        ),
 		_this = this;
-	
-	if (listFlag)
-		newBox = _checkbox(box.checked, 'radio', (parentParams.content) ? parentParams.content.properties.GroupID : parentParams.properties.MapID)
-	else
-		newBox = _checkbox(box.checked, 'checkbox', (parentParams.content) ? parentParams.content.properties.GroupID : parentParams.properties.MapID)
 	
 	newBox.className = 'box';
 
@@ -1432,7 +1316,7 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 	
 	newBox.onclick = function()
 	{
-		_this.visibilityFunc(this, this.checked, listFlag);
+		_this.setNodeVisible(_this.findTreeElem(this.parentNode).elem, this.checked);
 	}
 	
 	if ( box.isDummyCheckbox )
@@ -1441,40 +1325,13 @@ layersTree.prototype.updateListType = function(li, skipVisible)
 		newBox.style.display = 'none';
 	}
 	
-	if (typeof skipVisible == 'undefined')
+	if (!skipVisible)
 	{
-		if (listFlag)
-			this.disableRadioGroups(newBox);
-		
-		this.updateMapLayersVisibility(newBox.parentNode.parentNode);
-		
-		if (newBox.parentNode.getAttribute('GroupID'))
-			this.updateChildLayersMapVisibility(newBox.parentNode)
-		
-		this.updateTreeVisibility(newBox);
-	//	this.visibilityFunc(newBox, newBox.checked, listFlag);
+        var parentDiv = $(newBox.parentNode.parentNode.parentNode.parentNode).children("div[GroupID]")[0];
+        parentDiv && this.updateNodeVisibility(this.findTreeElem(parentDiv).elem, this.findTreeElem(newBox.parentNode).elem);
 	}
 	
 	return newBox;
-}
-
-layersTree.prototype.updateMapLayersVisibility = function(li)
-{
-	var _this = this;
-	
-	$(li).find("div[LayerID],div[MultiLayerID]").each(function()
-	{
-        var props = this.gmxProperties.content.properties;
-		if (props.visible && _this.getLayerVisibility(this.firstChild)) {
-			globalFlashMap.layers[props.name].setVisible(true);
-            //props.visible = true;
-        } else {
-			globalFlashMap.layers[props.name].setVisible(false);
-            //props.visible = false;
-        }
-            
-        props.changedByViewer = true;
-	})
 }
 
 layersTree.prototype.removeTreeElem = function(div)
@@ -1513,8 +1370,6 @@ layersTree.prototype.findTreeElem = function(div)
 
 //Дерево основной карты
 var _layersTree = new layersTree({showVisibilityCheckbox: true, allowActive: true, allowDblClick: true});
-_mapHelper._treeView = _layersTree;
-_layersTree.mapHelper = _mapHelper;
 
 //Виджет в левой панели для отображения основного дерева
 var queryMapLayers = function()
@@ -1551,13 +1406,14 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 	
 	_mapHelper.findTreeElems(parentElem, function(elem, visibleFlag)
 	{
+        var props = elem.content.properties;
 		if (elem.type == 'group')
 		{
-			var groupId = elem.content.properties.GroupID;
+			var groupId = props.GroupID;
 			
-			if (typeof condition.visible[groupId] != 'undefined' && elem.content.properties.visible != condition.visible[groupId])
+			if (typeof condition.visible[groupId] != 'undefined' && props.visible != condition.visible[groupId])
 			{
-				elem.content.properties.visible = condition.visible[groupId];
+				props.visible = condition.visible[groupId];
 				
 				var group = $(_this.buildedTree).find("div[GroupID='" + groupId + "']");
 				
@@ -1565,9 +1421,9 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 					group[0].firstChild.checked = condition.visible[groupId];
 			}
 			
-			if (typeof condition.expanded[groupId] != 'undefined' && elem.content.properties.expanded != condition.expanded[groupId])
+			if (typeof condition.expanded[groupId] != 'undefined' && props.expanded != condition.expanded[groupId])
 			{
-				elem.content.properties.expanded = condition.expanded[groupId];
+				props.expanded = condition.expanded[groupId];
 				
 				var group = $(_this.buildedTree).find("div[GroupID='" + groupId + "']");
 				
@@ -1582,59 +1438,42 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
 		}
 		else
 		{
-			if (typeof condition.visible[elem.content.properties.name] != 'undefined' && elem.content.properties.visible != condition.visible[elem.content.properties.name])
+            
+            var name = props.name;
+			if (typeof condition.visible[name] != 'undefined') // && elem.content.properties.visible != condition.visible[name])
 			{
-				elem.content.properties.visible = condition.visible[elem.content.properties.name];
-				
-				var layerProperties = globalFlashMap.layers[elem.content.properties.name].properties,
-					layer = false;
-				
-				if (layerProperties.LayerID)
-					layer = $(_this.buildedTree).find("div[LayerID='" + layerProperties.LayerID + "']");
-				else
-					layer = $(_this.buildedTree).find("div[MultiLayerID='" + layerProperties.MultiLayerID + "']");
-				
-				if (layer.length)
-					layer[0].firstChild.checked = condition.visible[elem.content.properties.name];
+                _this.setNodeVisible(elem, condition.visible[name]);
 			}
 			
-			if (elem.content.properties.type == "Vector" && typeof mapLayersParam != 'undefined' &&  typeof mapLayersParam[elem.content.properties.name] != 'undefined' &&
-				!_this.equalStyles(elem.content.properties.styles, mapLayersParam[elem.content.properties.name]))
+			if (props.type == "Vector" && typeof mapLayersParam != 'undefined' &&  typeof mapLayersParam[name] != 'undefined' &&
+				!_this.equalStyles(props.styles, mapLayersParam[name]))
 			{
 				// что-то менялось в стилях
-				var layerProperties = globalFlashMap.layers[elem.content.properties.name].properties,
-					newStyles = mapLayersParam[elem.content.properties.name],
-					div = $(_this.buildedTree).find("div[LayerID='" + layerProperties.LayerID + "']");
+				var layerProperties = globalFlashMap.layers[name].properties,
+					newStyles = mapLayersParam[name],
+					div = $(_this.buildedTree).find("div[LayerID='" + layerProperties.LayerID + "']")[0];
 				
-				elem.content.properties.styles = newStyles;
+				props.styles = newStyles;
 				
-				if (!globalFlashMap.layers[elem.content.properties.name].objectId)
+				if (!globalFlashMap.layers[name].objectId)
 				{
-					globalFlashMap.layers[elem.content.properties.name].setVisible(true);
+					globalFlashMap.layers[name].setVisible(true);
 					
-					_mapHelper.updateMapStyles(newStyles, elem.content.properties.name, elem.content.properties);
+					_mapHelper.updateMapStyles(newStyles, name, props);
 					
-					globalFlashMap.layers[elem.content.properties.name].setVisible(visibleFlag);
+					globalFlashMap.layers[name].setVisible(visibleFlag);
                     
-                    //elem.content.properties.visible = visibleFlag;
-                    elem.content.properties.changedByViewer = true;
+                    props.changedByViewer = true;
 				}
 				else
-					_mapHelper.updateMapStyles(newStyles, elem.content.properties.name, elem.content.properties);
+					_mapHelper.updateMapStyles(newStyles, name, props);
 				
-				if (div.length)
-				{
-					div = div[0];
-					
-					_mapHelper.updateTreeStyles(newStyles, div, _layersTree, true);
-				}
+                div && _mapHelper.updateTreeStyles(newStyles, div, _layersTree, true);
 			}
 		}
 	}, visFlag)
 	
 	var parentCanvas = typeof div == 'undefined' ? $(this.buildedTree.firstChild).children("[MapID]")[0] : div;
-		
-	_layersTree.updateChildLayersMapVisibility(parentCanvas)
 }
 
 queryMapLayers.prototype.equalStyles = function(style1, style2)
