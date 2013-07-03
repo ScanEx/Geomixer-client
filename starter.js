@@ -383,6 +383,10 @@ function parseReferences(params, givenMapName)
     
     if ("mode" in params)
         defaultState.mode = params.mode;
+        
+    if ("dt" in params) {
+        defaultState.dt = params.dt;
+    }
     
     window.defaultMapID = typeof window.defaultMapID !== 'undefined' ? window.defaultMapID : 'DefaultMap';
     
@@ -787,6 +791,17 @@ function loadMap(state)
         var userObjects = state.userObjects || (data && data.properties.UserData);
         
         userObjects && _userObjects.setData(JSON.parse(userObjects));
+        
+        if (state.dt) {
+            try {
+                var dateLocal = $.datepicker.parseDate('dd.mm.yy', state.dt);
+                var dateBegin = nsGmx.Calendar.fromUTC(dateLocal);
+                var dateEnd = new Date(dateBegin.valueOf() + 24*3600*1000);
+                var calendar = nsGmx.widgets.commonCalendar.get();
+                calendar.setDateBegin(dateBegin, true);
+                calendar.setDateEnd(dateEnd);
+            } catch(e) {}
+        }
         
         //в самом начале загружаем только данные о плагинах карты. 
         //Остальные данные будем загружать чуть позже после частичной инициализации вьюера
