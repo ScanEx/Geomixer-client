@@ -1094,7 +1094,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			for(var j=0; j<node.filters.length; j++) {
 				var filterID = node.filters[j];
 				var filter = mapNodes[node.filters[j]];
-				if(zoom > filter.maxZ || zoom < filter.minZ) continue;
+				if(zoom > filter.maxZ || zoom < filter.minZ || filter.isVisible === false) continue;
 				var prop = getPropItem(geo);
 
 				var flag = (filter && filter.sqlFunction ? filter.sqlFunction(prop) : true);
