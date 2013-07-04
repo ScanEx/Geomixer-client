@@ -154,10 +154,12 @@
 		node['setVisibilityFilter'] = function() {
 			//var currZ = LMap.getZoom();
 			//delete node['tilesRedrawImages'][currZ];
-			
+			node.checkFilters(10);			
+			/*
 			reCheckFilters();
 			//upDateLayer();
 			node.redrawTilesList(40);
+			*/
 		}
 
 		var inpAttr = ph.attr;
