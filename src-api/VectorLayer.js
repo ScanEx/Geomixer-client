@@ -452,7 +452,7 @@
 			if(node['isVisible'] === false) return true;								// Слой не видим
 			if(gmxAPI._leaflet['zoomstart']) {
 				//myLayer._markTile(tilePoint, 1);
-				node.reloadTilesList(100);
+				node.reloadTilesList(0);
 				return true;
 			}
 
@@ -465,7 +465,7 @@
 			if(!flag) {
 				var attr = getTileAttr(tilePoint, zoom);
 				node.addTilesNeedRepaint(attr.drawTileID);
-				node.repaintTilesNeed(20);
+				node.repaintTilesNeed(10);
 				//node.repaintTile(tilePoint, true);
 			}
 			return flag;
@@ -543,7 +543,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 							}
 							//queueFlags = null;
 							delete node['loaderDrawFlags'][stID];
-							node.repaintTilesNeed(200);
+							node.repaintTilesNeed(10);
 						}
 					}
 					var arr = stID.split('_');
