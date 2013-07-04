@@ -13,7 +13,7 @@
 
 	var repaintItems = function()	{			// отложенная перерисовка
 		if(timer) clearTimeout(timer);
-		timer = setTimeout(repaint, 200);
+		timer = setTimeout(repaint, 20);
 	}
 	var prepareStyle = function(style)	{		// подготовка стиля
 		var size = style['label']['size'] || 12;
