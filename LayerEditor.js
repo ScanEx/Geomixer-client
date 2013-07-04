@@ -171,7 +171,7 @@ var ManualAttrModel = function() {
     this.each = function(callback, addInternalColumns) { 
         for (var k = 0; k < _attributes.length; k++) {
             var column = _attributes[k];
-            var isInternal = column.IsPrimary || column.IsIdentity || column.IsComputed || column.type.server === 'geometry';
+            var isInternal = column.IsPrimary || column.IsIdentity || column.IsComputed || column.type.server === 'geometry' || column.name === 'GMX_RasterCatalogID';
             if (!isInternal || addInternalColumns) {
                 callback(column, k);
             }
@@ -246,11 +246,8 @@ var ManualAttrView = function()
         $(_parent).empty();
         _trs = [];
         
-        //for (var i = 0; i < _model.getCount(); i++)
-        //{
         _model.each(function(attr, i) {
-            //var attr = _model.getAttribute(i);
-            
+
             var typeSelector = createTypeSelector();
             typeSelector.attrIdx = i;
             $('#' + attr.type.server, typeSelector).attr('selected', 'selected');
@@ -597,9 +594,10 @@ var createPageVectorSource = function(layerProperties) {
     layerProperties.set('GeometryType', geometryTypeWidget.getActiveType());
                 
     var attrViewParent = _div();
+    var geometryTypeTitle = _span([_t(_gtxt('Геометрия') + ': ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]);
     var attrContainer = _div([
         _div([
-            _div([_span([_t(_gtxt('Геометрия') + ': ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]), geometryTypeContainer[0]]),
+            layerName ? _div(): _div([geometryTypeTitle, geometryTypeContainer[0]]),
             addAttribute
         ]),
         _div([attrViewParent], [['css', 'margin', '3px']])
@@ -692,16 +690,16 @@ var createPageVectorSource = function(layerProperties) {
     
     var sourceTr2;
         
-    // if (!layerName) {
-    sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), _td([_div([sourceTab])])]);
-    // } else {
-        // var sourceTitle = {'file': _gtxt('Файл'), 'table': _gtxt('Таблица'), 'manual': _gtxt('Вручную')}[sourceType];
-        // var sourceControls = {'file': sourceFile, 'table': sourceTable, 'manual': _div()}[sourceType];
-        // sourceTr2 = _tr([
-            // _td([_t(_gtxt("Источник") + ': ' + sourceTitle)], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), 
-            // _td([sourceControls])
-        // ]);
-    // }
+    if (!layerName) {
+        sourceTr2 = _tr([_td([sourceCheckbox[0]], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), _td([_div([sourceTab])])]);
+    } else {
+        var sourceTitle = {'file': _gtxt('Файл'), 'table': _gtxt('Таблица'), 'manual': _gtxt('Вручную')}[sourceType];
+        var sourceControls = {'file': sourceFile, 'table': sourceTable, 'manual': sourceManual}[sourceType];
+        sourceTr2 = _tr([
+            _td([_t(_gtxt("Источник") + ': ' + sourceTitle)], [['css','padding','5px'], ['css', 'verticalAlign', 'top'], ['css', 'lineHeight', '18px']]), 
+            _td([sourceControls])
+        ]);
+    }
     
     shownProperties.push({tr: sourceTr2});
 
