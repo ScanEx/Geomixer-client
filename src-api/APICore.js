@@ -2235,7 +2235,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 						{ 
 							layer.properties.mapName = layers.properties.name;
 							layer.properties.hostName = hostName;
-							layer.mercGeometry = layer.geometry;
+							//layer.mercGeometry = layer.geometry;
 							//delete layer.geometry;
 							//layer.mercGeometry = gmxAPI.clone(layer.geometry);
 							//layer.geometry = gmxAPI.from_merc_geometry(layer.geometry);
