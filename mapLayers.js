@@ -1240,6 +1240,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 		copyFunc();
 }
 
+//геометрия слоёв должна быть в latlng
 layersTree.prototype.addLayersToMap = function(elem)
 {
 	if (typeof elem.content.properties.GroupID != 'undefined')
@@ -1261,7 +1262,7 @@ layersTree.prototype.addLayersToMap = function(elem)
 		{
 			var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
 			
-			globalFlashMap.addLayer(layer, visibility, true);
+			globalFlashMap.addLayer(layer, visibility);
             layer.properties.changedByViewer = true;
 		}
 		else
