@@ -1032,10 +1032,25 @@ function loadMap(state)
             
             if (state.mode)
             {
-                if (state.mode == "map" || state.mode == "satellite" || state.mode == "hybrid")
-                    map.setBaseLayer({ map: "Карта", satellite: "Снимки", hybrid: "Гибрид" }[state.mode]);
-                else
+                //есть 3 варианта названий выбранной стандартной базовой подложки: по-русски, по-анлийски и старый вариант (setMode).
+                //Все эти варианты нужно привести к названию подложки на текущем языке API.
+                var toRus = {
+                    map:     "Карта", satellite: "Снимки", hybrid:    "Гибрид", 
+                    Map:     "Карта", Satellite: "Снимки", Hybrid:    "Гибрид",
+                    "Карта": "Карта", "Снимки" : "Снимки", "Гибрид" : "Гибрид" 
+                };
+                
+                var toEng = {
+                    "Карта": "Map", "Снимки" : "Satellite", "Гибрид" : "Hybrid" 
+                }
+                
+                if (state.mode in toRus) {
+                    var modeName = window.KOSMOSNIMKI_LANGUAGE === "English" ? toEng[toRus[state.mode]] : toRus[state.mode];
+                    map.setBaseLayer(modeName);
+                }
+                else { //подложка не является стандартной
                     map.setBaseLayer(state.mode);
+                }
             }
             
             if (state.drawnObjects)
