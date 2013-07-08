@@ -1443,7 +1443,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
             var name = props.name;
 			if (typeof condition.visible[name] != 'undefined') // && elem.content.properties.visible != condition.visible[name])
 			{
-                _this.setNodeVisible(elem, condition.visible[name]);
+                _layersTree.setNodeVisible(elem, condition.visible[name]);
 			}
 			
 			if (props.type == "Vector" && typeof mapLayersParam != 'undefined' &&  typeof mapLayersParam[name] != 'undefined' &&
