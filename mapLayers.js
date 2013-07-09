@@ -399,7 +399,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
                 var box = div.firstChild;
                 if (attr != box.checked)
                 {
-                    _this.setNodeVisible(_this.findTreeElem(div).elem, box.checked);
+                    _this.setNodeVisible(_this.findTreeElem(div).elem, attr);
                 }
             });
         }
