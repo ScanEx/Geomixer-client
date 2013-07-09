@@ -4211,6 +4211,7 @@
 					,attributionControl: false
 					,trackResize: true
 					,fadeAnimation: (window.gmxPhantom ? false : true)		// отключение fadeAnimation при запуске тестов
+                    ,zoomAnimation: (window.gmxPhantom ? false : true)  // отключение zoomAnimation при запуске тестов
 					//,zoomAnimation: false
 					//,boxZoom: false
 					//,zoomAnimation: (gmxAPI.isChrome ? false : true)
