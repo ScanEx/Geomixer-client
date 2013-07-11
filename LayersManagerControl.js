@@ -16,7 +16,7 @@ var LayersListProvider = function(filtersProvider)
         var filterStrings = [];
         
         if (filtersProvider.getTitle() !== '')
-            filterStrings.push("([Title] containsIC '" + filtersProvider.getTitle() + "' or [Name] = '" + filtersProvider.getTitle() + "')");
+            filterStrings.push("([Title] containsIC '" + filtersProvider.getTitle() + "' or [Name] = GetLayerName('" + filtersProvider.getTitle() + "'))");
         
         if (filtersProvider.getOwner() !== '')
             filterStrings.push("[OwnerNickname] containsIC '" + filtersProvider.getOwner() + "'");

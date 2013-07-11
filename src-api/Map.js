@@ -515,11 +515,11 @@
 			forEachLayer(layers, function(layer, isVisible) 
 			{
 				var visible = (layer.properties.visible ? true : isVisible);
-				map.addLayer(layer, visible, true);
+				var lObj = map.addLayer(layer, visible, true);
 				if('LayerVersion' in layer.properties && gmxAPI._layersVersion) {
 					gmxAPI._layersVersion.chkVersionLayers(layers, layer);
 				}
-				if(visible && layer.mercGeometry) mapBounds.update(layer.mercGeometry.coordinates);
+				if(visible && lObj.mercGeometry) mapBounds.update(lObj.mercGeometry.coordinates);
 				var arr = layer.properties.styles || [];
 				for (var i = 0; i < arr.length; i++) {
 					var mm = arr[i].MinZoom;

@@ -60,7 +60,7 @@
 		node['setGeometry'] = function() {			// Установка геометрии
 			attr['mercGeom'] = gmxAPI.merc_geometry(node['geometry']);
 			if(waitRedraw) {
-				myLayer.options.attr = attr;
+				if(myLayer) myLayer.options.attr = attr;
 				waitRedraw();
 			}
 		}

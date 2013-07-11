@@ -95,7 +95,12 @@ translationsHash.prototype.showLanguages = function()
 				{
 					translationsHash.updateLanguageCookies(lang);
 					
-					window.location.reload();
+                    if (window.nsGmx && window.nsGmx.GeomixerFramework) {
+                        window.language = lang;
+                        _mapHelper.reloadMap();
+                    } else {
+                        window.location.reload();
+                    }
 				}
 			})(lang);
 			

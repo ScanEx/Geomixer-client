@@ -231,17 +231,16 @@
 		if(!layer.properties) layer.properties = {};
 		if(!layer.properties.identityField) layer.properties.identityField = "ogc_fid";
 
-		if(isMerc) {
-			if(layer.geometry) {
-				if(!layer.mercGeometry) layer.mercGeometry = layer.geometry; 
-				//if(gmxAPI.proxyType !== 'flash') 
-				layer.geometry = gmxAPI.from_merc_geometry(layer.mercGeometry);
+		obj.geometry = layer.geometry;
+		if(obj.geometry) {
+			if(isMerc) {
+				obj.mercGeometry = obj.geometry; 
+				obj.geometry = gmxAPI.from_merc_geometry(obj.mercGeometry);
+			} else {
+				obj.mercGeometry = gmxAPI.merc_geometry(obj.geometry); 
 			}
 		} else {
-			if(layer.geometry && !layer.mercGeometry) layer.mercGeometry = gmxAPI.merc_geometry(layer.geometry); 
-		}
-		if(!layer.mercGeometry) {
-			layer.mercGeometry = {
+			obj.mercGeometry = {
 				'type': "POLYGON"
 				,'coordinates': [[
 					[-20037500, -21133310]
@@ -251,13 +250,13 @@
 					,[-20037500, -21133310]
 				]]
 			};
-			layer.geometry = gmxAPI.from_merc_geometry(layer.mercGeometry); 
+			obj.geometry = gmxAPI.from_merc_geometry(obj.mercGeometry); 
 		}
 		
 		var isRaster = (layer.properties.type == "Raster");
 		var layerName = layer.properties.name || layer.properties.image || gmxAPI.newFlashMapId();
-		obj.geometry = layer.geometry;
-		obj.mercGeometry = layer.mercGeometry;
+		//obj.geometry = layer.geometry;
+		//obj.mercGeometry = layer.mercGeometry;
 
 		obj.properties = layer.properties;
 		obj.propHiden = { 'isLayer': true, 'isMerc': isMerc };
@@ -686,7 +685,7 @@
 			if(obj_['tilesParent']) obj['tilesParent'] = obj_['tilesParent'];
 		}
 
-		obj.mercGeometry = layer.mercGeometry;
+		//obj.mercGeometry = layer.mercGeometry;
 		if(gmxAPI.proxyType === 'flash') initBounds(obj.mercGeometry);
 		obj.isVisible = isVisible;
 		//if (isVisible || gmxAPI.proxyType === 'leaflet') {			// В leaflet версии deferredMethod не нужны
@@ -851,7 +850,7 @@
 
 	//расширяем FlashMapObject
 	gmxAPI.extendFMO('addLayer', function(layer, isVisible, isMerc) {
-		if(layer && layer.geometry && !isMerc) layer.geometry = gmxAPI.merc_geometry(layer.geometry);
+		//if(layer && layer.geometry && !isMerc) layer.geometry = gmxAPI.merc_geometry(layer.geometry);
 		var obj = addLayer(this, layer, isVisible, isMerc);
 		gmxAPI._listeners.dispatchEvent('onAddExternalLayer', gmxAPI.map, obj);	// Добавлен внешний слой
 		return obj;

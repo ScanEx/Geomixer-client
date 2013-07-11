@@ -399,7 +399,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
                 var box = div.firstChild;
                 if (attr != box.checked)
                 {
-                    _this.setNodeVisible(_this.findTreeElem(div).elem, box.checked);
+                    _this.setNodeVisible(_this.findTreeElem(div).elem, attr);
                 }
             });
         }
@@ -1240,6 +1240,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 		copyFunc();
 }
 
+//геометрия слоёв должна быть в latlng
 layersTree.prototype.addLayersToMap = function(elem)
 {
 	if (typeof elem.content.properties.GroupID != 'undefined')
@@ -1261,7 +1262,7 @@ layersTree.prototype.addLayersToMap = function(elem)
 		{
 			var visibility = typeof layer.properties.visible != 'undefined' ? layer.properties.visible : false;
 			
-			globalFlashMap.addLayer(layer, visibility, true);
+			globalFlashMap.addLayer(layer, visibility);
             layer.properties.changedByViewer = true;
 		}
 		else
@@ -1442,7 +1443,7 @@ queryMapLayers.prototype.applyState = function(condition, mapLayersParam, div)
             var name = props.name;
 			if (typeof condition.visible[name] != 'undefined') // && elem.content.properties.visible != condition.visible[name])
 			{
-                _this.setNodeVisible(elem, condition.visible[name]);
+                _layersTree.setNodeVisible(elem, condition.visible[name]);
 			}
 			
 			if (props.type == "Vector" && typeof mapLayersParam != 'undefined' &&  typeof mapLayersParam[name] != 'undefined' &&
