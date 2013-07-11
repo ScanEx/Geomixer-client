@@ -23,6 +23,16 @@ var MapPlugins = function()
     var _plugins = [];
     var _pluginsByName = {};
     
+    //вместо массива из одного элемента передаём сам элемент
+    var normalizeParams = function(params) {
+        var res = {};
+        for (var p in params) {
+            res[p] = params[p].length === 1 ? params[p][0] : params[p];
+        }
+        
+        return res;
+    }
+    
     this.addPlugin = function(pluginName, pluginParams)
     {
         if (pluginName in _pluginsByName)
@@ -81,7 +91,7 @@ var MapPlugins = function()
     this.updateGeomixerPlugins = function() {
         for (var p = 0; p < _plugins.length; p++) {
             nsGmx.pluginsManager.setUsePlugin(_plugins[p].name, true);
-            nsGmx.pluginsManager.updateParams(_plugins[p].name, _plugins[p].params);
+            nsGmx.pluginsManager.updateParams(_plugins[p].name, normalizeParams(_plugins[p].params));
         }
     }
     
