@@ -2979,39 +2979,42 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					var obj = map.layers[i];
 					obj.setVisible(false);
 				}
-				var mapString = KOSMOSNIMKI_LOCALIZED("Карта", "Map");
-				var satelliteString = KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
-				var hybridString = KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
+				var mapString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map");
+				var satelliteString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
+				var hybridString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
 
 				var baseLayerTypes = {
 					'map': {
-						'onClick': function() { gmxAPI.map.setBaseLayer(mapString); },
+						'onClick': function() { gmxAPI.map.setMode('map'); },
 						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 						'onmouseover': function() { this.style.color = "orange"; },
 						'onmouseout': function() { this.style.color = "white"; },
 						'backgroundColor': 0xffffff,
 						'alias': 'map',
-						'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map")
+						'lang': { 'ru': 'Карта', 'en': 'Map' },
+						'hint': mapString
 					}
 					,
 					'satellite': {
-						'onClick': function() { gmxAPI.map.setBaseLayer(satelliteString); },
+						'onClick': function() { gmxAPI.map.setMode('satellite'); },
 						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 						'onmouseover': function() { this.style.color = "orange"; },
 						'onmouseout': function() { this.style.color = "white"; },
 						'backgroundColor': 0x000001,
 						'alias': 'satellite',
-						'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite")
+						'lang': { 'ru': 'Снимки', 'en': 'Satellite' },
+						'hint': satelliteString
 					}
 					,
 					'hybrid': {
-						'onClick': function() { gmxAPI.map.setBaseLayer(hybridString); },
+						'onClick': function() { gmxAPI.map.setMode('hybrid'); },
 						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 						'onmouseover': function() { this.style.color = "orange"; },
 						'onmouseout': function() { this.style.color = "white"; },
 						'backgroundColor': 0x000001,
 						'alias': 'hybrid',
-						'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid")
+						'lang': { 'ru': 'Гибрид', 'en': 'Hybrid' },
+						'hint': hybridString
 					}
 				};
 				
