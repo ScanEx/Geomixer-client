@@ -889,14 +889,11 @@ window.gmxAPI = {
 	,
 	fragmentArea: function(points)
 	{
-		var pts = [];
-		for (var i in points)
-			pts.push([points[i][0], Math.sin(points[i][1]*Math.PI/180)]);
 		var area = 0;
-		for (var i in pts)
-		{
-			var ipp = (i == (pts.length - 1) ? 0 : (parseInt(i) + 1));
-			area += (pts[i][0]*pts[ipp][1] - pts[ipp][0]*pts[i][1]);
+		var rad = Math.PI/180;
+		for(var i=0, len = points.length; i<len; i++) {
+			var ipp = (i == (len - 1) ? 0 : i + 1);
+			area += points[i][0] * Math.sin(points[ipp][1]*rad) - points[ipp][0] * Math.sin(points[i][1]*rad);
 		}
 		var out = Math.abs(area*gmxAPI.lambertCoefX*gmxAPI.lambertCoefY/2);
 		return out;
@@ -905,8 +902,9 @@ window.gmxAPI = {
 	fragmentAreaMercator: function(points)
 	{
 		var pts = [];
-		for (var i in points)
+		for(var i=0, len = points.length; i<len; i++) {
 			pts.push([gmxAPI.from_merc_x(points[i][0]), gmxAPI.from_merc_y(points[i][1])]);
+		}
 		return gmxAPI.fragmentArea(pts);
 	}
 	,
