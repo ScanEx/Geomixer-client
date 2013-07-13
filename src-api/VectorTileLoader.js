@@ -26,7 +26,7 @@
 			itemsHash[src] = item;
 			(function() {
 				var psrc = src;
-				if(gmxAPI.isIE) {
+				if(gmxAPI.isIE || gmxAPI.isSafari) {
 					gmxAPI.sendCrossDomainJSONRequest(psrc, function(response)
 					{
 						//delete node['tilesLoadProgress'][psrc];
