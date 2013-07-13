@@ -286,28 +286,7 @@
 				var geoMerc = gmxAPI.merc_geometry(attr.geom ? attr.geom : { type: "POLYGON", coordinates: [[-180, -89, -180, 89, 180, 89, 180, -89]] });
 				extent = gmxAPI.getBounds(geoMerc.coordinates);
 			}
-			var resOut = function (arr) {					// Получить Feature обьекта векторного слоя
-				var pt = {};
-				for (var i = 0, len = arr.length; i < len; i++) {
-					var item = arr[i];
-					var id = item.id;
-					var prop = item.properties;
-					var geom = item.geometry;
-					var ritem = {'properties': prop, 'geometry': geom};
-					if(pt[id]) {							// повтор ogc_fid
-						ritem = pt[id];
-						if(ritem.geometry['type'].indexOf('MULTI') == -1) {
-							ritem.geometry['type'] = 'MULTI' + ritem.geometry['type'];
-							ritem.geometry.coordinates = [ritem.geometry.coordinates];
-						}
-						var coords = geom.coordinates;
-						if(geom['type'].indexOf('MULTI') == -1) {
-							coords = [geom.coordinates];
-						}
-						for (var j = 0, len = coords.length; j < len; j++) ritem.geometry.coordinates.push(coords[j]);
-					}
-					pt[id] = ritem;
-				}
+			var resOut = function (pt) {				// Получить Feature обьектов векторного слоя
 				var ret = [];
 				for (var id in pt) {
 					var item = pt[id];
@@ -317,11 +296,74 @@
 					}
 					ret.push(new gmxAPI._FlashMapFeature(gmxAPI.from_merc_geometry(item.geometry), item.properties, gmxNode));
 				}
-				pt = arr = null;
+				pt = null;
 				attr.func(ret);
 			}
-			var arr = node['getMaxTilesList']();
-			node['loadTiles'](arr, {'callback': resOut});
+			
+			var currTiles = {};
+			var resTiles = {};
+			var chkResTiles = function () {				// Парсинг тайлов векторного слоя
+				gmxNode.removeListener('onChangeLayerVersion', onChangeLayerID);
+				var pt = {};
+				for (var src in resTiles) {
+					var arr = resTiles[src];
+					for (var i = 0, len = arr.length; i < len; i++) {
+						var item = arr[i];
+						var id = item.id;
+						var prop = item.properties;
+						var geom = item.geometry;
+						var ritem = {'properties': prop, 'geometry': geom};
+						if(pt[id]) {							// повтор ogc_fid
+							ritem = pt[id];
+							if(ritem.geometry['type'].indexOf('MULTI') == -1) {
+								ritem.geometry['type'] = 'MULTI' + ritem.geometry['type'];
+								ritem.geometry.coordinates = [ritem.geometry.coordinates];
+							}
+							var coords = geom.coordinates;
+							if(geom['type'].indexOf('MULTI') == -1) {
+								coords = [geom.coordinates];
+							}
+							for (var j = 0, len = coords.length; j < len; j++) ritem.geometry.coordinates.push(coords[j]);
+						}
+						pt[id] = ritem;
+					}
+				}
+				resOut(pt);
+			}
+			var cnt = 0;
+			var addTileToLoad = function (src) {	//	Добавить тайл на загрузку
+				currTiles[src] = true;
+				node['loadTiles']([src], {
+					'callback': function (data, psrc) {
+						cnt--;
+						resTiles[psrc] = data;
+						if(cnt < 1) chkResTiles();
+					}
+					,
+					'onerror': function (err) {
+						cnt--;
+						var psrc = err['url'];		// необходимо перепроверить версии тайлов
+						//console.log('getFeatures - onerror: ', psrc);
+						//chkVerTiles(psrc);
+					}
+				});
+			}
+			var chkVerTiles = function () {				// Проверка списка тайлов для загрузки
+				var arrSrc = node['getMaxTilesList']();
+				for (var i = 0, len = arrSrc.length; i < len; cnt++, i++) {
+					var src = arrSrc[i];
+					if(currTiles[src]) {
+						continue;
+					}
+					addTileToLoad(src);
+					//console.log('getFeatures - chkVerTiles: ', src);
+				}
+			}
+			var onChangeLayerID = gmxNode.addListener('onChangeLayerVersion', function (arg) {
+				chkVerTiles();
+				//console.log('getFeatures - onChangeLayerVersion: ', arg);
+			}, 100000);
+			chkVerTiles();
 		}
 		node['loadTiles'] = function (arr, attr) {				// Загрузка списка тайлов
 			var item = {
@@ -329,7 +371,7 @@
 				,'layer': node.id
 				,'callback': attr['callback']
 				,'onerror': function(err){						// ошибка при загрузке тайла
-					attr['callback']([]);
+					attr['onerror'](err);
 				}
 			};
 			gmxAPI._leaflet['vectorTileLoader'].push(item);
