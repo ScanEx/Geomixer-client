@@ -35,6 +35,34 @@
 	var utils = {							// Утилиты leafletProxy
 		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
 		,
+		'getEquidistancePolygon': function(points, d) {		// получить обрамление линии
+			var out = [];
+			if(points.length) {
+				var p = points[0];
+				for (var i = 1, len = points.length; i < len; i++) {
+					var p1 = points[i];
+					var dx = p1.x - p.x;
+					var dy = p1.y - p.y;
+					var d2 = dx*dx + dy*dy;
+					if(d2 > 0) {
+						var dp = d / Math.sqrt(d2);
+						var x0 = p1.x + dp * dx,		y0 = p1.y + dp * dy;
+						var x3 = p1.x - dx - dp * dx,	y3 = p1.y - dy - dp * dy;
+						var y01 = y0 - p1.y,	x01 = p1.x - x0;
+						var y30 = y3 - p.y,		x30 = p.x - x3;
+						out.push([
+							[x0 + y01, y0 + x01]	// поворот на 90 град. точки p1 вокруг точки (x0,y0)
+							,[x0 - y01, y0 - x01]	// поворот на -90 град. точки p1 вокруг точки (x0,y0)
+							,[x3 + y30, y3 + x30]	// поворот на 90 град. точки p вокруг точки (x3,y3)
+							,[x3 - y30, y3 - x30]	// поворот на -90 град. точки p вокруг точки (x3,y3)
+						]);
+					}
+					p = p1;
+				}
+			}
+			return out;
+		}
+		,
 		'prepareLabelStyle': function(style) {		// подготовка Label стиля
 			var size = style['label']['size'] || 12;
 			var fillStyle = style['label']['color'] || 0;
@@ -692,12 +720,14 @@
 			var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng), z);
 			return point.y - p1.y;
 		}
+/*		
 		,
 		'chkMouseHover': function(attr, fName)	{					// проверка Hover мыши
 			//if(attr['tID'] && attr['tID'].indexOf('_drawing') > 0 && gmxAPI.map.drawing.chkMouseHover(attr, fName)) return true;
-			if(gmxAPI.map.drawing.chkMouseHover(attr, fName)) return true;
+			//if(gmxAPI.map.drawing.chkMouseHover(attr, fName)) return true;
 			return false;
 		}
+*/
 		,
 		'chkGlobalEvent': function(attr)	{					// проверка Click на перекрытых нодах
 			if(!attr || !attr['evName']) return;
@@ -3249,7 +3279,6 @@
 		// Проверка размера точки по стилю
 		out['chkSize'] = function (node, style) {
 			var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
-
 			var size = style['size'] || 4;
 			var scale = style['scale'] || 1;
 			if(!out['_cache']) out['_cache'] = {};
@@ -3257,6 +3286,7 @@
 			else {
 				if(typeof(scale) == 'string') {
 					scale = (style['scaleFunction'] ? style['scaleFunction'](prop) : 1);
+
 				}
 				if(scale < style['minScale']) scale = style['minScale'];
 				else if(scale > style['maxScale']) scale = style['maxScale'];
@@ -4211,7 +4241,7 @@
 					,attributionControl: false
 					,trackResize: true
 					,fadeAnimation: (window.gmxPhantom ? false : true)		// отключение fadeAnimation при запуске тестов
-                    ,zoomAnimation: (window.gmxPhantom ? false : true)  // отключение zoomAnimation при запуске тестов
+					,zoomAnimation: (window.gmxPhantom ? false : true)		// отключение zoomAnimation при запуске тестов
 					//,zoomAnimation: false
 					//,boxZoom: false
 					//,zoomAnimation: (gmxAPI.isChrome ? false : true)
@@ -4302,7 +4332,8 @@
 			var chkClick = function(e) {		// Проверка click карты
 				if(gmxAPI._leaflet['contextMenu']['isActive']) return;	// мышка над пунктом contextMenu
 				var timeClick = new Date().getTime() - timeDown;
-				if(timeClick > 1000) return;
+//console.log('chkClick ', timeClick);
+				//if(timeClick > 1000) return;
 				var attr = parseEvent(e);
 				if(!attr) return;					// пропускаем при контекстном меню
 				//if(utils.chkClassName(e.originalEvent.originalTarget, 'gmx_balloon', LMap._container)) return;	// click на балуне
@@ -4315,12 +4346,14 @@
 				gmxAPI._leaflet['utils'].unfreeze();
 				var curTimeDown = new Date().getTime();
 				var timeClick = curTimeDown - timeDown;
-				if(!gmxAPI._drawing['activeState'] && timeClick < 200) { chkClick(e); timeDown = 0; }
+//console.log('mouseup ', timeClick);
+				//if(!gmxAPI._drawing['activeState'] && timeClick < 200) { chkClick(e); timeDown = 0; }
 				gmxAPI._leaflet['mousePressed'] = false;
 				gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, {'attr':{'latlng':e.latlng}});
 				//setTimeout(function() { skipClick = false;	}, 10);
 			});
 			var setMouseDown = function(e) {
+//console.log('mousedown ', e);
 				//console.log('setMouseDown ', gmxAPI._leaflet['activeObject']);
 				gmxAPI._leaflet['mousePressed'] = true;
 				timeDown = new Date().getTime();
@@ -4429,9 +4462,11 @@ var tt = 1;
 						gmxAPI._listeners.dispatchEvent('onMouseMove', gmxAPI.map, {'attr':attr});
 					}, 10);
 				}
+/*				
 				if(!gmxAPI._leaflet['mousePressed']) {
 					gmxAPI._leaflet['utils'].chkMouseHover(attr)
 				}
+*/
 			});
 
 			LMap.on('zoomstart', function(e) {
@@ -4718,6 +4753,83 @@ var tt = 1;
 					if(!this.options.skipSimplifyPoint) this._simplifyPoints();
 
 					L.Path.prototype._updatePath.call(this);
+				}
+			});
+
+			L.GMXLinesFill = L.Polyline.extend({
+				_getPathPartStr: function (points) {
+					var round = L.Path.VML;
+					var pointSize = this.options.pointSize || 5;
+					var weight = (this.options.shiftWeight ? this.options.weight || 1 : 0);
+
+					var arr = gmxAPI._leaflet['utils'].getEquidistancePolygon(points, 1.5*pointSize);
+					for (var i = 0, len2 = arr.length, str = '', p; i < len2; i++) {
+						p = arr[i];
+						str += 'M' + p[0][0] + ' ' + p[0][1] +
+							'L' + p[1][0] + ' ' + p[1][1] +
+							'L' + p[2][0] + ' ' + p[2][1] +
+							'L' + p[3][0] + ' ' + p[3][1] +
+							'L' + p[0][0] + ' ' + p[0][1];
+					}
+					return str;
+				}
+				,
+				_updatePath: function () {
+					if (!this._map) { return; }
+
+					this._clipPoints();
+					if(!this.options.skipSimplifyPoint) this._simplifyPoints();
+
+					L.Path.prototype._updatePath.call(this);
+				}
+			});
+
+			L.GMXClusterPoints = L.CircleMarker.extend({
+				getPathString: function () {
+					var p = this._point,
+						opt = this.options,
+						r = this._radius;
+
+					if (this._checkIfEmpty()) {
+						return '';
+					}
+
+					var out = '';
+					var points = opt.points;
+					for(var i=0, len = points.length; i<len; i++) {
+						var point = points[i];
+						var p1 = [point[0] + p.x, point[1] + p.y];
+						if (L.Browser.svg) {
+							out += "M" + p1[0] + "," + (p1[1] - r) +
+								   " A" + r + "," + r + ",0,1,1," +
+								   (p1[0] - 0.1) + "," + (p1[1] - r) + " ";
+						}
+					}
+					return out;
+				}
+			});
+
+			L.GMXClusterLines = L.CircleMarker.extend({
+				getPathString: function () {
+					var p = this._point,
+						opt = this.options,
+						r = this._radius;
+
+					if (this._checkIfEmpty()) {
+						return '';
+					}
+
+					var out = '';
+					p._round();
+					var points = opt.points;
+					for(var i=0, len = points.length; i<len; i++) {
+						var point = points[i];
+						var p1 = [point[0] + p.x, point[1] + p.y];
+						if (L.Browser.svg) {
+							out += "M" + p1[0] + "," + p1[1] + " L" + p.x + "," + p.y + " ";
+						}
+					}
+					return out;
 				}
 			});
 

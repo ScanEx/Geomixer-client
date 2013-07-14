@@ -205,6 +205,9 @@
 					//if(keyPress['objType'] == 'cluster') {}; // Надо придумать как бороться с фикс.двойником
 
 					var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
+					if(keyPress) {
+						if('textFunc' in keyPress) textFunc = keyPress['textFunc'];
+					}
 					//var text = (textFunc && (!keyPress['objType'] || keyPress['objType'] != 'cluster') ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
 					var text = (textFunc ? textFunc(o, propsBalloon.div) : getDefaultBalloonText(o));
 					if(typeof(text) == 'string' && text == '') return false;
@@ -259,7 +262,10 @@
 						return false;
 					}
 					if(!keyPress) keyPress = {};
-					if(keyPress['objType'] === 'cluster' && 'clusters' in o) keyPress['textFunc'] = o.clusters.getTextFunc();
+					if(keyPress['objType'] === 'cluster') {
+						if('clusters' in o) keyPress['textFunc'] = o.clusters.getTextFunc();
+						if(keyPress['members']) o['members'] = keyPress['members'];	// члены кластера 
+					}
 					if(!keyPress['textFunc']) keyPress['textFunc'] = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
 					return clickBalloonFix(o, keyPress);
 				}
@@ -408,6 +414,7 @@
 				balloon.pID = o.parent.objectId;
 				balloon.obj = o;
 				balloon.fixedId = id;
+				balloon.keyPress = keyPress;
 				o.balloon = balloon;
 				if(keyPress && keyPress['objType']) balloon.objType = keyPress['objType'];
 
@@ -623,6 +630,7 @@
 				},
 				updatePropsBalloon: function(text)
 				{
+					//ret.outerDiv.style.pointerEvents = 'none';
 					updateVisible((text && !buttons ? true : false));
 					chkBalloonText(text, balloonText);
 					reposition();
@@ -894,6 +902,10 @@ event.stopImmediatePropagation();
 					var x = div.clientWidth/2 - px + deltaX;
 					var y = div.clientHeight/2 + py;
 
+					if(balloon.keyPress) {	// если задано смещение в пикселах
+						if(balloon.keyPress.dx) x += balloon.keyPress.dx;
+						if(balloon.keyPress.dy) y += balloon.keyPress.dy;
+					}
 					/*if(balloon.fixedDeltaFlag) {
 						x += balloon.fixedDeltaX;
 						y -= balloon.fixedDeltaY;

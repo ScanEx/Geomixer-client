@@ -784,6 +784,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			var hoveredStyle = null;
 			var regularStyle = null;
 			var filter = getItemFilter(item.geom);
+			var gmxAttr = {};
 			if(propHiden['subType'] != 'cluster') {
 				if(filter) {
 					hoveredStyle = (filter.hoveredStyle ? filter.hoveredStyle : null);
@@ -793,6 +794,10 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				//hoveredStyle = node['clustersData']['hoveredStyle'];
 				regularStyle = node['clustersData']['regularStyle'];
 				hoveredStyle = regularStyle;
+				gmxAttr['objType'] = 'cluster';
+				var fID = propHiden['toFilters'][0];
+				var gmxFilter = gmxAPI.mapNodes[fID];
+				if(gmxFilter) gmxAttr['textFunc'] = gmxFilter.clusters.getTextFunc();
 			}
 			if(hoveredStyle) {	// todo - изменить drawInTiles с учетом Z
 				var isWatcher = (gmxAPI._leaflet['mouseMoveAttr'] && node['watcherKey'] && gmxAPI._leaflet['mouseMoveAttr'][node['watcherKey']]);
@@ -825,8 +830,8 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					
 					gmxAPI._div.style.cursor = 'pointer';
 					if(gmxAPI._leaflet['isMouseOut']) return false;
-					if(filter && callHandler('onMouseOver', item.geom, filter)) return true;
-					if(callHandler('onMouseOver', item.geom, gmxNode)) return true;
+					if(filter && callHandler('onMouseOver', item.geom, filter, gmxAttr)) return true;
+					if(callHandler('onMouseOver', item.geom, gmxNode, gmxAttr)) return true;
 				}
 				return true;
 			}
@@ -1011,6 +1016,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					}
 				} else {
 					gmxAttr['objType'] = 'cluster';
+					gmxAttr['members'] = itemPropHiden['_members'];
 					if(node['clustersData']['clusterView'](item)) return true;
 					if(callHandler('onClick', item.geom, gmxNode, gmxAttr)) return true;
 					var fID = itemPropHiden['toFilters'][0];
@@ -1020,6 +1026,14 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				}
 				return true;
 			}
+		}
+		node['itemBalloon'] = function(geom, gmxAttr) {			// проверка событий векторного слоя
+			var evName = (gmxAttr && gmxAttr.evName ? gmxAttr.evName : 'onMouseOver');
+			if(callHandler(evName, geom, gmxNode, gmxAttr)) return true;
+			var fID = geom.propHiden['toFilters'][0];
+			var filter = gmxAPI.mapNodes[fID];
+			if(filter && callHandler(evName, geom, filter, gmxAttr)) return true;
+			return false;
 		}
 
 		var getLatLngBounds = function(lb) {			// установка bounds leaflet слоя
@@ -1125,48 +1139,75 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 			var zoom = LMap.getZoom();
 			var toFilters = [];
 
-			delete geo.curStyle;
+			//delete geo.curStyle;
 			delete geo['_cache'];
 			for (var z in geo.propHiden['drawInTiles'])
 			{
 				if(z != zoom) delete geo.propHiden['drawInTiles'][z];
 			}
-			var curStyle = null;
-			//var size = 4;
+
 			var isViewPoint = (geo['type'] == 'Point' ? true : false);
 
-			for(var j=0; j<node.filters.length; j++) {
-				var filterID = node.filters[j];
-				var filter = mapNodes[node.filters[j]];
-				if(zoom > filter.maxZ || zoom < filter.minZ || filter.isVisible === false) continue;
-				var prop = getPropItem(geo);
-
-				var flag = (filter && filter.sqlFunction ? filter.sqlFunction(prop) : true);
-				if(flag) {
-					toFilters.push(filterID);
-					//curStyle = (filter.regularStyle ? filter.regularStyle : null);
-					if(filter.regularStyle) {
-						curStyle = (filter.regularStyleIsAttr ? utils.evalStyle(filter.regularStyle, prop) : filter.regularStyle);
-						//if(curStyle.size) size = curStyle.size + 2 * curStyle.weight;
-						var scale = curStyle['scale'] || 1;
-						if(curStyle.marker) {
-							if(curStyle.imageWidth && curStyle.imageHeight) {
-								geo['sx'] = curStyle.imageWidth;
-								geo['sy'] = curStyle.imageHeight;
-								//size = Math.sqrt(geo['sx']*geo['sx'] + geo['sy']*geo['sy']);
-								isViewPoint = true;
-							}
-						}
-						if(typeof(scale) == 'string') {
-							scale = (curStyle['scaleFunction'] ? curStyle['scaleFunction'](prop) : 1);
-						}
-						if('minScale' in curStyle && scale < curStyle['minScale']) scale = curStyle['minScale'];
-						else if('maxScale' in curStyle && scale > curStyle['maxScale']) scale = curStyle['maxScale'];
-						//size *= scale;
-						geo.propHiden.curStyle = curStyle;
-						if('chkSize' in geo && !node['waitStyle']) geo['chkSize'](node, curStyle);
+			var prpStyle = function(style) {
+				var scale = style['scale'] || 1;
+				if(style.marker) {
+					if(style.imageWidth && style.imageHeight) {
+						geo['sx'] = style.imageWidth;
+						geo['sy'] = style.imageHeight;
+						//size = Math.sqrt(geo['sx']*geo['sx'] + geo['sy']*geo['sy']);
+						isViewPoint = true;
 					}
-					break;						// Один обьект в один фильтр 
+				}
+				if(typeof(scale) == 'string') {
+					scale = (style['scaleFunction'] ? style['scaleFunction'](geo['properties']) : 1);
+				}
+				if('minScale' in style && scale < style['minScale']) scale = style['minScale'];
+				else if('maxScale' in style && scale > style['maxScale']) scale = style['maxScale'];
+				//size *= scale;
+				geo.propHiden.curStyle = style;
+				if('chkSize' in geo && !node['waitStyle']) geo['chkSize'](node, style);
+			};
+			var curStyle = null;
+			if(geo.propHiden['subType'] === 'cluster') {
+				toFilters = node.filters;
+			} else {
+				//var size = 4;
+				for(var j=0; j<node.filters.length; j++) {
+					var filterID = node.filters[j];
+					var filter = mapNodes[node.filters[j]];
+					if(zoom > filter.maxZ || zoom < filter.minZ || filter.isVisible === false) continue;
+					var prop = getPropItem(geo);
+
+					var flag = (filter && filter.sqlFunction ? filter.sqlFunction(prop) : true);
+					if(flag) {
+						toFilters.push(filterID);
+						//curStyle = (filter.regularStyle ? filter.regularStyle : null);
+						if(filter.regularStyle) {
+							curStyle = (filter.regularStyleIsAttr ? utils.evalStyle(filter.regularStyle, prop) : filter.regularStyle);
+							prpStyle(curStyle);
+							/*
+							//if(curStyle.size) size = curStyle.size + 2 * curStyle.weight;
+							var scale = curStyle['scale'] || 1;
+							if(curStyle.marker) {
+								if(curStyle.imageWidth && curStyle.imageHeight) {
+									geo['sx'] = curStyle.imageWidth;
+									geo['sy'] = curStyle.imageHeight;
+									//size = Math.sqrt(geo['sx']*geo['sx'] + geo['sy']*geo['sy']);
+									isViewPoint = true;
+								}
+							}
+							if(typeof(scale) == 'string') {
+								scale = (curStyle['scaleFunction'] ? curStyle['scaleFunction'](prop) : 1);
+							}
+							if('minScale' in curStyle && scale < curStyle['minScale']) scale = curStyle['minScale'];
+							else if('maxScale' in curStyle && scale > curStyle['maxScale']) scale = curStyle['maxScale'];
+							//size *= scale;
+							geo.propHiden.curStyle = curStyle;
+							if('chkSize' in geo && !node['waitStyle']) geo['chkSize'](node, curStyle);
+							*/
+						}
+						break;						// Один обьект в один фильтр 
+					}
 				}
 			}
 			/*if(tileSize && isViewPoint) {
@@ -2304,7 +2345,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 					delete geom.propHiden['toFilters'];
 					delete geom.propHiden['drawInTiles'];
 					delete geom['_cache'];
-					delete geom['curStyle'];
+					//delete geom['curStyle'];
 					//geom.propHiden['toFilters'] = chkObjectFilters(geom, tileSize);
 				}
 			}
