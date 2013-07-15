@@ -118,10 +118,10 @@
     {
         var pd = parseData(csvtext);
         
-        var sourceColumns = [];
+        var Columns = [];
         
         for (var k = 0; k < pd.headers.length; k++) {
-            sourceColumns.push({
+            Columns.push({
                 Name: pd.headers[k], 
                 ColumnSimpleType: 'String',
                 IsPrimary: false, 
@@ -133,7 +133,7 @@
         var temporalParams;
         if (pd.type === 'archive')
         {
-            sourceColumns[3].ColumnSimpleType = 'DateTime'
+            Columns[3].ColumnSimpleType = 'DateTime'
             if (createTemporal)
             {
                 temporalParams = new nsGmx.TemporalLayerParams({
@@ -149,7 +149,7 @@
             Type: 'Vector',
             Title: name,
             GeometryType: 'POINT',
-            SourceColumns: sourceColumns,
+            Columns: Columns,
             SourceType: 'manual',
             Temporal: temporalParams
         })

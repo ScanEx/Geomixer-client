@@ -100,12 +100,12 @@ var createRC = function(results, params)
     var fieldIdx = 0;
     var ColumnTagLinks = {}
     
-    var sourceColumns = [];
+    var columns = [];
     
     $.each(tagTypes, function(id, type)
     {
         ColumnTagLinks[id] = id; //названия атрибутов будут совпадать с названиями тегов слоёв
-        sourceColumns.push({
+        columns.push({
             Name: id, 
             ColumnSimpleType: type,
             IsPrimary: false, 
@@ -118,7 +118,7 @@ var createRC = function(results, params)
         Type: 'Vector',
         Title: _params.title,
         GeometryType: 'POLYGON',
-        SourceColumns: sourceColumns,
+        Columns: columns,
         SourceType: 'manual',
         RC: new nsGmx.LayerRCProperties({
             IsRasterCatalog: true,
