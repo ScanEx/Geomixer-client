@@ -6147,6 +6147,7 @@ L.Draggable = L.Class.extend({
 
 		L.DomEvent.on(document, L.Draggable.MOVE[e.type], this._onMove, this);
 		L.DomEvent.on(document, L.Draggable.END[e.type], this._onUp, this);
+		this._gmxTimeDown = new Date().getTime();
 	},
 
 	_onMove: function (e) {
@@ -6157,6 +6158,10 @@ L.Draggable = L.Class.extend({
 		    diffVec = newPoint.subtract(this._startPoint);
 
 		if (!diffVec.x && !diffVec.y) { return; }
+
+		if (gmxAPI._drawing['activeState']		// режим добавления точек при редактировании
+			&& new Date().getTime() - this._gmxTimeDown < 200
+			&& diffVec.y*diffVec.y + diffVec.x*diffVec.x < 10000) return;
 
 		L.DomEvent.preventDefault(e);
 
