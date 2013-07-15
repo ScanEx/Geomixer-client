@@ -178,8 +178,8 @@
 	var tmpPoint = null;
 	var styleStroke = {color: "#0000ff", weight: lineWidth , opacity: 1};
 	var stylePoint = {color: "#0000ff", fill: true, fillColor: "#ffffff", weight: lineWidth, opacity: 1, fillOpacity: 1, 'pointSize': pointSize, skipLastPoint: true, skipSimplifyPoint: true, clickable: true};
-	var stylePolygon = {color: "#0000ff", weight: lineWidth + 2, opacity: 1, clickable: false};
-	var hiddenPolygon = {fill: true, fillColor: "#0000ff", weight: 0, opacity: 1, fillOpacity: 0, 'pointSize': lineWidth/2, clickable: true};
+	var stylePolygon = {color: "#0000ff", weight: lineWidth, opacity: 1, clickable: false};
+	var hiddenPolygon = {fill: true, fillColor: "#0000ff", weight: 0, opacity: 1, fillOpacity: 0, 'pointSize': lineWidth, clickable: true};
 
 	var drawSVG = function(attr)
 	{

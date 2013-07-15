@@ -1825,7 +1825,7 @@
 			var geo = {};
 			if(ph.attr['geometry']) {
 				if(pt['propHiden']['isLayer']) {
-					geo = ph.attr['geometry'];
+					geo.coordinates = ph.attr['geometry'].coordinates;
 					geo.type = utils.fromScanexTypeGeo(geo.type);
 				} else {
 					geo = utils.parseGeometry(ph.attr['geometry']);
