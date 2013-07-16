@@ -262,18 +262,32 @@
 			return arr;
 		}
 */
-		node['getMaxTilesList'] = function () {					// Получить максимальный список тайлов
+		node['getMaxTilesList'] = function (extent) {					// Получить максимальный список тайлов
 			var out = [];
 			if(gmxNode._temporalTiles) {
 				var temporalTiles = gmxNode._temporalTiles;
 				var pt = temporalTiles.getDateIntervalTiles(new Date('01/01/1980'), new Date(), temporalTiles.temporalData);
-				out = pt['files'];
+				for (var i = 0, len = pt['dtiles'].length; i < len; i+=3) {
+					var x = pt['dtiles'][i], y = pt['dtiles'][i+1], z = pt['dtiles'][i+2];
+					if(extent) {
+						var ext = gmxAPI.getTileExtent(x, y, z);
+						if(!gmxAPI.extIntersect(ext, extent)) continue;
+					}
+					if(pt['tiles'][z][x][y]) {
+						for (var j = 0, len1 = pt['tiles'][z][x][y].length; j < len1; j++) out.push(pt['tiles'][z][x][y][j]);
+					}
+				}
 			} else {
 				var arr = gmxNode.properties.tiles;
 				var tilesVers = gmxNode.properties.tilesVers;
 				var cnt = 0;
 				for (var i = 0, len = arr.length; i < len; i+=3) {
-					var st = option.tileFunc(Number(arr[i]), Number(arr[i+1]), Number(arr[i+2]));
+					var x = Number(arr[i]), y = Number(arr[i][i+1]), z = Number(arr[i][i+2]);
+					if(extent) {
+						var ext = gmxAPI.getTileExtent(x, y, z);
+						if(!gmxAPI.extIntersect(ext, extent)) continue;
+					}
+					var st = option.tileFunc(x, y, z);
 					out.push(st + '&v=' + tilesVers[cnt++]);
 				}
 			}
@@ -349,7 +363,7 @@
 				});
 			}
 			var chkVerTiles = function () {				// Проверка списка тайлов для загрузки
-				var arrSrc = node['getMaxTilesList']();
+				var arrSrc = node['getMaxTilesList'](extent);
 				for (var i = 0, len = arrSrc.length; i < len; cnt++, i++) {
 					var src = arrSrc[i];
 					if(currTiles[src]) {
