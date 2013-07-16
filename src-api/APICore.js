@@ -28,6 +28,8 @@ var memoize = function(func)
 
 window.PI = 3.14159265358979; //устарело - обратная совместимость
 window.gmxAPI = {
+    mousePressed: false							// Флаг мышь нажата
+	,
     APILoaded: false							// Флаг возможности использования gmxAPI сторонними модулями
 	,
     initParams: null							// Параметры заданные при создании карты 

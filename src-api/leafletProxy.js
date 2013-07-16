@@ -4348,21 +4348,15 @@
 				var timeClick = curTimeDown - timeDown;
 //console.log('mouseup ', timeClick);
 				//if(!gmxAPI._drawing['activeState'] && timeClick < 200) { chkClick(e); timeDown = 0; }
-				gmxAPI._leaflet['mousePressed'] = false;
+				gmxAPI.mousePressed	= gmxAPI._leaflet['mousePressed'] = false;
 				gmxAPI._listeners.dispatchEvent('onMouseUp', gmxAPI.map, {'attr':{'latlng':e.latlng}});
 				//setTimeout(function() { skipClick = false;	}, 10);
 			});
 			var setMouseDown = function(e) {
-//console.log('mousedown ', e);
 				//console.log('setMouseDown ', gmxAPI._leaflet['activeObject']);
-				gmxAPI._leaflet['mousePressed'] = true;
+				gmxAPI.mousePressed	= gmxAPI._leaflet['mousePressed'] = true;
 				timeDown = new Date().getTime();
-/*				var standartTools = gmxAPI.map.standartTools;
-				if(standartTools && standartTools['activeToolName'] != 'move'
-					&& standartTools['activeToolName'] != 'FRAME'
-					//&& standartTools['activeToolName'] != 'circle'
-					) return;
-*/			
+
 				gmxAPI._leaflet['mousedown'] = true;
 				var node = mapNodes[gmxAPI._leaflet['activeObject'] || gmxAPI.map['objectId']];
 				if(node && node['dragMe']) {
@@ -4378,7 +4372,7 @@
 			};
 			LMap.on('mousedown', setMouseDown);
 			var setTouchStart = function(e) {
-				gmxAPI._leaflet['mousePressed'] = true;
+				gmxAPI.mousePressed	= gmxAPI._leaflet['mousePressed'] = true;
 				timeDown = new Date().getTime();
 
 				var parseTouchEvent = function(e) {		// Парсинг события мыши
@@ -4429,7 +4423,9 @@ var tt = 1;
 						LMap._pathRoot.style.pointerEvents = 'none';
 					}
 				}
-//return;
+				gmxAPI._leaflet['mousePixelPos'] = e.layerPoint;
+				gmxAPI._leaflet['containerPoint'] = e.containerPoint;
+
 				if(gmxAPI._mouseOnBalloon) {
 					if(LMap.scrollWheelZoom.enabled()) LMap.scrollWheelZoom.disable();
 					return null;

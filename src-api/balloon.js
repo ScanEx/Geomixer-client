@@ -720,73 +720,37 @@
 		var mouseMoveTimer = null;
 		var onmousemove = function(ev)
 		{
-			//if(!propsBalloon.isVisible()) return;
-			var event = gmxAPI.compatEvent(ev);
-			if(!event) return;
-			buttons = event.buttons;
-			var eventX = gmxAPI.eventX(event); 
-			var eventY = gmxAPI.eventY(event);
-			if(eventX == eventXprev && eventY == eventYprev) return;
-			eventXprev = eventX; 
-			eventYprev = eventY;
-			var px = eventX; 
-			var py = eventY;
-			if(gmxAPI.proxyType == 'flash') {
-				//if(!gmxAPI.contDivPos) {
-					gmxAPI.contDivPos = {
-						'x': gmxAPI.getOffsetLeft(div),
-						'y': gmxAPI.getOffsetTop(div)
-					};
-				//}
+			var px = 0;
+			var py = 0;
+			if(gmxAPI.proxyType === 'leaflet') {
+				px = gmxAPI._leaflet['containerPoint']['x'];
+				py = gmxAPI._leaflet['containerPoint']['y'];
 			} else {
-				/*if(gmxAPI.isChrome) {
-					gmxAPI.contDivPos = {
-						'x': div.offsetLeft,
-						'y': div.offsetTop
-					};
-					//px -= event.layerX; 
-					//py -= event.layerY;
-				} else {*/
-					gmxAPI.contDivPos = {
-						'x': gmxAPI.getOffsetLeft(div),
-						'y': gmxAPI.getOffsetTop(div)
-					};
-				//}
+				var event = gmxAPI.compatEvent(ev);
+				if(!event) return;
+				//buttons = event.buttons;
+				var eventX = gmxAPI.eventX(event);
+				var eventY = gmxAPI.eventY(event);
+				if(eventX == eventXprev && eventY == eventYprev) return;
+				eventXprev = eventX; 
+				eventYprev = eventY;
+				px = eventX;
+				py = eventY;
+				gmxAPI.contDivPos = {
+					'x': gmxAPI.getOffsetLeft(div),
+					'y': gmxAPI.getOffsetTop(div)
+				};
+				px -= gmxAPI.contDivPos['x']; 
+				py -= gmxAPI.contDivPos['y'];
 			}
-			px -= gmxAPI.contDivPos['x']; 
-			py -= gmxAPI.contDivPos['y'];
-/*
-*/
 			propsBalloon.setScreenPosition(px, py);
-/*
-			if(gmxAPI.proxyType == 'flash') {
-event.stopImmediatePropagation();
-				if (event.preventDefault)
-				{
-					event.stopPropagation();
-				}
-				else 
-				{
-					event.cancelBubble = true;
-				}
-			}
-*/
 		}
 
 		gmxAPI._div.onmousemove = function(ev)
 		{
+			if(gmxAPI.mousePressed) return;
 			onmousemove(ev);
-/*
-			if(mouseMoveTimer) clearTimeout(mouseMoveTimer);
-			mouseMoveTimer = setTimeout(function() {
-				onmousemove(ev);
-				mouseMoveTimer = null;
-			}, 0);
-*/
 		};
-		
-		//gmxAPI._div.onmousemove = onmousemove;
-		//new gmxAPI.GlobalHandlerMode("mousemove", onmousemove).set();
 		
 		gmxAPI.map.addListener('positionChanged', function(ph)
 			{
