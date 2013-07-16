@@ -4111,14 +4111,12 @@
 		}
 		// Отрисовка заполнения
 		out['paintFill'] = function (attr, style, ctx) {
-			var count = 0;
 			if(bounds.intersects(attr['bounds'])) {				// проверка пересечения мультиполигона с отображаемым тайлом
 				for (var i = 0; i < members.length; i++)
 				{
-					count += members[i].paintFill(attr, style, ctx, false);
+					members[i].paintFill(attr, style, ctx, true);
 				}
 			}
-			return count;		// количество отрисованных точек в геометрии
 		}
 
 		// Проверка принадлежности точки MultiPolygonGeometry

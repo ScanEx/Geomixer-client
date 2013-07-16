@@ -2012,8 +2012,8 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 				var pattern = ctx.createPattern(pImage, "no-repeat");
 				ctx.fillStyle = pattern;
 				//ctx.fillRect(0, 0, 256, 256);
-				geom['paintFill'](attr, itemStyle, ctx, false);
-				ctx.fill();
+				geom['paintFill'](attr, itemStyle, ctx, true);
+				//ctx.fill();
 				ctx.clip();
 				ctx.restore();
 			}
