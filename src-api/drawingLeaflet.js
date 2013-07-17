@@ -1048,7 +1048,7 @@
 
 		var itemMouseDown = function(e, attr)
 		{
-			if(currentDOMObject && currentDOMObject.objectId != attr['id']) return;
+			if(currentDOMObject && currentDOMObject.objectId != node['id']) return;
 			downTime = new Date().getTime();
 			drawingUtils.hideBalloon();
 			coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
