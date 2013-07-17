@@ -406,16 +406,13 @@
 		var lastPoint = null;
 		var needInitNodeEvents = true;
 		var editIndex = -1;
-		var finishTime = 0;
 		var isFinish = false;
 		var downTime = 0;
 		var mouseDownFunc = null;
-		var skipClick = false;
-		var skipDblClick = false;
+		var skipDblClickTime = 0;
+		
 		var onStartMove = false;
-		//var lastAddTime = 0;
 		var moveDone = false;
-		var waitStartAddID = null;
 		
 		mouseOverFlag = false;
 	
@@ -466,15 +463,21 @@
 			}
 			repaint();
 		}
+		var addPoint = function(p)
+		{
+			coords.push(p);
+			drawAttr['coords'] = coords;
+			skipDblClickTime = new Date().getTime() + 500;
+		}
 
-		var startAddPoints = function()
+		var startAddPoints = function(flag)
 		{
 			//console.log('startAddPoints:  ', isFinish, editIndex);
 			mouseUp();
-			isFinish = false;
 			if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 			if(!addItemListenerID) addItemListenerID = gmxAPI.map.addListener('onClick', addDrawingItem);
-			drawingUtils.disablePointerEvents(true, layerItems);
+			drawingUtils.disablePointerEvents(flag ? flag : false, layerItems);
+			isFinish = false;
 			gmxAPI._drawing['activeState'] = true;
 			currentObjectID = domObj.objectId;
 		}
@@ -485,7 +488,7 @@
 			gmxAPI.map.removeListener('onMouseMove', onMouseMoveID); onMouseMoveID = null;
 			gmxAPI.map.removeListener('onClick', addItemListenerID); addItemListenerID = null;
 			gmxAPI._cmdProxy('stopDrawing');
-			if(editType === 'POLYGON') coords.push([coords[0][0], coords[0][1]]);
+			if(editType === 'POLYGON') addPoint([coords[0][0], coords[0][1]]);
 			oBounds = gmxAPI.getBounds(coords);
 			lastPoint = null;
 			drawingUtils.enablePointerEvents(editType === 'LINESTRING' ? false : true, layerItems);
@@ -496,7 +499,6 @@
 			eventType = 'onFinish';
 			chkEvent(eventType);
 
-			//finishTime = new Date().getTime();
 			isFinish = true;
 			currentObjectID = null;
 		}
@@ -535,11 +537,11 @@
 					drawingUtils.hideBalloon();
 
 					var downType = getDownType(ev, coords);
+//console.log('downItemID:  ', node.id, downType['_gmxNodeID'] , currentObjectID, coords.length);
 					if(currentObjectID && downType['_gmxNodeID'] != currentObjectID) return;	// мышь нажата на другом обьекте
-					//console.log('downItemID:  ', node.id, downType);
-					if(downType['button'] === 2) return; 	// Нажали правую кнопку
+//console.log('downItemID1:  ', node.id, gmxAPI._drawing['activeState'], isFinish, downType);
+					if(downType['button'] === 2 || !isFinish) return; 	// Нажали правую кнопку либо режим добавления точек
 
-					//console.log('mouseDownFunc:  ', isFinish, coords.length, button);
 					if('type' in downType) {
 						editIndex = downType['num'];
 						var x = ev.latlng.lng, y = ev.latlng.lat;
@@ -568,7 +570,8 @@
 
 				var dblclick = function(downType)		// Удаление точки
 				{
-					if(waitStartAddID) clearTimeout(waitStartAddID); waitStartAddID = null;
+					if(skipDblClickTime > new Date().getTime()) return;
+//console.log('dblclick:  ', node.id, gmxAPI._drawing['activeState'], isFinish, coords.length, downType);
 
 					if(downType.type !== 'node') return;
 
@@ -614,17 +617,11 @@
 					currentObjectID = null;
 					var len = coords.length - 1;
 					lastPoint = null;
-					skipDblClick = true;
 					isFinish = true;
 					if(editType === 'POLYGON') {
 						if(len > 1) {
-							layerItems[2].options['skipLastPoint'] = true;
-							coords.push(coords[0]);
-							drawAttr['coords'] = coords;
-							mouseUp();
-							drawSVG(drawAttr);
-							drawingUtils.enablePointerEvents(null, layerItems);
-							return;
+							addPoint(coords[0]);
+							drawingUtils.enablePointerEvents(true, layerItems);
 						} else {
 							len = 0;
 						}
@@ -633,7 +630,7 @@
 						drawingUtils.enablePointerEvents(false, layerItems);
 						if(downType.num === 0) {
 							editType = drawAttr['editType'] = 'POLYGON';
-							coords.push(coords[0]);
+							addPoint(coords[0]);
 							layerItems[2].options['skipLastPoint'] = true;
 						}
 						if(len == 1) len = 0;
@@ -644,7 +641,6 @@
 					//ret.stopDrawing();
 					mouseUp();
 					gmxAPI.mousePressed	= mousePressed = false;
-					//needDisablePointerEvents = false;
 				};
 				
 				var clickWaitID = null;
@@ -652,7 +648,7 @@
 					var downType = getDownType(ev, coords);
 					if(currentObjectID && downType['_gmxNodeID'] != currentObjectID) return;	// мышь нажата на другом обьекте
 
-					//console.log('click:  ', node.id, downType);
+//console.log('click:  ', node.id, gmxAPI._drawing['activeState'], isFinish, downType, coords.length);
 
 					if(moveDone) return;	// слишком долго была нажата мышь
 					mousePressed = moveDone = false;
@@ -669,31 +665,23 @@
 						onStartMove = false;
 						if(editType === 'POLYGON') {
 							if(!isFinish) {
-								if(downType.num === len) {
-									if(!isFinish && lastPoint) coords.push([lastPoint.x, lastPoint.y]);
-									lastPoint = null;
-									coords.push(coords[0]);
-									drawingUtils.enablePointerEvents(true, layerItems);
-									isFinish = true;
-									//lastAddTime = new Date().getTime();
+								if(downType.num === len || downType.num === 0) {
+									onFinish(downType);
 								}
 							}
 						} else if(editType === 'LINESTRING') {		// Для LINESTRING Click на начальной и конечной точках
-							editIndex = downType.num;
-							if(editIndex === 0) {
+							var eFlag = false;
+							if(downType.num === 0) {
+								eFlag = true;
 								coords.reverse();
-								editIndex = -1;
-							} else if(editIndex === len) {
-								if(!isFinish && lastPoint) coords.push([lastPoint.x, lastPoint.y]);
-								lastPoint = null;
-								editIndex = -1;
+							} else if(downType.num === len) {
+								eFlag = true;
 							}
-							if(editIndex === -1) {
+							if(eFlag) {
+								editIndex = -1;
 								if(isFinish) {
-									if(waitStartAddID) clearTimeout(waitStartAddID);
-									waitStartAddID = setTimeout(startAddPoints, 100);
+									startAddPoints(true);
 								} else {
-									//lastPoint = null;
 									onFinish(downType);
 								}
 							}
@@ -764,6 +752,7 @@
 		// Добавление точки
 		var addDrawingItem = function(ph)
 		{
+//console.log('addDrawingItem:  ', ph, (coords ? coords.length : 0));
 			if(ph.attr) ph = ph.attr;
 			var latlng = ph.latlng;
 			var x = latlng.lng;
@@ -798,7 +787,7 @@
 					return true;
 				}
 			}
-			coords.push([x, y]);
+			addPoint([x, y]);
 			oBounds = gmxAPI.getBounds(coords);
 			repaint();
 			chkEvent(eventType);
@@ -1153,7 +1142,7 @@
 		var chkEvent = function(eType, out)
 		{
 			var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
-			if(gmxAPI.map.drawing.enabledHoverBalloon && propsBalloon) {
+			if(!mousePressed && gmxAPI.map.drawing.enabledHoverBalloon && propsBalloon) {
 				var st = (out ? out : false);
 				propsBalloon.updatePropsBalloon(st);
 			}
