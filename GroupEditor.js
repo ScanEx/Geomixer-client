@@ -517,7 +517,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		var id = 'mapProperties' + String(Math.random()).substring(2, 12),
 			tabMenu = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#common' + id]])]),
 								 _li([_a([_t(_gtxt("Доступ"))],[['attr','href','#policy' + id]])]),
-								 //_li([_a([_t("Поиск")],[['attr','href','#search' + id]])]),
+								 _li([_a([_t(_gtxt("Поиск"))],[['attr','href','#search' + id]])]),
 								 _li([_a([_t(_gtxt("Окно карты"))],[['attr','href','#view' + id]])]),
 								 _li([_a([_t(_gtxt("Загрузка"))],[['attr','href','#onload' + id]])]),
 								 _li([_a([_t(_gtxt("Плагины"))],[['attr','href','#plugins' + id]])])])]),
@@ -528,7 +528,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			divOnload = _div(null,[['attr','id','onload' + id],['css','width','320px']]),
 			divPlugins = _div(null,[['attr','id','plugins' + id],['css','width','320px']]);
 		
-		_(tabMenu, [divCommon, divPolicy/*, divSearch*/, divView, divOnload, divPlugins]);
+		_(tabMenu, [divCommon, divPolicy, divSearch, divView, divOnload, divPlugins]);
 		
 		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
@@ -537,8 +537,49 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
         
         var mapPlugins = nsGmx.createPluginsEditor(divPlugins, _mapHelper.mapPlugins);
         
-        var mapLayersTree = new layersTree({showVisibilityCheckbox: true, allowActive: false, allowDblClick: false});
-        var mapLayersDOM = mapLayersTree.drawTree(rawTree, 2);
+        var mapLayersTree = new layersTree({
+            showVisibilityCheckbox: true, 
+            allowActive: false, 
+            allowDblClick: false, 
+            showStyle: false,
+            visibilityFunc: function(props, isVisible) {
+                var origTreeNode = mainLayersTree.treeModel.findElem('LayerID', props.LayerID).elem;
+                origTreeNode.content.properties.AllowSearch = isVisible;
+            }
+        });
+        
+        //формируем новое дерево - без не-векторных слоёв и пустых папок, 
+        //в котором видимость слоя отражает возможность его скачивания
+        var searchRawTree = mainLayersTree.treeModel.cloneRawTree(function(node) {
+            if (node.type === 'layer') {
+                var props = node.content.properties;
+                if (props.type !== 'Vector') {
+                    return null;
+                }
+                
+                props.visible = !!props.AllowSearch;
+                
+                return node;
+            }
+            
+            if (node.type === 'group') {
+                var children = node.content.children;
+                if (!children.length) {
+                    return null;
+                }
+                
+                var isVisible = false;
+                for (var i = 0; i < children.length; i++) {
+                    isVisible = isVisible || children[i].content.properties.visible;
+                }
+                
+                node.content.properties.visible = isVisible;
+                return node;
+            }
+        });
+        
+        var mapLayersDOM = mapLayersTree.drawTree(searchRawTree, 2);
+        $('<div class="group-editor-search-title"/>').text(_gtxt('Выберите слои для поиска по атрибутам')).appendTo(divSearch);
 		$(mapLayersDOM).treeview().appendTo(divSearch);
         
         tabMenu.updateFunc = function() {

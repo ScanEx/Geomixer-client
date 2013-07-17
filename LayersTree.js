@@ -55,4 +55,45 @@ nsGmx.LayersTree = function( tree )
     {
         forEachLayer(_tree, callback);
     }
+    
+    // клонирование дерева с возможностью его модификации
+    // filterFunc(node) -> {Node|null} - ф-ция, которая может модифицировать узлы дерева. 
+    // Вызывается после клонирования очередного узла. Изменения данных можно делать in-place. 
+    // Для групп вызывается после обработки всех потомков. Если возвращает null, то узел удаляется
+    this.cloneRawTree = function(filterFunc) {
+        filterFunc = filterFunc || function(node) {return node;};
+        var res = {};
+        var forEachLayerRec = function(o)
+        {
+            if (o.type == "layer") {
+                return filterFunc($.extend(true, {}, o));
+            }
+            else if (o.type == "group") {
+                var a = o.content.children;
+                var newChildren = [];
+                for (var k = 0; k < a.length; k++) {
+                    var newNode = forEachLayerRec(a[k]);
+                    newNode && newChildren.push(newNode);
+                }
+                return filterFunc({
+                    type: 'group', 
+                    content: {
+                        children: newChildren,
+                        properties: $.extend(true, {}, o.content.properties)
+                    }
+                })
+            }
+        }
+        
+        var newFirstLevelGroups = [];
+        for (var k = 0; k < _tree.children.length; k++) {
+            var newNode = forEachLayerRec(_tree.children[k]);
+            newNode && newFirstLevelGroups.push(newNode);
+        }
+        
+        return {
+            properties: $.extend(true, {}, _tree.properties),
+            children: newFirstLevelGroups
+        }
+    }
 }

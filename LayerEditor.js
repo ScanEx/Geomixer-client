@@ -315,8 +315,8 @@ var createPageMain = function(parent, layerProperties) {
     var title = _input(null,[['attr','fieldName','title'],['attr','value',layerProperties.get('Title')],['dir','className','inputStyle'],['css','width','220px']]);
     title.onkeyup = function() {
         layerProperties.set('Title', this.value);
-            return true;
-        }
+        return true;
+    }
         
     layerProperties.on('change:Title', function() {
         var newTitle = layerProperties.get('Title');
@@ -351,25 +351,13 @@ var createPageMain = function(parent, layerProperties) {
             
     descr.value = layerProperties.get('Description');
     
-    var boxSearch = _checkbox(layerProperties.get('AllowSearch'), 'checkbox');
-    boxSearch.setAttribute('fieldName', 'AllowSearch');
-    boxSearch.className = 'box';
-    boxSearch.style.marginLeft = '3px';
-
-    boxSearch.onclick = function()
-    {
-        layerProperties.set('AllowSearch', this.checked);
-        return true;
-    }
+    var shownProperties = [];
         
-        var shownProperties = [];
-            
-        shownProperties.push({name: _gtxt("Имя"), field: 'Title', elem: title});
-        shownProperties.push({name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright});
+    shownProperties.push({name: _gtxt("Имя"), field: 'Title', elem: title});
+    shownProperties.push({name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright});
         
     if (layerProperties.get('Name')) {
         shownProperties.push({name: _gtxt("ID"), field: 'Name'});
-        shownProperties.push({name: _gtxt("Разрешить поиск"), elem: boxSearch});
     }
                                 
         shownProperties.push({name: _gtxt("Описание"), field: 'Description', elem: descr});
@@ -419,7 +407,7 @@ var createPageVectorSource = function(layerProperties) {
         
     if (getFileExt(shapePathInput.value) === 'shp') {
         encodingWidget.drawWidget(encodingParent, layerProperties.get('EncodeSource'));
-        }
+    }
         
     if (shapePath && shapePath.Path != null && shapePath.Path != '' && !shapePath.Exists) {
         $(shapePathInput).addClass('error');
@@ -1084,13 +1072,9 @@ var LayerEditor = function(div, type, properties, treeView, params) {
             'change:NameObject': function() {
                 divProperties.NameObject = layerProperties.get('NameObject');
                 treeView.findTreeElem(div).elem.content.properties = divProperties;
-            },
-            'change:AllowSearch': function() {
-                divProperties.AllowSearch = layerProperties.get('AllowSearch');
-                treeView.findTreeElem(div).elem.content.properties = divProperties;
-                    }
+            }
         });
-                }
+    }
                 
     saveButton.onclick = function() {
         var name = layerProperties.get('Name'),

@@ -166,6 +166,9 @@ var _abstractTree = new AbstractTree();
 //  * showVisibilityCheckbox {Bool} - показывать или нет checkbox видимости
 //  * allowActive {Bool} - возможен ли в дереве активный элемент
 //  * allowDblClick {Bool} - переходить ли по двойному клику к видимому экстенту слоя/группы
+//  * showStyle {Bool} - показывать ли иконку стилей
+//  * visibilityFunc {function(layerProps, isVisible)} - ф-ция, которая будет выполнена при изменении видимости слоя. 
+//    По умолчанию устанавливает видимость соответствующего слоя в API
 //
 //события:
 //  * layerVisibilityChange - при изменении видимости слоя (параметр - элемент дерева с изменившимся слоем)
@@ -176,7 +179,13 @@ var layersTree = function( renderParams )
     this._renderParams = $.extend({
         showVisibilityCheckbox: true, 
         allowActive: true, 
-        allowDblClick: true
+        allowDblClick: true,
+        showStyle: true,
+        visibilityFunc: function(props, isVisible) {
+            if (props.name in globalFlashMap.layers) {
+                globalFlashMap.layers[props.name].setVisible(isVisible);
+            }
+        }
     }, renderParams);
     
 	// тип узла
@@ -392,7 +401,7 @@ layersTree.prototype.drawNode = function(elem, parentParams, layerManagerFlag, p
 		else
 			div = _div(childs, [['attr','MultiLayerID',elem.content.properties.MultiLayerID]]);
             
-        if (this._renderParams.showVisibilityCheckbox && layerManagerFlag !== 1)
+        if (this._renderParams.showVisibilityCheckbox && !layerManagerFlag)
         {
             globalFlashMap.layers[elemProperties.name].addListener("onChangeVisible", function(attr)
             {
@@ -604,10 +613,19 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 		}
         
-        if (this._renderParams.showVisibilityCheckbox)
-			return [box, iconSpan, spanParent, spanDescr, borderDescr, multiStyleParent];
-		else
-			return [iconSpan, spanParent, spanDescr, borderDescr, multiStyleParent];
+        var resElems = [spanParent, spanDescr, borderDescr];
+        
+        if (this._renderParams.showStyle) {
+            resElems.push(multiStyleParent);
+            resElems.unshift(iconSpan);
+        }
+        this._renderParams.showVisibilityCheckbox && resElems.unshift(box);
+        
+        return resElems;
+        // if (this._renderParams.showVisibilityCheckbox)
+			// return [box, iconSpan, spanParent, spanDescr, borderDescr, multiStyleParent];
+		// else
+			// return [iconSpan, spanParent, spanDescr, borderDescr, multiStyleParent];
 	}
 	else
 	{
@@ -727,10 +745,12 @@ layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerF
 	
 	var spanParent = _div([span],[['attr','titleDiv',true],['css','display','inline-block'],['css','position','relative'],['css','borderBottom','none'],['css','paddingRight','3px']]);
 	
+    if (this._renderParams.showVisibilityCheckbox && (!parentVisibility || !elem.visible)) {
+        $(spanParent).addClass("invisible");
+    }
+        
 	if (!layerManagerFlag)
 	{
-		if (!parentVisibility || !elem.visible)
-			$(spanParent).addClass("invisible")
 		
 		nsGmx.ContextMenuController.bindMenuToElem(spanParent, 'Group', function()
 		{
@@ -887,7 +907,7 @@ layersTree.prototype.findUITreeElem = function(elem)
 	else
 		searchStr = "div[GroupID='" + props.GroupID + "']";
 	
-    return $(searchStr)[0];
+    return $(this._treeCanvas).find(searchStr)[0];
 }
 
 layersTree.prototype.getLayerVisibility = function(box)
@@ -934,8 +954,9 @@ layersTree.prototype.setSubtreeVisibility = function(elem, isVisible) {
         props.changedByViewer = true;
         this.updateVisibilityUI(elem);
         
-        if (elem.type === 'layer' && props.name in globalFlashMap.layers) {
-            globalFlashMap.layers[props.name].setVisible(isVisible);
+        if (elem.type === 'layer') {
+            //globalFlashMap.layers[props.name].setVisible(isVisible);
+            this._renderParams.visibilityFunc(props, isVisible);
             $(this).triggerHandler('layerVisibilityChange', [elem]);
         }
         

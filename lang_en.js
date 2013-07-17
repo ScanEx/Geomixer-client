@@ -330,6 +330,8 @@ _translationsHash.hash["eng"] = {
 	"Инструменты" : "Tools",
 	"Загрузить KML" : "Load KML",
 	"URL файла" : "File URL",
+    "Поиск" : "Search",
+    "Выберите слои для поиска по атрибутам": "Select layers for attributes search",
 		
 	"Редактирование прав доступа карты [value0]" : "Map [value0] access editor",
 	"Редактирование прав доступа слоя [value0]" : "Layer [value0] access editor",
