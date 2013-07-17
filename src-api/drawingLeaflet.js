@@ -633,7 +633,7 @@
 							addPoint(coords[0]);
 							layerItems[2].options['skipLastPoint'] = true;
 						}
-						if(len == 1) len = 0;
+						//if(len == 1) len = 0;
 					}
 					if(len == 0) {
 						domObj.remove();
