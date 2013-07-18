@@ -657,17 +657,16 @@ div.unit .unitInfo
 	width: 320px;
 }
 
-/*.layerProperties td
-{
-	height: 18px;
-	border: 1px solid #DEDEDE;
-}*/
-
 .propertiesTable td
 {
 	height: 22px;
 	border: 1px solid #DEDEDE;
 	
+}
+
+.propertiesTable-checkbox
+{
+    margin-left: 4px;
 }
 
 .layerProperties td
@@ -1422,6 +1421,12 @@ div.layersScroll
     padding: 3px 0px;
     vertical-align: top;
 }
+
+.defaultMapLangContainer
+{
+    margin-left: 3px;
+}
+
 .defaultMapLangContainer > input
 {
     vertical-align: middle;

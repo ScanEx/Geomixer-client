@@ -305,18 +305,25 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                             '<input type="radio" id="defRus" name="defLang" value="rus"></input><label for="defRus">rus</label>' + 
                             '<input type="radio" id="defEng" name="defLang" value="eng"></input><label for="defEng">eng</label>' + 
                         '</span>')[0],
-		//	showBalloons = _checkbox(elemProperties.ShowPropertiesBalloons, 'checkbox'),
+            distUnit = $('<span class="defaultMapLangContainer">' + 
+                            '<input type="radio" id="distUnitAuto" name="distUnit" value="auto"></input><label for="distUnitAuto">auto</label>' + 
+                            '<input type="radio" id="distUnitM" name="distUnit" value="m"></input><label for="distUnitM">m</label>' + 
+                            '<input type="radio" id="distUnitKm" name="distUnit" value="km"></input><label for="distUnitKm">km</label>' + 
+                        '</span>')[0],
+            squareUnit = $('<span class="defaultMapLangContainer">' + 
+                            '<input type="radio" id="squareUnitAuto" name="squareUnit" value="auto"></input><label for="squareUnitAuto">auto</label>' + 
+                            '<input type="radio" id="squareUnitM" name="squareUnit" value="m2"></input><label for="squareUnitM">m<sup>2</sup></label>' + 
+                            '<input type="radio" id="squareUnitHa" name="squareUnit" value="ha"></input><label for="squareUnitHa">ha</label>' + 
+                            '<input type="radio" id="squareUnitKm" name="squareUnit" value="km2"></input><label for="squareUnitKm">km<sup>2</sup></label>' + 
+                        '</span>')[0],
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
             WMSLink = _a([_t(_gtxt('ссылка'))], [['attr', 'href', serverBase + 'TileService.ashx?map=' + elemProperties.name]]),
             WMSAccess = _checkbox(elemProperties.WMSAccess, 'checkbox'),
-		//	searchVectors = _checkbox(elemProperties.CanSearchVector, 'checkbox'),
 			defLat = _input(null,[['attr','value',elemProperties.DefaultLat != null && elemProperties.DefaultLat != 0 ? elemProperties.DefaultLat : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			defLong = _input(null,[['attr','value',elemProperties.DefaultLong != null && elemProperties.DefaultLong != 0 ? elemProperties.DefaultLong : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			defPermalink = _input(null,[['attr','value',elemProperties.ViewUrl != null ? elemProperties.ViewUrl : ''],['dir','className','inputStyle'],['css','width','206px']]),
 			defZoom = _input(null,[['attr','value',elemProperties.DefaultZoom && elemProperties.DefaultZoom != 0 != null ? elemProperties.DefaultZoom : ''],['dir','className','inputStyle'],['css','width','60px']]),
-			zoomDelta = _input(null,[['attr','value',elemProperties.MiniMapZoomDelta && elemProperties.MiniMapZoomDelta != 0 != null ? elemProperties.MiniMapZoomDelta : ''],['dir','className','inputStyle'],['css','width','60px']]),
-			//zoomDelta = _input(null,[['attr','value',elemProperties.MiniMapZoomDelta && elemProperties.MiniMapZoomDelta != 0 != null ? elemProperties.MiniMapZoomDelta : ''],['dir','className','inputStyle'],['css','width','60px']]),
 			onLoad = _textarea(null,[['dir','className','inputStyle'],['css','width','310px'],['css','height','250px']]),
 			copyright = _input(null,[['attr','value',elemProperties.Copyright != null ? elemProperties.Copyright : ''],['dir','className','inputStyle'],['css','width','206px']]),
 			minViewX = _input(null,[['attr','value',elemProperties.MinViewX != null && elemProperties.MinViewX != 0 ? elemProperties.MinViewX : ''],['dir','className','inputStyle'],['css','width','60px']]),
@@ -333,12 +340,30 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			rawTree.properties = div.gmxProperties.properties;
 		}
         
+        $([useAPI, useOSM]).addClass('propertiesTable-checkbox');
+        
         $('input[value=' + elemProperties.DefaultLanguage + ']', defLang).attr('checked', 'checked');
+        $('input[value=' + elemProperties.DistanceUnit + ']', distUnit).attr('checked', 'checked');
+        $('input[value=' + elemProperties.SquareUnit + ']', squareUnit).attr('checked', 'checked');
+        
         $('input', defLang).change(function()
 		{
 			div.gmxProperties.properties.DefaultLanguage = this.value;
 			rawTree.properties = div.gmxProperties.properties;
-            console.log(div.gmxProperties.properties.DefaultLanguage);
+		})
+        
+        $('input', distUnit).change(function()
+		{
+			div.gmxProperties.properties.DistanceUnit = this.value;
+			rawTree.properties = div.gmxProperties.properties;
+            globalFlashMap.setDistanceUnit(this.value);
+		})
+        
+        $('input', squareUnit).change(function()
+		{
+			div.gmxProperties.properties.SquareUnit = this.value;
+			rawTree.properties = div.gmxProperties.properties;
+            globalFlashMap.setSquareUnit(this.value);
 		})
         
 		useOSM.onclick = function()
@@ -404,17 +429,6 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			if (!isNaN(Number(this.value)))
 			{
 				div.gmxProperties.properties.DefaultZoom = Number(this.value);
-			
-				rawTree.properties = div.gmxProperties.properties;
-			}
-			
-			return true;
-		}
-		zoomDelta.onkeyup = function()
-		{
-			if (!isNaN(Number(this.value)))
-			{
-				div.gmxProperties.properties.MiniMapZoomDelta = Number(this.value);
 			
 				rawTree.properties = div.gmxProperties.properties;
 			}
@@ -496,13 +510,14 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 										{name: _gtxt("ID"), field: 'name'},
 										{name: _gtxt("Копирайт"), field: 'Copyright', elem: copyright}
 									]
-									.concat(visibilityPropertiesView)
+									//.concat(visibilityPropertiesView)
 									.concat(
 										[{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
 										{name: _gtxt("Использовать OpenStreetMap"), elem: useOSM},
 										{name: _gtxt("Язык по умолчанию"), elem: defLang},
-										{name: _gtxt("Ссылка (permalink)"), elem: defPermalink},
-										{name: _gtxt("Масштабирование в миникарте"), elem: zoomDelta}]
+										{name: _gtxt("Единицы длины"), elem: distUnit},
+										{name: _gtxt("Единицы площади"), elem: squareUnit},
+										{name: _gtxt("Ссылка (permalink)"), elem: defPermalink}]
 									),
 			shownPolicyProperties = [
 										{name: _gtxt("Разрешить скачивание"), elem: _table([_tbody([_tr([_td([_t(_gtxt('Векторных слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadVectors])]),
@@ -596,7 +611,6 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
             props.ViewUrl = defPermalink.checked;
             
             props.DefaultZoom = isNaN(Number(defZoom.value)) ? null : Number(defZoom.value);
-            props.MiniMapZoomDelta = isNaN(Number(zoomDelta.value)) ? null : Number(zoomDelta.value);
             
             props.onLoad = onLoad.value;
             props.Copyright = copyright.value;

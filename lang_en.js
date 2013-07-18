@@ -150,6 +150,8 @@ _translationsHash.hash["eng"] = {
 	"Использовать KosmosnimkiAPI" : "Use KosmosnimkiAPI",
 	"Использовать OpenStreetMap" : "Use OpenStreetMap",
 	"Язык по умолчанию" : "Default language",
+    "Единицы длины": "Distance unit",
+    "Единицы площади": "Square unit",
 	"Разрешить поиск в векторных слоях" : "Allow search vector layers",
 	"Начальная позиция" : "Start position",
 	"Широта" : "Latitude",
