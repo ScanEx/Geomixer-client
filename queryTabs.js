@@ -134,7 +134,7 @@ queryTabs.prototype.show = function(state)
 	}
 	
 	globalFlashMap.moveTo(parsedState.position.x, parsedState.position.y, parsedState.position.z);
-	globalFlashMap.setBaseLayer(parsedState.mode);
+	globalFlashMap.setMode(parsedState.mode);
 	
 	globalFlashMap.drawing.forEachObject(function(obj)
 	{
