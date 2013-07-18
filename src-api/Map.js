@@ -21,8 +21,6 @@
 			,'y':	parseFloat(layers.properties.DefaultLat) || 50
 			,'z':	parseFloat(layers.properties.DefaultZoom) || 4
 		};
-		map.DistanceUnit = map.properties['DistanceUnit'] || 'auto';
-		map.SquareUnit = map.properties['SquareUnit'] || 'auto';
 		
 		//map.needSetMode = 'Map';
 		map.needSetMode = null;
@@ -636,15 +634,18 @@
 					);
 				}
 			}
-			if (gmxAPI.maxRasterZoom > 17)
+			if (gmxAPI.maxRasterZoom > 17) {
 				map.setMinMaxZoom(1, gmxAPI.maxRasterZoom);
+			}
+
 			if (layers.properties.Copyright)
 			{
 				var obj = map.addObject();
 				obj.setCopyright(layers.properties.Copyright);
 			}
-			if (layers.properties.MiniMapZoomDelta)
+			if (layers.properties.MiniMapZoomDelta) {
 				gmxAPI.miniMapZoomDelta = layers.properties.MiniMapZoomDelta;
+			}
 			if (layers.properties.OnLoad && layers.properties.name !== kosmosnimki_API)	//  Обработка маплета карты - mapplet для базовой карты уже вызывали
 			{
 				try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(map); }

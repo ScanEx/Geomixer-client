@@ -3162,8 +3162,16 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				if (layers)
 				{
 					map.defaultHostName = layers.properties.hostName;
-					map.addLayers(layers, false);
+					map.addLayers(layers, false);		// добавление основной карты
 					map.properties = layers.properties;
+					if (map.properties.DistanceUnit)
+					{
+						map.setDistanceUnit(map.properties.DistanceUnit);
+					}
+					if (map.properties.SquareUnit)
+					{
+						map.setSquareUnit(map.properties.SquareUnit);
+					}
 				}
 				if(gmxAPI.proxyType === 'flash' && map.needSetMode) map.setMode(map.needSetMode);
 
