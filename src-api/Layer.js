@@ -376,6 +376,9 @@
 			if (!boundsLatLgn) initBounds(obj.mercGeometry);
 			return boundsLatLgn;
 		}
+		obj.getBoundsMerc = function() {			// Получение boundsMerc в меркаторе
+			return getBoundsMerc();
+		}
 
 		var tileSenderPrefix = baseAddress + 
 			"TileSender.ashx?ModeKey=tile" + 

@@ -269,12 +269,21 @@
 		utils = gmxAPI._leaflet['utils'];
 		mapNodes = gmxAPI._leaflet['mapNodes'];
 
-		function drawCanvasPolygon( ctx, x, y, lgeo, shiftY) {
+		function drawCanvasPolygon( ctx, x, y, lgeo, opt) {
 			if(!lgeo) return;
-			var tileSize = gmxAPI._leaflet['zoomCurrent']['tileSize'];
-			//ctx.strokeStyle = 'rgba(0, 0, 255, 1)';
+			var zoomCurrent = gmxAPI._leaflet['zoomCurrent'];
+			var tileSize = zoomCurrent['tileSize'];
+			//ctx.strokeStyle = 'rgba(255, 0, 0, 1)';
 			ctx.beginPath();
-			if(!shiftY) shiftY = 0;
+			var shiftY = (opt.shiftY ? opt.shiftY : 0);
+			if(opt.attr.boundsMerc) {
+				var extMerc = opt.attr.boundsMerc;
+				var minx = x * tileSize;
+				var maxx = minx + tileSize;
+				if (maxx < extMerc.minX) x += zoomCurrent['pz'];
+				else if (minx > extMerc.maxX) x -= zoomCurrent['pz'];
+			}
+
 			var drawPolygon = function(arr) {
 				for (var j = 0; j < arr.length; j++)
 				{
@@ -385,7 +394,7 @@
 							var pattern = ctx.createPattern(imageObj, "no-repeat");
 							ctx.fillStyle = pattern;
 							if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
-							if(pResArr) drawCanvasPolygon( ctx, sTilePoint.x, sTilePoint.y, pResArr, layer.options.shiftY);
+							if(pResArr) drawCanvasPolygon( ctx, sTilePoint.x, sTilePoint.y, pResArr, layer.options);
 							else ctx.fillRect(0, 0, 256, 256);
 							ctx.fill();
 							imageObj = null;
@@ -462,6 +471,15 @@
 					var node = mapNodes[this.options.nodeID];
 					node['getLayerBounds']();
 				}
+				if(!attr['boundsMerc']) {
+					attr['boundsMerc'] = {
+						minX: gmxAPI.merc_x(attr['bounds'].min.x),
+						minY: gmxAPI.merc_y(attr['bounds'].min.y),
+						maxX: gmxAPI.merc_x(attr['bounds'].max.x),
+						maxY: gmxAPI.merc_y(attr['bounds'].max.y)
+					};
+				}
+
 				var imgFlag = (!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85));
 				if(imgFlag) {
 					var img = this._canvasProto = L.DomUtil.create('img', 'leaflet-tile');
