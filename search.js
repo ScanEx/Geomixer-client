@@ -1130,7 +1130,6 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		<i>IsStrongSearch</i> - признак того, что искать только целые слова </br>
 		<i>Limit</i> - максимальное число найденных объектов
 		<i>WithoutGeometry<i> - не передавать геометрию в результатах поиска
-		<i>RequestType<i> - Тип запроса к серверу
         <i>PageNum<i> - Показать страницу
         <i>ShowTotal<i> - Сообщить сколько найдено всего записей
         <i>UseOSM<i> - Искать в базе OSM
