@@ -641,6 +641,8 @@
 					//ret.stopDrawing();
 					mouseUp();
 					gmxAPI.mousePressed	= mousePressed = false;
+					eventType = 'onFinish';
+					chkEvent(eventType);
 				};
 				
 				var clickWaitID = null;
@@ -839,7 +841,7 @@
 				drawAttr['hoveredStyle'] = gmxAPI._leaflet['utils'].parseStyle(hoveredStyle, obj.objectId);
 				chkStyle(drawAttr, regularStyle, hoveredStyle);
 				if(layerGroup) {
-					layerGroup.setStyle(drawAttr['stylePolygon']);
+					layerItems[0].setStyle(drawAttr['stylePolygon']);
 					layerItems[2].setStyle(drawAttr['stylePoint']);
 				}
 			}
@@ -1196,7 +1198,7 @@
 				drawAttr['hoveredStyle'] = gmxAPI._leaflet['utils'].parseStyle(hoveredStyle, obj.objectId);
 				chkStyle(drawAttr, regularStyle, hoveredStyle);
 				if(layerGroup) {
-					layerGroup.setStyle(drawAttr['stylePolygon']);
+					layerItems[0].setStyle(drawAttr['stylePolygon']);
 					layerItems[2].setStyle(drawAttr['stylePoint']);
 				} else {
 					drawMe();
