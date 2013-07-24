@@ -243,10 +243,10 @@
 				if(node.type === 'VectorLayer') {
 					var st = id + '_';
 					if(vid) st += vid;
-					for(var pid in itemsHash) {
-						if(vid) {
-							if(pid == st) { delete itemsHash[pid]; break; }
-						} else {
+					if(vid) {
+						delete itemsHash[st];
+					} else {
+						for(var pid in itemsHash) {
 							if(pid.indexOf(st) != -1) delete itemsHash[pid];
 						}
 					}

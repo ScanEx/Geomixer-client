@@ -3916,14 +3916,16 @@
 			//if(attr.style.fill) ctx.fill();
 
 			//var style = attr['style'];
+			var node = attr['node'];
 			if(style && style['label']) {
-				var node = attr['node'];
 				var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
 				var labelStyle = style['label'];
 				var txt = (labelStyle['field'] ? prop[labelStyle['field']] : labelStyle['value']) || '';
 				if(txt) {
 					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr, style);	// добавим label от векторного слоя
 				}
+			} else {
+				gmxAPI._leaflet['LabelsManager'].remove(node.id, out.id);
 			}
 			
 			return true;		// отрисована геометрия
