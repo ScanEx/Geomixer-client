@@ -37,6 +37,7 @@
 
 		var scaleBar = gmxAPI.newStyledDiv({
 			position: "absolute",
+			pointerEvents: "none",
 			right: coordinatesAttr['scaleBar']['bottom']['x'],
 			bottom: coordinatesAttr['scaleBar']['bottom']['y'],
 			textAlign: "center"
@@ -45,7 +46,7 @@
 		cont.appendChild(scaleBar);
 		
 		gmxAPI.map.scaleBar = { setVisible: function(flag) { gmxAPI.setVisible(scaleBar, flag); } };
-		var scaleBarText, scaleBarWidth, oldZ;
+		var scaleBarText, scaleBarWidth;
 		var repaintScaleBar = function()
 		{
 			if (scaleBarText)
@@ -189,7 +190,6 @@
 			return gmxAPI.distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
 		}
 
-		var setCoordinatesFormatTimeout = false;
 		// Добавление прослушивателей событий
 		var checkPositionChanged = function() {
 			var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
@@ -202,37 +202,39 @@
 				y = gmxAPI.map.needMove['y'];
 			}
 
-			if (oldZ != z)
+			var metersPerPixel = getLocalScale(x, y)*gmxAPI.getScale(z);
+			for (var i = 0; i < 30; i++)
 			{
-				oldZ = z;
-				var metersPerPixel = getLocalScale(x, y)*gmxAPI.getScale(z);
-				for (var i = 0; i < 30; i++)
+				var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
+				var w = Math.floor(distance/metersPerPixel);
+				if (w > 100)
 				{
-					var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
-					var w = distance/metersPerPixel;
-					if (w > 100)
+					var name = gmxAPI.prettifyDistance(distance);
+					if ((name != scaleBarText) || (w != scaleBarWidth))
 					{
-						var name = gmxAPI.prettifyDistance(distance);
-						if ((name != scaleBarText) || (w != scaleBarWidth))
-						{
-							scaleBarText = name;
-							scaleBarWidth = w;
-							repaintScaleBar();
-						}
-						break;
+						scaleBarText = name;
+						scaleBarWidth = w;
+						repaintScaleBar();
 					}
+					break;
 				}
 			}
+			setCoordinatesFormat();
+		}
+
+		var setCoordinatesFormatTimeout = false;
+		var prpPosition = function() {
 			if (setCoordinatesFormatTimeout) return;
 			setCoordinatesFormatTimeout = setTimeout(function()
 			{
-				setCoordinatesFormat();
 				clearTimeout(setCoordinatesFormatTimeout);
 				setCoordinatesFormatTimeout = false;
-			}, 250);
+				checkPositionChanged();
+			}, 150);
 		}
-		gmxAPI.map.addListener('positionChanged', checkPositionChanged);
-		gmxAPI.map.addListener('onResizeMap', checkPositionChanged);
+
+		gmxAPI.map.addListener('positionChanged', prpPosition);
+		gmxAPI.map.addListener('onResizeMap', prpPosition);
 
 		gmxAPI._setCoordinatesColor = function(color, url, flag)
 		{
