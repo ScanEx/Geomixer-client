@@ -101,7 +101,7 @@
 		var coordFormatCallbacks = [		// методы формирования форматов координат
 			function() { return getCoordinatesText(); },
 			function() { return getCoordinatesText(); },
-			function() { return getCoordinatesText(); },
+			function() { return getCoordinatesText(); }
 		];
 
 		var coordFormat = 0;
@@ -219,7 +219,7 @@
 					break;
 				}
 			}
-			setCoordinatesFormat();
+			//setCoordinatesFormat();
 		}
 
 		var setCoordinatesFormatTimeout = false;
@@ -229,12 +229,17 @@
 			{
 				clearTimeout(setCoordinatesFormatTimeout);
 				setCoordinatesFormatTimeout = false;
-				checkPositionChanged();
+				if(gmxAPI.proxyType === 'flash') checkPositionChanged();
+				setCoordinatesFormat();
 			}, 150);
 		}
 
 		gmxAPI.map.addListener('positionChanged', prpPosition);
-		gmxAPI.map.addListener('onResizeMap', prpPosition);
+		if(gmxAPI.proxyType === 'flash') {
+			gmxAPI.map.addListener('onResizeMap', prpPosition);
+		} else {
+			gmxAPI.map.addListener('onMoveEnd', checkPositionChanged);
+		}
 
 		gmxAPI._setCoordinatesColor = function(color, url, flag)
 		{

@@ -142,7 +142,8 @@
 
 		var copyrightUpdateTimeout = false;
 		// Добавление прослушивателей событий
-		gmxAPI.map.addListener('positionChanged', function(ph)
+		var evName = (gmxAPI.proxyType === 'flash' ? 'positionChanged' : 'onMoveEnd');
+		gmxAPI.map.addListener(evName, function()
 			{
 				if (copyrightUpdateTimeout) return;
 				copyrightUpdateTimeout = setTimeout(function()
