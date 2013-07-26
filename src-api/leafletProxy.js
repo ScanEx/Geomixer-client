@@ -1726,6 +1726,10 @@
 			}
 
 			var func = function(e) {
+				if(gmxAPI._drawing['activeState'] && evName == 'onClick') {
+					gmxAPI._leaflet['chkClick'](e);
+					return false;
+				}
 				if(node.hoveredStyle && 'setStyle' in node['leaflet']) {
 					if(evName == 'onMouseOver') {
 						node['leaflet'].setStyle(node.hoveredStyle);
@@ -4341,6 +4345,7 @@
 				gmxAPI._leaflet['clickAttr'] = attr;
 				clickDone = gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 			};
+			gmxAPI._leaflet['chkClick'] = chkClick;
 			LMap.on('click', chkClick);
 			LMap.on('mouseup', function(e) {
 				gmxAPI._leaflet['utils'].unfreeze();
