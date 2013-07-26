@@ -884,6 +884,7 @@
 			chkEvent(eventType);
 		} else {
 			//startAddPoints();
+			gmxAPI._drawing['activeState'] = true;
 			addItemListenerID = gmxAPI.map.addListener('onClick', addDrawingItem);
 		}
 		return ret;
