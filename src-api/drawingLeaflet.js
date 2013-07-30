@@ -954,7 +954,7 @@
 			//isDraging = true;
 			updatePos(x, y);
 			eventType = 'onEdit';
-			//console.log('mouseMove ', itemDownType, x1, y1, x2, y2);
+//console.log('mouseMove ', itemDownType, x1, y1, x2, y2);
 			if (!created) createDrawingItem();
 			chkEvent(eventType);
 			repaint();
@@ -1215,7 +1215,7 @@
 			'stopDrawing': function() {
 				if(onMouseMoveID) gmxAPI.map.removeListener('onMouseMove', onMouseMoveID); onMouseMoveID = null;
 				if(onMouseUpID) gmxAPI.map.removeListener('onMouseUp', onMouseUpID); onMouseUpID = null;
-				if(addItemListenerID) gmxAPI.map.removeListener('onClick', addItemListenerID); addItemListenerID = null;
+				if(addItemListenerID) gmxAPI.map.removeListener('onMouseDown', addItemListenerID); addItemListenerID = null;
 				obj.stopDrawing();
 			}
 		};
@@ -1241,7 +1241,7 @@
 				gmxAPI.mousePressed	= mousePressed = true;
 				x1 = ph.attr.latlng.lng;
 				y1 = ph.attr.latlng.lat;
-				gmxAPI._cmdProxy('startDrawing');
+				//gmxAPI._cmdProxy('startDrawing');
 				gmxAPI._drawing['activeState'] = true;
 				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 				if(addItemListenerID) gmxAPI.map.removeListener('onMouseDown', addItemListenerID); addItemListenerID = null;
