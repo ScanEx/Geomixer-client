@@ -1535,6 +1535,47 @@ window.gmxAPI = {
 		window[name] = undefined;
 		var script = document.createElement("script");
 		var done = false;
+		var ready = function() {
+			if ( window[name] !== undefined ) callback(window[name]);
+			else if (onError) onError();
+			done = true;
+		};
+		
+		script.onerror = function()
+		{
+			if (!done) {
+				window[name] = undefined;
+				ready();
+			}
+		}
+		
+		script.onload = function()
+		{
+			if (!done) {
+				ready();
+			}
+		}
+		
+		script.onreadystatechange = function()
+		{
+			if (!done) {
+				if (script.readyState === 'complete' ) {
+					if(gmxAPI.isIE) setTimeout(ready, 100);
+					else 	ready();
+				}
+			}
+		}
+		
+		script.setAttribute("charset", "UTF-8");
+		document.getElementsByTagName("head").item(0).appendChild(script);
+		script.setAttribute("src", url);
+	}
+	,
+	loadVariableFromScript_old: function(url, name, callback, onError, useTimeout)
+	{
+		window[name] = undefined;
+		var script = document.createElement("script");
+		var done = false;
 		//var count = 0;		// Попытки загрузки
 		
 		script.onerror = function()
