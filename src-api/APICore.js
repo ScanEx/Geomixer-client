@@ -1556,16 +1556,6 @@ window.gmxAPI = {
 			}
 		}
 		
-		script.onreadystatechange = function()
-		{
-			if (!done) {
-				if (script.readyState === 'complete' ) {
-					if(gmxAPI.isIE) setTimeout(ready, 100);
-					else 	ready();
-				}
-			}
-		}
-		
 		script.setAttribute("charset", "UTF-8");
 		document.getElementsByTagName("head").item(0).appendChild(script);
 		script.setAttribute("src", url);

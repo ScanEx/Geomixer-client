@@ -4946,40 +4946,42 @@ var tt = 1;
 			
 			initFunc(mapDivID, 'leaflet');
 			
-			var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", top: '-6px', left: '-6px', opacity: 0.8, 'pointerEvents': 'none' });
-			var div = document.getElementById(mapDivID);
-			div.parentNode.appendChild(centerControlDIV);
-			var setCenterPoint = function ()
-			{
+			var setCenterPoint = null
+			setTimeout(function () {
+				var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", top: '-6px', left: '-6px', opacity: 0.8, 'pointerEvents': 'none' });
+				var div = document.getElementById(mapDivID);
+				div.parentNode.appendChild(centerControlDIV);
+				setCenterPoint = function ()
+				{
 					var vBounds = LMap.getPixelBounds();
 					var y = (vBounds.max.y - vBounds.min.y)/2;
 					var x = (vBounds.max.x - vBounds.min.x)/2;
 					centerControlDIV.style.top = (y - 6) + 'px';
 					centerControlDIV.style.left = (x - 6) + 'px';
-			};
-			var setControlDIVInnerHTML = function ()
-			{
-				var baseLayersTools = gmxAPI.map.baseLayersTools;
-				var currTool = baseLayersTools.getToolByName(baseLayersTools.activeToolName);
-				div.style.backgroundColor = utils.dec2hex(currTool.backgroundColor);
-				var color = (currTool.backgroundColor === 1 ? 'white' : '#216b9c');
-				centerControlDIV.innerHTML = '<svg viewBox="0 0 12 12" height="12" width="12" style=""><g><path d="M6 0L6 12" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g><g><path d="M0 6L12 6" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g></svg>';
-				return false;
-			};
-			setTimeout(setControlDIVInnerHTML, 1);
-			setTimeout(setCenterPoint, 1);
-			gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
-			if(gmxAPI.map.needMove) {
-				utils.runMoveTo();
-			}
-			if(gmxAPI.map.needSetMode) {
-				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
-				gmxAPI.map.needSetMode = null;
-			}
-			if(gmxAPI.map.standartTools && gmxAPI.isMobile) {
-				gmxAPI.map.standartTools.remove();
-			}
-			//gmxAPI.map.standartTools.setVisible(false);
+				};
+				var setControlDIVInnerHTML = function ()
+				{
+					var baseLayersTools = gmxAPI.map.baseLayersTools;
+					var currTool = baseLayersTools.getToolByName(baseLayersTools.activeToolName);
+					div.style.backgroundColor = utils.dec2hex(currTool.backgroundColor);
+					var color = (currTool.backgroundColor === 1 ? 'white' : '#216b9c');
+					centerControlDIV.innerHTML = '<svg viewBox="0 0 12 12" height="12" width="12" style=""><g><path d="M6 0L6 12" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g><g><path d="M0 6L12 6" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g></svg>';
+					return false;
+				};
+				setControlDIVInnerHTML();
+				setCenterPoint();
+				gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
+				if(gmxAPI.map.needMove) {
+					utils.runMoveTo();
+				}
+				if(gmxAPI.map.needSetMode) {
+					gmxAPI.map.setMode(gmxAPI.map.needSetMode);
+					gmxAPI.map.needSetMode = null;
+				}
+				if(gmxAPI.map.standartTools && gmxAPI.isMobile) {
+					gmxAPI.map.standartTools.remove();
+				}
+			}, 500);
 		}
 	}
 
