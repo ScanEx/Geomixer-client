@@ -2357,6 +2357,7 @@
 		'setVisible': function(ph)	{						// установить видимость mapObject
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
+			//console.log('setVisible ', id, ph.attr);
 			if(!node) return false;
 			node.isVisible = ph.attr;
 			node.notView = ph.notView || false;

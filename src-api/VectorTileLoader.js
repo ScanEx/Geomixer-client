@@ -64,6 +64,7 @@
 							counts--;
 							if(itemsHash[psrc]) {
 								if(itemsHash[psrc]['skip']) {
+									if(itemsHash[psrc]['onerror']) itemsHash[psrc]['onerror']({'url': psrc, 'Error': 'skiped by clearLayer'});
 									delete itemsHash[psrc];
 									return;
 								}
@@ -112,7 +113,10 @@
 		,'clearLayer': function(id)	{				// Удалить все запросы по слою id
 			for (var key in itemsHash) {
 				var item = itemsHash[key];
-				if(item['layer'] == id) itemsHash[key]['skip'] = true;
+				if(item['layer'] == id) {
+					itemsHash[key]['skip'] = true;
+					if(item['onerror']) item['onerror']({'url': item['srcArr'], 'Error': 'removed by clearLayer'});
+				}
 			}
 			var arr = [];
 			for(var i=0; i<items.length; i++) {

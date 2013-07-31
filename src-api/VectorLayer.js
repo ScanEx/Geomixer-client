@@ -575,29 +575,22 @@
 
 				flag = true;
 				if(node['tilesLoadProgress'][tID]) continue;
-				(function(stID, drawFlag) {
+				(function() {
+					var drawFlag = (ext ? false : true);
+					var stID = tID;
 					var drawMe = null;
 					if(drawFlag) {
 						drawMe = function() {
 							var tarr = node['loaderDrawFlags'][stID];
-if(!tarr) {		// список тайлов был обновлен - без перерисовки
-	//node.reloadTilesList(200);
-	return;
-}
-							//var queueFlags = {};
+							if(!tarr) {		// список тайлов был обновлен - без перерисовки
+								gmxAPI.addDebugWarnings({'func': 'drawMe', 'nodeID': node.id, 'loaderDrawFlags': tarr, 'alert': 'bad loaderDrawFlags'});
+								return;
+							}
 							for (var i = 0; i < tarr.length; i++)
 							{
 								var drawTileID = tarr[i];
 								node.addTilesNeedRepaint(drawTileID);
-								//node['tilesNeedRepaint'].push(drawTileID);
-								/*
-								var ptt = node['tilesKeys'][drawTileID];
-								for(var tKey in ptt) {
-									//if(!queueFlags[tKey]) node.repaintTile(ptt[tKey], true);
-									queueFlags[tKey] = true;
-								}*/
 							}
-							//queueFlags = null;
 							delete node['loaderDrawFlags'][stID];
 							node.repaintTilesNeed(10);
 						}
@@ -608,9 +601,14 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 						if(stID in node['tilesVers']) srcArr += '&v=' + node['tilesVers'][stID];
 						srcArr = [srcArr];
 					}
+					if(srcArr.length < 1) {
+						gmxAPI.addDebugWarnings({'func': 'loadTilesByExtent', 'nodeID': node.id, 'tID': stID, 'alert': 'empty tiles URL array'});
+						return;
+					}
 					node['loaderFlag'] = true;
 					var item = {
 						'srcArr': srcArr
+						,'stID': stID
 						,'layer': node.id
 						,'callback': function(data) {
 							delete node['tilesLoadProgress'][stID];
@@ -623,13 +621,11 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 							node['badTiles'][stID] = true;
 							gmxAPI.addDebugWarnings(err);
 							if(drawMe) drawMe();
-							//else waitRedraw(100);
-							//node.waitRedrawTile(node['loaderDrawFlags'][tkey], 200);
 						}
 					};
-					gmxAPI._leaflet['vectorTileLoader'].push(item);
 					node['tilesLoadProgress'][stID] = true;
-				})(tID, (ext ? false : true));
+					gmxAPI._leaflet['vectorTileLoader'].push(item);
+				})();
 			}
 			return flag;
 		};
@@ -1099,7 +1095,7 @@ if(!tarr) {		// список тайлов был обновлен - без пе�
 
 		// получить bounds списка тайлов слоя
 		node.getTilesBounds = function(arr, vers) {
-			if(!node['tiles']) node['tiles'] = {};
+			node['tiles'] = {};
 			var cnt = 0;
 			for (var i = 0; i < arr.length; i+=3)
 			{
