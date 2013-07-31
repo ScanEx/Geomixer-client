@@ -988,6 +988,7 @@
 			if (window.addEventListener) window.addEventListener('DOMMouseScroll', onWheel, false);
 		}
 		map.ToolsContainer = gmxAPI._ToolsContainer;
+		gmxAPI._listeners.dispatchEvent('mapCreated', null, map);	// Глобальный Listeners
 		return map;
 	}
 	//расширяем namespace

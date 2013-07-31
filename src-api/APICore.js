@@ -2979,13 +2979,13 @@ function createFlashMapInternal(div, layers, callback)
 
 	var loadCallback = function(rootObjectId)
 	{
-		if (!gmxAPI.isProxyReady())
+		var flashDiv = document.getElementById(flashId);
+		if (!flashDiv || !gmxAPI.isProxyReady())
 		{
 			setTimeout(function() { loadCallback(rootObjectId); }, 100);
 			return;
 		}
 
-		var flashDiv = document.getElementById(flashId);
 		gmxAPI.flashDiv = flashDiv;
 		flashDiv.style.MozUserSelect = "none";
 

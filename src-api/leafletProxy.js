@@ -4189,6 +4189,18 @@
 			,'group': gmxAPI._leaflet['LMap']
 			,'parentId': false
 		};
+		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapCreated', 'func': function(ph) {
+			if(gmxAPI.map.needMove) {
+				utils.runMoveTo()
+			}
+			if(gmxAPI.map.needSetMode) {
+				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
+				gmxAPI.map.needSetMode = null;
+			}
+			if(gmxAPI.map.standartTools && gmxAPI.isMobile) {
+				gmxAPI.map.standartTools.remove();
+			}
+		}});
 	}
 	
 	var utils = null;							// Утилиты leafletProxy
@@ -4971,16 +4983,6 @@ var tt = 1;
 				setControlDIVInnerHTML();
 				setCenterPoint();
 				gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
-				if(gmxAPI.map.needMove) {
-					utils.runMoveTo();
-				}
-				if(gmxAPI.map.needSetMode) {
-					gmxAPI.map.setMode(gmxAPI.map.needSetMode);
-					gmxAPI.map.needSetMode = null;
-				}
-				if(gmxAPI.map.standartTools && gmxAPI.isMobile) {
-					gmxAPI.map.standartTools.remove();
-				}
 			}, 500);
 		}
 	}
