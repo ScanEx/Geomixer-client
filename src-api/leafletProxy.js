@@ -677,9 +677,9 @@
 		}
 		,
 		'runMoveTo': function(attr, zd)	{				//позиционирует карту по координатам
-			if(moveToTimer) clearTimeout(moveToTimer);
-			if(!zd) zd = 200;
-			moveToTimer = setTimeout(function() {
+			//if(moveToTimer) clearTimeout(moveToTimer);
+			//if(!zd) zd = 200;
+			//moveToTimer = setTimeout(function() {
 				if(!attr && !gmxAPI.map.needMove) return;
 				var flagInit = (gmxAPI.map.needMove ? true : false);
 				var px = (attr ? attr['x'] : (flagInit ? gmxAPI.map.needMove.x : 0));
@@ -687,8 +687,8 @@
 				var z = (attr ? attr['z'] : (flagInit ? gmxAPI.map.needMove.z : 1));
 				var pos = new L.LatLng(py, px);
 				gmxAPI.map.needMove = null;
-				LMap.setView(pos, z, flagInit);
-			}, zd);
+				LMap.setView(pos, z, gmxAPI._leaflet['zoomstart']);
+			//}, zd);
 		}
 		,
 		'getPixelMap': function()	{				// Получение текущий размер карты в pixels
@@ -2393,10 +2393,10 @@
 			var px = centr.lng;
 			var py = centr.lat;
 			if(gmxAPI.map.needMove) {
-				px = gmxAPI.map.needMove.x;
-				py = gmxAPI.map.needMove.y;
+				gmxAPI.map.needMove.z = currZ;
+			} else {
+				utils.runMoveTo({'x': px, 'y': py, 'z': currZ})
 			}
-			utils.runMoveTo({'x': px, 'y': py, 'z': currZ})
 		}
 		,
 		'checkMapSize':	function()	{				// Проверка изменения размеров карты
@@ -4190,9 +4190,11 @@
 			,'parentId': false
 		};
 		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapCreated', 'func': function(ph) {
-			if(gmxAPI.map.needMove) {
-				utils.runMoveTo()
-			}
+			setTimeout(function() {
+				if(gmxAPI.map.needMove) {
+					utils.runMoveTo();
+				}
+			}, 10);
 			if(gmxAPI.map.needSetMode) {
 				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
 				gmxAPI.map.needSetMode = null;
@@ -4306,7 +4308,6 @@
 			
 				if(currPosition.latlng && Math.abs(currPosition.latlng.x) > 720) {
 					var xx = currPosition.latlng.x % 360;
-					//utils.runMoveTo({'x': xx, 'y': currPosition.latlng.y, 'z': currPosition.z});
 					LMap.setView(new L.LatLng(currPosition.latlng.y, xx), currPosition.z, true);
 				}
 			
