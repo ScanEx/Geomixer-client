@@ -287,6 +287,7 @@
 	var chkDrawingObjects = function() {
 		for (var id in objects) {
 			var cObj = objects[id];
+			//if(cObj.stopDrawing) cObj.stopDrawing();
 			if(!cObj.geometry) cObj.remove();
 		}
 	};
@@ -766,6 +767,7 @@
 				lastPoint = {'x': x, 'y':y};
 				createDrawingObj();
 				gmxAPI._drawing['activeState'] = true;
+					domObj['stopDrawing'] = ret.stopDrawing;
 				if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 			}
 			currentObjectID = domObj.objectId;

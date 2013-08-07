@@ -109,8 +109,11 @@
 		if(item['crossOrigin']) imageObj.crossOrigin = item['crossOrigin'];
 		imageObj.onload = function() {
 			curCount--;
-			chkLoadedImage();
-			//setTimeout(function() { chkLoadedImage(); } , 25); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
+			if (gmxAPI.isIE) {
+				setTimeout(function() { chkLoadedImage(); } , 0); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
+			} else {
+				chkLoadedImage();
+			}
 		};
 		imageObj.onerror = function() {
 			curCount--;

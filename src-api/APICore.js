@@ -11,23 +11,29 @@
 (function()
 {
 
-var memoize = function(func)
+var memoize = function(func) {
+	var called = false;
+	var result;
+	return function()
 	{
-		var called = false;
-		var result;
-		return function()
+		if (!called)
 		{
-			if (!called)
-			{
-				result = func();
-				called = true;
-			}
-			return result;
+			result = func();
+			called = true;
 		}
-	};
+		return result;
+	}
+};
+var extent = function(ph, pt) {
+	for(var key in pt) {
+		ph[key] = pt[key];
+	}
+};
 
 window.PI = 3.14159265358979; //устарело - обратная совместимость
-window.gmxAPI = {
+if(!window.gmxAPI) window.gmxAPI = {};
+extent(window.gmxAPI,
+{
     mousePressed: false							// Флаг мышь нажата
 	,
     APILoaded: false							// Флаг возможности использования gmxAPI сторонними модулями
@@ -1762,7 +1768,7 @@ window.gmxAPI = {
 	'getTileListByBounds': function(bounds, z)	{		// получить список тайлов по bounds на определенном zoom
 		return gmxAPI.chkTileList({'bounds': bounds, 'z': z});
 	}
-}
+});
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);				// 111319.5;
 window.gmxAPI.lambertCoefY = 100*gmxAPI.distVincenty(0, 0, 0, 0.01)*180/Math.PI;	// 6335440.712613423;
