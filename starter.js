@@ -78,28 +78,7 @@ nsGmx.mapLayersList = {
 }
 
 var oSearchLeftMenu = new leftMenu();
-				
-gmxCore.loadModule("search", _getFileName("search.js"), function(){
-	var oSearchModule = gmxCore.getModule("search");
-	window.oSearchControl = new oSearchModule.SearchGeomixer();
-});
-gmxCore.addModulesCallback(["DrawingObjects"], function(){
-	var oDrawingObjectsModule = gmxCore.getModule("DrawingObjects");
-	window.oDrawingObjectGeomixer = new oDrawingObjectsModule.DrawingObjectGeomixer();
-});
 
-//Инициализация элементов управления
-var fnInitControls = function(){
-	window.oSearchControl.Init({
-		Menu: oSearchLeftMenu,
-		ContainerInput: document.getElementById('searchCanvas'),
-		ServerBase: globalFlashMap.geoSearchAPIRoot,
-		layersSearchFlag: true,
-		mapHelper: _mapHelper,
-		Map: globalFlashMap
-	});
-	window.oDrawingObjectGeomixer.Init(globalFlashMap);
-}
 // используется для сохранения специфичных параметров в пермалинке
 window.collectCustomParams = function()
 {
@@ -827,6 +806,12 @@ function loadMap(state)
                 
                 return false;
             });
+                        
+            //инициализация контролов пользовательских объектов
+            //соответствующий модуль уже загружен
+            var oDrawingObjectsModule = gmxCore.getModule("DrawingObjects");
+            window.oDrawingObjectGeomixer = new oDrawingObjectsModule.DrawingObjectGeomixer();
+            window.oDrawingObjectGeomixer.Init(globalFlashMap);
                 
             if (!data)
             {
@@ -926,6 +911,25 @@ function loadMap(state)
             
             _menuUp.defaultHash = 'layers';
             
+            //создаём тулбар
+            var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
+            var searchContainer = _div(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
+            _($$('iconPanel'), [_table([_tbody([_tr([
+                _td([iconContainer]), 
+                _td([searchContainer], [['css', 'padding', '0 10px 1px 50px'], ['css', 'width', '100%']])
+            ])])])]);
+            
+            //инициализация контролов поиска (модуль уже загружен)
+            var oSearchModule = gmxCore.getModule("search");
+            window.oSearchControl = new oSearchModule.SearchGeomixer();
+            window.oSearchControl.Init({
+                Menu: oSearchLeftMenu,
+                ContainerInput: document.getElementById('searchCanvas'),
+                ServerBase: globalFlashMap.geoSearchAPIRoot,
+                layersSearchFlag: true,
+                mapHelper: _mapHelper,
+                Map: globalFlashMap
+            });            
             
             _menuUp.createMenu = function()
             {
@@ -992,16 +996,6 @@ function loadMap(state)
             
             _leftIconPanel.add('fullscreenoff', _gtxt("Свернуть карту"), "img/toolbar/fullscreenoff.png", "img/toolbar/fullscreenoff_a.png", 
                                 function() { _toggleFullscreenIcon(false); }, null, true);
-                                
-            
-            //создаём тулбар
-            
-            var iconContainer = _div(null, [['css', 'borderLeft', '1px solid #216b9c']]);
-            var searchContainer = _div(null,[['dir','className','searchCanvas'],['attr','id','searchCanvas']]);
-            _($$('iconPanel'), [_table([_tbody([_tr([
-                _td([iconContainer]), 
-                _td([searchContainer], [['css', 'padding', '0 10px 1px 50px'], ['css', 'width', '100%']])
-            ])])])]);
             
             _iconPanel.create(iconContainer);
             
@@ -1067,9 +1061,7 @@ function loadMap(state)
                     _iconPanel.updateVisibility();
                 }
             }
-            
-            fnInitControls();
-            
+
             initEditUI();
             
             filterTemporalLayers();
