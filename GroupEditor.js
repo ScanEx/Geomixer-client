@@ -306,15 +306,15 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                             '<input type="radio" id="defEng" name="defLang" value="eng"></input><label for="defEng">eng</label>' + 
                         '</span>')[0],
             distUnit = $('<span class="defaultMapLangContainer">' + 
-                            '<input type="radio" id="distUnitAuto" name="distUnit" value="auto"></input><label for="distUnitAuto">auto</label>' + 
-                            '<input type="radio" id="distUnitM" name="distUnit" value="m"></input><label for="distUnitM">m</label>' + 
-                            '<input type="radio" id="distUnitKm" name="distUnit" value="km"></input><label for="distUnitKm">km</label>' + 
+                            '<input type="radio" id="distUnitAuto" name="distUnit" value="auto"></input><label for="distUnitAuto">' + _gtxt('units.auto') + '</label>' + 
+                            '<input type="radio" id="distUnitM" name="distUnit" value="m"></input><label for="distUnitM">' + _gtxt('units.m') + '</label>' + 
+                            '<input type="radio" id="distUnitKm" name="distUnit" value="km"></input><label for="distUnitKm">' + _gtxt('units.km') + '</label>' + 
                         '</span>')[0],
             squareUnit = $('<span class="defaultMapLangContainer">' + 
-                            '<input type="radio" id="squareUnitAuto" name="squareUnit" value="auto"></input><label for="squareUnitAuto">auto</label>' + 
-                            '<input type="radio" id="squareUnitM" name="squareUnit" value="m2"></input><label for="squareUnitM">m<sup>2</sup></label>' + 
-                            '<input type="radio" id="squareUnitHa" name="squareUnit" value="ha"></input><label for="squareUnitHa">ha</label>' + 
-                            '<input type="radio" id="squareUnitKm" name="squareUnit" value="km2"></input><label for="squareUnitKm">km<sup>2</sup></label>' + 
+                            '<input type="radio" id="squareUnitAuto" name="squareUnit" value="auto"></input><label for="squareUnitAuto">' + _gtxt('units.auto') + '</label>' + 
+                            '<input type="radio" id="squareUnitM" name="squareUnit" value="m2"></input><label for="squareUnitM">' + _gtxt('units.m2') + '</label>' + 
+                            '<input type="radio" id="squareUnitHa" name="squareUnit" value="ha"></input><label for="squareUnitHa">' + _gtxt('units.ha') + '</label>' + 
+                            '<input type="radio" id="squareUnitKm" name="squareUnit" value="km2"></input><label for="squareUnitKm">' + _gtxt('units.km2') + '</label>' + 
                         '</span>')[0],
 			downloadVectors = _checkbox(elemProperties.CanDownloadVectors, 'checkbox'),
 			downloadRasters = _checkbox(elemProperties.CanDownloadRasters, 'checkbox'),
