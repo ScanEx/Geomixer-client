@@ -807,12 +807,6 @@ function loadMap(state)
                 return false;
             });
                         
-            //инициализация контролов пользовательских объектов
-            //соответствующий модуль уже загружен
-            var oDrawingObjectsModule = gmxCore.getModule("DrawingObjects");
-            window.oDrawingObjectGeomixer = new oDrawingObjectsModule.DrawingObjectGeomixer();
-            window.oDrawingObjectGeomixer.Init(globalFlashMap);
-                
             if (!data)
             {
                 _menuUp.defaultHash = 'usage';
@@ -845,6 +839,12 @@ function loadMap(state)
                 
                 return;
             }
+            
+            //инициализация контролов пользовательских объектов
+            //соответствующий модуль уже загружен
+            var oDrawingObjectsModule = gmxCore.getModule("DrawingObjects");
+            window.oDrawingObjectGeomixer = new oDrawingObjectsModule.DrawingObjectGeomixer();
+            window.oDrawingObjectGeomixer.Init(globalFlashMap);
             
             //для всех слоёв должно выполняться следующее условие: если хотя бы одна групп-предков невидима, то слой тоже невидим.
             (function fixVisibilityConstrains (o, isVisible)
