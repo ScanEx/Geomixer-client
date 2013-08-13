@@ -1672,8 +1672,8 @@ var FireBurntRenderer3 = function( params )
                         var newItem = {
                             id: k,
                             properties: {
-                                scale: String(Math.sqrt(count)/5),
-                                // scale: Math.floor(Math.sqrt(count)*3),
+                                scale: String(Math.pow(Math.log(count+1), 1.3)/3.5),
+                                // scale: Math.floor(Math.sqrt(count)/5),
                                 count: count,
                                 label: count >= 10 ? count : null,
                                 startDate: strStartDate,
