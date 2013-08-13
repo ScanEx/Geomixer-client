@@ -1106,8 +1106,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 	var layerProperties = (gmxProperties.type !== 'layer' || !isFromList) ? gmxProperties : false,
 		copyFunc = function()
 		{
-			// если копируем слой из списка, но не из карты
-			if (layerProperties.type == 'layer' && isFromList)
+			if (layerProperties.type == 'layer')
 				layerProperties.content.geometry = from_merc_geometry(layerProperties.content.geometry);
 			
 			if (addToMap)
