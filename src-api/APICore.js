@@ -932,7 +932,7 @@ extent(window.gmxAPI,
 		if (type === 'km2')
 			return ("" + (Math.round(area/100)/10000)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. км", " sq.km");
 		if (type === 'ha')
-			return ("" + (Math.round(area/1000)/100)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" га", " ha");
+			return ("" + (Math.round(area/100)/100)) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" га", " ha");
 
 		if (area < 100000 || type === 'm2')
 			return Math.round(area) + gmxAPI.KOSMOSNIMKI_LOCALIZED(" кв. м", " sq. m");
