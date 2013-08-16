@@ -21,7 +21,7 @@ _translationsHash.addtext("eng", {
 var MapPlugins = function()
 {
     var _plugins = [];
-    var _pluginsByName = {};
+    var _params = [];
     
     //вместо массива из одного элемента передаём сам элемент
     var normalizeParams = function(params) {
@@ -33,83 +33,90 @@ var MapPlugins = function()
         return res;
     }
     
-    this.addPlugin = function(pluginName, pluginParams)
+    this.addPlugin = function(pluginName, pluginParams, onlyParams)
     {
-        if (pluginName in _pluginsByName)
-            return false;
+        _params[pluginName] = pluginParams || _params[pluginName] || {};
         
-        _pluginsByName[pluginName] = pluginParams || {};
+        if (!onlyParams && _plugins.indexOf(pluginName) === -1) {
+            _plugins.push(pluginName);
+        }
         
-        _plugins.push({name: pluginName, params: _pluginsByName[pluginName]});
         $(this).change();
         
         return true;
     }
     
-    this.each = function(callback)
-    {
+    this.each = function(callback) {
         for (var p = 0; p < _plugins.length; p++) {
-            callback(_plugins[p].name, _plugins[p].params);
+            callback(_plugins[p], _params[_plugins[p]] || {});
         }
     }
     
-    this.remove = function(pluginName)
-    {
-        delete _pluginsByName[pluginName];
-        for (var p = 0; p < _plugins.length; p++)
-            if (_plugins[p].name === pluginName)
-            {
-                _plugins.splice(p, 1);
-                $(this).change();
-                return;
-            }
+    this.remove = function(pluginName) {
+        var nameIndex = _plugins.indexOf(pluginName);
+        if (nameIndex !== -1) {
+            _plugins.splice(nameIndex, 1);
+            $(this).change();
+        }
     }
     
     this.isExist = function(pluginName)
     {
-        return pluginName in _pluginsByName;
+        return _plugins.indexOf(pluginName) !== -1;
     }
     
     this.getPluginParams = function(pluginName) {
-        return _pluginsByName[pluginName];
+        return _params[pluginName];
     }
     
     this.setPluginParams = function(pluginName, pluginParams) {
-        if (_pluginsByName[pluginName]) {
-            _pluginsByName[pluginName] = pluginParams;
-            for (var p = 0; p < _plugins.length; p++)
-                if (_plugins[p].name === pluginName)
-                {
-                    _plugins[p].params = pluginParams;
-                    $(this).change();
-                    return;
-                }
-        }
+        _params[pluginName] = pluginParams;
+        $(this).change();
     }
     
     //обновляем используемость и параметры плагинов
     this.updateGeomixerPlugins = function() {
         for (var p = 0; p < _plugins.length; p++) {
-            nsGmx.pluginsManager.setUsePlugin(_plugins[p].name, true);
-            nsGmx.pluginsManager.updateParams(_plugins[p].name, normalizeParams(_plugins[p].params));
+            nsGmx.pluginsManager.setUsePlugin(_plugins[p], true);
+        }
+        
+        for (var p in _params) {
+            nsGmx.pluginsManager.updateParams(p, normalizeParams(_params[p]));
         }
     }
     
-    this.load = function(data) {
-        _plugins = $.map(data, function(plugin) {
-            return typeof plugin === 'string' ? {name: plugin, params: {}} : plugin;
-        });
-        
-        _pluginsByName = {};
-        
-        for (var iP = 0; iP < _plugins.length; iP++) {
-            _pluginsByName[_plugins[iP].name] = _plugins[iP].params;
+    this.load = function(data, version) {
+        if (version === 1) {
+            _plugins = data;
+            _params = {};
+        } else if (version === 2) {
+            _plugins = [];
+            _params = {};
+            for (var p = 0; p < data.length; p++) {
+                _plugins.push(data[p].name);
+                _params[data[p].name] = data[p].params;
+            }
+        } else if (version === 3) {
+            _plugins = data.plugins;
+            _params = data.params;
         }
-        
     }
     
-    this.save = function() {
-        return $.extend(true, [], _plugins);
+    this.save = function(version) {
+        if (version === 1) {
+            return _plugins;
+        } else if (version === 2) {
+            var res = [];
+            _plugins.forEach(function(name) {
+                res.push({name: name, params: _params[name]});
+            })
+            return res;
+        } else if (version === 3) {
+            return {
+                plugins: _plugins,
+                params: _params
+            }
+        }
     }
 }
 
@@ -231,8 +238,16 @@ var MapPluginsWidget = function(container, mapPlugins)
             {
                 if ( plugin.pluginName && !plugin.mapPlugin && !mapPlugins.isExist(plugin.pluginName) )
                 {
+                    var editButton = makeImageButton("img/edit.png", "img/edit.png");
+                    $(editButton).addClass('pluginEditor-edit');
+                    editButton.onclick = function()
+                    {
+                        new MapPluginParamsWidget(mapPlugins, plugin.pluginName);
+                    }
+                    
                     var divRow = $('<div/>', {'class': 'pluginEditor-widgetElemCommon'})
                         .append($('<span/>').text(plugin.pluginName))
+                        .append(editButton)
                         .appendTo(container);
                 }
             })
@@ -297,33 +312,44 @@ _userObjects.addDataCollector('mapPlugins', {
     load: function(data)
     {
         if (data) {
-            _mapHelper.mapPlugins.load(data);
+            _mapHelper.mapPlugins.load(data, 1);
             _mapHelper.mapPlugins.updateGeomixerPlugins();
         }
     },
     collect: function() {
-        var res = [];
-        _mapHelper.mapPlugins.each(function(pluginName) {
-            res.push(pluginName);
-        })
-        
-        return res;
+        return _mapHelper.mapPlugins.save(1);
     }
 })
 
 //Вторая версия информации о плагинах карты.
 //Формат: [{name: pluginName1, params: {param: value, ...}}, ...]
 _userObjects.addDataCollector('mapPlugins_v2', {
-    collect: function()
-    {
-        return _mapHelper.mapPlugins.save();
-    },
     load: function(data)
     {
         if (data) {
-            _mapHelper.mapPlugins.load(data);
+            _mapHelper.mapPlugins.load(data, 2);
             _mapHelper.mapPlugins.updateGeomixerPlugins();
         }
+    },
+    collect: function()
+    {
+        return _mapHelper.mapPlugins.save(2);
+    }
+})
+
+//Третья версия информации о плагинах карты.
+//Формат: {plugins: [name1, ....], params: {name1: {param1: value1, ...}, ...}}
+_userObjects.addDataCollector('mapPlugins_v3', {
+    load: function(data)
+    {
+        if (data) {
+            _mapHelper.mapPlugins.load(data, 3);
+            _mapHelper.mapPlugins.updateGeomixerPlugins();
+        }
+    },
+    collect: function()
+    {
+        return _mapHelper.mapPlugins.save(3);
     }
 })
 
