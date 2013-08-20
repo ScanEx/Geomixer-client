@@ -384,8 +384,8 @@ function addCadastreInfoTool(){
 		'key': "cadastreInfo",
 		'activeStyle': { },
 		'regularStyle': { 'paddingLeft': '2px' },
-		'regularImageUrl': "http://projects.opengeo.org/common/geosilk/trunk/silk/information.png",
-		'activeImageUrl': "http://projects.opengeo.org/common/geosilk/trunk/silk/information.png",
+		'regularImageUrl': gmxCore.getModulePath("cadastre")+"information.png",
+		'activeImageUrl': gmxCore.getModulePath("cadastre")+"information_active.png",
 		'onClick': function(){
 			function createBalloonInfo(){
 				if(balloonSearch)
@@ -573,6 +573,9 @@ function addCadastreInfoTool(){
 					balloonInfo.setVisible(true);
 					balloonInfo.visible=true;
 					balloonInfo.div.innerHTML=html;
+					balloonInfo.addListener('onClose', function(obj){
+						cadastreLayerInfo.setVisible(false);
+					});
 					
 					var url=cadastreServer+"CadastreNew/CadastreSelected/MapServer/export?dpi=96&transparent=true&format=png32&layers="+showLayers+"&bboxSR=4326&imageSR=3395&size="+map.width()+","+map.height()+"&layerDefs="+str+"&f=image";
 					var urlBbox="&bbox="+map.getVisibleExtent().minX+","+map.getVisibleExtent().minY+","+map.getVisibleExtent().maxX+","+map.getVisibleExtent().maxY;
@@ -626,17 +629,59 @@ var publicInterface = {
 	Cadastre: cadastre,
 	loadCadastre: loadCadastre,
 	afterViewer: function(params){
-        params = params || {};
-        cadastreServer = params.cadastreProxy || '';
-        cadastreServer += params.cadastreServer || "http://maps.rosreestr.ru/arcgis/rest/services/";
-        
-        _menuUp.addChildItem({
-            id:'cadastre', 
-            title:_gtxt('Кадастровые данные'),
-            onsel:loadCadastre, 
-            onunsel:unloadCadastre
-        }, 'loadServerData');
-        
+		params = params || {};
+		cadastreServer = params.cadastreProxy || '';
+		cadastreServer += params.cadastreServer || "http://maps.rosreestr.ru/arcgis/rest/services/";
+
+		if(params.UIMode=="lite"){
+			console.log("on lite mode");
+
+			_map = gmxAPI.map || globalFlashMap;
+			if (!_map) return;
+
+			var cadastreTools = new gmxAPI._ToolsContainer('cadastre');
+			var liteCadastreLayer = _map.addObject();
+			var mapListener;
+
+			var loadCadastreLayer = function(){
+				var mapExtent = _map.getVisibleExtent();
+				var queryString = "&bbox="+merc_x(mapExtent.minX)+"%2C"+merc_y(mapExtent.minY)+"%2C"+merc_x(mapExtent.maxX)+"%2C"+merc_y(mapExtent.maxY)+"&bboxSR=3395&imageSR=3395&size=" +_map.width()+","+_map.height() + "&f=image";
+				var sUrl = cadastreServer+"CadastreNew/Cadastre/MapServer/export?dpi=96&transparent=true&format=png32"+queryString;	
+				liteCadastreLayer.setImageExtent({url:sUrl, extent: mapExtent, noCache: true});
+			}
+			liteCadastreLayer.setCopyright('<a href="http://rosreestr.ru">© Росреестр</a>');
+
+			var onCancelCadastreTools = function(){
+				_map.removeListener("onMoveEnd", mapListener);
+				liteCadastreLayer.setVisible(false);
+				cadastreLayerInfo.setVisible(false);
+				balloonInfo.remove();
+			}
+
+			var onClickCadastreTools = function(){
+				loadCadastreLayer();
+				mapListener = _map.addListener("onMoveEnd", loadCadastreLayer);
+				liteCadastreLayer.setVisible(true);
+			};
+			
+			var attr = {
+				'onClick': onClickCadastreTools,
+				'onCancel': onCancelCadastreTools,
+				'onmouseover': function() { this.style.color = "orange"; },
+				'onmouseout': function() { this.style.color = "wheat"; },
+				'hint': "Кадастр"
+			};
+			cadastreTools.addTool( 'cadastre', attr);
+			
+			addCadastreInfoTool();//add cadastre infoButton
+		}
+		else
+			_menuUp.addChildItem({
+					id:'cadastre', 
+					title:_gtxt('Кадастровые данные'),
+					onsel:loadCadastre, 
+					onunsel:unloadCadastre
+			}, 'loadServerData');
 	}
 };
 
