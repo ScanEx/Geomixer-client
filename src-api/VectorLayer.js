@@ -2557,6 +2557,7 @@
 			node['tilesLoadProgress'] = {};
 			node['tilesNeedRepaint'] = [];
 			node['loaderDrawFlags'] = {};
+			node['badTiles'] = {};
 			badRastersURL = {};
 			if (!attr.notClear) {
 				for(var key in node['tilesGeometry']) {
