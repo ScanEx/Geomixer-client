@@ -909,8 +909,6 @@ var createPageRasterSource = function(layerProperties) {
     ];
     
     return shownProperties;
-    // var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
-    // _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
 }
 
 var createPageMetadata = function(parent, layerProperties) {
@@ -943,31 +941,91 @@ var createPageAdvanced = function(parent, layerProperties) {
     }
         
     var shownProperties = [];
-    shownProperties.push({name: _gtxt("Шаблон названий объектов"), elem: nameObjectInput, trclass: 'layer-advanved-options'});
+    $('<div/>').append(
+        $('<span/>').text(_gtxt("Шаблон названий объектов")).css('margin-left', '5px'),
+        nameObjectInput
+    ).appendTo(parent);
             
     //мультивременной слой
     var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
-    var temporalLayerView = new nsGmx.TemporalLayerParamsControl(temporalLayerParent, layerProperties.get('Temporal'), []);
-        
-    var updateTemporalColumns = function() {
-        var parsedColumns = parseColumns(layerProperties.get('SourceColumns'));
-        temporalLayerView.updateColumns(parsedColumns.dateColumns);
+    var temporalProperties = layerProperties.get('Temporal');
+    var temporalLayerView = new nsGmx.TemporalLayerParamsControl(temporalLayerParent, temporalProperties, []);
+    var isTemporalCheckbox = $('<input/>')
+        .attr({type: 'checkbox', 'id': 'layer-temporal-checkbox'})
+        .change(function() {
+            temporalProperties.set('isTemporal', this.checked);
+        });
+    
+    var updateTemporalVisibility = function() {
+        var isTemporal = temporalProperties.get('isTemporal');
+        if (isTemporal) {
+            temporalFieldset.children('fieldset').removeAttr('disabled');
+        } else {
+            temporalFieldset.children('fieldset').attr('disabled', 'disabled');
         }
         
-    layerProperties.on('change:SourceColumns', updateTemporalColumns);
-    updateTemporalColumns();
+        if (isTemporalCheckbox[0].checked != isTemporal) {
+            isTemporalCheckbox[0].checked = isTemporal;
+        }
+    }
         
-    shownProperties.push({name: _gtxt("Данные с датой"), elem: temporalLayerParent, trclass: 'layer-advanved-options'});
+    var updateTemporalColumns = function() {
+        var parsedColumns = parseColumns(layerProperties.get('Columns'));
+        temporalLayerView.updateColumns(parsedColumns.dateColumns);
+        if (parsedColumns.dateColumns.length === 0) {
+            isTemporalCheckbox.attr('disabled', 'disabled');
+            $('legend label', temporalFieldset).css('color', 'gray');
+            $('legend', temporalFieldset).attr('title', _gtxt("Отсутствует временной атрибут"));
+            temporalProperties.set('isTemporal', false);
+        } else {
+            isTemporalCheckbox.removeAttr('disabled');
+            $('legend label', temporalFieldset).css('color', '');
+            $('legend', temporalFieldset).removeAttr('title');
+        }
+    }
+        
+    temporalProperties.on('change:isTemporal', updateTemporalVisibility);
+    layerProperties.on('change:Columns', updateTemporalColumns);
+        
+    var temporalFieldset = $('<fieldset/>').addClass('layer-fieldset').append(
+        $('<legend/>').append(
+            isTemporalCheckbox,
+            $('<label/>').text(_gtxt("Данные с датой")).attr('for', 'layer-temporal-checkbox')
+        ),
+        $('<fieldset/>').append(temporalLayerParent) //вложенный fieldset нужен из-за бага в Opera
+    ).appendTo(parent);
+    
+    updateTemporalVisibility();
+    updateTemporalColumns();
 
     //каталог растров
     var rasterCatalogDiv = $('<div/>');
 
     var rasterCatalogControl = new nsGmx.LayerRasterCatalogControl(rasterCatalogDiv, layerProperties.get('RC'));
+    var isRCCheckbox = $('<input/>')
+        .attr({type: 'checkbox', id: 'layer-rc-checkbox'})
+        .change(function() {
+            layerProperties.get('RC').set('IsRasterCatalog', this.checked);
+            if (this.checked) {
+                rcFieldset.children('fieldset').removeAttr('disabled');
+            } else {
+                rcFieldset.children('fieldset').attr('disabled', 'disabled');
+            }
+        });
+        
+    var isRasterCatalog = layerProperties.get('RC').get('IsRasterCatalog')
+    isRCCheckbox[0].checked = isRasterCatalog;
     
-    shownProperties.push({name: _gtxt("Каталог растров"), elem: rasterCatalogDiv[0], trid: 'RCCreate-container', trclass: 'layer-advanved-options'});
-    
-    var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70, leftcolumnclass: 'layer-advanced-title'});
-    _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])], [['css', 'height', '100%'], ['css', 'overflowY', 'auto']])]);
+    var rcFieldset = $('<fieldset/>').addClass('layer-fieldset').append(
+        $('<legend/>').append(
+            isRCCheckbox,
+            $('<label/>').text(_gtxt("Каталог растров")).attr('for', 'layer-rc-checkbox')
+        ),
+        $('<fieldset/>').append(rasterCatalogDiv) //вложенный fieldset нужен из-за бага в Opera
+    ).appendTo(parent);
+    if (!isRasterCatalog) {
+        rcFieldset.children('fieldset').attr('disabled', 'disabled');
+    }
 }
 
 var LayerEditor = function(div, type, properties, treeView, params) {
@@ -1033,7 +1091,6 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     if (type === 'Vector') {
         createPageAdvanced(advancedContainer, layerProperties);
     }
-    
             
     if (div) {
         layerProperties.on({

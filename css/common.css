@@ -885,7 +885,7 @@ skype_pnh_container
 
 .TemporalLayer table
 {
-	width: 100%;
+    clear: both;
 }
 
 .TemporalLayer td
@@ -1321,6 +1321,7 @@ div.layersScroll
 .RCCreate-params 
 {
     margin: 10px 0px 0px 3px;
+    clear: both;
 }
 
 .RCCreate-zoom-input
@@ -1340,8 +1341,9 @@ div.layersScroll
 
 .RCCreate-advanced-link
 {
-    float: right;
-    margin-right: 3px;
+    /*float: right;
+    margin-right: 3px;*/
+    margin-left: 3px;
 }
 
 .RCCreate-header
@@ -1420,6 +1422,43 @@ div.layersScroll
 {
     padding: 3px 0px;
     vertical-align: top;
+}
+
+.layer-fieldset
+{
+    padding-bottom: 5px;
+    border: 1px solid #DEDEDE;
+    margin-bottom: 10px;
+}
+
+.layer-fieldset > [disabled] *
+{
+    color: gray;
+}
+
+.layer-fieldset > fieldset
+{
+    border: none;
+}
+
+.layer-fieldset > legend
+{
+    padding: 0px 2px;
+    margin-left: 4px;
+}
+
+.layer-fieldset > legend > input
+{
+    margin-right: 3px;
+}
+
+.layer-fieldset > legend *
+{
+    vertical-align: middle;
+}
+
+.layer-fieldset-invisible {
+    border: none;
 }
 
 .defaultMapLangContainer

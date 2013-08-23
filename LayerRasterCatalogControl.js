@@ -3,7 +3,7 @@
         "LayerRCControl.minZoom"         : "Мин. зум",
         "LayerRCControl.titleTemplate"   : "Шаблон имени",
         "LayerRCControl.pathTemplate"    : "Шаблон тайлов",
-        "LayerRCControl.advancedLink"    : "Дополнительные параметры",
+        "LayerRCControl.advancedLink"    : "Дополнительно",
         "LayerRCControl.layerTagTitle"   : "Параметр слоя",
         "LayerRCControl.attributeTitle"  : "Атрибут объекта"
     });
@@ -12,7 +12,7 @@
         "LayerRCControl.minZoom"         : "Min zoom",
         "LayerRCControl.titleTemplate"   : "Title template",
         "LayerRCControl.pathTemplate"    : "Path template",
-        "LayerRCControl.advancedLink"    : "Advanced parameters",
+        "LayerRCControl.advancedLink"    : "Advanced",
         "LayerRCControl.layerTagTitle"   : "Layer parameter",
         "LayerRCControl.attributeTitle"  : "Object Attribute"
     });
@@ -35,7 +35,7 @@
     @memberOf nsGmx
     @class
     */
-    nsGmx.LayerRasterCatalogControl = function(container, rcProperties, params)
+    nsGmx.LayerRasterCatalogControl = function(container, rcProperties)
     {
         var advancedMode = !!(rcProperties.get('RCMaskForRasterPath') || rcProperties.get('RCMaskForRasterTitle') || rcProperties.isAnyLinks());
         
@@ -43,8 +43,9 @@
         {
             var isRasterCatalog = rcProperties.get('IsRasterCatalog');
             $('.RCCreate-advanced', container).toggle(advancedMode);
-            $('.RCCreate-advanced-link, .RCCreate-params', container).toggle(isRasterCatalog);
-            $('.RCCreate-tagContainer', container).toggle(advancedMode && isRasterCatalog);
+            $('.RCCreate-advanced-link', container).toggle(!advancedMode);
+            //$('.RCCreate-tagContainer', container).toggle(advancedMode && isRasterCatalog);
+            $('.RCCreate-tagContainer', container).toggle(advancedMode);
         }
         
         rcProperties.on('change:IsRasterCatalog', updateVisibility);
@@ -58,8 +59,6 @@
             advancedMode = !advancedMode;
             updateVisibility();
         });
-        
-        var RCHeader = $('<div/>', {'class': 'RCCreate-header'}).append(advancedParamsLink, RCCheckbox).appendTo(container);
         
         RCCheckbox[0].checked = rcProperties.get('IsRasterCatalog');
         
@@ -121,6 +120,9 @@
                 layerTags.eachValid(function(id, tag, value) { columnTagLinks[value] = tag;});
                 rcProperties.set('ColumnTagLinks', columnTagLinks);
             })
+            
+            advancedParamsLink.appendTo(container);
+            //var RCHeader = $('<div/>', {'class': 'RCCreate-header'}).append(advancedParamsLink).appendTo(container);
             
             updateVisibility();
         })

@@ -53,8 +53,7 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
 {
     var optionsHtml = nsGmx._.map([1, 4, 16, 64, 256, 1024], function(a) {return '<option name="'+ a + '">' + a + '</option>'}).join('');
     var html = 
-        '<input id="isTemporalCheckbox" type="checkbox"></input>' + 
-        '<span class="buttonLink RCCreate-advanced-link"><%= _gtxt("LayerRCControl.advancedLink") %></span>' +
+        //'<input id="isTemporalCheckbox" type="checkbox"></input>' + 
         '<table><tbody>' + 
             '<tr>' +
                 '<td><%= _gtxt("Макс. период на экране") %></td>' + 
@@ -73,18 +72,21 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
                 '<td><select id="maxPeriod" class="selectStyle"><%= optionsHtml %></select></td>' + 
             '</tr>' + 
         '</tbody></table>' + 
-        '<div class="temporal-control-noattr"> <%= _gtxt("Отсутствует временной атрибут") %> </div>';
+        //'<div class="temporal-control-noattr"> <%= _gtxt("Отсутствует временной атрибут") %> </div>' +
+        '<span class="buttonLink RCCreate-advanced-link"><%= _gtxt("LayerRCControl.advancedLink") %></span>';
         
     $(parentDiv).html(nsGmx._.template(html)({optionsHtml: optionsHtml}));
     
     var updateVisibility = function() {
         var isTemporal = paramsModel.get('isTemporal');
-        $(parentDiv).children(':not(#isTemporalCheckbox)').toggle(isTemporal);
-        if (isTemporal) {
-            $('.temporal-advanced', parentDiv).toggle(isAdvancedMode);
-            $('.temporal-columns', parentDiv).toggle(_columns.length > 1);
-            $('.temporal-control-noattr', parentDiv).toggle(_columns.length === 0);
-        }
+        //$(parentDiv).children(':not(#isTemporalCheckbox)').toggle(isTemporal);
+        //$(parentDiv).children().toggle(isTemporal);
+        //if (isTemporal) {
+        $('.temporal-advanced', parentDiv).toggle(isAdvancedMode);
+        $('.RCCreate-advanced-link', parentDiv).toggle(!isAdvancedMode);
+        $('.temporal-columns', parentDiv).toggle(_columns.length > 1);
+        //$('.temporal-control-noattr', parentDiv).toggle(_columns.length === 0);
+        //}
     }
     
     var updateColumnsSelect = function()
@@ -120,14 +122,25 @@ nsGmx.TemporalLayerParamsControl = function( parentDiv, paramsModel, columns )
         updateVisibility();
     })
     
-    if (paramsModel.get('isTemporal')) {
-        $('#isTemporalCheckbox', parentDiv).attr('checked', 'checked');
-    }
-    $('#isTemporalCheckbox', parentDiv).change(function()
-    {
-        paramsModel.set('isTemporal', this.checked);
-        updateVisibility();
-    });
+    // if (paramsModel.get('isTemporal')) {
+        // $('#isTemporalCheckbox', parentDiv).attr('checked', 'checked');
+    // }
+    
+    // $('#isTemporalCheckbox', parentDiv).change(function()
+    // {
+        // paramsModel.set('isTemporal', this.checked);
+        // updateVisibility();
+    // });
+    
+    paramsModel.on('change:isTemporal', updateVisibility);
+    // paramsModel.on('change:isTemporal', function() {
+        // if (paramsModel.get('isTemporal')) {
+            // $('#isTemporalCheckbox', parentDiv).attr('checked', 'checked');
+        // } else {
+            // $('#isTemporalCheckbox', parentDiv).removeAttr('checked');
+        // }
+        // updateVisibility();
+    // })
     
     updateColumnsSelect();
     $('#columnSelect', parentDiv).change(function()

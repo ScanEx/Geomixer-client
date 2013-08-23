@@ -552,7 +552,7 @@ _translationsHash.hash["eng"] = {
 	"Колонка даты": "Date column",
 	"Минимальный период": "Min. period (days)",
 	"Максимальный период": "Max. period (days)",
-    "Отсутствует временной атрибут": "Missing date attribute",
+    "Отсутствует временной атрибут": "Missing attribute with type 'Date'",
     "Период 1 день": "Period 1 day",
     "Показывать на карте данные за": "Show data on map within",
     "1 день": "single day",
