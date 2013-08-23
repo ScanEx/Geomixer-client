@@ -25,31 +25,43 @@ var doCalculate = function(dateMin, dateMax, callback)
     for (var iL = 0; iL < theMap.layers.length; iL++)
     (function(layer)
     {
-        if (layer.properties.title !== 'слики') 
+        //if (layer.properties.title !== 'слики')
+        //    return;
+        var parseArr = layer.properties.title.match(/слики_(\d\d)(\d\d)(\d\d\d\d)/);
+        if (!parseArr) {
             return;
+        }
+        
+        var date = new Date(parseArr[3], parseArr[2] - 1, parseArr[1]);
+        if (date < dateMin || date > dateMax) {
+            return;
+        }
         
         var deferred = $.Deferred();
         deferreds.push(deferred);
         toProcess++;
-        layer.getFeatures(function(features)
+        console.log(layer.properties.title);
+        layer.getFeatures('', function(features)
         {
             var isError = false;
             for (var iF = 0; iF < features.length; iF++)
             {
-                var date;
-                try {
-                    date = $.datepicker.parseDate("dd.mm.yy", features[iF].properties[dateAttr]);
-                }
-                catch (e)
-                {
-                    isError = true;
-                    continue;
-                }
+                // var date;
+                // try {
+                    // date = $.datepicker.parseDate("dd.mm.yy", features[iF].properties[dateAttr]);
+                // }
+                // catch (e)
+                // {
+                    // isError = true;
+                    // continue;
+                // }
                 
-                if (date < dateMin || date > dateMax) 
-                    continue;
+                // if (date < dateMin || date > dateMax) 
+                    // continue;
                         
-                totalSquare += parseInt(features[iF].properties[areaAttr]);
+                // totalSquare += parseInt(features[iF].properties[areaAttr]);
+                console.log(layer.properties.title, features[iF].geometry, theMap.getArea(features[iF].geometry));
+                totalSquare += theMap.getArea(features[iF].geometry);
             }
             
             if (isError && _layersTree.treeModel)
@@ -82,6 +94,7 @@ var draw = function()
     {
         doCalculate(calendar.getDateBegin(), calendar.getDateEnd(), function(total)
         {
+            console.log('Общая прощадь: ' + total);
             alert('Общая прощадь: ' + total);
         });
     });
