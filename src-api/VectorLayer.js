@@ -583,7 +583,8 @@
 						drawMe = function() {
 							var tarr = node['loaderDrawFlags'][stID];
 							if(!tarr) {		// список тайлов был обновлен - без перерисовки
-								gmxAPI.addDebugWarnings({'func': 'drawMe', 'nodeID': node.id, 'loaderDrawFlags': tarr, 'alert': 'bad loaderDrawFlags'});
+								//gmxAPI.addDebugWarnings({'func': 'drawMe', 'nodeID': node.id, 'loaderDrawFlags': tarr, 'alert': 'bad loaderDrawFlags'});
+								node.reloadTilesList(100);
 								return;
 							}
 							for (var i = 0; i < tarr.length; i++)
