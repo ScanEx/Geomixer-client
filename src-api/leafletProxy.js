@@ -2387,7 +2387,7 @@
 			var maxz = LMap.getMaxZoom();
 			if(currZ > maxz) currZ = maxz;
 			else if(currZ < minz) currZ = minz;
-			gmxAPI.map.zoomControl.setZoom(currZ);
+			if(gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setZoom(currZ);
 			
 			var centr = LMap.getCenter();
 			var px = centr.lng;
@@ -4975,9 +4975,12 @@ var tt = 1;
 				var setControlDIVInnerHTML = function ()
 				{
 					var baseLayersTools = gmxAPI.map.baseLayersTools;
-					var currTool = baseLayersTools.getToolByName(baseLayersTools.activeToolName);
-					div.style.backgroundColor = utils.dec2hex(currTool.backgroundColor);
-					var color = (currTool.backgroundColor === 1 ? 'white' : '#216b9c');
+					var color = '#216b9c';
+					if(baseLayersTools) {
+						var currTool = baseLayersTools.getToolByName(baseLayersTools.activeToolName);
+						div.style.backgroundColor = utils.dec2hex(currTool.backgroundColor);
+						color = (currTool.backgroundColor === 1 ? 'white' : '#216b9c');
+					}
 					centerControlDIV.innerHTML = '<svg viewBox="0 0 12 12" height="12" width="12" style=""><g><path d="M6 0L6 12" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g><g><path d="M0 6L12 6" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g></svg>';
 					return false;
 				};

@@ -1807,6 +1807,7 @@
 		,
 		addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
 		{
+			if(!gmxAPI.map.toolsAll) return null;
 			var ret = gmxAPI.map.toolsAll.standartTools.addTool(tn, {
 				'key': tn,
 				'activeStyle': {},
