@@ -3002,7 +3002,7 @@
 			node['isOnScene'] = isOnScene;
 			if(!isOnScene) return;
 
-			if(imageObj.src.indexOf(node['imageURL']) == -1) return;
+			//if(imageObj.src.indexOf(node['imageURL']) == -1) return;
 			if(!zoom) zoom = LMap.getZoom();
 			if(gmxAPI._leaflet['waitSetImage'] > 5) { waitRedraw(); return; }
 			gmxAPI._leaflet['waitSetImage']++;
@@ -3042,7 +3042,7 @@
 				var ry = h/ph.hh;
 				
 				var points = [[ph['x1'], ph['y1']], [ph['x2'], ph['y2']], [ph['x4'], ph['y4']], [ph['x3'], ph['y3']]];
-				if(rx != 1 || ry != 1) {
+				if(!node['setImageExtent'] && (rx != 1 || ry != 1)) {
 					data = gmxAPI._leaflet['ProjectiveImage']({
 						'imageObj': imageObj
 						,'points': points
@@ -3147,7 +3147,8 @@
 						}
 						node['refreshMe']();
 					}
-					,'onerror': function(){
+					,'onerror': function() {
+						gmxAPI.addDebugWarnings({'func': 'setImage', 'Error': 'not found image: ' + src});
 					}
 				};
 				gmxAPI._leaflet['imageLoader'].push(ph);
@@ -3190,7 +3191,8 @@
 		if(!node['isSetImage']) {
 			createIcon();
 		} else {
-			if(attr['url'] != node['imageURL']) drawMe(node['imageCanvas']);
+			//if(attr['url'] != node['imageURL']) 
+			drawMe(node['imageCanvas']);
 		}
 	}
 
