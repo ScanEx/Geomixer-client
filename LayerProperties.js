@@ -173,7 +173,7 @@ var LayerProperties = Backbone.Model.extend({
             var curBorder = _mapHelper.drawingBorders.get(name);
             
             reqParams.Legend = attrs.Legend;
-            reqParams.TilePath = attrs.TilePath.Path;
+            if (attrs.TilePath.Path) reqParams.TilePath = attrs.TilePath.Path;
             reqParams.GeometryChanged = geometryChanged;
             
             if (typeof curBorder === 'undefined') {
