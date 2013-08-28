@@ -906,10 +906,12 @@
 			if(!itemPropHiden['toFilters'] || !itemPropHiden['toFilters'].length) return out;		// обьект не попал в фильтр
 			var fID = itemPropHiden['toFilters'][0];
 			var filter = gmxAPI.mapNodes[fID];
-			if(filter && mapNodes[fID]['handlers'][evName]) {						// не найден фильтр
+			if(filter && mapNodes[fID]['handlers'][evName]) {			// не найден фильтр
 				out = filter;
 			} else if(evName in node['handlers']) {						// Есть handlers на слое
 				out = gmxNode;
+			} else {								// Есть handlers на родителях
+				out = utils.getNodeHandler(node.id, evName);
 			}
 			return out;
 		}
@@ -1707,11 +1709,11 @@
 			var drawTileID = attr['drawTileID'];
 			var tKey = attr['tKey'];
 			//node['objectCounts'] = 0;
-			var chkArr = function(parr) {		// проверка массива обьектов
+			var chkArr = function(parr, flag) {		// проверка массива обьектов
 				for (var i1 = 0; i1 < parr.length; i1++)
 				{
 					var geom = parr[i1];
-					if(!isInTile(geom, attr)) continue;	// обьект не пересекает границы тайла
+					if(!flag && !isInTile(geom, attr)) continue;	// обьект не пересекает границы тайла
 					if(!('_isFilters' in geom.propHiden)) chkObjectFilters(geom, attr['tileSize']);
 					if(!geom.propHiden['_isFilters']) continue;		// если нет фильтра пропускаем
 
@@ -1739,7 +1741,7 @@
 			}
 			if(node['addedItems'].length) {
 				//node['objectCounts'] += node['addedItems'].length;
-				chkArr(node['addedItems']);
+				chkArr(node['addedItems'], true);
 			}
 			
 			if('sortItems' in node) {

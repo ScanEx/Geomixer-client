@@ -1685,12 +1685,13 @@
 	}
 
 	// Найти Handler ноды рекусивно
-	function getNodeHandler(id, evName)	{
+	var getNodeHandler = function(id, evName)	{
 		var node = mapNodes[id];
 		if(!node) return null;
 		if(evName in node['handlers']) return node;
 		return getNodeHandler(node['parentId'], evName);
 	}
+	utils.getNodeHandler = getNodeHandler;
 
 	// добавить Handlers для leaflet нод
 	function setNodeHandlers(id)	{

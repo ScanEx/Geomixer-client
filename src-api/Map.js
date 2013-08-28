@@ -129,7 +129,7 @@
 			var x = gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
 				y = gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2);
 			var z = map.getBestZ(minx, miny, maxx, maxy);
-			var maxZ = map.zoomControl.getMaxZoom();
+			var maxZ = (map.zoomControl ? map.zoomControl.getMaxZoom() : 17);
 			map.moveTo(x, y, (z > maxZ ? maxZ : z));
 		}
 		map.slideToExtent = function(minx, miny, maxx, maxy)
@@ -137,7 +137,7 @@
 			var x = gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
 				y = gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2);
 			var z = map.getBestZ(minx, miny, maxx, maxy);
-			var maxZ = map.zoomControl.getMaxZoom();
+			var maxZ = (map.zoomControl ? map.zoomControl.getMaxZoom() : 17);
 			map.slideTo(x, y, (z > maxZ ? maxZ : z));
 		}
 		
