@@ -2993,8 +2993,7 @@
 		}
 
 		var repaint = function(imageObj, canvas, zoom) {
-			//console.log('repaint____: ', LMap.getZoom(), node['isLargeImage'], node.isVisible, imageObj);
-			if(node.isVisible == false || !imageObj) return;
+			if(node.isVisible == false) return;
 			var w = imageObj.width;
 			var h = imageObj.height;
 			var ph = getPixelPoints(attr, w, h);
@@ -3002,8 +3001,9 @@
 			if(!canvas) return;
 			var isOnScene = (bounds ? gmxAPI._leaflet['utils'].chkBoundsVisible(bounds) : false);
 			node['isOnScene'] = isOnScene;
-			if(!isOnScene || node['isLargeImage'] === false) return;
+			if(!isOnScene) return;
 
+			//if(imageObj.src.indexOf(node['imageURL']) == -1) return;
 			if(!zoom) zoom = LMap.getZoom();
 			if(gmxAPI._leaflet['waitSetImage'] > 5) { waitRedraw(); return; }
 			gmxAPI._leaflet['waitSetImage']++;
@@ -3012,6 +3012,7 @@
 			var data = { 'canvas': imageObj	};
 			var ww = ph.ww;
 			var hh = ph.hh;
+			//if(!node['setImageExtent']) {
 				var point = LMap.project(new L.LatLng(0, -180), zoom);
 				var p180 = LMap.project(new L.LatLng(0, 180), zoom);
 				var worldSize = p180.x - point.x;
@@ -3037,6 +3038,7 @@
 					hh = hView;
 					node['isLargeImage'] = true;
 				}
+				//attr['reposition']();
 				var rx = w/ph.ww;
 				var ry = h/ph.hh;
 				
@@ -3053,6 +3055,7 @@
 						,'limit': 2
 					});
 				}
+			//}
 
 			var paintPolygon = function (ph, content) {
 				if(!content) return;
@@ -3105,8 +3108,6 @@
 			attr['reposition']();
 			data = null;
 			imageObj = null;
-			//canvas = node['imageCanvas'] = null;
-			
 			--gmxAPI._leaflet['waitSetImage'];
 		}
 
@@ -3136,41 +3137,37 @@
 			if(!imageObj) {
 				var src = attr['url'];
 				//var src = '1.jpg';
-				node['imageURL'] = encodeURIComponent(src);
+				node['imageURL'] = src.replace(/\.\.\//g, '');
 				var ph = {
 					'src': src
 					,'crossOrigin': 'anonymous'
 					,'callback': function(img) {
-						if(node['imageURL'] === encodeURIComponent(img.src)) {
-							imageObj = img;
-							node['refreshMe'] = function() {
-								if(canvas) repaint(imageObj, canvas);
-							}
-							node['refreshMe']();
+						imageObj = img;
+						node['refreshMe'] = function() {
+							if(canvas) repaint(imageObj, canvas);
 						}
+						node['refreshMe']();
 					}
 					,'onerror': function() {
 						gmxAPI.addDebugWarnings({'func': 'setImage', 'Error': 'not found image: ' + src});
 					}
 				};
 				gmxAPI._leaflet['imageLoader'].push(ph);
-			} else if(canvas) {
+			}
+			if(node['refreshMe'] && imageObj && canvas) {
 				repaint(imageObj, canvas);
 			}
 		}
 		
 		var createIcon = function() {
-			node['isLargeImage'] = null;
 			if(node['leaflet']) {
 				pGroup.removeLayer(node['leaflet']);
 			}
 			var canvasIcon = L.canvasIcon({
 				className: 'my-canvas-icon'
 				,'node': node
-				,'drawMe': function(canv) {
-					node['isLargeImage'] = null;
-					drawMe(canv);
-				}
+				,'drawMe': drawMe
+				//,iconAnchor: new L.Point(12, 12) // also can be set through CSS
 			});
 			var vBounds = LMap.getBounds();
 			var vpNorthWest = vBounds.getNorthWest();
@@ -3181,18 +3178,10 @@
 			if(pNode) utils.setVisibleNode({'obj': pNode, 'attr': true});
 			setNodeHandlers(node.id);
 
-			LMap.on('zoomend', function(e) {
-				if(!node['setImageExtent']) {
-					node['isLargeImage'] = null;
-				}
-			});
+			LMap.on('zoomend', function(e) { waitRedraw();});
 			LMap.on('moveend', function(e) {
-				if(node['setImageExtent']) {
-					imageObj = null;
-					node['isLargeImage'] = null;
-				} else if(imageObj && canvas) {
-					repaint(imageObj, canvas);
-				}
+				//if(!node['isLargeImage']) return;
+				waitRedraw();
 			});
 			
 			LMap.on('zoomstart', function(e) {
@@ -3203,6 +3192,7 @@
 		if(!node['isSetImage']) {
 			createIcon();
 		} else {
+			//if(attr['url'] != node['imageURL']) 
 			drawMe(node['imageCanvas']);
 		}
 	}
