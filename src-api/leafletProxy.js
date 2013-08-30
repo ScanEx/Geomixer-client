@@ -1958,6 +1958,9 @@
 						} else if(node.geometry['type']) {
 							gmxAPI._leaflet['drawManager'].add(id);				// добавим в менеджер отрисовки
 						}
+						if(node['type'] === 'VectorLayer') {					// нода VectorLayer
+							node.checkFilters(0);
+						}
 					}
 				}
 				else
