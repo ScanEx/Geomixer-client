@@ -1,7 +1,7 @@
 ﻿//Плагин фильтрации слоёв со снимками по дневным/ночным пролётам
 //Параметры:
 //  * dayNightAttribute {String} - название атрибутивного параметра, по которому нужно фильтровать пролёты. Параметр должен иметь тип "bool"
-//  * layers {Array of String} - массив ID слоёв
+//  * layers {String[]} - массив ID слоёв
 (function(){
 
 _translationsHash.addtext("rus", {
@@ -18,6 +18,10 @@ _translationsHash.addtext("eng", {
                      
 var DayNightFilteringControl = function(container, params)
 {
+    if (typeof params.layers === 'string') {
+        params.layers = [params.layers];
+    }
+    
     var dayCheckbox = $(_checkbox(true, 'checkbox')).addClass('daynight-check');
     var nightCheckbox = $(_checkbox(true, 'checkbox')).addClass('daynight-check');
     
@@ -60,7 +64,7 @@ var DayNightFilteringControl = function(container, params)
                     }
                     else
                     {
-                        var newFilter = (lastFilter && lastFilter != "") ? ("(" + lastFilter + ") AND" + filterString) : filterString;
+                        var newFilter = lastFilter ? ("(" + lastFilter + ") AND " + filterString) : filterString;
                         filters[iFilter].setFilter(newFilter);
                     }
                 }
@@ -69,7 +73,6 @@ var DayNightFilteringControl = function(container, params)
     
     $('input', container).change(setFilter);
     setFilter();
-    
     
     this.isDay  = function() { return dayCheckbox.attr('checked'); };
     this.setDay  = function(isDay)
@@ -124,20 +127,7 @@ gmxCore.addModule('DayNightFilteringPlugin',
             })
         }
     }, 
-    { init: function(module, path)
-        {
-            var doLoadCss = function()
-            {
-                path = path || window.gmxJSHost || "";
-                $.getCSS(path + "DayNightFilteringPlugin.css");
-            }
-            
-            if ('getCSS' in $)
-                doLoadCss();
-            else
-                $.getScript(path + "../jquery/jquery.getCSS.js", doLoadCss);
-        }
-    }
+    { css: "DayNightFilteringPlugin.css" }
 );
 
 })();
