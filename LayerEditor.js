@@ -11,7 +11,6 @@
 */
 var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
 {
-    //var fields = params.fields;
     var updateWidget = function() {
         var parsedColumns = parseColumns(sourceColumns);
 	
@@ -159,8 +158,7 @@ var ManualAttrModel = function() {
     };
     
     this.deleteAttribute = function(idx)
-            {
-        //delete _attributes[idx];
+    {
         _attributes.splice(idx, 1);
         $(this).triggerHandler('delAttribute');
         $(this).triggerHandler('change');
@@ -181,7 +179,6 @@ var ManualAttrModel = function() {
     this.initFromServerFormat = function(serverColumns) {
         _attributes = [];
         $.each(serverColumns || [], function(i, column) {
-            //if (!column.IsPrimary && !column.IsIdentity && !column.IsComputed && column.ColumnSimpleType !== 'geometry') {
             var type = nsGmx._.find(ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType});
             _attributes.push({
                 type: type || {server: column.ColumnSimpleType}, 
@@ -191,7 +188,6 @@ var ManualAttrModel = function() {
                 IsIdentity: column.IsIdentity,
                 IsComputed: column.IsComputed
             });
-            //}
         })
         $(this).triggerHandler('newAttribute');
         $(this).triggerHandler('change');
@@ -229,6 +225,8 @@ var ManualAttrView = function()
     var _parent = null;
     var _model = null;
     var _trs = [];
+    var _isActive = true;
+    var _this = this;
                 
     var createTypeSelector = function()
     {
@@ -271,6 +269,7 @@ var ManualAttrView = function()
             });
             
             var deleteIcon = makeImageButton("img/close.png", "img/close_orange.png");
+            $(deleteIcon).addClass('removeIcon');
             deleteIcon.attrIdx = i;
             deleteIcon.onclick = function()
             {
@@ -284,9 +283,21 @@ var ManualAttrView = function()
             
         var tbody = _tbody(_trs);
         $(tbody).sortable({axis: 'y', handle: '.moveIcon'});
-        $(_parent).append(_table([tbody], [['dir', 'className', 'customAttributes']]));
+        $(_parent).append($('<fieldset/>').css('border', 'none').append(_table([tbody], [['dir', 'className', 'customAttributes']])));
+        _this.setActive(_isActive);
     }
-        
+    
+    this.setActive = function(isActive) {
+        _isActive = isActive;
+        var fieldset = $(_parent).children('fieldset');
+        if (isActive) {
+            fieldset.removeAttr('disabled');
+        } else {
+            fieldset.attr('disabled', 'disabled');
+        }
+        $('.moveIcon, .removeIcon', fieldset).toggle(isActive);
+    }
+    
     this.init = function(parent, model)
     {
         _parent = parent;
@@ -446,35 +457,8 @@ var createPageVectorSource = function(layerProperties) {
         })
     }
     
-    var fileColumnsContainer = _div();
-    var fileAttrModel = new ManualAttrModel();
-    if ( layerProperties.get('SourceType') === 'file' ) {
-        fileAttrModel.initFromServerFormat(layerProperties.get('Columns'));
-    }
-    
-    var fileAttrView = new ManualAttrView();
-    fileAttrView.init(fileColumnsContainer, fileAttrModel);
-    
-    var fileAddAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
-    fileAddAttribute.onclick = function()
-    {
-        fileAttrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
-    }
-    
-    var hideFileColumns = function() {
-        $(fileColumnsContainer).hide();
-        $(fileAddAttribute).hide();
-    }
-    
-    layerName || hideFileColumns();
-    layerProperties.on('change:ShapePath', hideFileColumns);
-    
-    $(fileAttrModel).change(function() {
-        layerProperties.set('Columns', fileAttrModel.toServerFormat());
-    });
-    
     var sourceFile = _div(null, [['dir', 'id', 'fileSource' + layerName]]);
-    _(sourceFile, [shapePathInput, shapeFileLink, encodingParent, xlsColumnsParent, fileAddAttribute, fileColumnsContainer]);
+    _(sourceFile, [shapePathInput, shapeFileLink, encodingParent, xlsColumnsParent/*, fileAddAttribute, fileColumnsContainer*/]);
     
     /*------------ Источник: таблица ------------*/
     var tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
@@ -534,12 +518,6 @@ var createPageVectorSource = function(layerProperties) {
         
     /*------------ Источник: вручную ------------*/
     var attrModel = new ManualAttrModel();
-    
-    var addAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
-    addAttribute.onclick = function()
-    {
-        attrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
-    }
         
     var geometryTypes = [
         {title: _gtxt('многоугольники'), type: 'polygon'   , className: 'manual-polygon'},
@@ -585,37 +563,16 @@ var createPageVectorSource = function(layerProperties) {
     var geometryTypeTitle = _span([_t(_gtxt('Геометрия') + ': ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]);
     var attrContainer = _div([
         _div([
-            layerName ? _div(): _div([geometryTypeTitle, geometryTypeContainer[0]]),
-            addAttribute
+            layerName ? _div(): _div([geometryTypeTitle, geometryTypeContainer[0]])
         ]),
         _div([attrViewParent], [['css', 'margin', '3px']])
     ], [['css', 'marginLeft', '3px']]);
                 
-    if ( sourceType === 'manual' ) {
-        attrModel.initFromServerFormat(layerProperties.get('Columns'));
-    }
-                    
-    var attrView = new ManualAttrView();
-    attrView.init(attrViewParent, attrModel);
-                    
     var sourceManual = _div([attrContainer], [['dir', 'id', 'manualSource' + layerName]]);
                     
-    var updateColumnsByManual = function() {
-        var sourceColumns = attrModel.toServerFormat();
-        layerProperties.set('Columns', sourceColumns);
-        layerProperties.set('SourceColumns', sourceColumns);
-    }
-                    
-    $(attrModel).change(updateColumnsByManual);
-                    
-    if (sourceType === 'manual') {
-        updateColumnsByManual();
-    }
-                
     /*------------ Общее ------------*/
     layerProperties.on({
         'change:SourceColumns': function() {
-            //var parsedColumns = parseColumns(layerProperties.get('SourceColumns'));
             var sourceColumns = layerProperties.get('SourceColumns');
             tableColumnsWidget.updateColumns(sourceColumns);
             fileColumnsWidget.updateColumns(sourceColumns);
@@ -670,7 +627,6 @@ var createPageVectorSource = function(layerProperties) {
                 layerProperties.set('GeometryColumnsLatLng', tableSelectedColumns);
                 layerProperties.set('TableCS', TableCSSelect.find(':selected').val());
             } else if (selectedSource == 2) {
-                updateColumnsByManual();
                 layerProperties.set('SourceType', 'manual');
             }
         }
@@ -689,11 +645,11 @@ var createPageVectorSource = function(layerProperties) {
         ]);
     }
     
-    shownProperties.push({tr: sourceTr2});
+    if (!layerName || sourceType !== 'manual') {
+        shownProperties.push({tr: sourceTr2});
+    }
 
     return shownProperties;
-    // var trs = _mapHelper.createPropertiesTable(shownProperties, layerProperties.attributes, {leftWidth: 70});
-    // _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])])]);
 }
 
 var createPageRasterSource = function(layerProperties) {
@@ -759,7 +715,7 @@ var createPageRasterSource = function(layerProperties) {
             shapeVisible(false);
                     
             var geometry = layerProperties.get('Geometry');
-                    // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
+            // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
             geometry.coordinates[0][0][0] += 0.00001;
             geometry.coordinates[0][0][1] += 0.00001;
                     
@@ -911,6 +867,52 @@ var createPageRasterSource = function(layerProperties) {
     return shownProperties;
 }
 
+var createPageAttributes = function(parent, props) {
+
+    var isNewLayer = !props.get('Name');
+    var fileColumnsContainer = _div();
+    var fileAttrModel = new ManualAttrModel();
+    var type = props.get('SourceType');
+    
+    if (isNewLayer) {
+        props.on('change:SourceColumns', function() {
+            if (props.get('SourceType') !== 'manual') {
+                fileAttrModel.initFromServerFormat(props.get('SourceColumns'));
+            }
+        });
+    }
+    
+    fileAttrModel.initFromServerFormat(props.get('Columns'));
+    
+    var fileAddAttribute = makeLinkButton(_gtxt("Добавить атрибут"));
+    
+    var fileAttrView = new ManualAttrView();
+    fileAttrView.init(fileColumnsContainer, fileAttrModel);
+    var allowEdit = type === 'manual' || (!isNewLayer && type === 'file');
+    fileAttrView.setActive(allowEdit);
+    $(fileAddAttribute).toggle(allowEdit);
+    
+    fileAddAttribute.onclick = function()
+    {
+        fileAttrModel.addAttribute(ManualAttrModel.TYPES.STRING, "NewAttribute");
+    }
+    
+    $(fileAttrModel).change(function() {
+        var isManual = props.get('SourceType') === 'manual';
+        props.set(isManual || !isNewLayer ? 'Columns' : 'SourceColumns', fileAttrModel.toServerFormat());
+    });
+    
+    $(parent).append(fileAddAttribute, fileColumnsContainer);
+
+    props.on('change:SourceType', function() {
+        var type = props.get('SourceType');
+        var allowEdit = type === 'manual' || (!isNewLayer && type === 'file');
+        fileAttrModel.initFromServerFormat(props.get(allowEdit ? 'Columns' : 'SourceColumns'));
+        fileAttrView.setActive(allowEdit);
+        $(fileAddAttribute).toggle(allowEdit);
+    });
+}
+
 var createPageMetadata = function(parent, layerProperties) {
     nsGmx.TagMetaInfo.loadFromServer(function(tagsInfo)
     {
@@ -1048,8 +1050,14 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     var mainContainer     = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
     var metadataContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
     var advancedContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
+    var attrContainer     = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
     
     tabs.push({title: _gtxt('Общие'), name: 'main', container: mainContainer});
+    
+    if (type === 'Vector') {
+        tabs.push({title: _gtxt('Поля'), name: 'attrs', container: attrContainer});
+    }
+    
     tabs.push({title: _gtxt('Метаданные'), name: 'metadata', container: metadataContainer});
     
     if (type === 'Vector') {
@@ -1090,6 +1098,7 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     
     if (type === 'Vector') {
         createPageAdvanced(advancedContainer, layerProperties);
+        createPageAttributes(attrContainer, layerProperties);
     }
             
     if (div) {
@@ -1242,9 +1251,6 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
     
     var saveMenuCanvas = _div([layerEditor.getSaveButton()]);
     
-    // $(parent).css('height', '100%');
-    
-    // $(parent).empty().append(tabMenu, saveMenuCanvas);
     $(parent).empty().append(_table([
         _tr([_td([tabMenu])], [['css', 'height', '100%'], ['css', 'verticalAlign', 'top']]),
         _tr([_td([_div(null, [['css', 'height', '1px']]), saveMenuCanvas])])
