@@ -3139,9 +3139,10 @@
 				node['imageURL'] = encodeURIComponent(src);
 				var ph = {
 					'src': src
+					,'uri': node['imageURL']
 					,'crossOrigin': 'anonymous'
-					,'callback': function(img) {
-						if(encodeURIComponent(img.src).indexOf(node['imageURL']) != -1) {
+					,'callback': function(img, pt) {
+						if(pt.uri === node['imageURL']) {
 							imageObj = img;
 							node['refreshMe'] = function() {
 								if(canvas) repaint(imageObj, canvas);

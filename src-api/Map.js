@@ -363,8 +363,8 @@
 		}
 		if('_addZoomControl' in gmxAPI) {
 			gmxAPI._addZoomControl(gmxAPI._allToolsDIV);
-			map.setMinMaxZoom(1, 17);
 		}
+		map.setMinMaxZoom(1, 17);
 
 		if (gmxAPI._drawing) {
 			map.drawing = gmxAPI._drawing;

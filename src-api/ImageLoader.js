@@ -60,9 +60,9 @@
 				if(first.isError) {
 					if(it.onerror) it.onerror(null);
 				} else if(first.imageObj) {
-					if(it.callback) it.callback(first.imageObj);
+					if(it.callback) it.callback(first.imageObj, it);
 				} else if(first.svgPattern) {
-					if(it.callback) it.callback(first.svgPattern, true);
+					if(it.callback) it.callback(first.svgPattern, true, it);
 				}
 			}
 			//itemsCache[item.src] = [first];
@@ -137,7 +137,7 @@
 			if(pitem.isError) {
 				if(item.onerror) item.onerror(null);
 			} else if(pitem.imageObj) {
-				if(item.callback) item.callback(pitem.imageObj);
+				if(item.callback) item.callback(pitem.imageObj, item);
 			} else {
 				itemsCache[item.src].push(item);
 			}
