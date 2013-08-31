@@ -2336,6 +2336,14 @@ function loadMapJSON(hostName, mapName, callback, onError)
 					else callback(layers);
 				}
 			}
+			,null
+			,function(ev)
+			{
+				var txt = gmxAPI.KOSMOSNIMKI_LOCALIZED("Сбой при получении карты!", "Error in map request!");
+				gmxAPI.addDebugWarnings({'func': 'TileSender.ashx?ModeKey=map&MapName=' + mapName, 'handler': 'sendCrossDomainJSONRequest', 'alert': txt});
+				if (onError) onError();
+				else callback(null);
+			}
 		);
 	}
 
