@@ -60,7 +60,7 @@
 				if(first.isError) {
 					if(it.onerror) it.onerror(null);
 				} else if(first.imageObj) {
-					if(it.callback) it.callback(first.imageObj, it);
+					if(it.callback) it.callback(first.imageObj, false, it);
 				} else if(first.svgPattern) {
 					if(it.callback) it.callback(first.svgPattern, true, it);
 				}
@@ -137,7 +137,7 @@
 			if(pitem.isError) {
 				if(item.onerror) item.onerror(null);
 			} else if(pitem.imageObj) {
-				if(item.callback) item.callback(pitem.imageObj, item);
+				if(item.callback) item.callback(pitem.imageObj, false, item);
 			} else {
 				itemsCache[item.src].push(item);
 			}

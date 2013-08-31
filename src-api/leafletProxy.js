@@ -3035,7 +3035,8 @@
 				if(wView < ww || hView < hh) {
 					deltaX = ph['boundsP'].min.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
 					deltaY = ph['boundsP'].min.y - vp1.y;
-					posLatLng = vpNorthWest;
+					//posLatLng = vpNorthWest;
+					posLatLng = LMap.unproject(new L.Point(LMap._mapPane._leaflet_pos.x, LMap._mapPane._leaflet_pos.y));
 					ww = wView;
 					hh = hView;
 					node['isLargeImage'] = true;
@@ -3122,7 +3123,10 @@
 		}
 
 		attr['reposition'] = function() {
-			if(node['leaflet']) node['leaflet'].setLatLng(posLatLng);
+			if(node['leaflet']) {
+				//node['leaflet'].setLatLng(posLatLng);
+				L.DomUtil.setPosition(node.imageCanvas, new L.Point(-LMap._mapPane._leaflet_pos.x, -LMap._mapPane._leaflet_pos.y));
+			}
 		}
 
 		var redrawTimer = null;
@@ -3144,7 +3148,7 @@
 					'src': src
 					,'uri': node['imageURL']
 					,'crossOrigin': 'anonymous'
-					,'callback': function(img, pt) {
+					,'callback': function(img, svgFlag, pt) {
 						if(pt.uri === node['imageURL']) {
 							imageObj = img;
 							node['refreshMe'] = function() {
