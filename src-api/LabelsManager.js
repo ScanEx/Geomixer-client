@@ -13,7 +13,7 @@
 
 	var repaintItems = function()	{			// отложенная перерисовка
 		if(timer) clearTimeout(timer);
-		timer = setTimeout(repaint, 20);
+		timer = setTimeout(repaint, 100);
 	}
 	var prepareStyle = function(style)	{		// подготовка стиля
 		var size = style['label']['size'] || 12;
@@ -85,15 +85,10 @@
 	
 	var repaint = function() {				// перерисовка
 		if(!canvas || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['zoomstart']) return false;
-		if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
-		var zoom = LMap.getZoom();
-		//gmxAPI._leaflet['mInPixel'] = Math.pow(2, zoom)/156543.033928041;
+		if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(LMap.getZoom());
 		var mInPixel = gmxAPI._leaflet['mInPixel'];
-
 		var vBounds = LMap.getBounds();
 		var vpNorthWest = vBounds.getNorthWest();
-		var mx = gmxAPI.merc_x(vpNorthWest.lng);
-		var my = gmxAPI.merc_y(vpNorthWest.lat);
 		var vpSouthEast = vBounds.getSouthEast();
 		var vBoundsMerc = new L.Bounds();
 		if(vpSouthEast.lng - vpNorthWest.lng > 360) {
@@ -104,15 +99,15 @@
 			vBoundsMerc.extend(new L.Point(gmxAPI.merc_x(vpSouthEast.lng), gmxAPI.merc_y(vpSouthEast.lat)));
 		}
 
-		var contPoint = LMap.latLngToContainerPoint(vpNorthWest);
-
-		var vp1 = LMap.project(vpNorthWest, zoom);
-		var vp2 = LMap.project(vpSouthEast, zoom);
-		var wView = vp2.x - vp1.x;
-		var hView = vp2.y - vp1.y;
+		var center = LMap.getCenter();
+		var mx = gmxAPI.merc_x(center.lng);
+		var my = gmxAPI.merc_y(center.lat);
+		var wView = LMap._size.x;
+		var hView = LMap._size.y;
 		canvas.width = wView;
 		canvas.height = hView;
-		marker.setLatLng(vpNorthWest);
+		wView /= 2;
+		hView /= 2;
 		var ctx = canvas.getContext('2d');
 		var labelBounds = [];
 		for(var id in itemsHash) {
@@ -121,31 +116,23 @@
 			if(item['bounds'] && !item['bounds'].intersects(vBoundsMerc)) continue;		// обьект за пределами видимости
 			var align = item['style']['align'];
 			var dx = item['sx']/2 + 1;
-			var dy = item['sy']/2 - 1 - contPoint.y;
-			//if(!align) align = 'center';
+			var dy = item['sy']/2 - 1;
 			if(align === 'right') {
 				dx -= (item.extent.x + item['style']['size']);
 			} else if(align === 'center') {
 				dx = -item.extent.x/2 + 1;
 				dy = item.extent.y/2;
-				//if(item['style']['iconSize']) {
-					//dx += item['style']['iconSize'].x/2 + 1;
-					//dy += item['style']['iconSize'].y/2;
-				//}
 			}
 
-			var lx = (item.point.x - mx) * mInPixel + dx - 1; 		lx = (0.5 + lx) << 0;
-			var ly = (my - item.point.y) * mInPixel + dy - 1;		ly = (0.5 + ly) << 0;
+			var lx = wView + (item.point.x - mx) * mInPixel + dx - 1; 		lx = (0.5 + lx) << 0;
+			var ly = hView + (my - item.point.y) * mInPixel + dy - 1;		ly = (0.5 + ly) << 0;
 			var flag = true;			// проверка пересечения уже нарисованных labels
 			var lxx = lx + item.extent.x;
 			var lyy = ly + item.extent.y;
 			for (var i = 0; i < labelBounds.length; i++)
 			{
 				var prev = labelBounds[i];
-				if(lx > prev.max.x) continue;
-				if(lxx < prev.min.x) continue;
-				if(ly > prev.max.y) continue;
-				if(lyy < prev.min.y) continue;
+				if(lx > prev.max.x || lxx < prev.min.x || ly > prev.max.y || lyy < prev.min.y) continue;
 				flag = false;
 				break;
 			}
@@ -166,6 +153,7 @@
 			}
 		}
 		labelBounds = null;
+		L.DomUtil.setPosition(canvas, new L.Point(-LMap._mapPane._leaflet_pos.x, -LMap._mapPane._leaflet_pos.y));
 	}
 	var drawMe = function(pt) {				// установка таймера
 		canvas = pt;
@@ -183,6 +171,8 @@
 				,'drawMe': drawMe
 			});
 			marker =  new L.GMXMarker([0,0], {icon: canvasIcon, 'toPaneName': 'popupPane', 'clickable': false, 'draggable': false, 'zIndexOffset': -1000});
+			marker._setPos = function (pos) {
+			}
 				
 			LMap.addLayer(marker);
 			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': repaintItems});
