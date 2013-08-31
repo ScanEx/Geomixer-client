@@ -430,7 +430,7 @@
 			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'setDepth', 'bringToBottom',
 			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
 			'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
-			'setHandler', 'setVisibilityFilter', //'remove', 'addListener', 'removeListener',
+			'setHandler', 'setVisibilityFilter', 'removeListener', //'remove', 'addListener',
 			'setClusters', 'addImageProcessingHook',
 			'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
 		];
@@ -506,7 +506,7 @@
 					for (var i = 0; i < obj.filters.length; i++)
 						obj.filters[i].removeListener(eventName, eID);	// Удаляем массив события eventName по id события слоя
 				}
-				
+
 			}
 			obj._observerOnChange = null;
 			obj.addObserver = function(o, onChange, attr)
@@ -740,6 +740,19 @@
 					deferred.push(function() { obj[name].call(obj, p1, p2, p3, p4); });
 				}
 			})(deferredMethodNames[i]);
+
+			obj.addListener = function(eventName, handler, level)
+			{
+				var evID = gmxAPI.newFlashMapId();
+				deferred.push(function() {
+					gmxAPI._listeners.addListener({'obj': obj, 'evID': evID, 'eventName': eventName, 'func': handler, 'level': level});
+					for (var i = 0; i < obj.filters.length; i++) {
+						gmxAPI._listeners.addListener({'level': level, 'pID': evID, 'obj': obj.filters[i], 'eventName': eventName, 'func': handler});
+					}
+				});
+				return evID;
+			}
+
 			if (gmxAPI.proxyType === 'leaflet') obj.bringToDepth(zIndex);
 			if (!isRaster)
 			{
@@ -810,7 +823,6 @@
 							obj.filters[i].setClusters(attr);
 						});
 					}
-					
 				})(i);
 			}
 		}

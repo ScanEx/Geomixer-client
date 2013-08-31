@@ -1951,7 +1951,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		var func = ph['func'];
 		var level = ph['level'] || 0;
 		var arr = getArr(eventName, obj);
-		var id = gmxAPI.newFlashMapId();
+		var id = (ph['evID'] ? ph['evID'] : gmxAPI.newFlashMapId());
 		var pt = {"id": id, "func": func, "level": level };
 		if(pID) pt['pID'] = pID;
 		arr.push(pt);
