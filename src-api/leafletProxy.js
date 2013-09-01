@@ -3035,8 +3035,8 @@
 				if(wView < ww || hView < hh) {
 					deltaX = ph['boundsP'].min.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
 					deltaY = ph['boundsP'].min.y - vp1.y;
-					//posLatLng = vpNorthWest;
-					posLatLng = LMap.unproject(new L.Point(LMap._mapPane._leaflet_pos.x, LMap._mapPane._leaflet_pos.y));
+					posLatLng = vpNorthWest;
+					//posLatLng = LMap.unproject(new L.Point(LMap._mapPane._leaflet_pos.x, LMap._mapPane._leaflet_pos.y));
 					ww = wView;
 					hh = hView;
 					node['isLargeImage'] = true;
@@ -3124,8 +3124,8 @@
 
 		attr['reposition'] = function() {
 			if(node['leaflet']) {
-				//node['leaflet'].setLatLng(posLatLng);
-				L.DomUtil.setPosition(node.imageCanvas, new L.Point(-LMap._mapPane._leaflet_pos.x, -LMap._mapPane._leaflet_pos.y));
+				if(!node['setImageExtent']) node['leaflet'].setLatLng(posLatLng);
+				else L.DomUtil.setPosition(node.imageCanvas, new L.Point(-LMap._mapPane._leaflet_pos.x, -LMap._mapPane._leaflet_pos.y));
 			}
 		}
 
