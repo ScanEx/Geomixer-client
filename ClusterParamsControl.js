@@ -77,7 +77,9 @@
         
         var initRenderStyle = ph.RenderStyle || {marker:{size:3}, outline: {color: 0xff0000, opacity: 100, thickness: 2}};
         
-        var resObject = _mapHelper.createStyleEditor(clusterStyleContainer[0], initRenderStyle, "point", true);
+        //предполагаем что модуль уже загружен
+        //TODO: или это не так?
+        var resObject = gmxCore.getModule('LayerStylesEditor').createStyleEditor(clusterStyleContainer[0], initRenderStyle, "point", true);
         
         $(resObject).change(function()
         {
