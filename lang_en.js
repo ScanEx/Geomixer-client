@@ -95,6 +95,7 @@ _translationsHash.hash["eng"] = {
     "Значение" : "Value",
     "Метаданные": "Metadata",
     "Поля": "Attributes",
+    "Редактировать поля": "Edit attributes",
 	"URL сервера" : "Server URL",
 	"Формат изображения" : "Image format",
 	"Введите имя gml-файла для скачивания:" : "Enter gml-file name to download:",

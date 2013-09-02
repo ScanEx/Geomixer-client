@@ -321,7 +321,7 @@ var ManualAttrView = function()
     }
 };
 
-var createPageMain = function(parent, layerProperties) {
+var createPageMain = function(parent, layerProperties, tabSelector) {
 
     var title = _input(null,[['attr','fieldName','title'],['attr','value',layerProperties.get('Title')],['dir','className','inputStyle'],['css','width','220px']]);
     title.onkeyup = function() {
@@ -377,7 +377,7 @@ var createPageMain = function(parent, layerProperties) {
             shownProperties.push({name: _gtxt("Легенда"), field: 'Legend', elem: legend});
             
     if (layerProperties.get('Type') === "Vector")
-        shownProperties = shownProperties.concat(createPageVectorSource(layerProperties));
+        shownProperties = shownProperties.concat(createPageVectorSource(layerProperties, tabSelector));
     else
         shownProperties = shownProperties.concat(createPageRasterSource(layerProperties));
         
@@ -385,7 +385,7 @@ var createPageMain = function(parent, layerProperties) {
     _(parent, [_div([_table([_tbody(trs)],[['dir','className','propertiesTable']])], [['css', 'height', '100%'], ['css', 'overflowY', 'auto']])]);
 }
 
-var createPageVectorSource = function(layerProperties) {
+var createPageVectorSource = function(layerProperties, tabSelector) {
     var LatLngColumnsModel = new gmxCore.getModule('LayerProperties').LatLngColumnsModel;
     var shownProperties = [];
     var layerName = layerProperties.get('Name');
@@ -559,15 +559,20 @@ var createPageVectorSource = function(layerProperties) {
     
     layerProperties.set('GeometryType', geometryTypeWidget.getActiveType());
                 
+    var editAttributeLink = $('<span/>').addClass('buttonLink').text(_gtxt('Редактировать поля')).click(function() {
+        tabSelector.selectTab('attrs');
+    })
+    
     var attrViewParent = _div();
     var geometryTypeTitle = _span([_t(_gtxt('Геометрия') + ': ')], [['css', 'height', '20px'], ['css', 'verticalAlign', 'middle']]);
     var attrContainer = _div([
         _div([
-            layerName ? _div(): _div([geometryTypeTitle, geometryTypeContainer[0]])
+            layerName ? _div(): _div([geometryTypeTitle, geometryTypeContainer[0]]),
+            editAttributeLink[0]
         ]),
         _div([attrViewParent], [['css', 'margin', '3px']])
     ], [['css', 'marginLeft', '3px']]);
-                
+    
     var sourceManual = _div([attrContainer], [['dir', 'id', 'manualSource' + layerName]]);
                     
     /*------------ Общее ------------*/
@@ -943,10 +948,6 @@ var createPageAdvanced = function(parent, layerProperties) {
     }
         
     var shownProperties = [];
-    $('<div/>').append(
-        $('<span/>').text(_gtxt("Шаблон названий объектов")).css('margin-left', '5px'),
-        nameObjectInput
-    ).appendTo(parent);
             
     //мультивременной слой
     var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
@@ -1025,6 +1026,12 @@ var createPageAdvanced = function(parent, layerProperties) {
         ),
         $('<fieldset/>').append(rasterCatalogDiv) //вложенный fieldset нужен из-за бага в Opera
     ).appendTo(parent);
+    
+    $('<div/>').append(
+        $('<span/>').text(_gtxt("Шаблон названий объектов")).css('margin-left', '5px'),
+        nameObjectInput
+    ).appendTo(parent);
+    
     if (!isRasterCatalog) {
         rcFieldset.children('fieldset').attr('disabled', 'disabled');
     }
@@ -1093,7 +1100,7 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     
     var origLayerProperties = layerProperties.clone();
     
-    createPageMain(mainContainer, layerProperties);
+    createPageMain(mainContainer, layerProperties, params.tabSelector);
     createPageMetadata(metadataContainer, layerProperties);
     
     if (type === 'Vector') {
@@ -1233,6 +1240,19 @@ var LayerEditor = function(div, type, properties, treeView, params) {
 */
 var createLayerEditorProperties = function(div, type, parent, properties, treeView, params)
 {
+    var tabSelectorInterface = {
+        selectTab: function(tabName) {
+            var selectedTab = $(tabMenu).tabs('option', 'selected');
+            $.each(tabs, function(i, tab) {
+                if (tab.name === tabName && i !== selectedTab) {
+                    $(tabMenu).tabs("select", i);
+                }
+            })
+        }
+    }
+    params = params || {};
+    params.tabSelector = tabSelectorInterface;
+    
     var layerEditor = new nsGmx.LayerEditor(div, type, properties, treeView, params);
     
     var id = 'layertabs' + (div ? div.gmxProperties.content.properties.name : '');
@@ -1273,16 +1293,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
     
     $(saveMenuCanvas).toggle(selectIndex < originalTabs.length);
     
-    params.createdCallback && params.createdCallback({
-        selectTab: function(tabName) {
-            var selectedTab = $(tabMenu).tabs('option', 'selected');
-            $.each(tabs, function(i, tab) {
-                if (tab.name === tabName && i !== selectedTab) {
-                    $(tabMenu).tabs("select", i);
-                }
-            })
-        }
-    })
+    params.createdCallback && params.createdCallback(tabSelectorInterface);
 }
 
 nsGmx.LayerEditor = LayerEditor;
