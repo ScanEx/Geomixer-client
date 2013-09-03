@@ -1069,11 +1069,9 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			{
 				var id = 'layertabs' + elemProperties.name,
 					divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
-					divStyles = _div(null,[['css', 'height', '100%'], ['css', 'overflowY', 'auto']]),
 					divQuicklook,
 					tabMenu,
-                    divStylesExternal = _div([divStyles], [['attr','id','styles' + id], ['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]),
-                    moreTabs = [{title: _gtxt("Стили"), name: 'styles', container: divStylesExternal}];
+                    moreTabs = [];
 				
 				if (elemProperties.GeometryType == 'polygon' &&
 					elemProperties.description &&
@@ -1085,21 +1083,10 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 					_(divQuicklook, [_this.createTiledQuicklookCanvas(elemProperties, elemProperties.attributes)]);
                     moreTabs.push({title: _gtxt("Накладываемое изображение"), name: 'quicklook', container: divQuicklook});
 				}
-                
-                var styleEditor = null;
-                gmxCore.loadModule('LayerStylesEditor').done(function(module) {
-                    styleEditor = new module.LayerStylesEditor(div, divStyles, openedStyleIndex);
-                    styleEditor.setAllFilters();
-                })
-				
+
 				var pos = nsGmx.Utils.getDialogPos(div, true, 390),
                     updateFunc = function()
                     {
-                        if (styleEditor) {
-                            elemProperties.styles = styleEditor.getUpdatedStyles();
-                            treeView.findTreeElem(div).elem.content.properties = elemProperties;
-                        }
-                        
                         if (elemProperties.GeometryType == 'polygon' &&
 							elemProperties.description &&
 							String(elemProperties.description).toLowerCase().indexOf('спутниковое покрытие') == 0 &&
@@ -1126,43 +1113,9 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 					closeFunc = function()
 					{
                         updateFunc();
-                        
-                        if (styleEditor) {
-                            var newStyles = styleEditor.getUpdatedStyles();
-                                multiStyleParent = $(div).children('[multiStyle]')[0],
-                                parentIcon = $(div).children("[styleType]")[0];
-                            
-                            
-                            styleEditor.removeColorPickers();
-                                                    
-                            var multiFiltersFlag = (parentIcon.getAttribute('styleType') == 'multi' && styleEditor.getStyleCount() > 1), // было много стилей и осталось
-                                colorIconFlag = (parentIcon.getAttribute('styleType') == 'color' && styleEditor.getStyleCount() == 1 && 
-                                                (typeof newStyles[0].RenderStyle.marker != 'undefined') && (typeof newStyles[0].RenderStyle.marker.image == 'undefined')); // была не иконка и осталась
-                            
-                            if (multiFiltersFlag) {}
-                            else if (colorIconFlag) {}
-                            else
-                            {
-                                var newIcon = _this.createStylesEditorIcon(newStyles, elemProperties.GeometryType.toLowerCase());
-                                
-                                $(parentIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));
-                            }
-                            
-                            removeChilds(multiStyleParent);
-                            
-                            _this.createMultiStyle(elemProperties, treeView, multiStyleParent);
-                        
-                            gmxCore.loadModule('TinyMCELoader', function() {
-                                $('.balloonEditor', divDialog).each(function() {
-                                    tinyMCE.execCommand("mceRemoveControl", true, $(this).attr('id'));
-                                })
-                            })
-                        }
-						
 						return false;
 					};
 				
-                var createdDef = $.Deferred();
 				_this.createLoadingLayerEditorProperties(div, divProperties, layerProperties, {
                     doneCallback: function()
                     {
@@ -1175,8 +1128,6 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                         _this.layerEditorsHash[elemProperties.name] = layerEditor;
                         _this.layerEditorsHash[elemProperties.name].closeFunc = closeFunc;
                         _this.layerEditorsHash[elemProperties.name].updateFunc = updateFunc;
-                        
-                        createdDef.resolve();
                     }
                 });
 				
@@ -1186,16 +1137,9 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
                     delete _this.layerEditorsHash[elemProperties.name];
                 });
                 
-                createdDef.done(function(){
-                    _mapHelper.updateTinyMCE(divProperties);
-                })
-                
 				// при сохранении карты сбросим все временные стили в json карты
 				divProperties.closeFunc = closeFunc;
 				divProperties.updateFunc = updateFunc;
-								
-				if (selected == 'styles' && openedStyleIndex > 0)
-					divProperties.parentNode.scrollTop = 58 + openedStyleIndex * 32;
 			};
 		
 		if (!this.attrValues[mapName])
@@ -1399,7 +1343,8 @@ mapHelper.prototype.createMultiStyle = function(elem, treeView, multiStyleParent
 			{
 				iconSpan.onclick = function()
 				{
-					_mapHelper.createLayerEditor(multiStyleParent.parentNode, treeView, 'styles', i);
+                    nsGmx.createStylesDialog(elem, treeView, i);
+					//_mapHelper.createLayerEditor(multiStyleParent.parentNode, treeView, 'styles', i);
 				}
 			})(i);
 		}
@@ -1551,7 +1496,6 @@ mapHelper.prototype.print = function()
 					
 					if (o.geometry.type != "POINT")
 					{
-						//var style = $(o.canvas).find("div.colorIcon")[0].getStyle();
 						var style = o.getStyle();
 						
 						elem.thickness = style.regular.outline.thickness;
@@ -1786,3 +1730,6 @@ nsGmx.createMapEditor = gmxCore.createDeferredFunction('GroupEditor', 'createMap
 
 //Редактирование свойств слоя
 nsGmx.createLayerEditorProperties = gmxCore.createDeferredFunction('LayerEditor', 'createLayerEditorProperties');
+
+//Редактирование стилей векторного слоя
+nsGmx.createStylesDialog = gmxCore.createDeferredFunction('LayerStylesEditor', 'createStylesDialog');

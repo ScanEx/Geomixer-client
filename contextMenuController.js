@@ -243,6 +243,18 @@ nsGmx.ContextMenuController.addContextMenuElem({
 }, 'Layer');
 
 nsGmx.ContextMenuController.addContextMenuElem({
+	title: function() { return _gtxt("Стили"); },
+	isVisible: function(context)
+	{
+		return !context.layerManagerFlag && context.elem.type === "Vector" && _queryMapLayers.currentMapRights() === "edit";
+	},
+	clickCallback: function(context)
+	{
+        nsGmx.createStylesDialog(context.elem, context.tree);
+	}
+}, 'Layer');
+
+nsGmx.ContextMenuController.addContextMenuElem({
 	title: function() { return _gtxt("Таблица атрибутов"); },
 	isVisible: function(context)
 	{

@@ -608,7 +608,7 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			iconSpan.onclick = function()
 			{
-				_mapHelper.createLayerEditor(this.parentNode, _this, 'styles', iconSpan.parentNode.gmxProperties.content.properties.styles.length > 1 ? -1 : 0);
+				nsGmx.createStylesDialog(elem, _this);
 			}
 			
 		}
@@ -622,10 +622,6 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
         this._renderParams.showVisibilityCheckbox && resElems.unshift(box);
         
         return resElems;
-        // if (this._renderParams.showVisibilityCheckbox)
-			// return [box, iconSpan, spanParent, spanDescr, borderDescr, multiStyleParent];
-		// else
-			// return [iconSpan, spanParent, spanDescr, borderDescr, multiStyleParent];
 	}
 	else
 	{
@@ -2004,9 +2000,10 @@ queryMapLayers.prototype.createMap = function(name)
         _userObjects.collect();
         $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
         
-        for (var name in _mapHelper.layerEditorsHash)
-            _mapHelper.layerEditorsHash[name] && _mapHelper.layerEditorsHash[name].updateFunc && _mapHelper.layerEditorsHash[name].updateFunc();
-            
+        //обновим стили слоёв из всех незакрытых диалогов редактирования стилей
+        var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
+        mStyleEditor && mStyleEditor.updateAllStyles();
+        
         window._mapEditorsHash && _mapEditorsHash[mapID] && _mapEditorsHash[mapID].update();
         
         var saveTree = {};

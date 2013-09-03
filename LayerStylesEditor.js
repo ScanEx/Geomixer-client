@@ -433,9 +433,13 @@ var createFilterEditorInner = function(filter, attrs, elemCanvas)
 
 var createFilterEditor = function(filterParam, attrs, elemCanvas)
 {
-	var filter = (typeof filterParam == 'undefined') ? '' : filterParam;
+	var filter = (typeof filterParam == 'undefined') ? '' : filterParam,
+        props = elemCanvas.parentNode.gmxProperties.content.properties,
+        mapName = props.mapName;
+    
+    _mapHelper.attrValues[mapName] = _mapHelper.attrValues[mapName] || {};
 	
-	if (!_mapHelper.attrValues[elemCanvas.parentNode.gmxProperties.content.properties.mapName][elemCanvas.parentNode.gmxProperties.content.properties.name])
+	if (!_mapHelper.attrValues[mapName][props.name])
 	{
 		var div = _div([_t(_gtxt("Авторизуйтесь для редактирования фильтров"))],[['css','padding','5px 0px 5px 5px'],['css','color','red']]);
 		
@@ -852,8 +856,6 @@ var updateFilterMoveButtons = function(filter)
 
 var attachLoadingFilterEvent = function(filterCanvas, parentObject, parentStyle, geometryType, attrs, elemCanvas)
 {
-	var _this = this;
-	
 	$(filterCanvas.firstChild.firstChild.firstChild).bind('click', function()
 	{
 		var ulFilterParams = _abstractTree.getChildsUl(filterCanvas.firstChild.firstChild);
@@ -871,13 +873,10 @@ var attachLoadingFilterEvent = function(filterCanvas, parentObject, parentStyle,
 
 var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 {
-	var _this = this;
-	
 	var addButton =  makeLinkButton(_gtxt('Добавить стиль'));
 	addButton.onclick = function()
 	{
 		if (!_layersTree.getLayerVisibility(elemCanvas.parentNode.firstChild)) {
-			//_layersTree.setVisibility(elemCanvas.parentNode.firstChild, true);
             _layersTree.setNodeVisible(elemCanvas.parentNode.gmxProperties, true);
         }
 		
@@ -894,12 +893,6 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 		newStyle.DisableBalloonOnMouseMove = lastStyle.DisableBalloonOnMouseMove;
 		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, newStyle);
 		
-		// if (lastStyle.Balloon)
-		// {
-			// newStyle.Balloon = lastStyle.Balloon;
-			// _this.setBalloon(newFilter, newStyle.Balloon);
-		// }
-		
 		newStyle.MinZoom = lastStyle.MinZoom;
 		newStyle.MaxZoom = lastStyle.MaxZoom;
 		newFilter.setZoomBounds(Number(newStyle.MinZoom), Number(newStyle.MaxZoom));
@@ -909,12 +902,12 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 		
 		globalFlashMap.layers[elem.name].filters.push(newFilter);
 		
-		var filter = _this.createLoadingFilter(newFilter, newStyle, elem.GeometryType.toLowerCase(), elem.attributes, elemCanvas, false);
+		var filter = createLoadingFilter(newFilter, newStyle, elem.GeometryType.toLowerCase(), elem.attributes, elemCanvas, false);
 			
 		_(filtersCanvas, [filter]);
 		
-		_this.updateFilterMoveButtons(filter)
-		_this.updateFilterMoveButtons(filtersCanvas.childNodes[filtersCanvas.childNodes.length - 2])
+		updateFilterMoveButtons(filter)
+		updateFilterMoveButtons(filtersCanvas.childNodes[filtersCanvas.childNodes.length - 2])
 		
 		$(filter.firstChild).treeview();
 		
@@ -1745,9 +1738,97 @@ var LayerStylesEditor = function(div, divStyles, openedStyleIndex) {
     }
 }
 
+var createStylesDialog = function(elem, treeView, openedStyleIndex) {
+    var div = $(_queryMapLayers.buildedTree).find("div[LayerID='" + elem.LayerID + "']")[0],
+        elemProperties = div.gmxProperties.content.properties,
+        mapName = elemProperties.mapName,
+        layerName = elemProperties.name;
+        
+    var pos = nsGmx.Utils.getDialogPos(div, true, 390);
+    
+    var updateFunc = function()
+    {
+        elemProperties.styles = styleEditor.getUpdatedStyles();
+        treeView.findTreeElem(div).elem.content.properties = elemProperties;
+    };
+    
+    //var attributesHash = {};
+    _mapHelper.attrValues[mapName] = _mapHelper.attrValues[mapName] || {};
+    _mapHelper.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer({}, elem.LayerID);
+    
+    var closeFunc = function()
+    {
+        updateFunc();
+        
+        var newStyles = styleEditor.getUpdatedStyles();
+            multiStyleParent = $(div).children('[multiStyle]')[0],
+            parentIcon = $(div).children("[styleType]")[0];
+        
+        
+        styleEditor.removeColorPickers();
+                                
+        var multiFiltersFlag = (parentIcon.getAttribute('styleType') == 'multi' && styleEditor.getStyleCount() > 1), // было много стилей и осталось
+            colorIconFlag = (parentIcon.getAttribute('styleType') == 'color' && styleEditor.getStyleCount() == 1 && 
+                            (typeof newStyles[0].RenderStyle.marker != 'undefined') && (typeof newStyles[0].RenderStyle.marker.image == 'undefined')); // была не иконка и осталась
+        
+        if (multiFiltersFlag) {}
+        else if (colorIconFlag) {}
+        else
+        {
+            var newIcon = _mapHelper.createStylesEditorIcon(newStyles, elemProperties.GeometryType.toLowerCase());
+            
+            $(parentIcon).empty().append(newIcon).attr('styleType', $(newIcon).attr('styleType'));
+        }
+        
+        removeChilds(multiStyleParent);
+        
+        _mapHelper.createMultiStyle(elemProperties, treeView, multiStyleParent);
+    
+        gmxCore.loadModule('TinyMCELoader', function() {
+            $('.balloonEditor', divDialog).each(function() {
+                tinyMCE.execCommand("mceRemoveControl", true, $(this).attr('id'));
+            })
+        })
+        
+        return false;
+    };
+    
+    if (div.gmxProperties.content.properties.styles.length == 1) {
+        openedStyleIndex = 0;
+    } else if (typeof openedStyleIndex === 'undefined') {
+        openedStyleIndex = -1;
+    }
+    
+    var styleContainer = _div();
+    var styleEditor = new LayerStylesEditor(div, styleContainer, openedStyleIndex);
+    styleEditor.setAllFilters();
+    var divDialog = showDialog(_gtxt('Стили слоя [value0]', elem.title), styleContainer, 350, 470, pos.left, pos.top, null, function()
+    {
+        closeFunc();
+        delete styleDialogs[elemProperties.name];
+    });
+    
+    
+    styleDialogs[elemProperties.name] = {updateFunc: updateFunc};
+    
+    if (openedStyleIndex > 0)
+        styleContainer.parentNode.scrollTop = 58 + openedStyleIndex * 32;
+        
+    _mapHelper.updateTinyMCE(styleContainer);
+}
+
+var styleDialogs = {};
+var updateAllStyles = function() {
+    for (var name in styleDialogs) {
+        styleDialogs[name].updateFunc();
+    }
+}
+
 gmxCore.addModule('LayerStylesEditor', {
         LayerStylesEditor: LayerStylesEditor,
-        createStyleEditor: createStyleEditor
+        createStyleEditor: createStyleEditor,
+        createStylesDialog: createStylesDialog,
+        updateAllStyles: updateAllStyles
     }
 )
 

@@ -175,6 +175,7 @@ _translationsHash.hash["eng"] = {
 	"Стили" : "Styles",
 	"Изображение на карте" : "Ground overlay",
 	"Слой [value0]" : "Layer [value0]",
+	"Стили слоя [value0]" : "Styles of layer [value0]",
 	"Мультислой [value0]" : "Multilayer [value0]",
 	"Группа [value0]" : "Group [value0]",
 	"Карта [value0]" : "Map [value0]",
