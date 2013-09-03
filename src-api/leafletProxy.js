@@ -3517,9 +3517,7 @@
 		for (var i = 0; i < geo_['coordinates'].length; i++)
 		{
 			var p = geo_['coordinates'][i];
-			var x = p[0] % gmxAPI.worldWidthMerc2;
-			if(Math.abs(x) > gmxAPI.worldWidthMerc) x += gmxAPI.worldWidthMerc2 * (x > 0 ? -1 : 1);
-			var point = new L.Point(x, p[1]);
+			var point = new L.Point(p[0], p[1]);
 			if(!bounds) bounds = new L.Bounds(point);
 			bounds.extend(point);
 			coords.push(point);
@@ -3774,9 +3772,7 @@
 			for (var j = 0; j < geo_['coordinates'][i].length; j++)
 			{
 				var p = geo_['coordinates'][i][j];
-				var x = p[0] % gmxAPI.worldWidthMerc2;
-				if(Math.abs(x) > gmxAPI.worldWidthMerc) x += gmxAPI.worldWidthMerc2 * (x > 0 ? -1 : 1);
-				var point = new L.Point(x, p[1]);
+				var point = new L.Point(p[0], p[1]);
 				if(!bounds) bounds = new L.Bounds(point);
 				bounds.extend(point);
 				if(prev && chkOnEdge(p, prev, tbDelta)) {
@@ -3931,7 +3927,7 @@
 						cntHide++;
 					}
 					var p1 = coords[i][j];
-					var px1 = p1.x * mInPixel - x; 		px1 = (0.5 + px1) << 0;
+					var px1 = p1.x * mInPixel - x;		px1 = (0.5 + px1) << 0;
 					var py1 = y - p1.y * mInPixel;		py1 = (0.5 + py1) << 0;
 					if(lastX !== px1 || lastY !== py1) {
 						if(lineIsOnEdge || j == 0) {
