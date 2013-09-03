@@ -709,6 +709,7 @@ extent(window.gmxAPI,
 	}
 	,
 	worldWidthMerc: 20037508,
+	worldWidthMerc2: 20037508 * 2,
 	sm_a: 6378137.0,
     sm_b: 6356752.314,
     //sm_EccSquared: 6.69437999013e-03,

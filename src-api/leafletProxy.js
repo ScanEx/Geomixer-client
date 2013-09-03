@@ -3254,7 +3254,9 @@
 		out['type'] = 'Point';
 
 		var p = geo_['coordinates'];
-		var point = new L.Point(p[0], p[1]);
+		var x = p[0] % gmxAPI.worldWidthMerc2;
+		if(Math.abs(x) > gmxAPI.worldWidthMerc) x += gmxAPI.worldWidthMerc2 * (x > 0 ? -1 : 1);
+		var point = new L.Point(x, p[1]);
 		var bounds = new L.Bounds(point);
 		bounds.extend(point);
 
@@ -3388,6 +3390,7 @@
 			var y = 256 + attr['y'];
 			var px1 = point.x * mInPixel - x - out['sx'] - 1; 		px1 = (0.5 + px1) << 0;
 			var py1 = y - point.y * mInPixel - out['sy'] - 1;		py1 = (0.5 + py1) << 0;
+			// 0.9966471893352525	баг L.Projection.Mercator
 			if(style['dx']) px1 += out['dx'];
 			if(style['dy']) py1 += out['dy'];
 			if('center' in style && !style['center']) {
@@ -3514,7 +3517,9 @@
 		for (var i = 0; i < geo_['coordinates'].length; i++)
 		{
 			var p = geo_['coordinates'][i];
-			var point = new L.Point(p[0], p[1]);
+			var x = p[0] % gmxAPI.worldWidthMerc2;
+			if(Math.abs(x) > gmxAPI.worldWidthMerc) x += gmxAPI.worldWidthMerc2 * (x > 0 ? -1 : 1);
+			var point = new L.Point(x, p[1]);
 			if(!bounds) bounds = new L.Bounds(point);
 			bounds.extend(point);
 			coords.push(point);
@@ -3769,7 +3774,9 @@
 			for (var j = 0; j < geo_['coordinates'][i].length; j++)
 			{
 				var p = geo_['coordinates'][i][j];
-				var point = new L.Point(p[0], p[1]);
+				var x = p[0] % gmxAPI.worldWidthMerc2;
+				if(Math.abs(x) > gmxAPI.worldWidthMerc) x += gmxAPI.worldWidthMerc2 * (x > 0 ? -1 : 1);
+				var point = new L.Point(x, p[1]);
 				if(!bounds) bounds = new L.Bounds(point);
 				bounds.extend(point);
 				if(prev && chkOnEdge(p, prev, tbDelta)) {
