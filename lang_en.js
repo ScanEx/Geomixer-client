@@ -535,6 +535,8 @@ _translationsHash.hash["eng"] = {
 	"Геометрия" : "Geometry",
 	"Добавить объект" : "Add object",
 	"Очистить поиск" : "Clean search",
+    "Скачать shp": "Download shp",
+    "Скачать gpx": "Download gpx",
 	"Создать столбец" : "Create column",
 	"Мультислой" : "Multilayer",
 	"В дереве слоев остались несохраненные изменения!" : "There are unsaved changes on layers tree!",

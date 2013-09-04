@@ -632,11 +632,20 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 	}
 }
 
-layersTree.prototype.downloadVectorLayer = function(name, mapHostName)
+layersTree.prototype.downloadVectorLayer = function(name, mapHostName, format, query)
 {
-    var layer = globalFlashMap.layers[name];
-    window.location.href = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + 
-			"?t=" + layer.properties.name;
+    var layer = globalFlashMap.layers[name],
+        url = "http://" + mapHostName + "/" + "DownloadLayer.ashx" + "?t=" + layer.properties.name;
+                  
+    if (format) {
+        url += '&format=' + format;
+    }
+    
+    if (query) {
+        url += '&query=' + encodeURIComponent(query);
+    }
+                  
+    window.location.href = url;
 }
 
 layersTree.prototype.drawGroupLayer = function(elem, parentParams, layerManagerFlag, parentVisibility)

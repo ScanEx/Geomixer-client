@@ -122,15 +122,12 @@ ServerDataProvider.convertValuesToHash = function(objParameters)
 var attrsTable = function(layerName, layerTitle)
 {
 	this.layerName = layerName;
-	//this.layerId = globalFlashMap.layers[layerName].properties.LayerID;
 	this.layerTitle = layerTitle || '';
 	
 	this.filterData = null;
 	
 	this.textarea = null;
 	this.activeColumns = null;
-	
-	//this._identityField = globalFlashMap.layers[layerName].properties.identityField;
 	
 	this.resizeFunc = function(){};
     
@@ -186,7 +183,6 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
         )
     }
 	
-	//sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&LayerID=" + this.layerId, function(response)
 	sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerJson.ashx?WrapStyle=func&LayerName=" + this.layerName, function(response)
 	{
 		if (!parseResponse(response))
@@ -196,7 +192,6 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
 		
         _this.layerInfo = response.Result.properties;
         
-		// _this.drawDialog(response.Result.properties, $$('attrsTableDialog' + response.Result.properties.name));
 		_this.drawDialog(response.Result.properties, canvas, outerSizeProvider, params);
 	})
 }
@@ -213,6 +208,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		searchButton = makeButton(_gtxt("Найти")),
 		cleanButton = makeButton(_gtxt("Очистить поиск")),
 		addObjectButton = makeLinkButton(_gtxt("Добавить объект")),
+        downloadShapeButton = makeLinkButton(_gtxt("Скачать shp")),
+        downloadGPXButton = makeLinkButton(_gtxt("Скачать gpx")),
 		oldCanvasWidth = false,
 		_this = this;
 	
@@ -223,6 +220,28 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
             serverBase + "VectorLayer/Search.ashx?WrapStyle=func&count=true&layer=" + _this.layerName + "&query=" + encodeURIComponent(_this.textarea.value),
             serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + _this.layerName + "&query=" + encodeURIComponent(_this.textarea.value)
         );
+    }
+    
+    var downloadLayer = function(format) {
+        _layersTree.downloadVectorLayer(
+            _this.layerName, 
+            globalFlashMap.layers[_this.layerName].properties.hostName, 
+            format,
+            _this.textarea.value
+        );
+    }
+    
+    downloadShapeButton.onclick = function() {
+        downloadLayer('Shape');
+    }
+    
+    downloadGPXButton.style.marginLeft = '10px';
+    downloadGPXButton.onclick = function() {
+        downloadLayer('gpx');
+    }
+    
+    if (globalFlashMap.layers[_this.layerName].properties.GeometryType === 'polygon') {
+        $(downloadGPXButton).hide();
     }
     
 	paramsButton.onclick = function()
@@ -280,7 +299,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     }
                         
     this.divTable2 = _div(null, [['css','overflow','auto'], ['dir', 'className', 'attrsTableBody']]);
-    var tdTable2 = _td([this.divTable2], [['attr','vAlign','top']]);
+    var tdTable2 = _td([this.divTable2, downloadShapeButton, downloadGPXButton], [['attr','vAlign','top']]);
     this.table2 = new scrollTable({pagesCount: 10, limit: 20});
     var drawTableItem2 = function(elem, curIndex, activeHeaders)
     {
@@ -335,17 +354,6 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                     }
                 }
             })
-            
-            // if (_this._isLayerOnMap)
-            // {
-                // globalFlashMap.layers[_this.layerName].getFeatureById(elem.values[0], function(result)
-                // {
-                    // globalFlashMap.layers[_this.layerName].setVisible(true);
-                    
-                    // var bounds = getBounds(result.geometry.coordinates);
-                    // globalFlashMap.zoomToExtent(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-                // });
-            // }
         }
         
         _title(deleteButton, _gtxt("Удалить"))
@@ -584,11 +592,6 @@ attrsTableHash.prototype.create = function(name, canvas, outerSizeProvider, para
     
     return this.hash[name];
 }
-
-// attrsTableHash.prototype.resize = function(name)
-// {
-    // this.hash[name] && this.hash[name].resizeFunc();
-// }
 
 scrollTable.AttributesServerDataProvider = ServerDataProvider;
 
