@@ -14,6 +14,8 @@ var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
     var updateWidget = function() {
         var parsedColumns = parseColumns(sourceColumns);
 	
+        removeChilds(parent);
+        
         if (!parsedColumns.geomCount && parsedColumns.coordColumns.length) {
             var fields = parsedColumns.coordColumns;
             
@@ -36,6 +38,7 @@ var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
 				_(selectLon, [opt.cloneNode(true)]);
             }
 
+            
             _(parent, [_table([_tbody([
                 _tr([
                     _td([_span([_t(_gtxt("Y (широта)"))],[['css','margin','0px 3px']])], [['css','width','73px'],['css','border','none']]), 
@@ -54,10 +57,8 @@ var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
 	
             if (columns.get('YCol')) {
                 selectLat = switchSelect(selectLat, columns.get('YCol'));
-		}
+            }
 	
-        } else {
-            removeChilds(parent);
         }
     }
         
