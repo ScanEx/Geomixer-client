@@ -460,29 +460,41 @@ var DrawingObjectGeomixer = function() {
 		if (!nsGmx.DrawingObjectCustomControllers.isHidden(drawingObject)) oCollection.Add(drawingObject);
 	}
 	
-	var checkDownloadRaster = function(){
-		if (!oMap.properties.CanDownloadRasters) return;
-		var found = false;
+	var checkDownloadVisibility = function(){
+		var isAnyRectangle = false,
+            isNonPolygon = false;
+            
 		for (var i=0; i< oCollection.Count(); i++){
-			if (isRectangle(oCollection.Item(i).geometry.coordinates)) {
-				show(downloadRaster);
-				found = true;
-				break;
-			}
+            var geom = oCollection.Item(i).geometry;
+            isAnyRectangle = isAnyRectangle || isRectangle(geom.coordinates);
+            isNonPolygon = isNonPolygon || geom.type !== 'POLYGON';
 		}
-		if(!found) hide(downloadRaster);
+        
+        $(downloadRaster).toggle(oMap.properties.CanDownloadRasters && isAnyRectangle);
+        $(downloadGpx).toggle(isNonPolygon);        
 	}
+    
+    var downloadFormat = null;
 	
-	var downloadVector = makeLinkButton(_gtxt("Скачать shp-файл"));
-	downloadVector.onclick = function(){ 
-		//downloadMarkers();
+	var downloadShp = makeLinkButton(_gtxt("shp-файл"));
+	downloadShp.onclick = function(){ 
+        downloadFormat = 'Shape';
         downloadNameContainer.toggle();
 	}
+    downloadShp.style.margin = '0px 3px';
+    
+    var downloadGpx = makeLinkButton(_gtxt("gpx-файл"));
+	downloadGpx.onclick = function(){ 
+        downloadFormat = 'gpx';
+        downloadNameContainer.toggle();
+	}
+    downloadGpx.style.margin = '0px 3px';
     
     var downloadNameInput = $('<input/>', {title: _gtxt("Введите имя файла для скачивания")}).val('markers').addClass('inputStyle');
     var downloadNameButton = $('<input/>', {type: 'button'}).val(_gtxt('Скачать')).click(function() {
-        downloadMarkers(downloadNameInput.val());
+        downloadMarkers(downloadNameInput.val(), downloadFormat);
         downloadNameContainer.hide();
+        downloadFormat = null;
     });
     var downloadNameContainer = $('<div/>').append(downloadNameInput, downloadNameButton).hide();
 	
@@ -506,22 +518,20 @@ var DrawingObjectGeomixer = function() {
 		oMap.drawing.setHandlers({onAdd: fnAddToCollection});
 		
         
-        $(oCollection).bind('onRemove', checkDownloadRaster);
-        $(oCollection).bind('onAdd', function(event, drawingObject){ 
-            if (oMap.properties.CanDownloadRasters && isRectangle(drawingObject.geometry.coordinates)) show(downloadRaster);
-        });
+        $(oCollection).bind('onRemove onAdd', checkDownloadVisibility);
         
         var oDrawingObjectList = new DrawingObjectList(oMap, oListDiv, oCollection);
-		_(oDrawingObjectList.GetDivButtons(), [_div([downloadVector]), downloadNameContainer[0], _div([downloadRaster])]);
-		checkDownloadRaster();
+		_(oDrawingObjectList.GetDivButtons(), [_div([_span([_t(_gtxt('Скачать'))], [['css', 'fontSize', '12px']]), downloadShp, downloadGpx]), downloadNameContainer[0], _div([downloadRaster])]);
+		checkDownloadVisibility();
 	}
 	
 	/** Скачивает shp файл*/
-	var downloadMarkers = function(fileName){
+	var downloadMarkers = function(fileName, format){
 		var objectsByType = {},
 			markerIdx = 1;
             
         fileName = fileName || 'markers';
+        format = format || 'Shape';
 		
 		for (var i=0; i<oCollection.Count(); i++){
 			var ret = oCollection.Item(i);
@@ -540,6 +550,7 @@ var DrawingObjectGeomixer = function() {
 		        
         sendCrossDomainPostRequest(serverBase + "Shapefile.ashx", {
             name:     fileName,
+            format:   format,
             points:   objectsByType["POINT"] ? JSON.stringify(objectsByType["POINT"]) : '',
             lines:    objectsByType["LINESTRING"] ? JSON.stringify(objectsByType["LINESTRING"]) : '',
             polygons: objectsByType["POLYGON"] ? JSON.stringify(objectsByType["POLYGON"]) : ''

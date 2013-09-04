@@ -66,6 +66,8 @@ _translationsHash.hash["eng"] = {
 	" или " : " or ",
 	"для Firefox" : "for Firefox",
 	"Скачать shp-файл" : "Download shp-file",
+	"shp-файл" : "shp-file",
+	"gpx-файл" : "gpx-file",
 	"Скачать фрагмент растра" : "Download fragment of raster",
 	"Очистить" : "Delete",
 	"точка" : "point",
