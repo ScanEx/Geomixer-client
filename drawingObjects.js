@@ -524,7 +524,6 @@ var DrawingObjectGeomixer = function() {
                 "&MinY=" + truncate9(Math.min(y1, y2)) +
                 "&MaxX=" + truncate9(Math.max(x1, x2)) + 
                 "&MaxY=" + truncate9(Math.max(y1, y2)) + 
-                "&Area=" + Math.ceil(fragmentArea([[x1, y1], [x1, y2], [x2, y2], [x2, y1]])/1000000) + 
                 "&Format=" + format;
         }
     })
