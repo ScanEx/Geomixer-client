@@ -470,8 +470,9 @@ var DrawingObjectGeomixer = function() {
             isNonPolygon = isNonPolygon || geom.type !== 'POLYGON';
 		}
         
+        $(downloadContainer).toggle(oCollection.Count() > 0);
         $(downloadRaster).toggle(oMap.properties.CanDownloadRasters && isAnyRectangle);
-        $(downloadGpx).toggle(isNonPolygon);        
+        $(downloadGpx).toggle(isNonPolygon);
 	}
     
     var downloadFormat = null;
@@ -491,17 +492,51 @@ var DrawingObjectGeomixer = function() {
     downloadGpx.style.margin = '0px 3px';
     
     var downloadNameInput = $('<input/>', {title: _gtxt("Введите имя файла для скачивания")}).val('markers').addClass('inputStyle');
-    var downloadNameButton = $('<input/>', {type: 'button'}).val(_gtxt('Скачать')).click(function() {
+    var downloadNameButton = $('<input/>', {type: 'button'}).val(_gtxt('Скачать')).addClass('btn').click(function() {
         downloadMarkers(downloadNameInput.val(), downloadFormat);
         downloadNameContainer.hide();
         downloadFormat = null;
     });
     var downloadNameContainer = $('<div/>').append(downloadNameInput, downloadNameButton).hide();
+
+    var downloadRasterOptions = $(
+        '<div class="drawingObjectsDownloadRaster">' + 
+            '<label><input type="radio" name="rasterFormat" checked value="univers">jpeg</label>' + 
+            '<label><input type="radio" name="rasterFormat" value="garmin">kmz</label>' + 
+            '<button id="downloadRaster" class="btn">' + _gtxt("Скачать") + '</button>' +
+        '</div>'
+    ).hide();
+    
+    $('#downloadRaster', downloadRasterOptions).click(function() {
+        var checkInfo = checkRasterLayer();
+        if (checkInfo) {
+            var bounds = checkInfo.bounds,
+                layer = checkInfo.layer,
+                x1 = bounds.minX,
+                y1 = bounds.minY,
+                x2 = bounds.maxX,
+                y2 = bounds.maxY,
+                format = $('input:checked', downloadRasterOptions).val();
+            window.location.href = 
+                "http://" + layer.properties.hostName + "/DownloadLayer.ashx" + 
+                "?t=" + layer.properties.name + 
+                "&MinX=" + truncate9(Math.min(x1, x2)) + 
+                "&MinY=" + truncate9(Math.min(y1, y2)) +
+                "&MaxX=" + truncate9(Math.max(x1, x2)) + 
+                "&MaxY=" + truncate9(Math.max(y1, y2)) + 
+                "&Area=" + Math.ceil(fragmentArea([[x1, y1], [x1, y2], [x2, y2], [x2, y1]])/1000000) + 
+                "&Format=" + format;
+        }
+    })
 	
 	var downloadRaster = makeLinkButton(_gtxt("Скачать фрагмент растра"));
 	downloadRaster.onclick = function(){
-		downloadRasters();
+        if (downloadRasterOptions.find(':visible').length || checkRasterLayer()) {
+            downloadRasterOptions.toggle();
+        }
 	}
+    
+    var downloadContainer = _div();
 		
 	/** Встраивает список объектов на карте в геомиксер*/
 	this.Init = function(map){
@@ -521,7 +556,14 @@ var DrawingObjectGeomixer = function() {
         $(oCollection).bind('onRemove onAdd', checkDownloadVisibility);
         
         var oDrawingObjectList = new DrawingObjectList(oMap, oListDiv, oCollection);
-		_(oDrawingObjectList.GetDivButtons(), [_div([_span([_t(_gtxt('Скачать'))], [['css', 'fontSize', '12px']]), downloadShp, downloadGpx]), downloadNameContainer[0], _div([downloadRaster])]);
+        _(downloadContainer, [
+            _div([_span([_t(_gtxt('Скачать'))], [['css', 'fontSize', '12px']]), downloadShp, downloadGpx]), 
+            downloadNameContainer[0], 
+            _div([downloadRaster]),
+            downloadRasterOptions[0]
+        ]);
+		_(oDrawingObjectList.GetDivButtons(), [downloadContainer]);
+        
 		checkDownloadVisibility();
 	}
 	
@@ -558,7 +600,7 @@ var DrawingObjectGeomixer = function() {
 	}
 	
 	/** Скачивает растровые слои*/
-	var downloadRasters = function(){
+	var checkRasterLayer = function(){
 		var obj = false,
 			_this = this,
 			baseMapName = window.baseMap.id;
@@ -584,23 +626,7 @@ var DrawingObjectGeomixer = function() {
 			y2 = bounds.maxY,
 			x = (x1 + x2) / 2,
 			y = (y1 + y2) / 2,
-			layer = false,
-			tryToFinish = function()
-			{
-                if (layer)
-                {
-                    window.location.href = 
-                            "http://" + layer.properties.hostName + "/DownloadLayer.ashx" + 
-                            "?t=" + layer.properties.name + 
-                            "&MinX=" + truncate9(Math.min(x1, x2)) + 
-                            "&MinY=" + truncate9(Math.min(y1, y2)) +
-                            "&MaxX=" + truncate9(Math.max(x1, x2)) + 
-                            "&MaxY=" + truncate9(Math.max(y1, y2)) + 
-                            "&Area=" + Math.ceil(fragmentArea([[x1, y1], [x1, y2], [x2, y2], [x2, y1]])/1000000);
-                }
-                else
-                    showErrorMessage(_gtxt("К прямоугольнику не подходит ни одного растрового слоя"), true);
-			}
+			layer = false;
 		
 		var testPolygon = function(polygon, x, y){
 			var testRing = function(ring, x, y)
@@ -651,7 +677,12 @@ var DrawingObjectGeomixer = function() {
 			}
 		};
 		
-		tryToFinish();
+        if (!layer) {
+            showErrorMessage(_gtxt("К прямоугольнику не подходит ни одного растрового слоя"), true);
+            return;
+        }
+        
+        return {bounds: bounds, layer: layer};
 	}
 }
 

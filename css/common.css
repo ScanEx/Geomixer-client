@@ -572,6 +572,21 @@ div.unit .unitInfo
 	margin: 2px 5px;
 }
 
+.drawingObjectsDownloadRaster
+{
+    margin: 1px 0px;
+}
+
+.drawingObjectsDownloadRaster *
+{
+	vertical-align: middle;
+}
+
+.drawingObjectsDownloadRaster > label
+{
+	margin-right: 10px;
+}
+
 /* help */
 .help
 {
