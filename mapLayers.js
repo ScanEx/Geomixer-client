@@ -1750,74 +1750,82 @@ queryMapLayers.prototype.asyncCreateLayer = function(task, title)
 		return;
 	}).done(function(taskInfo)
     {
-		var newLayerProperties = taskInfo.Result.properties;
-		
-        var mapProperties = _layersTree.treeModel.getMapProperties()
-		newLayerProperties.mapName = mapProperties.name;
-		newLayerProperties.hostName = mapProperties.hostName;
-		newLayerProperties.visible = true;
-		
-		if (!newLayerProperties.styles)
-		{
-			if (newLayerProperties.type == 'Vector')
-				newLayerProperties.styles = [{MinZoom:newLayerProperties.VtMaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[newLayerProperties.GeometryType]}]
-			else if (newLayerProperties.type != 'Vector' && !newLayerProperties.MultiLayerID)
-				newLayerProperties.styles = [{MinZoom:newLayerProperties.MinZoom, MaxZoom:21}];
-		}
-		
-		var convertedCoords = from_merc_geometry(taskInfo.Result.geometry);
+        if (!isArray(taskInfo.Result)) {
+            taskInfo.Result = [taskInfo.Result];
+        }
+        
+        var parentDiv = $($$(taskInfo.TaskID).parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0],
+            parentProperties = parentDiv.gmxProperties;
+        
+        var parentTree = taskDiv.parentNode.parentNode;
+        taskDiv.parentNode.removeNode(true);
+        _abstractTree.delNode(null, parentTree, parentTree.parentNode);
+        
+        for (var l = 0; l < taskInfo.Result.length; l++) {
+            var newLayer = taskInfo.Result[l];
+            var newProps = newLayer.properties;
+            
+            var mapProperties = _layersTree.treeModel.getMapProperties()
+            newProps.mapName = mapProperties.name;
+            newProps.hostName = mapProperties.hostName;
+            newProps.visible = true;
+            
+            if (!newProps.styles)
+            {
+                if (newProps.type == 'Vector')
+                    newProps.styles = [{MinZoom:newProps.VtMaxZoom, MaxZoom:21, RenderStyle:_mapHelper.defaultStyles[newProps.GeometryType]}]
+                else if (newProps.type != 'Vector' && !newProps.MultiLayerID)
+                    newProps.styles = [{MinZoom: newProps.MinZoom, MaxZoom: 21}];
+            }
+            
+            var convertedCoords = from_merc_geometry(newLayer.geometry);
 
-		_layersTree.addLayersToMap({content:{properties:newLayerProperties, geometry:convertedCoords}});
-		
-		var newLayer = globalFlashMap.layers[newLayerProperties.name],
-			parentDiv = $($$(taskInfo.TaskID).parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0];
-			parentProperties = parentDiv.gmxProperties,
-			li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, parentProperties, false, parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility(parentDiv.firstChild));
-		
-		if ($($$(taskInfo.TaskID).parentNode).hasClass("last"))
-			$(li).addClass("last");
-		
-		$($$(taskInfo.TaskID).parentNode).replaceWith(li);
-		
-		var divElem = $(li).children("div[LayerID]")[0],
-			divParent = $(li.parentNode.parentNode).children("div[MapID],div[GroupID]")[0],
-			index = _layersTree.findTreeElem(divElem).index;
-	
-		_layersTree.addTreeElem(divParent, index, {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}});
-		
-		_queryMapLayers.addSwappable(li);
-		
-		_queryMapLayers.addDraggable(li);
+            _layersTree.addLayersToMap({content:{properties:newProps, geometry:convertedCoords}});
+            
+            var li = _layersTree.getChildsList(
+                    {
+                        type: 'layer', 
+                        content: {properties:newProps, geometry:convertedCoords}
+                    }, 
+                    parentProperties, 
+                    false, 
+                    parentDiv.getAttribute('MapID') ? true : _layersTree.getLayerVisibility(parentDiv.firstChild)
+                );
+                
+            _abstractTree.addNode(parentDiv.parentNode, li);
+            
+            var divElem = $(li).children("div[LayerID]")[0],
+                divParent = $(li.parentNode.parentNode).children("div[MapID],div[GroupID]")[0],
+                index = _layersTree.findTreeElem(divElem).index;
+        
+            _layersTree.addTreeElem(divParent, index, {type:'layer', content: {properties: newProps, geometry: convertedCoords}});
+            
+            _queryMapLayers.addSwappable(li);
+            
+            _queryMapLayers.addDraggable(li);
 
-		_layersTree.updateListType(li);
+            _layersTree.updateListType(li);
+        }
 		
 		_mapHelper.updateUnloadEvent(true);
     })
 	
+    var taskDiv = _div(null, [['attr', 'id', task.getTaskID()]]);
 	var update = function(event, taskInfo)
 	{
-		var taskDiv;
-		
-		if (!$$(taskInfo.TaskID))
-		{
-			taskDiv = _div(null, [['attr','id',taskInfo.TaskID]]);
-			
-			var active = $(_this.buildedTree).find(".active");
-			
-			if (active.length && (active[0].parentNode.getAttribute('MapID') || active[0].parentNode.getAttribute('GroupID')))
-				_abstractTree.addNode(active[0].parentNode.parentNode, _li([taskDiv, _div(null,[['css','height','5px'],['css','fontSize','0px']])]));
-			else
-				_abstractTree.addNode(_this.buildedTree.firstChild, _li([taskDiv, _div(null,[['css','height','5px'],['css','fontSize','0px']])]));
-		}
-		else
-		{
-			taskDiv = $$(taskInfo.TaskID);
-			
-			removeChilds(taskDiv);
-		}
-		
+        removeChilds(taskDiv);
 		_(taskDiv, [_span([_t(title + ':')], [['css','color','#153069'],['css','margin','0px 3px']]), _t(taskInfo.Status)])
 	}
+    
+    var parentDiv;
+    
+    var active = $(_this.buildedTree).find(".active")[0];
+    if (active && (active.parentNode.getAttribute('MapID') || active.parentNode.getAttribute('GroupID')))
+        parentDiv = active.parentNode.parentNode;
+    else
+        parentDiv = _this.buildedTree.firstChild;
+        
+    _abstractTree.addNode(parentDiv, _li([taskDiv, _div(null,[['css','height','5px'],['css','fontSize','0px']])]));
     
     $(task).bind('update', update);
     
@@ -1849,8 +1857,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(task, properties, needRetil
                 
                 _layersTree.addLayersToMap({content:{properties:newLayerProperties, geometry:convertedCoords}});
                 
-                var newLayer = globalFlashMap.layers[newLayerProperties.name],
-                    parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
+                var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
                     li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
                     
                     $(li).find(['[multiStyle]']).treeview();

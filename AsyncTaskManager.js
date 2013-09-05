@@ -9,7 +9,7 @@ var AsyncTask = function(serverResponse)
 {
     var status = 'processing';
     var serverResult = null;
-    var taskID = null;
+    var taskID = serverResponse.TaskID;
     var _this = this;
     
     this.deferred = $.Deferred();
@@ -22,6 +22,10 @@ var AsyncTask = function(serverResponse)
     this.getCurrentResult = function()
     {
         return serverResult;
+    }
+    
+    this.getTaskID = function() {
+        return taskID;
     }
     
     var processServerInfo = function(taskInfo)
@@ -53,7 +57,6 @@ var AsyncTask = function(serverResponse)
     {
         interval = setInterval(function()
         {
-            taskID = serverResponse.TaskID;
             sendCrossDomainJSONRequest(serverBase + "AsyncTask.ashx?WrapStyle=func&TaskID=" + taskID, function(response)
             {
                 if (!parseResponse(response))

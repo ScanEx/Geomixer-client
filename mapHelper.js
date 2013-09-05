@@ -32,8 +32,6 @@ var mapHelper = function()
 	
 	this.attrValues = {};
 	
-	this.asyncTasks = {};
-	
 	// контролирует пользовательские объекты, которые являются редактируемыми контурами растровых слоёв.
 	// все такие объекты не будут сериализоваться
 	this.drawingBorders = (function()
