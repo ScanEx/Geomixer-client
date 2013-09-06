@@ -587,6 +587,11 @@ div.unit .unitInfo
 	margin-right: 10px;
 }
 
+.drawingObjectsDownloadRaster input
+{
+	margin-right: 2px;
+}
+
 /* help */
 .help
 {

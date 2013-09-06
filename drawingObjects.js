@@ -501,8 +501,8 @@ var DrawingObjectGeomixer = function() {
 
     var downloadRasterOptions = $(
         '<div class="drawingObjectsDownloadRaster">' + 
-            '<label><input type="radio" name="rasterFormat" checked value="univers">jpeg</label>' + 
-            '<label><input type="radio" name="rasterFormat" value="garmin">kmz</label>' + 
+            '<label><input type="radio" name="rasterFormat" checked value="univers">jpeg + georefernce</label>' + 
+            '<label><input type="radio" name="rasterFormat" value="garmin">kmz (Garmin Custom Maps)</label>' + 
             '<button id="downloadRaster" class="btn">' + _gtxt("Скачать") + '</button>' +
         '</div>'
     ).hide();
