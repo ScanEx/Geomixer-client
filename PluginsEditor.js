@@ -21,7 +21,7 @@ _translationsHash.addtext("eng", {
 var MapPlugins = function()
 {
     var _plugins = [];
-    var _params = [];
+    var _params = {};
     
     //вместо массива из одного элемента передаём сам элемент
     var normalizeParams = function(params) {
@@ -98,7 +98,13 @@ var MapPlugins = function()
             }
         } else if (version === 3) {
             _plugins = data.plugins;
-            _params = data.params;
+            
+            //поддержка ошибки, которая прокралась в базу...
+            if ($.isArray(data.params) && data.params.length === 0) {
+                _params = {};
+            } else {
+                _params = data.params;
+            }
         }
     }
     
