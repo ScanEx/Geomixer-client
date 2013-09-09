@@ -465,7 +465,7 @@
 				L.TileLayer.Canvas.prototype._initContainer.call(this);
 			}
 			,
-			_createTileProto: function () {
+			_createTile: function () {
 				var attr = this.options.attr;
 				if(!attr['bounds']) {
 					var node = mapNodes[this.options.nodeID];
@@ -481,14 +481,16 @@
 				}
 
 				var imgFlag = (!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -85 && attr.bounds.max.x > 179 && attr.bounds.max.y > 85));
+				var tile = null;
 				if(imgFlag) {
-					var img = this._canvasProto = L.DomUtil.create('img', 'leaflet-tile');
+					tile = L.DomUtil.create('img', 'leaflet-tile');
 					//img.style.width = img.style.height = this.options.tileSize + 'px';
 					//img.galleryimg = 'no';
 				} else {
-					var proto = this._canvasProto = L.DomUtil.create('canvas', 'leaflet-tile');
-					proto.width = proto.height = 0;
+					tile = L.DomUtil.create('canvas', 'leaflet-tile');
+					tile.width = tile.height = 0;
 				}
+				return tile;
 			}
 			,'_update': update
 			,'drawTile': drawTile

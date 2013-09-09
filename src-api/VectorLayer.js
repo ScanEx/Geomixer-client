@@ -79,6 +79,7 @@
 		// накладываемое изображения с трансформацией
 		if(layer.properties['Quicklook']) {
 			//node['quicklook'] = layer.properties['Quicklook'];
+			//if(!node['propHiden']['rasterView']) node['propHiden']['rasterView'] = 'onClick';
 		}
 		//node['labels'] = {};					// Хэш label слоя
 		//node['labelsBounds'] = [];				// Массив отрисованных label
@@ -1513,18 +1514,7 @@
 			return true;
 		}
 
-		var prepareQuicklookImage = function(rItem, content)	{			// получить трансформированное изображение
-			//console.log('drawRasters ', tileID);
-			var gID = rItem['geom'].id
-			var out = content;
-			var w = content.width;
-			var h = content.height;
-			var LatLngToPixel = function(y, x) {
-				var point = new L.LatLng(y, x);
-				return LMap.project(point);
-			}
-			var geo = node['getItemGeometry'](gID);
-			var coord = geo.coordinates;
+		var getQuicklookPoints = function(coord)	{			// получить 4 точки привязки снимка
 			var d1 = 100000000;
 			var d2 = 100000000;
 			var d3 = 100000000;
@@ -1559,18 +1549,36 @@
 					y4 = p[1];
 				}
 			});
+			return {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'x3': x3, 'y3': y3, 'x4': x4, 'y4': y4};
+		}
+
+		var prepareQuicklookImage = function(rItem, content)	{			// получить трансформированное изображение
+			//console.log('drawRasters ', tileID);
+			var gID = rItem['geom'].id
+			var out = content;
+			var w = content.width;
+			var h = content.height;
+			var LatLngToPixel = function(y, x) {
+				var point = new L.LatLng(y, x);
+				return LMap.project(point);
+			}
+			var geo = node['getItemGeometry'](gID);
+			var coord = geo.coordinates;
+			var points = getQuicklookPoints(coord);
 			var geom = rItem['geom'];
+
 			var propHiden = geom['propHiden'];
-			var ptl = new L.Point(x1, y1);
-			var ptr = new L.Point(x2, y2);
-			var pbl = new L.Point(x4, y4);
-			var pbr = new L.Point(x3, y3);
+			var ptl = new L.Point(points['x1'], points['y1']);
+			var ptr = new L.Point(points['x2'], points['y2']);
+			var pbl = new L.Point(points['x4'], points['y4']);
+			var pbr = new L.Point(points['x3'], points['y3']);
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
 			var begx = mInPixel * geom.bounds.min.x;
 			var begy = mInPixel * geom.bounds.max.y;
 			var dx = begx - rItem['attr'].x;
 			var dy = 256 - begy + rItem['attr'].y;
 			if(!propHiden['_imgQuicklook']) {
+				var x1, y1, x2, y2, x3, y3, x4, y4;
 				var pix = LatLngToPixel(ptl.y, ptl.x); x1 = Math.floor(pix.x); y1 = Math.floor(pix.y);
 				pix = LatLngToPixel(ptr.y, ptr.x); x2 = Math.floor(pix.x); y2 = Math.floor(pix.y);
 				pix = LatLngToPixel(pbr.y, pbr.x); x3 = Math.floor(pix.x); y3 = Math.floor(pix.y);

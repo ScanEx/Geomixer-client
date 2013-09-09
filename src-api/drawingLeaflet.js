@@ -1260,6 +1260,7 @@
 	{
 		gmxAPI._drawing['activeState'] = true;
 		gmxAPI._drawing['BoxZoom'] = true;
+		gmxAPI._cmdProxy('startDrawing');
 		var toolsContainer = null;
 		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
 			toolsContainer = gmxAPI._tools['standart'];

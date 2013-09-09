@@ -1,3 +1,7 @@
+/*.leaflet-container {
+	cursor: inherit !important;
+	}
+*/
 .leaflet-tile-container {
 	pointer-events: none;
 }

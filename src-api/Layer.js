@@ -648,6 +648,7 @@
 					
 				} else {
 					if (layer.properties.Quicklook) {
+						// если накладываемое изображения с трансформацией как BG закоментарить
 						obj.enableQuicklooks(function(o)
 						{
 							obj.bringToTop();
