@@ -239,25 +239,23 @@ var MapPluginsWidget = function(container, mapPlugins)
         container.empty();
         container.append($('<div/>', {'class': 'pluginEditor-widgetHeader'}).text(_gtxt('pluginsEditor.selectedTitle')));
         
-        if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
-            nsGmx.pluginsManager.forEachPlugin(function(plugin)
+        nsGmx.pluginsManager.forEachPlugin(function(plugin)
+        {
+            if ( plugin.pluginName && !plugin.mapPlugin && !mapPlugins.isExist(plugin.pluginName) )
             {
-                if ( plugin.pluginName && !plugin.mapPlugin && !mapPlugins.isExist(plugin.pluginName) )
+                var editButton = makeImageButton("img/edit.png", "img/edit.png");
+                $(editButton).addClass('pluginEditor-edit');
+                editButton.onclick = function()
                 {
-                    var editButton = makeImageButton("img/edit.png", "img/edit.png");
-                    $(editButton).addClass('pluginEditor-edit');
-                    editButton.onclick = function()
-                    {
-                        new MapPluginParamsWidget(mapPlugins, plugin.pluginName);
-                    }
-                    
-                    var divRow = $('<div/>', {'class': 'pluginEditor-widgetElemCommon'})
-                        .append($('<span/>').text(plugin.pluginName))
-                        .append(editButton)
-                        .appendTo(container);
+                    new MapPluginParamsWidget(mapPlugins, plugin.pluginName);
                 }
-            })
-        }
+                
+                var divRow = $('<div/>', {'class': 'pluginEditor-widgetElemCommon'})
+                    .append($('<span/>').text(plugin.pluginName))
+                    .append(editButton)
+                    .appendTo(container);
+            }
+        })
         
         mapPlugins.each(function(name)
         {
