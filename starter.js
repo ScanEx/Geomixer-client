@@ -92,14 +92,15 @@ var createMenu = function()
 	_menuUp.addItem(
 	{id:"mapsMenu", title:_gtxt("Карта"),childs:
 		[
-			{id:'mapCreate', title:_gtxt('Создать'),func:function(){_queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)}},
-			{id:'mapList', title:_gtxt('Открыть'),func:function(){_queryMapLayers.getMaps()}, style: [['css','borderBottom','1px solid #E6F1F5']]},
-			{id:'mapSave', title:_gtxt('Сохранить'),func:_queryMapLayers.saveMap},
-			{id:'mapSaveAs', title:_gtxt('Сохранить как'),func:function(){_queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)}},
-			{id:'permalink', title:_gtxt('Ссылка на карту'),func:function(){_mapHelper.showPermalink()}, style: [['css','borderBottom','1px solid #E6F1F5']]},
-			{id:'mapTabsNew', title:_gtxt('Добавить закладку'),func:function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
-			{id:'codeMap', title:_gtxt('Код для вставки'),func:function(){_mapHelper.createAPIMapDialog()}},
-			{id:'printMap', title:_gtxt('Печать'),func:function(){_mapHelper.print()}}
+			{id: 'mapCreate',  title: _gtxt('Создать'),           func: function(){_queryMapLayers.createMapDialog(_gtxt("Создать карту"), _gtxt("Создать"), _queryMapLayers.createMap)}},
+			{id: 'mapList',    title: _gtxt('Открыть'),           func: function(){_queryMapLayers.getMaps()}, style: [['css','borderBottom','1px solid #E6F1F5']]},
+			{id: 'mapSave',    title: _gtxt('Сохранить'),         func: _queryMapLayers.saveMap},
+			{id: 'mapSaveAs',  title: _gtxt('Сохранить как'),     func: function(){_queryMapLayers.createMapDialog(_gtxt("Сохранить карту как"), _gtxt("Сохранить"), _queryMapLayers.saveMapAs)}},
+			{id: 'permalink',  title: _gtxt('Ссылка на карту'),   func: function(){_mapHelper.showPermalink()}, style: [['css','borderBottom','1px solid #E6F1F5']]},
+			{id: 'mapTabsNew', title: _gtxt('Добавить закладку'), func: function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();}},
+			{id: 'codeMap',    title: _gtxt('Код для вставки'),   func: function(){_mapHelper.createAPIMapDialog()}},
+            {id: 'codeMap',    title: 'Библиотека стилей',        func: nsGmx.showStyleLibraryDialog},
+			{id: 'printMap',   title: _gtxt('Печать'),            func: function(){_mapHelper.print()}}
 		]});
 	
 	_menuUp.addItem(
