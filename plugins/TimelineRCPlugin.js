@@ -596,16 +596,17 @@ var TimelineController = function(data, map) {
         nsGmx.widgets.commonCalendar.get().unbindLayer(layerName);
         layer.setDateInterval(new Date(2000, 1, 1), new Date());
         
+        var items = data.get('items');
+        items[layerName] = items[layerName] || {};
+        
         layer.addObserver(function(objs)
         {
-            // console.log(objs);
             //если мы загрузили все объекты, то нас не особо волнует, попали они на экран или нет...
             if (data.get('allItems')) {
                 return;
             }
             
             var items = data.get('items');
-            items[layerName] = items[layerName] || {};
             
             for (var i = 0; i < objs.length; i++)
             {
