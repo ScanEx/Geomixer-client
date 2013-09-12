@@ -356,9 +356,8 @@ var doCreateMultiLayerEditor = function(elemProperties, layers, div, layersTree)
                     visible:  isCreate ? true : layerDiv.gmxProperties.content.properties.visible,
                     styles:   isCreate ? [{MinZoom: response.Result.properties.MinZoom, MaxZoom: response.Result.properties.MaxZoom}] : layerDiv.gmxProperties.content.properties.styles
                 });
-                var convertedCoords = from_merc_geometry(response.Result.geometry);
-                
-                var layerData = {type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}};
+
+                var layerData = {type:'layer', content:{properties: newLayerProperties, geometry: response.Result.geometry}};
                 
                 if (!isCreate)
                     _queryMapLayers.removeLayer(newLayerProperties.name);
