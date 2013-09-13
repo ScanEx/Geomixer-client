@@ -1853,7 +1853,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(task, properties, needRetil
                 
                 _this.removeLayer(newLayerProperties.name);
                 
-                _layersTree.addLayersToMap({content:{properties:newLayerProperties, geometry:convertedCoords}});
+                _layersTree.addLayersToMap({content:{properties:newLayerProperties, geometry:taskInfo.Result.geometry}});
                 
                 var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
                     li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
