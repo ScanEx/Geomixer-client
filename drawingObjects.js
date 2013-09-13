@@ -654,9 +654,10 @@ var DrawingObjectGeomixer = function() {
 
 		for (var iLayerN=0; iLayerN<oMap.layers.length; iLayerN++){
 			var l = oMap.layers[iLayerN],
-                layerBounds = l.getLayerBounds();
+                layerBounds = l.getLayerBounds(),
+                isProperType = l.properties.type == "Raster" || l.properties.IsRasterCatalog;
                 
-			if ( l.properties.type == "Raster" && l.isVisible && l.properties.mapName != baseMapName && 
+			if (isProperType && l.isVisible && l.properties.mapName != baseMapName && 
                  x >= layerBounds.minX && x <= layerBounds.maxX && y >= layerBounds.minY && y <= layerBounds.maxY ){
 				var coords = l.geometry.coordinates;
 				var bIsPolygonBad = false;

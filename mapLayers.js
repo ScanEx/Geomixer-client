@@ -1106,14 +1106,10 @@ layersTree.prototype.swapHandler = function(spanSource, divDestination)
 layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapFlag, addToMap)
 {
     var _this = this;
-    //var gmxProperties = spanSource.parentNode.parentNode.gmxProperties;
 	var isFromList = typeof gmxProperties.content.geometry === 'undefined';
 	var layerProperties = (gmxProperties.type !== 'layer' || !isFromList) ? gmxProperties : false,
 		copyFunc = function()
 		{
-			if (layerProperties.type == 'layer')
-				layerProperties.content.geometry = from_merc_geometry(layerProperties.content.geometry);
-			
 			if (addToMap)
             {
                 if ( !_this.addLayersToMap(layerProperties) )
@@ -1265,7 +1261,7 @@ layersTree.prototype.copyHandler = function(gmxProperties, divDestination, swapF
 		copyFunc();
 }
 
-//геометрия слоёв должна быть в latlng
+//геометрия слоёв должна быть в координатах меркатора
 layersTree.prototype.addLayersToMap = function(elem)
 {
 	if (typeof elem.content.properties.GroupID != 'undefined')
@@ -1282,6 +1278,8 @@ layersTree.prototype.addLayersToMap = function(elem)
 	{
 		var layer = elem.content,
 			name = layer.properties.name;
+            
+            layer.geometry = from_merc_geometry(layer.geometry);
 
 		if (!globalFlashMap.layers[name])
 		{
@@ -1780,7 +1778,7 @@ queryMapLayers.prototype.asyncCreateLayer = function(task, title)
             
             var convertedCoords = from_merc_geometry(newLayer.geometry);
 
-            _layersTree.addLayersToMap({content:{properties:newProps, geometry:convertedCoords}});
+            _layersTree.addLayersToMap({content:{properties: newProps, geometry: newLayer.geometry}});
             
             var li = _layersTree.getChildsList(
                     {
