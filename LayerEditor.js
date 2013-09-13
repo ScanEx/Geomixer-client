@@ -428,7 +428,7 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
     //TODO: использовать события модели
     shapeFileLink.onclick = function()
     {
-        _fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml'], function(path)
+        _fileBrowser.createBrowser(_gtxt("Файл"), ['shp','tab', 'xls', 'xlsx', 'xlsm', 'mif', 'gpx', 'kml', 'csv'], function(path)
         {
             shapePathInput.value = path;
             layerProperties.set('ShapePath', {Path: path});
