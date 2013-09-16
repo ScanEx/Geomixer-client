@@ -813,7 +813,7 @@ mapHelper.prototype.updateTinyMCE = function(container) {
 mapHelper.ImageInputControl = function(initURL)
 {
     var prevValue = initURL || '';
-    var inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', prevValue], ['css','width','180px']]);
+    var inputUrl = _input(null, [['dir','className','inputStyle'],['attr','value', prevValue], ['css','width','175px']]);
     _title(inputUrl, _gtxt("URL изображения"));
     
     var _this = this;
@@ -1733,4 +1733,4 @@ nsGmx.createLayerEditorProperties = gmxCore.createDeferredFunction('LayerEditor'
 nsGmx.createStylesDialog = gmxCore.createDeferredFunction('LayerStylesEditor', 'createStylesDialog');
 
 //Библиотека стилей
-nsGmx.showStyleLibraryDialog = gmxCore.createDeferredFunction('StyleLibrary', 'showStyleLibraryDialog');
+//nsGmx.showStyleLibraryDialog = gmxCore.createDeferredFunction('StyleLibrary', 'showStyleLibraryDialog');

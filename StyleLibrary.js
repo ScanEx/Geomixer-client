@@ -17,6 +17,14 @@
             if (newStyleIDs.length !== styleIDs.length) {
                 this.set('styleIDs', newStyleIDs);
             }
+        },
+        addStyle: function(style) {
+            var id = typeof style.id !== 'undefined' ? style.id : style.cid;
+            if (_.indexOf(this.attributes.styleIDs, id) == -1) {
+                var newStyles = this.attributes.styleIDs.splice(0);
+                newStyles.push(id);
+                this.set('styleIDs', newStyles);
+            }
         }
     });
     
@@ -26,19 +34,21 @@
     
     //test data
     var testStyles = new LibStyleCollection([
-        {id: 1, type: 'POINT', title: 'Водяной', style: {}},
-        {id: 2, type: 'POINT', title: 'Леший', style: {}},
-        {id: 3, type: 'LINESTRING', title: 'Оборотень', style: {}},
-        {id: 4, type: 'LINESTRING', title: 'Бес', style: {}},
-        {id: 5, type: 'LINESTRING', title: 'Чёрт', style: {}},
-        {id: 6, type: 'LINESTRING', title: 'Барабашка', style: {}},
-        {id: 7, type: 'LINESTRING', title: 'Кикимора', style: {}},
-        {id: 8, type: 'POLYGON', title: 'Вампир', style: {}},
-        {id: 9, type: 'POLYGON', title: 'Лесной', style: {}}
+        {id: 1, type: 'POINT',      title: 'Водяной',   style: {marker: {size: 3}, outline: {color: 0xffff00, thickness: 2}}},
+        {id: 2, type: 'POINT',      title: 'Леший',     style: {marker: {image: 'http://maps.kosmosnimki.ru/api/img/favicon16x16_sample6.png'}}},
+        
+        {id: 3, type: 'LINESTRING', title: 'Оборотень', style: {outline: {color: 0xff00ff, thickness: 10}}},
+        {id: 4, type: 'LINESTRING', title: 'Бес',       style: {marker: {image: 'http://maps.kosmosnimki.ru/api/img/favicon16x16_sample6.png'}}},
+        {id: 5, type: 'LINESTRING', title: 'Чёрт',      style: {}},
+        {id: 6, type: 'LINESTRING', title: 'Барабашка', style: {outline: {color: 0xffff00}}},
+        {id: 7, type: 'LINESTRING', title: 'Кикимора',  style: {}},
+        
+        {id: 8, type: 'POLYGON',    title: 'Вампир',    style: {fill: {color: 0xaaaaaa}, outline: {color: 0x00ff00}}},
+        {id: 9, type: 'POLYGON',    title: 'Лесной',    style: {fill: {color: 0x444444}}}
     ])
     
     var testCategories = new LibCategoryCollection([
-        {id: 1, title: 'Природа', styleIDs: [1, 2, 6]},
+        {id: 1, title: 'Природа', styleIDs: [1, 2, 4, 6]},
         {id: 2, title: 'Домашние', styleIDs: [3, 4, 5]},
         {id: 3, title: 'Злые', styleIDs: [1, 2, 3, 4, 5, 6, 7, 8, 9]},
         {id: 4, title: 'Добрые', styleIDs: [9]}
@@ -87,7 +97,88 @@
     }
     
     var LibStyleView = function(container, style) {
-        var styleIcon = $('<div class="stylelib-style-icon-container"/>');
+        var str2 = function(val) { return ('0' + val.toString(16)).slice(-2); } //2 char hex
+        var colorToCSS = function(color) {
+            var r = (color >> 16) & 255;
+            var g = (color >> 8) & 255;
+            var b = color & 255;
+            return '#' + str2(r) + str2(g) + str2(b);
+        }
+    
+        //рисует иконку стиля 64x64 пикселя. Возможно, асинхронно
+        var drawIcon = function(div) {
+            div.addClass('stylelib-style-icon-container');
+            var rawStyle = style.get('style'),
+                type = style.get('type');
+            
+            if (rawStyle.marker && rawStyle.marker.image) {
+                var img = new Image();
+                img.onload = function() {
+                    var scale = 64 / Math.max(img.width, img.height);
+                    img.width = img.width * scale;
+                    img.height = img.height * scale;
+                    div.append(img);
+                }
+                img.src = rawStyle.marker.image;
+                return;
+            }
+            
+            var appendOutlineStyle = function(div) {
+                
+                div.css({
+                    position: 'absolute',
+                    top: 2,
+                    left: 2
+                });
+                
+                if (rawStyle.outline && 'color' in rawStyle.outline) {
+                    div.css({
+                        width: 48,
+                        height: 48,
+                        'border-color': colorToCSS(rawStyle.outline.color),
+                        'border-width': 6,
+                        'border-style': 'solid'
+                    })
+                } else {
+                    div.css({
+                        width: 60,
+                        height: 60
+                    });
+                }
+            }
+            
+            var appendFillStyle = function(div) {
+                if (rawStyle.fill && 'color' in rawStyle.fill) {
+                    div.css({
+                        'background-color': colorToCSS(rawStyle.fill.color),
+                    });
+                }
+            }
+            
+            if (type === 'LINESTRING') {
+                if (rawStyle.outline && 'color' in rawStyle.outline) {
+                    div.css('position', 'relative');
+                    var lineDiv = $('<div/>');
+                    appendOutlineStyle(lineDiv);
+                    lineDiv.appendTo(div);
+                }
+            } else if (type === 'POINT') {
+                if (rawStyle.marker && rawStyle.marker.size) {
+                    var lineDiv = $('<div/>');
+                    appendOutlineStyle(lineDiv);
+                    appendFillStyle(lineDiv);
+                    lineDiv.appendTo(div);
+                }
+            } else { //POLIGON
+                var lineDiv = $('<div/>');
+                appendOutlineStyle(lineDiv);
+                appendFillStyle(lineDiv);
+                lineDiv.appendTo(div);
+            }
+        }
+    
+        var styleIcon = $('<div/>');
+        drawIcon(styleIcon);
         var title = $('<div class="stylelib-style-title"/>').text(style.get('title') || '' );
         container.append(styleIcon, title);
     }
@@ -138,8 +229,25 @@
     
     //style edit dialog
     var showEditDialog = function(style) {
-        var container = $('<div/>');
-        showDialog('Редактирование стиля ' + style.get('title'), container[0], {width: 300, height: 400});
+        gmxCore.loadModule('LayerStylesEditor').done(function() {
+            var titleInput = $('<input class="stylelib-edit-title inputStyle">')
+                    .val(style.get('title'))
+                    .attr('title', 'Название стиля');
+            var titleContainer = $('<div class="stylelib-edit-title-container"/>').append(titleInput);
+            var styleContainer = $('<div/>');
+            var saveBtn = $('<span class="buttonLink">Сохранить</span>');
+            var container = $('<div/>').append(titleContainer, styleContainer, saveBtn);
+            
+            var styleClone = $.extend(true, {}, style.get('style'));
+            
+            saveBtn.click(function() {
+                style.set(style, styleClone);
+                $(dialogDiv).dialog('close');
+            })
+            
+            createStyleEditor(styleContainer[0], styleClone, style.get('type').toLowerCase());
+            var dialogDiv = showDialog('Редактирование стиля ' + style.get('title'), container[0], {width: 300, height: 300});
+        })
     }
     
     //main public function
@@ -154,7 +262,8 @@
             _.each(styleContainers, function(container, type) {
                 var view = new LibStyleCollectionView(container, categoryStyleCollection, type);
                 $(view).bind('select', function(event, style) {
-                    console.log(style.id, style.get('title'));
+                    //console.log(style.id, style.get('title'));
+                    style && alert('Выбран стиль: ' + style.get('title'));
                 })
                 
                 styleViews[type] = view;
@@ -200,7 +309,33 @@
         selectBtn.click(function() {
             var activeID = getCurrentStyleID();
             var style = testStyles.get(activeID);
-            style && console.log(style.id, style.get('title'));
+            style && alert('Выбран стиль: ' + style.get('title'));
+            //style && console.log(style.id, style.get('title'));
+        })
+        
+        addBtn.click(function() {
+            var tabIndex = $(tabsContainer).tabs('option', 'selected');
+            var type = ['POINT', 'LINESTRING', 'POLYGON'][tabIndex],
+                styleView = styleViews[type];
+            var newStyle = new LibStyle({
+                title: '',
+                style: {},
+                type: type
+            });
+            
+            newStyle.on('change', function() {
+                var categoryID = categoryView.model.get('activeID');
+                testCategories.get(categoryID).addStyle(newStyle);
+            })
+            
+            showEditDialog(newStyle);
+        })
+        
+        editBtn.click(function() {
+            var activeID = getCurrentStyleID();
+            if (typeof activeID !== 'undefined') {
+                showEditDialog(testStyles.get(activeID));
+            }
         })
         
         deleteBtn.click(function() {
@@ -209,13 +344,6 @@
             if (typeof activeID !== 'undefined') {
                 var categoryID = categoryView.model.get('activeID');
                 testCategories.get(categoryID).removeStyle(activeID);
-            }
-        })
-        
-        editBtn.click(function() {
-            var activeID = getCurrentStyleID();
-            if (typeof activeID !== 'undefined') {
-                showEditDialog(testStyles.get(activeID));
             }
         })
         
@@ -231,11 +359,20 @@
         testCategories.on('change:styleIDs', drawCategoryStyles);
         drawCategoryStyles();
         
-        showDialog('Библиотека стилей', container[0], {width: 400, height: 220});
+        showDialog('Библиотека стилей', container[0], {width: 500, height: 400});
     }
     
     gmxCore.addModule('StyleLibrary', {
-        showStyleLibraryDialog: showStyleLibraryDialog
+        showStyleLibraryDialog: showStyleLibraryDialog,
+        //интерфейс для подключения как плагин
+        pluginName: 'Style Library Beta',
+        afterViewer: function() {
+            _menuUp.addChildItem({
+                    id: 'styleLibrary', 
+                    title: 'Библиотека стилей',
+                    onsel: showStyleLibraryDialog
+            }, 'mapsMenu');
+        }
     }, {
         css: 'css/StyleLibrary.css'
     })
