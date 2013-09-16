@@ -336,7 +336,9 @@
 				callHandler(addHandlerCalled ? "onEdit" : "onAdd");
 				addHandlerCalled = true;
 			},
-			remove: function() { ret.remove(); },
+			remove: function() {
+                ret.remove();
+            },
 			removeInternal: function()
 			{
 				callHandler("onRemove");
@@ -824,7 +826,6 @@
 				if(domObj) domObj.removeInternal();
 				if(positionChangedID) gmxAPI.map.removeListener('positionChanged', positionChangedID); positionChangedID = null;
 				ret.stopDrawing();
-				if(toolsContainer) toolsContainer.selectTool("move");
 			}
 			,'isVisible': (props.isVisible == undefined) ? true : props.isVisible
 			,
@@ -1182,7 +1183,6 @@
 				if(domObj) domObj.removeInternal();
 				if(positionChangedID) gmxAPI.map.removeListener('positionChanged', positionChangedID); positionChangedID = null;
 				ret.stopDrawing();
-				if(toolsContainer) toolsContainer.selectTool("move");
 			}
 			,'isVisible': (props.isVisible == undefined) ? true : props.isVisible
 			,
