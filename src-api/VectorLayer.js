@@ -1099,7 +1099,7 @@
 
 		// получить bounds списка тайлов слоя
 		node.getTilesBounds = function(arr, vers) {
-			node['tiles'] = {};
+			if(!node['tiles']) node['tiles'] = {};
 			var cnt = 0;
 			for (var i = 0; i < arr.length; i+=3)
 			{
