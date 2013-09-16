@@ -430,7 +430,7 @@
 			'setImageExtent', 'setImage', 'bringToTop', 'bringToDepth', 'setDepth', 'bringToBottom',
 			'setGeometry', 'setActive',  'setEditable', 'startDrawing', 'stopDrawing', 'isDrawing', 'setLabel', 'setDisplacement',
 			'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
-			'setHandler', 'setVisibilityFilter', 'removeListener', //'remove', 'addListener',
+			'setHandler', 'setVisibilityFilter', //'remove', 'removeListener', 'addListener',
 			'setClusters', 'addImageProcessingHook',
 			'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
 		];
@@ -745,12 +745,16 @@
 			obj.addListener = function(eventName, handler, level)
 			{
 				var evID = gmxAPI.newFlashMapId();
-				deferred.push(function() {
-					gmxAPI._listeners.addListener({'obj': obj, 'evID': evID, 'eventName': eventName, 'func': handler, 'level': level});
-					for (var i = 0; i < obj.filters.length; i++) {
-						gmxAPI._listeners.addListener({'level': level, 'pID': evID, 'obj': obj.filters[i], 'eventName': eventName, 'func': handler});
-					}
-				});
+                if(eventName === 'onChangeLayerVersion') {
+                    gmxAPI._listeners.addListener({'obj': obj, 'evID': evID, 'eventName': eventName, 'func': handler, 'level': level});
+                } else {
+                    deferred.push(function() {
+                        gmxAPI._listeners.addListener({'obj': obj, 'evID': evID, 'eventName': eventName, 'func': handler, 'level': level});
+                        for (var i = 0; i < obj.filters.length; i++) {
+                            gmxAPI._listeners.addListener({'level': level, 'pID': evID, 'obj': obj.filters[i], 'eventName': eventName, 'func': handler});
+                        }
+                    });
+                }
 				return evID;
 			}
 
