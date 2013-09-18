@@ -2,7 +2,7 @@
 
     //Data models
     var LibStyle = Backbone.Model.extend({
-        
+
     });
     
     var LibStyleCollection = Backbone.Collection.extend({
@@ -77,23 +77,38 @@
             })
         }
         
-        
-        container.empty();
-        
-        var activeID = this.model.get('activeID');
-        categoryCollection.each(function(category) {
-            var elem = $('<div/>')
-                .text(category.get('title') + ' (' + category.get('styleIDs').length + ')')
-                .data('categoryID', category.id)
-                .click(function() {
-                    _this.model.set('activeID', $(this).data('categoryID'));
-                });
-            
-            container.append(elem);
-        })
-        
         this.model.on('change:activeID', updateActiveItem);
-        updateActiveItem();
+        
+        var draw = function() {
+            container.empty();
+            categoryCollection.each(function(category) {
+                var getElem = function() {
+                    return $('<div/>')
+                        .append(
+                            $('<span/>').text(category.get('title')),
+                            $('<span class="stylelib-category-count"/>').text('(' + category.get('styleIDs').length + ')')
+                        )
+                        .data('categoryID', category.id)
+                        .click(function() {
+                            _this.model.set('activeID', $(this).data('categoryID'));
+                        });
+                }
+                
+                var elem = getElem();
+                container.append(elem);
+                
+                category.on('change', function() {
+                    var oldElem = elem;
+                    elem = getElem();
+                    oldElem.replaceWith(elem);
+                    updateActiveItem();
+                })
+            })
+            
+            updateActiveItem();
+        }
+        
+        draw();
     }
     
     var LibStyleView = function(container, style) {
@@ -176,6 +191,13 @@
                 lineDiv.appendTo(div);
             }
         }
+        
+        style.on('change', function() {
+            var newStyleIcon = $('<div/>');
+            drawIcon(newStyleIcon);
+            styleIcon.replaceWith(newStyleIcon);
+            styleIcon = newStyleIcon;
+        });
     
         var styleIcon = $('<div/>');
         drawIcon(styleIcon);
@@ -208,9 +230,11 @@
         
         container.empty();
         
+        
         filteredDataCollection.each(function(style) {
+            var id = typeof style.id !== 'undefined' ? style.id : style.cid;
             var styleContainer = $('<div class="stylelib-style-container"/>')
-                .data('styleID', style.id)
+                .data('styleID', id)
                 .click(function() {
                     _this.model.set('activeID', $(this).data('styleID'))
                 })
@@ -220,6 +244,8 @@
                 .appendTo(container);
             new LibStyleView(styleContainer, style);
         })
+        
+        
         
         this.model.on('change:activeID', updateActiveItem);
         updateActiveItem();
@@ -241,7 +267,7 @@
             var styleClone = $.extend(true, {}, style.get('style'));
             
             saveBtn.click(function() {
-                style.set(style, styleClone);
+                style.set('style', styleClone);
                 $(dialogDiv).dialog('close');
             })
             
@@ -325,6 +351,7 @@
             
             newStyle.on('change', function() {
                 var categoryID = categoryView.model.get('activeID');
+                testStyles.add(newStyle);
                 testCategories.get(categoryID).addStyle(newStyle);
             })
             

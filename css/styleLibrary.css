@@ -2,6 +2,11 @@
     background-color: #cccccc;
 }
 
+.stylelib-category-count {
+    float: right;
+    margin-right: 5px;
+}
+
 .stylelib-category-container {
     width: 100px;
     vertical-align: top;
@@ -26,6 +31,7 @@
 .stylelib-style-container {
     display: inline-block;
     margin: 3px;
+    vertical-align: top;
 }
 
 .stylelib-style-icon-container {

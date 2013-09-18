@@ -1301,6 +1301,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 		function (hsb, hex, rgb) {
 			outlineColor.style.backgroundColor = '#' + hex;
 			
+            templateStyle.outline = templateStyle.outline || {};
 			templateStyle.outline.color = outlineColor.hex = parseInt('0x' + hex);
 			
 			$(resObject).change();
@@ -1316,6 +1317,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 	var divSlider = nsGmx.Controls.createSlider((templateStyle.outline && typeof templateStyle.outline.opacity != 'undefined') ? templateStyle.outline.opacity : 100,
 			function(event, ui)
 			{
+                templateStyle.outline = templateStyle.outline || {};
 				templateStyle.outline.opacity = ui.value;
 				
 				$(resObject).change();
@@ -1326,6 +1328,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 	var outlineThick = nsGmx.Controls.createInput((templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined') ? templateStyle.outline.thickness : 2,
 			function()
 			{
+                templateStyle.outline = templateStyle.outline || {};
 				templateStyle.outline.thickness = Number(this.value);
 				
 				$(resObject).change();
@@ -1375,6 +1378,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 			else
 				correct = false;
 			
+            templateStyle.outline = templateStyle.outline || {};
 			if (correct)
 				templateStyle.outline.dashes = arr;
 			else
@@ -1579,6 +1583,8 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
         var markerSizeInput = nsGmx.Controls.createInput(templateStyle.marker && templateStyle.marker.size || 3,
 			function()
 			{
+                templateStyle.marker = templateStyle.marker || {};
+                
 				templateStyle.marker.size = Number(this.value);
 				
 				$(resObject).change();
@@ -1609,6 +1615,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 				function (hsb, hex, rgb) {
 					markerColor.style.backgroundColor = '#' + hex;
 					
+                    templateStyle.marker = templateStyle.marker || {};
 					templateStyle.marker.color = markerColor.hex = parseInt('0x' + hex);
 					
 					$(resObject).change();
@@ -1623,6 +1630,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 			
 			scale.onkeyup = function()
 			{
+                templateStyle.marker = templateStyle.marker || {};
 				if (this.value != '')
 					templateStyle.marker.scale = this.value;
 				else
@@ -1637,6 +1645,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 			
 			angle.onkeyup = function()
 			{
+                templateStyle.marker = templateStyle.marker || {};
 				if (this.value != '')
 					templateStyle.marker.angle = this.value;
 				else
