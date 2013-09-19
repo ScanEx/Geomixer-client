@@ -2,8 +2,22 @@
 
     //Data models
     var LibStyle = Backbone.Model.extend({
-
     });
+    
+    LibStyle.getDefaultStyle = function(type) {
+        return {
+            POINT: {
+                marker: {size: 3},
+                outline: {color: 0x0000ff, thickness: 2, opacity: 100}
+            },
+            LINESTRING: {
+                outline: {color: 0x0000ff, thickness: 2, opacity: 100}
+            },
+            POLYGON: {
+                outline: {color: 0x0000ff, thickness: 2, opacity: 100}
+            }
+        }[type];
+    }
     
     var LibStyleCollection = Backbone.Collection.extend({
         model: LibStyle
@@ -197,6 +211,7 @@
             drawIcon(newStyleIcon);
             styleIcon.replaceWith(newStyleIcon);
             styleIcon = newStyleIcon;
+            title.text(style.get('title'));
         });
     
         var styleIcon = $('<div/>');
@@ -267,7 +282,8 @@
             var styleClone = $.extend(true, {}, style.get('style'));
             
             saveBtn.click(function() {
-                style.set('style', styleClone);
+                style.set({style: styleClone, title: titleInput.val()});
+                style.trigger('doneEdit');
                 $(dialogDiv).dialog('close');
             })
             
@@ -343,13 +359,14 @@
             var tabIndex = $(tabsContainer).tabs('option', 'selected');
             var type = ['POINT', 'LINESTRING', 'POLYGON'][tabIndex],
                 styleView = styleViews[type];
+                
             var newStyle = new LibStyle({
                 title: '',
-                style: {},
+                style: LibStyle.getDefaultStyle(type),
                 type: type
             });
             
-            newStyle.on('change', function() {
+            newStyle.on('doneEdit', function() {
                 var categoryID = categoryView.model.get('activeID');
                 testStyles.add(newStyle);
                 testCategories.get(categoryID).addStyle(newStyle);
