@@ -1,6 +1,6 @@
 .cadastreLeftMenuLabel
 {
-  margin-Left: 3px;
+	margin-Left: 3px;
 }
 .cadastreLeftMenuRow
 {
@@ -22,3 +22,15 @@
 {
 	color: #666666;
 }
+/*#tableInfo tr{
+	text-align: left;
+}*/
+
+#tableInfo th {
+     /*background: #ccc;*/
+     text-align: left;
+    }
+/*#tableInfo td, th {
+     border: 1px solid #800; 
+     padding: 4px; 
+    } */

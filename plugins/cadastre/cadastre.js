@@ -21,11 +21,14 @@ extendJQuery = function() {
 }
 extendJQuery();
 
-var mapListenerInfo,cadastreLayerListener; // Listener для идентификации кадастрового участка на карте
+var dx,dy,map;
+var mapListenerInfo,cadastreLayerListener,cadastreLayerSearchListener; // Listener для идентификации кадастрового участка на карте
 var balloonInfo,balloonSearch; // balloon для идентификации и поиска кадастрового участка на карте
 var cadastreLayerInfo,cadastreLayerSearch;
 var cadastreServer;
-
+var liteCadastreLayer;
+var customSRC={"wkt":"PROJCS[\"WGS 84 / World Mercator\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]],PROJECTION[\"Mercator\"],PARAMETER[\"False_Easting\",0],PARAMETER[\"False_Northing\",0],PARAMETER[\"Central_Meridian\","+104.95158750033377+"],PARAMETER[\"Standard_Parallel_1\",0],PARAMETER[\"scale_factor\",1],UNIT[\"Meter\",1]]"};
+var centralMeridian=11683157.27848284;
 //================справочники Росреестра===============================//
 var PARCEL_STATES = ['Ранее учтенный', '', 'Условный', 'Внесенный', 'Временный (Удостоверен)', 'Учтенный', 'Снят с учета', 'Аннулированный'];
 var UNITS =  {"003":"мм","004":"см","005":"дм","006":"м","008":"км","009":"Мм","047":"морск. м.","050":"кв. мм","051":"кв. см","053":"кв. дм","055":"кв. м","058":"тыс. кв. м","059":"га","061":"кв. км","109":"а","359":"сут.","360":"нед.","361":"дек.","362":"мес.","364":"кварт.","365":"полугод.","366":"г.","383":"руб.","384":"тыс. руб.","385":"млн. руб.","386":"млрд. руб.","1000":"неопр.","1001":"отсутств.","1002":"руб. за кв. м","1003":"руб. за а","1004":"руб. за га","1005":"иные"};
@@ -41,9 +44,8 @@ var cadastre =  function(container){
 
 	var fnRefreshMap = function(){
 		cadastreLegend.style.display = (rbNo.checked)?('none'):('');
-
 		var mapExtent = map.getVisibleExtent();
-		var queryString = "&bbox="+merc_x(mapExtent.minX)+"%2C"+merc_y(mapExtent.minY)+"%2C"+merc_x(mapExtent.maxX)+"%2C"+merc_y(mapExtent.maxY)+"&bboxSR=3395&imageSR=3395&size=" + +map.width()+","+map.height() + "&f=image";
+		var queryString = "&bbox="+(merc_x(mapExtent.minX)-centralMeridian-dx).toString()+"%2C"+(merc_y(mapExtent.minY)-dy)+"%2C"+(merc_x(mapExtent.maxX)-centralMeridian-dx).toString()+"%2C"+(merc_y(mapExtent.maxY)-dy)+"&bboxSR="+JSON.stringify(customSRC)+"&imageSR="+JSON.stringify(customSRC)+"&size=" +map.width()+","+map.height() + "&f=image";
 		var tUrl = cadastreServer+"CadastreNew/Thematic/MapServer/export?dpi=96&transparent=true&format=png32"+queryString;
 		if (cbDivision.checked){
 			var sUrl = cadastreServer+"CadastreNew/Cadastre/MapServer/export?dpi=96&transparent=true&format=png32"+queryString;
@@ -52,7 +54,6 @@ var cadastre =  function(container){
 			addCadastreInfoTool();
 			gmxAPI._tools.standart.setVisible(true);
 
-			//cadastreLegend.innerHTML = 'Кадастровые сведения</br><table cellspacing="0" cellpadding="0"><tbody><tr><td class=cadastreLegendImageColumn><img class=cadastreLegendImage border="0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAMAAACelLz8AAAAAXNSR0IB2cksfwAAACRQTFRF/v///v7+////////5gAA6VhY8amp87u79svL+Nra+ufn/fPzbT1i2gAAAAx0Uk5TAP//////////////CcRQJgAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAElJREFUKJHt0jESwCAIRFEIiCL3v29SogOOiW1++zoW6MJhYpDIY5AJ8wlVHaqO9EIXqScEF/70hSg97zRK25vyJZXVs1lsRewGZtsJDm3zFo0AAAAASUVORK5CYII="></td><td><span>Кадастровые округа</span></td></tr><tr><td class=cadastreLegendImageColumn><img class=cadastreLegendImage border="0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAMAAACelLz8AAAAAXNSR0IB2cksfwAAACRQTFRF/v//////////////5gAA6VhY7Ht77pSU8amp9svL+ufn////TwQsdgAAAAx0Uk5TAP//////////////CcRQJgAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAExJREFUKJHt0jESgEAIQ9G4gAvk/ve109kdGDsrf/vKBAejKjnAqWVGRC2q8UbTt+wmpyzRHxIsyU9fUT+K9VM2B8iOErRaTmK0F70ANygKXZpOPcIAAAAASUVORK5CYII="></td><td><span>Кадастровые районы</span></td></tr><tr><td class=cadastreLegendImageColumn><img class=cadastreLegendImage border="0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAMAAACelLz8AAAAAXNSR0IB2cksfwAAACpQTFRF/v///v///v///v///v///v7+/v7+////5gAA6VhY7pSU8amp87u7////w4W10AAAAA50Uk5TAP////////////////9XStsUAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAW0lEQVQoke2SOxaAIAwEE5GQ7/2vK8/CBxJaK6edYosdOChSCIHCNMGDIIxTPCCUWRaY9VayLsmjapmogyowUX71lXqdcg5qe+U2AM+zsdZj8yw267FhnmgjvAB2phHJ+R544QAAAABJRU5ErkJggg=="></td><td><span>Кадастровые кварталы</span></td></tr><tr><td class=cadastreLegendImageColumn><img class=cadastreLegendImage border="0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAMAAACelLz8AAAAAXNSR0IB2cksfwAAABVQTFRF/v//+/Pz+ufn8ru78Kqq7ZSU6VhYaBHp5QAAAAd0Uk5TAP///////6V/pvsAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAAvSURBVCiRY2AgEzCzYQEsYCk2JkYMwMQGkWLENIlxVGq4SeFOACzYkg0rpknEAQAWXwJBzbWO4wAAAABJRU5ErkJggg=="></td><td><span>Земельные участки</span></td></tr><tr><td class=cadastreLegendImageColumn><img class=cadastreLegendImage border="0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAMAAACelLz8AAAAAXNSR0IB2cksfwAAABhQTFRF/v//8ru78Kqq7ZSU6VhY+nJy/Xp6/39/wKq0QwAAAAh0Uk5TAP/////////VylQyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAALklEQVQokWNgIBMwsmABTGApFlY2DMDKApFiY8cAbKNSw00KdwJgwpZsmMlNhABUegvpjanC7gAAAABJRU5ErkJggg=="></td><td><span>Объекты капитального строительства</span></td></tr></tbody></table';
 		}else{
 			if(gmxAPI._tools.standart.getToolByName("cadastreInfo")){
 				gmxAPI._tools.standart.removeTool( 'cadastreInfo');
@@ -62,6 +63,10 @@ var cadastre =  function(container){
 				cadastreLayerInfo.setVisible(false);
 			if(balloonInfo)
 				balloonInfo.remove();
+			if(mapListenerInfo)
+				map.removeListener("onClick", mapListenerInfo);
+			if(cadastreLayerListener)
+				map.removeListener("onMoveEnd", cadastreLayerListener);
 		}
 		if(rbCostLayer.checked){
 			tUrl+="&layers=show:1,7";
@@ -151,7 +156,6 @@ var cadastre =  function(container){
 	mapUpdateLayer = this.mapObject.addObject();
 	mapVisitorsLayer = this.mapObject.addObject();
 	
-
 	var iListenerID = -1;
 	
 	this.enableLayer = function(layerName){
@@ -194,7 +198,7 @@ var cadastre =  function(container){
 		return cadastreNumber;
 	}
 
-	function cadastreSearch(){
+		function cadastreSearch(){
 		
 		function cadastreSearchBalloon(data){
 			if(balloonInfo)
@@ -223,7 +227,6 @@ var cadastre =  function(container){
 			html+="<tr><th>Кадастровая стоимость: </th><td>"+data["CAD_COST"]+UNITS[data["CAD_UNIT"]]+"</td></tr>";
 			html+="<tr><th>Форма собственности: </th><td>"+data["RC_TYPE"]+"</td></tr>";
 			html+="<tr><th>Дата постановки на учет: </th><td>"+parseDate(data["DATE_CREATE"])+"</td></tr>";
-			//html+="<tr><th>Кадастровый инженер: </th><td>"+parseDate(data["DATE_CREATE"])+"</td></tr>"; TODO:
 			var Num = data["PARCEL_CN"].substr(0,data["PARCEL_CN"].lastIndexOf(":"));
 			html+="<tr><th>Квартал: </th><td>"+Num+"</td></tr>";
 			Num = Num.substr(0,Num.lastIndexOf(":"));
@@ -276,10 +279,15 @@ var cadastre =  function(container){
 							var maxY = data.geometries[1].y;
 							map.zoomToExtent(minX,minY,maxX,maxY);
 
+							var url=cadastreServer+"CadastreNew/CadastreSelected/MapServer/export?dpi=96&transparent=true&format=png32&layers=show:2,3,4&bboxSR="+JSON.stringify(customSRC)+"&imageSR="+JSON.stringify(customSRC)+"&size="+map.width()+","+map.height()+"&layerDefs="+str+"&f=image";
+							var getLayerSearch=function(){
+								console.log("dx ",dx," dy ",dy);
+								var bboxUrl="&bbox="+((merc_x(map.getVisibleExtent().minX)-centralMeridian)-dx)+","+(merc_y(map.getVisibleExtent().minY)-dy)+","+((merc_x(map.getVisibleExtent().maxX)-centralMeridian)-dx)+","+(merc_y(map.getVisibleExtent().maxY)-dy);
+								cadastreLayerSearch.setImageExtent({url:url+bboxUrl, extent: map.getVisibleExtent(), noCache: true});
+							}
+
 							setTimeout(function(){
-								var bbox = gmxAPI.map.getVisibleExtent().minX+','+gmxAPI.map.getVisibleExtent().minY+','+gmxAPI.map.getVisibleExtent().maxX+','+gmxAPI.map.getVisibleExtent().maxY;
-								var url=cadastreServer+"CadastreNew/CadastreSelected/MapServer/export?dpi=96&transparent=true&format=png32&layers=show:2,3,4&bboxSR=4326&imageSR=3395&size="+map.width()+","+map.height()+"&layerDefs="+str+"&f=image"+"&bbox="+bbox;
-								cadastreLayerSearch.setImageExtent({url:url, extent: map.getVisibleExtent(), noCache: true});
+								getLayerSearch();
 								cadastreLayerSearch.setVisible(true);
 								if(!balloonSearch || !balloonSearch.isVisible){
 									cadastreSearchBalloon(findInfo);
@@ -291,6 +299,14 @@ var cadastre =  function(container){
 								}
 							},300);
 							
+							if(!cadastreLayerSearchListener){
+								cadastreLayerSearchListener = gmxAPI.map.addListener("onMoveEnd", getLayerSearch);
+								cadastreLayerSearch.setVisible(true);
+							}else{
+								map.removeListener("onMoveEnd", cadastreLayerSearchListener);
+								cadastreLayerSearchListener = gmxAPI.map.addListener("onMoveEnd", getLayerSearch);
+								cadastreLayerSearch.setVisible(true);
+							}
 							
 						});
 					}else{
@@ -347,7 +363,6 @@ var cadastre =  function(container){
 	_(container, [div]);
 
 	this.unloadCadastre = function(){
-		//gmxAPI.map.handlers={}; .. не отрабатывает в leaflet версии
 		if(mapListenerInfo)
 			map.removeListener('onClick', mapListenerInfo);
 		if(cadastreLayerListener)
@@ -378,9 +393,6 @@ var unloadCadastre = function(){
 }
 
 var loadCadastre = function(){
-	//$()
-	//addCadastreInfoTool();
-	//gmxAPI._tools.standart.setVisible(true);
 
 	var alreadyLoaded = cadastreMenu.createWorkCanvas("cadastre", unloadCadastre);
 	if (!alreadyLoaded){
@@ -393,7 +405,9 @@ var loadCadastre = function(){
 }
 
 function addCadastreInfoTool(){
-	var map = gmxAPI.map;
+	map = gmxAPI.map;
+	
+	
 	var cadastreTool = {
 		'key': "cadastreInfo",
 		'activeStyle': { },
@@ -424,185 +438,191 @@ function addCadastreInfoTool(){
 				},function(data) {
 					var str="";
 					var showLayers="show:";
-					data.results.forEach(function(value){
-						switch (value.layerId) {
-							case 20:
-							case 19:
-							case 18:
-							case 17:
-							case 16:
-								html+="<h3>"+value.layerName+"</h3><br><div><table style='text-align:left'>";
-								html+="<tr><th>OBJECTID</th><td>"+value.attributes["OBJECTID"]+"</td></tr>";
-								html+="<tr><th>Ключ СФ</th><td>"+value.attributes["Ключ СФ"]+"</td></tr>";
-								html+="<tr><th>Идентификатор</th><td>"+value.attributes["Идентификатор"]+"</td></tr>";
-								html+="<tr><th>Кадастровый номер</th><td>"+value.attributes["Кадастровый номер"]+"</td></tr>";
-								html+="<tr><th>Наименование</th><td>"+value.attributes["Наименование"]+"</td></tr>";
-								html+="<tr><th>Аннотация</th><td>"+value.attributes["Аннотация"]+"</td></tr>";
-								html+="<tr><th>Число КР</th><td>"+value.attributes["Число КР"]+"</td></tr>";
-								html+="<tr><th>Число КК</th><td>"+value.attributes["Число КК"]+"</td></tr>";
-								html+="<tr><th>Число ЗУ</th><td>"+value.attributes["Число ЗУ"]+"</td></tr>";
-								html+="<tr><th>ACTUAL_DATE</th><td>"+value.attributes["ACTUAL_DATE"]+"</td></tr>";
-								html+="<tr><th>X центра</th><td>"+value.attributes["X центра"]+"</td></tr>";
-								html+="<tr><th>Y центра</th><td>"+value.attributes["Y центра"]+"</td></tr>";
-								html+="<tr><th>Экстент - X мин.</th><td>"+value.attributes["Экстент - X мин."]+"</td></tr>";
-								html+="<tr><th>Экстент - X макс.</th><td>"+value.attributes["Экстент - X макс."]+"</td></tr>";
-								html+="<tr><th>Экстент - Y мин.</th><td>"+value.attributes["Экстент - Y мин."]+"</td></tr>";
-								html+="<tr><th>Экстент - Y макс.</th><td>"+value.attributes["Экстент - Y макс."]+"</td></tr>";
-								html+="<tr><th>Объект обработан - можно удалять</th><td>"+value.attributes["Объект обработан - можно удалять"]+"</td></tr>";
-								html+="<tr><th>ONLINE_ACTUAL_DATE</th><td>"+value.attributes["ONLINE_ACTUAL_DATE"]+"</td></tr>";
-								html+="</table></div>";
-								break
-							case 14:
-							case 13:
-							case 12:
-							case 11:
-								html+="<h3>"+value.layerName+"</h3><br><div><table style='text-align:left'>";
-								html+="<tr><th>OBJECTID</th><td>"+value.attributes["OBJECTID"]+"</td></tr>";
-								html+="<tr><th>Ключ СФ</th><td>"+value.attributes["Ключ СФ"]+"</td></tr>";
-								html+="<tr><th>Идентификатор</th><td>"+value.attributes["Идентификатор"]+"</td></tr>";
-								html+="<tr><th>Идентификатор родителя</th><td>"+value.attributes["Идентификатор родителя"]+"</td></tr>";
-								html+="<tr><th>Кадастровый номер</th><td>"+value.attributes["Кадастровый номер"]+"</td></tr>";
-								html+="<tr><th>Наименование</th><td>"+value.attributes["Наименование"]+"</td></tr>";
-								html+="<tr><th>Аннотация</th><td>"+value.attributes["Аннотация"]+"</td></tr>";
-								html+="<tr><th>Код ошибки</th><td>"+value.attributes["Код ошибки"]+"</td></tr>";												
-								html+="<tr><th>Число КК</th><td>"+value.attributes["Число КК"]+"</td></tr>";
-								html+="<tr><th>Число ЗУ</th><td>"+value.attributes["Число ЗУ"]+"</td></tr>";
-								html+="<tr><th>Дата актуальности</th><td>"+value.attributes["Дата актуальности"]+"</td></tr>";
-								html+="<tr><th>X центра</th><td>"+value.attributes["X центра"]+"</td></tr>";
-								html+="<tr><th>Y центра</th><td>"+value.attributes["Y центра"]+"</td></tr>";
-								html+="<tr><th>Экстент - X мин.</th><td>"+value.attributes["Экстент - X мин."]+"</td></tr>";
-								html+="<tr><th>Экстент - X макс.</th><td>"+value.attributes["Экстент - X макс."]+"</td></tr>";
-								html+="<tr><th>Экстент - Y мин.</th><td>"+value.attributes["Экстент - Y мин."]+"</td></tr>";
-								html+="<tr><th>Экстент - Y макс.</th><td>"+value.attributes["Экстент - Y макс."]+"</td></tr>";
-								html+="<tr><th>Объект обработан - можно удалять</th><td>"+value.attributes["Объект обработан - можно удалять"]+"</td></tr>";
-								html+="</table></div>";
-								break;
-							case 10:
-							case 8:
-							case 7:
-							case 6:
-								html+="<h3>"+value.layerName+"</h3><br><div><table style='text-align:left'>";
-								html+="<tr><th>OBJECTID</th><td>"+value.attributes["OBJECTID"]+"</td></tr>";
-								html+="<tr><th>Ключ СФ</th><td>"+value.attributes["Ключ СФ"]+"</td></tr>";
-								html+="<tr><th>Идентификатор</th><td>"+value.attributes["Идентификатор"]+"</td></tr>";
-								html+="<tr><th>Текстовый идентификатор ИПГУ</th><td>"+value.attributes["Текстовый идентификатор ИПГУ"]+"</td></tr>";
-								html+="<tr><th>Числовой идентификатор ИПГУ</th><td>"+value.attributes["Числовой идентификатор ИПГУ"]+"</td></tr>";
-								html+="<tr><th>Идентификатор родителя</th><td>"+value.attributes["Идентификатор родителя"]+"</td></tr>";
-								html+="<tr><th>Кадастровый номер</th><td>"+value.attributes["Кадастровый номер"]+"</td></tr>";
-								html+="<tr><th>Аннотация</th><td>"+value.attributes["Аннотация"]+"</td></tr>";
-								html+="<tr><th>Значение кадастровой стоимости</th><td>"+value.attributes["Значение кадастровой стоимости"]+"</td></tr>";
-								html+="<tr><th>Категория земель (код)</th><td>"+value.attributes["Категория земель (код)"]+"</td></tr>";
-								html+="<tr><th>Вид разрешенного использования (код)</th><td>"+value.attributes["Вид разрешенного использования (код)"]+"</td></tr>";
-								html+="<tr><th>Идентификатор системы координат</th><td>"+value.attributes["Идентификатор системы координат"]+"</td></tr>";
-								html+="<tr><th>Код ошибки</th><td>"+value.attributes["Код ошибки"]+"</td></tr>";
-								html+="<tr><th>Число ЗУ</th><td>"+value.attributes["Число ЗУ"]+"</td></tr>";
-								html+="<tr><th>Дата актуальности квартала</th><td>"+value.attributes["Дата актуальности квартала"]+"</td></tr>";
-								html+="<tr><th>Дата актуальности участков</th><td>"+value.attributes["Дата актуальности участков"]+"</td></tr>";
-								html+="<tr><th>X центра</th><td>"+value.attributes["X центра"]+"</td></tr>";
-								html+="<tr><th>Y центра</th><td>"+value.attributes["Y центра"]+"</td></tr>";
-								html+="<tr><th>Экстент - X мин.</th><td>"+value.attributes["Экстент - X мин."]+"</td></tr>";
-								html+="<tr><th>Экстент - X макс.</th><td>"+value.attributes["Экстент - X макс."]+"</td></tr>";
-								html+="<tr><th>Экстент - Y мин.</th><td>"+value.attributes["Экстент - Y мин."]+"</td></tr>";
-								html+="<tr><th>Экстент - Y макс.</th><td>"+value.attributes["Экстент - Y макс."]+"</td></tr>";
-								html+="<tr><th>Объект обработан - можно удалять</th><td>"+value.attributes["Объект обработан - можно удалять"]+"</td></tr>";
-								html+="</table></div>";
-								break;
-							case 4:
-							case 3:
-								html+="<h3>"+value.layerName+"</h3><br><div><table style='text-align:left'>";
-								html+="<tr><th>OBJECTID</th><td>"+value.attributes["OBJECTID"]+"</td></tr>";
-								html+="<tr><th>Ключ СФ</th><td>"+value.attributes["Ключ СФ"]+"</td></tr>";
-								html+="<tr><th>Строковый идентификатор ИПГУ</th><td>"+value.attributes["Строковый идентификатор ИПГУ"]+"</td></tr>";
-								html+="<tr><th>Идентификатор ПКК</th><td>"+value.attributes["Идентификатор ПКК"]+"</td></tr>";
-								html+="<tr><th>Идентификатор родителя</th><td>"+value.attributes["Идентификатор родителя"]+"</td></tr>";
-								html+="<tr><th>Кадастровый номер земельного участка</th><td>"+value.attributes["Кадастровый номер земельного участка"]+"</td></tr>";
-								html+="<tr><th>Статус земельного участка (код)</th><td>"+value.attributes["Статус земельного участка (код)"]+"</td></tr>";
-								html+="<tr><th>Аннотация</th><td>"+value.attributes["Аннотация"]+"</td></tr>";
-								html+="<tr><th>Значение кадастровой стоимости</th><td>"+value.attributes["Значение кадастровой стоимости"]+"</td></tr>";
-								html+="<tr><th>Вид разрешенного использования (код)</th><td>"+value.attributes["Вид разрешенного использования (код)"]+"</td></tr>";
-								html+="<tr><th>Категория земель (код)</th><td>"+value.attributes["Категория земель (код)"]+"</td></tr>";
-								html+="<tr><th>Дата актуальности</th><td>"+value.attributes["Дата актуальности"]+"</td></tr>";
-								html+="<tr><th>Код ошибки</th><td>"+value.attributes["Код ошибки"]+"</td></tr>";
-								html+="<tr><th>X центра</th><td>"+value.attributes["X центра"]+"</td></tr>";
-								html+="<tr><th>Y центра</th><td>"+value.attributes["Y центра"]+"</td></tr>";
-								html+="<tr><th>Экстент - X мин.</th><td>"+value.attributes["Экстент - X мин."]+"</td></tr>";
-								html+="<tr><th>Экстент - X макс.</th><td>"+value.attributes["Экстент - X макс."]+"</td></tr>";
-								html+="<tr><th>Экстент - Y мин.</th><td>"+value.attributes["Экстент - Y мин."]+"</td></tr>";
-								html+="<tr><th>Экстент - Y макс.</th><td>"+value.attributes["Экстент - Y макс."]+"</td></tr>";
-								html+="<tr><th>Объект обработан - можно удалять</th><td>"+value.attributes["Объект обработан - можно удалять"]+"</td></tr>";
-								html+="<tr><th>G_AREA</th><td>"+value.attributes["G_AREA"]+"</td></tr>";												
-								html+="</table></div>";
-								break;
-							case 1:
-								html+="<h3>"+value.layerName+"</h3><br><div><table style='text-align:left'>";
-								html+="<tr><th>OBJECTID</th><td>"+value.attributes["OBJECTID"]+"</td></tr>";
-								html+="<tr><th>Ключ СФ</th><td>"+value.attributes["Ключ СФ"]+"</td></tr>";
-								html+="<tr><th>Идентификатор ОКС</th><td>"+value.attributes["Идентификатор ОКС"]+"</td></tr>";
-								html+="<tr><th>Кадастровый номер</th><td>"+value.attributes["Кадастровый номер"]+"</td></tr>";
-								html+="<tr><th>Кадастровый номер старый</th><td>"+value.attributes["Кадастровый номер старый"]+"</td></tr>";
-								html+="<tr><th>Код статуса</th><td>"+value.attributes["Код статуса"]+"</td></tr>";
-								html+="<tr><th>Тип ОКС</th><td>"+value.attributes["Тип ОКС"]+"</td></tr>";
-								html+="<tr><th>Подпись</th><td>"+value.attributes["Подпись"]+"</td></tr>";
-								html+="<tr><th>Дата обновления</th><td>"+value.attributes["Дата обновления"]+"</td></tr>";
-								html+="<tr><th>Объект обработан - можно удалять</th><td>"+value.attributes["Объект обработан - можно удалять"]+"</td></tr>";
-								html+="<tr><th>Идентификатор родителя</th><td>"+value.attributes["Идентификатор родителя"]+"</td></tr>";
-								html+="<tr><th>Числовой идентификатор</th><td>"+value.attributes["Числовой идентификатор"]+"</td></tr>";
-								html+="<tr><th>Кадастровый номер ЗУ</th><td>"+value.attributes["Кадастровый номер ЗУ"]+"</td></tr>";
-								html+="<tr><th>Код ошибки</th><td>"+value.attributes["Код ошибки"]+"</td></tr>";
-								html+="<tr><th>X центра</th><td>"+value.attributes["X центра"]+"</td></tr>";
-								html+="<tr><th>Y центра</th><td>"+value.attributes["Y центра"]+"</td></tr>";
-								html+="<tr><th>Экстент - X мин.</th><td>"+value.attributes["Экстент - X мин."]+"</td></tr>";
-								html+="<tr><th>Экстент - X макс.</th><td>"+value.attributes["Экстент - X макс."]+"</td></tr>";
-								html+="<tr><th>Экстент - Y мин.</th><td>"+value.attributes["Экстент - Y мин."]+"</td></tr>";
-								html+="<tr><th>Экстент - Y макс.</th><td>"+value.attributes["Экстент - Y макс."]+"</td></tr>";						
-								html+="</table></div>";
-								break;
-						}
-						var cadId = data.results[0].value;
-						//var cadId = data.results[0].attributes['OBJECTID'];
-						
-						var layerId = data.results[0].layerId;
-						var layersRequire;
-						if(layerId<=20 && layerId>=15)
-							layersRequire=[15,16,17,18,19,20];
-						else if(layerId<=14 && layerId>=9)
-							layersRequire=[9,10,11,12,13,14];
-						else if(layerId<=8 && layerId>=5)
-							layersRequire=[5,6,7,8];
-						else if(layerId<=4 && layerId>=2)
-							layersRequire=[2,3,4];
-						else if(layerId<=1 && layerId>=0)
-							layersRequire=[1,0];
-
-						$.each(layersRequire,function(index, value){
-							str +=value+":PKK_ID%20LIKE%20'"+cadId+"'";
-							
-							showLayers +=value;
-							if(layersRequire.length-1!=index){
-								str+=";";
-								showLayers+=",";
+					if(!($.isEmptyObject(data)))
+						data.results.forEach(function(value){
+							switch (value.layerId) {
+								case 20:
+								case 19:
+								case 18:
+								case 17:
+								case 16:
+									html+="<h3>"+value.layerName+", "+value.attributes["Кадастровый номер"]+"</h3><br><div><table id='tableInfo' style='text-align:left;'>";
+									html+="<tr><th>OBJECTID</th><td>"+value.attributes["OBJECTID"]+"</td></tr>";
+									html+="<tr><th>Ключ СФ</th><td>"+value.attributes["Ключ СФ"]+"</td></tr>";
+									html+="<tr><th>Идентификатор</th><td>"+value.attributes["Идентификатор"]+"</td></tr>";
+									html+="<tr><th>Кадастровый номер</th><td>"+value.attributes["Кадастровый номер"]+"</td></tr>";
+									html+="<tr><th>Наименование</th><td>"+value.attributes["Наименование"]+"</td></tr>";
+									html+="<tr><th>Аннотация</th><td>"+value.attributes["Аннотация"]+"</td></tr>";
+									html+="<tr><th>Число КР</th><td>"+value.attributes["Число КР"]+"</td></tr>";
+									html+="<tr><th>Число КК</th><td>"+value.attributes["Число КК"]+"</td></tr>";
+									html+="<tr><th>Число ЗУ</th><td>"+value.attributes["Число ЗУ"]+"</td></tr>";
+									html+="<tr><th>ACTUAL_DATE</th><td>"+value.attributes["ACTUAL_DATE"]+"</td></tr>";
+									html+="<tr><th>X центра</th><td>"+value.attributes["X центра"]+"</td></tr>";
+									html+="<tr><th>Y центра</th><td>"+value.attributes["Y центра"]+"</td></tr>";
+									html+="<tr><th>Экстент - X мин.</th><td>"+value.attributes["Экстент - X мин."]+"</td></tr>";
+									html+="<tr><th>Экстент - X макс.</th><td>"+value.attributes["Экстент - X макс."]+"</td></tr>";
+									html+="<tr><th>Экстент - Y мин.</th><td>"+value.attributes["Экстент - Y мин."]+"</td></tr>";
+									html+="<tr><th>Экстент - Y макс.</th><td>"+value.attributes["Экстент - Y макс."]+"</td></tr>";
+									html+="<tr><th>Объект обработан - можно удалять</th><td>"+value.attributes["Объект обработан - можно удалять"]+"</td></tr>";
+									html+="<tr><th>ONLINE_ACTUAL_DATE</th><td>"+value.attributes["ONLINE_ACTUAL_DATE"]+"</td></tr>";
+									html+="</table></div>";
+									break
+								case 14:
+								case 13:
+								case 12:
+								case 11:
+									html+="<h3>"+value.layerName+", "+value.attributes["Кадастровый номер"]+"</h3><br><div><table id='tableInfo' style='text-align:left'>";
+									html+="<tr><th>OBJECTID</th><td>"+value.attributes["OBJECTID"]+"</td></tr>";
+									html+="<tr><th>Ключ СФ</th><td>"+value.attributes["Ключ СФ"]+"</td></tr>";
+									html+="<tr><th>Идентификатор</th><td>"+value.attributes["Идентификатор"]+"</td></tr>";
+									html+="<tr><th>Идентификатор родителя</th><td>"+value.attributes["Идентификатор родителя"]+"</td></tr>";
+									html+="<tr><th>Кадастровый номер</th><td>"+value.attributes["Кадастровый номер"]+"</td></tr>";
+									html+="<tr><th>Наименование</th><td>"+value.attributes["Наименование"]+"</td></tr>";
+									html+="<tr><th>Аннотация</th><td>"+value.attributes["Аннотация"]+"</td></tr>";
+									html+="<tr><th>Код ошибки</th><td>"+value.attributes["Код ошибки"]+"</td></tr>";
+									html+="<tr><th>Число КК</th><td>"+value.attributes["Число КК"]+"</td></tr>";
+									html+="<tr><th>Число ЗУ</th><td>"+value.attributes["Число ЗУ"]+"</td></tr>";
+									html+="<tr><th>Дата актуальности</th><td>"+value.attributes["Дата актуальности"]+"</td></tr>";
+									html+="<tr><th>X центра</th><td>"+value.attributes["X центра"]+"</td></tr>";
+									html+="<tr><th>Y центра</th><td>"+value.attributes["Y центра"]+"</td></tr>";
+									html+="<tr><th>Экстент - X мин.</th><td>"+value.attributes["Экстент - X мин."]+"</td></tr>";
+									html+="<tr><th>Экстент - X макс.</th><td>"+value.attributes["Экстент - X макс."]+"</td></tr>";
+									html+="<tr><th>Экстент - Y мин.</th><td>"+value.attributes["Экстент - Y мин."]+"</td></tr>";
+									html+="<tr><th>Экстент - Y макс.</th><td>"+value.attributes["Экстент - Y макс."]+"</td></tr>";
+									html+="<tr><th>Объект обработан - можно удалять</th><td>"+value.attributes["Объект обработан - можно удалять"]+"</td></tr>";
+									html+="</table></div>";
+									break;
+								case 10:
+								case 8:
+								case 7:
+								case 6:
+									html+="<h3>"+value.layerName+", "+value.attributes["Кадастровый номер"]+"</h3><br><div><table id='tableInfo' style='text-align:left'>";
+									html+="<tr><th>OBJECTID</th><td>"+value.attributes["OBJECTID"]+"</td></tr>";
+									html+="<tr><th>Ключ СФ</th><td>"+value.attributes["Ключ СФ"]+"</td></tr>";
+									html+="<tr><th>Идентификатор</th><td>"+value.attributes["Идентификатор"]+"</td></tr>";
+									html+="<tr><th>Текстовый идентификатор ИПГУ</th><td>"+value.attributes["Текстовый идентификатор ИПГУ"]+"</td></tr>";
+									html+="<tr><th>Числовой идентификатор ИПГУ</th><td>"+value.attributes["Числовой идентификатор ИПГУ"]+"</td></tr>";
+									html+="<tr><th>Идентификатор родителя</th><td>"+value.attributes["Идентификатор родителя"]+"</td></tr>";
+									html+="<tr><th>Кадастровый номер</th><td>"+value.attributes["Кадастровый номер"]+"</td></tr>";
+									html+="<tr><th>Аннотация</th><td>"+value.attributes["Аннотация"]+"</td></tr>";
+									html+="<tr><th>Значение кадастровой стоимости</th><td>"+value.attributes["Значение кадастровой стоимости"]+"</td></tr>";
+									html+="<tr><th>Категория земель (код)</th><td>"+value.attributes["Категория земель (код)"]+"</td></tr>";
+									html+="<tr><th>Вид разрешенного использования (код)</th><td>"+value.attributes["Вид разрешенного использования (код)"]+"</td></tr>";
+									html+="<tr><th>Идентификатор системы координат</th><td>"+value.attributes["Идентификатор системы координат"]+"</td></tr>";
+									html+="<tr><th>Код ошибки</th><td>"+value.attributes["Код ошибки"]+"</td></tr>";
+									html+="<tr><th>Число ЗУ</th><td>"+value.attributes["Число ЗУ"]+"</td></tr>";
+									html+="<tr><th>Дата актуальности квартала</th><td>"+value.attributes["Дата актуальности квартала"]+"</td></tr>";
+									html+="<tr><th>Дата актуальности участков</th><td>"+value.attributes["Дата актуальности участков"]+"</td></tr>";
+									html+="<tr><th>X центра</th><td>"+value.attributes["X центра"]+"</td></tr>";
+									html+="<tr><th>Y центра</th><td>"+value.attributes["Y центра"]+"</td></tr>";
+									html+="<tr><th>Экстент - X мин.</th><td>"+value.attributes["Экстент - X мин."]+"</td></tr>";
+									html+="<tr><th>Экстент - X макс.</th><td>"+value.attributes["Экстент - X макс."]+"</td></tr>";
+									html+="<tr><th>Экстент - Y мин.</th><td>"+value.attributes["Экстент - Y мин."]+"</td></tr>";
+									html+="<tr><th>Экстент - Y макс.</th><td>"+value.attributes["Экстент - Y макс."]+"</td></tr>";
+									html+="<tr><th>Объект обработан - можно удалять</th><td>"+value.attributes["Объект обработан - можно удалять"]+"</td></tr>";
+									html+="</table></div>";
+									break;
+								case 4:
+								case 3:
+									html+="<h3>"+value.layerName+", "+value.attributes["Кадастровый номер земельного участка"]+"</h3><br><div><table id='tableInfo' style='text-align:left'>";
+									html+="<tr><th>OBJECTID</th><td>"+value.attributes["OBJECTID"]+"</td></tr>";
+									html+="<tr><th>Ключ СФ</th><td>"+value.attributes["Ключ СФ"]+"</td></tr>";
+									html+="<tr><th>Строковый идентификатор ИПГУ</th><td>"+value.attributes["Строковый идентификатор ИПГУ"]+"</td></tr>";
+									html+="<tr><th>Идентификатор ПКК</th><td>"+value.attributes["Идентификатор ПКК"]+"</td></tr>";
+									html+="<tr><th>Идентификатор родителя</th><td>"+value.attributes["Идентификатор родителя"]+"</td></tr>";
+									html+="<tr><th>Кадастровый номер земельного участка</th><td>"+value.attributes["Кадастровый номер земельного участка"]+"</td></tr>";
+									html+="<tr><th>Статус земельного участка (код)</th><td>"+value.attributes["Статус земельного участка (код)"]+"</td></tr>";
+									html+="<tr><th>Аннотация</th><td>"+value.attributes["Аннотация"]+"</td></tr>";
+									html+="<tr><th>Значение кадастровой стоимости</th><td>"+value.attributes["Значение кадастровой стоимости"]+"</td></tr>";
+									html+="<tr><th>Вид разрешенного использования (код)</th><td>"+value.attributes["Вид разрешенного использования (код)"]+"</td></tr>";
+									html+="<tr><th>Категория земель (код)</th><td>"+value.attributes["Категория земель (код)"]+"</td></tr>";
+									html+="<tr><th>Дата актуальности</th><td>"+value.attributes["Дата актуальности"]+"</td></tr>";
+									html+="<tr><th>Код ошибки</th><td>"+value.attributes["Код ошибки"]+"</td></tr>";
+									html+="<tr><th>X центра</th><td>"+value.attributes["X центра"]+"</td></tr>";
+									html+="<tr><th>Y центра</th><td>"+value.attributes["Y центра"]+"</td></tr>";
+									html+="<tr><th>Экстент - X мин.</th><td>"+value.attributes["Экстент - X мин."]+"</td></tr>";
+									html+="<tr><th>Экстент - X макс.</th><td>"+value.attributes["Экстент - X макс."]+"</td></tr>";
+									html+="<tr><th>Экстент - Y мин.</th><td>"+value.attributes["Экстент - Y мин."]+"</td></tr>";
+									html+="<tr><th>Экстент - Y макс.</th><td>"+value.attributes["Экстент - Y макс."]+"</td></tr>";
+									html+="<tr><th>Объект обработан - можно удалять</th><td>"+value.attributes["Объект обработан - можно удалять"]+"</td></tr>";
+									html+="<tr><th>G_AREA</th><td>"+value.attributes["G_AREA"]+"</td></tr>";												
+									html+="</table></div>";
+									break;
+								case 1:
+									html+="<h3>"+value.layerName+", "+value.attributes["Кадастровый номер"]+"</h3><br><div><table id='tableInfo'style='text-align:left'>";
+									html+="<tr><th>OBJECTID</th><td>"+value.attributes["OBJECTID"]+"</td></tr>";
+									html+="<tr><th>Ключ СФ</th><td>"+value.attributes["Ключ СФ"]+"</td></tr>";
+									html+="<tr><th>Идентификатор ОКС</th><td>"+value.attributes["Идентификатор ОКС"]+"</td></tr>";
+									html+="<tr><th>Кадастровый номер</th><td>"+value.attributes["Кадастровый номер"]+"</td></tr>";
+									html+="<tr><th>Кадастровый номер старый</th><td>"+value.attributes["Кадастровый номер старый"]+"</td></tr>";
+									html+="<tr><th>Код статуса</th><td>"+value.attributes["Код статуса"]+"</td></tr>";
+									html+="<tr><th>Тип ОКС</th><td>"+value.attributes["Тип ОКС"]+"</td></tr>";
+									html+="<tr><th>Подпись</th><td>"+value.attributes["Подпись"]+"</td></tr>";
+									html+="<tr><th>Дата обновления</th><td>"+value.attributes["Дата обновления"]+"</td></tr>";
+									html+="<tr><th>Объект обработан - можно удалять</th><td>"+value.attributes["Объект обработан - можно удалять"]+"</td></tr>";
+									html+="<tr><th>Идентификатор родителя</th><td>"+value.attributes["Идентификатор родителя"]+"</td></tr>";
+									html+="<tr><th>Числовой идентификатор</th><td>"+value.attributes["Числовой идентификатор"]+"</td></tr>";
+									html+="<tr><th>Кадастровый номер ЗУ</th><td>"+value.attributes["Кадастровый номер ЗУ"]+"</td></tr>";
+									html+="<tr><th>Код ошибки</th><td>"+value.attributes["Код ошибки"]+"</td></tr>";
+									html+="<tr><th>X центра</th><td>"+value.attributes["X центра"]+"</td></tr>";
+									html+="<tr><th>Y центра</th><td>"+value.attributes["Y центра"]+"</td></tr>";
+									html+="<tr><th>Экстент - X мин.</th><td>"+value.attributes["Экстент - X мин."]+"</td></tr>";
+									html+="<tr><th>Экстент - X макс.</th><td>"+value.attributes["Экстент - X макс."]+"</td></tr>";
+									html+="<tr><th>Экстент - Y мин.</th><td>"+value.attributes["Экстент - Y мин."]+"</td></tr>";
+									html+="<tr><th>Экстент - Y макс.</th><td>"+value.attributes["Экстент - Y макс."]+"</td></tr>";
+									html+="</table></div>";
+									break;
 							}
+							var cadId = data.results[0].value;			
+							var layerId = data.results[0].layerId;
+							var layersRequire;
+							if(layerId<=20 && layerId>=15)
+								layersRequire=[15,16,17,18,19,20];
+							else if(layerId<=14 && layerId>=9)
+								layersRequire=[9,10,11,12,13,14];
+							else if(layerId<=8 && layerId>=5)
+								layersRequire=[5,6,7,8];
+							else if(layerId<=4 && layerId>=2)
+								layersRequire=[2,3,4];
+							else if(layerId<=1 && layerId>=0)
+								layersRequire=[1,0];
+
+							$.each(layersRequire,function(index, value){
+								str +=value+":PKK_ID%20LIKE%20'"+cadId+"'";
+								
+								showLayers +=value;
+								if(layersRequire.length-1!=index){
+									str+=";";
+									showLayers+=",";
+								}
+							});
 						});
-					});
 					balloonInfo.setVisible(true);
 					balloonInfo.visible=true;
 					balloonInfo.div.innerHTML=html;
 					balloonInfo.addListener('onClose', function(obj){
 						cadastreLayerInfo.setVisible(false);
 					});
+					cadastreLayerInfo = map.addObject();
 					
-					var url=cadastreServer+"CadastreNew/CadastreSelected/MapServer/export?dpi=96&transparent=true&format=png32&layers="+showLayers+"&bboxSR=4326&imageSR=3395&size="+map.width()+","+map.height()+"&layerDefs="+str+"&f=image";
-					var urlBbox="&bbox="+map.getVisibleExtent().minX+","+map.getVisibleExtent().minY+","+map.getVisibleExtent().maxX+","+map.getVisibleExtent().maxY;
-					
-					cadastreLayerInfo.setImageExtent({url:url+urlBbox, extent: map.getVisibleExtent(), noCache: true});
-					cadastreLayerListener = gmxAPI.map.addListener("onMoveEnd", function(){						
-						cadastreLayerInfo.setImageExtent({url:url+"&bbox="+map.getVisibleExtent().minX+","+map.getVisibleExtent().minY+","+map.getVisibleExtent().maxX+","+map.getVisibleExtent().maxY, extent: map.getVisibleExtent(), noCache: true});
-					});
-					cadastreLayerInfo.setVisible(true);
+					var url=cadastreServer+"CadastreNew/CadastreSelected/MapServer/export?dpi=96&transparent=true&format=png32&layers="+showLayers+"&bboxSR="+JSON.stringify(customSRC)+"&imageSR="+JSON.stringify(customSRC)+"&size="+map.width()+","+map.height()+"&layerDefs="+str+"&f=image";
+					var getLayerInfo=function(){
+						console.log(str);
+						var bboxUrl="&bbox="+(merc_x(map.getVisibleExtent().minX)-centralMeridian-dx)+","+(merc_y(map.getVisibleExtent().minY)-dy)+","+(merc_x(map.getVisibleExtent().maxX)-centralMeridian-dx)+","+(merc_y(map.getVisibleExtent().maxY)-dy);
+						cadastreLayerInfo.setImageExtent({url:url+bboxUrl, extent: map.getVisibleExtent(), noCache: true});
+					}
+					getLayerInfo();
+					if(!cadastreLayerListener){
+						cadastreLayerListener = gmxAPI.map.addListener("onMoveEnd", getLayerInfo);
+						cadastreLayerInfo.setVisible(true);
+					}else{
+						map.removeListener("onMoveEnd", cadastreLayerListener);
+						cadastreLayerListener = gmxAPI.map.addListener("onMoveEnd", getLayerInfo);
+						cadastreLayerInfo.setVisible(true);
+					}
 				});
 				balloonInfo.resize();
 		}
-			cadastreLayerInfo = map.addObject();
 			mapListenerInfo = map.addListener("onClick",function(){
 				if(!balloonInfo || !balloonInfo.isVisible){
 					createBalloonInfo();
@@ -610,12 +630,12 @@ function addCadastreInfoTool(){
 				else{
 					balloonInfo.remove();
 					balloonInfo = false;
+					cadastreLayerInfo.remove();
 					createBalloonInfo();
 				}
 			});
 		},
 		'onCancel': function(){
-			//map.setHandlers({"onClick": null}); .. не отрабатывается в leaflet версии
 			gmxAPI._tools.standart.selectTool("move");
 			if(mapListenerInfo)
 				map.removeListener("onClick", mapListenerInfo);
@@ -627,14 +647,13 @@ function addCadastreInfoTool(){
 				balloonInfo.remove();
 				balloonInfo = false;
 			}
-			//TODO: Убрать с карты балун
 		},
 		'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Информация о КУ", "Cadastre information")
 	};
 
-	if(!gmxAPI._tools.standart.getToolByName("cadastreInfo"))
+	if(!gmxAPI._tools.standart.getToolByName("cadastreInfo")){
 		gmxAPI._tools.standart.addTool( 'cadastreInfo', cadastreTool);
-
+	}
 };
 
 var publicInterface = {
@@ -642,63 +661,74 @@ var publicInterface = {
 	Cadastre: cadastre,
 	loadCadastre: loadCadastre,
 	afterViewer: function(params){
-				params = params || {};
-				cadastreServer = params.cadastreProxy || '';
-				cadastreServer += params.cadastreServer || "http://maps.rosreestr.ru/arcgis/rest/services/";
+		params = params || {};
+		cadastreServer = params.cadastreProxy || '';
+		cadastreServer += params.cadastreServer || "http://maps.rosreestr.ru/arcgis/rest/services/";
+		
+		if(typeof(params.dx)==="undefined") dx=0;
+		else dx=params.dx;
 
-				if(params.UIMode=="lite"){
-				
-					_map = gmxAPI.map || globalFlashMap;
-					if (!_map) return;
+		if(typeof(params.dy)==="undefined") dy=0;
+		else dy=params.dy;
+		
+		dx=params.dx;
+		dy=params.dy;
+		
+		if(params.UIMode=="lite"){				
+			_map = gmxAPI.map || globalFlashMap;
+			if (!_map) return;
 
-					var cadastreTools = new gmxAPI._ToolsContainer('cadastre');
-					var liteCadastreLayer = _map.addObject();
-					var mapListener;
-
-					var loadCadastreLayer = function(){
-						var mapExtent = _map.getVisibleExtent();
-						var queryString = "&bbox="+merc_x(mapExtent.minX)+"%2C"+merc_y(mapExtent.minY)+"%2C"+merc_x(mapExtent.maxX)+"%2C"+merc_y(mapExtent.maxY)+"&bboxSR=3395&imageSR=3395&size=" +_map.width()+","+_map.height() + "&f=image";
-						var sUrl = cadastreServer+"CadastreNew/Cadastre/MapServer/export?dpi=96&transparent=true&format=png32"+queryString;	
-						liteCadastreLayer.setImageExtent({url:sUrl, extent: mapExtent, noCache: true});
-					}
-					liteCadastreLayer.setCopyright('<a href="http://rosreestr.ru">© Росреестр</a>');
-
-					var onCancelCadastreTools = function(){
-						_map.removeListener("onMoveEnd", mapListener);
-						liteCadastreLayer.setVisible(false);
-						if(cadastreLayerInfo)
-							cadastreLayerInfo.setVisible(false);
-						if(balloonInfo)
-							balloonInfo.remove();
-						if(gmxAPI._tools.standart.getToolByName("cadastreInfo")){
-							gmxAPI._tools.standart.removeTool( 'cadastreInfo');
-							gmxAPI._tools.standart.selectTool("move");
-						}
-					}
-
-					var onClickCadastreTools = function(){
-						addCadastreInfoTool(); //add cadastre infoButton
-						loadCadastreLayer();
-						mapListener = _map.addListener("onMoveEnd", loadCadastreLayer);
-						liteCadastreLayer.setVisible(true);
-					};
-					
-					var attr = {
-						'onClick': onClickCadastreTools,
-						'onCancel': onCancelCadastreTools,
-						'onmouseover': function() { this.style.color = "orange"; },
-						'onmouseout': function() { this.style.color = "wheat"; },
-						'hint': "Кадастр"
-					};
-					cadastreTools.addTool( 'cadastre', attr);
+			var cadastreTools = new gmxAPI._ToolsContainer('cadastre');
+			var mapListener;
+			
+			var onCancelCadastreTools = function(){
+				liteCadastreLayer.remove();
+				_map.removeListener("onMoveEnd", mapListener);
+				liteCadastreLayer.setVisible(false);
+				if(cadastreLayerInfo)
+					cadastreLayerInfo.setVisible(false);
+				if(balloonInfo)
+					balloonInfo.remove();
+				if(gmxAPI._tools.standart.getToolByName("cadastreInfo")){
+					gmxAPI._tools.standart.removeTool( 'cadastreInfo');
+					gmxAPI._tools.standart.selectTool("move");
 				}
-				else
-					_menuUp.addChildItem({
-							id:'cadastre', 
-							title:_gtxt('Кадастровые данные'),
-							onsel:loadCadastre, 
-							onunsel:unloadCadastre
-					}, 'loadServerData');
+				if(mapListenerInfo)
+					_map.removeListener("onClick", mapListenerInfo);
+			}
+
+			var onClickCadastreTools = function(){
+				addCadastreInfoTool(); //add cadastre infoButton
+				liteCadastreLayer = _map.addObject();
+				liteCadastreLayer.setCopyright('<a href="http://rosreestr.ru">© Росреестр</a>');
+				var loadCadastreLayer = function(){
+					var mapExtent = _map.getVisibleExtent();
+					var queryString = "&bbox="+(merc_x(mapExtent.minX)-centralMeridian-dx).toString()+"%2C"+(merc_y(mapExtent.minY)-dy)+"%2C"+(merc_x(mapExtent.maxX)-centralMeridian-dx).toString()+"%2C"+(merc_y(mapExtent.maxY)-dy)+"&bboxSR="+JSON.stringify(customSRC)+"&imageSR="+JSON.stringify(customSRC)+"&size=" +_map.width()+","+_map.height() + "&f=image";
+					var sUrl = cadastreServer+"CadastreNew/Cadastre/MapServer/export?dpi=96&transparent=true&format=png32"+queryString;	
+					liteCadastreLayer.setImageExtent({url:sUrl, extent: mapExtent, noCache: true});
+				}
+				loadCadastreLayer();
+				mapListener = _map.addListener("onMoveEnd", loadCadastreLayer);
+				liteCadastreLayer.setVisible(true);
+			};
+			
+			
+			var attr = {
+				'onClick': onClickCadastreTools,
+				'onCancel': onCancelCadastreTools,
+				'onmouseover': function() { this.style.color = "orange"; },
+				'onmouseout': function() { this.style.color = "wheat"; },
+				'hint': "Кадастр"
+			};
+			cadastreTools.addTool( 'cadastre', attr);
+		}
+		else
+			_menuUp.addChildItem({
+					id:'cadastre', 
+					title:_gtxt('Кадастровые данные'),
+					onsel:loadCadastre, 
+					onunsel:unloadCadastre
+			}, 'loadServerData');
 				
 	}
 };
