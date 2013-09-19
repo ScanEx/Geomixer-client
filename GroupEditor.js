@@ -329,7 +329,9 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			minViewX = _input(null,[['attr','value',elemProperties.MinViewX != null && elemProperties.MinViewX != 0 ? elemProperties.MinViewX : ''],['dir','className','inputStyle'],['css','width','60px']]),
 			minViewY = _input(null,[['attr','value',elemProperties.MinViewY != null && elemProperties.MinViewY != 0 ? elemProperties.MinViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			maxViewX = _input(null,[['attr','value',elemProperties.MaxViewX != null && elemProperties.MaxViewX != 0 ? elemProperties.MaxViewX : ''],['dir','className','inputStyle'],['css','width','60px']]),
-			maxViewY = _input(null,[['attr','value',elemProperties.MaxViewY != null && elemProperties.MaxViewY != 0 ? elemProperties.MaxViewY : ''],['dir','className','inputStyle'],['css','width','62px']]);
+			maxViewY = _input(null,[['attr','value',elemProperties.MaxViewY != null && elemProperties.MaxViewY != 0 ? elemProperties.MaxViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
+            minZoom = _input(null,[['attr','value',elemProperties.MinZoom != null ? elemProperties.MinZoom : ''],['dir','className','inputStyle'],['css','width','62px']]),
+            maxZoom = _input(null,[['attr','value',elemProperties.MaxZoom != null ? elemProperties.MaxZoom : ''],['dir','className','inputStyle'],['css','width','62px']]);
 		
 		onLoad.value = elemProperties.OnLoad != null ? elemProperties.OnLoad : '';
 		
@@ -502,6 +504,30 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			return true;
 		}
         
+        minZoom.onkeyup = function()
+		{
+			if (!isNaN(Number(this.value)))
+			{
+				div.gmxProperties.properties.MinZoom = Number(this.value);
+				
+				rawTree.properties = div.gmxProperties.properties;
+			}
+			
+			return true;
+		}
+        
+        maxZoom.onkeyup = function()
+		{
+			if (!isNaN(Number(this.value)))
+			{
+				div.gmxProperties.properties.MaxZoom = Number(this.value);
+				
+				rawTree.properties = div.gmxProperties.properties;
+			}
+			
+			return true;
+		}
+        
         WMSAccess.style.verticalAlign = "middle";
         $(WMSLink).toggle(elemProperties.WMSAccess);
         
@@ -524,10 +550,37 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 																					 				_tr([_td([_t(_gtxt('Растровых слоев'))],[['css','width','100px'],['css','height','20px'],['css','paddingLeft','3px']]), _td([downloadRasters])])])])},
                                         {name: _gtxt("WMS доступ"), elem: _div([WMSAccess, WMSLink])}
                                     ],
-			shownViewProperties = [{name: _gtxt("Начальная позиция"), elem: _table([_tbody([_tr([_td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']]), _br(), defLat],[['css','width','70px']]),
-																					   _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']]), _br(), defLong],[['css','width','70px']]),
-																					   _td([_span([_t(_gtxt('Зум'))],[['css','marginLeft','3px']]), _br(), defZoom],[['css','width','68px']])])])])},
-								{name: _gtxt("Граница"), elem:_table([_tbody([_tr([_td(null, [['css','width','70px']]), _td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']])],[['css','width','70px']]), _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']])],[['css','width','68px']])]), _tr([_td([_span([_t(_gtxt('Мин'))],[['css','marginLeft','3px']])]), _td([minViewY]), _td([minViewX])]), _tr([_td([_span([_t(_gtxt('Макс'))],[['css','marginLeft','3px']])]), _td([maxViewY]), _td([maxViewX])])])])}];
+			shownViewProperties = [
+                {
+                    name: _gtxt("Начальная позиция"), 
+                    elem: _table([_tbody([_tr([
+                                    _td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']]), _br(), defLat],[['css','width','70px']]),
+                                    _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']]), _br(), defLong],[['css','width','70px']]),
+                                    _td([_span([_t(_gtxt('Зум'))],[['css','marginLeft','3px']]), _br(), defZoom],[['css','width','68px']])
+                                ])])])
+                }, {
+                    name: _gtxt("Граница"), 
+                    elem:_table([_tbody([
+                                _tr([
+                                    _td(null, [['css','width','70px']]), 
+                                    _td([_span([_t(_gtxt('Широта'))],[['css','marginLeft','3px']])],[['css','width','70px']]), 
+                                    _td([_span([_t(_gtxt('Долгота'))],[['css','marginLeft','3px']])],[['css','width','68px']])]), 
+                                _tr([
+                                    _td([_span([_t(_gtxt('Мин'))],[['css','marginLeft','3px']])]), 
+                                    _td([minViewY]), 
+                                    _td([minViewX])]), 
+                                _tr([
+                                    _td([_span([_t(_gtxt('Макс'))],[['css','marginLeft','3px']])]), 
+                                    _td([maxViewY]), 
+                                    _td([maxViewX])])
+                            ])])
+                }, {
+                    name: _gtxt("Мин. зум"),
+                    elem: minZoom
+                }, {
+                    name: _gtxt("Макс. зум"),
+                    elem: maxZoom
+                }];
                                 
 		var id = 'mapProperties' + String(Math.random()).substring(2, 12),
 			tabMenu = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#common' + id]])]),
