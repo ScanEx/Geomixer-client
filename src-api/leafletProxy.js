@@ -433,6 +433,12 @@
 					}
 					node['_dragInitOn'] = true;		// drag инициализирован
 				};
+                layer.on('mousedown', node['dragMe']);
+/* // TODO: drag обьектов без поддержки drag лефлета
+                for(var key in layer._layers) {
+                    layer._layers[key].on('mousedown', node['dragMe']);
+                }
+*/
 			}
 		}
 		,
@@ -1194,13 +1200,13 @@
 							//node['leaflet']._isVisible = false;
 							if(node['leaflet']) {
 								utils.setVisibleNode({'obj': node, 'attr': true});
+								setNodeHandlers(node.id);
 								if(node['dragging']) {	// todo drag без лефлета
 									//if(node['geometry']&& node['geometry']['type'] == 'Point') {
 										//node['leaflet']['options']['_isHandlers'] = true;
 									//}
 									utils.startDrag(node);
 								}
-								setNodeHandlers(node.id);
 							}
 						}
 					}
@@ -2236,10 +2242,9 @@
 		}
 		,
 		'enableDragging': function(ph)	{					// Разрешить Drag
-			var layer = ph.obj;
-			var id = layer.objectId;
+			var gmxNode = ph.obj;                           // Нода gmxAPI
+			var id = gmxNode.objectId;
 			var node = mapNodes[id];
-			var gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
 			if(!node || !gmxNode) return;						// Нода не определена
 			if(ph.attr && ph.attr['drag'] && ph.attr['dragend']) {
 				node['dragging'] = true;
@@ -2247,7 +2252,8 @@
 				node['dragendListenerID'] = gmxNode.addListener('dragend', function(ev) // dragend на обьекте
 				{
 					var attr = ev.attr;
-					ph.attr['dragend'](gmxNode, attr);
+					//ph.attr['dragend'](gmxNode, attr);
+					ph.attr['dragend'](attr.x, attr.y, gmxNode, attr);
 				});
 				node['dragListenerID'] = gmxNode.addListener('drag', function(ev)		// Drag на обьекте
 				{
@@ -2263,12 +2269,18 @@
 		}
 		,
 		'disableDragging': function(ph)	{					// Запретить Drag
-			var layer = ph.obj;
-			var id = layer.objectId;
+			var gmxNode = ph.obj;                           // Нода gmxAPI
+			var id = gmxNode.objectId;
 			var node = mapNodes[id];
-			var gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
 			if(!node || !gmxNode) return;						// Нода не определена
-			node['dragging'] = false;
+			var layer = node['leaflet'];
+			if(!layer && node['type'] != 'map') return false;
+            if(layer && layer.dragging) {
+				layer.dragging.disable();
+			}
+
+            node['dragging'] = false;
+
 			delete node['dragMe'];
 			if(node['dragendListenerID']) gmxNode.removeListener('dragend', node['dragendListenerID']);
 			if(node['dragListenerID']) gmxNode.removeListener('drag', node['dragListenerID']);

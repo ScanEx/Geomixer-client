@@ -197,11 +197,18 @@
 
 		attr['reposition'] = function() {
 			if(node['leaflet']) {
-				if(!node['setImageExtent']) node['leaflet'].setLatLng(posLatLng);
-				else L.DomUtil.setPosition(node.imageCanvas, new L.Point(-LMap._mapPane._leaflet_pos.x, -LMap._mapPane._leaflet_pos.y));
+                node['leaflet'].setLatLng(posLatLng);
+				//if(!node['setImageExtent']) node['leaflet'].setLatLng(posLatLng);
+				//else L.DomUtil.setPosition(node.imageCanvas, new L.Point(-LMap._mapPane._leaflet_pos.x, -LMap._mapPane._leaflet_pos.y));
 			}
 		}
-
+/*
+		node['isContainPoint'] = function(point) {
+			var flag = true;
+			if(node.geometry.coordinates) flag = gmxAPI._leaflet['utils'].isPointInPolygonArr([point.lng, point.lat], node.geometry.coordinates[0]);
+            return flag;
+		}
+*/
 		var redrawTimer = null;
 		var waitRedraw = function()	{						// Требуется перерисовка с задержкой
 			if(redrawTimer) clearTimeout(redrawTimer);
@@ -265,6 +272,9 @@
 			pGroup.addLayer(marker);
 			if(pNode) gmxAPI._leaflet['utils'].setVisibleNode({'obj': pNode, 'attr': true});
 			gmxAPI._leaflet['utils'].setNodeHandlers(node.id);
+            if(node['dragging']) {	// todo drag без лефлета
+                gmxAPI._leaflet['utils'].startDrag(node);
+            }
 
 			LMap.on('zoomend', function(e) {
 				if(!node['setImageExtent']) {
