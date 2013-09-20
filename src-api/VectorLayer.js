@@ -16,8 +16,8 @@
 		//var gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
 
 		node['type'] = 'VectorLayer';
-		node['minZ'] = 1;
-		node['maxZ'] = 21;
+		node['minZ'] = gmxAPI.defaultMinZoom;
+		node['maxZ'] = gmxAPI.defaultMaxZoom;
 		node['flipEnabled'] = true;				// По умолчанию ротация обьектов слоя установлена
 
 		node['tilesVers'] = {};
@@ -56,8 +56,8 @@
 //		node['tilesDrawing'] = {};				// список отрисованных тайлов в текущем Frame
 		node['zIndex'] = utils.getIndexLayer(id);
 		node['quicklookZoomBounds'] = {			//ограничение по зуум квиклуков
-			'minZ': 1
-			,'maxZ': 21
+			'minZ': gmxAPI.defaultMinZoom
+			,'maxZ': gmxAPI.defaultMaxZoom
 		};
 		
 		node['propHiden']['rasterView'] = '';		// Показывать растры в КР только по Click	// setAPIProperties
@@ -1064,8 +1064,8 @@
 
 		var attr = utils.prpLayerAttr(layer, node);
 		if(attr['bounds']) node['bounds'] = attr['bounds'];
-		node['minZ'] = inpAttr['minZoom'] || attr['minZoom'] || 1;
-		node['maxZ'] = inpAttr['maxZoom'] || attr['maxZoom'] || 21
+		node['minZ'] = inpAttr['minZoom'] || attr['minZoom'] || gmxAPI.defaultMinZoom;
+		node['maxZ'] = inpAttr['maxZoom'] || attr['maxZoom'] || gmxAPI.defaultMaxZoom
 		var identityField = attr['identityField'] || 'ogc_fid';
 		node['identityField'] = identityField;
 		var typeGeo = attr['typeGeo'] || 'polygon';
@@ -1077,8 +1077,8 @@
 		
 		var TemporalColumnName = attr['TemporalColumnName'] || '';
 		var option = {
-			'minZoom': 1
-			,'maxZoom': 23
+			'minZoom': gmxAPI.defaultMinZoom
+			,'maxZoom': gmxAPI.defaultMaxZoom
 			,'minZ': node['minZ']
 			,'maxZ': node['maxZ']
 			,'id': id
@@ -2526,8 +2526,8 @@
 			if(node.isVisible) {
 				var filter = mapNodes[fid];
 				if(filter) {
-					if(!filter.maxZ) filter.maxZ = 21;
-					if(!filter.minZ) filter.minZ = 1;
+					if(!filter.maxZ) filter.maxZ = gmxAPI.defaultMaxZoom;
+					if(!filter.minZ) filter.minZ = gmxAPI.defaultMinZoom;
 				}
 				reCheckFilters();
 				node.redrawTilesList();

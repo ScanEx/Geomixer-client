@@ -512,10 +512,19 @@
 
 		var haveOSM = false;
 
-		//var maxRasterZoom = 1;
-		//var miniMapZoomDelta = -4;
 		map.addLayers = function(layers, notMoveFlag, notVisible)
 		{
+			if(layers.properties.name === gmxAPI.currentMapName)	{  // Это основная карта
+                if(layers.properties.MinZoom) {	// установлен MinZoom карты
+                    gmxAPI.mapMinZoom = layers.properties.MinZoom;
+                }
+                if(layers.properties.MaxZoom) {	// установлен MaxZoom карты
+                    gmxAPI.mapMaxZoom = layers.properties.MaxZoom;
+                    if(gmxAPI.mapMinZoom > gmxAPI.mapMaxZoom) {	// mapMinZoom не больше MaxZoom
+                        gmxAPI.mapMinZoom = 1;
+                    }
+                }
+            }
 			var mapBounds = gmxAPI.getBounds();
 			var minLayerZoom = 20;
 			forEachLayer(layers, function(layer, isVisible) 
@@ -634,8 +643,8 @@
 					);
 				}
 			}
-			if (gmxAPI.maxRasterZoom > 17) {
-				map.setMinMaxZoom(1, gmxAPI.maxRasterZoom);
+			if (gmxAPI.maxRasterZoom > 17 || gmxAPI.mapMinZoom || gmxAPI.mapMaxZoom) {
+				map.setMinMaxZoom(gmxAPI.mapMinZoom || gmxAPI.defaultMinZoom, gmxAPI.mapMaxZoom || gmxAPI.maxRasterZoom || gmxAPI.defaultMaxZoom);
 			}
 
 			if (layers.properties.Copyright)
@@ -653,7 +662,7 @@
 					gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': e+'\n---------------------------------'+'\n' + layers.properties.OnLoad});
 				}
 			}
-		}
+        }
 
 		map.getCenter = function(mgeo)
 		{

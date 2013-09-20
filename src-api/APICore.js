@@ -34,6 +34,10 @@ window.PI = 3.14159265358979; //устарело - обратная совмес
 if(!window.gmxAPI) window.gmxAPI = {};
 extent(window.gmxAPI,
 {
+    defaultMinZoom: 1							// мин.zoom по умолчанию
+	,
+    defaultMaxZoom: 24							// макс.zoom по умолчанию
+	,
     mousePressed: false							// Флаг мышь нажата
 	,
     APILoaded: false							// Флаг возможности использования gmxAPI сторонними модулями
@@ -2449,7 +2453,8 @@ function createFlashMap(div, arg1, arg2, arg3)
 		//hostName = 'maps.kosmosnimki.ru';
 		var uri = gmxAPI.parseUri(hostName);
 		if(uri.host) gmxAPI.serverBase = uri.host;						// HostName основной карты переопределен
-		loadMapJSON(hostName, mapName, function(layers)
+        gmxAPI.currentMapName = mapName; // текущая карта
+        loadMapJSON(hostName, mapName, function(layers)
 		{
 			if (layers != null) {
                 window.KOSMOSNIMKI_LANGUAGE = window.KOSMOSNIMKI_LANGUAGE || {'eng': 'English', 'rus': 'Russian'}[layers.properties.DefaultLanguage];

@@ -193,8 +193,8 @@
 				var option = {
 					'minZoom': 1
 					,'maxZoom': 23
-					,'minZ': inpAttr['minZoom'] || attr['minZoom'] || 1
-					,'maxZ': inpAttr['maxZoom'] || attr['maxZoom'] || 21
+					,'minZ': inpAttr['minZoom'] || attr['minZoom'] || gmxAPI.defaultMinZoom
+					,'maxZ': inpAttr['maxZoom'] || attr['maxZoom'] || gmxAPI.defaultMaxZoom
 					,'zIndex': node['zIndex']
 					,'initCallback': initCallback
 					,'tileFunc': inpAttr['func']

@@ -8,8 +8,8 @@
 		for (var i = 0; i < prop.styles.length; i++)
 		{
 			var style = prop.styles[i];
-			minZoom = Math.min(style.MinZoom || 1, minZoom);
-			maxZoom = Math.max(style.MaxZoom || 21, maxZoom);
+			minZoom = Math.min(style.MinZoom || gmxAPI.defaultMinZoom, minZoom);
+			maxZoom = Math.max(style.MaxZoom || gmxAPI.defaultMaxZoom, maxZoom);
 		}
 		return {'minZoom': minZoom, 'maxZoom': maxZoom};
 	}
@@ -97,8 +97,8 @@
 			'DisableBalloonOnMouseMove': DisableBalloonOnMouseMove,
 			'regularStyle': regularStyle,
 			'hoveredStyle': hoveredStyle,
-			'MinZoom': style.MinZoom || 1,
-			'MaxZoom': style.MaxZoom || 21,
+			'MinZoom': style.MinZoom || gmxAPI.defaultMinZoom,
+			'MaxZoom': style.MaxZoom || gmxAPI.defaultMaxZoom,
 			'style': style,
 			'sql': sql
 		};
@@ -152,8 +152,8 @@
 		if(!attr && lastFilter) {
 			attr = gmxAPI.clone(lastFilter['_attr']);
 		}
-		if(!attr['MinZoom']) attr['MinZoom'] = 1;
-		if(!attr['MaxZoom']) attr['MaxZoom'] = 21;
+		if(!attr['MinZoom']) attr['MinZoom'] = gmxAPI.defaultMinZoom;
+		if(!attr['MaxZoom']) attr['MaxZoom'] = gmxAPI.defaultMaxZoom;
 
 		filter['_attr'] = attr;
 		prnt.filters.push(filter);
@@ -284,8 +284,8 @@
 						'BalloonEnable': true
 						,'DisableBalloonOnClick': false
 						,'DisableBalloonOnMouseMove': false
-						,'MinZoom': 1
-						,'MaxZoom': 21
+						,'MinZoom': gmxAPI.defaultMinZoom
+						,'MaxZoom': gmxAPI.defaultMaxZoom
 						,'RenderStyle': {'outline': {'color': 255,'thickness': 1}}
 					}
 				];

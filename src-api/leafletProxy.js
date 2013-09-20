@@ -2742,8 +2742,8 @@
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;
-			node['minZ'] = ph.attr['minZ'] || 1;
-			node['maxZ'] = ph.attr['maxZ'] || 21;
+			node['minZ'] = ph.attr['minZ'] || gmxAPI.defaultMinZoom;
+			node['maxZ'] = ph.attr['maxZ'] || gmxAPI.defaultMaxZoom;
 			var pnode = mapNodes[node.parentId];
 			if(node.propHiden && node.propHiden['subType'] == 'tilesParent') {			//ограничение по zoom квиклуков
 				if(pnode) {
