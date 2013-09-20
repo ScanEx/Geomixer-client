@@ -7,9 +7,18 @@
     margin-right: 5px;
 }
 
+.stylelib-category-panel {
+    vertical-align: top;
+    position: relative;
+}
+
+.stylelib-category-controls {
+    position: absolute;
+    bottom: 0px;
+}
+
 .stylelib-category-container {
     width: 100px;
-    vertical-align: top;
 }
 
 .stylelib-category-container  > div{
