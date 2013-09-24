@@ -1937,7 +1937,21 @@
 		var setCanvasStyle = function(tile, ctx, style)	{							// указать стиль Canvas
 			if(style) {
 				//if(style['stroke'] && style['weight'] > 0) {
-				var strokeStyle = '';
+                if(style['dashes']) {
+                    var dashes = style['dashes'];
+                    var dashOffset = (style['dashOffset'] ? style['dashOffset'] : 0);
+                    if ('setLineDash' in ctx) {     //Chrome
+                        ctx.setLineDash(dashes);
+                        //ctx.lineDashOffset(dashOffset);
+                    } else {                        //Firefox
+                        ctx.mozDash = dashes;
+                        ctx.mozDashOffset = dashOffset;
+                        //ctx.webkitLineDash = dashes;
+                        //ctx.webkitLineDashOffset = dashOffset;
+                    }            
+                }
+				
+                var strokeStyle = '';
 				if(style['stroke']) {
 					var lineWidth = style['weight'] || 0;
 					if(ctx.lineWidth != lineWidth) ctx.lineWidth = lineWidth;

@@ -1034,7 +1034,7 @@
 					if('color' in ph) pt['color'] = ph['color'];
 					pt['opacity'] = ('opacity' in ph ? ph['opacity'] : 100);
 					if('thickness' in ph) pt['weight'] = ph['thickness'];
-					if('dashes' in ph) pt['dashArray'] = ph['dashes'];
+					if('dashes' in ph) pt['dashes'] = ph['dashes'];
 				}
 			}
 			if('rotate' in pt && typeof(pt['rotate']) === 'string') {
