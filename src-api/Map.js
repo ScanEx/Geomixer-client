@@ -246,7 +246,7 @@
 			var attr, func;
 			if(searchScript === "/VectorLayer/Search.ashx") {
 				attr = {
-					'WrapStyle': 'window'
+					'WrapStyle': 'message'
 					,'page': 0
 					,'pagesize': 100000
 					,'geometry': true
@@ -312,7 +312,7 @@
 					callback(ret);
 				};
 				attr = {
-					'WrapStyle': 'window'
+					'WrapStyle': 'message'
 					,'MapName': map.layers[layerNames[0]].properties.mapName
 					,'LayerNames': layerNames.join(",")
 					,'SearchString': (str != null ? encodeURIComponent(str) : '')

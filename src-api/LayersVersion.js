@@ -11,7 +11,7 @@
 		if(arr.length > 0) {
 			gmxAPI.sendCrossDomainPostRequest(
 				'http://' + host + '/Layer/CheckVersion.ashx',
-				{'WrapStyle': 'window', 'layers':'[' + arr.join(',') + ']'},
+				{'WrapStyle': 'message', 'layers':'[' + arr.join(',') + ']'},
 				function(response)
 				{
 					if(response && response['Result'] && response['Result'].length > 0) {

@@ -193,6 +193,27 @@ extent(window.gmxAPI,
 	{
 		return gmxAPI.newElement("div", { className: className, innerHTML: innerHTML }, null, true);
 	},
+    'domEventUtil': {
+        addHandler: function(element, type, handler, capturing) {
+            if (element.addEventListener) {
+                element.addEventListener(type, handler, capturing ? true : false);
+            } else if (element.attachEvent) {
+                element.attachEvent("on" + type, handler);
+            } else {
+                element["on" + type] = handler;
+            }
+        },
+        removeHandler: function(element, type, handler) {
+            if (element.removeEventListener) {
+                element.removeEventListener(type, handler, capturing ? true : false);
+            } else if (element.detachEvent) {
+                element.detachEvent("on" + type, handler);
+            } else {
+                element["on" + type] = null;
+            }
+        }
+    }
+    ,
 	makeImageButton: function(url, urlHover)
 	{
 		var btn = document.createElement("img");
@@ -2044,71 +2065,99 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	gmxAPI._handlers = ret;
 })();
 
+
+!function() {
+
+    //скопирована из API для обеспечения независимости от него
+    function parseUri(str)
+    {
+        var	o   = parseUri.options,
+            m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+            uri = {},
+            i   = 14;
+
+        while (i--) uri[o.key[i]] = m[i] || "";
+
+        uri[o.q.name] = {};
+        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+            if ($1) uri[o.q.name][$1] = $2;
+        });
+
+        uri.hostOnly = uri.host;
+        uri.host = uri.authority; // HACK
+
+        return uri;
+    };
+
+    parseUri.options = {
+        strictMode: false,
+        key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+        q:   {
+            name:   "queryKey",
+            parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+        },
+        parser: {
+            strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+            loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+        }
+    };
+
+    var requests = {};
+    var lastRequestId = 0;
+    
+    var processMessage = function(e) {
+
+        if (!(e.origin in requests)) {
+            return;
+        }
+        
+        var dataStr = decodeURIComponent(e.data.replace(/\n/g,'\n\\'));
+        try {
+            var dataObj = JSON.parse(dataStr);
+        } catch (e) {
+            request.callback && request.callback({Status:"error", ErrorInfo: {ErrorMessage: "JSON.parse exeption", ExceptionType: "JSON.parse", StackTrace: dataStr}});
+        }
+        var request = requests[e.origin][dataObj.CallbackName];
+        if(!request) return;    // message от других запросов
+        
+        delete request[dataObj.CallbackName];
+        delete dataObj.CallbackName;
+
+        if(request.iframe.parentNode) request.iframe.parentNode.removeChild(request.iframe);
+        request.callback && request.callback(dataObj);
+    }
+    
+    gmxAPI.domEventUtil.addHandler(window, 'message', processMessage);
+
+    function createPostIframe2(id, callback, url)
+    {
+        var uniqueId = 'gmxAPI_id'+(lastRequestId++);
+        
+        iframe = document.createElement("iframe");
+        iframe.style.display = 'none';
+        iframe.setAttribute('id', id);
+        iframe.setAttribute('name', id);
+        iframe.src = 'javascript:true';
+        iframe.callbackName = uniqueId;
+        //iframe.onload = window[callbackName];
+        
+        var parsedURL = parseUri(url);
+        var origin = (parsedURL.protocol ? (parsedURL.protocol + ':') : window.location.protocol) + '//' + (parsedURL.host || window.location.host);
+        
+        requests[origin] = requests[origin] || {};
+        requests[origin][uniqueId] = {callback: callback, iframe: iframe};
+
+        return iframe;
+    }
+    
+	//расширяем namespace
+    gmxAPI.createPostIframe2 = createPostIframe2;
+
+}();
+
 // кроссдоменный POST запрос
 (function()
 {
-	function loadFunc(iframe, callback)
-	{
-		var win = iframe.contentWindow;
-		var userAgent = navigator.userAgent.toLowerCase();
-        
-    //skip first onload in safari
-    if (/safari/.test(userAgent) && !iframe.safariSkipped)
-    {
-        iframe.safariSkipped = true;
-        return;
-    }
-		
-		if (iframe.loaded)
-		{
-			var data = decodeURIComponent(win.name.replace(/\n/g,'\n\\'));
-			iframe.parentNode && iframe.parentNode.removeChild(iframe);
-			
-			var parsedData;
-			try
-			{
-				parsedData = JSON.parse(data)
-			}
-			catch(e)
-			{
-				parsedData = {Status:"error",ErrorInfo: {ErrorMessage: "JSON.parse exeption", ExceptionType:"JSON.parse", StackTrace: data}}
-			}
-			
-			callback && callback(parsedData);
-		}
-		else
-		{
-			win.location = 'about:blank';
-			iframe.loaded = true;
-		}
-	}
-
-	function createPostIframe(id, callback)
-	{
-		var userAgent = navigator.userAgent.toLowerCase(),
-			callbackName = gmxAPI.uniqueGlobalName(function()
-			{
-				loadFunc(iframe, callback);
-			}),
-			iframe;
-
-		try{
-			iframe = document.createElement('<iframe style="display:none" onload="' + callbackName + '()" src="javascript:true" id="' + id + '" name="' + id + '"></iframe>');
-        }
-		catch (e)
-		{
-			iframe = document.createElement("iframe");
-			iframe.style.display = 'none';
-			iframe.setAttribute('id', id);
-			iframe.setAttribute('name', id);
-			//iframe.charset = 'UTF-8';
-			iframe.src = 'javascript:true';
-			iframe.onload = window[callbackName];
-		}	
-
-		return iframe;
-	}
-
 	/** Посылает кроссдоменный POST запрос
 	* @namespace utilities
 	* @function
@@ -2121,75 +2170,83 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	*/
 	function sendCrossDomainPostRequest(url, params, callback, baseForm)
 	{
-		var form,
-			rnd = String(Math.random()),
-			id = '$$iframe_' + url + rnd;
+        var form,
+            rnd = String(Math.random()),
+            id = '$$iframe_' + url + rnd;
 
-		var userAgent = navigator.userAgent.toLowerCase(),
-			iframe = createPostIframe(id, callback),
-			originalFormAction;
-			
-		if (baseForm)
-		{
-			form = baseForm;
-			originalFormAction = form.getAttribute('action');
-			form.setAttribute('action', url);
-			form.target = id;
-			
-		}
-		else
-		{
+        var iframe = gmxAPI.createPostIframe2(id, callback, url),
+            originalFormAction;
+            
+        if (baseForm)
+        {
+            form = baseForm;
+            originalFormAction = form.getAttribute('action');
+            form.setAttribute('action', url);
+            form.target = id;
+            
+        }
+        else
+        {
             try {
-				form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post" accept-charset="UTF-8"></form>');
+                form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>');
             }
-			catch (e)
-			{
-				form = document.createElement("form");
-				form.acceptCharset = 'UTF-8';
-				form.style.display = 'none';
-				form.setAttribute('enctype', 'multipart/form-data');
-				form.target = id;
-				form.setAttribute('method', 'POST');
-				form.setAttribute('action', url);
-				form.id = id;
-			}
-		}
-		
-		var hiddenParamsDiv = document.createElement("div");
-		hiddenParamsDiv.style.display = 'none';
-		
-		for (var paramName in params)
-		{
-			var input = document.createElement("input");
-			
-			input.setAttribute('type', 'hidden');
-			input.setAttribute('name', paramName);
-			input.setAttribute('value', params[paramName]);
-			
-			hiddenParamsDiv.appendChild(input)
-		}
-		
-		form.appendChild(hiddenParamsDiv);
-		
-		if (!baseForm)
-			document.body.appendChild(form);
-			
-		document.body.appendChild(iframe);
-		
-		form.submit();
-		
-		if (baseForm)
-		{
-			form.removeChild(hiddenParamsDiv);
-			if (originalFormAction !== null)
-				form.setAttribute('action', originalFormAction);
-			else
-				form.removeAttribute('action');
-		}
-		else
-		{
-			form.parentNode.removeChild(form);
-		}
+            catch (e)
+            {
+                form = document.createElement("form");
+                form.style.display = 'none';
+                form.setAttribute('enctype', 'multipart/form-data');
+                form.target = id;
+                form.setAttribute('method', 'POST');
+                form.setAttribute('action', url);
+                form.id = id;
+            }
+        }
+        
+        var hiddenParamsDiv = document.createElement("div");
+        hiddenParamsDiv.style.display = 'none';
+        
+        if (params.WrapStyle === 'window') {
+            params.WrapStyle = 'message';
+        }
+        
+        if (params.WrapStyle === 'message') {
+            params.CallbackName = iframe.callbackName;
+        }
+        
+        for (var paramName in params)
+        {
+            var input = document.createElement("input");
+            
+            var value = typeof params[paramName] !== 'undefined' ? params[paramName] : '';
+            
+            input.setAttribute('type', 'hidden');
+            input.setAttribute('name', paramName);
+            input.setAttribute('value', value);
+            
+            hiddenParamsDiv.appendChild(input)
+        }
+        
+        form.appendChild(hiddenParamsDiv);
+        
+        if (!baseForm)
+            document.body.appendChild(form);
+            
+        document.body.appendChild(iframe);
+        
+        form.submit();
+        
+        if (baseForm)
+        {
+            form.removeChild(hiddenParamsDiv);
+            if (originalFormAction !== null)
+                form.setAttribute('action', originalFormAction);
+            else
+                form.removeAttribute('action');
+        }
+        else
+        {
+            form.parentNode.removeChild(form);
+        }
 	}
 	//расширяем namespace
 	gmxAPI.sendCrossDomainPostRequest = sendCrossDomainPostRequest;
