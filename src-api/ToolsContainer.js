@@ -145,15 +145,24 @@
 					}
 				}
 			}
+            gmxAPI._listeners.dispatchEvent('onActiveChanged', gmxAPI._tools[name]);	// Изменились активные tool в контейнере
 		}
 		this.selectTool = selectTool;
-		
-		function forEachObject(callback)
+
+		this.stateListeners = {};
+        this.addListener = function(eventName, func) {
+            return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func});
+        }
+		this.removeListener = function(eventName, id) {
+            return gmxAPI._listeners.removeListener(this, eventName, id);
+        }
+
+		function forEach(callback)
 		{
 			for (var id in toolHash)
 				callback(toolHash[id]);
 		}
-		this.forEachObject = forEachObject;
+		this.forEach = forEach;
 
 		function getToolByName(tn)
 		{
@@ -282,6 +291,7 @@
 			var control = gmxAPI.newElement( elType, elAttr, myRegularStyle);	// tool элемент 
 
 			toolHash[tn] = {
+				id: tn,
 				key: tn,
 				alias: attr['alias'] || null,
 				lang: attr['lang'] || null,
@@ -289,7 +299,8 @@
 				isActive: false,
 				isVisible: true,
 				control: control,
-				line: tr,
+				raw: tr,
+				line: tr,                       // для обратной совместимости
 				setVisible: function(flag) {
 					this.isVisible = flag;
 					var st = 'visible';
@@ -343,7 +354,7 @@
 			var num = getToolIndex(tn);
 			if(num === -1 || !toolHash[tn]) return false;
 			toolNames.splice(num, 1);
-			tBody.removeChild(toolHash[tn]['line']);
+			tBody.removeChild(toolHash[tn]['raw']);
 			delete toolHash[tn];
 			if(gmxAPI._drawing.tools[tn]) delete gmxAPI._drawing.tools[tn];
 			return true;
@@ -357,12 +368,12 @@
 			toolNames.splice(num, 1);
 
 			var hash = toolHash[tn];
-			var obj = tBody.removeChild(hash['line']);
+			var obj = tBody.removeChild(hash['raw']);
 
 			var len = tBody.children.length;
 			if(ind >= len) ind = len - 1;
 			
-			toolHash[tn]['line'] = tBody.insertBefore(obj, tBody.children[ind]);
+			toolHash[tn]['raw'] = tBody.insertBefore(obj, tBody.children[ind]);
 			toolNames.splice(i, 0, tn);
 			return true;
 		}
