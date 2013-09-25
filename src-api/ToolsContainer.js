@@ -320,13 +320,16 @@
 					this.isActive = true;
 					my.activeToolName = activeToolName = tn;
 					return attr['onClick'].call();
-					},
+				},
 				onCancel: function()	{
 					this.isActive = false;
 					my.activeToolName = activeToolName = '';
 					attr['onCancel'].call();
-					},
+				}
+                ,
 				select: function() { selectTool(tn); }
+                ,
+				setActive: function() { selectTool(tn); }
 			}
 			
 			td.appendChild(control);
