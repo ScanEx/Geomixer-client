@@ -43,24 +43,21 @@
                     if (!activeLayer) {
                         return;
                     }
-            
+                    
                     if (_queryMapLayers.layerRights(activeLayer) !== 'edit') {
                         nsGmx.widgets.authWidget.showLoginDialog();
                         return;
                     }
                     
-                    $('#flash').addClass('add2map-mode');
-                    mapListenerId = map.addListener('onClick', function(event) {
+                    var toolName = map.layers[activeLayer].properties.GeometryType.toUpperCase();
+                    map.standartTools.selectTool(toolName);
                     
-                        $('#flash').removeClass('add2map-mode');
-                        map.removeListener('onClick', mapListenerId);
+                    mapListenerId = map.drawing.addListener('onFinish', function(obj) {
+                        map.drawing.removeListener('onFinish', mapListenerId);
                         tool.onCancel();
-                    
-                        var latlng = event.attr.latlng;
-                        var drawingObject = map.drawing.addObject({type: "POINT", coordinates: [latlng.lng, latlng.lat]});
                         
                         var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
-                            drawingObject: drawingObject
+                            drawingObject: obj
                         });
                     })
                 },
