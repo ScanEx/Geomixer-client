@@ -34,6 +34,8 @@ window.PI = 3.14159265358979; //устарело - обратная совмес
 if(!window.gmxAPI) window.gmxAPI = {};
 extent(window.gmxAPI,
 {
+	MAX_LATITUDE: 85.0840591556
+    ,
     defaultMinZoom: 1							// мин.zoom по умолчанию
 	,
     defaultMaxZoom: 24							// макс.zoom по умолчанию

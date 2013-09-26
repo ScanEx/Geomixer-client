@@ -299,7 +299,7 @@
 				isActive: false,
 				isVisible: true,
 				control: control,
-				raw: tr,
+				row: tr,
 				line: tr,                       // для обратной совместимости
 				setVisible: function(flag) {
 					this.isVisible = flag;
@@ -357,7 +357,7 @@
 			var num = getToolIndex(tn);
 			if(num === -1 || !toolHash[tn]) return false;
 			toolNames.splice(num, 1);
-			tBody.removeChild(toolHash[tn]['raw']);
+			tBody.removeChild(toolHash[tn]['row']);
 			delete toolHash[tn];
 			if(gmxAPI._drawing.tools[tn]) delete gmxAPI._drawing.tools[tn];
 			return true;
@@ -371,12 +371,12 @@
 			toolNames.splice(num, 1);
 
 			var hash = toolHash[tn];
-			var obj = tBody.removeChild(hash['raw']);
+			var obj = tBody.removeChild(hash['row']);
 
 			var len = tBody.children.length;
 			if(ind >= len) ind = len - 1;
 			
-			toolHash[tn]['raw'] = tBody.insertBefore(obj, tBody.children[ind]);
+			toolHash[tn]['row'] = tBody.insertBefore(obj, tBody.children[ind]);
 			toolNames.splice(i, 0, tn);
 			return true;
 		}
