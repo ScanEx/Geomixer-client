@@ -31,7 +31,6 @@ var LayerProperties = Backbone.Model.extend({
             TilePath:       layerProperties.TilePath || {},
             Name:           layerProperties.name,
             EncodeSource:   layerProperties.EncodeSource,
-            SourceColumns:  layerProperties.SourceColumns,
             Columns:        layerProperties.Columns,
             TableName:      layerProperties.TableName,
             TableCS:        layerProperties.TableCS,
@@ -77,6 +76,7 @@ var LayerProperties = Backbone.Model.extend({
     save: function(geometryChanged, callback) {
         var attrs = this.attributes,
             name = attrs.Name,
+            stype = attrs.SourceType,
             mapProperties = _layersTree.treeModel.getMapProperties();
         
         var reqParams = {
@@ -104,7 +104,7 @@ var LayerProperties = Backbone.Model.extend({
         if (attrs.Type === 'Vector') {
             if (attrs.EncodeSource) reqParams.EncodeSource = attrs.EncodeSource;
             if (attrs.NameObject) reqParams.NameObject = attrs.NameObject;
-            if (attrs.SourceType === 'table') reqParams.TableCS = attrs.TableCS;
+            if (stype === 'table') reqParams.TableCS = attrs.TableCS;
 
             var rcProps = attrs.RC;
             reqParams.IsRasterCatalog = !!(rcProps && rcProps.get('IsRasterCatalog'));
@@ -132,10 +132,14 @@ var LayerProperties = Backbone.Model.extend({
                 reqParams.ColY = geomColumns.get('YCol');
             }
             
-            if (attrs.Columns) reqParams.Columns = JSON.stringify(attrs.Columns);
+            //отсылать на сервер колонки нужно только если это уже созданный слой или тип слоя "Вручную"
+            if (attrs.Columns && (name || stype === 'manual')) {
+                reqParams.Columns = JSON.stringify(attrs.Columns);
+            }
+            
             if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
             
-            if (!name && attrs.SourceType === 'manual')
+            if (!name && stype === 'manual')
             {
                 if (attrs.UserBorder) {
                     reqParams.UserBorder = JSON.stringify(attrs.UserBorder);
@@ -155,8 +159,8 @@ var LayerProperties = Backbone.Model.extend({
             }
             else
             {
-                if (attrs.SourceType !== 'manual') {
-                    reqParams.GeometryDataSource = attrs.SourceType === 'file' ? attrs.ShapePath.Path : attrs.TableName;
+                if (stype !== 'manual') {
+                    reqParams.GeometryDataSource = stype === 'file' ? attrs.ShapePath.Path : attrs.TableName;
                 }
                         
                 sendCrossDomainPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams,

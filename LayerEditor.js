@@ -180,9 +180,9 @@ var ManualAttrModel = function() {
     this.initFromServerFormat = function(serverColumns) {
         _attributes = [];
         $.each(serverColumns || [], function(i, column) {
-            var type = nsGmx._.find(ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType});
+            var type = nsGmx._.find(ManualAttrModel.TYPES, function(elem) {return elem.server === column.ColumnSimpleType.toLowerCase()});
             _attributes.push({
-                type: type || {server: column.ColumnSimpleType}, 
+                type: type || {server: column.ColumnSimpleType.toLowerCase()}, 
                 name: column.Name,
                 oldName: column.Name,
                 IsPrimary: column.IsPrimary,
@@ -404,7 +404,7 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
         layerProperties.set('ShapePath', {Path: this.value});
     }
     
-    var fileSourceColumns = sourceType === 'file' ? layerProperties.get('SourceColumns') : [];
+    var fileSourceColumns = sourceType === 'file' ? layerProperties.get('Columns') : [];
     var fileSelectedColumns = sourceType === 'file' ? layerProperties.get('GeometryColumnsLatLng') : new LatLngColumnsModel();
     var fileColumnsWidget = new SelectLatLngColumnsWidget(xlsColumnsParent, fileSelectedColumns, fileSourceColumns);
     
@@ -446,7 +446,7 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
                 
             getSourceColumns(path, true).done(function(sourceColumns)
             {
-                layerProperties.set('SourceColumns', sourceColumns);
+                layerProperties.set('Columns', sourceColumns);
                 fileSourceColumns = sourceColumns;
             })
                 
@@ -465,7 +465,7 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
     var tableLink = makeImageButton("img/choose2.png", "img/choose2_a.png"),
         tableColumnsParent = _div();
         
-    var tableSourceColumns   = sourceType === 'table' ? layerProperties.get('SourceColumns') : [];
+    var tableSourceColumns   = sourceType === 'table' ? layerProperties.get('Columns') : [];
     var tableSelectedColumns = sourceType === 'table' ? layerProperties.get('GeometryColumnsLatLng') : new LatLngColumnsModel();
     var tableColumnsWidget = new SelectLatLngColumnsWidget(tableColumnsParent, tableSelectedColumns, tableSourceColumns);
         
@@ -493,7 +493,7 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
 
             getSourceColumns(name, true).done(function(sourceColumns)
             {
-                layerProperties.set('SourceColumns', sourceColumns);
+                layerProperties.set('Columns', sourceColumns);
                 tableSourceColumns = sourceColumns;
             })
         })
@@ -578,10 +578,10 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
                     
     /*------------ Общее ------------*/
     layerProperties.on({
-        'change:SourceColumns': function() {
-            var sourceColumns = layerProperties.get('SourceColumns');
-            tableColumnsWidget.updateColumns(sourceColumns);
-            fileColumnsWidget.updateColumns(sourceColumns);
+        'change:Columns': function() {
+            var columns = layerProperties.get('Columns');
+            tableColumnsWidget.updateColumns(columns);
+            fileColumnsWidget.updateColumns(columns);
         }
     })
                     
@@ -624,11 +624,11 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
             selectedSource = ui.index;
     
             if (selectedSource == 0) {
-                layerProperties.set('SourceColumns', fileSourceColumns);
+                layerProperties.set('Columns', fileSourceColumns);
                 layerProperties.set('SourceType', 'file');
                 layerProperties.set('GeometryColumnsLatLng', fileSelectedColumns);
             } else if (selectedSource == 1) {
-                layerProperties.set('SourceColumns', tableSourceColumns);
+                layerProperties.set('Columns', tableSourceColumns);
                 layerProperties.set('SourceType', 'table');
                 layerProperties.set('GeometryColumnsLatLng', tableSelectedColumns);
                 layerProperties.set('TableCS', TableCSSelect.find(':selected').val());
@@ -881,9 +881,9 @@ var createPageAttributes = function(parent, props) {
     var type = props.get('SourceType');
     
     if (isNewLayer) {
-        props.on('change:SourceColumns', function() {
+        props.on('change:Columns', function() {
             if (props.get('SourceType') !== 'manual') {
-                fileAttrModel.initFromServerFormat(props.get('SourceColumns'));
+                fileAttrModel.initFromServerFormat(props.get('Columns'));
             }
         });
     }
@@ -905,7 +905,7 @@ var createPageAttributes = function(parent, props) {
     
     $(fileAttrModel).change(function() {
         var isManual = props.get('SourceType') === 'manual';
-        props.set(isManual || !isNewLayer ? 'Columns' : 'SourceColumns', fileAttrModel.toServerFormat());
+        props.set('Columns', fileAttrModel.toServerFormat());
     });
     
     $(parent).append(fileAddAttribute, fileColumnsContainer);
@@ -913,7 +913,7 @@ var createPageAttributes = function(parent, props) {
     props.on('change:SourceType', function() {
         var type = props.get('SourceType');
         var allowEdit = type === 'manual' || (!isNewLayer && type === 'file');
-        fileAttrModel.initFromServerFormat(props.get(allowEdit ? 'Columns' : 'SourceColumns'));
+        fileAttrModel.initFromServerFormat(props.get('Columns'));
         fileAttrView.setActive(allowEdit);
         $(fileAddAttribute).toggle(allowEdit);
     });
