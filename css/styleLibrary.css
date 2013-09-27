@@ -10,6 +10,7 @@
 .stylelib-category-panel {
     vertical-align: top;
     position: relative;
+    width: 100px;
 }
 
 .stylelib-category-controls {

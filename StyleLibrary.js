@@ -2,22 +2,75 @@
 
     //Взаимодействие с сервером
     var actionsManager = {
-        _actions: [],
+        actions: [],
         addAction: function(action) {
-            this._actions.push(action);
-            console.log(this._actions);
+            this.actions.push(action);
+            //console.log(this.actions);
         }
     }
     
     var dataProvider = {
         getCategoriesList: function() {
-            
+            var def = $.Deferred();
+            sendCrossDomainJSONRequest(serverBase + 'StyleLib/GetCategories.ashx', function(response) {
+                if (!parseResponse(response)) {
+                    def.reject(response);
+                    return;
+                }
+                def.resolve(response.Result);
+            });
+            return def;
         },
         getCategoryInfo: function(categoryID) {
-        
+            var def = $.Deferred();
+            sendCrossDomainJSONRequest(serverBase + 'StyleLib/GetStyles.ashx?IdCategory=' + categoryID, function(response) {
+                if (!parseResponse(response)) {
+                    def.reject(response);
+                    return;
+                }
+                
+                def.resolve(response.Result);
+            });
+            return def;
         },
         
-        saveChanges: function(actions) {
+        saveChanges: function() {
+            var def = $.Deferred();
+            var serverActions = [];
+            
+            var clientActions = actionsManager.actions;
+            for (var i = 0; i < clientActions.length; i++) {
+                var action = clientActions[i];
+                var serverAction = {};
+                
+                if (action.type === 'insert-cat') {
+                    serverAction.Action = 'insert';
+                    serverAction.Category = {IdCategory: action.category, Title: action.title};
+                    if (action.beforeID) serverAction.BeforeId = action.beforeID;
+                } else if (action.type === 'delete-cat') {
+                    serverAction.Action = 'delete';
+                    serverAction.Id = action.category;
+                } else if (action.type === 'update-cat') {
+                    serverAction.Action = 'update';
+                    serverAction.Category = {IdCategory: action.category, Title: action.title};
+                } else {
+                    continue;
+                }
+                
+                serverActions.push(serverAction);
+            }
+            
+            var request = [{
+                ItemType: 'category', 
+                Actions: serverActions
+            }]
+            
+            sendCrossDomainPostRequest(serverBase + 'StyleLib/ModifyCategories.ashx', {Request: JSON.stringify(request)}, function(response) {
+                console.log(response);
+                def.resolve(response);
+            });
+            
+            return def;
         }
     }
     
@@ -42,11 +95,6 @@
             if (!this.id) {
                 this.set('id', generateUniqueID());
             }
-            // this.on('change', function() {
-                // // if (this.collection) {
-                    // // actionsManager.addAction({type: 'update', id: this.id, category: this.collection.id});
-                // // }
-            // })
         }
     });
     
@@ -71,6 +119,41 @@
     
     var LibCategory = Backbone.Model.extend({
         initialize: function() {
+            this._isInited = 'styles' in this.attributes;
+            this._isInited && this._bindStyleEvents();
+        },
+        
+        loadFromServer: function() {
+            if (this.attributes.styles) {
+                var def = $.Deferred();
+                def.resolve();
+                return def;
+            }
+
+            var def = dataProvider.getCategoryInfo(this.id),
+                _this = this;
+                
+            def.done(function(categotyInfo) {
+                var styles = categotyInfo.Styles;
+                var styleCollection = new LibStyleCollection();
+                for (var i = 0; i < styles.length; i++) {
+                    var s = styles[i];
+                    styleCollection.add({
+                        id: s.IdStyle, 
+                        title: s.Title, 
+                        type: s.GeometryType,
+                        style: s.StyleJson
+                    });
+                }
+                
+                _this.set('styles', styleCollection);
+                _this._bindStyleEvents();
+            })
+            
+            return def;
+        },
+        
+        _bindStyleEvents: function() {
             this.attributes.styles.on('change add remove', function() {
                 this.trigger('change change:styles');
             }, this)
@@ -80,44 +163,6 @@
     var LibCategoryCollection = Backbone.Collection.extend({
         model: LibCategory
     });
-    
-    //test data
-    var testCategories2 = new LibCategoryCollection([
-        {
-            id: 'cat1', 
-            title: 'Природа', 
-            styles: new LibStyleCollection([
-                {id: 's1', type: 'POINT',      title: 'Водяной',   style: {marker: {size: 3}, outline: {color: 0xffff00, thickness: 2}}},
-                {id: 's2', type: 'POINT',      title: 'Леший',     style: {marker: {image: 'http://maps.kosmosnimki.ru/api/img/favicon16x16_sample6.png'}}},
-                {id: 's4', type: 'LINESTRING', title: 'Бес',       style: {marker: {image: 'http://maps.kosmosnimki.ru/api/img/favicon16x16_sample6.png'}}},
-                {id: 's6', type: 'LINESTRING', title: 'Барабашка', style: {outline: {color: 0xffff00}}}
-            ])
-        }, {
-            id: 'cat2', 
-            title: 'Домашние', 
-            styles: new LibStyleCollection([
-                {id: 's7', type: 'LINESTRING', title: 'Барабашка2', style: {outline: {color: 0xffff00}}},
-                {id: 's8', type: 'POLYGON',    title: 'Вампир',    style: {fill: {color: 0xaaaaaa}, outline: {color: 0x00ff00}}},
-                {id: 's9', type: 'POLYGON',    title: 'Лесной',    style: {fill: {color: 0x444444}}}
-            ])
-        }, {
-            id: 'cat3', 
-            title: 'Злые', 
-            styles: new LibStyleCollection([
-                {id: 's10', type: 'LINESTRING', title: 'Оборотень', style: {outline: {color: 0xff00ff, thickness: 10}}},
-                {id: 's11', type: 'LINESTRING', title: 'Бес',       style: {marker: {image: 'http://maps.kosmosnimki.ru/api/img/favicon16x16_sample6.png'}}},
-                {id: 's12', type: 'LINESTRING', title: 'Чёрт',      style: {}},
-            ])
-        }, {
-            id: 'cat4', 
-            title: 'Добрые', 
-            styles: new LibStyleCollection([
-                {id: 's13', type: 'LINESTRING', title: 'Барабашка12', style: {outline: {color: 0xffff00}}},
-                {id: 's14', type: 'POLYGON',    title: 'Вампир3',     style: {fill: {color: 0xaaaaaa}, outline: {color: 0x00ff00}}},
-                {id: 's15', type: 'POLYGON',    title: 'Лесной4',     style: {fill: {color: 0x444444}}}
-            ])
-        }
-    ]);
     
     // Views
     var LibCategoryView = function(container, categoryCollection) {
@@ -148,10 +193,11 @@
             container.empty();
             categoryCollection.each(function(category) {
                 var getElem = function() {
+                    var count = category.get('styles') ? category.get('styles').length : 0;
                     return $('<div/>')
                         .append(
                             $('<span/>').text(category.get('title')),
-                            $('<span class="stylelib-category-count"/>').text('(' + category.get('styles').length + ')')
+                            $('<span class="stylelib-category-count"/>').text('(' + count + ')')
                         )
                         .data('categoryID', category.id)
                         .click(function() {
@@ -352,167 +398,212 @@
     //main public function
     var showStyleLibraryDialog = function() {
     
-        var drawCategoryStyles = function() {
-            var categoryID = categoryView.model.get('activeID');
-            var categoryStyleCollection = testCategories2.get(categoryID).get('styles');
+        dataProvider.getCategoriesList().done(function(categories) {
+            var categoriesCollection = new LibCategoryCollection();
+            categories.Categories.forEach(function(c) {
+                categoriesCollection.add({
+                    id: c.IdCategory,
+                    title: c.Title
+                });
+            })
             
-            _.each(styleContainers, function(container, type) {
-                var view = new LibStyleCollectionView(container, categoryStyleCollection, type);
-                $(view).bind('select', function(event, style) {
-                    //console.log(style.id, style.get('title'));
-                    style && alert('Выбран стиль: ' + style.get('title'));
+            var currentDrawID = null;
+            var drawCategoryStyles = function() {
+                styleViews = {};
+                var categoryID = categoryView.model.get('activeID');
+                var category = categoriesCollection.get(categoryID);
+                
+                if (!category) return;
+                
+                var drawID = currentDrawID = generateUniqueID();
+                category.loadFromServer().done(function() {
+                    if (drawID !== currentDrawID) { //данные пришли, но пользователь уже кликнул на другую категорию
+                        return;
+                    }
+                    
+                    var categoryStyleCollection = category.get('styles');
+                    
+                    _.each(styleContainers, function(container, type) {
+                        var view = new LibStyleCollectionView(container, categoryStyleCollection, type);
+                        $(view).bind('select', function(event, style) {
+                            style && alert('Выбран стиль: ' + style.get('title'));
+                        })
+                        
+                        styleViews[type] = view;
+                    })
+                })
+            }
+            
+            var container = $('<div/>');
+            
+            container.append($(
+                '<table class="stylelib-main-table"><tr>' + 
+                    '<td class="stylelib-category-panel">' +
+                         '<div class="stylelib-category-container"></div>' + 
+                         '<div class="stylelib-category-controls">' + 
+                            '<div class="buttonLink" id="addBtn">Добавить</div>' + 
+                            '<div class="buttonLink" id="editBtn">Изменить</div>' +
+                            '<div class="buttonLink" id="delBtn">Удалить</div>' +
+                            '<div class="buttonLink" id="saveBtn">Сохранить</div>' +
+                         '</div>' + 
+                    '</td>' +
+                    '<td id="stylelib-styles-tab">' +
+                        '<ul>' +
+                            '<li><a href="#stylelib-markers-container">Точки</a>' +
+                            '<li><a href="#stylelib-lines-container">Линии</a>' +
+                            '<li><a href="#stylelib-polygons-container">Полигоны</a>' +
+                        '</ul>' +
+                        '<div id="stylelib-markers-container"  class="stylelib-styles-container"/>' +
+                        '<div id="stylelib-lines-container"    class="stylelib-styles-container"/>' +
+                        '<div id="stylelib-polygons-container" class="stylelib-styles-container"/>' +
+                    '</td>' +
+                '</tr></table>'
+            ))
+            
+            $('.stylelib-category-controls > #addBtn', container).click(function() {
+                var container = $('<div><input class="stylelib-newcat-input"><button class="stylelib-newcat-add">Добавить</button></div>');
+                $(".stylelib-newcat-add", container).click(function() {
+                    var newCategory = new LibCategory({
+                        id: generateUniqueID(), 
+                        title: $(".stylelib-newcat-input", container).val(), 
+                        styles: new LibStyleCollection()
+                    });
+                    
+                    $(dialogDiv).dialog('close');
+                    
+                    var action = {type: 'insert-cat', category: newCategory.id, title: newCategory.get('title')};
+                    
+                    if (categoriesCollection.length) {
+                        action.beforeID = categoriesCollection.at(categoriesCollection.length-1).id;
+                    }
+                    
+                    categoriesCollection.add(newCategory);
+                    actionsManager.addAction(action);
                 })
                 
-                styleViews[type] = view;
+                var dialogDiv = showDialog('Новая категория', container[0], {width: 190, height: 60});
             })
-        }
-        
-        var container = $('<div/>');
-        
-        container.append($(
-            '<table class="stylelib-main-table"><tr>' + 
-                '<td class="stylelib-category-panel">' +
-                     '<div class="stylelib-category-container"></div>' + 
-                     '<div class="stylelib-category-controls">' + 
-                        '<div class="buttonLink" id="addBtn">Добавить</div>' + 
-                        '<div class="buttonLink" id="editBtn">Изменить</div>' +
-                        '<div class="buttonLink" id="delBtn">Удалить</div>' +
-                     '</div>' + 
-                '</td>' +
-                '<td id="stylelib-styles-tab">' +
-                    '<ul>' +
-                        '<li><a href="#stylelib-markers-container">Точки</a>' +
-                        '<li><a href="#stylelib-lines-container">Линии</a>' +
-                        '<li><a href="#stylelib-polygons-container">Полигоны</a>' +
-                    '</ul>' +
-                    '<div id="stylelib-markers-container"  class="stylelib-styles-container"/>' +
-                    '<div id="stylelib-lines-container"    class="stylelib-styles-container"/>' +
-                    '<div id="stylelib-polygons-container" class="stylelib-styles-container"/>' +
-                '</td>' +
-            '</tr></table>'
-        ))
-        
-        $('.stylelib-category-controls > #addBtn', container).click(function() {
-            var container = $('<div><input class="stylelib-newcat-input"><button class="stylelib-newcat-add">Добавить</button></div>');
-            $(".stylelib-newcat-add", container).click(function() {
-                var newCategory = new LibCategory({
-                    id: generateUniqueID(), 
-                    title: $(".stylelib-newcat-input", container).val(), 
-                    styles: new LibStyleCollection()
+            
+            $('.stylelib-category-controls > #editBtn', container).click(function() {
+                var activeID = categoryView.model.get('activeID');
+                var activeCategory = categoriesCollection.get(activeID);
+                var container = $('<div><input class="stylelib-editcat-input" value="' + activeCategory.get('title') + '"><button class="stylelib-editcat-add">Изменить</button></div>');
+                $(".stylelib-editcat-add", container).click(function() {
+                    activeCategory.set('title', $(".stylelib-editcat-input", container).val());
+                    $(dialogDiv).dialog('close');
+                    
+                    var action = {type: 'update-cat', category: activeCategory.id, title: activeCategory.get('title')};
+                    actionsManager.addAction(action);
+                })
+                
+                var dialogDiv = showDialog('Новая категория', container[0], {width: 190, height: 60});
+            })
+            
+            $('.stylelib-category-controls > #delBtn', container).click(function() {
+                var activeID = categoryView.model.get('activeID');
+                var activeCategory = categoriesCollection.get(activeID);
+                categoriesCollection.remove(activeCategory);
+                actionsManager.addAction({type: 'delete-cat', category: activeID});
+            })
+            
+            $('.stylelib-category-controls > #saveBtn', container).click(function() {
+                dataProvider.saveChanges();
+            })
+            
+            var tabsContainer = container.find('#stylelib-styles-tab');
+            tabsContainer.tabs();
+            
+            //controls
+            var selectBtn = $('<span class="buttonLink">Выбрать</span>');
+            var addBtn    = $('<span class="buttonLink">Добавить</span>');
+            var editBtn   = $('<span class="buttonLink">Изменить</span>');
+            var deleteBtn = $('<span class="buttonLink">Удалить</span>');
+            var controls = $('<div class="stylelib-controls"/>')
+                .append(selectBtn, addBtn, editBtn, deleteBtn)
+                .appendTo(tabsContainer);
+            
+            var getActiveStyle = function() {
+                var tabIndex = $(tabsContainer).tabs('option', 'selected');
+                
+                var styleView = styleViews[['POINT', 'LINESTRING', 'POLYGON'][tabIndex]];
+                if (!styleView) return null;
+                
+                var activeID = styleView.model.get('activeID');
+                if (!activeID) return null;
+                
+                var activeCategory = categoriesCollection.get(categoryView.model.get('activeID'));
+                
+                return activeCategory.get('styles').get(activeID);
+            }
+                
+            selectBtn.click(function() {
+                var style = getActiveStyle();
+                style && alert('Выбран стиль: ' + style.get('title'));
+            })
+            
+            addBtn.click(function() {
+                var tabIndex = $(tabsContainer).tabs('option', 'selected');
+                var type = ['POINT', 'LINESTRING', 'POLYGON'][tabIndex],
+                    styleView = styleViews[type];
+                    
+                var newStyle = new LibStyle({
+                    title: '',
+                    style: LibStyle.getDefaultStyle(type),
+                    type: type
                 });
-                testCategories2.add(newCategory);
                 
-                $(dialogDiv).dialog('close');
+                newStyle.once('doneEdit', function(isSaved) {
+                    if (isSaved) {
+                        var activeCategory = categoriesCollection.get(categoryView.model.get('activeID'));
+                        activeCategory.loadFromServer().done(function() {
+                            activeCategory.get('styles').add(newStyle);
+                            actionsManager.addAction({type: 'insert', category: activeCategory.id, style: newStyle.id});
+                        })
+                    }
+                })
                 
-                actionsManager.addAction({type: 'insert-cat', category: newCategory.id});
+                showEditDialog(newStyle);
             })
             
-            var dialogDiv = showDialog('Новая категория', container[0], {width: 190, height: 60});
-        })
-        
-        $('.stylelib-category-controls > #delBtn', container).click(function() {
-            var activeID = categoryView.model.get('activeID');
-            var activeCategory = testCategories2.get(activeID);
-            testCategories2.remove(activeCategory);
-            actionsManager.addAction({type: 'delete-cat', category: activeID});
-        })
-        
-        var tabsContainer = container.find('#stylelib-styles-tab');
-        tabsContainer.tabs();
-        
-        //controls
-        var selectBtn = $('<span class="buttonLink">Выбрать</span>');
-        var addBtn    = $('<span class="buttonLink">Добавить</span>');
-        var editBtn   = $('<span class="buttonLink">Изменить</span>');
-        var deleteBtn = $('<span class="buttonLink">Удалить</span>');
-        var controls = $('<div class="stylelib-controls"/>')
-            .append(selectBtn, addBtn, editBtn, deleteBtn)
-            .appendTo(tabsContainer);
-            
-        var getCurrentStyleID = function() {
-            var tabIndex = $(tabsContainer).tabs('option', 'selected');
-            var styleView = styleViews[['POINT', 'LINESTRING', 'POLYGON'][tabIndex]];
-            return styleView.model.get('activeID');
-        }
-        
-        var getActiveStyle = function() {
-            var tabIndex = $(tabsContainer).tabs('option', 'selected');
-            var styleView = styleViews[['POINT', 'LINESTRING', 'POLYGON'][tabIndex]];
-            var activeID = styleView.model.get('activeID');
-            
-            if (!activeID) {
-                return null;
-            }
-            
-            var activeCategory = testCategories2.get(categoryView.model.get('activeID'));
-            
-            return activeCategory.get('styles').get(activeID);
-        }
-            
-        selectBtn.click(function() {
-            var style = getActiveStyle();
-            style && alert('Выбран стиль: ' + style.get('title'));
-        })
-        
-        addBtn.click(function() {
-            var tabIndex = $(tabsContainer).tabs('option', 'selected');
-            var type = ['POINT', 'LINESTRING', 'POLYGON'][tabIndex],
-                styleView = styleViews[type];
+            editBtn.click(function() {
+                var style = getActiveStyle();
                 
-            var newStyle = new LibStyle({
-                title: '',
-                style: LibStyle.getDefaultStyle(type),
-                type: type
-            });
-            
-            newStyle.once('doneEdit', function(isSaved) {
-                if (isSaved) {
-                    var activeCategory = testCategories2.get(categoryView.model.get('activeID'));
-                    activeCategory.get('styles').add(newStyle);
-                    actionsManager.addAction({type: 'insert', category: activeCategory.id, style: newStyle.id});
+                if (style) {
+                    style.once('doneEdit', function(isSaved) {
+                        if (isSaved) {
+                            var activeCategory = categoriesCollection.get(categoryView.model.get('activeID'));
+                            actionsManager.addAction({type: 'update', category: activeCategory.id, style: style.id});
+                        }
+                    })
+                    
+                    showEditDialog(style);
                 }
             })
             
-            showEditDialog(newStyle);
-        })
-        
-        editBtn.click(function() {
-            var activeCategory = testCategories2.get(categoryView.model.get('activeID'));
-            var style = getActiveStyle()
-            
-            style.once('doneEdit', function(isSaved) {
-                if (isSaved) {
-                    actionsManager.addAction({type: 'update', category: activeCategory.id, style: style.id});
+            deleteBtn.click(function() {
+                var style = getActiveStyle();
+                
+                if (style) {
+                    var activeCategory = categoriesCollection.get(categoryView.model.get('activeID'));
+                    activeCategory.get(styles).remove(style);
+                    actionsManager.addAction({type: 'remove', category: categoryID, style: activeID});
                 }
             })
             
-            showEditDialog(style);
-        })
-        
-        deleteBtn.click(function() {
-            var activeID = getCurrentStyleID();
+            var styleContainers = {
+                POINT:      container.find('#stylelib-markers-container'),
+                LINESTRING: container.find('#stylelib-lines-container'),
+                POLYGON:    container.find('#stylelib-polygons-container')
+            };
             
-            if (typeof activeID !== 'undefined') {
-                var categoryID = categoryView.model.get('activeID');
-                var styles = testCategories2.get(categoryID).get('styles');
-                styles.remove(styles.get(activeID));
-                actionsManager.addAction({type: 'remove', category: categoryID, style: activeID});
-            }
-        })
-        
-        var styleContainers = {
-            POINT:      container.find('#stylelib-markers-container'),
-            LINESTRING: container.find('#stylelib-lines-container'),
-            POLYGON:    container.find('#stylelib-polygons-container')
-        };
-        
-        var categoryView = new LibCategoryView(container.find('.stylelib-category-container'), testCategories2);
-        
-        categoryView.model.on('change', drawCategoryStyles);
-        testCategories2.on('change', drawCategoryStyles);
-        drawCategoryStyles();
-        
-        showDialog('Библиотека стилей', container[0], {width: 500, height: 400});
+            var categoryView = new LibCategoryView(container.find('.stylelib-category-container'), categoriesCollection);
+            
+            categoryView.model.on('change', drawCategoryStyles);
+            categoriesCollection.on('change', drawCategoryStyles);
+            drawCategoryStyles();
+            
+            showDialog('Библиотека стилей', container[0], {width: 500, height: 400});
+        });
     }
     
     gmxCore.addModule('StyleLibrary', {
