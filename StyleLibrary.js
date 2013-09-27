@@ -2,10 +2,30 @@
 
     //Взаимодействие с сервером
     var actionsManager = {
-        actions: [],
-        addAction: function(action) {
-            this.actions.push(action);
-            //console.log(this.actions);
+        catActions: [],
+        styleActions: {},
+        addCategoryAction: function(action, categoryID, data, beforeID, afterID) {
+            var serverAction = {Action: action};
+            
+            if (categoryID) serverAction.Id = categoryID;
+            if (data) serverAction.Category = data;
+            if (beforeID) serverAction.BeforeId = beforeID;
+            if (afterID) serverAction.AfterId = afterID;
+            
+            this.catActions.push(serverAction);
+        },
+        
+        addStyleAction: function(action, categoryID, styleID, data, beforeID, afterID) {
+            var serverAction = {Action: action};
+            
+            if (styleID) serverAction.Id = styleID;
+            if (data) serverAction.Style = data;
+            if (beforeID) serverAction.BeforeId = beforeID;
+            if (afterID) serverAction.AfterId = afterID;
+            
+            this.styleActions[categoryID] = this.styleActions[categoryID] || [];
+            this.styleActions[categoryID].push(serverAction);
+            
         }
     }
     
@@ -36,39 +56,28 @@
         
         saveChanges: function() {
             var def = $.Deferred();
-            var serverActions = [];
             
-            var clientActions = actionsManager.actions;
-            for (var i = 0; i < clientActions.length; i++) {
-                var action = clientActions[i];
-                var serverAction = {};
-                
-                if (action.type === 'insert-cat') {
-                    serverAction.Action = 'insert';
-                    serverAction.Category = {IdCategory: action.category, Title: action.title};
-                    if (action.beforeID) serverAction.BeforeId = action.beforeID;
-                } else if (action.type === 'delete-cat') {
-                    serverAction.Action = 'delete';
-                    serverAction.Id = action.category;
-                } else if (action.type === 'update-cat') {
-                    serverAction.Action = 'update';
-                    serverAction.Category = {IdCategory: action.category, Title: action.title};
-                } else {
-                    continue;
-                }
-                
-                serverActions.push(serverAction);
+            var request = [],
+                catActions = actionsManager.catActions,
+                styleActions = actionsManager.styleActions;
+            
+            catActions.length && request.push({
+                ItemType: 'category', 
+                Actions: catActions
+            });
+            
+            for (var cat in styleActions) {
+                request.push({ItemType: 'style', IdCategory: cat, Actions: styleActions[cat]});
             }
             
-            var request = [{
-                ItemType: 'category', 
-                Actions: serverActions
-            }]
-            
-            sendCrossDomainPostRequest(serverBase + 'StyleLib/ModifyCategories.ashx', {Request: JSON.stringify(request)}, function(response) {
-                console.log(response);
-                def.resolve(response);
-            });
+            if (request.length) {
+                sendCrossDomainPostRequest(serverBase + 'StyleLib/ModifyCategories.ashx', {Request: JSON.stringify(request)}, function(response) {
+                    console.log(response);
+                    def.resolve(response);
+                });
+            } else {
+                def.resolve();
+            }
             
             return def;
         }
@@ -114,7 +123,10 @@
     }
     
     var LibStyleCollection = Backbone.Collection.extend({
-        model: LibStyle
+        model: LibStyle,
+        getLastID: function() {
+            return this.length ? this.at(this.length-1).id : null;
+        }
     })
     
     var LibCategory = Backbone.Model.extend({
@@ -141,7 +153,7 @@
                     styleCollection.add({
                         id: s.IdStyle, 
                         title: s.Title, 
-                        type: s.GeometryType,
+                        type: s.GeometryType || 'POINT',
                         style: s.StyleJson
                     });
                 }
@@ -161,7 +173,10 @@
     });
     
     var LibCategoryCollection = Backbone.Collection.extend({
-        model: LibCategory
+        model: LibCategory,
+        getLastID: function() {
+            return this.length ? this.at(this.length-1).id : null;
+        }
     });
     
     // Views
@@ -471,14 +486,9 @@
                     
                     $(dialogDiv).dialog('close');
                     
-                    var action = {type: 'insert-cat', category: newCategory.id, title: newCategory.get('title')};
-                    
-                    if (categoriesCollection.length) {
-                        action.beforeID = categoriesCollection.at(categoriesCollection.length-1).id;
-                    }
+                    actionsManager.addCategoryAction('insert', null, {IdCategory: newCategory.id, Title: newCategory.get('title')}, categoriesCollection.getLastID());
                     
                     categoriesCollection.add(newCategory);
-                    actionsManager.addAction(action);
                 })
                 
                 var dialogDiv = showDialog('Новая категория', container[0], {width: 190, height: 60});
@@ -492,8 +502,7 @@
                     activeCategory.set('title', $(".stylelib-editcat-input", container).val());
                     $(dialogDiv).dialog('close');
                     
-                    var action = {type: 'update-cat', category: activeCategory.id, title: activeCategory.get('title')};
-                    actionsManager.addAction(action);
+                    actionsManager.addCategoryAction('update', null, {IdCategory: activeCategory.id, Title: activeCategory.get('title')});
                 })
                 
                 var dialogDiv = showDialog('Новая категория', container[0], {width: 190, height: 60});
@@ -503,7 +512,7 @@
                 var activeID = categoryView.model.get('activeID');
                 var activeCategory = categoriesCollection.get(activeID);
                 categoriesCollection.remove(activeCategory);
-                actionsManager.addAction({type: 'delete-cat', category: activeID});
+                actionsManager.addCategoryAction('delete', activeID);
             })
             
             $('.stylelib-category-controls > #saveBtn', container).click(function() {
@@ -556,8 +565,22 @@
                     if (isSaved) {
                         var activeCategory = categoriesCollection.get(categoryView.model.get('activeID'));
                         activeCategory.loadFromServer().done(function() {
-                            activeCategory.get('styles').add(newStyle);
-                            actionsManager.addAction({type: 'insert', category: activeCategory.id, style: newStyle.id});
+                            var styles = activeCategory.get('styles');
+                            
+                            actionsManager.addStyleAction(
+                                'insert', 
+                                activeCategory.id, 
+                                null,
+                                {
+                                    IdStyle: newStyle.id, 
+                                    Title: newStyle.get('title'), 
+                                    GeometryType: type, 
+                                    StyleJson: newStyle.get('style')
+                                },
+                                styles.getLastID()
+                            );
+                            
+                            styles.add(newStyle);
                         })
                     }
                 })
@@ -572,7 +595,17 @@
                     style.once('doneEdit', function(isSaved) {
                         if (isSaved) {
                             var activeCategory = categoriesCollection.get(categoryView.model.get('activeID'));
-                            actionsManager.addAction({type: 'update', category: activeCategory.id, style: style.id});
+                            actionsManager.addStyleAction(
+                                'update', 
+                                activeCategory.id, 
+                                null,
+                                {
+                                    IdStyle: style.id,
+                                    Title: style.get('title'), 
+                                    GeometryType: style.get('type'),
+                                    StyleJson: style.get('style')
+                                }
+                            );
                         }
                     })
                     
@@ -585,8 +618,9 @@
                 
                 if (style) {
                     var activeCategory = categoriesCollection.get(categoryView.model.get('activeID'));
-                    activeCategory.get(styles).remove(style);
-                    actionsManager.addAction({type: 'remove', category: categoryID, style: activeID});
+                    
+                    activeCategory.get('styles').remove(style);
+                    actionsManager.addStyleAction('delete', activeCategory.id, style.id);
                 }
             })
             
