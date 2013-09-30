@@ -26,6 +26,11 @@
             this.styleActions[categoryID] = this.styleActions[categoryID] || [];
             this.styleActions[categoryID].push(serverAction);
             
+        }, 
+        
+        clear: function() {
+            this.catActions = [];
+            this.styleActions = [];
         }
     }
     
@@ -72,12 +77,17 @@
             
             if (request.length) {
                 sendCrossDomainPostRequest(serverBase + 'StyleLib/ModifyCategories.ashx', {Request: JSON.stringify(request)}, function(response) {
-                    console.log(response);
-                    def.resolve(response);
+                    if (!parseResponse(response)) {
+                        def.reject(response);
+                    } else {
+                        def.resolve(response.Result);
+                    }
                 });
             } else {
                 def.resolve();
             }
+            
+            actionsManager.clear();
             
             return def;
         }
