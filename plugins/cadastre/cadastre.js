@@ -703,7 +703,16 @@ var publicInterface = {
 				liteCadastreLayer.setCopyright('<a href="http://rosreestr.ru">© Росреестр</a>');
 				var loadCadastreLayer = function(){
 					var mapExtent = _map.getVisibleExtent();
-					var queryString = "&bbox="+(merc_x(mapExtent.minX)-centralMeridian-dx).toString()+"%2C"+(merc_y(mapExtent.minY)-dy)+"%2C"+(merc_x(mapExtent.maxX)-centralMeridian-dx).toString()+"%2C"+(merc_y(mapExtent.maxY)-dy)+"&bboxSR="+JSON.stringify(customSRC)+"&imageSR="+JSON.stringify(customSRC)+"&size=" +_map.width()+","+_map.height() + "&f=image";
+					var yMin = gmxAPI.merc_y(mapExtent.minY) - dy;
+					var yMax = gmxAPI.merc_y(mapExtent.maxY) - dy;
+					var yHeight = Math.round((yMax - yMin) * gmxAPI._leaflet['mInPixel']);  // высота в pixels
+					var queryString = "&bbox="+(merc_x(mapExtent.minX)-centralMeridian-dx).toString()+
+                        "%2C" + yMin +
+                        "%2C" + (merc_x(mapExtent.maxX)-centralMeridian-dx).toString()+
+                        "%2C" + yMax +
+                        "&bboxSR="+JSON.stringify(customSRC)+
+                        "&imageSR="+JSON.stringify(customSRC)+
+                        "&size=" +_map.width()+","+yHeight + "&f=image";
 					var sUrl = cadastreServer+"CadastreNew/Cadastre/MapServer/export?dpi=96&transparent=true&format=png32"+queryString;	
 					liteCadastreLayer.setImageExtent({url:sUrl, extent: mapExtent, noCache: true});
 				}
