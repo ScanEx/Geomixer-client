@@ -654,9 +654,9 @@
 			var dx = (nw['lng'] < -360 ? 360 : 0);
 			var ext = {
 				'minX': nw['lng'] + dx
-				,'minY': se['lat']
+				,'minY': (se['lat'] > -gmxAPI.MAX_LATITUDE ? se['lat'] : -gmxAPI.MAX_LATITUDE)
 				,'maxX': se['lng'] + dx
-				,'maxY': nw['lat']
+				,'maxY': (nw['lat'] < gmxAPI.MAX_LATITUDE ? nw['lat'] : gmxAPI.MAX_LATITUDE)
 			};
 			var currPosition = {
 				'z': zoom
