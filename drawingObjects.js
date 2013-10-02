@@ -349,7 +349,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         _drawingObject = null;
 	}
     
-    nsGmx.ContextMenuController.bindMenuToElem(_title, 'DrawingObject', function(){return true; }, {obj: _drawingObject} );
+    nsGmx && nsGmx.ContextMenuController && nsGmx.ContextMenuController.bindMenuToElem(_title, 'DrawingObject', function(){return true; }, {obj: _drawingObject} );
     
     this.getDrawingObject = function(){
         return _drawingObject;
@@ -457,7 +457,9 @@ var DrawingObjectGeomixer = function() {
 	}
 	
 	var fnAddToCollection = function(drawingObject){
-		if (!nsGmx.DrawingObjectCustomControllers.isHidden(drawingObject)) oCollection.Add(drawingObject);
+		if (!nsGmx.DrawingObjectCustomControllers || !nsGmx.DrawingObjectCustomControllers.isHidden(drawingObject)) {
+            oCollection.Add(drawingObject);
+        }
 	}
 	
 	var checkDownloadVisibility = function(){
