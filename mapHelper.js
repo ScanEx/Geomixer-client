@@ -889,9 +889,16 @@ mapHelper.prototype.createStylesEditorIcon = function(parentStyles, type, params
 					{
 						var width = this.width,
 							height = this.height,
-							scaleX = 14.0 / width,
-							scaleY = 14.0 / height,
+                            scale;
+                            
+                        if (width && height) {
+							var scaleX = 14.0 / width;
+							var scaleY = 14.0 / height
 							scale = Math.min(scaleX, scaleY);
+                        } else {
+                            scale = 1;
+                            width = height = 14;
+                        }
 						
 						setTimeout(function()
 						{
