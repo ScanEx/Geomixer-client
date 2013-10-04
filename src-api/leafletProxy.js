@@ -622,20 +622,10 @@
 				var xmin = Math.min(p1[0], p2[0]);
 				var xmax = Math.max(p1[0], p2[0]);
 				var ymax = Math.max(p1[1], p2[1]);
-				if (x > xmin) 
-				{
-					if (x <= xmax) 
-					{
-						if (y <= ymax) 
-						{
-							if (p1[0] != p2[0]) 
-							{
-								var xinters = (x - p1[0])*(p2[1] - p1[1])/(p2[0] - p1[0]) + p1[1];
-								if (p1[1] == p2[1] || y <= xinters) isIn = !isIn;
-							}
-						}
-					}
-				}
+                if (x > xmin && x <= xmax && y <= ymax && p1[0] != p2[0]) {
+                    var xinters = (x - p1[0])*(p2[1] - p1[1])/(p2[0] - p1[0]) + p1[1];
+                    if (p1[1] == p2[1] || y <= xinters) isIn = !isIn;
+                }
 				p1 = p2;
 			}
 			return isIn;

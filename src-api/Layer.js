@@ -551,12 +551,15 @@
 					gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} });	// есть новый подписчик события изменения видимости обьектов векторного слоя
 				}
 			}
+			var stylesMinMaxZoom = getMinMaxZoom(layer.properties);
 			if (isRaster) {
 				var ph = {
 					'func':tileFunction
 					,'projectionCode':0
 					,'minZoom': layer.properties['MinZoom']
 					,'maxZoom': layer.properties['MaxZoom']
+                    ,'minZoomView': stylesMinMaxZoom['minZoom'] || 1
+                    ,'maxZoomView': stylesMinMaxZoom['maxZoom'] || 30
 					,'tileSenderPrefix': tileSenderPrefix
 					,'bounds': bounds
 				};
@@ -678,8 +681,7 @@
 			}
 
 			// Установка видимости по Zoom
-			var tmp = getMinMaxZoom(layer.properties);
-			obj.setZoomBounds(tmp['minZoom'], tmp['maxZoom']);
+			obj.setZoomBounds(stylesMinMaxZoom['minZoom'], stylesMinMaxZoom['maxZoom']);
 
 			if(!obj.isMiniMap) {					// если это не miniMap
 				if (layer.properties.Copyright) {
