@@ -197,8 +197,14 @@ var GeomixerPluginsWidget = function(container, mapPlugins)
     update();
 }
 
+var paramsWidgets = {};
+
 var MapPluginParamsWidget = function(mapPlugins, pluginName) {
 
+    if (paramsWidgets[pluginName]) {
+        return;
+    };
+    
     var FakeTagMetaInfo = function()
     {
         this.isTag = function(tag) { return true; }
@@ -221,7 +227,8 @@ var MapPluginParamsWidget = function(mapPlugins, pluginName) {
     var container = $('<div/>');
     
     var pluginValues = new nsGmx.LayerTagSearchControl(layerTags, container);
-    showDialog(_gtxt('pluginsEditor.paramsTitle') + " " + pluginName, container[0], {width: 300, height: 200, closeFunc: function() {
+    
+    var updateParams = function() {
         var newParams = {};
         layerTags.eachValid(function(tagid, tag, value) {
             newParams[tag] = newParams[tag] || [];
@@ -229,7 +236,28 @@ var MapPluginParamsWidget = function(mapPlugins, pluginName) {
         })
         
         mapPlugins.setPluginParams(pluginName, newParams);
-    }});
+    }
+    
+    var dialogDiv = showDialog(
+            _gtxt('pluginsEditor.paramsTitle') + " " + pluginName, 
+            container[0], 
+            {
+                width: 300, 
+                height: 200, 
+                closeFunc: function() {
+                    updateParams();
+                    delete paramsWidgets[pluginName];
+                }
+            }
+        );
+    
+    paramsWidgets[pluginName] = {
+        update: updateParams,
+        closeDialog: function() {
+            $(dialogDiv).dialog('close');
+        }
+    };
+    
 }
 
 var MapPluginsWidget = function(container, mapPlugins)
@@ -299,7 +327,18 @@ var createPluginsEditor = function(container, mapPlugins)
             .append($('<td/>', {'class': 'pluginEditor-widgetTD'}).append(widgetContainer))
         ));
     
-    return mapPlugins;
+    return {
+        update: function() {
+            for (var name in paramsWidgets) {
+                paramsWidgets[name].update();
+            }
+        },
+        closeParamsDialogs: function() {
+            for (var name in paramsWidgets) {
+                paramsWidgets[name].closeDialog();
+            }
+        }
+    };
 }
 
 gmxCore.addModule('PluginsEditor', {

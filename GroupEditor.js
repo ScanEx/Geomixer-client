@@ -603,7 +603,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		_(divView,   [_table([_tbody(addProperties(shownViewProperties))],  [['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divOnload, [onLoad])
         
-        var mapPlugins = nsGmx.createPluginsEditor(divPlugins, _mapHelper.mapPlugins);
+        var pluginsEditor = nsGmx.createPluginsEditor(divPlugins, _mapHelper.mapPlugins);
         
         var mapLayersTree = new layersTree({
             showVisibilityCheckbox: true, 
@@ -676,6 +676,12 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
             props.MinZoom  = isNaN(Number(minZoom.value))  ? null : (Number(minZoom.value) || null);
             
             rawTree.properties = props;
+            
+            pluginsEditor.update();
+        }
+        
+        tabMenu.closeFunc = function() {
+            pluginsEditor.closeParamsDialogs();
         }
 		
 		return tabMenu;
@@ -734,6 +740,7 @@ var createMapEditor = function(div)
 		{
 			delete _mapEditorsHash[elemProperties.MapID];
 			canvas.updateFunc();
+            canvas.closeFunc();
 			return false;
 		};
 	

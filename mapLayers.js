@@ -2009,20 +2009,20 @@ queryMapLayers.prototype.createMap = function(name)
 
     var saveMapInternal = function(scriptName, mapTitle, callback)
     {
-        var mapID = String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID);
+        var mapID = String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID),
+            saveTree = {};
         
-        _userObjects.collect();
-        $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
+        window._mapEditorsHash && _mapEditorsHash[mapID] && _mapEditorsHash[mapID].update();
         
         //обновим стили слоёв из всех незакрытых диалогов редактирования стилей
         var mStyleEditor = gmxCore.getModule('LayerStylesEditor');
         mStyleEditor && mStyleEditor.updateAllStyles();
         
-        window._mapEditorsHash && _mapEditorsHash[mapID] && _mapEditorsHash[mapID].update();
+        _userObjects.collect();
+        $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
         
-        var saveTree = {};
         
-        $.extend(true, saveTree, _layersTree.treeModel.getRawTree())
+        $.extend(true, saveTree, _layersTree.treeModel.getRawTree());
         
         //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)
