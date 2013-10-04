@@ -508,9 +508,9 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		{
 			if (!isNaN(Number(this.value)))
 			{
-				div.gmxProperties.properties.MinZoom = Number(this.value);
-				
-				rawTree.properties = div.gmxProperties.properties;
+				div.gmxProperties.properties.MinZoom = Number(this.value) || null;
+                
+                rawTree.properties = div.gmxProperties.properties;
 			}
 			
 			return true;
@@ -520,7 +520,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		{
 			if (!isNaN(Number(this.value)))
 			{
-				div.gmxProperties.properties.MaxZoom = Number(this.value);
+				div.gmxProperties.properties.MaxZoom = Number(this.value) || null;
 				
 				rawTree.properties = div.gmxProperties.properties;
 			}
@@ -672,6 +672,8 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
             props.MinViewY = isNaN(Number(minViewY.value)) ? null : Number(minViewY.value);
             props.MaxViewX = isNaN(Number(maxViewX.value)) ? null : Number(maxViewX.value);
             props.MaxViewY = isNaN(Number(maxViewY.value)) ? null : Number(maxViewY.value);
+            props.MaxZoom  = isNaN(Number(maxZoom.value))  ? null : (Number(maxZoom.value) || null);
+            props.MinZoom  = isNaN(Number(minZoom.value))  ? null : (Number(minZoom.value) || null);
             
             rawTree.properties = props;
         }
