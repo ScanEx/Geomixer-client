@@ -140,7 +140,7 @@
                     isTemporal: true,
                     minPeriod: 1,
                     maxPeriod: 64,
-                    columnName: divProperties.TemporalColumnName
+                    columnName: Columns[3].Name
                 })
             }
         }
