@@ -198,7 +198,11 @@ attrsTable.prototype.getInfo = function(origCanvas, outerSizeProvider, params)
 
 attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, params)
 {
-    var _params = $.extend({hideActions: false, onClick: null}, params);
+    var _params = $.extend({
+        hideDownload: false, 
+        hideActions: false, 
+        onClick: null
+    }, params);
         
 	var paramsWidth = 300,
 		tdParams = _td(null,[['css','width',paramsWidth + 'px'],['attr','vAlign','top']]),
@@ -222,10 +226,12 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         );
     }
     
+    var hostName = serverBase.match(/^https?:\/\/(.*)\/$/)[1];
+    
     var downloadLayer = function(format) {
         _layersTree.downloadVectorLayer(
             _this.layerName, 
-            globalFlashMap.layers[_this.layerName].properties.hostName, 
+            hostName,
             format,
             _this.textarea.value
         );
@@ -240,7 +246,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         downloadLayer('gpx');
     }
     
-    if (globalFlashMap.layers[_this.layerName].properties.GeometryType === 'polygon') {
+    if (info.GeometryType === 'polygon') {
         $(downloadGPXButton).hide();
     }
     
@@ -296,6 +302,11 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     {
         fielsWidth.push("");
         attrNamesHash[attrNames[f]] = true;
+    }
+    
+    if (_params.hideDownload) {
+        $(downloadShapeButton).hide();
+        $(downloadGPXButton).hide();
     }
                         
     this.divTable2 = _div(null, [['css','overflow','auto'], ['dir', 'className', 'attrsTableBody']]);
