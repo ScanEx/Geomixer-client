@@ -132,7 +132,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     var sizeProvider = function() {
         return {
             width: dialogCanvas[0].parentNode.parentNode.offsetWidth,
-            height: dialogCanvas[0].parentNode.offsetHeight - RCLayerLayerCanvas[0].offsetHeight
+            height: dialogCanvas[0].parentNode.offsetHeight - RCLayerLayerCanvas[0].offsetHeight - 5
         }
     }
     
@@ -144,11 +144,28 @@ nsGmx.RCAddLayerControl = function(map, layerName)
                 currRCName = clickContext.elem.name;
                 currAttrControl = window._attrsTableHash.create(currRCName, RCLayerObjectCanvas[0], sizeProvider, {
                     hideActions: true,
+                    hideDownload: true,
                     onClick: function(elem) {
                         var idfield = currAttrControl.getLayerInfo().identityField;
                         var objid = elem.values[elem.fields[idfield].index];
                         
-                        _mapHelper.modifyObjectLayer(layerName, [{source: {rc: currRCName, rcobj: objid}}]);
+                        var dstProps = map.layers[layerName].properties;
+                        
+                        var properties = {};
+                        
+                        //переносим все атрибуты объекта, у которых совпадает имя и тип
+                        for (var srcAttr in elem.fields) {
+                            if (srcAttr !== idfield) {
+                                for (var k = 0; k < dstProps.attributes.length; k++) {
+                                    if (dstProps.attributes[k] === srcAttr && dstProps.attrTypes[k] === elem.fields[srcAttr].type ) {
+                                        properties[srcAttr] = elem.values[elem.fields[srcAttr].index];
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        _mapHelper.modifyObjectLayer(layerName, [{source: {rc: currRCName, rcobj: objid}, properties: properties}]);
                     }
                 });
             }
