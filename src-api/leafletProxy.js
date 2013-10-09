@@ -730,7 +730,7 @@
 			var evName = attr['evName'];
 
 			var standartTools = gmxAPI.map.standartTools;
-			if(standartTools && !skipToolNames[standartTools.activeToolName]) {
+			if(!standartTools || !skipToolNames[standartTools.activeToolName]) {
 				var from = gmxAPI.map.layers.length - 1;
 				var arr = [];
 				for (var i = from; i >= 0; i--)

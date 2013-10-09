@@ -27,6 +27,7 @@
 	// Проверка версий слоев
 	function chkVersion(e)
 	{
+        if(gmxAPI.isPageHidden()) return;
 		var layersArr = gmxAPI.map.layers;
 		for(var host in versionLayers) {
 			var arr = [];

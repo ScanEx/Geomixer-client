@@ -1796,6 +1796,10 @@ extent(window.gmxAPI,
 	'getTileListByBounds': function(bounds, z)	{		// получить список тайлов по bounds на определенном zoom
 		return gmxAPI.chkTileList({'bounds': bounds, 'z': z});
 	}
+	,
+	'isPageHidden': function()	{		// Видимость окна браузера
+        return document.hidden || document.msHidden || document.webkitHidden || document.mozHidden || false;
+	}
 });
 
 window.gmxAPI.lambertCoefX = 100*gmxAPI.distVincenty(0, 0, 0.01, 0);				// 111319.5;
