@@ -1237,6 +1237,7 @@ $.extend(nsGmx.Utils, {
     
     /** Конвертация данных между форматами сервера и клиента. Используется в тегах слоёв и в атрибутах объектов векторных слоёв.
     * Описание форматов см. в {@link nsGmx.Utils.convertFromServer}
+    * Если конвертация невозможна для данного типа, возвращает null
     * @memberOf nsGmx.Utils
     */
     convertToServer: function(type, value)

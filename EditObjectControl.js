@@ -73,7 +73,13 @@ var getInputElement = function(type)
 * @param {int} objectId ID объекта (null для нового объекта)
 * @param {Object} params Дополнительные параметры контрола
 * @param {gmxAPI.drawingObject} params.drawingObject Пользовательский объект для задании геометрии или null, если геометрия не задана
+* @param {function} params.onGeometrySelection Внешняя ф-ция для выбора геометрии объекта. 
+         Сигнатура: function(callback), параметр callback(drawingObject) должен быть вызван когда будет выбрана геометрия.
+* @param {Object} params.validate Пользовательские валидаторы типов. 
+*        Хеш {name: function}, сами валидаторы имеют формат function(value) -> Boolean. True, если исходное значение валидное.
+*        Передаются введённые пользователем значения до их преобразования в серверных формат
 * @param {Object[]} params.fields массив со значениями атрибутов. Должен содержать только атрибуты, которые есть в слое. Каждый элемент массива может содержать:
+*
 *  * name {String} - имя атрибута (обязательно)
 *  * value {String|int} - значение атрибута в формате сервера (может отсутствовать)
 *  * constant {bool} - можно ли редактировать атрибут (по умолчанию - можно)
@@ -86,7 +92,7 @@ var EditObjectControl = function(layerName, objectId, params)
      /** Закрытие диалога редактирования
      * @event EditObjectControl#close
      */
-    var _params = $.extend({drawingObject: null, fields: []}, params);
+    var _params = $.extend({drawingObject: null, fields: [], validate: {}}, params);
     var _this = this;
     var isNew = objectId == null;
     if (!isNew && EditObjectControlsManager.find(layerName, objectId))
@@ -161,8 +167,7 @@ var EditObjectControl = function(layerName, objectId, params)
         var canvas = _div(),
             createButton = makeLinkButton(isNew ? _gtxt("Создать") : _gtxt("Изменить")),
             removeButton = makeLinkButton(_gtxt("Удалить")),
-            trs = [],
-            tdGeometry = _td();
+            trs = [];
             
         $(canvas).bind('dragover', function() {
             return false;
@@ -196,11 +201,13 @@ var EditObjectControl = function(layerName, objectId, params)
                 if (elem.rowName === identityField) 
                     return;
                 
-                var value = nsGmx.Utils.convertToServer(elem.rowType, 'value' in elem ? elem.value : $(elem).text());
-                if (value !== null)
+                var clientValue = 'value' in elem ? elem.value : $(elem).text();
+                var value = nsGmx.Utils.convertToServer(elem.rowType, clientValue);
+                var isValid = !_params.validate[elem.rowName] || _params.validate[elem.rowName](clientValue);
+                
+                if (value !== null && isValid) {
                     properties[elem.rowName] = value;
-                else
-                {
+                } else {
                     anyErrors = true;
                     inputError(elem);
                 }
@@ -284,11 +291,15 @@ var EditObjectControl = function(layerName, objectId, params)
             
             drawingBorderLink.onclick = function()
             {
-                nsGmx.Controls.chooseDrawingBorderDialog(
-                    'editObject', 
-                    bindDrawingObject, 
-                    { geomType: layer.properties.GeometryType }
-                );
+                if (_params.onGeometrySelection) {
+                    _params.onGeometrySelection(bindDrawingObject);
+                } else {
+                    nsGmx.Controls.chooseDrawingBorderDialog(
+                        'editObject', 
+                        bindDrawingObject,
+                        { geomType: layer.properties.GeometryType }
+                    );
+                }
             }
             drawingBorderLink.style.margin = '0px 5px 0px 3px';
             
