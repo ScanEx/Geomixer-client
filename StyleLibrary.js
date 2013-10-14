@@ -221,8 +221,8 @@
                     var count = category.get('styles') ? category.get('styles').length : 0;
                     return $('<div/>')
                         .append(
-                            $('<span/>').text(category.get('title')),
-                            $('<span class="stylelib-category-count"/>').text('(' + count + ')')
+                            $('<span/>').text(category.get('title'))
+                            //$('<span class="stylelib-category-count"/>').text('(' + count + ')')
                         )
                         .data('categoryID', category.id)
                         .click(function() {
@@ -464,15 +464,19 @@
             container.append($(
                 '<table class="stylelib-main-table"><tr>' + 
                     '<td class="stylelib-category-panel">' +
-                         '<div class="stylelib-category-container"></div>' + 
-                         '<div class="stylelib-category-controls">' + 
-                            '<div class="buttonLink" id="addBtn">Добавить</div>' + 
-                            '<div class="buttonLink" id="editBtn">Изменить</div>' +
-                            '<div class="buttonLink" id="delBtn">Удалить</div>' +
-                            '<div class="buttonLink" id="saveBtn">Сохранить</div>' +
+                         '<div class="stylelib-category-actions">' + 
+                            '<div class="stylelib-icon stylelib-category-add"></div>' + 
+                            '<div class="stylelib-icon stylelib-category-edit"></div>' + 
+                            '<div class="stylelib-icon stylelib-category-remove"></div>' + 
                          '</div>' + 
+                         '<div class="stylelib-category-container"></div>' + 
                     '</td>' +
                     '<td id="stylelib-styles-tab">' +
+                        '<div class = "stylelib-style-controls">' +
+                            '<div class="stylelib-icon stylelib-style-add"></div>' + 
+                            '<div class="stylelib-icon stylelib-style-edit"></div>' + 
+                            '<div class="stylelib-icon stylelib-style-remove"></div>' + 
+                        '</div>' + 
                         '<ul>' +
                             '<li><a href="#stylelib-markers-container">Точки</a>' +
                             '<li><a href="#stylelib-lines-container">Линии</a>' +
@@ -485,7 +489,7 @@
                 '</tr></table>'
             ))
             
-            $('.stylelib-category-controls > #addBtn', container).click(function() {
+            $('.stylelib-category-actions > .stylelib-category-add', container).click(function() {
                 var container = $('<div><input class="stylelib-newcat-input"><button class="stylelib-newcat-add">Добавить</button></div>');
                 $(".stylelib-newcat-add", container).click(function() {
                     var newCategory = new LibCategory({
@@ -504,7 +508,7 @@
                 var dialogDiv = showDialog('Новая категория', container[0], {width: 190, height: 60});
             })
             
-            $('.stylelib-category-controls > #editBtn', container).click(function() {
+            $('.stylelib-category-actions > .stylelib-category-edit', container).click(function() {
                 var activeID = categoryView.model.get('activeID');
                 var activeCategory = categoriesCollection.get(activeID);
                 var container = $('<div><input class="stylelib-editcat-input" value="' + activeCategory.get('title') + '"><button class="stylelib-editcat-add">Изменить</button></div>');
@@ -518,7 +522,7 @@
                 var dialogDiv = showDialog('Новая категория', container[0], {width: 190, height: 60});
             })
             
-            $('.stylelib-category-controls > #delBtn', container).click(function() {
+            $('.stylelib-category-actions > .stylelib-category-remove', container).click(function() {
                 var activeID = categoryView.model.get('activeID');
                 var activeCategory = categoriesCollection.get(activeID);
                 categoriesCollection.remove(activeCategory);
@@ -533,13 +537,17 @@
             tabsContainer.tabs();
             
             //controls
-            var selectBtn = $('<span class="buttonLink">Выбрать</span>');
-            var addBtn    = $('<span class="buttonLink">Добавить</span>');
-            var editBtn   = $('<span class="buttonLink">Изменить</span>');
-            var deleteBtn = $('<span class="buttonLink">Удалить</span>');
-            var controls = $('<div class="stylelib-controls"/>')
-                .append(selectBtn, addBtn, editBtn, deleteBtn)
-                .appendTo(tabsContainer);
+            // var controlIcons = $(
+
+            // ).appendTo();
+            
+            // var selectBtn = $('<span class="buttonLink">Выбрать</span>');
+            // var addBtn    = $('<span class="buttonLink">Добавить</span>');
+            // var editBtn   = $('<span class="buttonLink">Изменить</span>');
+            // var deleteBtn = $('<span class="buttonLink">Удалить</span>');
+            // var controls = $('<div class="stylelib-controls"/>')
+                // .append(selectBtn, addBtn, editBtn, deleteBtn);
+                //.appendTo(tabsContainer);
             
             var getActiveStyle = function() {
                 var tabIndex = $(tabsContainer).tabs('option', 'selected');
@@ -555,12 +563,12 @@
                 return activeCategory.get('styles').get(activeID);
             }
                 
-            selectBtn.click(function() {
-                var style = getActiveStyle();
-                style && alert('Выбран стиль: ' + style.get('title'));
-            })
+            // selectBtn.click(function() {
+                // var style = getActiveStyle();
+                // style && alert('Выбран стиль: ' + style.get('title'));
+            // })
             
-            addBtn.click(function() {
+            $('.stylelib-style-controls > .stylelib-style-add', container).click(function() {
                 var tabIndex = $(tabsContainer).tabs('option', 'selected');
                 var type = ['POINT', 'LINESTRING', 'POLYGON'][tabIndex],
                     styleView = styleViews[type];
@@ -598,7 +606,7 @@
                 showEditDialog(newStyle);
             })
             
-            editBtn.click(function() {
+            $('.stylelib-style-controls > .stylelib-style-edit', container).click(function() {
                 var style = getActiveStyle();
                 
                 if (style) {
@@ -623,7 +631,7 @@
                 }
             })
             
-            deleteBtn.click(function() {
+            $('.stylelib-style-controls > .stylelib-style-remove', container).click(function() {
                 var style = getActiveStyle();
                 
                 if (style) {
@@ -646,7 +654,15 @@
             categoriesCollection.on('change', drawCategoryStyles);
             drawCategoryStyles();
             
-            showDialog('Библиотека стилей', container[0], {width: 500, height: 400});
+            //showDialog('Библиотека стилей', container[0], {width: 500, height: 400});
+            
+            container.dialog({width: 500, height: 400, title: 'Библиотека стилей', resizable: false});
+            $(container).parent().addClass('stylelib-dialog');
+            
+            // var dialogTest = $('<div>aaaaaaaaaa</div>').appendTo($('body')).dialog({width: 100, height: 100, position: 'center'});
+            //var dialogContainer = $('<div id="stylelib-dialog"></div>').appendTo($('body'));
+            // var dialogTest = $('<div class="stylelib-dialog">aaaaaaaaaa</div>').dialog({resizable: false, title: 'Библиотека стилей'});
+            // $(dialogTest).parent().addClass('stylelib-dialog');
         });
     }
     
