@@ -423,6 +423,8 @@
     //main public function
     var showStyleLibraryDialog = function() {
     
+        var getActiveStyle = null; //будет проинициализировано после загрузки данных
+    
         dataProvider.getCategoriesList().done(function(categories) {
             var categoriesCollection = new LibCategoryCollection();
             categories.Categories.forEach(function(c) {
@@ -454,8 +456,14 @@
                             style && alert('Выбран стиль: ' + style.get('title'));
                         })
                         
+                        view.model.on('change', function() {
+                            $(retObject).change();
+                        })
+
                         styleViews[type] = view;
                     })
+                    
+                    $(retObject).change();
                 })
             }
             
@@ -472,84 +480,119 @@
                          '<div class="stylelib-category-container"></div>' + 
                     '</td>' +
                     '<td id="stylelib-styles-tab">' +
-                        '<div class = "stylelib-style-controls">' +
-                            '<div class="stylelib-icon stylelib-style-add"></div>' + 
-                            '<div class="stylelib-icon stylelib-style-edit"></div>' + 
-                            '<div class="stylelib-icon stylelib-style-remove"></div>' + 
+                        '<div id="stylelib-styles" class="stylelib-selection">' + 
+                            '<div class = "stylelib-style-controls">' +
+                                '<div class="stylelib-icon stylelib-style-add"></div>' + 
+                                '<div class="stylelib-icon stylelib-style-edit"></div>' + 
+                                '<div class="stylelib-icon stylelib-style-remove"></div>' + 
+                            '</div>' + 
+                            '<ul>' +
+                                '<li><a href="#stylelib-markers-container">Точки</a>' +
+                                '<li><a href="#stylelib-lines-container">Линии</a>' +
+                                '<li><a href="#stylelib-polygons-container">Полигоны</a>' +
+                            '</ul>' +
+                            '<div id="stylelib-markers-container"  class="stylelib-styles-container"/>' +
+                            '<div id="stylelib-lines-container"    class="stylelib-styles-container"/>' +
+                            '<div id="stylelib-polygons-container" class="stylelib-styles-container"/>' +
                         '</div>' + 
-                        '<ul>' +
-                            '<li><a href="#stylelib-markers-container">Точки</a>' +
-                            '<li><a href="#stylelib-lines-container">Линии</a>' +
-                            '<li><a href="#stylelib-polygons-container">Полигоны</a>' +
-                        '</ul>' +
-                        '<div id="stylelib-markers-container"  class="stylelib-styles-container"/>' +
-                        '<div id="stylelib-lines-container"    class="stylelib-styles-container"/>' +
-                        '<div id="stylelib-polygons-container" class="stylelib-styles-container"/>' +
+                        '<div id="stylelib-addcat" class="stylelib-editcat" style="display: none">' +
+                            '<div class="stylelib-editcat-title">Новая категория</div>' +
+                            '<div class="stylelib-editcat-helper"><input class="stylelib-editcat-input"></div>' + 
+                            '<button class="stylelib-editcat-add">Добавить</button>' +
+                        '</div>' +
+                        '<div id="stylelib-editcat" class="stylelib-editcat" style="display: none">' +
+                            '<div class="stylelib-editcat-title">Изменить категорию</div>' +
+                            '<div class="stylelib-editcat-helper"><input class="stylelib-editcat-input"></div>' + 
+                            '<button class="stylelib-editcat-add">Изменить</button>' +
+                        '</div>' +
+                        '<div id="stylelib-removecat" class="stylelib-editcat" style="display: none">' +
+                            '<div class="stylelib-editcat-title">Удалить категорию?</div>' +
+                            '<button class="stylelib-editcat-add">Удалить</button>' +
+                        '</div>' +
                     '</td>' +
                 '</tr></table>'
             ))
+
+            var selectViewMode = function(name) {
+                var visibleContainer = container.find('#stylelib-' + name);
+                visibleContainer.siblings().hide();
+                visibleContainer.show();
+            }
             
             $('.stylelib-category-actions > .stylelib-category-add', container).click(function() {
-                var container = $('<div><input class="stylelib-newcat-input"><button class="stylelib-newcat-add">Добавить</button></div>');
-                $(".stylelib-newcat-add", container).click(function() {
-                    var newCategory = new LibCategory({
-                        id: generateUniqueID(), 
-                        title: $(".stylelib-newcat-input", container).val(), 
-                        styles: new LibStyleCollection()
-                    });
-                    
-                    $(dialogDiv).dialog('close');
-                    
-                    actionsManager.addCategoryAction('insert', null, {IdCategory: newCategory.id, Title: newCategory.get('title')}, categoriesCollection.getLastID());
-                    
-                    categoriesCollection.add(newCategory);
-                })
-                
-                var dialogDiv = showDialog('Новая категория', container[0], {width: 190, height: 60});
+                selectViewMode('addcat');
+                $('#stylelib-addcat .stylelib-editcat-input', container).focus();
             })
             
             $('.stylelib-category-actions > .stylelib-category-edit', container).click(function() {
-                var activeID = categoryView.model.get('activeID');
-                var activeCategory = categoriesCollection.get(activeID);
-                var container = $('<div><input class="stylelib-editcat-input" value="' + activeCategory.get('title') + '"><button class="stylelib-editcat-add">Изменить</button></div>');
-                $(".stylelib-editcat-add", container).click(function() {
-                    activeCategory.set('title', $(".stylelib-editcat-input", container).val());
-                    $(dialogDiv).dialog('close');
-                    
-                    actionsManager.addCategoryAction('update', null, {IdCategory: activeCategory.id, Title: activeCategory.get('title')});
-                })
-                
-                var dialogDiv = showDialog('Новая категория', container[0], {width: 190, height: 60});
+                selectViewMode('editcat');
+                var input = $('#stylelib-editcat .stylelib-editcat-input', container);
+                var activeCategory = categoriesCollection.get(categoryView.model.get('activeID'));
+                input.val(activeCategory.get('title')).focus();
             })
             
             $('.stylelib-category-actions > .stylelib-category-remove', container).click(function() {
+                selectViewMode('removecat');
+            })
+            
+            $('#stylelib-addcat .stylelib-editcat-add', container).click(function() {
+                var input = $('#stylelib-addcat .stylelib-editcat-input', container),
+                    val = input.val();
+                    
+                input.val('');
+                if (!val) return;
+                
+                var newCategory = new LibCategory({
+                    id: generateUniqueID(), 
+                    title: val, 
+                    styles: new LibStyleCollection()
+                });
+                
+                actionsManager.addCategoryAction('insert', null, {IdCategory: newCategory.id, Title: newCategory.get('title')}, categoriesCollection.getLastID());
+                categoriesCollection.add(newCategory);
+                dataProvider.saveChanges();
+                
+                selectViewMode('styles');
+            })
+            
+            $('#stylelib-editcat .stylelib-editcat-add', container).click(function() {
+                var input = $('#stylelib-editcat .stylelib-editcat-input', container),
+                    val = input.val();
+                    
+                input.val('');
+                if (!val) return;
+                
+                var activeID = categoryView.model.get('activeID');
+                var activeCategory = categoriesCollection.get(activeID);
+                
+                activeCategory.set('title', val);
+                actionsManager.addCategoryAction('update', null, {IdCategory: activeCategory.id, Title: activeCategory.get('title')});
+                dataProvider.saveChanges();
+                
+                selectViewMode('styles');
+            })
+            
+            $('#stylelib-removecat .stylelib-editcat-add', container).click(function() {
                 var activeID = categoryView.model.get('activeID');
                 var activeCategory = categoriesCollection.get(activeID);
                 categoriesCollection.remove(activeCategory);
                 actionsManager.addCategoryAction('delete', activeID);
-            })
-            
-            $('.stylelib-category-controls > #saveBtn', container).click(function() {
                 dataProvider.saveChanges();
+                
+                selectViewMode('styles');
             })
-            
-            var tabsContainer = container.find('#stylelib-styles-tab');
-            tabsContainer.tabs();
-            
-            //controls
-            // var controlIcons = $(
 
-            // ).appendTo();
+            var tabsContainer = container.find('#stylelib-styles-tab');
+            tabsContainer.tabs({
+                select: function( event, ui ) {
+                    //Делаем таймаут, так как в момент вызова этого события tabs('option', 'selected') возвращает предыдущее значение
+                    setTimeout(function() {
+                        $(retObject).change();
+                    }, 0); 
+                }
+            });
             
-            // var selectBtn = $('<span class="buttonLink">Выбрать</span>');
-            // var addBtn    = $('<span class="buttonLink">Добавить</span>');
-            // var editBtn   = $('<span class="buttonLink">Изменить</span>');
-            // var deleteBtn = $('<span class="buttonLink">Удалить</span>');
-            // var controls = $('<div class="stylelib-controls"/>')
-                // .append(selectBtn, addBtn, editBtn, deleteBtn);
-                //.appendTo(tabsContainer);
-            
-            var getActiveStyle = function() {
+            getActiveStyle = function() {
                 var tabIndex = $(tabsContainer).tabs('option', 'selected');
                 
                 var styleView = styleViews[['POINT', 'LINESTRING', 'POLYGON'][tabIndex]];
@@ -562,11 +605,6 @@
                 
                 return activeCategory.get('styles').get(activeID);
             }
-                
-            // selectBtn.click(function() {
-                // var style = getActiveStyle();
-                // style && alert('Выбран стиль: ' + style.get('title'));
-            // })
             
             $('.stylelib-style-controls > .stylelib-style-add', container).click(function() {
                 var tabIndex = $(tabsContainer).tabs('option', 'selected');
@@ -597,7 +635,7 @@
                                 },
                                 styles.getLastID()
                             );
-                            
+                            dataProvider.saveChanges();
                             styles.add(newStyle);
                         })
                     }
@@ -624,6 +662,7 @@
                                     StyleJson: style.get('style')
                                 }
                             );
+                            dataProvider.saveChanges();
                         }
                     })
                     
@@ -639,6 +678,7 @@
                     
                     activeCategory.get('styles').remove(style);
                     actionsManager.addStyleAction('delete', activeCategory.id, style.id);
+                    dataProvider.saveChanges();
                 }
             })
             
@@ -653,17 +693,20 @@
             categoryView.model.on('change', drawCategoryStyles);
             categoriesCollection.on('change', drawCategoryStyles);
             drawCategoryStyles();
-            
-            //showDialog('Библиотека стилей', container[0], {width: 500, height: 400});
-            
+
             container.dialog({width: 500, height: 400, title: 'Библиотека стилей', resizable: false});
             $(container).parent().addClass('stylelib-dialog');
             
-            // var dialogTest = $('<div>aaaaaaaaaa</div>').appendTo($('body')).dialog({width: 100, height: 100, position: 'center'});
-            //var dialogContainer = $('<div id="stylelib-dialog"></div>').appendTo($('body'));
-            // var dialogTest = $('<div class="stylelib-dialog">aaaaaaaaaa</div>').dialog({resizable: false, title: 'Библиотека стилей'});
-            // $(dialogTest).parent().addClass('stylelib-dialog');
         });
+        
+        var retObject = {
+            getActiveStyle: function() {
+                var activeStyle = getActiveStyle ? getActiveStyle() : null;
+                return activeStyle ? activeStyle.get('style') : null;
+            }
+        }
+        
+        return retObject;
     }
     
     gmxCore.addModule('StyleLibrary', {

@@ -775,13 +775,39 @@ var createFilter = function(parentObject, parentStyle, geometryType, attrs, elem
 	}
 	
 	// common
+    var symbolsTitle = _div();
+    
+    if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
+        var styleLibIcon = makeImageButton('img/misc.png', 'img/misc.png');
+        styleLibIcon.style.verticalAlign = 'middle';
+        styleLibIcon.style.marginLeft = '3px';
+        _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px'], ['css', 'verticalAlign', 'middle']]), styleLibIcon]);
+        styleLibIcon.onclick = function() {
+            gmxCore.loadModule('StyleLibrary').done(function(styleLibModule) {
+                var activeStyleManager = styleLibModule.showStyleLibraryDialog();
+                $(activeStyleManager).change(function() {
+                    //console.log(this.getActiveStyle());
+                    $(liStyle.lastChild).empty();
+                    var styleFromLib = this.getActiveStyle();
+                    
+                    if (styleFromLib) {
+                        templateStyle = styleFromLib;
+                        resObject = createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
+                        nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+                    }
+                })
+            })
+        }
+    } else {
+        _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']])]);
+    }
     
 	_(ulParent, [
         liMinZoom, liMaxZoom, 
         _li([_div([_span([_t(_gtxt("Фильтр"))],[['css','fontSize','12px']])]), ulfilterExpr]),
         _li([_div([_span([_t(_gtxt("Подпись"))],[['css','fontSize','12px']])]), ulLabel]), 
         _li([_div([_span([_t(_gtxt("Балун"))],[['css','fontSize','12px']])]), ulBalloon]),
-        _li([_div([_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']])]), ulStyle])
+        _li([symbolsTitle, ulStyle])
     ]);
     
     if (geometryType == 'point')

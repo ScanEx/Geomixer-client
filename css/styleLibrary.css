@@ -22,6 +22,7 @@
 .stylelib-category-container {
     width: 148px;
     background: #539abc;
+    height: 340px;
 }
 
 .stylelib-category-container  > div{
@@ -167,4 +168,43 @@
     position: absolute;
     right: 0px;
     z-index: 1;
+    margin: 4px 0px;
+    font-size: 0px;
+}
+
+#stylelib-styles-tab {
+    vertical-align: top;
+}
+
+.stylelib-editcat {
+    border: solid 1px #8ac4df;
+    margin: 0px 12px;
+    width: 266px;
+}
+
+.stylelib-editcat-title {
+    color: black;
+    font-size: 12px;
+    font-family: Verdana;
+    font-weight: bold;
+    margin: 14px;
+}
+
+.stylelib-editcat-helper {
+    margin: 0px 14px;
+}
+
+.stylelib-editcat-input {
+    border: 1px solid #c9c9c9;
+    width: 100%;
+    height: 24px;
+}
+
+.stylelib-editcat-add {
+    border-radius: 3px;
+    border: 1px solid #c9c9c9;
+    margin: 14px;
+    padding: 5px;
+    background: #e2e2e2;
+    font-family: Verdana;
 }
