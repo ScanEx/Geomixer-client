@@ -2,10 +2,10 @@
     background-color: #FAFAFE;
 }
 
-.stylelib-category-count {
+/*.stylelib-category-count {
     float: right;
     margin-right: 5px;
-}
+}*/
 
 .stylelib-category-panel {
     vertical-align: top;
@@ -58,12 +58,14 @@
     display: inline-block;
     margin: 3px;
     vertical-align: top;
+    text-align: center;
 }
 
 .stylelib-style-icon-container {
-    width: 64px;
-    height: 64px;
+    width: 52px;
+    height: 52px;
     position: relative;
+    display: inline-block;
     /*background-image: linear-gradient( -45deg, cyan, green );*/
 }
 
@@ -71,6 +73,7 @@
     text-align: center;
     font-family: Verdana;
     font-size: 10px;
+    cursor: default;
 }
 
 .stylelib-style-active {
@@ -140,16 +143,22 @@
 
 .stylelib-category-actions {
     background: #92bfd5;
-    padding: 4px 0px;
     font-size: 0px;
+}
+
+.stylelib-iconhelper {
+    display: inline-block;
+    padding: 4px 10px;
+}
+
+.stylelib-icon-active {
+    background-color: #539abc;
 }
 
 .stylelib-icon {
     height: 23px;
     width: 15px;
-    display: inline-block;
     cursor: pointer;
-    margin: 0px 10px;
 }
 
 .stylelib-category-add, .stylelib-style-add {
@@ -168,7 +177,6 @@
     position: absolute;
     right: 0px;
     z-index: 1;
-    margin: 4px 0px;
     font-size: 0px;
 }
 
@@ -176,13 +184,14 @@
     vertical-align: top;
 }
 
-.stylelib-editcat {
+/* subdialogs */
+.stylelib-subdialog {
     border: solid 1px #8ac4df;
     margin: 0px 12px;
     width: 266px;
 }
 
-.stylelib-editcat-title {
+.stylelib-subdialog-title {
     color: black;
     font-size: 12px;
     font-family: Verdana;
@@ -190,17 +199,17 @@
     margin: 14px;
 }
 
-.stylelib-editcat-helper {
+.stylelib-subdialog-helper {
     margin: 0px 14px;
 }
 
-.stylelib-editcat-input {
+.stylelib-subdialog-input {
     border: 1px solid #c9c9c9;
     width: 100%;
     height: 24px;
 }
 
-.stylelib-editcat-add {
+.stylelib-subdialog-button {
     border-radius: 3px;
     border: 1px solid #c9c9c9;
     margin: 14px;

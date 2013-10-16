@@ -76,7 +76,7 @@
             }
             
             if (request.length) {
-                sendCrossDomainPostRequest(serverBase + 'StyleLib/ModifyCategories.ashx', {Request: JSON.stringify(request)}, function(response) {
+                sendCrossDomainPostRequest(serverBase + 'StyleLib/ModifyCategories.ashx', {WrapStyle: 'message', Request: JSON.stringify(request)}, function(response) {
                     if (!parseResponse(response)) {
                         def.reject(response);
                     } else {
@@ -218,12 +218,7 @@
             container.empty();
             categoryCollection.each(function(category) {
                 var getElem = function() {
-                    var count = category.get('styles') ? category.get('styles').length : 0;
-                    return $('<div/>')
-                        .append(
-                            $('<span/>').text(category.get('title'))
-                            //$('<span class="stylelib-category-count"/>').text('(' + count + ')')
-                        )
+                    return $('<div><span>' + category.get('title') + '</span></div>')
                         .data('categoryID', category.id)
                         .click(function() {
                             _this.model.set('activeID', $(this).data('categoryID'));
@@ -241,6 +236,9 @@
                 })
             })
             
+            if (!categoryCollection.get(_this.model.get('activeID'))) {
+                _this.model.set('activeID', categoryCollection.length ? categoryCollection.at(0).id : null);
+            }
             
             updateActiveItem();
         }
@@ -267,7 +265,7 @@
             if (rawStyle.marker && rawStyle.marker.image) {
                 var img = new Image();
                 img.onload = function() {
-                    var scale = 64 / Math.max(img.width, img.height);
+                    var scale = 48 / Math.max(img.width, img.height);
                     img.width = img.width * scale;
                     img.height = img.height * scale;
                     div.append(img);
@@ -286,16 +284,16 @@
                 
                 if (rawStyle.outline && 'color' in rawStyle.outline) {
                     div.css({
-                        width: 48,
-                        height: 48,
+                        width: 36,
+                        height: 36,
                         'border-color': colorToCSS(rawStyle.outline.color),
                         'border-width': 6,
                         'border-style': 'solid'
                     })
                 } else {
                     div.css({
-                        width: 60,
-                        height: 60
+                        width: 48,
+                        height: 48
                     });
                 }
             }
@@ -356,14 +354,9 @@
             })
         }
         
-        // attribute: activeID
         this.model = new (Backbone.Model.extend({
-            initialize: function() {
-                if (!filteredDataCollection.length) return;
-                
-                this.set({
-                    activeID: filteredDataCollection.at(0).id
-                })
+            defaults: {
+                activeID: null
             }
         }))();
         
@@ -473,18 +466,18 @@
                 '<table class="stylelib-main-table"><tr>' + 
                     '<td class="stylelib-category-panel">' +
                          '<div class="stylelib-category-actions">' + 
-                            '<div class="stylelib-icon stylelib-category-add"></div>' + 
-                            '<div class="stylelib-icon stylelib-category-edit"></div>' + 
-                            '<div class="stylelib-icon stylelib-category-remove"></div>' + 
+                            '<div class="stylelib-iconhelper"><div class="stylelib-icon stylelib-category-add" title="Добавить категорию"></div></div>' + 
+                            '<div class="stylelib-iconhelper"><div class="stylelib-icon stylelib-category-edit" title="Изменить категорию"></div></div>' + 
+                            '<div class="stylelib-iconhelper"><div class="stylelib-icon stylelib-category-remove" title="Удалить категорию"></div></div>' + 
                          '</div>' + 
                          '<div class="stylelib-category-container"></div>' + 
                     '</td>' +
                     '<td id="stylelib-styles-tab">' +
                         '<div id="stylelib-styles" class="stylelib-selection">' + 
                             '<div class = "stylelib-style-controls">' +
-                                '<div class="stylelib-icon stylelib-style-add"></div>' + 
-                                '<div class="stylelib-icon stylelib-style-edit"></div>' + 
-                                '<div class="stylelib-icon stylelib-style-remove"></div>' + 
+                                '<div class="stylelib-iconhelper"><div class="stylelib-icon stylelib-style-add" title="Добавить стиль"></div></div>' + 
+                                '<div class="stylelib-iconhelper"><div class="stylelib-icon stylelib-style-edit" title="Изменить стиль"></div></div>' + 
+                                '<div class="stylelib-iconhelper"><div class="stylelib-icon stylelib-style-remove" title="Удалить стиль"></div></div>' + 
                             '</div>' + 
                             '<ul>' +
                                 '<li><a href="#stylelib-markers-container">Точки</a>' +
@@ -495,48 +488,69 @@
                             '<div id="stylelib-lines-container"    class="stylelib-styles-container"/>' +
                             '<div id="stylelib-polygons-container" class="stylelib-styles-container"/>' +
                         '</div>' + 
-                        '<div id="stylelib-addcat" class="stylelib-editcat" style="display: none">' +
-                            '<div class="stylelib-editcat-title">Новая категория</div>' +
-                            '<div class="stylelib-editcat-helper"><input class="stylelib-editcat-input"></div>' + 
-                            '<button class="stylelib-editcat-add">Добавить</button>' +
+                        '<div id="stylelib-addcat" class="stylelib-subdialog" style="display: none">' +
+                            '<div class="stylelib-subdialog-title">Новая категория</div>' +
+                            '<div class="stylelib-subdialog-helper"><input class="stylelib-subdialog-input"></div>' + 
+                            '<button class="stylelib-subdialog-button">Добавить</button>' +
                         '</div>' +
-                        '<div id="stylelib-editcat" class="stylelib-editcat" style="display: none">' +
-                            '<div class="stylelib-editcat-title">Изменить категорию</div>' +
-                            '<div class="stylelib-editcat-helper"><input class="stylelib-editcat-input"></div>' + 
-                            '<button class="stylelib-editcat-add">Изменить</button>' +
+                        '<div id="stylelib-editcat" class="stylelib-subdialog" style="display: none">' +
+                            '<div class="stylelib-subdialog-title">Изменить категорию</div>' +
+                            '<div class="stylelib-subdialog-helper"><input class="stylelib-subdialog-input"></div>' + 
+                            '<button class="stylelib-subdialog-button">Изменить</button>' +
                         '</div>' +
-                        '<div id="stylelib-removecat" class="stylelib-editcat" style="display: none">' +
-                            '<div class="stylelib-editcat-title">Удалить категорию?</div>' +
-                            '<button class="stylelib-editcat-add">Удалить</button>' +
+                        '<div id="stylelib-removecat" class="stylelib-subdialog" style="display: none">' +
+                            '<div class="stylelib-subdialog-title">Удалить категорию?</div>' +
+                            '<button class="stylelib-subdialog-button">Удалить</button>' +
                         '</div>' +
                     '</td>' +
                 '</tr></table>'
             ))
 
-            var selectViewMode = function(name) {
-                var visibleContainer = container.find('#stylelib-' + name);
-                visibleContainer.siblings().hide();
-                visibleContainer.show();
+            var viewModeManager = {
+                mode: 'styles',
+                iconContainer: $('.stylelib-category-actions', container),
+                icons: {
+                    addcat: 'stylelib-category-add',
+                    editcat: 'stylelib-category-edit',
+                    removecat: 'stylelib-category-remove'
+                },
+                set: function(mode) {
+                    if (mode !== 'styles' && this.mode === mode) {
+                        this.set('styles');
+                        return;
+                    }
+                    
+                    this.mode = mode;
+                    
+                    var visibleContainer = container.find('#stylelib-' + mode);
+                    visibleContainer.siblings().hide();
+                    visibleContainer.show();
+                    
+                    this.iconContainer.children().removeClass('stylelib-icon-active');
+                    if (mode in this.icons) {
+                        var iconHelper = $('.' + this.icons[mode], this.iconContainer).parent().addClass('stylelib-icon-active');
+                    }
+                }
             }
             
-            $('.stylelib-category-actions > .stylelib-category-add', container).click(function() {
-                selectViewMode('addcat');
-                $('#stylelib-addcat .stylelib-editcat-input', container).focus();
+            $('.stylelib-category-actions .stylelib-category-add', container).click(function() {
+                viewModeManager.set('addcat');
+                $('#stylelib-addcat .stylelib-subdialog-input', container).focus();
             })
             
-            $('.stylelib-category-actions > .stylelib-category-edit', container).click(function() {
-                selectViewMode('editcat');
-                var input = $('#stylelib-editcat .stylelib-editcat-input', container);
+            $('.stylelib-category-actions .stylelib-category-edit', container).click(function() {
+                viewModeManager.set('editcat');
+                var input = $('#stylelib-editcat .stylelib-subdialog-input', container);
                 var activeCategory = categoriesCollection.get(categoryView.model.get('activeID'));
                 input.val(activeCategory.get('title')).focus();
             })
             
-            $('.stylelib-category-actions > .stylelib-category-remove', container).click(function() {
-                selectViewMode('removecat');
+            $('.stylelib-category-actions .stylelib-category-remove', container).click(function() {
+                viewModeManager.set('removecat');
             })
             
-            $('#stylelib-addcat .stylelib-editcat-add', container).click(function() {
-                var input = $('#stylelib-addcat .stylelib-editcat-input', container),
+            $('#stylelib-addcat .stylelib-subdialog-button', container).click(function() {
+                var input = $('#stylelib-addcat .stylelib-subdialog-input', container),
                     val = input.val();
                     
                 input.val('');
@@ -552,11 +566,11 @@
                 categoriesCollection.add(newCategory);
                 dataProvider.saveChanges();
                 
-                selectViewMode('styles');
+                viewModeManager.set('styles');
             })
             
-            $('#stylelib-editcat .stylelib-editcat-add', container).click(function() {
-                var input = $('#stylelib-editcat .stylelib-editcat-input', container),
+            $('#stylelib-editcat .stylelib-subdialog-button', container).click(function() {
+                var input = $('#stylelib-editcat .stylelib-subdialog-input', container),
                     val = input.val();
                     
                 input.val('');
@@ -569,17 +583,17 @@
                 actionsManager.addCategoryAction('update', null, {IdCategory: activeCategory.id, Title: activeCategory.get('title')});
                 dataProvider.saveChanges();
                 
-                selectViewMode('styles');
+                viewModeManager.set('styles');
             })
             
-            $('#stylelib-removecat .stylelib-editcat-add', container).click(function() {
+            $('#stylelib-removecat .stylelib-subdialog-button', container).click(function() {
                 var activeID = categoryView.model.get('activeID');
                 var activeCategory = categoriesCollection.get(activeID);
                 categoriesCollection.remove(activeCategory);
                 actionsManager.addCategoryAction('delete', activeID);
                 dataProvider.saveChanges();
                 
-                selectViewMode('styles');
+                viewModeManager.set('styles');
             })
 
             var tabsContainer = container.find('#stylelib-styles-tab');
