@@ -113,15 +113,17 @@ var EditObjectControl = function(layerName, objectId, params)
     var geometryMapObject = null;
     var bindDrawingObject = function(obj)
     {
-        if (!originalGeometry) {
-            originalGeometry = $.extend(true, {}, obj.getGeometry());
-        }
-        
         geometryInfoRow && geometryInfoRow.RemoveRow();
         if (geometryMapObject) {
             geometryMapObject.remove();
             geometryMapObject = null;
             $(geometryInfoContainer).empty();
+        }
+        
+        if (!obj) return;
+        
+        if (!originalGeometry) {
+            originalGeometry = $.extend(true, {}, obj.getGeometry());
         }
         
         var InfoRow = gmxCore.getModule('DrawingObjects').DrawingObjectInfoRow;
@@ -162,13 +164,16 @@ var EditObjectControl = function(layerName, objectId, params)
         }
     }
     
+    var canvas = null;
+    
     var createDialog = function()
     {
-        var canvas = _div(),
-            createButton = makeLinkButton(isNew ? _gtxt("Создать") : _gtxt("Изменить")),
+        var createButton = makeLinkButton(isNew ? _gtxt("Создать") : _gtxt("Изменить")),
             removeButton = makeLinkButton(_gtxt("Удалить")),
             trs = [];
             
+        var canvas = _div();
+        
         $(canvas).bind('dragover', function() {
             return false;
         });
@@ -445,6 +450,17 @@ var EditObjectControl = function(layerName, objectId, params)
     }
     
     createDialog();
+    
+    this.get = function(name) {
+        var resValue = null;
+        $(".edit-attr-value", canvas).each(function(index, elem)
+        {
+            if (elem.rowName === name) {
+                resValue = 'value' in elem ? elem.value : $(elem).text();
+            }
+        });
+        return resValue;
+    }
 }
 
 nsGmx.EditObjectControl = EditObjectControl;
