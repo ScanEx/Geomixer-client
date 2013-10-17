@@ -1787,9 +1787,13 @@ var createStylesDialog = function(elem, treeView, openedStyleIndex) {
         treeView.findTreeElem(div).elem.content.properties = elemProperties;
     };
     
-    //var attributesHash = {};
+    var attributesHash = {};
+    for (var i = 0; i < elemProperties.attributes.length; i++) {
+        attributesHash[elemProperties.attributes[i]] = [];
+    }
+    
     _mapHelper.attrValues[mapName] = _mapHelper.attrValues[mapName] || {};
-    _mapHelper.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer({}, elem.LayerID);
+    _mapHelper.attrValues[mapName][layerName] = new nsGmx.LazyAttributeValuesProviderFromServer(attributesHash, elem.LayerID);
     
     var closeFunc = function()
     {
