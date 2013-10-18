@@ -620,7 +620,7 @@
                 return activeCategory.get('styles').get(activeID);
             }
             
-            $('.stylelib-style-controls > .stylelib-style-add', container).click(function() {
+            $('.stylelib-style-controls .stylelib-style-add', container).click(function() {
                 var tabIndex = $(tabsContainer).tabs('option', 'selected');
                 var type = ['POINT', 'LINESTRING', 'POLYGON'][tabIndex],
                     styleView = styleViews[type];
@@ -658,7 +658,7 @@
                 showEditDialog(newStyle);
             })
             
-            $('.stylelib-style-controls > .stylelib-style-edit', container).click(function() {
+            $('.stylelib-style-controls .stylelib-style-edit', container).click(function() {
                 var style = getActiveStyle();
                 
                 if (style) {
@@ -684,7 +684,7 @@
                 }
             })
             
-            $('.stylelib-style-controls > .stylelib-style-remove', container).click(function() {
+            $('.stylelib-style-controls .stylelib-style-remove', container).click(function() {
                 var style = getActiveStyle();
                 
                 if (style) {
