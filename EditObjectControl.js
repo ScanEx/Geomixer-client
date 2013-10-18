@@ -135,20 +135,26 @@ var EditObjectControl = function(layerName, objectId, params)
         );
     }
     
+    //geom может быть либо классом gmxAPI.DrawingObject, либо просто описанием геометрии
     var bindGeometry = function(geom) {
         
-        if (geom.type === 'POLYGON') {
-            // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
-            geom.coordinates[0][0][0] += 0.00001;
-            geom.coordinates[0][0][1] += 0.00001;
-                    
-            // чтобы если бы последняя точка совпадала с первой, то это бы ни на что не повлияло
-            var pointCount = geom.coordinates[0].length;
-            geom.coordinates[0][pointCount-1][0] += 0.00001;
-            geom.coordinates[0][pointCount-1][1] += 0.00001;
+        //gmxAPI.DrawingObject
+        if (geom.getGeometry) {
+            bindDrawingObject(geom);
+            return;
         }
         
         if (geom.type == "POINT" || geom.type == "LINESTRING" || geom.type == "POLYGON") {
+            if (geom.type === 'POLYGON') {
+                // добавим маленький сдвиг, чтобы рисовать полигон, а не прямоугольник
+                geom.coordinates[0][0][0] += 0.00001;
+                geom.coordinates[0][0][1] += 0.00001;
+                        
+                // чтобы если бы последняя точка совпадала с первой, то это бы ни на что не повлияло
+                var pointCount = geom.coordinates[0].length;
+                geom.coordinates[0][pointCount-1][0] += 0.00001;
+                geom.coordinates[0][pointCount-1][1] += 0.00001;
+            }
             bindDrawingObject(globalFlashMap.drawing.addObject(geom));
         } else {
             if (!originalGeometry) {
@@ -157,10 +163,17 @@ var EditObjectControl = function(layerName, objectId, params)
             
             geometryInfoRow && geometryInfoRow.RemoveRow();
             geometryInfoRow = null;
-            $(geometryInfoContainer).empty().append($('<span/>').css('margin', '3px').text(_gtxt("Мультиполигон")));
+            
+            var titles = {
+                'MULTIPOLYGON':    _gtxt("Мультиполигон"),
+                'MULTILINESTRING': _gtxt("Мультилиния"),
+                'MULTIPOINT':      _gtxt("Мультиточка")
+            };
+            
+            $(geometryInfoContainer).empty().append($('<span/>').css('margin', '3px').text(titles[geom.type]));
             
             geometryMapObject = globalFlashMap.addObject(geom);
-            geometryMapObject.setStyle({outline: {color: 0x0000ff, thickness: 2}});
+            geometryMapObject.setStyle({outline: {color: 0x0000ff, thickness: 2}, marker: {size: 3}});
         }
     }
     
@@ -297,7 +310,7 @@ var EditObjectControl = function(layerName, objectId, params)
             drawingBorderLink.onclick = function()
             {
                 if (_params.onGeometrySelection) {
-                    _params.onGeometrySelection(bindDrawingObject);
+                    _params.onGeometrySelection(bindGeometry);
                 } else {
                     nsGmx.Controls.chooseDrawingBorderDialog(
                         'editObject', 

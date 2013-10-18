@@ -583,6 +583,8 @@ _translationsHash.hash["eng"] = {
     "Меркатор (EPSG:3395)": "Mercator (EPSG:3395)",
     "Из файла": "From file",
     "Мультиполигон": "Multipolygon",
+    "Мультилиния": "Multipolyline",
+    "Мультиточка": "Multipoint",
     "Администрирование": "Administration",
     "Добавить снимки": "Add rasters",
     "Существующие слои": "Existing layers",
