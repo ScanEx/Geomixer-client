@@ -210,7 +210,7 @@ var EditObjectControl = function(layerName, objectId, params)
                 var value = nsGmx.Utils.convertToServer(elem.rowType, clientValue);
                 var isValid = !_params.validate[elem.rowName] || _params.validate[elem.rowName](clientValue);
                 
-                if (value !== null && isValid) {
+                if (isValid) {
                     properties[elem.rowName] = value;
                 } else {
                     anyErrors = true;

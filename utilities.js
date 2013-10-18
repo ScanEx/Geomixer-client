@@ -1199,7 +1199,6 @@ $.extend(nsGmx.Utils, {
         
         if (lowerCaseType == 'string')
         {
-            
             return value !== null ? value : ''; //все null интерпретируем как пустые строки!
         }
         else if (lowerCaseType == 'integer' || lowerCaseType == 'float' || lowerCaseType == 'number')
@@ -1250,6 +1249,7 @@ $.extend(nsGmx.Utils, {
         }
         else if (lowerCaseType == 'integer' || lowerCaseType == 'float' || lowerCaseType == 'number')
         {
+            if (value === '') return null;
             var num = Number(value);
             return isNaN(num) ? null : num;
         }
