@@ -1304,6 +1304,47 @@
 			return out;
 		}
 		,
+		'drawMultiPoint': function(node, style)	{			// отрисовка Polygon геометрии
+			var out = null;
+			var geo = node.geometry;
+			var prop = geo.properties || {};
+            var arr = geo.coordinates;
+			var points = [];
+            for(var i=0, len = arr.length; i<len; i++) {
+				var pos = new L.LatLng(arr[i][1], arr[i][0]);
+				points.push(pos);
+			}
+			var styleType = (style['iconUrl'] ? 'marker' : (style['stroke'] || style['fill'] ? 'rectangle' : ''));
+			if(style['circle']) styleType = 'circle';
+			if(styleType === 'circle') {							// стиль окружность
+				if('size' in style) style['radius'] = style['size'];
+				if(!('weight' in style)) style['weight'] = 0;
+                style['noClip'] = 
+                style['clearFillRule'] = true;
+				out = new L.GMXPointsMarkers(points, style);
+			} else if(styleType === 'marker') {						// стиль маркер
+				if('scale' in style && typeof(style['scale']) === 'string') {
+					style['scale'] = (style['scaleFunction'] ? style['scaleFunction'](prop) : 1);
+                }
+				if('rotate' in style && typeof(style['rotate']) === 'string') {
+					style['rotate'] = (style['rotateFunction'] ? style['rotateFunction'](prop) : 1);
+                }
+				//out = new L.GMXMultiPoint(points, style);
+			} else if(styleType === 'rectangle') {					// стиль rectangle
+				style['pointSize'] = style['size'] || 0;
+				style['skipSimplifyPoint'] = 
+                    style['noClip'] = 
+                    style['shiftWeight'] = 
+                    style['clearFillRule'] = true;
+                //    style['skipLastPoint'] = 
+				out = new L.GMXPointsMarkers(points, style);
+			}
+			if(style['label'] && node['label']) {
+				setLabel(node.id, null);
+			}
+			return out;
+		}
+		,
 		'drawPolygon': function(node, style)	{			// отрисовка Polygon геометрии
 			var prop = node.properties || {};
 			var geojsonFeature = {
@@ -1344,10 +1385,7 @@
 			else if(type === 'Polyline')			return utils.drawPolygon({'geometry': {'type': 'LineString', 'coordinates': geo.coordinates}, 'properties': prop}, style);
 			else if(type === 'MultiPolyline')		return utils.drawPolygon({'geometry': {'type': 'MultiLineString', 'coordinates': geo.coordinates}, 'properties': prop}, style);
 			else if(type === 'MultiPolygon')		return utils.drawMultiPolygon(node, style);
-			else if(type === 'MultiPoint')			pt['type'] = 'MultiPoint';
-			else if(type === 'POINT')				pt['type'] = 'Point';
-			else if(type === 'MULTILINESTRING')		pt['type'] = 'MultiLineString';
-			else if(type === 'LINESTRING')			pt['type'] = 'LineString';
+			else if(type === 'MultiPoint')			return utils.drawMultiPoint(node, style);
 			else if(type === 'GeometryCollection')	pt['type'] = 'GeometryCollection';
 			return null;
 		}
@@ -1375,7 +1413,7 @@
 		'fromScanexTypeGeo': function(type)	{			// перевод геометрии type Scanex->leaflet
 			if(type === 'MULTIPOLYGON') 			type = 'MultiPolygon';
 			else if(type === 'POLYGON')				type = 'Polygon';
-			else if(type === 'MultiPoint')			type = 'MultiPoint';
+			else if(type === 'MULTIPOINT')			type = 'MultiPoint';
 			else if(type === 'POINT')				type = 'Point';
 			else if(type === 'MULTILINESTRING')		type = 'MultiPolyline';
 			else if(type === 'LINESTRING')			type = 'Polyline';
@@ -4485,20 +4523,27 @@ var tt = 1;
 					var round = L.Path.VML;
 					var pointSize = this.options.pointSize || 5;
 					var weight = (this.options.shiftWeight ? this.options.weight || 1 : 0);
+					var radius = ('circle' in this.options ? this.options.circle : 0);
 
 					for (var j = 0, len2 = points.length - (this.options.skipLastPoint ? 1 : 0), str = '', p; j < len2; j++) {
 						p = points[j];
 						if (round) {
 							p._round();
 						}
-						var px = p.x - 0;
-						var px1 = px - pointSize;
-						var px2 = px + pointSize;
-						var py = p.y + weight;
-						var py1 = py - pointSize;
-						var py2 = py + pointSize;
-						str += 'M' + px1 + ' ' + py1 + 'L' + px2 + ' ' + py1 + 'L' + px2 + ' ' + py2 + 'L' + px1 + ' ' + py2 + 'L' + px1 + ' ' + py1;
+                        if(radius) {
+                            str += "M" + p.x + "," + (p.y - radius) +
+                                   " A" + radius + "," + radius + ",0,1,1," +
+                                   (p.x - 0.1) + "," + (p.y - radius) + " ";
+						} else {
+                            var px = p.x;
+                            var px1 = px - pointSize;
+                            var px2 = px + pointSize;
+                            var py = p.y + weight;
+                            var py1 = py - pointSize;
+                            var py2 = py + pointSize;
+                            str += 'M' + px1 + ' ' + py1 + 'L' + px2 + ' ' + py1 + 'L' + px2 + ' ' + py2 + 'L' + px1 + ' ' + py2 + 'L' + px1 + ' ' + py1;
 						}
+					}
 					return str;
 				}
 				,
@@ -4509,6 +4554,7 @@ var tt = 1;
 					if(!this.options.skipSimplifyPoint) this._simplifyPoints();
 
 					L.Path.prototype._updatePath.call(this);
+                    if(this.options.clearFillRule) this._path.setAttribute('fill-rule', '');
 				}
 			});
 
