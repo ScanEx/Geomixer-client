@@ -117,7 +117,7 @@
 			var rx = w/ph.ww;
 			var ry = h/ph.hh;
 			
-			var points = [[ph['x1'], ph['y1']], [ph['x2'], ph['y2']], [ph['x4'], ph['y4']], [ph['x3'], ph['y3']]];
+			var points = [[ph['x1'], ph['y1']], [ph['x2'], ph['y2']], [ph['x3'], ph['y3']], [ph['x4'], ph['y4']]];
 			if(!node['setImageExtent'] && (rx != 1 || ry != 1)) {
 				data = gmxAPI._leaflet['ProjectiveImage']({
 					'imageObj': imageObj
@@ -128,6 +128,7 @@
 					,'deltaY': deltaY
 					,'patchSize': 1
 					,'limit': 2
+					,'type': 'mapObject'
 				});
 			}
 

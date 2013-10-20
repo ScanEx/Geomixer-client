@@ -78,8 +78,8 @@
 		
 		// накладываемое изображения с трансформацией
 		if(layer.properties['Quicklook']) {
-			//node['quicklook'] = layer.properties['Quicklook'];
-			//if(!node['propHiden']['rasterView']) node['propHiden']['rasterView'] = 'onClick';
+			node['quicklook'] = layer.properties['Quicklook'];
+			if(!node['propHiden']['rasterView']) node['propHiden']['rasterView'] = 'onClick';
 		}
 		//node['labels'] = {};					// Хэш label слоя
 		//node['labelsBounds'] = [];				// Массив отрисованных label
@@ -180,7 +180,7 @@
 			var item = node['objectsData'][itemId];
 			return (item ? item.type : null);
 		}
-		node['getItemGeometry'] = function (itemId) {				// Получить geometry обьекта векторного слоя
+		node['getItemGeometry'] = function (itemId, mercFlag) {				// Получить geometry обьекта векторного слоя
 			var item = node['objectsData'][itemId];
 			if(!item) return null;
 			var geom = null;
@@ -208,7 +208,7 @@
 					}
 				}
 			}
-			if(geom) geom = gmxAPI.from_merc_geometry(geom);
+			if(geom && !mercFlag) geom = gmxAPI.from_merc_geometry(geom);
 			return geom;
 		}
 		node['getFeatureById'] = function (attr) {					// Получить Feature обьекта векторного слоя
@@ -1260,7 +1260,7 @@
 				var prop = ph['properties'];
 
 				var id = ph['id'] || prop[identityField];
-//if(id != 6797740) continue;	
+//if(id != 1137) continue;	
 
 				var propHiden = {};
 				propHiden['fromTiles'] = {};
@@ -1514,106 +1514,86 @@
 			return true;
 		}
 
-		var getQuicklookPoints = function(coord)	{			// получить 4 точки привязки снимка
-			var d1 = 100000000;
-			var d2 = 100000000;
-			var d3 = 100000000;
-			var d4 = 100000000;
-			var x1, y1, x2, y2, x3, y3, x4, y4;
-			gmxAPI.forEachPoint(coord, function(p)
-			{
-				var x = gmxAPI.merc_x(p[0]);
-				var y = gmxAPI.merc_y(p[1]);
-				if ((x - y) < d1)
-				{
-					d1 = x - y;
-					x1 = p[0];
-					y1 = p[1];
-				}
-				if ((-x - y) < d2)
-				{
-					d2 = -x - y;
-					x2 = p[0];
-					y2 = p[1];
-				}
-				if ((-x + y) < d3)
-				{
-					d3 = -x + y;
-					x3 = p[0];
-					y3 = p[1];
-				}
-				if ((x + y) < d4)
-				{
-					d4 = x + y;
-					x4 = p[0];
-					y4 = p[1];
-				}
-			});
-			return {'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'x3': x3, 'y3': y3, 'x4': x4, 'y4': y4};
-		}
-
 		var prepareQuicklookImage = function(rItem, content)	{			// получить трансформированное изображение
 			//console.log('drawRasters ', tileID);
-			var gID = rItem['geom'].id
+            if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
+			var gmxTilePoint = rItem['attr'].scanexTilePoint;
+			var gID = rItem['geom'].id;
 			var out = content;
 			var w = content.width;
 			var h = content.height;
-			var LatLngToPixel = function(y, x) {
-				var point = new L.LatLng(y, x);
-				return LMap.project(point);
-			}
-			var geo = node['getItemGeometry'](gID);
+			var geo = node['getItemGeometry'](gID, true);
+            var item = node['objectsData'][gID];
+            if(!item.bounds) item.bounds = gmxAPI.geoBounds(geo);
+            
 			var coord = geo.coordinates;
-			var points = getQuicklookPoints(coord);
-			var geom = rItem['geom'];
-
-			var propHiden = geom['propHiden'];
-			var ptl = new L.Point(points['x1'], points['y1']);
-			var ptr = new L.Point(points['x2'], points['y2']);
-			var pbl = new L.Point(points['x4'], points['y4']);
-			var pbr = new L.Point(points['x3'], points['y3']);
+			var points = utils.getQuicklookPoints(coord);
 			var mInPixel = gmxAPI._leaflet['mInPixel'];
-			var begx = mInPixel * geom.bounds.min.x;
-			var begy = mInPixel * geom.bounds.max.y;
-			var dx = begx - rItem['attr'].x;
-			var dy = 256 - begy + rItem['attr'].y;
-			if(!propHiden['_imgQuicklook']) {
-				var x1, y1, x2, y2, x3, y3, x4, y4;
-				var pix = LatLngToPixel(ptl.y, ptl.x); x1 = Math.floor(pix.x); y1 = Math.floor(pix.y);
-				pix = LatLngToPixel(ptr.y, ptr.x); x2 = Math.floor(pix.x); y2 = Math.floor(pix.y);
-				pix = LatLngToPixel(pbr.y, pbr.x); x3 = Math.floor(pix.x); y3 = Math.floor(pix.y);
-				pix = LatLngToPixel(pbl.y, pbl.x); x4 = Math.floor(pix.x); y4 = Math.floor(pix.y);
-				var	boundsP = new L.Bounds();
-				boundsP.extend(new L.Point(x1, y1));
-				boundsP.extend(new L.Point(x2, y2));
-				boundsP.extend(new L.Point(x3, y3));
-				boundsP.extend(new L.Point(x4, y4));
-				x1 -= boundsP.min.x; y1 -= boundsP.min.y;
-				x2 -= boundsP.min.x; y2 -= boundsP.min.y;
-				x3 -= boundsP.min.x; y3 -= boundsP.min.y;
-				x4 -= boundsP.min.x; y4 -= boundsP.min.y;
+			var begx = mInPixel * item.bounds.min.x;
+			var begy = mInPixel * item.bounds.max.y;
+			var dx = begx - 256 * gmxTilePoint.x;
+			var dy = 256 - begy + 256 * gmxTilePoint.y;
 
-				var ww = Math.round(boundsP.max.x - boundsP.min.x);
-				var hh = Math.round(boundsP.max.y - boundsP.min.y);
-				
-				var pt = gmxAPI._leaflet['ProjectiveImage']({
+			var x1 = mInPixel * points['x1'], y1 = mInPixel * points['y1'];
+			var x2 = mInPixel * points['x2'], y2 = mInPixel * points['y2'];
+			var x3 = mInPixel * points['x3'], y3 = mInPixel * points['y3'];
+			var x4 = mInPixel * points['x4'], y4 = mInPixel * points['y4'];
+
+			var	boundsP = gmxAPI.bounds([[x1, y1], [x2, y2], [x3, y3], [x4, y4]]);
+			x1 -= boundsP.min.x; y1 = boundsP.max.y - y1;
+			x2 -= boundsP.min.x; y2 = boundsP.max.y - y2;
+			x3 -= boundsP.min.x; y3 = boundsP.max.y - y3;
+			x4 -= boundsP.min.x; y4 = boundsP.max.y - y4;
+			var ww = Math.round(boundsP.max.x - boundsP.min.x);
+			var hh = Math.round(boundsP.max.y - boundsP.min.y);
+
+			var chPoints = function(arr) {
+				var out = [];
+				var dist = [];
+				var px = arr[3][0];
+				var py = arr[3][1];
+				var maxYnum = 0;
+				var maxY = -Number.MAX_VALUE;
+				for(var i=0, len=arr.length; i<len; i++) {
+					var px1 = arr[i][0], py1 = arr[i][1];
+					if(px1 > maxY) maxYnum = i;
+					var sx = px1 - px, sy = py1 - py;
+					dist.push({'d2': Math.sqrt(sx * sx + sy * sy), 'i': i});
+					px = px1, py = py1;
+				}
+				dist = dist.sort(function(a, b) {
+					return a['d2'] - b['d2'];
+				});
+				var min = Math.min(dist[0], dist[1], dist[2], dist[3]);
+				var mn = dist[3]['d2'] / dist[0]['d2'];
+				out = arr;
+				if(mn > 2) {
+					var inum = dist[1]['i'];
+					if(arr[dist[0]['i']][1] > arr[dist[1]['i']][1]) {
+						out = [arr[0], arr[1], arr[2], arr[3]];
+					} else {
+						out = [];
+						out.push(arr[maxYnum++]);
+						if(maxYnum > 3) maxYnum = 0;
+						out.push(arr[maxYnum++]);
+						if(maxYnum > 3) maxYnum = 0;
+						out.push(arr[maxYnum++]);
+						if(maxYnum > 3) maxYnum = 0;
+						out.push(arr[maxYnum]);
+					}
+				}
+				return out;
+			}
+			var shiftPoints = chPoints([[x1, y1], [x2, y2], [x3, y3], [x4, y4]]);
+            var pt = gmxAPI._leaflet['ProjectiveImage']({
 					'imageObj': content
-					,'points': [[x1, y1], [x2, y2], [x4, y4], [x3, y3]]
+					,'points': shiftPoints
 					,'wView': ww
 					,'hView': hh
-					,'deltaX': 0
-					,'deltaY': 0
-					,'patchSize': 1
-					,'limit': 2
+					,'deltaX': dx
+					,'deltaY': dy
 				});
-				propHiden['_imgQuicklook'] = pt['canvas'];
-			}
-
-			var out = document.createElement('canvas');
-			out.width = out.height = 256;
-			var ptx = out.getContext('2d');
-			ptx.drawImage(propHiden['_imgQuicklook'], dx, dy);
-			return out;
+			return pt['canvas'];
 		}
 		
 		// получить растр обьекта рекурсивно от начального zoom
@@ -1627,8 +1607,9 @@
 			node['lastDrawTime'] = 1;		// старт отрисовки
 			node.isIdle(-1);		// обнуление проверок окончания отрисовки
 			var rUrl = '';
-			if(node['tileRasterFunc']) rUrl = node['tileRasterFunc'](x, y, z, objData);
-			else if(node['quicklook']) rUrl = utils.chkPropsInString(node['quicklook'], objData['properties'], 3);
+			var prop = objData['properties'];
+			if(node['tileRasterFunc'] && prop['GMX_RasterCatalogID']) rUrl = node['tileRasterFunc'](x, y, z, objData);
+			else if(node['quicklook']) rUrl = utils.chkPropsInString(node['quicklook'], prop, 3);
 
 			var onError = function() {
 				badRastersURL[rUrl] = true;
@@ -1650,15 +1631,17 @@
 				,'zoom': zoomFrom
 				,'callback': function(imageObj) {
 					// раззумливание растров
-					if(zoomFrom > z) {
-						var pos = gmxAPI.getTilePosZoomDelta(rItem.attr.scanexTilePoint, zoomFrom, z);
-						var canvas = document.createElement('canvas');
-						canvas.width = canvas.height = 256;
-						//canvas.id = zoomFrom+'_'+pos.x+'_'+pos.y;
-						var ptx = canvas.getContext('2d');
-						ptx.drawImage(imageObj, pos.x, pos.y, pos.size, pos.size, 0, 0, 256, 256);
-						imageObj = canvas;
-					} else if(node['quicklook']) {
+                    if(node['tileRasterFunc'] && rItem.geom.properties['GMX_RasterCatalogID']) {
+                        if(zoomFrom > z) {
+                            var pos = gmxAPI.getTilePosZoomDelta(rItem.attr.scanexTilePoint, zoomFrom, z);
+                            var canvas = document.createElement('canvas');
+                            canvas.width = canvas.height = 256;
+                            //canvas.id = zoomFrom+'_'+pos.x+'_'+pos.y;
+                            var ptx = canvas.getContext('2d');
+                            ptx.drawImage(imageObj, pos.x, pos.y, pos.size, pos.size, 0, 0, 256, 256);
+                            imageObj = canvas;
+                        }
+                    } else if(node['quicklook']) {
 						imageObj = prepareQuicklookImage(rItem, imageObj);
 					}
 					var pt = {'idr': ogc_fid, 'properties': objData['properties'], 'callback': function(content) {
@@ -1791,7 +1774,20 @@
 		}
 		
 		var observerTimer = null;										// Таймер
-		node.repaintTile = function(tilePoint, clearFlag)	{				// перерисовать векторный тайл слоя
+		var getRasterURL = function(obj, zoom, gmxTilePoint) {			// получить URL растровой подложки
+            var propHiden = obj['propHiden'];
+            if((zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'])
+                &&
+                (node['propHiden']['rasterView'] == '' || !propHiden['rasterView'])
+                ) return null;
+            var prop = obj['properties'];
+            if(node['tileRasterFunc']) {
+                if(prop['GMX_RasterCatalogID']) return node['tileRasterFunc'](gmxTilePoint['x'], gmxTilePoint['y'], zoom, obj);
+                return (node['quicklook'] ? utils.chkPropsInString(node['quicklook'], prop, 3) : null);
+			}
+            return (node['quicklook'] && propHiden['rasterView'] ? utils.chkPropsInString(node['quicklook'], prop, 3) : null);
+		}
+        node.repaintTile = function(tilePoint, clearFlag)	{				// перерисовать векторный тайл слоя
 			if(!myLayer._map || gmxAPI._leaflet['moveInProgress']) return;
 			
 			var zoom = LMap.getZoom();
@@ -1804,7 +1800,6 @@
 			
 			var tKey = attr['tKey'];
 			var drawTileID = attr['drawTileID'];
-			
 			var tile = null;
 			var ctx = null;
 
@@ -1840,31 +1835,15 @@
 					attr['style'] = style;
 					cnt++;
 
-					var showRaster = (
-						(!node['tileRasterFunc'] && !node['quicklook'])
-						||
-						(
-							(zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'])
-							&&
-							(node['propHiden']['rasterView'] == '' || !propHiden['rasterView'])
-						)
-						? false
-						: true
-					);
-						
-					var rUrl = '';
-					if(node['tileRasterFunc']) rUrl = node['tileRasterFunc'](attr.scanexTilePoint['x'], attr.scanexTilePoint['y'], zoom, objData);
-					else if(node['quicklook']) rUrl = utils.chkPropsInString(node['quicklook'], objData['properties'], 3);
-
+					var rUrl = getRasterURL(objData, zoom, attr.scanexTilePoint);
 					var rItem = {
 						'geom': geom
 						,'attr': attr
 						,'src': rUrl
-						,'showRaster': showRaster
 					};
 					ritemsArr.push(rItem);
 					
-					if(showRaster) {
+					if(rUrl) {
 						rasterNums++;
 						(function(pItem, pid) {
 							node.getRaster(pItem, pid, function(img) {
@@ -2037,7 +2016,7 @@
 				//ctx.fill();
 				ctx.clip();
 				ctx.restore();
-			}
+            }
 			geom['paint'](attr, itemStyle, ctx);
 		}
 
@@ -2148,13 +2127,24 @@
 					var pt = thash['arr'][i];
 					if(pt.geom['id'] != itemId) continue;
 					if(item.propHiden['rasterView']) {
-						if(pt['imageObj'] || !pt['src']) continue;		// imageObj уже загружен либо нечего загружать
-						rasterNums++;
+						if(!pt['src']) {
+                            pt['src'] = getRasterURL(pt['geom'], zoom, pt.attr.scanexTilePoint);
+						}
+						if(pt['imageObj'] || !pt['src']) {
+                            continue;		// imageObj уже загружен либо нечего загружать
+						}
+                        rasterNums++;
 						(function(pItem, pid) {
 							node.getRaster(pItem, pid, function(img) {
 								pItem['imageObj'] = img;
 								rasterNums--;
-								if(rasterNums === 0) node.waitRedrawFlips(100, true);
+								//if(rasterNums === 0) node.waitRedrawFlips(100, true);
+								if(rasterNums === 0) {
+									node['tilesRedrawImages'][zoom][tKey]['rasterNums'] = 0;
+									var zd = 50 * gmxAPI._leaflet['imageLoader'].getCounts();
+									node.waitRedrawFlips(zd, true);
+									myLayer._markTile(pItem.attr['tilePoint'], 1);
+								}
 							});
 						})(pt, itemId);
 					} else {
@@ -2168,7 +2158,7 @@
 			}
 		}
 		node.parseVectorTile = function(data, tileID, dAttr)	{		// парсинг векторного тайла
-			node['tilesGeometry'][tileID] = objectsToFilters(data, tileID, dAttr);
+            node['tilesGeometry'][tileID] = objectsToFilters(data, tileID, dAttr);
 			data = null;
 			//waitRedrawFlips();
 			//upDateLayer();

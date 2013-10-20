@@ -24,15 +24,19 @@ var memoize = function(func) {
 		return result;
 	}
 };
-var extent = function(ph, pt) {
+var extend = function(ph, pt, flag) {
+    if(!ph) ph = {};
 	for(var key in pt) {
+        if(flag && ph[key]) continue;
 		ph[key] = pt[key];
 	}
+    return ph;
 };
 
 window.PI = 3.14159265358979; //устарело - обратная совместимость
 if(!window.gmxAPI) window.gmxAPI = {};
-extent(window.gmxAPI,
+window.gmxAPI.extend = extend;
+extend(window.gmxAPI,
 {
 	MAX_LATITUDE: 85.0840591556
     ,
@@ -534,6 +538,74 @@ extent(window.gmxAPI,
 	{
 		return (geom ? gmxAPI.transformGeometry(geom, gmxAPI.from_merc_x, gmxAPI.from_merc_y) : null);
 	}
+    ,
+    'bounds': function(arr) {							// получить bounds массива точек
+        var res = {
+            min: {
+                x: Number.MAX_VALUE,
+                y: Number.MAX_VALUE
+            },
+            max: {
+                x: -Number.MAX_VALUE,
+                y: -Number.MAX_VALUE
+            },
+            extend: function(x, y) {
+                if (x < this.min.x) this.min.x = x;
+                if (x > this.max.x) this.max.x = x;
+                if (y < this.min.y) this.min.y = y;
+                if (y > this.max.y) this.max.y = y;
+                return this;
+            },
+            extendArray: function(arr) {
+                if (!arr) { return this };
+                for(var i=0, len=arr.length; i<len; i++) {
+                    this.extend(arr[i][0], arr[i][1]);
+                }
+                return this;
+            },
+            addBuffer: function(dxmin, dymin, dxmax, dymax) {
+                this.min.x -= dxmin;
+                this.min.y -= dymin;
+                this.max.x += dxmax;
+                this.max.y += dymax;
+                return this;
+            },
+            intersects: function (bounds, dx, dy) { // (Bounds, dx, dy) -> Boolean
+                var min = this.min,
+                    max = this.max,
+                    dx = dx || 0,
+                    dy = dy || 0,
+                    min2 = bounds.min,
+                    max2 = bounds.max;
+                return max2.x + dx >= min.x && min2.x - dx <= max.x && max2.y + dy >= min.y && min2.y - dy <= max.y;
+            }
+        };
+        
+        return res.extendArray(arr);
+    }
+    ,
+    'geoBounds': function(geo) {					// получить bounds по geometry
+        var type = geo['type'];
+        var coords = geo['coordinates'];
+        var arr = [];
+        var addToArr = function(pol) {
+            for (var i = 0, len = pol.length; i < len; i++)	arr.push(pol[i]);
+        }
+        if(type === 'POINT') {
+            arr.push(coords);
+        } else if(type === 'MULTIPOINT') {
+            for (var i = 0, len = coords.length; i < len; i++) addToArr(coords[i]);
+        } else if(type === 'LINESTRING') {
+            addToArr(coords);
+        } else if(type === 'MULTILINESTRING') {
+            for (var i = 0, len = coords.length; i < len; i++) addToArr(coords[i]);
+        } else if(type === 'POLYGON') {
+            addToArr(coords[0]);			// дырки пропускаем
+        } else if(type === 'MULTIPOLYGON') {
+            for (var i = 0, len = coords.length; i < len; i++) addToArr(coords[i][0]);
+        }
+        return gmxAPI.bounds(arr);
+    }
 	,
 	getBounds: function(coords)
 	{

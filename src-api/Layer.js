@@ -651,12 +651,14 @@
 					
 				} else {
 					if (layer.properties.Quicklook) {
-						// если накладываемое изображения с трансформацией как BG закоментарить
+						/*
+                        // если накладываемое изображения с трансформацией как BG закоментарить
 						obj.enableQuicklooks(function(o)
 						{
 							obj.bringToTop();
 							return gmxAPI.applyTemplate(layer.properties.Quicklook, o.properties);
 						});
+                        */
 					}
 					if (layer.properties.TiledQuicklook) {
 						obj.enableTiledQuicklooks(function(o)

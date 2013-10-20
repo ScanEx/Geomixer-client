@@ -168,13 +168,13 @@
 
 	var getProjectiveTransform = function (points) {
 	  var eqMatrix = new Matrix(9, 8, [
-		[ 1, 1, 1,   0, 0, 0, -points[3][0],-points[3][0],-points[3][0] ],
-		[ 0, 1, 1,   0, 0, 0,  0,-points[2][0],-points[2][0] ],
+		[ 1, 1, 1,   0, 0, 0, -points[2][0],-points[2][0],-points[2][0] ],
+		[ 0, 1, 1,   0, 0, 0,  0,-points[3][0],-points[3][0] ],
 		[ 1, 0, 1,   0, 0, 0, -points[1][0], 0,-points[1][0] ],
 		[ 0, 0, 1,   0, 0, 0,  0, 0,-points[0][0] ],
 
-		[ 0, 0, 0,  -1,-1,-1,  points[3][1], points[3][1], points[3][1] ],
-		[ 0, 0, 0,   0,-1,-1,  0, points[2][1], points[2][1] ],
+		[ 0, 0, 0,  -1,-1,-1,  points[2][1], points[2][1], points[2][1] ],
+		[ 0, 0, 0,   0,-1,-1,  0, points[3][1], points[3][1] ],        
 		[ 0, 0, 0,  -1, 0,-1,  points[1][1], 0, points[1][1] ],
 		[ 0, 0, 0,   0, 0,-1,  0, 0, points[0][1] ]
 
@@ -189,9 +189,8 @@
 	  return transform;
 	}
 
-	var divide = function (u1, v1, u4, v4, p1, p2, p3, p4, attr) {
-		 // See if we can still divide.
-		if (attr.limit) {
+	var divide = function (u1, v1, u4, v4, p1, p2, p3, p4, limit, attr) {
+		if (limit) {
 			// Measure patch non-affinity.
 			var d1 = [p2[0] + p3[0] - 2 * p1[0], p2[1] + p3[1] - 2 * p1[1]];
 			var d2 = [p2[0] + p3[0] - 2 * p4[0], p2[1] + p3[1] - 2 * p4[1]];
@@ -205,24 +204,22 @@
 
 			// Check area > patchSize pixels (note factor 4 due to not averaging d1 and d2)
 			// The non-affinity measure is used as a correction factor.
-			if ((u1 == 0 && u4 == 1) || ((.25 + r * 5) * area > (attr.patchSize * attr.patchSize))) {
+			if ((u1 == 0 && u4 == 1) || ((.25 + r * 5) * area > (patchSize * patchSize))) {
 				// Calculate subdivision points (middle, top, bottom, left, right).
 				var umid = (u1 + u4) / 2;
 				var vmid = (v1 + v4) / 2;
-				var tr   = attr.transform;
-				var pmid = tr.transformProjectiveVector([umid, vmid, 1]);
-				var pt   = tr.transformProjectiveVector([umid, v1, 1]);
-				var pb   = tr.transformProjectiveVector([umid, v4, 1]);
-				var pl   = tr.transformProjectiveVector([u1, vmid, 1]);
-				var pr   = tr.transformProjectiveVector([u4, vmid, 1]);
+				var pmid = transform.transformProjectiveVector([umid, vmid, 1]);
+				var pt   = transform.transformProjectiveVector([umid, v1, 1]);
+				var pb   = transform.transformProjectiveVector([umid, v4, 1]);
+				var pl   = transform.transformProjectiveVector([u1, vmid, 1]);
+				var pr   = transform.transformProjectiveVector([u4, vmid, 1]);                
 				
 				// Subdivide.
-				attr.limit--;
-				divide.call(this, u1,   v1, umid, vmid,   p1,   pt,   pl, pmid, attr);
-				divide.call(this, umid,   v1,   u4, vmid,   pt,   p2, pmid,   pr, attr);
-				divide.call(this, u1,  vmid, umid,   v4,   pl, pmid,   p3,   pb, attr);
-				divide.call(this, umid, vmid,   u4,   v4, pmid,   pr,   pb,   p4, attr);
-
+				limit--;
+				divide.call(this, u1,   v1, umid, vmid,   p1,   pt,   pl, pmid, limit, attr);
+				divide.call(this, umid,   v1,   u4, vmid,   pt,   p2, pmid,   pr, limit, attr);
+				divide.call(this, u1,  vmid, umid,   v4,   pl, pmid,   p3,   pb, limit, attr);
+				divide.call(this, umid, vmid,   u4,   v4, pmid,   pr,   pb,   p4, limit, attr);
 				return;
 			}
 		}
@@ -231,7 +228,6 @@
 
 		// Render this patch.
 		ctx.save();
-//ctx.clearRect(0, 0, attr['canvas'].width, attr['canvas'].height);
 		// Set clipping path.
 		ctx.beginPath();
 	
@@ -240,15 +236,7 @@
 		ctx.lineTo(p4[0], p4[1]);
 		ctx.lineTo(p3[0], p3[1]);
 
-/*
-
-		ctx.moveTo(p1[0] - attr['deltaX'], p1[1] - attr['deltaY']);
-		ctx.lineTo(p2[0] - attr['deltaX'], p2[1] - attr['deltaY']);
-		ctx.lineTo(p4[0] - attr['deltaX'], p4[1] - attr['deltaY']);
-		ctx.lineTo(p3[0] - attr['deltaX'], p3[1] - attr['deltaY']);
-*/		
 		ctx.closePath();
-		//ctx.clip();
 		// Get patch edge vectors.
 		var d12 = [p2[0] - p1[0], p2[1] - p1[1]];
 		var d24 = [p4[0] - p2[0], p4[1] - p2[1]];
@@ -264,92 +252,94 @@
 		var dx = 0, dy = 0, padx = 0, pady = 0;
 
 		// Align the transform along this corner.
-		switch (amax) {
-			case a1:
+		if (amax == a1) {
 				ctx.transform(d12[0], d12[1], -d31[0], -d31[1], p1[0] + attr['deltaX'], p1[1] + attr['deltaY']);
-				// Calculate 1.05 pixel padding on vector basis.
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d12[0] * d12[0] + d12[1] * d12[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d31[0] * d31[0] + d31[1] * d31[1]);
-				break;
-			case a2:
+		} else if (amax == a2) {
 				ctx.transform(d12[0], d12[1],  d24[0],  d24[1], p2[0] + attr['deltaX'], p2[1] + attr['deltaY']);
-				// Calculate 1.05 pixel padding on vector basis.
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d12[0] * d12[0] + d12[1] * d12[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d24[0] * d24[0] + d24[1] * d24[1]);
 				dx = -1;
-				break;
-			case a4:
+		} else if (amax == a4) {
 				ctx.transform(-d43[0], -d43[1], d24[0], d24[1], p4[0] + attr['deltaX'], p4[1] + attr['deltaY']);
-				// Calculate 1.05 pixel padding on vector basis.
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d43[0] * d43[0] + d43[1] * d43[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d24[0] * d24[0] + d24[1] * d24[1]);
 				dx = -1;
 				dy = -1;
-				break;
-			case a3:
-				// Calculate 1.05 pixel padding on vector basis.
+		} else if (amax == a3) {
 				ctx.transform(-d43[0], -d43[1], -d31[0], -d31[1], p3[0] + attr['deltaX'], p3[1] + attr['deltaY']);
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d43[0] * d43[0] + d43[1] * d43[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d31[0] * d31[0] + d31[1] * d31[1]);
 				dy = -1;
-				break;
 		}
 
 		// Calculate image padding to match.
 		var du = (u4 - u1);
 		var dv = (v4 - v1);
-		var padu = padx * du;
-		var padv = pady * dv;
-
+		padx++;
+		pady++;
 
 		var iw = attr.imageObj.width;
 		var ih = attr.imageObj.height;
 
+		cnt++;
 		ctx.drawImage(
 			attr.imageObj,
 			u1 * iw,
 			v1 * ih,
-			Math.min(u4 - u1 + padu, 1) * iw,
-			Math.min(v4 - v1 + padv, 1) * ih,
+			Math.min(padx * du, 1) * iw,
+			Math.min(pady * dv, 1) * ih,
 			dx, dy,
-			1 + padx, 1 + pady
+			padx, pady
 		);
 		ctx.restore();
 	}
 
+	var cnt = 0;
+	var limit = 4;
+	var patchSize = 64;
+	var transform = null;
 	var ProjectiveImage = function (attr) {
-		var transform = getProjectiveTransform(attr.points);
+		cnt = 0;
+		transform = getProjectiveTransform(attr.points);
 		// Begin subdivision process.
 
 		var ptl = transform.transformProjectiveVector([0, 0, 1]);
 		var ptr = transform.transformProjectiveVector([1, 0, 1]);
 		var pbl = transform.transformProjectiveVector([0, 1, 1]);
 		var pbr = transform.transformProjectiveVector([1, 1, 1]);
-		var	boundsP = new L.Bounds();
-		boundsP.extend(new L.Point(ptl[0], ptl[1]));
-		boundsP.extend(new L.Point(ptr[0], ptr[1]));
-		boundsP.extend(new L.Point(pbr[0], pbr[1]));
-		boundsP.extend(new L.Point(pbl[0], pbl[1]));
+
+		var	boundsP = gmxAPI.bounds([ptl, ptr, pbr, pbl]);
 		var ww = boundsP.max.x - boundsP.min.x;
 		var hh = boundsP.max.y - boundsP.min.y;
 		if(attr.wView < ww || attr.hView < hh) {
 			ww = attr.wView;
 			hh = attr.hView;
 		}
+		var maxSize = Math.max(ww, hh);
+		if('limit' in attr) limit = attr['limit'];
+		else {
+			limit = (maxSize < 200 ? 1 : 4);
+			//patchSize = m/8;
+		}
+		if('patchSize' in attr) patchSize = attr['patchSize'];
+		else {
+			patchSize = maxSize/8;
+		}
+
 		var canvas = document.createElement("canvas");
-		var w = attr.imageObj.width;
-		var h = attr.imageObj.height;
 		attr['canvas'] = canvas;
 		attr['ctx'] = canvas.getContext('2d');
 		attr['ctx'].setTransform(1, 0, 0, 1, 0, 0);
-		attr['transform'] = transform;
-		canvas.width = ww;
-		canvas.height = hh;
-		if(!attr['patchSize']) attr['patchSize'] = 4;
-		if(!attr['limit']) attr['limit'] = 5;
+		if(attr['type'] === 'mapObject') {
+            canvas.width = ww, canvas.height = hh;
+		} else {
+            canvas.width = canvas.height = 256;
+        }
 
 		try {
-			divide( 0, 0, 1, 1, ptl, ptr, pbl, pbr, attr );
+			divide( 0, 0, 1, 1, ptl, ptr, pbl, pbr, limit, attr );
 		} catch(e) {
 			gmxAPI.addDebugWarnings({'func': 'ProjectiveImage', 'event': e});
 			canvas = null;
@@ -360,6 +350,7 @@
 			,'ptr': ptr
 			,'pbl': pbl
 			,'pbr': pbr
+			,'cnt': cnt
 		};
 	}
 	
