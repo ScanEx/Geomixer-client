@@ -778,20 +778,21 @@ var createFilter = function(parentObject, parentStyle, geometryType, attrs, elem
     var symbolsTitle = _div();
     
     if (nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
-        var styleLibIcon = makeImageButton('img/misc.png', 'img/misc.png');
+        var styleLibIcon = makeImageButton('img/stylelib-main.png', 'img/stylelib-main.png');
         styleLibIcon.style.verticalAlign = 'middle';
-        styleLibIcon.style.marginLeft = '3px';
-        _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px'], ['css', 'verticalAlign', 'middle']]), styleLibIcon]);
+        styleLibIcon.style.marginLeft = '5px';
+        styleLibIcon.title = _gtxt('Библиотека стилей');
+        _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']]), styleLibIcon]);
         styleLibIcon.onclick = function() {
             gmxCore.loadModule('StyleLibrary').done(function(styleLibModule) {
                 var activeStyleManager = styleLibModule.showStyleLibraryDialog();
                 $(activeStyleManager).change(function() {
-                    //console.log(this.getActiveStyle());
-                    $(liStyle.lastChild).empty();
                     var styleFromLib = this.getActiveStyle();
                     
                     if (styleFromLib) {
                         templateStyle = styleFromLib;
+
+                        $(liStyle.lastChild).empty();
                         resObject = createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
                         nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
                     }

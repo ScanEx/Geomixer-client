@@ -275,6 +275,7 @@ _translationsHash.hash["eng"] = {
 	"Показывать при клике": "Show on click",
 	"Показывать при наведении": "Show on mouse over",
 	"Символика" : "Shown style",
+    "Библиотека стилей": "Style library",
     "Кластеризация" : "Clustering",
 	"Мин. зум" : "Min zoom",
 	"Макс. зум" : "Max zoom",

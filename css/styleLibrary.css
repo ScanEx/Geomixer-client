@@ -23,6 +23,7 @@
     width: 148px;
     background: #539abc;
     height: 340px;
+    overflow-y: auto;
 }
 
 .stylelib-category-container  > div{
@@ -44,10 +45,10 @@
     color: black;
 }
 
-.stylelib-styles-container {
-    background-color: #eeeeee;
-    height: 335px;
+.ui-tabs .ui-tabs-panel.stylelib-styles-container {
+    height: 330px;
     overflow-y: auto;
+    padding-top: 10px;
 }
 
 .stylelib-main-table {
@@ -56,9 +57,15 @@
 
 .stylelib-style-container {
     display: inline-block;
-    margin: 3px;
+    margin: 10px;
     vertical-align: top;
     text-align: center;
+}
+
+.stylelib-style-active {
+    border: 1px solid #8ac4df;
+    margin: 9px;
+    background: #e6eff3;
 }
 
 .stylelib-style-icon-container {
@@ -74,12 +81,7 @@
     font-family: Verdana;
     font-size: 10px;
     cursor: default;
-}
-
-.stylelib-style-active {
-    border: 1px solid #8ac4df;
-    margin: 2px;
-    background: #e6eff3;
+    max-width: 120px;
 }
 
 .stylelib-controls > span {
@@ -113,7 +115,7 @@
     font-size: 12px;
     font-family: Verdana;
     font-weight: bold;
-    padding: 7px 5px;
+    padding: 9px 3px;
 }
 
 .stylelib-dialog li.ui-state-default{
@@ -144,11 +146,13 @@
 .stylelib-category-actions {
     background: #92bfd5;
     font-size: 0px;
+    padding: 0px 7px;
 }
 
 .stylelib-iconhelper {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 8px 5px;
+    margin: 0px 2px;
 }
 
 .stylelib-icon-active {
@@ -156,7 +160,7 @@
 }
 
 .stylelib-icon {
-    height: 23px;
+    height: 15px;
     width: 15px;
     cursor: pointer;
 }
@@ -166,11 +170,11 @@
 }
 
 .stylelib-category-edit, .stylelib-style-edit{
-    background: url(../img/stylelib.png) -16px 0px;
+    background: url(../img/stylelib.png) -17px 0px;
 }
 
 .stylelib-category-remove, .stylelib-style-remove{
-    background: url(../img/stylelib.png) -32px 0px;
+    background: url(../img/stylelib.png) -34px 0px;
 }
 
 .stylelib-style-controls {
