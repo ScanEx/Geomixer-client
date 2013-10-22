@@ -907,10 +907,10 @@
 			if(!itemPropHiden['toFilters'] || !itemPropHiden['toFilters'].length) return out;		// обьект не попал в фильтр
 			var fID = itemPropHiden['toFilters'][0];
 			var filter = gmxAPI.mapNodes[fID];
-			if(filter && mapNodes[fID]['handlers'][evName]) {			// не найден фильтр
-				out = filter;
-			} else if(evName in node['handlers']) {						// Есть handlers на слое
+			if(evName in node['handlers']) {						// Есть handlers на слое
 				out = gmxNode;
+			} else if(filter && mapNodes[fID]['handlers'][evName]) {			// не найден фильтр
+				out = filter;
 			} else {								// Есть handlers на родителях
 				out = utils.getNodeHandler(node.id, evName);
 			}
