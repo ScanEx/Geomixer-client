@@ -371,7 +371,7 @@
 			if(this.properties.type !== 'Vector' || !this._temporalTiles) return null;
 			var tdata = this._temporalTiles.temporalData;
 			return {
-                begDate: tdata.currentData.dt1
+                beginDate: tdata.currentData.dt1
                 ,endDate: tdata.currentData.dt2
             };
 		});
