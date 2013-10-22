@@ -1005,7 +1005,7 @@ var createPageAdvanced = function(parent, layerProperties) {
     //каталог растров
     var rasterCatalogDiv = $('<div/>');
 
-    var rasterCatalogControl = new nsGmx.LayerRasterCatalogControl(rasterCatalogDiv, layerProperties.get('RC'));
+    var rasterCatalogControl = new nsGmx.LayerRasterCatalogControl(rasterCatalogDiv, layerProperties.get('RC'), layerProperties);
     var isRCCheckbox = $('<input/>')
         .attr({type: 'checkbox', id: 'layer-rc-checkbox'})
         .change(function() {

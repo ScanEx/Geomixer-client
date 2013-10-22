@@ -40,6 +40,8 @@ var LayerProperties = Backbone.Model.extend({
             Attributes:     divProperties.attributes,
             AttrTypes:      divProperties.attrTypes,
             
+            Quicklook:      layerProperties.Quicklook,
+            
             MetaPropertiesEditing: null
         })
         
@@ -138,6 +140,7 @@ var LayerProperties = Backbone.Model.extend({
             }
             
             if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
+            if (attrs.Quicklook) reqParams.Quicklook = attrs.Quicklook;
             
             if (!name && stype === 'manual')
             {

@@ -17,6 +17,52 @@
         "LayerRCControl.attributeTitle"  : "Object Attribute"
     });
     
+    var createQuicklookCanvas = function(layerProperties)
+    {
+        var quicklookText = _textarea(null, [['attr','paramName','Quicklook'],['dir','className','inputStyle'],['css','overflow','auto'],['css','width','250px'],['css','height','50px']]),
+            setQuicklook = function()
+            {
+                layerProperties.set('Quicklook', quicklookText.value);
+            }
+        
+        quicklookText.value = layerProperties.get('Quicklook') || '';
+        
+        quicklookText.onkeyup = function()
+        {
+            setQuicklook();
+            return true;
+        }
+        
+        var atrsSuggest = _mapHelper.createSuggestCanvas(layerProperties.get('Attributes') || [], quicklookText, '[suggest]', setQuicklook);
+        
+        quicklookText.onfocus = function()
+        {
+            atrsSuggest.style.display = 'none';
+            
+            return true;
+        }
+        
+        var divAttr = _div([_t(_gtxt("Атрибут >")), atrsSuggest], [['dir','className','attrsHelperCanvas']]);
+        
+        divAttr.onclick = function()
+        {
+            if (atrsSuggest.style.display == 'none')
+                $(atrsSuggest).fadeIn(500);
+            
+            return true;
+        }
+        
+        var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])])])])],[['css','margin','0px 4px']]);
+
+        var canvas = $('<div/>').append(
+            $('<span>' + _gtxt("Накладываемое изображение") + '</span><br/>').css('margin-left', '4px'),
+            quicklookText,
+            suggestCanvas
+        ).css('margin', '10px 0px');
+        
+        return canvas;
+    }
+    
     nsGmx.LayerRCProperties = Backbone.Model.extend({
         defaults: {
             IsRasterCatalog: false,
@@ -35,7 +81,7 @@
     @memberOf nsGmx
     @class
     */
-    nsGmx.LayerRasterCatalogControl = function(container, rcProperties)
+    nsGmx.LayerRasterCatalogControl = function(container, rcProperties, layerProperties)
     {
         var advancedMode = !!(rcProperties.get('RCMaskForRasterPath') || rcProperties.get('RCMaskForRasterTitle') || rcProperties.isAnyLinks());
         
@@ -107,6 +153,8 @@
                 initTags[columnTagLinks[iP]] = {Value: iP};
             
             layerTags = new nsGmx.LayerTags(fakeTagManager, initTags);
+            
+            createQuicklookCanvas(layerProperties).addClass('RCCreate-advanced').appendTo(container);
             
             var tagContainer = $('<div/>', {'class': 'RCCreate-tagContainer RCCreate-advanced'}).addClass().appendTo(container);
             var tagsControl = new nsGmx.LayerTagSearchControl(layerTags, tagContainer, {

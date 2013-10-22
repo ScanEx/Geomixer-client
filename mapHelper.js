@@ -300,44 +300,7 @@ mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 	}
 	
 	var properties = typeof newProperties == 'undefined' ? globalFlashMap.layers[name].properties : newProperties;
-	
-	if (properties.TiledQuicklook && properties.TiledQuicklookMinZoom && 
-		!isNaN(Number(properties.TiledQuicklookMinZoom)) && Number(properties.TiledQuicklookMinZoom) > 0)
-	{
-		if (properties.TiledQuicklookMaxZoom && 
-			!isNaN(Number(properties.TiledQuicklookMaxZoom)) && Number(properties.TiledQuicklookMaxZoom) > 0 &&
-			Number(properties.TiledQuicklookMaxZoom) >= Number(properties.TiledQuicklookMinZoom))
-		{
-			globalFlashMap.layers[name].enableTiledQuicklooks(function(o)
-			{
-				return properties.TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
-				{
-					return o.properties[arguments[1]];
-				});
-			}, Number(properties.TiledQuicklookMinZoom), Number(properties.TiledQuicklookMaxZoom));
-		}
-		else
-		{
-			globalFlashMap.layers[name].enableTiledQuicklooks(function(o)
-			{
-				return properties.TiledQuicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
-				{
-					return o.properties[arguments[1]];
-				});
-			}, Number(properties.TiledQuicklookMinZoom));
-		}
-	}
-	
-	if (properties.Quicklook)
-	{
-		globalFlashMap.layers[name].enableQuicklooks(function(o)
-		{
-			return properties.Quicklook.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
-			{
-				return o.properties[arguments[1]];
-			});
-		});
-	}
+    
 }
 
 //TODO: remove isEditableStyles
@@ -501,146 +464,6 @@ mapHelper.prototype.createPermalink = function(callback)
 									
 									callback(response.Result);
 								})
-}
-
-mapHelper.prototype.createQuicklookCanvas = function(elem, attrs)
-{
-	var quicklookText = _textarea(null, [['attr','paramName','Quicklook'],['dir','className','inputStyle'],['css','overflow','auto'],['css','width','250px'],['css','height','50px']]),
-		setQuicklook = function()
-		{
-			var layer = globalFlashMap.layers[elem.name];
-			
-			if (quicklookText.value != '')
-			{
-				layer.enableQuicklooks(function(o)
-				{
-					return quicklookText.value.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
-					{
-						return o.properties[arguments[1]];
-					});
-				});
-			}
-		},
-		_this = this;
-	
-	quicklookText.value = (elem.Quicklook) ? elem.Quicklook : '';
-	
-	quicklookText.onkeyup = function()
-	{
-		setQuicklook();
-		
-		return true;
-	}
-	
-	var atrsSuggest = this.createSuggestCanvas(attrs ? attrs : [], quicklookText, '[suggest]', setQuicklook);
-	
-	quicklookText.onfocus = function()
-	{
-		atrsSuggest.style.display = 'none';
-		
-		return true;
-	}
-	
-	var divAttr = _div([_t(_gtxt("Атрибут >")), atrsSuggest], [['dir','className','attrsHelperCanvas']]);
-	
-	divAttr.onclick = function()
-	{
-		if (atrsSuggest.style.display == 'none')
-			$(atrsSuggest).fadeIn(500);
-		
-		return true;
-	}
-	
-	var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
-
-	return _div([_t(_gtxt("Накладываемое изображение")), _br(), quicklookText, suggestCanvas],[['css','marginTop','10px']]);
-}
-
-mapHelper.prototype.createTiledQuicklookCanvas = function(elem, attrs)
-{
-	var tiledQuicklookText = _textarea(null, [['attr','paramName','TiledQuicklook'],['dir','className','inputStyle'],['css','overflow','auto'],['css','width','250px'],['css','height','50px']]),
-		tiledQuickLookMinZoom = _input(null, [['attr','paramName','TiledQuicklookMinZoom'],['dir','className','inputStyle'], ['css','width','40px']]),
-		tiledQuickLookMaxZoom = _input(null, [['attr','paramName','TiledQuicklookMaxZoom'],['dir','className','inputStyle'], ['css','width','40px']]),
-		setQuicklook = function()
-		{
-			var layer = globalFlashMap.layers[elem.name];
-			
-			if (tiledQuicklookText.value != '' && tiledQuickLookMinZoom.value != '' && 
-				!isNaN(Number(tiledQuickLookMinZoom.value)) && Number(tiledQuickLookMinZoom.value) > 0)
-			{
-				if (tiledQuickLookMaxZoom.value != '' && 
-				!isNaN(Number(tiledQuickLookMaxZoom.value)) && Number(tiledQuickLookMaxZoom.value) > 0 &&
-				Number(tiledQuickLookMaxZoom.value) >= Number(tiledQuickLookMinZoom.value))
-				{
-					layer.enableTiledQuicklooks(function(o)
-					{
-						return tiledQuicklookText.value.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
-						{
-							return o.properties[arguments[1]];
-						});
-					}, Number(tiledQuickLookMinZoom.value), Number(tiledQuickLookMaxZoom.value));
-				}
-				else
-				{
-					layer.enableTiledQuicklooks(function(o)
-					{
-						return tiledQuicklookText.value.replace(/\[([a-zA-Z0-9_а-яА-Я ]+)\]/g, function()
-						{
-							return o.properties[arguments[1]];
-						});
-					}, Number(tiledQuickLookMinZoom.value));
-				}
-			}
-		},
-		_this = this;
-	
-	tiledQuicklookText.value = (elem.TiledQuicklook) ? elem.TiledQuicklook : '';
-	tiledQuickLookMinZoom.value = (elem.TiledQuicklookMinZoom) ? elem.TiledQuicklookMinZoom : '';
-	tiledQuickLookMaxZoom.value = (elem.TiledQuicklookMaxZoom) ? elem.TiledQuicklookMaxZoom : '';
-	
-	tiledQuicklookText.onkeyup = function()
-	{
-		setQuicklook();
-		
-		return true;
-	}
-	
-	tiledQuickLookMinZoom.onkeyup = function()
-	{
-		setQuicklook();
-		
-		return true;
-	}
-	
-	tiledQuickLookMaxZoom.onkeyup = function()
-	{
-		setQuicklook();
-		
-		return true;
-	}
-	
-	var atrsSuggest = this.createSuggestCanvas(attrs ? attrs : [], tiledQuicklookText, '[suggest]', setQuicklook);
-	
-	tiledQuicklookText.onfocus = function()
-	{
-		atrsSuggest.style.display = 'none';
-		
-		return true;
-	}
-	
-	var divAttr = _div([_t(_gtxt("Атрибут >")), atrsSuggest], [['dir','className','attrsHelperCanvas']]);
-	
-	divAttr.onclick = function()
-	{
-		if (atrsSuggest.style.display == 'none')
-			$(atrsSuggest).fadeIn(500);
-		
-		return true;
-	}
-	
-	var suggestCanvas = _table([_tbody([_tr([_td([_div([divAttr],[['css','position','relative']])])])])],[['css','margin','0px 3px']]);
-
-	return _div([_t(_gtxt("Накладываемые тайлы")), _br(), tiledQuicklookText, suggestCanvas, _div([_t(_gtxt("Отображать с зума")), tiledQuickLookMinZoom, _t(_gtxt("По")), tiledQuickLookMaxZoom],[['css','paddingLeft','3px']])],[['css','marginTop','10px']]);
 }
 
 mapHelper.prototype.createSuggestCanvas = function(values, textarea, textTamplate, func, valuesArr, addValueFlag)
@@ -1074,46 +897,12 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 			{
 				var id = 'layertabs' + elemProperties.name,
 					divProperties = _div(null,[['attr','id','properties' + id], ['css', 'height', '100%']]),
-					divQuicklook,
 					tabMenu,
                     moreTabs = [];
 				
-				if (elemProperties.GeometryType == 'polygon' &&
-					elemProperties.description &&
-					String(elemProperties.description).toLowerCase().indexOf('спутниковое покрытие') == 0)
-				{
-					divQuicklook = _div(null,[['attr','id','quicklook' + id]]);
-					
-					_(divQuicklook, [_this.createQuicklookCanvas(elemProperties, elemProperties.attributes)]);
-					_(divQuicklook, [_this.createTiledQuicklookCanvas(elemProperties, elemProperties.attributes)]);
-                    moreTabs.push({title: _gtxt("Накладываемое изображение"), name: 'quicklook', container: divQuicklook});
-				}
-
 				var pos = nsGmx.Utils.getDialogPos(div, true, 390),
                     updateFunc = function()
                     {
-                        if (elemProperties.GeometryType == 'polygon' &&
-							elemProperties.description &&
-							String(elemProperties.description).toLowerCase().indexOf('спутниковое покрытие') == 0 &&
-							divQuicklook)
-						{
-							elemProperties.Quicklook = $(divQuicklook).find("[paramName='Quicklook']")[0].value;
-							
-							elemProperties.TiledQuicklook = $(divQuicklook).find("[paramName='TiledQuicklook']")[0].value;
-							
-							var TiledQuicklookMinZoomValue = $(divQuicklook).find("[paramName='TiledQuicklookMinZoom']")[0].value,
-								TiledQuicklookMaxZoomValue = $(divQuicklook).find("[paramName='TiledQuicklookMaxZoom']")[0].value;
-							
-							if (TiledQuicklookMinZoomValue != '' && !isNaN(Number(TiledQuicklookMinZoomValue)))
-								elemProperties.TiledQuicklookMinZoom = Number(TiledQuicklookMinZoomValue);
-							else
-								elemProperties.TiledQuicklookMinZoom = null;
-							
-							if (TiledQuicklookMaxZoomValue != '' && !isNaN(Number(TiledQuicklookMaxZoomValue)))
-								elemProperties.TiledQuicklookMaxZoom = Number(TiledQuicklookMaxZoomValue);
-							else
-								elemProperties.TiledQuicklookMaxZoom = null;
-						}
                     },
 					closeFunc = function()
 					{

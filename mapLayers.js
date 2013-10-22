@@ -193,10 +193,7 @@ var layersTree = function( renderParams )
 	
 	// содержимое узла
 	this.content = null;
-	
-	this.shownQuicklooks = {};
-	this.shownQuicklooksParent = null;
-	
+
 	this.condition = {visible:{},expanded:{}};
 	
 	this.mapStyles = {};
@@ -1578,9 +1575,6 @@ queryMapLayers.prototype.rasterLayersSlider = function(parent)
 						layer.setStyle(templateStyle);
 					else if (props.type == "Vector")
 					{
-						if (layer.shownQuicklooks)
-							layer.shownQuicklooks.setStyle(templateStyle);
-                            
 						if (layer.tilesParent)
 							layer.tilesParent.setStyle(templateStyle);
 					}
