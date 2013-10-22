@@ -66,6 +66,34 @@ var getInputElement = function(type)
     return input;
 }
 
+//Коллекция полей с информацией для создания диалога редактирования
+var FieldsCollection = function() {
+    var _asArray = [];
+    var _asHash = {};
+    
+    this.append = function(field) {
+        _asArray.push(field);
+        _asHash[field.name] = field;
+    }
+    
+    this.prepend = function(field) {
+        _asArray.unshift(field);
+        _asHash[field.name] = field;
+    }
+    
+    this.update = function(field) {
+        (field.name in _asHash) && $.extend(true, _asHash[field.name], field);
+    }
+    
+    this.get = function(name) {
+        return _asHash[name];
+    }
+    
+    this.each = function(callback) {
+        _asArray.forEach(callback);
+    }
+}
+
 /** Контрол, который показывает диалог редактирования существующего или добавления нового объекта в слой.
 * 
 * @memberOf nsGmx
@@ -75,14 +103,14 @@ var getInputElement = function(type)
 * @param {gmxAPI.drawingObject} params.drawingObject Пользовательский объект для задании геометрии или null, если геометрия не задана
 * @param {function} params.onGeometrySelection Внешняя ф-ция для выбора геометрии объекта. 
          Сигнатура: function(callback), параметр callback(drawingObject) должен быть вызван когда будет выбрана геометрия.
-* @param {Object} params.validate Пользовательские валидаторы типов. 
-*        Хеш {name: function}, сами валидаторы имеют формат function(value) -> Boolean. True, если исходное значение валидное.
-*        Передаются введённые пользователем значения до их преобразования в серверных формат
 * @param {Object[]} params.fields массив со значениями атрибутов. Должен содержать только атрибуты, которые есть в слое. Каждый элемент массива может содержать:
 *
 *  * name {String} - имя атрибута (обязательно)
 *  * value {String|int} - значение атрибута в формате сервера (может отсутствовать)
 *  * constant {bool} - можно ли редактировать атрибут (по умолчанию - можно)
+*  * title {String} - что показывать вместо имени атрибута
+*  * validate {function(val) -> Boolean} - ф-ция для валидации результата. На вход получает введённое пользователем значение 
+*      (до преобразования в серверный формат), должна вернуть валидно ли это значение.
 */
 var EditObjectControl = function(layerName, objectId, params)
 {
@@ -106,8 +134,6 @@ var EditObjectControl = function(layerName, objectId, params)
     var originalGeometry = null;
     var drawingBorderDialog = null;
     var identityField = layer.properties.identityField;
-    
-    //layer.setVisibilityFilter('"' + identityField + '"<>' + objectId);
     
     var geometryInfoRow = null;
     var geometryMapObject = null;
@@ -176,7 +202,7 @@ var EditObjectControl = function(layerName, objectId, params)
             geometryMapObject.setStyle({outline: {color: 0x0000ff, thickness: 2}, marker: {size: 3}});
         }
     }
-    
+
     var canvas = null;
     
     var createDialog = function()
@@ -221,7 +247,8 @@ var EditObjectControl = function(layerName, objectId, params)
                 
                 var clientValue = 'value' in elem ? elem.value : $(elem).text();
                 var value = nsGmx.Utils.convertToServer(elem.rowType, clientValue);
-                var isValid = !_params.validate[elem.rowName] || _params.validate[elem.rowName](clientValue);
+                var validationFunc = fieldsCollection.get(elem.rowName).validate || _params.validate[elem.rowName];
+                var isValid = !validationFunc || validationFunc(clientValue);
                 
                 if (isValid) {
                     properties[elem.rowName] = value;
@@ -292,12 +319,12 @@ var EditObjectControl = function(layerName, objectId, params)
                 removeDialog(drawingBorderDialog);
             
             EditObjectControlsManager.remove(layerName, objectId);
-            //layer.setVisibilityFilter();
             
             $(_this).trigger('close');
         }
         
         var firstInput = null;
+        var fieldsCollection = new FieldsCollection();
         
         //либо drawingObject либо geometry
         var drawAttrList = function(fields)
@@ -326,55 +353,39 @@ var EditObjectControl = function(layerName, objectId, params)
             trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), td]))
             
             //потом все остальные поля
-            for (var iF = 0; iF < fields.length; iF++)
-            {
+            fields.each(function(field) {
                 var td = _td();
-                if (fields[iF].constant)
+                if (field.constant)
                 {
-                    if ('value' in fields[iF])
+                    if ('value' in field)
                     {
                         var span = _span(null,[['css','marginLeft','3px'],['css','fontSize','12px'], ['dir', 'className', 'edit-attr-value']])
-                        span.rowName = fields[iF].name;
-                        span.rowType = fields[iF].type;
-                        _(span, [_t(nsGmx.Utils.convertFromServer(fields[iF].type, fields[iF].value))]);
+                        span.rowName = field.name;
+                        span.rowType = field.type;
+                        _(span, [_t(nsGmx.Utils.convertFromServer(field.type, field.value))]);
                     }
                     _(td, [span])
                 }
                 else
                 {
-                    var input = getInputElement(fields[iF].type);
-                    input.rowName = fields[iF].name;
-                    input.rowType = fields[iF].type;
+                    var input = getInputElement(field.type);
+                    input.rowName = field.name;
+                    input.rowType = field.type;
                     
                     firstInput = firstInput || input;
                     
-                    if ('value' in fields[iF])
-                        input.value = nsGmx.Utils.convertFromServer(fields[iF].type, fields[iF].value);
+                    if ('value' in field)
+                        input.value = nsGmx.Utils.convertFromServer(field.type, field.value);
                         
                     $(input).addClass('edit-attr-value');
                         
                     _(td, [input]);
                 }
                 
-                trs.push(_tr([_td([_span([_t(fields[iF].name)],[['css','fontSize','12px']])]), td], [['css', 'height', '22px']]));
-            }
+                trs.push(_tr([_td([_span([_t(field.title || field.name)],[['css','fontSize','12px']])]), td], [['css', 'height', '22px']]));
+            })
             
             return trs;
-        }
-        
-        var extendFields = function(fields, newFields)
-        {
-            for (var iNF = 0; iNF < newFields.length; iNF++)
-            {
-                for (var iF = 0; iF < fields.length; iF++)
-                    if ( fields[iF].name === newFields[iNF].name )
-                    {
-                        $.extend( true, fields[iF], newFields[iNF] );
-                        break;
-                    }
-            }
-            
-            return fields;
         }
         
         var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", layer.properties.title) : _gtxt("Редактировать объект слоя [value0]", layer.properties.title), canvas, 400, 300, false, false, resizeFunc, closeFunc);
@@ -398,8 +409,6 @@ var EditObjectControl = function(layerName, objectId, params)
                 var geometryRow = response.Result.values[0];
                 var types = response.Result.types;
                 
-                var fields = [];
-                
                 for (var i = 0; i < geometryRow.length; ++i)
                 {
                     if (columnNames[i] === 'geomixergeojson')
@@ -408,7 +417,7 @@ var EditObjectControl = function(layerName, objectId, params)
                     }
                     else
                     {
-                        var item = {
+                        var field = {
                             value: geometryRow[i],
                             type: types[i], 
                             name: columnNames[i], 
@@ -416,15 +425,15 @@ var EditObjectControl = function(layerName, objectId, params)
                         };
                         
                         if (columnNames[i] === identityField)
-                            fields.unshift(item);
+                            fieldsCollection.prepend(field);
                         else
-                            fields.push(item);
+                            fieldsCollection.append(field);
                     }
                 }
                 
-                extendFields(fields, _params.fields);
+                _params.fields.forEach(fieldsCollection.update);
                 
-                var trs = drawAttrList(fields);
+                var trs = drawAttrList(fieldsCollection);
                 
                 _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
                 
@@ -437,20 +446,18 @@ var EditObjectControl = function(layerName, objectId, params)
         }
         else
         {
-            var fields = [];
-            
             for (var i = 0; i < layer.properties.attributes.length; ++i)
             {
-                fields.push({type: layer.properties.attrTypes[i], name: layer.properties.attributes[i]});
+                fieldsCollection.append({type: layer.properties.attrTypes[i], name: layer.properties.attributes[i]})
             }
             
-            extendFields(fields, _params.fields);
+            _params.fields.forEach(fieldsCollection.update);
             
             if (_params.drawingObject) {
                 bindDrawingObject(_params.drawingObject);
             }
             
-            var trs = drawAttrList(fields);
+            var trs = drawAttrList(fieldsCollection);
             
             _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
             
