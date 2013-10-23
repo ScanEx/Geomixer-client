@@ -785,7 +785,7 @@ var createFilter = function(parentObject, parentStyle, geometryType, attrs, elem
         _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']]), styleLibIcon]);
         styleLibIcon.onclick = function() {
             gmxCore.loadModule('StyleLibrary').done(function(styleLibModule) {
-                var activeStyleManager = styleLibModule.showStyleLibraryDialog();
+                var activeStyleManager = styleLibModule.showStyleLibraryDialog('select', geometryType.toUpperCase());
                 $(activeStyleManager).change(function() {
                     var styleFromLib = this.getActiveStyle();
                     

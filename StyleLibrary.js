@@ -414,8 +414,9 @@
     }
     
     //main public function
-    var showStyleLibraryDialog = function() {
+    var showStyleLibraryDialog = function(dialogMode, geometryType) { //dialogMode: edit, select
     
+        dialogMode = dialogMode || 'edit';
         var getActiveStyle = null; //будет проинициализировано после загрузки данных
     
         dataProvider.getCategoriesList().done(function(categories) {
@@ -489,23 +490,26 @@
                             '<div id="stylelib-polygons-container" class="stylelib-styles-container"/>' +
                         '</div>' + 
                         '<div id="stylelib-addcat" class="stylelib-subdialog" style="display: none">' +
+                            '<div class="stylelib-subdialog-close"></div>' + 
                             '<div class="stylelib-subdialog-title">Новая категория</div>' +
                             '<div class="stylelib-subdialog-helper"><input class="stylelib-subdialog-input"></div>' + 
                             '<button class="stylelib-subdialog-button">Добавить</button>' +
                         '</div>' +
                         '<div id="stylelib-editcat" class="stylelib-subdialog" style="display: none">' +
+                            '<div class="stylelib-subdialog-close"></div>' + 
                             '<div class="stylelib-subdialog-title">Изменить категорию</div>' +
                             '<div class="stylelib-subdialog-helper"><input class="stylelib-subdialog-input"></div>' + 
                             '<button class="stylelib-subdialog-button">Изменить</button>' +
                         '</div>' +
                         '<div id="stylelib-removecat" class="stylelib-subdialog" style="display: none">' +
+                            '<div class="stylelib-subdialog-close"></div>' + 
                             '<div class="stylelib-subdialog-title">Удалить категорию?</div>' +
                             '<button class="stylelib-subdialog-button">Удалить</button>' +
                         '</div>' +
                     '</td>' +
                 '</tr></table>'
             ))
-
+            
             var viewModeManager = {
                 mode: 'styles',
                 iconContainer: $('.stylelib-category-actions', container),
@@ -532,6 +536,10 @@
                     }
                 }
             }
+            
+            $('.stylelib-subdialog-close', container).click(function() {
+                viewModeManager.set('styles');
+            })
             
             $('.stylelib-category-actions .stylelib-category-add', container).click(function() {
                 viewModeManager.set('addcat');
@@ -603,8 +611,15 @@
                     setTimeout(function() {
                         $(retObject).change();
                     }, 0); 
-                }
+                },
+                selected: (dialogMode === 'select' && {POINT: 0, LINESTRING: 1, POLYGON: 2}[geometryType]) || 0
             });
+            
+            if (dialogMode === 'select') {
+                $('.stylelib-category-actions,.ui-tabs-nav,.stylelib-style-controls', container).hide();
+                // $('', container).hide();
+                // $('', container).hide();
+            }
             
             getActiveStyle = function() {
                 var tabIndex = $(tabsContainer).tabs('option', 'selected');
@@ -707,6 +722,12 @@
             categoryView.model.on('change', drawCategoryStyles);
             categoriesCollection.on('change', drawCategoryStyles);
             drawCategoryStyles();
+            
+            categoryView.model.on('change', function() {
+                if (viewModeManager.mode !== 'styles') {
+                    viewModeManager.set('styles');
+                }
+            });
 
             container.dialog({width: 500, height: 400, title: 'Библиотека стилей', resizable: false});
             $(container).parent().addClass('stylelib-dialog');
