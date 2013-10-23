@@ -105,7 +105,7 @@ var LayerProperties = Backbone.Model.extend({
                 
         if (attrs.Type === 'Vector') {
             if (attrs.EncodeSource) reqParams.EncodeSource = attrs.EncodeSource;
-            if (attrs.NameObject) reqParams.NameObject = attrs.NameObject;
+            reqParams.NameObject = attrs.NameObject || null;
             if (stype === 'table') reqParams.TableCS = attrs.TableCS;
 
             var rcProps = attrs.RC;
@@ -140,14 +140,11 @@ var LayerProperties = Backbone.Model.extend({
             }
             
             if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
-            if (attrs.Quicklook) reqParams.Quicklook = attrs.Quicklook;
+            reqParams.Quicklook = attrs.Quicklook || null;
             
             if (!name && stype === 'manual')
             {
-                if (attrs.UserBorder) {
-                    reqParams.UserBorder = JSON.stringify(attrs.UserBorder);
-                }
-
+                reqParams.UserBorder = attrs.UserBorder ? JSON.stringify(attrs.UserBorder) : null;
                 reqParams.geometrytype = attrs.GeometryType;
                         
                 sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams,
