@@ -62,7 +62,7 @@
                         layerSTR += gmxAPI.KOSMOSNIMKI_LOCALIZED('Контур', 'Polygon') + ':&nbsp;<b>' + ogc_fid + '</b><br>';
                         var searchLayerAttr = getActiveLayer();
                         if(!searchLayerAttr || !searchLayerAttr.layerID || !searchLayerAttr.TemporalColumnName) {
-                            alert(gmxAPI.KOSMOSNIMKI_LOCALIZED('Не указан активный слой для поиска!', 'Not active layer to search!'));
+                            alert(gmxAPI.KOSMOSNIMKI_LOCALIZED('Не указан активный слой для поиска!', 'No active layer to search!'));
                             return true;
                         }
 
@@ -140,11 +140,8 @@
                                         st += mmsiStr;
                                         st += '<hr><br>'+gmxAPI.KOSMOSNIMKI_LOCALIZED("Всего", "Total")+': <b>' + markers.length + '</b>';
                                     } else {
-                                        st += gmxAPI.KOSMOSNIMKI_LOCALIZED('В данную гавань не заходили корабли!', 'In this harbor the ships did not enter!');
+                                        st += gmxAPI.KOSMOSNIMKI_LOCALIZED('В данную гавань не заходили корабли!', 'Did not enter ships in this area!');
                                     }
-                                    //st += (mmsiStr ? 'mmsi&nbsp;'+gmxAPI.KOSMOSNIMKI_LOCALIZED("кораблей", "ships")+':<br>' + mmsiStr : gmxAPI.KOSMOSNIMKI_LOCALIZED('В данную гавань не заходили корабли!', 'In this harbor the ships did not enter!'));
-                                    //st += ':<br>' + mmsiStr : gmxAPI.KOSMOSNIMKI_LOCALIZED('В данную гавань не заходили корабли!', 'In this harbor the ships did not enter!'));
-                                    //st = st.replace(/\s/g, '&nbsp;');
                                     div.innerHTML = st;
                                     //console.log('Найдены: ', mmsiHash, ph);
                                 } else if (ph.Status == 'error') {
