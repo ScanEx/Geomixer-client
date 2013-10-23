@@ -633,6 +633,7 @@
 						drawingUtils.enablePointerEvents(false, layerItems);
 						if(downType.num === 0) {
 							editType = drawAttr['editType'] = 'POLYGON';
+                            domObj.geometry.type = 'POLYGON';
 							addPoint(coords[0]);
 							layerItems[2].options['skipLastPoint'] = true;
 						}
