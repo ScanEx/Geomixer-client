@@ -8,14 +8,17 @@
 var IsAttached = false;
 var AttachEvents = function(map){
 	if (IsAttached) return;
-	map.drawing.setHandlers({
-		onEdit: function(elem){
-			$(elem).triggerHandler('onEdit', [elem]);
-		},
-		onRemove: function(elem){
-			$(elem).triggerHandler('onRemove', [elem]);
-		}
-	});
+    map.drawing.addListener('onEdit', function(elem){
+        $(elem).triggerHandler('onEdit', [elem]);
+    });
+    
+    map.drawing.addListener('onRemove', function(elem){
+        $(elem).triggerHandler('onRemove', [elem]);
+    });
+    
+    map.drawing.addListener('onFinish', function(elem){
+        $(elem).triggerHandler('onFinish', [elem]);
+    });
 	IsAttached = true;
 }
 
@@ -175,7 +178,7 @@ var DrawingObjectCollection = function(oInitMap) {
 		_objects.push(drawingObject);
         
         AttachEvents(_map);
-		$(drawingObject).bind('onEdit', onEdit);
+		$(drawingObject).bind('onEdit onFinish', onEdit);
 		$(drawingObject).bind('onRemove', onRemove);
 		
 		/** Вызывается при добавлении объекта в коллекцию
