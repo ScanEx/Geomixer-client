@@ -908,7 +908,7 @@ var createPageAttributes = function(parent, props) {
         props.set('Columns', fileAttrModel.toServerFormat());
     });
     
-    $(parent).append(fileAddAttribute, fileColumnsContainer);
+    _(parent, [fileAddAttribute, fileColumnsContainer]);
 
     props.on('change:SourceType', function() {
         var type = props.get('SourceType');
@@ -933,10 +933,7 @@ var createPageMetadata = function(parent, layerProperties) {
         var layerTags = new nsGmx.LayerTags(tagsInfo, convertedTagValues);
         layerProperties.set('MetaPropertiesEditing', layerTags);
         
-        var innerParent = _div(null, [['css', 'height', '100%'], ['css', 'overflowY', 'auto']]);
-        _(parent, [innerParent]);
-        
-        var layerTagsControl = new nsGmx.LayerTagSearchControl(layerTags, innerParent);
+        var layerTagsControl = new nsGmx.LayerTagSearchControl(layerTags, parent);
     })
 }
 
@@ -1054,11 +1051,18 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     this.done = function(callback) {
         callback();
     }
+    
+    var genPageDiv = function() {
+        return _div(
+            [_div(null, [['css', 'height', '100%'], ['css', 'overflowY', 'auto']])],
+            [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]
+        );
+    }
         
-    var mainContainer     = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
-    var metadataContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
-    var advancedContainer = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
-    var attrContainer     = _div(null, [['css', 'position', 'absolute'], ['css', 'top', '24px'], ['css', 'bottom', '20px'], ['css', 'width', '100%']]);
+    var mainContainer     = genPageDiv();
+    var metadataContainer = genPageDiv();
+    var advancedContainer = genPageDiv();
+    var attrContainer     = genPageDiv();
     
     tabs.push({title: _gtxt('Общие'), name: 'main', container: mainContainer});
     
@@ -1088,7 +1092,7 @@ var LayerEditor = function(div, type, properties, treeView, params) {
         }
         
         if (securityDiv) {
-            $([mainContainer, metadataContainer, advancedContainer]).append(securityDiv);
+            $([mainContainer.firstChild, metadataContainer.firstChild, advancedContainer.firstChild]).append(securityDiv);
             saveButton = _div(null, [['css', 'height', '1px']]);
             return;
         }
@@ -1101,12 +1105,12 @@ var LayerEditor = function(div, type, properties, treeView, params) {
     
     var origLayerProperties = layerProperties.clone();
     
-    createPageMain(mainContainer, layerProperties, params.tabSelector);
-    createPageMetadata(metadataContainer, layerProperties);
+    createPageMain(mainContainer.firstChild, layerProperties, params.tabSelector);
+    createPageMetadata(metadataContainer.firstChild, layerProperties);
     
     if (type === 'Vector') {
-        createPageAdvanced(advancedContainer, layerProperties);
-        createPageAttributes(attrContainer, layerProperties);
+        createPageAdvanced(advancedContainer.firstChild, layerProperties);
+        createPageAttributes(attrContainer.firstChild, layerProperties);
     }
             
     if (div) {
