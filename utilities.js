@@ -1150,11 +1150,13 @@ $.extend(nsGmx.Utils, {
 	@param templateStyle {Style} Стиль, похожий на который надо установить*/
 	setMapObjectStyle: function(mapObject, templateStyle)
 	{
+        var hoverStyle = {};
+        $.extend(true, hoverStyle, templateStyle);
 		if (templateStyle.marker && typeof templateStyle.marker.image != 'undefined')
 		{
 			try
 			{
-				mapObject.setStyle(templateStyle);
+				mapObject.setStyle(templateStyle, hoverStyle);
 			}
 			catch(e)
 			{
@@ -1162,9 +1164,6 @@ $.extend(nsGmx.Utils, {
 		}
 		else
 		{
-			var hoverStyle = {};
-			$.extend(true, hoverStyle, templateStyle);
-			
 			if (templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined')
 				hoverStyle.outline.thickness = Number(templateStyle.outline.thickness) + 1;
 			
