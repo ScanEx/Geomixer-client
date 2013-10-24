@@ -332,7 +332,8 @@ fileBrowser.prototype.createHeader = function()
 	
 	homeButton.onclick = function()
 	{
-		_this.getFiles(_this._homeDir);
+        _this._path.set(_layersTree.treeModel.getMapProperties().LayersDir, _this._homeDir);
+		_this.getFiles(_layersTree.treeModel.getMapProperties().LayersDir);
 	}
 	
 	if ( nsGmx.AuthManager.canDoAction(nsGmx.ACTION_SEE_FILE_STRUCTURE ) )
