@@ -1355,7 +1355,7 @@ $.extend(nsGmx.Utils, {
                 "CommonUtil.ErrorUploadNoDependentFiles": _gtxt("loadShape.Errors.ErrorUploadNoDependentFiles")
             };
             
-            if (shpFileForm instanceof File) {
+            if (window.File && shpFileForm instanceof window.File) {
                 if (!window.FormData) {
                     def.reject();
                     return false;
