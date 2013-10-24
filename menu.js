@@ -504,6 +504,10 @@ UpMenu.prototype.checkView = function()
     if (!nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
         this.disableMenus(['stileLibrary']);
     }
+    
+    if (_queryMapLayers.currentMapRights() !== "edit") {
+        this.disableMenus(['mapTabsNew']);
+    }
 	
 	if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
 	{
