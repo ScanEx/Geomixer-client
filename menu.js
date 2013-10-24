@@ -500,6 +500,10 @@ UpMenu.prototype.checkView = function()
 		
 		this.disableMenus(['mapSave', 'mapSaveAs', 'layersVector', 'layersRaster', 'layersMultiRaster']);
 	}
+    
+    if (!nsGmx.AuthManager.isRole(nsGmx.ROLE_ADMIN)) {
+        this.disableMenus(['stileLibrary']);
+    }
 	
 	if (!nsGmx.AuthManager.canDoAction(nsGmx.ACTION_CREATE_LAYERS))
 	{

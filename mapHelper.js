@@ -1529,4 +1529,4 @@ nsGmx.createLayerEditorProperties = gmxCore.createDeferredFunction('LayerEditor'
 nsGmx.createStylesDialog = gmxCore.createDeferredFunction('LayerStylesEditor', 'createStylesDialog');
 
 //Библиотека стилей
-//nsGmx.showStyleLibraryDialog = gmxCore.createDeferredFunction('StyleLibrary', 'showStyleLibraryDialog');
+nsGmx.showStyleLibraryDialog = gmxCore.createDeferredFunction('StyleLibrary', 'showStyleLibraryDialog');

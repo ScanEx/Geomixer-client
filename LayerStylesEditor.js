@@ -784,20 +784,18 @@ var createFilter = function(parentObject, parentStyle, geometryType, attrs, elem
         styleLibIcon.title = _gtxt('Библиотека стилей');
         _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']]), styleLibIcon]);
         styleLibIcon.onclick = function() {
-            gmxCore.loadModule('StyleLibrary').done(function(styleLibModule) {
-                var activeStyleManager = styleLibModule.showStyleLibraryDialog('select', geometryType.toUpperCase());
-                $(activeStyleManager).change(function() {
-                    var styleFromLib = this.getActiveStyle();
-                    
-                    if (styleFromLib) {
-                        templateStyle = styleFromLib;
+            var activeStyleManager = nsGmx.showStyleLibraryDialog('select', geometryType.toUpperCase());
+            $(activeStyleManager).change(function() {
+                var styleFromLib = this.getActiveStyle();
+                
+                if (styleFromLib) {
+                    templateStyle = styleFromLib;
 
-                        $(liStyle.lastChild).empty();
-                        resObject = createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
-                        nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
-                    }
-                })
-            })
+                    $(liStyle.lastChild).empty();
+                    resObject = createStyleEditor(liStyle.lastChild, templateStyle, geometryType, isWindLayer);
+                    nsGmx.Utils.setMapObjectStyle(parentObject, templateStyle);
+                }
+            })            
         }
     } else {
         _(symbolsTitle, [_span([_t(_gtxt("Символика"))],[['css','fontSize','12px']])]);
