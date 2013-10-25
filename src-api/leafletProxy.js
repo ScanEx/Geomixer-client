@@ -2769,6 +2769,13 @@
 			return id;
 		}
 		,
+		'setRasterViewItems':	function(ph)	{				// Добавить обьект к массиву Flips обьектов
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node || !('setRasterViewItems' in node)) return false;
+			return node['setRasterViewItems'](ph.attr['arr']);
+		}
+		,
 		'addFlip':	function(ph)	{				// Добавить обьект к массиву Flips обьектов
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];

@@ -307,6 +307,9 @@
 			obj.setSortItems = function(attr) {		// установка сортировки обьектов векторного слоя 
 				return gmxAPI._cmdProxy('setSortItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
 			};
+			obj.setRasterViewItems = function(arr) {	// Установить видимость растров обьектов
+				return gmxAPI._cmdProxy('setRasterViewItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'arr': arr} });
+			};
 			obj.bringToTopItem = function(fid) {	// Добавить обьект к массиву Flips обьектов
 				return gmxAPI._cmdProxy('addFlip', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'fid': fid} });
 			};

@@ -875,13 +875,23 @@
 			node['flipedIDS'].push(fid);
 			node['flipHash'][fid] = true;
 		}
-		
+
 		node['addFlip'] = function(fid) {			// добавить обьект flip сортировки
 			chkFlip(fid);
 			node.redrawFlips(true);
 			return node['flipedIDS'].length;
 		}
-		
+
+		node['rasterViewItems'] = {};		// Обьекты с установленным флагом показа растров
+		node['setRasterViewItems'] = function(arr) {		// Установить видимость растров обьектов
+			var hash = {};
+			for (var i = 0, len = arr.length; i < len; i++) {
+				hash[arr[i]] = true;
+			}
+            node['rasterViewItems'] = hash;
+			node.reloadTilesList(0);
+		}
+
 		node['setFlip'] = function() {				// переместить обьект flip сортировки
 			if(!node['flipIDS'] || !node['flipIDS'].length) return false;
 			var vid = node['flipIDS'].shift();
@@ -1776,6 +1786,7 @@
 		var observerTimer = null;										// Таймер
 		var getRasterURL = function(obj, zoom, gmxTilePoint) {			// получить URL растровой подложки
             var propHiden = obj['propHiden'];
+            if(node['rasterViewItems'][obj.id]) propHiden['rasterView'] = true;
             if((zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'])
                 &&
                 (node['propHiden']['rasterView'] == '' || !propHiden['rasterView'])
@@ -2342,6 +2353,7 @@
 		var checkWaitStyle = function()	{							// проверка ожидания обработки стилей по фильтрам
 			for(var j=0; j<node.filters.length; j++) {
 				var filter = mapNodes[node.filters[j]];
+				if(!filter) continue;
 				if(!filter.regularStyle || filter.regularStyle['waitStyle']) {
 					node['waitStyle'] = true;
 					return;
@@ -2657,7 +2669,7 @@
 			var key = 'onTileLoaded';
 			var evID = gmxAPI._listeners.addListener({'level': 11, 'eventName': key, 'obj': gmxNode, 'func': function(ph) {
 					var nodeLayer = mapNodes[id];
-					if(ph.attr) {
+					if(nodeLayer && ph.attr) {
 						nodeLayer.parseVectorTile(ph.attr['data']['data'], ph.attr['data']['tileID'], ph.attr['data']['dAttr']);
 						ph = null;
 					}

@@ -142,6 +142,7 @@
 					if (tool.isActive) {
 						if ('onCancel' in tool) tool.onCancel();
 						tool.isActive = false;
+						//tool.repaint();
 					}
 				}
 			}
@@ -319,12 +320,12 @@
 				onClick: function()	{
 					this.isActive = true;
 					my.activeToolName = activeToolName = tn;
-					return attr['onClick'].call();
+					return (attr['onClick'] ? attr['onClick'].call() : null);
 				},
 				onCancel: function()	{
 					this.isActive = false;
 					my.activeToolName = activeToolName = '';
-					attr['onCancel'].call();
+					if(attr['onCancel']) attr['onCancel'].call();
 				}
                 ,
 				select: function() { selectTool(tn); }
