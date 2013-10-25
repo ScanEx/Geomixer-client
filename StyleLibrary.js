@@ -729,7 +729,7 @@
                 }
             });
 
-            container.dialog({width: 500, height: 400, title: 'Библиотека стилей', resizable: false});
+            container.dialog({width: 500, height: dialogMode === 'select' ? 375 : 406, title: 'Библиотека стилей', resizable: false});
             $(container).parent().addClass('stylelib-dialog');
             
         });

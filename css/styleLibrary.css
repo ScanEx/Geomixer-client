@@ -101,7 +101,7 @@
     border: solid 1px #8ac4df;
 }
 
-.ui-dialog .ui-dialog-content {
+.stylelib-dialog.ui-dialog .ui-dialog-content {
     margin: 0;
 }
 
