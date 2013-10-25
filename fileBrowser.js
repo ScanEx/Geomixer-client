@@ -141,6 +141,8 @@ var fileBrowser = function()
 	this.ext7z = ['7Z', 'ZIP', 'GZIP', 'BZIP2', 'TAR', 'ARJ', 'CAB', 'CHM', 'CPIO', 'DEB', 'DMG', 'HFS', 'ISO', 'LZH', 'LZMA', 'MSI', 'NSIS', 'RAR', 'RPM', 'UDF', 'WIM', 'XAR', 'Z'];
 }
 
+fileBrowser.MAX_UPLOAD_SIZE = 500*1024*1024;
+
 /**
  Показать браузер пользователю. Если браузер уже показывается, он будет закрыт и открыт новый
  @param title {String} Заголовок окна браузера
@@ -214,6 +216,12 @@ fileBrowser.prototype.loadInfo = function()
 		_this.loadInfoHandler()
 	})
 }
+
+fileBrowser.prototype._showWarningDialog = function() {
+    var canvas = _div([_t(_gtxt("FileBrowser.ExceedLimitMessage"))], [['dir', 'className', 'CustomErrorText']]);
+    showDialog(_gtxt("Ошибка!"), canvas, 220, 100);
+}
+
 fileBrowser.prototype.loadInfoHandler = function()
 {
     var _this = this;
@@ -244,6 +252,17 @@ fileBrowser.prototype.loadInfoHandler = function()
         
         var files = e.originalEvent.dataTransfer.files;
         var formData = new FormData();
+        
+        var totalSize = 0;
+        for (var f = 0; f < files.length; f++) {
+            totalSize += files[f].size;
+        }
+        
+        if (totalSize > fileBrowser.MAX_UPLOAD_SIZE) {
+            _this._showWarningDialog();
+            return false;
+        }
+        
         for (var f = 0; f < files.length; f++) {
             formData.append('rawdata', files[f]);
         }
@@ -446,6 +465,11 @@ fileBrowser.prototype.createUpload = function()
 	
 	uploadFileButton.onclick = function()
 	{
+        if (attach.files && attach.files[0] && attach.files[0].size > fileBrowser.MAX_UPLOAD_SIZE) {
+            _this._showWarningDialog();
+            return;
+        }
+        
 		var iframe = createPostIframe("fileBrowserUpload_iframe", function(response)
 		{
 			if (!parseResponse(response))

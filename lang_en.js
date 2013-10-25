@@ -601,5 +601,6 @@ _translationsHash.hash["eng"] = {
     "Растр": "Raster",
     "Добавить выбранные растры": "Add selected rasters",
     "EditObject.menuTitle" : "Add object",
+    "FileBrowser.ExceedLimitMessage" : "File size exceeds 500 Mb. Use GeoMixerFileBrowser tool to upload large files.",
     "EditObject.drawingMenuTitle" : "Add object to active layer"
 };
