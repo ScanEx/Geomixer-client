@@ -1786,17 +1786,17 @@
 		var observerTimer = null;										// Таймер
 		var getRasterURL = function(obj, zoom, gmxTilePoint) {			// получить URL растровой подложки
             var propHiden = obj['propHiden'];
-            if(node['rasterViewItems'][obj.id]) propHiden['rasterView'] = true;
+            var itemRasterView = propHiden['rasterView'] || node['rasterViewItems'][obj.id];
             if((zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'])
                 &&
-                (node['propHiden']['rasterView'] == '' || !propHiden['rasterView'])
+                (node['propHiden']['rasterView'] == '' || !itemRasterView)
                 ) return null;
             var prop = obj['properties'];
             if(node['tileRasterFunc']) {
                 if(prop['GMX_RasterCatalogID']) return node['tileRasterFunc'](gmxTilePoint['x'], gmxTilePoint['y'], zoom, obj);
                 return (node['quicklook'] ? utils.chkPropsInString(node['quicklook'], prop, 3) : null);
 			}
-            return (node['quicklook'] && propHiden['rasterView'] ? utils.chkPropsInString(node['quicklook'], prop, 3) : null);
+            return (node['quicklook'] && itemRasterView ? utils.chkPropsInString(node['quicklook'], prop, 3) : null);
 		}
         node.repaintTile = function(tilePoint, clearFlag)	{				// перерисовать векторный тайл слоя
 			if(!myLayer._map || gmxAPI._leaflet['moveInProgress']) return;
