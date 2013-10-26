@@ -2,27 +2,12 @@
     var publicInterface = {
         pluginName: 'findImages',
         afterViewer: function(params, map) {
-            var path = gmxCore.getModulePath('findImages');
-            var _params = $.extend({
-                regularImage: 'ship.png',
-                activeImage: 'active.png',
-                layerName: null
-            }, params);
-            
-            var layerName = _params.layerName;
-            
+          
             if ( !map) {
                 return;
             }
-            var canvas = $('<div/>');
-            var imagesContainer = $('<div/>').appendTo(canvas);
-            imagesContainer.show();
-            var menu = new leftMenu();
-            menu.createWorkCanvas("monitoring", function(){});
-            _(menu.workCanvas, canvas, [['css', 'width', '100%']]);
 
             var findImages = function() {
-                imagesContainer.empty();
                 var layers = getSearchLayers();
                 for (var i = 0, len = layers.length; i < len; i++) {
                     getLayerImages(layers[i]);
@@ -35,20 +20,18 @@
                     , {
                         'WrapStyle': 'window'
                         ,'count': 'add'
-                        ,'pagesize': 500
+                        ,'pagesize': 1000
                         ,'layer': layerID			            // слой в котором ищем обьекты
                         ,'border': JSON.stringify(geo)	        // геометрия
+                        ,'columns': "[{'Value': '[ogc_fid]'}, {'Value':'[Name]'}]"
                     }
                     ,function(ph) {
-console.log('asasasas' , ph);
-                        var markers = [];
-                        var mmsiHash = {};
+                        //console.log('asasasas' , ph);
                         var ret = [];
                         var layer = map.layers[layerID];
                         (function() {
                             if (ph.Status == 'ok')
                             {
-                                imagesContainer.append($('<div/>') .text('Слой - ' + layer.properties.title));
                                 var fields = ph.Result.fields;
                                 var arr = ph.Result.values;
                                 for (var i = 0, len = arr.length; i < len; i++)
@@ -67,19 +50,6 @@ console.log('asasasas' , ph);
                                         }
                                     }
                                     ret.push(prop['ogc_fid']);
-                                        var image = prop['Name'];
-                                        var ogc_fid = prop['ogc_fid'];
-                                        imagesContainer.append($('<div/>').append(
-                                            $('<span/>')
-                                                .css('cursor', 'pointer')
-                                                .css('color', 'red')
-                                                .text(' ' + image)
-                                                .click(function()
-                                                {
-                                                    console.log('обьект', ogc_fid, image, layer);
-                                                })
-                                        ));
-                                    
                                 }
                                 layer.setRasterViewItems(ret);
                             } else if (ph.Status == 'error') {
@@ -117,7 +87,12 @@ console.log('asasasas' , ph);
                 for (var i = 0, len = map.layers.length; i < len; i++) {
                     var layer = map.layers[i];
                     if(!flag && !layer.isVisible) continue;
-                    if(layer.properties.Quicklook) {
+                    if(layer.properties.Quicklook || layer.properties.IsRasterCatalog) {
+                        if(layer.properties.IsRasterCatalog) {
+                            // установка режима просмотра растров по onClick за пределами Мин. зум КР
+                            // аналог атрибута layer.properties['rasterView']
+                            gmxAPI._cmdProxy('setAPIProperties', { 'obj': layer, 'attr':{'rasterView': 'onClick'} });
+                        }
                         out.push(layer.properties.name);
                     }
                 }
