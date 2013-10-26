@@ -1070,7 +1070,7 @@
 				if(obj._container.style.position != 'absolute') obj._container.style.position = 'absolute';
                 if(node['quicklook'] || node['IsRasterCatalog']) {
                     var zoom = obj._map._zoom;
-                    node['zIndexOffset'] = (zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'] ? 300000 : 100000)
+                    node['zIndexOffset'] = (zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'] ? 300000 : 0)
                 }
                 utils.bringToDepth(node, node['zIndex']);
 			}
