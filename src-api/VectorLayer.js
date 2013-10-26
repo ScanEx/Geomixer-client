@@ -50,7 +50,7 @@
 		//node['clustersFlag'] = false;			// Признак кластеризации на слое
 		node['clustersData'] = null;			// Данные кластеризации
 
-		node['zIndexOffset'] = 300000;
+		node['zIndexOffset'] = 100000;
 		node['editedObjects'] = {};
 		node['mousePos'] = {};					// позиция мыши в тайле
 //		node['tilesDrawing'] = {};				// список отрисованных тайлов в текущем Frame
@@ -1070,7 +1070,7 @@
 				if(obj._container.style.position != 'absolute') obj._container.style.position = 'absolute';
                 if(node['quicklook'] || node['IsRasterCatalog']) {
                     var zoom = obj._map._zoom;
-                    node['zIndexOffset'] = (zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'] ? 300000 : 0)
+                    node['zIndexOffset'] = (zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'] ? 100000 : 0)
                 }
                 utils.bringToDepth(node, node['zIndex']);
 			}
