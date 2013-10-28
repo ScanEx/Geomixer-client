@@ -26,6 +26,7 @@ var LayerProperties = Backbone.Model.extend({
             AllowSearch:    divProperties ? (divProperties.AllowSearch || false) : (layerProperties.AllowSearch || false),
             GeometryType:   divProperties.GeometryType,
             LayerID:        divProperties.LayerID,
+            Quicklook:      divProperties.Quicklook,
             MetaProperties: layerProperties.MetaProperties || {},
             ShapePath:      layerProperties.ShapePath || {},
             TilePath:       layerProperties.TilePath || {},
@@ -40,7 +41,6 @@ var LayerProperties = Backbone.Model.extend({
             Attributes:     divProperties.attributes,
             AttrTypes:      divProperties.attrTypes,
             
-            Quicklook:      layerProperties.Quicklook,
             
             MetaPropertiesEditing: null
         })

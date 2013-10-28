@@ -83,7 +83,12 @@
     */
     nsGmx.LayerRasterCatalogControl = function(container, rcProperties, layerProperties)
     {
-        var advancedMode = !!(rcProperties.get('RCMaskForRasterPath') || rcProperties.get('RCMaskForRasterTitle') || rcProperties.isAnyLinks());
+        var advancedMode = !!(
+                layerProperties.get('Quicklook') || 
+                rcProperties.get('RCMaskForRasterPath') || 
+                rcProperties.get('RCMaskForRasterTitle') || 
+                rcProperties.isAnyLinks()
+            );
         
         var updateVisibility = function()
         {
