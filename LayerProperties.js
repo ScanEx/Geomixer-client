@@ -78,15 +78,13 @@ var LayerProperties = Backbone.Model.extend({
     save: function(geometryChanged, callback) {
         var attrs = this.attributes,
             name = attrs.Name,
-            stype = attrs.SourceType,
-            mapProperties = _layersTree.treeModel.getMapProperties();
+            stype = attrs.SourceType;
         
         var reqParams = {
             WrapStyle: "window",
             Title: attrs.Title,
             Description: attrs.Description,
-            Copyright: attrs.Copyright,
-            MapName: mapProperties.name
+            Copyright: attrs.Copyright
         };
         
         var metaProperties = {};
