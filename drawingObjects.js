@@ -4,24 +4,6 @@
 */
 (function($){
 
-//Расширение механизма событий API на отдельные drawing объекты с использованием jQuery. Lazy initialization.
-var IsAttached = false;
-var AttachEvents = function(map){
-	if (IsAttached) return;
-    map.drawing.addListener('onEdit', function(elem){
-        $(elem).triggerHandler('onEdit', [elem]);
-    });
-    
-    map.drawing.addListener('onRemove', function(elem){
-        $(elem).triggerHandler('onRemove', [elem]);
-    });
-    
-    map.drawing.addListener('onFinish', function(elem){
-        $(elem).triggerHandler('onFinish', [elem]);
-    });
-	IsAttached = true;
-}
-
 var CreateDrawingStylesEditorIcon = function(style, type)
 {
 	var icon = nsGmx.Controls.createGeometryIcon(style, type);
@@ -145,11 +127,11 @@ var CreateDrawingStylesEditor = function(parentObject, style, elemCanvas)
  @param oInitMap Карта, из которой будут добавляться объекты в коллекцию
 */
 var DrawingObjectCollection = function(oInitMap) {
-	var _objects = [];
+	var _objects = []; //{item:, editID: , removeID: }
 	var _this = this;
     var _map = oInitMap;
-	
-	var onEdit = function(event, drawingObject) {
+    
+	var onEdit = function(drawingObject) {
 		/** Вызывается при изменении объекта в коллекции
 		@name DrawingObjects.DrawingObjectCollection.onEdit
 		@event
@@ -157,14 +139,14 @@ var DrawingObjectCollection = function(oInitMap) {
 		$(_this).triggerHandler('onEdit', [drawingObject]);
 	}
 	
-	var onRemove = function(event, drawingObject) {
+	var onRemove = function(drawingObject) {
 		_this.Remove(drawingObject);
 	}
 	
 	/** Возвращает элемент по номеру
 	@param {int} index № объекта в коллекции*/
 	this.Item = function(index){
-		return _objects[index];
+		return _objects[index].item;
 	}
 	
 	/** Возвращает количество элементов в коллекции*/
@@ -175,11 +157,20 @@ var DrawingObjectCollection = function(oInitMap) {
 	/** Добавляет объект в коллекцию
 	@param {drawingObject} drawingObject Добавляемый объект*/
 	this.Add = function(drawingObject){
-		_objects.push(drawingObject);
         
-        AttachEvents(_map);
-		$(drawingObject).bind('onEdit onFinish', onEdit);
-		$(drawingObject).bind('onRemove', onRemove);
+        var editID = drawingObject.addListener('onEdit', function() {
+            onEdit(drawingObject);
+        });
+        
+        var removeID = drawingObject.addListener('onRemove', function() {
+            onRemove(drawingObject);
+        });
+        
+		_objects.push({
+            item: drawingObject, 
+            editID: editID,
+            removeID: removeID
+        });
 		
 		/** Вызывается при добавлении объекта в коллекцию
 		@name DrawingObjects.DrawingObjectCollection.onAdd
@@ -191,9 +182,10 @@ var DrawingObjectCollection = function(oInitMap) {
 	/** Удаляет объект из коллекции
 	@param {int} index индекс удаляемого объекта*/
 	this.RemoveAt = function(index){
-		var drawingObject = _objects.splice(index, 1)[0];
-		$(drawingObject).unbind('onEdit', onEdit);
-		$(drawingObject).unbind('onRemove', onRemove);
+		var item = _objects.splice(index, 1)[0];
+        
+        item.removeListener('onEdit', item.editID);
+        item.removeListener('onRemove', item.removeID);
 		
 		/** Вызывается при удалении объекта из коллекции
 		@name DrawingObjects.DrawingObjectCollection.onRemove
@@ -344,8 +336,8 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
             
         if (_drawingObject === null) return;
             
-        $(_drawingObject).unbind('.drawing');
-        
+        _drawingObject.removeListener('onEdit', editListenerID);
+        _drawingObject.removeListener('onRemove', removeListenerID);
         _drawingObject.removeListener('onMouseOver', mouseOverListenerId);
         _drawingObject.removeListener('onMouseOut', mouseOutListenerId);
         
@@ -358,9 +350,8 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         return _drawingObject;
     }
     
-    AttachEvents(_map);
-    $(_drawingObject).bind('onRemove.drawing', this.RemoveRow);
-	$(_drawingObject).bind('onEdit.drawing',   this.UpdateRow);
+    var editListenerID = _drawingObject.addListener('onEdit', this.UpdateRow);
+    var removeListenerID = _drawingObject.addListener('onRemove', this.RemoveRow);
     
 	this.UpdateRow();
 }
