@@ -4182,6 +4182,7 @@
 				attr['evName'] = 'onClick';
 				gmxAPI._leaflet['clickAttr'] = attr;
 				clickDone = gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
+				if(!clickDone) gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Проверка map Listeners на hideBalloons
 			};
 			gmxAPI._leaflet['chkClick'] = chkClick;
 			LMap.on('click', chkClick);
