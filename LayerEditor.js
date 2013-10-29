@@ -21,7 +21,7 @@ var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
             
 			var selectLat = nsGmx.Utils._select(null, [['attr','selectLat',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]),
 				selectLon = nsGmx.Utils._select(null, [['attr','selectLon',true],['dir','className','selectStyle'],['css','width','150px'],['css','margin','0px']]);
-                
+				
             selectLat.onchange = function() {
                 columns.set('YCol', this.value);
             }
@@ -58,7 +58,11 @@ var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
             if (columns.get('YCol')) {
                 selectLat = switchSelect(selectLat, columns.get('YCol'));
             }
-	
+			
+			columns.set({
+				XCol: selectLon.value,
+				YCol: selectLat.value
+			})
         }
     }
         
