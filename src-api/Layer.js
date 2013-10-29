@@ -383,12 +383,14 @@
 			return getBoundsMerc();
 		}
 
-		var tileSenderPrefix = baseAddress + 
+		var tileSenderPrefixBase = baseAddress + 
 			"TileSender.ashx?ModeKey=tile" + 
 			"&MapName=" + mapName + 
-			"&LayerName=" + layerName + 
 			(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
 			(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
+
+		var tileSenderPrefix = tileSenderPrefixBase + 
+			"&LayerName=" + layerName;
 
 		var tileFunction = function(i, j, z)
 		{
@@ -642,8 +644,9 @@
 					var RCMinZoomForRasters = layer.properties.RCMinZoomForRasters || 1;
 					obj.enableTiledQuicklooks(function(o)
 					{
-						var qURL = tileSenderPrefix + '&x={x}&y={y}&z={z}&idr=' + o.properties[layer.properties.identityField];
-						return qURL;
+						//var qURL = tileSenderPrefix + '&x={x}&y={y}&z={z}&idr=' + o.properties[layer.properties.identityField];
+						var qURL = tileSenderPrefixBase + '&x={x}&y={y}&z={z}&LayerName=' + o.properties['GMX_RasterCatalogID'];
+                        return qURL;
 					}, RCMinZoomForRasters, layer.properties.TiledQuicklookMaxZoom, tileSenderPrefix);
 					obj.getRCTileUrl = function(x, y, z, pid) {
 						return tileSenderPrefix + '&x='+x+'&y='+y+'&z='+z+'&idr=' + pid;
