@@ -94,25 +94,11 @@
     }
     
     //Data models
-    var generateUniqueID = function()
-    {
-        var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz",
-            randomstring = '';
-        
-        for (var i = 0; i < 16; i++) 
-        {
-            var rnum = Math.floor(Math.random() * chars.length);
-            randomstring += chars.charAt(rnum);
-        }
-        
-        return randomstring;
-    }
-    
 
     var LibStyle = Backbone.Model.extend({
         initialize: function() {
             if (!this.id) {
-                this.set('id', generateUniqueID());
+                this.set('id', nsGmx.Utils.generateUniqueID());
             }
         }
     });
@@ -436,7 +422,7 @@
                 
                 if (!category) return;
                 
-                var drawID = currentDrawID = generateUniqueID();
+                var drawID = currentDrawID = nsGmx.Utils.generateUniqueID();
                 category.loadFromServer().done(function() {
                     if (drawID !== currentDrawID) { //данные пришли, но пользователь уже кликнул на другую категорию
                         return;
@@ -565,7 +551,7 @@
                 if (!val) return;
                 
                 var newCategory = new LibCategory({
-                    id: generateUniqueID(), 
+                    id: nsGmx.Utils.generateUniqueID(),
                     title: val, 
                     styles: new LibStyleCollection()
                 });

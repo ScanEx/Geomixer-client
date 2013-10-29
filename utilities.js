@@ -1094,6 +1094,24 @@ function equals(x, y)
 $.extend(nsGmx.Utils, {
 
     /**
+        Возвращает уникальную строку (16 символов из букв и латинских цифр)
+        @function
+        @memberOf nsGmx.Utils
+    */
+    generateUniqueID: function()
+    {
+        var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz",
+            randomstring = '';
+        
+        for (var i = 0; i < 16; i++) 
+        {
+            var rnum = Math.floor(Math.random() * chars.length);
+            randomstring += chars.charAt(rnum);
+        }
+        
+        return randomstring;
+    },
+    /**
         Преобразует цвет, заданный в виде числа (0xaabbcc) в строку вида #aabbcc
         @function
         @memberOf nsGmx.Utils

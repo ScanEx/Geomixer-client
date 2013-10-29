@@ -2,20 +2,6 @@
 
 (function(){
 
-var createGroupId = function()
-{
-	var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz",
-		randomstring = '';
-	
-	for (var i = 0; i < 16; i++) 
-	{
-		var rnum = Math.floor(Math.random() * chars.length);
-		randomstring += chars.charAt(rnum);
-	}
-	
-	return randomstring;
-}
-
 var GroupVisibilityPropertiesModel = function(isChildRadio, isVisibilityControl, isExpanded)
 {
 	var _isChildRadio = isChildRadio;
@@ -134,7 +120,7 @@ var addSubGroup = function(div, layersTree)
                             ShowCheckbox: groupVisibilityProperties.isVisibilityControl(), 
                             expanded: groupVisibilityProperties.isExpanded(), 
                             initExpand: groupVisibilityProperties.isExpanded(), 
-                            GroupID: createGroupId()
+                            GroupID: nsGmx.Utils.generateUniqueID()
                         }, children:[]
                     }
                 },
