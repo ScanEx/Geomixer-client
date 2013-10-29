@@ -333,11 +333,12 @@
 		{
 			if(propsBalloon.isVisible()) propsBalloon.setVisible(false);
 			var showFlag = false;
+			if(!attr) attr = {};
 			for (var key in fixedHoverBalloons)
 			{
 				var balloon = fixedHoverBalloons[key];
-				if(balloon.objType != 'cluster') {
-					if(attr && attr.from && balloon.pID != attr.from) continue;
+				if(!attr.removeAll && balloon.objType != 'cluster') {
+					if(attr.from && balloon.pID != attr.from) continue;
 					balloon.setVisible(false);
 					showFlag = true;
 				}
