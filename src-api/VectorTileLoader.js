@@ -18,6 +18,7 @@
 		
 		if(!item['badTiles']) item['badTiles'] = {};
 		var counts = srcArr.length;
+        curCount += counts;
 		var len = counts;
 		var needParse = [];
 		for (var i = 0; i < len; i++)		// подгрузка векторных тайлов
@@ -45,7 +46,8 @@
 						}
 						if(response['Result'] && response['Result'].length)	needParse = needParse.concat(response['Result']);
 						if(counts < 1) {
-							callback(needParse, psrc);
+					        curCount -= len;
+                            callback(needParse, psrc);
 							needParse = [];
 							response = null;
 							item = null;
@@ -73,6 +75,7 @@
 
 							if(response.length)	needParse = needParse.concat(response);
 							if(counts < 1) {
+                                curCount -= len;
 								callback(needParse, psrc);
 								needParse = [];
 								response = null;
@@ -96,7 +99,7 @@
 	}
 	
 	var chkTimer = function() {				// установка таймера
-		if(!timer) timer = setInterval(nextLoad, 50);
+		if(!timer) timer = setInterval(nextLoad, 5);
 	}
 	
 	var vectorTileLoader = {

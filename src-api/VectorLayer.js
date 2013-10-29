@@ -64,6 +64,20 @@
 		//gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'rasterView': 'onCtrlClick'} });
 		
 		if(!layer['properties']) layer['properties'] = {};
+
+		// Каталог растров
+		if(layer.properties['IsRasterCatalog']) {
+			node['IsRasterCatalog'] = true;
+			node['rasterCatalogTilePrefix'] = layer['tileSenderPrefix'];
+		}
+
+		// накладываемое изображения с трансформацией
+		if(layer.properties['Quicklook']) {
+			node['quicklook'] = layer.properties['Quicklook'];
+			if(!node['IsRasterCatalog'] && !node['propHiden']['rasterView']) node['propHiden']['rasterView'] = 'onClick';
+		}
+
+		// установлен режим показа/скрытия растров
 		if(layer.properties['rasterView']) {
 			node['propHiden']['rasterView'] = layer.properties['rasterView'];
 		}
@@ -75,12 +89,6 @@
 		node['flipHash'] = {};					// Hash обьектов flip сортировки
 		
 		node['flipNum'] = 0;					// Порядковый номер flip
-		
-		// накладываемое изображения с трансформацией
-		if(layer.properties['Quicklook']) {
-			node['quicklook'] = layer.properties['Quicklook'];
-			if(!node['propHiden']['rasterView']) node['propHiden']['rasterView'] = 'onClick';
-		}
 		//node['labels'] = {};					// Хэш label слоя
 		//node['labelsBounds'] = [];				// Массив отрисованных label
 
@@ -165,11 +173,6 @@
 
 		var inpAttr = ph.attr;
 		node['subType'] = (inpAttr['filesHash'] ? 'Temporal' : '');
-		
-		if(layer.properties['IsRasterCatalog']) {
-			node['IsRasterCatalog'] = true;
-			node['rasterCatalogTilePrefix'] = layer['tileSenderPrefix'];
-		}
 
 		node['setSortItems'] = function(func) {
 			node['sortItems'] = func;
@@ -1793,7 +1796,8 @@
             var itemRasterView = propHiden['rasterView'] || node['rasterViewItems'][obj.id];
             if((zoom < node['quicklookZoomBounds']['minZ'] || zoom > node['quicklookZoomBounds']['maxZ'])
                 &&
-                (node['propHiden']['rasterView'] == '' || !itemRasterView)
+                !itemRasterView
+                //(node['propHiden']['rasterView'] == '' || !itemRasterView)
                 ) return null;
             var prop = obj['properties'];
             if(node['tileRasterFunc']) {
@@ -2296,7 +2300,15 @@
 			node.isIdle(-1);		// обнуление проверок окончания отрисовки
 			if(node['tilesNeedRepaint'].length) {
 				checkWaitStyle();
-				if(!node['waitStyle'] && !gmxAPI._leaflet['moveInProgress']) {
+                var tilesLoadProgress = false;
+                if(window.gmxWaitAllVectorTiles) {
+                    for(var tKey in node['tilesLoadProgress']) {
+                        tilesLoadProgress = true;
+                        break;
+                    }
+                }
+                
+				if(!tilesLoadProgress && !node['waitStyle'] && !gmxAPI._leaflet['moveInProgress']) {
 					var drawTileID = node['tilesNeedRepaint'].shift();
 					delete node['tilesNeedRepaint'][drawTileID];
 					

@@ -303,10 +303,12 @@
 		var myContents;
 		var callHandler = function(eventName)
 		{
-			var handlers = gmxAPI.map.drawing.handlers[eventName] || [];
-			for (var i = 0; i < handlers.length; i++)
+			gmxAPI._listeners.dispatchEvent(eventName, ret.domObj, ret.domObj);
+            
+            var handlers = gmxAPI.map.drawing.handlers[eventName] || [];
+			for (var i = 0; i < handlers.length; i++) {
 				handlers[i](objects[myId]);
-
+            }
 			gmxAPI._listeners.dispatchEvent(eventName, gmxAPI.map.drawing, objects[myId]);
 		}
 		var addHandlerCalled = false;
