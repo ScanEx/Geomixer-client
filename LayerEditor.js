@@ -4,15 +4,13 @@
 /** Виджет для выбора полей для X и Y координат из списка полей
 * @function
 * @param parent {DOMElement} - контейнер для размещения виджета
-* @param params {object} - параметры ф-ции
-*   - fields {array of string}- явный список полей
-*   - defaultX {string} - дефолтное значение поля X (не обязятелен)
-*   - defaultY {string} - дефолтное значение поля Y (не обязятелен)
+* @param columns {LatLngColumnsModel} - модель для сохранения выбранных колонок
+* @param sourceColumns {Array} - доступные для выбора колонки
 */
 var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
 {
     var updateWidget = function() {
-        var parsedColumns = parseColumns(sourceColumns);
+        var parsedColumns = nsGmx.LayerProperties.parseColumns(sourceColumns);
 	
         removeChilds(parent);
         
@@ -74,31 +72,7 @@ var SelectLatLngColumnsWidget = function(parent, columns, sourceColumns)
     }
 }
 
-var parseColumns = function(columns)
-{
-    var geomCount = 0; //кол-во колонок с типом Геометрия
-    var coordColumns = []; //колонки, которые могут быть использованы для выбора координат
-    var dateColumns = []; //колонки, которые могут быть использованы для выбора временнОго параметра
-        
-    columns = columns || [];
-        
-    for (var f = 0; f < columns.length; f++)
-    {
-        var type = columns[f].ColumnSimpleType.toLowerCase();
-        if ( type === 'geometry')
-            geomCount++;
-            
-        if ((type === 'string' || type === 'integer' || type === 'float') && !columns[f].IsIdentity && !columns[f].IsPrimary)
-            coordColumns.push(columns[f].Name);
-            
-        if (type === 'date' || type === 'datetime')
-            dateColumns.push(columns[f].Name);
-    }
-    
-    return { geomCount: geomCount, coordColumns: coordColumns, dateColumns: dateColumns };
-}
-
-var getSourceColumns = function(name, doNotParse)
+var getSourceColumns = function(name)
 {
     var deferred = $.Deferred();
     sendCrossDomainJSONRequest(serverBase + "VectorLayer/GetSourceColumns.ashx?SourceName=" + encodeURIComponent(name), function(response)
@@ -109,12 +83,7 @@ var getSourceColumns = function(name, doNotParse)
             return;
         }
         
-        if (doNotParse) {
-            deferred.resolve(response.Result);
-        } else {
-            var parsedColumns = parseColumns(response.Result);
-            deferred.resolve(parsedColumns.geomCount == 0, parsedColumns.coordColumns, parsedColumns.dateColumns);
-        }
+        deferred.resolve(response.Result);
     })
     
     return deferred.promise();
@@ -448,7 +417,7 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
                 layerProperties.set('Title', fileName);
             }
                 
-            getSourceColumns(path, true).done(function(sourceColumns)
+            getSourceColumns(path).done(function(sourceColumns)
             {
                 layerProperties.set('Columns', sourceColumns);
                 fileSourceColumns = sourceColumns;
@@ -495,7 +464,7 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
                 layerProperties.set('Title', name);
             }
 
-            getSourceColumns(name, true).done(function(sourceColumns)
+            getSourceColumns(name).done(function(sourceColumns)
             {
                 layerProperties.set('Columns', sourceColumns);
                 tableSourceColumns = sourceColumns;
@@ -975,7 +944,7 @@ var createPageAdvanced = function(parent, layerProperties) {
     }
         
     var updateTemporalColumns = function() {
-        var parsedColumns = parseColumns(layerProperties.get('Columns'));
+        var parsedColumns = nsGmx.LayerProperties.parseColumns(layerProperties.get('Columns'));
         temporalLayerView.updateColumns(parsedColumns.dateColumns);
         if (parsedColumns.dateColumns.length === 0) {
             isTemporalCheckbox.attr('disabled', 'disabled');

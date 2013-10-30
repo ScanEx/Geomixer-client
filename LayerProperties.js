@@ -127,7 +127,11 @@ var LayerProperties = Backbone.Model.extend({
             }
 
             var geomColumns = attrs.GeometryColumnsLatLng;
-            if (geomColumns && geomColumns.get('XCol') && geomColumns.get('YCol')) {
+            
+            var parsedColumns = nsGmx.LayerProperties.parseColumns(attrs.Columns);
+            
+            //Если нет колонки с геометрией, то нужно передавать выбранные пользователем колонки
+            if (parsedColumns.geomCount === 0 && geomColumns && geomColumns.get('XCol') && geomColumns.get('YCol')) {
                 reqParams.ColX = geomColumns.get('XCol');
                 reqParams.ColY = geomColumns.get('YCol');
             }
@@ -197,6 +201,29 @@ var LayerProperties = Backbone.Model.extend({
         }
     }
 })
+
+LayerProperties.parseColumns = function(columns) {
+    var geomCount = 0; //кол-во колонок с типом Геометрия
+    var coordColumns = []; //колонки, которые могут быть использованы для выбора координат
+    var dateColumns = []; //колонки, которые могут быть использованы для выбора временнОго параметра
+        
+    columns = columns || [];
+        
+    for (var f = 0; f < columns.length; f++)
+    {
+        var type = columns[f].ColumnSimpleType.toLowerCase();
+        if ( type === 'geometry')
+            geomCount++;
+            
+        if ((type === 'string' || type === 'integer' || type === 'float') && !columns[f].IsIdentity && !columns[f].IsPrimary)
+            coordColumns.push(columns[f].Name);
+            
+        if (type === 'date' || type === 'datetime')
+            dateColumns.push(columns[f].Name);
+    }
+    
+    return { geomCount: geomCount, coordColumns: coordColumns, dateColumns: dateColumns };
+}
 
 nsGmx.LayerProperties = LayerProperties;
 gmxCore.addModule('LayerProperties', {
