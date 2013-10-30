@@ -303,7 +303,6 @@
 		var myContents;
 		var callHandler = function(eventName)
 		{
-            gmxAPI._listeners.dispatchEvent(eventName, ret.domObj, ret.domObj);
 			var handlers = gmxAPI.map.drawing.handlers[eventName] || [];
 			for (var i = 0; i < handlers.length; i++)
 				handlers[i](objects[myId]);
@@ -334,7 +333,9 @@
 				this.properties.isVisible = ret.isVisible;
 				this.geometry = geometry;
 				this.balloon = ret.balloon;
-				callHandler(addHandlerCalled ? "onEdit" : "onAdd");
+				var evName = (addHandlerCalled ? "onEdit" : "onAdd");
+				callHandler(evName);
+                if(evName === 'onEdit') gmxAPI._listeners.dispatchEvent(evName, ret.domObj, ret.domObj);
 				addHandlerCalled = true;
 			},
 			remove: function() {
