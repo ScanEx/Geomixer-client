@@ -146,7 +146,8 @@ nsGmx.Controls = {
             title:         _gtxt("Выбор контура"),
             geomType:      null,
             errorTitle:   _gtxt("$$phrase$$_12"),
-            errorMessage: _gtxt("$$phrase$$_12")
+            errorMessage: _gtxt("$$phrase$$_12"),
+			width:        250
         }, params);
         
         if ($$('drawingBorderDialog' + name))
@@ -186,7 +187,7 @@ nsGmx.Controls = {
                 }
             });
         
-            var jDialog = showDialog(_params.title, _div([canvas], [['attr','id','drawingBorderDialog' + name],['dir','className','drawingObjectsCanvas'],['css','width','220px']]), 250, 180, false, false)
+            var jDialog = showDialog(_params.title, _div([canvas], [['attr','id','drawingBorderDialog' + name],['dir','className','drawingObjectsCanvas'],['css','width','220px']]), _params.width, 180, false, false)
         }
     },
     /**

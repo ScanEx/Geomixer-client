@@ -243,6 +243,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	_text.onclick = _title.onclick = function() {
         _options.click(_drawingObject);
     }
+	if(!_options.editStyle && !_options.allowDelete) _canvas.onclick = _text.onclick;
 	
 	var regularDrawingStyle = {
 			marker: {size: 3},
@@ -264,7 +265,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         }
     }
     else
-        icon = _span();
+        icon = _span(null, [['dir', 'className', _drawingObject.geometry.type + (isRectangle(_drawingObject.geometry.coordinates) ? ' RECTANGLE' : '')]]);
 	
 	var remove = null;
     

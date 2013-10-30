@@ -487,8 +487,7 @@ WikiEditor = function(pageInfo, wikiPlugin){
 	if ($.browser.webkit || $.browser.opera) {_btnOK.style.padding='3px'}
 	_btnOK.onclick = this.updatePage.bind(this);
 	var trContent = _tr([_td([this._txtContent], [['css', 'height', '100%']])]);
-	var tblAll = _table([_tbody([_tr([_td([this._geometryTable, this._fieldsTable])]), trContent, _tr([_td([_br(), _btnOK])])])], [['dir', 'className', 'wiki-editor-tblAll']]);
-	this._div = _div([tblAll]);
+	this.tblAll = _table([_tbody([_tr([_td([this._geometryTable, this._fieldsTable])]), trContent, _tr([_td([_br(), _btnOK])])])], [['dir', 'className', 'wiki-editor-tblAll']]);
 }
 
 WikiEditor.prototype = {
@@ -501,7 +500,7 @@ WikiEditor.prototype = {
 		}else{
 			_(this._geometryRowContainer, [_t(_gtxt("Объект не выбран"))]);
 		};
-		this._dialog = showDialog(_gtxt('Сообщение'), this._div, 725, 500 , false, false, false, function(){ $(_this).triggerHandler('dialogclose'); if (_this._drawing) _this._drawing.remove();})
+		this._dialog = showDialog(_gtxt('Сообщение'), this.tblAll, 725, 500 , false, false, false, function(){ $(_this).triggerHandler('dialogclose'); if (_this._drawing) _this._drawing.remove();})
 		$(this._dialog).dialog( "option", "minHeight", 50 );
 		$(this._dialog).dialog( "option", "minWidth", 250 );
 		//$(this._div).dialog({height: 350, width: 500, close: );
