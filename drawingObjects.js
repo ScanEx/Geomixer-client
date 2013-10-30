@@ -182,10 +182,10 @@ var DrawingObjectCollection = function(oInitMap) {
 	/** Удаляет объект из коллекции
 	@param {int} index индекс удаляемого объекта*/
 	this.RemoveAt = function(index){
-		var item = _objects.splice(index, 1)[0];
+		var obj = _objects.splice(index, 1)[0];
         
-        item.removeListener('onEdit', item.editID);
-        item.removeListener('onRemove', item.removeID);
+        //obj.item.removeListener('onEdit', obj.editID);
+        //obj.item.removeListener('onRemove', obj.removeID);
 		
 		/** Вызывается при удалении объекта из коллекции
 		@name DrawingObjects.DrawingObjectCollection.onRemove
@@ -198,7 +198,7 @@ var DrawingObjectCollection = function(oInitMap) {
 	@param {drawingObject} drawingObject удаляемый объект*/
 	this.Remove = function(drawingObject){
 		for (var i=0; i<_objects.length; i++){
-			if (_objects[i] === drawingObject) this.RemoveAt(i);
+			if (_objects[i].item === drawingObject) this.RemoveAt(i);
 		}
 	}
 }
