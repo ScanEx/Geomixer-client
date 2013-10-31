@@ -308,7 +308,7 @@
 			var itemBalloon = null;
 			bgItem.on('mouseout', function(e) {
 				var p1 = e.layerPoint;
-				var p2 = e.layer._point;
+				var p2 = this._point;
 				var dx = (p1.x - p2.x);
 				var dy = (p1.y - p2.y);
 				var delta = dx * dx + dy * dy;
@@ -359,7 +359,8 @@
 			});
 			items.on('click', function(e) {
 				var p1 = e.layerPoint;
-				var p2 = e.layer._point;
+				//var p2 = e.layer._point;
+				var p2 = this._point;
 				chkBalloon(p1, p2, 'onClick');
 			});
 			//console.log('setClustersLayer ', item);

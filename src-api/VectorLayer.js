@@ -995,7 +995,7 @@
 					item = node['objectsData'][vid];
 					if(node['flipEnabled'] && oper === 'setFlip') {
 						item = node['setFlip']();
-						if(!handlerObj && item.id === prevID) item = node['setFlip']();
+						if(item && !handlerObj && item.id === prevID) item = node['setFlip']();
 					}
 					if(!item) return true;
 					vid = item.id;
