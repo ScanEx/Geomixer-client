@@ -154,12 +154,13 @@ var gmxCore = function()
         */
         loadModule: function(moduleName, moduleSource, callback)
         {
+            var def = $.Deferred();
+            
             if (typeof moduleSource === 'function') {
                 callback = moduleSource;
                 moduleSource = undefined;
             }
             
-            var def = $.Deferred();
             this.addModulesCallback([moduleName], function(module)
             {
                 callback && callback(module);
@@ -254,23 +255,27 @@ var gmxCore = function()
         *  - Если модуль moduleName не загружен, загружает его
         *  - Потом просто вызывает ф-цию с именем functionName из этого модуля, передав ей все свои параметры
         *
+        *  - Возвращённая ф-ция при вызове возвращает jQuery.Promise, который будет resolve с параметрами, возвращёнными исходной ф-цией из модуля
         * @memberOf gmxCore
         * @param {String} moduleName Имя модуля
         * @param {String} functionName Название ф-ции внутри модуля
-        * @param {Function} callback Ф-ция, которая будет вызвана после того, как отработает ф-ция модуля. В callback будет передан ответ ф-ции.
+        * @param {Function} callback Ф-ция, которая будет вызвана после того, как отработает ф-ция модуля. В callback будет передан ответ исходной ф-ции.
         */
         createDeferredFunction: function(moduleName, functionName, callback)
         {
             var _this = this;
             return function()
             {
+                var deferred = $.Deferred();
                 var args = arguments;
-                _this.loadModule(moduleName);
-                _this.addModulesCallback([moduleName], function(module)
+                _this.loadModule(moduleName).done(function(module)
                 {
                     var res = module[functionName].apply(this, args);
                     callback && callback(res);
+                    deferred.resolve(res);
                 });
+                
+                return deferred.promise();
             }
         },
         
