@@ -327,8 +327,8 @@
 			};
 		}
 
-		var hostName = layer.properties.hostName || "maps.kosmosnimki.ru";
-		var mapName = layer.properties.mapName || "client_side_layer";
+		var hostName = layer.properties.hostName || gmxAPI.map.defaultHostName || "maps.kosmosnimki.ru";
+        var mapName = layer.properties.mapName || gmxAPI.currentMapName || "client_side_layer";
 		var baseAddress = "http://" + hostName + "/";
 		var sessionKey = isRequiredAPIKey( hostName ) ? window.KOSMOSNIMKI_SESSION_KEY : false;
 		var sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[mapName] : false);
