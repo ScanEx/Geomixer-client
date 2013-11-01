@@ -270,7 +270,7 @@ mapHelper.prototype.setBalloon = function(filter, template)
 mapHelper.prototype.updateMapStyles = function(newStyles, name, newProperties)
 {
 	// удалим старые фильтры
-	for (var i = 0; i < globalFlashMap.layers[name].filters.length; i++)
+	for (var i = globalFlashMap.layers[name].filters.length - 1; i > -1; i--)
 	{
 		globalFlashMap.layers[name].filters[i].remove();
 	}
