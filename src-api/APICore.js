@@ -1591,9 +1591,18 @@ extend(window.gmxAPI,
 		return Object.prototype.toString.apply(obj) === '[object Array]';
 	}
 	,
+	removeFromArray: function(arr, value)
+	{
+		for (var i = 0, len = arr.length; i < len; i++)
+			if (arr[i] == value)
+				return arr.splice(i, 1);
+		
+		return false;
+	}
+	,
 	valueInArray: function(arr, value)
 	{
-		for (var i = 0; i < arr.length; i++)
+		for (var i = 0, len = arr.length; i < len; i++)
 			if (arr[i] == value)
 				return true;
 		

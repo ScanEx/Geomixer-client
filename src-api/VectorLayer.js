@@ -1987,13 +1987,7 @@
 				ctx.clearRect(0, 0, 256, 256);
 				attr['labelBounds'] = [];
 			}
-			if(!geom.propHiden.curStyle) {
-				var filter = getItemFilter(geom);
-				if(!filter || filter.isVisible === false) return;		// если нет фильтра или он невидим пропускаем
-				if(filter) {
-					geom.propHiden.curStyle = (filter.regularStyle ? filter.regularStyle : null);
-				}
-			}			
+            node.chkCurStyle(geom);
 			if(!geom.propHiden.curStyle) return;
 			
 			var itemStyle = geom.propHiden.curStyle;
@@ -2532,15 +2526,23 @@
 			return true;
 		}
 
-		node.removeFilter = function(fid)	{		// Удаление фильтра векторного слоя
-			var arr = [];
-			for (var i = 0; i < node['filters'].length; i++)
-			{
-				if(node['filters'][i] != fid) arr.push(node['filters'][i]);
+        gmxAPI.extend(node, {
+            removeFilter: function(fid)	{		// Удаление фильтра векторного слоя
+                gmxAPI.removeFromArray(node.filters, fid);
+                gmxAPI.removeFromArray(node.children, fid);
+                node.checkFilters(0);
 			}
-			node['filters'] = arr;
-			//reCheckFilters();
-		}
+            ,
+            chkCurStyle: function(geom)	{		// Проверка фильтра для обьекта
+                if(!geom.propHiden.curStyle) {
+                    var filter = getItemFilter(geom);
+                    if(!filter || filter.isVisible === false) return;		// если нет фильтра или он невидим пропускаем
+                    if(filter) {
+                        geom.propHiden.curStyle = (filter.regularStyle ? filter.regularStyle : null);
+                    }
+                }			
+			}
+        });
 
 		//var redrawAllTilesTimer = null;								// Таймер
 		node.setFilter = function(fid)	{			// Добавить фильтр к векторному слою
@@ -2668,7 +2670,7 @@
 					chkVisible();
 					node.upDateLayer();
 				} else {
-					gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Проверка map Listeners на hideBalloons
+					gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {from: id});	// Проверка map Listeners на hideBalloons
 				}
 				gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, flag);
 			}, -10)};
