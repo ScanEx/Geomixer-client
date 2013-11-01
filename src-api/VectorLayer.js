@@ -2445,7 +2445,7 @@
 					} else {
 						gmxAPI._leaflet['LabelsManager'].onChangeVisible(node.id, !notViewFlag);
 						if(gmxNode && 'removeQuicklooks' in gmxNode) gmxNode.removeQuicklooks();
-						gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Проверка map Listeners на hideBalloons
+						gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {from: id});	// Проверка map Listeners на hideBalloons
 					}
 				}
 			}

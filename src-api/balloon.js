@@ -349,7 +349,8 @@
 				}
 			}
 			gmxAPI._mouseOnBalloon = false;
-			
+			if(attr.from) return;
+
 			for (var key in userBalloons)
 			{
 				var balloon = userBalloons[key];
