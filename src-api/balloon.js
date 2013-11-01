@@ -339,8 +339,11 @@
 				var balloon = fixedHoverBalloons[key];
 				if(!attr.removeAll && balloon.objType != 'cluster') {
 					if(attr.from && balloon.pID != attr.from) continue;
-					balloon.setVisible(false);
-					showFlag = true;
+					if(attr.remove) balloon.remove();
+					else {
+                        balloon.setVisible(false);
+                        showFlag = true;
+                    }
 				}
 				else
 				{
@@ -414,6 +417,7 @@
 				var balloon = addBalloon();
 				balloon.setVisible(false);
 				balloon.pID = o.parent.objectId;
+				if(o.parent && o.parent.parent && o.parent.parent.filters) balloon.pID = o.parent.parent.objectId;
 				balloon.obj = o;
 				balloon.fixedId = id;
 				balloon.keyPress = keyPress;
