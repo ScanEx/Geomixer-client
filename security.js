@@ -543,6 +543,12 @@ security.prototype.createMapSecurityDialog = function(securityInfo)
 
 security.prototype.drawMapUsers = function(user, securityScope)
 {
+    //иногда бывает, что админы тоже попадают в список людей с доступом
+    //но показывать их в этом списке не имеет смысла
+    if (user.Role === 'admin') {
+        return null;
+    }
+    
 	var remove = makeImageButton('img/closemin.png', 'img/close_orange.png'),
 		tdRemove = user.Login == nsGmx.AuthManager.getLogin() ? _td() : _td([remove]),
 		maxLayerWidth = this.tableHeader.firstChild.childNodes[0].offsetWidth + 'px',
