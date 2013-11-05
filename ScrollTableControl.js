@@ -215,7 +215,8 @@ scrollTable.prototype._getActiveFields = function()
 
 scrollTable.prototype._drawRows = function()
 {
-	var trs = [];
+	var trs = [],
+        tr;
     
     $(this).triggerHandler('beforeRedraw');
 
@@ -224,7 +225,10 @@ scrollTable.prototype._drawRows = function()
     var activeFields = this._getActiveFields();
 	
 	for (var i = 0; i < this._pageVals.length; i++)
-		trs.push(this.drawFunc(this._pageVals[i], i, activeFields));
+    {
+        tr = this.drawFunc(this._pageVals[i], i, activeFields);
+		tr && trs.push(tr);
+    }
 	
 	_(this.tableBody, trs);
 	
