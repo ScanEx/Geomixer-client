@@ -1569,11 +1569,11 @@
 				var dist = [];
 				var px = arr[3][0];
 				var py = arr[3][1];
-				var maxYnum = 0;
-				var maxY = -Number.MAX_VALUE;
+				//var maxYnum = 0;
+				//var maxY = -Number.MAX_VALUE;
 				for(var i=0, len=arr.length; i<len; i++) {
 					var px1 = arr[i][0], py1 = arr[i][1];
-					if(px1 > maxY) maxYnum = i;
+					//if(px1 > maxY) maxYnum = i;
 					var sx = px1 - px, sy = py1 - py;
 					dist.push({'d2': Math.sqrt(sx * sx + sy * sy), 'i': i});
 					px = px1, py = py1;
@@ -1581,30 +1581,27 @@
 				dist = dist.sort(function(a, b) {
 					return a['d2'] - b['d2'];
 				});
-				var min = Math.min(dist[0], dist[1], dist[2], dist[3]);
+				//var min = Math.min(dist[0], dist[1], dist[2], dist[3]);
 				var mn = dist[3]['d2'] / dist[0]['d2'];
 				out = arr;
 				if(mn > 2) {
-					var inum = dist[1]['i'];
-					if(arr[dist[0]['i']][1] > arr[dist[1]['i']][1]) {
-						out = [arr[0], arr[1], arr[2], arr[3]];
+                    out = [];
+                    var si;
+					//var inum = dist[1]['i'];
+					if(arr[dist[0]['i']][1] < arr[dist[1]['i']][1]) {
+                        si = dist[0]['i'];
 					} else {
-						out = [];
-						out.push(arr[maxYnum++]);
-						if(maxYnum > 3) maxYnum = 0;
-						out.push(arr[maxYnum++]);
-						if(maxYnum > 3) maxYnum = 0;
-						out.push(arr[maxYnum++]);
-						if(maxYnum > 3) maxYnum = 0;
-						out.push(arr[maxYnum]);
+                        si = dist[1]['i'];
 					}
+                    
+                    out.push(arr[(si-1)%4]);
+                    out.push(arr[(si+0)%4]);
+                    out.push(arr[(si+1)%4]);
+                    out.push(arr[(si+2)%4]);
 				}
 				return out;
 			}
-			var shiftPoints = [[x1, y1], [x2, y2], [x3, y3], [x4, y4]];
-            if(item.properties.PLATFORM !== 'SPOT 6') {
-                shiftPoints = chPoints([[x1, y1], [x2, y2], [x3, y3], [x4, y4]]);
-            }
+			var shiftPoints = chPoints([[x1, y1], [x2, y2], [x3, y3], [x4, y4]]);
             var pt = gmxAPI._leaflet['ProjectiveImage']({
 					'imageObj': content
 					,'points': shiftPoints
@@ -1992,7 +1989,7 @@
 			}
             node.chkCurStyle(geom);
 			if(!geom.propHiden.curStyle) return;
-			
+
 			var itemStyle = geom.propHiden.curStyle;
 			setCanvasStyle(tile, ctx, itemStyle);
 			//ctx.restore();
@@ -2543,7 +2540,7 @@
                     if(filter) {
                         geom.propHiden.curStyle = (filter.regularStyle ? filter.regularStyle : null);
                     }
-                }			
+                }
 			}
         });
 
