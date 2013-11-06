@@ -97,6 +97,7 @@ var FieldsCollection = function() {
 /** Контрол, который показывает диалог редактирования существующего или добавления нового объекта в слой.
 * 
 * @memberOf nsGmx
+* @class
 * @param {string} layerName ID слоя
 * @param {int} objectId ID объекта (null для нового объекта)
 * @param {Object} params Дополнительные параметры контрола
@@ -471,15 +472,40 @@ var EditObjectControl = function(layerName, objectId, params)
     
     createDialog();
     
-    this.get = function(name) {
+    /** Получить текущее значение атрибута из контрола
+      @memberOf nsGmx.EditObjectControl
+      @param {String} fieldName Имя атрибута
+      @method get
+    */
+    
+    this.get = function(fieldName) {
         var resValue = null;
         $(".edit-attr-value", canvas).each(function(index, elem)
         {
-            if (elem.rowName === name) {
+            if (elem.rowName === fieldName) {
                 resValue = 'value' in elem ? elem.value : $(elem).text();
             }
         });
         return resValue;
+    }
+    
+    /** Задать значение атрибута объекта из контрола
+      @memberOf nsGmx.EditObjectControl
+      @method set
+      @param {String} fieldName Имя атрибута
+      @param {String|Integer} value Значение в клиентском формате, который нужно установить для этого атрибута
+    */
+    this.set = function(fieldName, value) {
+        $(".edit-attr-value", canvas).each(function(index, elem)
+        {
+            if (elem.rowName === fieldName) {
+                if ('value' in elem) {
+                    elem.value = value;
+                } else {
+                    $(elem).text(value);
+                }
+            }
+        });
     }
 }
 
