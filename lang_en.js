@@ -82,7 +82,7 @@ _translationsHash.hash["eng"] = {
 	"Загруженный shp-файл пуст" : "The uploaded shp-file is empty",
 	"Ошибка скачивания" : "Download error",
 	"Обновить" : "Update",
-	"Домашняя директория" : "Home directory",
+	"Домашняя директория" : "Project directory",
 	"Имя папки" : "Folder name",
 	"Имя" : "Name",
 	"Тип" : "Type",
