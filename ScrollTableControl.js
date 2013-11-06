@@ -746,6 +746,13 @@ scrollTable.StaticDataProvider = function( originalData )
         _update();
     }
     
+    /** Добавляем массив элементов в исходные данные */
+    this.addOriginalItems = function(itemArr)
+    {
+        _vals = _vals.concat(itemArr);
+        _update();
+    }
+    
     //фильтрация
     this.attachFilterEvents = function(inputField, fieldName, predicate)
     {
