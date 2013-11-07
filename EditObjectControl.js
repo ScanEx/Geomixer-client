@@ -100,31 +100,40 @@ var FieldsCollection = function() {
 * @class
 * @param {string} layerName ID слоя
 * @param {int} objectId ID объекта (null для нового объекта)
-* @param {Object} params Дополнительные параметры контрола
-* @param {gmxAPI.drawingObject} params.drawingObject Пользовательский объект для задании геометрии или null, если геометрия не задана
-* @param {function} params.onGeometrySelection Внешняя ф-ция для выбора геометрии объекта. 
+* @param {Object} [params] Дополнительные параметры контрола
+* @param {gmxAPI.drawingObject} [params.drawingObject] Пользовательский объект для задании геометрии или null, если геометрия не задана
+* @param {function} [params.onGeometrySelection] Внешняя ф-ция для выбора геометрии объекта. 
          Сигнатура: function(callback), параметр callback(drawingObject) должен быть вызван когда будет выбрана геометрия.
-* @param {Object[]} params.fields массив со значениями атрибутов. Должен содержать только атрибуты, которые есть в слое. Каждый элемент массива может содержать:
+* @param {Object[]} [params.fields] массив со значениями атрибутов. Должен содержать только атрибуты, которые есть в слое. Каждый элемент массива может содержать:
 *
 *  * name {String} - имя атрибута (обязательно)
 *  * value {String|int} - значение атрибута в формате сервера (может отсутствовать)
 *  * constant {bool} - можно ли редактировать атрибут (по умолчанию - можно)
 *  * title {String} - что показывать вместо имени атрибута
-*  * validate {function(val) -> Boolean} - ф-ция для валидации результата. На вход получает введённое пользователем значение 
+*  * validate {function(val) -> bool} - ф-ция для валидации результата. На вход получает введённое пользователем значение 
 *      (до преобразования в серверный формат), должна вернуть валидно ли это значение.
+* @param {bool} [params.allowDuplicates=<depends>] Разрешать ли несколько диалогов для редактирования/создания этого объекта. 
+         По умолчанию для редактирования запрещено, а для создания нового разрешено.
 */
 var EditObjectControl = function(layerName, objectId, params)
 {
     /** Изменение/добавление объекта
-     * @event EditObjectControl#modify
+     * @event nsGmx.EditObjectControl#modify
      */
-     /** Закрытие диалога редактирования
-     * @event EditObjectControl#close
+     
+    /** Закрытие диалога редактирования
+     * @event nsGmx.EditObjectControl#close
      */
-    var _params = $.extend({drawingObject: null, fields: [], validate: {}}, params);
-    var _this = this;
+    
     var isNew = objectId == null;
-    if (!isNew && EditObjectControlsManager.find(layerName, objectId))
+    var _params = $.extend({
+            drawingObject: null, 
+            fields: [], 
+            validate: {},
+            allowDuplicates: isNew
+        }, params);
+    var _this = this;
+    if (!_params.allowDuplicates && EditObjectControlsManager.find(layerName, objectId))
         return EditObjectControlsManager.find(layerName, objectId);
     
     EditObjectControlsManager.add(layerName, objectId, this);
