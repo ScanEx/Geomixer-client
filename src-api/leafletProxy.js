@@ -13,6 +13,11 @@
 		//		'leaflet': ссылка на leaflet обьект
 		//		'zIndex': текущий zIndex ноды
 	};
+    // Группы zIndexOffset:
+    // -100000  - группа слоев входящих в базовые подложки
+    // 0        - группа растровых слоев
+    // 50000    - группа overlay слоев
+    // 100000   - группа векторных слоев
 	var regProps = [			// массив регулярных выражений атрибутов обьекта  свойств 
 		/\[([^\]]+)\]/i,
 		/\"([^\"]+)\"/i,
@@ -4181,8 +4186,8 @@
 				//if(utils.chkClassName(e.originalEvent.originalTarget, 'gmx_balloon', LMap._container)) return;	// click на балуне
 				attr['evName'] = 'onClick';
 				gmxAPI._leaflet['clickAttr'] = attr;
-				clickDone = gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
-				if(!clickDone) gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {'removeAll': true});	// Проверка map Listeners на hideBalloons
+				clickDone = gmxAPI._leaflet.utils.chkGlobalEvent(attr);
+				if(!clickDone) gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {removeAll: true});	// Проверка map Listeners на hideBalloons
 			};
 			gmxAPI._leaflet['chkClick'] = chkClick;
 			LMap.on('click', chkClick);

@@ -397,7 +397,7 @@
 		};
 
 		var domObj = false;
-		var toolsContainer = null;
+		//var toolsContainer = null;
 		
 		var node = null;
 		var oBounds = null;
@@ -433,7 +433,8 @@
 			
 			//isDraging = false;
 			drawingUtils.hideBalloon();
-			if(toolsContainer) toolsContainer.selectTool("move");
+            gmxAPI._drawing.control.selectTool("move");
+			//if(toolsContainer) toolsContainer.selectTool("move");
 			eventType = 'onEdit';
 			chkEvent(eventType);
 			drawMe();
@@ -500,7 +501,8 @@
 			gmxAPI._drawing['activeState'] = false;
 			
 			repaint();
-			if(toolsContainer) toolsContainer.selectTool("move");
+            gmxAPI._drawing.control.selectTool("move");
+			//if(toolsContainer) toolsContainer.selectTool("move");
 			eventType = 'onFinish';
 			chkEvent(eventType);
 
@@ -867,12 +869,12 @@
 		};
 
 		ret.setVisible(ret.isVisible);
-
+/*
 		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
 			toolsContainer = gmxAPI._tools['standart'];
 			toolsContainer.currentlyDrawnObject = ret;
 		}
-		
+*/
 		if (coords)
 		{
 			if(coords.length == 1) coords = coords[0];
@@ -946,7 +948,7 @@
 		var pointSize = pSize / 2;
 		var pCanvas = null;
 		var needInitNodeEvents = true;
-		var toolsContainer = null;
+		//var toolsContainer = null;
 		
 		var mouseMove = function(ph)
 		{
@@ -971,7 +973,7 @@
 		{
 			if(!coords) {			// не было mouseMove после mouseDown
 				ret.remove();
-				return;
+				//return;
 			}
 
 			gmxAPI.mousePressed	= mousePressed = false;
@@ -984,9 +986,12 @@
 			
 			//isDraging = false;
 			drawingUtils.hideBalloon();
-			if(toolsContainer) toolsContainer.selectTool("move");
-			if(domObj) domObj.triggerInternal("onMouseUp");
-			chkEvent('onFinish');
+            gmxAPI._drawing.control.selectTool("move");
+			//if(toolsContainer) toolsContainer.selectTool("move");
+			if(coords) {
+                if(domObj) domObj.triggerInternal("onMouseUp");
+                chkEvent('onFinish');
+            }
 			return true;
 		};
 		
@@ -1225,12 +1230,12 @@
 			}
 		};
 		ret.setVisible(ret.isVisible);
-
+/*
 		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
 			toolsContainer = gmxAPI._tools['standart'];
 			toolsContainer.currentlyDrawnObject = ret;
 		}
-
+*/
 		if (coords)
 		{
 			oBounds = gmxAPI.getBounds(coords);
@@ -1264,16 +1269,21 @@
 		gmxAPI._drawing['activeState'] = true;
 		gmxAPI._drawing['BoxZoom'] = true;
 		gmxAPI._cmdProxy('startDrawing');
-		var toolsContainer = null;
+        // IconsControl
+        //gmxAPI._drawing.endDrawing();
+/*
+        var toolsContainer = null;
 		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
 			toolsContainer = gmxAPI._tools['standart'];
 		}
+*/
 		gmxAPI._drawing['setMove'] = function() {
 			gmxAPI._drawing['activeState'] = false;
 			gmxAPI._drawing['BoxZoom'] = false;
-			if(toolsContainer) toolsContainer.selectTool("move");
+            gmxAPI._drawing.control.selectTool("move");
+//gmxAPI._drawing.control.setCurrent();
+			//if(toolsContainer) toolsContainer.selectTool("move");
 		}
-
 		var ret = {
 			stopDrawing: function()
 			{
@@ -1367,13 +1377,13 @@
 			,
 			'getStyle': function(removeDefaults) { return getStyle(removeDefaults, obj); }
 		};
-
+/*
 		var toolsContainer = null;
 		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
 			toolsContainer = gmxAPI._tools['standart'];
 			toolsContainer.currentlyDrawnObject = ret;
 		}
-
+*/
 		var done = function(xx, yy)
 		{
 			obj = gmxAPI.map.addObject(null, null, {'subType': 'drawing'});
@@ -1607,12 +1617,13 @@
 			addItemListenerID = gmxAPI.map.addListener('onClick', function()
 			{
 				done(gmxAPI.map.getMouseX(), gmxAPI.map.getMouseY());
-				if(toolsContainer) {
+                gmxAPI._drawing.control.selectTool((gmxAPI.map.isKeyDown(16) ? "POINT" : "move"));
+				/*if(toolsContainer) {
 					toolsContainer.selectTool("move");
 					if (gmxAPI.map.isKeyDown(16)) {
 						toolsContainer.selectTool("POINT");
 					}
-				}
+				}*/
 				ret.stopDrawing();
 				return true;
 			});
@@ -1805,14 +1816,14 @@
 		tools: { 
 			setVisible: function(flag) 
 			{ 
-				if('toolsAll' in gmxAPI.map && 'standartTools' in gmxAPI.map.toolsAll) gmxAPI.map.toolsAll.standartTools.setVisible(flag);
+				if(gmxAPI.IconsControl) gmxAPI.IconsControl.setVisible(flag);
 			}
 		}
 		,
 		addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
 		{
-			if(!gmxAPI.map.toolsAll) return null;
-			var ret = gmxAPI.map.toolsAll.standartTools.addTool(tn, {
+			if(!gmxAPI.IconsControl) return null;
+			var ret = gmxAPI.IconsControl.addTool(tn, {
 				'key': tn,
 				'activeStyle': {},
 				'regularStyle': {},
@@ -1828,13 +1839,13 @@
 		removeTool: function(tn)
 		{
 			if(this.tools[tn]) {
-				gmxAPI.map.toolsAll.standartTools.removeTool(tn);
+				gmxAPI.IconsControl.removeTool(tn);
 			}
 		}
 		,
 		selectTool: function(toolName)
 		{
-			gmxAPI._tools['standart'].selectTool(toolName);
+			if(gmxAPI.IconsControl) gmxAPI.IconsControl.selectTool(toolName);
 		}
 		,
 		getHoverItem: function(attr)
@@ -1883,4 +1894,267 @@
     gmxAPI._drawFunctions = drawFunctions;
     gmxAPI._drawing = drawing;
 
+    gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapInit', 'func': function(map) {
+//console.log('_drawing', gmxAPI.IconsControl);
+        if(gmxAPI.ControlsManager.currentID === 'controlsBaseIcons') {
+            var arr = [
+                /*{
+                    'key': "move",
+                    'activeStyle': {},
+                    'regularStyle': {},
+                    //'regularImageUrl': apiBase + "img/move_tool.png",
+                    //'activeImageUrl': apiBase + "img/move_tool_a.png",
+                    //'onClick': gmxAPI._drawFunctions['move'],
+                    'onCancel': function() {},
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Перемещение", "Move")
+                }
+                ,*/
+                {
+                    'key': "zoom",
+                    style: {
+                        backgroundPosition: '-362px -33px'
+                    }
+                    ,
+                    hoverStyle: {
+                        backgroundPosition: '-362px -2px'
+                    }
+                    ,
+                    'activeStyle': {},
+                    'regularStyle': {},
+                    //'regularImageUrl': apiBase + "img/select_tool.png",
+                    //'activeImageUrl': apiBase + "img/select_tool_a.png",
+                    'onClick': gmxAPI._drawFunctions['zoom'],
+                    'onCancel': function() {
+                        gmxAPI._drawing.setMove();
+                        //control.setCurrent();
+                        //gmxAPI._drawing.endDrawing();
+                    }
+                    ,
+    /*                'onClick': function(e) {
+    console.log('onClick zoom', e);
+                    }
+                    ,
+                    'onCancel': function(e) {
+    console.log('onCancel zoom', e);
+                    }
+                    ,*/
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
+                }
+                ,
+                {
+                    'key': "POINT",
+                    style: {
+                        backgroundPosition: '-238px -33px'
+                    }
+                    ,
+                    hoverStyle: {
+                        backgroundPosition: '-238px -2px'
+                    }
+                    ,
+                    'onClick': function(e) {
+                        gmxAPI._drawFunctions['POINT']();
+    console.log('onClick POINT', e);
+                    }
+                    ,
+                    'onCancel': function(e) {
+                        gmxAPI._drawing.endDrawing();
+    console.log('onCancel POINT', e);
+                    }
+                    ,
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
+                }
+                ,
+                {
+                    'key': "LINESTRING",
+                    style: {
+                        backgroundPosition: '-393px -33px'
+                    }
+                    ,
+                    hoverStyle: {
+                        backgroundPosition: '-393px -2px'
+                    }
+                    ,
+                    'onClick': function(e) {
+    console.log('onClick LINESTRING', e);
+                        gmxAPI._drawFunctions['LINESTRING']();
+                    }
+                    ,
+                    'onCancel': function(e) {
+    console.log('onCancel LINESTRING', e);
+                        gmxAPI._drawing.endDrawing();
+                    }
+                    ,
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
+                }
+                ,
+                {
+                    'key': "POLYGON",
+                    style: {
+                        backgroundPosition: '-503px -33px'
+                    }
+                    ,
+                    hoverStyle: {
+                        backgroundPosition: '-503px -2px'
+                    }
+                    ,
+                    'onClick': function(e) {
+    console.log('onClick POLYGON', e);
+                        gmxAPI._drawFunctions['POLYGON']();
+                    }
+                    ,
+                    'onCancel': function(e) {
+    console.log('onCancel POLYGON', e);
+                        gmxAPI._drawing.endDrawing();
+                    }
+                    ,
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Полигон", "Polygon")
+                }
+                ,
+                {
+                    'key': "FRAME",
+                    style: {
+                        backgroundPosition: '-269px -33px'
+                    }
+                    ,
+                    hoverStyle: {
+                        backgroundPosition: '-269px -2px'
+                    }
+                    ,
+                    'onClick': function(e) {
+    console.log('onClick FRAME', e);
+                        gmxAPI._drawFunctions['FRAME']();
+                    }
+                    ,
+                    'onCancel': function(e) {
+    console.log('onCancel FRAME', e);
+                        gmxAPI._drawing.endDrawing();
+                    }
+                    ,
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
+                }
+
+            ];
+            gmxAPI._drawing.control = gmxAPI.ControlsManager.addGroupTool({
+                id: 'drawing'
+                ,items: arr
+            });
+            gmxAPI.map.standartTools = gmxAPI._drawing.control;     // для обратной совместимости
+            
+            gmxAPI._drawing.control.setCurrent();
+        } else {
+            var attr = {
+                'properties': { 'className': 'gmxTools' }
+                ,
+                'style': {
+                    marginTop: '40px'
+                }
+                ,
+                'regularStyle': {
+                    paddingTop: "0px", 
+                    paddingBottom: "0px", 
+                    paddingLeft: "0px", 
+                    paddingRight: "0px", 
+                    fontSize: "12px",
+                    fontFamily: "sans-serif",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    cursor: "pointer", 
+                    opacity: 1, 
+                    color: "wheat"
+                }
+                ,
+                'activeStyle': {
+                    paddingTop: "0px", 
+                    paddingBottom: "0px", 
+                    paddingLeft: "0px", 
+                    paddingRight: "0px", 
+                    fontSize: "12px",
+                    fontFamily: "sans-serif",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    cursor: "pointer", 
+                    opacity: 1, 
+                    color: 'orange'
+                }
+                ,
+                'contType': 1	// режим для drawing tools
+            };
+            var standartTools = new gmxAPI._ToolsContainer('standart', attr);
+            var apiBase = gmxAPI.getAPIFolderRoot();
+            var arr = [
+                {
+                    'key': "move",
+                    'activeStyle': {},
+                    'regularStyle': {},
+                    'regularImageUrl': apiBase + "img/move_tool.png",
+                    'activeImageUrl': apiBase + "img/move_tool_a.png",
+                    'onClick': gmxAPI._drawFunctions['move'],
+                    'onCancel': function() {},
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Перемещение", "Move")
+                }
+                ,
+                {
+                    'key': "zoom",
+                    'activeStyle': {},
+                    'regularStyle': {},
+                    'regularImageUrl': apiBase + "img/select_tool.png",
+                    'activeImageUrl': apiBase + "img/select_tool_a.png",
+                    'onClick': gmxAPI._drawFunctions['zoom'],
+                    'onCancel': function() {},
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
+                }
+                ,
+                {
+                    'key': "POINT",
+                    'activeStyle': {},
+                    'regularStyle': {},
+                    'regularImageUrl': apiBase + "img/marker_tool.png",
+                    'activeImageUrl': apiBase + "img/marker_tool_a.png",
+                    'onClick': gmxAPI._drawFunctions['POINT'],
+                    'onCancel': gmxAPI._drawing.endDrawing,
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
+                }
+                ,
+                {
+                    'key': "LINESTRING",
+                    'activeStyle': {},
+                    'regularStyle': {},
+                    'regularImageUrl': apiBase + "img/line_tool.png",
+                    'activeImageUrl': apiBase + "img/line_tool_a.png",
+                    'onClick': gmxAPI._drawFunctions['LINESTRING'],
+                    'onCancel': gmxAPI._drawing.endDrawing,
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
+                }
+                ,
+                {
+                    'key': "POLYGON",
+                    'activeStyle': {},
+                    'regularStyle': {},
+                    'regularImageUrl': apiBase + "img/polygon_tool.png",
+                    'activeImageUrl': apiBase + "img/polygon_tool_a.png",
+                    'onClick': gmxAPI._drawFunctions['POLYGON'],
+                    'onCancel': gmxAPI._drawing.endDrawing,
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Полигон", "Polygon")
+                }
+                ,
+                {
+                    'key': "FRAME",
+                    'activeStyle': {},
+                    'regularStyle': {},
+                    'regularImageUrl': apiBase + "img/frame_tool.png",
+                    'activeImageUrl': apiBase + "img/frame_tool_a.png",
+                    'onClick': gmxAPI._drawFunctions['FRAME'],
+                    'onCancel': gmxAPI._drawing.endDrawing,
+                    'hint': gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
+                }
+            ];
+            for(var i=0; i<arr.length; i++) {
+                var ph = arr[i]['key']
+                standartTools.addTool(arr[i]['key'], arr[i]);
+            }
+            standartTools.selectTool("move");
+            gmxAPI._drawing.control = gmxAPI.map.standartTools = standartTools;
+        }
+        //this.standartTools = standartTools;
+    }});
 })();

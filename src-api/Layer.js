@@ -646,7 +646,7 @@
 					{
 						//var qURL = tileSenderPrefix + '&x={x}&y={y}&z={z}&idr=' + o.properties[layer.properties.identityField];
 						var qURL = tileSenderPrefixBase + '&x={x}&y={y}&z={z}&LayerName=' + o.properties['GMX_RasterCatalogID'];
-                        return qURL;
+						return qURL;
 					}, RCMinZoomForRasters, layer.properties.TiledQuicklookMaxZoom, tileSenderPrefix);
 					obj.getRCTileUrl = function(x, y, z, pid) {
 						return tileSenderPrefix + '&x='+x+'&y='+y+'&z='+z+'&idr=' + pid;

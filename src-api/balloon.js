@@ -249,6 +249,7 @@
 						if('attr' in o) keyPress = o.attr;
 						//if('attr' in o && 'textFunc' in o.attr) keyPress = o.attr;
 						o = o.obj;
+						if('propForBalloon' in keyPress) o.properties = keyPress.propForBalloon;
 					}
 					refreshMapPosition();
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 

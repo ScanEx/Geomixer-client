@@ -181,6 +181,8 @@
 		// Использование SharedObject
 		map.setFlashLSO = function(data) { return gmxAPI._cmdProxy('setFlashLSO', {'obj': this, 'attr':data }); }
 
+		if('BaseLayersManager' in gmxAPI) gmxAPI.BaseLayersManager.init({'map': map});
+		if('ControlsManager' in gmxAPI) gmxAPI.ControlsManager.init(window.gmxControls || 'controlsBase', gmxAPI._div, map);
 		gmxAPI._listeners.dispatchEvent('mapInit', null, map);	// Глобальный Listeners
 
 		var toolHandlers = {};
@@ -356,7 +358,7 @@
 			,getVisibility: function() { return gmxAPI._cmdProxy('getGridVisibility', {}) }
 			,setOneDegree: function(flag) { gmxAPI._cmdProxy('setOneDegree', { 'attr': flag }) }
 		};
-
+/*
 		//Begin: tools
 		if('_ToolsAll' in gmxAPI) {
 			map.toolsAll = new gmxAPI._ToolsAll(gmxAPI._div);
@@ -364,6 +366,7 @@
 		if('_addZoomControl' in gmxAPI) {
 			gmxAPI._addZoomControl(gmxAPI._allToolsDIV);
 		}
+*/        
 		map.setMinMaxZoom(1, 17);
 
 		if (gmxAPI._drawing) {
@@ -417,8 +420,10 @@
 			}
 */
 			this.isBaseLayer = true;
-			if(gmxAPI.baseLayersTools)
-				gmxAPI.baseLayersTools.chkBaseLayerTool(name, attr);
+            var id = (attr && attr['id'] ? attr['id'] : name);
+			gmxAPI._listeners.dispatchEvent('onAddBaseLayer', map, {'id': id, 'layer': this, 'attr': attr});
+			//if(gmxAPI.baseLayersTools)
+				//gmxAPI.baseLayersTools.chkBaseLayerTool(name, attr);
 		});
 
 		var unSetBaseLayer = function()
@@ -501,7 +506,7 @@
 			},
 			getBaseLayerLayers: function(name)
 			{
-				return baseLayers[name];
+                return gmxAPI.BaseLayersManager.getItem(name);
 			}
 		}
 
@@ -704,11 +709,11 @@
 			};
 			return out;
 		}
-
+/*
 		if('_addLocationTitleDiv' in gmxAPI) gmxAPI._addLocationTitleDiv(gmxAPI._div);
 		if('_addGeomixerLink' in gmxAPI) gmxAPI._addGeomixerLink(gmxAPI._div);
 		if('_addCopyrightControl' in gmxAPI) gmxAPI._addCopyrightControl(gmxAPI._div);
-
+*/
 		var sunscreen = map.addObject();
 		gmxAPI._sunscreen = sunscreen;
 
@@ -810,8 +815,9 @@
 			gmxAPI._cmdProxy('setBackgroundColor', { 'obj': map, 'attr':color });
 			var isWhite = (0xff & (color >> 16)) > 80;
 			var htmlColor = isWhite ? "black" : "white";
-			if(gmxAPI._setCoordinatesColor) gmxAPI._setCoordinatesColor(htmlColor, gmxAPI.getAPIFolderRoot() + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png"), true);
-			if(gmxAPI._setCopyrightColor) gmxAPI._setCopyrightColor(htmlColor);
+			gmxAPI._listeners.dispatchEvent('onChangeBackgroundColor', map, htmlColor);
+			//if(gmxAPI._setCoordinatesColor) gmxAPI._setCoordinatesColor(htmlColor, gmxAPI.getAPIFolderRoot() + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png"), true);
+			//if(gmxAPI._setCopyrightColor) gmxAPI._setCopyrightColor(htmlColor);
 		}
 		
 		map.setBackgroundColor(gmxAPI.proxyType === 'leaflet' ? 0xffffff : 0x000001);
@@ -998,7 +1004,14 @@
 		}
 		map.ToolsContainer = gmxAPI._ToolsContainer;
 		gmxAPI._listeners.dispatchEvent('mapCreated', null, map);	// Глобальный Listeners
-		return map;
+		// Deffered методы
+        var deffered = function() {
+            console.log('Deffered function: ', arguments.callee);
+        }
+        map.setCoordinatesAlign = deffered;	// Позиционирование масштабной шкалы (tr tl br bl)
+        map.setCopyrightAlign = deffered;		// Позиционирование Copyright (tr tl br bl bc)
+		map.setGeomixerLinkAlign = deffered;	// Позиционирование GeomixerLink (tr tl br bl)
+        return map;
 	}
 	//расширяем namespace
     gmxAPI._addNewMap = addNewMap;	// Создать map обьект

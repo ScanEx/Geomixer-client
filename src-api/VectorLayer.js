@@ -772,6 +772,7 @@
 				attr['geom'] = node['getItemGeometry'](geom.id);
 				attr[evName] = true;
 				var prop = getPropItem(geom);
+				if('objForBalloon' in attr) attr.propForBalloon = getPropItem(attr.objForBalloon);
 				res = rNode['handlers'][evName].call(gNode, geom.id, prop, attr);
 			}
 			return res;
@@ -978,6 +979,10 @@
 					node['flipIDS'] = sortFlipIDS(arr);
 				}
 				if(!node['flipIDS'].length) return false;
+                
+				var idClick = node['flipIDS'][node['flipIDS'].length - 1];
+				var itemClick = node['objectsData'][idClick];
+                
 				var vid = node['flipIDS'][0];
 				var item = arr[0];
 				var oper = 'setFlip';
@@ -1035,10 +1040,11 @@
 				var gmxAttr = attr;
 				gmxAttr['layer'] = gmxNode;
 				gmxAttr['eventPos'] = eventPos;
+				gmxAttr['objForBalloon'] = item;
 				
 				if(!isCluster) {
 					if(handlerObj) {
-						callHandler('onClick', item, handlerObj, gmxAttr);
+						callHandler('onClick', itemClick, handlerObj, gmxAttr);
 						return true;
 					}
 				} else {
@@ -1593,7 +1599,12 @@
 					} else {
                         si = dist[1]['i'];
 					}
-                    
+/*
+                    out.push(arr[(si-1)%4]);
+                    out.push(arr[(si+0)%4]);
+                    out.push(arr[(si+1)%4]);
+                    out.push(arr[(si+2)%4]);
+*/
                     out.push(arr[(si+3)%4]);
                     out.push(arr[(si+4)%4]);
                     out.push(arr[(si+5)%4]);
@@ -1602,6 +1613,7 @@
 				return out;
 			}
 			var shiftPoints = chPoints([[x1, y1], [x2, y2], [x3, y3], [x4, y4]]);
+//console.log('shiftPoints', shiftPoints);
             var pt = gmxAPI._leaflet['ProjectiveImage']({
 					'imageObj': content
 					,'points': shiftPoints
@@ -1749,6 +1761,7 @@
 			}
 			if(node['addedItems'].length) {
 				//node['objectCounts'] += node['addedItems'].length;
+				//chkArr(node['addedItems'], true);
 				chkArr(node['addedItems']);
 			}
 			

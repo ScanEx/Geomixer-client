@@ -47,7 +47,7 @@
 						if(response['Result'] && response['Result'].length)	needParse = needParse.concat(response['Result']);
 						if(counts < 1) {
 					        curCount -= len;
-                            callback(needParse, psrc);
+							callback(needParse, psrc);
 							needParse = [];
 							response = null;
 							item = null;

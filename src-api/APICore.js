@@ -3241,6 +3241,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 
 				var baseLayerTypes = {
 					'map': {
+						'id': 'map',
 						'onClick': function() { gmxAPI.map.setMode('map'); },
 						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 						'onmouseover': function() { this.style.color = "orange"; },
@@ -3252,6 +3253,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					}
 					,
 					'satellite': {
+						'id': 'satellite',
 						'onClick': function() { gmxAPI.map.setMode('satellite'); },
 						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 						'onmouseover': function() { this.style.color = "orange"; },
@@ -3263,6 +3265,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					}
 					,
 					'hybrid': {
+						'id': 'hybrid',
 						'onClick': function() { gmxAPI.map.setMode('hybrid'); },
 						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
 						'onmouseover': function() { this.style.color = "orange"; },
@@ -3283,7 +3286,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						{
 							var mapLayer = map.layers[mapLayerNames[i]];
 							//mapLayer.setVisible(true);						// Слои BaseMap должны быть видимыми
-							mapLayer.setAsBaseLayer(mapString, baseLayerTypes['map']);
+							mapLayer.setAsBaseLayer(baseLayerTypes['map']['id'], baseLayerTypes['map']);
 							mapLayer.setBackgroundColor(baseLayerTypes['map']['backgroundColor']);
 							mapLayers.push(mapLayer);
 						}
@@ -3299,7 +3302,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							
 					for (var i = 0; i < satelliteLayers.length; i++)
 					{
-						satelliteLayers[i].setAsBaseLayer(satelliteString, baseLayerTypes['satellite'])
+						satelliteLayers[i].setAsBaseLayer(baseLayerTypes['satellite']['id'], baseLayerTypes['satellite'])
 						satelliteLayers[i].setBackgroundColor(baseLayerTypes['satellite']['backgroundColor']);
 					}
 				}
@@ -3314,7 +3317,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						{
 							isAnyExists = true;
 							var overlayLayer = map.layers[overlayLayerNames[i]];
-							overlayLayer.setAsBaseLayer(hybridString, baseLayerTypes['hybrid']);
+							overlayLayer.setAsBaseLayer(baseLayerTypes['hybrid']['id'], baseLayerTypes['hybrid']);
 							overlayLayer.setBackgroundColor(baseLayerTypes['hybrid']['backgroundColor']);
 							overlayLayers.push(overlayLayer);
 						}
@@ -3322,7 +3325,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					if (isAnyExists)
 					{
 						for (var i = 0; i < satelliteLayers.length; i++) {
-							satelliteLayers[i].setAsBaseLayer(hybridString, baseLayerTypes['hybrid']);						
+							satelliteLayers[i].setAsBaseLayer(baseLayerTypes['hybrid']['id'], baseLayerTypes['hybrid']);
 							satelliteLayers[i].setBackgroundColor(baseLayerTypes['hybrid']['backgroundColor']);
 						}
 					}
