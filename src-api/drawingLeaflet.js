@@ -556,8 +556,8 @@
 							onStartMove = function(pt) {
 								coords[editIndex] = [x, y];
 								layerItems[2].options['skipLastPoint'] = (editType === 'POLYGON' ? true : false);
-								gmxAPI._drawing['activeState'] = true;
 							}
+							gmxAPI._drawing['activeState'] = true;
 							if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 						} else if(downType['type'] === 'edge') {		// добавляем точку
 							if(editType === 'LINESTRING') {
@@ -971,7 +971,7 @@
 		{
 			if(!coords) {			// не было mouseMove после mouseDown
 				ret.remove();
-				return;
+				//return;
 			}
 
 			gmxAPI.mousePressed	= mousePressed = false;
