@@ -1594,10 +1594,10 @@
                         si = dist[1]['i'];
 					}
                     
-                    out.push(arr[(si-1)%4]);
-                    out.push(arr[(si+0)%4]);
-                    out.push(arr[(si+1)%4]);
-                    out.push(arr[(si+2)%4]);
+                    out.push(arr[(si+3)%4]);
+                    out.push(arr[(si+4)%4]);
+                    out.push(arr[(si+5)%4]);
+                    out.push(arr[(si+6)%4]);
 				}
 				return out;
 			}
@@ -1749,7 +1749,7 @@
 			}
 			if(node['addedItems'].length) {
 				//node['objectCounts'] += node['addedItems'].length;
-				chkArr(node['addedItems'], true);
+				chkArr(node['addedItems']);
 			}
 			
 			if('sortItems' in node) {
