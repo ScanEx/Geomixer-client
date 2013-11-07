@@ -44,7 +44,7 @@
             var layerNames = ['076EFE8A3D66461BBEC1234B006DE272', '378F08F3C00043528A70CE6878E7F487'];
             
             var selectedImagesLayer = map.addLayer({properties: {
-                IsRasterCatalog: false,
+                IsRasterCatalog: true,
                 RCMinZoomForRasters: 8,
                 title: 'Express Sales Results',
                 styles: [{

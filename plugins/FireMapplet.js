@@ -1,5 +1,8 @@
-﻿(function($){
-
+﻿/** 
+ * @namespace FireMapplet
+ * @description Пожарный виджет
+ */
+(function($){
 
 var initTranslations = function()
 {
@@ -222,7 +225,7 @@ var SearchBboxControl = function(map)
     _addBboxDelegateLazy();
     
 	 /**
-	 * @name cover.SearchBboxControl.change
+	 * @name FireMapplet.SearchBboxControl.change
 	 * @event
 	 */
 	 
@@ -380,13 +383,13 @@ var SearchBboxControl = function(map)
 
 /**
  * @memberOf FireMapplet
- * @class cover
+ * @class
  * Аггрегирует статусы разных событий для нескольких источников (загружаются данные, слишком большая область и т.п.)
  */
 var AggregateStatus = function()
 {
 	/** Изменение состояние аггрегатора, а не отдельных состояний источников
-	 * @name cover.AggregateStatus.change
+	 * @name FireMapplet.AggregateStatus.change
 	 * @event
 	 */
 	var _statuses = {};
@@ -543,7 +546,7 @@ var FireBurntProvider = function( params )
 
 /** Провайдер покрытия снимками modis
 * @memberOf FireMapplet
-* @class 
+* @class
 * @param {Object} params Параметры класса: <br/>
 * <i> {String} host </i> Сервер, с которого загружаются слои с модисом. Default: http://maps.kosmosnimki.ru/<br/>
 */

@@ -1197,7 +1197,6 @@ var LayerEditor = function(div, type, properties, treeView, params) {
 
 /**
  Создаёт диалог редактирования свойств слоя с вкладками (tabs) и кнопкой "Сохранить" под ними
- @namespace nsGmx
  @param {DOMElement} div Элемент дерева слоёв, соответствующий редактируемому слою
  @param {String} type тип слоя ("Vector" или "Raster")
  @param {DOMElement} parent контейнер, в которым нужно разместить диалог

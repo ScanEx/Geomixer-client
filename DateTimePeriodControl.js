@@ -29,7 +29,7 @@ var initTranslations = function()
 }
 
 /**
- @memberOf cover
+ @memberOf nsGmx
  @class Контрол для задания диапазона дат. Сontrols: два календарика, выбор периода, галочка с выбором года
 */
 var Calendar = function(name, params)
@@ -59,7 +59,7 @@ var Calendar = function(name, params)
 	})();
 	
 	/** Если изменилась хотя бы одна из дат
-	  @name cover.Calendar.change
+	  @name nsGmx.Calendar.change
 	  @event
 	 */
 	 
@@ -188,8 +188,9 @@ var Calendar = function(name, params)
         }
     }
     
-    /**
-    */
+    /** Нужно ли показывать время под календариком
+     * @param {bool} isShowTime Показывать ли время
+     */
     this.setShowTime = function(isShowTime)
     {
         this._params.showTime = isShowTime;
