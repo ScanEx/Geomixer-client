@@ -1167,6 +1167,7 @@
             if(!iconsControl.node) iconsControl.node = iconsControl.createNode(cont);
             if(!iconsControl.node.parentNode) iconsControl.setVisible(true);
             iconsControl.setActive(true);
+            gmxAPI.IconsControl = iconsControl;
 //console.log('iconsControl', iconsControl.node);
         }
         ,
@@ -1551,12 +1552,18 @@ console.log('selectTool', id);
                             if('onmouseout' in prevItem['_gmxItem']) prevItem['_gmxItem']['onmouseout']();
                             if('onCancel' in prevItem['_gmxItem']) prevItem['_gmxItem']['onCancel']();
                             prevItem['_gmxItem']['isActive'] = false;
+if(!id || groupItems['currentID'] === id) {
+groupItems['currentID'] = null;
+return;
+}
                         }
                     }
                     var target = null;
                     if(id && groupItems['items'][id] && groupItems['currentID'] !== id) {
                         target = groupItems['items'][id];
-                        target.parentNode.insertBefore(target, target.parentNode.firstChild);
+                        if(target != target.parentNode.firstChild) {
+                            target.parentNode.insertBefore(target, target.parentNode.firstChild);
+                        }
                         if('onmouseover' in target['_gmxItem']) target['_gmxItem']['onmouseover']();
                         if('onClick' in target['_gmxItem']) target['_gmxItem']['onClick']();
                         target['_gmxItem']['isActive'] = true;
@@ -1600,8 +1607,24 @@ console.log('setCurrent', id, groupItems['currentID']);
                             onclick: function(e) {
                                 //var target = e['target'];
 console.log('onclick', id, item.id, e);
-                    groupItems.setCurrent(id);
-/*                                var target = item;
+//setTimeout(function() {
+                                groupItems.setCurrent(id);
+//}, 0);
+/*
+gmxAPI.stopEvent(e);
+e.stopImmediatePropagation();
+				if (e.preventDefault)
+				{
+					e.stopPropagation();
+					e.preventDefault();
+				}
+				else 
+				{
+					e.returnValue = false;
+					e.cancelBubble = true;
+				}
+
+                                var target = item;
                                 var _gmxItem = target['_gmxItem'];
                                 
                                 if(groupItems['currentID'] === _gmxItem.id) {
@@ -1654,6 +1677,18 @@ console.log('onclick', id, item.id, e);
         ,
         'init': function(parent) {        // инициализация
 //console.log('controlsBaseIcons', parent);
+
+            gmxAPI._tools = {};
+            gmxAPI._tools.standart = iconsControl;
+            gmxAPI._listeners.addListener({'level': 10000, 'eventName': 'mapInit', 'func': function(map) {
+    //console.log('ControlsManager', iconsControl);
+                 iconsControl.setActive(true);
+                 copyrightControl.setActive(true);
+                 locationControl.setActive(true);
+                 zoomControl.setActive(true);
+                 Control.isActive = true;
+            }});
+
             this.forEach(function(item, i) {
                 ('init' in item ? item.init : item)(parent);
             });
@@ -1677,12 +1712,11 @@ console.log('onclick', id, item.id, e);
             }
         }
 	}
-
+/*
+    gmxAPI.IconsControl = iconsControl;
     if(gmxAPI.ControlsManager.currentID === Control.id) {
-        gmxAPI.IconsControl = iconsControl;
         gmxAPI._tools = {};
         gmxAPI._tools.standart = iconsControl;
-        gmxAPI.ControlsManager.addControl(Control);
         gmxAPI._listeners.addListener({'level': 10000, 'eventName': 'mapInit', 'func': function(map) {
 //console.log('ControlsManager', iconsControl);
              iconsControl.setActive(true);
@@ -1692,4 +1726,6 @@ console.log('onclick', id, item.id, e);
              Control.isActive = true;
         }});
     }
+*/    
+    gmxAPI.ControlsManager.addControl(Control);
 })();

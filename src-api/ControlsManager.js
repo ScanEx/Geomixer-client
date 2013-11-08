@@ -88,11 +88,8 @@
         }
         ,
         'addGroupTool': function(pt) {
-console.log('addGroupTool', pt);
-            if(gmxAPI.IconsControl) return gmxAPI.IconsControl.addGroupTool(pt);
-            else {
-                
-            }
+//console.log('addGroupTool', pt);
+            return gmxAPI.IconsControl.addGroupTool(pt);
         }
 	}
 	gmxAPI.ControlsManager = ControlsManager;

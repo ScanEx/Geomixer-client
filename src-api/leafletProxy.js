@@ -2763,6 +2763,34 @@
 		,'getMouseX':	function()	{ return utils.getMouseX(); }		// Позиция мыши X
 		,'getMouseY':	function()	{ return utils.getMouseY();	}		// Позиция мыши Y
 		,
+		'setSortItems':	function(ph) {
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(node && 'setSortItems' in node) {
+				node.setSortItems(ph.attr.data);
+				return true;
+			}
+			return false;
+		}
+		,
+		'setFlipItems':	function(ph) {
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(node && 'setFlipItems' in node) {
+				return node.setFlipItems(ph.attr.arr, ph.attr.clear);
+			}
+			return false;
+		}
+		,
+		'getFlipItems':	function(ph) {
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(node && 'getFlipItems' in node) {
+				return node.getFlipItems(ph.attr.data);
+			}
+			return [];
+		}
+		,
 		'flip':	function(ph)	{					// Пролистывание в квиклуках
 			var id = ph.obj.objectId;
 			if(typeof(id) == 'string') id = id.replace(/id_/, '');
@@ -2902,16 +2930,6 @@
 			if(!node || !node.removeItems) return false;
 			node.removeItems(ph.attr.data);
 			return true;
-		}
-		,
-		'setSortItems':	function(ph)	{
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			if(node && 'setSortItems' in node) {
-				node.setSortItems(ph.attr.data);
-				return true;
-			}
-			return false;
 		}
 		,		
 		'setAPIProperties':	function(ph)	{

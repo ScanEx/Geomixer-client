@@ -402,12 +402,12 @@ extend(window.gmxAPI,
 	{
 		var event = gmxAPI.compatEvent(ev);
 		if(!event) return false;
-		
+
 		if (event.stopPropagation) event.stopPropagation();
 		else if (event.preventDefault) event.preventDefault(); 
-		event.cancelBubble = true;
-		event.cancel = true;
-		event.returnValue = false;
+        event.cancelBubble = true;
+        event.cancel = true;
+        event.returnValue = false;
 		return true;
 	}
 	,
@@ -2824,8 +2824,9 @@ FlashMapObject.prototype.setCircle = function(x, y, r)
 	VR[1] = Rd * Math.cos(b) * Math.sin(a);
 	VR[2] = Rd * Math.sin(b);
 
-	var circle = [];
-	var coordinates = [];
+	var circle = [],
+        coordinates = [],
+        t1 = 0, t2 = 0;
 
 	for (var fi = 0; fi < 2*Math.PI + 0.000001; fi += (2*Math.PI/n))
 	{
@@ -2833,9 +2834,9 @@ FlashMapObject.prototype.setCircle = function(x, y, r)
 		for (var i=0; i<3; i++)
 			circle[i] = VR[i] + d*v[i];
 
-		var t1 = (180*Math.asin(circle[2]/R)/Math.PI);
+		t1 = (180*Math.asin(circle[2]/R)/Math.PI);
 		var r = Math.sqrt(circle[0]*circle[0]+circle[1]*circle[1]);
-		var t2 = circle[1]<0 ? -180*Math.acos(circle[0]/r)/Math.PI :
+		t2 = circle[1]<0 ? -180*Math.acos(circle[0]/r)/Math.PI :
 			180*Math.acos(circle[0]/r)/Math.PI;
 
 		if (t2 < x - 180)
@@ -2845,6 +2846,9 @@ FlashMapObject.prototype.setCircle = function(x, y, r)
 
 		coordinates.push([t2, t1]);
 	}
+    if(coordinates.length > 0 && (coordinates[0][0] !== t2 || coordinates[0][1] !== t1)) {
+        coordinates.push(coordinates[0]);
+    }
 
 	this.setPolygon(coordinates);
 }

@@ -84,11 +84,6 @@
 		layer.properties['visible'] = ('visible' in layer.properties ? layer.properties['visible'] : true);
 		node['tileRasterFunc'] = null;			// tileFunc для квиклуков
 		
-		node['flipIDS'] = [];					// Массив обьектов flip сортировки
-		node['flipedIDS'] = [];					// Массив обьектов вне сортировки
-		node['flipHash'] = {};					// Hash обьектов flip сортировки
-		
-		node['flipNum'] = 0;					// Порядковый номер flip
 		//node['labels'] = {};					// Хэш label слоя
 		//node['labelsBounds'] = [];				// Массив отрисованных label
 
@@ -173,11 +168,6 @@
 
 		var inpAttr = ph.attr;
 		node['subType'] = (inpAttr['filesHash'] ? 'Temporal' : '');
-
-		node['setSortItems'] = function(func) {
-			node['sortItems'] = func;
-			waitRedraw();
-		}
 
 		node['getGeometryType'] = function (itemId) {				// Получить geometry.type обьекта векторного слоя
 			var item = node['objectsData'][itemId];
@@ -853,39 +843,6 @@
 			}
 		}
 
-		var getTopFromArrItem = function(arr) {				// Получить верхний item из массива с учетом flip
-			if(!arr || !arr.length) return null;
-			var ph = {};
-			for (var i = 0; i < arr.length; i++) ph[arr[i].id || arr[i].geom.id] = i;
-			var out = null;
-			for (var i = node['flipedIDS'].length - 1; i >= 0; i--)
-			{
-				var tid = node['flipedIDS'][i];
-				if(tid in ph) return arr[ph[tid]];
-			}
-			return arr[arr.length - 1];
-		}
-
-		var chkFlip = function(fid) {				// убираем дубли flip
-			if(node['flipHash'][fid]) {
-				for (var i = 0; i < node['flipedIDS'].length; i++)
-				{
-					if(fid == node['flipedIDS'][i]) {
-						node['flipedIDS'].splice(i, 1);
-						break;
-					}
-				}
-			}
-			node['flipedIDS'].push(fid);
-			node['flipHash'][fid] = true;
-		}
-
-		node['addFlip'] = function(fid) {			// добавить обьект flip сортировки
-			chkFlip(fid);
-			node.redrawFlips(true);
-			return node['flipedIDS'].length;
-		}
-
 		node['rasterViewItems'] = {};		// Обьекты с установленным флагом показа растров
 		node['setRasterViewItems'] = function(arr) {		// Установить видимость растров обьектов
 			var hash = {};
@@ -894,23 +851,6 @@
 			}
             node['rasterViewItems'] = hash;
 			node.reloadTilesList(0);
-		}
-
-		node['setFlip'] = function() {				// переместить обьект flip сортировки
-			if(!node['flipIDS'] || !node['flipIDS'].length) return false;
-			var vid = node['flipIDS'].shift();
-			node['flipIDS'].push(vid);
-			chkFlip(vid);
-
-			if(node['tileRasterFunc']) {
-				node.waitRedrawFlips(0);
-			}
-			var item = node['objectsData'][vid];
-			if(!item) return null;
-			var geom = node['getItemGeometry'](vid);
-			var mObj = new gmxAPI._FlashMapFeature(geom, getPropItem(item), gmxNode);
-			gmxAPI._listeners.dispatchEvent('onFlip', gmxNode, mObj);
-			return item;
 		}
 
 		var getHandler = function(fid, evName) {			// Получить gmx обьект на котором установлен Handler
@@ -927,21 +867,6 @@
 				out = filter;
 			} else {								// Есть handlers на родителях
 				out = utils.getNodeHandler(node.id, evName);
-			}
-			return out;
-		}
-
-		var sortFlipIDS = function(arr) {			// Получить gmx обьект на котором установлен Handler
-			var out = [];
-			var pk = {};
-			for (var i = 0; i < arr.length; i++) {
-				var tid = arr[i].id || arr[i].geom.id;
-				if(node['flipHash'][tid]) pk[tid] = true;
-				else out.push(tid);
-			}
-			for (var i = 0; i < node['flipedIDS'].length; i++) {
-				var tid = node['flipedIDS'][i];
-				if(pk[tid]) out.push(tid);
 			}
 			return out;
 		}
@@ -1090,11 +1015,12 @@
 		node['minZ'] = inpAttr['minZoom'] || attr['minZoom'] || gmxAPI.defaultMinZoom;
 		node['maxZ'] = inpAttr['maxZoom'] || attr['maxZoom'] || gmxAPI.defaultMaxZoom
 		var identityField = attr['identityField'] || 'ogc_fid';
+		var zIndexField = attr['ZIndexField'] || 'ogc_fid';     // Поле сортировки обьектов для функции сортировки по умолчанию
 		node['identityField'] = identityField;
 		var typeGeo = attr['typeGeo'] || 'polygon';
 		if(attr['typeGeo'] === 'polygon') {
 			node['sortItems'] = function(a, b) {
-				return Number(a.properties[identityField]) - Number(b.properties[identityField]);
+				return Number(a.properties[zIndexField]) - Number(b.properties[zIndexField]);
 			}
 		}
 		
@@ -1599,12 +1525,6 @@
 					} else {
                         si = dist[1]['i'];
 					}
-/*
-                    out.push(arr[(si-1)%4]);
-                    out.push(arr[(si+0)%4]);
-                    out.push(arr[(si+1)%4]);
-                    out.push(arr[(si+2)%4]);
-*/
                     out.push(arr[(si+3)%4]);
                     out.push(arr[(si+4)%4]);
                     out.push(arr[(si+5)%4]);
@@ -1613,7 +1533,6 @@
 				return out;
 			}
 			var shiftPoints = chPoints([[x1, y1], [x2, y2], [x3, y3], [x4, y4]]);
-//console.log('shiftPoints', shiftPoints);
             var pt = gmxAPI._leaflet['ProjectiveImage']({
 					'imageObj': content
 					,'points': shiftPoints
@@ -2539,7 +2458,96 @@
 			return true;
 		}
 
+		node.flipIDS = [];					// Массив обьектов flip сортировки
+		node.flipedIDS = [];				// Массив обьектов вне сортировки
+		node.flipHash = {};					// Hash обьектов flip сортировки
+
+		var getTopFromArrItem = function(arr) {				// Получить верхний item из массива с учетом flip
+			if(!arr || !arr.length) return null;
+			var ph = {};
+			for (var i = 0, len = arr.length; i < len; i++) ph[arr[i].id || arr[i].geom.id] = i;
+			var out = null;
+			for (var i = node.flipedIDS.length - 1; i >= 0; i--)
+			{
+				var tid = node.flipedIDS[i];
+				if(tid in ph) return arr[ph[tid]];
+			}
+			return arr[arr.length - 1];
+		}
+
+		var chkFlip = function(fid) {				// убираем дубли flip
+			if(node.flipHash[fid]) {
+                for (var i = 0, len = node.flipedIDS.length; i < len; i++) {
+					if(fid == node.flipedIDS[i]) {
+						node.flipedIDS.splice(i, 1);
+						break;
+					}
+				}
+			}
+			node.flipedIDS.push(fid);
+			node.flipHash[fid] = true;
+		}
+
+		var sortFlipIDS = function(arr) {			// Получить gmx обьект на котором установлен Handler
+			var out = [];
+			var pk = {};
+			for (var i = 0, len = arr.length; i < len; i++) {
+				var tid = arr[i].id || arr[i].geom.id;
+				if(node.flipHash[tid]) pk[tid] = true;
+				else out.push(tid);
+			}
+			for (var i = 0, len = node.flipedIDS.length; i < len; i++) {
+				var tid = node.flipedIDS[i];
+				if(pk[tid]) out.push(tid);
+			}
+			return out;
+		}
+
         gmxAPI.extend(node, {
+            setSortItems: function(func) {	// Установка функции сортировки обьектов
+                node.sortItems = func;
+                waitRedraw();
+			}
+            ,
+            getFlipItems: function() {		// Получить массив id flip обьектов
+                return gmxAPI.clone(node.flipedIDS);
+			}
+            ,
+            setFlipItems: function(arr, flag) {	// Установить массив flip обьектов
+                if(flag) {      // очистка массива flip обьектов
+                    node.flipedIDS = [];
+                    node.flipHash = {};
+                }
+                for (var i = 0, len = arr.length; i < len; i++) {
+                    chkFlip(arr[i]);
+                }
+                node.redrawFlips(true);
+                return true;
+			}
+            ,
+             addFlip: function(fid) {		// добавить обьект flip сортировки
+                chkFlip(fid);
+                node.redrawFlips(true);
+                return node.flipedIDS.length;
+			}
+            ,
+            setFlip: function() {		    // переместить обьект flip сортировки
+                if(!node.flipIDS || !node.flipIDS.length) return false;
+                var vid = node.flipIDS.shift();
+                node.flipIDS.push(vid);
+                chkFlip(vid);
+
+                if(node.tileRasterFunc) {
+                    node.waitRedrawFlips(0);
+                }
+                var item = node.objectsData[vid];
+                if(!item) return null;
+                var geom = node.getItemGeometry(vid);
+                var mObj = new gmxAPI._FlashMapFeature(geom, getPropItem(item), gmxNode);
+                gmxAPI._listeners.dispatchEvent('onFlip', gmxNode, mObj);
+                return item;
+			}
+            ,
             removeFilter: function(fid)	{		// Удаление фильтра векторного слоя
                 gmxAPI.removeFromArray(node.filters, fid);
                 gmxAPI.removeFromArray(node.children, fid);

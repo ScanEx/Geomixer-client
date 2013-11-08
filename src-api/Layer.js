@@ -307,6 +307,12 @@
 			obj.setSortItems = function(attr) {		// установка сортировки обьектов векторного слоя 
 				return gmxAPI._cmdProxy('setSortItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
 			};
+			obj.setFlipItems = function(arr, flag) {	// Установить массив flip обьектов
+				return gmxAPI._cmdProxy('setFlipItems', { 'obj': obj, 'attr':{layerId:obj.objectId, arr: arr, clear: flag} });
+			};
+			obj.getFlipItems = function() {             // Получить массив id flip обьектов
+				return gmxAPI._cmdProxy('getFlipItems', { 'obj': obj, 'attr':{layerId:obj.objectId} });
+			};
 			obj.setRasterViewItems = function(arr) {	// Установить видимость растров обьектов
 				return gmxAPI._cmdProxy('setRasterViewItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'arr': arr} });
 			};
