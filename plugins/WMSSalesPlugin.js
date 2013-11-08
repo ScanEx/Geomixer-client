@@ -20,6 +20,10 @@ _translationsHash.addtext("eng", {
     "wmsSalesPlugin.boundary"  : "Boundary for WMS"
 });
 
+// sceneIDs - массив из ID сцен
+// возвращает promise, который ресолвится массивом объектов со следующими свойстами:
+// * status: missing|layer
+// * layerProperties: свойства найденного слоя (то, что вернул сервер)
 var findImagesBySceneIDs = function(sceneIDs, params)
 {
     var _params = $.extend({
@@ -75,6 +79,8 @@ var typesDictonary = {
     'Time': 'time'
 };
 
+//Генерирует КР по описанию растровых слоёв
+//results: массив, который возвращает ф-ция findImagesBySceneIDs
 var createRC = function(results, params)
 {
     var def = $.Deferred();

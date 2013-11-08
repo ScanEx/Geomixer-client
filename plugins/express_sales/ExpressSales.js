@@ -34,7 +34,7 @@
     }
             
     var publicInterface = {
-        pluginName: 'findImages',
+        pluginName: 'Express Sales',
         afterViewer: function(params, map) {
           
             if ( !map) {
@@ -48,12 +48,13 @@
                 RCMinZoomForRasters: 8,
                 title: 'Express Sales Results',
                 styles: [{
+                    BalloonEnable: true,
+                    DisableBalloonOnMouseMove: true,
                     RenderStyle: {outline: {color: 0xff8800, thickness: 3}, fill: {opacity: 0}}
                 }]
             }});
             
             layerNames.forEach(function(layerName) {
-                map.layers[layerName].disableFlip();
                 map.layers[layerName].addListener('onClick', function(event) {
                     if (!event.attr.ctrlKey) {
                         return;
@@ -88,12 +89,6 @@
                 }
                 sceneCollection.remove(event.obj.properties.ogc_fid);
             })
-
-            // var findImages = function(geometry) {
-                // layerNames.forEach(function(layerName) {
-                    // getLayerImages();
-                // })
-            // }
             
             var getLayerImages = function(layerName, geometry) {
                 var out = [];
@@ -130,33 +125,8 @@
                 );
                 return out;
             }
-
-            // var toolContainer = new map.ToolsContainer('findImages', {notSticky:1});
-            // var tool = toolContainer.addTool('findImages', {
-                // hint: 'Найти снимки'
-                // ,onClick: findImages
-                // ,onCancel: null
-            // });
-            // toolContainer.setVisible(false);
             
-            //var geo = null;
-            
-            // var selectDrawingObject = function() {
-                // geo = null;
-				// map.drawing.forEachObject(function(o) { geo = gmxAPI.merc_geometry(o.geometry); });
-                // toolContainer.setVisible( geo ? true : false);
-            // }
-            
-            // map.drawing.addListener('onRemove', function() {
-                // setTimeout(selectDrawingObject, 0);
-            // });
-            
-            // map.drawing.addListener('onFinish', function(params) {
-                // geo = gmxAPI.merc_geometry(params.geometry);
-                // toolContainer.setVisible(true);
-            // });
-            
-            var canvas = $('<div/>').css('height', '220px');
+            var canvas = $('<div/>').css('height', '300px');
             
             var menu = new leftMenu();
             menu.createWorkCanvas("aisdnd", function(){});
@@ -185,8 +155,45 @@
                 }
             });
             
+            var createControls = $(
+                '<div class = "sales-create">' + 
+                    '<div class = "sales-rcname-wrap"><input title = "Название каталога" class = "sales-rcname inputStyle"> </div>' + 
+                    '<div><span> Выберите геометрию </span> <input class = "sales-geometry" type="file"> </div>' + 
+                    '<button class="sales-create-btn">Создать каталог</button>' + 
+                '</div>'
+            )
+            
+            $('.sales-create-btn', createControls).click(function() {
+                var sceneIDs = [];
+                dataProvider.getOriginalItems().forEach(function(item) {
+                    sceneIDs.push(item.properties.Name);
+                });
+                
+                var boundaryInput = $('.sales-geometry', createControls);
+                var wmsModule = gmxCore.getModule('WMSSalesPlugin');
+                
+                var scenesDef = wmsModule.findImagesBySceneIDs(sceneIDs);
+                var boundaryDef = boundaryInput.val() ? nsGmx.Utils.parseShpFile(boundaryInput[0].files[0]) : null;
+                
+                $.when(scenesDef, boundaryDef).done(function(scenes, boundaryObjs) {
+                    wmsModule.createRC(scenes, {
+                        title: $('.sales-rcname', createControls).val(),
+                        userBorder: boundaryObjs ? merc_geometry(nsGmx.Utils.joinPolygons(boundaryObjs)) : null
+                    }).done(function(layerInfo) {
+                        console.log(layerInfo);
+                    })
+                });
+            });
+            
+            createControls.appendTo(canvas);
+            
             var sceneCollection = new SceneCollection(selectedImagesLayer, dataProvider);
         }
     };
-    gmxCore.addModule('findImages', publicInterface, {});
+    gmxCore.addModule('ExpressSales', publicInterface, {
+        init: function(module, path) {
+            return gmxCore.loadModule('WMSSalesPlugin', path + '../WMSSalesPlugin.js');
+        },
+        css: "ExpressSales.css"
+    });
 })();
