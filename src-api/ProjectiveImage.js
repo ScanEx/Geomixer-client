@@ -167,7 +167,7 @@
 	};
 
 	var getProjectiveTransform = function (points) {
-	  var eqMatrix = new Matrix(9, 8, [
+      var eqMatrix = new Matrix(9, 8, [
 		[ 1, 1, 1,   0, 0, 0, -points[2][0],-points[2][0],-points[2][0] ],
 		[ 0, 1, 1,   0, 0, 0,  0,-points[3][0],-points[3][0] ],
 		[ 1, 0, 1,   0, 0, 0, -points[1][0], 0,-points[1][0] ],
@@ -341,6 +341,7 @@
 		try {
 			divide( 0, 0, 1, 1, ptl, ptr, pbl, pbr, limit, attr );
 		} catch(e) {
+            console.log({'func': 'ProjectiveImage', 'event': e});
 			gmxAPI.addDebugWarnings({'func': 'ProjectiveImage', 'event': e});
 			canvas = null;
 		}
