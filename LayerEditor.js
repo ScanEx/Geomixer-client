@@ -777,7 +777,7 @@ var createPageRasterSource = function(layerProperties) {
             
     tileFileLink.onclick = function()
     {
-        _fileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'tiles', 'cpyr'], function(path)
+        _fileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'tiles', 'cpyr', 'mbtiles'], function(path)
         {
             tilePathInput.value = path;
             layerProperties.set('TilePath', {Path: path});
