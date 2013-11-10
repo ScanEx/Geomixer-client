@@ -861,9 +861,10 @@
 			if(!itemPropHiden['toFilters'] || !itemPropHiden['toFilters'].length) return out;		// обьект не попал в фильтр
 			var fID = itemPropHiden['toFilters'][0];
 			var filter = gmxAPI.mapNodes[fID];
-			if(evName in node['handlers']) {						// Есть handlers на слое
-				out = gmxNode;
-			} else if(filter && mapNodes[fID]['handlers'][evName]) {			// не найден фильтр
+			// if(evName in node['handlers']) {						// Есть handlers на слое
+				// out = gmxNode;
+			// } else 
+            if(filter && mapNodes[fID]['handlers'][evName]) {			// не найден фильтр
 				out = filter;
 			} else {								// Есть handlers на родителях
 				out = utils.getNodeHandler(node.id, evName);
@@ -968,11 +969,11 @@
 				gmxAttr['objForBalloon'] = item;
 				
 				if(!isCluster) {
-					if(handlerObj) {
-						callHandler('onClick', itemClick, handlerObj, gmxAttr);
-						return true;
-					}
-				} else {
+					if(handlerObj && callHandler('onClick', itemClick, handlerObj, gmxAttr)) return true;
+                    if('onClick' in node['handlers']) {		// Есть handlers на слое
+ 						callHandler('onClick', itemClick, gmxNode, gmxAttr);
+                    }
+                } else {
 					gmxAttr['objType'] = 'cluster';
 					gmxAttr['members'] = itemPropHiden['_members'];
 					if(node['clustersData']['clusterView'](item)) return true;
@@ -1015,7 +1016,7 @@
 		node['minZ'] = inpAttr['minZoom'] || attr['minZoom'] || gmxAPI.defaultMinZoom;
 		node['maxZ'] = inpAttr['maxZoom'] || attr['maxZoom'] || gmxAPI.defaultMaxZoom
 		var identityField = attr['identityField'] || 'ogc_fid';
-		var zIndexField = attr['ZIndexField'] || 'ogc_fid';     // Поле сортировки обьектов для функции сортировки по умолчанию
+		var zIndexField = attr['ZIndexField'] || identityField;     // Поле сортировки обьектов для функции сортировки по умолчанию
 		node['identityField'] = identityField;
 		var typeGeo = attr['typeGeo'] || 'polygon';
 		if(attr['typeGeo'] === 'polygon') {

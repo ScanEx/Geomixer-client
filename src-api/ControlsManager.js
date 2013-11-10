@@ -76,7 +76,7 @@
         'setVisible': function(flag) {
             if(!arguments.length) flag = !this.isVisible;
             this.forEach(function(item, i) {
-                item.setVisible(flag);
+                if(ControlsManager.currentID === item.id && 'setVisible' in item) item.setVisible(flag);
             });
             this.isVisible = flag;
         }

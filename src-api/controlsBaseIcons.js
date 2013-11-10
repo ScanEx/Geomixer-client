@@ -1188,71 +1188,71 @@
             var id = pt.id || attr.title || iconsControl.items.length;// || 0;
             var groupID = pt.groupID;       // Признак группы
             if(!('className' in attr)) {
-                attr['className'] = 'gmx_' + id;
+                attr.className = 'gmx_' + id;
             }
             var events = pt.events || {};
             var style = pt.style || {};
             var hoverStyle = pt.hoverStyle || {};
-            if(pt['regularImageUrl']) {
-                delete style['backgroundImage'];
-                style['position'] = 'relative';
-                style['backgroundColor'] = '#9A9A9A';
-                hoverStyle['backgroundColor'] = "#9A9A9A";
-                delete hoverStyle['backgroundImage'];
+            if(pt.regularImageUrl) {
+                delete style.backgroundImage;
+                style.position = 'relative';
+                style.backgroundColor = '#9A9A9A';
+                hoverStyle.backgroundColor = "#9A9A9A";
+                delete hoverStyle.backgroundImage;
             }
             
             for(var key in events) {
                 if(key === 'onmouseover' || key === 'onmouseout') continue;
                 attr[key] = function(e) {
-                    //events[key].call(iconsControl, { gmxItemID: id, originalEvent: e });
                     var handler = events[key];
-                    pt['isActive'] = !pt['isActive'];
-                    if(key === 'onclick' && 'onCancel' in pt && !pt['isActive']) {
-                        handler = pt['onCancel'];
+                    pt.isActive = !pt.isActive;
+                    if(key === 'onclick' && 'onCancel' in pt && !pt.isActive) {
+                        iconsControl.groupTools[groupID].setCurrent();
+                        handler = pt.onCancel;
                     }
                     if(handler) handler.call(this, e);
                 }
             }
-            attr['onmouseover'] = function(e) {
-                if(pt['activeImageUrl']) {
-                    this.childNodes[0].src = pt['activeImageUrl'];
+            attr.onmouseover = function(e) {
+                if(pt.activeImageUrl) {
+                    this.childNodes[0].src = pt.activeImageUrl;
                 } else {
                     setDOMStyle(this, hoverStyle);
                 }
                 if('onmouseover' in events) {
-                    events['onmouseover'].call(iconsControl, e);
+                    events.onmouseover.call(iconsControl, e);
                 }
             }
-            attr['onmouseout'] = function(e) {
+            attr.onmouseout = function(e) {
                 var selectedFlag = ((groupID && id === iconsControl.groupTools[groupID].currentID)
-                    || pt['isActive']
+                    || pt.isActive
                     ? true : false);
                 if(!selectedFlag) {
-                    if(pt['regularImageUrl']) {
-                        this.childNodes[0].src = pt['regularImageUrl'];
+                    if(pt.regularImageUrl) {
+                        this.childNodes[0].src = pt.regularImageUrl;
                     } else {
                         setDOMStyle(this, style);
                     }
                 }
                 if('onmouseout' in events) {
-                    events['onmouseout'].call(iconsControl, e);
+                    events.onmouseout.call(iconsControl, e);
                 }
             }
             
             var itemNode = gmxAPI.newElement("div", attr, style);
             if(pt['regularImageUrl']) {
                 itemNode.appendChild(gmxAPI.newElement("img", {
-                    'src': pt['regularImageUrl']
+                    'src': pt.regularImageUrl
                 }, {
-                    'position': 'absolute'
-                    ,'margin': 'auto'
-                    ,'bottom': '0px'
-                    ,'top': '0px'
-                    ,'left': '0px'
-                    ,'right': '0px'
+                    position: 'absolute'
+                    ,margin: 'auto'
+                    ,bottom: '0px'
+                    ,top: '0px'
+                    ,left: '0px'
+                    ,right: '0px'
                 }));
             }
-            itemNode['_gmxItem'] = pt;
+            itemNode._gmxItem = pt;
             return itemNode;
         }
         ,
@@ -1418,47 +1418,31 @@
         ,
         addTool: function(key, pt) {                 // Добавление иконки
 			var ph = gmxAPI.extend({
-                id: key || pt['id']
-                ,
-                isActive: false
-                ,
-                attr: {
-                    title: pt['title'] || pt['hint']
+                id: key || pt.id
+                ,isActive: false
+                ,attr: {
+                    title: pt.title || pt.hint
                 }
-                ,
-                events: {}
-                ,
-                style: gmxAPI.extend(pt['style'], iconsControl.styleIcon, true)
-                ,
-                hoverStyle: pt['hoverStyle']
+                ,events: {}
+                ,style: gmxAPI.extend(pt.style, iconsControl.styleIcon, true)
+                ,hoverStyle: pt.hoverStyle
             }, pt);
-/*
-            if(pt['regularImageUrl']) {
-                if(!pt['style']) pt['style'] = {};
-                pt['style']['backgroundImage'] = "url('"+pt['regularImageUrl']+"')";
-                pt['style']['backgroundColor'] = "#9A9A9A";
-            }
-            if(pt['activeImageUrl']) {
-                if(!pt['hoverStyle']) pt['hoverStyle'] = {};
-                pt['hoverStyle']['backgroundImage'] = "url('"+pt['activeImageUrl']+"')";
-            }
-*/
-            if(pt['onClick']) ph['events']['onclick'] = pt['onClick'];
-            //if(pt['onCancel']) ph['events']['onCancel'] = pt['onCancel'];
+
+            if(pt.onClick) ph.events.onclick = pt.onClick;
 			var item = iconsControl.addItemNode(ph);
             iconsControl.itemsNode.appendChild(item);
             var tool = {
-                'id': ph['id']
-                ,'node': item
+                id: ph.id
+                ,node: item
             }
             if(pt.type !== 'hideItem') {
                 iconsControl.items.push(tool);
-                iconsControl.items[ph['id']] = tool;
+                iconsControl.items[ph.id] = tool;
             }
             return item;
         }
         ,
-        'forEach': function(callback) {
+        forEach: function(callback) {
 			for (var i = 0, len = iconsControl.items.length; i < len; i++) {
 				if(callback(this.items[i], i) === false) return;
             }
@@ -1466,7 +1450,7 @@
         ,
         removeTool: function(id) {        // Удалить tool
             iconsControl.forEach(function(item, i) {
-                if(id === item['id']) {
+                if(id === item.id) {
                     iconsControl.items.splice(i, 1);
                     delete iconsControl.items[id];
                     item.node.parentNode.removeChild(item.node);
@@ -1478,34 +1462,28 @@
         ,currentID: null
         ,
         selectTool: function(id) {        // Удалить tool
-            var item = iconsControl.items[iconsControl['currentID']];
-            if(item && 'onmouseout' in item.node) item.node['onmouseout']();
+            var item = iconsControl.items[iconsControl.currentID];
+            if(item && 'onmouseout' in item.node) item.node.onmouseout();
             item = iconsControl.items[id];
-            if(item && 'onmouseover' in item) item.node['onmouseover']();
+            if(item && 'onmouseover' in item) item.node.onmouseover();
             iconsControl['currentID'] = id;
-console.log('selectTool', id, item);
         }
-        
         ,
         getToolByName: function(name) {        // Получить tool по name
             var item = iconsControl.items[name];
-console.log('getToolByName', name, item);
             return (item ? item : null);
-            //for(var id in iconsControl.items) this.style[key] = hoverStyle[key];
         }
         ,
         addGroupTool: function(pt) {            // Добавление раскрывающегося массива иконок
-			var groupID = pt['id'];
-			var arr = pt['items'];
+			var groupID = pt.id;
+			var arr = pt.items;
             var onmouseover = function(e) {
-//console.log('onmouseover', this.childNodes.length);
                 for(var i=0, len=cont.childNodes.length; i<len; i++) {
                     var it = cont.childNodes[i];
                     it.style.display = 'block';
                 }
             }
             var onmouseout = function() {
-//console.log('onmouseout', this.childNodes.length);
                 cont.firstChild.style.display = 'block';
                 for(var i=1, len=cont.childNodes.length; i<len; i++) {
                     var it = cont.childNodes[i];
@@ -1531,135 +1509,84 @@ console.log('getToolByName', name, item);
                 ,items: {}
                 ,selectTool: function(id) {
                     groupItems.setCurrent(id);
-/*
-                        var prevItem = groupItems['items'][groupItems['currentID']];
-                    if(prevItem && 'onmouseout' in prevItem['_gmxItem']) prevItem['_gmxItem']['onmouseout']();
-
-                    //groupItems['currentID'] = id;
-                    var target = groupItems['items'][id];
-                    if(target) {
-                        groupItems.setCurrent(id);
-                        if('onmouseover' in target) target['_gmxItem']['onmouseover']();
-                        if('onClick' in target['_gmxItem']) target['_gmxItem']['onClick']();
-                    }
-*/
-console.log('selectTool', id);
                 }
                 ,setCurrent: function(id) {
-                    if(groupItems['currentID']) {
-                        var prevItem = groupItems['items'][groupItems['currentID']];
+//console.log('setCurrent0000', id, groupItems['currentID']);
+                    if(groupItems.currentID) {
+                        var prevItem = groupItems.items[groupItems.currentID];
                         if(prevItem) {
-                            if('onmouseout' in prevItem['_gmxItem']) prevItem['_gmxItem']['onmouseout']();
-                            if('onCancel' in prevItem['_gmxItem']) prevItem['_gmxItem']['onCancel']();
-                            prevItem['_gmxItem']['isActive'] = false;
-if(!id || groupItems['currentID'] === id) {
-groupItems['currentID'] = null;
-return;
-}
+                            var _gmxItem = prevItem._gmxItem;
+                            if('onmouseout' in _gmxItem) _gmxItem.onmouseout();
+                            if('onCancel' in _gmxItem) _gmxItem.onCancel();
+                            _gmxItem.isActive = false;
+                            if(!id || groupItems.currentID === id) {
+                                groupItems.currentID = null;
+                                if(_gmxItem.currObj) _gmxItem.currObj.stopDrawing();
+                                _gmxItem.currObj = null;
+                                return;
+                            }
                         }
                     }
                     var target = null;
-                    if(id && groupItems['items'][id] && groupItems['currentID'] !== id) {
-                        target = groupItems['items'][id];
+                    if(id && groupItems.items[id] && groupItems.currentID !== id) {
+                        target = groupItems.items[id];
                         if(target != target.parentNode.firstChild) {
                             target.parentNode.insertBefore(target, target.parentNode.firstChild);
                         }
-                        if('onmouseover' in target['_gmxItem']) target['_gmxItem']['onmouseover']();
-                        if('onClick' in target['_gmxItem']) target['_gmxItem']['onClick']();
-                        target['_gmxItem']['isActive'] = true;
+                        var _gmxItem = target._gmxItem;
+                        if('onmouseover' in _gmxItem) _gmxItem.onmouseover();
+                        if('onClick' in _gmxItem) _gmxItem.currObj = _gmxItem.onClick();
+                        _gmxItem.isActive = true;
                     } else {
                         id = null;
                     }
-                    groupItems['currentID'] = (groupItems['items'][id] ? id : null);
-console.log('setCurrent', id, groupItems['currentID']);
+                    groupItems.currentID = (groupItems.items[id] ? id : null);
                     onmouseout();
                 }
             };
             for(var i=0, len=arr.length; i<len; i++) {
                 var ph = arr[i];
                 (function(){
-                    var style = ph['style'];
-                    var hoverStyle = ph['hoverStyle'];
-                    //style['display'] = (i === 0 ? 'block' : 'none');
-                    var onClick = ph['onClick'];
-                    var onCancel = ph['onCancel'];
-                    var id = ph['key'];
+                    var style = ph.style;
+                    var hoverStyle = ph.hoverStyle;
+                    var onClick = ph.onClick;
+                    var onCancel = ph.onCancel;
+                    var id = ph.key;
                     var item = iconsControl.addItemNode({
                         id: id
-                        ,
-                        isActive: false
-                        ,
-                        'groupID': groupID
-                        ,'onClick': ph['onClick']
-                        ,'onCancel': ph['onCancel']
-                        ,'onmouseout': function(e) {
+                        ,isActive: false
+                        ,groupID: groupID
+                        ,onClick: ph.onClick
+                        ,onCancel: ph.onCancel
+                        ,onmouseout: function(e) {
                             setDOMStyle(item, style);
                         }
-                        ,'onmouseover': function(e) {
+                        ,onmouseover: function(e) {
                             setDOMStyle(item, hoverStyle);
                         }
                         ,
                         attr: {
-                            title: ph['hint']
+                            title: ph.hint
                         }
                         ,
                         events: {
                             onclick: function(e) {
-                                //var target = e['target'];
-console.log('onclick', id, item.id, e);
-//setTimeout(function() {
                                 groupItems.setCurrent(id);
-//}, 0);
-/*
-gmxAPI.stopEvent(e);
-e.stopImmediatePropagation();
-				if (e.preventDefault)
-				{
-					e.stopPropagation();
-					e.preventDefault();
-				}
-				else 
-				{
-					e.returnValue = false;
-					e.cancelBubble = true;
-				}
-
-                                var target = item;
-                                var _gmxItem = target['_gmxItem'];
-                                
-                                if(groupItems['currentID'] === _gmxItem.id) {
-                                    groupItems['currentID'] = null;
-                                    _gmxItem.onmouseout(e);
-                                    if('onCancel' in _gmxItem) _gmxItem['onCancel'](e);
-                                    return;
-                                }
-                                target.parentNode.insertBefore(target, target.parentNode.firstChild);
-                                onmouseout(e);
-                                if(groupItems['currentID']) {
-                                    var oldItem = groupItems['items'][groupItems['currentID']];//['_gmxItem'];
-                                    if(oldItem && 'onCancel' in oldItem) oldItem['onCancel'](e);
-                                }
-                                groupItems['currentID'] = _gmxItem.id;
-                                if('onClick' in _gmxItem) _gmxItem['onClick'](e);
-                                //console.log(arguments);*/
                             }
                         }
-                        ,
-                        style: gmxAPI.extend(style, iconsControl.styleArrIcon)
-                        ,
-                        hoverStyle: hoverStyle
+                        ,style: gmxAPI.extend(style, iconsControl.styleArrIcon)
+                        ,hoverStyle: hoverStyle
                     });
-                    //if(i === 0) item['first'] = true;
                     cont.appendChild(item);
-                    groupItems['items'][id] = item;
+                    groupItems.items[id] = item;
                 })();
             }
             onmouseout();
             iconsControl.itemsNode.appendChild(cont);
             var tool = {
-                'id': groupID
-                ,'node': cont
-                ,'group': groupItems
+                id: groupID
+                ,node: cont
+                ,group: groupItems
             }
             iconsControl.items.push(tool);
             iconsControl.items[groupID] = tool;
@@ -1669,19 +1596,17 @@ e.stopImmediatePropagation();
     }
 
 	var Control = {
-        'id': 'controlsBaseIcons'
-        ,'isVisible': true
-        ,'isActive': false
+        id: 'controlsBaseIcons'
+        ,isVisible: true
+        ,isActive: false
         ,
-        'items': [iconsControl, layersControl, copyrightControl, locationControl, zoomControl]
+        items: [iconsControl, layersControl, copyrightControl, locationControl, zoomControl]
         ,
-        'init': function(parent) {        // инициализация
-//console.log('controlsBaseIcons', parent);
-
+        init: function(parent) {        // инициализация
             gmxAPI._tools = {};
             gmxAPI._tools.standart = iconsControl;
-            gmxAPI._listeners.addListener({'level': 10000, 'eventName': 'mapInit', 'func': function(map) {
-    //console.log('ControlsManager', iconsControl);
+            gmxAPI._listeners.addListener({level: 10000, eventName: 'mapInit', func: function(map) {
+//console.log('ControlsManager', iconsControl);
                  iconsControl.setActive(true);
                  copyrightControl.setActive(true);
                  locationControl.setActive(true);
@@ -1694,7 +1619,7 @@ e.stopImmediatePropagation();
             });
         }
         ,
-        'setVisible': function(flag) {
+        setVisible: function(flag) {
             if(!arguments.length) flag = !this.isVisible;
             this.forEach(function(item, i) {
                 item.setVisible(flag);
@@ -1703,29 +1628,14 @@ e.stopImmediatePropagation();
             this.isVisible = flag;
         }
         ,
-        'remove': function() {      // удаление
+        remove: function() {      // удаление
         }
         ,
-        'forEach': function(callback) {
+        forEach: function(callback) {
 			for (var i = 0, len = this.items.length; i < len; i++) {
 				if(callback(this.items[i], i) === false) return;
             }
         }
 	}
-/*
-    gmxAPI.IconsControl = iconsControl;
-    if(gmxAPI.ControlsManager.currentID === Control.id) {
-        gmxAPI._tools = {};
-        gmxAPI._tools.standart = iconsControl;
-        gmxAPI._listeners.addListener({'level': 10000, 'eventName': 'mapInit', 'func': function(map) {
-//console.log('ControlsManager', iconsControl);
-             iconsControl.setActive(true);
-             copyrightControl.setActive(true);
-             locationControl.setActive(true);
-             zoomControl.setActive(true);
-             Control.isActive = true;
-        }});
-    }
-*/    
     gmxAPI.ControlsManager.addControl(Control);
 })();

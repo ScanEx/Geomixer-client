@@ -1793,11 +1793,13 @@ extend(window.gmxAPI,
 	'getTilePosZoomDelta': function(tilePoint, zoomFrom, zoomTo) {		// получить смещение тайла на меньшем zoom
 		var dz = Math.pow(2, zoomFrom - zoomTo);
 		var size = 256 / dz;
+		var dx = tilePoint.x % dz;
+		var dy = tilePoint.y % dz;
 		return {
 			'size': size
 			,'zDelta': dz
-			,'x': Math.abs(size * (tilePoint.x % dz))
-			,'y': size * (dz - 1 - tilePoint.y % dz)
+			,'x': size * (dx < 0 ? dz + dx : dx)
+			,'y': size * (dy < 0 ? 1 + dy : dz - 1 - dy)
 		};
     }
 	,

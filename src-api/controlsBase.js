@@ -1074,6 +1074,7 @@
                 ('init' in item ? item.init : item)(parent);
             });
         }
+        //,'setVisible': function(flag) { }
         ,
         'remove': function() {      // удаление
         }
