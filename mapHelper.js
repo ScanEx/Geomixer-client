@@ -164,6 +164,7 @@ mapHelper.prototype.customParamsManager = (function()
 
 mapHelper.prototype.makeStyle = function(style)
 {
+    style = style || {};
 	var givenStyle = {};
 	
 	if (typeof style.RenderStyle != 'undefined')
