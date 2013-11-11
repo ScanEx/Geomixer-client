@@ -452,15 +452,15 @@ fileBrowser.prototype.createHeader = function()
 
 fileBrowser.prototype.createUpload = function()
 {
-	var uploadPath = _input(null,[['attr','type','hidden'],['attr','name','ParentDir']]),
+	var //uploadPath = _input(null,[['attr','type','hidden'], ['attr','name','ParentDir']]),
 		uploadFileButton = makeButton(_gtxt("Загрузить файл")),
 		div = _div(null, [['css','height','30px'],['css','marginTop','10px']]),
 		_this = this;
 	
-	var formFile = _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'FileBrowser/Upload.ashx?WrapStyle=window'],['attr','target','fileBrowserUpload_iframe']]);
-	_(formFile, [uploadPath]);
+	var formFile = _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'FileBrowser/Upload.ashx?WrapStyle=message'],['attr','target','fileBrowserUpload_iframe']]);
+	// _(formFile, [uploadPath]);
 
-	var attach = _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','200px']]);
+	var attach = _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','200px'], ['attr','multiple','multiple']]);
 	_(formFile, [attach]);
 	
 	uploadFileButton.onclick = function()
@@ -470,23 +470,42 @@ fileBrowser.prototype.createUpload = function()
             return;
         }
         
-		var iframe = createPostIframe("fileBrowserUpload_iframe", function(response)
-		{
-			if (!parseResponse(response))
-				return;
+		// var iframe = createPostIframe("fileBrowserUpload_iframe", function(response)
+		// {
+			// if (!parseResponse(response))
+				// return;
 			
-			var indexSlash = String(response.Result).lastIndexOf(_this.slash),
-				fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
+			// var indexSlash = String(response.Result).lastIndexOf(_this.slash),
+				// fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
 			
-			_this.shownPath = fileName;
+			// _this.shownPath = fileName;
 			
-			_this.getFiles();
-		});
+			// _this.getFiles();
+		// });
 		
-		_(document.body, [iframe]);
+		// _(document.body, [iframe]);
 		
-		uploadPath.setAttribute('value',_this._path.get())
-		formFile.submit();
+		// uploadPath.setAttribute('value',_this._path.get())
+		// formFile.submit();
+        
+        sendCrossDomainPostRequest(serverBase + 'FileBrowser/Upload.ashx', 
+            {
+                WrapStyle: 'message',
+                ParentDir: _this._path.get()
+            },
+            function(response) {
+                if (!parseResponse(response))
+                    return;
+                
+                var indexSlash = String(response.Result).lastIndexOf(_this.slash),
+                    fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
+                
+                _this.shownPath = fileName;
+                
+                _this.getFiles();
+            }, 
+            formFile
+        );
 	}
 	
 	_(div, [_table([_tbody([_tr([_td([formFile]), _td([uploadFileButton])])])])]);
