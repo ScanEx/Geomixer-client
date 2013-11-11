@@ -60,7 +60,7 @@
             this.controls.push(controlObj);
         }
         ,
-        'removeItem': function(controlObj) {
+        'remove': function(controlObj) {
             if(controlObj === this.curent) {
                 if('remove' in controlObj) controlObj.remove();
                 this.curent = null;
@@ -88,9 +88,9 @@
         }
         ,
         'addGroupTool': function(pt) {
-//console.log('addGroupTool', pt);
             return gmxAPI.IconsControl.addGroupTool(pt);
         }
 	}
 	gmxAPI.ControlsManager = ControlsManager;
+
 })();

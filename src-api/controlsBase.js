@@ -235,67 +235,6 @@
             }
         }
 	}
-/*
-	// Добавление прослушивателей событий
-	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
-		map.zoomControl = {
-			isVisible: true,
-			isMinimized: false,
-			setVisible: function(flag)
-			{
-				gmxAPI.setVisible(zoomControl.zoomParent, flag);
-				this.isVisible = flag;
-			},
-			setZoom: function(z)
-			{
-				var newZoomObj = zoomControl.zoomArr[Math.round(z) - zoomControl.minZoom];
-				if (newZoomObj != zoomControl.zoomObj)
-				{
-                    var apiBase = gmxAPI.getAPIFolderRoot();
-					if (zoomControl.zoomObj) zoomControl.zoomObj.src = apiBase + "img/zoom_raw.png";
-					zoomControl.zoomObj = newZoomObj;
-					if (zoomControl.zoomObj) zoomControl.zoomObj.src = apiBase + "img/zoom_active.png";
-				}
-			},
-			repaint: function()
-			{
-                if(!this.isMinimized) zoomControl.repaint();
-			},
-			setMinMaxZoom: function(z1, z2)
-			{
-				zoomControl.minZoom = z1;
-				zoomControl.maxZoom = z2;
-				this.repaint();
-			},
-			getMinZoom: function()
-			{
-				return zoomControl.minZoom;
-			},
-			getMaxZoom: function()
-			{
-				return zoomControl.maxZoom;
-			},
-			minimize: function()
-			{
-				this.isMinimized = true;
-				this.repaint();
-			},
-			maximize: function()
-			{
-				this.isMinimized = false;
-				this.repaint();
-			}
-		}
-		var cz = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z || 1 : 4);
-		gmxAPI.map.zoomControl.setZoom(cz);
-		// Добавление прослушивателей событий
-		gmxAPI.map.addListener('positionChanged', function(ph)
-			{
-				gmxAPI.map.zoomControl.setZoom(ph.currZ);
-			}
-		);
-	}});
-*/
 
     //Поддержка geomixerLink
 	var geomixerLink = {
@@ -518,9 +457,9 @@
         ,
         redraw: function() {            // перерисовать
 			var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
-			if(!currPos['latlng']) return;
-			var x = currPos['latlng']['x'];
-			var y = currPos['latlng']['y'];
+			if(!currPos.latlng) return;
+			var x = currPos.latlng.x;
+			var y = currPos.latlng.y;
 			var texts = [
                 //первым всегда будет располагаться копирайт СканЭкс. 
                 "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2013 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>"
@@ -553,17 +492,17 @@
 			if(copyrightControl.copyrightLastAlign != copyrightControl.copyrightAlign) {
 				copyrightControl.copyrightLastAlign = copyrightControl.copyrightAlign;
 				if(copyrightControl.copyrightAlign === 'bc') {				// Позиция bc(BottomCenter)
-					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': center + 'px' });
+					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr.y, 'right': '', 'left': center + 'px' });
 				} else if(copyrightControl.copyrightAlign === 'br') {		// Позиция br(BottomRight)
-					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr['y'], 'right': copyrightAttr['x'], 'left': '' });
+					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr.y, 'right': copyrightAttr.x, 'left': '' });
 				} else if(copyrightControl.copyrightAlign === 'bl') {		// Позиция bl(BottomLeft)
-					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': copyrightAttr['x'] });
+					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr.y, 'right': '', 'left': copyrightAttr.x });
 				} else if(copyrightControl.copyrightAlign === 'tc') {		// Позиция tc(TopCenter)
 					gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': '', 'left': center + 'px' });
 				} else if(copyrightControl.copyrightAlign === 'tr') {		// Позиция tr(TopRight)
-					gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': copyrightAttr['x'], 'left': '' });
+					gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': copyrightAttr.x, 'left': '' });
 				} else if(copyrightControl.copyrightAlign === 'tl') {		// Позиция tl(TopLeft)
-					gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr['x'] });
+					gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr.x });
 				}
 			}
         }
@@ -579,7 +518,7 @@
                 map.updateCopyright = function() { copyrightControl.redraw(); } 
                 // Изменить позицию контейнера копирайтов
                 map.setCopyrightAlign = function(attr) {
-                    if(attr['align']) copyrightControl.copyrightAlign = attr['align'];
+                    if(attr.align) copyrightControl.copyrightAlign = attr.align;
                     copyrightControl.setPosition();
                 }
                 
@@ -792,13 +731,13 @@
         ,
         'checkPositionChanged': function() {
 			var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
-			var z = Math.round(currPos['z']);
-			var x = (currPos['latlng'] ? currPos['latlng']['x'] : 0);
-			var y = (currPos['latlng'] ? currPos['latlng']['y'] : 0);
+			var z = Math.round(currPos.z);
+			var x = (currPos.latlng ? currPos.latlng.x : 0);
+			var y = (currPos.latlng ? currPos.latlng.y : 0);
 			if(gmxAPI.map.needMove) {
-				z = gmxAPI.map.needMove['z'];
-				x = gmxAPI.map.needMove['x'];
-				y = gmxAPI.map.needMove['y'];
+				z = gmxAPI.map.needMove.z;
+				x = gmxAPI.map.needMove.x;
+				y = gmxAPI.map.needMove.y;
 			}
 
 			var metersPerPixel = locationControl.getLocalScale(x, y) * gmxAPI.getScale(z);
@@ -825,8 +764,8 @@
         ,
         'getCoordinatesText': function(currPos) {
 			if(!currPos) currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
-			var x = (currPos['latlng'] ? currPos['latlng']['x'] : gmxAPI.from_merc_x(currPos['x']));
-			var y = (currPos['latlng'] ? currPos['latlng']['y'] : gmxAPI.from_merc_y(currPos['y']));
+			var x = (currPos.latlng ? currPos.latlng.x : gmxAPI.from_merc_x(currPos.x));
+			var y = (currPos.latlng ? currPos.latlng.y : gmxAPI.from_merc_y(currPos.y));
 			if (x > 180) x -= 360;
 			if (x < -180) x += 360;
 			if (locationControl.coordFormat % 3 == 0)
@@ -935,43 +874,7 @@
             }
         }
     }
-/*
-	// Добавление прослушивателей событий
-	gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
-		map.scaleBar = { setVisible: function(flag) { gmxAPI.setVisible(locationControl.scaleBar, flag); } };
-		map.addListener('positionChanged', locationControl.prpPosition);
-		if(gmxAPI.proxyType === 'flash') {
-			map.addListener('onResizeMap', locationControl.prpPosition);
-		} else {
-			map.addListener('onMoveEnd', locationControl.checkPositionChanged);
-		}
-		map.addListener('onChangeBackgroundColor', function(htmlColor) {
-			locationControl.setColor(htmlColor);
-		});
-        
-		map.coordinates = {
-			setVisible: function(flag) 
-			{ 
-				gmxAPI.setVisible(locationControl.coordinates, flag); 
-				gmxAPI.setVisible(locationControl.changeCoords, flag); 
-			}
-			,
-			addCoordinatesFormat: function(func) 
-			{ 
-				locationControl.coordFormatCallbacks.push(func);
-				return locationControl.coordFormatCallbacks.length - 1;
-			}
-			,
-			removeCoordinatesFormat: function(num) 
-			{ 
-				locationControl.coordFormatCallbacks.splice(num, 1);
-				return locationControl.coordFormatCallbacks.length - 1;
-			}
-			,
-			setFormat: locationControl.setCoordinatesFormat
-		}
-	}});
-*/
+
     //Контролы слоев
 	var layersControl = {
         parentNode: null
@@ -1040,7 +943,7 @@
                     var key = 'onAddBaseLayer';
                     layersControl.listeners[key] = layersControl.map.addListener(key, function(ph) {
 //console.log('onAddBaseLayer------ ', name, gmxAPI.BaseLayersManager.getItems());
-                        layersControl.map.baseLayersTools.chkBaseLayerTool(ph['id'], ph['attr']);
+                        layersControl.map.baseLayersTools.chkBaseLayerTool(ph.id, ph.attr);
 
                         //tool.select();
                     });
@@ -1059,15 +962,137 @@
             }
         }
     }
-	//gmxAPI.LayersTools = gmxAPI.baseLayersTools = layersControl;
-	//gmxAPI.LayersTools = layersControl;
 
+	var drawingControl = {
+        parentNode: null
+        ,node: null
+        ,hideNode: null
+        ,items: []
+        ,
+        init: function(cont) {        // инициализация
+            // Установка drawing контролов
+            gmxAPI._listeners.addListener({level: -10, eventName: 'mapInit', func: function(map) {
+                var attr = {
+                    properties: { className: 'gmxTools' }
+                    ,
+                    style: {
+                        marginTop: '40px'
+                    }
+                    ,
+                    regularStyle: {
+                        paddingTop: "0px", 
+                        paddingBottom: "0px", 
+                        paddingLeft: "0px", 
+                        paddingRight: "0px", 
+                        fontSize: "12px",
+                        fontFamily: "sans-serif",
+                        fontWeight: "bold",
+                        textAlign: "center",
+                        cursor: "pointer", 
+                        opacity: 1, 
+                        color: "wheat"
+                    }
+                    ,
+                    activeStyle: {
+                        paddingTop: "0px", 
+                        paddingBottom: "0px", 
+                        paddingLeft: "0px", 
+                        paddingRight: "0px", 
+                        fontSize: "12px",
+                        fontFamily: "sans-serif",
+                        fontWeight: "bold",
+                        textAlign: "center",
+                        cursor: "pointer", 
+                        opacity: 1, 
+                        color: 'orange'
+                    }
+                    ,
+                    contType: 1	// режим для drawing tools
+                };
+                var standartTools = new gmxAPI._ToolsContainer('standart', attr);
+                var apiBase = gmxAPI.getAPIFolderRoot();
+                var arr = [
+                    {
+                        key: "move",
+                        activeStyle: {},
+                        regularStyle: {},
+                        regularImageUrl: apiBase + "img/move_tool.png",
+                        activeImageUrl: apiBase + "img/move_tool_a.png",
+                        onClick: gmxAPI._drawFunctions.move,
+                        onCancel: function() {},
+                        hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Перемещение", "Move")
+                    }
+                    ,
+                    {
+                        key: "zoom",
+                        activeStyle: {},
+                        regularStyle: {},
+                        regularImageUrl: apiBase + "img/select_tool.png",
+                        activeImageUrl: apiBase + "img/select_tool_a.png",
+                        onClick: gmxAPI._drawFunctions.zoom,
+                        onCancel: function() {},
+                        hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
+                    }
+                    ,
+                    {
+                        key: "POINT",
+                        activeStyle: {},
+                        regularStyle: {},
+                        regularImageUrl: apiBase + "img/marker_tool.png",
+                        activeImageUrl: apiBase + "img/marker_tool_a.png",
+                        onClick: gmxAPI._drawFunctions.POINT,
+                        onCancel: gmxAPI._drawing.endDrawing,
+                        hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
+                    }
+                    ,
+                    {
+                        key: "LINESTRING",
+                        activeStyle: {},
+                        regularStyle: {},
+                        regularImageUrl: apiBase + "img/line_tool.png",
+                        activeImageUrl: apiBase + "img/line_tool_a.png",
+                        onClick: gmxAPI._drawFunctions.LINESTRING,
+                        onCancel: gmxAPI._drawing.endDrawing,
+                        hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
+                    }
+                    ,
+                    {
+                        key: "POLYGON",
+                        activeStyle: {},
+                        regularStyle: {},
+                        regularImageUrl: apiBase + "img/polygon_tool.png",
+                        activeImageUrl: apiBase + "img/polygon_tool_a.png",
+                        onClick: gmxAPI._drawFunctions.POLYGON,
+                        onCancel: gmxAPI._drawing.endDrawing,
+                        hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Полигон", "Polygon")
+                    }
+                    ,
+                    {
+                        key: "FRAME",
+                        activeStyle: {},
+                        regularStyle: {},
+                        regularImageUrl: apiBase + "img/frame_tool.png",
+                        activeImageUrl: apiBase + "img/frame_tool_a.png",
+                        onClick: gmxAPI._drawFunctions.FRAME,
+                        onCancel: gmxAPI._drawing.endDrawing,
+                        hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
+                    }
+                ];
+                for(var i=0; i<arr.length; i++) {
+                    standartTools.addTool(arr[i].key, arr[i]);
+                }
+                standartTools.selectTool("move");
+                gmxAPI._drawing.control = gmxAPI.map.standartTools = standartTools;
+            }});
+        }
+    }
+ 
 	var Control = {
         'id': 'controlsBase'
         ,
         'isActive': false
         ,
-        'items': [layersControl, geomixerLink, copyrightControl, locationControl, zoomControl, minimizeTools]
+        'items': [layersControl, geomixerLink, copyrightControl, locationControl, zoomControl, minimizeTools, drawingControl]
         ,
         'init': function(parent) {        // инициализация
             this.forEach(function(item, i) {

@@ -312,18 +312,6 @@
         ,
         repaint: function()
         {
-/*
-            var dz = zoomControl.maxZoom - zoomControl.minZoom + 1;
-            var gap = 12*dz;
-            gmxAPI.position(zoomControl.zoomPlus, 20 + gap, 7);
-            gmxAPI.size(zoomControl.zoomPlaque, 43 + gap, 32);
-            //gmxAPI.map.zoomControl.width = 43 + gap;
-            for (var i = 0; i < dz; i++) {
-                if(i == zoomControl.zoomArr.length) zoomControl.addZoomItem(i);
-                gmxAPI.setVisible(zoomControl.zoomArr[i], (i < dz));
-            }
-            if(dz < zoomControl.zoomArr.length) for (var i = dz; i < zoomControl.zoomArr.length; i++) gmxAPI.setVisible(zoomControl.zoomArr[i], false);
-*/
         }
         ,onChangeBackgroundColorID: null
         ,onMoveEndID: null
@@ -495,9 +483,9 @@
         ,
         redraw: function() {            // перерисовать
 			var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
-			if(!currPos['latlng']) return;
-			var x = currPos['latlng']['x'];
-			var y = currPos['latlng']['y'];
+			if(!currPos.latlng) return;
+			var x = currPos.latlng.x;
+			var y = currPos.latlng.y;
 			var texts = [
                 //первым всегда будет располагаться копирайт СканЭкс. 
                 "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2013 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>"
@@ -530,17 +518,17 @@
 			if(copyrightControl.copyrightLastAlign != copyrightControl.copyrightAlign) {
 				copyrightControl.copyrightLastAlign = copyrightControl.copyrightAlign;
 				if(copyrightControl.copyrightAlign === 'bc') {				// Позиция bc(BottomCenter)
-					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': center + 'px' });
+					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr.y, 'right': '', 'left': center + 'px' });
 				} else if(copyrightControl.copyrightAlign === 'br') {		// Позиция br(BottomRight)
-					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr['y'], 'right': copyrightAttr['x'], 'left': '' });
+					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr.y, 'right': copyrightAttr.x, 'left': '' });
 				} else if(copyrightControl.copyrightAlign === 'bl') {		// Позиция bl(BottomLeft)
-					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr['y'], 'right': '', 'left': copyrightAttr['x'] });
+					gmxAPI.setPositionStyle(node, { 'top': '', 'bottom': copyrightAttr.y, 'right': '', 'left': copyrightAttr.x });
 				} else if(copyrightControl.copyrightAlign === 'tc') {		// Позиция tc(TopCenter)
 					gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': '', 'left': center + 'px' });
 				} else if(copyrightControl.copyrightAlign === 'tr') {		// Позиция tr(TopRight)
-					gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': copyrightAttr['x'], 'left': '' });
+					gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': copyrightAttr.x, 'left': '' });
 				} else if(copyrightControl.copyrightAlign === 'tl') {		// Позиция tl(TopLeft)
-					gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr['x'] });
+					gmxAPI.setPositionStyle(node, { 'top': '0px', 'bottom': '', 'right': '', 'left': copyrightAttr.x });
 				}
 			}
         }
@@ -556,7 +544,7 @@
                 map.updateCopyright = function() { copyrightControl.redraw(); } 
                 // Изменить позицию контейнера копирайтов
                 map.setCopyrightAlign = function(attr) {
-                    if(attr['align']) copyrightControl.copyrightAlign = attr['align'];
+                    if(attr.align) copyrightControl.copyrightAlign = attr.align;
                     copyrightControl.setPosition();
                 }
                 
@@ -718,13 +706,13 @@
         ,
         'checkPositionChanged': function() {
 			var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
-			var z = Math.round(currPos['z']);
-			var x = (currPos['latlng'] ? currPos['latlng']['x'] : 0);
-			var y = (currPos['latlng'] ? currPos['latlng']['y'] : 0);
+			var z = Math.round(currPos.z);
+			var x = (currPos.latlng ? currPos.latlng.x : 0);
+			var y = (currPos.latlng ? currPos.latlng.y : 0);
 			if(gmxAPI.map.needMove) {
-				z = gmxAPI.map.needMove['z'];
-				x = gmxAPI.map.needMove['x'];
-				y = gmxAPI.map.needMove['y'];
+				z = gmxAPI.map.needMove.z;
+				x = gmxAPI.map.needMove.x;
+				y = gmxAPI.map.needMove.y;
 			}
 
 			var metersPerPixel = locationControl.getLocalScale(x, y) * gmxAPI.getScale(z);
@@ -749,8 +737,8 @@
         ,
         'getCoordinatesText': function(currPos) {
 			if(!currPos) currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
-			var x = (currPos['latlng'] ? currPos['latlng']['x'] : gmxAPI.from_merc_x(currPos['x']));
-			var y = (currPos['latlng'] ? currPos['latlng']['y'] : gmxAPI.from_merc_y(currPos['y']));
+			var x = (currPos.latlng ? currPos.latlng.x : gmxAPI.from_merc_x(currPos.x));
+			var y = (currPos.latlng ? currPos.latlng.y : gmxAPI.from_merc_y(currPos.y));
 			if (x > 180) x -= 360;
 			if (x < -180) x += 360;
 			if (locationControl.coordFormat % 3 == 0)
@@ -943,19 +931,13 @@
             if(flag) {
                 gmxAPI._listeners.addListener({'level': 9999, 'eventName': 'mapInit', 'func': function(map) {
                     layersControl.map = map;
-//console.log('mapInit ', gmxAPI.BaseLayersManager.getItems());
-
                     var key = 'onAddBaseLayer';
                     layersControl.listeners[key] = layersControl.map.addListener(key, function(ph) {
-//console.log('onAddBaseLayer------ ', name, gmxAPI.BaseLayersManager.getItems());
-                        layersControl.addBaseLayerTool(ph['id'], ph['attr']);
-
-                        //tool.select();
+                        layersControl.addBaseLayerTool(ph.id, ph.attr);
                     });
 
                     key = 'baseLayerSelected';
                     layersControl.listeners[key] = layersControl.map.addListener(key, function(name) {
-//console.log('setActive------ ', name, gmxAPI.BaseLayersManager.getItems());
                         var tool = layersControl.getTool(name);
                         tool.select();
                     });
@@ -978,7 +960,7 @@
                     layersControl.overlaysNode.style.display = 'block';
             }
             if(!attr) return false;
-            var id = attr['alias'] || tn;
+            var id = attr.alias || tn;
             if (layersControl.overlaysLayersHash[id]) return false;
             else {
                 var item = gmxAPI.newElement(
@@ -1001,9 +983,9 @@
                             var currentItem = layersControl.overlaysLayersHash[this.value];
                             if(!currentItem) return;
                             if(this.checked) {
-                                if('onClick' in currentItem['attr']) currentItem['attr']['onClick']();
+                                if('onClick' in currentItem.attr) currentItem.attr.onClick();
                             } else {
-                                if('onCancel' in currentItem['attr']) currentItem['attr']['onCancel']();
+                                if('onCancel' in currentItem.attr) currentItem.attr.onCancel();
                             }
                         }
                     },
@@ -1018,7 +1000,7 @@
                     "span",
                     {
                         className: "gmx_layersControlOverlaySpan"
-                        ,innerHTML: attr['hint'] || tn
+                        ,innerHTML: attr.hint || tn
                     },
                     {
                         position: 'relative'
@@ -1049,9 +1031,8 @@
                     'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
                     'hint': tn
                 };
-            var id = attr['alias'] || tn;
+            var id = attr.alias || tn;
 
-//console.log('chkBaseLayerTool', id, tn, attr);
             if (layersControl.baseLayersHash[id]) return false;
             else {
                 var item = gmxAPI.newElement(
@@ -1074,7 +1055,7 @@
                         ,onclick: function (ev) {
                             var currentItem = layersControl.baseLayersHash[layersControl.currentBaseID];
                             if(currentItem) {
-                                if('onCancel' in currentItem['attr']) currentItem['attr']['onCancel']();
+                                if('onCancel' in currentItem.attr) currentItem.attr.onCancel();
                                 currentItem.radio.checked = false;
                             }
                             layersControl.currentBaseID = null;
@@ -1082,7 +1063,7 @@
                             if(this.checked) {
                                 layersControl.currentBaseID = this.value;
                                 currentItem = layersControl.baseLayersHash[layersControl.currentBaseID];
-                                if('onClick' in currentItem['attr']) currentItem['attr']['onClick']();
+                                if('onClick' in currentItem.attr) currentItem.attr.onClick();
                             }
                         }
                     },
@@ -1096,7 +1077,7 @@
                     "span",
                     {
                         className: "gmx_layersControlBaseSpan"
-                        ,innerHTML: attr['hint'] || tn
+                        ,innerHTML: attr.hint || tn
                     },
                     {
                         position: 'relative'
@@ -1127,11 +1108,11 @@
         'getAliasByName': function(tn) {
             for (var key in layersControl.baseLayersHash) {
                 var tool = layersControl.baseLayersHash[key];
-                var alias = tool['attr']['alias'] || key;
+                var alias = tool.attr.alias || key;
                 if(alias === tn) return alias;
-                else if(tool['attr']['lang']) {
-                    for (var lang in tool['attr']['lang']) {
-                        if(tool['attr']['lang'][lang] === tn) return alias;
+                else if(tool.attr.lang) {
+                    for (var lang in tool.attr.lang) {
+                        if(tool.attr.lang[lang] === tn) return alias;
                     }
                 }
             }
@@ -1141,11 +1122,6 @@
         'getTool': function(tn) {
             tn = layersControl.getAlias(tn);
             if(layersControl.baseLayersHash[tn]) return layersControl.baseLayersHash[tn];
-            /*for (var key in layersControl.baseLayersHash) {
-                var tool = layersControl.baseLayersHash[key];
-                var alias = tool['attr']['alias'] || key;
-                if(alias === tn) return tool;
-            }*/
             return null;
         }
     }
@@ -1207,7 +1183,7 @@
                     var handler = events[key];
                     pt.isActive = !pt.isActive;
                     if(key === 'onclick' && 'onCancel' in pt && !pt.isActive) {
-                        iconsControl.groupTools[groupID].setCurrent();
+                        if(groupID) iconsControl.groupTools[groupID].setCurrent();
                         handler = pt.onCancel;
                     }
                     if(handler) handler.call(this, e);
@@ -1240,7 +1216,7 @@
             }
             
             var itemNode = gmxAPI.newElement("div", attr, style);
-            if(pt['regularImageUrl']) {
+            if(pt.regularImageUrl) {
                 itemNode.appendChild(gmxAPI.newElement("img", {
                     'src': pt.regularImageUrl
                 }, {
@@ -1466,7 +1442,7 @@
             if(item && 'onmouseout' in item.node) item.node.onmouseout();
             item = iconsControl.items[id];
             if(item && 'onmouseover' in item) item.node.onmouseover();
-            iconsControl['currentID'] = id;
+            iconsControl.currentID = id;
         }
         ,
         getToolByName: function(name) {        // Получить tool по name
@@ -1511,7 +1487,7 @@
                     groupItems.setCurrent(id);
                 }
                 ,setCurrent: function(id) {
-//console.log('setCurrent0000', id, groupItems['currentID']);
+//console.log('setCurrent0000', id, groupItems.currentID);
                     if(groupItems.currentID) {
                         var prevItem = groupItems.items[groupItems.currentID];
                         if(prevItem) {
@@ -1595,18 +1571,117 @@
         }
     }
 
+	var drawingControl = {
+        parentNode: null
+        ,node: null
+        ,hideNode: null
+        ,items: []
+        ,
+        init: function(cont) {        // инициализация
+            // Установка drawing контролов
+            gmxAPI._listeners.addListener({level: -10, eventName: 'mapInit', func: function(map) {
+                var arr = [
+                    {
+                        key: "zoom",
+                        style: {
+                            backgroundPosition: '-362px -33px'
+                        }
+                        ,
+                        hoverStyle: {
+                            backgroundPosition: '-362px -2px'
+                        }
+                        ,activeStyle: {}
+                        ,regularStyle: {}
+                        ,onClick: gmxAPI._drawFunctions.zoom
+                        ,onCancel: function() {
+                            gmxAPI._drawing.activeState = false;
+                            gmxAPI._drawing.BoxZoom = false;
+                            return null;
+                        }
+                        ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
+                    }
+                    ,
+                    {
+                        key: "POINT",
+                        style: {
+                            backgroundPosition: '-238px -33px'
+                        }
+                        ,
+                        hoverStyle: {
+                            backgroundPosition: '-238px -2px'
+                        }
+                        ,onClick: gmxAPI._drawFunctions.POINT
+                        ,onCancel: gmxAPI._drawing.endDrawing
+                        ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
+                    }
+                    ,
+                    {
+                        key: "LINESTRING",
+                        style: {
+                            backgroundPosition: '-393px -33px'
+                        }
+                        ,
+                        hoverStyle: {
+                            backgroundPosition: '-393px -2px'
+                        }
+                        ,onClick: gmxAPI._drawFunctions.LINESTRING
+                        ,onCancel: gmxAPI._drawing.endDrawing
+                        ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
+                    }
+                    ,
+                    {
+                        key: "POLYGON",
+                        style: {
+                            backgroundPosition: '-503px -33px'
+                        }
+                        ,
+                        hoverStyle: {
+                            backgroundPosition: '-503px -2px'
+                        }
+                        ,onClick: gmxAPI._drawFunctions.POLYGON
+                        ,onCancel: gmxAPI._drawing.endDrawing
+                        ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Полигон", "Polygon")
+                    }
+                    ,
+                    {
+                        key: "FRAME",
+                        style: {
+                            backgroundPosition: '-269px -33px'
+                        }
+                        ,
+                        hoverStyle: {
+                            backgroundPosition: '-269px -2px'
+                        }
+                        ,onClick: gmxAPI._drawFunctions.FRAME
+                        ,onCancel: gmxAPI._drawing.endDrawing
+                        ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
+                    }
+                ];
+                gmxAPI._drawing.control = gmxAPI.ControlsManager.addGroupTool({
+                    id: 'drawing'
+                    ,items: arr
+                });
+                gmxAPI.map.standartTools = gmxAPI._drawing.control;     // для обратной совместимости
+                
+                gmxAPI._drawing.control.setCurrent();
+            }});
+        }
+        ,
+        setVisible: function(flag) {        // Установка видимости
+        }
+    }
+
 	var Control = {
         id: 'controlsBaseIcons'
         ,isVisible: true
         ,isActive: false
         ,
-        items: [iconsControl, layersControl, copyrightControl, locationControl, zoomControl]
+        items: [iconsControl, layersControl, copyrightControl, locationControl, zoomControl, drawingControl]
         ,
         init: function(parent) {        // инициализация
             gmxAPI._tools = {};
             gmxAPI._tools.standart = iconsControl;
             gmxAPI._listeners.addListener({level: 10000, eventName: 'mapInit', func: function(map) {
-//console.log('ControlsManager', iconsControl);
                  iconsControl.setActive(true);
                  copyrightControl.setActive(true);
                  locationControl.setActive(true);

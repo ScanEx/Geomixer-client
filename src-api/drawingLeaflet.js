@@ -17,13 +17,13 @@
 			if(!items || items.length == 0) return;
 			items[1]._container.style.pointerEvents = 'none';
 			//items[1]._container.style.pointerEvents = items[2]._container.style.pointerEvents = 'none';
-			if(flag !== undefined) items[2].options['skipLastPoint'] = flag;
+			if(flag !== undefined) items[2].options.skipLastPoint = flag;
 		}
 		,
 		'enablePointerEvents': function(flag, items) {			// включить мышь на SVG обьектах
 			if(!items || items.length == 0) return;
 			items[1]._container.style.pointerEvents = items[2]._container.style.pointerEvents = 'visiblePainted';
-			if(flag !== undefined) items[2].options['skipLastPoint'] = flag;
+			if(flag !== undefined) items[2].options.skipLastPoint = flag;
 		}
 		,
 		'hideBalloon': function() {						// выключить балун
@@ -32,7 +32,7 @@
 		}
 		,
 		'getGeometryTitle': function(geom) {				// Получить prettify title балуна
-			var geomType = geom['type'];
+			var geomType = geom.type;
 			if (geomType.indexOf("POINT") != -1)
 			{
 				var c = geom.coordinates;
@@ -48,14 +48,14 @@
 		,
 		'getTitle': function(downType, eType, arr) {			// Получить title балуна
 			var title = '';
-			var ii = downType['num'];
-			if(downType['type'] === 'node') {
+			var ii = downType.num;
+			if(downType.type === 'node') {
 				if(eType === 'LINESTRING') {
 					title = gmxAPI.prettifyDistance(gmxAPI.geoLength({ type: "LINESTRING", coordinates: [arr.slice(0,ii+1)] }));
 				} else if(eType === 'POLYGON' || eType === 'FRAME') {
 					title = drawingUtils.getGeometryTitle({ type: "POLYGON", coordinates: [arr] });
 				}
-			} else if(downType['type'] === 'edge') {
+			} else if(downType.type === 'edge') {
 				if(ii == 0 && eType === 'LINESTRING') return false;
 				var p1 = arr[ii];
 				var p2 = arr[(ii == 0 ? arr.length - 1 : ii - 1)];
@@ -66,23 +66,23 @@
 	};
 
 	var chkStyle = function(drawAttr, regularStyle, hoveredStyle) {
-		if(drawAttr['regularStyle']) {
-			var opacity = ('opacity' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['opacity']/100 : 1);
-			var color = ('color' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['color'] : 0xff);
-			drawAttr['strokeStyle']['color'] = gmxAPI._leaflet['utils'].dec2rgba(color, opacity);
-			var weight = ('weight' in drawAttr['regularStyle'] ? drawAttr['regularStyle']['weight'] : lineWidth);
-			drawAttr['stylePolygon'] = {
-				'color': gmxAPI._leaflet['utils'].dec2rgba(color, opacity)
+		if(drawAttr.regularStyle) {
+			var opacity = ('opacity' in drawAttr.regularStyle ? drawAttr.regularStyle.opacity/100 : 1);
+			var color = ('color' in drawAttr.regularStyle ? drawAttr.regularStyle.color : 0xff);
+			drawAttr.strokeStyle.color = gmxAPI._leaflet.utils.dec2rgba(color, opacity);
+			var weight = ('weight' in drawAttr.regularStyle ? drawAttr.regularStyle.weight : lineWidth);
+			drawAttr.stylePolygon = {
+				'color': gmxAPI._leaflet.utils.dec2rgba(color, opacity)
 				,'weight': weight
 				,'opacity': opacity
 				
 			};
-			drawAttr['stylePoint'] = gmxAPI.clone(stylePoint);
-			drawAttr['stylePoint']['pointSize'] = pointSize;
-			drawAttr['stylePoint']['color'] = drawAttr['stylePolygon']['color'];
-			drawAttr['stylePoint']['weight'] = drawAttr['stylePolygon']['weight'];
-			drawAttr['stylePoint']['fillOpacity'] = 
-			drawAttr['stylePoint']['opacity'] = drawAttr['stylePolygon']['opacity'];
+			drawAttr.stylePoint = gmxAPI.clone(stylePoint);
+			drawAttr.stylePoint.pointSize = pointSize;
+			drawAttr.stylePoint.color = drawAttr.stylePolygon.color;
+			drawAttr.stylePoint.weight = drawAttr.stylePolygon.weight;
+			drawAttr.stylePoint.fillOpacity = 
+			drawAttr.stylePoint.opacity = drawAttr.stylePolygon.opacity;
 		}
 	}
 	
@@ -104,14 +104,14 @@
 		}
 		var dx = getDeltaX(dBounds);
 		var point = getLongLatLng(ph.latlng.lat, ph.latlng.lng);
-		var p1 = gmxAPI._leaflet['LMap'].project(point);
+		var p1 = gmxAPI._leaflet.LMap.project(point);
 		var size = pointSize + lineWidth;
 		
 		var cursorBounds = new L.Bounds();
-		var p = gmxAPI._leaflet['LMap'].unproject(new L.Point(p1.x - size, p1.y - size));
-		cursorBounds.extend(new L.Point(p['lng'],  p['lat']));
-		p = gmxAPI._leaflet['LMap'].unproject(new L.Point(p1.x + size, p1.y + size));
-		cursorBounds.extend(new L.Point(p['lng'],  p['lat']));
+		var p = gmxAPI._leaflet.LMap.unproject(new L.Point(p1.x - size, p1.y - size));
+		cursorBounds.extend(new L.Point(p.lng,  p.lat));
+		p = gmxAPI._leaflet.LMap.unproject(new L.Point(p1.x + size, p1.y + size));
+		cursorBounds.extend(new L.Point(p.lng,  p.lat));
 
 		var len = coords.length;
 		for (var i = 0; i < len; i++)
@@ -121,11 +121,11 @@
 			var y = pArr[1];
 			//var pBounds = getBoundsPoint(pArr[0] + dx, pArr[1]);
 			if(cursorBounds.max.x < x || cursorBounds.min.x > x || cursorBounds.max.y < y || cursorBounds.min.y > y) {
-				var p2 = gmxAPI._leaflet['LMap'].project(getLongLatLng(pArr[1], x));
+				var p2 = gmxAPI._leaflet.LMap.project(getLongLatLng(pArr[1], x));
 				var jj = i + 1;
 				if(jj >= len) jj = 0;
 				var x = coords[jj][0] + dx;
-				var point1 = gmxAPI._leaflet['LMap'].project(getLongLatLng(coords[jj][1], x));
+				var point1 = gmxAPI._leaflet.LMap.project(getLongLatLng(coords[jj][1], x));
 				var x1 = p2.x - p1.x; 			var y1 = p2.y - p1.y;
 				var x2 = point1.x - p1.x;		var y2 = point1.y - p1.y;
 				var dist = L.LineUtil.pointToSegmentDistance(p1, p2, point1) - lineWidth;
@@ -139,12 +139,12 @@
 			}
 		}
 		if(ph.target) {
-			out['evID'] = ph.target._leaflet_id;
-			out['_gmxNodeID'] = ph.target._gmxNodeID;
-			out['_gmxDrawItemID'] = ph.target._gmxDrawItemID;
+			out.evID = ph.target._leaflet_id;
+			out._gmxNodeID = ph.target._gmxNodeID;
+			out._gmxDrawItemID = ph.target._gmxDrawItemID;
 		}
 		if(ph.originalEvent) {
-			out['button'] = ph.originalEvent.buttons || ph.originalEvent.button;
+			out.button = ph.originalEvent.buttons || ph.originalEvent.button;
 		}
 		return out;
 	}
@@ -154,9 +154,9 @@
 		var point = new L.LatLng(y, x);
 		point.lng = x;
 		point.lat = y;
-		var pix = gmxAPI._leaflet['LMap'].project(point);
-		var p1 = gmxAPI._leaflet['LMap'].unproject(new L.Point(pix['x'] - pointSize, pix['y'] + pointSize));
-		var p2 = gmxAPI._leaflet['LMap'].unproject(new L.Point(pix['x'] + pointSize, pix['y'] - pointSize));
+		var pix = gmxAPI._leaflet.LMap.project(point);
+		var p1 = gmxAPI._leaflet.LMap.unproject(new L.Point(pix.x - pointSize, pix.y + pointSize));
+		var p2 = gmxAPI._leaflet.LMap.unproject(new L.Point(pix.x + pointSize, pix.y - pointSize));
 		return bounds = new L.LatLngBounds(p1, p2);
 	}
 
@@ -167,13 +167,13 @@
 		var latlng = new L.LatLng(0, centerObj);
 		if(centerObj > 180) latlng.lng = centerObj;
 		//else if(centerObj < -180) latlng.lng -= 180;
-		var pixelCenterObj = gmxAPI._leaflet['LMap'].project(latlng);
+		var pixelCenterObj = gmxAPI._leaflet.LMap.project(latlng);
 		
-		var point = gmxAPI._leaflet['LMap'].project(new L.LatLng(0, -180));
-		var p180 = gmxAPI._leaflet['LMap'].project(new L.LatLng(0, 180));
+		var point = gmxAPI._leaflet.LMap.project(new L.LatLng(0, -180));
+		var p180 = gmxAPI._leaflet.LMap.project(new L.LatLng(0, 180));
 		var worldSize = p180.x - point.x;
 		
-		var pixelBounds = gmxAPI._leaflet['LMap'].getPixelBounds();
+		var pixelBounds = gmxAPI._leaflet.LMap.getPixelBounds();
 		var centerViewport = (pixelBounds.max.x + pixelBounds.min.x)/2;
 		
 		var dist = pixelCenterObj.x - centerViewport;
@@ -193,26 +193,26 @@
 
 	var drawSVG = function(attr)
 	{
-		var layerGroup = attr['layerGroup'];
+		var layerGroup = attr.layerGroup;
 		if(!layerGroup._map) return;
-		var layerItems = attr['layerItems'];
-		//console.log('drawSVG:  ', attr['coords'].length);
+		var layerItems = attr.layerItems;
+		//console.log('drawSVG:  ', attr.coords.length);
 		var dBounds = new L.Bounds();
-		for (var i = 0; i < attr['coords'].length; i++)
+		for (var i = 0; i < attr.coords.length; i++)
 		{
-			var pArr = attr['coords'][i];
+			var pArr = attr.coords[i];
 			dBounds.extend(new L.Point(pArr[0],  pArr[1]));
 		}
 
 		var dx = getDeltaX(dBounds);
 
 		if(layerItems.length == 0) {
-			var tstyle = attr['stylePolygon'] || stylePolygon;
+			var tstyle = attr.stylePolygon || stylePolygon;
 			layerItems.push(new L.Polyline([], tstyle));
-			var hstyle = attr['hiddenPolygon'] || hiddenPolygon;
+			var hstyle = attr.hiddenPolygon || hiddenPolygon;
 			layerItems.push(new L.GMXLinesFill([], hstyle));
 
-			var pstyle = attr['stylePoint'] || stylePoint;
+			var pstyle = attr.stylePoint || stylePoint;
 			layerItems.push(new L.GMXPointsMarkers([], pstyle));
 
 			layerGroup.addLayer(layerItems[0]);
@@ -221,38 +221,38 @@
 
 			layerItems[2]._container.style.pointerEvents = 'visiblePainted';
 			layerItems[0]._container.style.pointerEvents = 'none';
-			layerItems[1]._container.style.pointerEvents = (!attr['isExternal'] && attr['editType'] !== 'FRAME' ? 'none':'visiblePainted');
-			if(attr['isExternal'] && attr['editType'] === 'LINESTRING') layerItems[2].options['skipLastPoint'] = false;
+			layerItems[1]._container.style.pointerEvents = (!attr.isExternal && attr.editType !== 'FRAME' ? 'none':'visiblePainted');
+			if(attr.isExternal && attr.editType === 'LINESTRING') layerItems[2].options.skipLastPoint = false;
 			// _gmxDrawItemID - идентификатор члена drawing объекта
 			layerItems[1]._gmxDrawItemID = layerItems[2]._gmxDrawItemID = layerGroup._gmxDrawItemID = layerGroup._leaflet_id;
 			// _gmxNodeID - идентификатор ноды drawing объекта
-			layerItems[1]._gmxNodeID = layerItems[2]._gmxNodeID = layerGroup._gmxNodeID = attr['node'].id;
+			layerItems[1]._gmxNodeID = layerItems[2]._gmxNodeID = layerGroup._gmxNodeID = attr.node.id;
 
 			layerItems[1].on('mousedown', function(e) {
-				if(attr['mousedown']) attr['mousedown'](e);
+				if(attr.mousedown) attr.mousedown(e);
 			}, this);
 			layerItems[2].on('mousedown', function(e) {
-				if(attr['mousedown']) attr['mousedown'](e);
+				if(attr.mousedown) attr.mousedown(e);
 			}, this);
 			layerItems[2].on('dblclick', function(e) {
-				if(attr['dblclick']) attr['dblclick'](e);
+				if(attr.dblclick) attr.dblclick(e);
 			}, this);
 		}
-		if(attr['node'].id != topNodeID) {
+		if(attr.node.id != topNodeID) {
 			layerGroup.bringToFront();
-			topNodeID = attr['node'].id;
+			topNodeID = attr.node.id;
 		}
 		
 		var latLngs = [];
 		var latLngsPoints = [];
-		for (var i = 0, len = attr['coords'].length; i < len; i++)
+		for (var i = 0, len = attr.coords.length; i < len; i++)
 		{
-			var pArr = attr['coords'][i];
+			var pArr = attr.coords[i];
 			var latLng = new L.LatLng(pArr[1], pArr[0] + dx);
 			latLngs.push(latLng);
 		}
-		if(attr['lastPoint']) {
-			var latLng = new L.LatLng(attr['lastPoint']['y'], attr['lastPoint']['x'] + dx);
+		if(attr.lastPoint) {
+			var latLng = new L.LatLng(attr.lastPoint.y, attr.lastPoint.x + dx);
 			latLngs.push(latLng);
 		}
 		layerItems[0].setLatLngs(latLngs);
@@ -294,7 +294,7 @@
 	var endDrawing = function() {			// Вызывается при выходе из режима редактирования
 		chkDrawingObjects();
 		currentDOMObject = null;
-		gmxAPI._drawing['activeState'] = false;
+		gmxAPI._drawing.activeState = false;
 	};
 
 	var createDOMObject = function(ret, properties, propHiden)
@@ -362,9 +362,9 @@
 			addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },
 			removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
 		}
-		if('chkMouse' in ret) objects[myId]['chkMouse'] = ret.chkMouse;
-		if('getItemDownType' in ret) objects[myId]['getItemDownType'] = ret.getItemDownType;
-		if('itemMouseDown' in ret) objects[myId]['itemMouseDown'] = ret.itemMouseDown;
+		if('chkMouse' in ret) objects[myId].chkMouse = ret.chkMouse;
+		if('getItemDownType' in ret) objects[myId].getItemDownType = ret.getItemDownType;
+		if('itemMouseDown' in ret) objects[myId].itemMouseDown = ret.itemMouseDown;
 
 		currentDOMObject = ret.domObj = objects[myId];
 		return objects[myId];
@@ -379,7 +379,7 @@
 		if (!text)
 			text = "";
 
-		var mapNodes = gmxAPI._leaflet['mapNodes'];					// Хэш нод обьектов карты - аналог MapNodes.hx
+		var mapNodes = gmxAPI._leaflet.mapNodes;					// Хэш нод обьектов карты - аналог MapNodes.hx
 		var drawAttr = {
 			'editType': editType
 			,
@@ -429,7 +429,7 @@
 			onMouseUpID = null;
 			gmxAPI._cmdProxy('stopDrawing');
 			if(onMouseMoveID) gmxAPI.map.removeListener('onMouseMove', onMouseMoveID); onMouseMoveID = null;
-			gmxAPI._drawing['activeState'] = false;
+			gmxAPI._drawing.activeState = false;
 			
 			//isDraging = false;
 			drawingUtils.hideBalloon();
@@ -443,7 +443,7 @@
 		
 		var mouseMove = function(ph)
 		{
-			//console.log('mouseMove:  ', onStartMove, mousePressed, isFinish, editIndex, coords.length, gmxAPI._drawing['activeState'], lastPoint);
+			//console.log('mouseMove:  ', onStartMove, mousePressed, isFinish, editIndex, coords.length, gmxAPI._drawing.activeState, lastPoint);
 			if(onStartMove) {
 				onStartMove(ph);
 				onStartMove = false;
@@ -472,7 +472,7 @@
 		var addPoint = function(p)
 		{
 			coords.push(p);
-			drawAttr['coords'] = coords;
+			drawAttr.coords = coords;
 			skipDblClickTime = new Date().getTime() + 500;
 		}
 
@@ -484,7 +484,7 @@
 			if(!addItemListenerID) addItemListenerID = gmxAPI.map.addListener('onClick', addDrawingItem);
 			drawingUtils.disablePointerEvents(flag ? flag : false, layerItems);
 			isFinish = false;
-			gmxAPI._drawing['activeState'] = true;
+			gmxAPI._drawing.activeState = true;
 			currentObjectID = domObj.objectId;
 		}
 		var stopAddPoints = function()
@@ -498,7 +498,7 @@
 			oBounds = gmxAPI.getBounds(coords);
 			lastPoint = null;
 			drawingUtils.enablePointerEvents(editType === 'LINESTRING' ? false : true, layerItems);
-			gmxAPI._drawing['activeState'] = false;
+			gmxAPI._drawing.activeState = false;
 			
 			repaint();
             gmxAPI._drawing.control.selectTool("move");
@@ -512,14 +512,14 @@
 
 		var chkNodeEvents = function()			// события на SVG элементах
 		{
-			if(node['leaflet']) {
+			if(node.leaflet) {
 				needInitNodeEvents = false;
 				positionChangedID = gmxAPI.map.addListener('positionChanged', drawMe);
 				layerGroup.on('contextmenu', function(e) {
 					//console.log('contextmenu:  ', arguments);
 					mouseUp();
 					//var attr = parseEvent(e);
-					//gmxAPI._leaflet['contextMenu']['showMenu']({'obj':gmxAPI.map, 'attr': attr});	// Показать меню
+					//gmxAPI._leaflet.contextMenu.showMenu({'obj':gmxAPI.map, 'attr': attr});	// Показать меню
 				});
 
 				layerGroup.on('mouseover', function(e) {
@@ -544,41 +544,41 @@
 					drawingUtils.hideBalloon();
 
 					var downType = getDownType(ev, coords);
-//console.log('downItemID:  ', node.id, downType['_gmxNodeID'] , currentObjectID, coords.length);
-					if(currentObjectID && downType['_gmxNodeID'] != currentObjectID) return;	// мышь нажата на другом обьекте
-//console.log('downItemID1:  ', node.id, gmxAPI._drawing['activeState'], isFinish, downType);
-					if(downType['button'] === 2 || !isFinish) return; 	// Нажали правую кнопку либо режим добавления точек
+//console.log('downItemID:  ', node.id, downType._gmxNodeID , currentObjectID, coords.length);
+					if(currentObjectID && downType._gmxNodeID != currentObjectID) return;	// мышь нажата на другом обьекте
+//console.log('downItemID1:  ', node.id, gmxAPI._drawing.activeState, isFinish, downType);
+					if(downType.button === 2 || !isFinish) return; 	// Нажали правую кнопку либо режим добавления точек
 
 					if('type' in downType) {
-						editIndex = downType['num'];
+						editIndex = downType.num;
 						var x = ev.latlng.lng, y = ev.latlng.lat;
 						if(x < -180) x += 360;
-						if(downType['type'] === 'node') {				// перемещаем точку
+						if(downType.type === 'node') {				// перемещаем точку
 							if(coords[editIndex][0] > 0 && x < 0) x += 360;
 							onStartMove = function(pt) {
 								coords[editIndex] = [x, y];
-								layerItems[2].options['skipLastPoint'] = (editType === 'POLYGON' ? true : false);
+								layerItems[2].options.skipLastPoint = (editType === 'POLYGON' ? true : false);
 							}
-							gmxAPI._drawing['activeState'] = true;
+							gmxAPI._drawing.activeState = true;
 							if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
-						} else if(downType['type'] === 'edge') {		// добавляем точку
+						} else if(downType.type === 'edge') {		// добавляем точку
 							if(editType === 'LINESTRING') {
 								if(editIndex === 0) editIndex++;
-								layerItems[2].options['skipLastPoint'] = false;
+								layerItems[2].options.skipLastPoint = false;
 							}
 							coords.splice(editIndex, 0, [x, y]);
 							if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 							if(!onMouseUpID) onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
-							gmxAPI._drawing['activeState'] = true;
+							gmxAPI._drawing.activeState = true;
 						}
 					}
 				};
-				drawAttr['mousedown'] = mouseDownFunc;
+				drawAttr.mousedown = mouseDownFunc;
 
 				var dblclick = function(downType)		// Удаление точки
 				{
 					if(skipDblClickTime > new Date().getTime()) return;
-//console.log('dblclick:  ', node.id, gmxAPI._drawing['activeState'], isFinish, coords.length, downType);
+//console.log('dblclick:  ', node.id, gmxAPI._drawing.activeState, isFinish, coords.length, downType);
 
 					if(downType.type !== 'node') return;
 
@@ -588,7 +588,7 @@
 						if(downType.num === 0) {
 							coords[len] = coords[1];
 						}
-						layerItems[2].options['skipLastPoint'] = true;
+						layerItems[2].options.skipLastPoint = true;
 						if(len == 2) len = 0;
 					} else if(editType === 'LINESTRING') {
 						if(!isFinish) {
@@ -602,7 +602,7 @@
 						domObj.remove();
 					} else {
 						coords.splice(downType.num, 1);
-						drawAttr['coords'] = coords;
+						drawAttr.coords = coords;
 						drawSVG(drawAttr);
 					}
 					mouseUp();
@@ -612,14 +612,14 @@
 					editIndex = null;
 					isFinish = true;
 				};
-				drawAttr['dblclick'] = function(e) {
+				drawAttr.dblclick = function(e) {
 					var downType = getDownType(e, coords);
-					if(currentObjectID && downType['_gmxNodeID'] != currentObjectID) return;	// мышь нажата на другом обьекте
+					if(currentObjectID && downType._gmxNodeID != currentObjectID) return;	// мышь нажата на другом обьекте
 					dblclick(downType);
 				}
 				var onFinish = function(downType)		// Окончание редактирования
 				{
-					gmxAPI._drawing['activeState'] = false;
+					gmxAPI._drawing.activeState = false;
 					if(addItemListenerID) gmxAPI.map.removeListener('onClick', addItemListenerID); addItemListenerID = null;
 					currentObjectID = null;
 					var len = coords.length - 1;
@@ -636,10 +636,10 @@
 						ret.stopDrawing();
 						drawingUtils.enablePointerEvents(false, layerItems);
 						if(downType.num === 0) {
-							editType = drawAttr['editType'] = 'POLYGON';
+							editType = drawAttr.editType = 'POLYGON';
                             domObj.geometry.type = 'POLYGON';
 							addPoint(coords[0]);
-							layerItems[2].options['skipLastPoint'] = true;
+							layerItems[2].options.skipLastPoint = true;
 						}
 						//if(len == 1) len = 0;
 					}
@@ -656,9 +656,9 @@
 				var clickWaitID = null;
 				layerGroup.on('click', function(ev) {
 					var downType = getDownType(ev, coords);
-					if(currentObjectID && downType['_gmxNodeID'] != currentObjectID) return;	// мышь нажата на другом обьекте
+					if(currentObjectID && downType._gmxNodeID != currentObjectID) return;	// мышь нажата на другом обьекте
 
-//console.log('click:  ', node.id, gmxAPI._drawing['activeState'], isFinish, downType, coords.length);
+//console.log('click:  ', node.id, gmxAPI._drawing.activeState, isFinish, downType, coords.length);
 
 					if(moveDone) return;	// слишком долго была нажата мышь
 					mousePressed = moveDone = false;
@@ -723,11 +723,11 @@
 			}
 			if(needInitNodeEvents) chkNodeEvents();
 
-			drawAttr['layerGroup'] = layerGroup;
-			drawAttr['layerItems'] = layerItems;
-			drawAttr['lastPoint'] = lastPoint
-			drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
-			drawAttr['node'] = node;
+			drawAttr.layerGroup = layerGroup;
+			drawAttr.layerItems = layerItems;
+			drawAttr.lastPoint = lastPoint
+			drawAttr.oBounds = oBounds, drawAttr.coords = coords;
+			drawAttr.node = node;
 			drawSVG(drawAttr);
 		}
 
@@ -750,7 +750,7 @@
 		{
 			domObj = createDOMObject(ret, props, propHiden);
 			domObj.objectId = obj.objectId;
-			domObj['stateListeners'] = obj['stateListeners'];
+			domObj.stateListeners = obj.stateListeners;
 			node = mapNodes[obj.objectId];
 			eventType = 'onAdd';
 			obj.setStyle(regularDrawingStyle, hoveredDrawingStyle);
@@ -773,24 +773,24 @@
 				coords = [];
 				lastPoint = {'x': x, 'y':y};
 				createDrawingObj();
-				gmxAPI._drawing['activeState'] = true;
-					domObj['stopDrawing'] = ret.stopDrawing;
+				gmxAPI._drawing.activeState = true;
+					domObj.stopDrawing = ret.stopDrawing;
 				if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 			}
 			currentObjectID = domObj.objectId;
 			if (coords.length) {
 				var skipLastPoint = false;
-				var point = gmxAPI._leaflet['LMap'].project(new L.LatLng(y, x));
-				var pointBegin = gmxAPI._leaflet['LMap'].project(new L.LatLng(coords[0][1], coords[0][0]));
+				var point = gmxAPI._leaflet.LMap.project(new L.LatLng(y, x));
+				var pointBegin = gmxAPI._leaflet.LMap.project(new L.LatLng(coords[0][1], coords[0][0]));
 				var flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) < pointSize);
 				if (flag && editType === 'LINESTRING') {
-					editType = drawAttr['editType'] = 'POLYGON';
+					editType = drawAttr.editType = 'POLYGON';
 					skipLastPoint = true;
 				}
 
 				if(!flag) {
 					var tp = coords[coords.length - 1];
-					pointBegin = gmxAPI._leaflet['LMap'].project(new L.LatLng(tp[1], tp[0]));
+					pointBegin = gmxAPI._leaflet.LMap.project(new L.LatLng(tp[1], tp[0]));
 					flag = (Math.abs(pointBegin.x - point.x) < pointSize && Math.abs(pointBegin.y - point.y) < pointSize);
 				}
 				if (flag) {
@@ -845,12 +845,12 @@
 			,
 			'setStyle': function(regularStyle, hoveredStyle) {
 				obj.setStyle(regularStyle, hoveredStyle);
-				drawAttr['regularStyle'] = gmxAPI._leaflet['utils'].parseStyle(regularStyle, obj.objectId);
-				drawAttr['hoveredStyle'] = gmxAPI._leaflet['utils'].parseStyle(hoveredStyle, obj.objectId);
+				drawAttr.regularStyle = gmxAPI._leaflet.utils.parseStyle(regularStyle, obj.objectId);
+				drawAttr.hoveredStyle = gmxAPI._leaflet.utils.parseStyle(hoveredStyle, obj.objectId);
 				chkStyle(drawAttr, regularStyle, hoveredStyle);
 				if(layerGroup) {
-					layerItems[0].setStyle(drawAttr['stylePolygon']);
-					layerItems[2].setStyle(drawAttr['stylePoint']);
+					layerItems[0].setStyle(drawAttr.stylePolygon);
+					layerItems[2].setStyle(drawAttr.stylePoint);
 				}
 			}
 			,
@@ -871,7 +871,7 @@
 		ret.setVisible(ret.isVisible);
 /*
 		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
-			toolsContainer = gmxAPI._tools['standart'];
+			toolsContainer = gmxAPI._tools.standart;
 			toolsContainer.currentlyDrawnObject = ret;
 		}
 */
@@ -883,7 +883,7 @@
 			}
 			
 			isFinish = true;
-			drawAttr['isExternal'] = true;
+			drawAttr.isExternal = true;
 			lastPoint = null;
 			oBounds = gmxAPI.getBounds(coords);
 			createDrawingObj();
@@ -892,7 +892,7 @@
 			chkEvent(eventType);
 		} else {
 			//startAddPoints();
-			gmxAPI._drawing['activeState'] = true;
+			gmxAPI._drawing.activeState = true;
 			addItemListenerID = gmxAPI.map.addListener('onClick', addDrawingItem);
 		}
 		return ret;
@@ -916,7 +916,7 @@
 			text = "";
 
 		var editType = 'FRAME';
-		var mapNodes = gmxAPI._leaflet['mapNodes'];					// Хэш нод обьектов карты - аналог MapNodes.hx
+		var mapNodes = gmxAPI._leaflet.mapNodes;					// Хэш нод обьектов карты - аналог MapNodes.hx
 		var drawAttr = {
 			'editType': editType
 			,
@@ -982,7 +982,7 @@
 			gmxAPI._cmdProxy('stopDrawing');
 			if(onMouseMoveID) gmxAPI.map.removeListener('onMouseMove', onMouseMoveID);
 			onMouseMoveID = null;
-			gmxAPI._drawing['activeState'] = false;
+			gmxAPI._drawing.activeState = false;
 			
 			//isDraging = false;
 			drawingUtils.hideBalloon();
@@ -997,7 +997,7 @@
 		
 		var chkNodeEvents = function()
 		{
-			if(node['leaflet']) {
+			if(node.leaflet) {
 				needInitNodeEvents = false;
 				layerGroup.on('mouseover', function(e) {
 					mouseOverFlag = true;
@@ -1038,12 +1038,12 @@
 				layerGroup = node.leaflet;
 			}
 			if(needInitNodeEvents) chkNodeEvents();
-			drawAttr['mousedown'] = itemMouseDown;
-			drawAttr['layerGroup'] = layerGroup;
-			drawAttr['layerItems'] = layerItems;
-			drawAttr['oBounds'] = oBounds, drawAttr['coords'] = coords;
-			drawAttr['node'] = node;
-			drawAttr['dblclick'] = function(e, attr)		// Удаление обьекта
+			drawAttr.mousedown = itemMouseDown;
+			drawAttr.layerGroup = layerGroup;
+			drawAttr.layerItems = layerItems;
+			drawAttr.oBounds = oBounds, drawAttr.coords = coords;
+			drawAttr.node = node;
+			drawAttr.dblclick = function(e, attr)		// Удаление обьекта
 			{
 				ret.remove();
 			};
@@ -1062,7 +1062,7 @@
 
 		var itemMouseDown = function(e, attr)
 		{
-			if(currentDOMObject && currentDOMObject.objectId != node['id']) return;
+			if(currentDOMObject && currentDOMObject.objectId != node.id) return;
 			downTime = new Date().getTime();
 			drawingUtils.hideBalloon();
 			coords = [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
@@ -1070,11 +1070,11 @@
 			if('type' in downType) {
 				gmxAPI.mousePressed	= mousePressed = true;
 				gmxAPI._cmdProxy('startDrawing');
-				gmxAPI._drawing['activeState'] = true;
+				gmxAPI._drawing.activeState = true;
 				if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 				if(!onMouseUpID) onMouseUpID = gmxAPI.map.addListener('onMouseUp', mouseUp);
-				var cnt = downType['num'];
-				if(downType['type'] == 'edge') {
+				var cnt = downType.num;
+				if(downType.type == 'edge') {
 					if(cnt == 4) itemDownType = 'Left';
 					else if(cnt == 2) itemDownType = 'Right';
 					else if(cnt == 1) itemDownType = 'Top';
@@ -1141,7 +1141,7 @@
 		{
 			domObj = createDOMObject(ret, props, propHiden);
 			domObj.objectId = obj.objectId;
-			domObj['stateListeners'] = obj['stateListeners'];
+			domObj.stateListeners = obj.stateListeners;
 			node = mapNodes[obj.objectId];
 
 			eventType = 'onAdd';
@@ -1205,12 +1205,12 @@
 			,
 			'setStyle': function(regularStyle, hoveredStyle) {
 				obj.setStyle(regularStyle, hoveredStyle);
-				drawAttr['regularStyle'] = gmxAPI._leaflet['utils'].parseStyle(regularStyle, obj.objectId);
-				drawAttr['hoveredStyle'] = gmxAPI._leaflet['utils'].parseStyle(hoveredStyle, obj.objectId);
+				drawAttr.regularStyle = gmxAPI._leaflet.utils.parseStyle(regularStyle, obj.objectId);
+				drawAttr.hoveredStyle = gmxAPI._leaflet.utils.parseStyle(hoveredStyle, obj.objectId);
 				chkStyle(drawAttr, regularStyle, hoveredStyle);
 				if(layerGroup) {
-					layerItems[0].setStyle(drawAttr['stylePolygon']);
-					layerItems[2].setStyle(drawAttr['stylePoint']);
+					layerItems[0].setStyle(drawAttr.stylePolygon);
+					layerItems[2].setStyle(drawAttr.stylePoint);
 				} else {
 					drawMe();
 				}
@@ -1232,7 +1232,7 @@
 		ret.setVisible(ret.isVisible);
 /*
 		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
-			toolsContainer = gmxAPI._tools['standart'];
+			toolsContainer = gmxAPI._tools.standart;
 			toolsContainer.currentlyDrawnObject = ret;
 		}
 */
@@ -1252,7 +1252,7 @@
 				x1 = ph.attr.latlng.lng;
 				y1 = ph.attr.latlng.lat;
 				//gmxAPI._cmdProxy('startDrawing');
-				gmxAPI._drawing['activeState'] = true;
+				gmxAPI._drawing.activeState = true;
 				onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 				if(addItemListenerID) gmxAPI.map.removeListener('onMouseDown', addItemListenerID); addItemListenerID = null;
 				return true;
@@ -1266,20 +1266,20 @@
 
 	drawFunctions.zoom = function()
 	{
-		gmxAPI._drawing['activeState'] = true;
-		gmxAPI._drawing['BoxZoom'] = true;
+		gmxAPI._drawing.activeState = true;
+		gmxAPI._drawing.BoxZoom = true;
 		gmxAPI._cmdProxy('startDrawing');
         // IconsControl
         //gmxAPI._drawing.endDrawing();
 /*
         var toolsContainer = null;
 		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
-			toolsContainer = gmxAPI._tools['standart'];
+			toolsContainer = gmxAPI._tools.standart;
 		}
 */
-		gmxAPI._drawing['setMove'] = function() {
-			gmxAPI._drawing['activeState'] = false;
-			gmxAPI._drawing['BoxZoom'] = false;
+		gmxAPI._drawing.setMove = function() {
+			gmxAPI._drawing.activeState = false;
+			gmxAPI._drawing.BoxZoom = false;
             gmxAPI._drawing.control.selectTool("move");
 //gmxAPI._drawing.control.setCurrent();
 			//if(toolsContainer) toolsContainer.selectTool("move");
@@ -1287,8 +1287,8 @@
 		var ret = {
 			stopDrawing: function()
 			{
-				gmxAPI._drawing['activeState'] = false;
-				gmxAPI._drawing['BoxZoom'] = false;
+				gmxAPI._drawing.activeState = false;
+				gmxAPI._drawing.BoxZoom = false;
 			}
 		}
 		return ret;
@@ -1296,7 +1296,7 @@
 
 	drawFunctions["move"] = function()
 	{
-		//gmxAPI._drawing['BoxZoom'] = false;
+		//gmxAPI._drawing.BoxZoom = false;
 	}
 
 	drawFunctions.POINT = function(coords, props, propHiden)
@@ -1380,7 +1380,7 @@
 /*
 		var toolsContainer = null;
 		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
-			toolsContainer = gmxAPI._tools['standart'];
+			toolsContainer = gmxAPI._tools.standart;
 			toolsContainer.currentlyDrawnObject = ret;
 		}
 */
@@ -1429,7 +1429,7 @@
 			obj.setHandlers({
 				"onClick": function()
 				{
-					if(domObj.stateListeners['onClick'] && chkEvent('onClick')) return;	// если установлен пользовательский onClick возвращающий true выходим
+					if(domObj.stateListeners.onClick && chkEvent('onClick')) return;	// если установлен пользовательский onClick возвращающий true выходим
 					if (clickTimeout)
 					{
 						clearTimeout(clickTimeout);
@@ -1494,7 +1494,7 @@
 			obj.enableDragging(function(x, y, o, data)
 			{
 				dragCallback(x, y);
-				gmxAPI._drawing['activeState'] = true;
+				gmxAPI._drawing.activeState = true;
 			}
 			, function(x, y, o, data)
 			{
@@ -1502,7 +1502,7 @@
 			}
 			, function(o)
 			{
-				gmxAPI._drawing['activeState'] = false;
+				gmxAPI._drawing.activeState = false;
 				upCallback();
 			});
 
@@ -1666,7 +1666,7 @@
 			if (geom.type.indexOf("MULTI") != -1)
 			{
 				if(!propHiden) propHiden = {};
-				propHiden['multiFlag'] = true;
+				propHiden.multiFlag = true;
 				for (var i = 0; i < geom.coordinates.length; i++)
 					this.addObject(
 						{ 
@@ -1710,19 +1710,19 @@
 						if(newCoords.type) newCoords = newCoords.coordinates;	// Если это geometry берем только координаты
 						var type = geom.type.replace("MULTI", "");
 						this.geometry.coordinates = newCoords;
-						var oldLen = fObj['members'].length;
+						var oldLen = fObj.members.length;
 						for (var i = newCoords.length; i < oldLen; i++)
 						{
-							fObj['members'][i].remove();
-							fObj['members'].pop();
+							fObj.members[i].remove();
+							fObj.members.pop();
 						}
 						for (var i = 0; i < newCoords.length; i++)
 						{
-							if(i >= this['members'].length) {
+							if(i >= this.members.length) {
 								var o = drawFunctions[type](newCoords[i][0], props, propHiden);		// нужна обработка дырок в polygon обьекте
-								fObj['members'].push(o);
+								fObj.members.push(o);
 							} else {
-								fObj['members'][i].updateCoordinates(newCoords[i][0]);
+								fObj.members[i].updateCoordinates(newCoords[i][0]);
 							}
 						}
 					}
@@ -1762,12 +1762,12 @@
 					}
 				};
 				multiObjects[myId] = fObj;
-				propHiden['multiObj'] = fObj;
+				propHiden.multiObj = fObj;
 				var type = geom.type.replace("MULTI", "");
 				for (var i = 0; i < geom.coordinates.length; i++)
 				{
 					var o = drawFunctions[type](geom.coordinates[i], props, propHiden);
-					fObj['members'].push(o);
+					fObj.members.push(o);
 				}
 				return fObj;
 				*/
@@ -1775,7 +1775,7 @@
 			else
 			{
 				var o = drawFunctions[geom.type](geom.coordinates, props, propHiden);
-				//gmxAPI._tools['standart'].selectTool("move");
+				//gmxAPI._tools.standart.selectTool("move");
 				return o.domObj;
 			}
 		},
@@ -1805,7 +1805,7 @@
 /*			
 			for (var id in objects) {
 				var cObj = objects[id];
-				if(cObj.geometry && !cObj.propHiden['multiFlag']) callback(cObj);
+				if(cObj.geometry && !cObj.propHiden.multiFlag) callback(cObj);
 			}
 			for (var id in multiObjects) {
 				var cObj = multiObjects[id];
@@ -1856,7 +1856,7 @@
 			//console.log('chkMouseHover ' );
 			for (var id in objects) {
 				var cObj = objects[id];
-				if('getItemDownType' in cObj && cObj['getItemDownType'].call(cObj, attr, cObj.getGeometry())) {
+				if('getItemDownType' in cObj && cObj.getItemDownType.call(cObj, attr, cObj.getGeometry())) {
 					return cObj;
 				}
 			}
@@ -1869,7 +1869,7 @@
 //console.log('chkMouseHover:  ', fName, mouseOverFlag);
 			if(!mouseOverFlag) return;
 			if(!fName) fName = 'chkMouse';
-			if(!mousePressed || attr['evName'] == 'onMouseDown') {
+			if(!mousePressed || attr.evName == 'onMouseDown') {
 				for (var id in objects) {
 					var cObj = objects[id];
 					if(fName in cObj && cObj[fName].call(cObj, attr)) return true;
@@ -1896,207 +1896,4 @@
 	//расширяем namespace
     gmxAPI._drawFunctions = drawFunctions;
     gmxAPI._drawing = drawing;
-
-    gmxAPI._listeners.addListener({level: -10, eventName: 'mapInit', func: function(map) {
-//console.log('_drawing', gmxAPI.IconsControl);
-        if(gmxAPI.ControlsManager.currentID === 'controlsBaseIcons') {
-            var arr = [
-                {
-                    key: "zoom",
-                    style: {
-                        backgroundPosition: '-362px -33px'
-                    }
-                    ,
-                    hoverStyle: {
-                        backgroundPosition: '-362px -2px'
-                    }
-                    ,activeStyle: {}
-                    ,regularStyle: {}
-                    ,onClick: gmxAPI._drawFunctions.zoom
-                    ,onCancel: function() {
-                        gmxAPI._drawing.activeState = false;
-                        gmxAPI._drawing.BoxZoom = false;
-                        return null;
-                    }
-                    ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
-                }
-                ,
-                {
-                    key: "POINT",
-                    style: {
-                        backgroundPosition: '-238px -33px'
-                    }
-                    ,
-                    hoverStyle: {
-                        backgroundPosition: '-238px -2px'
-                    }
-                    ,onClick: gmxAPI._drawFunctions.POINT
-                    ,onCancel: gmxAPI._drawing.endDrawing
-                    ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
-                }
-                ,
-                {
-                    key: "LINESTRING",
-                    style: {
-                        backgroundPosition: '-393px -33px'
-                    }
-                    ,
-                    hoverStyle: {
-                        backgroundPosition: '-393px -2px'
-                    }
-                    ,onClick: gmxAPI._drawFunctions.LINESTRING
-                    ,onCancel: gmxAPI._drawing.endDrawing
-                    ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
-                }
-                ,
-                {
-                    key: "POLYGON",
-                    style: {
-                        backgroundPosition: '-503px -33px'
-                    }
-                    ,
-                    hoverStyle: {
-                        backgroundPosition: '-503px -2px'
-                    }
-                    ,onClick: gmxAPI._drawFunctions.POLYGON
-                    ,onCancel: gmxAPI._drawing.endDrawing
-                    ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Полигон", "Polygon")
-                }
-                ,
-                {
-                    key: "FRAME",
-                    style: {
-                        backgroundPosition: '-269px -33px'
-                    }
-                    ,
-                    hoverStyle: {
-                        backgroundPosition: '-269px -2px'
-                    }
-                    ,onClick: gmxAPI._drawFunctions.FRAME
-                    ,onCancel: gmxAPI._drawing.endDrawing
-                    ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
-                }
-            ];
-            gmxAPI._drawing.control = gmxAPI.ControlsManager.addGroupTool({
-                id: 'drawing'
-                ,items: arr
-            });
-            gmxAPI.map.standartTools = gmxAPI._drawing.control;     // для обратной совместимости
-            
-            gmxAPI._drawing.control.setCurrent();
-        } else {
-            var attr = {
-                properties: { className: 'gmxTools' }
-                ,
-                style: {
-                    marginTop: '40px'
-                }
-                ,
-                regularStyle: {
-                    paddingTop: "0px", 
-                    paddingBottom: "0px", 
-                    paddingLeft: "0px", 
-                    paddingRight: "0px", 
-                    fontSize: "12px",
-                    fontFamily: "sans-serif",
-                    fontWeight: "bold",
-                    textAlign: "center",
-                    cursor: "pointer", 
-                    opacity: 1, 
-                    color: "wheat"
-                }
-                ,
-                activeStyle: {
-                    paddingTop: "0px", 
-                    paddingBottom: "0px", 
-                    paddingLeft: "0px", 
-                    paddingRight: "0px", 
-                    fontSize: "12px",
-                    fontFamily: "sans-serif",
-                    fontWeight: "bold",
-                    textAlign: "center",
-                    cursor: "pointer", 
-                    opacity: 1, 
-                    color: 'orange'
-                }
-                ,
-                contType: 1	// режим для drawing tools
-            };
-            var standartTools = new gmxAPI._ToolsContainer('standart', attr);
-            var apiBase = gmxAPI.getAPIFolderRoot();
-            var arr = [
-                {
-                    key: "move",
-                    activeStyle: {},
-                    regularStyle: {},
-                    regularImageUrl: apiBase + "img/move_tool.png",
-                    activeImageUrl: apiBase + "img/move_tool_a.png",
-                    onClick: gmxAPI._drawFunctions.move,
-                    onCancel: function() {},
-                    hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Перемещение", "Move")
-                }
-                ,
-                {
-                    key: "zoom",
-                    activeStyle: {},
-                    regularStyle: {},
-                    regularImageUrl: apiBase + "img/select_tool.png",
-                    activeImageUrl: apiBase + "img/select_tool_a.png",
-                    onClick: gmxAPI._drawFunctions.zoom,
-                    onCancel: function() {},
-                    hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
-                }
-                ,
-                {
-                    key: "POINT",
-                    activeStyle: {},
-                    regularStyle: {},
-                    regularImageUrl: apiBase + "img/marker_tool.png",
-                    activeImageUrl: apiBase + "img/marker_tool_a.png",
-                    onClick: gmxAPI._drawFunctions.POINT,
-                    onCancel: gmxAPI._drawing.endDrawing,
-                    hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
-                }
-                ,
-                {
-                    key: "LINESTRING",
-                    activeStyle: {},
-                    regularStyle: {},
-                    regularImageUrl: apiBase + "img/line_tool.png",
-                    activeImageUrl: apiBase + "img/line_tool_a.png",
-                    onClick: gmxAPI._drawFunctions.LINESTRING,
-                    onCancel: gmxAPI._drawing.endDrawing,
-                    hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
-                }
-                ,
-                {
-                    key: "POLYGON",
-                    activeStyle: {},
-                    regularStyle: {},
-                    regularImageUrl: apiBase + "img/polygon_tool.png",
-                    activeImageUrl: apiBase + "img/polygon_tool_a.png",
-                    onClick: gmxAPI._drawFunctions.POLYGON,
-                    onCancel: gmxAPI._drawing.endDrawing,
-                    hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Полигон", "Polygon")
-                }
-                ,
-                {
-                    key: "FRAME",
-                    activeStyle: {},
-                    regularStyle: {},
-                    regularImageUrl: apiBase + "img/frame_tool.png",
-                    activeImageUrl: apiBase + "img/frame_tool_a.png",
-                    onClick: gmxAPI._drawFunctions.FRAME,
-                    onCancel: gmxAPI._drawing.endDrawing,
-                    hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
-                }
-            ];
-            for(var i=0; i<arr.length; i++) {
-                standartTools.addTool(arr[i].key, arr[i]);
-            }
-            standartTools.selectTool("move");
-            gmxAPI._drawing.control = gmxAPI.map.standartTools = standartTools;
-        }
-        //this.standartTools = standartTools;
-    }});
 })();
