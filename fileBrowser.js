@@ -454,7 +454,7 @@ fileBrowser.prototype.createUpload = function()
 {
 	var //uploadPath = _input(null,[['attr','type','hidden'], ['attr','name','ParentDir']]),
 		uploadFileButton = makeButton(_gtxt("Загрузить файл")),
-		div = _div(null, [['css','height','30px'],['css','marginTop','10px']]),
+		div = _div(null, [['css','height','30px']]),
 		_this = this;
 	
 	var formFile = _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'FileBrowser/Upload.ashx?WrapStyle=message'],['attr','target','fileBrowserUpload_iframe']]);
@@ -508,9 +508,15 @@ fileBrowser.prototype.createUpload = function()
         );
 	}
 	
-	_(div, [_table([_tbody([_tr([_td([formFile]), _td([uploadFileButton])])])])]);
+	_(div, [
+        _div([_t("Перетащите файлы сюда")], [['dir', 'className', 'fileBrowser-dragFileMessage']]),
+        _table([_tbody([_tr([
+            _td([formFile], [['css', 'paddingTop', '18px']]), 
+            _td([uploadFileButton], [['css', 'paddingTop', '18px']])
+        ])])])
+    ]);
     
-    var progressBar = $('<div/>').css({'float': 'right', width: 400, height: '1em', 'margin': '6px 2px'}).progressbar({value: 100});
+    var progressBar = $('<div/>').addClass('fileBrowser-progressBar').progressbar({value: 100});
     progressBar.hide();
     
     this.progressBar = progressBar[0];
