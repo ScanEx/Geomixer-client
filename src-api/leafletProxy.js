@@ -2990,11 +2990,13 @@
 			for (var i=0; i<ph.attr.data.length; i++)	// Подготовка массива обьектов
 			{
 				var item = ph.attr.data[i];
-				arr.push({
-					'id': item['id']
-					,'properties': item['properties']
-					,'geometry': gmxAPI.merc_geometry(item['geometry'])
-				});
+				var pt = {
+					id: item.id
+					,properties: item.properties
+					,propHiden: item.propHiden || {}
+					,geometry: gmxAPI.merc_geometry(item.geometry)
+				};
+				arr.push(pt);
 			}
 			node.addItems(arr);
 			return true;
@@ -3016,7 +3018,7 @@
 			for(var key in ph['attr']) {
 				node['propHiden'][key] = ph['attr'][key];
 			}
-			if(node['type'] === 'VectorLayer') node.waitRedraw();
+			if(node['type'] === 'VectorLayer') node.setAPIProperties();
 			return true;
 		}
 		,
