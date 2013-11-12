@@ -24,9 +24,9 @@ var LayerProperties = Backbone.Model.extend({
             Description:    divProperties ? (divProperties.description || '') : (layerProperties.Description || ''),
             NameObject:     divProperties ? (divProperties.NameObject || '') : (layerProperties.NameObject || ''),
             AllowSearch:    divProperties ? (divProperties.AllowSearch || false) : (layerProperties.AllowSearch || false),
-            GeometryType:   divProperties.GeometryType,
-            LayerID:        divProperties.LayerID,
-            Quicklook:      divProperties.Quicklook,
+            GeometryType:   divProperties ? divProperties.GeometryType : layerProperties.GeometryType,
+            LayerID:        divProperties ? divProperties.LayerID : layerProperties.GeometryType,
+            Quicklook:      divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
             MetaProperties: layerProperties.MetaProperties || {},
             ShapePath:      layerProperties.ShapePath || {},
             TilePath:       layerProperties.TilePath || {},
@@ -38,20 +38,22 @@ var LayerProperties = Backbone.Model.extend({
             SourceType:     layerProperties.SourceType || 'file',
             Geometry:       layerProperties.Geometry,
             
-            Attributes:     divProperties.attributes,
-            AttrTypes:      divProperties.attrTypes,
+            Attributes:     divProperties ? divProperties.attributes : [],
+            AttrTypes:      divProperties ? divProperties.attrTypes : [],
             
             
             MetaPropertiesEditing: null
         })
         
         this.set('RC', new nsGmx.LayerRCProperties({
-            IsRasterCatalog:      divProperties.IsRasterCatalog,
+            IsRasterCatalog:      layerProperties.IsRasterCatalog,
             RCMinZoomForRasters:  layerProperties.RCMinZoomForRasters,
             RCMaskForRasterTitle: layerProperties.RCMaskForRasterTitle,
             RCMaskForRasterPath:  layerProperties.RCMaskForRasterPath,
             ColumnTagLinks:       layerProperties.ColumnTagLinks
         }));
+        
+        divProperties = divProperties || {};
         
         var tempPeriods = divProperties.TemporalPeriods;
         this.set('Temporal', new nsGmx.TemporalLayerParams({
@@ -60,21 +62,36 @@ var LayerProperties = Backbone.Model.extend({
             maxPeriod: tempPeriods && tempPeriods[tempPeriods.length-1],
             maxShownPeriod: divProperties.maxShownPeriod || 0,
             columnName: divProperties.TemporalColumnName
-        }));
+        }));        
         
         this.set('GeometryColumnsLatLng', new LatLngColumnsModel({
             XCol: layerProperties.GeometryXCol,
             YCol: layerProperties.GeometryYCol
         }));
-        
-        if (type !== 'Vector') {
-            this.set("Legend", divProperties ? (divProperties.Legend || '') : (layerProperties.Legend || ''));
-        }
-        
+
         if (layerProperties.Name) {
             this.set("Name", layerProperties.Name);
         }
     },
+    
+    initFromServer: function(layerName) {
+        var def = $.Deferred(),
+            _this = this;
+        
+        sendCrossDomainPostRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&NeedAttrValues=false&LayerName=" + layerName, function(response) {
+            if (!parseResponse(response)) {
+                def.reject(response);
+                return;
+            }
+            
+            _this.initFromViewer('Vector', null, response.Result);
+            
+            ref.resolve();
+        });
+        
+        return def.promise();
+    },
+    
     save: function(geometryChanged, callback) {
         var attrs = this.attributes,
             name = attrs.Name,

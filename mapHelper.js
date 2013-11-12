@@ -940,7 +940,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 		if (!this.attrValues[mapName])
 			this.attrValues[mapName] = {};
 
-		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&&NeedAttrValues=false&LayerID=" + elemProperties.LayerID, function(response)
+		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&NeedAttrValues=false&LayerID=" + elemProperties.LayerID, function(response)
 		{
 			if (!parseResponse(response))
 				return;
