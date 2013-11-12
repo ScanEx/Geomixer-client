@@ -1117,7 +1117,11 @@ var SearchDataProvider = function(sInitServerBase, oInitMap, arrDisplayFields){
 		if (params.ShowTotal != null) sQueryString += "&ShowTotal=" + params.ShowTotal;
 		if (params.UseOSM != null) sQueryString += "&UseOSM=" + params.UseOSM;
 		//if (sFormatName != null) sQueryString += "&Format=" + escape(sFormatName);
-		sendCrossDomainJSONRequest(sServerBase + "SearchObject/SearchAddress.ashx?" + sQueryString, function(response){
+
+		var key = window.KOSMOSNIMKI_SESSION_KEY;
+		if (key == null || key == "INVALID")
+			key = false;
+		sendCrossDomainJSONRequest(sServerBase + "SearchObject/SearchAddress.ashx?" + sQueryString + (key ? ("&key=" + encodeURIComponent(key)) : ""), function (response) {
 			if (response.Status == 'ok') {callback(response.Result);}
 			else {throw response.ErrorInfo.ErrorMessage;}
 		});

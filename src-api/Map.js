@@ -326,9 +326,12 @@
 
 		map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : gmxAPI.getAPIHostRoot();
 		map.sendSearchRequest = function(str, callback)
-		{
+		{		
+            var key = window.KOSMOSNIMKI_SESSION_KEY;
+		    if (key==null || key == "INVALID")
+			    key = false;
 			sendCrossDomainJSONRequest(
-				map.geoSearchAPIRoot + "SearchObject/SearchAddress.ashx?SearchString=" + escape(str),
+				map.geoSearchAPIRoot + "SearchObject/SearchAddress.ashx?SearchString=" + escape(str) + (key ? ("&key=" + encodeURIComponent(key)) : ""),
 				function(res)
 				{
 					var ret = {};
