@@ -22,6 +22,7 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
     }
     
     this.body = body;
+    this.moduleName = moduleName;
     this.params = params || {};
     this.def = $.Deferred(); //будет resolve когда плагин загрузится
     this.isLoading = false;
@@ -169,8 +170,13 @@ var PluginsManager = function()
         return function(map)
         {
             for (var p = 0; p < _plugins.length; p++)
-                if ( _plugins[p].isUsed() && typeof _plugins[p].body[funcName] !== 'undefined')
-                    _plugins[p].body[funcName]( _plugins[p].params, map || window.globalFlashMap );
+                if ( _plugins[p].isUsed() && typeof _plugins[p].body[funcName] !== 'undefined') {
+                    try {
+                        _plugins[p].body[funcName]( _plugins[p].params, map || window.globalFlashMap );
+                    } catch (e) {
+                        console && console.error('Error in function ' + funcName + '() of plugin ' + _plugins[p].moduleName + ': ' + e);
+                    }
+                }
         }
     }
     
