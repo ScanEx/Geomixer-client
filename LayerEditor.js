@@ -99,7 +99,7 @@ function capitaliseFirstLetter(string)
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-//events: newAttribute, delAttribute, updateAttribute, change
+//events: newAttribute, delAttribute, updateAttribute, moveAttribute, change
 var ManualAttrModel = function() {
     var _attributes = [];
     
@@ -118,14 +118,14 @@ var ManualAttrModel = function() {
     };
         
     this.changeName = function(idx, newName)
-        {
+    {
         _attributes[idx].name = newName;
         $(this).triggerHandler('updateAttribute');
         $(this).triggerHandler('change');
     };
         
     this.changeType = function(idx, newType)
-        {
+    {
         _attributes[idx].type = newType;
         $(this).triggerHandler('updateAttribute');
         $(this).triggerHandler('change');
@@ -148,6 +148,19 @@ var ManualAttrModel = function() {
                 callback(column, k);
             }
         }
+    }
+    
+    this.moveAttribute = function(oldIdx, newIdx) {
+        if (newIdx > oldIdx) {
+            newIdx--;
+        }
+        
+        if (oldIdx !== newIdx) {
+            _attributes.splice(newIdx, 0, _attributes.splice(oldIdx, 1)[0]);
+            $(this).triggerHandler('moveAttribute');
+            $(this).triggerHandler('change');
+        }
+        
     }
     
     this.initFromServerFormat = function(serverColumns) {
@@ -256,7 +269,17 @@ var ManualAttrView = function()
         })
             
         var tbody = _tbody(_trs);
-        $(tbody).sortable({axis: 'y', handle: '.moveIcon'});
+        $(tbody).sortable({
+            axis: 'y', 
+            handle: '.moveIcon',
+            stop: function(event, ui) {
+                var oldIdx = ui.item.find('input[attrIdx]').attr('attrIdx');
+
+                var elem = ui.item.next()[0] || ui.item.prev()[0];
+                var delta = ui.item.next()[0] ? 0 : 1;
+                _model.moveAttribute(parseInt(oldIdx), parseInt($(elem).find('input[attrIdx]').attr('attrIdx')) + delta);
+            }
+        });
         $(_parent).append($('<fieldset/>').css('border', 'none').append(_table([tbody], [['dir', 'className', 'customAttributes']])));
         _this.setActive(_isActive);
     }
@@ -276,21 +299,7 @@ var ManualAttrView = function()
     {
         _parent = parent;
         _model = model;
-        $(_model).bind('newAttribute', function(idx)
-            {
-            redraw();
-        });
-                
-        $(_model).bind('delAttribute', function()
-        {
-            redraw();
-        });
-        
-        $(_model).bind('updateAttribute', function()
-        {
-            //alert('change');
-        });
-        
+        $(_model).bind('newAttribute delAttribute moveAttribute', redraw);
         redraw();
     }
 };
