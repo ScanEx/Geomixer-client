@@ -143,15 +143,8 @@ var LayerProperties = Backbone.Model.extend({
                 reqParams.maxShownPeriod = tempProperties.get('maxShownPeriod');
             }
 
-            var geomColumns = attrs.GeometryColumnsLatLng;
             
             var parsedColumns = nsGmx.LayerProperties.parseColumns(attrs.Columns);
-            
-            //Если нет колонки с геометрией, то нужно передавать выбранные пользователем колонки
-            if (parsedColumns.geomCount === 0 && geomColumns && geomColumns.get('XCol') && geomColumns.get('YCol')) {
-                reqParams.ColX = geomColumns.get('XCol');
-                reqParams.ColY = geomColumns.get('YCol');
-            }
             
             //отсылать на сервер колонки нужно только если это уже созданный слой или тип слоя "Вручную"
             if (attrs.Columns && (name || stype === 'manual')) {
@@ -178,6 +171,13 @@ var LayerProperties = Backbone.Model.extend({
             }
             else
             {
+                //Если нет колонки с геометрией, то нужно передавать выбранные пользователем колонки
+                var geomColumns = attrs.GeometryColumnsLatLng;
+                if (parsedColumns.geomCount === 0 && geomColumns && geomColumns.get('XCol') && geomColumns.get('YCol')) {
+                    reqParams.ColX = geomColumns.get('XCol');
+                    reqParams.ColY = geomColumns.get('YCol');
+                }
+            
                 if (stype !== 'manual') {
                     reqParams.GeometryDataSource = stype === 'file' ? attrs.ShapePath.Path : attrs.TableName;
                 }
