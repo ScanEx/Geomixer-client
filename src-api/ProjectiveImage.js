@@ -192,7 +192,7 @@
 	var divide = function (u1, v1, u4, v4, p1, p2, p3, p4, limit, attr) {
 		if (limit) {
 			// Measure patch non-affinity.
-			var d1 = [p2[0] + p3[0] - 2 * p1[0], p2[1] + p3[1] - 2 * p1[1]];
+            var d1 = [p2[0] + p3[0] - 2 * p1[0], p2[1] + p3[1] - 2 * p1[1]];
 			var d2 = [p2[0] + p3[0] - 2 * p4[0], p2[1] + p3[1] - 2 * p4[1]];
 			var d3 = [d1[0] + d2[0], d1[1] + d2[1]];
 			var r = Math.abs((d3[0] * d3[0] + d3[1] * d3[1]) / (d1[0] * d2[0] + d1[1] * d2[1]));
@@ -227,7 +227,8 @@
 		var ctx = attr.ctx;
 
 		// Render this patch.
-		ctx.save();
+		//ctx.save();
+/*
 		// Set clipping path.
 		ctx.beginPath();
 	
@@ -237,6 +238,7 @@
 		ctx.lineTo(p3[0], p3[1]);
 
 		ctx.closePath();
+*/
 		// Get patch edge vectors.
 		var d12 = [p2[0] - p1[0], p2[1] - p1[1]];
 		var d24 = [p4[0] - p2[0], p4[1] - p2[1]];
@@ -253,22 +255,22 @@
 
 		// Align the transform along this corner.
 		if (amax == a1) {
-				ctx.transform(d12[0], d12[1], -d31[0], -d31[1], p1[0] + attr['deltaX'], p1[1] + attr['deltaY']);
+				ctx.setTransform(d12[0], d12[1], -d31[0], -d31[1], p1[0] + attr['deltaX'], p1[1] + attr['deltaY']);
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d12[0] * d12[0] + d12[1] * d12[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d31[0] * d31[0] + d31[1] * d31[1]);
 		} else if (amax == a2) {
-				ctx.transform(d12[0], d12[1],  d24[0],  d24[1], p2[0] + attr['deltaX'], p2[1] + attr['deltaY']);
+				ctx.setTransform(d12[0], d12[1],  d24[0],  d24[1], p2[0] + attr['deltaX'], p2[1] + attr['deltaY']);
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d12[0] * d12[0] + d12[1] * d12[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d24[0] * d24[0] + d24[1] * d24[1]);
 				dx = -1;
 		} else if (amax == a4) {
-				ctx.transform(-d43[0], -d43[1], d24[0], d24[1], p4[0] + attr['deltaX'], p4[1] + attr['deltaY']);
+				ctx.setTransform(-d43[0], -d43[1], d24[0], d24[1], p4[0] + attr['deltaX'], p4[1] + attr['deltaY']);
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d43[0] * d43[0] + d43[1] * d43[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d24[0] * d24[0] + d24[1] * d24[1]);
 				dx = -1;
 				dy = -1;
 		} else if (amax == a3) {
-				ctx.transform(-d43[0], -d43[1], -d31[0], -d31[1], p3[0] + attr['deltaX'], p3[1] + attr['deltaY']);
+				ctx.setTransform(-d43[0], -d43[1], -d31[0], -d31[1], p3[0] + attr['deltaX'], p3[1] + attr['deltaY']);
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d43[0] * d43[0] + d43[1] * d43[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d31[0] * d31[0] + d31[1] * d31[1]);
 				dy = -1;
@@ -293,7 +295,7 @@
 			dx, dy,
 			padx, pady
 		);
-		ctx.restore();
+		//ctx.restore();
 	}
 
 	var cnt = 0;
@@ -325,13 +327,12 @@
 		}
 		if('patchSize' in attr) patchSize = attr['patchSize'];
 		else {
-			patchSize = maxSize/8;
+			patchSize = Math.floor(maxSize/8);
 		}
-
 		var canvas = document.createElement("canvas");
 		attr['canvas'] = canvas;
 		attr['ctx'] = canvas.getContext('2d');
-		attr['ctx'].setTransform(1, 0, 0, 1, 0, 0);
+		//attr['ctx'].setTransform(1, 0, 0, 1, 0, 0);
 		if(attr['type'] === 'mapObject') {
             canvas.width = ww, canvas.height = hh;
 		} else {

@@ -39,6 +39,82 @@
 	var moveToTimer = null;
 	var utils = {							// Утилиты leafletProxy
 		'DEFAULT_REPLACEMENT_COLOR': 0xff00ff		// marker.color который не приводит к замене цветов иконки
+        ,
+        getTransformStyleName: gmxAPI.memoize(function()	{		// получить ключ стиля transform
+            var testStyle = document.createElement("div").style;
+            var stylePrefix =
+                "webkitTransform" in testStyle ? "webkit" :
+                "MozTransform" in testStyle ? "Moz" :
+                "msTransform" in testStyle ? "ms" :
+                "";
+            return stylePrefix + (stylePrefix.length>0?"Transform":"transform");
+        })
+		,
+        getMatrix3d: function(width, height, points, deltaX, deltaY)	{		// получить matrix3d по 4 точкам привязки снимка [topLeft, topRight, bottomLeft, bottomRight]
+            var aM = [
+                    [0, 0, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 1, 0, 0]
+                ],
+                bM = [0, 0, 0, 0, 0, 0, 0, 0],
+                arr = [0, 1, 2, 3, 4, 5, 6, 7];
+            for(var i = 0; i < 4; i++) {
+                aM[i][0] = aM[i+4][3] = i & 1 ? width : 0;
+                aM[i][1] = aM[i+4][4] = (i > 1 ? height : 0);
+                aM[i][6] = (i & 1 ? -width : 0) * points[i][0];
+                aM[i][7] = (i > 1 ? -height : 0) * points[i][0];
+                aM[i+4][6] = (i & 1 ? -width : 0) * points[i][1];
+                aM[i+4][7] = (i > 1 ? -height : 0) * points[i][1];
+                bM[i] = points[i][0];
+                bM[i + 4] = points[i][1];
+                aM[i][2] = aM[i+4][5] = 1;
+                aM[i][3] = aM[i][4] = aM[i][5] = aM[i+4][0] = aM[i+4][1] = aM[i+4][2] = 0;
+            }
+            var kmax, sum,
+                row,
+                col = [],
+                i, j, k, tmp;
+            for(j = 0; j < 8; j++) {
+                for(var i = 0; i < 8; i++)  col[i] = aM[i][j];
+                for(i = 0; i < 8; i++) {
+                    row = aM[i];
+                    kmax = i<j?i:j;
+                    sum = 0.0;
+                    for(k = 0; k < kmax; k++) sum += row[k] * col[k];
+                    row[j] = col[i] -= sum;
+                }
+                var p = j;
+                for(i = j + 1; i < 8; i++) {
+                    if(Math.abs(col[i]) > Math.abs(col[p])) p = i;
+                }
+                if(p != j) {
+                    for(k = 0; k < 8; k++) {
+                        tmp = aM[p][k];
+                        aM[p][k] = aM[j][k];
+                        aM[j][k] = tmp;
+                    }
+                    tmp = arr[p];
+                    arr[p] = arr[j];
+                    arr[j] = tmp;
+                }
+                if(aM[j][j] != 0.0) for(i = j + 1; i < 8; i++) aM[i][j] /= aM[j][j];
+            }
+            for(i = 0; i < 8; i++) arr[i] = bM[arr[i]];
+            for(k = 0; k < 8; k++) {
+                for(i = k + 1; i < 8; i++) arr[i] -= arr[k] * aM[i][k];
+            }
+            for(k = 7; k > -1; k--) {
+                arr[k] /= aM[k][k];
+                for(i = 0; i < k; i++) arr[i] -= arr[k] * aM[i][k];
+            }
+
+            return "matrix3d(" + arr[0].toFixed(9) + "," + arr[3].toFixed(9) + ", 0," + arr[6].toFixed(9) + "," + arr[1].toFixed(9) + "," + arr[4].toFixed(9) + ", 0," + arr[7].toFixed(9) + ",0, 0, 1, 0," + arr[2].toFixed(9) + "," + arr[5].toFixed(9) + ", 0, 1)";
+		}
 		,
         getQuicklookPoints: function(coord)	{		// получить 4 точки привязки снимка
             var d1 = Number.MAX_VALUE;
@@ -2914,11 +2990,13 @@
 			for (var i=0; i<ph.attr.data.length; i++)	// Подготовка массива обьектов
 			{
 				var item = ph.attr.data[i];
-				arr.push({
-					'id': item['id']
-					,'properties': item['properties']
-					,'geometry': gmxAPI.merc_geometry(item['geometry'])
-				});
+				var pt = {
+					id: item.id
+					,properties: item.properties
+					,propHiden: item.propHiden || {}
+					,geometry: gmxAPI.merc_geometry(item.geometry)
+				};
+				arr.push(pt);
 			}
 			node.addItems(arr);
 			return true;
@@ -2940,7 +3018,7 @@
 			for(var key in ph['attr']) {
 				node['propHiden'][key] = ph['attr'][key];
 			}
-			if(node['type'] === 'VectorLayer') node.waitRedraw();
+			if(node['type'] === 'VectorLayer') node.setAPIProperties();
 			return true;
 		}
 		,
