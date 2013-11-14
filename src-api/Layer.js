@@ -502,13 +502,11 @@
 				obj.addListener = function(eventName, handler, level)
 				{
 					var pID = FlashMapObject.prototype.addListener.call(obj, eventName, handler, level);
-					//var arr = obj.stateListeners[eventName] || [];
-					for (var i = 0; i < obj.filters.length; i++) {
-						var fID = gmxAPI._listeners.addListener({'level': level, 'pID': pID, 'obj': obj.filters[i], 'eventName': eventName, 'func': handler});
-						//var fID = obj.filters[i].addListener(eventName, handler, pID);
-						//if(fID) arr.push(fID);
-					}
-					//obj.stateListeners[eventName] = arr;
+                    if(gmxAPI.proxyType === 'flash') {
+                        for (var i = 0; i < obj.filters.length; i++) {
+                            var fID = gmxAPI._listeners.addListener({'level': level, 'pID': pID, 'obj': obj.filters[i], 'eventName': eventName, 'func': handler});
+                        }
+                    }
 					return pID;
 				}
 				obj.removeListener = function(eventName, eID)
@@ -767,8 +765,10 @@
                 } else {
                     deferred.push(function() {
                         gmxAPI._listeners.addListener({'obj': obj, 'evID': evID, 'eventName': eventName, 'func': handler, 'level': level});
-                        for (var i = 0; i < obj.filters.length; i++) {
-                            gmxAPI._listeners.addListener({'level': level, 'pID': evID, 'obj': obj.filters[i], 'eventName': eventName, 'func': handler});
+                        if(gmxAPI.proxyType === 'flash') {
+                            for (var i = 0; i < obj.filters.length; i++) {
+                                gmxAPI._listeners.addListener({'level': level, 'pID': evID, 'obj': obj.filters[i], 'eventName': eventName, 'func': handler});
+                            }
                         }
                     });
                 }
