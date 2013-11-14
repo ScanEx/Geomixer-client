@@ -126,7 +126,7 @@
 					,'hView': hView
 					,'deltaX': deltaX
 					,'deltaY': deltaY
-					,'patchSize': 1
+					,'patchSize': 64
 					,'limit': 2
 					,'type': 'mapObject'
 				});

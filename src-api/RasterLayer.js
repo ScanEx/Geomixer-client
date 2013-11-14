@@ -434,6 +434,10 @@
                     //var drawTileID = gmxTilePoint['gmxTileID'];
                     var tileExtent = gmxAPI.getTileExtent(gmxTilePoint.x, gmxTilePoint.y, zoom);
                     if(gmxAPI.extIntersect(tileExtent, attr['boundsMerc'])) isIntersects++;
+                    if(!isIntersects) {
+                        tileExtent.minX += gmxAPI.worldWidthMerc2, tileExtent.maxX += gmxAPI.worldWidthMerc2;
+                        if(gmxAPI.extIntersect(tileExtent, attr['boundsMerc'])) isIntersects++;
+                    }
                     // todo: реальное пересечение screenTile с геометрией слоя
                     //if(isIntersects) isIntersects += gmxAPI._leaflet['utils'].chkExtInPolygonArr(tileExtent, attr['mercGeom']['coordinates'][0]);
                 }

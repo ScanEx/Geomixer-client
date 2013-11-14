@@ -26,9 +26,21 @@
                 ,marginLeft: '1px'
             });
             this.parentNode.appendChild(allToolsNode);
-            map.allControls = {
-                div: allToolsNode
-            };
+            
+            gmxAPI.extend(map, {
+                allControls: {
+                    div: allToolsNode
+                },
+                isToolsMinimized: function() {
+                    return !ControlsManager.isVisible;
+                },
+                minimizeTools: function() {
+                    ControlsManager.setVisible();
+                },
+                maximizeTools: function() {
+                    ControlsManager.setVisible(true);
+                }
+            });
 
             if('_ToolsAll' in gmxAPI) {
                 map.toolsAll = new gmxAPI._ToolsAll(parent);
@@ -79,6 +91,7 @@
                 if(ControlsManager.currentID === item.id && 'setVisible' in item) item.setVisible(flag);
             });
             this.isVisible = flag;
+            gmxAPI._listeners.dispatchEvent('onToolsMinimized', gmxAPI.map, !ControlsManager.isVisible);
         }
         ,
         'forEach': function(callback) {
@@ -92,5 +105,4 @@
         }
 	}
 	gmxAPI.ControlsManager = ControlsManager;
-
 })();

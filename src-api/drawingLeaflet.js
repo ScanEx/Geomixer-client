@@ -1656,7 +1656,24 @@
 			{
 				this.enabledHoverBalloon = false;
 			}
-		,				
+		,
+        addObjects: function(data, format) {
+            var out = [];
+            var fmt = (format ? format : 'LatLng');
+            for (var i=0, len=data.length; i<len; i++)	// Подготовка массива обьектов
+            {
+                var ph = data[i];
+                var prop = ph.properties || null;
+                var propHiden = ph.propHiden || null;
+                if(ph.geometry && ph.geometry.properties) prop = ph.geometry.properties;
+                var geom = (fmt == 'LatLng' ? ph.geometry : gmxAPI.from_merc_geometry(ph.geometry));
+
+                var aObj = drawing.addObject(geom, prop, propHiden);
+                out.push(aObj);
+            }
+            return out;
+        }
+        ,
 		//props опционально
 		addObject: function(geom, props, propHiden)
 		{

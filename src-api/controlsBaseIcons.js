@@ -2,6 +2,16 @@
 (function()
 {
     "use strict";
+    var icons = {
+        backgroundImage: "url('../../api/img/iconeControls.png')"
+        ,backgroundImageBand: "url('../../api/img/band.png')"
+    }
+
+    // Сообщение о Deffered методе
+    var deffered = function() {
+        console.log('Deffered function: ', this);
+    }
+
     //Поддержка zoomControl
 	var zoomControl = {
         parentNode: null
@@ -84,7 +94,7 @@
                     float: 'none',
                     position: 'relative',
                     cursor: 'pointer',
-                    backgroundImage: 'url("img/iconeControls.png")',
+                    backgroundImage: icons.backgroundImage,
                     backgroundPosition: '-2px -33px',
                     height: '25px',
                     width: '23px',
@@ -115,7 +125,7 @@
                     float: 'none',
                     position: 'relative',
                     cursor: 'pointer',
-                    backgroundImage: 'url("img/iconeControls.png")',
+                    backgroundImage: icons.backgroundImage,
                     backgroundPosition: '-27px -33px',
                     height: '25px',
                     width: '23px',
@@ -132,6 +142,8 @@
                 },
                 {
                     display: 'none',
+                    listStyle: 'none outside none',
+                    padding: '0px',
                     position: 'absolute',
                     top: '63px',
                     left: '3px'
@@ -195,7 +207,7 @@
                 {
                     position: "relative",
                     cursor: 'pointer',
-                    backgroundImage: 'url("img/iconeControls.png")',
+                    backgroundImage: icons.backgroundImage,
                     backgroundPosition: '-3px -121px',
                     height: '7px',
                     width: '29px',
@@ -239,7 +251,7 @@
                     fontFamily: 'Tahoma',
                     fontSize: '9pt',
                     fontWeight: 'bold',
-                    backgroundImage: 'url("img/iconeControls.png")',
+                    backgroundImage: icons.backgroundImage,
                     backgroundPosition: '-33px -117px',
                     textAlign: 'center',
                     height: '17px',
@@ -256,7 +268,7 @@
                 },
                 {
                     pointerEvents: 'none',
-                    backgroundImage: 'url("img/band.png")',
+                    backgroundImage: icons.backgroundImageBand,
                     position: "absolute",
                     top: '7px',
                     left: '9px',
@@ -929,17 +941,17 @@
         ,
         setActive: function(flag) {            // Добавление прослушивателей событий
             if(flag) {
-                gmxAPI._listeners.addListener({'level': 9999, 'eventName': 'mapInit', 'func': function(map) {
+                gmxAPI._listeners.addListener({level: 9998, eventName: 'mapInit', func: function(map) {
                     layersControl.map = map;
                     var key = 'onAddBaseLayer';
                     layersControl.listeners[key] = layersControl.map.addListener(key, function(ph) {
                         layersControl.addBaseLayerTool(ph.id, ph.attr);
                     });
-
                     key = 'baseLayerSelected';
                     layersControl.listeners[key] = layersControl.map.addListener(key, function(name) {
-                        var tool = layersControl.getTool(name);
-                        tool.select();
+                        //var layer = gmxAPI.BaseLayersManager.getItem(name);
+                        var item = layersControl.baseLayersHash[name];
+                        if(item) item.select();
                     });
                 }});
             } else {
@@ -952,7 +964,7 @@
         ,currentBaseID: ''
         ,overlaysLayersHash: null
         ,
-        'addTool': function (tn, attr) {
+        addTool: function (tn, attr) {
 //console.log('addTool ', tn, gmxAPI.BaseLayersManager.getItems());
             if(!layersControl.overlaysLayersHash) {
                 layersControl.overlaysLayersHash = {};
@@ -963,8 +975,7 @@
             var id = attr.alias || tn;
             if (layersControl.overlaysLayersHash[id]) return false;
             else {
-                var item = gmxAPI.newElement(
-                    "label",
+                var item = gmxAPI.newElement("label",
                     {
                         className: "gmx_layersControlOverlayLabel"
                     },
@@ -972,8 +983,7 @@
                         display: 'block'
                     }
                 );
-                var checkbox = gmxAPI.newElement(
-                    "input",
+                var checkbox = gmxAPI.newElement("input",
                     {
                         className: "gmx_layersControlOverlayRadio"
                         ,value: id
@@ -996,8 +1006,7 @@
                     }
                 );
                 item.appendChild(checkbox);
-                var span = gmxAPI.newElement(
-                    "span",
+                var span = gmxAPI.newElement("span",
                     {
                         className: "gmx_layersControlOverlaySpan"
                         ,innerHTML: attr.hint || tn
@@ -1010,12 +1019,12 @@
                 item.appendChild(span);
                 layersControl.overlaysNode.appendChild(item);
                 layersControl.overlaysLayersHash[id] = {
-                    'id': id
-                    ,'cont': item
-                    ,'checkbox': checkbox
-                    ,'span': span
-                    ,'attr': attr
-                    ,'select': function() {
+                    id: id
+                    ,cont: item
+                    ,checkbox: checkbox
+                    ,span: span
+                    ,attr: attr
+                    ,select: function() {
                         checkbox.checked = true;
                     }
                 };
@@ -1025,18 +1034,17 @@
             //layersControl.overlaysNode = gmxAPI.newElement(
         }
         ,
-        'addBaseLayerTool': function (tn, attr) {
+        addBaseLayerTool: function (tn, attr) {
             if(!attr) attr = {
-                    'onClick': function() { gmxAPI.map.setBaseLayer(tn); },
-                    'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
-                    'hint': tn
+                    onClick: function() { gmxAPI.map.setBaseLayer(tn); },
+                    onCancel: function() { gmxAPI.map.unSetBaseLayer(); },
+                    hint: tn
                 };
             var id = attr.alias || tn;
 
             if (layersControl.baseLayersHash[id]) return false;
             else {
-                var item = gmxAPI.newElement(
-                    "label",
+                var item = gmxAPI.newElement("label",
                     {
                         className: "gmx_layersControlBaseLabel"
                     },
@@ -1044,8 +1052,7 @@
                         display: 'block'
                     }
                 );
-                var radio = gmxAPI.newElement(
-                    "input",
+                var radio = gmxAPI.newElement("input",
                     {
                         className: "gmx_layersControlBaseRadio"
                         ,value: id
@@ -1053,6 +1060,7 @@
                         ,name: "currentBaseLayer"
                         ,onchange: null
                         ,onclick: function (ev) {
+                            gmxAPI.map.setMode
                             var currentItem = layersControl.baseLayersHash[layersControl.currentBaseID];
                             if(currentItem) {
                                 if('onCancel' in currentItem.attr) currentItem.attr.onCancel();
@@ -1065,6 +1073,7 @@
                                 currentItem = layersControl.baseLayersHash[layersControl.currentBaseID];
                                 if('onClick' in currentItem.attr) currentItem.attr.onClick();
                             }
+                            gmxAPI.map.setMode(layersControl.currentBaseID);
                         }
                     },
                     {
@@ -1073,8 +1082,7 @@
                     }
                 );
                 item.appendChild(radio);
-                var span = gmxAPI.newElement(
-                    "span",
+                var span = gmxAPI.newElement("span",
                     {
                         className: "gmx_layersControlBaseSpan"
                         ,innerHTML: attr.hint || tn
@@ -1087,12 +1095,12 @@
                 item.appendChild(span);
                 layersControl.baseNode.appendChild(item);
                 layersControl.baseLayersHash[id] = {
-                    'id': id
-                    ,'cont': item
-                    ,'radio': radio
-                    ,'span': span
-                    ,'attr': attr
-                    ,'select': function() {
+                    id: id
+                    ,cont: item
+                    ,radio: radio
+                    ,span: span
+                    ,attr: attr
+                    ,select: function() {
                         radio.checked = true;
                         layersControl.currentBaseID = radio.value;
                     }
@@ -1101,11 +1109,11 @@
             }
         }
         ,
-        'getAlias': function(tn) {
+        getAlias: function(tn) {
             return layersControl.aliasNames[tn] || tn;
         }
         ,
-        'getAliasByName': function(tn) {
+        getAliasByName: function(tn) {
             for (var key in layersControl.baseLayersHash) {
                 var tool = layersControl.baseLayersHash[key];
                 var alias = tool.attr.alias || key;
@@ -1119,11 +1127,13 @@
             return null;
         }
         ,
-        'getTool': function(tn) {
+        getTool: function(tn) {
             tn = layersControl.getAlias(tn);
             if(layersControl.baseLayersHash[tn]) return layersControl.baseLayersHash[tn];
             return null;
         }
+        ,updateVisibility: deffered
+        ,repaint: deffered
     }
 	gmxAPI.LayersTools = gmxAPI.baseLayersTools = layersControl;
 
@@ -1233,7 +1243,7 @@
         }
         ,
         styleIcon: {        // стиль ноды иконок по умолчанию
-            backgroundImage: "url('../../api/img/iconeControls.png')"
+            backgroundImage: icons.backgroundImage
             ,borderRadius: '4px'
             ,display: 'block'
             ,cursor: 'pointer'
@@ -1245,7 +1255,7 @@
         }
         ,
         styleArrIcon: {        // стиль ноды вертикальных иконок по умолчанию
-            backgroundImage: "url('../../api/img/iconeControls.png')"
+            backgroundImage: icons.backgroundImage
             ,cursor: 'pointer'
             ,width: '30px'
             ,height: '30px'

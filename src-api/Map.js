@@ -328,9 +328,12 @@
 
 		map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : gmxAPI.getAPIHostRoot();
 		map.sendSearchRequest = function(str, callback)
-		{
+		{		
+            var key = window.KOSMOSNIMKI_SESSION_KEY;
+		    if (key==null || key == "INVALID")
+			    key = false;
 			sendCrossDomainJSONRequest(
-				map.geoSearchAPIRoot + "SearchObject/SearchAddress.ashx?SearchString=" + escape(str),
+				map.geoSearchAPIRoot + "SearchObject/SearchAddress.ashx?SearchString=" + escape(str) + (key ? ("&key=" + encodeURIComponent(key)) : ""),
 				function(res)
 				{
 					var ret = {};
@@ -403,117 +406,6 @@
 				}
 			);
 		}
-
-		// Управление базовыми подложками
-		var baseLayers = {};
-		var currentBaseLayerName = '';
-		//расширяем FlashMapObject
-		gmxAPI.extendFMO('setAsBaseLayer', function(name, attr)
-		{
-			if (!baseLayers[name])
-				baseLayers[name] = [];
-			baseLayers[name].push(this);
-/*
-			if(!this.objectId) {	// Подложки должны быть в SWF
-				this.setVisible(true);
-				this.setVisible(false);
-			}
-*/
-			this.isBaseLayer = true;
-            var id = (attr && attr['id'] ? attr['id'] : name);
-			gmxAPI._listeners.dispatchEvent('onAddBaseLayer', map, {'id': id, 'layer': this, 'attr': attr});
-			//if(gmxAPI.baseLayersTools)
-				//gmxAPI.baseLayersTools.chkBaseLayerTool(name, attr);
-		});
-
-		var unSetBaseLayer = function()
-		{
-			for (var oldName in baseLayers) {
-				for (var i = 0; i < baseLayers[oldName].length; i++) {
-					baseLayers[oldName][i].setVisible(false);
-				}
-			}
-			currentBaseLayerName = '';
-		}
-		map.unSetBaseLayer = unSetBaseLayer;
-		
-		map.setBaseLayer = function(name)
-		{
-			map.needSetMode = name;
-			//if(map.needSetMode) map.needSetMode = name;
-			//else {
-				unSetBaseLayer();
-				currentBaseLayerName = name;
-				var newBaseLayers = baseLayers[currentBaseLayerName];
-				if (newBaseLayers) {
-					for (var i = 0; i < newBaseLayers.length; i++) {
-						newBaseLayers[i].setVisible(true);
-					}
-					var backgroundColor = (newBaseLayers.length && newBaseLayers[0].backgroundColor ? newBaseLayers[0].backgroundColor : 0xffffff);
-					map.setBackgroundColor(backgroundColor);
-				}
-				gmxAPI._listeners.dispatchEvent('baseLayerSelected', map, currentBaseLayerName);
-			//}
-		}
-
-		map.setMode = function(mode) 
-		{
-			var name = mode;
-			if(gmxAPI.baseLayersTools) {
-				var alias = gmxAPI.baseLayersTools.getAliasByName(mode) || mode;
-				name = gmxAPI.baseLayersTools.getAlias(alias) || mode;
-			}
-			map.setBaseLayer(name);
-		}
-
-		map.getBaseLayer = function()
-		{
-			return currentBaseLayerName;
-		}
-
-		map.isModeSelected = function(name)
-		{
-			var test = (gmxAPI.baseLayersTools ? gmxAPI.baseLayersTools.getAlias(name) : name);
-			return (test == currentBaseLayerName ? true : false);
-		}
-		map.getCurrentBaseLayerName = map.getBaseLayer;
-		map.getMode = map.getBaseLayer;
-		map.getModeID = function(mode) 
-		{
-			return gmxAPI.baseLayersTools.getAliasByName(mode || currentBaseLayerName);
-		}
-
-		map.baseLayerControl = {
-			isVisible: true,
-			setVisible: function(flag)
-			{
-				if(gmxAPI.baseLayersTools) gmxAPI.baseLayersTools.setVisible(flag);
-			},
-			updateVisibility: function()
-			{
-				if(gmxAPI.baseLayersTools) gmxAPI.baseLayersTools.updateVisibility();
-			},
-			repaint: function()
-			{
-				if(gmxAPI.baseLayersTools) gmxAPI.baseLayersTools.repaint();
-			}, 
-
-			getBaseLayerNames: function()
-			{
-				var res = [];
-				for (var k in baseLayers) res.push(k);
-				return res;
-			},
-			getBaseLayerLayers: function(name)
-			{
-                return gmxAPI.BaseLayersManager.getItem(name);
-			}
-		}
-
-		// Поддержка устаревшего map.baseLayerControl.onChange 
-		map.addListener('baseLayerSelected', function(name)	{
-			if('onChange' in map.baseLayerControl) map.baseLayerControl.onChange(name);
-		});
 
 		var haveOSM = false;
 
