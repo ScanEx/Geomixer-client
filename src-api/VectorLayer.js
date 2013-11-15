@@ -200,38 +200,8 @@
 				node['loadTilesByExtent'](ext);
 			}
 		}
-/*		
-		var getItemsFromTileByBounds = function(items, bounds) {			// получить обьекты из тайла по bounds(Mercator)
-			var arr = [];
-			if(items && items.length > 0) {
-				for (var i = 0; i < items.length; i++)
-				{
-					var item = items[i];
-					if(!item.bounds.intersects(bounds)) continue;					// обьект не пересекает границы тайла
-					arr.push(item);
-				}
-			}
-			return arr;
-		}
-		var getItemsByBounds = function(bounds) {			// получить обьекты из тайлов векторного слоя по bounds(Mercator)
-			var arr = [];
-			arr = getItemsFromTileByBounds(node['addedItems'], bounds);
-			var tiles = node.getTilesBoundsArr();
-			for (var tileID in tiles)
-			{
-				var tileBound = tiles[tileID];
-				if(tileBound.intersects(bounds)) {
-					var iarr = node['tilesGeometry'][tileID];
-					if(iarr && iarr.length > 0) {
-						var items = getItemsFromTileByBounds(iarr, bounds);
-						if(items.length) arr = arr.concat(items);
-					}
-				}
-			}
-			return arr;
-		}
-*/
-		node['getMaxTilesList'] = function (extent) {					// Получить максимальный список тайлов
+
+		var getMaxTilesList = function (extent) {					// Получить максимальный список тайлов
 			var out = [];
 			if(gmxNode._temporalTiles) {
 				var temporalTiles = gmxNode._temporalTiles;
@@ -251,7 +221,7 @@
 				var tilesVers = gmxNode.properties.tilesVers;
 				var cnt = 0;
 				for (var i = 0, len = arr.length; i < len; i+=3) {
-					var x = Number(arr[i]), y = Number(arr[i][i+1]), z = Number(arr[i][i+2]);
+					var x = Number(arr[i]), y = Number(arr[i+1]), z = Number(arr[i+2]);
 					if(extent) {
 						var ext = gmxAPI.getTileExtent(x, y, z);
 						if(!gmxAPI.extIntersect(ext, extent)) continue;
@@ -332,7 +302,7 @@
 				});
 			}
 			var chkVerTiles = function () {				// Проверка списка тайлов для загрузки
-				var arrSrc = node['getMaxTilesList'](extent);
+				var arrSrc = getMaxTilesList(extent);
 				for (var i = 0, len = arrSrc.length; i < len; cnt++, i++) {
 					var src = arrSrc[i];
 					if(currTiles[src]) {
