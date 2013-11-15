@@ -914,7 +914,7 @@
 				gmxAttr['objForBalloon'] = item;
 				
 				if(!isCluster) {
-					if(handlerObj && callHandler('onClick', itemClick, handlerObj, gmxAttr)) return true;
+					if(handlerObj) callHandler('onClick', itemClick, handlerObj, gmxAttr);
                     if('onClick' in node['handlers']) {		// Есть handlers на слое
  						callHandler('onClick', itemClick, gmxNode, gmxAttr);
                     }
