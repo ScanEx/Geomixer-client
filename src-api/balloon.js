@@ -253,8 +253,9 @@
 					}
                     if(o.parent && o.parent.parent && o.parent.parent.filters) {    // если балун на фильтре
                         o.filter = o.parent;
+                        o.layer = o.parent.parent;
                     }
-                    
+
 					refreshMapPosition();
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
 					if(customBalloonObject) {
