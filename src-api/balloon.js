@@ -251,6 +251,10 @@
 						o = o.obj;
 						if('propForBalloon' in keyPress) o.properties = keyPress.propForBalloon;
 					}
+                    if(o.parent && o.parent.parent && o.parent.parent.filters) {    // если балун на фильтре
+                        o.filter = o.parent;
+                    }
+                    
 					refreshMapPosition();
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
 					if(customBalloonObject) {
@@ -426,21 +430,6 @@
                 balloon.obj = o;
 				balloon.fixedId = id;
 				balloon.keyPress = keyPress;
-				balloon.getBalloonTemplate = function() {
-					var res = '';
-                    if(o.parent && o.parent.parent && o.parent.parent.filters) res = o.parent._balloonTemplate;
-                    else {
-                        var identityField = gmxAPI.getIdentityField(o);
-                        var props = o.properties;
-                        for (var key in props) {
-                            if (key != identityField) {
-                                res += "<b>" + key + ":</b> [" + key + "]<br />";
-                            }
-                        }
-                        if(o.getGeometrySummary() != '') res += "<br />[SUMMARY]";
-                    }
-					return res;
-				}
 
 				o.balloon = balloon;
 				if(keyPress && keyPress['objType']) balloon.objType = keyPress['objType'];

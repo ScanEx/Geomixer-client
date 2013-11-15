@@ -126,8 +126,12 @@
 		filter.setZoomBounds(attr['MinZoom'], attr['MaxZoom']);
 		//filter.setStyle(attr['regularStyle'], attr['hoveredStyle']);
 		filter['_attr'] = attr;
-
+        
 		gmxAPI._listeners.dispatchEvent('initFilter', gmxAPI.map, {'filter': filter} );	// Проверка map Listeners на reSetStyles - для балунов
+
+        filter.getBalloonTemplate = function() {
+            return filter._balloonTemplate;
+        }
 		prnt.filters[num] = filter;
 		gmxAPI.mapNodes[filter.objectId] = filter;
 		return filter;
