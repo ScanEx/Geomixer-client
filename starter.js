@@ -1,5 +1,27 @@
 ﻿var globalFlashMap;
 
+//Тут кратко описываются разные внешние классы для системы генерации документации
+
+/** ГеоМиксер активно использует {@link http://jquery.com/|jQuery}
+ * @namespace jQuery
+ */
+
+/** Официальная документация: {@link http://api.jquery.com/category/deferred-object/|jQuery Deferred}
+ * @name Deferred
+ * @memberOf jQuery
+ */
+ 
+ 
+/** Библиотека для формализации понятия модели и представления: {@link http://backbonejs.org/|Backbone}
+ * @namespace Backbone
+ */
+
+/** Официальная документация: {@link http://backbonejs.org/#Model| Backbone Model}
+ * @name Model
+ * @memberOf Backbone
+ */
+ 
+ 
 /**
     Основное пространство имён ГеоМиксера
     @namespace

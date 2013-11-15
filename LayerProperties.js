@@ -1,5 +1,15 @@
 ﻿!function($){
 
+/** Объект, описывающий один атрибут слоя
+ * @typedef {Object} nsGmx.LayerProperties.Column
+ * @property {String} name Имя атрибута
+ * @property {String} oldName Исходное имя атрибута. Используется для переименования атрибутов. Для новых атрибутов это поле должно отсутствовать.
+ * @property {{user: String, server: String}} type Тип атрибута. Поля соответствуют серверной и клиентской форме записи типа. Клиентская может отсутствовать
+ * @property {Boolean} IsPrimary
+ * @property {Boolean} IsIdentity
+ * @property {Boolean} IsComputed
+*/
+
 var LatLngColumnsModel = Backbone.Model.extend({
     defaults: {
         XCol: null,
@@ -7,9 +17,40 @@ var LatLngColumnsModel = Backbone.Model.extend({
     }
 });
 
-// Расширенный набор свойства слоя. 
-// Используется для редактирования свойств. Умеет сохранять себя на сервере
-var LayerProperties = Backbone.Model.extend({
+/** Расширенный набор свойства слоя. Используется для редактирования свойств. Умеет сохранять себя на сервере
+ * @class
+ * @memberOf nsGmx
+ * @extends Backbone.Model
+ * @property {String} Type Тип слоя. Vector/Raster
+ * @property {Number} LayerID Серверный ID слоя
+ * @property {String} Name Уникальный неитерируемый ID слоя
+ * @property {String} Title Заголовок слоя
+ * @property {String} Copyright Копирайт слоя
+ * @property {String} Description Описание слоя
+ * @property {Object} MetaProperties Метаданные слоя
+ * @property {Object} ShapePath Имеет атрибут Path. Для векторных слоёв из файла - источник слоя. Для растровых - файл с границей растра
+ * @property {Object} Geometry Граница растрового слоя
+ 
+ * @property {String} Legend Легенда слоя. Только для растровых слоёв
+ 
+ * @property {String} NameObject Шаблон названий объектов. Только для векторных слоёв
+ * @property {String} GeometryType Тип геометрии слоя. Только для векторных слоёв
+ * @property {String} Quicklook Шаблон URL для квиклуков. Только для векторных слоёв
+ * @property {Object} TilePath Имеет атрибут Path. Путь к файлу с тайлами. Только для векторных слоёв
+ * @property {String} EncodeSource Кодировка источника данных слоя. Только для векторных слоёв
+ * @property {nsGmx.LayerProperties.Column[]} Columns Описание типов и названий атрибутов слоя. Только для векторных слоёв
+ * @property {String} TableName Название таблицы, если источник был таблицей. Только для векторных слоёв
+ * @property {String} TableCS Система координат выбранной таблицы ("EPSG:4326"/"EPSG:3395"). Только для векторных слоёв
+ * @property {String} SourceType Тип источника данных для слоя (file/table/manual)
+ * @property {String[]} Attributes Список имён атрибутов векторного слоя (не сохраняется)
+ * @property {String[]} AttrTypes Список типов атрибутов векторного слоя (не сохраняется)
+ * @property {nsGmx.LayerRCProperties} RC Параметры каталога растров. Только для векторных слоёв
+ * @property {nsGmx.TemporalLayerParams} Temporal Параметры мультивременного слоя. Только для векторных слоёв
+ * @property {LatLngColumnsModel} GeometryColumnsLatLng Описание выбранных в таблице колонок с геометрией
+*/
+var LayerProperties = Backbone.Model.extend(
+    /** @lends nsGmx.LayerProperties.prototype */
+{
     initialize: function(attrs) {
         this.attributes = nsGmx._.clone(attrs || {});
     },
@@ -23,7 +64,7 @@ var LayerProperties = Backbone.Model.extend({
             Legend:         divProperties ? (divProperties.Legend || '') : (layerProperties.Legend || ''),
             Description:    divProperties ? (divProperties.description || '') : (layerProperties.Description || ''),
             NameObject:     divProperties ? (divProperties.NameObject || '') : (layerProperties.NameObject || ''),
-            AllowSearch:    divProperties ? (divProperties.AllowSearch || false) : (layerProperties.AllowSearch || false),
+            //AllowSearch:    divProperties ? (divProperties.AllowSearch || false) : (layerProperties.AllowSearch || false),
             GeometryType:   divProperties ? divProperties.GeometryType : layerProperties.GeometryType,
             LayerID:        divProperties ? divProperties.LayerID : layerProperties.LayerID,
             Quicklook:      divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
@@ -74,6 +115,10 @@ var LayerProperties = Backbone.Model.extend({
         }
     },
     
+    /** Инициализирует класс, используя информацию о слое с сервера.
+     * @param {String} layerName ID слоя, информацию о котором нужно получить
+     * @return {jQuery.Deferred} Deferred, который будет заполнен после инициализации класса
+     */
     initFromServer: function(layerName) {
         var def = $.Deferred(),
             _this = this;
@@ -92,10 +137,16 @@ var LayerProperties = Backbone.Model.extend({
         return def.promise();
     },
     
+    /** Сохраняет изменения в слое или создаёт новый слой на сервере
+     * @param {Boolean} geometryChanged Нужно ли передавать на сервер геометрию растрового слоя
+     * @param {Function} [callback] Будет вызван после получения ответа от сервера
+     * @return {jQuery.Deferred} Deferred, который будет заполнен после сохранения всей информации на сервере
+     */
     save: function(geometryChanged, callback) {
         var attrs = this.attributes,
             name = attrs.Name,
-            stype = attrs.SourceType;
+            stype = attrs.SourceType,
+            def = $.Deferred();
         
         var reqParams = {
             WrapStyle: "window",
@@ -162,10 +213,13 @@ var LayerProperties = Backbone.Model.extend({
                 sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams,
                     function(response)
                     {
-                        if (!parseResponse(response))
+                        if (!parseResponse(response)) {
+                            def.reject(response);
                             return;
-                        
+                        }
+                    
                         callback && callback(response);
+                        def.resolve(response);
                     }
                 )
             }
@@ -185,10 +239,13 @@ var LayerProperties = Backbone.Model.extend({
                 sendCrossDomainPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams,
                     function(response)
                     {
-                        if (!parseResponse(response))
+                        if (!parseResponse(response)) {
+                            def.reject(response);
                             return;
-                                
+                        }
+                    
                         callback && callback(response);
+                        def.resolve(response);
                     }
                 )
             }
@@ -209,13 +266,18 @@ var LayerProperties = Backbone.Model.extend({
             
             sendCrossDomainPostRequest(serverBase + "RasterLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams, function(response)
                 {
-                    if (!parseResponse(response))
+                    if (!parseResponse(response)) {
+                        def.reject(response);
                         return;
+                    }
                 
                     callback && callback(response);
+                    def.resolve(response);
                 }
             )
         }
+        
+        return def.promise();
     }
 })
 
@@ -248,4 +310,4 @@ gmxCore.addModule('LayerProperties', {
     LatLngColumnsModel: LatLngColumnsModel
 })
 
-}();
+}(jQuery);
