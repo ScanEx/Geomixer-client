@@ -251,10 +251,6 @@
 						o = o.obj;
 						if('propForBalloon' in keyPress) o.properties = keyPress.propForBalloon;
 					}
-                    if(o.parent && o.parent.parent && o.parent.parent.filters) {    // если балун на фильтре
-                        o.filter = o.parent;
-                        o.layer = o.parent.parent;
-                    }
 
 					refreshMapPosition();
 					var customBalloonObject = chkAttr('customBalloon', mapObject);		// Проверка наличия параметра customBalloon по ветке родителей 
@@ -1037,8 +1033,24 @@
 				userBalloons[id] = balloon;
 				return balloon;
 			});
-			gmxAPI.extendFMO('enableHoverBalloon', function(callback, attr) { map.balloonClassObject.enableHoverBalloon(this, callback, attr); });
-			gmxAPI.extendFMO('disableHoverBalloon', function() { map.balloonClassObject.disableHoverBalloon(this); });
+			gmxAPI.extendFMO('enableHoverBalloon', function(callback, attr) {
+                if(this.filters) {
+                    this.filters.foreach(function(item) {
+                        map.balloonClassObject.enableHoverBalloon(item, callback, attr);
+                    });
+                } else {
+                    map.balloonClassObject.enableHoverBalloon(this, callback, attr);
+                }
+            });
+			gmxAPI.extendFMO('disableHoverBalloon', function() {
+                if(this.filters) {
+                    this.filters.foreach(function(item) {
+                        map.balloonClassObject.disableHoverBalloon(item);
+                    });
+                } else {
+                    map.balloonClassObject.disableHoverBalloon(this);
+                }
+            });
 		}
 	});
 	//gmxAPI.BalloonClass = BalloonClass;
