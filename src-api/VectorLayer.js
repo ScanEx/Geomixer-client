@@ -914,10 +914,11 @@
 				gmxAttr['objForBalloon'] = item;
 				
 				if(!isCluster) {
-					if(handlerObj) callHandler('onClick', itemClick, handlerObj, gmxAttr);
                     if('onClick' in node['handlers']) {		// Есть handlers на слое
- 						callHandler('onClick', itemClick, gmxNode, gmxAttr);
+ 						var res = callHandler('onClick', itemClick, gmxNode, gmxAttr);
+ 						if(typeof(res) === 'object' && res.stopPropagation) return true;
                     }
+					if(handlerObj) callHandler('onClick', itemClick, handlerObj, gmxAttr);
                 } else {
 					gmxAttr['objType'] = 'cluster';
 					gmxAttr['members'] = itemPropHiden['_members'];
