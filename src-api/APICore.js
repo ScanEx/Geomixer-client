@@ -1799,7 +1799,7 @@ extend(window.gmxAPI,
 			'size': size
 			,'zDelta': dz
 			,'x': size * (dx < 0 ? dz + dx : dx)
-			,'y': size * (dy < 0 ? 1 + dy : dz - 1 - dy)
+			,'y': size * (dy < 0 ? Math.abs(1 + dy) : dz - 1 - dy)
 		};
     }
 	,

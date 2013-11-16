@@ -835,18 +835,10 @@
 			var p1 = LMap.project(new L.LatLng(gmxAPI.from_merc_y(utils.y_ex(pos.lat)), pos.lng), z);
 			return point.y - p1.y;
 		}
-/*		
 		,
-		'chkMouseHover': function(attr, fName)	{					// проверка Hover мыши
-			//if(attr['tID'] && attr['tID'].indexOf('_drawing') > 0 && gmxAPI.map.drawing.chkMouseHover(attr, fName)) return true;
-			//if(gmxAPI.map.drawing.chkMouseHover(attr, fName)) return true;
-			return false;
-		}
-*/
-		,
-		'chkGlobalEvent': function(attr)	{					// проверка Click на перекрытых нодах
-			if(!attr || !attr['evName']) return;
-			var evName = attr['evName'];
+		chkGlobalEvent: function(attr)	{					// проверка Click на перекрытых нодах
+			if(!attr || !attr.evName) return;
+			var evName = attr.evName;
 
 			var standartTools = gmxAPI.map.standartTools;
 			if(!standartTools || !skipToolNames[standartTools.activeToolName]) {
@@ -857,39 +849,39 @@
 					var child = gmxAPI.map.layers[i];
 					if(!child.isVisible) continue;
 					var mapNode = mapNodes[child.objectId];
-					if(mapNode['eventsCheck']) {
-						arr.push({'zIndex': mapNode['zIndex'], 'id': child.objectId});
+					if(mapNode.eventsCheck) {
+						arr.push({zIndex: mapNode.zIndexOffset || 0 + mapNode.zIndex, id: child.objectId});
 					}
 				}
-				arr = arr.sort(function(a, b) { return b['zIndex'] - a['zIndex']; });
+				arr = arr.sort(function(a, b) { return b.zIndex - a.zIndex; });
 				for (var i = 0, to = arr.length; i < to; i++)
 				{
 					var it = arr[i];
-					var mapNode = mapNodes[it['id']];
-					if(mapNode['eventsCheck'](evName, attr)) {
+					var mapNode = mapNodes[it.id];
+					if(mapNode.eventsCheck(evName, attr)) {
 						return true;
 					}
 				}
 			}
-			if(attr['tID']) {
+			if(attr.tID) {
 				var gmxNode = null;
-				if(attr['tID'].indexOf('_drawing') > 0) {
+				if(attr.tID.indexOf('_drawing') > 0) {
 					gmxNode = gmxAPI.map.drawing.getHoverItem(attr);
 				}
-				if(gmxNode && gmxNode['stateListeners'][evName]) {
-					if(gmxAPI._listeners.dispatchEvent(evName, gmxNode, {'attr':attr})) return true;
+				if(gmxNode && gmxNode.stateListeners[evName]) {
+					if(gmxAPI._listeners.dispatchEvent(evName, gmxNode, {attr:attr})) return true;
 				}
 			}
-			if(attr['node'] && attr['hNode'] && attr['hNode']['handlers'][evName]) {
-				if(attr['hNode']['handlers'][evName](attr['node']['id'], attr['node'].geometry.properties, {'ev':attr['ev']})) return true;
+			if(attr.node && attr.hNode && attr.hNode.handlers[evName]) {
+				if(attr.hNode.handlers[evName](attr.node.id, attr.node.geometry.properties, {ev:attr.ev})) return true;
 			}
 
-			var mapID = gmxAPI.map['objectId'];
+			var mapID = gmxAPI.map.objectId;
 			var node = mapNodes[mapID];
-			if(node['handlers'][evName]) {
-				if(node['handlers'][evName](mapID, gmxAPI.map.properties, attr)) return true;
-			} else if(gmxAPI.map['stateListeners'][evName] && gmxAPI.map['stateListeners'][evName].length) {
-				if(gmxAPI._listeners.dispatchEvent(evName, gmxAPI.map, {'attr':attr})) return true;
+			if(node.handlers[evName]) {
+				if(node.handlers[evName](mapID, gmxAPI.map.properties, attr)) return true;
+			} else if(gmxAPI.map.stateListeners[evName] && gmxAPI.map.stateListeners[evName].length) {
+				if(gmxAPI._listeners.dispatchEvent(evName, gmxAPI.map, {attr:attr})) return true;
 			}
 		}
 		,
