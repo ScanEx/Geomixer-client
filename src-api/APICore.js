@@ -1995,7 +1995,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
             }
 			if('filters' in pObj) attr.layer = pObj.layer = pObj;
 			else if(pObj.parent && 'filters' in pObj.parent) attr.layer = pObj.layer = pObj.parent;
-			else if(pObj.parent.parent && 'filters' in pObj.parent.parent) {
+			else if(pObj.parent && pObj.parent.parent && 'filters' in pObj.parent.parent) {
                 attr.filter = pObj.filter = pObj.parent;
                 attr.layer = pObj.layer = pObj.parent.parent;
             }
