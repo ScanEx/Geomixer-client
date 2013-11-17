@@ -1657,10 +1657,10 @@
 				this.enabledHoverBalloon = false;
 			}
 		,
-        addObjects: function(data, format) {
+        addObjects: function(data, format) {    // Добавление массива обьектов
             var out = [];
             var fmt = (format ? format : 'LatLng');
-            for (var i=0, len=data.length; i<len; i++)	// Подготовка массива обьектов
+            for (var i=0, len=data.length; i<len; i++)
             {
                 var ph = data[i];
                 var prop = ph.properties || null;

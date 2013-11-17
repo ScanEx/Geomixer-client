@@ -280,6 +280,12 @@
 			layer.properties.type = "Overlay";
 
 		obj.filters = [];
+        obj.filters.foreach = function(callback) {
+			for (var i = 0, len = obj.filters.length; i < len; i++) {
+				if(callback(obj.filters[i], i) === false) return;
+            }
+        }
+
 		if (!isRaster)
 		{
 			if(!layer.properties.styles) {		// стиль-фильтр по умолчанию
@@ -494,14 +500,18 @@
 				obj.setHandler = function(eventName, handler)
 				{
 					FlashMapObject.prototype.setHandler.call(obj, eventName, handler);
-					for (var i = 0; i < obj.filters.length; i++)
-						obj.filters[i].setHandler(eventName, handler);
+                    if(gmxAPI.proxyType === 'flash') {
+                        for (var i = 0; i < obj.filters.length; i++)
+                            obj.filters[i].setHandler(eventName, handler);
+                    }
 				}
 				obj.removeHandler = function(eventName)
 				{
 					FlashMapObject.prototype.removeHandler.call(obj, eventName);
-					for (var i = 0; i < obj.filters.length; i++)
-						obj.filters[i].removeHandler(eventName);
+                    if(gmxAPI.proxyType === 'flash') {
+                        for (var i = 0; i < obj.filters.length; i++)
+                            obj.filters[i].removeHandler(eventName);
+                    }
 				}
 				obj.addListener = function(eventName, handler, level)
 				{
@@ -516,8 +526,10 @@
 				obj.removeListener = function(eventName, eID)
 				{
 					FlashMapObject.prototype.removeListener.call(obj, eventName, eID);
-					for (var i = 0; i < obj.filters.length; i++)
-						obj.filters[i].removeListener(eventName, eID);	// Удаляем массив события eventName по id события слоя
+                    if(gmxAPI.proxyType === 'flash') {
+                        for (var i = 0; i < obj.filters.length; i++)
+                            obj.filters[i].removeListener(eventName, eID);	// Удаляем массив события eventName по id события слоя
+                    }
 				}
 
 			}

@@ -482,8 +482,8 @@
                 }
                 opt._needLoadTile++;
                 loadRasterRecursion({
-                    'callback': function(ph) {
-                        if(!layer._map || gmxAPI._leaflet['zoomstart']) {
+                    callback: function(ph) {
+                        if(!layer._map || gmxAPI._leaflet.zoomstart) {
                             //node.waitRedraw();
                             return;     // идет анимация
                         }
@@ -491,18 +491,20 @@
                             return;     // Только для текущего zoom
                         }
                         if(ph) {     // Есть раззумленный тайл
-                            var imageObj = ph['img'];
-                            //if(imageObj && imageObj.width === 256 && imageObj.height === 256) {
-                            if(imageObj) {
+                            var imageObj = ph.img;
+                            if(imageObj && imageObj.width === 256 && imageObj.height === 256) {
                                 var pos = null;
                                 if(ph['zoom'] !== zoom) {
                                     pos = gmxAPI.getTilePosZoomDelta(gmxTilePoint, zoom, ph['zoom']);
-                                    if(pos.size < 0.00390625) return;
+                                    if(pos.size < 0.00390625
+                                        || pos.x > 255 || pos.y > 255
+                                        || (pos.x + pos.size) < 0
+                                        || (pos.y + pos.size) < 0
+                                    ) return;
                                 }
                                 var type = (!pos && isIntersects === 2 ? 'img' : 'canvas');
-                                tile = layer.gmxGetTile(tilePoint, type, ph['img']);
+                                tile = layer.gmxGetTile(tilePoint, type, imageObj);
                                 if(type === 'canvas') {
-                                    var imageObj = ph['img'];
                                     var ctx = tile.getContext('2d');
                                     if(pos) {
                                         var canvas = document.createElement('canvas');
@@ -516,7 +518,7 @@
                                     ctx.fillStyle = pattern;
                                     if(isIntersects === 2) ctx.fillRect(0, 0, 256, 256);
                                     else {
-                                        if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
+                                        if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
                                         drawCanvasPolygon( ctx, gmxTilePoint.x, gmxTilePoint.y, attr.mercGeom, opt);
                                     }
                                     ctx.fill();
@@ -525,16 +527,16 @@
                         }
                         opt._needLoadTile--;
                         if(opt._needLoadTile < 1) {
-                            delete gmxAPI._leaflet['renderingObjects'][opt.nodeID];
+                            delete gmxAPI._leaflet.renderingObjects[opt.nodeID];
                             utils.waitChkIdle(0, 'RasterLayer ' + layer._animating);					// Проверка отрисовки карты
                         }
                     }
-                    ,'zoom': {
-                        'from': zoom
+                    ,zoom: {
+                        from: zoom
                        
                     }
-                    ,'x': gmxTilePoint.x
-                    ,'y': gmxTilePoint.y
+                    ,x: gmxTilePoint.x
+                    ,y: gmxTilePoint.y
                 });
 			}
 			,

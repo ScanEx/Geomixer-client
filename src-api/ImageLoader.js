@@ -15,8 +15,8 @@
 		var xml = gmxAPI.parseXML(str);
 		
 		var svg = xml.getElementsByTagName("svg");
-		out['width'] = parseFloat(svg[0].getAttribute("width"));
-		out['height'] = parseFloat(svg[0].getAttribute("height"));
+		out.width = parseFloat(svg[0].getAttribute("width"));
+		out.height = parseFloat(svg[0].getAttribute("height"));
 		
 		var polygons = svg[0].getElementsByTagName("polygon");
 		var poly = [];
@@ -25,8 +25,8 @@
 			var pt = {};
 			var it = polygons[i];
 			var hexString = it.getAttribute("fill"); hexString = hexString.replace(/^#/, '');
-			pt['fill'] = parseInt(hexString, 16);
-			pt['fill_rgba'] = gmxAPI._leaflet['utils'].dec2rgba(pt['fill'], 1);
+			pt.fill = parseInt(hexString, 16);
+			pt.fill_rgba = gmxAPI._leaflet.utils.dec2rgba(pt.fill, 1);
 			
 			pt['stroke-width'] = parseFloat(it.getAttribute("stroke-width"));
 			var points = it.getAttribute("points");
@@ -37,11 +37,11 @@
 				{
 					var t = pp[j];
 					var xy = t.split(',');
-					arr.push({'x': parseFloat(xy[0]), 'y': parseFloat(xy[1])});
+					arr.push({x: parseFloat(xy[0]), y: parseFloat(xy[1])});
 				}
 				if(arr.length) arr.push(arr[0]);
 			}
-			pt['points'] = arr;
+			pt.points = arr;
 			poly.push(pt);
 		}
 		out['polygons'] = poly;
@@ -73,8 +73,8 @@
 	
 	var setImage = function(item)	{		// загрузка image
 		if(item['src'].match(/\.svg$/)) {
-			var xmlhttp = gmxAPI._leaflet['utils'].getXmlHttp();
-			xmlhttp.open('GET', item['src'], false);
+			var xmlhttp = gmxAPI._leaflet.utils.getXmlHttp();
+			xmlhttp.open('GET', item.src, false);
 			xmlhttp.send(null);
 			if(xmlhttp.status == 200) {
 				item.svgPattern = parseSVG(item, xmlhttp.responseText);
@@ -102,11 +102,11 @@
 			//} else {
 				//curCount--;
 				item.imageObj = imageObj;
-				delete item['loaderObj'];
+				delete item.loaderObj;
 				callCacheItems(item);
 			//}
 		}
-		if(item['crossOrigin']) imageObj.crossOrigin = item['crossOrigin'];
+		if(item.crossOrigin) imageObj.crossOrigin = item.crossOrigin;
 		imageObj.onload = function() {
 			curCount--;
 			if (gmxAPI.isIE) {
@@ -147,21 +147,21 @@
 		}
 	}
 
-	var removeItemsByZoom = function(zoom)	{			// остановить и удалить из очереди запросы по zoom
+	var removeItemsByZoom = function(zoom)	{	// остановить и удалить из очереди запросы не равные zoom
 		if (!L.Browser.android) {
 			for (var key in itemsCache)
 			{
 				var q = itemsCache[key][0];
-				if('zoom' in q && q['zoom'] != zoom && q['loaderObj']) {
-					q['loaderObj'].src = emptyImageUrl;
+				if('zoom' in q && q.zoom != zoom && q.loaderObj) {
+					q.loaderObj.src = emptyImageUrl;
 				}
 			}
 		}
 		var arr = [];
-		for (var i = 0; i < items.length; i++)
+		for (var i = 0, len = items.length; i < len; i++)
 		{
 			var q = items[i];
-			if(!q['zoom'] || q['zoom'] == zoom) arr.push(q);
+			if(!q.zoom || q.zoom == zoom) arr.push(q);
 		}
 		items = arr;
 		return items.length;
@@ -170,32 +170,48 @@
 	var chkTimer = function() {				// установка таймера
 		if(!timer) {
 			timer = setInterval(nextLoad, 50);
-			//gmxAPI._leaflet['LMap'].on('zoomstart', function(e) {
-			gmxAPI._leaflet['LMap'].on('zoomend', function(e) {
-				var zoom = gmxAPI._leaflet['LMap'].getZoom();
+			gmxAPI._leaflet.LMap.on('zoomend', function(e) {
+				var zoom = gmxAPI._leaflet.LMap.getZoom();
 				removeItemsByZoom(zoom);
 			});
 		}
 	}
 	
 	var imageLoader = {						// менеджер загрузки image
-		'push': function(item)	{					// добавить запрос в конец очереди
+		push: function(item)	{					// добавить запрос в конец очереди
 			items.push(item);
 			chkTimer();
 			return items.length;
 		}
-		,'unshift': function(item)	{				// добавить запрос в начало очереди
+		,unshift: function(item)	{				// добавить запрос в начало очереди
 			items.unshift(item);
 			chkTimer();
 			return items.length;
 		}
-		,'getCounts': function()	{				// получить размер очереди + колич.выполняющихся запросов
-//console.log('getCounts' , curCount, items.length); 
+		,getCounts: function()	{				// получить размер очереди + колич.выполняющихся запросов
 			return items.length + (curCount > 0 ? curCount : 0);
+		}
+		,removeItemsBySrc: function(src)	{		// удалить запросы по src
+            if (!L.Browser.android) {
+                for (var key in itemsCache) {
+                    var q = itemsCache[key][0];
+                    if('src' in q && q.src === src && q.loaderObj) {
+                        q.loaderObj.src = emptyImageUrl;
+                    }
+                }
+            }
+            var arr = [];
+            for (var i = 0, len = items.length; i < len; i++)
+            {
+                var q = items[i];
+                if(!q.src || q.src !== src) arr.push(q);
+            }
+            items = arr;
+            return items.length;
 		}
 	};
 
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
-	gmxAPI._leaflet['imageLoader'] = imageLoader;	// менеджер загрузки image
+	gmxAPI._leaflet.imageLoader = imageLoader;	// менеджер загрузки image
 })();

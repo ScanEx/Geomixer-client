@@ -1799,7 +1799,7 @@ extend(window.gmxAPI,
 			'size': size
 			,'zDelta': dz
 			,'x': size * (dx < 0 ? dz + dx : dx)
-			,'y': size * (dy < 0 ? 1 + dy : dz - 1 - dy)
+			,'y': size * (dy < 0 ? Math.abs(1 + dy) : dz - 1 - dy)
 		};
     }
 	,
@@ -1990,12 +1990,15 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		var func = function(subObjectId, a, attr)
 		{
 			var pObj = (gmxAPI.mapNodes[subObjectId] ? gmxAPI.mapNodes[subObjectId] : new gmxAPI._FMO(subObjectId, {}, obj));		// если MapObject отсутствует создаем
-			//if(typeof(a) === 'object') pObj.properties = ('sort' in a ? gmxAPI.propertiesFromArray(a) : a);
             if (typeof a === 'object') {
                 pObj.properties = gmxAPI.isArray(a) ? gmxAPI.propertiesFromArray(a) : a;
             }
-			if('filters' in pObj) attr['layer'] = pObj;
-			else if(pObj.parent && 'filters' in pObj.parent) attr['layer'] = pObj.parent;
+			if('filters' in pObj) attr.layer = pObj.layer = pObj;
+			else if(pObj.parent && 'filters' in pObj.parent) attr.layer = pObj.layer = pObj.parent;
+			else if(pObj.parent && pObj.parent.parent && 'filters' in pObj.parent.parent) {
+                attr.filter = pObj.filter = pObj.parent;
+                attr.layer = pObj.layer = pObj.parent.parent;
+            }
 			if(!attr.latlng && 'mouseX' in attr) {
 				attr.latlng = {
 					'lng': gmxAPI.from_merc_x(attr.mouseX)
