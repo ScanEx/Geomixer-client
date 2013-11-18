@@ -911,9 +911,9 @@
 				var gmxAttr = attr;
 				gmxAttr['layer'] = gmxNode;
 				gmxAttr['eventPos'] = eventPos;
-				gmxAttr['objForBalloon'] = item;
 				
 				if(!isCluster) {
+                    gmxAttr['objForBalloon'] = item;
                     if('onClick' in node['handlers']) {		// Есть handlers на слое
  						var res = callHandler('onClick', itemClick, gmxNode, gmxAttr);
  						if(typeof(res) === 'object' && res.stopPropagation) return true;

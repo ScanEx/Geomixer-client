@@ -2,7 +2,6 @@
 (function()
 {
 	function setImage(node, ph)	{
-//var canvasIcon = null;
 		var attr = ph.attr;
 		node.setImageExtent = (ph.setImageExtent ? true : false);
 		var LMap = gmxAPI._leaflet.LMap;				// Внешняя ссылка на карту
@@ -20,39 +19,39 @@
 		var pNode = mapNodes[node.parentId] || null;
 		var pGroup = (pNode ? pNode.group : LMap);
 
+        if('extent' in attr) {
+            attr.x1 = attr.extent.minX;
+            attr.y1 = attr.extent.maxY;
+            attr.x2 = attr.extent.minX;
+            attr.y2 = attr.extent.minY;
+            attr.x3 = attr.extent.maxX;
+            attr.y3 = attr.extent.minY;
+            attr.x4 = attr.extent.minX;
+            attr.y4 = attr.extent.maxY;
+            if('sx' in attr) {
+                attr.x4 = attr.x1;
+                attr.x2 = attr.x3 = Number(attr.x1) + w * attr.sx;
+                attr.y2 = attr.y1;
+                attr.y3 = attr.y4 = Number(attr.y1) + h * attr.sy;
+            }
+        }
+        var	arr = [[attr.x1, attr.y1], [attr.x2, attr.y2], [attr.x4, attr.y4], [attr.x3, attr.y3]];
+        var tPoints = {
+			ptl: new L.Point(attr.x1, attr.y1)
+            ,ptr: new L.Point(attr.x2, attr.y2)
+            ,pbl: new L.Point(attr.x4, attr.y4)
+            ,pbr: new L.Point(attr.x3, attr.y3)
+        }
+        tPoints.bounds = new L.Bounds([tPoints.ptl, tPoints.ptr, tPoints.pbl, tPoints.pbr]);
+        node.transoformPoints = tPoints;
+        
 		var getPixelPoints = function(ph, w, h) {
-			var out = {};
-			if('extent' in attr) {
-				attr.x1 = attr.extent.minX;
-				attr.y1 = attr.extent.maxY;
-				attr.x2 = attr.extent.minX;
-				attr.y2 = attr.extent.minY;
-				attr.x3 = attr.extent.maxX;
-				attr.y3 = attr.extent.minY;
-				attr.x4 = attr.extent.minX;
-				attr.y4 = attr.extent.maxY;
-				if('sx' in attr) {
-					attr.x4 = attr.x1;
-					attr.x2 = attr.x3 = Number(attr.x1) + w * attr.sx;
-					attr.y2 = attr.y1;
-					attr.y3 = attr.y4 = Number(attr.y1) + h * attr.sy;
-				}
-			}
-			var	arr = [[attr.x1, attr.y1], [attr.x2, attr.y2], [attr.x4, attr.y4], [attr.x3, attr.y3]];
-			var ptl = new L.Point(attr.x1, attr.y1);
-			var ptr = new L.Point(attr.x2, attr.y2);
-			var pbl = new L.Point(attr.x4, attr.y4);
-			var pbr = new L.Point(attr.x3, attr.y3);
-
-			//bounds = gmxAPI.bounds(arr);
-			bounds = new L.Bounds();
-			bounds.extend(ptl); bounds.extend(ptr); bounds.extend(pbl); bounds.extend(pbr);
-			
+			var	transoformPoints = node.transoformPoints;
 			var	parr = [];
-			var pix = LatLngToPixel(ptl.y, ptl.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
-			pix = LatLngToPixel(ptr.y, ptr.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
-			pix = LatLngToPixel(pbl.y, pbl.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
-			pix = LatLngToPixel(pbr.y, pbr.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
+			var pix = LatLngToPixel(transoformPoints.ptl.y, transoformPoints.ptl.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
+			pix = LatLngToPixel(transoformPoints.ptr.y, transoformPoints.ptr.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
+			pix = LatLngToPixel(transoformPoints.pbl.y, transoformPoints.pbl.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
+			pix = LatLngToPixel(transoformPoints.pbr.y, transoformPoints.pbr.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
 
 			var boundsP = gmxAPI.bounds(parr);
 			minPoint = boundsP.min;
@@ -63,17 +62,15 @@
 		}
 
 		var repaint = function(canvas, zoom) {
-console.log('repaint____: ', LMap.getZoom(), node.isVisible, imageObj);
 			if(node.isVisible == false
                 || !imageObj
                 || !canvas
                 ) return;
 			var w = imageObj.width;
 			var h = imageObj.height;
-			//var ph = getPixelPoints(attr, w, h);
-var points = getPixelPoints(attr, w, h);
+            var points = getPixelPoints(attr, w, h);
 
-			var isOnScene = (bounds ? gmxAPI._leaflet.utils.chkBoundsVisible(bounds) : false);
+			var isOnScene = (node.transoformPoints.bounds ? gmxAPI._leaflet.utils.chkBoundsVisible(node.transoformPoints.bounds) : false);
 			node.isOnScene = isOnScene;
 			if(!isOnScene) return;
 
@@ -81,17 +78,9 @@ var points = getPixelPoints(attr, w, h);
 			if(gmxAPI._leaflet.waitSetImage > 5) { waitRedraw(); return; }
 			gmxAPI._leaflet.waitSetImage++;
 
-//var points = [[ph.x1, ph.y1], [ph.x2, ph.y2], [ph.x4, ph.y4], [ph.x3, ph.y3]];
-var matrix3d = gmxAPI._leaflet.utils.getMatrix3d(imageObj.width, imageObj.height, points);
+            var matrix3d = gmxAPI._leaflet.utils.getMatrix3d(imageObj.width, imageObj.height, points);
+			posLatLng = new L.LatLng(node.transoformPoints.bounds.max.y, node.transoformPoints.bounds.min.x);
 
-			posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
-			//var data = { canvas: imageObj	};
-			// var ww = ph.ww;
-			// var hh = ph.hh;
-			
-			// var rx = w/ph.ww;
-			// var ry = h/ph.hh;
-			//if(rx == 1 && ry == 1) node.isLargeImage = true;
             canvas.width = w;
             canvas.height = h;
             var left = w * matrix3d.arr[0]/2;
@@ -100,8 +89,6 @@ var matrix3d = gmxAPI._leaflet.utils.getMatrix3d(imageObj.width, imageObj.height
             canvas.style.top = top + 'px';
 
 			var paintPolygon = function (ph) {
-				//var minPoint = ph.boundsP.min;
-
                 var matrix3dCSS = gmxAPI._leaflet.utils.getMatrix3dCSS(matrix3d.arr, -w/2, -h/2);
                 var _transformStyleName = gmxAPI._leaflet.utils.getTransformStyleName();
                 canvas.style[_transformStyleName] = matrix3dCSS;
