@@ -918,7 +918,7 @@
  						var res = callHandler('onClick', itemClick, gmxNode, gmxAttr);
  						if(typeof(res) === 'object' && res.stopPropagation) return true;
                     }
-					if(handlerObj) callHandler('onClick', itemClick, handlerObj, gmxAttr);
+					if(handlerObj && handlerObj.type !== 'VectorLayer') callHandler('onClick', itemClick, handlerObj, gmxAttr);
                 } else {
 					gmxAttr['objType'] = 'cluster';
 					gmxAttr['members'] = itemPropHiden['_members'];
