@@ -2861,7 +2861,7 @@ FlashMapObject.prototype.clearBackgroundImage = function() { gmxAPI._cmdProxy('c
 FlashMapObject.prototype.setImageExtent = function(attr)
 {
 	if(gmxAPI.proxyType === 'flash') this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
-	if (attr.notSetPolygon)
+	if (attr.notSetPolygon || attr.setPolygon)
 	{
 		this.setPolygon([
 			[attr.extent.minX, attr.extent.maxY],
