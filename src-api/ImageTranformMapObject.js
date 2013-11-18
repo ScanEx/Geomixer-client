@@ -83,15 +83,17 @@
 
             canvas.width = w;
             canvas.height = h;
-            var left = w * matrix3d.arr[0]/2;
-            var top = h * matrix3d.arr[4]/2;
-            canvas.style.left = left + 'px';
-            canvas.style.top = top + 'px';
-
-			var paintPolygon = function (ph) {
+            if(!node.setImageExtent) {
+                var left = w * matrix3d.arr[0]/2;
+                var top = h * matrix3d.arr[4]/2;
+                canvas.style.left = left + 'px';
+                canvas.style.top = top + 'px';
                 var matrix3dCSS = gmxAPI._leaflet.utils.getMatrix3dCSS(matrix3d.arr, -w/2, -h/2);
                 var _transformStyleName = gmxAPI._leaflet.utils.getTransformStyleName();
                 canvas.style[_transformStyleName] = matrix3dCSS;
+            }
+
+			var paintPolygon = function (ph) {
 				var ctx = canvas.getContext('2d');
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 				ctx.fillStyle = ctx.createPattern(imageObj, "no-repeat");
