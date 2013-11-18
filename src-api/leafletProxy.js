@@ -1765,11 +1765,13 @@
 		'freeze': function()	{					// Режим рисования
 			gmxAPI._leaflet['curDragState'] = true;
 			LMap.dragging.disable();
+            L.DomUtil.disableImageDrag();
 			LMap.touchZoom.addHooks();
 			return true;
 		}
 		,'unfreeze': function()	{						// Отмена режима рисования
 			gmxAPI._leaflet['curDragState'] = false;
+            L.DomUtil.enableImageDrag();
 			LMap.dragging.enable();
 			LMap.touchZoom.removeHooks();
 			return true;
