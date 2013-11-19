@@ -1,3 +1,6 @@
+.canvas-imageTransform {
+	pointer-events: none;
+}
 /*.leaflet-container {
 	cursor: inherit !important;
 	}

@@ -192,7 +192,7 @@
 				pGroup.removeLayer(node.leaflet);
 			}
 			var canvasIcon = new L.gmxDivIcon({
-				className: 'my-canvas-icon'
+				className: 'canvas-imageTransform'
 				,'iconSize': new L.Point(0, 0)
 				,'node': node
 				,'drawMe': function(canv) {
