@@ -13,130 +13,95 @@
 		}
 
 		var	bounds = null;
+		var minPoint = null;
 		var posLatLng = null;
 		
 		var pNode = mapNodes[node.parentId] || null;
 		var pGroup = (pNode ? pNode.group : LMap);
 
+        if('extent' in attr) {
+            attr.x1 = attr.extent.minX;
+            attr.y1 = attr.extent.maxY;
+            attr.x2 = attr.extent.minX;
+            attr.y2 = attr.extent.minY;
+            attr.x3 = attr.extent.maxX;
+            attr.y3 = attr.extent.minY;
+            attr.x4 = attr.extent.minX;
+            attr.y4 = attr.extent.maxY;
+            if('sx' in attr) {
+                attr.x4 = attr.x1;
+                attr.x2 = attr.x3 = Number(attr.x1) + w * attr.sx;
+                attr.y2 = attr.y1;
+                attr.y3 = attr.y4 = Number(attr.y1) + h * attr.sy;
+            }
+        }
+        var	arr = [[attr.x1, attr.y1], [attr.x2, attr.y2], [attr.x4, attr.y4], [attr.x3, attr.y3]];
+        var tPoints = {
+			ptl: new L.Point(attr.x1, attr.y1)
+            ,ptr: new L.Point(attr.x2, attr.y2)
+            ,pbl: new L.Point(attr.x4, attr.y4)
+            ,pbr: new L.Point(attr.x3, attr.y3)
+        }
+        tPoints.bounds = new L.Bounds([tPoints.ptl, tPoints.ptr, tPoints.pbl, tPoints.pbr]);
+        node.transoformPoints = tPoints;
+        
 		var getPixelPoints = function(ph, w, h) {
-			var out = {};
-			if('extent' in attr) {
-				attr.x1 = attr.extent.minX;
-				attr.y1 = attr.extent.maxY;
-				attr.x2 = attr.extent.minX;
-				attr.y2 = attr.extent.minY;
-				attr.x3 = attr.extent.maxX;
-				attr.y3 = attr.extent.minY;
-				attr.x4 = attr.extent.minX;
-				attr.y4 = attr.extent.maxY;
-				if('sx' in attr) {
-					attr.x4 = attr.x1;
-					attr.x2 = attr.x3 = Number(attr.x1) + w * attr.sx;
-					attr.y2 = attr.y1;
-					attr.y3 = attr.y4 = Number(attr.y1) + h * attr.sy;
-				}
+			var	transoformPoints = node.transoformPoints;
+			var	parr = [];
+			var pix = LatLngToPixel(transoformPoints.ptl.y, transoformPoints.ptl.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
+			pix = LatLngToPixel(transoformPoints.ptr.y, transoformPoints.ptr.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
+			pix = LatLngToPixel(transoformPoints.pbl.y, transoformPoints.pbl.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
+			pix = LatLngToPixel(transoformPoints.pbr.y, transoformPoints.pbr.x); parr.push([Math.floor(pix.x), Math.floor(pix.y)]);
+
+			var boundsP = gmxAPI.bounds(parr);
+			minPoint = boundsP.min;
+			for (var i = 0, len = parr.length; i < len; i++) {
+                parr[i][0] -= minPoint.x; parr[i][1] -= minPoint.y;
 			}
-			var ptl = new L.Point(attr.x1, attr.y1);
-			var ptr = new L.Point(attr.x2, attr.y2);
-			var pbl = new L.Point(attr.x4, attr.y4);
-			var pbr = new L.Point(attr.x3, attr.y3);
-			
-			bounds = new L.Bounds();
-			bounds.extend(ptl); bounds.extend(ptr); bounds.extend(pbl); bounds.extend(pbr);
-			
-			var pix = LatLngToPixel(ptl.y, ptl.x); out.x1 = Math.floor(pix.x); out.y1 = Math.floor(pix.y);
-			pix = LatLngToPixel(ptr.y, ptr.x); out.x2 = Math.floor(pix.x); out.y2 = Math.floor(pix.y);
-			pix = LatLngToPixel(pbr.y, pbr.x); out.x3 = Math.floor(pix.x); out.y3 = Math.floor(pix.y);
-			pix = LatLngToPixel(pbl.y, pbl.x); out.x4 = Math.floor(pix.x); out.y4 = Math.floor(pix.y);
-
-			var	boundsP = new L.Bounds();
-			boundsP.extend(new L.Point(out.x1, out.y1));
-			boundsP.extend(new L.Point(out.x2, out.y2));
-			boundsP.extend(new L.Point(out.x3, out.y3));
-			boundsP.extend(new L.Point(out.x4, out.y4));
-			//minP = boundsP.min;
-			out.boundsP = boundsP;
-			
-			out.x1 -= boundsP.min.x; out.y1 -= boundsP.min.y;
-			out.x2 -= boundsP.min.x; out.y2 -= boundsP.min.y;
-			out.x3 -= boundsP.min.x; out.y3 -= boundsP.min.y;
-			out.x4 -= boundsP.min.x; out.y4 -= boundsP.min.y;
-
-			out.ww = Math.round(boundsP.max.x - boundsP.min.x);
-			out.hh = Math.round(boundsP.max.y - boundsP.min.y);
-			return out;
+			return parr;
 		}
 
 		var repaint = function(canvas, zoom) {
-//console.log('repaint____: ', LMap.getZoom(), node.isLargeImage, node.isVisible, imageObj);
-			if(node.isVisible == false || !imageObj) return;
+			if(node.isVisible == false
+                || !imageObj
+                || !canvas
+                ) return;
 			var w = imageObj.width;
 			var h = imageObj.height;
-			var ph = getPixelPoints(attr, w, h);
+            var points = getPixelPoints(attr, w, h);
 
-			if(!canvas) return;
-			var isOnScene = (bounds ? gmxAPI._leaflet.utils.chkBoundsVisible(bounds) : false);
+			var isOnScene = (node.transoformPoints.bounds ? gmxAPI._leaflet.utils.chkBoundsVisible(node.transoformPoints.bounds) : false);
 			node.isOnScene = isOnScene;
-			if(!isOnScene || node.isLargeImage === false) return;
+			if(!isOnScene) return;
 
 			if(!zoom) zoom = LMap.getZoom();
 			if(gmxAPI._leaflet.waitSetImage > 5) { waitRedraw(); return; }
 			gmxAPI._leaflet.waitSetImage++;
 
-			posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
-			var data = { canvas: imageObj	};
-			var ww = ph.ww;
-			var hh = ph.hh;
-			var point = LMap.project(new L.LatLng(0, -180), zoom);
-			var p180 = LMap.project(new L.LatLng(0, 180), zoom);
-			var worldSize = p180.x - point.x;
-			
-			var vBounds = LMap.getBounds();
-			var vpNorthWest = vBounds.getNorthWest();
-			var vpSouthEast = vBounds.getSouthEast();
+            var matrix3d = gmxAPI._leaflet.utils.getMatrix3d(imageObj.width, imageObj.height, points);
+			posLatLng = new L.LatLng(node.transoformPoints.bounds.max.y, node.transoformPoints.bounds.min.x);
 
-			var vp1 = LMap.project(vpNorthWest, zoom);
-			var vp2 = LMap.project(vpSouthEast, zoom);
-			var wView = vp2.x - vp1.x;
-			var hView = vp2.y - vp1.y;
-			
-			var dx = 0;
-			var deltaX = 0;
-			var deltaY = 0;
-			node.isLargeImage = false;
-			if(wView < ww || hView < hh) {
-				deltaX = ph.boundsP.min.x - vp1.x + (dx === 360 ? worldSize : (dx === -360 ? -worldSize : 0));
-				deltaY = ph.boundsP.min.y - vp1.y;
-				posLatLng = vpNorthWest;
-				ww = wView;
-				hh = hView;
-				node.isLargeImage = true;
-			}
-			var rx = w/ph.ww;
-			var ry = h/ph.hh;
-			if(rx == 1 && ry == 1) node.isLargeImage = true;
+            canvas.width = w;
+            canvas.height = h;
+            if(!node.setImageExtent) {
+                var left = w * matrix3d.arr[0]/2;
+                var top = h * matrix3d.arr[4]/2;
+                canvas.style.left = left + 'px';
+                canvas.style.top = top + 'px';
+                var matrix3dCSS = gmxAPI._leaflet.utils.getMatrix3dCSS(matrix3d.arr, -w/2, -h/2);
+                var _transformStyleName = gmxAPI._leaflet.utils.getTransformStyleName();
+                canvas.style[_transformStyleName] = matrix3dCSS;
+            }
 
-			var points = [[ph.x1, ph.y1], [ph.x2, ph.y2], [ph.x3, ph.y3], [ph.x4, ph.y4]];
-			if(!node.setImageExtent && (rx != 1 || ry != 1)) {
-				data = gmxAPI._leaflet.ProjectiveImage({
-					imageObj: imageObj
-					,points: points
-					,wView: wView
-					,hView: hView
-					,deltaX: deltaX
-					,deltaY: deltaY
-					,patchSize: 64
-					,limit: 2
-					,type: 'mapObject'
-				});
-			}
-
-			var paintPolygon = function (ph, content) {
-				if(!content) return;
-				var arr = [];
+			var paintPolygon = function (ph) {
+				var ctx = canvas.getContext('2d');
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.fillStyle = ctx.createPattern(imageObj, "no-repeat");
+				if(node.regularStyle && node.regularStyle.fill) ctx.globalAlpha = node.regularStyle.fillOpacity || 1;					
 				var coords = ph.coordinates;
-				var minPoint = ph.boundsP.min;
 				if(coords) {
+					ctx.beginPath();
+                    var cnt = 0;
 					for (var i = 0; i < coords.length; i++)
 					{
 						var coords1 = coords[i];
@@ -146,28 +111,12 @@
 							for (var j = 0; j < pArr.length; j++)
 							{
 								var pix = LatLngToPixel(pArr[j][1], pArr[j][0]);
-								var px1 = pix.x - minPoint.x; 		px1 = (0.5 + px1) << 0;
-								var py1 = pix.y - minPoint.y;		py1 = (0.5 + py1) << 0;
-								arr.push({x: px1, y: py1});
+								var px1 = (pix.x - minPoint.x)/matrix3d.arr[0];
+								var py1 = (pix.y - minPoint.y)/matrix3d.arr[4];
+                                if(cnt++ == 0)	ctx.moveTo(px1, py1);
+                                else		    ctx.lineTo(px1, py1);
 							}
 						}
-					}
-				}
-
-				canvas.width = ww;
-				canvas.height = hh;
-				var ctx = canvas.getContext('2d');
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
-				ctx.setTransform(1, 0, 0, 1, 0, 0);
-				var pattern = ctx.createPattern(content, "no-repeat");
-				ctx.fillStyle = pattern;
-				if(node.regularStyle && node.regularStyle.fill) ctx.globalAlpha = node.regularStyle.fillOpacity || 1;					
-				if(arr.length) {
-					ctx.beginPath();
-					for (var i = 0; i < arr.length; i++)
-					{
-						if(i == 0)	ctx.moveTo(arr[i].x + deltaX, arr[i].y + deltaY);
-						else		ctx.lineTo(arr[i].x + deltaX, arr[i].y + deltaY);
 					}
 					ctx.closePath();
 				} else {
@@ -178,7 +127,7 @@
 			var multiArr = node.geometry.coordinates;
 			if(node.geometry.type == 'Polygon') multiArr = [multiArr];
 			
-			paintPolygon({coordinates: multiArr, boundsP: ph.boundsP}, data.canvas);
+			paintPolygon({coordinates: multiArr, boundsP: ph.boundsP});
 			attr.reposition();
 			data = null;
 			imageObj = null;
@@ -196,8 +145,6 @@
 		attr.reposition = function() {
 			if(node.leaflet) {
                 node.leaflet.setLatLng(posLatLng);
-				//if(!node.setImageExtent) node.leaflet.setLatLng(posLatLng);
-				//else L.DomUtil.setPosition(node.imageCanvas, new L.Point(-LMap._mapPane._leaflet_pos.x, -LMap._mapPane._leaflet_pos.y));
 			}
 		}
 
@@ -225,7 +172,6 @@
 						if(pt.uri === node.imageURL) {
 							imageObj = img;
 							node.refreshMe = function() {
-								node.isLargeImage = null;
 								waitRedraw();
 							}
 							if(canvas) repaint(canvas);
@@ -242,15 +188,14 @@
 		}
 		
 		var createIcon = function() {
-			node.isLargeImage = null;
 			if(node.leaflet) {
 				pGroup.removeLayer(node.leaflet);
 			}
-			var canvasIcon = L.canvasIcon({
+			var canvasIcon = new L.gmxDivIcon({
 				className: 'my-canvas-icon'
-				,node: node
-				,drawMe: function(canv) {
-					node.isLargeImage = null;
+				,'iconSize': new L.Point(0, 0)
+				,'node': node
+				,'drawMe': function(canv) {
 					drawMe(canv);
 				}
 			});
@@ -266,16 +211,8 @@
                 gmxAPI._leaflet.utils.startDrag(node);
             }
 
-			LMap.on('zoomend', function(e) {
-				if(!node.setImageExtent) {
-					node.isLargeImage = null;
-				}
-			});
             gmxAPI.map.addListener('onMoveEnd', function() {
-				if(node.setImageExtent) {
-					node.isLargeImage = null;
-				}
-				if(!node.refreshMe || node.isLargeImage === false) return;
+				if(!node.refreshMe) return;
 				waitRedraw();
 			}, -1000);
 			
@@ -287,7 +224,6 @@
 		if(!node.isSetImage) {
 			createIcon();
 		} else {
-            node.isLargeImage = null;
 			waitRedraw();
 		}
 	}

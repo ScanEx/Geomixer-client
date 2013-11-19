@@ -113,7 +113,21 @@
                 for(i = 0; i < k; i++) arr[i] -= arr[k] * aM[i][k];
             }
 
-            return "matrix3d(" + arr[0].toFixed(9) + "," + arr[3].toFixed(9) + ", 0," + arr[6].toFixed(9) + "," + arr[1].toFixed(9) + "," + arr[4].toFixed(9) + ", 0," + arr[7].toFixed(9) + ",0, 0, 1, 0," + arr[2].toFixed(9) + "," + arr[5].toFixed(9) + ", 0, 1)";
+            return {
+                //css: "matrix3d(" + arr[0].toFixed(9) + "," + arr[3].toFixed(9) + ", 0," + arr[6].toFixed(9) + "," + arr[1].toFixed(9) + "," + arr[4].toFixed(9) + ", 0," + arr[7].toFixed(9) + ",0, 0, 1, 0," + arr[2].toFixed(9) + "," + arr[5].toFixed(9) + ", 0, 1)"
+                matrix3d: aM
+                ,arr: arr
+            };
+		}
+		,
+        getMatrix3dCSS: function(arr, dx, dy)	{		// получить 4 точки привязки снимка
+            var str = 'matrix3d(';
+            str += arr[0].toFixed(9) + "," + arr[3].toFixed(9) + ", 0," + arr[6].toFixed(9);
+            str += "," + arr[1].toFixed(9) + "," + arr[4].toFixed(9) + ", 0," + arr[7].toFixed(9);
+            str += ",0, 0, 1, 0";
+            str += "," + (dx + arr[2]).toFixed(9) + "," + (dy + arr[5]).toFixed(9) + ", 0, 1)";
+
+            return str;
 		}
 		,
         getQuicklookPoints: function(coord)	{		// получить 4 точки привязки снимка
@@ -836,7 +850,7 @@
 			return point.y - p1.y;
 		}
 		,
-		chkGlobalEvent: function(attr)	{					// проверка Click на перекрытых нодах
+        chkGlobalEvent: function(attr)	{					// проверка Click на перекрытых нодах
 			if(!attr || !attr.evName) return;
 			var evName = attr.evName;
 
@@ -4472,6 +4486,19 @@ var tt = 1;
 			L.gmxIcon = function (options) {
 				return new L.GMXIcon(options);
 			};
+
+			L.gmxDivIcon = L.DivIcon.extend({
+				createIcon: function () {
+					var div = L.DivIcon.prototype.createIcon.call(this);
+					var canvas = document.createElement('canvas');
+                    div.appendChild(canvas);
+					gmxAPI.setStyleHTML(canvas, {'position': 'absolute'}, false);
+					var options = this.options;
+					if(options.drawMe) options.drawMe(canvas);
+					//this._setIconStyles(canvas, 'icon');
+					return div;
+				}
+			});
 
 			L.CanvasIcon = L.Icon.extend({
 				options: {
