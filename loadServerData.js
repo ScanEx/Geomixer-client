@@ -708,7 +708,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
         if (res)
         {
             var b = res.bounds;
-            parent.setImage(serverBase + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url), b.minX, b.maxY, b.maxX, b.maxY, b.maxX, b.minY, b.minX, b.minY);
+            parent.setImageOverlay(serverBase + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url), b.minX, b.maxY);
         }
 	}
 	
@@ -755,23 +755,15 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
 	
 	$(ulCanvas).treeview();
 	
-	var timer = null;
-	
-	globalFlashMap.addListener('positionChanged', function()
+	globalFlashMap.addListener('onMoveEnd', function()
 	{
-		if (timer)
-			clearTimeout(timer);
-		
-		timer = setTimeout(function()
-		{
-			var boxes = ulChilds.getElementsByTagName('input');
-			
-			for (var i = 0; i < boxes.length; i++)
-			{
-				if (boxes[i].checked)
-					boxes[i].update();
-			}
-		}, 500)
+        var boxes = ulChilds.getElementsByTagName('input');
+        
+        for (var i = 0; i < boxes.length; i++)
+        {
+            if (boxes[i].checked)
+                boxes[i].update();
+        }
 	})
 }
 
