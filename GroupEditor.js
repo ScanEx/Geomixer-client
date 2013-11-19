@@ -384,27 +384,19 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		
 		defLat.onkeyup = function()
 		{
-			if (!isNaN(Number(this.value)))
-			{
-				div.gmxProperties.properties.DefaultLat = Number(this.value);
-				
-				rawTree.properties = div.gmxProperties.properties;
-			}
-			
+            div.gmxProperties.properties.DefaultLat = (this.value === '' || isNaN(Number(this.value))) ? null : Number(this.value);
+            rawTree.properties = div.gmxProperties.properties;
 			return true;
 		}
-		defLong.onkeyup = function()
+		
+        defLong.onkeyup = function()
 		{
-			if (!isNaN(Number(this.value)))
-			{
-				div.gmxProperties.properties.DefaultLong = Number(this.value);
-				
-				rawTree.properties = div.gmxProperties.properties;
-			}
-			
+			div.gmxProperties.properties.DefaultLong = (this.value === '' || isNaN(Number(this.value))) ? null : Number(this.value);
+            rawTree.properties = div.gmxProperties.properties;
 			return true;
 		}
-		defPermalink.onkeyup = function()
+		
+        defPermalink.onkeyup = function()
 		{
 			div.gmxProperties.properties.ViewUrl = this.value;
 			
@@ -412,15 +404,11 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			
 			return true;
 		}
+        
 		defZoom.onkeyup = function()
 		{
-			if (!isNaN(Number(this.value)))
-			{
-				div.gmxProperties.properties.DefaultZoom = Number(this.value);
-			
-				rawTree.properties = div.gmxProperties.properties;
-			}
-			
+            div.gmxProperties.properties.DefaultZoom = (this.value === '' || isNaN(Number(this.value))) ? null : Number(this.value);
+            rawTree.properties = div.gmxProperties.properties;
 			return true;
 		}
 		
@@ -644,12 +632,12 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
             props.CanDownloadRasters = downloadRasters.checked;
             props.WMSAccess = WMSAccess.checked;
             
-            props.DefaultLat = isNaN(Number(defLat.value)) ? null : Number(defLat.value);
-            props.DefaultLong = isNaN(Number(defLong.value)) ? null : Number(defLong.value);
+            props.DefaultLat = (isNaN(Number(defLat.value)) || defLat.value === '') ? null : Number(defLat.value);
+            props.DefaultLong = (isNaN(Number(defLong.value)) || defLong.value === '') ? null : Number(defLong.value);
             
             props.ViewUrl = defPermalink.checked;
             
-            props.DefaultZoom = isNaN(Number(defZoom.value)) ? null : Number(defZoom.value);
+            props.DefaultZoom = (isNaN(Number(defZoom.value)) || defZoom.value === '') ? null : Number(defZoom.value);
             
             props.onLoad = onLoad.value;
             props.Copyright = copyright.value;
