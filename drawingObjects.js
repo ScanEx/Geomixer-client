@@ -240,10 +240,15 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	var _text = _span(null, [['dir','className', 'drawingObjectsItemTitle']]);
 	var _summary = _span(null, [['dir','className','summary']]);
     
-	_text.onclick = _title.onclick = function() {
+	var _clickFunc = function() {
         _options.click(_drawingObject);
     }
-	if(!_options.editStyle && !_options.allowDelete) _canvas.onclick = _text.onclick;
+    
+	if(!_options.editStyle && !_options.allowDelete) {
+        _canvas.onclick = _clickFunc;
+    } else {
+        _text.onclick = _title.onclick = _clickFunc;
+    }
 	
 	var regularDrawingStyle = {
 			marker: {size: 3},
