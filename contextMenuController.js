@@ -162,8 +162,8 @@ nsGmx.ContextMenuController = (function()
          * @memberOf nsGmx.ContextMenuController
 		 * @param {DOMElement} elem Целевой DOM-элемент
 		 * @param {String} type Тип меню
-		 * @param {Function, checkFunc()->Bool} checkFunc Проверка, показывать ли сейчас меню. Если ф-ция возвращает false, меню не показывается
-		 * @param {Object | function(context)->Object} context Контекст, который будет передан в элемент меню при клике на DOM-элементе. 
+		 * @param {function():Boolean} checkFunc Проверка, показывать ли сейчас меню. Если ф-ция возвращает false, меню не показывается
+		 * @param {Object|function(context):Object} context Контекст, который будет передан в элемент меню при клике на DOM-элементе. 
 		 *        Если контект - ф-ция, она будет вызвана непосредственно при клике. В контекст при клике будут добавлены элементы contentMenuArea и contextMenuType.
 		 */
 		bindMenuToElem: function(elem, type, checkFunc, context)

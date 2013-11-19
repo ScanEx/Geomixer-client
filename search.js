@@ -490,7 +490,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	
 	/**рисует номера страниц списка
 	@param end - последний номер 
-	@param iDataSourceN = номер источника данных
+	@param iDataSourceN - номер источника данных
 	@param divChilds - раздел для элементов списка
 	@param divPages - раздел для номеров страниц списка*/
 	var drawPages = function(end, iDataSourceN, divChilds, divPages) {
@@ -521,7 +521,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	}
 
 	/**Рисует одну из страниц списка
-	@param iDataSourceN = номер источника данных
+	@param iDataSourceN - номер источника данных
 	@param divChilds - раздел для элементов списка
 	@param divPages - раздел для номеров страниц списка*/
 	var drawPagesRow = function(iDataSourceN, divChilds, divPages) {
@@ -545,7 +545,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	}
 
 	/**Рисует таблицу для результатов источника данных
-	@param iDataSourceN = номер источника данных
+	@param iDataSourceN - номер источника данных
 	@param divChilds - раздел для элементов списка
 	@param divPages - раздел для номеров страниц списка*/
 	var drawTable = function(iDataSourceN, divChilds, divPages) {
@@ -564,7 +564,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	}
 	
 	/**Обрабатывает событие нажатия на кнопку "Скачать SHP-файл"
-	@param iDataSourceN = номер источника данных*/
+	@param iDataSourceN - номер источника данных*/
 	var downloadMarkers = function(iDataSourceN) {
 		var oDataSource = arrTotalResultSet[iDataSourceN];
 		var canvas = _div(),
@@ -596,7 +596,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 	}
 
 	/**Отображает результаты поиска с источника данных
-	@param iDataSourceN = номер источника данных*/
+	@param iDataSourceN - номер источника данных*/
 	var drawSearchResult = function(iDataSourceN) {
 		var oDataSource = arrTotalResultSet[iDataSourceN];
 		
@@ -635,7 +635,7 @@ var ResultList = function(oInitContainer, ImagesHost){
 
 	/**Отображает результаты поиска в списке
 	@param sTotalListName - заголовок итогового результата
-	@param arrTotalList = [{name:DataSourceName, CanDownloadVectors:CanDownloadVectors, SearchResult:arrDataSourceList[oObjFound,...]},...]
+	@param {Array.<Object>} arrTotalList. Массив объектов со следующими свойствами{name:DataSourceName, CanDownloadVectors:CanDownloadVectors, SearchResult:arrDataSourceList[oObjFound,...]}
 	@returns {void}
 	*/
 	this.ShowResult = function(sTotalListName, arrTotalList){
@@ -1037,7 +1037,7 @@ var ResultListMap = function(lstResult, oRenderer){
 	
 	/**Отображает результаты поиска в списке
 	@param sTotalListName - заголовок итогового результата
-	@param arrTotalList [{name:DataSourceName, CanDownloadVectors:CanDownloadVectors, SearchResult:arrDataSourceList[oObjFound,...]},...]
+	@param {Array.<Object>} arrTotalList Массив объектов со следующими свойствами {name:DataSourceName, CanDownloadVectors:CanDownloadVectors, SearchResult:arrDataSourceList[oObjFound,...]}
 	@returns {void}*/
 	this.ShowResult = function(sTotalListName, arrTotalList){
 		lstResult.ShowResult(sTotalListName, arrTotalList);
@@ -1313,9 +1313,9 @@ var SearchLogic = function(oInitSearchDataProvider, WithoutGeometry){
 	}
 	
 	/**Возращает сгуппированные данные для отображения подсказок поиска в функции callback
-	@param {string} SearchString строка, по которой надо выдать подсказку
-	@param callback = function(arrResult) {...} - вызывается когда подсказка готова
-	@returns {void}*/
+	    @param {String} SearchString строка, по которой надо выдать подсказку
+	    @param {function(arrResult)} callback вызывается когда подсказка готова
+    */
 	this.AutoCompleteData = function (SearchString, callback){
 	    _this.SearchByString({ SearchString: SearchString, IsStrongSearch: 0, Limit: iLimitAutoComplete, WithoutGeometry: 1,
 	        UseOSM: typeof (gmxGeoCodeUseOSM) != "undefined" && gmxGeoCodeUseOSM ? 1 : 0, 

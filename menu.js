@@ -6,7 +6,7 @@
   @property {String} id Уникальный идентификатор элемента меню
   @property {String} title Tекст, который будет показываться пользователю
   @property {Function} func Ф-ция, которую нужно вызвать при клике
-  @property {IMenuElem []} childs Массив элементов подменю
+  @property {IMenuElem[]} childs Массив элементов подменю
 */
 
 /**

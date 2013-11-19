@@ -55,10 +55,10 @@ var FiltersControl = function()
 		}
 	}
 
-	/**
-	* @function 
-	* @param {Array or string} layers Вектор имён слоёв для фильтрации или тип слоёв для фильтрации (Raster или Vector). В последнем случае фильтруются все слои данного типа
-	* @param {string} dateAttribute Имя аттрибута даты в слоях
+	/** Инициализировать контрол
+	* @function
+	* @param {Array|string} layers Вектор имён слоёв для фильтрации или тип слоёв для фильтрации (Raster или Vector). В последнем случае фильтруются все слои данного типа
+	* @param {String} dateAttribute Имя аттрибута даты в слоях
 	*/
 	this.init = function(layers, dateAttribute, calendar, params)
 	{

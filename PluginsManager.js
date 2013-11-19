@@ -68,7 +68,7 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
 */
 
 /**
-  @memberOf IGeomixerPlugin
+  @memberOf IGeomixerPlugin.prototype
   @method
   @name beforeMap
   @desc Вызывется сразу после загрузки всех модулей ядра вьюера (до инициализации карты, проверки пользователя и т.п.)
@@ -76,7 +76,7 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
 */
 
 /**
-  @memberOf IGeomixerPlugin
+  @memberOf IGeomixerPlugin.prototype
   @method
   @name beforeViewer
   @desc вызовется до начала инициализации ГеоМиксера, но сразу после инициализации карты
@@ -85,7 +85,7 @@ var Plugin = function(moduleName, file, body, params, pluginName, mapPlugin, isP
 */
 
 /**
-  @memberOf IGeomixerPlugin
+  @memberOf IGeomixerPlugin.prototype
   @method
   @name afterViewer
   @desc вызовется после окончания инициализации ГеоМиксера
