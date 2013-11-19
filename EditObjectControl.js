@@ -72,21 +72,16 @@ var FieldsCollection = function() {
     var _asHash = {};
     
     this.append = function(field) {
-        field.index = _asArray.length;
+        field.origIndex = _asArray.length;
         _asArray.push(field);
         _asHash[field.name] = field;
     }
     
-    // this.prepend = function(field) {
-        // _asArray.unshift(field);
-        // _asHash[field.name] = field;
-    // }
-    
     this.update = function(field) {
         if (field.name in _asHash) {
-            var index = _asHash[field.name];
+            var origIndex = _asHash[field.name].origIndex;
             $.extend(true, _asHash[field.name], field);
-            _asHash[field.name] = index;
+            _asHash[field.name].origIndex = origIndex;
         }
     }
     
@@ -109,7 +104,8 @@ var FieldsCollection = function() {
                 return Number(!!b.identityField) - Number(!!a.identityField);
             }
             
-            return b.index - a.index;
+            var userZIndexDelta = (b.index || 0) - (a.index || 0);
+            return  userZIndexDelta || (b.origIndex - a.origIndex);
         })
     }
 }
@@ -134,6 +130,7 @@ var FieldsCollection = function() {
 *  * validate {function(val) -> bool} - ф-ция для валидации результата. На вход получает введённое пользователем значение 
 *      (до преобразования в серверный формат), должна вернуть валидно ли это значение.
 *  * isRequired {Boolean} - является ли значение атрибута обязательным. Обязательные атрибуты показываются выше всех остальных и выделяются жирным шрифтом. По умолчанию "false".
+*  * index {Number} - индекс для сортировки. Влияет на порядок показа полей в диалоге. Больше - выше. По умолчанию - 0.
 *
 * @param {bool} [params.allowDuplicates=<depends>] Разрешать ли несколько диалогов для редактирования/создания этого объекта. 
          По умолчанию для редактирования запрещено, а для создания нового разрешено.

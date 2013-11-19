@@ -140,6 +140,16 @@ nsGmx.Controls = {
 		return input;
 	},
 	
+    /** Создаёт диалог, позволяющий выбрать пользователю один из нарисованных на карте объектов
+     * @param {String} name Уникальный идентификатор диалога
+     * @param {function(gmxAPI.DrawingObject)} callback Ф-ция, которая вызовется при выборе пользователем одного из объектов
+     * @param {Object} [params] Дополнительные параметры диалога
+     * @param {String} [params.title] Заголовок диалога
+     * @param {String} [params.geomType=null] Ограничения на тип геометрии (POINT, LINESTRING, POLYGON). null - без ограничений
+     * @param {String} [params.errorTitle] Заголовок диалога с ошибками (например, если нет объектов)
+     * @param {String} [params.errorMessage] Текст диалога с ошибками (например, если нет объектов)
+     * @param {Number} [params.width=250] Ширина диалога в пикселях
+    */
     chooseDrawingBorderDialog: function(name, callback, params)
     {
         var _params = $.extend({
