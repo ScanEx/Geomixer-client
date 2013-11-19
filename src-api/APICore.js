@@ -2861,13 +2861,6 @@ FlashMapObject.prototype.clearBackgroundImage = function() { gmxAPI._cmdProxy('c
 FlashMapObject.prototype.setImageExtent = function(attr)
 {
 	if(gmxAPI.proxyType === 'flash') this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
-	if(typeof(attr) === 'string' && arguments.length > 1) {
-        attr = {
-            url: attr
-            ,extent: arguments[1]
-            ,notSetPolygon: arguments[2] || false
-        };
-    }
     if (attr.notSetPolygon)
 	{
 		this.setPolygon([
@@ -2880,7 +2873,21 @@ FlashMapObject.prototype.setImageExtent = function(attr)
 	}
 	gmxAPI._cmdProxy('setImageExtent', { 'obj': this, 'attr':attr});
 }
-FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
+FlashMapObject.prototype.setImageOverlay = function(url, x1, y1, flagGeo)
+{
+    this.setImageExtent({
+        url: url
+        ,extent: {
+			minX: x1
+            ,minY: y1
+			,maxX: x1
+            ,maxY: y1
+        }
+        ,notSetPolygon: flagGeo || false
+    });
+}
+
+FlashMapObject.prototype.setImageTransform = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
 {
 	this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
 	var attr = {};
@@ -2900,6 +2907,7 @@ FlashMapObject.prototype.setImage = function(url, x1, y1, x2, y2, x3, y3, x4, y4
 	attr['url'] = url;
 	gmxAPI._cmdProxy('setImage', { 'obj': this, 'attr':attr});
 }
+FlashMapObject.prototype.setImage = FlashMapObject.prototype.setImageTransform;
 
 FlashMapObject.prototype.getGeometrySummary = function()
 {
