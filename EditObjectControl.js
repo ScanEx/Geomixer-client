@@ -134,6 +134,7 @@ var FieldsCollection = function() {
 *
 * @param {bool} [params.allowDuplicates=<depends>] Разрешать ли несколько диалогов для редактирования/создания этого объекта. 
          По умолчанию для редактирования запрещено, а для создания нового разрешено.
+* @param {HTMLNode} [params.afterPropertiesControl] HTML элемент, который нужно поместить после списка атрибутов
 */
 var EditObjectControl = function(layerName, objectId, params)
 {
@@ -150,7 +151,8 @@ var EditObjectControl = function(layerName, objectId, params)
             drawingObject: null, 
             fields: [], 
             validate: {},
-            allowDuplicates: isNew
+            allowDuplicates: isNew,
+            afterPropertiesControl: _span()
         }, params);
     var _this = this;
     if (!_params.allowDuplicates && EditObjectControlsManager.find(layerName, objectId))
@@ -353,13 +355,13 @@ var EditObjectControl = function(layerName, objectId, params)
             $(_this).trigger('close');
         }
         
-        var firstInput = null;
         var fieldsCollection = new FieldsCollection();
         
         //либо drawingObject либо geometry
         var drawAttrList = function(fields)
         {
-            var trs = [];
+            var trs = [],
+                firstInput;
             
             //сначала идёт геометрия
             var drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
@@ -424,7 +426,13 @@ var EditObjectControl = function(layerName, objectId, params)
                 trs.push(_tr([_td([fieldHeader]), td], [['css', 'height', '22px']]));
             })
             
-            return trs;
+            _(canvas, [_div([_table([_tbody(trs)]), _params.afterPropertiesControl],[['css','overflow','auto']])]);
+            
+            _(canvas, [_div([createButton],[['css','margin','10px 0px'],['css','height','20px']])]);
+            
+            firstInput && firstInput.focus();
+            
+            resizeFunc();
         }
         
         var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", layer.properties.title) : _gtxt("Редактировать объект слоя [value0]", layer.properties.title), canvas, 400, 300, false, false, resizeFunc, closeFunc);
@@ -466,23 +474,12 @@ var EditObjectControl = function(layerName, objectId, params)
                         };
                         
                         fieldsCollection.append(field);
-                        //if (columnNames[i] === identityField)
-                            //fieldsCollection.prepend(field);
-                        //else
                     }
                 }
                 
                 _params.fields.forEach(fieldsCollection.update);
                 
-                var trs = drawAttrList(fieldsCollection);
-                
-                _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
-                
-                _(canvas, [_div([createButton, removeButton],[['css','margin','10px 0px'],['css','height','20px']])]);
-                
-                firstInput && firstInput.focus();
-                
-                resizeFunc();
+                drawAttrList(fieldsCollection);
             })
         }
         else
@@ -499,14 +496,6 @@ var EditObjectControl = function(layerName, objectId, params)
             }
             
             var trs = drawAttrList(fieldsCollection);
-            
-            _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
-            
-            _(canvas, [_div([createButton],[['css','margin','10px 0px'],['css','height','20px']])]);
-            
-            firstInput && firstInput.focus();
-            
-            resizeFunc();
         }
     }
     
