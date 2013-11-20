@@ -665,7 +665,7 @@
 					obj.enableTiledQuicklooks(function(o)
 					{
 						//var qURL = tileSenderPrefix + '&x={x}&y={y}&z={z}&idr=' + o.properties[layer.properties.identityField];
-						var qURL = tileSenderPrefixBase + '&x={x}&y={y}&z={z}&LayerName=' + o.properties['GMX_RasterCatalogID'];
+						var qURL = tileSenderPrefixBase + '&x={x}&y={y}&z={z}&LayerName=' + encodeURIComponent(o.properties['GMX_RasterCatalogID']);
 						return qURL;
 					}, RCMinZoomForRasters, layer.properties.TiledQuicklookMaxZoom, tileSenderPrefix);
 					obj.getRCTileUrl = function(x, y, z, pid) {

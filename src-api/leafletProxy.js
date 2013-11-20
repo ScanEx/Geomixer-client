@@ -120,6 +120,14 @@
             };
 		}
 		,
+        transformPoint: function(arr, x, y) {   // Получение преобразованных координат
+            var w = arr[6]*x + arr[7]*y + 1;
+            return {
+                x: (arr[0]*x + arr[1]*y + arr[2])/w,
+                y: (arr[3]*x + arr[4]*y + arr[5])/w
+            }
+        }
+		,
         getMatrix3dCSS: function(arr, dx, dy)	{		// получить 4 точки привязки снимка
             var str = 'matrix3d(';
             str += arr[0].toFixed(9) + "," + arr[3].toFixed(9) + ", 0," + arr[6].toFixed(9);
@@ -997,9 +1005,9 @@
 					gmxAPI.addDebugWarnings({'url': url, 'func': 'getImageSize', 'Error': 'image not found'});
 				}
 			};
-			if(('color' in pt && pt['color'] != utils.DEFAULT_REPLACEMENT_COLOR)
+			/*if(('color' in pt && pt['color'] != utils.DEFAULT_REPLACEMENT_COLOR)
 				|| 'rotate' in pt
-			) ph['crossOrigin'] = 'anonymous';
+			) ph['crossOrigin'] = 'anonymous';*/
 			gmxAPI._leaflet['imageLoader'].unshift(ph);
 		}
 		,'getMouseX':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lng : 0); }			// Позиция мыши X
