@@ -580,7 +580,7 @@
 						'y': gmxAPI.merc_y(map.needMove.y),
 						'z': map.needMove.z
 					}});
-				} else if(!notMoveFlag && mapBounds)
+				} else if(!notMoveFlag && mapBounds && layers.properties.name !== kosmosnimki_API)
 				{
 					var z = map.getBestZ(gmxAPI.from_merc_x(mapBounds.minX), gmxAPI.from_merc_y(mapBounds.minY), gmxAPI.from_merc_x(mapBounds.maxX), gmxAPI.from_merc_y(mapBounds.maxY));
 					if (minLayerZoom != 20)
