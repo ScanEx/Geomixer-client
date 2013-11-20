@@ -16,13 +16,14 @@
 		map.rasters = map;
 		map.tiledQuicklooks = map;
 		map.vectors = map;
-		map.needMove = {
-			'x':	parseFloat(layers.properties.DefaultLong) || 35
-			,'y':	parseFloat(layers.properties.DefaultLat) || 50
-			,'z':	parseFloat(layers.properties.DefaultZoom) || 4
-		};
-		
-		//map.needSetMode = 'Map';
+		var getDefaultPos = function(prop) {
+            return {
+                x:	(typeof(prop.DefaultLong) === 'number' ? prop.DefaultLong :(map.needMove ? map.needMove.x : 35))
+                ,y:	(typeof(prop.DefaultLat) === 'number' ? prop.DefaultLat :(map.needMove ? map.needMove.y : 50))
+                ,z:	(typeof(prop.DefaultZoom) === 'number' ? prop.DefaultZoom :(map.needMove ? map.needMove.z : 4))
+            };
+        }
+		map.needMove = getDefaultPos(layers.properties);
 		map.needSetMode = null;
 
 		// Методы присущие только Map
@@ -569,17 +570,15 @@
 				if('z' in gmxAPI.initParams['center']) map.needMove['z'] = gmxAPI.initParams['center']['z'];
 				//delete gmxAPI.initParams['center'];
 			} else {
-				if (layers.properties.DefaultLat && layers.properties.DefaultLong && layers.properties.DefaultZoom) {
-					var pos = {
-						'x': parseFloat(layers.properties.DefaultLong),
-						'y': parseFloat(layers.properties.DefaultLat),
-						'z': parseInt(layers.properties.DefaultZoom)
-					};
-					map.needMove = pos;
+				//if (layers.properties.DefaultLat !== null || layers.properties.DefaultLong !== null || layers.properties.DefaultZoom !== null) {
+				if (typeof(layers.properties.DefaultLat) === 'number'
+                    || typeof(layers.properties.DefaultLong) === 'number'
+                    || typeof(layers.properties.DefaultZoom) === 'number') {
+                    map.needMove = getDefaultPos(layers.properties);
 					setCurrPosition(null, {'currPosition': {
-						'x': gmxAPI.merc_x(pos['x']),
-						'y': gmxAPI.merc_y(pos['y']),
-						'z': pos['z']
+						'x': gmxAPI.merc_x(map.needMove.x),
+						'y': gmxAPI.merc_y(map.needMove.y),
+						'z': map.needMove.z
 					}});
 				} else if(!notMoveFlag && mapBounds)
 				{
