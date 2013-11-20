@@ -56,7 +56,7 @@
                     
                     function myClick(obj, div) {
                         var ogc_fid = obj['properties'].ogc_fid;
-                        var layerProp = obj.parent['properties'];
+                        var layerProp = obj.layer['properties'];
                         var layer = layerProp.name;
                         var layerSTR = gmxAPI.KOSMOSNIMKI_LOCALIZED('Слой', 'Layer') + ':&nbsp;<b>' + layerProp.title + '</b><br>';
                         layerSTR += gmxAPI.KOSMOSNIMKI_LOCALIZED('Контур', 'Polygon') + ':&nbsp;<b>' + ogc_fid + '</b><br>';
