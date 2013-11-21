@@ -63,6 +63,7 @@
                 title: 'Express Sales Results',
                 styles: [{
                     BalloonEnable: true,
+                    Balloon: "<b>Сцена</b>: [Name] <br/> <b>Дата</b>: [DATE]",
                     DisableBalloonOnMouseMove: true,
                     RenderStyle: {outline: {color: 0xff8800, thickness: 3}, fill: {opacity: 0}}
                 }]
