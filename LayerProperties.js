@@ -47,6 +47,7 @@ var LatLngColumnsModel = Backbone.Model.extend({
  * @property {nsGmx.LayerRCProperties} RC Параметры каталога растров. Только для векторных слоёв
  * @property {nsGmx.TemporalLayerParams} Temporal Параметры мультивременного слоя. Только для векторных слоёв
  * @property {LatLngColumnsModel} GeometryColumnsLatLng Описание выбранных в таблице колонок с геометрией
+ * @property {String} ZIndexField Название поля для сортировки объектов внутри векторного слоя
 */
 var LayerProperties = Backbone.Model.extend(
     /** @lends nsGmx.LayerProperties.prototype */
@@ -68,6 +69,7 @@ var LayerProperties = Backbone.Model.extend(
             GeometryType:   divProperties ? divProperties.GeometryType : layerProperties.GeometryType,
             LayerID:        divProperties ? divProperties.LayerID : layerProperties.LayerID,
             Quicklook:      divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
+            ZIndexField:    divProperties ? divProperties.ZIndexField : layerProperties.ZIndexField,
             MetaProperties: layerProperties.MetaProperties || {},
             ShapePath:      layerProperties.ShapePath || {},
             TilePath:       layerProperties.TilePath || {},
@@ -193,7 +195,6 @@ var LayerProperties = Backbone.Model.extend(
                 reqParams.TemporalPeriods = tempProperties.getPeriodString();
                 reqParams.maxShownPeriod = tempProperties.get('maxShownPeriod');
             }
-
             
             var parsedColumns = nsGmx.LayerProperties.parseColumns(attrs.Columns);
             
@@ -204,6 +205,8 @@ var LayerProperties = Backbone.Model.extend(
             
             if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
             reqParams.Quicklook = attrs.Quicklook || null;
+            
+            if (attrs.ZIndexField) reqParams.ZIndexField = attrs.ZIndexField;
             
             if (!name && stype === 'manual')
             {
