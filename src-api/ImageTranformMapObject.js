@@ -220,7 +220,6 @@
 				var ph = {
 					src: src
 					,uri: node.imageURL
-					,crossOrigin: 'use-credentials'
 					,callback: function(img, svgFlag, pt) {
 						if(pt.uri === node.imageURL) {
 							imageObj = img;
@@ -235,6 +234,7 @@
 						gmxAPI.addDebugWarnings({func: 'setImage', Error: 'not found image: ' + src, alert: 'setImage error'});
 					}
 				};
+				if(!node.setImageExtent) ph.crossOrigin = 'anonymous';
 				gmxAPI._leaflet.imageLoader.push(ph);
 			} else if(canvas) {
 				repaint(canvas);
