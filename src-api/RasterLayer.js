@@ -471,7 +471,7 @@
 
                     var item = {
                         'src': rUrl
-                        //,'crossOrigin': 'anonymous'
+                        ,'crossOrigin': 'use-credentials'
                         ,'zoom': z
                         ,'callback': function(imageObj) {
                             pt.callback({'img': imageObj, 'zoom': z, 'fromZoom': pt.zoom.from});

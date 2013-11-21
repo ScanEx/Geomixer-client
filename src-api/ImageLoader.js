@@ -106,10 +106,7 @@
 				callCacheItems(item);
 			//}
 		}
-		if(item.crossOrigin) {
-            imageObj.crossOrigin = item.crossOrigin;
-            imageObj.crossOrigin = '';	// webkit http://blog.chromium.org/2011/07/using-cross-domain-images-in-webgl-and.html
-		}
+		if(item.crossOrigin) imageObj.crossOrigin = item.crossOrigin;
         
 		imageObj.onload = function() {
 			curCount--;

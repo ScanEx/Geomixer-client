@@ -1518,7 +1518,7 @@
 				}
 				,'onerror': onError
 			};
-			if(node['imageProcessingHook'] || zoomFrom != z) item['crossOrigin'] = 'anonymous';	// если требуется преобразование image
+			if(node['imageProcessingHook'] || zoomFrom != z) item['crossOrigin'] = 'use-credentials';	// если требуется преобразование image
 			gmxAPI._leaflet['imageLoader'].push(item);
 		}
 

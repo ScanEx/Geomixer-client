@@ -220,7 +220,7 @@
 				var ph = {
 					src: src
 					,uri: node.imageURL
-					,crossOrigin: 'anonymous'
+					,crossOrigin: 'use-credentials'
 					,callback: function(img, svgFlag, pt) {
 						if(pt.uri === node.imageURL) {
 							imageObj = img;
