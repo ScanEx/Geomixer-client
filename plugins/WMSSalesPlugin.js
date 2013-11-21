@@ -88,7 +88,10 @@ var createRC = function(results, params)
         title: 'wms_sales_rc', 
         addToMap: true,
         userBorder: null,
-        serverBase: window.serverBase || ''
+        serverBase: window.serverBase || '',
+        additionalColumns: [], //{name:String, type:String}
+        additionalAttributes: {}, //layerName->{attrName -> <value in server format>}
+        additionalLayerProperties: {}
     }, params);
     
     //атрибуты каталога растров - объединение всех метаданных слоёв
@@ -100,6 +103,11 @@ var createRC = function(results, params)
             })
         }
     })
+    
+    for (var ap = 0; ap < _params.additionalColumns.length; ap++) {
+        var attr = _params.additionalColumns[ap];
+        tagTypes[attr.name] = attr.type;
+    }
     
     var mapProperties = _layersTree.treeModel.getMapProperties();
     
@@ -132,6 +140,10 @@ var createRC = function(results, params)
             ColumnTagLinks: ColumnTagLinks
         })
     });
+    
+    layerProperties.set(_params.additionalLayerProperties);
+    // for (var propName in _params.additionalLayerProperties) {
+    // }
     
     if (_params.userBorder) {
         layerProperties.set('UserBorder', _params.userBorder);
@@ -167,9 +179,16 @@ var createRC = function(results, params)
             if (results[sid].status === 'missing')
                 continue;
             
-            objs.push({
-                source: {layerName: results[sid].layerProperties.name}
-            });
+            var name = results[sid].layerProperties.name;
+            var insertInfo = {
+                source: {layerName: name}
+            };
+            
+            if (name in _params.additionalAttributes) {
+                insertInfo.properties = _params.additionalAttributes[name];
+            }
+            
+            objs.push(insertInfo);
         }
         
         _mapHelper.modifyObjectLayer(newLayer.properties.name, objs).done(function()
