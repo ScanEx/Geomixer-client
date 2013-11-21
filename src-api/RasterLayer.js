@@ -471,13 +471,13 @@
 
                     var item = {
                         'src': rUrl
-                        ,'crossOrigin': 'use-credentials'
                         ,'zoom': z
                         ,'callback': function(imageObj) {
                             pt.callback({'img': imageObj, 'zoom': z, 'fromZoom': pt.zoom.from});
                         }
                         ,'onerror': onError
                     };
+					if(pt.zoom.from != z) item.crossOrigin = 'use-credentials';
                     gmxAPI._leaflet['imageLoader'].push(item);
                 }
                 opt._needLoadTile++;
