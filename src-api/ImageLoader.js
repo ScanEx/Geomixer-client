@@ -106,7 +106,7 @@
 				callCacheItems(item);
 			//}
 		}
-		//if(item.crossOrigin) imageObj.crossOrigin = item.crossOrigin;
+		if(item.crossOrigin) imageObj.crossOrigin = item.crossOrigin;
 		imageObj.onload = function() {
 			curCount--;
 			if (gmxAPI.isIE) {

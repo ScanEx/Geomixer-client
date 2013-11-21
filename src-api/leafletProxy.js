@@ -1005,9 +1005,9 @@
 					gmxAPI.addDebugWarnings({'url': url, 'func': 'getImageSize', 'Error': 'image not found'});
 				}
 			};
-			/*if(('color' in pt && pt['color'] != utils.DEFAULT_REPLACEMENT_COLOR)
+			if(('color' in pt && pt['color'] != utils.DEFAULT_REPLACEMENT_COLOR)
 				|| 'rotate' in pt
-			) ph['crossOrigin'] = 'anonymous';*/
+			) ph['crossOrigin'] = 'anonymous';
 			gmxAPI._leaflet['imageLoader'].unshift(ph);
 		}
 		,'getMouseX':	function()	{ return (gmxAPI._leaflet['mousePos'] ? gmxAPI._leaflet['mousePos'].lng : 0); }			// Позиция мыши X
