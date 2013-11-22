@@ -48,7 +48,7 @@ _translationsHash.addtext("eng", {
 	"Объект не выбран": "Nothing selected",
 	"Объект для привязки: ": "Message object: ",
 	"Поделиться": "Share",
-	"<Без темы>": "<Untitled>"
+	"<Без темы>": "<Untitled>",
 	"Показать/скрыть сообщения на карте": "Show/hide all messages on map"
 });
 
