@@ -455,7 +455,7 @@
 
                     var onError = function() {
                         if (z > 1) {
-                            opt.badTiles[rUrl] = true;
+                            //if(pt.zoom.from === z) opt.badTiles[rUrl] = true;
                             // запрос по раззумливанию растрового тайла
                             pt.zoom.to = z - 1, pt.x = Math.floor(pt.x/2), pt.y = Math.floor(pt.y/2);
                             loadRasterRecursion(pt);
@@ -464,10 +464,10 @@
                             return;
                         }
                     };
-                    if(opt.badTiles[rUrl]) {
-                        onError();
-                        return;
-                    }
+                    // if(opt.badTiles[rUrl]) {
+                        // onError();
+                        // return;
+                    // }
 
                     var item = {
                         'src': rUrl
@@ -477,7 +477,7 @@
                         }
                         ,'onerror': onError
                     };
-					if(pt.zoom.from != z) item.crossOrigin = 'use-credentials';
+					if(pt.zoom.from != z) item.crossOrigin = 'use-credentials'; // anonymous
                     gmxAPI._leaflet['imageLoader'].push(item);
                 }
                 opt._needLoadTile++;

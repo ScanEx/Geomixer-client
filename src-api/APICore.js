@@ -40,6 +40,8 @@ extend(window.gmxAPI,
 {
 	MAX_LATITUDE: 85.0840591556
     ,
+	origin: window.document.domain
+    ,
     defaultMinZoom: 1							// мин.zoom по умолчанию
 	,
     defaultMaxZoom: 24							// макс.zoom по умолчанию
@@ -282,11 +284,13 @@ extend(window.gmxAPI,
 	addDebugWarnings: function(attr)
 	{
 		if(!window.gmxAPIdebugLevel) return;
-		if(!attr['script']) attr['script'] = 'api.js';
-		if(attr['event'] && attr['event']['lineNumber']) attr['lineNumber'] = attr['event']['lineNumber'];
+		if(!attr.script) attr.script = 'api.js';
+		if(attr.event && attr.event.lineNumber) attr.lineNumber = attr.event.lineNumber;
 		gmxAPI._debugWarnings.push(attr);
-		if(window.gmxAPIdebugLevel < 10) return;
-		if(attr['alert']) alert(attr['alert']);
+		if(attr.alert) {
+            if(window.gmxAPIdebugLevel === 10) alert(attr.alert);
+            else if(window.gmxAPIdebugLevel === 9) console.log(attr);
+        }
 	},
 	_debugWarnings: [],
 	isIE: (navigator.appName.indexOf("Microsoft") != -1),
