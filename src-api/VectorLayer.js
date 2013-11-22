@@ -543,7 +543,8 @@
 					}
 					if(srcArr.length < 1) {
 						gmxAPI.addDebugWarnings({'func': 'loadTilesByExtent', 'nodeID': node.id, 'tID': stID, 'alert': 'empty tiles URL array'});
-						return;
+						flag = false;
+                        return;
 					}
 					node['loaderFlag'] = true;
 					var item = {
