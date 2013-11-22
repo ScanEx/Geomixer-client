@@ -167,6 +167,7 @@ _mapHelper.customParamsManager.addProvider({
 
 var fnShare = function(pageInfo, container){
 	var fnRenderShare = function(){
+		return; //Кнопка поделиться отключена
 		var btnShare = makeLinkButton(_gtxt('Поделиться'));
 		_(container, [btnShare]);
 		btnShare.onclick = function(){
