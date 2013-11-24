@@ -115,7 +115,7 @@
 				chkLoadedImage();
 			}
 		};
-		imageObj.onerror = function() {
+		imageObj.onerror = function(ev) {
 			curCount--;
 			item.isError = true;
 			callCacheItems(item);
@@ -153,7 +153,11 @@
 			{
 				var q = itemsCache[key][0];
 				if('zoom' in q && q.zoom != zoom && q.loaderObj) {
-					q.loaderObj.src = emptyImageUrl;
+                    if(q.loaderObj._item) {
+                        q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
+                        delete q.loaderObj._item;
+					}
+                    q.loaderObj.src = emptyImageUrl;
 				}
 			}
 		}
@@ -170,10 +174,10 @@
 	var chkTimer = function() {				// установка таймера
 		if(!timer) {
 			timer = setInterval(nextLoad, 50);
-			gmxAPI._leaflet.LMap.on('zoomend', function(e) {
-				var zoom = gmxAPI._leaflet.LMap.getZoom();
-				removeItemsByZoom(zoom);
-			});
+            gmxAPI._leaflet.LMap.on('zoomend', function(e) {
+                var zoom = gmxAPI._leaflet.LMap.getZoom();
+                removeItemsByZoom(zoom);
+            });
 		}
 	}
 	
@@ -196,6 +200,10 @@
                 for (var key in itemsCache) {
                     var q = itemsCache[key][0];
                     if('src' in q && q.src === src && q.loaderObj) {
+                        if(q.loaderObj._item) {
+                            q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
+                            delete q.loaderObj._item;
+                        }
                         q.loaderObj.src = emptyImageUrl;
                     }
                 }

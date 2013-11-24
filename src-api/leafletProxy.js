@@ -50,7 +50,7 @@
             return stylePrefix + (stylePrefix.length>0?"Transform":"transform");
         })
 		,
-        getMatrix3d: function(width, height, points, deltaX, deltaY)	{		// получить matrix3d по 4 точкам привязки снимка [topLeft, topRight, bottomLeft, bottomRight]
+        getMatrix3d: function(width, height, points) {		// получить matrix3d по 4 точкам привязки снимка [topLeft, topRight, bottomLeft, bottomRight]
             var aM = [
                     [0, 0, 1, 0, 0, 0, 0, 0],
                     [0, 0, 1, 0, 0, 0, 0, 0],
@@ -112,12 +112,7 @@
                 arr[k] /= aM[k][k];
                 for(i = 0; i < k; i++) arr[i] -= arr[k] * aM[i][k];
             }
-
-            return {
-                //css: "matrix3d(" + arr[0].toFixed(9) + "," + arr[3].toFixed(9) + ", 0," + arr[6].toFixed(9) + "," + arr[1].toFixed(9) + "," + arr[4].toFixed(9) + ", 0," + arr[7].toFixed(9) + ",0, 0, 1, 0," + arr[2].toFixed(9) + "," + arr[5].toFixed(9) + ", 0, 1)"
-                matrix3d: aM
-                ,arr: arr
-            };
+            return arr;
 		}
 		,
         transformPoint: function(arr, x, y) {   // Получение преобразованных координат
@@ -127,13 +122,62 @@
                 y: (arr[3]*x + arr[4]*y + arr[5])/w
             }
         }
+        ,
+        m4_inverse: function(arr) {       // Получение обратной матрицы 4х4
+            var m4_submat = function(mat, i, j) {
+                var ti, tj, idst, jdst, res = [];
+
+                for ( ti = 0; ti < 4; ti++ ) {
+                    if ( ti < i ) idst = ti;
+                    else if ( ti > i ) idst = ti - 1;
+
+                    for ( tj = 0; tj < 4; tj++ ) {
+                      if ( tj < j ) jdst = tj;
+                      else if ( tj > j ) jdst = tj-1;
+
+                      if ( ti != i && tj != j )
+                        res[idst*3 + jdst] = mat[ti*4 + tj ];
+                    }
+                }
+                return res;
+            }
+            var m3_det = function(mat) {
+                return mat[0] * ( mat[4]*mat[8] - mat[7]*mat[5] )
+                  - mat[1] * ( mat[3]*mat[8] - mat[6]*mat[5] )
+                  + mat[2] * ( mat[3]*mat[7] - mat[6]*mat[4] );
+            }
+            var m4_det = function(arr) {             // Получение определителя матрицы 4х4
+                var det, msub3, result = 0, i = 1;
+                for (var n = 0; n < 4; n++, i *= -1 ) {
+                    var msub3 = m4_submat( arr, 0, n );
+                    det     = m3_det( msub3 );
+                    result += arr[n] * det * i;
+                }
+                return result;
+            }
+            var mdet = m4_det( arr );
+            if( Math.abs( mdet ) < 0.0005 ) return null;
+            var i, j, sign, mtemp, mr = [];
+
+            for ( i = 0; i < 4; i++ ) {
+                for ( j = 0; j < 4; j++ ) {
+                    sign = 1 - ( (i +j) % 2 ) * 2;
+                    var mtemp = m4_submat( arr, i, j );
+                    mr[i+j*4] = ( m3_det( mtemp ) * sign ) / mdet;
+                }
+            }
+            return [
+                mr[0],  mr[4],  mr[12], mr[1],
+                mr[5],  mr[13], mr[3],  mr[7]
+            ];
+        }
 		,
-        getMatrix3dCSS: function(arr, dx, dy)	{		// получить 4 точки привязки снимка
+        getMatrix3dCSS: function(arr)	{		// получить CSS атрибут matrix3d
             var str = 'matrix3d(';
             str += arr[0].toFixed(9) + "," + arr[3].toFixed(9) + ", 0," + arr[6].toFixed(9);
             str += "," + arr[1].toFixed(9) + "," + arr[4].toFixed(9) + ", 0," + arr[7].toFixed(9);
             str += ",0, 0, 1, 0";
-            str += "," + (dx + arr[2]).toFixed(9) + "," + (dy + arr[5]).toFixed(9) + ", 0, 1)";
+            str += "," + arr[2].toFixed(9) + "," + arr[5].toFixed(9) + ", 0, 1)";
 
             return str;
 		}
@@ -2541,6 +2585,7 @@
 			//console.log('setVisible ', id, ph.attr);
 			if(!node) return false;
 			node.isVisible = ph.attr;
+            if('isOnScene' in node) node.isOnScene = true;
 			node.notView = ph.notView || false;
 			gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, ph.attr);
 			return utils.setVisibleNode(ph);
@@ -2986,7 +3031,10 @@
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;
-			setTimeout(function() { gmxAPI._leaflet['setImageMapObject'](node, ph); }, 2);
+			setTimeout(function() {
+                var fName = (L.Browser.gecko3d ? 'ImageMatrixTranform' : 'setImageMapObject');
+                gmxAPI._leaflet[fName](node, ph);
+            },2);
 			return true;
 		}
 		,
@@ -2995,7 +3043,9 @@
 			var node = mapNodes[id];
 			if(!node) return;
 			ph['setImageExtent'] = true;
-			setTimeout(function() { gmxAPI._leaflet['setImageMapObject'](node, ph); }, 2);
+			setTimeout(function() {
+                gmxAPI._leaflet.setImageMapObject(node, ph);
+            },2);
 			return true;
 		}
 		,
@@ -4500,6 +4550,7 @@ var tt = 1;
 				createIcon: function () {
 					var div = L.DivIcon.prototype.createIcon.call(this);
 					var canvas = document.createElement('canvas');
+                    canvas.className = 'canvas-imageTransform';
                     div.appendChild(canvas);
 					gmxAPI.setStyleHTML(canvas, {'position': 'absolute'}, false);
 					var options = this.options;
@@ -4516,7 +4567,6 @@ var tt = 1;
 					//iconAnchor: new L.Point(12, 12), // also can be set through CSS
 					,className: 'leaflet-canvas-icon'
 				},
-
 				createIcon: function () {
 					var canvas = document.createElement('canvas');
 					gmxAPI.setStyleHTML(canvas, {'position': 'absolute'}, false);
@@ -4525,7 +4575,6 @@ var tt = 1;
 					//this._setIconStyles(canvas, 'icon');
 					return canvas;
 				},
-
 				createShadow: function () {
 					return null;
 				}
@@ -4626,6 +4675,7 @@ var tt = 1;
 								.on(this._icon, 'mouseover', this._bringToFront, this)
 								.on(this._icon, 'mouseout', this._resetZIndex, this);
 						}
+                        this.fire('onIconCreate', this._icon);
 					}
 
 					if (!this._shadow) {

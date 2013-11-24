@@ -454,6 +454,7 @@
                     var rUrl = opt.tileFunc(pt.x, pt.y, z);
 
                     var onError = function() {
+                        //console.log('onError', z, opt.maxZ, rUrl); // 
                         if (z > 1) {
                             //if(pt.zoom.from === z) opt.badTiles[rUrl] = true;
                             // запрос по раззумливанию растрового тайла
@@ -477,7 +478,8 @@
                         }
                         ,'onerror': onError
                     };
-					if(pt.zoom.from != z) item.crossOrigin = 'use-credentials'; // anonymous
+					if(pt.zoom.from != z) item.crossOrigin = 'use-credentials';
+					//if(pt.zoom.from != z) item.crossOrigin = (L.Browser.webkit3d ? 'anonymous' : 'use-credentials');
                     gmxAPI._leaflet['imageLoader'].push(item);
                 }
                 opt._needLoadTile++;
