@@ -232,7 +232,7 @@
             node.isSetImage = true;
             return def;
         };
-        if(!node.leaflet) {
+        if(!marker) {
             createIcon().done(function(canv) {
                 node.canvas = canv;
                 waitRedraw();
