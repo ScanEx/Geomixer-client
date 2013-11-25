@@ -2585,7 +2585,7 @@
 			//console.log('setVisible ', id, ph.attr);
 			if(!node) return false;
 			node.isVisible = ph.attr;
-            if('isOnScene' in node) node.isOnScene = true;
+            if(L.Browser.gecko3d && 'isOnScene' in node) node.isOnScene = true;
 			node.notView = ph.notView || false;
 			gmxAPI._leaflet['LabelsManager'].onChangeVisible(id, ph.attr);
 			return utils.setVisibleNode(ph);
@@ -3032,7 +3032,7 @@
 			var node = mapNodes[id];
 			if(!node) return;
 			setTimeout(function() {
-                var fName = (L.Browser.gecko3d ? 'ImageMatrixTranform' : 'setImageMapObject');
+                var fName = (L.Browser.gecko3d ? 'ImageMatrixTransform' : 'setImageMapObject');
                 gmxAPI._leaflet[fName](node, ph);
             },2);
 			return true;

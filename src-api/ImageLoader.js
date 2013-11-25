@@ -92,6 +92,7 @@
 			
 			return;
 		}
+        //console.log('____ ', item.src);
 
 		var imageObj = new Image();
 		item['loaderObj'] = imageObj;
@@ -107,7 +108,8 @@
 			//}
 		}
 		if(item.crossOrigin) imageObj.crossOrigin = item.crossOrigin;
-		imageObj.onload = function() {
+		imageObj.onload = function(ev) {
+            //console.log('ok ', ev.target.src);
 			curCount--;
 			if (gmxAPI.isIE) {
 				setTimeout(function() { chkLoadedImage(); } , 0); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
@@ -116,6 +118,7 @@
 			}
 		};
 		imageObj.onerror = function(ev) {
+            //console.log('onError', ev.target.src);
 			curCount--;
 			item.isError = true;
 			callCacheItems(item);

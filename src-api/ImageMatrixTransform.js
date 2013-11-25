@@ -245,7 +245,7 @@
 
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
-	gmxAPI._leaflet.ImageMatrixTranform = function(node, ph) {   // CSS Matrix3d трансформация image
+	gmxAPI._leaflet.ImageMatrixTransform = function(node, ph) {   // CSS Matrix3d трансформация image
         return new setImage(node, ph);
     };
 })();
