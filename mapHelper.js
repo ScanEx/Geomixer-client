@@ -666,7 +666,7 @@ mapHelper.ImageInputControl = function(initURL)
         var userImageIcon = makeImageButton("img/choose2.png", "img/choose2_a.png");
         userImageIcon.onclick = function()
         {
-            var imagesDir = nsGmx.AuthManager.getUserFolder() + '\\images';
+            var imagesDir = nsGmx.AuthManager.getUserFolder() + 'images';
             sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(imagesDir), function(response)
             {
                 if (!parseResponse(response))

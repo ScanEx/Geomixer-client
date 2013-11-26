@@ -470,24 +470,6 @@ fileBrowser.prototype.createUpload = function()
             return;
         }
         
-		// var iframe = createPostIframe("fileBrowserUpload_iframe", function(response)
-		// {
-			// if (!parseResponse(response))
-				// return;
-			
-			// var indexSlash = String(response.Result).lastIndexOf(_this.slash),
-				// fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
-			
-			// _this.shownPath = fileName;
-			
-			// _this.getFiles();
-		// });
-		
-		// _(document.body, [iframe]);
-		
-		// uploadPath.setAttribute('value',_this._path.get())
-		// formFile.submit();
-        
         sendCrossDomainPostRequest(serverBase + 'FileBrowser/Upload.ashx', 
             {
                 WrapStyle: 'message',
@@ -647,7 +629,7 @@ fileBrowser.prototype.findContent = function(value)
 			return tbody.childNodes[i].offsetTop;
 	}
 	
-	return -1;	
+	return -1;
 }
 
 fileBrowser.prototype.reloadFiles = function()
@@ -753,14 +735,14 @@ fileBrowser.prototype.formatDate = function(sec)
 {
 	var sysDate = new Date(sec * 1000),
 		date = [];
-	
+
 	date[0] = sysDate.getDate(),
 	date[1] = sysDate.getMonth() + 1,
 	date[2] = sysDate.getFullYear(),
 	date[3] = sysDate.getHours(),
 	date[4] = sysDate.getMinutes(),
 	date[5] = sysDate.getSeconds();
-	
+
 	for (var i = 0; i < 6; i++)
 		if (date[i] < 10)
 			date[i] = '0' + date[i];
