@@ -2561,12 +2561,12 @@ function loadMapJSON(hostName, mapName, callback, onError)
 			apiHost = 'localhost';
 		var apiKeyResult = gmxAPI.getAPIKey();
 
-		if ((apiHost == "localhost") || apiHost.match(/127\.\d+\.\d+\.\d+/))
-			useAPIKey("localhost");
-		else if (apiKeyResult)
+		if (apiKeyResult)
 			useAPIKey(apiKeyResult[1]);
 		else if (window.apiKey)
 			useAPIKey(window.apiKey);
+		else if ((apiHost == "localhost") || apiHost.match(/127\.\d+\.\d+\.\d+/))
+			useAPIKey("localhost");
 		else if (!gmxAPI.getScriptURL("config.js"))
 			gmxAPI.loadVariableFromScript(
 				gmxAPI.getAPIFolderRoot() + "config.js",
