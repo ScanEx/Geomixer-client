@@ -456,7 +456,7 @@
                     var onError = function() {
                         //console.log('onError', z, opt.maxZ, rUrl); // 
                         if (z > 1) {
-                            //if(pt.zoom.from === z) opt.badTiles[rUrl] = true;
+                            if(pt.zoom.from === z) opt.badTiles[rUrl] = true;
                             // запрос по раззумливанию растрового тайла
                             pt.zoom.to = z - 1, pt.x = Math.floor(pt.x/2), pt.y = Math.floor(pt.y/2);
                             loadRasterRecursion(pt);
@@ -465,10 +465,10 @@
                             return;
                         }
                     };
-                    // if(opt.badTiles[rUrl]) {
-                        // onError();
-                        // return;
-                    // }
+                    if(opt.badTiles[rUrl]) {
+                        onError();
+                        return;
+                    }
 
                     var item = {
                         'src': rUrl
