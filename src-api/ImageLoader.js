@@ -95,6 +95,13 @@
         //console.log('____ ', item.src);
 
 		var imageObj = new Image();
+		var src = item.src;
+		if(item.crossOrigin) {
+            imageObj.crossOrigin = item.crossOrigin;
+            if(item.crossOrigin === 'use-credentials') {
+                src += (src.indexOf('?') === -1 ? '?':'&') + 'canvas=true';
+            }
+        }
 		item['loaderObj'] = imageObj;
 		//var cancelTimerID = null;
 		var chkLoadedImage = function() {
@@ -107,7 +114,6 @@
 				callCacheItems(item);
 			//}
 		}
-		if(item.crossOrigin) imageObj.crossOrigin = item.crossOrigin;
 		imageObj.onload = function(ev) {
             //console.log('ok ', ev.target.src);
 			curCount--;
@@ -124,7 +130,7 @@
 			callCacheItems(item);
 		};
 		curCount++;
-		imageObj.src = item.src;
+		imageObj.src = src;
 	}
 		
 	var nextLoad = function()	{		// загрузка image

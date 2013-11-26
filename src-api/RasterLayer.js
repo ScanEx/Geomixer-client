@@ -478,11 +478,7 @@
                         }
                         ,'onerror': onError
                     };
-					if(pt.zoom.from != z) {
-                        item.crossOrigin = 'use-credentials';
-                        item.src += (rUrl.indexOf('?') === -1 ? '?':'&') + 'canvas=true';
-                    }
-					//if(pt.zoom.from != z) item.crossOrigin = (L.Browser.webkit3d ? 'anonymous' : 'use-credentials');
+					if(pt.zoom.from != z) item.crossOrigin = 'use-credentials';
                     gmxAPI._leaflet['imageLoader'].push(item);
                 }
                 opt._needLoadTile++;
