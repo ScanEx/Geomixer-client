@@ -454,8 +454,9 @@
                     var rUrl = opt.tileFunc(pt.x, pt.y, z);
 
                     var onError = function() {
+                        //console.log('onError', z, opt.maxZ, rUrl); // 
                         if (z > 1) {
-                            opt.badTiles[rUrl] = true;
+                            if(pt.zoom.from === z) opt.badTiles[rUrl] = true;
                             // запрос по раззумливанию растрового тайла
                             pt.zoom.to = z - 1, pt.x = Math.floor(pt.x/2), pt.y = Math.floor(pt.y/2);
                             loadRasterRecursion(pt);
@@ -471,13 +472,13 @@
 
                     var item = {
                         'src': rUrl
-                        //,'crossOrigin': 'anonymous'
                         ,'zoom': z
                         ,'callback': function(imageObj) {
                             pt.callback({'img': imageObj, 'zoom': z, 'fromZoom': pt.zoom.from});
                         }
                         ,'onerror': onError
                     };
+					if(pt.zoom.from != z) item.crossOrigin = 'use-credentials';
                     gmxAPI._leaflet['imageLoader'].push(item);
                 }
                 opt._needLoadTile++;

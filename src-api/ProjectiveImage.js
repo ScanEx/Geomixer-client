@@ -189,11 +189,45 @@
 	  return transform;
 	}
 
-	var putImage = function (u1, v1, u4, v4, p1, p2, p3, p4, attr) {
+	var divide = function (u1, v1, u4, v4, p1, p2, p3, p4, limit, attr) {
+		if (limit) {
+			// Measure patch non-affinity.
+            var d1 = [p2[0] + p3[0] - 2 * p1[0], p2[1] + p3[1] - 2 * p1[1]];
+			var d2 = [p2[0] + p3[0] - 2 * p4[0], p2[1] + p3[1] - 2 * p4[1]];
+			var d3 = [d1[0] + d2[0], d1[1] + d2[1]];
+			var r = Math.abs((d3[0] * d3[0] + d3[1] * d3[1]) / (d1[0] * d2[0] + d1[1] * d2[1]));
+
+			// Measure patch area.
+			d1 = [p2[0] - p1[0] + p4[0] - p3[0], p2[1] - p1[1] + p4[1] - p3[1]];
+			d2 = [p3[0] - p1[0] + p4[0] - p2[0], p3[1] - p1[1] + p4[1] - p2[1]];
+			var area = Math.abs(d1[0] * d2[1] - d1[1] * d2[0]);
+
+			// Check area > patchSize pixels (note factor 4 due to not averaging d1 and d2)
+			// The non-affinity measure is used as a correction factor.
+			if ((u1 == 0 && u4 == 1) || ((.25 + r * 5) * area > (patchSize * patchSize))) {
+				// Calculate subdivision points (middle, top, bottom, left, right).
+				var umid = (u1 + u4) / 2;
+				var vmid = (v1 + v4) / 2;
+				var pmid = transform.transformProjectiveVector([umid, vmid, 1]);
+				var pt   = transform.transformProjectiveVector([umid, v1, 1]);
+				var pb   = transform.transformProjectiveVector([umid, v4, 1]);
+				var pl   = transform.transformProjectiveVector([u1, vmid, 1]);
+				var pr   = transform.transformProjectiveVector([u4, vmid, 1]);                
+				
+				// Subdivide.
+				limit--;
+				divide.call(this, u1,   v1, umid, vmid,   p1,   pt,   pl, pmid, limit, attr);
+				divide.call(this, umid,   v1,   u4, vmid,   pt,   p2, pmid,   pr, limit, attr);
+				divide.call(this, u1,  vmid, umid,   v4,   pl, pmid,   p3,   pb, limit, attr);
+				divide.call(this, umid, vmid,   u4,   v4, pmid,   pr,   pb,   p4, limit, attr);
+				return;
+			}
+		}
+		
 		var ctx = attr.ctx;
 
 		// Render this patch.
-		ctx.save();
+		//ctx.save();
 /*
 		// Set clipping path.
 		ctx.beginPath();
@@ -221,22 +255,22 @@
 
 		// Align the transform along this corner.
 		if (amax == a1) {
-				ctx.transform(d12[0], d12[1], -d31[0], -d31[1], p1[0] + attr['deltaX'], p1[1] + attr['deltaY']);
+				ctx.setTransform(d12[0], d12[1], -d31[0], -d31[1], p1[0] + attr['deltaX'], p1[1] + attr['deltaY']);
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d12[0] * d12[0] + d12[1] * d12[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d31[0] * d31[0] + d31[1] * d31[1]);
 		} else if (amax == a2) {
-				ctx.transform(d12[0], d12[1],  d24[0],  d24[1], p2[0] + attr['deltaX'], p2[1] + attr['deltaY']);
+				ctx.setTransform(d12[0], d12[1],  d24[0],  d24[1], p2[0] + attr['deltaX'], p2[1] + attr['deltaY']);
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d12[0] * d12[0] + d12[1] * d12[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d24[0] * d24[0] + d24[1] * d24[1]);
 				dx = -1;
 		} else if (amax == a4) {
-				ctx.transform(-d43[0], -d43[1], d24[0], d24[1], p4[0] + attr['deltaX'], p4[1] + attr['deltaY']);
+				ctx.setTransform(-d43[0], -d43[1], d24[0], d24[1], p4[0] + attr['deltaX'], p4[1] + attr['deltaY']);
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d43[0] * d43[0] + d43[1] * d43[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d24[0] * d24[0] + d24[1] * d24[1]);
 				dx = -1;
 				dy = -1;
 		} else if (amax == a3) {
-				ctx.transform(-d43[0], -d43[1], -d31[0], -d31[1], p3[0] + attr['deltaX'], p3[1] + attr['deltaY']);
+				ctx.setTransform(-d43[0], -d43[1], -d31[0], -d31[1], p3[0] + attr['deltaX'], p3[1] + attr['deltaY']);
 				if (u4 != 1) padx = 1.05 / Math.sqrt(d43[0] * d43[0] + d43[1] * d43[1]);
 				if (v4 != 1) pady = 1.05 / Math.sqrt(d31[0] * d31[0] + d31[1] * d31[1]);
 				dy = -1;
@@ -250,67 +284,23 @@
 
 		var iw = attr.imageObj.width;
 		var ih = attr.imageObj.height;
-console.log('ddddd : ' , dx, dy,padx, pady);
-		var sx = u1 * iw;
-		var sy = v1 * ih;
-		var sw = Math.min(padx * du, 1) * iw;
-		var sh = Math.min(pady * dv, 1) * ih;
+
 		cnt++;
-//console.log('_drawImage______ ', sx, sy, sw, sh, dx, dy, padx, pady);
-		ctx.drawImage(attr.imageObj, sx, sy, sw, sh, dx, dy, padx, pady);
-		ctx.restore();
-    
-	}
-
-	var chkArea = function (p1, p2, p3, p4) {
-        var d1 = [p2[0] + p3[0] - 2 * p1[0], p2[1] + p3[1] - 2 * p1[1]];
-        var d2 = [p2[0] + p3[0] - 2 * p4[0], p2[1] + p3[1] - 2 * p4[1]];
-        var d3 = [d1[0] + d2[0], d1[1] + d2[1]];
-        var zn = d1[0] * d2[0] + d1[1] * d2[1];
-        if(!zn) return false;
-        var r = Math.abs((d3[0] * d3[0] + d3[1] * d3[1]) / zn);
-
-        // Measure patch area.
-        d1 = [p2[0] - p1[0] + p4[0] - p3[0], p2[1] - p1[1] + p4[1] - p3[1]];
-        d2 = [p3[0] - p1[0] + p4[0] - p2[0], p3[1] - p1[1] + p4[1] - p2[1]];
-		var area = Math.abs(d1[0] * d2[1] - d1[1] * d2[0]);
-		var flag = 0.25 + r * 5;
-		var zn = flag * area;
-        return (zn > patchSize2);
-	}
-
-	var divide = function (u1, v1, u4, v4, p1, p2, p3, p4, limit1, attr) {
-		if (limit1) {
-            var flag = chkArea(p1, p2, p3, p4);
-			// Check area > patchSize pixels (note factor 4 due to not averaging d1 and d2)
-			// The non-affinity measure is used as a correction factor.
-			if ((u1 == 0 && u4 == 1) || flag) {
-				// Calculate subdivision points (middle, top, bottom, left, right).
-				var umid = (u1 + u4) / 2;
-				var vmid = (v1 + v4) / 2;
-				var pmid = transform.transformProjectiveVector([umid, vmid, 1]);
-				var pt   = transform.transformProjectiveVector([umid, v1, 1]);
-				var pb   = transform.transformProjectiveVector([umid, v4, 1]);
-				var pl   = transform.transformProjectiveVector([u1, vmid, 1]);
-				var pr   = transform.transformProjectiveVector([u4, vmid, 1]);                
-				
-				// Subdivide.
-				limit1--;
-				divide(u1,   v1,   umid, vmid, p1,   pt,   pl,   pmid, limit1, attr);
-				divide(umid, v1,   u4,   vmid, pt,   p2,   pmid, pr, limit1, attr);
-				divide(u1,   vmid, umid, v4,   pl,   pmid, p3,   pb, limit1, attr);
-				divide(umid, vmid, u4,   v4,   pmid, pr,   pb,   p4, limit1, attr);
-				return;
-			}
-		}
-        putImage(u1, v1, u4, v4, p1, p2, p3, p4, attr);
+		ctx.drawImage(
+			attr.imageObj,
+			u1 * iw,
+			v1 * ih,
+			Math.min(padx * du, 1) * iw,
+			Math.min(pady * dv, 1) * ih,
+			dx, dy,
+			padx, pady
+		);
+		//ctx.restore();
 	}
 
 	var cnt = 0;
 	var limit = 4;
 	var patchSize = 64;
-	var patchSize2 = 64;
-    
 	var transform = null;
 	var ProjectiveImage = function (attr) {
 		cnt = 0;
@@ -339,7 +329,6 @@ console.log('ddddd : ' , dx, dy,padx, pady);
 		else {
 			patchSize = Math.floor(maxSize/8);
 		}
-        patchSize2 = patchSize * patchSize
 		var canvas = document.createElement("canvas");
 		attr['canvas'] = canvas;
 		attr['ctx'] = canvas.getContext('2d');

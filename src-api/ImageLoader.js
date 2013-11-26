@@ -92,8 +92,16 @@
 			
 			return;
 		}
+        //console.log('____ ', item.src);
 
 		var imageObj = new Image();
+		var src = item.src;
+		if(item.crossOrigin) {
+            imageObj.crossOrigin = item.crossOrigin;
+            if(item.crossOrigin === 'use-credentials') {
+                src += (src.indexOf('?') === -1 ? '?':'&') + 'canvas=true';
+            }
+        }
 		item['loaderObj'] = imageObj;
 		//var cancelTimerID = null;
 		var chkLoadedImage = function() {
@@ -106,8 +114,8 @@
 				callCacheItems(item);
 			//}
 		}
-		if(item.crossOrigin) imageObj.crossOrigin = item.crossOrigin;
-		imageObj.onload = function() {
+		imageObj.onload = function(ev) {
+            //console.log('ok ', ev.target.src);
 			curCount--;
 			if (gmxAPI.isIE) {
 				setTimeout(function() { chkLoadedImage(); } , 0); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
@@ -115,13 +123,14 @@
 				chkLoadedImage();
 			}
 		};
-		imageObj.onerror = function() {
+		imageObj.onerror = function(ev) {
+            //console.log('onError', ev.target.src);
 			curCount--;
 			item.isError = true;
 			callCacheItems(item);
 		};
 		curCount++;
-		imageObj.src = item.src;
+		imageObj.src = src;
 	}
 		
 	var nextLoad = function()	{		// загрузка image
@@ -153,7 +162,11 @@
 			{
 				var q = itemsCache[key][0];
 				if('zoom' in q && q.zoom != zoom && q.loaderObj) {
-					q.loaderObj.src = emptyImageUrl;
+                    if(q.loaderObj._item) {
+                        q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
+                        delete q.loaderObj._item;
+					}
+                    q.loaderObj.src = emptyImageUrl;
 				}
 			}
 		}
@@ -170,10 +183,10 @@
 	var chkTimer = function() {				// установка таймера
 		if(!timer) {
 			timer = setInterval(nextLoad, 50);
-			gmxAPI._leaflet.LMap.on('zoomend', function(e) {
-				var zoom = gmxAPI._leaflet.LMap.getZoom();
-				removeItemsByZoom(zoom);
-			});
+            gmxAPI._leaflet.LMap.on('zoomend', function(e) {
+                var zoom = gmxAPI._leaflet.LMap.getZoom();
+                removeItemsByZoom(zoom);
+            });
 		}
 	}
 	
@@ -196,6 +209,10 @@
                 for (var key in itemsCache) {
                     var q = itemsCache[key][0];
                     if('src' in q && q.src === src && q.loaderObj) {
+                        if(q.loaderObj._item) {
+                            q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
+                            delete q.loaderObj._item;
+                        }
                         q.loaderObj.src = emptyImageUrl;
                     }
                 }

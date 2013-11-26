@@ -40,6 +40,8 @@ extend(window.gmxAPI,
 {
 	MAX_LATITUDE: 85.0840591556
     ,
+	origin: window.document.domain
+    ,
     defaultMinZoom: 1							// мин.zoom по умолчанию
 	,
     defaultMaxZoom: 24							// макс.zoom по умолчанию
@@ -282,11 +284,13 @@ extend(window.gmxAPI,
 	addDebugWarnings: function(attr)
 	{
 		if(!window.gmxAPIdebugLevel) return;
-		if(!attr['script']) attr['script'] = 'api.js';
-		if(attr['event'] && attr['event']['lineNumber']) attr['lineNumber'] = attr['event']['lineNumber'];
+		if(!attr.script) attr.script = 'api.js';
+		if(attr.event && attr.event.lineNumber) attr.lineNumber = attr.event.lineNumber;
 		gmxAPI._debugWarnings.push(attr);
-		if(window.gmxAPIdebugLevel < 10) return;
-		if(attr['alert']) alert(attr['alert']);
+		if(attr.alert) {
+            if(window.gmxAPIdebugLevel === 10) alert(attr.alert);
+            else if(window.gmxAPIdebugLevel === 9) console.log(attr);
+        }
 	},
 	_debugWarnings: [],
 	isIE: (navigator.appName.indexOf("Microsoft") != -1),
@@ -402,12 +406,12 @@ extend(window.gmxAPI,
 	{
 		var event = gmxAPI.compatEvent(ev);
 		if(!event) return false;
-
+		
 		if (event.stopPropagation) event.stopPropagation();
 		else if (event.preventDefault) event.preventDefault(); 
-        event.cancelBubble = true;
-        event.cancel = true;
-        event.returnValue = false;
+		event.cancelBubble = true;
+		event.cancel = true;
+		event.returnValue = false;
 		return true;
 	}
 	,
@@ -2557,12 +2561,12 @@ function loadMapJSON(hostName, mapName, callback, onError)
 			apiHost = 'localhost';
 		var apiKeyResult = gmxAPI.getAPIKey();
 
-		if ((apiHost == "localhost") || apiHost.match(/127\.\d+\.\d+\.\d+/))
-			useAPIKey("localhost");
-		else if (apiKeyResult)
+		if (apiKeyResult)
 			useAPIKey(apiKeyResult[1]);
 		else if (window.apiKey)
 			useAPIKey(window.apiKey);
+		else if ((apiHost == "localhost") || apiHost.match(/127\.\d+\.\d+\.\d+/))
+			useAPIKey("localhost");
 		else if (!gmxAPI.getScriptURL("config.js"))
 			gmxAPI.loadVariableFromScript(
 				gmxAPI.getAPIFolderRoot() + "config.js",

@@ -16,13 +16,14 @@
 		map.rasters = map;
 		map.tiledQuicklooks = map;
 		map.vectors = map;
-		map.needMove = {
-			'x':	parseFloat(layers.properties.DefaultLong) || 35
-			,'y':	parseFloat(layers.properties.DefaultLat) || 50
-			,'z':	parseFloat(layers.properties.DefaultZoom) || 4
-		};
-		
-		//map.needSetMode = 'Map';
+		var getDefaultPos = function(prop) {
+            return {
+                x:	(typeof(prop.DefaultLong) === 'number' ? prop.DefaultLong :(map.needMove ? map.needMove.x : 35))
+                ,y:	(typeof(prop.DefaultLat) === 'number' ? prop.DefaultLat :(map.needMove ? map.needMove.y : 50))
+                ,z:	(typeof(prop.DefaultZoom) === 'number' ? prop.DefaultZoom :(map.needMove ? map.needMove.z : 4))
+            };
+        }
+		map.needMove = getDefaultPos(layers.properties);
 		map.needSetMode = null;
 
 		// Методы присущие только Map
@@ -361,15 +362,6 @@
 			,getVisibility: function() { return gmxAPI._cmdProxy('getGridVisibility', {}) }
 			,setOneDegree: function(flag) { gmxAPI._cmdProxy('setOneDegree', { 'attr': flag }) }
 		};
-/*
-		//Begin: tools
-		if('_ToolsAll' in gmxAPI) {
-			map.toolsAll = new gmxAPI._ToolsAll(gmxAPI._div);
-		}
-		if('_addZoomControl' in gmxAPI) {
-			gmxAPI._addZoomControl(gmxAPI._allToolsDIV);
-		}
-*/        
 		map.setMinMaxZoom(1, 17);
 
 		if (gmxAPI._drawing) {
@@ -463,19 +455,16 @@
 				if('z' in gmxAPI.initParams['center']) map.needMove['z'] = gmxAPI.initParams['center']['z'];
 				//delete gmxAPI.initParams['center'];
 			} else {
-				if (layers.properties.DefaultLat && layers.properties.DefaultLong && layers.properties.DefaultZoom) {
-					var pos = {
-						'x': parseFloat(layers.properties.DefaultLong),
-						'y': parseFloat(layers.properties.DefaultLat),
-						'z': parseInt(layers.properties.DefaultZoom)
-					};
-					map.needMove = pos;
+				if (typeof(layers.properties.DefaultLat) === 'number'
+                    || typeof(layers.properties.DefaultLong) === 'number'
+                    || typeof(layers.properties.DefaultZoom) === 'number') {
+                    map.needMove = getDefaultPos(layers.properties);
 					setCurrPosition(null, {'currPosition': {
-						'x': gmxAPI.merc_x(pos['x']),
-						'y': gmxAPI.merc_y(pos['y']),
-						'z': pos['z']
+						'x': gmxAPI.merc_x(map.needMove.x),
+						'y': gmxAPI.merc_y(map.needMove.y),
+						'z': map.needMove.z
 					}});
-				} else if(!notMoveFlag && mapBounds)
+				} else if(!notMoveFlag && mapBounds && layers.properties.name !== kosmosnimki_API)
 				{
 					var z = map.getBestZ(gmxAPI.from_merc_x(mapBounds.minX), gmxAPI.from_merc_y(mapBounds.minY), gmxAPI.from_merc_x(mapBounds.maxX), gmxAPI.from_merc_y(mapBounds.maxY));
 					if (minLayerZoom != 20)
@@ -601,11 +590,6 @@
 			};
 			return out;
 		}
-/*
-		if('_addLocationTitleDiv' in gmxAPI) gmxAPI._addLocationTitleDiv(gmxAPI._div);
-		if('_addGeomixerLink' in gmxAPI) gmxAPI._addGeomixerLink(gmxAPI._div);
-		if('_addCopyrightControl' in gmxAPI) gmxAPI._addCopyrightControl(gmxAPI._div);
-*/
 		var sunscreen = map.addObject();
 		gmxAPI._sunscreen = sunscreen;
 
@@ -708,8 +692,6 @@
 			var isWhite = (0xff & (color >> 16)) > 80;
 			var htmlColor = isWhite ? "black" : "white";
 			gmxAPI._listeners.dispatchEvent('onChangeBackgroundColor', map, htmlColor);
-			//if(gmxAPI._setCoordinatesColor) gmxAPI._setCoordinatesColor(htmlColor, gmxAPI.getAPIFolderRoot() + "img/" + (isWhite ? "coord_reload.png" : "coord_reload_orange.png"), true);
-			//if(gmxAPI._setCopyrightColor) gmxAPI._setCopyrightColor(htmlColor);
 		}
 		
 		map.setBackgroundColor(gmxAPI.proxyType === 'leaflet' ? 0xffffff : 0x000001);

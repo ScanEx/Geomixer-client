@@ -175,7 +175,7 @@
 			}
 				
 			LMap.addLayer(marker);
-			gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': repaintItems});
+			//gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': repaintItems});
 			gmxAPI.map.addListener('onMoveEnd', repaintItems);
 			var onZoomstart = function() {				// скрыть при onZoomstart
 				if(!canvas) return false;

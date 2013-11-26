@@ -636,6 +636,7 @@
                     className: "gmx_locationControl"
                 },
                 {
+                    fontSize: '11px',
                     position: "absolute",
                     right: '8px',
                     top: '3px'
@@ -1176,6 +1177,7 @@
             if(!('className' in attr)) {
                 attr.className = 'gmx_' + id;
             }
+            var notSticky = (pt.notSticky ? pt.notSticky : 0);
             var events = pt.events || {};
             var style = pt.style || {};
             var hoverStyle = pt.hoverStyle || {};
@@ -1197,6 +1199,10 @@
                         handler = pt.onCancel;
                     }
                     if(handler) handler.call(this, e);
+                    if (notSticky == 1){    // Если интструмент включен, сразу же выключите его.
+                        pt.isActive = false;
+                    }
+                    
                 }
             }
             attr.onmouseover = function(e) {
@@ -1261,7 +1267,7 @@
             ,height: '30px'
             ,marginLeft: '6px'
         }
-        ,
+        /*,
         createHideNode: function(cont) {    // создание hideNode
             iconsControl.hideNode = iconsControl.addItemNode({
                 type: 'hideItem'
@@ -1286,7 +1292,7 @@
                     backgroundPosition: '-113px -2px'
                 }
             });
-        }
+        }*/
         ,
         createNode: function(cont) {        // создание нод
             var node = gmxAPI.newElement(
@@ -1309,9 +1315,15 @@
                 ,
                 events: {
                     onclick: function(e) {
+                        if(this._gmxItem.isActive) {
+                            gmxAPI.extend(this._gmxItem.style, {backgroundPosition: '-565px -33px'});
+                            gmxAPI.extend(this._gmxItem.hoverStyle, {backgroundPosition: '-565px -2px'});
+                        } else {
+                            gmxAPI.extend(this._gmxItem.style, {backgroundPosition: '-596px -33px'});
+                            gmxAPI.extend(this._gmxItem.hoverStyle, {backgroundPosition: '-596px -2px'});
+                        }
                         gmxAPI.ControlsManager.setVisible();
-                        //var isHide = (iconsControl.itemsNode.style.display === 'block' ? true : false);
-                        //iconsControl.hideItems(isHide);
+                        setDOMStyle(this, this._gmxItem.hoverStyle);
                     }
                 }
                 ,
@@ -1319,11 +1331,11 @@
                         position: "absolute"
                         ,top: '10px'
                         ,left: '5px'
-                        ,backgroundPosition: '-113px -33px'
+                        ,backgroundPosition: '-596px -33px'
                     }, iconsControl.styleIcon)
                 ,
                 hoverStyle: {
-                    backgroundPosition: '-113px -2px'
+                    backgroundPosition: '-596px -2px'
                 }
             });
             cont.appendChild(iconsControl.hideNode);
@@ -1347,6 +1359,7 @@
                     attr: {
                         title: 'Печать'
                     }
+                    ,notSticky: 1
                     ,
                     events: {
                         onclick: function(e) {
@@ -1368,6 +1381,7 @@
                     attr: {
                         title: 'Пермалинк'
                     }
+                    ,notSticky: 1
                     ,
                     events: {
                         onclick: function(e) {

@@ -543,7 +543,8 @@
 					}
 					if(srcArr.length < 1) {
 						gmxAPI.addDebugWarnings({'func': 'loadTilesByExtent', 'nodeID': node.id, 'tID': stID, 'alert': 'empty tiles URL array'});
-						return;
+						flag = false;
+                        return;
 					}
 					node['loaderFlag'] = true;
 					var item = {
@@ -1518,7 +1519,7 @@
 				}
 				,'onerror': onError
 			};
-			if(node['imageProcessingHook'] || zoomFrom != z) item['crossOrigin'] = 'anonymous';	// если требуется преобразование image
+			if(node['imageProcessingHook'] || zoomFrom != z) item['crossOrigin'] = 'use-credentials';	// если требуется преобразование image - векторные слои всегда с авторизацией
 			gmxAPI._leaflet['imageLoader'].push(item);
 		}
 
@@ -1752,7 +1753,7 @@
 			var arr = getObjectsByTile(attr, clearFlag);
 			if(node['clustersData']) {						// Получить кластеры
 				arr = node['clustersData'].getTileClusterArray(arr, attr);
-				gmxAPI._leaflet['LabelsManager'].remove(node.id);	// Переформировать Labels
+				//gmxAPI._leaflet['LabelsManager'].remove(node.id);	// Переформировать Labels
 				//removeFromBorderTiles(tKey);
 				node.waitRedrawFlips(100);							// требуется отложенная перерисовка
 			}
@@ -2029,6 +2030,7 @@
 
 		node.delClusters = function(key)	{			// Удалить кластеризацию
 			node['clustersData'] = null;
+			gmxAPI._leaflet['LabelsManager'].remove(node.id);	// Удалить Labels
 			waitRedraw();
 			return true;
 		}
@@ -2328,7 +2330,10 @@
 
 		node.onZoomend = function()	{				// Проверка видимости по Zoom
 			if(!node.isVisible || !myLayer) return false;
-			if(node['clustersData']) node['clustersData'].clear();
+			if(node['clustersData']) {
+                gmxAPI._leaflet['LabelsManager'].remove(node.id);	// Удалить Labels
+                node['clustersData'].clear();
+            }
 			node['labelBounds'] = {'add': {}, 'skip': {}};
 			var currZ = LMap.getZoom();
 			for (var z in node['tilesRedrawImages']) {

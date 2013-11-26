@@ -287,7 +287,6 @@
 	var chkDrawingObjects = function() {
 		for (var id in objects) {
 			var cObj = objects[id];
-//if(cObj.stopDrawing) cObj.stopDrawing();
 			if(!cObj.geometry) cObj.remove();
 		}
 	};
@@ -397,7 +396,6 @@
 		};
 
 		var domObj = false;
-		//var toolsContainer = null;
 		
 		var node = null;
 		var oBounds = null;
@@ -434,7 +432,6 @@
 			//isDraging = false;
 			drawingUtils.hideBalloon();
             gmxAPI._drawing.control.selectTool("move");
-			//if(toolsContainer) toolsContainer.selectTool("move");
 			eventType = 'onEdit';
 			chkEvent(eventType);
 			drawMe();
@@ -502,7 +499,6 @@
 			
 			repaint();
             gmxAPI._drawing.control.selectTool("move");
-			//if(toolsContainer) toolsContainer.selectTool("move");
 			eventType = 'onFinish';
 			chkEvent(eventType);
 
@@ -869,12 +865,6 @@
 		};
 
 		ret.setVisible(ret.isVisible);
-/*
-		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
-			toolsContainer = gmxAPI._tools.standart;
-			toolsContainer.currentlyDrawnObject = ret;
-		}
-*/
 		if (coords)
 		{
 			if(coords.length == 1) coords = coords[0];
@@ -948,7 +938,6 @@
 		var pointSize = pSize / 2;
 		var pCanvas = null;
 		var needInitNodeEvents = true;
-		//var toolsContainer = null;
 		
 		var mouseMove = function(ph)
 		{
@@ -1230,12 +1219,6 @@
 			}
 		};
 		ret.setVisible(ret.isVisible);
-/*
-		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
-			toolsContainer = gmxAPI._tools.standart;
-			toolsContainer.currentlyDrawnObject = ret;
-		}
-*/
 		if (coords)
 		{
 			oBounds = gmxAPI.getBounds(coords);
@@ -1269,20 +1252,10 @@
 		gmxAPI._drawing.activeState = true;
 		gmxAPI._drawing.BoxZoom = true;
 		gmxAPI._cmdProxy('startDrawing');
-        // IconsControl
-        //gmxAPI._drawing.endDrawing();
-/*
-        var toolsContainer = null;
-		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
-			toolsContainer = gmxAPI._tools.standart;
-		}
-*/
 		gmxAPI._drawing.setMove = function() {
 			gmxAPI._drawing.activeState = false;
 			gmxAPI._drawing.BoxZoom = false;
             gmxAPI._drawing.control.selectTool("move");
-//gmxAPI._drawing.control.setCurrent();
-			//if(toolsContainer) toolsContainer.selectTool("move");
 		}
 		var ret = {
 			stopDrawing: function()
@@ -1377,13 +1350,6 @@
 			,
 			'getStyle': function(removeDefaults) { return getStyle(removeDefaults, obj); }
 		};
-/*
-		var toolsContainer = null;
-		if('_tools' in gmxAPI && 'standart' in gmxAPI._tools) {
-			toolsContainer = gmxAPI._tools.standart;
-			toolsContainer.currentlyDrawnObject = ret;
-		}
-*/
 		var done = function(xx, yy)
 		{
 			obj = gmxAPI.map.addObject(null, null, {'subType': 'drawing'});
