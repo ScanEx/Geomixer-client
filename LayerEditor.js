@@ -571,15 +571,29 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
     var sourceContainers = [sourceFile, sourceTable, sourceManual];
                     
     var sourceCheckbox = $('<form/>')
-        .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxFileSource', checked: 'checked'}).data('containerIdx', 0))
-        .append($('<label/>', {'for': 'chxFileSource'}).text(_gtxt('Файл'))).append('<br/>')
-        .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxTableSource'}).data('containerIdx', 1))
-        .append($('<label/>', {'for': 'chxTableSource'}).text(_gtxt('Таблица'))).append('<br/>')
-        .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxManualSource'}).data('containerIdx', 2))
-        .append($('<label/>', {'for': 'chxManualSource'}).text(_gtxt('Вручную')));
+        .append($('<label/>')
+            .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxFileSource', checked: 'checked'}).data('containerIdx', 0))
+            .text(_gtxt('Файл')))
+        .append('<br/>')
+        .append($('<label/>')
+            .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxTableSource'}).data('containerIdx', 1))
+            .text(_gtxt('Таблица')))
+        .append('<br/>')
+        .append($('<label/>')
+            .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxManualSource'}).data('containerIdx', 2))
+            .text(_gtxt('Вручную'))
+        );
+        
+    var sourceCheckbox = $(
+        '<form>' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxFileSource" data-containerIdx="0" checked>' + _gtxt('Файл')    + '</label><br/>' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxTableSource" data-containerIdx="1">'        + _gtxt('Таблица') + '</label><br/>' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxManualSource" data-containerIdx="2">'       + _gtxt('Вручную') + '</label>' +
+        '</form>'
+    );
         
     sourceCheckbox.find('input, label').css({verticalAlign: 'middle'});
-    sourceCheckbox.find('label').css({marginLeft: 2});
+    sourceCheckbox.find('input').css({marginRight: 2});
     sourceCheckbox.find('input').click(function()
     {
         var activeIdx = $(this).data('containerIdx');
@@ -934,7 +948,7 @@ var createPageAdvanced = function(parent, layerProperties) {
     var temporalProperties = layerProperties.get('Temporal');
     var temporalLayerView = new nsGmx.TemporalLayerParamsControl(temporalLayerParent, temporalProperties, []);
     var isTemporalCheckbox = $('<input/>')
-        .attr({type: 'checkbox', 'id': 'layer-temporal-checkbox'})
+        .attr({type: 'checkbox'})
         .change(function() {
             temporalProperties.set('isTemporal', this.checked);
         });
@@ -972,8 +986,7 @@ var createPageAdvanced = function(parent, layerProperties) {
         
     var temporalFieldset = $('<fieldset/>').addClass('layer-fieldset').append(
         $('<legend/>').append(
-            isTemporalCheckbox,
-            $('<label/>').text(_gtxt("Данные с датой")).attr('for', 'layer-temporal-checkbox')
+            $('<label/>').append(isTemporalCheckbox).append(_gtxt("Данные с датой"))
         ),
         $('<fieldset/>').append(temporalLayerParent) //вложенный fieldset нужен из-за бага в Opera
     ).appendTo(parent);
@@ -986,7 +999,7 @@ var createPageAdvanced = function(parent, layerProperties) {
 
     var rasterCatalogControl = new nsGmx.LayerRasterCatalogControl(rasterCatalogDiv, layerProperties.get('RC'), layerProperties);
     var isRCCheckbox = $('<input/>')
-        .attr({type: 'checkbox', id: 'layer-rc-checkbox'})
+        .attr({type: 'checkbox'})
         .change(function() {
             layerProperties.get('RC').set('IsRasterCatalog', this.checked);
             if (this.checked) {
@@ -1001,8 +1014,8 @@ var createPageAdvanced = function(parent, layerProperties) {
     
     var rcFieldset = $('<fieldset/>').addClass('layer-fieldset').append(
         $('<legend/>').append(
-            isRCCheckbox,
-            $('<label/>').text(_gtxt("Каталог растров")).attr('for', 'layer-rc-checkbox')
+            //isRCCheckbox,
+            $('<label/>').append(isRCCheckbox).append(_gtxt("Каталог растров"))
         ),
         $('<fieldset/>').append(rasterCatalogDiv) //вложенный fieldset нужен из-за бага в Opera
     ).appendTo(parent);

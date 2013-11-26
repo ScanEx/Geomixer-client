@@ -1481,7 +1481,7 @@ div.layersScroll
     margin-left: 4px;
 }
 
-.layer-fieldset > legend > input
+.layer-fieldset > legend input
 {
     margin-right: 3px;
 }
