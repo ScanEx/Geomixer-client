@@ -146,6 +146,11 @@
             ,imageURL: encodeURIComponent(attr.url)
             ,image: null
             ,isOnScene: false
+            ,listenersID: {}
+			,remove: function() {
+                gmxAPI.map.removeListener('onMoveEnd', node.listenersID.onMoveEnd);
+                LMap.off('zoomstart', node.zoomstart);
+            }
         });
 		var chkReady = function() {
 //console.log('chkReady', arguments);
@@ -221,14 +226,15 @@
             //if(node.dragging) { // todo drag без лефлета
             //    gmxAPI._leaflet.utils.startDrag(node);
             //}
-            gmxAPI.map.addListener('onMoveEnd', function() {
+            node.listenersID.onMoveEnd = gmxAPI.map.addListener('onMoveEnd', function() {
                 if(chkNeedRepaint()) waitRedraw();
             }, -100);
-            LMap.on('zoomstart', function(e) {
+            node.zoomstart = function(e) {
                 if(node.canvas) node.canvas.width = node.canvas.height = 0;
                 node.image = null;
                 node.isOnScene = false;
-            });
+            }
+            LMap.on('zoomstart', node.zoomstart);
             node.isSetImage = true;
             return def;
         };
