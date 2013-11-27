@@ -605,9 +605,10 @@ layersTree.prototype.drawLayer = function(elem, parentParams, layerManagerFlag, 
 			
 			iconSpan.onclick = function()
 			{
-				nsGmx.createStylesDialog(elem, _this);
+				if (_queryMapLayers.currentMapRights() == "edit") {
+                    nsGmx.createStylesDialog(elem, _this);
+                }
 			}
-			
 		}
         
         var resElems = [spanParent, spanDescr, borderDescr];
