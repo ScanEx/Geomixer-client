@@ -146,6 +146,7 @@ var nsGmx = nsGmx || {};
                         _processResponse({Status: 'ok', Result: userInfo || null});
                     }, null, true);
                 } else {
+                    doAuthServerLogin(response.Result.Token);
                     _processResponse(response);
                 }
             })
@@ -158,6 +159,9 @@ var nsGmx = nsGmx || {};
                 if (response.Status == 'ok' && response.Result)
                 {
                     _this.setUserInfo(response.Result);
+                    
+                    doAuthServerLogin(response.Result.Token);
+                    
                     callback && callback();
                 }
                 else
@@ -211,6 +215,14 @@ var nsGmx = nsGmx || {};
     }
     
     var checkProviders = [];
+    
+    var doAuthServerLogin = function(token) {
+        if (token && window.mapsSite && window.gmxAuthServer) {
+            sendCrossDomainJSONRequest(gmxAuthServer + 'Handler/Me?token=' + encodeURIComponent(token), function(response) {
+                //console.log(response);
+            }, 'callback');
+        }
+    }
     
     //canAuth() -> bool
     //doAuth(callbackSuccess, callbackError)
