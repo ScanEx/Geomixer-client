@@ -12,7 +12,6 @@
             ,baseLayerSelected: null
         }
         ,currentID: null        // ID текущей подложки
-        ,controll: null         // текущий контрол базовых подложек
         ,
         init: function(attr) {        // инициализация
             manager.map = attr.map;
