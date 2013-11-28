@@ -1955,7 +1955,7 @@
 				}
 				var out = {'ev':e};
 				utils.chkKeys(out, e.originalEvent);
-				gmxAPI._leaflet['activeObject'] = (evName == 'onMouseOut' ? null : id);
+				gmxAPI._leaflet.activeObject = (evName == 'onMouseOut' ? null : id);
 				if(hNode['handlers'][evName]) hNode['handlers'][evName](node['id'], node.geometry.properties, out);
 			};
 			if(scanexEventNames[evName]) {
@@ -4253,8 +4253,8 @@
 					,trackResize: true
 					,fadeAnimation: (window.gmxPhantom ? false : true)		// отключение fadeAnimation при запуске тестов
 					,zoomAnimation: (window.gmxPhantom ? false : true)		// отключение zoomAnimation при запуске тестов
+					,boxZoom: false
 					//,zoomAnimation: false
-					//,boxZoom: false
 					//,zoomAnimation: (gmxAPI.isChrome ? false : true)
 					//,worldCopyJump: false
 					
@@ -4340,7 +4340,7 @@
 			var clickDone = false;
 			var timeDown = 0;
 			var chkClick = function(e) {		// Проверка click карты
-				if(gmxAPI._leaflet['contextMenu']['isActive']) return;	// мышка над пунктом contextMenu
+				if(gmxAPI._leaflet.contextMenu.isActive) return;	// мышка над пунктом contextMenu
 				var timeClick = new Date().getTime() - timeDown;
 //console.log('chkClick ', timeClick);
 				//if(timeClick > 1000) return;
@@ -4365,12 +4365,11 @@
 				//setTimeout(function() { skipClick = false;	}, 10);
 			});
 			var setMouseDown = function(e) {
-				//console.log('setMouseDown ', gmxAPI._leaflet['activeObject']);
+                //console.log('setMouseDown ', gmxAPI._leaflet.activeObject);
 				gmxAPI.mousePressed	= gmxAPI._leaflet['mousePressed'] = true;
-				timeDown = new Date().getTime();
-
+				timeDown = gmxAPI.timeDown = new Date().getTime();
 				gmxAPI._leaflet['mousedown'] = true;
-				var node = mapNodes[gmxAPI._leaflet['activeObject'] || gmxAPI.map['objectId']];
+				var node = mapNodes[gmxAPI._leaflet.activeObject || gmxAPI.map.objectId];
 				if(node && node['dragMe']) {
 					node['dragMe'](e);
 					return;
@@ -4746,6 +4745,11 @@ var tt = 1;
 			});
 
 			L.GMXPointsMarkers = L.Polyline.extend({
+                _onMouseClick: function (e) {   // TODO: разобраться с this._map.dragging._draggable._moved
+                    if (this._map.dragging && this._map.dragging._draggable && this._map.dragging._draggable._moving) { return; }
+
+                    this._fireMouseEvent(e);
+                },
 				_getPathPartStr: function (points) {
 					var round = L.Path.VML;
 					var pointSize = this.options.pointSize || 5;
@@ -5101,7 +5105,7 @@ var tt = 1;
 	gmxAPI._leaflet['curDragState'] = false;		// текущий режим dragging карты
 	gmxAPI._leaflet['mousePressed'] = false;		// признак нажатой мыши
 	gmxAPI._leaflet['mouseMoveAttr'] = null;		// атрибуты mouseOver
-	gmxAPI._leaflet['activeObject'] = null;			// Нода последнего mouseOver
+	gmxAPI._leaflet.activeObject = null;			// Нода последнего mouseOver
 
 	gmxAPI._leaflet['renderingObjects'] = {};		// Список объектов находящихся в Rendering режиме
 	gmxAPI._leaflet['onRenderingStart'] = function(id)
