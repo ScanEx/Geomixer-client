@@ -58,7 +58,7 @@
 			{
 				var it = arr[i];
 				if(first.isError) {
-					if(it.onerror) it.onerror(null);
+					if(it.onerror) it.onerror(first.errorEvent);
 				} else if(first.imageObj) {
 					if(it.callback) it.callback(first.imageObj, false, it);
 				} else if(first.svgPattern) {
@@ -127,6 +127,7 @@
             //console.log('onError', ev.target.src);
 			curCount--;
 			item.isError = true;
+			item.errorEvent = ev;
 			callCacheItems(item);
 		};
 		curCount++;

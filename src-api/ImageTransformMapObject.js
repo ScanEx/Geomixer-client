@@ -6,6 +6,7 @@
 		node.setImageExtent = (ph.setImageExtent ? true : false);
 		var LMap = gmxAPI._leaflet.LMap;				// Внешняя ссылка на карту
 		var mapNodes = gmxAPI._leaflet.mapNodes;
+		var gmxNode = gmxAPI.mapNodes[node.id];		// Нода gmxAPI
 
 		var LatLngToPixel = function(y, x) {
 			var point = new L.LatLng(y, x);
@@ -223,6 +224,7 @@
 					,callback: function(img, svgFlag, pt) {
 						if(pt.uri === node.imageURL) {
 							imageObj = img;
+                            gmxAPI._listeners.dispatchEvent('onImageLoad', gmxNode, imageObj);	// Событие загрузки Image
 							node.refreshMe = function() {
 								node.isLargeImage = null;
 								waitRedraw();
@@ -230,7 +232,8 @@
 							if(canvas) repaint(canvas);
 						}
 					}
-					,onerror: function() {
+					,onerror: function(e) {
+                        gmxAPI._listeners.dispatchEvent('onImageError', gmxNode, e);	    // Ошибка при загрузке Image
 						gmxAPI.addDebugWarnings({func: 'setImage', Error: 'not found image: ' + src, alert: 'setImage error'});
 					}
 				};
