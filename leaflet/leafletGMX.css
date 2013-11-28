@@ -1,3 +1,16 @@
+.leaflet-overlay-pane svg {
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	        user-select: none;
+	-webkit-user-drag: none;
+}
+
+.canvas-imageTransform {
+	pointer-events: none;
+    transform-origin: left top 0;
+    -webkit-transform-origin: left top 0; /* Safari and Chrome */
+    -ms-transform-origin: left top 0; /* IE 9 */
+}
 /*.leaflet-container {
 	cursor: inherit !important;
 	}
