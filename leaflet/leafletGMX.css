@@ -1,3 +1,10 @@
+.leaflet-overlay-pane svg {
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	        user-select: none;
+	-webkit-user-drag: none;
+}
+
 .canvas-imageTransform {
 	pointer-events: none;
     transform-origin: left top 0;

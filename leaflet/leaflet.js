@@ -6735,7 +6735,8 @@ L.Map.Drag = L.Handler.extend({
 	},
 
 	_onDragStart: function () {
-		if (gmxAPI && gmxAPI._drawing['BoxZoom']) { return false; }
+// OriginalSin
+		if (window.gmxAPI && window.gmxAPI._drawing['BoxZoom']) { return false; }
 		var map = this._map;
 
 		if (map._panAnim) {
@@ -7456,7 +7457,7 @@ L.Map.BoxZoom = L.Handler.extend({
 	_onMouseDown: function (e) {
 		this._moved = false;
 // OriginalSin
-		if ((gmxAPI && !gmxAPI._drawing['BoxZoom']) || ((e.which !== 1) && (e.button !== 1))) { return false; }
+		if ((window.gmxAPI && !window.gmxAPI._drawing['BoxZoom']) || ((e.which !== 1) && (e.button !== 1))) { return false; }
 		//if (!e.shiftKey || ((e.which !== 1) && (e.button !== 1))) { return false; }
 
 		L.DomUtil.disableTextSelection();
@@ -7499,7 +7500,7 @@ L.Map.BoxZoom = L.Handler.extend({
 	},
 
 	_finish: function () {
-		if(gmxAPI) gmxAPI._drawing.setMove();				// OriginalSin
+		//if(window.gmxAPI) window.gmxAPI._drawing.setMove();				// OriginalSin
 		this._pane.removeChild(this._box);
 		this._container.style.cursor = '';
 
