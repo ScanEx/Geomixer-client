@@ -2,7 +2,7 @@
 {
     /**
         Добавляет ряд ссылок с иконками и текстом. 
-        Считывает информацию из window.gmxViewerUI.headerLinkItems в формате [{icon: <iconPath>, title: <TITLE>, href: <HREF>}, ...]
+        Считывает информацию из window.gmxViewerUI.headerLinkItems в формате [{icon: iconPath, title: TITLE, href: HREF}, ...]
         Если переменной нет, подставляет значения по умолчению ("Поиск снимков", "Документация", "Блог")
         @memberOf nsGmx
         @param container {HTMLDOMElement} куда добавлять ссылки
