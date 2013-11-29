@@ -86,8 +86,8 @@
 
 			posLatLng = new L.LatLng(bounds.max.y, bounds.min.x);
 			var data = { canvas: imageObj	};
-			var ww = ph.ww;
-			var hh = ph.hh;
+			var ww = ph.ww || w;
+			var hh = ph.hh || h;
 			var point = LMap.project(new L.LatLng(0, -180), zoom);
 			var p180 = LMap.project(new L.LatLng(0, 180), zoom);
 			var worldSize = p180.x - point.x;
