@@ -1,7 +1,7 @@
 //Поддержка WMS
 (function()
 {
-    var wmsProjections = ['EPSG:4326','EPSG:3395','EPSG:41001'];	// типы проекций
+    var wmsProjections = ['EPSG:3395', 'EPSG:4326', 'EPSG:41001'];	// типы проекций
     
     /**
         Возвращает описание WMS-слоёв от XML, которую вернул сервер на запрос GetCapabilities
@@ -10,18 +10,27 @@
     */
     var parseWMSCapabilities = function(response)
 	{
+        var supportedVersions = {'1.1.1': true, '1.3.0': true};
+        var SRSTagName = {'1.1.1': 'SRS', '1.3.0': 'CRS'};
+        var BBOXTagName = {'1.1.1': 'LatLonBoundingBox', '1.3.0': 'EX_GeographicBoundingBox'};
 		var serviceLayers = [],
 			strResp = response.replace(/[\t\n\r]/g, ' '),
 			strResp = strResp.replace(/\s+/g, ' '),
-			layersXML = gmxAPI.parseXML(response).getElementsByTagName('Layer');
+            xml = gmxAPI.parseXML(response),
+            version = xml.getElementsByTagName('WMS_Capabilities')[0].getAttribute('version'),
+			layersXML = xml.getElementsByTagName('Layer');
 		
+        if (!(version in supportedVersions)) {
+            return [];
+        }
+        
 		for (var i = 0; i < layersXML.length; i++)
 		{
-			var layer = {},
+			var layer = {version: version},
 				name = layersXML[i].getElementsByTagName('Name'),
 				title = layersXML[i].getElementsByTagName('Title'),
-				bbox = layersXML[i].getElementsByTagName('LatLonBoundingBox'),
-				srs = layersXML[i].getElementsByTagName('SRS');
+				bbox = layersXML[i].getElementsByTagName(BBOXTagName[version]),
+				srs = layersXML[i].getElementsByTagName(SRSTagName[version]);
 			
             if (srs.length)
             {
@@ -48,13 +57,23 @@
 			
 			if (bbox.length)
 			{
-				layer.bbox = 
-				{
-					minx: Number(bbox[0].getAttribute('minx')),
-					miny: Number(bbox[0].getAttribute('miny')),
-					maxx: Number(bbox[0].getAttribute('maxx')),
-					maxy: Number(bbox[0].getAttribute('maxy'))
-				};
+                if (version == '1.1.1') {
+                    layer.bbox = 
+                    {
+                        minx: Number(bbox[0].getAttribute('minx')),
+                        miny: Number(bbox[0].getAttribute('miny')),
+                        maxx: Number(bbox[0].getAttribute('maxx')),
+                        maxy: Number(bbox[0].getAttribute('maxy'))
+                    };
+                } else {
+                    layer.bbox = 
+                    {
+                        minx: Number(gmxAPI.getTextContent(bbox[0].getElementsByTagName('westBoundLongitude')[0])),
+                        miny: Number(gmxAPI.getTextContent(bbox[0].getElementsByTagName('southBoundLatitude')[0])),
+                        maxx: Number(gmxAPI.getTextContent(bbox[0].getElementsByTagName('eastBoundLongitude')[0])),
+                        maxy: Number(gmxAPI.getTextContent(bbox[0].getElementsByTagName('northBoundLatitude')[0]))
+                    };
+                }
 			}
 			
 			if (title.length)
@@ -73,9 +92,13 @@
     */
     var getWMSMapURL = function(url, props, requestProperties)
     {
+        var CRSParam = {'1.1.1': 'SRS', '1.3.0': 'CRS'};
+        
         requestProperties = requestProperties || {};
 
         var extend = gmxAPI.map.getVisibleExtent();
+        
+        console.log('visible', extend);
 
         var miny = Math.max(extend.minY, -90);
         var maxy = Math.min(extend.maxY, 90);
@@ -97,28 +120,30 @@
         var w = Math.round((gmxAPI.merc_x(maxx) - gmxAPI.merc_x(minx))/scale);
         var h = Math.round((gmxAPI.merc_y(maxy) - gmxAPI.merc_y(miny))/scale);
 
-        var isMerc = !(props.srs == wmsProjections[0]);
+        var isMerc = !(props.srs == wmsProjections[1]);
 
         var st = url;
         var format = requestProperties.format || 'image/jpeg';
         var transparentParam = requestProperties.transparent ? 'TRUE' : 'FALSE';
+        var version = props.version || '1.1.1';
         
-        st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetMap';
-        st += "&layers=" + props.name +
-            "&version=1.1.1" + 
-            "&srs=" + props.srs + 
-            //"&format=" + format + 
-            //"&transparent=" + transparentParam + 
-            "&styles=" + 
-            "&width=" + w + 
-            "&height=" + h + 
-            "&bbox=" + (isMerc ? gmxAPI.merc_x(minx) : minx) + 
-                 "," + (isMerc ? gmxAPI.merc_y(miny) : miny) + 
-                 "," + (isMerc ? gmxAPI.merc_x(maxx) : maxx) + 
-                 "," + (isMerc ? gmxAPI.merc_y(maxy) : maxy)
-        ;
-        if (url.indexOf('format=') == -1) st += "&format=" + format;
-        if (url.indexOf('transparent=') == -1) st += "&transparent=" + transparentParam;
+        //st = st.replace(/Service=WMS[\&]*/i, '');
+        //st = st.replace(/\&$/, '');
+        
+        st += (st.indexOf('?') == -1 ? '?':'&') + 'request=GetMap&Service=WMS';
+        st += "&layers=" + encodeURIComponent(props.name) +
+            "&VERSION=" + encodeURIComponent(version) +
+            "&" + CRSParam[version] + "=" + encodeURIComponent(props.srs) +
+            "&styles=" +
+            "&width=" + w +
+            "&height=" + h +
+            "&bbox=" + (isMerc ? gmxAPI.merc_x(minx) : minx) +
+                 "," + (isMerc ? gmxAPI.merc_y(miny) : miny) +
+                 "," + (isMerc ? gmxAPI.merc_x(maxx) : maxx) +
+                 "," + (isMerc ? gmxAPI.merc_y(maxy) : maxy);
+
+        if (url.indexOf('format=') == -1) st += "&format=" + encodeURIComponent(format);
+        if (url.indexOf('transparent=') == -1) st += "&transparent=" + encodeURIComponent(transparentParam);
        
         return {url: st, bounds: {minX: minx, maxX: maxx, minY: miny, maxY: maxy}};
     }

@@ -394,7 +394,7 @@ queryServerData.prototype.load = function(parseFunc, drawFunc, customParamsManag
 			if ( customParamsManager )
 				_this.customParams = customParamsManager.collect();
 				
-			_this.getCapabilities(strip(inputField.value), parseFunc, drawFunc, version);
+			_this.getCapabilities(strip(inputField.value), parseFunc, drawFunc);
 				
 			inputField.value = '';
 		}
@@ -436,14 +436,23 @@ queryServerData.prototype.getCapabilities = function(url, parseFunc, drawFunc, v
 	else
 		this.parentCanvas.insertBefore(loading, this.parentCanvas.firstChild);
 	
-    var separator = url.indexOf('?') !== -1 ? '&' : '?';
+    var capabilitiesUrl = 
+            url.replace(/REQUEST=GetCapabilities[\&]*/i, '')
+               .replace(/SERVICE=WMS[\&]*/i, '')
+               .replace(/\&$/, '');
     
-	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(url + separator + 'request=GetCapabilities&version=' + version), function(response)
-	{
+    capabilitiesUrl += capabilitiesUrl.indexOf('?') !== -1 ? '&' : '?';
+    capabilitiesUrl += 'REQUEST=GetCapabilities&SERVICE=WMS';
+    
+    if (version) {
+        capabilitiesUrl += '&VERSION=' + version;
+    }
+    
+	sendCrossDomainJSONRequest(serverBase + "ApiSave.ashx?get=" + encodeURIComponent(capabilitiesUrl), function(response) {
 		if (!parseResponse(response)) return;
-		
+
 		var servicelayers = parseFunc.call(_this, response.Result);
-		
+
 		drawFunc.call(_this, servicelayers, url, loading, undefined, _this.customParams);
 	})
 }
@@ -709,6 +718,7 @@ queryServerData.prototype.drawWMS = function(serviceLayers, url, replaceElem, lo
         {
             var b = res.bounds;
             parent.setImageOverlay(serverBase + "ImgSave.ashx?now=true&get=" + encodeURIComponent(res.url), b.minX, b.maxY);
+            console.log('overlay', b);
         }
 	}
 	
@@ -918,7 +928,7 @@ loadServerData.WMS.load = function()
 	var alreadyLoaded = _queryServerDataWMS.createWorkCanvas(arguments[0]);
 	
 	if (!alreadyLoaded)
-		_queryServerDataWMS.load(gmxAPI.parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager, '1.1.1');
+		_queryServerDataWMS.load(gmxAPI.parseWMSCapabilities, _queryServerDataWMS.drawWMS, _queryServerDataWMS.customWMSParamsManager);
 }
 loadServerData.WMS.unload = function()
 {
@@ -980,7 +990,7 @@ _userObjects.addDataCollector('wms', {
                 _queryServerDataWMS.getCapabilities(url, gmxAPI.parseWMSCapabilities, function(serviceLayers, url, replaceElem)
                 {
                     _queryServerDataWMS.drawWMS(serviceLayers, url, replaceElem, loadParams.layersVisibility, loadParams.params);
-                }, '1.1.1')
+                })
             })(data[url])
         }
     }
