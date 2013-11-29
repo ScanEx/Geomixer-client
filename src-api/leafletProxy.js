@@ -2971,14 +2971,20 @@
 			return true;
 		}
 		,
-		'getZoomBounds':	function(ph)	{		// Установка границ по zoom
+		getZoomBounds: function(ph)	{		// Установка границ по zoom
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;
 			var out = {
-				'MinZoom': node['minZ']
-				,'MaxZoom': node['maxZ']
+				MinZoom: node.minZ
+				,MaxZoom: node.maxZ
 			}
+			if(node.type === 'map') {
+                out = {
+                    MinZoom: LMap.getMinZoom()
+                    ,MaxZoom: LMap.getMaxZoom()
+                }
+            }
 			return out;
 		}
 		,
