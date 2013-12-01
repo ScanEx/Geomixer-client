@@ -3005,6 +3005,15 @@
 			return true;
 		}
 		,
+		setImagePoints:	function(ph)	{				// Изменение точек привязки изображения
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return;
+            var fName = (L.Browser.gecko3d ? 'ImageMatrixTransform' : 'setImageMapObject');
+            ph.setImagePoints = true;
+            gmxAPI._leaflet[fName](node, ph);
+		}
+		,
 		'setImage':	function(ph)	{					// Установка изображения
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];

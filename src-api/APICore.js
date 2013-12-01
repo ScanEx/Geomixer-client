@@ -2962,7 +2962,7 @@ FlashMapObject.prototype.setImageOverlay = function(url, x1, y1, flagGeo)
 
 FlashMapObject.prototype.setImageTransform = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
 {
-	this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
+    this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
 	var attr = {};
 	if (tx1) {
 		attr = {
@@ -2979,6 +2979,9 @@ FlashMapObject.prototype.setImageTransform = function(url, x1, y1, x2, y2, x3, y
 	}
 	attr['url'] = url;
 	gmxAPI._cmdProxy('setImage', { 'obj': this, 'attr':attr});
+}
+FlashMapObject.prototype.setImagePoints = function(attr) {
+	gmxAPI._cmdProxy('setImagePoints', { 'obj': this, 'attr':attr});
 }
 FlashMapObject.prototype.setImage = FlashMapObject.prototype.setImageTransform;
 
