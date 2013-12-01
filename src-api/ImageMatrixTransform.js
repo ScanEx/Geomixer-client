@@ -59,15 +59,26 @@
             gmxAPI._leaflet.imageLoader.push(ph);
             return def;
         }
+		,setTransform: function(node, opacity) {
+			var canvas = node.canvas;
+			var w = node.imageWidth;
+			var h = node.imageHeight;
+            var points = util.getPixelPoints(node.tPoints, w, h);
+            var matrix3d = gmxAPI._leaflet.utils.getMatrix3d(w, h, points) || null;
+            if(matrix3d) {
+                canvas.style[node._transformStyleName] = gmxAPI._leaflet.utils.getMatrix3dCSS(matrix3d);
+                var op = (gmxAPI._leaflet.mouseMoveAttr && gmxAPI._leaflet.mouseMoveAttr.ctrlKey ? opacity : 1);
+                if(op && op !== canvas.style.opacity) canvas.style.opacity = op;
+            }
+        }
 		,repaint: function(node) {
-            //console.log('repaint', node.id);
 			if(node.isVisible == false
                 || !node.image
                 || !node.canvas
                 ) return;
 			var canvas = node.canvas;
-			var w = node.image.width;
-			var h = node.image.height;
+			var w = node.imageWidth;
+			var h = node.imageHeight;
             var points = util.getPixelPoints(node.tPoints, w, h);
 
 			//if(gmxAPI._leaflet.waitSetImage > 5) { waitRedraw(); return; }
@@ -131,6 +142,12 @@
 	function setImage(node, ph)	{
 		var attr = ph.attr;
 		var tPoints = util.chkAttr(attr);
+        if(ph.setImagePoints && node.canvas && node.imageWidth && node.imageHeight) {
+            node.tPoints = tPoints;
+            var opacity = attr.opacity || 100;
+            util.setTransform(node, opacity/100);
+            return;
+        }
         //console.log('setImage', node.id);
 		var posLatLng = new L.LatLng(tPoints.bounds.max.y, tPoints.bounds.min.x);
 
@@ -160,6 +177,8 @@
             });
             if(!node.image) util.getRaster(node, attr.url).done(function(img) {
                 node.image = img;
+                node.imageWidth = img.width;
+                node.imageHeight = img.height;
                 waitRedraw();
             });
             if(node.image && node.leaflet) util.repaint(node);
@@ -246,12 +265,11 @@
         } else {
             waitRedraw();
         }
-        return this;
 	}
 
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
 	gmxAPI._leaflet.ImageMatrixTransform = function(node, ph) {   // CSS Matrix3d трансформация image
-        return new setImage(node, ph);
+        setImage(node, ph);
     };
 })();

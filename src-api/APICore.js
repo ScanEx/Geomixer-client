@@ -54,6 +54,75 @@ extend(window.gmxAPI,
 	,
     buildGUID: [/*#buildinclude<__buildGUID__>*/][0]		// GUID текущей сборки
 	,
+    getURLParams: memoize(function() {
+        var q = window.location.search,
+            kvp = (q.length > 1) ? q.substring(1).split("&") : [];
+
+        for (var i = 0; i < kvp.length; i++)
+        {
+            kvp[i] = kvp[i].split("=");
+        }
+        
+        var params = {},
+            givenMapName = false;
+            
+        for (var j=0; j < kvp.length; j++)
+        {
+            if (kvp[j].length == 1)
+            {
+                if (!givenMapName)
+                    givenMapName = kvp[j][0];
+            }
+            else
+                params[kvp[j][0]] = kvp[j][1];
+        }
+        
+        return {params: params, givenMapName: givenMapName};
+    })
+    ,
+    getHtmlColor: function() {     // Получить цвет текста по map.backgroundColor
+        var color = gmxAPI.map.backgroundColor;
+        return (0xff & (color >> 16)) > 80 ? "black" : "white";
+    }
+    ,
+    getCoordinatesText: function(currPos, coordFormat) {
+        if(!currPos) currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+        var x = (currPos.latlng ? currPos.latlng.x : gmxAPI.from_merc_x(currPos.x));
+        var y = (currPos.latlng ? currPos.latlng.y : gmxAPI.from_merc_y(currPos.y));
+        if (x > 180) x -= 360;
+        if (x < -180) x += 360;
+        if (coordFormat % 3 == 0)
+            return gmxAPI.LatLon_formatCoordinates(x, y);
+        else if (coordFormat % 3 == 1)
+            return gmxAPI.LatLon_formatCoordinates2(x, y);
+        else
+            return '' + Math.round(gmxAPI.merc_x(x)) + ', ' + Math.round(gmxAPI.merc_y(y));
+    }
+    ,
+    getScaleBarDistance: function() {
+        var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+        var z = Math.round(currPos.z);
+        var x = (currPos.latlng ? currPos.latlng.x : 0);
+        var y = (currPos.latlng ? currPos.latlng.y : 0);
+        if(gmxAPI.map.needMove) {
+            z = gmxAPI.map.needMove.z;
+            x = gmxAPI.map.needMove.x;
+            y = gmxAPI.map.needMove.y;
+        }
+
+        var metersPerPixel = gmxAPI.getScale(z) * gmxAPI.distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
+        for (var i = 0; i < 30; i++)
+        {
+            var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
+            var w = Math.floor(distance/metersPerPixel);
+            if (w > 100)
+            {
+                return {txt: gmxAPI.prettifyDistance(distance), width: w};
+            }
+        }
+        return null;
+    }
+	,
 	'getXmlHttp': function() {
 		var xmlhttp;
 		if (typeof XMLHttpRequest != 'undefined') {
@@ -2910,6 +2979,9 @@ FlashMapObject.prototype.setImageTransform = function(url, x1, y1, x2, y2, x3, y
 	}
 	attr['url'] = url;
 	gmxAPI._cmdProxy('setImage', { 'obj': this, 'attr':attr});
+}
+FlashMapObject.prototype.setImagePoints = function(attr) {
+	gmxAPI._cmdProxy('setImagePoints', { 'obj': this, 'attr':attr});
 }
 FlashMapObject.prototype.setImage = FlashMapObject.prototype.setImageTransform;
 

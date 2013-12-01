@@ -2604,7 +2604,6 @@
 		}
 		,
 		'setMinMaxZoom':	function(ph)	{				// установка minZoom maxZoom карты
-			//return;
 			if(LMap.options.minZoom == ph.attr.z1 && LMap.options.maxZoom == ph.attr.z2) return;
 			LMap.options.minZoom = ph.attr.z1;
 			LMap.options.maxZoom = ph.attr.z2;
@@ -2644,43 +2643,18 @@
 			var toz = Math.abs(ph.attr.dz);
 			if(ph.attr.dz > 0) LMap.zoomOut(toz);
 			else LMap.zoomIn(toz);
-/*
-			var currZ = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
-			currZ -= ph.attr.dz;
-			if(currZ > LMap.getMaxZoom() || currZ < LMap.getMinZoom()) return;
-			var pos = LMap.getCenter();
-			if(gmxAPI.map.needMove) {
-				pos.lng = gmxAPI.map.needMove.x;
-				pos.lat = gmxAPI.map.needMove.y;
-			}
-			if (ph.attr.useMouse && gmxAPI._leaflet['mousePos'])
-			{
-				var z = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
-				var k = Math.pow(2, z - currZ);
-				
-				var lat = utils.getMouseY();
-				var lng = utils.getMouseX();
-				pos.lat = lat + k*(pos.lat - lat);
-				pos.lng = lng + k*(pos.lng - lng);
-			}
-			utils.runMoveTo({'x': pos.lng, 'y': pos.lat, 'z': currZ})
-			//LMap.setView(pos, currZ);
-*/
 		}
 		,
 		'moveTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
 			var zoom = ph.attr['z'] || (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
 			if(zoom > LMap.getMaxZoom() || zoom < LMap.getMinZoom()) return;
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
-			//LMap.setView(pos, zoom);
 			utils.runMoveTo({'x': pos.lng, 'y': pos.lat, 'z': zoom})
-//			setTimeout(function() { LMap._onResize(); }, 50);
 		}
 		,
 		'slideTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
 			if(ph.attr['z'] > LMap.getMaxZoom() || ph.attr['z'] < LMap.getMinZoom()) return;
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
-			//LMap.setView(pos, ph.attr['z']);
 			utils.runMoveTo({'x': pos.lng, 'y': pos.lat, 'z': ph.attr['z']})
 		}
 		,
@@ -3031,6 +3005,15 @@
 			nodeLayer.setObserver(ph);
 			//node['observeVectorLayer'] = ph.attr.func;
 			return true;
+		}
+		,
+		setImagePoints:	function(ph)	{				// Изменение точек привязки изображения
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return;
+            var fName = (L.Browser.gecko3d ? 'ImageMatrixTransform' : 'setImageMapObject');
+            ph.setImagePoints = true;
+            gmxAPI._leaflet[fName](node, ph);
 		}
 		,
 		'setImage':	function(ph)	{					// Установка изображения
