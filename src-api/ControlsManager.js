@@ -1,20 +1,24 @@
-// Управление контролами
-//  Используемые методы и свойства контролов:
-//      init    - метод инициализации
-//      remove  - метод удаления
+/** Управление наборами контролов карты
+
+Позволяет устанавливать пользовательские наборы контролов карты. 
+
+Набор контролов - список контролов карты.
+
+@global
+
+*/
 (function()
 {
     "use strict";
 	var ControlsManager = {
-        'current': null
-        ,'isVisible': true
-        ,'currentID': null
-        ,'controls': []
-        ,'parentNode': null
-        ,'allToolsNode': null
+        isVisible: true
+        ,currentID: null
+        ,controls: []
+        ,parentNode: null
+        ,allToolsNode: null
+        ,toolsAll: null
         ,
-        'init': function(currentID, parent, map) {
-			if(currentID) this.currentID = currentID;
+        init: function(parent, map) {
 			if(parent) this.parentNode = parent;
             
             var allToolsNode = this.allToolsNode = gmxAPI._allToolsDIV = gmxAPI.newStyledDiv({
@@ -43,24 +47,29 @@
             });
 
             if('_ToolsAll' in gmxAPI) {
-                map.toolsAll = new gmxAPI._ToolsAll(parent);
+                this.toolsAll = map.toolsAll = new gmxAPI._ToolsAll(parent);
             }
-
-            this.forEach(function(item, i) {
-                if(currentID === item.id && 'init' in item) {
-                    item.init(allToolsNode);
-                    return false;   // stop iteration
+            if(gmxAPI._controls) {
+                for (var i = 0, len = gmxAPI._controls.length; i < len; i++) {
+                    this.addControls(gmxAPI._controls[i]);
                 }
-            });
+            }
+        }
+        ,setCurrent: function(id) {
+			this.currentID = (this.controls[id] ? id : (this.controls.length ? this.controls[0].id : null));
+            if(this.currentID) this.controls[this.currentID].init(this.allToolsNode);
+        }
+        ,getCurrent: function() {
+            return (this.currentID ? this.controls[this.currentID] : null);
         }
         ,
-        'select': function(controlObj) {
+        select: function(controlObj) {
 			if(this.curent && 'remove' in this.curent) this.curent.remove();
 			this.curent = controlObj;
             if('init' in controlObj) controlObj.init();
         }
         ,
-        'addControl': function(controlObj, selectFlag) {
+        addControls: function(controlObj, selectFlag) {
 			if(selectFlag) this.select(controlObj);
 			if(this.currentID === controlObj.id) controlObj.init();
             
@@ -70,22 +79,34 @@
                 }
             }
             this.controls.push(controlObj);
+            this.controls[controlObj.id] = controlObj;
         }
         ,
-        'remove': function(controlObj) {
-            if(controlObj === this.curent) {
-                if('remove' in controlObj) controlObj.remove();
-                this.curent = null;
+        removeById: function(id) {
+            if(id && this.controls[id]) {
+                this.remove(this.controls[id]);
             }
+            for(var key in gmxAPI._tools) {
+                var item = gmxAPI._tools[key];
+                item.remove();
+                delete gmxAPI._tools[key];
+            }
+            var tt = gmxAPI._tools;
+        }
+        ,
+        remove: function(controlObj) {
             this.forEach(function(item, i) {
                 if(controlObj === item) {
                     this.controls.splice(i, 1);
+                    if(controlObj === this.curent) this.curent = null;
+                    delete this.controls[controlObj.id];
+                    if('remove' in controlObj) controlObj.remove();
                     return false;   // stop iteration
                 }
             });
         }
         ,
-        'setVisible': function(flag) {
+        setVisible: function(flag) {
             if(!arguments.length) flag = !this.isVisible;
             this.forEach(function(item, i) {
                 if(ControlsManager.currentID === item.id && 'setVisible' in item) item.setVisible(flag);
@@ -94,15 +115,67 @@
             gmxAPI._listeners.dispatchEvent('onToolsMinimized', gmxAPI.map, !ControlsManager.isVisible);
         }
         ,
-        'forEach': function(callback) {
+        forEach: function(callback) {
 			for (var i = 0, len = this.controls.length; i < len; i++) {
-				if(callback(this.controls[i], i) === false) return;
+				if(callback.call(this, this.controls[i], i) === false) return;
             }
         }
         ,
-        'addGroupTool': function(pt) {
+        addGroupTool: function(pt) {
             return gmxAPI.IconsControl.addGroupTool(pt);
         }
 	}
-	gmxAPI.ControlsManager = ControlsManager;
+    /**
+     * Описание класса Controls.
+     * @typedef {Object} Controls
+     * @property {String} id - Идентификатор типа контролов.
+     * @property {Function} init - Ф-ция для инициализации.
+     * @property {boolean} isVisible - Флаг видимости(по умолчанию true).
+     * @property {Array} [Control] items - Массив контролов данного типа контролов.
+     * @property {Function} [boolean=] setVisible - Установка видимости(по умолчанию false).
+     * @property {Function} remove - Удаление набора контролов.
+    */
+    /**
+     * Менеджер типов контролов.
+     * @constructor Controls
+     * @param {Object} map - карта.
+     * @param {Object=} div - нода для размещения контролов.
+     */
+	gmxAPI.ControlsManager = function(map, div) {
+        ControlsManager.init(div || gmxAPI._div, map);
+        return {
+            /** Добавить новый тип контролов
+            * @memberOf Controls#
+            * @param {...Controls} Набор контролов {@link Controls}.
+            */
+            add: function(controls) {
+                ControlsManager.addControls(controls);
+            }
+            ,remove: function(id) {
+                ControlsManager.removeById(id);
+            }
+            ,/** Получить идентификатор текущего типа контролов
+            * @memberof Controls#
+            */
+            getCurrent: function() {
+                return ControlsManager.currentID;
+            }
+            ,setCurrent: function(id) {
+                return ControlsManager.setCurrent(id);
+            }
+            ,setVisible: function(flag) {
+                ControlsManager.setVisible(flag);
+            }
+            ,toggleVisible: function() {
+                ControlsManager.setVisible(!ControlsManager.isVisible);
+            }
+            ,addGroupTool: function(hash) {
+                return ControlsManager.addGroupTool(hash);
+            }
+            ,getControl: function(id) {
+                var controls = ControlsManager.getCurrent();
+                return (controls && 'getControl' in controls ? controls.getControl(id) : null);
+            }
+        }
+    };
 })();

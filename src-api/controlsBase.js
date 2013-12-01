@@ -5,14 +5,22 @@
 
     //Поддержка zoomControl
 	var zoomControl = {
-        parentNode: null
+        id: 'zoomControl'
+        ,parentNode: null
         ,node: null
+        ,listeners: {}
         ,
         init: function(cont) {        // инициализация
             zoomControl.parentNode = cont;
             if(!zoomControl.node) zoomControl.node = zoomControl.createNode(cont);
             if(!zoomControl.node.parentNode) zoomControl.setVisible(true);
-            zoomControl.setActive(true);
+            zoomControl.toggleHandlers(true);
+            var zoomBounds = gmxAPI.map.getZoomBounds();
+            if(zoomBounds) {
+                zoomControl.minZoom = zoomBounds.MinZoom;
+                zoomControl.maxZoom = zoomBounds.MaxZoom;
+                zoomControl.setZoom(gmxAPI.map.getZ());
+            }
         }
         ,
         setVisible: function(flag) {        // инициализация
@@ -23,6 +31,37 @@
                 if(!node.parentNode) zoomControl.parentNode.appendChild(node);
                 zoomControl.repaint();
             }
+        }
+        ,
+        toggleHandlers: function(flag) {    // Добавление/Удаление прослушивателей событий
+            if(flag) {
+                if(!gmxAPI.map.zoomControl) gmxAPI.map.zoomControl = zoomControl.mapZoomControl;
+                //var cz = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z || 1 : 4);
+                //gmxAPI.map.zoomControl.setZoom(cz);
+                // Добавление прослушивателей событий
+                var key = 'onMinMaxZoom';
+                zoomControl.listeners[key] = gmxAPI.map.addListener(key, function(ph) {
+                    var attr = ph.attr;
+                    zoomControl.minZoom = attr.minZoom;
+                    zoomControl.maxZoom = attr.maxZoom;
+                    zoomControl.setZoom(attr.currZ);
+                    zoomControl.repaint();
+                });
+
+                key = 'positionChanged';
+                zoomControl.listeners[key] = gmxAPI.map.addListener(key, function(ph) {
+                    zoomControl.setZoom(ph.currZ);
+                });
+            } else {
+                for(var key in zoomControl.listeners) gmxAPI.map.removeListener(key, zoomControl.listeners[key]);
+                zoomControl.listeners = {};
+                gmxAPI.map.zoomControl = {};
+            }
+        }
+        ,
+        remove: function() {      // удаление
+            zoomControl.toggleHandlers(false);
+            zoomControl.setVisible(false);
         }
         ,
         createNode: function(cont) {        // инициализация
@@ -165,7 +204,17 @@
         }
         ,onChangeBackgroundColorID: null
         ,onMoveEndID: null
-        ,'mapZoomControl': {
+        ,setZoom: function(z) {
+            var newZoomObj = zoomControl.zoomArr[Math.round(z) - zoomControl.minZoom];
+            if (newZoomObj != zoomControl.zoomObj)
+            {
+                var apiBase = gmxAPI.getAPIFolderRoot();
+                if (zoomControl.zoomObj) zoomControl.zoomObj.src = apiBase + "img/zoom_raw.png";
+                zoomControl.zoomObj = newZoomObj;
+                if (zoomControl.zoomObj) zoomControl.zoomObj.src = apiBase + "img/zoom_active.png";
+            }
+        },
+        mapZoomControl: {
             isVisible: true,
             isMinimized: false,
             setVisible: function(flag)
@@ -175,14 +224,7 @@
             },
             setZoom: function(z)
             {
-                var newZoomObj = zoomControl.zoomArr[Math.round(z) - zoomControl.minZoom];
-                if (newZoomObj != zoomControl.zoomObj)
-                {
-                    var apiBase = gmxAPI.getAPIFolderRoot();
-                    if (zoomControl.zoomObj) zoomControl.zoomObj.src = apiBase + "img/zoom_raw.png";
-                    zoomControl.zoomObj = newZoomObj;
-                    if (zoomControl.zoomObj) zoomControl.zoomObj.src = apiBase + "img/zoom_active.png";
-                }
+                zoomControl.setZoom(z);
             },
             repaint: function()
             {
@@ -213,39 +255,26 @@
                 this.repaint();
             }
         }
-        ,
-        setActive: function(flag) {            // Добавление прослушивателей событий
-            if(flag) {
-                if(!gmxAPI.map.zoomControl) gmxAPI.map.zoomControl = zoomControl.mapZoomControl;
-                var cz = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z || 1 : 4);
-                gmxAPI.map.zoomControl.setZoom(cz);
-                // Добавление прослушивателей событий
-                zoomControl.onMoveEndID = gmxAPI.map.addListener('positionChanged', function(ph)
-                    {
-                        gmxAPI.map.zoomControl.setZoom(ph.currZ);
-                    }
-                );
-            } else {
-                gmxAPI.map.zoomControl = {};
-
-                if(zoomControl.onMoveEndID) {
-                    gmxAPI.map.removeListener('positionChanged', zoomControl.onMoveEndID);
-                    zoomControl.onMoveEndID = null;
-                }
-            }
+        ,getInterface: function() {
+            return {
+                setVisible: zoomControl.setVisible
+            };
         }
 	}
 
     //Поддержка geomixerLink
 	var geomixerLink = {
-        parentNode: null
-        ,
-        node: null
-        ,
-        init: function(cont) {        // инициализация
+        id: 'geomixerLink'
+        ,parentNode: null
+        ,node: null
+        ,init: function(cont) {        // инициализация
             geomixerLink.parentNode = cont.parentNode;
             if(!geomixerLink.node) geomixerLink.node = geomixerLink.createNode(geomixerLink.parentNode);
             if(!geomixerLink.node.parentNode) geomixerLink.parentNode.appendChild(geomixerLink.node);
+        }
+        ,
+        remove: function() {      // удаление
+            if(geomixerLink.node.parentNode) geomixerLink.parentNode.removeChild(geomixerLink.node);
         }
         ,
         createNode: function(cont) {        // инициализация
@@ -277,11 +306,17 @@
             ));
             return node;
         }
+        ,getInterface: function() {
+            return {
+                remove: geomixerLink.remove
+            };
+        }
 	}
 
     //Поддержка minimizeTools
 	var minimizeTools = {
-        parentNode: null
+        id: 'minimize'
+        ,parentNode: null
         ,node: null
         ,
         init: function(cont) {        // инициализация
@@ -322,6 +357,10 @@
                 minimize: gmxAPI.map.minimizeTools,
                 maximize: gmxAPI.map.maximizeTools
             });
+        }
+        ,
+        remove: function() {      // удаление
+            minimizeTools.setVisible(false);
         }
         ,
         setVisible: function(flag) {        // инициализация
@@ -382,17 +421,21 @@
             );
             return node;
         }
+        ,getInterface: function() {
+            return {
+                remove: minimizeTools.remove
+                ,setVisible: minimizeTools.setVisible
+            };
+        }
 	}
 
     //Поддержка copyright
 	var copyrightControl = {
-        parentNode: null
-        ,
-        node: null
+        id: 'copyrights'
+        ,parentNode: null
+        ,node: null
         ,items: []
         ,currentText: ''
-        ,x: '26px'					// отступ по горизонтали
-        ,y: '7px'					// отступ по вертикали
 		,
 		addItem: function(obj) {
             this.forEach(function(item, i) {
@@ -422,7 +465,9 @@
             copyrightControl.parentNode = cont.parentNode;
             if(!copyrightControl.node) copyrightControl.node = copyrightControl.createNode(copyrightControl.parentNode);
             if(!copyrightControl.node.parentNode) copyrightControl.setVisible(true);
-            copyrightControl.setActive(true);
+            copyrightControl.toggleHandlers(true);
+            copyrightControl.setColor(gmxAPI.getHtmlColor());
+            copyrightControl.redraw();
         }
         ,
         createNode: function(cont) {        // инициализация
@@ -434,11 +479,16 @@
                 {
                     fontSize: "11px",
                     position: "absolute",
-                    right: copyrightControl.x,
-                    bottom: copyrightControl.y
+                    right: '26px',
+                    bottom: '7px'
                 }
             );
             return node;
+        }
+        ,
+        remove: function() {      // удаление
+            copyrightControl.toggleHandlers(false);
+            copyrightControl.setVisible(false);
         }
         ,
         setVisible: function(flag) {        // инициализация
@@ -448,8 +498,59 @@
                 copyrightControl.parentNode.appendChild(copyrightControl.node);
             }
         }
+        ,onChangeBackgroundColorID: null
+        ,onMoveEndID: null
         ,
-        'forEach': function(callback) {
+        toggleHandlers: function(flag) {            // Добавление прослушивателей событий
+            var map = gmxAPI.map;
+            if(flag) {
+                map.addCopyrightedObject = function(obj) { copyrightControl.addItem(obj); }
+                map.removeCopyrightedObject = function(obj) { copyrightControl.removeItem(obj); }
+                map.setCopyrightVisibility = function(obj) { copyrightControl.setVisible(obj); } 
+                map.updateCopyright = function() { copyrightControl.redraw(); } 
+                // Изменить позицию контейнера копирайтов
+                map.setCopyrightAlign = function(attr) {
+                    if(attr.align) copyrightControl.copyrightAlign = attr.align;
+                    copyrightControl.setPosition();
+                }
+                
+                copyrightControl.onChangeBackgroundColorID = map.addListener('onChangeBackgroundColor', function(htmlColor) {
+                    copyrightControl.setColor(htmlColor);
+                    copyrightControl.redraw();
+                });
+                var updateListenerID = null;
+                var evName = (gmxAPI.proxyType === 'flash' ? 'positionChanged' : 'onMoveEnd');
+                copyrightControl.onMoveEndID = map.addListener(evName, function()
+                    {
+                        if (updateListenerID) return;
+                        updateListenerID = setTimeout(function()
+                        {
+                            copyrightControl.redraw();
+                            clearTimeout(updateListenerID);
+                            updateListenerID = null;
+                        }, 250);
+                    }
+                );
+            } else {
+                map.addCopyrightedObject = 
+                map.removeCopyrightedObject = 
+                map.setCopyrightVisibility = 
+                map.setCopyrightAlign = 
+                map.updateCopyright = function() {};
+                
+                if(copyrightControl.onChangeBackgroundColorID) {
+                    map.removeListener('onChangeBackgroundColor', copyrightControl.onChangeBackgroundColorID);
+                    copyrightControl.onChangeBackgroundColorID = null;
+                }
+                if(copyrightControl.onMoveEndID) {
+                    var evName = (gmxAPI.proxyType === 'flash' ? 'positionChanged' : 'onMoveEnd');
+                    map.removeListener(evName, copyrightControl.onMoveEndID);
+                    copyrightControl.onMoveEndID = null;
+                }
+            }
+        }
+        ,
+        forEach: function(callback) {
 			for (var i = 0, len = this.items.length; i < len; i++) {
 				if(callback(this.items[i], i) === false) return;
             }
@@ -506,95 +607,115 @@
 				}
 			}
         }
-        ,onChangeBackgroundColorID: null
-        ,onMoveEndID: null
-        ,
-        setActive: function(flag) {            // Добавление прослушивателей событий
-            var map = gmxAPI.map;
-            if(flag) {
-                map.addCopyrightedObject = function(obj) { copyrightControl.addItem(obj); }
-                map.removeCopyrightedObject = function(obj) { copyrightControl.removeItem(obj); }
-                map.setCopyrightVisibility = function(obj) { copyrightControl.setVisible(obj); } 
-                map.updateCopyright = function() { copyrightControl.redraw(); } 
-                // Изменить позицию контейнера копирайтов
-                map.setCopyrightAlign = function(attr) {
-                    if(attr.align) copyrightControl.copyrightAlign = attr.align;
-                    copyrightControl.setPosition();
-                }
-                
-                copyrightControl.onChangeBackgroundColorID = map.addListener('onChangeBackgroundColor', function(htmlColor) {
-                    copyrightControl.setColor(htmlColor);
-                    copyrightControl.redraw();
-                });
-                var updateListenerID = null;
-                var evName = (gmxAPI.proxyType === 'flash' ? 'positionChanged' : 'onMoveEnd');
-                copyrightControl.onMoveEndID = map.addListener(evName, function()
-                    {
-                        if (updateListenerID) return;
-                        updateListenerID = setTimeout(function()
-                        {
-                            copyrightControl.redraw();
-                            clearTimeout(updateListenerID);
-                            updateListenerID = null;
-                        }, 250);
-                    }
-                );
-            } else {
-                map.addCopyrightedObject = 
-                map.removeCopyrightedObject = 
-                map.setCopyrightVisibility = 
-                map.setCopyrightAlign = 
-                map.updateCopyright = function() {};
-                
-                if(copyrightControl.onChangeBackgroundColorID) {
-                    map.removeListener('onChangeBackgroundColor', copyrightControl.onChangeBackgroundColorID);
-                    copyrightControl.onChangeBackgroundColorID = null;
-                }
-                if(copyrightControl.onMoveEndID) {
-                    var evName = (gmxAPI.proxyType === 'flash' ? 'positionChanged' : 'onMoveEnd');
-                    map.removeListener(evName, copyrightControl.onMoveEndID);
-                    copyrightControl.onMoveEndID = null;
-                }
-            }
+        ,getInterface: function() {
+            return {
+                remove: copyrightControl.remove
+                ,setVisible: copyrightControl.setVisible
+                ,add: copyrightControl.addItem
+                ,removeItem: copyrightControl.removeItem
+            };
         }
 	}
 	
     //Поддержка - отображения строки текущего положения карты
 	var locationControl = {
-        parentNode: null
+        id: 'location'
+        ,parentNode: null
         ,nodes: null
         ,locationTitleDiv: null
         ,scaleBar: null
         ,items: []
         ,currentText: ''
-        ,x: '26px'					// отступ по горизонтали
-        ,y: '7px'					// отступ по вертикали
-		,
-		addItem: function(obj) {
-            this.forEach(function(item, i) {
-                if(obj === item) {
-                    return false;   // Уже есть такой
-                }
-            });
-            this.items.push(obj);
-            this.redraw();
-		}
-        ,
-		removeItem: function(obj) {
-            this.forEach(function(item, i) {
-                if(obj === item) {
-                    this.items.splice(i, 1);
-                    this.redraw();
-                    return false;
-                }
-            });
-		}
         ,
         init: function(cont) {        // инициализация
             locationControl.parentNode = cont.parentNode;
             if(!locationControl.nodes) locationControl.nodes = locationControl.createNode(locationControl.parentNode);
             if(!locationControl.nodes[0].parentNode) locationControl.setVisible(true);
-            locationControl.setActive(true);
+            locationControl.toggleHandlers(true);
+            locationControl.chkExists();
+        }
+        ,
+        chkExists: function() {     // Проверка уже установленных данных
+            locationControl.setColor(gmxAPI.getHtmlColor(), true);
+            locationControl.prpPosition();
+        }
+        ,
+        remove: function() {      // удаление
+            locationControl.toggleHandlers(false);
+            locationControl.setVisible(false);
+        }
+        ,
+        setVisible: function(flag) {        // инициализация
+			if(!flag) {
+                for (var i = 0, len = this.nodes.length; i < len; i++) {
+                    var node = this.nodes[i];
+                    if(node.parentNode) node.parentNode.removeChild(node);
+                }
+			} else {
+                for (var i = 0, len = this.nodes.length; i < len; i++) {
+                    var node = this.nodes[i];
+                    if(!node.parentNode) locationControl.parentNode.appendChild(node);
+                }
+            }
+        }
+        ,onChangeBackgroundColorID: null
+        ,onMoveEndID: null
+        ,positionChangedID: null
+        ,onResizeMapID: null
+        ,
+        toggleHandlers: function(flag) {            // Добавление прослушивателей событий
+            if(flag) {
+                gmxAPI.map.scaleBar = { setVisible: function(flag) { gmxAPI.setVisible(locationControl.scaleBar, flag); } };
+                
+                gmxAPI.map.coordinates = {
+                    setVisible: function(flag) { 
+                        gmxAPI.setVisible(locationControl.coordinates, flag); 
+                        gmxAPI.setVisible(locationControl.changeCoords, flag); 
+                    }
+                    ,
+                    addCoordinatesFormat: function(func) { 
+                        locationControl.coordFormatCallbacks.push(func);
+                        return locationControl.coordFormatCallbacks.length - 1;
+                    }
+                    ,
+                    removeCoordinatesFormat: function(num) { 
+                        locationControl.coordFormatCallbacks.splice(num, 1);
+                        return locationControl.coordFormatCallbacks.length - 1;
+                    }
+                    ,
+                    setFormat: locationControl.setCoordinatesFormat
+                }
+
+                locationControl.positionChangedID = gmxAPI.map.addListener('positionChanged', locationControl.prpPosition);
+                if(gmxAPI.proxyType === 'flash') {
+                    locationControl.onResizeMapID = gmxAPI.map.addListener('onResizeMap', locationControl.prpPosition);
+                } else {
+                    locationControl.onMoveEndID = gmxAPI.map.addListener('onMoveEnd', locationControl.checkPositionChanged);
+                }
+                locationControl.onChangeBackgroundColorID = gmxAPI.map.addListener('onChangeBackgroundColor', function(htmlColor) {
+                    locationControl.setColor(htmlColor);
+                });
+            } else {
+                gmxAPI.map.coordinates = 
+                gmxAPI.map.scaleBar = function() {};
+                
+                if(locationControl.onChangeBackgroundColorID) {
+                    gmxAPI.map.removeListener('onChangeBackgroundColor', locationControl.onChangeBackgroundColorID);
+                    locationControl.onChangeBackgroundColorID = null;
+                }
+                if(locationControl.positionChangedID) {
+                    gmxAPI.map.removeListener('positionChanged', locationControl.positionChangedID);
+                    locationControl.positionChangedID = null;
+                }
+                if(locationControl.onMoveEndID) {
+                    gmxAPI.map.removeListener('onMoveEnd', locationControl.onMoveEndID);
+                    locationControl.onMoveEndID = null;
+                }
+                if(locationControl.onResizeMapID) {
+                    gmxAPI.map.removeListener('onResizeMap', locationControl.onResizeMapID);
+                    locationControl.onResizeMapID = null;
+                }
+            }
         }
         ,
         showCoordinates: function() {        //окошко с координатами
@@ -678,27 +799,13 @@
             return nodes;
         }
         ,
-        setVisible: function(flag) {        // инициализация
-			if(!flag) {
-                for (var i = 0, len = this.nodes.length; i < len; i++) {
-                    var node = this.nodes[i];
-                    if(node.parentNode) node.parentNode.removeChild(node);
-                }
-			} else {
-                for (var i = 0, len = this.nodes.length; i < len; i++) {
-                    var node = this.nodes[i];
-                    if(!node.parentNode) locationControl.parentNode.appendChild(node);
-                }
-            }
-        }
-        ,
-        'forEach': function(callback) {
+        forEach: function(callback) {
 			for (var i = 0, len = this.items.length; i < len; i++) {
 				if(callback(this.items[i], i) === false) return;
             }
         }
         ,
-        'setColor': function(color, flag) {
+        setColor: function(color, flag) {
             gmxAPI.setStyleHTML(locationControl.coordinates, {
                 'fontSize': "14px",
                 'color': color
@@ -718,77 +825,40 @@
 			}
 		}
         ,
-        'getLocalScale': function(x, y) {
-			return gmxAPI.distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
-		}
-        ,
-        'repaintScaleBar': function() {
+        repaintScaleBar: function() {
 			if (locationControl.scaleBarText) {
 				gmxAPI.size(locationControl.scaleBar, locationControl.scaleBarWidth, 16);
 				locationControl.scaleBar.innerHTML = locationControl.scaleBarText;
 			}
 		}
         ,
-        'checkPositionChanged': function() {
-			var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
-			var z = Math.round(currPos.z);
-			var x = (currPos.latlng ? currPos.latlng.x : 0);
-			var y = (currPos.latlng ? currPos.latlng.y : 0);
-			if(gmxAPI.map.needMove) {
-				z = gmxAPI.map.needMove.z;
-				x = gmxAPI.map.needMove.x;
-				y = gmxAPI.map.needMove.y;
-			}
-
-			var metersPerPixel = locationControl.getLocalScale(x, y) * gmxAPI.getScale(z);
-			for (var i = 0; i < 30; i++)
-			{
-				var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
-				var w = Math.floor(distance/metersPerPixel);
-				if (w > 100)
-				{
-					var name = gmxAPI.prettifyDistance(distance);
-					if (name != locationControl.scaleBarText || w != locationControl.scaleBarWidth)
-					{
-						locationControl.scaleBarText = name;
-						locationControl.scaleBarWidth = w;
-						locationControl.repaintScaleBar();
-					}
-					break;
-				}
-			}
-			//setCoordinatesFormat();
-		}
-        ,'coordFormat': 0
-        ,'prevCoordinates': ''
+        checkPositionChanged: function() {
+			var attr = gmxAPI.getScaleBarDistance();
+            if (!attr || (attr.txt === locationControl.scaleBarText && attr.width === locationControl.scaleBarWidth)) return;
+            locationControl.scaleBarText = attr.txt;
+            locationControl.scaleBarWidth = attr.width;
+            locationControl.repaintScaleBar();
+        }
+        ,coordFormat: 0
+        ,prevCoordinates: ''
         ,
-        'getCoordinatesText': function(currPos) {
-			if(!currPos) currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
-			var x = (currPos.latlng ? currPos.latlng.x : gmxAPI.from_merc_x(currPos.x));
-			var y = (currPos.latlng ? currPos.latlng.y : gmxAPI.from_merc_y(currPos.y));
-			if (x > 180) x -= 360;
-			if (x < -180) x += 360;
-			if (locationControl.coordFormat % 3 == 0)
-				return gmxAPI.LatLon_formatCoordinates(x, y);
-			else if (locationControl.coordFormat % 3 == 1)
-				return gmxAPI.LatLon_formatCoordinates2(x, y);
-			else
-				return Math.round(gmxAPI.merc_x(x)) + ", " + Math.round(gmxAPI.merc_y(y));
+        getCoordinatesText: function(currPos) {
+			return gmxAPI.getCoordinatesText(currPos, locationControl.coordFormat);
 		}
         ,
-        'clearCoordinates': function() {
+        clearCoordinates: function() {
             var node = locationControl.coordinates;
 			for (var i = node.childNodes.length - 1; i >= 0; i--)
 				node.removeChild(node.childNodes[i]);
 		}
         ,
-        'coordFormatCallbacks': [		// методы формирования форматов координат
+        coordFormatCallbacks: [		// методы формирования форматов координат
 			function() { return locationControl.getCoordinatesText(); },
 			function() { return locationControl.getCoordinatesText(); },
 			function() { return locationControl.getCoordinatesText(); }
 		]
         ,
-		'setCoordinatesFormat': function(num, screenGeometry) {
+		setCoordinatesFormat: function(num, screenGeometry) {
 			if(!num) num = locationControl.coordFormat;
 			if(num < 0) num = locationControl.coordFormatCallbacks.length - 1;
 			else if(num >= locationControl.coordFormatCallbacks.length) num = 0;
@@ -800,8 +870,8 @@
 			locationControl.prevCoordinates = res;
 			gmxAPI._listeners.dispatchEvent('onSetCoordinatesFormat', gmxAPI.map, num);
 		}
-		,'setCoordinatesFormatTimeout': null
-		,'prpPosition': function() {
+		,setCoordinatesFormatTimeout: null
+		,prpPosition: function() {
 			if (locationControl.setCoordinatesFormatTimeout) return;
 			locationControl.setCoordinatesFormatTimeout = setTimeout(function()
 			{
@@ -811,73 +881,18 @@
 				locationControl.setCoordinatesFormat();
 			}, 150);
 		}
-        ,onChangeBackgroundColorID: null
-        ,onMoveEndID: null
-        ,positionChangedID: null
-        ,onResizeMapID: null
-        ,
-        setActive: function(flag) {            // Добавление прослушивателей событий
-            if(flag) {
-                gmxAPI.map.scaleBar = { setVisible: function(flag) { gmxAPI.setVisible(locationControl.scaleBar, flag); } };
-                
-                gmxAPI.map.coordinates = {
-                    setVisible: function(flag) 
-                    { 
-                        gmxAPI.setVisible(locationControl.coordinates, flag); 
-                        gmxAPI.setVisible(locationControl.changeCoords, flag); 
-                    }
-                    ,
-                    addCoordinatesFormat: function(func) 
-                    { 
-                        locationControl.coordFormatCallbacks.push(func);
-                        return locationControl.coordFormatCallbacks.length - 1;
-                    }
-                    ,
-                    removeCoordinatesFormat: function(num) 
-                    { 
-                        locationControl.coordFormatCallbacks.splice(num, 1);
-                        return locationControl.coordFormatCallbacks.length - 1;
-                    }
-                    ,
-                    setFormat: locationControl.setCoordinatesFormat
-                }
-
-                locationControl.positionChangedID = gmxAPI.map.addListener('positionChanged', locationControl.prpPosition);
-                if(gmxAPI.proxyType === 'flash') {
-                    locationControl.onResizeMapID = gmxAPI.map.addListener('onResizeMap', locationControl.prpPosition);
-                } else {
-                    locationControl.onMoveEndID = gmxAPI.map.addListener('onMoveEnd', locationControl.checkPositionChanged);
-                }
-                locationControl.onChangeBackgroundColorID = gmxAPI.map.addListener('onChangeBackgroundColor', function(htmlColor) {
-                    locationControl.setColor(htmlColor);
-                });
-            } else {
-                gmxAPI.map.coordinates = 
-                gmxAPI.map.scaleBar = function() {};
-                
-                if(locationControl.onChangeBackgroundColorID) {
-                    gmxAPI.map.removeListener('onChangeBackgroundColor', locationControl.onChangeBackgroundColorID);
-                    locationControl.onChangeBackgroundColorID = null;
-                }
-                if(locationControl.positionChangedID) {
-                    gmxAPI.map.removeListener('positionChanged', locationControl.positionChangedID);
-                    locationControl.positionChangedID = null;
-                }
-                if(locationControl.onMoveEndID) {
-                    gmxAPI.map.removeListener('onMoveEnd', locationControl.onMoveEndID);
-                    locationControl.onMoveEndID = null;
-                }
-                if(locationControl.onResizeMapID) {
-                    gmxAPI.map.removeListener('onResizeMap', locationControl.onResizeMapID);
-                    locationControl.onResizeMapID = null;
-                }
-            }
+        ,getInterface: function() {
+            return {
+                remove: locationControl.remove
+                ,setVisible: locationControl.setVisible
+            };
         }
     }
 
     //Контролы слоев
 	var layersControl = {
-        parentNode: null
+        id: 'layers'
+        ,parentNode: null
         ,node: null
         ,itemsContainer: null
         ,mapInitListenerID: null
@@ -932,46 +947,77 @@
             
             //if(!layersControl.node) layersControl.node = layersControl.createNode(cont);
             //if(!layersControl.node.parentNode) layersControl.setVisible(true);
-            layersControl.setActive(true);
+            layersControl.toggleHandlers(true);
+            layersControl.chkExists();
+			gmxAPI.map.baseLayerControl.setVisible = baseLayersTools.setVisible; // обратная совместимость
         }
         ,
-        setActive: function(flag) {            // Добавление прослушивателей событий
+        remove: function() {      // удаление
+            layersControl.toggleHandlers(false);
+            gmxAPI.baseLayersTools.remove();
+        }
+        ,
+        chkExists: function() {     // Получить уже установленные подложки
+			var arr = gmxAPI.map.baseLayersManager.getItems();
+            for(var i=0, len = arr.length; i<len; i++) {
+                layersControl.addBaseLayerTool(arr[i]);
+            }
+			var id = gmxAPI.map.baseLayersManager.getCurrent();
+            gmxAPI.baseLayersTools.setActiveTool(id);
+			var id = gmxAPI.map.baseLayersManager.getCurrent();
+        }
+        ,
+        addBaseLayerTool: function(ph) {
+            var id = ph.id;
+            var attr = {
+                onClick: function() { gmxAPI.map.setBaseLayer(id); },
+                onCancel: function() { gmxAPI.map.unSetBaseLayer(); },
+                hint: gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id
+            };
+            layersControl.map.baseLayersTools.chkBaseLayerTool(id, attr);
+        }
+        ,
+        toggleHandlers: function(flag) {            // Добавление прослушивателей событий
             if(flag) {
-                gmxAPI._listeners.addListener({'level': 9999, 'eventName': 'mapInit', 'func': function(map) {
-                    layersControl.map = map;
+                //gmxAPI._listeners.addListener({'level': 9999, 'eventName': 'mapInit', 'func': function(map) {
+                    layersControl.map = gmxAPI.map;
 
                     var key = 'onAddBaseLayer';
                     layersControl.listeners[key] = layersControl.map.addListener(key, function(ph) {
-//console.log('onAddBaseLayer------ ', name, gmxAPI.BaseLayersManager.getItems());
-                        layersControl.map.baseLayersTools.chkBaseLayerTool(ph.id, ph.attr);
-
-                        //tool.select();
+                        layersControl.addBaseLayerTool(ph);
                     });
 
                     key = 'baseLayerSelected';
                     layersControl.listeners[key] = layersControl.map.addListener(key, function(name) {
-                        //var tool = layersControl.map.baseLayersTools.getTool(name);
-                        //var tool = layersControl.map.baseLayersTools.getTool(name);
-                        //tool.select();
                         layersControl.map.baseLayersTools.setActiveTool(name);
                     });
-                }});
+                    key = 'onRemoveBaseLayer';
+                    layersControl.listeners[key] = layersControl.map.addListener(key, function(name) {
+                        layersControl.map.baseLayersTools.removeTool(name);
+                    });
+                //}});
             } else {
                 for(var key in layersControl.listeners) layersControl.map.removeListener(key, layersControl.listeners[key]);
                 layersControl.listeners = {};
             }
         }
+        ,getInterface: function() {
+            return {
+                remove: layersControl.remove
+            };
+        }
     }
 
 	var drawingControl = {
-        parentNode: null
+        id: 'drawing'
+        ,parentNode: null
         ,node: null
         ,hideNode: null
         ,items: []
         ,
         init: function(cont) {        // инициализация
             // Установка drawing контролов
-            gmxAPI._listeners.addListener({level: -10, eventName: 'mapInit', func: function(map) {
+            //gmxAPI._listeners.addListener({level: -10, eventName: 'mapInit', func: function(map) {
                 var attr = {
                     properties: { className: 'gmxTools' }
                     ,
@@ -1083,40 +1129,45 @@
                 }
                 standartTools.selectTool("move");
                 gmxAPI._drawing.control = gmxAPI.map.standartTools = standartTools;
-            }});
+            //}});
+        }
+        ,getInterface: function() {
+            return gmxAPI.map.standartTools;
         }
     }
  
-	var Control = {
-        'id': 'controlsBase'
-        ,
-        'isActive': false
-        ,
-        'items': [layersControl, geomixerLink, copyrightControl, locationControl, zoomControl, minimizeTools, drawingControl]
-        ,
-        'init': function(parent) {        // инициализация
+	var Controls = {
+        id: 'controlsBase'
+        ,isActive: false
+        ,items: [geomixerLink, copyrightControl, locationControl, zoomControl, minimizeTools, drawingControl, layersControl]
+        ,init: function(parent) {        // инициализация
             this.forEach(function(item, i) {
                 ('init' in item ? item.init : item)(parent);
             });
         }
-        //,'setVisible': function(flag) { }
-        ,
-        'remove': function() {      // удаление
+        ,remove: function() {      // удаление
+            if(Controls.id != gmxAPI.map.controlsManager.getCurrent()) return;
+            this.forEach(function(item, i) {
+                if('remove' in item) item.remove();
+            });
         }
-        ,
-        'forEach': function(callback) {
+        ,forEach: function(callback) {
 			for (var i = 0, len = this.items.length; i < len; i++) {
 				if(callback(this.items[i], i) === false) return;
             }
         }
+        ,getControl: function(id) {
+            var res = null;
+            this.forEach(function(item, i) {
+                if(id === item.id) {
+                    res = ('getInterface' in item ? item.getInterface() : {});
+                    return false;
+                }
+            });
+            return res;
+        }
 	}
-    if(gmxAPI.ControlsManager.currentID === Control.id) {
-        gmxAPI._listeners.addListener({'eventName': 'mapInit', 'func': function(map) {
-             copyrightControl.setActive(true);
-             zoomControl.setActive(true);
-             locationControl.setActive(true);
-        }});
-    }
-    
-	gmxAPI.ControlsManager.addControl(Control);
+
+    if(!gmxAPI._controls) gmxAPI._controls = [];
+    gmxAPI._controls.push(Controls);
 })();

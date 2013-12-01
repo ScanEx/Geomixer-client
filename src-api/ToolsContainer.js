@@ -28,53 +28,62 @@
             toolHash = {},
             itemsContainer = null,
             activeToolName = '',
-            notSticky = (attr['notSticky'] ? attr['notSticky'] : 0),
-            contType = (attr['contType'] ? attr['contType'] : 0),
+            notSticky = (attr.notSticky ? attr.notSticky : 0),
+            contType = (attr.contType ? attr.contType : 0),
             independentFlag = (contType == 0 ? true : false),
             notSelectedFlag = (contType != 1 ? true : false),
             currentlyDrawnObject = false,
-            createContainerNode = attr['createContainerNode'] || null,
-            createItemNode = attr['createItemNode'] || null;
+            createContainerNode = attr.createContainerNode || null,
+            createItemNode = attr.createItemNode || null;
 
 		if(!name) name = 'testTool';
 
-		var properties = (attr['properties'] ? attr['properties'] : {});
-		if(!properties['className']) {			// className по умолчанию tools_ИмяВкладки
-			properties['className'] = 'tools_' + name;
+		var properties = (attr.properties ? attr.properties : {});
+		if(!properties.className) {			// className по умолчанию tools_ИмяВкладки
+			properties.className = 'tools_' + name;
 		}
 
-		var style = { "display": 'block', 'marginTop': '40px', 'marginLeft': '4px', 'padding': '4px 0' };
-        if(window.gmxControls === 'controlsBaseIcons') delete style['marginTop'];
-		// Установка backgroundColor c alpha
-		if(gmxAPI.isIE && document['documentMode'] < 10) {
-			style['filter'] = "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A)";
-			style['styleFloat'] = 'left';
-		}
-		else 
-		{
-			style['backgroundColor'] = "rgba(1, 106, 138, 0.5)";
-			style['cssFloat'] = 'left';
-		}
-
-		if(attr['style']) {
-			for(key in attr['style']) style[key] = attr['style'][key];
-		}
+		// стили контейнера
+		var style = { display: 'block', styleFloat: 'left', cssFloat: 'left', marginLeft: '4px', borderRadius: '4px', backgroundColor: '#9A9A9A' };
 		// стили добавляемых юзером элементов tool
-		var regularStyle = { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "wheat"	};
-		if(attr['regularStyle']) {		// дополнение и переопределение стилей
-			for(var key in attr['regularStyle']) regularStyle[key] = attr['regularStyle'][key];
-		}
+		var regularStyle = { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "white"	};
 		var activeStyle = { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "orange"	};
-		if(attr['activeStyle']) {
-			for(key in attr['activeStyle']) activeStyle[key] = attr['activeStyle'][key];
+
+		var isDefaultControl = (gmxAPI.map.controlsManager.getCurrent() === 'controlsBase');
+
+        if(isDefaultControl) {
+            style = { display: 'block', styleFloat: 'left', cssFloat: 'left', marginTop: '40px', marginLeft: '4px', padding: '4px 0' };
+            // Установка backgroundColor c alpha
+            if(gmxAPI.isIE && document.documentMode < 10) {
+                style.filter = "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A)";
+                style.styleFloat = 'left';
+            }
+            else 
+            {
+                style.backgroundColor = "rgba(1, 106, 138, 0.5)";
+                style.cssFloat = 'left';
+            }
+            regularStyle = { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "wheat"	};
+            activeStyle = { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "orange"	};
 		}
 
-		var my = this;
+		if(attr.style) {
+			for(key in attr.style) style[key] = attr.style[key];
+		}
+		if(attr.regularStyle) {		// дополнение и переопределение стилей
+			for(var key in attr.regularStyle) regularStyle[key] = attr.regularStyle[key];
+		}
+		if(attr.activeStyle) {
+			for(key in attr.activeStyle) activeStyle[key] = attr.activeStyle[key];
+		}
+
+        var my = this;
         gmxAPI.extend(this, {
-            'activeToolName': ''
-            ,'currentlyDrawnObject': null
-            ,'isVisible': true
-            ,'setActiveTool': function(toolName) {
+            activeToolName: ''
+            ,node: null
+            ,currentlyDrawnObject: null
+            ,isVisible: true
+            ,setActiveTool: function(toolName) {
                 for (var id in toolHash) {
                     var tool = toolHash[id];
                     if (tool)  {
@@ -84,8 +93,7 @@
                 this.activeToolName = toolName;
                 this.repaint();			
             }
-            ,
-            'selectTool': function(toolName) {
+            ,selectTool: function(toolName) {
                 if (name == 'standart') {	// только для колонки 'standart'
                     if (toolName == my.activeToolName) toolName = (toolNames.length > 0 ? toolNames[0] : '');	// если toolName совпадает с активным tool переключаем на 1 tool
 
@@ -139,86 +147,74 @@
                 }
                 gmxAPI._listeners.dispatchEvent('onActiveChanged', gmxAPI._tools[name]);	// Изменились активные tool в контейнере
             }
-            ,
-            'stateListeners': {}
-            ,
-            'addListener': function(eventName, func) {
-                return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func});
+            ,stateListeners: {}
+            ,addListener: function(eventName, func) {
+                return gmxAPI._listeners.addListener({obj: this, eventName: eventName, func: func});
             }
-            ,
-            'removeListener': function(eventName, id) {
+            ,removeListener: function(eventName, id) {
                 return gmxAPI._listeners.removeListener(this, eventName, id);
             }
-            ,
-            'forEach': function(callback) {
+            ,forEach: function(callback) {
                 for (var id in toolHash)
                     callback(toolHash[id]);
             }
-            ,
-            'getToolByName': function(tn) {
+            ,getToolByName: function(tn) {
                 if(!toolHash[tn]) return false;
                 return toolHash[tn];
             }
-            ,
-            'getTool': function(tn) {
+            ,getTool: function(tn) {
                 if(toolHash[tn]) return toolHash[tn];
                 for (var key in toolHash) {
                     var tool = toolHash[key];
-                    var alias = tool['alias'] || key;
+                    var alias = tool.alias || key;
                     if(alias === tn) return tool;
                 }
                 return null;
             }
-            ,
-            'getAlias': function(tn) {
+            ,getAlias: function(tn) {
                 return aliasNames[tn] || tn;
             }
-            ,
-            'getAliasByName': function(tn) {
+            ,getAliasByName: function(tn) {
                 for (var key in toolHash) {
                     var tool = toolHash[key];
-                    var alias = tool['alias'] || key;
+                    var alias = tool.alias || key;
                     if(alias === tn) return alias;
-                    else if(tool['lang']) {
-                        for (var lang in tool['lang']) {
-                            if(tool['lang'][lang] === tn) return alias;
+                    else if(tool.lang) {
+                        for (var lang in tool.lang) {
+                            if(tool.lang[lang] === tn) return alias;
                         }
                     }
                 }
                 return null;
             }
-            ,
-            'getToolIndex': function (tn) {
+            ,getToolIndex: function (tn) {
                 for (var i = 0; i<toolNames.length; i++)
                 {
                     if(tn === toolNames[i]) return i;
                 }
                 return -1;
             }
-            ,
-            'setToolIndex': function (tn, ind) {
+            ,setToolIndex: function (tn, ind) {
                 var num = my.getToolIndex(tn);
                 if(num === -1 || !toolHash[tn]) return false;
                 toolNames.splice(num, 1);
 
                 var hash = toolHash[tn];
                 var tBody = my.itemsContainer;
-                var obj = tBody.removeChild(hash['row']);
+                var obj = tBody.removeChild(hash.row);
 
                 var len = tBody.children.length;
                 if(ind >= len) ind = len - 1;
                 
-                toolHash[tn]['row'] = tBody.insertBefore(obj, tBody.children[ind]);
+                toolHash[tn].row = tBody.insertBefore(obj, tBody.children[ind]);
                 toolNames.splice(i, 0, tn);
                 return true;
             }
-            ,
-            'setVisible': function(flag) {
+            ,setVisible: function(flag) {
                 gmxAPI.setVisible(gmxTools, flag);
                 this.isVisible = flag;
             }
-            ,
-            'repaint': function() {
+            ,repaint: function() {
                 for (var id in toolHash) {
                     var tool = toolHash[id];
                     if (tool)  {
@@ -226,48 +222,51 @@
                     }
                 }
             }
-            ,
-            'updateVisibility': function() {
+            ,updateVisibility: function() {
             }
-            ,
-            'remove': function() {
-                gmxAPI._allToolsDIV.removeChild(gmxTools);
+            ,remove: function() {
+                for(var key in this.stateListeners) {
+                    var item = this.stateListeners[key];
+                    this.removeListener(key, item.id);
+                }
+                this.stateListeners = {};
+
+                delete gmxAPI._toolsContHash[name];
+                if(this.node.parentNode) this.node.parentNode.removeChild(this.node);
             }
-            ,
-            'chkBaseLayerTool': function (tn, attr) {
+            ,chkBaseLayerTool: function (tn, attr) {
                 if (toolHash[tn]) return false;
                 else {
                     if(!attr)  {
                         attr = {
-                            'onClick': function() { gmxAPI.map.setBaseLayer(tn); },
-                            'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
-                            'onmouseover': function() { this.style.color = "orange"; },
-                            'onmouseout': function() { this.style.color = "white"; },
-                            'hint': tn
+                            onClick: function() { gmxAPI.map.setBaseLayer(tn); },
+                            onCancel: function() { gmxAPI.map.unSetBaseLayer(); },
+                            onmouseover: function() { this.style.color = "orange"; },
+                            onmouseout: function() { this.style.color = "white"; },
+                            hint: tn
                         };
                     }
                     return this.addTool(tn, attr);
                 }
 
             }
-            ,
-            'addTool': function (tn, attr) {
-//console.log('tool addTool', tn, attr);
+            ,addTool: function (tn, attr) {
+//console.log('tool addTool', tn, attr); // wheat
 
                 if(!my.itemsContainer) my.itemsContainer = (createContainerNode ? createContainerNode() : my.createContainerNode('div', properties, style));
 
                 if(!attr) attr = {};
-                if(!attr['alias']) attr['alias'] = tn
-                aliasNames[attr['alias']] = tn;
+                if(!attr.alias) attr.alias = tn
+                aliasNames[attr.alias] = tn;
 
                 var elType = 'img';
                 var elAttr = {
-                    title: attr['hint'],
+                    title: attr.hint,
                     onclick: function() { my.selectTool(tn); }
                 };
 
-                if(!('onClick' in attr)) attr['onClick'] = function() { gmxAPI.map.setMode(tn); };
-                if(!('onCancel' in attr)) attr['onCancel'] = function() { gmxAPI.map.unSetBaseLayer(); };
+                if(!('onClick' in attr)) attr.onClick = function() { gmxAPI.map.setMode(tn); };
+                if(!('onCancel' in attr)) attr.onCancel = function() { gmxAPI.map.unSetBaseLayer(); };
             
                 var setStyle = function(elem, style) {
                     for (var key in style)
@@ -282,21 +281,33 @@
                 var myRegularStyle = (attr.regularStyle ? attr.regularStyle : regularStyle);
                 var repaintFunc = null;
                 if('regularImageUrl' in attr) {
-                    elAttr['onmouseover'] = function()	{ this.src = attr['activeImageUrl']; };
-                    repaintFunc = function(obj) { obj.src = (tn == my.activeToolName) ? attr['activeImageUrl'] : attr['regularImageUrl'];	};
-                    elAttr['src'] = attr['regularImageUrl'];
+                    elAttr.onmouseover = function()	{ this.src = attr.activeImageUrl; };
+                    repaintFunc = function(obj) { obj.src = (tn == my.activeToolName) ? attr.activeImageUrl : attr.regularImageUrl;	};
+                    elAttr.src = attr.regularImageUrl;
                 } else {
                     elType = 'div';
-                    repaintFunc = function(obj) {
-                        setStyle(obj, (toolHash[tn].isActive ? myActiveStyle : myRegularStyle));
+                    repaintFunc = function(obj, flag) {
+                        if(toolHash[tn].isActive) flag = true;
+                        var resStyle = (flag ? myActiveStyle : myRegularStyle);
+                        if(isDefaultControl) {
+                            setStyle(obj, resStyle);
+                        } else {
+                            //if(toolHash[tn].isActive) {
+                            //    setStyle(obj, myRegularStyle);
+                                style.backgroundColor = (flag ? '#7C7C7C' : '#9A9A9A');
+                                setStyle(my.itemsContainer, style);
+                            // } else {
+                                // setStyle(obj, resStyle);
+                            // }
+                        }
                     };
-                    elAttr['onmouseover'] = function()	{
-                        setStyle(this, (toolHash[tn].isActive ? myActiveStyle : myRegularStyle));
+                    elAttr.onmouseover = function()	{
+                        repaintFunc(this, true);
                     };
-                    elAttr['innerHTML'] = attr['hint'];
+                    elAttr.innerHTML = attr.hint;
                 }
-                elAttr['onmouseout'] = function()	{
-                    repaintFunc(this);
+                elAttr.onmouseout = function()	{
+                    repaintFunc(this, false);
                 };
                
                 var pt = (createItemNode ? createItemNode(my.itemsContainer) : function (parent) {
@@ -311,15 +322,15 @@
                         ,'row': tr	        // нода контейнера tool элемента (по умолчанию без контейнера)
                     };
                 }(my.itemsContainer));
-                var itemContainer = pt['control'];
-                var row = pt['row'] || itemContainer;
+                var itemContainer = pt.control;
+                var row = pt.row || itemContainer;
 
                 toolHash[tn] = {
                     id: tn,
                     key: tn,
-                    alias: attr['alias'] || null,
-                    lang: attr['lang'] || null,
-                    backgroundColor: attr['backgroundColor'],
+                    alias: attr.alias || null,
+                    lang: attr.lang || null,
+                    backgroundColor: attr.backgroundColor,
                     isActive: false,
                     isVisible: true,
                     control: itemContainer,
@@ -342,70 +353,53 @@
                     onClick: function()	{
                         this.isActive = true;
                         my.activeToolName = tn;
-                        return attr['onClick'].call();
+                        return attr.onClick.call();
                     },
                     onCancel: function()	{
                         this.isActive = false;
                         my.activeToolName = '';
-                        attr['onCancel'].call();
+                        attr.onCancel.call();
                     }
                     ,
                     select: function() { my.selectTool(tn); }
                     ,
                     setActive: function() { my.selectTool(tn); }
                 }
-                toolHash[tn]['line'] = row;      // для обратной совместимости
+                toolHash[tn].line = row;      // для обратной совместимости
 
-                var pos = (attr['pos'] > 0 ? attr['pos'] : toolNames.length);
+                var pos = (attr.pos > 0 ? attr.pos : toolNames.length);
                 toolNames.splice(pos, 0, tn);
                 //positionTools();
                 if(!gmxAPI._drawing.tools[tn]) gmxAPI._drawing.tools[tn] = toolHash[tn];
                 return toolHash[tn];
             }
-            ,
-            'removeTool': function (tn) {
+            ,removeTool: function (tn) {
                 var num = my.getToolIndex(tn);
                 if(num === -1 || !toolHash[tn]) return false;
                 toolNames.splice(num, 1);
-                my.itemsContainer.removeChild(toolHash[tn]['row']);
+                my.itemsContainer.removeChild(toolHash[tn].row);
                 delete toolHash[tn];
                 if(gmxAPI._drawing.tools[tn]) delete gmxAPI._drawing.tools[tn];
                 return true;
             }
-            ,
-            'createContainerNode': function (nodeType, properties, style) {
+            ,createContainerNode: function (nodeType, properties, style) {
                 var node = gmxAPI.newElement(nodeType || 'div', properties, style);
-//gmxAPI._allToolsDIV.insertBefore(node, gmxAPI._allToolsDIV.childNodes[0]);
                 if(gmxAPI.IconsControl) {
                     gmxAPI.IconsControl.node.appendChild(node);
                 } else {
                     gmxAPI._allToolsDIV.appendChild(node);
                 }
                 //gmxAPI._allToolsDIV.appendChild(node);
+                this.node = node
                 gmxAPI._toolsContHash[name] = node;
                 
-                var table = gmxAPI.newElement("table", {}, {'borderCollapse': 'collapse'});
+                var table = gmxAPI.newElement("table", {}, {borderCollapse: 'collapse'});
                 node.appendChild(table);
                 my.itemsContainer = gmxAPI.newElement("tbody", {}, {});
                 table.appendChild(this.itemsContainer);
                 return node;
             }
         });
-		//this = gmxAPI._toolsContHash;
-/*
-		var toolsContHash = gmxAPI._toolsContHash;
-
-		var gmxTools = gmxAPI.newElement('div', properties, style);
-		gmxAPI._allToolsDIV.appendChild(gmxTools);
-		toolsContHash[name] = gmxTools;
-*/
-/*
-		var toolsContainer = gmxAPI.newElement("table", {}, {'borderCollapse': 'collapse'});
-		gmxTools.appendChild(toolsContainer);
-		var tBody = gmxAPI.newElement("tbody", {}, {});
-		toolsContainer.appendChild(tBody);
-*/
-
 
 		if(!gmxAPI._tools) gmxAPI._tools = {};
 		gmxAPI._tools[name] = this;

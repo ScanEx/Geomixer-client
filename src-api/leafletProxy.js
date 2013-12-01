@@ -2344,10 +2344,8 @@
 					if (xStep > 0 && yStep > 0) break;
 				}
 			}
-			
-			var baseLayersTools = gmxAPI.map.baseLayersTools;
-			var currTool = baseLayersTools.getToolByName(baseLayersTools.activeToolName);
-			var color = (currTool.backgroundColor === 1 ? 'white' : 'black');
+
+			var color = gmxAPI.getHtmlColor();
 			var haloColor = (color === 'black' ? 'white' : 'black');
 
 			var divStyle = {'width': 'auto', 'height': 'auto', 'color': color, 'haloColor': haloColor, 'wordBreak': 'keep-all'};
@@ -2604,7 +2602,6 @@
 		}
 		,
 		'setMinMaxZoom':	function(ph)	{				// установка minZoom maxZoom карты
-			//return;
 			if(LMap.options.minZoom == ph.attr.z1 && LMap.options.maxZoom == ph.attr.z2) return;
 			LMap.options.minZoom = ph.attr.z1;
 			LMap.options.maxZoom = ph.attr.z2;
@@ -2613,8 +2610,7 @@
 			var maxz = LMap.getMaxZoom();
 			if(currZ > maxz) currZ = maxz;
 			else if(currZ < minz) currZ = minz;
-			if(gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setZoom(currZ);
-			
+
 			var centr = LMap.getCenter();
 			var px = centr.lng;
 			var py = centr.lat;
@@ -2623,6 +2619,7 @@
 			} else {
 				utils.runMoveTo({'x': px, 'y': py, 'z': currZ})
 			}
+			gmxAPI._listeners.dispatchEvent('onMinMaxZoom', gmxAPI.map, {obj: gmxAPI.map, attr: {minZoom: minz, maxZoom: maxz, currZ: currZ} });
 		}
 		,
 		'checkMapSize':	function()	{				// Проверка изменения размеров карты
@@ -2644,43 +2641,18 @@
 			var toz = Math.abs(ph.attr.dz);
 			if(ph.attr.dz > 0) LMap.zoomOut(toz);
 			else LMap.zoomIn(toz);
-/*
-			var currZ = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
-			currZ -= ph.attr.dz;
-			if(currZ > LMap.getMaxZoom() || currZ < LMap.getMinZoom()) return;
-			var pos = LMap.getCenter();
-			if(gmxAPI.map.needMove) {
-				pos.lng = gmxAPI.map.needMove.x;
-				pos.lat = gmxAPI.map.needMove.y;
-			}
-			if (ph.attr.useMouse && gmxAPI._leaflet['mousePos'])
-			{
-				var z = (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
-				var k = Math.pow(2, z - currZ);
-				
-				var lat = utils.getMouseY();
-				var lng = utils.getMouseX();
-				pos.lat = lat + k*(pos.lat - lat);
-				pos.lng = lng + k*(pos.lng - lng);
-			}
-			utils.runMoveTo({'x': pos.lng, 'y': pos.lat, 'z': currZ})
-			//LMap.setView(pos, currZ);
-*/
 		}
 		,
 		'moveTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
 			var zoom = ph.attr['z'] || (gmxAPI.map.needMove ? gmxAPI.map.needMove.z : LMap.getZoom() || 4);
 			if(zoom > LMap.getMaxZoom() || zoom < LMap.getMinZoom()) return;
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
-			//LMap.setView(pos, zoom);
 			utils.runMoveTo({'x': pos.lng, 'y': pos.lat, 'z': zoom})
-//			setTimeout(function() { LMap._onResize(); }, 50);
 		}
 		,
 		'slideTo':	function(ph)	{				//позиционирует карту по координатам центра и выбирает масштаб
 			if(ph.attr['z'] > LMap.getMaxZoom() || ph.attr['z'] < LMap.getMinZoom()) return;
 			var pos = new L.LatLng(ph.attr['y'], ph.attr['x']);
-			//LMap.setView(pos, ph.attr['z']);
 			utils.runMoveTo({'x': pos.lng, 'y': pos.lat, 'z': ph.attr['z']})
 		}
 		,
@@ -2971,14 +2943,20 @@
 			return true;
 		}
 		,
-		'getZoomBounds':	function(ph)	{		// Установка границ по zoom
+		getZoomBounds: function(ph)	{		// Установка границ по zoom
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(!node) return;
+			if(!node) return null;
 			var out = {
-				'MinZoom': node['minZ']
-				,'MaxZoom': node['maxZ']
+				MinZoom: node.minZ
+				,MaxZoom: node.maxZ
 			}
+			if(node.type === 'map') {
+                out = {
+                    MinZoom: LMap.getMinZoom()
+                    ,MaxZoom: LMap.getMaxZoom()
+                }
+            }
 			return out;
 		}
 		,
@@ -4992,13 +4970,7 @@ var tt = 1;
 				};
 				var setControlDIVInnerHTML = function ()
 				{
-					var baseLayersTools = gmxAPI.map.baseLayersTools;
-					var color = '#216b9c';
-					if(baseLayersTools) {
-						var currTool = baseLayersTools.getToolByName(baseLayersTools.activeToolName);
-						div.style.backgroundColor = utils.dec2hex(currTool.backgroundColor);
-						color = (currTool.backgroundColor === 1 ? 'white' : '#216b9c');
-					}
+					var color = (gmxAPI.getHtmlColor() === 'white' ? 'white' : '#216b9c');
 					centerControlDIV.innerHTML = '<svg viewBox="0 0 12 12" height="12" width="12" style=""><g><path d="M6 0L6 12" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g><g><path d="M0 6L12 6" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g></svg>';
 					return false;
 				};

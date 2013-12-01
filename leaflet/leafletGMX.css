@@ -1,4 +1,4 @@
-.leaflet-overlay-pane svg {
+.leaflet-overlay-pane svg, .gmx_iconsControl {
 	-webkit-user-select: none;
 	   -moz-user-select: none;
 	        user-select: none;

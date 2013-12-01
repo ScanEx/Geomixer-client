@@ -182,8 +182,10 @@
 		// Использование SharedObject
 		map.setFlashLSO = function(data) { return gmxAPI._cmdProxy('setFlashLSO', {'obj': this, 'attr':data }); }
 
-		if('BaseLayersManager' in gmxAPI) gmxAPI.BaseLayersManager.init({'map': map});
-		if('ControlsManager' in gmxAPI) gmxAPI.ControlsManager.init(window.gmxControls || 'controlsBase', gmxAPI._div, map);
+		map.baseLayersManager = new gmxAPI.BaseLayersManager(map);
+		map.controlsManager = new gmxAPI.ControlsManager(map, gmxAPI._div);
+        var params = gmxAPI.getURLParams().params;
+        map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBase');
 		gmxAPI._listeners.dispatchEvent('mapInit', null, map);	// Глобальный Listeners
 
 		var toolHandlers = {};
@@ -437,7 +439,8 @@
 				var o = map.addObject();
 				o.setVisible(false);
 				o.bringToBottom();
-				o.setAsBaseLayer("OSM");
+				//o.setAsBaseLayer("OSM");
+				map.baseLayersManager.add('OSM').addLayer(o);
 				o.setOSMTiles();
 				haveOSM = true;
 

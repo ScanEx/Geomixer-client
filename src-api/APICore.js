@@ -54,6 +54,75 @@ extend(window.gmxAPI,
 	,
     buildGUID: [/*#buildinclude<__buildGUID__>*/][0]		// GUID текущей сборки
 	,
+    getURLParams: memoize(function() {
+        var q = window.location.search,
+            kvp = (q.length > 1) ? q.substring(1).split("&") : [];
+
+        for (var i = 0; i < kvp.length; i++)
+        {
+            kvp[i] = kvp[i].split("=");
+        }
+        
+        var params = {},
+            givenMapName = false;
+            
+        for (var j=0; j < kvp.length; j++)
+        {
+            if (kvp[j].length == 1)
+            {
+                if (!givenMapName)
+                    givenMapName = kvp[j][0];
+            }
+            else
+                params[kvp[j][0]] = kvp[j][1];
+        }
+        
+        return {params: params, givenMapName: givenMapName};
+    })
+    ,
+    getHtmlColor: function() {     // Получить цвет текста по map.backgroundColor
+        var color = gmxAPI.map.backgroundColor;
+        return (0xff & (color >> 16)) > 80 ? "black" : "white";
+    }
+    ,
+    getCoordinatesText: function(currPos, coordFormat) {
+        if(!currPos) currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+        var x = (currPos.latlng ? currPos.latlng.x : gmxAPI.from_merc_x(currPos.x));
+        var y = (currPos.latlng ? currPos.latlng.y : gmxAPI.from_merc_y(currPos.y));
+        if (x > 180) x -= 360;
+        if (x < -180) x += 360;
+        if (coordFormat % 3 == 0)
+            return gmxAPI.LatLon_formatCoordinates(x, y);
+        else if (coordFormat % 3 == 1)
+            return gmxAPI.LatLon_formatCoordinates2(x, y);
+        else
+            return '' + Math.round(gmxAPI.merc_x(x)) + ', ' + Math.round(gmxAPI.merc_y(y));
+    }
+    ,
+    getScaleBarDistance: function() {
+        var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+        var z = Math.round(currPos.z);
+        var x = (currPos.latlng ? currPos.latlng.x : 0);
+        var y = (currPos.latlng ? currPos.latlng.y : 0);
+        if(gmxAPI.map.needMove) {
+            z = gmxAPI.map.needMove.z;
+            x = gmxAPI.map.needMove.x;
+            y = gmxAPI.map.needMove.y;
+        }
+
+        var metersPerPixel = gmxAPI.getScale(z) * gmxAPI.distVincenty(x, y, gmxAPI.from_merc_x(gmxAPI.merc_x(x) + 40), gmxAPI.from_merc_y(gmxAPI.merc_y(y) + 30))/50;
+        for (var i = 0; i < 30; i++)
+        {
+            var distance = [1, 2, 5][i%3]*Math.pow(10, Math.floor(i/3));
+            var w = Math.floor(distance/metersPerPixel);
+            if (w > 100)
+            {
+                return {txt: gmxAPI.prettifyDistance(distance), width: w};
+            }
+        }
+        return null;
+    }
+    ,
 	'getXmlHttp': function() {
 		var xmlhttp;
 		if (typeof XMLHttpRequest != 'undefined') {
@@ -3263,59 +3332,19 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					var obj = map.layers[i];
 					obj.setVisible(false);
 				}
-				var mapString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map");
-				var satelliteString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
-				var hybridString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
 
-				var baseLayerTypes = {
-					'map': {
-						'id': 'map',
-						'onClick': function() { gmxAPI.map.setMode('map'); },
-						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
-						'onmouseover': function() { this.style.color = "orange"; },
-						'onmouseout': function() { this.style.color = "white"; },
-						'backgroundColor': 0xffffff,
-						'alias': 'map',
-						'lang': { 'ru': 'Карта', 'en': 'Map' },
-						'hint': mapString
-					}
-					,
-					'satellite': {
-						'id': 'satellite',
-						'onClick': function() { gmxAPI.map.setMode('satellite'); },
-						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
-						'onmouseover': function() { this.style.color = "orange"; },
-						'onmouseout': function() { this.style.color = "white"; },
-						'backgroundColor': 0x000001,
-						'alias': 'satellite',
-						'lang': { 'ru': 'Снимки', 'en': 'Satellite' },
-						'hint': satelliteString
-					}
-					,
-					'hybrid': {
-						'id': 'hybrid',
-						'onClick': function() { gmxAPI.map.setMode('hybrid'); },
-						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
-						'onmouseover': function() { this.style.color = "orange"; },
-						'onmouseout': function() { this.style.color = "white"; },
-						'backgroundColor': 0x000001,
-						'alias': 'hybrid',
-						'lang': { 'ru': 'Гибрид', 'en': 'Hybrid' },
-						'hint': hybridString
-					}
-				};
-				
+				var baseLayersManager = map.baseLayersManager;
 				var mapLayers = [];
 				var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
 				if(typeof(mapLayerID) == 'string') {
 					var mapLayerNames = mapLayerID.split(',');
+					var baseLayers = baseLayersManager.add('map', 'Карта', 'Map');
 					for (var i = 0; i < mapLayerNames.length; i++)
 						if (mapLayerNames[i] in map.layers)
 						{
 							var mapLayer = map.layers[mapLayerNames[i]];
-							//mapLayer.setVisible(true);						// Слои BaseMap должны быть видимыми
-							mapLayer.setAsBaseLayer(baseLayerTypes['map']['id'], baseLayerTypes['map']);
-							mapLayer.setBackgroundColor(baseLayerTypes['map']['backgroundColor']);
+							mapLayer.setBackgroundColor(0xffffff);
+                            baseLayers.addLayer(mapLayer);
 							mapLayers.push(mapLayer);
 						}
 				}
@@ -3327,11 +3356,12 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					for (var i = 0; i < satelliteLayerNames.length; i++)
 						if (satelliteLayerNames[i] in map.layers)
 							satelliteLayers.push(map.layers[satelliteLayerNames[i]]);
-							
+
+					var baseLayers = baseLayersManager.add('satellite', 'Снимки', 'Satellite');
 					for (var i = 0; i < satelliteLayers.length; i++)
 					{
-						satelliteLayers[i].setAsBaseLayer(baseLayerTypes['satellite']['id'], baseLayerTypes['satellite'])
-						satelliteLayers[i].setBackgroundColor(baseLayerTypes['satellite']['backgroundColor']);
+						satelliteLayers[i].setBackgroundColor(0x000001);
+                        baseLayers.addLayer(satelliteLayers[i]);
 					}
 				}
 				
@@ -3340,21 +3370,22 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID", "");
 				if(typeof(overlayLayerID) == 'string') {
 					var overlayLayerNames = overlayLayerID.split(',');
+					var baseLayers = baseLayersManager.add('hybrid', 'Гибрид', 'Hybrid');
 					for (var i = 0; i < overlayLayerNames.length; i++)
 						if (overlayLayerNames[i] in map.layers)
 						{
 							isAnyExists = true;
 							var overlayLayer = map.layers[overlayLayerNames[i]];
-							overlayLayer.setAsBaseLayer(baseLayerTypes['hybrid']['id'], baseLayerTypes['hybrid']);
-							overlayLayer.setBackgroundColor(baseLayerTypes['hybrid']['backgroundColor']);
+							overlayLayer.setBackgroundColor(0x000001);
+                            baseLayers.addLayer(overlayLayer);
 							overlayLayers.push(overlayLayer);
 						}
 					
 					if (isAnyExists)
 					{
 						for (var i = 0; i < satelliteLayers.length; i++) {
-							satelliteLayers[i].setAsBaseLayer(baseLayerTypes['hybrid']['id'], baseLayerTypes['hybrid']);
-							satelliteLayers[i].setBackgroundColor(baseLayerTypes['hybrid']['backgroundColor']);
+							satelliteLayers[i].setBackgroundColor(0x000001);
+                            baseLayers.addLayer(satelliteLayers[i]);
 						}
 					}
 				}
@@ -3374,7 +3405,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				var osmEmbed = map.layers[osmEmbedID];
 				if (osmEmbed)
 				{
-					osmEmbed.setAsBaseLayer(mapString);
+					baseLayersManager.getItem('map').addLayer(osmEmbed);
 					setOSMEmbed(osmEmbed);
 				}
 
@@ -3393,7 +3424,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				if (!window.baseMap || !window.baseMap.hostName || (window.baseMap.hostName == "maps.kosmosnimki.ru"))
 					map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : "http://maps.kosmosnimki.ru/";
 	
-				map.needSetMode = (mapLayers.length > 0 ? mapString : satelliteString);
+				map.needSetMode = (mapLayers.length > 0 ? 'map' : 'satellite');
 				if (layers)
 				{
 					map.defaultHostName = layers.properties.hostName;
