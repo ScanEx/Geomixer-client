@@ -962,9 +962,8 @@
             for(var i=0, len = arr.length; i<len; i++) {
                 layersControl.addBaseLayerTool(arr[i]);
             }
-			var id = gmxAPI.map.baseLayersManager.getCurrent();
+			var id = gmxAPI.map.baseLayersManager.getCurrentID();
             gmxAPI.baseLayersTools.setActiveTool(id);
-			var id = gmxAPI.map.baseLayersManager.getCurrent();
         }
         ,
         addBaseLayerTool: function(ph) {
@@ -982,18 +981,20 @@
                 //gmxAPI._listeners.addListener({'level': 9999, 'eventName': 'mapInit', 'func': function(map) {
                     layersControl.map = gmxAPI.map;
 
-                    var key = 'onAddBaseLayer';
-                    layersControl.listeners[key] = layersControl.map.addListener(key, function(ph) {
-                        layersControl.addBaseLayerTool(ph);
-                    });
+                    var mbl = layersControl.map.baseLayersManager;
+                    //var key = 'onAddBaseLayer';
+                    var key = 'onAdd';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
+                    key = 'onChange';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
 
-                    key = 'baseLayerSelected';
-                    layersControl.listeners[key] = layersControl.map.addListener(key, function(name) {
-                        layersControl.map.baseLayersTools.setActiveTool(name);
+                    key = 'onSetCurrent';
+                    layersControl.listeners[key] = mbl.addListener(key, function(bl) {
+                        layersControl.map.baseLayersTools.setActiveTool(bl.id);
                     });
-                    key = 'onRemoveBaseLayer';
-                    layersControl.listeners[key] = layersControl.map.addListener(key, function(name) {
-                        layersControl.map.baseLayersTools.removeTool(name);
+                    key = 'onRemove';
+                    layersControl.listeners[key] = layersControl.map.addListener(key, function(bl) {
+                        layersControl.map.baseLayersTools.removeTool(bl.id);
                     });
                 //}});
             } else {

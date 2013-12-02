@@ -2962,7 +2962,8 @@ FlashMapObject.prototype.setImageOverlay = function(url, x1, y1, flagGeo)
 
 FlashMapObject.prototype.setImageTransform = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
 {
-    this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
+    var styles = this.getStyle();
+    if(!styles.regular) this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
 	var attr = {};
 	if (tx1) {
 		attr = {
@@ -3408,7 +3409,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				var osmEmbed = map.layers[osmEmbedID];
 				if (osmEmbed)
 				{
-					baseLayersManager.getItem('map').addLayer(osmEmbed);
+					baseLayersManager.get('map').addLayer(osmEmbed);
 					setOSMEmbed(osmEmbed);
 				}
 

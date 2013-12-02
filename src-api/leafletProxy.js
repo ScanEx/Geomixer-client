@@ -2300,7 +2300,8 @@
 				grid.redrawGrid();
 			} else {
 				if(grid.positionChangedListenerID) gmxAPI.map.removeListener('positionChanged', grid.positionChangedListenerID); grid.positionChangedListenerID = null;
-				if(grid.baseLayerListenerID) gmxAPI.map.removeListener('baseLayerSelected', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
+				if(grid.baseLayerListenerID) gmxAPI.map.baseLayersManager.removeListener('onSetCurrent', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
+				//if(grid.baseLayerListenerID) gmxAPI.map.removeListener('baseLayerSelected', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
 				if(grid.zoomListenerID) gmxAPI._listeners.removeListener(null, 'onZoomend', grid.zoomListenerID); grid.zoomListenerID = null;
 				LMap.removeLayer(grid.lealfetObj);
 				grid.lealfetObj = null;
@@ -2376,7 +2377,8 @@
 				grid.lealfetObj = new L.GMXgrid(latlngArr, {noClip: true, clickable: false});
 				LMap.addLayer(grid.lealfetObj);
 				if(!grid.positionChangedListenerID) grid.positionChangedListenerID = gmxAPI.map.addListener('positionChanged', grid.redrawGrid, -10);
-				if(!grid.baseLayerListenerID) grid.baseLayerListenerID = gmxAPI.map.addListener('baseLayerSelected', grid.redrawGrid, -10);
+				if(!grid.baseLayerListenerID) grid.baseLayerListenerID = gmxAPI.map.baseLayersManager.addListener('onSetCurrent', grid.redrawGrid, -10);
+				//if(!grid.baseLayerListenerID) grid.baseLayerListenerID = gmxAPI.map.addListener('baseLayerSelected', grid.redrawGrid, -10);
 				if(!grid.zoomListenerID) grid.zoomListenerID = gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': grid.redrawGrid});
 			}
 			grid.lealfetObj.setStyle({'stroke': true, 'weight': 1, 'color': color});
@@ -3004,24 +3006,26 @@
 			//node['observeVectorLayer'] = ph.attr.func;
 			return true;
 		}
-		,
-		setImagePoints:	function(ph)	{				// Изменение точек привязки изображения
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			if(!node) return;
-            var fName = (L.Browser.gecko3d ? 'ImageMatrixTransform' : 'setImageMapObject');
-            ph.setImagePoints = true;
-            gmxAPI._leaflet[fName](node, ph);
-		}
+		// ,
+		// setImagePoints:	function(ph)	{				// Изменение точек привязки изображения
+			// var id = ph.obj.objectId;
+			// var node = mapNodes[id];
+			// if(!node) return;
+            // var fName = (L.Browser.gecko3d ? 'ImageMatrixTransform' : 'setImageMapObject');
+            // ph.setImagePoints = true;
+            // gmxAPI._leaflet[fName](node, ph);
+		// }
 		,
 		'setImage':	function(ph)	{					// Установка изображения
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;
-			setTimeout(function() {
-                var fName = (L.Browser.gecko3d ? 'ImageMatrixTransform' : 'setImageMapObject');
-                gmxAPI._leaflet[fName](node, ph);
-            },2);
+            var flag = (L.Browser.gecko3d || L.Browser.webkit3d ? 'ImageMatrixTransform' : 'setImageMapObject');
+            if(flag) {
+                gmxAPI._leaflet.ImageMatrixTransform(node, ph);
+			} else {
+                setTimeout(function() {gmxAPI._leaflet.setImageMapObject(node, ph);},2);
+            }
 			return true;
 		}
 		,
@@ -4985,7 +4989,8 @@ var tt = 1;
 				};
 				setControlDIVInnerHTML();
 				setCenterPoint();
-				gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
+				gmxAPI.map.baseLayersManager.addListener('onSetCurrent', setControlDIVInnerHTML, 100);
+				//gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
 			}, 500);
 		}
 	}

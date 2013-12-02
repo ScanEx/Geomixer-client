@@ -951,11 +951,11 @@
         }
         ,
         chkExists: function() {     // Получить уже установленные подложки
-			var arr = gmxAPI.map.baseLayersManager.getItems();
+			var arr = gmxAPI.map.baseLayersManager.getAll();
             for(var i=0, len = arr.length; i<len; i++) {
                 if(arr[i].isVisible) layersControl.addBaseLayerTool(arr[i]);
             }
-			var id = gmxAPI.map.baseLayersManager.getCurrent();
+			var id = gmxAPI.map.baseLayersManager.getCurrentID();
             if(layersControl.baseLayersHash[id]) layersControl.baseLayersHash[id].select();
         }
         ,
@@ -1027,16 +1027,19 @@
             if(flag) {
                 //gmxAPI._listeners.addListener({level: 9998, eventName: 'mapInit', func: function(map) {
                     layersControl.map = gmxAPI.map;
-                    var key = 'onAddBaseLayer';
-                    layersControl.listeners[key] = layersControl.map.addListener(key, layersControl.addBaseLayerTool);
-                    key = 'baseLayerSelected';
-                    layersControl.listeners[key] = layersControl.map.addListener(key, function(name) {
-                        var item = layersControl.baseLayersHash[name];
+                    var mbl = layersControl.map.baseLayersManager;
+                    var key = 'onAdd';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
+                    key = 'onChange';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
+                    key = 'onSetCurrent';
+                    layersControl.listeners[key] = mbl.addListener(key, function(bl) {
+                        var item = layersControl.baseLayersHash[bl.id];
                         if(item) item.select();
                     });
-                    key = 'onRemoveBaseLayer';
-                    layersControl.listeners[key] = layersControl.map.addListener(key, function(id) {
-                        layersControl.removeBaseLayerTool(id);
+                    key = 'onRemove';
+                    layersControl.listeners[key] = mbl.addListener(key, function(bl) {
+                        layersControl.removeBaseLayerTool(bl.id);
                     });
                 //}});
             } else {
@@ -1064,7 +1067,6 @@
         }
         ,
         addOverlay: function (ph) {
-            //console.log('addTool ', tn, gmxAPI.BaseLayersManager.getItems());
             if(!layersControl.overlaysLayersHash) {
                 layersControl.overlaysLayersHash = {};
                 layersControl.overlaysNodeSeparator.style.display = 
@@ -1525,17 +1527,6 @@
         }
         ,
         toggleHandlers: function(flag) {            // Добавление прослушивателей событий
-            if(flag) {
-                /*iconsControl.baseLayerSelectedListenerID = gmxAPI.map.addListener('baseLayerSelected', function(name)	{
-                    var tool = iconsControl.getTool(name);
-                    tool.select();
-                });*/
-            } else {
-                /*if(iconsControl.baseLayerSelectedListenerID) {
-                    gmxAPI.map.removeListener('baseLayerSelected', iconsControl.baseLayerSelectedListenerID);
-                    iconsControl.baseLayerSelectedListenerID = null;
-                }*/
-            }
         }
         ,groupTools: {}
         ,
