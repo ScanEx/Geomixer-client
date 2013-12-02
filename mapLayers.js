@@ -459,6 +459,10 @@ layersTree.prototype.layerZoomToExtent = function(bounds, minZoom)
 	var z = globalFlashMap.getBestZ(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
 	if (minZoom != 20)
 		z = Math.max(z, minZoom);
+        
+    var zoomBounds = globalFlashMap.getZoomBounds();
+    z = Math.min(zoomBounds.MaxZoom, Math.max(zoomBounds.MinZoom, z));
+    
 	globalFlashMap.moveTo(
 		from_merc_x((merc_x(bounds.minX) + merc_x(bounds.maxX))/2),
 		from_merc_y((merc_y(bounds.minY) + merc_y(bounds.maxY))/2),
