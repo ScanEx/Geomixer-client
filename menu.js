@@ -6,7 +6,7 @@
   @property {String} id Уникальный идентификатор элемента меню
   @property {String} title Tекст, который будет показываться пользователю
   @property {Function} func Ф-ция, которую нужно вызвать при клике
-  @property {IMenuElem []} childs Массив элементов подменю
+  @property {IMenuElem[]} childs Массив элементов подменю
 */
 
 /**
@@ -62,7 +62,7 @@ UpMenu.prototype.addItem = function(elem)
         this.draw();
 }
 
-/** Добавляет к меню новый элемент верхнего уровня.
+/** Добавляет к меню новый элемент.
 *
 * Если меню уже было нарисовано, вызов этой ф-ции приведёт к перерисовке
 *
@@ -559,6 +559,10 @@ UpMenu.prototype.openTab = function(path)
 	sel && sel(path);
 }
 
+/** Основное меню ГеоМиксера
+ * @global
+ * @type {UpMenu}
+ */
 var _menuUp = new UpMenu();
 
 // содержит ссылку на рабочую область для текущей вкладки

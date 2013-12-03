@@ -370,8 +370,8 @@ var LayerManagerControl = function( parentDiv, name, params )
         return layersTable;
     }
     
-    /**
-      @param layerNames {String or Array} - массив имён слоёв (или просто имя), которые нужно сделать активными
+    /** Деактивировать слои
+      @param layerNames {String|String[]} - массив имён слоёв (или просто имя), которые нужно сделать неактивными
     */
     this.disableLayers = function(layerNames)
     {
@@ -384,8 +384,8 @@ var LayerManagerControl = function( parentDiv, name, params )
         layersTable.repaint();
     }
     
-    /**
-      @param layerNames {String or Array} - массив имён слоёв (или просто имя), которые нужно сделать неактивными
+    /** Aктивировать слои
+      @param layerNames {String|String[]} - массив имён слоёв (или просто имя), которые нужно сделать активными
     */
     this.enableLayers = function(layerNames)
     {

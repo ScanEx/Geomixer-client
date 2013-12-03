@@ -99,7 +99,7 @@ function capitaliseFirstLetter(string)
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-//events: newAttribute, delAttribute, updateAttribute, change
+//events: newAttribute, delAttribute, updateAttribute, moveAttribute, change
 var ManualAttrModel = function() {
     var _attributes = [];
     
@@ -118,14 +118,14 @@ var ManualAttrModel = function() {
     };
         
     this.changeName = function(idx, newName)
-        {
+    {
         _attributes[idx].name = newName;
         $(this).triggerHandler('updateAttribute');
         $(this).triggerHandler('change');
     };
         
     this.changeType = function(idx, newType)
-        {
+    {
         _attributes[idx].type = newType;
         $(this).triggerHandler('updateAttribute');
         $(this).triggerHandler('change');
@@ -148,6 +148,19 @@ var ManualAttrModel = function() {
                 callback(column, k);
             }
         }
+    }
+    
+    this.moveAttribute = function(oldIdx, newIdx) {
+        if (newIdx > oldIdx) {
+            newIdx--;
+        }
+        
+        if (oldIdx !== newIdx) {
+            _attributes.splice(newIdx, 0, _attributes.splice(oldIdx, 1)[0]);
+            $(this).triggerHandler('moveAttribute');
+            $(this).triggerHandler('change');
+        }
+        
     }
     
     this.initFromServerFormat = function(serverColumns) {
@@ -256,7 +269,17 @@ var ManualAttrView = function()
         })
             
         var tbody = _tbody(_trs);
-        $(tbody).sortable({axis: 'y', handle: '.moveIcon'});
+        $(tbody).sortable({
+            axis: 'y', 
+            handle: '.moveIcon',
+            stop: function(event, ui) {
+                var oldIdx = ui.item.find('input[attrIdx]').attr('attrIdx');
+
+                var elem = ui.item.next()[0] || ui.item.prev()[0];
+                var delta = ui.item.next()[0] ? 0 : 1;
+                _model.moveAttribute(parseInt(oldIdx), parseInt($(elem).find('input[attrIdx]').attr('attrIdx')) + delta);
+            }
+        });
         $(_parent).append($('<fieldset/>').css('border', 'none').append(_table([tbody], [['dir', 'className', 'customAttributes']])));
         _this.setActive(_isActive);
     }
@@ -276,21 +299,7 @@ var ManualAttrView = function()
     {
         _parent = parent;
         _model = model;
-        $(_model).bind('newAttribute', function(idx)
-            {
-            redraw();
-        });
-                
-        $(_model).bind('delAttribute', function()
-        {
-            redraw();
-        });
-        
-        $(_model).bind('updateAttribute', function()
-        {
-            //alert('change');
-        });
-        
+        $(_model).bind('newAttribute delAttribute moveAttribute', redraw);
         redraw();
     }
 };
@@ -562,15 +571,29 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
     var sourceContainers = [sourceFile, sourceTable, sourceManual];
                     
     var sourceCheckbox = $('<form/>')
-        .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxFileSource', checked: 'checked'}).data('containerIdx', 0))
-        .append($('<label/>', {'for': 'chxFileSource'}).text(_gtxt('Файл'))).append('<br/>')
-        .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxTableSource'}).data('containerIdx', 1))
-        .append($('<label/>', {'for': 'chxTableSource'}).text(_gtxt('Таблица'))).append('<br/>')
-        .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxManualSource'}).data('containerIdx', 2))
-        .append($('<label/>', {'for': 'chxManualSource'}).text(_gtxt('Вручную')));
+        .append($('<label/>')
+            .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxFileSource', checked: 'checked'}).data('containerIdx', 0))
+            .text(_gtxt('Файл')))
+        .append('<br/>')
+        .append($('<label/>')
+            .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxTableSource'}).data('containerIdx', 1))
+            .text(_gtxt('Таблица')))
+        .append('<br/>')
+        .append($('<label/>')
+            .append($('<input/>', {type: 'radio', name: 'sourceCheckbox', id: 'chxManualSource'}).data('containerIdx', 2))
+            .text(_gtxt('Вручную'))
+        );
+        
+    var sourceCheckbox = $(
+        '<form>' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxFileSource" data-containerIdx="0" checked>' + _gtxt('Файл')    + '</label><br/>' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxTableSource" data-containerIdx="1">'        + _gtxt('Таблица') + '</label><br/>' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxManualSource" data-containerIdx="2">'       + _gtxt('Вручную') + '</label>' +
+        '</form>'
+    );
         
     sourceCheckbox.find('input, label').css({verticalAlign: 'middle'});
-    sourceCheckbox.find('label').css({marginLeft: 2});
+    sourceCheckbox.find('input').css({marginRight: 2});
     sourceCheckbox.find('input').click(function()
     {
         var activeIdx = $(this).data('containerIdx');
@@ -777,7 +800,7 @@ var createPageRasterSource = function(layerProperties) {
             
     tileFileLink.onclick = function()
     {
-        _fileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'tiles', 'cpyr'], function(path)
+        _fileBrowser.createBrowser(_gtxt("Файл"), ['jpeg', 'jpg', 'tif', 'png', 'img', 'tiles', 'cpyr', 'mbtiles'], function(path)
         {
             tilePathInput.value = path;
             layerProperties.set('TilePath', {Path: path});
@@ -925,7 +948,7 @@ var createPageAdvanced = function(parent, layerProperties) {
     var temporalProperties = layerProperties.get('Temporal');
     var temporalLayerView = new nsGmx.TemporalLayerParamsControl(temporalLayerParent, temporalProperties, []);
     var isTemporalCheckbox = $('<input/>')
-        .attr({type: 'checkbox', 'id': 'layer-temporal-checkbox'})
+        .attr({type: 'checkbox'})
         .change(function() {
             temporalProperties.set('isTemporal', this.checked);
         });
@@ -963,8 +986,7 @@ var createPageAdvanced = function(parent, layerProperties) {
         
     var temporalFieldset = $('<fieldset/>').addClass('layer-fieldset').append(
         $('<legend/>').append(
-            isTemporalCheckbox,
-            $('<label/>').text(_gtxt("Данные с датой")).attr('for', 'layer-temporal-checkbox')
+            $('<label/>').append(isTemporalCheckbox).append(_gtxt("Данные с датой"))
         ),
         $('<fieldset/>').append(temporalLayerParent) //вложенный fieldset нужен из-за бага в Opera
     ).appendTo(parent);
@@ -977,7 +999,7 @@ var createPageAdvanced = function(parent, layerProperties) {
 
     var rasterCatalogControl = new nsGmx.LayerRasterCatalogControl(rasterCatalogDiv, layerProperties.get('RC'), layerProperties);
     var isRCCheckbox = $('<input/>')
-        .attr({type: 'checkbox', id: 'layer-rc-checkbox'})
+        .attr({type: 'checkbox'})
         .change(function() {
             layerProperties.get('RC').set('IsRasterCatalog', this.checked);
             if (this.checked) {
@@ -992,8 +1014,8 @@ var createPageAdvanced = function(parent, layerProperties) {
     
     var rcFieldset = $('<fieldset/>').addClass('layer-fieldset').append(
         $('<legend/>').append(
-            isRCCheckbox,
-            $('<label/>').text(_gtxt("Каталог растров")).attr('for', 'layer-rc-checkbox')
+            //isRCCheckbox,
+            $('<label/>').append(isRCCheckbox).append(_gtxt("Каталог растров"))
         ),
         $('<fieldset/>').append(rasterCatalogDiv) //вложенный fieldset нужен из-за бага в Opera
     ).appendTo(parent);
@@ -1197,7 +1219,6 @@ var LayerEditor = function(div, type, properties, treeView, params) {
 
 /**
  Создаёт диалог редактирования свойств слоя с вкладками (tabs) и кнопкой "Сохранить" под ними
- @namespace nsGmx
  @param {DOMElement} div Элемент дерева слоёв, соответствующий редактируемому слою
  @param {String} type тип слоя ("Vector" или "Raster")
  @param {DOMElement} parent контейнер, в которым нужно разместить диалог

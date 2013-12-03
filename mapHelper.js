@@ -1,5 +1,9 @@
 var nsGmx = nsGmx || {};
 
+/** Вспомогательные ф-ции ГеоМиксера
+@namespace _mapHelper
+*/
+
 nsGmx.mapHelper = {
     
 }
@@ -11,7 +15,6 @@ var mapHelp =
 	tabs: {},
 	externalMaps : {}
 }
-
 
 var mapHelper = function()
 {
@@ -115,10 +118,14 @@ var mapHelper = function()
 
 mapHelper.prototype = new leftMenu();
 
-// Менеджер кастомных параметров карты. 
-// Содержит набор провайдеров доп. параметров, которые могут сохранять и загружать данные из хранилища параметров
-// Данные загружаются один раз. Возможна асинхронная загрузка данных/добавление провайдеров.
-// Порядок вызова провайдеров не определён
+/** Менеджер кастомных параметров карты. 
+ * Содержит набор провайдеров доп. параметров, которые могут сохранять и загружать данные из хранилища параметров
+ * Данные загружаются один раз. Возможна асинхронная загрузка данных/добавление провайдеров.
+ * Порядок вызова провайдеров не определён.
+ *
+ * @memberOf _mapHelper
+ * @name customParamsManager
+ */
 mapHelper.prototype.customParamsManager = (function()
 {
 	var _providers = []; 
@@ -164,6 +171,7 @@ mapHelper.prototype.customParamsManager = (function()
 
 mapHelper.prototype.makeStyle = function(style)
 {
+    style = style || {};
 	var givenStyle = {};
 	
 	if (typeof style.RenderStyle != 'undefined')
@@ -658,7 +666,7 @@ mapHelper.ImageInputControl = function(initURL)
         var userImageIcon = makeImageButton("img/choose2.png", "img/choose2_a.png");
         userImageIcon.onclick = function()
         {
-            var imagesDir = nsGmx.AuthManager.getUserFolder() + '\\images';
+            var imagesDir = nsGmx.AuthManager.getUserFolder() + 'images';
             sendCrossDomainJSONRequest(serverBase + 'FileBrowser/CreateFolder.ashx?WrapStyle=func&FullName=' + encodeURIComponent(imagesDir), function(response)
             {
                 if (!parseResponse(response))
@@ -939,7 +947,7 @@ mapHelper.prototype.createLayerEditor = function(div, treeView, selected, opened
 		if (!this.attrValues[mapName])
 			this.attrValues[mapName] = {};
 
-		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&&NeedAttrValues=false&LayerID=" + elemProperties.LayerID, function(response)
+		sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&NeedAttrValues=false&LayerID=" + elemProperties.LayerID, function(response)
 		{
 			if (!parseResponse(response))
 				return;
@@ -1377,6 +1385,9 @@ mapHelper.prototype.findTreeElems = function(treeElem, callback, flag, list)
 /**
  *  Модифицирует объекты внутри векторного слоя, отправляя изменения на сервер и информируя об этом API
  * 
+ * @memberOf _mapHelper
+ * @name modifyObjectLayer
+ * @function
  * @param {String} layerName Имя слоя
  * @param {Object[]} objs Массив описания объектов. Каждое описание представляет из себя объект:
  * 

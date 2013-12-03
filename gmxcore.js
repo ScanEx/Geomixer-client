@@ -1,11 +1,7 @@
-﻿/** Загручик модулей ГеоМиксера
-
+﻿/** Загрузчик модулей ГеоМиксера
 Позволяет загружать модули из разных файлов. 
-
 Модуль - единица кода, имеющая уникальное имя и зависящая от других модулей и скриптов.
-
-@global
-
+@namespace
 */
 
 var gmxCore = function() 
@@ -91,18 +87,17 @@ var gmxCore = function()
         return filename;
     }
     
-    //public methods
-    return {
+    var publicInterface = 
+    /** @lends gmxCore */
+    {
     
         /** Добавить новый модуль
-        * @memberOf gmxCore
-        * @param {String} moduleName уникальное имя модуля
+        * @param {String} moduleName Уникальное имя модуля
         * @param {Object|Function} moduleObj Тело модуля или ф-ция, возвращающая тело. Аргумент ф-ции - путь к модулю. Будет вызвана после загрузки всех зависимостей.
-        * @param {Object} [options] Возможны следующие опции:
-        *
-        *   * require - {Array of string}. Какие модули должны быть загрежены перед данным
-        *   * init - {Function} Ф-ция для инициализации модуля. Сигнатура: function moduleInit(moduleObj, modulePath)->{void|jQuery.Deferred}. Если ф-ция возвращает jQuery Deferred, загрузчик будет ждать его для окончания инициализации.
-        *   * css - {Array|String} CSS файлы для загрузки. Пути к CSS указываются относительно файла текущего модуля.
+        * @param {Object} [options] Дополнительные параметры модуля
+        * @param {String[]} [options.require] Какие модули должны быть загрежены перед данным
+        * @param {Function} [options.init] Ф-ция для инициализации модуля. Сигнатура: function (moduleObj, modulePath)->{void|{@link jQuery.Deferred}}. Если ф-ция возвращает {@link jQuery.Deferred}, загрузчик будет ждать его для окончания инициализации.
+        * @param {String|String[]} [options.css] CSS файлы для загрузки. Пути к CSS указываются относительно файла текущего модуля.
         */
         addModule: function(moduleName, moduleObj, options)
         {
@@ -146,7 +141,6 @@ var gmxCore = function()
         },
         
         /** Загрузить модуль
-        * @memberOf gmxCore
         * @param { String } moduleName Имя модуля для загрузки
         * @param { String } [moduleSource] Имя файла, откуда загружать модуль. Если не указан, будет сформирован в виде (defaultHost + moduleName + '.js')
         * @param { Function } [callback] Ф-ция, которая будет вызвана после загрузки и инициализации. В ф-цию первым параметром передаётся тело модуля
@@ -201,7 +195,6 @@ var gmxCore = function()
         *
         * Если модули уже загружены, callback будет вызван сразу же
         *
-        * @memberOf gmxCore
         * @param {Array} moduleNames Массив имён модулей
         * @param {Function} callback Ф-ция, которую нужно вызвать после загрузки. В качестве аргументов в ф-цию передаются загруженные модули
         */
@@ -213,7 +206,6 @@ var gmxCore = function()
         
         /** Получить модуль по имени.
         *
-        * @memberOf gmxCore
         * @param {String} moduleName Имя модуля
         * @return {Object} Тело модуля. Если модуль не загружен, вернётся null.
         */
@@ -223,7 +215,6 @@ var gmxCore = function()
         },
 		
         /** Установить дефольный путь к модулям. Используется если указан локальный файл модуля.
-        * @memberOf gmxCore
         * @param {String} defaultHost Дефолтный путь у модулям.
         */
 		setDefaultModulesHost: function( defaultHost )
@@ -241,7 +232,6 @@ var gmxCore = function()
         },
 		
         /** Получить путь к директории, из которой был загружен модуль.
-        * @memberOf gmxCore
         * @param {String} moduleName Имя модуля
         * @returns {String} Путь к директории, из которой был загружен модуль. Для не загруженных модулей ничего не возвращает
         */
@@ -256,7 +246,6 @@ var gmxCore = function()
         *  - Потом просто вызывает ф-цию с именем functionName из этого модуля, передав ей все свои параметры
         *
         *  - Возвращённая ф-ция при вызове возвращает jQuery.Promise, который будет resolve с параметрами, возвращёнными исходной ф-цией из модуля
-        * @memberOf gmxCore
         * @param {String} moduleName Имя модуля
         * @param {String} functionName Название ф-ции внутри модуля
         * @param {Function} callback Ф-ция, которая будет вызвана после того, как отработает ф-ция модуля. В callback будет передан ответ исходной ф-ции.
@@ -281,13 +270,12 @@ var gmxCore = function()
         
         /** Загружает скрипт после предвариетельной проверки условий.
         *
-        * @memberOf gmxCore
         * @param {Array} filesInfo Массив объектов со следующими свойствами:
         *
         *   * check: function() -> Bool. Если возвращает true, ни js ни css не будет загружены
         *   * script: String. Не обязательно. Скрипт для загрузки, если провалится проверка
         *   * css: String. Не обязательно. CSS файл для загрузки, если провалится проверка
-        *   @returns jQuery Deferred, который будет разрешён когда все скрипты выполнятся (окончание загрузки css не отслеживается)
+        *   @returns {jQuery.Deferred} Deferred, который будет разрешён когда все скрипты выполнятся (окончание загрузки css не отслеживается)
         */
         loadScriptWithCheck: function(filesInfo)
         {
@@ -322,7 +310,6 @@ var gmxCore = function()
         
         /**
         * Загружает отдельный скрипт
-        * @memberOf gmxCore
         * @param {String} fileName Имя файла скрипта
         * @param {String} [callback] Ф-цию, которая будет вызвана после загрузки
         * @returns {jQuery.Deferred}
@@ -342,7 +329,6 @@ var gmxCore = function()
         }, 
         
         /** Загрузить отдельный css файл
-        * @memberOf gmxCore
         * @param {String} cssFilename Имя css файла.
         */
         loadCSS: function(cssFilename)
@@ -368,4 +354,6 @@ var gmxCore = function()
             }
         }
     }
+    
+    return publicInterface;
 }();

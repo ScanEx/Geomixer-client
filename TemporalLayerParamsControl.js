@@ -15,13 +15,16 @@ _translationsHash.addtext("eng", {
 });
 
 /** Параметры мультивременного слоя, связанные со временем
-  @param {Object} [initParams] Начальные параметры
-  @param {Integer} [initParams.minPeriod=1] Минимальный период создания тайлов
-  @param {Integer} [initParams.maxPeriod=1] Максимальный период создания тайлов
-  @param {Integer} [initParams.columnName=null]  Название мультивременной колонки
-  @param {Integer} [initParams.isTemporal=false] Является ли слой мультивременным
+  @class
+  @extends Backbone.Model
+  @prop {number} [minPeriod=1] Минимальный период создания тайлов
+  @prop {number} [maxPeriod=1] Максимальный период создания тайлов
+  @prop {number} [columnName=null]  Название мультивременной колонки
+  @prop {number} [isTemporal=false] Является ли слой мультивременным
 */
-nsGmx.TemporalLayerParams = Backbone.Model.extend({
+nsGmx.TemporalLayerParams = Backbone.Model.extend(
+/** @lends nsGmx.TemporalLayerParams.prototype */
+{
     defaults: {
         isTemporal: false,
         maxShowPeriod: 0,
@@ -29,6 +32,8 @@ nsGmx.TemporalLayerParams = Backbone.Model.extend({
         maxPeriod: 256,
         columnName: null
     },
+    
+    /** Возвращает строчку с перечислением временнЫх периодов (для передачи серверу) */
     getPeriodString: function() {
         var minPeriod = this.attributes.minPeriod,
             maxPeriod = this.attributes.maxPeriod,
@@ -45,6 +50,7 @@ nsGmx.TemporalLayerParams = Backbone.Model.extend({
 }, {PERIOD_STEP: 4});
 
 /** Создаёт виджет для задания мультивременных параметров слоя
+* @class
 * @param {HTMLNode} parentDiv контейнер для размещения виджета
 * @param {nsGmx.TemporalLayerParams} paramsModel начальные параметры
 * @param {String[]} columns массив имён колонок, из которых можно выбрать врменнУю

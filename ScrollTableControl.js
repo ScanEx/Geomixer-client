@@ -726,7 +726,7 @@ scrollTable.StaticDataProvider = function( originalData )
     }
     
     /** Фильтруем исходные данные
-    * @param {function(val)->bool} filterFunction ф-ция для фильтрации. На вход принимает элемент массива данных, возвращает false, если элемент отфильтровывается, иначе true
+    * @param {function(val):bool} filterFunction ф-ция для фильтрации. На вход принимает элемент массива данных, возвращает false, если элемент отфильтровывается, иначе true
     */
     this.filterOriginalItems = function(filterFunction)
     {

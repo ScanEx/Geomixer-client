@@ -100,11 +100,6 @@ var _groupLayersHelper = function(map, mapTree, description)
 	}
 }
 
-/** Bbox, который может быть пустым или занимать весь мир
- @memberOf cover
- @class
- @param param Объект {minX, maxX, minY, maxY}, если нормальный bbox, BoundsExt.EMPTY - если пустое множество,  BoundsExt.WHOLE_WORLD - если весь мир.
-*/
 var BoundsExt = function( param )
 {
 	var _isEmpty = false;
@@ -195,17 +190,8 @@ var DatePeriod = function()
 	this.setDatePeriod = function(datePeriod){};
 }
 
-/**
- @memberOf cover
- @class Контрол для задания диапазона дат. Сontrols: два календарика, выбор периода, галочка с выбором года
-*/
 var Calendar = function()
-{
-	/** Если изменилась хотя бы одна из дат
-	  @name cover.Calendar.change
-	  @event
-	 */
-	 
+{	 
 	this.dateBegin = null;
 	this.dateEnd = null;
 	
@@ -217,19 +203,10 @@ var Calendar = function()
 	
 	//public interface
 	
-	/**
-	 * @function
-	 */
 	this.getDateBegin = function() { return $(this.dateBegin).datepicker("getDate"); }
 	
-	/**
-	 * @function
-	 */	
 	this.getDateEnd = function() { return $(this.dateEnd).datepicker("getDate"); }
 	
-	/**
-	 * @function
-	 */	
 	this.saveState = function()
 	{
 		return {
@@ -240,10 +217,6 @@ var Calendar = function()
 		}
 	}
 	
-	/**
-	 * @function
-	 * @param {string} data
-	 */
 	this.loadState = function( data )
 	{
 		$(this.dateBegin).datepicker("setDate", new Date(data.dateBegin));
@@ -262,13 +235,6 @@ var Calendar = function()
 	}
 }
 
-/**
- * Инициализирует календарь.
- * @function
- * @param {Object} params Параметры календаря: <br/>
- * dateMin, dateMax - {Date} граничные даты для календарей <br/>
- * dateFormat - {String} формат даты
- */
 Calendar.prototype.init = function( params )
 {
 	var _this = this;
@@ -1243,7 +1209,7 @@ SearchBboxControl.isBoundsEqual = function(ext1, ext2)
 
 /**
  * @memberOf cover
- * @class cover
+ * @class
  * Аггрегирует статусы разных событий для нескольких источников (загружаются данные, слишком большая область и т.п.)
  */
 var AggregateStatus = function()

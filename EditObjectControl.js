@@ -72,17 +72,17 @@ var FieldsCollection = function() {
     var _asHash = {};
     
     this.append = function(field) {
+        field.origIndex = _asArray.length;
         _asArray.push(field);
         _asHash[field.name] = field;
     }
     
-    this.prepend = function(field) {
-        _asArray.unshift(field);
-        _asHash[field.name] = field;
-    }
-    
     this.update = function(field) {
-        (field.name in _asHash) && $.extend(true, _asHash[field.name], field);
+        if (field.name in _asHash) {
+            var origIndex = _asHash[field.name].origIndex;
+            $.extend(true, _asHash[field.name], field);
+            _asHash[field.name].origIndex = origIndex;
+        }
     }
     
     this.get = function(name) {
@@ -92,39 +92,70 @@ var FieldsCollection = function() {
     this.each = function(callback) {
         _asArray.forEach(callback);
     }
+    
+    //Сначала isRequired, потом identityField, потом в порядке добавления
+    this.sort = function() {
+        _asArray = _asArray.sort(function(a, b) {
+            if (!!a.isRequired ^ !!b.isRequired) {
+                return Number(!!b.isRequired) - Number(!!a.isRequired);
+            }
+            
+            if (!!a.identityField || !!b.identityField) {
+                return Number(!!b.identityField) - Number(!!a.identityField);
+            }
+            
+            var userZIndexDelta = (b.index || 0) - (a.index || 0);
+            return  userZIndexDelta || (b.origIndex - a.origIndex);
+        })
+    }
 }
 
 /** Контрол, который показывает диалог редактирования существующего или добавления нового объекта в слой.
 * 
 * @memberOf nsGmx
 * @class
-* @param {string} layerName ID слоя
-* @param {int} objectId ID объекта (null для нового объекта)
-* @param {Object} params Дополнительные параметры контрола
-* @param {gmxAPI.drawingObject} params.drawingObject Пользовательский объект для задании геометрии или null, если геометрия не задана
-* @param {function} params.onGeometrySelection Внешняя ф-ция для выбора геометрии объекта. 
-         Сигнатура: function(callback), параметр callback(drawingObject) должен быть вызван когда будет выбрана геометрия.
-* @param {Object[]} params.fields массив со значениями атрибутов. Должен содержать только атрибуты, которые есть в слое. Каждый элемент массива может содержать:
+* @param {String}   layerName ID слоя
+* @param {Number}   objectId ID объекта (null для нового объекта)
+* @param {Object}   [params] Дополнительные параметры контрола
+* @param {gmxAPI.drawingObject} [params.drawingObject] Пользовательский объект для задании геометрии или null, если геометрия не задана
+* @param {function} [params.onGeometrySelection] Внешняя ф-ция для выбора геометрии объекта. 
+         Сигнатура: function(callback), параметр callback(gmxAPI.drawingObject|geometry) должен быть вызван когда будет выбрана геометрия.
+* @param {HTMLNode} [params.geometryUI] HTML элемент, который нужно использовать вместо стандартных контролов для выбора геометрии (надпись + иконка)
+* @param {Object[]} [params.fields] массив со значениями атрибутов. Должен содержать только атрибуты, которые есть в слое. Каждый элемент массива может содержать:
 *
 *  * name {String} - имя атрибута (обязательно)
 *  * value {String|int} - значение атрибута в формате сервера (может отсутствовать)
 *  * constant {bool} - можно ли редактировать атрибут (по умолчанию - можно)
 *  * title {String} - что показывать вместо имени атрибута
-*  * validate {function(val) -> Boolean} - ф-ция для валидации результата. На вход получает введённое пользователем значение 
+*  * validate {function(val) -> bool} - ф-ция для валидации результата. На вход получает введённое пользователем значение 
 *      (до преобразования в серверный формат), должна вернуть валидно ли это значение.
+*  * isRequired {Boolean} - является ли значение атрибута обязательным. Обязательные атрибуты показываются выше всех остальных и выделяются жирным шрифтом. По умолчанию "false".
+*  * index {Number} - индекс для сортировки. Влияет на порядок показа полей в диалоге. Больше - выше. По умолчанию - 0.
+*
+* @param {bool} [params.allowDuplicates=<depends>] Разрешать ли несколько диалогов для редактирования/создания этого объекта. 
+         По умолчанию для редактирования запрещено, а для создания нового разрешено.
+* @param {HTMLNode} [params.afterPropertiesControl] HTML элемент, который нужно поместить после списка атрибутов
 */
 var EditObjectControl = function(layerName, objectId, params)
 {
     /** Изменение/добавление объекта
-     * @event EditObjectControl#modify
+     * @event nsGmx.EditObjectControl#modify
      */
-     /** Закрытие диалога редактирования
-     * @event EditObjectControl#close
+     
+    /** Закрытие диалога редактирования
+     * @event nsGmx.EditObjectControl#close
      */
-    var _params = $.extend({drawingObject: null, fields: [], validate: {}}, params);
-    var _this = this;
+    
     var isNew = objectId == null;
-    if (!isNew && EditObjectControlsManager.find(layerName, objectId))
+    var _params = $.extend({
+            drawingObject: null, 
+            fields: [], 
+            validate: {},
+            allowDuplicates: isNew,
+            afterPropertiesControl: _span()
+        }, params);
+    var _this = this;
+    if (!_params.allowDuplicates && EditObjectControlsManager.find(layerName, objectId))
         return EditObjectControlsManager.find(layerName, objectId);
     
     EditObjectControlsManager.add(layerName, objectId, this);
@@ -324,13 +355,13 @@ var EditObjectControl = function(layerName, objectId, params)
             $(_this).trigger('close');
         }
         
-        var firstInput = null;
         var fieldsCollection = new FieldsCollection();
         
         //либо drawingObject либо geometry
         var drawAttrList = function(fields)
         {
-            var trs = [];
+            var trs = [],
+                firstInput;
             
             //сначала идёт геометрия
             var drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
@@ -351,7 +382,11 @@ var EditObjectControl = function(layerName, objectId, params)
             
             var td = _td([geometryInfoContainer]);
             
-            trs.push(_tr([_td([_span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']])],[['css','height','20px']]), td]))
+            var geometryUI = _params.geometryUI || _span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']]);
+            
+            trs.push(_tr([_td([geometryUI],[['css','height','20px']]), td]));
+            
+            fields.sort();
             
             //потом все остальные поля
             fields.each(function(field) {
@@ -383,10 +418,21 @@ var EditObjectControl = function(layerName, objectId, params)
                     _(td, [input]);
                 }
                 
-                trs.push(_tr([_td([_span([_t(field.title || field.name)],[['css','fontSize','12px']])]), td], [['css', 'height', '22px']]));
+                var fieldHeader = _span([_t(field.title || field.name)],[['css','fontSize','12px']]);
+                if (field.isRequired) {
+                    fieldHeader.style.fontWeight = 'bold';
+                }
+                
+                trs.push(_tr([_td([fieldHeader]), td], [['css', 'height', '22px']]));
             })
             
-            return trs;
+            _(canvas, [_div([_table([_tbody(trs)]), _params.afterPropertiesControl],[['css','overflow','auto']])]);
+            
+            _(canvas, [_div([createButton],[['css','margin','10px 0px'],['css','height','20px']])]);
+            
+            firstInput && firstInput.focus();
+            
+            resizeFunc();
         }
         
         var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", layer.properties.title) : _gtxt("Редактировать объект слоя [value0]", layer.properties.title), canvas, 400, 300, false, false, resizeFunc, closeFunc);
@@ -422,27 +468,18 @@ var EditObjectControl = function(layerName, objectId, params)
                             value: geometryRow[i],
                             type: types[i], 
                             name: columnNames[i], 
-                            constant: columnNames[i] === identityField
+                            constant: columnNames[i] === identityField,
+                            identityField: columnNames[i] === identityField,
+                            isRequired: false
                         };
                         
-                        if (columnNames[i] === identityField)
-                            fieldsCollection.prepend(field);
-                        else
-                            fieldsCollection.append(field);
+                        fieldsCollection.append(field);
                     }
                 }
                 
                 _params.fields.forEach(fieldsCollection.update);
                 
-                var trs = drawAttrList(fieldsCollection);
-                
-                _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
-                
-                _(canvas, [_div([createButton, removeButton],[['css','margin','10px 0px'],['css','height','20px']])]);
-                
-                firstInput && firstInput.focus();
-                
-                resizeFunc();
+                drawAttrList(fieldsCollection);
             })
         }
         else
@@ -459,25 +496,16 @@ var EditObjectControl = function(layerName, objectId, params)
             }
             
             var trs = drawAttrList(fieldsCollection);
-            
-            _(canvas, [_div([_table([_tbody(trs)])],[['css','overflow','auto']])]);
-            
-            _(canvas, [_div([createButton],[['css','margin','10px 0px'],['css','height','20px']])]);
-            
-            firstInput && firstInput.focus();
-            
-            resizeFunc();
         }
     }
     
     createDialog();
     
     /** Получить текущее значение атрибута из контрола
-      @memberOf nsGmx.EditObjectControl
+      @memberOf nsGmx.EditObjectControl.prototype
       @param {String} fieldName Имя атрибута
       @method get
     */
-    
     this.get = function(fieldName) {
         var resValue = null;
         $(".edit-attr-value", canvas).each(function(index, elem)
@@ -490,7 +518,7 @@ var EditObjectControl = function(layerName, objectId, params)
     }
     
     /** Задать значение атрибута объекта из контрола
-      @memberOf nsGmx.EditObjectControl
+      @memberOf nsGmx.EditObjectControl.prototype
       @method set
       @param {String} fieldName Имя атрибута
       @param {String|Integer} value Значение в клиентском формате, который нужно установить для этого атрибута
@@ -506,6 +534,15 @@ var EditObjectControl = function(layerName, objectId, params)
                 }
             }
         });
+    }
+    
+    /** Задать геометрию для редактируемого объекта
+      @memberOf nsGmx.EditObjectControl.prototype
+      @method setGeometry
+      @param {gmxAPI.DrawingObject|geometry} geometry Геометрия в виде drawing объекта или просто описание геометрии
+    */
+    this.setGeometry = function(geometry) {
+        bindGeometry(geometry);
     }
 }
 

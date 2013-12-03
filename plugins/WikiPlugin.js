@@ -27,7 +27,8 @@ _translationsHash.addtext("rus", {
 	"Объект не выбран": "Объект не выбран",
 	"Объект для привязки: ": "Объект для привязки: ",
 	"Поделиться": "Поделиться",
-	"<Без темы>": "<Без темы>"
+	"<Без темы>": "<Без темы>",
+	"Показать/скрыть сообщения на карте": "Показать/скрыть сообщения на карте"
 });
 _translationsHash.addtext("eng", {
 	"Сообщение" : "Message",
@@ -47,7 +48,8 @@ _translationsHash.addtext("eng", {
 	"Объект не выбран": "Nothing selected",
 	"Объект для привязки: ": "Message object: ",
 	"Поделиться": "Share",
-	"<Без темы>": "<Untitled>"
+	"<Без темы>": "<Untitled>",
+	"Показать/скрыть сообщения на карте": "Show/hide all messages on map"
 });
 
 /**Контейнер меню (или диалога сообщений), содержащий список сообщений и кнопку "Создать сообщение"
@@ -167,6 +169,7 @@ _mapHelper.customParamsManager.addProvider({
 
 var fnShare = function(pageInfo, container){
 	var fnRenderShare = function(){
+		return; //Кнопка поделиться отключена
 		var btnShare = makeLinkButton(_gtxt('Поделиться'));
 		_(container, [btnShare]);
 		btnShare.onclick = function(){
@@ -723,7 +726,7 @@ WikiPlugin.prototype = {
 	_ensureWikiButton: function() {
         if (!this._pagesCache || !this._pagesCache.length) return;        
         if (!this._uiWikiButton) {
-            this._uiWikiButton = $('<div class="wiki-button" title="Показать/скрыть статьи Wiki на карте" />')
+            this._uiWikiButton = $('<div class="wiki-button" title="' + _gtxt('Показать/скрыть сообщения на карте') + '" />')
                 .addClass('page-button-on')
                 .click(function() { this._toggleWikiObjectsVisibility(); }.bind(this));
         }

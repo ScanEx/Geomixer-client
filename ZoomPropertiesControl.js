@@ -40,6 +40,7 @@
      Выдаёт два 'li' элемента, которые клиент сам помещает куда-нибудь. 
      Генерит событие "change", когда изменились валидные значения зумов
      @memberOf nsGmx
+     @class
      @param minZoom {int} Начальный минимальный зум
      @param maxZoom {int} Начальный максимальный зум
     */
@@ -61,19 +62,15 @@
             return true;
         }
       
-        /**
-        */
         this.getMinLi = function() { return liMinZoom; };
         
-        /**
-        */
         this.getMaxLi = function() { return liMaxZoom; };
         
-        /**
+        /** Получить минимальный зум
         */
         this.getMinZoom = function() { return Number(minZoomInput.value) };
         
-        /**
+        /** Получить максимальный зум
         */
         this.getMaxZoom = function() { return Number(maxZoomInput.value) };
     }

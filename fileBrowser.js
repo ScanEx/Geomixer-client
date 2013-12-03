@@ -145,12 +145,12 @@ fileBrowser.MAX_UPLOAD_SIZE = 500*1024*1024;
 
 /**
  Показать браузер пользователю. Если браузер уже показывается, он будет закрыт и открыт новый
- @param title {String} Заголовок окна браузера
- @param mask {Array[String]} Массив допустимых для выбора разрешений файлов. Если массив пустой, то выбираются директории, а не отдельный файлы
- @param closeFunc {function(path)} Функция, которая будет вызвана при выборе файла/директории (если браузер просто закрыли, не вызовется)
- @param params {Object} Параметры браузера: <br/>
-     restrictDir {string} Ограничивающая директория (поддерево). Нельзя посмотреть файлы вне этой директории (даже для админов)
-     startDir {string} Начальная директория. Если нет, то будет открыто в том же месте, где и закрыт в прошлый раз.
+ @param {String} title Заголовок окна браузера
+ @param {String[]} mask Массив допустимых для выбора разрешений файлов. Если массив пустой, то выбираются директории, а не отдельные файлы
+ @param {function(path)} closeFunc Функция, которая будет вызвана при выборе файла/директории (если браузер просто закрыли, не вызовется)
+ @param {Object} params Параметры браузера
+ @param {String} params.restrictDir Ограничивающая директория (поддерево). Нельзя посмотреть файлы вне этой директории (даже для админов)
+ @param {String} params.startDir Начальная директория. Если нет, то будет открыто в том же месте, где и закрыт в прошлый раз.
 */
 fileBrowser.prototype.createBrowser = function(title, mask, closeFunc, params)
 {
@@ -452,15 +452,15 @@ fileBrowser.prototype.createHeader = function()
 
 fileBrowser.prototype.createUpload = function()
 {
-	var uploadPath = _input(null,[['attr','type','hidden'],['attr','name','ParentDir']]),
+	var //uploadPath = _input(null,[['attr','type','hidden'], ['attr','name','ParentDir']]),
 		uploadFileButton = makeButton(_gtxt("Загрузить файл")),
-		div = _div(null, [['css','height','30px'],['css','marginTop','10px']]),
+		div = _div(null, [['css','height','30px']]),
 		_this = this;
 	
-	var formFile = _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'FileBrowser/Upload.ashx?WrapStyle=window'],['attr','target','fileBrowserUpload_iframe']]);
-	_(formFile, [uploadPath]);
+	var formFile = _form(null,[['attr','enctype','multipart/form-data'],['dir','method','post'],['dir','action', serverBase + 'FileBrowser/Upload.ashx?WrapStyle=message'],['attr','target','fileBrowserUpload_iframe']]);
+	// _(formFile, [uploadPath]);
 
-	var attach = _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','200px']]);
+	var attach = _input(null,[['attr','type','file'],['dir','name','rawdata'],['css','width','200px'], ['attr','multiple','multiple']]);
 	_(formFile, [attach]);
 	
 	uploadFileButton.onclick = function()
@@ -470,28 +470,35 @@ fileBrowser.prototype.createUpload = function()
             return;
         }
         
-		var iframe = createPostIframe("fileBrowserUpload_iframe", function(response)
-		{
-			if (!parseResponse(response))
-				return;
-			
-			var indexSlash = String(response.Result).lastIndexOf(_this.slash),
-				fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
-			
-			_this.shownPath = fileName;
-			
-			_this.getFiles();
-		});
-		
-		_(document.body, [iframe]);
-		
-		uploadPath.setAttribute('value',_this._path.get())
-		formFile.submit();
+        sendCrossDomainPostRequest(serverBase + 'FileBrowser/Upload.ashx', 
+            {
+                WrapStyle: 'message',
+                ParentDir: _this._path.get()
+            },
+            function(response) {
+                if (!parseResponse(response))
+                    return;
+                
+                var indexSlash = String(response.Result).lastIndexOf(_this.slash),
+                    fileName = String(response.Result).substring(indexSlash + 1, response.Result.length);
+                
+                _this.shownPath = fileName;
+                
+                _this.getFiles();
+            }, 
+            formFile
+        );
 	}
 	
-	_(div, [_table([_tbody([_tr([_td([formFile]), _td([uploadFileButton])])])])]);
+	_(div, [
+        _div([_t("Перетащите файлы сюда")], [['dir', 'className', 'fileBrowser-dragFileMessage']]),
+        _table([_tbody([_tr([
+            _td([formFile], [['css', 'paddingTop', '18px']]), 
+            _td([uploadFileButton], [['css', 'paddingTop', '18px']])
+        ])])])
+    ]);
     
-    var progressBar = $('<div/>').css({'float': 'right', width: 400, height: '1em', 'margin': '6px 2px'}).progressbar({value: 100});
+    var progressBar = $('<div/>').addClass('fileBrowser-progressBar').progressbar({value: 100});
     progressBar.hide();
     
     this.progressBar = progressBar[0];
@@ -622,7 +629,7 @@ fileBrowser.prototype.findContent = function(value)
 			return tbody.childNodes[i].offsetTop;
 	}
 	
-	return -1;	
+	return -1;
 }
 
 fileBrowser.prototype.reloadFiles = function()
@@ -728,14 +735,14 @@ fileBrowser.prototype.formatDate = function(sec)
 {
 	var sysDate = new Date(sec * 1000),
 		date = [];
-	
+
 	date[0] = sysDate.getDate(),
 	date[1] = sysDate.getMonth() + 1,
 	date[2] = sysDate.getFullYear(),
 	date[3] = sysDate.getHours(),
 	date[4] = sysDate.getMinutes(),
 	date[5] = sysDate.getSeconds();
-	
+
 	for (var i = 0; i < 6; i++)
 		if (date[i] < 10)
 			date[i] = '0' + date[i];

@@ -747,6 +747,24 @@ div.unit .unitInfo
     margin: 0px 0px 3px 3px;
 }
 
+.fileBrowser-dragFileMessage
+{
+    position: absolute;
+    right: 0px;
+    color: #DDDDDD;
+    margin: 9px 62px 0px 0px;
+    font-size: 30px;
+}
+
+div.fileBrowser-progressBar
+{    
+    width: 400px;
+    margin: 16px 18px 0px 0px;
+    position: absolute;
+    right: 0px;
+    z-index: 1;
+}
+
 .vectorInfoParams
 {
 	width: 100%;
@@ -1463,7 +1481,7 @@ div.layersScroll
     margin-left: 4px;
 }
 
-.layer-fieldset > legend > input
+.layer-fieldset > legend input
 {
     margin-right: 3px;
 }

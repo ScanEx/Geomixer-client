@@ -52,16 +52,20 @@
                     var toolName = map.layers[activeLayer].properties.GeometryType.toUpperCase();
                     map.standartTools.selectTool(toolName);
                     
-                    mapListenerId = map.drawing.addListener('onFinish', function(obj) {
-                        map.drawing.removeListener('onFinish', mapListenerId);
-                        tool.onCancel();
-                        
-                        var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
-                            drawingObject: obj
-                        });
-                    })
+                    if (mapListenerId === null) {
+                        mapListenerId = map.drawing.addListener('onFinish', function(obj) {
+                            map.drawing.removeListener('onFinish', mapListenerId);
+                            mapListenerId = null;
+                            tool.setActive();
+                            
+                            var editControl = new nsGmx.EditObjectControl(activeLayer, null, {
+                                drawingObject: obj
+                            });
+                        })
+                    }
                 },
                 onCancel: function(){
+                    map.standartTools.selectTool('move');
                 }
             })
         }

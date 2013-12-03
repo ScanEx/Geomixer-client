@@ -1,5 +1,27 @@
 ﻿var globalFlashMap;
 
+//Тут кратко описываются разные внешние классы для системы генерации документации
+
+/** ГеоМиксер активно использует {@link http://jquery.com/|jQuery}
+ * @namespace jQuery
+ */
+
+/** Официальная документация: {@link http://api.jquery.com/category/deferred-object/|jQuery Deferred}
+ * @name Deferred
+ * @memberOf jQuery
+ */
+ 
+ 
+/** Библиотека для формализации понятия модели и представления: {@link http://backbonejs.org/|Backbone}
+ * @namespace Backbone
+ */
+
+/** Официальная документация: {@link http://backbonejs.org/#Model| Backbone Model}
+ * @name Model
+ * @memberOf Backbone
+ */
+ 
+ 
 /**
     Основное пространство имён ГеоМиксера
     @namespace
@@ -651,7 +673,7 @@ function initEditUI() {
     }, 'Layer');
     
     //добавляем тул в тублар карты
-    var listeners = [];
+    var listeners = {};
     var pluginPath = gmxCore.getModulePath('EditObjectPlugin');
     globalFlashMap.drawing.addTool('editTool'
         , _gtxt("Редактировать")
@@ -665,30 +687,39 @@ function initEditUI() {
                 if (isEditableLayer(layer))
                 {
                     layer.disableFlip();
-                    var listenerId = layer.addListener('onClick', function(attr)
-                    {
-                        var obj = attr.obj;
-                        var layer = attr.attr.layer;
-                        var id = obj.properties[layer.properties.identityField];
-                        layer.bringToTopItem(id);
-                        new nsGmx.EditObjectControl(layer.properties.name, id);
-                        return true;	// Отключить дальнейшую обработку события
-                    });
-                    listeners.push({layerName: layer.properties.name, listenerId: listenerId});
+                    
+                    listeners[layer.properties.name] = listeners[layer.properties.name] || [];
+                    for (var iF = 0; iF < layer.filters.length; iF++) {
+                        var listenerId = layer.filters[iF].addListener('onClick', function(attr)
+                        {
+                            var obj = attr.obj;
+                            var layer = attr.attr.layer;
+                            var id = obj.properties[layer.properties.identityField];
+                            layer.bringToTopItem(id);
+                            new nsGmx.EditObjectControl(layer.properties.name, id);
+                            return true; // oтключить дальнейшую обработку события
+                        });
+                        
+                        //listeners.push({layerName: layer.properties.name, listenerId: listenerId});
+                        listeners[layer.properties.name].push(listenerId);
+                    }
                 }
             }
         }
         , function()
         {
-            for (var i = 0; i < listeners.length; i++) {
-                var pt = listeners[i];
-                var layer = globalFlashMap.layers[pt['layerName']];
+            //for (var i = 0; i < listeners.length; i++) {
+            for (var layerName in listeners) {
+                var pt = listeners[layerName];
+                var layer = globalFlashMap.layers[layerName];
                 if (layer) {
-                    layer.removeListener('onClick', pt['listenerId']);
+                    for (var iF = 0; iF < layer.filters.length; iF++) {
+                        layer.filters[iF] && layer.filters[iF].removeListener('onClick', pt[iF]);
+                    }
                     layer.enableFlip();
                 }
             }
-            listeners = [];
+            listeners = {};
         }
     )
 }

@@ -911,19 +911,21 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 			newFilter = globalFlashMap.layers[elem.name].addObject();
 		
 		newFilter.setFilter();
+        
+        lastStyle = lastStyle || {};
 		
 		//копируем состояние балунов с последнего стиля
-		newStyle.Balloon = lastStyle.Balloon;
-		newStyle.BalloonEnable = lastStyle.BalloonEnable;
-		newStyle.DisableBalloonOnClick = lastStyle.DisableBalloonOnClick;
-		newStyle.DisableBalloonOnMouseMove = lastStyle.DisableBalloonOnMouseMove;
+		newStyle.Balloon = lastStyle.Balloon || '';
+		newStyle.BalloonEnable = !!lastStyle.BalloonEnable;
+		newStyle.DisableBalloonOnClick = !!lastStyle.DisableBalloonOnClick;
+		newStyle.DisableBalloonOnMouseMove = !!lastStyle.DisableBalloonOnMouseMove;
 		globalFlashMap.balloonClassObject.setBalloonFromParams(newFilter, newStyle);
 		
-		newStyle.MinZoom = lastStyle.MinZoom;
-		newStyle.MaxZoom = lastStyle.MaxZoom;
+		newStyle.MinZoom = lastStyle.MinZoom || 1;
+		newStyle.MaxZoom = lastStyle.MaxZoom || 21;
 		newFilter.setZoomBounds(Number(newStyle.MinZoom), Number(newStyle.MaxZoom));
 		
-		newStyle.RenderStyle = lastStyle.RenderStyle;
+		newStyle.RenderStyle = lastStyle.RenderStyle || {};
 		newFilter.setStyle(newStyle.RenderStyle);
 		
 		globalFlashMap.layers[elem.name].filters.push(newFilter);
@@ -933,7 +935,9 @@ var createFilterHeader = function(filtersCanvas, elem, elemCanvas)
 		_(filtersCanvas, [filter]);
 		
 		updateFilterMoveButtons(filter)
-		updateFilterMoveButtons(filtersCanvas.childNodes[filtersCanvas.childNodes.length - 2])
+		if (filtersCanvas.childNodes.length >= 2) {
+            updateFilterMoveButtons(filtersCanvas.childNodes[filtersCanvas.childNodes.length - 2])
+        }
 		
 		$(filter.firstChild).treeview();
 		

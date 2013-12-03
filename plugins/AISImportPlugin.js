@@ -178,7 +178,7 @@
         })
     }
     
-    var addToAISLayer = function(csvtext)
+    var addToAISLayer = function(map, csvtext)
     {
         var active = $(_queryMapLayers.buildedTree).find(".active");
         
@@ -214,7 +214,7 @@
                     var reader = new FileReader();
                     reader.onload = function(evt) {
                         if (chkAddToLayer[0].checked)
-                            addToAISLayer(evt.target.result)
+                            addToAISLayer(map, evt.target.result)
                         else
                             createAISLayer(map, file.name.substring(0, file.name.length - 4), evt.target.result, chkTemporal[0].checked);
                     };

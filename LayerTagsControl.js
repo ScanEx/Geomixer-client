@@ -45,26 +45,32 @@
     
     (function()
     {
-        var metaInfo = null;
-        /** Загружает данные о доступных тегах с сервера*/
+        var def;
+        
+        /** Загружает данные о доступных тегах с сервера
+        * @memberOf nsGmx.TagMetaInfo
+        * @name loadFromServer
+        * @function
+        * @param {function(tagInfo)} [callback] Ф-ция, которая будет вызвана после загрузки информации о типах.
+        * @return {jQuery.Deferred} Будет заресолвен после получения информации о типах
+        */
         TagMetaInfo.loadFromServer = function(callback)
         {
-            if (metaInfo)
+            if (!def)
             {
-                callback(new TagMetaInfo(metaInfo));
-                return;
-            }
-            
-            sendCrossDomainJSONRequest(serverBase + 'Layer/MetaKeys.ashx', function(response)
-            {
-                if (!parseResponse(response))
+                def = $.Deferred();
+                sendCrossDomainJSONRequest(serverBase + 'Layer/MetaKeys.ashx', function(response)
                 {
-                    callback();
-                    return;
-                }
-                metaInfo = response.Result;
-                callback(new TagMetaInfo(metaInfo));
-            })
+                    if (!parseResponse(response))
+                    {
+                        def.resolve();
+                        return;
+                    }
+                    def.resolve(new TagMetaInfo(response.Result));
+                })
+            }
+            callback && def.done(callback);
+            return def;
         }
     })();
     
