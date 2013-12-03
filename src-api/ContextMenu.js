@@ -1,8 +1,8 @@
 // ContextMenu
 (function()
 {
+    "use strict";
 	var LMap = null;						// leafLet карта
-	var utils = null;						// утилиты для leaflet
 	var menuItems = {};						// Хэш наборов ContextMenu по ID нод обьектов карты
 	var marker = null;
 	var currMenuID = null;					// Текущее меню
@@ -78,8 +78,6 @@
 	// инициализация
 	function init(arr)	{
 		LMap = gmxAPI._leaflet['LMap'];
-		utils = gmxAPI._leaflet['utils'];
-		mapNodes = gmxAPI._leaflet['mapNodes'];
 		setTimeout(function() {
 			var css = document.createElement("link");
 			css.setAttribute("type", "text/css");

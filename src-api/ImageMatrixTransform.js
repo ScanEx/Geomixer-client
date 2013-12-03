@@ -1,6 +1,7 @@
 //Поддержка leaflet
 (function()
 {
+    "use strict";
     var util = {
         chkAttr: function(attr) {
             if('extent' in attr) {
@@ -69,12 +70,20 @@
                 canvas.style[node._transformStyleName] = gmxAPI._leaflet.utils.getMatrix3dCSS(matrix3d);
             }
         }
+		,chkOpacity: function(node) {
+            if(node.canvas && node.regularStyle && node.regularStyle.fill) {
+                var op = node.regularStyle.fillOpacity || 1;
+                if(op && op !== node.canvas.style.opacity) node.canvas.style.opacity = op;
+            }
+        }
 		,repaint: function(node) {
 			if(node.isVisible == false
                 || !node.image
                 || !node.canvas
                 ) return;
 			var canvas = node.canvas;
+            util.chkOpacity(node);
+
 			var w = node.imageWidth;
 			var h = node.imageHeight;
             var points = util.getPixelPoints(node.tPoints, w, h);
@@ -141,12 +150,9 @@
 		var attr = ph.attr;
 		var tPoints = util.chkAttr(attr);
 		var url = encodeURIComponent(attr.url);
-        if(node.canvas && node.regularStyle && node.regularStyle.fill) {
-            var op = node.regularStyle.fillOpacity || 1;
-            if(op && op !== node.canvas.style.opacity) node.canvas.style.opacity = op;
-        }
         
         if(url === node.imageURL && node.canvas && node.imageWidth && node.imageHeight) {
+            util.chkOpacity(node);
             node.tPoints = tPoints;
             var opacity = attr.opacity || 100;
             util.setTransform(node, opacity/100);
@@ -157,7 +163,7 @@
 
 		var marker = null;
 		var LMap = gmxAPI._leaflet.LMap;				// Внешняя ссылка на карту
-		var pNode = mapNodes[node.parentId] || null;
+		var pNode = gmxAPI._leaflet.mapNodes[node.parentId] || null;
 		var pGroup = (pNode ? pNode.group : LMap);
 
         gmxAPI.extend(node, {
