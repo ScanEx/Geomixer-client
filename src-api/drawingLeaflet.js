@@ -656,7 +656,7 @@
 
 				var clickWaitID = null;
 				layerGroup.on('click', function(ev) {
-					var downType = getDownType(ev, coords);
+                    var downType = getDownType(ev, coords);
 					if(currentObjectID && downType._gmxNodeID != currentObjectID) return;	// мышь нажата на другом обьекте
 
 					if(moveDone) return;	// слишком долго была нажата мышь
@@ -761,7 +761,6 @@
 		// Добавление точки
 		var addDrawingItem = function(ph)
 		{
-//console.log('addDrawingItem:  ', ph, (coords ? coords.length : 0));
 			if(onMouseUpID) return false;
             if(new Date().getTime() - gmxAPI.timeDown > 200) return; // слишком долго была нажата мышь
             if(ph.attr) ph = ph.attr;
@@ -1839,10 +1838,6 @@
 		,
 		selectTool: function(toolName) {
 			if(gmxAPI.IconsControl) gmxAPI.IconsControl.selectTool(toolName);
-		}
-		,
-		endDrawing: function() {
-//console.log('endDrawing1111111111 ', currentObjectID, objects);
 		}
 		,
 		getHoverItem: function(attr)
