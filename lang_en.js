@@ -322,7 +322,6 @@ _translationsHash.hash["eng"] = {
 	"Шкала прозрачности" : "Transparency bar",
 	"Цвет заливки" : "Fill color",
 	"Цвет обводки" : "Outlining color",
-	"Поиск слоев" : "Layers search",
 	"Легенда" : "Legend",
 	"Событие загрузки карты" : "Событие загрузки карты",
 	"Мин" : "Min",
@@ -345,6 +344,7 @@ _translationsHash.hash["eng"] = {
 	"Загрузить KML" : "Load KML",
 	"URL файла" : "File URL",
     "Поиск" : "Search",
+    "Подложки": "Base Layers",
     "Выберите слои для поиска по атрибутам": "Select layers for attributes search",
 		
 	"Редактирование прав доступа карты [value0]" : "Map [value0] access editor",

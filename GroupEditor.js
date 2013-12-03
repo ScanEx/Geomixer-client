@@ -2,37 +2,27 @@
 
 (function(){
 
-var GroupVisibilityPropertiesModel = function(isChildRadio, isVisibilityControl, isExpanded)
-{
-	var _isChildRadio = isChildRadio;
-	var _isVisibilityControl = isVisibilityControl;
-    var _isExpanded = isExpanded;
-	
-	this.isVisibilityControl = function() { return _isVisibilityControl; }
-	this.isChildRadio = function() { return _isChildRadio; }
-	this.isExpanded = function() { return _isExpanded; }
-	
-	this.setVisibilityControl = function(isVisibilityControl)
-	{
-		var isChange = _isVisibilityControl !== isVisibilityControl;
-		_isVisibilityControl = isVisibilityControl;
-		if (isChange) $(this).change();
-	}
-	
-	this.setChildRadio = function(isChildRadio)
-	{
-		var isChange = _isChildRadio !== isChildRadio;
-		_isChildRadio = isChildRadio;
-		if (isChange) $(this).change();
-	}
-    
-    this.setExpanded = function(isExpanded)
-	{
-		var isChange = _isExpanded !== isExpanded;
-		_isExpanded = isExpanded;
-		if (isChange) $(this).change();
-	}
+var BaseLayersControl = function(container) {
+    $(container).append(
+        '<table class="group-editor-blm-table">' +
+            '<tr>' + 
+                '<td class="group-editor-blm-title">Доступные подложки</td>' +
+                '<td class="group-editor-blm-title">Подложки карты</td>' + 
+            '</tr><tr>' + 
+                '<td class="group-editor-blm-available"></td>' + 
+                '<td class="group-editor-blm-map"></td>' + 
+            '</tr>' +
+        '</table>'
+    );
 }
+
+var GroupVisibilityPropertiesModel = Backbone.Model.extend({
+    defaults: {
+        isChildRadio: false,
+        isVisibilityControl: true,
+        isExpanded: false
+    }
+})
 
 //возвращает массив описания элементов таблицы для использования в mapHelper.createPropertiesTable
 //model {GroupVisibilityPropertiesModel} - ассоциированные параметры видимости
@@ -40,19 +30,19 @@ var GroupVisibilityPropertiesModel = function(isChildRadio, isVisibilityControl,
 var GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox, showExpanded )
 {
 	var _model = model;
-	var boxSwitch = _checkbox(!_model.isChildRadio(), 'checkbox'),
-		radioSwitch = _checkbox(_model.isChildRadio(), 'radio');
-	var showCheckbox = _checkbox(_model.isVisibilityControl(), 'checkbox');
-	var isExpanded = _checkbox(_model.isExpanded(), 'checkbox');
+	var boxSwitch = _checkbox(!_model.get('isChildRadio'), 'checkbox'),
+		radioSwitch = _checkbox(_model.get('isChildRadio'), 'radio');
+	var showCheckbox = _checkbox(_model.get('isVisibilityControl'), 'checkbox');
+	var isExpanded = _checkbox(_model.get('isExpanded'), 'checkbox');
 	
 	showCheckbox.onclick = function()
 	{
-		_model.setVisibilityControl( this.checked );
+		_model.set('isVisibilityControl', this.checked );
 	}
     
     isExpanded.onclick = function()
 	{
-		_model.setExpanded( this.checked );
+		_model.set('isExpanded', this.checked );
 	}
 	
 	boxSwitch.onclick = function()
@@ -60,7 +50,7 @@ var GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox, sho
 		this.checked = true;
 		radioSwitch.checked = !this.checked;
 		
-		_model.setChildRadio( !this.checked );
+		_model.set('isChildRadio', !this.checked);
 	}
 	
 	radioSwitch.onclick = function()
@@ -68,7 +58,7 @@ var GroupVisibilityPropertiesView = function( model, showVisibilityCheckbox, sho
 		this.checked = true;
 		boxSwitch.checked = !this.checked;
 		
-		_model.setChildRadio( this.checked );
+		_model.set('isChildRadio', this.checked );
 	}
 	
 	var ret = [{name: _gtxt("Вид вложенных элементов"), field: 'list', elem: _div([boxSwitch, radioSwitch])}];
@@ -96,7 +86,7 @@ var addSubGroup = function(div, layersTree)
 	else
 		newIndex = ul.childNodes.length + 1;
 	
-	var groupVisibilityProperties = new GroupVisibilityPropertiesModel( false, true, false );
+	var groupVisibilityProperties = new GroupVisibilityPropertiesModel();
 	var groupVisibilityPropertiesControls = new GroupVisibilityPropertiesView( groupVisibilityProperties, true, true );
 	
 	var elemProperties = (div.gmxProperties.content) ? div.gmxProperties.content.properties : div.gmxProperties.properties,
@@ -115,11 +105,11 @@ var addSubGroup = function(div, layersTree)
                     content:{
                         properties:{
                             title:inputIndex.value, 
-                            list: groupVisibilityProperties.isChildRadio(), 
+                            list: groupVisibilityProperties.get('isChildRadio'), 
                             visible: true, 
-                            ShowCheckbox: groupVisibilityProperties.isVisibilityControl(), 
-                            expanded: groupVisibilityProperties.isExpanded(), 
-                            initExpand: groupVisibilityProperties.isExpanded(), 
+                            ShowCheckbox: groupVisibilityProperties.get('isVisibilityControl'), 
+                            expanded: groupVisibilityProperties.get('isExpanded'), 
+                            initExpand: groupVisibilityProperties.get('isExpanded'), 
                             GroupID: nsGmx.Utils.generateUniqueID()
                         }, children:[]
                     }
@@ -206,11 +196,11 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
         typeof elemProperties.initExpand === 'undefined' ? false : elemProperties.initExpand
     );
 	var visibilityPropertiesView = GroupVisibilityPropertiesView(visibilityProperties, !isMap, !isMap);
-	$(visibilityProperties).change(function()
+	visibilityProperties.on('change', function()
 	{
-		elemProperties.list = visibilityProperties.isChildRadio();
-		elemProperties.ShowCheckbox = visibilityProperties.isVisibilityControl();
-		elemProperties.expanded = elemProperties.initExpand = visibilityProperties.isExpanded();
+		elemProperties.list = visibilityProperties.get('isChildRadio');
+		elemProperties.ShowCheckbox = visibilityProperties.get('isVisibilityControl');
+		elemProperties.expanded = elemProperties.initExpand = visibilityProperties.get('isExpanded');
         
         _layersTree.updateNodeVisibility(mainLayersTree.findTreeElem(div).elem, null);
 		
@@ -218,9 +208,6 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		if (!elemProperties.ShowCheckbox)
 		{
 			curBox.checked = true;
-			//_layersTree.visibilityFunc(curBox, true, false, false);
-            //_layersTree.updateNodeVisibility(this.findTreeElem(curBox.parentNode).elem, null);
-			
 			curBox.style.display = 'none';
 			curBox.isDummyCheckbox = true;
 		}
@@ -310,7 +297,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 			defLong = _input(null,[['attr','value',elemProperties.DefaultLong !== null ? elemProperties.DefaultLong : ''],['dir','className','inputStyle'],['css','width','62px']]),
 			defPermalink = _input(null,[['attr','value',elemProperties.ViewUrl != null ? elemProperties.ViewUrl : ''],['dir','className','inputStyle'],['css','width','206px']]),
 			defZoom = _input(null,[['attr','value',elemProperties.DefaultZoom != null ? elemProperties.DefaultZoom : ''],['dir','className','inputStyle'],['css','width','60px']]),
-			onLoad = _textarea(null,[['dir','className','inputStyle'],['css','width','310px'],['css','height','250px']]),
+			onLoad = _textarea(null,[['dir','className','inputStyle'],['css','width','100%'],['css','height','100%']]),
 			copyright = _input(null,[['attr','value',elemProperties.Copyright != null ? elemProperties.Copyright : ''],['dir','className','inputStyle'],['css','width','206px']]),
 			minViewX = _input(null,[['attr','value',elemProperties.MinViewX != null && elemProperties.MinViewX != 0 ? elemProperties.MinViewX : ''],['dir','className','inputStyle'],['css','width','60px']]),
 			minViewY = _input(null,[['attr','value',elemProperties.MinViewY != null && elemProperties.MinViewY != 0 ? elemProperties.MinViewY : ''],['dir','className','inputStyle'],['css','width','62px']]),
@@ -558,24 +545,28 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
                                 
 		var id = 'mapProperties' + String(Math.random()).substring(2, 12),
 			tabMenu = _div([_ul([_li([_a([_t(_gtxt("Общие"))],[['attr','href','#common' + id]])]),
+								 _li([_a([_t(_gtxt("Подложки"))],[['attr','href','#baselayers' + id]])]),
 								 _li([_a([_t(_gtxt("Доступ"))],[['attr','href','#policy' + id]])]),
 								 _li([_a([_t(_gtxt("Поиск"))],[['attr','href','#search' + id]])]),
 								 _li([_a([_t(_gtxt("Окно карты"))],[['attr','href','#view' + id]])]),
 								 _li([_a([_t(_gtxt("Загрузка"))],[['attr','href','#onload' + id]])]),
 								 _li([_a([_t(_gtxt("Плагины"))],[['attr','href','#plugins' + id]])])])]),
-			divCommon = _div(null,[['attr','id','common' + id],['css','width','320px']]),
-			divPolicy = _div(null,[['attr','id','policy' + id],['css','width','320px']]),
-			divSearch = _div(null,[['attr','id','search' + id],['css','width','100%'], ['css','overflowY','scroll'], ['css','overflowX','hidden'], ['css','height','275px']]),
-			divView = _div(null,[['attr','id','view' + id],['css','width','320px']]),
-			divOnload = _div(null,[['attr','id','onload' + id],['css','width','320px']]),
-			divPlugins = _div(null,[['attr','id','plugins' + id],['css','width','320px']]);
+			divCommon     = _div(null,[['attr','id','common' + id],['css','width','320px']]),
+            divBaseLayers = _div(null,[['attr','id','baselayers' + id],['dir','className','group-editor-tab-container']]),
+			divPolicy     = _div(null,[['attr','id','policy' + id],['css','width','320px']]),
+			divSearch     = _div(null,[['attr','id','search' + id],['css','width','100%'], ['css','overflowY','scroll'], ['css','overflowX','hidden'], ['css','height','275px']]),
+			divView       = _div(null,[['attr','id','view' + id],['css','width','320px']]),
+			divOnload     = _div(null,[['attr','id','onload' + id],['dir','className','group-editor-tab-container']]),
+			divPlugins    = _div(null,[['attr','id','plugins' + id],['css','width','320px']]);
 		
-		_(tabMenu, [divCommon, divPolicy, divSearch, divView, divOnload, divPlugins]);
+		_(tabMenu, [divCommon, divBaseLayers, divPolicy, divSearch, divView, divOnload, divPlugins]);
+        
+        var baseLayersControl = new BaseLayersControl(divBaseLayers);
 		
 		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divView,   [_table([_tbody(addProperties(shownViewProperties))],  [['css','width','100%'], ['dir','className','propertiesTable']])]);
-		_(divOnload, [onLoad])
+		_(divOnload, [_div([onLoad], [['css','paddingRight', '18px'], ['css','height', '100%']])]);
         
         var pluginsEditor = nsGmx.createPluginsEditor(divPlugins, _mapHelper.mapPlugins);
         
@@ -719,7 +710,7 @@ var createMapEditor = function(div)
 		};
 	
 	var canvas = createGroupEditorProperties(div, true, _layersTree);
-	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 360, 340, pos.left, pos.top, null, closeFunc);
+	showDialog(_gtxt('Карта [value0]', elemProperties.title), canvas, 420, 340, pos.left, pos.top, null, closeFunc);
 	_mapEditorsHash[elemProperties.MapID] = {
         update: canvas.updateFunc
     };
