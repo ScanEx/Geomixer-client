@@ -1,6 +1,7 @@
 //Управление drawFunctions
 (function()
 {
+    "use strict";
 	var outlineColor = 0x0000ff;
 	var fillColor = 0xffffff;
 	var currentDOMObject = null;		// текущий обьект рисования
@@ -287,7 +288,6 @@
 	var chkDrawingObjects = function() {
 		for (var id in objects) {
 			var cObj = objects[id];
-			//if(cObj.stopDrawing) cObj.stopDrawing();
 			if(!cObj.geometry) cObj.remove();
 		}
 	};
@@ -372,12 +372,10 @@
 
 	var editObject = function(coords, props, editType, propHiden)
 	{
-		if (!props)
-			props = {};
-
+		var eventType = '';
+		if (!props) props = {};
 		var text = props.text;
-		if (!text)
-			text = "";
+		if (!text) text = "";
 
 		var mapNodes = gmxAPI._leaflet.mapNodes;					// Хэш нод обьектов карты - аналог MapNodes.hx
 		var LMap = gmxAPI._leaflet.LMap;
@@ -565,6 +563,7 @@
 							gmxAPI._drawing.activeState = true;
 							if(!onMouseMoveID) onMouseMoveID = gmxAPI.map.addListener('onMouseMove', mouseMove);
 						} else if(downType.type === 'edge') {		// добавляем точку
+                            if(domObj && domObj.propHiden.maxPoints && domObj.propHiden.maxPoints >= coords.length - 1) return;
 							if(editType === 'LINESTRING') {
 								if(editIndex === 0) editIndex++;
 								layerItems[2].options.skipLastPoint = false;
@@ -906,7 +905,7 @@
 	}
 	drawFunctions.POLYGON = function(coords, props, propHiden)
 	{
-		if (gmxAPI.isRectangle(coords)) return drawFunctions.FRAME(coords, props);
+		if ((!propHiden || !propHiden.skipFrame) && gmxAPI.isRectangle(coords)) return drawFunctions.FRAME(coords, props);
 		return editObject(coords, props, 'POLYGON', propHiden)
 	}
 	drawFunctions.FRAME = function(coords, props, propHiden)
