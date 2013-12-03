@@ -12,7 +12,8 @@
 	var alias = {};             // варианты наименований подложек - для совместимости
 	var manager = {
         map: null               // карта
-        ,arr: {}
+        ,arr: []                // массив подложек
+        ,hash: {}               // список по ID всех подложек
         ,zIndex: []
         ,currentID: null        // ID текущей подложки
         ,
@@ -20,11 +21,19 @@
             manager.map = map;
             gmxAPI.extendFMO('setAsBaseLayer', function(name, attr) {
                 this.isBaseLayer = true;
-                var id = (attr && attr.id ? attr.id : name);
-                var ruTitle = (attr && attr.lang && attr.lang.ru ? attr.lang.ru : name);
-                var enTitle = (attr && attr.lang && attr.lang.en ? attr.lang.en : name);
-                var baseLayers = manager.add(id, ruTitle, enTitle);
-                baseLayers.addLayer(this);
+                var id = name;
+                if(!attr) attr = {};
+                else {
+                    id = (attr.id ? attr.id : name);
+                    if(attr.lang) {
+                        attr.rus = (attr.lang.ru ? attr.lang.ru : id);
+                        attr.eng = (attr.lang.en ? attr.lang.en : id);
+                    }
+                }
+                attr.isVisible = true
+                //var baseLayers = manager.add(id, ruTitle, enTitle);
+				var baseLayer = manager.add(id, attr);
+                baseLayer.addLayer(this);
             });
 			gmxAPI.extend(manager.map,
             {
@@ -56,29 +65,30 @@
         }
         ,
         removeLayer: function(id, layer) {             // Удаление слоя из подложки - возвращает удаленный слой либо null
-            var baseLayers = manager.arr[id];
-			if(!baseLayers || !layer) return null;
-            var arr = baseLayers.arr;
-            for(var i=0, len = baseLayers.arr.length; i<len; i++) {
-                if(layer === baseLayers.arr[i]) {
+            var baseLayer = manager.hash[id];
+			if(!baseLayer || !layer) return null;
+            var arr = baseLayer.arr;
+            for(var i=0, len = baseLayer.arr.length; i<len; i++) {
+                if(layer === baseLayer.arr[i]) {
                     if(len === 1) {
-                        baseLayers.isVisible = false;
-                        gmxAPI._listeners.dispatchEvent('onChange', manager.map.baseLayersManager, baseLayers);
+                        baseLayer.isVisible = false;
+                        gmxAPI._listeners.dispatchEvent('onChange', manager.map.baseLayersManager, baseLayer);
                     }
-                    return baseLayers.arr.splice(i, 1)[0];
+                    return baseLayer.arr.splice(i, 1)[0];
                 }
             }
             return null;
         }
         ,
-        add: function(id, ruTitle, enTitle) {           // Добавление подложки
-            if(!id || manager.arr[id]) return null;
+        add: function(id, attr) {           // Добавление подложки
+            if(!id || manager.hash[id]) return null;
+            if(!attr) attr = {};
+            var isVisible = ('isVisible' in attr ? attr.isVisible : false); // видимость подложки
             var pt = {
                 id: id || 'default'                 // id подложки
-                ,isVisible: true                    // видимость подложки
                 ,arr: []                            // массив слоев подложки
-                ,rus: ruTitle || id                 // title подложки 
-                ,eng: enTitle || id
+                ,rus: attr.rus || id                 // title подложки 
+                ,eng: attr.eng || id
                 ,addLayer: function(layer) {
                     manager.removeLayer(id, layer);
                     this.arr.push(layer);
@@ -90,28 +100,62 @@
                     manager.removeLayer(id, layer);
                     gmxAPI._listeners.dispatchEvent('onChange', manager.map.baseLayersManager, this);
                 }
+                ,setVisible: function(flag) {
+                    this.isVisible = flag;
+                    gmxAPI._listeners.dispatchEvent('onChange', manager.map.baseLayersManager, this);
+                }
+                ,setIndex: function(index) {
+                    this.index = index;
+                    gmxAPI._listeners.dispatchEvent('onChange', manager.map.baseLayersManager, this);
+                }
+                ,getIndex: function() {
+                    return (this.isVisible ? this.index : null);
+                    // for(var i=0, len = manager.zIndex.length; i<len; i++) {
+                        // if(id === manager.zIndex[i]) {
+                            // return i;
+                        // }
+                    // }
+                    // return len;
+                }
             };
-            if(ruTitle) alias[ruTitle] = id;
-            if(enTitle) alias[enTitle] = id;
-            manager.zIndex.push(id);
-            manager.arr[id] = pt;
+            if(attr.rus) alias[attr.rus] = id;
+            if(attr.eng) alias[attr.eng] = id;
+
+            pt.isVisible = isVisible;
+            //pt.setVisible(isVisible);
+            
+            manager.hash[id] = pt;
+            manager.arr.push(pt);
+            
             gmxAPI._listeners.dispatchEvent('onAdd', manager.map.baseLayersManager, pt);
             return pt;
         }
+        // ,
+        // setIndex: function(id, attr) {
+            // var len = manager.zIndex.length;
+            // var index = ('index' in attr ? attr.index : len);
+            // var out = -1;
+            // if(index > len - 1) {
+                // out = len;
+                // manager.zIndex.push(id);
+            // } else {
+                // var arr = manager.zIndex.slice(0, index);
+                // out = arr.length;
+                // arr.push(id);
+                // manager.zIndex = arr.concat(manager.zIndex.slice(index));
+            // }
+            // return out;
+        // }
         ,
         getAll: function(flag) {              // Получить список базовых подложек
-            var out = [];
-			for(var id in manager.arr) {
-				out.push(flag ? manager.arr[id] : id);
-			}
-            return out;
+            return manager.arr;
         }
         ,
         get: function(id) {               // Получить базовую подложку по ID
-            return manager.arr[id] || null;
+            return manager.hash[id] || null;
         }
         ,setVisibleCurrentItem: function(flag) {
-            var item = manager.arr[manager.currentID] || null;
+            var item = manager.hash[manager.currentID] || null;
             if(item) {
                 for(var i=0, len = item.arr.length; i<len; i++) {
                     var layer = item.arr[i];
@@ -128,8 +172,10 @@
         setCurrent: function(id) {            // Установка текущей подложки карты
             if(manager.currentID) manager.setVisibleCurrentItem(false);
             manager.currentID = '';
-            var item = manager.arr[id] || null;
+            var item = manager.hash[id] || null;
             if(item) {
+                if(!item.isVisible) return;
+                manager.map.needSetMode = null;
                 manager.currentID = id;
                 manager.setVisibleCurrentItem(true);
             }
@@ -139,15 +185,21 @@
         ,remove: function(id) {            // Удалить базовую подложку
             if(id === manager.currentID) manager.setVisibleCurrentItem(false);
             manager.currentID = '';
-            for(var i=0, len = manager.zIndex.length; i<len; i++) {
-                if(id === manager.zIndex[i]) {
-                    manager.zIndex.splice(i, 1);
-                    break;
-                }
-            }
-            var item = manager.arr[id] || null;
+            // for(var i=0, len = manager.zIndex.length; i<len; i++) {
+                // if(id === manager.zIndex[i]) {
+                    // manager.zIndex.splice(i, 1);
+                    // break;
+                // }
+            // }
+            var item = manager.hash[id] || null;
             if(item) {
-                delete manager.arr[id];
+                delete manager.hash[id];
+                for(var i=0, len = manager.arr.length; i<len; i++) {
+                    if(id === manager.arr[i].id) {
+                        manager.arr.splice(i, 1);
+                        break;
+                    }
+                }
                 gmxAPI._listeners.dispatchEvent('onRemove', manager.map.baseLayersManager, item);
             }
             return item;
@@ -166,30 +218,45 @@
      * @property {Layer[]} arr - Массив слоев подложки.
      * @property {function(layer:Layer)} addLayer - Ф-ция добавления слоя в подложку.
      * @property {function(layer:Layer)} removeLayer - Ф-ция удаления слоя из подложки.
+     * @property {function(flag:boolean)} setVisible - Установить видимость подложки.
+     * @property {function(index:number)} setIndex - Установить порядковый индекс в массиве подложек.
+     * @property {function()} getIndex - Получить порядковый индекс в массиве подложек.
+     */
+     
+     /**
+        @name BaseLayer~addLayer
+        @function
+        @param {Layer} layer слой, который нужно добавить в базовую подложку
+     */
+     
+    /**
+     * @namespace
+     * @property {object}  BaseLayerAttributes    - The default values for parties.
+     * @property {number}  BaseLayerAttributes.players       - The default number of players.
+     * @property {string}  BaseLayerAttributes.level         - The default level for the party.
+     * @property {object}  BaseLayerAttributes.treasure      - The default treasure.
+     * @property {number}  BaseLayerAttributes.treasure.gold - How much gold the party starts with.
      */
     
     /**
      * Менеджер базовых подложек (создаётся в API и доступен через свойство карты map.baseLayersManager).
      * @constructor BaseLayersManager
      */
-            /**
-             * События.
-             * 
-             * @event module:BaseLayersManager#
-             * @property {number} velocity - The snowball's velocity, in meters per second.
-             */
 	gmxAPI.BaseLayersManager = function(map) {
         manager.init(map);
         return {
             /** Добавить базовую подложку
             * @memberOf BaseLayersManager#
             * @param {String} id идентификатор подложки.
-            * @param {String} ruName наименование русскоязычное.
-            * @param {String} enName наименование англоязычное.
+            * @param {object} attr дополнительные атрибуты подложки.
+            * @param {number} attr.index - индекс в массиве подложек(по умолчанию равен количеству подложек).
+            * @param {boolean} attr.isVisible - видимость подложки(по умолчанию true).
+            * @param {String} attr.rus - наименование русскоязычное(по умолчанию равен id).
+            * @param {String} attr.eng - наименование англоязычное(по умолчанию равен id).
             * @returns {BaseLayer|null} возвращает обьект добавленной подложки или null если подложка с данным идентификатором уже существует.
             */
-            add: function(id, ruName, enName) {
-                return manager.add(id, ruName, enName);
+            add: function(id, attr) {
+                return manager.add(id, attr);
             },
             /** Удалить базовую подложку
             * @memberOf BaseLayersManager#
@@ -205,23 +272,18 @@
             * @returns {BaseLayer|null} возвращает подложку если существует иначе null).
             */
             get: function(id) {
-                return manager.arr[id] || null;
+                return manager.hash[id] || null;
             },
             /** Получить список всех базовых подложек
             * @memberOf BaseLayersManager#
             * @returns {BaseLayer[]} возвращает массив всех подложек.
             */
             getAll: function() {
-                var out = [];
-                for(var i=0, len = manager.zIndex.length; i<len; i++) {
-                    var id = manager.zIndex[i];
-                    out.push(manager.arr[id]);
-                }
-                return out;
+                return manager.arr;
             },
             /** Установить текущую подложку по идентификатору
             * @memberOf BaseLayersManager#
-            * @param {String=} id идентификатор подложки, если заданный идентификатор подложки отсутствует текущая подложка отключается.
+            * @param {String=} id идентификатор подложки, если подложка с заданным идентификатором отсутствует то текущая подложка отключается.
             * @returns {BaseLayer|null} возвращает текущую подложку, если она установлена
             */
             setCurrent: function(id) {
@@ -230,9 +292,9 @@
             /** Отключить текущую подложку
             * @memberOf BaseLayersManager#
             */
-            unsetCurrent: function() {
-                manager.setCurrent();
-            },
+            // unsetCurrent: function() {
+                // manager.setCurrent();
+            // },
             /** Получить идентификатор текущей подложки
             * @memberOf BaseLayersManager#
             * @returns {String|null} возвращает идентификатор текущей подложки либо null.
@@ -254,11 +316,11 @@
             * @returns {boolean} возвращает false если подложка не найдена иначе true.
             */
             addLayer: function(id, layer) {
-                var baseLayers = this.get(id);
-                if(!baseLayers) return false;
-                baseLayers.arr.push(layer);
+                var baseLayer = this.get(id);
+                if(!baseLayer) return false;
+                baseLayer.arr.push(layer);
 
-                gmxAPI._listeners.dispatchEvent('onAdd', this, baseLayers);
+                gmxAPI._listeners.dispatchEvent('onAdd', this, baseLayer);
                 return true;
             },
             /** Удалить слой из базовой подложки

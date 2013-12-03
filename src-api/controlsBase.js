@@ -958,7 +958,7 @@
         }
         ,
         chkExists: function() {     // Получить уже установленные подложки
-			var arr = gmxAPI.map.baseLayersManager.getItems();
+			var arr = gmxAPI.map.baseLayersManager.getAll();
             for(var i=0, len = arr.length; i<len; i++) {
                 layersControl.addBaseLayerTool(arr[i]);
             }
@@ -967,6 +967,7 @@
         }
         ,
         addBaseLayerTool: function(ph) {
+            if(!ph.isVisible) return;
             var id = ph.id;
             var attr = {
                 onClick: function() { gmxAPI.map.setBaseLayer(id); },
@@ -974,6 +975,7 @@
                 hint: gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id
             };
             layersControl.map.baseLayersTools.chkBaseLayerTool(id, attr);
+            layersControl.map.baseLayersTools.setToolIndex(id, ph.getIndex());
         }
         ,
         toggleHandlers: function(flag) {            // Добавление прослушивателей событий
@@ -990,11 +992,11 @@
 
                     key = 'onSetCurrent';
                     layersControl.listeners[key] = mbl.addListener(key, function(bl) {
-                        layersControl.map.baseLayersTools.setActiveTool(bl.id);
+                        layersControl.map.baseLayersTools.setActiveTool((bl ? bl.id : ''));
                     });
                     key = 'onRemove';
                     layersControl.listeners[key] = layersControl.map.addListener(key, function(bl) {
-                        layersControl.map.baseLayersTools.removeTool(bl.id);
+                        layersControl.map.baseLayersTools.removeTool((bl ? bl.id : ''));
                     });
                 //}});
             } else {

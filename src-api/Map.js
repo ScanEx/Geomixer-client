@@ -440,7 +440,7 @@
 				o.setVisible(false);
 				o.bringToBottom();
 				//o.setAsBaseLayer("OSM");
-				map.baseLayersManager.add('OSM').addLayer(o);
+				map.baseLayersManager.add('OSM', {isVisible:true}).addLayer(o);
 				o.setOSMTiles();
 				haveOSM = true;
 

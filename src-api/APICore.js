@@ -3342,7 +3342,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
 				if(typeof(mapLayerID) == 'string') {
 					var mapLayerNames = mapLayerID.split(',');
-					var baseLayers = baseLayersManager.add('map', 'Карта', 'Map');
+					var baseLayers = baseLayersManager.add('map', {rus:'Карта', eng:'Map', isVisible:true});
 					for (var i = 0; i < mapLayerNames.length; i++)
 						if (mapLayerNames[i] in map.layers)
 						{
@@ -3361,7 +3361,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						if (satelliteLayerNames[i] in map.layers)
 							satelliteLayers.push(map.layers[satelliteLayerNames[i]]);
 
-					var baseLayers = baseLayersManager.add('satellite', 'Снимки', 'Satellite');
+					var baseLayers = baseLayersManager.add('satellite', {rus:'Снимки', eng:'Satellite', isVisible:true});
 					for (var i = 0; i < satelliteLayers.length; i++)
 					{
 						satelliteLayers[i].setBackgroundColor(0x000001);
@@ -3374,7 +3374,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID", "");
 				if(typeof(overlayLayerID) == 'string') {
 					var overlayLayerNames = overlayLayerID.split(',');
-					var baseLayers = baseLayersManager.add('hybrid', 'Гибрид', 'Hybrid');
+					var baseLayers = baseLayersManager.add('hybrid', {rus:'Гибрид', eng:'Hybrid', isVisible:true, index:0 });
 					for (var i = 0; i < overlayLayerNames.length; i++)
 						if (overlayLayerNames[i] in map.layers)
 						{

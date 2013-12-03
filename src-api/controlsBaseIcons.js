@@ -1034,6 +1034,7 @@
                     layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
                     key = 'onSetCurrent';
                     layersControl.listeners[key] = mbl.addListener(key, function(bl) {
+                        if(!bl) return;
                         var item = layersControl.baseLayersHash[bl.id];
                         if(item) item.select();
                     });
@@ -1157,6 +1158,7 @@
         }
         ,
         addBaseLayerTool: function (ph) {
+            if(!ph.isVisible) return;
             var id = ph.id;
             var attr = {
                 onClick: function() { gmxAPI.map.setBaseLayer(id); },
@@ -1166,8 +1168,8 @@
             if(ph.rus) layersControl.aliasNames[ph.rus] = id;
             if(ph.eng) layersControl.aliasNames[ph.eng] = id;
 
-            if (layersControl.baseLayersHash[id]) return false;
-            else {
+            var index = ph.getIndex();
+            if (!layersControl.baseLayersHash[id]) {
                 var item = gmxAPI.newElement("label",
                     {
                         className: "gmx_layersControlBaseLabel"
@@ -1230,6 +1232,9 @@
                     }
                 };
             }
+            var before = layersControl.baseNode.childNodes[index];
+            var cont = layersControl.baseLayersHash[id].cont;
+            layersControl.baseNode.insertBefore(cont, before);
         }
         ,
         getAlias: function(tn) {
