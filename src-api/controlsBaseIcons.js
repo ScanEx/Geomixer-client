@@ -1271,12 +1271,14 @@
                     });
                 }
                 ,removeBaseLayer: layersControl.removeBaseLayerTool
-                ,addOverlay: function(id, layer, ruTitle, enTitle) {
+                ,addOverlay: function(id, ph) {
                     layersControl.addOverlay({
                         id: id
-                        ,layer: layer
-                        ,rus: ruTitle || id
-                        ,eng: enTitle || id
+                        ,layer: ph.layer
+                        ,rus: ph.rus || id
+                        ,eng: ph.eng || id
+                        ,onClick: ph.onClick
+                        ,onCancel: ph.onCancel
                     });
                 }
                 ,removeOverlay: layersControl.removeOverlay
