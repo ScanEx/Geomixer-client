@@ -275,7 +275,7 @@
             node.isSetImage = true;
             return def;
         };
-        if(!node.leaflet) {
+        if(!node.canvas) {
             createIcon().done(function(canv) {
                 node.canvas = canv;
                 waitRedraw();

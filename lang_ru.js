@@ -4,6 +4,8 @@ _translationsHash.flags["rus"] = "img/flag_ru.png";
 _translationsHash.titles["rus"] = "Русский";
 
 _translationsHash.hash["rus"] = {
+	"Да": "Да",
+	"Нет": "Нет",
 	"Карта" : "Карта",
 	"Создать" : "Создать",
 	"Создать карту" : "Создать карту",
