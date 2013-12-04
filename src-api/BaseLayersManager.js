@@ -31,6 +31,7 @@
                     }
                 }
                 attr.isVisible = true
+                this.setVisible(false);     // слои подложек изначально не видимы
                 //var baseLayers = manager.add(id, ruTitle, enTitle);
 				var baseLayer = manager.add(id, attr);
                 baseLayer.addLayer(this);
