@@ -434,7 +434,8 @@
 			//isDraging = false;
 			drawingUtils.hideBalloon();
 			if(toolsContainer) toolsContainer.selectTool("move");
-			eventType = 'onEdit';
+			//eventType = 'onEdit';
+			eventType = 'onFinish';
 			chkEvent(eventType);
 			drawMe();
 			return true;
