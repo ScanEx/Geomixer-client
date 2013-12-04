@@ -331,18 +331,17 @@
 		,currZoom: -1
         ,
         'setRulerSize': function() {
-            var zoomBounds = gmxAPI.map.getZoomBounds();
-            var minZ = zoomBounds.MinZoom;
-            var maxZ = zoomBounds.MaxZoom;
+            var minZ = zoomControl.minZoom;
+            var maxZ = zoomControl.maxZoom;
+
             zoomControl.rHeight = zoomControl.rulerHeight * (maxZ - minZ + 1);
             zoomControl.Ruler.style.height = zoomControl.rHeight + 'px';
             zoomControl.RulersBG.style.height = (zoomControl.rHeight + 13) + 'px';
         }
         ,
         'getRulersZoom': function(y) {
-            var zoomBounds = gmxAPI.map.getZoomBounds();
-            var minZ = zoomBounds.MinZoom;
-            var maxZ = zoomBounds.MaxZoom;
+            var minZ = zoomControl.minZoom;
+            var maxZ = zoomControl.maxZoom;
             var py = zoomControl.rHeight + zoomControl.rulerHeight * minZ - y;
             var z = Math.floor(py / zoomControl.rulerHeight);
             if(minZ > z) z = minZ;
@@ -357,10 +356,8 @@
         }
         ,
         'setZoom': function(z) {
-            var zoomBounds = gmxAPI.map.getZoomBounds();
-            if(!zoomBounds) return;
-            var minZ = zoomBounds.MinZoom;
-            var maxZ = zoomBounds.MaxZoom;
+            var minZ = zoomControl.minZoom;
+            var maxZ = zoomControl.maxZoom;
             var currZoom = zoomControl.currZoom = z;
             if(currZoom < minZ) currZoom = minZ;
             else if(currZoom > maxZ) currZoom = maxZ;
@@ -979,7 +976,7 @@
                     ,fontSize: '10pt'
                     ,marginRight: '10px'
                     ,marginTop: '10px'
-                    ,right: '5px'
+                    ,right: '34px'
                     ,background: 'rgba(255, 255, 255, 0.8)'
                     //,color: '#333333'
                     ,padding: '6px 10px 6px 6px'
