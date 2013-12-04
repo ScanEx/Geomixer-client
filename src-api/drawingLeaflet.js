@@ -432,8 +432,9 @@
 			
 			//isDraging = false;
 			drawingUtils.hideBalloon();
-            gmxAPI._drawing.control.selectTool("move");
-			eventType = 'onEdit';
+			gmxAPI._drawing.control.selectTool("move");
+			//eventType = 'onEdit';
+			eventType = 'onFinish';
 			chkEvent(eventType);
 			drawMe();
 			return true;

@@ -88,10 +88,8 @@
 			var h = node.imageHeight;
             var points = util.getPixelPoints(node.tPoints, w, h);
 
-			//if(gmxAPI._leaflet.waitSetImage > 5) { waitRedraw(); return; }
 			gmxAPI._leaflet.waitSetImage++;
-			var multiArr = node.geometry.coordinates || null;
-			if(node.geometry.type == 'Polygon') multiArr = [multiArr];
+			var multiArr = node.multiArr || null;
             canvas.width = w;
             canvas.height = h;
             if(!node.setImageExtent) {
@@ -117,6 +115,7 @@
             //if(node.regularStyle && node.regularStyle.fill) ctx.globalAlpha = node.regularStyle.fillOpacity || 1;					
 
             if(multiArr) {
+                //ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0, 255, 0, 1)';
                 ctx.beginPath();
                 var cnt = 0;
                 for (var i = 0, len = multiArr.length; i < len; i++)
@@ -137,29 +136,36 @@
                     }
                 }
                 ctx.closePath();
+                //ctx.stroke();
             } else {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             ctx.fill();
 
-			node.image = null;
+			if(!node.propHiden.cache) node.image = null;
 			--gmxAPI._leaflet.waitSetImage;
 		}
     }
 	function setImage(node, ph)	{
 		var attr = ph.attr;
 		var tPoints = util.chkAttr(attr);
+		var posLatLng = new L.LatLng(tPoints.bounds.max.y, tPoints.bounds.min.x);
+        node.multiArr = null;
+        if(node.geometry && node.geometry.type && node.geometry.type.indexOf('Polygon') != -1) {
+            node.multiArr = node.geometry.coordinates || null;
+            if(node.geometry.type === 'Polygon') node.multiArr = [node.multiArr];
+        }
+        
 		var url = encodeURIComponent(attr.url);
         
-        if(url === node.imageURL && node.canvas && node.imageWidth && node.imageHeight) {
+        if(!node.multiArr && url === node.imageURL && node.canvas && node.imageWidth && node.imageHeight) {
             util.chkOpacity(node);
             node.tPoints = tPoints;
-            var opacity = attr.opacity || 100;
-            util.setTransform(node, opacity/100);
+            util.setTransform(node);
+            node.leaflet.setLatLng(posLatLng);
             return;
         }
         //console.log('setImage', node.id);
-		var posLatLng = new L.LatLng(tPoints.bounds.max.y, tPoints.bounds.min.x);
 
 		var marker = null;
 		var LMap = gmxAPI._leaflet.LMap;				// Внешняя ссылка на карту
@@ -185,10 +191,12 @@
                 node.canvas = canv;
                 waitRedraw();
             });
+            var gmxNode = gmxAPI.mapNodes[node.id];		// Нода gmxAPI
             if(!node.image) util.getRaster(node, attr.url).done(function(img) {
                 node.image = img;
                 node.imageWidth = img.width;
                 node.imageHeight = img.height;
+                gmxAPI._listeners.dispatchEvent('onImageLoad', gmxNode, img);	// Событие загрузки Image
                 waitRedraw();
             });
             if(node.image && node.leaflet) util.repaint(node);
@@ -267,13 +275,13 @@
             node.isSetImage = true;
             return def;
         };
-        if(!marker) {
+        if(!node.leaflet) {
             createIcon().done(function(canv) {
                 node.canvas = canv;
                 waitRedraw();
             });
         } else {
-            waitRedraw();
+            chkReady();
         }
         return;
 	}
