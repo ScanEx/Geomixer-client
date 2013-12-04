@@ -2,7 +2,7 @@
 
 (function(){
 
-var BaseLayersControl = function(container) {
+var BaseLayersControl = function(container, map) {
     $(container).append(
         '<table class="group-editor-blm-table">' +
             '<tr>' + 
@@ -14,6 +14,22 @@ var BaseLayersControl = function(container) {
             '</tr>' +
         '</table>'
     );
+    
+    var availContainer = $('<ul/>').appendTo($('.group-editor-blm-available', container));
+    var mapContainer = $('<ul/>').appendTo($('.group-editor-blm-map', container));
+    
+    map.baseLayersManager.getAll().forEach(function(baseLayer) {
+        // var item = $('<li class="group-editor-blm-avail-item">' + baseLayer.id + '</li>').draggable({helper: 'clone', connectToSortable: true});
+        var item = $('<li class="group-editor-blm-avail-item">' + baseLayer.id + '</li>');
+        if (baseLayer.isVisible) {
+            mapContainer.append(item);
+        } else {
+            availContainer.append(item);
+        }
+    })
+    
+    mapContainer.sortable({connectWith: '.group-editor-blm-available > ul'});
+    availContainer.sortable({connectWith: '.group-editor-blm-map > ul'});
 }
 
 var GroupVisibilityPropertiesModel = Backbone.Model.extend({
@@ -561,7 +577,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 		
 		_(tabMenu, [divCommon, divBaseLayers, divPolicy, divSearch, divView, divOnload, divPlugins]);
         
-        var baseLayersControl = new BaseLayersControl(divBaseLayers);
+        var baseLayersControl = new BaseLayersControl(divBaseLayers, globalFlashMap);
 		
 		_(divCommon, [_table([_tbody(addProperties(shownCommonProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);
 		_(divPolicy, [_table([_tbody(addProperties(shownPolicyProperties))],[['css','width','100%'], ['dir','className','propertiesTable']])]);

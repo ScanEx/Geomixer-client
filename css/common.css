@@ -1542,11 +1542,24 @@ div.layersScroll
 .group-editor-blm-available {
     height: 100%;
     width: 50%;
+    vertical-align: top;
+}
+
+.group-editor-blm-avail-item {
+    font-size: 12px;
+    margin: 2px;
+    background-color: lightblue;
+    padding: 2px 5px;
+    cursor: move;
 }
 
 .group-editor-blm-map {
     height: 100%;
     width: 50%;
+}
+
+.group-editor-blm-map > ul, .group-editor-blm-available > ul {
+    height: 500px;
 }
 
 .group-editor-blm-title {
