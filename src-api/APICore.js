@@ -122,7 +122,7 @@ extend(window.gmxAPI,
         }
         return null;
     }
-	,
+    ,
 	'getXmlHttp': function() {
 		var xmlhttp;
 		if (typeof XMLHttpRequest != 'undefined') {
@@ -2962,7 +2962,8 @@ FlashMapObject.prototype.setImageOverlay = function(url, x1, y1, flagGeo)
 
 FlashMapObject.prototype.setImageTransform = function(url, x1, y1, x2, y2, x3, y3, x4, y4, tx1, ty1, tx2, ty2, tx3, ty3, tx4, ty4)
 {
-	this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
+    var styles = this.getStyle();
+    if(!styles.regular) this.setStyle({ fill: { color: 0x000000, opacity: 100 } });
 	var attr = {};
 	if (tx1) {
 		attr = {
@@ -3335,56 +3336,19 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					var obj = map.layers[i];
 					obj.setVisible(false);
 				}
-				var mapString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Карта", "Map");
-				var satelliteString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Снимки", "Satellite");
-				var hybridString = gmxAPI.KOSMOSNIMKI_LOCALIZED("Гибрид", "Hybrid");
 
-				var baseLayerTypes = {
-					'map': {
-						'onClick': function() { gmxAPI.map.setMode('map'); },
-						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
-						'onmouseover': function() { this.style.color = "orange"; },
-						'onmouseout': function() { this.style.color = "white"; },
-						'backgroundColor': 0xffffff,
-						'alias': 'map',
-						'lang': { 'ru': 'Карта', 'en': 'Map' },
-						'hint': mapString
-					}
-					,
-					'satellite': {
-						'onClick': function() { gmxAPI.map.setMode('satellite'); },
-						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
-						'onmouseover': function() { this.style.color = "orange"; },
-						'onmouseout': function() { this.style.color = "white"; },
-						'backgroundColor': 0x000001,
-						'alias': 'satellite',
-						'lang': { 'ru': 'Снимки', 'en': 'Satellite' },
-						'hint': satelliteString
-					}
-					,
-					'hybrid': {
-						'onClick': function() { gmxAPI.map.setMode('hybrid'); },
-						'onCancel': function() { gmxAPI.map.unSetBaseLayer(); },
-						'onmouseover': function() { this.style.color = "orange"; },
-						'onmouseout': function() { this.style.color = "white"; },
-						'backgroundColor': 0x000001,
-						'alias': 'hybrid',
-						'lang': { 'ru': 'Гибрид', 'en': 'Hybrid' },
-						'hint': hybridString
-					}
-				};
-				
+				var baseLayersManager = map.baseLayersManager;
 				var mapLayers = [];
 				var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
 				if(typeof(mapLayerID) == 'string') {
 					var mapLayerNames = mapLayerID.split(',');
+					var baseLayers = baseLayersManager.add('map', {rus:'Карта', eng:'Map', isVisible:true});
 					for (var i = 0; i < mapLayerNames.length; i++)
 						if (mapLayerNames[i] in map.layers)
 						{
 							var mapLayer = map.layers[mapLayerNames[i]];
-							//mapLayer.setVisible(true);						// Слои BaseMap должны быть видимыми
-							mapLayer.setAsBaseLayer(mapString, baseLayerTypes['map']);
-							mapLayer.setBackgroundColor(baseLayerTypes['map']['backgroundColor']);
+							mapLayer.setBackgroundColor(0xffffff);
+                            baseLayers.addLayer(mapLayer);
 							mapLayers.push(mapLayer);
 						}
 				}
@@ -3396,11 +3360,12 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					for (var i = 0; i < satelliteLayerNames.length; i++)
 						if (satelliteLayerNames[i] in map.layers)
 							satelliteLayers.push(map.layers[satelliteLayerNames[i]]);
-							
+
+					var baseLayers = baseLayersManager.add('satellite', {rus:'Снимки', eng:'Satellite', isVisible:true});
 					for (var i = 0; i < satelliteLayers.length; i++)
 					{
-						satelliteLayers[i].setAsBaseLayer(satelliteString, baseLayerTypes['satellite'])
-						satelliteLayers[i].setBackgroundColor(baseLayerTypes['satellite']['backgroundColor']);
+						satelliteLayers[i].setBackgroundColor(0x000001);
+                        baseLayers.addLayer(satelliteLayers[i]);
 					}
 				}
 				
@@ -3409,21 +3374,22 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID", "");
 				if(typeof(overlayLayerID) == 'string') {
 					var overlayLayerNames = overlayLayerID.split(',');
+					var baseLayers = baseLayersManager.add('hybrid', {rus:'Гибрид', eng:'Hybrid', isVisible:true, index:0 });
 					for (var i = 0; i < overlayLayerNames.length; i++)
 						if (overlayLayerNames[i] in map.layers)
 						{
 							isAnyExists = true;
 							var overlayLayer = map.layers[overlayLayerNames[i]];
-							overlayLayer.setAsBaseLayer(hybridString, baseLayerTypes['hybrid']);
-							overlayLayer.setBackgroundColor(baseLayerTypes['hybrid']['backgroundColor']);
+							overlayLayer.setBackgroundColor(0x000001);
+                            baseLayers.addLayer(overlayLayer);
 							overlayLayers.push(overlayLayer);
 						}
 					
 					if (isAnyExists)
 					{
 						for (var i = 0; i < satelliteLayers.length; i++) {
-							satelliteLayers[i].setAsBaseLayer(hybridString, baseLayerTypes['hybrid']);						
-							satelliteLayers[i].setBackgroundColor(baseLayerTypes['hybrid']['backgroundColor']);
+							satelliteLayers[i].setBackgroundColor(0x000001);
+                            baseLayers.addLayer(satelliteLayers[i]);
 						}
 					}
 				}
@@ -3443,7 +3409,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				var osmEmbed = map.layers[osmEmbedID];
 				if (osmEmbed)
 				{
-					osmEmbed.setAsBaseLayer(mapString);
+					baseLayersManager.get('map').addLayer(osmEmbed);
 					setOSMEmbed(osmEmbed);
 				}
 
@@ -3462,7 +3428,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				if (!window.baseMap || !window.baseMap.hostName || (window.baseMap.hostName == "maps.kosmosnimki.ru"))
 					map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : "http://maps.kosmosnimki.ru/";
 	
-				map.needSetMode = (mapLayers.length > 0 ? mapString : satelliteString);
+				map.needSetMode = (mapLayers.length > 0 ? 'map' : 'satellite');
 				if (layers)
 				{
 					map.defaultHostName = layers.properties.hostName;

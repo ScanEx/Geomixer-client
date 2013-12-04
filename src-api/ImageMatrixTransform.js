@@ -1,6 +1,7 @@
 //Поддержка leaflet
 (function()
 {
+    "use strict";
     var util = {
         chkAttr: function(attr) {
             if('extent' in attr) {
@@ -67,8 +68,12 @@
             var matrix3d = gmxAPI._leaflet.utils.getMatrix3d(w, h, points) || null;
             if(matrix3d) {
                 canvas.style[node._transformStyleName] = gmxAPI._leaflet.utils.getMatrix3dCSS(matrix3d);
-                var op = (gmxAPI._leaflet.mouseMoveAttr && gmxAPI._leaflet.mouseMoveAttr.ctrlKey ? opacity : 1);
-                if(op && op !== canvas.style.opacity) canvas.style.opacity = op;
+            }
+        }
+		,chkOpacity: function(node) {
+            if(node.canvas && node.regularStyle && node.regularStyle.fill) {
+                var op = node.regularStyle.fillOpacity || 1;
+                if(op && op !== node.canvas.style.opacity) node.canvas.style.opacity = op;
             }
         }
 		,repaint: function(node) {
@@ -77,6 +82,8 @@
                 || !node.canvas
                 ) return;
 			var canvas = node.canvas;
+            util.chkOpacity(node);
+
 			var w = node.imageWidth;
 			var h = node.imageHeight;
             var points = util.getPixelPoints(node.tPoints, w, h);
@@ -107,7 +114,7 @@
             var ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = ctx.createPattern(node.image, "no-repeat");
-            if(node.regularStyle && node.regularStyle.fill) ctx.globalAlpha = node.regularStyle.fillOpacity || 1;					
+            //if(node.regularStyle && node.regularStyle.fill) ctx.globalAlpha = node.regularStyle.fillOpacity || 1;					
 
             if(multiArr) {
                 ctx.beginPath();
@@ -142,7 +149,10 @@
 	function setImage(node, ph)	{
 		var attr = ph.attr;
 		var tPoints = util.chkAttr(attr);
-        if(ph.setImagePoints && node.canvas && node.imageWidth && node.imageHeight) {
+		var url = encodeURIComponent(attr.url);
+        
+        if(url === node.imageURL && node.canvas && node.imageWidth && node.imageHeight) {
+            util.chkOpacity(node);
             node.tPoints = tPoints;
             var opacity = attr.opacity || 100;
             util.setTransform(node, opacity/100);
@@ -153,14 +163,14 @@
 
 		var marker = null;
 		var LMap = gmxAPI._leaflet.LMap;				// Внешняя ссылка на карту
-		var pNode = mapNodes[node.parentId] || null;
+		var pNode = gmxAPI._leaflet.mapNodes[node.parentId] || null;
 		var pGroup = (pNode ? pNode.group : LMap);
 
         gmxAPI.extend(node, {
             setImageExtent: ph.setImageExtent ? true : false
             ,deferred: new gmxAPI.gmxDeferred()
             ,tPoints: tPoints
-            ,imageURL: encodeURIComponent(attr.url)
+            ,imageURL: url
             ,image: null
             ,isOnScene: false
             ,listenersID: {}
@@ -265,6 +275,7 @@
         } else {
             waitRedraw();
         }
+        return;
 	}
 
 	//расширяем namespace

@@ -2300,7 +2300,8 @@
 				grid.redrawGrid();
 			} else {
 				if(grid.positionChangedListenerID) gmxAPI.map.removeListener('positionChanged', grid.positionChangedListenerID); grid.positionChangedListenerID = null;
-				if(grid.baseLayerListenerID) gmxAPI.map.removeListener('baseLayerSelected', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
+				if(grid.baseLayerListenerID) gmxAPI.map.baseLayersManager.removeListener('onSetCurrent', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
+				//if(grid.baseLayerListenerID) gmxAPI.map.removeListener('baseLayerSelected', grid.baseLayerListenerID); grid.baseLayerListenerID = null;
 				if(grid.zoomListenerID) gmxAPI._listeners.removeListener(null, 'onZoomend', grid.zoomListenerID); grid.zoomListenerID = null;
 				LMap.removeLayer(grid.lealfetObj);
 				grid.lealfetObj = null;
@@ -2344,10 +2345,8 @@
 					if (xStep > 0 && yStep > 0) break;
 				}
 			}
-			
-			var baseLayersTools = gmxAPI.map.baseLayersTools;
-			var currTool = baseLayersTools.getToolByName(baseLayersTools.activeToolName);
-			var color = (currTool.backgroundColor === 1 ? 'white' : 'black');
+
+			var color = gmxAPI.getHtmlColor();
 			var haloColor = (color === 'black' ? 'white' : 'black');
 
 			var divStyle = {'width': 'auto', 'height': 'auto', 'color': color, 'haloColor': haloColor, 'wordBreak': 'keep-all'};
@@ -2378,7 +2377,8 @@
 				grid.lealfetObj = new L.GMXgrid(latlngArr, {noClip: true, clickable: false});
 				LMap.addLayer(grid.lealfetObj);
 				if(!grid.positionChangedListenerID) grid.positionChangedListenerID = gmxAPI.map.addListener('positionChanged', grid.redrawGrid, -10);
-				if(!grid.baseLayerListenerID) grid.baseLayerListenerID = gmxAPI.map.addListener('baseLayerSelected', grid.redrawGrid, -10);
+				if(!grid.baseLayerListenerID) grid.baseLayerListenerID = gmxAPI.map.baseLayersManager.addListener('onSetCurrent', grid.redrawGrid, -10);
+				//if(!grid.baseLayerListenerID) grid.baseLayerListenerID = gmxAPI.map.addListener('baseLayerSelected', grid.redrawGrid, -10);
 				if(!grid.zoomListenerID) grid.zoomListenerID = gmxAPI._listeners.addListener({'level': -10, 'eventName': 'onZoomend', 'func': grid.redrawGrid});
 			}
 			grid.lealfetObj.setStyle({'stroke': true, 'weight': 1, 'color': color});
@@ -2612,8 +2612,7 @@
 			var maxz = LMap.getMaxZoom();
 			if(currZ > maxz) currZ = maxz;
 			else if(currZ < minz) currZ = minz;
-			if(gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setZoom(currZ);
-			
+
 			var centr = LMap.getCenter();
 			var px = centr.lng;
 			var py = centr.lat;
@@ -2622,6 +2621,7 @@
 			} else {
 				utils.runMoveTo({'x': px, 'y': py, 'z': currZ})
 			}
+			gmxAPI._listeners.dispatchEvent('onMinMaxZoom', gmxAPI.map, {obj: gmxAPI.map, attr: {minZoom: minz, maxZoom: maxz, currZ: currZ} });
 		}
 		,
 		'checkMapSize':	function()	{				// Проверка изменения размеров карты
@@ -2948,7 +2948,7 @@
 		getZoomBounds: function(ph)	{		// Установка границ по zoom
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
-			if(!node) return;
+			if(!node) return null;
 			var out = {
 				MinZoom: node.minZ
 				,MaxZoom: node.maxZ
@@ -3006,24 +3006,26 @@
 			//node['observeVectorLayer'] = ph.attr.func;
 			return true;
 		}
-		,
-		setImagePoints:	function(ph)	{				// Изменение точек привязки изображения
-			var id = ph.obj.objectId;
-			var node = mapNodes[id];
-			if(!node) return;
-            var fName = (L.Browser.gecko3d || L.Browser.webkit3d ? 'ImageMatrixTransform' : 'setImageMapObject');
-            ph.setImagePoints = true;
-            gmxAPI._leaflet[fName](node, ph);
-		}
+		// ,
+		// setImagePoints:	function(ph)	{				// Изменение точек привязки изображения
+			// var id = ph.obj.objectId;
+			// var node = mapNodes[id];
+			// if(!node) return;
+            // var fName = (L.Browser.gecko3d ? 'ImageMatrixTransform' : 'setImageMapObject');
+            // ph.setImagePoints = true;
+            // gmxAPI._leaflet[fName](node, ph);
+		// }
 		,
 		'setImage':	function(ph)	{					// Установка изображения
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;
-			setTimeout(function() {
-                var fName = (L.Browser.gecko3d || L.Browser.webkit3d ? 'ImageMatrixTransform' : 'setImageMapObject');
-                gmxAPI._leaflet[fName](node, ph);
-            },2);
+            var flag = (L.Browser.gecko3d || L.Browser.webkit3d ? 'ImageMatrixTransform' : 'setImageMapObject');
+            if(flag) {
+                gmxAPI._leaflet.ImageMatrixTransform(node, ph);
+			} else {
+                setTimeout(function() {gmxAPI._leaflet.setImageMapObject(node, ph);},2);
+            }
 			return true;
 		}
 		,
@@ -4354,7 +4356,7 @@
 				//setTimeout(function() { skipClick = false;	}, 10);
 			});
 			var setMouseDown = function(e) {
-                //console.log('setMouseDown ', gmxAPI._leaflet.activeObject);
+				//console.log('setMouseDown ', gmxAPI._leaflet['activeObject']);
 				gmxAPI.mousePressed	= gmxAPI._leaflet['mousePressed'] = true;
 				timeDown = gmxAPI.timeDown = new Date().getTime();
 				gmxAPI._leaflet['mousedown'] = true;
@@ -4981,19 +4983,14 @@ var tt = 1;
 				};
 				var setControlDIVInnerHTML = function ()
 				{
-					var baseLayersTools = gmxAPI.map.baseLayersTools;
-					var color = '#216b9c';
-					if(baseLayersTools) {
-						var currTool = baseLayersTools.getToolByName(baseLayersTools.activeToolName);
-						div.style.backgroundColor = utils.dec2hex(currTool.backgroundColor);
-						color = (currTool.backgroundColor === 1 ? 'white' : '#216b9c');
-					}
+					var color = (gmxAPI.getHtmlColor() === 'white' ? 'white' : '#216b9c');
 					centerControlDIV.innerHTML = '<svg viewBox="0 0 12 12" height="12" width="12" style=""><g><path d="M6 0L6 12" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g><g><path d="M0 6L12 6" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g></svg>';
 					return false;
 				};
 				setControlDIVInnerHTML();
 				setCenterPoint();
-				gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
+				gmxAPI.map.baseLayersManager.addListener('onSetCurrent', setControlDIVInnerHTML, 100);
+				//gmxAPI.map.addListener('baseLayerSelected', setControlDIVInnerHTML, 100);
 			}, 500);
 		}
 	}
