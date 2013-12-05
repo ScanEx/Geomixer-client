@@ -1810,14 +1810,15 @@
 		tools: { 
 			setVisible: function(flag) 
 			{ 
-				if(gmxAPI.IconsControl) gmxAPI.IconsControl.setVisible(flag);
+				if(gmxAPI._drawing.control) gmxAPI._drawing.control.setVisible(flag);
 			}
 		}
 		,
 		addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
 		{
-			if(!gmxAPI.IconsControl) return null;
-			var ret = gmxAPI.IconsControl.addTool(tn, {
+			var control = gmxAPI.IconsControl || gmxAPI._drawing.control;
+			if(!control) return null;
+			var ret = control.addTool(tn, {
 				'key': tn,
 				'activeStyle': {},
 				'regularStyle': {},
@@ -1833,12 +1834,12 @@
 		removeTool: function(tn)
 		{
 			if(this.tools[tn]) {
-				gmxAPI.IconsControl.removeTool(tn);
+				gmxAPI._drawing.control.removeTool(tn);
 			}
 		}
 		,
 		selectTool: function(toolName) {
-			if(gmxAPI.IconsControl) gmxAPI.IconsControl.selectTool(toolName);
+			if(gmxAPI._drawing.control) gmxAPI._drawing.control.selectTool(toolName);
 		}
 		,
 		getHoverItem: function(attr)
