@@ -967,15 +967,40 @@
         }
         ,
         addBaseLayerTool: function(ph) {
-            if(!ph.isVisible) return;
             var id = ph.id;
+            if(!ph.isVisible) {
+                layersControl.map.baseLayersTools.getTool(id).setVisible(false);
+                for(var i=0, len = ph.arr.length; i<len; i++) {
+                    ph.arr[i].setVisible(false);
+                }
+                return;
+            }
+            
             var attr = {
                 onClick: function() { gmxAPI.map.setBaseLayer(id); },
                 onCancel: function() { gmxAPI.map.unSetBaseLayer(); },
                 hint: gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id
             };
             layersControl.map.baseLayersTools.chkBaseLayerTool(id, attr);
-            layersControl.map.baseLayersTools.setToolIndex(id, ph.getIndex());
+        }
+        ,
+        onIndexChange: function(ph) {
+            var id = ph.id;
+            layersControl.map.baseLayersTools.setToolIndex(id, ph.getIndex() + 1);
+        }
+        ,
+        onVisibleChange: function(ph) {
+            var id = ph.id;
+            var tool = layersControl.map.baseLayersTools.getTool(id);
+            if(!tool) return;
+            if(!ph.isVisible) {
+                tool.setVisible(false);
+                for(var i=0, len = ph.arr.length; i<len; i++) {
+                    ph.arr[i].setVisible(false);
+                }
+            } else {
+                tool.setVisible(true);
+            }
         }
         ,
         toggleHandlers: function(flag) {            // Добавление прослушивателей событий
@@ -987,8 +1012,12 @@
                     //var key = 'onAddBaseLayer';
                     var key = 'onAdd';
                     layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
-                    key = 'onChange';
+                    key = 'onLayerChange';
                     layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
+                    key = 'onVisibleChange';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.onVisibleChange);
+                    key = 'onIndexChange';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.onIndexChange);
 
                     key = 'onSetCurrent';
                     layersControl.listeners[key] = mbl.addListener(key, function(bl) {

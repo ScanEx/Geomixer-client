@@ -1027,8 +1027,12 @@
                     var mbl = layersControl.map.baseLayersManager;
                     var key = 'onAdd';
                     layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
-                    key = 'onChange';
+                    key = 'onLayerChange';
                     layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
+                    key = 'onVisibleChange';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.onVisibleChange);
+                    key = 'onIndexChange';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.onIndexChange);
                     key = 'onSetCurrent';
                     layersControl.listeners[key] = mbl.addListener(key, function(bl) {
                         if(!bl) return;
@@ -1049,6 +1053,31 @@
         ,aliasNames: {}
         ,currentBaseID: ''
         ,overlaysLayersHash: null
+        ,
+        onIndexChange: function(ph) {
+            var id = ph.id;
+            var index = ph.getIndex();
+            var cont = layersControl.baseLayersHash[id].cont;
+            var arr = layersControl.baseNode.childNodes;
+            if(index >= arr.length) {
+                layersControl.baseNode.appendChild(cont);
+                return;
+            }
+            if(index < 0) index = 0;
+            layersControl.baseNode.removeChild(cont);
+            var before = layersControl.baseNode.childNodes[index];
+            layersControl.baseNode.insertBefore(cont, before);
+        }
+        ,
+        onVisibleChange: function(ph) {
+            var id = ph.id;
+            if(!ph.isVisible) {
+                for(var i=0, len = ph.arr.length; i<len; i++) {
+                    ph.arr[i].setVisible(false);
+                }
+            }
+            layersControl.baseLayersHash[id].cont.style.display = (ph.isVisible ? 'block' : 'none');
+        }
         ,
         removeOverlay: function (id) {
             if(!layersControl.overlaysLayersHash) return null;
@@ -1074,6 +1103,7 @@
             var layer = ph.layer;
             var attr = {
                 hint: gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id
+                ,overlay: true
             };
             if(ph.onClick) attr.onClick = ph.onClick;
             if(ph.onCancel) attr.onCancel = ph.onCancel;
@@ -1155,8 +1185,14 @@
         }
         ,
         addBaseLayerTool: function (ph) {
-            if(!ph.isVisible) return;
             var id = ph.id;
+            if(!ph.isVisible) {
+                for(var i=0, len = ph.arr.length; i<len; i++) {
+                    ph.arr[i].setVisible(false);
+                }
+                layersControl.removeBaseLayerTool(id);
+                return;
+            }
             var attr = {
                 onClick: function() { gmxAPI.map.setBaseLayer(id); },
                 onCancel: function() { gmxAPI.map.unSetBaseLayer(); },

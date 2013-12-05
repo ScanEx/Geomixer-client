@@ -73,7 +73,7 @@
                 if(layer === baseLayer.arr[i]) {
                     if(len === 1) {
                         baseLayer.isVisible = false;
-                        gmxAPI._listeners.dispatchEvent('onChange', manager.map.baseLayersManager, baseLayer);
+                        gmxAPI._listeners.dispatchEvent('onLayerChange', manager.map.baseLayersManager, baseLayer);
                     }
                     return baseLayer.arr.splice(i, 1)[0];
                 }
@@ -88,26 +88,26 @@
             var pt = {
                 id: id || 'default'                 // id подложки
                 ,arr: []                            // массив слоев подложки
-                ,rus: attr.rus || id                 // title подложки 
+                ,rus: attr.rus || id                // title подложки 
                 ,eng: attr.eng || id
                 ,addLayer: function(layer) {
                     manager.removeLayer(id, layer);
                     this.arr.push(layer);
                     if(!layer.backgroundColor) layer.backgroundColor = 0xffffff;
-                    gmxAPI._listeners.dispatchEvent('onChange', manager.map.baseLayersManager, this);
+                    gmxAPI._listeners.dispatchEvent('onLayerChange', manager.map.baseLayersManager, this);
                     return true;
                 }
                 ,removeLayer: function(layer) {
                     manager.removeLayer(id, layer);
-                    gmxAPI._listeners.dispatchEvent('onChange', manager.map.baseLayersManager, this);
+                    gmxAPI._listeners.dispatchEvent('onLayerChange', manager.map.baseLayersManager, this);
                 }
                 ,setVisible: function(flag) {
                     this.isVisible = flag;
-                    gmxAPI._listeners.dispatchEvent('onChange', manager.map.baseLayersManager, this);
+                    gmxAPI._listeners.dispatchEvent('onVisibleChange', manager.map.baseLayersManager, this);
                 }
                 ,setIndex: function(index) {
                     this.index = index;
-                    gmxAPI._listeners.dispatchEvent('onChange', manager.map.baseLayersManager, this);
+                    gmxAPI._listeners.dispatchEvent('onIndexChange', manager.map.baseLayersManager, this);
                 }
                 ,getIndex: function() {
                     return (this.isVisible ? this.index : null);
@@ -356,12 +356,20 @@
          * @event BaseLayersManager#onRemove
          * @type {BaseLayer}
         */
-        /** Изменена подложка
-         * @event BaseLayersManager#onChange
+        /** Изменен список слоев в подложке
+         * @event BaseLayersManager#onLayerChange
          * @type {BaseLayer}
         */
         /** Установлена текущая подложка
          * @event BaseLayersManager#onSetCurrent
+         * @type {BaseLayer}
+        */
+        /** Изменена видимость подложки
+         * @event BaseLayersManager#onVisibleChange
+         * @type {BaseLayer}
+        */
+        /** Изменен порядковый индекс подложки
+         * @event BaseLayersManager#onIndexChange
          * @type {BaseLayer}
         */
     };
