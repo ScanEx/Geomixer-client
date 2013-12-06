@@ -331,18 +331,17 @@
 		,currZoom: -1
         ,
         'setRulerSize': function() {
-            var zoomBounds = gmxAPI.map.getZoomBounds();
-            var minZ = zoomBounds.MinZoom;
-            var maxZ = zoomBounds.MaxZoom;
+            var minZ = zoomControl.minZoom;
+            var maxZ = zoomControl.maxZoom;
+
             zoomControl.rHeight = zoomControl.rulerHeight * (maxZ - minZ + 1);
             zoomControl.Ruler.style.height = zoomControl.rHeight + 'px';
             zoomControl.RulersBG.style.height = (zoomControl.rHeight + 13) + 'px';
         }
         ,
         'getRulersZoom': function(y) {
-            var zoomBounds = gmxAPI.map.getZoomBounds();
-            var minZ = zoomBounds.MinZoom;
-            var maxZ = zoomBounds.MaxZoom;
+            var minZ = zoomControl.minZoom;
+            var maxZ = zoomControl.maxZoom;
             var py = zoomControl.rHeight + zoomControl.rulerHeight * minZ - y;
             var z = Math.floor(py / zoomControl.rulerHeight);
             if(minZ > z) z = minZ;
@@ -357,10 +356,8 @@
         }
         ,
         'setZoom': function(z) {
-            var zoomBounds = gmxAPI.map.getZoomBounds();
-            if(!zoomBounds) return;
-            var minZ = zoomBounds.MinZoom;
-            var maxZ = zoomBounds.MaxZoom;
+            var minZ = zoomControl.minZoom;
+            var maxZ = zoomControl.maxZoom;
             var currZoom = zoomControl.currZoom = z;
             if(currZoom < minZ) currZoom = minZ;
             else if(currZoom > maxZ) currZoom = maxZ;
@@ -979,7 +976,7 @@
                     ,fontSize: '10pt'
                     ,marginRight: '10px'
                     ,marginTop: '10px'
-                    ,right: '5px'
+                    ,right: '34px'
                     ,background: 'rgba(255, 255, 255, 0.8)'
                     //,color: '#333333'
                     ,padding: '6px 10px 6px 6px'
@@ -1030,8 +1027,12 @@
                     var mbl = layersControl.map.baseLayersManager;
                     var key = 'onAdd';
                     layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
-                    key = 'onChange';
+                    key = 'onLayerChange';
                     layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
+                    key = 'onVisibleChange';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.onVisibleChange);
+                    key = 'onIndexChange';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.onIndexChange);
                     key = 'onSetCurrent';
                     layersControl.listeners[key] = mbl.addListener(key, function(bl) {
                         if(!bl) return;
@@ -1052,6 +1053,31 @@
         ,aliasNames: {}
         ,currentBaseID: ''
         ,overlaysLayersHash: null
+        ,
+        onIndexChange: function(ph) {
+            var id = ph.id;
+            var index = ph.getIndex();
+            var cont = layersControl.baseLayersHash[id].cont;
+            var arr = layersControl.baseNode.childNodes;
+            if(index >= arr.length) {
+                layersControl.baseNode.appendChild(cont);
+                return;
+            }
+            if(index < 0) index = 0;
+            layersControl.baseNode.removeChild(cont);
+            var before = layersControl.baseNode.childNodes[index];
+            layersControl.baseNode.insertBefore(cont, before);
+        }
+        ,
+        onVisibleChange: function(ph) {
+            var id = ph.id;
+            if(!ph.isVisible) {
+                for(var i=0, len = ph.arr.length; i<len; i++) {
+                    ph.arr[i].setVisible(false);
+                }
+            }
+            layersControl.baseLayersHash[id].cont.style.display = (ph.isVisible ? 'block' : 'none');
+        }
         ,
         removeOverlay: function (id) {
             if(!layersControl.overlaysLayersHash) return null;
@@ -1077,6 +1103,7 @@
             var layer = ph.layer;
             var attr = {
                 hint: gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id
+                ,overlay: true
             };
             if(ph.onClick) attr.onClick = ph.onClick;
             if(ph.onCancel) attr.onCancel = ph.onCancel;
@@ -1158,8 +1185,14 @@
         }
         ,
         addBaseLayerTool: function (ph) {
-            if(!ph.isVisible) return;
             var id = ph.id;
+            if(!ph.isVisible) {
+                for(var i=0, len = ph.arr.length; i<len; i++) {
+                    ph.arr[i].setVisible(false);
+                }
+                layersControl.removeBaseLayerTool(id);
+                return;
+            }
             var attr = {
                 onClick: function() { gmxAPI.map.setBaseLayer(id); },
                 onCancel: function() { gmxAPI.map.unSetBaseLayer(); },
@@ -1274,12 +1307,14 @@
                     });
                 }
                 ,removeBaseLayer: layersControl.removeBaseLayerTool
-                ,addOverlay: function(id, layer, ruTitle, enTitle) {
+                ,addOverlay: function(id, ph) {
                     layersControl.addOverlay({
                         id: id
-                        ,layer: layer
-                        ,rus: ruTitle || id
-                        ,eng: enTitle || id
+                        ,layer: ph.layer
+                        ,rus: ph.rus || id
+                        ,eng: ph.eng || id
+                        ,onClick: ph.onClick
+                        ,onCancel: ph.onCancel
                     });
                 }
                 ,removeOverlay: layersControl.removeOverlay

@@ -27,7 +27,8 @@
                 ,left: 0
                 ,height: '1px'
                 ,width: '100%'
-                ,marginLeft: '1px'
+                // ,marginLeft: '15px'
+                // ,marginTop: '15px'
             });
             this.parentNode.appendChild(allToolsNode);
             
