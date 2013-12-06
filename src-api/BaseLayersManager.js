@@ -16,6 +16,9 @@
         ,hash: {}               // список по ID всех подложек
         ,zIndex: []
         ,currentID: null        // ID текущей подложки
+        ,addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); }
+        ,removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
+        ,stateListeners: {}
         ,
         init: function(map) {        // инициализация
             manager.map = map;
@@ -60,6 +63,14 @@
                      */
                     getBaseLayerLayers: function(name) {
                         return manager.get(name).arr;
+                    }
+                }
+            });
+            this.addListener('onVisibleChange', function(baseLayer) {
+                var current = manager.hash[manager.currentID] || null;
+                if(current && current == baseLayer) {
+                    for(var i=0, len = baseLayer.arr.length; i<len; i++) {
+                        baseLayer.arr[i].setVisible(baseLayer.isVisible);
                     }
                 }
             });
@@ -343,9 +354,9 @@
             getLayers: function(id) {
                 return manager.get(id).arr;
             }
-            ,addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); }
-            ,removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
-            ,stateListeners: {}
+            ,addListener: manager.addListener
+            ,removeListener: manager.removeListener
+            ,stateListeners: manager.stateListeners
         }
 
         /** Добавлена подложка

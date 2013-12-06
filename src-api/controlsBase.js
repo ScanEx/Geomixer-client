@@ -970,9 +970,6 @@
             var id = ph.id;
             if(!ph.isVisible) {
                 layersControl.map.baseLayersTools.getTool(id).setVisible(false);
-                for(var i=0, len = ph.arr.length; i<len; i++) {
-                    ph.arr[i].setVisible(false);
-                }
                 return;
             }
             
@@ -990,17 +987,9 @@
         }
         ,
         onVisibleChange: function(ph) {
-            var id = ph.id;
-            var tool = layersControl.map.baseLayersTools.getTool(id);
-            if(!tool) return;
-            if(!ph.isVisible) {
-                tool.setVisible(false);
-                for(var i=0, len = ph.arr.length; i<len; i++) {
-                    ph.arr[i].setVisible(false);
-                }
-            } else {
-                tool.setVisible(true);
-            }
+            var id = ph.id,
+                tool = layersControl.map.baseLayersTools.getTool(id);
+            if(tool) tool.setVisible(ph.isVisible);
         }
         ,
         toggleHandlers: function(flag) {            // Добавление прослушивателей событий

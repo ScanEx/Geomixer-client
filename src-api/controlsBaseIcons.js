@@ -1071,11 +1071,6 @@
         ,
         onVisibleChange: function(ph) {
             var id = ph.id;
-            if(!ph.isVisible) {
-                for(var i=0, len = ph.arr.length; i<len; i++) {
-                    ph.arr[i].setVisible(false);
-                }
-            }
             layersControl.baseLayersHash[id].cont.style.display = (ph.isVisible ? 'block' : 'none');
         }
         ,
@@ -1187,9 +1182,6 @@
         addBaseLayerTool: function (ph) {
             var id = ph.id;
             if(!ph.isVisible) {
-                for(var i=0, len = ph.arr.length; i<len; i++) {
-                    ph.arr[i].setVisible(false);
-                }
                 layersControl.removeBaseLayerTool(id);
                 return;
             }
