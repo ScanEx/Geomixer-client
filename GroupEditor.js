@@ -3,6 +3,7 @@
 (function(){
 
 var BaseLayersControl = function(container, map) {
+    var blm = map.baseLayersManager;
     $(container).append(
         '<table class="group-editor-blm-table">' +
             '<tr>' + 
@@ -18,9 +19,8 @@ var BaseLayersControl = function(container, map) {
     var availContainer = $('<ul/>').appendTo($('.group-editor-blm-available', container));
     var mapContainer = $('<ul/>').appendTo($('.group-editor-blm-map', container));
     
-    map.baseLayersManager.getAll().forEach(function(baseLayer) {
-        // var item = $('<li class="group-editor-blm-avail-item">' + baseLayer.id + '</li>').draggable({helper: 'clone', connectToSortable: true});
-        var item = $('<li class="group-editor-blm-avail-item">' + baseLayer.id + '</li>');
+    blm.getAll().forEach(function(baseLayer) {
+        var item = $('<li class="group-editor-blm-avail-item">' + baseLayer.id + '</li>').data('baseLayerName', baseLayer.id);
         if (baseLayer.isVisible) {
             mapContainer.append(item);
         } else {
@@ -28,8 +28,26 @@ var BaseLayersControl = function(container, map) {
         }
     })
     
-    mapContainer.sortable({connectWith: '.group-editor-blm-available > ul'});
-    availContainer.sortable({connectWith: '.group-editor-blm-map > ul'});
+    var updateBaseLayers = function() {
+        availContainer.children('li').each(function(index, elem) {
+            blm.get($(elem).data('baseLayerName')).setVisible(false);
+        })
+        
+        mapContainer.children('li').each(function(index, elem) {
+            var baseLayer = blm.get($(elem).data('baseLayerName'));
+            baseLayer.setVisible(true);
+            baseLayer.setIndex(index);
+        })
+    }
+    
+    mapContainer.sortable({
+        connectWith: '.group-editor-blm-available > ul',
+        stop: updateBaseLayers
+    });
+    availContainer.sortable({
+        connectWith: '.group-editor-blm-map > ul',
+        stop: updateBaseLayers
+    });
 }
 
 var GroupVisibilityPropertiesModel = Backbone.Model.extend({
