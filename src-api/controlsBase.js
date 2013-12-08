@@ -1038,7 +1038,6 @@
         ,
         init: function(cont) {        // инициализация
             // Установка drawing контролов
-            //gmxAPI._listeners.addListener({level: -10, eventName: 'mapInit', func: function(map) {
                 var attr = {
                     properties: { className: 'gmxTools' }
                     ,
@@ -1149,8 +1148,13 @@
                     standartTools.addTool(arr[i].key, arr[i]);
                 }
                 standartTools.selectTool("move");
+
                 gmxAPI._drawing.control = gmxAPI.map.standartTools = standartTools;
-            //}});
+                gmxAPI._listeners.addListener({level: -10, eventName: 'mapCreated', func: function(map) {
+                    gmxAPI.map.drawing.addListener('onFinish', function() {
+                        gmxAPI.map.standartTools.selectTool("move");
+                    });
+                }});
         }
         ,getInterface: function() {
             return gmxAPI.map.standartTools;

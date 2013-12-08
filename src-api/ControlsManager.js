@@ -13,6 +13,7 @@
 	var ControlsManager = {
         isVisible: true
         ,currentID: null
+        ,currentControls: {}
         ,controls: []
         ,parentNode: null
         ,allToolsNode: null
@@ -176,6 +177,14 @@
             ,getControl: function(id) {
                 var controls = ControlsManager.getCurrent();
                 return (controls && 'getControl' in controls ? controls.getControl(id) : null);
+            }
+            ,setControls: function(id) {
+                var controls = ControlsManager.getCurrent();
+                if(controls && 'setControls' in controls) {
+                   ControlsManager.currentControls = controls.setControls();
+                   return true;
+                }
+                return false;
             }
         }
     };

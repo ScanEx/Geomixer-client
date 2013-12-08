@@ -185,7 +185,7 @@
 		map.baseLayersManager = new gmxAPI.BaseLayersManager(map);
 		map.controlsManager = new gmxAPI.ControlsManager(map, gmxAPI._div);
         var params = gmxAPI.getURLParams().params;
-        map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBase');
+        map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBaseIcons');
 		gmxAPI._listeners.dispatchEvent('mapInit', null, map);	// Глобальный Listeners
 
 		var toolHandlers = {};
@@ -881,13 +881,13 @@
 		}
 		map.ToolsContainer = gmxAPI._ToolsContainer;
 		gmxAPI._listeners.dispatchEvent('mapCreated', null, map);	// Глобальный Listeners
-		// Deffered методы
-        var deffered = function() {
-            console.log('Deffered function: ', arguments.callee);
+		// Deferred методы
+        var deferred = function() {
+            console.log('Deferred function: ', arguments.callee);
         }
-        map.setCoordinatesAlign = deffered;	// Позиционирование масштабной шкалы (tr tl br bl)
-        map.setCopyrightAlign = deffered;		// Позиционирование Copyright (tr tl br bl bc)
-		map.setGeomixerLinkAlign = deffered;	// Позиционирование GeomixerLink (tr tl br bl)
+        map.setCoordinatesAlign = deferred;	// Позиционирование масштабной шкалы (tr tl br bl)
+        map.setCopyrightAlign = deferred;		// Позиционирование Copyright (tr tl br bl bc)
+		map.setGeomixerLinkAlign = deferred;	// Позиционирование GeomixerLink (tr tl br bl)
         return map;
 	}
 	//расширяем namespace

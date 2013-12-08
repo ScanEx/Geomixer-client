@@ -7,9 +7,9 @@
         ,backgroundImageBand: "url('../../api/img/band.png')"
     }
 
-    // Сообщение о Deffered методе
-    var deffered = function() {
-        console.log('Deffered function: ', this);
+    // Сообщение о Deferred методе
+    var deferred = function() {
+        console.log('deferred function: ', this);
     }
 
     //Поддержка zoomControl
@@ -935,8 +935,8 @@
         ,
         init: function(cont) {        // инициализация
             layersControl.parentNode = cont;
-            if(!layersControl.node) layersControl.node = layersControl.createNode(cont);
-            if(!layersControl.node.parentNode) layersControl.setVisible(true);
+            //if(!layersControl.node) layersControl.node = layersControl.createNode(cont);
+            //if(!layersControl.node.parentNode) layersControl.setVisible(true);
             layersControl.toggleHandlers(true);
             layersControl.chkExists();
 			gmxAPI.map.baseLayerControl.setVisible = layersControl.setVisible; // обратная совместимость
@@ -957,13 +957,16 @@
         }
         ,
         setVisible: function(flag) {
+            if(!gmxAPI._leaflet.gmxLayers) return;
 			if(!flag) {
-                if(layersControl.node.parentNode) layersControl.parentNode.removeChild(layersControl.node);
+                gmxAPI._leaflet.LMap.removeLayer(gmxAPI._leaflet.gmxLayers);
+                //if(layersControl.node.parentNode) layersControl.parentNode.removeChild(layersControl.node);
 			} else {
-                if(!layersControl.node.parentNode) layersControl.parentNode.appendChild(layersControl.node);
+                gmxAPI._leaflet.gmxLayers.addTo(gmxAPI._leaflet.LMap);
+                //if(!layersControl.node.parentNode) layersControl.parentNode.appendChild(layersControl.node);
             }
         }
-        ,
+/*        ,
         createNode: function(cont) {        // создание нод
             var node = gmxAPI.newElement(
                 "div",
@@ -1018,7 +1021,7 @@
             );
             node.appendChild(layersControl.overlaysNode);
             return node;
-        }
+        }*/
         ,
         toggleHandlers: function(flag) {            // Добавление прослушивателей событий
             if(flag) {
@@ -1036,8 +1039,9 @@
                     key = 'onSetCurrent';
                     layersControl.listeners[key] = mbl.addListener(key, function(bl) {
                         if(!bl) return;
-                        var item = layersControl.baseLayersHash[bl.id];
-                        if(item) item.select();
+                        gmxAPI._leaflet.gmxLayers.setCurrent(bl._leaflet_id);
+                        //var item = layersControl.baseLayersHash[bl.id];
+                        //if(item) item.select();
                     });
                     key = 'onRemove';
                     layersControl.listeners[key] = mbl.addListener(key, function(bl) {
@@ -1052,123 +1056,48 @@
         ,baseLayersHash: {}
         ,aliasNames: {}
         ,currentBaseID: ''
-        ,overlaysLayersHash: null
+        ,overlaysLayersHash: []
         ,
         onIndexChange: function(ph) {
             var id = ph.id;
             var index = ph.getIndex();
-            var cont = layersControl.baseLayersHash[id].cont;
-            var arr = layersControl.baseNode.childNodes;
-            if(index >= arr.length) {
-                layersControl.baseNode.appendChild(cont);
-                return;
-            }
-            if(index < 0) index = 0;
-            layersControl.baseNode.removeChild(cont);
-            var before = layersControl.baseNode.childNodes[index];
-            layersControl.baseNode.insertBefore(cont, before);
+            gmxAPI._leaflet.gmxLayers.setIndex(ph, index);
         }
         ,
         onVisibleChange: function(ph) {
             var id = ph.id;
-            layersControl.baseLayersHash[id].cont.style.display = (ph.isVisible ? 'block' : 'none');
+            if(!ph.isVisible) gmxAPI._leaflet.gmxLayers.removeLayer(ph);
+            else {
+                var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id;
+                if(ph.overlay) gmxAPI._leaflet.gmxLayers.addOverlay(ph, name);
+                else gmxAPI._leaflet.gmxLayers.addBaseLayer(ph, name);
+            }
         }
         ,
         removeOverlay: function (id) {
             if(!layersControl.overlaysLayersHash) return null;
             var overlay = layersControl.overlaysLayersHash[id];
             if (!overlay) return null;
-            overlay.cont.parentNode.removeChild(overlay.cont);
+            gmxAPI._leaflet.gmxLayers.removeLayer(overlay);
             delete layersControl.overlaysLayersHash[id];
-            if(layersControl.overlaysNode.childNodes.length < 1) {
-                layersControl.overlaysNodeSeparator.style.display = 
-                    layersControl.overlaysNode.style.display = 'none';
-                layersControl.overlaysLayersHash = null;
+            for(var i=0, len = layersControl.overlaysLayersHash.length; i<len; i++) {
+                if(id === layersControl.overlaysLayersHash[i].id) {
+                    layersControl.overlaysLayersHash.splice(i, 1);
+                    break;
+                }
             }
             return overlay;
         }
         ,
         addOverlay: function (ph) {
-            if(!layersControl.overlaysLayersHash) {
-                layersControl.overlaysLayersHash = {};
-                layersControl.overlaysNodeSeparator.style.display = 
-                    layersControl.overlaysNode.style.display = 'block';
-            }
             var id = ph.id;
-            var layer = ph.layer;
-            var attr = {
-                hint: gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id
-                ,overlay: true
-            };
-            if(ph.onClick) attr.onClick = ph.onClick;
-            if(ph.onCancel) attr.onCancel = ph.onCancel;
-            if(layer) {
-                attr.layer = layer;
-                if(!attr.onClick) attr.onClick = function() { layer.setVisible(true); };
-                if(!attr.onCancel) attr.onCancel = function() { layer.setVisible(false); };
+            //var index = ph.getIndex();
+            if (!layersControl.overlaysLayersHash[id]) {
+                layersControl.overlaysLayersHash.push(ph);
+                layersControl.overlaysLayersHash[id] = ph;
             }
-            if(ph.rus) layersControl.aliasNames[ph.rus] = id;
-            if(ph.eng) layersControl.aliasNames[ph.eng] = id;
-
-            if (layersControl.overlaysLayersHash[id]) return false;
-            else {
-                var item = gmxAPI.newElement("label",
-                    {
-                        className: "gmx_layersControlOverlayLabel"
-                    },
-                    {
-                        display: 'block'
-                    }
-                );
-                var checkbox = gmxAPI.newElement("input",
-                    {
-                        className: "gmx_layersControlOverlayRadio"
-                        ,value: id
-                        ,type: "checkbox"
-                        ,name: id
-                        ,onchange: function (ev) {
-                            var currentItem = layersControl.overlaysLayersHash[this.value];
-                            if(!currentItem) return;
-                            if(this.checked) {
-                                if('onClick' in currentItem.attr) currentItem.attr.onClick();
-                            } else {
-                                if('onCancel' in currentItem.attr) currentItem.attr.onCancel();
-                            }
-                        }
-                    },
-                    {
-                        position: 'relative'
-                        ,margin: '2px'
-                        //,top: '1px'
-                    }
-                );
-                item.appendChild(checkbox);
-                var span = gmxAPI.newElement("span",
-                    {
-                        className: "gmx_layersControlOverlaySpan"
-                        ,innerHTML: attr.hint || tn
-                    },
-                    {
-                        position: 'relative'
-                        ,top: '-2px'
-                    }
-                );
-                item.appendChild(span);
-                layersControl.overlaysNode.appendChild(item);
-                layersControl.overlaysLayersHash[id] = {
-                    id: id
-                    ,cont: item
-                    ,checkbox: checkbox
-                    ,span: span
-                    ,attr: attr
-                    ,select: function() {
-                        checkbox.checked = true;
-                    }
-                };
-                //layersControl.aliasNames[tn] = id;
-            }
-            //node.appendChild(layersControl.overlaysNodeSeparator);
-            //layersControl.overlaysNode = gmxAPI.newElement(
+            var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id;
+            gmxAPI._leaflet.gmxLayers.addOverlay(ph, name);
         }
         ,
         removeBaseLayerTool: function (id) {
@@ -1180,86 +1109,18 @@
         }
         ,
         addBaseLayerTool: function (ph) {
+            if(!ph.isVisible) return;
             var id = ph.id;
-            if(!ph.isVisible) {
-                layersControl.removeBaseLayerTool(id);
-                return;
-            }
-            var attr = {
-                onClick: function() { gmxAPI.map.setBaseLayer(id); },
-                onCancel: function() { gmxAPI.map.unSetBaseLayer(); },
-                hint: gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id
-            };
-            if(ph.rus) layersControl.aliasNames[ph.rus] = id;
-            if(ph.eng) layersControl.aliasNames[ph.eng] = id;
-
             var index = ph.getIndex();
             if (!layersControl.baseLayersHash[id]) {
-                var item = gmxAPI.newElement("label",
-                    {
-                        className: "gmx_layersControlBaseLabel"
-                    },
-                    {
-                        display: 'block'
-                    }
-                );
-                var radio = gmxAPI.newElement("input",
-                    {
-                        className: "gmx_layersControlBaseRadio"
-                        ,value: id
-                        ,type: "radio"
-                        ,name: "currentBaseLayer"
-                        ,onchange: null
-                        ,onclick: function (ev) {
-                            gmxAPI.map.setMode
-                            var currentItem = layersControl.baseLayersHash[layersControl.currentBaseID];
-                            if(currentItem) {
-                                if('onCancel' in currentItem.attr) currentItem.attr.onCancel();
-                                currentItem.radio.checked = false;
-                            }
-                            layersControl.currentBaseID = null;
-                            
-                            if(this.checked) {
-                                layersControl.currentBaseID = this.value;
-                                currentItem = layersControl.baseLayersHash[layersControl.currentBaseID];
-                                if('onClick' in currentItem.attr) currentItem.attr.onClick();
-                            }
-                            gmxAPI.map.setMode(layersControl.currentBaseID);
-                        }
-                    },
-                    {
-                        position: 'relative'
-                        ,margin: '2px'
-                    }
-                );
-                item.appendChild(radio);
-                var span = gmxAPI.newElement("span",
-                    {
-                        className: "gmx_layersControlBaseSpan"
-                        ,innerHTML: attr.hint
-                    },
-                    {
-                        position: 'relative'
-                        ,top: '-2px'
-                    }
-                );
-                item.appendChild(span);
-                layersControl.baseNode.appendChild(item);
-                layersControl.baseLayersHash[id] = {
-                    id: id
-                    ,cont: item
-                    ,radio: radio
-                    ,span: span
-                    ,attr: attr
-                    ,select: function() {
-                        radio.checked = true;
-                        layersControl.currentBaseID = radio.value;
-                    }
-                };
+                layersControl.baseLayersHash[id] = ph;
             }
-            var before = layersControl.baseNode.childNodes[index];
-            var cont = layersControl.baseLayersHash[id].cont;
-            layersControl.baseNode.insertBefore(cont, before);
+            var baseLayer = layersControl.baseLayersHash[id];
+            var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(baseLayer.rus, baseLayer.eng) || id;
+            var layers = baseLayer.layers || [];
+            if(layers.length > 0) {
+                gmxAPI._leaflet.gmxLayers.addBaseLayer(baseLayer, name);
+            }
         }
         ,
         getAlias: function(tn) {
@@ -1285,8 +1146,8 @@
             if(layersControl.baseLayersHash[tn]) return layersControl.baseLayersHash[tn];
             return null;
         }
-        ,updateVisibility: deffered
-        ,repaint: deffered
+        ,updateVisibility: deferred
+        ,repaint: deferred
         ,getInterface: function() {
             return {
                 remove: layersControl.remove
@@ -1302,6 +1163,7 @@
                 ,addOverlay: function(id, ph) {
                     layersControl.addOverlay({
                         id: id
+                        ,overlay: true
                         ,layer: ph.layer
                         ,rus: ph.rus || id
                         ,eng: ph.eng || id
@@ -1323,7 +1185,7 @@
         id: 'iconsControl'
         ,parentNode: null
         ,node: null
-        ,hideNode: null
+        //,hideNode: null
         ,items: []
         ,
         init: function(cont) {        // инициализация
@@ -1460,42 +1322,9 @@
                 {
                     position: "absolute"
                     ,top: '10px'
-                    ,left: '45px'
+                    ,left: '300px'
                 }
             );
-            iconsControl.hideNode = iconsControl.addItemNode({
-                type: 'hideItem'
-                ,
-                attr: {
-                    title: 'Показать/Скрыть'
-                }
-                ,
-                events: {
-                    onclick: function(e) {
-                        if(this._gmxItem.isActive) {
-                            gmxAPI.extend(this._gmxItem.style, {backgroundPosition: '-565px -33px'});
-                            gmxAPI.extend(this._gmxItem.hoverStyle, {backgroundPosition: '-565px -2px'});
-                        } else {
-                            gmxAPI.extend(this._gmxItem.style, {backgroundPosition: '-596px -33px'});
-                            gmxAPI.extend(this._gmxItem.hoverStyle, {backgroundPosition: '-596px -2px'});
-                        }
-                        gmxAPI.map.controlsManager.toggleVisible();
-                        setDOMStyle(this, this._gmxItem.hoverStyle);
-                    }
-                }
-                ,
-                style: gmxAPI.extend({
-                        position: "absolute"
-                        ,top: '10px'
-                        ,left: '5px'
-                        ,backgroundPosition: '-596px -33px'
-                    }, iconsControl.styleIcon)
-                ,
-                hoverStyle: {
-                    backgroundPosition: '-596px -2px'
-                }
-            });
-            cont.appendChild(iconsControl.hideNode);
             iconsControl.itemsNode = gmxAPI.newElement(
                 "div",
                 {
@@ -1509,52 +1338,6 @@
                 }
             );
             node.appendChild(iconsControl.itemsNode);
-            if(window.mapHelper) {
-                iconsControl.itemsNode.appendChild(iconsControl.addItemNode({
-                    id: 'print'
-                    ,
-                    attr: {
-                        title: 'Печать'
-                    }
-                    ,notSticky: 1
-                    ,
-                    events: {
-                        onclick: function(e) {
-                            window.mapHelper.prototype.print();
-                        }
-                    }
-                    ,
-                    style: gmxAPI.extend({
-                            backgroundPosition: '-52px -33px'
-                        }, iconsControl.styleIcon)
-                    ,
-                    hoverStyle: {
-                        backgroundPosition: '-52px -2px'
-                    }
-                }));
-                iconsControl.itemsNode.appendChild(iconsControl.addItemNode({
-                    id: 'PermaLink'
-                    ,
-                    attr: {
-                        title: 'Пермалинк'
-                    }
-                    ,notSticky: 1
-                    ,
-                    events: {
-                        onclick: function(e) {
-                            window.mapHelper.prototype.showPermalink();
-                        }
-                    }
-                    ,
-                    style: gmxAPI.extend({
-                            backgroundPosition: '-534px -33px'
-                        }, iconsControl.styleIcon)
-                    ,
-                    hoverStyle: {
-                        backgroundPosition: '-534px -2px'
-                    }
-                }));
-            }
             return node;
         }
         ,
@@ -1749,47 +1532,48 @@
         id: 'drawing'
         ,parentNode: null
         ,node: null
-        ,hideNode: null
+//        ,hideNode: null
         ,items: []
         ,
         init: function(cont) {        // инициализация
             // Установка drawing контролов
             //gmxAPI._listeners.addListener({level: -10, eventName: 'mapInit', func: function(map) {
+/*
                 var arr = [
-                    {
-                        key: "zoom",
-                        style: {
-                            backgroundPosition: '-362px -33px'
-                        }
-                        ,
-                        hoverStyle: {
-                            backgroundPosition: '-362px -2px'
-                        }
-                        ,activeStyle: {}
-                        ,regularStyle: {}
-                        ,onClick: gmxAPI._drawFunctions.zoom
-                        ,onCancel: function() {
-                            gmxAPI._drawing.activeState = false;
-                            gmxAPI._drawing.BoxZoom = false;
-                            return null;
-                        }
-                        ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
-                    }
-                    ,
-                    {
-                        key: "POINT",
-                        style: {
-                            backgroundPosition: '-238px -33px'
-                        }
-                        ,
-                        hoverStyle: {
-                            backgroundPosition: '-238px -2px'
-                        }
-                        ,onClick: gmxAPI._drawFunctions.POINT
-                        ,onCancel: gmxAPI._drawing.endDrawing
-                        ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
-                    }
-                    ,
+                    // {
+                        // key: "zoom",
+                        // style: {
+                            // backgroundPosition: '-362px -33px'
+                        // }
+                        // ,
+                        // hoverStyle: {
+                            // backgroundPosition: '-362px -2px'
+                        // }
+                        // ,activeStyle: {}
+                        // ,regularStyle: {}
+                        // ,onClick: gmxAPI._drawFunctions.zoom
+                        // ,onCancel: function() {
+                            // gmxAPI._drawing.activeState = false;
+                            // gmxAPI._drawing.BoxZoom = false;
+                            // return null;
+                        // }
+                        // ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
+                    // }
+                    // ,
+                    // {
+                        // key: "POINT",
+                        // style: {
+                            // backgroundPosition: '-238px -33px'
+                        // }
+                        // ,
+                        // hoverStyle: {
+                            // backgroundPosition: '-238px -2px'
+                        // }
+                        // ,onClick: gmxAPI._drawFunctions.POINT
+                        // ,onCancel: gmxAPI._drawing.endDrawing
+                        // ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
+                    // }
+                    // ,
                     {
                         key: "LINESTRING",
                         style: {
@@ -1836,10 +1620,10 @@
                     id: 'drawing'
                     ,items: arr
                 });
-                gmxAPI.map.standartTools = gmxAPI._drawing.control;     // для обратной совместимости
-                
-                gmxAPI._drawing.control.setCurrent();
+                //gmxAPI.map.standartTools = gmxAPI._drawing.control;     // для обратной совместимости
+                //gmxAPI._drawing.control.setCurrent();
             //}});
+*/
         }
         ,setVisible: function(flag) {
         }
@@ -1861,6 +1645,7 @@
 	var Controls = {
         id: 'controlsBaseIcons'
         ,isVisible: true
+         ,controlsHash: {}
         //,isActive: false
         ,
         items: [iconsControl, layersControl, copyrightControl, locationControl, zoomControl, drawingControl]
@@ -1890,7 +1675,7 @@
             this.forEach(function(item, i) {
                 if('remove' in item) item.remove();
             });
-            if(iconsControl.hideNode.parentNode) iconsControl.hideNode.parentNode.removeChild(iconsControl.hideNode);
+//            if(iconsControl.hideNode.parentNode) iconsControl.hideNode.parentNode.removeChild(iconsControl.hideNode);
         }
         ,
         forEach: function(callback) {
@@ -1907,6 +1692,363 @@
                 }
             });
             return res;
+        }
+        ,
+        setControls: function(id) {
+            var outControls = {};
+            var mbl = gmxAPI.map.baseLayersManager;
+
+            // gmxControl - прототип контрола из одной кнопки
+            L.Control.gmxControl = L.Control.extend({
+                options: {
+                    isVisible: true,
+                    type: '',
+                    position: 'topleft'
+                }
+                ,
+                _initLayout: function () {
+                    var className = 'leaflet-control-' + this.options.type,
+                        container = this._container = L.DomUtil.create('div', className);
+
+                    if(this.options.title) container.title = this.options.title;
+
+                    L.DomEvent.on(container, 'click', this.options.onclick, this);
+                    L.DomEvent.on(container, 'dblclick', L.DomEvent.stopPropagation);
+                    return container;
+                }
+                ,
+                onAdd: function (map) {
+                    if(this.options.onAdd) this.options.onAdd.call(this, map);
+                    return this._initLayout();
+                }
+            });
+            L.control.gmxControl = function (options) {
+              return new L.Control.gmxControl(options);
+            }
+
+            // gmxLayers - контрол слоев
+            L.Control.gmxLayers = L.Control.Layers.extend({
+                options: {
+                    current: ''
+                }
+                ,
+                _onInputClick: function (ev) {
+                    var layerId = this._chkInput(ev.target);
+                    if(!this._layers[layerId].overlay) {
+                        if(this.current != layerId) {
+                            this.current = layerId;
+                            ev.target.checked = true;
+                        } else {
+                            this.current = null;
+                            ev.target.checked = false;
+                        }
+                        mbl.setCurrent((this.current ? this._layers[layerId].layer.id : ''));
+                    }
+                }
+                ,
+                _update: function () {
+                    L.Control.Layers.prototype._update.call(this);
+                    if(this.current) this.setCurrent(this.current, true);
+                }
+                ,
+                setIndex: function (ph, index) {
+                    var layerId = ph._leaflet_id;
+                    var overlay = this._layers[layerId].overlay;
+                    var cont = overlay ? this._baseLayersList : this._baseLayersList;
+                    if(index < 0) index = 0;
+                    
+                    for(var i=0, len = cont.childNodes.length; i<len; i++) {
+                        var node = cont.childNodes[i];
+                        var control = node.control;
+                        if(layerId == control.layerId) {
+                            if(index >= len) {
+                                cont.appendChild(node);
+                            } else {
+                                var before = cont.childNodes[index];
+                                cont.removeChild(node);
+                                cont.insertBefore(node, before);
+                            }
+                            break;
+                        }
+                    }
+                }
+                ,
+                setCurrent: function (id, skipChkInput) {
+                    for(var i=0, len = this._form.length; i<len; i++) {
+                        var input = this._form[i];
+                        if(id == input.layerId) {
+                            if(!skipChkInput) this._chkInput(input);
+                            this.current = id;
+                            input.checked = true;
+                        }
+                        var item = this._layers[input.layerId];
+                        if(item.overlay && item.layer.isActive) input.checked = true;
+                    }
+                }
+                ,
+                _chkInput: function (target) {
+                    var layers = this._layers;
+                    var layerId = String(target.layerId);
+                    var isActive = target.checked;
+                    var item = this._layers[layerId].layer;
+                    var overlay = this._layers[layerId].overlay;
+                    if(overlay) {
+                        if(isActive) {
+                            if(item.onClick) item.onClick();
+                        } else {
+                            if(item.onCancel) item.onCancel();
+                        }
+                        item.isActive = isActive;
+                    }
+                    return layerId;
+                }
+            });
+            L.control.gmxLayers = function (baseLayers, groupedOverlays, options) {
+              return new L.Control.gmxLayers(baseLayers, groupedOverlays, options);
+            }
+            var gmxLayers = L.control.gmxLayers({}, {}, {});
+            gmxLayers.addTo(gmxAPI._leaflet.LMap);
+            outControls.gmxLayers = gmxLayers;
+            gmxAPI._leaflet.gmxLayers = gmxLayers;
+
+            // HideControls - кнопка управления видимостью всех контролов
+            L.Control.hideControls = L.Control.gmxControl.extend({
+                _toggleVisible: function (e) {
+                    L.DomEvent.stopPropagation(e);
+                    var flag = !this.options.isVisible;
+                    this.options.isVisible = flag;
+                    for(var key in Controls.controlsHash) {
+                        var item = Controls.controlsHash[key];
+                        if(item != this) {
+                            item._container.style.display = flag ? 'block' : 'none';
+                        }
+                    }
+                }
+            });
+            L.control.hideControls = function (options) {
+              return new L.Control.hideControls(options);
+            }
+
+            var hideControls = L.control.hideControls({
+                title: 'Показать/Скрыть'
+                ,type: 'hide'
+                ,onclick: function(e) {
+                    this._toggleVisible(e);
+                }
+            });
+
+            //var hideControls = L.control.hideControls({});
+            hideControls.addTo(gmxAPI._leaflet.LMap);
+            outControls.hideControls = hideControls;
+
+            if(window.mapHelper) {
+                // PrintControl - кнопка печати
+                var printControl = L.control.gmxControl({
+                    title: 'Печать'
+                    ,type: 'print'
+                    ,onclick: function(e) {
+                        window.mapHelper.prototype.print();
+                    }
+                });
+                printControl.addTo(gmxAPI._leaflet.LMap);
+                outControls.printControl = printControl;
+
+                // PermalinkControl - кнопка печати
+                var permalinkControl = L.control.gmxControl({
+                    title: 'Пермалинк'
+                    ,type: 'permalink'
+                    ,onclick: function(e) {
+                        window.mapHelper.prototype.showPermalink();
+                    }
+                });
+                permalinkControl.addTo(gmxAPI._leaflet.LMap);
+                outControls.permalinkControl = permalinkControl;
+            }
+
+            // DrawingZoomControl - кнопка печати
+            var drawingZoomControl = L.control.gmxControl({
+                title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "Zoom")
+                ,isActive: false
+                ,type: 'drawingZoom'
+                ,onclick: function(e) {
+                    var className = 'leaflet-control-' + this.options.type + '-Active';
+                    if(!gmxAPI._drawing.BoxZoom) {
+                        gmxAPI._drawFunctions.zoom();
+                        L.DomUtil.addClass(this._container, className);
+                    } else {
+                        gmxAPI._drawing.activeState = false;
+                        gmxAPI._drawing.BoxZoom = false;
+                        L.DomUtil.removeClass(this._container, className);
+                    }
+                }
+                ,onAdd: function(map) {
+                    var my = this;
+                    map.on('boxzoomend', function() {
+                        L.DomUtil.removeClass(my._container, 'leaflet-control-' + my.options.type + '-Active');
+                    });
+                }
+
+            });
+            drawingZoomControl.addTo(gmxAPI._leaflet.LMap);
+            outControls.drawingZoomControl = drawingZoomControl;
+
+            // DrawingPointControl - кнопка печати
+            var drawingPointControl = L.control.gmxControl({
+                title: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
+                ,isActive: false
+                ,onFinishID: null
+                ,type: 'drawingPoint'
+                ,onclick: function(e) {
+                    var my = this;
+                    var className = 'leaflet-control-' + this.options.type + '-Active';
+                    var stop = function() {
+                        L.DomUtil.removeClass(my._container, className);
+                        my.options.isActive = false;
+                        if(my.options.onFinishID) gmxAPI.map.drawing.removeListener('onFinish', my.options.onFinishID);
+                        my.options.onFinishID = null;
+                    };
+                    if(!this.options.onFinishID) {
+                        this.options.onFinishID = gmxAPI.map.drawing.addListener('onFinish', stop);
+                    }
+                    if(!this.options.isActive) {
+                        gmxAPI._drawFunctions.POINT();
+                        L.DomUtil.addClass(this._container, className);
+                        this.options.isActive = true;
+                    } else {
+                        gmxAPI._drawing.endDrawing();
+                        stop();
+                    }
+                }
+            });
+            drawingPointControl.addTo(gmxAPI._leaflet.LMap);
+            outControls.drawingPointControl = drawingPointControl;
+
+            L.Control.Drawing = L.Control.extend({
+                options: {
+                    position: 'topleft'
+                },
+
+                _createButton: function (item, container, fn, context) {
+                    var className = 'leaflet-control-Drawing-' + item.key;
+                    var link = L.DomUtil.create('div', className, container);
+                    link.title = item.hint;
+
+                    var stop = L.DomEvent.stopPropagation;
+
+                    L.DomEvent
+                        .on(link, 'click', stop)
+                        .on(link, 'mousedown', stop)
+                        .on(link, 'dblclick', stop)
+                        .on(link, 'click', L.DomEvent.preventDefault)
+                        .on(link, 'click', fn, context);
+
+                    return link;
+                },
+
+                onAdd: function (map) {
+                    var zoomName = 'leaflet-control-Drawing',
+                        container = L.DomUtil.create('div', 'leaflet-control-Drawing');
+
+                    L.DomEvent.on(container, 'mouseover', function (e) {
+                        container.style.height = '90px';
+                    });
+                    L.DomEvent.on(container, 'mouseout', function (e) {
+                        container.style.height = '30px';
+                    });
+
+                    this._map = map;
+                    var arr = [
+                    {
+                        key: "LINESTRING",
+                        style: {
+                            backgroundPosition: '-393px -33px'
+                        }
+                        ,
+                        hoverStyle: {
+                            backgroundPosition: '-393px -2px'
+                        }
+                        ,onClick: gmxAPI._drawFunctions.LINESTRING
+                        ,onCancel: gmxAPI._drawing.endDrawing
+                        ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
+                    }
+                    ,
+                    {
+                        key: "POLYGON",
+                        style: {
+                            backgroundPosition: '-503px -33px'
+                        }
+                        ,
+                        hoverStyle: {
+                            backgroundPosition: '-503px -2px'
+                        }
+                        ,onClick: gmxAPI._drawFunctions.POLYGON
+                        ,onCancel: gmxAPI._drawing.endDrawing
+                        ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Полигон", "Polygon")
+                    }
+                    ,
+                    {
+                        key: "FRAME",
+                        style: {
+                            backgroundPosition: '-269px -33px'
+                        }
+                        ,
+                        hoverStyle: {
+                            backgroundPosition: '-269px -2px'
+                        }
+                        ,onClick: gmxAPI._drawFunctions.FRAME
+                        ,onCancel: gmxAPI._drawing.endDrawing
+                        ,hint: gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
+                    }
+                    ];
+                    var my = this;
+                    var items = {};
+                    arr.forEach(function(item) {
+                        var key = item.key;
+                        var fn = function() {
+                            var target = items[key];
+                            var className = 'leaflet-control-Drawing-' + key + '-Active';
+                            var stop = function() {
+                                L.DomUtil.removeClass(target, className);
+                                my.options.isActive = false;
+                                if(my.options.onFinishID) gmxAPI.map.drawing.removeListener('onFinish', my.options.onFinishID);
+                                my.options.onFinishID = null;
+                            };
+                            if(!my.options.onFinishID) {
+                                my.options.onFinishID = gmxAPI.map.drawing.addListener('onFinish', stop);
+                            }
+                            if(!my.options.isActive) {
+                                gmxAPI._drawFunctions[key]();
+                                if(target != target.parentNode.firstChild) {
+                                    target.parentNode.insertBefore(target, target.parentNode.firstChild);
+                                }
+                                L.DomUtil.addClass(target, className);
+                                my.options.isActive = true;
+                            } else {
+                                gmxAPI._drawing.endDrawing();
+                                stop();
+                            }
+                        }
+                        items[key]  = my._createButton(item,  container, fn, my);
+                    });
+                    this.options.items = items;
+                    return container;
+                },
+
+                onRemove: function (map) {
+console.log('onRemove ', this);
+                    //map.off('zoomend zoomlevelschange', this._updateDisabled, this);
+                }
+            });
+            L.control.gmxDrawing = function (options) {
+              return new L.Control.Drawing(options);
+            }
+			// if(!gmxAPI.isMobile) {
+            var gmxDrawing = L.control.gmxDrawing({});
+            gmxDrawing.addTo(gmxAPI._leaflet.LMap);
+            outControls.gmxDrawing = gmxDrawing;
+
+            Controls.controlsHash = outControls;
+            return outControls;
         }
 	}
     if(!gmxAPI._controls) gmxAPI._controls = [];

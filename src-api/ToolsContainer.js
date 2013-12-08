@@ -211,7 +211,7 @@
                 return true;
             }
             ,setVisible: function(flag) {
-                gmxAPI.setVisible(gmxTools, flag);
+                gmxAPI.setVisible(my.node, flag);
                 this.isVisible = flag;
             }
             ,repaint: function() {
@@ -252,10 +252,19 @@
             }
             ,addTool: function (tn, attr) {
 //console.log('tool addTool', tn, attr); // wheat
+                if(!attr) attr = {};
+                if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
+                    attr.id = tn;
+                    if(!attr.rus) attr.rus = attr.hint || attr.id;
+                    if(!attr.eng) attr.eng = attr.hint || attr.id;
+                    
+                    var layersControl = gmxAPI.map.controlsManager.getControl('layers');
+                    if(layersControl) layersControl.addOverlay(tn, attr);
+                    return;
+                }
 
                 if(!my.itemsContainer) my.itemsContainer = (createContainerNode ? createContainerNode() : my.createContainerNode('div', properties, style));
 
-                if(!attr) attr = {};
                 if(!attr.alias) attr.alias = tn
                 aliasNames[attr.alias] = tn;
 

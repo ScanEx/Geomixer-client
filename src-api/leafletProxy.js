@@ -907,8 +907,9 @@
 			if(!attr || !attr.evName) return;
 			var evName = attr.evName;
 
-			var standartTools = gmxAPI.map.standartTools;
-			if(!standartTools || !skipToolNames[standartTools.activeToolName]) {
+			//var standartTools = gmxAPI.map.standartTools;
+			//if(!standartTools || !skipToolNames[standartTools.activeToolName]) {
+			if(!gmxAPI._drawing || !gmxAPI._drawing.activeState) {
 				var from = gmxAPI.map.layers.length - 1;
 				var arr = [];
 				for (var i = from; i >= 0; i--)
@@ -4169,7 +4170,7 @@
 			,'handlers': {}
 			,'children': []
 			,'id': mapID
-			,'group': gmxAPI._leaflet['LMap']
+			,'group': gmxAPI._leaflet.LMap
 			,'parentId': false
 		};
 		gmxAPI._listeners.addListener({'level': -10, 'eventName': 'mapCreated', 'func': function(ph) {
@@ -4182,10 +4183,14 @@
 				gmxAPI.map.setMode(gmxAPI.map.needSetMode);
 				gmxAPI.map.needSetMode = null;
 			}
-			if(gmxAPI.map.standartTools && gmxAPI.isMobile) {
-				gmxAPI.map.standartTools.remove();
-			}
+			// if(gmxAPI.map.standartTools && gmxAPI.isMobile) {
+				// gmxAPI.map.standartTools.remove();
+			// }
 		}});
+		var controlsType = gmxAPI.map.controlsManager.getCurrent();
+        if(controlsType === 'controlsBaseIcons') {
+            gmxAPI.map.controlsManager.setControls(controlsType);
+        }
 	}
 	
 	var utils = null;							// Утилиты leafletProxy
@@ -4200,7 +4205,7 @@
 	{
 		if('L' in window) {
 			clearInterval(intervalID);
-			if(!utils) utils = gmxAPI._leaflet['utils'];
+			if(!utils) utils = gmxAPI._leaflet.utils;
 			if(!mapNodes) {
 				mapNodes = gmxAPI._leaflet['mapNodes'];
 				gmxAPI._cmdProxy = gmxAPI._leaflet['cmdProxy'];			// Установка прокси для leaflet
@@ -4257,7 +4262,7 @@
 					//,'crs': L.CRS.EPSG3857 // L.CRS.EPSG4326 // L.CRS.EPSG3395 L.CRS.EPSG3857
 				}
 			);
-			gmxAPI._leaflet['LMap'] = LMap;			// Внешняя ссылка на карту
+			gmxAPI._leaflet.LMap = LMap;			// Внешняя ссылка на карту
 
 			LMap.on('mouseout', function(e) {
 				var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
@@ -4999,34 +5004,34 @@ var tt = 1;
 	function addLeafLetScripts()
 	{
 		var apiHost = gmxAPI.getAPIFolderRoot();
-
-		var script = document.createElement("script");
-		script.setAttribute("charset", "windows-1251");
-		script.setAttribute("src", apiHost + "leaflet/leaflet.js?" + gmxAPI.buildGUID);
-		document.getElementsByTagName("head").item(0).appendChild(script);
-
-		var css = document.createElement("link");
-		css.setAttribute("type", "text/css");
-		css.setAttribute("rel", "stylesheet");
-		css.setAttribute("media", "screen");
-		css.setAttribute("href", apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID);
-		document.getElementsByTagName("head").item(0).appendChild(css);
-		
-		css = document.createElement("link");
-		css.setAttribute("type", "text/css");
-		css.setAttribute("rel", "stylesheet");
-		css.setAttribute("media", "screen");
-		css.setAttribute("href", apiHost + "leaflet/leafletGMX.css?" + gmxAPI.buildGUID);
-		document.getElementsByTagName("head").item(0).appendChild(css);
-		
+        var cssFiles = [
+            apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID
+            ,apiHost + "leaflet/leafletGMX.css?" + gmxAPI.buildGUID
+        ];
 		if(gmxAPI.isIE) {
-			css = document.createElement("link");
-			css.setAttribute("type", "text/css");
-			css.setAttribute("rel", "stylesheet");
-			css.setAttribute("media", "screen");
-			css.setAttribute("href", apiHost + "leaflet/leaflet.ie.css?" + gmxAPI.buildGUID);
-			document.getElementsByTagName("head").item(0).appendChild(css);
+            cssFiles.push(apiHost + "leaflet/leaflet.ie.css?" + gmxAPI.buildGUID);
 		}
+
+        gmxAPI.loadJS({src: apiHost + 'leaflet/leaflet.js?' + gmxAPI.buildGUID});
+		if(window.LeafletPlugins) {
+            window.LeafletPlugins.forEach(function(element, index, array) {
+                if(element.files) {
+                    var ph = {count : array.length};
+                    if(element.callback) ph.callback = element.callback;
+                    if(element.callbackError) ph.callbackError = element.callbackError;
+                    var path = element.path || '';
+                    var prefix = (path.substring(0, 7) === 'http://' ? '' : apiHost)
+                    path = prefix + path;
+                    if(element.css) cssFiles.push(prefix + element.css + '?' + gmxAPI.buildGUID);
+                    gmxAPI.leafletPlugins[element.module || gmxAPI.newFlashMapId()] = ph;
+                    element.files.forEach(function(item) {
+                        ph.src = path + item + '?' + gmxAPI.buildGUID;
+                        gmxAPI.loadJS(ph);
+                    });
+                }
+            });
+        }
+        cssFiles.forEach(function(item) {gmxAPI.loadCSS(item);} );
 	}
 
 	// Добавить leaflet в DOM

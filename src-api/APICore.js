@@ -54,6 +54,37 @@ extend(window.gmxAPI,
 	,
     buildGUID: [/*#buildinclude<__buildGUID__>*/][0]		// GUID текущей сборки
 	,
+    leafletPlugins: {}
+    ,
+    loadJS: function(item, callback, callbackError) {
+        var script = document.createElement("script");
+        script.setAttribute("charset", "windows-1251");
+        script.setAttribute("src", item.src);
+        item.readystate = 'loading';
+        script.onload = function(ev) {
+            var count = 0;
+            if(item.count) count = item.count--;
+            if(count === 0) item.readystate = 'loaded';
+            if(item.callback) item.callback(item);
+            document.getElementsByTagName("head").item(0).removeChild(script);
+        };
+        script.onerror = function(ev) {
+            item.readystate = 'error';
+            if(item.callbackError) item.callbackError(item);
+            document.getElementsByTagName("head").item(0).removeChild(script);
+        };
+        document.getElementsByTagName("head").item(0).appendChild(script);
+	}
+	,
+    loadCSS: function(href) {
+        var css = document.createElement("link");
+        css.setAttribute("type", "text/css");
+        css.setAttribute("rel", "stylesheet");
+        css.setAttribute("media", "screen");
+        css.setAttribute("href", href);
+        document.getElementsByTagName("head").item(0).appendChild(css);
+	}
+    ,
     getURLParams: memoize(function() {
         var q = window.location.search,
             kvp = (q.length > 1) ? q.substring(1).split("&") : [];
