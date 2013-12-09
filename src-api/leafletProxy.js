@@ -4256,6 +4256,17 @@
 				}
 			);
 			gmxAPI._leaflet['LMap'] = LMap;			// Внешняя ссылка на карту
+            // BoxZoom при нажатом shift
+            L.DomEvent.on(document, 'keydown', function(e) {
+                if(e.keyCode !== 16) return;
+                if(!window.gmxAPI._drawing.BoxZoom) LMap.boxZoom.addHooks();
+                window.gmxAPI._drawing.BoxZoom = true;
+            }, this);
+            L.DomEvent.on(document, 'keyup', function(e) {
+                if(e.keyCode !== 16) return;
+                if(window.gmxAPI._drawing.BoxZoom) LMap.boxZoom.removeHooks();
+                window.gmxAPI._drawing.BoxZoom = false;
+            }, this);
 
 			LMap.on('mouseout', function(e) {
 				var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);

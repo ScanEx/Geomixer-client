@@ -653,6 +653,7 @@
 					//ret.stopDrawing();
 					mouseUp();
 					gmxAPI.mousePressed	= mousePressed = false;
+                    chkEvent('onEdit');
 					eventType = 'onFinish';
 					chkEvent(eventType);
 				};
