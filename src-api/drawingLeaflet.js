@@ -643,6 +643,7 @@
                             domObj.geometry.type = 'POLYGON';
 							addPoint(coords[0]);
 							layerItems[2].options.skipLastPoint = true;
+                            repaint(false);
 						}
 						//if(len == 1) len = 0;
 					}
