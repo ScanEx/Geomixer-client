@@ -1,3 +1,25 @@
+.leaflet-control-Image {
+    bottom: 0;
+    left: 0;
+    margin: auto;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+.leaflet-control-icons {
+    /*background-color: #9A9A9A;*/
+    border-radius: 4px;
+    cursor: pointer;
+    display: block;
+    float: left;
+    height: 30px;
+    margin-left: 6px;
+    position: relative;
+    width: 30px;
+    cursor: pointer;
+    clear: none;
+}
+
 .leaflet-control-Drawing-FRAME {
     background-image: url("../../api/img/iconeControls.png");
     background-position: -269px -33px;
@@ -40,10 +62,6 @@
 .leaflet-control-drawingPoint {
     background-image: url("../../api/img/iconeControls.png");
     background-position: -238px -33px;
-    cursor: pointer;
-    width: 30px;
-    height: 30px;
-    clear: none;
     float: left;
 }
 .leaflet-control-drawingPoint:hover, .leaflet-control-drawingPoint-Active {

@@ -1171,7 +1171,7 @@
             });
         }
         ,remove: function() {      // удаление
-            if(Controls.id != gmxAPI.map.controlsManager.getCurrent()) return;
+            if(Controls.id != gmxAPI.map.controlsManager.getCurrentID()) return;
             this.forEach(function(item, i) {
                 if('remove' in item) item.remove();
             });

@@ -1671,7 +1671,7 @@
             this.isVisible = flag;
         }
         ,remove: function() {      // удаление
-            if(Controls.id != gmxAPI.map.controlsManager.getCurrent()) return;
+            if(Controls.id != gmxAPI.map.controlsManager.getCurrentID()) return;
             this.forEach(function(item, i) {
                 if('remove' in item) item.remove();
             });
@@ -1693,21 +1693,136 @@
             });
             return res;
         }
-        ,
-        setControls: function(id) {
+         ,addControl: function(key, pt) {
+/*
+            var res = null;
+			var ph = gmxAPI.extend({
+                id: key || pt.id
+                ,isActive: false
+                ,attr: {
+                    title: pt.title || pt.hint
+                }
+                ,events: {}
+                ,style: gmxAPI.extend(pt.style, iconsControl.styleIcon, true)
+                ,hoverStyle: pt.hoverStyle
+            }, pt);
+
+            if(pt.onClick) ph.events.onclick = pt.onClick;
+			var item = iconsControl.addItemNode(ph);
+            iconsControl.itemsNode.appendChild(item);
+            var tool = {
+                id: ph.id
+                ,node: item
+            }
+            if(pt.type !== 'hideItem') {
+                iconsControl.items.push(tool);
+                iconsControl.items[ph.id] = tool;
+            }
+*/
+            var id = key || pt.id;
+            if(Controls.controlsHash[id]) return null; // такой контрол уже имеется
+            var title = pt.title || pt.hint;
+			var attr = {
+                id: id
+                ,rus: pt.rus || title
+                ,eng: pt.eng || title
+                ,style: gmxAPI.extend(pt.style, iconsControl.styleIcon, true)
+                ,hoverStyle: pt.hoverStyle
+            };
+            
+            if(pt.regularImageUrl) {
+                attr.src = pt.regularImageUrl;
+                attr.style = {
+                    position: 'relative'
+                    ,background: 'rgba(154, 154, 154, 0.7)'
+
+                };
+            }
+            if(pt.activeImageUrl) {
+                attr.srcHover = pt.activeImageUrl;
+                attr.hoverStyle = {
+                    position: 'relative'
+                    ,background: 'rgba(154, 154, 154, 1)'
+                };
+            }
+            if(pt.onClick) attr.onClick = pt.onClick;
+            if(pt.onCancel) attr.onCancel = pt.onCancel;
+            //if(pt.overlay) attr.onCancel = pt.onCancel;
+
+            // Добавление пользовательского контрола
+            var userControl = L.control.gmxControl({
+                title: gmxAPI.KOSMOSNIMKI_LOCALIZED(attr.rus, attr.eng)
+                ,isActive: false
+                ,onFinishID: null
+                ,type: id
+                ,onAdd: function() {
+                    //gmxAPI.setStyleHTML(this._container, attr.style);
+                    var my = this;
+                    var container = this._container;
+                    if(pt.regularImageUrl) {
+                        var className = 'leaflet-control-Image leaflet-control-' + this.options.type + '-Image';
+                        this._Image = L.DomUtil.create('img', className);
+                        this._Image.src = pt.regularImageUrl;
+                        container.appendChild(this._Image);
+                        gmxAPI.setStyleHTML(container, attr.style);
+                        L.DomEvent.on(container, 'mouseover', function (e) {
+                            if(pt.activeImageUrl) my._Image.src = pt.activeImageUrl;
+                            gmxAPI.setStyleHTML(container, attr.hoverStyle);
+                        });
+                        L.DomEvent.on(container, 'mouseout', function (e) {
+                            if(!my.options.isActive) {
+                                my._Image.src = pt.regularImageUrl;
+                                gmxAPI.setStyleHTML(container, attr.style);
+                            }
+                        });
+                    }
+                }
+                ,onclick: function(e) {
+                    if(!this.options.isActive) {
+                        this.options.isActive = true;
+                        if(attr.onClick) attr.onClick.call(this);
+                        if(pt.regularImageUrl) {
+                            this._Image.src = pt.activeImageUrl;
+                        }
+                        gmxAPI.setStyleHTML(container, attr.style);
+                    } else {
+                        this.options.isActive = false;
+                        if(attr.onCancel) attr.onCancel.call(this);
+                        if(pt.regularImageUrl) {
+                            this._Image.src = pt.regularImageUrl;
+                        }
+                        gmxAPI.setStyleHTML(container, attr.hoverStyle);
+                    }
+                }
+            });
+            userControl.addTo(gmxAPI._leaflet.LMap);
+            Controls.controlsHash[id] = userControl;
+            return userControl;
+        }
+       ,
+        setControls: function() {
             var outControls = {};
             var mbl = gmxAPI.map.baseLayersManager;
+            var defaultStyle = {
+                //backgroundImage: 'url("../../api/img/iconeControls.png")'
+                cursor: 'pointer'
+                ,width: '30px'
+                ,height: '30px'
+                ,clear: 'none'
+            }
 
             // gmxControl - прототип контрола из одной кнопки
             L.Control.gmxControl = L.Control.extend({
                 options: {
                     isVisible: true,
                     type: '',
+                    onclick: null,
+                    onAdd: null,
                     position: 'topleft'
                 }
                 ,
                 _initLayout: function () {
-                    var className = 'leaflet-control-' + this.options.type,
+                    var className = 'leaflet-control-icons leaflet-control-' + this.options.type,
                         container = this._container = L.DomUtil.create('div', className);
 
                     if(this.options.title) container.title = this.options.title;
@@ -1718,8 +1833,10 @@
                 }
                 ,
                 onAdd: function (map) {
-                    if(this.options.onAdd) this.options.onAdd.call(this, map);
-                    return this._initLayout();
+                    var ret = this._initLayout();
+                    gmxAPI.setStyleHTML(this._container, this.options.style || defaultStyle);
+                    if(this.options.onAdd) this.options.onAdd.call(this, ret);
+                    return ret;
                 }
             });
             L.control.gmxControl = function (options) {
@@ -1871,7 +1988,7 @@
                 ,isActive: false
                 ,type: 'drawingZoom'
                 ,onclick: function(e) {
-                    var className = 'leaflet-control-' + this.options.type + '-Active';
+                    var className = 'leaflet-control-icons leaflet-control-' + this.options.type + '-Active';
                     if(!gmxAPI._drawing.BoxZoom) {
                         gmxAPI._drawFunctions.zoom();
                         L.DomUtil.addClass(this._container, className);
@@ -1881,9 +1998,9 @@
                         L.DomUtil.removeClass(this._container, className);
                     }
                 }
-                ,onAdd: function(map) {
+                ,onAdd: function(cont) {
                     var my = this;
-                    map.on('boxzoomend', function() {
+                    this._map.on('boxzoomend', function() {
                         L.DomUtil.removeClass(my._container, 'leaflet-control-' + my.options.type + '-Active');
                     });
                 }
@@ -1900,7 +2017,7 @@
                 ,type: 'drawingPoint'
                 ,onclick: function(e) {
                     var my = this;
-                    var className = 'leaflet-control-' + this.options.type + '-Active';
+                    var className = 'leaflet-control-icons leaflet-control-' + this.options.type + '-Active';
                     var stop = function() {
                         L.DomUtil.removeClass(my._container, className);
                         my.options.isActive = false;

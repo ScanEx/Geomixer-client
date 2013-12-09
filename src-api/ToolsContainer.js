@@ -46,13 +46,13 @@
 		// стили контейнера
 		var style = { display: 'block', styleFloat: 'left', cssFloat: 'left', marginLeft: '4px', borderRadius: '4px', backgroundColor: '#9A9A9A' };
 		// стили добавляемых юзером элементов tool
-		var regularStyle = { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "white"	};
+		var regularStyle = { paddingTop: "0px", paddingBottom: "0px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "white"	};
 		var activeStyle = { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "orange"	};
 
 		var isDefaultControl = (gmxAPI.map.controlsManager.getCurrent() === 'controlsBase');
 
         if(isDefaultControl) {
-            style = { display: 'block', styleFloat: 'left', cssFloat: 'left', marginTop: '40px', marginLeft: '4px', padding: '4px 0' };
+            style = { display: 'block', styleFloat: 'left', cssFloat: 'left', marginTop: '40px', marginLeft: '4px', padding: '0px;' };
             // Установка backgroundColor c alpha
             if(gmxAPI.isIE && document.documentMode < 10) {
                 style.filter = "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A)";
@@ -263,7 +263,11 @@
                     return;
                 }
 
-                if(!my.itemsContainer) my.itemsContainer = (createContainerNode ? createContainerNode() : my.createContainerNode('div', properties, style));
+//                if(!my.itemsContainer) my.itemsContainer = (createContainerNode ? createContainerNode() : my.createContainerNode('div', properties, style));
+                if(!my.itemsContainer) {
+                    if(createContainerNode) createContainerNode();
+                    else my.createContainerNode('div', properties, style);
+                }
 
                 if(!attr.alias) attr.alias = tn
                 aliasNames[attr.alias] = tn;
@@ -402,7 +406,12 @@
                 this.node = node
                 gmxAPI._toolsContHash[name] = node;
                 
-                var table = gmxAPI.newElement("table", {}, {borderCollapse: 'collapse'});
+                var table = gmxAPI.newElement("table", {}, {
+                    borderCollapse: 'collapse'
+                    ,margin: '0px'
+                    ,width: 'auto'
+                    ,backgroundColor: 'rgba(1, 106, 138, 0)'
+                });
                 node.appendChild(table);
                 my.itemsContainer = gmxAPI.newElement("tbody", {}, {});
                 table.appendChild(this.itemsContainer);

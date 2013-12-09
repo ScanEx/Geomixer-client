@@ -4187,9 +4187,9 @@
 				// gmxAPI.map.standartTools.remove();
 			// }
 		}});
-		var controlsType = gmxAPI.map.controlsManager.getCurrent();
-        if(controlsType === 'controlsBaseIcons') {
-            gmxAPI.map.controlsManager.setControls(controlsType);
+		var controls = gmxAPI.map.controlsManager.getCurrent();
+        if(controls && 'setControls' in controls) {
+            controls.setControls();
         }
 	}
 	
@@ -4377,6 +4377,13 @@
 				gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 				//gmxAPI._listeners.dispatchEvent('onMouseDown', null, {});
 			};
+/*            L.DomEvent.on(document, 'keydown', function(e) {
+                if (e.keyCode === 16) {
+                    gmxAPI._drawFunctions.zoom();
+                }
+            }, this);
+*/
+            
 			LMap.on('mousedown', setMouseDown);
 			var setTouchStart = function(e) {
 				gmxAPI.mousePressed	= gmxAPI._leaflet['mousePressed'] = true;

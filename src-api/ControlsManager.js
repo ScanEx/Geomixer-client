@@ -156,11 +156,19 @@
             ,remove: function(id) {
                 ControlsManager.removeById(id);
             }
-            ,/** Получить идентификатор текущего типа контролов
+            ,
+            /** Получить идентификатор текущего типа контролов
+            * @memberof Controls#
+            */
+            getCurrentID: function() {
+                return ControlsManager.currentID;
+            }
+            ,
+            /** Получить текущий набор контролов
             * @memberof Controls#
             */
             getCurrent: function() {
-                return ControlsManager.currentID;
+                return ControlsManager.getCurrent() || null;
             }
             ,setCurrent: function(id) {
                 return ControlsManager.setCurrent(id);

@@ -642,6 +642,7 @@
                             domObj.geometry.type = 'POLYGON';
 							addPoint(coords[0]);
 							layerItems[2].options.skipLastPoint = true;
+                            repaint(false);
 						}
 						//if(len == 1) len = 0;
 					}
@@ -1816,9 +1817,8 @@
 		,
 		addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
 		{
-			var control = gmxAPI.IconsControl || gmxAPI._drawing.control;
-			if(!control) return null;
-			var ret = control.addTool(tn, {
+			var ret = null;
+			var attr = {
 				'key': tn,
 				'activeStyle': {},
 				'regularStyle': {},
@@ -1827,7 +1827,24 @@
 				'onClick': onClick,
 				'onCancel': onCancel,
 				'hint': hint
-			});
+			};
+            var controls = gmxAPI.map.controlsManager.getCurrent();
+            if(controls && 'addControl' in controls) {
+                ret = controls.addControl(tn, attr);
+            } else {
+                var control = gmxAPI.IconsControl || gmxAPI._drawing.control;
+                if(!control) return null;
+                ret = control.addTool(tn, {
+                    'key': tn,
+                    'activeStyle': {},
+                    'regularStyle': {},
+                    'regularImageUrl': regularImageUrl,
+                    'activeImageUrl': activeImageUrl,
+                    'onClick': onClick,
+                    'onCancel': onCancel,
+                    'hint': hint
+                });
+            }
 			return ret;
 		}
 		, 
