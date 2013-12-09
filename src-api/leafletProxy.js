@@ -2346,7 +2346,6 @@
 					if (xStep > 0 && yStep > 0) break;
 				}
 			}
-
 			var color = gmxAPI.getHtmlColor();
 			var haloColor = (color === 'black' ? 'white' : 'black');
 
@@ -2613,7 +2612,6 @@
 			var maxz = LMap.getMaxZoom();
 			if(currZ > maxz) currZ = maxz;
 			else if(currZ < minz) currZ = minz;
-
 			var centr = LMap.getCenter();
 			var px = centr.lng;
 			var py = centr.lat;
@@ -3007,17 +3005,17 @@
 			//node['observeVectorLayer'] = ph.attr.func;
 			return true;
 		}
-		// ,
-		// setImagePoints:	function(ph)	{				// Изменение точек привязки изображения
-			// var id = ph.obj.objectId;
-			// var node = mapNodes[id];
-			// if(!node) return;
-            // var fName = (L.Browser.gecko3d ? 'ImageMatrixTransform' : 'setImageMapObject');
-            // ph.setImagePoints = true;
-            // gmxAPI._leaflet[fName](node, ph);
-		// }
+        ,
+		setImagePoints:	function(ph)	{				// Изменение точек привязки изображения
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node) return;
+            var fName = (L.Browser.gecko3d ? 'ImageMatrixTransform' : 'setImageMapObject');
+            ph.setImagePoints = true;
+            gmxAPI._leaflet[fName](node, ph);
+		}
 		,
-		'setImage':	function(ph)	{					// Установка изображения
+        'setImage':	function(ph)	{					// Установка изображения
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;
@@ -4372,7 +4370,6 @@
 				//setTimeout(function() { skipClick = false;	}, 10);
 			});
 			var setMouseDown = function(e) {
-				//console.log('setMouseDown ', gmxAPI._leaflet['activeObject']);
 				gmxAPI.mousePressed	= gmxAPI._leaflet['mousePressed'] = true;
 				timeDown = gmxAPI.timeDown = new Date().getTime();
 				gmxAPI._leaflet['mousedown'] = true;
@@ -4388,13 +4385,6 @@
 				gmxAPI._leaflet['utils'].chkGlobalEvent(attr);
 				//gmxAPI._listeners.dispatchEvent('onMouseDown', null, {});
 			};
-/*            L.DomEvent.on(document, 'keydown', function(e) {
-                if (e.keyCode === 16) {
-                    gmxAPI._drawFunctions.zoom();
-                }
-            }, this);
-*/
-            
 			LMap.on('mousedown', setMouseDown);
 			var setTouchStart = function(e) {
 				gmxAPI.mousePressed	= gmxAPI._leaflet['mousePressed'] = true;
@@ -5022,6 +5012,7 @@ var tt = 1;
 	function addLeafLetScripts()
 	{
 		var apiHost = gmxAPI.getAPIFolderRoot();
+
         var cssFiles = [
             apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID
             ,apiHost + "leaflet/leafletGMX.css?" + gmxAPI.buildGUID
