@@ -40,7 +40,7 @@
 			properties['className'] = 'tools_' + name;
 		}
 
-		var style = { "display": 'block', 'marginLeft': '4px', 'padding': '4px 0' };
+		var style = { "display": 'block', 'marginLeft': '4px', 'padding': '0px' };
 
 		// Установка backgroundColor c alpha
 		if(gmxAPI.isIE && document['documentMode'] < 10) {
@@ -73,7 +73,12 @@
 			for(key in attr['activeStyle']) activeStyle[key] = attr['activeStyle'][key];
 		}
 
-		var toolsContainer = gmxAPI.newElement("table", {}, {'borderCollapse': 'collapse'});
+		var toolsContainer = gmxAPI.newElement("table", {}, {
+            borderCollapse: 'collapse'
+            ,margin: '0px'
+            ,width: 'auto'
+            ,backgroundColor: 'rgba(1, 106, 138, 0)'
+        });
 		gmxTools.appendChild(toolsContainer);
 		var tBody = gmxAPI.newElement("tbody", {}, {});
 		toolsContainer.appendChild(tBody);
