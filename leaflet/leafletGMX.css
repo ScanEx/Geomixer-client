@@ -1,3 +1,33 @@
+.leaflet-control-Text {
+    cursor: pointer;
+    clear: none;
+    float: left;
+    border-radius: 4px;
+    padding: 6px 6px 4px;
+    height: 20px;
+    background-color: rgba(154, 154, 154, 0.7);
+    color: white;
+    font-weight: bold;
+}
+.leaflet-control-Text:hover, .leaflet-control-Active {
+    background-color: rgba(154, 154, 154, 1);
+}
+.leaflet-control-userIcons {
+    background-color: rgba(154, 154, 154, 0.7);
+    border-radius: 4px;
+    cursor: pointer;
+    display: block;
+    clear: none;
+    float: left;
+    margin-left: 6px;
+    position: relative;
+    cursor: pointer;
+}
+.leaflet-control-userIcons:hover, .leaflet-control-userIcons-Active {
+    background-color: rgba(154, 154, 154, 1);
+}
+
+
 .leaflet-control-Image {
     bottom: 0;
     left: 0;

@@ -1,7 +1,8 @@
 //Управление tools контейнерами
 (function()
 {
-    //Управление tools контейнерами
+    "use strict";
+     //Управление tools контейнерами
 	/** Класс управления tools контейнерами
 	* @function
 	* @memberOf api
@@ -23,6 +24,30 @@
 	{
         //console.log('ToolsContainer', name, attr);
 		if(!attr) attr = {};
+		var cont = {
+            addTool: function (tn, attr) {
+//console.log('tool addTool', tn, attr); // wheat
+                if(!attr) attr = {};
+                var ret = null;
+                if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
+                    attr.id = tn;
+                    if(!attr.rus) attr.rus = attr.hint || attr.id;
+                    if(!attr.eng) attr.eng = attr.hint || attr.id;
+                    
+                    var layersControl = gmxAPI.map.controlsManager.getControl('layers');
+                    if(layersControl) ret = layersControl.addOverlay(tn, attr);
+                } else {
+                    var controls = gmxAPI.map.controlsManager.getCurrent();
+                    if(controls && 'addControl' in controls) {
+                        ret = controls.addControl(tn, attr);
+                    }
+                }
+                return ret;
+            }
+        };
+		//gmxAPI._tools[name] = cont;
+return cont;
+/*        
 		var aliasNames = {},		// Hash алиасов основных подложек для map.setMode
             toolNames = [],
             toolHash = {},
@@ -260,8 +285,14 @@
                     
                     var layersControl = gmxAPI.map.controlsManager.getControl('layers');
                     if(layersControl) layersControl.addOverlay(tn, attr);
-                    return;
+//                    return;
+                } else {
+                    var controls = gmxAPI.map.controlsManager.getCurrent();
+                    if(controls && 'addControl' in controls) {
+                        ret = controls.addControl(tn, attr);
+                    }
                 }
+return;
 
 //                if(!my.itemsContainer) my.itemsContainer = (createContainerNode ? createContainerNode() : my.createContainerNode('div', properties, style));
                 if(!my.itemsContainer) {
@@ -421,6 +452,7 @@
 
 		if(!gmxAPI._tools) gmxAPI._tools = {};
 		gmxAPI._tools[name] = this;
+*/
 	}
 	//расширяем namespace
     gmxAPI._ToolsContainer = ToolsContainer;
