@@ -401,9 +401,9 @@
 
 		var tileSenderPrefixBase = baseAddress + 
 			"TileSender.ashx?ModeKey=tile" + 
-			"&MapName=" + mapName + 
+			"&MapName=" + encodeURIComponent(mapName) + 
 			(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
-			(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
+			(sessionKey2 ? ("&MapSessionKey=" + encodeURIComponent(sessionKey2)) : "");
 
 		var tileSenderPrefix = tileSenderPrefixBase + 
 			"&LayerName=" + layerName;
