@@ -236,7 +236,7 @@ var parseURLParams = function()
         if (kvp[j].length == 1)
         {
             if (!givenMapName)
-                givenMapName = kvp[j][0];
+                givenMapName = decodeURIComponent(kvp[j][0]);
         }
         else
             params[kvp[j][0]] = kvp[j][1];
