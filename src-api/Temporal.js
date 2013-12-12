@@ -26,10 +26,10 @@
 		var sessionKey2 = ('sessionKeyCache' in window ? window.sessionKeyCache[prop.mapName] : false);
 		var prefix = baseAddress + 
 				"TileSender.ashx?ModeKey=tile" + 
-				"&MapName=" + prop.mapName + 
-				"&LayerName=" + layerName + 
+				"&MapName=" + encodeURIComponent(prop.mapName) + 
+				"&LayerName=" + encodeURIComponent(layerName) + 
 				(sessionKey ? ("&key=" + encodeURIComponent(sessionKey)) : "") +
-				(sessionKey2 ? ("&MapSessionKey=" + sessionKey2) : "");
+				(sessionKey2 ? ("&MapSessionKey=" + encodeURIComponent(sessionKey2)) : "");
 		if(prop._TemporalDebugPath) {
 			prefix = prop._TemporalDebugPath;
 			//temporalData['_TemporalDebugPath'] = prop._TemporalDebugPath;

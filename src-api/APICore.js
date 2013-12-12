@@ -390,7 +390,8 @@ extend(window.gmxAPI,
 		if(attr.alert) {
             if(window.gmxAPIdebugLevel === 10) alert(attr.alert);
             else if(window.gmxAPIdebugLevel === 9) console.log(attr);
-        }
+            else if(window.gmxAPIdebugLevel === 11) throw attr.event;
+       }
 	},
 	_debugWarnings: [],
 	isIE: (navigator.appName.indexOf("Microsoft") != -1),
@@ -2570,7 +2571,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 			key = false;
 
 		sendCrossDomainJSONRequest(
-			"http://" + hostName + "/TileSender.ashx?ModeKey=map&MapName=" + mapName + (key ? ("&key=" + encodeURIComponent(key)) : "") + "&" + Math.random(),
+			"http://" + hostName + "/TileSender.ashx?ModeKey=map&MapName=" + encodeURIComponent(mapName) + (key ? ("&key=" + encodeURIComponent(key)) : "") + "&" + Math.random(),
 			function(response)
 			{
 				if(response && response['Status'] === 'ok' && response['Result']) {
@@ -3247,7 +3248,7 @@ FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
 	{
 		me.addLayers(layers, true);
 		if (callback)
-			callback();
+			callback(layers);
 	});
 }
 

@@ -11,7 +11,7 @@
     var deferred = function() {
         console.log('deferred function: ', this);
     }
-
+/*
     //Поддержка zoomControl
 	var zoomControl = {
         id: 'zoomControl'
@@ -413,7 +413,7 @@
             };
         }
 	}
-
+*/
     //Поддержка контейнера Copyright + Location
 	var node = gmxAPI.newElement(
         "div",
@@ -427,6 +427,7 @@
             position: 'absolute'
         }
     );
+/*
 	node.appendChild(gmxAPI.newElement(
         "div",
         {
@@ -439,6 +440,7 @@
             backgroundColor: 'white'
         }
     ));
+
 	var copyrightAndLocationContainer = node;
 	var copyrightAndLocationContainerParent = null;
     
@@ -923,7 +925,7 @@
             };
         }
     }
-
+*/
     //Контролы слоев (аля Leaflet)
 	var layersControl = {
         id: 'layers'
@@ -1566,9 +1568,60 @@
          ,controlsHash: {}
         //,isActive: false
         ,
-        items: [iconsControl, layersControl, copyrightControl, locationControl, zoomControl, drawingControl]
+        //items: [iconsControl, layersControl, copyrightControl, locationControl, zoomControl, drawingControl]
+        items: [iconsControl, layersControl]
         ,
         init: function(parent) {        // инициализация
+            //Управление ToolsAll
+            (function()
+            {
+                //Управление ToolsAll
+                /** Класс управления ToolsAll
+                * @function
+                * @memberOf api
+                * @param {cont} HTML контейнер для tools
+                */
+                function ToolsAll(cont)
+                {
+                    this.toolsAllCont = gmxAPI._allToolsDIV;
+                    gmxAPI._toolsContHash = {};
+                }
+                gmxAPI._ToolsAll = ToolsAll;
+
+                function ToolsContainer(name, attr) {
+                    //console.log('ToolsContainer', name, attr);
+                    if(!attr) attr = {};
+                    var cont = {
+                        addTool: function (tn, attr) {
+            //console.log('tool addTool', tn, attr); // wheat
+                            if(!attr) attr = {};
+                            var ret = null;
+                            if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
+                                attr.id = tn;
+                                if(!attr.rus) attr.rus = attr.hint || attr.id;
+                                if(!attr.eng) attr.eng = attr.hint || attr.id;
+                                
+                                var layersControl = gmxAPI.map.controlsManager.getControl('layers');
+                                if(layersControl) ret = layersControl.addOverlay(tn, attr);
+                            } else {
+                                var controls = gmxAPI.map.controlsManager.getCurrent();
+                                if(controls && 'addControl' in controls) {
+                                    ret = controls.addControl(tn, attr);
+                                }
+                            }
+                            return ret;
+                        }
+                    };
+                    //gmxAPI._tools[name] = cont;
+                    return cont;
+                }
+                gmxAPI._ToolsContainer = ToolsContainer;
+            })();
+            
+            if('_ToolsAll' in gmxAPI) {
+                this.toolsAll = new gmxAPI._ToolsAll(parent);
+            }
+            //map.toolsAll = 
             gmxAPI._tools = Controls.controlsHash;
             //gmxAPI._tools.standart = iconsControl;
             gmxAPI._tools.standart = this;
@@ -1722,22 +1775,57 @@
                     position: 'topleft'
                 }
                 ,
+                addTo: function (map) {
+                    this._map = map;
+
+                    var container = this._container = this.onAdd(map),
+                        pos = this.getPosition(),
+                        corner = map._controlCorners[pos] || map._controlContainer;
+
+                    L.DomUtil.addClass(container, 'leaflet-control');
+
+                    if (pos.indexOf('bottom') !== -1) {
+                        corner.insertBefore(container, corner.firstChild);
+                    } else {
+                        corner.appendChild(container);
+                    }
+
+                    return this;
+                }
+                ,
+                _createDiv: function (container, className, title, fn, context) {
+                    var link = L.DomUtil.create('div', className, container);
+                    if(title) link.title = title;
+
+                    var stop = L.DomEvent.stopPropagation;
+
+                    L.DomEvent
+                        .on(link, 'click', stop)
+                        .on(link, 'mousedown', stop)
+                        .on(link, 'dblclick', stop)
+                        .on(link, 'click', L.DomEvent.preventDefault)
+                        .on(link, 'click', fn || stop, context);
+
+                    return link;
+                }
+                ,
                 _initLayout: function () {
                     //var className = 'leaflet-control-icons leaflet-control-' + this.options.type,
-                    var className = this.options.className || 'leaflet-control-icons leaflet-control-' + this.options.type,
-                        container = this._container = L.DomUtil.create('div', className);
-
+                    var className = this.options.className || 'leaflet-control-icons leaflet-control-' + this.options.type;
+                    //var fn = (this.options.onclick ? this.options.onclick : stop);
+                    var container = this._container = this._createDiv(null, className, this.options.title, this.options.onclick, this);
+                        //container = this._container = L.DomUtil.create('div', className);
+/*
                     if(this.options.title) container.title = this.options.title;
 
                     var stop = L.DomEvent.stopPropagation;
-                    var fn = (this.options.onclick ? this.options.onclick : stop);
                     L.DomEvent
                         .on(container, 'click', stop)
                         .on(container, 'mousedown', stop)
                         .on(container, 'dblclick', stop)
                         .on(container, 'click', L.DomEvent.preventDefault)
                         .on(container, 'click', fn, this);
-                    
+*/
                     return container;
                 }
                 ,
@@ -1765,10 +1853,171 @@
               return new L.Control.gmxControl(options);
             }
 
+            // gmxZoom - контрол Zoom
+            L.Control.gmxZoom = L.Control.Zoom.extend({
+                options: {
+                    current: ''
+                    ,collapsed: false
+                    ,zoomslider: true
+                    ,stepY: 7
+                }
+                ,_y_min: 9              // min Y слайдера
+                ,isDragging: false      // min Y слайдера
+                ,
+                onAdd: function (map) {
+                    var zoomName = 'gmx_zoomParent',
+                        container = L.DomUtil.create('div', zoomName);
+
+                    this._map = map;
+                    this._zoomPlaque = L.DomUtil.create('div', 'gmx_zoomPlaque', container);
+
+                    this._zoomInButton  = this._createDiv(container, 
+                            'gmx_zoomPlus',  'Zoom in',  this._zoomIn,  this);
+                    this._zoomOutButton = this._createDiv(container, 
+                            'gmx_zoomMinus', 'Zoom out', this._zoomOut, this);
+
+                    map.on('zoomend zoomlevelschange', this._updateDisabled, this);
+                    if(this.options.zoomslider) {
+                        this._chkZoomLevelsChange(container);
+                    }
+
+                    return container;
+                }
+                ,
+                _createDiv: function (container, className, title, fn, context) {
+                    var link = L.DomUtil.create('div', className, container);
+                    if(title) link.title = title;
+
+                    var stop = L.DomEvent.stopPropagation;
+
+                    L.DomEvent
+                        .on(link, 'click', stop)
+                        .on(link, 'mousedown', stop)
+                        .on(link, 'dblclick', stop)
+                        .on(link, 'click', L.DomEvent.preventDefault)
+                        .on(link, 'click', fn || stop, context);
+
+                    return link;
+                }
+                ,
+                onRemove: function (map) {
+                    map.off('zoomend zoomlevelschange', this._updateDisabled, this);
+                }
+                ,
+                _setPosition: function () {
+                    var my = this,
+                        y = my._y_max - (my._zoom - 1) * 7;
+
+                    my._zoomVal.innerHTML = my._zoom;
+                    L.DomUtil.setPosition(my._zoomPointer, L.point(4, y));
+                }
+                ,
+                _getZoomByY: function (y) {
+                    if(y < this._y_min) y = this._y_min;
+                    else if(y > this._y_max) y = this._y_max;
+
+                    return 1 + Math.floor((this._y_max - y) / this.options.stepY);
+                }
+                ,
+                _setSliderSize: function (delta) {
+                    var my = this,
+                        map = my._map,
+                        MinZoom = map.getMinZoom(),
+                        MaxZoom = map.getMaxZoom(),
+                        delta = MaxZoom - MinZoom;
+                    var height = 7 * (delta + 1);
+                    my._y_max = height + 3;
+                    my._zoomSliderBG.style.height = height + 'px';
+                    height += 66;
+                    if(my._zoomSliderCont.style.display !== 'block') height = 60;
+                    my._zoomPlaque.style.height = height + 'px';
+                }
+                ,
+                _chkZoomLevelsChange: function (container) {
+                    var my = this,
+                        map = my._map,
+                        MinZoom = map.getMinZoom(),
+                        MaxZoom = map.getMaxZoom();
+
+                    if(MinZoom !== my._MinZoom || MaxZoom !== my._MaxZoom) {
+                        var delta = MaxZoom - MinZoom;
+                        if(delta > 0) {
+                            if(!my._zoomSliderCont) {
+                                my._zoomSliderCont  = my._createDiv(container, 'gmx_sliderCont');
+                                my._zoomSliderBG  = my._createDiv(my._zoomSliderCont, 'gmx_sliderBG');
+                                L.DomEvent.on(my._zoomSliderBG, 'click', function (ev) {
+                                    my._zoom = my._getZoomByY(ev.layerY);
+                                    my._map.setZoom(my._zoom);
+                                }, my);
+                                my._zoomPointer  = my._createDiv(my._zoomSliderCont, 'gmx_zoomPointer');
+                                my._zoomVal  = my._createDiv(my._zoomPointer, 'gmx_zoomVal');
+                                L.DomEvent.on(container, 'mouseover', function (ev) {
+                                    my._zoomSliderCont.style.display = 'block';
+                                    my._setSliderSize(delta);
+                                });
+                                var mouseout = function () {
+                                    my._zoomSliderCont.style.display = 'none';
+                                    my._setSliderSize(delta);
+                                };
+                                L.DomEvent.on(container, 'mouseout', function (ev) {
+                                    if(my._draggable._moving) return;
+                                    mouseout();
+                                });
+                                var draggable = new L.Draggable(my._zoomPointer);
+                                draggable.on('drag', function (ev) {
+                                    var pos = ev.target._newPos;
+                                    my._zoom = my._getZoomByY(pos.y);
+                                    my._setPosition();
+                                });
+                                draggable.on('dragend', function (ev) {
+                                    my._map.setZoom(my._zoom);
+                                    mouseout();
+                                });
+                                draggable.enable();
+                                my._draggable = draggable;
+                            }
+                            my._setSliderSize(delta);
+                        }
+                        my._MinZoom = MinZoom, my._MaxZoom = MaxZoom;
+                    }
+                    my._zoom = map._zoom;
+                    my._setPosition();
+                }
+                ,
+                _updateDisabled: function (ev) {
+                    var map = this._map,
+                        className = 'leaflet-disabled';
+
+                    L.DomUtil.removeClass(this._zoomInButton, className);
+                    L.DomUtil.removeClass(this._zoomOutButton, className);
+
+                    if (map._zoom === map.getMinZoom()) {
+                        L.DomUtil.addClass(this._zoomOutButton, className);
+                    }
+                    if (map._zoom === map.getMaxZoom()) {
+                        L.DomUtil.addClass(this._zoomInButton, className);
+                    }
+                    this._zoom = map._zoom;
+                    if(this.options.zoomslider) {
+                        if(ev.type === 'zoomlevelschange') this._chkZoomLevelsChange(this.container);
+                        this._setPosition();
+                    }
+                }
+                
+            });
+            L.control.gmxZoom = function (options) {
+              return new L.Control.gmxZoom(options);
+            }
+            var gmxZoom = L.control.gmxZoom({
+            });
+            gmxZoom.addTo(gmxAPI._leaflet.LMap);
+            outControls.gmxZoom = gmxZoom;
+
             // gmxLayers - контрол слоев
             L.Control.gmxLayers = L.Control.Layers.extend({
                 options: {
                     current: ''
+                    ,collapsed: false
                 }
                 ,
                 _onInputClick: function (ev) {
@@ -1884,7 +2133,7 @@
                             if('setVisible' in item) item.setVisible(false);
                             else if(item._container) item._container.style.display = flag ? 'block' : 'none';
                             else {
-console.warn('hideControls', item);
+                                console.warn('hideControls', item);
                             }
                         }
                     }
@@ -1905,6 +2154,269 @@ console.warn('hideControls', item);
             //var hideControls = L.control.hideControls({});
             hideControls.addTo(gmxAPI._leaflet.LMap);
             outControls.hideControls = hideControls;
+
+            // BottomBG - подвал background
+            L.Control.BottomBG = L.Control.gmxControl.extend({
+                onAdd: function (map) {
+                    var className = 'gmx_copyright_location',
+                        container = L.DomUtil.create('div', className);
+
+                    L.DomUtil.create('div', className + '_bg', container);
+                    this._map = map;
+
+                    return container;
+                }
+            });
+            var bottomBG = new L.Control.BottomBG({
+                className: 'gmx_copyright_location_bg'
+                ,position: 'bottom'
+            });
+            bottomBG.addTo(gmxAPI._leaflet.LMap);
+            outControls.bottomBG = bottomBG;
+
+            // LocationControls - 
+            L.Control.LocationControls = L.Control.gmxControl.extend({
+                onAdd: function (map) {
+                    var className = 'gmx_location',
+                        container = L.DomUtil.create('div', className),
+                        my = this;
+
+                    this.locationTxt = L.DomUtil.create('span', 'gmx_locationTxt', container);
+                    this.coordFormatChange = L.DomUtil.create('span', 'gmx_coordFormatChange', container);
+                    this.scaleBar = L.DomUtil.create('span', 'gmx_scaleBar', container);
+                    this.scaleBarTxt = L.DomUtil.create('span', 'gmx_scaleBarTxt', container);
+                    this._map = map;
+
+                    var util = {
+                        checkPositionChanged: function(ev) {
+//console.warn('checkPositionChanged', ev);
+                            var attr = gmxAPI.getScaleBarDistance();
+                            if (!attr || (attr.txt === my._scaleBarText && attr.width === my._scaleBarWidth)) return;
+                            my._scaleBarText = attr.txt;
+                            my._scaleBarWidth = attr.width;
+                            util.repaintScaleBar();
+                        }
+                        ,
+                        repaintScaleBar: function() {
+                            if (my._scaleBarText) {
+                                gmxAPI.size(my.scaleBar, my._scaleBarWidth, 4);
+                                my.scaleBarTxt.innerHTML = my._scaleBarText;
+                                gmxAPI._listeners.dispatchEvent('scaleBarRepainted', gmxAPI.map, container.clientWidth);
+                            }
+                        }
+                        ,coordFormat: 0
+                        ,
+                        setCoordinatesFormat: function(num, screenGeometry) {
+                            if(!num) num = this.coordFormat;
+                            if(num < 0) num = this.coordFormatCallbacks.length - 1;
+                            else if(num >= this.coordFormatCallbacks.length) num = 0;
+                            this.coordFormat = num;
+                            if(!screenGeometry) screenGeometry = gmxAPI.map.getScreenGeometry();
+                            var attr = {screenGeometry: screenGeometry, properties: gmxAPI.map.properties };
+                            var res = this.coordFormatCallbacks[num](my.locationTxt, attr);		// если есть res значит запомним ответ
+                            if(res && my.prevCoordinates != res) my.locationTxt.innerHTML = res;
+                            my.prevCoordinates = res;
+                            gmxAPI._listeners.dispatchEvent('onSetCoordinatesFormat', gmxAPI.map, num);
+                        }
+                        ,
+                        coordFormatCallbacks: [		// методы формирования форматов координат
+                            function() { return util.getCoordinatesText(); },
+                            function() { return util.getCoordinatesText(); },
+                            function() { return util.getCoordinatesText(); }
+                        ]
+                        ,
+                        getCoordinatesText: function(currPos) {
+                            return gmxAPI.getCoordinatesText(currPos, this.coordFormat);
+                        }
+                        ,
+                        showCoordinates: function() {        //окошко с координатами
+                            if (this.coordFormat > 2) return; // только для стандартных форматов.
+                            var oldText = this.getCoordinatesText();
+                            var text = window.prompt(gmxAPI.KOSMOSNIMKI_LOCALIZED("Текущие координаты центра карты:", "Current center coordinates:"), oldText);
+                            if (text && (text != oldText))
+                                gmxAPI.map.moveToCoordinates(text);
+                        }
+                        ,
+                        nextCoordinatesFormat: function() {
+                            this.coordFormat += 1;
+                            this.setCoordinatesFormat(this.coordFormat);
+                        }
+                    }
+                    
+                    L.DomEvent.on(this.coordFormatChange, 'click', function (ev) { util.nextCoordinatesFormat(); }, this);
+                    L.DomEvent.on(this.locationTxt, 'click', function (ev) { util.showCoordinates(); }, this);
+                    map.on('moveend', function (ev) {
+                        util.checkPositionChanged(ev);
+                    }, this);
+                    map.on('move', function (ev) {
+                        util.setCoordinatesFormat(util.coordFormat);
+                    }, this);
+                    
+                    gmxAPI.map.coordinates = {
+                        setVisible: function(flag) 
+                        { 
+                            //gmxAPI.setVisible(locationControl.locationTxt, flag); 
+                            //gmxAPI.setVisible(locationControl.changeCoords, flag); 
+                        }
+                        ,
+                        addCoordinatesFormat: function(func) 
+                        { 
+                            util.coordFormatCallbacks.push(func);
+                            return util.coordFormatCallbacks.length - 1;
+                        }
+                        ,
+                        removeCoordinatesFormat: function(num) 
+                        { 
+                            util.coordFormatCallbacks.splice(num, 1);
+                            return util.coordFormatCallbacks.length - 1;
+                        }
+                        ,
+                        setFormat: util.setCoordinatesFormat
+                    }
+                    
+                    return container;
+                }
+            });
+            var locationControl = new L.Control.LocationControls({
+                position: 'bottomright'
+            });
+            locationControl.addTo(gmxAPI._leaflet.LMap);
+            outControls.locationControl = locationControl;
+
+            // CopyrightControls - Copyright
+/*
+        
+                map.addCopyrightedObject = function(obj) { copyrightControl.addItem(obj); }
+                map.removeCopyrightedObject = function(obj) { copyrightControl.removeItem(obj); }
+                map.setCopyrightVisibility = function(obj) { copyrightControl.setVisible(obj); } 
+                map.updateCopyright = function() { copyrightControl.redraw(); } 
+                // Изменить позицию контейнера копирайтов
+                map.setCopyrightAlign = function(attr) {
+                    if(attr.align) copyrightControl.copyrightAlign = attr.align;
+                    copyrightControl.setPosition();
+                }
+                
+                copyrightControl.scaleBarRepaintedID = map.addListener('scaleBarRepainted', function(width) {
+                    copyrightControl.chkWidth(width);
+                });
+                copyrightControl.onSetCoordinatesFormatID = map.addListener('onSetCoordinatesFormat', function() {
+                    copyrightControl.chkWidth();
+                });
+                
+                copyrightControl.onChangeBackgroundColorID = map.addListener('onChangeBackgroundColor', function(htmlColor) {
+                    copyrightControl.redraw();
+                });
+
+
+                copyrightControl.onMoveEndID = map.addListener(evName, function() {
+                    if (updateListenerID) return;
+                    updateListenerID = setTimeout(function()
+                    {
+                        copyrightControl.redraw();
+                        clearTimeout(updateListenerID);
+                        updateListenerID = null;
+                        copyrightControl.chkWidth();
+                    }, 250);
+                });
+        
+*/            
+            L.Control.CopyrightControls = L.Control.gmxControl.extend({
+                onAdd: function (map) {
+                    var className = 'gmx_copyright_location',
+                        container = L.DomUtil.create('span', className);
+
+                    //L.DomUtil.create('div', className + '_bg', container);
+                    this._map = map;
+                    var my = this;
+                    var util = {
+                        items: []
+                        ,addItem: function(obj) {
+                            this.items.forEach(function(item, i) {
+                                if(obj === item) {
+                                    return false;   // Уже есть такой
+                                }
+                            });
+                            this.items.push(obj);
+                            this.redraw();
+                        }
+                        ,
+                        removeItem: function(obj) {
+                            this.items.forEach(function(item, i) {
+                                if(obj === item) {
+                                    util.items.splice(i, 1);
+                                    util.redraw();
+                                    return false;
+                                }
+                            });
+                        }
+                        ,
+                        redraw: function() {            // перерисовать
+                            var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+                            if(!currPos.latlng) return;
+                            var x = currPos.latlng.x;
+                            var y = currPos.latlng.y;
+                            var texts = [
+                                //первым всегда будет располагаться копирайт СканЭкс. 
+                                "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2013 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>"
+                            ];
+                            this.items.forEach(function(item, i) {
+                                if (!item.copyright || !item.objectId || !item.getVisibility()) return;  // обьекта нет на экране или без копирайта
+                                if (item.geometry) {
+                                    var bounds = item.bounds || gmxAPI.getBounds(item.geometry.coordinates);
+                                    if ((x < bounds.minX) || (x > bounds.maxX) || (y < bounds.minY) || (y > bounds.maxY)) return;
+                                }
+                                texts.push(item.copyright.split("<a").join("<a target='_blank' style='color: inherit;'"));
+                            });
+                            if(gmxAPI.proxyType == 'leaflet') texts.push("<a target='_blank' style='color: inherit;' href='http://leafletjs.com'>&copy; Leaflet</a>");
+
+                            var text = texts.join(' ');
+
+                            if(this.currentText != text) {
+                                this.currentText = text;
+                                container.innerHTML = text;
+                                gmxAPI._listeners.dispatchEvent('copyrightRepainted', gmxAPI.map, text);
+                            }
+                            //if(copyrightControl.copyrightAlign) copyrightControl.setPosition();
+                        }
+                    };
+
+                    gmxAPI.extend(gmxAPI.map, {
+                        addCopyrightedObject: function(obj) {
+                            util.addItem(obj);
+                        }
+                        ,removeCopyrightedObject: function(obj) {
+                            util.removeItem(obj);
+                        }
+                        ,setCopyrightVisibility: function(obj) {
+                            //copyrightControl.setVisible(obj);
+                        } 
+                        ,updateCopyright: function() {
+                            //copyrightControl.redraw();
+                        } 
+                        ,setCopyrightAlign: function(attr) {    // Изменить позицию контейнера копирайтов
+                            //if(attr.align) copyrightControl.copyrightAlign = attr.align;
+                            //copyrightControl.setPosition();
+                        }
+                    });
+
+                    return container;
+                }
+                ,
+                chkWidth: function(locationWidth) {
+/*
+                    if(!copyrightControl.node.parentNode) return;
+                    if(!locationWidth) locationWidth = (locationControl && locationControl.node ? locationControl.node.clientWidth : 0);
+                    var width = copyrightControl.node.parentNode.clientWidth - 30 - locationWidth;
+                    copyrightControl.node.style.width = (width > 0 ? width : 0) + 'px';
+*/
+                }
+            });
+// locationControl
+            var copyrightControls = new L.Control.CopyrightControls({
+                position: 'bottomleft'
+            });
+            copyrightControls.addTo(gmxAPI._leaflet.LMap);
+            outControls.copyrightControls = copyrightControls;
 
             if(window.mapHelper) {
                 // PrintControl - кнопка печати
@@ -2154,4 +2666,7 @@ console.log('onRemove ', this);
 	}
     if(!gmxAPI._controls) gmxAPI._controls = [];
     gmxAPI._controls.push(Controls);
+
+
+    
 })();

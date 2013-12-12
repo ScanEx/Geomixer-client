@@ -2602,6 +2602,12 @@
 				LMap.setMaxBounds(bounds);		// После установки надо сбрасывать
 			}
 		}
+		,getMinZoom: function(ph) {				// получить minZoom карты
+            return LMap.getMinZoom();
+		}
+		,getMaxZoom: function(ph) {				// получить maxZoom карты
+            return LMap.getMaxZoom();
+		}
 		,
 		'setMinMaxZoom':	function(ph)	{				// установка minZoom maxZoom карты
 			if(LMap.options.minZoom == ph.attr.z1 && LMap.options.maxZoom == ph.attr.z2) return;
@@ -2621,6 +2627,7 @@
 				utils.runMoveTo({'x': px, 'y': py, 'z': currZ})
 			}
 			gmxAPI._listeners.dispatchEvent('onMinMaxZoom', gmxAPI.map, {obj: gmxAPI.map, attr: {minZoom: minz, maxZoom: maxz, currZ: currZ} });
+            LMap.fire('zoomlevelschange');
 		}
 		,
 		'checkMapSize':	function()	{				// Проверка изменения размеров карты

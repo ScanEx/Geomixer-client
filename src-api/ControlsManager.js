@@ -48,9 +48,9 @@
                 }
             });
 
-            if('_ToolsAll' in gmxAPI) {
-                this.toolsAll = map.toolsAll = new gmxAPI._ToolsAll(parent);
-            }
+            // if('_ToolsAll' in gmxAPI) {
+                // this.toolsAll = map.toolsAll = new gmxAPI._ToolsAll(parent);
+            // }
             if(gmxAPI._controls) {
                 for (var i = 0, len = gmxAPI._controls.length; i < len; i++) {
                     this.addControls(gmxAPI._controls[i]);

@@ -125,12 +125,26 @@
 				map.moveTo(x, y, z ? z : map.getZ());
 			});
 		}
+		map.getMinZoom = function() {
+            return (gmxAPI.proxyType === 'flash' ?
+                (map.zoomControl ? map.zoomControl.getMinZoom() : 17)
+                :
+                gmxAPI._cmdProxy('getMinZoom')
+            );
+        }
+		map.getMaxZoom = function() {
+            return (gmxAPI.proxyType === 'flash' ?
+                (map.zoomControl ? map.zoomControl.getMaxZoom() : 17)
+                :
+                gmxAPI._cmdProxy('getMaxZoom')
+            );
+        }
 		map.zoomToExtent = function(minx, miny, maxx, maxy)
 		{
 			var x = gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
 				y = gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2);
 			var z = map.getBestZ(minx, miny, maxx, maxy);
-			var maxZ = (map.zoomControl ? map.zoomControl.getMaxZoom() : 17);
+			var maxZ = map.getMaxZoom();
 			map.moveTo(x, y, (z > maxZ ? maxZ : z));
 		}
 		map.slideToExtent = function(minx, miny, maxx, maxy)
@@ -138,7 +152,7 @@
 			var x = gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
 				y = gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2);
 			var z = map.getBestZ(minx, miny, maxx, maxy);
-			var maxZ = (map.zoomControl ? map.zoomControl.getMaxZoom() : 17);
+			var maxZ = map.getMaxZoom();
 			map.slideTo(x, y, (z > maxZ ? maxZ : z));
 		}
 		
@@ -354,7 +368,7 @@
 			);
 		}
 		map.setMinMaxZoom = function(z1, z2) {
-			if(gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setMinMaxZoom(z1, z2);
+			if(gmxAPI.proxyType === 'flash' && gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setMinMaxZoom(z1, z2);
 			return gmxAPI._cmdProxy('setMinMaxZoom', {'attr':{'z1':z1, 'z2':z2} });
 		}
 		map.setZoomBounds = map.setMinMaxZoom;
