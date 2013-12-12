@@ -3217,7 +3217,7 @@ FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
 	{
 		me.addLayers(layers, true);
 		if (callback)
-			callback();
+			callback(layers);
 	});
 }
 
