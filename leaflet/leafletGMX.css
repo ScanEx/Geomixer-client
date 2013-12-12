@@ -1,3 +1,144 @@
+.gmx_coordFormatChange {
+    background-image: url("../../api/img/coords.png");
+    cursor: pointer;
+    width: 10px;
+    height: 9px;
+    display: block;
+    float: left;
+    clear: none;
+    margin-right: 5px;
+    margin-top: 5px;
+}
+.gmx_location {
+    font-size: 11px;
+    right: 0px;
+    bottom: -9px;
+    margin-bottom: 0px;
+}
+.gmx_locationTxt {
+    color: black;
+    float: left;
+    cursor: pointer;
+    font-size: 9pt;
+    font-family: Tahoma;
+    margin-right: 8px;
+}
+.gmx_scaleBar {
+    background-color: white;
+    border: 1px solid black;
+    display: inline-block;
+    margin-bottom: 1px;
+    height: 4px;
+    width: 40px;
+}
+.gmx_scaleBarTxt {
+    color: black;
+    margin-left: 2px;
+    font-size: 9pt;
+    font-family: Tahoma;
+}
+
+.gmx_copyright_location_bg {
+    height: 20px;
+    opacity: 0.5;
+    width: 100%;
+    background-color: white;
+}
+.leaflet-left {
+    left: 0;
+    width: 100%;
+}
+.gmx_copyright_location {
+    bottom: 0px;
+    right: 0px;
+    left: 0px;
+    margin-bottom: 0px !important;
+    position: absolute;
+    color: #000000;
+    font-family: Tahoma;
+    font-size: 9pt;
+}
+.gmx_zoomPointer {
+    background-image: url("../../api/img/iconeControls.png");
+    background-position: -3px -121px;
+    cursor: pointer;
+    position: relative;
+    width: 29px;
+    height: 7px;
+}
+.gmx_zoomVal {
+    background-image: url("../../api/img/iconeControls.png");
+    background-position: -33px -117px;
+    font-family: Tahoma;
+    font-size: 9pt;
+    font-weight: bold;
+    height: 17px;
+    left: 25px;
+    pointer-events: none;
+    position: absolute;
+    text-align: center;
+    top: -5px;
+    width: 22px;
+}
+.gmx_sliderCont {
+    position: relative;
+    top: -5px;
+    display: none;
+}
+.gmx_sliderBG {
+    background-image: url("../../api/img/band.png");
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    left: 7px;
+    height: 28px;
+    width: 11px;
+}
+.gmx_zoomParent {
+    padding-bottom: 2px;
+    margin-left: 50px;
+    margin-top: 60px;
+    position: absolute;
+    left: 2px;
+    top: 60px;
+}
+.gmx_zoomMinus {
+    background-image: url("../../api/img/iconeControls.png");
+    background-position: -27px -33px;
+    position: relative;
+    cursor: pointer;
+    width: 23px;
+    height: 25px;
+    margin-left: 2px;
+    margin-top: 2px;
+}
+.gmx_zoomMinus:hover {
+    background-position: -27px -7px;
+}
+.gmx_zoomPlus {
+    background-image: url("../../api/img/iconeControls.png");
+    background-position: -2px -33px;
+    position: relative;
+    cursor: pointer;
+    width: 23px;
+    height: 25px;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: 2px;    
+}
+.gmx_zoomPlus:hover {
+    background-position: -2px -7px;
+}
+.gmx_zoomPlaque {
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+    background-color: white;
+    opacity: 0.3;
+    position: absolute;
+    width: 30px;
+    height: 60px;
+    margin: -2px 0 0 -2px;
+}
 .leaflet-control-Text {
     cursor: pointer;
     clear: none;
