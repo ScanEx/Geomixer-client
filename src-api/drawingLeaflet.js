@@ -432,7 +432,7 @@
 			
 			//isDraging = false;
 			drawingUtils.hideBalloon();
-			gmxAPI._drawing.control.selectTool("move");
+			//if(gmxAPI._drawing.control) gmxAPI._drawing.control.selectTool("move");
 			//eventType = 'onEdit';
 			eventType = 'onFinish';
 			chkEvent(eventType);
@@ -500,7 +500,7 @@
 			gmxAPI._drawing.activeState = false;
 			
 			repaint();
-            gmxAPI._drawing.control.selectTool("move");
+            //if(gmxAPI._drawing.control) gmxAPI._drawing.control.selectTool("move");
 			eventType = 'onFinish';
 			chkEvent(eventType);
 
@@ -642,6 +642,7 @@
                             domObj.geometry.type = 'POLYGON';
 							addPoint(coords[0]);
 							layerItems[2].options.skipLastPoint = true;
+                            repaint(false);
 						}
 						//if(len == 1) len = 0;
 					}
@@ -651,6 +652,7 @@
 					//ret.stopDrawing();
 					mouseUp();
 					gmxAPI.mousePressed	= mousePressed = false;
+                    chkEvent('onEdit');
 					eventType = 'onFinish';
 					chkEvent(eventType);
 				};
@@ -980,7 +982,7 @@
 			
 			//isDraging = false;
 			drawingUtils.hideBalloon();
-            gmxAPI._drawing.control.selectTool("move");
+            //if(gmxAPI._drawing.control) gmxAPI._drawing.control.selectTool("move");
 			//if(toolsContainer) toolsContainer.selectTool("move");
 			if(coords) {
                 if(domObj) domObj.triggerInternal("onMouseUp");
@@ -1263,7 +1265,7 @@
 		gmxAPI._drawing.setMove = function() {
 			gmxAPI._drawing.activeState = false;
 			gmxAPI._drawing.BoxZoom = false;
-            gmxAPI._drawing.control.selectTool("move");
+            //if(gmxAPI._drawing.control) gmxAPI._drawing.control.selectTool("move");
             LMap.boxZoom.removeHooks();
 		}
 		LMap.on('boxzoomend', gmxAPI._drawing.setMove);
@@ -1590,20 +1592,22 @@
 		{
 			//gmxAPI._sunscreen.bringToTop();
 			//gmxAPI._sunscreen.setVisible(true);
-			var apiBase = gmxAPI.getAPIFolderRoot();
-			addItemListenerID = gmxAPI.map.addListener('onClick', function()
-			{
-				done(gmxAPI.map.getMouseX(), gmxAPI.map.getMouseY());
-                gmxAPI._drawing.control.selectTool((gmxAPI.map.isKeyDown(16) ? "POINT" : "move"));
-				/*if(toolsContainer) {
-					toolsContainer.selectTool("move");
-					if (gmxAPI.map.isKeyDown(16)) {
-						toolsContainer.selectTool("POINT");
-					}
-				}*/
-				ret.stopDrawing();
-				return true;
-			});
+			//var apiBase = gmxAPI.getAPIFolderRoot();
+            setTimeout(function() {
+                addItemListenerID = gmxAPI.map.addListener('onClick', function()
+                {
+                    done(gmxAPI.map.getMouseX(), gmxAPI.map.getMouseY());
+                    //if(gmxAPI._drawing.control) gmxAPI._drawing.control.selectTool((gmxAPI.map.isKeyDown(16) ? "POINT" : "move"));
+                    /*if(toolsContainer) {
+                        toolsContainer.selectTool("move");
+                        if (gmxAPI.map.isKeyDown(16)) {
+                            toolsContainer.selectTool("POINT");
+                        }
+                    }*/
+                    ret.stopDrawing();
+                    return true;
+                });
+			}, 0);
 		}
 		else {
 			done(coords[0], coords[1]);
@@ -1624,15 +1628,13 @@
 		addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); },
 		removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); },
 		enabledHoverBalloon: true,
-		enableHoverBalloon: function()
-			{
-				this.enabledHoverBalloon = true;
-			}
+		enableHoverBalloon: function() {
+            this.enabledHoverBalloon = true;
+        }
 		,
-		disableHoverBalloon: function()
-			{
-				this.enabledHoverBalloon = false;
-			}
+		disableHoverBalloon: function() {
+            this.enabledHoverBalloon = false;
+        }
 		,
         addObjects: function(data, format) {    // Добавление массива обьектов
             var out = [];
@@ -1810,15 +1812,14 @@
 		tools: { 
 			setVisible: function(flag) 
 			{ 
-				if(gmxAPI._drawing.control) gmxAPI._drawing.control.setVisible(flag);
+				//if(gmxAPI._drawing.control) gmxAPI._drawing.control.setVisible(flag);
 			}
 		}
 		,
 		addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
 		{
-			var control = gmxAPI.IconsControl || gmxAPI._drawing.control;
-			if(!control) return null;
-			var ret = control.addTool(tn, {
+			var ret = null;
+			var attr = {
 				'key': tn,
 				'activeStyle': {},
 				'regularStyle': {},
@@ -1827,14 +1828,31 @@
 				'onClick': onClick,
 				'onCancel': onCancel,
 				'hint': hint
-			});
+			};
+            var controls = gmxAPI.map.controlsManager.getCurrent();
+            if(controls && 'addControl' in controls) {
+                ret = controls.addControl(tn, attr);
+            } else {
+                var control = gmxAPI.IconsControl || gmxAPI._drawing.control;
+                if(!control) return null;
+                ret = control.addTool(tn, {
+                    'key': tn,
+                    'activeStyle': {},
+                    'regularStyle': {},
+                    'regularImageUrl': regularImageUrl,
+                    'activeImageUrl': activeImageUrl,
+                    'onClick': onClick,
+                    'onCancel': onCancel,
+                    'hint': hint
+                });
+            }
 			return ret;
 		}
 		, 
 		removeTool: function(tn)
 		{
 			if(this.tools[tn]) {
-				gmxAPI._drawing.control.removeTool(tn);
+				if(gmxAPI._drawing.control) gmxAPI._drawing.control.removeTool(tn);
 			}
 		}
 		,

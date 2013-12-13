@@ -518,7 +518,16 @@ var DrawingObjectGeomixer = function() {
                 y1 = bounds.minY,
                 x2 = bounds.maxX,
                 y2 = bounds.maxY,
-                format = $('input:checked', downloadRasterOptions).val();
+                format = $('input:checked', downloadRasterOptions).val(),
+                temporalParam = "";
+                
+            if (layer.properties.Temporal) {
+                var dateInterval = layer.getDateInterval();
+                if (dateInterval) {
+                    temporalParam = "&StartDate=" + parseInt(dateInterval.beginDate/1000, 10) + "&EndDate=" + parseInt(dateInterval.endDate/1000, 10);
+                }
+            }
+                
             window.location.href = 
                 "http://" + layer.properties.hostName + "/DownloadLayer.ashx" + 
                 "?t=" + layer.properties.name + 
@@ -526,7 +535,8 @@ var DrawingObjectGeomixer = function() {
                 "&MinY=" + truncate9(Math.min(y1, y2)) +
                 "&MaxX=" + truncate9(Math.max(x1, x2)) + 
                 "&MaxY=" + truncate9(Math.max(y1, y2)) + 
-                "&Format=" + format;
+                "&Format=" + format +
+                temporalParam;
         }
     })
 	

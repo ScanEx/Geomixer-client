@@ -146,7 +146,7 @@ var nsGmx = nsGmx || {};
                         _processResponse({Status: 'ok', Result: userInfo || null});
                     }, null, true);
                 } else {
-                    doAuthServerLogin(response.Result.Token);
+                    doAuthServerLogin(response.Result && response.Result.Token);
                     _processResponse(response);
                 }
             })
@@ -160,7 +160,7 @@ var nsGmx = nsGmx || {};
                 {
                     _this.setUserInfo(response.Result);
                     
-                    doAuthServerLogin(response.Result.Token);
+                    doAuthServerLogin(response.Result && response.Result.Token);
                     
                     callback && callback();
                 }

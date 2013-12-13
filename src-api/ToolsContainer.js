@@ -1,7 +1,8 @@
 //Управление tools контейнерами
 (function()
 {
-    //Управление tools контейнерами
+    "use strict";
+     //Управление tools контейнерами
 	/** Класс управления tools контейнерами
 	* @function
 	* @memberOf api
@@ -23,6 +24,30 @@
 	{
         //console.log('ToolsContainer', name, attr);
 		if(!attr) attr = {};
+		var cont = {
+            addTool: function (tn, attr) {
+//console.log('tool addTool', tn, attr); // wheat
+                if(!attr) attr = {};
+                var ret = null;
+                if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
+                    attr.id = tn;
+                    if(!attr.rus) attr.rus = attr.hint || attr.id;
+                    if(!attr.eng) attr.eng = attr.hint || attr.id;
+                    
+                    var layersControl = gmxAPI.map.controlsManager.getControl('layers');
+                    if(layersControl) ret = layersControl.addOverlay(tn, attr);
+                } else {
+                    var controls = gmxAPI.map.controlsManager.getCurrent();
+                    if(controls && 'addControl' in controls) {
+                        ret = controls.addControl(tn, attr);
+                    }
+                }
+                return ret;
+            }
+        };
+		//gmxAPI._tools[name] = cont;
+return cont;
+/*        
 		var aliasNames = {},		// Hash алиасов основных подложек для map.setMode
             toolNames = [],
             toolHash = {},
@@ -46,13 +71,13 @@
 		// стили контейнера
 		var style = { display: 'block', styleFloat: 'left', cssFloat: 'left', marginLeft: '4px', borderRadius: '4px', backgroundColor: '#9A9A9A' };
 		// стили добавляемых юзером элементов tool
-		var regularStyle = { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "white"	};
+		var regularStyle = { paddingTop: "0px", paddingBottom: "0px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "white"	};
 		var activeStyle = { paddingTop: "4px", paddingBottom: "4px", paddingLeft: "10px", paddingRight: "10px", fontSize: "12px", fontFamily: "sans-serif", fontWeight: "bold", textAlign: "center", cursor: "pointer", opacity: 1, color: "orange"	};
 
 		var isDefaultControl = (gmxAPI.map.controlsManager.getCurrent() === 'controlsBase');
 
         if(isDefaultControl) {
-            style = { display: 'block', styleFloat: 'left', cssFloat: 'left', marginTop: '40px', marginLeft: '4px', padding: '4px 0' };
+            style = { display: 'block', styleFloat: 'left', cssFloat: 'left', marginTop: '40px', marginLeft: '4px', padding: '0px;' };
             // Установка backgroundColor c alpha
             if(gmxAPI.isIE && document.documentMode < 10) {
                 style.filter = "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7F016A8A,endColorstr=#7F016A8A)";
@@ -211,7 +236,7 @@
                 return true;
             }
             ,setVisible: function(flag) {
-                gmxAPI.setVisible(gmxTools, flag);
+                gmxAPI.setVisible(my.node, flag);
                 this.isVisible = flag;
             }
             ,repaint: function() {
@@ -252,10 +277,29 @@
             }
             ,addTool: function (tn, attr) {
 //console.log('tool addTool', tn, attr); // wheat
-
-                if(!my.itemsContainer) my.itemsContainer = (createContainerNode ? createContainerNode() : my.createContainerNode('div', properties, style));
-
                 if(!attr) attr = {};
+                if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
+                    attr.id = tn;
+                    if(!attr.rus) attr.rus = attr.hint || attr.id;
+                    if(!attr.eng) attr.eng = attr.hint || attr.id;
+                    
+                    var layersControl = gmxAPI.map.controlsManager.getControl('layers');
+                    if(layersControl) layersControl.addOverlay(tn, attr);
+//                    return;
+                } else {
+                    var controls = gmxAPI.map.controlsManager.getCurrent();
+                    if(controls && 'addControl' in controls) {
+                        ret = controls.addControl(tn, attr);
+                    }
+                }
+return;
+
+//                if(!my.itemsContainer) my.itemsContainer = (createContainerNode ? createContainerNode() : my.createContainerNode('div', properties, style));
+                if(!my.itemsContainer) {
+                    if(createContainerNode) createContainerNode();
+                    else my.createContainerNode('div', properties, style);
+                }
+
                 if(!attr.alias) attr.alias = tn
                 aliasNames[attr.alias] = tn;
 
@@ -393,7 +437,12 @@
                 this.node = node
                 gmxAPI._toolsContHash[name] = node;
                 
-                var table = gmxAPI.newElement("table", {}, {borderCollapse: 'collapse'});
+                var table = gmxAPI.newElement("table", {}, {
+                    borderCollapse: 'collapse'
+                    ,margin: '0px'
+                    ,width: 'auto'
+                    ,backgroundColor: 'rgba(1, 106, 138, 0)'
+                });
                 node.appendChild(table);
                 my.itemsContainer = gmxAPI.newElement("tbody", {}, {});
                 table.appendChild(this.itemsContainer);
@@ -403,6 +452,7 @@
 
 		if(!gmxAPI._tools) gmxAPI._tools = {};
 		gmxAPI._tools[name] = this;
+*/
 	}
 	//расширяем namespace
     gmxAPI._ToolsContainer = ToolsContainer;

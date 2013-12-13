@@ -54,6 +54,37 @@ extend(window.gmxAPI,
 	,
     buildGUID: [/*#buildinclude<__buildGUID__>*/][0]		// GUID текущей сборки
 	,
+    leafletPlugins: {}
+    ,
+    loadJS: function(item, callback, callbackError) {
+        var script = document.createElement("script");
+        script.setAttribute("charset", "windows-1251");
+        script.setAttribute("src", item.src);
+        item.readystate = 'loading';
+        script.onload = function(ev) {
+            var count = 0;
+            if(item.count) count = item.count--;
+            if(count === 0) item.readystate = 'loaded';
+            if(item.callback) item.callback(item);
+            document.getElementsByTagName("head").item(0).removeChild(script);
+        };
+        script.onerror = function(ev) {
+            item.readystate = 'error';
+            if(item.callbackError) item.callbackError(item);
+            document.getElementsByTagName("head").item(0).removeChild(script);
+        };
+        document.getElementsByTagName("head").item(0).appendChild(script);
+	}
+	,
+    loadCSS: function(href) {
+        var css = document.createElement("link");
+        css.setAttribute("type", "text/css");
+        css.setAttribute("rel", "stylesheet");
+        css.setAttribute("media", "screen");
+        css.setAttribute("href", href);
+        document.getElementsByTagName("head").item(0).appendChild(css);
+	}
+    ,
     getURLParams: memoize(function() {
         var q = window.location.search,
             kvp = (q.length > 1) ? q.substring(1).split("&") : [];
@@ -359,7 +390,8 @@ extend(window.gmxAPI,
 		if(attr.alert) {
             if(window.gmxAPIdebugLevel === 10) alert(attr.alert);
             else if(window.gmxAPIdebugLevel === 9) console.log(attr);
-        }
+            else if(window.gmxAPIdebugLevel === 11) throw attr.event;
+       }
 	},
 	_debugWarnings: [],
 	isIE: (navigator.appName.indexOf("Microsoft") != -1),
@@ -2539,7 +2571,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 			key = false;
 
 		sendCrossDomainJSONRequest(
-			"http://" + hostName + "/TileSender.ashx?ModeKey=map&MapName=" + mapName + (key ? ("&key=" + encodeURIComponent(key)) : "") + "&" + Math.random(),
+			"http://" + hostName + "/TileSender.ashx?ModeKey=map&MapName=" + encodeURIComponent(mapName) + (key ? ("&key=" + encodeURIComponent(key)) : "") + "&" + Math.random(),
 			function(response)
 			{
 				if(response && response['Status'] === 'ok' && response['Result']) {
@@ -3216,7 +3248,7 @@ FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
 	{
 		me.addLayers(layers, true);
 		if (callback)
-			callback();
+			callback(layers);
 	});
 }
 

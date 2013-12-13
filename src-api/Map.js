@@ -125,12 +125,26 @@
 				map.moveTo(x, y, z ? z : map.getZ());
 			});
 		}
+		map.getMinZoom = function() {
+            return (gmxAPI.proxyType === 'flash' ?
+                (map.zoomControl ? map.zoomControl.getMinZoom() : 17)
+                :
+                gmxAPI._cmdProxy('getMinZoom')
+            );
+        }
+		map.getMaxZoom = function() {
+            return (gmxAPI.proxyType === 'flash' ?
+                (map.zoomControl ? map.zoomControl.getMaxZoom() : 17)
+                :
+                gmxAPI._cmdProxy('getMaxZoom')
+            );
+        }
 		map.zoomToExtent = function(minx, miny, maxx, maxy)
 		{
 			var x = gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
 				y = gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2);
 			var z = map.getBestZ(minx, miny, maxx, maxy);
-			var maxZ = (map.zoomControl ? map.zoomControl.getMaxZoom() : 17);
+			var maxZ = map.getMaxZoom();
 			map.moveTo(x, y, (z > maxZ ? maxZ : z));
 		}
 		map.slideToExtent = function(minx, miny, maxx, maxy)
@@ -138,7 +152,7 @@
 			var x = gmxAPI.from_merc_x((gmxAPI.merc_x(minx) + gmxAPI.merc_x(maxx))/2),
 				y = gmxAPI.from_merc_y((gmxAPI.merc_y(miny) + gmxAPI.merc_y(maxy))/2);
 			var z = map.getBestZ(minx, miny, maxx, maxy);
-			var maxZ = (map.zoomControl ? map.zoomControl.getMaxZoom() : 17);
+			var maxZ = map.getMaxZoom();
 			map.slideTo(x, y, (z > maxZ ? maxZ : z));
 		}
 		
@@ -185,7 +199,7 @@
 		map.baseLayersManager = new gmxAPI.BaseLayersManager(map);
 		map.controlsManager = new gmxAPI.ControlsManager(map, gmxAPI._div);
         var params = gmxAPI.getURLParams().params;
-        map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBase');
+        map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBaseIcons');
 		gmxAPI._listeners.dispatchEvent('mapInit', null, map);	// Глобальный Listeners
 
 		var toolHandlers = {};
@@ -354,7 +368,7 @@
 			);
 		}
 		map.setMinMaxZoom = function(z1, z2) {
-			if(gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setMinMaxZoom(z1, z2);
+			if(gmxAPI.proxyType === 'flash' && gmxAPI.map.zoomControl) gmxAPI.map.zoomControl.setMinMaxZoom(z1, z2);
 			return gmxAPI._cmdProxy('setMinMaxZoom', {'attr':{'z1':z1, 'z2':z2} });
 		}
 		map.setZoomBounds = map.setMinMaxZoom;
@@ -881,13 +895,13 @@
 		}
 		map.ToolsContainer = gmxAPI._ToolsContainer;
 		gmxAPI._listeners.dispatchEvent('mapCreated', null, map);	// Глобальный Listeners
-		// Deffered методы
-        var deffered = function() {
-            console.log('Deffered function: ', arguments.callee);
+		// Deferred методы
+        var deferred = function() {
+            console.log('Deferred function: ', arguments.callee);
         }
-        map.setCoordinatesAlign = deffered;	// Позиционирование масштабной шкалы (tr tl br bl)
-        map.setCopyrightAlign = deffered;		// Позиционирование Copyright (tr tl br bl bc)
-		map.setGeomixerLinkAlign = deffered;	// Позиционирование GeomixerLink (tr tl br bl)
+        map.setCoordinatesAlign = deferred;	// Позиционирование масштабной шкалы (tr tl br bl)
+        map.setCopyrightAlign = deferred;		// Позиционирование Copyright (tr tl br bl bc)
+		map.setGeomixerLinkAlign = deferred;	// Позиционирование GeomixerLink (tr tl br bl)
         return map;
 	}
 	//расширяем namespace

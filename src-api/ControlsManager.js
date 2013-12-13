@@ -13,6 +13,7 @@
 	var ControlsManager = {
         isVisible: true
         ,currentID: null
+        ,currentControls: {}
         ,controls: []
         ,parentNode: null
         ,allToolsNode: null
@@ -47,9 +48,9 @@
                 }
             });
 
-            if('_ToolsAll' in gmxAPI) {
-                this.toolsAll = map.toolsAll = new gmxAPI._ToolsAll(parent);
-            }
+            // if('_ToolsAll' in gmxAPI) {
+                // this.toolsAll = map.toolsAll = new gmxAPI._ToolsAll(parent);
+            // }
             if(gmxAPI._controls) {
                 for (var i = 0, len = gmxAPI._controls.length; i < len; i++) {
                     this.addControls(gmxAPI._controls[i]);
@@ -155,11 +156,19 @@
             ,remove: function(id) {
                 ControlsManager.removeById(id);
             }
-            ,/** Получить идентификатор текущего типа контролов
+            ,
+            /** Получить идентификатор текущего типа контролов
+            * @memberof Controls#
+            */
+            getCurrentID: function() {
+                return ControlsManager.currentID;
+            }
+            ,
+            /** Получить текущий набор контролов
             * @memberof Controls#
             */
             getCurrent: function() {
-                return ControlsManager.currentID;
+                return ControlsManager.getCurrent() || null;
             }
             ,setCurrent: function(id) {
                 return ControlsManager.setCurrent(id);
@@ -176,6 +185,14 @@
             ,getControl: function(id) {
                 var controls = ControlsManager.getCurrent();
                 return (controls && 'getControl' in controls ? controls.getControl(id) : null);
+            }
+            ,setControls: function(id) {
+                var controls = ControlsManager.getCurrent();
+                if(controls && 'setControls' in controls) {
+                   ControlsManager.currentControls = controls.setControls();
+                   return true;
+                }
+                return false;
             }
         }
     };
