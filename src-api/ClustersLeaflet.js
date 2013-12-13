@@ -250,10 +250,18 @@
 			}
 			return res;
 		}
+		,hideClusterItem: function(node)	{			// Скрыть содержимое кластера
+            if(node['GMXClusterPoints']) {
+                LMap.removeLayer(node['GMXClusterPoints']);
+                node['GMXClusterPoints'] = null;
+            }
+		}
 		,'viewClusterItem': function(item)	{			// Показать содержимое кластера
 			var geom = item['geom'];					// геометрия кластера
 			var node = item.attr['node'];				// лефлет нода слоя
-			
+            gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Скрыть балуны
+
+			var isBalloon = false;
 			var point = geom.coordinates;
 			var center = [gmxAPI.from_merc_y(point.y), gmxAPI.from_merc_x(point.x)];
 			var members = geom.propHiden._members;
@@ -282,11 +290,7 @@
 				itemBalloon = null;
 			}
 			var chkRemove = function() {
-				if(node['GMXClusterPoints']) {
-					LMap.removeLayer(node['GMXClusterPoints']);
-					node['GMXClusterPoints'] = null;
-					gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Скрыть балуны
-				}
+                ClustersLeaflet.hideClusterItem(node);
 				onMouseOut();
 			}
 			chkRemove();
@@ -313,6 +317,7 @@
 				var dy = (p1.y - p2.y);
 				var delta = dx * dx + dy * dy;
 				if(delta > rad2) {
+                    if(isBalloon) return;
 					chkRemove();
 					//gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Скрыть балуны
 					itemBalloon = null;
@@ -349,9 +354,11 @@
 					if(delta < pr2) {
 						itemBalloon = members[i];
 						node['itemBalloon'](itemBalloon, {'evName':evName, 'objType':'cluster', 'dx': p3[0], 'dy': p3[1]});
-						break;
+						if(evName === 'onClick') isBalloon = true;
+                        return;
 					}
 				}
+				itemBalloon = null;
 			};
 
 			items.on('mouseout', function(e) {
@@ -397,6 +404,9 @@
 			if(ph.iterationCount) out['iterationCount'] = ph.iterationCount;	// количество итераций K-means
 			if(ph.radius) out['radius'] = ph.radius;							// радиус кластеризации в пикселах
 			
+			gmxAPI.map.addListener('hideBalloons', function(attr) {
+                ClustersLeaflet.hideClusterItem(node);
+            });
 			gmxAPI._listeners.addListener({'level': 11, 'eventName': 'onIconLoaded', 'func': function(eID) {	// проверка загрузки иконок
 				if(eID.indexOf('_clusters')) {
 					if(eID == layerID + '_regularStyle_clusters') {

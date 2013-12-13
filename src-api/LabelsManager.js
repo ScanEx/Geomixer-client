@@ -100,6 +100,7 @@
 
 	var repaint = function() {				// перерисовка
 		if(!canvas || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['zoomstart']) return false;
+        timer = null;
 		var zoom = LMap.getZoom();
 		if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
 		var mInPixel = gmxAPI._leaflet['mInPixel'];
@@ -171,7 +172,7 @@
 		labelBounds = null;
 		L.DomUtil.setPosition(canvas, new L.Point(-LMap._mapPane._leaflet_pos.x, -LMap._mapPane._leaflet_pos.y));
 	}
-	var drawMe = function(pt) {				// установка таймера
+	var drawMe = function(pt) {				// канвас готов
 		canvas = pt;
 		repaintItems();
 	}

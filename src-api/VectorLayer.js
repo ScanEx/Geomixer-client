@@ -2495,7 +2495,10 @@
 				}
 			}
 			arr = [];
-			if(node.clustersData) node.clustersData.clear();
+			if(node.clustersData) {
+                gmxAPI._leaflet['LabelsManager'].remove(node.id);
+                node.clustersData.clear();
+            }
 			return outArr;
 		}
 
