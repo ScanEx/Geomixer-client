@@ -61,20 +61,27 @@
 		}
 
 		// Текст по умолчанию для балуна (innerHTML)
-		function getDefaultBalloonText(o)
+		function getDefaultBalloonText(o, attr)
 		{
 			var text = "";
 			var identityField = gmxAPI.getIdentityField(o);
-			var props = o.properties;
+			var props = gmxAPI.clone(o.properties);
+            var keys = (o._balloonHook ? o._balloonHook.keys : {});
+            for(var key in keys) {
+                props[key] = gmxAPI.applyTemplate(keys[key], props);
+            }
+
 			for (var key in props)
 			{
 				if (key != identityField)
 				{
 					var value = "" + props[key];
-					if (value.indexOf("http://") == 0)
-						value = "<a href='" + value + "'>" + value + "</a>";
-					else if (value.indexOf("www.") == 0)
-						value = "<a href='http://" + value + "'>" + value + "</a>";
+                    if(!o._balloonHook) {
+                        if (value.indexOf("http://") == 0)
+                            value = "<a href='" + value + "'>" + value + "</a>";
+                        else if (value.indexOf("www.") == 0)
+                            value = "<a href='http://" + value + "'>" + value + "</a>";
+                    }
 					text += "<b>" + key + ":</b> " + value + "<br />";
 				}
 			}
@@ -106,8 +113,7 @@
 				propsBalloon.delayHide = false;
 			}, 100);
 		}
-*/
-		function setDelayShow(text)
+		function setDelayShow(text, o)
 		{
 			if(propsBalloon.delayShow) clearTimeout(propsBalloon.delayShow);
 			propsBalloon.delayShow = setTimeout(function()
@@ -115,8 +121,10 @@
 				propsBalloon.updatePropsBalloon(text);
 				clearTimeout(propsBalloon.delayShow);
 				propsBalloon.delayShow = false;
+                if(o._balloonHook) o._balloonHook.callback(o, balloon.div);
 			}, 200);
 		}
+*/
 
 		function disableHoverBalloon(mapObject)
 		{
@@ -202,6 +210,7 @@
 						if(flag) return false;										// Если customBalloon возвращает true выходим
 					}
 
+                    if(!o._balloonHook && o.filter && o.filter._balloonHook) o._balloonHook = o.filter._balloonHook;
 					//if(keyPress['objType'] == 'cluster') {}; // Надо придумать как бороться с фикс.двойником
 
 					var textFunc = chkAttr('callback', mapObject);			// Проверка наличия параметра callback по ветке родителей 
@@ -216,7 +225,15 @@
 					
 					//if(propsBalloon.delayHide) { clearTimeout(propsBalloon.delayHide); propsBalloon.delayHide = false; }
 					if (!fixedHoverBalloons[id]) {
-						setDelayShow(text);
+                        if(propsBalloon.delayShow) clearTimeout(propsBalloon.delayShow);
+                        propsBalloon.delayShow = setTimeout(function()
+                        {
+                            propsBalloon.updatePropsBalloon(text);
+                            clearTimeout(propsBalloon.delayShow);
+                            propsBalloon.delayShow = false;
+                            if(o._balloonHook) o._balloonHook.callback(o, propsBalloon.div);
+                        }, 200);
+						//setDelayShow(text);
 						//propsBalloon.updatePropsBalloon(text);
 					}
 					else {
@@ -431,6 +448,7 @@
 				o.balloon = balloon;
 				if(keyPress && keyPress['objType']) balloon.objType = keyPress['objType'];
 
+                if(!o._balloonHook && o.filter && o.filter._balloonHook) o._balloonHook = o.filter._balloonHook;
 				var text = (textFunc ? textFunc(o, balloon.div) : getDefaultBalloonText(o));
 				if(typeof(text) == 'string' && text == '') return false;
 
@@ -458,6 +476,7 @@
 				balloon.setVisible(true);
 				balloon.setPoint(mx, my);
 				chkBalloonText(text, balloon.div);
+                if(o._balloonHook) o._balloonHook.callback(o, balloon.div);
 
 				balloon.resize();
 				fixedHoverBalloons[id] = balloon;
@@ -969,9 +988,15 @@
 				filter['_balloonTemplate'] = balloonParams.Balloon;
 				enableHoverBalloon(filter, function(o)
 					{
-						var text = gmxAPI.applyTemplate(balloonParams.Balloon, o.properties);
-						var summary = o.getGeometrySummary();
-						text = gmxAPI.applyTemplate(text, { SUMMARY: summary });
+                        var props = gmxAPI.clone(o.properties);
+                        props.SUMMARY = o.getGeometrySummary();
+                        var keys = (o._balloonHook ? o._balloonHook.keys : {});
+                        for(var key in keys) {
+                            props[key] = gmxAPI.applyTemplate(keys[key], props);
+                        }
+						var text = gmxAPI.applyTemplate(balloonParams.Balloon, props);
+						//var summary = o.getGeometrySummary();
+						//text = gmxAPI.applyTemplate(text, { SUMMARY: summary });
 						text = text.replace(/\[SUMMARY\]/g, '');
 						return text;
 					}
@@ -1042,6 +1067,30 @@
                     });
                 } else {
                     map.balloonClassObject.enableHoverBalloon(this, callback, attr);
+                }
+            });
+			gmxAPI.extendFMO('addBalloonHook', function(callback, attr) {
+                var keys = {};
+                var type = typeof attr;
+                if(gmxAPI.isArray(attr)) attr.forEach(function(item) {keys[item] = "<span id='["+item+"]'></span>";});
+                else if (type === 'string') keys[attr] = "<span id='["+attr+"]'></span>";
+                else if (type === 'object') keys = attr;
+                
+                if(this.filters) {
+                    this.filters.foreach(function(item) {
+                        item._balloonHook = {keys: keys, callback: callback};
+                    });
+                } else {
+                    this._balloonHook = {keys: keys, callback: callback};
+                }
+            });
+			gmxAPI.extendFMO('removeBalloonHook', function() {
+                if(this.filters) {
+                    this.filters.foreach(function(item) {
+                        delete item._balloonHook;
+                    });
+                } else {
+                    delete this._balloonHook;
                 }
             });
 			gmxAPI.extendFMO('disableHoverBalloon', function() {
