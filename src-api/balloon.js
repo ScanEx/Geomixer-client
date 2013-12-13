@@ -441,7 +441,9 @@
 					mx = gmxAPI.chkPointCenterX(mx);
 				}
 
-				if(o.getGeometryType() == 'POINT') {
+				if(balloon.objType === 'cluster') {
+                    keyPress.dx = keyPress.dy = 0;
+				} else if(o.getGeometryType() == 'POINT') {
 					var gObj = o.getGeometry();
 					var x = gObj.coordinates[0];
 					var y = gObj.coordinates[1];
