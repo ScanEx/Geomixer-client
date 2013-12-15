@@ -1,6 +1,12 @@
 .leaflet-control-layers {
     background-color: rgba(255, 255, 255, 0.7);
 }
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    .leaflet-control-layers {
+        background-color: rgba(255, 255, 255, 1);
+    }
+}
+
 .gmx_coordFormatChange {
     background-image: url("../img/coords.png");
     cursor: pointer;
@@ -291,10 +297,6 @@
 }
 .leaflet-control-hide:hover {
     background-position: -596px -2px;
-}
-
-input[type="radio"] {
-    -webkit-appearance: checkbox;
 }
 
 .leaflet-overlay-pane svg, .gmx_iconsControl {
