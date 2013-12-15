@@ -1,5 +1,8 @@
+.leaflet-control-layers {
+    background-color: rgba(255, 255, 255, 0.7);
+}
 .gmx_coordFormatChange {
-    background-image: url("../../api/img/coords.png");
+    background-image: url("../img/coords.png");
     cursor: pointer;
     width: 10px;
     height: 9px;
@@ -52,14 +55,17 @@
     bottom: 0px;
     right: 0px;
     left: 0px;
+    height: 20px;
     margin-bottom: 0px !important;
     position: absolute;
     color: #000000;
     font-family: Tahoma;
     font-size: 9pt;
+    word-break: break-all;
+    overflow: hidden;
 }
 .gmx_zoomPointer {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -3px -121px;
     cursor: pointer;
     position: relative;
@@ -67,7 +73,7 @@
     height: 7px;
 }
 .gmx_zoomVal {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -33px -117px;
     font-family: Tahoma;
     font-size: 9pt;
@@ -86,7 +92,7 @@
     display: none;
 }
 .gmx_sliderBG {
-    background-image: url("../../api/img/band.png");
+    background-image: url("../img/band.png");
     cursor: pointer;
     position: absolute;
     top: 10px;
@@ -103,7 +109,7 @@
     top: 60px;
 }
 .gmx_zoomMinus {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -27px -33px;
     position: relative;
     cursor: pointer;
@@ -116,7 +122,7 @@
     background-position: -27px -7px;
 }
 .gmx_zoomPlus {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -2px -33px;
     position: relative;
     cursor: pointer;
@@ -192,7 +198,7 @@
 }
 
 .leaflet-control-Drawing-FRAME {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -269px -33px;
     cursor: pointer;
     width: 30px;
@@ -203,7 +209,7 @@
     background-position: -269px -2px;
 }
 .leaflet-control-Drawing-POLYGON {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -503px -33px;
     cursor: pointer;
     width: 30px;
@@ -214,7 +220,7 @@
     background-position: -503px -2px;
 }
 .leaflet-control-Drawing-LINESTRING {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -393px -33px;
     cursor: pointer;
     width: 30px;
@@ -231,7 +237,7 @@
     overflow: hidden;
 }
 .leaflet-control-drawingPoint {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -238px -33px;
     float: left;
 }
@@ -239,7 +245,7 @@
     background-position: -238px -2px;
 }
 .leaflet-control-drawingZoom {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -362px -33px;
     cursor: pointer;
     width: 30px;
@@ -251,7 +257,7 @@
     background-position: -362px -2px;
 }
 .leaflet-control-permalink {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -534px -33px;
     cursor: pointer;
     width: 30px;
@@ -263,7 +269,7 @@
     background-position: -534px -2px;
 }
 .leaflet-control-print {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -52px -33px;
     cursor: pointer;
     width: 30px;
@@ -275,7 +281,7 @@
     background-position: -52px -2px;
 }
 .leaflet-control-hide {
-    background-image: url("../../api/img/iconeControls.png");
+    background-image: url("../img/iconControls.png");
     background-position: -596px -33px;
     cursor: pointer;
     width: 30px;

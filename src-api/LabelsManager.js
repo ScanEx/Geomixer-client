@@ -47,6 +47,7 @@
 			,'style': style
 			,'isVisible': true
 			,'node': node
+			,propHiden: geom.propHiden || {}
 		};
 		if(style['iconSize']) {
 			out['sx'] = style['iconSize'].x;
@@ -78,14 +79,30 @@
 			,'extent': extentLabel
 			,'style': style
 			,'isVisible': true
+			,propHiden: geom.propHiden || {}
 		};
 		return out;
 //console.log('addItem' ,  out);
 	}
-	
+
+	var isVisibleByZoom = function(item, zoom) {			// проверка видимости по zoom
+        var filters = item.propHiden.toFilters || [];
+        for (var i = 0, len = filters.length; i < len; i++) {
+            var fId = filters[i];
+            var filter = gmxAPI._leaflet.mapNodes[fId];
+            if(filter && filter.isVisible !== false
+                && zoom >= filter.minZ && zoom <= filter.maxZ) {
+                return true;
+            }
+        }
+        return false;
+	}
+
 	var repaint = function() {				// перерисовка
 		if(!canvas || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['zoomstart']) return false;
-		if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(LMap.getZoom());
+        timer = null;
+		var zoom = LMap.getZoom();
+		if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
 		var mInPixel = gmxAPI._leaflet['mInPixel'];
 		var vBounds = LMap.getBounds();
 		var vpNorthWest = vBounds.getNorthWest();
@@ -112,7 +129,7 @@
 		var labelBounds = [];
 		for(var id in itemsHash) {
 			var item = itemsHash[id];
-			if(!item['isVisible']) continue;
+			if(!item.isVisible || !isVisibleByZoom(item, zoom)) continue;
 			if(item['bounds'] && !item['bounds'].intersects(vBoundsMerc)) continue;		// обьект за пределами видимости
 			var align = item['style']['align'];
 			var dx = item['sx']/2 + 1;
@@ -155,7 +172,7 @@
 		labelBounds = null;
 		L.DomUtil.setPosition(canvas, new L.Point(-LMap._mapPane._leaflet_pos.x, -LMap._mapPane._leaflet_pos.y));
 	}
-	var drawMe = function(pt) {				// установка таймера
+	var drawMe = function(pt) {				// канвас готов
 		canvas = pt;
 		repaintItems();
 	}
