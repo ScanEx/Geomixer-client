@@ -114,7 +114,7 @@
         add: function(id, attr) {           // Добавление подложки
             if(!id || manager.hash[id]) return null;
             if(!attr) attr = {};
-            var isVisible = ('isVisible' in attr ? attr.isVisible : false); // видимость подложки
+            var isVisible = ('isVisible' in attr ? attr.isVisible : true); // видимость подложки
             var pt = {
                 id: id || 'default'                 // id подложки
                 ,layers: attr.layers || []          // массив слоев подложки
@@ -245,10 +245,10 @@
      * Обьект базовой подложки.
      * @typedef {Object} BaseLayer
      * @property {String} id - Идентификатор подложки.
+     * @property {Layer[]} layers - Массив слоев подложки.
      * @property {boolean} isVisible - Флаг видимости(по умолчанию true).
      * @property {String} rus - Наименование русскоязычное.
      * @property {String} eng - Наименование англоязычное.
-     * @property {Layer[]} layers - Массив слоев подложки.
      * @property {function(layer:Layer)} addLayer - Ф-ция добавления слоя в подложку.
      * @property {function(layer:Layer)} removeLayer - Ф-ция удаления слоя из подложки.
      * @property {function(flag:boolean)} setVisible - Установить видимость подложки.
