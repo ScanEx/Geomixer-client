@@ -186,10 +186,10 @@
                 var controls = ControlsManager.getCurrent();
                 return (controls && 'getControl' in controls ? controls.getControl(id) : null);
             }
-            ,setControls: function(id) {
+            ,initControls: function(id) {
                 var controls = ControlsManager.getCurrent();
-                if(controls && 'setControls' in controls) {
-                   ControlsManager.currentControls = controls.setControls();
+                if(controls && 'initControls' in controls) {
+                   ControlsManager.currentControls = controls.initControls();
                    return true;
                 }
                 return false;

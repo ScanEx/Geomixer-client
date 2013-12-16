@@ -4193,8 +4193,8 @@
 			// }
 		}});
 		var controls = gmxAPI.map.controlsManager.getCurrent();
-        if(controls && 'setControls' in controls) {
-            controls.setControls();
+        if(controls && 'initControls' in controls) {
+            controls.initControls();
         }
 	}
 	

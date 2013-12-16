@@ -34,8 +34,10 @@
                     }
                 }
                 attr.isVisible = true
-                //var baseLayers = manager.add(id, ruTitle, enTitle);
-				var baseLayer = manager.add(id, attr);
+                var blID = manager.getIDByName(id) || id;
+				var baseLayer = manager.add(blID, attr);
+                //if(!baseLayer && manager.hash[id]) baseLayer = manager.hash[id];
+                if(!baseLayer) return null;
                 baseLayer.addLayer(this);
                 this.setVisible(false);     // слои подложек изначально не видимы
             });
@@ -44,6 +46,9 @@
                 setMode: function(name) {
                     var id = (manager.hash[name] ? name : manager.getIDByName(name));
                     manager.setCurrent(id);
+                }
+                ,getModeID: function() {
+                    return manager.currentID;
                 }
                 ,setBaseLayer: function(name) {
                     this.setMode(name);
@@ -60,6 +65,15 @@
                     /**
                      * @deprecated Использовать map.baseLayersManager.getAll()
                      */
+                    setVisible: function(flag) {
+                        var controls = map.controlsManager.getCurrent();
+                        if(!controls) return null;
+                        var control = controls.getControl('layers');
+                        return control.setVisible(flag);
+                    },
+                    /**
+                     * @deprecated Использовать map.baseLayersManager.getAll()
+                     */
                     getBaseLayerNames: function() {
                         return manager.getAll();
                     },
@@ -67,7 +81,8 @@
                      * @deprecated Использовать map.baseLayersManager.getLayers()
                      */
                     getBaseLayerLayers: function(name) {
-                        return manager.get(name).layers;
+                        var baseLayer = manager.get(name);
+                        return (baseLayer ? baseLayer.layers : null);
                     }
                 }
             });
@@ -102,7 +117,7 @@
             var isVisible = ('isVisible' in attr ? attr.isVisible : false); // видимость подложки
             var pt = {
                 id: id || 'default'                 // id подложки
-                ,layers: []                            // массив слоев подложки
+                ,layers: attr.layers || []          // массив слоев подложки
                 ,rus: attr.rus || id                // title подложки 
                 ,eng: attr.eng || id
                 ,addLayer: function(layer) {
@@ -136,6 +151,8 @@
             };
             if(attr.rus) alias[attr.rus] = id;
             if(attr.eng) alias[attr.eng] = id;
+            if(attr.style) pt.style = attr.style;   // стиль для контролов
+            if(attr.type) pt.type = attr.type;      // тип подложки для контролов имеющих типы подложек
 
             pt.isVisible = isVisible;
             //pt.setVisible(isVisible);
