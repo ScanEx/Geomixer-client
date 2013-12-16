@@ -2020,8 +2020,14 @@ queryMapLayers.prototype.createMap = function(name)
         _userObjects.collect();
         $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
         
-        
         $.extend(true, saveTree, _layersTree.treeModel.getRawTree());
+        
+        var activeBaseLayers = [];
+        globalFlashMap.baseLayersManager.getAll().forEach(function(baseLayer, index) {
+            baseLayer.isVisible && activeBaseLayers.push(baseLayer.id);
+        });
+        
+        saveTree.properties.BaseLayers = JSON.stringify(activeBaseLayers);
         
         //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)

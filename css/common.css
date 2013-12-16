@@ -1532,17 +1532,19 @@ div.layersScroll
 }
 
 .group-editor-tab-container {
-    width: 100%;
     position: absolute;
     top: 54px;
     bottom: 2px;
+    left: 5px;
+    right: 5px;
     padding-bottom: 6px;
 }
 
-.group-editor-blm-available {
+.group-editor-blm-available, .group-editor-blm-map {
     height: 100%;
     width: 50%;
     vertical-align: top;
+    border: 1px #DEDEDE solid;
 }
 
 .group-editor-blm-avail-item {
@@ -1551,20 +1553,13 @@ div.layersScroll
     background-color: lightblue;
     padding: 2px 5px;
     cursor: move;
-}
-
-.group-editor-blm-map {
-    height: 100%;
-    width: 50%;
-}
-
-.group-editor-blm-map > ul, .group-editor-blm-available > ul {
-    height: 500px;
+    border: 1px gray solid;
 }
 
 .group-editor-blm-title {
     text-align: center;
     font-size: 12px;
+    border: 1px #DEDEDE solid;
 }
 
 .group-editor-blm-table {
