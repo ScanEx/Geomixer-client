@@ -868,24 +868,49 @@
         copyrightControls.addTo(gmxAPI._leaflet.LMap);
         outControls.copyrightControls = copyrightControls;
 
+        var permalinkFunc = gmxAPI.map.permalinkFunc || null;   // внешняя функция формирования пермалинка
+        var printFunc = gmxAPI.map.printFunc || null;           // внешняя функция печати
+        
+        if(!printFunc) {
+            printFunc = function() {
+                function getWindowHeight() {
+                    var myHeight = 0;
+                    if (typeof (window.innerWidth) == 'number' )
+                    myHeight = window.innerHeight;
+                    else if (document.documentElement && (document.documentElement.clientWidth || document.documentElement.clientHeight))
+                    myHeight = document.documentElement.clientHeight;
+                    else if (document.body && (document.body.clientWidth || document.body.clientHeight))
+                    myHeight = document.body.clientHeight;
+                    return myHeight;
+                }
+                window.open("print-iframe_leaflet.html", "_blank", "width=" + String(640) + ",height=" + String(getWindowHeight()) + ",resizable=yes,scrollbars=yes");
+            }
+        }
+        
         if(window.mapHelper) {
+            if(!printFunc && window.mapHelper.prototype.print) printFunc = function(e) { window.mapHelper.prototype.print(); };
+            if(!permalinkFunc && window.mapHelper.prototype.showPermalink) permalinkFunc = function(e) { window.mapHelper.prototype.showPermalink(); };
+        }
+        if(printFunc) {
             // PrintControl - кнопка печати
             var printControl = L.control.gmxControl({
                 title: titles.print
                 ,type: 'print'
                 ,onclick: function(e) {
-                    window.mapHelper.prototype.print();
+                    printFunc();
                 }
             });
             printControl.addTo(gmxAPI._leaflet.LMap);
             outControls.printControl = printControl;
+        }
 
+        if(permalinkFunc) {
             // PermalinkControl - кнопка пермалинка
             var permalinkControl = L.control.gmxControl({
                 title: titles.permalink
                 ,type: 'permalink'
                 ,onclick: function(e) {
-                    window.mapHelper.prototype.showPermalink();
+                    permalinkFunc();
                 }
             });
             permalinkControl.addTo(gmxAPI._leaflet.LMap);
@@ -1102,10 +1127,7 @@ console.log('onRemove ', this);
 	var Controls = {
         id: 'controlsBaseIcons'
         ,isVisible: true
-         ,controlsHash: {}
-        //,isActive: false
-        //,
-        //items: [iconsControl, layersControl, copyrightControl, locationControl, zoomControl, drawingControl]
+        ,controlsHash: {}
         ,
         init: function(parent) {        // инициализация
             //Управление ToolsAll
@@ -1129,7 +1151,7 @@ console.log('onRemove ', this);
                     if(!attr) attr = {};
                     var cont = {
                         addTool: function (tn, attr) {
-            //console.log('tool addTool', tn, attr); // wheat
+                            //console.log('tool addTool', tn, attr); // wheat
                             if(!attr) attr = {};
                             var ret = null;
                             if(attr.overlay && Controls.controlsHash.layers) {
@@ -1139,7 +1161,10 @@ console.log('onRemove ', this);
                                 if(!attr.eng) attr.eng = attr.hint || attr.id;
                                 
                                 var layersControl = gmxAPI.map.controlsManager.getControl('layers');
-                                if(layersControl) ret = layersControl.addOverlay(tn, attr);
+                                if(layersControl) {
+                                    layersControl.addOverlay(tn, attr);
+                                    ret = layersControl;
+                                }
                             } else {
                                 var controls = gmxAPI.map.controlsManager.getCurrent();
                                 if(controls && 'addControl' in controls) {
@@ -1333,7 +1358,4 @@ console.log('onRemove ', this);
 	}
     if(!gmxAPI._controls) gmxAPI._controls = [];
     gmxAPI._controls.push(Controls);
-
-
-    
 })();
