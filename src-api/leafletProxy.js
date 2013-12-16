@@ -4192,10 +4192,11 @@
 				// gmxAPI.map.standartTools.remove();
 			// }
 		}});
-		var controls = gmxAPI.map.controlsManager.getCurrent();
-        if(controls && 'initControls' in controls) {
-            controls.initControls();
-        }
+        gmxAPI.map.controlsManager.initControls();
+		// var controls = gmxAPI.map.controlsManager.getCurrent();
+        // if(controls && 'initControls' in controls) {
+            // controls.initControls();
+        // }
 	}
 	
 	var utils = null;							// Утилиты leafletProxy
