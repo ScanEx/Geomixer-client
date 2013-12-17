@@ -19,6 +19,9 @@
         ,parentNode: null
         ,allToolsNode: null
         ,toolsAll: null
+        ,addListener: function(eventName, func) { return gmxAPI._listeners.addListener({'obj': this, 'eventName': eventName, 'func': func}); }
+        ,removeListener: function(eventName, id)	{ return gmxAPI._listeners.removeListener(this, eventName, id); }
+        ,stateListeners: {}
         ,
         init: function(parent, map) {
 			if(parent) this.parentNode = parent;
@@ -67,6 +70,16 @@
 			this.curent = controlObj;
             if('init' in controlObj) controlObj.init();
         }
+        ,
+        setVisible: function(flag) {
+            if(!arguments.length) flag = !this.isVisible;
+            for (var key in ControlsManager._controls.controlsHash) {
+                var control = ControlsManager._controls.controlsHash[key];
+                if('setVisible' in control) control.setVisible(flag, chkOld);
+            }
+            this.isVisible = flag;
+            gmxAPI._listeners.dispatchEvent('onToolsMinimized', gmxAPI.map, !ControlsManager.isVisible);
+        }
         // ,
         // addControls: function(controlObj, selectFlag) {
 			// if(selectFlag) this.select(controlObj);
@@ -103,15 +116,6 @@
                     // return false;   // stop iteration
                 // }
             // });
-        // }
-        // ,
-        // setVisible: function(flag) {
-            // if(!arguments.length) flag = !this.isVisible;
-            // this.forEach(function(item, i) {
-                // if(ControlsManager.currentID === item.id && 'setVisible' in item) item.setVisible(flag);
-            // });
-            // this.isVisible = flag;
-            // gmxAPI._listeners.dispatchEvent('onToolsMinimized', gmxAPI.map, !ControlsManager.isVisible);
         // }
         // ,
         // forEach: function(callback) {
@@ -193,6 +197,9 @@
                 }
                 return false;
             }
+            ,addListener: ControlsManager.addListener
+            ,removeListener: ControlsManager.removeListener
+            ,stateListeners: ControlsManager.stateListeners
         }
     };
 })();

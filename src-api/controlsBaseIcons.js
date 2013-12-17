@@ -68,6 +68,7 @@
     var initControls = function() {
         var outControls = {};
         var mbl = gmxAPI.map.baseLayersManager;
+        var controlsManager = gmxAPI.map.controlsManager;
         var defaultStyle = {
             //backgroundImage: 'url("../../api/img/iconeControls.png")'
             cursor: 'pointer'
@@ -80,13 +81,14 @@
         L.Control.gmxControl = L.Control.extend({
             options: {
                 isVisible: true,
-                type: '',
+                id: '',
                 onclick: null,
                 onAdd: null,
                 position: 'topleft'
             }
             ,
             addTo: function (map) {
+                Controls.controlsHash[this.options.id] = this;
                 this._map = map;
 
                 var container = this._container = this.onAdd(map),
@@ -103,9 +105,17 @@
 
                 return this;
             }
+			,setVisible: function(flag) {
+                if(!flag) flag = false;
+                if(this._container) {
+                    this._container.style.display = flag ? 'block' : 'none';
+                }
+                this.options.isVisible = flag;
+            }
             ,
             _createDiv: function (container, className, title, fn, context) {
                 var link = L.DomUtil.create('div', className, container);
+                if(!this.options.isVisible) link.style.display = 'none';
                 if(title) link.title = title;
 
                 var stop = L.DomEvent.stopPropagation;
@@ -120,16 +130,23 @@
                 return link;
             }
             ,
+            _gmxOnClick: function (ev) {
+                if(this.options.onclick) this.options.onclick.call(this, {id: this.options.id, target: this});
+                gmxAPI._listeners.dispatchEvent('onClick', controlsManager, this);
+            }
+            ,
             _initLayout: function () {
-                var className = this.options.className || 'leaflet-control-icons leaflet-control-' + this.options.type;
-                var container = this._container = this._createDiv(null, className, this.options.title, this.options.onclick, this);
+                var className = this.options.className || 'leaflet-control-icons leaflet-control-' + this.options.id;
+                var container = this._container = this._createDiv(null, className, this.options.title, this._gmxOnClick, this);
                 return container;
             }
             ,
             onAdd: function (map) {
+                Controls.controlsHash[this.options.id] = this;
                 var ret = this._initLayout();
                 //gmxAPI.setStyleHTML(this._container, this.options.style || defaultStyle);
                 if(this.options.onAdd) this.options.onAdd.call(this, ret);
+                
                 return ret;
             }
             ,setActive: function(flag, notToggle) {
@@ -162,6 +179,7 @@
                 current: ''
                 ,collapsed: false
                 ,zoomslider: true
+                ,isVisible: true
                 ,stepY: 7
             }
             ,_y_min: 9              // min Y слайдера
@@ -169,6 +187,7 @@
             ,_listeners: {}
             ,
             onAdd: function (map) {
+                Controls.controlsHash[this.options.id] = this;
                 var zoomName = 'gmx_zoomParent',
                     container = L.DomUtil.create('div', zoomName);
 
@@ -318,13 +337,16 @@
                 }
             }
 			,setVisible: function(flag) {
-                this._container.style.display = flag ? 'block' : 'none';
+                if(this._container) {
+                    this._container.style.display = flag ? 'block' : 'none';
+                }
             }
         });
         L.control.gmxZoom = function (options) {
           return new L.Control.gmxZoom(options);
         }
         var gmxZoom = L.control.gmxZoom({
+            id: 'gmxZoom'
         });
 
 		gmxAPI.map.zoomControl = {
@@ -351,13 +373,14 @@
 		}
 
         gmxZoom.addTo(gmxAPI._leaflet.LMap);
-        outControls.gmxZoom = gmxZoom;
+        //outControls.gmxZoom = gmxZoom;
 
         // gmxLayers - контрол слоев
         L.Control.gmxLayers = L.Control.Layers.extend({
             options: {
                 current: ''
                 ,collapsed: false
+                ,isVisible: true
             }
             ,
             _onInputClick: function (ev) {
@@ -375,7 +398,37 @@
             }
             ,
             _update: function () {
-                L.Control.Layers.prototype._update.call(this);
+                //L.Control.Layers.prototype._update.call(this);
+                if (!this._container) {
+                    return;
+                }
+
+                this._baseLayersList.innerHTML = '';
+                this._overlaysList.innerHTML = '';
+
+                var baseLayersPresent = false,
+                    overlaysPresent = false,
+                    i, obj,
+                    len, arr = [];
+
+                for (i in this._layers) {
+                    obj = this._layers[i];
+                    arr.push(obj);
+                }
+                arr.sort(function (a,b) {
+                    var n1 = a.layer.getIndex();
+                    var n2 = b.layer.getIndex();
+                    return n1 - n2;
+                });
+                for (i = 0, len = arr.length; i < len; i++) {
+                    obj = arr[i];
+                    this._addItem(obj);
+                    overlaysPresent = overlaysPresent || obj.overlay;
+                    baseLayersPresent = baseLayersPresent || !obj.overlay;
+                }
+
+                this._separator.style.display = overlaysPresent && baseLayersPresent ? '' : 'none';
+                
                 if(this.current) this.setCurrent(this.current, true);
             }
             ,
@@ -398,6 +451,23 @@
                         break;
                     }
                 }
+                for(var i=0, baseLayerIndex = 0, overlayIndex = 0, len = cont.childNodes.length; i<len; i++) {
+                    var node = cont.childNodes[i];
+                    var control = node.control;
+                    var obj = this._layers[control.layerId];
+                    if(obj.overlay) {
+                        obj.layer.index = overlayIndex++;
+                    } else {
+                        obj.layer.index = baseLayerIndex++;
+                    }
+                }
+            }
+			,setVisible: function(flag) {
+                if(!flag) flag = false;
+                if(this._container) {
+                    this._container.style.display = flag ? 'block' : 'none';
+                }
+                this.options.isVisible = flag;
             }
             ,
             setVisibility: function (id, flag) {
@@ -455,6 +525,7 @@
             ,_baseLayersHash: {}
             ,
             onAdd: function (map) {
+                Controls.controlsHash[this.options.id] = this;
                 L.Control.Layers.prototype.onAdd.call(this, map);
                 
                 var my = this;
@@ -463,7 +534,6 @@
                     addBaseLayerTool: function (ph) {
                         if(!ph.isVisible) return;
                         var id = ph.id;
-                        var index = ph.getIndex();
                         if (!my._baseLayersHash[id]) {
                             my._baseLayersHash[id] = ph;
                         }
@@ -471,6 +541,7 @@
                         var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(baseLayer.rus, baseLayer.eng) || id;
                         var layers = baseLayer.layers || [];
                         if(layers.length > 0) {
+                            ph.index = my._baseLayersList.childNodes.length;
                             my.addBaseLayer(baseLayer, name);
                         }
                     }
@@ -540,7 +611,10 @@
                         this.id = id;
                         gmxAPI._tools[id] = this;
                         var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(attr.rus, attr.eng) || id;
-                        attr.overlay = true; 
+                        attr.overlay = true;
+                        attr.getIndex = function () {
+                            return my._overlaysList.childNodes.length;
+                        }
                         my.addOverlay(attr, name);
                     }
                     ,setActiveTool: function (flag) {
@@ -559,9 +633,9 @@
         L.control.gmxLayers = function (options) {
           return new L.Control.gmxLayers({}, {}, options);
         }
-        var gmxLayers = L.control.gmxLayers();
+        var gmxLayers = L.control.gmxLayers({id:'layers'});
         gmxLayers.addTo(gmxAPI._leaflet.LMap);
-        outControls.layers = gmxLayers;
+        //outControls.layers = gmxLayers;
         //gmxAPI._leaflet.gmxLayers = gmxLayers;
 
         // HideControls - кнопка управления видимостью всех контролов
@@ -571,8 +645,9 @@
                 for(var key in Controls.controlsHash) {
                     var item = Controls.controlsHash[key];
                     if(item != this || allFlag) {
-                        if('setVisible' in item) item.setVisible(flag);
-                        else if(item._container) item._container.style.display = flag ? 'block' : 'none';
+                        //if('setVisible' in item) item.setVisible(flag);
+                        //else 
+                        if(item._container) item._container.style.display = flag && item.options.isVisible ? 'block' : 'none';
                         else {
                             console.warn('hideControls', item);
                         }
@@ -603,7 +678,7 @@
 
         var hideControls = L.control.hideControls({
             title: titles.toggleVisibility
-            ,type: 'hide'
+            ,id: 'hide'
             ,onclick: function(e) {
                 this._toggleVisible(e);
             }
@@ -621,11 +696,12 @@
         });
 
         hideControls.addTo(gmxAPI._leaflet.LMap);
-        outControls.hideControls = hideControls;
+        //outControls.hideControls = hideControls;
 
         // BottomBG - подвал background
         L.Control.BottomBG = L.Control.gmxControl.extend({
             onAdd: function (map) {
+                Controls.controlsHash[this.options.id] = this;
                 var className = 'gmx_copyright_location',
                     container = L.DomUtil.create('div', className);
 
@@ -637,14 +713,16 @@
         });
         var bottomBG = new L.Control.BottomBG({
             className: 'gmx_copyright_location_bg'
+            ,id: 'bottomBG'
             ,position: 'bottom'
         });
         bottomBG.addTo(gmxAPI._leaflet.LMap);
-        outControls.bottomBG = bottomBG;
+        //outControls.bottomBG = bottomBG;
 
         // LocationControls - 
         L.Control.LocationControls = L.Control.gmxControl.extend({
             onAdd: function (map) {
+                Controls.controlsHash[this.options.id] = this;
                 var className = 'gmx_location',
                     container = L.DomUtil.create('div', className),
                     my = this;
@@ -764,13 +842,15 @@
         });
         var locationControl = new L.Control.LocationControls({
             position: 'bottomright'
+            ,id: 'locationControl'
         });
         locationControl.addTo(gmxAPI._leaflet.LMap);
-        outControls.locationControl = locationControl;
+        //outControls.locationControl = locationControl;
 
         // CopyrightControls - Copyright
         L.Control.CopyrightControls = L.Control.gmxControl.extend({
             onAdd: function (map) {
+                Controls.controlsHash[this.options.id] = this;
                 var className = 'gmx_copyright_location',
                     container = this._container = L.DomUtil.create('span', className);
 
@@ -867,64 +947,35 @@
 
         var copyrightControls = new L.Control.CopyrightControls({
             position: 'bottomleft'
+            ,id: 'copyrightControls'
         });
         copyrightControls.addTo(gmxAPI._leaflet.LMap);
-        outControls.copyrightControls = copyrightControls;
+        //outControls.copyrightControls = copyrightControls;
 
-        var permalinkFunc = gmxAPI.map.permalinkFunc || null;   // внешняя функция формирования пермалинка
-        var printFunc = gmxAPI.map.printFunc || null;           // внешняя функция печати
-        
-        if(!printFunc) {
-            printFunc = function() {
-                function getWindowHeight() {
-                    var myHeight = 0;
-                    if (typeof (window.innerWidth) == 'number' )
-                    myHeight = window.innerHeight;
-                    else if (document.documentElement && (document.documentElement.clientWidth || document.documentElement.clientHeight))
-                    myHeight = document.documentElement.clientHeight;
-                    else if (document.body && (document.body.clientWidth || document.body.clientHeight))
-                    myHeight = document.body.clientHeight;
-                    return myHeight;
-                }
-                window.open("print-iframe_leaflet.html", "_blank", "width=" + String(640) + ",height=" + String(getWindowHeight()) + ",resizable=yes,scrollbars=yes");
-            }
-        }
-        
-        if(window.mapHelper) {
-            if(!printFunc && window.mapHelper.prototype.print) printFunc = function(e) { window.mapHelper.prototype.print(); };
-            if(!permalinkFunc && window.mapHelper.prototype.showPermalink) permalinkFunc = function(e) { window.mapHelper.prototype.showPermalink(); };
-        }
-        if(printFunc) {
-            // PrintControl - кнопка печати
-            var printControl = L.control.gmxControl({
-                title: titles.print
-                ,type: 'print'
-                ,onclick: function(e) {
-                    printFunc();
-                }
-            });
-            printControl.addTo(gmxAPI._leaflet.LMap);
-            outControls.printControl = printControl;
-        }
+        // PrintControl - кнопка печати
+        var printControl = L.control.gmxControl({
+            title: titles.print
+            ,id: 'print'
+            //,type: 'print'
+            ,isVisible: false
+        });
+        printControl.addTo(gmxAPI._leaflet.LMap);
+        //outControls.printControl = printControl;
 
-        if(permalinkFunc) {
-            // PermalinkControl - кнопка пермалинка
-            var permalinkControl = L.control.gmxControl({
-                title: titles.permalink
-                ,type: 'permalink'
-                ,onclick: function(e) {
-                    permalinkFunc();
-                }
-            });
-            permalinkControl.addTo(gmxAPI._leaflet.LMap);
-            outControls.permalinkControl = permalinkControl;
-        }
+        // PermalinkControl - кнопка пермалинка
+        var permalinkControl = L.control.gmxControl({
+            title: titles.permalink
+            ,isVisible: false
+            ,id: 'permalink'
+        });
+        permalinkControl.addTo(gmxAPI._leaflet.LMap);
+        //outControls.permalinkControl = permalinkControl;
 
         // DrawingZoomControl - кнопка boxZoom
         var drawingZoomControl = L.control.gmxControl({
             title: titles.boxZoom
             ,isActive: false
-            ,type: 'drawingZoom'
+            ,id: 'drawingZoom'
             ,onclick: function(e) {
                 var className = 'leaflet-control-icons leaflet-control-' + this.options.type + '-Active';
                 if(!gmxAPI._drawing.BoxZoom) {
@@ -937,6 +988,7 @@
                 }
             }
             ,onAdd: function(cont) {
+                Controls.controlsHash[this.options.id] = this;
                 var my = this;
                 this._map.on('boxzoomend', function() {
                     L.DomUtil.removeClass(my._container, 'leaflet-control-' + my.options.type + '-Active');
@@ -945,14 +997,14 @@
 
         });
         drawingZoomControl.addTo(gmxAPI._leaflet.LMap);
-        outControls.drawingZoomControl = drawingZoomControl;
+        //outControls.drawingZoomControl = drawingZoomControl;
 
         // DrawingPointControl - кнопка маркера
         var drawingPointControl = L.control.gmxControl({
             title: titles.marker
             ,isActive: false
             ,onFinishID: null
-            ,type: 'drawingPoint'
+            ,id: 'drawingPoint'
             ,onclick: function(e) {
                 var my = this;
                 var className = 'leaflet-control-icons leaflet-control-' + this.options.type + '-Active';
@@ -976,7 +1028,7 @@
             }
         });
         drawingPointControl.addTo(gmxAPI._leaflet.LMap);
-        outControls.drawingPointControl = drawingPointControl;
+        //outControls.drawingPointControl = drawingPointControl;
 
         L.Control.Drawing = L.Control.extend({
             options: {
@@ -1001,6 +1053,7 @@
             },
 
             onAdd: function (map) {
+                Controls.controlsHash[this.options.id] = this;
                 var zoomName = 'leaflet-control-Drawing',
                     container = L.DomUtil.create('div', 'leaflet-control-Drawing');
 
@@ -1109,11 +1162,11 @@ console.log('onRemove ', this);
           return new L.Control.Drawing(options);
         }
         // if(!gmxAPI.isMobile) {
-        var gmxDrawing = L.control.gmxDrawing({});
+        var gmxDrawing = L.control.gmxDrawing({id: 'gmxDrawing'});
         gmxDrawing.addTo(gmxAPI._leaflet.LMap);
-        outControls.gmxDrawing = gmxDrawing;
+        //outControls.gmxDrawing = gmxDrawing;
 
-        gmxAPI.extend(Controls.controlsHash, outControls);
+        //gmxAPI.extend(Controls.controlsHash, outControls);
 
         //Управление ToolsAll
         (function()
@@ -1145,13 +1198,11 @@ console.log('onRemove ', this);
                             if(!attr.rus) attr.rus = attr.hint || attr.id;
                             if(!attr.eng) attr.eng = attr.hint || attr.id;
                             
-                            Controls.controlsHash.layers.addOverlay(tn, attr);
-                            ret = layersControl;
-                            // var layersControl = gmxAPI.map.controlsManager.getControl('layers');
-                            // if(layersControl) {
-                                // layersControl.addOverlay(tn, attr);
-                                // ret = layersControl;
-                            // }
+                            var layersControl = gmxAPI.map.controlsManager.getControl('layers');
+                            if(layersControl) {
+                                layersControl.addOverlay(tn, attr);
+                                ret = layersControl;
+                            }
                         } else {
                             ret = Controls.addControl(tn, attr);
                             // var controls = gmxAPI.map.controlsManager.getCurrent();
@@ -1176,7 +1227,7 @@ console.log('onRemove ', this);
             standart: standart
         }
 
-        return outControls;
+        return Controls.controlsHash;
     };
 
     /**
@@ -1194,16 +1245,16 @@ console.log('onRemove ', this);
         ,isVisible: true
         ,controlsHash: {}
         ,remove: function() {      // удаление
-            for(var key in controlsHash) {
-                var item = controlsHash[key];
+            for(var key in this.controlsHash) {
+                var item = this.controlsHash[key];
                 if('remove' in item) item.remove();
             }
-            controlsHash = {};
+            this.controlsHash = {};
         }
         ,getControl: function(id) {
             //if(id === 'layers') id = 'gmxLayers';   // обратная совместимость
             var control = this.controlsHash[id] || null;
-            return ('getInterface' in control ? control.getInterface() : control);
+            return (control && 'getInterface' in control ? control.getInterface() : control);
         }
         ,setControl: function(id, control) {
             if(Controls.controlsHash[id]) return false;
@@ -1262,9 +1313,10 @@ console.log('onRemove ', this);
                 ,src: attr.src || null
                 ,srcHover: attr.srcHover || null
                 ,onFinishID: null
-                ,type: id
+                ,id: id
                 ,onAdd: function() {
                     //gmxAPI.setStyleHTML(this._container, attr.style);
+                    Controls.controlsHash[this.options.id] = this;
                     var my = this;
                     var container = this._container;
                     if(attr.innerHTML) {
