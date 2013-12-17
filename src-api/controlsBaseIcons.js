@@ -442,10 +442,10 @@
                     var node = cont.childNodes[i];
                     var control = node.control;
                     if(layerId == control.layerId) {
-                        if(index >= len) {
+                        if(index >= len - 1) {
                             cont.appendChild(node);
                         } else {
-                            var before = cont.childNodes[index];
+                            var before = cont.childNodes[index + 1];
                             cont.insertBefore(node, before);
                         }
                         break;
@@ -493,6 +493,7 @@
             }
             ,
             setCurrent: function (id, skipChkInput) {
+                this.current = null;
                 for(var i=0, len = this._form.length; i<len; i++) {
                     var input = this._form[i];
                     if(id == input.layerId) {
@@ -563,8 +564,11 @@
                     ,
                     onVisibleChange: function(ph) {
                         var id = ph.id;
-                        if(!ph.isVisible) my.removeLayer(ph);
-                        else {
+                        if(!ph.isVisible) {
+                            my.removeLayer(ph);
+                            if(my.current === id) my.current = null;
+                       
+                        } else {
                             var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id;
                             if(ph.overlay) my.addOverlay(ph, name);
                             else my.addBaseLayer(ph, name);

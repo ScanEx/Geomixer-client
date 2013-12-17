@@ -134,6 +134,11 @@
                 ,setVisible: function(flag) {
                     this.isVisible = flag;
                     gmxAPI._listeners.dispatchEvent('onVisibleChange', manager.map.baseLayersManager, this);
+                    if(flag) return
+                    if(manager.currentID === this.id) {
+                        manager.setCurrent();
+                    }
+                    delete this.index;
                 }
                 ,setIndex: function(index) {
                     this.index = index;
