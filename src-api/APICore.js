@@ -3357,8 +3357,23 @@ window.createFlashMapInternal = createFlashMapInternal;
 
 })();
 
-function createKosmosnimkiMapInternal(div, layers, callback)
-{
+function createKosmosnimkiMapInternal(div, layers, callback) {
+	var prop = layers ? layers.properties : {};
+	var arr = JSON.parse(prop.BaseLayers);
+	var baseLayersArr = gmxAPI.isArray(arr) ? arr : ['map', 'satellite', 'hybrid', 'OSM'];
+
+	var getLayersArr = function(map, arr, color) {
+        var out = [];
+        for (var i = 0, len = arr.length; i < len; i++) {
+            if (arr[i] in map.layers) {
+                var layer = map.layers[arr[i]];
+                layer.setBackgroundColor(color);
+                out.push(layer);
+            }
+        }
+        return out;
+    }
+
 	var finish = function()
 	{
 		var parseBaseMap = function(kosmoLayers) {
@@ -3368,8 +3383,78 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					var obj = map.layers[i];
 					obj.setVisible(false);
 				}
+				if (layers) {
+					map.defaultHostName = layers.properties.hostName;
+					map.addLayers(layers, false);		// добавление основной карты
+					map.properties = layers.properties;
+					if (map.properties.DistanceUnit)
+					{
+						map.setDistanceUnit(map.properties.DistanceUnit);
+					}
+					if (map.properties.SquareUnit)
+					{
+						map.setSquareUnit(map.properties.SquareUnit);
+					}
+				}
 
-				var baseLayersManager = map.baseLayersManager;
+				var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
+				var satelliteLayerID = gmxAPI.getBaseMapParam("satelliteLayerID", "");
+				var overlayLayerID = gmxAPI.getBaseMapParam("overlayLayerID", "");
+				var osmEmbedID = gmxAPI.getBaseMapParam("osmEmbedID", "");
+				if(typeof(osmEmbedID) != 'string') osmEmbedID = "06666F91C6A2419594F41BDF2B80170F";
+				var setOSMEmbed = function(layer)
+				{
+					layer.enableTiledQuicklooksEx(function(o, image)
+					{
+						image.setOSMTiles(true);
+						//image.setCopyright("<a href='http://openstreetmap.org'>&copy; OpenStreetMap</a>, <a href='http://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>");
+						image.setZoomBounds(parseInt(o.properties["text"]), 18);
+					}, 10, 18);
+				}
+
+				var baseLayersManager = map.baseLayersManager,
+                    mapLayers = [],
+                    overlayLayers = [],
+                    satelliteLayers = [];
+                if(baseLayersArr) {
+                    for (var i = 0, len = baseLayersArr.length; i < len; i++) {
+                        var id = baseLayersArr[i];
+                        var baseLayer = baseLayersManager.get(id);
+                        if(baseLayer) {
+                            baseLayer.isVisible = true;
+                        } else {
+                            // нет подложки сформируем через getBaseMapParam 
+                            var attr = {id: id, index: i, layers:[] };
+                            if(id === 'satellite') {
+                                attr.rus = 'Снимки';
+                                attr.eng = 'Satellite';
+                                satelliteLayers = getLayersArr(map, satelliteLayerID.split(","), 0x000001);
+                                attr.layers = satelliteLayers;
+                            } else if(id === 'hybrid') {
+                                attr.rus = 'Гибрид';
+                                attr.eng = 'Hybrid';
+                                overlayLayers = getLayersArr(map, (satelliteLayerID+','+overlayLayerID).split(","), 0x000001);
+                                attr.layers = overlayLayers;
+                            } else if(id === 'map') {
+                                attr.rus = 'Карта';
+                                attr.eng = 'Map';
+                                mapLayers = getLayersArr(map, mapLayerID.split(","), 0xffffff);
+                                attr.layers = mapLayers;
+                                var osmEmbed = map.layers[osmEmbedID];
+                                if (osmEmbed) {
+                                    attr.layers.push(osmEmbed);
+                                    setOSMEmbed(osmEmbed);
+                                }
+                            }
+                            if(attr.layers.length) {
+                                attr.isVisible = true;
+                                baseLayer = baseLayersManager.add(id, attr);
+                            }
+                        }
+                        if(baseLayer) baseLayer.setIndex(i);
+                    }
+				}
+/*  // Устарело
 				var mapLayers = [];
 				var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
 				if(typeof(mapLayerID) == 'string') {
@@ -3444,7 +3529,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					baseLayersManager.get('map').addLayer(osmEmbed);
 					setOSMEmbed(osmEmbed);
 				}
-
+*/
 				if('miniMap' in map) {
 					//map.miniMap.setVisible(true);
 					for (var m = 0; m < mapLayers.length; m++) {
@@ -3461,6 +3546,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : "http://maps.kosmosnimki.ru/";
 	
 				map.needSetMode = (mapLayers.length > 0 ? 'map' : 'satellite');
+/*
 				if (layers)
 				{
 					map.defaultHostName = layers.properties.hostName;
@@ -3475,6 +3561,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						map.setSquareUnit(map.properties.SquareUnit);
 					}
 				}
+*/
 				if(gmxAPI.proxyType === 'flash' && map.needSetMode) map.setMode(map.needSetMode);
 
 				// копирайты
