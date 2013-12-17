@@ -35,13 +35,17 @@
                 if(!attr.rus) attr.rus = attr.hint || attr.id;
                 if(!attr.eng) attr.eng = attr.hint || attr.id;
                 
-                var layersControl = gmxAPI.map.controlsManager.getControl('layers');
-                if(layersControl) ret = layersControl.addOverlay(tn, attr);
+                Controls.controlsHash.layers.addOverlay(tn, attr);
+                ret = Controls.controlsHash.layers;
+
+                // var layersControl = gmxAPI.map.controlsManager.getControl('layers');
+                // if(layersControl) ret = layersControl.addOverlay(tn, attr);
             } else {
-                var controls = gmxAPI.map.controlsManager.getCurrent();
-                if(controls && 'addControl' in controls) {
-                    ret = controls.addControl(tn, attr);
-                }
+                ret = Controls.addControl(tn, attr);
+                // var controls = gmxAPI.map.controlsManager.getCurrent();
+                // if(controls && 'addControl' in controls) {
+                    // ret = controls.addControl(tn, attr);
+                // }
             }
             return ret;
         }
@@ -389,7 +393,6 @@
                             cont.appendChild(node);
                         } else {
                             var before = cont.childNodes[index];
-                            cont.removeChild(node);
                             cont.insertBefore(node, before);
                         }
                         break;
@@ -1111,6 +1114,68 @@ console.log('onRemove ', this);
         outControls.gmxDrawing = gmxDrawing;
 
         gmxAPI.extend(Controls.controlsHash, outControls);
+
+        //Управление ToolsAll
+        (function()
+        {
+            //Управление ToolsAll
+            /** Класс управления ToolsAll
+            * @function
+            * @memberOf api
+            * @param {cont} HTML контейнер для tools
+            */
+            function ToolsAll(cont)
+            {
+                this.toolsAllCont = gmxAPI._allToolsDIV;
+                gmxAPI._toolsContHash = {};
+            }
+            gmxAPI._ToolsAll = ToolsAll;
+
+            function ToolsContainer(name, attr) {
+                //console.log('ToolsContainer', name, attr);
+                if(!attr) attr = {};
+                var cont = {
+                    addTool: function (tn, attr) {
+                        //console.log('tool addTool', tn, attr); // wheat
+                        if(!attr) attr = {};
+                        var ret = null;
+                        if(attr.overlay && Controls.controlsHash.layers) {
+                        //if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
+                            attr.id = tn;
+                            if(!attr.rus) attr.rus = attr.hint || attr.id;
+                            if(!attr.eng) attr.eng = attr.hint || attr.id;
+                            
+                            Controls.controlsHash.layers.addOverlay(tn, attr);
+                            ret = layersControl;
+                            // var layersControl = gmxAPI.map.controlsManager.getControl('layers');
+                            // if(layersControl) {
+                                // layersControl.addOverlay(tn, attr);
+                                // ret = layersControl;
+                            // }
+                        } else {
+                            ret = Controls.addControl(tn, attr);
+                            // var controls = gmxAPI.map.controlsManager.getCurrent();
+                            // if(controls && 'addControl' in controls) {
+                                // ret = controls.addControl(tn, attr);
+                            // }
+                        }
+                        gmxAPI._tools[tn] = ret;
+                        return ret;
+                    }
+                };
+                //gmxAPI._tools[name] = cont;
+                return cont;
+            }
+            gmxAPI._ToolsContainer = ToolsContainer;
+        })();
+        
+        if('_ToolsAll' in gmxAPI) {
+            this.toolsAll = new gmxAPI._ToolsAll(parent);
+        }
+        gmxAPI._tools = {
+            standart: standart
+        }
+
         return outControls;
     };
 
@@ -1128,83 +1193,12 @@ console.log('onRemove ', this);
         id: 'controlsBaseIcons'
         ,isVisible: true
         ,controlsHash: {}
-        ,
-        init: function(parent) {        // инициализация
-            //Управление ToolsAll
-            (function()
-            {
-                //Управление ToolsAll
-                /** Класс управления ToolsAll
-                * @function
-                * @memberOf api
-                * @param {cont} HTML контейнер для tools
-                */
-                function ToolsAll(cont)
-                {
-                    this.toolsAllCont = gmxAPI._allToolsDIV;
-                    gmxAPI._toolsContHash = {};
-                }
-                gmxAPI._ToolsAll = ToolsAll;
-
-                function ToolsContainer(name, attr) {
-                    //console.log('ToolsContainer', name, attr);
-                    if(!attr) attr = {};
-                    var cont = {
-                        addTool: function (tn, attr) {
-                            //console.log('tool addTool', tn, attr); // wheat
-                            if(!attr) attr = {};
-                            var ret = null;
-                            if(attr.overlay && Controls.controlsHash.layers) {
-                            //if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
-                                attr.id = tn;
-                                if(!attr.rus) attr.rus = attr.hint || attr.id;
-                                if(!attr.eng) attr.eng = attr.hint || attr.id;
-                                
-                                var layersControl = gmxAPI.map.controlsManager.getControl('layers');
-                                if(layersControl) {
-                                    layersControl.addOverlay(tn, attr);
-                                    ret = layersControl;
-                                }
-                            } else {
-                                var controls = gmxAPI.map.controlsManager.getCurrent();
-                                if(controls && 'addControl' in controls) {
-                                    ret = controls.addControl(tn, attr);
-                                }
-                            }
-                            gmxAPI._tools[tn] = ret;
-                            return ret;
-                        }
-                    };
-                    //gmxAPI._tools[name] = cont;
-                    return cont;
-                }
-                gmxAPI._ToolsContainer = ToolsContainer;
-            })();
-            
-            if('_ToolsAll' in gmxAPI) {
-                this.toolsAll = new gmxAPI._ToolsAll(parent);
-            }
-            //map.allControls = {};
-            //gmxAPI._tools = Controls.controlsHash;
-            //gmxAPI._tools.standart = iconsControl;
-            gmxAPI._tools = {
-                standart: standart
-            }
-
-            // gmxAPI._listeners.addListener({level: 10000, eventName: 'mapInit', func: function(map) {
-                 // Control.isActive = true;
-            // }});
-
-            // this.forEach(function(item, i) {
-                // ('init' in item ? item.init : item)(parent);
-            // });
-        }
         ,remove: function() {      // удаление
-            if(Controls.id != gmxAPI.map.controlsManager.getCurrentID()) return;
-            this.forEach(function(item, i) {
+            for(var key in controlsHash) {
+                var item = controlsHash[key];
                 if('remove' in item) item.remove();
-            });
-//            if(iconsControl.hideNode.parentNode) iconsControl.hideNode.parentNode.removeChild(iconsControl.hideNode);
+            }
+            controlsHash = {};
         }
         ,getControl: function(id) {
             //if(id === 'layers') id = 'gmxLayers';   // обратная совместимость
@@ -1356,6 +1350,6 @@ console.log('onRemove ', this);
             // return this.controlsHash[id] || null;
         // }
 	}
-    if(!gmxAPI._controls) gmxAPI._controls = [];
-    gmxAPI._controls.push(Controls);
+    if(!gmxAPI._controls) gmxAPI._controls = {};
+    gmxAPI._controls[Controls.id] = Controls;
 })();
