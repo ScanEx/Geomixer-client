@@ -4,6 +4,8 @@
 
 var BaseLayersControl = function(container, map) {
     var blm = map.baseLayersManager;
+    var lang = _translationsHash.getLanguage();
+    
     $(container).append(
         '<table class="group-editor-blm-table">' +
             '<tr>' + 
@@ -16,11 +18,11 @@ var BaseLayersControl = function(container, map) {
         '</table>'
     );
     
-    var availContainer = $('<ul/>').appendTo($('.group-editor-blm-available', container));
-    var mapContainer = $('<ul/>').appendTo($('.group-editor-blm-map', container));
+    var availContainer = $('<ul class="group-editor-blm-ul"></ul>').appendTo($('.group-editor-blm-available', container));
+    var mapContainer = $('<ul class="group-editor-blm-ul"></ul>').appendTo($('.group-editor-blm-map', container));
     
     blm.getAll().forEach(function(baseLayer) {
-        var item = $('<li class="group-editor-blm-avail-item">' + baseLayer.id + '</li>').data('baseLayerName', baseLayer.id);
+        var item = $('<li class="group-editor-blm-avail-item">' + baseLayer[lang] + '</li>').data('baseLayerName', baseLayer.id);
         if (baseLayer.isVisible) {
             mapContainer.append(item);
         } else {
@@ -37,6 +39,7 @@ var BaseLayersControl = function(container, map) {
             var baseLayer = blm.get($(elem).data('baseLayerName'));
             baseLayer.setVisible(true);
             baseLayer.setIndex(index);
+            //console.log(baseLayer.id, index);
         })
     }
     

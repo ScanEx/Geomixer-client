@@ -1547,6 +1547,10 @@ div.layersScroll
     border: 1px #DEDEDE solid;
 }
 
+.group-editor-blm-ul {
+    height: 100%;
+}
+
 .group-editor-blm-avail-item {
     font-size: 12px;
     margin: 2px;
