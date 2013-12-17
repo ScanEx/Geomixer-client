@@ -132,7 +132,7 @@
             ,
             _gmxOnClick: function (ev) {
                 if(this.options.onclick) this.options.onclick.call(this, {id: this.options.id, target: this});
-                gmxAPI._listeners.dispatchEvent('onClick', controlsManager, this);
+                gmxAPI._listeners.dispatchEvent('onClick', controlsManager, {id: this.options.id, target: this});
             }
             ,
             _initLayout: function () {
@@ -977,7 +977,7 @@
             ,isActive: false
             ,id: 'drawingZoom'
             ,onclick: function(e) {
-                var className = 'leaflet-control-icons leaflet-control-' + this.options.type + '-Active';
+                var className = 'leaflet-control-icons leaflet-control-' + this.options.id + '-Active';
                 if(!gmxAPI._drawing.BoxZoom) {
                     gmxAPI._drawFunctions.zoom();
                     L.DomUtil.addClass(this._container, className);
@@ -991,7 +991,7 @@
                 Controls.controlsHash[this.options.id] = this;
                 var my = this;
                 this._map.on('boxzoomend', function() {
-                    L.DomUtil.removeClass(my._container, 'leaflet-control-' + my.options.type + '-Active');
+                    L.DomUtil.removeClass(my._container, 'leaflet-control-' + my.options.id + '-Active');
                 });
             }
 
@@ -1007,7 +1007,7 @@
             ,id: 'drawingPoint'
             ,onclick: function(e) {
                 var my = this;
-                var className = 'leaflet-control-icons leaflet-control-' + this.options.type + '-Active';
+                var className = 'leaflet-control-icons leaflet-control-' + this.options.id + '-Active';
                 var stop = function() {
                     L.DomUtil.removeClass(my._container, className);
                     my.options.isActive = false;
@@ -1058,7 +1058,7 @@
                     container = L.DomUtil.create('div', 'leaflet-control-Drawing');
 
                 L.DomEvent.on(container, 'mouseover', function (e) {
-                    container.style.height = '90px';
+                    container.style.height = '98px';
                 });
                 L.DomEvent.on(container, 'mouseout', function (e) {
                     container.style.height = '30px';
