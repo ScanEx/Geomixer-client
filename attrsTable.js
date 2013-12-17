@@ -212,11 +212,19 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
 		searchButton = makeButton(_gtxt("Найти")),
 		cleanButton = makeButton(_gtxt("Очистить поиск")),
 		addObjectButton = makeLinkButton(_gtxt("Добавить объект")),
-        downloadShapeButton = makeLinkButton(_gtxt("Скачать shp")),
-        downloadGPXButton = makeLinkButton(_gtxt("Скачать gpx")),
 		oldCanvasWidth = false,
 		_this = this;
-	
+        
+    var downloadSection = $('<div>' +
+        '<span class="buttonLink attrsDownloadLink" data-format="Shape">' + _gtxt("Скачать shp") + '</span>' +
+        '<span class="buttonLink attrsDownloadLink" data-format="gpx">'   + _gtxt("Скачать gpx") + '</span>' +
+        '<span class="buttonLink attrsDownloadLink" data-format="csv">'   + _gtxt("Скачать csv") + '</span>' +
+    '</div>');
+    
+    $('span', downloadSection).click(function() {
+        downloadLayer($(this).data('format'));
+    });
+
     this._serverDataProvider = new ServerDataProvider();
     var updateSearchString = function()
     {
@@ -236,18 +244,9 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
             _this.textarea.value
         );
     }
-    
-    downloadShapeButton.onclick = function() {
-        downloadLayer('Shape');
-    }
-    
-    downloadGPXButton.style.marginLeft = '10px';
-    downloadGPXButton.onclick = function() {
-        downloadLayer('gpx');
-    }
-    
+
     if (info.GeometryType === 'polygon') {
-        $(downloadGPXButton).hide();
+        $('[data-format="gpx"]', downloadSection).hide();
     }
     
 	paramsButton.onclick = function()
@@ -304,13 +303,10 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         attrNamesHash[attrNames[f]] = true;
     }
     
-    if (_params.hideDownload) {
-        $(downloadShapeButton).hide();
-        $(downloadGPXButton).hide();
-    }
-                        
+    _params.hideDownload && downloadSection.hide();
+
     this.divTable2 = _div(null, [['css','overflow','auto'], ['dir', 'className', 'attrsTableBody']]);
-    var tdTable2 = _td([this.divTable2, downloadShapeButton, downloadGPXButton], [['attr','vAlign','top']]);
+    var tdTable2 = _td([this.divTable2, downloadSection[0]], [['attr','vAlign','top']]);
     this.table2 = new scrollTable({pagesCount: 10, limit: 20});
     var drawTableItem2 = function(elem, curIndex, activeHeaders)
     {

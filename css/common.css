@@ -614,7 +614,7 @@ div.unit .unitInfo
 {
 	padding-right: 10px;
 }
-/* */
+/* attributes table */
 .attrsHelperCanvas
 {
 	cursor: pointer;
@@ -650,6 +650,12 @@ div.unit .unitInfo
 	white-space: nowrap;
 	cursor: pointer;
 }
+
+.attrsDownloadLink
+{
+    margin-right: 10px;
+}
+
 .styleTitle
 {
 	width: 70px;

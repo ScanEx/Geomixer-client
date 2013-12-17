@@ -1420,7 +1420,7 @@ createStyleEditor = function(parent, templateStyle, geometryType, isWindLayer)
 			$(resObject).change();
 		};
 	
-	if (geometryType != "point" && gmxAPI.proxyType !== 'leaflet')
+	if (geometryType != "point")
 	{
 		var dashTrs = []
 		for (var i = 1; i <= 7; i+=3)
