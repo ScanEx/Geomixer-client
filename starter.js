@@ -763,6 +763,18 @@ function loadMap(state)
             return false;
         });
         
+        if (map && map.controlsManager) {
+            var permalinkControl = map.controlsManager.getControl('permalink');
+            if (permalinkControl) {
+                permalinkControl.setVisible(true);
+                 map.controlsManager.addListener('onClick', function(event) {
+                     if (event.id === 'permalink') {
+                        _mapHelper.showPermalink();
+                     }
+                });
+            }
+        }
+        
         $('#flash').bind('drop', function(e)
         {
             if (!e.originalEvent.dataTransfer) {
@@ -1044,7 +1056,12 @@ function loadMap(state)
             _iconPanel.addDelimeter('userDelimeter', false, true);
             
             _iconPanel.add('uploadFile', _gtxt("Загрузить файл"), "img/toolbar/upload.png", "img/toolbar/upload_a.png", function(){drawingObjects.loadShp.load()})
-            _iconPanel.add('permalink', _gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
+            
+            //если в карте новый тип контролов, пермалинк из тулбаров перекачёвывает в контролы карты
+            if (map.controlsManager && !map.controlsManager.getControl('permalink')) {
+                _iconPanel.add('permalink', _gtxt("Ссылка на карту"), "img/toolbar/save.png", "img/toolbar/save_a.png", function(){_mapHelper.showPermalink();})
+            }
+            
             _iconPanel.add('bookmark', _gtxt("Добавить закладку"), "img/toolbar/bookmark.png", "img/toolbar/bookmark_a.png", function(){mapHelp.tabs.load('mapTabs');_queryTabs.add();})
             _iconPanel.add('code', _gtxt("Код для вставки"), "img/toolbar/code.png", "img/toolbar/code_a.png", function(){_mapHelper.createAPIMapDialog();})
             _iconPanel.add('print', _gtxt("Печать"), "img/toolbar/print.png", "img/toolbar/print_a.png", function(){_mapHelper.print()})
