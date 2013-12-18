@@ -171,8 +171,7 @@
 					if (obj.geometry)
 					{
 						var bounds = obj.bounds || gmxAPI.getBounds(obj.geometry.coordinates);
-                        if(!gmxAPI.extIntersect(currPos.latlng.extent, bounds)) return;
-							continue;
+                        if(!gmxAPI.extIntersect(currPos.latlng.extent, bounds)) continue;
 					}
 					texts[obj.copyright] = true;
 				}
