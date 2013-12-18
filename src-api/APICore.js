@@ -3385,7 +3385,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						{
 							var mapLayer = map.layers[mapLayerNames[i]];
 							//mapLayer.setVisible(true);						// Слои BaseMap должны быть видимыми
-							mapLayer.setAsBaseLayer(mapString, baseLayerTypes['map']);
+							mapLayer.setAsBaseLayer('map', baseLayerTypes['map']);
 							mapLayer.setBackgroundColor(baseLayerTypes['map']['backgroundColor']);
 							mapLayers.push(mapLayer);
 						}
@@ -3401,7 +3401,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 							
 					for (var i = 0; i < satelliteLayers.length; i++)
 					{
-						satelliteLayers[i].setAsBaseLayer(satelliteString, baseLayerTypes['satellite'])
+						satelliteLayers[i].setAsBaseLayer('satellite', baseLayerTypes['satellite'])
 						satelliteLayers[i].setBackgroundColor(baseLayerTypes['satellite']['backgroundColor']);
 					}
 				}
@@ -3416,7 +3416,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 						{
 							isAnyExists = true;
 							var overlayLayer = map.layers[overlayLayerNames[i]];
-							overlayLayer.setAsBaseLayer(hybridString, baseLayerTypes['hybrid']);
+							overlayLayer.setAsBaseLayer('hybrid', baseLayerTypes['hybrid']);
 							overlayLayer.setBackgroundColor(baseLayerTypes['hybrid']['backgroundColor']);
 							overlayLayers.push(overlayLayer);
 						}
@@ -3424,7 +3424,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 					if (isAnyExists)
 					{
 						for (var i = 0; i < satelliteLayers.length; i++) {
-							satelliteLayers[i].setAsBaseLayer(hybridString, baseLayerTypes['hybrid']);						
+							satelliteLayers[i].setAsBaseLayer('hybrid', baseLayerTypes['hybrid']);						
 							satelliteLayers[i].setBackgroundColor(baseLayerTypes['hybrid']['backgroundColor']);
 						}
 					}
@@ -3445,7 +3445,7 @@ function createKosmosnimkiMapInternal(div, layers, callback)
 				var osmEmbed = map.layers[osmEmbedID];
 				if (osmEmbed)
 				{
-					osmEmbed.setAsBaseLayer(mapString);
+					osmEmbed.setAsBaseLayer('map');
 					setOSMEmbed(osmEmbed);
 				}
 
