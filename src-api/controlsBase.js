@@ -989,9 +989,7 @@
             ,
             redraw: function() {            // перерисовать
                 var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
-                if(!currPos.latlng) return;
-                var x = currPos.latlng.x;
-                var y = currPos.latlng.y;
+                if(!currPos.latlng || !currPos.latlng.extent) return;
                 var texts = [
                     //первым всегда будет располагаться копирайт СканЭкс. 
                     "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2013 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>"
@@ -1000,7 +998,7 @@
                     if (!item.copyright || !item.objectId || !item.getVisibility()) return;  // обьекта нет на экране или без копирайта
                     if (item.geometry) {
                         var bounds = item.bounds || gmxAPI.getBounds(item.geometry.coordinates);
-                        if ((x < bounds.minX) || (x > bounds.maxX) || (y < bounds.minY) || (y > bounds.maxY)) return;
+                        if(!gmxAPI.extIntersect(currPos.latlng.extent, bounds)) return;
                     }
                     texts.push(item.copyright.split("<a").join("<a target='_blank' style='color: inherit;'"));
                 });
