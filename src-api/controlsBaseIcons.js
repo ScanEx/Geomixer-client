@@ -426,6 +426,7 @@
                     overlaysPresent = overlaysPresent || obj.overlay;
                     baseLayersPresent = baseLayersPresent || !obj.overlay;
                 }
+                this._container.style.display = len > 0 ? 'block' : 'none';
 
                 this._separator.style.display = overlaysPresent && baseLayersPresent ? '' : 'none';
                 
