@@ -1626,7 +1626,7 @@
         }
         ,getControl: function(id) {
             var control = this.controlsHash[id] || null;
-            return ('getInterface' in control ? control.getInterface() : control);
+            return (control && 'getInterface' in control ? control.getInterface() : control);
         }
     }
 

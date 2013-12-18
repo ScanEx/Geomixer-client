@@ -1610,6 +1610,7 @@
                     if (gmxAPI.map.isKeyDown(16)) {
                         var control = gmxAPI.map.controlsManager.getControl('drawingPoint');
                         if(control && 'onclick' in control.options) control.options.onclick.call(control);
+                        else if(gmxAPI.map.standartTools && 'selectTool' in gmxAPI.map.standartTools) gmxAPI.map.standartTools.selectTool("POINT");
                     }
                     return true;
                 });
