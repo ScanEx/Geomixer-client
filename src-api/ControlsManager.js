@@ -64,6 +64,10 @@
         ,getCurrent: function() {
             return this._controls || null;
         }
+        ,getControl: function(id) {
+            if(!this._controls) return null;
+            return ('getControl' in this._controls ? this._controls.getControl(id) : null);
+        }
         ,
         select: function(controlObj) {
 			if(this.curent && 'remove' in this.curent) this.curent.remove();

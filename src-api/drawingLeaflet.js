@@ -294,6 +294,7 @@
 	var endDrawing = function() {			// Вызывается при выходе из режима редактирования
 		chkDrawingObjects();
 		currentDOMObject = null;
+        gmxAPI._drawing.type = '';
 		gmxAPI._drawing.activeState = false;
 	};
 
@@ -1605,9 +1606,15 @@
                         }
                     }*/
                     ret.stopDrawing();
+                    endDrawing();
+                    if (gmxAPI.map.isKeyDown(16)) {
+                        var control = gmxAPI.map.controlsManager.getControl('drawingPoint');
+                        if(control && 'onclick' in control.options) control.options.onclick.call(control);
+                    }
                     return true;
                 });
 			}, 0);
+            gmxAPI._drawing.type = 'POINT';
 		}
 		else {
 			done(coords[0], coords[1]);

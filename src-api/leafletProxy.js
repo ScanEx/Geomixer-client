@@ -4272,6 +4272,7 @@
             // BoxZoom при нажатом shift
             L.DomEvent.on(document, 'keydown', function(e) {
                 if(e.keyCode !== 16) return;
+                if(gmxAPI._drawing.type === 'POINT') return;
                 if(!window.gmxAPI._drawing.BoxZoom) LMap.boxZoom.addHooks();
                 window.gmxAPI._drawing.BoxZoom = true;
             }, this);
