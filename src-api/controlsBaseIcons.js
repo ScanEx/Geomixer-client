@@ -863,13 +863,17 @@
                 var util = {
                     items: []
                     ,addItem: function(obj) {
+                        var flag = true;
                         this.items.forEach(function(item, i) {
                             if(obj === item) {
+                                flag = false;
                                 return false;   // Уже есть такой
                             }
                         });
-                        this.items.push(obj);
-                        this.redraw();
+                        if(flag) {
+                            this.items.push(obj);
+                            this.redraw();
+                        }
                     }
                     ,
                     removeItem: function(obj) {
@@ -1230,6 +1234,16 @@ console.log('onRemove ', this);
         gmxAPI._tools = {
             standart: standart
         }
+        var attr = {
+            'properties': { 'className': 'gmxTools' }
+            ,
+            'style': { }
+            ,
+            'contType': 2	// режим отключения выбора item
+        };
+
+        var baseLayersTools = new gmxAPI._ToolsContainer('baseLayers', attr);
+        gmxAPI.baseLayersTools = baseLayersTools;
 
         return Controls.controlsHash;
     };

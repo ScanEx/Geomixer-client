@@ -13,6 +13,7 @@
 		var div = gmxAPI._div;
 		var apiBase = gmxAPI.getAPIFolderRoot();
 		var balloons = [];
+        map.balloons = balloons;
 		var curMapObject = null;
 
 		var mapX = 0;

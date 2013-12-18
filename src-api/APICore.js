@@ -3359,7 +3359,7 @@ window.createFlashMapInternal = createFlashMapInternal;
 
 function createKosmosnimkiMapInternal(div, layers, callback) {
 	var prop = layers ? layers.properties : {};
-	var arr = JSON.parse(prop.BaseLayers);
+	var arr = (prop.BaseLayers ? JSON.parse(prop.BaseLayers) : null);
 	var baseLayersArr = gmxAPI.isArray(arr) ? arr : ['map', 'satellite', 'hybrid', 'OSM'];
 
 	var getLayersArr = function(map, arr, color) {
