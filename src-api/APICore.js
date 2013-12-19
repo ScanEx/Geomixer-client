@@ -2715,7 +2715,8 @@ function createFlashMap(div, arg1, arg2, arg3)
 		{
 			if (layers != null) {
                 window.KOSMOSNIMKI_LANGUAGE = window.KOSMOSNIMKI_LANGUAGE || {'eng': 'English', 'rus': 'Russian'}[layers.properties.DefaultLanguage];
-				(layers.properties.UseKosmosnimkiAPI ? createKosmosnimkiMapInternal : createFlashMapInternal)(div, layers, callback);
+				//(layers.properties.UseKosmosnimkiAPI ? createKosmosnimkiMapInternal : createFlashMapInternal)(div, layers, callback);
+				createKosmosnimkiMapInternal(div, layers, callback);
             }
 			else
 				callback(null);
@@ -3360,7 +3361,8 @@ window.createFlashMapInternal = createFlashMapInternal;
 function createKosmosnimkiMapInternal(div, layers, callback) {
 	var prop = layers ? layers.properties : {};
 	var arr = (prop.BaseLayers ? JSON.parse(prop.BaseLayers) : null);
-	var baseLayersArr = gmxAPI.isArray(arr) ? arr : ['map', 'satellite', 'hybrid', 'OSM'];
+	//var baseLayersArr = gmxAPI.isArray(arr) ? arr : ['map', 'satellite', 'hybrid', 'OSM'];
+	var baseLayersArr = gmxAPI.isArray(arr) ? arr : null;
 
 	var getLayersArr = function(map, arr, color) {
         var out = [];
@@ -3383,19 +3385,6 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 					var obj = map.layers[i];
 					obj.setVisible(false);
 				}
-				if (layers) {
-					map.defaultHostName = layers.properties.hostName;
-					map.addLayers(layers, false);		// добавление основной карты
-					map.properties = layers.properties;
-					if (map.properties.DistanceUnit)
-					{
-						map.setDistanceUnit(map.properties.DistanceUnit);
-					}
-					if (map.properties.SquareUnit)
-					{
-						map.setSquareUnit(map.properties.SquareUnit);
-					}
-				}
 
 				var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
 				var satelliteLayerID = gmxAPI.getBaseMapParam("satelliteLayerID", "");
@@ -3415,46 +3404,83 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				var baseLayersManager = map.baseLayersManager,
                     mapLayers = [],
                     overlayLayers = [],
-                    satelliteLayers = [];
+                    satelliteLayers = [],
+                    baseLayersHash = {},
+                    arr = ['map', 'satellite', 'hybrid', 'OSM'];
+
                 if(baseLayersArr) {
+                    for (var i = 0, len = baseLayersArr.length; i < len; i++) baseLayersHash[baseLayersArr[i]] = true;
+                }
+
+                for (var i = 0, len = arr.length; i < len; i++) {
+                    var id = arr[i];
+                    baseLayersManager.remove(id);
+                    // нет подложки сформируем через getBaseMapParam 
+                    var attr = {id: id, index: i, layers:[] };
+                    if(id === 'satellite' && satelliteLayerID) {
+                        attr.rus = 'Снимки';
+                        attr.eng = 'Satellite';
+                        satelliteLayers = getLayersArr(map, satelliteLayerID.split(","), 0x000001);
+                        attr.layers = satelliteLayers;
+                        if(!baseLayersArr) attr.isVisible = true;
+                        if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
+                            map.needSetMode = id;
+                        }
+                    } else if(id === 'hybrid' && (satelliteLayerID || overlayLayerID)) {
+                        attr.rus = 'Гибрид';
+                        attr.eng = 'Hybrid';
+                        overlayLayers = getLayersArr(map, (satelliteLayerID+','+overlayLayerID).split(","), 0x000001);
+                        attr.layers = overlayLayers;
+                        if(!baseLayersArr) attr.isVisible = true;
+                        if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
+                            map.needSetMode = id;
+                        }
+                    } else if(id === 'map' && mapLayerID) {
+                        attr.rus = 'Карта';
+                        attr.eng = 'Map';
+                        mapLayers = getLayersArr(map, mapLayerID.split(","), 0xffffff);
+                        attr.layers = mapLayers;
+                        var osmEmbed = map.layers[osmEmbedID];
+                        if (osmEmbed) {
+                            attr.layers.push(osmEmbed);
+                            setOSMEmbed(osmEmbed);
+                        }
+                        if(!baseLayersArr) attr.isVisible = true;
+                        if(attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
+                            map.needSetMode = id;
+                        }
+                    }
+                    if(attr.layers.length) {
+                        baseLayersManager.add(id, attr);
+                    }
+                }
+
+                if(baseLayersArr) {
+                    if(!baseLayersHash[map.needSetMode]) map.needSetMode = null;
                     for (var i = 0, len = baseLayersArr.length; i < len; i++) {
                         var id = baseLayersArr[i];
                         var baseLayer = baseLayersManager.get(id);
                         if(baseLayer) {
-                            baseLayer.isVisible = true;
-                        } else {
-                            // нет подложки сформируем через getBaseMapParam 
-                            var attr = {id: id, index: i, layers:[] };
-                            if(id === 'satellite') {
-                                attr.rus = 'Снимки';
-                                attr.eng = 'Satellite';
-                                satelliteLayers = getLayersArr(map, satelliteLayerID.split(","), 0x000001);
-                                attr.layers = satelliteLayers;
-                            } else if(id === 'hybrid') {
-                                attr.rus = 'Гибрид';
-                                attr.eng = 'Hybrid';
-                                overlayLayers = getLayersArr(map, (satelliteLayerID+','+overlayLayerID).split(","), 0x000001);
-                                attr.layers = overlayLayers;
-                            } else if(id === 'map') {
-                                attr.rus = 'Карта';
-                                attr.eng = 'Map';
-                                mapLayers = getLayersArr(map, mapLayerID.split(","), 0xffffff);
-                                attr.layers = mapLayers;
-                                var osmEmbed = map.layers[osmEmbedID];
-                                if (osmEmbed) {
-                                    attr.layers.push(osmEmbed);
-                                    setOSMEmbed(osmEmbed);
-                                }
-                            }
-                            if(attr.layers.length) {
-                                attr.isVisible = true;
-                                baseLayer = baseLayersManager.add(id, attr);
-                            }
+                            baseLayer.setVisible(true);
+                            baseLayer.setIndex(i);
                         }
-                        if(baseLayer) baseLayer.setIndex(i);
                     }
+                }
+
+				if (layers) {
+					map.defaultHostName = layers.properties.hostName;
+					map.addLayers(layers, false);		// добавление основной карты
+					map.properties = layers.properties;
+					if (map.properties.DistanceUnit)
+					{
+						map.setDistanceUnit(map.properties.DistanceUnit);
+					}
+					if (map.properties.SquareUnit)
+					{
+						map.setSquareUnit(map.properties.SquareUnit);
+					}
 				}
-/*  // Устарело
+                /*  // Устарело
 				var mapLayers = [];
 				var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
 				if(typeof(mapLayerID) == 'string') {
@@ -3545,8 +3571,8 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				if (!window.baseMap || !window.baseMap.hostName || (window.baseMap.hostName == "maps.kosmosnimki.ru"))
 					map.geoSearchAPIRoot = typeof window.searchAddressHost !== 'undefined' ? window.searchAddressHost : "http://maps.kosmosnimki.ru/";
 	
-				map.needSetMode = (mapLayers.length > 0 ? 'map' : 'satellite');
 /*
+				map.needSetMode = (mapLayers.length > 0 ? 'map' : 'satellite');
 				if (layers)
 				{
 					map.defaultHostName = layers.properties.hostName;

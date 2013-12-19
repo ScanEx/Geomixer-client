@@ -102,7 +102,7 @@
             for(var i=0, len = baseLayer.layers.length; i<len; i++) {
                 if(layer === baseLayer.layers[i]) {
                     if(len === 1) {
-                        baseLayer.isVisible = false;
+                        //baseLayer.isVisible = false;
                         gmxAPI._listeners.dispatchEvent('onLayerChange', manager.map.baseLayersManager, baseLayer);
                     }
                     return baseLayer.layers.splice(i, 1)[0];
@@ -146,7 +146,7 @@
                     gmxAPI._listeners.dispatchEvent('onIndexChange', manager.map.baseLayersManager, this);
                 }
                 ,getIndex: function() {
-                    return (this.isVisible ? this.index : null);
+                    return (this.isVisible !== false ? this.index : null);
                     // for(var i=0, len = manager.zIndex.length; i<len; i++) {
                         // if(id === manager.zIndex[i]) {
                             // return i;
@@ -213,7 +213,7 @@
             manager.currentID = '';
             var item = manager.hash[id] || null;
             if(item) {
-                if(!item.isVisible) return;
+                if(item.isVisible === false) return;
                 manager.map.needSetMode = null;
                 manager.currentID = id;
                 manager.setVisibleCurrentItem(true);
@@ -252,7 +252,7 @@
      * @typedef {Object} BaseLayer
      * @property {String} id - Идентификатор подложки.
      * @property {Layer[]} layers - Массив слоев подложки.
-     * @property {boolean} isVisible - Флаг видимости(по умолчанию true).
+     * @property {boolean} isVisible - Флаг видимости - 3 состояния отражающие видимость в контролах (true - видимая, false - не видимая, undefined - видимость определяется по списку BaseLayers)
      * @property {String} rus - Наименование русскоязычное.
      * @property {String} eng - Наименование англоязычное.
      * @property {function(layer:Layer)} addLayer - Ф-ция добавления слоя в подложку.
@@ -280,7 +280,7 @@
             * @param {String} id идентификатор подложки.
             * @param {object} attr дополнительные атрибуты подложки.
             * @param {number} attr.index - индекс в массиве подложек(по умолчанию равен количеству подложек).
-            * @param {boolean} attr.isVisible - видимость подложки(по умолчанию true).
+            * @param {boolean} attr.isVisible - видимость подложки - 3 состояния отражающие видимость в контролах (true - видимая, false - не видимая, undefined - видимость определяется по списку BaseLayers)
             * @param {String} attr.rus - наименование русскоязычное(по умолчанию равен id).
             * @param {String} attr.eng - наименование англоязычное(по умолчанию равен id).
             * @returns {BaseLayer|null} возвращает обьект добавленной подложки или null если подложка с данным идентификатором уже существует.

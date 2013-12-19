@@ -206,17 +206,18 @@
                     ,setToolIndex: function (tn, ind) {
                         var num = my.getToolIndex(tn);
                         if(num === -1 || !toolHash[tn]) return false;
-                        toolNames.splice(num, 1);
 
                         var hash = toolHash[tn];
                         var tBody = my.itemsContainer;
-                        var obj = tBody.removeChild(hash.row);
+                        //var obj = tBody.removeChild(hash.row);
 
                         var len = tBody.children.length;
                         if(ind >= len) ind = len - 1;
                         
-                        toolHash[tn].row = tBody.insertBefore(obj, tBody.children[ind]);
+                        toolNames.splice(num, 1);
                         toolNames.splice(ind, 0, tn);
+                        toolHash[tn].row = tBody.insertBefore(hash.row, tBody.children[ind]);
+                        //toolHash[tn].row = tBody.insertBefore(obj, tBody.children[ind]);
                         return true;
                     }
                     ,setVisible: function(flag) {
@@ -1397,7 +1398,7 @@
             ,
             addBaseLayerTool: function(ph) {
                 var id = ph.id;
-                if(ph.isVisible === false) {
+                if(!ph.isVisible) {
                     var tool = layersControl.map.baseLayersTools.getTool(id);
                     if(tool) tool.setVisible(false);
                     return;
@@ -1414,12 +1415,16 @@
             onIndexChange: function(ph) {
                 var id = ph.id;
                 var index = ph.getIndex();
-                layersControl.map.baseLayersTools.setToolIndex(id, index + 1);
+                layersControl.map.baseLayersTools.setToolIndex(id, index);
             }
             ,
             onVisibleChange: function(ph) {
                 var id = ph.id,
                     tool = layersControl.map.baseLayersTools.getTool(id);
+                if(!tool && ph.isVisible) {
+                    layersControl.addBaseLayerTool(ph);
+                    tool = layersControl.map.baseLayersTools.getTool(id);
+                }
                 if(tool) tool.setVisible(ph.isVisible);
             }
             ,

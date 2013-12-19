@@ -535,7 +535,7 @@ if(!layerId) return;
                 var mbl = gmxAPI.map.baseLayersManager;
                 var util = {
                     addBaseLayerTool: function (ph) {
-                        if(ph.isVisible === false) return;
+                        if(!ph.isVisible) return;
                         var id = ph.id;
                         if (!my._baseLayersHash[id]) {
                             my._baseLayersHash[id] = ph;
