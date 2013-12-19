@@ -114,7 +114,8 @@
         add: function(id, attr) {           // Добавление подложки
             if(!id || manager.hash[id]) return null;
             if(!attr) attr = {};
-            var isVisible = ('isVisible' in attr ? attr.isVisible : true); // видимость подложки
+            //var isVisible = ('isVisible' in attr ? attr.isVisible : true); // видимость подложки
+            var isVisible = attr.isVisible; // видимость подложки - 3 состояния отражающие видимость в контролах (true - видимая, false - не видимая, undefined - видимость определяется по списку BaseLayers)
             var pt = {
                 id: id || 'default'                 // id подложки
                 ,layers: attr.layers || []          // массив слоев подложки

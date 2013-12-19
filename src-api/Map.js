@@ -199,7 +199,7 @@
 		map.baseLayersManager = new gmxAPI.BaseLayersManager(map);
 		map.controlsManager = new gmxAPI.ControlsManager(map, gmxAPI._div);
         var params = gmxAPI.getURLParams().params;
-        map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBaseIcons');
+        map.controlsManager.setCurrent(params.gmxControls || window.gmxControls || 'controlsBase');
 		gmxAPI._listeners.dispatchEvent('mapInit', null, map);	// Глобальный Listeners
 
 		var toolHandlers = {};

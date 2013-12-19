@@ -216,7 +216,7 @@
                         if(ind >= len) ind = len - 1;
                         
                         toolHash[tn].row = tBody.insertBefore(obj, tBody.children[ind]);
-                        toolNames.splice(i, 0, tn);
+                        toolNames.splice(ind, 0, tn);
                         return true;
                     }
                     ,setVisible: function(flag) {
@@ -1397,8 +1397,9 @@
             ,
             addBaseLayerTool: function(ph) {
                 var id = ph.id;
-                if(!ph.isVisible) {
-                    layersControl.map.baseLayersTools.getTool(id).setVisible(false);
+                if(ph.isVisible === false) {
+                    var tool = layersControl.map.baseLayersTools.getTool(id);
+                    if(tool) tool.setVisible(false);
                     return;
                 }
                 
@@ -1412,7 +1413,8 @@
             ,
             onIndexChange: function(ph) {
                 var id = ph.id;
-                layersControl.map.baseLayersTools.setToolIndex(id, ph.getIndex() + 1);
+                var index = ph.getIndex();
+                layersControl.map.baseLayersTools.setToolIndex(id, index + 1);
             }
             ,
             onVisibleChange: function(ph) {

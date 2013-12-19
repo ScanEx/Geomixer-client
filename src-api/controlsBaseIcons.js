@@ -435,6 +435,7 @@
             ,
             setIndex: function (ph, index) {
                 var layerId = ph._leaflet_id;
+if(!layerId) return;
                 var overlay = this._layers[layerId].overlay;
                 var cont = overlay ? this._baseLayersList : this._baseLayersList;
                 if(index < 0) index = 0;
@@ -534,7 +535,7 @@
                 var mbl = gmxAPI.map.baseLayersManager;
                 var util = {
                     addBaseLayerTool: function (ph) {
-                        if(!ph.isVisible) return;
+                        if(ph.isVisible === false) return;
                         var id = ph.id;
                         if (!my._baseLayersHash[id]) {
                             my._baseLayersHash[id] = ph;
@@ -542,16 +543,16 @@
                         var baseLayer = my._baseLayersHash[id];
                         var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(baseLayer.rus, baseLayer.eng) || id;
                         var layers = baseLayer.layers || [];
-                        if(layers.length > 0) {
+                        //if(layers.length > 0) {
                             ph.index = my._baseLayersList.childNodes.length;
                             my.addBaseLayer(baseLayer, name);
-                        }
+                        //}
                     }
                     ,
                     chkExists: function() {     // Получить уже установленные подложки
                         var arr = mbl.getAll();
                         for(var i=0, len = arr.length; i<len; i++) {
-                            if(arr[i].isVisible) util.addBaseLayerTool(arr[i]);
+                            if(arr[i].isVisible !== false) util.addBaseLayerTool(arr[i]);
                         }
                         var id = mbl.getCurrentID();
                         if(my._baseLayersHash[id]) my._baseLayersHash[id].select();
