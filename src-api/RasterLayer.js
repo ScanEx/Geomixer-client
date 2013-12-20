@@ -207,6 +207,7 @@
 				};
 				if(gmxNode.properties.type === 'Overlay') {
 					node['isOverlay'] = true;
+					if(!node['zIndexOffset']) node['zIndexOffset'] = 50000;
 				} else {
 					if(gmxNode.isBaseLayer) node['zIndexOffset'] = -100000;
 				}
