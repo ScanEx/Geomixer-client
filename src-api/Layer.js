@@ -453,6 +453,7 @@
 			'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
 			'setHandler', 'setVisibilityFilter', //'remove', 'removeListener', 'addListener',
 			'setClusters', 'addImageProcessingHook',
+            'enableDragging', 'disableDragging', 'setPositionOffset',
 			'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
 		];
 		// не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
@@ -576,6 +577,10 @@
 					gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} });	// есть новый подписчик события изменения видимости обьектов векторного слоя
 				}
 			}
+            obj.setPositionOffset = function(dx, dy) {
+                gmxAPI._cmdProxy('setPositionOffset', { 'obj': obj, 'attr':{deltaX:dx, deltaY: dy} });
+            }
+
 			var stylesMinMaxZoom = getMinMaxZoom(layer.properties);
 			if (isRaster) {
 				var ph = {
@@ -881,7 +886,8 @@
 		obj.addListener('BeforeLayerRemove', function(layerName) {				// Удаляется слой
 			gmxAPI._listeners.dispatchEvent('AfterLayerRemove', obj, obj.properties.name);	// Удален слой
 		}, -10);
-		obj.addListener('AfterLayerRemove', function(layerName) {			// Удален слой
+		obj._clearLayer = function(layerName) {			// Чистка map.layers при удалении слоя
+			if(!layerName) layerName = obj.properties.name;
 			for(var i=0; i<gmxAPI.map.layers.length; i++) {			// Удаление слоя из массива
 				var prop = gmxAPI.map.layers[i].properties;
 				if(prop.name === layerName) {
@@ -895,7 +901,11 @@
 					delete gmxAPI.map.layers[key];
 				}
 			}
+		}
+		obj.addListener('AfterLayerRemove', function(layerName) {			// Удален слой
+            obj._clearLayer(obj.properties.name);
 		}, 101);	// Перед всеми пользовательскими Listeners
+
 
 		if(obj.objectId) gmxAPI.mapNodes[obj.objectId] = obj;
 		return obj;

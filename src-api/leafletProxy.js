@@ -559,7 +559,7 @@
 				var ph = {
 					'obj':gmxNode
 					,'attr': {
-						'id': e.target.options.from
+						'id': e.target.options && e.target.options.from ? e.target.options.from : node.id
 						,'x': latlng.lng
 						,'y': latlng.lat
 						,'e': e
@@ -619,11 +619,6 @@
 					node['_dragInitOn'] = true;		// drag инициализирован
 				};
                 layer.on('mousedown', node['dragMe']);
-/* // TODO: drag обьектов без поддержки drag лефлета
-                for(var key in layer._layers) {
-                    layer._layers[key].on('mousedown', node['dragMe']);
-                }
-*/
 			}
 		}
 		,
@@ -2047,7 +2042,7 @@
 			if(ph.attr['geometry']) {
 				if(pt['propHiden']['isLayer']) {
 					geo.coordinates = ph.attr['geometry'].coordinates;
-					geo.type = utils.fromScanexTypeGeo(geo.type);
+					geo.type = utils.fromScanexTypeGeo(ph.attr.geometry.type);
 				} else {
 					geo = utils.parseGeometry(ph.attr['geometry']);
 				}
@@ -2454,7 +2449,8 @@
 			var id = gmxNode.objectId;
 			var node = mapNodes[id];
 			if(!node || !gmxNode) return;						// Нода не определена
-			if(ph.attr && ph.attr['drag'] && ph.attr['dragend']) {
+			if(node && 'enableDragging' in node) node.enableDragging(ph);	// У ноды есть свой enableDragging
+            else if(ph.attr && ph.attr['drag'] && ph.attr['dragend']) {
 				node['dragging'] = true;
 				utils.startDrag(node);
 				node['dragendListenerID'] = gmxNode.addListener('dragend', function(ev) // dragend на обьекте
@@ -2481,15 +2477,22 @@
 			var id = gmxNode.objectId;
 			var node = mapNodes[id];
 			if(!node || !gmxNode) return;						// Нода не определена
+			if(node && 'disableDragging' in node) {
+                node.disableDragging(ph);	// У ноды есть свой disableDragging
+                return;
+            }
 			var layer = node['leaflet'];
 			if(!layer && node['type'] != 'map') return false;
             if(layer && layer.dragging) {
 				layer.dragging.disable();
+                node['dragging'] = false;
 			}
 
-            node['dragging'] = false;
-
-			delete node['dragMe'];
+            if(node['dragMe']) {
+				if(!layer) layer = LMap;
+                layer.off('mousedown', node['dragMe']);
+                delete node['dragMe'];
+            }
 			if(node['dragendListenerID']) gmxNode.removeListener('dragend', node['dragendListenerID']);
 			if(node['dragListenerID']) gmxNode.removeListener('drag', node['dragListenerID']);
 			if(node['dragstartListenerID']) gmxNode.removeListener('dragstart', node['dragstartListenerID']);
@@ -3147,6 +3150,14 @@
 			var node = mapNodes[id];
 			if(!node || !node.setEditObjects) return false;
 			node.setEditObjects(ph.attr);
+			return true;
+		}
+		,
+		setPositionOffset:	function(ph)	{	// Установить смещение растрового слоя в метрах Меркатора
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node || !node.setPositionOffset) return false;
+			node.setPositionOffset(ph.attr);
 			return true;
 		}
 		,
@@ -4169,7 +4180,7 @@
 {
 	// Обработчик события - mapInit
 	function onMapInit(ph) {
-		var mapID = ph['objectId'];
+		var mapID = ph.objectId;
 		mapNodes[mapID] = {
 			'type': 'map'
 			,'handlers': {}
@@ -4369,7 +4380,7 @@
 			gmxAPI._leaflet['chkClick'] = chkClick;
 			LMap.on('click', chkClick);
 			LMap.on('mouseup', function(e) {
-				gmxAPI._leaflet['utils'].unfreeze();
+				if(!gmxAPI.map.dragState) gmxAPI._leaflet['utils'].unfreeze();
 				var curTimeDown = new Date().getTime();
 				var timeClick = curTimeDown - timeDown;
 //console.log('mouseup ', timeClick);
