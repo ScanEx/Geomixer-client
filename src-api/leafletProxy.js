@@ -5018,7 +5018,7 @@ var tt = 1;
 				{
 					var color = (gmxAPI.getHtmlColor() === 'white' ? 'white' : '#216b9c');
 					centerControlDIV.innerHTML = '<svg viewBox="0 0 12 12" height="12" width="12" style=""><g><path d="M6 0L6 12" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g><g><path d="M0 6L12 6" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g></svg>';
-					return false;
+					//return false;
 				};
 				setControlDIVInnerHTML();
 				setCenterPoint();

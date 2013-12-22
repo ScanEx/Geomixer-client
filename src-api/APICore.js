@@ -38,6 +38,10 @@ if(!window.gmxAPI) window.gmxAPI = {};
 window.gmxAPI.extend = extend;
 extend(window.gmxAPI,
 {
+	kosmosnimki_API: '1D30C72D02914C5FB90D1D448159CAB6'
+    ,
+	_tmpMaps: {}
+    ,
 	MAX_LATITUDE: 85.0840591556
     ,
 	origin: window.document.domain
@@ -2039,7 +2043,8 @@ window.gmxAPI.miniMapZoomDelta = -4;
 })();
 
 // Блок методов глобальной области видимости
-var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";		// ID базовой карты подложек
+//var kosmosnimki_API = "1D30C72D02914C5FB90D1D448159CAB6";
+
 var tmp = [
 	'isIE', 'parseCoordinates', 'setBg', 'deselect', 'compatEvent', 'compatTarget', 'eventX', 'eventY', 'getOffsetLeft', 'getOffsetTop',
 	'newStyledDiv', 'show', 'hide', 'setPositionStyle', 'position', 'bottomPosition', 'size',
@@ -2578,6 +2583,7 @@ function loadMapJSON(hostName, mapName, callback, onError)
 					var layers = response['Result'];
 					if (layers)
 					{
+                        gmxAPI._tmpMaps[layers.properties.name] = layers;
 						layers.properties.hostName = hostName;
 						window.sessionKeyCache[mapName] = layers.properties.MapSessionKey;
 						forEachLayer(layers, function(layer)
@@ -2711,16 +2717,32 @@ function createFlashMap(div, arg1, arg2, arg3)
 		var uri = gmxAPI.parseUri(hostName);
 		if(uri.host) gmxAPI.serverBase = uri.host;						// HostName основной карты переопределен
         gmxAPI.currentMapName = mapName; // текущая карта
-        loadMapJSON(hostName, mapName, function(layers)
-		{
-			if (layers != null) {
-                window.KOSMOSNIMKI_LANGUAGE = window.KOSMOSNIMKI_LANGUAGE || {'eng': 'English', 'rus': 'Russian'}[layers.properties.DefaultLanguage];
-				//(layers.properties.UseKosmosnimkiAPI ? createKosmosnimkiMapInternal : createFlashMapInternal)(div, layers, callback);
-				createKosmosnimkiMapInternal(div, layers, callback);
-            }
-			else
-				callback(null);
-		});
+
+        var loadStart = function() {
+            // ID базовой карты подложек
+            gmxAPI.kosmosnimki_API = gmxAPI.getBaseMapParam("id", gmxAPI.kosmosnimki_API);
+            loadMapJSON(hostName, mapName, function(layers)
+            {
+                if (layers != null) {
+                    window.KOSMOSNIMKI_LANGUAGE = window.KOSMOSNIMKI_LANGUAGE || {'eng': 'English', 'rus': 'Russian'}[layers.properties.DefaultLanguage];
+                    var UseKosmosnimkiAPI = gmxAPI.currentMapName === gmxAPI.kosmosnimki_API ? false : layers.properties.UseKosmosnimkiAPI;
+                    (UseKosmosnimkiAPI ? createKosmosnimkiMapInternal : createFlashMapInternal)(div, layers, callback);
+                    //createKosmosnimkiMapInternal(div, layers, callback);
+                }
+                else
+                    callback(null);
+            });
+        }
+        if (!gmxAPI.getScriptURL("config.js")) {
+            gmxAPI.loadVariableFromScript(
+                gmxAPI.getAPIFolderRoot() + "config.js",
+                "baseMap",
+                loadStart,
+                loadStart			// Есть config.js
+            );
+        } else {
+            loadStart();
+        }
 	}
 	return true;
 }
@@ -3256,15 +3278,19 @@ FlashMapObject.prototype.loadMap = function(arg1, arg2, arg3)
 
 function createFlashMapInternal(div, layers, callback)
 {
-	if(layers.properties && layers.properties.name == kosmosnimki_API) {
-		if (layers.properties.OnLoad)		//  Обработка маплета базовой карты
-		{
-			try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(); }
-			catch (e) {
-				gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'маплет карты', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
-			}
-		}
-	}
+	//var prop = layers.properties;
+	// if(prop && prop.name) {
+        //gmxAPI._tmpMaps[prop.name] = layers;
+	// if(prop && gmxAPI.currentMapName !== gmxAPI.kosmosnimki_API && prop.name == gmxAPI.kosmosnimki_API) {
+		// if (prop.OnLoad)		//  Обработка маплета базовой карты
+		// {
+			// try { eval("_kosmosnimki_temp=(" + prop.OnLoad + ")")(); }
+			// catch (e) {
+				// gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'маплет карты', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
+			// }
+		// }
+	// }
+    // }
 
 	gmxAPI._div = div;	// DOM элемент - контейнер карты
 	if (div.style.position != "absolute")
@@ -3297,7 +3323,19 @@ function createFlashMapInternal(div, layers, callback)
 		gmxAPI.flashDiv = flashDiv;
 		flashDiv.style.MozUserSelect = "none";
 
+		var layers = gmxAPI._tmpMaps[gmxAPI.currentMapName];
 		var map = gmxAPI._addNewMap(rootObjectId, layers, callback);
+		var baseMap = gmxAPI._tmpMaps[gmxAPI.kosmosnimki_API];
+        if(baseMap) {
+            if (baseMap.properties.OnLoad)		//  Обработка маплета базовой карты
+            {
+                try { eval("_kosmosnimki_temp=(" + baseMap.properties.OnLoad + ")")(map); }
+                catch (e) {
+                    gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'маплет карты', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
+                }
+            }
+            //delete gmxAPI._tmpMaps[gmxAPI.kosmosnimki_API];
+        }
 		if (callback) {
 			try {
 				callback(gmxAPI.map, layers);		// Вызов createFlashMapInternal
@@ -3332,6 +3370,35 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			}
 		}
+        var prop = layers.properties;
+        if (prop.name !== gmxAPI.kosmosnimki_API)	// обработка массива видимых подложек
+        {
+            var arr = (prop.BaseLayers ? JSON.parse(prop.BaseLayers) : null);
+            var baseLayersArr = gmxAPI.isArray(arr) ? arr : ['map', 'satellite', 'hybrid', 'OSM'];
+            //var baseLayersArr = gmxAPI.isArray(arr) ? arr : null;
+            if (!baseLayersArr && prop.UseOpenStreetMap) baseLayersArr = ['OSM'];
+            if(baseLayersArr) {
+                var baseLayersManager = map.baseLayersManager,
+                    modeFlag = false; 
+                for (var i = 0, len = baseLayersArr.length; i < len; i++) {
+                    var id = baseLayersArr[i];
+                    var baseLayer = baseLayersManager.get(id);
+                    if(baseLayer) {
+                        baseLayer.setVisible(true);
+                        baseLayer.setIndex(i);
+                        if(id === map.needSetMode) modeFlag = true;
+                    }
+                }
+                if(!modeFlag) map.needSetMode = null;
+            }
+
+            if (prop.OnLoad) {	//  Обработка маплета карты - mapplet для базовой карты уже вызывали
+                try { eval("_kosmosnimki_temp=(" + prop.OnLoad + ")")(map); }
+                catch (e) {
+                    gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': e+'\n---------------------------------'+'\n' + layers.properties.OnLoad});
+                }
+            }
+        }
 	}
 
 	if('_addProxyObject' in gmxAPI) {	// Добавление обьекта отображения в DOM
@@ -3382,6 +3449,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 		var parseBaseMap = function(kosmoLayers) {
 			createFlashMapInternal(div, kosmoLayers, function(map)
 			{
+				map.addLayers(kosmoLayers, false);		// добавление основной карты
 				for (var i = 0; i < map.layers.length; i++) {
 					var obj = map.layers[i];
 					obj.setVisible(false);
@@ -3407,7 +3475,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                     overlayLayers = [],
                     satelliteLayers = [],
                     baseLayersHash = {},
-                    arr = ['map', 'satellite', 'hybrid', 'OSM'];
+                    arr = ['map', 'satellite', 'hybrid'];
 
                 if(baseLayersArr) {
                     for (var i = 0, len = baseLayersArr.length; i < len; i++) baseLayersHash[baseLayersArr[i]] = true;
@@ -3455,7 +3523,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                         baseLayersManager.add(id, attr);
                     }
                 }
-
+/*
                 if(baseLayersArr) {
                     if(!baseLayersHash[map.needSetMode]) map.needSetMode = null;
                     for (var i = 0, len = baseLayersArr.length; i < len; i++) {
@@ -3467,10 +3535,10 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                         }
                     }
                 }
-
+*/
 				if (layers) {
 					map.defaultHostName = layers.properties.hostName;
-					map.addLayers(layers, false);		// добавление основной карты
+					//map.addLayers(layers, false);		// добавление основной карты
 					map.properties = layers.properties;
 					if (map.properties.DistanceUnit)
 					{
@@ -3653,7 +3721,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 			} else {
 				loadMapJSON(
 					gmxAPI.getBaseMapParam("hostName", "maps.kosmosnimki.ru"), 
-					gmxAPI.getBaseMapParam("id", kosmosnimki_API),
+					gmxAPI.getBaseMapParam("id", gmxAPI.kosmosnimki_API),
 					parseBaseMap,
 					function()
 					{

@@ -573,7 +573,7 @@ if(!layerId) return;
                         } else {
                             var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id;
                             if(ph.overlay) my.addOverlay(ph, name);
-                            else my.addBaseLayer(ph, name);
+                            else util.addBaseLayerTool(ph);
                         }
                     }
                 }
@@ -589,6 +589,8 @@ if(!layerId) return;
                 key = 'onSetCurrent';
                 this._listeners[key] = mbl.addListener(key, function(bl) {
                     if(!bl) return;
+                    bl.isVisible = true;
+                    if(!bl._leaflet_id) util.addBaseLayerTool(bl);
                     my.setCurrent(bl._leaflet_id);
                 });
                 key = 'onRemove';

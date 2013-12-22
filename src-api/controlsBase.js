@@ -1393,23 +1393,24 @@
                     layersControl.addBaseLayerTool(arr[i]);
                 }
                 var id = gmxAPI.map.baseLayersManager.getCurrentID();
-                gmxAPI.baseLayersTools.setActiveTool(id);
+                if(id) gmxAPI.baseLayersTools.setActiveTool(id);
             }
             ,
             addBaseLayerTool: function(ph) {
                 var id = ph.id;
-                if(!ph.isVisible) {
-                    var tool = layersControl.map.baseLayersTools.getTool(id);
-                    if(tool) tool.setVisible(false);
-                    return;
-                }
+                // if(ph.isVisible === false) {
+                    // var tool = layersControl.map.baseLayersTools.getTool(id);
+                    // if(tool) tool.setVisible(false);
+                    // return;
+                // }
                 
                 var attr = {
                     onClick: function() { gmxAPI.map.setBaseLayer(id); },
                     onCancel: function() { gmxAPI.map.unSetBaseLayer(); },
                     hint: gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id
                 };
-                layersControl.map.baseLayersTools.chkBaseLayerTool(id, attr);
+                var tool = layersControl.map.baseLayersTools.chkBaseLayerTool(id, attr);
+                if(tool && !ph.isVisible) tool.setVisible(false);
             }
             ,
             onIndexChange: function(ph) {

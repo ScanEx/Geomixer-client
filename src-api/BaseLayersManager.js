@@ -222,8 +222,10 @@
             return item;
         }
         ,remove: function(id) {            // Удалить базовую подложку
-            if(id === manager.currentID) manager.setVisibleCurrentItem(false);
-            manager.currentID = '';
+            if(id === manager.currentID) {
+                manager.setVisibleCurrentItem(false);
+                manager.currentID = '';
+            }
             // for(var i=0, len = manager.zIndex.length; i<len; i++) {
                 // if(id === manager.zIndex[i]) {
                     // manager.zIndex.splice(i, 1);

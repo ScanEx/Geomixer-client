@@ -455,7 +455,8 @@
 				o.bringToBottom();
 				//o.setAsBaseLayer("OSM");
                 var baseLayer = map.baseLayersManager.get('OSM') ||
-                    map.baseLayersManager.add('OSM', {isVisible:true});
+                    map.baseLayersManager.add('OSM', {});
+                    //map.baseLayersManager.add('OSM', {isVisible:false});
 				baseLayer.addLayer(o);
 				o.setOSMTiles();
 				haveOSM = true;
@@ -483,7 +484,7 @@
 						'y': gmxAPI.merc_y(map.needMove.y),
 						'z': map.needMove.z
 					}});
-				} else if(!notMoveFlag && mapBounds && layers.properties.name !== kosmosnimki_API)
+				} else if(!notMoveFlag && mapBounds && layers.properties.name !== gmxAPI.kosmosnimki_API)
 				{
 					var z = map.getBestZ(gmxAPI.from_merc_x(mapBounds.minX), gmxAPI.from_merc_y(mapBounds.minY), gmxAPI.from_merc_x(mapBounds.maxX), gmxAPI.from_merc_y(mapBounds.maxY));
 					if (minLayerZoom != 20)
@@ -559,13 +560,6 @@
 			}
 			if (layers.properties.MiniMapZoomDelta) {
 				gmxAPI.miniMapZoomDelta = layers.properties.MiniMapZoomDelta;
-			}
-			if (layers.properties.OnLoad && layers.properties.name !== kosmosnimki_API)	//  Обработка маплета карты - mapplet для базовой карты уже вызывали
-			{
-				try { eval("_kosmosnimki_temp=(" + layers.properties.OnLoad + ")")(map); }
-				catch (e) {
-					gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': e+'\n---------------------------------'+'\n' + layers.properties.OnLoad});
-				}
 			}
         }
 
