@@ -58,7 +58,8 @@
 		}
 		,
 		'savePNG':	function(hash)	{									// Сохранить PNG файл экрана
-			return gmxAPI.flashDiv.cmdFromJS('savePNG', { 'fileName':hash['attr'] });
+			return gmxAPI.flashDiv.cmdFromJS('savePNG', hash['attr']);
+			//return gmxAPI.flashDiv.cmdFromJS('savePNG', { 'fileName':hash['attr'] });
 		}
 		,
 		'setZoomBounds':	function(hash)	{							// Установить ограничения по Zoom

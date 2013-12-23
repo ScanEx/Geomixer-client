@@ -146,8 +146,97 @@
 			return false;
 		}
 		node['waitRedraw'] = waitRedraw;
-		//if(layer.properties && layer.properties.visible != false) node.isVisible = true;
-		node.isVisible = (layer.properties && 'visible' in layer.properties ? layer.properties.visible : true);
+		node.isVisible = true;
+		if(layer.properties) {
+            if('visible' in layer.properties) node.isVisible = layer.properties.visible;
+            //if('deltaX' in layer.properties) node.deltaX = layer.properties.deltaX;
+            //if('deltaY' in layer.properties) node.deltaY = layer.properties.deltaY;
+        }
+        var dragAttr = null;
+        var mousemove = function(e) {
+			var latlng = e.latlng;
+            if(dragAttr && dragAttr.drag) dragAttr.drag(latlng.lng, latlng.lat, gmxNode);
+        }
+        var mouseup = function(e) {
+			var latlng = e.latlng;
+            LMap.off('mousemove', mousemove);
+            LMap.off('mouseup', mouseup);
+            LMap.off('mouseout', mouseout);
+            if(dragAttr && dragAttr.dragend) dragAttr.dragend(latlng.lng, latlng.lat, gmxNode);
+            gmxAPI._leaflet.utils.unfreeze();
+            gmxAPI.map.dragState = false;
+        }
+        var mouseout = function(e) {
+            mouseup(e);
+        }
+        var dragOn = function(pt) {
+			var latlng = gmxAPI._leaflet.mousePos;
+            if('isPointIn' in node && !node.isPointIn(latlng)) {
+                gmxAPI._leaflet.utils.unfreeze();
+                gmxAPI.map.dragState = false;
+                return false;
+            }
+            if(!gmxAPI.map.dragState) {
+                gmxAPI._leaflet.utils.freeze();
+                gmxAPI.map.dragState = true;
+            }
+            
+            LMap.on('mousemove', mousemove);
+            LMap.on('mouseup', mouseup);
+            LMap.on('mouseout', mouseout);
+            if(dragAttr && dragAttr.dragstart) dragAttr.dragstart(latlng.lng, latlng.lat, gmxNode);
+        }
+        gmxAPI.extend(node, {
+            enableDragging: function(pt) {     // Включить drag
+                if(dragAttr) node.disableDragging();
+                dragAttr = pt.attr;
+                LMap.on('mousedown', dragOn);
+            }
+            ,disableDragging: function() {
+                LMap.off('mousedown', dragOn);
+                gmxAPI._leaflet.utils.unfreeze();
+                gmxAPI.map.dragState = false;
+                dragAttr = null;
+            }
+            ,setPositionOffset: function(pt) {	// Установить смещение растрового слоя в метрах Меркатора
+                node.deltaX = pt.deltaX;
+                node.deltaY = pt.deltaY;
+                if(myLayer) {
+                    myLayer.options.deltaX = node.deltaX;
+                    myLayer.options.deltaY = node.deltaY;
+                    myLayer.options.continuousWorld = true;
+                    myLayer.updateTilesPosition();
+                    myLayer._update();
+                }
+			}
+            ,isPointIn: function(latlng) {		// true - latlng точка внутри растрового слоя
+                if(!node.isVisible 
+                    || !myLayer
+                    || !gmxNode
+                    ) return false;
+                var deltaX = node.deltaX || 0;
+                var deltaY = node.deltaY || 0;
+                var point = [gmxAPI.merc_x(latlng.lng) - deltaX, gmxAPI.merc_y(latlng.lat) - deltaY];
+                var options = myLayer.options;
+                var bounds = options.attr.boundsMerc;
+                if(bounds) {
+                    if(point[0] < bounds.minX || point[0] > bounds.maxX
+                        || point[1] < bounds.minY || point[1] > bounds.maxY
+                    ) return false;
+                }
+                // TODO: учет сдвига deltaX deltaY
+                var geo = options.attr.mercGeom;
+                if(geo && geo.coordinates && geo.coordinates[0]) {
+                    var coords = geo.coordinates;
+                    if(geo.type === 'POLYGON') coords = [coords];
+                    for (var i = 0, len = coords.length; i < len; i++) {
+                        if(utils.isPointInPolygonArr(point, coords[i][0])) return true;
+                    }
+                    return false;
+                }
+                return true;
+            }
+		});
 
 		var chkInitListeners = function()	{								// Требуется перерисовка с задержкой
 			var func = function(flag) {	// Изменилась видимость слоя
@@ -195,6 +284,8 @@
 					,'minZ': inpAttr['minZoom'] || attr['minZoom'] || gmxAPI.defaultMinZoom
 					,'maxZ': inpAttr['maxZoom'] || attr['maxZoom'] || gmxAPI.defaultMaxZoom
 					,'zIndex': node['zIndex']
+					,deltaX: node.deltaX || 0
+					,deltaY: node.deltaY || 0
 					,'initCallback': initCallback
 					,'tileFunc': inpAttr['func']
 					,'attr': attr
@@ -206,10 +297,10 @@
 					//,'countInvisibleTiles': (L.Browser.mobile ? 0 : 2)
 				};
 				if(gmxNode.properties.type === 'Overlay') {
-					node['isOverlay'] = true;
-					if(!node['zIndexOffset']) node['zIndexOffset'] = 50000;
+					node.isOverlay = true;
+					if(!node.zIndexOffset) node.zIndexOffset = 50000;
 				} else {
-					if(gmxNode.isBaseLayer) node['zIndexOffset'] = -100000;
+					if(gmxNode.isBaseLayer) node.zIndexOffset = -100000;
 				}
 				if(!gmxNode.isBaseLayer && attr['bounds']) {
 					option['bounds'] = new L.LatLngBounds([new L.LatLng(attr['bounds'].min.y, attr['bounds'].min.x), new L.LatLng(attr['bounds'].max.y, attr['bounds'].max.x)]);
@@ -254,7 +345,7 @@
 			}
 		}
 
-		var gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
+		gmxNode = gmxAPI.mapNodes[id];		// Нода gmxAPI
 		var onLayerEventID = gmxNode.addListener('onLayer', function(obj) {	// Слой инициализирован
 			gmxNode.removeListener('onLayer', onLayerEventID);
 			gmxNode = obj;
@@ -272,10 +363,11 @@
 
 		function drawCanvasPolygon( ctx, x, y, lgeo, opt) {
 			if(!lgeo) return;
-			var zoomCurrent = gmxAPI._leaflet['zoomCurrent'];
-			var tileSize = zoomCurrent['tileSize'];
-			//ctx.strokeStyle = 'rgba(255, 0, 0, 1)';
-			ctx.beginPath();
+			var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
+			var tileSize = zoomCurrent.tileSize;
+			var mInPixel = zoomCurrent.mInPixel;
+			var deltaX = opt.deltaX || 0;
+			var deltaY = opt.deltaY || 0;
 			var shiftY = (opt.shiftY ? opt.shiftY : 0);
 			if(opt.attr.boundsMerc) {
 				var extMerc = opt.attr.boundsMerc;
@@ -284,14 +376,15 @@
 				if (maxx < extMerc.minX) x += zoomCurrent['pz'];
 				else if (minx > extMerc.maxX) x -= zoomCurrent['pz'];
 			}
-
+            //ctx.strokeStyle = 'rgba(255, 0, 0, 1)';
+			ctx.beginPath();
 			var drawPolygon = function(arr) {
 				for (var j = 0; j < arr.length; j++)
 				{
-					var xx = (arr[j][0] / tileSize - x);
-					var yy = (arr[j][1] / tileSize - y);
-					var px = 256 * xx;						px = (0.5 + px) << 0;
-					var py = 256 * (1 - yy) - shiftY;		py = (0.5 + py) << 0;
+					var xx = arr[j][0] / tileSize - x;
+					var yy = arr[j][1] / tileSize - y;
+					var px = 256 * xx;				    px = (0.5 + px) << 0;
+					var py = 256 * (1 - yy) - shiftY;	py = (0.5 + py) << 0;
 					if(j == 0) ctx.moveTo(px, py);
 					else ctx.lineTo(px, py);
 				}
@@ -316,6 +409,7 @@
 			_initContainer: function () {
 				L.TileLayer.Canvas.prototype._initContainer.call(this);
 				//if('initCallback' in this.options) this.options.initCallback(this);
+                this.updateTilesPosition();
 			}
 			,
 			_reset: function (e) {
@@ -329,8 +423,8 @@
 			,
             '_update': function() {
                 if (!this._map || gmxAPI._leaflet['zoomstart']) {
-                    //var node = mapNodes[this.options.nodeID];
-                    //node.waitRedraw();
+                    var node = mapNodes[this.options.nodeID];
+                    node.waitRedraw();
                     return;
                 }
 
@@ -344,9 +438,16 @@
                 var bounds   = this._map.getPixelBounds(),
                     tileSize = this.options.tileSize;
 
+                var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
+                var mInPixel = zoomCurrent.mInPixel;
+                var deltaX = mInPixel * (this.options.deltaX || 0);
+                var deltaY = mInPixel * (this.options.deltaY || 0);
                 var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
-                bounds.min.y -= shiftY;
-                bounds.max.y -= shiftY;
+                deltaY -= shiftY;
+                bounds.min.y += deltaY;
+                bounds.max.y += deltaY;
+                bounds.min.x -= deltaX;
+                bounds.max.x -= deltaX;
 
                 var nwTilePoint = new L.Point(
                         Math.floor(bounds.min.x / tileSize),
@@ -542,6 +643,31 @@
                 });
 			}
 			,
+			updateTilesPosition: function (tile) {
+                if (!this._map || gmxAPI._leaflet['zoomstart']) return;
+                var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
+                var mInPixel = zoomCurrent.mInPixel;
+                var deltaX = mInPixel * (this.options.deltaX || 0);
+                var deltaY = mInPixel * (this.options.deltaY || 0);
+                var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
+                deltaY -= shiftY;
+                var arr = [tile];
+                if(!tile) {
+                    arr = [];
+                    for(var tKey in this._tiles) arr.push(this._tiles[tKey]);
+                }
+                for (var i = 0, len = arr.length; i < len; i++) {
+                    var tile = arr[i];
+                    var tilePos = this._getTilePos(tile._tilePoint);
+                    if(deltaX !== 0 || deltaY !== 0) {
+                        // сдвиг тайлов
+                        tilePos.x += deltaX;
+                        tilePos.y -= deltaY;
+                        L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
+                    }
+                }
+			}
+			,
 			gmxGetTile: function (tilePoint, type, img) {
 				var tKey = tilePoint.x + ':' + tilePoint.y;
                 if(tKey in this._tiles) return this._tiles[tKey];
@@ -554,15 +680,19 @@
 				tile._layer = this;
 				tile._tilePoint = tilePoint;
 				var tilePos = this._getTilePos(tilePoint);
-				L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
 
+                var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
+                var mInPixel = zoomCurrent.mInPixel;
+                var deltaX = mInPixel * (this.options.deltaX || 0);
+                var deltaY = mInPixel * (this.options.deltaY || 0);
                 var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
-                if(shiftY !== 0) {
-                    // сдвиг для OSM
-                    var tilePos = tile._leaflet_pos;
-                    tilePos.y += shiftY;
-                    L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
+                deltaY -= shiftY;
+                if(deltaX !== 0 || deltaY !== 0) {
+                    // сдвиг тайлов
+                    tilePos.x += deltaX;
+                    tilePos.y -= deltaY;
                 }
+                L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
                 if(gmxAPI.isMobile) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
 				this._tiles[tKey] = tile;
 				this._tileContainer.appendChild(tile);
