@@ -3023,12 +3023,10 @@
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node) return;
-            var flag = (L.Browser.gecko3d || L.Browser.webkit3d ? 'ImageMatrixTransform' : 'setImageMapObject');
-            if(flag) {
-                gmxAPI._leaflet.ImageMatrixTransform(node, ph);
-			} else {
-                setTimeout(function() {gmxAPI._leaflet.setImageMapObject(node, ph);},2);
-            }
+			setTimeout(function() {
+                var fName = (L.Browser.gecko3d || L.Browser.webkit3d ? 'ImageMatrixTransform' : 'setImageMapObject');
+                gmxAPI._leaflet[fName](node, ph);
+			},2);
 			return true;
 		}
 		,
