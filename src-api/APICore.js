@@ -2831,18 +2831,19 @@ FlashMapObject.prototype.remove = function()
 		
 	if(this.objectId) {
 		gmxAPI._cmdProxy('remove', { 'obj': this}); // Удалять в SWF только если там есть обьект
-		// чистка mapNodes
-		for(id in this.childsID) {
-			delete gmxAPI.mapNodes[id];
-		}
 		if(this.parent) delete this.parent.childsID[this.objectId];
 		delete gmxAPI.mapNodes[this.objectId];
 	}
+    // чистка mapNodes
+    for(id in this.childsID) {
+        delete gmxAPI.mapNodes[id];
+    }
 
 	if(this.properties) {
 		var layerID = this.properties.LayerID || this.properties.MultiLayerID;
 		if(layerID) {		// Это слой
 			gmxAPI._listeners.dispatchEvent('BeforeLayerRemove', this, this.properties.name);	// Удаляется слой
+            if('_clearLayer' in this) this._clearLayer(this.properties.name);
 		}
 	}
 	this.isRemoved = true;
@@ -3080,6 +3081,11 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
 	if(attr) {
 		if('subType' in attr) ph['subType'] = attr['subType'];
 	}
+	if(!('setPositionOffset' in this)) {
+        this.setPositionOffset = function(dx, dy) {
+            gmxAPI._cmdProxy('setPositionOffset', { 'obj': this, 'attr':{deltaX:dx, deltaY: dy} });
+        }
+    }
 	gmxAPI._cmdProxy('setBackgroundTiles', {'obj': this, 'attr':ph });
 }
 FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
