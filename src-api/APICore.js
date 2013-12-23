@@ -3349,6 +3349,7 @@ function createFlashMapInternal(div, layers, callback)
 
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);
 		if (gmxAPI.proxyType === 'flash') {			// Это flash версия
+            gmxAPI.map.controlsManager.initControls();
 			var needToStopDragging = false;
 			gmxAPI.flashDiv.onmouseout = function(ev) 
 			{
