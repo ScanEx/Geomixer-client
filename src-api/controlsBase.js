@@ -224,6 +224,17 @@
                         gmxAPI.setVisible(my.node, flag);
                         this.isVisible = flag;
                     }
+                    ,chkVisible: function() {
+                        var flag = false;
+                        for (var key in toolHash) {
+                            var tool = toolHash[key];
+                            if(tool.isVisible) {
+                                flag = true;
+                            }
+                        }
+                        gmxAPI.setVisible(my.node, flag);
+                        this.isVisible = flag;
+                    }
                     ,repaint: function() {
                         for (var id in toolHash) {
                             var tool = toolHash[id];
@@ -364,6 +375,7 @@
                                     row.style.display = 'none';
                                     row.style.visibility = 'hidden';
                                 }
+                                my.chkVisible();
                             },
                             setToolImage: function(a1, a2) {},
                             repaint: function()	{
@@ -390,6 +402,7 @@
                         toolNames.splice(pos, 0, tn);
                         //positionTools();
                         if(!gmxAPI._drawing.tools[tn]) gmxAPI._drawing.tools[tn] = toolHash[tn];
+                        my.chkVisible();
                         return toolHash[tn];
                     }
                     ,removeTool: function (tn) {
@@ -399,6 +412,7 @@
                         my.itemsContainer.removeChild(toolHash[tn].row);
                         delete toolHash[tn];
                         if(gmxAPI._drawing.tools[tn]) delete gmxAPI._drawing.tools[tn];
+                        my.chkVisible();
                         return true;
                     }
                     ,createContainerNode: function (nodeType, properties, style) {

@@ -448,14 +448,16 @@
 				if (layer.properties.type == "Raster" && layer.properties.MaxZoom > gmxAPI.maxRasterZoom)
 					gmxAPI.maxRasterZoom = layer.properties.MaxZoom;
 			}, notVisible);
-			if (layers.properties.UseOpenStreetMap && !haveOSM)
+			//if (layers.properties.UseOpenStreetMap && !haveOSM)
+            var baseLayer = map.baseLayersManager.get('OSM');
+			//if (!baseLayer !haveOSM)
+			if (!baseLayer)
 			{
 				var o = map.addObject();
 				//o.setVisible(false);
 				o.bringToBottom();
 				//o.setAsBaseLayer("OSM");
-                var baseLayer = map.baseLayersManager.get('OSM') ||
-                    map.baseLayersManager.add('OSM', {});
+                baseLayer = map.baseLayersManager.add('OSM', {});
                     //map.baseLayersManager.add('OSM', {isVisible:false});
 				baseLayer.addLayer(o);
 				o.setOSMTiles();
