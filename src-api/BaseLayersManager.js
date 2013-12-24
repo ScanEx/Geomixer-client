@@ -25,8 +25,11 @@
             gmxAPI.extendFMO('setAsBaseLayer', function(name, attr) {
                 this.isBaseLayer = true;
                 var id = name;
-                if(!attr) attr = {};
-                else {
+                if(!attr) {
+                    attr = {
+                        index: manager.arr.length
+                    };
+                } else {
                     id = (attr.id ? attr.id : name);
                     if(attr.lang) {
                         attr.rus = (attr.lang.ru ? attr.lang.ru : id);
@@ -35,11 +38,13 @@
                 }
                 attr.isVisible = true
                 var blID = manager.getIDByName(id) || id;
-				var baseLayer = manager.add(blID, attr);
+				var baseLayer = manager.hash[blID];
+                if(!baseLayer) baseLayer = manager.add(blID, attr);
                 //if(!baseLayer && manager.hash[id]) baseLayer = manager.hash[id];
                 if(!baseLayer) return null;
                 baseLayer.addLayer(this);
-                this.setVisible(false);     // слои подложек изначально не видимы
+                this.setVisible(false);         // слои подложек изначально не видимы
+                baseLayer.setVisible(true);     // подложка видима для обратной совместимости
             });
 			gmxAPI.extend(manager.map,
             {
