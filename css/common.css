@@ -1566,6 +1566,10 @@ div.layersScroll
     border: 1px gray solid;
 }
 
+.group-editor-blm-available .group-editor-blm-avail-item {
+    background-color: gainsboro;
+}
+
 .group-editor-blm-title {
     text-align: center;
     font-size: 12px;

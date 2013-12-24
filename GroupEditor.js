@@ -9,8 +9,8 @@ var BaseLayersControl = function(container, map) {
     $(container).append(
         '<table class="group-editor-blm-table">' +
             '<tr>' + 
-                '<td class="group-editor-blm-title">Доступные подложки</td>' +
-                '<td class="group-editor-blm-title">Подложки карты</td>' + 
+                '<td class="group-editor-blm-title">' + _gtxt('Доступные подложки') + '</td>' +
+                '<td class="group-editor-blm-title">' + _gtxt('Подложки карты') + '</td>' + 
             '</tr><tr>' + 
                 '<td class="group-editor-blm-available"></td>' + 
                 '<td class="group-editor-blm-map"></td>' + 
@@ -546,7 +546,7 @@ var createGroupEditorProperties = function(div, isMap, mainLayersTree)
 									//.concat(visibilityPropertiesView)
 									.concat(
 										[{name: _gtxt("Использовать KosmosnimkiAPI"), elem: useAPI},
-										{name: _gtxt("Использовать OpenStreetMap"), elem: useOSM},
+										//{name: _gtxt("Использовать OpenStreetMap"), elem: useOSM},
 										{name: _gtxt("Язык по умолчанию"), elem: defLang},
 										{name: _gtxt("Единицы длины"), elem: distUnit},
 										{name: _gtxt("Единицы площади"), elem: squareUnit},

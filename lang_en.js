@@ -153,7 +153,7 @@ _translationsHash.hash["eng"] = {
 	"Каталог" : "Catalogue",
 	"Изменить" : "Change",
 	"Вид вложенных элементов" : "Form of attached elements",
-	"Использовать KosmosnimkiAPI" : "Use KosmosnimkiAPI",
+	"Использовать KosmosnimkiAPI" : "Load Kosmosnimki base layers",
 	"Использовать OpenStreetMap" : "Use OpenStreetMap",
 	"Язык по умолчанию" : "Default language",
     "Единицы длины": "Distance unit",
@@ -347,6 +347,8 @@ _translationsHash.hash["eng"] = {
 	"URL файла" : "File URL",
     "Поиск" : "Search",
     "Подложки": "Base Layers",
+    "Доступные подложки": "Available base layers",
+    "Подложки карты": "Base layers on map",
     "Выберите слои для поиска по атрибутам": "Select layers for attributes search",
 		
 	"Редактирование прав доступа карты [value0]" : "Map [value0] access editor",
