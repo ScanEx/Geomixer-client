@@ -3347,6 +3347,7 @@ function createFlashMapInternal(div, layers, callback)
 		var baseMap = gmxAPI._tmpMaps[gmxAPI.kosmosnimki_API];
 		var map = gmxAPI._addNewMap(rootObjectId, layers || baseMap, callback);
         if(baseMap) {
+			map.addLayers(baseMap, false);		// добавление основной карты
             if (baseMap.properties.OnLoad)		//  Обработка маплета базовой карты
             {
                 try { eval("_kosmosnimki_temp=(" + baseMap.properties.OnLoad + ")")(map); }
@@ -3484,7 +3485,6 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 		var parseBaseMap = function(kosmoLayers) {
 			createFlashMapInternal(div, kosmoLayers, function(map)
 			{
-				map.addLayers(kosmoLayers, false);		// добавление основной карты
 				for (var i = 0; i < map.layers.length; i++) {
 					var obj = map.layers[i];
 					obj.setVisible(false);
