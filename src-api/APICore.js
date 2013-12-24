@@ -3363,6 +3363,9 @@ function createFlashMapInternal(div, layers, callback)
 				gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
 			}
 		}
+        if (gmxAPI._baseLayersArr && gmxAPI._baseLayersArr.length) {
+            map.needSetMode = gmxAPI._baseLayersArr[0];
+        }
 		if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
 			gmxAPI.map.miniMap.setVisible(true);
 		}
@@ -3425,6 +3428,11 @@ function createFlashMapInternal(div, layers, callback)
                     gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': e+'\n---------------------------------'+'\n' + layers.properties.OnLoad});
                 }
             }
+        }
+        if(map.needSetMode) {
+            var needSetMode = map.needSetMode;
+            map.needSetMode = null;
+            map.setMode(needSetMode);
         }
 	}
 
@@ -3732,11 +3740,11 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 					if(gmxAPI.proxyType === 'flash') map.needMove = null;
 					map.moveTo(x, y, z);
 				}
-				if(map.needSetMode) {
-					var needSetMode = map.needSetMode;
-					map.needSetMode = null;
-					map.setMode(needSetMode);
-				}
+				// if(map.needSetMode) {
+					// var needSetMode = map.needSetMode;
+					// map.needSetMode = null;
+					// map.setMode(needSetMode);
+				// }
 			});
 		};
 		var getBaseMap = function()
