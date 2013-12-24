@@ -1172,7 +1172,7 @@ console.log('onRemove ', this);
           return new L.Control.Drawing(options);
         }
         // if(!gmxAPI.isMobile) {
-        var gmxDrawing = L.control.gmxDrawing({id: 'gmxDrawing'});
+        var gmxDrawing = L.control.gmxDrawing({id: 'gmxDrawing', isVisible: true});
         gmxDrawing.addTo(gmxAPI._leaflet.LMap);
         //outControls.gmxDrawing = gmxDrawing;
 
