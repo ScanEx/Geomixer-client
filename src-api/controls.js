@@ -161,9 +161,7 @@
 		map.updateCopyright = function()
 		{
 			var currPos = gmxAPI.currPosition || map.getPosition();
-			if(!currPos['latlng']) return;
-			var x = currPos['latlng']['x'];
-			var y = currPos['latlng']['y'];
+            if(!currPos || !currPos.latlng || !currPos.latlng.extent) return;
 			var texts = {};
 			for (var i = 0; i < copyrightedObjects.length; i++)
 			{
@@ -173,8 +171,7 @@
 					if (obj.geometry)
 					{
 						var bounds = obj.bounds || gmxAPI.getBounds(obj.geometry.coordinates);
-						if ((x < bounds.minX) || (x > bounds.maxX) || (y < bounds.minY) || (y > bounds.maxY))
-							continue;
+                        if(!gmxAPI.extIntersect(currPos.latlng.extent, bounds)) continue;
 					}
 					texts[obj.copyright] = true;
 				}
