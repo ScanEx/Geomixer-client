@@ -140,6 +140,7 @@
                 }
                 ,setVisible: function(flag) {
                     this.isVisible = flag;
+                    manager.updateIndex(this);
                     gmxAPI._listeners.dispatchEvent('onVisibleChange', manager.map.baseLayersManager, this);
                     if(flag) return
                     if(manager.currentID === this.id) {
@@ -149,6 +150,7 @@
                 }
                 ,setIndex: function(index) {
                     this.index = index;
+                    manager.updateIndex(this);
                     gmxAPI._listeners.dispatchEvent('onIndexChange', manager.map.baseLayersManager, this);
                 }
                 ,getIndex: function() {
@@ -171,26 +173,43 @@
             
             manager.hash[id] = pt;
             manager.arr.push(pt);
-            
+            manager.updateIndex(pt);
             gmxAPI._listeners.dispatchEvent('onAdd', manager.map.baseLayersManager, pt);
             return pt;
         }
-        // ,
-        // setIndex: function(id, attr) {
-            // var len = manager.zIndex.length;
-            // var index = ('index' in attr ? attr.index : len);
-            // var out = -1;
-            // if(index > len - 1) {
-                // out = len;
-                // manager.zIndex.push(id);
-            // } else {
-                // var arr = manager.zIndex.slice(0, index);
-                // out = arr.length;
-                // arr.push(id);
-                // manager.zIndex = arr.concat(manager.zIndex.slice(index));
-            // }
-            // return out;
-        // }
+        ,
+        _removeIdFromzIndex: function(id) {
+            for(var i=0, len = manager.zIndex.length; i<len; i++) {
+                if(id === manager.zIndex[i]) {
+                    manager.zIndex.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        ,
+        updateIndex: function(attr) {
+            if(!attr.id) return null;
+            var id = attr.id;
+            manager._removeIdFromzIndex(id);
+            if(attr.isVisible) {
+                var len = manager.zIndex.length;
+                var index = ('index' in attr ? attr.index : len);
+                var out = -1;
+                if(index > len - 1) {
+                    out = len;
+                    manager.zIndex.push(id);
+                } else {
+                    var arr = manager.zIndex.slice(0, index);
+                    out = arr.length;
+                    arr.push(id);
+                    manager.zIndex = arr.concat(manager.zIndex.slice(index));
+                }
+                manager.hash[id].index = out;
+            } else {
+                out = null;
+            }
+            return out;
+        }
         ,
         getAll: function(flag) {              // Получить список базовых подложек
             return manager.arr;
@@ -249,6 +268,7 @@
                 }
                 gmxAPI._listeners.dispatchEvent('onRemove', manager.map.baseLayersManager, item);
             }
+            manager._removeIdFromzIndex(id);
             return item;
         }
         ,toggleVisibility: function(id) {
@@ -291,6 +311,7 @@
             * @param {boolean} attr.isVisible - видимость подложки - 3 состояния отражающие видимость в контролах (true - видимая, false - не видимая, undefined - видимость определяется по списку BaseLayers)
             * @param {String} attr.rus - наименование русскоязычное(по умолчанию равен id).
             * @param {String} attr.eng - наименование англоязычное(по умолчанию равен id).
+            * @param {Layer[]} attr.layers - массив слоев подложки(по умолчанию []).
             * @returns {BaseLayer|null} возвращает обьект добавленной подложки или null если подложка с данным идентификатором уже существует.
             */
             add: function(id, attr) {
@@ -318,6 +339,13 @@
             */
             getAll: function() {
                 return manager.arr;
+            },
+            /** Получить массив ID видимых подложек
+            * @memberOf BaseLayersManager#
+            * @returns {String[]} возвращает массив ID видимых подложек(в порядке возрастания индексов).
+            */
+            getVisibleIDS: function() {
+                return manager.zIndex;
             },
             /** Установить текущую подложку по идентификатору
             * @memberOf BaseLayersManager#

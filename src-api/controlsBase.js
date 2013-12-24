@@ -1427,10 +1427,15 @@
                 if(tool && !ph.isVisible) tool.setVisible(false);
             }
             ,
-            onIndexChange: function(ph) {
-                var id = ph.id;
-                var index = ph.getIndex();
-                layersControl.map.baseLayersTools.setToolIndex(id, index);
+            onIndexChange: function() {
+                var mbl = layersControl.map.baseLayersManager;
+                var arr = mbl.getVisibleIDS();
+                for(var i=0, len = arr.length; i<len; i++) {
+                    var id = arr[i];
+                    var ph = mbl.get(id);
+                    var index = ph.getIndex();
+                    layersControl.map.baseLayersTools.setToolIndex(id, index);
+                }
             }
             ,
             onVisibleChange: function(ph) {
@@ -1441,6 +1446,7 @@
                     tool = layersControl.map.baseLayersTools.getTool(id);
                 }
                 if(tool) tool.setVisible(ph.isVisible);
+                layersControl.onIndexChange();
             }
             ,
             toggleHandlers: function(flag) {            // Добавление прослушивателей событий

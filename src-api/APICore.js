@@ -3416,11 +3416,11 @@ function createFlashMapInternal(div, layers, callback)
                     var baseLayer = baseLayersManager.get(id);
                     if(baseLayer) {
                         baseLayer.setVisible(true);
-                        baseLayer.setIndex(i);
-                        if(id === map.needSetMode) modeFlag = true;
+                        if(gmxAPI._baseLayersArr) baseLayer.setIndex(i);
+                        //if(id === map.needSetMode) modeFlag = true;
                     }
                 }
-                if(!modeFlag) map.needSetMode = null;
+                //if(!modeFlag) map.needSetMode = null;
             }
 
             if (prop.OnLoad) {	//  Обработка маплета карты - mapplet для базовой карты уже вызывали
