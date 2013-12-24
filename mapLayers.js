@@ -2024,10 +2024,18 @@ queryMapLayers.prototype.createMap = function(name)
         
         var activeBaseLayers = [];
         globalFlashMap.baseLayersManager.getAll().forEach(function(baseLayer, index) {
-            baseLayer.isVisible && activeBaseLayers.push(baseLayer.id);
+            baseLayer.isVisible && activeBaseLayers.push({id: baseLayer.id, index: baseLayer.getIndex()});
         });
         
-        saveTree.properties.BaseLayers = JSON.stringify(activeBaseLayers);
+        var activeBaseLayerIDs = activeBaseLayers
+            .sort(function(a, b) {
+                return a.index - b.index;
+            })
+            .map(function(item) {
+                return item.id;
+            });
+        
+        saveTree.properties.BaseLayers = JSON.stringify(activeBaseLayerIDs);
         
         //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)
