@@ -382,8 +382,8 @@
 				{
 					var xx = arr[j][0] / tileSize - x;
 					var yy = arr[j][1] / tileSize - y;
-					var px = 256 * xx;				px = (0.5 + px) << 0;
-					var py = 256 * (1 - yy) - shiftY;		py = (0.5 + py) << 0;
+					var px = 256 * xx;				    px = (0.5 + px) << 0;
+					var py = 256 * (1 - yy) - shiftY;	py = (0.5 + py) << 0;
 					if(j == 0) ctx.moveTo(px, py);
 					else ctx.lineTo(px, py);
 				}

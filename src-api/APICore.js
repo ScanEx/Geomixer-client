@@ -3135,6 +3135,12 @@ FlashMapObject.prototype.setBackgroundTiles = function(imageUrlFunction, project
 	if(attr) {
 		if('subType' in attr) ph['subType'] = attr['subType'];
 	}
+	if(!('setPositionOffset' in this)) {
+        this.setPositionOffset = function(dx, dy) {
+            gmxAPI._cmdProxy('setPositionOffset', { 'obj': this, 'attr':{deltaX:dx, deltaY: dy} });
+        }
+    }
+    
 	gmxAPI._cmdProxy('setBackgroundTiles', {'obj': this, 'attr':ph });
 }
 FlashMapObject.prototype.setTiles = FlashMapObject.prototype.setBackgroundTiles;
@@ -3324,8 +3330,8 @@ function createFlashMapInternal(div, layers, callback)
 		flashDiv.style.MozUserSelect = "none";
 
 		var layers = gmxAPI._tmpMaps[gmxAPI.currentMapName];
-		var map = gmxAPI._addNewMap(rootObjectId, layers, callback);
 		var baseMap = gmxAPI._tmpMaps[gmxAPI.kosmosnimki_API];
+		var map = gmxAPI._addNewMap(rootObjectId, layers || baseMap, callback);
         if(baseMap) {
             if (baseMap.properties.OnLoad)		//  Обработка маплета базовой карты
             {
@@ -3371,9 +3377,9 @@ function createFlashMapInternal(div, layers, callback)
 				}
 			}
 		}
-        var prop = layers.properties;
-        if (prop.name !== gmxAPI.kosmosnimki_API)	// обработка массива видимых подложек
+        if (layers && layers.properties.name !== gmxAPI.kosmosnimki_API)	// обработка массива видимых подложек
         {
+            var prop = layers.properties;
             var arr = (prop.BaseLayers ? JSON.parse(prop.BaseLayers) : null);
             var baseLayersArr = gmxAPI.isArray(arr) ? arr : ['map', 'satellite', 'hybrid', 'OSM'];
             //var baseLayersArr = gmxAPI.isArray(arr) ? arr : null;
