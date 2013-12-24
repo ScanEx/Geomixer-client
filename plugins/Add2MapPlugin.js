@@ -26,6 +26,7 @@
             var mapListenerId = null;
             var toolContainer = new map.ToolsContainer('addObject');
             var tool = toolContainer.addTool('addObject', {
+                overlay: true,
                 hint: _gtxt('add2MapPlugin.iconTitle'),
                 regularImageUrl: _params.regularImage.search(/^https?:\/\//) !== -1 ? _params.regularImage : path + _params.regularImage,
                 activeImageUrl:  _params.activeImage.search(/^https?:\/\//) !== -1 ? _params.activeImage : path + _params.activeImage,

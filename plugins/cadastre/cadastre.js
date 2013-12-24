@@ -723,6 +723,7 @@ var publicInterface = {
 			
 			
 			var attr = {
+                overlay: true,
 				'onClick': onClickCadastreTools,
 				'onCancel': onCancelCadastreTools,
 				'onmouseover': function() { this.style.color = "orange"; },
