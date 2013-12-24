@@ -451,7 +451,7 @@
 			if (layers.properties.UseOpenStreetMap && !haveOSM)
 			{
 				var o = map.addObject();
-				o.setVisible(false);
+				//o.setVisible(false);
 				o.bringToBottom();
 				//o.setAsBaseLayer("OSM");
                 var baseLayer = map.baseLayersManager.get('OSM') ||
@@ -460,6 +460,7 @@
 				baseLayer.addLayer(o);
 				o.setOSMTiles();
 				haveOSM = true;
+				o.setVisible(false);
 
 				if('miniMap' in map) {
 					var miniOSM = map.miniMap.addObject();
@@ -717,7 +718,7 @@
 		if(!layers.properties.UseKosmosnimkiAPI) map.moveTo(map.needMove.x, map.needMove.y, map.needMove.z);
 		
 		if(!map.needSetMode && haveOSM) {			// если нигде не устанавливалась текущая подложка и есть OSM
-			map.setMode('OSM');
+			if(!gmxAPI._baseLayersArr || gmxAPI._baseLayersHash['OSM']) map.setMode('OSM');
 		}
 
 		var startDrag = function(object, dragCallback, upCallback)

@@ -116,6 +116,7 @@
             if(!attr) attr = {};
             //var isVisible = ('isVisible' in attr ? attr.isVisible : true); // видимость подложки
             var isVisible = attr.isVisible; // видимость подложки - 3 состояния отражающие видимость в контролах (true - видимая, false - не видимая, undefined - видимость определяется по списку BaseLayers)
+            if(gmxAPI._baseLayersHash[id]) isVisible = true;
             var pt = {
                 id: id || 'default'                 // id подложки
                 ,layers: attr.layers || []          // массив слоев подложки

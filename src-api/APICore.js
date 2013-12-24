@@ -3330,6 +3330,20 @@ function createFlashMapInternal(div, layers, callback)
 		flashDiv.style.MozUserSelect = "none";
 
 		var layers = gmxAPI._tmpMaps[gmxAPI.currentMapName];
+		gmxAPI._baseLayersArr = null;
+		gmxAPI._baseLayersHash = {};    // видимые ID подложек из описания текущей карты
+        if(layers) {
+            var prop = layers.properties || {};
+            var arr = (prop.BaseLayers ? JSON.parse(prop.BaseLayers) : null);
+            gmxAPI._baseLayersArr = gmxAPI.isArray(arr) ? arr : null;
+            if(gmxAPI._baseLayersArr) {
+                for (var i = 0, len = gmxAPI._baseLayersArr.length; i < len; i++) {
+                    var id = gmxAPI._baseLayersArr[i];
+                    gmxAPI._baseLayersHash[id] = true;
+                }
+            }
+        }
+        
 		var baseMap = gmxAPI._tmpMaps[gmxAPI.kosmosnimki_API];
 		var map = gmxAPI._addNewMap(rootObjectId, layers || baseMap, callback);
         if(baseMap) {
@@ -3380,10 +3394,16 @@ function createFlashMapInternal(div, layers, callback)
         if (layers && layers.properties.name !== gmxAPI.kosmosnimki_API)	// обработка массива видимых подложек
         {
             var prop = layers.properties;
-            var arr = (prop.BaseLayers ? JSON.parse(prop.BaseLayers) : null);
-            var baseLayersArr = gmxAPI.isArray(arr) ? arr : ['map', 'satellite', 'hybrid', 'OSM'];
+            // var arr = (prop.BaseLayers ? JSON.parse(prop.BaseLayers) : null);
+            // var baseLayersArr = gmxAPI.isArray(arr) ? arr : ['map', 'satellite', 'hybrid', 'OSM'];
+            var baseLayersArr = gmxAPI._baseLayersArr || ['map', 'satellite', 'hybrid'];
+            
             //var baseLayersArr = gmxAPI.isArray(arr) ? arr : null;
-            if (!baseLayersArr && prop.UseOpenStreetMap) baseLayersArr = ['OSM'];
+            //if (!baseLayersArr && prop.UseOpenStreetMap) baseLayersArr = ['OSM'];
+            if (!gmxAPI._baseLayersArr && prop.UseOpenStreetMap ) {
+                baseLayersArr = ['OSM'];
+                gmxAPI._baseLayersHash['OSM'] = true;
+            }
             if(baseLayersArr) {
                 var baseLayersManager = map.baseLayersManager,
                     modeFlag = false; 
