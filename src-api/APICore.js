@@ -3415,8 +3415,9 @@ function createFlashMapInternal(div, layers, callback)
                     var id = baseLayersArr[i];
                     var baseLayer = baseLayersManager.get(id);
                     if(baseLayer) {
-                        baseLayer.setVisible(true);
-                        if(gmxAPI._baseLayersArr) baseLayer.setIndex(i);
+                        // baseLayer.setVisible(true);
+                        // if(gmxAPI._baseLayersArr) baseLayer.setIndex(i);
+                        baseLayersManager.addActiveID(id, gmxAPI._baseLayersArr ? i : null);
                         //if(id === map.needSetMode) modeFlag = true;
                     }
                 }
@@ -3520,13 +3521,14 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                     var id = arr[i];
                     baseLayersManager.remove(id);
                     // нет подложки сформируем через getBaseMapParam 
-                    var attr = {id: id, index: i, layers:[] };
+                    var attr = {id: id, layers:[] };
                     if(id === 'satellite' && satelliteLayerID) {
                         attr.rus = 'Снимки';
                         attr.eng = 'Satellite';
                         satelliteLayers = getLayersArr(map, satelliteLayerID.split(","), 0x000001);
                         attr.layers = satelliteLayers;
-                        if(!baseLayersArr) attr.isVisible = true;
+                        if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
+                        
                         if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
@@ -3535,7 +3537,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                         attr.eng = 'Hybrid';
                         overlayLayers = getLayersArr(map, (satelliteLayerID+','+overlayLayerID).split(","), 0x000001);
                         attr.layers = overlayLayers;
-                        if(!baseLayersArr) attr.isVisible = true;
+                        if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
                         if(!map.needSetMode && attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
@@ -3549,7 +3551,7 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
                             attr.layers.push(osmEmbed);
                             setOSMEmbed(osmEmbed);
                         }
-                        if(!baseLayersArr) attr.isVisible = true;
+                        if(!baseLayersArr) baseLayersManager.addActiveID(id, i);
                         if(attr.layers.length && (!baseLayersArr || baseLayersHash[id])) {
                             map.needSetMode = id;
                         }
