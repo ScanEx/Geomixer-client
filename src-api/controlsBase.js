@@ -1402,9 +1402,13 @@
             }
             ,
             chkExists: function() {     // Получить уже установленные подложки
-                var arr = gmxAPI.map.baseLayersManager.getAll();
-                for(var i=0, len = arr.length; i<len; i++) {
-                    layersControl.addBaseLayerTool(arr[i]);
+                var activeIDs = mbl.getActiveIDs();
+                for (var i = 0, len = activeIDs.length; i < len; i++) {
+                    var id = activeIDs[i];
+                    var baseLayer = gmxAPI.map.baseLayersManager.get(id);
+                    if(baseLayer)  {
+                        layersControl.addBaseLayerTool(baseLayer);
+                    }
                 }
                 var id = gmxAPI.map.baseLayersManager.getCurrentID();
                 if(id) gmxAPI.baseLayersTools.setActiveTool(id);
@@ -1424,30 +1428,45 @@
                     hint: gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id
                 };
                 var tool = layersControl.map.baseLayersTools.chkBaseLayerTool(id, attr);
-                if(tool && !ph.isVisible) tool.setVisible(false);
+                if(tool) tool.setVisible(false);
+                //if(tool && !ph.isVisible) tool.setVisible(false);
             }
             ,
-            onIndexChange: function() {
-                var mbl = layersControl.map.baseLayersManager;
-                var arr = mbl.getVisibleIDS();
-                for(var i=0, len = arr.length; i<len; i++) {
+            onActiveChanged: function(arr) {
+                for (var i = 0, len = arr.length; i < len; i++) {
                     var id = arr[i];
-                    var ph = mbl.get(id);
-                    var index = ph.getIndex();
-                    layersControl.map.baseLayersTools.setToolIndex(id, index);
+                    var tool = layersControl.map.baseLayersTools.getTool(id);
+                    var baseLayer = mbl.get(id);
+                    if(baseLayer) {
+                        if(tool) tool.setVisible(true);
+                        layersControl.map.baseLayersTools.setToolIndex(id, i);
+                    } else {
+                        if(tool) tool.setVisible(false);
+                    }
                 }
             }
-            ,
-            onVisibleChange: function(ph) {
-                var id = ph.id,
-                    tool = layersControl.map.baseLayersTools.getTool(id);
-                if(!tool && ph.isVisible) {
-                    layersControl.addBaseLayerTool(ph);
-                    tool = layersControl.map.baseLayersTools.getTool(id);
-                }
-                if(tool) tool.setVisible(ph.isVisible);
-                layersControl.onIndexChange();
-            }
+            // ,
+            // onIndexChange: function() {
+                // var mbl = layersControl.map.baseLayersManager;
+                // var arr = mbl.getVisibleIDS();
+                // for(var i=0, len = arr.length; i<len; i++) {
+                    // var id = arr[i];
+                    // var ph = mbl.get(id);
+                    // var index = ph.getIndex();
+                    // layersControl.map.baseLayersTools.setToolIndex(id, index);
+                // }
+            // }
+            // ,
+            // onVisibleChange: function(ph) {
+                // var id = ph.id,
+                    // tool = layersControl.map.baseLayersTools.getTool(id);
+                // if(!tool && ph.isVisible) {
+                    // layersControl.addBaseLayerTool(ph);
+                    // tool = layersControl.map.baseLayersTools.getTool(id);
+                // }
+                // if(tool) tool.setVisible(ph.isVisible);
+                // layersControl.onIndexChange();
+            // }
             ,
             toggleHandlers: function(flag) {            // Добавление прослушивателей событий
                 if(flag) {
@@ -1458,10 +1477,13 @@
                     layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
                     key = 'onLayerChange';
                     layersControl.listeners[key] = mbl.addListener(key, layersControl.addBaseLayerTool);
-                    key = 'onVisibleChange';
-                    layersControl.listeners[key] = mbl.addListener(key, layersControl.onVisibleChange);
-                    key = 'onIndexChange';
-                    layersControl.listeners[key] = mbl.addListener(key, layersControl.onIndexChange);
+                    
+                    key = 'onActiveChanged';
+                    layersControl.listeners[key] = mbl.addListener(key, layersControl.onActiveChanged);
+                    // key = 'onVisibleChange';
+                    // layersControl.listeners[key] = mbl.addListener(key, layersControl.onVisibleChange);
+                    // key = 'onIndexChange';
+                    // layersControl.listeners[key] = mbl.addListener(key, layersControl.onIndexChange);
 
                     key = 'onSetCurrent';
                     layersControl.listeners[key] = mbl.addListener(key, function(bl) {
@@ -1478,9 +1500,9 @@
             }
             ,getInterface: function() {
                 return gmxAPI.baseLayersTools;
-                return {
-                    remove: layersControl.remove
-                };
+                // return {
+                    // remove: layersControl.remove
+                // };
             }
         }
 

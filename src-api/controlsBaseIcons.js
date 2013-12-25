@@ -582,7 +582,6 @@
                     // }
                     ,
                     onActiveChanged: function(arr) {
-console.log('onActiveChanged', arr);
                         var i, obj, id,
                             len, hash = {};
 
