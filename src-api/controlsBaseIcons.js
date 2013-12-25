@@ -381,7 +381,6 @@
                 current: ''
                 ,collapsed: false
                 ,isVisible: true
-                //,activeIDs: []
             }
             ,
             _onInputClick: function (ev) {
@@ -416,18 +415,12 @@
                     if(obj.overlay) overlays.push(obj);
                     hash[obj.layer.id] = obj;
                 }
-                // arr.sort(function (a,b) {
-                    // var n1 = a.layer.getIndex();
-                    // var n2 = b.layer.getIndex();
-                    // return n1 - n2;
-                // });
                 var activeIDs = mbl.getActiveIDs();
                 for (i = 0, len = activeIDs.length; i < len; i++) {
                     id = activeIDs[i];
                     obj = hash[id];
                     if(!obj || (!obj.overlay && !mbl.get(id))) continue;
                     this._addItem(obj);
-                    //baseLayersPresent = baseLayersPresent || !obj.overlay;
                 }
                 if(overlays.length) {
                     for (i = 0, len = overlays.length; i < len; i++) {
@@ -436,43 +429,9 @@
                 }
                 len = activeIDs.length + overlays.length;
                 this._container.style.display = len > 0 ? 'block' : 'none';
-
                 this._separator.style.display = overlays.length && activeIDs.length ? '' : 'none';
-                
                 if(this.current) this.setCurrent(this.current, true);
             }
-            // ,
-            // setIndex: function (ph, index) {
-                // var layerId = ph._leaflet_id;
-// if(!layerId) return;
-                // var overlay = this._layers[layerId].overlay;
-                // var cont = overlay ? this._baseLayersList : this._baseLayersList;
-                // if(index < 0) index = 0;
-                
-                // for(var i=0, len = cont.childNodes.length; i<len; i++) {
-                    // var node = cont.childNodes[i];
-                    // var control = node.control;
-                    // if(layerId == control.layerId) {
-                        // if(index >= len - 1) {
-                            // cont.appendChild(node);
-                        // } else {
-                            // var before = cont.childNodes[index + 1];
-                            // cont.insertBefore(node, before);
-                        // }
-                        // break;
-                    // }
-                // }
-                // for(var i=0, baseLayerIndex = 0, overlayIndex = 0, len = cont.childNodes.length; i<len; i++) {
-                    // var node = cont.childNodes[i];
-                    // var control = node.control;
-                    // var obj = this._layers[control.layerId];
-                    // if(obj.overlay) {
-                        // obj.layer.index = overlayIndex++;
-                    // } else {
-                        // obj.layer.index = baseLayerIndex++;
-                    // }
-                // }
-            // }
 			,setVisible: function(flag) {
                 if(!flag) flag = false;
                 if(this._container) {
@@ -561,25 +520,6 @@
                         var id = mbl.getCurrentID();
                         //if(my._baseLayersHash[id]) my._baseLayersHash[id].select();
                     }
-                    // ,
-                    // onIndexChange: function(ph) {
-                        // var id = ph.id;
-                        // var index = ph.getIndex();
-                        // my.setIndex(ph, index);
-                    // }
-                    // ,
-                    // onVisibleChange: function(ph) {
-                        // var id = ph.id;
-                        // if(!ph.isVisible) {
-                            // my.removeLayer(ph);
-                            // if(my.current === id) my.current = null;
-                       
-                        // } else {
-                            // var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(ph.rus, ph.eng) || id;
-                            // if(ph.overlay) my.addOverlay(ph, name);
-                            // else util.addBaseLayerTool(ph);
-                        // }
-                    // }
                     ,
                     onActiveChanged: function(arr) {
                         var i, obj, id,
@@ -601,10 +541,6 @@
                             obj = hash[i];
                             my.removeLayer(obj);
                         }
-                        // var id = ph.id;
-                        // var index = ph.getIndex();
-                        // my.setIndex(ph, index);
-                        //my._update();
                     }
                 }
 
@@ -615,14 +551,10 @@
                 key = 'onActiveChanged';
                 this._listeners[key] = mbl.addListener(key, util.onActiveChanged);
 
-                // key = 'onVisibleChange';
-                // this._listeners[key] = mbl.addListener(key, util.onVisibleChange);
-                // key = 'onIndexChange';
-                // this._listeners[key] = mbl.addListener(key, util.onIndexChange);
                 key = 'onSetCurrent';
                 this._listeners[key] = mbl.addListener(key, function(bl) {
                     if(!bl) return;
-                    bl.isVisible = true;
+                    //bl.isVisible = true;
                     if(!bl._leaflet_id) util.addBaseLayerTool(bl);
                     my.setCurrent(bl._leaflet_id);
                 });

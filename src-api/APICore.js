@@ -3398,30 +3398,18 @@ function createFlashMapInternal(div, layers, callback)
         if (layers && layers.properties.name !== gmxAPI.kosmosnimki_API)	// обработка массива видимых подложек
         {
             var prop = layers.properties;
-            // var arr = (prop.BaseLayers ? JSON.parse(prop.BaseLayers) : null);
-            // var baseLayersArr = gmxAPI.isArray(arr) ? arr : ['map', 'satellite', 'hybrid', 'OSM'];
             var baseLayersArr = gmxAPI._baseLayersArr || ['map', 'satellite', 'hybrid'];
             
-            //var baseLayersArr = gmxAPI.isArray(arr) ? arr : null;
-            //if (!baseLayersArr && prop.UseOpenStreetMap) baseLayersArr = ['OSM'];
             if (!gmxAPI._baseLayersArr && prop.UseOpenStreetMap ) {
                 baseLayersArr = ['OSM'];
                 gmxAPI._baseLayersHash['OSM'] = true;
             }
             if(baseLayersArr) {
-                var baseLayersManager = map.baseLayersManager,
-                    modeFlag = false; 
+                var baseLayersManager = map.baseLayersManager; 
                 for (var i = 0, len = baseLayersArr.length; i < len; i++) {
                     var id = baseLayersArr[i];
-                    var baseLayer = baseLayersManager.get(id);
-                    if(baseLayer) {
-                        // baseLayer.setVisible(true);
-                        // if(gmxAPI._baseLayersArr) baseLayer.setIndex(i);
-                        baseLayersManager.addActiveID(id, gmxAPI._baseLayersArr ? i : null);
-                        //if(id === map.needSetMode) modeFlag = true;
-                    }
+                    baseLayersManager.addActiveID(id, gmxAPI._baseLayersArr ? i : null);
                 }
-                //if(!modeFlag) map.needSetMode = null;
             }
 
             if (prop.OnLoad) {	//  Обработка маплета карты - mapplet для базовой карты уже вызывали

@@ -93,15 +93,18 @@
                 }
             });
             this.addListener('onActiveChanged', function(arr) {
+                var flag = false;
                 for(var i=0, len = arr.length; i<len; i++) {
                     if(manager.currentID === arr[i]) {
-                        return;
+                        flag = true;
+                        break;
                     }
                 }
                 var current = manager.hash[manager.currentID] || null;
                 if(current) {
+                    if(!flag) manager.currentID = null
                     for(var i=0, len = current.layers.length; i<len; i++) {
-                        current.layers[i].setVisible(false);
+                        current.layers[i].setVisible(flag);
                     }
                 }
             });
