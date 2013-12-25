@@ -1557,7 +1557,7 @@ div.layersScroll
     height: 100%;
 }
 
-.group-editor-blm-avail-item {
+.group-editor-blm-item {
     font-size: 12px;
     margin: 2px;
     background-color: lightblue;
@@ -1566,8 +1566,12 @@ div.layersScroll
     border: 1px gray solid;
 }
 
-.group-editor-blm-available .group-editor-blm-avail-item {
+.group-editor-blm-available .group-editor-blm-item {
     background-color: gainsboro;
+}
+
+.group-editor-blm-item.group-editor-blm-missing-item {
+    background-color: #EBC5BD;
 }
 
 .group-editor-blm-title {

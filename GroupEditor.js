@@ -3,8 +3,8 @@
 (function(){
 
 var BaseLayersControl = function(container, map) {
-    var blm = map.baseLayersManager;
-    var lang = _translationsHash.getLanguage();
+    var blm = map.baseLayersManager,
+        lang = _translationsHash.getLanguage();
     
     $(container).append(
         '<table class="group-editor-blm-table">' +
@@ -21,35 +21,34 @@ var BaseLayersControl = function(container, map) {
     var availContainer = $('<ul class="group-editor-blm-ul"></ul>').appendTo($('.group-editor-blm-available', container));
     var mapContainer = $('<ul class="group-editor-blm-ul"></ul>').appendTo($('.group-editor-blm-map', container));
     
-    var visibleBaseLayers = [];
-    blm.getAll().forEach(function(baseLayer) {
-        var item = $('<li class="group-editor-blm-avail-item">' + baseLayer[lang] + '</li>').data('baseLayerName', baseLayer.id);
-        if (baseLayer.isVisible) {
-            //mapContainer.append(item);
-            visibleBaseLayers.push({li: item, layer: baseLayer});
+    var constructItem = function(id, title) {
+        if (title) {
+            return $('<li class="group-editor-blm-item">' + title + '</li>').data('baseLayerID', id);
         } else {
+            return $('<li class="group-editor-blm-item group-editor-blm-missing-item">' + id + '</li>').data('baseLayerID', id);
+        }
+    }
+    
+    var activeIDs = blm.getActiveIDs();
+    
+    blm.getAll().forEach(function(baseLayer) {
+        if (activeIDs.indexOf(baseLayer.id) === -1) {
+            var item = constructItem(baseLayer.id, baseLayer[lang]);
             availContainer.append(item);
         }
     })
     
-    visibleBaseLayers.sort(function(a, b) {
-        return a.layer.getIndex() - b.layer.getIndex();
-    })
-    
-    visibleBaseLayers.forEach(function(item) {
-        mapContainer.append(item.li);
-    })
+    activeIDs.forEach(function(id) {
+        var baseLayer = blm.get(id);
+        mapContainer.append(constructItem(id, baseLayer && baseLayer[lang]));
+    });
     
     var updateBaseLayers = function() {
-        availContainer.children('li').each(function(index, elem) {
-            blm.get($(elem).data('baseLayerName')).setVisible(false);
-        })
-        
+        var activeIDs = [];
         mapContainer.children('li').each(function(index, elem) {
-            var baseLayer = blm.get($(elem).data('baseLayerName'));
-            baseLayer.setVisible(true);
-            baseLayer.setIndex(index);
+            activeIDs.push($(elem).data('baseLayerID'));
         })
+        blm.setActiveIDs(activeIDs);
     }
     
     mapContainer.sortable({
