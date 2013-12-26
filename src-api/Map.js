@@ -715,7 +715,8 @@
 //			map.miniMap.setBackgroundColor(0xffffff);
 
 		map.defaultHostName = (layers && layers.properties ? layers.properties.hostName : '');
-		map.addLayers(layers, false, true);
+		//map.addLayers(layers, false, true);
+		map.addLayers(layers, false, false);
 		
 		if(!layers.properties.UseKosmosnimkiAPI) map.moveTo(map.needMove.x, map.needMove.y, map.needMove.z);
 		

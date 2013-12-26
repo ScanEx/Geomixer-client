@@ -3474,10 +3474,10 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 		var parseBaseMap = function(kosmoLayers) {
 			createFlashMapInternal(div, kosmoLayers, function(map)
 			{
-				for (var i = 0; i < map.layers.length; i++) {
-					var obj = map.layers[i];
-					obj.setVisible(false);
-				}
+				// for (var i = 0; i < map.layers.length; i++) {
+					// var obj = map.layers[i];
+					// obj.setVisible(false);
+				// }
 
 				var mapLayerID = gmxAPI.getBaseMapParam("mapLayerID", "");
 				var satelliteLayerID = gmxAPI.getBaseMapParam("satelliteLayerID", "");
