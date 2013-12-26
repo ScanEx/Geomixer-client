@@ -15,18 +15,22 @@ var gmxCore = function()
     
     var getScriptURL = function(scriptName)
 	{
+        scriptName = scriptName.toLowerCase();
 		var scripts1 = document.getElementsByTagName("script");
 		for (var i = 0; i < scripts1.length; i++)
 		{
 			var src = scripts1[i].getAttribute("src");
-			if (src && (src.indexOf(scriptName) != -1))
+			if (src && (src.toLowerCase().indexOf(scriptName) != -1))
 				return src;
 		}
 		return false;
 	}
+    
+    //производится регистронезависимое сравнение
 	var getScriptBase = function(scriptName)
 	{
-		var url = getScriptURL(scriptName);
+        scriptName = scriptName.toLowerCase();
+		var url = getScriptURL(scriptName).toLowerCase();
 		return url ? url.substring(0, url.indexOf(scriptName)) : "";
 	}
     
