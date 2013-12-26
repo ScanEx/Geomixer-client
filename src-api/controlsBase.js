@@ -438,6 +438,7 @@
                         return node;
                     }
                 });
+                my.createContainerNode('div', properties, style);
 
                 if(!gmxAPI._tools) gmxAPI._tools = {};
                 gmxAPI._tools[name] = this;

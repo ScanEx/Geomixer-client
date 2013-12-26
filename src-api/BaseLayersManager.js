@@ -138,6 +138,7 @@
                 ,addLayer: function(layer) {
                     manager.removeLayer(id, layer);
                     this.layers.push(layer);
+                    layer.isBaseLayer = true;
                     if(!layer.backgroundColor) layer.backgroundColor = 0xffffff;
                     gmxAPI._listeners.dispatchEvent('onLayerChange', manager.map.baseLayersManager, this);
                     return true;
@@ -151,6 +152,10 @@
             if(attr.eng) alias[attr.eng] = id;
             if(attr.style) pt.style = attr.style;   // стиль для контролов
             if(attr.type) pt.type = attr.type;      // тип подложки для контролов имеющих типы подложек
+
+            pt.layers.forEach(function(item, i) {
+                item.isBaseLayer = true;
+            });
 
             manager.hash[id] = pt;
             manager.arr.push(pt);
