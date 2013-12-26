@@ -3357,6 +3357,9 @@ function createFlashMapInternal(div, layers, callback)
             }
             //delete gmxAPI._tmpMaps[gmxAPI.kosmosnimki_API];
         }
+        if (gmxAPI._baseLayersArr && gmxAPI._baseLayersArr.length) {
+            map.needSetMode = gmxAPI._baseLayersArr[0];
+        }
 		if (callback) {
 			try {
 				callback(gmxAPI.map, layers);		// Вызов createFlashMapInternal
@@ -3364,9 +3367,6 @@ function createFlashMapInternal(div, layers, callback)
 				gmxAPI.addDebugWarnings({'func': 'createFlashMapInternal', 'event': e, 'alert': 'Error in:\n "'+layers.properties.OnLoad+'"\n Error: ' + e});
 			}
 		}
-        if (gmxAPI._baseLayersArr && gmxAPI._baseLayersArr.length) {
-            map.needSetMode = gmxAPI._baseLayersArr[0];
-        }
 		if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
 			gmxAPI.map.miniMap.setVisible(true);
 		}

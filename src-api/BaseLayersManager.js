@@ -107,6 +107,8 @@
                         current.layers[i].setVisible(flag);
                     }
                 }
+                // Поддержка устаревшего map.baseLayerControl.onChange 
+                if('onChange' in manager.map.baseLayerControl) manager.map.baseLayerControl.onChange(manager.currentID);
             });
         }
         ,
