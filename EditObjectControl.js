@@ -195,6 +195,9 @@ var EditObjectControl = function(layerName, objectId, params)
     
     //geom может быть либо классом gmxAPI.DrawingObject, либо просто описанием геометрии
     var bindGeometry = function(geom) {
+        if (!geom) {
+            return;
+        }
         
         //gmxAPI.DrawingObject
         if (geom.getGeometry) {

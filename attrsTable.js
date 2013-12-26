@@ -353,7 +353,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
                 var row = response.Result.values[0];
                 for (var i = 0; i < row.length; ++i)
                 {
-                    if (columnNames[i] === 'geomixergeojson')
+                    if (columnNames[i] === 'geomixergeojson' && row[i])
                     {
                         var geom = from_merc_geometry(row[i]);
                         var bounds = getBounds(geom.coordinates);
