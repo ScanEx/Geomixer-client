@@ -521,7 +521,7 @@
                         //if(my._baseLayersHash[id]) my._baseLayersHash[id].select();
                     }
                     ,
-                    onActiveChanged: function(arr) {
+                    onActiveChanged: function() {
                         var i, obj, id,
                             len, hash = {};
 
@@ -529,8 +529,9 @@
                             obj = my._layers[i];
                             hash[obj.layer.id] = obj;
                         }
-                        for (var i = 0, len = arr.length; i < len; i++) {
-                            var id = arr[i];
+                        var activeIDs = mbl.getActiveIDs();
+                        for (var i = 0, len = activeIDs.length; i < len; i++) {
+                            var id = activeIDs[i];
                             var baseLayer = mbl.get(id);
                             if(baseLayer) {
                                 delete hash[id];
@@ -545,9 +546,9 @@
                 }
 
                 var key = 'onAdd';
-                this._listeners[key] = mbl.addListener(key, util.addBaseLayerTool);
+                this._listeners[key] = mbl.addListener(key, util.onActiveChanged);
                 key = 'onLayerChange';
-                this._listeners[key] = mbl.addListener(key, util.addBaseLayerTool);
+                this._listeners[key] = mbl.addListener(key, util.onActiveChanged);
                 key = 'onActiveChanged';
                 this._listeners[key] = mbl.addListener(key, util.onActiveChanged);
 

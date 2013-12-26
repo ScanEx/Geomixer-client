@@ -39,12 +39,14 @@
                 attr.isVisible = true
                 var blID = manager.getIDByName(id) || id;
 				var baseLayer = manager.hash[blID];
-                if(!baseLayer) baseLayer = manager.add(blID, attr);
-                //if(!baseLayer && manager.hash[id]) baseLayer = manager.hash[id];
-                if(!baseLayer) return null;
-                baseLayer.addLayer(this);
                 this.setVisible(false);         // слои подложек изначально не видимы
-                manager.updateIndex({id: blID});
+                if(!baseLayer) {
+                    baseLayer = manager.add(blID, attr);
+                    manager.updateIndex({id: blID});
+                }
+                baseLayer.addLayer(this);
+                //if(!baseLayer && manager.hash[id]) baseLayer = manager.hash[id];
+                //if(!baseLayer) return null;
                 //baseLayer.setVisible(true);     // подложка видима для обратной совместимости
             });
 			gmxAPI.extend(manager.map,
@@ -141,6 +143,7 @@
                     manager.removeLayer(id, layer);
                     this.layers.push(layer);
                     layer.isBaseLayer = true;
+                    layer.setVisible(false);
                     if(!layer.backgroundColor) layer.backgroundColor = 0xffffff;
                     gmxAPI._listeners.dispatchEvent('onLayerChange', manager.map.baseLayersManager, this);
                     return true;
@@ -157,6 +160,7 @@
 
             pt.layers.forEach(function(item, i) {
                 item.isBaseLayer = true;
+                item.setVisible(false);
             });
 
             manager.hash[id] = pt;
