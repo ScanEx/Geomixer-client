@@ -412,6 +412,7 @@
                         my.itemsContainer.removeChild(toolHash[tn].row);
                         delete toolHash[tn];
                         if(gmxAPI._drawing.tools[tn]) delete gmxAPI._drawing.tools[tn];
+                        if(tn === my.activeToolName) my.activeToolName = '';
                         my.chkVisible();
                         return true;
                     }
@@ -824,7 +825,7 @@
             createNode: function(cont) {        // инициализация
                 minimizeTools.plaqueNode = gmxAPI.newStyledDiv({
                     position: "absolute",
-                    left: "5px",
+                    left: "4px",
                     top: "5px",
                     width: "32px",
                     height: "32px",
