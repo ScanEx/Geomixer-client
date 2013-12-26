@@ -437,6 +437,7 @@
                 var bounds   = this._map.getPixelBounds(),
                     tileSize = this.options.tileSize;
 
+                if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
                 var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
                 var mInPixel = zoomCurrent.mInPixel;
                 var deltaX = mInPixel * (this.options.deltaX || 0);
@@ -644,6 +645,7 @@
 			,
 			updateTilesPosition: function (tile) {
                 if (!this._map || gmxAPI._leaflet['zoomstart']) return;
+                if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
                 var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
                 var mInPixel = zoomCurrent.mInPixel;
                 var deltaX = mInPixel * (this.options.deltaX || 0);
