@@ -283,6 +283,7 @@
 			if (params.changeCallback) params.changeCallback();
 		};
 		var attrWeather = {
+			overlay: true,
 			'onClick': onClickWeather,
 			'onCancel': onClickWeather,
 			'onmouseover': function() { this.style.color = "orange"; },
@@ -299,6 +300,7 @@
 		};
 		
 		var attrWind = {
+			overlay: true,
 			'onClick': onClickWind,
 			'onCancel': onClickWind,
 			'onmouseover': function() { this.style.color = "orange"; },

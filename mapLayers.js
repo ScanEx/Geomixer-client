@@ -2020,8 +2020,9 @@ queryMapLayers.prototype.createMap = function(name)
         _userObjects.collect();
         $(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.UserData = JSON.stringify(_userObjects.getData());
         
-        
         $.extend(true, saveTree, _layersTree.treeModel.getRawTree());
+        
+        saveTree.properties.BaseLayers = JSON.stringify(globalFlashMap.baseLayersManager.getActiveIDs());
         
         //раскрываем все группы так, как записано в свойствах групп
         _mapHelper.findTreeElems(saveTree, function(child, flag)

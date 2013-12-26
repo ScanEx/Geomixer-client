@@ -109,7 +109,6 @@
 				var notViewFlag = (!utils.chkVisibilityByZoom(id)
 					|| (!continuousWorld && !utils.chkBoundsVisible(attr['bounds']))
 					);
-				
 				if(notOnScene != notViewFlag) {
 					utils.setVisibleNode({'obj': node, 'attr': !notViewFlag});
 					if(notViewFlag)	delete gmxAPI._leaflet['renderingObjects'][node.id];
