@@ -3403,6 +3403,7 @@ function createFlashMapInternal(div, layers, callback)
             if (!gmxAPI._baseLayersArr && prop.UseOpenStreetMap ) {
                 baseLayersArr = ['OSM'];
                 gmxAPI._baseLayersHash['OSM'] = true;
+				if(!map.needSetMode) map.needSetMode = 'OSM';
             }
             if(baseLayersArr) {
                 var baseLayersManager = map.baseLayersManager; 
