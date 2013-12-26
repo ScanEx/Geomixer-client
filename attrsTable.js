@@ -33,19 +33,21 @@
 var ServerDataProvider = function(params)
 {
     var _params = $.extend({defaultSortParam: 'ogc_fid'}, params);
-    var _countRequest = null;
-    var _dataRequest = null;
+    var _countURL = null,
+        _dataURL = null,
+        _countParams = null,
+        _dataParams = null;
     
     //IDataProvider interface
     this.getCount = function(callback)
     {
-        if (!_countRequest)
+        if (!_countURL)
         {
             callback();
             return;
         }
         
-        sendCrossDomainJSONRequest(_countRequest, function(response)
+        sendCrossDomainPostRequest(_countURL, _countParams, function(response)
         {
             if (!parseResponse(response))
             {
@@ -58,7 +60,7 @@ var ServerDataProvider = function(params)
     
     this.getItems = function(page, pageSize, sortParam, sortDec, callback)
     {
-        if (!_dataRequest)
+        if (!_dataURL)
         {
             callback();
             return;
@@ -69,7 +71,14 @@ var ServerDataProvider = function(params)
             sortAttr = "&orderby=" + (sortParam || _params.defaultSortParam),
             sortOrder = "&orderdirection=" + (sortDec ? "DESC" : "ASC");
             
-        sendCrossDomainJSONRequest(_dataRequest + offset + limit + sortAttr + sortOrder, function(response)
+        var params = $.extend({
+            page: page,
+            pagesize: pageSize,
+            orderby: sortParam || _params.defaultSortParam,
+            orderdirection: sortDec ? "DESC" : "ASC"
+        }, _dataParams);
+            
+        sendCrossDomainPostRequest(_dataURL, params, function(response)
         {
             if (!parseResponse(response))
             {
@@ -97,10 +106,16 @@ var ServerDataProvider = function(params)
     }
     
     //Задание запросов
-    this.setRequests = function(countRequest, dataRequest)
+    this.setRequests = function(countURL, countParams, dataURL, dataParams)
     {
-        _countRequest = countRequest;
-        _dataRequest = dataRequest;
+        _countURL = countURL;
+        _countParams = countParams || {};
+        _countParams.WrapStyle = 'message';
+        
+        _dataURL = dataURL;
+        _dataParams = dataParams || {};
+        _dataParams.WrapStyle = 'message';
+        
         $(this).change();
     }
     
@@ -229,8 +244,8 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
     var updateSearchString = function()
     {
         _this._serverDataProvider.setRequests(
-            serverBase + "VectorLayer/Search.ashx?WrapStyle=func&count=true&layer=" + _this.layerName + "&query=" + encodeURIComponent(_this.textarea.value),
-            serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + _this.layerName + "&query=" + encodeURIComponent(_this.textarea.value)
+            serverBase + 'VectorLayer/Search.ashx', {count: true, layer: _this.layerName, query: _this.textarea.value},
+            serverBase + 'VectorLayer/Search.ashx', {layer: _this.layerName, query: _this.textarea.value}
         );
     }
     
@@ -315,7 +330,7 @@ attrsTable.prototype.drawDialog = function(info, canvas, outerSizeProvider, para
         var showButton = makeImageButton('img/choose.png','img/choose_a.png'),
             editButton = makeImageButton('img/edit.png'),
             deleteButton = makeImageButton("img/recycle.png", "img/recycle_a.png"),
-            tdControl = _td([_div([showButton, editButton, deleteButton],[['css','width','45px']])]);
+            tdControl = _td([_div([showButton, editButton, deleteButton],[['css','width','45px']])], [['css','width','45px']]);
         
         editButton.style.marginLeft = '5px';
         editButton.style.width = '12px';

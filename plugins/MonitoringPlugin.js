@@ -194,8 +194,8 @@ var publicInterface =
         var updateEventRequests = function(query)
         {
             eventsDataProvider.setRequests(
-                serverBase + "VectorLayer/Search.ashx?WrapStyle=func&count=true&layer=" + _params.eventLayerName  + "&query=" + encodeURIComponent(query),
-                serverBase + "VectorLayer/Search.ashx?WrapStyle=func&layer=" + _params.eventLayerName + "&query=" + encodeURIComponent(query)
+                serverBase + 'VectorLayer/Search.ashx', {count: true, layer: _params.eventLayerName, query: query},
+                serverBase + 'VectorLayer/Search.ashx', {layer: _params.eventLayerName, query: query}
             );
         }
         updateEventRequests('');
