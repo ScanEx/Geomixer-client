@@ -393,7 +393,7 @@
                         this.current = null;
                         ev.target.checked = false;
                     }
-                    mbl.setCurrent((this.current ? this._layers[layerId].layer.id : ''));
+                    mbl.setCurrentID((this.current ? this._layers[layerId].layer.id : ''));
                 }
             }
             ,
@@ -553,7 +553,15 @@
 
                 key = 'onSetCurrent';
                 this._listeners[key] = mbl.addListener(key, function(bl) {
-                    if(!bl) return;
+                    if(!bl || !mbl.isActiveID(bl.id)) {
+                        for(var i=0, len = my._form.length; i<len; i++) {
+                            var input = my._form[i];
+                            var item = my._layers[input.layerId];
+                            if(!item.overlay) input.checked = false;
+                        }
+                        my.current = '';
+                        return;
+                    }
                     //bl.isVisible = true;
                     if(!bl._leaflet_id) util.addBaseLayerTool(bl);
                     my.setCurrent(bl._leaflet_id);

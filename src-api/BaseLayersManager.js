@@ -1,8 +1,8 @@
-/** Управление базовыми подложками
+/** Управление подложками
 
-Позволяет управлять списком базовых подложек. 
+Позволяет управлять списком подложек. 
 
-Базовая подложка - массив слоев отображаемых в качестве подложки карты.
+Подложка - массив слоев отображаемых в качестве подложки карты.
 
 @memberof map.baseLayersManager
 */
@@ -51,7 +51,7 @@
             {
                 setMode: function(name) {
                     var id = (manager.hash[name] ? name : manager.getIDByName(name));
-                    manager.setCurrent(id);
+                    manager.setCurrentID(id);
                 }
                 ,getModeID: function() {
                     return manager.currentID;
@@ -146,33 +146,12 @@
                     manager.removeLayer(id, layer);
                     gmxAPI._listeners.dispatchEvent('onLayerChange', manager.map.baseLayersManager, this);
                 }
-                // ,setVisible: function(flag) {
-                    // this.isVisible = flag;
-                    // manager.updateIndex(this);
-                    // gmxAPI._listeners.dispatchEvent('onVisibleChange', manager.map.baseLayersManager, this);
-                    // if(flag) return
-                    // if(manager.currentID === this.id) {
-                        // manager.setCurrent();
-                    // }
-                    // delete this.index;
-                // }
-                // ,setIndex: function(index) {
-                    // this.index = index;
-                    // manager.updateIndex(this);
-                    // gmxAPI._listeners.dispatchEvent('onIndexChange', manager.map.baseLayersManager, this);
-                // }
-                // ,getIndex: function() {
-                    // return (this.isVisible !== false ? this.index : null);
-                // }
             };
             if(attr.rus) alias[attr.rus] = id;
             if(attr.eng) alias[attr.eng] = id;
             if(attr.style) pt.style = attr.style;   // стиль для контролов
             if(attr.type) pt.type = attr.type;      // тип подложки для контролов имеющих типы подложек
 
-            // pt.isVisible = isVisible;
-            //pt.setVisible(isVisible);
-            
             manager.hash[id] = pt;
             manager.arr.push(pt);
             //manager.updateIndex(pt);
@@ -215,11 +194,11 @@
             return out;
         }
         ,
-        getAll: function(flag) {              // Получить список базовых подложек
+        getAll: function(flag) {              // Получить список подложек
             return manager.arr;
         }
         ,
-        get: function(id) {               // Получить базовую подложку по ID
+        get: function(id) {               // Получить подложку по ID
             return manager.hash[id] || null;
         }
         ,setVisibleCurrentItem: function(flag) {
@@ -237,30 +216,36 @@
             return alias[name] || null;
         }
         ,
-        setCurrent: function(id) {            // Установка текущей подложки карты
-            if(manager.currentID) manager.setVisibleCurrentItem(false);
-            manager.currentID = '';
+        isActiveID: function(id) {
+            for(var i=0, len = manager.activeIDs.length; i<len; i++) {
+                if(id === manager.activeIDs[i]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        ,
+        setCurrentID: function(id) {            // Установка текущей подложки карты
+            var isActive = manager.isActiveID(id);
             var item = manager.hash[id] || null;
+            //if(manager.currentID && (isActive || !item)) manager.setVisibleCurrentItem(false);
+            if(manager.currentID) manager.setVisibleCurrentItem(false);
+            manager.currentID = null;
             if(item) {
-                if(item.isVisible === false) return;
-                manager.map.needSetMode = null;
-                manager.currentID = id;
-                manager.setVisibleCurrentItem(true);
+                if(isActive) {
+                    manager.map.needSetMode = null;
+                    manager.currentID = id;
+                    manager.setVisibleCurrentItem(true);
+                }
             }
             gmxAPI._listeners.dispatchEvent('onSetCurrent', manager.map.baseLayersManager, item);
             return item;
         }
-        ,remove: function(id) {            // Удалить базовую подложку
+        ,remove: function(id) {            // Удалить подложку
             if(id === manager.currentID) {
                 manager.setVisibleCurrentItem(false);
-                manager.currentID = '';
+                manager.currentID = null;
             }
-            // for(var i=0, len = manager.zIndex.length; i<len; i++) {
-                // if(id === manager.zIndex[i]) {
-                    // manager.zIndex.splice(i, 1);
-                    // break;
-                // }
-            // }
             var item = manager.hash[id] || null;
             if(item) {
                 delete manager.hash[id];
@@ -275,11 +260,11 @@
             return item;
         }
         ,toggleVisibility: function(id) {
-            manager.setCurrent(manager.currentID === id ? '' : id);
+            manager.setCurrentID(manager.currentID === id ? null : id);
         }
 	};
     /**
-     * Обьект базовой подложки.
+     * Обьект подложки.
      * @typedef {Object} BaseLayer
      * @property {String} id - Идентификатор подложки.
      * @property {Layer[]} layers - Массив слоев подложки.
@@ -295,17 +280,17 @@
      /**
         @name BaseLayer~addLayer
         @function
-        @param {Layer} layer слой, который нужно добавить в базовую подложку
+        @param {Layer} layer слой, который нужно добавить в подложку
      */
 
     /**
-     * Менеджер базовых подложек (создаётся в API и доступен через свойство карты map.baseLayersManager).
+     * Менеджер подложек (создаётся в API и доступен через свойство карты map.baseLayersManager).
      * @constructor BaseLayersManager
      */
 	gmxAPI.BaseLayersManager = function(map) {
         manager.init(map);
         return {
-            /** Добавить базовую подложку
+            /** Добавить подложку
             * @memberOf BaseLayersManager#
             * @param {String} id идентификатор подложки.
             * @param {object} attr дополнительные атрибуты подложки.
@@ -317,7 +302,7 @@
             add: function(id, attr) {
                 return manager.add(id, attr);
             },
-            /** Удалить базовую подложку
+            /** Удалить подложку
             * @memberOf BaseLayersManager#
             * @param {String} id идентификатор подложки.
             * @returns {BaseLayer|null} возвращает удаленную подложку если она найдена.
@@ -325,7 +310,7 @@
             remove: function(id) {
                 return manager.remove(id);
             },
-            /** Получить базовую подложку
+            /** Получить подложку
             * @memberOf BaseLayersManager#
             * @param {String} id идентификатор подложки.
             * @returns {BaseLayer|null} возвращает подложку если существует иначе null).
@@ -333,7 +318,7 @@
             get: function(id) {
                 return manager.hash[id] || null;
             },
-            /** Получить список всех базовых подложек
+            /** Получить список всех подложек
             * @memberOf BaseLayersManager#
             * @returns {BaseLayer[]} возвращает массив всех подложек.
             */
@@ -362,20 +347,22 @@
             addActiveID: function(id, index) {
                 return manager.updateIndex({id: id, index: index});
             },
+            /** Проверить активность подложки
+            * @memberOf BaseLayersManager#
+            * @param {String} id идентификатор подложки.
+            * @returns {boolean} возвращает true если подложка активна иначе false
+            */
+            isActiveID: function(id) {
+                return manager.isActiveID(id);
+            },
             /** Установить текущую подложку по идентификатору
             * @memberOf BaseLayersManager#
-            * @param {String=} id идентификатор подложки, если подложка с заданным идентификатором отсутствует то текущая подложка отключается.
+            * @param {String=} id идентификатор подложки, если подложка с заданным идентификатором отсутствует или не активна то текущая подложка равна null.
             * @returns {BaseLayer|null} возвращает текущую подложку, если она установлена
             */
-            setCurrent: function(id) {
-                return manager.setCurrent(id);
+            setCurrentID: function(id) {
+                return manager.setCurrentID(id);
             },
-            /** Отключить текущую подложку
-            * @memberOf BaseLayersManager#
-            */
-            // unsetCurrent: function() {
-                // manager.setCurrent();
-            // },
             /** Получить идентификатор текущей подложки
             * @memberOf BaseLayersManager#
             * @returns {String|null} возвращает идентификатор текущей подложки либо null.
@@ -390,7 +377,7 @@
             getIDByName: function(name) {
                 return manager.getIDByName(name);
             },
-            /** Добавить слой в базовую подложку
+            /** Добавить слой в подложку
             * @memberOf BaseLayersManager#
             * @param {String} id идентификатор подложки.
             * @param {Layer} layer обьект слоя.
@@ -404,7 +391,7 @@
                 gmxAPI._listeners.dispatchEvent('onAdd', this, baseLayer);
                 return true;
             },
-            /** Удалить слой из базовой подложки
+            /** Удалить слой из подложки
             * @memberOf BaseLayersManager#
             * @param {String} id идентификатор подложки.
             * @param {Layer} layer обьект слоя.
@@ -415,10 +402,10 @@
                     layer.setVisible(false);
                 }
             },
-            /** Получить список слоев базовой подложки
+            /** Получить список слоев подложки
             * @memberOf BaseLayersManager#
             * @param {String} id идентификатор подложки.
-            * @returns {Layer[]} возвращает массив слоев базовой подложки.
+            * @returns {Layer[]} возвращает массив слоев подложки.
             */
             getLayers: function(id) {
                 return manager.get(id).layers;
