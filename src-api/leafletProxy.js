@@ -913,7 +913,8 @@
 					if(!child.isVisible) continue;
 					var mapNode = mapNodes[child.objectId];
 					if(mapNode.eventsCheck) {
-						arr.push({zIndex: mapNode.zIndexOffset || 0 + mapNode.zIndex, id: child.objectId});
+						var index = (mapNode.zIndexOffset || 0) + mapNode.zIndex;
+						arr.push({zIndex: index, id: child.objectId});
 					}
 				}
 				arr = arr.sort(function(a, b) { return b.zIndex - a.zIndex; });
