@@ -45,6 +45,10 @@
                     manager.updateIndex({id: blID});
                 }
                 baseLayer.addLayer(this);
+                if(!manager.isActiveID(id)) {
+                    manager.updateIndex({id: id});
+                }
+                
                 //if(!baseLayer && manager.hash[id]) baseLayer = manager.hash[id];
                 //if(!baseLayer) return null;
                 //baseLayer.setVisible(true);     // подложка видима для обратной совместимости
