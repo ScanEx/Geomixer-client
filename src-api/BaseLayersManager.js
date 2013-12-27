@@ -283,9 +283,6 @@
      * @property {String} eng - Наименование англоязычное.
      * @property {function(layer:Layer)} addLayer - Ф-ция добавления слоя в подложку.
      * @property {function(layer:Layer)} removeLayer - Ф-ция удаления слоя из подложки.
-     * @property {function(flag:boolean)} setVisible - Установить видимость подложки.
-     * @property {function(index:number)} setIndex - Установить порядковый индекс в массиве подложек.
-     * @property {function()} getIndex - Получить порядковый индекс в массиве подложек.
      */
      
      /**
@@ -397,9 +394,10 @@
             addLayer: function(id, layer) {
                 var baseLayer = this.get(id);
                 if(!baseLayer) return false;
-                baseLayer.layers.push(layer);
+                baseLayer.addLayer(layer);
+                //baseLayer.layers.push(layer);
 
-                gmxAPI._listeners.dispatchEvent('onAdd', this, baseLayer);
+                //gmxAPI._listeners.dispatchEvent('onAdd', this, baseLayer);
                 return true;
             },
             /** Удалить слой из подложки
