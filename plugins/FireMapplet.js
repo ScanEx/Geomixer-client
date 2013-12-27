@@ -1667,11 +1667,13 @@ var FireBurntRenderer3 = function( params )
                 
                 for (var k in clustersToRepaint)
                 {
-                    var count = clusters[k].count;
+                    var cluster = clusters[k],
+                        count = cluster.count;
                     if (count)
                     {
                         var strStartDate = $.datepicker.formatDate('dd.mm.yy', new Date(cluster.startDate));
                         var strEndDate = $.datepicker.formatDate('dd.mm.yy', new Date(cluster.endDate));
+                        
                         var newItem = {
                             id: k,
                             properties: {
