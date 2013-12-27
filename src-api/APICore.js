@@ -3399,7 +3399,7 @@ function createFlashMapInternal(div, layers, callback)
         if (layers && layers.properties.name !== gmxAPI.kosmosnimki_API)	// обработка массива видимых подложек
         {
             var prop = layers.properties;
-            var baseLayersArr = gmxAPI._baseLayersArr || ['map', 'satellite', 'hybrid'];
+            var baseLayersArr = gmxAPI.clone(gmxAPI._baseLayersArr || ['map', 'satellite', 'hybrid']);
             
             if (!gmxAPI._baseLayersArr && prop.UseOpenStreetMap ) {
                 baseLayersArr = ['OSM'];
@@ -3407,7 +3407,7 @@ function createFlashMapInternal(div, layers, callback)
 				if(!map.needSetMode) map.needSetMode = 'OSM';
             }
             if(baseLayersArr) {
-                var baseLayersManager = map.baseLayersManager; 
+                var baseLayersManager = map.baseLayersManager;
                 for (var i = 0, len = baseLayersArr.length; i < len; i++) {
                     var id = baseLayersArr[i];
                     baseLayersManager.addActiveID(id, gmxAPI._baseLayersArr ? i : null);
