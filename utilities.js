@@ -1441,7 +1441,8 @@ $.extend(nsGmx.Utils, {
         }
         else
             return null;
-    }
+    },
+    showDialog: window.showDialog
 });
 
 window.gmxCore && window.gmxCore.addModule('utilities', nsGmx.Utils);
