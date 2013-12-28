@@ -163,41 +163,47 @@ nsGmx.Controls = {
         if ($$('drawingBorderDialog' + name))
             return;
         
-        var polygons = [],
+        var drawingObjs = [],
             _this = this;
         
         globalFlashMap.drawing.forEachObject(function(obj)
         {
             if (!_params.geomType || obj.geometry.type.toLowerCase() === _params.geomType.toLowerCase())
-                polygons.push(obj);
+                drawingObjs.push(obj);
         })
         
-        if (!polygons.length)
+        if (!drawingObjs.length)
             showErrorMessage(_params.errorMessage, true, _params.errorTitle);
         else
         {
-            var trs = [];
-            
-            var drawing = gmxCore.getModule('DrawingObjects');
-            var canvas = _div();
-            var collection = new drawing.DrawingObjectCollection(globalFlashMap);
+            gmxCore.loadModule('DrawingObjects').done(function(drawing) {
+                var canvas = _div();
+                var collection = new drawing.DrawingObjectCollection(globalFlashMap);
 
-            for (var i = 0; i < polygons.length; i++)
-            {
-                collection.Add(polygons[i]);
-            }
-            
-            var list = new drawing.DrawingObjectList(globalFlashMap, canvas, collection, {
-                allowDelete: false, 
-                editStyle: false, 
-                showButtons: false,
-                click: function(drawingObject) {
-                    callback && callback(drawingObject);
-                    removeDialog(jDialog);
+                for (var i = 0; i < drawingObjs.length; i++)
+                {
+                    collection.Add(drawingObjs[i]);
                 }
-            });
-        
-            var jDialog = showDialog(_params.title, _div([canvas], [['attr','id','drawingBorderDialog' + name],['dir','className','drawingObjectsCanvas'],['css','width','220px']]), _params.width, 180, false, false)
+                
+                var list = new drawing.DrawingObjectList(globalFlashMap, canvas, collection, {
+                    allowDelete: false, 
+                    editStyle: false, 
+                    showButtons: false,
+                    click: function(drawingObject) {
+                        callback && callback(drawingObject);
+                        removeDialog(jDialog);
+                    }
+                });
+            
+                var jDialog = nsGmx.Utils.showDialog(
+                        _params.title, 
+                        _div([canvas], [['attr','id','drawingBorderDialog' + name],['dir','className','drawingObjectsCanvas']]),
+                        {
+                            width: _params.width,
+                            height: 180
+                        }
+                    )
+            })
         }
     },
     /**
