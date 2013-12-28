@@ -40,18 +40,14 @@
                 var blID = manager.getIDByName(id) || id;
 				var baseLayer = manager.hash[blID];
                 this.setVisible(false);         // слои подложек изначально не видимы
+                var isActiveID = manager.isActiveID(blID);
                 if(!baseLayer) {
                     baseLayer = manager.add(blID, attr);
-                    manager.updateIndex({id: blID});
                 }
                 baseLayer.addLayer(this);
-                if(!manager.isActiveID(id)) {
-                    manager.updateIndex({id: id});
+                if(!isActiveID) {
+                    manager.updateIndex({id: blID});
                 }
-                
-                //if(!baseLayer && manager.hash[id]) baseLayer = manager.hash[id];
-                //if(!baseLayer) return null;
-                //baseLayer.setVisible(true);     // подложка видима для обратной совместимости
             });
 			gmxAPI.extend(manager.map,
             {
