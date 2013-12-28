@@ -3495,6 +3495,11 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 						image.setZoomBounds(parseInt(o.properties["text"]), 18);
 					}, 10, 18);
 				}
+                var arr = overlayLayerID.split(",") || [];
+                arr.forEach(function(item, i) {
+                    var layer = map.layers[item];
+                    if(layer) layer.properties.type = 'Overlay';
+                });
 
 				var baseLayersManager = map.baseLayersManager,
                     mapLayers = [],
