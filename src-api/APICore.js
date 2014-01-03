@@ -3162,11 +3162,11 @@ FlashMapObject.prototype.setZoomBounds = function(minZoom, maxZoom) {
 	return gmxAPI._cmdProxy('setZoomBounds', { 'obj': this, 'attr':{'minZ':minZoom, 'maxZ':maxZoom} });
 }
 
-FlashMapObject.prototype.setCopyright = function(copyright)
+FlashMapObject.prototype.setCopyright = function(copyright, z1, z2, geo)
 {
 	if('addCopyrightedObject' in gmxAPI.map) {
 		this.copyright = copyright;
-		gmxAPI.map.addCopyrightedObject(this);
+		gmxAPI.map.addCopyrightedObject(this, copyright, z1, z2, geo);
 	}
 }
 FlashMapObject.prototype.setBackgroundColor = function(color)
@@ -3692,36 +3692,44 @@ function createKosmosnimkiMapInternal(div, layers, callback) {
 				if(gmxAPI.proxyType === 'flash' && map.needSetMode) map.setMode(map.needSetMode);
 
 				// копирайты
-				var setCopyright = function(o, z1, z2, text)
-				{
-					var c = o.addObject();
-					c.setZoomBounds(z1, z2);
-					c.setCopyright(text);
-					return c;
-				}
+				// var setCopyright = function(o, z1, z2, text)
+				// {
+					// var c = o.addObject();
+					// c.setZoomBounds(z1, z2);
+					// c.setCopyright(text);
+					// return c;
+				// }
 
 				if (mapLayers.length > 0)
 				{
-					setCopyright(mapLayers[0], 1, 9, "<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>");
-					var obj = setCopyright(mapLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>");
-					obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
+					mapLayers[0].setCopyright("<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>", 1, 9);
+					mapLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>", 10, 20, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+					// setCopyright(mapLayers[0], 1, 9, "<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>");
+					// var obj = setCopyright(mapLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>");
+					// obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
 				}
 				
 				//те же копирайты, что и для карт
 				if (overlayLayers.length > 0)
 				{
-					setCopyright(overlayLayers[0], 1, 9, "<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>");
-					var obj = setCopyright(overlayLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>");
-					obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
+					overlayLayers[0].setCopyright("<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>", 1, 9);
+					overlayLayers[0].setCopyright("<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>", 10, 20, { type: "LINESTRING", coordinates: [29, 40, 180, 80] });
+					// setCopyright(overlayLayers[0], 1, 9, "<a href='http://www.bartholomewmaps.com/'>&copy; Collins Bartholomew</a>");
+					// var obj = setCopyright(overlayLayers[0], 10, 20, "<a href='http://www.geocenter-consulting.ru/'>&copy; " + gmxAPI.KOSMOSNIMKI_LOCALIZED("ЗАО &laquo;Геоцентр-Консалтинг&raquo;", "Geocentre Consulting") + "</a>");
+					// obj.geometry = { type: "LINESTRING", coordinates: [29, 40, 180, 80] };
 				}
 
 				if ( satelliteLayers.length > 0 )
 				{
-					setCopyright(satelliteLayers[0], 1, 5, "<a href='http://www.nasa.gov'>&copy; NASA</a>");
-					setCopyright(satelliteLayers[0], 6, 13,	"<a href='http://www.es-geo.com'>&copy; Earthstar Geographics</a>");
-					var obj = setCopyright(satelliteLayers[0], 6, 14, "<a href='http://www.antrix.gov.in/'>&copy; ANTRIX</a>");
-					obj.geometry = gmxAPI.from_merc_geometry({ type: "LINESTRING", coordinates: [1107542, 2054627, 5048513, 8649003] });
-					setCopyright(satelliteLayers[0], 9,	17,	"<a href='http://www.geoeye.com'>&copy; GeoEye Inc.</a>");
+					satelliteLayers[0].setCopyright("<a href='http://www.nasa.gov'>&copy; NASA</a>", 1, 5);
+					satelliteLayers[0].setCopyright("<a href='http://www.es-geo.com'>&copy; Earthstar Geographics</a>", 6, 13);
+					satelliteLayers[0].setCopyright("<a href='http://www.antrix.gov.in/'>&copy; ANTRIX</a>", 6, 14, { type: "LINESTRING", coordinates: [9.9481201, 18.265291, 45.263671, 61.305477] });
+					satelliteLayers[0].setCopyright("<a href='http://www.geoeye.com'>&copy; GeoEye Inc.</a>", 9, 17);
+					// setCopyright(satelliteLayers[0], 1, 5, "<a href='http://www.nasa.gov'>&copy; NASA</a>");
+					// setCopyright(satelliteLayers[0], 6, 13,	"<a href='http://www.es-geo.com'>&copy; Earthstar Geographics</a>");
+					// var obj = setCopyright(satelliteLayers[0], 6, 14, "<a href='http://www.antrix.gov.in/'>&copy; ANTRIX</a>");
+					// obj.geometry = gmxAPI.from_merc_geometry({ type: "LINESTRING", coordinates: [1107542, 2054627, 5048513, 8649003] });
+					// setCopyright(satelliteLayers[0], 9,	17,	"<a href='http://www.geoeye.com'>&copy; GeoEye Inc.</a>");
 				}
 				
 				try {

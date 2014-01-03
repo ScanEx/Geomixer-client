@@ -749,6 +749,7 @@
 					//var zIndexCur = getIndexLayer(obj.objectId);
 					gmxAPI._listeners.dispatchEvent('onLayer', obj, obj);	// Вызов Listeners события 'onLayer' - слой теперь инициализирован во Flash
                     gmxAPI._listeners.dispatchEvent('onChangeVisible', obj, true);	// слой теперь виден
+                    if ('backgroundColor' in obj) gmxAPI.map.setBackgroundColor(obj.backgroundColor);
 				}
 			}
 

@@ -884,25 +884,30 @@
             ,node: null
             ,items: []
             ,currentText: ''
-            ,
-            addItem: function(obj) {
-                this.forEach(function(item, i) {
-                    if(obj === item) {
-                        return false;   // Уже есть такой
-                    }
-                });
-                this.items.push(obj);
+            ,addItem: function(obj, copyright, z1, z2, geo) {
+                this.removeItem(obj, copyright);
+                var bounds = null;
+                if (geo) {
+                    bounds = gmxAPI.getBounds(geo.coordinates);
+                } else if (obj.geometry) {
+                    bounds = obj.bounds || gmxAPI.getBounds(obj.geometry.coordinates);
+                }
+                if (!z1) z1 = 0;
+                if (!z2) z2 = 100;
+                this.items.push([obj, copyright, z1, z2, bounds]);
                 this.redraw();
+                return true;
             }
             ,
-            removeItem: function(obj) {
-                this.forEach(function(item, i) {
-                    if(obj === item) {
-                        copyrightControl.items.splice(i, 1);
-                        copyrightControl.redraw();
-                        return false;
+            removeItem: function(obj, copyright) {
+                var arr = [];
+                this.items.forEach(function(item, i) {
+                    if((copyright && copyright !== item[1])
+                        || obj !== item[0]) {
+                        arr.push(item);
                     }
                 });
+                copyrightControl.items = arr;
             }
             ,
             setColor: function(color) {
@@ -952,7 +957,9 @@
             toggleHandlers: function(flag) {            // Добавление прослушивателей событий
                 var map = gmxAPI.map;
                 if(flag) {
-                    map.addCopyrightedObject = function(obj) { copyrightControl.addItem(obj); }
+                    map.addCopyrightedObject = function(obj, copyright, z1, z2, geo) {
+                        copyrightControl.addItem(obj, copyright, z1, z2, geo);
+                    }
                     map.removeCopyrightedObject = function(obj) { copyrightControl.removeItem(obj); }
                     map.setCopyrightVisibility = function(obj) { copyrightControl.setVisible(obj); } 
                     map.updateCopyright = function() { copyrightControl.redraw(); } 
@@ -1004,20 +1011,36 @@
                 }
             }
             ,
-            redraw: function() {            // перерисовать
+            redraw: function() {                // перерисовать с задержкой 
+                if(this.redrawTimer) clearTimeout(this.redrawTimer);
+                this.redrawTimer = setTimeout(function() {
+                    copyrightControl.redrawTimer = null;
+                    copyrightControl.redrawItems();
+                }, 100);
+            }
+            ,
+            redrawItems: function() {            // перерисовать
                 var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
                 if(!currPos.latlng || !currPos.latlng.extent) return;
+                var chkExists = {};
                 var texts = [
                     //первым всегда будет располагаться копирайт СканЭкс. 
                     "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2013 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>"
                 ];
                 this.forEach(function(item, i) {
-                    if (!item.copyright || !item.objectId || !item.getVisibility()) return;  // обьекта нет на экране или без копирайта
-                    if (item.geometry) {
-                        var bounds = item.bounds || gmxAPI.getBounds(item.geometry.coordinates);
-                        if(!gmxAPI.extIntersect(currPos.latlng.extent, bounds)) return;
-                    }
-                    texts.push(item.copyright.split("<a").join("<a target='_blank' style='color: inherit;'"));
+                    var obj = item[0];
+                    var copyright = item[1];
+                    if (!copyright || !obj.objectId || !obj.getVisibility()) return;  // обьекта нет на экране или без копирайта
+                    if (chkExists[copyright]) return;  // дубли копирайтов
+                    var z1 = item[2],
+                        z2 = item[3],
+                        bounds = item[4],
+                        zoom = currPos.z;
+
+                    if (zoom < z1 || zoom > z2) return;
+                    if (bounds && !gmxAPI.extIntersect(currPos.latlng.extent, bounds)) return;
+                    chkExists[copyright] = true;
+                    texts.push(copyright.split("<a").join("<a target='_blank' style='color: inherit;'"));
                 });
                 if(gmxAPI.proxyType == 'leaflet') texts.push("<a target='_blank' style='color: inherit;' href='http://leafletjs.com'>&copy; Leaflet</a>");
 
