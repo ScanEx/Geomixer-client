@@ -67,9 +67,10 @@
 			var text = "";
 			var identityField = gmxAPI.getIdentityField(o);
 			var props = gmxAPI.clone(o.properties);
-            var keys = (o._balloonHook ? o._balloonHook.keys : {});
-            for(var key in keys) {
-                props[key] = gmxAPI.applyTemplate(keys[key], props);
+            if(o._balloonHook) {
+                for(var key in o._balloonHook) {
+                    props[key] = gmxAPI.applyTemplate(o._balloonHook[key].resStr, props);
+                }
             }
 
 			for (var key in props)
@@ -232,7 +233,11 @@
                             propsBalloon.updatePropsBalloon(text);
                             clearTimeout(propsBalloon.delayShow);
                             propsBalloon.delayShow = false;
-                            if(o._balloonHook) o._balloonHook.callback(o, propsBalloon.div);
+                            if(o._balloonHook) {
+                                for(var key in o._balloonHook) {
+                                    o._balloonHook[key].callback(o, propsBalloon.div, o._balloonHook[key].hookID);
+                                }
+                            }
                         }, 200);
 						//setDelayShow(text);
 						//propsBalloon.updatePropsBalloon(text);
@@ -477,7 +482,11 @@
 				balloon.setVisible(true);
 				balloon.setPoint(mx, my);
 				chkBalloonText(text, balloon.div);
-                if(o._balloonHook) o._balloonHook.callback(o, balloon.div);
+                if(o._balloonHook) {
+                    for(var key in o._balloonHook) {
+                        o._balloonHook[key].callback(o, balloon.div, o._balloonHook[key].hookID);
+                    }
+                }
 
 				balloon.resize();
 				fixedHoverBalloons[id] = balloon;
@@ -991,13 +1000,13 @@
 					{
                         var props = gmxAPI.clone(o.properties);
                         props.SUMMARY = o.getGeometrySummary();
-                        var keys = (o._balloonHook ? o._balloonHook.keys : {});
-                        for(var key in keys) {
-                            props[key] = gmxAPI.applyTemplate(keys[key], props);
+                        if(o._balloonHook) {
+                            for(var key in o._balloonHook) {
+                                props[key] = gmxAPI.applyTemplate(o._balloonHook[key].resStr, props);
+                            }
                         }
+
 						var text = gmxAPI.applyTemplate(balloonParams.Balloon, props);
-						//var summary = o.getGeometrySummary();
-						//text = gmxAPI.applyTemplate(text, { SUMMARY: summary });
 						text = text.replace(/\[SUMMARY\]/g, '');
 						return text;
 					}
@@ -1070,30 +1079,6 @@
                     map.balloonClassObject.enableHoverBalloon(this, callback, attr);
                 }
             });
-			gmxAPI.extendFMO('addBalloonHook', function(callback, attr) {
-                var keys = {};
-                var type = typeof attr;
-                if(gmxAPI.isArray(attr)) attr.forEach(function(item) {keys[item] = "<span id='["+item+"]'></span>";});
-                else if (type === 'string') keys[attr] = "<span id='["+attr+"]'></span>";
-                else if (type === 'object') keys = attr;
-                
-                if(this.filters) {
-                    this.filters.foreach(function(item) {
-                        item._balloonHook = {keys: keys, callback: callback};
-                    });
-                } else {
-                    this._balloonHook = {keys: keys, callback: callback};
-                }
-            });
-			gmxAPI.extendFMO('removeBalloonHook', function() {
-                if(this.filters) {
-                    this.filters.foreach(function(item) {
-                        delete item._balloonHook;
-                    });
-                } else {
-                    delete this._balloonHook;
-                }
-            });
 			gmxAPI.extendFMO('disableHoverBalloon', function() {
                 if(this.filters) {
                     this.filters.foreach(function(item) {
@@ -1101,6 +1086,37 @@
                     });
                 } else {
                     map.balloonClassObject.disableHoverBalloon(this);
+                }
+            });
+			gmxAPI.extendFMO('addBalloonHook', function(key, callback) {
+                var hookID = gmxAPI.newFlashMapId();
+                var res = {
+                    key: key
+                    ,hookID: hookID
+                    ,resStr: "<span id='"+hookID+"'>["+key+"]</span>"
+                    ,callback: callback
+                };
+                
+                if(this.filters) {
+                    this.filters.foreach(function(item) {
+                        if(!item._balloonHook) item._balloonHook = {};
+                        if(item._balloonHook[key]) return false;
+                        item._balloonHook[key] = res;
+                    });
+                } else {
+                    if(!this._balloonHook) this._balloonHook = {};
+                    if(this._balloonHook[key]) return false;
+                    this._balloonHook[key] = res;
+                }
+                return true;
+            });
+			gmxAPI.extendFMO('removeBalloonHook', function(key) {
+                if(this.filters) {
+                    this.filters.foreach(function(item) {
+                        if(item._balloonHook) delete item._balloonHook[key];
+                    });
+                } else {
+                    if(this._balloonHook) delete this._balloonHook[key];
                 }
             });
 		}
