@@ -165,9 +165,6 @@
             ,setActiveTool: function(flag) {    // обратная совместимость
                 this.setActive(flag);
             }
-            ,getInterface: function() {
-                return this;
-            }
         });
         L.control.gmxControl = function (options) {
           return new L.Control.gmxControl(options);
@@ -586,19 +583,17 @@
                 this._listeners = {};
                 delete Controls.controlsHash.layers;
             }
-            ,getInterface: function() {
+            ,
+            addOverlayTool: function (id, attr) {       // совместимость c addTool
                 var my = this;
+                var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(attr.rus, attr.eng) || id;
+                attr.overlay = true;
+                attr.getIndex = function () {
+                    return my._overlaysList.childNodes.length;
+                }
+                this.addOverlay(attr, name);
                 return {
-                    addOverlay: function (id, attr) {
-                        this.id = id;
-                        gmxAPI._tools[id] = this;
-                        var name = gmxAPI.KOSMOSNIMKI_LOCALIZED(attr.rus, attr.eng) || id;
-                        attr.overlay = true;
-                        attr.getIndex = function () {
-                            return my._overlaysList.childNodes.length;
-                        }
-                        my.addOverlay(attr, name);
-                    }
+                    id: id
                     ,setActiveTool: function (flag) {
                         return my.setVisibility(this.id, flag);
                     }
@@ -1204,8 +1199,7 @@ console.log('onRemove ', this);
                             
                             var layersControl = gmxAPI.map.controlsManager.getControl('layers');
                             if(layersControl) {
-                                layersControl.addOverlay(tn, attr);
-                                ret = layersControl;
+                                ret = layersControl.addOverlayTool(tn, attr);
                             }
                         } else {
                             ret = Controls.addControl(tn, attr);
@@ -1267,8 +1261,7 @@ console.log('onRemove ', this);
         }
         ,getControl: function(id) {
             //if(id === 'layers') id = 'gmxLayers';   // обратная совместимость
-            var control = this.controlsHash[id] || null;
-            return (control && 'getInterface' in control ? control.getInterface() : control);
+            return this.controlsHash[id] || null;
         }
         ,setControl: function(id, control) {
             if(Controls.controlsHash[id]) return false;
