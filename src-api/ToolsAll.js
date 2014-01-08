@@ -4,6 +4,7 @@
     //Управление ToolsAll
 	/** Класс управления ToolsAll
 	* @function
+    * @ignore
 	* @memberOf api
 	* @param {cont} HTML контейнер для tools
 	*/

@@ -676,6 +676,7 @@
 
 				/** Пользовательское событие positionChanged
 				* @function callback
+                * @ignore
 				* @param {object} атрибуты прослушивателя
 				*/
 				if ('stateListeners' in map && 'positionChanged' in map.stateListeners) {

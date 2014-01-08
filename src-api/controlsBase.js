@@ -19,6 +19,7 @@
 
             /** Класс управления tools контейнерами
             * @function
+            * @ignore
             * @memberOf api
             * @param {name} ID контейнера
             * @param {attr} Hash дополнительных атрибутов

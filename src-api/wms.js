@@ -4,9 +4,10 @@
     var wmsProjections = ['EPSG:3395', 'EPSG:4326', 'EPSG:41001'];	// типы проекций
     
     /**
-        Возвращает описание WMS-слоёв от XML, которую вернул сервер на запрос GetCapabilities
-        @memberOf gmxAPI
-        @returns {Array} - массив объектов с описанием слоёв
+     * Возвращает описание WMS-слоёв от XML, которую вернул сервер на запрос GetCapabilities
+     * @memberOf gmxAPI
+     * @ignore
+     * @returns {Array} - массив объектов с описанием слоёв
     */
     var parseWMSCapabilities = function(response)
 	{
@@ -87,8 +88,18 @@
 	}
     
     /** Формирует URL картинки, который можно использовать для получения WMS слоя для данного положения карты
-        @memberOf gmxAPI
-        @returns {object} - {url: String, bounds: {Extent}}. bounds в географических координатах.
+     * @memberOf gmxAPI
+     * @ignore
+     * @property {String} url - WMS ссылка.
+     * @property {object} props - атрибуты.
+     * @property {String} props.srs - тип проекции.
+     * @property {String} props.version - версия.
+     * @property {String} props.name - Идентификатор слоя.
+     * @property {object} props.bbox - ограничение по bounds(в географических координатах).
+     * @property {object} requestProperties - атрибуты формата результирующего image.
+     * @property {String} requestProperties.format - тип (по умолчанию 'image/jpeg').
+     * @property {String} requestProperties.transparent - прозрачность подложки ('TRUE'/'FALSE' по умолчанию 'FALSE').
+     * @returns {object} - {url: String, bounds: {Extent}}. bounds в географических координатах.
     */
     var getWMSMapURL = function(url, props, requestProperties)
     {

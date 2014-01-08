@@ -2365,6 +2365,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 {
 	/** Посылает кроссдоменный POST запрос
 	* @namespace utilities
+    * @ignore
 	* @function
 	* 
 	* @param url {string} - URL запроса
@@ -2836,24 +2837,15 @@ FlashMapObject.prototype.getChildren = function()
 
 if(gmxAPI._handlers) gmxAPI._handlers.Init();		// Инициализация handlers
 
-/** Добавление объектов из SWF файла
-* @function
-* @memberOf api
-* @param {String} url SWF файла содержащего массив добавляемых обьектов
-* @see api.FlashMapObject#addObjects
-* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">» Пример использования</a>.
-* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-*/
 FlashMapObject.prototype.addObjectsFromSWF = function(url) {
 	gmxAPI._cmdProxy('addObjectsFromSWF', {'obj': this, 'attr':{'url':url}}); // Отправить команду в SWF
 }
 /** Добавление набора статических объектов на карту
 * @function
+* @ignore
 * @memberOf api
 * @param {array} data массив добавляемых обьектов
 * @return {array} массив добавленных обьектов
-* @see api.FlashMapObject#addObject
-* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_samples/ex_static_multi.html">» Пример использования</a>.
 * @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
 */
 FlashMapObject.prototype.addObjects = function(data, format) {

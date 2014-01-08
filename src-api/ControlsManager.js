@@ -134,7 +134,8 @@
 	}
     /**
      * Описание класса Controls.
-     * @typedef {Object} Controls
+     * @typedef {Object} Controls1
+     * @ignore
      * @property {String} id - Идентификатор типа контролов.
      * @property {Function} init - Ф-ция для инициализации.
      * @property {boolean} isVisible - Флаг видимости(по умолчанию true).
@@ -143,18 +144,15 @@
      * @property {Function} remove - Удаление набора контролов.
     */
     /**
-     * Менеджер типов контролов.
-     * @constructor Controls
+     * Менеджер контролов.
+     * @constructor ControlsManager
+     * @ignore
      * @param {Object} map - карта.
      * @param {Object=} div - нода для размещения контролов.
      */
 	gmxAPI.ControlsManager = function(map, div) {
         ControlsManager.init(div || gmxAPI._div, map);
         return {
-            /** Добавить новый тип контролов
-            * @memberOf Controls#
-            * @param {...Controls} Набор контролов {@link Controls}.
-            */
             // add: function(controls) {
                 // ControlsManager.addControls(controls);
             // }
@@ -163,19 +161,26 @@
                 ControlsManager.removeById(id);
             }
             ,
-            /** Получить идентификатор текущего типа контролов
-            * @memberof Controls#
+            /** Получить идентификатор текущего набора контролов
+            * @memberof ControlsManager#
+            * @returns {String|null} возвращает идентификатор текущего набора контролов или null если контролы не устанавлены.
             */
             getCurrentID: function() {
                 return ControlsManager.currentID;
             }
             ,
             /** Получить текущий набор контролов
-            * @memberof Controls#
+            * @memberof ControlsManager#
+            * @returns {Controls|null} возвращает оъект текущего набора контролов или null если текущий набор контролов не устанавлен.
             */
             getCurrent: function() {
                 return ControlsManager.getCurrent() || null;
             }
+            /** Установить текущий набор контролов
+            * @memberof ControlsManager#
+            * @param {String} id идентификатор набора контролов.
+            * @returns {Controls|null} возвращает оъект текущего набора контролов или null если текущий набор контролов не устанавлен.
+            */
             ,setCurrent: function(id) {
                 return ControlsManager.setCurrent(id);
             }

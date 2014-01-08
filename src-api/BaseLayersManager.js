@@ -71,7 +71,7 @@
                 ,baseLayerControl: {
                     isVisible: true,
                     /**
-                     * @deprecated Использовать map.baseLayersManager.getAll()
+                     * @deprecated Использовать контрол L.Control.gmxLayers
                      */
                     setVisible: function(flag) {
                         var controls = map.controlsManager.getCurrent();

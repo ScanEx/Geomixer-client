@@ -30,13 +30,13 @@
             //console.log('tool addTool', tn, attr); // wheat
             if(!attr) attr = {};
             var ret = null;
-            if(attr.overlay && Controls.controlsHash.layers) {
+            if(attr.overlay && Controls.items.layers) {
                 attr.id = tn;
                 if(!attr.rus) attr.rus = attr.hint || attr.id;
                 if(!attr.eng) attr.eng = attr.hint || attr.id;
                 
-                Controls.controlsHash.layers.addOverlay(tn, attr);
-                ret = Controls.controlsHash.layers;
+                Controls.items.layers.addOverlay(tn, attr);
+                ret = Controls.items.layers;
 
                 // var layersControl = gmxAPI.map.controlsManager.getControl('layers');
                 // if(layersControl) ret = layersControl.addOverlay(tn, attr);
@@ -50,7 +50,7 @@
             return ret;
         }
         ,getToolByName: function(id) {
-            return Controls.controlsHash[id] || null;
+            return Controls.items[id] || null;
         }
         ,
         removeTool: function(id) {              // Удалить control
@@ -58,11 +58,11 @@
         }
         ,
         setVisible: function(id, flag) {        // видимость
-            var control = Controls.controlsHash[id];
+            var control = Controls.items[id];
         }
         ,
         selectTool: function (id) {
-            var control = Controls.controlsHash[id];
+            var control = Controls.items[id];
         }
     };
     var initControls = function() {
@@ -70,7 +70,6 @@
         var mbl = gmxAPI.map.baseLayersManager;
         var controlsManager = gmxAPI.map.controlsManager;
         var defaultStyle = {
-            //backgroundImage: 'url("../../api/img/iconeControls.png")'
             cursor: 'pointer'
             ,width: '30px'
             ,height: '30px'
@@ -87,8 +86,38 @@
                 position: 'topleft'
             }
             ,
+            /** Установка видимости контрола.
+            * @memberOf gmxControl#
+            * @param {boolean} flag - флаг видимости контрола.
+            */
+            setVisible: function(flag) {
+                if(!flag) flag = false;
+                if(this._container) {
+                    this._container.style.display = flag ? 'block' : 'none';
+                }
+                this.options.isVisible = flag;
+            }
+			,
+            /** Установка флага активности контрола.
+            * @memberOf gmxControl#
+            * @param {boolean} flag - флаг активности контрола.
+            */
+            setActive: function(flag, notToggle) {
+                var container = this._container,
+                    opt = this.options;
+                if(flag) {
+                    if(!notToggle) opt.isActive = true;
+                    if(opt.srcHover) this._Image.src = opt.srcHover;
+                    L.DomUtil.addClass(container, 'leaflet-control-Active');
+                } else {
+                    if(!notToggle) opt.isActive = false;
+                    if(opt.src) this._Image.src = opt.src;
+                    L.DomUtil.removeClass(container, 'leaflet-control-Active');
+                }
+            }
+            ,
             addTo: function (map) {
-                Controls.controlsHash[this.options.id] = this;
+                Controls.items[this.options.id] = this;
                 this._map = map;
 
                 var container = this._container = this.onAdd(map),
@@ -105,14 +134,7 @@
 
                 return this;
             }
-			,setVisible: function(flag) {
-                if(!flag) flag = false;
-                if(this._container) {
-                    this._container.style.display = flag ? 'block' : 'none';
-                }
-                this.options.isVisible = flag;
-            }
-            ,
+			,
             _createDiv: function (container, className, title, fn, context) {
                 var link = L.DomUtil.create('div', className, container);
                 if(!this.options.isVisible) link.style.display = 'none';
@@ -142,30 +164,28 @@
             }
             ,
             onAdd: function (map) {
-                Controls.controlsHash[this.options.id] = this;
+                Controls.items[this.options.id] = this;
                 var ret = this._initLayout();
                 //gmxAPI.setStyleHTML(this._container, this.options.style || defaultStyle);
                 if(this.options.onAdd) this.options.onAdd.call(this, ret);
                 
                 return ret;
             }
-            ,setActive: function(flag, notToggle) {
-                var container = this._container,
-                    opt = this.options;
-                if(flag) {
-                    if(!notToggle) opt.isActive = true;
-                    if(opt.srcHover) this._Image.src = opt.srcHover;
-                    L.DomUtil.addClass(container, 'leaflet-control-Active');
-                } else {
-                    if(!notToggle) opt.isActive = false;
-                    if(opt.src) this._Image.src = opt.src;
-                    L.DomUtil.removeClass(container, 'leaflet-control-Active');
-                }
-            }
             ,setActiveTool: function(flag) {    // обратная совместимость
                 this.setActive(flag);
             }
         });
+        /**
+         * Описание класса gmxControl.
+         * Наследует класс <a href="http://leafletjs.com/reference.html#control">L.Control</a>.
+         * @typedef {Object} gmxControl
+         * @property {object} options - опции контрола.
+         * @property {String} options.id - идентификатор контрола.
+         * @property {boolean} options.isVisible - Флаг видимости(по умолчанию true).
+         * @property {boolean} options.isActive - Флаг активности(по умолчанию false).
+         * @property {Function} options.onclick - Ф-ция обработчик события click(по умолчанию null).
+         * @property {Function} options.onAdd - Ф-ция обработчик события добавления контрола к карте(по умолчанию null).
+        */
         L.control.gmxControl = function (options) {
           return new L.Control.gmxControl(options);
         }
@@ -184,7 +204,7 @@
             ,_listeners: {}
             ,
             onAdd: function (map) {
-                Controls.controlsHash[this.options.id] = this;
+                Controls.items[this.options.id] = this;
                 var zoomName = 'gmx_zoomParent',
                     container = L.DomUtil.create('div', zoomName);
 
@@ -339,6 +359,15 @@
                 }
             }
         });
+        /**
+         * Описание класса L.control.gmxZoom.
+         * Наследует класс <a href="http://leafletjs.com/reference.html#control-zoom">L.Control.Zoom</a>.
+         * @typedef {Object} gmxZoom
+         * @property {object} options - опции контрола.
+         * @property {String} options.id - идентификатор контрола.
+         * @property {boolean} options.isVisible - Флаг видимости(по умолчанию true).
+         * @property {boolean} options.zoomslider - Флаг добавления слайдера(по умолчанию true).
+        */
         L.control.gmxZoom = function (options) {
           return new L.Control.gmxZoom(options);
         }
@@ -493,7 +522,7 @@
             ,_baseLayersHash: {}
             ,
             onAdd: function (map) {
-                Controls.controlsHash[this.options.id] = this;
+                Controls.items[this.options.id] = this;
                 L.Control.Layers.prototype.onAdd.call(this, map);
                 
                 var my = this;
@@ -581,7 +610,7 @@
                 var mbl = gmxAPI.map.baseLayersManager;
                 for(var key in this._listeners) mbl.removeListener(key, this._listeners[key]);
                 this._listeners = {};
-                delete Controls.controlsHash.layers;
+                delete Controls.items.layers;
             }
             ,
             addOverlayTool: function (id, attr) {       // совместимость c addTool
@@ -607,6 +636,13 @@
                 };
             }
         });
+        /**
+         * Описание класса L.control.gmxLayers.
+         * Наследует класс <a href="http://leafletjs.com/reference.html#control-layers">L.Control.Layers</a>.
+         * @typedef {Object} gmxLayers
+         * @property {object} options - опции контрола.
+         * @property {String} options.id - идентификатор контрола.
+        */
         L.control.gmxLayers = function (options) {
           return new L.Control.gmxLayers({}, {}, options);
         }
@@ -619,8 +655,8 @@
         L.Control.hideControls = L.Control.gmxControl.extend({
             setVisibility: function (flag, allFlag) {
                 this.options.isVisible = flag;
-                for(var key in Controls.controlsHash) {
-                    var item = Controls.controlsHash[key];
+                for(var key in Controls.items) {
+                    var item = Controls.items[key];
                     if(item != this || allFlag) {
                         //if('setVisible' in item) item.setVisible(flag);
                         //else 
@@ -649,7 +685,14 @@
                 // }
             }
         });
-        L.control.hideControls = function (options) {
+        /**
+         * Описание класса L.control.hideControls.
+         * Наследует класс <a href="global.html#gmxControl">gmxControl</a>.
+         * @typedef {Object} hideControls
+         * @property {object} options - опции контрола.
+         * @property {String} options.id - идентификатор контрола.
+        */
+       L.control.hideControls = function (options) {
           return new L.Control.hideControls(options);
         }
 
@@ -678,7 +721,7 @@
         // BottomBG - подвал background
         L.Control.BottomBG = L.Control.gmxControl.extend({
             onAdd: function (map) {
-                Controls.controlsHash[this.options.id] = this;
+                Controls.items[this.options.id] = this;
                 var className = 'gmx_copyright_location',
                     container = L.DomUtil.create('div', className);
 
@@ -688,6 +731,13 @@
                 return container;
             }
         });
+        /**
+         * Описание класса L.control.BottomBG.
+         * Наследует класс <a href="global.html#gmxControl">gmxControl</a>.
+         * @typedef {Object} bottomBG
+         * @property {object} options - опции контрола.
+         * @property {String} options.id - идентификатор контрола.
+        */
         var bottomBG = new L.Control.BottomBG({
             className: 'gmx_copyright_location_bg'
             ,id: 'bottomBG'
@@ -699,7 +749,7 @@
         // LocationControls - 
         L.Control.LocationControls = L.Control.gmxControl.extend({
             onAdd: function (map) {
-                Controls.controlsHash[this.options.id] = this;
+                Controls.items[this.options.id] = this;
                 var className = 'gmx_location',
                     container = L.DomUtil.create('div', className),
                     my = this;
@@ -817,6 +867,13 @@
                 map.off('move', this._setCoordinatesFormat, this);
             }
         });
+        /**
+         * Контрол отображения текущего положения карты - класс L.control.LocationControls.
+         * Наследует класс <a href="global.html#gmxControl">gmxControl</a>.
+         * @typedef LocationControls
+         * @property {object} options - опции контрола.
+         * @property {String} options.id - идентификатор контрола.
+        */
         var locationControl = new L.Control.LocationControls({
             position: 'bottomright'
             ,id: 'locationControl'
@@ -827,7 +884,7 @@
         // CopyrightControls - Copyright
         L.Control.CopyrightControls = L.Control.gmxControl.extend({
             onAdd: function (map) {
-                Controls.controlsHash[this.options.id] = this;
+                Controls.items[this.options.id] = this;
                 var className = 'gmx_copyright_location',
                     container = this._container = L.DomUtil.create('span', className);
 
@@ -906,10 +963,10 @@
                     }
                     ,
                     chkWidth: function(locationWidth) {
-                        if(Controls.controlsHash.locationControl
-                            && 'getWidth' in Controls.controlsHash.locationControl
+                        if(Controls.items.locationControl
+                            && 'getWidth' in Controls.items.locationControl
                             ) {
-                            var width = my._container.parentNode.clientWidth - 30 - Controls.controlsHash.locationControl.getWidth();
+                            var width = my._container.parentNode.clientWidth - 30 - Controls.items.locationControl.getWidth();
                             my._container.style.width = (width > 0 ? width : 0) + 'px';
                         }
                     }
@@ -944,6 +1001,13 @@
             }
         });
 
+        /**
+         * Контрол отображения копирайтов - класс L.control.CopyrightControls.
+         * Наследует класс <a href="global.html#gmxControl">L.Control.gmxControl</a>.
+         * @typedef CopyrightControls
+         * @property {object} options - опции контрола.
+         * @property {String} options.id - идентификатор контрола.
+        */
         var copyrightControls = new L.Control.CopyrightControls({
             position: 'bottomleft'
             ,id: 'copyrightControls'
@@ -987,7 +1051,7 @@
                 }
             }
             ,onAdd: function(cont) {
-                Controls.controlsHash[this.options.id] = this;
+                Controls.items[this.options.id] = this;
                 var my = this;
                 this._map.on('boxzoomend', function() {
                     L.DomUtil.removeClass(my._container, 'leaflet-control-' + my.options.id + '-Active');
@@ -1052,7 +1116,7 @@
             },
 
             onAdd: function (map) {
-                Controls.controlsHash[this.options.id] = this;
+                Controls.items[this.options.id] = this;
                 var zoomName = 'leaflet-control-Drawing',
                     container = L.DomUtil.create('div', 'leaflet-control-Drawing');
 
@@ -1157,6 +1221,13 @@ console.log('onRemove ', this);
                 //map.off('zoomend zoomlevelschange', this._updateDisabled, this);
             }
         });
+        /**
+         * Описание класса L.control.Drawing.
+         * Наследует класс <a href="http://leafletjs.com/reference.html#control">L.Control</a>.
+         * @typedef Drawing
+         * @property {object} options - опции контрола.
+         * @property {String} options.id - идентификатор контрола.
+        */
         L.control.gmxDrawing = function (options) {
           return new L.Control.Drawing(options);
         }
@@ -1171,11 +1242,6 @@ console.log('onRemove ', this);
         (function()
         {
             //Управление ToolsAll
-            /** Класс управления ToolsAll
-            * @function
-            * @memberOf api
-            * @param {cont} HTML контейнер для tools
-            */
             function ToolsAll(cont)
             {
                 this.toolsAllCont = gmxAPI._allToolsDIV;
@@ -1191,7 +1257,7 @@ console.log('onRemove ', this);
                         //console.log('tool addTool', tn, attr); // wheat
                         if(!attr) attr = {};
                         var ret = null;
-                        if(attr.overlay && Controls.controlsHash.layers) {
+                        if(attr.overlay && Controls.items.layers) {
                         //if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
                             attr.id = tn;
                             if(!attr.rus) attr.rus = attr.hint || attr.id;
@@ -1235,43 +1301,58 @@ console.log('onRemove ', this);
         var baseLayersTools = new gmxAPI._ToolsContainer('baseLayers', attr);
         gmxAPI.baseLayersTools = baseLayersTools;
 
-        return Controls.controlsHash;
+        return Controls.items;
     };
 
     /**
-     * Описание класса Control.
-     * @typedef {Object} Control
-     * @property {String} id - Идентификатор типа контролов.
-     * @property {Function} init - Ф-ция для инициализации.
+     * Описание класса Controls.
+     * @constructor Controls
+     * @property {String} id - Идентификатор набора контролов.
      * @property {boolean} isVisible - Флаг видимости(по умолчанию true).
-     * @property {Array} [Control] items - Массив контролов данного типа контролов.
-     * @property {Function} setVisible [boolean=] - Установка видимости(по умолчанию false).
-     * @property {Function} remove - Удаление набора контролов.
+     * @property {hash} items - список контролов(ниже перечислены создаваемые в API контролы по умолчанию).
+     * @property {L.Control.hideControls} items.hide - <a href="global.html#hideControls">контрол управления видимостью</a>.
+     * @property {L.Control.gmxLayers} items.layers - <a href="global.html#gmxLayers">контрол слоев</a>.
+     * @property {L.Control.gmxZoom} items.gmxZoom - <a href="global.html#gmxZoom">контрол Zoom</a>.
+     * @property {L.Control.Drawing} items.gmxDrawing - <a href="global.html#Drawing">контрол рисования геометрий</a>.
+     * @property {L.Control.LocationControls} items.locationControl - <a href="global.html#LocationControls">контрол отображения текущего положения карты</a>.
+     * @property {L.Control.CopyrightControls} items.copyrightControls - <a href="global.html#CopyrightControls">контрол копирайтов</a>.
+     * @property {L.Control.gmxControl} items.print - контрол печати.
+     * @property {L.Control.gmxControl} items.permalink - контрол пермалинка.
+     * @property {L.Control.gmxControl} items.drawingZoom - контрол зуммирования по прямоугольнику.
+     * @property {L.Control.gmxControl} items.drawingPoint - контрол установки маркера.
     */
 	var Controls = {
         id: 'controlsBaseIcons'
         ,isVisible: true
-        ,controlsHash: {}
-        ,remove: function() {      // удаление
-            for(var key in this.controlsHash) {
-                var item = this.controlsHash[key];
-                if('remove' in item) item.remove();
-            }
-            this.controlsHash = {};
-        }
-        ,getControl: function(id) {
+        ,items: {}
+        ,
+        /** Получить контрол по его идентификатору
+        * @memberOf Controls#
+        * @param {String} id идентификатор контрола.
+        * @returns {Control| null} возвращает контрол либо null если контрол с данным идентификатором не найден
+        */
+        getControl: function(id) {
             //if(id === 'layers') id = 'gmxLayers';   // обратная совместимость
-            return this.controlsHash[id] || null;
+            return this.items[id] || null;
         }
-        ,setControl: function(id, control) {
-            if(Controls.controlsHash[id]) return false;
-            Controls.controlsHash[id] = control;
-            control.addTo(gmxAPI._leaflet.LMap);
-            return true;
-        }
-        ,addControl: function(key, pt) {
-            var id = key || pt.id;
-            if(Controls.controlsHash[id]) return null; // такой контрол уже имеется
+        ,
+        /** Добавить контрол
+        * @memberOf Controls#
+        * @param {String} id - идентификатор контрола.
+        * @param {Object} pt - атрибуты контрола.
+        * @param {String} pt.regularImageUrl - URL иконки контрола.
+        * @param {String} pt.activeImageUrl - URL иконки при наведении мыши.
+        * @param {Object} pt.style - регулярный стиль контрола.
+        * @param {Object} pt.hoverStyle - стиль при наведении мыши.
+        * @param {String} pt.rus - наименование русскоязычное(по умолчанию равен id).
+        * @param {String} pt.eng - наименование англоязычное(по умолчанию равен id).
+        * @param {Function} pt.onClick - функция при включении активности контрола (по умолчанию null).
+        * @param {Function} pt.onCancel - функция при выключении активности контрола (по умолчанию null).
+        * @returns {Control|null} созданный контрол либо null если контрол с данным идентификатором уже существует.
+        */
+        addControl: function(id, pt) {
+            if(!id) id = pt.id;
+            if(Controls.items[id]) return null; // такой контрол уже имеется
             var title = pt.title || pt.hint;
 			var attr = {
                 id: id
@@ -1323,7 +1404,7 @@ console.log('onRemove ', this);
                 ,id: id
                 ,onAdd: function() {
                     //gmxAPI.setStyleHTML(this._container, attr.style);
-                    Controls.controlsHash[this.options.id] = this;
+                    Controls.items[this.options.id] = this;
                     var my = this;
                     var container = this._container;
                     if(attr.innerHTML) {
@@ -1354,60 +1435,41 @@ console.log('onRemove ', this);
                 }
             });
             userControl.addTo(gmxAPI._leaflet.LMap);
-            Controls.controlsHash[id] = userControl;
+            Controls.items[id] = userControl;
             return userControl;
         }
-        ,initControls: initControls
         ,
+        /** Удаление контрола по его идентификатору.
+        * @memberOf Controls#
+        * @param {String} id идентификатор контрола.
+        * @returns {Control} возвращает удаленный контрол либо null если он не найден
+        */
         removeControl: function (id) {
-            var control = this.controlsHash[id];
+            var control = this.items[id];
             if(control && control._map && 'removeFrom' in control) control.removeFrom(control._map);
-            delete this.controlsHash[id];
+            delete this.items[id];
             return control;
         }
+        ,
+        /** Удаление набора контролов.
+        * @memberOf Controls#
+        */
+        remove: function() {      // удаление
+            for(var key in this.items) {
+                var item = this.items[key];
+                if('remove' in item) item.remove();
+            }
+            this.items = {};
+        }
+        ,
+        setControl: function(id, control) {
+            if(Controls.items[id]) return false;
+            Controls.items[id] = control;
+            control.addTo(gmxAPI._leaflet.LMap);
+            return true;
+        }
+        ,initControls: initControls
         // остальное для обратной совместимости
-        // ,
-        // forEach: function(callback) {
-			// for (var i = 0, len = this.items.length; i < len; i++) {
-				// if(callback(this.items[i], i) === false) return;
-            // }
-        // }
-        // ,
-        // selectTool: function (id) {
-            // var control = this.controlsHash[id];
-        // }
-        // ,
-        // setVisible: function(flag) {
-            // if(!arguments.length) flag = !this.isVisible;
-            // this.forEach(function(item, i) {
-                // item.setVisible(flag);
-            // });
-            // this.isVisible = flag;
-        // }
-        //,
-        // addTool: function (tn, attr) {
-// console.log('tool addTool', tn, attr); // wheat
-//return;
-            // if(!attr) attr = {};
-            // var ret = null;
-            // if(attr.overlay && gmxAPI._leaflet.gmxLayers) {
-                // attr.id = tn;
-                // if(!attr.rus) attr.rus = attr.hint || attr.id;
-                // if(!attr.eng) attr.eng = attr.hint || attr.id;
-                
-                // var layersControl = gmxAPI.map.controlsManager.getControl('layers');
-                // if(layersControl) ret = layersControl.addOverlay(tn, attr);
-            // } else {
-                // var controls = gmxAPI.map.controlsManager.getCurrent();
-                // if(controls && 'addControl' in controls) {
-                    // ret = controls.addControl(tn, attr);
-                // }
-            // }
-            // return ret;
-        // }
-        // ,getToolByName: function(id) {
-            // return this.controlsHash[id] || null;
-        // }
 	}
     if(!gmxAPI._controls) gmxAPI._controls = {};
     gmxAPI._controls[Controls.id] = Controls;

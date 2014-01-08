@@ -1,12 +1,15 @@
-//Поддержка Балунов
+/** Менеджер управления балунами
+
+Позволяет управлять балунами на карте. 
+
+@memberof map
+*/
 (function()
 {
-	/** Класс управления балунами
-	* @function
-	* @memberOf api
-	* @see <a href="http://kosmosnimki.ru/geomixer/docs/api_examples.html">» Примеры использования</a>.
-	* @author <a href="mailto:saleks@scanex.ru">Sergey Alexseev</a>
-	*/
+    /**
+     * Менеджер управления балунами (создаётся в API и доступен через свойство карты map.balloonClassObject).
+     * @constructor BalloonClass
+     */
 	function BalloonClass()
 	{
 		var map = gmxAPI.map;
@@ -43,16 +46,6 @@
 			return id;
 		}
 
-		/** Проверка возвращенного пользовательским callback значения
-		* @function
-		* @memberOf BalloonClass private
-		* @param {text} возвращенное значение пользовательским callback
-		* @param {div} внутренний контейнер для размещения содержимого балуна
-		* @return {<String><Bool><Object>}	
-		*		если тип <String> то div.innerHTML = text
-		*		если тип <Bool> и значение True то div.innerHTML = ''
-		*		если тип <Object> никаких дополнительных действий - все действия были произведены в callback
-		*/
 		function chkBalloonText(text, div)
 		{
 			var type = typeof(text);
@@ -138,42 +131,15 @@
 		}
 		this.disableHoverBalloon = disableHoverBalloon;
 
-		/** Задать пользовательский тип балуна для mapObject
-		* @function
-		* @memberOf BalloonClass public
-		* @param {mapObject<mapObject>} обьект карты для которого устанавливается тип балуна
-		* @param {callback<Function>} пользовательский метод формирования содержимого балуна mouseOver
-		*		При вызове в callback передаются параметры:
-		*		@param {obj<Hash>} properties обьекта карты для балуна
-		*		@param {div<DIV>} нода контейнера содержимого балуна
-		*		@return {<String><Bool><Object>}	
-		*			если тип <String> то div.innerHTML = text
-		*			если тип <Bool> и значение True то div.innerHTML = ''
-		*			если тип <Object> никаких дополнительных действий - все действия были произведены в callback
-		* @param {attr:<Hash>} атрибуты управления балуном
-		*		свойства:
-		*			'disableOnMouseOver<Bool>'	- по умолчанию False
-		*			'disableOnClick'<Bool>		- по умолчанию False
-		*			'maxFixedBallons'<Bool>		- по умолчанию 1 (максимальное количество фиксированных балунов)
-		*			'clickCallback'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
-		*				@param {obj<Hash>} properties обьекта карты для балуна
-		*				@param {div<DIV>} нода контейнера содержимого балуна
-		*				@return {<String><Bool><Object>}	
-		*					если тип <String> то div.innerHTML = text
-		*					если тип <Bool> и значение True то div.innerHTML = ''
-		*					если тип <Object> никаких дополнительных действий - все действия были произведены в clickCallback
-		*			'OnClickSwitcher'<Function>	- по умолчанию null (при событии mouseClick - переключатель на пользовательский метод формирования всего фиксированного балуна)
-		*				@param {obj<Hash>} properties обьекта карты для балуна
-		*				@param {keyPress<Hash>} аттрибуты нажатых спец.клавиш при mouseClick событии
-		*				свойства:
-		*					'shiftKey<Bool>'	- по умолчанию False
-		*					'ctrlKey<Bool>'		- по умолчанию False
-		*				@return {Bool} если true то стандартный фиксированный балун НЕ создавать
-		*			'customBalloon'<Function>	- пользовательский метод формирования содержимого фиксированного балуна при mouseClick
-		*				@param {obj<Hash>} properties обьекта карты для балуна
-		*				@param {div<DIV>} нода контейнера содержимого балуна
-		*				@return {Bool} если true то стандартный балун НЕ создавать
-		*/
+        /** Установка режима пользовательского балуна
+        * @memberOf BalloonClass#
+        * @param {MapObject} mapObject - обьект карты для которого устанавливается режим балуна.
+        * @param {object} callback - пользовательский метод формирования содержимого балуна.
+        * @param {object} attr - атрибуты управления балуном.
+        * @param {boolean} attr.disableOnMouseOver - отключить балун при наведении указателя(по умолчанию равен false).
+        * @param {boolean} attr.disableOnClick - отключить балун при click(по умолчанию равен false).
+        * @param {boolean} attr.maxFixedBallons - максимальное количество фиксированных балунов(по умолчанию равен 1).
+        */
 		function enableHoverBalloon(mapObject, callback, attr)
 		{
 			var _this = this;
@@ -972,12 +938,14 @@
 		}
 		this.addBalloon = addBalloon;
 
-
-		//Параметры:
-		// * Balloon: текст баллуна
-		// * BalloonEnable: показывать ли баллун
-		// * DisableBalloonOnClick: не показывать при клике
-		// * DisableBalloonOnMouseMove: не показывать при наведении
+        /** Установка параметров пользовательского балуна для фильтра слоя
+        * @memberOf BalloonClass#
+        * @param {Filter} filter - обьект фильтра слоя.
+        * @param {object} balloonParams - параметры балуна для фильтра.
+        * @param {boolean} balloonParams.DisableBalloonOnMouseMove - отключить балун при наведении указателя(по умолчанию равен false).
+        * @param {boolean} balloonParams.DisableBalloonOnClick - отключить балун при click(по умолчанию равен false).
+        * @param {String} balloonParams.Balloon - шаблон балуна(по умолчанию равен '').
+        */
 		var setBalloonFromParams = function(filter, balloonParams)
 		{
 /*			
