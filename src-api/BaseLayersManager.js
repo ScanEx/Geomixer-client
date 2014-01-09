@@ -83,7 +83,7 @@
                      * @deprecated Использовать map.baseLayersManager.getActiveIDs()
                      */
                     getBaseLayerNames: function() {
-                        return manager.getActiveIDs();
+                        return manager.activeIDs;
                     },
                     /**
                      * @deprecated Использовать map.baseLayersManager.getLayers()
