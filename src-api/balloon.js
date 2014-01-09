@@ -54,6 +54,23 @@
 			// в случае type === 'object' ничего не делаем
 		}
 
+		function callBalloonHook(o, div) {
+            for(var key in o._balloonHook) {
+                var fid = o._balloonHook[key].hookID;
+                var span = div.getElementsByTagName("span");
+                var notFind = true;
+                for (var i = 0, len = span.length; i < len; i++) {
+                    var node = span[i];
+                    if(node.id === fid) {
+                        notFind = false;
+                        node.id += '_' + i;
+                        o._balloonHook[key].callback(o, div, node);
+                    }
+                }
+                if(notFind) o._balloonHook[key].callback(o, div, null);
+            }
+        }
+        
 		// Текст по умолчанию для балуна (innerHTML)
 		function getDefaultBalloonText(o, attr)
 		{
@@ -200,9 +217,7 @@
                             clearTimeout(propsBalloon.delayShow);
                             propsBalloon.delayShow = false;
                             if(o._balloonHook) {
-                                for(var key in o._balloonHook) {
-                                    o._balloonHook[key].callback(o, propsBalloon.div, o._balloonHook[key].hookID);
-                                }
+                                callBalloonHook(o, propsBalloon.div)
                             }
                         }, 200);
 						//setDelayShow(text);
@@ -449,9 +464,7 @@
 				balloon.setPoint(mx, my);
 				chkBalloonText(text, balloon.div);
                 if(o._balloonHook) {
-                    for(var key in o._balloonHook) {
-                        o._balloonHook[key].callback(o, balloon.div, o._balloonHook[key].hookID);
-                    }
+                    callBalloonHook(o, balloon.div)
                 }
 
 				balloon.resize();
