@@ -80,10 +80,10 @@
                         return control.setVisible(flag);
                     },
                     /**
-                     * @deprecated Использовать map.baseLayersManager.getAll()
+                     * @deprecated Использовать map.baseLayersManager.getActiveIDs()
                      */
                     getBaseLayerNames: function() {
-                        return manager.getAll();
+                        return manager.getActiveIDs();
                     },
                     /**
                      * @deprecated Использовать map.baseLayersManager.getLayers()
