@@ -26,20 +26,22 @@
 			var currentBaseLayerName = globalFlashMap.getBaseLayer();
 			var baseLayersVisibility = {};
 			var baseLayersStructure = [];
-			var baseLayerNames = globalFlashMap.baseLayerControl.getBaseLayerNames();
+			var baseLayerIDs = globalFlashMap.baseLayersManager.getActiveIDs();
 			
-			for (var k = 0; k < baseLayerNames.length; k++)
+			for (var k = 0; k < baseLayerIDs.length; k++)
 			{
-				var baseLayerLayers = globalFlashMap.baseLayerControl.getBaseLayerLayers(baseLayerNames[k]);
+                var baseLayerID = baseLayerIDs[k];
+                var isVisible = baseLayerID == currentBaseLayerName;
+				var baseLayerLayers = globalFlashMap.baseLayersManager.get(baseLayerID).layers;
 				for (var b = 0; b < baseLayerLayers.length; b++)
 				{
-					if (baseLayerLayers[b].objectId in baseLayersVisibility)
-						baseLayersVisibility[baseLayerLayers[b].objectId] = baseLayersVisibility[baseLayerLayers[b].objectId] || (baseLayerNames[k] == currentBaseLayerName);
-					else
-						baseLayersVisibility[baseLayerLayers[b].objectId] = baseLayerNames[k] == currentBaseLayerName;
-					
-					if (baseLayerLayers[b].properties && baseLayerLayers[b].properties.title)
-						baseLayersStructure.push ({title: baseLayerLayers[b].properties.title, baseLayer: baseLayerNames[k]});
+                    if (baseLayerLayers[b].objectId) {
+                        baseLayersVisibility[baseLayerLayers[b].objectId] = isVisible;
+                    }
+                    
+					if (baseLayerLayers[b].properties && baseLayerLayers[b].properties.title) {
+						baseLayersStructure.push ({title: baseLayerLayers[b].properties.title, baseLayer: baseLayerIDs[k]});
+                    }
 				}
 			}
 			
