@@ -346,6 +346,7 @@
 			{
                 callHandler("onRemove");
 				delete objects[myId];
+                currentDOMObject = null;
 			},
 			chkZindex: function()
 			{
@@ -438,6 +439,7 @@
 			eventType = 'onFinish';
 			chkEvent(eventType);
 			drawMe();
+            currentDOMObject = null;
 			return true;
 		};
 		
@@ -989,6 +991,7 @@
                 if(domObj) domObj.triggerInternal("onMouseUp");
                 chkEvent('onFinish');
             }
+            currentDOMObject = null;
 			return true;
 		};
 		
