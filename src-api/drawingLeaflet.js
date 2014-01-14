@@ -308,7 +308,7 @@
 			for (var i = 0; i < handlers.length; i++)
 				handlers[i](objects[myId]);
 
-			gmxAPI._listeners.dispatchEvent(eventName, gmxAPI.map.drawing, objects[myId]);
+			//gmxAPI._listeners.dispatchEvent(eventName, gmxAPI.map.drawing, objects[myId]);
 		}
 		var addHandlerCalled = false;
 		objects[myId] = {
@@ -344,7 +344,7 @@
             },
 			removeInternal: function()
 			{
-				callHandler("onRemove");
+                callHandler("onRemove");
 				delete objects[myId];
 			},
 			chkZindex: function()
@@ -830,9 +830,9 @@
 				if(layerGroup) layerGroup.bringToFront();
 			}
 			,'remove': function() {
-				chkEvent('onRemove');
 				obj.remove();
 				if(domObj) domObj.removeInternal();
+				chkEvent('onRemove');
 				if(positionChangedID) gmxAPI.map.removeListener('positionChanged', positionChangedID); positionChangedID = null;
 				ret.stopDrawing();
 			}
@@ -1183,9 +1183,9 @@
 			}
 			,'remove': function() {
 				needInitNodeEvents = false;
-				chkEvent('onRemove');
 				obj.remove();
 				if(domObj) domObj.removeInternal();
+				chkEvent('onRemove');
 				if(positionChangedID) gmxAPI.map.removeListener('positionChanged', positionChangedID); positionChangedID = null;
 				ret.stopDrawing();
 			}
@@ -1336,10 +1336,10 @@
 			'remove' : function() {
 				if (obj)
 				{
-					chkEvent('onRemove');
 					obj.remove();
 					if(balloon) balloon.remove();
 					domObj.removeInternal();
+					chkEvent('onRemove');
 					if(onZoomendID) gmxAPI._listeners.removeListener(null, 'onZoomend', onZoomendID); onZoomendID = null;
 					if(zoomByID) gmxAPI.map.removeListener('zoomBy', zoomByID); zoomByID = null;
 					if(onMoveEndID) gmxAPI.map.removeListener('onMoveEnd', onMoveEndID); onMoveEndID = null;

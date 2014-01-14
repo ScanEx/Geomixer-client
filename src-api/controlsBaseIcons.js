@@ -1068,9 +1068,10 @@
             ,isActive: false
             ,onFinishID: null
             ,id: 'drawingPoint'
+            ,className: 'leaflet-control-icons leaflet-control-drawingPoint'
             ,onclick: function(e) {
                 var my = this;
-                var className = 'leaflet-control-icons leaflet-control-' + this.options.id + '-Active';
+                var className = 'leaflet-control-' + this.options.id + '-Active';
                 var stop = function() {
                     L.DomUtil.removeClass(my._container, className);
                     my.options.isActive = false;
