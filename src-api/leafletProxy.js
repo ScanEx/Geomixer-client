@@ -5036,9 +5036,9 @@ var tt = 1;
             apiHost + "leaflet/leaflet.css?" + gmxAPI.buildGUID
             ,apiHost + "leaflet/leafletGMX.css?" + gmxAPI.buildGUID
         ];
-		if(gmxAPI.isIE) {
-            cssFiles.push(apiHost + "leaflet/leaflet.ie.css?" + gmxAPI.buildGUID);
-		}
+		// if(gmxAPI.isIE) {
+            // cssFiles.push(apiHost + "leaflet/leaflet.ie.css?" + gmxAPI.buildGUID);
+		// }
 
         gmxAPI.loadJS({src: apiHost + 'leaflet/leaflet.js?' + gmxAPI.buildGUID});
 		if(window.LeafletPlugins) {
