@@ -2725,6 +2725,7 @@ function createFlashMap(div, arg1, arg2, arg3)
             loadMapJSON(hostName, mapName, function(layers)
             {
                 if (layers != null) {
+                    gmxAPI.currentMapName = layers.properties.name; // Получили текущую карту
                     window.KOSMOSNIMKI_LANGUAGE = window.KOSMOSNIMKI_LANGUAGE || {'eng': 'English', 'rus': 'Russian'}[layers.properties.DefaultLanguage];
                     var UseKosmosnimkiAPI = gmxAPI.currentMapName === gmxAPI.kosmosnimki_API ? false : layers.properties.UseKosmosnimkiAPI;
                     (UseKosmosnimkiAPI ? createKosmosnimkiMapInternal : createFlashMapInternal)(div, layers, callback);
