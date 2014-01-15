@@ -201,6 +201,16 @@ var DrawingObjectCollection = function(oInitMap) {
 			if (_objects[i].item === drawingObject) this.RemoveAt(i);
 		}
 	}
+    
+    /** Получить индекс объекта в коллекции. null, если объект не найден
+	@param {drawingObject} drawingObject объект, индекс которого мы хотим найти*/
+	this.getIndex = function(drawingObject){
+		for (var i=0; i<_objects.length; i++){
+			if (_objects[i].item === drawingObject) return i;
+		}
+        
+        return null;
+	}
 }
 
 /** Конструктор
@@ -210,9 +220,11 @@ var DrawingObjectCollection = function(oInitMap) {
  @param oInitMap Карта
  @param oInitContainer Объект, в котором находится контрол (div) 
  @param drawingObject Объект для добавления на карту
- @param options параметры отображения<br>
-     allowDelete - рисовать ли крестик удаления объекта<br>
-     editStyle - нужна ли возможность редактировать стили
+ @param options дополнительные параметры
+ @param {bool} [options.allowDelete=true] рисовать ли крестик удаления объекта
+ @param {bool} [options.editStyle=true] нужна ли возможность редактировать стили
+ @param {function(DrawingObject)} [options.click] ф-ция, которая будет вызвана при клике на объекте. 
+        По умолчанию - центрирование карты на объекте.
 */
 var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, options) {
     var defaultClickFunction = function(obj) {
@@ -239,24 +251,26 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	var _title = _span(null, [['dir','className','drawingObjectsItemTitle']]);
 	var _text = _span(null, [['dir','className', 'drawingObjectsItemTitle']]);
 	var _summary = _span(null, [['dir','className','summary']]);
-    
-	var _clickFunc = function() {
-        _options.click(_drawingObject);
+
+    if (_options.click) {
+        var _clickFunc = function() {
+            _options.click(_drawingObject);
+        }
+        
+        if(!_options.editStyle && !_options.allowDelete) {
+            _canvas.onclick = _clickFunc;
+        } else {
+            _text.onclick = _title.onclick = _clickFunc;
+        }
     }
-    
-	if(!_options.editStyle && !_options.allowDelete) {
-        _canvas.onclick = _clickFunc;
-    } else {
-        _text.onclick = _title.onclick = _clickFunc;
-    }
-	
+
 	var regularDrawingStyle = {
 			marker: {size: 3},
 			outline: { color: 0x0000ff, thickness: 3, opacity: 80 },
 			fill: {color: 0xffffff}
 		},
 		icon = null;
-	
+
     if (_options.editStyle)
     {
         if (_drawingObject.geometry.type == "POINT")
@@ -350,7 +364,12 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
         _drawingObject = null;
 	}
     
-    nsGmx && nsGmx.ContextMenuController && nsGmx.ContextMenuController.bindMenuToElem(_title, 'DrawingObject', function(){return true; }, {obj: _drawingObject} );
+    /** Удаляет строчку */
+    this.getContainer = function() {return _canvas;};
+    
+    if (nsGmx && nsGmx.ContextMenuController) {
+        nsGmx.ContextMenuController.bindMenuToElem(_title, 'DrawingObject', function(){return true; }, {obj: _drawingObject} );
+    }
     
     this.getDrawingObject = function(){
         return _drawingObject;
@@ -367,13 +386,13 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
  @memberOf DrawingObjects 
  @param oInitMap Карта
  @param {documentElement} oInitContainer Объект, в котором находится контрол (div) 
- @param {DrawingObjectCollection} oInitDrawingObjectCollection Коллекция пользовательских объектов
- @param {object} options Дополнительные параметры
-       * все доп. параметры DrawingObjectInfoRow
-       * showButtons {bool} показывать ли кнопки под списком
+ @param {DrawingObjects.DrawingObjectCollection} oInitDrawingObjectCollection Коллекция пользовательских объектов
+ @param {Object} options Дополнительные параметры.Включает все доп. параметры DrawingObjectInfoRow
+ @param {bool} [options.showButtons=true] показывать ли кнопки под списком
+ @param {selectedIndex} [options.selectedIndex=null] индекс выбранного элемента
 */
 var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCollection, options){
-    var _options = $.extend({showButtons: true}, options);
+    var _options = $.extend({showButtons: true, selectedIndex: null}, options);
 	var _this = this;
 	var _rows = [];
 	var _containers = [];
@@ -386,51 +405,106 @@ var DrawingObjectList = function(oInitMap, oInitContainer, oInitDrawingObjectCol
 	/** Добавляет объект в "список объектов на карте"
 	@param {drawingObject} drawingObject добавляемый объект */
 	var add = function(drawingObject){
-		var _divRow = _div();
-		_(_divList, [_divRow]);
-		var _row = new DrawingObjectInfoRow(_map, _divRow, drawingObject, options);
-		_containers.push(_divRow);
-		_rows.push(_row);
-		$(_row).bind('onRemove', function(){ drawingObject.remove(); } );
+		var divRow = _div();
+		_(_divList, [divRow]);
+		var row = new DrawingObjectInfoRow(_map, divRow, drawingObject, options);
+		_containers.push(divRow);
+		_rows.push(row);
+		$(row).bind('onRemove', function(){ drawingObject.remove(); } );
 		if (_collection.Count() == 1 && _options.showButtons) show(_divButtons);
+        
+        /** В списке мышь переместилась над объект
+		@name DrawingObjects.DrawingObjectList.mouseover
+		@event
+		@param {drawingObject} drawingObject объект, над которым находится мышь*/
+        
+        /** В списке мышь переместилась с объекта
+		@name DrawingObjects.DrawingObjectList.mouseout
+		@event
+		@param {drawingObject} drawingObject объект, с которого переместилась мышь*/
+
+        $(divRow).bind({
+            mouseover: function() {
+                $(_this).triggerHandler('mouseover', [drawingObject]);
+            },
+            mouseout: function() {
+                $(_this).triggerHandler('mouseout', [drawingObject]);
+            }
+        });
 	}
-	
-	/** При удалении объекта из списка
-	@param {object} event событие
-	@param {drawingObject} drawingObject удалённый объект*/
+
 	var onRemove = function(event, index){
 		if (_collection.Count() == 0) hide(_divButtons);
 		var removedDiv = _containers.splice(index, 1)[0];
 		_rows.splice(index, 1);
 		removedDiv.parentNode.removeChild(removedDiv);
+        
+        if (index === _selectedIndex) {
+            _selectedIndex = null;
+        } else if (index < _selectedIndex) {
+            _selectedIndex--;
+        }
 	}
     
-	/** Очищает список пользовательских объектов*/
+	$(_collection).bind('onRemove', onRemove);
+	$(_collection).bind('onAdd', function(event, drawingObject){ 
+		add(drawingObject);
+	});
+
+	for (var i=0; i<_collection.Count(); i++){ add(_collection.Item(i));}
+    
+    /** Очищает список пользовательских объектов*/
 	this.Clear = function(){
 		while (_collection.Count()>0){
 			_collection.Item(0).remove();
 		}
+        
+        _selectedIndex = null;
 	}
 	
 	/** Возвращает div, в котором находится кнопка "Очистить" и который не виден при пустой коллекции */
 	this.GetDivButtons = function(){
 		return _divButtons;
 	}
-	
-	$(_collection).bind('onRemove', onRemove);
-	$(_collection).bind('onAdd', function(event, drawingObject){ 
-		add(drawingObject);
-	});
-	
-	var delAll = makeLinkButton(_gtxt("Очистить"));
+    
+    var delAll = makeLinkButton(_gtxt("Очистить"));
 	delAll.onclick = this.Clear;
 	
 	_(_divButtons, [_div([delAll])]);
 	_( oInitContainer, [_divList, _divButtons]);
 
 	if (_collection.Count() == 0 || !_options.showButtons) hide(_divButtons);
-	
-	for (var i=0; i<_collection.Count(); i++){ add(_collection.Item(i));}
+    
+    var _selectedIndex = null;
+    
+    /** Устанавливает выбранный элемент списка пользовательских объектов. 
+        null - нет активного. Неправильные индексы игнорируются. К контейнеру выбранного элемента добавляется класс drawingObjectsSelectedItemCanvas
+    */
+    this.setSelection = function(selectedIndex) {
+        var isValidIndex = !!_rows[selectedIndex] || selectedIndex === null;
+        if (selectedIndex === _selectedIndex || !isValidIndex) {
+            return _selectedIndex;
+        }
+        
+        if (_rows[_selectedIndex]) {
+            $(_rows[_selectedIndex].getContainer()).removeClass('drawingObjectsSelectedItemCanvas');
+        }
+        
+        if (_rows[selectedIndex]) {
+            $(_rows[selectedIndex].getContainer()).addClass('drawingObjectsSelectedItemCanvas');
+        }
+        
+        _selectedIndex = selectedIndex;
+        
+        return _selectedIndex;
+    };
+    
+    /** Возвращает индекс выбранного элемента списка пользовательских объектов, null - если нет выбранного*/
+    this.getSelection = function() {
+        return _selectedIndex;
+    }
+    
+    this.setSelection(_options.selectedIndex);
 }
 
 /** Конструктор
