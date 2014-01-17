@@ -742,7 +742,7 @@
 		}
 		,
 		'chkPointWithDelta': function(chkBounds, point, attr)	{			// Проверка точки(с учетом размеров) на принадлежность Bounds
-			var mInPixel = gmxAPI._leaflet['mInPixel'];
+			var mInPixel = gmxAPI._leaflet.mInPixel;
 			return (
 				(chkBounds.min.x - point.x)*mInPixel > attr.sx + (attr.sxLabelLeft || 0)
 				|| (point.x - chkBounds.max.x)*mInPixel > attr.sx + (attr.sxLabelRight || 0)
@@ -864,7 +864,7 @@
 				var z = (attr ? attr['z'] : (flagInit ? gmxAPI.map.needMove.z : 1));
 				var pos = new L.LatLng(py, px);
 				gmxAPI.map.needMove = null;
-				LMap.setView(pos, z, gmxAPI._leaflet['zoomstart']);
+				LMap.setView(pos, z, gmxAPI._leaflet.zoomstart);
 			}, zd);
 		}
 		,
@@ -4279,6 +4279,7 @@
 				}
 			);
 			gmxAPI._leaflet.LMap = LMap;			// Внешняя ссылка на карту
+            gmxAPI._leaflet.zoomstart = true;
             // BoxZoom при нажатом shift
             L.DomEvent.on(document, 'keydown', function(e) {
                 if(e.keyCode !== 16) return;
@@ -4500,21 +4501,21 @@ var tt = 1;
 			});
 
 			LMap.on('zoomstart', function(e) {
-				gmxAPI._leaflet['zoomCurrent'] = null;
-				gmxAPI._leaflet['zoomstart'] = true;
+				gmxAPI._leaflet.zoomCurrent = null;
+				gmxAPI._leaflet.zoomstart = true;
 				gmxAPI._listeners.dispatchEvent('onZoomstart', null, {});
 				gmxAPI._listeners.dispatchEvent('hideBalloons', gmxAPI.map, {});	// Проверка map Listeners на hideBalloons
 			});
 			LMap.on('zoomend', function(e) {
-				gmxAPI._leaflet['zoomstart'] = false;
-				gmxAPI._leaflet['utils'].chkZoomCurrent();
+				gmxAPI._leaflet.zoomstart = false;
+				gmxAPI._leaflet.utils.chkZoomCurrent();
 				gmxAPI._listeners.dispatchEvent('onZoomend', null, {});
 				gmxAPI._listeners.dispatchEvent('showBalloons', gmxAPI.map, {});	// Проверка map Listeners на showBalloons
-				gmxAPI._leaflet['utils'].chkMapObjectsView();
+				gmxAPI._leaflet.utils.chkMapObjectsView();
 			});
 			LMap.on('contextmenu', function(e) {
 				var attr = parseEvent(e);
-				gmxAPI._leaflet['contextMenu']['showMenu']({'obj':gmxAPI.map, 'attr': attr});	// Показать меню
+				gmxAPI._leaflet.contextMenu.showMenu({obj:gmxAPI.map, attr: attr});	// Показать меню
 			});
 
 			// Обработчик события - mapInit
