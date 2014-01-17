@@ -151,13 +151,14 @@
 		var tPoints = util.chkAttr(attr);
 		var posLatLng = new L.LatLng(tPoints.bounds.max.y, tPoints.bounds.min.x);
         node.multiArr = null;
-        if(node.geometry && node.geometry.type && node.geometry.type.indexOf('Polygon') != -1) {
-            node.multiArr = node.geometry.coordinates || null;
-            if(node.geometry.type === 'Polygon') node.multiArr = [node.multiArr];
-        }
-        
+        node.setGeometry = function()	{
+            if(node.geometry && node.geometry.type && node.geometry.type.indexOf('Polygon') != -1) {
+                node.multiArr = node.geometry.coordinates || null;
+                if(node.geometry.type === 'Polygon') node.multiArr = [node.multiArr];
+            }
+		}
+        node.setGeometry();
 		var url = encodeURIComponent(attr.url);
-        
         if(!node.multiArr && url === node.imageURL && node.canvas && node.imageWidth && node.imageHeight) {
             util.chkOpacity(node);
             node.tPoints = tPoints;
@@ -207,7 +208,7 @@
 			node.redrawTimer = setTimeout(chkReady, 10);
 		}
         node.refreshMe = waitRedraw;
-		var chkNeedRepaint = function() {
+        var chkNeedRepaint = function() {
 			if(node.isVisible == false) return false;
 			var isOnScene = (tPoints.bounds ? gmxAPI._leaflet.utils.chkBoundsVisible(tPoints.bounds) : false);
 			if(isOnScene && node.isOnScene) return false;

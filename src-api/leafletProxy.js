@@ -2526,8 +2526,11 @@
 				var geo = utils.parseGeometry(ph.attr);
 				if(!geo.properties) geo.properties = (node['geometry'].properties ? node['geometry'].properties : (layer.properties ? layer.properties : {}));
 				node['geometry'] = geo;
-				if(node['type'] === 'RasterLayer') node['setGeometry']();
-				if(node['geometry']['type']) {
+				if('setGeometry' in node) {
+                    if(node.type === 'RasterLayer') node.setGeometry();
+                    if(node.isSetImage) node.setGeometry();
+				}
+                if(node['geometry']['type']) {
 					if(node['onDrag'] && node['leaflet'] && node['leaflet'].dragging) {
 						// dragging лефлетовский
 						return;
