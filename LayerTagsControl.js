@@ -75,14 +75,19 @@
     })();
     
     /**
-        Набор тегов слоя
+        Набор тегов (метаданных) слоя
         @memberOf nsGmx
         @class
         @param {nsGmx.TagMetaInfo} tagMetaInfo описание типов тегов
-        @param {Object} initTags теги для инициализации. Формат: {tag: {Value: value, ...}} value может быть массивом
+        @param {Object} initTags теги для инициализации. Формат: {<tagName>: {Value: <tagValue>}, ...}. tagValue может быть массивом
     */
     var LayerTags = function(tagMetaInfo, initTags)
     {
+        /** Вызывается при изменении набора тегов слоя
+		    @name nsGmx.LayerTags.change
+		    @event
+        */
+        
         var uniqueID = 1;
         var tags = {};
         

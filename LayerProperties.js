@@ -82,10 +82,9 @@ var LayerProperties = Backbone.Model.extend(
             Geometry:       layerProperties.Geometry,
             
             Attributes:     divProperties ? divProperties.attributes : [],
-            AttrTypes:      divProperties ? divProperties.attrTypes : [],
+            AttrTypes:      divProperties ? divProperties.attrTypes : []
             
-            
-            MetaPropertiesEditing: null
+            // MetaPropertiesEditing: null
         })
         
         this.set('RC', new nsGmx.LayerRCProperties({
@@ -133,7 +132,7 @@ var LayerProperties = Backbone.Model.extend(
             
             _this.initFromViewer('Vector', null, response.Result);
             
-            ref.resolve();
+            def.resolve();
         });
         
         return def.promise();
@@ -149,27 +148,17 @@ var LayerProperties = Backbone.Model.extend(
             name = attrs.Name,
             stype = attrs.SourceType,
             def = $.Deferred();
-        
+
         var reqParams = {
             WrapStyle: "window",
             Title: attrs.Title,
             Description: attrs.Description,
             Copyright: attrs.Copyright
         };
-        
-        var metaProperties = {};
-        var layerTags = attrs.MetaPropertiesEditing;
-        if (layerTags) {
-            layerTags.eachValid(function(id, tag, value)
-            {
-                var type = layerTags.getTagMetaInfo().getTagType(tag);
-                var value = nsGmx.Utils.convertToServer(type, value);
-                if (value !== null)
-                    metaProperties[tag] = {Value: value, Type: type};
-            })
+
+        if (attrs.MetaProperties) {
+            reqParams.MetaProperties = JSON.stringify(attrs.MetaProperties);
         }
-            
-        reqParams.MetaProperties = JSON.stringify(metaProperties);
                 
         if (attrs.Type === 'Vector') {
             if (attrs.EncodeSource) reqParams.EncodeSource = attrs.EncodeSource;

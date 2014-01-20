@@ -766,7 +766,7 @@ var createPageRasterSource = function(layerProperties) {
     var appendMetadata = function(data)
     {
         var layerTags = layerProperties.get('MetaPropertiesEditing');
-        if (!data) return;
+        if (!data || !layerTags) return;
         
         var convertedTagValues = {};
         for (var mp in data)
@@ -927,6 +927,22 @@ var createPageMetadata = function(parent, layerProperties) {
             convertedTagValues[mp] = {Type: tagtype, Value: nsGmx.Utils.convertFromServer(tagtype, metaProperties[mp].Value)};
         }
         var layerTags = new nsGmx.LayerTags(tagsInfo, convertedTagValues);
+        
+        $(layerTags).change(function() {
+            var metaProperties = {};
+            layerTags.eachValid(function(id, tag, value)
+            {
+                var type = layerTags.getTagMetaInfo().getTagType(tag);
+                var value = nsGmx.Utils.convertToServer(type, value);
+                if (value !== null) {
+                    metaProperties[tag] = {Value: value, Type: type};
+                }
+            })
+            
+            layerProperties.set('MetaProperties', metaProperties);
+        })
+        
+        //layerProperties тут используется просто как удобный механизм передачи этого класса между элементами диалога
         layerProperties.set('MetaPropertiesEditing', layerTags);
         
         var layerTagsControl = new nsGmx.LayerTagSearchControl(layerTags, parent);
