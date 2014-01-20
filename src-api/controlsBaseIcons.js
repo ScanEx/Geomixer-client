@@ -933,7 +933,7 @@
                         var chkExists = {};
                         var texts = [
                             //первым всегда будет располагаться копирайт СканЭкс. 
-                            "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2013 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>"
+                            "<a target='_blank' style='color: inherit;' href='http://maps.kosmosnimki.ru/Apikey/License.html'>&copy; 2007-2014 " + gmxAPI.KOSMOSNIMKI_LOCALIZED("&laquo;СканЭкс&raquo;", "RDC ScanEx") + "</a>"
                         ];
                         this.items.forEach(function(item, i) {
                             var obj = item[0];

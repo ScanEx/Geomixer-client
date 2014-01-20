@@ -1,11 +1,11 @@
 // imageLoader - менеджер загрузки image
 (function()
 {
+    "use strict";
 	var maxCount = 32;						// макс.кол. запросов
 	var curCount = 0;						// номер текущего запроса
 	var timer = null;						// таймер
 	var items = [];							// массив текущих запросов
-	var itemsHash = {};						// Хэш по image.src
 	var itemsCache = {};					// Кэш загруженных image по image.src
 	var emptyImageUrl = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 	var falseFn = function () {	return false; };
@@ -44,9 +44,8 @@
 			pt.points = arr;
 			poly.push(pt);
 		}
-		out['polygons'] = poly;
-		
-//console.log('vvvvv ', item['src'], out);
+		out.polygons = poly;
+        //console.log('vvvvv ', item['src'], out);
 		return out;
 	}
 	
@@ -65,14 +64,23 @@
 					if(it.callback) it.callback(first.svgPattern, true, it);
 				}
 			}
-			//itemsCache[item.src] = [first];
 			delete itemsCache[item.src];
 		}
 		nextLoad();
 	}
-	
+
 	var setImage = function(item)	{		// загрузка image
-		if(item['src'].match(/\.svg$/)) {
+        var arr = [];
+        for(var i=0, len=items.length; i<len; i++) {
+			var tItem = items[i];
+            if(tItem.src === item.src) {
+                itemsCache[item.src].push(tItem);
+            } else {
+                arr.push(tItem);
+            }
+        }
+        items = arr;
+		if(item.src.match(/\.svg$/)) {
 			var xmlhttp = gmxAPI._leaflet.utils.getXmlHttp();
 			xmlhttp.open('GET', item.src, false);
 			xmlhttp.send(null);
@@ -80,39 +88,23 @@
 				item.svgPattern = parseSVG(item, xmlhttp.responseText);
 				callCacheItems(item);
 			}
-			/*
-			xmlhttp.open('GET', item['src'], true);
-			xmlhttp.onreadystatechange = function() {
-			  if (xmlhttp.readyState == 4) {
-				 if(xmlhttp.status == 200) {
-				   alert(xmlhttp.responseText);
-					 }
-			  }
-			};*/
-			
 			return;
 		}
-        //console.log('____ ', item.src);
 
 		var imageObj = new Image();
 		var src = item.src;
 		if(item.crossOrigin) {
             imageObj.crossOrigin = item.crossOrigin;
-            if(item.crossOrigin === 'use-credentials') {
-                src += (src.indexOf('?') === -1 ? '?':'&') + 'canvas=true';
-            }
+            //if(item.crossOrigin === 'use-credentials') {
+                //src += (src.indexOf('?') === -1 ? '?':'&') + 'canvas=true';
+            //}
         }
-		item['loaderObj'] = imageObj;
+		item.loaderObj = imageObj;
 		//var cancelTimerID = null;
 		var chkLoadedImage = function() {
-			//if (!imageObj.complete) {
-				//setTimeout(function() { chkLoadedImage(); }, 1);
-			//} else {
-				//curCount--;
-				item.imageObj = imageObj;
-				delete item.loaderObj;
-				callCacheItems(item);
-			//}
+            item.imageObj = imageObj;
+            delete item.loaderObj;
+            callCacheItems(item);
 		}
 		imageObj.onload = function(ev) {
             //console.log('ok ', ev.target.src);
@@ -131,9 +123,10 @@
 			callCacheItems(item);
 		};
 		curCount++;
+        //console.log('src', src);
 		imageObj.src = src;
 	}
-		
+
 	var nextLoad = function()	{		// загрузка image
 		if(curCount > maxCount) return;
 		if(items.length < 1) {
@@ -149,7 +142,8 @@
 			} else if(pitem.imageObj) {
 				if(item.callback) item.callback(pitem.imageObj, false, item);
 			} else {
-				itemsCache[item.src].push(item);
+                console.log('wait image: ', item.src);
+				//itemsCache[item.src].push(item);
 			}
 		} else {
 			itemsCache[item.src] = [item];
@@ -167,7 +161,7 @@
                         q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
                         delete q.loaderObj._item;
 					}
-                    q.loaderObj.src = emptyImageUrl;
+                    //q.loaderObj.src = emptyImageUrl;
 				}
 			}
 		}
@@ -214,7 +208,7 @@
                             q.loaderObj._item.callback = q.loaderObj._item.onerror = null;
                             delete q.loaderObj._item;
                         }
-                        q.loaderObj.src = emptyImageUrl;
+                        //q.loaderObj.src = emptyImageUrl;
                     }
                 }
             }
