@@ -142,8 +142,8 @@
 			} else if(pitem.imageObj) {
 				if(item.callback) item.callback(pitem.imageObj, false, item);
 			} else {
-                console.log('wait image: ', item.src);
-				//itemsCache[item.src].push(item);
+                //console.log('wait image: ', item.src);
+				itemsCache[item.src].push(item);
 			}
 		} else {
 			itemsCache[item.src] = [item];
