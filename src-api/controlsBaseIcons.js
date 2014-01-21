@@ -62,7 +62,8 @@
         }
         ,
         selectTool: function (id) {
-            var control = Controls.items[id];
+            var control = (id === 'POINT' ? Controls.items.drawingPoint : Controls.items.gmxDrawing);
+            control.setActive(id);
         }
     };
     var initControls = function() {
@@ -1070,27 +1071,33 @@
             ,id: 'drawingPoint'
             ,className: 'leaflet-control-icons leaflet-control-drawingPoint'
             ,onclick: function(e) {
-                var my = this;
-                var className = 'leaflet-control-' + this.options.id + '-Active';
+                var my = drawingPointControl;
+                var className = 'leaflet-control-' + my.options.id + '-Active';
                 var stop = function() {
                     L.DomUtil.removeClass(my._container, className);
                     my.options.isActive = false;
                     if(my.options.onFinishID) gmxAPI.map.drawing.removeListener('onFinish', my.options.onFinishID);
                     my.options.onFinishID = null;
                 };
-                if(!this.options.onFinishID) {
-                    this.options.onFinishID = gmxAPI.map.drawing.addListener('onFinish', stop);
+                if(!my.options.onFinishID) {
+                    my.options.onFinishID = gmxAPI.map.drawing.addListener('onFinish', stop);
                 }
-                if(!this.options.isActive) {
+                if(!my.options.isActive) {
                     gmxAPI._drawFunctions.POINT();
-                    L.DomUtil.addClass(this._container, className);
-                    this.options.isActive = true;
+                    L.DomUtil.addClass(my._container, className);
+                    my.options.isActive = true;
                 } else {
                     gmxAPI._drawing.endDrawing();
                     stop();
                 }
             }
         });
+        drawingPointControl.setActive = function (key) {
+            var opt = drawingPointControl.options;
+            if (key !== 'POINT') opt.isActive = true;
+            opt.onclick();
+        }
+        
         drawingPointControl.addTo(gmxAPI._leaflet.LMap);
         //outControls.drawingPointControl = drawingPointControl;
 
@@ -1200,10 +1207,26 @@
                             stop();
                         }
                     }
-                    items[key] = my._createButton(item,  container, fn, my);
+                    var resItem = my._createButton(item,  container, fn, my);
+                    items[key] = resItem;
+                    resItem._setActive = fn;
                 });
                 this.options.items = items;
                 return container;
+            },
+            setActive: function (key) {
+                var my = this;
+                var opt = my.options;
+                var target = opt.items[key];
+                if (target) target._setActive();
+                else {
+                    for(var pKey in opt.items) {
+                        var target = opt.items[pKey];
+                        my.options.isActive = true;
+                        target._setActive();
+                    }
+                    drawingPointControl.setActive(key);
+                }
             },
             setPosition: function (key, num) {
                 var target = this.options.items[key];
@@ -1218,7 +1241,7 @@
                 }
             },
             onRemove: function (map) {
-console.log('onRemove ', this);
+                //console.log('onRemove ', this);
                 //map.off('zoomend zoomlevelschange', this._updateDisabled, this);
             }
         });

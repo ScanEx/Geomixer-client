@@ -3155,13 +3155,19 @@
 			return true;
 		}
 		,
-		setPositionOffset:	function(ph)	{	// Установить смещение растрового слоя в метрах Меркатора
+		setPositionOffset:	function(ph)	{	// Установить смещение слоя в метрах Меркатора
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
 			if(!node || !node.setPositionOffset) return false;
 			node.setPositionOffset(ph.attr);
 			return true;
 		}
+        ,getPositionOffset: function(ph) {	// Получить смещение слоя в метрах Меркатора
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node || !node.getPositionOffset) return false;
+            return node.getPositionOffset();
+        }
 		,
 		'setBackgroundColor':	function(hash)	{						// Установка BackgroundColor
 		}
@@ -4000,10 +4006,10 @@
 			return null;*/
 		}
 		// Проверка пересечения полигона с bounds
-		out['intersects'] = function (chkBounds) {
+		out.intersects = function (chkBounds) {
 			var flag = false;
-			if(out['sx']) {
-				flag = gmxAPI._leaflet['utils'].chkPointWithDelta(chkBounds, getPoint(), out);
+			if(out.sx) {
+				flag = gmxAPI._leaflet.utils.chkPointWithDelta(chkBounds, getPoint(), out);
 			} else {
 				var pt = getShiftX(chkBounds);
 				flag = (pt === null ? false : true);

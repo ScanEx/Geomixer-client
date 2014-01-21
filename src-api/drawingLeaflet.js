@@ -1369,6 +1369,7 @@
 		};
 		var done = function(xx, yy)
 		{
+            gmxAPI._drawing.activeState = false;
 			obj = gmxAPI.map.addObject(null, null, {'subType': 'drawing'});
 			balloon = null;
 			if(gmxAPI.map.balloonClassObject) {
@@ -1624,6 +1625,7 @@
 			done(coords[0], coords[1]);
 			endDrawing();
 		}
+		gmxAPI._drawing.activeState = true;
 		return ret;
 	}
 
@@ -1868,7 +1870,7 @@
 		}
 		,
 		selectTool: function(toolName) {
-			if(gmxAPI._drawing.control) gmxAPI._drawing.control.selectTool(toolName);
+			if(gmxAPI._tools.standart) gmxAPI._tools.standart.selectTool(toolName);
 		}
 		,
 		getHoverItem: function(attr)

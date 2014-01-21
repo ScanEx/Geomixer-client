@@ -148,8 +148,10 @@
 		node.isVisible = true;
 		if(layer.properties) {
             if('visible' in layer.properties) node.isVisible = layer.properties.visible;
-            //if('deltaX' in layer.properties) node.deltaX = layer.properties.deltaX;
-            //if('deltaY' in layer.properties) node.deltaY = layer.properties.deltaY;
+            if('MetaProperties' in layer.properties) {
+                if('shiftX' in layer.properties.MetaProperties) node.shiftX = layer.properties.MetaProperties.shiftX.Value;
+                if('shiftY' in layer.properties.MetaProperties) node.shiftY = layer.properties.MetaProperties.shiftY.Value;
+            }
         }
         var dragAttr = null;
         var mousemove = function(e) {
@@ -197,25 +199,28 @@
                 gmxAPI.map.dragState = false;
                 dragAttr = null;
             }
-            ,setPositionOffset: function(pt) {	// Установить смещение растрового слоя в метрах Меркатора
-                node.deltaX = pt.deltaX;
-                node.deltaY = pt.deltaY;
+            ,setPositionOffset: function(pt) {	// Установить смещение слоя в метрах Меркатора
+                node.shiftX = pt.shiftX || 0;
+                node.shiftY = pt.shiftY || 0;
                 if(myLayer) {
-                    myLayer.options.deltaX = node.deltaX;
-                    myLayer.options.deltaY = node.deltaY;
+                    myLayer.options.shiftX = node.shiftX;
+                    myLayer.options.shiftY = node.shiftY;
                     myLayer.options.continuousWorld = true;
                     myLayer.updateTilesPosition();
                     myLayer._update();
                 }
+			}
+            ,getPositionOffset: function() {	// Получить смещение слоя в метрах Меркатора
+                return {shiftX: node.shiftX, shiftY: node.shiftY};
 			}
             ,isPointIn: function(latlng) {		// true - latlng точка внутри растрового слоя
                 if(!node.isVisible 
                     || !myLayer
                     || !gmxNode
                     ) return false;
-                var deltaX = node.deltaX || 0;
-                var deltaY = node.deltaY || 0;
-                var point = [gmxAPI.merc_x(latlng.lng) - deltaX, gmxAPI.merc_y(latlng.lat) - deltaY];
+                var shiftX = node.shiftX || 0;
+                var shiftY = node.shiftY || 0;
+                var point = [gmxAPI.merc_x(latlng.lng) - shiftX, gmxAPI.merc_y(latlng.lat) - shiftY];
                 var options = myLayer.options;
                 var bounds = options.attr.boundsMerc;
                 if(bounds) {
@@ -223,7 +228,7 @@
                         || point[1] < bounds.minY || point[1] > bounds.maxY
                     ) return false;
                 }
-                // TODO: учет сдвига deltaX deltaY
+                // TODO: учет сдвига shiftX shiftY
                 var geo = options.attr.mercGeom;
                 if(geo && geo.coordinates && geo.coordinates[0]) {
                     var coords = geo.coordinates;
@@ -262,7 +267,7 @@
 					
 					if(!'zIndex' in node) node['zIndex'] = utils.getIndexLayer(id) + node['zIndexOffset'];
 					utils.bringToDepth(node, node['zIndex']);
-					if(node['shiftY']) node['shiftY']();
+					if(node['shiftOSM']) node['shiftOSM']();
 					if(!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -84 && attr.bounds.max.x > 179 && attr.bounds.max.y > 84)) {
 						delete obj.options['bounds'];
 						obj.options.continuousWorld = true;
@@ -283,8 +288,8 @@
 					,'minZ': inpAttr['minZoom'] || attr['minZoom'] || gmxAPI.defaultMinZoom
 					,'maxZ': inpAttr['maxZoom'] || attr['maxZoom'] || gmxAPI.defaultMaxZoom
 					,'zIndex': node['zIndex']
-					,deltaX: node.deltaX || 0
-					,deltaY: node.deltaY || 0
+					,shiftX: node.shiftX || 0
+					,shiftY: node.shiftY || 0
 					,'initCallback': initCallback
 					,'tileFunc': inpAttr['func']
 					,'attr': attr
@@ -308,8 +313,8 @@
 				}
 
 				if(node['subType'] === 'OSM') {
-					node['shiftY'] = function() {
-						myLayer.options.shiftY = utils.getOSMShift();
+					node['shiftOSM'] = function() {
+						myLayer.options.shiftOSM = utils.getOSMShift();
 					}
 					myLayer = new L.TileLayer.OSMcanvas(option);
 				} else {
@@ -365,9 +370,9 @@
 			var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
 			var tileSize = zoomCurrent.tileSize;
 			var mInPixel = zoomCurrent.mInPixel;
-			var deltaX = opt.deltaX || 0;
-			var deltaY = opt.deltaY || 0;
-			var shiftY = (opt.shiftY ? opt.shiftY : 0);
+			var shiftX = opt.shiftX || 0;
+			var shiftY = opt.shiftY || 0;
+			var shiftOSM = (opt.shiftOSM ? opt.shiftOSM : 0);
 			if(opt.attr.boundsMerc) {
 				var extMerc = opt.attr.boundsMerc;
 				var minx = x * tileSize;
@@ -383,7 +388,7 @@
 					var xx = arr[j][0] / tileSize - x;
 					var yy = arr[j][1] / tileSize - y;
 					var px = 256 * xx;				    px = (0.5 + px) << 0;
-					var py = 256 * (1 - yy) - shiftY;	py = (0.5 + py) << 0;
+					var py = 256 * (1 - yy) - shiftOSM;	py = (0.5 + py) << 0;
 					if(j == 0) ctx.moveTo(px, py);
 					else ctx.lineTo(px, py);
 				}
@@ -440,14 +445,14 @@
                 if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
                 var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
                 var mInPixel = zoomCurrent.mInPixel;
-                var deltaX = mInPixel * (this.options.deltaX || 0);
-                var deltaY = mInPixel * (this.options.deltaY || 0);
-                var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
-                deltaY -= shiftY;
-                bounds.min.y += deltaY;
-                bounds.max.y += deltaY;
-                bounds.min.x -= deltaX;
-                bounds.max.x -= deltaX;
+                var shiftX = mInPixel * (this.options.shiftX || 0);
+                var shiftY = mInPixel * (this.options.shiftY || 0);
+                var shiftOSM = (this.options.shiftOSM ? this.options.shiftOSM : 0);		// Сдвиг для OSM
+                shiftY -= shiftOSM;
+                bounds.min.y += shiftY;
+                bounds.max.y += shiftY;
+                bounds.min.x -= shiftX;
+                bounds.max.x -= shiftX;
 
                 var nwTilePoint = new L.Point(
                         Math.floor(bounds.min.x / tileSize),
@@ -554,11 +559,13 @@
                         z = pt.zoom.to = opt.maxZ;
                     }
                     var rUrl = opt.tileFunc(pt.x, pt.y, z);
+                    var gmxTileKey = z + '_' + pt.x + '_' + pt.y;
 
                     var onError = function() {
                         //console.log('onError', z, opt.maxZ, rUrl); // 
                         if (z > 1) {
-                            if(pt.zoom.from === z) opt.badTiles[rUrl] = true;
+                            //if(pt.zoom.from === z) 
+                            opt.badTiles[gmxTileKey] = true;
                             // запрос по раззумливанию растрового тайла
                             pt.zoom.to = z - 1, pt.x = Math.floor(pt.x/2), pt.y = Math.floor(pt.y/2);
                             loadRasterRecursion(pt);
@@ -567,7 +574,7 @@
                             return;
                         }
                     };
-                    if(opt.badTiles[rUrl]) {
+                    if(opt.badTiles[gmxTileKey]) {
                         onError();
                         return;
                     }
@@ -648,10 +655,10 @@
                 if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
                 var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
                 var mInPixel = zoomCurrent.mInPixel;
-                var deltaX = mInPixel * (this.options.deltaX || 0);
-                var deltaY = mInPixel * (this.options.deltaY || 0);
-                var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
-                deltaY -= shiftY;
+                var shiftX = mInPixel * (this.options.shiftX || 0);     // сдвиг тайлов
+                var shiftY = mInPixel * (this.options.shiftY || 0);
+                var shiftOSM = (this.options.shiftOSM ? this.options.shiftOSM : 0);		// Сдвиг для OSM
+                shiftY -= shiftOSM;
                 var arr = [tile];
                 if(!tile) {
                     arr = [];
@@ -660,12 +667,9 @@
                 for (var i = 0, len = arr.length; i < len; i++) {
                     var tile = arr[i];
                     var tilePos = this._getTilePos(tile._tilePoint);
-                    if(deltaX !== 0 || deltaY !== 0) {
-                        // сдвиг тайлов
-                        tilePos.x += deltaX;
-                        tilePos.y -= deltaY;
+                        tilePos.x += shiftX;
+                        tilePos.y -= shiftY;
                         L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
-                    }
                 }
 			}
 			,
@@ -684,15 +688,12 @@
 
                 var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
                 var mInPixel = zoomCurrent.mInPixel;
-                var deltaX = mInPixel * (this.options.deltaX || 0);
-                var deltaY = mInPixel * (this.options.deltaY || 0);
-                var shiftY = (this.options.shiftY ? this.options.shiftY : 0);		// Сдвиг для OSM
-                deltaY -= shiftY;
-                if(deltaX !== 0 || deltaY !== 0) {
-                    // сдвиг тайлов
-                    tilePos.x += deltaX;
-                    tilePos.y -= deltaY;
-                }
+                var shiftX = mInPixel * (this.options.shiftX || 0); // сдвиг тайлов
+                var shiftY = mInPixel * (this.options.shiftY || 0);
+                var shiftOSM = (this.options.shiftOSM ? this.options.shiftOSM : 0);		// Сдвиг для OSM
+                shiftY -= shiftOSM;
+                tilePos.x += shiftX;
+                tilePos.y -= shiftY;
                 L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
                 if(gmxAPI.isMobile) tile.style.webkitTransform += ' scale3d(1.003, 1.003, 1)';
 				this._tiles[tKey] = tile;

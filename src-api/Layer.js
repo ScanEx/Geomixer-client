@@ -442,6 +442,18 @@
 				gmxAPI._layersVersion.chkLayerVersion(obj, callback);
 			}
 		}
+		var proxy = gmxAPI._cmdProxy;
+        gmxAPI.extend(obj, {
+            setPositionOffset: function(dx, dy) {
+                obj.shiftX = dx || 0;
+                obj.shiftY = dy || 0;
+                if(this.objectId) proxy('setPositionOffset', { obj: obj, attr:{shiftX:obj.shiftX, shiftY: obj.shiftY} });
+            }
+            ,getPositionOffset: function() {
+                return {shiftX: obj.shiftX || 0, shiftY: obj.shiftY || 0};
+            }
+		});
+        if('shiftX' in obj) obj.setPositionOffset(obj.shiftX, obj.shiftY);
 
 		var deferredMethodNames = [
 			'getChildren', 'getItemsFromExtent', 'getTileItem', 'setTileItem',
@@ -453,7 +465,7 @@
 			'removeHandler', 'clearBackgroundImage', 'addObjects', 'addObjectsFromSWF',
 			'setHandler', 'setVisibilityFilter', //'remove', 'removeListener', 'addListener',
 			'setClusters', 'addImageProcessingHook',
-            'enableDragging', 'disableDragging', 'setPositionOffset',
+            'enableDragging', 'disableDragging',
 			'setStyle', 'setBackgroundColor', 'setCopyright', 'addObserver', 'enableTiledQuicklooks', 'enableTiledQuicklooksEx'
 		];
 		// не используемые команды addChildRoot getFeatureGeometry getFeatureLength getFeatureArea
@@ -577,9 +589,6 @@
 					gmxAPI._cmdProxy('setAPIProperties', { 'obj': obj, 'attr':{'observeByLayerZooms':true} });	// есть новый подписчик события изменения видимости обьектов векторного слоя
 				}
 			}
-            obj.setPositionOffset = function(dx, dy) {
-                gmxAPI._cmdProxy('setPositionOffset', { 'obj': obj, 'attr':{deltaX:dx, deltaY: dy} });
-            }
 
 			var stylesMinMaxZoom = getMinMaxZoom(layer.properties);
 			if (isRaster) {
@@ -906,8 +915,6 @@
 		obj.addListener('AfterLayerRemove', function(layerName) {			// Удален слой
             obj._clearLayer(obj.properties.name);
 		}, 101);	// Перед всеми пользовательскими Listeners
-
-
 		if(obj.objectId) gmxAPI.mapNodes[obj.objectId] = obj;
 		return obj;
 	}
