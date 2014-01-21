@@ -453,6 +453,12 @@
                 return {shiftX: obj.shiftX || 0, shiftY: obj.shiftY || 0};
             }
 		});
+		if(obj.properties) {
+            if('MetaProperties' in obj.properties) {
+                if('shiftX' in obj.properties.MetaProperties) obj.shiftX = obj.properties.MetaProperties.shiftX.Value;
+                if('shiftY' in obj.properties.MetaProperties) obj.shiftY = obj.properties.MetaProperties.shiftY.Value;
+            }
+        }
         if('shiftX' in obj) obj.setPositionOffset(obj.shiftX, obj.shiftY);
 
 		var deferredMethodNames = [
