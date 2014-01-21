@@ -932,12 +932,13 @@ var createPageMetadata = function(parent, layerProperties) {
             var metaProperties = {};
             layerTags.eachValid(function(id, tag, value)
             {
-                var type = layerTags.getTagMetaInfo().getTagType(tag);
+                //для неизвестных тегов присваиваем тип String
+                var type = layerTags.getTagMetaInfo().getTagType(tag) || 'String';
                 var value = nsGmx.Utils.convertToServer(type, value);
                 if (value !== null) {
                     metaProperties[tag] = {Value: value, Type: type};
                 }
-            })
+            }, true)
             
             layerProperties.set('MetaProperties', metaProperties);
         })

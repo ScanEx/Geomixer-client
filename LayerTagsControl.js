@@ -156,10 +156,10 @@
                 callback(tagId, tags[tagId].tag, tags[tagId].value);
         }
         
-        this.eachValid = function(callback)
+        this.eachValid = function(callback, allowUnknownTags)
         {
             for (var tagId in tags)
-                if (this.isValidValue(tagId) && !this.isEmptyTag(tagId))
+                if ((allowUnknownTags || this.isValidValue(tagId)) && !this.isEmptyTag(tagId))
                     callback(tagId, tags[tagId].tag, tags[tagId].value);
         }
         

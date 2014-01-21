@@ -1212,6 +1212,10 @@ $.extend(nsGmx.Utils, {
     {
         //if (value === null) return "null";
         
+        if (!type) {
+            return value;
+        }
+        
         var lowerCaseType = type.toLowerCase();
         
         if (lowerCaseType == 'string')
@@ -1258,6 +1262,10 @@ $.extend(nsGmx.Utils, {
     */
     convertToServer: function(type, value)
     {
+        if (!type) {
+            return value;
+        }
+        
         var lowerCaseType = type.toLowerCase();
         
         if (lowerCaseType == 'string')
