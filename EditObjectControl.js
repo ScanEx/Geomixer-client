@@ -110,6 +110,19 @@ var FieldsCollection = function() {
     }
 }
 
+/** Объект, описывающий один атрибут слоя
+ * @typedef {Object} nsGmx.EditObjectControl.FieldInfo
+ * @property {String} name имя атрибута (обязательно)
+ * @property {String|int} [value] значение атрибута в формате сервера
+ * @property {bool} [constant=false] можно ли редактировать атрибут
+ * @property {bool} [hide=false] совсем не показыавать этот атрибут
+ * @property {String} [title=<совпадает с name>] что показывать вместо имени атрибута
+ * @property {function(val):bool} [validate] ф-ция для валидации результата. На вход получает введённое пользователем значение 
+*      (до преобразования в серверный формат), должна вернуть валидно ли это значение.
+ * @property {String} [isRequired=false] является ли значение атрибута обязательным. Обязательные атрибуты показываются выше всех остальных и выделяются жирным шрифтом.
+ * @property {Number} [index=0] индекс для сортировки. Влияет на порядок показа полей в диалоге. Больше - выше.
+*/
+
 /** Контрол, который показывает диалог редактирования существующего или добавления нового объекта в слой.
 * 
 * @memberOf nsGmx
@@ -121,31 +134,25 @@ var FieldsCollection = function() {
 * @param {function} [params.onGeometrySelection] Внешняя ф-ция для выбора геометрии объекта. 
          Сигнатура: function(callback), параметр callback(gmxAPI.drawingObject|geometry) должен быть вызван когда будет выбрана геометрия.
 * @param {HTMLNode} [params.geometryUI] HTML элемент, который нужно использовать вместо стандартных контролов для выбора геометрии (надпись + иконка)
-* @param {Object[]} [params.fields] массив со значениями атрибутов. Должен содержать только атрибуты, которые есть в слое. Каждый элемент массива может содержать:
-*
-*  * name {String} - имя атрибута (обязательно)
-*  * value {String|int} - значение атрибута в формате сервера (может отсутствовать)
-*  * constant {bool} - можно ли редактировать атрибут (по умолчанию - можно)
-*  * title {String} - что показывать вместо имени атрибута
-*  * validate {function(val) -> bool} - ф-ция для валидации результата. На вход получает введённое пользователем значение 
-*      (до преобразования в серверный формат), должна вернуть валидно ли это значение.
-*  * isRequired {Boolean} - является ли значение атрибута обязательным. Обязательные атрибуты показываются выше всех остальных и выделяются жирным шрифтом. По умолчанию "false".
-*  * index {Number} - индекс для сортировки. Влияет на порядок показа полей в диалоге. Больше - выше. По умолчанию - 0.
-*
+* @param {nsGmx.EditObjectControl.FieldInfo[]} [params.fields] массив с описанием характеристик атрибутов для редактирования . Должен содержать только атрибуты, которые есть в слое.
 * @param {bool} [params.allowDuplicates=<depends>] Разрешать ли несколько диалогов для редактирования/создания этого объекта. 
          По умолчанию для редактирования запрещено, а для создания нового разрешено.
 * @param {HTMLNode} [params.afterPropertiesControl] HTML элемент, который нужно поместить после списка атрибутов
 */
 var EditObjectControl = function(layerName, objectId, params)
 {
-    /** Изменение/добавление объекта
+    /** Объект был изменён/добавлен
      * @event nsGmx.EditObjectControl#modify
+     */
+     
+    /** Генерируется перед изменением/добавлением объекта. Может быть использован для сохранения в свойствах объекта каких-то внешних данных.
+     * @event nsGmx.EditObjectControl#premodify
      */
      
     /** Закрытие диалога редактирования
      * @event nsGmx.EditObjectControl#close
      */
-    
+     
     var isNew = objectId == null;
     var _params = $.extend({
             drawingObject: null, 
@@ -269,6 +276,8 @@ var EditObjectControl = function(layerName, objectId, params)
 	
         createButton.onclick = function()
         {
+            $(_this).trigger('premodify');
+            
             var properties = {};
             var anyErrors = false;
             $(".edit-attr-value", canvas).each(function(index, elem)
@@ -292,7 +301,6 @@ var EditObjectControl = function(layerName, objectId, params)
             if (anyErrors) return;
             
             var obj = { properties: properties };
-            
             
             var selectedGeom = null;
             
@@ -421,8 +429,11 @@ var EditObjectControl = function(layerName, objectId, params)
                 if (field.isRequired) {
                     fieldHeader.style.fontWeight = 'bold';
                 }
+                var tr = _tr([_td([fieldHeader]), td], [['css', 'height', '22px']]);
                 
-                trs.push(_tr([_td([fieldHeader]), td], [['css', 'height', '22px']]));
+                field.hide && $(tr).hide();
+                
+                trs.push(tr);
             })
             
             _(canvas, [_div([_table([_tbody(trs)]), _params.afterPropertiesControl],[['css','overflow','auto']])]);
@@ -483,6 +494,8 @@ var EditObjectControl = function(layerName, objectId, params)
                 _params.fields.forEach(fieldsCollection.update);
                 
                 drawAttrList(fieldsCollection);
+                
+                _this.initPromise.resolve();
             })
         }
         else
@@ -498,11 +511,18 @@ var EditObjectControl = function(layerName, objectId, params)
                 bindDrawingObject(_params.drawingObject);
             }
             
-            var trs = drawAttrList(fieldsCollection);
+            drawAttrList(fieldsCollection);
+            
+            _this.initPromise.resolve();
         }
     }
     
-    createDialog();
+    
+    /** Promise для отслеживания момента полной инициализации диалога. Только после полной инициализации можно полноценно пользоваться методами get/set
+      * @memberOf nsGmx.EditObjectControl.prototype
+      * @member {jQuery.Deferred} initPromise
+    */
+    this.initPromise = $.Deferred();
     
     /** Получить текущее значение атрибута из контрола
       @memberOf nsGmx.EditObjectControl.prototype
@@ -547,6 +567,8 @@ var EditObjectControl = function(layerName, objectId, params)
     this.setGeometry = function(geometry) {
         bindGeometry(geometry);
     }
+    
+    createDialog();
 }
 
 nsGmx.EditObjectControl = EditObjectControl;
