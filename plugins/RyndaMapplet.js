@@ -101,8 +101,8 @@
 			{
 				$(balloonDiv).empty();
 				var container = $("<div></div>").css({width: "400px", whiteSpace: 'normal'});
-				var titleDiv = $("<b></b>", {className: "RyndaTitle"}).text(obj.properties.title);
-				var textDiv = obj.properties.text !== '' ? $("<div></div>", {className: "RyndaText"}).html(obj.properties.text) : null;
+				var titleDiv = $("<b></b>", {'class': "RyndaTitle"}).text(obj.properties.title);
+				var textDiv = obj.properties.text !== '' ? $("<div></div>", {'class': "RyndaText"}).html(obj.properties.text) : null;
 				
 				//maxHeight не работает...
 				if ($.browser.msie) textDiv.css({height: "200px"});

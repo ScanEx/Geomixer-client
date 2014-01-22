@@ -2290,7 +2290,7 @@ FireControl.prototype.add = function(parent, firesOptions, calendar)
 	var trs = [];
 	var _this = this;
     
-	var button = $("<button>").attr('className', 'findFiresButton')[0];
+	var button = $("<button>").addClass('findFiresButton')[0];
 	
 	$(button).text(_gtxt('firesWidget.AdvancedSearchButton'));
 	

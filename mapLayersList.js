@@ -75,7 +75,7 @@ queryMapLayersList.prototype.load = function()
 	
 	_(canvas, [searchCanvas]);
 	
-	var scrollDiv = $("<div></div>", {className: 'layersScroll'});
+	var scrollDiv = $("<div></div>", {'class': 'layersScroll'});
 	var scrollCheckbox = _checkbox(false, 'checkbox');
 	scrollDiv.append(scrollCheckbox).append($("<label></label>", {'for': 'otherEncoding'}).text(_gtxt("Пролистывать слои")));
 	this._isLayersScrollActive = false;

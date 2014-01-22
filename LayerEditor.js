@@ -586,9 +586,9 @@ var createPageVectorSource = function(layerProperties, tabSelector) {
         
     var sourceCheckbox = $(
         '<form>' +
-            '<label><input type="radio" name="sourceCheckbox" id="chxFileSource" data-containerIdx="0" checked>' + _gtxt('Файл')    + '</label><br/>' +
-            '<label><input type="radio" name="sourceCheckbox" id="chxTableSource" data-containerIdx="1">'        + _gtxt('Таблица') + '</label><br/>' +
-            '<label><input type="radio" name="sourceCheckbox" id="chxManualSource" data-containerIdx="2">'       + _gtxt('Вручную') + '</label>' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxFileSource" data-container-idx="0" checked>' + _gtxt('Файл')    + '</label><br/>' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxTableSource" data-container-idx="1">'        + _gtxt('Таблица') + '</label><br/>' +
+            '<label><input type="radio" name="sourceCheckbox" id="chxManualSource" data-container-idx="2">'       + _gtxt('Вручную') + '</label>' +
         '</form>'
     );
         
