@@ -904,7 +904,7 @@
 
 			//var standartTools = gmxAPI.map.standartTools;
 			//if(!standartTools || !skipToolNames[standartTools.activeToolName]) {
-			if(!gmxAPI._drawing || !gmxAPI._drawing.activeState) {
+			if(!gmxAPI._drawing || (!gmxAPI._drawing.activeState && gmxAPI._drawing.type !== 'POINT')) {
 				var from = gmxAPI.map.layers.length - 1;
 				var arr = [];
 				for (var i = from; i >= 0; i--)
