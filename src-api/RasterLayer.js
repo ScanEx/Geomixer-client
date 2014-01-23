@@ -58,60 +58,76 @@
 		node['zIndex'] += node['zIndexOffset'];
 
 		node['setGeometry'] = function() {			// Установка геометрии
-			attr['mercGeom'] = gmxAPI.merc_geometry(node['geometry']);
+			attr.mercGeom = gmxAPI.merc_geometry(node.geometry);
 			if(waitRedraw) {
-				if(myLayer) myLayer.options.attr = attr;
+				if(myLayer) {
+                    node.getLayerBounds();
+                    myLayer.options.attr = attr;
+                }
 				waitRedraw();
 			}
 		}
 
-		node['getLayerBounds'] = function() {				// Проверка границ растрового слоя
-			if(!gmxNode || !attr['mercGeom']) return;
+		node.getLayerBounds = function() {				// Проверка границ растрового слоя
+			if(!gmxNode || !attr.mercGeom) return;
 			var ext = null;
 			if('getLayerBounds' in gmxNode) ext = gmxNode.getLayerBounds();
 			else {
 				var geo = gmxNode.getGeometry();
 				if(!geo || !geo.type) {
-					geo = attr['mercGeom'];
+					geo = attr.mercGeom;
 					var boundsMerc = gmxAPI.getBounds(geo.coordinates);
 					ext = {
-						minX: gmxAPI.from_merc_x(boundsMerc['minX']),
-						minY: gmxAPI.from_merc_y(boundsMerc['minY']),
-						maxX: gmxAPI.from_merc_x(boundsMerc['maxX']),
-						maxY: gmxAPI.from_merc_y(boundsMerc['maxY'])
+						minX: gmxAPI.from_merc_x(boundsMerc.minX),
+						minY: gmxAPI.from_merc_y(boundsMerc.minY),
+						maxX: gmxAPI.from_merc_x(boundsMerc.maxX),
+						maxY: gmxAPI.from_merc_y(boundsMerc.maxY)
 					};
 				} else {
 					ext = gmxAPI.getBounds(geo.coordinates);
-					attr['mercGeom'] = gmxAPI.merc_geometry(geo);
+					attr.mercGeom = gmxAPI.merc_geometry(geo);
 				}
 			}
 			
 			var	bounds = new L.Bounds();
-			bounds.extend(new L.Point(ext.minX, ext.minY ));
-			bounds.extend(new L.Point(ext.maxX, ext.maxY ));
-			attr['bounds'] = bounds;
+			bounds.extend(new L.Point(ext.minX, ext.minY));
+			bounds.extend(new L.Point(ext.maxX, ext.maxY));
+			attr.bounds = bounds;
+            node.boundsMerc = {         // extent с учетом сдвига в Меркаторе растрового слоя
+                minX: gmxAPI.merc_x(ext.minX),
+                maxX: gmxAPI.merc_x(ext.maxX),
+                minY: gmxAPI.merc_y(ext.minY),
+                maxY: gmxAPI.merc_y(ext.maxY)
+            };
+            node.boundsMercWithShift = {         // extent с учетом сдвига в Меркаторе растрового слоя
+                minX: node.boundsMerc.minX + (node.shiftX || 0),
+                maxX: node.boundsMerc.maxX + (node.shiftX || 0),
+                minY: node.boundsMerc.minY + (node.shiftY || 0),
+                maxY: node.boundsMerc.maxY + (node.shiftY || 0)
+            };
+//console.log('boundsMerc', node.shiftX, node.boundsMerc);
 		}
 
 		var chkVisible = function() {
-			if(!gmxNode) return;
-			if(node.isVisible != false) {
+        //gmxAPI._leaflet.zoomstart
+			if(gmxNode && node.isVisible != false) {
 				var notOnScene = true;
 				var continuousWorld = false;
-				if(node['leaflet']) {
-					if(node['leaflet']._map) notOnScene = false;
-					continuousWorld = node['leaflet'].options.continuousWorld;
+				if(myLayer) {
+					if(myLayer._map) notOnScene = false;
+					continuousWorld = myLayer.options.continuousWorld;
 				}
-				if(!continuousWorld && !attr['bounds']) {
-					node['getLayerBounds']();
+				if(!continuousWorld && !node.boundsMercWithShift) {
+					node.getLayerBounds();
 				}
-
-				//var notOnScene = (node['leaflet'] && node['leaflet']._map ? false : true);
+                var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
 				var notViewFlag = (!utils.chkVisibilityByZoom(id)
-					|| (!continuousWorld && !utils.chkBoundsVisible(attr['bounds']))
+					|| (!continuousWorld && !gmxAPI.extIntersect(node.boundsMercWithShift, currPos.extent))
 					);
+//console.log('chkVisible', notViewFlag1 , notViewFlag, gmxAPI._leaflet.zoomstart, node.boundsMerc, currPos.extent);
 				if(notOnScene != notViewFlag) {
-					utils.setVisibleNode({'obj': node, 'attr': !notViewFlag});
-					if(notViewFlag)	delete gmxAPI._leaflet['renderingObjects'][node.id];
+					utils.setVisibleNode({obj: node, attr: !notViewFlag});
+					if(notViewFlag)	delete gmxAPI._leaflet.renderingObjects[node.id];
 				}
 			}
 		}
@@ -149,8 +165,11 @@
 		if(layer.properties) {
             if('visible' in layer.properties) node.isVisible = layer.properties.visible;
             if('MetaProperties' in layer.properties) {
-                if('shiftX' in layer.properties.MetaProperties) node.shiftX = layer.properties.MetaProperties.shiftX.Value;
-                if('shiftY' in layer.properties.MetaProperties) node.shiftY = layer.properties.MetaProperties.shiftY.Value;
+                var meta = layer.properties.MetaProperties;
+                if('shiftX' in meta || 'shiftY' in meta) {
+                    node.shiftX = meta.shiftX ? Number(meta.shiftX.Value) : 0;
+                    node.shiftY = meta.shiftY ? Number(meta.shiftY.Value) : 0;
+                }
             }
         }
         var dragAttr = null;
@@ -180,6 +199,8 @@
             if(!gmxAPI.map.dragState) {
                 gmxAPI._leaflet.utils.freeze();
                 gmxAPI.map.dragState = true;
+                if(myLayer._clearBgBufferTimer) clearTimeout(myLayer._clearBgBufferTimer);
+				setTimeout(L.bind(myLayer._clearBgBuffer, myLayer), 500);
             }
             
             LMap.on('mousemove', mousemove);
@@ -203,9 +224,9 @@
                 node.shiftX = pt.shiftX || 0;
                 node.shiftY = pt.shiftY || 0;
                 if(myLayer) {
+                    node.getLayerBounds();
                     myLayer.options.shiftX = node.shiftX;
                     myLayer.options.shiftY = node.shiftY;
-                    myLayer.options.continuousWorld = true;
                     myLayer.updateTilesPosition();
                     myLayer._update();
                 }
@@ -218,21 +239,22 @@
                     || !myLayer
                     || !gmxNode
                     ) return false;
-                var shiftX = node.shiftX || 0;
-                var shiftY = node.shiftY || 0;
-                var point = [gmxAPI.merc_x(latlng.lng) - shiftX, gmxAPI.merc_y(latlng.lat) - shiftY];
-                var options = myLayer.options;
-                var bounds = options.attr.boundsMerc;
-                if(bounds) {
-                    if(point[0] < bounds.minX || point[0] > bounds.maxX
-                        || point[1] < bounds.minY || point[1] > bounds.maxY
+                var point = [gmxAPI.merc_x(latlng.lng), gmxAPI.merc_y(latlng.lat)];
+                var boundsMercWithShift = node.boundsMercWithShift;
+                if(boundsMercWithShift) {
+                    if(point[0] < boundsMercWithShift.minX || point[0] > boundsMercWithShift.maxX
+                        || point[1] < boundsMercWithShift.minY || point[1] > boundsMercWithShift.maxY
                     ) return false;
                 }
                 // TODO: учет сдвига shiftX shiftY
-                var geo = options.attr.mercGeom;
-                if(geo && geo.coordinates && geo.coordinates[0]) {
-                    var coords = geo.coordinates;
-                    if(geo.type === 'POLYGON') coords = [coords];
+                var shiftX = node.shiftX || 0;
+                var shiftY = node.shiftY || 0;
+                var options = myLayer.options;
+                var mercGeom = options.attr.mercGeom;
+                if(mercGeom && mercGeom.coordinates && mercGeom.coordinates[0]) {
+                    point[0] -= shiftX, point[1] -= shiftY;
+                    var coords = mercGeom.coordinates;
+                    if(mercGeom.type === 'POLYGON') coords = [coords];
                     for (var i = 0, len = coords.length; i < len; i++) {
                         if(utils.isPointInPolygonArr(point, coords[i][0])) return true;
                     }
@@ -265,15 +287,15 @@
 					if(obj._container.id != id) obj._container.id = id;
 					//if(obj._container.style.position != 'absolute') obj._container.style.position = 'absolute';
 					
-					if(!'zIndex' in node) node['zIndex'] = utils.getIndexLayer(id) + node['zIndexOffset'];
-					utils.bringToDepth(node, node['zIndex']);
-					if(node['shiftOSM']) node['shiftOSM']();
-					if(!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y < -84 && attr.bounds.max.x > 179 && attr.bounds.max.y > 84)) {
-						delete obj.options['bounds'];
+					if(!'zIndex' in node) node.zIndex = utils.getIndexLayer(id) + node.zIndexOffset;
+					utils.bringToDepth(node, node.zIndex);
+					if('shiftOSM' in node) node.shiftOSM();
+					if(!attr.bounds || attr.bounds.max.x > 180 || (attr.bounds.min.x < -179 && attr.bounds.min.y < -84 && attr.bounds.max.x > 179 && attr.bounds.max.y > 84)) {
+						delete obj.options.bounds;
 						obj.options.continuousWorld = true;
 					}
 					else {
-						obj.options['bounds'] = new L.LatLngBounds([new L.LatLng(attr['bounds'].min.y, attr['bounds'].min.x), new L.LatLng(attr['bounds'].max.y, attr['bounds'].max.x)]);
+						obj.options.bounds = new L.LatLngBounds([new L.LatLng(attr['bounds'].min.y, attr['bounds'].min.x), new L.LatLng(attr['bounds'].max.y, attr['bounds'].max.x)]);
 					}
 				}
 			};
@@ -294,6 +316,7 @@
 					,'tileFunc': inpAttr['func']
 					,'attr': attr
 					,'_needLoadTile': 0
+                    ,_inLoadImage: {}
 					,'nodeID': id
 					,'badTiles': {}
 					,'async': true
@@ -306,6 +329,8 @@
 				} else {
 					if(gmxNode.isBaseLayer) node.zIndexOffset = -100000;
 				}
+                node.getLayerBounds();
+
 				if(!gmxNode.isBaseLayer && attr['bounds']) {
 					option['bounds'] = new L.LatLngBounds([new L.LatLng(attr['bounds'].min.y, attr['bounds'].min.x), new L.LatLng(attr['bounds'].max.y, attr['bounds'].max.x)]);
 				} else {
@@ -369,16 +394,17 @@
 			if(!lgeo) return;
 			var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
 			var tileSize = zoomCurrent.tileSize;
-			var mInPixel = zoomCurrent.mInPixel;
-			var shiftX = opt.shiftX || 0;
-			var shiftY = opt.shiftY || 0;
+			//var mInPixel = zoomCurrent.mInPixel;
+            var node = mapNodes[opt.nodeID];
+			//var shiftX = opt.shiftX || 0;
+			//var shiftY = opt.shiftY || 0;
 			var shiftOSM = (opt.shiftOSM ? opt.shiftOSM : 0);
-			if(opt.attr.boundsMerc) {
-				var extMerc = opt.attr.boundsMerc;
+			if(node.boundsMerc) {
+				var extMerc = node.boundsMerc;
 				var minx = x * tileSize;
 				var maxx = minx + tileSize;
-				if (maxx < extMerc.minX) x += zoomCurrent['pz'];
-				else if (minx > extMerc.maxX) x -= zoomCurrent['pz'];
+				if (maxx < extMerc.minX) x += zoomCurrent.pz;
+				else if (minx > extMerc.maxX) x -= zoomCurrent.pz;
 			}
             //ctx.strokeStyle = 'rgba(255, 0, 0, 1)';
 			ctx.beginPath();
@@ -417,8 +443,13 @@
 			}
 			,
 			_reset: function (e) {
-				L.TileLayer.Canvas.prototype._reset.call(this, e);
+                for(var key in this.options._inLoadImage) {
+                    gmxAPI._leaflet.imageLoader.removeItemsBySrc(key);
+                }
+                this.options._inLoadImage = {};
+                L.TileLayer.Canvas.prototype._reset.call(this, e);
                 this.options._needLoadTile = 0;
+                
 			}
 			,
 			_addTile: function (tilePoint, container) {
@@ -426,53 +457,53 @@
 			}
 			,
             '_update': function() {
-                if (!this._map || gmxAPI._leaflet['zoomstart']) {
-                    var node = mapNodes[this.options.nodeID];
+                var opt = this.options,
+                    nodeID = opt.nodeID,
+                    _map = this._map,
+                    node = mapNodes[nodeID];
+                if (!_map || gmxAPI._leaflet.zoomstart) {
                     node.waitRedraw();
                     return;
                 }
 
-                var zoom = this._map.getZoom();
-                if (zoom > this.options.maxZoom || zoom < this.options.minZoom) {
-                    delete gmxAPI._leaflet['renderingObjects'][this.options.nodeID];
+                var zoom = _map.getZoom();
+                if (zoom > opt.maxZoom || zoom < opt.minZoom) {
+                    delete gmxAPI._leaflet.renderingObjects[nodeID];
                     return;
                 }
-                gmxAPI._leaflet['renderingObjects'][this.options.nodeID] = 1;
-                if('initCallback' in this.options) this.options.initCallback(this);
-                var bounds   = this._map.getPixelBounds(),
-                    tileSize = this.options.tileSize;
+                gmxAPI._leaflet.renderingObjects[nodeID] = 1;
+                if('initCallback' in opt) opt.initCallback(this);
+                var sbounds   = _map.getPixelBounds(),
+                    tileSize = opt.tileSize;
 
-                if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
+                if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
                 var zoomCurrent = gmxAPI._leaflet.zoomCurrent;
                 var mInPixel = zoomCurrent.mInPixel;
-                var shiftX = mInPixel * (this.options.shiftX || 0);
-                var shiftY = mInPixel * (this.options.shiftY || 0);
-                var shiftOSM = (this.options.shiftOSM ? this.options.shiftOSM : 0);		// Сдвиг для OSM
+                var shiftX = mInPixel * (opt.shiftX || 0);
+                var shiftY = mInPixel * (opt.shiftY || 0);
+                var shiftOSM = (opt.shiftOSM ? opt.shiftOSM : 0);		// Сдвиг для OSM
                 shiftY -= shiftOSM;
-                bounds.min.y += shiftY;
-                bounds.max.y += shiftY;
-                bounds.min.x -= shiftX;
-                bounds.max.x -= shiftX;
+                sbounds.min.y += shiftY, sbounds.max.y += shiftY;
+                sbounds.min.x -= shiftX, sbounds.max.x -= shiftX;
 
                 var nwTilePoint = new L.Point(
-                        Math.floor(bounds.min.x / tileSize),
-                        Math.floor(bounds.min.y / tileSize)),
+                        Math.floor(sbounds.min.x / tileSize),
+                        Math.floor(sbounds.min.y / tileSize)),
                     seTilePoint = new L.Point(
-                        Math.floor(bounds.max.x / tileSize),
-                        Math.floor(bounds.max.y / tileSize)),
+                        Math.floor(sbounds.max.x / tileSize),
+                        Math.floor(sbounds.max.y / tileSize)),
                     tileBounds = new L.Bounds(nwTilePoint, seTilePoint);
 
 				var pz = Math.pow(2, zoom) - 1;
                 if(tileBounds.min.y < 0) tileBounds.min.y = 0;
                 if(tileBounds.max.y > pz) tileBounds.max.y = pz;
 
-                var opt = this.options;
                 this._addTilesFromCenterOut(tileBounds);
 
                 if (opt.unloadInvisibleTiles || opt.reuseTiles) {
                     this._removeOtherTiles(tileBounds);
                 }
-                if(opt._needLoadTile < 1) delete gmxAPI._leaflet['renderingObjects'][opt.nodeID];
+                if(opt._needLoadTile < 1) delete gmxAPI._leaflet.renderingObjects[nodeID];
             }
 			,
 			_getLoadedTilesPercentage: function (container) {
@@ -500,50 +531,35 @@
 				var tx = tilePoint.x % pz + (tilePoint.x < 0 ? pz : 0);
 				var ty = tilePoint.y % pz + (tilePoint.y < 0 ? pz : 0);
 				var gmxTilePoint = {
-					'x': tx % pz - pz/2
-					,'y': pz/2 - 1 - ty % pz
+					x: tx % pz - pz/2
+					,y: pz/2 - 1 - ty % pz
 				};
-				gmxTilePoint['gmxTileID'] = zoom + '_' + gmxTilePoint.x + '_' + gmxTilePoint.y
+				gmxTilePoint.gmxTileID = zoom + '_' + gmxTilePoint.x + '_' + gmxTilePoint.y
 				return gmxTilePoint;
 			}
 			,
 			drawTile: function (tile, tilePoint, zoom) {
 				// override with rendering code
-                var tileKey = tilePoint.x + ':' + tilePoint.y;
-
-                var layer = this;
-				var opt = layer.options;
-				var node = mapNodes[opt['nodeID']];
+                var layer = this,
+                    tileKey = tilePoint.x + ':' + tilePoint.y,
+                    opt = layer.options,
+                    node = mapNodes[opt.nodeID];
 				if(!node) return;								// Слой пропал
                 
                 if(!zoom) zoom = LMap.getZoom();
-                if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
+                if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
                 var gmxTilePoint = layer._getGMXtileNum(tilePoint, zoom);
 
 				var attr = opt.attr;
-				if(!attr['bounds']) {
-					var node = mapNodes[opt.nodeID];
-					node['getLayerBounds']();
-				}
-
 				var allFlag = (!attr.bounds || (attr.bounds.min.x < -179 && attr.bounds.min.y <= -85 && attr.bounds.max.x > 179 && attr.bounds.max.y >= 85));
                 var isIntersects = 0;
                 if(allFlag) isIntersects = 2;
                 else {
-                    if(!attr['boundsMerc']) {
-                        attr['boundsMerc'] = {
-                            minX: gmxAPI.merc_x(attr['bounds'].min.x),
-                            minY: gmxAPI.merc_y(attr['bounds'].min.y),
-                            maxX: gmxAPI.merc_x(attr['bounds'].max.x),
-                            maxY: gmxAPI.merc_y(attr['bounds'].max.y)
-                        };
-                    }
-                    //var drawTileID = gmxTilePoint['gmxTileID'];
                     var tileExtent = gmxAPI.getTileExtent(gmxTilePoint.x, gmxTilePoint.y, zoom);
-                    if(gmxAPI.extIntersect(tileExtent, attr['boundsMerc'])) isIntersects++;
+                    if(gmxAPI.extIntersect(tileExtent, node.boundsMerc)) isIntersects++;
                     if(!isIntersects) {
                         tileExtent.minX += gmxAPI.worldWidthMerc2, tileExtent.maxX += gmxAPI.worldWidthMerc2;
-                        if(gmxAPI.extIntersect(tileExtent, attr['boundsMerc'])) isIntersects++;
+                        if(gmxAPI.extIntersect(tileExtent, node.boundsMerc)) isIntersects++;
                     }
                     // todo: реальное пересечение screenTile с геометрией слоя
                     //if(isIntersects) isIntersects += gmxAPI._leaflet['utils'].chkExtInPolygonArr(tileExtent, attr['mercGeom']['coordinates'][0]);
@@ -583,16 +599,22 @@
                         'src': rUrl
                         ,'zoom': z
                         ,'callback': function(imageObj) {
+                            delete opt._inLoadImage[rUrl];
                             pt.callback({'img': imageObj, 'zoom': z, 'fromZoom': pt.zoom.from});
                         }
-                        ,'onerror': onError
+                        ,'onerror': function() {
+                            delete opt._inLoadImage[rUrl];
+                            onError();
+                        }
                     };
 					if(pt.zoom.from != z) item.crossOrigin = 'use-credentials';
-                    gmxAPI._leaflet['imageLoader'].push(item);
+                    opt._inLoadImage[rUrl] = true;
+                    gmxAPI._leaflet.imageLoader.push(item);
                 }
                 opt._needLoadTile++;
                 loadRasterRecursion({
                     callback: function(ph) {
+                        opt._needLoadTile--;
                         if(!layer._map || gmxAPI._leaflet.zoomstart) {
                             //node.waitRedraw();
                             return;     // идет анимация
@@ -610,7 +632,9 @@
                                         || pos.x > 255 || pos.y > 255
                                         || (pos.x + pos.size) < 0
                                         || (pos.y + pos.size) < 0
-                                    ) return;
+                                    ) {
+                                        return;
+                                    }
                                 }
                                 var type = (!pos && isIntersects === 2 ? 'img' : 'canvas');
                                 tile = layer.gmxGetTile(tilePoint, type, imageObj);
@@ -635,15 +659,16 @@
                                 }
                             }
                         }
-                        opt._needLoadTile--;
                         if(opt._needLoadTile < 1) {
                             delete gmxAPI._leaflet.renderingObjects[opt.nodeID];
                             utils.waitChkIdle(0, 'RasterLayer ' + layer._animating);					// Проверка отрисовки карты
+                            if(layer._clearBgBufferTimer) clearTimeout(layer._clearBgBufferTimer);
+                            layer._clearBgBufferTimer = setTimeout(L.bind(layer._clearBgBuffer, layer), 500);
+                            //console.log('_needLoadTile', opt._needLoadTile);
                         }
                     }
                     ,zoom: {
                         from: zoom
-                       
                     }
                     ,x: gmxTilePoint.x
                     ,y: gmxTilePoint.y
@@ -677,7 +702,7 @@
 				var tKey = tilePoint.x + ':' + tilePoint.y;
                 if(tKey in this._tiles) return this._tiles[tKey];
 				if (!this._map) {
-					console.log('getCanvasTile: ', this);
+					//console.log('getCanvasTile: ', this);
 				}
                 
 				var tile = this._createTile(type, img);

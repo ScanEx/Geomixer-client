@@ -455,8 +455,11 @@
 		});
 		if(obj.properties) {
             if('MetaProperties' in obj.properties) {
-                if('shiftX' in obj.properties.MetaProperties) obj.shiftX = obj.properties.MetaProperties.shiftX.Value;
-                if('shiftY' in obj.properties.MetaProperties) obj.shiftY = obj.properties.MetaProperties.shiftY.Value;
+                var meta = layer.properties.MetaProperties;
+                if('shiftX' in meta || 'shiftY' in meta) {
+                    obj.shiftX = meta.shiftX ? meta.shiftX.Value : 0;
+                    obj.shiftY = meta.shiftY ? meta.shiftY.Value : 0;
+                }
             }
         }
         if('shiftX' in obj) obj.setPositionOffset(obj.shiftX, obj.shiftY);
