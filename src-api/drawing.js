@@ -1117,7 +1117,7 @@
                 setVisible: function(flag) { drawing.tools._setVisibleTool('FRAME', flag); }
             }
             ,LINESTRING: {
-                setVisible: function(flag) { drawing.tools._setVisibleTool('FRAME', flag); }
+                setVisible: function(flag) { drawing.tools._setVisibleTool('LINESTRING', flag); }
             }
 		}
 		,
