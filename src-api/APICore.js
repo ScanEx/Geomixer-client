@@ -3362,7 +3362,7 @@ function createFlashMapInternal(div, layers, callback)
 			}
 		}
 		if('miniMap' in gmxAPI.map && !gmxAPI.miniMapAvailable) {
-			gmxAPI.map.miniMap.setVisible(true);
+			//gmxAPI.map.miniMap.setVisible(true);
 		}
 
 		var propsBalloon = (gmxAPI.map.balloonClassObject ? gmxAPI.map.balloonClassObject.propsBalloon : null);

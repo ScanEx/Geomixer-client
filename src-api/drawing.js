@@ -1098,11 +1098,27 @@
 			}
 		}
 		,
+		toolInitFlags: {
+        }
+		,
 		tools: { 
 			setVisible: function(flag) 
 			{ 
 				if('toolsAll' in gmxAPI.map && 'standartTools' in gmxAPI.map.toolsAll) gmxAPI.map.toolsAll.standartTools.setVisible(flag);
 			}
+            ,_setVisibleTool: function(id, flag) {
+                if(!drawing.toolInitFlags[id]) drawing.toolInitFlags[id] = {};
+                drawing.toolInitFlags[id].visible = flag;
+            }
+            ,POINT: {
+                setVisible: function(flag) { drawing.tools._setVisibleTool('POINT', flag); }
+            }
+            ,FRAME: {
+                setVisible: function(flag) { drawing.tools._setVisibleTool('FRAME', flag); }
+            }
+            ,LINESTRING: {
+                setVisible: function(flag) { drawing.tools._setVisibleTool('FRAME', flag); }
+            }
 		}
 		,
 		addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
