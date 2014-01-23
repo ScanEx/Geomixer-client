@@ -404,7 +404,7 @@
                         //positionTools();
                         if(!gmxAPI._drawing.tools[tn]) gmxAPI._drawing.tools[tn] = toolHash[tn];
                         my.chkVisible();
-if(gmxAPI._drawing.toolInitFlags[tn]) { // обратная совместимость
+if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // обратная совместимость
     toolHash[tn].setVisible(gmxAPI._drawing.toolInitFlags[tn].visible);
 }
                         return toolHash[tn];
