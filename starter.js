@@ -416,7 +416,9 @@ function checkUserInfo(defaultState)
         eraseCookie("TinyReference");
         _mapHelper.restoreTinyReference(tinyRef, function(obj)
         {
-            window.globalMapName = obj.mapName;
+            if (obj.mapName) {
+                window.globalMapName = obj.mapName;
+            }
             loadMap(obj);
         }, function()
         {
