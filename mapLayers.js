@@ -1735,23 +1735,33 @@ queryMapLayers.prototype.removeSwappable = function(parent)
 	$(parent).find("div[swap]").droppable('destroy');
 }
 
-queryMapLayers.prototype.asyncCreateLayer = function(task, title)
+queryMapLayers.prototype.asyncCreateLayer = function(promise, title)
 {
     var _this = this;
-    task.deferred.fail(function(taskInfo)
+    
+    var taskDiv = _div(),
+        active = $(_this.buildedTree).find(".active")[0],
+        parentDiv;
+        
+    if (active && (active.parentNode.getAttribute('MapID') || active.parentNode.getAttribute('GroupID')))
+        parentDiv = active.parentNode.parentNode;
+    else
+        parentDiv = _this.buildedTree.firstChild;
+        
+    _abstractTree.addNode(parentDiv, _li([taskDiv, _div(null,[['css','height','5px'],['css','fontSize','0px']])]));
+    
+    promise.fail(function(taskInfo)
     {
-		taskInfo.Status = 'error';
-		
-		parseResponse(taskInfo);
-		
-		return;
+        var parentTree = taskDiv.parentNode.parentNode;
+        taskDiv.parentNode.removeNode(true);
+        _abstractTree.delNode(null, parentTree, parentTree.parentNode);
 	}).done(function(taskInfo)
     {
         if (!isArray(taskInfo.Result)) {
             taskInfo.Result = [taskInfo.Result];
         }
         
-        var parentDiv = $($$(taskInfo.TaskID).parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0],
+        var parentDiv = $(taskDiv.parentNode.parentNode.parentNode).children("div[GroupID],div[MapID]")[0],
             parentProperties = parentDiv.gmxProperties;
         
         var parentTree = taskDiv.parentNode.parentNode;
@@ -1805,41 +1815,24 @@ queryMapLayers.prototype.asyncCreateLayer = function(task, title)
         }
 		
 		_mapHelper.updateUnloadEvent(true);
-    })
-	
-    var taskDiv = _div(null, [['attr', 'id', task.getTaskID()]]);
-	var update = function(event, taskInfo)
+    }).progress(function(taskInfo)
 	{
         removeChilds(taskDiv);
 		_(taskDiv, [_span([_t(title + ':')], [['css','color','#153069'],['css','margin','0px 3px']]), _t(taskInfo.Status)])
-	}
-    
-    var parentDiv;
-    
-    var active = $(_this.buildedTree).find(".active")[0];
-    if (active && (active.parentNode.getAttribute('MapID') || active.parentNode.getAttribute('GroupID')))
-        parentDiv = active.parentNode.parentNode;
-    else
-        parentDiv = _this.buildedTree.firstChild;
-        
-    _abstractTree.addNode(parentDiv, _li([taskDiv, _div(null,[['css','height','5px'],['css','fontSize','0px']])]));
-    
-    $(task).bind('update', update);
-    
-    if (task.getCurrentStatus() === 'processing')
-        update(null, task.getCurrentResult());
+	})
 }
 
-queryMapLayers.prototype.asyncUpdateLayer = function(task, properties, needRetiling)
+queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, needRetiling)
 {
-    var _this = this;
-    task.deferred
+    var layerDiv = $(_queryMapLayers.buildedTree).find("[LayerID='" + properties.LayerID + "']")[0],
+        _this = this;
+        
+    promise
         .done(function(taskInfo)
         {
             if (needRetiling)
             {
-                var newLayerProperties = taskInfo.Result.properties,
-                    layerDiv = $(_queryMapLayers.buildedTree).find("[LayerID='" + properties.LayerID + "']")[0];
+                var newLayerProperties = taskInfo.Result.properties;
                 
                 var mapProperties = _layersTree.treeModel.getMapProperties();
                 newLayerProperties.mapName = mapProperties.name;
@@ -1867,51 +1860,39 @@ queryMapLayers.prototype.asyncUpdateLayer = function(task, properties, needRetil
                     
                     _queryMapLayers.addDraggable(li);
 
-                    _layersTree.updateListType(li);		
+                    _layersTree.updateListType(li);
             }
             else
             {
                 $$(taskInfo.TaskID).removeNode(true);
-            
-                var layerDiv = $(_queryMapLayers.buildedTree).find("[LayerID='" + properties.LayerID + "']")[0];
                     
                 layerDiv.style.display = '';
             }
         }).fail(function(taskInfo)
         {
-            taskInfo.Status = 'error';
-            parseResponse(taskInfo);
-            return;
+            $$(taskInfo.TaskID).removeNode(true);
+            layerDiv.style.display = '';
+        }).progress(function(taskInfo)
+        {
+            var taskDiv;
+            
+            if (!$$(taskInfo.TaskID))
+            {
+                taskDiv = _div(null, [['attr','id',taskInfo.TaskID]]);
+                
+                layerDiv.style.display = 'none';
+                
+                $(layerDiv).before(taskDiv);
+            }
+            else
+            {
+                taskDiv = $$(taskInfo.TaskID);
+                
+                removeChilds(taskDiv);
+            }
+            
+            _(taskDiv, [_span([_t(properties.Title + ':')], [['css','color','#153069'],['css','margin','0px 3px']]), _t(taskInfo.Status)]);
         })
-    	
-    var update = function(event, taskInfo)
-	{
-		var taskDiv;
-		
-		if (!$$(taskInfo.TaskID))
-		{
-			taskDiv = _div(null, [['attr','id',taskInfo.TaskID]]);
-			
-			var layerDiv = $(_queryMapLayers.buildedTree).find("[LayerID='" + properties.LayerID + "']")[0];
-			
-			layerDiv.style.display = 'none';
-			
-			$(layerDiv).before(taskDiv);
-		}
-		else
-		{
-			taskDiv = $$(taskInfo.TaskID);
-			
-			removeChilds(taskDiv);
-		}
-		
-		_(taskDiv, [_span([_t(properties.Title + ':')], [['css','color','#153069'],['css','margin','0px 3px']]), _t(taskInfo.Status)])
-	}
-    
-    $(task).bind('update', update);
-    
-    if (task.getCurrentStatus() === 'processing')
-        update(null, task.getCurrentResult());
 }
 
 queryMapLayers.prototype.removeLayer = function(name)

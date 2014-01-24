@@ -5,82 +5,82 @@ var tasksByName = {};
 
 var UPDATE_INTERVAL = 2000;
 
-var AsyncTask = function(serverResponse)
-{
-    var status = 'processing';
-    var serverResult = null;
-    var taskID = serverResponse.TaskID;
-    var _this = this;
+var sendGmxRequest = function(requestType, url, params) {
+    var def = $.Deferred();
     
-    this.deferred = $.Deferred();
-    
-    this.getCurrentStatus = function()
-    {
-        return status;
-    }
-    
-    this.getCurrentResult = function()
-    {
-        return serverResult;
-    }
-    
-    this.getTaskID = function() {
-        return taskID;
-    }
-    
-    var processServerInfo = function(taskInfo)
-    {
-        serverResult = taskInfo;
-        if (taskInfo.ErrorInfo)
-        {
-            status = 'error';
-            clearInterval(interval);
-            _this.deferred.reject(taskInfo);
+    var processResponse = function(response) {
+        if (!response.Result || !response.Result.TaskID) {
+            if (response.Status === 'ok') {
+                def.resolve(response);
+            } else {
+                def.reject(response);
+            }
+            return;
         }
-        else if (taskInfo.Completed)
-        {
-            status = 'completed';
-            clearInterval(interval);
-            _this.deferred.resolve(taskInfo);
-        }
-        else
-        {
-            status = 'processing';
-            $(_this).triggerHandler('update', [taskInfo]);
-        }
-    }
-    
-    processServerInfo(serverResponse);
-    
-    var interval = null;
-    if (status == 'processing')
-    {
-        interval = setInterval(function()
-        {
-            sendCrossDomainJSONRequest(serverBase + "AsyncTask.ashx?WrapStyle=func&TaskID=" + taskID, function(response)
-            {
-                if (!parseResponse(response))
-                    return;
-                
-                processServerInfo(response.Result);
-            });
+        
+        def.notify(response.Result);
+        
+        var taskID = response.Result.TaskID;
+        
+        var interval = setInterval(function(){
+            sendCrossDomainJSONRequest(serverBase + "AsyncTask.ashx?WrapStyle=func&TaskID=" + taskID, 
+                function(response)
+                {
+                    var res = response.Result;
+                    if (response.Status !== 'ok' || res.ErrorInfo)
+                    {
+                        res.Status = 'error';
+                        clearInterval(interval);
+                        def.reject(res);
+                    }
+                    else if (res.Completed)
+                    {
+                        clearInterval(interval);
+                        def.resolve(res);
+                    }
+                    else
+                    {
+                        def.notify(res);
+                    }
+                }, null, 
+                function() {
+                    clearInterval(interval);
+                    def.reject();
+                }
+            );
         }, UPDATE_INTERVAL);
     }
+    
+    if (requestType === 'get') {
+    
+        params = params || {};
+    
+        var paramStrItems = [];
+        
+        for (var p in params) {
+            paramStrItems.push(p + '=' + encodeURIComponent(params[p]));
+        }
+        
+        var sepSym = url.indexOf('?') == -1 ? '?' : '&';
+        
+        
+        sendCrossDomainJSONRequest(
+            url + sepSym + paramStrItems.join('&'), 
+            processResponse, null, def.reject.bind(def)
+        );
+    } else if (requestType === 'post') {
+        var localParams = $.extend({WrapStyle: 'message'}, params);
+        sendCrossDomainPostRequest(url, localParams, processResponse);
+    } else {
+        throw 'Wrong request type';
+    }
+    
+    return def.promise();
 }
 
 nsGmx.asyncTaskManager = {
-    addTask: function(serverResponse, name)
-    {
-        var newTask = new AsyncTask(serverResponse);
-        tasks[serverResponse.TaskID] = newTask;
-        if (name) tasksByName[name] = newTask;
-        
-        return newTask;
-    },
-    getTaskByName: function(taskID)
-    {
-        return tasksByName[taskID];
-    }
+    sendGmxJSONPRequest: sendGmxRequest.bind(null, 'get'),
+    sendGmxPostRequest: sendGmxRequest.bind(null, 'post')
 }
 
 })()

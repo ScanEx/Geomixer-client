@@ -1047,6 +1047,9 @@ var createPageAdvanced = function(parent, layerProperties) {
     }
 }
 
+//doneCallback вызывается после того, как сервер вернул результат без ошибки из скрипта, модифицирующего данные.
+//Это не значит, что слой уже создан/модифицирован без ошибок - нужно анализировать значение promise, которое передано в качестве первого аргумента.
+//Фактически, doneCallback вызывается при успешном начале создания/модификации слоя.
 var LayerEditor = function(div, type, properties, treeView, params) {
     var _params = $.extend({addToMap: true, doneCallback: null}, params);
     var tabs = [];
@@ -1184,53 +1187,45 @@ var LayerEditor = function(div, type, properties, treeView, params) {
             needRetiling = true;
         }
         
-        layerProperties.save(needRetiling, function(response) {
-            var mapProperties = _layersTree.treeModel.getMapProperties(),
-                layerTitle = layerProperties.get('Title');
-                
-            if ( type === 'Vector' && !name && layerProperties.get('SourceType') === 'manual') {
-                if (_params.addToMap)
-                {
-                    var targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0];
-                    var gmxProperties = {type: 'layer', content: response.Result};
+        var def = layerProperties.save(needRetiling),
+            layerTitle = layerProperties.get('Title');
+            
+        //doneCallback вызываем при первом progress notification - признаке того, что вызов непосредственно скрипта модификации слоя прошёл успешно
+        var onceCallback = nsGmx._.once(function(){
+            _params.doneCallback && _params.doneCallback(def, layerTitle);
+        });
+        def.always(parseResponse);
+        def.then(onceCallback, null, onceCallback);
+        
+        if (type === 'Vector' && !name && layerProperties.get('SourceType') === 'manual') {
+            if (_params.addToMap) {
+                def.done(function(response) {
+                    var mapProperties = _layersTree.treeModel.getMapProperties(),
+                        targetDiv = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0],
+                        gmxProperties = {type: 'layer', content: response.Result};
+                        
                     gmxProperties.content.properties.mapName = mapProperties.name;
                     gmxProperties.content.properties.hostName = mapProperties.hostName;
                     gmxProperties.content.properties.visible = true;
                     
                     gmxProperties.content.properties.styles = [{
                         MinZoom: gmxProperties.content.properties.VtMaxZoom,
-                        MaxZoom:21, 
+                        MaxZoom:21,
                         RenderStyle:_mapHelper.defaultStyles[gmxProperties.content.properties.GeometryType]
                     }];
                 
                     _layersTree.copyHandler(gmxProperties, targetDiv, false, true);
-                }
-                    
-                //реализует интерфейс AsyncTask
-                //TODO: test me!
-                var taskResult = {Result: response.Result, Completed: true};
-                var task = {
-                    deferred: $.when(taskResult),
-                    getCurrentStatus: function(){return 'completed'; },
-                    getCurrentResult: function(){return taskResult; }
-                }
-                _params.doneCallback && _params.doneCallback(task, layerTitle);
-            } else {
-                var task = nsGmx.asyncTaskManager.addTask(response.Result, name || null);
-                        
-                if (name)
-                {
-                    _queryMapLayers.asyncUpdateLayer(task, properties, needRetiling);
-                }
-                else 
-                {
-                    if (_params.addToMap)
-                        _queryMapLayers.asyncCreateLayer(task, layerTitle);
-                }
-                
-                _params.doneCallback && _params.doneCallback(task, layerTitle);
+                })
             }
-        });
+        } else {
+            if (name) {
+                _queryMapLayers.asyncUpdateLayer(def, properties, needRetiling);
+            } 
+            else {
+                if (_params.addToMap)
+                    _queryMapLayers.asyncCreateLayer(def, layerTitle);
+            }
+        }
     }
 }
 

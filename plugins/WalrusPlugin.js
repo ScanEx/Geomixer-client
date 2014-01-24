@@ -501,10 +501,10 @@ var AddImageControl = function(map, layerName)
             nsGmx.createLayerEditorProperties(null, 'Raster', newLayerCanvas, properties, null,
                 {
                     addToMap: false, 
-                    doneCallback: function(task)
+                    doneCallback: function(promise)
                     {
                         initNewLayerCanvas();
-                        task.deferred.done(function(taskInfo)
+                        promise.done(function(taskInfo)
                         {
                             doAddLayerWithProperties(layerName, taskInfo.Result);
                         })

@@ -59,13 +59,12 @@ var LayerProperties = Backbone.Model.extend(
     initFromViewer: function(type, divProperties, layerProperties) {
             
         this.set({
-            Type:           type,
+            Type:           type || (divProperties && divProperties.type) || (layerProperties || layerProperties.type), 
             Title:          divProperties ? (divProperties.title || '') : (layerProperties.Title || ''),
             Copyright:      divProperties ? (divProperties.Copyright || '') : (layerProperties.Copyright || ''),
             Legend:         divProperties ? (divProperties.Legend || '') : (layerProperties.Legend || ''),
             Description:    divProperties ? (divProperties.description || '') : (layerProperties.Description || ''),
             NameObject:     divProperties ? (divProperties.NameObject || '') : (layerProperties.NameObject || ''),
-            //AllowSearch:    divProperties ? (divProperties.AllowSearch || false) : (layerProperties.AllowSearch || false),
             GeometryType:   divProperties ? divProperties.GeometryType : layerProperties.GeometryType,
             LayerID:        divProperties ? divProperties.LayerID : layerProperties.LayerID,
             Quicklook:      divProperties ? divProperties.Quicklook : layerProperties.Quicklook,
@@ -83,8 +82,6 @@ var LayerProperties = Backbone.Model.extend(
             
             Attributes:     divProperties ? divProperties.attributes : [],
             AttrTypes:      divProperties ? divProperties.attrTypes : []
-            
-            // MetaPropertiesEditing: null
         })
         
         this.set('RC', new nsGmx.LayerRCProperties({
@@ -124,13 +121,13 @@ var LayerProperties = Backbone.Model.extend(
         var def = $.Deferred(),
             _this = this;
         
-        sendCrossDomainPostRequest(serverBase + "Layer/GetLayerInfo.ashx?WrapStyle=func&NeedAttrValues=false&LayerName=" + layerName, function(response) {
+        sendCrossDomainJSONRequest(serverBase + "Layer/GetLayerInfo.ashx?NeedAttrValues=false&LayerName=" + encodeURIComponent(layerName), function(response) {
             if (!parseResponse(response)) {
                 def.reject(response);
                 return;
             }
             
-            _this.initFromViewer('Vector', null, response.Result);
+            _this.initFromViewer(null, null, response.Result);
             
             def.resolve();
         });
@@ -147,7 +144,7 @@ var LayerProperties = Backbone.Model.extend(
         var attrs = this.attributes,
             name = attrs.Name,
             stype = attrs.SourceType,
-            def = $.Deferred();
+            def;
 
         var reqParams = {
             WrapStyle: "window",
@@ -162,7 +159,7 @@ var LayerProperties = Backbone.Model.extend(
                 
         if (attrs.Type === 'Vector') {
             if (attrs.EncodeSource) reqParams.EncodeSource = attrs.EncodeSource;
-            reqParams.NameObject = attrs.NameObject || null;
+            reqParams.NameObject = attrs.NameObject || '';
             if (stype === 'table') reqParams.TableCS = attrs.TableCS;
 
             var rcProps = attrs.RC;
@@ -185,7 +182,6 @@ var LayerProperties = Backbone.Model.extend(
                 reqParams.maxShownPeriod = tempProperties.get('maxShownPeriod');
             }
             
-            var parsedColumns = nsGmx.LayerProperties.parseColumns(attrs.Columns);
             
             //отсылать на сервер колонки нужно только если это уже созданный слой или тип слоя "Вручную"
             if (attrs.Columns && (name || stype === 'manual')) {
@@ -193,7 +189,7 @@ var LayerProperties = Backbone.Model.extend(
             }
             
             if (attrs.LayerID) reqParams.VectorLayerID = attrs.LayerID;
-            reqParams.Quicklook = attrs.Quicklook || null;
+            reqParams.Quicklook = attrs.Quicklook || '';
             
             if (attrs.ZIndexField) reqParams.ZIndexField = attrs.ZIndexField;
             
@@ -201,23 +197,13 @@ var LayerProperties = Backbone.Model.extend(
             {
                 reqParams.UserBorder = attrs.UserBorder ? JSON.stringify(attrs.UserBorder) : null;
                 reqParams.geometrytype = attrs.GeometryType;
-                        
-                sendCrossDomainPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams,
-                    function(response)
-                    {
-                        if (!parseResponse(response)) {
-                            def.reject(response);
-                            return;
-                        }
-                    
-                        callback && callback(response);
-                        def.resolve(response);
-                    }
-                )
+                
+                def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/CreateVectorLayer.ashx", reqParams);
             }
             else
             {
                 //Если нет колонки с геометрией, то нужно передавать выбранные пользователем колонки
+                var parsedColumns = nsGmx.LayerProperties.parseColumns(attrs.Columns);
                 var geomColumns = attrs.GeometryColumnsLatLng;
                 if (parsedColumns.geomCount === 0 && geomColumns && geomColumns.get('XCol') && geomColumns.get('YCol')) {
                     reqParams.ColX = geomColumns.get('XCol');
@@ -227,19 +213,8 @@ var LayerProperties = Backbone.Model.extend(
                 if (stype !== 'manual') {
                     reqParams.GeometryDataSource = stype === 'file' ? attrs.ShapePath.Path : attrs.TableName;
                 }
-                        
-                sendCrossDomainPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams,
-                    function(response)
-                    {
-                        if (!parseResponse(response)) {
-                            def.reject(response);
-                            return;
-                        }
-                    
-                        callback && callback(response);
-                        def.resolve(response);
-                    }
-                )
+                
+                def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "VectorLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams);
             }
         } else {
             var curBorder = _mapHelper.drawingBorders.get(name);
@@ -256,27 +231,18 @@ var LayerProperties = Backbone.Model.extend(
             
             if (attrs.LayerID) reqParams.RasterLayerID = attrs.LayerID;
             
-            sendCrossDomainPostRequest(serverBase + "RasterLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams, function(response)
-                {
-                    if (!parseResponse(response)) {
-                        def.reject(response);
-                        return;
-                    }
-                
-                    callback && callback(response);
-                    def.resolve(response);
-                }
-            )
+            def = nsGmx.asyncTaskManager.sendGmxPostRequest(serverBase + "RasterLayer/" + (name ? "Update.ashx" : "Insert.ashx"), reqParams);
         }
         
+        callback && def.done(callback);
         return def.promise();
     }
 })
 
 LayerProperties.parseColumns = function(columns) {
-    var geomCount = 0; //кол-во колонок с типом Геометрия
+    var geomCount = 0;     //кол-во колонок с типом Геометрия
     var coordColumns = []; //колонки, которые могут быть использованы для выбора координат
-    var dateColumns = []; //колонки, которые могут быть использованы для выбора временнОго параметра
+    var dateColumns = [];  //колонки, которые могут быть использованы для выбора временнОго параметра
         
     columns = columns || [];
         

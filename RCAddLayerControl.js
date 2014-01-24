@@ -175,10 +175,10 @@ nsGmx.RCAddLayerControl = function(map, layerName)
     nsGmx.createLayerEditorProperties(null, 'Raster', newLayerCanvas[0], newLayerProperties, null,
         {
             addToMap: false, 
-            doneCallback: function(task)
+            doneCallback: function(promise)
             {
                 infoControl.startProcess();
-                task.deferred.done(function(taskInfo)
+                promise.done(function(taskInfo)
                 {
                     _mapHelper.modifyObjectLayer(layerName, [{source: {layerName: taskInfo.Result.properties.name}}])
                         .done(function()
