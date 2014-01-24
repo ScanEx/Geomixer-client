@@ -4290,7 +4290,7 @@
 				}
 			);
 			gmxAPI._leaflet.LMap = LMap;			// Внешняя ссылка на карту
-            gmxAPI._leaflet.zoomstart = true;
+            //gmxAPI._leaflet.zoomstart = true;
             // BoxZoom при нажатом shift
             L.DomEvent.on(document, 'keydown', function(e) {
                 if(e.keyCode !== 16) return;
