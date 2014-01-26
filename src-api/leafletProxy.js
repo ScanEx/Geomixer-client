@@ -3261,11 +3261,11 @@
 		}
 		// Проверка совпадения с другой точкой
 		out['contains'] = function (chkPoint) {
-			return gmxAPI._leaflet['utils'].chkPointWithDelta(bounds, chkPoint, out);
+			return gmxAPI._leaflet.utils.chkPointWithDelta(bounds, chkPoint, out);
 		}
 		// Проверка пересечения точки с bounds
 		out['intersects'] = function (chkBounds) {
-			return gmxAPI._leaflet['utils'].chkPointWithDelta(chkBounds, point, out);
+			return gmxAPI._leaflet.utils.chkPointWithDelta(chkBounds, point, out);
 		}
 		// Квадрат растояния до точки
 		out['distance2'] = function (chkPoint) {
@@ -3292,178 +3292,178 @@
 
 		// Проверка размера точки по стилю
 		out['chkSize'] = function (node, style) {
-			var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
-			var size = style['size'] || 4;
-			var scale = style['scale'] || 1;
-			if(!out['_cache']) out['_cache'] = {};
-			if('_scale' in out['_cache']) scale = out['_cache']['_scale'];
+			//var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
+			var prop = this.properties || null,
+                size = style.size || 4,
+                scale = style.scale || 1;
+			if(!out._cache) out._cache = {};
+			if('_scale' in out._cache) scale = out._cache._scale;
 			else {
 				if(typeof(scale) == 'string') {
-					scale = (style['scaleFunction'] ? style['scaleFunction'](prop) : 1);
-
+					scale = (style.scaleFunction ? style.scaleFunction(prop) : 1);
 				}
-				if(scale < style['minScale']) scale = style['minScale'];
-				else if(scale > style['maxScale']) scale = style['maxScale'];
-				out['_cache']['_scale'] = scale;
+				if(scale < style.minScale) scale = style.minScale;
+				else if(scale > style.maxScale) scale = style.maxScale;
+				out._cache._scale = scale;
 			}
-			out['sx'] = scale * (style['imageWidth'] ? style['imageWidth']/2 : size);
-			out['sy'] = scale * (style['imageHeight'] ? style['imageHeight']/2 : size);
-			if(style['dx']) out['dx'] = style['dx'];
-			if(style['dy']) out['dy'] = style['dy'];
-			out['weight'] = style['weight'] || 0;
+			out.sx = scale * (style.imageWidth ? style.imageWidth/2 : size);
+			out.sy = scale * (style.imageHeight ? style.imageHeight/2 : size);
+			if(style.dx) out.dx = style.dx;
+			if(style.dy) out.dy = style.dy;
+			out.weight = style.weight || 0;
 
-			if(style['marker']) {
-				if(style['image']) {
-					var canv = out['_cache']['canv'];
+			if(style.marker) {
+				if(style.image) {
+					var canv = out._cache.canv;
 					if(!canv) {
-						canv = style['image'];
-						var rotateRes = style['rotate'] || 0;
+						canv = style.image;
+						var rotateRes = style.rotate || 0;
 						if(rotateRes && typeof(rotateRes) == 'string') {
-							rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
+							rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
 						}
-						style['rotateRes'] = rotateRes;
-						if(style['rotateRes'] || 'color' in style) {
-							if(style['rotateRes']) {
+						style.rotateRes = rotateRes;
+						if(rotateRes || 'color' in style) {
+							if(rotateRes) {
 								size = Math.ceil(Math.sqrt(style.imageWidth*style.imageWidth + style.imageHeight*style.imageHeight));
-								out['sx'] = out['sy'] = Math.ceil(scale * size/2);
-								out['isCircle'] = true;
+								out.sx = out.sy = Math.ceil(scale * size/2);
+								out.isCircle = true;
 							}
-							canv = gmxAPI._leaflet['utils'].replaceColorAndRotate(style['image'], style, size);
+							canv = gmxAPI._leaflet.utils.replaceColorAndRotate(style.image, style, size);
 						}
-						out['_cache']['canv'] = canv;
+						out._cache.canv = canv;
 					} else {
-						out['sx'] = scale * canv.width/2;
-						out['sy'] = scale * canv.height/2;
+						out.sx = scale * canv.width/2;
+						out.sy = scale * canv.height/2;
 					}
-				} else if(style['polygons']) {
-					var rotateRes = style['rotate'] || 0;
+				} else if('polygons' in style) {
+					var rotateRes = style.rotate || 0;
 					if(rotateRes && typeof(rotateRes) == 'string') {
-						rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
-						if(rotateRes) out['isCircle'] = true;
+						rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
+						if(rotateRes) out.isCircle = true;
 					}
 					style['rotateRes'] = rotateRes || 0;
 				}
 			} else {
-				if(style['fill']) {
-					if(style['radialGradient']) {
-						var rgr = style['radialGradient'];
-						var r1 = (rgr['r1Function'] ? rgr['r1Function'](prop) : rgr['r1']);
-						var r2 = (rgr['r2Function'] ? rgr['r2Function'](prop) : rgr['r2']);
+				if('fill' in style) {
+					if('radialGradient' in style) {
+						var rgr = style.radialGradient;
+						var r1 = ('r1Function' in rgr ? rgr.r1Function(prop) : rgr.r1);
+						var r2 = ('r2Function' in rgr ? rgr.r2Function(prop) : rgr.r2);
 						size = scale * Math.max(r1, r2);
-						out['sx'] = out['sy'] = size;
-						out['isCircle'] = true;
-					} else if(style['circle']) {
-						out['sx'] = out['sy'] = size;
-						out['isCircle'] = true;
+						out.sx = out.sy = size;
+						out.isCircle = true;
+					} else if(style.circle) {
+						out.sx = out.sy = size;
+						out.isCircle = true;
 					}
 				}
 			}
-			out['_cache']['chkSize'] = true;
+			out._cache.chkSize = true;
 		}
 
 		// Отрисовка точки
 		out['paint'] = function (attr, style, ctx) {
 			if(!attr || !style) return;
-			var zoom = attr['zoom'];
-			var mInPixel = gmxAPI._leaflet['mInPixel'];
-			var node = attr['node'];
+			var zoom = attr.zoom;
+			var mInPixel = gmxAPI._leaflet.mInPixel;
+			var node = attr.node;
 
-			if(!out['_cache']) out['_cache'] = {};
-			if(!out['_cache']['chkSize']) out['chkSize'](node, style);
-			var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
+			if(!out._cache) out._cache = {};
+			if(!out._cache.chkSize) out.chkSize(node, style);
+			//var prop = ('getPropItem' in node ? node.getPropItem(out) : (out.geometry && out['properties'] ? out['properties'] : null));
+			var prop = out.properties || null;
 
-			var x = attr['x'];
-			var y = 256 + attr['y'];
-			var px1 = point.x * mInPixel - x - out['sx'] - 1; 		px1 = (0.5 + px1) << 0;
-			var py1 = y - point.y * mInPixel - out['sy'] - 1;		py1 = (0.5 + py1) << 0;
+			var x = attr.x;
+			var y = 256 + attr.y;
+			var px1 = point.x * mInPixel - x - out.sx - 1; 		px1 = (0.5 + px1) << 0;
+			var py1 = y - point.y * mInPixel - out.sy - 1;		py1 = (0.5 + py1) << 0;
 			// 0.9966471893352525	баг L.Projection.Mercator
-			if(style['dx']) px1 += out['dx'];
-			if(style['dy']) py1 += out['dy'];
-			if('center' in style && !style['center']) {
-				px1 += out['sx'];
-				py1 += out['sy'];
+			if(style.dx) px1 += out.dx;
+			if(style.dy) py1 += out.dy;
+			if('center' in style && !style.center) {
+				px1 += out.sx;
+				py1 += out.sy;
 			}
 
-			if(style['marker']) {
-				if(style['image']) {
-					var canv = out['_cache']['canv'];
-					if('opacity' in style) ctx.globalAlpha = style['opacity'];
-					ctx.drawImage(canv, px1, py1, 2*out['sx'], 2*out['sy']);
+			if(style.marker) {
+				if(style.image) {
+					var canv = out._cache.canv;
+					if('opacity' in style) ctx.globalAlpha = style.opacity;
+					ctx.drawImage(canv, px1, py1, 2*out.sx, 2*out.sy);
 					if('opacity' in style) ctx.globalAlpha = 1;
-				} else if(style['polygons']) {
-					var rotateRes = style['rotate'] || 0;
+				} else if(style.polygons) {
+					var rotateRes = style.rotate || 0;
 					if(rotateRes && typeof(rotateRes) == 'string') {
-						rotateRes = (style['rotateFunction'] ? style['rotateFunction'](prop) : 0);
+						rotateRes = ('rotateFunction' in style ? style.rotateFunction(prop) : 0);
 					}
-					style['rotateRes'] = rotateRes || 0;
+					style.rotateRes = rotateRes || 0;
 
-					for (var i = 0; i < style['polygons'].length; i++)
-					{
-						var p = style['polygons'][i];
+					for (var i = 0, len = style.polygons.length; i < len; i++) {
+						var p = style.polygons[i];
 						ctx.save();
 						ctx.lineWidth = p['stroke-width'] || 0;
-						ctx.fillStyle = p['fill_rgba'] || 'rgba(0, 0, 255, 1)';
+						ctx.fillStyle = p.fill_rgba || 'rgba(0, 0, 255, 1)';
 						
 						ctx.beginPath();
-						var arr = gmxAPI._leaflet['utils'].rotatePoints(p['points'], style['rotateRes'], out['_cache']['_scale'], {'x': out['sx'], 'y': out['sy']});
-						for (var j = 0; j < arr.length; j++)
+						var arr = gmxAPI._leaflet.utils.rotatePoints(p.points, style.rotateRes, out._cache._scale, {'x': out.sx, 'y': out.sy});
+						for (var j = 0, lenj = arr.length; j < lenj; j++)
 						{
 							var t = arr[j];
 							if(j == 0)
-								ctx.moveTo(px1 + t['x'], py1 + t['y']);
+								ctx.moveTo(px1 + t.x, py1 + t.y);
 							else
-								ctx.lineTo(px1 + t['x'], py1 + t['y']);
+								ctx.lineTo(px1 + t.x, py1 + t.y);
 						}
 						ctx.fill();
 						ctx.restore();
 					}
 				}
 			} else {
-				if(style['stroke'] && style['weight'] > 0) {
+				if(style.stroke && style.weight > 0) {
 					ctx.beginPath();
-					if(style['circle']) {
-						ctx.arc(px1, py1, out['sx'], 0, 2*Math.PI);
+					if(style.circle) {
+						ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
 					} else {
-						ctx.strokeRect(px1, py1, 2*out['sx'], 2*out['sy']);
+						ctx.strokeRect(px1, py1, 2*out.sx, 2*out.sy);
 					}
 					ctx.stroke();
 					//sx = sy = size;
 				}
-				if(style['fill']) {
+				if(style.fill) {
 					ctx.beginPath();
-					if(style['radialGradient']) {
-						var rgr = style['radialGradient'];
-						var r1 = (rgr['r1Function'] ? rgr['r1Function'](prop) : rgr['r1']);
-						var r2 = (rgr['r2Function'] ? rgr['r2Function'](prop) : rgr['r2']);
-						var x1 = (rgr['x1Function'] ? rgr['x1Function'](prop) : rgr['x1']);
-						var y1 = (rgr['y1Function'] ? rgr['y1Function'](prop) : rgr['y1']);
-						var x2 = (rgr['x2Function'] ? rgr['x2Function'](prop) : rgr['x2']);
-						var y2 = (rgr['y2Function'] ? rgr['y2Function'](prop) : rgr['y2']);
+					if(style.radialGradient) {
+						var rgr = style.radialGradient;
+						var r1 = ('r1Function' in rgr ? rgr.r1Function(prop) : rgr.r1);
+						var r2 = ('r2Function' in rgr ? rgr.r2Function(prop) : rgr.r2);
+						var x1 = ('x1Function' in rgr ? rgr.x1Function(prop) : rgr.x1);
+						var y1 = ('y1Function' in rgr ? rgr.y1Function(prop) : rgr.y1);
+						var x2 = ('x2Function' in rgr ? rgr.x2Function(prop) : rgr.x2);
+						var y2 = ('y2Function' in rgr ? rgr.y2Function(prop) : rgr.y2);
 						//size = scale * Math.max(r1, r2);
 						//out['sx'] = out['sy'] = size;
 						px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
 						py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
 
 						var radgrad = ctx.createRadialGradient(px1+x1, py1+y1, r1, px1+x2, py1+y2,r2);  
-						for (var i = 0; i < style['radialGradient']['addColorStop'].length; i++)
+						for (var i = 0; i < style.radialGradient.addColorStop.length; i++)
 						{
-							var arr = style['radialGradient']['addColorStop'][i];
-							var arrFunc = style['radialGradient']['addColorStopFunctions'][i];
+							var arr = style.radialGradient.addColorStop[i];
+							var arrFunc = style.radialGradient.addColorStopFunctions[i];
 							var p0 = (arrFunc[0] ? arrFunc[0](prop) : arr[0]);
 							var p2 = (arr.length < 3 ? 100 : (arrFunc[2] ? arrFunc[2](prop) : arr[2]));
-							var p1 = gmxAPI._leaflet['utils'].dec2rgba(arrFunc[1] ? arrFunc[1](prop) : arr[1], p2/100);
+							var p1 = gmxAPI._leaflet.utils.dec2rgba(arrFunc[1] ? arrFunc[1](prop) : arr[1], p2/100);
 							radgrad.addColorStop(p0, p1);
 						}
 						ctx.fillStyle = radgrad;
 
-						ctx.arc(px1, py1, out['sx'], 0, 2*Math.PI);
+						ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
 					} else {
-						if(style['circle']) {
+						if(style.circle) {
 							px1 = point.x * mInPixel - x - 1; 		px1 = (0.5 + px1) << 0;
 							py1 = y - point.y * mInPixel - 1;		py1 = (0.5 + py1) << 0;
-							ctx.arc(px1, py1, out['sx'], 0, 2*Math.PI);
+							ctx.arc(px1, py1, out.sx, 0, 2*Math.PI);
 						} else {
-							ctx.fillRect(px1, py1, 2*out['sx'], 2*out['sy']);
+							ctx.fillRect(px1, py1, 2*out.sx, 2*out.sy);
 						}
 					}
 					ctx.fill();
@@ -3471,11 +3471,11 @@
 				}
 			}
 
-			if(style['label']) {
-				var labelStyle = style['label'];
-				var txt = (labelStyle['field'] ? prop[labelStyle['field']] : labelStyle['value']) || '';
+			if(style.label) {
+				var labelStyle = style.label;
+				var txt = (labelStyle.field ? prop[labelStyle.field] : labelStyle.value) || '';
 				if(txt) {
-					gmxAPI._leaflet['LabelsManager'].addItem(txt, out, attr, style);	// добавим label от векторного слоя
+					gmxAPI._leaflet.LabelsManager.addItem(txt, out, attr, style);	// добавим label от векторного слоя
 				}
 			}
 		}

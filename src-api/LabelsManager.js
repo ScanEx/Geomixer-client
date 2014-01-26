@@ -11,9 +11,10 @@
 	var items = [];							// массив ID нод очереди отрисовки
 	var itemsHash = {};						// Хэш нод требующих отрисовки
 
-	var repaintItems = function()	{			// отложенная перерисовка
+	var repaintItems = function(zd)	{			// отложенная перерисовка
 		if(timer) clearTimeout(timer);
-		timer = setTimeout(repaint, 100);
+        if(arguments.length === 0) zd = 100;
+		timer = setTimeout(repaint, zd);
 	}
 	var prepareStyle = function(style)	{		// подготовка стиля
 		var size = style['label']['size'] || 12;
@@ -55,11 +56,13 @@
 		}
 		return out;
 	}
-	var prepareItem = function(txt, geom, inpStyle) {			// подготовка Label от векторного слоя
+
+	// подготовка Label от векторного слоя
+	var prepareItem = function(txt, geom, inpStyle, shiftX, shiftY) {
 		var style = prepareStyle(inpStyle);
 		var bounds = new L.Bounds();
-		bounds.extend(new L.Point(geom['bounds'].min.x, geom['bounds'].min.y));
-		bounds.extend(new L.Point(geom['bounds'].max.x, geom['bounds'].max.y));
+		bounds.extend(new L.Point(geom.bounds.min.x + shiftX, geom.bounds.min.y + shiftY));
+		bounds.extend(new L.Point(geom.bounds.max.x + shiftX, geom.bounds.max.y + shiftY));
 		var x = (bounds.max.x + bounds.min.x) /2;
 		var y = (bounds.max.y + bounds.min.y) /2;
 		
@@ -98,8 +101,9 @@
         return false;
 	}
 
-	var repaint = function() {				// перерисовка
-		if(!canvas || gmxAPI._leaflet['mousePressed'] || gmxAPI._leaflet['zoomstart']) return false;
+	var repaint = function(flag) {				// перерисовка
+		if(!canvas || gmxAPI._leaflet.zoomstart) return false;
+        if(!flag && gmxAPI._leaflet.mousePressed) return false;
         timer = null;
 		var zoom = LMap.getZoom();
 		if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent(zoom);
@@ -229,9 +233,9 @@
 		}
 		,'addItem': function(txt, geom, attr, style)	{	// добавить Label от векторного слоя
 			if(!utils) init();
-			var node = attr['node'];
-			var id = node['id'] + '_' + geom.id;
-			var item = prepareItem(txt, geom, style);
+			var node = attr.node;
+			var id = node.id + '_' + geom.id;
+			var item = prepareItem(txt, geom, style, node.shiftX, node.shiftY);
 			if(itemsHash[id]) {
 				var bounds = new L.Bounds();
 				item.bounds.extend(itemsHash[id]['bounds'].min);
@@ -242,7 +246,7 @@
 			itemsHash[id] = item;
 			repaintItems();
 		}
-		,'remove': function(id, vid)	{				// удалить ноду
+		,'remove': function(id, vid, flag)	{				// удалить ноду
 			if(itemsHash[id]) delete itemsHash[id];
 			else {
 				var node = gmxAPI._leaflet['mapNodes'][id];
@@ -261,7 +265,11 @@
 					removeRecursive(node);
 				}
 			}
-			repaintItems();
+			if(flag) {
+                repaint(flag);
+            } else {
+                repaintItems();
+            }
 			return true;
 		}
 		,'onChangeVisible': function(id, flag)	{		// изменение видимости ноды
@@ -276,12 +284,20 @@
 			}
 			repaintItems();
 		}
-		,'repaint': function()	{				// отрисовка нод
-			repaintItems();
+		,repaint: function(zd)	{				// отрисовка нод с задержкой
+			repaintItems(zd);
+		}
+		,setVisible: function(flag)	{			// установка видимости
+			if(!marker) return false;
+			if(flag) {
+                LMap.addLayer(marker);
+                repaintItems();
+			} else LMap.removeLayer(marker);
+			return true;
 		}
 	};
 
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
-	gmxAPI._leaflet['LabelsManager'] = LabelsManager;	// менеджер отрисовки
+	gmxAPI._leaflet.LabelsManager = LabelsManager;	// менеджер отрисовки
 })();
