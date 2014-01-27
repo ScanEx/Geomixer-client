@@ -50,7 +50,7 @@
                     }
                     
                     var toolName = map.layers[activeLayer].properties.GeometryType.toUpperCase();
-                    map.standartTools.selectTool(toolName);
+                    map.drawing.selectTool(toolName);
                     
                     if (mapListenerId === null) {
                         mapListenerId = map.drawing.addListener('onFinish', function(obj) {
@@ -65,7 +65,7 @@
                     }
                 },
                 onCancel: function(){
-                    map.standartTools.selectTool('move');
+                    map.drawing.selectTool('move');
                 }
             })
         }
