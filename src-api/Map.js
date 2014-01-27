@@ -761,39 +761,6 @@
 			gmxAPI._startDrag(this, dragCallback, upCallback);
 		});
 
-		gmxAPI.extendFMO('disableDragging', function(dragCallback, downCallback, upCallback)
-		{
-			gmxAPI._FMO.prototype.removeHandler.call(map, 'onMouseMove');
-			gmxAPI._FMO.prototype.removeHandler.call(map, 'onMouseUp');
-			gmxAPI._FMO.prototype.removeHandler.call(map, 'onMouseDown');
-		});
-
-		gmxAPI.extendFMO('enableDragging', function(dragCallback, downCallback, upCallback)
-		{
-			var object = this;
-			var mouseDownHandler = function(o)
-			{
-				if (downCallback) {
-					var currPosition = map.getPosition();
-					var mouseX = null;
-					var mouseY = null;
-					if(currPosition['latlng'] && 'mouseX' in currPosition['latlng']) {
-						mouseX = currPosition['latlng']['mouseX'];
-						mouseY = currPosition['latlng']['mouseY'];
-					} else {
-						mouseX = gmxAPI.from_merc_x(currPosition['mouseX']);
-						mouseY = gmxAPI.from_merc_y(currPosition['mouseY']);
-					}
-					downCallback(mouseX, mouseY, o);
-				}
-				gmxAPI._startDrag(object, dragCallback, upCallback);
-			}
-			if (object == map) {
-				setToolHandler("onMouseDown", mouseDownHandler);
-			} else {
-				object.setHandler("onMouseDown", mouseDownHandler);
-			}
-		});
 		if(gmxAPI.proxyType === 'leaflet') {
 			gmxAPI.extendFMO('enableDragging', function(dragCallback, downCallback, upCallback)
 			{
@@ -804,7 +771,43 @@
 			{
 				gmxAPI._cmdProxy('disableDragging', { 'obj': this });
 			});
-		}
+			gmxAPI._FMO.prototype.addDragHandlers = gmxAPI._FMO.prototype.enableDragging;
+			gmxAPI._FMO.prototype.removeDragHandlers = gmxAPI._FMO.prototype.disableDragging;
+		} else {
+            gmxAPI.extendFMO('enableDragging', function(dragCallback, downCallback, upCallback)
+            {
+                var object = this;
+                var mouseDownHandler = function(o)
+                {
+                    if (downCallback) {
+                        var currPosition = map.getPosition();
+                        var mouseX = null;
+                        var mouseY = null;
+                        if(currPosition['latlng'] && 'mouseX' in currPosition['latlng']) {
+                            mouseX = currPosition['latlng']['mouseX'];
+                            mouseY = currPosition['latlng']['mouseY'];
+                        } else {
+                            mouseX = gmxAPI.from_merc_x(currPosition['mouseX']);
+                            mouseY = gmxAPI.from_merc_y(currPosition['mouseY']);
+                        }
+                        downCallback(mouseX, mouseY, o);
+                    }
+                    gmxAPI._startDrag(object, dragCallback, upCallback);
+                }
+                if (object == map) {
+                    setToolHandler("onMouseDown", mouseDownHandler);
+                } else {
+                    object.setHandler("onMouseDown", mouseDownHandler);
+                }
+            });
+
+            gmxAPI.extendFMO('disableDragging', function(dragCallback, downCallback, upCallback)
+            {
+                gmxAPI._FMO.prototype.removeHandler.call(map, 'onMouseMove');
+                gmxAPI._FMO.prototype.removeHandler.call(map, 'onMouseUp');
+                gmxAPI._FMO.prototype.removeHandler.call(map, 'onMouseDown');
+            });
+        }
 
 		window.kosmosnimkiBeginZoom = function() 
 		{
