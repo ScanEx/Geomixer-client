@@ -916,9 +916,9 @@ function sendCrossDomainPostRequest(url, params, callback, baseForm)
     /** Обрабатывает результат выполнения серверного скрипта.
     * Для выполнения действий вызывает "хуки" соответствующиего типа, добавленные через addParseResponseHook()
     * @function
-    * 
-    * @param response {object} - JSON, вернувшийся с сервера
-    * @param customErrorDescriptions {object} - хэш "тип ошибки" -> "кастомное сообщение пользователям".
+    * @global
+    * @param {object} response JSON, вернувшийся с сервера
+    * @param {object} customErrorDescriptions хэш "тип ошибки" -> "кастомное сообщение пользователям".
     * @return true, если статус ответа "ok", иначе false
     */
     window.parseResponse = function(response, customErrorDescriptions)
@@ -1339,11 +1339,11 @@ $.extend(nsGmx.Utils, {
     },
     
     /** Загружает пользовательский shp файл.
-    * Проверяет на ошибки, выводит предупреждения и ошибки в виде стандартный диалогов.
-    * 
-    * @memberof nsGmx.Utils 
-    * @param {File|Form} shpSource Либо форма с полем file, в которой пользователь выбрал файл, либо HTML5 File.
-    * @return Возвращает jQuery Promise (аргумент ф-ции - массив объектов из shp файла)
+    * Проверяет на ошибки, выводит предупреждения и ошибки в виде стандартных диалогов.
+    * @memberof nsGmx.Utils
+    * @function
+    * @param {File|Form} shpSource Либо форма с полем file, в которой пользователь выбрал файл, либо HTML5 File
+    * @return {jQuery.Deferred} Возвращает promise (аргумент ф-ции - массив объектов из shp файла)
     */
     parseShpFile: (function() //приватные данные
     {
@@ -1395,10 +1395,10 @@ $.extend(nsGmx.Utils, {
                     if (xhr.status === 200) {
                         response = JSON.parse(xhr.responseText.substr(1, xhr.responseText.length-2));
                         
-                        if (!parseResponse(response, errorMessages)) {
-                            def.reject();
-                        } else {
+                        if (parseResponse(response, errorMessages)) {
                             def.resolve(response.Result);
+                        } else {
+                            def.reject(response);
                         }
                         //console.log(response.Result);
                     }
