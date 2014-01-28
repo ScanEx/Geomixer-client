@@ -253,15 +253,13 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 	var _summary = _span(null, [['dir','className','summary']]);
 
     if (_options.click) {
-        var _clickFunc = function() {
-            _options.click(_drawingObject);
+        var _clickFunc = function(e) {
+            if (event.target !== remove && (!_options.editStyle || event.target !== icon)) {
+                _options.click(_drawingObject);
+            }
         }
         
-        if(!_options.editStyle && !_options.allowDelete) {
-            _canvas.onclick = _clickFunc;
-        } else {
-            _text.onclick = _title.onclick = _clickFunc;
-        }
+        _canvas.onclick = _clickFunc;
     }
 
 	var regularDrawingStyle = {
