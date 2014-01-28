@@ -62,21 +62,23 @@ var gmxCore = function()
             }
         }
     }
-    
-    var lazyLoadLABjs = function(callback)
+    var LABjsDeferred = null;
+    var lazyLoadLABjs = function()
     {
-        if ('$LAB' in window) {
-            callback();
-            return;
+        if (!LABjsDeferred) {
+            LABjsDeferred = $.Deferred();
+            
+            //load LAB.js (snippest from its website)
+            (function(g,b,d){var c=b.head||b.getElementsByTagName("head"),D="readyState",E="onreadystatechange",F="DOMContentLoaded",G="addEventListener",H=setTimeout;
+            H(function(){if("item"in c){if(!c[0]){H(arguments.callee,25);return}c=c[0]}var a=b.createElement("script"),e=false;a.onload=a[E]=function(){if((a[D]&&a[D]!=="complete"&&a[D]!=="loaded")||e){return false}a.onload=a[E]=null;e=true;LABjsDeferred.resolve()};
+
+            a.src = ( getScriptBase('gmxcore.js') || window.gmxJSHost || "" ) + 'LAB.min.js';
+
+            c.insertBefore(a,c.firstChild)},0);if(b[D]==null&&b[G]){b[D]="loading";b[G](F,d=function(){b.removeEventListener(F,d,false);b[D]="complete"},false)}})(this,document);
+        
         }
         
-        //load LAB.js (snippest from its website)
-        (function(g,b,d){var c=b.head||b.getElementsByTagName("head"),D="readyState",E="onreadystatechange",F="DOMContentLoaded",G="addEventListener",H=setTimeout;
-        H(function(){if("item"in c){if(!c[0]){H(arguments.callee,25);return}c=c[0]}var a=b.createElement("script"),e=false;a.onload=a[E]=function(){if((a[D]&&a[D]!=="complete"&&a[D]!=="loaded")||e){return false}a.onload=a[E]=null;e=true;callback()};
-
-        a.src = ( getScriptBase('gmxcore.js') || window.gmxJSHost || "" ) + 'LAB.min.js';
-
-        c.insertBefore(a,c.firstChild)},0);if(b[D]==null&&b[G]){b[D]="loading";b[G](F,d=function(){b.removeEventListener(F,d,false);b[D]="complete"},false)}})(this,document);
+        return LABjsDeferred.promise();
     }
     
     var cssLoader = null;
@@ -321,7 +323,7 @@ var gmxCore = function()
         loadScript: function(fileName, callback)
         {
             var def = $.Deferred();
-            lazyLoadLABjs(function()
+            lazyLoadLABjs().done(function()
             {
                 $LAB.script(fileName).wait(function()
                 {
