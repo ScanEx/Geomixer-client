@@ -59,7 +59,7 @@ var LayerProperties = Backbone.Model.extend(
     initFromViewer: function(type, divProperties, layerProperties) {
             
         this.set({
-            Type:           type || (divProperties && divProperties.type) || (layerProperties || layerProperties.type), 
+            Type:           type || (divProperties && divProperties.type) || (layerProperties && layerProperties.type), 
             Title:          divProperties ? (divProperties.title || '') : (layerProperties.Title || ''),
             Copyright:      divProperties ? (divProperties.Copyright || '') : (layerProperties.Copyright || ''),
             Legend:         divProperties ? (divProperties.Legend || '') : (layerProperties.Legend || ''),
