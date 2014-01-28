@@ -50,8 +50,19 @@
                     $(ui).appendTo(canvas);
                     
                     shiftParams.on('change', function() {
-                        $('#dx', canvas).val(Math.floor(shiftParams.get('dx')));
-                        $('#dy', canvas).val(Math.floor(shiftParams.get('dy')));
+                        var dx = Math.floor(shiftParams.get('dx'));
+                        var dy = Math.floor(shiftParams.get('dy'));
+                        var curDx = parseFloat($('#dx', canvas).val() || 0);
+                        var curDy = parseFloat($('#dy', canvas).val() || 0);
+                        
+                        if (!isNaN(curDx) && Math.floor(curDx) !== dx) {
+                            $('#dx', canvas).val(dx);
+                        }
+                        
+                        if (!isNaN(curDy) && Math.floor(curDy) !== dy) {
+                            $('#dy', canvas).val(dy);
+                        }
+                        
                         layer.setPositionOffset(shiftParams.get('dx'), shiftParams.get('dy'));
                     })
                     
@@ -59,8 +70,8 @@
                     
                     $('input', canvas).bind('change keyup', function() {
                         shiftParams.set({
-                            dx: $('#dx', canvas).val(),
-                            dy: $('#dy', canvas).val()
+                            dx: parseFloat($('#dx', canvas).val()) || 0,
+                            dy: parseFloat($('#dy', canvas).val()) || 0
                         });
                     });
                     
