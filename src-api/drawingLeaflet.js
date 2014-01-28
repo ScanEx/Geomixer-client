@@ -888,6 +888,7 @@
 			oBounds = gmxAPI.getBounds(coords);
 			createDrawingObj();
 			endDrawing();
+			chkEvent('onAdd');
 			eventType = 'onFinish';
 			chkEvent(eventType);
 		} else {
@@ -970,10 +971,10 @@
 		
 		var mouseUp = function(ph)
 		{
-			if(!coords) {			// не было mouseMove после mouseDown
-				ret.remove();
+			// if(!coords) {			// не было mouseMove после mouseDown
+				// ret.remove();
 				//return;
-			}
+			// }
 
 			gmxAPI.mousePressed	= mousePressed = false;
 			gmxAPI.map.removeListener('onMouseUp', onMouseUpID);
@@ -989,8 +990,8 @@
 			//if(toolsContainer) toolsContainer.selectTool("move");
 			if(coords) {
                 if(domObj) domObj.triggerInternal("onMouseUp");
-                chkEvent('onFinish');
             }
+            chkEvent('onFinish');
             currentDOMObject = null;
 			return true;
 		};
@@ -1237,6 +1238,7 @@
 			createDrawingItem();
 			mouseUp();
 			setTimeout(repaint, 10);
+			chkEvent('onAdd');
 			endDrawing();
 		} else {
 			gmxAPI._cmdProxy('startDrawing');

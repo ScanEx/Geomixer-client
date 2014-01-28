@@ -2151,11 +2151,16 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 		for (var i=0; i<arr.length; i++)	// Вызываем по убыванию 'level'
 		{
 			if(typeof(arr[i].func) === 'function') {
-				try {
+                if(window.gmxAPIdebugLevel === 11) {
 					out = arr[i].func(attr);
 					if(out) break;				// если callback возвращает true заканчиваем цепочку вызова
-				} catch(e) {
-					gmxAPI.addDebugWarnings({'func': 'dispatchEvent', 'handler': eventName, 'event': e, 'alert': e});
+				} else {
+                    try {
+                        out = arr[i].func(attr);
+                        if(out) break;				// если callback возвращает true заканчиваем цепочку вызова
+                    } catch(e) {
+                        gmxAPI.addDebugWarnings({'func': 'dispatchEvent', 'handler': eventName, 'event': e, 'alert': e});
+                    }
 				}
 			}
 		}
@@ -3343,7 +3348,8 @@ function createFlashMapInternal(div, layers, callback)
 			map.addLayers(baseMap, false, true);		// добавление основной карты
             if (baseMap.properties.OnLoad)		//  Обработка маплета базовой карты
             {
-                try { eval("_kosmosnimki_temp=(" + baseMap.properties.OnLoad + ")")(map); }
+                var runStr = "_kosmosnimki_temp=(" + baseMap.properties.OnLoad + ")";
+                try { eval(runStr)(map); }
                 catch (e) {
                     gmxAPI.addDebugWarnings({'func': 'createKosmosnimkiMapInternal', 'handler': 'маплет карты', 'event': e, 'alert': 'Error in "'+layers.properties.title+'" mapplet: ' + e});
                 }
@@ -3408,7 +3414,8 @@ function createFlashMapInternal(div, layers, callback)
             }
 
             if (prop.OnLoad) {	//  Обработка маплета карты - mapplet для базовой карты уже вызывали
-                try { eval("_kosmosnimki_temp=(" + prop.OnLoad + ")")(map); }
+                var runStr = "_currentMap_temp=(" + prop.OnLoad + ")";
+                try { eval(runStr)(map); }
                 catch (e) {
                     gmxAPI.addDebugWarnings({'func': 'addLayers', 'handler': 'OnLoad', 'event': e, 'alert': e+'\n---------------------------------'+'\n' + layers.properties.OnLoad});
                 }

@@ -9,9 +9,9 @@
         ,permalink: gmxAPI.KOSMOSNIMKI_LOCALIZED("Пермалинк", "Link to the map")
         ,boxZoom: gmxAPI.KOSMOSNIMKI_LOCALIZED("Увеличение", "BoxZoom")
         ,marker: gmxAPI.KOSMOSNIMKI_LOCALIZED("Маркер", "Marker")
-        ,polygon: gmxAPI.KOSMOSNIMKI_LOCALIZED("Полигон", "Polygon")
+        ,polygon: gmxAPI.KOSMOSNIMKI_LOCALIZED("Многоугольник", "Polygon")
         ,line: gmxAPI.KOSMOSNIMKI_LOCALIZED("Линия", "Line")
-        ,rectangle: gmxAPI.KOSMOSNIMKI_LOCALIZED("Рамка", "Rectangle")
+        ,rectangle: gmxAPI.KOSMOSNIMKI_LOCALIZED("Прямоугольник", "Rectangle")
         ,toggleVisibility: gmxAPI.KOSMOSNIMKI_LOCALIZED("Показать/Скрыть", "Show/Hide")
     }
     var styleIcon = {        // стиль ноды иконок по умолчанию
