@@ -1125,15 +1125,15 @@
 
             onAdd: function (map) {
                 Controls.items[this.options.id] = this;
-                var zoomName = 'leaflet-control-Drawing',
-                    container = L.DomUtil.create('div', 'leaflet-control-Drawing');
+                var container = L.DomUtil.create('div', 'leaflet-control-Drawing');
 
-                L.DomEvent.on(container, 'mouseover', function (e) {
-                    container.style.height = '98px';
-                });
-                L.DomEvent.on(container, 'mouseout', function (e) {
-                    container.style.height = '30px';
-                });
+                L.DomEvent
+                    .on(container, 'mouseout', function (e) {
+                        container.style.height = '30px';
+                    })
+                    .on(container, 'mouseover', function (e) {
+                        container.style.height = '98px';
+                    });
 
                 this._map = map;
                 var arr = [

@@ -244,6 +244,7 @@
     clear: none;
     float: left;
     height: 30px;
+    background-color: rgba(0, 0, 0, 0);
     overflow: hidden;
     margin-left: 6px !important;
 }
@@ -338,7 +339,7 @@
 	pointer-events: auto;
 }
 .leaflet-tile {
-		position: absolute;
+	position: absolute;
 }
 .leaflet-shadow-pane {
     z-index: 3 !important;
