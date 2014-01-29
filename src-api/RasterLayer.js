@@ -173,17 +173,17 @@
                 }
             }
         }
-        var dragAttr = null;
+        node.dragAttr = null;
         var mousemove = function(e) {
 			var latlng = e.latlng;
-            if(dragAttr && dragAttr.drag) dragAttr.drag(latlng.lng, latlng.lat, gmxNode);
+            if(node.dragAttr && node.dragAttr.drag) node.dragAttr.drag(latlng.lng, latlng.lat, gmxNode);
         }
         var mouseup = function(e) {
 			var latlng = e.latlng;
             LMap.off('mousemove', mousemove);
             LMap.off('mouseup', mouseup);
             LMap.off('mouseout', mouseout);
-            if(dragAttr && dragAttr.dragend) dragAttr.dragend(latlng.lng, latlng.lat, gmxNode);
+            if(node.dragAttr && node.dragAttr.dragend) node.dragAttr.dragend(latlng.lng, latlng.lat, gmxNode);
             gmxAPI._leaflet.utils.unfreeze();
             gmxAPI.map.dragState = false;
         }
@@ -207,7 +207,7 @@
             LMap.on('mousemove', mousemove);
             LMap.on('mouseup', mouseup);
             LMap.on('mouseout', mouseout);
-            if(dragAttr && dragAttr.dragstart) dragAttr.dragstart(latlng.lng, latlng.lat, gmxNode);
+            if(node.dragAttr && node.dragAttr.dragstart) node.dragAttr.dragstart(latlng.lng, latlng.lat, gmxNode);
         }
         gmxAPI.extend(node, {
             eventsCheck: function(evName, attr) {			// проверка событий растрового слоя
@@ -222,22 +222,23 @@
                     var res = node.handlers[evName].call(gmxNode, node.id, gmxNode.properties, attr);
                     if(res) return true;
                 }
-                if(evName === 'onMouseDown' && dragAttr) {		// Есть enableDragging на слое
+                if(evName === 'onMouseDown' && node.dragAttr) {		// Есть enableDragging на слое
                     dragOn(attr);
+                    return true;
                 }
-                return true;
+                return false;
             }
             ,
             enableDragging: function(pt) {     // Включить drag
-                if(dragAttr) node.disableDragging();
-                dragAttr = pt.attr;
+                if(node.dragAttr) node.disableDragging();
+                node.dragAttr = pt.attr;
                 //LMap.on('mousedown', dragOn);
             }
             ,disableDragging: function() {
                 //LMap.off('mousedown', dragOn);
                 gmxAPI._leaflet.utils.unfreeze();
                 gmxAPI.map.dragState = false;
-                dragAttr = null;
+                node.dragAttr = null;
             }
             ,setPositionOffset: function(pt) {	// Установить смещение слоя в метрах Меркатора
                 node.shiftX = pt.shiftX || 0;
