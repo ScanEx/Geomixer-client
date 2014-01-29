@@ -517,44 +517,42 @@
 				delete obj[deferredMethodNames[i]];
 			delete obj["getFeatures"];
 			delete obj["getFeatureById"];
-			if (!isRaster)
-			{
-				obj.setHandler = function(eventName, handler)
-				{
-					FlashMapObject.prototype.setHandler.call(obj, eventName, handler);
-                    if(gmxAPI.proxyType === 'flash') {
-                        for (var i = 0; i < obj.filters.length; i++)
-                            obj.filters[i].setHandler(eventName, handler);
-                    }
-				}
-				obj.removeHandler = function(eventName)
-				{
-					FlashMapObject.prototype.removeHandler.call(obj, eventName);
-                    if(gmxAPI.proxyType === 'flash') {
-                        for (var i = 0; i < obj.filters.length; i++)
-                            obj.filters[i].removeHandler(eventName);
-                    }
-				}
-				obj.addListener = function(eventName, handler, level)
-				{
-					var pID = FlashMapObject.prototype.addListener.call(obj, eventName, handler, level);
-                    if(gmxAPI.proxyType === 'flash') {
-                        for (var i = 0; i < obj.filters.length; i++) {
-                            var fID = gmxAPI._listeners.addListener({'level': level, 'pID': pID, 'obj': obj.filters[i], 'eventName': eventName, 'func': handler});
-                        }
-                    }
-					return pID;
-				}
-				obj.removeListener = function(eventName, eID)
-				{
-					FlashMapObject.prototype.removeListener.call(obj, eventName, eID);
-                    if(gmxAPI.proxyType === 'flash') {
-                        for (var i = 0; i < obj.filters.length; i++)
-                            obj.filters[i].removeListener(eventName, eID);	// Удаляем массив события eventName по id события слоя
-                    }
-				}
 
-			}
+            obj.setHandler = function(eventName, handler)
+            {
+                FlashMapObject.prototype.setHandler.call(obj, eventName, handler);
+                if(gmxAPI.proxyType === 'flash') {
+                    for (var i = 0; i < obj.filters.length; i++)
+                        obj.filters[i].setHandler(eventName, handler);
+                }
+            }
+            obj.removeHandler = function(eventName)
+            {
+                FlashMapObject.prototype.removeHandler.call(obj, eventName);
+                if(gmxAPI.proxyType === 'flash') {
+                    for (var i = 0; i < obj.filters.length; i++)
+                        obj.filters[i].removeHandler(eventName);
+                }
+            }
+            obj.addListener = function(eventName, handler, level)
+            {
+                var pID = FlashMapObject.prototype.addListener.call(obj, eventName, handler, level);
+                if(gmxAPI.proxyType === 'flash') {
+                    for (var i = 0; i < obj.filters.length; i++) {
+                        var fID = gmxAPI._listeners.addListener({'level': level, 'pID': pID, 'obj': obj.filters[i], 'eventName': eventName, 'func': handler});
+                    }
+                }
+                return pID;
+            }
+            obj.removeListener = function(eventName, eID)
+            {
+                FlashMapObject.prototype.removeListener.call(obj, eventName, eID);
+                if(gmxAPI.proxyType === 'flash') {
+                    for (var i = 0; i < obj.filters.length; i++)
+                        obj.filters[i].removeListener(eventName, eID);	// Удаляем массив события eventName по id события слоя
+                }
+            }
+
 			obj._observerOnChange = null;
 			obj.addObserver = function(o, onChange, attr)
 			{

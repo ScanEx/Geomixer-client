@@ -217,14 +217,13 @@
                     || gmxAPI._leaflet.curDragState
                     || !node.isPointIn(attr.latlng)
                     ) return false;
-                
-                if(evName === 'onMouseDown' && dragAttr) {		// Есть enableDragging на слое
-                    dragOn(attr);
-                    return true;
-                }
+
                 if(evName in node.handlers) {		// Есть handlers на слое
                     var res = node.handlers[evName].call(gmxNode, node.id, gmxNode.properties, attr);
-                    if(typeof(res) === 'object' && res.stopPropagation) return true;
+                    if(res) return true;
+                }
+                if(evName === 'onMouseDown' && dragAttr) {		// Есть enableDragging на слое
+                    dragOn(attr);
                 }
                 return true;
             }
