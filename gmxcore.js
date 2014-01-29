@@ -317,15 +317,21 @@ var gmxCore = function()
         /**
         * Загружает отдельный скрипт
         * @param {String} fileName Имя файла скрипта
-        * @param {String} [callback] Ф-цию, которая будет вызвана после загрузки
+        * @param {function} [callback] Ф-ция, которая будет вызвана после загрузки
+        * @param {String} [charset=utf-8] Кодировка загружаемого файла
         * @returns {jQuery.Deferred}
         */
-        loadScript: function(fileName, callback)
+        loadScript: function(fileName, callback, charset)
         {
             var def = $.Deferred();
             lazyLoadLABjs().done(function()
             {
-                $LAB.script(fileName).wait(function()
+                var descr = {src: fileName};
+                if (charset) {
+                    descr.charset = charset;
+                }
+                
+                $LAB.script(descr).wait(function()
                 {
                     def.resolve();
                     callback && callback();
