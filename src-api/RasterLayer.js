@@ -1,6 +1,7 @@
 // растровый слой
 (function()
 {
+    "use strict";
 	var LMap = null;						// leafLet карта
 	var utils = null;						// утилиты для leaflet
 	var mapNodes = null;					// Хэш нод обьектов карты - аналог MapNodes.hx
@@ -209,13 +210,32 @@
             if(dragAttr && dragAttr.dragstart) dragAttr.dragstart(latlng.lng, latlng.lat, gmxNode);
         }
         gmxAPI.extend(node, {
+            eventsCheck: function(evName, attr) {			// проверка событий растрового слоя
+                var onScene = (myLayer && myLayer._map ? true : false);
+                if(gmxAPI._drawing.activeState
+                    || !onScene
+                    || gmxAPI._leaflet.curDragState
+                    || !node.isPointIn(attr.latlng)
+                    ) return false;
+                
+                if(evName === 'onMouseDown' && dragAttr) {		// Есть enableDragging на слое
+                    dragOn(attr);
+                    return true;
+                }
+                if(evName in node.handlers) {		// Есть handlers на слое
+                    var res = node.handlers[evName].call(gmxNode, node.id, gmxNode.properties, attr);
+                    if(typeof(res) === 'object' && res.stopPropagation) return true;
+                }
+                return true;
+            }
+            ,
             enableDragging: function(pt) {     // Включить drag
                 if(dragAttr) node.disableDragging();
                 dragAttr = pt.attr;
-                LMap.on('mousedown', dragOn);
+                //LMap.on('mousedown', dragOn);
             }
             ,disableDragging: function() {
-                LMap.off('mousedown', dragOn);
+                //LMap.off('mousedown', dragOn);
                 gmxAPI._leaflet.utils.unfreeze();
                 gmxAPI.map.dragState = false;
                 dragAttr = null;
@@ -732,6 +752,7 @@
 			}
 			,
 			_createTile: function (type, img) {
+                var tile = null;
 				if(type === 'img') {
 					tile = (img ? img.cloneNode(true) : L.DomUtil.create('img', 'leaflet-tile'));
                     tile.className = 'leaflet-tile';
