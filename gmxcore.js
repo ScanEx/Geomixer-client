@@ -30,8 +30,8 @@ var gmxCore = function()
 	var getScriptBase = function(scriptName)
 	{
         scriptName = scriptName.toLowerCase();
-		var url = getScriptURL(scriptName).toLowerCase();
-		return url ? url.substring(0, url.indexOf(scriptName)) : "";
+		var url = getScriptURL(scriptName);
+		return url ? url.toLowerCase().substring(0, url.toLowerCase().indexOf(scriptName)) : "";
 	}
     
     var invokeCallbacks = function()
