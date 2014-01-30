@@ -4310,10 +4310,10 @@
 				gmxAPI._leaflet['isMouseOut'] = true;			// мышь покинула карту
 			});
 			LMap.on('movestart', function(e) {					// старт анимации
-				gmxAPI._leaflet['moveInProgress'] = true;
+				gmxAPI._leaflet.moveInProgress = true;
 			});
 			LMap.on('moveend', function(e) {
-				gmxAPI._leaflet['moveInProgress'] = false;
+				gmxAPI._leaflet.moveInProgress = false;
 				if(gmxAPI.map.needMove) return;
 				//if(LMap._size) prevSize = {'x': LMap._size.x, 'y': LMap._size.y};
 				gmxAPI._listeners.dispatchEvent('onMoveEnd', gmxAPI.map, {'obj': gmxAPI.map, 'attr': gmxAPI.currPosition });
@@ -4512,6 +4512,11 @@ var tt = 1;
 			});
 
 			LMap.on('zoomstart', function(e) {
+                if(gmxAPI._leaflet.zoomstart === undefined) {
+                    setTimeout(function () {    // если не произошел zoomend
+                        if(gmxAPI._leaflet.zoomstart) LMap.invalidateSize(true);
+                    }, 300);
+                }
 				gmxAPI._leaflet.zoomCurrent = null;
 				gmxAPI._leaflet.zoomstart = true;
 				gmxAPI._listeners.dispatchEvent('onZoomstart', null, {});
