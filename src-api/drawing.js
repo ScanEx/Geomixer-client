@@ -1123,7 +1123,8 @@
 		,
 		addTool: function(tn, hint, regularImageUrl, activeImageUrl, onClick, onCancel)
 		{
-			var ret = gmxAPI.map.toolsAll.standartTools.addTool(tn, {
+			var standartTools = (gmxAPI._tools.standart ? gmxAPI._tools.standart : gmxAPI.map.toolsAll.standartTools);
+			var ret = standartTools.addTool(tn, {
 				'key': tn,
 				'activeStyle': {},
 				'regularStyle': {},

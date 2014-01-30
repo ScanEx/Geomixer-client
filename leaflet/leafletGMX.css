@@ -318,7 +318,7 @@
 }
 
 .canvas-imageTransform {
-	pointer-events: none;
+	pointer-events: auto;
     transform-origin: left top 0;
     -webkit-transform-origin: left top 0; /* Safari and Chrome */
     -ms-transform-origin: left top 0; /* IE 9 */

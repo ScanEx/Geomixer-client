@@ -113,9 +113,14 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = ctx.createPattern(node.image, "no-repeat");
             //if(node.regularStyle && node.regularStyle.fill) ctx.globalAlpha = node.regularStyle.fillOpacity || 1;					
+            var stroke = (node.regularStyle && node.regularStyle.stroke);
+            if(stroke) {
+                //ctx.globalAlpha = node.regularStyle.fillOpacity || 1;					
+                ctx.lineWidth = node.regularStyle.weight;
+                ctx.strokeStyle = node.regularStyle.color_rgba;
+            }
 
             if(multiArr) {
-                //ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0, 255, 0, 1)';
                 ctx.beginPath();
                 var cnt = 0;
                 for (var i = 0, len = multiArr.length; i < len; i++)
@@ -136,11 +141,11 @@
                     }
                 }
                 ctx.closePath();
-                //ctx.stroke();
             } else {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             ctx.fill();
+            if(stroke) ctx.stroke();
 
 			if(!node.propHiden.cache) node.image = null;
 			--gmxAPI._leaflet.waitSetImage;

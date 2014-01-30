@@ -121,9 +121,9 @@
 				if(!continuousWorld && !node.boundsMercWithShift) {
 					node.getLayerBounds();
 				}
-                var currPos = gmxAPI.currPosition || gmxAPI.map.getPosition();
+                var ext = gmxAPI.currPosition.extent || gmxAPI.map.getPosition().extent;
 				var notViewFlag = (!utils.chkVisibilityByZoom(id)
-					|| (!continuousWorld && !gmxAPI.extIntersect(node.boundsMercWithShift, currPos.extent))
+					|| (!continuousWorld && !gmxAPI.extIntersect(node.boundsMercWithShift, ext))
 					);
 //console.log('chkVisible', notViewFlag1 , notViewFlag, gmxAPI._leaflet.zoomstart, node.boundsMerc, currPos.extent);
 				if(notOnScene != notViewFlag) {
