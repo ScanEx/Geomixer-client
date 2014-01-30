@@ -2804,7 +2804,7 @@
 			else if(type === 'MultiPoint')			geo['type'] = 'MultiPoint';
 			else if(type === 'Point')				geo['type'] = 'POINT';
 			else if(type === 'MultiLineString')		geo['type'] = 'MULTILINESTRING';
-			else if(type === 'LineString')			geo['type'] = 'LINESTRING';
+			else if(type === 'Polyline')			geo['type'] = 'LINESTRING';
 			else if(type === 'GeometryCollection')	geo['type'] = 'GeometryCollection';
 			return geo;
 		}
