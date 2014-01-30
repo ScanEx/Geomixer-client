@@ -646,8 +646,8 @@
                             var imageObj = ph.img;
                             if(imageObj && imageObj.width === 256 && imageObj.height === 256) {
                                 var pos = null;
-                                if(ph['zoom'] !== zoom) {
-                                    pos = gmxAPI.getTilePosZoomDelta(gmxTilePoint, zoom, ph['zoom']);
+                                if(ph.zoom !== zoom) {
+                                    pos = gmxAPI.getTilePosZoomDelta(gmxTilePoint, zoom, ph.zoom);
                                     if(pos.size < 0.00390625
                                         || pos.x > 255 || pos.y > 255
                                         || (pos.x + pos.size) < 0
@@ -659,6 +659,7 @@
                                 var type = (!pos && isIntersects === 2 ? 'img' : 'canvas');
                                 tile = layer.gmxGetTile(tilePoint, type, imageObj);
                                 if(type === 'canvas') {
+                                    tile.width = tile.height = 256; // TODO: убрать повторные отрисовки
                                     var ctx = tile.getContext('2d');
                                     if(pos) {
                                         var canvas = document.createElement('canvas');
