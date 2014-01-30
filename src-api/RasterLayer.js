@@ -121,7 +121,7 @@
 				if(!continuousWorld && !node.boundsMercWithShift) {
 					node.getLayerBounds();
 				}
-                var ext = gmxAPI.currPosition.extent || gmxAPI.map.getPosition().extent;
+                var ext = (gmxAPI.currPosition && gmxAPI.currPosition.extent ? gmxAPI.currPosition.extent : gmxAPI.map.getPosition().extent);
 				var notViewFlag = (!utils.chkVisibilityByZoom(id)
 					|| (!continuousWorld && !gmxAPI.extIntersect(node.boundsMercWithShift, ext))
 					);

@@ -143,6 +143,7 @@
                 ctx.closePath();
             } else {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+				if(stroke) ctx.strokeRect(0, 0, canvas.width, canvas.height);
             }
             ctx.fill();
             if(stroke) ctx.stroke();
