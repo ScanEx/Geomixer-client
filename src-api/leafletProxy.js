@@ -2147,7 +2147,7 @@
 					//if(flag && node['geometry'] && node['geometry']['bounds']) flag = utils.chkBoundsVisible(node['geometry']['bounds']);
 
 					if(!flag) return;
-					if(node['leaflet'] && node['leaflet']._map) return;
+					if(node.leaflet && node.leaflet._map) return;
 					//if(node['leaflet'] && node['leaflet']._isVisible) return;
 					if(node['type'] === 'RasterLayer') {
 						gmxAPI._leaflet['renderingObjects'][node.id] = 1;					
@@ -2156,19 +2156,21 @@
 							LMap.addLayer(node['leaflet']);
 							utils.bringToDepth(node, node['zIndex']);
 						} else if('nodeInit' in node) {
-							node['nodeInit']();
+							node.nodeInit();
 						}
 					}
 					else
 					{
 						var isOnScene = ('isOnScene' in node ? node['isOnScene'] : true);
-						if(node['parentId']) {
-							if(isOnScene) pGroup.addLayer(node['group']);
+						if(node.parentId) {
+							if(isOnScene) pGroup.addLayer(node.group);
 						}
 						
-						if(node['leaflet']) {
-							//node['leaflet']._isVisible = true;
-							if(isOnScene) pGroup.addLayer(node['leaflet']);
+						if(node.leaflet) {
+							if(isOnScene) {
+                                if(node.leaflet.setStyle && node.regularStyle) node.leaflet.setStyle(node.regularStyle);
+                                pGroup.addLayer(node.leaflet);
+                            }
 						} else if(node.geometry['type']) {
 							gmxAPI._leaflet['drawManager'].add(id);				// добавим в менеджер отрисовки
 						}
