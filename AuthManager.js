@@ -154,7 +154,7 @@ var nsGmx = nsGmx || {};
         
         this.login = function(login, password, callback, errorCallback)
         {
-            sendCrossDomainJSONRequest(serverBase + "Login.ashx?WrapStyle=func&login=" + encodeURIComponent(login) + "&pass=" + encodeURIComponent(password), function(response)
+            sendCrossDomainPostRequest(serverBase + "Login.ashx", {WrapStyle: 'message', login: login, pass: password}, function(response)
             {
                 if (response.Status == 'ok' && response.Result)
                 {
