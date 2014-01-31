@@ -1342,7 +1342,7 @@ $.extend(nsGmx.Utils, {
     * Проверяет на ошибки, выводит предупреждения и ошибки в виде стандартных диалогов.
     * @memberof nsGmx.Utils
     * @function
-    * @param {File|Form} shpSource Либо форма с полем file, в которой пользователь выбрал файл, либо HTML5 File
+    * @param {File|Form} shpSource Либо форма с полем file, в которой пользователь выбрал файл, либо HTML5 File. Форма должна иметь атрибуты method="post" и enctype="multipart/form-data"
     * @return {jQuery.Deferred} Возвращает promise (аргумент ф-ции - массив объектов из shp файла)
     */
     parseShpFile: (function() //приватные данные
