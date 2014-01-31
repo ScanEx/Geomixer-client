@@ -254,7 +254,7 @@ var DrawingObjectInfoRow = function(oInitMap, oInitContainer, drawingObject, opt
 
     if (_options.click) {
         var _clickFunc = function(e) {
-            if (event.target !== remove && (!_options.editStyle || event.target !== icon)) {
+            if (e.target !== remove && (!_options.editStyle || e.target !== icon)) {
                 _options.click(_drawingObject);
             }
         }
