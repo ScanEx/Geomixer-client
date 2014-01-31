@@ -1590,7 +1590,6 @@
 					gmxAPI.setVisible(balloon.outerDiv, true);
 					balloon.reposition();
 				}
-				upCallback();
 			});
 			onZoomendID = gmxAPI._listeners.addListener({'eventName': 'onZoomend', 'func': upCallback });
 		}
