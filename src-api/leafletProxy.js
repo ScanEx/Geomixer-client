@@ -330,12 +330,13 @@
 			if(!zoom) zoom = LMap.getZoom();
 			var pz = Math.pow(2, zoom);
 			var mInPixel =  pz/156543.033928041;
-			gmxAPI._leaflet['mInPixel'] = mInPixel;
-			gmxAPI._leaflet['zoomCurrent'] = {
-				'pz': pz
-				,'tileSize': 256 / mInPixel
-				,'mInPixel': mInPixel
-				,'gmxTileBounds': {}
+			gmxAPI._leaflet.mInPixel = mInPixel;
+			gmxAPI._leaflet.zoomCurrent = {
+				zoom: zoom
+				,pz: pz
+				,tileSize: 256 / mInPixel
+				,mInPixel: mInPixel
+				,gmxTileBounds: {}
 			};
 		}
 		,
@@ -969,15 +970,15 @@
 		}
 		,
 		'getTileBoundsMerc': function(point, zoom)	{			// определение границ тайла
-			if(!gmxAPI._leaflet['zoomCurrent']) utils.chkZoomCurrent();
+			if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent();
 			if(!zoom) zoom = LMap.getZoom();
-			var drawTileID = zoom + '_' + point.x + '_' + point.y;
-			//var tileSize = Math.pow(2, 8 - zoom) * 156543.033928041;
-			if(gmxAPI._leaflet['zoomCurrent']['gmxTileBounds'][drawTileID]) {
-				return gmxAPI._leaflet['zoomCurrent']['gmxTileBounds'][drawTileID];
+			var drawTileID = zoom + '_' + point.x + '_' + point.y,
+                zoomCurrent = gmxAPI._leaflet.zoomCurrent;
+			if(zoomCurrent.gmxTileBounds[drawTileID]) {
+				return zoomCurrent.gmxTileBounds[drawTileID];
 			}
 			
-			var tileSize = gmxAPI._leaflet['zoomCurrent']['tileSize'];
+			var tileSize = zoomCurrent.tileSize;
 			var minx = point.x * tileSize;
 			var miny = point.y * tileSize;
 			var p = new L.Point(minx, miny);
@@ -986,7 +987,7 @@
 			var maxx = minx + tileSize;
 			var maxy = miny + tileSize;
 			bounds.extend(new L.Point(maxx, maxy));
-			gmxAPI._leaflet['zoomCurrent']['gmxTileBounds'][drawTileID] = bounds;
+			gmxAPI._leaflet.zoomCurrent.gmxTileBounds[drawTileID] = bounds;
 			return bounds;
 		}
 		,
