@@ -2169,7 +2169,7 @@
 						
 						if(node.leaflet) {
 							if(isOnScene) {
-                                if(node.leaflet.setStyle && node.regularStyle) node.leaflet.setStyle(node.regularStyle);
+                                if(node.subType !== 'drawingFrame' && node.leaflet.setStyle && node.regularStyle) node.leaflet.setStyle(node.regularStyle);
                                 pGroup.addLayer(node.leaflet);
                             }
 						} else if(node.geometry['type']) {
