@@ -654,7 +654,8 @@
 			//if(node['observerNode']) return false;
 			if(!attr) attr = gmxAPI._leaflet.clickAttr;
 			if(!attr.latlng) return false;
-			var pt = getItemsByPoint(attr.latlng, LMap.getZoom());
+			var zoom = LMap.getZoom();
+			var pt = getItemsByPoint(attr.latlng, zoom);
 			if(pt.arr.length) {
                 var arr = pt.arr;
 				//var toolsActive = (gmxAPI._drawing && !gmxAPI._drawing.tools['move'].isActive ? true : false);	// установлен режим рисования (не move)
@@ -702,7 +703,13 @@
 								}
 							}
 						}
-						if(node.propHiden.stopFlag) return true;
+                        if(itemPropHiden.drawInTiles && itemPropHiden.drawInTiles[zoom]) {
+                            for (var key in itemPropHiden.drawInTiles[zoom]) {
+                                node.addTilesNeedRepaint(key);
+                            }
+                            node.repaintTilesNeed(10);
+						}
+                        if(node.propHiden.stopFlag) return true;
 					}
 				} else {
 					itemPropHiden = item.geom.propHiden;
