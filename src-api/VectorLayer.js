@@ -703,12 +703,7 @@
 								}
 							}
 						}
-                        if(itemPropHiden.drawInTiles && itemPropHiden.drawInTiles[zoom]) {
-                            for (var key in itemPropHiden.drawInTiles[zoom]) {
-                                node.addTilesNeedRepaint(key);
-                            }
-                            node.repaintTilesNeed(10);
-						}
+						node.chkNeedImage(item);
                         if(node.propHiden.stopFlag) return true;
 					}
 				} else {
@@ -2574,6 +2569,41 @@ if(observerTimer) clearTimeout(observerTimer);
                     node.reloadTilesList();
                 }
                 return true;
+            }
+            ,chkNeedImage: function(item) {
+                // проверка необходимости загрузки растра для обьекта векторного слоя при действиях мыши
+                var zoom = LMap.getZoom();
+                var itemId = item.id;
+                
+                var rasterNums = 0;
+                for (var tKey in node.tilesRedrawImages[zoom]) {
+                    var thash = tilesRedrawImages.getTileItems(zoom, tKey);
+                    var gmxXY = myLayer._tilesKeysCurrent[tKey];
+                    for (var i = 0, len = thash.arr.length; i < len; i++) {
+                        var pt = thash.arr[i];
+                        if(pt.geom.id != itemId) continue;
+                        if(item.propHiden.rasterView) {
+                            if(pt.imageObj) continue;		// imageObj уже загружен
+                            pt.src = getRasterURL(item, zoom, gmxXY);
+
+                            if(!pt.src) continue;		// нечего загружать
+                            rasterNums++;
+                            (function(pItem, pid) {
+                                node.getRaster(pItem, pid, function(img) {
+                                    pItem.imageObj = img;
+                                    rasterNums--;
+                                    if(rasterNums === 0) node.waitRedrawFlips(100, true);
+                                });
+                            })(pt, itemId);
+                        } else {
+                            tilesRedrawImages.removeImage(itemId);
+                            node.waitRedrawFlips(100, true);
+                        }
+                    }
+                }
+                if(rasterNums === 0) {
+                    node.waitRedrawFlips(100, true);
+                }
             }
         });
 
