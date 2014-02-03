@@ -1619,7 +1619,13 @@ if(gmxAPI._drawing.toolInitFlags && gmxAPI._drawing.toolInitFlags[tn]) { // об
                     gmxAPI._drawing.control = gmxAPI.map.standartTools = standartTools;
                     gmxAPI._listeners.addListener({level: -10, eventName: 'mapCreated', func: function(map) {
                         gmxAPI.map.drawing.addListener('onFinish', function() {
-                            gmxAPI.map.standartTools.selectTool("move");
+                            var activeToolName = gmxAPI.map.standartTools.activeToolName;
+                            if(activeToolName === 'FRAME'
+                                || activeToolName === 'POLYGON'
+                                || activeToolName === 'LINESTRING'
+                                || activeToolName === 'POINT'
+                                || activeToolName === 'zoom'
+                            ) gmxAPI.map.standartTools.selectTool("move");
                         });
                     }});
             }
