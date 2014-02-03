@@ -95,9 +95,9 @@
 		var src = item.src;
 		if(item.crossOrigin) {
             imageObj.crossOrigin = item.crossOrigin;
-            //if(item.crossOrigin === 'use-credentials') {
-                //src += (src.indexOf('?') === -1 ? '?':'&') + 'canvas=true';
-            //}
+            if(item.crossOrigin === 'use-credentials') {    // иначе проблемы с кешированием заголовков
+                src += (src.indexOf('?') === -1 ? '?':'&') + 'canvas=true';
+            }
         }
 		item.loaderObj = imageObj;
 		//var cancelTimerID = null;
