@@ -887,8 +887,8 @@
 			lastPoint = null;
 			oBounds = gmxAPI.getBounds(coords);
 			createDrawingObj();
-			endDrawing();
 			chkEvent('onAdd');
+			endDrawing();
 			eventType = 'onFinish';
 			chkEvent(eventType);
 		} else {
@@ -1236,9 +1236,9 @@
 			oBounds = gmxAPI.getBounds(coords);
 			x1 = oBounds.minX; y1 = oBounds.maxY;	x2 = oBounds.maxX; y2 = oBounds.minY;
 			createDrawingItem();
+			chkEvent('onAdd');
 			mouseUp();
 			setTimeout(repaint, 10);
-			chkEvent('onAdd');
 			endDrawing();
 		} else {
 			gmxAPI._cmdProxy('startDrawing');
