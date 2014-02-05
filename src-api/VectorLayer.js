@@ -1161,27 +1161,29 @@
 			return pt.canvas;
 		}
 		
-		// получить растр обьекта рекурсивно от начального zoom
-		node.loadRasterRecursion = function(z, x, y, ogc_fid, rItem, callback) {
+		node.loadRasterRecursion = function(z, x, y, ph, rItem, callback) {
+            // получить растр обьекта рекурсивно от начального zoom
+			var ogc_fid = ph.id;
 			if(!node.objectsData[ogc_fid]) return;
-			var objData = node.objectsData[ogc_fid];
+			var objData = node.objectsData[ogc_fid],
+                prop = objData.properties;
+			var rUrl = (
+                node.tileRasterFunc && prop.GMX_RasterCatalogID ?
+                  node.tileRasterFunc(x, y, z, objData)
+                : (node.quicklook ? 
+                    utils.chkPropsInString(node.quicklook, prop, 3)
+                  : null
+                )
+            );
 
 			node.lastDrawTime = 1;		// старт отрисовки
 			node.isIdle(-1);		// обнуление проверок окончания отрисовки
-			var rUrl = '';
-			var quicklookFlag = false;
-			var prop = objData.properties;
-			if(node.tileRasterFunc && prop.GMX_RasterCatalogID) rUrl = node.tileRasterFunc(x, y, z, objData);
-			else if(node.quicklook) {
-                rUrl = utils.chkPropsInString(node.quicklook, prop, 3);
-                quicklookFlag = true;
-            }
 
 			var onError = function(e) {
 				node.badRastersURL[rUrl] = true;
 				if (node.tileRasterFunc && z > 1) {
 					// запрос по раззумливанию растрового тайла
-					node.loadRasterRecursion(z - 1, Math.floor(x/2), Math.floor(y/2), ogc_fid, rItem, callback);
+                    node.loadRasterRecursion(z - 1, Math.floor(x/2), Math.floor(y/2), ph, rItem, callback);
 				} else {
 					callback(null);
 					return;
@@ -1198,11 +1200,11 @@
 				,callback: function(imageObj) {
 					// раззумливание растров
                     if(node.tileRasterFunc && rItem.geom.properties.GMX_RasterCatalogID) {
-                        if(zoomFrom > z) {
-                            var pos = gmxAPI.getTilePosZoomDelta(rItem.attr.scanexTilePoint, zoomFrom, z);
+                        if(ph.z > z) {
+                            var pos = gmxAPI.getTilePosZoomDelta(ph, ph.z, z);
+                            //var pos = gmxAPI.getTilePosZoomDelta(rItem.attr.scanexTilePoint, zoomFrom, z);
                             var canvas = document.createElement('canvas');
                             canvas.width = canvas.height = 256;
-                            //canvas.id = zoomFrom+'_'+pos.x+'_'+pos.y;
                             var ptx = canvas.getContext('2d');
                             ptx.drawImage(imageObj, pos.x, pos.y, pos.size, pos.size, 0, 0, 256, 256);
                             imageObj = canvas;
@@ -1211,23 +1213,22 @@
 						imageObj = prepareQuicklookImage(rItem, imageObj);
 					}
 					var pt = {idr: ogc_fid, properties: objData.properties, callback: function(content) {
-						rItem.imageObj = content;
-						callback(rItem.imageObj);
+						callback(content);
 					}};
-					rItem.imageObj = (node.imageProcessingHook ? node.imageProcessingHook(imageObj, pt) : imageObj);
-					if(rItem.imageObj) callback(rItem.imageObj);
+					var content = (node.imageProcessingHook ? node.imageProcessingHook(imageObj, pt) : imageObj);
+					if(content) callback(content);
 				}
 				,onerror: onError
 			};
-			if(node.imageProcessingHook || zoomFrom != z) item.crossOrigin = 'use-credentials';	// если требуется преобразование image - векторные слои всегда с авторизацией
+			if(ph.crossOrigin || node.imageProcessingHook || zoomFrom != z) item.crossOrigin = 'use-credentials';	// если требуется преобразование image - векторные слои всегда с авторизацией
 			gmxAPI._leaflet.imageLoader.push(item);
 		}
 
 		node.getRaster = function(rItem, ogc_fid, callback)	{	// получить растр обьекта векторного тайла
 			if(!node.tileRasterFunc && !node.quicklook) return false;
 
-			var attr = rItem.attr,
-                zoom = LMap.getZoom(),
+			var zoom = LMap.getZoom(),
+                attr = rItem.attr,
                 drawTileID = attr.drawTileID;
 
 			if(node.tilesRedrawImages[zoom] && node.tilesRedrawImages[zoom][drawTileID]) {
@@ -1242,7 +1243,81 @@
 				}
 			}
 
-			node.loadRasterRecursion(zoom, attr.scanexTilePoint.x, attr.scanexTilePoint.y, ogc_fid, rItem, callback);
+			var tx = attr.scanexTilePoint.x,
+                ty = attr.scanexTilePoint.y,
+                geom = rItem.geom,
+                shiftX = geom.shiftX || 0,
+                shiftY = geom.shiftY || 0;
+
+            if(shiftX || shiftY) {
+                if(!gmxAPI._leaflet.zoomCurrent) utils.chkZoomCurrent(zoom);
+                var zoomCurrent = gmxAPI._leaflet.zoomCurrent,
+                    tileSize = zoomCurrent.tileSize,
+                    mInPixel = zoomCurrent.mInPixel,
+                    boundsGeo = geom.bounds,
+                    minXgeo = Math.floor((boundsGeo.min.x - shiftX) / tileSize),
+                    maxXgeo = Math.floor((boundsGeo.max.x - shiftX) / tileSize),
+                    minYgeo = Math.floor((boundsGeo.min.y - shiftY) / tileSize),
+                    maxYgeo = Math.floor((boundsGeo.max.y - shiftY) / tileSize),
+                    shiftXpx = shiftX * mInPixel,
+                    shiftYpx = shiftY * mInPixel,
+                    shiftXnum = tx - Math.floor(shiftXpx / 256),
+                    shiftYnum = ty - Math.floor(shiftYpx / 256),
+                    deltaX = Math.floor(shiftXpx % 256),
+                    deltaY = Math.floor(shiftYpx % 256),
+                    maxX = shiftXnum,
+                    minX = maxX + (deltaX > 0 ? -1 : 0),
+                    maxY = shiftYnum,
+                    minY = maxY + (deltaY > 0 ? -1 : 0);
+                if(minX < minXgeo) minX = minXgeo;
+                if(maxX > maxXgeo) maxX = maxXgeo;
+                if(minY < minYgeo) minY = minYgeo;
+                if(maxY > maxYgeo) maxY = maxYgeo;
+                var chkLoad = function() {
+                    var def = new gmxAPI.gmxDeferred(), cnt = 0, arr = [];
+                    for (var j = minY; j <= maxY; j++) {
+                        for (var i = minX; i <= maxX; i++) {
+                            arr.push([i, j]);
+                        }
+                    }
+//console.log('__________', drawTileID, cnt, minX, maxX, minY, maxY, arr, shiftXnum, shiftX, shiftY, tx, ty);
+                    for (var i = 0, len = arr.length; i < len; i++) {
+                        (function() {
+                            var p = arr[i];
+                            node.loadRasterRecursion(zoom, p[0], p[1], {id:ogc_fid, z:zoom, x:p[0], y:p[1], crossOrigin:'use-credentials' }, rItem, function(img) {
+                                cnt++;
+                                p.push(img);
+                                if(cnt === len) {
+                                    def.resolve(arr);
+                                }
+                            });
+                        })();
+                    }
+                    return def;
+                }
+                chkLoad().done(function(arr) {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = 256, canvas.height = 256;
+                    var ptx = canvas.getContext('2d');
+                    for (var i = 0, len = arr.length; i < len; i++) {
+                        var p = arr[i], w = deltaX, h = deltaY;
+                        var sx = 0, sw = 256 - w, dx = w, dw = sw;
+                        if(shiftXnum != p[0]) {
+                            sx = sw, sw = w, dx = 0, dw = sw;
+                        }
+
+                        var sy = h, sh = 256 - h, dy = 0, dh = sh;
+                        if(shiftYnum != p[1]) {
+                            dy = sh, sy = 0, sh = h, dh = sh;
+                        }
+                        ptx.drawImage(p[2], sx, sy, sw, sh, dx, dy, dw, dh);
+                    }
+                    rItem.imageObj = canvas;
+					callback(canvas);
+                });
+            } else {
+                node.loadRasterRecursion(zoom, tx, ty, {id:ogc_fid, z:zoom, x:tx, y:ty}, rItem, callback);
+            }
 		}
 
 		var isInTile = function(geom, attr) {		// попал обьект в тайл или нет
@@ -1327,6 +1402,7 @@
 				,tilePoint: tilePoint
 				,tKey: tilePoint.x + ':' + tilePoint.y
 				,tileSize: zoomCurrent.tileSize
+				,mInPixel: zoomCurrent.mInPixel
 			};
 			return attr;
 		}
@@ -1508,6 +1584,7 @@
 		var objectToCanvas = function(pt, tile, flagClear) {
 			var ctx = tile.getContext('2d');
 			var attr = pt.attr;
+            //tile.id = attr.drawTileID;
 			var geom = pt.geom;
 			var imageObj = pt.imageObj;
 			//ctx.save();
@@ -1826,6 +1903,8 @@
 						node.bounds.extend(new L.Point(gmxAPI.from_merc_x(geo.bounds.min.x), gmxAPI.from_merc_y(geo.bounds.min.y)));
 						node.bounds.extend(new L.Point(gmxAPI.from_merc_x(geo.bounds.max.x), gmxAPI.from_merc_y(geo.bounds.max.y)));
 					}
+                    geo.shiftX = (node.shiftXfield in ph.properties ? Number(ph.properties[node.shiftXfield]) : 0);
+                    geo.shiftY = (node.shiftYfield in ph.properties ? Number(ph.properties[node.shiftYfield]) : 0);
 				}
 				var objData = {
 					id: id
@@ -2862,6 +2941,8 @@ if(observerTimer) clearTimeout(observerTimer);
 				L.DomUtil.setPosition(tile, tilePos, L.Browser.chrome || L.Browser.android23);
 				this._markTile(tilePoint, 1);
 
+				var gmxTilePoint = this._getGMXtileNum(tilePoint, this._map.getZoom());
+                this._tilesKeysCurrent[tKey] = gmxTilePoint;
 				return this._tiles[tKey];
 			}
 			,
