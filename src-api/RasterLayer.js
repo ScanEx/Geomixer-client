@@ -58,21 +58,10 @@
 		if(!'zIndex' in node) node['zIndex'] = utils.getIndexLayer(id);
 		node['zIndex'] += node['zIndexOffset'];
 
-		node['setGeometry'] = function() {			// Установка геометрии
-			attr.mercGeom = gmxAPI.merc_geometry(node.geometry);
-			if(waitRedraw) {
-				if(myLayer) {
-                    node.getLayerBounds();
-                    myLayer.options.attr = attr;
-                }
-				waitRedraw();
-			}
-		}
-
-		node.getLayerBounds = function() {				// Проверка границ растрового слоя
+		node.getLayerBounds = function(flag) {				// Проверка границ растрового слоя
 			if(!gmxNode || !attr.mercGeom) return;
 			var ext = null;
-			if('getLayerBounds' in gmxNode) ext = gmxNode.getLayerBounds();
+			if('getLayerBounds' in gmxNode && !flag) ext = gmxNode.getLayerBounds();
 			else {
 				var geo = gmxNode.getGeometry();
 				if(!geo || !geo.type) {
@@ -281,6 +270,14 @@
                     return false;
                 }
                 return true;
+            }
+            ,setGeometry: function() {			// Установка геометрии
+                attr.mercGeom = gmxAPI.merc_geometry(node.geometry);
+                if(myLayer) {
+                    node.getLayerBounds(true);
+                    myLayer.options.attr = attr;
+                    myLayer.redraw();
+                }
             }
 		});
 
