@@ -259,7 +259,7 @@
 }
 .leaflet-control-drawingZoom {
     background-image: url("../img/iconControls.png");
-    background-position: -362px -33px;
+    background-position: -627px -33px;
     cursor: pointer;
     width: 30px;
     height: 30px;
@@ -268,7 +268,7 @@
     margin-left: 6px !important;
 }
 .leaflet-control-drawingZoom:hover, .leaflet-control-drawingZoom-Active {
-    background-position: -362px -2px;
+    background-position: -627px -2px;
 }
 .leaflet-control-permalink {
     background-image: url("../img/iconControls.png");
