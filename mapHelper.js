@@ -81,7 +81,8 @@ var mapHelper = function()
 				
 				if (span)
 				{
-					_(span, [_t(prettifyArea(geoArea(_borders[name].geometry.coordinates)))])
+                    var geom = _borders[name].geometry || _borders[name].getGeometry();
+					_(span, [_t(prettifyArea(geoArea(geom.coordinates)))]);
 					
 					return;
 				}

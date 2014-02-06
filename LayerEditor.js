@@ -711,7 +711,7 @@ var createPageRasterSource = function(layerProperties) {
         _(trShape.firstChild, [_br(), _t(_gtxt("Контур")), drawingBorderLink]);
 
         if (shapePath.Path)
-            shapeVisible(true);	
+            shapeVisible(true);
         else
         {
             shapeVisible(false);
@@ -726,9 +726,17 @@ var createPageRasterSource = function(layerProperties) {
             geometry.coordinates[0][pointCount-1][0] += 0.00001;
             geometry.coordinates[0][pointCount-1][1] += 0.00001;
                     
-            var drawingBorder = globalFlashMap.drawing.addObject(from_merc_geometry(geometry));
+            var drawingBorder;
+            if (geometry.type.indexOf('MULTI') === -1) {
+                drawingBorder = globalFlashMap.drawing.addObject(from_merc_geometry(geometry));
+            } else {
+                drawingBorder = globalFlashMap.addObject(from_merc_geometry(geometry));
+            }
                 
-            drawingBorder.setStyle({outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }, fill: { color: 0xffffff }}, {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }, fill: { color: 0xffffff }});
+            drawingBorder.setStyle(
+                {outline: {color: 0x0000FF, thickness: 3, opacity: 80 }, marker: { size: 3 }}, 
+                {outline: {color: 0x0000FF, thickness: 4, opacity: 100}, marker: { size: 4 }}
+            );
                     
             _mapHelper.drawingBorders.set(name, drawingBorder);
                     
@@ -736,7 +744,7 @@ var createPageRasterSource = function(layerProperties) {
         }
     }
     else {
-        shapeVisible(true);	
+        shapeVisible(true);
     }
             
     if (shapePath && shapePath.Path != null && shapePath.Path != '' && !shapePath.Exists)
