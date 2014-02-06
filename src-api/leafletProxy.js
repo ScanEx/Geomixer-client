@@ -2782,6 +2782,13 @@
 			setHandlerObject(id, attr.eventName);
 		}
 		,
+		'getItem':	function(ph)	{			//	Получить описание объекта векторного слоя
+			var id = ph.obj.objectId;
+			var node = mapNodes[id];
+			if(!node || !node.getItem) return null;					// Нода не была создана через addObject
+			return node.getItem(ph.attr);
+		}
+		,
 		'getGeometry':	function(ph)	{			//	Получить геометрию обьекта
 			var id = ph.obj.objectId;
 			var node = mapNodes[id];
@@ -3068,7 +3075,7 @@
 					id: item.id
 					,properties: item.properties
 					,propHiden: item.propHiden || {}
-					,geometry: gmxAPI.merc_geometry(item.geometry)
+					,geometry: item.isMerc ? item.geometry : gmxAPI.merc_geometry(item.geometry)
 				};
 				arr.push(pt);
 			}

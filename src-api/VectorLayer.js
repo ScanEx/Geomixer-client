@@ -2510,6 +2510,19 @@ if(observerTimer) clearTimeout(observerTimer);
                 }
 			}
             ,
+            getItem: function (attr) {				// Получить описание объекта векторного слоя
+                var itemId = attr.itemId;
+                var item = node.objectsData[itemId];
+                if(!item) return null;
+                var out = {
+                    id: item.id
+                    ,properties: item.properties
+                    ,geometry: node.getItemGeometry(itemId, attr.flagMerc)
+                }
+                if(!item.propHiden.fromTiles.addItem) out.fromTiles = item.propHiden.fromTiles;
+                return out;
+			}
+            ,
             getItemGeometry: function (itemId, mercFlag) {				// Получить geometry обьекта векторного слоя
                 var item = node.objectsData[itemId];
                 if(!item) return null;
@@ -2595,7 +2608,8 @@ if(observerTimer) clearTimeout(observerTimer);
                 node.addedItems = node.addedItems.concat(objectsToFilters(data, 'addItem'));
                 if(node.clustersData) node.clustersData.clear();
 
-                node.redrawTilesList(100)
+                var zd = data.length > 10 ? 100 : 0;
+                node.redrawTilesList(zd);
                 return true;
             }
             ,setEditObjects: function(attr) {	// Установка редактируемых обьектов векторного слоя

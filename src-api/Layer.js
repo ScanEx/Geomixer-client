@@ -308,6 +308,9 @@
 				addFilter(obj, attr);
 			}
 			obj.addFilter = function(attr) { return addFilter(obj, attr); };
+			obj.getItem = function(pid, flagMerc) {             // Получить обьект векторного слоя
+				return gmxAPI._cmdProxy('getItem', { 'obj': obj, 'attr':{layerId:obj.objectId, itemId:pid, flagMerc:flagMerc} });
+			};
 			obj.addItems = function(attr) {		// добавление обьектов векторного слоя
 				return gmxAPI._cmdProxy('addItems', { 'obj': obj, 'attr':{'layerId':obj.objectId, 'data': attr} });
 			};
