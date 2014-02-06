@@ -1259,28 +1259,46 @@
                     maxXgeo = Math.floor((boundsGeo.max.x - shiftX) / tileSize),
                     minYgeo = Math.floor((boundsGeo.min.y - shiftY) / tileSize),
                     maxYgeo = Math.floor((boundsGeo.max.y - shiftY) / tileSize),
-                    shiftXpx = shiftX * mInPixel,
-                    shiftYpx = shiftY * mInPixel,
-                    shiftXnum = tx - Math.floor(shiftXpx / 256),
-                    shiftYnum = ty - Math.floor(shiftYpx / 256),
-                    deltaX = Math.floor(shiftXpx % 256),
-                    deltaY = Math.floor(shiftYpx % 256),
+                    px = attr.bounds.min.x - shiftX, pxPix = Math.floor(px * mInPixel), pxTn = Math.floor(px / tileSize),
+                    py = attr.bounds.min.y - shiftY, pyPix = Math.floor(py * mInPixel), pyTn = Math.floor(py / tileSize),
+                    deltaX = 256 - (pxPix - pxTn * 256),
+                    deltaY = 256 - (pyPix - pyTn * 256),
+                    shiftXnum = pxTn + (shiftX > 0 ? 1 : 0),
+                    shiftYnum = pyTn + (shiftY > 0 ? 1 : 0),
                     maxX = shiftXnum,
-                    minX = maxX + (deltaX > 0 ? -1 : 0),
+                    minX = maxX + (shiftX > 0 ? -1 : 0),
                     maxY = shiftYnum,
-                    minY = maxY + (deltaY > 0 ? -1 : 0);
+                    minY = maxY + (shiftY > 0 ? -1 : 0);
+                if(shiftX == 0) {
+                    minX = maxX = shiftXnum;
+                    deltaX = 0;
+                } else if(shiftX < 0) {
+                    deltaX =  pxPix - pxTn * 256;
+                    maxX++;
+                    shiftXnum = minX;
+                }
                 if(minX < minXgeo) minX = minXgeo;
                 if(maxX > maxXgeo) maxX = maxXgeo;
+
+                if(shiftY == 0) {
+                    minY = maxY = shiftYnum;
+                    deltaY = 0;
+                } else if(shiftY < 0) {
+                    deltaY = pyPix - pyTn * 256;
+                    maxY++;
+                    shiftYnum = minY;
+                }
+                //console.log('__________', drawTileID, minX, maxX, shiftXnum, shiftX, shiftXpx, deltaX);
                 if(minY < minYgeo) minY = minYgeo;
                 if(maxY > maxYgeo) maxY = maxYgeo;
+
                 var chkLoad = function() {
                     var def = new gmxAPI.gmxDeferred(), cnt = 0, arr = [];
                     for (var j = minY; j <= maxY; j++) {
                         for (var i = minX; i <= maxX; i++) {
-                            arr.push([i, j]);
+                            arr.push([i, j, shiftXnum, shiftYnum, deltaX, deltaY, shiftX, shiftY, drawTileID]);
                         }
                     }
-//console.log('__________', drawTileID, cnt, minX, maxX, minY, maxY, arr, shiftXnum, shiftX, shiftY, tx, ty);
                     for (var i = 0, len = arr.length; i < len; i++) {
                         (function() {
                             var p = arr[i];
@@ -1300,17 +1318,32 @@
                     canvas.width = 256, canvas.height = 256;
                     var ptx = canvas.getContext('2d');
                     for (var i = 0, len = arr.length; i < len; i++) {
-                        var p = arr[i], w = deltaX, h = deltaY;
+                        var p = arr[i], w = p[4], h = p[5];
                         var sx = 0, sw = 256 - w, dx = w, dw = sw;
-                        if(shiftXnum != p[0]) {
+                        if(p[2] != p[0]) {
                             sx = sw, sw = w, dx = 0, dw = sw;
                         }
+                        if(p[6] < 0) {
+                            sx = w, sw = 256 - w, dx = 0, dw = sw;
+                            if(p[2] != p[0]) {
+                                sx = 0, sw = w, dx = 256 - w, dw = sw;
+                            }
+                        }
+                        if(sx === 256) continue;
 
                         var sy = h, sh = 256 - h, dy = 0, dh = sh;
-                        if(shiftYnum != p[1]) {
+                        if(p[3] != p[1]) {
                             dy = sh, sy = 0, sh = h, dh = sh;
                         }
-                        ptx.drawImage(p[2], sx, sy, sw, sh, dx, dy, dw, dh);
+                        if(p[7] < 0) {
+                            sy = 0, sh = 256 - h, dy = h, dh = sh;
+                            if(p[3] != p[1]) {
+                                sy = 256 - h, sh = h, dy = 0, dh = sh;
+                            }
+                        }
+                        if(sy === 256) continue;
+                        //console.log('____sss______', sx, sy, sw, sh, dx, dy, dw, dh, p[8], p[9]);
+                        ptx.drawImage(p[9], sx, sy, sw, sh, dx, dy, dw, dh);
                     }
                     rItem.imageObj = canvas;
 					callback(canvas);
@@ -2018,7 +2051,8 @@
             LMap.on('mousemove', mousemove);
             LMap.on('mouseup', mouseup);
             LMap.on('mouseout', mouseout);
-            if(dragAttr && dragAttr.dragstart) dragAttr.dragstart(latlng.lng, latlng.lat, gmxNode);
+            ev.gmxItemID = node.hoverItem.geom.id;
+            if(dragAttr && dragAttr.dragstart) dragAttr.dragstart(latlng.lng, latlng.lat, gmxNode, ev);
         }
         gmxAPI.extend(node, {
             timers: {}						// таймеры
@@ -2649,10 +2683,11 @@ if(observerTimer) clearTimeout(observerTimer);
                 }
                 return true;
             }
-            ,chkNeedImage: function(item) {
+            ,chkNeedImage: function(item, zd) {
                 // проверка необходимости загрузки растра для обьекта векторного слоя при действиях мыши
                 var zoom = LMap.getZoom();
                 var itemId = item.id;
+                if(arguments.length < 2) zd = 100;
                 
                 var rasterNums = 0;
                 for (var tKey in node.tilesRedrawImages[zoom]) {
@@ -2671,17 +2706,17 @@ if(observerTimer) clearTimeout(observerTimer);
                                 node.getRaster(pItem, pid, function(img) {
                                     pItem.imageObj = img;
                                     rasterNums--;
-                                    if(rasterNums === 0) node.waitRedrawFlips(100, true);
+                                    if(rasterNums === 0) node.waitRedrawFlips(zd, true);
                                 });
                             })(pt, itemId);
                         } else {
                             tilesRedrawImages.removeImage(itemId);
-                            node.waitRedrawFlips(100, true);
+                            node.waitRedrawFlips(zd, true);
                         }
                     }
                 }
                 if(rasterNums === 0) {
-                    node.waitRedrawFlips(100, true);
+                    node.waitRedrawFlips(zd, true);
                 }
             }
         });
