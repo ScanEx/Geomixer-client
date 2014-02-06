@@ -1441,6 +1441,54 @@ mapHelper.prototype.modifyObjectLayer = function(layerName, objs)
     return def.promise();
 }
 
+mapHelper.prototype.searchObjectLayer = function(layerName, options) {
+    options = options || {};
+    
+    var def = $.Deferred();
+    
+    var requestParams = {
+        WrapStyle: 'message', 
+        layer: layerName
+    }
+    
+    if (options.query) {
+        requestParams.query = options.query;
+    }
+    
+    if (options.includeGeometry) {
+        requestParams.geometry = true;
+    }
+    
+    requestParams.page = options.page || 0;
+    requestParams.pagesize = options.pagesize || 100000;
+    
+    sendCrossDomainPostRequest(serverBase + "VectorLayer/Search.ashx", requestParams, function(response) {
+        if (!parseResponse(response)) {
+            def.reject(response);
+            return;
+        }
+        var values = response.Result.values;
+        var fields = response.Result.fields;
+        var objects = [];
+        for (var i = 0; i < values.length; i++) {
+            var obj = {properties: {}};
+            
+            for (var p = 0; p < values[i].length; p++) {
+                if (fields[p] === 'geomixergeojson') {
+                    obj.geometry = values[i][p];
+                } else {
+                    obj.properties[fields[p]] = values[i][p];
+                }
+            }
+            objects.push(obj);
+        }
+        
+        def.resolve(objects);
+    });
+    
+    return def.promise();
+}
+
 var _mapHelper = new mapHelper();
 
 mapHelp.mapHelp.load = function()
