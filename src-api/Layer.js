@@ -893,7 +893,16 @@
 //		if (isRaster && (layer.properties.MaxZoom > maxRasterZoom))
 //			maxRasterZoom = layer.properties.MaxZoom;
 //		var myIdx = parentObj.layers.length;
-		parentObj.layers.push(obj);
+		if(parentObj.layers[layerName]) {
+			for(var i = parentObj.layers.length - 1; i >= 0; i--) {	// Удаление слоя из массива
+				var prop = parentObj.layers[i].properties;
+				if(prop.name === layerName) {
+					parentObj.layers.splice(i, 1);
+					break;
+				}
+			}
+        }
+        parentObj.layers.push(obj);
 		parentObj.layers[layerName] = obj;
 		if (!layer.properties.title) layer.properties.title = 'layer from client ' + layerName;
 		if (!layer.properties.title.match(/^\s*[0-9]+\s*$/))
