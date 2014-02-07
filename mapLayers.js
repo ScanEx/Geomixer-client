@@ -1850,7 +1850,7 @@ queryMapLayers.prototype.asyncUpdateLayer = function(promise, properties, needRe
                 var parentProperties = $(_queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0].gmxProperties,
                     li = _layersTree.getChildsList({type:'layer', content:{properties:newLayerProperties, geometry:convertedCoords}}, parentProperties, false, _layersTree.getLayerVisibility(layerDiv.firstChild));
                     
-                    $(li).find(['[multiStyle]']).treeview();
+                    $(li).find('[multiStyle]').treeview();
                 
                     $(layerDiv.parentNode).replaceWith(li);
                     
