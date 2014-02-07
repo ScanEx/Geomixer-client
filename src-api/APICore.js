@@ -398,7 +398,9 @@ extend(window.gmxAPI,
        }
 	},
 	_debugWarnings: [],
-	isIE: (navigator.appName.indexOf("Microsoft") != -1),
+	//isIE: (navigator.appName.indexOf("Microsoft") != -1),
+	isIE: 'ActiveXObject' in window,
+	isIElt9: gmxAPI.isIE && !document.addEventListener,
 	isChrome: (navigator.userAgent.toLowerCase().indexOf("chrome") != -1),
 	isSafari: (navigator.userAgent.toLowerCase().indexOf("safari") != -1),
 	show: function(div)
@@ -2382,8 +2384,7 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
 	function sendCrossDomainPostRequest(url, params, callback, baseForm)
 	{
         var form,
-            rnd = String(Math.random()),
-            id = '$$iframe_' + url + rnd;
+            id = '$$iframe_' + gmxAPI.newFlashMapId();
 
         var iframe = gmxAPI.createPostIframe2(id, callback, url),
             originalFormAction;
@@ -2394,15 +2395,13 @@ var getAPIHostRoot = gmxAPI.memoize(function() { return gmxAPI.getAPIHostRoot();
             originalFormAction = form.getAttribute('action');
             form.setAttribute('action', url);
             form.target = id;
-            
         }
         else
         {
-            try {
-                form = document.createElement('<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>');
-            }
-            catch (e)
-            {
+            if(gmxAPI.isIElt9) {
+                var str = '<form id=' + id + '" enctype="multipart/form-data" style="display:none" target="' + id + '" action="' + url + '" method="post"></form>';
+                form = document.createElement(str);
+            } else {
                 form = document.createElement("form");
                 form.style.display = 'none';
                 form.setAttribute('enctype', 'multipart/form-data');
