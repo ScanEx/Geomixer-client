@@ -2015,7 +2015,7 @@
 
         var dragAttr = null;
         var dragOn = function(ev) {
-			if(!node.hoverItem) return false;
+			if(!node.hoverItem || ev.originalEvent.ctrlKey) return false;
 			var latlng = gmxAPI._leaflet.mousePos;
             if(!gmxAPI.map.dragState) {
                 gmxAPI._leaflet.utils.freeze();
