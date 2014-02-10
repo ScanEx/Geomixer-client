@@ -925,8 +925,7 @@
 			}
 
 			var arr = [];
-			for (var i = 0; i < node.addedItems.length; i++)
-			{
+			for (var i = 0, len = node.addedItems.length; i < len; i++) {
 				var item = node.addedItems[i]; 
 				if(!needRemove[item.id]) arr.push(item);
 			}
@@ -936,9 +935,9 @@
 				var arr = node.tilesGeometry[tileID];	// Обьекты тайла
 				if(arr && arr.length) {
 					var arr1 = [];
-					for (var i = 0; i < arr.length; i++) {
+					for (var i = 0, len = arr.length; i < len; i++) {
 						var item = arr[i]; 
-						if(!needRemove[item['id']]) arr1.push(item);
+						if(!needRemove[item.id]) arr1.push(item);
 					}
 					node.tilesGeometry[tileID] = arr1;
 				}
@@ -1329,7 +1328,7 @@
                                 sx = 0, sw = w, dx = 256 - w, dw = sw;
                             }
                         }
-                        if(sx === 256) continue;
+                        if(sx === 256 || sw < 1) continue;
 
                         var sy = h, sh = 256 - h, dy = 0, dh = sh;
                         if(p[3] != p[1]) {
@@ -1341,7 +1340,7 @@
                                 sy = 256 - h, sh = h, dy = 0, dh = sh;
                             }
                         }
-                        if(sy === 256) continue;
+                        if(sy === 256 || sh < 1) continue;
                         //console.log('____sss______', sx, sy, sw, sh, dx, dy, dw, dh, p[8], p[9]);
                         ptx.drawImage(p[9], sx, sy, sw, sh, dx, dy, dw, dh);
                     }
@@ -1997,15 +1996,16 @@
 				}
 			}
 			for (var i = 0, len = node.addedItems.length; i < len; i++) {
-				delete node.addedItems[i].propHiden.curStyle;
-				delete node.addedItems[i].propHiden._isSQLVisibility;
-				delete node.addedItems[i].propHiden._isFilters;
-				delete node.addedItems[i].propHiden._imgQuicklook;
+				var geom = node.addedItems[i];
+				delete geom.propHiden.curStyle;
+				delete geom.propHiden._isSQLVisibility;
+				delete geom.propHiden._isFilters;
+				delete geom.propHiden._imgQuicklook;
 
-				delete node.addedItems[i].propHiden.toFilters;
-				delete node.addedItems[i].propHiden.drawInTiles;
-				delete node.addedItems[i]._cache;
-				delete node.addedItems[i].curStyle;
+				delete geom.propHiden.toFilters;
+				delete geom.propHiden.drawInTiles;
+				delete geom._cache;
+				delete geom.curStyle;
 				//node['addedItems'][i].propHiden['toFilters'] = chkObjectFilters(node['addedItems'][i], tileSize);
 			}
 			//clearDrawDone();
