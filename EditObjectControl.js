@@ -32,7 +32,7 @@ var EditObjectControlsManager = {
 
 var getInputElement = function(type)
 {
-    var input = _input( null,[['css','width','200px'],['dir','className','inputStyle']] );
+    var input = _input(null, [['dir','className','inputStyle edit-obj-input']]);
     
     if (type == 'date')
     {
@@ -249,7 +249,7 @@ var EditObjectControl = function(layerName, objectId, params)
             removeButton = makeLinkButton(_gtxt("Удалить")),
             trs = [];
             
-        var canvas = _div();
+        var canvas = _div(null, [['dir', 'className', 'edit-obj']]);
         
         $(canvas).bind('dragover', function() {
             return false;
@@ -282,7 +282,7 @@ var EditObjectControl = function(layerName, objectId, params)
             var anyErrors = false;
             $(".edit-attr-value", canvas).each(function(index, elem)
             {
-                if (elem.rowName === identityField) 
+                if (elem.rowName === identityField)
                     return;
                 
                 var clientValue = 'value' in elem ? elem.value : $(elem).text();
@@ -371,10 +371,10 @@ var EditObjectControl = function(layerName, objectId, params)
                 firstInput;
             
             //сначала идёт геометрия
-            var drawingBorderLink = makeImageButton("img/choose2.png", "img/choose2_a.png");
+            var geomTitleTmpl = '<span><span class="edit-obj-geomtitle">{{i+Геометрия}}</span><span id = "choose-geom" class="gmx-icon-choose"></span></span>';
             
-            drawingBorderLink.onclick = function()
-            {
+            var geometryUI = _params.geometryUI || $(Mustache.render(geomTitleTmpl))[0];
+            $('#choose-geom', geometryUI).click(function() {
                 if (_params.onGeometrySelection) {
                     _params.onGeometrySelection(bindGeometry);
                 } else {
@@ -384,14 +384,9 @@ var EditObjectControl = function(layerName, objectId, params)
                         { geomType: layer.properties.GeometryType }
                     );
                 }
-            }
-            drawingBorderLink.style.margin = '0px 5px 0px 3px';
+            })
             
-            var td = _td([geometryInfoContainer]);
-            
-            var geometryUI = _params.geometryUI || _span([_t(_gtxt("Геометрия")), drawingBorderLink],[['css','fontSize','12px']]);
-            
-            trs.push(_tr([_td([geometryUI],[['css','height','20px']]), td]));
+            trs.push(_tr([_td([geometryUI],[['css','height','20px']]), _td([geometryInfoContainer])]));
             
             fields.sort();
             
@@ -402,7 +397,8 @@ var EditObjectControl = function(layerName, objectId, params)
                 {
                     if ('value' in field)
                     {
-                        var span = _span(null,[['css','marginLeft','3px'],['css','fontSize','12px'], ['dir', 'className', 'edit-attr-value']])
+                        var span = _span(null,[['dir', 'className', 'edit-attr-value edit-obj-constant-value']]);
+                        // var span = _span(null,[['css','marginLeft','3px'],['css','fontSize','12px'], ['dir', 'className', 'edit-attr-value']]);
                         span.rowName = field.name;
                         span.rowType = field.type;
                         _(span, [_t(nsGmx.Utils.convertFromServer(field.type, field.value))]);
@@ -436,7 +432,7 @@ var EditObjectControl = function(layerName, objectId, params)
                 trs.push(tr);
             })
             
-            _(canvas, [_div([_table([_tbody(trs)]), _params.afterPropertiesControl],[['css','overflow','auto']])]);
+            _(canvas, [_div([_table([_tbody(trs)], [['dir', 'className', 'obj-edit-proptable']]), _params.afterPropertiesControl],[['dir', 'className', 'obj-edit-canvas'], ['css','overflow','auto']])]);
             
             _(canvas, [_div([createButton],[['css','margin','10px 0px'],['css','height','20px']])]);
             
@@ -445,7 +441,7 @@ var EditObjectControl = function(layerName, objectId, params)
             resizeFunc();
         }
         
-        var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", layer.properties.title) : _gtxt("Редактировать объект слоя [value0]", layer.properties.title), canvas, 400, 300, false, false, resizeFunc, closeFunc);
+        var dialogDiv = showDialog(isNew ? _gtxt("Создать объект слоя [value0]", layer.properties.title) : _gtxt("Редактировать объект слоя [value0]", layer.properties.title), canvas, 510, 300, false, false, resizeFunc, closeFunc);
         
         if (!isNew)
         {

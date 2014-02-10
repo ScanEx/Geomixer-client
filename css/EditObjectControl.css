@@ -1,0 +1,28 @@
+﻿.edit-obj-geomtitle {
+    font-size: 12px;
+}
+
+.edit-obj #choose-geom {
+    margin: 0px 5px 0px 3px;
+}
+
+.edit-obj-constant-value {
+    margin-left: 3px;
+    font-size: 12px;
+}
+
+.edit-obj-input {
+    width: 100%;
+}
+
+.obj-edit-proptable {
+    width: 100%;
+}
+
+.obj-edit-canvas {
+    padding-right: 15px;
+}
+
+.obj-edit-proptable tr td:first-child {
+    width: 100px;
+}
