@@ -180,8 +180,8 @@ extend(window.gmxAPI,
 	'request': function(ph) {	// {'type': 'GET|POST', 'url': 'string', 'callback': 'func'}
 	  try {
 		var xhr = gmxAPI.getXmlHttp();
-		xhr.withCredentials = true;
 		xhr.open((ph['type'] ? ph['type'] : 'GET'), ph['url'], true);
+		xhr.withCredentials = true;
 		xhr.onreadystatechange = function() {
 			if (xhr.readyState == 4) {
 				if(xhr.status == 200) {

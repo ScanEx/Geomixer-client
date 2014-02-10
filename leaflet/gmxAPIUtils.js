@@ -43,8 +43,8 @@ gmxAPIutils = {
 	'request': function(ph) {	// {'type': 'GET|POST', 'url': 'string', 'callback': 'func'}
 	  try {
 		var xhr = gmxAPIutils.getXmlHttp();
-		xhr.withCredentials = true;
 		xhr.open((ph['type'] ? ph['type'] : 'GET'), ph['url'], true);
+		xhr.withCredentials = true;
 		//if(ph['type'] === 'POST') xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
 		/*var arr = [];
