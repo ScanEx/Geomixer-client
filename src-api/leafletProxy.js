@@ -3245,50 +3245,50 @@
 {
 	//расширяем namespace
 	if(!gmxAPI._leaflet) gmxAPI._leaflet = {};
-	gmxAPI._leaflet['PointGeometry'] = function(geo_, tileBounds_) {				// класс PointGeometry
-		var out = gmxAPI._leaflet['Geometry']();
+	gmxAPI._leaflet.PointGeometry = function(geo_, tileBounds_) {				// класс PointGeometry
+		var out = gmxAPI._leaflet.Geometry();
 		out['type'] = 'Point';
 
-		var p = geo_['coordinates'];
+		var p = geo_.coordinates;
 		var x = p[0] % gmxAPI.worldWidthMerc2;
 		if(Math.abs(x) > gmxAPI.worldWidthMerc) x += gmxAPI.worldWidthMerc2 * (x > 0 ? -1 : 1);
 		var point = new L.Point(x, p[1]);
 		var bounds = new L.Bounds(point);
 		bounds.extend(point);
 
-		out['coordinates'] = point;
-		out['bounds'] = bounds;
-		out['sx'] = out['sy'] = 4;
-		out['dx'] = out['dy'] = 0;		// смещение по стилю
-		out['sxLabelLeft'] = out['sxLabelRight'] = out['syLabelTop'] = out['syLabelBottom'] = 0;
+		out.coordinates = point;
+		out.bounds = bounds;
+		out.sx = out.sy = 4;
+		out.dx = out.dy = 0;		// смещение по стилю
+		out.sxLabelLeft = out.sxLabelRight = out.syLabelTop = out.syLabelBottom = 0;
 		
-		out['getPoint'] = function () { return point; };
+		out.getPoint = function () { return point; };
 		// Экспорт точки в АПИ
-		out['exportGeo'] = function (chkPoint) {
+		out.exportGeo = function (chkPoint) {
 			var res = {'type': 'POINT'};
-			res['coordinates'] = p;
+			res.coordinates = p;
 			return res;
 		}
 		// Проверка совпадения с другой точкой
-		out['contains'] = function (chkPoint) {
+		out.contains = function (chkPoint) {
 			return gmxAPI._leaflet.utils.chkPointWithDelta(bounds, chkPoint, out);
 		}
 		// Проверка пересечения точки с bounds
-		out['intersects'] = function (chkBounds) {
+		out.intersects = function (chkBounds) {
 			return gmxAPI._leaflet.utils.chkPointWithDelta(chkBounds, point, out);
 		}
 		// Квадрат растояния до точки
-		out['distance2'] = function (chkPoint) {
+		out.distance2 = function (chkPoint) {
 			var x = point.x - chkPoint.x,
 				y = point.y - chkPoint.y;
 			return x * x + y * y;
 		}
 
 		var chkLabelBounds = function(labelBounds, ph)	{							// проверка пересечений labels
-			var p = new L.Point(ph['lx'], ph['ly']);
+			var p = new L.Point(ph.lx, ph.ly);
 			var b = new L.Bounds(p);
 			b.extend(p);
-			p = new L.Point(ph['lx'] + ph.labelExtent['x'], ph['ly'] + ph.labelExtent['y']);
+			p = new L.Point(ph.lx + ph.labelExtent.x, ph.ly + ph.labelExtent.y);
 			b.extend(p);
 			for (var i = 0; i < labelBounds.length; i++)
 			{
@@ -3372,7 +3372,7 @@
 		}
 
 		// Отрисовка точки
-		out['paint'] = function (attr, style, ctx) {
+		out.paint = function (attr, style, ctx) {
 			if(!attr || !style) return;
 			var zoom = attr.zoom;
 			var mInPixel = gmxAPI._leaflet.mInPixel;
@@ -3385,8 +3385,8 @@
 
 			var x = attr.x;
 			var y = 256 + attr.y;
-			var px1 = point.x * mInPixel - x - out.sx - 1; 		px1 = (0.5 + px1) << 0;
-			var py1 = y - point.y * mInPixel - out.sy - 1;		py1 = (0.5 + py1) << 0;
+			var px1 = point.x * mInPixel - x - out.sx; 		px1 = (0.5 + px1) << 0;
+			var py1 = y - point.y * mInPixel - out.sy + 3;		py1 = (0.5 + py1) << 0;
 			// 0.9966471893352525	баг L.Projection.Mercator
 			if(style.dx) px1 += out.dx;
 			if(style.dy) py1 += out.dy;
