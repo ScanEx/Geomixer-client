@@ -3385,17 +3385,19 @@
 
 			var x = attr.x;
 			var y = 256 + attr.y;
-			var px1 = point.x * mInPixel - x - out.sx; 		    px1 = (0.5 + px1) << 0;
-			var py1 = y - point.y * mInPixel - out.sy + 3;		py1 = (0.5 + py1) << 0;
+			var px1 = point.x * mInPixel - x - out.sx;
+			var py1 = y - point.y * mInPixel - out.sy;
 			// 0.9966471893352525	баг L.Projection.Mercator
 			if(style.dx) px1 += out.dx;
 			if(style.dy) py1 += out.dy;
+			if(style.marker && !style.center) {
+                px1 += out.sx;
+                py1 += out.sy;
+            }
+            px1 = (0.5 + px1) << 0;
+            py1 = (0.5 + py1) << 0;
 
 			if(style.marker) {
-                if(!style.center) {
-                    px1 += out.sx;
-                    py1 += out.sy;
-                }
 				if(style.image) {
 					var canv = out._cache.canv;
 					if('opacity' in style) ctx.globalAlpha = style.opacity;
@@ -5001,7 +5003,7 @@ var tt = 1;
 			
 			var setCenterPoint = null
 			setTimeout(function () {
-				var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", top: '-6px', left: '-6px', opacity: 0.8, 'pointerEvents': 'none' });
+				var centerControlDIV = gmxAPI.newStyledDiv({ position: "absolute", opacity: 0.8, 'pointerEvents': 'none' });
 				var div = document.getElementById(mapDivID);
 				div.parentNode.appendChild(centerControlDIV);
 				setCenterPoint = function ()
@@ -5015,7 +5017,7 @@ var tt = 1;
 				var setControlDIVInnerHTML = function ()
 				{
 					var color = (gmxAPI.getHtmlColor() === 'white' ? 'white' : '#216b9c');
-					centerControlDIV.innerHTML = '<svg viewBox="0 0 12 12" height="12" width="12" style=""><g><path d="M6 0L6 12" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g><g><path d="M0 6L12 6" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g></svg>';
+					centerControlDIV.innerHTML = '<svg height="12" width="12" style=""><g><path d="M6 0L6 12M0 6L12 6" stroke-width="1" stroke-opacity="1" stroke="' + color + '"></path></g></svg>';
 					//return false;
 				};
 				setControlDIVInnerHTML();
