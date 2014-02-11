@@ -3385,17 +3385,17 @@
 
 			var x = attr.x;
 			var y = 256 + attr.y;
-			var px1 = point.x * mInPixel - x - out.sx; 		px1 = (0.5 + px1) << 0;
+			var px1 = point.x * mInPixel - x - out.sx; 		    px1 = (0.5 + px1) << 0;
 			var py1 = y - point.y * mInPixel - out.sy + 3;		py1 = (0.5 + py1) << 0;
 			// 0.9966471893352525	баг L.Projection.Mercator
 			if(style.dx) px1 += out.dx;
 			if(style.dy) py1 += out.dy;
-			if('center' in style && !style.center) {
-				px1 += out.sx;
-				py1 += out.sy;
-			}
 
 			if(style.marker) {
+                if(!style.center) {
+                    px1 += out.sx;
+                    py1 += out.sy;
+                }
 				if(style.image) {
 					var canv = out._cache.canv;
 					if('opacity' in style) ctx.globalAlpha = style.opacity;
