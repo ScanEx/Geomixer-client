@@ -959,15 +959,6 @@ var createPageMetadata = function(parent, layerProperties) {
 }
 
 var createPageAdvanced = function(parent, layerProperties) {
-    var nameObjectInput = _input(null,[['attr','fieldName','NameObject'],['attr','value',layerProperties.get('NameObject')],['dir','className','inputStyle'],['css','width','220px']])
-    nameObjectInput.onkeyup = function()
-    {
-        layerProperties.set('NameObject', this.value);
-        return true;
-    }
-        
-    var shownProperties = [];
-            
     //мультивременной слой
     var temporalLayerParent = _div(null, [['dir', 'className', 'TemporalLayer']]);
     var temporalProperties = layerProperties.get('Temporal');
@@ -1020,39 +1011,38 @@ var createPageAdvanced = function(parent, layerProperties) {
     updateTemporalColumns();
 
     //каталог растров
-    var rasterCatalogDiv = $('<div/>');
-
-    var rasterCatalogControl = new nsGmx.LayerRasterCatalogControl(rasterCatalogDiv, layerProperties.get('RC'), layerProperties);
-    var isRCCheckbox = $('<input/>')
-        .attr({type: 'checkbox'})
-        .change(function() {
-            layerProperties.get('RC').set('IsRasterCatalog', this.checked);
-            if (this.checked) {
-                rcFieldset.children('fieldset').removeAttr('disabled');
-            } else {
-                rcFieldset.children('fieldset').attr('disabled', 'disabled');
-            }
-        });
-        
-    var isRasterCatalog = layerProperties.get('RC').get('IsRasterCatalog')
-    isRCCheckbox[0].checked = isRasterCatalog;
+    var RCTemplate = 
+        '<fieldset class="layer-fieldset">' + 
+            '<legend><label>' +
+                '<input type="checkbox" id="rc-params-isRC" {{#isRC}}checked{{/isRC}}>{{i+Каталог растров}}' +
+            '</label></legend>' +
+            //вложенный fieldset нужен из-за бага в Opera
+            '<fieldset {{^isRC}}disabled="disabled"{{/isRC}}><div id="rc-params-div"></div></fieldset>' +
+        '</fieldset>';
     
-    var rcFieldset = $('<fieldset/>').addClass('layer-fieldset').append(
-        $('<legend/>').append(
-            //isRCCheckbox,
-            $('<label/>').append(isRCCheckbox).append(_gtxt("Каталог растров"))
-        ),
-        $('<fieldset/>').append(rasterCatalogDiv) //вложенный fieldset нужен из-за бага в Opera
-    ).appendTo(parent);
+    var rcFieldset = $(Mustache.render(RCTemplate, {
+            isRC: layerProperties.get('RC').get('IsRasterCatalog')
+        })).appendTo(parent);
+    
+    var rasterCatalogControl = new nsGmx.LayerRasterCatalogControl($('#rc-params-div', rcFieldset), layerProperties.get('RC'), layerProperties);
+        
+    $('#rc-params-isRC', rcFieldset).change(function() {
+        layerProperties.get('RC').set('IsRasterCatalog', this.checked);
+        rcFieldset.children('fieldset').prop('disabled', !this.checked);
+    });
+    
+    //Шаблон имени
+    var nameObjectInput = _input(null,[['attr','fieldName','NameObject'],['attr','value',layerProperties.get('NameObject')],['dir','className','inputStyle'],['css','width','220px']])
+    nameObjectInput.onkeyup = function()
+    {
+        layerProperties.set('NameObject', this.value);
+        return true;
+    }
     
     $('<div/>').append(
         $('<span/>').text(_gtxt("Шаблон названий объектов")).css('margin-left', '5px'),
         nameObjectInput
     ).appendTo(parent);
-    
-    if (!isRasterCatalog) {
-        rcFieldset.children('fieldset').attr('disabled', 'disabled');
-    }
 }
 
 //doneCallback вызывается после того, как сервер вернул результат без ошибки из скрипта, модифицирующего данные.
