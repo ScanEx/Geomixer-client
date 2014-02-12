@@ -3,12 +3,15 @@
 //для отслеживания того, что не открыли диалог редактирования одного и того же объекта несколько раз
 var EditObjectControlsManager = {
     _editControls: [],
+    _paramsHooks: [],
+    
     find: function(layerName, oid)
     {
         for (var iD = 0; iD < this._editControls.length; iD++)
             if ( layerName == this._editControls[iD].layer && oid == this._editControls[iD].oid )
                 return this._editControls[iD].control;
     },
+    
     add: function(layerName, oid, control)
     {
         for (var iD = 0; iD < this._editControls.length; iD++)
@@ -19,6 +22,7 @@ var EditObjectControlsManager = {
             }
         this._editControls.push({ layer: layerName, oid: oid, control: control });
     },
+    
     remove: function(layerName, oid)
     {
         for (var iD = 0; iD < this._editControls.length; iD++)
@@ -27,6 +31,18 @@ var EditObjectControlsManager = {
                 this._editControls.splice(iD, 1);
                 return;
             }
+    },
+    
+    addParamsHook: function(paramsHook) {
+        this._paramsHooks.push(paramsHook);
+    },
+    
+    applyParamsHook: function(params) {
+        for (var h = 0; h < this._paramsHooks.length; h++) {
+            params = this._paramsHooks[h](params);
+        }
+        
+        return params;
     }
 }
 
@@ -161,6 +177,9 @@ var EditObjectControl = function(layerName, objectId, params)
             allowDuplicates: isNew,
             afterPropertiesControl: _span()
         }, params);
+        
+    _params = EditObjectControlsManager.applyParamsHook(_params);
+        
     var _this = this;
     if (!_params.allowDuplicates && EditObjectControlsManager.find(layerName, objectId))
         return EditObjectControlsManager.find(layerName, objectId);
@@ -568,5 +587,12 @@ var EditObjectControl = function(layerName, objectId, params)
 }
 
 nsGmx.EditObjectControl = EditObjectControl;
+
+/** Добавить "хук" для модификации параметров при всех вызовах ф-ции {@link nsGmx.EditObjectControl}
+    @function
+    @param {function(Object): Object} {paramsHook} Ф-ция, которая принимает на вход параметры ф-ции {@link nsGmx.EditObjectControl} 
+        и возвращает модифицируемые параметры (возможна замена in place)
+*/
+nsGmx.EditObjectControl.addParamsHook = EditObjectControlsManager.addParamsHook.bind(EditObjectControlsManager);
 
 })();
