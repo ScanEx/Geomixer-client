@@ -541,19 +541,19 @@
 					document.getElementsByTagName("head").item(0).appendChild(script);
 				}
 			}
-			if (layers.properties.MinViewX)
-			{
-				if(gmxAPI.proxyType === 'flash') {
-					map.setExtent(
-						layers.properties.MinViewX,
-						layers.properties.MaxViewX,
-						layers.properties.MinViewY,
-						layers.properties.MaxViewY
-					);
-				}
-			}
-			if (gmxAPI.maxRasterZoom > 17 || gmxAPI.mapMinZoom || gmxAPI.mapMaxZoom) {
-				map.setMinMaxZoom(gmxAPI.mapMinZoom || gmxAPI.defaultMinZoom, gmxAPI.mapMaxZoom || gmxAPI.maxRasterZoom || gmxAPI.defaultMaxZoom);
+			if(layers.properties.name === gmxAPI.currentMapName)	{  // Это основная карта
+				var minX = Number(layers.properties.MinViewX);
+				var maxX = Number(layers.properties.MaxViewX);
+				var minY = Number(layers.properties.MinViewY);
+				var maxY = Number(layers.properties.MaxViewY);
+                if(minX !== 0 || maxX !== 0 || minY !== 0 || maxY !== 0) {
+                    if(minX === 0 && maxX === 0) minX = -180, maxX = 180;
+                    if(minY === 0 && maxY === 0) minY = -85, maxY = 85;
+                    map.setExtent(minX, maxX, minY, maxY);
+                }
+                if (gmxAPI.maxRasterZoom > 17 || gmxAPI.mapMinZoom || gmxAPI.mapMaxZoom) {
+                    map.setMinMaxZoom(gmxAPI.mapMinZoom || gmxAPI.defaultMinZoom, gmxAPI.mapMaxZoom || gmxAPI.maxRasterZoom || gmxAPI.defaultMaxZoom);
+                }
 			}
 
 			if (layers.properties.Copyright)
