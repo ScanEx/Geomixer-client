@@ -172,7 +172,7 @@ nsGmx.RCAddLayerControl = function(map, layerName)
         });
         
     var newLayerProperties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
-    nsGmx.createLayerEditorProperties(null, 'Raster', newLayerCanvas[0], newLayerProperties, null,
+    nsGmx.createLayerEditorProperties(null, 'Raster', newLayerCanvas[0], newLayerProperties,
         {
             addToMap: false, 
             doneCallback: function(promise)

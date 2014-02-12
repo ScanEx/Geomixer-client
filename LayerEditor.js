@@ -1048,7 +1048,7 @@ var createPageAdvanced = function(parent, layerProperties) {
 //doneCallback вызывается после того, как сервер вернул результат без ошибки из скрипта, модифицирующего данные.
 //Это не значит, что слой уже создан/модифицирован без ошибок - нужно анализировать значение promise, которое передано в качестве первого аргумента.
 //Фактически, doneCallback вызывается при успешном начале создания/модификации слоя.
-var LayerEditor = function(div, type, properties, treeView, params) {
+var LayerEditor = function(div, type, properties, params) {
     var _params = $.extend({addToMap: true, doneCallback: null}, params);
     var tabs = [];
     var divProperties = div ? div.gmxProperties.content.properties : {};
@@ -1136,7 +1136,6 @@ var LayerEditor = function(div, type, properties, treeView, params) {
                 _(span, [_t(title)]);
 
                 divProperties.title = title;
-                treeView.findTreeElem(div).elem.content.properties = divProperties;
             },
             'change:Copyright': function() {
                 var copyright = layerProperties.get('Copyright')
@@ -1144,7 +1143,6 @@ var LayerEditor = function(div, type, properties, treeView, params) {
                 globalFlashMap.layers[layerProperties.get('Name')].setCopyright(copyright);
                     
                 divProperties.Copyright = copyright;
-                treeView.findTreeElem(div).elem.content.properties = divProperties;
             },
             'change:Description': function() {
                 var description = layerProperties.get('Description');
@@ -1154,15 +1152,12 @@ var LayerEditor = function(div, type, properties, treeView, params) {
                 span.innerHTML = description;
                 
                 divProperties.description = description;
-                treeView.findTreeElem(div).elem.content.properties = divProperties;
             },
             'change:Legend': function() {
                 divProperties.Legend = layerProperties.get('Legend');
-                treeView.findTreeElem(div).elem.content.properties = divProperties;
             },
             'change:NameObject': function() {
                 divProperties.NameObject = layerProperties.get('NameObject');
-                treeView.findTreeElem(div).elem.content.properties = divProperties;
             }
         });
     }
@@ -1232,7 +1227,6 @@ var LayerEditor = function(div, type, properties, treeView, params) {
  @param {DOMElement} div Элемент дерева слоёв, соответствующий редактируемому слою
  @param {String} type тип слоя ("Vector" или "Raster")
  @param {DOMElement} parent контейнер, в которым нужно разместить диалог
- @param {layersTree} treeView Представление дерева слоёв
  @param {Object} [params] Дополнительные параметры
  @param {Object[]} [params.moreTabs] Массив дополнительных вкладок со следующими полями:
  
@@ -1247,7 +1241,7 @@ var LayerEditor = function(div, type, properties, treeView, params) {
    * {Function(tabName)} selectTab Активизировать вкладку с идентификатором tabName
    
 */
-var createLayerEditorProperties = function(div, type, parent, properties, treeView, params)
+var createLayerEditorProperties = function(div, type, parent, properties, params)
 {
     var tabSelectorInterface = {
         selectTab: function(tabName) {
@@ -1262,7 +1256,7 @@ var createLayerEditorProperties = function(div, type, parent, properties, treeVi
     params = params || {};
     params.tabSelector = tabSelectorInterface;
     
-    var layerEditor = new nsGmx.LayerEditor(div, type, properties, treeView, params);
+    var layerEditor = new nsGmx.LayerEditor(div, type, properties, params);
     
     var id = 'layertabs' + (div ? div.gmxProperties.content.properties.name : '');
     

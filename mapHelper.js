@@ -777,7 +777,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
 
     if (elemProperties.type == "Vector")
     {
-        nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, layerProperties, _layersTree, params);
+        nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, layerProperties, params);
         
         return;
     }
@@ -794,7 +794,7 @@ mapHelper.prototype.createLoadingLayerEditorProperties = function(div, parent, l
                 
                 loading.removeNode(true);
                 
-                nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, response.Result, _layersTree, params)
+                nsGmx.createLayerEditorProperties(div, div.gmxProperties.content.properties.type, parent, response.Result, params)
             })
         }
     }
@@ -812,7 +812,7 @@ mapHelper.prototype.createNewLayer = function(type)
     {
 		var properties = {Title:'', Description: '', Date: '', TilePath: {Path:''}, ShapePath: {Path:''}};
         var dialogDiv = showDialog(type != 'Vector' ? _gtxt('Создать растровый слой') : _gtxt('Создать векторный слой'), parent, 340, height, false, false);
-        nsGmx.createLayerEditorProperties(false, type, parent, properties, _layersTree,
+        nsGmx.createLayerEditorProperties(false, type, parent, properties,
             {
                 doneCallback: function() 
                 {
